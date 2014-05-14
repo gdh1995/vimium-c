@@ -1,0 +1,458 @@
+{
+	"360Error": {"message":
+		"(该浏览器不支持该插件)"
+	}, "addToDialbox": {"message":
+		"收藏到拨号盘"
+	}, "addToDialboxSuccess": {"message":
+		"该网页收藏到微度拨号盘成功"
+	}, "all": {"message":
+		"全部"
+	}, "appItemDelete": {"message":
+		"删除"
+	}, "appItemDelete_confirm": {"message":
+		"确认彻底删除此扩展？"
+	}, "appItemEnabled": {"message":
+		"已启用"
+	}, "appItemExist": {"message":
+		"已添加"
+	}, "appItemGetMore": {"message":
+		"更多扩展..."
+	}, "appItemNotExist": {"message":
+		"未添加"
+	}, "appItemOpen": {"message":
+		"启用"
+	}, "appItemSave": {"message":
+		"收藏"
+	}, "auto": {"message":
+		"自动"
+	}, "autoBackup": {"message":
+		"自动云备份"
+	}, "back": {"message":
+		"返回"
+	}, "backSettings": {"message":
+		"返回设置"
+	}, "backup": {"message":
+		"手动备份 (POST hao.weidunewtab.com/weidu/wc.json.php)"
+	}, "baseSettingsMore": {"message":
+		"基本设置"
+	}, "bgColor": {"message":
+		"背景色"
+	}, "bgImportFile": {"message":
+		"选择本地图片"
+	}, "bgLayout": {"message":
+		"壁纸布局"
+	}, "bgLayoutAutoHeight": {"message":
+		"适高"
+	}, "bgLayoutAutoWidth": {"message":
+		"适宽"
+	}, "bgLayoutCenter": {"message":
+		"中"
+	}, "bgLayoutLeft": {"message":
+		"左"
+	}, "bgLayoutRight": {"message":
+		"右"
+	}, "bgLayoutTensile": {"message":
+		"拉伸"
+	}, "bgLayoutTile": {"message":
+		"平铺"
+	}, "bgPosition": {"message":
+		"壁纸位置"
+	}, "bookmardDelete_confirm": {"message":
+		"确认删除该书签？"
+	}, "bookmarks": {"message":
+		"收藏夹"
+	}, "bookmarksAppTitle": {"message":
+		"书 签"
+	}, "bookmarksManage": {"message":
+		"管 理"
+	}, "bookmarksRecent": {"message":
+		"最近的添加"
+	}, "borwserVersionLower": {"message":
+		"该浏览器版本过低，不支持该功能，请升级新的浏览器版本~"
+	}, "calendarFri": {"message":
+		"星期五"
+	}, "calendarMon": {"message":
+		"星期一"
+	}, "calendarSat": {"message":
+		"星期六"
+	}, "calendarSun": {"message":
+		"星期日"
+	}, "calendarThu": {"message":
+		"星期四"
+	}, "calendarTue": {"message":
+		"星期二"
+	}, "calendarWed": {"message":
+		"星期三"
+	}, "cancel": {"message":
+		"取消"
+	}, "chromeExtension": {"message":
+		"Chrome插件版"
+	}, "chrome_extension_description": {"message":
+		"微度新标签页, 附带 Vimium"
+	}, "chrome_extension_name": {"message":
+		"微度新标签页 with Vimium"
+	}, "chrome_extension_short_name": {"message":
+		"微度&Vim"
+	}, "classificationAdd": {"message":
+		"添加分类"
+	}, "classificationAppTitle": {"message":
+		"分类"
+	}, "classificationDel": {"message":
+		"删除分类"
+	}, "classificationDelete_confirm": {"message":
+		"删除该分类，将删除该分类的所有数据，确认要删除该分类？"
+	}, "classificationEdit": {"message":
+		"修改分类"
+	}, "classificationEditNotice": {"message":
+		"小提示： 点击分类名称可以修改该分类名称，点击分类图标可以修改该分类图标 ！"
+	}, "classificationGame": {"message":
+		"游戏"
+	}, "classificationGetDataError": {"message":
+		"分类数据获取失败，请重试！"
+	}, "classificationLimit": {"message":
+		"最多只能创建%s个分类！"
+	}, "classificationLogoEdit": {"message":
+		"选择分类图标:"
+	}, "classificationMain": {"message":
+		"常用"},
+
+	"classificationNew": {"message":
+		"新建分类"
+	}, "classificationNotice": {"message":
+		"小提示： \"~\" 可以快速唤出分类插件，鼠标右键进入分类编辑 ！　\"~\" 对应常用分类切换，\"1-7\" 对应相应的分类切换 ！"
+	}, "classificationSelect": {"message":
+		"切换 %s 分类"
+	}, "classificationShopping": {"message":
+		"购物"
+	}, "classificationShowNotice_next": {"message":
+		"往后再滚一次，进入分类选择！"
+	}, "classificationShowNotice_pre": {"message":
+		"往前再滚一次，进入分类选择！"
+	}, "clear_confirm": {"message":
+		"（同步清空%s账号当前备份数据）"
+	}, "clickHere": {"message":
+		"点此处"
+	}, "cloudAppTitle": {"message":
+		"云网址"
+	}, "contextMenusAddToDialbox": {"message":
+		"添加到微度"
+	}, "contextMenusSwitch": {"message":
+		"显示鼠标右键微度菜单"
+	}, "currentVisiting": {"message":
+		"当前打开"
+	}, "dateUnit": {"message":
+		"日"
+	}, "default": {"message":
+		"恢复默认"
+	}, "delete": {"message":
+		"删除"
+	}, "determine": {"message":
+		"确定"
+	}, "dialBoxCloudBoxSwitch": {"message":
+		"显示添加拨号框"
+	}, "dialBoxHeight": {"message":
+		"高度"
+	}, "dialBoxHeightUnit": {"message":
+		"px"
+	}, "dialBoxNum": {"message":
+		"个数"
+	}, "dialBoxNumUnit": {"message":
+		"个"
+	}, "dialBoxOpacity": {"message":
+		"透明"
+	}, "dialBoxOpacityUnit": {"message":
+		"%"
+	}, "dialBoxPage3DNotSupport": {"message":
+		"你的浏览器不支持3D效果，无法开启此效果，建议使用最新Chrome稳定版！"
+	}, "dialBoxPage3DSwitcher": {"message":
+		"拨号盘3D效果"
+	}, "dialBoxPageSwitcher": {"message":
+		"拨号盘翻页按钮"
+	}, "dialBoxQBCWidth": {"message":
+		"快捷栏宽度"
+	}, "dialBoxQBCWidthUnit": {"message":
+		"px"
+	}, "dialBoxQuickSwitcher": {"message":
+		"自动隐藏快捷拨号栏"
+	}, "dialBoxRadius": {"message":
+		"弧度"
+	}, "dialBoxRadiusUnit": {"message":
+		"px"
+	}, "dialBoxSettings": {"message":
+		"拨号盘风格"
+	}, "dialBoxSettingsEditTitle": {"message":
+		"点击输入"
+	}, "dialBoxSettingsMore": {"message":
+		"拨号盘详细设置"
+	}, "dialBoxSpacing": {"message":
+		"间距"
+	}, "dialBoxSpacingUnit": {"message":
+		"px"
+	}, "dialBoxTitleSwitch": {"message":
+		"显示拨号框标题"
+	}, "dialBoxWidth": {"message":
+		"宽度"
+	}, "dialBoxWidthUnit": {"message":
+		"px"
+	}, "editDialbox": {"message":
+		"单击编辑拨号框"
+	}, "export": {"message":
+		"导出"
+	}, "exportError": {"message":
+		"您的数据导出失败，请重试！"
+	}, "extensionsAppTitle": {"message":
+		"扩展程序"
+	}, "extensionsManage": {"message":
+		"管 理"
+	}, "facebookLoginTypeTitle": {"message":
+		"Facebook"
+	}, "filterImages": {"message":
+		"图片类型错误"
+	}, "googleLoginTypeTitle": {"message":
+		"Google"
+	}, "iKnow": {"message":
+		"知道了"
+	}, "import": {"message":
+		"导入 (支持SpeedDial2数据)"
+	}, "importError": {"message":
+		"您的数据导入失败！"
+	}, "import_confirm": {"message":
+		"导入数据后将覆盖您本地和登录账号服务器上的备份数据，确定要导入？"
+	}, "itemAdd": {"message":
+		"点击添加"
+	}, "lastVisitedAppTitle": {"message":
+		"最近访问"
+	}, "lastVisitedDelete_confirm": {"message":
+		"确认删除该访问记录？"
+	}, "lastVisitedNull": {"message":
+		"没有最近访问过网站的记录"
+	}, "loadingTimeout": {"message":
+		"加载超时%s..."
+	}, "localSkinsLarge": {"message":
+		"您选择的本地图片过大"
+	}, "loggedOut": {"message":
+		"您的账号已登出，若要同步数据请及时登录您的账号！"
+	}, "login": {"message":
+		"云备份"
+	}, "loginMemo": {"message":
+		"( 注：不同的账号对应不同的云备份数据, 登录用户时服务器端数据会覆盖本地数据 )"
+	}, "logining": {"message":
+		"正在登录您的用户，请稍后再执行操作！"
+	}, "logoFileLarger": {"message":
+		"Logo文件大于30K,不允许上传!"
+	}, "logoFileUploadError": {"message":
+		"Logo文件上传失败!"
+	}, "logout": {"message":
+		"登出"
+	}, "minSearchPlaceHolder": {"message":
+		"点击搜索"
+	}, "monthUnit": {"message":
+		"月"
+	}, "more": {"message":
+		"更多..."
+	}, "moreSettings": {"message":
+		"更多设置"
+	}, "multi": {"message":
+		"多选"
+	}, "myApps": {"message":
+		"微度应用"
+	}, "noResult": {"message":
+		"暂无数据"
+	}, "oBookmarksTitle": {"message":
+		"书签 - 快捷框"
+	}, "oDownloadsTitle": {"message":
+		"下载内容 - 快捷框"
+	}, "oExtensionsTitle": {"message":
+		"扩展管理 - 快捷框"
+	}, "oHistoryTitle": {"message":
+		"历史记录 - 快捷框"
+	}, "oNewtabTitle": {"message":
+		"标签页 - 快捷框"
+	}, "oauthDown": {"message":
+		"数据下载"
+	}, "oauthDownDataVersionError": {"message":
+		"你服务器上备份的数据版本比较新，正在使用的插件版本无法下载该数据，请更新插件版本！"
+	}, "oauthDown_confirm": {"message":
+		"下载该账户%s的数据吗?"
+	}, "oauthImportDataVersionError": {"message":
+		"你导入的数据版本比较新，正在使用的插件版本无法使用该数据，请更新插件版本！"
+	}, "oauthSynDataVersionError": {"message":
+		"你服务器上备份的数据版本比较新，请更新插件或数据恢复默认后，才能进行数据同步！"
+	}, "oauthSynMsgidError": {"message":
+		"您有更新的数据版本在服务器上，请先 “<a class=\"reload\">刷新<\/a>” 再进行操作！"
+	}, "openAll": {"message":
+		"全部打开"
+	}, "openAutoBackup": {"message":
+		"登录用户，开启自动云备份"
+	}, "openSwitch": {"message":
+		"开启“微度”"
+	}, "openWeb": {"message":
+		"打开"
+	}, "open_confirm": {"message":
+		"是否开启微度新标签页插件，作为浏览器的 New Tab 页 ?"
+	}, "pluginsTitle": {"message":
+		"插 件："
+	}, "qqLoginTypeTitle": {"message":
+		"腾讯QQ"
+	}, "qqwbLoginTypeTitle": {"message":
+		"腾讯微博"
+	}, "quickSearchAppTitle": {"message":
+		"快速搜索"
+	}, "removeAll": {"message":
+		"清空"
+	}, "reset_confirm": {"message":
+		"确认恢复为默认设置吗？%s"
+	}, "searchResult": {"message":
+		"搜索结果"
+	}, "settingSecovery": {"message":
+		"恢复默认设置"
+	}, "setupAppTitle": {"message":
+		"设置"
+	}, "shareClose": {"message":
+		"不再提示"
+	}, "shortcutsTitle": {"message":
+		"快 捷 框："
+	}, "sinaLoginTypeTitle": {"message":
+		"新浪微博"
+	}, "siteNavAppTitle": {"message":
+		"网址导航"
+	}, "skinsAppTitle": {"message":
+		"云壁纸"
+	}, "suggest": {"message":
+		"● 意见反馈"
+	}, "synchronize": {"message":
+		"上传备份数据"
+	}, "taobaoLoginTypeTitle": {"message":
+		"淘宝"
+	}, "targetSwitch": {"message":
+		"本窗口打开链接"
+	}, "title": {"message":
+		"微度 with Vimium"
+	}, "toolsAppTitle": {"message":
+		"实用工具"
+	}, "topVisited": {"message":
+		"经常访问"
+	}, "twitterLoginTypeTitle": {"message":
+		"Twitter"
+	}, "useHelp": {"message":
+		"● 使用帮助"
+	}, "wallpaperCategoryAll": {"message":
+		"推 荐"
+	}, "wallpaperCategoryAuto": {"message":
+		"汽 车"
+	}, "wallpaperCategoryBeauty": {"message":
+		"美 女"
+	}, "wallpaperCategoryCartoon": {"message":
+		"卡 通"
+	}, "wallpaperCategoryClassic": {"message":
+		"经 典"
+	}, "wallpaperCategoryGame": {"message":
+		"游 戏"
+	}, "wallpaperCategoryHoliday": {"message":
+		"节 日"
+	}, "wallpaperCategoryMovies": {"message":
+		"电 影"
+	}, "wallpaperCategoryScenery": {"message":
+		"风 景"
+	}, "wallpaperCategorySports": {"message":
+		"体 育"
+	}, "wallpaperCategoryUsed": {"message":
+		"最近使用"
+	}, "weather48UVIndex": {"message":
+		"48小时内紫外线指数"
+	}, "weatherAllergyIndex": {"message":
+		"过敏指数"
+	}, "weatherAppTitle": {"message":
+		"天气"
+	}, "weatherCarWashIndex": {"message":
+		"洗车指数"
+	}, "weatherCityDataNull": {"message":
+		"没有该城市的天气。"
+	}, "weatherCityIsNull": {"message":
+		"无法定位当前城市，请手动选择！"
+	}, "weatherCitySetting": {"message":
+		"设置"
+	}, "weatherDressingIndex": {"message":
+		"穿衣指数"
+	}, "weatherLifeTools": {"message":
+		"生活小助手"
+	}, "weatherSearchCityEmpty": {"message":
+		"搜索没有结果。"
+	}, "weatherSearchCityKeywordError": {"message":
+		"请输入城市名"
+	}, "weatherSearchKeyword": {"message":
+		"输入城市名"
+	}, "weatherSelectCity": {"message":
+		"城市选择"
+	}, "weatherTempUnitC": {"message":
+		"℃"
+	}, "weatherTempUnitF": {"message":
+		"℉"
+	}, "weatherTravelIndex": {"message":
+		"旅游指数"
+	}, "weatherUVIndex": {"message":
+		"紫外线指数"
+	}, "webSiteLogo": {"message":
+		"图片"
+	}, "webSiteLogoMessage": {"message":
+		"请输入网站图片"
+	}, "webSiteLogoNull": {"message":
+		"图片不正确"
+	}, "webSiteLogoOutside": {"message":
+		"外链Logo:"
+	}, "webSiteLogoOutsideUrl": {"message":
+		"Logo外链地址:"
+	}, "webSiteLogoUpload": {"message":
+		"本地上传Logo:"
+	}, "webSiteLogos": {"message":
+		"通用Logo系列:"
+	}, "webSiteTitle": {"message":
+		"标题"
+	}, "webSiteTitleMessage": {"message":
+		"请输入网站名称"
+	}, "webSiteTitleNoError": {"message":
+		"标题输入正确"
+	}, "webSiteTitleNull": {"message":
+		"标题不正确"
+	}, "webSiteUrl": {"message":
+		"网址"
+	}, "webSiteUrlMessage": {"message":
+		"请输入网址"
+	}, "webSiteUrlNoError": {"message":
+		"网址输入正确"
+	}, "webSiteUrlNull": {"message":
+		"网址不正确"
+	}, "websiteAdd": {"message":
+		"手动添加"
+	}, "websiteCategoryBook": {"message":
+		"文学小说"
+	}, "websiteCategoryEconomy": {"message":
+		"财经投资"
+	}, "websiteCategoryGame": {"message":
+		"游戏人生"
+	}, "websiteCategoryGeek": {"message":
+		"极客文化"
+	}, "websiteCategoryHot": {"message":
+		"热门推荐"
+	}, "websiteCategoryLife": {"message":
+		"创意生活"
+	}, "websiteCategoryMusic": {"message":
+		"音乐无限"
+	}, "websiteCategoryNews": {"message":
+		"新闻资讯"
+	}, "websiteCategoryPopular": {"message":
+		"明星网站"
+	}, "websiteCategoryShopping": {"message":
+		"购物血拼"
+	}, "websiteCategorySns": {"message":
+		"社区微博"
+	}, "websiteCategoryTour": {"message":
+		"旅游足迹"
+	}, "websiteCategoryVideo": {"message":
+		"视频娱乐"
+	}, "websiteSearch": {"message":
+		"库内搜索网站"
+	}, "yearUnit": {"message":
+		"年"
+	}, "zero": {"message": "1.44"}
+}

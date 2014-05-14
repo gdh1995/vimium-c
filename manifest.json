@@ -1,0 +1,29 @@
+{
+	"background": {
+		"scripts": [ "lib/utils.js", "background_scripts/commands.js", "lib/clipboard.js", "background_scripts/settings.js", "background_scripts/completion.js", "background_scripts/marks.js", "background_scripts/main.js" ]
+	},
+	"name": "__MSG_chrome_extension_name__",
+	"short_name": "__MSG_chrome_extension_short_name__",
+	"description": "__MSG_chrome_extension_description__",
+	"version": "4.6.2",
+	"content_scripts": [ {
+		"all_frames": true,
+		"css": [ "content_scripts/vimium.css" ],
+		"js": [ "lib/utils.js", "lib/keyboard_utils.js", "lib/dom_utils.js", "lib/handler_stack.js", "lib/clipboard.js", "content_scripts/link_hints.js", "content_scripts/vomnibar.js", "content_scripts/scroller.js", "content_scripts/marks.js", "content_scripts/vimium_frontend.js" ],
+		"matches": [ "\u003Call_urls>" ],
+		"run_at": "document_start"
+	} ],
+	"icons": {
+		"16": "img/icon_16.png",
+		"128": "img/icon_128.png"
+	},
+	"chrome_url_overrides": {
+		"newtab": "index.html"
+	},
+	"update_url": "http://clients2.google.com/service/update2/crx",
+	"default_locale": "zh_CN",
+	"options_page": "index.html#setting",
+	"permissions": [ "tabs", "bookmarks", "management", "history", "clipboardRead", "chrome://favicon/", "\u003Call_urls>", "unlimitedStorage" ],
+	"content_security_policy": "script-src 'self'; object-src 'self';",
+	"manifest_version": 2
+}

@@ -1,0 +1,143 @@
+.settingContainer{position:relative;width:760px;height:476px;overflow:hidden;border-radius:6px;background:#F8F8F8;}
+.settingBox{position:absolute;width:760px;height:476px;top:0px;left:0px;-webkit-transition:left .2s ease-in, opacity .2s ease-in;}
+.titleBar{width:100%;height:37px;line-height:37px;text-indent:5px;font-size:18px;background:url(../../dialog/img/skin_0/headerBg.png);color:#454545;border-radius:6px 6px 0 0;}
+.titleBar .titleBarIcon{float:left;width:21px;height:21px;margin:7px 0 0 15px;background:url(../img/logo.png);background-size:100%;}
+.titleBar .back{width:81px;line-height:24px;cursor:pointer;text-align:center;font-size:14px;position:absolute;right:25px;top:6px;color:white;font-weight:normal;background:url(../../../../img/skin_0/wedo.png) -123px -453px;text-indent:0px;}
+.titleBar .back:hover{background:url(../../../../img/skin_0/wedo.png) -123px -488px;}
+.baseSettingsBar, .oathSettingsBar{height:35px;width:720px;margin:0 20px;background:#F8F8F8;}
+.baseSettingsBar span, .oathSettingsBar span{font-size:14px;margin-left:2px;line-height:40px;color:black;}
+.dialBoxSettingsContainer{width:718px;height:89px;margin:0px 20px 0 20px;border-bottom:#CCC 1px dashed;border-right:#CCC 1px solid;border-left:#CCC 1px solid;border-top:#CCC 1px solid;border-radius:10px 10px 0 0;}
+.dialBoxSettingsContainer .dialBoxStyle{cursor:pointer;float:left;width:80px;height:60px;margin:15px;text-align:center;border-radius:6px;}
+.dialBoxSettingsContainer .dialBoxStyle.default{background:url(../img/skin_0/dialBoxStyle.png) 0px 0px;}
+.dialBoxSettingsContainer .dialBoxStyle.circular{background:url(../img/skin_0/dialBoxStyle.png) -80px 0;}
+.dialBoxSettingsContainer .dialBoxStyle.square{background:url(../img/skin_0/dialBoxStyle.png) -160px 0;}
+.dialBoxSettingsContainer .dialBoxStyle.seamless{background:url(../img/skin_0/dialBoxStyle.png) -240px 0;}
+.dialBoxSettingsContainer .dialBoxStyle .DBoxNum{float:left;width:40px;height:30px;line-height:30px;color:#FFF;font-weight:bold;margin-right:0px;text-shadow:1px 1px 3px black;border-radius:6px;display:none;}
+.dialBoxSettingsContainer .dialBoxStyle:hover .DBoxNum{display:block;}
+.dialBoxSettingsContainer .dialBoxStyle .DBoxNum:hover{background:rgba(60,60,60,0.6);}
+.dialBoxSettingsContainer div.more{cursor:pointer;float:right;width:85px;height:44px;background:url(../../../../img/skin_0/wedo.png) -37px 49px;margin-top:27px;margin-right:10px;opacity:0.8;}
+.dialBoxSettingsContainer div.more:hover{opacity:1;}
+.baseSettingsContainer{width:718px;margin:0px 20px 0 20px;border-right:#CCC 1px solid;border-left:#CCC 1px solid;border-bottom:#CCC 1px solid;border-radius:0 0 10px 10px;}
+.baseSettingsContainer .settingsItem, .oathSettingsContainer .settingsItem{border-bottom:#CCC 1px dashed;}
+.baseSettingsContainer .settingsItem.last{border-bottom:0px;border-radius:0 0 10px 10px;}
+.baseSettingsContainer .settingsItem:hover, .oathSettingsContainer .settingsItem:hover{background-color:#F2F2F2;}
+.baseSettingsContainer .settingsItem:last-child{border-bottom:0px;border-radius:0 0 10px 10px;}
+.baseSettingsContainer .settingsItem span, .oathSettingsContainer .settingsItem span{margin-left:15px;line-height:35px;}
+.baseSettingsContainer .settingsItem .settingsItemSwitch{float:right;margin-right:15px;line-height:35px;height:35px;}
+.oathSettingsBar span.right{font-size:12px;color:#078CE8;float:right;font-weight:normal;margin-right:2px;line-height:30px;margin-top:6px;}
+.oathSettingsContainer{width:718px;margin:0px 20px 0 20px;border-bottom:#CCC 1px solid;border-right:#CCC 1px solid;border-left:#CCC 1px solid;border-top:#CCC 1px solid;border-radius:10px 10px 10px 10px;}
+.oathSettingsContainer .settingsItem{position:relative;height:40px;}
+.oathSettingsContainer .settingsItem span{line-height:40px;}
+.oathSettingsContainer .settingsItem:first-child{border-radius:10px 10px 0 0;}
+.oathSettingsContainer .settingsItem:last-child{border-bottom:0px;border-radius:0 0 10px 10px;}
+.oathSettingsContainer .dataContainer, .oathSettingsContainer .loginContainer{position:absolute;height:35px;right:15px;top:5px;}
+.oathSettingsContainer .dataContainer .dataAction{float:left;cursor:pointer;width:80px;text-align:center;font-weight:bold;line-height:32px;}
+.oathSettingsContainer .dataContainer .dataAction.export{margin-right:10px;}
+.oathSettingsContainer .dataContainer .dataAction.import{width:auto;}
+.oathSettingsContainer .dataContainer .dataAction:hover{opacity:0.7;}
+.oathSettingsContainer .dataContainer .dataAction div{float:left;}
+.oathSettingsContainer .dataContainer .dataAction div.icon{width:25px;height:30px;margin-right:2px;}
+.oathSettingsContainer .dataContainer .dataAction div.icon.export{background:url(../../../../img/skin_0/wedo.png) 5px -419px;}
+.oathSettingsContainer .dataContainer .dataAction div.icon.import{background:url(../../../../img/skin_0/wedo.png) -16px -419px;}
+.oathSettingsContainer .loginContainer .loginButton{float:left;margin-left:13px;}
+.oathSettingsContainer .loginContainer .loginButton a img{border:0px;}
+.oathSettingsContainer .loginContainer .loginButtonMore{float:left;height:30px;width:30px;margin-left:8px;cursor:pointer;background:url(../img/skin_0/icons.png) -110px -8px;}
+.oathSettingsContainer .loginContainer .loginButtonMore:hover{background:url(../img/skin_0/icons.png) -69px -8px;}
+.oathSettingsContainer .loginContainer .userContent{height:28px;float:left;position:relative;border:2px #CCC solid;border-radius:4px;padding-left:10px;font-weight:bold;}
+.oathSettingsContainer .loginContainer .userContent .userContentArrowBorder{border-color:transparent #CCC transparent transparent;border-style:solid;border-width:9px;height:0;width:0;position:absolute;top:10px;left:-19px;z-index:2000;}
+.oathSettingsContainer .loginContainer .userContent .userContentArrow{border-color:transparent #F8F8F8 transparent transparent;border-style:solid;border-width:9px;height:0;width:0;position:absolute;top:10px;left:-16px;z-index:2000;}
+.oathSettingsContainer .loginContainer .userContent span{cursor:pointer;margin-right:10px;margin-left:0px;line-height:28px;}
+.oathSettingsContainer .loginContainer .userContent span.oauthCode{font-size:14px;}
+.oathSettingsContainer .loginContainer .userContent span label{cursor:pointer;}
+.dialBoxSettingsBox{position:absolute;width:760px;height:501px;left:760px;opacity:0;-webkit-transition:left .2s ease-in, opacity .2s ease-in;}
+.settingsMoreContainer{height:430px;overflow-y:auto;width:100%;}
+.settingsMoreContainer .containerBorder{width:96%;margin:10px auto;border:#CCC 1px solid;border-radius:10px;}
+.settingsMoreContainer .containerBorder div:first-child{border-radius:10px 10px 0 0;}
+.settingsMoreContainer .containerBorder div:last-child{border-radius:0 0 10px 10px;}
+.dialBoxNumBar,
+.dialBoxWidthBar,
+.dialBoxHeightBar,
+.dialBoxRadiusBar,
+.dialBoxSpacingBar,
+.dialBoxOpacityBar,
+.dialBoxPage3DBar,
+.dialBoxTitleBar,
+.dialBoxQuickBar{border-bottom:#CCC 1px dashed;}
+.dialBoxCloudBoxBar:hover,
+.dialBoxPage3DBar:hover,
+.dialBoxTitleBar:hover,
+.dialBoxQuickBar:hover,
+.dialBoxNumBar:hover,
+.dialBoxWidthBar:hover,
+.dialBoxHeightBar:hover,
+.dialBoxRadiusBar:hover,
+.dialBoxSpacingBar:hover,
+.dialBoxOpacityBar:hover,
+.dialBoxQBCWidthBar:hover{background-color:#F7F7F7;}
+.dialBoxCloudBoxBar span,
+.dialBoxPage3DBar span,
+.dialBoxTitleBar span,
+.dialBoxQuickBar span,
+.dialBoxNumBar span,
+.dialBoxWidthBar span,
+.dialBoxHeightBar span,
+.dialBoxRadiusBar span,
+.dialBoxSpacingBar span,
+.dialBoxOpacityBar span,
+.dialBoxQBCWidthBar span{font-size:12px;margin-left:20px;line-height:35px;}
+.dialBoxCloudBoxBar .dialBoxCloudBox,
+.dialBoxPage3DBar .dialBoxPage3D,
+.dialBoxTitleBar .dialBoxTitle,
+.dialBoxQuickBar .dialBoxQuick,
+.dialBoxNum,
+.dialBoxWidth,
+.dialBoxHeight,
+.dialBoxRadius,
+.dialBoxSpacing,
+.dialBoxOpacity,
+.dialBoxQBCWidth{float:right;margin-right:10px;line-height:35px;}
+.dialBoxNumBar .dialBoxNum input[type="range"],
+.dialBoxOpacityBar .dialBoxOpacity input[type="range"],
+.dialBoxSpacingBar .dialBoxSpacing input[type="range"],
+.dialBoxWidthBar .dialBoxWidth input[type="range"],
+.dialBoxHeightBar .dialBoxHeight input[type="range"],
+.dialBoxRadiusBar .dialBoxRadius input[type="range"],
+.dialBoxQBCWidthBar .dialBoxQBCWidth input[type="range"]{-webkit-appearance:none !important;padding:0;box-shadow:inset 0 0 4px rgba(0, 0, 0, 0.05);border-radius:8px;height:4px;width:500px;float:left;margin-top:17px;background:rgba(33, 160, 245, .60);}
+.dialBoxNumBar .dialBoxNum div,
+.dialBoxOpacityBar .dialBoxOpacity div,
+.dialBoxSpacingBar .dialBoxSpacing div,
+.dialBoxWidthBar .dialBoxWidth div,
+.dialBoxHeightBar .dialBoxHeight div,
+.dialBoxRadiusBar .dialBoxRadius div,
+.dialBoxQBCWidthBar .dialBoxQBCWidth div{font-size:12px;font-weight:normal;line-height:35px;margin-left:2px;width:40px;float:left;text-align:right;}
+.dialBoxNumBar .dialBoxNum div input.RValue,
+.dialBoxOpacityBar .dialBoxOpacity div input.RValue,
+.dialBoxSpacingBar .dialBoxSpacing div input.RValue,
+.dialBoxWidthBar .dialBoxWidth div input.RValue,
+.dialBoxHeightBar .dialBoxHeight div input.RValue,
+.dialBoxRadiusBar .dialBoxRadius div input.RValue,
+.dialBoxQBCWidthBar .dialBoxQBCWidth div input.RValue{width:30px;outline:none;text-align:right;border:0;background:#F8F8F8;}
+.dialBoxNumBar .dialBoxNum div input.RValue:focus,
+.dialBoxOpacityBar .dialBoxOpacity div input.RValue:focus,
+.dialBoxSpacingBar .dialBoxSpacing div input.RValue:focus,
+.dialBoxWidthBar .dialBoxWidth div input.RValue:focus,
+.dialBoxHeightBar .dialBoxHeight div input.RValue:focus,
+.dialBoxRadiusBar .dialBoxRadius div input.RValue:focus,
+.dialBoxQBCWidthBar .dialBoxQBCWidth div input.RValue:focus{border:1px #CCC solid;background:#FFFFFF;}
+.dialBoxNumBar .dialBoxNum div.unit,
+.dialBoxOpacityBar .dialBoxOpacity div.unit,
+.dialBoxSpacingBar .dialBoxSpacing div.unit,
+.dialBoxWidthBar .dialBoxWidth div.unit,
+.dialBoxHeightBar .dialBoxHeight div.unit,
+.dialBoxRadiusBar .dialBoxRadius div.unit,
+.dialBoxQBCWidthBar .dialBoxQBCWidth div.unit{width:20px;}
+.settingContainer .suggest, .settingContainer .useHelp, .settingContainer .version{position:absolute;right:150px;top:47px;width:80px;height:20px;}
+.settingContainer .useHelp{right:65px;}
+.settingContainer .version{right:-10px;}
+.settingContainer .suggest a, .settingContainer .useHelp a, .settingContainer .version a{color:#CCC;text-shadow:none;}
+.settingContainer .suggest a:hover, .settingContainer .useHelp a:hover{color:#545454;}
+.recovery{background-color:#ECECEC;border:#CACBCA solid 1px;width:70px;line-height:17px;margin-top:7px;margin-right:37px;border-radius:50px;cursor:pointer;text-align:center;font-size:12px;position:absolute;right:0px;font-family:arial,sans-serif;}
+.recovery:hover{border-color:#2A65A0;border-bottom-color:#3884CF;color:white;background-color:#3072B3;background-image:-webkit-linear-gradient(top, #3072B3, #599BDC);}
+.settingContainer input[type=checkbox]{display:none;}
+.settingContainer input[type=checkbox] + label{text-indent:-9999px;display:block;width:60px;overflow:hidden;height:21px;line-height:21px;background:transparent url(../../../../img/skin_0/ios5_button.png) no-repeat 0 0;-webkit-transition:background-position 0.3s ease-in-out;border-radius:1em 1em 1em 1em;cursor:pointer;margin:7px 3px 3px 0px;background-position:-39px 0;}
+.settingContainer input[type=checkbox]:checked + label{background-position:0px 0;}

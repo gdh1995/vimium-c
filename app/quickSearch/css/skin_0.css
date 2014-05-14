@@ -1,0 +1,36 @@
+.quickSearchContainer{position:relative;width:700px;height:436px;background:#F8F8F8;border-radius:6px;overflow:hidden;}
+.quickSearchContainer .quickSearchHeader{width:700px;height:36px;line-height:36px;text-indent:5px;font-size:18px;background:url(../../../js/plugin/dialog/img/skin_0/headerBg.png);color:#454545;border-radius:6px 6px 0 0;}
+.quickSearchContainer .quickSearchHeader .headerIcon{float:left;width:21px;height:21px;margin:7px 0 0 15px;background:url(../img/logo.png);background-size:100%;}
+.quickSearchContainer .quickSearchBody{width:700px;height:400px;overflow:hidden;}
+.quickSearchContainer .quickSearchBody .main{height:400px;overflow:hidden;left:0px;position:absolute;-webkit-transition:all .4s ease-in;}
+.quickSearchContainer .quickSearchBody .main .iframeContainer{width:700px;height:400px;overflow:hidden;float:left;}
+.quickSearchContainer .pageSwitcher{position:absolute;background-color:transparent;top:40px;border-radius:6px;height:50px;z-index:10;}
+.quickSearchContainer .pageSwitcher .pageSwitcherItem{cursor:pointer;float:left;margin-left:10px;margin-top:5px;-webkit-mask-image:-webkit-linear-gradient(top, rgba(0,0,0,0.4), rgba(0,0,0,0.4));}
+.quickSearchContainer .pageSwitcher .pageSwitcherItem.selected, .quickSearchContainer .pageSwitcher .pageSwitcherItem:hover{-webkit-mask-image:none;}
+.body .dialbox .appBox .quickSearchApp{position:absolute;width:100%;}
+.body .dialbox .appBox.quick .quickSearchApp{display:none;}
+.body .dialbox .appBox .quickSearchApp .searchList{height:60px;margin:0 10px;cursor:pointer;}
+.body .dialbox .appBox .quickSearchApp .searchList .searchItem{float:left;width:30px;height:30px;margin:15px 6px 15px 2px;}
+.body .dialbox .appBox .quickSearchApp .searchList .searchItem.google_cn{background:url(../img/google.png) 0px 0px;}
+.body .dialbox .appBox .quickSearchApp .searchList .searchItem.google_cn.selected{background:url(../img/google.png) 0px 30px;}
+.body .dialbox .appBox .quickSearchApp .searchList .searchItem.baidu{background:url(../img/baidu.png) 0px 0px;}
+.body .dialbox .appBox .quickSearchApp .searchList .searchItem.baidu.selected{background:url(../img/baidu.png) 0px 30px;}
+.body .dialbox .appBox .quickSearchApp .searchList .searchItem.taobao{background:url(../img/taobao.png) 0px 0px;}
+.body .dialbox .appBox .quickSearchApp .searchList .searchItem.taobao.selected{background:url(../img/taobao.png) 0px 30px;}
+.body .dialbox .appBox .quickSearchApp .searchList .searchItem.yahoo{background:url(../img/yahoo.png) 0px 0px;}
+.body .dialbox .appBox .quickSearchApp .searchList .searchItem.yahoo.selected{background:url(../img/yahoo.png) 0px 30px;}
+.body .dialbox .appBox .quickSearchApp .searchList .searchItem.bing{background:url(../img/bing.png) 0px 0px;}
+.body .dialbox .appBox .quickSearchApp .searchList .searchItem.bing.selected{background:url(../img/bing.png) 0px 30px;}
+.body .dialbox .appBox .quickSearchApp .searchCenter{margin:0 10px;height:30px;text-align:center;position:relative;}
+.body .dialbox .appBox .quickSearchApp .searchCenter .searchHidden{display:none;}
+.body .dialbox .appBox .quickSearchApp .searchCenter .arrowBorder{border-color:transparent transparent #BCBDBD transparent;border-style:solid;border-width:6px;height:0;width:0;position:absolute;top:-12px;left:10px;}
+.body .dialbox .appBox .quickSearchApp .searchCenter .arrow{border-color:transparent transparent #FFF transparent;border-style:solid;border-width:6px;height:0;width:0;position:absolute;top:-11px;left:10px;}
+.body .dialbox .appBox .quickSearchApp .searchCenter .searchKeyword{width:83%;outline:none;padding:0;height:28px;line-height:28px;font-size:13px;float:left;background:white;border:none;overflow:hidden;border-top:#bcbdbd 1px solid;border-left:#bcbdbd 1px solid;border-bottom:#bcbdbd 1px solid;border-radius:3px 0px 0px 3px;text-indent:4px;font-family:arial,sans-serif;}
+.body .dialbox .appBox .quickSearchApp .searchCenter .searchBtn{cursor:pointer;width:16%;float:left;height:30px;color:white;border:0;border-radius:0px 3px 3px 0;background-image:url(../img/searchButton.png);background-position:center;}
+.body .dialbox .appBox .quickSearchApp .searchSuggest{margin:0px 10px;overflow:hidden;display:none;}
+.body .dialbox .appBox .quickSearchApp .searchSuggest ul{width:99%;}
+.body .dialbox .appBox .quickSearchApp .searchSuggest ul li{height:37px;line-height:37px;background:#FFF;text-align:left;cursor:pointer;color:#545454;overflow:hidden;font-size:14px;border-bottom:1px #CCC dashed;}
+.body .dialbox .appBox .quickSearchApp .searchSuggest ul li label{font-weight:bold;}
+.body .dialbox .appBox .quickSearchApp .searchSuggest ul li.selected{background:#EFEFEF;}
+.body .dialbox .appBox .quickSearchApp .searchHotKeywords{margin:0px 10px;white-space:nowrap;overflow:hidden;display:none;}
+.body .dialbox .appBox .quickSearchApp .searchHotKeywords .iframeSearchHotKeywords{width:100%;height:100%;}
