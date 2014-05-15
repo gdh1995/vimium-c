@@ -24,6 +24,11 @@
 .skinsContainer .cloudWallpaperContainer .cloudWallpaperItem.big img{height:218px;width:352px;}
 .skinsContainer .cloudWallpaperContainer .cloudWallpaperItem .wallpaperLoading{position:absolute;height:100%;width:100%;background:#000;opacity:.7;left:0;top:0;}
 .skinsContainer .cloudWallpaperContainer .cloudWallpaperItem .wallpaperLoading img{position:absolute;cursor:default;width:136px;height:10px;top:50%;left:50%;margin-top:-5px;margin-left:-68px;}
+.skinsContainer .autoCloudWallpaperContainer{position:absolute;bottom:0px;width:100%;height:40px;border-radius:0 0 5px 5px;background-color:rgba(0,0,0,0.5);display:none;}
+.skinsContainer .autoCloudWallpaperContainer .bgAutoChange{float:left;width:100px;height:20px;margin:10px 0px 10px 30px;color:#FFF;font-size:14px;}
+.skinsContainer .autoCloudWallpaperContainer .bgAutoTimeContainer{float:left;}
+.skinsContainer .autoCloudWallpaperContainer .bgAutoTimeContainer .bgAutoTime{float:left;height:30px;padding:0px 8px 5px 8px;margin:5px 5px 0px 5px;color:#FFF;line-height:30px;cursor:pointer;}
+.skinsContainer .autoCloudWallpaperContainer .bgAutoTimeContainer .bgAutoTime:hover,.skinsContainer .autoCloudWallpaperContainer .bgAutoTimeContainer .bgAutoTime.selected{background-image:url(../img/skin_0/categoryBg.png);}
 .skinsContainer .loading{margin-left:300px;position:absolute;bottom:15px;width:134px;}
 .skinsContainer .loading img{}
 .skinsContainer .moreSettings{float:right;cursor:pointer;margin-top:8px;width:86px;height:20px;text-indent:25px;color:#454545;background:url(../img/skin_0/icons.png) 0px -31px;}
@@ -53,8 +58,3 @@
 .skinsContainer .moreSettingsContainer .bgColor .C008000{background:#008000;}
 .skinsContainer .moreSettingsContainer .bgColor .C418b89{background:#418b89;}
 .skinsContainer .moreSettingsContainer .bgColor .Cd2b48c{background:#d2b48c;}
-.skinsContainer .autoCloudWallpaperContainer{position:fixed;bottom:0px;width:100%;height:40px;border-radius:0 0 5px 5px;background-color:rgba(0,0,0,0.5);display:none;}
-.skinsContainer .autoCloudWallpaperContainer .bgAutoChange{float:left;width:100px;height:20px;margin:10px 0px 10px 30px;color:#FFF;font-size:14px;}
-.skinsContainer .autoCloudWallpaperContainer .bgAutoTimeContainer{float:left;}
-.skinsContainer .autoCloudWallpaperContainer .bgAutoTimeContainer .bgAutoTime{float:left;height:30px;padding:0px 8px 5px 8px;margin:5px 5px 0px 5px;color:#FFF;line-height:30px;cursor:pointer;}
-.skinsContainer .autoCloudWallpaperContainer .bgAutoTimeContainer .bgAutoTime:hover,.skinsContainer .autoCloudWallpaperContainer .bgAutoTimeContainer .bgAutoTime.selected{background-image:url(../img/skin_0/categoryBg.png);}

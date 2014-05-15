@@ -26,5 +26,5 @@
    "permissions": [ "tabs", "bookmarks", "management", "history", "clipboardRead", "chrome://favicon/", "\u003Call_urls>", "unlimitedStorage" ],
    "short_name": "__MSG_chrome_extension_short_name__",
    "update_url": "http://clients2.google.com/service/update2/crx",
-   "version": "4.6.5"
+   "version": "4.6.6"
 }

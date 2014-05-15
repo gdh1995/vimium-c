@@ -16,7 +16,7 @@
     keyToCommandRegistry: {},
     addCommand: function(command, description, options) {
       if (command in this.availableCommands) {
-        console.log(command, "is already defined! Check commands.coffee for duplicates.");
+        console.warn(command, "is already defined! Check commands.coffee for duplicates.");
         return;
       }
       options || (options = {});
@@ -29,7 +29,7 @@
     },
     mapKeyToCommand: function(key, command) {
       if (!this.availableCommands[command]) {
-        console.log(command, "doesn't exist!");
+        console.warn(command, "doesn't exist!");
         return;
       }
       return this.keyToCommandRegistry[key] = {
@@ -76,7 +76,7 @@
             continue;
           }
           key = this.normalizeKey(splitLine[1]);
-          console.log("Unmapping", key);
+          // console.log("Unmapping", key);
           _results.push(this.unmapKey(key));
         } else if (lineCommand === "unmapAll") {
           _results.push(this.keyToCommandRegistry = {});

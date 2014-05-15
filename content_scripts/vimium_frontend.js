@@ -141,19 +141,19 @@
       setScrollPosition: function(request) {
         return setScrollPosition(request.scrollX, request.scrollY);
       },
-      executePageCommand: executePageCommand,
+      executePageCommand: executePageCommand/* ,
       getActiveState: function() {
         return {
           enabled: isEnabledForUrl
         };
       },
-      disableVimium: disableVimium
+      disableVimium: disableVimium */
     };
     return chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
       if (sender.tab && !sender.tab.url.startsWith('chrome-extension://')) {
         return;
       }
-      if (!(isEnabledForUrl || request.name === 'getActiveState')) {
+      if (!(isEnabledForUrl /* || request.name === 'getActiveState' */)) {
         return;
       }
 	  if (requestHandlers[request.name]) {
@@ -173,7 +173,7 @@
     return enterInsertModeIfElementIsFocused();
   };
 
-  disableVimium = function() {
+  /* disableVimium = function() {
     document.removeEventListener("keydown", onKeydown, true);
     document.removeEventListener("keypress", onKeypress, true);
     document.removeEventListener("keyup", onKeyup, true);
@@ -181,7 +181,7 @@
     document.removeEventListener("blur", onBlurCapturePhase, true);
     document.removeEventListener("DOMActivate", onDOMActivate, true);
     return isEnabledForUrl = false;
-  };
+  }; */
 
   window.addEventListener("focus", function() {
     settings.load();

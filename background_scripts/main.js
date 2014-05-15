@@ -474,6 +474,9 @@
   chrome.tabs.onRemoved.addListener(function(tabId) {
     var i, openTabInfo;
     openTabInfo = tabInfoMap[tabId];
+	if (openTabInfo == undefined || typeof openTabInfo.windowId == 'undefined') {
+		return true;
+	}
     updatePositionsAndWindowsForAllTabsInWindow(openTabInfo.windowId);
     if (/^(chrome|view-source:)[^:]*:\/\/.*/.test(openTabInfo.url)) {
       for (i in tabQueue[openTabInfo.windowId]) {
