@@ -96,7 +96,7 @@
       return _results;
     },
     commandGroups: {
-      pageNavigation: ["scrollDown", "scrollUp", "scrollLeft", "scrollRight", "scrollToTop", "scrollToBottom", "scrollToLeft", "scrollToRight", "scrollPageDown", "scrollPageUp", "scrollFullPageUp", "scrollFullPageDown", "reload", "toggleViewSource", "copyCurrentUrl", "LinkHints.activateModeToCopyLinkUrl", "openCopiedUrlInCurrentTab", "openCopiedUrlInNewTab", "goUp", "goToRoot", "enterInsertMode", "focusInput", "LinkHints.activateMode", "LinkHints.activateModeToOpenInNewTab", "LinkHints.activateModeWithQueue", "Vomnibar.activate", "Vomnibar.activateInNewTab", "Vomnibar.activateTabSelection", "Vomnibar.activateBookmarks", "Vomnibar.activateBookmarksInNewTab", "goPrevious", "goNext", "nextFrame", "Marks.activateCreateMode", "Marks.activateGotoMode"],
+      pageNavigation: ["scrollDown", "scrollUp", "scrollLeft", "scrollRight", "scrollToTop", "scrollToBottom", "scrollToLeft", "scrollToRight", "scrollPageDown", "scrollPageUp", "scrollFullPageUp", "scrollFullPageDown", "reload", "toggleViewSource", "copyCurrentUrl", "LinkHints.activateModeToCopyLinkUrl", "LinkHints.activateModeToCopyLinkText", "openCopiedUrlInCurrentTab", "openCopiedUrlInNewTab", "goUp", "goToRoot", "enterInsertMode", "focusInput", "LinkHints.activateMode", "LinkHints.activateModeToOpenInNewTab", "LinkHints.activateModeWithQueue", "Vomnibar.activate", "Vomnibar.activateInNewTab", "Vomnibar.activateTabSelection", "Vomnibar.activateBookmarks", "Vomnibar.activateBookmarksInNewTab", "goPrevious", "goNext", "nextFrame", "Marks.activateCreateMode", "Marks.activateGotoMode"],
       findCommands: ["enterFindMode", "performFind", "performBackwardsFind"],
       historyNavigation: ["goBack", "goForward"],
       tabManipulation: ["nextTab", "previousTab", "firstTab", "lastTab", "createTab", "duplicateTab", "removeTab", "restoreTab", "moveTabToNewWindow"],
@@ -182,6 +182,7 @@
     toggleViewSource: ["View page source"],
     copyCurrentUrl: ["Copy the current URL to the clipboard"],
     'LinkHints.activateModeToCopyLinkUrl': ["Copy a link URL to the clipboard"],
+    'LinkHints.activateModeToCopyLinkText': ["Copy a link text to the clipboard"],
     openCopiedUrlInCurrentTab: [
       "Open the clipboard's URL in the current tab", {
         background: true

@@ -109,25 +109,39 @@
     };
 
     VomnibarUI.prototype.actionFromKeyEvent = function(event) {
-      var key;
-      key = KeyboardUtils.getKeyChar(event);
-      if (KeyboardUtils.isEscape(event)) {
+      if (event.keyCode === keyCodes.ESC) {
         return "dismiss";
-      } else if (key === "up" || (event.shiftKey && event.keyCode === keyCodes.tab) || (event.ctrlKey && (key === "k" || key === "p"))) {
-        return "up";
-      } else if (key === "down" || (event.keyCode === keyCodes.tab && !event.shiftKey) || (event.ctrlKey && (key === "j" || key === "n"))) {
-        return "down";
       } else if (event.keyCode === keyCodes.enter) {
         return "enter";
       }
+      var key = KeyboardUtils.getKeyChar(event);
+	  if (key === "up" || (event.shiftKey && event.keyCode === keyCodes.tab) || (event.ctrlKey && (key === "k" || key === "p"))) {
+        return "up";
+      } else if (key === "down" || (event.keyCode === keyCodes.tab && !event.shiftKey) || (event.ctrlKey && (key === "j" || key === "n"))) {
+        return "down";
+      } 
     };
 
     VomnibarUI.prototype.onKeydown = function(event) {
       var action, openInNewTab, query,
         _this = this;
       action = this.actionFromKeyEvent(event);
-      if (!action) {
-        return true;
+      while (!action) {
+		var ch = KeyboardUtils.getKeyChar(event);
+		if (event.shiftKey || event.ctrlKey || event.altKey) {
+		} else if (this.selection == 0 && this.completions.length == 1 && ch == ' ') {
+			action = 'enter';
+			break;
+		} else if (this.selection != this.initialSelectionValue) {
+			var nch = parseInt(ch);
+			if (nch == 0) { nch = 10; }
+			if (nch <= this.completions.length) {
+				this.selection = nch - 1;
+				action = 'enter';
+				break;
+			}
+		}
+		return true;
       }
       openInNewTab = this.forceNewTab || (event.shiftKey || event.ctrlKey || KeyboardUtils.isPrimaryModifierKey(event));
       if (action === "dismiss") {
@@ -181,8 +195,8 @@
     };
 
     VomnibarUI.prototype.populateUiWithCompletions = function(completions) {
-      this.completionList.innerHTML = completions.map(function(completion) {
-        return "<li>" + completion.html + "</li>";
+      this.completionList.innerHTML = completions.map(function(completion, i) {
+        return '<li vomni="' + i + '">' + completion.html + "</li>";
       }).join("");
       this.completionList.style.display = completions.length > 0 ? "block" : "none";
       this.selection = Math.min(Math.max(this.initialSelectionValue, this.selection), this.completions.length - 1);
@@ -208,7 +222,7 @@
 
     VomnibarUI.prototype.initDom = function() {
       var _this = this;
-      this.box = Utils.createElementFromHtml("<div id=\"vomnibar\" class=\"vimiumReset\">\n  <div class=\"vimiumReset vomnibarSearchArea\">\n    <input type=\"text\" class=\"vimiumReset\">\n  </div>\n  <ul class=\"vimiumReset\"></ul>\n</div>");
+      this.box = Utils.createElementFromHtml("<div id=\"vomnibar\" class=\"vimiumReset\">\n  <div class=\"vimiumReset vomnibarSearchArea\">\n    <input type=\"text\" class=\"vimiumReset\" />\n  </div>\n  <ul class=\"vimiumReset\"></ul>\n</div>");
       this.box.style.display = "none";
       document.body.appendChild(this.box);
       this.input = document.querySelector("#vomnibar input");
@@ -216,6 +230,18 @@
         return _this.update();
       });
       this.completionList = document.querySelector("#vomnibar ul");
+      this.completionList.addEventListener("click", function(event) {
+		var el = event.target;
+		while(el && el.parentElement != this) { el = el.parentElement; }
+		if ( !el || !(el = el.getAttribute('vomni')) ) { return; }
+		_this.selection = parseInt(el);
+			var event2 = {keyCode: 13, keyIdentifier: 'Enter'
+				, stopPropagation: function() { event.stopPropagation(); }
+				, preventDefault: function() { event.preventDefault(); }
+			};
+			event2.__proto__ = event;
+			return _this.onKeydown(event2);
+      });
       return this.completionList.style.display = "none";
     };
 

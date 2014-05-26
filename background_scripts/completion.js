@@ -26,8 +26,8 @@
       if (this.html) {
         return this.html;
       }
-      relevancyHtml = this.showRelevancy ? "<span class='relevancy'>" + (this.computeRelevancy()) + "</span>" : "";
-      return this.html = "<div class=\"vimiumReset vomnibarTopHalf\">\n   <span class=\"vimiumReset vomnibarSource\">" + this.type + "</span>\n   <span class=\"vimiumReset vomnibarTitle\">" + (this.highlightTerms(Utils.escapeHtml(this.title))) + "</span>\n </div>\n <div class=\"vimiumReset vomnibarBottomHalf\">\n  <span class=\"vimiumReset vomnibarUrl\">" + (this.shortenUrl(this.highlightTerms(this.url))) + "</span>\n  " + relevancyHtml + "\n</div>";
+      relevancyHtml = this.showRelevancy ? "  <span class='relevancy'>" + (this.computeRelevancy()) + "</span>\n" : "";
+      return this.html = "<div class=\"vimiumReset vomnibarTopHalf\">\n   <span class=\"vimiumReset vomnibarSource\">" + this.type + "</span>\n   <span class=\"vimiumReset vomnibarTitle\">" + (this.highlightTerms(this.title.replace(/</g, "&lt;").replace(/>/g, "&gt;")).replace(/&/g, '&amp;')) + "</span>\n </div>\n <div class=\"vimiumReset vomnibarBottomHalf\">\n  <span class=\"vimiumReset vomnibarUrl\">" + (this.shortenUrl(this.highlightTerms(this.url))).replace(/&/g, '&amp;') + "</span>\n" + relevancyHtml + "</div>";
     };
 
     Suggestion.prototype.shortenUrl = function(url) {

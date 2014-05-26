@@ -135,14 +135,14 @@
       bindings = (commandsToKey[command] || [""]).join(", ");
       if (showUnboundCommands || commandsToKey[command]) {
         isAdvanced = Commands.advancedCommands.indexOf(command) >= 0;
-        html.push("<tr class='vimiumReset " + (isAdvanced ? "advanced" : void 0) + "'>", "<td class='vimiumReset'>", Utils.escapeHtml(bindings), "</td>", "<td class='vimiumReset'>:</td><td class='vimiumReset'>", availableCommands[command].description);
+        html.push('<tr class="vimiumReset' + (isAdvanced ? " advanced" : "") + '"><td class="vimiumReset">', Utils.escapeHtml(bindings), '</td><td class="vimiumReset">:</td><td class="vimiumReset">', Utils.escapeHtml(availableCommands[command].description));
         if (showCommandNames) {
           html.push("<span class='vimiumReset commandName'>(" + command + ")</span>");
         }
-        html.push("</td></tr>");
+        html.push("</td></tr>\n");
       }
     }
-    return html.join("\n");
+    return html.join("");
   };
 
   fetchFileContents = function(extensionFileName) {
@@ -294,7 +294,15 @@
     },
     removeTab: function() {
       return chrome.tabs.getSelected(null, function(tab) {
-        return chrome.tabs.remove(tab.id);
+		return chrome.tabs.getAllInWindow(tab.windowId, function(tabs) {
+			if(tabs && tabs.length == 1) {
+				chrome.tabs.update(tab.tabId, {
+					url: "chrome://newtab"
+				});
+			} else {
+				chrome.tabs.remove(tab.id);
+			}
+		});
       });
     },
     restoreTab: function(callback) {

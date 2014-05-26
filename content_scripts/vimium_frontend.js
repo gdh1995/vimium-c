@@ -992,7 +992,8 @@
       }
     };
     VimiumHelpDialog.init();
-    return container.getElementsByClassName("optionsPage")[0].addEventListener("click", function() {
+    return container.getElementsByClassName("optionsPage")[0].addEventListener("click", function(e) {
+	  e.preventDefault();
       return chrome.runtime.sendMessage({
         handler: "openOptionsPageInNewTab"
       });

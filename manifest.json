@@ -13,18 +13,17 @@
       "run_at": "document_start"
    } ],
    "content_security_policy": "script-src 'self'; object-src 'self';",
-   "default_locale": "zh_CN",
-   "description": "__MSG_chrome_extension_description__",
+   "description": "微度新标签页, 附带 Vimium",
    "icons": {
       "128": "img/icon_128.png",
       "16": "img/icon_16.png"
    },
    "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAnaZQnkvrHvNlwXPnSfavEya+9sPtVgBR2hWLsNvwdv6+zHRGr/qhqEbtof1v7gDXzpC5+Dr4kOay6aflw5CaFzA1zyVJySAjpb0RkVh774kp9msRpjyb39obSIWAIB76PTwawEAE+K1f26jXDbTC2gEBe4OWk5KW9u9+KoTmeKLHo73ScR1jFcFaOTbrhwHtIDqj00vpIfrSAofpLIq1gP//Og+FoOT4dF107fwlVfDJuu171svuT68wmcKStl6OANxcnXCXE6OWbeZcjMehcQH41wzTtDugmt0o8w+hJ2WVugwWWmGmE8qSiwo9QYZTJW+5EvMcmNZWUmPbTLGkGQIDAQAB",
    "manifest_version": 2,
-   "name": "__MSG_chrome_extension_name__",
+   "name": "微度新标签页 with Vimium",
    "options_page": "index.html#setting",
    "permissions": [ "tabs", "bookmarks", "management", "history", "clipboardRead", "chrome://favicon/", "\u003Call_urls>", "unlimitedStorage" ],
-   "short_name": "__MSG_chrome_extension_short_name__",
+   "short_name": "微度&Vim",
    "update_url": "http://clients2.google.com/service/update2/crx",
-   "version": "4.6.6"
+   "version": "4.7.0"
 }
