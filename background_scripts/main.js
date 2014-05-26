@@ -39,7 +39,7 @@
     tabs: new MultiCompleter([completionSources.tabs])
   };
 
-  chrome.runtime.onConnect.addListener(function(port, name) {
+  chrome.runtime.onConnect.addListener(function(port) {
     var senderTabId, toCall;
     senderTabId = port.sender.tab ? port.sender.tab.id : null;
     if (port.name === "domReady" && senderTabId !== null) {
@@ -219,7 +219,7 @@
         key: args.key,
         value: value
       });
-    } else {
+    } else if (args.operation === "set") {
       return Settings.set(args.key, args.value);
     }
   };

@@ -18,7 +18,20 @@
 
   isShowingHelpDialog = false;
 
-  keyPort = null;
+  keyPort = {
+	data: { name: 'keyDown' },
+	port: null,
+	get: function() {
+		if (this.port) { return this.port; }
+		this.port = chrome.runtime.connect(this.data);
+		this.port.onDisconnect.addListener(this._clearPort);
+		return this.port;
+	},
+	_clearPort: function () {
+		keyPort.port = null;
+	}
+  };
+  
 
   isEnabledForUrl = true;
 
@@ -48,6 +61,7 @@
       this.port = chrome.runtime.connect({
         name: "settings"
       });
+	  this.port.onDisconnect.addListener(this._clearPort);
       return this.port.onMessage.addListener(this.receiveMessage);
     },
     get: function(key) {
@@ -78,6 +92,9 @@
       }
       return _results;
     },
+	_clearPort: function () {
+		settings.port = null;
+	},
     receiveMessage: function(args) {
       var listener, _results;
       settings.values[args.key] = args.value;
@@ -110,9 +127,7 @@
     Scroller.init();
     checkIfEnabledForUrl();
     refreshCompletionKeys();
-    keyPort = chrome.runtime.connect({
-      name: "keyDown"
-    });
+    keyPort.get();
     requestHandlers = {
       hideUpgradeNotification: function() {
         return HUD.hideUpgradeNotification();
@@ -446,7 +461,7 @@
           if (currentCompletionKeys.indexOf(keyChar) !== -1) {
             DomUtils.suppressEvent(event);
           }
-          return keyPort.postMessage({
+          return keyPort.get().postMessage({
             keyChar: keyChar,
             frameId: frameId
           });
@@ -513,12 +528,12 @@
         if (currentCompletionKeys.indexOf(keyChar) !== -1) {
           DomUtils.suppressEvent(event);
         }
-        keyPort.postMessage({
+        keyPort.get().postMessage({
           keyChar: keyChar,
           frameId: frameId
         });
       } else if (KeyboardUtils.isEscape(event)) {
-        keyPort.postMessage({
+        keyPort.get().postMessage({
           keyChar: "<ESC>",
           frameId: frameId
         });
@@ -531,7 +546,6 @@
 
   onKeyup = function(event) {
     if (!handlerStack.bubbleEvent('keyup', event)) {
-
     }
   };
 
@@ -542,7 +556,7 @@
       handler: "isEnabledForUrl",
       url: url
     }, function(response) {
-      isEnabledForUrl = response.isEnabledForUrl;
+      isEnabledForUrl = response ? response.isEnabledForUrl : true;
       if (isEnabledForUrl) {
         return initializeWhenEnabled();
       } else if (HUD.isReady()) {
