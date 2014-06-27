@@ -225,20 +225,31 @@
 							return false
 						}
 					} else if ($(this).hasClass('export')) {
-						if (oauth.backup()) {
-							var oauthData = PDI.get(oauth.synDataKey);
-							var data = JSON.stringify(oauthData[oauth.oauthId]);
-							var hiddenA = self.content.find(".dataContainer #hiddenA");
-							if (hiddenA.length == 0) {
-								hiddenA = $('<a id="hiddenA" style="display:none"></a>');
-								self.content.find(".dataContainer").append(hiddenA);
+						var db1 = storage.db;
+						var data1 = {confver: 1};
+						for (var i in db1) {
+							if (i != 'oauthData' && db1.hasOwnProperty(i)) {
+								try {
+									data1[i] = JSON.parse(db1[i]);
+								} catch (e) {
+									data1[i] = db1[i];
+								}
 							}
-							var d = new Date();
-							hiddenA[0].download = ['weidu_setup_', d.getFullYear(), d.getMonth(), d.getDate(),
-								'_', d.getHours(), d.getMinutes(), d.getSeconds(), '.json'].join('');
-							hiddenA[0].href = 'data:application/json;charset=utf-8;base64,'+rstr2b64(str2rstr_utf8(data));
-							hiddenA[0].click();
 						}
+						var data = JSON.stringify(data1, null, '\t');
+						var hiddenA = self.content.find(".dataContainer #hiddenA");
+						if (hiddenA.length == 0) {
+							hiddenA = $('<a id="hiddenA" style="display:none"></a>');
+							self.content.find(".dataContainer").append(hiddenA);
+						}
+						var d = new Date();
+						var force2 = function(i) {
+							return ((i <= 9) ? '0'  : '') + i;
+						}
+						hiddenA[0].download = ['weidu_setup_', d.getFullYear(), force2(d.getMonth() + 1), force2(d.getDate()),
+							'_', force2(d.getHours()), force2(d.getMinutes()), force2(d.getSeconds()), '.json'].join('');
+						hiddenA[0].href = 'data:application/json;charset=utf-8;base64,'+rstr2b64(str2rstr_utf8(data));
+						hiddenA[0].click();
 					}
 				});
 				self.content.find("#importData").bind('change', function () {
@@ -247,40 +258,47 @@
 					this.files = null;
 					var reader = new FileReader();
 					reader.onload = function (e) {
-						if (this.result[0] == '{') {
-							if (oauth.save(this.result)) {
+						var oriUpdateConf = function (obj) {
+							if (oauth.save(obj)) {
 								oauth.updateMsgId();
 								oauth.synchronize();
-								setTimeout(function () {
-									window.location.reload(true)
-								}, 200)
 							}
-						} else {
-							$.post(urlImg + "weidu/wc.json.php", {
-								a : "import",
-								lang : ui_locale,
-								data : this.result
-							}, function (result) {
-								if (typeof result == 'string') {
-									if (result.substr(0, 5) == 'ERROR') {
+						};
+						var data;
+						try {
+							data = JSON.parse(this.result);
+							if (data == undefined) {
+								return $.post(urlImg + "weidu/wc.json.php", {
+									a : "import",
+									lang : ui_locale,
+									data : this.result
+								}, function(result) {
+									if (typeof result != 'string' || result.substr(0, 5) == 'ERROR') {
 										showNotice(getI18nMsg('importError'));
 										return false
-									} else {
-										var resultObj = JSON.parse(result);
-										if (resultObj.dataVersion && JSON.parse(resultObj.dataVersion) && _config.dataVersion < JSON.parse(resultObj.dataVersion)) {
-											showNotice(getI18nMsg('oauthImportDataVersionError'));
-											return false
-										}
 									}
+									var resultObj = JSON.parse(result);
+									if (resultObj.dataVersion && JSON.parse(resultObj.dataVersion) && _config.dataVersion < JSON.parse(resultObj.dataVersion)) {
+										showNotice(getI18nMsg('oauthImportDataVersionError'));
+										return false
+									}
+									oriUpdateConf(resultObj);
+									setTimeout(function () { window.location.reload(true); }, 200);
+								});
+							}
+							var ver = data.confver;
+							delete data.confver;
+							if (ver >= 1) {
+								var db = storage.db;
+								db.clear();
+								for (var i in data) {
+									db.setItem(i, JSON.stringify(data[i]));
 								}
-								if (oauth.save(result)) {
-									oauth.updateMsgId();
-									oauth.synchronize();
-									setTimeout(function () {
-										window.location.reload(true)
-									}, 200)
-								}
-							})
+							} else {
+								oriUpdateConf(data);
+							}
+							setTimeout(function () { window.location.reload(true); }, 200);
+						} finally {
 						}
 					};
 					reader.readAsText(file);

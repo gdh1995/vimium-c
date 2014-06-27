@@ -71,7 +71,8 @@ a{color:#FFF;text-decoration:none;text-shadow:1px 1px 3px #000;}
 .body .dialbox .appBox{position:absolute;display:none;}
 .body .dialbox .appBox.quick.chromeApp{background-image:url(/img/skin_0/qBoxBg.png);background-size:78% auto;background-position:center;background-repeat:no-repeat;}
 .body .dialbox.visual3D .appBox{-webkit-transform-style:preserve-3d;}
-@-webkit-keyframes graduallyBig{0%{-webkit-transform:scale(0);}40%{-webkit-transform:scale(1.2);}80%{-webkit-transform:scale(0.8);}100%{-webkit-transform:scale(1);}}.body .dialbox .appBox.new{-webkit-animation:graduallyBig .7s ease-out 0s 1;}
+@-webkit-keyframes graduallyBig{0%{-webkit-transform:scale(0);}40%{-webkit-transform:scale(1.2);}80%{-webkit-transform:scale(0.8);}100%{-webkit-transform:scale(1);}}
+.body .dialbox .appBox.new{-webkit-animation:graduallyBig .7s ease-out 0s 1;}
 .body .dialbox .appBox .boxLogo{width:100%;position:absolute;top:0px;bottom:32px;border-bottom:transparent 2px solid;cursor:pointer;background-repeat:no-repeat;background-position:center;background-color:#FFF;-webkit-mask-image:-webkit-linear-gradient(bottom,rgba(0,0,0,0.96),rgba(0,0,0,0.96));}
 .body .dialbox .appBox:hover .boxLogo{-webkit-mask-image:none;}
 .body .dialbox .appBox .boxLogo.lh{background-size:auto 100%;background-position:left;}

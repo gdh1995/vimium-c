@@ -1463,12 +1463,11 @@ if (typeof screenDialboxOptions[screenWidth + "*" + screenHeight] != 'undefined'
 					}, 200)
 				})
 			},
-			save : function (value) {
-				var self = this;
+			save : function (result) {
 				var returnStatus = true;
-				var result = JSON.parse(value);
-				var urlImgList = ['http://hao.weidunewtab.com/', 'http://hao.newtabplus.com/', 'http://www.94994.com/', 'http://en.94994.com/'];
 				if (typeof result == 'object') {
+					var self = this;
+					var urlImgList = ['http://hao.weidunewtab.com/', 'http://hao.newtabplus.com/', 'http://www.94994.com/', 'http://en.94994.com/'];
 					var curMsgId = PDI.get('setup', 'msgid');
 					var curOauthKey = PDI.get('setup', 'oauthKey');
 					if (result.dataVersion && JSON.parse(result.dataVersion) && _config.dataVersion < JSON.parse(result.dataVersion)) {
@@ -1486,7 +1485,7 @@ if (typeof screenDialboxOptions[screenWidth + "*" + screenHeight] != 'undefined'
 							if (k == "cache" || k == "usedWallpaper" || k == "iframeDialbox" || k == "setup" || k == "classifications" || k.indexOf("privateSetup") > -1) {
 								PDI.set(k, '', JSON.parse(v))
 							}
-							if (k.indexOf('dialBoxes') > -1 || k.indexOf('skins') > -1) {
+							else if (k.indexOf('dialBoxes') > -1 || k.indexOf('skins') > -1) {
 								$.each(urlImgList, function (i, n) {
 									if (urlImg != n) {
 										v = v.replace(new RegExp(n, 'g'), urlImg)
