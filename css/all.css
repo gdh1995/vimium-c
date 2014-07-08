@@ -125,7 +125,6 @@ a{color:#FFF;text-decoration:none;text-shadow:1px 1px 3px #000;}
 .dialog .close{background:url(../img/skin_0/idialog_s.png) no-repeat 0 -60px;width:32px;height:32px;float:right;cursor:pointer;position:absolute;border:0;right:-12px;top:-12px;z-index:10;outline:none;}
 .dialog .close.hide{display:none;}
 .dialog .close:hover{background-position:0 -94px;}
-.dialog .main{}
 .dialogMask{background-color:transparent;position:fixed;left:0;top:0;bottom:90px;width:100%;overflow:hidden;border-radius:6px;}
 .dialog .emptyLoading{width:180px;height:120px;background:white;border-radius:2px;}
 .dialog .emptyLoading img{position:absolute;left:60px;top:30px;}

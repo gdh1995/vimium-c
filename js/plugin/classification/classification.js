@@ -360,7 +360,7 @@ var _minClassificationHideFun = "";
 						if (cIndex !== false && typeof self.classifications[cIndex].dataUrl != "undefined" && self.classifications[cIndex].dataUrl != "" && typeof self.classifications[cIndex].LTime != "undefined" && self.classifications[cIndex].LTime == 0) {
 							$.getJSON(self.classifications[cIndex].dataUrl + "&t=" + new Date().getTime(), function (result) {
 								var urlImgList = ['http://hao.weidunewtab.com/', 'http://hao.newtabplus.com/', 'http://www.94994.com/', 'http://en.94994.com/'];
-								var loadDatakey = ['privateSetup', 'dialBoxes', 'weather', 'skins'];
+								var loadDatakey = ['privateSetup', 'dialBoxes', 'skins'];
 								if (result && typeof result == 'object') {
 									cId = _cId;
 									PDI.set("setup", "cId", cId);

@@ -140,17 +140,34 @@ var _quickSearchTransformFun = '';
 													} else {
 														firMatches = data.match(/(.*?)\[(.*)\]/);
 														if (firMatches) {
-															var matche = firMatches[2]
-														}
-														var secMatches = matche.match(/(.*?)\[\{(.*)\}\]/);
-														if (secMatches) {
-															matche = secMatches[2];
-															if (matche) {
-																data = JSON.parse("[{" + matche + "}]")
-															}
-														} else {
-															if (matche && matche.indexOf("[]") == -1) {
-																data = JSON.parse("[" + matche + "]")
+															var matche = firMatches[2];
+															var secMatches = matche.match(/(.*?)\[\{(.*)\}\]/);
+															if (secMatches) {
+																matche = secMatches[2];
+																if (matche) {
+																	data = JSON.parse("[{" + matche + "}]")
+																}
+															} else {
+																if (matche) {
+																	var thiMatche = matche.match(/\{"text":"(.*?),"/g);
+																	if (thiMatche) {
+																		var reg = new RegExp('"text":"(.*?)"', "g");
+																		var resutl = [];
+																		while (_result = reg.exec(matche)) {
+																			resutl.push(_result[1])
+																		}
+																		data = resutl
+																	} else {
+																		if (matche.indexOf("[]") == -1) {
+																			data = JSON.parse("[" + matche + "]")
+																		} else {
+																			thiMatche = matche.match(/(.*?)\[(.*?)\]/);
+																			if (thiMatche) {
+																				data = JSON.parse("[" + thiMatche[2] + "]")
+																			}
+																		}
+																	}
+																}
 															}
 														}
 													}

@@ -1,59 +1,56 @@
-.skinsContainer{position:relative;width:745px;height:523px;background:#F8F8F8;border-radius:6px;}
-.skinsContainer .skinsHeader{width:745px;height:37px;line-height:37px;text-indent:5px;font-size:18px;background:url(../../dialog/img/skin_0/headerBg.png);color:#454545;border-radius:6px 6px 0 0;}
-.skinsContainer .skinsHeader .headerIcon{float:left;width:21px;height:21px;margin:7px 0 0 15px;background:url(../img/logo.png);background-size:100%;}
+.skinsContainer{position:relative;width:745px;height:523px;border-radius:6px;background:#f8f8f8;}
+.skinsContainer .skinsHeader{width:745px;height:37px;border-radius:6px 6px 0 0;background:url(../../dialog/img/skin_0/headerBg.png);color:#454545;text-indent:5px;font-size:18px;line-height:37px;}
+.skinsContainer .skinsHeader .headerIcon{float:left;margin:7px 0 0 15px;width:21px;height:21px;background:url(../img/logo.png);background-size:100%;}
 .skinsContainer .skinsBody{width:740px;height:484px;border-radius:0 0 6px 6px;}
-.skinsContainer .wallpaperCategorysContainer{height:29px;padding:0 4px 5px 4px;}
+.skinsContainer .wallpaperCategorysContainer{padding:0 4px 5px 4px;height:29px;}
 .skinsContainer .wallpaperCategorysContainer .cloudWallpaperCategorys{float:left;}
-.skinsContainer .wallpaperCategorysContainer .cloudWallpaperCategorys .categoryItem{text-align:center;cursor:pointer;height:29px;line-height:29px;padding:0 6px;margin:0 3px;color:#454545;float:left;}
-.skinsContainer .wallpaperCategorysContainer .cloudWallpaperCategorys .categoryItem.selected, .skinsContainer .wallpaperCategorysContainer .cloudWallpaperCategorys .categoryItem:hover{background:url(../img/skin_0/categoryBg.png);}
-.skinsContainer .cloudWallpaperContainer{height:441px;padding:0px 6px 5px 12px;overflow-y:auto;}
-.skinsContainer .cloudWallpaperContainer .cloudWallpaperItem{position:relative;float:left;height:106px;margin:2px;float:left;border:#565656 1px solid;background-image:url(../img/skin_0/loading.png);background-repeat:no-repeat;background-size:100% auto;background-position:right bottom;width:173px;}
-.skinsContainer .cloudWallpaperContainer .cloudWallpaperItem .cloudWallpaperItemDownload{position:absolute;top:10px;right:10px;width:30px;height:30px;background-image:url(../img/skin_0/download.png);background-size:100% 100%;opacity:0.8;cursor:pointer;display:none;}
-.skinsContainer .cloudWallpaperContainer .cloudWallpaperItem .cloudWallpaperItemDelete{position:absolute;bottom:10px;right:10px;width:20px;height:20px;background-image:url(../img/skin_0/delete.png);background-size:100% 100%;opacity:0.8;cursor:pointer;display:none;}
-.skinsContainer .cloudWallpaperContainer .cloudWallpaperItem:hover .cloudWallpaperItemDownload,
-.skinsContainer .cloudWallpaperContainer .cloudWallpaperItem:hover .cloudWallpaperItemDelete{display:block;}
-.skinsContainer .cloudWallpaperContainer .cloudWallpaperItem .cloudWallpaperItemDownload:hover,
-.skinsContainer .cloudWallpaperContainer .cloudWallpaperItem .cloudWallpaperItemDelete:hover{opacity:1;}
-.skinsContainer .cloudWallpaperContainer .cloudWallpaperItem .cloudWallpaperItemBar{cursor:pointer;position:absolute;width:100%;bottom:0px;height:100%;background:rgba(0,0,0,.2);-webkit-transition:height .2s ease-in;}
-.skinsContainer .cloudWallpaperContainer .cloudWallpaperItem:hover .cloudWallpaperItemBar{height:0px;}
-.skinsContainer .cloudWallpaperContainer .cloudWallpaperItem.big{height:218px;width:352px;}
+.skinsContainer .wallpaperCategorysContainer .cloudWallpaperCategorys .categoryItem{float:left;margin:0 3px;padding:0 6px;height:29px;color:#454545;text-align:center;line-height:29px;cursor:pointer;}
+.skinsContainer .wallpaperCategorysContainer .cloudWallpaperCategorys .categoryItem.selected,.skinsContainer .wallpaperCategorysContainer .cloudWallpaperCategorys .categoryItem:hover{background:url(../img/skin_0/categoryBg.png);}
+.skinsContainer .cloudWallpaperContainer{overflow-y:auto;padding:0 6px 5px 12px;height:441px;}
+.skinsContainer .cloudWallpaperContainer .cloudWallpaperItem{position:relative;float:left;float:left;margin:2px;width:173px;height:106px;border:#565656 1px solid;background-image:url(../img/skin_0/loading.png);background-position:right bottom;background-size:100% auto;background-repeat:no-repeat;}
+.skinsContainer .cloudWallpaperContainer .cloudWallpaperItem .cloudWallpaperItemDownload{position:absolute;top:10px;right:10px;display:none;width:30px;height:30px;background-image:url(../img/skin_0/download.png);background-size:100% 100%;opacity:.8;cursor:pointer;}
+.skinsContainer .cloudWallpaperContainer .cloudWallpaperItem .cloudWallpaperItemDelete{position:absolute;right:10px;bottom:10px;display:none;width:20px;height:20px;background-image:url(../img/skin_0/delete.png);background-size:100% 100%;opacity:.8;cursor:pointer;}
+.skinsContainer .cloudWallpaperContainer .cloudWallpaperItem:hover .cloudWallpaperItemDownload,.skinsContainer .cloudWallpaperContainer .cloudWallpaperItem:hover .cloudWallpaperItemDelete{display:block;}
+.skinsContainer .cloudWallpaperContainer .cloudWallpaperItem .cloudWallpaperItemDownload:hover,.skinsContainer .cloudWallpaperContainer .cloudWallpaperItem .cloudWallpaperItemDelete:hover{opacity:1;}
+.skinsContainer .cloudWallpaperContainer .cloudWallpaperItem .cloudWallpaperItemBar{position:absolute;bottom:0;width:100%;height:100%;background:rgba(0,0,0,.2);cursor:pointer;-webkit-transition:height .2s ease-in;}
+.skinsContainer .cloudWallpaperContainer .cloudWallpaperItem:hover .cloudWallpaperItemBar{height:0;}
+.skinsContainer .cloudWallpaperContainer .cloudWallpaperItem.big{width:352px;height:218px;}
 .skinsContainer .cloudWallpaperContainer .cloudWallpaperItem.big .cloudWallpaperItemDownload{width:40px;height:40px;}
 .skinsContainer .cloudWallpaperContainer .cloudWallpaperItem.big .cloudWallpaperItemDelete{width:30px;height:30px;}
-.skinsContainer .cloudWallpaperContainer .cloudWallpaperItem.right, .skinsContainer .cloudWallpaperContainer .cloudWallpaperItem.big.right{float:right;}
-.skinsContainer .cloudWallpaperContainer .cloudWallpaperItem img{cursor:pointer;height:106px;width:173px;}
-.skinsContainer .cloudWallpaperContainer .cloudWallpaperItem.big img{height:218px;width:352px;}
-.skinsContainer .cloudWallpaperContainer .cloudWallpaperItem .wallpaperLoading{position:absolute;height:100%;width:100%;background:#000;opacity:.7;left:0;top:0;}
-.skinsContainer .cloudWallpaperContainer .cloudWallpaperItem .wallpaperLoading img{position:absolute;cursor:default;width:136px;height:10px;top:50%;left:50%;margin-top:-5px;margin-left:-68px;}
-.skinsContainer .autoCloudWallpaperContainer{position:absolute;bottom:0px;width:100%;height:40px;border-radius:0 0 5px 5px;background-color:rgba(0,0,0,0.5);display:none;}
-.skinsContainer .autoCloudWallpaperContainer .bgAutoChange{float:left;width:100px;height:20px;margin:10px 0px 10px 30px;color:#FFF;font-size:14px;}
+.skinsContainer .cloudWallpaperContainer .cloudWallpaperItem.right,.skinsContainer .cloudWallpaperContainer .cloudWallpaperItem.big.right{float:right;}
+.skinsContainer .cloudWallpaperContainer .cloudWallpaperItem img{width:173px;height:106px;cursor:pointer;}
+.skinsContainer .cloudWallpaperContainer .cloudWallpaperItem.big img{width:352px;height:218px;}
+.skinsContainer .cloudWallpaperContainer .cloudWallpaperItem .wallpaperLoading{position:absolute;top:0;left:0;width:100%;height:100%;background:#000;opacity:.7;}
+.skinsContainer .cloudWallpaperContainer .cloudWallpaperItem .wallpaperLoading img{position:absolute;top:50%;left:50%;margin-top:-5px;margin-left:-68px;width:136px;height:10px;cursor:default;}
+.skinsContainer .autoCloudWallpaperContainer{position:absolute;bottom:0;display:none;width:100%;height:40px;border-radius:0 0 5px 5px;background-color:rgba(0,0,0,0.5);}
+.skinsContainer .autoCloudWallpaperContainer .bgAutoChange{float:left;margin:10px 0 10px 30px;width:100px;height:20px;color:#FFF;font-size:14px;}
 .skinsContainer .autoCloudWallpaperContainer .bgAutoTimeContainer{float:left;}
-.skinsContainer .autoCloudWallpaperContainer .bgAutoTimeContainer .bgAutoTime{float:left;height:30px;padding:0px 8px 5px 8px;margin:5px 5px 0px 5px;color:#FFF;line-height:30px;cursor:pointer;}
+.skinsContainer .autoCloudWallpaperContainer .bgAutoTimeContainer .bgAutoTime{float:left;margin:5px 5px 0 5px;padding:0 8px 5px 8px;height:30px;color:#FFF;line-height:30px;cursor:pointer;}
 .skinsContainer .autoCloudWallpaperContainer .bgAutoTimeContainer .bgAutoTime:hover,.skinsContainer .autoCloudWallpaperContainer .bgAutoTimeContainer .bgAutoTime.selected{background-image:url(../img/skin_0/categoryBg.png);}
-.skinsContainer .loading{margin-left:300px;position:absolute;bottom:15px;width:134px;}
-.skinsContainer .loading img{}
-.skinsContainer .moreSettings{float:right;cursor:pointer;margin-top:8px;width:86px;height:20px;text-indent:25px;color:#454545;background:url(../img/skin_0/icons.png) 0px -31px;}
-.skinsContainer .moreSettings:hover{opacity:0.7;}
-.skinsContainer .moreSettingsContainer{position:absolute;width:248px;height:200px;top:70px;right:13px;background:#F8F8F8;border:1px #A8A8A9 solid;border-radius:5px;box-shadow:0px 10px 23px rgba(0, 0, 0, 0.8);padding:6px;display:none;}
-.skinsContainer .moreSettingsContainer .arrow{border-color:transparent transparent #F8F8F8 transparent;border-style:solid;border-width:10px;height:0;width:0;position:absolute;top:-18px;right:30px;z-index:2000;}
-.skinsContainer .moreSettingsContainer .arrowBorder{border-color:transparent transparent #A8A8A9 transparent;border-style:solid;border-width:10px;height:0;width:0;position:absolute;top:-20px;right:30px;z-index:2000;}
-.skinsContainer .moreSettingsContainer .bgLayoutContainer, .skinsContainer .moreSettingsContainer .bgColorContainer, .skinsContainer .moreSettingsContainer .bgImportContainer{margin:5px;}
-.skinsContainer .moreSettingsContainer .bgLayoutContainer .bgLayout, .skinsContainer .moreSettingsContainer .bgColorContainer .bgColor{height:29px;margin-left:17px;}
-.skinsContainer .moreSettingsContainer .bgLayoutContainer .bgLayoutTitle{width:100px;height:20px;text-indent:27px;color:#454545;background:url(../img/skin_0/icons.png) 0px 82px;}
-.skinsContainer .moreSettingsContainer .bgColorContainer .bgColorTitle{width:100px;height:20px;text-indent:27px;color:#454545;background:url(../img/skin_0/icons.png) 0px 55px;}
-.skinsContainer .moreSettingsContainer .bgImportContainer .bgImportTitle{float:left;width:27px;height:20px;background:url(../img/skin_0/icons.png) 0px 28px;}
+.skinsContainer .loading{position:absolute;bottom:15px;margin-left:300px;width:134px;}
+.skinsContainer .moreSettings{float:right;margin-top:8px;width:86px;height:20px;background:url(../img/skin_0/icons.png) 0 -31px;color:#454545;text-indent:25px;cursor:pointer;}
+.skinsContainer .moreSettings:hover{opacity:.7;}
+.skinsContainer .moreSettingsContainer{position:absolute;top:70px;right:13px;display:none;padding:6px;width:248px;height:200px;border:1px #a8a8a9 solid;border-radius:5px;background:#f8f8f8;box-shadow:0 10px 23px rgba(0,0,0,0.8);}
+.skinsContainer .moreSettingsContainer .arrow{position:absolute;top:-18px;right:30px;z-index:2000;width:0;height:0;border-color:transparent transparent #f8f8f8 transparent;border-style:solid;border-width:10px;}
+.skinsContainer .moreSettingsContainer .arrowBorder{position:absolute;top:-20px;right:30px;z-index:2000;width:0;height:0;border-color:transparent transparent #a8a8a9 transparent;border-style:solid;border-width:10px;}
+.skinsContainer .moreSettingsContainer .bgLayoutContainer,.skinsContainer .moreSettingsContainer .bgColorContainer,.skinsContainer .moreSettingsContainer .bgImportContainer{margin:5px;}
+.skinsContainer .moreSettingsContainer .bgLayoutContainer .bgLayout,.skinsContainer .moreSettingsContainer .bgColorContainer .bgColor{margin-left:8px;height:29px;}
+.skinsContainer .moreSettingsContainer .bgLayoutContainer .bgLayoutTitle{width:100px;height:20px;background:url(../img/skin_0/icons.png) 0 82px;color:#454545;text-indent:27px;}
+.skinsContainer .moreSettingsContainer .bgColorContainer .bgColorTitle{width:120px;height:20px;background:url(../img/skin_0/icons.png) 0 -81px;background-repeat:no-repeat;color:#454545;text-indent:27px;}
+.skinsContainer .moreSettingsContainer .bgImportContainer .bgImportTitle{float:left;width:27px;height:20px;background:url(../img/skin_0/icons.png) 0 28px;}
 .skinsContainer .moreSettingsContainer .bgColorContainer{height:77px;}
-.skinsContainer .moreSettingsContainer .bgImportContainer .bgImport{cursor:pointer;float:left;border:2px #CCC solid;width:100px;height:20px;line-height:20px;border-radius:5px;text-align:center;color:#545454;}
-.skinsContainer .moreSettingsContainer .bgImportContainer .bgImport:hover{opacity:0.7;}
-.skinsContainer .moreSettingsContainer .bgButton{cursor:pointer;float:left;margin:0 4px;padding:0 3px;height:29px;line-height:29px;color:#454545;font-size:14px;}
-.skinsContainer .moreSettingsContainer .bgButton:hover, .skinsContainer .moreSettingsContainer .bgButton.selected{background:url(../img/skin_0/categoryBg.png);}
-.skinsContainer .moreSettingsContainer .bgColor button{width:30px;cursor:pointer;border-radius:3px;margin:3px 0 3px 6px;height:21px;border:white 2px solid;}
+.skinsContainer .moreSettingsContainer .bgImportContainer .bgImport{float:left;width:100px;height:20px;border:2px #CCC solid;border-radius:5px;color:#545454;text-align:center;line-height:20px;cursor:pointer;}
+.skinsContainer .moreSettingsContainer .bgImportContainer .bgImport:hover{opacity:.7;}
+.skinsContainer .moreSettingsContainer .bgButton{float:left;margin:0 4px;padding:0 3px;height:29px;color:#454545;font-size:14px;line-height:29px;cursor:pointer;}
+.skinsContainer .moreSettingsContainer .bgButton:hover,.skinsContainer .moreSettingsContainer .bgButton.selected{background:url(../img/skin_0/categoryBg.png);}
+.skinsContainer .moreSettingsContainer .bgColor button{margin:3px 0 3px 6px;width:30px;height:21px;border:white 2px solid;border-radius:3px;cursor:pointer;}
 .skinsContainer .moreSettingsContainer .bgColor button:hover{border-color:#999;}
-.skinsContainer .moreSettingsContainer .bgColor .CFFFFFF{background:#FFFFFF;}
-.skinsContainer .moreSettingsContainer .bgColor .C0866A4{background:#0866A4;}
-.skinsContainer .moreSettingsContainer .bgColor .CAAD930{background:#AAD930;}
+.skinsContainer .moreSettingsContainer .bgColor .CFFFFFF{background:#fff;}
+.skinsContainer .moreSettingsContainer .bgColor .C0866A4{background:#0866a4;}
+.skinsContainer .moreSettingsContainer .bgColor .CAAD930{background:#aad930;}
 .skinsContainer .moreSettingsContainer .bgColor .C686868{background:#686868;}
-.skinsContainer .moreSettingsContainer .bgColor .C0F204E{background:#0F204E;}
-.skinsContainer .moreSettingsContainer .bgColor .CE7E7E7{background:#E7E7E7;}
+.skinsContainer .moreSettingsContainer .bgColor .C0F204E{background:#0f204e;}
+.skinsContainer .moreSettingsContainer .bgColor .CE7E7E7{background:#e7e7e7;}
 .skinsContainer .moreSettingsContainer .bgColor .Cf8b500{background:#f8b500;}
 .skinsContainer .moreSettingsContainer .bgColor .C008000{background:#008000;}
 .skinsContainer .moreSettingsContainer .bgColor .C418b89{background:#418b89;}

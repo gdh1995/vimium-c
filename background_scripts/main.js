@@ -296,7 +296,8 @@
       return chrome.tabs.getSelected(null, function(tab) {
 		return chrome.tabs.getAllInWindow(tab.windowId, function(tabs) {
 			if(tabs && tabs.length == 1) {
-				chrome.tabs.update(tab.tabId, {
+				chrome.tabs.remove(tab.id);
+				chrome.tabs.create({
 					url: "chrome://newtab"
 				});
 			} else {

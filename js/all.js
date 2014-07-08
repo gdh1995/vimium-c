@@ -353,7 +353,7 @@ function replaceMSiteDialboxs(_dialboxs, MSite) {
 					try {
 						var regAll = new RegExp("^(http:\/\/)?" + skey + "\/?$", "i");
 						var regBegin = new RegExp("^(http:\/\/)?" + skey + "\/?[\\?&]", "i");
-						var regEnd = new RegExp("[?&]([tul]|out)=(http:\/\/)?" + skey + "\/?$", "i");
+						var regEnd = new RegExp("[?&]([tul]|out|ulp)=(http:\/\/)?" + skey + "\/?$", "i");
 						if ((typeof svalue['type'] == "undefined" || svalue['type'].indexOf("all") > -1)) {
 							if (_dialboxs[i]['url'].match(regAll) != null) {
 								isReplace = true
@@ -425,12 +425,15 @@ function replaceMSiteDialboxs(_dialboxs, MSite) {
 	}
 	return false
 }
-function replaceMSite(MSite) {
+function replaceMSite(MSite, filters) {
+	filters = typeof filters == "undefined" ? [] : filters;
 	var _classificationsIds = [""];
 	var _classifications = storage.get('classifications', true);
 	if (_classifications && _classifications.length > 0) {
 		$.each(_classifications, function (k, v) {
-			_classificationsIds.push("_" + v.id)
+			if (filters.indexOf(v.id) == -1) {
+				_classificationsIds.push("_" + v.id)
+			}
 		})
 	}
 	storage.relative = false;
@@ -453,9 +456,54 @@ function replaceMSite(MSite) {
 }
 function replaceLocationDB() {
 	var OTime = PDI.get('setup', 'OTime');
-	if (OTime < 1384826000) {
-		storage.relative = true
-			PDI.set('setup', 'OTime', 1384826000)
+	if (OTime < 1402367000) {
+		if (OTime < 1384826000) {
+			storage.relative = true
+		}
+		if (OTime < 1401359000) {
+			var _classifications = storage.get('classifications', true);
+			var _classificationsIds = [""];
+			storage.relative = false;
+			if (_classifications && _classifications.length > 0) {
+				$.each(_classifications, function (k, v) {
+					_classificationsIds.push("_" + v.id);
+					storage.clear(['weather_' + v.id])
+				})
+			}
+			$.each(_classificationsIds, function (k, v) {
+				var _dialBoxes = storage.get('dialBoxes' + v, true);
+				if (_dialBoxes) {
+					var _normalDialboxes = _dialBoxes['normal'];
+					var _quickDialboxes = _dialBoxes['quick'];
+					var _save = false;
+					if (typeof _normalDialboxes != "undefined" && _normalDialboxes && _normalDialboxes.length > 0) {
+						$.each(_normalDialboxes, function (i, n) {
+							if (_normalDialboxes[i]['isApp'] == "weather") {
+								delete _normalDialboxes[i];
+								_save = true
+							}
+						})
+					}
+					if (_save) {
+						PDI.set("dialBoxes" + v, "normal", _normalDialboxes)
+					}
+					_save = false;
+					if (typeof _quickDialboxes != "undefined" && _quickDialboxes && _quickDialboxes.length > 0) {
+						$.each(_quickDialboxes, function (i, n) {
+							if (_quickDialboxes[i]['isApp'] == "weather") {
+								delete _quickDialboxes[i];
+								_save = true
+							}
+						})
+					}
+					if (_save) {
+						PDI.set("dialBoxes" + v, "quick", _quickDialboxes)
+					}
+				}
+			});
+			storage.relative = true
+		}
+		PDI.set('setup', 'OTime', 1402367000)
 	}
 };
 var hexcase = 0;
@@ -731,7 +779,7 @@ function bit_rol(num, cnt) {
 		storage.prototype = {
 			id : '',
 			db : localStorage,
-			privateKeys : ['privateSetup', 'dialBoxes', 'weather', 'skins'],
+			privateKeys : ['privateSetup', 'dialBoxes', 'skins'],
 			relative : true,
 			get : function (key, isJson) {
 				key = (this.relative && this.privateKeys.indexOf(key) > -1) ? key + this.id : key;
@@ -784,17 +832,13 @@ var urlImg = "http://hao." + officialDomain + "/";
 var _langPre = ui_locale;
 var isApp = false;
 var _config = {
-	version : '4.6.6',
+	version : '4.7.4',
 	dataVersion : "4.0",
 	lang : "zh_CN",
 	oauthType : ['sina', 'qqwb', 'qq', 'taobao', 'google', 'facebook', 'twitter'],
 	cacheKeys : ['dialBoxes', 'privateSetup', 'skins', 'setup', 'classifications', 'usedWallpaper', 'iframeDialbox', 'version', 'dataVersion'],
 	dialBoxes : {
 		normal : [{
-				"title" : getI18nMsg('weatherAppTitle'),
-				"img" : urlImg + "myapp/weather/img/m/logo.png",
-				"isApp" : "weather"
-			}, {
 				"title" : getI18nMsg('quickSearchAppTitle'),
 				"img" : "app/quickSearch/img/logo.png",
 				"isApp" : "quickSearch"
@@ -812,7 +856,7 @@ var _config = {
 				"url" : "ai.taobao.com"
 			}, {
 				"title" : "亚马逊",
-				"url" : "www.amazon.cn/"
+				"url" : "www.amazon.cn"
 			}, {
 				"title" : "天猫",
 				"url" : "www.tmall.com"
@@ -821,7 +865,7 @@ var _config = {
 				"url" : "www.dangdang.com"
 			}, {
 				"title" : "携程",
-				"url" : "www.ctrip.com/"
+				"url" : "www.ctrip.com"
 			}, {
 				"title" : "1号店",
 				"url" : "www.yhd.com"
@@ -901,10 +945,6 @@ var _config = {
 		]
 	},
 	apps : [{
-			"id" : "weather",
-			"title" : getI18nMsg('weatherAppTitle'),
-			"img" : urlImg + "myapp/weather/img/m/logo.png"
-		}, {
 			"id" : "quickSearch",
 			"title" : getI18nMsg('quickSearchAppTitle'),
 			"img" : "app/quickSearch/img/logo.png"
@@ -985,6 +1025,8 @@ var _config = {
 		weather : '',
 		calendar : '',
 		tempUnit : ui_locale == 'zh_CN' ? 'C' : 'F',
+		message : '',
+		messageID : 0,
 		dateline : ''
 	},
 	oauthData : {},
@@ -1012,13 +1054,13 @@ var _config = {
 			"id" : "shopping",
 			"title" : getI18nMsg("classificationShopping"),
 			"logo" : urlImg + "classification/images/4.png",
-			"dataUrl" : urlImg + "rssData/index.php?ui_locale=zh_CN&name=shopping",
+			"dataUrl" : urlImg + "rssData/index.php?ui_locale=" + ui_locale + "&name=shopping",
 			"LTime" : 0
 		}, {
 			"id" : "game",
 			"title" : getI18nMsg("classificationGame"),
 			"logo" : urlImg + "classification/images/1.png",
-			"dataUrl" : urlImg + "rssData/index.php?ui_locale=zh_CN&name=game",
+			"dataUrl" : urlImg + "rssData/index.php?ui_locale=" + ui_locale + "&name=game",
 			"LTime" : 0
 		}
 	],
@@ -1542,7 +1584,7 @@ if (typeof screenDialboxOptions[screenWidth + "*" + screenHeight] != 'undefined'
 					var data = oauthData[self.oauthId];
 					data['email'] = self.oauthId;
 					data['msgid'] = parseInt(PDI.get('setup', 'msgid'));
-					data['ver'] = ver;
+					data['ver'] = _config.version;
 					$.post(self.synDataApiUrl, data, function (result) {
 						if (result.substr(0, 5) != 'ERROR') {}
 						else {
@@ -1947,69 +1989,11 @@ var _bookmarksDialogFun = "";
 			apps : {
 				"weather" : {
 					"type" : "immediate",
-					"js" : "js/plugin/weather/weather.js",
-					"css" : "js/plugin/weather/css/skin_0.css",
-					"init" : function (targetObj, self, first) {
-						if (typeof weather != "undefined") {
-							weather.container = targetObj;
-							weather.init({
-								"city" : PDI.get('weather', 'city'),
-								"cityID" : PDI.get('weather', 'cityID'),
-								"isAuto" : PDI.get('weather', 'isAuto'),
-								"weather" : PDI.get('weather', 'weather'),
-								"calendar" : PDI.get('weather', 'calendar'),
-								"dateline" : PDI.get('weather', 'dateline')
-							})
-						}
-					},
-					"loadData" : function (dialogObj, targetObj) {
-						if (weather.cityID != '') {
-							if (weather.weatherCache == '') {
-								weather.getWeatherData(function (xmlDoc) {
-									if (xmlDoc.getElementsByTagName("title")[0].childNodes[0].nodeValue != 'Yahoo! Weather - Error') {
-										weather.weatherCache = xmlDoc;
-										weather.template(dialogObj, weather.weatherCache)
-									} else {
-										showNotice(getI18nMsg('weatherCityDataNull'));
-										weather.reloadWeather(weather.defaultCityID, dialogObj)
-									}
-								})
-							} else {
-								weather.template(dialogObj, weather.weatherCache)
-							}
-						}
-					},
-					"run" : function () {
-						var weatherDialog = $.dialog({
-								id : "weatherDialog",
-								isLock : true,
-								content : '<div class="emptyLoading"><img src="/img/skin_0/loading.gif"></div>',
-								animate : "center center"
-							});
-						return weatherDialog
-					},
+					"js" : "app/weather/weather.js",
+					"css" : "app/weather/css/skin_0.css",
 					"langVers" : {
 						"zh_CN" : {
-							"js" : "js/plugin/weather/zh_CN/weather.js",
-							"css" : "js/plugin/weather/css/zh_CN/skin_0.css",
-							"loadData" : function (dialogObj, targetObj) {
-								if (weather.cityID != '') {
-									if (weather.weatherCache == '') {
-										weather.getWeatherData(function (data) {
-											try {
-												var weahterInfo = JSON.parse(data);
-												weather.weatherCache = weahterInfo.weatherinfo;
-												weather.template(dialogObj, weather.weatherCache)
-											} catch (e) {
-												showNotice(getI18nMsg('weatherCityDataNull'));
-												weather.reloadWeather(weather.defaultCityID, dialogObj)
-											}
-										})
-									} else {
-										weather.template(dialogObj, weather.weatherCache)
-									}
-								}
-							}
+							"js" : "app/weather/zh_CN/weather.js"
 						}
 					}
 				},
@@ -2489,6 +2473,15 @@ var _bookmarksDialogFun = "";
 							}
 							var re = /^o[A-Z]\w+/;
 							if (re.test(appId)) {
+								var _chromeVer = window.navigator.userAgent.match(/chrome\/([\d.]+)/i);
+								var chromeVer = _chromeVer != null ? _chromeVer[1] : _chromeVer;
+								var oUrls = {
+									"oDownloads" : _browser.protocol + "://downloads/",
+									"oBookmarks" : _browser.protocol + "://bookmarks/#1",
+									"oHistory" : _browser.protocol + "://history/",
+									"oExtensions" : getChromeUrl('extensions'),
+									"oNewtab" : ((chromeVer != null && chromeVer > '33') ? "chrome-search://local-ntp/local-ntp.html" : "chrome-internal://newtab/")
+								};
 								var oUrl = typeof oUrls[appId] == "undefined" ? "" : oUrls[appId];
 								if (oUrl != "") {
 									if (typeof event != "undefined" && event.button == 1) {
@@ -2863,7 +2856,7 @@ var dragExcludeClassList = ['boxClose', 'boxEdit', 'searchCenter', 'searchItem']
 			},
 			addBox : function (id, boxObj, type, order) {
 				var self = this;
-				var ignoreLogoList = ['weather'];
+				var ignoreLogoList = [];
 				type = typeof type == "undefined" ? "normal" : type;
 				var thisBox = $.box(id, boxObj, type);
 				var logoImg = new Image(),
@@ -2900,6 +2893,7 @@ var dragExcludeClassList = ['boxClose', 'boxEdit', 'searchCenter', 'searchItem']
 								}
 							}
 						} catch (e) {}
+
 						var logoImgArray = urlRegEx(logoImgUrl);
 						if (!isApp || (isApp && (logoImgArray == null || logoImgArray[2] == "hao." + officialDomain))) {
 							try {
@@ -4193,7 +4187,7 @@ var dragExcludeClassList = ['boxClose', 'boxEdit', 'searchCenter', 'searchItem']
 		return dialbox
 	})()
 })(jq);
-var storage = new $.storage(), PDI = $.pdi(), DBOX, ver = _config.version, cId = "", tabID = '', targetSwitch = true, serverValue = [], ctrlKey = false, ctrlKeyTimer = '', updateNotification = false;
+var storage = new $.storage(), PDI = $.pdi(), DBOX, cId = "", tabID = '', targetSwitch = true, serverValue = [], ctrlKey = false, ctrlKeyTimer = '', updateNotification = false;
 if (cId = PDI.get("setup", "cId")) {
 	storage = new $.storage(cId)
 }
@@ -4233,25 +4227,12 @@ if (window.location.hash == "#synchronize") {
 		PDI.set("setup", "code", code)
 	}
 	var lastVersion = storage.get("version", true);
-	if (lastVersion == null || parseInt(lastVersion) > 1000000000 || ver > lastVersion) {
-		PDI.set("version", '', ver);
+	if (lastVersion == null || lastVersion.length > 12 || parseInt(lastVersion) > 1000000000 || _config.version > lastVersion) {
+		PDI.set("version", '', _config.version);
 		updateNotification = true
 	}
 	replaceLocationDB();
-	if (lastVersion != null && lastVersion.indexOf('.360') > -1 && ver.indexOf('.360') == -1) {
-		recoveryAllBox()
-	}
-	if (!PDI.get('setup', 'openSwitch')) {
-		if (ui_locale == "zh_CN") {
-			PDI.set('setup', 'openSwitch', true)
-		} else {
-			if (updateNotification) {
-				showNotice(getI18nMsg('open_confirm'), 4000, function () {
-					PDI.set('setup', 'openSwitch', true)
-				}, function () {})
-			}
-		}
-	}
+	PDI.set('setup', 'openSwitch', true);
 	var oauth = $.oauth();
 	$(function () {
 		initChromeI18n();
@@ -4328,144 +4309,7 @@ if (window.location.hash == "#synchronize") {
 				}, 300)
 			}, 300)
 		}
+		app.loadApp('', 'weather');
 	})
 };
-// $
-(function () {
-	var websiteActHandle = function (ops) {
-		var act = ops.act;
-		var data = ops.data;
-		if (act == "insert") {
-			if (DBOX.getLastDialbox() == "cloud") {
-				var toIndex = DBOX.getDialboxIndex('normal', 'cloud');
-				PDI.appendDialbox('normal', toIndex, {
-					title : data.title,
-					url : data.url,
-					isApp : false,
-					isNew : true
-				})
-			} else {
-				PDI.insertDialbox('normal', {
-					title : data.title,
-					url : data.url,
-					isApp : false,
-					isNew : true
-				});
-				var toIndex = DBOX.getDialboxIndex('normal', data.url)
-			}
-			DBOX.getBoxes();
-			DBOX.loadBoxes(((toIndex + 1) % DBOX.num == 0) ? (toIndex + 1) / DBOX.num : (parseInt((toIndex + 1) / DBOX.num) + 1))
-		}
-	};
-	var extensionActHandle = function (ops) {
-		var act = ops.act;
-		var data = ops.data;
-		var _dialboxType = "normal";
-		var _installIndex = DBOX.getDialboxIndex('normal', data.id);
-		if (_installIndex == -1) {
-			_installIndex = DBOX.getDialboxIndex('quick', data.id);
-			if (_installIndex > -1) {
-				_dialboxType = "quick"
-			}
-		}
-		if (act == "installed") {
-			if (_installIndex == -1) {
-				if (DBOX.getLastDialbox() == "cloud") {
-					var toIndex = DBOX.getDialboxIndex('normal', 'cloud');
-					PDI.appendDialbox('normal', toIndex, {
-						title : data.name,
-						img : "chrome://extension-icon/" + data.id + "/128/0",
-						url : data.appLaunchUrl,
-						desc : data.desc,
-						isApp : data.id,
-						appType : data.type,
-						isNew : true
-					})
-				} else {
-					PDI.insertDialbox('normal', {
-						title : data.name,
-						img : "chrome://extension-icon/" + data.id + "/128/0",
-						url : data.appLaunchUrl,
-						desc : data.desc,
-						isApp : data.id,
-						appType : data.type,
-						isNew : true
-					});
-					var toIndex = DBOX.getDialboxIndex('normal', data.url)
-				}
-				DBOX.getBoxes();
-				DBOX.loadBoxes(((toIndex + 1) % DBOX.num == 0) ? (toIndex + 1) / DBOX.num : (parseInt((toIndex + 1) / DBOX.num) + 1))
-			} else {
-				if (_dialboxType != 'quick') {
-					DBOX.loadBoxes((_installIndex % DBOX.num == 0) ? _installIndex / DBOX.num : (parseInt(_installIndex / DBOX.num) + 1))
-				}
-			}
-		} else if (act == "unstalled" || act == "disabled") {
-			if (_installIndex > -1) {
-				setTimeout(function () {
-					if ($(".dialog-visible").length > 0) {
-						$(".dialog-visible").find(".close").get(0).click()
-					}
-					if (_dialboxType != 'quick') {
-						DBOX.loadBoxes((_installIndex % DBOX.num == 0) ? _installIndex / DBOX.num : (parseInt(_installIndex / DBOX.num) + 1));
-						setTimeout(function () {
-							$("." + _dialboxType + "Dialbox").find('.appBox[appid="' + data.id + '"]').find(".boxClose").get(0).click()
-						}, 500)
-					} else {
-						$("." + _dialboxType + "Dialbox").find('.appBox[appid="' + data.id + '"]').find(".boxClose").get(0).click()
-					}
-				}, 100)
-			}
-			var _indexObj = [];
-			var _classificationsIds = [];
-			if (cId != "") {
-				_classificationsIds = [{
-						"id" : "",
-						"type" : "normal"
-					}, {
-						"id" : "",
-						"type" : "quick"
-					}
-				]
-			}
-			var _classifications = PDI.get("classifications");
-			if (_classifications && _classifications.length > 0) {
-				$.each(_classifications, function (k, v) {
-					if (v.id != cId) {
-						_classificationsIds.push({
-							"id" : v.id,
-							"type" : "normal"
-						});
-						_classificationsIds.push({
-							"id" : v.id,
-							"type" : "quick"
-						})
-					}
-				})
-			}
-			$.each(_classificationsIds, function (k, v) {
-				storage = new $.storage(v.id);
-				var _dialboxes = PDI.get('dialBoxes', v.type);
-				$.each(_dialboxes, function (i, n) {
-					if (typeof n.isApp != 'undefined' && n.isApp == data.id) {
-						PDI.destoryDialbox(v.type, i)
-					}
-				})
-			});
-			storage = new $.storage(cId)
-		}
-	};
-	var actHandle = function (ops) {
-		var model = ops.model;
-		if (model == "website") {
-			websiteActHandle(ops)
-		} else if (model == "extension") {
-			extensionActHandle(ops)
-		}
-	};
-	if (typeof chrome.extension.onMessage == 'object') {
-		// chrome.extension.onMessage.addListener(actHandle)
-	} else {
-		// chrome.extension.onRequest.addListener(actHandle)
-	}
-});
+// $(websiteActHandle)
