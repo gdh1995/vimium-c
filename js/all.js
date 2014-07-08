@@ -2479,8 +2479,8 @@ var _bookmarksDialogFun = "";
 									"oDownloads" : _browser.protocol + "://downloads/",
 									"oBookmarks" : _browser.protocol + "://bookmarks/#1",
 									"oHistory" : _browser.protocol + "://history/",
-									"oExtensions" : getChromeUrl('extensions'),
-									"oNewtab" : ((chromeVer != null && chromeVer > '33') ? "chrome-search://local-ntp/local-ntp.html" : "chrome-internal://newtab/")
+									"oExtensions" : _browser.protocol + "://extensions",
+									"oNewtab" : ((chromeVer >= '33') ? "chrome-search://local-ntp/local-ntp.html" : "chrome-internal://newtab/")
 								};
 								var oUrl = typeof oUrls[appId] == "undefined" ? "" : oUrls[appId];
 								if (oUrl != "") {
@@ -4299,7 +4299,7 @@ if (window.location.hash == "#synchronize") {
 			$('.wallpaper').css(PDI.getSkin(skin, 'style').background);
 			$(".wallpaper").css(PDI.getStyle('background'))
 		}
-		app.loadApp($('.appBox[appId=classification]'), 'classification');
+		//app.loadApp($('.appBox[appId=classification]'), 'classification');
 		if (window.location.hash == "#setting") {
 			window.location.hash = "";
 			setTimeout(function () {
@@ -4309,7 +4309,7 @@ if (window.location.hash == "#synchronize") {
 				}, 300)
 			}, 300)
 		}
-		app.loadApp('', 'weather');
+		//app.loadApp('', 'weather');
 	})
 };
 // $(websiteActHandle)
