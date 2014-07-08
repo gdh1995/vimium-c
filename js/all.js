@@ -4299,7 +4299,7 @@ if (window.location.hash == "#synchronize") {
 			$('.wallpaper').css(PDI.getSkin(skin, 'style').background);
 			$(".wallpaper").css(PDI.getStyle('background'))
 		}
-		//app.loadApp($('.appBox[appId=classification]'), 'classification');
+		app.loadApp($('.appBox[appId=classification]'), 'classification');
 		if (window.location.hash == "#setting") {
 			window.location.hash = "";
 			setTimeout(function () {
