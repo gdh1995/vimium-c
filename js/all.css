@@ -91,7 +91,7 @@ a{color:#FFF;text-decoration:none;text-shadow:1px 1px 3px #000;}
 .body .dialbox.edit .appBox .boxClose.hide, .body .dialbox.edit .appBox .boxEdit.hide{display:none;}
 .body .dialbox.edit .appBox .boxClose, .body .dialbox.edit .appBox .boxEdit{display:block;}
 .body .dialbox.edit .appBox.quick .boxEdit{display:none;}
-.body .dialbox .appBox .boxTitle{position:absolute;bottom:0px;height:32px;line-height:32px;width:100%;text-align:center;overflow:hidden;background-color:transparent;}
+.body .dialbox .appBox .boxTitle{position:absolute;bottom:0px;height:32px;line-height:32px;width:100%;text-align:center;overflow:hidden;background-color:transparent;z-index:999;}
 .body .dialbox .appBox .boxTitle.middle{bottom:30px;}
 .body .dialbox .appBox.quick .boxTitle{font-size:13px;}
 .body .dialbox .appBox .boxLogo.noTitle ~ .boxTitle{height:0px;-webkit-transition:height .2s ease-in;}

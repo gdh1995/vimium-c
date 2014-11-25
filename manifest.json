@@ -1,9 +1,9 @@
 {
    "background": {
-      "scripts": [ "lib/utils.js", "background_scripts/commands.js", "lib/clipboard.js", "background_scripts/settings.js", "background_scripts/completion.js", "background_scripts/marks.js", "background_scripts/main.js" ]
+      "scripts": [ "lib/utils.js", "background_scripts/commands.js", "lib/clipboard.js", "background_scripts/settings.js", "background_scripts/exclusions.js", "background_scripts/completion.js", "background_scripts/marks.js", "background_scripts/main.js" ]
    },
    "chrome_url_overrides": {
-      "newtab": "index.html"
+      "newtab": "pages/newtab.html"
    },
    "content_scripts": [ {
       "all_frames": true,
@@ -11,19 +11,22 @@
       "js": [ "lib/utils.js", "lib/keyboard_utils.js", "lib/dom_utils.js", "lib/handler_stack.js", "lib/clipboard.js", "content_scripts/link_hints.js", "content_scripts/vomnibar.js", "content_scripts/scroller.js", "content_scripts/marks.js", "content_scripts/vimium_frontend.js" ],
       "matches": [ "\u003Call_urls>" ],
       "run_at": "document_start"
+   }, {
+      "all_frames": true,
+      "css": [ "content_scripts/file_urls.css" ],
+      "matches": [ "file:///*" ],
+      "run_at": "document_start"
    } ],
    "content_security_policy": "script-src 'self'; object-src 'self';",
-   "description": "微度新标签页, 附带 Vimium",
+   "description": "Vimium (集成微度新标签页)",
    "icons": {
-      "128": "img/icon_128.png",
-      "16": "img/icon_16.png"
+      "128": "img/icons/icon128.png"
    },
    "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAnaZQnkvrHvNlwXPnSfavEya+9sPtVgBR2hWLsNvwdv6+zHRGr/qhqEbtof1v7gDXzpC5+Dr4kOay6aflw5CaFzA1zyVJySAjpb0RkVh774kp9msRpjyb39obSIWAIB76PTwawEAE+K1f26jXDbTC2gEBe4OWk5KW9u9+KoTmeKLHo73ScR1jFcFaOTbrhwHtIDqj00vpIfrSAofpLIq1gP//Og+FoOT4dF107fwlVfDJuu171svuT68wmcKStl6OANxcnXCXE6OWbeZcjMehcQH41wzTtDugmt0o8w+hJ2WVugwWWmGmE8qSiwo9QYZTJW+5EvMcmNZWUmPbTLGkGQIDAQAB",
    "manifest_version": 2,
-   "name": "微度新标签页 with Vimium",
-   "options_page": "index.html#setting",
-   "permissions": [ "tabs", "bookmarks", "management", "history", "clipboardRead", "chrome://favicon/", "\u003Call_urls>", "unlimitedStorage" ],
-   "short_name": "微度&Vim",
-   "update_url": "http://clients2.google.com/service/update2/crx",
-   "version": "4.7.4"
+   "name": "Vimium with Weidu",
+   "options_page": "pages/options.html",
+   "permissions": [ "tabs", "bookmarks", "history", "clipboardRead", "sessions", "management", "\u003Call_urls>", "chrome://favicon/*" ],
+   "short_name": "Vim+Weidu",
+   "version": "1.45"
 }

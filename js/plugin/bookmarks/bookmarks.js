@@ -1,10 +1,10 @@
 (function ($) {
 	$.bookmarks = function () {
-		return new bookmarks()
+		return new Bookmarks()
 	};
-	var bookmarks = (function () {
-		var bookmarks = function () {};
-		bookmarks.prototype = {
+	if (1) {
+		var Bookmarks = function () {};
+		Bookmarks.prototype = {
 			content : '',
 			openQueue : [],
 			template : function (tree, recentTree) {
@@ -15,7 +15,7 @@
 					id : 'recent'
 				};
 				self.openQueue = PDI.get('setup', 'bookMarksOpenQueue');
-				self.content = '<div class="bookmarksContainer"><div class="bookmarksHeader"><div class="headerIcon"></div><div class="searchBookmarks"><input type="text" class="searchBookmarksKeyword" /></div>' + getI18nMsg('bookmarksAppTitle') + '<div class="bookmarksManage">' + getI18nMsg('bookmarksManage') + '</div></div><div class="bookmarksBody"><div class="bookmarksFolder search"><div class="bookmarksFolderTitle open">搜索结果</div><ul class="bookMarksFolderContainer"></ul></div>';
+				self.content = '<div class="bookmarksContainer"><div class="bookmarksHeader"><div class="headerIcon"></div><div class="searchBookmarks"><input type="text" class="searchBookmarksKeyword" /></div>' + getI18nMsg('bookmarksAppTitle') + '<div class="bookmarksManage">' + getI18nMsg('manage') + '</div></div><div class="bookmarksBody"><div class="bookmarksFolder search"><div class="bookmarksFolderTitle open">搜索结果</div><ul class="bookMarksFolderContainer"></ul></div>';
 				self.getBookmarks(tree[0]);
 				self.getBookmarks(recentTree);
 				self.content += '</div></div>';
@@ -42,8 +42,7 @@
 					}
 				});
 				self.content.find(".bookmarksManage").bind("click", function () {
-					url = "chrome://bookmarks/#1";
-					openTab(false, url, tabID, ctrlKey)
+					openTab(false, "chrome://bookmarks/#1", tabID, ctrlKey)
 				});
 				self.content.find(".bookmarksFolderTitle").bind('click', function () {
 					var fid = $(this).attr('fid');
@@ -138,7 +137,6 @@
 				}
 			}
 		};
-		return bookmarks
-	})()
+	}
 })(jq);
 var bookmarks = $.bookmarks();

@@ -1,15 +1,7 @@
 <html>
   <head>
     <title>Vimium Options</title>
-    <script src="../lib/utils.js"></script>
-    <script src="../lib/keyboard_utils.js"></script>
-    <script src="../lib/dom_utils.js"></script>
-    <script src="../lib/handler_stack.js"></script>
-    <script src="../lib/clipboard.js"></script>
-    <script src="../content_scripts/link_hints.js"></script>
-    <script src="../content_scripts/vomnibar.js"></script>
-    <script src="../content_scripts/scroller.js"></script>
-    <script src="../content_scripts/vimium_frontend.js"></script>
+    <script src="content_script_loader.js"></script>
     <style type="text/css" media="screen">
       body {
         font: 14px "DejaVu Sans", "Arial", sans-serif;
@@ -72,7 +64,9 @@
         margin: 5px;
         border-left: 1px solid #eee;
         padding-left: 5px;
-
+      }
+      .code {
+        white-space: nowrap;
       }
       input, textarea {
         box-sizing: border-box;
@@ -109,20 +103,22 @@
         width: 40px;
         margin-right: 3px;
       }
-      textarea#excludedUrls {
-        margin-top: 5px;
+      textarea#keyMappings {
         width: 100%;
-        min-height: 100px;
+        min-height: 134px;
       }
       textarea#userDefinedLinkHintCss {
         width: 100%;;
-        min-height: 100px;
+        min-height: 74px;
       }
-      textarea#keyMappings {
+      textarea#searchEngines {
         width: 100%;
-        min-height: 135px;
+        min-height: 116px;
       }
       input#previousPatterns, input#nextPatterns {
+        width: 100%;
+      }
+      input#newTabUrl {
         width: 100%;
       }
       input#searchUrl {
@@ -149,6 +145,7 @@
         position: absolute;
         right: -320px;
         width: 320px;
+        margin-top: -2px;
       }
       input:read-only {
         background-color: #eee;
@@ -174,13 +171,34 @@
         padding: 15px 0;
         border-top: 1px solid #eee;
       }
+      /* Ids and classes for rendering exclusionRules */
+      #exclusionScrollBox {
+        overflow: scroll;
+        overflow-x: hidden;
+        overflow-y: auto;
+        height: 140px;
+        border: 1px solid #bfbfbf;
+        border-radius: 2px;
+        color: #444;
+      }
+      input.pattern, input.passKeys {
+        font-family: Consolas, "Liberation Mono", Courier, monospace;
+        font-size: 14px;
+      }
+      .pattern {
+        width: 250px;
+      }
+      .passKeys {
+        width: 120px;
+      }
+      #exclusionAddButton {
+        float: right;
+        margin-top: 5px;
+        margin-right: 0px;
+      }
     </style>
-  <link rel="stylesheet" type="text/css" href="../content_scripts/vimium.css" />
-
-  <script type="text/javascript" src="options.js"></script>
-
+    <script type="text/javascript" src="options.js"></script>
   </head>
-
   <body>
     <div id="wrapper">
       <header>Vimium options</header>
@@ -192,19 +210,29 @@
           </td>
         </tr>
         <tr>
-          <td colspan="3">
-              Excluded URLs<br/>
-              <div class="help">
-                <div class="example">
-                  e.g. http*://mail.google.com/*<br/>
-                  This will disable Vimium on Gmail.<br/><br/>
-                  Enter one URL per line.<br/>
-                </div>
+          <td>Excluded URLs<br/>and keys<br/><br/></td>
+          <td>
+            <div class="help">
+              <div class="example">
+                The left column contains URL patterns.  Vimium will be wholly or partially disabled for URLs matching these patterns.  Patterns are Javascript regular expressions.  Additionally, the character "*" matches any zero or more characters.<br/><br/>
+                The right column contains keys which Vimium would would normally handle, but should instead be passed through to the underlying web page (for pages matching the corresponding pattern).  If empty, then Vimium is wholly disabled.
               </div>
-              <textarea id="excludedUrls"></textarea>
+            </div>
+            <div>
+               <div id="exclusionScrollBox">
+                  <table id="exclusionRules"></table>
+                  <template id="exclusionRuleTemplate">
+                    <tr>
+                       <td><input/ type="text" class="pattern" placeholder="URL pattern"></td>
+                       <td><input/ type="text" class="passKeys" placeholder="Exclude keys"></td>
+                       <td><input/ type="button" class="exclusionRemoveButton" value="&#x2716;"></td>
+                    </tr>
+                  </template>
+               </div>
+               <button id="exclusionAddButton">Add Rule</button>
+            </div>
           </td>
         </tr>
-        <tbody id='advancedOptions'>
           <tr>
             <td class="caption">Custom key<br/>mappings</td>
             <td id="mappingsHelp" verticalAlign="top">
@@ -214,16 +242,17 @@
                   Enter commands to remap your keys. Available commands:<br/>
                   <pre id="exampleKeyMapping">
 map j scrollDown
-unmap j
+unmap j\n
 unmapAll
 " this is a comment
 # this is also a comment</pre>
                   <a href="#" id="showCommands">Show available commands.</a>
                 </div>
               </div>
-              <textarea id="keyMappings" type="text"></textarea>
+              <textarea class="code" id="keyMappings" type="text"></textarea>
             </td>
           </tr>
+        <tbody id='advancedOptions'>
           <tr>
             <td class="caption">CSS for link hints</td>
             <td verticalAlign="top">
@@ -326,14 +355,42 @@ unmapAll
             </td>
           </tr>
           <tr>
-            <td class="caption">Search</td>
+            <td class="caption">New Tab URL</td>
             <td verticalAlign="top">
                 <div class="help">
                   <div class="example">
-                    Set which search engine is used when searching from the Vomnibar (examples: "http://duckduckgo.com/?q=", "http://www.google.com/search?q=").
+                      Choose a custom page to open with the "create new tab" command.
+                      Set to "<tt>pages/blank.html</tt>" for a blank page.<br />
+                  </div>
+                </div>
+                <input id="newTabUrl" type="text" />
+            </td>
+          </tr>
+          <tr>
+            <td class="caption">Default Search<br/>Engine</td>
+            <td verticalAlign="top">
+                <div class="help">
+                  <div class="example">
+                    The search engine which is used when searching from the Vomnibar
+                    (e.g.: "http://www.baidu.com/s?ie=utf-8&wd=").
                   </div>
                 </div>
                 <input id="searchUrl" type="text" />
+            </td>
+          </tr>
+          <tr>
+            <td class="caption">Custom Search<br/>Engines</td>
+            <td verticalAlign="top">
+                <div class="help">
+                  <div class="example">
+                    Use this to add shortcuts for your common search engines when using the Vomnibar.<br/><br/>
+                    The format is:<br/>
+                    <pre>your-keyword: http://the-site.com/?q=%s</pre>
+                    %s will be replaced with your search term.<br/>
+                    Lines which start with "#" are comments.
+                  </div>
+                </div>
+                <textarea id="searchEngines" class="code"></textarea>
             </td>
           </tr>
         </tbody>

@@ -28,7 +28,7 @@
 				var self = this;
 				self.cacheData['All'] = [];
 				self.cacheData['Used'] = PDI.get("usedWallpaper");
-				$.getJSON(cwURL + 'index.json', function (data) {
+				$.getJSON(cwURL + 'index.json?t=' + new Date().getDay(), function (data) {
 					PDI.set("wallpaper", "", data);
 					$.each(data, function (i, n) {
 						if (n != "") {
@@ -115,6 +115,7 @@
 						}
 						self.container.append($('<div class="cloudWallpaperItem' + (i % 5 == 0 ? " big" : "") + '" imgIndex="' + imgIndex + '"><img realsrc="' + realsrc + '" src="' + realsrc.replace(/\/(\d{4}\.)/, '/s_$1') + '" /><div class="cloudWallpaperItemDownload"></div>' + (self.category == "Used" ? '<div class="cloudWallpaperItemDelete" title="' + getI18nMsg("delete") + '"></div>' : '') + '<div class="cloudWallpaperItemBar"></div></div>').unbind('click').bind('click', function (e) {
 								var thisSelf = $(this);
+								var imgIndex = thisSelf.attr("imgIndex");
 								var url = thisSelf.find('img').attr('realsrc');
 								if (isContainsClass(e.target, 'cloudWallpaperItemDownload')) {
 									var hiddenA = self.container.find("#hiddenA");

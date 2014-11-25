@@ -1,0 +1,75 @@
+<html>
+  <head>
+    <style>
+      * {
+        margin: 0px;
+        padding: 0px;
+      }
+
+      #vimiumPopup { width: 400px; }
+
+      #excludeControls {
+        padding: 10px;
+      }
+
+      #popupPattern, #popupPassKeys {
+        margin: 5px;
+        width: 330px;
+        /* Match the corresponding font and font size used on the options page. */
+        /* TODO (smblott): Match other styles from the options page. */
+        font-family: Consolas, "Liberation Mono", Courier, monospace;
+        font-size: 14px;
+      }
+
+      #confirmationMessage {
+        display: inline-block;
+        width: 18px;
+        height: 13px;
+        background: url(icons/check.png) 3px 2px no-repeat;
+        display: none;
+      }
+
+      #popupRemove { margin: 5px; }
+      #popupExclude { margin: 5px; }
+
+      #popupMenu ul {
+        list-style: none;
+      }
+
+      #popupMenu a, #popupMenu a:active, #popupMenu a:visited {
+        color: #3F6EC2;
+        display: block;
+        border-top: 1px solid #DDDDDD;
+        padding: 3px;
+        padding-left: 10px;
+      }
+
+      #popupMenu a:hover {
+        background: #EEEEEE;
+      }
+
+      #optionsLink {
+        font-family : "Helvetica Neue", "Helvetica", "Arial", sans-serif;
+        font-size: 12px;
+      }
+    </style>
+    <script src="popup.js"></script>
+  </head>
+  <body>
+    <div id="vimiumPopup">
+      <div id="excludeControls">
+        <input id="popupPattern" placeholder="Pattern against which to match URLs..." type="text" /><br/>
+        <input id="popupPassKeys" placeholder="Only exclude these keys..." type="text" /><br/>
+        <input id="popupRemove" type="button" value="Remove Rule" />
+        <input id="popupExclude" type="button" value="Add or Update Rule" />
+        <span id="confirmationMessage">Text is added in popup.coffee.</span>
+      </div>
+
+      <div id="popupMenu">
+        <ul>
+          <li><a id="optionsLink" target="_blank">Options</a></li>
+        </ul>
+      </div>
+    </div>
+  </body>
+</html>

@@ -54,7 +54,7 @@ tr.vimiumReset {
   vertical-align: baseline;
   white-space: normal;
   width: auto;
-  z-index: 99999999;
+  z-index: 99999990;
 }
 
 /* Linkhints CSS */
@@ -122,8 +122,14 @@ div#vimiumHelpDialog {
   top:50px;
   -webkit-box-shadow: rgba(0, 0, 0, 0.4) 0px 0px 6px;
   overflow-y: auto;
-  z-index:99999998;
+  z-index:99999991;
 }
+div#vimiumHelpDialog::-webkit-scrollbar{width:6px;}
+div#vimiumHelpDialog::-webkit-scrollbar:horizontal{height:8px;}
+div#vimiumHelpDialog::-webkit-scrollbar-track{box-shadow:inset 0 0 6px rgba(0,0,0,0.4);border-radius:6px;}
+div#vimiumHelpDialog::-webkit-scrollbar-thumb{border-radius:6px;background:rgba(48, 49, 58,0.2);box-shadow:inset 0 0 6px rgba(0,0,0,0.8);}
+div#vimiumHelpDialog::-webkit-scrollbar-thumb:window-inactive{background:rgba(231,231,231,0.4);}
+
 
 div#vimiumHelpDialog a { color:blue; }
 div#vimiumTitle, div#vimiumTitle span,  div#vimiumTitle * { font-size:20px; }
@@ -175,14 +181,14 @@ div#vimiumHelpDialog div.advanced { display: none; }
 div#vimiumHelpDialog div.advanced td:nth-of-type(3) { color: #555; }
 div#vimiumHelpDialog a.closeButton {
   position:absolute;
-  right:10px;
+  right:7px;
   top:5px;
   font-family:"courier new";
   font-weight:bold;
   color:#555;
   text-decoration:none;
-  padding-left:10px;
-  font-size:16px;
+  /* padding-left:10px; */
+  font-size:20px;
 }
 div#vimiumHelpDialog a {
   text-decoration: underline;
@@ -197,9 +203,8 @@ div#vimiumHelpDialog .optionsPage {
   top: 8px;
 }
 div#vimiumHelpDialog a.closeButton:hover {
-  color:black;
-  cursor:default;
-  -webkit-user-select:none;
+  color: black;
+  -webkit-user-select: none;
 }
 div#vimiumHelpDialogFooter {
   display: block;
@@ -235,7 +240,7 @@ div.vimiumHUD {
   font-family: "Lucida Grande", "Arial", "Sans";
   font-size: 12px;
   /* One less than vimium's hint markers, so link hints can be shown e.g. for the panel's close button. */
-  z-index: 99999997;
+  z-index: 99999995;
   text-shadow: 0px 1px 2px #FFF;
   line-height: 1.0;
   opacity: 0;
@@ -251,7 +256,7 @@ div.vimiumHUD a:link, div.vimiumHUD a:hover {
 }
 div.vimiumHUD a:link.close-button {
   float:right;
-  font-family:courier new;
+  font-family: "Courier New";
   font-weight:bold;
   color:#9C9A9A;
   text-decoration:none;
@@ -267,13 +272,15 @@ div.vimiumHUD a.close-button:hover {
 
 body.vimiumFindMode ::selection {
   background: #ff9632;
-};
+}
 
 /* Vomnibar CSS */
 
-#vomnibar ol, #vomnibar ul {
+#vomnibar ul {
   list-style: none;
   display: block;
+  /* overflow-y: scroll; */
+  /* max-height: 300px; */
 }
 
 #vomnibar {
@@ -292,10 +299,12 @@ body.vimiumFindMode ::selection {
   box-shadow: 0px 2px 10px rgba(0, 0, 0, 0.8);
   border: 1px solid #aaa;
   /* One less than hint markers and the help dialog. */
-  z-index: 99999996;
+  z-index: 99999992;
 }
 
 #vomnibar input {
+  color: #000;
+  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
   font-size: 20px;
   height: 34px;
   margin-bottom: 0;
@@ -321,39 +330,57 @@ body.vimiumFindMode ::selection {
   background-color: white;
   border-radius: 0 0 4px 4px;
   list-style: none;
-  padding: 10px 0;
-  padding-top: 0;
+  padding-bottom: 3px;
 }
 
 #vomnibar li {
   border-bottom: 1px solid #ddd;
-  line-height: 1.1em;
-  padding: 7px 10px;
-  font-size: 16px;
+  padding: 5px 10px 3px 10px;
   color: black;
   position: relative;
+  display: list-item;
+  margin: auto;
 }
 
 #vomnibar li:last-of-type {
   border-bottom: none;
+  margin-bottom: -3px;
+  padding-bottom: 6px;
 }
 
-#vomnibar li .vomnibarTopHalf, #vomnibar li .vomnibarBottomHalf {
+#vomnibar li span.vimiumReset {
+  line-height: inherit;
+}
+
+#vomnibar .vomnibarTopHalf {
   display: block;
   overflow: hidden;
+  height: 18px;
+  line-height: 18px;
+  font-size: 16px;
 }
 
-#vomnibar li .vomnibarBottomHalf {
-  font-size: 15px;
-  margin-top: 3px;
-  padding: 2px 0;
+#vomnibar .vomnibarBottomHalf {
+  display: block;
+  overflow: hidden;
+  height: 16px;
+  line-height: 16px;
+  font-size: 14px;
+  margin-top: 2px;
 }
 
-#vomnibar li .vomnibarSource {
+#vomnibar .vomnibarIcon {
+  background-position: 30px 50%;
+  background-size: 16px;
+  background-repeat: no-repeat;
+}
+
+#vomnibar .vomnibarSource {
+  position: absolute;
   color: #777;
-  margin-right: 4px;
 }
-#vomnibar li .vomnibarRelevancy {
+
+#vomnibar .vomnibarRelevancy {
   position: absolute;
   right: 0;
   top: 0;
@@ -365,32 +392,39 @@ body.vimiumFindMode ::selection {
   overflow: hidden;
 }
 
-#vomnibar li .vomnibarUrl {
+#vomnibar .vomnibarUrl {
+  display: inline-block;
   white-space: nowrap;
+  margin-left: 51px;
   color: #224684;
+  font-family: Consolas, "Liberation Mono", "Courier New", monospace;
 }
 
-#vomnibar li .vomnibarMatch {
+#vomnibar .vomnibarMatch {
+  white-space: nowrap;
   font-weight: bold;
   color: black;
 }
 
-#vomnibar li em, #vomnibar li .vomnibarTitle {
+#vomnibar em { font-style: italic; }
+#vomnibar .vomnibarTitle {
+  display: inline-block;
+  white-space: nowrap;
+  margin-left: 51px;
   color: black;
-  margin-left: 4px;
-  font-weight: normal;
 }
-#vomnibar li em { font-style: italic; }
-#vomnibar li em .vomnibarMatch, #vomnibar li .vomnibarTitle .vomnibarMatch {
+#vomnibar .vomnibarTitle .vomnibarMatch {
   color: #333;
   text-decoration: underline;
 }
 
-#vomnibar li.vomnibarSelected {
-  background-color: #BBCEE9;
-  font-weight: normal;
+#vomnibar li:hover {
+  background-color: #CFDDEF;
 }
 
+#vomnibar li.vomnibarSelected {
+  background-color: #BBCEE9;
+}
 
 
 div#vimiumFlash {
@@ -398,5 +432,5 @@ div#vimiumFlash {
   padding: 1px;
   background-color: transparent;
   position: absolute;
-  z-index: 99999;
+  z-index: 99999999;
 }
