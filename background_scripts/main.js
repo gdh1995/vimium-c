@@ -3,7 +3,7 @@
   var BackgroundCommands, checkKeyQueue, completers, completionSources, copyToClipboard, currentVersion
     , fetchFileContents, filterCompleter, frameIdsForTab, generateCompletionKeys
     , getActualKeyStrokeLength, getCompletionKeysRequest, getCurrentTabUrl
-    , getCurrentTimeInSeconds, handleFrameFocused, handleKeyDown, handleSettings, handleUpdateScrollPosition
+    , getCurrentTimeInSeconds, handleFrameFocused, handleMainPort, handleUpdateScrollPosition
     , helpDialogHtmlForCommandGroup, isEnabledForUrl, keyQueue, moveTab, namedKeyRegex
     , openOptionsPageInNewTab, openUrlInCurrentTab, openUrlInIncognito, openUrlInNewTab, restoreSession
     , populateKeyCommands, portHandlers, refreshCompleter, registerFrame
@@ -12,7 +12,7 @@
     , shouldShowUpgradeMessage, singleKeyCommands, splitKeyIntoFirstAndSecond, splitKeyQueue, tabInfoMap
     , tabLoadedHandlers, tabQueue, unregisterFrame, updateActiveState, updateOpenTabs
     , updatePositionsAndWindowsForAllTabsInWindow, updateScrollPosition, upgradeNotificationClosed
-    , validFirstKeys, hasActionIcon, onDomReady;
+    , validFirstKeys, hasActionIcon;
 
   root = typeof exports !== "undefined" && exports !== null ? exports : window;
 
@@ -22,7 +22,7 @@
 
   root.tabQueue = tabQueue = {};
 
-  tabInfoMap = {};
+  root.tabInfoMap = tabInfoMap = {};
 
   keyQueue = "";
 
@@ -60,34 +60,33 @@
     }
   });
 
-  chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
-    var handler = sendRequestHandlers[request.handler];
-    if (handler) {
-      // try {
-      handler = handler(request, sender);
-      sendResponse(handler);
-      /*
-      } catch(e) {
-        console.warn(request, sender);
-        console.log(handler);
-        console.log("%c" + e.stack, "color: red;");
-      }
-      //*/
-    }
-    return false;
-  });
+  // chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
+    // var handler = send Request Handlers[request.handler];
+    // if (handler) {
+      // // try {
+      // handler = handler(request, sender);
+      // sendResponse(handler);
+      // /*
+      // } catch(e) {
+        // console.warn(request, sender);
+        // console.log(handler);
+        // console.log("%c" + e.stack, "color: red;");
+      // }
+      // //*/
+    // }
+    // return false;
+  // });
 
-  getCurrentTabUrl = function(request, sender) {
-    return sender.tab.url;
+  getCurrentTabUrl = function(request, tab) {
+    return tab.url;
   };
 
   root.isEnabledForUrl = isEnabledForUrl = function(request) {
-    var rule;
-    rule = Exclusions.getRule(request.url);
+    var rule = Exclusions.getRule(request.url);
     return {
       rule: rule,
-      isEnabledForUrl: !rule || rule.passKeys,
-      passKeys: (rule != null ? rule.passKeys : void 0) || ""
+      isEnabledForUrl: !rule || (!!rule.passKeys),
+      passKeys: rule && rule.passKeys || ""
     };
   };
 
@@ -101,7 +100,7 @@
         windowId: chrome.windows.WINDOW_ID_CURRENT,
         active: true
       }, function(tabs) {
-        updateActiveState(tabs[0].id);
+        updateActiveState(tabs[0].id, tabs[0].url);
       });
     }
   };
@@ -113,7 +112,7 @@
         windowId: chrome.windows.WINDOW_ID_CURRENT,
         active: true
       }, function(tabs) {
-        updateActiveState(tabs[0].id);
+        updateActiveState(tabs[0].id, tabs[0].url);
       });
     }
   };
@@ -168,7 +167,7 @@
   };
 
   getCompletionKeysRequest = function(request, keysToCheck) {
-    if (keysToCheck == null) {
+    if (typeof keysToCheck !== "string") {
       keysToCheck = "";
     }
     return {
@@ -178,26 +177,22 @@
     };
   };
 
-  openUrlInCurrentTab = function(request) {
-    chrome.tabs.getSelected(null, function(tab) {
-      chrome.tabs.update(tab.id, {
-        url: Utils.convertToUrl(request.url)
-      });
+  openUrlInCurrentTab = function(request, tab) {
+    chrome.tabs.update(tab.id, {
+      url: Utils.convertToUrl(request.url)
     });
   };
 
-  openUrlInNewTab = function(request) {
-    chrome.tabs.getSelected(null, function(tab) {
-      chrome.tabs.create({
-        url: Utils.convertToUrl(request.url),
-        index: tab.index + 1,
-        selected: true
-      });
+  openUrlInNewTab = function(request, tab) {
+    chrome.tabs.create({
+      url: Utils.convertToUrl(request.url),
+      index: tab.index + 1,
+      selected: true
     });
   };
   
   restoreSession = function(request) {
-    BackgroundCommands.restoreTab(function() {}, null, request.sessionId);
+    BackgroundCommands.restoreTab(null, null, null, null, request.sessionId);
   }
 
   openUrlInIncognito = function(request) {
@@ -229,17 +224,6 @@
     });
   };
 
-  handleSettings = function(args, port) {
-    if (args.operation === "get") {
-      port.postMessage({
-        key: args.key,
-        value: Settings.get(args.key)
-      });
-    } else if (args.operation === "set") {
-      Settings.set(args.key, args.value);
-    }
-  };
-
   refreshCompleter = function(request) {
     completers[request.name].refresh();
   };
@@ -266,172 +250,160 @@
     }
   });
 
-  repeatFunction = function(func, totalCount, currentCount, frameId) {
+  repeatFunction = function(func, totalCount, currentCount, frameId, port) {
     if (currentCount < totalCount) {
       func(function() {
         repeatFunction(func, totalCount, currentCount + 1, frameId);
-      }, frameId);
+      }, frameId, port.sender.tab, port);
     }
   };
 
-  moveTab = function(callback, direction) {
-    chrome.tabs.getSelected(null, function(tab) {
-      chrome.tabs.move(tab.id, {
-        index: Math.max(0, tab.index + direction)
-      }, callback);
-    });
+  moveTab = function(tab, direction, callback) {
+    chrome.tabs.move(tab.id, {
+      index: Math.max(0, tab.index + direction)
+    }, callback);
   };
 
   BackgroundCommands = {
-    createTab: function(callback) {
-      chrome.tabs.getSelected(null, function(tab) {
-        chrome.windows.get(tab.windowId, function(window) {
-          var url = Settings.get("newTabUrl");
-          if (! window.incognito || /^https?:/i.test(url) || url.toLowerCase() === Settings.defaults.newTabUrl) {
-            chrome.tabs.create({
-              windowId: window.id,
-              index: tab.index + 1,
-              url: url
-            }, callback);
-            return;
-          }
-          // other urls will be disabled if incognito
-          chrome.tabs.getAllInWindow(tab.windowId, function(allTabs) {
-            var urlLower = url.toLowerCase().split('#', 1)[0];
-            if (urlLower.indexOf("://") < 0) {
-              urlLower = chrome.runtime.getURL(urlLower);
-            }
-            allTabs = allTabs.filter(function(tab1) {
-              var url = tab1.url.toLowerCase(), end = url.indexOf("#");
-              return ((end < 0) ? url : url.substring(0, end)) === urlLower;
-            });
-            if (allTabs.length > 0) {
-              urlLower = allTabs.filter(function(tab1) {
-                return tab1.index >= tab.index;
-              });
-              tab = (urlLower.length > 0) ? urlLower[0] : allTabs[allTabs.length - 1];
-              chrome.tabs.duplicate(tab.id, callback);
-              return;
-            }
-            chrome.tabs.create({
-              selected: false,
-              url: url
-            }, function(newTab) {
-              chrome.windows.create({
-                left: 0,
-                top: 0,
-                width: 50,
-                height: 50,
-                incognito: true,
-                tabId: newTab.id
-              }, function() {
-                chrome.tabs.move(newTab.id, {
-                  index: tab.index + 1,
-                  windowId: window.id
-                }, function() {
-                  chrome.tabs.update(newTab.id, {
-                    selected: true 
-                  }, callback);
-                });
-              });
-            });
-          });
-        });
-      });
-    },
-    duplicateTab: function(callback) {
-      chrome.tabs.getSelected(null, function(tab) {
-        chrome.tabs.duplicate(tab.id, callback);
-      });
-    },
-    moveTabToNewWindow: function(callback) {
-      chrome.tabs.getSelected(null, function(tab) {
-        chrome.windows.get(tab.windowId, function(window) {
-          chrome.windows.create({
-            tabId: tab.id,
-            incognito: window.incognito
+    createTab: function(callback, _1, tab) {
+      chrome.windows.get(tab.windowId, function(window) {
+        var url = Settings.get("newTabUrl");
+        if (! window.incognito || /^https?:/i.test(url) || url.toLowerCase() === Settings.defaults.newTabUrl) {
+          chrome.tabs.create({
+            windowId: window.id,
+            index: tab.index + 1,
+            url: url
           }, callback);
-        });
-      });
-    },
-    moveTabToIncognito: function(callback) {
-      chrome.tabs.getSelected(null, function(tab) {
-        chrome.windows.get(tab.windowId, function(window) {
-          if (window.incognito) {
-            callback && callback();
-            return;
+          return;
+        }
+        // other urls will be disabled if incognito
+        chrome.tabs.getAllInWindow(tab.windowId, function(allTabs) {
+          var urlLower = url.toLowerCase().split('#', 1)[0];
+          if (urlLower.indexOf("://") < 0) {
+            urlLower = chrome.runtime.getURL(urlLower);
           }
-          var options = {
-            type: "normal",
-            incognito: true
-          };
-          window = tab.url.toLowerCase();
-          if (window.startsWith("chrome") && window !== Settings.defaults.newTabUrl) {
-            options.tabId = tab.id;
-          } else {
-            options.url = tab.url;
-            chrome.tabs.remove(tab.id);
-          }
-          chrome.windows.create(options, callback);
-        });
-      });
-    },
-    nextTab: function(callback) {
-      selectTab(callback, "next");
-    },
-    previousTab: function(callback) {
-      selectTab(callback, "previous");
-    },
-    firstTab: function(callback) {
-      selectTab(callback, "first");
-    },
-    lastTab: function(callback) {
-      selectTab(callback, "last");
-    },
-    removeTab: function(callback) {
-      chrome.tabs.getSelected(null, function(tab) {
-        chrome.tabs.getAllInWindow(tab.windowId, function(curTabs) {
-          if (! curTabs || curTabs.length !== 1) {
-            selectionChangedHandlers.push(callback);
-            chrome.tabs.remove(tab.id);
-            return;
-          }
-          chrome.windows.getAll(function(windows) {
-            var url = Settings.get("newTabUrl"), toCreate;
-            windows = windows.filter(function(wnd) {
-              return wnd.type === "normal";
+          allTabs = allTabs.filter(function(tab1) {
+            var url = tab1.url.toLowerCase(), end = url.indexOf("#");
+            return ((end < 0) ? url : url.substring(0, end)) === urlLower;
+          });
+          if (allTabs.length > 0) {
+            urlLower = allTabs.filter(function(tab1) {
+              return tab1.index >= tab.index;
             });
-            if (windows.length <= 1) {
-              toCreate = {};
-              if (windows.length === 1 && windows[0].incognito && (/^https?:/i.test(url)
-                || url.toLowerCase() === Settings.defaults.newTabUrl)) {
-                // other urls will be disabled if incognito
-                toCreate.windowId = windows[0].id;
-              }
-            }
-            else if (! tab.incognito) {
-              windows = windows.filter(function(wnd) {
-                return ! wnd.incognito;
+            tab = (urlLower.length > 0) ? urlLower[0] : allTabs[allTabs.length - 1];
+            chrome.tabs.duplicate(tab.id, callback);
+            return;
+          }
+          chrome.tabs.create({
+            selected: false,
+            url: url
+          }, function(newTab) {
+            chrome.windows.create({
+              left: 0,
+              top: 0,
+              width: 50,
+              height: 50,
+              incognito: true,
+              tabId: newTab.id
+            }, function() {
+              chrome.tabs.move(newTab.id, {
+                index: tab.index + 1,
+                windowId: window.id
+              }, function() {
+                chrome.tabs.update(newTab.id, {
+                  selected: true 
+                }, callback);
               });
-              if (windows.length == 1 && windows[0].id === tab.windowId) {
-                toCreate = { windowId: windows[0].id };
-              }
-            }
-            selectionChangedHandlers.push(callback);
-            chrome.tabs.remove(tab.id);
-            if (toCreate) {
-              toCreate.url = url;
-              chrome.tabs.create(toCreate);
-            }
+            });
           });
         });
       });
     },
-    restoreTab: function(callback, _1, sessionId) {
+    duplicateTab: function(callback, _1, tab) {
+      chrome.tabs.duplicate(tab.id, callback);
+    },
+    moveTabToNewWindow: function(callback, _1, tab) {
+      chrome.windows.get(tab.windowId, function(window) {
+        chrome.windows.create({
+          tabId: tab.id,
+          incognito: window.incognito
+        }, callback);
+      });
+    },
+    moveTabToIncognito: function(callback, _1, tab) {
+      chrome.windows.get(tab.windowId, function(window) {
+        if (window.incognito) {
+          callback && callback();
+          return;
+        }
+        var options = {
+          type: "normal",
+          incognito: true
+        };
+        window = tab.url.toLowerCase();
+        if (window.startsWith("chrome") && window !== Settings.defaults.newTabUrl) {
+          options.tabId = tab.id;
+        } else {
+          options.url = tab.url;
+          chrome.tabs.remove(tab.id);
+        }
+        chrome.windows.create(options, callback);
+      });
+    },
+    nextTab: function(callback, _1, tab) {
+      selectTab(callback, "next", tab);
+    },
+    previousTab: function(callback, _1, tab) {
+      selectTab(callback, "previous", tab);
+    },
+    firstTab: function(callback, _1, tab) {
+      selectTab(callback, "first", tab);
+    },
+    lastTab: function(callback, _1, tab) {
+      selectTab(callback, "last", tab);
+    },
+    removeTab: function(callback, _1, tab) {
+      chrome.tabs.getAllInWindow(tab.windowId, function(curTabs) {
+        if (! curTabs || curTabs.length !== 1) {
+          selectionChangedHandlers.push(callback);
+          chrome.tabs.remove(tab.id);
+          return;
+        }
+        chrome.windows.getAll(function(windows) {
+          var url = Settings.get("newTabUrl"), toCreate;
+          windows = windows.filter(function(wnd) {
+            return wnd.type === "normal";
+          });
+          if (windows.length <= 1) {
+            toCreate = {};
+            if (windows.length === 1 && windows[0].incognito && (/^https?:/i.test(url)
+              || url.toLowerCase() === Settings.defaults.newTabUrl)) {
+              // other urls will be disabled if incognito
+              toCreate.windowId = windows[0].id;
+            }
+          }
+          else if (! tab.incognito) {
+            windows = windows.filter(function(wnd) {
+              return ! wnd.incognito;
+            });
+            if (windows.length == 1 && windows[0].id === tab.windowId) {
+              toCreate = { windowId: windows[0].id };
+            }
+          }
+          selectionChangedHandlers.push(callback);
+          chrome.tabs.remove(tab.id);
+          if (toCreate) {
+            toCreate.url = url;
+            chrome.tabs.create(toCreate);
+          }
+        });
+      });
+    },
+    restoreTab: function(callback, _1, _tab, _port, sessionId) {
       if (chrome.sessions) {
         chrome.sessions.restore(sessionId || null, function(restoredSession) {
           if (!chrome.runtime.lastError) {
-            callback();
+            callback && callback();
           }
         });
         return;
@@ -439,7 +411,7 @@
       chrome.windows.getCurrent(function(window) {
         var tabQueueEntry;
         if (!(tabQueue[window.id] && tabQueue[window.id].length > 0)) {
-          callback();
+          callback && callback();
           return;
         }
         if (typeof sessionId === "number" && sessionId >= 0 && sessionId < tabQueue[window.id].length) {
@@ -454,144 +426,136 @@
           url: tabQueueEntry.url,
           index: tabQueueEntry.positionIndex
         }, function(tab) {
-          tabLoadedHandlers[tab.id] = function() {
-            chrome.tabs.sendMessage(tab.id, {
+          tabLoadedHandlers[tab.id] = function(port) {
+            port.postMessage({
               name: "setScrollPosition",
               scrollX: tabQueueEntry.scrollX,
               scrollY: tabQueueEntry.scrollY
             });
           };
-          callback();
+          callback && callback();
         });
       });
     },
-    openCopiedUrlInCurrentTab: function(request) {
+    openCopiedUrlInCurrentTab: function(request, _1, tab) {
       openUrlInCurrentTab({
         url: Clipboard.paste()
-      });
+      }, tab);
     },
-    openCopiedUrlInNewTab: function(request) {
+    openCopiedUrlInNewTab: function(request, _1, tab) {
       openUrlInNewTab({
         url: Clipboard.paste()
+      }, tab);
+    },
+    togglePinTab: function(request, _1, tab) {
+      chrome.tabs.update(tab.id, {
+        pinned: !tab.pinned
       });
     },
-    togglePinTab: function(request) {
-      chrome.tabs.getSelected(null, function(tab) {
-        chrome.tabs.update(tab.id, {
-          pinned: !tab.pinned
-        });
+    showHelp: function(callback, frameId, tab, port) {
+      port.postMessage(tab.id, {
+        name: "toggleHelpDialog",
+        dialogHtml: helpDialogHtml(),
+        frameId: frameId
       });
     },
-    showHelp: function(callback, frameId) {
-      chrome.tabs.getSelected(null, function(tab) {
-        chrome.tabs.sendMessage(tab.id, {
-          name: "toggleHelpDialog",
-          dialogHtml: helpDialogHtml(),
-          frameId: frameId
-        });
+    moveTabLeft: function(count, _1, tab) {
+      moveTab(tab, -count);
+    },
+    moveTabRight: function(count, _1, tab) {
+      moveTab(tab, count);
+    },
+    nextFrame: function(count, frameId, tab, port) {
+      var frames = frameIdsForTab[tab.id];
+      count = (count + Math.max(0, frameIdsForTab[tab.id].indexOf(frameId))) % frames.length;
+      frames = frameIdsForTab[tab.id] = frames.slice(count).concat(frames.slice(0, count));
+      port.postMessage({
+        name: "focusFrame",
+        frameId: frames[0],
+        highlight: true
       });
     },
-    moveTabLeft: function(count) {
-      moveTab(null, -count);
+    closeTabsOnLeft: function(_0, _1, tab) {
+      removeTabsRelative(tab, "before");
     },
-    moveTabRight: function(count) {
-      moveTab(null, count);
+    closeTabsOnRight: function(_0, _1, tab) {
+      removeTabsRelative(tab, "after");
     },
-    nextFrame: function(count, frameId) {
-      chrome.tabs.getSelected(null, function(tab) {
-        var frames = frameIdsForTab[tab.id];
-        count = (count + Math.max(0, frameIdsForTab[tab.id].indexOf(frameId))) % frames.length;
-        frames = frameIdsForTab[tab.id] = frames.slice(count).concat(frames.slice(0, count));
-        chrome.tabs.sendMessage(tab.id, {
-          name: "focusFrame",
-          frameId: frames[0],
-          highlight: true
-        });
-      });
-    },
-    closeTabsOnLeft: function() {
-      removeTabsRelative("before");
-    },
-    closeTabsOnRight: function() {
-      removeTabsRelative("after");
-    },
-    closeOtherTabs: function() {
-      removeTabsRelative("both");
+    closeOtherTabs: function(_0, _1, tab) {
+      removeTabsRelative(tab, "both");
     }
   };
 
-  removeTabsRelative = function(direction) {
+  removeTabsRelative = function(activeTab, direction) {
     chrome.tabs.query({
-      currentWindow: true
+      windowId: chrome.windows.WINDOW_ID_CURRENT
     }, function(tabs) {
-      chrome.tabs.query({
-        currentWindow: true,
-        active: true
-      }, function(activeTabs) {
-        var activeTabIndex, shouldDelete, tab, toRemove, _i, _len;
-        activeTabIndex = activeTabs[0].index;
-        shouldDelete = (direction === "before") ? function(index) {
-          return index < activeTabIndex;
-        } : (direction === "after") ? function(index) {
-          return index > activeTabIndex;
-        } : (direction === "both") ? function(index) {
-          return index !== activeTabIndex;
-        } : function() {
-          return false;
-        };
-        toRemove = [];
-        for (_i = 0, _len = tabs.length; _i < _len; _i++) {
-          tab = tabs[_i];
-          if (!tab.pinned && shouldDelete(tab.index)) {
-            toRemove.push(tab.id);
-          }
+      var activeTabIndex, shouldDelete, tab, toRemove, _i, _len;
+      activeTabIndex = activeTab.index;
+      shouldDelete = (direction === "before") ? function(index) {
+        return index < activeTabIndex;
+      } : (direction === "after") ? function(index) {
+        return index > activeTabIndex;
+      } : (direction === "both") ? function(index) {
+        return index !== activeTabIndex;
+      } : function() {
+        return false;
+      };
+      toRemove = [];
+      for (_i = 0, _len = tabs.length; _i < _len; _i++) {
+        tab = tabs[_i];
+        if (!tab.pinned && shouldDelete(tab.index)) {
+          toRemove.push(tab.id);
         }
-        chrome.tabs.remove(toRemove);
-      });
+      }
+      chrome.tabs.remove(toRemove);
     });
   };
 
-  selectTab = function(callback, direction) {
+  selectTab = function(callback, direction, currentTab) {
     chrome.tabs.getAllInWindow(null, function(tabs) {
       if (!(tabs.length > 1)) {
         return;
       }
-      chrome.tabs.getSelected(null, function(currentTab) {
-        var toSelect;
-        switch (direction) {
-          case "next":
-            toSelect = tabs[(currentTab.index + 1 + tabs.length) % tabs.length];
-            break;
-          case "previous":
-            toSelect = tabs[(currentTab.index - 1 + tabs.length) % tabs.length];
-            break;
-          case "first":
-            toSelect = tabs[0];
-            break;
-          case "last":
-            toSelect = tabs[tabs.length - 1];
-        }
+      var toSelect;
+      switch (direction) {
+      case "next":
+        toSelect = tabs[(currentTab.index + 1 + tabs.length) % tabs.length];
+        break;
+      case "previous":
+        toSelect = tabs[(currentTab.index - 1 + tabs.length) % tabs.length];
+        break;
+      case "first":
+        toSelect = tabs[0];
+        break;
+      case "last":
+        toSelect = tabs[tabs.length - 1];
+        break;
+      }
+      if (toSelect) {
         selectionChangedHandlers.push(callback);
         chrome.tabs.update(toSelect.id, {
           selected: true
         });
-      });
+      } else {
+        callback && callback();
+      }
     });
   };
 
   updateOpenTabs = function(tab) {
     var _ref;
-    if ((_ref = tabInfoMap[tab.id]) != null ? _ref.deletor : void 0) {
-      clearTimeout(tabInfoMap[tab.id].deletor);
+    if ((_ref = tabInfoMap[tab.id]) && _ref.deletor) {
+      clearTimeout(_ref.deletor);
     }
     tabInfoMap[tab.id] = {
       url: tab.url,
       title: tab.title,
       positionIndex: tab.index,
       windowId: tab.windowId,
-      scrollX: null,
-      scrollY: null,
-      deletor: null
+      scrollX: 0,
+      scrollY: 0,
+      deletor: 0
     };
     delete frameIdsForTab[tab.id];
   };
@@ -603,57 +567,66 @@
     });
   };
 
-  updateActiveState = function(tabId) {
+  updateActiveState = function(tabId, url) {
     if (!hasActionIcon) return;
     var enabledIcon = "icons/browser_action_enabled.png",
       disabledIcon = "icons/browser_action_disabled.png",
       partialIcon = "icons/browser_action_partial.png";
-    chrome.tabs.get(tabId, function(tab) {
-      chrome.tabs.sendMessage(tabId, {
-        name: "getActiveState"
-      }, function(response) {
-        var config, currentPasskeys, enabled, isCurrentlyEnabled, passKeys;
-        if (response) {
-          isCurrentlyEnabled = response.enabled;
-          currentPasskeys = response.passKeys;
-          config = isEnabledForUrl({
-            url: tab.url
-          });
-          enabled = config.isEnabledForUrl;
-          passKeys = config.passKeys;
-          if (enabled && passKeys) {
-            setBrowserActionIcon(tabId, partialIcon);
-          } else if (enabled) {
-            setBrowserActionIcon(tabId, enabledIcon);
-          } else {
-            setBrowserActionIcon(tabId, disabledIcon);
-          }
-          if (isCurrentlyEnabled !== enabled || currentPasskeys !== passKeys) {
-            chrome.tabs.sendMessage(tabId, {
-              name: "setState",
-              enabled: enabled,
-              passKeys: passKeys
-            });
-          }
+    chrome.tabs.sendMessage(tabId, {
+      name: "getActiveState"
+    }, function(response) {
+      var config, currentPasskeys, enabled, isCurrentlyEnabled, passKeys;
+      if (response) {
+        isCurrentlyEnabled = response.enabled;
+        currentPasskeys = response.passKeys;
+        config = isEnabledForUrl({
+          url: url
+        });
+        enabled = config.isEnabledForUrl;
+        passKeys = config.passKeys;
+        if (enabled && passKeys) {
+          setBrowserActionIcon(tabId, partialIcon);
+        } else if (enabled) {
+          setBrowserActionIcon(tabId, enabledIcon);
         } else {
           setBrowserActionIcon(tabId, disabledIcon);
         }
-      });
+        if (isCurrentlyEnabled !== enabled || currentPasskeys !== passKeys) {
+          chrome.tabs.sendMessage(tabId, {
+            name: "setState",
+            enabled: enabled,
+            passKeys: passKeys
+          });
+        }
+      } else {
+        setBrowserActionIcon(tabId, disabledIcon);
+      }
     });
   };
 
-  handleUpdateScrollPosition = function(request, sender) {
-    updateScrollPosition(sender.tab, request.scrollX, request.scrollY);
+  handleUpdateScrollPosition = function(request, tab) {
+    updateScrollPosition(tab.id, request.scrollX, request.scrollY);
   };
 
-  updateScrollPosition = function(tab, scrollX, scrollY) {
-    tabInfoMap[tab.id].scrollX = scrollX;
-    tabInfoMap[tab.id].scrollY = scrollY;
+  updateScrollPosition = function(tabId, scrollX, scrollY) {
+    tabInfoMap[tabId].scrollX = scrollX;
+    tabInfoMap[tabId].scrollY = scrollY;
   };
 
   chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab) {
-    if (changeInfo.status !== "loading") {
+    var old, temp;
+    if (changeInfo.status !== "loading") { // TODO: judge "#"
       return;
+    }
+    if (changeInfo.url != null && (old = tabInfoMap[tabId])) {
+      if (old.nohash == null) {
+        temp = old.url.indexOf('#');
+        old.nohash = temp > 0 ? old.url.substring(0, temp) : old.url;
+      }
+      temp = changeInfo.url.indexOf('#');
+      if (temp > 0 && (tab.nohash = changeInfo.url.substring(0, temp)) === old.nohash) {
+        return;
+      }
     }
     chrome.tabs.insertCSS(tabId, {
       allFrames: true,
@@ -665,7 +638,7 @@
     if (changeInfo.url != null) {
       updateOpenTabs(tab);
     }
-    hasActionIcon && updateActiveState(tabId);
+    hasActionIcon && updateActiveState(tab.id, tab.url);
   });
 
   chrome.tabs.onAttached.addListener(function(tabId, attachedInfo) {
@@ -680,20 +653,21 @@
   });
 
   chrome.tabs.onRemoved.addListener(function(tabId) {
-    var i, openTabInfo;
+    var i, openTabInfo, ref;
     openTabInfo = tabInfoMap[tabId];
     if (!openTabInfo || !openTabInfo.windowId) {
       return true;
     }
     updatePositionsAndWindowsForAllTabsInWindow(openTabInfo.windowId);
     if (!chrome.sessions) {
-      if (/^(chrome|view-source:)[^:]*:\/\/.*/.test(openTabInfo.url)) {
-        for (i in tabQueue[openTabInfo.windowId]) {
-          if (tabQueue[openTabInfo.windowId][i].positionIndex > openTabInfo.positionIndex) {
-            tabQueue[openTabInfo.windowId][i].positionIndex--;
+      if (/^(chrome|view-source):/.test(openTabInfo.url)) {
+        ref = tabQueue[openTabInfo.windowId];
+        for (i in ref) {
+          if (ref[i].positionIndex > openTabInfo.positionIndex) {
+            -- ref[i].positionIndex;
           }
         }
-        return;
+        // return;
       }
       openTabInfo.lastVisitTime = new Date().getTime();
       if (tabQueue[openTabInfo.windowId]) {
@@ -702,15 +676,16 @@
         tabQueue[openTabInfo.windowId] = [openTabInfo];
       }
     }
-    tabInfoMap.deletor = function() {
+    openTabInfo.deletor = setTimeout(function() {
       delete tabInfoMap[tabId];
-    };
-    setTimeout(tabInfoMap.deletor, 1000);
+    }, 1000);
     delete frameIdsForTab[tabId];
   });
 
   hasActionIcon && chrome.tabs.onActiveChanged.addListener(function(tabId, selectInfo) {
-    updateActiveState(tabId);
+    chrome.tabs.get(tabId, function(tab) {
+      updateActiveState(tabId, tab.url);
+    });
   });
 
   if (!chrome.sessions) {
@@ -797,24 +772,52 @@
     };
   };
 
-  handleKeyDown = function(request, port) {
-    var key;
-    key = request.keyChar;
-    if (key === "<ESC>") {
-      // console.log("clearing keyQueue");
-      keyQueue = "";
-    } else {
-      // console.log("checking keyQueue: [", keyQueue + key, "]");
-      keyQueue = checkKeyQueue(keyQueue + key, port.sender.tab.id, request.frameId);
-      // console.log("new KeyQueue: " + keyQueue);
+  handleMainPort = function(request, port) {
+    var key, msgId = request._msgId;
+    if (msgId) {
+      request = request.request;
     }
-    /* chrome.tabs.sendMessage(port.sender.tab.id, {
-      name: "currentKeyQueue",
-      keyQueue: keyQueue
-    }); */
+    if (key = request.keyChar) {
+      if (key === "<ESC>") {
+        keyQueue = "";
+      } else {
+        keyQueue = checkKeyQueue(keyQueue + key, port, request.frameId);
+      }
+      /* port.postMessage({
+        name: "currentKeyQueue",
+        keyQueue: keyQueue
+      }); */
+    }
+    else if (key = request.handler) {
+      key = sendRequestHandlers[key];
+      if (key) {
+        key = key(request, port.sender.tab, port);
+        if (msgId) {
+          port.postMessage({
+            name: "response",
+            _msgId: msgId,
+            response: key
+          });
+        }
+      }
+    }
+    else if (key = request.settings) {
+      if (key === "get") {
+        for (var i = 0, ref = request.keys, values = new Array(ref.length); i < ref.length; i++) {
+          values[i] = Settings.get(ref[i]);
+        }
+        port.postMessage({
+          name: "settings",
+          keys: request.keys,
+          values: values
+        });
+      } else if (key === "set") {
+        Settings.set(request.key, request.value);
+      }
+    }
   };
 
-  checkKeyQueue = function(keysToCheck, tabId, frameId) {
+  checkKeyQueue = function(keysToCheck, port, frameId) {
     var command, count, newKeyQueue, refreshedCompletionKeys, registryEntry, runCommand, splitHash, splitKey;
     refreshedCompletionKeys = false;
     splitHash = splitKeyQueue(keysToCheck);
@@ -837,14 +840,14 @@
       if (runCommand) {
         if (registryEntry.isBackgroundCommand) {
           if (registryEntry.passCountToFunction) {
-            BackgroundCommands[registryEntry.command](count, frameId);
+            BackgroundCommands[registryEntry.command](count, frameId, port.sender.tab, port);
           } else if (registryEntry.noRepeat) {
-            BackgroundCommands[registryEntry.command](frameId);
+            BackgroundCommands[registryEntry.command](frameId, null, port.sender.tab, port);
           } else {
-            repeatFunction(BackgroundCommands[registryEntry.command], count, 0, frameId);
+            repeatFunction(BackgroundCommands[registryEntry.command], count, 0, frameId, port);
           }
         } else {
-          chrome.tabs.sendMessage(tabId, {
+          port.postMessage({
             name: "executePageCommand",
             command: registryEntry.command,
             frameId: frameId,
@@ -859,7 +862,7 @@
     } else if (getActualKeyStrokeLength(command) > 1) {
       splitKey = splitKeyIntoFirstAndSecond(command);
       if (Commands.keyToCommandRegistry[splitKey.second]) {
-        newKeyQueue = checkKeyQueue(splitKey.second, tabId, frameId);
+        newKeyQueue = checkKeyQueue(splitKey.second, port, frameId);
       } else {
         newKeyQueue = (validFirstKeys[splitKey.second] ? splitKey.second : "");
       }
@@ -867,7 +870,7 @@
       newKeyQueue = (validFirstKeys[command] ? count.toString() + command : "");
     }
     if (!refreshedCompletionKeys) {
-      chrome.tabs.sendMessage(tabId, getCompletionKeysRequest(null, newKeyQueue), null);
+      port.postMessage(getCompletionKeysRequest(null, newKeyQueue));
     }
     return newKeyQueue;
   };
@@ -894,70 +897,61 @@
     return Utils.compareVersions(currentVersion, Settings.get("previousVersion")) === 1;
   };
 
-  openOptionsPageInNewTab = function() {
-    chrome.tabs.getSelected(null, function(tab) {
-      chrome.tabs.create({
-        url: chrome.runtime.getURL("pages/options.html"),
-        index: tab.index + 1
-      });
+  openOptionsPageInNewTab = function(request, tab) {
+    chrome.tabs.create({
+      url: chrome.runtime.getURL("pages/options.html"),
+      index: tab.index + 1
     });
   };
 
-  registerFrame = function(request, sender) {
-    var _name = sender.tab.id;
-    (frameIdsForTab[_name] || (frameIdsForTab[_name] = [])).push(request.frameId);
-  };
-
-  unregisterFrame = function(request, sender) {
-    var tabId = sender.tab.id;
-    if (frameIdsForTab[tabId] == null) {
-      return;
+  registerFrame = function(request, tab, port) {
+    var tabId = tab.id;
+    if (tabLoadedHandlers[tabId]) {
+      toCall = tabLoadedHandlers[tabId];
+      delete tabLoadedHandlers[tabId];
+      toCall(port);
     }
-    if (request.tab_is_closing) {
-      updateOpenTabs(sender.tab);
-      return;
-    }
-    frameIdsForTab[tabId] = frameIdsForTab[tabId].filter(function(id) {
-      return id !== request.frameId;
-    });
-  };
-
-  handleFrameFocused = function(request, sender) {
-    var tabId = sender.tab.id;
-    if (frameIdsForTab[tabId] == null) {
-      return;
-    }
-    frameIdsForTab[tabId] = frameIdsForTab[tabId].filter(function(id) {
-      return id !== request.frameId;
-    }).unshift(request.frameId);
-  };
-  
-  onDomReady = function(request, sender) {
-    var senderTabId = sender.tab ? sender.tab.id : null;
-    if (senderTabId == null) {
-      return;
-    }
-    if (tabLoadedHandlers[senderTabId]) {
-      toCall = tabLoadedHandlers[senderTabId];
-      delete tabLoadedHandlers[senderTabId];
-      toCall.call();
+    if (! isNaN(request.frameId)) {
+      (frameIdsForTab[tabId] || (frameIdsForTab[tabId] = [])).push(request.frameId);
     }
     if (shouldShowUpgradeMessage()) {
-      chrome.tabs.sendMessage(senderTabId, {
+      port.postMessage({
         name: "showUpgradeNotification",
         version: currentVersion
       });
     }
-  }
+  };
+
+  unregisterFrame = function(request, tab) {
+    var tabId = tab.id;
+    if (request.tab_is_closing) {
+      updateOpenTabs(tab);
+      updateScrollPosition(tabId, request.scrollX, request.scrollY);
+    }
+    else if (frameIdsForTab[tabId] != null) {
+      frameIdsForTab[tabId] = frameIdsForTab[tabId].filter(function(id) {
+        return id !== request.frameId;
+      });
+    }
+  };
+
+  handleFrameFocused = function(request, tab) {
+    var tabId = tab.id;
+    if (frameIdsForTab[tabId] == null) {
+      return;
+    }
+    frameIdsForTab[tabId] = frameIdsForTab[tabId].filter(function(id) {
+      return id !== request.frameId;
+    });
+    frameIdsForTab[tabId].unshift(request.frameId);
+  };
 
   portHandlers = {
-    keyDown: handleKeyDown,
-    settings: handleSettings,
+    main: handleMainPort,
     filterCompleter: filterCompleter
   };
 
   sendRequestHandlers = {
-    domReady: onDomReady,
     getCompletionKeys: getCompletionKeysRequest,
     getCurrentTabUrl: getCurrentTabUrl,
     openUrlInNewTab: openUrlInNewTab,
@@ -1005,7 +999,7 @@
     createScrollPositionHandler = function(tab) {
       return function(response) {
         if (response != null) {
-          return updateScrollPosition(tab, response.scrollX, response.scrollY);
+          updateScrollPosition(tab.id, response.scrollX, response.scrollY);
         }
       };
     };

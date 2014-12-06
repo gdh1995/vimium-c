@@ -81,8 +81,8 @@
   };
 
   CoreScroller = {
-    init: function(frontendSettings) {
-      this.settings = frontendSettings;
+    smoothScroll: false,
+    init: function() {
       this.time = 0;
       this.lastEvent = null;
       this.keyIsDown = false;
@@ -102,8 +102,7 @@
       });
     },
     wouldNotInitiateScroll: function() {
-      var _ref;
-      return ((_ref = this.lastEvent) != null ? _ref.repeat : void 0) && this.settings.get("smoothScroll");
+      return this.smoothScroll && (this.lastEvent && this.lastEvent.repeat);
     },
     minCalibration: 0.5,
     maxCalibration: 1.6,
@@ -113,7 +112,7 @@
       if (!amount) {
         return;
       }
-      if (!this.settings.get("smoothScroll")) {
+      if (!this.smoothScroll) {
         performScroll(element, direction, amount);
         checkVisibility(element);
         return;
@@ -169,13 +168,17 @@
   };
 
   Scroller = {
-    init: function(frontendSettings) {
+    init: function() {
       handlerStack.push({
         DOMActivate: function() {
-          return activatedElement = event.target;
+          activatedElement = event.target;
+          return true;
         }
       });
-      return CoreScroller.init(frontendSettings);
+      CoreScroller.init();
+    },
+    setSmoothScroll: function(smoothScroll) {
+      CoreScroller.smoothScroll = smoothScroll;
     },
     scrollBy: function(direction, amount, factor) {
       var element, elementAmount;

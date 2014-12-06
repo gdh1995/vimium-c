@@ -5,10 +5,14 @@
   root = typeof exports !== "undefined" && exports !== null ? exports : window;
 
   root.Settings = Settings = {
+    _buffer: {},
     get: function(key) {
-      return (key in localStorage) ? JSON.parse(localStorage[key]) : this.defaults[key];
+      return (key in this._buffer) ? this._buffer[key]
+        : (key in localStorage) ? (this._buffer[key] = JSON.parse(localStorage[key]))
+        : (this._buffer[key] = this.defaults[key]);
     },
     set: function(key, value) {
+      this._buffer[key] = value;
       if (value === this.defaults[key]) {
         this.clear(key);
       } else {
@@ -17,7 +21,7 @@
       }
     },
     clear: function(key) {
-      if (this.has(key)) {
+      if (key in localStorage) {
         delete localStorage[key];
       }
       // Sync.clear(key);

@@ -2,16 +2,20 @@
 (function() {
   var activatedElement, ensureScrollChange, getDimension, isRendered, root, scrollProperties;
 
-  window.Scroller = root = {};
+  root = window.Scroller = {};
 
   activatedElement = null;
 
   root.init = function() {
-    return handlerStack.push({
+    handlerStack.push({
       DOMActivate: function() {
-        return activatedElement = event.target;
+        activatedElement = event.target;
+        return true;
       }
     });
+  };
+  
+  root.setSmoothScroll = function() {
   };
 
   scrollProperties = {
@@ -54,7 +58,7 @@
     }
     rect = activatedElement.getBoundingClientRect();
     if (rect.bottom < 0 || rect.top > window.innerHeight || rect.right < 0 || rect.left > window.innerWidth) {
-      return activatedElement = element;
+      activatedElement = element;
     }
   };
 
@@ -73,15 +77,9 @@
     if (!activatedElement || !isRendered(activatedElement)) {
       activatedElement = document.body;
     }
-    return ensureScrollChange(direction, function(element, axisName) {
-      var elementAmount;
-      if (Utils.isString(amount)) {
-        elementAmount = getDimension(element, direction, amount);
-      } else {
-        elementAmount = amount;
-      }
-      elementAmount *= factor;
-      return element[axisName] += elementAmount;
+    ensureScrollChange(direction, function(element, axisName) {
+      var elementAmount = Utils.isString(amount) ? getDimension(element, direction, amount) : amount;
+      element[axisName] += elementAmount * factor;
     });
   };
 
@@ -92,14 +90,8 @@
     if (!activatedElement || !isRendered(activatedElement)) {
       activatedElement = document.body;
     }
-    return ensureScrollChange(direction, function(element, axisName) {
-      var elementPos;
-      if (Utils.isString(pos)) {
-        elementPos = getDimension(element, direction, pos);
-      } else {
-        elementPos = pos;
-      }
-      return element[axisName] = elementPos;
+    ensureScrollChange(direction, function(element, axisName) {
+      element[axisName] = Utils.isString(pos) ? getDimension(element, direction, pos) : pos;
     });
   };
 

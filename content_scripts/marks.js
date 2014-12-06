@@ -13,13 +13,15 @@
           return;
         }
         if (/[A-Z]/.test(keyChar)) {
-          chrome.runtime.sendMessage({
+          mainPort.postMessage({
             handler: 'createMark',
             markName: keyChar,
             scrollX: window.scrollX,
             scrollY: window.scrollY
-          }, function() {
-            return HUD.showForDuration("Created global mark '" + keyChar + "'", 1000);
+          }, function(response) {
+            if (response) {
+              HUD.showForDuration("Created global mark '" + keyChar + "'", 1000);
+            }
           });
         } else if (/[a-z]/.test(keyChar)) {
           _ref = window.location.href.split('#'), baseLocation = _ref[0], sep = _ref[1], hash = _ref[2];
@@ -44,7 +46,7 @@
           return;
         }
         if (/[A-Z]/.test(keyChar)) {
-          chrome.runtime.sendMessage({
+          mainPort.postMessage({
             handler: 'gotoMark',
             markName: keyChar
           });

@@ -322,7 +322,7 @@
           this.port.onMessage.addListener(this.onFilter);
         } catch (e) {
           BackgroundCompleter.prototype.port = null;
-          return fakePort;
+          return mainPort.fakePort;
         }
       }
       return this.port;
@@ -334,7 +334,7 @@
     };
     
     BackgroundCompleter.prototype.refresh = function() {
-      chrome.runtime.sendMessage({
+      mainPort.postMessage({
         handler: "refreshCompleter",
         name: this.name
       });
@@ -432,6 +432,7 @@
         , "</span>\n    </div>"
       ];
       if (BackgroundCompleter.showFavIcon) {
+        this.favIconUrl || (this.favIconUrl = "chrome://favicon/size/16/" + this.url);
         this.text.splice(5, 0, " style=\"background-image: url(", this.favIconUrl, ");\"");
       }
       this.text = this.text.join("");
@@ -448,7 +449,7 @@
           script.textContent = decodeURIComponent(this.url.slice("javascript:".length));
           (document.documentElement || document.body || document.head).appendChild(script);
         } else {
-          chrome.runtime.sendMessage({
+          mainPort.postMessage({
             handler: data.openInNewTab ? "openUrlInNewTab" : "openUrlInCurrentTab",
             url: this.url.trimRight(),
             selected: data.openInNewTab
@@ -456,13 +457,13 @@
         }
       },
       switchToTab: function() {
-        chrome.runtime.sendMessage({
+        mainPort.postMessage({
           handler: "selectSpecificTab",
           sessionId: this.sessionId
         });
       },
       restoreSession: function() {
-        chrome.runtime.sendMessage({
+        mainPort.postMessage({
           handler: "restoreSession",
           sessionId: this.sessionId,
         });

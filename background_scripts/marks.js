@@ -6,18 +6,30 @@
 
   marks = {};
 
-  root.create = function(req, sender) {
+  root.create = function(req, tab) {
     marks[req.markName] = {
-      tabId: sender.tab.id,
+      tabId: tab.id,
       scrollX: req.scrollX,
       scrollY: req.scrollY
     };
   };
 
   chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab) {
-    if (changeInfo.url != null) {
-      removeMarksForTab(tabId);
+    if (changeInfo.url == null) {
+      return;
     }
+    var old = tabInfoMap[tabId], temp;
+    if (old) {
+      if (old.nohash == null) {
+        temp = old.url.indexOf('#');
+        old.nohash = temp > 0 ? old.url.substring(0, temp) : old.url;
+      }
+      temp = changeInfo.url.indexOf('#');
+      if (temp > 0 && (tab.nohash = changeInfo.url.substring(0, temp)) === old.nohash) {
+        return;
+      }
+    }
+    removeMarksForTab(tabId);
   });
 
   removeMarksForTab = function(id) {
@@ -28,7 +40,7 @@
     }
   };
 
-  root.goTo = function(req, sender) {
+  root.goTo = function(req, tab) {
     var mark = marks[req.markName];
     chrome.tabs.update(mark.tabId, {
       selected: true

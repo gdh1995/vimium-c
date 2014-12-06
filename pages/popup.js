@@ -90,15 +90,14 @@
   };
 
   showMessage = (function() {
-    var hideConfirmationMessage, timer;
-    timer = null;
-    hideConfirmationMessage = function() {
-      document.getElementById("confirmationMessage").setAttribute("style", "display: none");
-      return timer = null;
+    var timer = null, dom0, hideConfirmationMessage = function() {
+      dom0.setAttribute("style", "display: none");
+      timer = null;
     };
     return function(message) {
-      document.getElementById("confirmationMessage").setAttribute("style", "display: inline-block");
-      document.getElementById("confirmationMessage").innerHTML = message;
+      var dom = dom0 || (dom0 = document.getElementById("confirmationMessage"));
+      dom.setAttribute("style", "display: inline-block");
+      dom.innerHTML = message;
       if (timer) {
         clearTimeout(timer);
       }

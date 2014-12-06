@@ -730,11 +730,16 @@
         } else {
           _this.dict[url] = text = text.substring(1, text.length - 1);
         }
-        console.log(url);
-        console.log(text);
         _this.working = 0;
+        if (window._DEBUG) {
+          console.log(url);
+          console.log(text);
+        }
       }
     },
+    _id: "",
+    _link: null,
+    _div: null,
     init: function() {
       var id = this._id = '_decode' + Utils.createUniqueId(),
           link = this._link = document.createElement('link'),

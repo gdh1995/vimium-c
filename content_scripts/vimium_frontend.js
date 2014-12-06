@@ -6,15 +6,15 @@
     , findModeAnchorNode, findModeQuery, findModeQueryHasResults, focusFoundLink, followLink
     , frameId, getLinkFromSelection, getNextQueryFromRegexMatches, handleDeleteForFindMode
     , handleEnterForFindMode, handleEscapeForFindMode, handleKeyCharForFindMode, handledKeydownEvents
-    , hasModifiersRegex, hideHelpDialog, initializeOnDomReady, initializePreDomReady
+    , hasModifiersRegex, hideHelpDialog, initializePreDomReady
     , initializeWhenEnabled, insertModeLock, installListener, installedListeners, isDOMDescendant
     , isEditable, isEmbed, isEnabledForUrl, isFocusable, isInsertMode, isPassKey, isShowingHelpDialog
-    , isValidFirstKey, keyPort, keyQueue, onBlurCapturePhase, onDOMActivate, onFocusCapturePhase
+    , isValidFirstKey, keyQueue, onBlurCapturePhase, onDOMActivate, onFocusCapturePhase
     , onKeydown, onKeypress, onKeyup, passKeys, performFindInPlace, refreshCompletionKeys
     , registerFrame, restoreDefaultSelectionHighlight, root, selectFoundInputElement, setScrollPosition
     , setState, settings, showFindModeHUDForQuery, textInputXPath, toggleHelpDialog, unregisterFrame
-    , updateFindModeQuery, validFirstKeys, fakePort, goBy;
-
+    , updateFindModeQuery, validFirstKeys, goBy, getVisibleInputs, mainPort, requestHandlers;
+  
   window.handlerStack = new HandlerStack;
 
   insertModeLock = null;
@@ -23,7 +23,12 @@
 
   findModeQuery = {
     rawQuery: "",
-    matchCount: 0
+    matchCount: 0,
+    parsedQuery: "",
+    isRegex: false,
+    ignoreCase: false,
+    activeRegexIndex: 0,
+    regexMatches: null
   };
 
   findModeQueryHasResults = false;
@@ -31,27 +36,6 @@
   findModeAnchorNode = null;
 
   isShowingHelpDialog = false;
-
-  fakePort = { postMessage: function() {} };
-  
-  keyPort = {
-    port: null,
-    get: function() {
-      if (!this.port) {
-        try {
-          this.port = chrome.runtime.connect({ name: "keyDown" });
-          this.port.onDisconnect.addListener(this._clearPort);
-        } catch (e) {
-          this.port = null;
-          return fakePort;
-        }
-      }
-      return this.port;
-    },
-    _clearPort: function () {
-      keyPort.port = null;
-    }
-  };
 
   isEnabledForUrl = true;
 
@@ -61,7 +45,7 @@
 
   currentCompletionKeys = [];
 
-  validFirstKeys = null;
+  validFirstKeys = [];
 
   textInputXPath = DomUtils.makeXPath([
     "input[not(@disabled or @readonly) and (" + ["text", "search", "email", "url", "number", "password"
@@ -70,64 +54,146 @@
     "textarea",
     "*[@contenteditable='' or translate(@contenteditable, 'TRUE', 'true')='true']"
   ]);
+  
+  mainPort = {
+    fakePort: {
+      postMessage: function() {
+      }
+    },
+    responseTimeout: 500,
+    autoReconnectTimeout: 1000,
+    _name: "main",
+    _port: undefined,
+    _listener: null,
+    _callbacks: {},
+    _lastWaitTime: 0,
+    postMessage: function(request, callback) {
+      if (callback) {
+        request = {
+          _msgId: Utils.createUniqueId(),
+          request: request
+        };
+      }
+      try {
+        this._get().postMessage(request);
+      } catch (e) {
+        this._port = this.fakePort;
+        setTimeout(this._clearPort, this.autoReconnectTimeout);
+        if (callback) {
+          callback();
+        }
+        return false;
+      }
+      var _ref, _i = new Date().getTime();
+      if (_i > this._lastWaitTime + this.responseTimeout) {
+        _ref = this._callbacks;
+        this._callbacks = {};
+      }
+      if (callback) {
+        this._callbacks[request._msgId] = callback;
+        this._lastWaitTime = _i;
+      }
+      if (_ref) {
+        for (_i in _ref) {
+          _ref[_i].call();
+        }
+      }
+      return true;
+    },
+    getListener: function() {
+      return this._listener;
+    },
+    setListener: function(listener) {
+      if (this._port && this._port.onMessage) {
+        if (this._listener) {
+          this._port.onMessage.removeListener(this._listener);
+        }
+        this._port.onMessage.addListener(listener);
+      }
+      this._listener = listener;
+    },
+    setPortName: function(name) {
+      this._name = name;
+      if (this._port && this._port.name != null) {
+        this._port.name = name;
+      }
+    },
+    defaultListener: function(response, port) {
+      var handler = response._msgId;
+      if (handler) {
+        handler = mainPort._callbacks[handler];
+        delete mainPort._callbacks[response._msgId];
+        console.log("response", response._msgId, response.response);
+        handler(response.response);
+        return;
+      }
+      handler = response.name;
+      if (!isEnabledForUrl && (handler !== "getActiveState" && handler !== "setState")) {
+        return;
+      }
+      handler = requestHandlers[handler];
+      if (handler) {
+        console.log("main", response.name);
+        handler(response);
+      }
+    },
+    _clearPort: function() {
+      mainPort._port = null;
+    },
+    _get: function() {
+      var port = this._port;
+      if (port) {
+        return port;
+      }
+      var port = chrome.runtime.connect({ name: this._name });
+      port.onDisconnect.addListener(this._clearPort);
+      if (this._listener) {
+        port.onMessage.addListener(this._listener);
+      }
+      return this._port = port;
+    }
+  };
 
+  chrome.runtime._oriSendMessage = mainPort.postMessage;
+  chrome.runtime.sendMessage = mainPort.postMessage.bind(mainPort);
+  
   settings = {
-    port: null,
     values: {},
-    loadedValues: 0,
     valuesToLoad: ["scrollStepSize", "linkHintCharacters", "linkHintNumbers", "filterLinkHints"
       , "hideHud", "previousPatterns", "nextPatterns", "findModeRawQuery", "regexFindMode"
       , "userDefinedLinkHintCss", "helpDialog_showAdvancedCommands", "smoothScroll"],
     isLoaded: false,
     eventListeners: {},
-    init: function() {
-      try {
-        this.port = chrome.runtime.connect({ name: "settings" });
-        this.port.onDisconnect.addListener(this._clearPort);
-        this.port.onMessage.addListener(this.receiveMessage);
-      } catch (e) {
-        this.port = null;
-        return;
-      }
-    },
     get: function(key) {
       return this.values[key];
     },
     set: function(key, value) {
-      if (!this.port) {
-        this.init();
-      }
       this.values[key] = value;
-      this.port && this.port.postMessage({
-        operation: "set",
+      mainPort.postMessage({
+        settings: "set",
         key: key,
         value: value
       });
     },
-    load: function() {
-      if (!this.port) {
-        this.init();
-        if (!this.port)
-          return;
-      }
-      for (var i in this.valuesToLoad) {
-        this.port.postMessage({
-          operation: "get",
-          key: this.valuesToLoad[i]
-        });
-      }
+    load: function(values) {
+      mainPort.postMessage({
+        settings: "get",
+        keys: (values && values.length > 0) ? values : this.valuesToLoad
+      });
+      this.isLoaded = false;
     },
     _clearPort: function () {
       settings.port = null;
     },
     receiveMessage: function(args) {
-      settings.values[args.key] = args.value;
-      if (++settings.loadedValues === settings.valuesToLoad.length) {
-        settings.isLoaded = true;
-        var listeners = settings.eventListeners.load;
-        while (listeners.length > 0) {
-          listeners.pop().call(null);
-        }
+      var ref = args.keys, i = 0, v1 = args.values, v2 = settings.values;
+      for (; i < ref.length; i++) {
+        v2[ref[i]] = v1[i];
+      }
+      settings.isLoaded = true;
+      ref = settings.eventListeners.load;
+      while (ref.length > 0) {
+        ref.pop()();
       }
     },
     addEventListener: function(eventName, callback) {
@@ -143,14 +209,8 @@
   hasModifiersRegex = /^<([amc]-)+.>/;
 
   initializePreDomReady = function() {
-    var requestHandlers;
-    settings.addEventListener("load", LinkHints.init.bind(LinkHints));
-    settings.load();
-    Scroller.init(settings.get("smoothScroll"));
-    checkIfEnabledForUrl();
-    refreshCompletionKeys();
-    keyPort.get();
     requestHandlers = {
+      settings: settings.receiveMessage,
       hideUpgradeNotification: function() {
         HUD.hideUpgradeNotification();
       },
@@ -190,23 +250,30 @@
         keyQueue = request.keyQueue;
       }
     };
+    mainPort.setListener(mainPort.defaultListener);
     chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
-      // if (sender.tab && !sender.tab.url.startsWith('chrome-extension://')) {
-        // return;
-      // }
+      if (sender.tab) {
+        return;
+      }
       if (!(isEnabledForUrl || request.name === 'getActiveState' || request.name === 'setState')) {
         return;
       }
-      // if (request.handler === "registerFrame" || request.handler === "frameFocused") {
-        // return;
-      // }
-      var handler = requestHandlers[request.name];
+      handler = requestHandlers[request.name];
       if (handler) {
-        handler = handler(request, sender);
+        handler = handler(request);
         sendResponse(handler);
       }
-      return false;
+      console.log("runtime: " + (request.name ? ("name=" + request.name)
+        : ("handler=" + request.handler)), handler);
     });
+    settings.addEventListener("load", function() {
+      Scroller.setSmoothScroll(settings.get("smoothScroll"));
+      LinkHints.init();
+    });
+    settings.load();
+    Scroller.init();
+    checkIfEnabledForUrl();
+    refreshCompletionKeys();
   };
 
   installListener = function(element, event, callback) {
@@ -242,57 +309,36 @@
   };
 
   window.addEventListener("focus", function() {
-    settings.load();
-    try {
-      chrome.runtime.sendMessage({
-        handler: "frameFocused",
-        frameId: frameId
-      });
-    } catch(e) {
-    }
+    // settings.load();
+    mainPort.postMessage({
+      handler: "frameFocused",
+      frameId: frameId
+    });
   });
 
-  initializeOnDomReady = function() {
+  registerFrame = function() {
     if (isEnabledForUrl) {
       enterInsertModeIfElementIsFocused();
     }
-    try {
-      chrome.runtime.sendMessage({
-        handler: "domReady"
-      });
-    } catch(e) {
-    }
-    chrome.runtime.connect({
-      name: "domReady"
-    }).disconnect();
-  };
-
-  registerFrame = function() {
-    if (document.body.tagName !== "FRAMESET") {
-      try {
-        chrome.runtime.sendMessage({
-          handler: "registerFrame",
-          frameId: frameId
-        });
-    } catch(e) {
-      }
-    }
+    mainPort.postMessage({
+      handler: "registerFrame",
+      frameId: ((document.body.tagName !== "FRAMESET") ? frameId : NaN)
+    });
   };
   
   unregisterFrame = function() {
-    try {
-      chrome.runtime.sendMessage({
-        handler: "unregisterFrame",
-        frameId: frameId,
-        tab_is_closing: window.top === window.self
-      });
-    } catch(e) {
-    }
+    mainPort.postMessage({
+      handler: "unregisterFrame",
+      frameId: frameId,
+      tab_is_closing: window.top === window.self,
+      scrollX: window.scrollX,
+      scrollY: window.scrollY
+    });
   };
 
   enterInsertModeIfElementIsFocused = function() {
     if (document.activeElement && isEditable(document.activeElement) && !findMode) {
-      return enterInsertModeWithoutShowingIndicator(document.activeElement);
+      enterInsertModeWithoutShowingIndicator(document.activeElement);
     }
   };
 
@@ -316,8 +362,8 @@
 
   setScrollPosition = function(scrollX, scrollY) {
     if (scrollX > 0 || scrollY > 0) {
-      return DomUtils.documentReady(function() {
-        return window.scrollTo(scrollX, scrollY);
+      DomUtils.documentReady(function() {
+        window.scrollTo(scrollX, scrollY);
       });
     }
   };
@@ -328,59 +374,61 @@
     if (document.body && shouldHighlight) {
       borderWas = document.body.style.border;
       document.body.style.border = '5px solid yellow';
-      return setTimeout((function() {
-        return document.body.style.border = borderWas;
+      setTimeout((function() {
+        document.body.style.border = borderWas;
       }), 200);
     }
   };
 
   extend(window, {
     scrollToBottom: function() {
-      return Scroller.scrollTo("y", "max");
+      Scroller.scrollTo("y", "max");
     },
     scrollToTop: function() {
-      return Scroller.scrollTo("y", 0);
+      Scroller.scrollTo("y", 0);
     },
     scrollToLeft: function() {
-      return Scroller.scrollTo("x", 0);
+      Scroller.scrollTo("x", 0);
     },
     scrollToRight: function() {
-      return Scroller.scrollTo("x", "max");
+      Scroller.scrollTo("x", "max");
     },
     scrollUp: function() {
-      return Scroller.scrollBy("y", -1 * settings.get("scrollStepSize"));
+      Scroller.scrollBy("y", -1 * settings.get("scrollStepSize"));
     },
     scrollDown: function() {
-      return Scroller.scrollBy("y", settings.get("scrollStepSize"));
+      Scroller.scrollBy("y", settings.get("scrollStepSize"));
     },
     scrollPageUp: function() {
-      return Scroller.scrollBy("y", "viewSize", -1 / 2);
+      Scroller.scrollBy("y", "viewSize", -1 / 2);
     },
     scrollPageDown: function() {
-      return Scroller.scrollBy("y", "viewSize", 1 / 2);
+      Scroller.scrollBy("y", "viewSize", 1 / 2);
     },
     scrollFullPageUp: function() {
-      return Scroller.scrollBy("y", "viewSize", -1);
+      Scroller.scrollBy("y", "viewSize", -1);
     },
     scrollFullPageDown: function() {
-      return Scroller.scrollBy("y", "viewSize");
+      Scroller.scrollBy("y", "viewSize");
     },
     scrollLeft: function() {
-      return Scroller.scrollBy("x", -1 * settings.get("scrollStepSize"));
+      Scroller.scrollBy("x", -1 * settings.get("scrollStepSize"));
     },
     scrollRight: function() {
-      return Scroller.scrollBy("x", settings.get("scrollStepSize"));
+      Scroller.scrollBy("x", settings.get("scrollStepSize"));
     }
   });
 
-  var getVisibleInputs = function(pathSet) {
+  getVisibleInputs = function(pathSet) {
     for (var element, rect, results = [], i = 0, _ref = pathSet.snapshotLength; i < _ref; ++i) {
       element = pathSet.snapshotItem(i);
       rect = DomUtils.getVisibleClientRect(element);
-      rect && results.push({
-        element: element,
-        rect: rect
-      });
+      if (rect) {
+        results.push({
+          element: element,
+          rect: rect
+        });
+      }
     }
     return results;
   };
@@ -411,7 +459,7 @@
       window.location.href = window.location.origin;
     },
     toggleViewSource: function() {
-      chrome.runtime.sendMessage({
+      mainPort.postMessage({
         handler: "getCurrentTabUrl"
       }, function(url) {
         if (url.substring(0, 12) === "view-source:") {
@@ -419,7 +467,7 @@
         } else {
           url = "view-source:" + url;
         }
-        chrome.runtime.sendMessage({
+        mainPort.postMessage({
           handler: "openUrlInNewTab",
           url: url,
           selected: true
@@ -427,15 +475,15 @@
       });
     },
     copyCurrentUrl: function() {
-      chrome.runtime.sendMessage({
+      mainPort.postMessage({
         handler: "getCurrentTabUrl"
       }, function(url) {
-        return chrome.runtime.sendMessage({
+        mainPort.postMessage({
           handler: "copyToClipboard",
           data: url
         });
       });
-      return HUD.showForDuration("Yanked URL", 1000);
+      HUD.showForDuration("Yanked URL", 1000);
     },
     focusInput: function(count) {
       var hintContainingDiv, hints, selectedInputIndex, visibleInputs;
@@ -462,7 +510,7 @@
         id: "vimiumInputMarkerContainer",
         className: "vimiumReset"
       });
-      return handlerStack.push({
+      handlerStack.push({
         keydown: function(event) {
           if (event.keyCode === KeyboardUtils.keyCodes.tab) {
             hints[selectedInputIndex].classList.remove('internalVimiumSelectedInputHint');
@@ -509,7 +557,7 @@
       if (keyChar) {
         if (findMode) {
           handleKeyCharForFindMode(keyChar);
-          return DomUtils.suppressEvent(event);
+          DomUtils.suppressEvent(event);
         } else if (!isInsertMode() && !findMode) {
           if (isPassKey(keyChar)) {
             return;
@@ -517,7 +565,7 @@
           if (currentCompletionKeys.indexOf(keyChar) !== -1 || isValidFirstKey(keyChar)) {
             DomUtils.suppressEvent(event);
           }
-          keyPort.get().postMessage({
+          mainPort.postMessage({
             keyChar: keyChar,
             frameId: frameId
           });
@@ -592,12 +640,12 @@
           DomUtils.suppressEvent(event);
           handledKeydownEvents.push(event);
         }
-        keyPort.get().postMessage({
+        mainPort.postMessage({
           keyChar: keyChar,
           frameId: frameId
         });
       } else if (KeyboardUtils.isEscape(event)) {
-        keyPort.get().postMessage({
+        mainPort.postMessage({
           keyChar: "<ESC>",
           frameId: frameId
         });
@@ -607,7 +655,7 @@
     }
     if (keyChar === "" && !isInsertMode() && (currentCompletionKeys.indexOf(KeyboardUtils.getKeyChar(event)) !== -1 || isValidFirstKey(KeyboardUtils.getKeyChar(event)))) {
       DomUtils.suppressPropagation(event);
-      return handledKeydownEvents.push(event);
+      handledKeydownEvents.push(event);
     }
   };
 
@@ -630,13 +678,16 @@
   };
 
   checkIfEnabledForUrl = function() {
-    var url;
-    url = window.location.toString();
-    return chrome.runtime.sendMessage({
+    mainPort.postMessage({
       handler: "isEnabledForUrl",
-      url: url
+      url: window.location.toString()
     }, function(response) {
-      if (!response) response = { isEnabledForUrl: true, passKeys: "" };
+      if (!response) {
+        response = {
+          isEnabledForUrl: true,
+          passKeys: ""
+        };
+      }
       isEnabledForUrl = response.isEnabledForUrl;
       if (isEnabledForUrl) {
         initializeWhenEnabled(response.passKeys);
@@ -650,12 +701,12 @@
     if (response) {
       currentCompletionKeys = response.completionKeys;
       if (response.validFirstKeys) {
-        return validFirstKeys = response.validFirstKeys;
+        validFirstKeys = response.validFirstKeys;
       }
     } else {
-      return chrome.runtime.sendMessage({
+      mainPort.postMessage({
         handler: "getCompletionKeys"
-      }, refreshCompletionKeys);
+      });
     }
   };
 
@@ -665,13 +716,13 @@
 
   onFocusCapturePhase = function(event) {
     if (isFocusable(event.target) && !findMode) {
-      return enterInsertModeWithoutShowingIndicator(event.target);
+      enterInsertModeWithoutShowingIndicator(event.target);
     }
   };
 
   onBlurCapturePhase = function(event) {
     if (isFocusable(event.target)) {
-      return exitInsertMode(event.target);
+      exitInsertMode(event.target);
     }
   };
 
@@ -680,8 +731,9 @@
   };
 
   isEmbed = function(element) {
-    return ["embed", "object"].indexOf(element.nodeName.toLowerCase()) >= 0;
+    return isEmbed.data.indexOf(element.nodeName.toLowerCase()) >= 0;
   };
+  isEmbed.data = ["embed", "object"];
 
   isEditable = function(target) {
     var focusableElements, noFocus, nodeName;
@@ -704,7 +756,6 @@
 
   enterInsertModeWithoutShowingIndicator = function(target) {
     insertModeLock = target;
-    return true;
   };
 
   exitInsertMode = function(target) {
@@ -718,7 +769,11 @@
     if (insertModeLock !== null) {
       return true;
     }
-    return document.activeElement && document.activeElement.isContentEditable && enterInsertModeWithoutShowingIndicator(document.activeElement);
+    if (document.activeElement && document.activeElement.isContentEditable) {
+      enterInsertModeWithoutShowingIndicator(document.activeElement);
+      return true;
+    }
+    return false;
   };
 
   updateFindModeQuery = function() {
@@ -753,15 +808,15 @@
       text = document.body.innerText;
       findModeQuery.regexMatches = text.match(pattern);
       findModeQuery.activeRegexIndex = 0;
-      return findModeQuery.matchCount = (findModeQuery.regexMatches || []).length;
+      findModeQuery.matchCount = (findModeQuery.regexMatches || []).length;
     } else {
       escapeRegExp = /[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g;
-      parsedNonRegexQuery = findModeQuery.parsedQuery.replace(escapeRegExp, function(char) {
-        return "\\" + char;
+      parsedNonRegexQuery = findModeQuery.parsedQuery.replace(escapeRegExp, function(ch) {
+        return "\\" + ch;
       });
       pattern = new RegExp(parsedNonRegexQuery, "g" + (findModeQuery.ignoreCase ? "i" : ""));
       text = document.body.innerText;
-      return findModeQuery.matchCount = (text.match(pattern) || []).length;
+      findModeQuery.matchCount = (text.match(pattern) || []).length;
     }
   };
 
@@ -769,7 +824,7 @@
     findModeQuery.rawQuery += keyChar;
     updateFindModeQuery();
     performFindInPlace();
-    return showFindModeHUDForQuery();
+    showFindModeHUDForQuery();
   };
 
   handleEscapeForFindMode = function() {
@@ -782,18 +837,18 @@
       window.getSelection().removeAllRanges();
       window.getSelection().addRange(range);
     }
-    return focusFoundLink() || selectFoundInputElement();
+    focusFoundLink() || selectFoundInputElement();
   };
 
   handleDeleteForFindMode = function() {
     if (findModeQuery.rawQuery.length === 0) {
       exitFindMode();
-      return performFindInPlace();
+      performFindInPlace();
     } else {
       findModeQuery.rawQuery = findModeQuery.rawQuery.substring(0, findModeQuery.rawQuery.length - 1);
       updateFindModeQuery();
       performFindInPlace();
-      return showFindModeHUDForQuery();
+      showFindModeHUDForQuery();
     }
   };
 
@@ -801,36 +856,33 @@
     exitFindMode();
     focusFoundLink();
     document.body.classList.add("vimiumFindMode");
-    return settings.set("findModeRawQuery", findModeQuery.rawQuery);
+    settings.set("findModeRawQuery", findModeQuery.rawQuery);
   };
 
   performFindInPlace = function() {
-    var cachedScrollX, cachedScrollY, query;
-    cachedScrollX = window.scrollX;
-    cachedScrollY = window.scrollY;
-    query = findModeQuery.isRegex ? getNextQueryFromRegexMatches(0) : findModeQuery.parsedQuery;
+    var cachedScrollX = window.scrollX, cachedScrollY = window.scrollY
+      , query = findModeQuery.isRegex ? getNextQueryFromRegexMatches(0) : findModeQuery.parsedQuery;
     executeFind(query, {
       backwards: true,
       caseSensitive: !findModeQuery.ignoreCase
     });
     window.scrollTo(cachedScrollX, cachedScrollY);
-    return findModeQueryHasResults = executeFind(query, {
+    findModeQueryHasResults = executeFind(query, {
       caseSensitive: !findModeQuery.ignoreCase
     });
   };
 
   executeFind = function(query, options) {
-    var oldFindMode, result;
+    var oldFindMode = findMode, result;
     options = options || {};
-    oldFindMode = findMode;
     findMode = true;
     // document.body.classList.add("vimiumFindMode");
     HUD.hide(true);
     // document.removeEventListener("selectionchange", restoreDefaultSelectionHighlight, true);
     result = window.find(query, options.caseSensitive, options.backwards, true, false, true, false);
-    setTimeout(function() {
+    // setTimeout(function() {
       // document.addEventListener("selectionchange", restoreDefaultSelectionHighlight, true);
-    }, 0);
+    // }, 0);
     findMode = oldFindMode;
     findModeAnchorNode = document.getSelection().anchorNode;
     return result;
@@ -845,14 +897,12 @@
     if (findModeQueryHasResults) {
       link = getLinkFromSelection();
       if (link) {
-        return link.focus();
+        return link.focus(); // TODO:
       }
     }
   };
 
-  isDOMDescendant = function(parent, child) {
-    var node;
-    node = child;
+  isDOMDescendant = function(parent, node) {
     while (node !== null) {
       if (node === parent) {
         return true;
@@ -865,7 +915,7 @@
   selectFoundInputElement = function() {
     if (findModeQueryHasResults && document.activeElement && DomUtils.isSelectable(document.activeElement) && isDOMDescendant(findModeAnchorNode, document.activeElement)) {
       DomUtils.simulateSelect(document.activeElement);
-      return enterInsertModeWithoutShowingIndicator(document.activeElement);
+      enterInsertModeWithoutShowingIndicator(document.activeElement);
     }
   };
 
@@ -910,20 +960,19 @@
         }
       });
     }
-    return focusFoundLink();
+    focusFoundLink();
   };
 
   window.performFind = function() {
-    return findAndFocus();
+    findAndFocus();
   };
 
   window.performBackwardsFind = function() {
-    return findAndFocus(true);
+    findAndFocus(true);
   };
 
   getLinkFromSelection = function() {
-    var node;
-    node = window.getSelection().anchorNode;
+    var node = window.getSelection().anchorNode;
     while (node && node !== document.body) {
       if (node.nodeName.toLowerCase() === "a") {
         return node;
@@ -1014,15 +1063,20 @@
         }
       }
     }
+    return false;
   };
   
   goBy = function(relName, pattern) {
-    if (relName && typeof relName == "string" && findAndFollowRel(relName)) return true;
-    pattern = (typeof relName == "string") ? pattern.trim().toLowerCase().split(
-      /[ \t]*,[ \t,]*/).filter(function(s) {
+    if (relName && typeof relName == "string" && findAndFollowRel(relName)) {
+      return true;
+    }
+    pattern = (typeof relName == "string") ? pattern.trim().toLowerCase()
+      .split(/[ \t]*,[ \t,]*/).filter(function(s) {
         return s.length;
       }) : (pattern instanceof Array) ? pattern : [];
-    return pattern.length > 0 && findAndFollowLink(pattern);
+    if (pattern.length > 0) {
+      findAndFollowLink(pattern);
+    }
   };
 
   window.goPrevious = function() {
@@ -1035,9 +1089,9 @@
 
   showFindModeHUDForQuery = function() {
     if (findModeQueryHasResults || findModeQuery.parsedQuery.length === 0) {
-      return HUD.show("/" + findModeQuery.rawQuery + " (" + findModeQuery.matchCount + " Matches)");
+      HUD.show("/" + findModeQuery.rawQuery + " (" + findModeQuery.matchCount + " Matches)");
     } else {
-      return HUD.show("/" + findModeQuery.rawQuery + " (No Matches)");
+      HUD.show("/" + findModeQuery.rawQuery + " (No Matches)");
     }
   };
 
@@ -1046,12 +1100,12 @@
       rawQuery: ""
     };
     findMode = true;
-    return HUD.show("/");
+    HUD.show("/");
   };
 
   exitFindMode = function() {
     findMode = false;
-    return HUD.hide();
+    HUD.hide();
   };
 
   window.showHelpDialog = function(html, fid) {
@@ -1073,14 +1127,13 @@
         this.dialogElement = document.getElementById("vimiumHelpDialog");
         this.dialogElement.getElementsByClassName("vimiumToggleAdvancedCommands")[0].addEventListener("click", VimiumHelpDialog.toggleAdvancedCommands, false);
         this.dialogElement.style.maxHeight = window.innerHeight - 80;
-        return this.showAdvancedCommands(this.getShowAdvancedCommands());
+        this.showAdvancedCommands(this.getShowAdvancedCommands());
       },
       toggleAdvancedCommands: function(event) {
-        var showAdvanced;
+        var showAdvanced = VimiumHelpDialog.getShowAdvancedCommands();
         event.preventDefault();
-        showAdvanced = VimiumHelpDialog.getShowAdvancedCommands();
         VimiumHelpDialog.showAdvancedCommands(!showAdvanced);
-        return settings.set("helpDialog_showAdvancedCommands", !showAdvanced);
+        settings.set("helpDialog_showAdvancedCommands", !showAdvanced);
       },
       showAdvancedCommands: function(visible) {
         var advancedEls, el, _i, _len;
@@ -1098,7 +1151,7 @@
     container.getElementsByClassName("vimiumCloseButton")[0].addEventListener("click", hideHelpDialog, false);
     container.getElementsByClassName("vimiumOptionsPage")[0].addEventListener("click", function(clickEvent) {
       clickEvent.preventDefault();
-      return chrome.runtime.sendMessage({
+      mainPort.postMessage({
         handler: "openOptionsPageInNewTab"
       });
     }, false);
@@ -1112,15 +1165,15 @@
       helpDialog.parentNode.removeChild(helpDialog);
     }
     if (clickEvent) {
-      return clickEvent.preventDefault();
+      clickEvent.preventDefault();
     }
   };
 
   toggleHelpDialog = function(html, fid) {
     if (isShowingHelpDialog) {
-      return hideHelpDialog();
+      hideHelpDialog();
     } else {
-      return showHelpDialog(html, fid);
+      showHelpDialog(html, fid);
     }
   };
 
@@ -1130,40 +1183,40 @@
     _upgradeNotificationElement: null,
     showForDuration: function(text, duration) {
       HUD.show(text);
-      return HUD._showForDurationTimerId = setTimeout((function() {
-        return HUD.hide();
-      }), duration);
+      HUD._showForDurationTimerId = setTimeout(HUD.hide, duration);
     },
     show: function(text) {
       if (!HUD.enabled()) {
         return;
       }
       clearTimeout(HUD._showForDurationTimerId);
-      HUD.displayElement().innerText = text;
+      var el = HUD.displayElement();
+      el.innerText = text;
       clearInterval(HUD._tweenId);
-      HUD._tweenId = Tween.fade(HUD.displayElement(), 1.0, 150);
-      return HUD.displayElement().style.display = "";
+      HUD._tweenId = Tween.fade(el, 1.0, 150);
+      el.style.display = "";
     },
     showUpgradeNotification: function(version) {
-      var links;
-      HUD.upgradeNotificationElement().innerHTML = "Vimium has been updated to <a class='vimiumReset vimiumWebStore' href='https://chrome.google.com/extensions/detail/dbepggeogbaibhgnhhndojpepiihcmeb'> " + version + "</a>.<a class='vimiumReset vimiumCloseButton' href='#'>&#215;</a>";
-      links = HUD.upgradeNotificationElement().getElementsByTagName("a");
+      var el = HUD.upgradeNotificationElement(), links;
+      el.innerHTML = "Vimium has been updated to <a class='vimiumReset vimiumWebStore' href='https://chrome.google.com/extensions/detail/dbepggeogbaibhgnhhndojpepiihcmeb'> " + version + "</a>.<a class='vimiumReset vimiumCloseButton' href='#'>&#215;</a>";
+      links = el.getElementsByTagName("a");
       links[0].addEventListener("click", HUD.onUpdateLinkClicked, false);
       links[1].addEventListener("click", function(event) {
         event.preventDefault();
         HUD.onUpdateLinkClicked();
-      });
-      Tween.fade(HUD.upgradeNotificationElement(), 1.0, 150);
+      }, false);
+      Tween.fade(el, 1.0, 150);
     },
     onUpdateLinkClicked: function(event) {
       HUD.hideUpgradeNotification();
-      chrome.runtime.sendMessage({
+      mainPort.postMessage({
         handler: "upgradeNotificationClosed"
       });
     },
     hideUpgradeNotification: function(clickEvent) {
-      Tween.fade(HUD.upgradeNotificationElement(), 0, 150, function() {
-        HUD.upgradeNotificationElement().style.display = "none";
+      var el = HUD.upgradeNotificationElement();
+      Tween.fade(el, 0, 150, function() {
+        el.style.display = "none";
       });
     },
     displayElement: function() {
@@ -1181,24 +1234,24 @@
       return HUD._upgradeNotificationElement;
     },
     createHudElement: function() {
-      var element;
-      element = document.createElement("div");
+      var element = document.createElement("div");
       element.className = "vimiumReset vimiumHUD";
       document.documentElement.appendChild(element);
       return element;
     },
     hide: function(immediate) {
       clearInterval(HUD._tweenId);
+      var el = HUD.displayElement();
       if (immediate) {
-        return HUD.displayElement().style.display = "none";
+        el.style.display = "none";
       } else {
-        return HUD._tweenId = Tween.fade(HUD.displayElement(), 0, 150, function() {
-          return HUD.displayElement().style.display = "none";
+        HUD._tweenId = Tween.fade(el, 0, 150, function() {
+          el.style.display = "none";
         });
       }
     },
     isReady: function() {
-      return document.body !== null;
+      return document.body != null;
     },
     enabled: function() {
       return !settings.get("hideHud");
@@ -1207,50 +1260,33 @@
 
   Tween = {
     fade: function(element, toAlpha, duration, onComplete) {
-      var state;
-      state = {};
-      state.duration = duration;
-      state.startTime = (new Date()).getTime();
-      state.from = parseInt(element.style.opacity) || 0;
-      state.to = toAlpha;
+      var state = {
+        duration: duration,
+        startTime: (new Date()).getTime(),
+        from: parseInt(element.style.opacity) || 0,
+        to: toAlpha,
+        onUpdate: null,
+        timerId: 0
+      };
       state.onUpdate = function(value) {
         element.style.opacity = value;
         if (value === state.to && onComplete) {
-          return onComplete();
+          onComplete();
         }
       };
-      state.timerId = setInterval((function() {
-        return Tween.performTweenStep(state);
+      return state.timerId = setInterval((function() {
+        Tween.performTweenStep(state);
       }), 50);
-      return state.timerId;
     },
     performTweenStep: function(state) {
-      var elapsed, value;
-      elapsed = (new Date()).getTime() - state.startTime;
+      var elapsed = (new Date()).getTime() - state.startTime;
       if (elapsed >= state.duration) {
         clearInterval(state.timerId);
-        return state.onUpdate(state.to);
+        state.onUpdate(state.to);
       } else {
-        value = (elapsed / state.duration) * (state.to - state.from) + state.from;
-        return state.onUpdate(value);
+        state.onUpdate((elapsed / state.duration) * (state.to - state.from) + state.from);
       }
     }
-  };
-
-  initializePreDomReady();
-
-  // window.addEventListener("DOMContentLoaded", registerFrame);
-
-  window.addEventListener("unload", unregisterFrame);
-
-  window.addEventListener("DOMContentLoaded", initializeOnDomReady);
-
-  window.onbeforeunload = function() {
-    chrome.runtime.sendMessage({
-      handler: "updateScrollPosition",
-      scrollX: window.scrollX,
-      scrollY: window.scrollY
-    });
   };
 
   root = typeof exports !== "undefined" && exports !== null ? exports : window;
@@ -1263,6 +1299,12 @@
 
   root.frameId = frameId;
 
-  root.fakePort = fakePort;
+  root.mainPort = mainPort;
   
+  initializePreDomReady();
+
+  window.addEventListener("DOMContentLoaded", registerFrame);
+
+  window.addEventListener("unload", unregisterFrame);
+
 }).call(this);

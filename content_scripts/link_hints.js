@@ -36,7 +36,7 @@
     },
     isActive: false,
     init: function() {
-      return this.markerMatcher = settings.get("filterLinkHints") ? filterHints : alphabetHints;
+      this.markerMatcher = settings.get("filterLinkHints") ? filterHints : alphabetHints;
     },
     clickableElementsXPath: DomUtils.makeXPath(["a", "area[@href]", "textarea", "button", "select", "input[not(@type='hidden' or @disabled or @readonly)]", "*[@onclick or @tabindex or @role='link' or @role='button' or contains(@class, 'button') or " + "@contenteditable='' or translate(@contenteditable, 'TRUE', 'true')='true']"]),
     activateModeToOpenInNewTab: function() {
@@ -112,7 +112,7 @@
       } else if (this.mode === COPY_LINK_URL) {
         HUD.show("Copy link URL to Clipboard");
         this.linkActivator = function(link) {
-          chrome.runtime.sendMessage({
+          mainPort.postMessage({
             handler: "copyToClipboard",
             data: link.href
           });
@@ -120,7 +120,7 @@
       } else if (this.mode === COPY_LINK_TEXT) {
         HUD.show("Copy link text to Clipboard");
         this.linkActivator = function(link) {
-          chrome.runtime.sendMessage({
+          mainPort.postMessage({
             handler: "copyToClipboard",
             data: (link.innerText.trim() || link.title.trim()).replace(/\xa0/g, ' ')
           });
@@ -128,7 +128,7 @@
       } else if (this.mode === OPEN_INCOGNITO) {
         HUD.show("Open link in incognito window");
         this.linkActivator = function(link) {
-          chrome.runtime.sendMessage({
+          mainPort.postMessage({
             handler: 'openUrlInIncognito',
             url: link.href
           });
@@ -300,12 +300,10 @@
         _this.isActive = false;
       };
       if (delay) {
-        setTimeout(function() {
+        setTimeout(callback ? function() {
           deactivate();
-          if (callback) {
-            callback();
-          }
-        }, delay);
+          callback();
+        } : deactivate, delay);
       } else {
         deactivate();
         if (callback) {
