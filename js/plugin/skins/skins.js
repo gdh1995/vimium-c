@@ -65,7 +65,7 @@
 				});
 				template.find(".bgColor").find("button").bind("click", function () {
 					if (!$(this).hasClass('selected')) {
-						var tmp_color = $(this).attr('class').substr(1);
+						var tmp_color = $(this).attr('class').substring(1);
 						var _style = PDI.getSkin(PDI.get('privateSetup', 'skin'), 'style');
 						var bg = {
 							"background" : {

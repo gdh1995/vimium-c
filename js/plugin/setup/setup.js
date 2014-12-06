@@ -270,7 +270,7 @@
 									lang : ui_locale,
 									data : this.result
 								}, function(result) {
-									if (typeof result != 'string' || result.substr(0, 5) == 'ERROR') {
+									if (typeof result != 'string' || result.substring(0, 5) == 'ERROR') {
 										showNotice(getI18nMsg('importError'));
 										return false
 									}
@@ -498,7 +498,7 @@
 			changeDialBoxOpacity : function (v, t) {
 				var self = this;
 				if (t == "range") {
-					v = v == 1 ? 1 : v.substr(0, v.indexOf(".") + 2);
+					v = v == 1 ? 1 : v.substring(0, v.indexOf(".") + 2);
 					self.content.find("#dialBoxOpacity").parent().find(".RValue").val(Math.round((1 - v) * 100))
 				} else {
 					if (!v.match(/^\d+$/) || v * 1 < self.content.find("#dialBoxOpacity").attr("min") * 100 || v * 1 > self.content.find("#dialBoxOpacity").attr("max") * 100) {

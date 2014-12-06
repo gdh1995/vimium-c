@@ -13,17 +13,16 @@
       return this.completers[name];
     },
     activateWithCompleter: function(completerName, refreshInterval, initialQueryValue, selectFirstResult, forceNewTab) {
-      var completer = this.getCompleter(completerName);
-      if (!this.vomnibarUI) {
-        this.vomnibarUI = new VomnibarUI();
-        this.vomnibarUI.initDom();
+      var completer = this.getCompleter(completerName), vomnibarUI = this.vomnibarUI;
+      if (!vomnibarUI) {
+        vomnibarUI = this.vomnibarUI = new VomnibarUI();
+        vomnibarUI.initDom();
       }
-      completer.refresh();
-      this.vomnibarUI.setInitialSelectionValue(selectFirstResult ? 0 : -1);
-      this.vomnibarUI.setCompleter(completer);
-      this.vomnibarUI.setRefreshInterval(refreshInterval || this.defaultRefreshInterval);
-      this.vomnibarUI.setForceNewTab(forceNewTab);
-      this.vomnibarUI.reset(initialQueryValue);
+      vomnibarUI.setInitialSelectionValue(selectFirstResult ? 0 : -1);
+      vomnibarUI.setCompleter(completer);
+      vomnibarUI.setRefreshInterval(refreshInterval || this.defaultRefreshInterval);
+      vomnibarUI.setForceNewTab(forceNewTab);
+      vomnibarUI.reset(initialQueryValue);
     },
     activate: function() {
       this.activateWithCompleter("omni");
@@ -88,20 +87,21 @@
       this.input.focus();
       this.input.addEventListener("input", this.eventHandlers.input);
       this.completionList.addEventListener("click", this.eventHandlers.click);
-      this.completionList.addEventListener("DOMMouseScroll", this.eventHandlers.scroll);
+      this.box.addEventListener("mousewheel", DomUtils.suppressPropagation);
+      this.box.addEventListener("keyup", this.eventHandlers.keyEvent);
       this.handlerId = handlerStack.push({
-        keydown: this.eventHandlers.keyDown
+        keydown: this.eventHandlers.keydown
       });
     };
 
     VomnibarUI.prototype.hide = function() {
       this.box.style.display = "none";
-      this.completionList.style.display = "none";
       this.input.blur();
       handlerStack.remove(this.handlerId);
       this.input.removeEventListener("input", this.eventHandlers.input);
       this.completionList.removeEventListener("click", this.eventHandlers.click);
-      this.completionList.removeEventListener("mousewheel", this.eventHandlers.scroll);
+      this.box.removeEventListener("mousewheel", DomUtils.suppressPropagation);
+      this.box.removeEventListener("keyup", this.eventHandlers.keyEvent);
     };
 
     VomnibarUI.prototype.reset = function(input) {
@@ -112,44 +112,44 @@
     VomnibarUI.prototype.update = function(updateDelay, callback) {
       this.onUpdate = callback;
       if (typeof updateDelay === "number") {
-        if (this.updateTimer) {
-          window.clearTimeout(this.updateTimer);
-          this.updateTimer = 0;
+        if (this.timer) {
+          window.clearTimeout(this.timer);
+          this.timer = 0;
         }
         if (updateDelay <= 0) {
-          this.updateCompletions();
+          this.eventHandlers.timer();
           return;
         }
-      } else if (this.updateTimer) {
+      } else if (this.timer) {
         return;
       } else {
         updateDelay = this.refreshInterval;
       }
-      this.updateTimer = setTimeout(this.eventHandlers.timer, updateDelay);
-    };
-
-    VomnibarUI.prototype.updateCompletions = function() {
-      this.completer.filter(this.input.value, this.eventHandlers.completions);
+      this.timer = setTimeout(this.eventHandlers.timer, updateDelay);
     };
 
     VomnibarUI.prototype.populateUI = function() {
-      this.completionList.innerHTML = this.completions.map(function(completion) {
-        return "\n  <li>\n    " + completion.html + "\n  </li>";
-      }).join("");
-      this.completionList.style.display = this.completions.length > 0 ? "block" : "none";
-      this.selection = (! this.completions[0]) ? -1 :
-        (this.completions[0].type === "search") ? 0 : this.initialSelectionValue;
+      this.completionList.innerHTML = "\n  <li class=\"vimiumReset vomnibarCompletion\">\n    " + this.completions.map(function(completion) {
+        return completion.text;
+      }).join("\n  </li>\n  <li class=\"vimiumReset vomnibarCompletion\">\n    ") + "\n  </li>\n";
+      if (this.completions.length > 0) {
+        this.completionList.style.display = "block";
+        this.selection = (this.completions[0].type === "search") ? 0 : this.initialSelectionValue;
+      } else {
+        this.completionList.style.display = "none";
+        this.selection = -1;
+      }
       this.updateSelection();
       this.selectionIsChanged = false;
     };
 
     VomnibarUI.prototype.updateSelection = function() {
-      for (var _i = 0, _ref = this.completionList.children; _i < _ref.length; ++_i) {
-        _ref[_i].className = "vimiumReset";
+      for (var _i = 0, _ref = this.completionList.children, selected = this.selection; _i < _ref.length; ++_i) {
+        (_i != selected) && _ref[_i].classList.remove("vomnibarSelected");
       }
-      if (this.selection >= 0 && this.selection < _ref.length) {
-        _ref = _ref[this.selection];
-        _ref.className += " vomnibarSelected";
+      if (selected >= 0 && selected < _ref.length) {
+        _ref = _ref[selected];
+        _ref.classList.add("vomnibarSelected");
         _ref.scrollIntoViewIfNeeded();
       }
     };
@@ -189,10 +189,9 @@
         }
         return true;
       }
-      this.openInNewTab = this.forceNewTab || (event.shiftKey || event.ctrlKey || KeyboardUtils.isPrimaryModifierKey(event));
+      this.openInNewTab = this.forceNewTab || (event.shiftKey || event.ctrlKey || event.metaKey);
       this.onAction(action);
-      DomUtils.suppressPropagation(event);
-      event.preventDefault();
+      DomUtils.suppressEvent(event);
       return false;
     }
 
@@ -218,18 +217,48 @@
         this.updateSelection();
         break;
       case "enter":
-        this.onUpdate = function() {
+        action = function() {
           this.completions[this.selection].performAction(this);
           this.hide();
         };
-        if (this.updateTimer) this.update(0, this.onUpdate);
-        else if (this.selection >= 0 || this.input.value.trim().length > 0) {
-          this.onUpdate();
-          this.onUpdate = null;
+        if (this.timer) {
+          this.update(0, action);
+        } else if (this.selection >= 0 || this.input.value.trim().length > 0) {
+          action.call(this);
         }
         break;
       default: break;
       }
+    };
+
+    VomnibarUI.prototype.onClick = function(event) {
+      var el = event.target, ulist = this.completionList;
+      while(el && el.parentElement != ulist) { el = el.parentElement; }
+      for (var _i = 0, _ref = ulist.children; _i < _ref.length; ++_i) {
+        if (_ref[_i] == el) {
+          el = _i;
+          break;
+        }
+      }
+      if (typeof el === "number") {
+        this.selection = el;
+        this.openInNewTab = this.forceNewTab || (event.shiftKey || event.ctrlKey || event.metaKey);
+        this.onAction("enter");
+      }
+      DomUtils.suppressEvent(event);
+    };
+
+    VomnibarUI.prototype.onInput = function() {
+      if (this.completions[this.selection].url.trimRight() != this.input.value.trim()) {
+        this.update();
+      }
+      this.completionInput.url = this.input.value.trimLeft();
+      return false;
+    };
+
+    VomnibarUI.prototype.onTimer = function() {
+      this.timer = 0;
+      this.completer.filter(this.input.value, this.eventHandlers.completions);
     };
 
     VomnibarUI.prototype.onCompletions = function(completions) {
@@ -243,63 +272,34 @@
       }
     };
 
-    VomnibarUI.prototype.onTimer = function() {
-      this.updateTimer = 0;
-      this.updateCompletions();
-    };
-
-    VomnibarUI.prototype.onScroll = function(event) {
-      DomUtils.suppressPropagation(event);
-      event.preventDefault();
-      return false;
-    };
-
-    VomnibarUI.prototype.onClick = function() {
-      var el = event.target, ulist = this.completionList;
-      while(el && el.parentElement != ulist) { el = el.parentElement; }
-      for (var _i = 0, _ref = ulist.children; _i < _ref.length; ++_i) {
-        if (_ref[_i] == el) {
-          el = _i;
-          break;
-        }
+    VomnibarUI.prototype.onKeyEvent = function(event) {
+      if((event.keyCode > KeyboardUtils.keyCodes.f1 && event.keyCode <= KeyboardUtils.keyCodes.f12)
+        || event.altKey || event.shiftKey || event.ctrlKey || event.metaKey) {
+        return;
       }
-      if (typeof el != "number") { return false; }
-      this.selection = el;
-      this.openInNewTab = this.forceNewTab || (event.shiftKey || event.ctrlKey || KeyboardUtils.isPrimaryModifierKey(event));
-      this.onAction("enter");
-      return false;
+      DomUtils.suppressEvent(event);
     };
-
-    VomnibarUI.prototype.onInput = function() {
-      if (this.completions[this.selection].url.trimRight() != this.input.value.trim()) {
-        this.update();
-      }
-      this.completionInput.url = this.input.value.trimLeft();
-      return false;
-    };
-
-    VomnibarUI.prototype.template = [
-      "<div id=\"vomnibar\" class=\"vimiumReset\">"
-      , "\n  <div class=\"vimiumReset vomnibarSearchArea\">"
-      , "\n    <input type=\"text\" class=\"vimiumReset\" />"
-      , "\n  </div>"
-      , "\n  <ul class=\"vimiumReset\"></ul>"
-      , "\n</div>"
-    ].join("");
+    
+    VomnibarUI.prototype.template = "\
+<div id=\"vomnibar\" class=\"vimiumReset\">\n\
+  <div class=\"vimiumReset vomnibarSearchArea\">\n\
+    <input type=\"text\" class=\"vimiumReset\" id=\"vomnibarInput\" />\n\
+  </div>\n\
+  <ul class=\"vimiumReset vimiumScroll\" id=\"vomnibarList\"></ul>\n\
+</div>";
     VomnibarUI.prototype.initDom = function() {
       this.box = Utils.createElementFromHtml(this.template);
       this.box.style.display = "none";
       document.body.appendChild(this.box);
-      this.input = this.box.querySelector("input");
-      this.completionList = this.box.querySelector("ul");
-      this.completionList.style.display = "none";
+      this.input = this.box.children[0].children[0];
+      this.completionList = this.box.children[1];
       this.eventHandlers = {
-        keyDown: this.onKeydown.bind(this)
+        keydown: this.onKeydown.bind(this)
         , input: this.onInput.bind(this)
         , click: this.onClick.bind(this)
-        , scroll: this.onScroll.bind(this)
         , timer: this.onTimer.bind(this)
         , completions: this.onCompletions.bind(this)
+        , keyEvent: this.onKeyEvent.bind(this)
       }
     };
 
@@ -308,27 +308,43 @@
   })();
 
   BackgroundCompleter = (function() {
-
     function BackgroundCompleter(name) {
       this.name = name;
-      if (BackgroundCompleter.prototype.filterPort) { return; }
-      
-      BackgroundCompleter.prototype.filterPort = chrome.runtime.connect({
-        name: "filterCompleter"
-      });
+      this.refresh();
+      this.getPort();
+    }
+
+    BackgroundCompleter.prototype.getPort = function() {
+      if (!this.port) {
+        try {
+          BackgroundCompleter.prototype.port = chrome.runtime.connect({ name: "filterCompleter" });
+          this.port.onDisconnect.addListener(this._clearPort);
+          this.port.onMessage.addListener(this.onFilter);
+        } catch (e) {
+          BackgroundCompleter.prototype.port = null;
+          return fakePort;
+        }
+      }
+      return this.port;
+    };
+
+    BackgroundCompleter.prototype._clearPort = function() {
+      console.log("clear", BackgroundCompleter.prototype.port);
+      BackgroundCompleter.prototype.port = null;
+    };
+    
+    BackgroundCompleter.prototype.refresh = function() {
       chrome.runtime.sendMessage({
         handler: "refreshCompleter",
         name: this.name
       });
-      BackgroundCompleter.prototype.filterPort.onMessage.addListener(BackgroundCompleter.onFilter);
-    }
-
-    BackgroundCompleter.prototype.refresh = function() {
     };
 
-    BackgroundCompleter.onFilter = function(msg) {
+    BackgroundCompleter.prototype.onFilter = function(msg) {
       if (BackgroundCompleter.id != msg.id) { return; }
+      BackgroundCompleter.maxCharNum = parseInt((window.innerWidth * 0.8 - 70) / 7.72);
       var results = msg.results.map(function(result) {
+        BackgroundCompleter.makeShortenUrl.call(result);
         result.action = (result.type === "tab") ? "switchToTab"
           : ("sessionId" in result) ? "restoreSession"
           : "navigateToUrl";
@@ -345,7 +361,7 @@
     BackgroundCompleter.prototype.filter = function(query, callback) {
       BackgroundCompleter.id = Utils.createUniqueId();
       BackgroundCompleter.callback = callback;
-      this.filterPort.postMessage({
+      this.getPort().postMessage({
         name: this.name,
         id: BackgroundCompleter.id,
         query: query.replace(/\s+/g, ' ').trim()
@@ -356,6 +372,70 @@
   })();
 
   extend(BackgroundCompleter, {
+    showRelevancy: false,
+    maxCharNum: 160,
+    showFavIcon: window.location.protocol.startsWith("chrome"),
+    cutUrl: function(string, ranges, strCoded) {
+      if (ranges.length == 0 || string.startsWith("javascript:")) {
+        if (string.length <= BackgroundCompleter.maxCharNum) {
+          return Utils.escapeHtml(string);
+        } else {
+          return Utils.escapeHtml(string.substring(0, BackgroundCompleter.maxCharNum - 3)) + "...";
+        }
+      }
+      var out = [], cutStart = -1, temp, lenCut, i, end, start;
+      if (! (string.length <= BackgroundCompleter.maxCharNum)) {
+        cutStart = strCoded.indexOf("://");
+        if (cutStart >= 0) {
+          cutStart = strCoded.indexOf("/", cutStart + 4);
+          if (cutStart >= 0) {
+            temp = string.indexOf("://");
+            cutStart = string.indexOf("/", (temp < 0 || temp > cutStart) ? 0 : (temp + 4));
+          }
+        }
+      }
+      cutStart = (cutStart < 0) ? string.length : (cutStart + 1);
+      for(i = 0, lenCut = 0, end = 0; i < ranges.length; i += 2) {
+        start = ranges[i];
+        temp = (end >= cutStart) ? end : cutStart;
+        if (temp + 20 > start) {
+          out.push(Utils.escapeHtml(string.substring(end, start)));
+        } else {
+          out.push(Utils.escapeHtml(string.substring(end, temp + 10)));
+          out.push("...");
+          out.push(Utils.escapeHtml(string.substring(start - 6, start)));
+          lenCut += start - temp - 19;
+        }
+        end = ranges[i + 1];
+        out.push("<span class=\"vimiumReset vomnibarMatch\">");
+        out.push(Utils.escapeHtml(string.substring(start, end)));
+        out.push("</span>");
+      }
+      temp = BackgroundCompleter.maxCharNum + lenCut;
+      if (! (string.length > temp)) {
+        out.push(Utils.escapeHtml(string.substring(end)));
+      } else {
+        out.push(Utils.escapeHtml(string.substring(end,
+          (temp - 3 > end) ? (temp - 3) : (end + 10))));
+        out.push("...");
+      }
+      return out.join("");
+    },
+    makeShortenUrl: function() {
+      this.text = BackgroundCompleter.cutUrl(this.text, this.textSplit, this.url);
+      this.text = [
+        "<div class=\"vimiumReset vomnibarTopHalf\">\n      <span class=\"vimiumReset vomnibarSource\">"
+        , this.type, "</span>\n      <span class=\"vimiumReset vomnibarTitle\">", this.title
+        , "</span>\n    </div>\n    <div class=\"vimiumReset vomnibarBottomHalf vomnibarIcon\""
+        , ">\n      <span class=\"vimiumReset vomnibarUrl\">", this.text
+        , (BackgroundCompleter.showRelevancy ? ("</span>\n      <span class='relevancy'>" + this.relevancy) : "")
+        , "</span>\n    </div>"
+      ];
+      if (BackgroundCompleter.showFavIcon) {
+        this.text.splice(5, 0, " style=\"background-image: url(", this.favIconUrl, ");\"");
+      }
+      this.text = this.text.join("");
+    },
     performAction: function() {
       var action = BackgroundCompleter.completionActions[this.action] || this.action;
       if (typeof action !== "function") return;
@@ -366,7 +446,7 @@
         if (this.url.startsWith("javascript:")) {
           var script = document.createElement('script');
           script.textContent = decodeURIComponent(this.url.slice("javascript:".length));
-          (document.head || document.documentElement).appendChild(script);
+          (document.documentElement || document.body || document.head).appendChild(script);
         } else {
           chrome.runtime.sendMessage({
             handler: data.openInNewTab ? "openUrlInNewTab" : "openUrlInCurrentTab",
@@ -378,7 +458,7 @@
       switchToTab: function() {
         chrome.runtime.sendMessage({
           handler: "selectSpecificTab",
-          id: this.tabId
+          sessionId: this.sessionId
         });
       },
       restoreSession: function() {

@@ -1439,7 +1439,7 @@ if (typeof screenDialboxOptions[screenWidth + "*" + screenHeight] != 'undefined'
 				var url = self.synDataApiUrl + '?e=' + self.oauthId + '&ver=' + ver + '&dataVersion=' + _config.dataVersion;
 				$.post(url, function (result) {
 					if (typeof(result) == 'string') {
-						if (result.substr(0, 5) == 'ERROR') {
+						if (result.substring(0, 5) == 'ERROR') {
 							if (result.indexOf('ERROR_FILE_MSGID_') == 0) {
 								PDI.set('setup', 'msgid', parseInt(result.replace('ERROR_FILE_MSGID_', '')))
 							}
@@ -1520,7 +1520,7 @@ if (typeof screenDialboxOptions[screenWidth + "*" + screenHeight] != 'undefined'
 				lt = lt || function () {};
 				if (self.oauthId && self.oauthCode) {
 					$.post(url, function (result) {
-						if (typeof(result) == 'string' && result.substr(0, 5) != 'ERROR') {
+						if (typeof(result) == 'string' && result.substring(0, 5) != 'ERROR') {
 							var msgid = parseInt(PDI.get('setup', 'msgid'));
 							result = JSON.parse(result);
 							if (result.msgid > msgid) {
@@ -1545,7 +1545,7 @@ if (typeof screenDialboxOptions[screenWidth + "*" + screenHeight] != 'undefined'
 					data['msgid'] = parseInt(PDI.get('setup', 'msgid'));
 					data['ver'] = _config.version;
 					$.post(self.synDataApiUrl, data, function (result) {
-						if (result.substr(0, 5) != 'ERROR') {}
+						if (result.substring(0, 5) != 'ERROR') {}
 						else {
 							if (result == "ERROR_MSGID") {
 								if (parseInt(Math.random() * (100 - 1) + 1) % 3 == 1) {
@@ -1626,7 +1626,7 @@ if (typeof screenDialboxOptions[screenWidth + "*" + screenHeight] != 'undefined'
 					data['email'] = self.oauthId;
 					data['msgid'] = msgid;
 					$.post(self.synDataApiUrl, data, function (result) {
-						if (result.substr(0, 5) != 'ERROR') {
+						if (result.substring(0, 5) != 'ERROR') {
 							storage.relative = false;
 							storage.clear(['dialBoxes', 'setup', 'privateSetup', 'skins', 'weather', 'classifications', 'oauthData', 'usedWallpaper', 'iframeDialbox']);
 							PDI.set('setup', 'msgid', msgid);
@@ -2516,7 +2516,7 @@ var dragExcludeClassList = ['boxClose', 'boxEdit', 'searchCenter', 'searchItem']
 					imgMatch = img.match(/:\/\/[^\/]+/g)
 				}
 				img = imgMatch.pop();
-				img = img.substr(3);
+				img = img.substring(3, img.length);
 				img = img.replace(/^www\./, '');
 				if (img == '' || img.indexOf('.') == -1 || img.indexOf('.') == img.length - 1) {
 					return 'img/skin_0/ie_logo.png'

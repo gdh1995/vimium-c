@@ -76,7 +76,7 @@
 						$.post(urlImg + "weidu/uploadLogo.php", {
 							"imgData" : this.result
 						}, function (result) {
-							if (result && result.substr(0, 5) == 'ERROR') {
+							if (result && result.substring(0, 5) == 'ERROR') {
 								showNotice(getI18nMsg('logoFileUploadError'));
 								return
 							}
@@ -137,7 +137,7 @@
 							imgMatch = img.match(/:\/\/[^\/]+/g)
 						}
 						img = imgMatch.pop();
-						img = img.substr(3);
+						img = img.substring(3);
 						img = img.replace(/^www\./, '');
 						if (img == '' || img.indexOf('.') == -1 || img.indexOf('.') == img.length - 1) {
 							img = self.defaultLogoUrl

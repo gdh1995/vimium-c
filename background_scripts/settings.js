@@ -6,26 +6,21 @@
 
   root.Settings = Settings = {
     get: function(key) {
-      if (key in localStorage) {
-        return JSON.parse(localStorage[key]);
-      } else {
-        return this.defaults[key];
-      }
+      return (key in localStorage) ? JSON.parse(localStorage[key]) : this.defaults[key];
     },
     set: function(key, value) {
       if (value === this.defaults[key]) {
-        return this.clear(key);
+        this.clear(key);
       } else {
-        var jsonValue = JSON.stringify(value);
-        localStorage[key] = jsonValue;
-        return; // Sync.set(key, jsonValue);
+        localStorage[key] = JSON.stringify(value);
+        // Sync.set(key, localStorage[key]);
       }
     },
     clear: function(key) {
       if (this.has(key)) {
         delete localStorage[key];
       }
-      return; // Sync.clear(key);
+      // Sync.clear(key);
     },
     has: function(key) {
       return key in localStorage;
@@ -34,21 +29,21 @@
       keyMappings: function(value) {
         root.Commands.clearKeyMappingsAndSetDefaults();
         root.Commands.parseCustomKeyMappings(value);
-        return root.refreshCompletionKeysAfterMappingSave();
+        root.refreshCompletionKeysAfterMappingSave();
       },
       searchEngines: function(value) {
-        return root.Settings.parseSearchEngines(value);
+        root.Settings.parseSearchEngines(value);
       },
       exclusionRules: function(value) {
-        return root.Exclusions.postUpdateHook(value);
+        root.Exclusions.postUpdateHook(value);
       }
     },
     performPostUpdateHook: function(key, value) {
-      if (this.postUpdateHooks[key]) {
-        return this.postUpdateHooks[key](value);
+      if (key = this.postUpdateHooks[key]) {
+        key(value);
       }
     },
-    searchEnginesMap: null,
+    _searchEnginesMap: undefined,
     parseSearchEngines: function(searchEnginesText) {
       var a, val, split_pairs, _i, _j, _len, key;
       var titles = {}, map = { ":": titles };
@@ -69,16 +64,17 @@
           titles[key[0]] = key[1];
         }
       }
-      return this.searchEnginesMap = map;
+      return this._searchEnginesMap = map;
     },
     getSearchEngines: function() {
-      if (! this.searchEnginesMap) {
+      if (! this._searchEnginesMap) {
         this.parseSearchEngines(this.get("searchEngines") || "");
       }
-      return this.searchEnginesMap;
+      return this._searchEnginesMap;
     },
     defaults: {
       scrollStepSize: 100,
+      smoothScroll: false,
       keyMappings: "# Insert your prefered key mappings here.",
       linkHintCharacters: "asdqwerzxcv",
       linkHintNumbers: "1234567890",

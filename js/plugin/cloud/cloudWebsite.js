@@ -163,7 +163,7 @@
 											imgMatch = img.match(/:\/\/[^\/]+/g)
 										}
 										img = imgMatch.pop();
-										img = img.substr(3);
+										img = img.substring(3, img.length);
 										img = img.replace(/^www\./, '');
 										if (img == '' || img.indexOf('.') == -1 || img.indexOf('.') == img.length - 1) {
 											img = urlImg + 'images/ie_logo.png'

@@ -4,23 +4,21 @@
 
   Commands = {
     init: function() {
-      var command, description, _results;
-      _results = [];
+      var command, description;
       for (command in commandDescriptions) {
         description = commandDescriptions[command];
-        _results.push(this.addCommand(command, description[0], description[1]));
+        this.addCommand(command, description[0], description[1]);
       }
-      return _results;
     },
     availableCommands: {},
     keyToCommandRegistry: {},
     addCommand: function(command, description, options) {
       if (command in this.availableCommands) {
-        console.log(command, "is already defined! Check commands.coffee for duplicates.");
+        // console.log(command, "is already defined! Check commands.coffee for duplicates.");
         return;
       }
       options || (options = {});
-      return this.availableCommands[command] = {
+      this.availableCommands[command] = {
         description: description,
         isBackgroundCommand: options.background,
         passCountToFunction: options.passCountToFunction,
@@ -35,7 +33,7 @@
         return;
       }
       commandDetails = this.availableCommands[command];
-      return this.keyToCommandRegistry[key] = {
+      this.keyToCommandRegistry[key] = {
         command: command,
         isBackgroundCommand: commandDetails.isBackgroundCommand,
         passCountToFunction: commandDetails.passCountToFunction,
@@ -44,7 +42,7 @@
       };
     },
     unmapKey: function(key) {
-      return delete this.keyToCommandRegistry[key];
+      delete this.keyToCommandRegistry[key];
     },
     normalizeKey: function(key) {
       return key.replace(/<[acm]-/ig, function(match) {
@@ -54,11 +52,10 @@
       });
     },
     parseCustomKeyMappings: function(customKeyMappings) {
-      var key, line, lineCommand, lines, splitLine, vimiumCommand, _i, _len, _results;
+      var key, line, lineCommand, lines, splitLine, vimiumCommand, _i, _len;
       lines = customKeyMappings.split("\n");
-      _results = [];
       for (_i = 0, _len = lines.length; _i < _len; _i++) {
-        line = lines[_i];
+        line = lines[_i].trim();
         if (line[0] === "\"" || line[0] === "#") {
           continue;
         }
@@ -74,43 +71,52 @@
             continue;
           }
           // console.log("Mapping", key, "to", vimiumCommand);
-          _results.push(this.mapKeyToCommand(key, vimiumCommand));
+          this.mapKeyToCommand(key, vimiumCommand);
         } else if (lineCommand === "unmap") {
           if (splitLine.length !== 2) {
             continue;
           }
           key = this.normalizeKey(splitLine[1]);
           // console.log("Unmapping", key);
-          _results.push(this.unmapKey(key));
+          this.unmapKey(key);
         } else if (lineCommand === "unmapAll") {
-          _results.push(this.keyToCommandRegistry = {});
-        } else {
-          _results.push(void 0);
+          this.keyToCommandRegistry = {};
         }
       }
-      return _results;
     },
     clearKeyMappingsAndSetDefaults: function() {
-      var key, _results;
       this.keyToCommandRegistry = {};
-      _results = [];
-      for (key in defaultKeyMappings) {
-        _results.push(this.mapKeyToCommand(key, defaultKeyMappings[key]));
+      for (var key in defaultKeyMappings) {
+        this.mapKeyToCommand(key, defaultKeyMappings[key]);
       }
-      return _results;
     },
     commandGroups: {
-      pageNavigation: ["scrollDown", "scrollUp", "scrollLeft", "scrollRight", "scrollToTop", "scrollToBottom", "scrollToLeft", "scrollToRight", "scrollPageDown", "scrollPageUp", "scrollFullPageUp", "scrollFullPageDown", "reload", "toggleViewSource", "copyCurrentUrl", "LinkHints.activateModeToCopyLinkUrl"
-        , "LinkHints.activateModeToCopyLinkText"
-        , "openCopiedUrlInCurrentTab", "openCopiedUrlInNewTab", "goUp", "goToRoot", "enterInsertMode", "focusInput", "LinkHints.activateMode", "LinkHints.activateModeToOpenInNewTab", "LinkHints.activateModeToOpenInNewForegroundTab", "LinkHints.activateModeWithQueue", "LinkHints.activateModeToDownloadLink", "LinkHints.activateModeToOpenIncognito", "Vomnibar.activate", "Vomnibar.activateInNewTab", "Vomnibar.activateTabSelection", "Vomnibar.activateBookmarks", "Vomnibar.activateBookmarksInNewTab"
-        , "Vomnibar.activateHistory", "Vomnibar.activateHistoryInNewTab"
-        , "goPrevious", "goNext", "nextFrame", "Marks.activateCreateMode", "Vomnibar.activateEditUrl", "Vomnibar.activateEditUrlInNewTab", "Marks.activateGotoMode"],
+      pageNavigation: ["scrollDown", "scrollUp", "scrollLeft", "scrollRight", "scrollToTop"
+        , "scrollToBottom", "scrollToLeft", "scrollToRight", "scrollPageDown", "scrollPageUp"
+        , "scrollFullPageUp", "scrollFullPageDown", "reload", "toggleViewSource", "copyCurrentUrl"
+        , "LinkHints.activateModeToCopyLinkUrl", "LinkHints.activateModeToCopyLinkText"
+        , "openCopiedUrlInCurrentTab", "openCopiedUrlInNewTab", "goUp", "goToRoot", "enterInsertMode"
+        , "focusInput", "LinkHints.activateMode", "LinkHints.activateModeToOpenInNewTab"
+        , "LinkHints.activateModeToOpenInNewForegroundTab", "LinkHints.activateModeWithQueue"
+        , "LinkHints.activateModeToDownloadLink", "LinkHints.activateModeToOpenIncognito"
+        , "Vomnibar.activate", "Vomnibar.activateInNewTab", "Vomnibar.activateTabSelection"
+        , "Vomnibar.activateBookmarks", "Vomnibar.activateBookmarksInNewTab", "Vomnibar.activateHistory"
+        , "Vomnibar.activateHistoryInNewTab", "goPrevious", "goNext", "nextFrame"
+        , "Marks.activateCreateMode", "Vomnibar.activateEditUrl", "Vomnibar.activateEditUrlInNewTab"
+        , "Marks.activateGotoMode"],
       findCommands: ["enterFindMode", "performFind", "performBackwardsFind"],
       historyNavigation: ["goBack", "goForward"],
-      tabManipulation: ["nextTab", "previousTab", "firstTab", "lastTab", "createTab", "duplicateTab", "removeTab", "restoreTab", "moveTabToNewWindow", "togglePinTab", "closeTabsOnLeft", "closeTabsOnRight", "closeOtherTabs", "moveTabLeft", "moveTabRight"],
+      tabManipulation: ["nextTab", "previousTab", "firstTab", "lastTab", "createTab", "duplicateTab"
+        , "removeTab", "restoreTab", "moveTabToNewWindow", "moveTabToIncognito", "togglePinTab"
+        , "closeTabsOnLeft", "closeTabsOnRight", "closeOtherTabs", "moveTabLeft", "moveTabRight"],
       misc: ["showHelp"]
     },
-    advancedCommands: ["scrollToLeft", "scrollToRight", "moveTabToNewWindow", "goUp", "goToRoot", "focusInput", "LinkHints.activateModeWithQueue", "LinkHints.activateModeToDownloadLink", "Vomnibar.activateEditUrl", "Vomnibar.activateEditUrlInNewTab", "LinkHints.activateModeToOpenIncognito", "goNext", "goPrevious", "Marks.activateCreateMode", "Marks.activateGotoMode", "moveTabLeft", "moveTabRight", "closeTabsOnLeft", "closeTabsOnRight", "closeOtherTabs"]
+    advancedCommands: ["scrollToLeft", "scrollToRight", "moveTabToNewWindow", "moveTabToIncognito"
+      , "goUp", "goToRoot", "focusInput", "LinkHints.activateModeWithQueue"
+      , "LinkHints.activateModeToDownloadLink", "Vomnibar.activateEditUrl"
+      , "Vomnibar.activateEditUrlInNewTab", "LinkHints.activateModeToOpenIncognito"
+      , "goNext", "goPrevious", "Marks.activateCreateMode", "Marks.activateGotoMode"
+      , "moveTabLeft", "moveTabRight", "closeTabsOnLeft", "closeTabsOnRight", "closeOtherTabs"]
   };
 
   defaultKeyMappings = {
@@ -260,12 +266,12 @@
       }
     ],
     "LinkHints.activateModeToOpenInNewTab": [
-      "Open a link in new tab", {
+      "Open a link in a new tab", {
         noRepeat: true
       }
     ],
     "LinkHints.activateModeToOpenInNewForegroundTab": [
-      "Open a link in new tab and switch to it", {
+      "Open a link in a new tab & switch to it", {
         noRepeat: true
       }
     ],
@@ -367,6 +373,11 @@
     ],
     moveTabToNewWindow: [
       "Move tab to new window", {
+        background: true
+      }
+    ],
+    moveTabToIncognito: [
+      "Make tab in a incognito window", {
         background: true
       }
     ],

@@ -9,7 +9,7 @@
  * case the page has declared a broad rule like "a { padding: 50px; }" which will mess up our UI. These
  * declarations contain more specifiers than necessary to increase their specificity (precedence).
  */
-.vimiumReset,
+.vimiumReset/**,
 div.vimiumReset,
 span.vimiumReset,
 table.vimiumReset,
@@ -18,7 +18,7 @@ a:visited.vimiumReset,
 a:link.vimiumReset,
 a:hover.vimiumReset,
 td.vimiumReset,
-tr.vimiumReset {
+tr.vimiumReset /**/ {
   background: none;
   border: none;
   bottom: auto;
@@ -27,7 +27,7 @@ tr.vimiumReset {
   cursor: auto;
   display: inline;
   float: none;
-  font-family : "Helvetica Neue", "Helvetica", "Arial", sans-serif;
+  font-family: "Helvetica Neue", "Helvetica", "Arial", sans-serif;
   font-size: inherit;
   font-style: normal;
   font-variant: normal;
@@ -56,10 +56,48 @@ tr.vimiumReset {
   width: auto;
   z-index: 99999990;
 }
+.vimiumInherit {
+  background: none;
+  border: none;
+  bottom: auto;
+  box-shadow: none;
+  color: inherit;
+  cursor: auto;
+  display: inline;
+  float: none;
+  font-family: inherit;
+  font-size: inherit;
+  font-style: inherit;
+  font-variant: inherit;
+  font-weight: inherit;
+  height: auto;
+  left: auto;
+  letter-spacing: inherit;
+  line-height: inherit;
+  margin: 0;
+  max-height: none;
+  max-width: none;
+  min-height: 0;
+  min-width: 0;
+  opacity: 1;
+  padding: 0;
+  position: static;
+  right: auto;
+  text-align: inherit;
+  text-decoration: inherit;
+  text-indent: inherit;
+  text-shadow: inherit;
+  text-transform: inherit;
+  top: auto;
+  vertical-align: inherit;
+  white-space: inherit;
+  width: auto;
+  z-index: auto;
+}
 
 /* Linkhints CSS */
 
-div.internalVimiumHintMarker {
+.internalVimiumHintMarker {
   position: absolute;
   display: block;
   top: -1px;
@@ -72,9 +110,10 @@ div.internalVimiumHintMarker {
   border: solid 1px #C38A22;
   border-radius: 3px;
   box-shadow: 0px 3px 7px 0px rgba(0, 0, 0, 0.3);
+  z-index: 99999994;
 }
 
-div.internalVimiumHintMarker span {
+.internalVimiumHintMarker > .vimiumReset {
   color: #302505;
   font-family: Helvetica, Arial, sans-serif;
   font-weight: bold;
@@ -82,36 +121,35 @@ div.internalVimiumHintMarker span {
   text-shadow: 0 1px 0 rgba(255, 255, 255, 0.6);
 }
 
-div.internalVimiumHintMarker > .matchingCharacter {
+.internalVimiumHintMarker > .matchingCharacter {
   color: #D4AC3A;
 }
 
 /* Input hints CSS */
 
-div.internalVimiumInputHint {
+.internalVimiumInputHint {
   position: absolute;
   display: block;
   background-color: rgba(255, 247, 133, 0.3);
   border: solid 1px #C38A22;
 }
 
-div.internalVimiumSelectedInputHint {
+.internalVimiumSelectedInputHint {
   background-color: rgba(255, 102, 102, 0.3);
   border: solid 1px #993333 !important;
 }
 
-div.internalVimiumSelectedInputHint span {
+/* .internalVimiumSelectedInputHint span {
   color: white !important;
-}
+} */
 
 /* Help Dialog CSS */
 
-div#vimiumHelpDialog {
-  border:3px solid red;
+#vimiumHelpDialog {
   opacity:0.92;
   background-color:#eee;
   position:fixed;
-  border:2px solid #b3b3b3;
+  border: none; /* 2px solid #b3b3b3; */
   border-radius:6px;
   padding:8px 12px;
   width:640px;
@@ -122,64 +160,69 @@ div#vimiumHelpDialog {
   top:50px;
   -webkit-box-shadow: rgba(0, 0, 0, 0.4) 0px 0px 6px;
   overflow-y: auto;
-  z-index:99999991;
+  z-index:99999992;
 }
-div#vimiumHelpDialog::-webkit-scrollbar{width:6px;}
-div#vimiumHelpDialog::-webkit-scrollbar:horizontal{height:8px;}
-div#vimiumHelpDialog::-webkit-scrollbar-track{box-shadow:inset 0 0 6px rgba(0,0,0,0.4);border-radius:6px;}
-div#vimiumHelpDialog::-webkit-scrollbar-thumb{border-radius:6px;background:rgba(48, 49, 58,0.2);box-shadow:inset 0 0 6px rgba(0,0,0,0.8);}
-div#vimiumHelpDialog::-webkit-scrollbar-thumb:window-inactive{background:rgba(231,231,231,0.4);}
 
-
-div#vimiumHelpDialog a { color:blue; }
-div#vimiumTitle, div#vimiumTitle span,  div#vimiumTitle * { font-size:20px; }
 #vimiumTitle {
   display: block;
   line-height: 130%;
+  font-size:20px;
 }
-div.vimiumColumn {
+#vimiumTitle span,  #vimiumTitle * { font-size:20px; }
+
+.vimiumColumnBox {
   width:50%;
   float:left;
-  font-size: 11px;
+  font-size: 12px;
   line-height: 130%;
 }
-
-div.vimiumColumn tr {
-    display: table-row;
+.vimiumColumnBox > .vimiumHelpTable {
+  width: 100%;
+  table-layout: auto;
+  padding: 0;
+  margin: 0;
+}
+.vimiumColumn > .vimiumHelpTr {
+  display: table-row;
+  padding: 0;
+  margin: 0;
+}
+.vimiumColumn > tr > .vimiumHelpTd {
+  display: table-cell;
+  font-size: 12px;
+  line-height: 130%;
+  margin: 0;
+  vertical-align: top;
+  padding: 1px;
 }
 
-div.vimiumColumn td {
-    display: table-cell;
-    font-size: 11px;
-    line-height: 130%;
+#vimiumHelpDialog .vimiumHelpShortKey {
+  max-width: 40px;
 }
-div.vimiumColumn table, div.vimiumColumn td, div.vimiumColumn tr { padding:0; margin:0; }
-div.vimiumColumn table { width:100%; table-layout:auto; }
-div.vimiumColumn td { vertical-align:top; padding:1px; }
-div#vimiumHelpDialog div.vimiumColumn tr > td:first-of-type {
-  text-align:right;
-  font-weight:bold;
-  color:#2f508e;
-  white-space:nowrap;
+.vimiumHelpShortKey > .vimiumHelpShortKey2 {
+  white-space: nowrap;
+  font-weight: bold;
+  color: #2f508e;
+  float: right;
 }
 /* Make the description column as wide as it can be. */
-div#vimiumHelpDialog div.vimiumColumn tr > td:nth-of-type(3) { width:100%; }
-div#vimiumHelpDialog div.vimiumDivider {
-  display: block;
-  height:1px;
-  width:92%;
-  margin:10px auto;
-  background-color:#9a9a9a;
+#vimiumHelpDialog .vimiumHelpCommandInfo {
+  width: 100%;
 }
-div#vimiumHelpDialog td.vimiumHelpSectionTitle {
-  font-weight:bold;
-  padding-top:3px;
+#vimiumHelpDialog .vimiumHelpSectionTitle {
+  font-weight: bold;
+  padding-top: 3px;
 }
-div#vimiumHelpDialog div.commandName { font-family:"courier new"; }
 /* Advanced commands are hidden by default until you show them. */
-div#vimiumHelpDialog div.advanced { display: none; }
-div#vimiumHelpDialog div.advanced td:nth-of-type(3) { color: #555; }
-div#vimiumHelpDialog a.closeButton {
+/* #vimiumHelpDialog .vimiumHelpAdvanced { display: none; } */
+/* #vimiumHelpDialog .vimiumHelpCommandName { font-family: "Courier New"; } */
+/* #vimiumHelpDialog .vimiumHelpCommandInfo { color: #555; } */
+
+#vimiumHelpDialog .vimiumHelpLink {
+  text-decoration: underline;
+  color: blue;
+}
+#vimiumHelpDialog > .vimiumCloseButton {
   position:absolute;
   right:7px;
   top:5px;
@@ -187,31 +230,34 @@ div#vimiumHelpDialog a.closeButton {
   font-weight:bold;
   color:#555;
   text-decoration:none;
-  /* padding-left:10px; */
   font-size:20px;
 }
-div#vimiumHelpDialog a {
-  text-decoration: underline;
+#vimiumHelpDialog > .vimiumCloseButton:hover {
+  color: black;
+  -webkit-user-select: none;
 }
-
-div#vimiumHelpDialog .optionsPage {
+#vimiumHelpDialog > .vimiumOptionsPage {
   position: absolute;
   display: block;
-  font-size: 11px;
+  font-size: 12px;
   line-height: 130%;
   right: 60px;
   top: 8px;
 }
-div#vimiumHelpDialog a.closeButton:hover {
-  color: black;
-  -webkit-user-select: none;
-}
-div#vimiumHelpDialogFooter {
+
+#vimiumHelpDialogFooter {
   display: block;
   position: relative;
+  font-size: 12px;
 }
-div#vimiumHelpDialogFooter * { font-size:10px; }
-div#vimiumHelpDialogFooter .toggleAdvancedCommands {
+#vimiumHelpDialogFooter > .vimiumColumn2 {
+  width: 50%;
+  float: left;
+  font-size: 12px;
+  line-height: 130%;
+}
+#vimiumHelpDialogFooter > .vimiumToggleAdvancedCommands {
+  font-size: 10px;
   position: absolute;
   right: 2px;
   top: -34px;
@@ -219,7 +265,7 @@ div#vimiumHelpDialogFooter .toggleAdvancedCommands {
 
 /* Vimium HUD CSS */
 
-div.vimiumHUD {
+.vimiumHUD {
   display: block;
   position: fixed;
   top: auto;
@@ -239,22 +285,23 @@ div.vimiumHUD {
   border-radius: 4px 4px 0 0;
   font-family: "Lucida Grande", "Arial", "Sans";
   font-size: 12px;
-  /* One less than vimium's hint markers, so link hints can be shown e.g. for the panel's close button. */
-  z-index: 99999995;
+  /* less than vimium's hint markers, so link hints can be shown e.g. for the panel's close button. */
+  z-index: 99999993;
   text-shadow: 0px 1px 2px #FFF;
   line-height: 1.0;
   opacity: 0;
 }
 /* Hide the span between search box letters */
-div.vimiumHUD span {
+/* .vimiumHUD span {
   display: none;
-}
-div.vimiumHUD a:link, div.vimiumHUD a:hover {
+} */
+.vimiumHUD > .vimiumWebStore,
+.vimiumHUD > .vimiumWebStore:hover {
   background: transparent;
   color: blue;
   text-decoration: underline;
 }
-div.vimiumHUD a:link.close-button {
+.vimiumHUD > .vimiumCloseButton {
   float:right;
   font-family: "Courier New";
   font-weight:bold;
@@ -263,25 +310,16 @@ div.vimiumHUD a:link.close-button {
   padding-left:10px;
   margin-top:-1px;
   font-size:14px;
+  background: transparent;
+  text-decoration: underline;
 }
-div.vimiumHUD a.close-button:hover {
+.vimiumHUD > .vimiumCloseButton:hover {
   color:#333333;
   cursor:default;
   -webkit-user-select:none;
 }
 
-body.vimiumFindMode ::selection {
-  background: #ff9632;
-}
-
 /* Vomnibar CSS */
-
-#vomnibar ul {
-  list-style: none;
-  display: block;
-  /* overflow-y: scroll; */
-  /* max-height: 300px; */
-}
 
 #vomnibar {
   display: block;
@@ -295,18 +333,24 @@ body.vimiumFindMode ::selection {
 
   background: #F1F1F1;
   text-align: left;
-  border-radius: 4px;
+  border-radius: 5px;
+  overflow: hidden;
   box-shadow: 0px 2px 10px rgba(0, 0, 0, 0.8);
   border: 1px solid #aaa;
-  /* One less than hint markers and the help dialog. */
-  z-index: 99999992;
+  /* less than hint markers and the help dialog. */
+  z-index: 99999991;
 }
 
-#vomnibar input {
+#vomnibar > .vomnibarSearchArea {
+  display: block;
+  padding: 10px;
+}
+#vomnibarInput {
   color: #000;
   font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
   font-size: 20px;
   height: 34px;
+  padding: 10px;
   margin-bottom: 0;
   padding: 4px;
   background-color: white;
@@ -316,71 +360,96 @@ body.vimiumFindMode ::selection {
   width: 100%;
   outline: none;
   box-sizing: border-box;
+  float: none;
 }
-
-#vomnibar .vomnibarSearchArea {
-  display: block;
-  padding: 10px;
-  background-color: #F1F1F1;
-  border-radius: 4px 4px 0 0;
-  border-bottom: 1px solid #C6C9CE;
-}
-
-#vomnibar ul {
-  background-color: white;
-  border-radius: 0 0 4px 4px;
+#vomnibarList {
+  /* overflow-y: scroll; */
+  float: none;
   list-style: none;
   padding-bottom: 3px;
+  display: none;
+  border-top: 1px dashed #C6C9CE;
 }
 
-#vomnibar li {
+#vomnibarList > .vomnibarCompletion {
+  background-color: white;
   border-bottom: 1px solid #ddd;
   padding: 5px 10px 3px 10px;
   color: black;
   position: relative;
   display: list-item;
   margin: auto;
+  overflow: hidden;
+  float: none;
 }
-
-#vomnibar li:last-of-type {
-  border-bottom: none;
+#vomnibarList > .vomnibarCompletion:last-of-type {
+  border-bottom-style: none;
   margin-bottom: -3px;
   padding-bottom: 6px;
 }
-
-#vomnibar li span.vimiumReset {
-  line-height: inherit;
+#vomnibarList > .vomnibarCompletion:hover {
+  background-color: #CFDDEF;
+}
+#vomnibarList > .vomnibarCompletion.vomnibarSelected {
+  background-color: #BBCEE9;
 }
 
-#vomnibar .vomnibarTopHalf {
+#vomnibarList span.vimiumReset {
+  line-height: inherit;
+}
+#vomnibarList .vomnibarMatch {
+  white-space: nowrap;
+  font-weight: bold;
+  color: black;
+  font-family: inherit;
+}
+
+#vomnibarList .vomnibarTopHalf {
   display: block;
-  overflow: hidden;
   height: 18px;
   line-height: 18px;
   font-size: 16px;
+  overflow: hidden;
+  white-space: nowrap;
+}
+#vomnibarList .vomnibarSource {
+  position: absolute;
+  color: #777;
+}
+/* #vomnibarList em { font-style: italic; } */
+#vomnibarList .vomnibarTitle {
+  color: black;
+  margin-left: 51px;
+  white-space: nowrap;
+}
+#vomnibarList .vomnibarTitle > .vomnibarMatch {
+  color: #333;
+  text-decoration: underline;
 }
 
-#vomnibar .vomnibarBottomHalf {
+#vomnibarList .vomnibarBottomHalf {
   display: block;
-  overflow: hidden;
   height: 16px;
   line-height: 16px;
   font-size: 14px;
   margin-top: 2px;
+  overflow: hidden;
+  white-space: nowrap;
 }
-
-#vomnibar .vomnibarIcon {
+#vomnibarList .vomnibarIcon {
   background-position: 30px 50%;
   background-size: 16px;
   background-repeat: no-repeat;
 }
-
-#vomnibar .vomnibarSource {
-  position: absolute;
-  color: #777;
+#vomnibarList .vomnibarUrl {
+  display: inline-block;
+  max-width: 100%;
+  white-space: nowrap;
+  margin-left: 51px;
+  color: #224684;
+  font-family: Consolas, "Liberation Mono", "Courier New", monospace;
 }
-
-#vomnibar .vomnibarRelevancy {
+#vomnibarList .vomnibarRelevancy {
   position: absolute;
   right: 0;
   top: 0;
@@ -389,48 +458,42 @@ body.vimiumFindMode ::selection {
   color: black;
   font-family: monospace;
   width: 100px;
-  overflow: hidden;
 }
 
-#vomnibar .vomnibarUrl {
-  display: inline-block;
-  white-space: nowrap;
-  margin-left: 51px;
-  color: #224684;
-  font-family: Consolas, "Liberation Mono", "Courier New", monospace;
-}
-
-#vomnibar .vomnibarMatch {
-  white-space: nowrap;
-  font-weight: bold;
-  color: black;
-}
-
-#vomnibar em { font-style: italic; }
-#vomnibar .vomnibarTitle {
-  display: inline-block;
-  white-space: nowrap;
-  margin-left: 51px;
-  color: black;
-}
-#vomnibar .vomnibarTitle .vomnibarMatch {
-  color: #333;
-  text-decoration: underline;
-}
-
-#vomnibar li:hover {
-  background-color: #CFDDEF;
-}
-
-#vomnibar li.vomnibarSelected {
-  background-color: #BBCEE9;
-}
-
-
-div#vimiumFlash {
+#vimiumFlash {
   box-shadow: 0px 0px 4px 2px #4183C4;
   padding: 1px;
   background-color: transparent;
   position: absolute;
   z-index: 99999999;
+}
+
+.vimiumScroll::-webkit-scrollbar,
+.vimiumScroll::-webkit-scrollbar-track,
+.vimiumScroll::-webkit-scrollbar-thumb,
+.vimiumScroll::-webkit-scrollbar-button {
+  background: none;
+  box-shadow: none;
+  border: none;
+  border-radius: 5px;
+}
+.vimiumScroll::-webkit-scrollbar:vertical {
+  width: 10px;
+}
+.vimiumScroll::-webkit-scrollbar:horizontal {
+  height: 10px;
+}
+.vimiumScroll::-webkit-scrollbar-button {
+  width: 10px;
+  height: 10px;
+}
+.vimiumScroll::-webkit-scrollbar-thumb,
+.vimiumScroll::-webkit-scrollbar-thumb:window-inactive,
+.vimiumScroll::-webkit-scrollbar-track:hover,
+.vimiumScroll::-webkit-scrollbar-button {
+  background: rgba(96, 96, 96, 0.4);
+}
+.vimiumScroll::-webkit-scrollbar-thumb:hover,
+.vimiumScroll::-webkit-scrollbar-button:hover {
+  background: rgba(0, 0, 0, 0.6);
 }
