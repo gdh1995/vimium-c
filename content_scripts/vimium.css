@@ -5,30 +5,26 @@
  */
 
 /*
- * This vimiumReset class can be added to any of our UI elements to give it a clean slate. This is useful in
+ * This "vimium0 vimium2" class can be added to any of our UI elements to give it a clean slate. This is useful in
  * case the page has declared a broad rule like "a { padding: 50px; }" which will mess up our UI. These
  * declarations contain more specifiers than necessary to increase their specificity (precedence).
  */
-.vimiumReset/**,
-div.vimiumReset,
-span.vimiumReset,
-table.vimiumReset,
-a.vimiumReset,
-a:visited.vimiumReset,
-a:link.vimiumReset,
-a:hover.vimiumReset,
-td.vimiumReset,
-tr.vimiumReset /**/ {
+.vimium1.vimium0/**,
+a:visited.vimium1,
+a:link.vimium1,
+a:hover.vimium1 /**/ {
+  background-image: none;
   background: none;
+  border-image: none;
   border: none;
   bottom: auto;
   box-shadow: none;
   color: black;
   cursor: auto;
-  display: inline;
+  display: block;
   float: none;
-  font-family: "Helvetica Neue", "Helvetica", "Arial", sans-serif;
-  font-size: inherit;
+  font-family: "Helvetica Neue", "Helvetica", "Arial", "sans-serif";
+  font-size: 12px;
   font-style: normal;
   font-variant: normal;
   font-weight: normal;
@@ -42,6 +38,7 @@ tr.vimiumReset /**/ {
   min-height: 0;
   min-width: 0;
   opacity: 1;
+  overflow: hidden;
   padding: 0;
   position: static;
   right: auto;
@@ -56,8 +53,10 @@ tr.vimiumReset /**/ {
   width: auto;
   z-index: 99999990;
 }
-.vimiumInherit {
+.vimium2.vimium0 {
+  background-image: none;
   background: none;
+  border-image: none;
   border: none;
   bottom: auto;
   box-shadow: none;
@@ -80,6 +79,7 @@ tr.vimiumReset /**/ {
   min-height: 0;
   min-width: 0;
   opacity: 1;
+  overflow: visible;
   padding: 0;
   position: static;
   right: auto;
@@ -97,7 +97,7 @@ tr.vimiumReset /**/ {
 
 /* Linkhints CSS */
 
-.internalVimiumHintMarker {
+.internalVimiumHintMarker.vimium0 {
   position: absolute;
   display: block;
   top: -1px;
@@ -111,13 +111,9 @@ tr.vimiumReset /**/ {
   border-radius: 3px;
   box-shadow: 0px 3px 7px 0px rgba(0, 0, 0, 0.3);
   z-index: 99999994;
-}
-
-.internalVimiumHintMarker > .vimiumReset {
   color: #302505;
-  font-family: Helvetica, Arial, sans-serif;
-  font-weight: bold;
   font-size: 11px;
+  font-weight: bold;
   text-shadow: 0 1px 0 rgba(255, 255, 255, 0.6);
 }
 
@@ -127,21 +123,17 @@ tr.vimiumReset /**/ {
 
 /* Input hints CSS */
 
-.internalVimiumInputHint {
+.internalVimiumInputHint.vimium0 {
   position: absolute;
   display: block;
   background-color: rgba(255, 247, 133, 0.3);
   border: solid 1px #C38A22;
 }
 
-.internalVimiumSelectedInputHint {
+.internalVimiumSelectedInputHint.vimium0 {
   background-color: rgba(255, 102, 102, 0.3);
   border: solid 1px #993333 !important;
 }
-
-/* .internalVimiumSelectedInputHint span {
-  color: white !important;
-} */
 
 /* Help Dialog CSS */
 
@@ -168,9 +160,8 @@ tr.vimiumReset /**/ {
   line-height: 130%;
   font-size:20px;
 }
-#vimiumTitle span,  #vimiumTitle * { font-size:20px; }
 
-.vimiumColumnBox {
+.vimiumColumnBox.vimium0 {
   width:50%;
   float:left;
   font-size: 12px;
@@ -265,7 +256,7 @@ tr.vimiumReset /**/ {
 
 /* Vimium HUD CSS */
 
-.vimiumHUD {
+.vimiumHUD.vimium0 {
   display: block;
   position: fixed;
   top: auto;
@@ -322,17 +313,14 @@ tr.vimiumReset /**/ {
 /* Vomnibar CSS */
 
 #vomnibar {
-  display: block;
   position: fixed;
   width: 80%;
   min-width: 400px;
   top: 70px;
   left: 50%;
   margin: 0 0 0 -40%;
-  font-family: sans-serif;
 
   background: #F1F1F1;
-  text-align: left;
   border-radius: 5px;
   overflow: hidden;
   box-shadow: 0px 2px 10px rgba(0, 0, 0, 0.8);
@@ -340,18 +328,12 @@ tr.vimiumReset /**/ {
   /* less than hint markers and the help dialog. */
   z-index: 99999991;
 }
-
-#vomnibar > .vomnibarSearchArea {
-  display: block;
+#vomnibarSearchArea {
   padding: 10px;
 }
 #vomnibarInput {
-  color: #000;
-  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
   font-size: 20px;
   height: 34px;
-  padding: 10px;
-  margin-bottom: 0;
   padding: 4px;
   background-color: white;
   border-radius: 3px;
@@ -360,14 +342,11 @@ tr.vimiumReset /**/ {
   width: 100%;
   outline: none;
   box-sizing: border-box;
-  float: none;
 }
 #vomnibarList {
-  /* overflow-y: scroll; */
-  float: none;
   list-style: none;
   padding-bottom: 3px;
-  display: none;
+  display: block;
   border-top: 1px dashed #C6C9CE;
 }
 
@@ -375,12 +354,9 @@ tr.vimiumReset /**/ {
   background-color: white;
   border-bottom: 1px solid #ddd;
   padding: 5px 10px 3px 10px;
-  color: black;
   position: relative;
   display: list-item;
-  margin: auto;
-  overflow: hidden;
-  float: none;
+  white-space: nowrap;
 }
 #vomnibarList > .vomnibarCompletion:last-of-type {
   border-bottom-style: none;
@@ -394,76 +370,62 @@ tr.vimiumReset /**/ {
   background-color: #BBCEE9;
 }
 
-#vomnibarList span.vimiumReset {
-  line-height: inherit;
-}
-#vomnibarList .vomnibarMatch {
-  white-space: nowrap;
-  font-weight: bold;
-  color: black;
-  font-family: inherit;
-}
-
-#vomnibarList .vomnibarTopHalf {
+.vomnibarTopHalf.vimium0 {
   display: block;
   height: 18px;
   line-height: 18px;
   font-size: 16px;
   overflow: hidden;
-  white-space: nowrap;
 }
-#vomnibarList .vomnibarSource {
+.vomnibarSource.vimium0 {
   position: absolute;
   color: #777;
 }
-/* #vomnibarList em { font-style: italic; } */
-#vomnibarList .vomnibarTitle {
-  color: black;
+.vomnibarTitle.vimium0 {
   margin-left: 51px;
-  white-space: nowrap;
 }
-#vomnibarList .vomnibarTitle > .vomnibarMatch {
+.vomnibarTitle > .vomnibarMatch {
   color: #333;
+  font-weight: bold;
   text-decoration: underline;
 }
 
-#vomnibarList .vomnibarBottomHalf {
+.vomnibarBottomHalf.vimium0 {
   display: block;
   height: 16px;
   line-height: 16px;
   font-size: 14px;
   margin-top: 2px;
   overflow: hidden;
-  white-space: nowrap;
 }
-#vomnibarList .vomnibarIcon {
+.vomnibarIcon.vimium0 {
   background-position: 30px 50%;
   background-size: 16px;
   background-repeat: no-repeat;
 }
-#vomnibarList .vomnibarUrl {
+.vomnibarUrl.vimium0 {
   display: inline-block;
   max-width: 100%;
-  white-space: nowrap;
   margin-left: 51px;
   color: #224684;
   font-family: Consolas, "Liberation Mono", "Courier New", monospace;
 }
-#vomnibarList .vomnibarRelevancy {
+.vomnibarUrl > .vomnibarMatch {
+  color: black;
+  font-weight: bold;
+}
+.vomnibarRelevancy.vimium0 {
   position: absolute;
   right: 0;
   top: 0;
-  padding: 5px;
-  background-color: white;
-  color: black;
+  padding-right: 5px;
   font-family: monospace;
   width: 100px;
 }
 
-#vimiumFlash {
+#vimiumFlash.vimium0 {
   box-shadow: 0px 0px 4px 2px #4183C4;
   padding: 1px;
-  background-color: transparent;
   position: absolute;
   z-index: 99999999;
 }

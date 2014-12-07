@@ -282,16 +282,15 @@
 
   var _advancedMode = false;
   toggleAdvancedOptions = function(event) {
-      if (_advancedMode) {
-        $("advancedOptions").style.display = "none";
-        $("advancedOptionsLink").innerHTML = "Show advanced options&hellip;";
-      } else {
-        $("advancedOptions").style.display = "table-row-group";
-        $("advancedOptionsLink").innerHTML = "Hide advanced options";
-      }
-      _advancedMode = !_advancedMode;
-      event.preventDefault();
-    };
+    if (_advancedMode) {
+      $("advancedOptions").style.display = "none";
+      $("advancedOptionsLink").innerHTML = "Show advanced options&hellip;";
+    } else {
+      $("advancedOptions").style.display = "table-row-group";
+      $("advancedOptionsLink").innerHTML = "Hide advanced options";
+    }
+    _advancedMode = !_advancedMode;
+    event.preventDefault();
   };
 
   activateHelpDialog = function() {

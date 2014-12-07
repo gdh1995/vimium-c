@@ -129,12 +129,12 @@
       bindings = (commandsToKey[command] || [""]).join(", ");
       if (showUnboundCommands || commandsToKey[command]) {
         isAdvanced = Commands.advancedCommands.indexOf(command) >= 0;
-        html.push("<tr class='vimiumReset vimiumHelpTr" + (isAdvanced ? " vimiumHelpAdvanced'>" : "'>")
-          , "<td class='vimiumReset vimiumHelpTd vimiumHelpShortKey'><span class='vimiumReset vimiumHelpShortKey2'>", Utils.escapeHtml(bindings)
-          , "</span></td>\n<td class='vimiumReset vimiumHelpTd'>:</td>\n<td class='vimiumReset vimiumHelpTd vimiumHelpCommandInfo'>"
+        html.push("<tr class='vimium0 vimium2 vimiumHelpTr" + (isAdvanced ? " vimiumHelpAdvanced'>" : "'>")
+          , "<td class='vimium0 vimium2 vimiumHelpTd vimiumHelpShortKey'><span class='vimium0 vimium2 vimiumHelpShortKey2'>", Utils.escapeHtml(bindings)
+          , "</span></td>\n<td class='vimium0 vimium2 vimiumHelpTd'>:</td>\n<td class='vimium0 vimium2 vimiumHelpTd vimiumHelpCommandInfo'>"
           , Utils.escapeHtml(availableCommands[command].description));
         if (showCommandNames) {
-          html.push("<span class='vimiumReset vimiumHelpCommandName'>(" + command + ")</span>");
+          html.push("<span class='vimium0 vimium2 vimiumHelpCommandName'>(" + command + ")</span>");
         }
         html.push("</td>\n</tr>");
       }
@@ -436,7 +436,7 @@
       });
     },
     showHelp: function(callback, frameId, tab, port) {
-      port.postMessage(tab.id, {
+      port.postMessage({
         name: "toggleHelpDialog",
         dialogHtml: helpDialogHtml(),
         frameId: frameId

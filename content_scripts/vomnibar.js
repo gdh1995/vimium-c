@@ -129,9 +129,9 @@
     };
 
     VomnibarUI.prototype.populateUI = function() {
-      this.completionList.innerHTML = "\n  <li class=\"vimiumReset vomnibarCompletion\">\n    " + this.completions.map(function(completion) {
+      this.completionList.innerHTML = "\n  <li class=\"vimium0 vimium2 vomnibarCompletion\">\n    " + this.completions.map(function(completion) {
         return completion.text;
-      }).join("\n  </li>\n  <li class=\"vimiumReset vomnibarCompletion\">\n    ") + "\n  </li>\n";
+      }).join("\n  </li>\n  <li class=\"vimium0 vimium2 vomnibarCompletion\">\n    ") + "\n  </li>\n";
       if (this.completions.length > 0) {
         this.completionList.style.display = "block";
         this.selection = (this.completions[0].type === "search") ? 0 : this.initialSelectionValue;
@@ -281,11 +281,11 @@
     };
     
     VomnibarUI.prototype.template = "\
-<div id=\"vomnibar\" class=\"vimiumReset\">\n\
-  <div class=\"vimiumReset vomnibarSearchArea\">\n\
-    <input type=\"text\" class=\"vimiumReset\" id=\"vomnibarInput\" />\n\
+<div class=\"vimium0 vimium1\" id=\"vomnibar\">\n\
+  <div class=\"vimium0 vimium1\" id=\"vomnibarSearchArea\">\n\
+    <input type=\"text\" class=\"vimium0 vimium1\" id=\"vomnibarInput\" />\n\
   </div>\n\
-  <ul class=\"vimiumReset vimiumScroll\" id=\"vomnibarList\"></ul>\n\
+  <ul class=\"vimium0 vimium1 vimiumScroll\" id=\"vomnibarList\"></ul>\n\
 </div>";
     VomnibarUI.prototype.initDom = function() {
       this.box = Utils.createElementFromHtml(this.template);
@@ -406,7 +406,7 @@
           lenCut += start - temp - 19;
         }
         end = ranges[i + 1];
-        out.push("<span class=\"vimiumReset vomnibarMatch\">");
+        out.push("<span class=\"vimium0 vimium2 vomnibarMatch\">");
         out.push(Utils.escapeHtml(string.substring(start, end)));
         out.push("</span>");
       }
@@ -423,10 +423,10 @@
     makeShortenUrl: function() {
       this.text = BackgroundCompleter.cutUrl(this.text, this.textSplit, this.url);
       this.text = [
-        "<div class=\"vimiumReset vomnibarTopHalf\">\n      <span class=\"vimiumReset vomnibarSource\">"
-        , this.type, "</span>\n      <span class=\"vimiumReset vomnibarTitle\">", this.title
-        , "</span>\n    </div>\n    <div class=\"vimiumReset vomnibarBottomHalf vomnibarIcon\""
-        , ">\n      <span class=\"vimiumReset vomnibarUrl\">", this.text
+        "<div class=\"vimium0 vimium2 vomnibarTopHalf\">\n      <span class=\"vimium0 vimium2 vomnibarSource\">"
+        , this.type, "</span>\n      <span class=\"vimium0 vimium2 vomnibarTitle\">", this.title
+        , "</span>\n    </div>\n    <div class=\"vimium0 vimium2 vomnibarBottomHalf vomnibarIcon\""
+        , ">\n      <span class=\"vimium0 vimium2 vomnibarUrl\">", this.text
         , (BackgroundCompleter.showRelevancy ? ("</span>\n      <span class='relevancy'>" + this.relevancy) : "")
         , "</span>\n    </div>"
       ];
