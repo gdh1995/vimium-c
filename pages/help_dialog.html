@@ -8,9 +8,9 @@
   page with the up-to-date key bindings when the dialog is shown.
 -->
 <div class="vimium0 vimium1 vimiumScroll" id="vimiumHelpDialog">
-  <a class="vimium0 vimium2 vimiumHelpLink vimiumOptionsPage" href="#">Options</a>
-  <a class="vimium0 vimium2 vimiumHelpLink vimiumCloseButton" href="#">&#215;</a>
-  <div class="vimium0 vimium2" id="vimiumTitle"><span class="vimium0 vimium2" style="color:#2f508e">Vim</span>ium {{title}}</div>
+  <a class="vimium0 vimium2 vimiumLink" id="vimiumOptionsPage" href="#">Options</a>
+  <a class="vimium0 vimium2 vimiumLink" id="vimiumCloseButton" href="#">&#215;</a>
+  <div class="vimium0 vimium2" style="display:block;font-size:20px;line-height:130%;"><span class="vimium0 vimium2" style="color:#2f508e">Vim</span>ium {{title}}</div>
   <div class="vimium0 vimium2 vimiumColumnBox">
     <table class="vimium0 vimium2 vimiumHelpTable">
     <tbody class="vimium0 vimium2 vimiumColumn">
@@ -20,7 +20,7 @@
     </table>
   </div>
   <div class="vimium0 vimium2 vimiumColumnBox">
-    <table class="vimium0 vimium2">
+    <table class="vimium0 vimium2 vimiumHelpTable">
     <tbody class="vimium0 vimium2 vimiumColumn">
       <tr class="vimium0 vimium2 vimiumHelpTr"><td class="vimium0 vimium2 vimiumHelpTd"></td><td class="vimium0 vimium2 vimiumHelpTd"></td><td class="vimium0 vimium2 vimiumHelpTd vimiumHelpSectionTitle">Using find</td></tr>
       {{findCommands}}
@@ -34,18 +34,18 @@
     </table>
   </div>
 
-  <br clear="both"/>
+  <br clear="both" />
   <div class="vimium0 vimium2" style="display: block; height: 1px; width: 92%; margin: 10px auto; background-color: #9a9a9a;"></div>
 
   <div class="vimium0 vimium2" id="vimiumHelpDialogFooter">
-    <a href="#" class="vimium0 vimium2 vimiumHelpLink vimiumToggleAdvancedCommands">Show advanced commands</a>
+    <a href="#" class="vimium0 vimium2 vimiumLink" id="vimiumToggleAdvancedCommands">Show advanced commands</a>
 
     <div class="vimium0 vimium2 vimiumColumn2">
-      Enjoying Vimium? <a class="vimium0 vimium2 vimiumHelpLink vimiumWebStore" href="https://chrome.google.com/extensions/detail/dbepggeogbaibhgnhhndojpepiihcmeb">Leave us feedback</a>.
-      <br/> Found a bug? <a class="vimium0 vimium2 vimiumHelpLink" href="http://github.com/philc/vimium/issues">Report it here</a>.
+      Enjoying Vimium? <a class="vimium0 vimium2 vimiumLink" href="https://chrome.google.com/extensions/detail/dbepggeogbaibhgnhhndojpepiihcmeb">Leave us feedback</a>.
+      <br/> Found a bug? <a class="vimium0 vimium2 vimiumLink" href="http://github.com/philc/vimium/issues">Report it here</a>.
     </div>
     <div class="vimium0 vimium2 vimiumColumn2" style="text-align: right">
-      <span class="vimium0 vimium2 vimiumHelpVersion">Version {{version}}</span><br/>
+      <span class="vimium0 vimium2">Version {{version}}</span><br/>
     </div>
   </div>
 </div>

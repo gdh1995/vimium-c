@@ -1142,7 +1142,7 @@
       },
       init: function() {
         this.dialogElement = document.getElementById("vimiumHelpDialog");
-        this.dialogElement.getElementsByClassName("vimiumToggleAdvancedCommands")[0].addEventListener("click", VimiumHelpDialog.toggleAdvancedCommands, false);
+        document.getElementById("vimiumToggleAdvancedCommands").addEventListener("click", VimiumHelpDialog.toggleAdvancedCommands, false);
         this.dialogElement.style.maxHeight = window.innerHeight - 80;
         this.showAdvancedCommands(this.getShowAdvancedCommands());
       },
@@ -1154,9 +1154,9 @@
       },
       showAdvancedCommands: function(visible) {
         var advancedEls, el, _i, _len;
-        VimiumHelpDialog.dialogElement.getElementsByClassName("vimiumToggleAdvancedCommands")[0].innerHTML = visible ? "Hide advanced commands" : "Show advanced commands";
+        document.getElementById("vimiumToggleAdvancedCommands").innerHTML = visible ? "Hide advanced commands" : "Show advanced commands";
         advancedEls = VimiumHelpDialog.dialogElement.getElementsByClassName("vimiumHelpAdvanced");
-        visible = (visible ? "table-row" : "none");
+        visible = visible ? "table-row" : "none";
         for (_i = 0, _len = advancedEls.length; _i < _len; _i++) {
           el = advancedEls[_i];
           el.style.display = visible;
@@ -1165,8 +1165,8 @@
     };
     VimiumHelpDialog.init();
     container.addEventListener("mousewheel", DomUtils.suppressPropagation, false);
-    container.getElementsByClassName("vimiumCloseButton")[0].addEventListener("click", hideHelpDialog, false);
-    container.getElementsByClassName("vimiumOptionsPage")[0].addEventListener("click", function(clickEvent) {
+    document.getElementById("vimiumCloseButton").addEventListener("click", hideHelpDialog, false);
+    document.getElementById("vimiumOptionsPage").addEventListener("click", function(clickEvent) {
       clickEvent.preventDefault();
       mainPort.postMessage({
         handler: "openOptionsPageInNewTab"
@@ -1215,7 +1215,7 @@
     },
     showUpgradeNotification: function(version) {
       var el = HUD.upgradeNotificationElement(), links;
-      el.innerHTML = "Vimium has been updated to <a class='vimium0 vimium2 vimiumWebStore' href='https://chrome.google.com/extensions/detail/dbepggeogbaibhgnhhndojpepiihcmeb'> " + version + "</a>.<a class='vimium0 vimium2 vimiumCloseButton' href='#'>&#215;</a>";
+      el.innerHTML = "Vimium has been updated to <a class='vimium0 vimium2 vimiumLink' href='https://chrome.google.com/extensions/detail/dbepggeogbaibhgnhhndojpepiihcmeb'> " + version + "</a>.<a class='vimium0 vimium2 vimiumHUDClose' href='#'>&#215;</a>";
       links = el.getElementsByTagName("a");
       links[0].addEventListener("click", HUD.onUpdateLinkClicked, false);
       links[1].addEventListener("click", function(event) {
