@@ -101,4 +101,4 @@
     return !(computedStyle.getPropertyValue("visibility") !== "visible" || computedStyle.getPropertyValue("display") === "none");
   };
 
-}).call(this);
+})();

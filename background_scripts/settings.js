@@ -7,24 +7,28 @@
   root.Settings = Settings = {
     _buffer: {},
     get: function(key) {
-      return (key in this._buffer) ? this._buffer[key]
-        : (key in localStorage) ? (this._buffer[key] = JSON.parse(localStorage[key]))
-        : (this._buffer[key] = this.defaults[key]);
+      if (! (key in this._buffer)) {
+        return this._buffer[key] = (key in localStorage) ? JSON.parse(localStorage[key]) : this.defaults[key];
+      }
+      return this._buffer[key];
     },
     set: function(key, value) {
       this._buffer[key] = value;
       if (value === this.defaults[key]) {
-        this.clear(key);
+        if (key in localStorage) {
+          delete localStorage[key];
+        }
+        // Sync.clear(key);
       } else {
         localStorage[key] = JSON.stringify(value);
         // Sync.set(key, localStorage[key]);
       }
+      if (key = this.postUpdateHooks[key]) {
+        key.call(this, value);
+      }
     },
     clear: function(key) {
-      if (key in localStorage) {
-        delete localStorage[key];
-      }
-      // Sync.clear(key);
+      this.set(key, this.defaults[key]);
     },
     has: function(key) {
       return key in localStorage;
@@ -36,15 +40,18 @@
         root.refreshCompletionKeysAfterMappingSave();
       },
       searchEngines: function(value) {
-        root.Settings.parseSearchEngines(value);
+        this.parseSearchEngines(value);
       },
       exclusionRules: function(value) {
         root.Exclusions.postUpdateHook(value);
-      }
-    },
-    performPostUpdateHook: function(key, value) {
-      if (key = this.postUpdateHooks[key]) {
-        key(value);
+      },
+      settingsVersion: function(value) {
+        var key = "settingsVersion";
+        this._buffer[key] = this.defaults[key];
+        if (key in localStorage) {
+          delete localStorage[key];
+        }
+        // Sync.clear(key);
       }
     },
     _searchEnginesMap: undefined,
@@ -100,11 +107,5 @@
       settingsVersion: Utils.getCurrentVersion()
     }
   };
-
-  if (Utils.compareVersions("1.42", Settings.get("settingsVersion")) !== -1) {
-    Settings.set("scrollStepSize", parseFloat(Settings.get("scrollStepSize")));
-  }
-
-  Settings.set("settingsVersion", Utils.getCurrentVersion());
 
 }).call(this);

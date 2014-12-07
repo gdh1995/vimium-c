@@ -60,7 +60,7 @@
       postMessage: function() {
       }
     },
-    responseTimeout: 500,
+    responseTimeout: 1000,
     autoReconnectTimeout: 1000,
     _name: "main",
     _port: undefined,
@@ -79,10 +79,7 @@
       } catch (e) {
         this._port = this.fakePort;
         setTimeout(this._clearPort, this.autoReconnectTimeout);
-        if (callback) {
-          callback();
-        }
-        return false;
+        console.log();
       }
       var _ref, _i = new Date().getTime();
       if (_i > this._lastWaitTime + this.responseTimeout) {
@@ -90,15 +87,22 @@
         this._callbacks = {};
       }
       if (callback) {
-        this._callbacks[request._msgId] = callback;
         this._lastWaitTime = _i;
-      }
-      if (_ref) {
-        for (_i in _ref) {
-          _ref[_i].call();
+        if (this._port !== this.fakePort) {
+          this._callbacks[request._msgId] = callback;
+        } else {
+          setTimeout(callback, 0);
         }
       }
-      return true;
+      if (_ref) {
+        setTimeout(function() {
+          for (var _i in _ref) {
+            _ref[_i].call();
+          }
+        }, 17);
+      }
+      return (this._port === this.fakePort) ? 0
+        : callback ? request._msgId : 1;
     },
     getListener: function() {
       return this._listener;
@@ -133,7 +137,6 @@
       }
       handler = requestHandlers[handler];
       if (handler) {
-        console.log("main", response.name);
         handler(response);
       }
     },
@@ -161,9 +164,11 @@
     values: {},
     valuesToLoad: ["scrollStepSize", "linkHintCharacters", "linkHintNumbers", "filterLinkHints"
       , "hideHud", "previousPatterns", "nextPatterns", "findModeRawQuery", "regexFindMode"
-      , "userDefinedLinkHintCss", "helpDialog_showAdvancedCommands", "smoothScroll"],
+      , "helpDialog_showAdvancedCommands", "smoothScroll"],
     isLoaded: true,
     eventListeners: {},
+    autoRetryInterval: 300,
+    _timer: 0,
     get: function(key) {
       return this.values[key];
     },
@@ -176,14 +181,26 @@
       });
     },
     load: function(values) {
-      mainPort.postMessage({
-        settings: "get",
-        keys: (values && values.length > 0) ? values : this.valuesToLoad
-      });
+      if (values && values.length > 0) {
+        this.valuesToLoad = values;
+      }
       this.isLoaded = false;
-    },
-    _clearPort: function () {
-      settings.port = null;
+      var sendOK = mainPort.postMessage({
+        settings: "get",
+        keys: this.valuesToLoad
+      });
+      if (sendOK) {
+        if (this._timer) {
+          clearInterval(this._timer);
+          this._timer = 0;
+        }
+      }
+      else if (! this._timer) {
+        this._timer = setInterval(function() {
+          settings.load();
+        }, this.autoRetryInterval);
+      }
+      return sendOK;
     },
     receiveMessage: function(args) {
       var ref = args.keys, i = 0, v1 = args.values, v2 = settings.values;
@@ -201,6 +218,9 @@
         this.eventListeners[eventName] = [];
       }
       this.eventListeners[eventName].push(callback);
+    },
+    _clearPort: function () {
+      settings.port = null;
     }
   };
 
@@ -266,13 +286,14 @@
         : ("handler=" + request.handler)), handler);
     });
     settings.addEventListener("load", function() {
-      Scroller.setSmoothScroll(settings.get("smoothScroll"));
-      LinkHints.init();
+      Scroller.setSmoothScroll(settings.values.smoothScroll);
+      LinkHints.init(settings.values.filterLinkHints);
     });
-    settings.load();
     Scroller.init();
-    checkIfEnabledForUrl();
-    refreshCompletionKeys();
+    if (settings.load()) {
+      checkIfEnabledForUrl();
+      refreshCompletionKeys();
+    }
   };
 
   installListener = function(element, event, callback) {
@@ -393,10 +414,10 @@
       Scroller.scrollTo("x", "max");
     },
     scrollUp: function() {
-      Scroller.scrollBy("y", -1 * settings.get("scrollStepSize"));
+      Scroller.scrollBy("y", -1 * settings.values.scrollStepSize);
     },
     scrollDown: function() {
-      Scroller.scrollBy("y", settings.get("scrollStepSize"));
+      Scroller.scrollBy("y", settings.values.scrollStepSize);
     },
     scrollPageUp: function() {
       Scroller.scrollBy("y", "viewSize", -1 / 2);
@@ -411,10 +432,10 @@
       Scroller.scrollBy("y", "viewSize");
     },
     scrollLeft: function() {
-      Scroller.scrollBy("x", -1 * settings.get("scrollStepSize"));
+      Scroller.scrollBy("x", -1 * settings.values.scrollStepSize);
     },
     scrollRight: function() {
-      Scroller.scrollBy("x", settings.get("scrollStepSize"));
+      Scroller.scrollBy("x", settings.values.scrollStepSize);
     }
   });
 
@@ -777,7 +798,7 @@
 
   updateFindModeQuery = function() {
     var error, escapeRegExp, hasNoIgnoreCaseFlag, parsedNonRegexQuery, pattern, text, _ref;
-    findModeQuery.isRegex = settings.get('regexFindMode');
+    findModeQuery.isRegex = settings.values.regexFindMode;
     hasNoIgnoreCaseFlag = false;
     findModeQuery.parsedQuery = findModeQuery.rawQuery.replace(/\\./g, function(match) {
       switch (match) {
@@ -931,7 +952,7 @@
 
   findAndFocus = function(backwards) {
     var elementCanTakeInput, mostRecentQuery, query;
-    mostRecentQuery = settings.get("findModeRawQuery") || "";
+    mostRecentQuery = settings.values.findModeRawQuery || "";
     if (mostRecentQuery !== findModeQuery.rawQuery) {
       findModeQuery.rawQuery = mostRecentQuery;
       updateFindModeQuery();
@@ -1079,11 +1100,11 @@
   };
 
   window.goPrevious = function() {
-    goBy("prev", settings.get("previousPatterns"));
+    goBy("prev", settings.values.previousPatterns);
   };
 
   window.goNext = function() {
-    goBy("next", settings.get("nextPatterns"));
+    goBy("next", settings.values.nextPatterns);
   };
 
   showFindModeHUDForQuery = function() {
@@ -1120,7 +1141,7 @@
     container.innerHTML = html;
     VimiumHelpDialog = {
       getShowAdvancedCommands: function() {
-        return settings.get("helpDialog_showAdvancedCommands");
+        return settings.values.helpDialog_showAdvancedCommands;
       },
       init: function() {
         this.dialogElement = document.getElementById("vimiumHelpDialog");
@@ -1253,7 +1274,7 @@
       return document.body != null;
     },
     enabled: function() {
-      return !settings.get("hideHud");
+      return !settings.values.hideHud;
     }
   };
 
@@ -1306,4 +1327,4 @@
 
   window.addEventListener("unload", unregisterFrame);
 
-}).call(this);
+})();

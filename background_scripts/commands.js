@@ -14,7 +14,7 @@
     keyToCommandRegistry: {},
     addCommand: function(command, description, options) {
       if (command in this.availableCommands) {
-        // console.log(command, "is already defined! Check commands.coffee for duplicates.");
+        console.log(command, "is already defined! Check commands.coffee for duplicates.");
         return;
       }
       options || (options = {});
@@ -485,4 +485,4 @@
 
   root.Commands = Commands;
 
-}).call(this);
+})();

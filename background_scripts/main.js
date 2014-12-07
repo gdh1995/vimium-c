@@ -597,7 +597,6 @@
   };
 
   chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab) {
-    console.log("onUpdate", tabId, changeInfo, tab);
     var old, temp;
     if (changeInfo.status !== "loading" ||
         (changeInfo.url != null && Utils.isTabWithSameUrl(tabInfoMap[tabId], tab))) {

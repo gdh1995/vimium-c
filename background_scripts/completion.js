@@ -732,8 +732,7 @@
         }
         _this.working = 0;
         if (window._DEBUG) {
-          console.log(url);
-          console.log(text);
+          console.log(url, " => ", text);
         }
       }
     },
@@ -786,4 +785,4 @@
 
   root.Decoder = Decoder;
   
-}).call(this);
+})();

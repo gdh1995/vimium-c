@@ -2,11 +2,11 @@
 (function() {
   var addExclusionRule, generateDefaultPattern, onChange, originalPassKeys, originalPattern, originalRule, removeExclusionRule, reset, showMessage;
 
-  originalRule = void 0;
+  originalRule = undefined;
 
-  originalPattern = void 0;
+  originalPattern = undefined;
 
-  originalPassKeys = void 0;
+  originalPassKeys = undefined;
 
   generateDefaultPattern = function(url) {
     if (/^https?:\/\/./.test(url)) {
@@ -138,4 +138,4 @@
     return reset(true);
   });
 
-}).call(this);
+})();

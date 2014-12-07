@@ -35,7 +35,6 @@
       var value = this.readValueFromElement();
       if (!this.areEqual(value, this.previous)) {
         bgSettings.set(this.field, this.previous = value);
-        bgSettings.performPostUpdateHook(this.field, value);
       }
     };
 
@@ -227,6 +226,9 @@
           passKeys: passKeys
         });
       }
+      if (JSON.stringify(rules) === JSON.stringify(bgSettings.defaults.exclusionRules)) {
+        rules = bgSettings.defaults.exclusionRules;
+      }
       return rules;
     };
 
@@ -337,4 +339,4 @@
     };
   });
 
-}).call(this);
+})();

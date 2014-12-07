@@ -117,7 +117,7 @@
         checkVisibility(element);
         return;
       }
-      if ((_ref = this.lastEvent) != null ? _ref.repeat : void 0) {
+      if ((_ref = this.lastEvent) != null ? _ref.repeat : undefined) {
         return;
       }
       activationTime = ++this.time;
@@ -219,4 +219,4 @@
 
   root.Scroller = Scroller;
 
-}).call(this);
+})();
