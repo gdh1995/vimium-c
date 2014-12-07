@@ -329,7 +329,6 @@
     };
 
     BackgroundCompleter.prototype._clearPort = function() {
-      console.log("clear", BackgroundCompleter.prototype.port);
       BackgroundCompleter.prototype.port = null;
     };
     
@@ -475,4 +474,4 @@
 
   root.Vomnibar = Vomnibar;
 
-}).call(this);
+})();

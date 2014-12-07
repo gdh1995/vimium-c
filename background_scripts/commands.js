@@ -44,10 +44,12 @@
     unmapKey: function(key) {
       delete this.keyToCommandRegistry[key];
     },
+    _keyLeftRegex: /<[acm]-/ig,
+    _keyRegex: /<([acm]-)?([a-zA-Z0-9]{2,5})>/g,
     normalizeKey: function(key) {
-      return key.replace(/<[acm]-/ig, function(match) {
+      return key.replace(this._keyLeftRegex, function(match) {
         return match.toLowerCase();
-      }).replace(/<([acm]-)?([a-zA-Z0-9]{2,5})>/g, function(match, optionalPrefix, keyName) {
+      }).replace(this._keyRegex, function(match, optionalPrefix, keyName) {
         return "<" + (optionalPrefix ? optionalPrefix : "") + keyName.toLowerCase() + ">";
       });
     },

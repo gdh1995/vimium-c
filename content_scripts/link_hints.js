@@ -22,21 +22,21 @@
 
   LinkHints = {
     hintMarkerContainingDiv: null,
-    mode: void 0,
-    linkActivator: void 0,
+    mode: undefined,
+    linkActivator: undefined,
     delayMode: false,
-    markerMatcher: void 0,
+    markerMatcher: undefined,
     getMarkerMatcher: function() {
       return this.markerMatcher;
-      /* if (settings.get("filterLinkHints")) {
+      /* if (settings.values.filterLinkHints) {
         return filterHints;
       } else {
         return alphabetHints;
       } */
     },
     isActive: false,
-    init: function() {
-      this.markerMatcher = settings.get("filterLinkHints") ? filterHints : alphabetHints;
+    init: function(which) {
+      this.markerMatcher = which ? filterHints : alphabetHints;
     },
     clickableElementsXPath: DomUtils.makeXPath(["a", "area[@href]", "textarea", "button", "select", "input[not(@type='hidden' or @disabled or @readonly)]", "*[@onclick or @tabindex or @role='link' or @role='button' or contains(@class, 'button') or " + "@contenteditable='' or translate(@contenteditable, 'TRUE', 'true')='true']"]),
     activateModeToOpenInNewTab: function() {
@@ -330,7 +330,7 @@
     },
     hintStrings: function(linkCount) {
       var digitsNeeded, hintStrings, i, linkHintCharacters, longHintCount, shortHintCount, start, _ref;
-      linkHintCharacters = settings.get("linkHintCharacters");
+      linkHintCharacters = settings.values.linkHintCharacters;
       digitsNeeded = Math.ceil(this.logXOfBase(linkCount, linkHintCharacters.length));
       shortHintCount = Math.floor((Math.pow(linkHintCharacters.length, digitsNeeded) - linkCount) / linkHintCharacters.length);
       longHintCount = linkCount - shortHintCount;
@@ -406,7 +406,7 @@
       }
     },
     generateHintString: function(linkHintNumber) {
-      return (numberToHintString(linkHintNumber + 1, settings.get("linkHintNumbers"))).toUpperCase();
+      return (numberToHintString(linkHintNumber + 1, settings.values.linkHintNumbers)).toUpperCase();
     },
     generateLinkText: function(element) {
       var linkText, nodeName, showLinkText;
@@ -473,7 +473,7 @@
           };
         }
       } else if (keyChar) {
-        if (settings.get("linkHintNumbers").indexOf(keyChar) >= 0) {
+        if (settings.values.linkHintNumbers.indexOf(keyChar) >= 0) {
           this.hintKeystrokeQueue.push(keyChar);
         } else {
           this.hintKeystrokeQueue = [];
@@ -562,4 +562,4 @@
   
   LinkHints.markerMatcher = alphabetHints;
 
-}).call(this);
+})();

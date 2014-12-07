@@ -167,11 +167,8 @@
       , "helpDialog_showAdvancedCommands", "smoothScroll"],
     isLoaded: true,
     eventListeners: {},
-    autoRetryInterval: 300,
+    autoRetryInterval: 500,
     _timer: 0,
-    get: function(key) {
-      return this.values[key];
-    },
     set: function(key, value) {
       this.values[key] = value;
       mainPort.postMessage({
