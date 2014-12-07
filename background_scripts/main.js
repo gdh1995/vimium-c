@@ -8,7 +8,7 @@
     , openOptionsPageInNewTab, openUrlInCurrentTab, openUrlInIncognito, openUrlInNewTab, restoreSession
     , populateKeyCommands, portHandlers, refreshCompleter, registerFrame
     , removeTabsRelative, repeatFunction, root, saveHelpDialogSettings, selectSpecificTab, selectTab
-    , selectionChangedHandlers, sendRequestHandlers, sendRequestToAllTabs, setBrowserActionIcon
+    , selectionChangedHandlers, requestHandlers, sendRequestToAllTabs, setBrowserActionIcon
     , shouldShowUpgradeMessage, singleKeyCommands, splitKeyIntoFirstAndSecond, splitKeyQueue, tabInfoMap
     , tabLoadedHandlers, tabQueue, unregisterFrame, updateActiveState, updateOpenTabs
     , updatePositionsAndWindowsForAllTabsInWindow, updateScrollPosition, upgradeNotificationClosed
@@ -59,23 +59,6 @@
       port.onMessage.addListener(handler);
     }
   });
-
-  // chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
-    // var handler = send Request Handlers[request.handler];
-    // if (handler) {
-      // // try {
-      // handler = handler(request, sender);
-      // sendResponse(handler);
-      // /*
-      // } catch(e) {
-        // console.warn(request, sender);
-        // console.log(handler);
-        // console.log("%c" + e.stack, "color: red;");
-      // }
-      // //*/
-    // }
-    // return false;
-  // });
 
   getCurrentTabUrl = function(request, tab) {
     return tab.url;
@@ -614,19 +597,11 @@
   };
 
   chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab) {
+    console.log("onUpdate", tabId, changeInfo, tab);
     var old, temp;
-    if (changeInfo.status !== "loading") { // TODO: judge "#"
+    if (changeInfo.status !== "loading" ||
+        (changeInfo.url != null && Utils.isTabWithSameUrl(tabInfoMap[tabId], tab))) {
       return;
-    }
-    if (changeInfo.url != null && (old = tabInfoMap[tabId])) {
-      if (old.nohash == null) {
-        temp = old.url.indexOf('#');
-        old.nohash = temp > 0 ? old.url.substring(0, temp) : old.url;
-      }
-      temp = changeInfo.url.indexOf('#');
-      if (temp > 0 && (tab.nohash = changeInfo.url.substring(0, temp)) === old.nohash) {
-        return;
-      }
     }
     chrome.tabs.insertCSS(tabId, {
       allFrames: true,
@@ -789,7 +764,7 @@
       }); */
     }
     else if (key = request.handler) {
-      key = sendRequestHandlers[key];
+      key = requestHandlers[key];
       if (key) {
         key = key(request, port.sender.tab, port);
         if (msgId) {
@@ -951,7 +926,7 @@
     filterCompleter: filterCompleter
   };
 
-  sendRequestHandlers = {
+  requestHandlers = {
     getCompletionKeys: getCompletionKeysRequest,
     getCurrentTabUrl: getCurrentTabUrl,
     openUrlInNewTab: openUrlInNewTab,
@@ -1017,4 +992,4 @@
 
   // Sync.init();
 
-}).call(this);
+})();

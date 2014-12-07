@@ -15,21 +15,10 @@
   };
 
   chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab) {
-    if (changeInfo.url == null) {
-      return;
+    if (changeInfo.status === "loading" && changeInfo.url != null &&
+        !Utils.isTabWithSameUrl(tabInfoMap[tabId], tab)) {
+      removeMarksForTab(tabId);
     }
-    var old = tabInfoMap[tabId], temp;
-    if (old) {
-      if (old.nohash == null) {
-        temp = old.url.indexOf('#');
-        old.nohash = temp > 0 ? old.url.substring(0, temp) : old.url;
-      }
-      temp = changeInfo.url.indexOf('#');
-      if (temp > 0 && (tab.nohash = changeInfo.url.substring(0, temp)) === old.nohash) {
-        return;
-      }
-    }
-    removeMarksForTab(tabId);
   });
 
   removeMarksForTab = function(id) {

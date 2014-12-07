@@ -162,7 +162,7 @@
     valuesToLoad: ["scrollStepSize", "linkHintCharacters", "linkHintNumbers", "filterLinkHints"
       , "hideHud", "previousPatterns", "nextPatterns", "findModeRawQuery", "regexFindMode"
       , "userDefinedLinkHintCss", "helpDialog_showAdvancedCommands", "smoothScroll"],
-    isLoaded: false,
+    isLoaded: true,
     eventListeners: {},
     get: function(key) {
       return this.values[key];
@@ -252,18 +252,17 @@
     };
     mainPort.setListener(mainPort.defaultListener);
     chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
-      if (sender.tab) {
-        return;
-      }
       if (!(isEnabledForUrl || request.name === 'getActiveState' || request.name === 'setState')) {
         return;
       }
-      handler = requestHandlers[request.name];
+      var handler = requestHandlers[request.name];
       if (handler) {
         handler = handler(request);
-        sendResponse(handler);
+        if (handler != null) {
+          sendResponse(handler);
+        }
       }
-      console.log("runtime: " + (request.name ? ("name=" + request.name)
+      console.log("runtime " + (request.name ? (request.name)
         : ("handler=" + request.handler)), handler);
     });
     settings.addEventListener("load", function() {

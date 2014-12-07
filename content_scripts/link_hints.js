@@ -559,5 +559,7 @@
   root = typeof exports !== "undefined" && exports !== null ? exports : window;
 
   root.LinkHints = LinkHints;
+  
+  LinkHints.markerMatcher = alphabetHints;
 
 }).call(this);
