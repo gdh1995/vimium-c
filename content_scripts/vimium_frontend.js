@@ -167,7 +167,7 @@
       , "helpDialog_showAdvancedCommands", "smoothScroll"],
     isLoaded: true,
     eventListeners: {},
-    autoRetryInterval: 500,
+    autoRetryInterval: 3000,
     _timer: 0,
     set: function(key, value) {
       this.values[key] = value;
@@ -186,16 +186,11 @@
         settings: "get",
         keys: this.valuesToLoad
       });
-      if (sendOK) {
-        if (this._timer) {
-          clearInterval(this._timer);
-          this._timer = 0;
-        }
+      if (! sendOK) {
+        console.log("getting settings failed!");
       }
-      else if (! this._timer) {
-        this._timer = setInterval(function() {
-          settings.load();
-        }, this.autoRetryInterval);
+      if (! this._timer) {
+        this._timer = setInterval(this.load.bind(this), this.autoRetryInterval);
       }
       return sendOK;
     },
@@ -203,6 +198,10 @@
       var ref = args.keys, i = 0, v1 = args.values, v2 = settings.values;
       for (; i < ref.length; i++) {
         v2[ref[i]] = v1[i];
+      }
+      if (settings._timer) {
+        clearInterval(settings._timer);
+        settings._timer = 0;
       }
       settings.isLoaded = true;
       ref = settings.eventListeners.load;
@@ -283,8 +282,7 @@
         : ("handler=" + request.handler)), handler);
     });
     settings.addEventListener("load", function() {
-      Scroller.setSmoothScroll(settings.values.smoothScroll);
-      LinkHints.init(settings.values.filterLinkHints);
+      Scroller.setSmoothScroll(!! settings.values.smoothScroll);
     });
     Scroller.init();
     if (settings.load()) {
@@ -411,10 +409,10 @@
       Scroller.scrollTo("x", "max");
     },
     scrollUp: function() {
-      Scroller.scrollBy("y", -1 * settings.values.scrollStepSize);
+      Scroller.scrollBy("y", -1 * (settings.values.scrollStepSize || 100));
     },
     scrollDown: function() {
-      Scroller.scrollBy("y", settings.values.scrollStepSize);
+      Scroller.scrollBy("y", settings.values.scrollStepSize || 100);
     },
     scrollPageUp: function() {
       Scroller.scrollBy("y", "viewSize", -1 / 2);
@@ -429,10 +427,10 @@
       Scroller.scrollBy("y", "viewSize");
     },
     scrollLeft: function() {
-      Scroller.scrollBy("x", -1 * settings.values.scrollStepSize);
+      Scroller.scrollBy("x", -1 * (settings.values.scrollStepSize || 60));
     },
     scrollRight: function() {
-      Scroller.scrollBy("x", settings.values.scrollStepSize);
+      Scroller.scrollBy("x", settings.values.scrollStepSize || 60);
     }
   });
 
@@ -795,7 +793,7 @@
 
   updateFindModeQuery = function() {
     var error, escapeRegExp, hasNoIgnoreCaseFlag, parsedNonRegexQuery, pattern, text, _ref;
-    findModeQuery.isRegex = settings.values.regexFindMode;
+    findModeQuery.isRegex = !! settings.values.regexFindMode;
     hasNoIgnoreCaseFlag = false;
     findModeQuery.parsedQuery = findModeQuery.rawQuery.replace(/\\./g, function(match) {
       switch (match) {
@@ -1026,8 +1024,7 @@
       }
       linkMatches = link.innerText.toLowerCase();
       for (_j = 0, _len = linkStrings.length; _j < _len; _j++) {
-        linkString = linkStrings[_j];
-        if (linkMatches.indexOf(linkString) !== -1) {
+        if (linkMatches.indexOf(linkStrings[_j]) !== -1) {
           linkMatches = true;
           break;
         }
@@ -1084,10 +1081,10 @@
   };
   
   goBy = function(relName, pattern) {
-    if (relName && typeof relName == "string" && findAndFollowRel(relName)) {
+    if (relName && typeof relName === "string" && findAndFollowRel(relName)) {
       return true;
     }
-    pattern = (typeof relName == "string") ? pattern.trim().toLowerCase()
+    pattern = (typeof pattern === "string") ? pattern.trim().toLowerCase()
       .split(/[ \t]*,[ \t,]*/).filter(function(s) {
         return s.length;
       }) : (pattern instanceof Array) ? pattern : [];
@@ -1138,7 +1135,7 @@
     container.innerHTML = html;
     VimiumHelpDialog = {
       getShowAdvancedCommands: function() {
-        return settings.values.helpDialog_showAdvancedCommands;
+        return !! settings.values.helpDialog_showAdvancedCommands;
       },
       init: function() {
         this.dialogElement = document.getElementById("vimiumHelpDialog");

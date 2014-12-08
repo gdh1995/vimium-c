@@ -58,8 +58,26 @@
 
   VomnibarUI = (function() {
     function VomnibarUI() {
+      this.box = null;
+      this.completer = null;
+      this.completionInput = {
+        url: "",
+        action: "navigateToUrl",
+        performAction: BackgroundCompleter.performAction
+      };
+      this.completionList = null;
+      this.completions = null;
+      this.eventHandlers = null;
+      this.forceNewTab = false;
+      this.handlerId = 0;
+      this.initialSelectionValue = -1;
+      this.input = null;
+      this.isSelectionChanged = false;
+      this.onUpdate = null;
+      this.openInNewTab = false;
       this.refreshInterval = 0;
-      this.completionInput = { url: "", action: "navigateToUrl", performAction: BackgroundCompleter.performAction };
+      this.selection = -1;
+      this.timer = 0;
     }
 
     VomnibarUI.prototype.setQuery = function(query) {
@@ -108,7 +126,7 @@
       this.completionInput.url = this.input.value = input || "";
       this.update(0, this.show);
     };
-
+    
     VomnibarUI.prototype.update = function(updateDelay, callback) {
       this.onUpdate = callback;
       if (typeof updateDelay === "number") {
@@ -140,7 +158,7 @@
         this.selection = -1;
       }
       this.updateSelection();
-      this.selectionIsChanged = false;
+      this.isSelectionChanged = false;
     };
 
     VomnibarUI.prototype.updateSelection = function() {
@@ -178,7 +196,7 @@
           action = "enter";
           break;
         }
-        else if (this.selection >= 0 && this.selectionIsChanged || document.activeElement !== this.input) {
+        else if (this.selection >= 0 && this.isSelectionChanged || document.activeElement !== this.input) {
           action = parseInt(action);
           if (action === 0) { action = 10; }
           if (action <= this.completions.length) {
@@ -199,15 +217,15 @@
       switch(action) {
       case "dismiss": this.hide(); break;
       case "up":
+        this.isSelectionChanged = true;
         if (this.selection <= -1) this.selection = this.completions.length;
-        this.selectionIsChanged = true;
         this.selection -= 1;
         if (this.selection == -1) this.input.focus();
         this.input.value = this.completions[this.selection].url;
         this.updateSelection();
         break;
       case "down":
-        this.selectionIsChanged = true;
+        this.isSelectionChanged = true;
         this.selection += 1;
         if (this.selection >= this.completions.length) {
           this.selection = -1;
