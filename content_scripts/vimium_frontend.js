@@ -349,7 +349,7 @@
     mainPort.postMessage({
       handler: "unregisterFrame",
       frameId: frameId,
-      tab_is_closing: window.top === window.self,
+      isTop: window.top === window.self,
       scrollX: window.scrollX,
       scrollY: window.scrollY
     });
