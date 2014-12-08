@@ -342,6 +342,7 @@
       handler: "registerFrame",
       frameId: ((document.body.tagName !== "FRAMESET") ? frameId : NaN)
     });
+    window.removeEventListener("DOMContentLoaded", registerFrame);
   };
   
   unregisterFrame = function() {
@@ -1215,7 +1216,7 @@
     },
     showUpgradeNotification: function(version) {
       var el = HUD.upgradeNotificationElement(), links;
-      el.innerHTML = "Vimium has been updated to <a class='vimium0 vimium2 vimiumLink' href='https://chrome.google.com/extensions/detail/dbepggeogbaibhgnhhndojpepiihcmeb'> " + version + "</a>.<a class='vimium0 vimium2 vimiumHUDClose' href='#'>&#215;</a>";
+      el.innerHTML = "Vimium has been updated to <a class='vimium0 vimium2 vimiumLink' href='https://chrome.google.com/extensions/detail/dbepggeogbaibhgnhhndojpepiihcmeb'> " + version + "</a>.<a class='vimium0 vimium2 vimiumLink vimiumHUDClose' href='#'>&#215;</a>";
       links = el.getElementsByTagName("a");
       links[0].addEventListener("click", HUD.onUpdateLinkClicked, false);
       links[1].addEventListener("click", function(event) {

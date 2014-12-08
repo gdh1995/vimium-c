@@ -389,7 +389,7 @@
   })();
 
   extend(BackgroundCompleter, {
-    showRelevancy: false,
+    showRelevancy: true,
     maxCharNum: 160,
     showFavIcon: window.location.protocol.startsWith("chrome"),
     cutUrl: function(string, ranges, strCoded) {
@@ -445,7 +445,7 @@
         , this.type, "</span>\n      <span class=\"vimium0 vimium2 vomnibarTitle\">", this.title
         , "</span>\n    </div>\n    <div class=\"vimium0 vimium2 vomnibarBottomHalf vomnibarIcon\""
         , ">\n      <span class=\"vimium0 vimium2 vomnibarUrl\">", this.text
-        , (BackgroundCompleter.showRelevancy ? ("</span>\n      <span class='relevancy'>" + this.relevancy) : "")
+        , (BackgroundCompleter.showRelevancy ? ("</span>\n      <span class='vimium0 vimium2 vomnibarRelevancy'>" + this.relevancy) : "")
         , "</span>\n    </div>"
       ];
       if (BackgroundCompleter.showFavIcon) {

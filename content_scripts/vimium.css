@@ -19,6 +19,7 @@ a:hover.vimium1 /**/ {
   border-image: none;
   bottom: auto;
   box-shadow: none;
+  box-sizing: content-box;
   color: black;
   cursor: auto;
   display: block;
@@ -60,6 +61,7 @@ a:hover.vimium1 /**/ {
   border-image: none;
   bottom: auto;
   box-shadow: none;
+  box-sizing: content-box;
   color: inherit;
   cursor: auto;
   display: inline;
@@ -198,6 +200,12 @@ a:hover.vimium1 /**/ {
   color: blue;
   text-decoration: underline;
 }
+.vimiumLink:hover {
+  color: blue;
+  cursor: auto;
+  text-decoration: underline;
+}
+
 #vimiumCloseButton {
   -webkit-user-select: none;
   color: #555;
@@ -211,7 +219,9 @@ a:hover.vimium1 /**/ {
   top: 5px;
 }
 #vimiumCloseButton:hover {
+  -webkit-user-select: none;
   color: black;
+  text-decoration: none;
 }
 #vimiumOptionsPage {
   display: block;
@@ -262,11 +272,10 @@ a:hover.vimium1 /**/ {
   font-weight: bold;
   margin-top: -1px;
   padding-left: 10px;
-  text-decoration: underline;
 }
 .vimiumHUD > .vimiumHUDClose:hover {
+  -webkit-user-select: none;
   color: #333333;
-  cursor: default;
 }
 
 /* Vomnibar CSS */
@@ -340,7 +349,11 @@ a:hover.vimium1 /**/ {
   position: absolute;
 }
 .vomnibarTitle.vimium0 {
-  margin-left: 51px;
+  box-sizing: border-box;
+  display: inline-block;
+  max-width: 100%;
+  overflow: hidden;
+  padding-left: 51px;
 }
 .vomnibarTitle > .vomnibarMatch {
   color: #333;
@@ -362,11 +375,13 @@ a:hover.vimium1 /**/ {
   background-size: 16px;
 }
 .vomnibarUrl.vimium0 {
+  box-sizing: border-box;
   color: #224684;
-  font-family: Consolas, "Liberation Mono", "Courier New", monospace;
   display: inline-block;
-  margin-left: 51px;
+  font-family: Consolas, "Liberation Mono", "Courier New", monospace;
   max-width: 100%;
+  overflow: hidden;
+  padding-left: 51px;
 }
 .vomnibarUrl > .vomnibarMatch {
   color: black;
@@ -374,11 +389,9 @@ a:hover.vimium1 /**/ {
 }
 .vomnibarRelevancy.vimium0 {
   font-family: monospace;
-  padding-right: 5px;
+  margin-left: 10px;
   position: absolute;
-  right: 0;
-  top: 0;
-  width: 100px;
+  vertical-align: top;
 }
 
 #vimiumFlash.vimium0 {
