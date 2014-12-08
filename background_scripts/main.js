@@ -751,7 +751,7 @@
     if (msgId) {
       request = request.request;
     }
-    if (key = request.keyChar) {
+    if (key = request.handlerKey) {
       if (key === "<ESC>") {
         keyQueue = "";
       } else {
@@ -775,7 +775,7 @@
         }
       }
     }
-    else if (key = request.settings) {
+    else if (key = request.handlerSettings) {
       if (key === "get") {
         for (var i = 0, ref = request.keys, values = new Array(ref.length); i < ref.length; i++) {
           values[i] = Settings.get(ref[i]);

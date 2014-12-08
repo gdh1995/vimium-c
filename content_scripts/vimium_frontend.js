@@ -76,10 +76,13 @@
       }
       try {
         this._get().postMessage(request);
-      } catch (e) {
+      } catch (e) { // this._port is either null or a real port
         this._port = this.fakePort;
         setTimeout(this._clearPort, this.autoReconnectTimeout);
-        console.log();
+        console.log("first postMessage fail:", request.request && request.request.handler || request.handler
+          || (request.handlerSettings ? (request.handlerSettings + "setting") : "")
+          || (request.handlerKey ? ("char = " + request.keyChar) : "")
+          || request);
       }
       var _ref, _i = new Date().getTime();
       if (_i > this._lastWaitTime + this.responseTimeout) {
@@ -172,7 +175,7 @@
     set: function(key, value) {
       this.values[key] = value;
       mainPort.postMessage({
-        settings: "set",
+        handlerSettings: "set",
         key: key,
         value: value
       });
@@ -183,7 +186,7 @@
       }
       this.isLoaded = false;
       var sendOK = mainPort.postMessage({
-        settings: "get",
+        handlerSettings: "get",
         keys: this.valuesToLoad
       });
       if (! sendOK) {
@@ -581,7 +584,7 @@
             DomUtils.suppressEvent(event);
           }
           mainPort.postMessage({
-            keyChar: keyChar,
+            handlerKey: keyChar,
             frameId: frameId
           });
         }
@@ -656,12 +659,12 @@
           handledKeydownEvents.push(event);
         }
         mainPort.postMessage({
-          keyChar: keyChar,
+          handlerKey: keyChar,
           frameId: frameId
         });
       } else if (KeyboardUtils.isEscape(event)) {
         mainPort.postMessage({
-          keyChar: "<ESC>",
+          handlerKey: "<ESC>",
           frameId: frameId
         });
       } else if (isPassKey(KeyboardUtils.getKeyChar(event))) {
