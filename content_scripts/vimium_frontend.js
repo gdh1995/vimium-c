@@ -517,7 +517,7 @@
       }
       hints = visibleInputs.map(function(tuple) {
         var hint = document.createElement("div");
-        hint.className = "vimium0 vimium2 internalVimiumInputHint vimiumInputHint";
+        hint.className = "vimB vimI internalVimiumInputHint vimiumInputHint";
         hint.style.left = (tuple.rect.left - 1) + window.scrollX + "px";
         hint.style.top = (tuple.rect.top - 1) + window.scrollY + "px";
         hint.style.width = tuple.rect.width + "px";
@@ -527,7 +527,7 @@
       hints[selectedInputIndex].classList.add('internalVimiumSelectedInputHint');
       hintContainingDiv = DomUtils.addElementList(hints, {
         id: "vimiumInputMarkerContainer",
-        className: "vimium0 vimium1"
+        className: "vimB vimR"
       });
       handlerStack.push({
         keydown: function(event) {
@@ -1134,7 +1134,7 @@
     isShowingHelpDialog = true;
     container = document.createElement("div");
     container.id = "vimiumHelpDialogContainer";
-    container.className = "vimium0 vimium1";
+    container.className = "vimB vimR";
     (document.documentElement || document.body).appendChild(container);
     container.innerHTML = html;
     VimiumHelpDialog = {
@@ -1216,7 +1216,7 @@
     },
     showUpgradeNotification: function(version) {
       var el = HUD.upgradeNotificationElement(), links;
-      el.innerHTML = "Vimium has been updated to <a class='vimium0 vimium2 vimiumLink' href='https://chrome.google.com/extensions/detail/dbepggeogbaibhgnhhndojpepiihcmeb'> " + version + "</a>.<a class='vimium0 vimium2 vimiumLink vimiumHUDClose' href='#'>&#215;</a>";
+      el.innerHTML = "Vimium has been updated to <a class='vimB vimI vimL' href='https://chrome.google.com/extensions/detail/dbepggeogbaibhgnhhndojpepiihcmeb'> " + version + "</a>.<a class='vimB vimI vimL vimiumHUDClose' href='#'>&#215;</a>";
       links = el.getElementsByTagName("a");
       links[0].addEventListener("click", HUD.onUpdateLinkClicked, false);
       links[1].addEventListener("click", function(event) {
@@ -1253,7 +1253,7 @@
     },
     createHudElement: function() {
       var element = document.createElement("div");
-      element.className = "vimium0 vimium1 vimiumHUD";
+      element.className = "vimB vimR vimiumHUD";
       document.documentElement.appendChild(element);
       return element;
     },

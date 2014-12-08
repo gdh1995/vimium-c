@@ -56,7 +56,7 @@
         start = ranges[_i];
         out.push(Utils.escapeHtml(string.substring(end, start)));
         end = ranges[_i + 1];
-        out.push("<span class=\"vimium0 vimium2 vomnibarMatch\">");
+        out.push("<span class=\"vimB vimI vomnibarMatch\">");
         out.push(Utils.escapeHtml(string.substring(start, end)));
         out.push("</span>");
       }

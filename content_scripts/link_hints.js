@@ -73,7 +73,7 @@
       this.initScrollY = window.scrollY;
       this.hintMarkerContainingDiv = DomUtils.addElementList(hintMarkers, {
         id: "vimiumHintMarkerContainer",
-        className: "vimium0 vimium1"
+        className: "vimB vimR"
       });
       return this.handlerId = handlerStack.push({
         keydown: this.onKeyDownInMode.bind(this, hintMarkers),
@@ -146,7 +146,7 @@
     createMarkerFor: function(link) {
       var clientRect, marker;
       marker = document.createElement("div");
-      marker.className = "vimium0 vimium2 internalVimiumHintMarker vimiumHintMarker";
+      marker.className = "vimB vimI internalVimiumHintMarker vimiumHintMarker";
       marker.clickableItem = link.element;
       clientRect = link.rect;
       marker.style.left = clientRect.left + window.scrollX + "px";
@@ -519,7 +519,7 @@
 
   spanWrap = function(hintString) {
     for (var ch, innerHTML = [], _i = 0, _len = hintString.length; _i < _len; _i++) {
-      innerHTML.push("<span class='vimium0 vimium2'>" + hintString[_i] + "</span>");
+      innerHTML.push("<span class='vimB vimI'>" + hintString[_i] + "</span>");
     }
     return innerHTML.join("");
   };
