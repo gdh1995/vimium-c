@@ -750,6 +750,9 @@
       else if (len === 2) {
         validFirstKeys[splitKeyIntoFirstAndSecond(key).first] = true;
       }
+      else if (len >= 3) {
+        console.warn("3-key command:", key);
+      }
     }
   };
 

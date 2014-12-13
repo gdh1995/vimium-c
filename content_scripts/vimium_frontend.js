@@ -79,7 +79,7 @@
       } catch (e) { // this._port is either null or a real port
         this._port = this.fakePort;
         setTimeout(this._clearPort, this.autoReconnectTimeout);
-        console.log("first postMessage fail:", request.request && request.request.handler || request.handler
+        console.log("vim: first postMessage fail:", request.request && request.request.handler || request.handler
           || (request.handlerSettings ? (request.handlerSettings + "setting") : "")
           || (request.handlerKey ? ("char = " + request.keyChar) : "")
           || request);
@@ -130,7 +130,6 @@
       if (handler) {
         handler = mainPort._callbacks[handler];
         delete mainPort._callbacks[response._msgId];
-        console.log("response", response._msgId, response.response);
         handler(response.response);
         return;
       }
@@ -189,9 +188,6 @@
         handlerSettings: "get",
         keys: this.valuesToLoad
       });
-      if (! sendOK) {
-        console.log("getting settings failed!");
-      }
       if (! this._timer) {
         this._timer = setInterval(this.load.bind(this), this.autoRetryInterval);
       }
@@ -281,8 +277,6 @@
           sendResponse(handler);
         }
       }
-      console.log("runtime " + (request.name ? (request.name)
-        : ("handler=" + request.handler)), handler);
     });
     settings.addEventListener("load", function() {
       Scroller.setSmoothScroll(!! settings.values.smoothScroll);
