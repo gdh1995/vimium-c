@@ -551,10 +551,9 @@
       if (toSelect) {
         if (callback) {
           selectionChangedHandlers.push(function() {
-            chrome.tabs.getSelected(null, function(newTab) {
-              extend(currentTab, newTab);
-              callback();
-            });
+            extend(currentTab, toSelect);
+            currentTab.active = true;
+            callback();
           });
         }
         chrome.tabs.update(toSelect.id, {

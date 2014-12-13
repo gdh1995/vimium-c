@@ -155,11 +155,11 @@
       return marker;
     },
     getVisibleClickableElements: function() {
-      var c, clientRect, coords, element, i, img, imgClientRects, map, rect, resultSet, visibleElements, _i, _ref;
+      var c, clientRect, coords, element, img, imgClientRects, map, rect, resultSet, visibleElements, _i, _ref;
       resultSet = DomUtils.evaluateXPath(this.clickableElementsXPath, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE);
       visibleElements = [];
-      for (i = _i = 0, _ref = resultSet.snapshotLength; _i < _ref; i = _i += 1) {
-        element = resultSet.snapshotItem(i);
+      for (_i = 0, _ref = resultSet.snapshotLength; _i < _ref; ++_i) {
+        element = resultSet.snapshotItem(_i);
         clientRect = DomUtils.getVisibleClientRect(element, clientRect);
         if (clientRect !== null) {
           visibleElements.push({
@@ -449,7 +449,7 @@
     },
     matchHintsByKey: function(hintMarkers, event) {
       var delay, keyChar, linksMatched, marker, matchString, userIsTypingLinkText, _i, _len;
-      keyChar = KeyboardUtils.getKeyChar(event);
+      keyChar = KeyboardUtils.getKeyChar(event).toLowerCase();
       delay = 0;
       userIsTypingLinkText = false;
       if (event.keyCode === keyCodes.enter) {
@@ -490,13 +490,12 @@
       };
     },
     filterLinkHints: function(hintMarkers) {
-      var linkMarker, linkSearchString, linksMatched, matchedLink, oldHintString, _i, _len;
+      var linkMarker, linkSearchString, linksMatched, oldHintString, _i, _len;
       linksMatched = [];
       linkSearchString = this.linkTextKeystrokeQueue.join("");
       for (_i = 0, _len = hintMarkers.length; _i < _len; _i++) {
         linkMarker = hintMarkers[_i];
-        matchedLink = linkMarker.linkText.toLowerCase().indexOf(linkSearchString.toLowerCase()) >= 0;
-        if (!matchedLink) {
+        if (linkMarker.linkText.toLowerCase().indexOf(linkSearchString) === -1) {
           linkMarker.filtered = true;
         } else {
           linkMarker.filtered = false;
@@ -525,7 +524,7 @@
   };
 
   numberToHintString = function(number, characterSet, numHintDigits) {
-    var base, hintString, hintStringLength, i, remainder, _i, _ref;
+    var base, hintString, leftLength, remainder;
     if (numHintDigits == null) {
       numHintDigits = 0;
     }
@@ -541,8 +540,8 @@
         break;
       }
     }
-    hintStringLength = hintString.length;
-    for (i = _i = 0, _ref = numHintDigits - hintStringLength; _i < _ref; i = _i += 1) {
+    leftLength = numHintDigits - hintString.length;
+    while (0 <= --leftLength) {
       hintString.unshift(characterSet[0]);
     }
     return hintString.join("");

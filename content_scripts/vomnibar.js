@@ -178,10 +178,12 @@
       } else if (event.keyCode === keyCodes.enter) {
         return "enter";
       }
-      var key = KeyboardUtils.getKeyChar(event);
-      if (key === "up" || (event.shiftKey && event.keyCode === keyCodes.tab) || (event.ctrlKey && (key === "k" || key === "p"))) {
+      var key = KeyboardUtils.getKeyChar(event).toLowerCase();
+      if (key === "up" || (event.shiftKey && event.keyCode === keyCodes.tab)
+        || (event.ctrlKey && !event.shiftKey && (key === "k" || key === "p"))) {
         return "up";
-      } else if (key === "down" || (event.keyCode === keyCodes.tab && !event.shiftKey) || (event.ctrlKey && (key === "j" || key === "n"))) {
+      } else if (key === "down" || (event.keyCode === keyCodes.tab && !event.shiftKey)
+        || (event.ctrlKey && !event.shiftKey && (key === "j" || key === "n"))) {
         return "down";
       }
     };
@@ -189,17 +191,19 @@
     VomnibarUI.prototype.onKeydown = function(event) {
       var action = this.actionFromKeyEvent(event);
       while (!action) {
-        action = KeyboardUtils.getKeyChar(event);
-        if (event.shiftKey || event.ctrlKey || event.altKey) {
+        if (event.shiftKey || event.ctrlKey || event.altKey || event.metaKey) {
+          return true;
         }
-        else if (this.selection == 0 && this.completions.length == 1 && action == ' ' && this.input.value.slice(-2) === "  ") {
-          action = "enter";
-          break;
+        if (this.selection == 0) {
+          if (this.completions.length == 1 && this.input.value.slice(-2) === "  " && event.which == 32) {
+            action = "enter";
+            break;
+          }
         }
         else if (this.selection >= 0 && this.isSelectionChanged || document.activeElement !== this.input) {
-          action = parseInt(action);
+          action = event.which - 48;
           if (action === 0) { action = 10; }
-          if (action <= this.completions.length) {
+          if (action > 0 && action <= this.completions.length) {
             this.selection = action - 1;
             action = "enter";
             break;

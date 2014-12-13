@@ -3,7 +3,7 @@ window.Marks = {};
 
 window.Marks.activateCreateMode = function() {
   return handlerStack.push({
-    keydown: function(e) {
+    keydown: function(event) {
       var baseLocation, hash, keyChar, sep, _ref;
       keyChar = KeyboardUtils.getKeyChar(event);
       if (keyChar === "") {
@@ -36,7 +36,7 @@ window.Marks.activateCreateMode = function() {
 
 window.Marks.activateGotoMode = function() {
   return handlerStack.push({
-    keydown: function(e) {
+    keydown: function(event) {
       var baseLocation, hash, keyChar, mark, markString, sep, _ref;
       keyChar = KeyboardUtils.getKeyChar(event);
       if (keyChar === "") {

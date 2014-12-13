@@ -594,99 +594,97 @@
   };
 
   onKeydown = function(event) {
-    var i, keyChar, modifiers;
     if (!handlerStack.bubbleEvent('keydown', event)) {
       return;
     }
-    keyChar = "";
-    if (((event.metaKey || event.ctrlKey || event.altKey) && event.keyCode > 31) || (event.keyIdentifier && event.keyIdentifier.slice(0, 2) !== "U+")) {
+    var modifiers = null, keyChar = "", isInsert = isInsertMode(), isEscape = KeyboardUtils.isEscape(event), action = -1;
+    if (((event.metaKey || event.ctrlKey || event.altKey) && event.keyCode > 31) || ! event.keyIdentifier.startsWith("U+")) {
+      modifiers = "";
       keyChar = KeyboardUtils.getKeyChar(event);
-      if (keyChar !== "") {
-        modifiers = [];
-        if (event.shiftKey) {
-          keyChar = keyChar.toUpperCase();
-        }
+      if (keyChar.length > 0) {
         if (event.metaKey) {
-          modifiers.push("m");
+          modifiers += "m-";
         }
         if (event.ctrlKey) {
-          modifiers.push("c");
+          modifiers += "c-";
         }
         if (event.altKey) {
-          modifiers.push("a");
-        }
-        for (i in modifiers) {
-          keyChar = modifiers[i] + "-" + keyChar;
+          modifiers += "a-";
         }
         if (modifiers.length > 0 || keyChar.length > 1) {
-          keyChar = "<" + keyChar + ">";
+          keyChar = "<" + modifiers + keyChar + ">";
         }
       }
     }
-    if (isInsertMode() && KeyboardUtils.isEscape(event)) {
+    if (isInsert && isEscape) {
       if (!isEmbed(event.srcElement)) {
         if (isEditable(event.srcElement)) {
           event.srcElement.blur();
         }
         exitInsertMode();
-        DomUtils.suppressEvent(event);
-        handledKeydownEvents.push(event);
+        action = 2;
       }
-    } else if (findMode) {
-      if (KeyboardUtils.isEscape(event)) {
+    }
+    else if (findMode) {
+      if (isEscape) {
         handleEscapeForFindMode();
-        DomUtils.suppressEvent(event);
-        handledKeydownEvents.push(event);
+        action = 2;
       } else if (event.keyCode === keyCodes.backspace || event.keyCode === keyCodes.deleteKey) {
         handleDeleteForFindMode();
-        DomUtils.suppressEvent(event);
-        handledKeydownEvents.push(event);
+        action = 2;
       } else if (event.keyCode === keyCodes.enter) {
         handleEnterForFindMode();
-        DomUtils.suppressEvent(event);
-        handledKeydownEvents.push(event);
-      } else if (!modifiers) {
-        DomUtils.suppressPropagation(event);
-        handledKeydownEvents.push(event);
+        action = 2;
+      } else if (keyChar.length === 0) {
+        action = 1;
       }
-    } else if (isShowingHelpDialog && KeyboardUtils.isEscape(event)) {
+    }
+    else if (isShowingHelpDialog && isEscape) {
       hideHelpDialog();
-      DomUtils.suppressEvent(event);
-      handledKeydownEvents.push(event);
-    } else if (!isInsertMode() && !findMode) {
-      if (keyChar) {
+      action = 2;
+    }
+    else if (!isInsert) {
+      if (keyChar.length > 0) {
         if (currentCompletionKeys.indexOf(keyChar) !== -1 || isValidFirstKey(keyChar)) {
-          DomUtils.suppressEvent(event);
-          handledKeydownEvents.push(event);
+          action = 2;
         }
         mainPort.postMessage({
           handlerKey: keyChar,
           frameId: frameId
         });
-      } else if (KeyboardUtils.isEscape(event)) {
+      }
+      else if (isEscape) {
         mainPort.postMessage({
           handlerKey: "<ESC>",
           frameId: frameId
         });
-      } else if (isPassKey(KeyboardUtils.getKeyChar(event))) {
-        return;
+      }
+      else {
+        if (modifiers == null) {
+          keyChar = KeyboardUtils.getKeyChar(event);
+        }
+        if (keyChar.length > 0 && !isPassKey(keyChar)
+          && (currentCompletionKeys.indexOf(keyChar) !== -1 || isValidFirstKey(keyChar))) {
+          action = 1;
+        }
       }
     }
-    if (keyChar === "" && !isInsertMode() && (currentCompletionKeys.indexOf(KeyboardUtils.getKeyChar(event)) !== -1 || isValidFirstKey(KeyboardUtils.getKeyChar(event)))) {
-      DomUtils.suppressPropagation(event);
-      handledKeydownEvents.push(event);
+    if (action <= 0) {
+      return;
     }
+    if (action === 2) {
+      DomUtils.suppressEvent(event);
+    } else {
+      DomUtils.suppressPropagation(event);
+    }
+    handledKeydownEvents.push(event);
   };
 
   onKeyup = function(event) {
-    var i, keydown, _i, _len;
-    if (!handlerStack.bubbleEvent("keyup", event)) {
+    if (!handlerStack.bubbleEvent("keyup", event) || isInsertMode()) {
       return;
     }
-    if (isInsertMode()) {
-      return;
-    }
-    for (i = _i = 0, _len = handledKeydownEvents.length; _i < _len; i = ++_i) {
+    for (var keydown, i = handledKeydownEvents.length; 0 <= --i; ) {
       keydown = handledKeydownEvents[i];
       if (event.metaKey === keydown.metaKey && event.altKey === keydown.altKey && event.ctrlKey === keydown.ctrlKey && event.keyIdentifier === keydown.keyIdentifier && event.keyCode === keydown.keyCode) {
         handledKeydownEvents.splice(i, 1);
@@ -849,7 +847,7 @@
   handleEscapeForFindMode = function() {
     var range, selection;
     exitFindMode();
-    // document.body.classList.remove("vimiumFindMode");
+    document.body.classList.remove("vimiumFindMode");
     selection = window.getSelection();
     if (!selection.isCollapsed) {
       range = window.getSelection().getRangeAt(0);
@@ -895,13 +893,13 @@
     var oldFindMode = findMode, result;
     options = options || {};
     findMode = true;
-    // document.body.classList.add("vimiumFindMode");
+    document.body.classList.add("vimiumFindMode");
     HUD.hide(true);
-    // document.removeEventListener("selectionchange", restoreDefaultSelectionHighlight, true);
+    document.removeEventListener("selectionchange", restoreDefaultSelectionHighlight, true);
     result = window.find(query, options.caseSensitive, options.backwards, true, false, true, false);
-    // setTimeout(function() {
-      // document.addEventListener("selectionchange", restoreDefaultSelectionHighlight, true);
-    // }, 0);
+    setTimeout(function() {
+      document.addEventListener("selectionchange", restoreDefaultSelectionHighlight, true);
+    }, 1000);
     findMode = oldFindMode;
     findModeAnchorNode = document.getSelection().anchorNode;
     return result;
@@ -1012,12 +1010,13 @@
   };
 
   findAndFollowLink = function(linkStrings) {
-    var boundingClientRect, candidateLink, candidateLinks, computedStyle, exactWordRegex, i, link, linkMatches, linkString, links, linksXPath, _i, _j, _k, _l, _len, _len1, _len2, _len3, _m, _ref;
+    var boundingClientRect, candidateLinks, computedStyle, exactWordRegex, link, linkString, links, linksXPath, _i, _j, _len, _len1;
     linksXPath = DomUtils.makeXPath(["a", "*[@onclick or @role='link' or contains(@class, 'button')]"]);
     links = DomUtils.evaluateXPath(linksXPath, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE);
     candidateLinks = [];
-    for (i = _i = _ref = links.snapshotLength - 1; _i >= 0; i = _i += -1) {
-      link = links.snapshotItem(i);
+    _len = links.snapshotLength;
+    while (0 <= --_len) {
+      link = links.snapshotItem(_len);
       boundingClientRect = link.getBoundingClientRect();
       if (boundingClientRect.width === 0 || boundingClientRect.height === 0) {
         continue;
@@ -1026,40 +1025,37 @@
       if (computedStyle.getPropertyValue("visibility") !== "visible" || computedStyle.getPropertyValue("display") === "none") {
         continue;
       }
-      linkMatches = link.innerText.toLowerCase();
-      for (_j = 0, _len = linkStrings.length; _j < _len; _j++) {
-        if (linkMatches.indexOf(linkStrings[_j]) !== -1) {
-          linkMatches = true;
+      linkString = link.innerText.toLowerCase();
+      for (_j = 0, _len1 = linkStrings.length; _j < _len1; _j++) {
+        if (linkString.indexOf(linkStrings[_j]) !== -1) {
+          candidateLinks.push(link);
           break;
         }
       }
-      if (linkMatches !== true) {
-        continue;
-      }
-      candidateLinks.push(link);
     }
-    if (candidateLinks.length === 0) {
+    _len = candidateLinks.length;
+    if (_len === 0) {
       return;
     }
-    for (_k = 0, _len1 = candidateLinks.length; _k < _len1; _k++) {
-      link = candidateLinks[_k];
+    while (0 <= --_len) {
+      link = candidateLinks[_len];
       link.wordCount = link.innerText.trim().split(/\s+/).length;
+      link.originalIndex = _len;
     }
-    candidateLinks.forEach(function(a, i) {
-      return a.originalIndex = i;
-    });
     candidateLinks = candidateLinks.sort(function(a, b) {
       return (a.wordCount - b.wordCount) || (a.originalIndex - b.originalIndex);
-    }).filter(function(a) {
-      return a.wordCount <= candidateLinks[0].wordCount + 1;
     });
-    for (_l = 0, _len2 = linkStrings.length; _l < _len2; _l++) {
-      linkString = linkStrings[_l];
+    _len = candidateLinks[0].wordCount + 1;
+    candidateLinks = candidateLinks.filter(function(a) {
+      return a.wordCount <= _len;
+    });
+    for (_i = 0, _len = linkStrings.length; _i < _len; _i++) {
+      linkString = linkStrings[_i];
       exactWordRegex = /\b/.test(linkString[0]) || /\b/.test(linkString[linkString.length - 1]) ? new RegExp("\\b" + linkString + "\\b", "i") : new RegExp(linkString, "i");
-      for (_m = 0, _len3 = candidateLinks.length; _m < _len3; _m++) {
-        candidateLink = candidateLinks[_m];
-        if (exactWordRegex.test(candidateLink.innerText)) {
-          followLink(candidateLink);
+      for (_j = 0, _len1 = candidateLinks.length; _j < _len1; _j++) {
+        link = candidateLinks[_j];
+        if (exactWordRegex.test(link.innerText)) {
+          followLink(link);
           return true;
         }
       }

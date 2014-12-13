@@ -8,7 +8,7 @@
 
   root.init = function() {
     handlerStack.push({
-      DOMActivate: function() {
+      DOMActivate: function(event) {
         activatedElement = event.target;
         return true;
       }
