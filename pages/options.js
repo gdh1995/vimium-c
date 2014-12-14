@@ -51,16 +51,9 @@
       Option.all.forEach(function(option) {
         option.save();
       });
-      $("saveOptions").disabled = true;
-    };
-
-    Option.prototype.activateCtrlEnterListener = function(element) {
-      element.addEventListener("keyup", function(event) {
-        if (event.ctrlKey && event.keyCode === 13) {
-          element.blur();
-          Option.saveOptions();
-        }
-      });
+      var saveBtn = $("saveOptions");
+      saveBtn.disabled = true;
+      saveBtn.innerHTML = "No Changes";
     };
 
     return Option;
@@ -92,7 +85,6 @@
     function TextOption(field, enableSaveButton) {
       TextOption.__super__.constructor.call(this, field, enableSaveButton);
       this.element.addEventListener("input", enableSaveButton);
-      this.activateCtrlEnterListener(this.element);
     }
 
     TextOption.prototype.populateElement = function(value) {
@@ -113,7 +105,6 @@
     function NonEmptyTextOption(field, enableSaveButton) {
       NonEmptyTextOption.__super__.constructor.call(this, field, enableSaveButton);
       this.element.addEventListener("input", enableSaveButton);
-      this.activateCtrlEnterListener(this.element);
     }
 
     NonEmptyTextOption.prototype.populateElement = function(value) {
@@ -164,7 +155,6 @@
             pattern: "",
             passKeys: ""
           });
-          _this.maintainExclusionMargin();
           _this.element.children[_this.element.children.length - 1].children[0].children[0].focus();
           exclusionScrollBox = $("exclusionScrollBox");
           return exclusionScrollBox.scrollTop = exclusionScrollBox.scrollHeight;
@@ -181,7 +171,6 @@
         rule = rules[_i];
         this.appendRule(rule);
       }
-      this.maintainExclusionMargin();
     };
 
     ExclusionRulesOption.prototype.appendRule = function(rule) {
@@ -193,7 +182,6 @@
         field = _ref[_i];
         element = row.querySelector("." + field);
         element.value = rule[field];
-        this.activateCtrlEnterListener(element);
         _ref1 = ["input", "change"];
         for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
           event = _ref1[_j];
@@ -205,7 +193,6 @@
         row = event.target.parentNode.parentNode;
         row.parentNode.removeChild(row);
         enableSaveButton();
-        this.maintainExclusionMargin();
       }).bind(this));
       return this.element.appendChild(row);
     };
@@ -244,23 +231,14 @@
       return a.map(flatten).join("\n") === b.map(flatten).join("\n");
     };
 
-    ExclusionRulesOption.prototype.maintainExclusionMargin = function() {
-      var element, margin, scrollBox, _i, _len, _ref;
-      scrollBox = $("exclusionScrollBox");
-      margin = scrollBox.clientHeight < scrollBox.scrollHeight ? "16px" : "0px";
-      _ref = scrollBox.getElementsByClassName("exclusionRemoveButton");
-      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-        element = _ref[_i];
-        element.style["margin-right"] = margin;
-      }
-    };
-
     return ExclusionRulesOption;
 
   })(Option);
 
   enableSaveButton = function() {
-    $("saveOptions").removeAttribute("disabled");
+    var saveBtn = $("saveOptions");
+    saveBtn.removeAttribute("disabled");
+    saveBtn.innerHTML = "Save Changes";
   };
 
   maintainLinkHintsView = function() {
@@ -291,10 +269,12 @@
     }
     _advancedMode = !_advancedMode;
     event.preventDefault();
+    document.activeElement.blur();
   };
 
   activateHelpDialog = function() {
     showHelpDialog(chrome.extension.getBackgroundPage().helpDialogHtml(true, true, "Command Listing"), frameId);
+    document.activeElement.blur();
   };
 
   document.addEventListener("DOMContentLoaded", function() {
@@ -336,6 +316,14 @@
         return "You have unsaved changes to options.";
       }
     };
+    document.addEventListener("keyup", function(event) {
+      if (event.ctrlKey && event.keyCode === 13) {
+        if (document.activeElement && document.activeElement.blur) {
+          document.activeElement.blur();
+        }
+        Option.saveOptions();
+      }
+    });
   });
 
 })();

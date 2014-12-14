@@ -64,11 +64,10 @@
     return tab.url;
   };
 
-  root.isEnabledForUrl = isEnabledForUrl = function(request) {
+  isEnabledForUrl = function(request) {
     var rule = Exclusions.getRule(request.url);
     return {
-      rule: rule,
-      isEnabledForUrl: !rule || (!!rule.passKeys),
+      enabled: !(rule && !rule.passKeys),
       passKeys: rule && rule.passKeys || ""
     };
   };
@@ -149,7 +148,7 @@
     return req.responseText;
   };
 
-  getCompletionKeysRequest = function(request, keysToCheck) {
+  getCompletionKeysRequest = function(_0, keysToCheck) {
     if (typeof keysToCheck !== "string") {
       keysToCheck = "";
     }
@@ -604,7 +603,7 @@
         config = isEnabledForUrl({
           url: url
         });
-        enabled = config.isEnabledForUrl;
+        enabled = config.enabled;
         passKeys = config.passKeys;
         if (enabled && passKeys) {
           setBrowserActionIcon(tabId, partialIcon);
@@ -836,8 +835,7 @@
   };
 
   checkKeyQueue = function(keysToCheck, port, frameId) {
-    var command, count, newKeyQueue, refreshedCompletionKeys, registryEntry, runCommand, splitHash, splitKey;
-    refreshedCompletionKeys = false;
+    var command, count, newKeyQueue, registryEntry, runCommand, splitHash, splitKey;
     splitHash = splitKeyQueue(keysToCheck);
     command = splitHash.command;
     count = splitHash.count;
@@ -875,7 +873,7 @@
             passCountToFunction: registryEntry.passCountToFunction,
             completionKeys: generateCompletionKeys("")
           });
-          refreshedCompletionKeys = true;
+          return "";
         }
       }
       newKeyQueue = "";
@@ -889,9 +887,7 @@
     } else {
       newKeyQueue = (validFirstKeys[command] ? count.toString() + command : "");
     }
-    if (!refreshedCompletionKeys) {
-      port.postMessage(getCompletionKeysRequest(null, newKeyQueue));
-    }
+    port.postMessage(getCompletionKeysRequest(null, newKeyQueue));
     return newKeyQueue;
   };
 

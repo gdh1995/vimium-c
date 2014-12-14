@@ -239,9 +239,9 @@
                   <table id="exclusionRules"></table>
                   <template id="exclusionRuleTemplate">
                     <tr>
-                       <td><input/ type="text" class="pattern" placeholder="URL pattern"></td>
-                       <td><input/ type="text" class="passKeys" placeholder="Exclude keys"></td>
-                       <td><input/ type="button" class="exclusionRemoveButton" tabindex = "-1" value="&#x2716;"></td>
+                       <td><input type="text" class="pattern" placeholder="URL pattern" /></td>
+                       <td><input type="text" class="passKeys" placeholder="Exclude keys" /></td>
+                       <td><input type="button" class="exclusionRemoveButton" tabindex = "-1" value="&#x2716;" /></td>
                     </tr>
                   </template>
                </div>
@@ -287,31 +287,36 @@ unmapAll
           <tr>
             <td class="caption">Scroll step size</td>
             <td>
+              <div class="help">
+                <div class="example">
+                  The size for basic movements.
+                </div>
+              </div>
               <input id="scrollStepSize" type="number" />px
             </td>
           </tr>
           <tr>
             <td class="caption">Characters used<br/> for link hints</td>
             <td verticalAlign="top">
-                <div class="help">
-                  <div class="example">
-                    The characters placed next to each link after typing "f" to enter link-hint mode.
-                  </div>
+              <div class="help">
+                <div class="example">
+                  The characters placed next to each link after typing "f" to enter link-hint mode.
                 </div>
-                <input id="linkHintCharacters" type="text" />
-                <div class="nonEmptyTextOption">
+              </div>
+              <input id="linkHintCharacters" type="text" />
+              <div class="nonEmptyTextOption"></div>
             </td>
           </tr>
           <tr>
-            <td class="caption">Numbers used<br/> for filtered link hints</td>
+            <td class="caption">Numbers used<br/> for link hints</td>
             <td verticalAlign="top">
-                <div class="help">
-                  <div class="example">
-                    The numbers placed next to each link after typing "f" to enter link-hint mode.
-                  </div>
+              <div class="help">
+                <div class="example">
+                  The numbers placed next to each link after typing "f" to enter link-hint mode.
                 </div>
-                <input id="linkHintNumbers" type="text" />
-                <div class="nonEmptyTextOption">
+              </div>
+              <input id="linkHintNumbers" type="text" />
+              <div class="nonEmptyTextOption"></div>
             </td>
           </tr>
           <tr>
@@ -352,7 +357,7 @@ unmapAll
               </div>
               <label>
                 <input id="regexFindMode" type="checkbox"/>
-                Treat find queries as regular expressions.
+                Treat find queries as regular expressions
               </label>
             </td>
           </tr>
@@ -361,7 +366,7 @@ unmapAll
             <td verticalAlign="top" class="booleanOption">
               <label>
                 <input id="smoothScroll" type="checkbox"/>
-                Use smooth scrolling.
+                Use smooth scrolling
               </label>
             </td>
           </tr>
@@ -374,7 +379,7 @@ unmapAll
                   </div>
                 </div>
                 <input id="previousPatterns" type="text" />
-                <div class="nonEmptyTextOption">
+                <div class="nonEmptyTextOption"></div>
             </td>
           </tr>
           <tr>
@@ -386,7 +391,7 @@ unmapAll
                   </div>
                 </div>
                 <input id="nextPatterns" type="text" />
-                <div class="nonEmptyTextOption">
+                <div class="nonEmptyTextOption"></div>
             </td>
           </tr>
           <tr>
@@ -399,7 +404,7 @@ unmapAll
                   </div>
                 </div>
                 <input id="newTabUrl" type="text" />
-                <div class="nonEmptyTextOption">
+                <div class="nonEmptyTextOption"></div>
             </td>
           </tr>
           <tr>
@@ -411,7 +416,7 @@ unmapAll
                   </div>
                 </div>
                 <input id="searchUrl" type="text" />
-                <div class="nonEmptyTextOption">
+                <div class="nonEmptyTextOption"></div>
             </td>
           </tr>
           <tr>
@@ -425,7 +430,7 @@ unmapAll
                 </div>
               </div>
               <textarea id="userDefinedLinkHintCss" class="code" type="text"></textarea>
-              <div class="nonEmptyTextOption">
+              <div class="nonEmptyTextOption"></div>
             </td>
           </tr>
         </tbody>
@@ -433,13 +438,13 @@ unmapAll
 
       <div>
          <a href="#" id="advancedOptionsLink">Show advanced options&hellip;</a>
-         <button id="saveOptions" disabled="true">Save Options</button>
+         <button id="saveOptions" disabled="true">No Changes</button>
       </div>
       <br/>
 
       <footer id="showHelpDialogMessage">
         Type <strong>?</strong> to show the Vimium help dialog.
-        Type <strong>Ctrl-Enter</strong> in text inputs to save all options.
+        Type <strong>Ctrl-Enter</strong> in text inputs to save <i>all</i> options.
       </footer>
     </div>
   </body>

@@ -2,7 +2,7 @@
 (function() {
   var HUD, Tween, checkIfEnabledForUrl, currentCompletionKeys, enterInsertModeIfElementIsFocused
     , enterInsertModeWithoutShowingIndicator, executeFind, executePageCommand, exitFindMode
-    , exitInsertMode, findAndFocus, findAndFollowLink, findAndFollowRel, findMode
+    , exitInsertMode, findAndFocus, findAndFollowLink, findAndFollowRel, findMode, findChangeListened
     , findModeAnchorNode, findModeQuery, findModeQueryHasResults, focusFoundLink, followLink
     , frameId, getLinkFromSelection, getNextQueryFromRegexMatches, handleDeleteForFindMode
     , handleEnterForFindMode, handleEscapeForFindMode, handleKeyCharForFindMode, handledKeydownEvents
@@ -20,6 +20,8 @@
   insertModeLock = null;
 
   findMode = false;
+  
+  findChangeListened = 0;
 
   findModeQuery = {
     rawQuery: "",
@@ -39,9 +41,9 @@
 
   isEnabledForUrl = true;
 
-  passKeys = null;
+  passKeys = "";
 
-  keyQueue = null;
+  keyQueue = "";
 
   currentCompletionKeys = [];
 
@@ -317,7 +319,6 @@
       initializeWhenEnabled(request.passKeys);
     }
     isEnabledForUrl = request.enabled;
-    passKeys = request.passKeys;
   };
 
   window.addEventListener("focus", function() {
@@ -550,7 +551,7 @@
   });
 
   isPassKey = function(keyChar) {
-    return !keyQueue && passKeys && 0 <= passKeys.indexOf(keyChar);
+    return keyQueue.length === 0 && passKeys.length > 0 && passKeys.indexOf(keyChar) >= 0;
   };
 
   handledKeydownEvents = [];
@@ -695,16 +696,16 @@
     }, function(response) {
       if (!response) {
         response = {
-          isEnabledForUrl: true,
+          enabled: true,
           passKeys: ""
         };
       }
-      isEnabledForUrl = response.isEnabledForUrl;
-      if (isEnabledForUrl) {
+      if (response.enabled) {
         initializeWhenEnabled(response.passKeys);
       } else if (HUD.isReady()) {
         HUD.hide();
       }
+      isEnabledForUrl = response.enabled;
     });
   };
 
@@ -841,7 +842,7 @@
   handleEscapeForFindMode = function() {
     var range, selection;
     exitFindMode();
-    document.body.classList.remove("vimiumFindMode");
+    restoreDefaultSelectionHighlight();
     selection = window.getSelection();
     if (!selection.isCollapsed) {
       range = window.getSelection().getRangeAt(0);
@@ -878,35 +879,38 @@
       caseSensitive: !findModeQuery.ignoreCase
     });
     window.scrollTo(cachedScrollX, cachedScrollY);
-    findModeQueryHasResults = executeFind(query, {
+    executeFind(query, {
       caseSensitive: !findModeQuery.ignoreCase
     });
   };
 
   executeFind = function(query, options) {
     var oldFindMode = findMode, result;
-    options = options || {};
     findMode = true;
     document.body.classList.add("vimiumFindMode");
     HUD.hide(true);
-    document.removeEventListener("selectionchange", restoreDefaultSelectionHighlight, true);
-    result = window.find(query, options.caseSensitive, options.backwards, true, false, true, false);
-    setTimeout(function() {
-      document.addEventListener("selectionchange", restoreDefaultSelectionHighlight, true);
-    }, 1000);
+    findModeQueryHasResults = !!window.find(query, options.caseSensitive, options.backwards, true, false, true, false);
+    if (findChangeListened === 0) {
+      findChangeListened = setTimeout(function() {
+        document.addEventListener("selectionchange", restoreDefaultSelectionHighlight, true);
+      }, 1000);
+    }
     findMode = oldFindMode;
     findModeAnchorNode = document.getSelection().anchorNode;
-    return result;
   };
 
   restoreDefaultSelectionHighlight = function() {
     document.body.classList.remove("vimiumFindMode");
+    document.removeEventListener("selectionchange", restoreDefaultSelectionHighlight, true);
+    if (findChangeListened) {
+      clearTimeout(findChangeListened);
+      findChangeListened = 0;
+    }
   };
 
   focusFoundLink = function() {
-    var link;
     if (findModeQueryHasResults) {
-      link = getLinkFromSelection();
+      var link = getLinkFromSelection();
       if (link) {
         return link.focus(); // TODO:
       }
@@ -949,7 +953,7 @@
       updateFindModeQuery();
     }
     query = findModeQuery.isRegex ? getNextQueryFromRegexMatches(backwards ? -1 : 1) : findModeQuery.parsedQuery;
-    findModeQueryHasResults = executeFind(query, {
+    executeFind(query, {
       backwards: backwards,
       caseSensitive: !findModeQuery.ignoreCase
     });

@@ -23,13 +23,11 @@
       initialize = false;
     }
     document.getElementById("optionsLink").setAttribute("href", chrome.runtime.getURL("pages/options.html"));
-    return chrome.tabs.getSelected(null, function(tab) {
-      var element, isEnabled, passKeysElement, patternElement, _i, _len, _ref;
-      isEnabled = chrome.extension.getBackgroundPage().isEnabledForUrl({
-        url: tab.url
-      });
-      if (isEnabled.rule) {
-        originalRule = isEnabled.rule;
+    chrome.tabs.getSelected(null, function(tab) {
+      var element, rule, passKeysElement, patternElement, _i, _len, _ref;
+      rule = chrome.extension.getBackgroundPage().Exclusions.getRule(tab.url);
+      if (rule) {
+        originalRule = rule;
         originalPattern = originalRule.pattern;
         originalPassKeys = originalRule.passKeys;
       } else {
