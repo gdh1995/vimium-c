@@ -6,7 +6,7 @@
     , getCurrentTimeInSeconds, handleFrameFocused, handleMainPort, handleUpdateScrollPosition
     , helpDialogHtmlForCommandGroup, isEnabledForUrl, keyQueue, moveTab, namedKeyRegex
     , openOptionsPageInNewTab, openUrlInCurrentTab, openUrlInIncognito, openUrlInNewTab, restoreSession
-    , populateKeyCommands, portHandlers, refreshCompleter, registerFrame
+    , populateKeyCommands, portHandlers, refreshCompleter, registerFrame, splitKeyQueueRegex
     , removeTabsRelative, repeatFunction, root, saveHelpDialogSettings, selectSpecificTab, selectTab
     , selectionChangedHandlers, requestHandlers, sendRequestToAllTabs, setBrowserActionIcon
     , shouldShowUpgradeMessage, singleKeyCommands, splitKeyIntoFirstAndSecond, splitKeyQueue, tabInfoMap
@@ -25,6 +25,7 @@
   root.tabInfoMap = tabInfoMap = {};
 
   keyQueue = "";
+  root.getKeyQueue = function() {return keyQueue;}
 
   validFirstKeys = {};
 
@@ -148,13 +149,11 @@
     return req.responseText;
   };
 
-  getCompletionKeysRequest = function(_0, keysToCheck) {
-    if (typeof keysToCheck !== "string") {
-      keysToCheck = "";
-    }
+  getCompletionKeysRequest = function() {
     return {
       name: "refreshCompletionKeys",
-      completionKeys: generateCompletionKeys(keysToCheck),
+      completionKeys: generateCompletionKeys(),
+      keyQueue: keyQueue,
       validFirstKeys: validFirstKeys
     };
   };
@@ -762,12 +761,11 @@
     sendRequestToAllTabs(getCompletionKeysRequest());
   };
 
-  generateCompletionKeys = function(keysToCheck) {
-    var command, completionKeys, count, key, splitHash, splitKey;
-    splitHash = splitKeyQueue(keysToCheck || keyQueue);
-    command = splitHash.command;
-    count = splitHash.count;
-    completionKeys = singleKeyCommands.slice(0);
+  generateCompletionKeys = function() {
+    if (keyQueue.length === 0) {
+      return singleKeyCommands;
+    }
+    var command = splitKeyQueueRegex.exec(keyQueue)[2], completionKeys = singleKeyCommands.slice(0), key, splitKey;
     if (getActualKeyStrokeLength(command) === 1) {
       for (key in Commands.keyToCommandRegistry) {
         splitKey = splitKeyIntoFirstAndSecond(key);
@@ -779,8 +777,10 @@
     return completionKeys;
   };
 
+  splitKeyQueueRegex = /([1-9][0-9]*)?(.*)/;
+
   splitKeyQueue = function(queue) {
-    var match = /([1-9][0-9]*)?(.*)/.exec(queue);
+    var match = splitKeyQueueRegex.exec(queue);
     return {
       count: parseInt(match[1], 10),
       command: match[2]
@@ -794,14 +794,14 @@
     }
     if (key = request.handlerKey) {
       if (key === "<ESC>") {
-        keyQueue = "";
+        msgId = "";
       } else {
-        keyQueue = checkKeyQueue(keyQueue + key, port, request.frameId);
+        msgId = checkKeyQueue(keyQueue + key, port, request.frameId);
       }
-      /* port.postMessage({
-        name: "currentKeyQueue",
-        keyQueue: keyQueue
-      }); */
+      if (keyQueue !== msgId) {
+        keyQueue = msgId;
+        port.postMessage(getCompletionKeysRequest());
+      }
     }
     else if (key = request.handler) {
       key = requestHandlers[key];
@@ -871,9 +871,10 @@
             frameId: frameId,
             count: count,
             passCountToFunction: registryEntry.passCountToFunction,
-            completionKeys: generateCompletionKeys("")
+            keyQueue: "",
+            completionKeys: generateCompletionKeys()
           });
-          return "";
+          return keyQueue = "";
         }
       }
       newKeyQueue = "";
@@ -887,7 +888,6 @@
     } else {
       newKeyQueue = (validFirstKeys[command] ? count.toString() + command : "");
     }
-    port.postMessage(getCompletionKeysRequest(null, newKeyQueue));
     return newKeyQueue;
   };
 

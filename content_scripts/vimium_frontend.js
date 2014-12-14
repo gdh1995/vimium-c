@@ -262,10 +262,7 @@
           passKeys: passKeys
         };
       },
-      setState: setState,
-      currentKeyQueue: function(request) {
-        keyQueue = request.keyQueue;
-      }
+      setState: setState
     };
     mainPort.setListener(mainPort.defaultListener);
     chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
@@ -639,18 +636,21 @@
       action = 2;
     }
     else if (!isInsert) {
-      if (keyChar.length > 0) {
+      if (isEscape) {
+        if (keyQueue.length > 0) {
+          action = 2;
+        }
+        mainPort.postMessage({
+          handlerKey: "<ESC>",
+          frameId: frameId
+        });
+      }
+      else if (keyChar.length > 0) {
         if (currentCompletionKeys.indexOf(keyChar) !== -1 || isValidFirstKey(keyChar)) {
           action = 2;
         }
         mainPort.postMessage({
           handlerKey: keyChar,
-          frameId: frameId
-        });
-      }
-      else if (isEscape) {
-        mainPort.postMessage({
-          handlerKey: "<ESC>",
           frameId: frameId
         });
       }
@@ -712,6 +712,7 @@
   refreshCompletionKeys = function(response) {
     if (response) {
       currentCompletionKeys = response.completionKeys;
+      keyQueue = response.keyQueue;
       if (response.validFirstKeys) {
         validFirstKeys = response.validFirstKeys;
       }
