@@ -171,7 +171,7 @@
       , "helpDialog_showAdvancedCommands", "smoothScroll"],
     isLoaded: true,
     eventListeners: {},
-    autoRetryInterval: 3000,
+    autoRetryInterval: 2000,
     _timer: 0,
     set: function(key, value) {
       this.values[key] = value;
@@ -279,20 +279,14 @@
     });
     settings.addEventListener("load", function() {
       Scroller.setSmoothScroll(!! settings.values.smoothScroll);
+      checkIfEnabledForUrl();
     });
     Scroller.init();
-    if (settings.load()) {
-      checkIfEnabledForUrl();
-      refreshCompletionKeys();
-    }
+    settings.load();
   };
 
   installListener = function(element, event, callback) {
-    element.addEventListener(event, function() {
-      if (isEnabledForUrl) {
-        callback.apply(this, arguments);
-      }
-    }, true);
+    element.addEventListener(event, callback, true);
   };
 
   installedListeners = false;
@@ -301,12 +295,12 @@
     passKeys = newPassKeys;
     if (!installedListeners) {
       installedListeners = true;
-      installListener(window, "keydown", onKeydown);
-      installListener(window, "keypress", onKeypress);
-      installListener(window, "keyup", onKeyup);
-      installListener(document, "focus", onFocusCapturePhase);
-      installListener(document, "blur", onBlurCapturePhase);
-      installListener(document, "DOMActivate", onDOMActivate);
+      window.addEventListener("keydown", onKeydown, true);
+      window.addEventListener("keypress", onKeypress, true);
+      window.addEventListener("keyup", onKeyup, true);
+      document.addEventListener("focus", onFocusCapturePhase, true);
+      document.addEventListener("blur", onBlurCapturePhase, true);
+      document.addEventListener("DOMActivate", onDOMActivate, true);
       enterInsertModeIfElementIsFocused();
     }
   };
@@ -354,7 +348,9 @@
   };
 
   onDOMActivate = function(event) {
-    return handlerStack.bubbleEvent('DOMActivate', event);
+    if (isEnabledForUrl) {
+      handlerStack.bubbleEvent('DOMActivate', event);
+    }
   };
 
   executePageCommand = function(request) {
@@ -554,11 +550,10 @@
   handledKeydownEvents = [];
 
   onKeypress = function(event) {
-    var keyChar;
-    if (!handlerStack.bubbleEvent('keypress', event)) {
+    if (!isEnabledForUrl || !handlerStack.bubbleEvent('keypress', event)) {
       return;
     }
-    keyChar = "";
+    var keyChar = "";
     if (event.keyCode > 31) {
       keyChar = String.fromCharCode(event.charCode);
       if (keyChar === "f" && KeyboardUtils.isPrimaryModifierKey(event)) {
@@ -586,7 +581,7 @@
   };
 
   onKeydown = function(event) {
-    if (!handlerStack.bubbleEvent('keydown', event)) {
+    if (!isEnabledForUrl || !handlerStack.bubbleEvent('keydown', event)) {
       return;
     }
     var modifiers = null, keyChar = "", isInsert = isInsertMode(), isEscape = KeyboardUtils.isEscape(event), action = -1;
@@ -676,7 +671,7 @@
   };
 
   onKeyup = function(event) {
-    if (!handlerStack.bubbleEvent("keyup", event) || isInsertMode()) {
+    if (!isEnabledForUrl || !handlerStack.bubbleEvent("keyup", event) || isInsertMode()) {
       return;
     }
     for (var keydown, i = handledKeydownEvents.length; 0 <= --i; ) {
@@ -694,18 +689,16 @@
       handler: "isEnabledForUrl",
       url: window.location.toString()
     }, function(response) {
-      if (!response) {
-        response = {
-          enabled: true,
-          passKeys: ""
-        };
-      }
-      if (response.enabled) {
+      if (response && response.enabled) {
         initializeWhenEnabled(response.passKeys);
-      } else if (HUD.isReady()) {
+        refreshCompletionKeys(response);
+        isEnabledForUrl = true;
+        return;
+      }
+      isEnabledForUrl = false;
+      if (HUD.isReady()) {
         HUD.hide();
       }
-      isEnabledForUrl = response.enabled;
     });
   };
 
@@ -728,13 +721,13 @@
   };
 
   onFocusCapturePhase = function(event) {
-    if (isFocusable(event.target) && !findMode) {
+    if (isEnabledForUrl && isFocusable(event.target) && !findMode) {
       enterInsertModeWithoutShowingIndicator(event.target);
     }
   };
 
   onBlurCapturePhase = function(event) {
-    if (isFocusable(event.target)) {
+    if (isEnabledForUrl && isFocusable(event.target)) {
       exitInsertMode(event.target);
     }
   };

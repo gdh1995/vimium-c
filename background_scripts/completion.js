@@ -96,13 +96,14 @@
   })();
 
   BookmarkCompleter = (function() {
-    function BookmarkCompleter() {}
+    function BookmarkCompleter() {
+      this.bookmarks = null;
+      this.currentSearch = null;
+    }
 
     BookmarkCompleter.prototype.folderSeparator = "/";
 
     BookmarkCompleter.prototype.filter = function(queryTerms, onComplete) {
-      this.queryTerms = queryTerms;
-      this.onComplete = onComplete;
       this.currentSearch = {
         queryTerms: this.queryTerms,
         onComplete: this.onComplete
@@ -284,7 +285,9 @@
   })();
 
   DomainCompleter = (function() {
-    function DomainCompleter() {}
+    function DomainCompleter() {
+      this.domains = null;
+    }
 
     DomainCompleter.prototype.filter = function(queryTerms, onComplete) {
       if (queryTerms.length !== 1) {
@@ -421,7 +424,9 @@
   })();
 
   SearchEngineCompleter = (function() {
-    function SearchEngineCompleter() {}
+    function SearchEngineCompleter() {
+      this.searchEngines = { ":": {} };
+    }
 
     SearchEngineCompleter.prototype.filter = function(queryTerms, onComplete) {
       var searchEngineMatch, query2, suggestions = [];
@@ -458,6 +463,7 @@
   MultiCompleter = (function() {
     function MultiCompleter(completers) {
       this.completers = completers;
+      this.mostRecentQuery = false;
     }
 
     MultiCompleter.maxResults = 10;

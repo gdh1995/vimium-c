@@ -199,7 +199,7 @@
       return visibleElements;
     },
     onKeyDownInMode: function(hintMarkers, event) {
-      var delay, keyResult, linksMatched, marker, matched, prev_mode, _i, _j, _len, _len1, _ref;
+      var delay, keyResult, linksMatched, marker, matched, prev_mode, _i, _j, _len, _len1;
       if (this.delayMode) {
         return;
       }
@@ -216,7 +216,7 @@
       } else {
         keyResult = this.getMarkerMatcher().matchHintsByKey(hintMarkers, event);
         linksMatched = keyResult.linksMatched;
-        delay = (_ref = keyResult.delay) != null ? _ref : 0;
+        delay = keyResult.delay || 0;
         if (linksMatched.length === 0) {
           this.deactivateMode();
         } else if (linksMatched.length === 1) {
@@ -289,7 +289,13 @@
           DomUtils.removeElement(LinkHints.hintMarkerContainingDiv);
         }
         LinkHints.hintMarkerContainingDiv = null;
-        handlerStack.remove(_this.handlerId);
+        if (delay) {
+          handlerStack.remove(_this.handlerId);
+        } else {
+          setTimeout(function() {
+            handlerStack.remove(_this.handlerId);
+          }, 200);
+        }
         HUD.hide();
         _this.isActive = false;
       };
@@ -509,7 +515,7 @@
       }
       return linksMatched;
     },
-    deactivate: function(delay, callback) {
+    deactivate: function() {
       this.hintKeystrokeQueue = [];
       this.linkTextKeystrokeQueue = [];
       return this.labelMap = {};

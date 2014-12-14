@@ -25,7 +25,6 @@
   root.tabInfoMap = tabInfoMap = {};
 
   keyQueue = "";
-  root.getKeyQueue = function() {return keyQueue;}
 
   validFirstKeys = {};
 
@@ -66,11 +65,18 @@
   };
 
   isEnabledForUrl = function(request) {
-    var rule = Exclusions.getRule(request.url);
-    return {
-      enabled: !(rule && !rule.passKeys),
-      passKeys: rule && rule.passKeys || ""
-    };
+    var rule = Exclusions.getRule(request.url), ret;
+    if (rule && !rule.passKeys) {
+      return {
+        enabled: false
+      };
+    } else {
+      ret = getCompletionKeysRequest();
+      ret.enabled = true;
+      ret.passKeys = rule ? rule.passKeys : ""
+      delete ret.name;
+      return ret;
+    }
   };
 
   root.addExclusionRule = function(pattern, passKeys) {
