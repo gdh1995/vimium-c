@@ -783,7 +783,7 @@
   };
 
   updateFindModeQuery = function() {
-    var error, escapeRegExp, hasNoIgnoreCaseFlag, parsedNonRegexQuery, pattern, text, _ref;
+    var error, escapeRegEx, hasNoIgnoreCaseFlag, parsedNonRegexQuery, pattern, text, _ref;
     findModeQuery.isRegex = !! settings.values.regexFindMode;
     hasNoIgnoreCaseFlag = false;
     findModeQuery.parsedQuery = findModeQuery.rawQuery.replace(/\\./g, function(match) {
@@ -816,8 +816,8 @@
       findModeQuery.activeRegexIndex = 0;
       findModeQuery.matchCount = (findModeQuery.regexMatches || []).length;
     } else {
-      escapeRegExp = /[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g;
-      parsedNonRegexQuery = findModeQuery.parsedQuery.replace(escapeRegExp, function(ch) {
+      escapeRegEx = /[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g;
+      parsedNonRegexQuery = findModeQuery.parsedQuery.replace(escapeRegEx, function(ch) {
         return "\\" + ch;
       });
       pattern = new RegExp(parsedNonRegexQuery, "g" + (findModeQuery.ignoreCase ? "i" : ""));

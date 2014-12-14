@@ -594,13 +594,13 @@
   };
 
   RegexpCache = {
-    escapeRegExp: /[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g,
+    escapeRegEx: /[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g,
     cache: {},
     clear: function() {
       this.cache = {};
     },
     get: function(s, p, n) {
-      var r = p + s.toLowerCase().replace(this.escapeRegExp, "\\$&") + n, v;
+      var r = p + s.toLowerCase().replace(this.escapeRegEx, "\\$&") + n, v;
       return (v = this.cache)[r] || (v[r] = new RegExp(r, (Utils.hasUpperCase(s) ? "" : "i")));
     }
   };
