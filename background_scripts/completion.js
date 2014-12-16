@@ -105,8 +105,8 @@
 
     BookmarkCompleter.prototype.filter = function(queryTerms, onComplete) {
       this.currentSearch = {
-        queryTerms: this.queryTerms,
-        onComplete: this.onComplete
+        queryTerms: queryTerms,
+        onComplete: onComplete
       };
       if (this.bookmarks) {
         this.performSearch();
@@ -628,7 +628,8 @@
       var _this = this;
       chrome.history.search({
         text: "",
-        maxResults: this.size
+        maxResults: this.size,
+        startTime: 0
       }, function(history) {
         history.sort(function(a, b) { return a.url.localeCompare(b.url); });
         Decoder.decodeList(history);

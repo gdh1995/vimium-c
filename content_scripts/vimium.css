@@ -304,10 +304,11 @@
   z-index: 99999999;
 }
 
+/* Vimium Scrollbar */
+
 .vimiumScroll::-webkit-scrollbar,
 .vimiumScroll::-webkit-scrollbar-track,
-.vimiumScroll::-webkit-scrollbar-thumb,
-.vimiumScroll::-webkit-scrollbar-button {
+.vimiumScroll::-webkit-scrollbar-thumb {
   background: none;
   border: none;
   border-radius: 5px;
@@ -319,17 +320,11 @@
 .vimiumScroll::-webkit-scrollbar:horizontal {
   height: 10px;
 }
-.vimiumScroll::-webkit-scrollbar-button {
-  height: 10px;
-  width: 10px;
-}
 .vimiumScroll::-webkit-scrollbar-thumb,
 .vimiumScroll::-webkit-scrollbar-thumb:window-inactive,
-.vimiumScroll::-webkit-scrollbar-track:hover,
-.vimiumScroll::-webkit-scrollbar-button {
+.vimiumScroll::-webkit-scrollbar-track:hover {
   background: rgba(96, 96, 96, 0.4);
 }
-.vimiumScroll::-webkit-scrollbar-thumb:hover,
-.vimiumScroll::-webkit-scrollbar-button:hover {
+.vimiumScroll::-webkit-scrollbar-thumb:hover {
   background: rgba(0, 0, 0, 0.6);
 }

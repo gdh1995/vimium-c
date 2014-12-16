@@ -7,7 +7,6 @@
   Note that the template placeholders (e.g. "pageNavigation") will be filled in by the background
   page with the up-to-date key bindings when the dialog is shown.
 -->
-<div class="vimB vimR vimiumScroll" id="vimiumHelpDialog">
 <style type="text/css">
 /* Help Dialog CSS */
 
@@ -68,7 +67,6 @@
 /* .vimiumHelpAdvanced.vimB    { display: none; } */
 /* .vimiumHelpCommandName.vimB { font-family: "Courier New"; } */
 /* .vimiumHelpCommandInfo.vimB { color: #555; } */
-
 #vimiumCloseButton {
   -webkit-user-select: none;
   color: #555;
@@ -86,28 +84,10 @@
   color: black;
   text-decoration: none;
 }
-#vimiumOptionsPage {
-  display: block;
-  position: absolute;
-  right: 60px;
-  top: 8px;
-}
-
-#vimiumHelpDialogFooter {
-  display: block;
-  position: relative;
-}
-#vimiumHelpDialogFooter > .vimiumColumn2 {
-  float: left;
-  width: 50%;
-}
-#vimiumToggleAdvancedCommands {
-  position: absolute;
-  right: 2px;
-  top: -34px;
-}
 </style>
-  <a class="vimB vimI vimL" id="vimiumOptionsPage" href="#">Options</a>
+
+<div class="vimB vimR vimiumScroll" id="vimiumHelpDialog">
+  <a class="vimB vimI vimL" style="position:absolute; right:60px; top:8px;" href="#">Options</a>
   <a class="vimB vimI vimL" id="vimiumCloseButton" href="#">&#215;</a>
   <div class="vimB vimI" style="display:block;font-size:20px;line-height:130%;"><span class="vimB vimI" style="color:#2f508e">Vim</span>ium {{title}}</div>
   <div class="vimB vimI vimiumColumnBox">
@@ -136,14 +116,14 @@
   <br clear="both" />
   <div class="vimB vimI" style="display: block; height: 1px; width: 92%; margin: 10px auto; background-color: #9a9a9a;"></div>
 
-  <div class="vimB vimI" id="vimiumHelpDialogFooter">
-    <a href="#" class="vimB vimI vimL" id="vimiumToggleAdvancedCommands">Show advanced commands</a>
+  <div class="vimB vimI" style="display:block; position:relative;">
+    <a href="#" class="vimB vimI vimL" style="position: absolute; right:2px; top:-34px;">Show advanced commands</a>
 
-    <div class="vimB vimI vimiumColumn2">
+    <div class="vimB vimI" style="float:left; width: 50%;">
       Enjoying Vimium? <a class="vimB vimI vimL" href="https://chrome.google.com/extensions/detail/dbepggeogbaibhgnhhndojpepiihcmeb">Leave us feedback</a>.
       <br/> Found a bug? <a class="vimB vimI vimL" href="http://github.com/philc/vimium/issues">Report it here</a>.
     </div>
-    <div class="vimB vimI vimiumColumn2" style="text-align: right">
+    <div class="vimB vimI" style="text-align:right; float:left; width: 50%;">
       <span class="vimB vimI">Version {{version}}</span><br/>
     </div>
   </div>

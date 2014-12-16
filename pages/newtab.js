@@ -1,1 +1,1 @@
-chrome.tabs.create({url:JSON.parse(localStorage["newTabUrl"] || '"chrome-search://local-ntp/local-ntp.html"')},function(){});window.close();
+chrome.tabs.create({url:JSON.parse(localStorage.newTabUrl||'"chrome-search://local-ntp/local-ntp.html"')});window.close();
