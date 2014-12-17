@@ -1137,7 +1137,7 @@
       },
       toggleAdvancedCommands: function(event) {
         var showAdvanced = VimiumHelpDialog.getShowAdvancedCommands();
-        event.preventDefault();
+        DomUtils.suppressEvent(event);
         VimiumHelpDialog.showAdvancedCommands(!showAdvanced);
         settings.set("helpDialog_showAdvancedCommands", !showAdvanced);
       },
@@ -1155,23 +1155,22 @@
     VimiumHelpDialog.init();
     container.addEventListener("mousewheel", DomUtils.suppressPropagation, false);
     document.getElementById("vimiumCloseButton").addEventListener("click", hideHelpDialog, false);
-    document.getElementById("vimiumOptionsPage").addEventListener("click", function(clickEvent) {
-      clickEvent.preventDefault();
+    document.getElementById("vimiumOptionsPage").addEventListener("click", function(event) {
+      DomUtils.suppressEvent(event);
       mainPort.postMessage({
         handler: "openOptionsPageInNewTab"
       });
     }, false);
   };
 
-  hideHelpDialog = function(clickEvent) {
-    var helpDialog;
-    isShowingHelpDialog = false;
-    helpDialog = document.getElementById("vimiumHelpDialogContainer");
+  hideHelpDialog = function(event) {
+    var helpDialog = document.getElementById("vimiumHelpDialogContainer");
     if (helpDialog) {
       helpDialog.parentNode.removeChild(helpDialog);
     }
-    if (clickEvent) {
-      clickEvent.preventDefault();
+    isShowingHelpDialog = false;
+    if (event) {
+      DomUtils.suppressEvent(event);
     }
   };
 
@@ -1208,19 +1207,21 @@
       links = el.getElementsByTagName("a");
       links[0].addEventListener("click", HUD.onUpdateLinkClicked, false);
       links[1].addEventListener("click", function(event) {
-        event.preventDefault();
+        DomUtils.suppressEvent(event);
         HUD.onUpdateLinkClicked();
       }, false);
       Tween.fade(el, 1.0, 150);
     },
     onUpdateLinkClicked: function(event) {
+      DomUtils.suppressEvent(event);
       HUD.hideUpgradeNotification();
       mainPort.postMessage({
         handler: "upgradeNotificationClosed"
       });
     },
-    hideUpgradeNotification: function(clickEvent) {
+    hideUpgradeNotification: function(event) {
       var el = HUD.upgradeNotificationElement();
+      DomUtils.suppressEvent(event);
       Tween.fade(el, 0, 150, function() {
         el.style.display = "none";
       });

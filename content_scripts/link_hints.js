@@ -23,8 +23,13 @@
   LinkHints = {
     hintMarkerContainingDiv: null,
     mode: undefined,
+    hintMarkers: undefined,
     linkActivator: undefined,
     delayMode: false,
+    handlerId: 0,
+    handlerHoldTime: 0,
+    initScrollY: 0,
+    initScrollX: 0,
     getMarkerMatcher: function() {
       return settings.values.filterLinkHints ? filterHints : alphabetHints;
     },
@@ -55,7 +60,7 @@
       return this.activateMode(DOWNLOAD_LINK_URL);
     },
     activateMode: function(mode) {
-      var el, hintMarkers;
+      var el;
       if (mode == null) {
         mode = OPEN_IN_CURRENT_TAB;
       }
@@ -66,24 +71,30 @@
         return;
       }
       this.setOpenLinkMode(mode);
-      hintMarkers = this.getVisibleClickableElements().map(this.createMarkerFor);
-      this.getMarkerMatcher().fillInMarkers(hintMarkers);
+      this.hintMarkers = this.getVisibleClickableElements().map(this.createMarkerFor);
+      this.getMarkerMatcher().fillInMarkers(this.hintMarkers);
       this.isActive = true;
       this.initScrollX = window.scrollX;
       this.initScrollY = window.scrollY;
-      this.hintMarkerContainingDiv = DomUtils.addElementList(hintMarkers, {
+      this.hintMarkerContainingDiv = DomUtils.addElementList(this.hintMarkers, {
         id: "vimiumHintMarkerContainer",
         className: "vimB vimR"
       });
-      return this.handlerId = handlerStack.push({
-        keydown: this.onKeyDownInMode.bind(this, hintMarkers),
-        keypress: function() {
-          return false;
-        },
-        keyup: function() {
-          return false;
-        }
-      });
+      if (this.handlerHoldTime > 0) {
+        clearTimeout(this.handlerHoldTime);
+      }
+      this.handlerHoldTime = 0;
+      if (this.handlerId === 0) {
+        this.handlerId = handlerStack.push({
+          keydown: this.onKeyDownInMode.bind(this),
+          keypress: function() {
+            return false;
+          },
+          keyup: function() {
+            return false;
+          }
+        });
+      }
     },
     setOpenLinkMode: function(mode) {
       this.mode = mode;
@@ -198,13 +209,12 @@
       }
       return visibleElements;
     },
-    onKeyDownInMode: function(hintMarkers, event) {
-      var delay, keyResult, linksMatched, marker, matched, prev_mode, _i, _j, _len, _len1;
+    onKeyDownInMode: function(event) {
+      var delay, keyResult, linksMatched, _i, _len;
       if (this.delayMode) {
         return;
       }
       if ((event.keyCode === keyCodes.shiftKey || event.keyCode === keyCodes.ctrlKey) && (this.mode === OPEN_IN_CURRENT_TAB || this.mode === OPEN_IN_NEW_BG_TAB || this.mode === OPEN_IN_NEW_FG_TAB)) {
-        prev_mode = this.mode;
         if (event.keyCode === keyCodes.shiftKey) {
           this.setOpenLinkMode(this.mode === OPEN_IN_CURRENT_TAB ? OPEN_IN_NEW_BG_TAB : OPEN_IN_CURRENT_TAB);
         } else {
@@ -212,9 +222,10 @@
         }
       }
       if (KeyboardUtils.isEscape(event)) {
+        this.handlerHoldTime = 200;
         this.deactivateMode();
       } else {
-        keyResult = this.getMarkerMatcher().matchHintsByKey(hintMarkers, event);
+        keyResult = this.getMarkerMatcher().matchHintsByKey(this.hintMarkers, event);
         linksMatched = keyResult.linksMatched;
         delay = keyResult.delay || 0;
         if (linksMatched.length === 0) {
@@ -222,26 +233,23 @@
         } else if (linksMatched.length === 1) {
           this.activateLink(linksMatched[0], delay);
         } else {
-          for (_i = 0, _len = hintMarkers.length; _i < _len; _i++) {
-            marker = hintMarkers[_i];
-            this.hideMarker(marker);
+          for (_i = 0, _len = this.hintMarkers.length; _i < _len; _i++) {
+            this.hideMarker(this.hintMarkers[_i]);
           }
-          for (_j = 0, _len1 = linksMatched.length; _j < _len1; _j++) {
-            matched = linksMatched[_j];
-            this.showMarker(matched, this.getMarkerMatcher().hintKeystrokeQueue.length);
+          for (_i = 0, _len = linksMatched.length; _i < _len; _i++) {
+            this.showMarker(linksMatched[_i], this.getMarkerMatcher().hintKeystrokeQueue.length);
           }
         }
       }
       return false;
     },
     activateLink: function(matchedLink, delay) {
-      var clickEl;
+      var clickEl = matchedLink.clickableItem;
       this.delayMode = true;
-      clickEl = matchedLink.clickableItem;
       if (DomUtils.isSelectable(clickEl)) {
         DomUtils.simulateSelect(clickEl);
-        return this.deactivateMode(delay, function() {
-          return LinkHints.delayMode = false;
+        this.deactivateMode(delay, function() {
+          LinkHints.delayMode = false;
         });
       } else {
         if (clickEl.nodeName.toLowerCase() === "input" && clickEl.type !== "button") {
@@ -255,13 +263,14 @@
         DomUtils.flashRect(matchedLink.rect);
         this.linkActivator(clickEl);
         if (this.mode === OPEN_WITH_QUEUE) {
-          return this.deactivateMode(delay, function() {
+          this.handlerHoldTime = -1;
+          this.deactivateMode(delay, function() {
             LinkHints.delayMode = false;
-            return LinkHints.activateModeWithQueue();
+            LinkHints.activateModeWithQueue();
           });
         } else {
-          return this.deactivateMode(delay, function() {
-            return LinkHints.delayMode = false;
+          this.deactivateMode(delay, function() {
+            LinkHints.delayMode = false;
           });
         }
       }
@@ -278,7 +287,7 @@
       }
     },
     hideMarker: function(linkMarker) {
-      return linkMarker.style.display = "none";
+      linkMarker.style.display = "none";
     },
     deactivateMode: function(delay, callback) {
       var _this = this, deactivate = function() {
@@ -289,15 +298,20 @@
           DomUtils.removeElement(LinkHints.hintMarkerContainingDiv);
         }
         LinkHints.hintMarkerContainingDiv = null;
-        if (delay) {
-          handlerStack.remove(_this.handlerId);
-        } else {
-          setTimeout(function() {
-            handlerStack.remove(_this.handlerId);
-          }, 200);
-        }
         HUD.hide();
         _this.isActive = false;
+        var clearHandler = function() {
+          handlerStack.remove(_this.handlerId);
+          _this.handlerId = 0;
+          _this.handlerHoldTime = 0;
+        }, holdTime = _this.handlerHoldTime - delay;
+        if (holdTime > 0) {
+          _this.handlerHoldTime = setTimeout(clearHandler, holdTime);
+        } else if (_this.handlerHoldTime >= 0) {
+          clearHandler();
+        } else {
+          _this.handlerHoldTime = 0;
+        }
       };
       if (delay) {
         setTimeout(callback ? function() {
@@ -305,6 +319,7 @@
           callback();
         } : deactivate, delay);
       } else {
+        delay = 0;
         deactivate();
         if (callback) {
           callback();
@@ -523,8 +538,10 @@
   };
 
   spanWrap = function(hintString) {
-    for (var ch, innerHTML = [], _i = 0, _len = hintString.length; _i < _len; _i++) {
-      innerHTML.push("<span class='vimB vimI'>" + hintString[_i] + "</span>");
+    for (var _i = 0, _j = -1, _len = hintString.length, innerHTML = new Array(_len * 3); _i < _len; _i++) {
+      innerHTML[++_j] = "<span class=\"vimB vimI\">";
+      innerHTML[++_j] = hintString[_i];
+      innerHTML[++_j] = "</span>";
     }
     return innerHTML.join("");
   };
