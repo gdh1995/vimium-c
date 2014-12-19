@@ -9,7 +9,7 @@ window.Marks.activateCreateMode = function() {
       if (keyChar === "") {
         return;
       }
-      if (/[A-Z]/.test(keyChar)) {
+      if (/[A-Z]/.test(keyChar)) { // TODO:
         mainPort.postMessage({
           handler: 'createMark',
           markName: keyChar,

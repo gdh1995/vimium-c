@@ -178,12 +178,12 @@
       } else if (event.keyCode === keyCodes.enter) {
         return "enter";
       }
-      var key = KeyboardUtils.getKeyChar(event).toLowerCase();
+      var key = KeyboardUtils.getKeyChar(event);
       if (key === "up" || (event.shiftKey && event.keyCode === keyCodes.tab)
-        || (event.ctrlKey && !event.shiftKey && (key === "k" || key === "p"))) {
+          || (event[keyCodes.modifier] && (key === "k" || key === "p"))) {
         return "up";
       } else if (key === "down" || (event.keyCode === keyCodes.tab && !event.shiftKey)
-        || (event.ctrlKey && !event.shiftKey && (key === "j" || key === "n"))) {
+          || (event[keyCodes.modifier] && (key === "j" || key === "n"))) {
         return "down";
       }
     };
@@ -295,15 +295,19 @@
     };
 
     VomnibarUI.prototype.onKeyEvent = function(event) {
-      if((event.keyCode > KeyboardUtils.keyCodes.f1 && event.keyCode <= KeyboardUtils.keyCodes.f12)
-        || event.altKey || event.shiftKey || event.ctrlKey || event.metaKey) {
+      if((event.keyCode > keyCodes.f1 && event.keyCode <= keyCodes.f12) || event.altKey) {
+        return;
+      }
+      else if ((event[keyCodes.modifier] || event.shiftKey) && (event.keyCode == keyCodes.left || event.keyCode == keyCodes.right)) {
+      }
+      else if (event.ctrlKey || event.metaKey || (event.shiftKey && !event.keyIdentifier.startsWith("U+"))) {
         return;
       }
       DomUtils.suppressEvent(event);
     };
     
-    VomnibarUI.prototype.template = "\
-<div class=\"vimB vimR\" id=\"vomnibar\">\n\
+    VomnibarUI.prototype.template =
+"<div class=\"vimB vimR\" id=\"vomnibar\">\n\
   <div class=\"vimB vimR\" id=\"vomnibarSearchArea\">\n\
     <input type=\"text\" class=\"vimB vimR\" id=\"vomnibarInput\" />\n\
   </div>\n\

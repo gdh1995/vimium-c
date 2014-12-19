@@ -182,7 +182,7 @@ function openTab(targetSwitch, url, tabID, ctrlKey) {
 		tab1.index = tabID + 1;
 	}
 	try {
-		if (typeof ctrlKey != 'undefined' && ctrlKey === true) {
+		if (ctrlKey === true) {
 			tab1.selected = false;
 			chrome.tabs.create(tab1);
 		} else {
@@ -197,7 +197,7 @@ function openTab(targetSwitch, url, tabID, ctrlKey) {
 			showNotice(getI18nMsg("borwserVersionLower"));
 			return false
 		}
-		if (typeof ctrlKey != 'undefined' && ctrlKey === true) {
+		if (ctrlKey === true) {
 			window.location.href = url // window.open(url)
 		} else {
 			if (targetSwitch == true) {
@@ -4140,19 +4140,22 @@ var dragExcludeClassList = ['boxClose', 'boxEdit', 'searchCenter', 'searchItem']
 		};
 	}
 })(jq);
-var storage = new $.storage(), PDI = $.pdi(), DBOX, cId = "", tabID = '', targetSwitch = true, serverValue = [], ctrlKey = false, ctrlKeyTimer = '', updateNotification = false;
+var storage = new $.storage(), PDI = $.pdi(), DBOX, cId = "", tabID = '', targetSwitch = true
+  , serverValue = [], ctrlKey = false, ctrlKeyTimer = 0, updateNotification = false;
 if (cId = PDI.get("setup", "cId")) {
 	storage = new $.storage(cId)
 }
 $(document).bind('keydown', function (e) {
-	if (e.ctrlKey) {
+	if (e.ctrlKey || e.metaKey) {
 		if (ctrlKeyTimer) {
-			clearTimeout(ctrlKeyTimer)
+			clearTimeout(ctrlKeyTimer);
+      ctrlKeyTimer = 0;
 		}
 		ctrlKey = true;
 		ctrlKeyTimer = setTimeout(function () {
-				ctrlKey = false
-			}, 1000)
+      ctrlKey = false;
+      ctrlKeyTimer = 0;
+    }, 1000)
 	}
 });
 if (window.location.hash == "#synchronize") {

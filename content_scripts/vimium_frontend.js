@@ -519,7 +519,7 @@
       });
       handlerStack.push({
         keydown: function(event) {
-          if (event.keyCode === KeyboardUtils.keyCodes.tab) {
+          if (event.keyCode === keyCodes.tab) {
             hints[selectedInputIndex].classList.remove('internalVimiumSelectedInputHint');
             if (event.shiftKey) {
               if (--selectedInputIndex === -1) {
@@ -532,7 +532,7 @@
             }
             hints[selectedInputIndex].classList.add('internalVimiumSelectedInputHint');
             visibleInputs[selectedInputIndex].element.focus();
-          } else if (event.keyCode !== KeyboardUtils.keyCodes.shiftKey) {
+          } else if (event.keyCode !== keyCodes.shiftKey) {
             DomUtils.removeElement(hintContainingDiv);
             this.remove();
             return true;
@@ -556,7 +556,7 @@
     var keyChar = "";
     if (event.keyCode > 31) {
       keyChar = String.fromCharCode(event.charCode);
-      if (keyChar === "f" && KeyboardUtils.isPrimaryModifierKey(event)) {
+      if (keyChar === "f" && event[keyCodes.modifier]) {
         enterInsertModeWithoutShowingIndicator();
         return;
       }
