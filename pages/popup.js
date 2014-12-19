@@ -44,22 +44,22 @@
         for (_i = 0, _len = _ref.length; _i < _len; _i++) {
           element = _ref[_i];
           element.addEventListener("keyup", function(event) {
-            if (event.ctrlKey && event.keyCode === 13) {
+            if ((event.ctrlKey || event.metaKey) && event.keyCode === 13) {
               addExclusionRule();
-              return window.close();
+              window.close();
             }
           });
           element.addEventListener("focus", function() {
-            return document.getElementById("helpText").style.display = "block";
+            document.getElementById("helpText").style.display = "block";
           });
           element.addEventListener("blur", function() {
-            return document.getElementById("helpText").style.display = "none";
+            document.getElementById("helpText").style.display = "none";
           });
         }
         passKeysElement.focus();
         passKeysElement.setSelectionRange(passKeysElement.value.length, passKeysElement.value.length);
       }
-      return onChange();
+      onChange();
     });
   };
 
@@ -71,19 +71,19 @@
     document.getElementById("popupRemove").disabled = !(originalRule && pattern === originalPattern);
     if (originalRule && pattern === originalPattern && passKeys === originalPassKeys) {
       popupExclude.disabled = true;
-      return popupExclude.value = "Update Rule";
+      popupExclude.value = "Update Rule";
     } else if (originalRule && pattern === originalPattern) {
       popupExclude.disabled = false;
-      return popupExclude.value = "Update Rule";
+      popupExclude.value = "Update Rule";
     } else if (originalRule) {
       popupExclude.disabled = false;
-      return popupExclude.value = "Add Rule";
+      popupExclude.value = "Add Rule";
     } else if (pattern) {
       popupExclude.disabled = false;
-      return popupExclude.value = "Add Rule";
+      popupExclude.value = "Add Rule";
     } else {
       popupExclude.disabled = true;
-      return popupExclude.value = "Add Rule";
+      popupExclude.value = "Add Rule";
     }
   };
 
@@ -99,7 +99,7 @@
       if (timer) {
         clearTimeout(timer);
       }
-      return timer = setTimeout(hideConfirmationMessage, 2000);
+      timer = setTimeout(hideConfirmationMessage, 2000);
     };
   })();
 
@@ -109,7 +109,7 @@
     passKeys = document.getElementById("popupPassKeys").value.trim();
     chrome.extension.getBackgroundPage().addExclusionRule(pattern, passKeys);
     showMessage("Updated.");
-    return reset();
+    reset();
   };
 
   removeExclusionRule = function() {
@@ -117,7 +117,7 @@
     pattern = document.getElementById("popupPattern").value.trim();
     chrome.extension.getBackgroundPage().removeExclusionRule(pattern);
     showMessage("Removed.");
-    return reset();
+    reset();
   };
 
   document.addEventListener("DOMContentLoaded", function() {
@@ -133,7 +133,7 @@
         document.getElementById(field).addEventListener(event, onChange, false);
       }
     }
-    return reset(true);
+    reset(true);
   });
 
 })();

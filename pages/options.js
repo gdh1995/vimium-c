@@ -174,33 +174,30 @@
     };
 
     ExclusionRulesOption.prototype.appendRule = function(rule) {
-      var content, element, event, field, remove, row, _i, _j, _len, _len1, _ref, _ref1;
-      content = document.querySelector('#exclusionRuleTemplate').content;
-      row = document.importNode(content, true);
+      var element, field, remove, row, _i, _j, _len, _ref, _ref1;
+      row = document.importNode(document.querySelector('#exclusionRuleTemplate').content, true);
       _ref = ["pattern", "passKeys"];
+      _ref1 = ["input", "change"];
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
         field = _ref[_i];
         element = row.querySelector("." + field);
         element.value = rule[field];
-        _ref1 = ["input", "change"];
-        for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
-          event = _ref1[_j];
-          element.addEventListener(event, enableSaveButton);
+        for (_j = _ref1.length; 0 <= --_j; ) {
+          element.addEventListener(_ref1[_j], enableSaveButton);
         }
       }
-      remove = row.querySelector(".exclusionRemoveButton");
-      remove.addEventListener("click", (function(event) {
-        row = event.target.parentNode.parentNode;
-        row.parentNode.removeChild(row);
+      row.querySelector(".exclusionRemoveButton").addEventListener("click", function(event) {
+        var row1 = event.target.parentNode.parentNode;
+        row1.parentNode.removeChild(row1);
         enableSaveButton();
-      }).bind(this));
-      return this.element.appendChild(row);
+      });
+      this.element.appendChild(row);
     };
 
     ExclusionRulesOption.prototype.readValueFromElement = function() {
       var children, passKeys, pattern, rules, _i, _len, _ref;
       rules = [];
-      _ref = this.element.children;
+      _ref = this.element.getElementsByClassName("exclusionRuleTemplateInstance");
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
         children = _ref[_i].children;
         pattern = children[0].firstChild.value.trim();
@@ -219,16 +216,12 @@
       return rules;
     };
 
+    ExclusionRulesOption.prototype.flatten = function(rule) {
+      return (rule && rule.pattern) ? (rule.pattern + "\r" + rule.passKeys) : "";
+    };
+
     ExclusionRulesOption.prototype.areEqual = function(a, b) {
-      var flatten;
-      flatten = function(rule) {
-        if (rule && rule.pattern) {
-          return rule.pattern + "\n" + rule.passKeys;
-        } else {
-          return "";
-        }
-      };
-      return a.map(flatten).join("\n") === b.map(flatten).join("\n");
+      return a.map(this.flatten).join("\n") === b.map(this.flatten).join("\n");
     };
 
     return ExclusionRulesOption;
@@ -278,7 +271,7 @@
   };
 
   document.addEventListener("DOMContentLoaded", function() {
-    var name, type, _ref;
+    var element, name, type, _i, _len, _ref, _ref1;
     _ref = {
       exclusionRules: ExclusionRulesOption,
       filterLinkHints: CheckBoxOption,
@@ -317,7 +310,7 @@
       }
     };
     document.addEventListener("keyup", function(event) {
-      if (event.ctrlKey && event.keyCode === 13) {
+      if ((event.ctrlKey || event.metaKey) && event.keyCode === 13) {
         if (document.activeElement && document.activeElement.blur) {
           document.activeElement.blur();
         }
