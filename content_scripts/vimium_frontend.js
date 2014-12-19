@@ -589,10 +589,7 @@
       modifiers = "";
       keyChar = KeyboardUtils.getKeyChar(event);
       if (keyChar.length > 0) {
-        if (event.metaKey) {
-          modifiers += "m-";
-        }
-        if (event.ctrlKey) {
+        if (event[keyCodes.modifier]) {
           modifiers += "c-";
         }
         if (event.altKey) {
