@@ -2,6 +2,10 @@
  * Many CSS class names in this file use the verbose "vimiumXYZ" as the class name. This is so we don't
  * use the same CSS class names that the page is using, so the page's CSS doesn't mess with the style of our
  * Vimium dialogs.
+ *
+ * The z-indexes of Vimium elements are very large, because we always want them to show on top. Chrome may
+ * support up to Number.MAX_VALUE, which is approximately 1.7976e+308. We're using 2^31, which is the max
+ * value of a singed 32 bit int. Let's try larger valeus if 2**31 empirically isn't large enough.
  */
 
 /*

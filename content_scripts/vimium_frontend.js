@@ -278,7 +278,7 @@
       }
     });
     settings.addEventListener("load", function() {
-      Scroller.setSmoothScroll(!! settings.values.smoothScroll);
+      Scroller.setSmoothScroll(settings.values.smoothScroll ? true : false);
       checkIfEnabledForUrl();
     });
     Scroller.init();
@@ -326,7 +326,7 @@
     }
     mainPort.postMessage({
       handler: "registerFrame",
-      frameId: ((document.body.tagName !== "FRAMESET") ? frameId : NaN)
+      frameId: ((document.body.tagName.toLowerCase() !== "frameset") ? frameId : NaN)
     });
     window.removeEventListener("DOMContentLoaded", registerFrame);
   };
@@ -377,6 +377,13 @@
 
   window.focusThisFrame = function(shouldHighlight) {
     var borderWas;
+    if (window.innerWidth < 3 || window.innerHeight < 3) {
+      mainPort.postMessage({
+        handler: "nextFrame",
+        frameId: frameId
+      });
+      return;
+    }
     window.focus();
     if (document.body && shouldHighlight) {
       borderWas = document.body.style.border;

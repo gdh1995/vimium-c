@@ -28,5 +28,5 @@
    "options_page": "pages/options.html",
    "permissions": [ "tabs", "bookmarks", "history", "clipboardRead", "sessions", "management", "\u003Call_urls>", "chrome://favicon/*" ],
    "short_name": "Vim+Weidu",
-   "version": "1.45"
+   "version": "1.49"
 }
