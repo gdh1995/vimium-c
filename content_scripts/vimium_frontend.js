@@ -5,7 +5,7 @@
     , exitInsertMode, findAndFocus, findAndFollowLink, findAndFollowRel, findMode, findChangeListened
     , findModeAnchorNode, findModeQuery, findModeQueryHasResults, focusFoundLink, followLink
     , frameId, getLinkFromSelection, getNextQueryFromRegexMatches, handleDeleteForFindMode
-    , handleEnterForFindMode, handleEscapeForFindMode, handleKeyCharForFindMode, handledKeydownEvents
+    , handleEnterForFindMode, handleEscapeForFindMode, handleKeyCharForFindMode, KeydownEvents
     , hasModifiersRegex, hideHelpDialog, initializePreDomReady
     , initializeWhenEnabled, insertModeLock, installListener, installedListeners, isDOMDescendant
     , isEditable, isEmbed, isEnabledForUrl, isFocusable, isInsertMode, isPassKey, isShowingHelpDialog
@@ -547,7 +547,21 @@
     return keyQueue.length === 0 && passKeys.length > 0 && passKeys.indexOf(keyChar) >= 0;
   };
 
-  handledKeydownEvents = [];
+  KeydownEvents = {
+    handledEvents: {},
+    stringify: function(event) {
+      return [+event.metaKey, +event.altKey, +event.ctrlKey, event.keyIdentifier
+        , event.keyCode].join(",");
+    },
+    push: function(event) {
+      this.handledEvents[this.stringify(event)] = true;
+    },
+    pop: function(event) {
+      var key = this.stringify(event), value = this.handledEvents[key];
+      delete this.handledEvents[key];
+      return value;
+    }
+  };
 
   onKeypress = function(event) {
     if (!isEnabledForUrl || !handlerStack.bubbleEvent('keypress', event)) {
@@ -664,19 +678,14 @@
     } else {
       DomUtils.suppressPropagation(event);
     }
-    handledKeydownEvents.push(event);
+    KeydownEvents.push(event);
   };
 
   onKeyup = function(event) {
-    if (!isEnabledForUrl || !handlerStack.bubbleEvent("keyup", event) || isInsertMode()) {
-      return;
-    }
-    for (var keydown, i = handledKeydownEvents.length; 0 <= --i; ) {
-      keydown = handledKeydownEvents[i];
-      if (event.metaKey === keydown.metaKey && event.altKey === keydown.altKey && event.ctrlKey === keydown.ctrlKey && event.keyIdentifier === keydown.keyIdentifier && event.keyCode === keydown.keyCode) {
-        handledKeydownEvents.splice(i, 1);
+    if (isEnabledForUrl) {
+      var handledKeydown = KeydownEvents.pop(event);
+      if (handlerStack.bubbleEvent("keyup", event) && handledKeydown) {
         DomUtils.suppressPropagation(event);
-        break;
       }
     }
   };
@@ -1300,6 +1309,8 @@
   root.HUD = HUD;
 
   root.handlerStack = handlerStack;
+  
+  root.KeydownEvents = KeydownEvents;
 
   root.frameId = frameId;
 

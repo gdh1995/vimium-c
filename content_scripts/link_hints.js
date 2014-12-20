@@ -222,7 +222,7 @@
         }
       }
       if (KeyboardUtils.isEscape(event)) {
-        this.handlerHoldTime = 200;
+        KeydownEvents.push(event);
         this.deactivateMode();
       } else {
         keyResult = this.getMarkerMatcher().matchHintsByKey(this.hintMarkers, event);

@@ -174,6 +174,7 @@
 
     VomnibarUI.prototype.actionFromKeyEvent = function(event) {
       if (KeyboardUtils.isEscape(event)) {
+        KeydownEvents.push(event);
         return "dismiss";
       } else if (event.keyCode === keyCodes.enter) {
         return "enter";
