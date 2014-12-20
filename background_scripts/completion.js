@@ -13,12 +13,12 @@
       this.relevancy = computeRelevancy(this, extraData);
     }
 
-    Suggestion.prototype.generateHtml = function() {
-      if (! this.queryTerms) { return; }
-      this.title && (this.title = this.highlightTerms(this.title));
-      this.text = this.shortenUrl(this.text);
-      this.textSplit = this.highlight1(this.text);
-      delete this.queryTerms;
+    Suggestion.prepareHtml = function(suggestion) {
+      if (! suggestion.queryTerms) { return; }
+      suggestion.title && (suggestion.title = suggestion.highlightTerms(suggestion.title));
+      suggestion.text = suggestion.shortenUrl(suggestion.text);
+      suggestion.textSplit = suggestion.highlight1(suggestion.text);
+      delete suggestion.queryTerms;
     };
 
     Suggestion._domA = undefined;
@@ -28,11 +28,12 @@
       return a.protocol + "//" + a.hostname;
     };
 
+    Suggestion.httpRegex = /^https?:\/\//;
     Suggestion.prototype.shortenUrl = function(url) {
       if (url.charCodeAt(url.length - 1) === 47) { // '/'
         url = url.substring(0, url.length - 1);
       }
-      return url.replace(/^https?:\/\//, "");
+      return url.replace(Suggestion.httpRegex, "");
     };
 
     Suggestion.prototype.pushMatchingRanges = function(string, term, ranges) {
@@ -70,11 +71,14 @@
         this.pushMatchingRanges(string, this.queryTerms[_i], ranges);
       }
       if (ranges.length === 0) {
-        return [];
+        return ranges;
       }
-      return this.mergeRanges(ranges.sort(function(a, b) {
-        return a[0] - b[0];
-      }));
+      ranges.sort(Suggestion.sortBy0);
+      return this.mergeRanges(ranges);
+    };
+
+    Suggestion.sortBy0 = function(a, b) {
+      return a[0] - b[0];
     };
 
     Suggestion.prototype.mergeRanges = function(ranges) {
@@ -143,15 +147,18 @@
     };
 
     BookmarkCompleter.prototype.refresh = function() {
-      var _this = this;
       this.bookmarks = null;
-      chrome.bookmarks.getTree(function(bookmarks) {
-        _this.bookmarks = _this.traverseBookmarks(bookmarks).filter(function(bookmark) {
-          return bookmark.url;
-        });
-        Decoder.decodeList(_this.bookmarks);
-        _this.onBookmarksLoaded();
-      });
+      chrome.bookmarks.getTree(this.readTree.bind(this));
+    };
+
+    BookmarkCompleter.prototype.readTree = function(bookmarks) {
+      this.bookmarks = this.traverseBookmarks(bookmarks).filter(BookmarkCompleter.getUrl);
+      Decoder.decodeList(this.bookmarks);
+      this.onBookmarksLoaded();
+    };
+
+    BookmarkCompleter.getUrl = function(b) {
+      return b.url;
     };
 
     BookmarkCompleter.prototype.ignoreTopLevel = {
@@ -261,14 +268,16 @@
     
     HistoryCompleter.prototype.filterFinish = function(historys, onComplete) {
       var s = Suggestion, c = this.computeRelevancyByTime, d = Decoder.decodeURL;
-      onComplete(historys.sort(function(a, b) {
-        return b.lastVisitTime - a.lastVisitTime;
-      }).slice(0, MultiCompleter.maxResults).map(function(e) {
+      onComplete(historys.sort(HistoryCompleter.rsortByLvt).slice(0, MultiCompleter.maxResults).map(function(e) {
         var o = new s([], "history", e.url, d(e.url), e.title, c, e.lastVisitTime);
         e.sessionId && (o.sessionId = e.sessionId);
         return o;
       }));
     };
+
+    HistoryCompleter.rsortByLvt = function(a, b) {
+      return b.lastVisitTime - a.lastVisitTime;
+    }
 
     HistoryCompleter.prototype.computeRelevancy = function(suggestion, lastVisitTime) {
       var recencyScore = RankingUtils.recencyScore(lastVisitTime),
@@ -286,17 +295,19 @@
 
   DomainCompleter = (function() {
     function DomainCompleter() {
-      this.domains = null;
     }
+
+    DomainCompleter.domains = null;
 
     DomainCompleter.prototype.filter = function(queryTerms, onComplete) {
       if (queryTerms.length !== 1) {
         onComplete([]);
-      } else if (this.domains) {
+      } else if (DomainCompleter.domains) {
         this.performSearch(queryTerms, onComplete);
       } else {
         var _this = this;
-        this.populateDomains(function() {
+        HistoryCache.use(function(history) {
+          DomainCompleter.populateDomains(history);
           _this.performSearch(queryTerms, onComplete);
         });
       }
@@ -304,7 +315,7 @@
 
     DomainCompleter.prototype.performSearch = function(queryTerms, onComplete) {
       var domain, domainCandidates = [], query = queryTerms[0];
-      for (domain in this.domains) {
+      for (domain in DomainCompleter.domains) {
         if (domain.indexOf(query) >= 0) {
           domainCandidates.push(domain);
         }
@@ -321,7 +332,7 @@
       var domain, recencyScore, wordRelevancy, score, _i, _len, result = "", result_score = -1000;
       for (_i = 0, _len = domainCandidates.length; _i < _len; ++_i) {
         domain = domainCandidates[_i];
-        recencyScore = RankingUtils.recencyScore(this.domains[domain].entry.lastVisitTime || 0);
+        recencyScore = RankingUtils.recencyScore(DomainCompleter.domains[domain].entry.lastVisitTime || 0);
         wordRelevancy = RankingUtils.wordRelevancy(queryTerms, domain, null);
         score = recencyScore <= wordRelevancy ? wordRelevancy : (wordRelevancy + recencyScore) / 2;
         if (score > result_score) {
@@ -332,30 +343,24 @@
       return result;
     };
 
-    DomainCompleter.prototype.populateDomains = function(onComplete) {
-      var _this = this;
-      HistoryCache.use(function(history) {
-        _this.domains = {};
-        history.forEach(function(entry) {
-          _this.onPageVisited(entry);
-        });
-        var ret = chrome.history.onVisited.addListener(_this.onPageVisited.bind(_this));
-        chrome.history.onVisitRemoved.addListener(_this.onVisitRemoved.bind(_this));
-        onComplete();
-      });
+    DomainCompleter.populateDomains = function(history) {
+      this.domains = {};
+      history.forEach(this.onPageVisited);
+      chrome.history.onVisited.addListener(this.onPageVisited);
+      chrome.history.onVisitRemoved.addListener(this.onVisitRemoved);
     };
 
-    DomainCompleter.prototype.onPageVisited = function(newPage) {
-      var domain = this.parseDomainAndScheme(newPage.url);
+    DomainCompleter.onPageVisited = function(newPage) {
+      var domain = DomainCompleter.parseDomainAndScheme(newPage.url);
       if (domain) {
-        var slot = this.domains[domain];
+        var slot = DomainCompleter.domains[domain];
         if (slot) {
           if (slot.entry.lastVisitTime < newPage.lastVisitTime) {
             slot.entry = newPage;
           }
           ++ slot.referenceCount;
         } else {
-          this.domains[domain] = {
+          DomainCompleter.domains[domain] = {
             entry: newPage,
             referenceCount: 1
           };
@@ -363,21 +368,21 @@
       }
     };
 
-    DomainCompleter.prototype.onVisitRemoved = function(toRemove) {
+    DomainCompleter.onVisitRemoved = function(toRemove) {
       if (toRemove.allHistory) {
-        this.domains = {};
+        DomainCompleter.domains = {};
         return;
       }
-      var domains = this.domains, _this = this;
+      var domains = DomainCompleter.domains, parse = DomainCompleter.parseDomainAndScheme;
       toRemove.urls.forEach(function(url) {
-        var domain = _this.parseDomainAndScheme(url);
+        var domain = parse(url);
         if (domain && domains[domain] && (-- domains[domain].referenceCount) === 0) {
           delete domains[domain];
         }
       });
     };
 
-    DomainCompleter.prototype.parseDomainAndScheme = function(url) {
+    DomainCompleter.parseDomainAndScheme = function(url) {
       return Utils.hasFullUrlPrefix(url) && !Utils.hasChromePrefix(url) && url.split("/", 3).join("/");
     };
 
@@ -395,24 +400,24 @@
 
     TabCompleter.prototype.filter = function(queryTerms, onComplete) {
       var _this = this;
-      chrome.tabs.query({}, function(tabs) {
-        var results, suggestions;
-        results = tabs.filter(function(tab) {
-          var text = Decoder.decodeURL(tab.url);
-          if (RankingUtils.matches(queryTerms, text + '\n' + tab.title)) {
-            tab.text = text;
-            return true;
-          }
-          return false;
-        });
-        suggestions = results.map(function(tab) {
-          var suggestion = new Suggestion(queryTerms, "tab", tab.url, tab.text, tab.title, _this.computeRelevancy);
-          suggestion.sessionId = tab.id;
-          suggestion.favIconUrl = tab.favIconUrl;
-          return suggestion;
-        });
-        onComplete(suggestions);
+      chrome.tabs.query({}, this.filter1.bind(this, queryTerms, onComplete));
+    };
+
+    TabCompleter.prototype.filter1 = function(queryTerms, onComplete, tabs) {
+      var _this = this, suggestions = tabs.filter(function(tab) {
+        var text = Decoder.decodeURL(tab.url);
+        if (RankingUtils.matches(queryTerms, text + '\n' + tab.title)) {
+          tab.text = text;
+          return true;
+        }
+        return false;
+      }).map(function(tab) {
+        var suggestion = new Suggestion(queryTerms, "tab", tab.url, tab.text, tab.title, _this.computeRelevancy);
+        suggestion.sessionId = tab.id;
+        suggestion.favIconUrl = tab.favIconUrl;
+        return suggestion;
       });
+      onComplete(suggestions);
     };
 
     TabCompleter.prototype.computeRelevancy = function(suggestion) {
@@ -491,19 +496,16 @@
       }
       RegexpCache.clear();
       this.mostRecentQuery = true;
-      var counter = this.completers.length, suggestions = [], _this = this;
-      this.completers.forEach(function(completer) {
-        completer.filter(queryTerms, function(newSuggestions) {
+      var r = this.completers, i = 0, l = r.length, counter = l, suggestions = [], _this = this,
+        callback = function(newSuggestions) {
           suggestions = suggestions.concat(newSuggestions);
           --counter;
           if (counter > 0) { return; }
           
           newSuggestions = null;
-          suggestions.sort(function(a, b) { return b.relevancy - a.relevancy; });
+          suggestions.sort(_this.rsortByRelevancy);
           suggestions = suggestions.slice(0, MultiCompleter.maxResults);
-          suggestions.forEach(function(suggestion) {
-            suggestion.generateHtml();
-          });
+          suggestions.forEach(Suggestion.prepareHtml);
           onComplete(suggestions);
           suggestions = null;
           if (typeof _this.mostRecentQuery === "object") {
@@ -511,9 +513,15 @@
           } else {
             _this.mostRecentQuery = false;
           }
-        });
-      });
+        };
+      for (; i < l; i++) {
+        r[i].filter(queryTerms, callback);
+      };
     };
+    
+    MultiCompleter.prototype.rsortByRelevancy = function(a, b) {
+      return b.relevancy - a.relevancy;
+    }
 
     return MultiCompleter;
 
@@ -537,6 +545,9 @@
       maximumScore: 3,
       recencyCalibrator: 2.0 / 3.0
     },
+    _reduceLength: function(p, c) {
+      return p - c.length;
+    },
     scoreTerm: function(term, string) {
       var count, nonMatching, score;
       score = 0;
@@ -544,9 +555,7 @@
       nonMatching = string.split(RegexpCache.get(term, "", ""));
       if (nonMatching.length > 1) {
         score = this.matchWeights.matchAnywhere;
-        count = nonMatching.reduce((function(p, c) {
-          return p - c.length;
-        }), string.length);
+        count = nonMatching.reduce(this._reduceLength, string.length);
         if (RegexpCache.get(term, "\\b", "").test(string)) {
           score += this.matchWeights.matchStartOfWord;
           if (RegexpCache.get(term, "\\b", "\\b").test(string)) {
@@ -594,14 +603,14 @@
   };
 
   RegexpCache = {
-    escapeRegEx: /[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g,
-    cache: {},
+    _escapeRegEx: /[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g,
+    _cache: {},
     clear: function() {
-      this.cache = {};
+      this._cache = {};
     },
     get: function(s, p, n) {
-      var r = p + s.toLowerCase().replace(this.escapeRegEx, "\\$&") + n, v;
-      return (v = this.cache)[r] || (v[r] = new RegExp(r, (Utils.hasUpperCase(s) ? "" : "i")));
+      var r = p + s.replace(this.escapeRegEx, "\\$&") + n, v;
+      return (v = this._cache)[r] || (v[r] = new RegExp(r, (Utils.hasUpperCase(s) ? "" : "i")));
     }
   };
 
