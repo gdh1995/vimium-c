@@ -1216,17 +1216,16 @@
     },
     showUpgradeNotification: function(version) {
       var el = HUD.upgradeNotificationElement(), links;
-      el.innerHTML = "Vimium has been updated to <a class='vimB vimI vimL' href='https://chrome.google.com/extensions/detail/dbepggeogbaibhgnhhndojpepiihcmeb'> " + version + "</a>.<a class='vimB vimI vimL vimiumHUDClose' href='#'>&#215;</a>";
+      el.innerHTML = "Vimium has been updated to <a class='vimB vimI vimL' target='_blank' href='https://chrome.google.com/extensions/detail/dbepggeogbaibhgnhhndojpepiihcmeb'> " + version + "</a>.<a class='vimB vimI vimL vimiumHUDClose' href='#'>&#215;</a>";
       links = el.getElementsByTagName("a");
       links[0].addEventListener("click", HUD.onUpdateLinkClicked, false);
       links[1].addEventListener("click", function(event) {
-        DomUtils.suppressEvent(event);
+        event.preventDefault();
         HUD.onUpdateLinkClicked();
       }, false);
       Tween.fade(el, 1.0, 150);
     },
-    onUpdateLinkClicked: function(event) {
-      DomUtils.suppressEvent(event);
+    onUpdateLinkClicked: function() {
       HUD.hideUpgradeNotification();
       mainPort.postMessage({
         handler: "upgradeNotificationClosed"

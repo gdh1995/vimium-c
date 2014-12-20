@@ -372,6 +372,7 @@
             return wnd.type === "normal";
           });
           if (wnds.length <= 1) {
+            // retain the last window
             toCreate = {};
             if (wnds.length === 1 && wnds[0].incognito && (/^https?:/i.test(url)
               || url.toLowerCase() === Settings.defaults.newTabUrl)) {
@@ -380,11 +381,12 @@
             }
           }
           else if (! tab.incognito) {
+            // retain the last normal window which has currentTab
             wnds = wnds.filter(function(wnd) {
               return ! wnd.incognito;
             });
-            if (wnds.length == 1 && wnds[0].id === tab.windowId) {
-              toCreate = { windowId: wnds[0].id };
+            if (wnds.length === 1 && wnds[0].id === tab.windowId) {
+              toCreate = { windowId: tab.windowId };
             }
           }
           if (callback) {
@@ -395,11 +397,11 @@
               });
             });
           }
-          chrome.tabs.remove(tab.id);
           if (toCreate) {
             toCreate.url = url;
             chrome.tabs.create(toCreate);
           }
+          chrome.tabs.remove(tab.id);
         });
       });
     },
@@ -482,9 +484,9 @@
     },
     nextFrame: function(tab, count, frameId) {
       var frames = frameIdsForTab[tab.id];
-      count = (count + Math.max(0, frameIdsForTab[tab.id].indexOf(frameId))) % frames.length;
+      count = (count + Math.max(0, frames.indexOf(frameId))) % frames.length;
       frames = frameIdsForTab[tab.id] = frames.slice(count).concat(frames.slice(0, count));
-      chrome.runtime.sendMessage(tab.id, {
+      chrome.tabs.sendMessage(tab.id, {
         name: "focusFrame",
         frameId: frames[0],
         highlight: true
