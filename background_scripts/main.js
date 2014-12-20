@@ -794,7 +794,7 @@
   };
 
   handleMainPort = function(request, port) {
-    var key, msgId = request._msgId;
+    var key, func, msgId = request._msgId;
     if (msgId) {
       request = request.request;
     }
@@ -810,15 +810,15 @@
       }
     }
     else if (key = request.handler) {
-      key = requestHandlers[key];
-      if (key) {
+      func = requestHandlers[key];
+      if (func) {
         chrome.tabs.getSelected(null, function(tab) {
-          key = key(request, tab, port);
+          var response = func(request, tab, port);
           if (msgId) {
             port.postMessage({
               name: "response",
               _msgId: msgId,
-              response: key
+              response: response
             });
           }
         });
@@ -984,6 +984,9 @@
     registerFrame: registerFrame,
     unregisterFrame: unregisterFrame,
     frameFocused: handleFrameFocused,
+    nextFrame: function(request, tab) {
+      BackgroundCommands.nextFrame(tab, 1, request.frameId);
+    },
     upgradeNotificationClosed: upgradeNotificationClosed,
     updateScrollPosition: handleUpdateScrollPosition,
     copyToClipboard: copyToClipboard,

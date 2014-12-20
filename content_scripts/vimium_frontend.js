@@ -72,7 +72,7 @@
     postMessage: function(request, callback) {
       if (callback) {
         request = {
-          _msgId: Utils.createUniqueId(),
+          _msgId: "" + Utils.createUniqueId(),
           request: request
         };
       }
@@ -107,7 +107,7 @@
         }, 17);
       }
       return (this._port === this.fakePort) ? 0
-        : callback ? request._msgId : 1;
+        : callback ? +request._msgId : 1;
     },
     getListener: function() {
       return this._listener;
