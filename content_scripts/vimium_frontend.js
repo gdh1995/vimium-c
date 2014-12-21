@@ -358,7 +358,7 @@
       return;
     }
     if (request.passCountToFunction) {
-      Utils.invokeCommandString(request.command, [request.count]);
+      Utils.invokeCommandString(request.command, request.count);
     } else {
       for (var i = 0, _ref = request.count; i < _ref; ++i) {
         Utils.invokeCommandString(request.command);
