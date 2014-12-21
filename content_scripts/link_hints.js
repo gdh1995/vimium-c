@@ -230,6 +230,9 @@
         delay = keyResult.delay || 0;
         if (linksMatched.length === 0) {
           this.deactivateMode();
+          if (KeyboardUtils.isFunctionKey(event)) {
+            return true;
+          }
         } else if (linksMatched.length === 1) {
           this.activateLink(linksMatched[0], delay);
         } else {

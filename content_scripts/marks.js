@@ -9,7 +9,7 @@ window.Marks = {
     var baseLocation, hash, keyChar, sep, _ref;
     keyChar = KeyboardUtils.getKeyChar(event);
     if (keyChar === "") {
-      return;
+      return false;
     }
     if (/[A-Z]/.test(keyChar)) { // TODO:
       mainPort.postMessage({
@@ -42,7 +42,7 @@ window.Marks = {
     var baseLocation, hash, keyChar, mark, markString, sep, _ref;
     keyChar = KeyboardUtils.getKeyChar(event);
     if (keyChar === "") {
-      return;
+      return false;
     }
     if (/[A-Z]/.test(keyChar)) {
       mainPort.postMessage({

@@ -976,6 +976,7 @@
           if (KeyboardUtils.isEscape(event)) {
             DomUtils.simulateSelect(document.activeElement);
             enterInsertModeWithoutShowingIndicator(document.activeElement);
+            KeydownEvents.push(event);
             return false;
           }
           return true;

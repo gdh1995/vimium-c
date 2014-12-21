@@ -296,7 +296,7 @@
     };
 
     VomnibarUI.prototype.onKeyEvent = function(event) {
-      if((event.keyCode > keyCodes.f1 && event.keyCode <= keyCodes.f12) || event.altKey) {
+      if(KeyboardUtils.isFunctionKey(event) || event.altKey) {
         return;
       }
       else if ((event[keyCodes.modifier] || event.shiftKey) && (event.keyCode == keyCodes.left || event.keyCode == keyCodes.right)) {
