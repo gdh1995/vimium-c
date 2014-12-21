@@ -225,14 +225,12 @@
         });
         return;
       }
-      chrome.windows.getCurrent(function(window) {
-        var historys = [], arr = {}, tabQueue = root.tabQueue;
-        window = window.id;
-        if (tabQueue[window] && tabQueue[window].length > 0) {
-          window = tabQueue[window];
-          var i = window.length - 1, entry;
+      chrome.windows.getCurrent(function(wnd) {
+        var historys = [], arr = {}, tabs = tabQueue[wnd.id], i, entry;
+        if (tabs && tabs.length > 0) {
+          i = tabs.length - 1;
           do {
-            entry = window[i];
+            entry = tabs[i];
             if (!entry.url || entry.url in arr) { continue; }
             arr[entry.url] = 1;
             historys.push({

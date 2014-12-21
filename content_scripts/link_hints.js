@@ -2,7 +2,7 @@
 (function() {
   var COPY_LINK_URL, COPY_LINK_TEXT, DOWNLOAD_LINK_URL, LinkHints, OPEN_INCOGNITO
     , OPEN_IN_CURRENT_TAB, OPEN_IN_NEW_BG_TAB, OPEN_IN_NEW_FG_TAB, OPEN_WITH_QUEUE
-    , alphabetHints, filterHints, numberToHintString, root, spanWrap;
+    , alphabetHints, filterHints, numberToHintString, spanWrap;
 
   OPEN_IN_CURRENT_TAB = {};
 
@@ -570,8 +570,6 @@
     return hintString.join("");
   };
 
-  root = typeof exports !== "undefined" && exports !== null ? exports : window;
-
-  root.LinkHints = LinkHints;
+  (typeof exports !== "undefined" && exports !== null ? exports : window).LinkHints = LinkHints;
 
 })();

@@ -30,17 +30,15 @@
   },
   postUpdateHooks: {
     keyMappings: function(value) {
-      var root = typeof exports !== "undefined" && exports !== null ? exports : window;
-      root.Commands.clearKeyMappingsAndSetDefaults();
-      root.Commands.parseCustomKeyMappings(value);
-      root.refreshCompletionKeysAfterMappingSave();
+      Commands.clearKeyMappingsAndSetDefaults();
+      Commands.parseCustomKeyMappings(value);
+      refreshCompletionKeysAfterMappingSave();
     },
     searchEngines: function(value) {
       this.parseSearchEngines(value);
     },
     exclusionRules: function(value) {
-      var root = typeof exports !== "undefined" && exports !== null ? exports : window;
-      root.Exclusions.postUpdateHook(value);
+      Exclusions.postUpdateHook(value);
     },
     settingsVersion: function(value) {
       var key = "settingsVersion";

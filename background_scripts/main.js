@@ -1002,8 +1002,8 @@
     saveHelpDialogSettings: saveHelpDialogSettings,
     selectSpecificTab: selectSpecificTab,
     refreshCompleter: refreshCompleter,
-    createMark: Marks.create,
-    gotoMark: Marks.goTo
+    createMark: Marks.create.bind(Marks),
+    gotoMark: Marks.goTo.bind(Marks)
   };
 
   Commands.clearKeyMappingsAndSetDefaults();
