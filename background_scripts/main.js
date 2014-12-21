@@ -244,13 +244,18 @@
   });
 
   repeatFunction = function(func, totalCount, tab, currentCount, frameId, port) {
+    var callback;
     if (currentCount < totalCount) {
-      func(tab, function() {
-        repeatFunction(func, totalCount, tab, currentCount + 1, frameId, port);
-      }, frameId, port);
+      if (++currentCount < totalCount) {
+        callback = function() {
+          func(tab, ++currentCount < totalCount ? callback : null, frameId, port);
+        };
+      }
+      func(tab, callback, frameId, port);
     }
   };
 
+  // function (ref Tab tab, const Function cb / const int count, const int frameId, const Port port);
   BackgroundCommands = {
     createTab: function(tab, callback) {
       chrome.windows.get(tab.windowId, function(wnd) {
@@ -975,6 +980,7 @@
     filterCompleter: filterCompleter
   };
 
+  // function (request, Tab tab, const Port port);
   requestHandlers = {
     getCompletionKeys: getCompletionKeysRequest,
     getCurrentTabUrl: getCurrentTabUrl,
