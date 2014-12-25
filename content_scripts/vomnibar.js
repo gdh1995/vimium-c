@@ -135,9 +135,9 @@
       this.timer = setTimeout(this.eventHandlers.timer, updateDelay);
     },
     populateUI: function() {
-      this.completionList.innerHTML = "\n  <li class=\"vimB vimI vomnibarCompletion\">\n    " + this.completions.map(function(completion) {
+      this.completionList.innerHTML = "\n  <li class=\"vimB vimR vomnibarCompletion\">\n    " + this.completions.map(function(completion) {
         return completion.text;
-      }).join("\n  </li>\n  <li class=\"vimB vimI vomnibarCompletion\">\n    ") + "\n  </li>\n";
+      }).join("\n  </li>\n  <li class=\"vimB vimR vomnibarCompletion\">\n    ") + "\n  </li>\n";
       if (this.completions.length > 0) {
         this.completionList.style.display = "block";
         this.selection = (this.completions[0].type === "search") ? 0 : this.initialSelectionValue;
@@ -287,7 +287,7 @@
     },
     template:
 "<div class=\"vimB vimR\" id=\"vomnibar\">\n\
-  <div class=\"vimB vimR\" id=\"vomnibarSearchArea\">\n\
+  <div class=\"vimB vimR\" style=\"padding:10px;\">\n\
     <input type=\"text\" class=\"vimB vimR\" id=\"vomnibarInput\" />\n\
   </div>\n\
   <ul class=\"vimB vimR vimiumScroll\" id=\"vomnibarList\"></ul>\n\
@@ -375,6 +375,7 @@
         callback(results);
       }
     },
+
     showRelevancy: false,
     maxCharNum: 160,
     showFavIcon: window.location.protocol.startsWith("chrome"),
