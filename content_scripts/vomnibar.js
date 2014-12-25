@@ -15,8 +15,8 @@
     activateWithCompleter: function(completerName, refreshInterval, initialQueryValue, selectFirstResult, forceNewTab) {
       var completer = this.getCompleter(completerName), vomnibarUI = this.vomnibarUI;
       if (!vomnibarUI) {
-        vomnibarUI = this.vomnibarUI = new VomnibarUI();
-        vomnibarUI.initDom();
+        vomnibarUI = this.vomnibarUI = VomnibarUI;
+        vomnibarUI.init();
       }
       vomnibarUI.setInitialSelectionValue(selectFirstResult ? 0 : -1);
       vomnibarUI.setCompleter(completer);
@@ -56,51 +56,43 @@
     }
   };
 
-  VomnibarUI = (function() {
-    function VomnibarUI() {
-      this.box = null;
-      this.completer = null;
-      this.completionInput = {
-        url: "",
-        action: "navigateToUrl",
-        performAction: BackgroundCompleter.performAction
-      };
-      this.completionList = null;
-      this.completions = null;
-      this.eventHandlers = null;
-      this.forceNewTab = false;
-      this.handlerId = 0;
-      this.initialSelectionValue = -1;
-      this.input = null;
-      this.isSelectionChanged = false;
-      this.onUpdate = null;
-      this.openInNewTab = false;
-      this.refreshInterval = 0;
-      this.selection = -1;
-      this.timer = 0;
-    }
-
-    VomnibarUI.prototype.setQuery = function(query) {
+  VomnibarUI = {
+    box: null,
+    completer: null,
+    completionInput: {
+      url: "",
+      action: "navigateToUrl",
+      performAction: null
+    },
+    completionList: null,
+    completions: null,
+    eventHandlers: null,
+    forceNewTab: false,
+    handlerId: 0,
+    initialSelectionValue: -1,
+    input: null,
+    isSelectionChanged: false,
+    onUpdate: null,
+    openInNewTab: false,
+    refreshInterval: 0,
+    selection: -1,
+    timer: 0,
+    setQuery: function(query) {
       this.input.value = query;
-    };
-
-    VomnibarUI.prototype.setInitialSelectionValue = function(initialSelectionValue) {
+    },
+    setInitialSelectionValue: function(initialSelectionValue) {
       this.initialSelectionValue = initialSelectionValue;
-    };
-
-    VomnibarUI.prototype.setCompleter = function(completer) {
+    },
+    setCompleter: function(completer) {
       this.completer = completer;
-    };
-
-    VomnibarUI.prototype.setRefreshInterval = function(refreshInterval) {
+    },
+    setRefreshInterval: function(refreshInterval) {
       this.refreshInterval = refreshInterval;
-    };
-
-    VomnibarUI.prototype.setForceNewTab = function(forceNewTab) {
+    },
+    setForceNewTab: function(forceNewTab) {
       this.forceNewTab = forceNewTab;
-    };
-
-    VomnibarUI.prototype.show = function() {
+    },
+    show: function() {
       this.box.style.display = "block";
       this.input.focus();
       this.input.addEventListener("input", this.eventHandlers.input);
@@ -110,9 +102,8 @@
       this.handlerId = handlerStack.push({
         keydown: this.eventHandlers.keydown
       });
-    };
-
-    VomnibarUI.prototype.hide = function() {
+    },
+    hide: function() {
       this.box.style.display = "none";
       this.input.blur();
       handlerStack.remove(this.handlerId);
@@ -120,14 +111,12 @@
       this.completionList.removeEventListener("click", this.eventHandlers.click);
       this.box.removeEventListener("mousewheel", DomUtils.suppressPropagation);
       this.box.removeEventListener("keyup", this.eventHandlers.keyEvent);
-    };
-
-    VomnibarUI.prototype.reset = function(input) {
+    },
+    reset: function(input) {
       this.completionInput.url = this.input.value = input || "";
       this.update(0, this.show);
-    };
-    
-    VomnibarUI.prototype.update = function(updateDelay, callback) {
+    },
+    update: function(updateDelay, callback) {
       this.onUpdate = callback;
       if (typeof updateDelay === "number") {
         if (this.timer) {
@@ -144,9 +133,8 @@
         updateDelay = this.refreshInterval;
       }
       this.timer = setTimeout(this.eventHandlers.timer, updateDelay);
-    };
-
-    VomnibarUI.prototype.populateUI = function() {
+    },
+    populateUI: function() {
       this.completionList.innerHTML = "\n  <li class=\"vimB vimI vomnibarCompletion\">\n    " + this.completions.map(function(completion) {
         return completion.text;
       }).join("\n  </li>\n  <li class=\"vimB vimI vomnibarCompletion\">\n    ") + "\n  </li>\n";
@@ -159,9 +147,8 @@
       }
       this.updateSelection();
       this.isSelectionChanged = false;
-    };
-
-    VomnibarUI.prototype.updateSelection = function() {
+    },
+    updateSelection: function() {
       for (var _i = 0, _ref = this.completionList.children, selected = this.selection; _i < _ref.length; ++_i) {
         (_i != selected) && _ref[_i].classList.remove("vomnibarSelected");
       }
@@ -170,9 +157,8 @@
         _ref.classList.add("vomnibarSelected");
         _ref.scrollIntoViewIfNeeded();
       }
-    };
-
-    VomnibarUI.prototype.actionFromKeyEvent = function(event) {
+    },
+    actionFromKeyEvent: function(event) {
       if (KeyboardUtils.isEscape(event)) {
         KeydownEvents.push(event);
         return "dismiss";
@@ -187,9 +173,8 @@
           || (event[keyCodes.modifier] && (key === "j" || key === "n"))) {
         return "down";
       }
-    };
-
-    VomnibarUI.prototype.onKeydown = function(event) {
+    },
+    onKeydown: function(event) {
       var action = this.actionFromKeyEvent(event);
       while (!action) {
         if (event.shiftKey || event.ctrlKey || event.altKey || event.metaKey) {
@@ -216,9 +201,8 @@
       this.onAction(action);
       DomUtils.suppressEvent(event);
       return false;
-    }
-
-    VomnibarUI.prototype.onAction = function(action) {
+    },
+    onAction: function(action) {
       switch(action) {
       case "dismiss": this.hide(); break;
       case "up":
@@ -252,9 +236,8 @@
         break;
       default: break;
       }
-    };
-
-    VomnibarUI.prototype.onClick = function(event) {
+    },
+    onClick: function(event) {
       var el = event.target, ulist = this.completionList;
       while(el && el.parentElement != ulist) { el = el.parentElement; }
       for (var _i = 0, _ref = ulist.children; _i < _ref.length; ++_i) {
@@ -269,22 +252,19 @@
         this.onAction("enter");
       }
       DomUtils.suppressEvent(event);
-    };
-
-    VomnibarUI.prototype.onInput = function() {
+    },
+    onInput: function() {
       if (this.completions[this.selection].url.trimRight() != this.input.value.trim()) {
         this.update();
       }
       this.completionInput.url = this.input.value.trimLeft();
       return false;
-    };
-
-    VomnibarUI.prototype.onTimer = function() {
+    },
+    onTimer: function() {
       this.timer = 0;
       this.completer.filter(this.input.value, this.eventHandlers.completions);
-    };
-
-    VomnibarUI.prototype.onCompletions = function(completions) {
+    },
+    onCompletions: function(completions) {
       completions[-1] = this.completionInput;
       this.completions = completions;
       this.populateUI();
@@ -293,9 +273,8 @@
         this.onUpdate = null;
         onUpdate.call(this);
       }
-    };
-
-    VomnibarUI.prototype.onKeyEvent = function(event) {
+    },
+    onKeyEvent: function(event) {
       if(KeyboardUtils.isFunctionKey(event) || event.altKey) {
         return;
       }
@@ -305,21 +284,24 @@
         return;
       }
       DomUtils.suppressEvent(event);
-    };
-    
-    VomnibarUI.prototype.template =
+    },
+    template:
 "<div class=\"vimB vimR\" id=\"vomnibar\">\n\
   <div class=\"vimB vimR\" id=\"vomnibarSearchArea\">\n\
     <input type=\"text\" class=\"vimB vimR\" id=\"vomnibarInput\" />\n\
   </div>\n\
   <ul class=\"vimB vimR vimiumScroll\" id=\"vomnibarList\"></ul>\n\
-</div>";
-    VomnibarUI.prototype.initDom = function() {
+</div>",
+    _inited: false,
+    init: function() {
+      if (this._inited) { return; }
       this.box = Utils.createElementFromHtml(this.template);
       this.box.style.display = "none";
       document.body.appendChild(this.box);
+      this._inited = true;
       this.input = this.box.children[0].children[0];
       this.completionList = this.box.children[1];
+      this.completionInput.performAction = BackgroundCompleter.performAction;
       this.eventHandlers = {
         keydown: this.onKeydown.bind(this)
         , input: this.onInput.bind(this)
@@ -328,77 +310,72 @@
         , completions: this.onCompletions.bind(this)
         , keyEvent: this.onKeyEvent.bind(this)
       }
-    };
-
-    return VomnibarUI;
-
-  })();
-
-  BackgroundCompleter = (function() {
-    function BackgroundCompleter(name) {
-      this.name = name;
-      this.refresh();
-      this.getPort();
     }
+  };
 
-    BackgroundCompleter.prototype.getPort = function() {
-      if (!this.port) {
-        try {
-          BackgroundCompleter.prototype.port = chrome.runtime.connect({ name: "filterCompleter" });
-          this.port.onDisconnect.addListener(this._clearPort);
-          this.port.onMessage.addListener(this.onFilter);
-        } catch (e) {
-          BackgroundCompleter.prototype.port = null;
-          return mainPort.fakePort;
-        }
+  function BackgroundCompleter(name) {
+    this.name = name;
+    this.refresh();
+    this.getPort();
+  }
+
+  BackgroundCompleter.prototype.getPort = function() {
+    var port = BackgroundCompleter._port;
+    if (!port) {
+      try {
+        port = BackgroundCompleter._port = chrome.runtime.connect({ name: "filterCompleter" });
+        port.onDisconnect.addListener(BackgroundCompleter._clearPort);
+        port.onMessage.addListener(BackgroundCompleter._onFilter.bind(BackgroundCompleter));
+      } catch (e) {
+        BackgroundCompleter._port = null;
+        return mainPort.fakePort;
       }
-      return this.port;
-    };
+    }
+    return port;
+  };
+  
+  BackgroundCompleter.prototype.refresh = function() {
+    mainPort.postMessage({
+      handler: "refreshCompleter",
+      name: this.name
+    });
+  };
+  
+  BackgroundCompleter.prototype.filter = function(query, callback) {
+    BackgroundCompleter._id = Utils.createUniqueId();
+    BackgroundCompleter._callback = callback;
+    this.getPort().postMessage({
+      name: this.name,
+      id: BackgroundCompleter._id,
+      query: query.replace(/\s+/g, ' ').trim()
+    });
+  };
 
-    BackgroundCompleter.prototype._clearPort = function() {
-      BackgroundCompleter.prototype.port = null;
-    };
-    
-    BackgroundCompleter.prototype.refresh = function() {
-      mainPort.postMessage({
-        handler: "refreshCompleter",
-        name: this.name
-      });
-    };
-
-    BackgroundCompleter.prototype.onFilter = function(msg) {
-      if (BackgroundCompleter.id != msg.id) { return; }
-      BackgroundCompleter.maxCharNum = parseInt((window.innerWidth * 0.8 - 70) / 7.72);
-      var results = msg.results.map(function(result) {
-        BackgroundCompleter.makeShortenUrl.call(result);
+  extend(BackgroundCompleter, {
+    _port: null,
+    _id: 0,
+    _callback: null,
+    _clearPort: function() {
+      BackgroundCompleter._port = null;
+    },
+    _onFilter: function(msg) {
+      if (this._id != msg.id) { return; }
+      this.maxCharNum = parseInt((window.innerWidth * 0.8 - 70) / 7.72);
+      var shorten = this.makeShortenUrl, results = msg.results.map(function(result) {
+        shorten.call(result);
         result.action = (result.type === "tab") ? "switchToTab"
           : ("sessionId" in result) ? "restoreSession"
           : "navigateToUrl";
-        result.performAction = BackgroundCompleter.performAction;
+        result.performAction = this.performAction;
         return result;
       });
-      var callback = BackgroundCompleter.callback;
-      BackgroundCompleter.callback = null;
+      var callback = this._callback;
+      this._callback = null;
       if (callback) {
         callback(results);
       }
-    };
-    
-    BackgroundCompleter.prototype.filter = function(query, callback) {
-      BackgroundCompleter.id = Utils.createUniqueId();
-      BackgroundCompleter.callback = callback;
-      this.getPort().postMessage({
-        name: this.name,
-        id: BackgroundCompleter.id,
-        query: query.replace(/\s+/g, ' ').trim()
-      });
-    };
-
-    return BackgroundCompleter;
-  })();
-
-  extend(BackgroundCompleter, {
-    showRelevancy: true,
+    },
+    showRelevancy: false,
     maxCharNum: 160,
     showFavIcon: window.location.protocol.startsWith("chrome"),
     cutUrl: function(string, ranges, strCoded) {
