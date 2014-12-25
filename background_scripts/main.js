@@ -941,15 +941,14 @@
       delete tabLoadedHandlers[tabId];
       toCall(port);
     }
-    css2 = Settings.get("userDefinedCss");
-    css2 && insertCss(tabId, {
-      allFrames: true,
-      code: css2,
-      runAt: "document_start"
-    });
     if (! isNaN(request.frameId)) {
       (frameIdsForTab[tabId] || (frameIdsForTab[tabId] = [])).push(request.frameId);
     }
+    css2 = Settings.get("userDefinedCss");
+    css2 && insertCss(tabId, {
+      allFrames: true,
+      code: css2
+    });
     if (shouldShowUpgradeMessage()) {
       port.postMessage({
         name: "showUpgradeNotification",
