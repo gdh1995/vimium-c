@@ -287,7 +287,7 @@
       smoothScroll: CheckBoxOption,
       searchEngines: TextOption,
       searchUrl: NonEmptyTextOption,
-      userDefinedLinkHintCss: TextOption
+      userDefinedCss: TextOption
     };
     for (name in _ref) {
       type = _ref[name];

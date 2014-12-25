@@ -660,12 +660,6 @@
         (changeInfo.url != null && Utils.isTabWithSameUrl(tabInfoMap[tabId], tab))) {
       return;
     }
-    var css2 = Settings.get("userDefinedLinkHintCss");
-    css2 && insertCss(tabId, {
-      allFrames: true,
-      code: css2,
-      runAt: "document_start"
-    });
     if (changeInfo.url != null) {
       updateOpenTabs(tab);
     }
@@ -941,12 +935,18 @@
   };
 
   registerFrame = function(request, tab, port) {
-    var tabId = tab.id;
+    var tabId = tab.id, css2;
     if (tabLoadedHandlers[tabId]) {
       toCall = tabLoadedHandlers[tabId];
       delete tabLoadedHandlers[tabId];
       toCall(port);
     }
+    css2 = Settings.get("userDefinedCss");
+    css2 && insertCss(tabId, {
+      allFrames: true,
+      code: css2,
+      runAt: "document_start"
+    });
     if (! isNaN(request.frameId)) {
       (frameIdsForTab[tabId] || (frameIdsForTab[tabId] = [])).push(request.frameId);
     }
