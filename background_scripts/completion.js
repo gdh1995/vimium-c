@@ -608,7 +608,7 @@
       this._cache = {};
     },
     get: function(s, p, n) {
-      var r = p + s.replace(this.escapeRegEx, "\\$&") + n, v;
+      var r = p + s.replace(this._escapeRegEx, "\\$&") + n, v;
       return (v = this._cache)[r] || (v[r] = new RegExp(r, (Utils.hasUpperCase(s) ? "" : "i")));
     }
   };
