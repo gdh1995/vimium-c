@@ -18,7 +18,7 @@
       "run_at": "document_start"
    } ],
    "content_security_policy": "script-src 'self'; object-src 'self';",
-   "description": "Vimium pro with the Weidu new tab",
+   "description": "optimized Vimium with the Weidu new tab",
    "icons": {
       "128": "img/icons/icon128.png"
    },
