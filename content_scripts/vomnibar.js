@@ -361,12 +361,13 @@
     _onFilter: function(msg) {
       if (this._id != msg.id) { return; }
       this.maxCharNum = parseInt((window.innerWidth * 0.8 - 70) / 7.72);
-      var shorten = this.makeShortenUrl, results = msg.results.map(function(result) {
+      var shorten = this.makeShortenUrl, act = this.performAction,
+      results = msg.results.map(function(result) {
         shorten.call(result);
         result.action = (result.type === "tab") ? "switchToTab"
           : ("sessionId" in result) ? "restoreSession"
           : "navigateToUrl";
-        result.performAction = this.performAction;
+        result.performAction = act;
         return result;
       });
       var callback = this._callback;

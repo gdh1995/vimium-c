@@ -7,7 +7,7 @@
     , getCurrentTimeInSeconds, handleFrameFocused, handleMainPort, handleUpdateScrollPosition
     , helpDialogHtmlForCommandGroup, isEnabledForUrl, keyQueue, moveTab, namedKeyRegex
     , openOptionsPageInNewTab, openUrlInCurrentTab, openUrlInIncognito, openUrlInNewTab, restoreSession
-    , populateKeyCommands, portHandlers, refreshCompleter, registerFrame, splitKeyQueueRegex
+    , populateKeyCommands, portHandlers, refreshCompleter, registerFrame, insertCss, splitKeyQueueRegex
     , removeTabsRelative, repeatFunction, root, saveHelpDialogSettings, selectSpecificTab, selectTab
     , selectionChangedHandlers, requestHandlers, sendRequestToAllTabs, setBrowserActionIcon
     , shouldShowUpgradeMessage, singleKeyCommands, splitKeyIntoFirstAndSecond, splitKeyQueue, tabInfoMap
@@ -58,6 +58,8 @@
     var handler = portHandlers[port.name];
     if (handler) {
       port.onMessage.addListener(handler);
+    } else {
+      port.disconnect();
     }
   });
 
@@ -220,6 +222,12 @@
 
   refreshCompleter = function(request) {
     completers[request.name].refresh();
+  };
+  
+  insertCss = function(tabId, options) {
+    chrome.tabs.insertCSS(tabId, options, function() {
+      return chrome.runtime.lastError;
+    });
   };
 
   filterCompleter = function(args, port) {
@@ -648,17 +656,15 @@
   };
 
   chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab) {
-    var old, temp;
     if (changeInfo.status !== "loading" ||
         (changeInfo.url != null && Utils.isTabWithSameUrl(tabInfoMap[tabId], tab))) {
       return;
     }
-    chrome.tabs.insertCSS(tabId, {
+    var css2 = Settings.get("userDefinedLinkHintCss");
+    css2 && insertCss(tabId, {
       allFrames: true,
-      code: Settings.get("userDefinedLinkHintCss"),
+      code: css2,
       runAt: "document_start"
-    }, function() {
-      return chrome.runtime.lastError;
     });
     if (changeInfo.url != null) {
       updateOpenTabs(tab);
