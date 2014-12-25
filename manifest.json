@@ -27,6 +27,6 @@
    "name": "Vimium++",
    "options_page": "pages/options.html",
    "permissions": [ "tabs", "bookmarks", "history", "clipboardRead", "sessions", "management", "\u003Call_urls>", "chrome://favicon/*", "contentSettings" ],
-   "short_name": "Vim++",
+   "short_name": "vim++",
    "version": "1.49"
 }
