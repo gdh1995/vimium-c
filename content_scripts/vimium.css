@@ -116,7 +116,7 @@
 
 .internalVimiumHintMarker.vimB {
   background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#FFF785), color-stop(100%,#FFC542));
-  border: solid 1px #C38A22;
+  border: 1px solid #C38A22;
   border-radius: 3px;
   box-shadow: 0px 3px 7px 0px rgba(0, 0, 0, 0.3);
   color: #302505;
@@ -141,14 +141,14 @@
 
 .internalVimiumInputHint.vimB {
   background-color: rgba(255, 247, 133, 0.3);
-  border: solid 1px #C38A22;
+  border: 1px solid #C38A22;
   display: block;
   position: absolute;
 }
 
 .internalVimiumSelectedInputHint.vimB {
   background-color: rgba(255, 102, 102, 0.3);
-  border: solid 1px #993333 !important;
+  border: 1px solid #993333 !important;
 }
 
 /* Vimium HUD CSS */
