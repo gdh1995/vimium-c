@@ -571,34 +571,32 @@
   };
 
   onKeypress = function(event) {
-    if (!isEnabledForUrl || !handlerStack.bubbleEvent('keypress', event)) {
+    if (!isEnabledForUrl || !handlerStack.bubbleEvent('keypress', event) || event.keyCode <= 31) {
       return;
     }
-    var keyChar = "";
-    if (event.keyCode > 31) {
-      keyChar = String.fromCharCode(event.charCode);
-      if (keyChar === "f" && event[keyCodes.modifier]) {
-        enterInsertModeWithoutShowingIndicator();
-        return;
-      }
-      if (keyChar) {
-        if (findMode) {
-          handleKeyCharForFindMode(keyChar);
-          DomUtils.suppressEvent(event);
-        } else if (!isInsertMode() && !findMode) {
-          if (isPassKey(keyChar)) {
-            return;
-          }
-          if (currentCompletionKeys.indexOf(keyChar) !== -1 || isValidFirstKey(keyChar)) {
-            DomUtils.suppressEvent(event);
-          }
-          mainPort.postMessage({
-            handlerKey: keyChar,
-            frameId: frameId
-          });
-        }
-      }
+    var keyChar = String.fromCharCode(event.charCode);
+    if (keyChar.length === 0) {
+      return;
     }
+    if (keyChar === "f" && event[keyCodes.modifier]) {
+      enterInsertModeWithoutShowingIndicator();
+      return;
+    }
+    if (findMode) {
+      handleKeyCharForFindMode(keyChar);
+      DomUtils.suppressEvent(event);
+      return;
+    }
+    if (isInsertMode() || isPassKey(keyChar)) {
+      return;
+    }
+    if (currentCompletionKeys.indexOf(keyChar) !== -1 || isValidFirstKey(keyChar)) {
+      DomUtils.suppressEvent(event);
+    }
+    mainPort.postMessage({
+      handlerKey: keyChar,
+      frameId: frameId
+    });
   };
 
   onKeydown = function(event) {
