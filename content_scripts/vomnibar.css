@@ -1,0 +1,109 @@
+/* Vomnibar CSS */
+
+#vomnibar {
+  background: #F1F1F1;
+  border: 1px solid #aaa;
+  border-radius: 5px;
+  box-shadow: 0px 2px 10px rgba(0, 0, 0, 0.8);
+  left: 50%;
+  margin: 0 0 0 -40%;
+  min-width: 400px;
+  overflow: hidden;
+  position: fixed;
+  top: 70px;
+  width: 80%;
+  /* less than hint markers and the help dialog. */
+  z-index: 99999991;
+}
+#vomnibarInput {
+  background-color: white;
+  border: 1px solid #E8E8E8;
+  border-radius: 3px;
+  box-shadow: #444 0px 0px 1px;
+  box-sizing: border-box;
+  font-size: 20px;
+  height: 34px;
+  outline: none;
+  padding: 4px;
+  width: 100%;
+}
+#vomnibarList {
+  border-top: 1px dashed #C6C9CE;
+  display: block;
+  list-style: none;
+  padding-bottom: 3px;
+}
+
+#vomnibarList > .vomnibarCompletion {
+  background-color: white;
+  border-bottom: 1px solid #ddd;
+  display: list-item;
+  padding: 5px 10px 3px 10px;
+  position: relative;
+  white-space: nowrap;
+}
+#vomnibarList > .vomnibarCompletion:last-of-type {
+  border-bottom-style: none;
+  margin-bottom: -3px;
+  padding-bottom: 6px;
+}
+#vomnibarList > .vomnibarCompletion:hover {
+  background-color: #CFDDEF;
+}
+#vomnibarList > .vomnibarCompletion.vomnibarSelected {
+  background-color: #BBCEE9;
+}
+
+.vomnibarTopHalf.vimB {
+  display: block;
+  font-size: 16px;
+  height: 18px;
+  line-height: 18px;
+  overflow: hidden;
+}
+.vomnibarSource.vimB {
+  color: #777;
+  position: absolute;
+}
+.vomnibarTitle.vimB {
+  box-sizing: border-box;
+  display: inline-block;
+  max-width: 100%;
+  overflow: hidden;
+  padding-left: 51px;
+}
+.vomnibarTitle > .vomnibarMatch {
+  color: #333;
+  font-weight: bold;
+  text-decoration: underline;
+}
+
+.vomnibarBottomHalf.vimB {
+  display: block;
+  font-size: 14px;
+  height: 16px;
+  line-height: 17px;
+  margin-top: 2px;
+  overflow: hidden;
+}
+.vomnibarIcon.vimB {
+  background-position: 30px 50%;
+  background-repeat: no-repeat;
+  background-size: 16px;
+}
+.vomnibarUrl.vimB {
+  box-sizing: border-box;
+  color: #224684;
+  font-family: Consolas, "Liberation Mono", "Courier New", monospace;
+  max-width: 100%;
+  overflow: hidden;
+  padding-left: 51px;
+}
+.vomnibarUrl > .vomnibarMatch {
+  color: black;
+  font-weight: bold;
+}
+.vomnibarRelevancy.vimB {
+  font-family: monospace;
+  margin-left: 10px;
+}

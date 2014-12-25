@@ -286,8 +286,8 @@
       DomUtils.suppressEvent(event);
     },
     template:
-"<div class=\"vimB vimR\" id=\"vomnibar\">\n\
-  <div class=\"vimB vimR\" style=\"padding:10px;\">\n\
+"<div class=\"vimB vimR\" id=\"vomnibar\" style=\"display: none\">\n\
+  <div class=\"vimB vimR\" style=\"padding: 10px;\">\n\
     <input type=\"text\" class=\"vimB vimR\" id=\"vomnibarInput\" />\n\
   </div>\n\
   <ul class=\"vimB vimR vimiumScroll\" id=\"vomnibarList\"></ul>\n\
@@ -295,8 +295,10 @@
     _inited: false,
     init: function() {
       if (this._inited) { return; }
+      mainPort.postMessage({
+        handler: "initVomnibar"
+      });
       this.box = Utils.createElementFromHtml(this.template);
-      this.box.style.display = "none";
       document.body.appendChild(this.box);
       this._inited = true;
       this.input = this.box.children[0].children[0];
@@ -309,7 +311,7 @@
         , timer: this.onTimer.bind(this)
         , completions: this.onCompletions.bind(this)
         , keyEvent: this.onKeyEvent.bind(this)
-      }
+      };
     }
   };
 

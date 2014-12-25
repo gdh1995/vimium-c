@@ -35,4 +35,5 @@
       }
     }
   }
+  insertLink("content_scripts/vomnibar.css");
 })();

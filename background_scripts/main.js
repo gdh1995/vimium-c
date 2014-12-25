@@ -226,7 +226,9 @@
   
   insertCss = function(tabId, options) {
     chrome.tabs.insertCSS(tabId, options, function() {
-      return chrome.runtime.lastError;
+      if (chrome.runtime.lastError) {
+        // console.log("%c" + chrome.runtime.lastError.message, "color: red");
+      }
     });
   };
 
@@ -1000,6 +1002,12 @@
     frameFocused: handleFrameFocused,
     nextFrame: function(request, tab) {
       BackgroundCommands.nextFrame(tab, 1, request.frameId);
+    },
+    initVomnibar: function(_1, tab) {
+      insertCss(tab.id, {
+        allFrames: true,
+        file: "content_scripts/vomnibar.css"
+      });
     },
     upgradeNotificationClosed: upgradeNotificationClosed,
     updateScrollPosition: handleUpdateScrollPosition,
