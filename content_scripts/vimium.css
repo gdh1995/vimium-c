@@ -285,7 +285,6 @@
 .vomnibarUrl.vimB {
   box-sizing: border-box;
   color: #224684;
-  display: inline-block;
   font-family: Consolas, "Liberation Mono", "Courier New", monospace;
   max-width: 100%;
   overflow: hidden;
@@ -298,7 +297,6 @@
 .vomnibarRelevancy.vimB {
   font-family: monospace;
   margin-left: 10px;
-  position: absolute;
 }
 
 #vimiumFlash.vimB {

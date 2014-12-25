@@ -326,7 +326,7 @@
     }
     mainPort.postMessage({
       handler: "registerFrame",
-      frameId: ((document.body.tagName.toLowerCase() !== "frameset") ? frameId : NaN)
+      frameId: ((document.body && document.body.tagName.toLowerCase() === "frameset") ? NaN : frameId)
     });
     window.removeEventListener("DOMContentLoaded", registerFrame);
   };

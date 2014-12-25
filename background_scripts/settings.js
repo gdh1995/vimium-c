@@ -82,7 +82,7 @@
   defaults: {
     scrollStepSize: 100,
     smoothScroll: false,
-    keyMappings: "# Insert your prefered key mappings here.",
+    keyMappings: "# Insert your preferred key mappings here.",
     linkHintCharacters: "asdqwerzxcv",
     linkHintNumbers: "1234567890",
     filterLinkHints: false,
