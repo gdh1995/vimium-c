@@ -114,4 +114,14 @@
 		<input type="text" class="vimB vimR" id="vomnibarInput" />
 </div>
 <ul class="vimB vimR vimiumScroll" id="vomnibarList">
+  <script type="text/template" id="vomnibarItemTemplate">
+  <li class="vimB vimR vomnibarItem">
+    <div class="vimB vimI vomnibarTopHalf">
+      <span class="vimB vimI vomnibarSource">{{type}}</span>
+      <span class="vimB vimI vomnibarTitle">{{title}}</span>
+    </div>
+    <div class="vimB vimI vomnibarBottomHalf{{favIconUrl}}">
+      <span class="vimB vimI vomnibarUrl">{{text}}</span>{{relevancy}}
+    </div>
+  </li></script>
 </ul>

@@ -77,8 +77,7 @@
     refreshInterval: 0,
     selection: -1,
     timer: 0,
-    template: "",
-    _initStep: 0,
+    _initStep: [0],
     setInitialSelectionValue: function(initialSelectionValue) {
       this.initialSelectionValue = initialSelectionValue;
     },
@@ -92,8 +91,8 @@
       this.forceNewTab = forceNewTab;
     },
     show: function() {
-      if (this._initStep !== 2) {
-        this._initStep = this.show.bind(this);
+      if (this._initStep[0] !== 2) {
+        this._initStep.push(this.show);
         return;
       }
       this.box.style.display = "block";
@@ -147,9 +146,7 @@
       this.timer = setTimeout(this.eventHandlers.timer, updateDelay);
     },
     populateUI: function() {
-      this.completionList.innerHTML = "\n<li class=\"vimB vimR vomnibarCompletion\">\n  " + this.completions.map(function(completion) {
-        return completion.text;
-      }).join("\n</li>\n<li class=\"vimB vimR vomnibarCompletion\">\n  ") + "\n</li>\n";
+      this.completionList.innerHTML = this.renderItems(this.completions);
       if (this.completions.length > 0) {
         this.completionList.style.display = "block";
         this.selection = (this.completions[0].type === "search") ? 0 : this.initialSelectionValue;
@@ -277,8 +274,14 @@
       this.completer.filter(this.completionInput.url, this.eventHandlers.completions);
     },
     onCompletions: function(completions) {
-      completions[-1] = this.completionInput;
-      this.completions = completions;
+      if (completions) {
+        completions[-1] = this.completionInput;
+        this.completions = completions;
+      }
+      if (this._initStep[0] !== 2) {
+        this._initStep.push(this.onCompletions);
+        return;
+      }
       this.populateUI();
       if (this.onUpdate) {
         var onUpdate = this.onUpdate;
@@ -297,22 +300,17 @@
       }
       DomUtils.suppressEvent(event);
     },
-    template:
-"<div class=\"vimB vimR\" id=\"vomnibar\" style=\"display: none\">\n\
-  <style type=\"text/css\"></style>\
-  <div class=\"vimB vimR\" style=\"padding: 10px;\">\n\
-    <input type=\"text\" class=\"vimB vimR\" id=\"vomnibarInput\" />\n\
-  </div>\n\
-  <ul class=\"vimB vimR vimiumScroll\" id=\"vomnibarList\"></ul>\n\
-</div>",
     init: function() {
-      if (this._initStep) { return; }
-      this.box = Utils.createElementFromHtml(this.template);
+      if (this._initStep[0]) { return; }
+      this.box = document.createElement("div");
+      this.box.className = "vimB vimR";
+      this.box.id = "vomnibar";
+      this.box.style.display = "none";
       document.body.appendChild(this.box);
       mainPort.postMessage({
         handler: "initVomnibar"
-      }, this.init_html.bind(this));
-      this._initStep = 1;
+      }, this.init_dom.bind(this));
+      this._initStep[0] = 1;
       this.completionInput.performAction = BackgroundCompleter.performAction;
       this.eventHandlers = {
         keydown: this.onKeydown.bind(this)
@@ -323,16 +321,18 @@
         , keyEvent: this.onKeyEvent.bind(this)
       };
     },
-    init_html: function(html) {
-      var callback = this._initStep;
-      this._initStep = 2;
+    init_dom: function(html) {
+      this._initStep[0] = 2;
       this.box.innerHTML = html;
       this.input = this.box.querySelector("#vomnibarInput");
       this.completionList = this.box.querySelector("#vomnibarList");
-      if (typeof callback === "function") {
-        callback.call(this);
+      this.renderItems = Utils.makeListRender(this.box.querySelector("#vomnibarItemTemplate").innerHTML);
+      for (var i = 1, ref = this._initStep, len = ref.length; i < len; i++) {
+        ref[i].call(this);
       }
-    }
+      this._initStep = [2];
+    },
+    renderItems: null
   };
 
   function BackgroundCompleter(name) {
@@ -450,19 +450,7 @@
       return out.join("");
     },
     makeShortenUrl: function() {
-      var arr = [
-        "<div class=\"vimB vimI vomnibarTopHalf\">\n    <span class=\"vimB vimI vomnibarSource\">"
-        , this.type, "</span>\n    <span class=\"vimB vimI vomnibarTitle\">", this.title
-        , "</span>\n  </div>\n  <div class=\"vimB vimI vomnibarBottomHalf"
-        , "\">\n    <span class=\"vimB vimI vomnibarUrl\">", BackgroundCompleter.cutUrl(this.text, this.textSplit, this.url)
-        , (BackgroundCompleter.showRelevancy ? ("</span>\n    <span class='vimB vimI vomnibarRelevancy'>" + this.relevancy) : "")
-        , "</span>\n  </div>"
-      ];
-      if (BackgroundCompleter.showFavIcon) {
-        arr.splice(5, 0, " vomnibarIcon\" style=\"background-image: url("
-          , this.favIconUrl || ("chrome://favicon/size/16/" + this.url), ");");
-      }
-      this.text = arr.join("");
+      this.text = BackgroundCompleter.cutUrl(this.text, this.textSplit, this.url);
     },
     performAction: function() {
       var action = BackgroundCompleter.completionActions[this.action] || this.action;
