@@ -384,9 +384,9 @@
     _onFilter: function(msg) {
       if (this._id != msg.id) { return; }
       this.maxCharNum = parseInt((window.innerWidth * 0.8 - 70) / 7.72);
-      var shorten = this.makeShortenUrl, act = this.performAction,
+      var prepare = this.prepareToRender, act = this.performAction,
       results = msg.results.map(function(result) {
-        shorten.call(result);
+        prepare.call(result);
         result.action = (result.type === "tab") ? "switchToTab"
           : ("sessionId" in result) ? "restoreSession"
           : "navigateToUrl";
@@ -449,8 +449,19 @@
       }
       return out.join("");
     },
-    makeShortenUrl: function() {
+    prepareToRender: function() {
       this.text = BackgroundCompleter.cutUrl(this.text, this.textSplit, this.url);
+      if (BackgroundCompleter.showFavIcon) {
+        this.favIconUrl = " vomnibarIcon\" style=\"background-image: url(" + (this.favIconUrl ||
+          ("chrome://favicon/size/16/" + this.url)) + ")";
+      } else {
+        this.favIconUrl = "";
+      }
+      if (BackgroundCompleter.showRelevancy) {
+        this.relevancy = "\n\t\t\t<span class=\"vimB vimI vomnibarRelevancy\">" + this.relevancy + "</span>";
+      } else {
+        this.relevancy = "";
+      }
     },
     performAction: function() {
       var action = BackgroundCompleter.completionActions[this.action] || this.action;
