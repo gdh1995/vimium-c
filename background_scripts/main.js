@@ -121,12 +121,11 @@
       commandsToKey[command] = (commandsToKey[command] || []).concat(key);
     }
     dialogHtml = fetchFileContents("pages/help_dialog.html");
-    for (group in Commands.commandGroups) {
-      dialogHtml = dialogHtml.replace("{{" + group + "}}", helpDialogHtmlForCommandGroup(group, commandsToKey, Commands.availableCommands, showUnboundCommands, showCommandNames));
-    }
-    dialogHtml = dialogHtml.replace("{{version}}", currentVersion);
-    dialogHtml = dialogHtml.replace("{{title}}", customTitle || "Help");
-    return dialogHtml;
+    return dialogHtml.replace(new RegExp("\\{\\{(version|title|" + Object.keys(Commands.commandGroups).join('|') + ")\\}\\}", "g"), function(_, group) {
+      return (group === "version") ? currentVersion
+        : (group === "title") ? (customTitle || "Help")
+        : helpDialogHtmlForCommandGroup(group, commandsToKey, Commands.availableCommands, showUnboundCommands, showCommandNames);
+    });
   };
 
   helpDialogHtmlForCommandGroup = function(group, commandsToKey, availableCommands, showUnboundCommands, showCommandNames) {
