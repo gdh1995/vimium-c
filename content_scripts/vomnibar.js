@@ -109,13 +109,20 @@
       });
     },
     hide: function() {
+      if (this.timer) {
+        window.clearTimeout(this.timer);
+        this.timer = 0;
+      }
       this.box.style.display = "none";
       this.input.blur();
       handlerStack.remove(this.handlerId);
+      this.handlerId = 0;
       this.input.removeEventListener("input", this.eventHandlers.input);
       this.completionList.removeEventListener("click", this.eventHandlers.click);
       this.box.removeEventListener("mousewheel", DomUtils.suppressPropagation);
       this.box.removeEventListener("keyup", this.eventHandlers.keyEvent);
+      this.onUpdate = null;
+      this.completions = null;
     },
     reset: function(input) {
       this.completionInput.url = this.input.value = input || "";

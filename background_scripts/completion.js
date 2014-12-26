@@ -102,8 +102,9 @@
 
   BookmarkCompleter = (function() {
     function BookmarkCompleter() {
-      this.bookmarks = null;
+      this.bookmarks = undefined;
       this.currentSearch = null;
+      this.readTree = this.readTree.bind(this);
     }
 
     BookmarkCompleter.prototype.folderSeparator = "/";
@@ -115,6 +116,9 @@
       };
       if (this.bookmarks) {
         this.performSearch();
+      }
+      else if (this.bookmarks === undefined) {
+        this.refresh();
       }
     };
 
@@ -149,7 +153,7 @@
 
     BookmarkCompleter.prototype.refresh = function() {
       this.bookmarks = null;
-      chrome.bookmarks.getTree(this.readTree.bind(this));
+      chrome.bookmarks.getTree(this.readTree);
     };
 
     BookmarkCompleter.prototype.readTree = function(bookmarks) {
