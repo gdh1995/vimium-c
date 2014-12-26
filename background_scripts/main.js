@@ -7,7 +7,7 @@
     , getCurrentTimeInSeconds, handleFrameFocused, handleMainPort, handleUpdateScrollPosition
     , helpDialogHtmlForCommandGroup, isEnabledForUrl, keyQueue, moveTab, namedKeyRegex
     , openOptionsPageInNewTab, openUrlInCurrentTab, openUrlInIncognito, openUrlInNewTab, restoreSession
-    , populateKeyCommands, portHandlers, refreshCompleter, registerFrame, insertCss, splitKeyQueueRegex
+    , populateKeyCommands, portHandlers, refreshCompleter, registerFrame, vomnibarCss, splitKeyQueueRegex
     , removeTabsRelative, repeatFunction, root, saveHelpDialogSettings, selectSpecificTab, selectTab
     , selectionChangedHandlers, requestHandlers, sendRequestToAllTabs, setBrowserActionIcon
     , shouldShowUpgradeMessage, singleKeyCommands, splitKeyIntoFirstAndSecond, splitKeyQueue, tabInfoMap
@@ -224,14 +224,6 @@
     completers[request.name].refresh();
   };
   
-  insertCss = function(tabId, options) {
-    chrome.tabs.insertCSS(tabId, options, function() {
-      if (chrome.runtime.lastError) {
-        // console.log("%c" + chrome.runtime.lastError.message, "color: red");
-      }
-    });
-  };
-
   filterCompleter = function(args, port) {
     completers[args.name].filter(args.query ? args.query.trim().split(/\s+/) : [], function(results) {
       port.postMessage({
@@ -947,9 +939,12 @@
       (frameIdsForTab[tabId] || (frameIdsForTab[tabId] = [])).push(request.frameId);
     }
     css2 = Settings.get("userDefinedCss");
-    css2 && insertCss(tabId, {
+    css2 && chrome.tabs.insertCSS(tabId, {
       allFrames: true,
       code: css2
+    }, function() {
+      return chrome.runtime.lastError;
+      // chrome.runtime.lastError && console.log("%c" + chrome.runtime.lastError.message, "color: red");
     });
     if (shouldShowUpgradeMessage()) {
       port.postMessage({
@@ -1003,11 +998,8 @@
     nextFrame: function(request, tab) {
       BackgroundCommands.nextFrame(tab, 1, request.frameId);
     },
-    initVomnibar: function(_1, tab) {
-      insertCss(tab.id, {
-        allFrames: true,
-        file: "content_scripts/vomnibar.css"
-      });
+    initVomnibar: function() {
+      return vomnibarCss || (vomnibarCss = fetchFileContents("content_scripts/vomnibar.css"));
     },
     upgradeNotificationClosed: upgradeNotificationClosed,
     updateScrollPosition: handleUpdateScrollPosition,

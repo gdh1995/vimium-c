@@ -77,6 +77,7 @@
     refreshInterval: 0,
     selection: -1,
     timer: 0,
+    _initStep: 0,
     setQuery: function(query) {
       this.input.value = query;
     },
@@ -93,6 +94,10 @@
       this.forceNewTab = forceNewTab;
     },
     show: function() {
+      if (this._initStep !== 2) {
+        this._initStep = this.show.bind(this);
+        return;
+      }
       this.box.style.display = "block";
       this.input.focus();
       this.input.addEventListener("input", this.eventHandlers.input);
@@ -287,22 +292,29 @@
     },
     template:
 "<div class=\"vimB vimR\" id=\"vomnibar\" style=\"display: none\">\n\
+  <style type=\"text/css\"></style>\
   <div class=\"vimB vimR\" style=\"padding: 10px;\">\n\
     <input type=\"text\" class=\"vimB vimR\" id=\"vomnibarInput\" />\n\
   </div>\n\
   <ul class=\"vimB vimR vimiumScroll\" id=\"vomnibarList\"></ul>\n\
 </div>",
-    _inited: false,
     init: function() {
-      if (this._inited) { return; }
-      mainPort.postMessage({
-        handler: "initVomnibar"
-      });
+      if (this._initStep) { return; }
       this.box = Utils.createElementFromHtml(this.template);
       document.body.appendChild(this.box);
-      this._inited = true;
-      this.input = this.box.children[0].children[0];
-      this.completionList = this.box.children[1];
+      mainPort.postMessage({
+        handler: "initVomnibar"
+      }, (function(css) {
+        var callback = this._initStep;
+        this.box.children[0].innerHTML = css;
+        this._initStep = 2;
+        if (typeof callback === "function") {
+          callback.call(this);
+        }
+      }).bind(this));
+      this._initStep = 1;
+      this.input = this.box.children[1].children[0];
+      this.completionList = this.box.children[2];
       this.completionInput.performAction = BackgroundCompleter.performAction;
       this.eventHandlers = {
         keydown: this.onKeydown.bind(this)

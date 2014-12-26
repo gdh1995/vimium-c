@@ -27,5 +27,4 @@
       scriptInfo.js.forEach(insertJS);
     }
   });
-  insertLink("content_scripts/vomnibar.css");
 })();
