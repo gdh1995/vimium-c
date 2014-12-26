@@ -1,7 +1,5 @@
 
 <style type="text/css">
-/* Vomnibar CSS */
-
 #vomnibar {
   background: #F1F1F1;
   border: 1px solid #aaa;
@@ -31,12 +29,11 @@
 }
 #vomnibarList {
   border-top: 1px dashed #C6C9CE;
-  display: block;
   list-style: none;
   padding-bottom: 3px;
 }
 
-#vomnibarList > .vomnibarCompletion {
+#vomnibarList > .vomnibarItem {
   background-color: white;
   border-bottom: 1px solid #ddd;
   display: list-item;
@@ -44,15 +41,15 @@
   position: relative;
   white-space: nowrap;
 }
-#vomnibarList > .vomnibarCompletion:last-of-type {
+#vomnibarList > .vomnibarItem:last-of-type {
   border-bottom-style: none;
   margin-bottom: -3px;
   padding-bottom: 6px;
 }
-#vomnibarList > .vomnibarCompletion:hover {
+#vomnibarList > .vomnibarItem:hover {
   background-color: #CFDDEF;
 }
-#vomnibarList > .vomnibarCompletion.vomnibarSelected {
+#vomnibarList > .vomnibarItem.vomnibarSelected {
   background-color: #BBCEE9;
 }
 
@@ -69,7 +66,6 @@
 }
 .vomnibarTitle.vimB {
   box-sizing: border-box;
-  display: inline-block;
   max-width: 100%;
   overflow: hidden;
   padding-left: 51px;
