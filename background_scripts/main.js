@@ -138,17 +138,17 @@
       bindings = (commandsToKey[command] || [""]).join(", ");
       if (showUnboundCommands || commandsToKey[command]) {
         isAdvanced = Commands.advancedCommands.indexOf(command) >= 0;
-        html.push("<tr class='vimB vimI vimiumHelpTr" + (isAdvanced ? " vimiumHelpAdvanced'>" : "'>")
-          , "<td class='vimB vimI vimiumHelpTd vimiumHelpShortKey'><span class='vimB vimI vimiumHelpShortKey2'>", Utils.escapeHtml(bindings)
-          , "</span></td>\n<td class='vimB vimI vimiumHelpTd'>:</td>\n<td class='vimB vimI vimiumHelpTd vimiumHelpCommandInfo'>"
+        html.push("<tr class='vimB vimI vimiumHelpTr" + (isAdvanced ? " vimiumHelpAdvanced" : "")
+          , "'>\n\t<td class='vimB vimI vimiumHelpTd vimiumHelpShortKey'>\n\t\t<span class='vimB vimI vimiumHelpShortKey2'>", Utils.escapeHtml(bindings)
+          , "</span>\n\t</td>\n\t<td class='vimB vimI vimiumHelpTd'>:</td>\n\t<td class='vimB vimI vimiumHelpTd vimiumHelpCommandInfo'>"
           , Utils.escapeHtml(availableCommands[command].description));
         if (showCommandNames) {
-          html.push("<span class='vimB vimI vimiumHelpCommandName'>(" + command + ")</span>");
+          html.push("\n\t\t<span class='vimB vimI vimiumHelpCommandName'>(" + command + ")</span>");
         }
-        html.push("</td>\n</tr>");
+        html.push("</td>\n</tr>\n");
       }
     }
-    return html.join("\n");
+    return html.join("");
   };
 
   fetchFileContents = function(extensionFileName) {
