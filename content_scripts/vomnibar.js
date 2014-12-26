@@ -77,10 +77,8 @@
     refreshInterval: 0,
     selection: -1,
     timer: 0,
+    template: "",
     _initStep: 0,
-    setQuery: function(query) {
-      this.input.value = query;
-    },
     setInitialSelectionValue: function(initialSelectionValue) {
       this.initialSelectionValue = initialSelectionValue;
     },
@@ -99,6 +97,7 @@
         return;
       }
       this.box.style.display = "block";
+      this.input.value = this.completionInput.url;
       this.input.focus();
       this.input.addEventListener("input", this.eventHandlers.input);
       this.completionList.addEventListener("click", this.eventHandlers.click);
@@ -115,6 +114,7 @@
       }
       this.box.style.display = "none";
       this.input.blur();
+      this.completionList.innerHTML = "";
       handlerStack.remove(this.handlerId);
       this.handlerId = 0;
       this.input.removeEventListener("input", this.eventHandlers.input);
@@ -125,7 +125,7 @@
       this.completions = null;
     },
     reset: function(input) {
-      this.completionInput.url = this.input.value = input || "";
+      this.completionInput.url = input || "";
       this.update(0, this.show);
     },
     update: function(updateDelay, callback) {
@@ -147,9 +147,9 @@
       this.timer = setTimeout(this.eventHandlers.timer, updateDelay);
     },
     populateUI: function() {
-      this.completionList.innerHTML = "\n  <li class=\"vimB vimR vomnibarCompletion\">\n    " + this.completions.map(function(completion) {
+      this.completionList.innerHTML = "\n<li class=\"vimB vimR vomnibarCompletion\">\n  " + this.completions.map(function(completion) {
         return completion.text;
-      }).join("\n  </li>\n  <li class=\"vimB vimR vomnibarCompletion\">\n    ") + "\n  </li>\n";
+      }).join("\n</li>\n<li class=\"vimB vimR vomnibarCompletion\">\n  ") + "\n</li>\n";
       if (this.completions.length > 0) {
         this.completionList.style.display = "block";
         this.selection = (this.completions[0].type === "search") ? 0 : this.initialSelectionValue;
@@ -274,7 +274,7 @@
     },
     onTimer: function() {
       this.timer = 0;
-      this.completer.filter(this.input.value, this.eventHandlers.completions);
+      this.completer.filter(this.completionInput.url, this.eventHandlers.completions);
     },
     onCompletions: function(completions) {
       completions[-1] = this.completionInput;
@@ -311,17 +311,8 @@
       document.body.appendChild(this.box);
       mainPort.postMessage({
         handler: "initVomnibar"
-      }, (function(css) {
-        var callback = this._initStep;
-        this.box.children[0].innerHTML = css;
-        this._initStep = 2;
-        if (typeof callback === "function") {
-          callback.call(this);
-        }
-      }).bind(this));
+      }, this.init_html.bind(this));
       this._initStep = 1;
-      this.input = this.box.children[1].children[0];
-      this.completionList = this.box.children[2];
       this.completionInput.performAction = BackgroundCompleter.performAction;
       this.eventHandlers = {
         keydown: this.onKeydown.bind(this)
@@ -331,6 +322,16 @@
         , completions: this.onCompletions.bind(this)
         , keyEvent: this.onKeyEvent.bind(this)
       };
+    },
+    init_html: function(html) {
+      var callback = this._initStep;
+      this._initStep = 2;
+      this.box.innerHTML = html;
+      this.input = this.box.querySelector("#vomnibarInput");
+      this.completionList = this.box.querySelector("#vomnibarList");
+      if (typeof callback === "function") {
+        callback.call(this);
+      }
     }
   };
 
@@ -354,21 +355,22 @@
     }
     return port;
   };
-  
+
   BackgroundCompleter.prototype.refresh = function() {
     mainPort.postMessage({
       handler: "refreshCompleter",
       name: this.name
     });
   };
-  
+
+  BackgroundCompleter.whiteSpaceRegex = /\s+/g;
   BackgroundCompleter.prototype.filter = function(query, callback) {
     BackgroundCompleter._id = Utils.createUniqueId();
     BackgroundCompleter._callback = callback;
     this.getPort().postMessage({
       name: this.name,
       id: BackgroundCompleter._id,
-      query: query.replace(/\s+/g, ' ').trim()
+      query: query.replace(BackgroundCompleter.whiteSpaceRegex, ' ').trim()
     });
   };
 
@@ -448,20 +450,19 @@
       return out.join("");
     },
     makeShortenUrl: function() {
-      this.text = BackgroundCompleter.cutUrl(this.text, this.textSplit, this.url);
-      this.text = [
-        "<div class=\"vimB vimI vomnibarTopHalf\">\n      <span class=\"vimB vimI vomnibarSource\">"
-        , this.type, "</span>\n      <span class=\"vimB vimI vomnibarTitle\">", this.title
-        , "</span>\n    </div>\n    <div class=\"vimB vimI vomnibarBottomHalf vomnibarIcon\""
-        , ">\n      <span class=\"vimB vimI vomnibarUrl\">", this.text
-        , (BackgroundCompleter.showRelevancy ? ("</span>\n      <span class='vimB vimI vomnibarRelevancy'>" + this.relevancy) : "")
-        , "</span>\n    </div>"
+      var arr = [
+        "<div class=\"vimB vimI vomnibarTopHalf\">\n    <span class=\"vimB vimI vomnibarSource\">"
+        , this.type, "</span>\n    <span class=\"vimB vimI vomnibarTitle\">", this.title
+        , "</span>\n  </div>\n  <div class=\"vimB vimI vomnibarBottomHalf"
+        , "\">\n    <span class=\"vimB vimI vomnibarUrl\">", BackgroundCompleter.cutUrl(this.text, this.textSplit, this.url)
+        , (BackgroundCompleter.showRelevancy ? ("</span>\n    <span class='vimB vimI vomnibarRelevancy'>" + this.relevancy) : "")
+        , "</span>\n  </div>"
       ];
       if (BackgroundCompleter.showFavIcon) {
-        this.favIconUrl || (this.favIconUrl = "chrome://favicon/size/16/" + this.url);
-        this.text.splice(5, 0, " style=\"background-image: url(", this.favIconUrl, ");\"");
+        arr.splice(5, 0, " vomnibarIcon\" style=\"background-image: url("
+          , this.favIconUrl || ("chrome://favicon/size/16/" + this.url), ");");
       }
-      this.text = this.text.join("");
+      this.text = arr.join("");
     },
     performAction: function() {
       var action = BackgroundCompleter.completionActions[this.action] || this.action;

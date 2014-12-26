@@ -3,11 +3,11 @@
   "use strict";
   var BackgroundCommands, checkKeyQueue, completers, completionSources, copyToClipboard, currentVersion
     , fetchFileContents, filterCompleter, frameIdsForTab, generateCompletionKeys
-    , getActualKeyStrokeLength, getCompletionKeysRequest, getCurrentTabUrl
+    , getActualKeyStrokeLength, getCompletionKeysRequest, getCurrentTabUrl, vomnibarContent
     , getCurrentTimeInSeconds, handleFrameFocused, handleMainPort, handleUpdateScrollPosition
     , helpDialogHtmlForCommandGroup, isEnabledForUrl, keyQueue, moveTab, namedKeyRegex
     , openOptionsPageInNewTab, openUrlInCurrentTab, openUrlInIncognito, openUrlInNewTab, restoreSession
-    , populateKeyCommands, portHandlers, refreshCompleter, registerFrame, vomnibarCss, splitKeyQueueRegex
+    , populateKeyCommands, portHandlers, refreshCompleter, registerFrame, splitKeyQueueRegex
     , removeTabsRelative, repeatFunction, root, saveHelpDialogSettings, selectSpecificTab, selectTab
     , selectionChangedHandlers, requestHandlers, sendRequestToAllTabs, setBrowserActionIcon
     , shouldShowUpgradeMessage, singleKeyCommands, splitKeyIntoFirstAndSecond, splitKeyQueue, tabInfoMap
@@ -999,7 +999,7 @@
       BackgroundCommands.nextFrame(tab, 1, request.frameId);
     },
     initVomnibar: function() {
-      return vomnibarCss || (vomnibarCss = fetchFileContents("content_scripts/vomnibar.css"));
+      return vomnibarContent || (vomnibarContent = fetchFileContents("pages/vomnibar.html"));
     },
     upgradeNotificationClosed: upgradeNotificationClosed,
     updateScrollPosition: handleUpdateScrollPosition,
