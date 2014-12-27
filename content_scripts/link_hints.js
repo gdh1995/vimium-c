@@ -74,6 +74,8 @@
         id: "vimiumHintMarkerContainer",
         className: "vimB vimR"
       });
+      this.hintMarkerContainingDiv.style.left = window.scrollX + "px";
+      this.hintMarkerContainingDiv.style.top = window.scrollY + "px";
       if (this.handlerHoldTime > 0) {
         clearTimeout(this.handlerHoldTime);
       }
@@ -157,13 +159,11 @@
       this.mode = mode;
     },
     createMarkerFor: function(link) {
-      var clientRect, marker;
-      marker = document.createElement("div");
+      var marker = document.createElement("div");
       marker.className = "vimB vimI internalVimiumHintMarker vimiumHintMarker";
       marker.clickableItem = link.element;
-      clientRect = link.rect;
-      marker.style.left = clientRect.left + window.scrollX + "px";
-      marker.style.top = clientRect.top + window.scrollY + "px";
+      marker.style.left = link.rect.left + "px";
+      marker.style.top = link.rect.top + "px";
       marker.rect = link.rect;
       return marker;
     },
