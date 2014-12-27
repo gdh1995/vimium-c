@@ -189,8 +189,8 @@
       } else {
         if (event.shiftKey || event.ctrlKey || event.altKey || event.metaKey) {
         }
-        else if (this.selection === 0) {
-          if (this.completions.length === 1 && event.which === 32 && this.input.value.slice(-2) === "  ") {
+        else if (this.selection === 0 && event.which === 32) {
+          if (this.completions.length === 1 && this.input.value.slice(-2) === "  ") {
             action = "enter";
           }
         }
