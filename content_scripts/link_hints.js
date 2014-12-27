@@ -214,6 +214,22 @@
       if (this.delayMode) {
         return;
       }
+      if (KeyboardUtils.isEscape(event)) {
+        KeydownEvents.push(event);
+        this.deactivateMode();
+        return false;
+      }
+      keyResult = this.getMarkerMatcher().matchHintsByKey(this.hintMarkers, event);
+      linksMatched = keyResult.linksMatched;
+      delay = keyResult.delay || 0;
+      if (linksMatched.length === 0) {
+        if (KeyboardUtils.isFunctionKey(event)) {
+          return true;
+        }
+        KeydownEvents.push(event);
+        this.deactivateMode();
+        return false;
+      }
       if ((event.keyCode === keyCodes.shiftKey || event.keyCode === keyCodes.ctrlKey) && (this.mode === OPEN_IN_CURRENT_TAB || this.mode === OPEN_IN_NEW_BG_TAB || this.mode === OPEN_IN_NEW_FG_TAB)) {
         if (event.keyCode === keyCodes.shiftKey) {
           this.setOpenLinkMode(this.mode === OPEN_IN_CURRENT_TAB ? OPEN_IN_NEW_BG_TAB : OPEN_IN_CURRENT_TAB);
@@ -221,27 +237,14 @@
           this.setOpenLinkMode(this.mode === OPEN_IN_NEW_FG_TAB ? OPEN_IN_NEW_BG_TAB : OPEN_IN_NEW_FG_TAB);
         }
       }
-      if (KeyboardUtils.isEscape(event)) {
-        KeydownEvents.push(event);
-        this.deactivateMode();
+      if (linksMatched.length === 1) {
+        this.activateLink(linksMatched[0], delay);
       } else {
-        keyResult = this.getMarkerMatcher().matchHintsByKey(this.hintMarkers, event);
-        linksMatched = keyResult.linksMatched;
-        delay = keyResult.delay || 0;
-        if (linksMatched.length === 0) {
-          this.deactivateMode();
-          if (KeyboardUtils.isFunctionKey(event)) {
-            return true;
-          }
-        } else if (linksMatched.length === 1) {
-          this.activateLink(linksMatched[0], delay);
-        } else {
-          for (_i = 0, _len = this.hintMarkers.length; _i < _len; _i++) {
-            this.hideMarker(this.hintMarkers[_i]);
-          }
-          for (_i = 0, _len = linksMatched.length; _i < _len; _i++) {
-            this.showMarker(linksMatched[_i], this.getMarkerMatcher().hintKeystrokeQueue.length);
-          }
+        for (_i = 0, linksMatched = this.hintMarkers, _len = linksMatched.length; _i < _len; _i++) {
+          this.hideMarker(linksMatched[_i]);
+        }
+        for (_i = 0, linksMatched = keyResult.linksMatched, _len = linksMatched.length; _i < _len; _i++) {
+          this.showMarker(linksMatched[_i], this.getMarkerMatcher().hintKeystrokeQueue.length);
         }
       }
       return false;
