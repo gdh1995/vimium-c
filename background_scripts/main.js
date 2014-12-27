@@ -355,16 +355,16 @@
       });
     },
     nextTab: function(tab, callback) {
-      selectTab(callback, "next", tab);
+      selectTab("next", tab, callback);
     },
     previousTab: function(tab, callback) {
-      selectTab(callback, "previous", tab);
+      selectTab("previous", tab, callback);
     },
     firstTab: function(tab, callback) {
-      selectTab(callback, "first", tab);
+      selectTab("first", tab, callback);
     },
     lastTab: function(tab, callback) {
-      selectTab(callback, "last", tab);
+      selectTab("last", tab, callback);
     },
     removeTab: function(tab, callback) {
       chrome.tabs.getAllInWindow(tab.windowId, function(curTabs) {
@@ -541,7 +541,7 @@
     });
   };
 
-  selectTab = function(callback, direction, currentTab) {
+  selectTab = function(direction, currentTab, callback) {
     chrome.tabs.getAllInWindow(currentTab.windowId, function(tabs) {
       if (!(tabs.length > 1)) {
         return;

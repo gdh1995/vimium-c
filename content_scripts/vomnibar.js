@@ -66,7 +66,6 @@
     },
     completionList: null,
     completions: null,
-    eventHandlers: null,
     forceNewTab: false,
     handlerId: 0,
     initialSelectionValue: -1,
@@ -98,12 +97,12 @@
       this.box.style.display = "block";
       this.input.value = this.completionInput.url;
       this.input.focus();
-      this.input.addEventListener("input", this.eventHandlers.input);
-      this.completionList.addEventListener("click", this.eventHandlers.click);
+      this.input.addEventListener("input", this.onInput);
+      this.completionList.addEventListener("click", this.onClick);
       this.box.addEventListener("mousewheel", DomUtils.suppressPropagation);
-      this.box.addEventListener("keyup", this.eventHandlers.keyEvent);
+      this.box.addEventListener("keyup", this.onKeyEvent);
       this.handlerId = handlerStack.push({
-        keydown: this.eventHandlers.keydown
+        keydown: this.onKeydown
       });
     },
     hide: function() {
@@ -116,10 +115,10 @@
       this.completionList.innerHTML = "";
       handlerStack.remove(this.handlerId);
       this.handlerId = 0;
-      this.input.removeEventListener("input", this.eventHandlers.input);
-      this.completionList.removeEventListener("click", this.eventHandlers.click);
+      this.input.removeEventListener("input", this.onInput);
+      this.completionList.removeEventListener("click", this.onClick);
       this.box.removeEventListener("mousewheel", DomUtils.suppressPropagation);
-      this.box.removeEventListener("keyup", this.eventHandlers.keyEvent);
+      this.box.removeEventListener("keyup", this.onKeyEvent);
       this.onUpdate = null;
       this.completions = null;
     },
@@ -135,7 +134,7 @@
           this.timer = 0;
         }
         if (updateDelay <= 0) {
-          this.eventHandlers.timer();
+          this.onTimer();
           return;
         }
       } else if (this.timer) {
@@ -143,7 +142,7 @@
       } else {
         updateDelay = this.refreshInterval;
       }
-      this.timer = setTimeout(this.eventHandlers.timer, updateDelay);
+      this.timer = setTimeout(this.onTimer, updateDelay);
     },
     populateUI: function() {
       this.completionList.innerHTML = this.renderItems(this.completions);
@@ -271,7 +270,7 @@
     },
     onTimer: function() {
       this.timer = 0;
-      this.completer.filter(this.completionInput.url, this.eventHandlers.completions);
+      this.completer.filter(this.completionInput.url, this.onCompletions);
     },
     onCompletions: function(completions) {
       if (completions) {
@@ -312,14 +311,12 @@
       }, this.init_dom.bind(this));
       this._initStep[0] = 1;
       this.completionInput.performAction = BackgroundCompleter.performAction;
-      this.eventHandlers = {
-        keydown: this.onKeydown.bind(this)
-        , input: this.onInput.bind(this)
-        , click: this.onClick.bind(this)
-        , timer: this.onTimer.bind(this)
-        , completions: this.onCompletions.bind(this)
-        , keyEvent: this.onKeyEvent.bind(this)
-      };
+      this.onKeydown = this.onKeydown.bind(this);
+      this.onInput = this.onInput.bind(this);
+      this.onClick = this.onClick.bind(this);
+      this.onTimer = this.onTimer.bind(this);
+      this.onCompletions = this.onCompletions.bind(this);
+      this.onKeyEvent = this.onKeyEvent.bind(this);
     },
     init_dom: function(html) {
       this._initStep[0] = 2;
