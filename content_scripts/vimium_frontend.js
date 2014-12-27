@@ -557,7 +557,7 @@
   KeydownEvents = {
     handledEvents: {},
     stringify: function(event) {
-      return [+event.metaKey, +event.altKey, +event.ctrlKey, event.keyIdentifier
+      return [event.metaKey + event.altKey * 2 + event.ctrlKey * 4, event.keyIdentifier
         , event.keyCode].join(",");
     },
     push: function(event) {
