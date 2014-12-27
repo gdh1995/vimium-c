@@ -16,181 +16,181 @@
  * declarations contain more specifiers than necessary to increase their specificity (precedence).
  */
 .vimR.vimB {
-  background: none;
-  background-image: none;
-  border: none;
-  border-image: none;
-  bottom: auto;
-  box-shadow: none;
-  box-sizing: content-box;
-  color: black;
-  cursor: auto;
-  display: block;
-  float: none;
-  font-family: "Helvetica Neue", "Helvetica", "Arial", "sans-serif";
-  font-size: 12px;
-  font-style: normal;
-  font-variant: normal;
-  font-weight: normal;
-  height: auto;
-  left: auto;
-  letter-spacing: 0;
-  line-height: 100%;
-  margin: 0;
-  max-height: none;
-  max-width: none;
-  min-height: 0;
-  min-width: 0;
-  opacity: 1;
-  overflow: hidden;
-  padding: 0;
-  position: static;
-  right: auto;
-  text-align: left;
-  text-decoration: none;
-  text-indent: 0;
-  text-shadow: none;
-  text-transform: none;
-  top: auto;
-  vertical-align: baseline;
-  white-space: normal;
-  width: auto;
-  z-index: 99999990;
+	background: none;
+	background-image: none;
+	border: none;
+	border-image: none;
+	bottom: auto;
+	box-shadow: none;
+	box-sizing: content-box;
+	color: black;
+	cursor: auto;
+	display: block;
+	float: none;
+	font-family: "Helvetica Neue", "Helvetica", "Arial", "sans-serif";
+	font-size: 12px;
+	font-style: normal;
+	font-variant: normal;
+	font-weight: normal;
+	height: auto;
+	left: auto;
+	letter-spacing: 0;
+	line-height: 100%;
+	margin: 0;
+	max-height: none;
+	max-width: none;
+	min-height: 0;
+	min-width: 0;
+	opacity: 1;
+	overflow: hidden;
+	padding: 0;
+	position: static;
+	right: auto;
+	text-align: left;
+	text-decoration: none;
+	text-indent: 0;
+	text-shadow: none;
+	text-transform: none;
+	top: auto;
+	vertical-align: baseline;
+	white-space: normal;
+	width: auto;
+	z-index: 99999990;
 }
 .vimI.vimB {
-  background: none;
-  background-image: none;
-  border: none;
-  border-image: none;
-  bottom: auto;
-  box-shadow: none;
-  box-sizing: content-box;
-  color: inherit;
-  cursor: auto;
-  display: inline;
-  float: none;
-  font-family: inherit;
-  font-size: inherit;
-  font-style: inherit;
-  font-variant: inherit;
-  font-weight: inherit;
-  height: auto;
-  left: auto;
-  letter-spacing: inherit;
-  line-height: inherit;
-  margin: 0;
-  max-height: none;
-  max-width: none;
-  min-height: 0;
-  min-width: 0;
-  opacity: 1;
-  overflow: visible;
-  padding: 0;
-  position: static;
-  right: auto;
-  text-align: inherit;
-  text-decoration: inherit;
-  text-indent: inherit;
-  text-shadow: inherit;
-  text-transform: inherit;
-  top: auto;
-  vertical-align: inherit;
-  white-space: inherit;
-  width: auto;
-  z-index: auto;
+	background: none;
+	background-image: none;
+	border: none;
+	border-image: none;
+	bottom: auto;
+	box-shadow: none;
+	box-sizing: content-box;
+	color: inherit;
+	cursor: auto;
+	display: inline;
+	float: none;
+	font-family: inherit;
+	font-size: inherit;
+	font-style: inherit;
+	font-variant: inherit;
+	font-weight: inherit;
+	height: auto;
+	left: auto;
+	letter-spacing: inherit;
+	line-height: inherit;
+	margin: 0;
+	max-height: none;
+	max-width: none;
+	min-height: 0;
+	min-width: 0;
+	opacity: 1;
+	overflow: visible;
+	padding: 0;
+	position: static;
+	right: auto;
+	text-align: inherit;
+	text-decoration: inherit;
+	text-indent: inherit;
+	text-shadow: inherit;
+	text-transform: inherit;
+	top: auto;
+	vertical-align: inherit;
+	white-space: inherit;
+	width: auto;
+	z-index: auto;
 }
 
 .vimL.vimB,
 .vimL:visited,
 .vimL:link {
-  color: blue;
-  text-decoration: underline;
+	color: blue;
+	text-decoration: underline;
 }
 .vimL:hover {
-  color: blue;
-  cursor: auto;
-  text-decoration: underline;
+	color: blue;
+	cursor: auto;
+	text-decoration: underline;
 }
 
 /* Linkhints CSS */
 
 #vimiumHintMarkerContainer.vimB {
-  font-weight: bold;
-  overflow: visible;
-  position: absolute;
-  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.6);
-  white-space: nowrap;
-  z-index: 99999994;
+	font-weight: bold;
+	overflow: visible;
+	position: absolute;
+	text-shadow: 0 1px 0 rgba(255, 255, 255, 0.6);
+	white-space: nowrap;
+	z-index: 99999994;
 }
 
 .internalVimiumHintMarker.vimB {
-  background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#FFF785), color-stop(100%,#FFC542));
-  border: 1px solid #E3BE23;
-  border-radius: 3px;
-  box-shadow: 0px 3px 7px 0px rgba(0, 0, 0, 0.3);
-  padding: 1px 3px 0px 3px;
-  position: absolute;
+	background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#FFF785), color-stop(100%,#FFC542));
+	border: 1px solid #E3BE23;
+	border-radius: 3px;
+	box-shadow: 0px 3px 7px 0px rgba(0, 0, 0, 0.3);
+	padding: 1px 3px 0px 3px;
+	position: absolute;
 }
 
 .internalVimiumHintMarker > .matchingCharacter {
-  color: #D4AC3A;
+	color: #D4AC3A;
 }
 
 /* Input hints CSS */
 
 .internalVimiumInputHint.vimB {
-  background-color: rgba(255, 247, 133, 0.3);
-  border: 1px solid #C38A22;
-  display: block;
-  position: absolute;
+	background-color: rgba(255, 247, 133, 0.3);
+	border: 1px solid #C38A22;
+	display: block;
+	position: absolute;
 }
 
 .internalVimiumSelectedInputHint.vimB {
-  background-color: rgba(255, 102, 102, 0.3);
-  border: 1px solid #993333 !important;
+	background-color: rgba(255, 102, 102, 0.3);
+	border: 1px solid #993333 !important;
 }
 
 /* Vimium HUD CSS */
 
 .vimiumHUD.vimB {
-  background-color: #ebebeb;
-  border: 1px solid #b3b3b3;
-  border-radius: 4px 4px 0 0;
-  bottom: 0px;
-  font-family: "Lucida Grande", "Arial", "Sans";
-  height: 13px;
-  min-height: 13px;
-  max-width: 400px;
-  min-width: 150px;
-  padding: 3px 3px 2px 3px;
-  position: fixed;
-  /* less than vimium's hint markers, so link hints can be shown e.g. for the panel's close button. */
-  z-index: 99999993;
-  text-shadow: 0px 1px 2px #FFF;
-  opacity: 0;
+	background-color: #ebebeb;
+	border: 1px solid #b3b3b3;
+	border-radius: 4px 4px 0 0;
+	bottom: 0px;
+	font-family: "Lucida Grande", "Arial", "Sans";
+	height: 13px;
+	min-height: 13px;
+	max-width: 400px;
+	min-width: 150px;
+	padding: 3px 3px 2px 3px;
+	position: fixed;
+	/* less than vimium's hint markers, so link hints can be shown e.g. for the panel's close button. */
+	z-index: 99999993;
+	text-shadow: 0px 1px 2px #FFF;
+	opacity: 0;
 }
 .vimiumHUD > .vimiumHUDClose {
-  -webkit-user-select: none;
-  color: #9C9A9A;
-  float: right;
-  font-family: "Courier New";
-  font-size: 14px;
-  font-weight: bold;
-  margin-top: -1px;
-  padding-left: 10px;
+	-webkit-user-select: none;
+	color: #9C9A9A;
+	float: right;
+	font-family: "Courier New";
+	font-size: 14px;
+	font-weight: bold;
+	margin-top: -1px;
+	padding-left: 10px;
 }
 .vimiumHUD > .vimiumHUDClose:hover {
-  -webkit-user-select: none;
-  color: #333333;
+	-webkit-user-select: none;
+	color: #333333;
 }
 
 /* Vimium Flash */
 
 #vimiumFlash.vimB {
-  box-shadow: 0px 0px 4px 2px #4183C4;
-  padding: 1px;
-  position: absolute;
-  z-index: 99999999;
+	box-shadow: 0px 0px 4px 2px #4183C4;
+	padding: 1px;
+	position: absolute;
+	z-index: 99999999;
 }
 
 /* Vimium Scrollbar */
@@ -198,22 +198,22 @@
 .vimiumScroll::-webkit-scrollbar,
 .vimiumScroll::-webkit-scrollbar-track,
 .vimiumScroll::-webkit-scrollbar-thumb {
-  background: none;
-  border: none;
-  border-radius: 5px;
-  box-shadow: none;
+	background: none;
+	border: none;
+	border-radius: 5px;
+	box-shadow: none;
 }
 .vimiumScroll::-webkit-scrollbar:vertical {
-  width: 10px;
+	width: 10px;
 }
 .vimiumScroll::-webkit-scrollbar:horizontal {
-  height: 10px;
+	height: 10px;
 }
 .vimiumScroll::-webkit-scrollbar-thumb,
 .vimiumScroll::-webkit-scrollbar-thumb:window-inactive,
 .vimiumScroll::-webkit-scrollbar-track:hover {
-  background: rgba(96, 96, 96, 0.4);
+	background: rgba(96, 96, 96, 0.4);
 }
 .vimiumScroll::-webkit-scrollbar-thumb:hover {
-  background: rgba(0, 0, 0, 0.6);
+	background: rgba(0, 0, 0, 0.6);
 }
