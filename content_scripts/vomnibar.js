@@ -168,7 +168,6 @@
     },
     actionFromKeyEvent: function(event) {
       if (KeyboardUtils.isEscape(event)) {
-        KeydownEvents.push(event);
         return "dismiss";
       } else if (event.keyCode === keyCodes.enter) {
         return "enter";
@@ -207,7 +206,7 @@
       }
       this.openInNewTab = this.forceNewTab || (event.shiftKey || event.ctrlKey || event.metaKey);
       this.onAction(action);
-      DomUtils.suppressEvent(event);
+      KeydownEvents.push(event);
       return false;
     },
     onAction: function(action) {
