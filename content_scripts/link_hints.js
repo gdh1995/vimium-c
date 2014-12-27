@@ -161,40 +161,34 @@
       return marker;
     },
     getVisibleClickableElements: function() {
-      var c, clientRect, coords, element, img, imgClientRects, map, rect, resultSet, visibleElements, _i, _ref;
+      var c, rect, element, img, cr0, map, rect, resultSet, visibleElements, _i, _ref;
       resultSet = DomUtils.evaluateXPath(this.clickableElementsXPath, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE);
       visibleElements = [];
       for (_i = 0, _ref = resultSet.snapshotLength; _i < _ref; ++_i) {
         element = resultSet.snapshotItem(_i);
-        clientRect = DomUtils.getVisibleClientRect(element, clientRect);
-        if (clientRect !== null) {
+        rect = DomUtils.getVisibleClientRect(element, rect);
+        if (rect) {
           visibleElements.push({
             element: element,
-            rect: clientRect
+            rect: rect
           });
         }
-        if (element.localName === "area") {
-          map = element.parentElement;
-          if (!map) {
+        else if (element.localName === "area") {
+          if ( (map = element.parentElement)
+            && (img = document.querySelector("img[usemap='#" + map.getAttribute("name") + "']"))
+            && (cr0 = img.getClientRects()[0]) ) {
+          } else {
             continue;
           }
-          img = document.querySelector("img[usemap='#" + map.getAttribute("name") + "']");
-          if (!img) {
-            continue;
-          }
-          imgClientRects = img.getClientRects();
-          if (imgClientRects.length === 0) {
-            continue;
-          }
-          c = element.coords.split(",");
-          coords = [parseInt(c[0], 10), parseInt(c[1], 10), parseInt(c[2], 10), parseInt(c[3], 10)];
+          c = element.coords.split(',');
+          c = [parseInt(c[0], 10), parseInt(c[1], 10), parseInt(c[2], 10), parseInt(c[3], 10)];
           rect = {
-            top: imgClientRects[0].top + coords[1],
-            left: imgClientRects[0].left + coords[0],
-            right: imgClientRects[0].left + coords[2],
-            bottom: imgClientRects[0].top + coords[3],
-            width: coords[2] - coords[0],
-            height: coords[3] - coords[1]
+            top: cr0[0].top + c[1],
+            right: cr0[0].left + c[2],
+            bottom: cr0[0].top + c[3],
+            left: cr0[0].left + c[0],
+            width: c[2] - c[0],
+            height: c[3] - c[1]
           };
           visibleElements.push({
             element: element,
