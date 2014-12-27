@@ -180,17 +180,18 @@
           || (event[keyCodes.modifier] && (key === "j" || key === "n"))) {
         return "down";
       }
+      return null;
     },
     onKeydown: function(event) {
       var action = this.actionFromKeyEvent(event);
-      while (!action) {
+      if (action) {
+        this.openInNewTab = this.forceNewTab || (event.shiftKey || event.ctrlKey || event.metaKey);
+      } else {
         if (event.shiftKey || event.ctrlKey || event.altKey || event.metaKey) {
-          return true;
         }
-        if (this.selection == 0) {
-          if (this.completions.length == 1 && this.input.value.slice(-2) === "  " && event.which == 32) {
+        else if (this.selection === 0) {
+          if (this.completions.length === 1 && event.which === 32 && this.input.value.slice(-2) === "  ") {
             action = "enter";
-            break;
           }
         }
         else if (this.selection >= 0 && this.isSelectionChanged || document.activeElement !== this.input) {
@@ -199,12 +200,15 @@
           if (action > 0 && action <= this.completions.length) {
             this.selection = action - 1;
             action = "enter";
-            break;
+          } else {
+            action = null;
           }
         }
-        return true;
+        if (!action) {
+          return true;
+        }
+        this.openInNewTab = this.forceNewTab;
       }
-      this.openInNewTab = this.forceNewTab || (event.shiftKey || event.ctrlKey || event.metaKey);
       this.onAction(action);
       KeydownEvents.push(event);
       return false;
@@ -248,13 +252,12 @@
       var el = event.target, ulist = this.completionList;
       while(el && el.parentElement != ulist) { el = el.parentElement; }
       for (var _i = 0, _ref = ulist.children; _i < _ref.length; ++_i) {
-        if (_ref[_i] == el) {
-          el = _i;
+        if (_ref[_i] === el) {
           break;
         }
       }
-      if (typeof el === "number") {
-        this.selection = el;
+      if (_i < _ref.length) {
+        this.selection = _i;
         this.openInNewTab = this.forceNewTab || (event.shiftKey || event.ctrlKey || event.metaKey);
         this.onAction("enter");
       }
