@@ -4,27 +4,28 @@
     , OPEN_IN_CURRENT_TAB, OPEN_IN_NEW_BG_TAB, OPEN_IN_NEW_FG_TAB, OPEN_WITH_QUEUE
     , alphabetHints, filterHints, numberToHintString, spanWrap;
 
-  OPEN_IN_CURRENT_TAB = {};
+  // focused: 1, new tab: 2, queue: 4
+  OPEN_IN_CURRENT_TAB = 0; // also 1
 
-  OPEN_IN_NEW_BG_TAB = {};
+  OPEN_IN_NEW_BG_TAB = 2;
 
-  OPEN_IN_NEW_FG_TAB = {};
+  OPEN_IN_NEW_FG_TAB = 3;
 
-  OPEN_WITH_QUEUE = {};
+  OPEN_WITH_QUEUE = 6;
 
-  COPY_LINK_URL = {};
+  OPEN_INCOGNITO = 128;
 
-  COPY_LINK_TEXT = {};
+  COPY_LINK_URL = 129;
 
-  OPEN_INCOGNITO = {};
+  COPY_LINK_TEXT = 130;
 
-  DOWNLOAD_LINK_URL = {};
+  DOWNLOAD_LINK_URL = 131;
 
   LinkHints = {
     hintMarkerContainingDiv: null,
-    mode: undefined,
-    hintMarkers: undefined,
-    linkActivator: undefined,
+    mode: 0,
+    hintMarkers: null,
+    linkActivator: null,
     delayMode: false,
     handlerId: 0,
     handlerHoldTime: 0,
@@ -60,17 +61,10 @@
       return this.activateMode(DOWNLOAD_LINK_URL);
     },
     activateMode: function(mode) {
-      var el;
-      if (mode == null) {
-        mode = OPEN_IN_CURRENT_TAB;
-      }
-      if (!document.documentElement) {
+      if (this.isActive || !document.documentElement) {
         return;
       }
-      if (this.isActive) {
-        return;
-      }
-      this.setOpenLinkMode(mode);
+      this.setOpenLinkMode(mode || 0);
       this.hintMarkers = this.getVisibleClickableElements().map(this.createMarkerFor);
       this.getMarkerMatcher().fillInMarkers(this.hintMarkers);
       this.isActive = true;
@@ -97,24 +91,17 @@
       }
     },
     setOpenLinkMode: function(mode) {
-      this.mode = mode;
-      if (this.mode === OPEN_IN_NEW_BG_TAB || this.mode === OPEN_IN_NEW_FG_TAB || this.mode === OPEN_WITH_QUEUE) {
-        if (this.mode === OPEN_IN_NEW_BG_TAB) {
-          HUD.show("Open link in new tab");
-        } else if (this.mode === OPEN_IN_NEW_FG_TAB) {
-          HUD.show("Open link in new tab and switch to it");
-        } else {
-          HUD.show("Open multiple links in a new tab");
-        }
-        this.linkActivator = function(link) {
-          DomUtils.simulateClick(link, {
-            shiftKey: this.mode === OPEN_IN_NEW_FG_TAB,
-            metaKey: KeyboardUtils.platform === "Mac",
-            ctrlKey: KeyboardUtils.platform !== "Mac",
-            altKey: false
-          });
-        };
-      } else if (this.mode === COPY_LINK_URL) {
+      switch (mode) {
+      case OPEN_IN_NEW_BG_TAB:
+        HUD.show("Open link in new tab");
+        break;
+      case OPEN_IN_NEW_FG_TAB: 
+        HUD.show("Open link in new active tab");
+        break;
+      case OPEN_WITH_QUEUE:
+        HUD.show("Open multiple links in a new tab");
+        break;
+      case COPY_LINK_URL:
         HUD.show("Copy link URL to Clipboard");
         this.linkActivator = function(link) {
           mainPort.postMessage({
@@ -122,7 +109,8 @@
             data: link.href
           });
         };
-      } else if (this.mode === COPY_LINK_TEXT) {
+        break;
+      case COPY_LINK_TEXT:
         HUD.show("Copy link text to Clipboard");
         this.linkActivator = function(link) {
           mainPort.postMessage({
@@ -130,7 +118,8 @@
             data: (link.innerText.trim() || link.title.trim()).replace(/\xa0/g, ' ')
           });
         };
-      } else if (this.mode === OPEN_INCOGNITO) {
+        break;
+      case OPEN_INCOGNITO:
         HUD.show("Open link in incognito window");
         this.linkActivator = function(link) {
           mainPort.postMessage({
@@ -138,21 +127,34 @@
             url: link.href
           });
         };
-      } else if (this.mode === DOWNLOAD_LINK_URL) {
+        break;
+      case DOWNLOAD_LINK_URL:
         HUD.show("Download link URL");
         this.linkActivator = function(link) {
           DomUtils.simulateClick(link, {
             altKey: true,
             ctrlKey: false,
-            metaKey: false
+            metaKey: false,
+            shiftKey: false
           });
         };
-      } else {
+        break;
+      default:
         HUD.show("Open link in current tab");
+        mode != 1 && (mode = 0);
+        break;
+      }
+      if ((this.mode > 127 || !this.linkActivator) && mode <= 127) {
         this.linkActivator = function(link) {
-          DomUtils.simulateClick(link);
+          DomUtils.simulateClick(link, {
+            altKey: false,
+            ctrlKey: (this.mode & 2) === 2 && KeyboardUtils.platform !== "Mac",
+            metaKey: (this.mode & 2) === 2 && KeyboardUtils.platform === "Mac",
+            shiftKey: (this.mode & 3) === 3
+          });
         };
       }
+      this.mode = mode;
     },
     createMarkerFor: function(link) {
       var clientRect, marker;
@@ -230,11 +232,11 @@
         this.deactivateMode();
         return false;
       }
-      if ((event.keyCode === keyCodes.shiftKey || event.keyCode === keyCodes.ctrlKey) && (this.mode === OPEN_IN_CURRENT_TAB || this.mode === OPEN_IN_NEW_BG_TAB || this.mode === OPEN_IN_NEW_FG_TAB)) {
+      if (this.mode <= 3) {
         if (event.keyCode === keyCodes.shiftKey) {
-          this.setOpenLinkMode(this.mode === OPEN_IN_CURRENT_TAB ? OPEN_IN_NEW_BG_TAB : OPEN_IN_CURRENT_TAB);
-        } else {
-          this.setOpenLinkMode(this.mode === OPEN_IN_NEW_FG_TAB ? OPEN_IN_NEW_BG_TAB : OPEN_IN_NEW_FG_TAB);
+          this.setOpenLinkMode((this.mode | 1) ^ 3);
+        } else if (event.keyCode === keyCodes.ctrlKey) {
+          this.setOpenLinkMode((this.mode | 2) ^ 1);
         }
       }
       if (linksMatched.length === 1) {
@@ -268,7 +270,7 @@
         matchedLink.rect.bottom -= window.scrollY - this.initScrollY;
         DomUtils.flashRect(matchedLink.rect);
         this.linkActivator(clickEl);
-        if (this.mode === OPEN_WITH_QUEUE) {
+        if (this.mode < 127 && (this.mode & 4) === 4) {
           this.handlerHoldTime = -1;
           this.deactivateMode(delay, function() {
             LinkHints.delayMode = false;
