@@ -555,17 +555,17 @@
   };
 
   KeydownEvents = {
-    handledEvents: {},
+    _handledEvents: {},
     stringify: function(event) {
       return [event.metaKey + event.altKey * 2 + event.ctrlKey * 4, event.keyIdentifier
         , event.keyCode].join(",");
     },
     push: function(event) {
-      this.handledEvents[this.stringify(event)] = true;
+      this._handledEvents[this.stringify(event)] = true;
     },
     pop: function(event) {
-      var key = this.stringify(event), value = this.handledEvents[key];
-      delete this.handledEvents[key];
+      var key = this.stringify(event), value = this._handledEvents[key];
+      delete this._handledEvents[key];
       return value;
     }
   };
