@@ -28,7 +28,6 @@
     linkActivator: null,
     delayMode: false,
     handlerId: 0,
-    handlerHoldTime: 0,
     initScrollY: 0,
     initScrollX: 0,
     getMarkerMatcher: function() {
@@ -76,21 +75,15 @@
       });
       this.hintMarkerContainingDiv.style.left = window.scrollX + "px";
       this.hintMarkerContainingDiv.style.top = window.scrollY + "px";
-      if (this.handlerHoldTime > 0) {
-        clearTimeout(this.handlerHoldTime);
-      }
-      this.handlerHoldTime = 0;
-      if (this.handlerId === 0) {
-        this.handlerId = handlerStack.push({
-          keydown: this.onKeyDownInMode.bind(this),
-          keypress: function() {
-            return false;
-          },
-          keyup: function() {
-            return false;
-          }
-        });
-      }
+      this.handlerId = handlerStack.push({
+        keydown: this.onKeyDownInMode.bind(this),
+        keypress: function() {
+          return false;
+        },
+        keyup: function() {
+          return false;
+        }
+      });
     },
     setOpenLinkMode: function(mode) {
       switch (mode) {
@@ -257,7 +250,7 @@
       if (DomUtils.isSelectable(clickEl)) {
         DomUtils.simulateSelect(clickEl);
         this.deactivateMode(delay, function() {
-          LinkHints.delayMode = false;
+          this.delayMode = false;
         });
       } else {
         if (clickEl.nodeName.toLowerCase() === "input" && clickEl.type !== "button") {
@@ -271,14 +264,13 @@
         DomUtils.flashRect(matchedLink.rect);
         this.linkActivator(clickEl);
         if (this.mode < 127 && (this.mode & 4) === 4) {
-          this.handlerHoldTime = -1;
           this.deactivateMode(delay, function() {
-            LinkHints.delayMode = false;
-            LinkHints.activateModeWithQueue();
+            this.delayMode = false;
+            this.activateModeWithQueue();
           });
         } else {
           this.deactivateMode(delay, function() {
-            LinkHints.delayMode = false;
+            this.delayMode = false;
           });
         }
       }
@@ -297,41 +289,27 @@
     hideMarker: function(linkMarker) {
       linkMarker.style.display = "none";
     },
+    deactivate2: function(callback) {
+      if (this.getMarkerMatcher().deactivate) {
+        this.getMarkerMatcher().deactivate();
+      }
+      if (this.hintMarkerContainingDiv) {
+        DomUtils.removeElement(this.hintMarkerContainingDiv);
+      }
+      this.hintMarkerContainingDiv = null;
+      HUD.hide();
+      this.isActive = false;
+      handlerStack.remove(this.handlerId);
+      this.handlerId = 0;
+      if (callback) {
+        callback.call(this);
+      }
+    },
     deactivateMode: function(delay, callback) {
-      var _this = this, deactivate = function() {
-        if (LinkHints.getMarkerMatcher().deactivate) {
-          LinkHints.getMarkerMatcher().deactivate();
-        }
-        if (LinkHints.hintMarkerContainingDiv) {
-          DomUtils.removeElement(LinkHints.hintMarkerContainingDiv);
-        }
-        LinkHints.hintMarkerContainingDiv = null;
-        HUD.hide();
-        _this.isActive = false;
-        var clearHandler = function() {
-          handlerStack.remove(_this.handlerId);
-          _this.handlerId = 0;
-          _this.handlerHoldTime = 0;
-        }, holdTime = _this.handlerHoldTime - delay;
-        if (holdTime > 0) {
-          _this.handlerHoldTime = setTimeout(clearHandler, holdTime);
-        } else if (_this.handlerHoldTime >= 0) {
-          clearHandler();
-        } else {
-          _this.handlerHoldTime = 0;
-        }
-      };
       if (delay) {
-        setTimeout(callback ? function() {
-          deactivate();
-          callback();
-        } : deactivate, delay);
+        setTimeout(this.deactivate2.bind(this, callback), delay);
       } else {
-        delay = 0;
-        deactivate();
-        if (callback) {
-          callback();
-        }
+        this.deactivate2(callback);
       }
     }
   };
