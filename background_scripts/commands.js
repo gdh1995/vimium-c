@@ -350,6 +350,7 @@ _commandDescriptions: {
   createTab: [
     "Create new tab", {
       background: true,
+      passCountToFunction: true,
       repeatLimit: 20
     }
   ],

@@ -259,7 +259,13 @@
 
   // function (ref Tab tab, const Function cb / const int count, const int frameId, const Port port);
   BackgroundCommands = {
-    createTab: function(tab, callback) {
+    createTab: function(tab, count) {
+      var repeat = count > 1 ? function(newTab) {
+        var left = count;
+        while (--left > 0) {
+          chrome.tabs.duplicate(newTab.id);
+        }
+      } : null;
       chrome.windows.get(tab.windowId, function(wnd) {
         var url = Settings.get("newTabUrl");
         if (! wnd.incognito || /^https?:/i.test(url) || url.toLowerCase() === Settings.defaults.newTabUrl) {
@@ -267,7 +273,7 @@
             windowId: wnd.id,
             index: tab.index + 1,
             url: url
-          }, callback);
+          }, repeat);
           return;
         }
         // other urls will be disabled if incognito
@@ -285,7 +291,8 @@
               return tab1.index >= tab.index;
             });
             tab = (urlLower.length > 0) ? urlLower[0] : allTabs[allTabs.length - 1];
-            chrome.tabs.duplicate(tab.id, callback);
+            chrome.tabs.duplicate(tab.id);
+            repeat && repeat(tab);
             return;
           }
           chrome.tabs.create({
@@ -304,9 +311,13 @@
                 index: tab.index + 1,
                 windowId: wnd.id
               }, function() {
-                chrome.tabs.update(newTab.id, {
-                  selected: true 
-                }, callback);
+                if (repeat) {
+                  repeat(newTab);
+                } else {
+                  chrome.tabs.update(newTab.id, {
+                    selected: true 
+                  });
+                }
               });
             });
           });
