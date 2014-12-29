@@ -117,10 +117,8 @@
     , "LinkHints.activateModeToDownloadLink", "Vomnibar.activateEditUrl"
     , "Vomnibar.activateEditUrlInNewTab", "LinkHints.activateModeToOpenIncognito"
     , "goNext", "goPrevious", "Marks.activateCreateMode", "Marks.activateGotoMode"
-    , "moveTabLeft", "moveTabRight", "closeTabsOnLeft", "closeTabsOnRight", "closeOtherTabs"]
-};
-
-(typeof exports !== "undefined" && exports !== null ? exports : window).Commands._defaultKeyMappings = {
+    , "moveTabLeft", "moveTabRight", "closeTabsOnLeft", "closeTabsOnRight", "closeOtherTabs"],
+_defaultKeyMappings: {
   "?": "showHelp",
   "j": "scrollDown",
   "k": "scrollUp",
@@ -178,9 +176,8 @@
   "gf": "nextFrame",
   "m": "Marks.activateCreateMode",
   "`": "Marks.activateGotoMode"
-};
-
-(typeof exports !== "undefined" && exports !== null ? exports : window).Commands._commandDescriptions = {
+},
+_commandDescriptions: {
   showHelp: [
     "Show help", {
       background: true
@@ -241,7 +238,8 @@
   ],
   openCopiedUrlInCurrentTab: [
     "Open the clipboard's URL in the current tab", {
-      background: true
+      background: true,
+      noRepeat: true
     }
   ],
   openCopiedUrlInNewTab: [
@@ -324,7 +322,7 @@
   ],
   goToRoot: [
     "Go to root of current URL hierarchy", {
-      passCountToFunction: true
+      noRepeat: true
     }
   ],
   nextTab: [
@@ -339,12 +337,14 @@
   ],
   firstTab: [
     "Go to the first tab", {
-      background: true
+      background: true,
+      noRepeat: true
     }
   ],
   lastTab: [
     "Go to the last tab", {
-      background: true
+      background: true,
+      noRepeat: true
     }
   ],
   createTab: [
@@ -373,17 +373,20 @@
   ],
   moveTabToNewWindow: [
     "Move tab to new window", {
-      background: true
+      background: true,
+      noRepeat: true
     }
   ],
   moveTabToIncognito: [
     "Make tab in a incognito window", {
-      background: true
+      background: true,
+      noRepeat: true
     }
   ],
   togglePinTab: [
     "Pin/unpin current tab", {
-      background: true
+      background: true,
+      noRepeat: true
     }
   ],
   closeTabsOnLeft: [
@@ -477,6 +480,6 @@
       noRepeat: true
     }
   ]
+}
 };
-
 (typeof exports !== "undefined" && exports !== null ? exports : window).Commands.init();
