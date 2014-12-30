@@ -19,24 +19,20 @@
     this.availableCommands[command] = {
       description: description,
       isBackgroundCommand: options.background,
-      passCountToFunction: options.passCountToFunction,
-      noRepeat: options.noRepeat,
-      repeatLimit: options.repeatLimit
+      noRepeat: options.noRepeat
     };
   },
   mapKeyToCommand: function(key, command) {
     var commandDetails;
     if (!this.availableCommands[command]) {
-      console.log(command, "doesn't exist!");
+      console.log("%c" + command, "color: red;", "doesn't exist!");
       return;
     }
     commandDetails = this.availableCommands[command];
     this.keyToCommandRegistry[key] = {
       command: command,
       isBackgroundCommand: commandDetails.isBackgroundCommand,
-      passCountToFunction: commandDetails.passCountToFunction,
-      noRepeat: commandDetails.noRepeat,
-      repeatLimit: commandDetails.repeatLimit
+      noRepeat: commandDetails.noRepeat
     };
   },
   unmapKey: function(key) {
@@ -180,7 +176,8 @@ _defaultKeyMappings: {
 _commandDescriptions: {
   showHelp: [
     "Show help", {
-      background: true
+      background: true,
+      noRepeat: true
     }
   ],
   scrollDown: ["Scroll down"],
@@ -245,7 +242,7 @@ _commandDescriptions: {
   openCopiedUrlInNewTab: [
     "Open the clipboard's URL in a new tab", {
       background: true,
-      repeatLimit: 20
+      noRepeat: 20
     }
   ],
   enterInsertMode: [
@@ -255,7 +252,7 @@ _commandDescriptions: {
   ],
   focusInput: [
     "Focus the first text box on the page. Cycle between them using tab", {
-      passCountToFunction: true
+      noRepeat: false
     }
   ],
   "LinkHints.activateMode": [
@@ -307,17 +304,17 @@ _commandDescriptions: {
   ],
   goBack: [
     "Go back in history", {
-      passCountToFunction: true
+      noRepeat: false
     }
   ],
   goForward: [
     "Go forward in history", {
-      passCountToFunction: true
+      noRepeat: false
     }
   ],
   goUp: [
     "Go up the URL hierarchy", {
-      passCountToFunction: true
+      noRepeat: false
     }
   ],
   goToRoot: [
@@ -350,26 +347,25 @@ _commandDescriptions: {
   createTab: [
     "Create new tab", {
       background: true,
-      passCountToFunction: true,
-      repeatLimit: 20
+      noRepeat: 20
     }
   ],
   duplicateTab: [
     "Duplicate current tab", {
       background: true,
-      repeatLimit: 20
+      noRepeat: 20
     }
   ],
   removeTab: [
     "Close current tab", {
       background: true,
-      repeatLimit: (chrome.session ? chrome.session.MAX_SESSION_RESULTS : 25)
+      noRepeat: (chrome.session ? chrome.session.MAX_SESSION_RESULTS : 25)
     }
   ],
   restoreTab: [
     "Restore closed tab", {
       background: true,
-      repeatLimit: (chrome.session ? chrome.session.MAX_SESSION_RESULTS : 25)
+      noRepeat: (chrome.session ? chrome.session.MAX_SESSION_RESULTS : 25)
     }
   ],
   moveTabToNewWindow: [
@@ -410,14 +406,12 @@ _commandDescriptions: {
   ],
   moveTabLeft: [
     "Move tab to the left", {
-      background: true,
-      passCountToFunction: true
+      background: true
     }
   ],
   moveTabRight: [
     "Move tab to the right", {
-      background: true,
-      passCountToFunction: true
+      background: true
     }
   ],
   "Vomnibar.activate": [
@@ -467,8 +461,7 @@ _commandDescriptions: {
   ],
   nextFrame: [
     "Cycle forward to the next frame on the page", {
-      background: true,
-      passCountToFunction: true
+      background: true
     }
   ],
   "Marks.activateCreateMode": [

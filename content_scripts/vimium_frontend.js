@@ -357,8 +357,8 @@
     if (frameId !== request.frameId) {
       return;
     }
-    if (request.passCountToFunction) {
-      Utils.invokeCommandString(request.command, request.count);
+    if (request.count < 0) {
+      Utils.invokeCommandString(request.command, -request.count);
     } else {
       for (var i = 0, _ref = request.count; i < _ref; ++i) {
         Utils.invokeCommandString(request.command);
@@ -483,8 +483,7 @@
         }
         mainPort.postMessage({
           handler: "openUrlInNewTab",
-          url: url,
-          selected: true
+          url: url
         });
       });
     },

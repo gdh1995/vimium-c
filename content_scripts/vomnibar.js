@@ -476,8 +476,7 @@
         } else {
           mainPort.postMessage({
             handler: data.openInNewTab ? "openUrlInNewTab" : "openUrlInCurrentTab",
-            url: this.url.trimRight(),
-            selected: data.openInNewTab
+            url: this.url.trimRight()
           });
         }
       },
