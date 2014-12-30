@@ -29,12 +29,9 @@
       return a.protocol + "//" + a.hostname;
     };
 
-    Suggestion.httpRegex = /^https?:\/\//;
     Suggestion.prototype.shortenUrl = function(url) {
-      if (url.charCodeAt(url.length - 1) === 47) { // '/'
-        url = url.substring(0, url.length - 1);
-      }
-      return url.replace(Suggestion.httpRegex, "");
+      return url.substring((url.startsWith("http://")) ? 7 : (url.startsWith("https://")) ? 8 : 0,
+        url.length - +(url.charCodeAt(url.length - 1) === 47));
     };
 
     Suggestion.prototype.pushMatchingRanges = function(string, term, ranges) {
