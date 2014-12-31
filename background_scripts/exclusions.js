@@ -17,7 +17,7 @@
   },
   rules: Settings.get("exclusionRules"),
   getRule: function(url, rules) {
-    var rule, _i, _len, _ref, matchedKeys = [], matchedPatterns = [];
+    var rule, _i, _len, _ref, matchedPatterns = [], matchedKeys = [];
     if (rules == null) {
       rules = this.rules;
     }
@@ -27,11 +27,11 @@
         if (!rule.passKeys) {
           return rule;
         }
-        matchedKeys.push(rule.passKeys);
         matchedPatterns.push(rule.pattern);
+        matchedKeys.push(rule.passKeys);
       }
     }
-    return (matches.length === 0) ? null : {
+    return (matchedKeys.length === 0) ? null : {
       pattern: matchedPatterns.join(" | "),
       passKeys: Utils.distinctCharacters(matchedKeys.join(""))
     };
