@@ -82,33 +82,6 @@
     }
   };
 
-  root.addExclusionRule = function(pattern, passKeys) {
-    if (pattern = pattern.trim()) {
-      Exclusions.updateOrAdd({
-        pattern: pattern,
-        passKeys: passKeys
-      });
-      hasActionIcon && chrome.tabs.query({
-        windowId: chrome.windows.WINDOW_ID_CURRENT,
-        active: true
-      }, function(tabs) {
-        updateActiveState(tabs[0].id, tabs[0].url);
-      });
-    }
-  };
-
-  root.removeExclusionRule = function(pattern) {
-    if (pattern = pattern.trim()) {
-      Exclusions.remove(pattern);
-      hasActionIcon && chrome.tabs.query({
-        windowId: chrome.windows.WINDOW_ID_CURRENT,
-        active: true
-      }, function(tabs) {
-        updateActiveState(tabs[0].id, tabs[0].url);
-      });
-    }
-  };
-
   saveHelpDialogSettings = function(request) {
     Settings.set("helpDialog_showAdvancedCommands", request.showAdvancedCommands);
   };
@@ -258,7 +231,7 @@
     createTab: function(tab, count) {
       chrome.windows.get(tab.windowId, function(wnd) {
         var url = Settings.get("newTabUrl");
-        if (!(wnd.incognito && isRefuseIncognito(url.toLowerCase()))) {
+        if (!(wnd.incognito && Utils.isRefuseIncognito(url))) {
           openMultiTab(url, tab.index + 1, count, tab.windowId);
           return;
         }
@@ -321,7 +294,7 @@
         return;
       }
       chrome.windows.get(tab.windowId, function(wnd) {
-        if (wnd.incognito && isRefuseIncognito(url.toLowerCase())) {
+        if (wnd.incognito && Utils.isRefuseIncognito(url)) {
           while (--count > 0) {
             chrome.tabs.duplicate(tab.id);
           }
@@ -387,11 +360,10 @@
           if (wnds.length <= 1) {
             // retain the last window
             toCreate = {};
-            if (wnds.length === 1 && wnds[0].incognito && (/^https?:/i.test(url)
-              || url.toLowerCase() === Settings.defaults.newTabUrl)) {
-              // other urls will be disabled if incognito
+            if (wnds.length === 1 && wnds[0].incognito && !Utils.isRefuseIncognito(url)) {
               toCreate.windowId = wnds[0].id;
             }
+            // other urls will be disabled if incognito
           }
           else if (! tab.incognito) {
             // retain the last normal window which has currentTab
@@ -600,6 +572,8 @@
       }
     });
   };
+
+  hasActionIcon && (root.updateActiveState = updateActiveState);
 
   handleUpdateScrollPosition = function(request, tab) {
     updateScrollPosition(tab.id, request.scrollX, request.scrollY);

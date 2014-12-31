@@ -4,7 +4,7 @@
   _cache: {},
   _emptyStringRegex: /^$/,
   _sharpRegex: /\*/g,
-  _regGet: function(pattern) {
+  getRegex: function(pattern) {
     var regexp;
     if (regexp = this._cache[pattern]) {
       return regexp;
@@ -16,16 +16,25 @@
     }
   },
   rules: Settings.get("exclusionRules"),
-  getRule: function(url) {
-    var rule, _i, _len, _ref;
-    _ref = this.rules;
-    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-      rule = _ref[_i];
-      if (url.match(this._regGet(rule.pattern))) {
-        return rule;
+  getRule: function(url, rules) {
+    var rule, _i, _len, _ref, matchedKeys = [], matchedPatterns = [];
+    if (rules == null) {
+      rules = this.rules;
+    }
+    for (_i = 0, _len = rules.length; _i < _len; _i++) {
+      rule = rules[_i];
+      if (rule.pattern && 0 <= url.search(this.getRegex(rule.pattern))) {
+        if (!rule.passKeys) {
+          return rule;
+        }
+        matchedKeys.push(rule.passKeys);
+        matchedPatterns.push(rule.pattern);
       }
     }
-    return null;
+    return (matches.length === 0) ? null : {
+      pattern: matchedPatterns.join(" | "),
+      passKeys: Utils.distinctCharacters(matchedKeys.join(""))
+    };
   },
   setRules: function(rules) {
     rules = rules.filter(function(rule) {
@@ -39,27 +48,6 @@
   },
   postUpdateHook: function(rules) {
     this.rules = rules;
-  },
-  updateOrAdd: function(newRule) {
-    var seen = false;
-    this.rules.push(newRule);
-    this.setRules(this.rules.map(function(rule) {
-      if (rule.pattern === newRule.pattern) {
-        if (seen) {
-          return null;
-        } else {
-          seen = true;
-          return newRule;
-        }
-      } else {
-        return rule;
-      }
-    }));
-  },
-  remove: function(pattern) {
-    this.setRules(this.rules.filter(function(rule) {
-      return rule && rule.pattern !== pattern;
-    }));
   }
 };
 
