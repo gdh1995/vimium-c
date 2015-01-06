@@ -128,7 +128,7 @@
         this._port.name = name;
       }
     },
-    defaultListener: function(response, port) {
+    DefaultListener: function(response) {
       var handler = response._msgId;
       if (handler) {
         handler = mainPort._callbacks[handler];
@@ -145,7 +145,7 @@
         handler(response);
       }
     },
-    _clearPort: function() {
+    _ClearPort: function() {
       mainPort._port = null;
     },
     _get: function() {
@@ -154,7 +154,7 @@
         return port;
       }
       var port = chrome.runtime.connect({ name: this._name });
-      port.onDisconnect.addListener(this._clearPort);
+      port.onDisconnect.addListener(this._ClearPort);
       if (this._listener) {
         port.onMessage.addListener(this._listener);
       }
@@ -162,7 +162,7 @@
     }
   };
 
-  chrome.runtime._oriSendMessage = mainPort.postMessage;
+  chrome.runtime._oriSendMessage = chrome.runtime.sendMessage;
   chrome.runtime.sendMessage = mainPort.postMessage.bind(mainPort);
   
   settings = {
@@ -171,7 +171,7 @@
       , "hideHud", "previousPatterns", "nextPatterns", "findModeRawQuery", "regexFindMode"
       , "helpDialog_showAdvancedCommands", "smoothScroll"],
     isLoaded: true,
-    eventListeners: {},
+    _eventListeners: {},
     autoRetryInterval: 2000,
     _timer: 0,
     set: function(key, value) {
@@ -196,7 +196,7 @@
       }
       return sendOK;
     },
-    receiveMessage: function(args) {
+    ReceiveMessage: function(args) {
       var ref = args.keys, i = 0, v1 = args.values, v2 = settings.values;
       for (; i < ref.length; i++) {
         v2[ref[i]] = v1[i];
@@ -206,19 +206,16 @@
         settings._timer = 0;
       }
       settings.isLoaded = true;
-      ref = settings.eventListeners.load;
+      ref = settings._eventListeners.load;
       while (ref.length > 0) {
         ref.pop()();
       }
     },
     addEventListener: function(eventName, callback) {
-      if (!(eventName in this.eventListeners)) {
-        this.eventListeners[eventName] = [];
+      if (!(eventName in this._eventListeners)) {
+        this._eventListeners[eventName] = [];
       }
-      this.eventListeners[eventName].push(callback);
-    },
-    _clearPort: function () {
-      settings.port = null;
+      this._eventListeners[eventName].push(callback);
     }
   };
 
@@ -228,7 +225,7 @@
 
   initializePreDomReady = function() {
     requestHandlers = {
-      settings: settings.receiveMessage,
+      settings: settings.ReceiveMessage,
       hideUpgradeNotification: function() {
         HUD.hideUpgradeNotification();
       },
@@ -265,7 +262,7 @@
       },
       setState: setState
     };
-    mainPort.setListener(mainPort.defaultListener);
+    mainPort.setListener(mainPort.DefaultListener);
     chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
       if (!(isEnabledForUrl || request.name === 'getActiveState' || request.name === 'setState')) {
         return;
@@ -283,7 +280,13 @@
       checkIfEnabledForUrl();
     });
     Scroller.init();
-    settings.load();
+    if (!settings.load()) {
+      settings.valuesToLoad.push("userDefinedCss");
+      settings.addEventListener("load", function() {
+        // TODO: reject css
+        registerFrame();
+      });
+    }
   };
 
   installListener = function(element, event, callback) {
