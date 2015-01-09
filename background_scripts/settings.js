@@ -82,7 +82,7 @@
     smoothScroll: false,
     keyMappings: "# Insert your preferred key mappings here.",
     linkHintCharacters: "asdqwerzxcv",
-    linkHintNumbers: "1234567890",
+    linkHintNumbers: "0123456789",
     filterLinkHints: false,
     hideHud: false,
     regexFindMode: false,
