@@ -212,10 +212,11 @@
       }
     },
     addEventListener: function(eventName, callback) {
-      if (!(eventName in this._eventListeners)) {
-        this._eventListeners[eventName] = [];
+      if (eventName in this._eventListeners) {
+        this._eventListeners[eventName].push(callback);
+      } else {
+        this._eventListeners[eventName] = [callback];
       }
-      this._eventListeners[eventName].push(callback);
     }
   };
 
