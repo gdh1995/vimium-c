@@ -918,7 +918,7 @@
     getCompletionKeys: getCompletionKeysRequest,
     getCurrentTabUrl: getCurrentTabUrl,
     openUrlInNewTab: function(request, tab) {
-      openMultiTab(Utils.convertToUrl(request.url), tab.index, 1, tab.windowId);
+      openMultiTab(Utils.convertToUrl(request.url), tab.index + 1, 1, tab.windowId);
     },
     restoreSession: function(request, tab) {
       BackgroundCommands.restoreTab(null, null, tab, null, request.sessionId);

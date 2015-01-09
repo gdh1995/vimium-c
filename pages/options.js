@@ -3,6 +3,7 @@
   "use strict";
   var $, CheckBoxOption, ExclusionRulesOption, NonEmptyTextOption, NumberOption, Option, TextOption,
     activateHelpDialog, bgSettings, bgExclusions, enableSaveButton, maintainLinkHintsView, toggleAdvancedOptions,
+    ExclusionRulesOnPopupOption, initOptionsPage, initPopupPage,
     __hasProp = Object.prototype.hasOwnProperty,
     __extends = function(child, parent) {
       for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; }
@@ -304,7 +305,6 @@
         : ExclusionRulesOnPopupOption.urlRegex.test(this.url)
         ? (this.url.split("/", 3).join("/") + "/*")
         : (this.url + "*");
-      }
     };
 
     return ExclusionRulesOnPopupOption;
