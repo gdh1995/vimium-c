@@ -52,26 +52,24 @@
   },
   _searchEnginesMap: undefined,
   parseSearchEngines: function(searchEnginesText) {
-    var a, val, split_pairs, _i, _j, _len, key;
-    var titles = {}, map = { ":": titles };
+    var a, val, pairs, _i, _j, _len, key, id;
+    var titles = {}, map = this._searchEnginesMap = { ":": titles };
+    var rEq = /[ \t]*=[ \t]*(.+)/, rColon = /[ \t]*:[ \t]*(.+)/, rOr = /[ \t]*\|[ \t\|]*/;
     a = searchEnginesText.replace(/\\\n/g, '').split('\n');
     for (_i = 0, _len = a.length; _i < _len; _i++) {
       val = a[_i].trim();
-      if (val.length == 0 || val[0] === '#') continue;
-      val = val.split(/[ \t]*:[ \t]*(.+)/, 4);
-      if (val.length !== 3 || val[0].length == 0 || val[1].length == 0) continue;
-      split_pairs = val[0].split(/[ \t]*\|[ \t\|]*/);
-      val = val[1];
-      for (_j = 0; _j < split_pairs.length; _j++) {
-        key = split_pairs[_j].split(/[ \t]*=[ \t]*(.+)/);
-        if (!key[0]) continue;
-        key[0] = key[0];
-        key[1] = key[1] || key[0];
-        map[key[0]] = val;
-        titles[key[0]] = key[1];
+      if (!val || val[0] === '#') continue;
+      pairs = val.split(rColon, 4);
+      if (pairs.length !== 3 || !pairs[0] || !(val = pairs[1])) continue;
+      pairs = pairs[0].split(rOr);
+      _j = pairs.length;
+      while (0 <= --_j) {
+        key = pairs[_j].split(rEq);
+        if (!(id = key[0])) continue;
+        map[id] = val;
+        titles[id] = key[1] || id;
       }
     }
-    return this._searchEnginesMap = map;
   },
   getSearchEngines: function() {
     if (! this._searchEnginesMap) {
