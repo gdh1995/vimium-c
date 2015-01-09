@@ -94,7 +94,7 @@
         this._initStep.push(this.show);
         return;
       }
-      this.box.style.display = "block";
+      this.box.style.display = "";
       this.input.value = this.completionInput.url;
       this.input.focus();
       this.input.addEventListener("input", this.onInput);
@@ -147,7 +147,7 @@
     populateUI: function() {
       this.completionList.innerHTML = this.renderItems(this.completions);
       if (this.completions.length > 0) {
-        this.completionList.style.display = "block";
+        this.completionList.style.display = "";
         this.selection = (this.completions[0].type === "search") ? 0 : this.initialSelectionValue;
       } else {
         this.completionList.style.display = "none";

@@ -232,8 +232,9 @@
         for (_i = 0, linksMatched = this.hintMarkers, _len = linksMatched.length; _i < _len; _i++) {
           this.hideMarker(linksMatched[_i]);
         }
+        delay = this.getMarkerMatcher().hintKeystrokeQueue.length;
         for (_i = 0, linksMatched = keyResult.linksMatched, _len = linksMatched.length; _i < _len; _i++) {
-          this.showMarker(linksMatched[_i], this.getMarkerMatcher().hintKeystrokeQueue.length);
+          this.showMarker(linksMatched[_i], delay);
         }
       }
       return false;
