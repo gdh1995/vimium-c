@@ -80,7 +80,7 @@
   
   rsortBy0 = function(a, b) {
     return b[0] - a[0];
-  }
+  };
 
   firstScrollableElement = function(element) {
     var child, children, rect, _i, _len, _ref;

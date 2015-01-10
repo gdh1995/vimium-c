@@ -383,7 +383,7 @@
     },
     _onFilter: function(msg) {
       if (this._id != msg.id) { return; }
-      this.maxCharNum = parseInt((window.innerWidth * 0.8 - 70) / 7.72);
+      this.maxCharNum = Math.ceil((window.innerWidth * 0.8 - 70) / 7.72);
       var prepare = this.prepareToRender, act = this.performAction,
       results = msg.results.map(function(result) {
         prepare.call(result);

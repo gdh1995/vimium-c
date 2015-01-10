@@ -383,7 +383,7 @@
     };
 
     DomainCompleter.parseDomainAndScheme = function(url) {
-      return Utils.hasFullUrlPrefix(url) && !Utils.hasChromePrefix(url) && url.split("/", 3).join("/");
+      return Utils.hasOrdinaryUrlPrefix(url) ? url.split("/", 3).join("/") : "";
     };
 
     DomainCompleter.prototype.computeRelevancy = function() {
