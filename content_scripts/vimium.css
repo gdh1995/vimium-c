@@ -123,7 +123,7 @@
 	z-index: 99999994;
 }
 
-.internalVimiumHintMarker.vimB {
+.iVimHM.vimB {
 	background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#FFF785), color-stop(100%,#FFC542));
 	border: 1px solid #E3BE23;
 	border-radius: 3px;
@@ -132,7 +132,7 @@
 	position: absolute;
 }
 
-.internalVimiumHintMarker > .matchingCharacter {
+.iVimHM > .matchingCharacter {
 	color: #D4AC3A;
 }
 

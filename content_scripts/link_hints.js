@@ -160,7 +160,7 @@
     },
     createMarkerFor: function(link) {
       var marker = document.createElement("div");
-      marker.className = "vimB vimI internalVimiumHintMarker vimiumHintMarker";
+      marker.className = "vimB vimI iVimHM vimHM";
       marker.clickableItem = link.element;
       marker.style.left = link.rect.left + "px";
       marker.style.top = link.rect.top + "px";

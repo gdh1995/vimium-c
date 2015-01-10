@@ -95,7 +95,7 @@
     filterLinkHints: false,
     hideHud: false,
     regexFindMode: false,
-    userDefinedCss: "div > .vimiumHintMarker {\n/* linkhint boxes */\nbackground: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#FFF785),\n  color-stop(100%,#FFC542));\nborder: 1px solid #E3BE23;\n}\n\ndiv > .vimiumHintMarker span {\n/* linkhint text */\ncolor: black;\nfont-weight: bold;\nfont-size: 12px;\n}\n\ndiv > .vimiumHintMarker > .matchingCharacter {\n}",
+    userDefinedCss: "",
     exclusionRules: [
       {
         pattern: "http*://mail.google.com/*",
@@ -105,8 +105,8 @@
     previousPatterns: "prev,previous,back,<,\u2190,\xab,\u226a,<<",
     nextPatterns: "next,more,>,\u2192,\xbb,\u226b,>>",
     searchUrl: "http://www.baidu.com/s?ie=utf-8&wd=%s",
-    searchEngines: "w = Wikipedia (en-US):\\\n  http://www.wikipedia.org/w/index.php?title=Special:Search&search=%s",
-    newTabUrl: "chrome-search://local-ntp/local-ntp.html",
+    searchEngines: "w = Wikipedia (en-US):\\\n  http://www.wikipedia.org/w/index.php?search=%s\nba=Baidu|baidu=Baidu:\\\n  www.baidu.com/s?ie=utf-8&wd=%s",
+    newTabUrl: "/index.html",
     settingsVersion: Utils.getCurrentVersion()
   }
 };
