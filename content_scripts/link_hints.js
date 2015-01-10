@@ -3,7 +3,7 @@
   "use strict";
   var COPY_LINK_URL, COPY_LINK_TEXT, DOWNLOAD_LINK_URL, LinkHints, OPEN_INCOGNITO
     , OPEN_IN_CURRENT_TAB, OPEN_IN_NEW_BG_TAB, OPEN_IN_NEW_FG_TAB, OPEN_WITH_QUEUE
-    , alphabetHints, filterHints, numberToHintString, spanWrap;
+    , alphabetHints, filterHints, numberToHintString, spanWrap, hashRegex, quoteRegex;
 
   // focused: 1, new tab: 2, queue: 4
   OPEN_IN_CURRENT_TAB = 0; // also 1
@@ -21,6 +21,8 @@
   COPY_LINK_TEXT = 130;
 
   DOWNLOAD_LINK_URL = 131;
+
+  hashRegex = /^#/, quoteRegex = /"/g;
 
   LinkHints = {
     hintMarkerContainingDiv: null,
@@ -65,7 +67,7 @@
         return;
       }
       this.setOpenLinkMode(mode || 0);
-      this.hintMarkers = this.getVisibleClickableElements().map(this.createMarkerFor);
+      this.hintMarkers = this.oldGetVisibleClickableElements().map(this.createMarkerFor);
       this.getMarkerMatcher().fillInMarkers(this.hintMarkers);
       this.isActive = true;
       this.initScrollX = window.scrollX;
@@ -161,7 +163,96 @@
       marker.rect = link.rect;
       return marker;
     },
+    GetVisibleClickable: function(element) {
+      var clientRect, imgClientRects, isClickable, jsactionRules, map, onlyHasTabIndex, ruleSplit, tagName, _i, _len, s;
+      if ((tagName = element.tagName.toLowerCase()) === "img") {
+        if (s = element.getAttribute("usemap")) {
+          if ((imgClientRects = element.getClientRects()).length > 0) {
+            if (map = document.querySelector('map[name="' + s.replace(hashRegex, "").replace(quoteRegex, '\\"') + '"]')) {
+              this.push.apply(this, DomUtils.getClientRectsForAreas(imgClientRects[0], map.getElementsByTagName("area")));
+            }
+          }
+        }
+      }
+      if ( ((s = element.getAttribute("aria-hidden"   ) ) != null && (s ? s.toLowerCase() === "true" : true)) //
+        || ((s = element.getAttribute("aria-disabled"  )) != null && (s ? s.toLowerCase() === "true" : true)) //
+        ) {
+        return;
+      }
+      if (!(clientRect = DomUtils.getVisibleClientRect(element))) {
+        return;
+      }
+      isClickable = false;
+      onlyHasTabIndex = false;
+      if ( element.hasAttribute("onclick") //
+        || ((s = element.className) && s.toLowerCase().indexOf("button") >= 0) // TODO: whether to mask this line
+        || ((s = element.getAttribute("role")) && (s = s.toLowerCase(), s === "button" || s === "link")) //
+        || ((s = element.getAttribute("contentEditable")) != null && (s ? (s = s.toLowerCase(), s === "contentEditable" || s === "true") : true)) //
+        ) {
+        isClickable = true;
+      }
+      else if (s = element.getAttribute("jsaction")) {
+        jsactionRules = s.split(";");
+        for (_i = 0, _len = jsactionRules.length; _i < _len; _i++) {
+          ruleSplit = jsactionRules[_i].split(":");
+          if (isClickable = (ruleSplit[0] === "click" || (ruleSplit.length === 1 && ruleSplit[0] !== "none"))) {
+            break;
+          }
+        }
+      }
+      if (!isClickable) {
+        switch (tagName) {
+        // case "a": isClickable = true; break;
+        case "textarea": isClickable = !element.disabled && !element.readOnly; break;
+        case "input":
+          isClickable = !( ((s = element.getAttribute("type")) && s.toLowerCase() === "hidden")
+            || element.disabled || (element.readOnly && DomUtils.isSelectable(element)) );
+          break;
+        case "button": case "select": isClickable = !element.disabled; break;
+        }
+        if (!isClickable) {
+          s = element.getAttribute("tabindex");
+          if (s && !(parseInt(s) >= 0)) {
+            return; // an important line
+          }
+          onlyHasTabIndex = true;
+        }
+      }
+      this.push({
+        element: element,
+        rect: clientRect,
+        second: onlyHasTabIndex
+      });
+    },
     getVisibleClickableElements: function() {
+      var forEach, element, elements, negativeRect, nonOverlappingElements //
+        , rects, rects2, visibleElement, visibleElements, _i, _len;
+      elements = document.documentElement.getElementsByTagName("*");
+      nonOverlappingElements = [];
+      forEach = (visibleElements = []).forEach;
+      visibleElements = [];
+      forEach.call(elements, this.GetVisibleClickable.bind(visibleElements));
+      visibleElements.reverse();
+      while (visibleElement = visibleElements.pop()) {
+        rects = [visibleElement.rect];
+        for (_i = 0, _len = visibleElements.length; _i < _len; _i++) {
+          negativeRect = visibleElements[_i].rect;
+          rects2 = [];
+          rects.forEach(Rect.SubtractSequence.bind(rects2, negativeRect));
+          rects = rects2;
+        }
+        if (rects.length > 0) {
+          nonOverlappingElements.push({
+            element: visibleElement.element,
+            rect: rects[0]
+          });
+        } else if (!visibleElement.second) {
+          nonOverlappingElements.push(visibleElement);
+        }
+      }
+      return nonOverlappingElements;
+    },
+    oldGetVisibleClickableElements: function() {
       var c, rect, element, img, cr0, map, rect, resultSet, visibleElements, _i, _ref;
       resultSet = DomUtils.evaluateXPath(this.clickableElementsXPath, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE);
       visibleElements = [];
