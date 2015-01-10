@@ -137,7 +137,7 @@
 					}
 				});
 				template.find("#importFile").bind('keydown', function (e) {
-					if(e.which != 13) { return; }
+					if(e.keyCode != 13) { return; }
 					var _style = PDI.getSkin(PDI.get('privateSetup', 'skin'), 'style');
 					var bg = {
 						"background" : {

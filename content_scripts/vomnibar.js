@@ -181,28 +181,29 @@
           || (event[keyCodes.modifier] && (key === "j" || key === "n"))) {
         return "down";
       }
-      return null;
+      return "";
     },
     onKeydown: function(event) {
       var action = this.actionFromKeyEvent(event);
       if (action) {
         this.openInNewTab = this.forceNewTab || (event.shiftKey || event.ctrlKey || event.metaKey);
       } else {
-        if (event.shiftKey || event.ctrlKey || event.altKey || event.metaKey) {
+        if (event.shiftKey || event.ctrlKey || event.altKey || event.metaKey || this.timer) {
         }
-        else if (this.selection === 0 && event.which === 32) {
-          if (this.completions.length === 1 && this.input.value.slice(-2) === "  ") {
+        else if (event.keyCode === 32) {
+          if ((this.selection >= 0 && this.isSelectionChanged || this.completions.length <= 1) //
+            && this.input.value.endsWith("  ")) {
             action = "enter";
           }
         }
         else if (this.selection >= 0 && this.isSelectionChanged || document.activeElement !== this.input) {
-          action = event.which - 48;
+          action = event.keyCode - 48;
           if (action === 0) { action = 10; }
           if (action > 0 && action <= this.completions.length) {
             this.selection = action - 1;
             action = "enter";
           } else {
-            action = null;
+            action = "";
           }
         }
         if (!action) {
@@ -451,7 +452,7 @@
     },
     prepareToRender: function() {
       this.text = BackgroundCompleter.cutUrl(this.text, this.textSplit, this.url);
-      if (BackgroundCompleter.showFavIcon) {
+      if (BackgroundCompleter.showFavIcon && this.url.indexOf("://") >= 0) {
         this.favIconUrl = " vomnibarIcon\" style=\"background-image: url(" + (this.favIconUrl ||
           ("chrome://favicon/size/16/" + this.url)) + ")";
       } else {
