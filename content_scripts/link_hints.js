@@ -67,7 +67,11 @@
         return;
       }
       this.setOpenLinkMode(mode || 0);
+      /*
       this.hintMarkers = this.oldGetVisibleClickableElements().map(this.createMarkerFor);
+      /*/
+      this.hintMarkers = this.getVisibleClickableElements().map(this.createMarkerFor);
+      //*/
       this.getMarkerMatcher().fillInMarkers(this.hintMarkers);
       this.isActive = true;
       this.initScrollX = window.scrollX;
@@ -164,13 +168,11 @@
       return marker;
     },
     GetVisibleClickable: function(element) {
-      var clientRect, imgClientRects, isClickable, jsactionRules, map, onlyHasTabIndex, ruleSplit, tagName, _i, _len, s;
+      var clientRect, imgClientRects, isClickable, jsactionRules, map, ruleSplit, tagName, _i, _len, s;
       if ((tagName = element.tagName.toLowerCase()) === "img") {
-        if (s = element.getAttribute("usemap")) {
-          if ((imgClientRects = element.getClientRects()).length > 0) {
-            if (map = document.querySelector('map[name="' + s.replace(hashRegex, "").replace(quoteRegex, '\\"') + '"]')) {
-              this.push.apply(this, DomUtils.getClientRectsForAreas(imgClientRects[0], map.getElementsByTagName("area")));
-            }
+        if ((s = element.getAttribute("usemap")) && (imgClientRects = element.getClientRects()).length > 0) {
+          if (map = document.querySelector('map[name="' + s.replace(hashRegex, "").replace(quoteRegex, '\\"') + '"]')) {
+            this.push.apply(this, DomUtils.getClientRectsForAreas(imgClientRects[0], map.getElementsByTagName("area")));
           }
         }
       }
@@ -179,50 +181,49 @@
         ) {
         return;
       }
-      if (!(clientRect = DomUtils.getVisibleClientRect(element))) {
-        return;
+      switch (tagName) {
+      case "a": isClickable = true; break;
+      case "textarea": isClickable = !element.disabled && !element.readOnly; break;
+      case "input":
+        isClickable = !( ((s = element.getAttribute("type")) && s.toLowerCase() === "hidden")
+          || element.disabled || (element.readOnly && DomUtils.isSelectable(element)) );
+        break;
+      case "button": case "select": isClickable = !element.disabled; break;
+      default: isClickable = false; break;
       }
-      isClickable = false;
-      onlyHasTabIndex = false;
-      if ( element.hasAttribute("onclick") //
-        || ((s = element.className) && s.toLowerCase().indexOf("button") >= 0) // TODO: whether to mask this line
+      if (isClickable) {
+      }
+      else if ( element.hasAttribute("onclick") //
+        //|| ((s = element.className) && s.toLowerCase().indexOf("button") >= 0) // TODO: whether to mask this line
         || ((s = element.getAttribute("role")) && (s = s.toLowerCase(), s === "button" || s === "link")) //
         || ((s = element.getAttribute("contentEditable")) != null && (s ? (s = s.toLowerCase(), s === "contentEditable" || s === "true") : true)) //
         ) {
         isClickable = true;
       }
-      else if (s = element.getAttribute("jsaction")) {
-        jsactionRules = s.split(";");
-        for (_i = 0, _len = jsactionRules.length; _i < _len; _i++) {
-          ruleSplit = jsactionRules[_i].split(":");
-          if (isClickable = (ruleSplit[0] === "click" || (ruleSplit.length === 1 && ruleSplit[0] !== "none"))) {
-            break;
+      else {
+        if (s = element.getAttribute("jsaction")) {
+          jsactionRules = s.split(";");
+          for (_i = 0, _len = jsactionRules.length; _i < _len; _i++) {
+            ruleSplit = jsactionRules[_i].split(":");
+            if (isClickable = (ruleSplit[0] === "click" || (ruleSplit.length === 1 && ruleSplit[0] !== "none"))) {
+              break;
+            }
           }
-        }
-      }
-      if (!isClickable) {
-        switch (tagName) {
-        // case "a": isClickable = true; break;
-        case "textarea": isClickable = !element.disabled && !element.readOnly; break;
-        case "input":
-          isClickable = !( ((s = element.getAttribute("type")) && s.toLowerCase() === "hidden")
-            || element.disabled || (element.readOnly && DomUtils.isSelectable(element)) );
-          break;
-        case "button": case "select": isClickable = !element.disabled; break;
         }
         if (!isClickable) {
           s = element.getAttribute("tabindex");
-          if (s && !(parseInt(s) >= 0)) {
-            return; // an important line
+          if (s == null || !(s === "" || parseInt(s) >= 0)) {
+            return; // work around
           }
-          onlyHasTabIndex = true;
         }
       }
-      this.push({
-        element: element,
-        rect: clientRect,
-        second: onlyHasTabIndex
-      });
+      if (clientRect = DomUtils.getVisibleClientRect(element)) {
+        this.push({
+          element: element,
+          rect: clientRect,
+          second: !isClickable
+        });
+      }
     },
     getVisibleClickableElements: function() {
       var forEach, element, elements, negativeRect, nonOverlappingElements //
@@ -240,6 +241,9 @@
           rects2 = [];
           rects.forEach(Rect.SubtractSequence.bind(rects2, negativeRect));
           rects = rects2;
+          if (rects.length === 0) {
+            break;
+          }
         }
         if (rects.length > 0) {
           nonOverlappingElements.push({
@@ -272,19 +276,10 @@
           } else {
             continue;
           }
-          c = element.coords.split(',');
-          c = [parseInt(c[0], 10), parseInt(c[1], 10), parseInt(c[2], 10), parseInt(c[3], 10)];
-          rect = {
-            top: cr0[0].top + c[1],
-            right: cr0[0].left + c[2],
-            bottom: cr0[0].top + c[3],
-            left: cr0[0].left + c[0],
-            width: c[2] - c[0],
-            height: c[3] - c[1]
-          };
+          c = element.coords.split(',').map(parseInt);
           visibleElements.push({
             element: element,
-            rect: rect
+            rect: Rect.create(cr0[0].left + c[0], cr0[0].top + c[1], cr0[0].left + c[2], cr0[0].top + c[3])
           });
         }
       }
@@ -344,11 +339,17 @@
           clickEl.focus();
         }
         // TODO:
-        matchedLink.rect.left -= window.scrollX - this.initScrollX;
-        matchedLink.rect.right -= window.scrollX - this.initScrollX;
-        matchedLink.rect.top -= window.scrollY - this.initScrollY;
-        matchedLink.rect.bottom -= window.scrollY - this.initScrollY;
-        DomUtils.flashRect(matchedLink.rect);
+        var temp = [];
+        this.GetVisibleClickable.call(temp, clickEl);
+        if (temp.length === 1) {
+          DomUtils.flashRect(temp[0].rect);
+        } else {
+          matchedLink.rect.left -= window.scrollX - this.initScrollX;
+          matchedLink.rect.right -= window.scrollX - this.initScrollX;
+          matchedLink.rect.top -= window.scrollY - this.initScrollY;
+          matchedLink.rect.bottom -= window.scrollY - this.initScrollY;
+          DomUtils.flashRect(matchedLink.rect);
+        }
         this.linkActivator(clickEl);
         if (this.mode < 127 && (this.mode & 4) === 4) {
           this.deactivateMode(delay, function() {
