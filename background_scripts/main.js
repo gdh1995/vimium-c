@@ -4,12 +4,12 @@
   var BackgroundCommands, checkKeyQueue, completers, completionSources, copyToClipboard, currentVersion //
     , fetchFileContents, filterCompleter, frameIdsForTab, generateCompletionKeys //
     , getActualKeyStrokeLength, getCompletionKeysRequest, getCurrentTabUrl, vomnibarContent //
-    , getCurrentTimeInSeconds, handleFrameFocused, handleMainPort, handleUpdateScrollPosition //
+    , /* getCurrentTimeInSeconds, */ handleFrameFocused, handleMainPort, handleUpdateScrollPosition //
     , helpDialogHtmlForCommandGroup, isEnabledForUrl, keyQueue, moveTab, namedKeyRegex //
     , openOptionsPageInNewTab, openUrlInCurrentTab, openUrlInIncognito, openMultiTab //
     , populateKeyCommands, portHandlers, refreshCompleter, registerFrame, splitKeyQueueRegex //
     , removeTabsRelative, root, saveHelpDialogSettings, selectSpecificTab, selectTab //
-    , selectionChangedHandlers, requestHandlers, sendRequestToAllTabs, setBrowserActionIcon //
+    , /* selectionChangedHandlers, */ requestHandlers, sendRequestToAllTabs, setBrowserActionIcon //
     , shouldShowUpgradeMessage, singleKeyCommands, splitKeyIntoFirstAndSecond, splitKeyQueue, tabInfoMap //
     , tabLoadedHandlers, tabQueue, unregisterFrame, updateActiveState, updateOpenTabs //
     , updatePositionsAndWindowsForAllTabsInWindow, updateScrollPosition, upgradeNotificationClosed //
@@ -35,7 +35,7 @@
 
   namedKeyRegex = /^(<(?:[amc]-.|(?:[amc]-)?[a-z0-9]{2,5})>)(.*)$/;
 
-  selectionChangedHandlers = [];
+  // selectionChangedHandlers = [];
 
   tabLoadedHandlers = {};
 
@@ -201,30 +201,30 @@
     });
   };
 
-  getCurrentTimeInSeconds = function() {
+  /* getCurrentTimeInSeconds = function() {
     return Math.floor((new Date()).getTime() / 1000);
-  };
+  }; */
 
-  chrome.tabs.onSelectionChanged.addListener(function(tabId, selectionInfo) {
+  /* chrome.tabs.onSelectionChanged.addListener(function(tabId, selectionInfo) {
     if (selectionChangedHandlers.length > 0) {
       var callback = selectionChangedHandlers.pop();
       if (callback) {
         callback();
       }
     }
-  });
+  }); */
 
-  // repeatFunction = function(func, totalCount, tab, currentCount, frameId, port) {
-  //   var callback;
-  //   if (currentCount < totalCount) {
-  //     if (++currentCount < totalCount) {
-  //       callback = function(newTab) {
-  //         func(newTab || tab, ++currentCount < totalCount ? callback : null, frameId, port);
-  //       };
-  //     }
-  //     func(tab, callback, frameId, port);
-  //   }
-  // };
+  /* repeatFunction = function(func, totalCount, tab, currentCount, frameId, port) {
+    var callback;
+    if (currentCount < totalCount) {
+      if (++currentCount < totalCount) {
+        callback = function(newTab) {
+          func(newTab || tab, ++currentCount < totalCount ? callback : null, frameId, port);
+        };
+      }
+      func(tab, callback, frameId, port);
+    }
+  }; */
 
   // function (const Tab tab, const int repeatCount, const int frameId, const Port port);
   BackgroundCommands = {
@@ -859,14 +859,13 @@
   };
 
   registerFrame = function(request, tab, port) {
-    var tabId = tab.id, css2;
-    if (tabLoadedHandlers[tabId]) {
-      toCall = tabLoadedHandlers[tabId];
-      delete tabLoadedHandlers[tabId];
-      toCall(port);
-    }
+    var tabId = tab.id, css2, toCall;
     if (! isNaN(request.frameId)) {
       (frameIdsForTab[tabId] || (frameIdsForTab[tabId] = [])).push(request.frameId);
+    }
+    if (toCall = tabLoadedHandlers[tabId]) {
+      delete tabLoadedHandlers[tabId];
+      toCall(port);
     }
     css2 = Settings.get("userDefinedCss");
     css2 && chrome.tabs.insertCSS(tabId, {
@@ -898,14 +897,15 @@
   };
 
   handleFrameFocused = function(request, tab) {
-    var tabId = tab.id;
-    if (frameIdsForTab[tabId] == null) {
+    var frames = frameIdsForTab[tab.id];
+    if (frames == null || frames.length <= 1) {
       return;
     }
-    frameIdsForTab[tabId] = frameIdsForTab[tabId].filter(function(id) {
-      return id !== request.frameId;
-    });
-    frameIdsForTab[tabId].unshift(request.frameId);
+    var ind = frames.indexOf(request.frameId);
+    if (ind > 0) {
+      frames.slice(ind, 1);
+      frames.unshift(request.frameId);
+    }
   };
 
   portHandlers = {

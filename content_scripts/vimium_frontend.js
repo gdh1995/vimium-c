@@ -7,7 +7,7 @@
     , findModeAnchorNode, findModeQuery, findModeQueryHasResults, focusFoundLink, followLink //
     , frameId, getLinkFromSelection, getNextQueryFromRegexMatches, handleDeleteForFindMode //
     , handleEnterForFindMode, handleEscapeForFindMode, handleKeyCharForFindMode, KeydownEvents //
-    , hasModifiersRegex, hideHelpDialog, initializePreDomReady //
+    , hasModifiersRegex, hideHelpDialog, initializePreDomReady, CursorHider //
     , initializeWhenEnabled, insertModeLock, installListener, installedListeners, isDOMDescendant //
     , isEditable, isEmbed, isEnabledForUrl, isFocusable, isInsertMode, isPassKey, isShowingHelpDialog //
     , isValidFirstKey, keyQueue, onBlurCapturePhase, onDOMActivate, onFocusCapturePhase //
@@ -197,7 +197,7 @@
       return sendOK;
     },
     ReceiveMessage: function(args) {
-      var ref = args.keys, i = 0, v1 = args.values, v2 = settings.values;
+      var ref = args.keys, i = 0, v1 = args.values, v2 = settings.values, func;
       for (; i < ref.length; i++) {
         v2[ref[i]] = v1[i];
       }
@@ -207,8 +207,12 @@
       }
       settings.isLoaded = true;
       ref = settings._eventListeners.load;
-      while (ref.length > 0) {
-        ref.pop()();
+      settings._eventListeners.load = [];
+      for (i = ref.length; 0 <= --i; ) {
+        func = ref[i];
+        if (typeof func === "function") {
+          func();
+        }
       }
     },
     addEventListener: function(eventName, callback) {
@@ -220,7 +224,7 @@
     }
   };
 
-  frameId = Math.floor(Math.random() * 999999999);
+  frameId = Math.floor(Math.random() * 999999997) + 2;
 
   hasModifiersRegex = /^<([amc]-)+.>/;
 
@@ -279,14 +283,12 @@
     settings.addEventListener("load", function() {
       Scroller.setSmoothScroll(settings.values.smoothScroll ? true : false);
       checkIfEnabledForUrl();
+      CursorHider.init();
     });
     Scroller.init();
     if (!settings.load()) {
-      settings.valuesToLoad.push("userDefinedCss");
-      settings.addEventListener("load", function() {
-        // TODO: reject css
-        registerFrame();
-      });
+      // css will be rejected when the background gets "registerFrame"
+      settings.addEventListener("load", registerFrame);
     }
   };
 
@@ -333,7 +335,9 @@
       handler: "registerFrame",
       frameId: ((document.body && document.body.tagName.toLowerCase() === "frameset") ? NaN : frameId)
     });
-    window.removeEventListener("DOMContentLoaded", registerFrame);
+    if (Vomnibar.init) {
+      Vomnibar.init();
+    }
   };
   
   unregisterFrame = function() {
@@ -624,13 +628,11 @@
       }
     }
     if (isInsert && isEscape) {
-      if (!isEmbed(event.srcElement)) {
-        if (isEditable(event.srcElement)) {
-          event.srcElement.blur();
-        }
-        exitInsertMode();
-        action = 2;
+      if (isEditable(event.srcElement) || !isEmbed(event.srcElement)) {
+        event.srcElement.blur();
       }
+      exitInsertMode();
+      action = 2;
     }
     else if (findMode) {
       if (isEscape) {
@@ -752,9 +754,9 @@
   };
 
   isEmbed = function(element) {
-    return isEmbed.data.indexOf(element.nodeName.toLowerCase()) >= 0;
+    var s = element.nodeName.toLowerCase();
+    return s === "embed" || s === "object";
   };
-  isEmbed.data = ["embed", "object"];
 
   isEditable = function(target) {
     var focusableElements, noFocus, nodeName;
@@ -1311,6 +1313,33 @@
     }
   };
 
+  CursorHider = {
+    cursorHideStyle: null,
+    isScrolling: false,
+    onScroll: function(event) {
+      CursorHider.isScrolling = true;
+      if (!CursorHider.cursorHideStyle.parentElement) {
+        document.head.appendChild(CursorHider.cursorHideStyle);
+      }
+    },
+    onMouseMove: function(event) {
+      if (CursorHider.cursorHideStyle.parentElement && !CursorHider.isScrolling) {
+        CursorHider.cursorHideStyle.remove();
+      }
+      return CursorHider.isScrolling = false;
+    },
+    init: function() {
+      return;
+      if (!Utils.haveChromeVersion("39.0.2171.71")) {
+        return;
+      }
+      this.cursorHideStyle = document.createElement("style");
+      this.cursorHideStyle.innerHTML = "body * {pointer-events: none !important; cursor: none !important;}\nbody, html {cursor: none !important;}";
+      window.addEventListener("mousemove", this.onMouseMove);
+      window.addEventListener("scroll", this.onScroll);
+    }
+  };
+
   root = typeof exports !== "undefined" && exports !== null ? exports : window;
 
   root.settings = settings;
@@ -1327,8 +1356,8 @@
   
   initializePreDomReady();
 
-  window.addEventListener("DOMContentLoaded", registerFrame);
-
   window.addEventListener("unload", unregisterFrame);
+
+  DomUtils.documentReady(registerFrame);
 
 })();

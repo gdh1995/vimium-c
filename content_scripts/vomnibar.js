@@ -452,7 +452,7 @@
     },
     prepareToRender: function() {
       this.text = BackgroundCompleter.cutUrl(this.text, this.textSplit, this.url);
-      if (BackgroundCompleter.showFavIcon && this.url.indexOf("://") >= 0) {
+      if ((BackgroundCompleter.showFavIcon || this.type === "tab") && this.url.indexOf("://") >= 0) {
         this.favIconUrl = " vomnibarIcon\" style=\"background-image: url(" + (this.favIconUrl ||
           ("chrome://favicon/size/16/" + this.url)) + ")";
       } else {

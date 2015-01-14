@@ -117,13 +117,13 @@
   CoreScroller = {
     smoothScroll: true,
     time: 0,
-    lastEvent: null,
+    isLastEventRepeat: false,
     keyIsDown: false,
     init: function() {
       handlerStack.push({
         keydown: function(event) {
           CoreScroller.keyIsDown = true;
-          CoreScroller.lastEvent = event;
+          CoreScroller.isLastEventRepeat = event.repeat;
           return true;
         },
         keyup: function() {
@@ -134,7 +134,7 @@
       });
     },
     wouldNotInitiateScroll: function() {
-      return this.smoothScroll && (this.lastEvent && this.lastEvent.repeat);
+      return this.smoothScroll && (this.isLastEventRepeat);
     },
     minCalibration: 0.5,
     maxCalibration: 1.6,
@@ -149,7 +149,7 @@
         checkVisibility(element);
         return;
       }
-      if ((_ref = this.lastEvent) != null ? _ref.repeat : undefined) {
+      if (this.isLastEventRepeat) {
         return;
       }
       activationTime = ++this.time;
@@ -195,7 +195,7 @@
           }
         };
       })(this);
-      return requestAnimationFrame(animate);
+      requestAnimationFrame(animate);
     }
   };
 
@@ -232,7 +232,7 @@
       if (!CoreScroller.wouldNotInitiateScroll()) {
         element = findScrollableElement(activatedElement, direction, amount, factor);
         elementAmount = factor * getDimension(element, direction, amount);
-        return CoreScroller.scroll(element, direction, elementAmount);
+        CoreScroller.scroll(element, direction, elementAmount);
       }
     },
     scrollTo: function(direction, pos) {
@@ -243,7 +243,7 @@
       }
       element = findScrollableElement(activatedElement, direction, pos, 1);
       amount = getDimension(element, direction, pos) - element[scrollProperties[direction].axisName];
-      return CoreScroller.scroll(element, direction, amount);
+      CoreScroller.scroll(element, direction, amount);
     }
   };
 
