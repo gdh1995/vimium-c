@@ -168,54 +168,56 @@
       return marker;
     },
     GetVisibleClickable: function(element) {
-      var clientRect, imgClientRects, isClickable, jsactionRules, map, ruleSplit, tagName, _i, _len, s;
-      if ((tagName = element.tagName.toLowerCase()) === "img") {
-        if ((s = element.getAttribute("usemap")) && (imgClientRects = element.getClientRects()).length > 0) {
-          if (map = document.querySelector('map[name="' + s.replace(hashRegex, "").replace(quoteRegex, '\\"') + '"]')) {
-            this.push.apply(this, DomUtils.getClientRectsForAreas(imgClientRects[0], map.getElementsByTagName("area")));
-          }
-        }
-      }
-      if ( ((s = element.getAttribute("aria-hidden"   ) ) != null && (s ? s.toLowerCase() === "true" : true)) //
-        || ((s = element.getAttribute("aria-disabled"  )) != null && (s ? s.toLowerCase() === "true" : true)) //
-        ) {
-        return;
-      }
-      switch (tagName) {
+      var clientRect, isClickable, s;
+      switch (element.tagName.toLowerCase()) {
       case "a": isClickable = true; break;
       case "textarea": isClickable = !element.disabled && !element.readOnly; break;
       case "input":
-        isClickable = !( ((s = element.getAttribute("type")) && s.toLowerCase() === "hidden")
-          || element.disabled || (element.readOnly && DomUtils.isSelectable(element)) );
+        isClickable = !(element.type === "hidden" || element.disabled //
+          || (element.readOnly && DomUtils.isSelectable(element)));
         break;
       case "button": case "select": isClickable = !element.disabled; break;
-      default: isClickable = false; break;
-      }
-      if (isClickable) {
-      }
-      else if ( element.hasAttribute("onclick") //
-        //|| ((s = element.className) && s.toLowerCase().indexOf("button") >= 0) // TODO: whether to mask this line
-        || ((s = element.getAttribute("role")) && (s = s.toLowerCase(), s === "button" || s === "link")) //
-        || ((s = element.getAttribute("contentEditable")) != null && (s ? (s = s.toLowerCase(), s === "contentEditable" || s === "true") : true)) //
-        ) {
-        isClickable = true;
-      }
-      else {
-        if (s = element.getAttribute("jsaction")) {
-          jsactionRules = s.split(";");
-          for (_i = 0, _len = jsactionRules.length; _i < _len; _i++) {
-            ruleSplit = jsactionRules[_i].split(":");
-            if (isClickable = (ruleSplit[0] === "click" || (ruleSplit.length === 1 && ruleSplit[0] !== "none"))) {
-              break;
+      case "script": case "link": case "style":
+        return;
+      case "img":
+        var imgClientRects, map;
+        if ((s = element.useMap) && (imgClientRects = element.getClientRects()).length > 0) {
+          if (map = document.querySelector('map[name="' + s.replace(hashRegex, "").replace(quoteRegex, '\\"') + '"]')) {
+            DomUtils.getClientRectsForAreas(this, imgClientRects[0], map.getElementsByTagName("area"));
+          }
+        }
+        // no "break;"
+      default: 
+        /* if ( ((s = element.getAttribute("aria-hidden"  )) != null && (s ? s.toLowerCase() === "true" : true)) //
+          || ((s = element.getAttribute("aria-disabled")) != null && (s ? s.toLowerCase() === "true" : true)) ) {
+          return;
+        } */
+        if ( element.onclick //
+          /* || ((s = element.className) && s.toLowerCase().indexOf("button") >= 0) */
+          || ((s = element.getAttribute("role")) && (s = s.toLowerCase(), s === "button" || s === "link")) //
+          || ((s = element.getAttribute("contentEditable")) != null && (s ? (s = s.toLowerCase(), s === "contenteditable" || s === "true") : true)) //
+          ) {
+          isClickable = true;
+        }
+        else {
+          if (s = element.getAttribute("jsaction")) {
+            var jsactionRules = s.split(";"), _i = jsactionRules.length;
+            while (0 <= --_i) {
+              s = jsactionRules[_i].trim();
+              if (s.startsWith("click:") || (s !== "none" && s.indexOf(":") === -1)) {
+                isClickable = true;
+                break;
+              }
+            }
+          }
+          if (!isClickable) {
+            s = element.getAttribute("tabindex");
+            if (s == null || !(s === "" || parseInt(s) >= 0)) {
+              return; // work around
             }
           }
         }
-        if (!isClickable) {
-          s = element.getAttribute("tabindex");
-          if (s == null || !(s === "" || parseInt(s) >= 0)) {
-            return; // work around
-          }
-        }
+        break;
       }
       if (clientRect = DomUtils.getVisibleClientRect(element)) {
         this.push({
@@ -226,35 +228,29 @@
       }
     },
     getVisibleClickableElements: function() {
-      var forEach, element, elements, negativeRect, nonOverlappingElements //
-        , rects, rects2, visibleElement, visibleElements, _i, _len;
-      elements = document.documentElement.getElementsByTagName("*");
-      nonOverlappingElements = [];
-      forEach = (visibleElements = []).forEach;
-      visibleElements = [];
-      forEach.call(elements, this.GetVisibleClickable.bind(visibleElements));
+      var output = [], visibleElements = [], visibleElement, rects, rects2, _len, _i;
+      output.forEach.call(document.documentElement.getElementsByTagName("*") //
+        , this.GetVisibleClickable.bind(visibleElements));
       visibleElements.reverse();
-      while (visibleElement = visibleElements.pop()) {
+      for (_len = visibleElements.length; 0 <= --_len; ) {
+        visibleElement = visibleElements[_len];
         rects = [visibleElement.rect];
-        for (_i = 0, _len = visibleElements.length; _i < _len; _i++) {
-          negativeRect = visibleElements[_i].rect;
-          rects2 = [];
-          rects.forEach(Rect.SubtractSequence.bind(rects2, negativeRect));
-          rects = rects2;
-          if (rects.length === 0) {
+        for (_i = 0; _i < _len; _i++) {
+          rects.forEach(Rect.SubtractSequence.bind(rects2 = [], visibleElements[_i].rect));
+          if ((rects = rects2).length === 0) {
             break;
           }
         }
         if (rects.length > 0) {
-          nonOverlappingElements.push({
+          output.push({
             element: visibleElement.element,
             rect: rects[0]
           });
         } else if (!visibleElement.second) {
-          nonOverlappingElements.push(visibleElement);
+          output.push(visibleElement);
         }
       }
-      return nonOverlappingElements;
+      return output;
     },
     oldGetVisibleClickableElements: function() {
       var c, rect, element, img, cr0, map, rect, resultSet, visibleElements, _i, _ref;
