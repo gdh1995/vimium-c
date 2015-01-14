@@ -123,7 +123,7 @@
 	z-index: 99999994;
 }
 
-.iVimHM.vimB {
+.iVimLH.vimB {
 	background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#FFF785), color-stop(100%,#FFC542));
 	border: 1px solid #E3BE23;
 	border-radius: 3px;
@@ -132,20 +132,21 @@
 	position: absolute;
 }
 
-.iVimHM > .matchingCharacter {
+.iVimLH > .vimMC {
 	color: #D4AC3A;
 }
 
 /* Input hints CSS */
 
-.internalVimiumInputHint.vimB {
+.iVimIH.vimB {
 	background-color: rgba(255, 247, 133, 0.3);
 	border: 1px solid #C38A22;
 	display: block;
+	pointer-events: none;
 	position: absolute;
 }
 
-.internalVimiumSelectedInputHint.vimB {
+.iVimIHS.vimB {
 	background-color: rgba(255, 102, 102, 0.3);
 	border: 1px solid #993333 !important;
 }

@@ -520,14 +520,14 @@
       }
       hints = visibleInputs.map(function(tuple) {
         var hint = document.createElement("div");
-        hint.className = "vimB vimI internalVimiumInputHint vimiumInputHint";
+        hint.className = "vimB vimI iVimIH vimiumInputHint";
         hint.style.left = (tuple.rect.left - 1) + window.scrollX + "px";
         hint.style.top = (tuple.rect.top - 1) + window.scrollY + "px";
         hint.style.width = tuple.rect.width + "px";
         hint.style.height = tuple.rect.height + "px";
         return hint;
       });
-      hints[selectedInputIndex].classList.add('internalVimiumSelectedInputHint');
+      hints[selectedInputIndex].classList.add('iVimIHS');
       hintContainingDiv = DomUtils.addElementList(hints, {
         id: "vimiumInputMarkerContainer",
         className: "vimB vimR"
@@ -535,7 +535,7 @@
       handlerStack.push({
         keydown: function(event) {
           if (event.keyCode === keyCodes.tab) {
-            hints[selectedInputIndex].classList.remove('internalVimiumSelectedInputHint');
+            hints[selectedInputIndex].classList.remove('iVimIHS');
             if (event.shiftKey) {
               if (--selectedInputIndex === -1) {
                 selectedInputIndex = hints.length - 1;
@@ -545,7 +545,7 @@
                 selectedInputIndex = 0;
               }
             }
-            hints[selectedInputIndex].classList.add('internalVimiumSelectedInputHint');
+            hints[selectedInputIndex].classList.add('iVimIHS');
             visibleInputs[selectedInputIndex].element.focus();
           } else if (event.keyCode !== keyCodes.shiftKey) {
             DomUtils.removeElement(hintContainingDiv);

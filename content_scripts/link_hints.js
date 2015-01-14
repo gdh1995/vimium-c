@@ -160,7 +160,7 @@
     },
     createMarkerFor: function(link) {
       var marker = document.createElement("div");
-      marker.className = "vimB vimI iVimHM vimHM";
+      marker.className = "vimB vimI iVimLH vimLH";
       marker.clickableItem = link.element;
       marker.style.left = link.rect.left + "px";
       marker.style.top = link.rect.top + "px";
@@ -364,9 +364,9 @@
       linkMarker.style.display = "";
       for (j = 0, _ref = linkMarker.childNodes; j < _ref.length; ++j) {
         if (j < matchingCharCount) {
-          _ref[j].classList.add("matchingCharacter");
+          _ref[j].classList.add("vimMC");
         } else {
-          _ref[j].classList.remove("matchingCharacter");
+          _ref[j].classList.remove("vimMC");
         }
       }
     },
