@@ -30,6 +30,9 @@
     hintMarkers: null,
     linkActivator: null,
     delayMode: false,
+    keyStatus: {
+      tab: false
+    },
     handlerId: 0,
     initScrollY: 0,
     initScrollX: 0,
@@ -284,21 +287,19 @@
     onKeyDownInMode: function(event) {
       var delay, keyResult, linksMatched, _i, _len, _j, _ref, _len2;
       if (this.delayMode) {
-        return;
+        return false;
       }
       if (KeyboardUtils.isFunctionKey(event)) {
         if (KeyboardUtils.isEscape(event)) {
-          KeydownEvents.push(event);
           this.deactivateMode();
           return false;
         }
         return true;
       }
-      keyResult = this.getMarkerMatcher().matchHintsByKey(this.hintMarkers, event);
+      keyResult = this.getMarkerMatcher().matchHintsByKey(this.hintMarkers, event, this.keyStatus);
       linksMatched = keyResult.linksMatched;
       delay = keyResult.delay || 0;
       if (linksMatched.length === 0) {
-        KeydownEvents.push(event);
         this.deactivateMode();
         return false;
       }
@@ -310,19 +311,30 @@
         }
       }
       if (linksMatched.length === 1) {
-        this.activateLink(linksMatched[0], delay);
+        if (linksMatched[0]) {
+          this.activateLink(linksMatched[0], delay);
+        }
       } else {
         for (_i = 0, linksMatched = this.hintMarkers, _len = linksMatched.length; _i < _len; _i++) {
           linksMatched[_i].style.display = "none";
         }
-        delay = this.getMarkerMatcher().hintKeystrokeQueue.length;
-        for (_i = 0, linksMatched = keyResult.linksMatched, _len = linksMatched.length; _i < _len; _i++) {
-          linksMatched[_i].style.display = "";
-          for (_j = 0, _ref = linksMatched[_i].childNodes, _len2 = _ref.length; _j < _len2; ++_j) {
-            if (_j < delay) {
-              _ref[_j].classList.add("vimMC");
-            } else {
+        if (this.keyStatus.tab) {
+          for (_i = 0, linksMatched = keyResult.linksMatched, _len = linksMatched.length; _i < _len; _i++) {
+            linksMatched[_i].style.display = "";
+            for (_j = 0, _ref = linksMatched[_i].childNodes, _len2 = _ref.length; _j < _len2; ++_j) {
               _ref[_j].classList.remove("vimMC");
+            }
+          }
+        } else {
+          delay = this.getMarkerMatcher().hintKeystrokeQueue.length;
+          for (_i = 0, linksMatched = keyResult.linksMatched, _len = linksMatched.length; _i < _len; _i++) {
+            linksMatched[_i].style.display = "";
+            for (_j = 0, _ref = linksMatched[_i].childNodes, _len2 = _ref.length; _j < _len2; ++_j) {
+              if (_j < delay) {
+                _ref[_j].classList.add("vimMC");
+              } else {
+                _ref[_j].classList.remove("vimMC");
+              }
             }
           }
         }
@@ -330,7 +342,7 @@
       return false;
     },
     activateLink: function(matchedLink, delay) {
-      var clickEl = matchedLink.clickableItem;
+      var clickEl = matchedLink.clickableItem, temp;
       this.delayMode = true;
       if (DomUtils.isSelectable(clickEl)) {
         DomUtils.simulateSelect(clickEl);
@@ -342,7 +354,7 @@
           clickEl.focus();
         }
         // TODO:
-        var temp = [];
+        temp = [];
         this.GetVisibleClickable.call(temp, clickEl);
         if (temp.length === 1) {
           DomUtils.flashRect(temp[0].rect);
@@ -353,6 +365,7 @@
           matchedLink.rect.bottom -= window.scrollY - this.initScrollY;
           DomUtils.flashRect(matchedLink.rect);
         }
+        temp = null;
         this.linkActivator(clickEl);
         if (this.mode < 127 && (this.mode & 4) === 4) {
           this.deactivateMode(delay, function() {
@@ -439,20 +452,33 @@
       }
       return result;
     },
-    matchHintsByKey: function(hintMarkers, event) {
-      var str;
-      if (event.keyCode === keyCodes.backspace || event.keyCode === keyCodes.deleteKey) {
-        if (!this.hintKeystrokeQueue.pop()) {
-          return {
-            linksMatched: []
-          };
+    matchHintsByKey: function(hintMarkers, event, keyStatus) {
+      var str, key = event.keyCode;
+      if (key === keyCodes.tab) {
+        if (this.hintKeystrokeQueue.length === 0) {
+          return { linksMatched: [ null ] };
         }
-      } else if (str = KeyboardUtils.getKeyChar(event).toLowerCase()) {
-        this.hintKeystrokeQueue.push(str);
+        keyStatus.tab = !keyStatus.tab;
+      } else {
+        if (keyStatus.tab) {
+          this.hintKeystrokeQueue = [];
+          keyStatus.tab = false;
+        }
+        if (key === keyCodes.backspace || key === keyCodes.deleteKey || key === keyCodes.f1) {
+          if (!this.hintKeystrokeQueue.pop()) {
+            return { linksMatched: [] };
+          }
+        } else if (str = KeyboardUtils.getKeyChar(event).toLowerCase()) {
+          this.hintKeystrokeQueue.push(str);
+        } else {
+          return { linksMatched: [null] };
+        }
       }
       str = this.hintKeystrokeQueue.join("");
       return {
-        linksMatched: hintMarkers.filter(function(linkMarker) {
+        linksMatched: hintMarkers.filter(keyStatus.tab ? function(linkMarker) {
+          return ! linkMarker.hintString.startsWith(str);
+        } : function(linkMarker) {
           return linkMarker.hintString.startsWith(str);
         })
       };

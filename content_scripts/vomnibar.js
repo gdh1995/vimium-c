@@ -200,7 +200,6 @@
         this.openInNewTab = this.forceNewTab;
       }
       this.onAction(action);
-      KeydownEvents.push(event);
       return false;
     },
     onAction: function(action) {

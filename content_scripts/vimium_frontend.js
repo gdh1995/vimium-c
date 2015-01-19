@@ -606,7 +606,10 @@
   };
 
   onKeydown = function(event) {
-    if (!isEnabledForUrl || !handlerStack.bubbleEvent('keydown', event)) {
+    if (!isEnabledForUrl) {
+      return;
+    } else if (!handlerStack.bubbleEvent('keydown', event)) {
+      KeydownEvents.push(event);
       return;
     }
     var modifiers = null, keyChar = "", isInsert = isInsertMode(), isEscape = KeyboardUtils.isEscape(event), action = -1;
@@ -978,7 +981,6 @@
           if (KeyboardUtils.isEscape(event)) {
             DomUtils.simulateSelect(document.activeElement);
             enterInsertModeWithoutShowingIndicator(document.activeElement);
-            KeydownEvents.push(event);
             return false;
           }
           return true;
