@@ -77,7 +77,7 @@
       this.initScrollX = window.scrollX;
       this.initScrollY = window.scrollY;
       this.hintMarkerContainingDiv = DomUtils.addElementList(this.hintMarkers, {
-        id: "vimiumHintMarkerContainer",
+        id: "vimHMC",
         className: "vimB vimR"
       });
       this.hintMarkerContainingDiv.style.left = window.scrollX + "px";
@@ -160,7 +160,7 @@
     },
     createMarkerFor: function(link) {
       var marker = document.createElement("div");
-      marker.className = "vimB vimI iVimLH vimLH";
+      marker.className = "vimB vimI vimLHi vimLH";
       marker.clickableItem = link.element;
       marker.style.left = link.rect.left + "px";
       marker.style.top = link.rect.top + "px";

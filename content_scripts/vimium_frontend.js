@@ -520,14 +520,14 @@
       }
       hints = visibleInputs.map(function(tuple) {
         var hint = document.createElement("div");
-        hint.className = "vimB vimI iVimIH vimiumInputHint";
+        hint.className = "vimB vimI vimIHi vimiumInputHint";
         hint.style.left = (tuple.rect.left - 1) + window.scrollX + "px";
         hint.style.top = (tuple.rect.top - 1) + window.scrollY + "px";
         hint.style.width = tuple.rect.width + "px";
         hint.style.height = tuple.rect.height + "px";
         return hint;
       });
-      hints[selectedInputIndex].classList.add('iVimIHS');
+      hints[selectedInputIndex].classList.add('vimS');
       hintContainingDiv = DomUtils.addElementList(hints, {
         id: "vimiumInputMarkerContainer",
         className: "vimB vimR"
@@ -535,17 +535,15 @@
       handlerStack.push({
         keydown: function(event) {
           if (event.keyCode === keyCodes.tab) {
-            hints[selectedInputIndex].classList.remove('iVimIHS');
+            hints[selectedInputIndex].classList.remove('vimS');
             if (event.shiftKey) {
               if (--selectedInputIndex === -1) {
                 selectedInputIndex = hints.length - 1;
               }
-            } else {
-              if (++selectedInputIndex === hints.length) {
-                selectedInputIndex = 0;
-              }
+            } else if (++selectedInputIndex === hints.length) {
+              selectedInputIndex = 0;
             }
-            hints[selectedInputIndex].classList.add('iVimIHS');
+            hints[selectedInputIndex].classList.add('vimS');
             visibleInputs[selectedInputIndex].element.focus();
           } else if (event.keyCode !== keyCodes.shiftKey) {
             DomUtils.removeElement(hintContainingDiv);
@@ -1221,24 +1219,25 @@
     },
     showUpgradeNotification: function(version) {
       var el = HUD.upgradeNotificationElement(), links;
-      el.innerHTML = "Vimium has been updated to " + version + " (<a class='vimB vimI vimL' target='_blank' href='https://github.com/philc/vimium#release-notes'>what's new</a>).<a class='vimB vimI vimL vimiumHUDClose' href='#'>&#215;</a>";
+      el.innerHTML = "Vimium has been updated to " + version + " (<a class='vimB vimI vimL' target='_blank' \
+href='https://github.com/philc/vimium#release-notes'>what's new</a>).<a class='vimB vimI vimL vimHUDClose'>&#215;</a>";
       links = el.getElementsByTagName("a");
       links[0].addEventListener("click", HUD.onUpdateLinkClicked, false);
       links[1].addEventListener("click", function(event) {
         event.preventDefault();
-        HUD.onUpdateLinkClicked();
+        HUD.onUpdateLinkClicked(event);
       }, false);
       Tween.fade(el, 1.0, 150);
     },
-    onUpdateLinkClicked: function() {
+    onUpdateLinkClicked: function(event) {
+      DomUtils.suppressEvent(event);
       HUD.hideUpgradeNotification();
       mainPort.postMessage({
         handler: "upgradeNotificationClosed"
       });
     },
-    hideUpgradeNotification: function(event) {
+    hideUpgradeNotification: function() {
       var el = HUD.upgradeNotificationElement();
-      DomUtils.suppressEvent(event);
       Tween.fade(el, 0, 150, function() {
         el.style.display = "none";
       });
@@ -1259,7 +1258,7 @@
     },
     createHudElement: function() {
       var element = document.createElement("div");
-      element.className = "vimB vimR vimiumHUD";
+      element.className = "vimB vimR vimHUD";
       document.documentElement.appendChild(element);
       return element;
     },

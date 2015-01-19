@@ -147,11 +147,11 @@
     },
     updateSelection: function() {
       for (var _i = 0, _ref = this.completionList.children, selected = this.selection; _i < _ref.length; ++_i) {
-        (_i != selected) && _ref[_i].classList.remove("vomnibarSelected");
+        (_i != selected) && _ref[_i].classList.remove("vimS");
       }
       if (selected >= 0 && selected < _ref.length) {
         _ref = _ref[selected];
-        _ref.classList.add("vomnibarSelected");
+        _ref.classList.add("vimS");
         _ref.scrollIntoViewIfNeeded();
       }
     },

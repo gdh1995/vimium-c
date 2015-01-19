@@ -8,9 +8,11 @@
  * value of a singed 32 bit int. Let's try larger valeus if 2**31 empirically isn't large enough.
  *
  *
- * vimB: vimium Base;     vimR: vimium Reset
- * vimI: vimium Inherit;  vimL: vimium Link
- * 
+ * vimB: vimium Base; vimR: Reset; vimI: Inherit; vimL: Link; vimS: Selected
+ *
+ * i$: internal; HMC: HintMarkerContainer; LH: LinkHint; MC: MatchingCharacter; IH: InputHint;
+ * HUD: HUD
+ *
  * This "vimB vimI" class can be added to any of our UI elements to give it a clean slate. This is useful in
  * case the page has declared a broad rule like "a { padding: 50px; }" which will mess up our UI. These
  * declarations contain more specifiers than necessary to increase their specificity (precedence).
@@ -110,8 +112,7 @@
 }
 
 /* Linkhints CSS */
-
-#vimiumHintMarkerContainer.vimB {
+#vimHMC.vimB {
 	font-weight: bold;
 	overflow: visible;
 	position: absolute;
@@ -119,8 +120,7 @@
 	white-space: nowrap;
 	z-index: 99999994;
 }
-
-.iVimLH.vimB {
+.vimLHi.vimB {
 	background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#FFF785), color-stop(100%,#FFC542));
 	border: 1px solid #E3BE23;
 	border-radius: 3px;
@@ -128,29 +128,25 @@
 	padding: 1px 3px 0px 3px;
 	position: absolute;
 }
-
-.iVimLH > .vimMC {
+.vimMC.vimB {
 	color: #D4AC3A;
 }
 
 /* Input hints CSS */
-
-.iVimIH.vimB {
+.vimIHi.vimB {
 	background-color: rgba(255, 247, 133, 0.3);
 	border: 1px solid #C38A22;
 	display: block;
 	pointer-events: none;
 	position: absolute;
 }
-
-.iVimIHS.vimB {
+.vimIHi.vimS {
 	background-color: rgba(255, 102, 102, 0.3);
 	border: 1px solid #993333 !important;
 }
 
 /* Vimium HUD CSS */
-
-.vimiumHUD.vimB {
+.vimHUD.vimB {
 	background-color: #ebebeb;
 	border: 1px solid #b3b3b3;
 	border-radius: 4px 4px 0 0;
@@ -167,7 +163,7 @@
 	text-shadow: 0px 1px 2px #FFF;
 	opacity: 0;
 }
-.vimiumHUD > .vimiumHUDClose {
+.vimHUDClose.vimB {
 	-webkit-user-select: none;
 	color: #9C9A9A;
 	float: right;
@@ -178,14 +174,13 @@
 	padding-left: 10px;
 	text-decoration: none;
 }
-.vimiumHUD > .vimiumHUDClose:hover {
+.vimHUDClose:hover {
 	-webkit-user-select: none;
 	color: #333333;
 }
 
 /* Vimium Flash */
-
-#vimiumFlash.vimB {
+#vimFlash.vimB {
 	box-shadow: 0px 0px 4px 2px #4183C4;
 	padding: 1px;
 	position: absolute;
@@ -193,26 +188,36 @@
 }
 
 /* Vimium Scrollbar */
-
-.vimiumScroll::-webkit-scrollbar,
-.vimiumScroll::-webkit-scrollbar-track,
-.vimiumScroll::-webkit-scrollbar-thumb {
+.vimScroll::-webkit-scrollbar,
+.vimScroll::-webkit-scrollbar-track,
+.vimScroll::-webkit-scrollbar-thumb {
 	background: none;
 	border: none;
 	border-radius: 5px;
 	box-shadow: none;
 }
-.vimiumScroll::-webkit-scrollbar:vertical {
+.vimScroll::-webkit-scrollbar:vertical {
 	width: 10px;
 }
-.vimiumScroll::-webkit-scrollbar:horizontal {
+.vimScroll::-webkit-scrollbar:horizontal {
 	height: 10px;
 }
-.vimiumScroll::-webkit-scrollbar-thumb,
-.vimiumScroll::-webkit-scrollbar-thumb:window-inactive,
-.vimiumScroll::-webkit-scrollbar-track:hover {
+.vimScroll::-webkit-scrollbar-thumb,
+.vimScroll::-webkit-scrollbar-thumb:window-inactive,
+.vimScroll::-webkit-scrollbar-track:hover {
 	background: rgba(96, 96, 96, 0.4);
 }
-.vimiumScroll::-webkit-scrollbar-thumb:hover {
+.vimScroll::-webkit-scrollbar-thumb:hover {
 	background: rgba(0, 0, 0, 0.6);
+}
+
+/* UIComponent CSS */
+.vimUIHidden.vimB {
+  display: none;
+}
+.vimUIVisible.vimB {
+  display: block;
+}
+.vimUIReactivated.vimB {
+  border: 5px solid yellow;
 }

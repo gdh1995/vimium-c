@@ -33,7 +33,7 @@
 	padding-bottom: 3px;
 }
 
-#vomnibarList > .vomnibarItem {
+.vomnibarItem.vimB {
 	background-color: white;
 	border-bottom: 1px solid #ddd;
 	display: list-item;
@@ -41,15 +41,15 @@
 	position: relative;
 	white-space: nowrap;
 }
-#vomnibarList > .vomnibarItem:last-of-type {
+.vomnibarItem:last-child {
 	border-bottom-style: none;
 	margin-bottom: -3px;
 	padding-bottom: 6px;
 }
-#vomnibarList > .vomnibarItem:hover {
+.vomnibarItem:hover {
 	background-color: #CFDDEF;
 }
-#vomnibarList > .vomnibarItem.vomnibarSelected {
+.vomnibarItem.vimS {
 	background-color: #BBCEE9;
 }
 
@@ -111,7 +111,7 @@
 <div class="vimB vimR" style="padding: 10px;">
 	<input type="text" class="vimB vimR" id="vomnibarInput" />
 </div>
-<ul class="vimB vimR vimiumScroll" id="vomnibarList">
+<ul class="vimB vimR vimScroll" id="vomnibarList">
 	<script type="text/template" id="vomnibarItemTemplate">
 	<li class="vimB vimR vomnibarItem">
 		<div class="vimB vimI vomnibarTopHalf">
