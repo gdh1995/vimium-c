@@ -286,18 +286,18 @@
       if (this.delayMode) {
         return;
       }
-      if (KeyboardUtils.isEscape(event)) {
-        KeydownEvents.push(event);
-        this.deactivateMode();
-        return false;
+      if (KeyboardUtils.isFunctionKey(event)) {
+        if (KeyboardUtils.isEscape(event)) {
+          KeydownEvents.push(event);
+          this.deactivateMode();
+          return false;
+        }
+        return true;
       }
       keyResult = this.getMarkerMatcher().matchHintsByKey(this.hintMarkers, event);
       linksMatched = keyResult.linksMatched;
       delay = keyResult.delay || 0;
       if (linksMatched.length === 0) {
-        if (KeyboardUtils.isFunctionKey(event)) {
-          return true;
-        }
         KeydownEvents.push(event);
         this.deactivateMode();
         return false;
@@ -440,23 +440,21 @@
       return result;
     },
     matchHintsByKey: function(hintMarkers, event) {
-      var keyChar, linksMatched, matchString;
-      keyChar = KeyboardUtils.getKeyChar(event).toLowerCase();
+      var str;
       if (event.keyCode === keyCodes.backspace || event.keyCode === keyCodes.deleteKey) {
         if (!this.hintKeystrokeQueue.pop()) {
           return {
             linksMatched: []
           };
         }
-      } else if (keyChar) {
-        this.hintKeystrokeQueue.push(keyChar);
+      } else if (str = KeyboardUtils.getKeyChar(event).toLowerCase()) {
+        this.hintKeystrokeQueue.push(str);
       }
-      matchString = this.hintKeystrokeQueue.join("");
-      linksMatched = hintMarkers.filter(function(linkMarker) {
-        return linkMarker.hintString.indexOf(matchString) === 0;
-      });
+      str = this.hintKeystrokeQueue.join("");
       return {
-        linksMatched: linksMatched
+        linksMatched: hintMarkers.filter(function(linkMarker) {
+          return linkMarker.hintString.startsWith(str);
+        })
       };
     },
     deactivate: function() {

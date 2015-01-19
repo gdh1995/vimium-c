@@ -185,10 +185,10 @@
           }
         }
         else if (this.selection >= 0 && this.isSelectionChanged || document.activeElement !== this.input) {
-          action = event.keyCode - 48;
-          if (action === 0) { action = 10; }
-          if (action > 0 && action <= this.completions.length) {
-            this.selection = action - 1;
+          var n = action = event.keyCode - 48;
+          if (n === 0) { n = 10; }
+          if (n > 0 && n <= this.completions.length) {
+            this.selection = n - 1;
             action = "enter";
           } else {
             action = "";
@@ -281,7 +281,7 @@
       }
     },
     onKeyEvent: function(event) {
-      if(KeyboardUtils.isFunctionKey(event) || event.altKey) {
+      if (event.altKey || KeyboardUtils.isFunctionKey(event)) {
         return;
       }
       else if ((event[keyCodes.modifier] || event.shiftKey) && (event.keyCode == keyCodes.left || event.keyCode == keyCodes.right)) {
