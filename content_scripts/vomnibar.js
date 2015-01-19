@@ -13,44 +13,44 @@
       }
       return this.completers[name];
     },
-    activateWithCompleter: function(completerName, refreshInterval, initialQueryValue, selectFirstResult, forceNewTab) {
+    activateWithCompleter: function(completerName, selectFirstResult, forceNewTab, initialQueryValue) {
       var completer = this.getCompleter(completerName), vomnibarUI = this.vomnibarUI;
       if (!vomnibarUI) {
         vomnibarUI = this.vomnibarUI = VomnibarUI;
         vomnibarUI.init();
       }
-      vomnibarUI.setInitialSelectionValue(selectFirstResult ? 0 : -1);
-      vomnibarUI.setCompleter(completer);
-      vomnibarUI.setRefreshInterval(refreshInterval || this.defaultRefreshInterval);
-      vomnibarUI.setForceNewTab(forceNewTab);
+      vomnibarUI.initialSelectionValue = selectFirstResult ? 0 : -1;
+      vomnibarUI.completer = completer;
+      vomnibarUI.refreshInterval = this.defaultRefreshInterval || 250;
+      vomnibarUI.forceNewTab = forceNewTab ? true : false;
       vomnibarUI.reset(initialQueryValue);
     },
     activate: function() {
       this.activateWithCompleter("omni");
     },
     activateInNewTab: function() {
-      this.activateWithCompleter("omni", 0, null, false, true);
+      this.activateWithCompleter("omni", false, true);
     },
     activateTabSelection: function() {
-      this.activateWithCompleter("tabs", 0, null, true);
+      this.activateWithCompleter("tabs", true);
     },
     activateBookmarks: function() {
-      this.activateWithCompleter("bookmarks", 0, null, true);
+      this.activateWithCompleter("bookmarks", true);
     },
     activateBookmarksInNewTab: function() {
-      this.activateWithCompleter("bookmarks", 0, null, true, true);
+      this.activateWithCompleter("bookmarks", true, true);
     },
     activateHistory: function() {
-      this.activateWithCompleter("history", 0, null, true);
+      this.activateWithCompleter("history", true);
     },
     activateHistoryInNewTab: function() {
-      this.activateWithCompleter("history", 0, null, true, true);
+      this.activateWithCompleter("history", true, true);
     },
     activateEditUrl: function() {
-      this.activateWithCompleter("omni", 0, window.location.href);
+      this.activateWithCompleter("omni", false, false, window.location.href);
     },
     activateEditUrlInNewTab: function() {
-      this.activateWithCompleter("omni", 0, window.location.href, false, true);
+      this.activateWithCompleter("omni", false, true, window.location.href);
     },
     getUI: function() {
       return this.vomnibarUI;
@@ -78,18 +78,6 @@
     selection: -1,
     timer: 0,
     _initStep: [0],
-    setInitialSelectionValue: function(initialSelectionValue) {
-      this.initialSelectionValue = initialSelectionValue;
-    },
-    setCompleter: function(completer) {
-      this.completer = completer;
-    },
-    setRefreshInterval: function(refreshInterval) {
-      this.refreshInterval = refreshInterval;
-    },
-    setForceNewTab: function(forceNewTab) {
-      this.forceNewTab = forceNewTab;
-    },
     show: function() {
       if (this._initStep[0] !== 2) {
         this._initStep.push(this.show);

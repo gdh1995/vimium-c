@@ -282,7 +282,7 @@
       return visibleElements;
     },
     onKeyDownInMode: function(event) {
-      var delay, keyResult, linksMatched, _i, _len;
+      var delay, keyResult, linksMatched, _i, _len, _j, _ref, _len2;
       if (this.delayMode) {
         return;
       }
@@ -313,11 +313,18 @@
         this.activateLink(linksMatched[0], delay);
       } else {
         for (_i = 0, linksMatched = this.hintMarkers, _len = linksMatched.length; _i < _len; _i++) {
-          this.hideMarker(linksMatched[_i]);
+          linksMatched[_i].style.display = "none";
         }
         delay = this.getMarkerMatcher().hintKeystrokeQueue.length;
         for (_i = 0, linksMatched = keyResult.linksMatched, _len = linksMatched.length; _i < _len; _i++) {
-          this.showMarker(linksMatched[_i], delay);
+          linksMatched[_i].style.display = "";
+          for (_j = 0, _ref = linksMatched[_i].childNodes, _len2 = _ref.length; _j < _len2; ++_j) {
+            if (_j < delay) {
+              _ref[_j].classList.add("vimMC");
+            } else {
+              _ref[_j].classList.remove("vimMC");
+            }
+          }
         }
       }
       return false;
@@ -358,20 +365,6 @@
           });
         }
       }
-    },
-    showMarker: function(linkMarker, matchingCharCount) {
-      var j, _ref;
-      linkMarker.style.display = "";
-      for (j = 0, _ref = linkMarker.childNodes; j < _ref.length; ++j) {
-        if (j < matchingCharCount) {
-          _ref[j].classList.add("vimMC");
-        } else {
-          _ref[j].classList.remove("vimMC");
-        }
-      }
-    },
-    hideMarker: function(linkMarker) {
-      linkMarker.style.display = "none";
     },
     deactivate2: function(callback) {
       if (this.getMarkerMatcher().deactivate) {

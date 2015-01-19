@@ -102,13 +102,10 @@
 
 .vimL.vimB,
 .vimL:visited,
-.vimL:link {
-	color: blue;
-	text-decoration: underline;
-}
+.vimL:link,
 .vimL:hover {
 	color: blue;
-	cursor: auto;
+	cursor: pointer;
 	text-decoration: underline;
 }
 
@@ -179,6 +176,7 @@
 	font-weight: bold;
 	margin-top: -1px;
 	padding-left: 10px;
+	text-decoration: none;
 }
 .vimiumHUD > .vimiumHUDClose:hover {
 	-webkit-user-select: none;

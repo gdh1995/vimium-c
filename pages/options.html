@@ -54,11 +54,14 @@ unmapAll
           <td verticalAlign="top">
               <div class="help">
                 <div class="example">
-                  This adds search-engine shortcuts to the Vomnibar.<br/><br/>
-                  The format is:<br/>
-                  <pre>your-keyword: http://the-site.com/?q=%s</pre>
+                  Add search-engine shortcuts to the Vomnibar. Format:<br/>
+                  <pre>
+a: http://a.com/?q=%s
+b=description: http://b.com/?q=%s
+c=C=Description: \
+    http://c.com/?q=%s
+# this is a comment</pre>
                   %s will be replaced with your search terms.<br/>
-                  Lines which start with "#" are comments.
                 </div>
               </div>
               <textarea id="searchEngines"></textarea>
