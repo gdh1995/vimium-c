@@ -424,7 +424,7 @@
           lenCut += start - temp - 19;
         }
         end = ranges[i + 1];
-        out.push("<span class=\"vimB vimI vomnibarMatch\">");
+        out.push("<span class=\"vimB vimI vimOmniS\">");
         out.push(Utils.escapeHtml(string.substring(start, end)));
         out.push("</span>");
       }
