@@ -343,8 +343,16 @@
       selectTab(tab, -tab.index - 1);
     },
     removeTab: function(tab, count) {
+      if (!tab || tab.index > 1) {
+        if (count > 1) {
+          removeTabsRelative(tab, count);
+        } else {
+          chrome.tabs.remove(tab.id);
+        }
+        return;
+      }
       chrome.tabs.getAllInWindow(tab.windowId, function(curTabs) {
-        if (! curTabs || curTabs.length !== 1) {
+        if (!curTabs || curTabs.length > count) {
           if (count > 1) {
             removeTabsRelative(tab, count);
           } else {
@@ -374,11 +382,18 @@
               toCreate = { windowId: tab.windowId };
             }
           }
+          curTabs = (count > 1) ? curTabs.filter(function(tab) {
+            return !tab.pinned;
+          }).map(function(tab) {
+            return tab.id;
+          }) : [tab.id];
           if (toCreate) {
             toCreate.url = url;
             chrome.tabs.create(toCreate);
           }
-          chrome.tabs.remove(tab.id);
+          if (curTabs.length > 0) {
+            chrome.tabs.remove(curTabs);
+          }
         });
       });
     },
@@ -460,13 +475,13 @@
       });
     },
     closeTabsOnLeft: function(tab) {
-      removeTabsRelative(tab, "before");
+      removeTabsRelative(tab, -1);
     },
     closeTabsOnRight: function(tab) {
-      removeTabsRelative(tab, "after");
+      removeTabsRelative(tab, 1);
     },
     closeOtherTabs: function(tab) {
-      removeTabsRelative(tab, "both");
+      removeTabsRelative(tab, 0);
     }
   };
 
@@ -474,18 +489,22 @@
     chrome.tabs.getAllInWindow(activeTab.windowId, function(tabs) {
       var activeTabIndex, shouldDelete, tab, toRemove, _i, _len;
       activeTabIndex = activeTab.index;
-      shouldDelete = (direction === "before") ? function(tab) {
+      shouldDelete = (direction === -1) ? function(tab) {
         return !tab.pinned && tab.index < activeTabIndex;
-      } : (direction === "after") ? function(tab) {
+      } : (direction === 1) ? function(tab) {
         return !tab.pinned && tab.index > activeTabIndex;
-      } : (direction === "both") ? function(tab) {
+      } : (direction === 0) ? function(tab) {
         return !tab.pinned && tab.index !== activeTabIndex;
       } : (direction > 0) ? (direction += activeTabIndex, function(tab) {
         return !tab.pinned && tab.index >= activeTabIndex && tab.index < direction;
+      }) : (direction < 0) ? (direction = activeTabIndex - direction, function(tab) {
+        return !tab.pinned && tab.index <= activeTabIndex && tab.index > direction;
       }) : null;
       toRemove = [];
       if (shouldDelete) {
-        tabs = tabs.filter(shouldDelete);
+        tabs = tabs.filter(shouldDelete).map(function(tab) {
+          return tab.id;
+        });
         if (tabs.length > 0) {
           chrome.tabs.remove(tabs);
         }
