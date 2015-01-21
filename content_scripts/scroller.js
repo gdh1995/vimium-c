@@ -123,6 +123,7 @@
           return true;
         }
       });
+      this.data.animate = this.data.animate.bind(this.data);
     },
     wouldNotInitiateScroll: function() {
       return this.smoothScroll && (this.isLastEventRepeat);
@@ -130,8 +131,8 @@
     minCalibration: 0.5,
     maxCalibration: 1.6,
     calibrationBoundary: 150,
+    activationTime: 0,
     scroll: function(element, direction, amount) {
-      var activationTime, animate, calibration, duration, myKeyIsStillDown, previousTimestamp, sign, totalDelta, totalElapsed, _ref, _this = this;
       if (!amount) {
         return;
       }
@@ -143,48 +144,62 @@
       if (this.isLastEventRepeat) {
         return;
       }
-      activationTime = ++this.time;
-      myKeyIsStillDown = function() {
-        return _this.time === activationTime && _this.keyIsDown;
-      };
-      sign = getSign(amount);
-      amount = Math.abs(amount);
-      duration = Math.max(100, 20 * Math.log(amount));
-      totalDelta = 0;
-      totalElapsed = 0.0;
-      calibration = 1.0;
-      previousTimestamp = -1;
-      animate = function(timestamp) {
-        var delta, elapsed;
-        if (previousTimestamp === -1) {
-          previousTimestamp = timestamp;
-        }
-        if (timestamp === previousTimestamp) {
-          requestAnimationFrame(animate);
-          elapsed = 0;
+      this.activationTime = ++this.time;
+      var data = this.data;
+      data.sign = getSign(amount);
+      data.element = element;
+      data.direction = direction;
+      data.amount = Math.abs(amount);
+      data.duration = Math.max(100, 20 * Math.log(data.amount));
+      data.totalDelta = 0;
+      data.totalElapsed = 0.0;
+      data.calibration = 1.0;
+      data.timestamp = -1.0;
+      requestAnimationFrame(this.data.animate);
+    },
+    KeyIsStillDown: function() {
+      return this.time === this.activationTime && this.keyIsDown;
+    },
+    data: {
+      amount: 0,
+      calibration: 1.0,
+      direction: "",
+      duration: 0,
+      element: null,
+      sign: 0,
+      timestamp: -1.0,
+      totalDelta: 0,
+      totalElapsed: 0.0,
+      animate: function(timestamp) {
+        var int1 = this.timestamp, elapsed;
+        elapsed = (int1 !== -1) ? (timestamp - int1) : 0;
+        if (elapsed === 0) {
+          requestAnimationFrame(this.animate);
         } else {
-          elapsed = timestamp - previousTimestamp;
-          totalElapsed += elapsed;
-          previousTimestamp = timestamp;
+          this.totalElapsed += elapsed;
         }
-        if (myKeyIsStillDown() && 75 <= totalElapsed && (_this.minCalibration <= calibration && calibration <= _this.maxCalibration)) {
-          if (1.05 * calibration * amount < _this.calibrationBoundary) {
-            calibration *= 1.05;
+        this.timestamp = timestamp;
+        if (CoreScroller.KeyIsStillDown()) {
+          int1 = this.calibration;
+          if (75 <= this.totalElapsed && (CoreScroller.minCalibration <= int1 && int1 <= CoreScroller.maxCalibration)) {
+            int1 = CoreScroller.calibrationBoundary / this.amount / int1;
+            this.calibration *= (int1 > 1.05) ? 1.05 : (int1 < 0.95) ? 0.95 : 1.0;
           }
-          if (_this.calibrationBoundary < 0.95 * calibration * amount) {
-            calibration *= 0.95;
-          }
-        }
-        delta = Math.ceil(amount * (elapsed / duration) * calibration);
-        delta = myKeyIsStillDown() ? delta : Math.max(0, Math.min(delta, amount - totalDelta));
-        if (delta && performScroll(element, direction, sign * delta)) {
-          totalDelta += delta;
-          requestAnimationFrame(animate);
+          int1 = Math.ceil(this.amount * (elapsed / this.duration) * this.calibration);
         } else {
-          checkVisibility(element);
+          int1 = Math.ceil(this.amount * (elapsed / this.duration) * this.calibration);
+          int1 = Math.max(0, Math.min(int1, this.amount - this.totalDelta));
         }
-      };
-      requestAnimationFrame(animate);
+        if (int1 && performScroll(this.element, this.direction, this.sign * int1)) {
+          this.totalDelta += int1;
+          requestAnimationFrame(this.animate);
+        } else {
+          checkVisibility(this.element);
+          if (elapsed !== 0) {
+            this.element = null;
+          }
+        }
+      }
     }
   };
 
