@@ -802,7 +802,7 @@
 
   updateFindModeQuery = function() {
     var error, escapeRegEx, hasNoIgnoreCaseFlag, parsedNonRegexQuery, pattern, text, _ref;
-    findModeQuery.isRegex = !! settings.values.regexFindMode;
+    findModeQuery.isRegex = settings.values.regexFindMode ? true : false;
     hasNoIgnoreCaseFlag = false;
     findModeQuery.parsedQuery = findModeQuery.rawQuery.replace(/\\./g, function(match) {
       switch (match) {
@@ -1104,11 +1104,11 @@
   };
 
   window.goPrevious = function() {
-    goBy("prev", settings.values.previousPatterns);
+    goBy("prev", settings.values.previousPatterns || []);
   };
 
   window.goNext = function() {
-    goBy("next", settings.values.nextPatterns);
+    goBy("next", settings.values.nextPatterns || []);
   };
 
   showFindModeHUDForQuery = function() {
@@ -1145,7 +1145,7 @@
     container.innerHTML = html;
     VimiumHelpDialog = {
       getShowAdvancedCommands: function() {
-        return !! settings.values.helpDialog_showAdvancedCommands;
+        return settings.values.helpDialog_showAdvancedCommands ? true : false;
       },
       init: function() {
         this.dialogElement = document.getElementById("vimiumHelpDialog");
