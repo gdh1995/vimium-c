@@ -453,7 +453,7 @@
       return result;
     },
     matchHintsByKey: function(hintMarkers, event, keyStatus) {
-      var str, key = event.keyCode;
+      var keyChar, key = event.keyCode;
       if (key === keyCodes.tab) {
         if (this.hintKeystrokeQueue.length === 0) {
           return { linksMatched: [ null ] };
@@ -468,18 +468,18 @@
           if (!this.hintKeystrokeQueue.pop()) {
             return { linksMatched: [] };
           }
-        } else if (str = KeyboardUtils.getKeyChar(event).toLowerCase()) {
-          this.hintKeystrokeQueue.push(str);
+        } else if (keyChar = KeyboardUtils.getKeyChar(event).toLowerCase()) {
+          this.hintKeystrokeQueue.push(keyChar);
         } else {
           return { linksMatched: [null] };
         }
       }
-      str = this.hintKeystrokeQueue.join("");
+      keyChar = this.hintKeystrokeQueue.join("");
       return {
         linksMatched: hintMarkers.filter(keyStatus.tab ? function(linkMarker) {
-          return ! linkMarker.hintString.startsWith(str);
+          return ! linkMarker.hintString.startsWith(keyChar);
         } : function(linkMarker) {
-          return linkMarker.hintString.startsWith(str);
+          return linkMarker.hintString.startsWith(keyChar);
         })
       };
     },
@@ -555,13 +555,16 @@
       }
       return hintMarkers;
     },
-    matchHintsByKey: function(hintMarkers, event) {
-      var delay, keyChar, linksMatched, marker, matchString, userIsTypingLinkText, _i, _len;
-      keyChar = KeyboardUtils.getKeyChar(event).toLowerCase();
-      delay = 0;
-      userIsTypingLinkText = false;
-      if (event.keyCode === keyCodes.enter) {
-        for (_i = 0, _len = hintMarkers.length; _i < _len; _i++) {
+    matchHintsByKey: function(hintMarkers, event, keyStatus) {
+      var key = event.keyCode, keyChar, userIsTypingLinkText = false, linksMatched;
+      if (key === keyCodes.tab) {
+        if (this.hintKeystrokeQueue.length === 0) {
+          return { linksMatched: [ null ] };
+        }
+        keyStatus.tab = !keyStatus.tab;
+      } else if (key === keyCodes.enter) {
+        keyStatus.tab = false;
+        for (var marker, _i = 0, _len = hintMarkers.length; _i < _len; _i++) {
           marker = hintMarkers[_i];
           if (marker.style.display !== "none") {
             return {
@@ -569,32 +572,39 @@
             };
           }
         }
-      } else if (event.keyCode === keyCodes.backspace || event.keyCode === keyCodes.deleteKey) {
-        if (!this.hintKeystrokeQueue.pop() && !this.linkTextKeystrokeQueue.pop()) {
-          return {
-            linksMatched: []
-          };
-        }
-      } else if (keyChar) {
-        if ((settings.values.linkHintNumbers || "").indexOf(keyChar) >= 0) {
-          this.hintKeystrokeQueue.push(keyChar);
-        } else {
+        return { linksMatched: [null] };
+      } else {
+        if (keyStatus.tab) {
           this.hintKeystrokeQueue = [];
-          this.linkTextKeystrokeQueue.push(keyChar);
-          userIsTypingLinkText = true;
+          keyStatus.tab = false;
+        }
+        if (key === keyCodes.backspace || key === keyCodes.deleteKey || key === keyCodes.f1) {
+          if (!this.hintKeystrokeQueue.pop() && !this.linkTextKeystrokeQueue.pop()) {
+            return {
+              linksMatched: []
+            };
+          }
+        } else if (keyChar = KeyboardUtils.getKeyChar(event).toLowerCase()) {
+          if ((settings.values.linkHintNumbers || "").indexOf(keyChar) >= 0) {
+            this.hintKeystrokeQueue.push(keyChar);
+          } else {
+            this.hintKeystrokeQueue = [];
+            this.linkTextKeystrokeQueue.push(keyChar);
+            userIsTypingLinkText = true;
+          }
+        } else {
+          return { linksMatched: [null] };
         }
       }
-      linksMatched = this.filterLinkHints(hintMarkers);
-      matchString = this.hintKeystrokeQueue.join("");
-      linksMatched = linksMatched.filter(function(linkMarker) {
-        return !linkMarker.filtered && linkMarker.hintString.indexOf(matchString) === 0;
+      keyChar = this.hintKeystrokeQueue.join("");
+      linksMatched = this.filterLinkHints(hintMarkers).filter(keyStatus.tab ? function(linkMarker) {
+        return ! linkMarker.filtered && ! linkMarker.hintString.startsWith(keyChar);
+      } : function(linkMarker) {
+        return !linkMarker.filtered && linkMarker.hintString.startsWith(keyChar);
       });
-      if (linksMatched.length === 1 && userIsTypingLinkText) {
-        delay = 200;
-      }
       return {
         linksMatched: linksMatched,
-        delay: delay
+        delay: (linksMatched.length === 1 && userIsTypingLinkText) ? 200 : 0
       };
     },
     filterLinkHints: function(hintMarkers) {
