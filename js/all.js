@@ -793,7 +793,7 @@ var urlImg = "http://hao." + officialDomain + "/";
 var _langPre = ui_locale;
 var isApp = false;
 var _config = {
-	version : '4.7.8',
+	version : '4.7.9',
 	dataVersion : "4.0",
 	lang : "zh_CN",
 	oauthType : ['sina', 'qqwb', 'qq', 'taobao', 'google', 'facebook', 'twitter'],
