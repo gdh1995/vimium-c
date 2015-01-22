@@ -282,6 +282,7 @@
     });
     settings.addEventListener("load", function() {
       Scroller.setSmoothScroll(settings.values.smoothScroll ? true : false);
+      LinkHints.init();
       checkIfEnabledForUrl();
       CursorHider.init();
     });

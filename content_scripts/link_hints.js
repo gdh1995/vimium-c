@@ -36,8 +36,12 @@
     handlerId: 0,
     initScrollY: 0,
     initScrollX: 0,
-    getMarkerMatcher: function() {
-      return settings.values.filterLinkHints ? filterHints : alphabetHints;
+    markerMatcher: null,
+    init: function() {
+      this.setMarkerMatcher(settings.values.filterLinkHints);
+    },
+    setMarkerMatcher: function(useFilterLinkHints) {
+      this.markerMatcher = useFilterLinkHints ? filterHints : alphabetHints;
     },
     isActive: false,
     clickableElementsXPath: DomUtils.makeXPath(["a", "area[@href]", "textarea",
@@ -75,7 +79,7 @@
       /*/
       this.hintMarkers = this.getVisibleClickableElements().map(this.createMarkerFor);
       //*/
-      this.getMarkerMatcher().fillInMarkers(this.hintMarkers);
+      this.markerMatcher.fillInMarkers(this.hintMarkers);
       this.isActive = true;
       this.initScrollX = window.scrollX;
       this.initScrollY = window.scrollY;
@@ -296,7 +300,7 @@
         }
         return true;
       }
-      keyResult = this.getMarkerMatcher().matchHintsByKey(this.hintMarkers, event, this.keyStatus);
+      keyResult = this.markerMatcher.matchHintsByKey(this.hintMarkers, event, this.keyStatus);
       linksMatched = keyResult.linksMatched;
       delay = keyResult.delay || 0;
       if (linksMatched.length === 0) {
@@ -318,15 +322,15 @@
         for (_i = 0, linksMatched = this.hintMarkers, _len = linksMatched.length; _i < _len; _i++) {
           linksMatched[_i].style.display = "none";
         }
+        delay = this.markerMatcher.hintKeystrokeQueue.length;
         if (this.keyStatus.tab) {
           for (_i = 0, linksMatched = keyResult.linksMatched, _len = linksMatched.length; _i < _len; _i++) {
             linksMatched[_i].style.display = "";
-            for (_j = 0, _ref = linksMatched[_i].childNodes, _len2 = _ref.length; _j < _len2; ++_j) {
+            for (_j = 0, _ref = linksMatched[_i].childNodes, _len2 = Math.min(_ref.length, delay); _j < _len2; ++_j) {
               _ref[_j].classList.remove("vimMC");
             }
           }
         } else {
-          delay = this.getMarkerMatcher().hintKeystrokeQueue.length;
           for (_i = 0, linksMatched = keyResult.linksMatched, _len = linksMatched.length; _i < _len; _i++) {
             linksMatched[_i].style.display = "";
             for (_j = 0, _ref = linksMatched[_i].childNodes, _len2 = _ref.length; _j < _len2; ++_j) {
@@ -380,8 +384,8 @@
       }
     },
     deactivate2: function(callback) {
-      if (this.getMarkerMatcher().deactivate) {
-        this.getMarkerMatcher().deactivate();
+      if (this.markerMatcher.deactivate) {
+        this.markerMatcher.deactivate();
       }
       if (this.hintMarkerContainingDiv) {
         DomUtils.removeElement(this.hintMarkerContainingDiv);
@@ -484,7 +488,7 @@
       };
     },
     deactivate: function() {
-      return this.hintKeystrokeQueue = [];
+      this.hintKeystrokeQueue = [];
     }
   };
 
@@ -540,7 +544,7 @@
       };
     },
     renderMarker: function(marker) {
-      return marker.innerHTML = spanWrap(marker.hintString + (marker.showLinkText ? ": " + marker.linkText : ""));
+      marker.innerHTML = marker.showLinkText ? spanWrap(marker.hintString + ": " + marker.linkText) : spanWrap(marker.hintString);
     },
     fillInMarkers: function(hintMarkers) {
       var idx, linkTextObject, marker, _i, _len;
@@ -550,6 +554,7 @@
         marker.hintString = this.generateHintString(idx);
         linkTextObject = this.generateLinkText(marker.clickableItem);
         marker.linkText = linkTextObject.text;
+        marker.linkTextLower = linkTextObject.text.toLowerCase();
         marker.showLinkText = linkTextObject.show;
         this.renderMarker(marker);
       }
@@ -598,9 +603,9 @@
       }
       keyChar = this.hintKeystrokeQueue.join("");
       linksMatched = this.filterLinkHints(hintMarkers).filter(keyStatus.tab ? function(linkMarker) {
-        return ! linkMarker.filtered && ! linkMarker.hintString.startsWith(keyChar);
+        return ! linkMarker.hintString.startsWith(keyChar);
       } : function(linkMarker) {
-        return !linkMarker.filtered && linkMarker.hintString.startsWith(keyChar);
+        return linkMarker.hintString.startsWith(keyChar);
       });
       return {
         linksMatched: linksMatched,
@@ -608,12 +613,13 @@
       };
     },
     filterLinkHints: function(hintMarkers) {
-      var linkMarker, linkSearchString, linksMatched, oldHintString, _i, _len;
+      var linkMarker, linkSearchString, linksMatched, oldHintString, _i, _len, doLinkSearch;
       linksMatched = [];
       linkSearchString = this.linkTextKeystrokeQueue.join("");
+      doLinkSearch = linkSearchString.length > 0;
       for (_i = 0, _len = hintMarkers.length; _i < _len; _i++) {
         linkMarker = hintMarkers[_i];
-        if (linkMarker.linkText.toLowerCase().indexOf(linkSearchString) === -1) {
+        if (doLinkSearch && linkMarker.linkTextLower.indexOf(linkSearchString) === -1) {
           linkMarker.filtered = true;
         } else {
           linkMarker.filtered = false;
@@ -630,7 +636,7 @@
     deactivate: function() {
       this.hintKeystrokeQueue = [];
       this.linkTextKeystrokeQueue = [];
-      return this.labelMap = {};
+      this.labelMap = {};
     }
   };
 
