@@ -399,7 +399,7 @@
       onFilter: function(msg) {
         if (this._id != msg.id) { return; }
         var results, callback;
-        this.background.maxCharNum = Math.ceil((window.innerWidth * 0.8 - 70) / 7.72);
+        this.background.maxCharNum = Math.floor((window.innerWidth * 0.8 - 70) / 7.72);
         results = msg.results.map(this.mapResult);
         callback = this._callback;
         this._callback = null;
@@ -465,6 +465,7 @@
       }
       return out.join("");
     },
+    quoteRegex: /"/g,
     prepareToRender: function(item) {
       item.text = this.cutUrl(item.text, item.textSplit, item.url);
       if (this.showFavIcon && item.url.indexOf("://") >= 0) {
@@ -478,6 +479,7 @@
       } else {
         item.relevancy = "";
       }
+      item.title = item.title.replace(this.quoteRegex, "&quot;");
     },
     performAction: function(item, arg) {
       var action = this.completionActions[item.action] || item.action;

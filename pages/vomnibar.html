@@ -83,6 +83,7 @@
 	line-height: 17px;
 	margin-top: 2px;
 	overflow: hidden;
+	padding-right: 6px;
 }
 .vomnibarIcon.vimB {
 	background-position: 30px 50%;
@@ -113,13 +114,16 @@
 </div>
 <ul class="vimB vimR vimScroll" id="vomnibarList">
 	<script type="text/template" id="vomnibarItemTemplate">
-	<li class="vimB vimR vomnibarItem">
+	<div class="vimB vimR vomnibarItem">
 		<div class="vimB vimI vomnibarTopHalf">
 			<span class="vimB vimI vomnibarSource">{{type}}</span>
 			<span class="vimB vimI vomnibarTitle">{{title}}</span>
 		</div>
 		<div class="vimB vimI vomnibarBottomHalf{{favIconUrl}}">
-			<span class="vimB vimI vomnibarUrl">{{text}}</span>{{relevancy}}
+			<a class="vimB vimI vomnibarUrl"
+				data-vim-text="{{title}}"
+				data-vim-url="{{url}}"
+			>{{text}}</a>{{relevancy}}
 		</div>
-	</li></script>
+	</div></script>
 </ul>

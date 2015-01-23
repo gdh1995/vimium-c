@@ -115,7 +115,7 @@
         this.linkActivator = function(link) {
           mainPort.postMessage({
             handler: "copyToClipboard",
-            data: link.href
+            data: decodeURI(link.getAttribute("data-vim-url") || link.href)
           });
         };
         break;
@@ -124,7 +124,8 @@
         this.linkActivator = function(link) {
           mainPort.postMessage({
             handler: "copyToClipboard",
-            data: (link.innerText.trim() || link.title.trim()).replace(/\xa0/g, ' ')
+            data: ((link.getAttribute("data-vim-text") || "").trim() //
+              || link.innerText.trim() || link.title.trim()).replace(/\xa0|\x3000/g, ' ')
           });
         };
         break;
@@ -350,7 +351,7 @@
       return false;
     },
     activateLink: function(matchedLink, delay) {
-      var clickEl = matchedLink.clickableItem, temp;
+      var clickEl = matchedLink.clickableItem, temp, rect;
       this.delayMode = true;
       if (DomUtils.isSelectable(clickEl)) {
         DomUtils.simulateSelect(clickEl);
@@ -361,19 +362,32 @@
         if (clickEl.nodeName.toLowerCase() === "input" && clickEl.type !== "button") {
           clickEl.focus();
         }
-        // TODO:
-        temp = [];
-        this.GetVisibleClickable.call(temp, clickEl);
-        if (temp.length === 1) {
-          DomUtils.flashRect(temp[0].rect);
-        } else {
-          matchedLink.rect.left -= window.scrollX - this.initScrollX;
-          matchedLink.rect.right -= window.scrollX - this.initScrollX;
-          matchedLink.rect.top -= window.scrollY - this.initScrollY;
-          matchedLink.rect.bottom -= window.scrollY - this.initScrollY;
-          DomUtils.flashRect(matchedLink.rect);
+        if (clickEl.className.indexOf("vomnibarUrl") >= 0) {
+          do {
+            clickEl = clickEl.parentElement;
+          } while (clickEl && clickEl.className.indexOf("vomnibarItem") < 0);
+          if (clickEl) {
+            rect = Rect.copy(clickEl.getClientRects()[0]);
+            rect.left += 10, rect.right -= 12, rect.width -= 22;
+            rect.height -= 3, rect.bottom -= 3;
+          }
         }
-        temp = null;
+        if (!rect) {
+          temp = [];
+          this.GetVisibleClickable.call(temp, clickEl);
+          if (temp.length === 1) {
+            rect = temp[0].rect;
+          }
+          temp = null;
+        }
+        if (!rect) {
+          rect = matchedLink.rect;
+          rect.left -= window.scrollX - this.initScrollX;
+          rect.right -= window.scrollX - this.initScrollX;
+          rect.top -= window.scrollY - this.initScrollY;
+          rect.bottom -= window.scrollY - this.initScrollY;
+        }
+        DomUtils.flashRect(rect);
         this.linkActivator(clickEl);
         if (this.mode < 127 && (this.mode & 4) === 4) {
           this.deactivateMode(delay, function() {

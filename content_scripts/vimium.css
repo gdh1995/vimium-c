@@ -184,9 +184,10 @@
 }
 
 /* Vimium Flash */
-#vimFlash.vimB {
+.vimFlash.vimB {
 	box-shadow: 0px 0px 4px 2px #4183C4;
 	padding: 1px;
+	pointer-events: none;
 	position: absolute;
 	z-index: 99999999;
 }
