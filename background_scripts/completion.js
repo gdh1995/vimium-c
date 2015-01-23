@@ -267,12 +267,13 @@
     };
     
     HistoryCompleter.prototype.filterFinish = function(historys, onComplete) {
-      var s = Suggestion, c = this.computeRelevancyByTime, d = Decoder.decodeURL;
+      var s = Suggestion, c = this.computeRelevancyByTime, d = Decoder.decodeURI;
       onComplete(historys.sort(HistoryCompleter.rsortByLvt).slice(0, MultiCompleter.maxResults).map(function(e) {
         var o = new s([], "history", e.url, d(e.url), e.title, c, e.lastVisitTime);
         e.sessionId && (o.sessionId = e.sessionId);
         return o;
       }));
+      Decoder.continueToWork();
     };
 
     HistoryCompleter.rsortByLvt = function(a, b) {
@@ -395,7 +396,6 @@
   })();
 
   TabCompleter = (function() {
-
     function TabCompleter() {}
 
     TabCompleter.prototype.filter = function(queryTerms, onComplete) {
@@ -405,7 +405,7 @@
 
     TabCompleter.prototype.filter1 = function(queryTerms, onComplete, tabs) {
       var _this = this, suggestions = tabs.filter(function(tab) {
-        var text = Decoder.decodeURL(tab.url);
+        var text = Decoder.decodeURI(tab.url);
         if (RankingUtils.matches(queryTerms, text + '\n' + tab.title)) {
           tab.text = text;
           return true;
@@ -418,6 +418,7 @@
         return suggestion;
       });
       onComplete(suggestions);
+      Decoder.continueToWork();
     };
 
     TabCompleter.prototype.computeRelevancy = function(suggestion) {
@@ -659,7 +660,8 @@
         if (old.text !== old.url) {
           newPage.text = old.text;
         } else {
-          Decoder.decodeList([newPage]);
+          newPage.text = Decoder.decodeURI(newPage);
+          Decoder.continueToWork();
         }
         this.history[i] = newPage;
       } else {
@@ -695,8 +697,14 @@
   };
 
   Decoder = {
+    _f: decodeURIComponent, // core function
+    setCore: function(core) {
+      this._f = core;
+      this.decodeURI.setCore(core);
+    },
+    decodeURI: null,
     decodeList: function(a) {
-      var i = -1, j, l = a.length, d = Decoder, f = decodeURIComponent;
+      var i = -1, j, l = a.length, d = Decoder, f = d._f;
       for (; ; ) {
         try {
           while (++i < l) {
@@ -708,15 +716,18 @@
           j.text = d.dict[j.url] || (d.todos.push(j), j.url);
         }
       }
-      if (! d.timer) {
-        d.timer = setInterval(d.worker, d.interval);
-      }
+      d.continueToWork();
     },
     dict: {},
     todos: [], // each item is either {url: ...} or "url"
-    timer: 0,
+    _timer: 0,
     working: -1,
     interval: 25,
+    continueToWork: function() {
+      if (this._timer === 0 && this.todos.length > 0) {
+        this._timer = setInterval(this.worker, this.interval);
+      }
+    },
     worker: function() {
       var _this = Decoder;
       if (_this.working === -1) {
@@ -724,7 +735,8 @@
         _this.working = 0;
       }
       if (! _this.todos.length) {
-        clearInterval(_this.timer);
+        clearInterval(_this._timer);
+        _this._timer = 0;
       } else if (_this.working === 0) {
         var url = _this.todos[0];
         if (url.url) {
@@ -734,12 +746,11 @@
           _this.todos.shift();
         } else {
           _this.working = 1;
-          _this._link.href = "data:text/css;charset=gb2312,%23" + _this._id + "%7Bfont-family%3A%22" + url + "%22%7D";
+          _this._link.href = "data:text/css;charset=GBK,%23" + _this._id + "%7Bfont-family%3A%22" + url + "%22%7D";
         }
       } else if (_this.working === 1) {
         _this.working = 2;
-        var text = window.getComputedStyle(_this._div).fontFamily
-          , url = _this.todos.shift();
+        var text = window.getComputedStyle(_this._div).fontFamily, url = _this.todos.shift();
         if (url.url) {
           _this.dict[url.url] = url.text = text = text.substring(1, text.length - 1);
           url = url.url;
@@ -768,15 +779,18 @@
     }
   };
   
-  Decoder.decodeURL = (function() {
-    var d = Decoder.dict, f = decodeURIComponent, t = Decoder.todos;
-    return function(a) {
+  Decoder.decodeURI = (function() {
+    var d = Decoder.dict, f = Decoder._f, t = Decoder.todos, work = function(a) {
       try {
         return f(a);
       } catch (e) {
         return d[a] || (t.push(a), a);
       }
     };
+    work.setCore = function(core) {
+      f = core;
+    };
+    return work;
   })();
   
   root = typeof exports !== "undefined" && exports !== null ? exports : window;
