@@ -3,7 +3,7 @@
   "use strict";
   var BackgroundCommands, checkKeyQueue, completers, completionSources, copyToClipboard, currentVersion //
     , fetchFileContents, filterCompleter, frameIdsForTab, generateCompletionKeys //
-    , getActualKeyStrokeLength, getCompletionKeysRequest, getCurrentTabUrl, vomnibarContent //
+    , getActualKeyStrokeLength, getCompletionKeysRequest, getCurrentTabUrl, filesContent //
     , /* getCurrentTimeInSeconds, */ handleFrameFocused, handleMainPort, handleUpdateScrollPosition //
     , helpDialogHtmlForCommandGroup, isEnabledForUrl, keyQueue, moveTab, namedKeyRegex //
     , openOptionsPageInNewTab, openUrlInCurrentTab, openUrlInIncognito, openMultiTab //
@@ -38,6 +38,8 @@
   // selectionChangedHandlers = [];
 
   tabLoadedHandlers = {};
+  
+  filesContent = {};
 
   completionSources = {
     bookmarks: new BookmarkCompleter(),
@@ -93,7 +95,11 @@
       command = Commands.keyToCommandRegistry[key].command;
       commandsToKey[command] = (commandsToKey[command] || []).concat(key);
     }
+    //*
+    dialogHtml = filesContent.helpDialog || (filesContent.helpDialog = fetchFileContents("pages/help_dialog.html"));
+    /*/
     dialogHtml = fetchFileContents("pages/help_dialog.html");
+    //*/
     return dialogHtml.replace(new RegExp("\\{\\{(version|title|" + Object.keys(Commands.commandGroups).join('|') + ")\\}\\}", "g"), function(_, group) {
       return (group === "version") ? currentVersion
         : (group === "title") ? (customTitle || "Help")
@@ -952,7 +958,11 @@
       BackgroundCommands.nextFrame(tab, 1, request.frameId);
     },
     initVomnibar: function() {
-      return vomnibarContent || (vomnibarContent = fetchFileContents("pages/vomnibar.html"));
+      //*
+      return filesContent.vomnibar;
+      /*/
+      return fetchFileContents("pages/vomnibar.html");
+      //*/
     },
     upgradeNotificationClosed: upgradeNotificationClosed,
     updateScrollPosition: handleUpdateScrollPosition,
@@ -1002,6 +1012,8 @@
       }
     }
   });
+
+  filesContent.vomnibar = fetchFileContents("pages/vomnibar.html");
 
   // Sync.init();
 
