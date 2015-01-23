@@ -281,8 +281,8 @@
       }
     });
     settings.addEventListener("load", function() {
-      Scroller.setSmoothScroll(settings.values.smoothScroll ? true : false);
       LinkHints.init();
+      Scroller.setSmoothScroll(settings.values.smoothScroll ? true : false);
       checkIfEnabledForUrl();
       CursorHider.init();
       Vomnibar.init();
@@ -335,7 +335,7 @@
     }
     mainPort.postMessage({
       handler: "registerFrame",
-      frameId: ((document.body && document.body.tagName.toLowerCase() === "frameset") ? NaN : frameId)
+      frameId: ((document.body && document.body.nodeName.toLowerCase() === "frameset") ? NaN : frameId)
     });
     if (Vomnibar.init) {
       Vomnibar.init();
@@ -881,7 +881,7 @@
   handleEnterForFindMode = function() {
     exitFindMode();
     focusFoundLink();
-    document.body.classList.add("vimiumFindMode");
+    document.body.classList.add("vimFindMode");
     settings.set("findModeRawQuery", findModeQuery.rawQuery);
   };
 
@@ -901,7 +901,7 @@
   executeFind = function(query, options) {
     var oldFindMode = findMode, result;
     findMode = true;
-    document.body.classList.add("vimiumFindMode");
+    document.body.classList.add("vimFindMode");
     HUD.hide(true);
     findModeQueryHasResults = !!window.find(query, options.caseSensitive, options.backwards, true, false, true, false);
     if (findChangeListened === 0) {
@@ -914,7 +914,7 @@
   };
 
   restoreDefaultSelectionHighlight = function() {
-    document.body.classList.remove("vimiumFindMode");
+    document.body.classList.remove("vimFindMode");
     document.removeEventListener("selectionchange", restoreDefaultSelectionHighlight, true);
     if (findChangeListened) {
       clearTimeout(findChangeListened);

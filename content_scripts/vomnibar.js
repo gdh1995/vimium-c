@@ -159,9 +159,7 @@
     },
     onKeydown: function(event) {
       var action, n = event.keyCode;
-      if (n === keyCodes.f1) {
-        action = (document.activeElement !== this.input) ? "focus" : "blur";
-      } else if (n === keyCodes.enter) {
+      if (n === keyCodes.enter) {
         this.openInNewTab = this.forceNewTab || event.shiftKey || event.ctrlKey || event.metaKey;
         action = "enter";
       } else if ((action = KeyboardUtils.getKeyChar(event)) === "up" //
@@ -176,10 +174,13 @@
       } else if (event.shiftKey || event.ctrlKey || event.altKey || event.metaKey) {
         return true;
       } else if (KeyboardUtils.isFunctionKey(event)) {
-        if (n !== keyCodes.esc) {
+        if (n === keyCodes.esc) {
+          action = "dismiss";
+        } else if (n === keyCodes.f1) {
+          action = (document.activeElement !== this.input) ? "focus" : "blur";
+        } else {
           return true;
         }
-        action = "dismiss";
       } else {
         action = "";
         n = this.selection >= 0 && this.isSelectionChanged ? 1 : 0;

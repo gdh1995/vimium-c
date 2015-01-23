@@ -297,8 +297,9 @@
         if (KeyboardUtils.isEscape(event)) {
           this.deactivateMode();
           return false;
+        } else if (event.keyCode !== keyCodes.f1) {
+          return true;
         }
-        return true;
       }
       keyResult = this.markerMatcher.matchHintsByKey(this.hintMarkers, event, this.keyStatus);
       linksMatched = keyResult.linksMatched;
