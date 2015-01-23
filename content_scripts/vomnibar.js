@@ -7,6 +7,8 @@
     vomnibarUI: null,
     defaultRefreshInterval: 500,
     completers: {},
+    init: function() {
+    },
     getCompleter: function(name) {
       if (!(name in this.completers)) {
         this.completers[name] = new BackgroundCompleter(name);
@@ -71,6 +73,7 @@
     handlerId: 0,
     initialSelectionValue: -1,
     input: null,
+    focused: true,
     isSelectionChanged: false,
     onUpdate: null,
     openInNewTab: false,
@@ -86,10 +89,10 @@
       this.box.style.display = "";
       this.input.value = this.completionInput.url;
       this.input.focus();
+      this.focused = true;
       this.input.addEventListener("input", this.onInput);
       this.completionList.addEventListener("click", this.onClick);
       this.box.addEventListener("mousewheel", DomUtils.suppressPropagation);
-      this.box.addEventListener("keyup", this.onKeyEvent);
       this.handlerId = handlerStack.push({
         keydown: this.onKeydown
       });
@@ -107,7 +110,6 @@
       this.input.removeEventListener("input", this.onInput);
       this.completionList.removeEventListener("click", this.onClick);
       this.box.removeEventListener("mousewheel", DomUtils.suppressPropagation);
-      this.box.removeEventListener("keyup", this.onKeyEvent);
       this.onUpdate = null;
       this.completions = null;
     },
@@ -155,49 +157,51 @@
         _ref.scrollIntoViewIfNeeded();
       }
     },
-    actionFromKeyEvent: function(event) {
-      if (KeyboardUtils.isEscape(event)) {
-        return "dismiss";
-      } else if (event.keyCode === keyCodes.enter) {
-        return "enter";
-      }
-      var key = KeyboardUtils.getKeyChar(event);
-      if (key === "up" || (event.shiftKey && event.keyCode === keyCodes.tab)
-          || (event[keyCodes.modifier] && (key === "k" || key === "p"))) {
-        return "up";
-      } else if (key === "down" || (event.keyCode === keyCodes.tab && !event.shiftKey)
-          || (event[keyCodes.modifier] && (key === "j" || key === "n"))) {
-        return "down";
-      }
-      return "";
-    },
     onKeydown: function(event) {
-      var action = this.actionFromKeyEvent(event);
-      if (action) {
-        this.openInNewTab = this.forceNewTab || (event.shiftKey || event.ctrlKey || event.metaKey);
-      } else {
-        if (event.shiftKey || event.ctrlKey || event.altKey || event.metaKey || this.timer) {
+      var action, n = event.keyCode;
+      if (n === keyCodes.f1) {
+        action = (document.activeElement !== this.input) ? "focus" : "blur";
+      } else if (n === keyCodes.enter) {
+        this.openInNewTab = this.forceNewTab || event.shiftKey || event.ctrlKey || event.metaKey;
+        action = "enter";
+      } else if ((action = KeyboardUtils.getKeyChar(event)) === "up" //
+          || (event.shiftKey && n === keyCodes.tab) //
+          || (event[keyCodes.modifier] && (action === "k" || action === "p"))) {
+        action = "up";
+      } else if (action === "down" || (n === keyCodes.tab && !event.shiftKey) //
+          || (event[keyCodes.modifier] && (action === "j" || action === "n"))) {
+        action = "down";
+      } else if (n == keyCodes.left || n == keyCodes.right) {
+        return false;
+      } else if (event.shiftKey || event.ctrlKey || event.altKey || event.metaKey) {
+        return true;
+      } else if (KeyboardUtils.isFunctionKey(event)) {
+        if (n !== keyCodes.esc) {
+          return true;
         }
-        else if (event.keyCode === 32) {
-          if ((this.selection >= 0 && this.isSelectionChanged || this.completions.length <= 1) //
+        action = "dismiss";
+      } else {
+        action = "";
+        n = this.selection >= 0 && this.isSelectionChanged ? 1 : 0;
+        if (event.keyCode === 32) {
+          if ((n === 1 || this.completions.length <= 1) && document.activeElement === this.input //
             && this.input.value.endsWith("  ")) {
+            this.openInNewTab = this.forceNewTab;
             action = "enter";
           }
         }
-        else if (this.selection >= 0 && this.isSelectionChanged || document.activeElement !== this.input) {
-          var n = action = event.keyCode - 48;
+        else if (n === 1 || document.activeElement !== this.input) {
+          n = event.keyCode - 48;
           if (n === 0) { n = 10; }
           if (n > 0 && n <= this.completions.length) {
             this.selection = n - 1;
+            this.openInNewTab = this.forceNewTab;
             action = "enter";
-          } else {
-            action = "";
           }
         }
         if (!action) {
           return true;
         }
-        this.openInNewTab = this.forceNewTab;
       }
       this.onAction(action);
       return false;
@@ -205,11 +209,14 @@
     onAction: function(action) {
       switch(action) {
       case "dismiss": this.hide(); break;
+      case "focus": this.focused = true; this.input.focus(); break;
+      case "blur": this.focused = false; this.input.blur(); break;
       case "up":
         this.isSelectionChanged = true;
         if (this.selection <= -1) this.selection = this.completions.length;
         this.selection -= 1;
-        if (this.selection == -1) this.input.focus();
+        if (this.selection === -1) this.input.focus();
+        else if (!this.focused) this.input.blur();
         this.input.value = this.completions[this.selection].url;
         this.updateSelection();
         break;
@@ -219,13 +226,15 @@
         if (this.selection >= this.completions.length) {
           this.selection = -1;
           this.input.focus();
+        } else if (!this.focused) {
+          this.input.blur();
         }
         this.input.value = this.completions[this.selection].url;
         this.updateSelection();
         break;
       case "enter":
         action = function() {
-          this.completions[this.selection].performAction(this);
+          this.completions[this.selection].performAction(this.openInNewTab);
           this.hide();
         };
         if (this.timer) {
@@ -279,24 +288,13 @@
         onUpdate.call(this);
       }
     },
-    onKeyEvent: function(event) {
-      if (event.altKey || KeyboardUtils.isFunctionKey(event)) {
-        return;
-      }
-      else if ((event[keyCodes.modifier] || event.shiftKey) && (event.keyCode == keyCodes.left || event.keyCode == keyCodes.right)) {
-      }
-      else if (event.ctrlKey || event.metaKey || (event.shiftKey && !event.keyIdentifier.startsWith("U+"))) {
-        return;
-      }
-      DomUtils.suppressEvent(event);
-    },
     init: function() {
       if (this._initStep[0]) { return; }
       this.box = document.createElement("div");
       this.box.className = "vimB vimR";
       this.box.id = "vomnibar";
       this.box.style.display = "none";
-      document.body.appendChild(this.box);
+      document.documentElement.appendChild(this.box);
       mainPort.postMessage({
         handler: "initVomnibar"
       }, this.init_dom.bind(this));
@@ -307,7 +305,6 @@
       this.onClick = this.onClick.bind(this);
       this.onTimer = this.onTimer.bind(this);
       this.onCompletions = this.onCompletions.bind(this);
-      this.onKeyEvent = this.onKeyEvent.bind(this);
     },
     init_dom: function(html) {
       this._initStep[0] = 2;
@@ -439,7 +436,7 @@
     },
     prepareToRender: function() {
       this.text = BackgroundCompleter.cutUrl(this.text, this.textSplit, this.url);
-      if ((BackgroundCompleter.showFavIcon || this.type === "tab") && this.url.indexOf("://") >= 0) {
+      if (BackgroundCompleter.showFavIcon && this.url.indexOf("://") >= 0) {
         this.favIconUrl = " vomnibarIcon\" style=\"background-image: url(" + (this.favIconUrl ||
           ("chrome://favicon/size/16/" + this.url)) + ")";
       } else {
@@ -451,20 +448,20 @@
         this.relevancy = "";
       }
     },
-    performAction: function() {
+    performAction: function(arg) {
       var action = BackgroundCompleter.completionActions[this.action] || this.action;
       if (typeof action !== "function") return;
-      return action.apply(this, arguments);
+      return action.call(this, arg);
     },
     completionActions: {
-      navigateToUrl: function(data) {
+      navigateToUrl: function(openInNewTab) {
         if (this.url.startsWith("javascript:")) {
           var script = document.createElement('script');
           script.textContent = decodeURIComponent(this.url.slice("javascript:".length));
           (document.documentElement || document.body || document.head).appendChild(script);
         } else {
           mainPort.postMessage({
-            handler: data.openInNewTab ? "openUrlInNewTab" : "openUrlInCurrentTab",
+            handler: openInNewTab ? "openUrlInNewTab" : "openUrlInCurrentTab",
             url: this.url.trimRight()
           });
         }

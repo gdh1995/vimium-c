@@ -285,6 +285,7 @@
       LinkHints.init();
       checkIfEnabledForUrl();
       CursorHider.init();
+      Vomnibar.init();
     });
     Scroller.init();
     if (!settings.load()) {
