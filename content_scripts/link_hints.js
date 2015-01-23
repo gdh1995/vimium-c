@@ -230,7 +230,7 @@
         this.push({
           element: element,
           rect: clientRect,
-          second: !isClickable
+          notSecond: isClickable ? true : false
         });
       }
     },
@@ -253,8 +253,11 @@
             element: visibleElement.element,
             rect: rects[0]
           });
-        } else if (!visibleElement.second) {
-          output.push(visibleElement);
+        } else if (visibleElement.notSecond) {
+          output.push({
+            element: visibleElement.element,
+            rect: visibleElement.rect
+          });
         }
       }
       return output;
