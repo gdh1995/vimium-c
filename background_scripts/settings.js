@@ -41,6 +41,9 @@
     exclusionRules: function(value) {
       Exclusions.postUpdateHook(value);
     },
+    showActionIcon: function(value) {
+      setShowActionIcon(value);
+    },
     settingsVersion: function(value) {
       var key = "settingsVersion";
       this._buffer[key] = this.defaults[key];
@@ -87,6 +90,7 @@
     return this._searchEnginesMap;
   },
   defaults: {
+    showActionIcon: false,
     scrollStepSize: 100,
     smoothScroll: true,
     keyMappings: "# Insert your preferred key mappings here.",

@@ -9,15 +9,15 @@
     , openOptionsPageInNewTab, openUrlInCurrentTab, openUrlInIncognito, openMultiTab //
     , populateKeyCommands, portHandlers, refreshCompleter, registerFrame, splitKeyQueueRegex //
     , removeTabsRelative, root, saveHelpDialogSettings, selectSpecificTab, selectTab //
-    , /* selectionChangedHandlers, */ requestHandlers, sendRequestToAllTabs, setBrowserActionIcon //
+    , /* selectionChangedHandlers, */ requestHandlers, sendRequestToAllTabs //
     , shouldShowUpgradeMessage, singleKeyCommands, splitKeyIntoFirstAndSecond, splitKeyQueue, tabInfoMap //
-    , tabLoadedHandlers, tabQueue, unregisterFrame, updateActiveState, updateOpenTabs //
+    , tabLoadedHandlers, tabQueue, unregisterFrame, updateOpenTabs //
     , updatePositionsAndWindowsForAllTabsInWindow, updateScrollPosition, upgradeNotificationClosed //
-    , validFirstKeys, hasActionIcon;
+    , validFirstKeys, showActionIcon, onActiveChanged;
 
   root = typeof exports !== "undefined" && exports !== null ? exports : window;
 
-  hasActionIcon = ! ! (chrome.browserAction && chrome.browserAction.setIcon);
+  showActionIcon = chrome.browserAction && chrome.browserAction.setIcon ? true : false;
 
   currentVersion = Utils.getCurrentVersion();
 
@@ -659,18 +659,28 @@
     delete frameIdsForTab[tab.id];
   };
 
-  setBrowserActionIcon = function(tabId, path) {
-    hasActionIcon && chrome.browserAction.setIcon({
-      tabId: tabId,
-      path: path
+  root.setShowActionIcon = !showActionIcon ? function() {} : function(value) {
+    value = chrome.browserAction && chrome.browserAction.setIcon && value ? true : false;
+    if (value === showActionIcon) { return; }
+    showActionIcon = value;
+    // TODO: hide icon
+    if (showActionIcon) {
+      chrome.tabs.onActiveChanged.addListener(onActiveChanged);
+      chrome.browserAction.enable();
+    } else {
+      chrome.tabs.onActiveChanged.removeListener(onActiveChanged);
+      chrome.browserAction.disable();
+    }
+  };
+
+  onActiveChanged = !showActionIcon ? function() {} : function(tabId, selectInfo) {
+    chrome.tabs.get(tabId, function(tab) {
+      updateActiveState(tabId, tab.url);
     });
   };
 
-  updateActiveState = function(tabId, url) {
-    if (!hasActionIcon) return;
-    var enabledIcon = "icons/browser_action_enabled.png",
-      disabledIcon = "icons/browser_action_disabled.png",
-      partialIcon = "icons/browser_action_partial.png";
+  root.updateActiveState = !showActionIcon ? function() {} : function(tabId, url) {
+    if (!showActionIcon) return;
     chrome.tabs.sendMessage(tabId, {
       name: "getActiveState"
     }, function(response) {
@@ -683,13 +693,12 @@
         });
         enabled = config.enabled;
         passKeys = config.passKeys;
-        if (enabled && passKeys) {
-          setBrowserActionIcon(tabId, partialIcon);
-        } else if (enabled) {
-          setBrowserActionIcon(tabId, enabledIcon);
-        } else {
-          setBrowserActionIcon(tabId, disabledIcon);
-        }
+        chrome.browserAction.setIcon({
+          tabId: tabId,
+          path: !enabled ? "img/icons/browser_action_disabled.png"
+              : passKeys ? "img/icons/browser_action_partial.png"
+                         : "img/icons/browser_action_enabled.png"
+        })
         if (isCurrentlyEnabled !== enabled || currentPasskeys !== passKeys) {
           chrome.tabs.sendMessage(tabId, {
             name: "setState",
@@ -698,12 +707,13 @@
           });
         }
       } else {
-        setBrowserActionIcon(tabId, disabledIcon);
+        chrome.browserAction.setIcon({
+          tabId: tabId,
+          path: "img/icons/browser_action_disabled.png"
+        });
       }
     });
   };
-
-  hasActionIcon && (root.updateActiveState = updateActiveState);
 
   handleUpdateScrollPosition = function(request, tab) {
     updateScrollPosition(tab.id, request.scrollX, request.scrollY);
@@ -724,7 +734,7 @@
     if (changeInfo.url) {
       updateOpenTabs(tab);
     }
-    hasActionIcon && updateActiveState(tab.id, tab.url);
+    showActionIcon && updateActiveState(tab.id, tab.url);
   });
 
   chrome.tabs.onAttached.addListener(function(tabId, attachedInfo) {
@@ -767,12 +777,6 @@
       delete tabInfoMap[tabId];
     }, 1000);
     delete frameIdsForTab[tabId];
-  });
-
-  hasActionIcon && chrome.tabs.onActiveChanged.addListener(function(tabId, selectInfo) {
-    chrome.tabs.get(tabId, function(tab) {
-      updateActiveState(tabId, tab.url);
-    });
   });
 
   if (!chrome.sessions) {
@@ -1123,6 +1127,9 @@
 
   filesContent.vomnibar = fetchFileContents("pages/vomnibar.html");
 
+  showActionIcon = false;
+  setShowActionIcon(Settings.get("showActionIcon"));
+  
   // Sync.init();
 
 })();
