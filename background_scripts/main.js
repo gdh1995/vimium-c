@@ -2,7 +2,7 @@
 (function() {
   "use strict";
   var BackgroundCommands, checkKeyQueue, completers, completionSources, copyToClipboard, currentVersion //
-    , fetchFileContents, filterCompleter, frameIdsForTab, generateCompletionKeys //
+    , fetchFileContents, filterCompleter, frameIdsForTab, generateCompletionKeys, ContentTempSettings //
     , getActualKeyStrokeLength, getCompletionKeysRequest, getCurrentTabUrl, filesContent //
     , /* getCurrentTimeInSeconds, */ handleFrameFocused, handleMainPort, handleUpdateScrollPosition //
     , helpDialogHtmlForCommandGroup, isEnabledForUrl, keyQueue, moveTab, namedKeyRegex //
@@ -183,6 +183,105 @@
     Clipboard.copy(request.data);
   };
 
+  ContentTempSettings = {
+    ensure: function (contentType, tab) {
+      if (!Utils.hasOrdinaryUrlPrefix(tab.url) || tab.url.startsWith("chrome")) {
+        return;
+      }
+      var pattern = tab.url;
+      if (!pattern.startsWith("file:")) {
+        pattern = /^[a-z]+:\/\/[^\/]+\//.exec(tab.url)[0] + "*";
+      }
+      var work = this.ensureSetAndUpdate.bind(this, contentType, tab, pattern);
+      chrome.contentSettings[contentType].get({
+        primaryUrl: tab.url,
+        incognito: true
+      }, function(opt) {
+        if (!chrome.lastError && opt) {
+          if (opt.setting === "allow") { return; }
+          work();
+          return;
+        }
+        delete chrome.lastError;
+        chrome.contentSettings[contentType].get({primaryUrl: tab.url}, function (opt) {
+          if (opt && opt.setting === "allow") { return; }
+          work();
+        });
+      });
+    },
+    ensureSetAndUpdate: function(contentType, tab, pattern) {
+      var _this = this, work = function (wndId, tabIndex, callback) {
+        _this.setAllowInIncognito(contentType, pattern, function () {
+          _this.updateTab(tab, wndId, tabIndex, callback);
+        });
+      };
+      chrome.windows.getAll(function(wnds) {
+        wnds = wnds || [];
+        if (wnds.length > 0) {
+          wnds = wnds.filter(function(wnd) {
+            return wnd.type === "normal" && wnd.incognito;
+          });
+        }
+        if (wnds.length === 0) {
+          chrome.windows.create({
+            type: "normal",
+            incognito: true,
+            url: Settings.ChromeInnerNewTab
+          }, function (wnd) {
+            var left = wnd.tabs[0].id;
+            work(wnd.id, 1, function() {
+              chrome.tabs.remove(left);
+            });
+          });
+          return;
+        }
+        if (wnds.filter(function(wnd) {return wnd.id === tab.windowId;}).length > 0) {
+          work(tab.windowId, tab.index);
+          return;
+        }
+        var wnd = wnds[wnds.length - 1];
+        chrome.tabs.getAllInWindow(wnd.id, function(tabs) {
+          work(wnd.id, tabs.length);
+        });
+      });
+    },
+    setAllowInIncognito: function(contentType, pattern, callback) {
+      chrome.contentSettings[contentType].set({
+        primaryPattern: pattern,
+        scope: "incognito_session_only",
+        setting: "allow"
+      }, typeof callback === "function" ? callback : null);
+    },
+    updateTab: function(tab, newWindowId, newTabIndex, callback) {
+      if (tab.windowId === newWindowId) {
+        chrome.tabs.update(tab.id, {
+          selected: true,
+          url: tab.url
+        }, callback);
+      } else if (tab.incognito) {
+        chrome.tabs.move(tab.id, {
+          windowId: newWindowId,
+          index: newTabIndex
+        }, function () {
+          chrome.tabs.update(tab.id, {
+            selected: true,
+            url: tab.url
+          }, callback);
+        });
+      } else {
+        chrome.tabs.create({
+          windowId: newWindowId,
+          index: newTabIndex,
+          selected: true,
+          url: tab.url
+        }, function () {
+          chrome.tabs.remove(tab.id);
+          callback && callback();
+        });
+      }
+    }
+  };
+
   selectSpecificTab = function(request) {
     chrome.tabs.get(request.sessionId, function(tab) {
       chrome.windows.update(tab.windowId, {
@@ -335,6 +434,9 @@
         }
         chrome.windows.create(options);
       });
+    },
+    enableImageTemp: function(tab) {
+      ContentTempSettings.ensure("images", tab);
     },
     nextTab: function(tab, count) {
       selectTab(tab, count);

@@ -105,11 +105,12 @@
     historyNavigation: ["goBack", "goForward"],
     tabManipulation: ["nextTab", "previousTab", "firstTab", "lastTab", "createTab", "duplicateTab"
       , "removeTab", "restoreTab", "moveTabToNewWindow", "moveTabToIncognito", "togglePinTab"
-      , "closeTabsOnLeft", "closeTabsOnRight", "closeOtherTabs", "moveTabLeft", "moveTabRight"],
+      , "closeTabsOnLeft", "closeTabsOnRight", "closeOtherTabs", "moveTabLeft", "moveTabRight" //
+      , "enableImageTemp"],
     misc: ["showHelp"]
   },
   advancedCommands: ["scrollToLeft", "scrollToRight", "moveTabToNewWindow", "moveTabToIncognito"
-    , "goUp", "goToRoot", "focusInput", "LinkHints.activateModeWithQueue"
+    , "goUp", "goToRoot", "focusInput", "LinkHints.activateModeWithQueue", "enableImageTemp"
     , "LinkHints.activateModeToDownloadLink", "Vomnibar.activateEditUrl"
     , "Vomnibar.activateEditUrlInNewTab", "LinkHints.activateModeToOpenIncognito"
     , "goNext", "goPrevious", "Marks.activateCreateMode", "Marks.activateGotoMode"
@@ -412,6 +413,12 @@ _commandDescriptions: {
   moveTabRight: [
     "Move tab to the right", {
       background: true
+    }
+  ],
+  enableImageTemp: [
+    "enable the site's image temporarily in incognito", {
+      background: true,
+      noRepeat: true
     }
   ],
   "Vomnibar.activate": [

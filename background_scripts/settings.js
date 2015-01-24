@@ -108,5 +108,6 @@
     searchEngines: "w = Wikipedia (en-US):\\\n  http://www.wikipedia.org/w/index.php?search=%s\nba=Baidu|baidu=Baidu:\\\n  www.baidu.com/s?ie=utf-8&wd=%s",
     newTabUrl: "/index.html",
     settingsVersion: Utils.getCurrentVersion()
-  }
+  },
+  ChromeInnerNewTab: "chrome-search://local-ntp/local-ntp.html"
 };
