@@ -9,7 +9,7 @@
     , openOptionsPageInNewTab, openUrlInCurrentTab, openUrlInIncognito, openMultiTab //
     , populateKeyCommands, portHandlers, refreshCompleter, registerFrame, splitKeyQueueRegex //
     , removeTabsRelative, root, saveHelpDialogSettings, selectSpecificTab, selectTab //
-    , /* selectionChangedHandlers, */ requestHandlers, sendRequestToAllTabs //
+    , listenersAppended, requestHandlers, sendRequestToAllTabs //
     , shouldShowUpgradeMessage, singleKeyCommands, splitKeyIntoFirstAndSecond, splitKeyQueue, tabInfoMap //
     , tabLoadedHandlers, tabQueue, unregisterFrame, updateOpenTabs //
     , updatePositionsAndWindowsForAllTabsInWindow, updateScrollPosition, upgradeNotificationClosed //
@@ -35,7 +35,7 @@
 
   namedKeyRegex = /^(<(?:[amc]-.|(?:[amc]-)?[a-z0-9]{2,5})>)(.*)$/;
 
-  // selectionChangedHandlers = [];
+  listenersAppended = {};
 
   tabLoadedHandlers = {};
   
@@ -725,15 +725,25 @@
     ref.scrollY = scrollY;
   };
 
+  root.appendListener = function(name, func) {
+    if (name !== "update") { return; }
+    (listenersAppended[name] || (listenersAppended[name] = [])).append(func);
+  };
+
   chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab) {
-    if (changeInfo.status !== "loading" || (
-        changeInfo.url != null && Utils.isTabWithSameUrl(tabInfoMap[tabId], tab)
-      )) {
+    if (changeInfo.status !== "loading" || !changeInfo.url) { return; }
+    if (Utils.isTabWithSameUrl(tabInfoMap[tabId], tab)) {
+      tabInfoMap[tabId].url = changeInfo.url;
+      // onActive will be triggered when a new page is loading.
       return;
     }
-    if (changeInfo.url) {
-      updateOpenTabs(tab);
-    }
+    updateOpenTabs(tab); /*
+    var ref = listenersAppended.update, i;
+    if (ref) {
+      for (var i in ref)
+        ref[i].call(null);
+    } //*/
+    Marks.removeMarksForTab(tabId);
     showActionIcon && updateActiveState(tab.id, tab.url);
   });
 

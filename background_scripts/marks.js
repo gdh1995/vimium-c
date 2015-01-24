@@ -35,15 +35,6 @@
   }
 };
 
-chrome.tabs.onUpdated.addListener((function(Marks) {
-  return function(tabId, changeInfo, tab) {
-    if (changeInfo.status === "loading" && changeInfo.url != null &&
-        !Utils.isTabWithSameUrl(tabInfoMap[tabId], tab)) {
-      Marks.removeMarksForTab(tabId);
-    }
-  }
-})((typeof exports !== "undefined" && exports !== null ? exports : window).Marks));
-
 chrome.tabs.onRemoved.addListener(
   (typeof exports !== "undefined" && exports !== null ? exports : window).Marks.removeMarksForTab
   .bind((typeof exports !== "undefined" && exports !== null ? exports : window).Marks)
