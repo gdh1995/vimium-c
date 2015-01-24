@@ -4,7 +4,7 @@
   var BackgroundCommands, checkKeyQueue, completers, completionSources, copyToClipboard, currentVersion //
     , fetchFileContents, filterCompleter, frameIdsForTab, generateCompletionKeys, ContentTempSettings //
     , getActualKeyStrokeLength, getCompletionKeysRequest, getCurrentTabUrl, filesContent //
-    , /* getCurrentTimeInSeconds, */ handleFrameFocused, handleMainPort, handleUpdateScrollPosition //
+    , /* getCurrentTimeInSeconds, */ handleFrameFocused, handleMainPort //
     , helpDialogHtmlForCommandGroup, isEnabledForUrl, keyQueue, moveTab, namedKeyRegex //
     , openOptionsPageInNewTab, openUrlInCurrentTab, openUrlInIncognito, openMultiTab //
     , populateKeyCommands, portHandlers, refreshCompleter, registerFrame, splitKeyQueueRegex //
@@ -12,7 +12,7 @@
     , listenersAppended, requestHandlers, sendRequestToAllTabs //
     , shouldShowUpgradeMessage, singleKeyCommands, splitKeyIntoFirstAndSecond, splitKeyQueue, tabInfoMap //
     , tabLoadedHandlers, tabQueue, unregisterFrame, updateOpenTabs //
-    , updatePositionsAndWindowsForAllTabsInWindow, updateScrollPosition, upgradeNotificationClosed //
+    , updatePositionsAndWindowsForAllTabsInWindow, upgradeNotificationClosed //
     , validFirstKeys, showActionIcon, onActiveChanged;
 
   root = typeof exports !== "undefined" && exports !== null ? exports : window;
@@ -534,6 +534,7 @@
         delete tabQueue[tab.windowId];
       }
       tabs.forEach(function(tabQueueEntry) {
+        var x = tabQueueEntry.scrollX, y = tabQueueEntry.scrollY;
         chrome.tabs.create({
           url: tabQueueEntry.url,
           index: tabQueueEntry.positionIndex
@@ -541,8 +542,8 @@
           tabLoadedHandlers[newTab.id] = function(port) {
             port.postMessage({
               name: "setScrollPosition",
-              scrollX: tabQueueEntry.scrollX,
-              scrollY: tabQueueEntry.scrollY
+              scrollX: x,
+              scrollY: y
             });
           };
         });
@@ -713,16 +714,6 @@
         });
       }
     });
-  };
-
-  handleUpdateScrollPosition = function(request, tab) {
-    updateScrollPosition(tab.id, request.scrollX, request.scrollY);
-  };
-
-  updateScrollPosition = function(tabId, scrollX, scrollY) {
-    var ref = tabInfoMap[tabId];
-    ref.scrollX = scrollX;
-    ref.scrollY = scrollY;
   };
 
   root.appendListener = function(name, func) {
@@ -1034,7 +1025,9 @@
     var tabId = tab.id;
     if (request.isTop) {
       updateOpenTabs(tab);
-      updateScrollPosition(tabId, request.scrollX, request.scrollY);
+	  var ref = tabInfoMap[tabId];
+      ref.scrollX = request.scrollX;
+      ref.scrollY = request.scrollY;
     }
     else if (frameIdsForTab[tabId] != null) {
       frameIdsForTab[tabId] = frameIdsForTab[tabId].filter(function(id) {
@@ -1087,7 +1080,6 @@
       //*/
     },
     upgradeNotificationClosed: upgradeNotificationClosed,
-    updateScrollPosition: handleUpdateScrollPosition,
     copyToClipboard: copyToClipboard,
     isEnabledForUrl: isEnabledForUrl,
     saveHelpDialogSettings: saveHelpDialogSettings,
@@ -1114,23 +1106,23 @@
 
   chrome.windows.getAll({
     populate: true
-  }, function(windows) {
-    var createScrollPositionHandler, tab, _i, _len, _j, _len1, _ref;
-    createScrollPositionHandler = function(tab) {
-      return function(response) {
-        if (response != null) {
-          updateScrollPosition(tab.id, response.scrollX, response.scrollY);
+  }, function(wnds) {
+    var tab, _i, _len, _j, _len1, _ref, handleUpdateScrollPosition = function(request) {
+      var ref;
+      if (request && (ref = tabInfoMap[request.tabId])) {
+        ref.scrollX = request.scrollX;
+        ref.scrollY = request.scrollY;
         }
       };
-    };
-    for (_i = 0, _len = windows.length; _i < _len; _i++) {
-      _ref = windows[_i].tabs;
+    for (_i = 0, _len = wnds.length; _i < _len; _i++) {
+      _ref = wnds[_i].tabs;
       for (_j = 0, _len1 = _ref.length; _j < _len1; _j++) {
         tab = _ref[_j];
         updateOpenTabs(tab);
         chrome.tabs.sendMessage(tab.id, {
-          name: "getScrollPosition"
-        }, createScrollPositionHandler(tab));
+          name: "getScrollPosition",
+          tabId: tab.id
+        }, handleUpdateScrollPosition);
       }
     }
   });

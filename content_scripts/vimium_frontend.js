@@ -255,8 +255,9 @@
         }
       },
       refreshCompletionKeys: refreshCompletionKeys,
-      getScrollPosition: function() {
+      getScrollPosition: function(request) {
         return {
+          tabId: request.tabId,
           scrollX: window.scrollX,
           scrollY: window.scrollY
         };
