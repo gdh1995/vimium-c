@@ -18,6 +18,8 @@
   
   window.handlerStack = new HandlerStack;
 
+  frameId = Math.floor(Math.random() * 999999997) + 2;
+
   insertModeLock = null;
 
   findMode = false;
@@ -63,12 +65,13 @@
       postMessage: function() {
       }
     },
-    responseTimeout: 1000,
+    responseTimeout: 2000,
     autoReconnectTimeout: 1000,
     _name: "main",
     _port: undefined,
     _listener: null,
     _callbacks: {},
+    _hasCallbacks: false,
     _lastWaitTime: 0,
     postMessage: function(request, callback) {
       if (callback) {
@@ -88,14 +91,16 @@
           || request);
       }
       var _ref, _i = new Date().getTime();
-      if (_i > this._lastWaitTime + this.responseTimeout) {
+      if (this._hasCallbacks && _i > this._lastWaitTime + this.responseTimeout) {
         _ref = this._callbacks;
+        this._hasCallbacks = false;
         this._callbacks = {};
       }
       if (callback) {
         this._lastWaitTime = _i;
         if (this._port !== this.fakePort) {
           this._callbacks[request._msgId] = callback;
+          this._hasCallbacks = true;
         } else {
           setTimeout(callback, 0);
         }
@@ -129,20 +134,19 @@
       }
     },
     DefaultListener: function(response) {
-      var handler = response._msgId;
-      if (handler) {
-        handler = mainPort._callbacks[handler];
-        delete mainPort._callbacks[response._msgId];
-        handler(response.response);
+      var name, handler;
+      if (name = response._msgId) {
+        if (handler = mainPort._callbacks[name]) {
+          delete mainPort._callbacks[name];
+          handler(response.response);
+        }
         return;
       }
-      handler = response.name;
-      if (!isEnabledForUrl && (handler !== "getActiveState" && handler !== "setState")) {
-        return;
-      }
-      handler = requestHandlers[handler];
-      if (handler) {
-        handler(response);
+      name = response.name;
+      if (isEnabledForUrl || (name === "getActiveState" || name === "setState")) {
+        if (handler = requestHandlers[name]) {
+          handler(response);
+        }
       }
     },
     _ClearPort: function() {
@@ -223,8 +227,6 @@
       }
     }
   };
-
-  frameId = Math.floor(Math.random() * 999999997) + 2;
 
   hasModifiersRegex = /^<([amc]-)+.>/;
 
