@@ -412,7 +412,7 @@
       chrome.windows.get(tab.windowId, function(wnd) {
         chrome.windows.create({
           tabId: tab.id,
-          incognito: url.startsWith("chrome") ? false : tab.incognito
+          incognito: tab.url.startsWith("chrome") ? false : tab.incognito
         });
       });
     },
