@@ -105,20 +105,37 @@
     case this.CONST.COPY_LINK_URL:
       HUD.show("Copy link URL to Clipboard");
       this.linkActivator = function(link) {
+        var str = link.getAttribute("data-vim-url") || link.href || "";
+        if (!str) return;
+        if (!(str = str.trim())) return;
+        if (!(str = decodeURI(str).replace(/\x3000/g, ' '))) return;
         mainPort.postMessage({
           handler: "copyToClipboard",
-          data: decodeURI(link.getAttribute("data-vim-url") || link.href)
+          data: str
         });
       };
       break;
     case this.CONST.COPY_LINK_TEXT:
       HUD.show("Copy link text to Clipboard");
       this.linkActivator = function(link) {
-        mainPort.postMessage({
-          handler: "copyToClipboard",
-          data: ((link.getAttribute("data-vim-text") || "").trim() //
-            || link.innerText.trim() || link.title.trim()).replace(/\xa0|\x3000/g, ' ')
-        });
+        var str = link.getAttribute("data-vim-text") || "";
+        if (str) str = str.trim();
+        if (!str) {
+          str = link.innerText.trim();
+          if (!str) {
+            str = Utils.decodeTextFromHtml(link.innerHTML).trim();
+            if (!str) {
+              str = link.title.trim();
+            }
+          }
+        }
+        if (str) {
+          str = str.replace(/[\xa0|\x3000]/g, ' ');
+          mainPort.postMessage({
+            handler: "copyToClipboard",
+            data: str
+          });
+        }
       };
       break;
     case this.CONST.OPEN_INCOGNITO:
