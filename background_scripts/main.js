@@ -412,27 +412,30 @@
       chrome.windows.get(tab.windowId, function(wnd) {
         chrome.windows.create({
           tabId: tab.id,
-          incognito: wnd.incognito
+          incognito: url.startsWith("chrome") ? false : tab.incognito
         });
       });
     },
     moveTabToIncognito: function(tab) {
       chrome.windows.get(tab.windowId, function(wnd) {
-        if (wnd.incognito) {
-          return;
-        }
+        if (wnd.incognito && tab.incognito) { return; }
         var options = {
           type: "normal",
           incognito: true
-        };
-        wnd = tab.url.toLowerCase();
-        if (wnd.startsWith("chrome") && wnd !== Settings.defaults.newTabUrl) {
+        }, url = tab.url;
+        if (url.startsWith("chrome") && url.toLowerCase() !== Settings.ChromeInnerNewTab) {
+          if (wnd.incognito) { return; }
           options.tabId = tab.id;
+        } else if (tab.incognito) {
+          options.tabId = tab.id;
+          return;
         } else {
-          options.url = tab.url;
-          chrome.tabs.remove(tab.id);
+          options.url = url;
         }
         chrome.windows.create(options);
+        if (!("tabId" in options)) {
+          chrome.tabs.remove(tab.id);
+        }
       });
     },
     enableImageTemp: function(tab) {
