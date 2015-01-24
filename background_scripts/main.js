@@ -641,6 +641,7 @@
     });
   };
 
+  // function (tab = {id, url, title, index, windowId}) 
   updateOpenTabs = function(tab) {
     var _ref;
     if ((_ref = tabInfoMap[tab.id]) && _ref.deletor) {
@@ -709,16 +710,18 @@
   };
 
   updateScrollPosition = function(tabId, scrollX, scrollY) {
-    tabInfoMap[tabId].scrollX = scrollX;
-    tabInfoMap[tabId].scrollY = scrollY;
+    var ref = tabInfoMap[tabId];
+    ref.scrollX = scrollX;
+    ref.scrollY = scrollY;
   };
 
   chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab) {
-    if (changeInfo.status !== "loading" ||
-        (changeInfo.url != null && Utils.isTabWithSameUrl(tabInfoMap[tabId], tab))) {
+    if (changeInfo.status !== "loading" || (
+        changeInfo.url != null && Utils.isTabWithSameUrl(tabInfoMap[tabId], tab)
+      )) {
       return;
     }
-    if (changeInfo.url != null) {
+    if (changeInfo.url) {
       updateOpenTabs(tab);
     }
     hasActionIcon && updateActiveState(tab.id, tab.url);
@@ -738,25 +741,26 @@
   chrome.tabs.onRemoved.addListener(function(tabId) {
     var i, openTabInfo, ref;
     openTabInfo = tabInfoMap[tabId];
-    if (!openTabInfo || !openTabInfo.windowId) {
+    if (!openTabInfo || !(i = openTabInfo.windowId)) {
       return true;
     }
-    updatePositionsAndWindowsForAllTabsInWindow(openTabInfo.windowId);
+    updatePositionsAndWindowsForAllTabsInWindow(i);
     if (!chrome.sessions) {
-      if (/^(chrome|view-source):/.test(openTabInfo.url)) {
-        ref = tabQueue[openTabInfo.windowId];
-        for (i in ref) {
-          if (ref[i].positionIndex > openTabInfo.positionIndex) {
-            -- ref[i].positionIndex;
+      ref = tabQueue[i];
+      if (!Utils.hasOrdinaryUrlPrefix(openTabInfo.url) || openTabInfo.url.startsWith("chrome")) {
+        i = openTabInfo.positionIndex;
+        for (var j in ref) {
+          if (ref[j].positionIndex > i) {
+            -- ref[j].positionIndex;
           }
         }
-        // return;
+        /**/ return; /*/ i = openTabInfo.windowId; //*/
       }
       openTabInfo.lastVisitTime = new Date().getTime();
-      if (tabQueue[openTabInfo.windowId]) {
-        tabQueue[openTabInfo.windowId].push(openTabInfo);
+      if (ref) {
+        ref.push(openTabInfo);
       } else {
-        tabQueue[openTabInfo.windowId] = [openTabInfo];
+        tabQueue[i] = [openTabInfo];
       }
     }
     openTabInfo.deletor = setTimeout(function() {
