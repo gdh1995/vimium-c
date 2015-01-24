@@ -2539,11 +2539,27 @@ var dragExcludeClassList = ['boxClose', 'boxEdit', 'searchCenter', 'searchItem']
 				}
 			},
 			init : function () {
-				var self = this;
+				var self = this, boxItem;
 				if (self.boxOptions.isApp) {
-					var boxItem = $('<div class="appBox ' + self.boxOptions.type + (self.boxOptions.isNew ? ' new' : '') + (self.boxOptions.isFixed ? ' boxFixed' : '') + (self.boxOptions.isApp.length == 32 ? ' chromeApp' : '') + '" id="appBox_' + self.boxOptions.id + '" appType="' + (self.boxOptions.appType ? self.boxOptions.appType : '') + '" url="' + self.getUrl() + '" appId="' + self.boxOptions.isApp + '"></div>').append($('<div class="boxLogo" notes="' + self.boxOptions.title + '"></div>')).append(self.boxOptions.title == "" ? "" : $('<div class="boxTitle"></div>').html('<a>' + self.boxOptions.title + '</a>')).append($('<button class="boxClose' + (self.boxOptions.isFixed ? ' hide' : '') + '"></button>'))
+					boxItem = $('<div class="appBox ' + self.boxOptions.type + (self.boxOptions.isNew ? ' new' : '')
+						+ (self.boxOptions.isFixed ? ' boxFixed' : '') + (self.boxOptions.isApp.length == 32 ? ' chromeApp' : '')
+						+ '" id="appBox_' + self.boxOptions.id + '" appType="' + (self.boxOptions.appType || '')
+						+ '" url="' + self.getUrl() + '" appId="' + self.boxOptions.isApp + '">'
+						+ '<div class="boxLogo" notes="' + self.boxOptions.title + '"></div>'
+						+ (!self.boxOptions.title ? '' : '<div class="boxTitle"><a data-vim-url="' + self.getUrl()
+              + '">' + self.boxOptions.title + '</a></div>')
+						+ '<button class="boxClose' + (self.boxOptions.isFixed ? ' hide' : '') + '"></button>'
+						+ '</div>');
 				} else {
-					var boxItem = $('<div class="appBox ' + self.boxOptions.type + (self.boxOptions.isNew ? ' new' : '') + (self.boxOptions.isFixed ? ' boxFixed' : '') + '" id="appBox_' + self.boxOptions.id + '" url="' + self.getUrl() + '"></div>').append($('<div class="boxLogo" notes="' + self.boxOptions.title + '"></div>')).append(self.boxOptions.title == "" ? "" : $('<div class="boxTitle"></div>').html('<a>' + self.boxOptions.title + '</a>')).append($('<button class="boxClose' + (self.boxOptions.isFixed ? ' hide' : '') + '"></button>')).append($('<button class="boxEdit ' + (self.boxOptions.isFixed ? ' hide' : '') + '" title="' + getI18nMsg('editDialbox') + '"></button>'))
+					boxItem = $('<div class="appBox ' + self.boxOptions.type + (self.boxOptions.isNew ? ' new' : '')
+						+ (self.boxOptions.isFixed ? ' boxFixed' : '')
+						+ '" id="appBox_' + self.boxOptions.id + '" url="' + self.getUrl() + '">'
+            + '<div class="boxLogo" notes="' + self.boxOptions.title + '"></div>'
+            + (!self.boxOptions.title ? '' : '<div class="boxTitle"><a data-vim-url="' + self.getUrl()
+              + '">' + self.boxOptions.title + '</a></div>')
+            + '<button class="boxClose' + (self.boxOptions.isFixed ? ' hide' : '') + '"></button>'
+            + '<button class="boxEdit ' + (self.boxOptions.isFixed ? ' hide' : '') + '" title="' + getI18nMsg('editDialbox') + '"></button>'
+            +'</div>');
 				}
 				if (self.boxOptions.html != "") {
 					boxItem.append($('<div class="boxHtml"></div>').html(self.boxOptions.html))
@@ -3774,13 +3790,13 @@ var dragExcludeClassList = ['boxClose', 'boxEdit', 'searchCenter', 'searchItem']
 					}
 					self.container.parent().find(".pageIndex div").empty();
 					for (var i = 1; i <= self.totalPage; i++) {
-						self.container.parent().find(".pageIndex div").append($('<a><span index="' + i + '"></span></a>').bind('click', function () {
+						self.container.parent().find(".pageIndex div").append($('<a index="' + i + '"></a>').bind('click', function () {
 								self.loadBoxes($(this).attr('index'))
 							}))
 					}
 					self.container.parent().find(".pageIndex div").css("width", (self.totalPage * 18 + 4) + "px");
-					self.container.parent().find(".pageIndex span").removeClass('selected');
-					self.container.parent().find(".pageIndex span[index='" + self.page + "']").addClass('selected')
+					self.container.parent().find(".pageIndex a").removeClass('selected');
+					self.container.parent().find(".pageIndex a[index='" + self.page + "']").addClass('selected')
 				} else {
 					self.container.parent().siblings(".pageSwitcher").remove();
 					self.container.parent().find(".pageIndex").remove();
@@ -4141,7 +4157,7 @@ var dragExcludeClassList = ['boxClose', 'boxEdit', 'searchCenter', 'searchItem']
 	}
 })(jq);
 var storage = new $.storage(), PDI = $.pdi(), DBOX, cId = "", tabID = '', targetSwitch = true
-  , serverValue = [], ctrlKey = false, ctrlKeyTimer = 0, updateNotification = false;
+	, serverValue = [], ctrlKey = false, ctrlKeyTimer = 0, updateNotification = false;
 if (cId = PDI.get("setup", "cId")) {
 	storage = new $.storage(cId)
 }
@@ -4149,13 +4165,13 @@ $(document).bind('keydown', function (e) {
 	if (e.ctrlKey || e.metaKey) {
 		if (ctrlKeyTimer) {
 			clearTimeout(ctrlKeyTimer);
-      ctrlKeyTimer = 0;
+			ctrlKeyTimer = 0;
 		}
 		ctrlKey = true;
 		ctrlKeyTimer = setTimeout(function () {
-      ctrlKey = false;
-      ctrlKeyTimer = 0;
-    }, 1000)
+			ctrlKey = false;
+			ctrlKeyTimer = 0;
+		}, 1000)
 	}
 });
 if (window.location.hash == "#synchronize") {

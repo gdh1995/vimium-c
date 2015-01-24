@@ -111,8 +111,8 @@ a{color:#FFF;text-decoration:none;text-shadow:1px 1px 3px #000;}
 .appBox.quick .boxLogo:hover ~ .boxTitle{text-shadow:none;display:block;}
 .dialbox .pageIndex{position:fixed;height:8px;width:100%;left:0px;bottom:100px;}
 .dialbox .pageIndex div{height:8px;padding:0 15px;opacity:0.8;margin:0 auto;}
-.dialbox .pageIndex div span{cursor:pointer;display:block;width:8px;height:8px;background:rgba(149,149,149,0.8);border-radius:10px;margin:0px 5px;float:left;border:rgba(149,149,149,0.8) 1px solid;}
-.dialbox .pageIndex div span.selected, .dialbox .pageIndex div span:hover{background:#FFF;border:#FFF 1px solid;width:8px;height:8px;}
+.dialbox .pageIndex div a{cursor:pointer;display:block;width:8px;height:8px;background:rgba(149,149,149,0.8);border-radius:10px;margin:0px 5px;float:left;border:rgba(149,149,149,0.8) 1px solid;}
+.dialbox .pageIndex div a.selected, .dialbox .pageIndex div a:hover{background:#FFF;border:#FFF 1px solid;width:8px;height:8px;}
 .dialbox .pageNotice{position:fixed;width:500px;height:40px;line-height:40px;background-color:rgba(0,0,0,0.5);border-radius:6px;left:50%;margin-left:-250px;color:#FFF;font-size:16px;text-align:center;opacity:0;-webkit-transition:opacity .2s ease-in;}
 .dialbox .pageNotice.show{opacity:1;}
 .dialog{position:absolute;box-shadow:0px 10px 23px rgba(0, 0, 0, 0.8);border-radius:6px 6px 6px 6px;-webkit-transform:scale(0);opacity:0;}
