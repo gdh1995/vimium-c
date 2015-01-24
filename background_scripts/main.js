@@ -1029,7 +1029,7 @@
     }
     var ind = frames.indexOf(request.frameId);
     if (ind > 0) {
-      frames.slice(ind, 1);
+      frames.splice(ind, 1);
       frames.unshift(request.frameId);
     }
   };
@@ -1047,7 +1047,7 @@
       openMultiTab(Utils.convertToUrl(request.url), tab.index + 1, 1, tab.windowId);
     },
     restoreSession: function(request, tab) {
-      BackgroundCommands.restoreTab(null, null, tab, null, request.sessionId);
+      BackgroundCommands.restoreTab(null, null, null, null, request.sessionId);
     },
     openUrlInIncognito: openUrlInIncognito,
     openUrlInCurrentTab: openUrlInCurrentTab,
