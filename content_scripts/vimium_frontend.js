@@ -13,7 +13,7 @@
     , isValidFirstKey, keyQueue, onBlurCapturePhase, onDOMActivate, onFocusCapturePhase //
     , onKeydown, onKeypress, onKeyup, passKeys, performFindInPlace, refreshCompletionKeys //
     , registerFrame, restoreDefaultSelectionHighlight, root, selectFoundInputElement, setScrollPosition //
-    , setState, settings, showFindModeHUDForQuery, textInputXPath, toggleHelpDialog, unregisterFrame //
+    , setState, settings, showFindModeHUDForQuery, textInputXPath, unregisterFrame //
     , updateFindModeQuery, validFirstKeys, goBy, getVisibleInputs, mainPort, requestHandlers;
   
   window.handlerStack = new HandlerStack;
@@ -243,7 +243,11 @@
         HUD.showForDuration(request.text, request.duration);
       },
       toggleHelpDialog: function(request) {
-        toggleHelpDialog(request.dialogHtml, request.frameId);
+        if (isShowingHelpDialog) {
+          hideHelpDialog();
+        } else {
+          showHelpDialog(request.dialogHtml);
+        }
       },
       focusFrame: function(request) {
         if (frameId === request.frameId) {
@@ -1136,9 +1140,9 @@
     HUD.hide();
   };
 
-  window.showHelpDialog = function(html, fid) {
+  window.showHelpDialog = function(html) {
     var VimiumHelpDialog, container;
-    if (isShowingHelpDialog || !(document.documentElement || document.body) || fid !== frameId) {
+    if (isShowingHelpDialog || !(document.documentElement || document.body)) {
       return;
     }
     isShowingHelpDialog = true;
@@ -1193,14 +1197,6 @@
     isShowingHelpDialog = false;
     if (event) {
       DomUtils.suppressEvent(event);
-    }
-  };
-
-  toggleHelpDialog = function(html, fid) {
-    if (isShowingHelpDialog) {
-      hideHelpDialog();
-    } else {
-      showHelpDialog(html, fid);
     }
   };
 

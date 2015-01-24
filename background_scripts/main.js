@@ -457,11 +457,10 @@
         pinned: tab.pinned
       });
     },
-    showHelp: function(_0, _1, frameId, port) {
+    showHelp: function(_0, _1, _2, port) {
       port.postMessage({
         name: "toggleHelpDialog",
         dialogHtml: helpDialogHtml(),
-        frameId: frameId
       });
     },
     moveTabLeft: function(tab, count) {
