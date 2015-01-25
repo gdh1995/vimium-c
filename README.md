@@ -31,6 +31,7 @@ Release Notes
 Vimium: 1.49 (2014-12-16)
 * There are may some commits behind [philc/vimium:master]
     (https://github.com/philc/vimium).
+* Supports Chrome (ver >~ 38) only.
 
 X New Tab Page: 4.7.9 (2014-12-11)
 * All merged.

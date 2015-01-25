@@ -213,37 +213,15 @@
         });
         return;
       }
-      if (chrome.sessions) {
-        chrome.sessions.getRecentlyClosed(null, function(sessions) {
-          var historys = [], arr = {};
-          sessions.forEach(function(entry) {
-            if (!entry.tab || entry.tab.url in arr) { return; }
-            entry.tab.lastVisitTime = entry.lastModified * 1000 + 60999;
-            entry = entry.tab;
-            arr[entry.url] = 1;
-            historys.push(entry);
-          });
-          _this.filterFill(historys, onComplete, arr);
+      chrome.sessions.getRecentlyClosed(null, function(sessions) {
+        var historys = [], arr = {};
+        sessions.forEach(function(entry) {
+          if (!entry.tab || entry.tab.url in arr) { return; }
+          entry.tab.lastVisitTime = entry.lastModified * 1000 + 60999;
+          entry = entry.tab;
+          arr[entry.url] = 1;
+          historys.push(entry);
         });
-        return;
-      }
-      chrome.windows.getCurrent(function(wnd) {
-        var historys = [], arr = {}, tabs = tabQueue[wnd.id], i, entry;
-        if (tabs && tabs.length > 0) {
-          i = tabs.length - 1;
-          do {
-            entry = tabs[i];
-            if (!entry.url || entry.url in arr) { continue; }
-            arr[entry.url] = 1;
-            historys.push({
-              url: entry.url,
-              title: entry.title,
-              lastVisitTime: entry.lastVisitTime + 60000,
-              favIconUrl: entry.favIconUrl,
-              sessionId: i
-            });
-          } while (--i >= 0 && historys.length < MultiCompleter.maxResults);
-        }
         _this.filterFill(historys, onComplete, arr);
       });
     };
