@@ -258,12 +258,11 @@
       getScrollPosition: function(request) {
         return {
           tabId: request.tabId,
-          scrollX: window.scrollX,
-          scrollY: window.scrollY
+          scroll: [window.scrollX, window.scrollY]
         };
       },
       setScrollPosition: function(request) {
-        setScrollPosition(request.scrollX, request.scrollY);
+        setScrollPosition(request.scroll[0], request.scroll[1]);
       },
       executePageCommand: executePageCommand,
       getActiveState: function() {
@@ -342,6 +341,7 @@
     }
     mainPort.postMessage({
       handler: "registerFrame",
+      isTop: window.top === window.self,
       frameId: ((document.body && document.body.nodeName.toLowerCase() === "frameset") ? NaN : frameId)
     });
     if (Vomnibar.init) {
@@ -350,12 +350,18 @@
   };
   
   unregisterFrame = function() {
-    mainPort.postMessage({
+    mainPort.postMessage(window.top === window.self ? {
       handler: "unregisterFrame",
       frameId: frameId,
-      isTop: window.top === window.self,
+      isTop: true,
+      title: document.title,
+      url: window.location.href,
       scrollX: window.scrollX,
       scrollY: window.scrollY
+    } : {
+      handler: "unregisterFrame",
+      frameId: frameId,
+      isTop: false,
     });
   };
 

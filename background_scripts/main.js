@@ -11,7 +11,7 @@
     , removeTabsRelative, root, saveHelpDialogSettings, selectSpecificTab, selectTab //
     , listenersAppended, requestHandlers, sendRequestToAllTabs //
     , shouldShowUpgradeMessage, singleKeyCommands, splitKeyIntoFirstAndSecond, splitKeyQueue, tabInfoMap //
-    , tabLoadedHandlers, tabQueue, unregisterFrame, updateOpenTabs //
+    , tabLoadedHandlers, tabQueue, unregisterFrame //
     , upgradeNotificationClosed //
     , validFirstKeys, showActionIcon, onActiveChanged;
 
@@ -535,19 +535,18 @@
         delete tabQueue[tab.windowId];
       }
       tabs.forEach(function(tabQueueEntry) {
-        var x = tabQueueEntry.scrollX, y = tabQueueEntry.scrollY;
+        var ref = tabQueueEntry.scroll;
         chrome.tabs.create({
           url: tabQueueEntry.url,
           index: tabQueueEntry.index
-        }, function(newTab) {
+        }, ref ? function(newTab) {
           tabLoadedHandlers[newTab.id] = function(port) {
             port.postMessage({
               name: "setScrollPosition",
-              scrollX: x,
-              scrollY: y
+              scroll: ref
             });
           };
-        });
+        } : null);
       });
     },
     openCopiedUrlInCurrentTab: function(tab) {
@@ -643,24 +642,6 @@
     });
   };
 
-  // function (tab = {id, url, title, index, windowId}) 
-  updateOpenTabs = function(tab) {
-    var _ref;
-    if ((_ref = tabInfoMap[tab.id]) && _ref.deletor) {
-      clearTimeout(_ref.deletor);
-    }
-    tabInfoMap[tab.id] = {
-      url: tab.url,
-      title: tab.title,
-      index: tab.index,
-      windowId: tab.windowId,
-      scrollX: 0,
-      scrollY: 0,
-      deletor: 0
-    };
-    delete frameIdsForTab[tab.id];
-  };
-
   root.setShowActionIcon = !showActionIcon ? function() {} : function(value) {
     value = chrome.browserAction && chrome.browserAction.setIcon && value ? true : false;
     if (value === showActionIcon) { return; }
@@ -723,20 +704,28 @@
   };
 
   chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab) {
-    if (changeInfo.status !== "loading" || !changeInfo.url) { return; }
-    if (Utils.isTabWithSameUrl(tabInfoMap[tabId], tab)) {
-      tabInfoMap[tabId].url = changeInfo.url;
-      // onActive will be triggered when a new page is loading.
+    var str = changeInfo.status, ref = tabInfoMap[tabId];
+    if (str === "complete") {
+      ref.title = tab.title, ref.favIconUrl = tab.favIconUrl;
+      return;
+    } else if (str !== "loading") {
       return;
     }
-    updateOpenTabs(tab); /*
-    var ref = listenersAppended.update, i;
     if (ref) {
-      for (var i in ref)
-        ref[i].call(null);
-    } //*/
-    Marks.removeMarksForTab(tabId);
-    showActionIcon && updateActiveState(tab.id, tab.url);
+      if (ref.deletor2) {
+        clearTimeout(ref.deletor2);
+        ref.deletor2 = 0;
+      }
+      if (ref.deletor) {
+        Marks.removeMarksForTab(tabId);
+      } else { // topFrame is alive, so loading is caused by may an iframe
+        ref.url = changeInfo.url, ref.title = tab.title;
+        return;
+      }
+    }
+    (tabInfoMap[tabId] = tab).deletor = Date.now();
+    delete frameIdsForTab[tab.id];
+    showActionIcon && updateActiveState(tabId, tab.url);
   });
 
   chrome.tabs.onAttached.addListener(function(tabId, attachedInfo) {
@@ -786,6 +775,23 @@
       if (!openTabInfo || !(i = openTabInfo.windowId)) {
         return true;
       }
+      openTabInfo.deletor2 = setTimeout(function () {
+        delete tabInfoMap[tabId];
+      }, 1000);
+      delete frameIdsForTab[tabId];
+      chrome.tabs.getAllInWindow(i, function(tabs) {
+        if (!tabs) return;
+        var tabInfo, tab, _i, _len;
+        for (_i = 0, _len = tabs.length; _i < _len; _i++) {
+          tab = tabs[_i];
+          tabInfo = tabInfoMap[tab.id];
+          if (tabInfo) {
+            tabInfo.index = tab.index;
+            tabInfo.windowId = tab.windowId;
+          }
+        }
+      });
+      
       ref = tabQueue[i];
       if (ref && !Utils.hasOrdinaryUrlPrefix(openTabInfo.url) || openTabInfo.url.startsWith("chrome")) {
         var tabInfo, i = ref.length, j = openTabInfo.index, k = 0;
@@ -893,8 +899,9 @@
       }
     }
     else if (key = request.handler) {
-      func = requestHandlers[key];
-      if (func) {
+      if (key === "unregisterFrame") {
+        unregisterFrame(request, port.sender);
+      } else if (func = requestHandlers[key]) {
         chrome.tabs.getSelected(null, function(tab) {
           var response = func(request, tab, port);
           if (msgId) {
@@ -1006,6 +1013,9 @@
 
   registerFrame = function(request, tab, port) {
     var tabId = tab.id, css2, toCall;
+    if (request.isTop) {
+      (tabInfoMap[tabId] || (tabInfoMap[tabId] = tab)).deletor = 0;
+    }
     if (! isNaN(request.frameId)) {
       (frameIdsForTab[tabId] || (frameIdsForTab[tabId] = [])).push(request.frameId);
     }
@@ -1029,21 +1039,12 @@
     }
   };
 
-  unregisterFrame = function(request, tab, port) {
-    var tabId = port.sender.tab.id, j, ref = tabInfoMap[tabId], ref2;
+  unregisterFrame = function(request, sender) {
+    var tabId = sender.tab.id, j, ref = tabInfoMap[tabId], ref2;
     if (request.isTop) {
-      if (ref && ref.deletor) {
-        clearTimeout(ref.deletor);
-      }
-      ref = tabInfoMap[tabId] = {
-        url: request.url,
-        title: request.title,
-        index: ref.index,
-        windowId: ref.windowId,
-        scrollX: request.scrollX,
-        scrollY: request.scrollY,
-        deletor: 0
-      };
+      ref.url = request.url;
+      ref.title = request.title;
+      ref.scroll = [request.scrollX, request.scrollY];
     }
     else if (ref2 = frameIdsForTab[tabId]) {
       j = ref2.indexOf(request.frameId);
@@ -1054,19 +1055,8 @@
         return;
       }
     }
+    ref.deletor = -Date.now();
     delete frameIdsForTab[tabId];
-    ref.deletor = setTimeout(function() {
-      if (!frameIdsForTab[tabId]) {
-        var ref2 = tabInfoMap, i = ref.windowId, j = ref.index, k, tabInfo;
-        delete ref2[tabId];
-        for (k in ref2) {
-          tabInfo = ref2[k];
-          if (tabInfo.windowId === i && tabInfo.index > j) {
-            --tabInfo.index;
-          }
-        }
-      }
-    }, 1000);
   };
 
   handleFrameFocused = function(request, tab) {
@@ -1100,7 +1090,6 @@
     openUrlInCurrentTab: openUrlInCurrentTab,
     openOptionsPageInNewTab: openOptionsPageInNewTab,
     registerFrame: registerFrame,
-    unregisterFrame: unregisterFrame,
     frameFocused: handleFrameFocused,
     nextFrame: function(request, tab) {
       BackgroundCommands.nextFrame(tab, 1, request.frameId);
@@ -1137,26 +1126,21 @@
     });
   }
 
-  chrome.windows.getAll({
-    populate: true
-  }, function(wnds) {
-    var tab, _i, _len, _j, _len1, _ref, handleUpdateScrollPosition = function(request) {
-      var ref;
+  chrome.tabs.query({
+    windowType: "normal"
+  }, function(tabs) {
+    var tab, _i, _len, t = Date.now() + 1000, atState = function(request, ref) {
       if (request && (ref = tabInfoMap[request.tabId])) {
-        ref.scrollX = request.scrollX;
-        ref.scrollY = request.scrollY;
+        ref.deletor = 0;
       }
     };
-    for (_i = 0, _len = wnds.length; _i < _len; _i++) {
-      _ref = wnds[_i].tabs;
-      for (_j = 0, _len1 = _ref.length; _j < _len1; _j++) {
-        tab = _ref[_j];
-        updateOpenTabs(tab);
-        chrome.tabs.sendMessage(tab.id, {
-          name: "getScrollPosition",
-          tabId: tab.id
-        }, handleUpdateScrollPosition);
-      }
+    for (_i = 0, _len = tabs.length; _i < _len; ++_i) {
+      tab = tabs[_i];
+      (tabInfoMap[tab.id] = tab).deletor = t;
+      chrome.tabs.sendMessage(tab.id, {
+        name: "getActiveState",
+        tabId: tab.id
+      }, atState);
     }
   });
 

@@ -239,6 +239,7 @@
               url: entry.url,
               title: entry.title,
               lastVisitTime: entry.lastVisitTime + 60000,
+              favIconUrl: entry.favIconUrl,
               sessionId: i
             });
           } while (--i >= 0 && historys.length < MultiCompleter.maxResults);
