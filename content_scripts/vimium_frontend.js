@@ -138,7 +138,7 @@
       if (name = response._msgId) {
         if (handler = mainPort._callbacks[name]) {
           delete mainPort._callbacks[name];
-          handler(response.response);
+          handler(response.response, name);
         }
         return;
       }
