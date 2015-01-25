@@ -84,7 +84,7 @@
         this._get().postMessage(request);
       } catch (e) { // this._port is either null or a real port
         this._port = this.fakePort;
-        setTimeout(this._clearPort, this.autoReconnectTimeout);
+        setTimeout(this._ClearPort, this.autoReconnectTimeout);
         console.log("vim: first postMessage fail:", request.request && request.request.handler || request.handler
           || (request.handlerSettings ? (request.handlerSettings + "setting") : "")
           || (request.handlerKey ? ("char = " + request.keyChar) : "")
