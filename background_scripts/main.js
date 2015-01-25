@@ -2,12 +2,12 @@
 (function() {
   "use strict";
   var BackgroundCommands, checkKeyQueue, completers, completionSources, copyToClipboard, currentVersion //
-    , fetchFileContents, filterCompleter, frameIdsForTab, generateCompletionKeys, ContentTempSettings //
+    , fetchFileContents, frameIdsForTab, generateCompletionKeys, ContentTempSettings //
     , getActualKeyStrokeLength, getCompletionKeysRequest, getCurrentTabUrl, filesContent //
     , /* getCurrentTimeInSeconds, */ handleFrameFocused, handleMainPort //
     , helpDialogHtmlForCommandGroup, isEnabledForUrl, keyQueue, moveTab, namedKeyRegex //
     , openOptionsPageInNewTab, openUrlInCurrentTab, openUrlInIncognito, openMultiTab //
-    , populateKeyCommands, portHandlers, refreshCompleter, registerFrame, splitKeyQueueRegex //
+    , populateKeyCommands, refreshCompleter, registerFrame, splitKeyQueueRegex //
     , removeTabsRelative, root, saveHelpDialogSettings, selectSpecificTab, selectTab //
     , listenersAppended, requestHandlers, sendRequestToAllTabs //
     , shouldShowUpgradeMessage, singleKeyCommands, splitKeyIntoFirstAndSecond, splitKeyQueue //
@@ -49,9 +49,8 @@
   };
 
   chrome.runtime.onConnect.addListener(function(port) {
-    var handler = portHandlers[port.name];
-    if (handler) {
-      port.onMessage.addListener(handler);
+    if (port.name === "main") {
+      port.onMessage.addListener(handleMainPort);
     } else {
       port.disconnect();
     }
@@ -287,16 +286,7 @@
   };
 
   refreshCompleter = function(request) {
-    completers[request.name].refresh();
-  };
-  
-  filterCompleter = function(args, port) {
-    completers[args.name].filter(args.query ? args.query.trim().split(/\s+/) : [], function(results) {
-      port.postMessage({
-        id: args.id,
-        results: results
-      });
-    });
+    completers[request.omni].refresh();
   };
 
   /* getCurrentTimeInSeconds = function() {
@@ -771,6 +761,14 @@
         });
       }
     }
+    else if (key = request.handlerOmni) {
+      completers[key].filter(request.query ? request.query.trim().split(/\s+/) : [], function(results) {
+        port.postMessage({
+          _msgId: msgId,
+          response: results
+        });
+      });
+    }
     else if (key = request.handlerSettings) {
       if (key === "get") {
         for (var i = 0, ref = request.keys, values = new Array(ref.length); i < ref.length; i++) {
@@ -916,11 +914,6 @@
     }
   };
 
-  portHandlers = {
-    main: handleMainPort,
-    filterCompleter: filterCompleter
-  };
-
   // function (request, Tab tab, const Port port);
   requestHandlers = {
     getCompletionKeys: getCompletionKeysRequest,
@@ -940,11 +933,7 @@
       BackgroundCommands.nextFrame(tab, 1, request.frameId);
     },
     initVomnibar: function() {
-      //*
-      return filesContent.vomnibar;
-      /*/
-      return fetchFileContents("pages/vomnibar.html");
-      //*/
+      return /**/ filesContent.vomnibar /*/ fetchFileContents("pages/vomnibar.html") /**/ ;
     },
     upgradeNotificationClosed: upgradeNotificationClosed,
     copyToClipboard: copyToClipboard,

@@ -342,8 +342,8 @@
     name: "",
     _refreshed: [],
     init: function(background) {
-      this.getPort();
       this._refreshed = [];
+      this.onFilter = this.onFilter.bind(this);
       this.mapResult = background.resolve.bind(background);
       this.background = background;
     },
@@ -354,53 +354,31 @@
         this.refresh();
       }
     },
-    getPort: function() {
-      var port = this._port;
-      if (!port) {
-        try {
-          port = this._port = chrome.runtime.connect({ name: "filterCompleter" });
-          port.onDisconnect.addListener(this._clearPort.bind(this));
-          port.onMessage.addListener(this.onFilter.bind(this));
-        } catch (e) {
-          this._port = null;
-          port = mainPort;
-        }
-      }
-      return port;
-    },
     refresh: function() {
       mainPort.postMessage({
         handler: "refreshCompleter",
-        name: this.name
+        omni: this.name
       });
     },
     filter: function(query, callback) {
-      this._id = Utils.createUniqueId();
       this._callback = callback;
-      this.getPort().postMessage({
-        name: this.name,
-        id: this._id,
+      this._id = mainPort.postMessage({
+        handlerOmni: this.name,
         query: query.replace(this.whiteSpaceRegex, ' ').trim()
-      });
+      }, this.onFilter);
     },
     whiteSpaceRegex: /\s+/g,
-    _port: null,
     _id: 0,
     _callback: null,
     background: null,
     mapResult: null,
-    _clearPort: function() {
-      this._port = null;
-    },
-    onFilter: function(msg) {
-      if (this._id != msg.id) { return; }
-      var results, callback;
-      this.background.maxCharNum = Math.floor((window.innerWidth * 0.8 - 70) / 7.72);
-      results = msg.results.map(this.mapResult);
-      callback = this._callback;
+    onFilter: function(results, msgId) {
+      if (!msgId || this._id != msgId) { return; }
+      var callback = this._callback;
       this._callback = null;
       if (callback) {
-        callback(results);
+        this.background.maxCharNum = Math.floor((window.innerWidth * 0.8 - 70) / 7.72);
+        callback(results.map(this.mapResult));
       }
     }
   },
