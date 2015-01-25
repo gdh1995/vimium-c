@@ -174,6 +174,7 @@
 
   upgradeNotificationClosed = function(request) {
     Settings.set("previousVersion", currentVersion);
+    shouldShowUpgradeMessage = false;
     sendRequestToAllTabs({
       name: "hideUpgradeNotification"
     });
@@ -981,13 +982,13 @@
     });
   };
 
-  shouldShowUpgradeMessage = function() {
+  shouldShowUpgradeMessage = (function() {
     if (!Settings.get("previousVersion")) {
       Settings.set("previousVersion", currentVersion);
       return false;
     }
     return Utils.compareVersions(currentVersion, Settings.get("previousVersion")) === 1;
-  };
+  })();
 
   openOptionsPageInNewTab = function(request, tab) {
     chrome.tabs.create({
@@ -1013,7 +1014,7 @@
       return chrome.runtime.lastError;
       // chrome.runtime.lastError && console.log("%c" + chrome.runtime.lastError.message, "color: red");
     });
-    if (shouldShowUpgradeMessage()) {
+    if (shouldShowUpgradeMessage) {
       port.postMessage({
         name: "showUpgradeNotification",
         version: currentVersion
@@ -1097,7 +1098,7 @@
 
   populateKeyCommands();
 
-  if (shouldShowUpgradeMessage()) {
+  if (shouldShowUpgradeMessage) {
     sendRequestToAllTabs({
       name: "showUpgradeNotification",
       version: currentVersion
