@@ -1,6 +1,8 @@
 Vimium++
 =============================
-A customized Vimium with 微度新标签页, by gdh1995@qq.com
+A customized Vimium with 微度新标签页, by gdh1995@qq.com.
+
+This branch supports Chrome (ver >~ 38) only.
 
 __Vimium:__
 * a Chrome extension that provides keyboard-based navigation and control
@@ -31,7 +33,9 @@ Release Notes
 Vimium: 1.49 (2014-12-16)
 * There are may some commits behind [philc/vimium:master]
     (https://github.com/philc/vimium).
-* Supports Chrome (ver >~ 38) only.
+* Supports Chrome (ver >~ 38) only. For an old version, please try
+    [:for-old-chrome]
+    (https://github.com/gdh1995/vim-plus/tree/for-old-chrome)
 
 X New Tab Page: 4.7.9 (2014-12-11)
 * All merged.
