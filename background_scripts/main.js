@@ -11,7 +11,7 @@
     , removeTabsRelative, root, selectTab //
     , requestHandlers, sendRequestToAllTabs //
     , shouldShowUpgradeMessage, singleKeyCommands, splitKeyIntoFirstAndSecond, splitKeyQueue //
-    , unregisterFrame, validFirstKeys, showActionIcon, onActiveChanged;
+    , unregisterFrame, validFirstKeys, showActionIcon;
 
   root = typeof exports !== "undefined" && exports !== null ? exports : window;
 
@@ -514,25 +514,26 @@
     });
   };
 
-  root.setShowActionIcon = !showActionIcon ? function() {} : function(value) {
-    value = chrome.browserAction && chrome.browserAction.setIcon && value ? true : false;
-    if (value === showActionIcon) { return; }
-    showActionIcon = value;
-    // TODO: hide icon
-    if (showActionIcon) {
-      chrome.tabs.onActiveChanged.addListener(onActiveChanged);
-      chrome.browserAction.enable();
-    } else {
-      chrome.tabs.onActiveChanged.removeListener(onActiveChanged);
-      chrome.browserAction.disable();
-    }
-  };
-
-  onActiveChanged = !showActionIcon ? function() {} : function(tabId, selectInfo) {
-    chrome.tabs.get(tabId, function(tab) {
-      updateActiveState(tabId, tab.url);
-    });
-  };
+  root.setShowActionIcon = !showActionIcon ? function() {} : (function() {
+    var onActiveChanged = function(tabId, selectInfo) {
+      chrome.tabs.get(tabId, function(tab) {
+        updateActiveState(tabId, tab.url);
+      });
+    };
+    return function(value) {
+      value = chrome.browserAction && chrome.browserAction.setIcon && value ? true : false;
+      if (value === showActionIcon) { return; }
+      showActionIcon = value;
+      // TODO: hide icon
+      if (showActionIcon) {
+        chrome.tabs.onActiveChanged.addListener(onActiveChanged);
+        chrome.browserAction.enable();
+      } else {
+        chrome.tabs.onActiveChanged.removeListener(onActiveChanged);
+        chrome.browserAction.disable();
+      }
+    };
+  })();
 
   root.updateActiveState = !showActionIcon ? function() {} : function(tabId, url) {
     if (!showActionIcon) return;
@@ -634,7 +635,6 @@
   };
 
   splitKeyQueueRegex = /([1-9][0-9]*)?(.*)/;
-
 
   handleResponse = function(func, msgId, request, tab) {
     var response = func.call(this, request, tab);
@@ -769,7 +769,6 @@
 
   registerFrame = function(request, tab) {
     var tabId = tab.id, css2, toCall;
-    this.sender.tab.id_old = this.sender.tab.id_old;
     this.sender.tab.id = tabId;
     if (! isNaN(request.frameId)) {
       (frameIdsForTab[tabId] || (frameIdsForTab[tabId] = [])).push(request.frameId);
