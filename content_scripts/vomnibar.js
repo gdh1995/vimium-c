@@ -179,8 +179,12 @@
         action = "dismiss";
       } else if (n === keyCodes.f1 + 1) {
         action = (document.activeElement !== this.input) ? "focus" : "blur";
-      } else if (n === keyCodes.f1 && document.activeElement === this.input) {
-        action = "backspace";
+      } else if (n === keyCodes.f1) {
+        if (document.activeElement !== this.input) {
+          action = "focus";
+        } else {
+          action = "backspace";
+        }
       } else {
         return true;
       }
@@ -215,7 +219,7 @@
     case "dismiss": this.hide(); break;
     case "focus": this.focused = true; this.input.focus(); break;
     case "blur": this.focused = false; this.input.blur(); break;
-    case "backspace":
+    case "backspace": // TODO:
       break;
     case "up":
       this.isSelectionChanged = true;
