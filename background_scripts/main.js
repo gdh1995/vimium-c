@@ -447,10 +447,11 @@
     moveTabRight: function(tab, count) {
       moveTab(tab, count);
     },
-    nextFrame: function(tab, count, frameId) {
-      var frames = frameIdsForTab[tab.id];
+    nextFrame: function(tab, count, frameId, port) {
+      var tabId = port.sender.tab.id, frames = frameIdsForTab[tabId];
+      if (!frames) { return; }
       count = (count + Math.max(0, frames.indexOf(frameId))) % frames.length;
-      frames = frameIdsForTab[tab.id] = frames.slice(count).concat(frames.slice(0, count));
+      frames = frameIdsForTab[tabId] = frames.slice(count).concat(frames.slice(0, count));
       chrome.tabs.sendMessage(tab.id, {
         name: "focusFrame",
         frameId: frames[0],
@@ -794,13 +795,15 @@
     if (!(ref2 = frameIdsForTab[tabId])) {
       return;
     }
-    j = ref2.indexOf(request.frameId);
-    if (j < 0) {
+    if (request.isTop) {
       delete frameIdsForTab[tabId];
-    } else if (ref2.length > 1) {
-      ref2.splice(j, 1);
-    } else {
-      delete frameIdsForTab[tabId];
+    } else if (ref2.length >= 1) {
+      j = ref2.indexOf(request.frameId);
+      if (j === ref2.length - 1) {
+        ref2.pop();
+      } else if (j >= 0) {
+        ref2.splice(j, 1);
+      }
     }
   };
 
@@ -831,8 +834,8 @@
       openMultiTab(chrome.runtime.getURL("pages/options.html"), tab.index + 1, 1, tab.windowId);
     },
     registerFrame: registerFrame,
-    frameFocused: function(request, tab) {
-      var frames = frameIdsForTab[tab.id], ind;
+    frameFocused: function(request) {
+      var frames = frameIdsForTab[this.sender.tab.id], ind;
       if (frames && frames.length > 1 && (ind = frames.indexOf(request.frameId)) > 0) {
         frames.splice(ind, 1);
         frames.unshift(request.frameId);
