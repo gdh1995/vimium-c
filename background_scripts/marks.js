@@ -17,7 +17,7 @@
       }
     }
   },
-  goTo: function(req, tab) {
+  goTo: function(req) {
     var mark = this._marks[req.markName];
     chrome.tabs.update(mark.tabId, {
       selected: true
