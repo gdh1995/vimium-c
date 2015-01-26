@@ -3,8 +3,8 @@
   "use strict";
   var BackgroundCommands, checkKeyQueue, completers, completionSources, copyToClipboard, currentVersion //
     , fetchFileContents, frameIdsForTab, generateCompletionKeys, ContentTempSettings //
+    , handleResponse, handleFrameFocused, handleMainPort //
     , getActualKeyStrokeLength, getCompletionKeysRequest, getCurrentTabUrl, filesContent //
-    , /* getCurrentTimeInSeconds, */ handleFrameFocused, handleMainPort //
     , helpDialogHtmlForCommandGroup, isEnabledForUrl, keyQueue, moveTab, namedKeyRegex //
     , openOptionsPageInNewTab, openUrlInCurrentTab, openUrlInIncognito, openMultiTab //
     , populateKeyCommands, refreshCompleter, registerFrame, splitKeyQueueRegex //
@@ -729,6 +729,14 @@
     };
   };
 
+  handleResponse = function(func, msgId, request, tab) {
+    var response = func.call(this, request, tab);
+    this.postMessage({
+      _msgId: msgId,
+      response: response
+    });
+  };
+
   handleMainPort = function(request, port) {
     var key, func, msgId = request._msgId;
     if (msgId) {
@@ -749,16 +757,9 @@
       if (key === "unregisterFrame") {
         unregisterFrame(request, port.sender);
       } else if (func = requestHandlers[key]) {
-        chrome.tabs.getSelected(null, function(tab) {
-          var response = func(request, tab, port);
-          if (msgId) {
-            port.postMessage({
-              name: "response",
-              _msgId: msgId,
-              response: response
-            });
-          }
-        });
+        chrome.tabs.getSelected(null, msgId
+          ? handleResponse.bind(port, func, msgId, request)
+          : func.bind(port, request));
       }
     }
     else if (key = request.handlerOmni) {
@@ -866,8 +867,10 @@
     });
   };
 
-  registerFrame = function(request, tab, port) {
+  registerFrame = function(request, tab) {
     var tabId = tab.id, css2, toCall;
+    this.sender.tab.id_old = this.sender.tab.id_old;
+    this.sender.tab.id = tabId;
     if (! isNaN(request.frameId)) {
       (frameIdsForTab[tabId] || (frameIdsForTab[tabId] = [])).push(request.frameId);
     }
@@ -880,7 +883,7 @@
       // chrome.runtime.lastError && console.log("%c" + chrome.runtime.lastError.message, "color: red");
     });
     if (shouldShowUpgradeMessage) {
-      port.postMessage({
+      this.postMessage({
         name: "showUpgradeNotification",
         version: currentVersion
       });
@@ -914,7 +917,7 @@
     }
   };
 
-  // function (request, Tab tab, const Port port);
+  // function Port::* (request, Tab tab) const;
   requestHandlers = {
     getCompletionKeys: getCompletionKeysRequest,
     getCurrentTabUrl: getCurrentTabUrl,
