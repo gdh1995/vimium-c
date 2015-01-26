@@ -106,9 +106,8 @@
       HUD.show("Copy link URL to Clipboard");
       this.linkActivator = function(link) {
         var str = link.getAttribute("data-vim-url") || link.href || "";
-        if (!str) return;
         if (!(str = str.trim())) return;
-        if (!(str = decodeURI(str).replace(/\x3000/g, ' '))) return;
+        str = Utils.correctSpace(decodeURI(str));
         mainPort.postMessage({
           handler: "copyToClipboard",
           data: str
@@ -130,7 +129,7 @@
           }
         }
         if (str) {
-          str = str.replace(/[\xa0|\x3000]/g, ' ');
+          str = Utils.correctSpace(str);
           mainPort.postMessage({
             handler: "copyToClipboard",
             data: str
