@@ -13,7 +13,7 @@
     , isValidFirstKey, keyQueue, onBlurCapturePhase, onDOMActivate, onFocusCapturePhase //
     , onKeydown, onKeypress, onKeyup, passKeys, performFindInPlace, refreshCompletionKeys //
     , registerFrame, restoreDefaultSelectionHighlight, root, selectFoundInputElement, setScrollPosition //
-    , setState, settings, showFindModeHUDForQuery, textInputXPath, unregisterFrame //
+    , setState, settings, showFindModeHUDForQuery, textInputXPath, unregisterFrame, oldActivated //
     , updateFindModeQuery, validFirstKeys, goBy, getVisibleInputs, mainPort, requestHandlers;
   
   window.handlerStack = new HandlerStack;
@@ -475,31 +475,28 @@
     reload: function() {
       window.location.reload();
     },
-    switchFocus: (function() {
-      var oldActivated = null;
-      return function() {
-        var newEl = document.activeElement;
-        if (newEl !== document.body) {
-          oldActivated = newEl;
-          if (newEl.blur) {
-            newEl.blur();
-          }
-          return;
-        } else if (!oldActivated || !Rect.checkElementVisibility(oldActivated)) {
-          return;
+    switchFocus: function() {
+      var newEl = document.activeElement;
+      if (newEl !== document.body) {
+        oldActivated = newEl;
+        if (newEl.blur) {
+          newEl.blur();
         }
-        newEl = document.activeElement = oldActivated;
-        oldActivated = null;
-        if (newEl.scrollIntoViewIfNeeded) {
-          newEl.scrollIntoViewIfNeeded();
-        } else if (newEl.scrollIntoView) {
-          newEl.scrollIntoView();
-        }
-        if (newEl.focus) {
-          newEl.focus();
-        }
-      };
-    })(),
+        return;
+      } else if (!oldActivated || !Rect.checkElementVisibility(oldActivated)) {
+        return;
+      }
+      newEl = document.activeElement = oldActivated;
+      oldActivated = null;
+      if (newEl.scrollIntoViewIfNeeded) {
+        newEl.scrollIntoViewIfNeeded();
+      } else if (newEl.scrollIntoView) {
+        newEl.scrollIntoView();
+      }
+      if (newEl.focus) {
+        newEl.focus();
+      }
+    },
     goBack: function(count) {
       history.go(-count);
     },
@@ -785,6 +782,9 @@
   onFocusCapturePhase = function(event) {
     if (isEnabledForUrl && isFocusable(event.target) && !findMode) {
       enterInsertModeWithoutShowingIndicator(event.target);
+      if (!oldActivated) {
+        oldActivated = event.target;
+      }
     }
   };
 
