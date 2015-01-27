@@ -171,6 +171,7 @@ _defaultKeyMappings: {
   "ge": "Vomnibar.activateEditUrl",
   "gE": "Vomnibar.activateEditUrlInNewTab",
   "gf": "nextFrame",
+  "<f2>": "switchFocus",
   "m": "Marks.activateCreateMode",
   "`": "Marks.activateGotoMode"
 },

@@ -721,6 +721,10 @@
           action = 1;
         }
       }
+    } else {
+      if (keyChar === "<f2>") {
+        switchFocus();
+      }
     }
     if (action <= 0) {
       return;

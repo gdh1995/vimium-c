@@ -100,8 +100,8 @@
     if (Rect.checkElementVisibility(element)) {
       return false;
     }
-      activatedElement = element;
-      return true;
+    activatedElement = element;
+    return true;
   };
 
   CoreScroller = {
