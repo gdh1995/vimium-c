@@ -101,8 +101,8 @@
       , "Vomnibar.activateHistoryInNewTab", "goPrevious", "goNext", "nextFrame"
       , "Marks.activateCreateMode", "Vomnibar.activateEditUrl", "Vomnibar.activateEditUrlInNewTab"
       , "Marks.activateGotoMode"],
-    findCommands: ["enterFindMode", "performFind", "performBackwardsFind"],
     historyNavigation: ["goBack", "goForward"],
+    findCommands: ["enterFindMode", "performFind", "performBackwardsFind", "switchFocus"],
     tabManipulation: ["nextTab", "previousTab", "firstTab", "lastTab", "createTab", "duplicateTab"
       , "removeTab", "restoreTab", "moveTabToNewWindow", "moveTabToIncognito", "togglePinTab"
       , "closeTabsOnLeft", "closeTabsOnRight", "closeOtherTabs", "moveTabLeft", "moveTabRight" //
@@ -293,6 +293,11 @@ _commandDescriptions: {
   ],
   performFind: ["Cycle forward to the next find match"],
   performBackwardsFind: ["Cycle backward to the previous find match"],
+  switchFocus: [
+    "blur activeElement or refocus it", {
+      noRepeat: true
+    }
+  ],
   goPrevious: [
     "Follow the link labeled previous or <", {
       noRepeat: true

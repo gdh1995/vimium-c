@@ -475,6 +475,31 @@
     reload: function() {
       window.location.reload();
     },
+    switchFocus: (function() {
+      var oldActivated = null;
+      return function() {
+        var newEl = document.activeElement;
+        if (newEl !== document.body) {
+          oldActivated = newEl;
+          if (newEl.blur) {
+            newEl.blur();
+          }
+          return;
+        } else if (!oldActivated || !Rect.checkElementVisibility(oldActivated)) {
+          return;
+        }
+        newEl = document.activeElement = oldActivated;
+        oldActivated = null;
+        if (newEl.scrollIntoViewIfNeeded) {
+          newEl.scrollIntoViewIfNeeded();
+        } else if (newEl.scrollIntoView) {
+          newEl.scrollIntoView();
+        }
+        if (newEl.focus) {
+          newEl.focus();
+        }
+      };
+    })(),
     goBack: function(count) {
       history.go(-count);
     },
