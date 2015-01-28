@@ -719,8 +719,11 @@
         }
       }
     } else {
-      if (keyChar === "<f2>") {
-        switchFocus();
+      if (KeyboardUtils.isFunctionKey(event)) {
+        mainPort.postMessage({
+          handlerKey: keyChar,
+          frameId: frameId
+        });
       }
     }
     if (action <= 0) {
