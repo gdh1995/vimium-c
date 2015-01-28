@@ -64,7 +64,6 @@
     url: "",
     action: "navigateToUrl"
   },
-  performAction: null,
   completionList: null,
   completions: [],
   forceNewTab: false,
@@ -75,10 +74,11 @@
   isSelectionChanged: false,
   onUpdate: null,
   openInNewTab: false,
+  performAction: null,
   refreshInterval: 0,
+  renderItems: null,
   selection: -1,
   timer: 0,
-  renderItems: null,
   _initStep: [0],
   show: function() {
     if (this._initStep[0] !== 2) {
@@ -196,6 +196,8 @@
             && this.input.value.endsWith("  ")) {
           this.openInNewTab = this.forceNewTab;
           action = "enter";
+        } else if (document.activeElement !== this.input) {
+          action = "focus";
         }
       }
       else if (n === 1 || document.activeElement !== this.input) {
