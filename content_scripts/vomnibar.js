@@ -222,8 +222,7 @@
     case "dismiss": this.hide(); break;
     case "focus": this.focused = true; this.input.focus(); break;
     case "blur": this.focused = false; this.input.blur(); break;
-    case "backspace": // TODO:
-      break;
+    case "backspace": DomUtils.simulateBackspace(this.input); break;
     case "up":
       this.isSelectionChanged = true;
       if (this.selection < 0) this.selection = this.completions.length;
