@@ -696,7 +696,7 @@
           action = 2;
         }
         mainPort.postMessage({
-          handlerKey: "<ESC>",
+          handlerKey: "<esc>",
           frameId: frameId
         });
       }

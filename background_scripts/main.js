@@ -651,7 +651,7 @@
       request = request.request;
     }
     if (key = request.handlerKey) {
-      if (key === "<ESC>") {
+      if (key === "<esc>") {
         msgId = "";
       } else {
         msgId = checkKeyQueue(keyQueue + key, port, request.frameId);
