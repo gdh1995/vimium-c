@@ -350,7 +350,7 @@
     this.box.innerHTML = html;
     this.input = this.box.querySelector("#vomnibarInput");
     this.completionList = this.box.querySelector("#vomnibarList");
-    this.renderItems = Utils.makeListRender(this.box.querySelector("#vomnibarItemTemplate").innerHTML);
+    this.renderItems = Utils.makeListRenderBySplit(this.box.querySelector("#vomnibarItemTemplate").innerHTML);
     for (var i = 1, ref = this._initStep, len = ref.length; i < len; i++) {
       ref[i].call(this);
     }
