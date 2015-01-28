@@ -901,8 +901,10 @@
   filesContent.vomnibar = fetchFileContents("pages/vomnibar.html");
 
   showActionIcon = false;
-  setShowActionIcon(Settings.get("showActionIcon"));
+  setShowActionIcon(Settings.get("showActionIcon") === true ? true : false);
 
-  // Sync.init();
+  if (typeof Sync === "object" && typeof Sync.init === "function" && Settings.get("vimSync") === true) {
+    Sync.init();
+  }
 
 })();

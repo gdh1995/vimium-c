@@ -971,9 +971,10 @@
     if (findModeQueryHasResults) {
       var link = getLinkFromSelection();
       if (link) {
-        return link.focus(); // TODO:
+        return link.focus ? link.focus() : false;
       }
     }
+    return false;
   };
 
   isDOMDescendant = function(parent, node) {

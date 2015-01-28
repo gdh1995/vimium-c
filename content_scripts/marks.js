@@ -12,7 +12,7 @@ window.Marks = {
     if (keyChar === "") {
       return false;
     }
-    if (/[A-Z]/.test(keyChar)) { // TODO:
+    if (/[A-Z]/.test(keyChar)) { // TODO: check keyChar more strictly
       mainPort.postMessage({
         handler: 'createMark',
         markName: keyChar,
