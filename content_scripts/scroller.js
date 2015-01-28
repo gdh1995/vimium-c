@@ -97,7 +97,7 @@
   };
 
   checkVisibility = function(element) {
-    if (Rect.checkElementVisibility(element)) {
+    if (DomUtils.isVisibile(element)) {
       return false;
     }
     activatedElement = element;

@@ -483,7 +483,7 @@
           newEl.blur();
         }
         return;
-      } else if (!oldActivated || !Rect.checkElementVisibility(oldActivated)) {
+      } else if (!oldActivated || !DomUtils.isVisibile(oldActivated)) {
         return;
       }
       newEl = document.activeElement = oldActivated;
