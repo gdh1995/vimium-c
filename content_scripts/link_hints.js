@@ -118,23 +118,16 @@
       HUD.show("Copy link text to Clipboard");
       this.linkActivator = function(link) {
         var str = link.getAttribute("data-vim-text") || "";
-        if (str) str = str.trim();
-        if (!str) {
-          str = link.innerText.trim();
-          if (!str) {
-            str = Utils.decodeTextFromHtml(link.innerHTML).trim();
-            if (!str) {
-              str = link.title.trim();
-            }
-          }
+        if ( !(str = str = str.trim()) || !(str = link.innerText.trim()) //
+          || !(str = Utils.decodeTextFromHtml(link.innerHTML).trim())) {
+          str = link.title.trim();
         }
-        if (str) {
-          str = Utils.correctSpace(str);
-          mainPort.postMessage({
-            handler: "copyToClipboard",
-            data: str
-          });
-        }
+        if (!str)  return
+        str = Utils.correctSpace(str);
+        mainPort.postMessage({
+          handler: "copyToClipboard",
+          data: str
+        });
       };
       break;
     case this.CONST.OPEN_INCOGNITO:
