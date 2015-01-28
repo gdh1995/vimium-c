@@ -255,7 +255,7 @@
       visibleElement = visibleElements[_len];
       rects = [visibleElement.rect];
       for (_i = 0; _i < _len; _i++) {
-        rects.forEach(Rect.SubtractSequence.bind(rects2 = [], visibleElements[_i].rect));
+        rects.forEach(VRect.SubtractSequence.bind(rects2 = [], visibleElements[_i].rect));
         if ((rects = rects2).length === 0) {
           break;
         }
@@ -297,7 +297,7 @@
         c = element.coords.split(',').map(parseInt);
         visibleElements.push({
           element: element,
-          rect: Rect.create(cr0[0].left + c[0], cr0[0].top + c[1], cr0[0].left + c[2], cr0[0].top + c[3])
+          rect: VRect.create(cr0[0].left + c[0], cr0[0].top + c[1], cr0[0].left + c[2], cr0[0].top + c[3])
         });
       }
     }
@@ -378,7 +378,7 @@
           clickEl = clickEl.parentElement;
         } while (clickEl && clickEl.className.indexOf("vomnibarItem") < 0);
         if (clickEl) {
-          rect = Rect.copy(clickEl.getClientRects()[0]);
+          rect = VRect.copy(clickEl.getClientRects()[0]);
           rect.left += 10, rect.right -= 12, rect.width -= 22;
           rect.height -= 3, rect.bottom -= 3;
         }
