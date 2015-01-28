@@ -178,8 +178,8 @@
     var marker = document.createElement("div");
     marker.className = "vimB vimI vimLHi vimLH";
     marker.clickableItem = link.element;
-    marker.style.left = link.rect.left + "px";
-    marker.style.top = link.rect.top + "px";
+    marker.style.left = link.rect[0] + "px";
+    marker.style.top = link.rect[1] + "px";
     marker.rect = link.rect;
     return marker;
   },
@@ -297,7 +297,7 @@
         c = element.coords.split(',').map(parseInt);
         visibleElements.push({
           element: element,
-          rect: VRect.create(cr0[0].left + c[0], cr0[0].top + c[1], cr0[0].left + c[2], cr0[0].top + c[3])
+          rect: [cr0[0].left + c[0], cr0[0].top + c[1], cr0[0].left + c[2], cr0[0].top + c[3]]
         });
       }
     }
@@ -379,8 +379,7 @@
         } while (clickEl && clickEl.className.indexOf("vomnibarItem") < 0);
         if (clickEl) {
           rect = VRect.copy(clickEl.getClientRects()[0]);
-          rect.left += 10, rect.right -= 12, rect.width -= 22;
-          rect.height -= 3, rect.bottom -= 3;
+          rect[0] += 10, rect[2] -= 12, rect[3] -= 3;
         }
       }
       if (!rect) {
@@ -393,12 +392,13 @@
       }
       if (!rect) {
         rect = matchedLink.rect;
-        rect.left -= window.scrollX - this.initScrollX;
-        rect.right -= window.scrollX - this.initScrollX;
-        rect.top -= window.scrollY - this.initScrollY;
-        rect.bottom -= window.scrollY - this.initScrollY;
+        var dx = window.scrollX - this.initScrollX, dy = window.scrollY - this.initScrollY;
+        rect[0] -= dx;
+        rect[2] -= dx;
+        rect[1] -= dy;
+        rect[3] -= dy;
       }
-      DomUtils.flashRect(rect);
+      DomUtils.flashVRect(rect);
       this.linkActivator(clickEl);
       if (this.mode < 127 && (this.mode & 4) === 4) {
         this.deactivateMode(delay, function() {
