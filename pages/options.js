@@ -191,7 +191,7 @@
     
     ExclusionRulesOption.prototype.onRemoveRow = function(event) {
       var row1 = event.target.parentNode.parentNode;
-      row1.parentNode.removeChild(row1);
+      DomUtils.removeNode(row1);
       this.onUpdated();
     };
 

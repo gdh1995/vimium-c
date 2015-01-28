@@ -417,7 +417,7 @@
       this.markerMatcher.deactivate();
     }
     if (this.hintMarkerContainingDiv) {
-      DomUtils.removeElement(this.hintMarkerContainingDiv);
+      DomUtils.removeNode(this.hintMarkerContainingDiv);
     }
     this.hintMarkerContainingDiv = null;
     HUD.hide();

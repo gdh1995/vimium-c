@@ -583,7 +583,7 @@
             hints[selectedInputIndex].classList.add('vimS');
             visibleInputs[selectedInputIndex].element.focus();
           } else if (event.keyCode !== keyCodes.shiftKey) {
-            DomUtils.removeElement(hintContainingDiv);
+            DomUtils.removeNode(hintContainingDiv);
             this.remove();
             return true;
           }
@@ -1228,7 +1228,7 @@
   hideHelpDialog = function(event) {
     var helpDialog = document.getElementById("vimiumHelpDialogContainer");
     if (helpDialog) {
-      helpDialog.parentNode.removeChild(helpDialog);
+      DomUtils.removeNode(helpDialog);
     }
     isShowingHelpDialog = false;
     if (event) {
