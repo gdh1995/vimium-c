@@ -98,7 +98,7 @@
     });
   },
   hide: function() {
-    if (this.timer) {
+    if (this.timer > 0) {
       window.clearTimeout(this.timer);
       this.timer = 0;
     }
@@ -121,7 +121,7 @@
   update: function(updateDelay, callback) {
     this.onUpdate = callback;
     if (typeof updateDelay === "number") {
-      if (this.timer) {
+      if (this.timer > 0) {
         window.clearTimeout(this.timer);
         this.timer = 0;
       }
@@ -260,13 +260,17 @@
   },
   onClick: function(event) {
     var el = event.target, ulist = this.completionList;
+    if (el === ulist || this.timer) {
+      DomUtils.suppressEvent(event);
+      return;
+    }
     while(el && el.parentElement != ulist) { el = el.parentElement; }
     for (var _i = 0, _ref = ulist.children; _i < _ref.length; ++_i) {
       if (_ref[_i] === el) {
         break;
       }
     }
-    if (_i < _ref.length) {
+    if (_i < _ref.length && _i < this.completions.length) {
       this.selection = _i;
       this.openInNewTab = this.forceNewTab || (event.shiftKey || event.ctrlKey || event.metaKey);
       this.onAction("enter");
@@ -281,7 +285,7 @@
     return false;
   },
   onTimer: function() {
-    this.timer = 0;
+    this.timer = -1;
     this.completer.filter(this.completionInput.url, this.onCompletions);
   },
   onCompletions: function(completions) {
@@ -294,6 +298,7 @@
       return;
     }
     this.populateUI();
+    this.timer = 0;
     if (this.onUpdate) {
       var onUpdate = this.onUpdate;
       this.onUpdate = null;
