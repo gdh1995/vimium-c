@@ -145,8 +145,8 @@
       this.completionList.style.display = "none";
       this.selection = -1;
     }
-    this.updateSelection();
     this.isSelectionChanged = false;
+    this.updateSelection();
   },
   updateSelection: function() {
     for (var _i = 0, _ref = this.completionList.children, selected = this.selection; _i < _ref.length; ++_i) {
@@ -205,6 +205,7 @@
         if (n === 0) { n = 10; }
         if (n > 0 && n <= this.completions.length) {
           this.selection = n - 1;
+          this.isSelectionChanged = true;
           this.openInNewTab = this.forceNewTab;
           action = "enter";
         }
@@ -225,7 +226,7 @@
       break;
     case "up":
       this.isSelectionChanged = true;
-      if (this.selection <= -1) this.selection = this.completions.length;
+      if (this.selection < 0) this.selection = this.completions.length;
       this.selection -= 1;
       if (this.selection === -1) this.input.focus();
       else if (!this.focused) this.input.blur();
@@ -246,7 +247,9 @@
       break;
     case "enter":
       if (this.timer) {
-        this.update(0, this.onEnter);
+        if (this.timer > 0 && (this.selection === -1 || !this.isSelectionChanged)) {
+          this.update(0, this.onEnter);
+        }
       } else if (this.selection >= 0 || this.input.value.trim().length > 0) {
         this.onEnter();
       }
@@ -255,7 +258,14 @@
     }
   },
   onEnter: function() {
-    this.performAction(this.completions[this.selection], this.openInNewTab);
+    var i = this.selection, ref = this.completionList.children;
+    if (i >= 0 && i < ref.length) {
+      i = + ref[this.selection].getAttribute("data-vim-index");
+      if (!(i >= -1 && i < this.completions.length)) {
+        return;
+      }
+    }
+    this.performAction(this.completions[i], this.openInNewTab);
     this.hide();
   },
   onClick: function(event) {
@@ -272,6 +282,7 @@
     }
     if (_i < _ref.length && _i < this.completions.length) {
       this.selection = _i;
+      this.isSelectionChanged = true;
       this.openInNewTab = this.forceNewTab || (event.shiftKey || event.ctrlKey || event.metaKey);
       this.onAction("enter");
     }
