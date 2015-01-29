@@ -14,7 +14,6 @@
   },
   spanWrap: null,
   numberToHintString: null,
-
   hintMarkerContainingDiv: null,
   mode: 0,
   hintMarkers: null,
@@ -66,11 +65,8 @@
       return;
     }
     this.setOpenLinkMode(mode || 0);
-    /*
-    this.hintMarkers = this.oldGetVisibleClickableElements().map(this.createMarkerFor);
-    /*/
-    this.hintMarkers = this.getVisibleClickableElements().map(this.createMarkerFor);
-    //*/
+    this.hintMarkers = this./**oldGetVisibleClickableElements/*/ //
+      getVisibleClickableElements/**/().map(this.createMarkerFor);
     this.markerMatcher.fillInMarkers(this.hintMarkers);
     this.isActive = true;
     this.initScrollX = window.scrollX;
@@ -79,6 +75,7 @@
       id: "vimHMC",
       className: "vimB vimR"
     });
+    this.ensureRightBottom();
     this.hintMarkerContainingDiv.style.left = window.scrollX + "px";
     this.hintMarkerContainingDiv.style.top = window.scrollY + "px";
     this.handlerId = handlerStack.push({
@@ -172,6 +169,25 @@
     marker.style.top = link.rect[1] + "px";
     marker.rect = link.rect;
     return marker;
+  },
+  ensureRightBottom: function() {
+    var ww, wh, _ref = this.hintMarkers, _i = _ref.length, el, temp, pos, str;
+    if (_i <= 0) {
+      return;
+    }
+    ww = window.innerWidth, wh = window.innerHeight - 13;
+    str = wh + "px";
+    while (0 <= --_i) {
+      el = _ref[_i];
+      pos = el.innerText.length;
+      pos = ww - (pos <= 3 ? pos * 10 + 4 : 40);
+      if (el.rect[0] > pos) {
+        el.style.left = pos + "px";
+      }
+      if (el.rect[1] > wh) {
+        el.style.top = str;
+      }
+    }
   },
   GetVisibleClickable: (function() {
     var hashRegex = /^#/, quoteRegex = /"/g;
