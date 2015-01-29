@@ -414,15 +414,15 @@
     }
 
     SearchEngineCompleter.prototype.filter = function(queryTerms, onComplete) {
-      var searchEngineMatch, query2, suggestions = [];
-      searchEngineMatch = this.getSearchEngineMatches(queryTerms[0]);
-      if (searchEngineMatch) {
-        query2 = queryTerms.slice(1).join(" ");
-        searchEngineMatch = Utils.createSearchUrl(searchEngineMatch, query2);
-        suggestions.push(new Suggestion(queryTerms, "search", searchEngineMatch, searchEngineMatch
-          , this.getSearchEngineName(queryTerms[0]) + ": " + query2, this.computeRelevancy));
+      var pattern = this.getSearchEngineMatches(queryTerms[0]);
+      if (!pattern) {
+        onComplete([]);
+        return;
       }
-      onComplete(suggestions);
+      var name = this.getSearchEngineName(queryTerms.shift());
+      pattern = Utils.createSearchUrl(pattern, queryTerms);
+      onComplete([new Suggestion(queryTerms, "search", pattern, pattern
+        , name + ": " + queryTerms.join(" "), this.computeRelevancy)]);
     };
 
     SearchEngineCompleter.prototype.computeRelevancy = function() {
