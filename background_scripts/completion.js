@@ -11,6 +11,7 @@
       this.url = url;
       this.text = text || url;
       this.title = title || "";
+      this.relevancy = 0;
       this.relevancy = computeRelevancy(this, extraData);
     }
 
@@ -46,33 +47,34 @@
     };
 
     Suggestion.prototype.highlight1 = function(string) {
-      var ranges = [], _i, _len;
-      for (_i = 0, _len = this.queryTerms.length; _i < _len; ++_i) {
-        this.pushMatchingRanges(string, this.queryTerms[_i], ranges);
+      var ranges = [], _i, _len, _ref = this.queryTerms;
+      for (_i = 0, _len = _ref.length; _i < _len; ++_i) {
+        this.pushMatchingRanges(string, _ref[_i], ranges);
       }
       if (ranges.length === 0) {
         return ranges;
       }
-      ranges.sort(Suggestion.sortBy0);
+      ranges.sort(Suggestion.rsortBy0);
       return this.mergeRanges(ranges);
     };
 
-    Suggestion.sortBy0 = function(a, b) {
-      return a[0] - b[0];
+    Suggestion.rsortBy0 = function(a, b) {
+      return b[0] - a[0];
     };
 
     Suggestion.prototype.mergeRanges = function(ranges) {
-      var mergedRanges = ranges.shift(), i = 1;
-      ranges.forEach(function(range) {
+      var mergedRanges = ranges.pop(), i = 1, range, ind = ranges.length;
+      while (0 <= --ind) {
+        range = ranges[ind];
         if (mergedRanges[i] >= range[0]) {
           if (mergedRanges[i] < range[1]) {
             mergedRanges[i] = range[1];
           }
         } else {
-          mergedRanges.concat(range);
+          mergedRanges.push(range[0], range[1]);
           i += 2;
         }
-      });
+      };
       return mergedRanges;
     };
 
