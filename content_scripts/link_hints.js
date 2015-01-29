@@ -104,11 +104,7 @@
       this.linkActivator = function(link) {
         var str = (link.getAttribute("data-vim-url") || link.href).trim() || "";
         if (!str) return;
-        try {
-          str = decodeURI(str);
-        } catch (e) {
-        }
-        str = Utils.correctSpace(str);
+        str = Utils.correctSpace(Utils.decodeURI(str));
         mainPort.postMessage({
           handler: "copyToClipboard",
           data: str
