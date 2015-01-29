@@ -215,6 +215,9 @@
     setSmoothScroll: function(smoothScroll) {
       CoreScroller.smoothScroll = smoothScroll;
     },
+    getActivatedElement: function() {
+      return activatedElement;
+    },
     scrollBy: function(direction, amount, factor) {
       var element, elementAmount;
       if (factor == null) {
