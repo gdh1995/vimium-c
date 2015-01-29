@@ -16,7 +16,7 @@
 
     Suggestion.prepareHtml = function(suggestion) {
       if (! suggestion.queryTerms) { return; }
-      suggestion.title && (suggestion.title = suggestion.highlightTerms(suggestion.title));
+      suggestion.titleSplit = suggestion.highlight1(suggestion.title);
       suggestion.text = suggestion.shortenUrl(suggestion.text);
       suggestion.textSplit = suggestion.highlight1(suggestion.text);
       delete suggestion.queryTerms;
@@ -43,24 +43,6 @@
         ranges.push([textPosition, matchedEnd]);
         textPosition = matchedEnd;
       }
-    };
-
-    Suggestion.prototype.highlightTerms = function(string) {
-      var ranges = this.highlight1(string), _i, out, start, end;
-      if (ranges.length === 0) {
-        return Utils.escapeHtml(string);
-      }
-      out = [];
-      for(_i = 0, end = 0; _i < ranges.length; _i += 2) {
-        start = ranges[_i];
-        out.push(Utils.escapeHtml(string.substring(end, start)));
-        end = ranges[_i + 1];
-        out.push("<span class=\"vimB vimI vimOmniS\">");
-        out.push(Utils.escapeHtml(string.substring(start, end)));
-        out.push("</span>");
-      }
-      out.push(Utils.escapeHtml(string.substring(end)));
-      return out.join("");
     };
 
     Suggestion.prototype.highlight1 = function(string) {

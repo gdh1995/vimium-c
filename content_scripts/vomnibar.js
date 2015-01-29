@@ -414,6 +414,23 @@
       : "navigateToUrl";
     return result;
   },
+  highlightTerms: function(string, ranges) {
+    var _i, out, start, end;
+    if (ranges.length === 0) {
+      return Utils.escapeHtml(string);
+    }
+    out = [];
+    for(_i = 0, end = 0; _i < ranges.length; _i += 2) {
+      start = ranges[_i];
+      out.push(Utils.escapeHtml(string.substring(end, start)));
+      end = ranges[_i + 1];
+      out.push("<span class=\"vimB vimI vimOmniS\">");
+      out.push(Utils.escapeHtml(string.substring(start, end)));
+      out.push("</span>");
+    }
+    out.push(Utils.escapeHtml(string.substring(end)));
+    return out.join("");
+  },
   cutUrl: function(string, ranges, strCoded) {
     if (ranges.length == 0 || string.startsWith("javascript:")) {
       if (string.length <= this.maxCharNum) {
@@ -463,6 +480,9 @@
   quoteRegex: /"/g,
   prepareToRender: function(item) {
     item.text = this.cutUrl(item.text, item.textSplit, item.url);
+    item.textSplit = null;
+    item.titleSplit = this.highlightTerms(item.title, item.titleSplit);
+    item.title = Utils.escapeHtml(item.title.replace(this.quoteRegex, "&quot;"));
     if (this.showFavIcon && item.url.indexOf("://") >= 0) {
       item.favIconUrl = " vomnibarIcon\" style=\"background-image: url(" + (item.favIconUrl ||
         ("chrome://favicon/size/16/" + item.url)) + ")";
@@ -474,7 +494,6 @@
     } else {
       item.relevancy = "";
     }
-    item.title = item.title.replace(this.quoteRegex, "&quot;");
   },
   performAction: function(item, arg) {
     var action = this.completionActions[item.action] || item.action;
