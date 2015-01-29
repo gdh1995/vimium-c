@@ -105,8 +105,8 @@
     case this.CONST.COPY_LINK_URL:
       HUD.show("Copy link URL to Clipboard");
       this.linkActivator = function(link) {
-        var str = link.getAttribute("data-vim-url") || link.href || "";
-        if (!(str = str.trim())) return;
+        var str = (link.getAttribute("data-vim-url") || link.href).trim() || "";
+        if (!str) return;
         str = Utils.correctSpace(decodeURI(str));
         mainPort.postMessage({
           handler: "copyToClipboard",
@@ -117,12 +117,9 @@
     case this.CONST.COPY_LINK_TEXT:
       HUD.show("Copy link text to Clipboard");
       this.linkActivator = function(link) {
-        var str = link.getAttribute("data-vim-text") || "";
-        if ( !(str = str = str.trim()) || !(str = link.innerText.trim()) //
-          || !(str = Utils.decodeTextFromHtml(link.innerHTML).trim())) {
-          str = link.title.trim();
-        }
-        if (!str)  return
+        var str = (link.getAttribute("data-vim-text") || "").trim() || link.innerText.trim();
+        str = str || Utils.decodeTextFromHtml(link.innerHTML).trim() || link.title.trim();
+        if (!str) return;
         str = Utils.correctSpace(str);
         mainPort.postMessage({
           handler: "copyToClipboard",
