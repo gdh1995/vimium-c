@@ -2,9 +2,9 @@
 (function() {
   "use strict";
   var BackgroundCommands, checkKeyQueue, completers, currentVersion //
-    , fetchFileContents, frameIdsForTab, generateCompletionKeys, ContentTempSettings //
+    , fetchHttpContents, frameIdsForTab, generateCompletionKeys, ContentTempSettings //
     , handleMainPort, handleResponse //
-    , getActualKeyStrokeLength, getCompletionKeysRequest, filesContent //
+    , getActualKeyStrokeLength, getCompletionKeysRequest //
     , helpDialogHtmlForCommandGroup, keyQueue, moveTab, namedKeyRegex //
     , openMultiTab //
     , populateKeyCommands, registerFrame, splitKeyQueueRegex //
@@ -29,7 +29,10 @@
 
   namedKeyRegex = /^(<(?:[amc]-.|(?:[amc]-)?[a-z0-9]{2,5})>)(.*)$/;
 
-  filesContent = {};
+  root.filesContent = {
+    vomnibar: "pages/vomnibar.html",
+    help_dialog: "pages/help_dialog.html"
+  };
 
   completers = {
     bookmarks: new BookmarkCompleter(),
@@ -60,11 +63,7 @@
       command = Commands.keyToCommandRegistry[key].command;
       commandsToKey[command] = (commandsToKey[command] || []).concat(key);
     }
-    //*
-    dialogHtml = filesContent.helpDialog || (filesContent.helpDialog = fetchFileContents("pages/help_dialog.html"));
-    /*/
-    dialogHtml = fetchFileContents("pages/help_dialog.html");
-    //*/
+    dialogHtml = filesContent.help_dialog;
     return dialogHtml.replace(new RegExp("\\{\\{(version|title|" + Object.keys(Commands.commandGroups).join('|') + ")\\}\\}", "g"), function(_, group) {
       return (group === "version") ? currentVersion
         : (group === "title") ? (customTitle || "Help")
@@ -94,11 +93,18 @@
     return html.join("");
   };
 
-  fetchFileContents = function(extensionFileName) {
+  fetchHttpContents = function(url, callback) {
     var req = new XMLHttpRequest();
-    req.open("GET", chrome.runtime.getURL(extensionFileName), false);
+    req.open("GET", url, true);
+    req.onreadystatechange = function () {
+      if(req.readyState === 4) {
+        var text = req.responseText, status = req.status;
+        req = null;
+        callback(text, status);
+      }
+    };
     req.send();
-    return req.responseText;
+    return req;
   };
 
   getCompletionKeysRequest = function() {
@@ -845,7 +851,7 @@
       BackgroundCommands.nextFrame(tab, 1, request.frameId);
     },
     initVomnibar: function() {
-      return /**/ filesContent.vomnibar /*/ fetchFileContents("pages/vomnibar.html") /**/ ;
+      return filesContent.vomnibar;
     },
     upgradeNotificationClosed: function(request) {
       Settings.set("previousVersion", currentVersion);
@@ -898,8 +904,23 @@
     });
   }
 
-  filesContent.vomnibar = fetchFileContents("pages/vomnibar.html");
-
+  (function() {
+    var ref = filesContent, key, url, callback = function(key, content, code) {
+      if (code === 200) {
+        this[key] = content;
+      } else {
+        console.groupCollapsed("filesContent.statusCode %c[" + key + "]: " + code, "color: red;");
+        console.log("\t%cbody: ", "color: blue;", content);
+        console.groupEnd();
+      }
+    };
+    for (key in ref) {
+      url = chrome.runtime.getURL(ref[key]);
+      ref[key] = "";
+      fetchHttpContents(url, callback.bind(ref, key));
+    }
+  })();
+  
   showActionIcon = false;
   setShowActionIcon(Settings.get("showActionIcon") === true);
 
