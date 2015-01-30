@@ -11,8 +11,8 @@
   activateWithCompleter: function(completerName, selectFirstResult, forceNewTab, initialQueryValue) {
     var completer = this.background.Completer, vomnibarUI = this.vomnibarUI;
     if (!this._completerInited) {
-      completer = this.background.Completer;
       completer.init(this.background);
+      this._completerInited = true;
     }
     completer.setName(completerName);
     if (!this._uiInited) {
