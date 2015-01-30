@@ -901,10 +901,15 @@
   filesContent.vomnibar = fetchFileContents("pages/vomnibar.html");
 
   showActionIcon = false;
-  setShowActionIcon(Settings.get("showActionIcon") === true ? true : false);
+  setShowActionIcon(Settings.get("showActionIcon") === true);
 
   if (typeof Sync === "object" && typeof Sync.init === "function" && Settings.get("vimSync") === true) {
     Sync.init();
+  } else {
+    (function () {
+      var blank = function() {};
+      root.Sync = {debug: false, clear: blank, set: blank, init: blank};
+    })();
   }
 
 })();

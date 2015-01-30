@@ -14,10 +14,10 @@
       if (key in localStorage) {
         delete localStorage[key];
       }
-      // Sync.clear(key);
+      Sync.clear(key);
     } else {
       localStorage[key] = JSON.stringify(value);
-      // Sync.set(key, localStorage[key]);
+      Sync.set(key, localStorage[key]);
     }
     if (key = this.postUpdateHooks[key]) {
       key.call(this, value);
@@ -50,7 +50,7 @@
       if (key in localStorage) {
         delete localStorage[key];
       }
-      // Sync.clear(key);
+      Sync.clear(key);
     }
   },
   _searchEnginesMap: undefined,
@@ -84,9 +84,6 @@
     }
   },
   getSearchEngines: function() {
-    if (! this._searchEnginesMap) {
-      this.parseSearchEngines(this.get("searchEngines") || "");
-    }
     return this._searchEnginesMap;
   },
   defaults: {
@@ -116,3 +113,5 @@
   },
   ChromeInnerNewTab: "chrome-search://local-ntp/local-ntp.html"
 };
+
+Settings.parseSearchEngines(Settings.get("searchEngines") || "");

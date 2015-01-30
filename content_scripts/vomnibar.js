@@ -406,7 +406,7 @@
     }
   },
 
-  showRelevancy: true,
+  showRelevancy: false,
   maxCharNum: 160,
   showFavIcon: window.location.protocol.startsWith("chrome"),
   resolve: function(result) {
