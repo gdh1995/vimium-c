@@ -425,9 +425,6 @@
       this.linkActivator(clickEl);
       if ((this.mode & 64) === 64) {
         var mode = this.mode, linkActivator = this.linkActivator;
-        if (mode === this.CONST.DOWNLOAD_MULTI_LINK) {
-          delay = 200;
-        }
         this.deactivateMode(delay, function() {
           this.delayMode = false;
           this.linkActivator = linkActivator;
