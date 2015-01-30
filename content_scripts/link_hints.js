@@ -10,7 +10,8 @@
     OPEN_INCOGNITO: 128,
     COPY_LINK_URL: 129,
     COPY_LINK_TEXT: 130,
-    DOWNLOAD_LINK_URL: 131
+    DOWNLOAD_LINK_URL: 131,
+    FOCUS_AND_HOVER: 132
   },
   spanWrap: null,
   numberToHintString: null,
@@ -59,6 +60,9 @@
   },
   activateModeToDownloadLink: function() {
     return this.activateMode(this.CONST.DOWNLOAD_LINK_URL);
+  },
+  activateModeToFocus: function() {
+    return this.activateMode(this.CONST.FOCUS_AND_HOVER);
   },
   activateMode: function(mode) {
     if (this.isActive || !document.documentElement) {
@@ -142,6 +146,12 @@
           metaKey: false,
           shiftKey: false
         });
+      };
+      break;
+    case this.CONST.FOCUS_AND_HOVER:
+      HUD.show("Focus and hover selected");
+      this.linkActivator = function(link) {
+        DomUtils.simulateHover(link);
       };
       break;
     default:

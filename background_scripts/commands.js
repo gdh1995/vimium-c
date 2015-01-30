@@ -96,6 +96,7 @@
       , "focusInput", "LinkHints.activateMode", "LinkHints.activateModeToOpenInNewTab"
       , "LinkHints.activateModeToOpenInNewForegroundTab", "LinkHints.activateModeWithQueue"
       , "LinkHints.activateModeToDownloadLink", "LinkHints.activateModeToOpenIncognito"
+      , "LinkHints.activateModeToFocus" //
       , "Vomnibar.activate", "Vomnibar.activateInNewTab", "Vomnibar.activateTabSelection"
       , "Vomnibar.activateBookmarks", "Vomnibar.activateBookmarksInNewTab", "Vomnibar.activateHistory"
       , "Vomnibar.activateHistoryInNewTab", "goPrevious", "goNext", "nextFrame"
@@ -285,6 +286,11 @@ _commandDescriptions: {
   ],
   "LinkHints.activateModeToDownloadLink": [
     "Download link url", {
+      noRepeat: true
+    }
+  ],
+  "LinkHints.activateModeToFocus": [
+    "Focus and hover selected", {
       noRepeat: true
     }
   ],
