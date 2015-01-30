@@ -379,12 +379,13 @@
       if (clickEl.nodeName.toLowerCase() === "input" && clickEl.type !== "button") {
         clickEl.focus();
       }
-      if (clickEl.className.indexOf("vomnibarUrl") >= 0) {
+      if (clickEl.classList.contains("vomnibarUrl")) {
+        var parEl = clickEl;
         do {
-          clickEl = clickEl.parentElement;
-        } while (clickEl && clickEl.className.indexOf("vomnibarItem") < 0);
-        if (clickEl) {
-          rect = VRect.copy(clickEl.getClientRects()[0]);
+          parEl = parEl.parentElement;
+        } while (parEl && !parEl.classList.contains("vomnibarItem"));
+        if (parEl) {
+          rect = VRect.copy(parEl.getClientRects()[0]);
           rect[0] += 10, rect[2] -= 12, rect[3] -= 3;
         }
       }
