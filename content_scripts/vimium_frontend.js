@@ -497,6 +497,13 @@
         newEl.focus();
       }
     },
+    simBackspace: function() {
+      var el = document.activeElement;
+      if (el === document.body || !DomUtils.isVisibile(el) || !isEditable(el)) {
+        return;
+      }
+      DomUtils.simulateBackspace(el);
+    },
     goBack: function(count) {
       history.go(-count);
     },
@@ -724,6 +731,9 @@
           handlerKey: keyChar,
           frameId: frameId
         });
+        if (event.keyCode === keyCodes.f1) {
+          action = 2;
+        }
       }
     }
     if (action <= 0) {

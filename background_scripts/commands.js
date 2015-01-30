@@ -17,9 +17,9 @@
     }
     options || (options = {});
     this.availableCommands[command] = {
-      description: description,
-      isBackgroundCommand: options.background,
-      noRepeat: options.noRepeat
+      description: description || command,
+      isBackgroundCommand: options.background ? true : false,
+      noRepeat: options.noRepeat ? true : false
     };
   },
   mapKeyToCommand: function(key, command) {
@@ -102,7 +102,7 @@
       , "Marks.activateCreateMode", "Vomnibar.activateEditUrl", "Vomnibar.activateEditUrlInNewTab"
       , "Marks.activateGotoMode"],
     historyNavigation: ["goBack", "goForward"],
-    findCommands: ["enterFindMode", "performFind", "performBackwardsFind", "switchFocus"],
+    findCommands: ["enterFindMode", "performFind", "performBackwardsFind", "switchFocus", "simBackspace"],
     tabManipulation: ["nextTab", "previousTab", "firstTab", "lastTab", "createTab", "duplicateTab"
       , "removeTab", "restoreTab", "moveTabToNewWindow", "moveTabToIncognito", "togglePinTab"
       , "closeTabsOnLeft", "closeTabsOnRight", "closeOtherTabs", "moveTabLeft", "moveTabRight" //
@@ -171,6 +171,7 @@ _defaultKeyMappings: {
   "ge": "Vomnibar.activateEditUrl",
   "gE": "Vomnibar.activateEditUrlInNewTab",
   "gf": "nextFrame",
+  "<f1>": "simBackspace",
   "<f2>": "switchFocus",
   "m": "Marks.activateCreateMode",
   "`": "Marks.activateGotoMode"
@@ -296,6 +297,11 @@ _commandDescriptions: {
   performBackwardsFind: ["Cycle backward to the previous find match"],
   switchFocus: [
     "blur activeElement or refocus it", {
+      noRepeat: true
+    }
+  ],
+  simBackspace: [
+    "simulate backspace for once if focused", {
       noRepeat: true
     }
   ],
