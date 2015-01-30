@@ -688,10 +688,10 @@
     interval: 25,
     continueToWork: function() {
       if (this._timer === 0 && this.todos.length > 0) {
-        this._timer = setInterval(this.worker, this.interval);
+        this._timer = setInterval(this.Work, this.interval);
       }
     },
-    worker: function() {
+    Work: function() {
       var _this = Decoder;
       if (_this.working === -1) {
         _this.init();
@@ -700,6 +700,7 @@
       if (! _this.todos.length) {
         clearInterval(_this._timer);
         _this._timer = 0;
+        _this._link.href = "data:text/css;charset=GBK,%23" + _this._id + "%7B%7D";
       } else if (_this.working === 0) {
         var url = _this.todos[0];
         if (url.url) {
@@ -724,6 +725,7 @@
         if (window._DEBUG) {
           console.log(url, " => ", text);
         }
+        _this.Work();
       }
     },
     _id: "",
