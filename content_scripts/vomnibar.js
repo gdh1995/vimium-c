@@ -480,7 +480,7 @@
   quoteRegex: /"/g,
   prepareToRender: function(item) {
     item.textSplit = this.cutUrl(item.text, item.textSplit, item.url);
-    item.text = Utils.decodeURI(item.url);
+    // item.text = Utils.decodeURI(item.url);
     item.titleSplit = this.highlightTerms(item.title, item.titleSplit);
     item.title = Utils.escapeHtml(item.title.replace(this.quoteRegex, "&quot;"));
     if (this.showFavIcon && item.url.indexOf("://") >= 0) {
