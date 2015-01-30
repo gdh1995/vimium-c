@@ -19,6 +19,7 @@
       vomnibarUI.init(this.background);
       this._uiInited = true;
     }
+    this.background.showRelevancy = (settings.values.showOmniRelevancy === true);
     vomnibarUI.initialSelectionValue = selectFirstResult ? 0 : -1;
     vomnibarUI.completer = completer;
     vomnibarUI.refreshInterval = this.defaultRefreshInterval || 250;
@@ -338,9 +339,6 @@
       handler: "initVomnibar"
     }, this.init_dom.bind(this));
     this._initStep[0] = 1;
-    background.showRelevancy = background.showRelevancy
-      ? settings.values.showOmniRelevancy !== false
-      : settings.values.showOmniRelevancy === true;
     this.performAction = background.performAction.bind(background);
     this.onKeydown = this.onKeydown.bind(this);
     this.onInput = this.onInput.bind(this);
