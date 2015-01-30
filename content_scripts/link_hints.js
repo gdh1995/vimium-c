@@ -379,11 +379,11 @@
       if (clickEl.nodeName.toLowerCase() === "input" && clickEl.type !== "button") {
         clickEl.focus();
       }
-      if (clickEl.classList.contains("vomnibarUrl")) {
+      if (clickEl.classList.contains("vimOIUrl")) {
         var parEl = clickEl;
         do {
           parEl = parEl.parentElement;
-        } while (parEl && !parEl.classList.contains("vomnibarItem"));
+        } while (parEl && !parEl.classList.contains("vimOItem"));
         if (parEl) {
           rect = VRect.copy(parEl.getClientRects()[0]);
           rect[0] += 10, rect[2] -= 12, rect[3] -= 3;

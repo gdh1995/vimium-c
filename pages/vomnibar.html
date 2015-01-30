@@ -1,6 +1,6 @@
 
 <style type="text/css">
-#vomnibar.vimB {
+#vimOmnibar.vimB {
 	background: #F1F1F1;
 	border: 1px solid #aaa;
 	border-radius: 5px;
@@ -15,7 +15,7 @@
 	/* less than hint markers and the help dialog. */
 	z-index: 99999991;
 }
-#vomnibarInput.vimB {
+#vimOInput.vimB {
 	background-color: white;
 	border: 1px solid #E8E8E8;
 	border-radius: 3px;
@@ -27,13 +27,13 @@
 	padding: 4px;
 	width: 100%;
 }
-#vomnibarList.vimB {
+#vimOList.vimB {
 	border-top: 1px dashed #C6C9CE;
 	list-style: none;
 	padding-bottom: 3px;
 }
 
-.vomnibarItem.vimB {
+.vimOItem.vimB {
 	background-color: white;
 	border-bottom: 1px solid #ddd;
 	display: list-item;
@@ -41,42 +41,42 @@
 	position: relative;
 	white-space: nowrap;
 }
-.vomnibarItem:last-child {
+.vimOItem:last-child {
 	border-bottom-style: none;
 	margin-bottom: -3px;
 	padding-bottom: 6px;
 }
-.vomnibarItem:hover {
+.vimOItem:hover {
 	background-color: #CFDDEF;
 }
-.vomnibarItem.vimS {
+.vimOItem.vimS {
 	background-color: #BBCEE9;
 }
 
-.vomnibarTopHalf.vimB {
+.vimOITop.vimB {
 	display: block;
 	font-size: 16px;
 	height: 18px;
 	line-height: 18px;
 	overflow: hidden;
 }
-.vomnibarSource.vimB {
+.vimOISource.vimB {
 	color: #777;
 	position: absolute;
 }
-.vomnibarTitle.vimB {
+.vimOITitle.vimB {
 	box-sizing: border-box;
 	max-width: 100%;
 	overflow: hidden;
 	padding-left: 51px;
 }
-.vomnibarTitle > .vimOmniS {
+.vimOITitle > .vimOmniS {
 	color: #333;
 	font-weight: bold;
 	text-decoration: underline;
 }
 
-.vomnibarBottomHalf.vimB {
+.vimOIBottom.vimB {
 	display: block;
 	font-size: 14px;
 	height: 16px;
@@ -85,12 +85,12 @@
 	overflow: hidden;
 	padding-right: 6px;
 }
-.vomnibarIcon.vimB {
+.vimOIIcon.vimB {
 	background-position: 30px 50%;
 	background-repeat: no-repeat;
 	background-size: 16px;
 }
-.vomnibarUrl.vimB {
+.vimOIUrl.vimB {
 	box-sizing: border-box;
 	color: #224684;
 	display: inline-block;
@@ -99,28 +99,28 @@
 	overflow: hidden;
 	padding-left: 51px;
 }
-.vomnibarUrl > .vimOmniS {
+.vimOIUrl > .vimOmniS {
 	color: black;
 	font-weight: bold;
 }
-.vomnibarRelevancy.vimB {
+.vimOIRelevancy.vimB {
 	font-family: monospace;
 	margin-left: 10px;
 	position: absolute;
 }
 </style>
 <div class="vimB vimR" style="padding: 10px;">
-	<input type="text" class="vimB vimR" id="vomnibarInput" />
+	<input type="text" class="vimB vimR" id="vimOInput" />
 </div>
-<ul class="vimB vimR vimScroll" id="vomnibarList">
-	<script type="text/template" id="vomnibarItemTemplate">
-	<li class="vimB vimR vomnibarItem" data-vim-index="{{$index}}">
-		<div class="vimB vimI vomnibarTopHalf">
-			<span class="vimB vimI vomnibarSource">{{type}}</span>
-			<span class="vimB vimI vomnibarTitle">{{titleSplit}}</span>
+<ul class="vimB vimR vimScroll" id="vimOList">
+	<script type="text/template" id="vimOITemplate">
+	<li class="vimB vimR vimOItem" data-vim-index="{{$index}}">
+		<div class="vimB vimI vimOITop">
+			<span class="vimB vimI vimOISource">{{type}}</span>
+			<span class="vimB vimI vimOITitle">{{titleSplit}}</span>
 		</div>
-		<div class="vimB vimI vomnibarBottomHalf{{favIconUrl}}">
-			<a class="vimB vimI vomnibarUrl"
+		<div class="vimB vimI vimOIBottom{{favIconUrl}}">
+			<a class="vimB vimI vimOIUrl"
 				data-vim-text="{{title}}"
 				data-vim-url="{{url}}"
 			>{{textSplit}}</a>{{relevancy}}

@@ -11,7 +11,7 @@
  * vimB: vimium Base; vimR: Reset; vimI: Inherit; vimL: Link; vimS: Selected
  *
  * i$: internal; HMC: HintMarkerContainer; LH: LinkHint; MC: MatchingCharacter; IH: InputHint;
- * HUD: HUD
+ * HUD: HUD; O: vOmnibar; OI: vOmnibarItem
  *
  * This "vimB vimI" class can be added to any of our UI elements to give it a clean slate. This is useful in
  * case the page has declared a broad rule like "a { padding: 50px; }" which will mess up our UI. These
