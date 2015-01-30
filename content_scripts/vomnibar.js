@@ -338,6 +338,9 @@
       handler: "initVomnibar"
     }, this.init_dom.bind(this));
     this._initStep[0] = 1;
+    background.showRelevancy = background.showRelevancy
+      ? settings.values.showOmniRelevancy !== false
+      : settings.values.showOmniRelevancy === true;
     this.performAction = background.performAction.bind(background);
     this.onKeydown = this.onKeydown.bind(this);
     this.onInput = this.onInput.bind(this);

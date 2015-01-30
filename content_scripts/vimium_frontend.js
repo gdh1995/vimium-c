@@ -173,7 +173,7 @@
     values: {},
     valuesToLoad: ["scrollStepSize", "linkHintCharacters", "linkHintNumbers", "filterLinkHints"
       , "hideHud", "previousPatterns", "nextPatterns", "findModeRawQuery", "regexFindMode"
-      , "helpDialog_showAdvancedCommands", "smoothScroll"],
+      , "helpDialog_showAdvancedCommands", "smoothScroll", "showOmniRelevancy"],
     isLoaded: true,
     _eventListeners: {},
     autoRetryInterval: 2000,
@@ -328,7 +328,6 @@
   };
 
   window.addEventListener("focus", function() {
-    // settings.load();
     mainPort.postMessage({
       handler: "frameFocused",
       frameId: frameId

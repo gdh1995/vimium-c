@@ -89,6 +89,7 @@
   defaults: {
     showActionIcon: false,
     vimSync: false,
+    showOmniRelevancy: false,
     scrollStepSize: 100,
     smoothScroll: true,
     keyMappings: "# Insert your preferred key mappings here.",
