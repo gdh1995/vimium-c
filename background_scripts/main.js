@@ -909,7 +909,7 @@
       if (code === 200) {
         this[key] = content;
       } else {
-        console.groupCollapsed("filesContent.statusCode %c[" + key + "]: " + code, "color: red;");
+        console.groupCollapsed("filesContent.statusCode %c[" + key + "]: " + code, "color:red; font-weight:normal;");
         console.log("\t%cbody: ", "color: blue;", content);
         console.groupEnd();
       }
