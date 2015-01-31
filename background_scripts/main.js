@@ -658,12 +658,12 @@
     }
     if (key = request.handlerKey) {
       if (key === "<esc>") {
-        msgId = "";
+        key = "";
       } else {
-        msgId = checkKeyQueue(keyQueue + key, port, request.frameId);
+        key = checkKeyQueue(keyQueue + key, port, request.frameId);
       }
-      if (keyQueue !== msgId) {
-        keyQueue = msgId;
+      if (keyQueue !== key) {
+        keyQueue = key;
         port.postMessage(getCompletionKeysRequest());
       }
     }

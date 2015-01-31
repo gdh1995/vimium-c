@@ -402,7 +402,7 @@
       this._callback = null;
       if (callback) {
         this.background.maxCharNum = Math.floor((window.innerWidth * 0.8 - 70) / 7.72);
-        callback(results.map(this.mapResult));
+        callback(msgId > 0 ? results.map(this.mapResult) : []);
       }
     }
   },

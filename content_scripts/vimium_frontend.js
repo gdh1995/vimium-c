@@ -76,13 +76,13 @@
     postMessage: function(request, callback) {
       if (callback) {
         request = {
-          _msgId: "" + Utils.createUniqueId(),
+          _msgId: Utils.createUniqueId(),
           request: request
         };
       }
       try {
         this._get().postMessage(request);
-      } catch (e) { // this._port is either null or a real port
+      } catch (e) {
         this._port = this.fakePort;
         setTimeout(this._ClearPort, this.autoReconnectTimeout);
         console.log("vim: first postMessage fail:", request.request && request.request.handler || request.handler
@@ -102,18 +102,18 @@
           this._callbacks[request._msgId] = callback;
           this._hasCallbacks = true;
         } else {
-          setTimeout(callback, 0);
+          setTimeout(callback.bind(null, undefined, -request._msgId), 34);
         }
       }
       if (_ref) {
         setTimeout(function() {
           for (var _i in _ref) {
-            _ref[_i].call();
+            _ref[_i].call(null, undefined, -_i);
           }
         }, 17);
       }
-      return (this._port === this.fakePort) ? 0
-        : callback ? +request._msgId : 1;
+      return (this._port === this.fakePort) ? (callback ? -request._msgId : -1)
+        : callback ? request._msgId : 1;
     },
     getListener: function() {
       return this._listener;
@@ -157,12 +157,12 @@
       if (port) {
         return port;
       }
-      var port = chrome.runtime.connect({ name: this._name });
+      port = this._port = chrome.runtime.connect({ name: this._name });
       port.onDisconnect.addListener(this._ClearPort);
       if (this._listener) {
         port.onMessage.addListener(this._listener);
       }
-      return this._port = port;
+      return port;
     }
   };
 
@@ -294,7 +294,7 @@
       Vomnibar.init();
     });
     Scroller.init();
-    if (!settings.load()) {
+    if (settings.load() < 0) {
       // css will be rejected when the background gets "registerFrame"
       settings.addEventListener("load", registerFrame);
     }
