@@ -205,7 +205,7 @@
   (typeof exports !== "undefined" && exports !== null ? exports : window).Scroller = {
     init: function() {
       handlerStack.push({
-        DOMActivate: function() {
+        DOMActivate: function(event) {
           activatedElement = event.target;
           return true;
         }
