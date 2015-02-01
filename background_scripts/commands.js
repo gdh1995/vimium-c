@@ -19,7 +19,7 @@
     this.availableCommands[command] = {
       description: description || command,
       isBackgroundCommand: options.background ? true : false,
-      noRepeat: options.noRepeat ? true : false
+      noRepeat: options.noRepeat
     };
   },
   mapKeyToCommand: function(key, command) {
