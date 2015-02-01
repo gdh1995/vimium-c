@@ -107,8 +107,10 @@
       }
       if (_ref) {
         setTimeout(function() {
-          for (var _i in _ref) {
-            _ref[_i].call(null, undefined, -_i);
+          var _i, fn;
+          for (_i in _ref) {
+            fn = _ref[_i];
+            fn(undefined, -_i);
           }
         }, 17);
       }
@@ -696,7 +698,7 @@
       hideHelpDialog();
       action = 2;
     }
-    else if (!isInsert) {
+    else if (!isInsert || (event.keyCode >= keyCodes.f1 && event.keyCode <= keyCodes.f12)) {
       if (isEscape) {
         if (keyQueue.length > 0) {
           action = 2;
@@ -722,16 +724,6 @@
         if (keyChar.length > 0 && !isPassKey(keyChar)
           && (currentCompletionKeys.indexOf(keyChar) !== -1 || isValidFirstKey(keyChar))) {
           action = 1;
-        }
-      }
-    } else {
-      if (KeyboardUtils.isFunctionKey(event)) {
-        mainPort.postMessage({
-          handlerKey: keyChar,
-          frameId: frameId
-        });
-        if (event.keyCode === keyCodes.f1) {
-          action = 2;
         }
       }
     }

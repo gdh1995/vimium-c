@@ -176,20 +176,12 @@
       return true;
     } else if (event.shiftKey || event.ctrlKey || event.altKey || event.metaKey) {
       return true;
-    } else if (KeyboardUtils.isFunctionKey(event)) {
-      if (n === keyCodes.esc) {
-        action = "dismiss";
-      } else if (n === keyCodes.f1 + 1) {
-        action = (document.activeElement !== this.input) ? "focus" : "blur";
-      } else if (n === keyCodes.f1) {
-        if (document.activeElement !== this.input) {
-          action = "focus";
-        } else {
-          action = "backspace";
-        }
-      } else {
-        return true;
-      }
+    } else if (n === keyCodes.esc) {
+      action = "dismiss";
+    } else if (n === keyCodes.f1) {
+      action = (document.activeElement !== this.input) ? "focus" : "backspace";
+    } else if (n === keyCodes.f1 + 1) {
+      action = (document.activeElement !== this.input) ? "focus" : "blur";
     } else {
       action = "";
       n = this.selection >= 0 && this.isSelectionChanged ? 1 : 0;
@@ -318,10 +310,11 @@
     }
   },
   onKeyEvent: function(event) {
-    if (event.altKey || KeyboardUtils.isFunctionKey(event)) {
+    var key = event.keyCode;
+    if (event.altKey || (key >= keyCodes.f1 + 2 && key <= keyCodes.f12)) {
       return;
     }
-    else if (event.keyCode == keyCodes.left || event.keyCode == keyCodes.right) {
+    else if (key == keyCodes.left || key == keyCodes.right) {
     }
     else if (event.ctrlKey || event.metaKey || (event.shiftKey && !event.keyIdentifier.startsWith("U+"))) {
       return;
