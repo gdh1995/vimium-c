@@ -500,7 +500,9 @@
     },
     simBackspace: function() {
       var el = document.activeElement;
-      if (el === document.body || !DomUtils.isVisibile(el) || !isEditable(el)) {
+      if (el === document.body) {
+        switchFocus();
+      } else if (!DomUtils.isVisibile(el) || !isEditable(el)) {
         return;
       }
       DomUtils.simulateBackspace(el);
