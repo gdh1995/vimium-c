@@ -300,11 +300,34 @@
         }
       });
     },
-    moveTabToNewWindow: function(tab) {
-      chrome.windows.get(tab.windowId, function(wnd) {
+    moveTabToNextWindow: function(tab) {
+      chrome.windows.getAll(function(wnds) {
+        var b = tab.incognito;
+        wnds = wnds.filter(function(wnd) { return wnd.type === "normal" && wnd.incognito === b; });
+        if (wnds.length === 0) {
+          chrome.windows.create({
+            type: "normal",
+            tabId: tab.id,
+            incognito: tab.incognito
+          });
+          return;
+        }
+        var ids = wnds.map(function(wnd) { return wnd.id; }), index = ids.indexOf(tab.windowId);
+        if (ids.length >= 2 || index === -1) {
+          chrome.tabs.getSelected(ids[ids.length === ++index ? 0 : index], function(tab2) {
+            chrome.tabs.move(tab.id, {index: tab2.index + 1, windowId: tab2.windowId});
+            chrome.tabs.update(tab.id, {selected: true});
+            chrome.windows.update(tab2.windowId, {focused: true});
+          });
+          return;
+        }
+        chrome.tabs.getAllInWindow(tab.windowId, function(curTabs) {
+          if (curTabs.length === 1) { return; }
         chrome.windows.create({
+            type: "normal",
           tabId: tab.id,
-          incognito: tab.url.startsWith("chrome") ? false : tab.incognito
+            incognito: tab.incognito
+          });
         });
       });
     },

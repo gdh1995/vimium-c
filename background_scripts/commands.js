@@ -106,12 +106,12 @@
     historyNavigation: ["goBack", "goForward", "reloadTab"],
     findCommands: ["enterFindMode", "performFind", "performBackwardsFind", "switchFocus", "simBackspace"],
     tabManipulation: ["nextTab", "previousTab", "firstTab", "lastTab", "createTab", "duplicateTab"
-      , "removeTab", "restoreTab", "moveTabToNewWindow", "moveTabToIncognito", "togglePinTab"
+      , "removeTab", "restoreTab", "moveTabToNextWindow", "moveTabToIncognito", "togglePinTab"
       , "closeTabsOnLeft", "closeTabsOnRight", "closeOtherTabs", "moveTabLeft", "moveTabRight" //
       , "enableImageTemp"],
     misc: ["showHelp"]
   },
-  advancedCommands: ["scrollToLeft", "scrollToRight", "moveTabToNewWindow", "moveTabToIncognito"
+  advancedCommands: ["scrollToLeft", "scrollToRight", "moveTabToNextWindow", "moveTabToIncognito"
     , "goUp", "goToRoot", "focusInput", "LinkHints.activateModeWithQueue", "enableImageTemp"
     , "LinkHints.activateModeToDownloadLink", "Vomnibar.activateEditUrl"
     , "Vomnibar.activateEditUrlInNewTab", "LinkHints.activateModeToOpenIncognito"
@@ -160,7 +160,7 @@ _defaultKeyMappings: {
   ">>": "moveTabRight",
   "g0": "firstTab",
   "g$": "lastTab",
-  "W": "moveTabToNewWindow",
+  "W": "moveTabToNextWindow",
   "t": "createTab",
   "yt": "duplicateTab",
   "x": "removeTab",
@@ -395,8 +395,8 @@ _commandDescriptions: {
       noRepeat: (chrome.session ? chrome.session.MAX_SESSION_RESULTS : 25)
     }
   ],
-  moveTabToNewWindow: [
-    "Move tab to new window", {
+  moveTabToNextWindow: [
+    "Move tab to next window", {
       background: true,
       noRepeat: true
     }
