@@ -137,7 +137,7 @@
       this.linkActivator = this.linkActivator || function(link) {
         mainPort.postMessage({
           handler: 'openUrlInIncognito',
-          url: link.href,
+          url: (link.getAttribute("data-vim-url") || link.href).trim(),
           active: (this.mode & 64) !== 64
         });
       };
@@ -145,12 +145,36 @@
     case this.CONST.DOWNLOAD_LINK:
       HUD.show(mode >= 192 ? "Download multiple links" : "Download a link");
       this.linkActivator = this.linkActivator || function(link) {
+        var isA = (link.nodeName.toLowerCase() === "a"), oldDownload, oldUrl;
+        if (isA) {
+          oldUrl = link.getAttribute("href");
+          oldDownload = link.getAttribute("data-vim-url");
+          if (oldDownload && (oldDownload = oldDownload.trim())) {
+            link.href = oldDownload;
+          }
+          oldDownload = link.getAttribute("download");
+          if (oldDownload == null) {
+            link.download = "";
+          }
+        }
         DomUtils.simulateClick(link, {
           altKey: true,
           ctrlKey: false,
           metaKey: false,
           shiftKey: false
         });
+        if (isA) {
+          if (typeof oldDownload === "string") {
+            link.setAttribute("download", oldDownload);
+          } else if (oldDownload === null) {
+            link.removeAttribute("download");
+          }
+          if (typeof oldUrl === "string") {
+            link.setAttribute("href", oldUrl);
+          } else if (oldUrl === null) {
+            link.removeAttribute("href");
+          }
+        }
       };
       break;
     case this.CONST.HOVER:
