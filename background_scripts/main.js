@@ -262,6 +262,7 @@
             url: url
           }, function(newTab) {
             chrome.windows.create({
+              type: "normal",
               left: 0,
               top: 0,
               width: 50,
@@ -323,9 +324,9 @@
         }
         chrome.tabs.getAllInWindow(tab.windowId, function(curTabs) {
           if (curTabs.length === 1) { return; }
-        chrome.windows.create({
+          chrome.windows.create({
             type: "normal",
-          tabId: tab.id,
+            tabId: tab.id,
             incognito: tab.incognito
           });
         });
@@ -341,8 +342,7 @@
         }, url = tab.url;
         if (url.startsWith("chrome") && url.toLowerCase() !== Settings.ChromeInnerNewTab) {
           if (wnd.incognito) { return; }
-        } else if (tab.incognito) {
-        } else {
+        } else if (!tab.incognito) {
           options.url = url;
         }
         chrome.windows.getAll(function(wnds) {
@@ -355,6 +355,7 @@
                 chrome.tabs.remove(options.tabId);
               } else {
                 chrome.tabs.move(options.tabId, {index: tab2.index + 1, windowId: wndId});
+                chrome.tabs.update(options.tabId, {selected: true});
               }
               chrome.windows.update(wndId, {focused: true});
             });
@@ -365,8 +366,8 @@
               chrome.windows.create(options);
               chrome.tabs.remove(tabId);
             } else {
-        chrome.windows.create(options);
-        }
+              chrome.windows.create(options);
+            }
           }
         });
       });
@@ -865,24 +866,31 @@
         wnds = wnds.filter(function(wnd) {
           return wnd.incognito && wnd.type === "normal";
         });
+        request.active = (request.active !== false);
         if (wnds.length >= 1) {
           var inCurWnd = wnds.filter(function(wnd) {
             return wnd.id === tab.windowId
           }).length >= 0, options = {
             url: request.url,
             windowId: inCurWnd ? tab.windowId : wnds[wnds.length - 1].id,
-            selected: request.active !== false
+            selected: request.active
           };
-          if (inCurWnd && options.selected) {
+          if (inCurWnd) {
             options.index = tab.index + 1;
           }
           chrome.tabs.create(options);
+          if (request.active && !inCurWnd) {
+            chrome.windows.update(request.windowId, {
+              focused: true
+            });
+          }
         } else {
           chrome.windows.create({
+            type: "normal",
             url: Utils.convertToUrl(request.url),
             incognito: true
           });
-          if (request.active === false) {
+          if (request.active) {
             chrome.windows.update(tab.windowId, {
               focused: true
             });
