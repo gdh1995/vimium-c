@@ -92,7 +92,7 @@
     this.input.focus();
     this.focused = true;
     this.input.addEventListener("input", this.onInput);
-    this.list.addEventListener("click", this.onClick);
+    this.box.addEventListener("click", this.onClick);
     this.box.addEventListener("mousewheel", DomUtils.suppressPropagation);
     this.box.addEventListener("keyup", this.onKeyEvent);
     this.handlerId = handlerStack.push({
