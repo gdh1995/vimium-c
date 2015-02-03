@@ -2,7 +2,7 @@
 (function() {
   "use strict";
   var BackgroundCommands, checkKeyQueue, completers, currentVersion //
-    , fetchHttpContents, frameIdsForTab, generateCompletionKeys, ContentTempSettings //
+    , fetchHttpContents, frameIdsForTab, generateCompletionKeys, IncognitoContentSettings //
     , handleMainPort, handleResponse //
     , getActualKeyStrokeLength, getCompletionKeysRequest //
     , helpDialogHtmlForCommandGroup, keyQueue, moveTab, namedKeyRegex //
@@ -134,101 +134,74 @@
     }
   };
 
-  ContentTempSettings = {
+  IncognitoContentSettings = {
+    _urlHeadRegex: /^[a-z]+:\/\/[^\/]+\//,
     ensure: function (contentType, tab) {
       if (!Utils.hasOrdinaryUrlPrefix(tab.url) || tab.url.startsWith("chrome")) {
         return;
       }
-      var pattern = tab.url;
+      var pattern = tab.url, work, _this = this;
       if (!pattern.startsWith("file:")) {
-        pattern = /^[a-z]+:\/\/[^\/]+\//.exec(tab.url)[0] + "*";
+        pattern = this._urlHeadRegex.exec(tab.url)[0] + "*";
       }
-      var work = this.ensureSetAndUpdate.bind(this, contentType, tab, pattern);
-      chrome.contentSettings[contentType].get({
-        primaryUrl: tab.url,
-        incognito: true
-      }, function(opt) {
-        if (!chrome.lastError && opt) {
-          if (opt.setting === "allow") { return; }
-          work();
-          return;
+      chrome.contentSettings[contentType].get({primaryUrl: tab.url, incognito: true }, function(opt) {
+        if (chrome.runtime.lastError) {
+          chrome.contentSettings[contentType].get({primaryUrl: tab.url}, function (opt) {
+            if (opt && opt.setting === "allow") { return; }
+            chrome.windows.create({type: "normal", incognito: true, url: Settings.ChromeInnerNewTab}, function (wnd) {
+              var leftTabId = wnd.tabs[0].id;
+              _this.setAndUpdate(contentType, tab, pattern, wnd.id, function() {
+                chrome.tabs.remove(leftTabId);
+              });
+            });
+          });
+          return chrome.runtime.lastError;
         }
-        delete chrome.lastError;
-        chrome.contentSettings[contentType].get({primaryUrl: tab.url}, function (opt) {
-          if (opt && opt.setting === "allow") { return; }
-          work();
+        if (opt && opt.setting === "allow") { return; }
+        chrome.windows.getAll(function(wnds) {
+          wnds = wnds.filter(function(wnd) { return wnd.type === "normal" && wnd.incognito; });
+          if (wnds.length < 1) {
+            console.log("%cContentTempSettings.ensure", "color:red;", "get incognito content settings", opt //
+              , " but can not find a incognito window");
+          } else if (tab.incognito && wnds.filter(function(wnd) { return wnd.id === tab.windowId; }).length === 1) {
+            _this.setAndUpdate(contentType, tab, pattern, leftWndId);
+          } else {
+            var leftWndId = wnds[wnds.length - 1].id;
+            _this.setAndUpdate(contentType, tab, pattern, leftWndId, function() {
+              chrome.windows.update(leftWndId, {focused: true});
+            });
+          }
         });
       });
     },
-    ensureSetAndUpdate: function(contentType, tab, pattern) {
-      var _this = this, work = function (wndId, tabIndex, callback) {
-        _this.setAllowInIncognito(contentType, pattern, function () {
-          _this.updateTab(tab, wndId, tabIndex, callback);
-        });
-      };
-      chrome.windows.getAll(function(wnds) {
-        wnds = wnds || [];
-        if (wnds.length > 0) {
-          wnds = wnds.filter(function(wnd) {
-            return wnd.type === "normal" && wnd.incognito;
-          });
-        }
-        if (wnds.length === 0) {
-          chrome.windows.create({
-            type: "normal",
-            incognito: true,
-            url: Settings.ChromeInnerNewTab
-          }, function (wnd) {
-            var left = wnd.tabs[0].id;
-            work(wnd.id, 1, function() {
-              chrome.tabs.remove(left);
-            });
-          });
-          return;
-        }
-        if (wnds.filter(function(wnd) {return wnd.id === tab.windowId;}).length > 0) {
-          work(tab.windowId, tab.index);
-          return;
-        }
-        var wnd = wnds[wnds.length - 1];
-        chrome.tabs.getAllInWindow(wnd.id, function(tabs) {
-          work(wnd.id, tabs.length);
-        });
-      });
+    setAndUpdate: function(contentType, tab, pattern, wndId, callback) {
+      this.setAllowInIncognito(contentType, pattern, this.updateTab.bind(this, tab, wndId, callback));
     },
     setAllowInIncognito: function(contentType, pattern, callback) {
       chrome.contentSettings[contentType].set({
         primaryPattern: pattern,
         scope: "incognito_session_only",
         setting: "allow"
-      }, typeof callback === "function" ? callback : null);
+      }, function() {
+        if (callback) {
+          callback();
+        }
+        return chrome.runtime.lastError;
+      });
     },
-    updateTab: function(tab, newWindowId, newTabIndex, callback) {
-      if (tab.windowId === newWindowId) {
+    updateTab: function(tab, newWindowId, callback) {
+      if (!newWindowId || tab.windowId === newWindowId) {
         chrome.tabs.update(tab.id, {
           selected: true,
           url: tab.url
         }, callback);
-      } else if (tab.incognito) {
-        chrome.tabs.move(tab.id, {
-          windowId: newWindowId,
-          index: newTabIndex
-        }, function () {
-          chrome.tabs.update(tab.id, {
-            selected: true,
-            url: tab.url
-          }, callback);
-        });
       } else {
         chrome.tabs.create({
           windowId: newWindowId,
-          index: newTabIndex,
           selected: true,
           url: tab.url
-        }, function () {
-          chrome.tabs.remove(tab.id);
-          callback && callback();
-        });
+        }, callback);
+        chrome.tabs.remove(tab.id);
       }
     }
   };
@@ -353,7 +326,7 @@
       });
     },
     enableImageTemp: function(tab) {
-      ContentTempSettings.ensure("images", tab);
+      IncognitoContentSettings.ensure("images", tab);
     },
     nextTab: function(tab, count) {
       selectTab(tab, count);
@@ -760,7 +733,7 @@
     return newKeyQueue;
   };
 
-  sendRequestToAllTabs = function(args) {
+  sendRequestToAllTabs = function (args) {
     chrome.windows.getAll({
       populate: true
     }, function(windows) {
@@ -815,7 +788,7 @@
       }
     }
   };
-
+  
   reRegisterFrame = function(request, port) {
     var tabId = port.sender.tab.id;
     if (! isNaN(request.frameId)) {
@@ -859,10 +832,10 @@
           }
           chrome.tabs.create(options);
         } else {
-      chrome.windows.create({
-        url: Utils.convertToUrl(request.url),
-        incognito: true
-      });
+          chrome.windows.create({
+            url: Utils.convertToUrl(request.url),
+            incognito: true
+          });
           if (request.active === false) {
             chrome.windows.update(tab.windowId, {
               focused: true
@@ -934,7 +907,7 @@
     Commands.parseCustomKeyMappings(Settings.get("keyMappings"));
   }
   populateKeyCommands();
-
+  
   Settings.parseSearchEngines(Settings.get("searchEngines"));
 
   shouldShowUpgradeMessage = (function() {
@@ -945,9 +918,9 @@
     return Utils.compareVersions(currentVersion, Settings.get("previousVersion")) === 1;
   })();
 
-    sendRequestToAllTabs({
+  sendRequestToAllTabs({
     name: "reRegisterFrame"
-    });
+  });
 
   (function() {
     var ref = filesContent, key, url, callback = function(key, content, code) {
