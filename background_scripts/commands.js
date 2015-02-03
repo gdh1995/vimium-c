@@ -12,7 +12,7 @@
   keyToCommandRegistry: {},
   addCommand: function(command, description, options) {
     if (command in this.availableCommands) {
-      console.log(command, "is already defined! Check commands.coffee for duplicates.");
+      console.log(command, "is already defined! Check code for duplicates.");
       return;
     }
     options || (options = {});
@@ -27,6 +27,8 @@
     if (!this.availableCommands[command]) {
       console.log("Command %c" + command, "color:red;", "doesn't exist!");
       return;
+    } else if (window._DEBUG) {
+      console.log("Mapping", key, "to", command);
     }
     commandDetails = this.availableCommands[command];
     this.keyToCommandRegistry[key] = {
@@ -64,12 +66,6 @@
         }
         key = this.normalizeKey(splitLine[1]);
         vimiumCommand = splitLine[2];
-        if (!this.availableCommands[vimiumCommand]) {
-          continue;
-        }
-        if (window._DEBUG) {
-          console.log("Mapping", key, "to", vimiumCommand);
-        }
         this.mapKeyToCommand(key, vimiumCommand);
       } else if (lineCommand === "unmap") {
         if (splitLine.length !== 2) {
