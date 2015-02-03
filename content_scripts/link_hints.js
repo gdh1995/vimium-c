@@ -585,7 +585,7 @@
         showLinkText = true;
       } else if (element.type !== "password") {
         linkText = element.value;
-        if (!linkText && 'placeholder' in element) {
+        if (!linkText && element.placeholder) {
           linkText = element.placeholder;
         }
       }
