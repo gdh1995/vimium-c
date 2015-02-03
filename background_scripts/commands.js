@@ -97,7 +97,7 @@
       , "focusInput", "LinkHints.activateMode", "LinkHints.activateModeToOpenInNewTab"
       , "LinkHints.activateModeToOpenInNewForegroundTab", "LinkHints.activateModeWithQueue"
       , "LinkHints.activateModeToDownloadLink", "LinkHints.activateModeToOpenIncognito"
-      , "LinkHints.activateModeToFocus" //
+      , "LinkHints.activateModeToHover" //
       , "Vomnibar.activate", "Vomnibar.activateInNewTab", "Vomnibar.activateTabSelection"
       , "Vomnibar.activateBookmarks", "Vomnibar.activateBookmarksInNewTab", "Vomnibar.activateHistory"
       , "Vomnibar.activateHistoryInNewTab", "goPrevious", "goNext", "nextFrame"
@@ -290,8 +290,8 @@ _commandDescriptions: {
       noRepeat: true
     }
   ],
-  "LinkHints.activateModeToFocus": [
-    "Focus and hover selected", {
+  "LinkHints.activateModeToHover": [
+    "select an element and hover", {
       noRepeat: true
     }
   ],

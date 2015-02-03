@@ -10,7 +10,7 @@
     OPEN_INCOGNITO: 128 + 0,
     COPY_LINK_URL: 128 + 1,
     COPY_LINK_TEXT: 128 + 2,
-    FOCUS_AND_HOVER: 128 + 3,
+    HOVER: 128 + 3,
     DOWNLOAD_LINK: 128 + 32 + 0,
     DOWNLOAD_MULTI_LINK: 128 + 32 + 0 + 64
   },
@@ -62,8 +62,8 @@
   activateModeToDownloadLink: function() {
     return this.activateMode(this.CONST.DOWNLOAD_LINK);
   },
-  activateModeToFocus: function() {
-    return this.activateMode(this.CONST.FOCUS_AND_HOVER);
+  activateModeToHover: function() {
+    return this.activateMode(this.CONST.HOVER);
   },
   activateMode: function(mode) {
     if (this.isActive || !document.documentElement) {
@@ -149,7 +149,7 @@
         });
       };
       break;
-    case this.CONST.FOCUS_AND_HOVER:
+    case this.CONST.HOVER:
       HUD.show("Focus and hover selected");
       this.linkActivator = this.linkActivator || function(link) {
         DomUtils.simulateHover(link);
