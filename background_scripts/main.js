@@ -11,11 +11,11 @@
     , removeTabsRelative, root, selectTab //
     , requestHandlers, sendRequestToAllTabs //
     , shouldShowUpgradeMessage, singleKeyCommands, splitKeyIntoFirstAndSecond, splitKeyQueue //
-    , unregisterFrame, validFirstKeys, showActionIcon;
+    , unregisterFrame, validFirstKeys, shouldShowActionIcon;
 
   root = typeof exports !== "undefined" && exports !== null ? exports : window;
 
-  showActionIcon = chrome.browserAction && chrome.browserAction.setIcon ? true : false;
+  shouldShowActionIcon = chrome.browserAction && chrome.browserAction.setIcon ? true : false;
 
   currentVersion = Utils.getCurrentVersion();
 
@@ -523,7 +523,7 @@
     });
   };
 
-  root.setShowActionIcon = !showActionIcon ? function() {} : (function() {
+  root.setShouldShowActionIcon = !shouldShowActionIcon ? function() {} : (function() {
     var onActiveChanged = function(tabId, selectInfo) {
       chrome.tabs.get(tabId, function(tab) {
         updateActiveState(tabId, tab.url);
@@ -531,10 +531,10 @@
     };
     return function(value) {
       value = chrome.browserAction && chrome.browserAction.setIcon && value ? true : false;
-      if (value === showActionIcon) { return; }
-      showActionIcon = value;
+      if (value === shouldShowActionIcon) { return; }
+      shouldShowActionIcon = value;
       // TODO: hide icon
-      if (showActionIcon) {
+      if (shouldShowActionIcon) {
         chrome.tabs.onActiveChanged.addListener(onActiveChanged);
         chrome.browserAction.enable();
       } else {
@@ -544,8 +544,8 @@
     };
   })();
 
-  root.updateActiveState = !showActionIcon ? function() {} : function(tabId, url) {
-    if (!showActionIcon) return;
+  root.updateActiveState = !shouldShowActionIcon ? function() {} : function(tabId, url) {
+    if (!shouldShowActionIcon) return;
     chrome.tabs.sendMessage(tabId, {
       name: "getActiveState"
     }, function(response) {
@@ -583,7 +583,7 @@
       return; // topFrame is alive, so loading is caused by may an iframe
     }
     Marks.removeMarksForTab(tabId);
-    showActionIcon && updateActiveState(tabId, tab.url);
+    shouldShowActionIcon && updateActiveState(tabId, tab.url);
   });
 
   splitKeyIntoFirstAndSecond = function(key) {
@@ -923,8 +923,8 @@
     }
   })();
   
-  showActionIcon = false;
-  setShowActionIcon(Settings.get("showActionIcon") === true);
+  shouldShowActionIcon = false;
+  setShouldShowActionIcon(Settings.get("showActionIcon") === true);
 
   if (typeof Sync === "object" && typeof Sync.init === "function" && Settings.get("vimSync") === true) {
     Sync.init();

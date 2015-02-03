@@ -42,7 +42,7 @@
       Exclusions.postUpdateHook(value);
     },
     showActionIcon: function(value) {
-      setShowActionIcon(value);
+      setShouldShowActionIcon(value);
     },
     settingsVersion: function(value) {
       var key = "settingsVersion";
