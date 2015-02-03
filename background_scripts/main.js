@@ -26,6 +26,10 @@
   singleKeyCommands = [];
 
   frameIdsForTab = {};
+  
+  root.getFrameIdsForTab = function() {
+    return frameIdsForTab;
+  };
 
   namedKeyRegex = /^(<(?:[amc]-.|(?:[amc]-)?[a-z0-9]{2,5})>)(.*)$/;
 
