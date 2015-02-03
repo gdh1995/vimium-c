@@ -396,10 +396,10 @@
             if (wnds.length === 1 && wnds[0].incognito && !Utils.isRefuseIncognito(url)) {
               toCreate.windowId = wnds[0].id;
             }
-            // other urls will be disabled if incognito
+            // other urls will be disabled if incognito else auto in current window
           }
           else if (! tab.incognito) {
-            // retain the last normal window which has currentTab
+            // retain the last "normal & not incognito" window which has currentTab if it exists
             wnds = wnds.filter(function(wnd) {
               return ! wnd.incognito;
             });
@@ -407,14 +407,16 @@
               toCreate = { windowId: tab.windowId };
             }
           }
-          curTabs = (curTabs.length > 1) ? curTabs.map(function(tab) {
-            return tab.id;
-          }) : [tab.id];
           if (toCreate) {
+            curTabs = (curTabs.length > 1) ? curTabs.map(function(tab) {
+              return tab.id;
+            }) : [tab.id];
             toCreate.url = url;
             chrome.tabs.create(toCreate);
+            chrome.tabs.remove(curTabs);
+          } else {
+            chrome.windows.remove(tab.windowId);
           }
-          chrome.tabs.remove(curTabs);
         });
       });
     },
