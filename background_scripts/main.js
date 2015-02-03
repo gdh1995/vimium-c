@@ -670,9 +670,7 @@
       }
     }
     else if (key = request.handler) {
-      if (key === "unregisterFrame") {
-        unregisterFrame(request, port.sender);
-      } else if (func = requestHandlers[key]) {
+      if (func = requestHandlers[key]) {
         chrome.tabs.getSelected(null, msgId
           ? handleResponse.bind(port, func, msgId, request)
           : func.bind(port, request));
@@ -698,6 +696,8 @@
         });
       } else if (key === "set") {
         Settings.set(request.key, request.value);
+      } else if (key === "unreg") {
+        unregisterFrame(request, port.sender.tab.id);
       } else if (key === "rereg") {
         reRegisterFrame(request, port);
       }
@@ -774,7 +774,7 @@
   };
 
   registerFrame = function(request, tab) {
-    var tabId = tab.id, css2, toCall;
+    var tabId = tab.id, css2;
     this.sender.tab.id = tabId;
     if (! isNaN(request.frameId)) {
       (frameIdsForTab[tabId] || (frameIdsForTab[tabId] = [])).push(request.frameId);
@@ -784,8 +784,8 @@
       allFrames: true,
       code: css2
     }, function() {
-      return chrome.runtime.lastError;
       // chrome.runtime.lastError && console.log("%c" + chrome.runtime.lastError.message, "color: red");
+      return chrome.runtime.lastError;
     });
     if (shouldShowUpgradeMessage) {
       this.postMessage({
@@ -795,8 +795,8 @@
     }
   };
 
-  unregisterFrame = function(request, sender) {
-    var tabId = sender.tab.id, j, ref2;
+  unregisterFrame = function(request, tabId) {
+    var j, ref2;
     if (!(ref2 = frameIdsForTab[tabId])) {
       return;
     }

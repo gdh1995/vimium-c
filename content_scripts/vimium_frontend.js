@@ -352,14 +352,12 @@
       isTop: window.top === window.self,
       frameId: ((document.body && document.body.nodeName.toLowerCase() === "frameset") ? NaN : frameId)
     });
-    if (Vomnibar.init) {
-      Vomnibar.init();
-    }
+    Vomnibar.init();
   };
   
   unregisterFrame = function() {
     mainPort.postMessage(window.top === window.self ? {
-      handler: "unregisterFrame",
+      handlerSettings: "unreg",
       frameId: frameId,
       isTop: true,
       title: document.title,
@@ -367,7 +365,7 @@
       scrollX: window.scrollX,
       scrollY: window.scrollY
     } : {
-      handler: "unregisterFrame",
+      handlerSettings: "unreg",
       frameId: frameId,
       isTop: false,
     });
