@@ -486,11 +486,11 @@
       shouldDelete = (direction === -1) ? function(tab) {
         return !tab.pinned && tab.index < activeTabIndex;
       } : (direction === 1) ? function(tab) {
-        return !tab.pinned && tab.index > activeTabIndex;
+        return tab.index > activeTabIndex;
       } : (direction === 0) ? function(tab) {
         return !tab.pinned && tab.index !== activeTabIndex;
       } : (direction > 0) ? (direction += activeTabIndex, function(tab) {
-        return !tab.pinned && tab.index >= activeTabIndex && tab.index < direction;
+        return tab.index >= activeTabIndex && tab.index < direction;
       }) : (direction < 0) ? (direction = activeTabIndex - direction, function(tab) {
         return !tab.pinned && tab.index <= activeTabIndex && tab.index > direction;
       }) : null;
