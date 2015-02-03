@@ -438,9 +438,13 @@
       openMultiTab(Utils.convertToUrl(Clipboard.paste()), tab.index + 1, count, tab.windowId);
     },
     togglePinTab: function(tab) {
-      tab.pinned = !tab.pinned;
       chrome.tabs.update(tab.id, {
-        pinned: tab.pinned
+        pinned: !tab.pinned
+      });
+    },
+    reloadTab: function(tab) {
+      chrome.tabs.update(tab.id, {
+        url: tab.url
       });
     },
     showHelp: function(_0, _1, _2, port) {

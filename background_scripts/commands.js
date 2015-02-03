@@ -103,7 +103,7 @@
       , "Vomnibar.activateHistoryInNewTab", "goPrevious", "goNext", "nextFrame"
       , "Marks.activateCreateMode", "Vomnibar.activateEditUrl", "Vomnibar.activateEditUrlInNewTab"
       , "Marks.activateGotoMode"],
-    historyNavigation: ["goBack", "goForward"],
+    historyNavigation: ["goBack", "goForward", "reloadTab"],
     findCommands: ["enterFindMode", "performFind", "performBackwardsFind", "switchFocus", "simBackspace"],
     tabManipulation: ["nextTab", "previousTab", "firstTab", "lastTab", "createTab", "duplicateTab"
       , "removeTab", "restoreTab", "moveTabToNewWindow", "moveTabToIncognito", "togglePinTab"
@@ -132,6 +132,7 @@ _defaultKeyMappings: {
   "d": "scrollPageDown",
   "u": "scrollPageUp",
   "r": "reload",
+  "R": "reloadTab",
   "gs": "toggleViewSource",
   "i": "enterInsertMode",
   "H": "goBack",
@@ -214,7 +215,13 @@ _commandDescriptions: {
   scrollFullPageDown: ["Scroll a full page down"],
   scrollFullPageUp: ["Scroll a full page up"],
   reload: [
-    "Reload the page", {
+    "Reload current frame", {
+      noRepeat: true
+    }
+  ],
+  reloadTab: [
+    "Reload the whole page", {
+      background: true,
       noRepeat: true
     }
   ],
