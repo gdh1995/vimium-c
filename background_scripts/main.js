@@ -837,10 +837,34 @@
     restoreSession: function(request) {
       BackgroundCommands.restoreTab(null, 1, null, null, request.sessionId);
     },
-    openUrlInIncognito: function(request) {
+    openUrlInIncognito: function(request, tab) {
+      chrome.windows.getAll(function(wnds) {
+        wnds = wnds.filter(function(wnd) {
+          return wnd.incognito && wnd.type === "normal";
+        });
+        if (wnds.length >= 1) {
+          var inCurWnd = wnds.filter(function(wnd) {
+            return wnd.id === tab.windowId
+          }).length >= 0, options = {
+            url: request.url,
+            windowId: inCurWnd ? tab.windowId : wnds[wnds.length - 1].id,
+            selected: request.active !== false
+          };
+          if (inCurWnd && options.selected) {
+            options.index = tab.index + 1;
+          }
+          chrome.tabs.create(options);
+        } else {
       chrome.windows.create({
         url: Utils.convertToUrl(request.url),
         incognito: true
+      });
+          if (request.active === false) {
+            chrome.windows.update(tab.windowId, {
+              focused: true
+            });
+          }
+        }
       });
     },
     openUrlInCurrentTab: function(request, tab) {
