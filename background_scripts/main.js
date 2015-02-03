@@ -157,14 +157,19 @@
           });
           return chrome.runtime.lastError;
         }
-        if (opt && opt.setting === "allow") { return; }
+        if (opt && opt.setting === "allow" && tab.incognito) {
+          _this.updateTab(tab);
+          return;
+        }
         chrome.windows.getAll(function(wnds) {
           wnds = wnds.filter(function(wnd) { return wnd.type === "normal" && wnd.incognito; });
           if (wnds.length < 1) {
             console.log("%cContentTempSettings.ensure", "color:red;", "get incognito content settings", opt //
               , " but can not find a incognito window");
+          } else if (opt && opt.setting === "allow") {
+            _this.updateTab(tab, wnds[wnds.length - 1].id);
           } else if (tab.incognito && wnds.filter(function(wnd) { return wnd.id === tab.windowId; }).length === 1) {
-            _this.setAndUpdate(contentType, tab, pattern, leftWndId);
+            _this.setAndUpdate(contentType, tab, pattern);
           } else {
             var leftWndId = wnds[wnds.length - 1].id;
             _this.setAndUpdate(contentType, tab, pattern, leftWndId, function() {
@@ -190,18 +195,18 @@
       });
     },
     updateTab: function(tab, newWindowId, callback) {
-      if (!newWindowId || tab.windowId === newWindowId) {
-        chrome.tabs.update(tab.id, {
-          selected: true,
-          url: tab.url
-        }, callback);
-      } else {
-        chrome.tabs.create({
-          windowId: newWindowId,
-          selected: true,
-          url: tab.url
-        }, callback);
-        chrome.tabs.remove(tab.id);
+      var options = {
+        windowId: newWindowId ? newWindowId : tab.windowId,
+        selected: true,
+        url: tab.url
+      };
+      if (newWindowId || tab.windowId === newWindowId) {
+        options.index = tab.index + 1;
+      }
+      chrome.tabs.create(options);
+      chrome.tabs.remove(tab.id);
+      if (callback) {
+        callback();
       }
     }
   };
