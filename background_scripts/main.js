@@ -7,7 +7,7 @@
     , getActualKeyStrokeLength, getCompletionKeysRequest //
     , helpDialogHtmlForCommandGroup, keyQueue, moveTab, namedKeyRegex //
     , openMultiTab //
-    , populateKeyCommands, registerFrame, splitKeyQueueRegex //
+    , populateKeyCommands, registerFrame, reRegisterFrame, splitKeyQueueRegex //
     , removeTabsRelative, root, selectTab //
     , requestHandlers, sendRequestToAllTabs //
     , shouldShowUpgradeMessage, singleKeyCommands, splitKeyIntoFirstAndSecond, splitKeyQueue //
@@ -698,6 +698,8 @@
         });
       } else if (key === "set") {
         Settings.set(request.key, request.value);
+      } else if (key === "rereg") {
+        reRegisterFrame(request, port);
       }
     }
   };
@@ -760,6 +762,9 @@
     }, function(windows) {
       var _i, _len, _j, _len1, _ref;
       for (_i = 0, _len = windows.length; _i < _len; _i++) {
+        if (windows[_i].type !== "normal") {
+          continue;
+        }
         _ref = windows[_i].tabs;
         for (_j = 0, _len1 = _ref.length; _j < _len1; _j++) {
           chrome.tabs.sendMessage(_ref[_j].id, args, null);
@@ -804,6 +809,19 @@
       } else if (j >= 0) {
         ref2.splice(j, 1);
       }
+    }
+  };
+
+  reRegisterFrame = function(request, port) {
+    var tabId = port.sender.tab.id;
+    if (! isNaN(request.frameId)) {
+      (frameIdsForTab[tabId] || (frameIdsForTab[tabId] = [])).push(request.frameId);
+    }
+    if (shouldShowUpgradeMessage) {
+      port.postMessage({
+        name: "showUpgradeNotification",
+        version: currentVersion
+      });
     }
   };
 
@@ -899,12 +917,9 @@
     return Utils.compareVersions(currentVersion, Settings.get("previousVersion")) === 1;
   })();
 
-  if (shouldShowUpgradeMessage) {
     sendRequestToAllTabs({
-      name: "showUpgradeNotification",
-      version: currentVersion
+    name: "reRegisterFrame"
     });
-  }
 
   (function() {
     var ref = filesContent, key, url, callback = function(key, content, code) {

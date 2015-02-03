@@ -235,6 +235,13 @@
   initializePreDomReady = function() {
     requestHandlers = {
       settings: settings.ReceiveMessage,
+      reRegisterFrame: function() {
+        mainPort.postMessage({
+          handlerSettings: "rereg",
+          isTop: window.top === window.self,
+          frameId: ((document.body && document.body.nodeName.toLowerCase() === "frameset") ? NaN : frameId)
+        });
+      },
       hideUpgradeNotification: function() {
         HUD.hideUpgradeNotification();
       },
