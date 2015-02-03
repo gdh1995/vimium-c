@@ -25,7 +25,7 @@
   mapKeyToCommand: function(key, command) {
     var commandDetails;
     if (!this.availableCommands[command]) {
-      console.log("%c" + command, "color: red;", "doesn't exist!");
+      console.log("Command %c" + command, "color:red;", "doesn't exist!");
       return;
     }
     commandDetails = this.availableCommands[command];
@@ -47,6 +47,7 @@
       return "<" + (optionalPrefix ? optionalPrefix : "") + keyName.toLowerCase() + ">";
     });
   },
+  _spaceSpliter: /\s+/,
   parseCustomKeyMappings: function(customKeyMappings) {
     var key, line, lineCommand, lines, splitLine, vimiumCommand, _i, _len;
     lines = customKeyMappings.split("\n");
@@ -55,7 +56,7 @@
       if (line[0] === "\"" || line[0] === "#") {
         continue;
       }
-      splitLine = line.split(/\s+/);
+      splitLine = line.split(this._spaceSpliter);
       lineCommand = splitLine[0];
       if (lineCommand === "map") {
         if (splitLine.length !== 3) {
@@ -66,14 +67,18 @@
         if (!this.availableCommands[vimiumCommand]) {
           continue;
         }
-        // console.log("Mapping", key, "to", vimiumCommand);
+        if (window._DEBUG) {
+          console.log("Mapping", key, "to", vimiumCommand);
+        }
         this.mapKeyToCommand(key, vimiumCommand);
       } else if (lineCommand === "unmap") {
         if (splitLine.length !== 2) {
           continue;
         }
         key = this.normalizeKey(splitLine[1]);
-        // console.log("Unmapping", key);
+        if (window._DEBUG) {
+          console.log("Unmapping", key);
+        }
         this.unmapKey(key);
       } else if (lineCommand === "unmapAll") {
         this.keyToCommandRegistry = {};
