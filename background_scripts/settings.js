@@ -114,5 +114,3 @@
   },
   ChromeInnerNewTab: "chrome-search://local-ntp/local-ntp.html"
 };
-
-Settings.parseSearchEngines(Settings.get("searchEngines") || "");

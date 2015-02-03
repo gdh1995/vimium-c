@@ -892,12 +892,12 @@
   };
 
   Commands.clearKeyMappingsAndSetDefaults();
-
   if (Settings.has("keyMappings")) {
     Commands.parseCustomKeyMappings(Settings.get("keyMappings"));
   }
-
   populateKeyCommands();
+
+  Settings.parseSearchEngines(Settings.get("searchEngines"));
 
   if (shouldShowUpgradeMessage) {
     sendRequestToAllTabs({
