@@ -250,7 +250,7 @@
     createTab: function(tab, count) {
       chrome.windows.get(tab.windowId, function(wnd) {
         var url = Settings.get("newTabUrl");
-        if (!(wnd.incognito && Utils.isRefuseIncognito(url))) {
+        if (!(wnd.incognito && Utils.isRefusingIncognito(url))) {
           openMultiTab(url, tab.index + 1, count, tab.windowId);
           return;
         }
@@ -313,7 +313,7 @@
         return;
       }
       chrome.windows.get(tab.windowId, function(wnd) {
-        if (wnd.incognito && Utils.isRefuseIncognito(tab.url)) {
+        if (wnd.incognito && Utils.isRefusingIncognito(tab.url)) {
           while (--count > 0) {
             chrome.tabs.duplicate(tab.id);
           }
@@ -393,7 +393,7 @@
           if (wnds.length <= 1) {
             // retain the last window
             toCreate = {};
-            if (wnds.length === 1 && wnds[0].incognito && !Utils.isRefuseIncognito(url)) {
+            if (wnds.length === 1 && wnds[0].incognito && !Utils.isRefusingIncognito(url)) {
               toCreate.windowId = wnds[0].id;
             }
             // other urls will be disabled if incognito else auto in current window
