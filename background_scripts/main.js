@@ -768,14 +768,6 @@
     });
   };
 
-  shouldShowUpgradeMessage = (function() {
-    if (!Settings.get("previousVersion")) {
-      Settings.set("previousVersion", currentVersion);
-      return false;
-    }
-    return Utils.compareVersions(currentVersion, Settings.get("previousVersion")) === 1;
-  })();
-
   registerFrame = function(request, tab) {
     var tabId = tab.id, css2, toCall;
     this.sender.tab.id = tabId;
@@ -898,6 +890,14 @@
   populateKeyCommands();
 
   Settings.parseSearchEngines(Settings.get("searchEngines"));
+
+  shouldShowUpgradeMessage = (function() {
+    if (!Settings.get("previousVersion")) {
+      Settings.set("previousVersion", currentVersion);
+      return false;
+    }
+    return Utils.compareVersions(currentVersion, Settings.get("previousVersion")) === 1;
+  })();
 
   if (shouldShowUpgradeMessage) {
     sendRequestToAllTabs({
