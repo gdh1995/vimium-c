@@ -313,21 +313,39 @@
         if (wnd.incognito && tab.incognito) { return; }
         var options = {
           type: "normal",
+          tabId: tab.id,
           incognito: true
         }, url = tab.url;
         if (url.startsWith("chrome") && url.toLowerCase() !== Settings.ChromeInnerNewTab) {
           if (wnd.incognito) { return; }
-          options.tabId = tab.id;
         } else if (tab.incognito) {
-          options.tabId = tab.id;
-          return;
         } else {
           options.url = url;
         }
+        chrome.windows.getAll(function(wnds) {
+          wnds = wnds.filter(function(wnd) { return wnd.type === "normal" && wnd.incognito; });
+          if (wnds.length >= 1) {
+            var wndId = wnds[wnds.length - 1].id;
+            chrome.tabs.getSelected(wndId, function(tab2) {
+              if (options.url) {
+                chrome.tabs.create({url: options.url, index: tab2.index + 1, windowId: wndId});
+                chrome.tabs.remove(options.tabId);
+              } else {
+                chrome.tabs.move(options.tabId, {index: tab2.index + 1, windowId: wndId});
+              }
+              chrome.windows.update(wndId, {focused: true});
+            });
+          } else {
+            if (options.url) {
+              var tabId = options.tabId;
+              delete options.tabId;
+              chrome.windows.create(options);
+              chrome.tabs.remove(tabId);
+            } else {
         chrome.windows.create(options);
-        if (!("tabId" in options)) {
-          chrome.tabs.remove(tab.id);
         }
+          }
+        });
       });
     },
     enableImageTemp: function(tab) {
