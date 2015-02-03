@@ -313,7 +313,7 @@
         return;
       }
       chrome.windows.get(tab.windowId, function(wnd) {
-        if (wnd.incognito && Utils.isRefuseIncognito(url)) {
+        if (wnd.incognito && Utils.isRefuseIncognito(tab.url)) {
           while (--count > 0) {
             chrome.tabs.duplicate(tab.id);
           }
@@ -368,7 +368,7 @@
       selectTab(tab, -tab.index - 1);
     },
     removeTab: function(tab, count) {
-      if (!tab || tab.index > 1) {
+      if (tab.index > 0) {
         if (count > 1) {
           removeTabsRelative(tab, count);
         } else {
@@ -407,18 +407,14 @@
               toCreate = { windowId: tab.windowId };
             }
           }
-          curTabs = (count > 1) ? curTabs.filter(function(tab) {
-            return !tab.pinned;
-          }).map(function(tab) {
+          curTabs = (curTabs.length > 1) ? curTabs.map(function(tab) {
             return tab.id;
           }) : [tab.id];
           if (toCreate) {
             toCreate.url = url;
             chrome.tabs.create(toCreate);
           }
-          if (curTabs.length > 0) {
-            chrome.tabs.remove(curTabs);
-          }
+          chrome.tabs.remove(curTabs);
         });
       });
     },
@@ -491,7 +487,7 @@
         return !tab.pinned && tab.index !== activeTabIndex;
       } : (direction > 0) ? (direction += activeTabIndex, function(tab) {
         return tab.index >= activeTabIndex && tab.index < direction;
-      }) : (direction < 0) ? (direction = activeTabIndex - direction, function(tab) {
+      }) : (direction < 0) ? (direction += activeTabIndex, function(tab) {
         return !tab.pinned && tab.index <= activeTabIndex && tab.index > direction;
       }) : null;
       toRemove = [];
