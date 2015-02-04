@@ -71,8 +71,7 @@
       return;
     }
     this.setOpenLinkMode(mode || 0);
-    this.hintMarkers = this./**oldGetVisibleClickableElements/*/ //
-      getVisibleClickableElements/**/().map(this.createMarkerFor);
+    this.hintMarkers = this.getVisibleClickableElements().map(this.createMarkerFor);
     this.markerMatcher.fillInMarkers(this.hintMarkers);
     this.isActive = true;
     this.initScrollX = window.scrollX;
@@ -319,35 +318,6 @@
       }
     }
     return output;
-  },
-  oldGetVisibleClickableElements: function() {
-    var c, rect, element, img, cr0, map, rect, resultSet, visibleElements, _i, _ref;
-    resultSet = DomUtils.evaluateXPath(this.clickableElementsXPath, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE);
-    visibleElements = [];
-    for (_i = 0, _ref = resultSet.snapshotLength; _i < _ref; ++_i) {
-      element = resultSet.snapshotItem(_i);
-      rect = DomUtils.getVisibleClientRect(element, rect);
-      if (rect) {
-        visibleElements.push({
-          element: element,
-          rect: rect
-        });
-      }
-      else if (element.localName === "area") {
-        if ( (map = element.parentElement)
-          && (img = document.querySelector("img[usemap='#" + map.getAttribute("name") + "']"))
-          && (cr0 = img.getClientRects()[0]) ) {
-        } else {
-          continue;
-        }
-        c = element.coords.split(',').map(parseInt);
-        visibleElements.push({
-          element: element,
-          rect: [cr0[0].left + c[0], cr0[0].top + c[1], cr0[0].left + c[2], cr0[0].top + c[3]]
-        });
-      }
-    }
-    return visibleElements;
   },
   onKeyDownInMode: function(event) {
     var linksMatched, _i, _j, _ref, _limit;
