@@ -351,60 +351,52 @@
   onKeyDownInMode: function(event) {
     var delay, keyResult, linksMatched, _i, _len, _j, _ref, _len2;
     if (this.delayMode) {
-      return false;
-    }
-    if (KeyboardUtils.isEscape(event)) {
+    } else if (KeyboardUtils.isEscape(event)) {
       this.deactivateMode();
-      return false;
-    } else if (event.keyCode > keyCodes.f1 && event.keyCode <= keyCodes.f12) {
+    } else if ((_i = event.keyCode) > keyCodes.f1 && _i <= keyCodes.f12) {
       return true;
-    }
-    keyResult = this.markerMatcher.matchHintsByKey(this.hintMarkers, event, this.keyStatus);
-    linksMatched = keyResult.linksMatched;
-    delay = keyResult.delay || 0;
-    if (linksMatched.length === 0) {
-      this.deactivateMode();
-      return false;
-    }
-    if (event.keyCode === keyCodes.shiftKey) {
+    } else if (_i === keyCodes.shiftKey) {
       if (this.mode < 128) {
         this.setOpenLinkMode((this.mode | 1) ^ (this.mode < 64 ? 3 : 67));
       }
-    } else if (event.keyCode === keyCodes[keyCodes.modifier]) {
+    } else if (_i === keyCodes[keyCodes.modifier]) {
       if (this.mode < 128) {
         this.setOpenLinkMode((this.mode | 2) ^ 1);
       }
-    } else if (event.keyCode === keyCodes.altKey) {
-      if (this.mode >= 128) {
-        this.setOpenLinkMode(this.mode ^ 64);
-      } else {
-        this.setOpenLinkMode((this.mode | 2) ^ 64);
-      }
-    }
-    if (linksMatched.length === 1) {
-      if (linksMatched[0]) {
-        this.activateLink(linksMatched[0], delay);
-      }
+    } else if (_i === keyCodes.altKey) {
+      this.setOpenLinkMode((this.mode >= 128) ? (this.mode ^ 64) : ((this.mode | 2) ^ 64));
     } else {
-      for (_i = 0, linksMatched = this.hintMarkers, _len = linksMatched.length; _i < _len; _i++) {
-        linksMatched[_i].style.display = "none";
-      }
-      delay = this.markerMatcher.hintKeystrokeQueue.length;
-      if (this.keyStatus.tab) {
-        for (_i = 0, linksMatched = keyResult.linksMatched, _len = linksMatched.length; _i < _len; _i++) {
-          linksMatched[_i].style.display = "";
-          for (_j = 0, _ref = linksMatched[_i].childNodes, _len2 = Math.min(_ref.length, delay); _j < _len2; ++_j) {
-            _ref[_j].classList.remove("vimMC");
-          }
+      keyResult = this.markerMatcher.matchHintsByKey(this.hintMarkers, event, this.keyStatus);
+      linksMatched = keyResult.linksMatched;
+      if (linksMatched.length === 0) {
+        this.deactivateMode();
+      } else if (linksMatched.length === 1) {
+        if (linksMatched[0]) {
+          this.activateLink(linksMatched[0], keyResult.delay || 0);
         }
       } else {
-        for (_i = 0, linksMatched = keyResult.linksMatched, _len = linksMatched.length; _i < _len; _i++) {
-          linksMatched[_i].style.display = "";
-          for (_j = 0, _ref = linksMatched[_i].childNodes, _len2 = _ref.length; _j < _len2; ++_j) {
-            if (_j < delay) {
-              _ref[_j].classList.add("vimMC");
-            } else {
+        for (linksMatched = this.hintMarkers, _i = linksMatched.length; 0 <= --_i; ) {
+          linksMatched[_i].style.display = "none";
+        }
+        linksMatched = keyResult.linksMatched;
+        _i = linksMatched.length;
+        if (this.keyStatus.tab) {
+          while (0 <= --_i) {
+            linksMatched[_i].style.display = "";
+            for (_ref = linksMatched[_i].childNodes, _j = _ref.length; 0 <= --_j; ) {
               _ref[_j].classList.remove("vimMC");
+            }
+          }
+        } else {
+          delay = this.markerMatcher.hintKeystrokeQueue.length;
+          while (0 <= --_i) {
+            linksMatched[_i].style.display = "";
+            for (_j = 0, _ref = linksMatched[_i].childNodes, _len2 = _ref.length; _j < _len2; ++_j) {
+              if (_j < delay) {
+                _ref[_j].classList.add("vimMC");
+              } else {
+                _ref[_j].classList.remove("vimMC");
+              }
             }
           }
         }
