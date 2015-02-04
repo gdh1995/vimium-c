@@ -22,6 +22,7 @@
   mode: 0,
   delayMode: false,
   keyStatus: {
+    delay: 0,
     tab: false
   },
   handlerId: 0,
@@ -70,8 +71,7 @@
       return;
     }
     this.setOpenLinkMode(mode || 0);
-    this.hintMarkers = this./**oldGetVisibleClickableElements/*/ //
-      getVisibleClickableElements/**/().map(this.createMarkerFor);
+    this.hintMarkers = this.getVisibleClickableElements().map(this.createMarkerFor);
     this.markerMatcher.fillInMarkers(this.hintMarkers);
     this.isActive = true;
     this.initScrollX = window.scrollX;
@@ -319,94 +319,37 @@
     }
     return output;
   },
-  oldGetVisibleClickableElements: function() {
-    var c, rect, element, img, cr0, map, rect, resultSet, visibleElements, _i, _ref;
-    resultSet = DomUtils.evaluateXPath(this.clickableElementsXPath, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE);
-    visibleElements = [];
-    for (_i = 0, _ref = resultSet.snapshotLength; _i < _ref; ++_i) {
-      element = resultSet.snapshotItem(_i);
-      rect = DomUtils.getVisibleClientRect(element, rect);
-      if (rect) {
-        visibleElements.push({
-          element: element,
-          rect: rect
-        });
-      }
-      else if (element.localName === "area") {
-        if ( (map = element.parentElement)
-          && (img = document.querySelector("img[usemap='#" + map.getAttribute("name") + "']"))
-          && (cr0 = img.getClientRects()[0]) ) {
-        } else {
-          continue;
-        }
-        c = element.coords.split(',').map(parseInt);
-        visibleElements.push({
-          element: element,
-          rect: [cr0[0].left + c[0], cr0[0].top + c[1], cr0[0].left + c[2], cr0[0].top + c[3]]
-        });
-      }
-    }
-    return visibleElements;
-  },
   onKeyDownInMode: function(event) {
-    var delay, keyResult, linksMatched, _i, _len, _j, _ref, _len2;
+    var linksMatched, _i, _j, _ref, _limit;
     if (this.delayMode) {
-      return false;
-    }
-    if (KeyboardUtils.isEscape(event)) {
+    } else if (KeyboardUtils.isEscape(event)) {
       this.deactivateMode();
-      return false;
-    } else if (event.keyCode > keyCodes.f1 && event.keyCode <= keyCodes.f12) {
+    } else if ((_i = event.keyCode) > keyCodes.f1 && _i <= keyCodes.f12) {
       return true;
-    }
-    keyResult = this.markerMatcher.matchHintsByKey(this.hintMarkers, event, this.keyStatus);
-    linksMatched = keyResult.linksMatched;
-    delay = keyResult.delay || 0;
-    if (linksMatched.length === 0) {
-      this.deactivateMode();
-      return false;
-    }
-    if (event.keyCode === keyCodes.shiftKey) {
+    } else if (_i === keyCodes.shiftKey) {
       if (this.mode < 128) {
         this.setOpenLinkMode((this.mode | 1) ^ (this.mode < 64 ? 3 : 67));
       }
-    } else if (event.keyCode === keyCodes[keyCodes.modifier]) {
+    } else if (_i === keyCodes[keyCodes.modifier]) {
       if (this.mode < 128) {
         this.setOpenLinkMode((this.mode | 2) ^ 1);
       }
-    } else if (event.keyCode === keyCodes.altKey) {
-      if (this.mode >= 128) {
-        this.setOpenLinkMode(this.mode ^ 64);
-      } else {
-        this.setOpenLinkMode((this.mode | 2) ^ 64);
-      }
-    }
-    if (linksMatched.length === 1) {
-      if (linksMatched[0]) {
-        this.activateLink(linksMatched[0], delay);
-      }
+    } else if (_i === keyCodes.altKey) {
+      this.setOpenLinkMode((this.mode >= 128) ? (this.mode ^ 64) : ((this.mode | 2) ^ 64));
+    } else if (!(linksMatched = this.markerMatcher.matchHintsByKey(this.hintMarkers, event, this.keyStatus))){
+    } else if (linksMatched.length === 0) {
+      this.deactivateMode();
+    } else if (linksMatched.length === 1) {
+      this.activateLink(linksMatched[0], this.keyStatus.delay);
     } else {
-      for (_i = 0, linksMatched = this.hintMarkers, _len = linksMatched.length; _i < _len; _i++) {
-        linksMatched[_i].style.display = "none";
-      }
-      delay = this.markerMatcher.hintKeystrokeQueue.length;
-      if (this.keyStatus.tab) {
-        for (_i = 0, linksMatched = keyResult.linksMatched, _len = linksMatched.length; _i < _len; _i++) {
-          linksMatched[_i].style.display = "";
-          for (_j = 0, _ref = linksMatched[_i].childNodes, _len2 = Math.min(_ref.length, delay); _j < _len2; ++_j) {
-            _ref[_j].classList.remove("vimMC");
-          }
+      _limit = this.keyStatus.tab ? 0 : this.markerMatcher.hintKeystrokeQueue.length;
+      for (_i = linksMatched.length; 0 <= --_i; ) {
+        _ref = linksMatched[_i].childNodes;
+        for (_j = _ref.length; _limit <= --_j; ) {
+          _ref[_j].classList.remove("vimMC");
         }
-      } else {
-        for (_i = 0, linksMatched = keyResult.linksMatched, _len = linksMatched.length; _i < _len; _i++) {
-          linksMatched[_i].style.display = "";
-          for (_j = 0, _ref = linksMatched[_i].childNodes, _len2 = _ref.length; _j < _len2; ++_j) {
-            if (_j < delay) {
-              _ref[_j].classList.add("vimMC");
-            } else {
-              _ref[_j].classList.remove("vimMC");
-            }
-          }
+        for (; 0 <= _j; --_j) {
+          _ref[_j].classList.add("vimMC");
         }
       }
     }
@@ -549,7 +492,7 @@
     var keyChar, key = event.keyCode;
     if (key === keyCodes.tab) {
       if (this.hintKeystrokeQueue.length === 0) {
-        return { linksMatched: [ null ] };
+        return null;
       }
       keyStatus.tab = !keyStatus.tab;
     } else {
@@ -559,22 +502,25 @@
       }
       if (key === keyCodes.backspace || key === keyCodes.deleteKey || key === keyCodes.f1) {
         if (!this.hintKeystrokeQueue.pop()) {
-          return { linksMatched: [] };
+          return [];
         }
       } else if (keyChar = KeyboardUtils.getKeyChar(event).toLowerCase()) {
         this.hintKeystrokeQueue.push(keyChar);
       } else {
-        return { linksMatched: [null] };
+        return null;
       }
     }
     keyChar = this.hintKeystrokeQueue.join("");
-    return {
-      linksMatched: hintMarkers.filter(keyStatus.tab ? function(linkMarker) {
-        return ! linkMarker.hintString.startsWith(keyChar);
-      } : function(linkMarker) {
-        return linkMarker.hintString.startsWith(keyChar);
-      })
-    };
+    keyStatus.delay = 0;
+    return hintMarkers.filter(keyStatus.tab ? function(linkMarker) {
+      var pass = ! linkMarker.hintString.startsWith(keyChar);
+      linkMarker.style.display = pass ? "" : "none";
+      return pass;
+    } : function(linkMarker) {
+      var pass = linkMarker.hintString.startsWith(keyChar);
+      linkMarker.style.display = pass ? "" : "none";
+      return pass;
+    });
   },
   deactivate: function() {
     this.hintKeystrokeQueue = [];
@@ -654,7 +600,7 @@
     var key = event.keyCode, keyChar, userIsTypingLinkText = false, linksMatched;
     if (key === keyCodes.tab) {
       if (this.hintKeystrokeQueue.length === 0) {
-        return { linksMatched: [ null ] };
+        return null;
       }
       keyStatus.tab = !keyStatus.tab;
     } else if (key === keyCodes.enter) {
@@ -662,12 +608,11 @@
       for (var marker, _i = 0, _len = hintMarkers.length; _i < _len; _i++) {
         marker = hintMarkers[_i];
         if (marker.style.display !== "none") {
-          return {
-            linksMatched: [marker]
-          };
+          keyStatus.delay = 0;
+          return [marker];
         }
       }
-      return { linksMatched: [null] };
+      return null;
     } else {
       if (keyStatus.tab) {
         this.hintKeystrokeQueue = [];
@@ -675,9 +620,7 @@
       }
       if (key === keyCodes.backspace || key === keyCodes.deleteKey || key === keyCodes.f1) {
         if (!this.hintKeystrokeQueue.pop() && !this.linkTextKeystrokeQueue.pop()) {
-          return {
-            linksMatched: []
-          };
+          return [];
         }
       } else if (keyChar = KeyboardUtils.getKeyChar(event).toLowerCase()) {
         if ((settings.values.linkHintNumbers || "").indexOf(keyChar) >= 0) {
@@ -688,19 +631,21 @@
           userIsTypingLinkText = true;
         }
       } else {
-        return { linksMatched: [null] };
+        return null;
       }
     }
     keyChar = this.hintKeystrokeQueue.join("");
     linksMatched = this.filterLinkHints(hintMarkers).filter(keyStatus.tab ? function(linkMarker) {
-      return ! linkMarker.hintString.startsWith(keyChar);
+      var pass = ! linkMarker.hintString.startsWith(keyChar);
+      linkMarker.style.display = pass ? "" : "none";
+      return pass;
     } : function(linkMarker) {
-      return linkMarker.hintString.startsWith(keyChar);
+      var pass = linkMarker.hintString.startsWith(keyChar);
+      linkMarker.style.display = pass ? "" : "none";
+      return pass;
     });
-    return {
-      linksMatched: linksMatched,
-      delay: (linksMatched.length === 1 && userIsTypingLinkText) ? 200 : 0
-    };
+    keyStatus.delay = (linksMatched.length === 1 && userIsTypingLinkText) ? 200 : 0;
+    return linksMatched;
   },
   filterLinkHints: function(hintMarkers) {
     var linkMarker, linkSearchString, linksMatched, oldHintString, _i, _len, doLinkSearch;
@@ -710,16 +655,16 @@
     for (_i = 0, _len = hintMarkers.length; _i < _len; _i++) {
       linkMarker = hintMarkers[_i];
       if (doLinkSearch && linkMarker.linkTextLower.indexOf(linkSearchString) === -1) {
-        linkMarker.filtered = true;
-      } else {
-        linkMarker.filtered = false;
-        oldHintString = linkMarker.hintString;
-        linkMarker.hintString = this.generateHintString(linksMatched.length);
-        if (linkMarker.hintString !== oldHintString) {
-          this.renderMarker(linkMarker);
-        }
-        linksMatched.push(linkMarker);
+        linkMarker.style.display = "none";
+        continue;
       }
+      oldHintString = linkMarker.hintString;
+      linkMarker.hintString = this.generateHintString(linksMatched.length);
+      if (linkMarker.hintString !== oldHintString) {
+        this.renderMarker(linkMarker);
+      }
+      linkMarker.style.display = "";
+      linksMatched.push(linkMarker);
     }
     return linksMatched;
   },
