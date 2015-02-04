@@ -231,7 +231,7 @@
       case "textarea": isClickable = !element.disabled && !element.readOnly; break;
       case "input":
         isClickable = !(element.type === "hidden" || element.disabled //
-          || (element.readOnly && DomUtils.isSelectable(element)));
+          || (element.readOnly && DomUtils._unselectableTypes.indexOf(element.type) === -1));
         break;
       case "button": case "select": isClickable = !element.disabled; break;
       case "script": case "link": case "style":
