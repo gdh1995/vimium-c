@@ -22,6 +22,7 @@
   mode: 0,
   delayMode: false,
   keyStatus: {
+    delay: 0,
     tab: false
   },
   handlerId: 0,
@@ -349,7 +350,7 @@
     return visibleElements;
   },
   onKeyDownInMode: function(event) {
-    var delay, keyResult, linksMatched, _i, _len, _j, _ref, _len2;
+    var linksMatched, _i, _j, _ref, _limit;
     if (this.delayMode) {
     } else if (KeyboardUtils.isEscape(event)) {
       this.deactivateMode();
@@ -365,40 +366,20 @@
       }
     } else if (_i === keyCodes.altKey) {
       this.setOpenLinkMode((this.mode >= 128) ? (this.mode ^ 64) : ((this.mode | 2) ^ 64));
+    } else if (!(linksMatched = this.markerMatcher.matchHintsByKey(this.hintMarkers, event, this.keyStatus))){
+    } else if (linksMatched.length === 0) {
+      this.deactivateMode();
+    } else if (linksMatched.length === 1) {
+      this.activateLink(linksMatched[0], this.keyStatus.delay);
     } else {
-      keyResult = this.markerMatcher.matchHintsByKey(this.hintMarkers, event, this.keyStatus);
-      linksMatched = keyResult.linksMatched;
-      if (linksMatched.length === 0) {
-        this.deactivateMode();
-      } else if (linksMatched.length === 1) {
-        if (linksMatched[0]) {
-          this.activateLink(linksMatched[0], keyResult.delay || 0);
+      _limit = this.keyStatus.tab ? 0 : this.markerMatcher.hintKeystrokeQueue.length;
+      for (_i = linksMatched.length; 0 <= --_i; ) {
+        _ref = linksMatched[_i].childNodes;
+        for (_j = _ref.length; _limit <= --_j; ) {
+          _ref[_j].classList.remove("vimMC");
         }
-      } else {
-        for (linksMatched = this.hintMarkers, _i = linksMatched.length; 0 <= --_i; ) {
-          linksMatched[_i].style.display = "none";
-        }
-        linksMatched = keyResult.linksMatched;
-        _i = linksMatched.length;
-        if (this.keyStatus.tab) {
-          while (0 <= --_i) {
-            linksMatched[_i].style.display = "";
-            for (_ref = linksMatched[_i].childNodes, _j = _ref.length; 0 <= --_j; ) {
-              _ref[_j].classList.remove("vimMC");
-            }
-          }
-        } else {
-          delay = this.markerMatcher.hintKeystrokeQueue.length;
-          while (0 <= --_i) {
-            linksMatched[_i].style.display = "";
-            for (_j = 0, _ref = linksMatched[_i].childNodes, _len2 = _ref.length; _j < _len2; ++_j) {
-              if (_j < delay) {
-                _ref[_j].classList.add("vimMC");
-              } else {
-                _ref[_j].classList.remove("vimMC");
-              }
-            }
-          }
+        for (; 0 <= _j; --_j) {
+          _ref[_j].classList.add("vimMC");
         }
       }
     }
@@ -541,7 +522,7 @@
     var keyChar, key = event.keyCode;
     if (key === keyCodes.tab) {
       if (this.hintKeystrokeQueue.length === 0) {
-        return { linksMatched: [ null ] };
+        return null;
       }
       keyStatus.tab = !keyStatus.tab;
     } else {
@@ -551,22 +532,25 @@
       }
       if (key === keyCodes.backspace || key === keyCodes.deleteKey || key === keyCodes.f1) {
         if (!this.hintKeystrokeQueue.pop()) {
-          return { linksMatched: [] };
+          return [];
         }
       } else if (keyChar = KeyboardUtils.getKeyChar(event).toLowerCase()) {
         this.hintKeystrokeQueue.push(keyChar);
       } else {
-        return { linksMatched: [null] };
+        return null;
       }
     }
     keyChar = this.hintKeystrokeQueue.join("");
-    return {
-      linksMatched: hintMarkers.filter(keyStatus.tab ? function(linkMarker) {
-        return ! linkMarker.hintString.startsWith(keyChar);
-      } : function(linkMarker) {
-        return linkMarker.hintString.startsWith(keyChar);
-      })
-    };
+    keyStatus.delay = 0;
+    return hintMarkers.filter(keyStatus.tab ? function(linkMarker) {
+      var pass = ! linkMarker.hintString.startsWith(keyChar);
+      linkMarker.style.display = pass ? "" : "none";
+      return pass;
+    } : function(linkMarker) {
+      var pass = linkMarker.hintString.startsWith(keyChar);
+      linkMarker.style.display = pass ? "" : "none";
+      return pass;
+    });
   },
   deactivate: function() {
     this.hintKeystrokeQueue = [];
@@ -646,7 +630,7 @@
     var key = event.keyCode, keyChar, userIsTypingLinkText = false, linksMatched;
     if (key === keyCodes.tab) {
       if (this.hintKeystrokeQueue.length === 0) {
-        return { linksMatched: [ null ] };
+        return null;
       }
       keyStatus.tab = !keyStatus.tab;
     } else if (key === keyCodes.enter) {
@@ -654,12 +638,11 @@
       for (var marker, _i = 0, _len = hintMarkers.length; _i < _len; _i++) {
         marker = hintMarkers[_i];
         if (marker.style.display !== "none") {
-          return {
-            linksMatched: [marker]
-          };
+          keyStatus.delay = 0;
+          return [marker];
         }
       }
-      return { linksMatched: [null] };
+      return null;
     } else {
       if (keyStatus.tab) {
         this.hintKeystrokeQueue = [];
@@ -667,9 +650,7 @@
       }
       if (key === keyCodes.backspace || key === keyCodes.deleteKey || key === keyCodes.f1) {
         if (!this.hintKeystrokeQueue.pop() && !this.linkTextKeystrokeQueue.pop()) {
-          return {
-            linksMatched: []
-          };
+          return [];
         }
       } else if (keyChar = KeyboardUtils.getKeyChar(event).toLowerCase()) {
         if ((settings.values.linkHintNumbers || "").indexOf(keyChar) >= 0) {
@@ -680,19 +661,21 @@
           userIsTypingLinkText = true;
         }
       } else {
-        return { linksMatched: [null] };
+        return null;
       }
     }
     keyChar = this.hintKeystrokeQueue.join("");
     linksMatched = this.filterLinkHints(hintMarkers).filter(keyStatus.tab ? function(linkMarker) {
-      return ! linkMarker.hintString.startsWith(keyChar);
+      var pass = ! linkMarker.hintString.startsWith(keyChar);
+      linkMarker.style.display = pass ? "" : "none";
+      return pass;
     } : function(linkMarker) {
-      return linkMarker.hintString.startsWith(keyChar);
+      var pass = linkMarker.hintString.startsWith(keyChar);
+      linkMarker.style.display = pass ? "" : "none";
+      return pass;
     });
-    return {
-      linksMatched: linksMatched,
-      delay: (linksMatched.length === 1 && userIsTypingLinkText) ? 200 : 0
-    };
+    keyStatus.delay = (linksMatched.length === 1 && userIsTypingLinkText) ? 200 : 0;
+    return linksMatched;
   },
   filterLinkHints: function(hintMarkers) {
     var linkMarker, linkSearchString, linksMatched, oldHintString, _i, _len, doLinkSearch;
@@ -702,16 +685,16 @@
     for (_i = 0, _len = hintMarkers.length; _i < _len; _i++) {
       linkMarker = hintMarkers[_i];
       if (doLinkSearch && linkMarker.linkTextLower.indexOf(linkSearchString) === -1) {
-        linkMarker.filtered = true;
-      } else {
-        linkMarker.filtered = false;
-        oldHintString = linkMarker.hintString;
-        linkMarker.hintString = this.generateHintString(linksMatched.length);
-        if (linkMarker.hintString !== oldHintString) {
-          this.renderMarker(linkMarker);
-        }
-        linksMatched.push(linkMarker);
+        linkMarker.style.display = "none";
+        continue;
       }
+      oldHintString = linkMarker.hintString;
+      linkMarker.hintString = this.generateHintString(linksMatched.length);
+      if (linkMarker.hintString !== oldHintString) {
+        this.renderMarker(linkMarker);
+      }
+      linkMarker.style.display = "";
+      linksMatched.push(linkMarker);
     }
     return linksMatched;
   },
