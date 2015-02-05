@@ -7,12 +7,12 @@
     , findModeAnchorNode, findModeQuery, findModeQueryHasResults, focusFoundLink, followLink //
     , frameId, getNextQueryFromRegexMatches, handleDeleteForFindMode //
     , handleEnterForFindMode, handleEscapeForFindMode, handleKeyCharForFindMode, KeydownEvents //
-    , hideHelpDialog, initializePreDomReady, CursorHider //
+    , hideHelpDialog, CursorHider //
     , initializeWhenEnabled, insertModeLock, installListener, isDOMDescendant //
     , isEditable, isEmbed, isEnabledForUrl, isFocusable, isInsertMode, isPassKey, isShowingHelpDialog //
     , isValidFirstKey, keyQueue //
     , onKeydown, onKeypress, passKeys, performFindInPlace //
-    , registerFrame, restoreDefaultSelectionHighlight, root //
+    , restoreDefaultSelectionHighlight, root //
     , settings, showFindModeHUDForQuery, textInputXPath, oldActivated //
     , updateFindModeQuery, validFirstKeys, goBy, getVisibleInputs, mainPort, requestHandlers //
     ;
@@ -231,124 +231,6 @@ or @type="url" or @type="number" or @type="password" or not(@type))]',
     }
   };
 
-  initializePreDomReady = function() {
-    requestHandlers = {
-      settings: settings.ReceiveMessage,
-      reRegisterFrame: function() {
-        mainPort.postMessage({
-          handlerSettings: "rereg",
-          isTop: window.top === window.self,
-          frameId: ((document.body && document.body.nodeName.toLowerCase() === "frameset") ? NaN : frameId)
-        });
-      },
-      hideUpgradeNotification: function() {
-        HUD.hideUpgradeNotification();
-      },
-      showUpgradeNotification: function(request) {
-        HUD.showUpgradeNotification(request.version);
-      },
-      showHUDforDuration: function(request) {
-        HUD.showForDuration(request.text, request.duration);
-      },
-      toggleHelpDialog: function(request) {
-        if (isShowingHelpDialog) {
-          hideHelpDialog();
-        } else {
-          showHelpDialog(request.dialogHtml);
-        }
-      },
-      focusFrame: function(request) {
-        if (frameId !== request.frameId) { return; }
-        if (window.innerWidth < 3 || window.innerHeight < 3) {
-          mainPort.postMessage({
-            handler: "nextFrame",
-            frameId: frameId
-          });
-          return;
-        }
-        window.focus();
-        if (document.body && request.highlight) {
-          var borderWas = document.body.style.border;
-          document.body.style.border = '5px solid yellow';
-          setTimeout((function() {
-            document.body.style.border = borderWas;
-          }), 200);
-        }
-      },
-      refreshCompletionKeys: function(response) {
-        currentCompletionKeys = response.completionKeys;
-        keyQueue = response.keyQueue;
-        if (response.validFirstKeys) {
-          validFirstKeys = response.validFirstKeys;
-        }
-      },
-      getScrollPosition: function(request) {
-        return {
-          tabId: request.tabId,
-          scroll: [window.scrollX, window.scrollY]
-        };
-      },
-      setScrollPosition: function(request) {
-        var scrollX = request.scroll[0], scrollY = request.scroll[1];
-        if (scrollX > 0 || scrollY > 0) {
-          DomUtils.documentReady(function() {
-            window.scrollTo(scrollX, scrollY);
-          });
-        }
-      },
-      executePageCommand: function(request) {
-        if (frameId !== request.frameId) {
-          return;
-        }
-        if (request.count < 0) {
-          Utils.invokeCommandString(request.command, -request.count);
-        } else {
-          for (var i = 0, _ref = request.count; i < _ref; ++i) {
-            Utils.invokeCommandString(request.command);
-          }
-        }
-        requestHandlers.refreshCompletionKeys(request);
-      },
-      getActiveState: function() {
-        return {
-          enabled: isEnabledForUrl,
-          passKeys: passKeys
-        };
-      },
-      setState: function(request) {
-        if (request.enabled) {
-          initializeWhenEnabled(request.passKeys);
-        }
-        isEnabledForUrl = request.enabled;
-      }
-    };
-    chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
-      if (!(isEnabledForUrl || request.name === 'getActiveState' || request.name === 'setState')) {
-        return;
-      }
-      var handler = requestHandlers[request.name];
-      if (handler) {
-        handler = handler(request);
-        if (handler != null) {
-          sendResponse(handler);
-        }
-      }
-    });
-    Scroller.initPre();
-    settings.addEventListener("load", function() {
-      LinkHints.init();
-      Scroller.init();
-      CursorHider.init();
-      checkIfEnabledForUrl();
-    });
-    if (settings.load() < 0) {
-      // css will be rejected when the background gets "registerFrame"
-      settings.addEventListener("load", registerFrame);
-    } else {
-      DomUtils.documentReady(registerFrame);
-    }
-  };
-
   installListener = function(element, event, callback) {
     element.addEventListener(event, callback, true);
   };
@@ -393,34 +275,6 @@ or @type="url" or @type="number" or @type="password" or not(@type))]',
     mainPort.postMessage({
       handler: "frameFocused",
       frameId: frameId
-    });
-  });
-
-  registerFrame = function() {
-    if (isEnabledForUrl) {
-      enterInsertModeIfElementIsFocused();
-    }
-    mainPort.postMessage({
-      handler: "registerFrame",
-      isTop: window.top === window.self,
-      frameId: ((document.body && document.body.nodeName.toLowerCase() === "frameset") ? NaN : frameId)
-    });
-    Vomnibar.initNext();
-  };
-  
-  window.addEventListener("unload", function() {
-    mainPort.postMessage(window.top === window.self ? {
-      handlerSettings: "unreg",
-      frameId: frameId,
-      isTop: true,
-      title: document.title,
-      url: window.location.href,
-      scrollX: window.scrollX,
-      scrollY: window.scrollY
-    } : {
-      handlerSettings: "unreg",
-      frameId: frameId,
-      isTop: false,
     });
   });
 
@@ -1356,6 +1210,137 @@ href='https://github.com/philc/vimium#release-notes'>what's new</a>).<a class='v
 
   root.mainPort = mainPort;
   
-  initializePreDomReady();
+  requestHandlers = {
+    settings: settings.ReceiveMessage,
+    reRegisterFrame: function() {
+      mainPort.postMessage({
+        handlerSettings: "rereg",
+        isTop: window.top === window.self,
+        frameId: ((document.body && document.body.nodeName.toLowerCase() === "frameset") ? NaN : frameId)
+      });
+    },
+    hideUpgradeNotification: function() {
+      HUD.hideUpgradeNotification();
+    },
+    showUpgradeNotification: function(request) {
+      HUD.showUpgradeNotification(request.version);
+    },
+    showHUDforDuration: function(request) {
+      HUD.showForDuration(request.text, request.duration);
+    },
+    toggleHelpDialog: function(request) {
+      if (isShowingHelpDialog) {
+        hideHelpDialog();
+      } else {
+        showHelpDialog(request.dialogHtml);
+      }
+    },
+    focusFrame: function(request) {
+      if (frameId !== request.frameId) { return; }
+      if (window.innerWidth < 3 || window.innerHeight < 3) {
+        mainPort.postMessage({
+          handler: "nextFrame",
+          frameId: frameId
+        });
+        return;
+      }
+      window.focus();
+      if (document.body && request.highlight) {
+        var borderWas = document.body.style.border;
+        document.body.style.border = '5px solid yellow';
+        setTimeout((function() {
+          document.body.style.border = borderWas;
+        }), 200);
+      }
+    },
+    refreshCompletionKeys: function(response) {
+      currentCompletionKeys = response.completionKeys;
+      keyQueue = response.keyQueue;
+      if (response.validFirstKeys) {
+        validFirstKeys = response.validFirstKeys;
+      }
+    },
+    getScrollPosition: function(request) {
+      return {
+        tabId: request.tabId,
+        scroll: [window.scrollX, window.scrollY]
+      };
+    },
+    setScrollPosition: function(request) {
+      var scrollX = request.scroll[0], scrollY = request.scroll[1];
+      if (scrollX > 0 || scrollY > 0) {
+        DomUtils.documentReady(function() {
+          window.scrollTo(scrollX, scrollY);
+        });
+      }
+    },
+    executePageCommand: function(request) {
+      if (frameId !== request.frameId) {
+        return;
+      }
+      if (request.count < 0) {
+        Utils.invokeCommandString(request.command, -request.count);
+      } else {
+        for (var i = 0, _ref = request.count; i < _ref; ++i) {
+          Utils.invokeCommandString(request.command);
+        }
+      }
+      requestHandlers.refreshCompletionKeys(request);
+    },
+    getActiveState: function() {
+      return {
+        enabled: isEnabledForUrl,
+        passKeys: passKeys
+      };
+    },
+    setState: function(request) {
+      if (request.enabled) {
+        initializeWhenEnabled(request.passKeys);
+      }
+      isEnabledForUrl = request.enabled;
+    }
+  };
+  chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
+    if (!(isEnabledForUrl || request.name === 'getActiveState' || request.name === 'setState')) {
+      return;
+    }
+    var handler = requestHandlers[request.name];
+    if (handler) {
+      handler = handler(request);
+      if (handler != null) {
+        sendResponse(handler);
+      }
+    }
+  });
+  
+  Scroller.initPre();
+  settings.addEventListener("load", function() {
+    LinkHints.init();
+    Scroller.init();
+    CursorHider.init();
+    checkIfEnabledForUrl();
+  });
+  
+  ((settings.load() < 0)
+    ? settings.addEventListener.bind(settings, "load")
+    : DomUtils.documentReady.bind(DomUtils)
+  )(function() {
+    if (isEnabledForUrl) {
+      enterInsertModeIfElementIsFocused();
+    }
+    mainPort.postMessage({
+      handler: "registerFrame",
+      isTop: window.top === window.self,
+      frameId: ((document.body && document.body.nodeName.toLowerCase() === "frameset") ? NaN : frameId)
+    });
+    Vomnibar.initNext();
+    window.addEventListener("unload", function() {
+      mainPort.postMessage({
+        handlerSettings: "unreg",
+        frameId: frameId,
+        isTop: window.top === window.self,
+      });
+    });
+  });
 
 })();
