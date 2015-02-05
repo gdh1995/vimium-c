@@ -2,20 +2,21 @@
 (function() {
   "use strict";
   var HUD, Tween, checkIfEnabledForUrl, currentCompletionKeys, enterInsertModeIfElementIsFocused //
-    , enterInsertModeWithoutShowingIndicator, executeFind, executePageCommand, exitFindMode //
-    , exitInsertMode, findAndFocus, findAndFollowLink, findAndFollowRel, findMode, findChangeListened //
+    , enterInsertModeWithoutShowingIndicator, executeFind, exitFindMode //
+    , exitInsertMode, findAndFocus, findMode, findChangeListened //
     , findModeAnchorNode, findModeQuery, findModeQueryHasResults, focusFoundLink, followLink //
-    , frameId, getLinkFromSelection, getNextQueryFromRegexMatches, handleDeleteForFindMode //
+    , frameId, getNextQueryFromRegexMatches, handleDeleteForFindMode //
     , handleEnterForFindMode, handleEscapeForFindMode, handleKeyCharForFindMode, KeydownEvents //
-    , hasModifiersRegex, hideHelpDialog, initializePreDomReady, CursorHider //
-    , initializeWhenEnabled, insertModeLock, installListener, installedListeners, isDOMDescendant //
+    , hideHelpDialog, initializePreDomReady, CursorHider //
+    , initializeWhenEnabled, insertModeLock, installListener, isDOMDescendant //
     , isEditable, isEmbed, isEnabledForUrl, isFocusable, isInsertMode, isPassKey, isShowingHelpDialog //
-    , isValidFirstKey, keyQueue, onBlurCapturePhase, onDOMActivate, onFocusCapturePhase //
-    , onKeydown, onKeypress, onKeyup, passKeys, performFindInPlace, refreshCompletionKeys //
-    , registerFrame, restoreDefaultSelectionHighlight, root, selectFoundInputElement, setScrollPosition //
-    , setState, settings, showFindModeHUDForQuery, textInputXPath, unregisterFrame, oldActivated //
-    , updateFindModeQuery, validFirstKeys, goBy, getVisibleInputs, mainPort, requestHandlers;
-  
+    , isValidFirstKey, keyQueue //
+    , onKeydown, onKeypress, passKeys, performFindInPlace //
+    , registerFrame, restoreDefaultSelectionHighlight, root //
+    , settings, showFindModeHUDForQuery, textInputXPath, oldActivated //
+    , updateFindModeQuery, validFirstKeys, goBy, getVisibleInputs, mainPort, requestHandlers //
+    ;
+
   frameId = Math.floor(Math.random() * 999999997) + 2;
 
   insertModeLock = null;
@@ -51,9 +52,8 @@
   validFirstKeys = [];
 
   textInputXPath = DomUtils.makeXPath([
-    "input[not(@disabled or @readonly) and (" + ["text", "search", "email", "url", "number", "password"
-      ].map(function(type) { return '@type="' + type + '"'; }).join(" or ")
-      + "or not(@type))]",
+    'input[not(@disabled or @readonly) and (@type="text" or @type="search" or @type="email" \
+or @type="url" or @type="number" or @type="password" or not(@type))]',
     "textarea",
     "*[@contenteditable='' or translate(@contenteditable, 'TRUE', 'true')='true']"
   ]);
@@ -88,7 +88,7 @@
           || (request.handlerKey ? ("char = " + request.keyChar) : "")
           || request);
       }
-      var _ref, _i = new Date().getTime();
+      var _ref, _i = Date.now();
       if (this._hasCallbacks && _i > this._lastWaitTime + this.responseTimeout) {
         _ref = this._callbacks;
         this._hasCallbacks = false;
@@ -165,15 +165,18 @@
       return port;
     }
   };
+  mainPort.setListener(mainPort.DefaultListener);
 
   chrome.runtime._oriSendMessage = chrome.runtime.sendMessage;
   chrome.runtime.sendMessage = mainPort.postMessage.bind(mainPort);
   
   settings = {
     values: {},
-    valuesToLoad: ["scrollStepSize", "linkHintCharacters", "linkHintNumbers", "filterLinkHints"
-      , "hideHud", "previousPatterns", "nextPatterns", "findModeRawQuery", "regexFindMode"
-      , "helpDialog_showAdvancedCommands", "smoothScroll", "showOmniRelevancy"],
+    valuesToLoad: ["scrollStepSize", "linkHintCharacters", "linkHintNumbers", "filterLinkHints" //
+      , "hideHud", "previousPatterns", "nextPatterns", "findModeRawQuery", "regexFindMode" //
+      , "helpDialog_showAdvancedCommands", "smoothScroll", "showOmniRelevancy" //
+      , "findModeRawQueryList"
+    ],
     isLoaded: true,
     _eventListeners: {},
     autoRetryInterval: 2000,
@@ -212,7 +215,7 @@
       settings.isLoaded = true;
       ref = settings._eventListeners.load;
       settings._eventListeners.load = [];
-      for (i = ref.length; 0 <= --i; ) {
+      for (i = 0; i < ref.length; i++) {
         func = ref[i];
         if (typeof func === "function") {
           func();
@@ -227,8 +230,6 @@
       }
     }
   };
-
-  hasModifiersRegex = /^<([amc]-)+.>/;
 
   initializePreDomReady = function() {
     requestHandlers = {
@@ -257,11 +258,30 @@
         }
       },
       focusFrame: function(request) {
-        if (frameId === request.frameId) {
-          focusThisFrame(request.highlight);
+        if (frameId !== request.frameId) { return; }
+        if (window.innerWidth < 3 || window.innerHeight < 3) {
+          mainPort.postMessage({
+            handler: "nextFrame",
+            frameId: frameId
+          });
+          return;
+        }
+        window.focus();
+        if (document.body && request.highlight) {
+          var borderWas = document.body.style.border;
+          document.body.style.border = '5px solid yellow';
+          setTimeout((function() {
+            document.body.style.border = borderWas;
+          }), 200);
         }
       },
-      refreshCompletionKeys: refreshCompletionKeys,
+      refreshCompletionKeys: function(response) {
+        currentCompletionKeys = response.completionKeys;
+        keyQueue = response.keyQueue;
+        if (response.validFirstKeys) {
+          validFirstKeys = response.validFirstKeys;
+        }
+      },
       getScrollPosition: function(request) {
         return {
           tabId: request.tabId,
@@ -269,18 +289,39 @@
         };
       },
       setScrollPosition: function(request) {
-        setScrollPosition(request.scroll[0], request.scroll[1]);
+        var scrollX = request.scroll[0], scrollY = request.scroll[1];
+        if (scrollX > 0 || scrollY > 0) {
+          DomUtils.documentReady(function() {
+            window.scrollTo(scrollX, scrollY);
+          });
+        }
       },
-      executePageCommand: executePageCommand,
+      executePageCommand: function(request) {
+        if (frameId !== request.frameId) {
+          return;
+        }
+        if (request.count < 0) {
+          Utils.invokeCommandString(request.command, -request.count);
+        } else {
+          for (var i = 0, _ref = request.count; i < _ref; ++i) {
+            Utils.invokeCommandString(request.command);
+          }
+        }
+        requestHandlers.refreshCompletionKeys(request);
+      },
       getActiveState: function() {
         return {
           enabled: isEnabledForUrl,
           passKeys: passKeys
         };
       },
-      setState: setState
+      setState: function(request) {
+        if (request.enabled) {
+          initializeWhenEnabled(request.passKeys);
+        }
+        isEnabledForUrl = request.enabled;
+      }
     };
-    mainPort.setListener(mainPort.DefaultListener);
     chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
       if (!(isEnabledForUrl || request.name === 'getActiveState' || request.name === 'setState')) {
         return;
@@ -293,17 +334,18 @@
         }
       }
     });
+    Scroller.initPre();
     settings.addEventListener("load", function() {
       LinkHints.init();
-      Scroller.setSmoothScroll(settings.values.smoothScroll ? true : false);
-      checkIfEnabledForUrl();
+      Scroller.init();
       CursorHider.init();
-      Vomnibar.init();
+      checkIfEnabledForUrl();
     });
-    Scroller.init();
     if (settings.load() < 0) {
       // css will be rejected when the background gets "registerFrame"
       settings.addEventListener("load", registerFrame);
+    } else {
+      DomUtils.documentReady(registerFrame);
     }
   };
 
@@ -311,28 +353,41 @@
     element.addEventListener(event, callback, true);
   };
 
-  installedListeners = false;
-
   initializeWhenEnabled = function(newPassKeys) {
     passKeys = newPassKeys;
-    if (!installedListeners) {
-      installedListeners = true;
-      window.addEventListener("keydown", onKeydown, true);
-      window.addEventListener("keypress", onKeypress, true);
-      window.addEventListener("keyup", onKeyup, true);
-      document.addEventListener("focus", onFocusCapturePhase, true);
-      document.addEventListener("blur", onBlurCapturePhase, true);
-      document.addEventListener("DOMActivate", onDOMActivate, true);
-      enterInsertModeIfElementIsFocused();
-    }
+    if (initializeWhenEnabled.installed) { return; }
+    initializeWhenEnabled.installed = true;
+    window.addEventListener("keydown", onKeydown, true);
+    window.addEventListener("keypress", onKeypress, true);
+    window.addEventListener("keyup", function(event) {
+      if (isEnabledForUrl) {
+        var handledKeydown = KeydownEvents.pop(event);
+        if (handlerStack.bubbleEvent("keyup", event) && handledKeydown) {
+          DomUtils.suppressPropagation(event);
+        }
+      }
+    }, true);
+    document.addEventListener("focus", function(event) {
+      if (isEnabledForUrl && isFocusable(event.target) && !findMode) {
+        enterInsertModeWithoutShowingIndicator(event.target);
+        if (!oldActivated) {
+          oldActivated = event.target;
+        }
+      }
+    }, true);
+    document.addEventListener("blur", function(event) {
+      if (isEnabledForUrl && isFocusable(event.target)) {
+        exitInsertMode(event.target);
+      }
+    }, true);
+    document.addEventListener("DOMActivate", function(event) {
+      if (isEnabledForUrl) {
+        handlerStack.bubbleEvent('DOMActivate', event);
+      }
+    }, true);
+    enterInsertModeIfElementIsFocused();
   };
-
-  setState = function(request) {
-    if (request.enabled) {
-      initializeWhenEnabled(request.passKeys);
-    }
-    isEnabledForUrl = request.enabled;
-  };
+  initializeWhenEnabled.installed = false;
 
   window.addEventListener("focus", function() {
     mainPort.postMessage({
@@ -350,10 +405,10 @@
       isTop: window.top === window.self,
       frameId: ((document.body && document.body.nodeName.toLowerCase() === "frameset") ? NaN : frameId)
     });
-    Vomnibar.init();
+    Vomnibar.initNext();
   };
   
-  unregisterFrame = function() {
+  window.addEventListener("unload", function() {
     mainPort.postMessage(window.top === window.self ? {
       handlerSettings: "unreg",
       frameId: frameId,
@@ -367,58 +422,11 @@
       frameId: frameId,
       isTop: false,
     });
-  };
+  });
 
   enterInsertModeIfElementIsFocused = function() {
     if (document.activeElement && isEditable(document.activeElement) && !findMode) {
       enterInsertModeWithoutShowingIndicator(document.activeElement);
-    }
-  };
-
-  onDOMActivate = function(event) {
-    if (isEnabledForUrl) {
-      handlerStack.bubbleEvent('DOMActivate', event);
-    }
-  };
-
-  executePageCommand = function(request) {
-    if (frameId !== request.frameId) {
-      return;
-    }
-    if (request.count < 0) {
-      Utils.invokeCommandString(request.command, -request.count);
-    } else {
-      for (var i = 0, _ref = request.count; i < _ref; ++i) {
-        Utils.invokeCommandString(request.command);
-      }
-    }
-    refreshCompletionKeys(request);
-  };
-
-  setScrollPosition = function(scrollX, scrollY) {
-    if (scrollX > 0 || scrollY > 0) {
-      DomUtils.documentReady(function() {
-        window.scrollTo(scrollX, scrollY);
-      });
-    }
-  };
-
-  window.focusThisFrame = function(shouldHighlight) {
-    var borderWas;
-    if (window.innerWidth < 3 || window.innerHeight < 3) {
-      mainPort.postMessage({
-        handler: "nextFrame",
-        frameId: frameId
-      });
-      return;
-    }
-    window.focus();
-    if (document.body && shouldHighlight) {
-      borderWas = document.body.style.border;
-      document.body.style.border = '5px solid yellow';
-      setTimeout((function() {
-        document.body.style.border = borderWas;
-      }), 200);
     }
   };
 
@@ -743,24 +751,15 @@
     KeydownEvents.push(event);
   };
 
-  onKeyup = function(event) {
-    if (isEnabledForUrl) {
-      var handledKeydown = KeydownEvents.pop(event);
-      if (handlerStack.bubbleEvent("keyup", event) && handledKeydown) {
-        DomUtils.suppressPropagation(event);
-      }
-    }
-  };
-
   checkIfEnabledForUrl = function() {
     mainPort.postMessage({
       handler: "isEnabledForUrl",
       url: window.location.toString()
     }, function(response) {
       if (response && response.enabled) {
-        initializeWhenEnabled(response.passKeys);
-        refreshCompletionKeys(response);
         isEnabledForUrl = true;
+        initializeWhenEnabled(response.passKeys);
+        requestHandlers.refreshCompletionKeys(response);
         return;
       }
       isEnabledForUrl = false;
@@ -770,37 +769,8 @@
     });
   };
 
-  refreshCompletionKeys = function(response) {
-    if (response) {
-      currentCompletionKeys = response.completionKeys;
-      keyQueue = response.keyQueue;
-      if (response.validFirstKeys) {
-        validFirstKeys = response.validFirstKeys;
-      }
-    } else {
-      mainPort.postMessage({
-        handler: "getCompletionKeys"
-      });
-    }
-  };
-
   isValidFirstKey = function(keyChar) {
     return validFirstKeys[keyChar] || /^[1-9]/.test(keyChar);
-  };
-
-  onFocusCapturePhase = function(event) {
-    if (isEnabledForUrl && isFocusable(event.target) && !findMode) {
-      enterInsertModeWithoutShowingIndicator(event.target);
-      if (!oldActivated) {
-        oldActivated = event.target;
-      }
-    }
-  };
-
-  onBlurCapturePhase = function(event) {
-    if (isEnabledForUrl && isFocusable(event.target)) {
-      exitInsertMode(event.target);
-    }
   };
 
   isFocusable = function(element) {
@@ -914,7 +884,12 @@
       window.getSelection().removeAllRanges();
       window.getSelection().addRange(range);
     }
-    focusFoundLink() || selectFoundInputElement();
+    if (focusFoundLink()) { return; }
+    if (findModeQueryHasResults && document.activeElement && DomUtils.isSelectable(document.activeElement) //
+      && isDOMDescendant(findModeAnchorNode, document.activeElement)) {
+      DomUtils.simulateSelect(document.activeElement);
+      enterInsertModeWithoutShowingIndicator(document.activeElement);
+    }
   };
 
   handleDeleteForFindMode = function() {
@@ -975,9 +950,12 @@
 
   focusFoundLink = function() {
     if (findModeQueryHasResults) {
-      var link = getLinkFromSelection();
-      if (link) {
-        return link.focus ? link.focus() : false;
+      var link, node = window.getSelection().anchorNode;
+      while (node && node !== document.body) {
+        if (node.nodeName.toLowerCase() === "a") {
+          return node.focus ? node.focus() : false;
+        }
+        node = node.parentNode;
       }
     }
     return false;
@@ -991,13 +969,6 @@
       node = node.parentNode;
     }
     return false;
-  };
-
-  selectFoundInputElement = function() {
-    if (findModeQueryHasResults && document.activeElement && DomUtils.isSelectable(document.activeElement) && isDOMDescendant(findModeAnchorNode, document.activeElement)) {
-      DomUtils.simulateSelect(document.activeElement);
-      enterInsertModeWithoutShowingIndicator(document.activeElement);
-    }
   };
 
   getNextQueryFromRegexMatches = function(stepSize) {
@@ -1052,17 +1023,6 @@
     findAndFocus(true);
   };
 
-  getLinkFromSelection = function() {
-    var node = window.getSelection().anchorNode;
-    while (node && node !== document.body) {
-      if (node.nodeName.toLowerCase() === "a") {
-        return node;
-      }
-      node = node.parentNode;
-    }
-    return null;
-  };
-
   followLink = function(linkElement) {
     if (linkElement.nodeName.toLowerCase() === "link") {
       window.location.href = linkElement.href;
@@ -1072,8 +1032,20 @@
       DomUtils.simulateClick(linkElement);
     }
   };
+  
+  goBy = function(relName, pattern) {
+    if (relName && typeof relName === "string" && goBy.findAndFollowRel(relName)) {
+      return true;
+    }
+    pattern = typeof pattern === "string" && (pattern = pattern.trim())
+      ? pattern.toLowerCase().split(/\s*,\s*/).filter(function(s) { return s.length;})
+      : (pattern instanceof Array) ? pattern : [];
+    if (pattern.length > 0) {
+      goBy.findAndFollowLink(pattern);
+    }
+  };
 
-  findAndFollowLink = function(linkStrings) {
+  goBy.findAndFollowLink = function(linkStrings) {
     var boundingClientRect, candidateLinks, computedStyle, exactWordRegex, link, linkString, links, linksXPath, _i, _j, _len, _len1;
     linksXPath = DomUtils.makeXPath(["a", "*[@onclick or @role='link' or contains(@class, 'button')]"]);
     links = DomUtils.evaluateXPath(linksXPath, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE);
@@ -1127,7 +1099,7 @@
     return false;
   };
 
-  findAndFollowRel = function(value) {
+  goBy.findAndFollowRel = function(value) {
     var element, elements, relTags, tag, _i, _j, _len, _len1;
     relTags = ["link", "a", "area"];
     for (_i = 0, _len = relTags.length; _i < _len; _i++) {
@@ -1143,26 +1115,13 @@
     }
     return false;
   };
-  
-  goBy = function(relName, pattern) {
-    if (relName && typeof relName === "string" && findAndFollowRel(relName)) {
-      return true;
-    }
-    pattern = (typeof pattern === "string") ? pattern.trim().toLowerCase()
-      .split(/[ \t]*,[ \t,]*/).filter(function(s) {
-        return s.length;
-      }) : (pattern instanceof Array) ? pattern : [];
-    if (pattern.length > 0) {
-      findAndFollowLink(pattern);
-    }
-  };
 
   window.goPrevious = function() {
-    goBy("prev", settings.values.previousPatterns || []);
+    goBy("prev", settings.values.previousPatterns || "");
   };
 
   window.goNext = function() {
-    goBy("next", settings.values.nextPatterns || []);
+    goBy("next", settings.values.nextPatterns || "");
   };
 
   showFindModeHUDForQuery = function() {
@@ -1174,9 +1133,7 @@
   };
 
   window.enterFindMode = function() {
-    findModeQuery = {
-      rawQuery: ""
-    };
+    findModeQuery.rawQuery = "";
     findMode = true;
     HUD.show("/");
   };
@@ -1333,7 +1290,7 @@ href='https://github.com/philc/vimium#release-notes'>what's new</a>).<a class='v
     fade: function(element, toAlpha, duration, onComplete) {
       var state = {
         duration: duration,
-        startTime: (new Date()).getTime(),
+        startTime: Date.now(),
         from: parseInt(element.style.opacity) || 0,
         to: toAlpha,
         onUpdate: null,
@@ -1350,7 +1307,7 @@ href='https://github.com/philc/vimium#release-notes'>what's new</a>).<a class='v
       }), 50);
     },
     performTweenStep: function(state) {
-      var elapsed = (new Date()).getTime() - state.startTime;
+      var elapsed = Date.now() - state.startTime;
       if (elapsed >= state.duration) {
         clearInterval(state.timerId);
         state.onUpdate(state.to);
@@ -1393,8 +1350,6 @@ href='https://github.com/philc/vimium#release-notes'>what's new</a>).<a class='v
 
   root.HUD = HUD;
 
-  root.handlerStack = handlerStack;
-  
   root.KeydownEvents = KeydownEvents;
 
   root.frameId = frameId;
@@ -1402,9 +1357,5 @@ href='https://github.com/philc/vimium#release-notes'>what's new</a>).<a class='v
   root.mainPort = mainPort;
   
   initializePreDomReady();
-
-  window.addEventListener("unload", unregisterFrame);
-
-  DomUtils.documentReady(registerFrame);
 
 })();

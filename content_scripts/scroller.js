@@ -203,7 +203,7 @@
   };
 
   (typeof exports !== "undefined" && exports !== null ? exports : window).Scroller = {
-    init: function() {
+    initPre: function() {
       handlerStack.push({
         DOMActivate: function(event) {
           activatedElement = event.target;
@@ -212,8 +212,8 @@
       });
       CoreScroller.init();
     },
-    setSmoothScroll: function(smoothScroll) {
-      CoreScroller.smoothScroll = smoothScroll;
+    init: function() {
+      CoreScroller.smoothScroll = settings.values.smoothScroll ? true : false;
     },
     getActivatedElement: function() {
       return activatedElement;

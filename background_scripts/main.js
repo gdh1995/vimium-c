@@ -870,7 +870,6 @@
 
   // function Port::* (request, Tab tab) const;
   requestHandlers = {
-    getCompletionKeys: getCompletionKeysRequest,
     getCurrentTabUrl: function(_0, tab) {
       return tab.url;
     },

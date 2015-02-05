@@ -6,7 +6,7 @@
   _completerInited: false,
   defaultRefreshInterval: 500,
   background: null,
-  init: function() {
+  initNext: function() {
   },
   activateWithCompleter: function(completerName, selectFirstResult, forceNewTab, initialQueryValue) {
     var completer = this.background.Completer, vomnibarUI = this.vomnibarUI;
