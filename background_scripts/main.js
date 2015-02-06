@@ -693,10 +693,7 @@
   };
   
   postResponse = function(port, msgId, response) {
-    port.postMessage({
-      _msgId: msgId,
-      response: response
-    });
+    port.postMessage({_msgId: msgId, response: response});
   };
 
   handleMainPort = function(request, port) {
@@ -711,7 +708,7 @@
             chrome.tabs.getSelected(null, handleResponse.bind(port, msgId, func, request));
           }
         } else {
-          port.postMessage({_msgId: msgId});
+          postResponse(port, msgId);
         }
       }
       else if (key = request.handlerOmni) {
@@ -991,20 +988,26 @@
   
   Settings.parseSearchEngines(Settings.get("searchEngines"));
 
-  shouldShowUpgradeMessage = (function() {
-    if (!Settings.get("previousVersion")) {
-      Settings.set("previousVersion", currentVersion);
-      return false;
-    }
-    return Utils.compareVersions(currentVersion, Settings.get("previousVersion")) === 1;
-  })();
-
-  sendRequestToAllTabs({
-    name: "reRegisterFrame"
-  });
+  shouldShowActionIcon = false;
+  root.setShouldShowActionIcon(Settings.get("showActionIcon") === true);
 
   (function() {
-    var ref = filesContent, key, url, callback = function(key, content, code) {
+    var ref, key, url, callback;
+    
+    key = Settings.get("previousVersion");
+    if (!key) {
+      Settings.set("previousVersion", currentVersion);
+      shouldShowUpgradeMessage = false;
+    } else {
+      shouldShowUpgradeMessage = (Utils.compareVersions(currentVersion, key) === 1);
+    }
+
+    sendRequestToAllTabs({
+      name: "reRegisterFrame"
+    });
+
+    ref = filesContent;
+    callback = function(key, content, code) {
       if (code === 200) {
         this[key] = content;
       } else {
@@ -1018,18 +1021,13 @@
       ref[key] = "";
       fetchHttpContents(url, callback.bind(ref, key));
     }
-  })();
-  
-  shouldShowActionIcon = false;
-  root.setShouldShowActionIcon(Settings.get("showActionIcon") === true);
 
-  if (typeof Sync === "object" && typeof Sync.init === "function" && Settings.get("vimSync") === true) {
-    Sync.init();
-  } else {
-    (function () {
+    if (typeof Sync === "object" && typeof Sync.init === "function" && Settings.get("vimSync") === true) {
+      Sync.init();
+    } else {
       var blank = function() {};
       root.Sync = {debug: false, clear: blank, set: blank, init: blank};
-    })();
-  }
+    }
+  })();
 
 })();
