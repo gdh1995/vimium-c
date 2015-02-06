@@ -734,8 +734,8 @@
         }
         port.postMessage({
           name: "settings",
-          keys: request.keys,
-          values: values
+          values: values,
+          response: (request = request.request) && requestHandlers[request.handler].call(port, request)
         });
       } else if (key === "set") {
         Settings.set(request.key, request.value);
@@ -870,7 +870,6 @@
 
   // function Port::* (request, Tab tab) const;
   requestHandlers = {
-    getCompletionKeys: getCompletionKeysRequest,
     getCurrentTabUrl: function(_0, tab) {
       return tab.url;
     },
