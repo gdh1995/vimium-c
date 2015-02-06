@@ -63,6 +63,7 @@
   completer: null,
   completionInput: {
     url: "",
+    type: "search",
     action: "navigateToUrl"
   },
   list: null,
@@ -117,7 +118,8 @@
     this.completions = [];
   },
   reset: function(input) {
-    this.completionInput.url = input || "";
+    input = input ? input.trimLeft() : "";
+    this.completionInput.url = input.trimRight();
     this.update(0, this.show);
   },
   update: function(updateDelay, callback) {
@@ -254,9 +256,11 @@
     var i = this.selection, ref = this.list.children;
     if (i >= 0 && i < ref.length) {
       i = + ref[this.selection].getAttribute("data-vim-index");
-      if (!(i >= -1 && i < this.completions.length)) {
+      if (!(i >= 0 && i < this.completions.length)) {
         return;
       }
+    } else {
+      i = -1;
     }
     this.performAction(this.completions[i], this.openInNewTab);
     this.hide();
@@ -282,10 +286,11 @@
     DomUtils.suppressEvent(event);
   },
   onInput: function() {
-    if (this.completions[this.selection].url.trimRight() != this.input.value.trim()) {
+    var str = this.input.value.trimLeft();
+    if (this.completions[this.selection].url.trimRight() != str.trimRight()) {
       this.update();
+      this.completionInput.url = str;
     }
-    this.completionInput.url = this.input.value.trimLeft();
     return false;
   },
   onTimer: function() {
@@ -381,7 +386,7 @@
       this._callback = callback;
       this._id = mainPort.postMessage({
         handlerOmni: this.name,
-        query: query.replace(this.whiteSpaceRegex, ' ').trim()
+        query: query && query.trim().replace(this.whiteSpaceRegex, ' ')
       }, this.onFilter);
     },
     whiteSpaceRegex: /\s+/g,
@@ -503,9 +508,16 @@
         script.textContent = this.url.substring(11);
         (document.documentElement || document.body || document.head).appendChild(script);
       } else {
+        if (this.type === "search") {
+          this.url = this.url.trim();
+          try {
+            this.url = encodeURI(this.url);
+          } catch (e) {
+          }
+        }
         mainPort.postMessage({
           handler: openInNewTab ? "openUrlInNewTab" : "openUrlInCurrentTab",
-          url: this.url.trimRight()
+          url: this.url
         });
       }
     },
