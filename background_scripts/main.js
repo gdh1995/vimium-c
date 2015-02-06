@@ -3,7 +3,7 @@
   "use strict";
   var BackgroundCommands, checkKeyQueue, completers, currentVersion //
     , fetchHttpContents, frameIdsForTab, generateCompletionKeys, IncognitoContentSettings //
-    , handleMainPort, handleResponse //
+    , handleMainPort, handleResponse, postResponse //
     , getActualKeyStrokeLength, getCompletionKeysRequest //
     , helpDialogHtmlForCommandGroup, keyQueue, moveTab, namedKeyRegex //
     , openMultiTab //
@@ -688,20 +688,37 @@
 
   splitKeyQueueRegex = /([1-9][0-9]*)?(.*)/;
 
-  handleResponse = function(func, msgId, request, tab) {
-    var response = func.call(this, request, tab);
-    this.postMessage({
+  handleResponse = function(msgId, func, request, tab) {
+    postResponse(this, msgId, func.call(this, request, tab));
+  };
+  
+  postResponse = function(port, msgId, response) {
+    port.postMessage({
       _msgId: msgId,
       response: response
     });
   };
 
   handleMainPort = function(request, port) {
-    var key, func, msgId = request._msgId;
-    if (msgId) {
+    var key, func, msgId;
+    if (msgId = request._msgId) {
       request = request.request;
+      if (key = request.handler) {
+        if (func = requestHandlers[key]) {
+          if (func.noTab) {
+            postResponse(port, msgId, func.call(port, request));
+          } else {
+            chrome.tabs.getSelected(null, handleResponse.bind(port, msgId, func, request));
+          }
+        } else {
+          port.postMessage({_msgId: msgId});
+        }
+      }
+      else if (key = request.handlerOmni) {
+        completers[key].filter(request.query ? request.query.trim().split(/\s+/) : [], postResponse.bind(null, port, msgId));
+      }
     }
-    if (key = request.handlerKey) {
+    else if (key = request.handlerKey) {
       if (key === "<esc>") {
         key = "";
       } else {
@@ -714,18 +731,8 @@
     }
     else if (key = request.handler) {
       if (func = requestHandlers[key]) {
-        chrome.tabs.getSelected(null, msgId
-          ? handleResponse.bind(port, func, msgId, request)
-          : func.bind(port, request));
+        func.noTab ? func.call(port, request) : chrome.tabs.getSelected(null, func.bind(port, request));
       }
-    }
-    else if (key = request.handlerOmni) {
-      completers[key].filter(request.query ? request.query.trim().split(/\s+/) : [], function(results) {
-        port.postMessage({
-          _msgId: msgId,
-          response: results
-        });
-      });
     }
     else if (key = request.handlerSettings) {
       if (key === "get") {
@@ -735,7 +742,8 @@
         port.postMessage({
           name: "settings",
           values: values,
-          response: (request = request.request) && requestHandlers[request.handler].call(port, request)
+          response: (request = request.request) && (func = requestHandlers[request.handler]) // && func.noTab
+            && func.call(port, request)
         });
       } else if (key === "set") {
         Settings.set(request.key, request.value);
