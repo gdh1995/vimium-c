@@ -63,7 +63,8 @@
   completer: null,
   completionInput: {
     url: "",
-    type: "search",
+    text: "",
+    type: "input",
     action: "navigateToUrl"
   },
   list: null,
@@ -89,7 +90,7 @@
       return;
     }
     this.box.style.display = "";
-    this.input.value = this.completionInput.url;
+    this.input.value = this.completionInput.text;
     this.input.focus();
     this.focused = true;
     this.input.addEventListener("input", this.onInput);
@@ -119,6 +120,7 @@
   },
   reset: function(input) {
     input = input ? input.trimLeft() : "";
+    this.completionInput.text = input;
     this.completionInput.url = input.trimRight();
     this.update(0, this.show);
   },
@@ -151,6 +153,16 @@
     }
     this.isSelectionChanged = false;
     this.updateSelection();
+  },
+  updateInput: function() {
+    if (this.selection === -1) {
+      this.input.focus();
+      this.input.value = this.completionInput.text;
+    } else {
+      if (!this.focused) this.input.blur();
+      this.input.value = this.completions[this.selection].url;
+    }
+    // TODO: judge what to do: stay, decode or encode
   },
   updateSelection: function() {
     for (var _i = 0, _ref = this.list.children, selected = this.selection; _i < _ref.length; ++_i) {
@@ -223,21 +235,14 @@
       this.isSelectionChanged = true;
       if (this.selection < 0) this.selection = this.completions.length;
       this.selection -= 1;
-      if (this.selection === -1) this.input.focus();
-      else if (!this.focused) this.input.blur();
-      this.input.value = this.completions[this.selection].url;
+      this.updateInput();
       this.updateSelection();
       break;
     case "down":
       this.isSelectionChanged = true;
       this.selection += 1;
-      if (this.selection >= this.completions.length) {
-        this.selection = -1;
-        this.input.focus();
-      } else if (!this.focused) {
-        this.input.blur();
-      }
-      this.input.value = this.completions[this.selection].url;
+      if (this.selection >= this.completions.length) this.selection = -1;
+      this.updateInput(); 
       this.updateSelection();
       break;
     case "enter":
@@ -287,7 +292,9 @@
   },
   onInput: function() {
     var str = this.input.value.trimLeft();
-    if (this.completions[this.selection].url.trimRight() != str.trimRight()) {
+    this.completionInput.text = str;
+    str = str.trimRight();
+    if (this.completions[this.selection].url != str) {
       this.update();
       this.completionInput.url = str;
     }
@@ -508,8 +515,8 @@
         script.textContent = this.url.substring(11);
         (document.documentElement || document.body || document.head).appendChild(script);
       } else {
-        if (this.type === "search") {
-          this.url = encodeURI(this.url.trim());
+        if (this.type === "input") {
+          this.url = (this.url); // TODO: fix the bug of duplicate encodeURI
         }
         mainPort.postMessage({
           handler: openInNewTab ? "openUrlInNewTab" : "openUrlInCurrentTab",
