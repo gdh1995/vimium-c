@@ -509,11 +509,7 @@
         (document.documentElement || document.body || document.head).appendChild(script);
       } else {
         if (this.type === "search") {
-          this.url = this.url.trim();
-          try {
-            this.url = encodeURI(this.url);
-          } catch (e) {
-          }
+          this.url = encodeURI(this.url.trim());
         }
         mainPort.postMessage({
           handler: openInNewTab ? "openUrlInNewTab" : "openUrlInCurrentTab",
