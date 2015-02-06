@@ -702,10 +702,10 @@
       request = request.request;
       if (key = request.handler) {
         if (func = requestHandlers[key]) {
-          if (func.noTab) {
-            postResponse(port, msgId, func.call(port, request));
-          } else {
+          if (func.useTab) {
             chrome.tabs.getSelected(null, handleResponse.bind(port, msgId, func, request));
+          } else {
+            postResponse(port, msgId, func.call(port, request));
           }
         } else {
           postResponse(port, msgId);
@@ -728,7 +728,7 @@
     }
     else if (key = request.handler) {
       if (func = requestHandlers[key]) {
-        func.noTab ? func.call(port, request) : chrome.tabs.getSelected(null, func.bind(port, request));
+        func.useTab ? chrome.tabs.getSelected(null, func.bind(port, request)) : func.call(port, request);
       }
     }
     else if (key = request.handlerSettings) {
@@ -739,8 +739,8 @@
         port.postMessage({
           name: "settings",
           values: values,
-          response: (request = request.request) && (func = requestHandlers[request.handler]) // && func.noTab
-            && func.call(port, request)
+          response: (request = request.request) && (func = requestHandlers[request.handler])
+            && !func.useTab && func.call(port, request)
         });
       } else if (key === "set") {
         Settings.set(request.key, request.value);
@@ -992,7 +992,13 @@
   root.setShouldShowActionIcon(Settings.get("showActionIcon") === true);
 
   (function() {
-    var ref, key, url, callback;
+    var ref, i, key, url, callback;
+    ref = ["getCurrentTabUrl", "openUrlInNewTab", "openUrlInIncognito", "openUrlInCurrentTab" //
+      , "openOptionsPageInNewTab", "registerFrame", "nextFrame", "createMark" //
+    ];
+    for (i = ref.length; 0 <= --i; ) {
+      requestHandlers[ref[i]].useTab = true;
+    }
     
     key = Settings.get("previousVersion");
     if (!key) {
