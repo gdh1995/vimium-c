@@ -109,7 +109,7 @@
       , "removeTab", "restoreTab", "moveTabToNextWindow", "moveTabToIncognito", "togglePinTab"
       , "closeTabsOnLeft", "closeTabsOnRight", "closeOtherTabs", "moveTabLeft", "moveTabRight" //
       , "enableImageTemp"],
-    misc: ["showHelp"]
+    misc: ["showHelp", "enterVisualMode"]
   },
   advancedCommands: ["scrollToLeft", "scrollToRight", "moveTabToNextWindow", "moveTabToIncognito"
     , "goUp", "goToRoot", "focusInput", "LinkHints.activateModeWithQueue", "enableImageTemp"
@@ -135,6 +135,7 @@ _defaultKeyMappings: {
   "R": "reloadTab",
   "gs": "toggleViewSource",
   "i": "enterInsertMode",
+  "v": "enterVisualMode",
   "H": "goBack",
   "L": "goForward",
   "gu": "goUp",
@@ -259,6 +260,11 @@ _commandDescriptions: {
   ],
   enterInsertMode: [
     "Enter insert mode", {
+      noRepeat: true
+    }
+  ],
+  enterVisualMode: [
+    "Enter visual mode", {
       noRepeat: true
     }
   ],

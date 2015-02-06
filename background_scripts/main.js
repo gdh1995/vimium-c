@@ -11,7 +11,7 @@
     , removeTabsRelative, root, selectTab //
     , requestHandlers, sendRequestToAllTabs //
     , shouldShowUpgradeMessage, singleKeyCommands, splitKeyIntoFirstAndSecond, splitKeyQueue //
-    , unregisterFrame, validFirstKeys, shouldShowActionIcon;
+    , unregisterFrame, validFirstKeys, shouldShowActionIcon, setBadge;
 
   root = typeof exports !== "undefined" && exports !== null ? exports : window;
 
@@ -547,11 +547,29 @@
     });
   };
 
+  setBadge = function() {};
+
   root.setShouldShowActionIcon = !shouldShowActionIcon ? function() {} : (function() {
-    var onActiveChanged = function(tabId, selectInfo) {
+    var onActiveChanged, currentBadge, badgeTimer, updateBadge, time1 = 50;
+    chrome.browserAction.setBadgeBackgroundColor({color: [82, 156, 206, 255]});
+    onActiveChanged = function(tabId, selectInfo) {
       chrome.tabs.get(tabId, function(tab) {
         updateActiveState(tabId, tab.url);
       });
+    };
+    updateBadge = function(badge) {
+      badgeTimer = 0;
+      chrome.browserAction.setBadgeText({text: badge});
+    };
+    setBadge = function(request) {
+      var badge = request.badge;
+      if (badge != null && badge !== currentBadge) {
+        currentBadge = badge;
+        if (badgeTimer) {
+          clearTimeout(badgeTimer);
+        }
+        badgeTimer = setTimeout(updateBadge.bind(null, badge), time1);
+      }
     };
     return function(value) {
       value = chrome.browserAction && chrome.browserAction.setIcon && value ? true : false;
@@ -598,6 +616,7 @@
           tabId: tabId,
           path: "img/icons/browser_action_disabled.png"
         });
+        return setBadge({badge: ""});
       }
     });
   };
@@ -952,6 +971,7 @@
     refreshCompleter: function(request) {
       completers[request.omni].refresh();
     },
+    setBadge: setBadge,
     createMark: Marks.create.bind(Marks),
     gotoMark: Marks.goTo.bind(Marks)
   };
@@ -994,7 +1014,7 @@
   })();
   
   shouldShowActionIcon = false;
-  setShouldShowActionIcon(Settings.get("showActionIcon") === true);
+  root.setShouldShowActionIcon(Settings.get("showActionIcon") === true);
 
   if (typeof Sync === "object" && typeof Sync.init === "function" && Settings.get("vimSync") === true) {
     Sync.init();

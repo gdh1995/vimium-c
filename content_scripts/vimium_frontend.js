@@ -16,8 +16,6 @@
     , setState, settings, showFindModeHUDForQuery, textInputXPath, unregisterFrame, oldActivated //
     , updateFindModeQuery, validFirstKeys, goBy, getVisibleInputs, mainPort, requestHandlers;
   
-  (typeof exports !== "undefined" && exports !== null ? exports : window).handlerStack = new HandlerStack();
-
   frameId = Math.floor(Math.random() * 999999997) + 2;
 
   insertModeLock = null;
