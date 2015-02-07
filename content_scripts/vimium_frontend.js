@@ -54,6 +54,11 @@
   currentCompletionKeys = [];
 
   validFirstKeys = [];
+  
+  oldActivated = {
+    target: null,
+    isSecond: false
+  }
 
   textInputXPath = DomUtils.makeXPath([
     'input[not(@disabled or @readonly) and (@type="text" or @type="search" or @type="email" \
@@ -251,8 +256,9 @@ or @type="url" or @type="number" or @type="password" or not(@type))]',
     document.addEventListener("focus", function(event) {
       if (isEnabledForUrl && isFocusable(event.target) && !findMode) {
         enterInsertModeWithoutShowingIndicator(event.target);
-        if (!oldActivated) {
-          oldActivated = event.target;
+        if (!oldActivated.target || oldActivated.isSecond) {
+          oldActivated.target = event.target;
+          oldActivated.isSecond = true;
         }
       }
     }, true);
@@ -318,21 +324,25 @@ or @type="url" or @type="number" or @type="password" or not(@type))]',
     switchFocus: function() {
       var newEl = document.activeElement;
       if (newEl !== document.body) {
-        oldActivated = newEl;
+        oldActivated.target = newEl;
+        oldActivated.isSecond = false;
         if (newEl.blur) {
           newEl.blur();
         }
         return;
-      } else if (!oldActivated || !DomUtils.isVisibile(oldActivated)) {
+      }
+      newEl = oldActivated.target;
+      if (!newEl || !DomUtils.isVisibile(newEl)) {
         return;
       }
-      newEl = document.activeElement = oldActivated;
-      oldActivated = null;
+      document.activeElement = newEl;
+      oldActivated.target = null;
       if (newEl.scrollIntoViewIfNeeded) {
         newEl.scrollIntoViewIfNeeded();
       } else if (newEl.scrollIntoView) {
         newEl.scrollIntoView();
       }
+      DomUtils.simulateHover(newEl);
       if (newEl.focus) {
         newEl.focus();
       }
