@@ -193,7 +193,7 @@ or @type="url" or @type="number" or @type="password" or not(@type))]',
     },
     load: function(values, force, request2) {
       if (!this.isLoading) {
-        this.isLoading = setInterval(this.load.bind(this, true, null), this.autoRetryInterval);
+        this.isLoading = setInterval(this.load.bind(this, null, true, null), this.autoRetryInterval);
       } else if (force !== true) {
         return 0;
       }
