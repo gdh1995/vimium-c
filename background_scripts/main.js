@@ -327,7 +327,11 @@
           incognito: true
         }, url = tab.url;
         if (url.startsWith("chrome") && url.toLowerCase() !== Settings.ChromeInnerNewTab) {
-          if (wnd.incognito) { return; }
+          if (wnd.incognito) {
+            return;
+          } else if (url.startsWith("chrome://downloads/")) {
+            options.url = url;
+          }
         } else if (!tab.incognito) {
           options.url = url;
         }
