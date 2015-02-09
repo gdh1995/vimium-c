@@ -88,6 +88,7 @@
   },
   defaults: {
     UILanguage: null,
+    helpDialog_showAdvancedCommands: false,
     showActionIcon: false,
     vimSync: false,
     showOmniRelevancy: false,
