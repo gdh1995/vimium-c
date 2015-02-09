@@ -712,7 +712,9 @@
         }
       }
       else if (key = request.handlerOmni) {
-        completers[key].filter(request.query.split(" "), postResponse.bind(null, port, msgId));
+        func = completers[key];
+        key = request.query;
+        func.filter(key ? key.split(" ") : [], postResponse.bind(null, port, msgId));
       }
     }
     else if (key = request.handlerKey) {
