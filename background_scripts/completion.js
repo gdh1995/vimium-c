@@ -620,16 +620,15 @@
       var i = this.binarySearch(newPage.url, this.history);
       if (i >= 0) {
         var old = this.history[i];
+        this.history[i] = newPage;
         if (old.text !== old.url) {
           newPage.text = old.text;
-        } else {
-          newPage.text = Decoder.decodeURI(newPage);
-          Decoder.continueToWork();
+          return;
         }
-        this.history[i] = newPage;
       } else {
         this.history.splice(-1 - i, 0, newPage);
       }
+      Decoder.decodeList([newPage]);
     },
     onVisitRemoved: function(toRemove) {
       if (toRemove.allHistory) {
