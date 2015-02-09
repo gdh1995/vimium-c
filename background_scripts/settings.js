@@ -87,6 +87,7 @@
     return this._searchEnginesMap;
   },
   defaults: {
+    UILanguage: null,
     showActionIcon: false,
     vimSync: false,
     showOmniRelevancy: false,

@@ -147,13 +147,9 @@
       return b.url;
     };
 
-    BookmarkCompleter.prototype.ignoreTopLevel = {
-      "Other Bookmarks": true,
-      "\u5176\u4ED6\u4E66\u7B7E": true,
-      "Bookmarks Bar": true,
-      "\u4E66\u7B7E\u680F": true,
-      "Mobile Bookmarks": true
-    };
+    BookmarkCompleter.prototype.ignoreTopLevel = ["Bookmarks Bar", "Other Bookmarks" //
+      , "Mobile Bookmarks", "\u4E66\u7B7E\u680F", "\u5176\u4ED6\u4E66\u7B7E" //
+    ];
 
     BookmarkCompleter.prototype.traverseBookmarks = function(bookmarks) {
       var results = [], _this = this;
@@ -164,7 +160,8 @@
     };
 
     BookmarkCompleter.prototype.traverseBookmarksRecursive = function(bookmark, results, parent) {
-      bookmark.path = bookmark.title && !(parent.path === "" && this.ignoreTopLevel[bookmark.title]) ? parent.path + this.folderSeparator + bookmark.title : parent.path;
+      bookmark.path = bookmark.title && (parent.path || !this.ignoreTopLevel.indexOf(bookmark.title)) //
+        ? parent.path + this.folderSeparator + bookmark.title : parent.path;
       results.push(bookmark);
       if (bookmark.children) {
         var _this = this;
@@ -683,6 +680,7 @@
     dict: {},
     todos: [], // each item is either {url: ...} or "url"
     _timer: 0,
+    charset: "GBK",
     working: -1,
     interval: 25,
     continueToWork: function() {
@@ -699,7 +697,7 @@
       if (! _this.todos.length) {
         clearInterval(_this._timer);
         _this._timer = 0;
-        _this._link.href = "data:text/css;charset=GBK,%23" + _this._id + "%7B%7D";
+        _this._link.href = "data:text/css,%23" + _this._id + "%7B%7D";
       } else if (_this.working === 0) {
         var url = _this.todos[0];
         if (url.url) {
@@ -709,7 +707,8 @@
           _this.todos.shift();
         } else {
           _this.working = 1;
-          _this._link.href = "data:text/css;charset=GBK,%23" + _this._id + "%7Bfont-family%3A%22" + url + "%22%7D";
+          _this._link.href = "data:text/css;charset=" + _this.charset + ",%23" + _this._id //
+            + "%7Bfont-family%3A%22" + url + "%22%7D";
         }
       } else if (_this.working === 1) {
         _this.working = 2;
@@ -756,6 +755,21 @@
     };
     return work;
   })();
+  
+  (function(lang) {
+    if (!lang) {
+      return;
+    }
+    var ref;
+    ref = lang.urlCharset;
+    if (ref && typeof ref === "string") {
+      Decoder.charset = ref;
+    }
+    ref = lang.bookmarkTitles;
+    if (ref && ref.length > 0) {
+      [].push.apply(BookmarkCompleter.prototype.ignoreTopLevel, ref);
+    }
+  })(Settings.get("UILanguage"));
   
   root = typeof exports !== "undefined" && exports !== null ? exports : window;
 
