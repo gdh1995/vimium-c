@@ -247,7 +247,7 @@
       break;
     case "enter":
       if (this.timer) {
-        if (this.timer > 0 && (this.selection === -1 || !this.isSelectionChanged)) {
+        if (this.timer && (this.selection === -1 || !this.isSelectionChanged)) {
           this.update(0, this.onEnter);
         }
       } else if (this.selection >= 0 || this.input.value.trim().length > 0) {
@@ -282,7 +282,7 @@
         break;
       }
     }
-    if (_i < _ref.length && _i < this.completions.length) {
+    if (_i < _ref.length) {
       this.selection = _i;
       this.isSelectionChanged = true;
       this.openInNewTab = this.forceNewTab || (event.shiftKey || event.ctrlKey || event.metaKey);
