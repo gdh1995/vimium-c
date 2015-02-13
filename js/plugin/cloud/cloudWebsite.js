@@ -184,7 +184,7 @@
 								}
 								var websiteItem = $('<li class="websiteItem"><div class="itemWindow"  title="' + getI18nMsg('itemAdd') + '"></div><div class="itemBottom"><a class="openWeb" title="' + getI18nMsg('openWeb') + '"></a></div><div class="itemData"><div class="itemLogo" style="background-image:url(' + img + ');"></div><div class="itemDesc"><a>' + n.t + ':' + n.d + '</a></div></div><div class="itemInstall' + (self.installWebSites.indexOf(url.toLowerCase()) >= 0 ? ' selected' : '') + '"><div class="installBar"></div><div class="selected"></div></div></li>');
 								websiteItem.find('.openWeb').unbind('click').bind('click', function () {
-									openTab(false, url, tabID)
+									openTab(false, url, false)
 								});
 								websiteItem.find('.itemWindow').unbind('click').bind('click', function () {
 									if ($(this).siblings('.itemInstall').hasClass('selected')) {

@@ -85,7 +85,7 @@
 				});
 				appItem.find('.openWeb').unbind('click').bind('click', function () {
 					if (typeof app.url != 'undefined' && app.url != '') {
-						openTab(false, app.url, tabID);
+						openTab(false, app.url, false);
 						return false
 					}
 				});

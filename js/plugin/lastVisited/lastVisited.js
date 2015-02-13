@@ -55,7 +55,7 @@
 					}
 				});
 				contentObj.find('#openManager').unbind('click').bind('click', function (e) {
-					openTab(false, "chrome://history/", tabID, e.ctrlKey || e.metaKey);
+					openTab(false, "chrome://history/", e.ctrlKey || e.metaKey);
 				});
 				self.content = contentObj;
 				return contentObj

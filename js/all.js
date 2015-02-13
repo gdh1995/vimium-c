@@ -173,14 +173,20 @@ function shuffle(aArr) {
 		}
 	}
 }
-function openTab(targetSwitch, url, tabID, ctrlKey) {
-	tabID = parseInt(tabID);
+function openTab(targetSwitch, url, ctrlKey) {
 	var tab1 = {
 		url : url
 	};
-	if (tabID >= 0) {
-		tab1.index = tabID + 1;
+	if (isApp) {
+		_openTab2(targetSwitch, tab1, ctrlKey);
+	} else {
+		chrome.tabs.getSelected(null, function (curTab) {
+			tab1.index = curTab.index + 1;
+			_openTab2(targetSwitch, tab1, ctrlKey);
+		});
 	}
+}
+function _openTab2(targetSwitch, tab1, ctrlKey) {
 	try {
 		if (ctrlKey === true) {
 			tab1.selected = false;
@@ -193,12 +199,13 @@ function openTab(targetSwitch, url, tabID, ctrlKey) {
 			}
 		}
 	} catch (e) {
+		var url = tab1.url;
 		if (url.indexOf("chrome://") == 0) {
 			showNotice(getI18nMsg("borwserVersionLower"));
 			return false
 		}
 		if (ctrlKey === true) {
-			window.location.href = url // window.open(url)
+			window.open(url)
 		} else {
 			if (targetSwitch == true) {
 				if (window.top != window.self) {
@@ -207,7 +214,7 @@ function openTab(targetSwitch, url, tabID, ctrlKey) {
 					window.location.href = url
 				}
 			} else {
-				window.location.href = url // window.open(url)
+				window.open(url)
 			}
 		}
 	}
@@ -2397,9 +2404,9 @@ var _bookmarksDialogFun = "";
 											targetUrl = self.apps[appId]['openRun'](targetUrl)
 										}
 										if (typeof event != "undefined" && event.button == 1) {
-											openTab(targetSwitch, targetUrl, tabID, true)
+											openTab(targetSwitch, targetUrl, true)
 										} else {
-											openTab(targetSwitch, targetUrl, tabID, event.ctrlKey || event.metaKey);
+											openTab(targetSwitch, targetUrl, event.ctrlKey || event.metaKey);
 										}
 									}
 								} else {
@@ -2418,9 +2425,9 @@ var _bookmarksDialogFun = "";
 					} else {
 						if (targetObj != "" && targetObj.attr('url') != null && targetObj.attr('url') != '') {
 							if (typeof event != "undefined" && event.button == 1) {
-								openTab(targetSwitch, eventObj.attr('url'), tabID, true)
+								openTab(targetSwitch, eventObj.attr('url'), true)
 							} else {
-								openTab(targetSwitch, eventObj.attr('url'), tabID, event.ctrlKey || event.metaKey);
+								openTab(targetSwitch, eventObj.attr('url'), event.ctrlKey || event.metaKey);
 							}
 						} else {
 							if (appId.indexOf("classification_") === 0) {
@@ -2444,9 +2451,9 @@ var _bookmarksDialogFun = "";
 								var oUrl = typeof oUrls[appId] == "undefined" ? "" : oUrls[appId];
 								if (oUrl != "") {
 									if (typeof event != "undefined" && event.button == 1) {
-										openTab(targetSwitch, oUrl, tabID, true)
+										openTab(targetSwitch, oUrl, true)
 									} else {
-										openTab(targetSwitch, oUrl, tabID, event.ctrlKey || event.metaKey);
+										openTab(targetSwitch, oUrl, event.ctrlKey || event.metaKey);
 									}
 								}
 							}
@@ -3687,9 +3694,9 @@ var dragExcludeClassList = ['boxClose', 'boxEdit', 'searchCenter', 'searchItem']
 									app.runApp(eventObj, eventObj.attr('appId'), e)
 								} else if (eventObj.attr('url') != '' && eventObj.attr('url') != null) {
 									if (e.button == 1 || self.container.parent().hasClass('edit')) {
-										openTab(targetSwitch, eventObj.attr('url'), tabID, true)
+										openTab(targetSwitch, eventObj.attr('url'), true)
 									} else {
-										openTab(targetSwitch, eventObj.attr('url'), tabID, e.ctrlKey || e.metaKey);
+										openTab(targetSwitch, eventObj.attr('url'), e.ctrlKey || e.metaKey);
 									}
 								}
 							}
@@ -4156,7 +4163,7 @@ var dragExcludeClassList = ['boxClose', 'boxEdit', 'searchCenter', 'searchItem']
 		};
 	}
 })(jq);
-var storage = new $.storage(), PDI = $.pdi(), DBOX, cId = "", tabID = -1, targetSwitch = true
+var storage = new $.storage(), PDI = $.pdi(), DBOX, cId = "", targetSwitch = true
 	, serverValue = [], updateNotification = false;
 if (cId = PDI.get("setup", "cId")) {
 	storage = new $.storage(cId)
@@ -4170,7 +4177,6 @@ if (window.location.hash == "#synchronize") {
 } else {
 	try {
 		chrome.tabs.getCurrent(function (tab) {
-			tabID = tab.index;
 			if (typeof tab.url == 'undefined') {
 				isApp = true
 			} else {
