@@ -29,13 +29,13 @@
 					}
 				});
 				self.content = $('<div class="extensionsContainer"><div class="extensionsHeader"><div class="headerIcon"></div>' + getI18nMsg('extensionsAppTitle') + '<div class="extensionsManage">' + getI18nMsg('extensionsManage') + '</div><div class="extensionsAddMore">' + getI18nMsg('appItemGetMore') + '</div></div><div class="extensionsBody"><div class="extensionsClass"><div class="classItem exist" type="exist">' + getI18nMsg('appItemExist') + '</div><div class="classItem notExist" type="notExist">' + getI18nMsg('appItemNotExist') + '</div><div class="classItem all selected" type="all">' + getI18nMsg('all') + '</div></div></div></div>');
-				self.content.find(".extensionsManage").bind("click", function () {
+				self.content.find(".extensionsManage").bind("click", function (e) {
 					url = getChromeUrl("extensions");
-					openTab(false, url, tabID, ctrlKey)
+					openTab(false, url, tabID, e.ctrlKey || e.metaKey);
 				});
-				self.content.find(".extensionsAddMore").bind("click", function () {
+				self.content.find(".extensionsAddMore").bind("click", function (e) {
 					url = "https://chrome.google.com/webstore";
-					openTab(false, url, tabID, ctrlKey)
+					openTab(false, url, tabID, e.ctrlKey || e.metaKey);
 				});
 				if (extensions instanceof Array && extensions.length > 0) {
 					$.each(extensions, function (i, n) {
@@ -78,18 +78,18 @@
 					}
 					chrome.management.setEnabled(extension.id, enabled, function () {})
 				});
-				extensionItem.find(".extensionsLogo").unbind('click').bind('click', function () {
+				extensionItem.find(".extensionsLogo").unbind('click').bind('click', function (e) {
 					if (extension.type == "packaged_app") {
 						chrome.management.launchApp(extension.id)
 					} else {
-						openTab(targetSwitch, extension.appLaunchUrl, tabID, ctrlKey)
+						openTab(targetSwitch, extension.appLaunchUrl, tabID, e.ctrlKey || e.metaKey);
 					}
 				});
-				extensionItem.find(".actButton.goTo").unbind('click').bind('click', function () {
+				extensionItem.find(".actButton.goTo").unbind('click').bind('click', function (e) {
 					if (extension.type == "packaged_app") {
 						chrome.management.launchApp(extension.id)
 					} else {
-						openTab(targetSwitch, extension.appLaunchUrl, tabID, ctrlKey)
+						openTab(targetSwitch, extension.appLaunchUrl, tabID, e.ctrlKey || e.metaKey);
 					}
 				});
 				extensionItem.find(".actButton.delete").unbind('click').bind('click', function () {

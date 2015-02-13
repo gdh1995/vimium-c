@@ -41,8 +41,8 @@
 						})
 					}
 				});
-				self.content.find(".bookmarksManage").bind("click", function () {
-					openTab(false, "chrome://bookmarks/#1", tabID, ctrlKey)
+				self.content.find(".bookmarksManage").bind("click", function (e) {
+					openTab(false, "chrome://bookmarks/#1", tabID, e.ctrlKey || e.metaKey);
 				});
 				self.content.find(".bookmarksFolderTitle").bind('click', function () {
 					var fid = $(this).attr('fid');

@@ -178,7 +178,7 @@ function openTab(targetSwitch, url, tabID, ctrlKey) {
 	var tab1 = {
 		url : url
 	};
-	if (tabID) {
+	if (tabID >= 0) {
 		tab1.index = tabID + 1;
 	}
 	try {
@@ -2399,7 +2399,7 @@ var _bookmarksDialogFun = "";
 										if (typeof event != "undefined" && event.button == 1) {
 											openTab(targetSwitch, targetUrl, tabID, true)
 										} else {
-											openTab(targetSwitch, targetUrl, tabID, ctrlKey)
+											openTab(targetSwitch, targetUrl, tabID, event.ctrlKey || event.metaKey);
 										}
 									}
 								} else {
@@ -2420,7 +2420,7 @@ var _bookmarksDialogFun = "";
 							if (typeof event != "undefined" && event.button == 1) {
 								openTab(targetSwitch, eventObj.attr('url'), tabID, true)
 							} else {
-								openTab(targetSwitch, eventObj.attr('url'), tabID, ctrlKey)
+								openTab(targetSwitch, eventObj.attr('url'), tabID, event.ctrlKey || event.metaKey);
 							}
 						} else {
 							if (appId.indexOf("classification_") === 0) {
@@ -2446,7 +2446,7 @@ var _bookmarksDialogFun = "";
 									if (typeof event != "undefined" && event.button == 1) {
 										openTab(targetSwitch, oUrl, tabID, true)
 									} else {
-										openTab(targetSwitch, oUrl, tabID, ctrlKey)
+										openTab(targetSwitch, oUrl, tabID, event.ctrlKey || event.metaKey);
 									}
 								}
 							}
@@ -3689,7 +3689,7 @@ var dragExcludeClassList = ['boxClose', 'boxEdit', 'searchCenter', 'searchItem']
 									if (e.button == 1 || self.container.parent().hasClass('edit')) {
 										openTab(targetSwitch, eventObj.attr('url'), tabID, true)
 									} else {
-										openTab(targetSwitch, eventObj.attr('url'), tabID, ctrlKey)
+										openTab(targetSwitch, eventObj.attr('url'), tabID, e.ctrlKey || e.metaKey);
 									}
 								}
 							}
@@ -4156,24 +4156,11 @@ var dragExcludeClassList = ['boxClose', 'boxEdit', 'searchCenter', 'searchItem']
 		};
 	}
 })(jq);
-var storage = new $.storage(), PDI = $.pdi(), DBOX, cId = "", tabID = '', targetSwitch = true
-	, serverValue = [], ctrlKey = false, ctrlKeyTimer = 0, updateNotification = false;
+var storage = new $.storage(), PDI = $.pdi(), DBOX, cId = "", tabID = -1, targetSwitch = true
+	, serverValue = [], updateNotification = false;
 if (cId = PDI.get("setup", "cId")) {
 	storage = new $.storage(cId)
 }
-$(document).bind('keydown', function (e) {
-	if (e.ctrlKey || e.metaKey) {
-		if (ctrlKeyTimer) {
-			clearTimeout(ctrlKeyTimer);
-			ctrlKeyTimer = 0;
-		}
-		ctrlKey = true;
-		ctrlKeyTimer = setTimeout(function () {
-			ctrlKey = false;
-			ctrlKeyTimer = 0;
-		}, 1000)
-	}
-});
 if (window.location.hash == "#synchronize") {
 	window.location.hash = '';
 	document.write('<div class="synLoading"><img src="/img/skin_0/loading.gif"></div>');
@@ -4183,7 +4170,7 @@ if (window.location.hash == "#synchronize") {
 } else {
 	try {
 		chrome.tabs.getCurrent(function (tab) {
-			tabID = tab.id;
+			tabID = tab.index;
 			if (typeof tab.url == 'undefined') {
 				isApp = true
 			} else {
