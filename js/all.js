@@ -2554,19 +2554,19 @@ var dragExcludeClassList = ['boxClose', 'boxEdit', 'searchCenter', 'searchItem']
 						+ '" url="' + self.getUrl() + '" appId="' + self.boxOptions.isApp + '">'
 						+ '<div class="boxLogo" notes="' + self.boxOptions.title + '"></div>'
 						+ (!self.boxOptions.title ? '' : '<div class="boxTitle"><a data-vim-url="' + self.getUrl()
-              + '">' + self.boxOptions.title + '</a></div>')
+							+ '">' + self.boxOptions.title + '</a></div>')
 						+ '<button class="boxClose' + (self.boxOptions.isFixed ? ' hide' : '') + '"></button>'
 						+ '</div>');
 				} else {
 					boxItem = $('<div class="appBox ' + self.boxOptions.type + (self.boxOptions.isNew ? ' new' : '')
 						+ (self.boxOptions.isFixed ? ' boxFixed' : '')
 						+ '" id="appBox_' + self.boxOptions.id + '" url="' + self.getUrl() + '">'
-            + '<div class="boxLogo" notes="' + self.boxOptions.title + '"></div>'
-            + (!self.boxOptions.title ? '' : '<div class="boxTitle"><a data-vim-url="' + self.getUrl()
-              + '">' + self.boxOptions.title + '</a></div>')
-            + '<button class="boxClose' + (self.boxOptions.isFixed ? ' hide' : '') + '"></button>'
-            + '<button class="boxEdit ' + (self.boxOptions.isFixed ? ' hide' : '') + '" title="' + getI18nMsg('editDialbox') + '"></button>'
-            +'</div>');
+						+ '<div class="boxLogo" notes="' + self.boxOptions.title + '"></div>'
+						+ (!self.boxOptions.title ? '' : '<div class="boxTitle"><a data-vim-url="' + self.getUrl()
+							+ '">' + self.boxOptions.title + '</a></div>')
+						+ '<button class="boxClose' + (self.boxOptions.isFixed ? ' hide' : '') + '"></button>'
+						+ '<button class="boxEdit ' + (self.boxOptions.isFixed ? ' hide' : '') + '" title="' + getI18nMsg('editDialbox') + '"></button>'
+						+'</div>');
 				}
 				if (self.boxOptions.html != "") {
 					boxItem.append($('<div class="boxHtml"></div>').html(self.boxOptions.html))
