@@ -416,16 +416,16 @@ or @type="url" or @type="number" or @type="password" or not(@type))]',
       }
       hints = visibleInputs.map(function(tuple) {
         var hint = document.createElement("div");
-        hint.className = "vimB vimI vimIHi vimiumInputHint";
         hint.style.left = (tuple.rect.left - 1) + window.scrollX + "px";
         hint.style.top = (tuple.rect.top - 1) + window.scrollY + "px";
         hint.style.width = tuple.rect.width + "px";
         hint.style.height = tuple.rect.height + "px";
+        hint.className = "vimB vimI vimIHi vimIH";
         return hint;
       });
       hints[selectedInputIndex].classList.add('vimS');
       hintContainingDiv = DomUtils.addElementList(hints, {
-        id: "vimiumInputMarkerContainer",
+        id: "vimIMC",
         className: "vimB vimR"
       });
       handlerStack.push({

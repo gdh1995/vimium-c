@@ -10,7 +10,8 @@
  *
  * vimB: vimium Base; vimR: Reset; vimI: Inherit; vimL: Link; vimS: Selected
  *
- * i$: internal; HMC: HintMarkerContainer; LH: LinkHint; MC: MatchingCharacter; IH: InputHint;
+ * i$: internal; HMC: HintMarkerContainer; LH: LinkHint; MC: MatchingCharacter;
+ * IMC: InputMarkerContainer, IH: InputHint;
  * HUD: HUD; O: vOmnibar; OI: vOmnibarItem
  *
  * This "vimB vimI" class can be added to any of our UI elements to give it a clean slate. This is useful in
