@@ -96,10 +96,11 @@
     smoothScroll: true,
     keyMappings: "# Insert your preferred key mappings here.",
     linkHintCharacters: "asdqwerzxcv",
-    linkHintNumbers: "0123456789",
+    linkHintNumbers: "1234567890",
     filterLinkHints: false,
     hideHud: false,
     regexFindMode: false,
+    findModeRawQuery: "",
     userDefinedCss: "",
     exclusionRules: [
       {
