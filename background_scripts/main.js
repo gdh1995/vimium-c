@@ -186,7 +186,7 @@
         selected: true,
         url: tab.url
       };
-      if (newWindowId || tab.windowId === newWindowId) {
+      if (!newWindowId || tab.windowId === newWindowId) {
         options.index = tab.index + 1;
       }
       chrome.tabs.create(options);
