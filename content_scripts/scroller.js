@@ -82,7 +82,7 @@
     while (0 <= --_len) {
       element = _ref[_len];
       if (rect = DomUtils.getVisibleClientRect(element)) {
-        children.push([rect.width * rect.height, element]);
+        children.push([(rect[2] - rect[0]) * (rect[3] - rect[1]), element]);
       }
     }
     if (_len = children.length) {

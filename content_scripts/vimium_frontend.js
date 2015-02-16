@@ -416,11 +416,11 @@ or @type="url" or @type="number" or @type="password" or not(@type))]',
       }
       hints = visibleInputs.map(function(tuple) {
         var hint = document.createElement("div");
-        hint.style.left = (tuple.rect.left - 1) + window.scrollX + "px";
-        hint.style.top = (tuple.rect.top - 1) + window.scrollY + "px";
-        hint.style.width = tuple.rect.width + "px";
-        hint.style.height = tuple.rect.height + "px";
         hint.className = "vimB vimI vimIHi vimIH";
+        hint.style.left = (tuple.rect[0] - 1 + window.scrollX) + "px";
+        hint.style.top = (tuple.rect[1] - 1 + window.scrollY) + "px";
+        hint.style.width = (tuple.rect[2] - tuple.rect[0]) + "px";
+        hint.style.height = (tuple.rect[3] - tuple.rect[1]) + "px";
         return hint;
       });
       hints[selectedInputIndex].classList.add('vimS');
