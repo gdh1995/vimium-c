@@ -58,7 +58,7 @@
 	vertical-align: baseline;
 	white-space: normal;
 	width: auto;
-	z-index: 99999990;
+	z-index: 2147483640;
 }
 .vimI.vimB {
 	background: none;
@@ -122,7 +122,7 @@
 	text-shadow: 0 1px 0 rgba(255, 255, 255, 0.6);
 	white-space: nowrap;
 	width: 100%;
-	z-index: 99999994;
+	z-index: 2147483646;
 }
 .vimLHi.vimB {
 	background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#FFF785), color-stop(100%,#FFC542));
@@ -163,7 +163,7 @@
 	padding: 3px 3px 2px 3px;
 	position: fixed;
 	/* less than vimium's hint markers, so link hints can be shown e.g. for the panel's close button. */
-	z-index: 99999993;
+	z-index: 2147483645;
 	text-shadow: 0px 1px 2px #FFF;
 	opacity: 0;
 }
@@ -189,7 +189,7 @@
 	padding: 1px;
 	pointer-events: none;
 	position: absolute;
-	z-index: 99999999;
+	z-index: 2147483647;
 }
 
 /* Vimium Scrollbar */
