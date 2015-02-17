@@ -269,8 +269,7 @@
           return wnd.id === tab.windowId
         }).length > 0, options = {
           url: request.url,
-          windowId: inCurWnd ? tab.windowId : wnds[wnds.length - 1].id,
-          selected: request.active
+          windowId: inCurWnd ? tab.windowId : wnds[wnds.length - 1].id
         };
         if (inCurWnd) {
           options.index = tab.index + 1;
@@ -284,17 +283,11 @@
       chrome.windows.create({
         type: "normal",
         url: request.url,
-        focused: false,
         incognito: true
-      }, request.active ? function(newWnd) {
-        chrome.windows.get(tab.windowId, function(wnd) {
-          var options = {focused: true};
-          if (wnd.type === "normal") {
-            options.state = wnd.state;
-          }
-          chrome.windows.update(newWnd.id, options);
-        });
-      } : function(newWnd) {
+      }, function(newWnd) {
+        if (!request.active) {
+          chrome.windows.update(tab.windowId, {focused: true});
+        }
         chrome.windows.get(tab.windowId, function(wnd) {
           if (wnd.type === "normal") {
             chrome.windows.update(newWnd.id, {state: wnd.state});
@@ -382,10 +375,9 @@
       chrome.windows.create({
         type: "normal",
         tabId: tab.id,
-        focused: !state,
         incognito: tab.incognito
       }, state ? function(wnd) {
-        chrome.windows.update(wnd.id, {focused: true, state: state});
+        chrome.windows.update(wnd.id, {state: state});
       } : null);
     }, function(tab, oldIndex, tab2) {
       if (oldIndex >= 0) {
@@ -432,9 +424,8 @@
         wndId = options.tabId;
         delete options.tabId;
       }
-      options.focused = (wnd.type !== "normal");
-      chrome.windows.create(options, options.focused ? null : function(newWnd) {
-        chrome.windows.update(newWnd.id, {focused: true, state: wnd.state});
+      chrome.windows.create(options, wnd.type !== "normal" ? null : function(newWnd) {
+        chrome.windows.update(newWnd.id, {state: wnd.state});
       });
       if (options.url) {
         chrome.tabs.remove(wndId);
