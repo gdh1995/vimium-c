@@ -10,7 +10,7 @@
 <style type="text/css">
 /* Help Dialog CSS */
 
-#vimiumHelpDialog {
+#vimHelpDialog {
 	background-color: #eee;
 	/* border: 2px solid #b3b3b3; */
 	border-radius: 6px;
@@ -29,45 +29,45 @@
 	z-index: 2147483644;
 }
 
-.vimiumColumnBox.vimB {
+.vimColumnBox.vimB {
 	float: left;
 	width: 50%;
 }
-.vimiumColumnBox > .vimiumHelpTable {
+.vimColumnBox > .vimHelpTable {
 	table-layout: auto;
 	width: 100%;
 }
-.vimiumHelpTr.vimB {
+.vimHelpTr.vimB {
 	display: table-row;
 }
-.vimiumHelpTd.vimB {
+.vimHelpTd.vimB {
 	display: table-cell;
 	vertical-align: top;
 	padding: 1px;
 }
 
-.vimiumHelpShortKey.vimB {
+.vimHelpShortKey.vimB {
 	max-width: 40px;
 }
-.vimiumHelpShortKey > .vimiumHelpShortKey2 {
+.vimHelpShortKey > .vimHelpShortKey2 {
 	color: #2f508e;
 	float: right;
 	font-weight: bold;
 	white-space: nowrap;
 }
 /* Make the description column as wide as it can be. */
-.vimiumHelpCommandInfo.vimB {
+.vimHelpCommandInfo.vimB {
 	width: 100%;
 }
-.vimiumHelpSectionTitle.vimB {
+.vimHelpSectionTitle.vimB {
 	font-weight: bold;
 	padding-top: 3px;
 }
 /* Advanced commands are hidden by default until you show them. */
-/* .vimiumHelpAdvanced.vimB    { display: none; } */
-/* .vimiumHelpCommandName.vimB { font-family: "Courier New"; } */
-/* .vimiumHelpCommandInfo.vimB { color: #555; } */
-#vimiumCloseButton {
+/* .vimHelpAdvanced.vimB    { display: none; } */
+/* .vimHelpCommandName.vimB { font-family: "Courier New"; } */
+/* .vimHelpCommandInfo.vimB { color: #555; } */
+#vimCloseButton {
 	-webkit-user-select: none;
 	color: #555;
 	font-family: "Courier New";
@@ -79,45 +79,45 @@
 	text-decoration: none;
 	top: 5px;
 }
-#vimiumCloseButton:hover {
+#vimCloseButton:hover {
 	-webkit-user-select: none;
 	color: black;
 	text-decoration: none;
 }
-#vimiumOptionsPage {
+#vimOptionsPage {
 	position: absolute;
 	right: 60px;
 	top: 8px;
 }
-#vimiumToggleAdvancedCommands {
+#vimToggleAdvancedCommands {
 	position: absolute;
 	right: 2px;
 	top: -34px;
 }
 </style>
 
-<div class="vimB vimR vimScroll" id="vimiumHelpDialog">
-	<a class="vimB vimI vimL" id="vimiumOptionsPage" href="#">Options</a>
-	<a class="vimB vimI vimL" id="vimiumCloseButton" href="#">&#215;</a>
+<div class="vimB vimR vimScroll" id="vimHelpDialog">
+	<a class="vimB vimI vimL" id="vimOptionsPage">Options</a>
+	<a class="vimB vimI vimL" id="vimCloseButton">&#215;</a>
 	<div class="vimB vimI" style="display:block;font-size:20px;line-height:130%;"><span class="vimB vimI" style="color:#2f508e">Vim</span>ium++ {{title}}</div>
-	<div class="vimB vimI vimiumColumnBox">
-		<table class="vimB vimI vimiumHelpTable">
-		<tbody class="vimB vimI vimiumColumn">
-			<tr class="vimB vimI vimiumHelpTr"><td class="vimB vimI vimiumHelpTd"></td><td class="vimB vimI vimiumHelpTd"></td><td class="vimB vimI vimiumHelpTd vimiumHelpSectionTitle">Navigating the page</td></tr>
+	<div class="vimB vimI vimColumnBox">
+		<table class="vimB vimI vimHelpTable">
+		<tbody class="vimB vimI vimColumn">
+			<tr class="vimB vimI vimHelpTr"><td class="vimB vimI vimHelpTd"></td><td class="vimB vimI vimHelpTd"></td><td class="vimB vimI vimHelpTd vimHelpSectionTitle">Navigating the page</td></tr>
 {{pageNavigation}}
 		</tbody>
 		</table>
 	</div>
-	<div class="vimB vimI vimiumColumnBox">
-		<table class="vimB vimI vimiumHelpTable">
-		<tbody class="vimB vimI vimiumColumn">
-			<tr class="vimB vimI vimiumHelpTr"><td class="vimB vimI vimiumHelpTd"></td><td class="vimB vimI vimiumHelpTd"></td><td class="vimB vimI vimiumHelpTd vimiumHelpSectionTitle">Using find</td></tr>
+	<div class="vimB vimI vimColumnBox">
+		<table class="vimB vimI vimHelpTable">
+		<tbody class="vimB vimI vimColumn">
+			<tr class="vimB vimI vimHelpTr"><td class="vimB vimI vimHelpTd"></td><td class="vimB vimI vimHelpTd"></td><td class="vimB vimI vimHelpTd vimHelpSectionTitle">Using find</td></tr>
 {{findCommands}}
-			<tr class="vimB vimI vimiumHelpTr"><td class="vimB vimI vimiumHelpTd"></td><td class="vimB vimI vimiumHelpTd"></td><td class="vimB vimI vimiumHelpTd vimiumHelpSectionTitle">Navigating history</td></tr>
+			<tr class="vimB vimI vimHelpTr"><td class="vimB vimI vimHelpTd"></td><td class="vimB vimI vimHelpTd"></td><td class="vimB vimI vimHelpTd vimHelpSectionTitle">Navigating history</td></tr>
 {{historyNavigation}}
-			<tr class="vimB vimI vimiumHelpTr"><td class="vimB vimI vimiumHelpTd"></td><td class="vimB vimI vimiumHelpTd"></td><td class="vimB vimI vimiumHelpTd vimiumHelpSectionTitle">Manipulating tabs</td></tr>
+			<tr class="vimB vimI vimHelpTr"><td class="vimB vimI vimHelpTd"></td><td class="vimB vimI vimHelpTd"></td><td class="vimB vimI vimHelpTd vimHelpSectionTitle">Manipulating tabs</td></tr>
 {{tabManipulation}}
-			<tr class="vimB vimI vimiumHelpTr"><td class="vimB vimI vimiumHelpTd"></td><td class="vimB vimI vimiumHelpTd"></td><td class="vimB vimI vimiumHelpTd vimiumHelpSectionTitle">Miscellaneous</td></tr>
+			<tr class="vimB vimI vimHelpTr"><td class="vimB vimI vimHelpTd"></td><td class="vimB vimI vimHelpTd"></td><td class="vimB vimI vimHelpTd vimHelpSectionTitle">Miscellaneous</td></tr>
 {{misc}}
 		</tbody>
 		</table>
@@ -127,7 +127,7 @@
 	<div class="vimB vimI" style="display: block; height: 1px; width: 92%; margin: 10px auto; background-color: #9a9a9a;"></div>
 
 	<div class="vimB vimI" style="display:block; position:relative;">
-		<a href="#" id="vimiumToggleAdvancedCommands" class="vimB vimI vimL">Show advanced commands</a>
+		<a id="vimToggleAdvancedCommands" class="vimB vimI vimL">Show advanced commands</a>
 
 		<div class="vimB vimI" style="float:left; width: 50%;">
 			Enjoying Vimium? <a class="vimB vimI vimL" href="https://chrome.google.com/extensions/detail/dbepggeogbaibhgnhhndojpepiihcmeb">Leave us feedback</a>.

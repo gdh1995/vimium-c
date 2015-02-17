@@ -984,7 +984,7 @@ or @type="url" or @type="number" or @type="password" or not(@type))]',
     }
     isShowingHelpDialog = true;
     container = document.createElement("div");
-    container.id = "vimiumHelpDialogContainer";
+    container.id = "vimHelpDialogContainer";
     container.className = "vimB vimR";
     (document.documentElement || document.body).appendChild(container);
     container.innerHTML = html;
@@ -993,8 +993,8 @@ or @type="url" or @type="number" or @type="password" or not(@type))]',
         return settings.values.helpDialog_showAdvancedCommands ? true : false;
       },
       init: function() {
-        this.dialogElement = document.getElementById("vimiumHelpDialog");
-        document.getElementById("vimiumToggleAdvancedCommands").addEventListener("click", VimiumHelpDialog.toggleAdvancedCommands, false);
+        this.dialogElement = document.getElementById("vimHelpDialog");
+        document.getElementById("vimToggleAdvancedCommands").addEventListener("click", VimiumHelpDialog.toggleAdvancedCommands, false);
         this.dialogElement.style.maxHeight = window.innerHeight - 80;
         this.showAdvancedCommands(this.getShowAdvancedCommands());
       },
@@ -1006,8 +1006,8 @@ or @type="url" or @type="number" or @type="password" or not(@type))]',
       },
       showAdvancedCommands: function(visible) {
         var advancedEls, el, _i, _len;
-        document.getElementById("vimiumToggleAdvancedCommands").innerHTML = visible ? "Hide advanced commands" : "Show advanced commands";
-        advancedEls = VimiumHelpDialog.dialogElement.getElementsByClassName("vimiumHelpAdvanced");
+        document.getElementById("vimToggleAdvancedCommands").innerHTML = visible ? "Hide advanced commands" : "Show advanced commands";
+        advancedEls = VimiumHelpDialog.dialogElement.getElementsByClassName("vimHelpAdvanced");
         visible = visible ? "table-row" : "none";
         for (_i = 0, _len = advancedEls.length; _i < _len; _i++) {
           el = advancedEls[_i];
@@ -1017,8 +1017,8 @@ or @type="url" or @type="number" or @type="password" or not(@type))]',
     };
     VimiumHelpDialog.init();
     container.addEventListener("mousewheel", DomUtils.suppressPropagation, false);
-    document.getElementById("vimiumCloseButton").addEventListener("click", hideHelpDialog, false);
-    document.getElementById("vimiumOptionsPage").addEventListener("click", function(event) {
+    document.getElementById("vimCloseButton").addEventListener("click", hideHelpDialog, false);
+    document.getElementById("vimOptionsPage").addEventListener("click", function(event) {
       DomUtils.suppressEvent(event);
       mainPort.postMessage({
         handler: "openOptionsPageInNewTab"
@@ -1027,7 +1027,7 @@ or @type="url" or @type="number" or @type="password" or not(@type))]',
   };
 
   hideHelpDialog = function(event) {
-    var helpDialog = document.getElementById("vimiumHelpDialogContainer");
+    var helpDialog = document.getElementById("vimHelpDialogContainer");
     if (helpDialog) {
       DomUtils.removeNode(helpDialog);
     }

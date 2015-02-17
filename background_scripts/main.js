@@ -70,12 +70,12 @@
       bindings = (commandsToKey[command] || [""]).join(", ");
       if (showUnboundCommands || commandsToKey[command]) {
         isAdvanced = Commands.advancedCommands.indexOf(command) >= 0;
-        html.push("<tr class='vimB vimI vimiumHelpTr" + (isAdvanced ? " vimiumHelpAdvanced" : "")
-          , "'>\n\t<td class='vimB vimI vimiumHelpTd vimiumHelpShortKey'>\n\t\t<span class='vimB vimI vimiumHelpShortKey2'>", Utils.escapeHtml(bindings)
-          , "</span>\n\t</td>\n\t<td class='vimB vimI vimiumHelpTd'>:</td>\n\t<td class='vimB vimI vimiumHelpTd vimiumHelpCommandInfo'>"
+        html.push("<tr class='vimB vimI vimHelpTr" + (isAdvanced ? " vimHelpAdvanced" : "")
+          , "'>\n\t<td class='vimB vimI vimHelpTd vimHelpShortKey'>\n\t\t<span class='vimB vimI vimHelpShortKey2'>", Utils.escapeHtml(bindings)
+          , "</span>\n\t</td>\n\t<td class='vimB vimI vimHelpTd'>:</td>\n\t<td class='vimB vimI vimHelpTd vimHelpCommandInfo'>"
           , Utils.escapeHtml(availableCommands[command].description));
         if (showCommandNames) {
-          html.push("\n\t\t<span class='vimB vimI vimiumHelpCommandName'>(" + command + ")</span>");
+          html.push("\n\t\t<span class='vimB vimI vimHelpCommandName'>(" + command + ")</span>");
         }
         html.push("</td>\n</tr>\n");
       }
