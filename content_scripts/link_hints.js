@@ -14,6 +14,8 @@
     HOVER: 128 + 3,
     OPEN_INCOGNITO: 128 + 4
   },
+  alphabetHints: null,
+  filterHints: null,
   spanWrap: null,
   numberToHintString: null,
   hintMarkerContainingDiv: null,
@@ -354,9 +356,7 @@
     this.delayMode = true;
     if (DomUtils.isSelectable(clickEl)) {
       DomUtils.simulateSelect(clickEl);
-      this.deactivateMode(delay, function() {
-        this.delayMode = false;
-      });
+      this.deactivateMode(delay);
     } else {
       if (clickEl.nodeName.toLowerCase() === "input" && clickEl.type !== "button") {
         clickEl.focus();
@@ -376,30 +376,23 @@
         this.GetVisibleClickable.call(temp, clickEl);
         if (temp.length === 1) {
           rect = temp[0].rect;
-          temp = null;
         } else {
-          temp = null;
           rect = matchedLink.rect;
           var dx = window.scrollX - this.initScrollX, dy = window.scrollY - this.initScrollY;
-          rect[0] -= dx;
-          rect[2] -= dx;
-          rect[1] -= dy;
-          rect[3] -= dy;
+          rect[0] -= dx, rect[2] -= dx, rect[1] -= dy, rect[3] -= dy;
         }
+        temp = null;
       }
       DomUtils.flashVRect(rect);
       this.linkActivator(clickEl);
       if ((this.mode & 64) === 64) {
         var mode = this.mode, linkActivator = this.linkActivator;
         this.deactivateMode(delay, function() {
-          this.delayMode = false;
           this.linkActivator = linkActivator;
           this.activateModeWithQueue(mode);
         });
       } else {
-        this.deactivateMode(delay, function() {
-          this.delayMode = false;
-        });
+        this.deactivateMode(delay);
       }
     }
   },
@@ -419,6 +412,7 @@
     HUD.hide();
     this.mode = 0;
     this.isActive = false;
+    this.delayMode = false;
     if (callback) {
       callback.call(this);
     }
@@ -591,7 +585,7 @@
     return hintMarkers;
   },
   matchHintsByKey: function(hintMarkers, event, keyStatus) {
-    var key = event.keyCode, keyChar, userIsTypingLinkText = false, linksMatched;
+    var key = event.keyCode, keyChar, userIsTypingLinkText = false;
     if (key === keyCodes.tab) {
       if (this.hintKeystrokeQueue.length === 0) {
         return null;
@@ -629,7 +623,7 @@
       }
     }
     keyChar = this.hintKeystrokeQueue.join("");
-    linksMatched = this.filterLinkHints(hintMarkers).filter(keyStatus.tab ? function(linkMarker) {
+    hintMarkers = this.filterLinkHints(hintMarkers).filter(keyStatus.tab ? function(linkMarker) {
       var pass = ! linkMarker.hintString.startsWith(keyChar);
       linkMarker.style.display = pass ? "" : "none";
       return pass;
@@ -638,8 +632,8 @@
       linkMarker.style.display = pass ? "" : "none";
       return pass;
     });
-    keyStatus.delay = (linksMatched.length === 1 && userIsTypingLinkText) ? 200 : 0;
-    return linksMatched;
+    keyStatus.delay = (hintMarkers.length === 1 && userIsTypingLinkText) ? 200 : 0;
+    return hintMarkers;
   },
   filterLinkHints: function(hintMarkers) {
     var linkMarker, linkSearchString, linksMatched, oldHintString, _i, _len, doLinkSearch;
