@@ -103,8 +103,8 @@
       , "Vomnibar.activateHistoryInNewTab", "goPrevious", "goNext", "nextFrame"
       , "Marks.activateCreateMode", "Vomnibar.activateEditUrl", "Vomnibar.activateEditUrlInNewTab"
       , "Marks.activateGotoMode"],
-    historyNavigation: ["goBack", "goForward", "reloadTab"],
-    findCommands: ["enterFindMode", "performFind", "performBackwardsFind", "switchFocus", "simBackspace"],
+    historyNavigation: ["goBack", "goForward", "reloadTab", "switchFocus", "simBackspace"],
+    findCommands: ["enterFindMode", "performFind", "performBackwardsFind"],
     tabManipulation: ["nextTab", "previousTab", "firstTab", "lastTab", "createTab", "duplicateTab"
       , "removeTab", "restoreTab", "moveTabToNextWindow", "moveTabToIncognito", "togglePinTab"
       , "closeTabsOnLeft", "closeTabsOnRight", "closeOtherTabs", "moveTabLeft", "moveTabRight" //
