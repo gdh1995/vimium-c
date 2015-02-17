@@ -357,8 +357,9 @@
     this.box.innerHTML = html;
     this.input = this.box.querySelector("#vimOInput");
     this.list = this.box.querySelector("#vimOList");
-    this.template = this.box.querySelector("#vimOITemplate").innerHTML;
-    this.renderItems = Utils.makeListRenderBySplit(this.template);
+    var str = this.box.querySelector("#vimOITemplate").innerHTML;
+    str = str.substring(str.indexOf('>') + 1, str.lastIndexOf('<'));
+    this.renderItems = Utils.makeListRenderBySplit(this.template = str);
     for (var i = 1, ref = this._initStep, len = ref.length; i < len; i++) {
       ref[i].call(this);
     }

@@ -113,8 +113,8 @@
 	<input type="text" class="vimB vimR" id="vimOInput" />
 </div>
 <ul class="vimB vimR vimScroll" id="vimOList">
-	<script type="text/template" id="vimOITemplate">
-	<li class="vimB vimR vimOItem" data-vim-index="{{$index}}">
+	<span id="vimOITemplate"><span>
+	<li class="vimB vimI vimOItem" data-vim-index="{{$index}}">
 		<div class="vimB vimI vimOITop">
 			<span class="vimB vimI vimOISource">{{type}}</span>
 			<span class="vimB vimI vimOITitle">{{titleSplit}}</span>
@@ -125,5 +125,5 @@
 				data-vim-url="{{url}}"
 			>{{textSplit}}</a>{{relevancy}}
 		</div>
-	</li></script>
+	</li></span></span>
 </ul>
