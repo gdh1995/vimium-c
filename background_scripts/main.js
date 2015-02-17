@@ -301,10 +301,23 @@
           ids = wnds.map(function(wnd) { return wnd.id; });
           index = ids.indexOf(tab.windowId);
           if (ids.length >= 2 || index === -1) {
-            chrome.tabs.getSelected(ids[ids.length === ++index ? 0 : index], function(tab2) {
-              chrome.tabs.move(tab.id, {index: tab2.index + 1, windowId: tab2.windowId});
-              chrome.tabs.update(tab.id, {selected: true});
-              chrome.windows.update(tab2.windowId, {focused: true});
+            chrome.tabs.getSelected(ids[(index + 1) % ids.length], function(tab2) {
+              var update = function() {
+                chrome.tabs.move(tab.id, {index: tab2.index + 1, windowId: tab2.windowId});
+                chrome.tabs.update(tab.id, {selected: true});
+                chrome.windows.update(tab2.windowId, {focused: true});
+              };
+              if (index >= 0) {
+                update();
+                return;
+              }
+              chrome.windows.create({
+                type: "normal",
+                left: 0, top: 0, width: 50, height: 50,
+                focused: false,
+                incognito: tab.incognito,
+                tabId: tab.id
+              }, update);
             });
             return;
           }
@@ -355,11 +368,20 @@
               if (options.url) {
                 chrome.tabs.create({url: options.url, index: tab2.index + 1, windowId: wndId});
                 chrome.tabs.remove(options.tabId);
-              } else {
+                chrome.windows.update(wndId, {focused: true});
+                return;
+              }
+              chrome.windows.create({
+                type: "normal",
+                left: 0, top: 0, width: 50, height: 50,
+                focused: false,
+                incognito: true,
+                tabId: options.tabId
+              }, function() {
                 chrome.tabs.move(options.tabId, {index: tab2.index + 1, windowId: wndId});
                 chrome.tabs.update(options.tabId, {selected: true});
-              }
-              chrome.windows.update(wndId, {focused: true});
+                chrome.windows.update(wndId, {focused: true});
+              });
             });
           } else {
             if (options.url) {
