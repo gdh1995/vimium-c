@@ -232,7 +232,7 @@
         return;
       }
       if (activatedElement) {
-      } else if (activatedElement = document.body && firstScrollableElement(document.body)) {
+      } else if (activatedElement = document.body && firstScrollableElement(document.body) || document.body) {
       } else {
         return;
       }
@@ -245,7 +245,7 @@
     scrollTo: function(direction, pos) {
       var amount, element;
       if (activatedElement) {
-      } else if (activatedElement = document.body && firstScrollableElement(document.body)) {
+      } else if (activatedElement = document.body && firstScrollableElement(document.body) || document.body) {
       } else {
         return;
       }

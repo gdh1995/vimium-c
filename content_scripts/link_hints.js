@@ -113,6 +113,8 @@
           handler: "copyToClipboard",
           data: str
         });
+        // HUD.showForDuration("copy URL: " + ((str.length > 28)
+          // ? (str.substring(0, 25) + "...") : str), 2000);
       };
       break;
     case this.CONST.COPY_LINK_TEXT:
@@ -126,6 +128,8 @@
           handler: "copyToClipboard",
           data: str
         });
+        // HUD.showForDuration("copy text: " + ((str.length > 18)
+          // ? (str.substring(0, 15) + "...") : str), 2000);
       };
       break;
     case this.CONST.OPEN_INCOGNITO:

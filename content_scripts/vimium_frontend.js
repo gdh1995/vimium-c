@@ -400,8 +400,9 @@ or @type="url" or @type="number" or @type="password" or not(@type))]',
           handler: "copyToClipboard",
           data: url
         });
+        HUD.showForDuration("Yanked URL" + ((url.length > 28)
+            ? (url.substring(0, 25) + "...") : url), 2000);
       });
-      HUD.showForDuration("Yanked URL", 1000);
     },
     focusInput: function(count) {
       var hintContainingDiv, hints, selectedInputIndex, visibleInputs;

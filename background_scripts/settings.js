@@ -112,7 +112,7 @@
     nextPatterns: "next,more,>,\u2192,\xbb,\u226b,>>",
     searchUrl: "http://www.baidu.com/s?ie=utf-8&wd=%s",
     searchEngines: "w = Wikipedia (en-US):\\\n  http://www.wikipedia.org/w/index.php?search=%s\nba=Baidu|baidu=Baidu:\\\n  www.baidu.com/s?ie=utf-8&wd=%s",
-    newTabUrl: "/index.html",
+    newTabUrl: "/index.html", // note: if changed, /pages/newtab.html also needs change.
     settingsVersion: Utils.getCurrentVersion()
   },
   ChromeInnerNewTab: "chrome-search://local-ntp/local-ntp.html"
