@@ -136,7 +136,7 @@
             if (opt && opt.setting === "allow") { return; }
             chrome.windows.create({type: "normal", incognito: true, url: Settings.ChromeInnerNewTab}, function (wnd) {
               var leftTabId = wnd.tabs[0].id;
-              _this.setAndUpdate(contentType, tab, pattern, wnd.id, function() {
+              _this.setAndUpdate(contentType, tab, pattern, wnd.id, true, function() {
                 chrome.tabs.remove(leftTabId);
               });
             });
@@ -157,16 +157,15 @@
           } else if (tab.incognito && wnds.filter(function(wnd) { return wnd.id === tab.windowId; }).length === 1) {
             _this.setAndUpdate(contentType, tab, pattern);
           } else {
-            var leftWndId = wnds[wnds.length - 1].id;
-            _this.setAndUpdate(contentType, tab, pattern, leftWndId, function() {
-              chrome.windows.update(leftWndId, {focused: true});
-            });
+            _this.setAndUpdate(contentType, tab, pattern, wnds[wnds.length - 1].id);
           }
         });
       });
     },
-    setAndUpdate: function(contentType, tab, pattern, wndId, callback) {
-      this.setAllowInIncognito(contentType, pattern, this.updateTab.bind(this, tab, wndId, callback));
+    setAndUpdate: function(contentType, tab, pattern, wndId, doSyncWnd, callback) {
+      callback = this.updateTabAndWindow.bind(this, tab, wndId, callback);
+      this.setAllowInIncognito(contentType, pattern, doSyncWnd && wndId !== tab.windowId
+        ? chrome.windows.get.bind(chrome.windows, tab.windowId, callback) : callback);
     },
     setAllowInIncognito: function(contentType, pattern, callback) {
       chrome.contentSettings[contentType].set({
@@ -178,6 +177,15 @@
           callback();
         }
         return chrome.runtime.lastError;
+      });
+    },
+    updateTabAndWindow: function(tab, wndId, callback, oldWnd) {
+      this.updateTab(tab, wndId, callback);
+      wndId && chrome.windows.update(wndId, oldWnd ? {
+        focused: true,
+        state: oldWnd.state
+      } : {
+        focused: true
       });
     },
     updateTab: function(tab, newWindowId, callback) {
