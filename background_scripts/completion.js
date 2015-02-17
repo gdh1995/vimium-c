@@ -16,7 +16,7 @@
   Suggestion.prepareHtml = function(suggestion) {
     if (! suggestion.queryTerms) { return; }
     suggestion.titleSplit = suggestion.highlight1(suggestion.title);
-    suggestion.text = suggestion.shortenUrl(suggestion.text);
+    suggestion.text = Suggestion.shortenUrl(suggestion.text);
     suggestion.textSplit = suggestion.highlight1(suggestion.text);
     delete suggestion.queryTerms;
   };
@@ -28,7 +28,7 @@
     return a.protocol + "//" + a.hostname;
   };
 
-  Suggestion.prototype.shortenUrl = function(url) {
+  Suggestion.shortenUrl = function(url) {
     return url.substring((url.startsWith("http://")) ? 7 : (url.startsWith("https://")) ? 8 : 0,
       url.length - +(url.charCodeAt(url.length - 1) === 47));
   };
@@ -443,6 +443,9 @@
           _this.mostRecentQuery = false;
         }
       };
+    if (queryTerms.length > 0) {
+      queryTerms[0] = Suggestion.shortenUrl(queryTerms[0]);
+    }
     for (; i < l; i++) {
       r[i].filter(queryTerms, callback);
     };
