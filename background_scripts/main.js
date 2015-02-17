@@ -3,7 +3,7 @@
   "use strict";
   var BackgroundCommands, checkKeyQueue, currentVersion //
     , fetchHttpContents, frameIdsForTab, generateCompletionKeys, IncognitoContentSettings //
-    , handleMainPort, handleResponse, postResponse //
+    , handleMainPort, handleResponse, postResponse, funcDict //
     , getActualKeyStrokeLength, getCompletionKeysRequest //
     , helpDialogHtmlForCommandGroup, keyQueue, moveTab, namedKeyRegex //
     , openMultiTab //
@@ -218,6 +218,19 @@
     }
   }; */
 
+  funcDict = {
+    makeTempWindow: function(tabId, incognito, callback) {
+      chrome.windows.create({
+        type: "normal",
+        left: 0, top: 0, width: 50, height: 50,
+        focused: false,
+        incognito: incognito,
+        tabId: tabId
+      }, callback);
+    },
+    "": function() {}
+  };
+
   // function (const Tab tab, const int repeatCount, const int frameId, const Port port);
   BackgroundCommands = {
     createTab: function(tab, count) {
@@ -257,13 +270,7 @@
             url: url
           }, function(newTab) {
             var newId = newTab.id;
-            chrome.windows.create({
-              type: "normal",
-              left: 0, top: 0, width: 50, height: 50,
-              focused: false,
-              incognito: true,
-              tabId: newId
-            }, function() {
+            funcDict.makeTempWindow(newId, true, function() {
               chrome.tabs.move(newId, {
                 index: tab.index + 1,
                 windowId: tab.windowId
@@ -309,15 +316,9 @@
               };
               if (index >= 0) {
                 update();
-                return;
+              } else {
+                funcDict.makeTempWindow(tab.id, tab.incognito, update);
               }
-              chrome.windows.create({
-                type: "normal",
-                left: 0, top: 0, width: 50, height: 50,
-                focused: false,
-                incognito: tab.incognito,
-                tabId: tab.id
-              }, update);
             });
             return;
           }
@@ -371,13 +372,7 @@
                 chrome.windows.update(wndId, {focused: true});
                 return;
               }
-              chrome.windows.create({
-                type: "normal",
-                left: 0, top: 0, width: 50, height: 50,
-                focused: false,
-                incognito: true,
-                tabId: options.tabId
-              }, function() {
+              funcDict.makeTempWindow(options.tabId, true, function() {
                 chrome.tabs.move(options.tabId, {index: tab2.index + 1, windowId: wndId});
                 chrome.tabs.update(options.tabId, {selected: true});
                 chrome.windows.update(wndId, {focused: true});
