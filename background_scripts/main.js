@@ -228,171 +228,286 @@
         tabId: tabId
       }, callback);
     },
-    "": function() {}
+    updateActiveState: !shouldShowActionIcon ? function() {} : function(tabId, url, response) {
+      var config, currentPasskeys, enabled, isCurrentlyEnabled, passKeys;
+      if (response) {
+        isCurrentlyEnabled = response.enabled;
+        currentPasskeys = response.passKeys;
+        config = requestHandlers.isEnabledForUrl({ url: url });
+        enabled = config.enabled;
+        passKeys = config.passKeys;
+        chrome.browserAction.setIcon({
+          tabId: tabId,
+          path: !enabled ? "img/icons/browser_action_disabled.png"
+              : passKeys ? "img/icons/browser_action_partial.png"
+                         : "img/icons/browser_action_enabled.png"
+        })
+        if (isCurrentlyEnabled !== enabled || currentPasskeys !== passKeys) {
+          chrome.tabs.sendMessage(tabId, {
+            name: "setState",
+            enabled: enabled,
+            passKeys: passKeys
+          });
+        }
+      } else {
+        chrome.browserAction.setIcon({
+          tabId: tabId,
+          path: "img/icons/browser_action_disabled.png"
+        });
+        return setBadge({badge: ""});
+      }
+    },
+
+    openUrlInIncognito: function(request, tab, wnds) {
+      wnds = wnds.filter(function(wnd) {
+        return wnd.incognito && wnd.type === "normal";
+      });
+      request.active = (request.active !== false);
+      request.url = Utils.convertToUrl(request.url);
+      if (wnds.length >= 1) {
+        var inCurWnd = wnds.filter(function(wnd) {
+          return wnd.id === tab.windowId
+        }).length > 0, options = {
+          url: request.url,
+          windowId: inCurWnd ? tab.windowId : wnds[wnds.length - 1].id,
+          selected: request.active
+        };
+        if (inCurWnd) {
+          options.index = tab.index + 1;
+        }
+        chrome.tabs.create(options);
+        if (request.active && !inCurWnd) {
+          chrome.windows.update(options.windowId, {focused: true});
+        }
+        return;
+      }
+      chrome.windows.create({
+        type: "normal",
+        url: request.url,
+        focused: false,
+        incognito: true
+      }, request.active ? function(newWnd) {
+        chrome.windows.get(tab.windowId, function(wnd) {
+          var options = {focused: true};
+          if (wnd.type === "normal") {
+            options.state = wnd.state;
+          }
+          chrome.windows.update(newWnd.id, options);
+        });
+      } : function(newWnd) {
+        chrome.windows.get(tab.windowId, function(wnd) {
+          if (wnd.type === "normal") {
+            chrome.windows.update(newWnd.id, {state: wnd.state});
+          }
+        });
+      })
+    },
+
+    createTab: [function(tab, count, wnd) {
+      var url = Settings.get("newTabUrl");
+      if (!(wnd.incognito && Utils.isRefusingIncognito(url))) {
+        openMultiTab(url, tab.index + 1, count, tab.windowId);
+        return;
+      }
+      // this url will be disabled if opened in a incognito window directly
+      chrome.tabs.getAllInWindow(tab.windowId, funcDict.createTab[1].bind(null, tab, count, url));
+    }, function(tab, count, url, allTabs) {
+      var urlLower = url.toLowerCase().split('#', 1)[0],
+        repeat = count > 1 ? function(tabId) {
+          var left = count;
+          while (--left > 0) {
+            chrome.tabs.duplicate(tabId);
+          }
+        } : null;
+      if (urlLower.indexOf("://") < 0) {
+        urlLower = chrome.runtime.getURL(urlLower);
+      }
+      allTabs = allTabs.filter(function(tab1) {
+        var url = tab1.url.toLowerCase(), end = url.indexOf("#");
+        return ((end < 0) ? url : url.substring(0, end)) === urlLower;
+      });
+      if (allTabs.length > 0) {
+        urlLower = allTabs.filter(function(tab1) {
+          return tab1.index >= tab.index;
+        });
+        tab = (urlLower.length > 0) ? urlLower[0] : allTabs[allTabs.length - 1];
+        chrome.tabs.duplicate(tab.id);
+        repeat && repeat(tab.id);
+        return;
+      }
+      chrome.tabs.create({
+        selected: false,
+        url: url
+      }, function(newTab) {
+        var newId = newTab.id;
+        funcDict.makeTempWindow(newId, true, funcDict.createTab[2].bind(null, tab, repeat, newId));
+      });
+    }, function(tab, repeat, newId) {
+      chrome.tabs.move(newId, {
+        index: tab.index + 1,
+        windowId: tab.windowId
+      }, function() {
+        repeat && repeat(newId);
+        chrome.tabs.update(newId, {
+          selected: true
+        });
+      });
+    }],
+    duplicateTab: function(tab, count, wnd) {
+      if (wnd.incognito && Utils.isRefusingIncognito(tab.url)) {
+        while (--count > 0) {
+          chrome.tabs.duplicate(tab.id);
+        }
+      } else {
+        openMultiTab(tab.url, tab.index + 2, count - 1, tab.windowId, false);
+      }
+    },
+    moveTabToNextWindow: [function(tab, wnds0) {
+      var wnds, ids, index, state;
+      wnds = wnds0.filter(function(wnd) { return wnd.type === "normal" && wnd.incognito === tab.incognito; });
+      if (wnds.length > 0) {
+        ids = wnds.map(function(wnd) { return wnd.id; });
+        index = ids.indexOf(tab.windowId);
+        if (ids.length >= 2 || index === -1) {
+          chrome.tabs.getSelected(ids[(index + 1) % ids.length] //
+            , funcDict.moveTabToNextWindow[1].bind(null, tab, index));
+          return;
+        }
+      } else {
+        wnds = wnds0.filter(function(wnd) { return wnd.id === tab.windowId; });
+      }
+      if (wnds.length === 1 && wnds[0].type === "normal") {
+        state = wnds[0].state;
+      }
+      chrome.windows.create({
+        type: "normal",
+        tabId: tab.id,
+        focused: !state,
+        incognito: tab.incognito
+      }, state ? function(wnd) {
+        chrome.windows.update(wnd.id, {focused: true, state: state});
+      } : null);
+    }, function(tab, oldIndex, tab2) {
+      if (oldIndex >= 0) {
+        funcDict.moveTabToNextWindow[2](tab, tab2);
+        return;
+      }
+      funcDict.makeTempWindow(tab.id, tab.incognito, funcDict.moveTabToNextWindow[2].bind(null, tab, tab2));
+    }, function(tab, tab2) {
+      chrome.tabs.move(tab.id, {index: tab2.index + 1, windowId: tab2.windowId});
+      chrome.tabs.update(tab.id, {selected: true});
+      chrome.windows.update(tab2.windowId, {focused: true});
+    }],
+    moveTabToIncognito: [function(tab, wnd) {
+      if (wnd.incognito && tab.incognito) { return; }
+      var options = {
+        type: "normal",
+        tabId: tab.id,
+        incognito: true
+      }, url = tab.url;
+      if (url.startsWith("chrome") && url.toLowerCase() !== Settings.ChromeInnerNewTab) {
+        if (wnd.incognito) {
+          return;
+        } else if (url.startsWith("chrome://downloads/")) {
+          options.url = url;
+        }
+      } else if (!tab.incognito) {
+        if (wnd.incognito) {
+          chrome.tabs.create({url: url, index: tab.index + 1, windowId: wnd.id});
+          chrome.tabs.remove(tab.id);
+          return;
+        }
+        options.url = url;
+      }
+      chrome.windows.getAll(funcDict.moveTabToIncognito[1].bind(null, options, wnd));
+    }, function(options, wnd, wnds) {
+      var wndId;
+      wnds = wnds.filter(function(wnd) { return wnd.type === "normal" && wnd.incognito; });
+      if (wnds.length >= 1) {
+        wndId = wnds[wnds.length - 1].id;
+        chrome.tabs.getSelected(wndId, funcDict.moveTabToIncognito[2].bind(null, options));
+        return;
+      }
+      if (options.url) {
+        wndId = options.tabId;
+        delete options.tabId;
+      }
+      options.focused = (wnd.type !== "normal");
+      chrome.windows.create(options, options.focused ? null : function(newWnd) {
+        chrome.windows.update(newWnd.id, {focused: true, state: wnd.state});
+      });
+      if (options.url) {
+        chrome.tabs.remove(wndId);
+      }
+    }, function(options, tab2) {
+      if (options.url) {
+        chrome.tabs.create({url: options.url, index: tab2.index + 1, windowId: tab2.windowId});
+        chrome.tabs.remove(options.tabId);
+        chrome.windows.update(tab2.windowId, {focused: true});
+        return;
+      }
+      funcDict.makeTempWindow(options.tabId, true, funcDict.moveTabToIncognito[3].bind(null, options, tab2));
+    }, function(options, tab2) {
+      chrome.tabs.move(options.tabId, {index: tab2.index + 1, windowId: tab2.windowId});
+      chrome.tabs.update(options.tabId, {selected: true});
+      chrome.windows.update(tab2.windowId, {focused: true});
+    }],
+    removeTab: [function(tab, count, curTabs) {
+      if (!curTabs || curTabs.length > count) {
+        if (count > 1) {
+          removeTabsRelative(tab, count);
+        } else {
+          chrome.tabs.remove(tab.id);
+        }
+        return;
+      }
+      chrome.windows.getAll(funcDict.removeTab[1].bind(null, tab, curTabs));
+    }, function(tab, curTabs, wnds) {
+      var url = Settings.get("newTabUrl"), toCreate;
+      wnds = wnds.filter(function(wnd) { return wnd.type === "normal"; });
+      if (wnds.length <= 1) {
+        // retain the last window
+        toCreate = {};
+        if (wnds.length === 1 && wnds[0].incognito && !Utils.isRefusingIncognito(url)) {
+          toCreate.windowId = wnds[0].id;
+        }
+        // other urls will be disabled if incognito else auto in current window
+      }
+      else if (!tab.incognito) {
+        // retain the last "normal & not incognito" window which has currentTab if it exists
+        wnds = wnds.filter(function(wnd) { return !wnd.incognito; });
+        if (wnds.length === 1 && wnds[0].id === tab.windowId) {
+          toCreate = { windowId: tab.windowId };
+        }
+      }
+      if (toCreate) {
+        curTabs = (curTabs.length > 1) ? curTabs.map(function(tab) { return tab.id; }) : [tab.id];
+        toCreate.url = url;
+        chrome.tabs.create(toCreate);
+        chrome.tabs.remove(curTabs);
+      } else {
+        chrome.windows.remove(tab.windowId);
+      }
+    }]
   };
 
   // function (const Tab tab, const int repeatCount, const int frameId, const Port port);
   BackgroundCommands = {
     createTab: function(tab, count) {
-      chrome.windows.get(tab.windowId, function(wnd) {
-        var url = Settings.get("newTabUrl");
-        if (!(wnd.incognito && Utils.isRefusingIncognito(url))) {
-          openMultiTab(url, tab.index + 1, count, tab.windowId);
-          return;
-        }
-        // this url will be disabled if opened in a incognito window directly
-        chrome.tabs.getAllInWindow(tab.windowId, function(allTabs) {
-          var urlLower = url.toLowerCase().split('#', 1)[0],
-            repeat = count > 1 ? function(tabId) {
-              var left = count;
-              while (--left > 0) {
-                chrome.tabs.duplicate(tabId);
-              }
-            } : null;
-          if (urlLower.indexOf("://") < 0) {
-            urlLower = chrome.runtime.getURL(urlLower);
-          }
-          allTabs = allTabs.filter(function(tab1) {
-            var url = tab1.url.toLowerCase(), end = url.indexOf("#");
-            return ((end < 0) ? url : url.substring(0, end)) === urlLower;
-          });
-          if (allTabs.length > 0) {
-            urlLower = allTabs.filter(function(tab1) {
-              return tab1.index >= tab.index;
-            });
-            tab = (urlLower.length > 0) ? urlLower[0] : allTabs[allTabs.length - 1];
-            chrome.tabs.duplicate(tab.id);
-            repeat && repeat(tab.id);
-            return;
-          }
-          chrome.tabs.create({
-            selected: false,
-            url: url
-          }, function(newTab) {
-            var newId = newTab.id;
-            funcDict.makeTempWindow(newId, true, function() {
-              chrome.tabs.move(newId, {
-                index: tab.index + 1,
-                windowId: tab.windowId
-              }, function() {
-                repeat && repeat(newId);
-                chrome.tabs.update(newId, {
-                  selected: true 
-                });
-              });
-            });
-          });
-        });
-      });
+      chrome.windows.get(tab.windowId, funcDict.createTab[0].bind(null, tab, count));
     },
     duplicateTab: function(tab, count) {
       chrome.tabs.duplicate(tab.id);
       if (!(count > 1)) {
         return;
       }
-      chrome.windows.get(tab.windowId, function(wnd) {
-        if (wnd.incognito && Utils.isRefusingIncognito(tab.url)) {
-          while (--count > 0) {
-            chrome.tabs.duplicate(tab.id);
-          }
-        } else {
-          openMultiTab(tab.url, tab.index + 2, count - 1, tab.windowId, false);
-        }
-      });
+      chrome.windows.get(tab.windowId, funcDict.duplicateTab.bind(null, tab, count));
     },
     moveTabToNextWindow: function(tab) {
-      chrome.windows.getAll(function(wnds0) {
-        var wnds, ids, index, state;
-        wnds = wnds0.filter(function(wnd) { return wnd.type === "normal" && wnd.incognito === tab.incognito; });
-        if (wnds.length > 0) {
-          ids = wnds.map(function(wnd) { return wnd.id; });
-          index = ids.indexOf(tab.windowId);
-          if (ids.length >= 2 || index === -1) {
-            chrome.tabs.getSelected(ids[(index + 1) % ids.length], function(tab2) {
-              var update = function() {
-                chrome.tabs.move(tab.id, {index: tab2.index + 1, windowId: tab2.windowId});
-                chrome.tabs.update(tab.id, {selected: true});
-                chrome.windows.update(tab2.windowId, {focused: true});
-              };
-              if (index >= 0) {
-                update();
-              } else {
-                funcDict.makeTempWindow(tab.id, tab.incognito, update);
-              }
-            });
-            return;
-          }
-        } else {
-          wnds = wnds0.filter(function(wnd) { return wnd.id === tab.windowId; });
-        }
-        if (wnds.length === 1 && wnds[0].type === "normal") {
-          state = wnds[0].state;
-        }
-        chrome.windows.create({
-          type: "normal",
-          tabId: tab.id,
-          focused: !state,
-          incognito: tab.incognito
-        }, state ? function(wnd) {
-          chrome.windows.update(wnd.id, {focused: true, state: state});
-        } : null);
-      });
+      chrome.windows.getAll(funcDict.moveTabToNextWindow[0].bind(null, tab));
     },
     moveTabToIncognito: function(tab) {
-      chrome.windows.get(tab.windowId, function(wnd) {
-        if (wnd.incognito && tab.incognito) { return; }
-        var options = {
-          type: "normal",
-          tabId: tab.id,
-          incognito: true
-        }, url = tab.url;
-        if (url.startsWith("chrome") && url.toLowerCase() !== Settings.ChromeInnerNewTab) {
-          if (wnd.incognito) {
-            return;
-          } else if (url.startsWith("chrome://downloads/")) {
-            options.url = url;
-          }
-        } else if (!tab.incognito) {
-          if (wnd.incognito) {
-            chrome.tabs.create({url: url, index: tab.index + 1, windowId: wnd.id});
-            chrome.tabs.remove(tab.id);
-            return;
-          }
-          options.url = url;
-        }
-        chrome.windows.getAll(function(wnds) {
-          var wndId;
-          wnds = wnds.filter(function(wnd) { return wnd.type === "normal" && wnd.incognito; });
-          if (wnds.length >= 1) {
-            wndId = wnds[wnds.length - 1].id;
-            chrome.tabs.getSelected(wndId, function(tab2) {
-              if (options.url) {
-                chrome.tabs.create({url: options.url, index: tab2.index + 1, windowId: wndId});
-                chrome.tabs.remove(options.tabId);
-                chrome.windows.update(wndId, {focused: true});
-                return;
-              }
-              funcDict.makeTempWindow(options.tabId, true, function() {
-                chrome.tabs.move(options.tabId, {index: tab2.index + 1, windowId: wndId});
-                chrome.tabs.update(options.tabId, {selected: true});
-                chrome.windows.update(wndId, {focused: true});
-              });
-            });
-          } else {
-            if (options.url) {
-              wndId = options.tabId;
-              delete options.tabId;
-            }
-            options.focused = (wnd.type !== "normal");
-            chrome.windows.create(options, options.focused ? null : function(newWnd) {
-              chrome.windows.update(newWnd.id, {focused: true, state: wnd.state});
-            });
-            if (options.url) {
-              chrome.tabs.remove(wndId);
-            }
-          }
-        });
-      });
+      chrome.windows.get(tab.windowId, funcDict.moveTabToIncognito[0].bind(null, tab));
     },
     enableImageTemp: function(tab) {
       IncognitoContentSettings.ensure("images", tab);
@@ -410,57 +525,13 @@
       selectTab(tab, -tab.index - 1);
     },
     removeTab: function(tab, count) {
-      if (tab.index > 0) {
-        if (count > 1) {
-          removeTabsRelative(tab, count);
-        } else {
-          chrome.tabs.remove(tab.id);
-        }
-        return;
+      if (tab.index === 0) {
+        chrome.tabs.getAllInWindow(tab.windowId, funcDict.removeTab[0].bind(null, tab, count));
+      } else if (count > 1) {
+        removeTabsRelative(tab, count);
+      } else {
+        chrome.tabs.remove(tab.id);
       }
-      chrome.tabs.getAllInWindow(tab.windowId, function(curTabs) {
-        if (!curTabs || curTabs.length > count) {
-          if (count > 1) {
-            removeTabsRelative(tab, count);
-          } else {
-            chrome.tabs.remove(tab.id);
-          }
-          return;
-        }
-        chrome.windows.getAll(function(wnds) {
-          var url = Settings.get("newTabUrl"), toCreate;
-          wnds = wnds.filter(function(wnd) {
-            return wnd.type === "normal";
-          });
-          if (wnds.length <= 1) {
-            // retain the last window
-            toCreate = {};
-            if (wnds.length === 1 && wnds[0].incognito && !Utils.isRefusingIncognito(url)) {
-              toCreate.windowId = wnds[0].id;
-            }
-            // other urls will be disabled if incognito else auto in current window
-          }
-          else if (! tab.incognito) {
-            // retain the last "normal & not incognito" window which has currentTab if it exists
-            wnds = wnds.filter(function(wnd) {
-              return ! wnd.incognito;
-            });
-            if (wnds.length === 1 && wnds[0].id === tab.windowId) {
-              toCreate = { windowId: tab.windowId };
-            }
-          }
-          if (toCreate) {
-            curTabs = (curTabs.length > 1) ? curTabs.map(function(tab) {
-              return tab.id;
-            }) : [tab.id];
-            toCreate.url = url;
-            chrome.tabs.create(toCreate);
-            chrome.tabs.remove(curTabs);
-          } else {
-            chrome.windows.remove(tab.windowId);
-          }
-        });
-      });
     },
     restoreTab: function(_0, count, _2, _3, sessionId) {
       if (sessionId) {
@@ -576,7 +647,9 @@
     chrome.browserAction.setBadgeBackgroundColor({color: [82, 156, 206, 255]});
     onActiveChanged = function(tabId, selectInfo) {
       chrome.tabs.get(tabId, function(tab) {
-        updateActiveState(tabId, tab.url);
+        chrome.tabs.sendMessage(tabId, {
+          name: "getActiveState"
+        }, funcDict.updateActiveState.bind(null, tabId, tab.url));
       });
     };
     updateBadge = function(badge) {
@@ -612,35 +685,7 @@
     if (!shouldShowActionIcon) return;
     chrome.tabs.sendMessage(tabId, {
       name: "getActiveState"
-    }, function(response) {
-      var config, currentPasskeys, enabled, isCurrentlyEnabled, passKeys;
-      if (response) {
-        isCurrentlyEnabled = response.enabled;
-        currentPasskeys = response.passKeys;
-        config = requestHandlers.isEnabledForUrl({ url: url });
-        enabled = config.enabled;
-        passKeys = config.passKeys;
-        chrome.browserAction.setIcon({
-          tabId: tabId,
-          path: !enabled ? "img/icons/browser_action_disabled.png"
-              : passKeys ? "img/icons/browser_action_partial.png"
-                         : "img/icons/browser_action_enabled.png"
-        })
-        if (isCurrentlyEnabled !== enabled || currentPasskeys !== passKeys) {
-          chrome.tabs.sendMessage(tabId, {
-            name: "setState",
-            enabled: enabled,
-            passKeys: passKeys
-          });
-        }
-      } else {
-        chrome.browserAction.setIcon({
-          tabId: tabId,
-          path: "img/icons/browser_action_disabled.png"
-        });
-        return setBadge({badge: ""});
-      }
-    });
+    }, funcDict.updateActiveState.bind(null, tabId, url));
   };
 
   chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab) {
@@ -909,50 +954,7 @@
       BackgroundCommands.restoreTab(null, 1, null, null, request.sessionId);
     },
     openUrlInIncognito: function(request, tab) {
-      chrome.windows.getAll(function(wnds) {
-        wnds = wnds.filter(function(wnd) {
-          return wnd.incognito && wnd.type === "normal";
-        });
-        request.active = (request.active !== false);
-        request.url = Utils.convertToUrl(request.url);
-        if (wnds.length >= 1) {
-          var inCurWnd = wnds.filter(function(wnd) {
-            return wnd.id === tab.windowId
-          }).length > 0, options = {
-            url: request.url,
-            windowId: inCurWnd ? tab.windowId : wnds[wnds.length - 1].id,
-            selected: request.active
-          };
-          if (inCurWnd) {
-            options.index = tab.index + 1;
-          }
-          chrome.tabs.create(options);
-          if (request.active && !inCurWnd) {
-            chrome.windows.update(options.windowId, {focused: true});
-          }
-          return;
-        }
-        chrome.windows.create({
-          type: "normal",
-          url: request.url,
-          focused: false,
-          incognito: true
-        }, request.active ? function(newWnd) {
-          chrome.windows.get(tab.windowId, function(wnd) {
-            var options = {focused: true};
-            if (wnd.type === "normal") {
-              options.state = wnd.state;
-            }
-            chrome.windows.update(newWnd.id, options);
-          });
-        } : function(newWnd) {
-          chrome.windows.get(tab.windowId, function(wnd) {
-            if (wnd.type === "normal") {
-              chrome.windows.update(newWnd.id, {state: wnd.state});
-            }
-          });
-        });
-      });
+      chrome.windows.getAll(funcDict.openUrlInIncognito.bind(null, request, tab));
     },
     openUrlInCurrentTab: function(request, tab) {
       chrome.tabs.update(tab.id, {
