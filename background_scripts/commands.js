@@ -421,14 +421,12 @@ _commandDescriptions: {
   ],
   closeTabsOnLeft: [
     "Close tabs on the left", {
-      background: true,
-      noRepeat: true
+      background: true
     }
   ],
   closeTabsOnRight: [
     "Close tabs on the right", {
-      background: true,
-      noRepeat: true
+      background: true
     }
   ],
   closeOtherTabs: [
