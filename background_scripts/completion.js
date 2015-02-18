@@ -433,7 +433,12 @@
         
         newSuggestions = null;
         suggestions.sort(_this.rsortByRelevancy);
-        suggestions = suggestions.slice(0, MultiCompleter.maxResults);
+        if (suggestions.length > MultiCompleter.maxResults) {
+          suggestions = suggestions.slice(0, MultiCompleter.maxResults);
+        }
+        if (queryTerms.length > 0) {
+          queryTerms[0] = Suggestion.shortenUrl(queryTerms[0]);
+        }
         suggestions.forEach(Suggestion.prepareHtml);
         onComplete(suggestions);
         suggestions = null;
@@ -443,9 +448,6 @@
           _this.mostRecentQuery = false;
         }
       };
-    if (queryTerms.length > 0) {
-      queryTerms[0] = Suggestion.shortenUrl(queryTerms[0]);
-    }
     for (; i < l; i++) {
       r[i].filter(queryTerms, callback);
     };
