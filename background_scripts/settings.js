@@ -9,18 +9,20 @@
     return this._buffer[key];
   },
   set: function(key, value) {
-    this._buffer[key] = value;
-    if (value === this.defaults[key]) {
+    var ref = this.defaults[key];
+    if (value === ref || (key in this.forceBoolean && value !== this.forceBoolean[key])) {
+      this._buffer[key] = ref;
       if (key in localStorage) {
         delete localStorage[key];
       }
       Sync.clear(key);
     } else {
-      localStorage[key] = JSON.stringify(value);
-      Sync.set(key, localStorage[key]);
+      this._buffer[key] = value;
+      localStorage[key] = ref = JSON.stringify(value);
+      Sync.set(key, ref);
     }
-    if (key = this.postUpdateHooks[key]) {
-      key.call(this, value);
+    if (ref = this.postUpdateHooks[key]) {
+      ref.call(this, value, key);
     }
   },
   clear: function(key) {
@@ -43,14 +45,6 @@
     },
     showActionIcon: function(value) {
       setShouldShowActionIcon(value);
-    },
-    settingsVersion: function(value) {
-      var key = "settingsVersion";
-      this._buffer[key] = this.defaults[key];
-      if (key in localStorage) {
-        delete localStorage[key];
-      }
-      Sync.clear(key);
     }
   },
   _searchEnginesMap: undefined,
@@ -114,6 +108,12 @@
     searchEngines: "w = Wikipedia (en-US):\\\n  http://www.wikipedia.org/w/index.php?search=%s\nba=Baidu|baidu=Baidu:\\\n  www.baidu.com/s?ie=utf-8&wd=%s",
     newTabUrl: "/index.html", // note: if changed, /pages/newtab.html also needs change.
     settingsVersion: Utils.getCurrentVersion()
+  },
+  // accept only if value === @forceBoolean[key], so that we get boolean options
+  forceBoolean: {
+    settingsVersion: "++",
+    showActionIcon: true,
+    vimSync: true
   },
   ChromeInnerNewTab: "chrome-search://local-ntp/local-ntp.html"
 };
