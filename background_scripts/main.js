@@ -767,7 +767,7 @@
         }
       }
       else if (key = request.handlerOmni) {
-        func = getMultiCompleter(key);
+        func = completers[key];
         key = request.query;
         func.filter(key ? key.split(" ") : [], postResponse.bind(null, port, msgId));
       }
@@ -996,7 +996,7 @@
       });
     },
     refreshCompleter: function(request) {
-      getMultiCompleter(request.omni).refresh();
+      completers[request.omni].refresh();
     },
     setBadge: setBadge,
     createMark: Marks.create.bind(Marks),
@@ -1008,8 +1008,8 @@
     Commands.parseCustomKeyMappings(Settings.get("keyMappings"));
   }
   populateKeyCommands();
-  
-  Settings.parseSearchEngines(Settings.get("searchEngines"));
+
+  completers.init();
 
   shouldShowActionIcon = false;
   root.setShouldShowActionIcon(Settings.get("showActionIcon") === true);

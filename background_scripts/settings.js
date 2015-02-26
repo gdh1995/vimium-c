@@ -37,8 +37,11 @@
       Commands.parseCustomKeyMappings(value);
       refreshCompletionKeysAfterMappingSave();
     },
-    searchEngines: function(value) {
-      this.parseSearchEngines(value);
+    searchEngines: function() {
+      this.resetSearchEngines();
+    },
+    searchUrl: function(value) {
+      this.parseSearchEngines(this.get("searchEnginesMap"), "\\ :" + value);
     },
     exclusionRules: function(value) {
       Exclusions.postUpdateHook(value);
@@ -47,10 +50,10 @@
       setShouldShowActionIcon(value);
     }
   },
-  _searchEnginesMap: undefined,
-  parseSearchEngines: function(searchEnginesText) {
+  parseSearchEngines: function(map, searchEnginesText) {
     var a, pairs, key, val, name, _i, _j, _k, _len, rColon = /:\s*(.+)/;
-    var titles = {}, map = this._searchEnginesMap = { ":": titles };
+    var titles = {};
+    map[":"] = map[":"] || titles;
     a = searchEnginesText.replace(/\\\n/g, '').split('\n');
     for (_i = 0, _len = a.length; _i < _len; _i++) {
       val = a[_i].trim();
@@ -77,8 +80,10 @@
       }
     }
   },
-  getSearchEngines: function() {
-    return this._searchEnginesMap;
+  resetSearchEngines: function() {
+    var ref = this._buffer.searchEnginesMap = {};
+    this.parseSearchEngines(ref, this.get("searchEngines"));
+    this.parseSearchEngines(ref, "\\ :" + this.get("searchUrl"));
   },
   defaults: {
     UILanguage: null,

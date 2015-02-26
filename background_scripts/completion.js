@@ -384,7 +384,7 @@
   };
 
   SearchEngineCompleter.prototype.refresh = function() {
-    this.searchEngines = Settings.getSearchEngines();
+    this.searchEngines = Settings.get("searchEnginesMap");
   };
 
   SearchEngineCompleter.prototype.getSearchEngineMatches = function(queryTerm) {
@@ -747,15 +747,14 @@
     tabs: new TabCompleter(),
     seachEngines: new SearchEngineCompleter()
   };
-  completers = {
+  (typeof exports !== "undefined" && exports !== null ? exports : window).completers = {
+    init: function() {
+      Settings.resetSearchEngines();
+      completers.seachEngines.refresh();
+    },
     omni: new MultiCompleter([completers.seachEngines, completers.bookmarks, completers.history, completers.domains]),
     bookmarks: new MultiCompleter([completers.bookmarks]),
     history: new MultiCompleter([completers.history]),
     tabs: new MultiCompleter([completers.tabs])
   };
-  
-  (typeof exports !== "undefined" && exports !== null ? exports : window).getMultiCompleter = function(type) {
-    return completers[type];
-  };
-  
 })();
