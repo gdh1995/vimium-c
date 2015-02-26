@@ -364,19 +364,19 @@
   };
 
   function SearchEngineCompleter() {
-    this.searchEngines = { ":": {} };
+    this.searchEngines = null;
   }
 
   SearchEngineCompleter.prototype.filter = function(queryTerms, onComplete) {
-    var pattern = this.getSearchEngineMatches(queryTerms[0]);
+    var pattern = this.searchEngines[queryTerms[0]];
     if (!pattern) {
       onComplete([]);
       return;
     }
-    var name = this.getSearchEngineName(queryTerms.shift());
-    pattern = Utils.createSearchUrl(pattern, queryTerms);
-    onComplete([new Suggestion(queryTerms, "search", pattern, pattern
-      , name + ": " + queryTerms.join(" "), this.computeRelevancy)]);
+    queryTerms.shift();
+    var obj = Utils.createSearchUrl(pattern, queryTerms, true);
+    onComplete([new Suggestion(queryTerms, "search", obj.url, obj.url
+      , pattern.name + ": " + obj.$S, this.computeRelevancy)]);
   };
 
   SearchEngineCompleter.prototype.computeRelevancy = function() {
@@ -385,14 +385,6 @@
 
   SearchEngineCompleter.prototype.refresh = function() {
     this.searchEngines = Settings.get("searchEnginesMap");
-  };
-
-  SearchEngineCompleter.prototype.getSearchEngineMatches = function(queryTerm) {
-    return this.searchEngines[queryTerm];
-  };
-  
-  SearchEngineCompleter.prototype.getSearchEngineName = function(queryTerm) {
-    return this.searchEngines[":"][queryTerm];
   };
 
   function MultiCompleter(completers) {

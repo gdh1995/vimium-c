@@ -41,7 +41,7 @@
       this.resetSearchEngines();
     },
     searchUrl: function(value) {
-      this.parseSearchEngines(this.get("searchEnginesMap"), "\\ :" + value);
+      this.parseSearchEngines("\\:" + value);
     },
     exclusionRules: function(value) {
       Exclusions.postUpdateHook(value);
@@ -50,40 +50,44 @@
       setShouldShowActionIcon(value);
     }
   },
-  parseSearchEngines: function(map, searchEnginesText) {
-    var a, pairs, key, val, name, _i, _j, _k, _len, rColon = /:\s*(.+)/;
-    var titles = {};
-    map[":"] = map[":"] || titles;
+  parseSearchEngines: function(searchEnginesText, map) {
+    var a, pairs, key, val, name, obj, _i, _j, _len, _len2 //
+      , rEscapeSpace = /\\\s/g, rSpace = /\s/;
+    map = map || this._buffer.searchEnginesMap;
     a = searchEnginesText.replace(/\\\n/g, '').split('\n');
     for (_i = 0, _len = a.length; _i < _len; _i++) {
       val = a[_i].trim();
       if (!val || val[0] === '#') continue;
-      pairs = val.split(rColon, 4);
-      if (pairs.length !== 3 || !(key = pairs[0].trimRight()) || !(val = pairs[1])) continue;
+      _j = val.indexOf(":");
+      if (_j <= 0 || !(key = val.substring(0, _j).trimRight())) continue;
+      val = val.substring(_j + 1).trimLeft();
+      if (val.length === 0) continue;
+      val = val.replace(rEscapeSpace, "\\s");
+      _j = val.search(rSpace);
+      if (_j > 0) {
+        name = val.substring(_j + 1).trimLeft();
+        val = val.substring(0, _j);
+      } else {
+        name = null;
+      }
+      obj = {url: val};
       pairs = key.split('|');
-      _j = pairs.length;
-      while (0 <= --_j) {
+      for (_j = 0, _len2 = pairs.length; _j < _len2; _j++) {
         if (!(key = pairs[_j].trim())) continue;
-        _k = key.indexOf('=');
-        if (_k > 0) {
-          name = key.substring(_k + 1);
-          key = key.substring(0, _k).trimRight();
-          if (!key) continue;
-          name = name.trimLeft() || key;
-        } else if (_k < 0) {
-          name = key;
-        } else {
-          continue;
-        }
-        map[key] = val;
-        titles[key] = name;
+        if (!name) name = key;
+        map[key] = obj;
+      }
+      if (name) {
+        obj.name = name;
+        obj.$s = val.indexOf("%s") >= 0;
+        obj.$S = val.indexOf("%S") >= 0;
       }
     }
   },
   resetSearchEngines: function() {
-    var ref = this._buffer.searchEnginesMap = {};
-    this.parseSearchEngines(ref, this.get("searchEngines"));
-    this.parseSearchEngines(ref, "\\ :" + this.get("searchUrl"));
+    this._buffer.searchEnginesMap = {};
+    this.parseSearchEngines(this.get("searchEngines"));
+    this.postUpdateHooks.searchUrl.call(this, this.get("searchUrl"));
   },
   defaults: {
     UILanguage: null,
