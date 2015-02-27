@@ -34,7 +34,8 @@
     var before;
     if (direction === 'x') {
       before = element.scrollLeft;
-      element.scrollLeft += Math.ceil(amount * 0.6);
+      element.scrollLeft += (element.clientWidth > element.clientHeight * 2)
+        ? amount : Math.ceil(amount * 0.6);
       return element.scrollLeft !== before;
     } else {
       before = element.scrollTop;

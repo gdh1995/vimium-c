@@ -1,7 +1,6 @@
 
 <style type="text/css">
 #vimOmnibar.vimB {
-	background: #F1F1F1;
 	border: 1px solid #aaa;
 	border-radius: 5px;
 	box-shadow: 0px 2px 10px rgba(0, 0, 0, 0.8);
@@ -15,6 +14,14 @@
 	/* less than hint markers and the help dialog. */
 	z-index: 2147483643;
 }
+
+#vimOInputBar.vimB {
+	background: #F1F1F1;
+	padding: 10px;
+}
+#vimOInputBar.vimOWithList {
+	border-bottom: 1px dashed #C6C9CE;
+}
 #vimOInput.vimB {
 	background-color: white;
 	border: 1px solid #E8E8E8;
@@ -27,24 +34,22 @@
 	padding: 4px;
 	width: 100%;
 }
+
 #vimOList.vimB {
-	border-top: 1px dashed #C6C9CE;
+	background-color: white;
 	list-style: none;
 	padding-bottom: 3px;
 }
-
 .vimOItem.vimB {
-	background-color: white;
 	border-bottom: 1px solid #ddd;
 	display: list-item;
-	padding: 5px 10px 3px 10px;
 	position: relative;
 	white-space: nowrap;
 }
 .vimOItem:last-child {
 	border-bottom-style: none;
 	margin-bottom: -3px;
-	padding-bottom: 6px;
+	padding-bottom: 3px;
 }
 .vimOItem:hover {
 	background-color: #CFDDEF;
@@ -52,13 +57,18 @@
 .vimOItem.vimS {
 	background-color: #BBCEE9;
 }
+.vimOIWrap.vimB {
+	display: block;
+	margin: 0px 10px;
+	padding: 5px 0px 3px 0px;
+	overflow: hidden;
+}
 
 .vimOITop.vimB {
 	display: block;
 	font-size: 16px;
 	height: 18px;
 	line-height: 18px;
-	overflow: hidden;
 }
 .vimOISource.vimB {
 	color: #777;
@@ -82,7 +92,6 @@
 	height: 16px;
 	line-height: 17px;
 	margin-top: 2px;
-	overflow: hidden;
 	padding-right: 6px;
 }
 .vimOIIcon.vimB {
@@ -109,21 +118,18 @@
 	position: absolute;
 }
 </style>
-<div class="vimB vimR" style="padding: 10px;">
+<div class="vimB vimR vimOWithList" id="vimOInputBar">
 	<input type="text" class="vimB vimR" id="vimOInput" />
 </div>
 <ul class="vimB vimR vimScroll" id="vimOList">
 	<span id="vimOITemplate"><span>
-	<li class="vimB vimI vimOItem" data-vim-index="{{$index}}">
+	<li class="vimB vimI vimOItem" data-vim-index="{{$index}}"><div class="vimB vimI vimOIWrap">
 		<div class="vimB vimI vimOITop">
 			<span class="vimB vimI vimOISource">{{type}}</span>
 			<span class="vimB vimI vimOITitle">{{titleSplit}}</span>
 		</div>
 		<div class="vimB vimI vimOIBottom{{favIconUrl}}">
-			<a class="vimB vimI vimOIUrl"
-				data-vim-text="{{title}}"
-				data-vim-url="{{urlE}}"
-			>{{textSplit}}</a>{{relevancy}}
+			<a class="vimB vimI vimOIUrl">{{textSplit}}</a>{{relevancy}}
 		</div>
-	</li></span></span>
+	</div></li></span></span>
 </ul>

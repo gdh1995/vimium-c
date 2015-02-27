@@ -371,8 +371,7 @@
           parEl = parEl.parentElement;
         } while (parEl && !parEl.classList.contains("vimOItem"));
         if (parEl) {
-          rect = VRect.copy(parEl.getClientRects()[0]);
-          rect[0] += 10, rect[2] -= 12, rect[3] -= 3;
+          rect = Vomnibar.vomnibarUI.computeHint(parEl);
         }
       }
       if (!rect) {
@@ -387,6 +386,7 @@
         }
         temp = null;
       }
+      rect[2] -= 1, rect[3] -= 1;
       DomUtils.flashVRect(rect);
       this.linkActivator(clickEl);
       if ((this.mode & 64) === 64) {

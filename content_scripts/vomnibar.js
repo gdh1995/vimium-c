@@ -146,9 +146,11 @@
     this.list.innerHTML = this.renderItems(this.completions);
     if (this.completions.length > 0) {
       this.list.style.display = "";
+      this.inputBar.classList.add("vimOWithList");
       this.selection = (this.completions[0].type === "search") ? 0 : this.initialSelectionValue;
     } else {
       this.list.style.display = "none";
+      this.inputBar.classList.remove("vimOWithList");
       this.selection = -1;
     }
     this.isSelectionChanged = false;
@@ -355,6 +357,7 @@
   init_dom: function(html) {
     this._initStep[0] = 2;
     this.box.innerHTML = html;
+    this.inputBar = this.box.querySelector("#vimOInputBar");
     this.input = this.box.querySelector("#vimOInput");
     this.list = this.box.querySelector("#vimOList");
     var str = this.box.querySelector("#vimOITemplate").innerHTML;
@@ -364,6 +367,19 @@
       ref[i].call(this);
     }
     this._initStep = [2];
+  },
+  computeHint: function(li) {
+    var i = +li.getAttribute("data-vim-index"), a, item, rect;
+    if (!(i >= 0 && i < this.completions.length)) { return null; }
+    a = li.querySelector(".vimOIUrl");
+    if (!a.getAttribute("data-vim-url")) {
+      item = this.completions[i];
+      a.setAttribute("data-vim-text", item.title);
+      a.setAttribute("data-vim-url", item.url);
+    }
+    rect = VRect.copy(li.querySelector(".vimOIWrap").getBoundingClientRect());
+    rect[2] -= 1, rect[3] -= 1;
+    return rect;
   }
 };
 
@@ -486,14 +502,10 @@
     }
     return out.join("");
   },
-  quoteRegex: /"/g,
   prepareToRender: function(item) {
     item.textSplit = this.cutUrl(item.text, item.textSplit, item.url);
-    // item.text = Utils.decodeURI(item.url);
     item.titleSplit = this.highlightTerms(item.title, item.titleSplit);
-    item.title = Utils.escapeHtml(item.title.replace(this.quoteRegex, "&quot;"));
-    item.urlE = Utils.escapeHtml(item.url);
-    if (this.showFavIcon && item.url.indexOf("://") >= 0) {
+     if (this.showFavIcon && item.url.indexOf("://") >= 0) {
       item.favIconUrl = " vimOIIcon\" style=\"background-image: url(" + (item.favIconUrl ||
         ("chrome://favicon/size/16/" + item.url)) + ")";
     } else {
