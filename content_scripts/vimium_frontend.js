@@ -444,7 +444,7 @@ or @type="url" or @type="number" or @type="password" or not(@type))]',
             visibleInputs[selectedInputIndex].element.focus();
           } else if (event.keyCode !== keyCodes.shiftKey) {
             DomUtils.removeNode(hintContainingDiv);
-            this.remove();
+            handlerStack.remove();
             return true;
           }
           return false;
@@ -514,7 +514,9 @@ or @type="url" or @type="number" or @type="password" or not(@type))]',
       modifiers = "";
       keyChar = KeyboardUtils.getKeyChar(event);
       if (keyChar.length > 0) {
-        if (event[keyCodes.modifier]) {
+        if (event.ctrlKey) {
+          modifiers += event.metaKey ? "m-c-" : keyCodes.hasMeta ? "C-" : "c-";
+        } else if (event.metaKey) {
           modifiers += "c-";
         }
         if (event.altKey) {
@@ -837,7 +839,7 @@ or @type="url" or @type="number" or @type="password" or not(@type))]',
     if (elementCanTakeInput) {
       handlerStack.push({
         keydown: function(event) {
-          this.remove();
+          handlerStack.remove();
           if (KeyboardUtils.isEscape(event)) {
             DomUtils.simulateSelect(document.activeElement);
             enterInsertModeWithoutShowingIndicator(document.activeElement);
