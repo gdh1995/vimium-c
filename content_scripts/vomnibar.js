@@ -98,7 +98,8 @@ Vomnibar.vomnibarUI = {
     this.box.addEventListener("mousewheel", DomUtils.suppressPropagation);
     this.box.addEventListener("keyup", this.onKeyEvent);
     this.handlerId = handlerStack.push({
-      keydown: this.onKeydown
+      keydown: this.onKeydown,
+      _this: this
     });
   },
   hide: function() {
@@ -347,7 +348,6 @@ Vomnibar.vomnibarUI = {
     }, this.init_dom.bind(this));
     this._initStep[0] = 1;
     this.performAction = background.performAction.bind(background);
-    this.onKeydown = this.onKeydown.bind(this);
     this.onInput = this.onInput.bind(this);
     this.onClick = this.onClick.bind(this);
     this.onTimer = this.onTimer.bind(this);
