@@ -1169,9 +1169,6 @@ href='https://github.com/philc/vimium#release-notes'>what's new</a>).<a class='v
     },
     init: function() {
       return;
-      if (!Utils.haveChromeVersion("39.0.2171.71")) {
-        return;
-      }
       this.cursorHideStyle = document.createElement("style");
       this.cursorHideStyle.innerHTML = "body * {pointer-events: none !important; cursor: none !important;}\nbody, html {cursor: none !important;}";
       window.addEventListener("mousemove", this.onMouseMove);

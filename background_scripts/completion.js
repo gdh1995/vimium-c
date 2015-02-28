@@ -204,7 +204,7 @@ completers.history = {
     });
   },
   filterFinish: function(historys, onComplete) {
-    var s = Suggestion, c = this.computeRelevancyByTime, d = Decoder.decodeURI;
+    var s = Suggestion, c = this.computeRelevancyByTime, d = Decoder.decodeURL;
     onComplete(historys.sort(this.rsortByLvt).slice(0, MultiCompleter.maxResults).map(function(e) {
       var o = new s([], "history", e.url, d(e.url), e.title, c, e.lastVisitTime);
       e.sessionId && (o.sessionId = e.sessionId);
@@ -320,7 +320,7 @@ completers.tabs = {
   },
   filter1: function(queryTerms, onComplete, tabs) {
     var c = this.computeRelevancy, suggestions = tabs.filter(function(tab) {
-      var text = Decoder.decodeURI(tab.url);
+      var text = Decoder.decodeURL(tab.url);
       if (RankingUtils.matches(queryTerms, text + '\n' + tab.title)) {
         tab.text = text;
         return true;
@@ -498,6 +498,7 @@ completers.searchEngines = {
   };
 
   RegexpCache = {
+    _upperRegex: /[A-Z]/,
     _escapeRegEx: /[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g,
     _cache: {},
     clear: function() {
@@ -505,7 +506,7 @@ completers.searchEngines = {
     },
     get: function(s, p, n) {
       var r = p + s.replace(this._escapeRegEx, "\\$&") + n, v;
-      return (v = this._cache)[r] || (v[r] = new RegExp(r, (Utils.hasUpperCase(s) ? "" : "i")));
+      return (v = this._cache)[r] || (v[r] = new RegExp(r, (this._upperRegex.test(s) ? "" : "i")));
     }
   };
 
@@ -593,9 +594,9 @@ completers.searchEngines = {
     _f: decodeURIComponent, // core function
     setCore: function(core) {
       this._f = core;
-      this.decodeURI.setCore(core);
+      this.decodeURL.setCore(core);
     },
-    decodeURI: null,
+    decodeURL: null,
     decodeList: function(a) {
       var i = -1, j, l = a.length, d = Decoder, f = d._f;
       for (; ; ) {
@@ -675,7 +676,7 @@ completers.searchEngines = {
     }
   };
   
-  Decoder.decodeURI = (function() {
+  Decoder.decodeURL = (function() {
     var d = Decoder.dict, f = Decoder._f, t = Decoder.todos, work = function(a) {
       try {
         return f(a);

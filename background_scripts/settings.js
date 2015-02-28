@@ -119,11 +119,11 @@ var Settings = {
     searchUrl: "http://www.baidu.com/s?ie=utf-8&wd=%s",
     searchEngines: "w|wiki|Wiki:\\\n  http://www.wikipedia.org/w/index.php?search=%s Wikipedia (en-US)\nBaidu|baidu|ba:\\\n  www.baidu.com/s?ie=utf-8&wd=%s",
     newTabUrl: "/index.html", // note: if changed, /pages/newtab.html also needs change.
-    settingsVersion: Utils.getCurrentVersion()
+    settingsVersion: ""
   },
   // accept only if value === @enforceBoolean[key], so that we get boolean options
   enforceBoolean: {
-    settingsVersion: "++",
+    settingsVersion: "",
     showActionIcon: true,
     vimSync: true
   },
@@ -134,4 +134,5 @@ var Settings = {
   ChromeInnerNewTab: "chrome-search://local-ntp/local-ntp.html"
 };
 
-Settings.enforceBoolean.settingsVersion = Settings.defaults.settingsVersion;
+Settings._buffer.settingsVersion = Settings.enforceBoolean.settingsVersion //
+  = Settings.defaults.settingsVersion = Utils.getCurrentVersion();

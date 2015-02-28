@@ -25,7 +25,7 @@
   };
 
   getDimension = function(el, direction, name) {
-    return !Utils.isString(name) ? name
+    return (typeof name !== "string") ? name
       : (name !== 'viewSize' || el !== document.body) ? el[scrollProperties[direction][name]]
       : (direction === 'x') ? window.innerWidth : window.innerHeight;
   };
