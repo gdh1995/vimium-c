@@ -739,7 +739,7 @@
     tabs: new TabCompleter(),
     seachEngines: new SearchEngineCompleter()
   };
-  (typeof exports !== "undefined" && exports !== null ? exports : window).Completers = {
+  window.Completers = {
     omni: new MultiCompleter([completers.seachEngines, completers.bookmarks, completers.history, completers.domains]),
     bookmarks: new MultiCompleter([completers.bookmarks]),
     history: new MultiCompleter([completers.history]),

@@ -8,12 +8,10 @@
     , helpDialogHtmlForCommandGroup, keyQueue, moveTab, namedKeyRegex //
     , openMultiTab //
     , populateKeyCommands, registerFrame, reRegisterFrame, splitKeyQueueRegex //
-    , removeTabsRelative, root, selectTab //
+    , removeTabsRelative, selectTab //
     , requestHandlers, sendRequestToAllTabs //
     , shouldShowUpgradeMessage, singleKeyCommands, splitKeyIntoFirstAndSecond, splitKeyQueue //
     , unregisterFrame, validFirstKeys, shouldShowActionIcon, setBadge;
-
-  root = typeof exports !== "undefined" && exports !== null ? exports : window;
 
   shouldShowActionIcon = chrome.browserAction && chrome.browserAction.setIcon ? true : false;
 
@@ -27,13 +25,13 @@
 
   frameIdsForTab = {};
   
-  root.getFrameIdsForTab = function() {
+  window.getFrameIdsForTab = function() {
     return frameIdsForTab;
   };
 
   namedKeyRegex = /^(<(?:[amc]-.|(?:[amc]-)?[a-z0-9]{2,5})>)(.*)$/;
 
-  root.filesContent = {
+  window.filesContent = {
     vomnibar: "pages/vomnibar.html",
     help_dialog: "pages/help_dialog.html"
   };
@@ -46,7 +44,7 @@
     }
   });
 
-  root.helpDialogHtml = function(showUnboundCommands, showCommandNames, customTitle) {
+  window.helpDialogHtml = function(showUnboundCommands, showCommandNames, customTitle) {
     var command, commandsToKey, dialogHtml, group, key;
     commandsToKey = {};
     for (key in Commands.keyToCommandRegistry) {
@@ -574,7 +572,7 @@
     showHelp: function(_0, _1, _2, port) {
       port.postMessage({
         name: "toggleHelpDialog",
-        dialogHtml: root.helpDialogHtml(),
+        dialogHtml: window.helpDialogHtml(),
       });
     },
     moveTabLeft: function(tab, count) {
@@ -630,7 +628,7 @@
 
   setBadge = function() {};
 
-  root.setShouldShowActionIcon = !shouldShowActionIcon ? function() {} : (function() {
+  window.setShouldShowActionIcon = !shouldShowActionIcon ? function() {} : (function() {
     var onActiveChanged, currentBadge, badgeTimer, updateBadge, time1 = 50, setShouldShowActionIcon;
     chrome.browserAction.setBadgeBackgroundColor({color: [82, 156, 206, 255]});
     onActiveChanged = function(tabId, selectInfo) {
@@ -671,7 +669,7 @@
     return setShouldShowActionIcon;
   })();
 
-  root.updateActiveState = !shouldShowActionIcon ? function() {} : function(tabId, url) {
+  window.updateActiveState = !shouldShowActionIcon ? function() {} : function(tabId, url) {
     if (!shouldShowActionIcon) return;
     chrome.tabs.sendMessage(tabId, {
       name: "getActiveState"
@@ -682,7 +680,7 @@
     if (changeInfo.status !== "loading" || frameIdsForTab[tabId]) {
       return; // topFrame is alive, so loading is caused by may an iframe
     }
-    Marks.removeMarksForTab(tabId);
+    Marks.RemoveMarksForTab(tabId);
     shouldShowActionIcon && updateActiveState(tabId, tab.url);
   });
 
@@ -833,7 +831,7 @@
           + "\n\nAre you sure you want to continue?");
       }
       if (runCommand) {
-        if (registryEntry.isBackgroundCommand) {
+        if (registryEntry.background) {
           chrome.tabs.getSelected(null, function(tab) {
             BackgroundCommands[registryEntry.command](tab, count, frameId, port);
           });
@@ -842,7 +840,7 @@
             name: "executePageCommand",
             command: registryEntry.command,
             frameId: frameId,
-            count: (registryEntry.noRepeat === false) ? (-count) : count,
+            count: (registryEntry.noRepeat === false ? -count : count),
             keyQueue: "",
             completionKeys: generateCompletionKeys()
           });
@@ -1012,7 +1010,7 @@
   Settings.set("searchEnginesMap", {});
 
   shouldShowActionIcon = false;
-  root.setShouldShowActionIcon(Settings.get("showActionIcon") === true);
+  window.setShouldShowActionIcon(Settings.get("showActionIcon") === true);
 
   (function() {
     var ref, i, key, url, callback;
@@ -1055,7 +1053,7 @@
       Sync.init();
     } else {
       var blank = function() {};
-      root.Sync = {debug: false, clear: blank, set: blank, init: blank};
+      window.Sync = {debug: false, clear: blank, set: blank, init: blank};
     }
   })();
 

@@ -203,7 +203,7 @@
     }
   };
 
-  (typeof exports !== "undefined" && exports !== null ? exports : window).Scroller = {
+  window.Scroller = {
     initPre: function() {
       handlerStack.push({
         DOMActivate: function(event) {

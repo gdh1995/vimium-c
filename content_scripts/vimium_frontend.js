@@ -12,7 +12,7 @@
     , isEditable, isEmbed, isEnabledForUrl, isFocusable, isInsertMode, isPassKey, isShowingHelpDialog //
     , isValidKey, keyQueue //
     , onKeydown, onKeypress, passKeys, performFindInPlace //
-    , restoreDefaultSelectionHighlight, root //
+    , restoreDefaultSelectionHighlight //
     , settings, showFindModeHUDForQuery, textInputXPath, oldActivated //
     , updateFindModeQuery, validFirstKeys, goBy, getVisibleInputs, mainPort, requestHandlers //
     ;
@@ -1179,17 +1179,15 @@ href='https://github.com/philc/vimium#release-notes'>what's new</a>).<a class='v
     }
   };
 
-  root = typeof exports !== "undefined" && exports !== null ? exports : window;
+  window.settings = settings;
 
-  root.settings = settings;
+  window.HUD = HUD;
 
-  root.HUD = HUD;
+  window.KeydownEvents = KeydownEvents;
 
-  root.KeydownEvents = KeydownEvents;
+  window.frameId = frameId;
 
-  root.frameId = frameId;
-
-  root.mainPort = mainPort;
+  window.mainPort = mainPort;
   
   requestHandlers = {
     settings: settings.ReceiveMessage,
