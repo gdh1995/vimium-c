@@ -48,10 +48,10 @@ var Vomnibar = {
     this.activateWithCompleter("history", true, true);
   },
   activateEditUrl: function() {
-    this.activateWithCompleter("omni", false, false, window.location.href);
+    this.activateWithCompleter("omni", false, false, Utils.decodeURL(window.location.href));
   },
   activateEditUrlInNewTab: function() {
-    this.activateWithCompleter("omni", false, true, window.location.href);
+    this.activateWithCompleter("omni", false, true, Utils.decodeURL(window.location.href));
   },
   getUI: function() {
     return this.vomnibarUI;
@@ -60,6 +60,7 @@ var Vomnibar = {
 
 Vomnibar.vomnibarUI = {
   box: null,
+  cleanCompletions: null,
   completer: null,
   completionInput: {
     url: "",
@@ -145,6 +146,7 @@ Vomnibar.vomnibarUI = {
   },
   populateUI: function() {
     this.list.innerHTML = this.renderItems(this.completions);
+    this.cleanCompletions(this.completions);
     if (this.completions.length > 0) {
       this.list.style.display = "";
       this.inputBar.classList.add("vimOWithList");
@@ -163,9 +165,12 @@ Vomnibar.vomnibarUI = {
       this.input.value = this.completionInput.text;
     } else {
       if (!this.focused) this.input.blur();
-      this.input.value = this.completions[this.selection].url;
+      var ref = this.completions[this.selection];
+      if (!ref.text) {
+        ref.text = ref.url.startsWith("javascript:") ? ref.url : Utils.decodeURL(ref.url);
+      }
+      this.input.value = ref.text;
     }
-    // TODO: judge what to do: stay, decode or encode
   },
   updateSelection: function() {
     for (var _i = 0, _ref = this.list.children, selected = this.selection; _i < _ref.length; ++_i) {
@@ -270,7 +275,7 @@ Vomnibar.vomnibarUI = {
     } else {
       i = -1;
     }
-    this.performAction(this.completions[i], this.openInNewTab);
+    this.performAction(i >= 0 ? this.completions[i] : this.completionInput, this.openInNewTab);
     this.hide();
   },
   onClick: function(event) {
@@ -297,7 +302,7 @@ Vomnibar.vomnibarUI = {
     var str = this.input.value.trimLeft();
     this.completionInput.text = str;
     str = str.trimRight();
-    if (this.completions[this.selection].url != str) {
+    if ((this.selection === -1 ? this.completionInput.url : this.completions[this.selection].text) !== str) {
       this.update();
       this.completionInput.url = str;
     }
@@ -309,7 +314,6 @@ Vomnibar.vomnibarUI = {
   },
   onCompletions: function(completions) {
     if (completions) {
-      completions[-1] = this.completionInput;
       this.completions = completions;
     }
     if (this._initStep[0] !== 2) {
@@ -326,7 +330,7 @@ Vomnibar.vomnibarUI = {
   },
   onKeyEvent: function(event) {
     var key = event.keyCode;
-    if (event.altKey || (key >= keyCodes.f1 + 2 && key <= keyCodes.f12)) {
+    if (event.altKey || (key >= keyCodes.f1 && key <= keyCodes.f12)) {
       return;
     }
     else if (key == keyCodes.left || key == keyCodes.right) {
@@ -348,6 +352,7 @@ Vomnibar.vomnibarUI = {
     }, this.init_dom.bind(this));
     this._initStep[0] = 1;
     this.performAction = background.performAction.bind(background);
+    this.cleanCompletions = background.cleanCompletions.bind(background);
     this.onInput = this.onInput.bind(this);
     this.onClick = this.onClick.bind(this);
     this.onTimer = this.onTimer.bind(this);
@@ -517,6 +522,16 @@ Vomnibar.background = {
       item.relevancy = "";
     }
   },
+  cleanCompletions: function(list) {
+    for (var _i = list.length, item; 0 <= --_i; ) {
+      item = list[_i];
+      delete item.textSplit;
+      delete item.titleSplit;
+      delete item.favIconUrl;
+      delete item.relevancy;
+      item.text = "";
+    }
+  },
   performAction: function(item, arg) {
     var action = this.completionActions[item.action] || item.action;
     if (typeof action !== "function") return;
@@ -529,9 +544,6 @@ Vomnibar.background = {
         script.textContent = this.url.substring(11);
         (document.documentElement || document.body || document.head).appendChild(script);
       } else {
-        if (this.type === "input") {
-          this.url = (this.url); // TODO: fix the bug of duplicate encodeURI
-        }
         mainPort.postMessage({
           handler: openInNewTab ? "openUrlInNewTab" : "openUrlInCurrentTab",
           url: this.url
