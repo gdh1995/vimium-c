@@ -58,7 +58,6 @@
 	vertical-align: baseline;
 	white-space: normal;
 	width: auto;
-	z-index: 2147483640;
 }
 .vimI.vimB {
 	background: none;
@@ -138,6 +137,9 @@
 }
 
 /* Input hints CSS */
+#vimIMC.vimB {
+	z-index: 2147483640;
+}
 .vimIHi.vimB {
 	background-color: rgba(255, 247, 133, 0.3);
 	border: 1px solid #C38A22;
