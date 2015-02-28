@@ -378,7 +378,7 @@ Vomnibar.vomnibarUI = {
       a.setAttribute("data-vim-url", item.url);
     }
     rect = VRect.copy(li.querySelector(".vimOIWrap").getBoundingClientRect());
-    rect[2] -= 1, rect[3] -= 1;
+    rect[2] -= 2, rect[3] -= 2;
     return rect;
   }
 };

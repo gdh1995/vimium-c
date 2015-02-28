@@ -86,7 +86,8 @@ var LinkHints = {
     this.hintMarkerContainingDiv.style.left = window.scrollX + "px";
     this.hintMarkerContainingDiv.style.top = window.scrollY + "px";
     this.handlerId = handlerStack.push({
-      keydown: this.onKeyDownInMode.bind(this)
+      keydown: this.onKeyDownInMode,
+      _this: this
     });
   },
   setOpenLinkMode: function(mode) {
@@ -386,7 +387,6 @@ var LinkHints = {
         }
         temp = null;
       }
-      rect[2] -= 1, rect[3] -= 1;
       DomUtils.flashVRect(rect);
       this.linkActivator(clickEl);
       if ((this.mode & 64) === 64) {
