@@ -22,20 +22,30 @@
 #vimOInputBar.vimOWithList {
 	border-bottom: 1px dashed #C6C9CE;
 }
-#vimOInput.vimB {
+#vimOInputBar.vimB > #vimOInput.vimB {
 	background-color: white;
 	border: 1px solid #E8E8E8;
 	border-radius: 3px;
 	box-shadow: #444 0px 0px 1px;
 	box-sizing: border-box;
+	color: black;
+	cursor: text;
+	font-family: "Helvetica Neue", "Helvetica", "Arial", "sans-serif";
 	font-size: 20px;
 	height: 34px;
+	line-height: 100%;
+	max-height: 34px;
+	max-width: 100%;
+	min-height: 0;
+	min-width: 0;
 	outline: none;
 	padding: 4px;
+	text-align: left;
+	text-decoration: none;
 	width: 100%;
 }
 
-#vimOList.vimB {
+#vimOmnibar.vimB > #vimOList.vimB {
 	background-color: white;
 	list-style: none;
 	padding-bottom: 3px;
