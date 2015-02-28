@@ -739,14 +739,14 @@
     tabs: new TabCompleter(),
     seachEngines: new SearchEngineCompleter()
   };
-  (typeof exports !== "undefined" && exports !== null ? exports : window).completers = {
-    init: function() {
-      Settings.resetSearchEngines();
-      completers.seachEngines.refresh();
-    },
+  (typeof exports !== "undefined" && exports !== null ? exports : window).Completers = {
     omni: new MultiCompleter([completers.seachEngines, completers.bookmarks, completers.history, completers.domains]),
     bookmarks: new MultiCompleter([completers.bookmarks]),
     history: new MultiCompleter([completers.history]),
     tabs: new MultiCompleter([completers.tabs])
   };
+
+  Settings.setUpdateHook("postSearchEnginesMap", function() {
+    completers.seachEngines.refresh();
+  });
 })();

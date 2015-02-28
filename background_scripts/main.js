@@ -631,7 +631,7 @@
   setBadge = function() {};
 
   root.setShouldShowActionIcon = !shouldShowActionIcon ? function() {} : (function() {
-    var onActiveChanged, currentBadge, badgeTimer, updateBadge, time1 = 50;
+    var onActiveChanged, currentBadge, badgeTimer, updateBadge, time1 = 50, setShouldShowActionIcon;
     chrome.browserAction.setBadgeBackgroundColor({color: [82, 156, 206, 255]});
     onActiveChanged = function(tabId, selectInfo) {
       chrome.tabs.get(tabId, function(tab) {
@@ -654,7 +654,7 @@
         badgeTimer = setTimeout(updateBadge.bind(null, badge), time1);
       }
     };
-    return function(value) {
+    setShouldShowActionIcon = function (value) {
       value = chrome.browserAction && chrome.browserAction.setIcon && value ? true : false;
       if (value === shouldShowActionIcon) { return; }
       shouldShowActionIcon = value;
@@ -667,6 +667,8 @@
         chrome.browserAction.disable();
       }
     };
+    Settings.setUpdateHook("showActionIcon", setShouldShowActionIcon);
+    return setShouldShowActionIcon;
   })();
 
   root.updateActiveState = !shouldShowActionIcon ? function() {} : function(tabId, url) {
@@ -718,12 +720,12 @@
     }
   };
 
-  root.refreshCompletionKeysAfterMappingSave = function() {
+  Settings.setUpdateHook("postKeyMappings", function() {
     validFirstKeys = {};
     singleKeyCommands = [];
     populateKeyCommands();
     sendRequestToAllTabs(getCompletionKeysRequest());
-  };
+  });
 
   generateCompletionKeys = function() {
     if (keyQueue.length === 0) {
@@ -767,7 +769,7 @@
         }
       }
       else if (key = request.handlerOmni) {
-        func = completers[key];
+        func = Completers[key];
         key = request.query;
         func.filter(key ? key.split(" ") : [], postResponse.bind(null, port, msgId));
       }
@@ -996,7 +998,7 @@
       });
     },
     refreshCompleter: function(request) {
-      completers[request.omni].refresh();
+      Completers[request.omni].refresh();
     },
     setBadge: setBadge,
     createMark: Marks.create.bind(Marks),
@@ -1004,12 +1006,10 @@
   };
 
   Commands.clearKeyMappingsAndSetDefaults();
-  if (Settings.has("keyMappings")) {
-    Commands.parseCustomKeyMappings(Settings.get("keyMappings"));
-  }
+  Commands.parseCustomKeyMappings(Settings.get("keyMappings"));
   populateKeyCommands();
 
-  completers.init();
+  Settings.set("searchEnginesMap", {});
 
   shouldShowActionIcon = false;
   root.setShouldShowActionIcon(Settings.get("showActionIcon") === true);

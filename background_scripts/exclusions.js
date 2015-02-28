@@ -45,31 +45,9 @@
     }
     this.rules = rules;
     Settings.set("exclusionRules", this.rules);
-  },
-  postUpdateHook: function(rules) {
-    this.rules = rules;
   }
 };
 
-if (!Settings.has("exclusionRules") && Settings.has("excludedUrls")) {
-  (typeof exports !== "undefined" && exports !== null ? exports : window).Exclusions.setRules((function(lines) {
-    var line, parse, _i, _len, _ref, results;
-    _ref = lines.trim().split("\n");
-    results = [];
-    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-      line = _ref[_i].trim();
-      if (line.length && line.indexOf("#") !== 0 && line.indexOf('"') !== 0) {
-        parse = line.split(/\s+/);
-        results.push({
-          pattern: parse[0],
-          passKeys: parse.slice(1).join("")
-        });
-      }
-    }
-    return results;
-  })(Settings.get("excludedUrls")));
-  if (!Settings.has("excludedUrlsBackup")) {
-    Settings.set("excludedUrlsBackup", Settings.get("excludedUrls"));
-  }
-  Settings.clear("excludedUrls");
-}
+Settings.setUpdateHook("exclusionRules", (function(rules) {
+  this.rules = rules;
+}).bind((typeof exports !== "undefined" && exports !== null ? exports : window).Exclusions));

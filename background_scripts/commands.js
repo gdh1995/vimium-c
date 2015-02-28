@@ -117,7 +117,11 @@
     , "Vomnibar.activateEditUrlInNewTab", "LinkHints.activateModeToOpenIncognito"
     , "goNext", "goPrevious", "Marks.activateCreateMode", "Marks.activateGotoMode"
     , "moveTabLeft", "moveTabRight", "closeTabsOnLeft", "closeTabsOnRight", "closeOtherTabs"],
-_defaultKeyMappings: {
+  _defaultKeyMappings: null,
+  _commandDescriptions: null
+};
+
+(typeof exports !== "undefined" && exports !== null ? exports : window).Commands._defaultKeyMappings = {
   "?": "showHelp",
   "j": "scrollDown",
   "k": "scrollUp",
@@ -179,8 +183,8 @@ _defaultKeyMappings: {
   "<f2>": "switchFocus",
   "m": "Marks.activateCreateMode",
   "`": "Marks.activateGotoMode"
-},
-_commandDescriptions: {
+};
+(typeof exports !== "undefined" && exports !== null ? exports : window).Commands._commandDescriptions = {
   showHelp: [
     "Show help", {
       background: true,
@@ -511,6 +515,12 @@ _commandDescriptions: {
       noRepeat: true
     }
   ]
-}
 };
 (typeof exports !== "undefined" && exports !== null ? exports : window).Commands.init();
+(typeof exports !== "undefined" && exports !== null ? exports : window).Commands._commandDescriptions = null;
+
+Settings.setUpdateHook("keyMappings", function(value) {
+  Commands.clearKeyMappingsAndSetDefaults();
+  Commands.parseCustomKeyMappings(value);
+  this.postUpdate("postKeyMappings", null);
+});

@@ -9,45 +9,53 @@
     return this._buffer[key];
   },
   set: function(key, value) {
-    var ref = this.defaults[key];
-    if (value === ref || (key in this.forceBoolean && value !== this.forceBoolean[key])) {
-      this._buffer[key] = ref;
-      if (key in localStorage) {
-        delete localStorage[key];
-      }
+    var ref = this.defaults[key], clear = false;
+    if (value === ref) {
+      clear = true;
+    } else if (key in this.enforceBoolean && value !== this.enforceBoolean[key]) {
+      value = ref;
+      clear = true;
+    }
+    this._buffer[key] = value;
+    if ((ref = this.postUpdateHooks[key]) && ref.call(this, value, key) === false) {
+      return;
+    } else if (key in this.nonPersistent) {
+      return;
+    }
+    if (clear) {
+      if (key in localStorage) delete localStorage[key];
       Sync.clear(key);
     } else {
-      this._buffer[key] = value;
-      localStorage[key] = ref = JSON.stringify(value);
-      Sync.set(key, ref);
-    }
-    if (ref = this.postUpdateHooks[key]) {
-      ref.call(this, value, key);
+      Sync.set(key, localStorage[key] = JSON.stringify(value));
     }
   },
   clear: function(key) {
     this.set(key, this.defaults[key]);
   },
-  has: function(key) {
+  hasPersistent: function(key) {
     return key in localStorage;
   },
+  postUpdate: function(key, virtualValue) {
+    var ref = this.postUpdateHooks[key];
+    if (ref) {
+      ref.call(this, virtualValue !== undefined ? virtualValue : this.get(key), key);
+    }
+  },
+  setUpdateHook: function(key, func) {
+    this.postUpdateHooks[key] = func;
+  },
   postUpdateHooks: {
-    keyMappings: function(value) {
-      Commands.clearKeyMappingsAndSetDefaults();
-      Commands.parseCustomKeyMappings(value);
-      refreshCompletionKeysAfterMappingSave();
-    },
     searchEngines: function() {
-      this.resetSearchEngines();
+      this.set("searchEnginesMap", {});
     },
     searchUrl: function(value) {
       this.parseSearchEngines("\\:" + value);
     },
-    exclusionRules: function(value) {
-      Exclusions.postUpdateHook(value);
-    },
-    showActionIcon: function(value) {
-      setShouldShowActionIcon(value);
+    searchEnginesMap: function(value) {
+      this.parseSearchEngines(this.get("searchEngines"));
+      this.parseSearchEngines("\\:" + this.get("searchUrl"));
+      this.postUpdate("postSearchEnginesMap", null);
+      return false;
     }
   },
   parseSearchEngines: function(searchEnginesText, map) {
@@ -77,18 +85,13 @@
         if (!name) name = key;
         map[key] = obj;
       }
-      if (name) {
-        obj.name = name;
-        obj.$s = val.indexOf("%s") >= 0;
-        obj.$S = val.indexOf("%S") >= 0;
-      }
+      if (!name) continue;
+      obj.name = name;
+      obj.$s = val.indexOf("%s") >= 0;
+      obj.$S = val.indexOf("%S") >= 0;
     }
   },
-  resetSearchEngines: function() {
-    this._buffer.searchEnginesMap = {};
-    this.parseSearchEngines(this.get("searchEngines"));
-    this.postUpdateHooks.searchUrl.call(this, this.get("searchUrl"));
-  },
+  // clear localStorage & sync, if value === @defaults[key]
   defaults: {
     UILanguage: null,
     helpDialog_showAdvancedCommands: false,
@@ -114,15 +117,21 @@
     previousPatterns: "prev,previous,back,<,\u2190,\xab,\u226a,<<",
     nextPatterns: "next,more,>,\u2192,\xbb,\u226b,>>",
     searchUrl: "http://www.baidu.com/s?ie=utf-8&wd=%s",
-    searchEngines: "w = Wikipedia (en-US):\\\n  http://www.wikipedia.org/w/index.php?search=%s\nba=Baidu|baidu=Baidu:\\\n  www.baidu.com/s?ie=utf-8&wd=%s",
+    searchEngines: "w|wiki|Wiki:\\\n  http://www.wikipedia.org/w/index.php?search=%s Wikipedia (en-US)\nBaidu|baidu|ba:\\\n  www.baidu.com/s?ie=utf-8&wd=%s",
     newTabUrl: "/index.html", // note: if changed, /pages/newtab.html also needs change.
     settingsVersion: Utils.getCurrentVersion()
   },
-  // accept only if value === @forceBoolean[key], so that we get boolean options
-  forceBoolean: {
+  // accept only if value === @enforceBoolean[key], so that we get boolean options
+  enforceBoolean: {
     settingsVersion: "++",
     showActionIcon: true,
     vimSync: true
   },
+  // not set localStorage, neither sync, if key in @nonPersistent
+  nonPersistent: {
+    searchEnginesMap: true
+  },
   ChromeInnerNewTab: "chrome-search://local-ntp/local-ntp.html"
 };
+(typeof exports !== "undefined" && exports !== null ? exports : window).Settings.enforceBoolean.settingsVersion = 
+(typeof exports !== "undefined" && exports !== null ? exports : window).Settings.defaults.settingsVersion;
