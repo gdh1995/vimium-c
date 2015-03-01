@@ -1217,12 +1217,19 @@ href='https://github.com/philc/vimium#release-notes'>what's new</a>).<a class='v
   requestHandlers = {
     settings: settings.ReceiveMessage,
     registerFrame: function(request) {
-      tabId = request.tabId;
+      if (request.tabId) {
+        tabId = request.tabId;
+      }
       if (request.css) {
-        var css = document.createElement("style");
-        css.type = "text/css";
-        css.innerHTML = request.css;
-        document.head.appendChild(css);
+        var css;
+        if (css = document.getElementById("vimUserCss")) {
+          css.innerHTML = request.css;
+        } else {
+          css = document.createElement("style");
+          css.type = "text/css";
+          css.innerHTML = request.css;
+          document.head.appendChild(css);
+        }
       }
       if (request.upgraded) {
         HUD.showUpgradeNotification(request.version);
