@@ -330,7 +330,7 @@ Vomnibar.vomnibarUI = {
   },
   onKeyEvent: function(event) {
     var key = event.keyCode;
-    if (event.altKey || (key >= keyCodes.f1 && key <= keyCodes.f12)) {
+    if (event.altKey || (key >= keyCodes.f1 + 2 && key <= keyCodes.f12)) {
       return;
     }
     else if (key == keyCodes.left || key == keyCodes.right) {
