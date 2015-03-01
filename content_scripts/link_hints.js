@@ -427,6 +427,12 @@ var LinkHints = {
     } else {
       this.deactivate2(callback);
     }
+  },
+  destroy: function() {
+    if (this.isActive) {
+      this.deactivateMode();
+    }
+    LinkHints = null;
   }
 };
 

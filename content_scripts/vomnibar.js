@@ -55,6 +55,13 @@ var Vomnibar = {
   },
   getUI: function() {
     return this.vomnibarUI;
+  },
+  destroy: function() {
+    if (this._uiInited) {
+      this.vomnibarUI.hide();
+      DomUtils.removeNode(this.vomnibarUI.box);
+    }
+    Vomnibar = null;
   }
 };
 

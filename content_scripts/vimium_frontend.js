@@ -7,11 +7,11 @@
     , findModeAnchorNode, findModeQuery, findModeQueryHasResults, focusFoundLink, followLink //
     , frameId, getNextQueryFromRegexMatches, handleDeleteForFindMode //
     , handleEnterForFindMode, handleEscapeForFindMode, handleKeyCharForFindMode, KeydownEvents //
-    , hideHelpDialog, CursorHider //
-    , initializeWhenEnabled, insertModeLock, installListener, isDOMDescendant //
+    , hideHelpDialog, CursorHider, ELs //
+    , initializeWhenEnabled, insertModeLock, isDOMDescendant //
     , isEditable, isEmbed, isEnabledForUrl, isFocusable, isInsertMode, isPassKey, isShowingHelpDialog //
     , isValidKey, keyQueue, tabId //
-    , onKeydown, onKeypress, passKeys, performFindInPlace //
+    , passKeys, performFindInPlace //
     , restoreDefaultSelectionHighlight //
     , settings, showFindModeHUDForQuery, textInputXPath, oldActivated //
     , updateFindModeQuery, validFirstKeys, goBy, getVisibleInputs, mainPort, requestHandlers //
@@ -79,6 +79,7 @@ or @type="url" or @type="number" or @type="password" or not(@type))]',
     _callbacks: {},
     _hasCallbacks: false,
     _lastWaitTime: 0,
+    _connectFailCount: 0,
     postMessage: function(request, callback) {
       if (callback) {
         request = {
@@ -91,7 +92,8 @@ or @type="url" or @type="number" or @type="password" or not(@type))]',
       } catch (e) {
         this._port = this.fakePort;
         setTimeout(this._ClearPort, this.autoReconnectTimeout);
-        console.log("vim: first postMessage fail:", request);
+        if (window._DEBUG)
+          console.log("vim pM fail:", request);
       }
       var _ref, _i = Date.now();
       if (this._hasCallbacks && _i > this._lastWaitTime + this.responseTimeout) {
@@ -162,7 +164,19 @@ or @type="url" or @type="number" or @type="password" or not(@type))]',
       if (port) {
         return port;
       }
-      port = this._port = chrome.runtime.connect({ name: this._name });
+      try {
+        port = this._port = chrome.runtime.connect({ name: this._name });
+      } catch (e) { // the extension is reloaded
+        if (!(this._connectFailCount > 0)) {
+          this._connectFailCount = Date.now();
+        } else if (Date.now() - this._connectFailCount > 3000) {
+          isEnabledForUrl = false;
+          ELs.destroy();
+          return this.fakePort;
+        }
+        throw e;
+      }
+      this._connectFailTime = 0;
       port.onDisconnect.addListener(this._ClearPort);
       if (this._listener) {
         port.onMessage.addListener(this._listener);
@@ -237,17 +251,19 @@ or @type="url" or @type="number" or @type="password" or not(@type))]',
     }
   };
 
-  installListener = function(element, event, callback) {
-    element.addEventListener(event, callback, true);
+  ELs = { onUnload: null, onFocus: null, //
+    onKeydown: null, onKeypress: null, onKeyup: null, //
+    docOnFocus: null, onBlur: null, onActivate: null, //
+    destroy: null
   };
 
   initializeWhenEnabled = function(newPassKeys) {
     (initializeWhenEnabled = function(newPassKeys) {
       passKeys = newPassKeys;
     })(newPassKeys);
-    window.addEventListener("keydown", onKeydown, true);
-    window.addEventListener("keypress", onKeypress, true);
-    window.addEventListener("keyup", function(event) {
+    window.addEventListener("keydown", ELs.onKeydown, true);
+    window.addEventListener("keypress", ELs.onKeypress, true);
+    window.addEventListener("keyup", ELs.onKeyup = function(event) {
       if (isEnabledForUrl) {
         var handledKeydown = KeydownEvents.pop(event);
         if (handlerStack.bubbleEvent("keyup", event) && handledKeydown) {
@@ -255,7 +271,7 @@ or @type="url" or @type="number" or @type="password" or not(@type))]',
         }
       }
     }, true);
-    document.addEventListener("focus", function(event) {
+    document.addEventListener("focus", ELs.docOnFocus = function(event) {
       if (isEnabledForUrl && isFocusable(event.target) && !findMode) {
         enterInsertModeWithoutShowingIndicator(event.target);
         if (!oldActivated.target || oldActivated.isSecond) {
@@ -264,12 +280,12 @@ or @type="url" or @type="number" or @type="password" or not(@type))]',
         }
       }
     }, true);
-    document.addEventListener("blur", function(event) {
+    document.addEventListener("blur", ELs.onBlur = function(event) {
       if (isEnabledForUrl && isFocusable(event.target)) {
         exitInsertMode(event.target);
       }
     }, true);
-    document.addEventListener("DOMActivate", function(event) {
+    document.addEventListener("DOMActivate", ELs.onActivate = function(event) {
       if (isEnabledForUrl) {
         handlerStack.bubbleEvent('DOMActivate', event);
       }
@@ -475,7 +491,7 @@ or @type="url" or @type="number" or @type="password" or not(@type))]',
     }
   };
 
-  onKeypress = function(event) {
+  ELs.onKeypress = function(event) {
     if (!isEnabledForUrl || !handlerStack.bubbleEvent('keypress', event) || event.keyCode <= 31) {
       return;
     }
@@ -504,7 +520,7 @@ or @type="url" or @type="number" or @type="password" or not(@type))]',
     });
   };
 
-  onKeydown = function(event) {
+  ELs.onKeydown = function(event) {
     if (!isEnabledForUrl) {
       return;
     } else if (!handlerStack.bubbleEvent('keydown', event)) {
@@ -1108,8 +1124,9 @@ href='https://github.com/philc/vimium#release-notes'>what's new</a>).<a class='v
     },
     hide: function(immediate) {
       clearInterval(HUD._tweenId);
-      var el = HUD.displayElement();
-      if (immediate) {
+      var el;
+      if (!(el = HUD._displayElement)) {
+      } else if (immediate) {
         el.style.display = "none";
       } else {
         HUD._tweenId = Tween.fade(el, 0, 150, function() {
@@ -1122,6 +1139,11 @@ href='https://github.com/philc/vimium#release-notes'>what's new</a>).<a class='v
     },
     enabled: function() {
       return !settings.values.hideHud;
+    },
+    destroy: function() {
+      this._tweenId && clearInterval(this._tweenId);
+      this._displayElement && DomUtils.removeNode(this._displayElement);
+      HUD = null;
     }
   };
 
@@ -1306,6 +1328,23 @@ href='https://github.com/philc/vimium#release-notes'>what's new</a>).<a class='v
     }
   });
   
+  ELs.destroy = function() {
+    window.removeEventListener("unload", this.onUnload);
+    window.removeEventListener("focus", this.onFocus);
+    window.removeEventListener("keydown", this.onKeydown, true);
+    window.removeEventListener("keypress", this.onKeypress, true);
+    window.removeEventListener("keyup", this.onKeyup, true);
+    document.removeEventListener("focus", this.docOnFocus, true);
+    document.removeEventListener("blur", this.onBlur, true);
+    document.removeEventListener("DOMActivate", this.onActivate, true);
+    Vomnibar.destroy();
+    LinkHints.destroy();
+    HUD.destroy();
+    ELs = null;
+    requestHandlers = null;
+    console.log("%cvim %c#" + frameId, "color:blue;", "color:red;", "has destroyed.");
+  };
+
   Scroller.initPre();
   settings.addEventListener("load", function(response) {
     LinkHints.init();
@@ -1328,12 +1367,12 @@ href='https://github.com/philc/vimium#release-notes'>what's new</a>).<a class='v
   )(function() {
     requestHandlers.reRegisterFrame();
     Vomnibar.initNext();
-    window.addEventListener("unload", mainPort.postMessage.bind(mainPort, {
+    window.addEventListener("unload", ELs.onUnload = mainPort.postMessage.bind(mainPort, {
         handlerSettings: "unreg",
         frameId: frameId,
         isTop: window.top === window.self,
     }, null));
-    window.addEventListener("focus", mainPort.postMessage.bind(mainPort, {
+    window.addEventListener("focus", ELs.onFocus = mainPort.postMessage.bind(mainPort, {
       handler: "frameFocused",
       tabId: tabId,
       frameId: frameId
