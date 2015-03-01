@@ -91,6 +91,20 @@ var Settings = {
       obj.$S = val.indexOf("%S") >= 0;
     }
   },
+  readFile: function(id, url) {
+    var _this = this;
+    this.set(id, "");
+    url = url || this.files[id];
+    url = url.indexOf("://") > 0 ? url : chrome.runtime.getURL(url);
+    fetchHttpContents(url, function(content, code) {
+      code === 200 && (_this.set(id, content));
+    });
+  },
+  reloadFiles: function() {
+    for (var i in this.files) {
+      this.readFile(i);
+    }
+  },
   // clear localStorage & sync, if value === @defaults[key]
   defaults: {
     UILanguage: null,
@@ -128,8 +142,15 @@ var Settings = {
     vimSync: true
   },
   // not set localStorage, neither sync, if key in @nonPersistent
+  // not clean if exists (for simpler logic)
   nonPersistent: {
-    searchEnginesMap: true
+    help_dialog: true,
+    searchEnginesMap: true,
+    vomnibar: true
+  },
+  files: {
+    vomnibar: "pages/vomnibar.html",
+    help_dialog: "pages/help_dialog.html"
   },
   ChromeInnerNewTab: "chrome-search://local-ntp/local-ntp.html"
 };

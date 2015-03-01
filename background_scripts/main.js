@@ -2,7 +2,7 @@
 (function() {
   "use strict";
   var BackgroundCommands, checkKeyQueue, currentVersion //
-    , fetchHttpContents, frameIdsForTab, generateCompletionKeys, IncognitoContentSettings //
+    , frameIdsForTab, generateCompletionKeys, IncognitoContentSettings //
     , handleMainPort, handleResponse, postResponse, funcDict //
     , getActualKeyStrokeLength, getCompletionKeysRequest //
     , helpDialogHtmlForCommandGroup, keyQueue, moveTab, namedKeyRegex //
@@ -31,11 +31,6 @@
 
   namedKeyRegex = /^(<(?:[amc]-.|(?:[amc]-)?[a-z0-9]{2,5})>)(.*)$/;
 
-  window.filesContent = {
-    vomnibar: "pages/vomnibar.html",
-    help_dialog: "pages/help_dialog.html"
-  };
-
   chrome.runtime.onConnect.addListener(function(port) {
     if (port.name === "main") {
       port.onMessage.addListener(handleMainPort);
@@ -51,7 +46,7 @@
       command = Commands.keyToCommandRegistry[key].command;
       commandsToKey[command] = (commandsToKey[command] || []).concat(key);
     }
-    dialogHtml = filesContent.help_dialog;
+    dialogHtml = Settings.get("help_dialog");
     return dialogHtml.replace(new RegExp("\\{\\{(version|title|" + Object.keys(Commands.commandGroups).join('|') + ")\\}\\}", "g"), function(_, group) {
       return (group === "version") ? currentVersion
         : (group === "title") ? (customTitle || "Help")
@@ -81,7 +76,7 @@
     return html.join("");
   };
 
-  fetchHttpContents = function(url, callback) {
+  window.fetchHttpContents = function(url, callback) {
     var req = new XMLHttpRequest();
     req.open("GET", url, true);
     req.onreadystatechange = function () {
@@ -964,7 +959,7 @@
       BackgroundCommands.nextFrame(tab, 1, request.frameId);
     },
     initVomnibar: function() {
-      return filesContent.vomnibar;
+      return Settings.get("vomnibar");
     },
     upgradeNotificationClosed: function(request) {
       Settings.set("previousVersion", currentVersion);
@@ -1003,11 +998,12 @@
     gotoMark: Marks.goTo.bind(Marks)
   };
 
+  Settings.set("searchEnginesMap", {});
+  Settings.reloadFiles();
+
   Commands.clearKeyMappingsAndSetDefaults();
   Commands.parseCustomKeyMappings(Settings.get("keyMappings"));
   populateKeyCommands();
-
-  Settings.set("searchEnginesMap", {});
 
   shouldShowActionIcon = false;
   window.setShouldShowActionIcon(Settings.get("showActionIcon") === true);
@@ -1033,22 +1029,7 @@
       name: "reRegisterFrame"
     });
 
-    ref = filesContent;
-    callback = function(key, content, code) {
-      if (code === 200) {
-        this[key] = content;
-      } else {
-        console.groupCollapsed("filesContent.statusCode %c[" + key + "]: " + code, "color:red; font-weight:normal;");
-        console.log("\t%cbody: ", "color: blue;", content);
-        console.groupEnd();
-      }
-    };
-    for (key in ref) {
-      url = chrome.runtime.getURL(ref[key]);
-      ref[key] = "";
-      fetchHttpContents(url, callback.bind(ref, key));
-    }
-
+    
     if (typeof Sync === "object" && typeof Sync.init === "function" && Settings.get("vimSync") === true) {
       Sync.init();
     } else {
