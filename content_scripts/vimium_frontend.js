@@ -10,7 +10,7 @@
     , hideHelpDialog, CursorHider //
     , initializeWhenEnabled, insertModeLock, installListener, isDOMDescendant //
     , isEditable, isEmbed, isEnabledForUrl, isFocusable, isInsertMode, isPassKey, isShowingHelpDialog //
-    , isValidKey, keyQueue //
+    , isValidKey, keyQueue, tabId //
     , onKeydown, onKeypress, passKeys, performFindInPlace //
     , restoreDefaultSelectionHighlight //
     , settings, showFindModeHUDForQuery, textInputXPath, oldActivated //
@@ -178,7 +178,7 @@ or @type="url" or @type="number" or @type="password" or not(@type))]',
       , "hideHud", "previousPatterns", "nextPatterns", "findModeRawQuery", "regexFindMode" //
       , "helpDialog_showAdvancedCommands", "smoothScroll", "showOmniRelevancy" //
       , "findModeRawQueryList"
-    ],
+    ], // should be the same as bg.Settings.valuesToLoad
     isLoading: 0,
     request2: null,
     _eventListeners: {},
@@ -193,35 +193,38 @@ or @type="url" or @type="number" or @type="password" or not(@type))]',
     },
     load: function(values, force, request2) {
       if (!this.isLoading) {
-        this.isLoading = setInterval(this.load.bind(this, null, true, null), this.autoRetryInterval);
+        this.isLoading = setInterval(this.load.bind(this, values, true, null), this.autoRetryInterval);
       } else if (force !== true) {
         return 0;
       }
-      if (values && values.length > 0) {
-        this.valuesToLoad = values;
+      if (values) {
+        (values.length > 0) ? (this.valuesToLoad = values) : (values = null);
       }
       this.request2 = request2 || this.request2;
       return mainPort.postMessage({
         handlerSettings: "get",
-        keys: this.valuesToLoad,
+        keys: values,
         request: this.request2
       });
     },
-    ReceiveMessage: function(args) {
-      var ref = args.keys || settings.valuesToLoad, i = 0, v1 = args.values, v2 = settings.values, func;
-      for (; i < v1.length; i++) {
+    ReceiveMessage: function(response) {
+      var _this = settings, ref = response.keys || _this.valuesToLoad, i, v1, v2, func;
+      for (v1 = response.values, v2 = _this.values, i = v1.length; 0 <= --i; ) {
         v2[ref[i]] = v1[i];
       }
-      if (settings.isLoading) {
-        clearInterval(settings.isLoading);
-        settings.isLoading = 0;
+      if (i = _this.isLoading) {
+        clearInterval(i);
+        _this.isLoading = 0;
       }
-      settings.request2 = null;
-      ref = settings._eventListeners.load;
-      settings._eventListeners.load = [];
-      for (i = 0; i < ref.length; i++) {
-        if (func = ref[i]) {
-          func(args.response);
+      _this.request2 = null;
+      func = response.keys ? "get" : "load";
+      ref = _this._eventListeners;
+      v1 = ref[func];
+      delete ref[func];
+      response = response.response;
+      for (i = 0; i < v1.length; i++) {
+        if (func = v1[i]) {
+          func(response);
         }
       }
     },
@@ -1186,14 +1189,28 @@ href='https://github.com/philc/vimium#release-notes'>what's new</a>).<a class='v
   window.frameId = frameId;
 
   window.mainPort = mainPort;
-  
+
+  tabId = 0;
+
   requestHandlers = {
     settings: settings.ReceiveMessage,
-    reRegisterFrame: function() {
+    registerFrame: function(request) {
+      tabId = request.tabId;
+      if (request.css) {
+        var css = document.createElement("style");
+        css.type = "text/css";
+        css.innerHTML = request.css;
+        document.head.appendChild(css);
+      }
+      if (request.upgraded) {
+        HUD.showUpgradeNotification(request.version);
+      }
+    },
+    reRegisterFrame: function(request) {
       mainPort.postMessage({
-        handlerSettings: "rereg",
+        handlerSettings: request ? "rereg" : "reg",
         isTop: window.top === window.self,
-        frameId: ((document.body && document.body.nodeName.toLowerCase() === "frameset") ? NaN : frameId)
+        frameId: ((document.body && document.body.nodeName.toLowerCase() === "frameset") ? -1 : frameId)
       });
     },
     hideUpgradeNotification: function() {
@@ -1309,11 +1326,7 @@ href='https://github.com/philc/vimium#release-notes'>what's new</a>).<a class='v
     ? settings.addEventListener.bind(settings, "load")
     : DomUtils.documentReady.bind(DomUtils)
   )(function() {
-    mainPort.postMessage({
-      handler: "registerFrame",
-      isTop: window.top === window.self,
-      frameId: ((document.body && document.body.nodeName.toLowerCase() === "frameset") ? NaN : frameId)
-    });
+    requestHandlers.reRegisterFrame();
     Vomnibar.initNext();
     window.addEventListener("unload", mainPort.postMessage.bind(mainPort, {
         handlerSettings: "unreg",
@@ -1322,6 +1335,7 @@ href='https://github.com/philc/vimium#release-notes'>what's new</a>).<a class='v
     }, null));
     window.addEventListener("focus", mainPort.postMessage.bind(mainPort, {
       handler: "frameFocused",
+      tabId: tabId,
       frameId: frameId
     }, null));
   });

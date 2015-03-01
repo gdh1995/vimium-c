@@ -9,7 +9,7 @@ var Settings = {
     return this._buffer[key];
   },
   set: function(key, value) {
-    var ref = this.defaults[key], clear = false;
+    var ref = this.defaults[key], clear = false, i;
     if (value === ref) {
       clear = true;
     } else if (key in this.enforceBoolean && value !== this.enforceBoolean[key]) {
@@ -17,6 +17,9 @@ var Settings = {
       clear = true;
     }
     this._buffer[key] = value;
+    if ((i = this.valuesToLoad.indexOf(key)) >= 0) {
+      this.bufferToLoad[i] = value;
+    }
     if ((ref = this.postUpdateHooks[key]) && ref.call(this, value, key) === false) {
       return;
     } else if (key in this.nonPersistent) {
@@ -152,6 +155,12 @@ var Settings = {
     vomnibar: "pages/vomnibar.html",
     help_dialog: "pages/help_dialog.html"
   },
+  valuesToLoad: ["scrollStepSize", "linkHintCharacters", "linkHintNumbers", "filterLinkHints" //
+    , "hideHud", "previousPatterns", "nextPatterns", "findModeRawQuery", "regexFindMode" //
+    , "helpDialog_showAdvancedCommands", "smoothScroll", "showOmniRelevancy" //
+    , "findModeRawQueryList"
+  ],
+  bufferToLoad: [],
   ChromeInnerNewTab: "chrome-search://local-ntp/local-ntp.html"
 };
 

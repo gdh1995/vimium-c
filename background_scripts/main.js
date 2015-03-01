@@ -7,11 +7,11 @@
     , getActualKeyStrokeLength, getCompletionKeysRequest //
     , helpDialogHtmlForCommandGroup, keyQueue, moveTab, namedKeyRegex //
     , openMultiTab //
-    , populateKeyCommands, registerFrame, reRegisterFrame, splitKeyQueueRegex //
+    , populateKeyCommands, splitKeyQueueRegex //
     , removeTabsRelative, selectTab //
     , requestHandlers, sendRequestToAllTabs //
     , shouldShowUpgradeMessage, singleKeyCommands, splitKeyIntoFirstAndSecond, splitKeyQueue //
-    , unregisterFrame, validFirstKeys, shouldShowActionIcon, setBadge;
+    , validFirstKeys, shouldShowActionIcon, setBadge;
 
   shouldShowActionIcon = chrome.browserAction && chrome.browserAction.setIcon ? true : false;
 
@@ -748,8 +748,6 @@
     if (msgId = request._msgId) {
       request = request.request;
       if (key = request.handler) {
-        // if `request._msgId`, do not pass port, which means:
-        // every message should be got by not `postMessage` but returning.
         if (func = requestHandlers[key]) {
           if (func.useTab) {
             chrome.tabs.getSelected(null, handleResponse.bind(port, msgId, func, request));
@@ -779,27 +777,60 @@
     }
     else if (key = request.handler) {
       if (func = requestHandlers[key]) {
-        func.useTab ? chrome.tabs.getSelected(null, func.bind(port, request))
-        : func.usePort ? func.call(port, request) : func(request);
+        func.useTab ? chrome.tabs.getSelected(null, func.bind(null, request)) : func(request);
       }
     }
     else if (key = request.handlerSettings) {
-      if (key === "get") {
-        for (var i = 0, ref = request.keys, values = new Array(ref.length); i < ref.length; i++) {
-          values[i] = Settings.get(ref[i]);
+      var tabId = port.sender.tab.id, i, ref;
+      switch (key) {
+      case "get":
+        var values;
+        if (ref = request.keys) {
+          values = new Array(ref.length);
+          for (i = ref.length; 0 <= --i; ) {
+            values[i] = Settings.get(ref[i]);
+          }
+        } else {
+          values = Settings.bufferToLoad;
         }
         port.postMessage({
           name: "settings",
+          keys: ref,
           values: values,
           response: (request = request.request) && (func = requestHandlers[request.handler])
             && !func.useTab && func.call(port, request)
         });
-      } else if (key === "set") {
-        Settings.set(request.key, request.value);
-      } else if (key === "unreg") {
-        unregisterFrame(request, port.sender.tab.id);
-      } else if (key === "rereg") {
-        reRegisterFrame(request, port);
+        break;
+      case "set": Settings.set(request.key, request.value); break;
+      case "reg":
+        port.postMessage({
+          name: "registerFrame",
+          css: Settings.get("userDefinedCss"),
+          tabId: tabId,
+          version: currentVersion,
+          upgraded: shouldShowUpgradeMessage
+        });
+        // no `break;`
+      case "rereg":
+        i = request.frameId;
+        if (i > 0) {
+          ref = frameIdsForTab;
+          ref[tabId] ? ref[tabId].push(i) : (ref[tabId] = [i]);
+        }
+        break;
+      case "unreg":
+        if (!(ref = frameIdsForTab[tabId])) {
+        } else if (request.isTop) {
+          delete frameIdsForTab[tabId];
+        } else {
+          i = ref.indexOf(request.frameId);
+          if (i === ref.length - 1) {
+            ref.pop();
+          } else if (i >= 0) {
+            ref.splice(i, 1);
+          }
+        }
+        break;
       }
     }
   };
@@ -873,58 +904,6 @@
     });
   };
 
-  registerFrame = function(request, tab) {
-    var tabId = tab.id, css2;
-    this.sender.tab.id = tabId;
-    if (! isNaN(request.frameId)) {
-      (frameIdsForTab[tabId] || (frameIdsForTab[tabId] = [])).push(request.frameId);
-    }
-    css2 = Settings.get("userDefinedCss");
-    css2 && chrome.tabs.insertCSS(tabId, {
-      allFrames: true,
-      code: css2
-    }, function() {
-      // chrome.runtime.lastError && console.log("%c" + chrome.runtime.lastError.message, "color: red");
-      return chrome.runtime.lastError;
-    });
-    if (shouldShowUpgradeMessage) {
-      this.postMessage({
-        name: "showUpgradeNotification",
-        version: currentVersion
-      });
-    }
-  };
-
-  unregisterFrame = function(request, tabId) {
-    var j, ref2;
-    if (!(ref2 = frameIdsForTab[tabId])) {
-      return;
-    }
-    if (request.isTop) {
-      delete frameIdsForTab[tabId];
-    } else if (ref2.length >= 1) {
-      j = ref2.indexOf(request.frameId);
-      if (j === ref2.length - 1) {
-        ref2.pop();
-      } else if (j >= 0) {
-        ref2.splice(j, 1);
-      }
-    }
-  };
-  
-  reRegisterFrame = function(request, port) {
-    var tabId = port.sender.tab.id;
-    if (! isNaN(request.frameId)) {
-      (frameIdsForTab[tabId] || (frameIdsForTab[tabId] = [])).push(request.frameId);
-    }
-    if (shouldShowUpgradeMessage) {
-      port.postMessage({
-        name: "showUpgradeNotification",
-        version: currentVersion
-      });
-    }
-  };
-
   // function (Port = null)::* (request, Tab tab = null) const;
   requestHandlers = {
     getCurrentTabUrl: function(_0, tab) {
@@ -947,9 +926,8 @@
     openOptionsPageInNewTab: function(_0, tab) {
       openMultiTab(chrome.runtime.getURL("pages/options.html"), tab.index + 1, 1, tab.windowId);
     },
-    registerFrame: registerFrame,
     frameFocused: function(request) {
-      var frames = frameIdsForTab[this.sender.tab.id], ind;
+      var frames = frameIdsForTab[request.tabId], ind;
       if (frames && frames.length > 1 && (ind = frames.indexOf(request.frameId)) > 0) {
         frames.splice(ind, 1);
         frames.unshift(request.frameId);
@@ -1017,16 +995,16 @@
   window.setShouldShowActionIcon(Settings.get("showActionIcon") === true);
 
   (function() {
-    var ref, i, key, url, callback;
+    var ref, i, key, callback;
     ref = ["getCurrentTabUrl", "openUrlInNewTab", "openUrlInIncognito", "openUrlInCurrentTab" //
-      , "openOptionsPageInNewTab", "registerFrame", "nextFrame", "createMark" //
+      , "openOptionsPageInNewTab", "nextFrame", "createMark" //
     ];
     for (i = ref.length; 0 <= --i; ) {
       requestHandlers[ref[i]].useTab = true;
     }
-    ref = ["registerFrame", "frameFocused"];
-    for (i = ref.length; 0 <= --i; ) {
-      requestHandlers[ref[i]].usePort = true;
+    var ref2 = Settings.bufferToLoad;
+    for (ref = Settings.valuesToLoad, i = ref.length; 0 <= --i; ) {
+      ref2[i] = Settings.get(ref[i]);
     }
 
     key = Settings.get("previousVersion");
