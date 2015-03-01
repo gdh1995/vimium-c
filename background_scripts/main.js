@@ -31,14 +31,6 @@
 
   namedKeyRegex = /^(<(?:[amc]-.|(?:[amc]-)?[a-z0-9]{2,5})>)(.*)$/;
 
-  chrome.runtime.onConnect.addListener(function(port) {
-    if (port.name === "main") {
-      port.onMessage.addListener(handleMainPort);
-    } else {
-      port.disconnect();
-    }
-  });
-
   window.helpDialogHtml = function(showUnboundCommands, showCommandNames, customTitle) {
     var command, commandsToKey, dialogHtml, group, key;
     commandsToKey = {};
@@ -100,16 +92,21 @@
   };
 
   openMultiTab = function(rawUrl, index, count, windowId, active) {
+    if (!(count >= 1)) return;
     var option = {
       url: rawUrl,
       windowId: windowId,
       index: index,
       selected: active !== false
     };
-    while(--count >= 0) {
-      chrome.tabs.create(option);
+    chrome.tabs.create(option, option.selected ? function(tab) {
+      chrome.windows.update(tab.windowId, {focused: true});
+    } : null);
+    if (count === 1) return;
+    option.selected = false;
+    while(--count > 0) {
       ++option.index;
-      option.selected = false;
+      chrome.tabs.create(option, callback);
     }
   };
 
@@ -739,7 +736,7 @@
   splitKeyQueueRegex = /([1-9][0-9]*)?(.*)/;
 
   handleResponse = function(msgId, func, request, tab) {
-    postResponse(this, msgId, func.call(this, request, tab));
+    this.postMessage({_msgId: msgId, response: func(request, tab)});
   };
   
   postResponse = function(port, msgId, response) {
@@ -751,14 +748,16 @@
     if (msgId = request._msgId) {
       request = request.request;
       if (key = request.handler) {
+        // if `request._msgId`, do not pass port, which means:
+        // every message should be got by not `postMessage` but returning.
         if (func = requestHandlers[key]) {
           if (func.useTab) {
             chrome.tabs.getSelected(null, handleResponse.bind(port, msgId, func, request));
           } else {
-            postResponse(port, msgId, func.call(port, request));
+            port.postMessage({_msgId: msgId, response: func(request)})
           }
         } else {
-          postResponse(port, msgId);
+          port.postMessage({_msgId: msgId, error: -1});
         }
       }
       else if (key = request.handlerOmni) {
@@ -780,7 +779,8 @@
     }
     else if (key = request.handler) {
       if (func = requestHandlers[key]) {
-        func.useTab ? chrome.tabs.getSelected(null, func.bind(port, request)) : func.call(port, request);
+        func.useTab ? chrome.tabs.getSelected(null, func.bind(port, request))
+        : func.usePort ? func.call(port, request) : func(request);
       }
     }
     else if (key = request.handlerSettings) {
@@ -925,7 +925,7 @@
     }
   };
 
-  // function Port::* (request, Tab tab) const;
+  // function (Port = null)::* (request, Tab tab = null) const;
   requestHandlers = {
     getCurrentTabUrl: function(_0, tab) {
       return tab.url;
@@ -986,8 +986,8 @@
     },
     selectSpecificTab: function(request) {
       chrome.tabs.get(request.sessionId, function(tab) {
-        chrome.windows.update(tab.windowId, { focused: true });
         chrome.tabs.update(request.sessionId, { selected: true });
+        chrome.windows.update(tab.windowId, { focused: true });
       });
     },
     refreshCompleter: function(request) {
@@ -1000,6 +1000,14 @@
 
   Settings.set("searchEnginesMap", {});
   Settings.reloadFiles();
+
+  chrome.runtime.onConnect.addListener(function(port) {
+    if (port.name === "main") {
+      port.onMessage.addListener(handleMainPort);
+    } else {
+      port.disconnect();
+    }
+  });
 
   Commands.clearKeyMappingsAndSetDefaults();
   Commands.parseCustomKeyMappings(Settings.get("keyMappings"));
@@ -1016,7 +1024,11 @@
     for (i = ref.length; 0 <= --i; ) {
       requestHandlers[ref[i]].useTab = true;
     }
-    
+    ref = ["registerFrame", "frameFocused"];
+    for (i = ref.length; 0 <= --i; ) {
+      requestHandlers[ref[i]].usePort = true;
+    }
+
     key = Settings.get("previousVersion");
     if (!key) {
       Settings.set("previousVersion", currentVersion);
@@ -1029,7 +1041,6 @@
       name: "reRegisterFrame"
     });
 
-    
     if (typeof Sync === "object" && typeof Sync.init === "function" && Settings.get("vimSync") === true) {
       Sync.init();
     } else {

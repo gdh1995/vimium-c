@@ -208,8 +208,8 @@ or @type="url" or @type="number" or @type="password" or not(@type))]',
       });
     },
     ReceiveMessage: function(args) {
-      var ref = settings.valuesToLoad, i = 0, v1 = args.values, v2 = settings.values, func;
-      for (; i < ref.length; i++) {
+      var ref = args.keys || settings.valuesToLoad, i = 0, v1 = args.values, v2 = settings.values, func;
+      for (; i < v1.length; i++) {
         v2[ref[i]] = v1[i];
       }
       if (settings.isLoading) {
@@ -220,8 +220,7 @@ or @type="url" or @type="number" or @type="password" or not(@type))]',
       ref = settings._eventListeners.load;
       settings._eventListeners.load = [];
       for (i = 0; i < ref.length; i++) {
-        func = ref[i];
-        if (typeof func === "function") {
+        if (func = ref[i]) {
           func(args.response);
         }
       }
