@@ -1028,3 +1028,34 @@
   })();
 
 })();
+
+chrome.runtime.onInstalled.addListener(function(details) {
+  var contentScripts, js, css, allFrames, _i, _len;
+  contentScripts = chrome.runtime.getManifest().content_scripts[0];
+  js = contentScripts.js;
+  css = (details.reason === "install" || window._DEBUG) ? contentScripts.css : [];
+  allFrames = contentScripts.allFrames;
+  contentScripts = null;
+  for (_i = css.length; 0 <= --_i; ) {
+    css[_i] = {file: css[_i], allFrames: allFrames};
+  }
+  for (_i = js.length; 0 <= --_i; ) {
+    js[_i] = {file: js[_i], allFrames: allFrames};
+  }
+  chrome.tabs.query({
+    status: "complete"
+  }, function(tabs) {
+    var _i = tabs.length, tabId, _j, _len, callback, url;
+    callback = function() { return chrome.runtime.lastError; };
+    for (; 0 <= --_i; ) {
+      url = tabs[_i].url;
+      if (url.startsWith("chrome") || url.indexOf("://") === -1) continue;
+      tabId = tabs[_i].id;
+      for (_j = 0, _len = css.length; _j < _len; ++_j)
+        chrome.tabs.insertCSS(tabId, css[_j], callback);
+      for (_j = 0, _len = js.length; _j < _len; ++_j)
+        chrome.tabs.executeScript(tabId, js[_j], callback);
+    }
+    console.log("%cvim %chas %cinstalled", "color:blue;", "color:black;", "color:red;", details);
+  });
+});
