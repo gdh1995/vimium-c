@@ -62,7 +62,7 @@
 
   textInputXPath = DomUtils.makeXPath([
     'input[not(@disabled or @readonly) and (@type="text" or @type="search" or @type="email" \
-or @type="url" or @type="number" or @type="password" or not(@type))]',
+or @type="url" or @type="number" or @type="password" or @type="date" or @type="tel" or not(@type))]',
     "textarea",
     "*[@contenteditable='' or translate(@contenteditable, 'TRUE', 'true')='true']"
   ]);
@@ -258,9 +258,8 @@ or @type="url" or @type="number" or @type="password" or not(@type))]',
   };
 
   initializeWhenEnabled = function(newPassKeys) {
-    (initializeWhenEnabled = function(newPassKeys) {
-      passKeys = newPassKeys;
-    })(newPassKeys);
+    initializeWhenEnabled = function(newPassKeys) { passKeys = newPassKeys; };
+    passKeys = newPassKeys;
     window.addEventListener("keydown", ELs.onKeydown, true);
     window.addEventListener("keypress", ELs.onKeypress, true);
     window.addEventListener("keyup", ELs.onKeyup = function(event) {
@@ -1322,6 +1321,7 @@ href='https://github.com/philc/vimium#release-notes'>what's new</a>).<a class='v
       }
     }
   };
+
   chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
     if (!(isEnabledForUrl || request.name === 'getActiveState' || request.name === 'setState')) {
       return;
@@ -1348,6 +1348,7 @@ href='https://github.com/philc/vimium#release-notes'>what's new</a>).<a class='v
     LinkHints.destroy();
     HUD.destroy();
     ELs = null;
+    mainPort = null;
     requestHandlers = null;
     console.log("%cvim %c#" + frameId, "color:blue;", "color:red;", "has destroyed.");
   };
