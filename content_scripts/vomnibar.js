@@ -286,22 +286,22 @@ Vomnibar.vomnibarUI = {
     this.hide();
   },
   onClick: function(event) {
-    var el = event.target, ulist = this.list;
-    if (el === ulist || this.timer) {
-      DomUtils.suppressEvent(event);
-      return;
-    }
-    while(el && el.parentElement != ulist) { el = el.parentElement; }
-    for (var _i = 0, _ref = ulist.children; _i < _ref.length; ++_i) {
-      if (_ref[_i] === el) {
-        break;
+    var el = event.target, _i;
+    if (el === this.inputBar) {
+      this.onAction("focus");
+    } else if (el === this.input) {
+      this.focused = true;
+    } else if (el === this.list || this.timer) {
+    } else if (document.getSelection().type !== "Range") {
+      var ind = [].indexOf;
+      _i = ind.call(event.path, this.list);
+      _i = _i > 0 ? ind.call(this.list.children, event.path[_i - 1]) : -1;
+      if (_i >= 0) {
+        this.selection = _i;
+        this.isSelectionChanged = true;
+        this.openInNewTab = this.forceNewTab || (event.shiftKey || event.ctrlKey || event.metaKey);
+        this.onAction("enter");
       }
-    }
-    if (_i < _ref.length) {
-      this.selection = _i;
-      this.isSelectionChanged = true;
-      this.openInNewTab = this.forceNewTab || (event.shiftKey || event.ctrlKey || event.metaKey);
-      this.onAction("enter");
     }
     DomUtils.suppressEvent(event);
   },
