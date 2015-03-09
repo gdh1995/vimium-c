@@ -1262,7 +1262,7 @@ var PDI = {
 	},
 	moveDialbox : function (fromType, toType, fromIndex, toIndex, data) {
 		if (fromType == toType) {
-			type = fromType;
+			var type = fromType;
 			if (typeof data == 'undefined') {
 				data = PDI.get('dialBoxes', type)
 			}
@@ -2207,8 +2207,8 @@ var app = {
 	getAppConfigValue : function (appId, key) {
 		var self = this;
 		if ( typeof self.apps[appId]['langVers'] != "undefined"
-      && typeof self.apps[appId]['langVers'][ui_locale] != "undefined"
-      && typeof self.apps[appId]['langVers'][ui_locale][key] != "undefined") {
+			&& typeof self.apps[appId]['langVers'][ui_locale] != "undefined"
+			&& typeof self.apps[appId]['langVers'][ui_locale][key] != "undefined") {
 			return self.apps[appId]['langVers'][ui_locale][key]
 		} else if (typeof self.apps[appId][key] != "undefined") {
 			return self.apps[appId][key]
@@ -2276,77 +2276,77 @@ var app = {
 			if (self.loadedApps.indexOf(appId) == -1) {
 				self.loadAppContent(targetObj, appId);
 			} else if (!(self.apps[appId]['separate'] !== true
-        || DBOX.getDialboxIndex("quick", appId) > -1
-        || DBOX.getDialboxIndex("normal", appId) > -1))
-      {
-      } else if (typeof self.runedAppObjects[appId] == "undefined") {
-        if (typeof self.apps[appId]['run'] == "function") {
-          if (self.loadedAppsReady.indexOf(appId) > -1) {
-            var appObject = self.apps[appId]['run']();
-            self.runedAppObjects[appId] = appObject
-          } else {
-            setTimeout(function () {
-              self.runApp(targetObj, appId)
-            }, 350)
-          }
-        } else {
-          self.runedAppObjects[appId] = appId
-        }
-      } else if (self.runedAppObjects[appId] == appId) {
-        if (targetObj != "" && targetObj.attr('url') != null && targetObj.attr('url') != '') {
-          var targetUrl = targetObj.attr('url');
-          if (typeof self.apps[appId]['openRun'] == "function") {
-            targetUrl = self.apps[appId]['openRun'](targetUrl)
-          }
-          if (typeof event != "undefined" && event.button == 1) {
-            openTab(targetSwitch, targetUrl, true)
-          } else {
-            openTab(targetSwitch, targetUrl, event.ctrlKey || event.metaKey);
-          }
-        }
-      } else {
-        self.runedAppObjects[appId].show();
-        var loadData = self.getAppConfigValue(appId, 'loadData');
-        if (loadData) {
-          loadData(self.runedAppObjects[appId], targetObj)
-        }
-      }
+				|| DBOX.getDialboxIndex("quick", appId) > -1
+				|| DBOX.getDialboxIndex("normal", appId) > -1))
+			{
+			} else if (typeof self.runedAppObjects[appId] == "undefined") {
+				if (typeof self.apps[appId]['run'] == "function") {
+					if (self.loadedAppsReady.indexOf(appId) > -1) {
+						var appObject = self.apps[appId]['run']();
+						self.runedAppObjects[appId] = appObject
+					} else {
+						setTimeout(function () {
+							self.runApp(targetObj, appId)
+						}, 350)
+					}
+				} else {
+					self.runedAppObjects[appId] = appId
+				}
+			} else if (self.runedAppObjects[appId] == appId) {
+				if (targetObj != "" && targetObj.attr('url') != null && targetObj.attr('url') != '') {
+					var targetUrl = targetObj.attr('url');
+					if (typeof self.apps[appId]['openRun'] == "function") {
+						targetUrl = self.apps[appId]['openRun'](targetUrl)
+					}
+					if (typeof event != "undefined" && event.button == 1) {
+						openTab(targetSwitch, targetUrl, true)
+					} else {
+						openTab(targetSwitch, targetUrl, event.ctrlKey || event.metaKey);
+					}
+				}
+			} else {
+				self.runedAppObjects[appId].show();
+				var loadData = self.getAppConfigValue(appId, 'loadData');
+				if (loadData) {
+					loadData(self.runedAppObjects[appId], targetObj)
+				}
+			}
 		} else if (targetObj.attr('appType') == "packaged_app") {
-      chrome.management.launchApp(appId)
-    } else if (targetObj != "" && targetObj.attr('url') != null && targetObj.attr('url') != '') {
-      if (typeof event != "undefined" && event.button == 1) {
-        openTab(targetSwitch, eventObj.attr('url'), true)
-      } else {
-        openTab(targetSwitch, eventObj.attr('url'), event.ctrlKey || event.metaKey);
-      }
-    } else {
-      if (appId.indexOf("classification_") === 0) {
-        if (self.loadedApps.indexOf("classification") == -1) {
-          self.loadAppContent(targetObj, "classification")
-        } else {
-          classification.change(appId.replace("classification_", ""))
-        }
-      }
-      if ((/^o[A-Z]\w+/).test(appId)) {
-        var _chromeVer = window.navigator.userAgent.match(/chrome\/([\d.]+)/i);
-        var chromeVer = _chromeVer != null ? _chromeVer[1] : _chromeVer;
-        var oUrls = {
-          "oDownloads" : _browser.protocol + "://downloads/",
-          "oBookmarks" : _browser.protocol + "://bookmarks/#1",
-          "oHistory" : _browser.protocol + "://history/",
-          "oExtensions" : _browser.protocol + "://extensions",
-          "oNewtab" : ((chromeVer >= '33') ? "chrome-search://local-ntp/local-ntp.html" : "chrome-internal://newtab/")
-        };
-        var oUrl = oUrls[appId] || "";
-        if (oUrl != "") {
-          if (typeof event != "undefined" && event.button == 1) {
-            openTab(targetSwitch, oUrl, true)
-          } else {
-            openTab(targetSwitch, oUrl, event.ctrlKey || event.metaKey);
-          }
-        }
-      }
-    }
+			chrome.management.launchApp(appId)
+		} else if (targetObj != "" && targetObj.attr('url') != null && targetObj.attr('url') != '') {
+			if (typeof event != "undefined" && event.button == 1) {
+				openTab(targetSwitch, eventObj.attr('url'), true)
+			} else {
+				openTab(targetSwitch, eventObj.attr('url'), event.ctrlKey || event.metaKey);
+			}
+		} else {
+			if (appId.indexOf("classification_") === 0) {
+				if (self.loadedApps.indexOf("classification") == -1) {
+					self.loadAppContent(targetObj, "classification")
+				} else {
+					classification.change(appId.replace("classification_", ""))
+				}
+			}
+			if ((/^o[A-Z]\w+/).test(appId)) {
+				var _chromeVer = window.navigator.userAgent.match(/chrome\/([\d.]+)/i);
+				var chromeVer = _chromeVer != null ? _chromeVer[1] : _chromeVer;
+				var oUrls = {
+					"oDownloads" : _browser.protocol + "://downloads/",
+					"oBookmarks" : _browser.protocol + "://bookmarks/#1",
+					"oHistory" : _browser.protocol + "://history/",
+					"oExtensions" : _browser.protocol + "://extensions",
+					"oNewtab" : ((chromeVer >= '33') ? "chrome-search://local-ntp/local-ntp.html" : "chrome-internal://newtab/")
+				};
+				var oUrl = oUrls[appId] || "";
+				if (oUrl != "") {
+					if (typeof event != "undefined" && event.button == 1) {
+						openTab(targetSwitch, oUrl, true)
+					} else {
+						openTab(targetSwitch, oUrl, event.ctrlKey || event.metaKey);
+					}
+				}
+			}
+		}
 	}
 };
 
@@ -2633,26 +2633,23 @@ DBOX = {
 				end = start + (self.num * 1) - existNum, p = 0, q = 0,
 		boxQueue = [];
 		$.each(boxes, function (i, n) {
-			if (self.isDialboxShow(n)) {
-				if (typeof order != 'undefined' && order == 'pre') {
-					if (q == end) {
-						onSeizeID = i
-					}
-				} else {
-					if (q == start) {
-						onSeizeID = i
-					}
+			if (!self.isDialboxShow(n)) return;
+			if (typeof order != 'undefined' && order == 'pre') {
+				if (q == end) {
+					onSeizeID = i
 				}
-				q++;
-				if (('appBox_' + i) != onDragID) {
-					if (p >= start && p < end) {
-						boxQueue.push({
-							"id" : i,
-							"box" : n
-						})
-					}
-					p++
+			} else if (q == start) {
+				onSeizeID = i
+			}
+			q++;
+			if (('appBox_' + i) != onDragID) {
+				if (p >= start && p < end) {
+					boxQueue.push({
+						"id" : i,
+						"box" : n
+					})
 				}
+				p++
 			}
 		});
 		if (order === 'pre') {
@@ -3422,6 +3419,7 @@ DBOX = {
 					if (typeof boxlist != "undefined") {
 						var eventObjSiblings = boxlist.not('.boxClone');
 						if (typeof eventObjSiblings != "undefined" && eventObjSiblings.length > 0) {
+							var boxtop, boxleft, boxwidth, boxheight;
 							for (var i = 0; i < eventObjSiblings.length; i++) {
 								boxtop = parseInt($(eventObjSiblings[i]).css("top"));
 								boxleft = parseInt($(eventObjSiblings[i]).css("left"));
@@ -4085,36 +4083,36 @@ if (window.location.hash == "#synchronize") {
 			var unit = parseInt(PDI.get("privateSetup", "BgAutoTime") * 60);
 			var _wallpaper;
 			if (!(skin == "skin_cloud" && unit > 0 && PDI.get('usedWallpaper').length > 0 && dtime >= unit)) {
-      } else if (!(_wallpaper = PDI.get("wallpaper"))) {
-        $.getJSON(urlImg + 'cloudWallpaper/index.json', function (data) {
-          if (data) {
-            PDI.set("wallpaper", "", data)
-          }
-        })
-      } else {
-        var _usedWallpaper = PDI.get('usedWallpaper');
-        var _wallpaperId = _usedWallpaper[getRand(0, _usedWallpaper.length)];
-        if (parseInt(_wallpaperId) == _wallpaperId) {
-          _wallpaperId = parseInt(_wallpaperId);
-          $.each(_wallpaper, function (i, n) {
-            var _wallpaperLimit = n.split('-');
-            if (_wallpaperLimit.length == 2) {
-              if (_wallpaperId >= _wallpaperLimit[1] && _wallpaperId <= _wallpaperLimit[0]) {
-                _wallpaperUrl = urlImg + 'cloudWallpaper/' + i + '/' + _wallpaperId + '.jpg';
-                return false
-              }
-            }
-          });
-        } else {
-          _wallpaperUrl = _wallpaperId;
-        }
-        if (_wallpaperUrl) {
-          var _style = PDI.getSkin(skin, 'style');
-          _style["background"]["backgroundImage"] = "url(" + _wallpaperUrl + ")";
-          PDI.setSkin(skin, 'style', _style);
-          PDI.set("privateSetup", "BgChangeTime", parseInt(Date.now() / 1000) - dtime + parseInt(dtime / unit) * unit);
-        }
-      }
+			} else if (!(_wallpaper = PDI.get("wallpaper"))) {
+				$.getJSON(urlImg + 'cloudWallpaper/index.json', function (data) {
+					if (data) {
+						PDI.set("wallpaper", "", data)
+					}
+				})
+			} else {
+				var _usedWallpaper = PDI.get('usedWallpaper');
+				var _wallpaperId = _usedWallpaper[getRand(0, _usedWallpaper.length)];
+				if (parseInt(_wallpaperId) == _wallpaperId) {
+					_wallpaperId = parseInt(_wallpaperId);
+					$.each(_wallpaper, function (i, n) {
+						var _wallpaperLimit = n.split('-');
+						if (_wallpaperLimit.length == 2) {
+							if (_wallpaperId >= _wallpaperLimit[1] && _wallpaperId <= _wallpaperLimit[0]) {
+								_wallpaperUrl = urlImg + 'cloudWallpaper/' + i + '/' + _wallpaperId + '.jpg';
+								return false
+							}
+						}
+					});
+				} else {
+					_wallpaperUrl = _wallpaperId;
+				}
+				if (_wallpaperUrl) {
+					var _style = PDI.getSkin(skin, 'style');
+					_style["background"]["backgroundImage"] = "url(" + _wallpaperUrl + ")";
+					PDI.setSkin(skin, 'style', _style);
+					PDI.set("privateSetup", "BgChangeTime", parseInt(Date.now() / 1000) - dtime + parseInt(dtime / unit) * unit);
+				}
+			}
 
 			var wall = $('.wallpaper').css('backgroundColor', PDI.getSkin(skin, 'style').background.backgroundColor);
 			if (!_wallpaperUrl) {
@@ -4169,7 +4167,7 @@ if (window.location.hash == "#synchronize") {
 				};
 				bgImg.src = _wallpaperUrl;
 				_wallpaperUrl = null;
-        bgImg = null;
+				bgImg = null;
 			} else {
 				wall.css(PDI.getSkin(skin, 'style').background).css(st);
 				st = null;
