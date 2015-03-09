@@ -220,7 +220,7 @@ var _minClassificationHideFun = "";
 						}
 						if (self.isClear(2)) {
 							var newClassification = {
-								"id" : new Date().getTime(),
+								"id" : Date.now(),
 								"title" : getI18nMsg("classificationNew"),
 								"logo" : urlImg + "classification/images/" + Math.floor(Math.random() * 8) + ".png"
 							};
@@ -358,7 +358,7 @@ var _minClassificationHideFun = "";
 						showNotice(getI18nMsg('classificationNotExist'))
 					} else {
 						if (cIndex !== false && typeof self.classifications[cIndex].dataUrl != "undefined" && self.classifications[cIndex].dataUrl != "" && typeof self.classifications[cIndex].LTime != "undefined" && self.classifications[cIndex].LTime == 0) {
-							$.getJSON(self.classifications[cIndex].dataUrl + "&t=" + new Date().getTime(), function (result) {
+							$.getJSON(self.classifications[cIndex].dataUrl + "&t=" + Date.now(), function (result) {
 								var urlImgList = ['http://hao.weidunewtab.com/', 'http://hao.newtabplus.com/', 'http://www.94994.com/', 'http://en.94994.com/'];
 								var loadDatakey = ['privateSetup', 'dialBoxes', 'skins'];
 								if (result && typeof result == 'object') {
@@ -382,7 +382,7 @@ var _minClassificationHideFun = "";
 										}
 									}
 									storage.relative = true;
-									self.classifications[cIndex]['LTime'] = new Date().getTime();
+									self.classifications[cIndex]['LTime'] = Date.now();
 									PDI.set("classifications", "", self.classifications);
 									self.changeBody(cId)
 								} else {

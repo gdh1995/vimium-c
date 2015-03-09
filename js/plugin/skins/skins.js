@@ -120,7 +120,7 @@
 						}
 					}
 					PDI.set("privateSetup", "BgAutoTime", parseInt($(this).attr("automin")));
-					PDI.set("privateSetup", "BgChangeTime", parseInt(new Date().getTime() / 1000))
+					PDI.set("privateSetup", "BgChangeTime", parseInt(Date.now() / 1000))
 				});
 				template.find('.bgImport').bind('click', function () {
 					$(this).hide();

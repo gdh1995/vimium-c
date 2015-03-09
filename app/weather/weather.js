@@ -58,7 +58,7 @@
 			getWeather : function (fn) {
 				var self = this;
 				fn = fn || function () {};
-				var curTime = parseInt(new Date().getTime() / 1000);
+				var curTime = parseInt(Date.now() / 1000);
 				if (self.cityID == '' || (self.isAuto && curTime >= self.dateline + 1 * 3600)) {
 					self.cityID = self.defaultCityID;
 					$.ajax({
@@ -107,7 +107,7 @@
 			setWeatherData : function (fn) {
 				var self = this;
 				fn = fn || function () {};
-				var curTime = parseInt(new Date().getTime() / 1000);
+				var curTime = parseInt(Date.now() / 1000);
 				if (curTime >= self.dateline + 1 * 3600) {
 					self.getWeatherData(function (data) {
 						if (data.getElementsByTagName("title")[0].childNodes[0].nodeValue != 'Yahoo! Weather - Error') {
@@ -150,7 +150,7 @@
 								dateline : self.dateline
 							});
 							$.ajax({
-								url : urlImg + "myapp/weather/message/index.php?cityID=" + self.cityID + "&ui_locale=" + _langPre + "&tz=" + (new Date().getTimezoneOffset() / 60) * (-1) + "&t=" + new Date().getTime(),
+								url : urlImg + "myapp/weather/message/index.php?cityID=" + self.cityID + "&ui_locale=" + _langPre + "&tz=" + (new Date().getTimezoneOffset() / 60) * (-1) + "&t=" + Date.now(),
 								success : function (data) {
 									if (data) {
 										self.message = JSON.parse(data);
@@ -180,7 +180,7 @@
 				var self = this;
 				fn = fn || function () {};
 				$.ajax({
-					url : urlImg + "myapp/weather/data/yahooData/index.php?cityID=" + self.cityID + "&u=" + self.tempUnit.toLowerCase() + "&t=" + new Date().getTime(),
+					url : urlImg + "myapp/weather/data/yahooData/index.php?cityID=" + self.cityID + "&u=" + self.tempUnit.toLowerCase() + "&t=" + Date.now(),
 					success : function (data) {
 						var re = new RegExp("<!\-\-([\\S\\s]*?)\-\->", "g");
 						var xmlString = data.replace(re, '');
@@ -313,7 +313,7 @@
 					if (cityListAjaxHandle) {
 						cityListAjaxHandle.abort()
 					}
-					cityListAjaxHandle = $.getJSON(urlImg + "tianqi/city.php?city=" + encodeURIComponent(searchKeyword) + "&type=yahoo&t=" + new Date().getTime(), function (data) {
+					cityListAjaxHandle = $.getJSON(urlImg + "tianqi/city.php?city=" + encodeURIComponent(searchKeyword) + "&type=yahoo&t=" + Date.now(), function (data) {
 							if (!cityListAjaxHandle) {
 								return
 							}

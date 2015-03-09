@@ -185,7 +185,7 @@
 					self.changeDialBoxQBCWidth($(this).val())
 				});
 				self.content.find(".oauthLogout").bind("click", function () {
-					window.location.href = oauth.oauthApiUrl + "&a=logout&referer=" + window.location.protocol + "//" + window.location.hostname + window.location.pathname + "&t=" + new Date().getTime()
+					window.location.href = oauth.oauthApiUrl + "&a=logout&referer=" + window.location.protocol + "//" + window.location.hostname + window.location.pathname + "&t=" + Date.now()
 				});
 				self.content.find(".loginButtonMore").bind("click", function () {
 					$(this).hide();
@@ -553,7 +553,7 @@
 				} else {
 					var show_limit = 5;
 					$.each(_config["oauthType"], function (i, n) {
-						loginButtonHtml += '<div class="loginButton" style="display:' + (i < show_limit ? "block" : "none") + '"><a href="' + urlImg + 'oauth/login.php?sign=' + n + '&oauthKey=' + PDI.get("setup", "oauthKey") + '&referer=' + window.location.protocol + '//' + window.location.hostname + window.location.pathname + '&hash=synchronize&t=' + new Date().getTime() + '" target="_self"><img src="js/plugin/setup/img/skin_0/login_' + n + '.png" width="87" height="32" title="' + getI18nMsg(n + 'LoginTypeTitle') + '"/></a></div>'
+						loginButtonHtml += '<div class="loginButton" style="display:' + (i < show_limit ? "block" : "none") + '"><a href="' + urlImg + 'oauth/login.php?sign=' + n + '&oauthKey=' + PDI.get("setup", "oauthKey") + '&referer=' + window.location.protocol + '//' + window.location.hostname + window.location.pathname + '&hash=synchronize&t=' + Date.now() + '" target="_self"><img src="js/plugin/setup/img/skin_0/login_' + n + '.png" width="87" height="32" title="' + getI18nMsg(n + 'LoginTypeTitle') + '"/></a></div>'
 					});
 					if (_config["oauthType"].length > show_limit) {
 						loginButtonHtml += '<div class="loginButtonMore" title="' + getI18nMsg('more') + '"></div>'

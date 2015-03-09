@@ -52,7 +52,7 @@
 			getWeather : function (fn) {
 				var self = this;
 				fn = fn || function () {};
-				var curTime = parseInt(new Date().getTime() / 1000);
+				var curTime = parseInt(Date.now() / 1000);
 				if (self.cityID == '' || (self.isAuto && curTime >= self.dateline + 1 * 3600)) {
 					self.cityID = self.defaultCityID;
 					$.ajax({
@@ -87,7 +87,7 @@
 			setWeatherData : function (fn) {
 				var self = this;
 				fn = fn || function () {};
-				var curTime = parseInt(new Date().getTime() / 1000);
+				var curTime = parseInt(Date.now() / 1000);
 				if (curTime >= self.dateline + 1 * 3600) {
 					self.getWeatherData(function (data) {
 						try {
@@ -126,7 +126,7 @@
 								dateline : self.dateline
 							});
 							$.ajax({
-								url : urlImg + "myapp/weather/message/index.php?cityID=" + self.cityID + "&ui_locale=" + _langPre + "&tz=" + (new Date().getTimezoneOffset() / 60) * (-1) + "&t=" + new Date().getTime(),
+								url : urlImg + "myapp/weather/message/index.php?cityID=" + self.cityID + "&ui_locale=" + _langPre + "&tz=" + (new Date().getTimezoneOffset() / 60) * (-1) + "&t=" + Date.now(),
 								success : function (data) {
 									if (data) {
 										self.message = JSON.parse(data);
@@ -156,7 +156,7 @@
 				var self = this;
 				fn = fn || function () {};
 				$.ajax({
-					url : urlImg + "myapp/weather/data/index.php?cityID=" + self.cityID + "&t=" + new Date().getTime(),
+					url : urlImg + "myapp/weather/data/index.php?cityID=" + self.cityID + "&t=" + Date.now(),
 					success : function (data) {
 						if (data) {
 							fn(data)
