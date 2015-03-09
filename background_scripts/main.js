@@ -1026,7 +1026,8 @@
 })();
 
 chrome.runtime.onInstalled.addListener(function(details) {
-  var contentScripts, js, css, allFrames, _i, _len;
+  var contentScripts, js, css, allFrames, _i, _len, reason = details.reason;
+  if (["chrome_update", "shared_module_update"].indexOf(reason) >= 0) { return; }
   contentScripts = chrome.runtime.getManifest().content_scripts[0];
   js = contentScripts.js;
   css = (details.reason === "install" || window._DEBUG) ? contentScripts.css : [];

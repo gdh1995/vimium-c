@@ -1350,7 +1350,7 @@ href='https://github.com/philc/vimium#release-notes'>what's new</a>).<a class='v
     ELs = null;
     mainPort = null;
     requestHandlers = null;
-    console.log("%cvim %c#" + frameId, "color:blue;", "color:red;", "has destroyed.");
+    console.log("%cvim %c#" + frameId, "color:red", "color:blue", "has destroyed.");
   };
 
   Scroller.initPre();
