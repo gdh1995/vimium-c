@@ -54,9 +54,6 @@
 						} else {
 							$(setupInputList[i]).removeAttr("checked")
 						}
-						if ($(setupInputList[i]).attr("id") == "dialBoxPage3DSwitcher" && !support3D()) {
-							$(setupInputList[i]).removeAttr("checked")
-						}
 					}
 				}
 				self.content.find(".recovery").bind('click', function () {
@@ -345,22 +342,12 @@
 						DBOX.pageIndex()
 					}
 					if ($(this).attr('id') == 'dialBoxPage3DSwitcher') {
-						if (!support3D()) {
-							dataSet = false;
-							showNotice(getI18nMsg('dialBoxPage3DNotSupport'));
-							var thisInput = $(this);
-							setTimeout(function () {
-								thisInput.removeAttr("checked")
-							}, 300);
-							return false
-						} else {
-							if ($(this).attr('checked') == null) {
-								DBOX.page3DSwitcherOpen = true
-							} else {
-								DBOX.page3DSwitcherOpen = false
-							}
-							DBOX.init()
-						}
+            if ($(this).attr('checked') == null) {
+              DBOX.page3DSwitcherOpen = true
+            } else {
+              DBOX.page3DSwitcherOpen = false
+            }
+            DBOX.init()
 					}
 					if ($(this).attr('id') == 'dialBoxQuickSwitcher') {
 						if ($(this).attr('checked') == null) {
@@ -560,13 +547,7 @@
 					})
 				});
 				var loginButtonHtml = '';
-				if (isApp) {
-					if (PDI.get("setup", "oauthKey") == "") {
-						PDI.set("setup", "oauthKey", parseInt(Math.random() * 9000 + 999) + '_' + new Date().getTime())
-					}
-				} else {
-					PDI.set("setup", "oauthKey", '')
-				}
+        PDI.set("setup", "oauthKey", '');
 				if (oauth.oauthId) {
 					loginButtonHtml += '<div class="loginButton"><img src="js/plugin/setup/img/skin_0/login_' + oauth.oauthSource + '.png" width="87" height="32" /></div><div class="userContent"><div class="userContentArrowBorder"></div><div class="userContentArrow"></div><span class="oauthCode">' + oauth.oauthCode + '</span><span class="oauthSyn">[ ' + getI18nMsg('synchronize') + ' ]</span><span class="oauthLogout">[ ' + getI18nMsg('logout') + ' ]</span></div>'
 				} else {

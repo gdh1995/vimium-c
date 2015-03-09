@@ -402,7 +402,7 @@ var _minClassificationHideFun = "";
 				var self = this;
 				$(".body").addClass("farAway");
 				setTimeout(function () {
-					storage = new $.storage(cId);
+					storage.setId(cId);
 					targetSwitch = PDI.get('privateSetup', 'targetSwitch');
 					$('#baseTarget').attr('target', targetSwitch ? "_self" : "_blank");
 					$('#searchForm').attr('target', targetSwitch ? "_self" : "_blank");
@@ -416,7 +416,7 @@ var _minClassificationHideFun = "";
 					DBOX.titleShow = PDI.get('privateSetup', 'dialBoxTitleSwitch');
 					DBOX.cloudBoxShow = PDI.get('privateSetup', 'dialBoxCloudBoxSwitch');
 					DBOX.pageSwitcherShow = PDI.get('privateSetup', 'dialBoxPageSwitcher');
-					DBOX.page3DSwitcherOpen = support3D() ? PDI.get('privateSetup', 'dialBoxPage3DSwitcher') : false;
+					DBOX.page3DSwitcherOpen = PDI.get('privateSetup', 'dialBoxPage3DSwitcher');
 					DBOX.dialBoxQuickHide = PDI.get('privateSetup', 'dialBoxQuickSwitcher');
 					DBOX.width = PDI.get('privateSetup', 'dialBoxWidth');
 					DBOX.height = PDI.get('privateSetup', 'dialBoxHeight');

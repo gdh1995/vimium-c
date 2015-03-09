@@ -23,30 +23,28 @@
 			container : '',
 			init : function () {
 				var self = this;
-				if (typeof chrome.history != "undefined" && isApp === false) {
-					chrome.history.search({
-						text : '',
-						maxResults : 5000,
-						startTime : 0
-					}, function (data) {
-						if (data instanceof Array && data.length > 0) {
-							$.each(data, function (i, n) {
-								if (typeof n.url != "undefined" && n.url.indexOf('http') === 0) {
-									try {
-										var _domain = n.url.match(/[^:]+:\/\/([^\/]+)/);
-										var domain = _domain[1];
-										if (domain) {
-											if (self.trends.indexOf(domain) == -1) {
-												self.trends.push(domain)
-											}
-										}
-									} catch (error) {}
+        chrome.history.search({
+          text : '',
+          maxResults : 5000,
+          startTime : 0
+        }, function (data) {
+          if (data instanceof Array && data.length > 0) {
+            $.each(data, function (i, n) {
+              if (typeof n.url != "undefined" && n.url.indexOf('http') === 0) {
+                try {
+                  var _domain = n.url.match(/[^:]+:\/\/([^\/]+)/);
+                  var domain = _domain[1];
+                  if (domain) {
+                    if (self.trends.indexOf(domain) == -1) {
+                      self.trends.push(domain)
+                    }
+                  }
+                } catch (error) {}
 
-								}
-							})
-						}
-					})
-				}
+              }
+            })
+          }
+        });
 				$('#cloudDialog').bind("click", function (e) {
 					if (!isContainsClass(e.target, "selectArrow") && !isContainsClass(e.target, "logoContainer")) {
 						if (self.container.find('.logoBox').hasClass("selected")) {
@@ -198,7 +196,7 @@
 						_isRefresh = "curPage"
 					} else {
 						if (self.container.find('#webSiteClassification').val() != cId) {
-							storage = new $.storage(self.container.find('#webSiteClassification').val())
+							storage.setId(self.container.find('#webSiteClassification').val());
 						}
 						if (DBOX.getLastDialbox() == "cloud") {
 							var toIndex = DBOX.getDialboxIndex('normal', 'cloud');
@@ -219,7 +217,7 @@
 							})
 						}
 						if (self.container.find('#webSiteClassification').val() != cId) {
-							storage = new $.storage(cId);
+							storage.setId(self.container.find('#webSiteClassification').val());
 							_isRefresh = "remove"
 						} else {
 							_isRefresh = "lastPage"

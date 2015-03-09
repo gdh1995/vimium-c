@@ -32,12 +32,7 @@
 				self.initAppContainer()
 			},
 			initAppContainer : function () {
-				var self = this;
-				var ignoreAppDialboxs = [];
-				if (isApp === true || typeof chrome.history == "undefined") {
-					ignoreAppDialboxs.push('lastVisited')
-				}
-				var re = /^o[A-Z]\w+/;
+				var self = this, ignoreAppDialboxs = [], re = /^o[A-Z]\w+/;
 				$.each(_config['apps'], function (i, n) {
 					if (ignoreAppDialboxs.indexOf(n.id) == -1) {
 						if (typeof n.img == "undefined") {
