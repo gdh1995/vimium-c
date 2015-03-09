@@ -91,12 +91,13 @@
     };
   };
 
-  openMultiTab = function(rawUrl, index, count, windowId, active) {
+  openMultiTab = function(rawUrl, index, count, parentTab, active) {
     if (!(count >= 1)) return;
     var option = {
       url: rawUrl,
-      windowId: windowId,
+      windowId: parentTab.windowId,
       index: index,
+      openerTabId: parentTab.id,
       selected: active !== false
     };
     chrome.tabs.create(option, option.selected ? function(tab) {
@@ -263,6 +264,7 @@
         };
         if (inCurWnd) {
           options.index = tab.index + 1;
+          options.openerTabId = tab.id;
         }
         chrome.tabs.create(options);
         if (request.active && !inCurWnd) {
@@ -289,7 +291,7 @@
     createTab: [function(tab, count, wnd) {
       var url = Settings.get("newTabUrl");
       if (!(wnd.incognito && Utils.isRefusingIncognito(url))) {
-        openMultiTab(url, tab.index + 1, count, tab.windowId);
+        openMultiTab(url, tab.index + 1, count, tab);
         return;
       }
       // this url will be disabled if opened in a incognito window directly
@@ -337,12 +339,12 @@
       });
     }],
     duplicateTab: function(tab, count, wnd) {
-      if (wnd.incognito && Utils.isRefusingIncognito(tab.url)) {
+      if (wnd.incognito && !tab.incognito) {
         while (--count > 0) {
           chrome.tabs.duplicate(tab.id);
         }
       } else {
-        openMultiTab(tab.url, tab.index + 2, count - 1, tab.windowId, false);
+        openMultiTab(tab.url, tab.index + 2, count - 1, tab, false);
       }
     },
     moveTabToNextWindow: [function(tab, wnds0) {
@@ -545,11 +547,11 @@
     },
     openCopiedUrlInCurrentTab: function(tab) {
       requestHandlers.openUrlInCurrentTab({
-        url: Clipboard.paste()
+        url: Clipboard.paste().trim()
       }, tab);
     },
     openCopiedUrlInNewTab: function(tab, count) {
-      openMultiTab(Utils.convertToUrl(Clipboard.paste()), tab.index + 1, count, tab.windowId);
+      openMultiTab(Utils.convertToUrl(Clipboard.paste()), tab.index + 1, count, tab);
     },
     togglePinTab: function(tab) {
       chrome.tabs.update(tab.id, {
@@ -906,11 +908,11 @@
     getCurrentTabUrl: function(_0, tab) {
       return tab.url;
     },
-    openUrlInNewTab: function(request, tab) {
-      openMultiTab(Utils.convertToUrl(request.url), tab.index + 1, 1, tab.windowId);
-    },
     restoreSession: function(request) {
       BackgroundCommands.restoreTab(null, 1, null, null, request.sessionId);
+    },
+    openUrlInNewTab: function(request, tab) {
+      openMultiTab(Utils.convertToUrl(request.url), tab.index + 1, 1, tab);
     },
     openUrlInIncognito: function(request, tab) {
       chrome.windows.getAll(funcDict.openUrlInIncognito.bind(null, request, tab));
@@ -921,7 +923,7 @@
       });
     },
     openOptionsPageInNewTab: function(_0, tab) {
-      openMultiTab(chrome.runtime.getURL("pages/options.html"), tab.index + 1, 1, tab.windowId);
+      openMultiTab(chrome.runtime.getURL("pages/options.html"), tab.index + 1, 1, tab);
     },
     frameFocused: function(request) {
       var frames = frameIdsForTab[request.tabId], ind;
