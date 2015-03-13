@@ -434,9 +434,9 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       }
       hints = visibleInputs.map(function(tuple) {
         var hint = document.createElement("div");
-        hint.className = "vimB vimI vimIHi vimIH";
-        hint.style.left = (tuple.rect[0] - 1 + window.scrollX) + "px";
-        hint.style.top = (tuple.rect[1] - 1 + window.scrollY) + "px";
+        hint.className = "vimB vimI vimIH";
+        hint.style.left = (tuple.rect[0] - 1) + "px";
+        hint.style.top = (tuple.rect[1] - 1) + "px";
         hint.style.width = (tuple.rect[2] - tuple.rect[0]) + "px";
         hint.style.height = (tuple.rect[3] - tuple.rect[1]) + "px";
         return hint;
@@ -446,6 +446,8 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
         id: "vimIMC",
         className: "vimB vimR"
       });
+      hintContainingDiv.style.left = window.scrollX + "px";
+      hintContainingDiv.style.top = window.scrollY + "px";
       handlerStack.push({
         keydown: function(event) {
           if (event.keyCode === keyCodes.tab) {

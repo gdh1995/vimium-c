@@ -203,7 +203,7 @@ var LinkHints = {
   },
   createMarkerFor: function(link) {
     var marker = document.createElement("div");
-    marker.className = "vimB vimI vimLHi vimLH";
+    marker.className = "vimB vimI vimLH";
     marker.clickableItem = link.element;
     marker.style.left = link.rect[0] + "px";
     marker.style.top = link.rect[1] + "px";

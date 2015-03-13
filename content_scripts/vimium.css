@@ -10,7 +10,7 @@
  *
  * vimB: vimium Base; vimR: Reset; vimI: Inherit; vimL: Link; vimS: Selected
  *
- * i$: internal; HMC: HintMarkerContainer; LH: LinkHint; MC: MatchingCharacter;
+ * HMC: HintMarkerContainer; LH: LinkHint; MC: MatchingCharacter;
  * IMC: InputMarkerContainer, IH: InputHint;
  * HUD: HUD; O: vOmnibar; OI: vOmnibarItem
  *
@@ -115,7 +115,6 @@
 #vimHMC.vimB {
 	font-weight: bold;
 	height: 100%;
-	overflow: hidden;
 	pointer-events: none;
 	position: absolute;
 	text-shadow: 0 1px 0 rgba(255, 255, 255, 0.6);
@@ -123,13 +122,12 @@
 	width: 100%;
 	z-index: 2147483646;
 }
-.vimLHi.vimB {
+.vimLH.vimB {
 	background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#FFF785), color-stop(100%,#FFC542));
 	border: 1px solid #E3BE23;
 	border-radius: 3px;
 	box-shadow: 0px 3px 7px 0px rgba(0, 0, 0, 0.3);
 	padding: 1px 3px 0px 3px;
-	/* pointer-events: auto; */
 	position: absolute;
 }
 .vimMC.vimB {
@@ -138,16 +136,18 @@
 
 /* Input hints CSS */
 #vimIMC.vimB {
+	overflow: visible;
+	pointer-events: none;
+	position: absolute;
 	z-index: 2147483640;
 }
-.vimIHi.vimB {
+.vimIH.vimB {
 	background-color: rgba(255, 247, 133, 0.3);
 	border: 1px solid #C38A22;
 	display: block;
-	pointer-events: none;
 	position: absolute;
 }
-.vimIHi.vimS {
+.vimIH.vimS {
 	background-color: rgba(255, 102, 102, 0.3);
 	border: 1px solid #993333 !important;
 }
