@@ -30,7 +30,7 @@
 	box-sizing: border-box;
 	color: black;
 	cursor: text;
-	font-family: "Helvetica Neue", "Helvetica", "Arial", "sans-serif";
+	font-family: Arial, Helvetica, sans-serif;
 	font-size: 20px;
 	height: 34px;
 	line-height: 100%;
@@ -113,7 +113,7 @@
 	box-sizing: border-box;
 	color: #224684;
 	display: inline-block;
-	font-family: Consolas, "Liberation Mono", "Courier New", monospace;
+	font-family: Consolas, 'Courier New', Courier, monospace;
 	max-width: 100%;
 	overflow: hidden;
 	padding-left: 51px;
@@ -123,7 +123,7 @@
 	font-weight: bold;
 }
 .vimOIRelevancy.vimB {
-	font-family: monospace;
+	font-family: 'Courier New', Courier, monospace;
 	margin-left: 10px;
 	position: absolute;
 }
@@ -132,7 +132,7 @@
 	<input type="text" class="vimB vimR" id="vimOInput" />
 </div>
 <ul class="vimB vimR vimScroll" id="vimOList">
-	<span id="vimOITemplate"><span>
+	<div id="vimOITemplate"><div>
 	<li class="vimB vimI vimOItem" data-vim-index="{{$index}}"><div class="vimB vimI vimOIWrap">
 		<div class="vimB vimI vimOITop">
 			<span class="vimB vimI vimOISource">{{type}}</span>
@@ -141,5 +141,5 @@
 		<div class="vimB vimI vimOIBottom{{favIconUrl}}">
 			<a class="vimB vimI vimOIUrl">{{textSplit}}</a>{{relevancy}}
 		</div>
-	</div></li></span></span>
+	</div></li></div></div>
 </ul>
