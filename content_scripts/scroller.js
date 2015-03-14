@@ -13,26 +13,26 @@
 
   scrollProperties = {
     x: {
-      axisName: 'scrollLeft',
-      max: 'scrollWidth',
-      viewSize: 'clientWidth'
+      axisName: "scrollLeft",
+      max: "scrollWidth",
+      viewSize: "clientWidth"
     },
     y: {
-      axisName: 'scrollTop',
-      max: 'scrollHeight',
-      viewSize: 'clientHeight'
+      axisName: "scrollTop",
+      max: "scrollHeight",
+      viewSize: "clientHeight"
     }
   };
 
   getDimension = function(el, direction, name) {
     return (typeof name !== "string") ? name
-      : (name !== 'viewSize' || el !== document.body) ? el[scrollProperties[direction][name]]
-      : (direction === 'x') ? window.innerWidth : window.innerHeight;
+      : (name !== "viewSize" || el !== document.body) ? el[scrollProperties[direction][name]]
+      : (direction === "x") ? window.innerWidth : window.innerHeight;
   };
 
   performScroll = function(element, direction, amount) {
     var before;
-    if (direction === 'x') {
+    if (direction === "x") {
       before = element.scrollLeft;
       element.scrollLeft += (element.clientWidth > element.clientHeight * 2)
         ? amount : Math.ceil(amount * 0.6);
@@ -106,24 +106,23 @@
   };
 
   CoreScroller = {
-    smoothScroll: true,
-    time: 0,
     isLastEventRepeat: false,
     keyIsDown: false,
-    init: function() {
-      handlerStack.push({
-        keydown: function(event) {
-          CoreScroller.keyIsDown = true;
-          CoreScroller.isLastEventRepeat = event.repeat;
-          return true;
-        },
-        keyup: function() {
-          CoreScroller.keyIsDown = false;
-          CoreScroller.time += 1;
-          return true;
-        }
-      });
-      this.data.animate = this.data.animate.bind(this.data);
+    smoothScroll: true,
+    time: 0,
+    init: function(handlers) {
+      handlers.keydown = function(event) {
+        this.keyIsDown = true;
+        this.isLastEventRepeat = event.repeat;
+        return true;
+      };
+      handlers.keyup = function() {
+        this.keyIsDown = false;
+        this.time += 1;
+        return true;
+      };
+      handlers._this = this;
+      handlerStack.push(handlers);
     },
     wouldNotInitiateScroll: function() {
       return this.smoothScroll && (this.isLastEventRepeat);
@@ -145,73 +144,65 @@
         return;
       }
       this.activationTime = ++this.time;
-      var data = this.data;
-      data.sign = getSign(amount);
-      data.element = element;
-      data.direction = direction;
-      data.amount = Math.abs(amount);
-      data.duration = Math.max(100, 20 * Math.log(data.amount));
-      data.totalDelta = 0;
-      data.totalElapsed = 0.0;
-      data.calibration = 1.0;
-      data.timestamp = -1.0;
-      requestAnimationFrame(this.data.animate);
+      this.reset(amount, direction, element);
+      requestAnimationFrame(this.Animate);
     },
     KeyIsStillDown: function() {
       return this.time === this.activationTime && this.keyIsDown;
     },
-    data: {
-      amount: 0,
-      calibration: 1.0,
-      direction: "",
-      duration: 0,
-      element: null,
-      sign: 0,
-      timestamp: -1.0,
-      totalDelta: 0,
-      totalElapsed: 0.0,
-      animate: function(timestamp) {
-        var int1 = this.timestamp, elapsed;
-        elapsed = (int1 !== -1) ? (timestamp - int1) : 0;
-        if (elapsed === 0) {
-          requestAnimationFrame(this.animate);
-        } else {
-          this.totalElapsed += elapsed;
+    Animate: null,
+    reset: null
+  };
+
+  CoreScroller.Animate = (function () {
+    var amount = 0, calibration = 1.0, direction = "", duration = 0, element = null, //
+    sign = 0, timestamp = -1, totalDelta = 0, totalElapsed = 0.0, //
+    animate = function(new_timestamp) {
+      var int1 = timestamp, elapsed, _this = CoreScroller;
+      elapsed = (int1 !== -1) ? (new_timestamp - int1) : 0;
+      if (elapsed === 0) {
+        requestAnimationFrame(animate);
+      } else {
+        totalElapsed += elapsed;
+      }
+      timestamp = new_timestamp;
+      if (_this.KeyIsStillDown()) {
+        int1 = calibration;
+        if (75 <= totalElapsed && (_this.minCalibration <= int1 && int1 <= _this.maxCalibration)) {
+          int1 = _this.calibrationBoundary / amount / int1;
+          calibration *= (int1 > 1.05) ? 1.05 : (int1 < 0.95) ? 0.95 : 1.0;
         }
-        this.timestamp = timestamp;
-        if (CoreScroller.KeyIsStillDown()) {
-          int1 = this.calibration;
-          if (75 <= this.totalElapsed && (CoreScroller.minCalibration <= int1 && int1 <= CoreScroller.maxCalibration)) {
-            int1 = CoreScroller.calibrationBoundary / this.amount / int1;
-            this.calibration *= (int1 > 1.05) ? 1.05 : (int1 < 0.95) ? 0.95 : 1.0;
-          }
-          int1 = Math.ceil(this.amount * (elapsed / this.duration) * this.calibration);
-        } else {
-          int1 = Math.ceil(this.amount * (elapsed / this.duration) * this.calibration);
-          int1 = Math.max(0, Math.min(int1, this.amount - this.totalDelta));
-        }
-        if (int1 && performScroll(this.element, this.direction, this.sign * int1)) {
-          this.totalDelta += int1;
-          requestAnimationFrame(this.animate);
-        } else {
-          checkVisibility(this.element);
-          if (elapsed !== 0) {
-            this.element = null;
-          }
+        int1 = Math.ceil(amount * (elapsed / duration) * calibration);
+      } else {
+        int1 = Math.ceil(amount * (elapsed / duration) * calibration);
+        int1 = Math.max(0, Math.min(int1, amount - totalDelta));
+      }
+      if (int1 && performScroll(element, direction, sign * int1)) {
+        totalDelta += int1;
+        requestAnimationFrame(animate);
+      } else {
+        checkVisibility(element);
+        if (elapsed !== 0) {
+          element = null;
         }
       }
-    }
-  };
+    };
+    CoreScroller.reset = function(new_amount, new_dire, new_el) {
+      amount = Math.abs(new_amount), calibration = 1.0, direction = new_dire;
+      duration = Math.max(100, 20 * Math.log(amount)), element = new_el;
+      sign = getSign(new_amount), timestamp = -1, totalDelta = 0, totalElapsed = 0.0;
+    };
+    return animate;
+  })();
 
   window.Scroller = {
     initPre: function() {
-      handlerStack.push({
+      CoreScroller.init({
         DOMActivate: function(event) {
           activatedElement = event.target;
           return true;
         }
       });
-      CoreScroller.init();
     },
     init: function() {
       CoreScroller.smoothScroll = settings.values.smoothScroll ? true : false;
