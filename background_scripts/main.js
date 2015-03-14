@@ -953,7 +953,7 @@
       } else {
         ret = getCompletionKeysRequest();
         ret.enabled = true;
-        ret.passKeys = rule ? rule.passKeys : ""
+        ret.passKeys = rule ? rule.passKeys : "";
         delete ret.name;
         return ret;
       }
