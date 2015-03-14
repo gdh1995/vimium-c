@@ -1222,15 +1222,7 @@ href='https://github.com/philc/vimium#release-notes'>what's new</a>).<a class='v
         tabId = request.tabId;
       }
       if (request.css) {
-        var css;
-        if (css = document.getElementById("vimUserCss")) {
-          css.innerHTML = request.css;
-        } else {
-          css = document.createElement("style");
-          css.type = "text/css";
-          css.innerHTML = request.css;
-          document.head.appendChild(css);
-        }
+        DomUtils.DocumentReady(requestHandlers.injectCSS.bind(null, request), true);
       }
       if (request.upgraded) {
         HUD.showUpgradeNotification(request.version);
@@ -1242,6 +1234,18 @@ href='https://github.com/philc/vimium#release-notes'>what's new</a>).<a class='v
         isTop: window.top === window.self,
         frameId: ((document.body && document.body.nodeName.toLowerCase() === "frameset") ? -1 : frameId)
       });
+    },
+    injectCSS: function(request) {
+      var css = document.getElementById("vimUserCss");
+      if (css) {
+        css.innerHTML = request.css;
+      } else {
+        css = document.createElement("style");
+        css.id = "vimUserCss";
+        css.type = "text/css";
+        css.innerHTML = request.css;
+        document.head.appendChild(css);
+      }
     },
     hideUpgradeNotification: function() {
       HUD.hideUpgradeNotification();
@@ -1293,9 +1297,7 @@ href='https://github.com/philc/vimium#release-notes'>what's new</a>).<a class='v
     setScrollPosition: function(request) {
       var scrollX = request.scroll[0], scrollY = request.scroll[1];
       if (scrollX > 0 || scrollY > 0) {
-        DomUtils.documentReady(function() {
-          window.scrollTo(scrollX, scrollY);
-        });
+        DomUtils.DocumentReady(window.scrollTo.bind(window, scrollX, scrollY));
       }
     },
     executePageCommand: function(request) {
@@ -1373,7 +1375,7 @@ href='https://github.com/philc/vimium#release-notes'>what's new</a>).<a class='v
       url: window.location.href
     }) < 0)
     ? settings.addEventListener.bind(settings, "load")
-    : DomUtils.documentReady.bind(DomUtils)
+    : DomUtils.DocumentReady
   )(function() {
     requestHandlers.reRegisterFrame();
     Vomnibar.initNext();

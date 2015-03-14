@@ -59,12 +59,20 @@ var Settings = {
       this.parseSearchEngines("\\:" + this.get("searchUrl"));
       this.postUpdate("postSearchEnginesMap", null);
       return false;
+    },
+    userDefinedCss: function(css) {
+      if (css && (css = css.replace(/\r/g, ""))) {
+        css = (css.startsWith('\n') ? "" : '\n') + css + (css.endsWith('\n') ? "" : '\n');
+      } else {
+        css = "";
+      }
+      this.set("userDefinedCss_f", css);
     }
   },
   parseSearchEngines: function(searchEnginesText, map) {
     var a, pairs, key, val, name, obj, _i, _j, _len, _len2 //
       , rEscapeSpace = /\\\s/g, rSpace = /\s/;
-    map = map || this._buffer.searchEnginesMap;
+    map = map || this.get("searchEnginesMap");
     a = searchEnginesText.replace(/\\\n/g, '').split('\n');
     for (_i = 0, _len = a.length; _i < _len; _i++) {
       val = a[_i].trim();
@@ -149,6 +157,7 @@ var Settings = {
   nonPersistent: {
     help_dialog: true,
     searchEnginesMap: true,
+    userDefinedCss_f: true,
     vomnibar: true
   },
   files: {
@@ -160,6 +169,6 @@ var Settings = {
     , "helpDialog_showAdvancedCommands", "smoothScroll", "showOmniRelevancy" //
     , "findModeRawQueryList"
   ],
-  bufferToLoad: [],
+  bufferToLoad: null,
   ChromeInnerNewTab: "chrome-search://local-ntp/local-ntp.html"
 };

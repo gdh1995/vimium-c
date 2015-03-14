@@ -804,7 +804,7 @@
       case "reg":
         port.postMessage({
           name: "registerFrame",
-          css: Settings.get("userDefinedCss"),
+          css: Settings.get("userDefinedCss_f"),
           tabId: tabId,
           version: currentVersion,
           upgraded: shouldShowUpgradeMessage
@@ -975,8 +975,9 @@
     gotoMark: Marks.goTo.bind(Marks)
   };
 
-  Settings.set("searchEnginesMap", {});
   Settings.reloadFiles();
+  Settings.set("searchEnginesMap", {});
+  Settings.postUpdate("userDefinedCss");
   Settings.bufferToLoad = Settings.valuesToLoad.map(Settings.get.bind(Settings));
 
   chrome.runtime.onConnect.addListener(function(port) {
