@@ -30,6 +30,7 @@ var LinkHints = {
   handlerId: 0,
   initScrollY: 0,
   initScrollX: 0,
+  initTimer: 0,
   markerMatcher: null,
   init: function() {
     this.setMarkerMatcher(settings.values.filterLinkHints);
@@ -71,6 +72,13 @@ var LinkHints = {
   activateMode: function(mode) {
     if (this.isActive || !document.documentElement) {
       return;
+    } else if (document.body == null) {
+      if (!this.initTimer) {
+        this.initTimer = setInterval(this.activateMode.bind(this, mode), 300);
+      }
+    } else if (this.initTimer) {
+      clearInterval(this.initTimer);
+      this.initTimer = 0;
     }
     this.setOpenLinkMode(mode || 0);
     this.hintMarkers = this.getVisibleClickableElements().map(this.createMarkerFor);
