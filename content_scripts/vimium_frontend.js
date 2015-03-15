@@ -1322,6 +1322,8 @@ href='https://github.com/philc/vimium#release-notes'>what's new</a>).<a class='v
     setState: function(request) {
       if (isEnabledForUrl = request.enabled) {
         initializeWhenEnabled(request.passKeys);
+      } else {
+        HUD.hide();
       }
     }
   };
@@ -1363,6 +1365,7 @@ href='https://github.com/philc/vimium#release-notes'>what's new</a>).<a class='v
     CursorHider.init();
     if (!response || !response.enabled) {
       isEnabledForUrl = false;
+      HUD.hide();
       return;
     }
     isEnabledForUrl = true;
