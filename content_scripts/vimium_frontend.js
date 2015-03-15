@@ -254,7 +254,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
   ELs = { onUnload: null, onFocus: null, //
     onKeydown: null, onKeypress: null, onKeyup: null, //
     docOnFocus: null, onBlur: null, onActivate: null, //
-    destroy: null
+    destroy: null //
   };
 
   initializeWhenEnabled = function(newPassKeys) {
@@ -1342,6 +1342,8 @@ href='https://github.com/philc/vimium#release-notes'>what's new</a>).<a class='v
   });
   
   ELs.destroy = function() {
+    isEnabledForUrl = false;
+    window.isEnabledForUrl_g = false;
     window.removeEventListener("unload", this.onUnload);
     window.removeEventListener("focus", this.onFocus);
     window.removeEventListener("keydown", this.onKeydown, true);
