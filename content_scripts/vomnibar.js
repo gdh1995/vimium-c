@@ -6,8 +6,6 @@ var Vomnibar = {
   _completerInited: false,
   defaultRefreshInterval: 500,
   background: null,
-  initNext: function() {
-  },
   activateWithCompleter: function(completerName, selectFirstResult, forceNewTab, initialQueryValue) {
     var completer = this.background.Completer, vomnibarUI = this.vomnibarUI;
     if (!this._completerInited) {

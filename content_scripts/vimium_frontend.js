@@ -1357,7 +1357,6 @@ href='https://github.com/philc/vimium#release-notes'>what's new</a>).<a class='v
     console.log("%cvim %c#" + frameId, "color:red", "color:blue", "has destroyed.");
   };
 
-  Scroller.initPre();
   settings.addEventListener("load", function(response) {
     LinkHints.init();
     Scroller.init();
@@ -1378,7 +1377,6 @@ href='https://github.com/philc/vimium#release-notes'>what's new</a>).<a class='v
     : DomUtils.DocumentReady
   )(function() {
     requestHandlers.reRegisterFrame();
-    Vomnibar.initNext();
     window.addEventListener("unload", ELs.onUnload = mainPort.postMessage.bind(mainPort, {
         handlerSettings: "unreg",
         frameId: frameId,

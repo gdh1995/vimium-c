@@ -84,10 +84,8 @@ window.Scroller = {
       viewSize: "clientHeight"
     }
   },
-  initPre: function() {
-    this.Core.init();
-  },
   init: function() {
+    this.Core.init();
     this.Core.smoothScroll = settings.values.smoothScroll ? true : false;
   },
   scrollBy: function(direction, amount, factor) {
