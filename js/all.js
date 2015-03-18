@@ -6,19 +6,18 @@ var _browser = {
 	chrome : true,
 	cssType : "webkit",
 	protocol : "chrome",
-};
-var oUrls = {
+}, oUrls = {
 	"oDownloads" : "chrome://downloads/",
 	"oBookmarks" : "chrome://bookmarks/#1",
 	"oHistory" : "chrome://history/",
 	"oExtensions" : "chrome://extensions",
 	"oNewtab" : "chrome-search://local-ntp/local-ntp.html"
 };
-_browser.version = (_browser.ua.match(/.+(?:rv|it|ra|ie)[\/: ]([\d.]+)/) || [])[1];
+_browser.version = _browser.ua.match(/WebKit\/([\d.]+)/)[1];
 function truncate(str, ind, lng) {
 	if (str) {
 		if (str.length > lng) {
-			return str.substring(ind, lng) + '...'
+			return str.substring(ind, lng - 3) + '...'
 		} else {
 			return str.substring(ind, lng)
 		}
@@ -26,25 +25,17 @@ function truncate(str, ind, lng) {
 	return ''
 }
 function title_fix(text) {
-	if (text) {
-		return text.replace(/\"/g, '&#34;').replace(/\</g, '').replace(/\>/g, '')
-	}
-	return ''
+  return text ? Utils.escapeHtml(text) : "";
 }
 var I18n = Lang['zh_CN'];
 function getI18nMsg(msgname) {
 	return I18n[msgname] || msgname;
-	/* try {
-	return chrome.i18n.getMessage(msgname)
-	} catch (err) {
-	return msgname
-	} */
 }
 function initChromeI18n(obj) {
 	var _data, key, _mKey, arr = ['content', 'value', 'title', 'placeholder'];
-	for (var i = 0, l = arr.length, n, message; i < l; i++) {
+  for (var i = arr.length, n, message, item, lang = I18n; 0 <= --i; ) {
 		_mKey = arr[i];
-		key = 'data-i18n-' + _mKey + '';
+		key = 'data-i18n-' + _mKey;
 		if (typeof obj != 'undefined') {
 			_data = obj.find('[' + key + ']')
 		} else {
@@ -56,35 +47,29 @@ function initChromeI18n(obj) {
 		case 'content':
 			while(0 <= --n) {
 				message = _data[n].getAttribute(key);
-				message = I18n[message] || message;
-				if (message) {
-					$(_data[n]).html(message);
-				}
+				message = lang[message] || message;
+        _data[n].innerHTML = message;
 			}
 			break;
 		case 'value':
 			while(0 <= --n) {
 				message = _data[n].getAttribute(key);
-				message = I18n[message] || message;
-				if (message) {
-					$(_data[n]).val(message);
-				}
+				message = lang[message] || message;
+        _data[n].value = message;
 			}
 			break;
 		default:
 			while(0 <= --n) {
 				message = _data[n].getAttribute(key);
-				message = I18n[message] || message;
-				if (message) {
-					_data[n].setAttribute(_mKey, message)
-				}
+				message = lang[message] || message;
+        _data[n].setAttribute(_mKey, message)
 			}
 			break;
 		}
 	}
 }
 function isMouseMoveContains(e, parent) {
-	var child = e.relatedTarget ? e.relatedTarget : e.type == 'mouseout' ? e.toElement : e.fromElement;
+	var child = e.relatedTarget || (e.type == 'mouseout' ? e.toElement : e.fromElement);
 	return isContains(child, parent)
 }
 function isContains(child, parent) {
@@ -106,7 +91,6 @@ function loadScript(src, fn, efn, force) {
 	}
 	var obj = document.createElement("script");
 	obj.type = "text/javascript";
-	obj.setAttribute("charset", "utf-8");
 	obj.src = src;
 	obj.charset = 'utf-8';
 	document.head.appendChild(obj);
@@ -237,85 +221,78 @@ function getIframeDialboxUrl(url) {
 }
 function replaceMSiteDialboxs(_dialboxs, MSite) {
 	var _save = false;
-	if (typeof _dialboxs != "undefined" && _dialboxs && _dialboxs.length > 0) {
-		$.each(_dialboxs, function (i, n) {
-			if (typeof _dialboxs[i]['url'] != "undefined") {
-				$.each(MSite, function (skey, svalue) {
-					var isReplace = false;
-					try {
-						var regAll = new RegExp("^(http:\/\/)?" + skey + "\/?$", "i");
-						var regBegin = new RegExp("^(http:\/\/)?" + skey + "\/?[\\?&]", "i");
-						var regEnd = new RegExp("[?&]([tul]|out|ulp|url)=(http:\/\/)?" + skey + "\/?$", "i");
-						if ((typeof svalue['type'] == "undefined" || svalue['type'].indexOf("all") > -1)) {
-							if (_dialboxs[i]['url'].match(regAll) != null) {
-								isReplace = true
-							}
-						}
-						if ((typeof svalue['type'] == "undefined" || svalue['type'].indexOf("begin") > -1)) {
-							if (_dialboxs[i]['url'].match(regBegin) != null) {
-								isReplace = true
-							}
-						}
-						if ((typeof svalue['type'] == "undefined" || svalue['type'].indexOf("end") > -1)) {
-							if (_dialboxs[i]['url'].match(regEnd) != null) {
-								isReplace = true
-							}
-						}
-					} catch (e) {}
-					if (isReplace == true) {
-						if (typeof svalue['url'] != "undefined" && _dialboxs[i]['url'] != svalue['url']) {
-							_dialboxs[i]['url'] = svalue['url'];
-							_save = true
-						}
-						if (typeof svalue['title'] != "undefined" && _dialboxs[i]['title'] != svalue['title']) {
-							_dialboxs[i]['title'] = svalue['title'];
-							_save = true
-						}
-						if (typeof svalue['html'] != "undefined") {
-							if (_dialboxs[i]['html'] != svalue['html']) {
-								_dialboxs[i]['html'] = svalue['html'];
-								_save = true
-							}
-						} else {
-							if (typeof _dialboxs[i]['html'] != "undefined") {
-								delete _dialboxs[i]['html'];
-								_save = true
-							}
-						}
-						if (typeof svalue['img'] != "undefined") {
-							if (_dialboxs[i]['img'] != svalue['img']) {
-								_dialboxs[i]['img'] = svalue['img'];
-								_save = true
-							}
-						} else {
-							if (typeof _dialboxs[i]['img'] != "undefined") {
-								if (_dialboxs[i]['img'].indexOf("/rssData/") == -1) {
-									delete _dialboxs[i]['img'];
-									_save = true
-								}
-							}
-						}
-						if (typeof svalue['isApp'] != "undefined") {
-							if (_dialboxs[i]['isApp'] != svalue['isApp']) {
-								_dialboxs[i]['isApp'] = svalue['isApp'];
-								_save = true
-							}
-						} else {
-							if (typeof _dialboxs[i]['isApp'] != "undefined") {
-								delete _dialboxs[i]['isApp'];
-								_save = true
-							}
-						}
-						return false
-					}
-				})
-			}
-		})
-	}
-	if (_save == true) {
-		return _dialboxs
-	}
-	return false
+	if (!_dialboxs || !(_dialboxs.length > 0)) {
+    return null;
+  }
+  $.each(_dialboxs, function (i) {
+    var urli = _dialboxs[i]['url'];
+    if (!urli) { return; }
+    $.each(MSite, function (skey, svalue) {
+      var isReplace = false, str = svalue.type, regex, flag1 = !str;
+      if (flag1 || str.indexOf("all") > -1) {
+        regex = new RegExp("^(http:\/\/)?" + skey + "\/?$", "i");
+        if (urli.match(regex) != null) {
+          isReplace = true
+        }
+      }
+      if (!isReplace && (flag1 || str.indexOf("begin") > -1)) {
+        regex = new RegExp("^(http:\/\/)?" + skey + "\/?[\\?&]", "i");
+        if (urli.match(regex) != null) {
+          isReplace = true
+        }
+      }
+      if (!isReplace && (flag1 || str.indexOf("end") > -1)) {
+        regex = new RegExp("[?&]([tul]|out|ulp|url)=(http:\/\/)?" + skey + "\/?$", "i");
+        if (urli.match(regex) != null) {
+          isReplace = true
+        }
+      }
+      if (!isReplace) { return; }
+      var diagi = _dialboxs[i];
+      str = svalue.url;
+      if (str && urli != str) {
+        diagi.url = str;
+        _save = true
+      }
+      str = svalue.title;
+      if (str && diagi.title != str) {
+        diagi.title = str;
+        _save = true
+      }
+      str = svalue.html;
+      if (str) {
+        if (diagi.html != str) {
+          diagi.html = str;
+          _save = true
+        }
+      } else if (diagi.html) {
+        delete diagi.html;
+        _save = true
+      }
+      str = svalue.img;
+      if (str) {
+        if (diagi.img != str) {
+          diagi.img = str;
+          _save = true
+        }
+      } else if (diagi.img && diagi.img.indexOf("/rssData/") === -1) {
+        delete diagi.img;
+        _save = true
+      }
+      str = svalue.isApp;
+      if (str) {
+        if (diagi.isApp != str) {
+          diagi.isApp = str;
+          _save = true
+        }
+      } else if (diagi.isApp) {
+        delete diagi.isApp;
+        _save = true
+      }
+      return false
+    });
+  });
+  return _save ? _dialboxs : null;
 }
 function replaceMSite(MSite, filters) {
 	filters = typeof filters == "undefined" ? [] : filters;
@@ -331,18 +308,17 @@ function replaceMSite(MSite, filters) {
 	storage.relative = false;
 	$.each(_classificationsIds, function (k, v) {
 		var _dialBoxes = storage.get('dialBoxes' + v, true);
-		if (_dialBoxes) {
-			var _normalDialboxes = _dialBoxes['normal'];
-			_normalDialboxes = replaceMSiteDialboxs(_normalDialboxes, MSite);
-			if (_normalDialboxes) {
-				PDI.set("dialBoxes" + v, "normal", _normalDialboxes)
-			}
-			var _quickDialboxes = _dialBoxes['quick'];
-			_quickDialboxes = replaceMSiteDialboxs(_quickDialboxes, MSite);
-			if (_quickDialboxes) {
-				PDI.set("dialBoxes" + v, "quick", _quickDialboxes)
-			}
-		}
+		if (!_dialBoxes) { return; }
+    var boxes = _dialBoxes.normal;
+    boxes = replaceMSiteDialboxs(boxes, MSite);
+    if (boxes) {
+      PDI.set("dialBoxes" + v, "normal", boxes)
+    }
+    boxes = _dialBoxes.quick;
+    boxes = replaceMSiteDialboxs(boxes, MSite);
+    if (boxes) {
+      PDI.set("dialBoxes" + v, "quick", boxes)
+    }
 	});
 	storage.relative = true
 }
