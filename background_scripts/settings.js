@@ -170,5 +170,5 @@ var Settings = {
     , "findModeRawQueryList"
   ],
   bufferToLoad: null,
-  ChromeInnerNewTab: "chrome-search://local-ntp/local-ntp.html"
+  ChromeInnerNewTab: "chrome-search://local-ntp/local-ntp.html" // should keep lower case
 };
