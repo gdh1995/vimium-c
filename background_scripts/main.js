@@ -210,13 +210,14 @@
   }; */
 
   funcDict = {
-    makeTempWindow: function(tabId, incognito, callback) {
+    makeTempWindow: function(tabIdUrl, incognito, callback) {
       chrome.windows.create({
         type: "normal",
         left: 0, top: 0, width: 50, height: 50,
         focused: false,
         incognito: incognito,
-        tabId: tabId
+        tabId: tabIdUrl > 0 ? tabIdUrl : undefined,
+        url: tabIdUrl > 0 ? undefined : tabIdUrl
       }, callback);
     },
     updateActiveState: !shouldShowActionIcon ? function() {} : function(tabId, url, response) {
@@ -295,15 +296,15 @@
         return;
       }
       // this url will be disabled if opened in a incognito window directly
-      chrome.tabs.getAllInWindow(tab.windowId, funcDict.createTab[1].bind(null, tab, count, url));
-    }, function(tab, count, url, allTabs) {
-      var urlLower = url.toLowerCase().split('#', 1)[0],
-        repeat = count > 1 ? function(tabId) {
-          var left = count;
-          while (--left > 0) {
-            chrome.tabs.duplicate(tabId);
-          }
-        } : null;
+      chrome.tabs.getAllInWindow(tab.windowId, //
+      funcDict.createTab[1].bind(url, tab, count > 1 ? function(newTab) {
+        var left = count, id = newTab.id;
+        while (--left > 0) {
+          chrome.tabs.duplicate(id);
+        }
+      } : null));
+    }, function(tab, repeat, allTabs) {
+      var urlLower = this.toLowerCase().split('#', 1)[0], tabs;
       if (urlLower.indexOf("://") < 0) {
         urlLower = chrome.runtime.getURL(urlLower);
       }
@@ -311,31 +312,43 @@
         var url = tab1.url.toLowerCase(), end = url.indexOf("#");
         return ((end < 0) ? url : url.substring(0, end)) === urlLower;
       });
-      if (allTabs.length > 0) {
-        urlLower = allTabs.filter(function(tab1) {
-          return tab1.index >= tab.index;
-        });
-        tab = (urlLower.length > 0) ? urlLower[0] : allTabs[allTabs.length - 1];
-        chrome.tabs.duplicate(tab.id);
-        repeat && repeat(tab.id);
+      if (allTabs.length === 0) {
+        chrome.windows.getAll(funcDict.createTab[2].bind(this, tab, repeat));
         return;
       }
+      tabs = allTabs.filter(function(tab1) { return tab1.index >= tab.index; });
+      tab = tabs.length > 0 ? tabs[0] : allTabs[allTabs.length - 1];
+      chrome.tabs.duplicate(tab.id);
+      repeat && repeat(tab);
+    }, function(tab, repeat, wnds) {
+      wnds = wnds.filter(function(wnd) {
+        return !wnd.incognito && wnd.type === "normal";
+      });
+      if (wnds.length > 0) {
+        funcDict.createTab[3](this, tab, repeat, wnds[0]);
+        return;
+      }
+      funcDict.makeTempWindow(Settings.ChromeInnerNewTab, false, //
+      funcDict.createTab[3].bind(null, this, tab, function(newTab) {
+        chrome.windows.remove(newTab.windowId);
+        repeat && repeat(newTab);
+      }));
+    }, function(url, tab, callback, wnd) {
       chrome.tabs.create({
         selected: false,
+        windowId: wnd.id,
         url: url
       }, function(newTab) {
-        var newId = newTab.id;
-        funcDict.makeTempWindow(newId, true, funcDict.createTab[2].bind(null, tab, repeat, newId));
+        funcDict.makeTempWindow(newTab.id, true, //
+        funcDict.createTab[4].bind(tab, callback, newTab));
       });
-    }, function(tab, repeat, newId) {
-      chrome.tabs.move(newId, {
-        index: tab.index + 1,
-        windowId: tab.windowId
+    }, function(callback, newTab) {
+      chrome.tabs.move(newTab.id, {
+        index: this.index + 1,
+        windowId: this.windowId
       }, function() {
-        repeat && repeat(newId);
-        chrome.tabs.update(newId, {
-          selected: true
-        });
+        callback && callback(newTab);
+        chrome.tabs.update(newTab.id, { selected: true });
       });
     }],
     duplicateTab: function(tab, count, wnd) {
