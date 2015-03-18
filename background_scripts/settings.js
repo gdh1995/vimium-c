@@ -71,7 +71,7 @@ var Settings = {
   },
   parseSearchEngines: function(searchEnginesText, map) {
     var a, pairs, key, val, name, obj, _i, _j, _len, _len2 //
-      , rEscapeSpace = /\\\s/g, rSpace = /\s/;
+      , rEscapeSpace = /\\\s/g, rSpace = /\s/, rEscapeS = /\\s/g;
     map = map || this.get("searchEnginesMap");
     a = searchEnginesText.replace(/\\\n/g, '').split('\n');
     for (_i = 0, _len = a.length; _i < _len; _i++) {
@@ -89,6 +89,7 @@ var Settings = {
       } else {
         name = null;
       }
+      val = val.replace(rEscapeS, " ");
       obj = {url: val};
       pairs = key.split('|');
       for (_j = 0, _len2 = pairs.length; _j < _len2; _j++) {
