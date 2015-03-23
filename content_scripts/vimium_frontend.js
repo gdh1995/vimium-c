@@ -270,6 +270,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
         }
       }
     }, true);
+    // it seems document.onfocus works (only now).
     document.addEventListener("focus", ELs.docOnFocus = function(event) {
       if (isEnabledForUrl && isFocusable(event.target) && !findMode) {
         enterInsertModeWithoutShowingIndicator(event.target);
