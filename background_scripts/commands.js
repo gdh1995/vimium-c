@@ -187,7 +187,6 @@ Commands._defaultKeyMappings = {
 })({
   showHelp: [
     "Show help", {
-      background: true,
       noRepeat: true
     }
   ],

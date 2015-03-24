@@ -601,12 +601,6 @@
         url: tab.url
       });
     },
-    showHelp: function(_0, _1, _2, port) {
-      port.postMessage({
-        name: "toggleHelpDialog",
-        dialogHtml: window.helpDialogHtml(),
-      });
-    },
     moveTabLeft: function(tab, count) {
       chrome.tabs.move(tab.id, {
         index: Math.max(0, tab.index - count)
@@ -973,6 +967,9 @@
     },
     nextFrame: function(request, tab) {
       BackgroundCommands.nextFrame(tab, 1, request.frameId);
+    },
+    initHelp: function() {
+      return window.helpDialogHtml();
     },
     initVomnibar: function() {
       return Settings.get("vomnibar");

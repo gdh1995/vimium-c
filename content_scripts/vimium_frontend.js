@@ -395,6 +395,11 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     goToRoot: function() {
       window.location.href = window.location.origin;
     },
+    showHelp: function(request) {
+      mainPort.postMessage({
+        handler: "initHelp",
+      }, showHelpDialog);
+    },
     toggleViewSource: function() {
       mainPort.postMessage({
         handler: "getCurrentTabUrl"
@@ -1256,13 +1261,6 @@ href='https://github.com/philc/vimium#release-notes'>what's new</a>).<a class='v
     },
     showHUDforDuration: function(request) {
       HUD.showForDuration(request.text, request.duration);
-    },
-    toggleHelpDialog: function(request) {
-      if (isShowingHelpDialog) {
-        hideHelpDialog();
-      } else {
-        showHelpDialog(request.dialogHtml);
-      }
     },
     focusFrame: function(request) {
       if (frameId !== request.frameId) { return; }
