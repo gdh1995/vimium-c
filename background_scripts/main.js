@@ -843,8 +843,7 @@
           name: "registerFrame",
           css: Settings.get("userDefinedCss_f"),
           tabId: tabId,
-          version: currentVersion,
-          upgraded: shouldShowUpgradeMessage
+          version: (shouldShowUpgradeMessage ? currentVersion : ""),
         });
         // no `break;`
       case "rereg":
@@ -967,8 +966,7 @@
     frameFocused: function(request) {
       var frames = frameIdsForTab[request.tabId], ind;
       if (frames && frames.length > 1 && (ind = frames.indexOf(request.frameId)) > 0) {
-        frames.splice(ind, 1);
-        frames.unshift(request.frameId);
+        frameIdsForTab[request.tabId] = frames.splice(ind, frames.length - ind).concat(frames);
       }
     },
     nextFrame: function(request, tab) {

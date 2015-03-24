@@ -10,7 +10,7 @@
     , hideHelpDialog, CursorHider, ELs //
     , initializeWhenEnabled, insertModeLock, isDOMDescendant //
     , isEditable, isEmbed, isEnabledForUrl, isFocusable, isInsertMode, isPassKey, isShowingHelpDialog //
-    , isValidKey, keyQueue, tabId //
+    , isValidKey, keyQueue //
     , passKeys, performFindInPlace //
     , restoreDefaultSelectionHighlight //
     , settings, showFindModeHUDForQuery, textInputXPath, oldActivated //
@@ -251,7 +251,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     }
   };
 
-  ELs = { onUnload: null, onFocus: null, //
+  ELs = { onUnload: null, onFocus: null, focusMsg: null, //
     onKeydown: null, onKeypress: null, onKeyup: null, //
     docOnFocus: null, onBlur: null, onActivate: null, //
     destroy: null //
@@ -1216,18 +1216,16 @@ href='https://github.com/philc/vimium#release-notes'>what's new</a>).<a class='v
 
   window.mainPort = mainPort;
 
-  tabId = 0;
-
   requestHandlers = {
     settings: settings.ReceiveMessage,
     registerFrame: function(request) {
       if (request.tabId) {
-        tabId = request.tabId;
+        ELs.focusMsg.tabId = request.tabId;
       }
       if (request.css) {
         DomUtils.DocumentReady(requestHandlers.injectCSS.bind(null, request), true);
       }
-      if (request.upgraded) {
+      if (request.version) {
         HUD.showUpgradeNotification(request.version);
       }
     },
@@ -1283,12 +1281,6 @@ href='https://github.com/philc/vimium#release-notes'>what's new</a>).<a class='v
       if (response.validFirstKeys) {
         validFirstKeys = response.validFirstKeys;
       }
-    },
-    getScrollPosition: function(request) {
-      return {
-        tabId: request.tabId,
-        scroll: [window.scrollX, window.scrollY]
-      };
     },
     setScrollPosition: function(request) {
       var scrollX = request.scroll[0], scrollY = request.scroll[1];
@@ -1367,6 +1359,7 @@ href='https://github.com/philc/vimium#release-notes'>what's new</a>).<a class='v
     initializeWhenEnabled(response.passKeys);
     requestHandlers.refreshCompletionKeys(response);
   });
+
   ((settings.load(null, false, {
       handler: "isEnabledForUrl",
       url: window.location.href
@@ -1380,9 +1373,10 @@ href='https://github.com/philc/vimium#release-notes'>what's new</a>).<a class='v
         frameId: frameId,
         isTop: window.top === window.self,
     }, null));
-    window.addEventListener("focus", ELs.onFocus = mainPort.postMessage.bind(mainPort, {
+    window.addEventListener("focus", ELs.onFocus = mainPort.postMessage.bind(mainPort,
+    ELs.focusMsg = {
       handler: "frameFocused",
-      tabId: tabId,
+      tabId: 0,
       frameId: frameId
     }, null));
   });
