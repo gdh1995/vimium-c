@@ -101,11 +101,12 @@ var Commands = {
     tabManipulation: ["nextTab", "previousTab", "firstTab", "lastTab", "createTab", "duplicateTab"
       , "removeTab", "restoreTab", "moveTabToNextWindow", "moveTabToIncognito", "togglePinTab"
       , "closeTabsOnLeft", "closeTabsOnRight", "closeOtherTabs", "moveTabLeft", "moveTabRight" //
-      , "enableImageTemp"],
+      , "enableImageTemp", "turnCurrentImage", "clearImageCS"],
     misc: ["showHelp", "enterVisualMode"]
   },
   advancedCommands: ["scrollToLeft", "scrollToRight", "moveTabToNextWindow", "moveTabToIncognito"
     , "goUp", "goToRoot", "focusInput", "LinkHints.activateModeWithQueue", "enableImageTemp"
+    , "turnCurrentImage", "clearImageCS"
     , "LinkHints.activateModeToDownloadLink", "Vomnibar.activateEditUrl"
     , "Vomnibar.activateEditUrlInNewTab", "LinkHints.activateModeToOpenIncognito"
     , "goNext", "goPrevious", "Marks.activateCreateMode", "Marks.activateGotoMode"
@@ -450,6 +451,18 @@ Commands._defaultKeyMappings = {
   ],
   enableImageTemp: [
     "enable the site's image temporarily in incognito", {
+      background: true,
+      noRepeat: true
+    }
+  ],
+  turnCurrentImage: [
+    "turn on/off the site's image", {
+      background: true,
+      noRepeat: true
+    }
+  ],
+  clearImageCS: [
+    "clear extension's image content settings", {
       background: true,
       noRepeat: true
     }

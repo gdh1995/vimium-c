@@ -2,7 +2,7 @@
 (function() {
   "use strict";
   var BackgroundCommands, checkKeyQueue //
-    , frameIdsForTab, generateCompletionKeys, IncognitoContentSettings //
+    , frameIdsForTab, generateCompletionKeys, ContentSettings //
     , handleMainPort, handleResponse, postResponse, funcDict //
     , getActualKeyStrokeLength, getCompletionKeysRequest //
     , helpDialogHtmlForCommandGroup, keyQueue, moveTab, namedKeyRegex //
@@ -111,17 +111,51 @@
     }
   };
 
-  IncognitoContentSettings = {
+  ContentSettings = {
     _urlHeadRegex: /^[a-z]+:\/\/[^\/]+\//,
+    clear: function(contentType, tab) {
+      var cs = chrome.contentSettings[contentType];
+      if (tab) {
+        cs.clear({
+          scope: (tab.incognito ? "incognito_session_only" : "regular")
+        }, this.reloadTab.bind(this, tab));
+        return;
+        }
+      cs.clear({ scope: "regular" });
+      cs.clear({ scope: "incognito_session_only" }, function() {
+        return chrome.runtime.lastError;
+      });
+    },
+    turnCurrent: function(contentType, tab) {
+      if (!Utils.hasOrdinaryUrlPrefix(tab.url) || tab.url.startsWith("chrome")) {
+        return;
+      }
+      var pattern = tab.url, _this = this;
+      chrome.contentSettings[contentType].get({
+        primaryUrl: pattern,
+        incognito: tab.incognito
+      }, function (opt) {
+        if (!pattern.startsWith("file:")) {
+          pattern = _this._urlHeadRegex.exec(pattern)[0] + "*";
+        }
+        chrome.contentSettings[contentType].set({
+          primaryPattern: pattern,
+          scope: tab.incognito ? "incognito_session_only" : "regular",
+          setting: (opt && opt.setting === "allow") ? "block" : "allow"
+        }, function() {
+          _this.reloadTab(tab);
+        });
+      });
+    },
     ensure: function (contentType, tab) {
       if (!Utils.hasOrdinaryUrlPrefix(tab.url) || tab.url.startsWith("chrome")) {
         return;
       }
-      var pattern = tab.url, work, _this = this;
-      if (!pattern.startsWith("file:")) {
-        pattern = this._urlHeadRegex.exec(tab.url)[0] + "*";
-      }
-      chrome.contentSettings[contentType].get({primaryUrl: tab.url, incognito: true }, function(opt) {
+      var pattern = tab.url, _this = this;
+      chrome.contentSettings[contentType].get({primaryUrl: pattern, incognito: true }, function(opt) {
+        if (!pattern.startsWith("file:")) {
+          pattern = _this._urlHeadRegex.exec(pattern)[0] + "*";
+        }
         if (chrome.runtime.lastError) {
           chrome.contentSettings[contentType].get({primaryUrl: tab.url}, function (opt) {
             if (opt && opt.setting === "allow") { return; }
@@ -142,7 +176,7 @@
         chrome.windows.getAll(function(wnds) {
           wnds = wnds.filter(function(wnd) { return wnd.type === "normal" && wnd.incognito; });
           if (wnds.length < 1) {
-            console.log("%cContentTempSettings.ensure", "color:red;", "get incognito content settings", opt //
+            console.log("%cContentSettings.ensure", "color:red;", "get incognito content settings", opt //
               , " but can not find a incognito window");
           } else if (opt && opt.setting === "allow") {
             _this.updateTab(tab, wnds[wnds.length - 1].id);
@@ -179,19 +213,26 @@
       });
     },
     updateTab: function(tab, newWindowId, callback) {
-      var options = {
-        windowId: newWindowId ? newWindowId : tab.windowId,
-        selected: true,
-        url: tab.url
-      };
+      tab.windowId = newWindowId ? newWindowId : tab.windowId;
+      tab.selected = true;
       if (!newWindowId || tab.windowId === newWindowId) {
-        options.index = tab.index + 1;
+        ++tab.index;
+      } else {
+        delete tab.index;
       }
-      chrome.tabs.create(options);
-      chrome.tabs.remove(tab.id);
+      this.reloadTab(tab);
       if (callback) {
         callback();
       }
+    },
+    reloadTab: function(tab) {
+      chrome.tabs.create({
+        windowId: tab.windowId,
+        selected: true,
+        url: tab.url,
+        index: tab.index
+      });
+      chrome.tabs.remove(tab.id);
     }
   };
 
@@ -506,7 +547,13 @@
       chrome.windows.get(tab.windowId, funcDict.moveTabToIncognito[0].bind(null, tab));
     },
     enableImageTemp: function(tab) {
-      IncognitoContentSettings.ensure("images", tab);
+      ContentSettings.ensure("images", tab);
+    },
+    turnCurrentImage: function(tab) {
+      ContentSettings.turnCurrent("images", tab);
+    },
+    clearImageCS: function(tab) {
+      ContentSettings.clear("images", tab);
     },
     nextTab: function(tab, count) {
       selectTab(tab, count);
@@ -1018,6 +1065,8 @@
       window.Sync = {debug: false, clear: blank, set: blank, init: blank};
     }
   })();
+
+  ContentSettings.clear("images");
 
 })();
 
