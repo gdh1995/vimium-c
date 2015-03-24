@@ -526,7 +526,7 @@
     }
   };
 
-  // function (const Tab tab, const int repeatCount, const int frameId, const Port port);
+  // function (const Tab tab, const int repeatCount, const int frameId);
   BackgroundCommands = {
     createTab: function(tab, count) {
       chrome.windows.get(tab.windowId, funcDict.createTab[0].bind(null, tab, count));
@@ -574,7 +574,7 @@
         chrome.tabs.remove(tab.id);
       }
     },
-    restoreTab: function(_0, count, _2, _3, sessionId) {
+    restoreTab: function(_0, count, _2, sessionId) {
       if (sessionId) {
         chrome.sessions.restore(sessionId);
         return;
@@ -611,8 +611,8 @@
         index: tab.index + count
       });
     },
-    nextFrame: function(tab, count, frameId, port) {
-      var tabId = port.sender.tab.id, frames = frameIdsForTab[tabId];
+    nextFrame: function(tab, count, frameId) {
+      var tabId = tab.id, frames = frameIdsForTab[tabId];
       if (!frames) { return; }
       count = (count + Math.max(0, frames.indexOf(frameId))) % frames.length;
       frames = frameIdsForTab[tabId] = frames.slice(count).concat(frames.slice(0, count));
@@ -771,8 +771,8 @@
     this.postMessage({_msgId: msgId, response: func(request, tab)});
   };
   
-  postResponse = function(port, msgId, response) {
-    port.postMessage({_msgId: msgId, response: response});
+  postResponse = function(msgId, response) {
+    this.postMessage({_msgId: msgId, response: response});
   };
 
   handleMainPort = function(request, port) {
@@ -793,7 +793,7 @@
       else if (key = request.handlerOmni) {
         func = Completers[key];
         key = request.query;
-        func.filter(key ? key.split(" ") : [], postResponse.bind(null, port, msgId));
+        func.filter(key ? key.split(" ") : [], postResponse.bind(port, msgId));
       }
     }
     else if (key = request.handlerKey) {
@@ -809,7 +809,11 @@
     }
     else if (key = request.handler) {
       if (func = requestHandlers[key]) {
-        func.useTab ? chrome.tabs.getSelected(null, func.bind(null, request)) : func(request);
+        if (func.useTab) {
+          chrome.tabs.getSelected(null, func.bind(null, request));
+        } else {
+          func(request);
+        }
       }
     }
     else if (key = request.handlerSettings) {
@@ -827,7 +831,7 @@
           keys: ref,
           values: values,
           response: (request = request.request) && (func = requestHandlers[request.handler])
-            && !func.useTab && func.call(port, request)
+            && !func.useTab ? func(request) : undefined
         });
         break;
       case "set": Settings.set(request.key, request.value); break;
@@ -891,13 +895,12 @@
       if (runCommand) {
         if (registryEntry.background) {
           chrome.tabs.getSelected(null, function(tab) {
-            BackgroundCommands[registryEntry.command](tab, count, frameId, port);
+            BackgroundCommands[registryEntry.command](tab, count, frameId);
           });
         } else {
           port.postMessage({
             name: "executePageCommand",
             command: registryEntry.command,
-            frameId: frameId,
             count: (registryEntry.noRepeat === false ? -count : count),
             keyQueue: "",
             completionKeys: generateCompletionKeys()
@@ -936,13 +939,13 @@
     });
   };
 
-  // function (Port = null)::* (request, Tab tab = null) const;
+  // function (request, Tab tab = null);
   requestHandlers = {
     getCurrentTabUrl: function(_0, tab) {
       return tab.url;
     },
     restoreSession: function(request) {
-      BackgroundCommands.restoreTab(null, 1, null, null, request.sessionId);
+      BackgroundCommands.restoreTab(null, 1, null, request.sessionId);
     },
     openUrlInNewTab: function(request, tab) {
       openMultiTab(Utils.convertToUrl(request.url), tab.index + 1, 1, tab);
@@ -1007,8 +1010,8 @@
       Completers[request.omni].refresh();
     },
     setBadge: setBadge,
-    createMark: Marks.create.bind(Marks),
-    gotoMark: Marks.goTo.bind(Marks)
+    createMark: Marks.Create,
+    gotoMark: Marks.GoTo
   };
 
   Settings.reloadFiles();

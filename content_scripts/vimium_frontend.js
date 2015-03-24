@@ -1300,9 +1300,6 @@ href='https://github.com/philc/vimium#release-notes'>what's new</a>).<a class='v
       }
     },
     executePageCommand: function(request) {
-      if (frameId !== request.frameId) {
-        return;
-      }
       if (request.count < 0) {
         Utils.invokeCommandString(request.command, -request.count);
       } else {
