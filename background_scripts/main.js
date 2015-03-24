@@ -5,7 +5,7 @@
     , frameIdsForTab, generateCompletionKeys, ContentSettings //
     , handleMainPort, handleResponse, postResponse, funcDict //
     , getActualKeyStrokeLength, getCompletionKeysRequest //
-    , helpDialogHtmlForCommandGroup, keyQueue, moveTab, namedKeyRegex //
+    , helpDialogHtmlForCommandGroup, keyQueue, namedKeyRegex //
     , openMultiTab //
     , populateKeyCommands, splitKeyQueueRegex //
     , removeTabsRelative, selectTab //
@@ -120,7 +120,7 @@
           scope: (tab.incognito ? "incognito_session_only" : "regular")
         }, this.reloadTab.bind(this, tab));
         return;
-        }
+      }
       cs.clear({ scope: "regular" });
       cs.clear({ scope: "incognito_session_only" }, function() {
         return chrome.runtime.lastError;
@@ -472,15 +472,13 @@
       chrome.windows.update(tab2.windowId, {focused: true});
     }],
     removeTab: [function(tab, count, curTabs) {
-      if (!curTabs || curTabs.length > count) {
-        if (0 < --count) {
-          removeTabsRelative(tab, count, true);
-        } else {
-          chrome.tabs.remove(tab.id);
-        }
-        return;
+      if (curTabs.length <= count) {
+        chrome.windows.getAll(funcDict.removeTab[1].bind(null, tab, curTabs));
+      } else if (0 < --count) {
+        funcDict.removeTabsRelative(tab, count, true, curTabs);
+      } else {
+        chrome.tabs.remove(tab.id);
       }
-      chrome.windows.getAll(funcDict.removeTab[1].bind(null, tab, curTabs));
     }, function(tab, curTabs, wnds) {
       var url = Settings.get("newTabUrl"), toCreate;
       wnds = wnds.filter(function(wnd) { return wnd.type === "normal"; });
@@ -509,18 +507,18 @@
       }
     }],
     removeTabsRelative: function(activeTab, direction, removeActive, tabs) {
-      var num, shouldDelete, tab, toRemove, _i, _len;
-      num = removeActive ? 0 : 1;
+      var i = activeTab.index;
       if (direction > 0) {
-        tabs = tabs.slice(activeTab.index + (removeActive ? 0 : 1), activeTab.index + direction + 1);
-      } else if (direction < 0) {
-        tabs = tabs.slice(Math.max(activeTab.index + direction, 0), activeTab.index + (removeActive ? 1 : 0));
-        tabs = tabs.filter(function(tab) { return !tab.pinned; });
+        tabs = tabs.slice(i + (removeActive ? 0 : 1), i + direction + 1);
       } else {
-        if (!removeActive) {
-          tabs.splice(activeTab.index, 1);
+        if (direction < 0) {
+          tabs = tabs.slice(Math.max(i + direction, 0), i + (removeActive ? 1 : 0));
+        } else if (!removeActive) {
+          tabs.splice(i, 1);
         }
-        tabs = tabs.filter(function(tab) { return !tab.pinned; });
+        if (!activeTab.pinned) {
+          tabs = tabs.filter(function(tab) { return !tab.pinned; });
+        }
       }
       if (tabs.length > 0) {
         chrome.tabs.remove(tabs.map(function(tab) { return tab.id; }));
@@ -570,12 +568,10 @@
     removeTab: function(tab, count) {
       if (tab.index === 0) {
         chrome.tabs.getAllInWindow(tab.windowId, funcDict.removeTab[0].bind(null, tab, count));
+      } else if (0 < --count) {
+        removeTabsRelative(tab, count, true);
       } else {
-        if (0 < --count) {
-          removeTabsRelative(tab, count, true);
-        } else {
-          chrome.tabs.remove(tab.id);
-        }
+        chrome.tabs.remove(tab.id);
       }
     },
     restoreTab: function(_0, count, _2, _3, sessionId) {
@@ -612,10 +608,14 @@
       });
     },
     moveTabLeft: function(tab, count) {
-      moveTab(tab, -count);
+      chrome.tabs.move(tab.id, {
+        index: Math.max(0, tab.index - count)
+      });
     },
     moveTabRight: function(tab, count) {
-      moveTab(tab, count);
+      chrome.tabs.move(tab.id, {
+        index: tab.index + count
+      });
     },
     nextFrame: function(tab, count, frameId, port) {
       var tabId = port.sender.tab.id, frames = frameIdsForTab[tabId];
@@ -640,14 +640,8 @@
   };
 
   removeTabsRelative = function(tab, direction, removeActive) {
-    chrome.tabs.getAllInWindow(tab.windowId, funcDict.removeTabsRelative.bind(null, tab, direction, removeActive));
-  };
-
-  moveTab = function(tab, direction) {
-    tab.index = Math.max(0, tab.index + direction);
-    chrome.tabs.move(tab.id, {
-      index: tab.index
-    });
+    chrome.tabs.getAllInWindow(tab.windowId, funcDict.removeTabsRelative.
+      bind(null, tab, direction, removeActive ? true : false));
   };
 
   selectTab = function(tab, step) {
@@ -855,15 +849,18 @@
       case "rereg":
         i = request.frameId;
         if (i > 0) {
-          ref = frameIdsForTab;
-          ref[tabId] ? ref[tabId].push(i) : (ref[tabId] = [i]);
+          ref = frameIdsForTab[tabId];
+          if (ref) {
+            ref.push(i);
+          } else {
+            frameIdsForTab[tabId] = [i];
+          }
         }
         break;
       case "unreg":
-        if (!(ref = frameIdsForTab[tabId])) {
-        } else if (request.isTop) {
+        if (request.isTop) {
           delete frameIdsForTab[tabId];
-        } else {
+        } else if (ref = frameIdsForTab[tabId]) {
           i = ref.indexOf(request.frameId);
           if (i === ref.length - 1) {
             ref.pop();
