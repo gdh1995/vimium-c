@@ -526,7 +526,7 @@
     }
   };
 
-  // function (const Tab tab, const int repeatCount, const int frameId);
+  // function (const Tab tab, const int repeatCount);
   BackgroundCommands = {
     createTab: function(tab, count) {
       chrome.windows.get(tab.windowId, funcDict.createTab[0].bind(null, tab, count));
@@ -574,7 +574,7 @@
         chrome.tabs.remove(tab.id);
       }
     },
-    restoreTab: function(_0, count, _2, sessionId) {
+    restoreTab: function(_0, count, sessionId) {
       if (sessionId) {
         chrome.sessions.restore(sessionId);
         return;
@@ -614,13 +614,16 @@
     nextFrame: function(tab, count, frameId) {
       var tabId = tab.id, frames = frameIdsForTab[tabId];
       if (!frames) { return; }
-      count = (count + Math.max(0, frames.indexOf(frameId))) % frames.length;
-      frames = frameIdsForTab[tabId] = frames.slice(count).concat(frames.slice(0, count));
-      chrome.tabs.sendMessage(tab.id, {
-        name: "focusFrame",
-        frameId: frames[0],
-        highlight: true
-      });
+      if (frameId) {
+        count += Math.max(0, frames.indexOf(frameId));
+      }
+      if (count %= frames.length) {
+        chrome.tabs.sendMessage(tab.id, {
+          name: "focusFrame",
+          frameId: frames[count],
+          highlight: true
+        });
+      }
     },
     closeTabsOnLeft: function(tab, count) {
       removeTabsRelative(tab, -count);
@@ -800,7 +803,7 @@
       if (key === "<esc>") {
         key = "";
       } else {
-        key = checkKeyQueue(keyQueue + key, port, request.frameId);
+        key = checkKeyQueue(keyQueue + key, port);
       }
       if (keyQueue !== key) {
         keyQueue = key;
@@ -871,7 +874,7 @@
     }
   };
 
-  checkKeyQueue = function(keysToCheck, port, frameId) {
+  checkKeyQueue = function(keysToCheck, port) {
     var command, count, newKeyQueue, registryEntry, runCommand, splitHash, splitKey;
     splitHash = splitKeyQueueRegex.exec(keysToCheck);
     command = splitHash[2];
@@ -888,14 +891,14 @@
       if (registryEntry.noRepeat === true) {
         count = 1;
       } else if (registryEntry.noRepeat > 0 && count > registryEntry.noRepeat) {
-        runCommand = confirm("You have asked Vimium to perform " + count + " repeats of the command:\n\t"
+        runCommand = confirm("You have asked vim++ to perform " + count + " repeats of the command:\n\t"
           + Commands.availableCommands[registryEntry.command].description
           + "\n\nAre you sure you want to continue?");
       }
       if (runCommand) {
         if (registryEntry.background) {
           chrome.tabs.getSelected(null, function(tab) {
-            BackgroundCommands[registryEntry.command](tab, count, frameId);
+            BackgroundCommands[registryEntry.command](tab, count);
           });
         } else {
           port.postMessage({
@@ -912,7 +915,7 @@
     } else if (getActualKeyStrokeLength(command) > 1) {
       splitKey = splitKeyIntoFirstAndSecond(command);
       if (Commands.keyToCommandRegistry[splitKey.second]) {
-        newKeyQueue = checkKeyQueue(splitKey.second, port, frameId);
+        newKeyQueue = checkKeyQueue(splitKey.second, port);
       } else {
         newKeyQueue = (validFirstKeys[splitKey.second] ? splitKey.second : "");
       }
@@ -945,7 +948,7 @@
       return tab.url;
     },
     restoreSession: function(request) {
-      BackgroundCommands.restoreTab(null, 1, null, request.sessionId);
+      BackgroundCommands.restoreTab(null, 0, request.sessionId);
     },
     openUrlInNewTab: function(request, tab) {
       openMultiTab(Utils.convertToUrl(request.url), tab.index + 1, 1, tab);

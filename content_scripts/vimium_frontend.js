@@ -522,8 +522,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       DomUtils.suppressEvent(event);
     }
     mainPort.postMessage({
-      handlerKey: keyChar,
-      frameId: frameId
+      handlerKey: keyChar
     });
   };
 
@@ -583,8 +582,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
           action = 2;
         }
         mainPort.postMessage({
-          handlerKey: "<esc>",
-          frameId: frameId
+          handlerKey: "<esc>"
         });
       }
       else if (keyChar.length > 0) {
@@ -592,8 +590,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
           action = 2;
         }
         mainPort.postMessage({
-          handlerKey: keyChar,
-          frameId: frameId
+          handlerKey: keyChar
         });
       }
       else {
