@@ -116,9 +116,7 @@
     clear: function(contentType, tab) {
       var cs = chrome.contentSettings[contentType];
       if (tab) {
-        cs.clear({
-          scope: (tab.incognito ? "incognito_session_only" : "regular")
-        }, this.reloadTab.bind(this, tab));
+        cs.clear({ scope: (tab.incognito ? "incognito_session_only" : "regular") });
         return;
       }
       cs.clear({ scope: "regular" });
