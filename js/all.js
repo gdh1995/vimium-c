@@ -702,6 +702,7 @@ classifications:[{
 "LTime":0
 }
 ],
+dialBoxPage:1,
 privateSetup:{
 dialBoxNum:12,
 dialBoxOpacity:1,
@@ -710,7 +711,6 @@ dialBoxWidth:240,
 dialBoxHeight:135,
 dialBoxRadius:4,
 dialBoxMaxTop:'auto',
-dialBoxPage:1,
 dialBoxQBCWidth:1000,
 dialBoxTitleSwitch:false,
 dialBoxCloudBoxSwitch:true,
@@ -2396,7 +2396,7 @@ DBOX = {
 			self.totalPage = ((self.totalnum % self.num) == 0) ? (self.totalnum / self.num) : parseInt(self.totalnum / self.num) + 1;
 			self.page = self.page > self.totalPage ? self.totalPage : self.page
 		}
-		PDI.set('privateSetup', 'dialBoxPage', self.page);
+		PDI.set('dialBoxPage', null, self.page);
 		self.pageIndex();
 		return _boxes
 	},
@@ -3780,7 +3780,7 @@ DBOX.__init__({
 		QContainer: $('.quickDialbox'),
 		QBContainer: $('.QBannerContainer'),
 		num: PDI.get('privateSetup', 'dialBoxNum'),
-		page: PDI.get('privateSetup', 'dialBoxPage'),
+		page: PDI.get('dialBoxPage') || PDI.get('privateSetup', 'dialBoxPage'),
 		opacity: PDI.get('privateSetup', 'dialBoxOpacity'),
 		spacing: PDI.get('privateSetup', 'dialBoxSpacing'),
 		titleShow: PDI.get('privateSetup', 'dialBoxTitleSwitch'),
