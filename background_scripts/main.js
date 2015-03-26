@@ -708,14 +708,6 @@
     shouldShowActionIcon && updateActiveState(tabId, tab.url);
   });
 
-  // getActualKeyStrokeLength = function(key) {
-    // var len = 0, ind = 1;
-    // while (ind = key.indexOf(">", ind) + 1) {
-      // ++len;
-    // }
-    // return len + key.length - ind;
-  // };
-
   populateKeyCommands = function() {
     var key, len;
     for (key in Commands.keyToCommandRegistry) {
@@ -874,13 +866,13 @@
     }
   };
 
-  splitKeyQueueRegex = /([1-9][0-9]*)?(.*)/;
+  splitKeyQueueRegex = /([0-9]+)?(.*)/;
 
   checkKeyQueue = function(command, port) {
     var command, count, registryEntry, splitHash;
     splitHash = splitKeyQueueRegex.exec(command);
     if (!splitHash[2]) {
-      return command;
+      return command === "0" ? "" : command;
     }
     count = parseInt(splitHash[1], 10);
     command = splitHash[2];
@@ -892,7 +884,7 @@
       command = command.substring(count);
       if (!(registryEntry = Commands.keyToCommandRegistry[command])) {
         count = command.charCodeAt(0) - 48;
-        return (count > 0 && count <= 9) || validFirstKeys[command] ? command : "";
+        return (count > 0 && count <= 9 || count && validFirstKeys[command]) ? command : "";
       }
       count = 1;
     } else if (isNaN(count)) {

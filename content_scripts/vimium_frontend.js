@@ -615,10 +615,13 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     KeydownEvents.push(event);
   };
 
-  isValidKey = function(key) {
-    return currentCompletionKeys.indexOf(key) !== -1 || validFirstKeys[key] || isValidKey.numRegex.test(key);
-  };
-  isValidKey.numRegex = /^[1-9]/;
+  isValidKey = (function() {
+    var numRegex = /^[1-9]/, num0Regex = /^[0-9]/;
+    return function(key) {
+      return currentCompletionKeys.indexOf(key) !== -1 || validFirstKeys[key] ||
+        (keyQueue ? num0Regex : numRegex).test(key);
+    };
+  })();
 
   isFocusable = function(element) {
     return isEditable(element) || isEmbed(element);
