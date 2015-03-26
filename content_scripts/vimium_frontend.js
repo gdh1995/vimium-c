@@ -541,9 +541,9 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       keyChar = KeyboardUtils.getKeyChar(event);
       if (keyChar.length > 0) {
         if (event.ctrlKey) {
-          modifiers += event.metaKey ? "m-c-" : keyCodes.hasMeta ? "C-" : "c-";
+          modifiers = event.metaKey ? "f-c-" : keyCodes.hasMeta ? "f-" : "c-";
         } else if (event.metaKey) {
-          modifiers += "c-";
+          modifiers = "c-";
         }
         if (event.altKey) {
           modifiers += "a-";

@@ -99,20 +99,21 @@ var LinkHints = {
     });
   },
   setOpenLinkMode: function(mode) {
+    var cons = this.CONST;
     switch (mode >= 128 ? ((mode | 64) ^ 64) : mode) {
-    case this.CONST.OPEN_IN_NEW_BG_TAB:
+    case cons.OPEN_IN_NEW_BG_TAB:
       HUD.show("Open a link in new tab");
       break;
-    case this.CONST.OPEN_IN_NEW_FG_TAB: 
+    case cons.OPEN_IN_NEW_FG_TAB: 
       HUD.show("Open in new active tab");
       break;
-    case this.CONST.OPEN_WITH_QUEUE:
+    case cons.OPEN_WITH_QUEUE:
       HUD.show("Open multiple tabs");
       break;
-    case this.CONST.OPEN_FG_WITH_QUEUE:
+    case cons.OPEN_FG_WITH_QUEUE:
       HUD.show("activate link and hold on");
       break;
-    case this.CONST.COPY_LINK_URL:
+    case cons.COPY_LINK_URL:
       HUD.show(mode >= 192 ? "Copy link URL one by one" : "Copy link URL to Clipboard");
       this.linkActivator = this.linkActivator || function(link) {
         var str = (link.getAttribute("data-vim-url") || link.href).trim() || "";
@@ -126,7 +127,7 @@ var LinkHints = {
           // ? (str.substring(0, 25) + "...") : str), 2000);
       };
       break;
-    case this.CONST.COPY_LINK_TEXT:
+    case cons.COPY_LINK_TEXT:
       HUD.show(mode >= 192 ? "Copy link text one by one" : "Copy link text to Clipboard");
       this.linkActivator = this.linkActivator || function(link) {
         var str = (link.getAttribute("data-vim-text") || "").trim() || link.innerText.trim();
@@ -141,7 +142,7 @@ var LinkHints = {
           // ? (str.substring(0, 15) + "...") : str), 2000);
       };
       break;
-    case this.CONST.OPEN_INCOGNITO:
+    case cons.OPEN_INCOGNITO:
       HUD.show(mode >= 192 ? "Open multi incognito tabs" : "Open link in incognito");
       this.linkActivator = this.linkActivator || function(link) {
         mainPort.postMessage({
@@ -151,7 +152,7 @@ var LinkHints = {
         });
       };
       break;
-    case this.CONST.DOWNLOAD_LINK:
+    case cons.DOWNLOAD_LINK:
       HUD.show(mode >= 192 ? "Download multiple links" : "Download a link");
       this.linkActivator = this.linkActivator || function(link) {
         var isA = (link.nodeName.toLowerCase() === "a"), oldDownload, oldUrl;
@@ -186,7 +187,7 @@ var LinkHints = {
         }
       };
       break;
-    case this.CONST.HOVER:
+    case cons.HOVER:
       HUD.show(mode >= 192 ? "hover objects continuously" : "hover selected");
       this.linkActivator = this.linkActivator || function(link) {
         DomUtils.simulateHover(link);

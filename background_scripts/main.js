@@ -29,7 +29,7 @@
     return frameIdsForTab;
   };
 
-  namedKeyRegex = /^(<(?:[amc]-.|(?:[amc]-)?[a-z0-9]{2,5})>)(.*)$/;
+  namedKeyRegex = /^(<(?:[acf]-.|(?:[acf]-)?[a-z0-9]{2,5})>)(.*)$/;
 
   window.helpDialogHtml = function(showUnboundCommands, showCommandNames, customTitle) {
     var command, commandsToKey, dialogHtml, group, key;
