@@ -1278,8 +1278,9 @@ href='https://github.com/philc/vimium#release-notes'>what's new</a>).<a class='v
     refreshCompletionKeys: function(response) {
       currentCompletionKeys = response.completionKeys;
       keyQueue = response.keyQueue;
-      if (response.validFirstKeys) {
-        validFirstKeys = response.validFirstKeys;
+      var vfk;
+      if (vfk = response.validFirstKeys) {
+        validFirstKeys = vfk;
       }
     },
     setScrollPosition: function(request) {
@@ -1296,7 +1297,8 @@ href='https://github.com/philc/vimium#release-notes'>what's new</a>).<a class='v
           Utils.invokeCommandString(request.command);
         }
       }
-      requestHandlers.refreshCompletionKeys(request);
+      currentCompletionKeys = request.completionKeys;
+      keyQueue = "";
     },
     getActiveState: function() {
       return {

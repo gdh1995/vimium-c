@@ -4,7 +4,7 @@
   var BackgroundCommands, checkKeyQueue //
     , frameIdsForTab, generateCompletionKeys, ContentSettings //
     , handleMainPort, handleResponse, postResponse, funcDict //
-    , getActualKeyStrokeLength, getCompletionKeysRequest //
+    , getActualKeyStrokeLength //
     , helpDialogHtmlForCommandGroup, keyQueue, namedKeyRegex //
     , openMultiTab //
     , populateKeyCommands, splitKeyQueueRegex //
@@ -80,15 +80,6 @@
     };
     req.send();
     return req;
-  };
-
-  getCompletionKeysRequest = function() {
-    return {
-      name: "refreshCompletionKeys",
-      completionKeys: generateCompletionKeys(),
-      keyQueue: keyQueue,
-      validFirstKeys: validFirstKeys
-    };
   };
 
   openMultiTab = function(rawUrl, index, count, parentTab, active) {
@@ -249,11 +240,18 @@
       }, callback);
     },
     updateActiveState: !shouldShowActionIcon ? function() {} : function(tabId, url, response) {
-      var config, currentPasskeys, enabled, isCurrentlyEnabled, passKeys;
       if (response) {
+        var config, currentPasskeys, enabled, isCurrentlyEnabled, passKeys;
         isCurrentlyEnabled = response.enabled;
         currentPasskeys = response.passKeys;
-        config = requestHandlers.isEnabledForUrl({ url: url });
+        config = Exclusions.getRule(url);
+        if (config) {
+          enabled = !config.passKeys;
+          passKeys = config.passKeys;
+        } else {
+          enabled = false;
+          passKeys = "";
+        }
         enabled = config.enabled;
         passKeys = config.passKeys;
         chrome.browserAction.setIcon({
@@ -747,7 +745,13 @@
     validFirstKeys = {};
     singleKeyCommands = [];
     populateKeyCommands();
-    sendRequestToAllTabs(getCompletionKeysRequest());
+    keyQueue = "";
+    sendRequestToAllTabs({
+      name: "refreshCompletionKeys",
+      completionKeys: singleKeyCommands,
+      keyQueue: "",
+      validFirstKeys: validFirstKeys
+    });
   });
 
   generateCompletionKeys = function() {
@@ -758,14 +762,15 @@
     if (getActualKeyStrokeLength(command) !== 1) {
       return singleKeyCommands;
     }
-    completionKeys = singleKeyCommands.slice(0);
+    completionKeys = [];
     for (key in Commands.keyToCommandRegistry) {
       splitKey = splitKeyIntoFirstAndSecond(key);
       if (splitKey.first === command) {
         completionKeys.push(splitKey.second);
       }
     }
-    return completionKeys;
+    return completionKeys.length ? singleKeyCommands.concat(completionKeys)
+      : singleKeyCommands;
   };
 
   splitKeyQueueRegex = /([1-9][0-9]*)?(.*)/;
@@ -807,7 +812,11 @@
       }
       if (keyQueue !== key) {
         keyQueue = key;
-        port.postMessage(getCompletionKeysRequest());
+        port.postMessage({
+          name: "refreshCompletionKeys",
+          completionKeys: generateCompletionKeys(),
+          keyQueue: keyQueue
+        });
       }
     }
     else if (key = request.handler) {
@@ -900,14 +909,14 @@
             BackgroundCommands[registryEntry.command](tab, count);
           });
         } else {
+          keyQueue = "";
           port.postMessage({
             name: "executePageCommand",
             command: registryEntry.command,
             count: (registryEntry.noRepeat === false ? -count : count),
-            keyQueue: "",
-            completionKeys: generateCompletionKeys()
+            completionKeys: singleKeyCommands
           });
-          return keyQueue = "";
+          return "";
         }
       }
       newKeyQueue = "";
@@ -988,15 +997,13 @@
     },
     isEnabledForUrl: function(request) {
       var rule = Exclusions.getRule(request.url), ret;
-      if (rule && !rule.passKeys) {
-        return { enabled: false };
-      } else {
-        ret = getCompletionKeysRequest();
-        ret.enabled = true;
-        ret.passKeys = rule ? rule.passKeys : "";
-        delete ret.name;
-        return ret;
-      }
+      return (rule && !rule.passKeys) ? { enabled: false } : {
+        completionKeys: generateCompletionKeys(),
+        enabled: true,
+        keyQueue: keyQueue,
+        passKeys: (rule ? rule.passKeys : ""),
+        validFirstKeys: validFirstKeys
+      };
     },
     saveHelpDialogSettings: function(request) {
       Settings.set("helpDialog_showAdvancedCommands", request.showAdvancedCommands);
