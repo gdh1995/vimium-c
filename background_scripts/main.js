@@ -720,6 +720,8 @@
       } else if (key.length <= 1) {
         singleKeyCommands.push(key);
         continue;
+      } else {
+        len = 1;
       }
       len2 = key.indexOf(">", len) + 1;
       if ((len2 || (len + 1)) === key.length) {
