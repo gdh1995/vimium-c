@@ -395,13 +395,13 @@ Commands._defaultKeyMappings = {
   removeTab: [
     "Close current tab", {
       background: true,
-      noRepeat: (chrome.session ? chrome.session.MAX_SESSION_RESULTS : 25)
+      noRepeat: (chrome.sessions && chrome.sessions.MAX_SESSION_RESULTS || 25)
     }
   ],
   restoreTab: [
     "Restore closed tab", {
       background: true,
-      noRepeat: (chrome.session ? chrome.session.MAX_SESSION_RESULTS : 25)
+      noRepeat: (chrome.session && chrome.sessions.MAX_SESSION_RESULTS || 25)
     }
   ],
   moveTabToNextWindow: [
