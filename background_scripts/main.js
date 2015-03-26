@@ -709,19 +709,24 @@
   });
 
   populateKeyCommands = function() {
-    var key, len;
+    var key, len, len2;
     for (key in Commands.keyToCommandRegistry) {
       if (key.charCodeAt(0) === 60) {
         len = key.indexOf(">") + 1;
-        if (len < key.length) {
-          validFirstKeys[key.substring(0, len)] = 1;
+        if (len === key.length) {
+          singleKeyCommands.push(key);
           continue;
         }
-      } else if (key.length > 1) {
-        validFirstKeys[key[0]] = 1;
+      } else if (key.length <= 1) {
+        singleKeyCommands.push(key);
         continue;
       }
-      singleKeyCommands.push(key);
+      len2 = key.indexOf(">", len) + 1;
+      if ((len2 || (len + 1)) === key.length) {
+        validFirstKeys[key.substring(0, len)] = 1;
+      } else {
+        console.warn("invalid key command:", key);
+      }
     }
   };
 
