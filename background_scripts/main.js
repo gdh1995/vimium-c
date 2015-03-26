@@ -4,13 +4,12 @@
   var BackgroundCommands, checkKeyQueue //
     , frameIdsForTab, generateCompletionKeys, ContentSettings //
     , handleMainPort, handleResponse, postResponse, funcDict //
-    , getActualKeyStrokeLength //
     , helpDialogHtmlForCommandGroup, keyQueue, namedKeyRegex //
     , openMultiTab //
     , populateKeyCommands, splitKeyQueueRegex //
     , removeTabsRelative, selectTab //
     , requestHandlers, sendRequestToAllTabs //
-    , shouldShowUpgradeMessage, singleKeyCommands, splitKeyIntoFirstAndSecond, splitKeyQueue //
+    , shouldShowUpgradeMessage, singleKeyCommands, splitKeyQueue //
     , validFirstKeys, shouldShowActionIcon, setBadge;
 
   shouldShowActionIcon = chrome.browserAction && chrome.browserAction.setIcon ? true : false;
@@ -29,7 +28,7 @@
     return frameIdsForTab;
   };
 
-  namedKeyRegex = /^(<(?:[acf]-.|(?:[acf]-)?[a-z0-9]{2,5})>)(.*)$/;
+  namedKeyRegex = /^(<[^>]+>)(.*)$/;
 
   window.helpDialogHtml = function(showUnboundCommands, showCommandNames, customTitle) {
     var command, commandsToKey, dialogHtml, group, key;
@@ -709,31 +708,28 @@
     shouldShowActionIcon && updateActiveState(tabId, tab.url);
   });
 
-  splitKeyIntoFirstAndSecond = function(key) {
-    return (key.search(namedKeyRegex) === 0)
-      ? [RegExp.$1, RegExp.$2]
-      : [key[0], key.substring(1)];
-  };
-
-  getActualKeyStrokeLength = function(key) {
-    if (key.search(namedKeyRegex) === 0) {
-      return 1 + getActualKeyStrokeLength(RegExp.$2);
-    } else {
-      return key.length;
-    }
-  };
+  // getActualKeyStrokeLength = function(key) {
+    // var len = 0, ind = 1;
+    // while (ind = key.indexOf(">", ind) + 1) {
+      // ++len;
+    // }
+    // return len + key.length - ind;
+  // };
 
   populateKeyCommands = function() {
     var key, len;
     for (key in Commands.keyToCommandRegistry) {
-      len = getActualKeyStrokeLength(key);
-      if (len === 1) {
-        singleKeyCommands.push(key);
+      if (key.charCodeAt(0) === 60) {
+        len = key.indexOf(">") + 1;
+        if (len < key.length) {
+          validFirstKeys[key.substring(0, len)] = 1;
+          continue;
+        }
+      } else if (key.length > 1) {
+        validFirstKeys[key[0]] = 1;
         continue;
       }
-      validFirstKeys[splitKeyIntoFirstAndSecond(key)[0]] = 1;
-      if (len === 2) { continue; }
-      console.warn(len + "-key command:", key);
+      singleKeyCommands.push(key);
     }
   };
 
@@ -753,21 +749,23 @@
     if (!keyQueue) {
       return null;
     }
-    var command = splitKeyQueueRegex.exec(keyQueue)[2], completionKeys, key, splitKey;
-    if (getActualKeyStrokeLength(command) !== 1) {
+    var command = splitKeyQueueRegex.exec(keyQueue)[2], completionKeys, key, ind;
+    if (command.charCodeAt(0) === 60) {
+      if (command.indexOf(">") + 1 < command.length) {
+        return null;
+      }
+    } else if (command.length !== 1) {
       return null;
     }
     completionKeys = [];
+    ind = command.length;
     for (key in Commands.keyToCommandRegistry) {
-      splitKey = splitKeyIntoFirstAndSecond(key);
-      if (splitKey[0] === command) {
-        completionKeys.push(splitKey[1]);
+      if (key.startsWith(command)) {
+        completionKeys.push(key.substring(ind));
       }
     }
     return completionKeys.length ? completionKeys : null;
   };
-
-  splitKeyQueueRegex = /([1-9][0-9]*)?(.*)/;
 
   handleResponse = function(msgId, func, request, tab) {
     this.postMessage({_msgId: msgId, response: func(request, tab)});
@@ -876,6 +874,8 @@
     }
   };
 
+  splitKeyQueueRegex = /([1-9][0-9]*)?(.*)/;
+
   checkKeyQueue = function(command, port) {
     var command, count, registryEntry, splitHash;
     splitHash = splitKeyQueueRegex.exec(command);
@@ -884,47 +884,47 @@
     }
     count = parseInt(splitHash[1], 10);
     command = splitHash[2];
-    if (isNaN(count)) {
+    if (!(registryEntry = Commands.keyToCommandRegistry[command])) {
+      count = (command.charCodeAt(0) === 60) ? (command.indexOf(">") + 1) : 1;
+      if (count >= command.length) {
+        return validFirstKeys[command] ? (count.toString() + command) : "";
+      }
+      command = command.substring(count);
+      if (!(registryEntry = Commands.keyToCommandRegistry[command])) {
+        count = command.charCodeAt(0) - 48;
+        return (count > 0 && count <= 9) || validFirstKeys[command] ? command : "";
+      }
+      count = 1;
+    } else if (isNaN(count)) {
       count = 1;
     }
-    if (Commands.keyToCommandRegistry[command]) {
-      registryEntry = Commands.keyToCommandRegistry[command];
-      command = registryEntry.command;
-      if (registryEntry.noRepeat === true) {
-        count = 1;
-      } else if (registryEntry.noRepeat > 0 && count > registryEntry.noRepeat) {
-        if (!
-        confirm("You have asked vim++ to perform " + count + " repeats of the command:\n\t"
-          + Commands.availableCommands[command].description
-          + "\n\nAre you sure you want to continue?")
-        ) {
-          count = 0;
-        }
-      }
-      if (count <= 0) {
-      } else if (registryEntry.background) {
-        chrome.tabs.getSelected(null, function(tab) {
-          BackgroundCommands[command](tab, count);
-        });
+    command = registryEntry.command;
+    if (registryEntry.noRepeat === true) {
+      count = 1;
+    } else if (registryEntry.noRepeat > 0 && count > registryEntry.noRepeat) {
+      if (
+      confirm("You have asked vim++ to perform " + count + " repeats of the command:\n\t"
+        + Commands.availableCommands[command].description
+        + "\n\nAre you sure you want to continue?")
+      ) {
       } else {
-        keyQueue = "";
-        port.postMessage({
-          name: "executePageCommand",
-          command: command,
-          count: (registryEntry.noRepeat === false ? -count : count)
-        });
+        count = 0;
       }
-      return "";
-    } else if (getActualKeyStrokeLength(command) > 1) {
-      command = splitKeyIntoFirstAndSecond(command)[1];
-      if (Commands.keyToCommandRegistry[command]) {
-        return checkKeyQueue(command, port);
-      } else {
-        return (validFirstKeys[command] ? command : "");
-      }
-    } else {
-      return (validFirstKeys[command] ? count.toString() + command : "");
     }
+    if (count <= 0) {
+    } else if (registryEntry.background) {
+      chrome.tabs.getSelected(null, function(tab) {
+        BackgroundCommands[command](tab, count);
+      });
+    } else {
+      port.postMessage({
+        name: "executePageCommand",
+        command: command,
+        count: (registryEntry.noRepeat === false ? -count : count)
+      });
+      keyQueue = "";
+    }
+    return "";
   };
 
   sendRequestToAllTabs = function (args) {
