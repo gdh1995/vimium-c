@@ -172,8 +172,8 @@
           return;
         }
         chrome.windows.getAll(function(wnds) {
-          wnds = wnds.filter(function(wnd) { return wnd.type === "normal" && wnd.incognito; });
-          if (wnds.length < 1) {
+          wnds = wnds.filter(funcDict.isIncNor);
+          if (!wnds.length) {
             console.log("%cContentSettings.ensure", "color:red;", "get incognito content settings", opt //
               , " but can not find a incognito window");
           } else if (opt && opt.setting === "allow") {
@@ -235,6 +235,9 @@
   };
 
   funcDict = {
+    isIncNor: function(wnd) {
+      return wnd.incognito && wnd.type === "normal";
+    },
     makeTempWindow: function(tabIdUrl, incognito, callback) {
       chrome.windows.create({
         type: "normal",
@@ -276,9 +279,7 @@
     },
 
     openUrlInIncognito: function(request, tab, wnds) {
-      wnds = wnds.filter(function(wnd) {
-        return wnd.incognito && wnd.type === "normal";
-      });
+      wnds = wnds.filter(funcDict.isIncNor);
       request.active = (request.active !== false);
       request.url = Utils.convertToUrl(request.url);
       if (wnds.length) {
@@ -387,7 +388,7 @@
     },
     moveTabToNextWindow: [function(tab, wnds0) {
       var wnds, ids, index, state;
-      wnds = wnds0.filter(function(wnd) { return wnd.type === "normal" && wnd.incognito === tab.incognito; });
+      wnds = wnds0.filter(function(wnd) { return wnd.incognito === tab.incognito && wnd.type === "normal"; });
       if (wnds.length > 0) {
         ids = wnds.map(function(wnd) { return wnd.id; });
         index = ids.indexOf(tab.windowId);
@@ -439,22 +440,22 @@
       }
       chrome.windows.getAll(funcDict.moveTabToIncognito[1].bind(null, options, wnd));
     }, function(options, wnd, wnds) {
-      var wndId;
-      wnds = wnds.filter(function(wnd) { return wnd.type === "normal" && wnd.incognito; });
-      if (wnds.length >= 1) {
-        wndId = wnds[wnds.length - 1].id;
-        chrome.tabs.getSelected(wndId, funcDict.moveTabToIncognito[2].bind(null, options));
+      var tabId;
+      wnds = wnds.filter(funcDict.isIncNor);
+      if (wnds.length) {
+        chrome.tabs.getSelected(wnds[wnds.length - 1].id,
+        funcDict.moveTabToIncognito[2].bind(null, options));
         return;
       }
       if (options.url) {
-        wndId = options.tabId;
+        tabId = options.tabId;
         options.tabId = undefined;
       }
       chrome.windows.create(options, wnd.type !== "normal" ? null : function(newWnd) {
         chrome.windows.update(newWnd.id, {state: wnd.state});
       });
       if (options.url) {
-        chrome.tabs.remove(wndId);
+        chrome.tabs.remove(tabId);
       }
     }, function(options, tab2) {
       if (options.url) {
