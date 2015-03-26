@@ -735,7 +735,7 @@
         singleKeyCommands.push(key);
         continue;
       }
-      validFirstKeys[splitKeyIntoFirstAndSecond(key).first] = true;
+      validFirstKeys[splitKeyIntoFirstAndSecond(key).first] = 1;
       if (len === 2) { continue; }
       console.warn(len + "-key command:", key);
     }
@@ -747,20 +747,19 @@
     populateKeyCommands();
     keyQueue = "";
     sendRequestToAllTabs({
-      name: "refreshCompletionKeys",
-      completionKeys: singleKeyCommands,
-      keyQueue: "",
-      validFirstKeys: validFirstKeys
+      name: "refreshKeyMapping",
+      singles: singleKeyCommands,
+      firsts: validFirstKeys
     });
   });
 
   generateCompletionKeys = function() {
     if (!keyQueue) {
-      return singleKeyCommands;
+      return null;
     }
     var command = splitKeyQueueRegex.exec(keyQueue)[2], completionKeys, key, splitKey;
     if (getActualKeyStrokeLength(command) !== 1) {
-      return singleKeyCommands;
+      return null;
     }
     completionKeys = [];
     for (key in Commands.keyToCommandRegistry) {
@@ -769,8 +768,7 @@
         completionKeys.push(splitKey.second);
       }
     }
-    return completionKeys.length ? singleKeyCommands.concat(completionKeys)
-      : singleKeyCommands;
+    return completionKeys.length ? completionKeys : null;
   };
 
   splitKeyQueueRegex = /([1-9][0-9]*)?(.*)/;
@@ -814,7 +812,7 @@
         keyQueue = key;
         port.postMessage({
           name: "refreshCompletionKeys",
-          completionKeys: generateCompletionKeys(),
+          completions: generateCompletionKeys(),
           keyQueue: keyQueue
         });
       }
@@ -913,8 +911,7 @@
           port.postMessage({
             name: "executePageCommand",
             command: registryEntry.command,
-            count: (registryEntry.noRepeat === false ? -count : count),
-            completionKeys: singleKeyCommands
+            count: (registryEntry.noRepeat === false ? -count : count)
           });
           return "";
         }
@@ -925,7 +922,8 @@
       if (Commands.keyToCommandRegistry[splitKey.second]) {
         newKeyQueue = checkKeyQueue(splitKey.second, port);
       } else {
-        newKeyQueue = (validFirstKeys[splitKey.second] ? splitKey.second : "");
+        newKeyQueue = splitKey.second;
+        newKeyQueue = (validFirstKeys[newKeyQueue] ? newKeyQueue : "");
       }
     } else {
       newKeyQueue = (validFirstKeys[command] ? count.toString() + command : "");
@@ -998,11 +996,12 @@
     isEnabledForUrl: function(request) {
       var rule = Exclusions.getRule(request.url), ret;
       return (rule && !rule.passKeys) ? { enabled: false } : {
-        completionKeys: generateCompletionKeys(),
+        completions: generateCompletionKeys(),
         enabled: true,
         keyQueue: keyQueue,
         passKeys: (rule ? rule.passKeys : ""),
-        validFirstKeys: validFirstKeys
+        singles: singleKeyCommands,
+        firsts: validFirstKeys
       };
     },
     saveHelpDialogSettings: function(request) {
