@@ -479,7 +479,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
   });
 
   isPassKey = function(keyChar) {
-    return keyQueue.length === 0 && passKeys.length > 0 && passKeys.indexOf(keyChar) >= 0;
+    return !keyQueue && passKeys.length > 0 && passKeys.indexOf(keyChar) >= 0;
   };
 
   KeydownEvents = {
@@ -503,7 +503,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       return;
     }
     var keyChar = String.fromCharCode(event.charCode);
-    if (keyChar.length === 0) {
+    if (!keyChar) {
       return;
     }
     if (keyChar === "f" && event[keyCodes.modifier]) {
@@ -568,7 +568,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       } else if (event.keyCode === keyCodes.enter) {
         handleEnterForFindMode();
         action = 2;
-      } else if (keyChar.length === 0) {
+      } else if (!keyChar) {
         action = 1;
       }
     }
@@ -578,7 +578,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     }
     else if (!isInsert || (event.keyCode >= keyCodes.f1 && event.keyCode <= keyCodes.f12)) {
       if (isEscape) {
-        if (keyQueue.length > 0) {
+        if (keyQueue) {
           action = 2;
         }
         mainPort.postMessage({
@@ -752,7 +752,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
   };
 
   handleDeleteForFindMode = function() {
-    if (findModeQuery.rawQuery.length === 0) {
+    if (! findModeQuery.rawQuery) {
       exitFindMode();
       performFindInPlace();
     } else {
@@ -984,7 +984,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
   };
 
   showFindModeHUDForQuery = function() {
-    if (findModeQueryHasResults || findModeQuery.parsedQuery.length === 0) {
+    if (findModeQueryHasResults || !findModeQuery.parsedQuery) {
       HUD.show("/" + findModeQuery.rawQuery + " (" + findModeQuery.matchCount + " Matches)");
     } else {
       HUD.show("/" + findModeQuery.rawQuery + " (No Matches)");

@@ -103,9 +103,9 @@
     chrome.tabs.create(option, option.selected ? function(tab) {
       chrome.windows.update(tab.windowId, {focused: true});
     } : null);
-    if (count === 1) return;
+    if (count < 2) return;
     option.selected = false;
-    while(--count > 0) {
+    while(--count >= 1) {
       ++option.index;
       chrome.tabs.create(option, callback);
     }
@@ -281,7 +281,7 @@
       });
       request.active = (request.active !== false);
       request.url = Utils.convertToUrl(request.url);
-      if (wnds.length >= 1) {
+      if (wnds.length) {
         var inCurWnd = wnds.filter(function(wnd) {
           return wnd.id === tab.windowId
         }).length > 0, options = {
@@ -397,7 +397,8 @@
           return;
         }
       } else {
-        wnds = wnds0.filter(function(wnd) { return wnd.id === tab.windowId; });
+        index = tab.windowId;
+        wnds = wnds0.filter(function(wnd) { return wnd.id === index; });
       }
       if (wnds.length === 1 && wnds[0].type === "normal") {
         state = wnds[0].state;
@@ -678,7 +679,7 @@
       }
     };
     setShouldShowActionIcon = function (value) {
-      value = chrome.browserAction && chrome.browserAction.setIcon && value ? true : false;
+      value = value ? true : false;
       if (value === shouldShowActionIcon) { return; }
       shouldShowActionIcon = value;
       // TODO: hide icon
@@ -733,13 +734,11 @@
       len = getActualKeyStrokeLength(key);
       if (len === 1) {
         singleKeyCommands.push(key);
+        continue;
       }
-      else if (len === 2) {
-        validFirstKeys[splitKeyIntoFirstAndSecond(key).first] = true;
-      }
-      else if (len >= 3) {
-        console.warn("3-key command:", key);
-      }
+      validFirstKeys[splitKeyIntoFirstAndSecond(key).first] = true;
+      if (len === 2) { continue; }
+      console.warn(len + "-key command:", key);
     }
   };
 
@@ -751,16 +750,18 @@
   });
 
   generateCompletionKeys = function() {
-    if (keyQueue.length === 0) {
+    if (!keyQueue) {
       return singleKeyCommands;
     }
-    var command = splitKeyQueueRegex.exec(keyQueue)[2], completionKeys = singleKeyCommands.slice(0), key, splitKey;
-    if (getActualKeyStrokeLength(command) === 1) {
-      for (key in Commands.keyToCommandRegistry) {
-        splitKey = splitKeyIntoFirstAndSecond(key);
-        if (splitKey.first === command) {
-          completionKeys.push(splitKey.second);
-        }
+    var command = splitKeyQueueRegex.exec(keyQueue)[2], completionKeys, key, splitKey;
+    if (getActualKeyStrokeLength(command) !== 1) {
+      return singleKeyCommands;
+    }
+    completionKeys = singleKeyCommands.slice(0);
+    for (key in Commands.keyToCommandRegistry) {
+      splitKey = splitKeyIntoFirstAndSecond(key);
+      if (splitKey.first === command) {
+        completionKeys.push(splitKey.second);
       }
     }
     return completionKeys;
@@ -876,7 +877,7 @@
     splitHash = splitKeyQueueRegex.exec(keysToCheck);
     command = splitHash[2];
     count = parseInt(splitHash[1], 10);
-    if (command.length === 0) {
+    if (!command) {
       return keysToCheck;
     }
     if (isNaN(count)) {
@@ -1031,7 +1032,7 @@
   populateKeyCommands();
 
   shouldShowActionIcon = false;
-  window.setShouldShowActionIcon(Settings.get("showActionIcon") === true);
+  window.setShouldShowActionIcon(Settings.get("showActionIcon"));
 
   (function() {
     var ref, i, key, callback, ref2;

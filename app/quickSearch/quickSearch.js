@@ -84,7 +84,7 @@ var _quickSearchTransformFun = '';
 							if (e.keyCode == 38 || e.keyCode == 40) {
 								if (targetObj.find('.searchSuggest').css('display') != 'none') {
 									var index = -1;
-									if (targetObj.find('.searchSuggest').find('li.selected').length != 0) {
+									if (targetObj.find('.searchSuggest').find('li.selected').length) {
 										index = targetObj.find('.searchSuggest').find('li').indexOf(targetObj.find('.searchSuggest').find('li.selected').get(0))
 									}
 									if (e.keyCode == 38 || e.keyCode == 40) {

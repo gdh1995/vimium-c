@@ -100,7 +100,7 @@ completers.bookmarks = {
     }
   },
   performSearch: function() {
-    if (this.currentSearch.queryTerms.length == 0) {
+    if (this.currentSearch.queryTerms.length === 0) {
       var onComplete = this.currentSearch.onComplete;
       this.currentSearch = null;
       onComplete([]);
@@ -694,8 +694,7 @@ completers.searchEngines = {
     if (!lang) {
       return;
     }
-    var ref;
-    ref = lang.urlCharset;
+    var ref = lang.urlCharset;
     if (ref && typeof ref === "string") {
       Decoder.charset = ref;
     }

@@ -41,7 +41,7 @@ function initChromeI18n(obj) {
 		} else {
 			_data = $('[' + key + ']')
 		}
-		if (_data.length <= 0) { continue; }
+		if (!_data.length) { continue; }
 		n = _data.length;
 		switch (_mKey) {
 		case 'content':

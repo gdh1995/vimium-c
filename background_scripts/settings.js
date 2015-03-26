@@ -80,7 +80,7 @@ var Settings = {
       _j = val.indexOf(":");
       if (_j <= 0 || !(key = val.substring(0, _j).trimRight())) continue;
       val = val.substring(_j + 1).trimLeft();
-      if (val.length === 0) continue;
+      if (!val) continue;
       val = val.replace(rEscapeSpace, "\\s");
       _j = val.search(rSpace);
       if (_j > 0) {

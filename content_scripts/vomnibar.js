@@ -467,7 +467,7 @@ Vomnibar.background = {
     return out.join("");
   },
   cutUrl: function(string, ranges, strCoded) {
-    if (ranges.length == 0 || string.startsWith("javascript:")) {
+    if (ranges.length === 0 || string.startsWith("javascript:")) {
       if (string.length <= this.maxCharNum) {
         return Utils.escapeHtml(string);
       } else {
