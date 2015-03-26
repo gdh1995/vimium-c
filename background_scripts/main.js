@@ -710,13 +710,9 @@
   });
 
   splitKeyIntoFirstAndSecond = function(key) {
-    return (key.search(namedKeyRegex) === 0) ? {
-      first: RegExp.$1,
-      second: RegExp.$2
-    } : {
-      first: key[0],
-      second: key.slice(1)
-    };
+    return (key.search(namedKeyRegex) === 0)
+      ? [RegExp.$1, RegExp.$2]
+      : [key[0], key.substring(1)];
   };
 
   getActualKeyStrokeLength = function(key) {
@@ -735,7 +731,7 @@
         singleKeyCommands.push(key);
         continue;
       }
-      validFirstKeys[splitKeyIntoFirstAndSecond(key).first] = 1;
+      validFirstKeys[splitKeyIntoFirstAndSecond(key)[0]] = 1;
       if (len === 2) { continue; }
       console.warn(len + "-key command:", key);
     }
@@ -764,8 +760,8 @@
     completionKeys = [];
     for (key in Commands.keyToCommandRegistry) {
       splitKey = splitKeyIntoFirstAndSecond(key);
-      if (splitKey.first === command) {
-        completionKeys.push(splitKey.second);
+      if (splitKey[0] === command) {
+        completionKeys.push(splitKey[1]);
       }
     }
     return completionKeys.length ? completionKeys : null;
@@ -880,55 +876,55 @@
     }
   };
 
-  checkKeyQueue = function(keysToCheck, port) {
-    var command, count, newKeyQueue, registryEntry, runCommand, splitHash, splitKey;
-    splitHash = splitKeyQueueRegex.exec(keysToCheck);
-    command = splitHash[2];
-    count = parseInt(splitHash[1], 10);
-    if (!command) {
-      return keysToCheck;
+  checkKeyQueue = function(command, port) {
+    var command, count, registryEntry, splitHash;
+    splitHash = splitKeyQueueRegex.exec(command);
+    if (!splitHash[2]) {
+      return command;
     }
+    count = parseInt(splitHash[1], 10);
+    command = splitHash[2];
     if (isNaN(count)) {
       count = 1;
     }
     if (Commands.keyToCommandRegistry[command]) {
       registryEntry = Commands.keyToCommandRegistry[command];
-      runCommand = true;
+      command = registryEntry.command;
       if (registryEntry.noRepeat === true) {
         count = 1;
       } else if (registryEntry.noRepeat > 0 && count > registryEntry.noRepeat) {
-        runCommand = confirm("You have asked vim++ to perform " + count + " repeats of the command:\n\t"
-          + Commands.availableCommands[registryEntry.command].description
-          + "\n\nAre you sure you want to continue?");
-      }
-      if (runCommand) {
-        if (registryEntry.background) {
-          chrome.tabs.getSelected(null, function(tab) {
-            BackgroundCommands[registryEntry.command](tab, count);
-          });
-        } else {
-          keyQueue = "";
-          port.postMessage({
-            name: "executePageCommand",
-            command: registryEntry.command,
-            count: (registryEntry.noRepeat === false ? -count : count)
-          });
-          return "";
+        if (!
+        confirm("You have asked vim++ to perform " + count + " repeats of the command:\n\t"
+          + Commands.availableCommands[command].description
+          + "\n\nAre you sure you want to continue?")
+        ) {
+          count = 0;
         }
       }
-      newKeyQueue = "";
-    } else if (getActualKeyStrokeLength(command) > 1) {
-      splitKey = splitKeyIntoFirstAndSecond(command);
-      if (Commands.keyToCommandRegistry[splitKey.second]) {
-        newKeyQueue = checkKeyQueue(splitKey.second, port);
+      if (count <= 0) {
+      } else if (registryEntry.background) {
+        chrome.tabs.getSelected(null, function(tab) {
+          BackgroundCommands[command](tab, count);
+        });
       } else {
-        newKeyQueue = splitKey.second;
-        newKeyQueue = (validFirstKeys[newKeyQueue] ? newKeyQueue : "");
+        keyQueue = "";
+        port.postMessage({
+          name: "executePageCommand",
+          command: command,
+          count: (registryEntry.noRepeat === false ? -count : count)
+        });
+      }
+      return "";
+    } else if (getActualKeyStrokeLength(command) > 1) {
+      command = splitKeyIntoFirstAndSecond(command)[1];
+      if (Commands.keyToCommandRegistry[command]) {
+        return checkKeyQueue(command, port);
+      } else {
+        return (validFirstKeys[command] ? command : "");
       }
     } else {
-      newKeyQueue = (validFirstKeys[command] ? count.toString() + command : "");
+      return (validFirstKeys[command] ? count.toString() + command : "");
     }
-    return newKeyQueue;
   };
 
   sendRequestToAllTabs = function (args) {
