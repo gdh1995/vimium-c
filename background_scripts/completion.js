@@ -228,7 +228,7 @@ completers.history = {
 completers.domains = {
   domains: null,
   filter: function(queryTerms, onComplete) {
-    if (queryTerms.length !== 1) {
+    if (queryTerms.length !== 1 || queryTerms[0].indexOf("/") !== -1) {
       onComplete([]);
     } else if (this.domains) {
       this.performSearch(queryTerms, onComplete);
