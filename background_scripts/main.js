@@ -880,35 +880,26 @@
     splitHash = splitKeyQueueRegex.exec(command);
     if (!splitHash[2]) {
       return command === "0" ? "" : command;
-    }
-    count = parseInt(splitHash[1], 10);
-    command = splitHash[2];
-    if (!(registryEntry = Commands.keyToCommandRegistry[command])) {
-      count = (command.charCodeAt(0) === 60) ? (command.indexOf(">") + 1) : 1;
-      if (count >= command.length) {
-        return validFirstKeys[command] ? (count.toString() + command) : "";
-      }
-      command = command.substring(count);
-      if (!(registryEntry = Commands.keyToCommandRegistry[command])) {
-        count = command.charCodeAt(0) - 48;
-        return (count > 0 && count <= 9 || count && validFirstKeys[command]) ? command : "";
-      }
+    } else if (registryEntry = Commands.keyToCommandRegistry[command = splitHash[2]]) {
+      count = parseInt(splitHash[1] || 1, 10);
+    } else if ((count = (command.charCodeAt(0) === 60) ? (command.indexOf(">") + 1) : 1) >= command.length) {
+      return validFirstKeys[command] ? splitHash[0] : "";
+    } else if (registryEntry = Commands.keyToCommandRegistry[command = command.substring(count)]) {
       count = 1;
-    } else if (isNaN(count)) {
-      count = 1;
+    } else {
+      count = command.charCodeAt(0) - 48;
+      return (count > 0 && count <= 9 || count && validFirstKeys[command]) ? command : "";
     }
     command = registryEntry.command;
     if (registryEntry.noRepeat === true) {
       count = 1;
-    } else if (registryEntry.noRepeat > 0 && count > registryEntry.noRepeat) {
-      if (
+    } else if (!(registryEntry.noRepeat > 0 && count > registryEntry.noRepeat)) {
+    } else if (!
       confirm("You have asked vim++ to perform " + count + " repeats of the command:\n\t"
         + Commands.availableCommands[command].description
         + "\n\nAre you sure you want to continue?")
-      ) {
-      } else {
-        count = 0;
-      }
+    ) {
+      count = 0;
     }
     if (count <= 0) {
     } else if (registryEntry.background) {
