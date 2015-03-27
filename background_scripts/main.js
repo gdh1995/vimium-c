@@ -544,7 +544,7 @@
     enableImageTemp: function(tab) {
       ContentSettings.ensure("images", tab);
     },
-    turnCurrentImage: function(tab) {
+    toggleImage: function(tab) {
       ContentSettings.turnCurrent("images", tab);
     },
     clearImageCS: function(tab) {

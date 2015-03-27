@@ -101,12 +101,12 @@ var Commands = {
     tabManipulation: ["nextTab", "previousTab", "firstTab", "lastTab", "createTab", "duplicateTab"
       , "removeTab", "restoreTab", "moveTabToNextWindow", "moveTabToIncognito", "togglePinTab"
       , "closeTabsOnLeft", "closeTabsOnRight", "closeOtherTabs", "moveTabLeft", "moveTabRight" //
-      , "enableImageTemp", "turnCurrentImage", "clearImageCS"],
+      , "enableImageTemp", "toggleImage", "clearImageCS"],
     misc: ["showHelp", "enterVisualMode"]
   },
   advancedCommands: ["scrollToLeft", "scrollToRight", "moveTabToNextWindow", "moveTabToIncognito"
     , "goUp", "goToRoot", "focusInput", "LinkHints.activateModeWithQueue", "enableImageTemp"
-    , "turnCurrentImage", "clearImageCS"
+    , "toggleImage", "clearImageCS"
     , "LinkHints.activateModeToDownloadLink", "Vomnibar.activateEditUrl"
     , "Vomnibar.activateEditUrlInNewTab", "LinkHints.activateModeToOpenIncognito"
     , "goNext", "goPrevious", "Marks.activateCreateMode", "Marks.activateGotoMode"
@@ -454,7 +454,7 @@ Commands._defaultKeyMappings = {
       noRepeat: true
     }
   ],
-  turnCurrentImage: [
+  toggleImage: [
     "turn on/off the site's image", {
       background: true,
       noRepeat: true
