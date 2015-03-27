@@ -112,7 +112,8 @@ input#scrollStepSize {
   text-align: right;
 }
 textarea#userDefinedCss {
-  width: 100%;;
+  width: 100%;
+  padding-bottom: 2px;
   min-height: 75px;
   white-space: nowrap;
 }
@@ -181,7 +182,6 @@ td.booleanOption { font-size: 12px; }
   /* Each exclusion rule is about 30px, so this allows 7 before scrolling */
   max-height: 215px;
   min-height: 75px;
-  height: 140px;
   border: 1px solid #bfbfbf;
   border-radius: 2px;
   color: #444;
