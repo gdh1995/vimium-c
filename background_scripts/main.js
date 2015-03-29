@@ -131,7 +131,8 @@
           scope: tab.incognito ? "incognito_session_only" : "regular",
           setting: (opt && opt.setting === "allow") ? "block" : "allow"
         }, function() {
-          _this.reloadTab(tab);
+          ++tab.index;
+          _this.reopenTab(tab);
         });
       });
     },
@@ -208,12 +209,12 @@
       } else {
         delete tab.index;
       }
-      this.reloadTab(tab);
+      this.reopenTab(tab);
       if (callback) {
         callback();
       }
     },
-    reloadTab: function(tab) {
+    reopenTab: function(tab) {
       chrome.tabs.create({
         windowId: tab.windowId,
         selected: true,
@@ -596,6 +597,18 @@
     reloadTab: function(tab) {
       chrome.tabs.update(tab.id, {
         url: tab.url
+      });
+    },
+    reopenTab: function(tab) {
+      ++tab.index;
+      if (!Utils.isRefusingIncognito(tab.url)) {
+        ContentSettings.reopenTab(tab);
+        return;
+      }
+      chrome.windows.get(tab.windowId, function(wnd) {
+        if (!wnd.incognito) {
+          ContentSettings.reopenTab(tab);
+        }
       });
     },
     moveTabLeft: function(tab, count) {
