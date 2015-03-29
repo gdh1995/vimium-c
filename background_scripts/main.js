@@ -663,7 +663,7 @@
     });
   };
 
-  setBadge = function() {};
+  window.updateActiveState = setBadge = function() {};
 
   window.setShouldShowActionIcon = !shouldShowActionIcon ? function() {} : (function() {
     var onActiveChanged, currentBadge, badgeTimer, updateBadge, time1 = 50, setShouldShowActionIcon;
@@ -689,6 +689,11 @@
         badgeTimer = setTimeout(updateBadge.bind(null, badge), time1);
       }
     };
+    window.updateActiveState = function(tabId, url) {
+      chrome.tabs.sendMessage(tabId, {
+        name: "getActiveState"
+      }, funcDict.updateActiveState.bind(null, tabId, url));
+    };
     setShouldShowActionIcon = function (value) {
       value = value ? true : false;
       if (value === shouldShowActionIcon) { return; }
@@ -705,13 +710,6 @@
     Settings.setUpdateHook("showActionIcon", setShouldShowActionIcon);
     return setShouldShowActionIcon;
   })();
-
-  window.updateActiveState = !shouldShowActionIcon ? function() {} : function(tabId, url) {
-    if (!shouldShowActionIcon) return;
-    chrome.tabs.sendMessage(tabId, {
-      name: "getActiveState"
-    }, funcDict.updateActiveState.bind(null, tabId, url));
-  };
 
   chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab) {
     if (changeInfo.status !== "loading" || frameIdsForTab[tabId]) {
