@@ -1023,6 +1023,17 @@
   Settings.postUpdate("userDefinedCss");
   Settings.bufferToLoad = Settings.valuesToLoad.map(Settings.get.bind(Settings));
 
+  chrome.commands.onCommand.addListener(function(command) {
+    if (command === "restoreTab") {
+      BackgroundCommands[command](null, 1);
+      return;
+    }
+    chrome.tabs.getSelected(function(tab) {
+      BackgroundCommands[command](tab, 1);
+      return chrome.runtime.lastError;
+    });
+  });
+
   chrome.runtime.onConnect.addListener(function(port) {
     if (port.name === "main") {
       port.onMessage.addListener(handleMainPort);

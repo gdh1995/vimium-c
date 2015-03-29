@@ -17,6 +17,32 @@
       "default_title": "Vimium++",
       "default_popup": "pages/popup.html"
    }, //*/
+   "commands": {
+      "createTab": {
+         "suggested_key": {
+            "default": "Alt+T"
+         },
+         "description": "Open New Tab URL in vim++"
+      },
+      "reloadTab": {
+         "suggested_key": {
+            "default": "Alt+R"
+         },
+         "description": "Reload current tab"
+      },
+      "previousTab": {
+         "suggested_key": {
+            "default": "Alt+C"
+         },
+         "description": "Go one tab left"
+      },
+      "nextTab": {
+         "suggested_key": {
+            "default": "Alt+V"
+         },
+         "description": "Go one tab right"
+      }
+   },
    "chrome_url_overrides": {
       "newtab": "pages/newtab.html"
    },
@@ -52,6 +78,7 @@
    "name": "Vimium++",
    "options_page": "pages/options.html",
    "permissions": [
+      "commands",
       "tabs",
       "bookmarks",
       "history",
