@@ -17,7 +17,17 @@ var Vomnibar = {
     vomnibarUI.initialSelectionValue = selectFirstResult ? 0 : -1;
     vomnibarUI.refreshInterval = this.defaultRefreshInterval || 250;
     vomnibarUI.forceNewTab = forceNewTab ? true : false;
-    vomnibarUI.reset(initialQueryValue);
+    if (initialQueryValue !== true) {
+      vomnibarUI.reset(initialQueryValue);
+      return;
+    }
+    mainPort.postMessage({
+      handler: "parseSearchUrl",
+      url: window.location.href
+    }, function(url) {
+      url = url || Utils.decodeURL(window.location.href);
+      Vomnibar.vomnibarUI.reset(url);
+    });
   },
   activate: function() {
     this.activateWithCompleter("omni");
@@ -41,10 +51,10 @@ var Vomnibar = {
     this.activateWithCompleter("history", true, true);
   },
   activateEditUrl: function() {
-    this.activateWithCompleter("omni", false, false, Utils.decodeURL(window.location.href));
+    this.activateWithCompleter("omni", false, false, true);
   },
   activateEditUrlInNewTab: function() {
-    this.activateWithCompleter("omni", false, true, Utils.decodeURL(window.location.href));
+    this.activateWithCompleter("omni", false, true, true);
   },
   getUI: function() {
     return this.vomnibarUI;

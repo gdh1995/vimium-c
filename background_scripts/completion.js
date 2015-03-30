@@ -711,6 +711,8 @@ completers.searchEngines = {
     tabs: new MultiCompleter([completers.tabs])
   };
 
+  window.RegexpCache = RegexpCache;
+
   Settings.setUpdateHook("postSearchEnginesMap", function() {
     completers.searchEngines.refresh();
   });

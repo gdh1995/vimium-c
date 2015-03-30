@@ -49,14 +49,14 @@ var Settings = {
   },
   postUpdateHooks: {
     searchEngines: function() {
-      this.set("searchEnginesMap", {});
+      this.set("searchEnginesMap", { "": [] });
     },
     searchUrl: function(value) {
-      this.parseSearchEngines("\\:" + value);
+      this.parseSearchEngines("~:" + value);
     },
     searchEnginesMap: function(value) {
       this.parseSearchEngines(this.get("searchEngines"), value);
-      this.parseSearchEngines("\\:" + this.get("searchUrl"), value);
+      this.parseSearchEngines("~:" + this.get("searchUrl"), value);
       this.postUpdate("postSearchEnginesMap", null);
       return false;
     },
@@ -99,8 +99,27 @@ var Settings = {
       }
       if (!name) continue;
       obj.name = name;
-      obj.$s = val.indexOf("%s") >= 0;
-      obj.$S = val.indexOf("%S") >= 0;
+      obj.$s = val.indexOf("%s") + 1;
+      obj.$S = val.indexOf("%S") + 1;
+      if (pairs = this.reparseSearchUrl(obj, name)) {
+        map[""].push(pairs);
+      }
+    }
+  },
+  reparseSearchUrl: function (pattern, name) {
+    var url = pattern.url, insert = pattern.$s || pattern.$S, ind;
+    if (insert && Utils.hasOrdinaryUrlPrefix(url)) {
+      if (ind = (url.indexOf("?") + 1) || (url.indexOf("#") + 1)) {
+        var prefix = url.substring(0, ind - 1);
+        url = url.substring(ind, insert - 1);
+        if (ind = url.lastIndexOf("&") + 1) {
+          url = url.substring(ind);
+        }
+        if (url && url !== "=") {
+          url = url.toLowerCase().replace(RegexpCache._escapeRegEx, "\\$&");
+          return [prefix, new RegExp("[?#&]" + url + "([^&]*)", "i"), name];
+        }
+      }
     }
   },
   readFile: function(id, url) {

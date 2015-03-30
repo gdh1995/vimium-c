@@ -955,6 +955,30 @@
     getCurrentTabUrl: function(_0, tab) {
       return tab.url;
     },
+    parseSearchUrl: function(request) {
+      var url = request.url, map, decoders, pattern, _i, str, arr;
+      if (!Utils.hasOrdinaryUrlPrefix(url)) {
+        return "";
+      }
+      map = Settings.get("searchEnginesMap");
+      decoders = map[""];
+      for (_i = decoders.length; 0 <= --_i; ) {
+        pattern = decoders[_i];
+        if (url.startsWith(str = pattern[0])) {
+          arr = pattern[1].exec(url.substring(str.length));
+          if (arr && (str = arr[1])) {
+            url = pattern[2];
+            if (map[url].$s) {
+              str = str.split("+").map(Utils.decodeURLPart).join(" ");
+            } else {
+              str = Utils.decodeURLPart(str);
+            }
+            return url + " " + str;
+          }
+        }
+      }
+      return "";
+    },
     restoreSession: function(request) {
       BackgroundCommands.restoreTab(null, 0, request.sessionId);
     },
@@ -1024,7 +1048,7 @@
   };
 
   Settings.reloadFiles();
-  Settings.set("searchEnginesMap", {});
+  Settings.postUpdate("searchEngines", null);
   Settings.postUpdate("userDefinedCss");
   Settings.bufferToLoad = Settings.valuesToLoad.map(Settings.get.bind(Settings));
 
