@@ -55,8 +55,8 @@ var Settings = {
       this.parseSearchEngines("\\:" + value);
     },
     searchEnginesMap: function(value) {
-      this.parseSearchEngines(this.get("searchEngines"));
-      this.parseSearchEngines("\\:" + this.get("searchUrl"));
+      this.parseSearchEngines(this.get("searchEngines"), value);
+      this.parseSearchEngines("\\:" + this.get("searchUrl"), value);
       this.postUpdate("postSearchEnginesMap", null);
       return false;
     },
@@ -107,14 +107,13 @@ var Settings = {
     var _this = this;
     this.set(id, "");
     url = url || this.files[id];
-    url = url.indexOf("://") > 0 ? url : chrome.runtime.getURL(url);
-    fetchHttpContents(url, function(content, code) {
-      code === 200 && (_this.set(id, content));
-    });
+    fetchHttpContents(url, this.set.bind(this, id));
   },
   reloadFiles: function() {
-    for (var i in this.files) {
-      this.readFile(i);
+    var files = this.files, id;
+    for (id in files) {
+      this.set(id, "");
+      fetchHttpContents(files[id], this.set.bind(this, id));
     }
   },
   // clear localStorage & sync, if value === @defaults[key]

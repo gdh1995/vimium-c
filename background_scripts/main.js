@@ -67,14 +67,19 @@
     return html.join("");
   };
 
-  window.fetchHttpContents = function(url, callback) {
-    var req = new XMLHttpRequest();
+  window.fetchHttpContents = function(url, success, onerror) {
+    var req = new XMLHttpRequest(), i = url.indexOf(":"), j;
+    url = i >= 0 && ((j = url.indexOf("?")) === -1 || j > i) ? url : chrome.runtime.getURL(url);
     req.open("GET", url, true);
     req.onreadystatechange = function () {
       if(req.readyState === 4) {
         var text = req.responseText, status = req.status;
         req = null;
-        callback(text, status);
+        if (status === 200) {
+          success(text);
+        } else if (onerror) {
+          onerror(status, text);
+        }
       }
     };
     req.send();
