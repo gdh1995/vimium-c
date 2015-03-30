@@ -884,7 +884,7 @@
     }
   };
 
-  splitKeyQueueRegex = /([0-9]+)?(.*)/;
+  splitKeyQueueRegex = /([0-9]*)(.*)/;
 
   checkKeyQueue = function(command, port) {
     var command, count, registryEntry, splitHash;
