@@ -512,13 +512,11 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       handleKeyCharForFindMode(keyChar);
       DomUtils.suppressEvent(event);
     } else if (isInsertMode() || isPassKey(keyChar)) {
-    } else {
-      if (isValidKey(keyChar)) {
-        DomUtils.suppressEvent(event);
-      }
+    } else if (isValidKey(keyChar)) {
       mainPort.postMessage({
         handlerKey: keyChar
       });
+      DomUtils.suppressEvent(event);
     }
   };
 
@@ -575,18 +573,16 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       if (isEscape) {
         if (keyQueue) {
           action = 2;
+          mainPort.postMessage({ handler: "esc" });
+          keyQueue = "";
+          currentSeconds = secondKeys[""];
         }
-        mainPort.postMessage({
-          handlerKey: "<esc>"
-        });
       }
       else if (keyChar) {
         if (isValidKey(keyChar)) {
           action = 2;
+          mainPort.postMessage({ handlerKey: keyChar });
         }
-        mainPort.postMessage({
-          handlerKey: keyChar
-        });
       }
       else {
         if (modifiers == null) {

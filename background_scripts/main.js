@@ -797,11 +797,7 @@
       }
     }
     else if (key = request.handlerKey) {
-      if (key === "<esc>") {
-        currentFirst = key = "";
-      } else {
-        key = checkKeyQueue(keyQueue + key, port);
-      }
+      key = checkKeyQueue(keyQueue + key, port);
       if (keyQueue !== key) {
         keyQueue = key;
         port.postMessage({
@@ -1003,6 +999,9 @@
         keyQueue: keyQueue,
         currentFirst: currentFirst
       }
+    },
+    esc: function() {
+      currentFirst = keyQueue = "";
     },
     nextFrame: function(request, tab) {
       BackgroundCommands.nextFrame(tab, 1, request.frameId);
