@@ -481,7 +481,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
   });
 
   isPassKey = function(keyChar) {
-    return !keyQueue && passKeys.length > 0 && passKeys.indexOf(keyChar) >= 0;
+    return passKeys && !keyQueue && passKeys.indexOf(keyChar) >= 0;
   };
 
   KeydownEvents = {
@@ -506,26 +506,20 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     }
     var keyChar = String.fromCharCode(event.charCode);
     if (!keyChar) {
-      return;
-    }
-    if (keyChar === "f" && event[keyCodes.modifier]) {
+    } else if (keyChar === "f" && event[keyCodes.modifier]) {
       enterInsertModeWithoutShowingIndicator();
-      return;
-    }
-    if (findMode) {
+    } else if (findMode) {
       handleKeyCharForFindMode(keyChar);
       DomUtils.suppressEvent(event);
-      return;
+    } else if (isInsertMode() || isPassKey(keyChar)) {
+    } else {
+      if (isValidKey(keyChar)) {
+        DomUtils.suppressEvent(event);
+      }
+      mainPort.postMessage({
+        handlerKey: keyChar
+      });
     }
-    if (isInsertMode() || isPassKey(keyChar)) {
-      return;
-    }
-    if (isValidKey(keyChar)) {
-      DomUtils.suppressEvent(event);
-    }
-    mainPort.postMessage({
-      handlerKey: keyChar
-    });
   };
 
   ELs.onKeydown = function(event) {
@@ -538,8 +532,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     var modifiers = null, keyChar = "", isInsert = isInsertMode(), isEscape = KeyboardUtils.isEscape(event), action = -1;
     if (((event.metaKey || event.ctrlKey || event.altKey) && event.keyCode > 31) || ! event.keyIdentifier.startsWith("U+")) {
       modifiers = "";
-      keyChar = KeyboardUtils.getKeyChar(event);
-      if (keyChar.length > 0) {
+      if (keyChar = KeyboardUtils.getKeyChar(event)) {
         if (event.ctrlKey) {
           modifiers = event.metaKey ? "f-c-" : keyCodes.hasMeta ? "f-" : "c-";
         } else if (event.metaKey) {
@@ -548,7 +541,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
         if (event.altKey) {
           modifiers += "a-";
         }
-        if (modifiers.length > 0 || keyChar.length > 1) {
+        if (modifiers || keyChar.length > 1) {
           keyChar = "<" + modifiers + keyChar + ">";
         }
       }
@@ -587,7 +580,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
           handlerKey: "<esc>"
         });
       }
-      else if (keyChar.length > 0) {
+      else if (keyChar) {
         if (isValidKey(keyChar)) {
           action = 2;
         }
@@ -599,7 +592,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
         if (modifiers == null) {
           keyChar = KeyboardUtils.getKeyChar(event);
         }
-        if (keyChar.length > 0 && !isPassKey(keyChar) && isValidKey(keyChar)) {
+        if (keyChar && !isPassKey(keyChar) && isValidKey(keyChar)) {
           action = 1;
         }
       }

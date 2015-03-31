@@ -18,10 +18,6 @@
 
   keyQueue = "";
 
-  validFirstKeys = {};
-
-  singleKeyCommands = [];
-
   frameIdsForTab = {};
   
   window.getFrameIdsForTab = function() {
@@ -726,6 +722,8 @@
 
   populateKeyCommands = function() {
     var key, len, len2;
+    validFirstKeys = {};
+    singleKeyCommands = [];
     for (key in Commands.keyToCommandRegistry) {
       if (key.charCodeAt(0) === 60) {
         len = key.indexOf(">") + 1;
@@ -749,8 +747,6 @@
   };
 
   Settings.setUpdateHook("postKeyMappings", function() {
-    validFirstKeys = {};
-    singleKeyCommands = [];
     populateKeyCommands();
     keyQueue = "";
     sendRequestToAllTabs({
