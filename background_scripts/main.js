@@ -999,6 +999,10 @@
       if (frames && frames.length > 1 && (ind = frames.indexOf(request.frameId)) > 0) {
         frameIdsForTab[request.tabId] = frames.splice(ind, frames.length - ind).concat(frames);
       }
+      return {
+        keyQueue: keyQueue,
+        currentFirst: currentFirst
+      }
     },
     nextFrame: function(request, tab) {
       BackgroundCommands.nextFrame(tab, 1, request.frameId);

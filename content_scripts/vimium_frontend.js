@@ -1397,7 +1397,7 @@ href='https://github.com/philc/vimium#release-notes'>what's new</a>).<a class='v
       handler: "frameFocused",
       tabId: 0,
       frameId: frameId
-    }, null));
+    }, requestHandlers.refreshKeyQueue));
   });
 
 })();
