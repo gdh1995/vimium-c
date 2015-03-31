@@ -167,9 +167,8 @@ td.booleanOption, #helpText { font-size: 12px; }
   overflow: scroll;
   overflow-x: hidden;
   overflow-y: auto;
-  /* Each exclusion rule is about 30px, so this allows 7 before scrolling */
   max-height: 215px;
-  min-height: 75px;
+  min-height: 77px;
   border-radius: 2px;
   color: #444;
   width: 100%;
@@ -202,6 +201,13 @@ td.booleanOption, #helpText { font-size: 12px; }
 .exclusionHeaderText {
   padding-left: 3px;
   color: #979ca0;
+  margin-right: 1px;
+}
+.exclusionMask {
+  padding: 0px 6px;
+  font-size: x-small;
+  position: relative;
+  right: 100%;
 }
 #exclusionAddButton {
   float: right;

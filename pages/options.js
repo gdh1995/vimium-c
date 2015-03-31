@@ -169,11 +169,11 @@
     ExclusionRulesOption.prototype.appendRule = function(rule) {
       var element, field, row, _i, _j, _ref, _ref1;
       row = document.importNode($('exclusionRuleTemplate').content, true);
-      _ref = [".pattern", ".passKeys"];
+      _ref = ["pattern", "passKeys"];
       _ref1 = ["input", "change"];
       for (_i = _ref.length; 0 <= --_i; ) {
         field = _ref[_i];
-        element = row.querySelector(field);
+        element = row.querySelector('.' + field);
         element.value = rule[field];
         for (_j = _ref1.length; 0 <= --_j; ) {
           element.addEventListener(_ref1[_j], this.onUpdated);
@@ -181,7 +181,7 @@
       }
       this.getRemoveButton(row).addEventListener("click", this.onRemoveRow);
       this.element.appendChild(row);
-      return row;
+      return this.element.children[this.element.children.length - 1];
     };
     
     ExclusionRulesOption.prototype.onRemoveRow = function(event) {

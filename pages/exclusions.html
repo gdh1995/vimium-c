@@ -1,11 +1,14 @@
-<table id="exclusionRules">
-  <tr>
-    <td><span class="exclusionHeaderText">Patterns</span></td>
-    <td><span class="exclusionHeaderText">Keys</span></td>
-  </tr>
-</table>
+<table id="exclusionRules"><tbody>
+	<tr>
+		<td><span class="exclusionHeaderText">Patterns</span></td>
+		<td><span class="exclusionHeaderText">Keys</span></td>
+		<td class="exclusionRemoveTd" style="overflow: hidden;">
+			<input type="button" class="exclusionRemoveButton exclusionMask" value="&#x2716;" />
+		</td>
+	</tr>
+</tbody></table>
 <template id="exclusionRuleTemplate">
-  <tr class="exclusionRuleInstance">
+	<tr class="exclusionRuleInstance">
 		<td><input type="text" class="pattern" spellcheck="false" placeholder="URL pattern" /></td>
 		<td class="exclusionRulePassKeys"><input type="text" class="passKeys" spellcheck="false" placeholder="Exclude keys" /></td>
 		<td class="exclusionRemoveTd"><input type="button" class="exclusionRemoveButton" value="&#x2716;" /></td>
