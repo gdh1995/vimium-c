@@ -7,7 +7,7 @@ body {
 }
 a, a:visited { color: #15c; }
 a:active { color: #052577; }
-div#wrapper, #footerWrapper {
+#wrapper, #footerWrapper {
   width: 540px;
   margin-left: 35px;
 }
@@ -64,14 +64,11 @@ pre {
   border-left: 1px solid #eee;
   padding-left: 5px;
 }
-input, textarea {
-  box-sizing: border-box;
-}
 textarea {
   /* Horizontal resizing is pretty screwy-looking. */
   resize: vertical;
 }
-table#options{
+#options {
   width: 100%;
   font-size: 14px;
   position: relative;
@@ -97,13 +94,8 @@ div#exampleKeyMapping {
   margin-left: 10px;
   margin-top: 5px;
 }
-input#linkHintCharacters {
-  width: 100%;
-}
-input#linkHintNumbers {
-  width: 100%;
-}
-input#linkHintCharacters {
+#linkHintCharacters, #linkHintNumbers, #newTabUrl, #searchUrl,
+#footer, #footerTable, #footerTableData {
   width: 100%;
 }
 input#scrollStepSize {
@@ -111,29 +103,23 @@ input#scrollStepSize {
   margin-right: 3px;
   text-align: right;
 }
-textarea#userDefinedCss {
+#userDefinedCss {
   width: 100%;
   padding-bottom: 2px;
   min-height: 75px;
   white-space: nowrap;
 }
-textarea#keyMappings {
+#keyMappings {
   width: 100%;
   min-height: 134px;
   white-space: nowrap;
 }
-textarea#searchEngines {
+#searchEngines {
   width: 100%;
   min-height: 116px;
   white-space: nowrap;
 }
-input#previousPatterns, input#nextPatterns {
-  width: 100%;
-}
-input#newTabUrl {
-  width: 100%;
-}
-input#searchUrl {
+#previousPatterns, #nextPatterns {
   width: 100%;
 }
 #status {
@@ -163,6 +149,7 @@ input:read-only {
 input, textarea {
   border: 1px solid #bfbfbf;
   border-radius: 2px;
+  box-sizing: border-box;
   color: #444;
   font: inherit;
   padding: 3px;
@@ -173,7 +160,7 @@ button:focus, input:focus, textarea:focus {
   outline: none;
 }
 /* Boolean options have a tighter form representation than text options. */
-td.booleanOption { font-size: 12px; }
+td.booleanOption, #helpText { font-size: 12px; }
 /* Ids and classes for rendering exclusionRules */
 #exclusionScrollBox {
   overflow: scroll;
@@ -205,7 +192,7 @@ td.booleanOption { font-size: 12px; }
 .exclusionRemoveButton:hover {
   color: #444;
 }
-input.pattern, input.passKeys, .exclusionHeaderText {
+.pattern, .passKeys, .exclusionHeaderText {
   width: 100%;
   font-family: Consolas, "Liberation Mono", Courier, monospace;
   font-size: 14px;
@@ -226,16 +213,10 @@ input.pattern, input.passKeys, .exclusionHeaderText {
   bottom: 0px;
   z-index: 10;
 }
-#footer, #footerTable, #footerTableData {
-  width: 100%;
-}
 #endSpace {
   /* Leave space for the fixed footer. */
   min-height: 30px;
   max-height: 30px;
-}
-#helpText {
-  font-size: 12px;
 }
 #saveOptionsTableData {
   float: right;

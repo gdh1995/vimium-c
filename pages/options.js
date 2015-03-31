@@ -16,48 +16,43 @@
   bgSettings = chrome.extension.getBackgroundPage().Settings;
   bgExclusions = chrome.extension.getBackgroundPage().Exclusions;
 
-  Option = (function() {
-    Option.all = [];
+  function Option(field, onUpdated) {
+    this.field = field;
+    this.onUpdated = onUpdated;
+    this.element = $(this.field);
+    this.element.addEventListener("change", this.onUpdated);
+    this.fetch();
+    Option.all.push(this);
+  }
 
-    function Option(field, onUpdated) {
-      this.field = field;
-      this.onUpdated = onUpdated;
-      this.element = $(this.field);
-      this.element.addEventListener("change", this.onUpdated);
-      this.fetch();
-      Option.all.push(this);
+  Option.all = [];
+
+  Option.prototype.fetch = function() {
+    this.populateElement(this.previous = bgSettings.get(this.field));
+    return this.previous;
+  };
+
+  Option.prototype.save = function() {
+    var value = this.readValueFromElement();
+    if (!this.areEqual(value, this.previous)) {
+      bgSettings.set(this.field, this.previous = value);
     }
+  };
 
-    Option.prototype.fetch = function() {
-      this.populateElement(this.previous = bgSettings.get(this.field));
-      return this.previous;
-    };
+  Option.prototype.areEqual = function(a, b) {
+    return a === b;
+  };
 
-    Option.prototype.save = function() {
-      var value = this.readValueFromElement();
-      if (!this.areEqual(value, this.previous)) {
-        bgSettings.set(this.field, this.previous = value);
-      }
-    };
+  Option.prototype.restoreToDefault = function() {
+    bgSettings.clear(this.field);
+    return this.fetch();
+  };
 
-    Option.prototype.areEqual = function(a, b) {
-      return a === b;
-    };
-
-    Option.prototype.restoreToDefault = function() {
-      bgSettings.clear(this.field);
-      return this.fetch();
-    };
-
-    Option.saveOptions = function() {
-      Option.all.forEach(function(option) {
-        option.save();
-      });
-    };
-
-    return Option;
-
-  })();
+  Option.saveOptions = function() {
+    Option.all.forEach(function(option) {
+      option.save();
+    });
+  };
 
   NumberOption = (function(_super) {
     __extends(NumberOption, _super);
