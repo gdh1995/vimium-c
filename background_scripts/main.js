@@ -588,7 +588,7 @@
     },
     openCopiedUrlInCurrentTab: function(tab) {
       requestHandlers.openUrlInCurrentTab({
-        url: Clipboard.paste().trim()
+        url: Clipboard.paste()
       }, tab);
     },
     openCopiedUrlInNewTab: function(tab, count) {
@@ -850,7 +850,7 @@
           keys: ref,
           values: values,
           response: (request = request.request) && (func = requestHandlers[request.handler])
-            && !func.useTab ? func(request) : undefined
+            ? func(request) : undefined
         });
         break;
       case "set": Settings.set(request.key, request.value); break;
