@@ -98,10 +98,11 @@ div#exampleKeyMapping {
 #footer, #footerTable, #footerTableData {
   width: 100%;
 }
-input#scrollStepSize {
-  width: 62px;
-  margin-right: 3px;
-  text-align: right;
+#scrollStepSize {
+  width: 66px;
+  margin-right: 4px;
+  text-align: left;
+  text-indent: 17px;
 }
 #userDefinedCss {
   width: 100%;
@@ -169,7 +170,6 @@ td.booleanOption, #helpText { font-size: 12px; }
   /* Each exclusion rule is about 30px, so this allows 7 before scrolling */
   max-height: 215px;
   min-height: 75px;
-  border: 1px solid #bfbfbf;
   border-radius: 2px;
   color: #444;
   width: 100%;
@@ -188,6 +188,8 @@ td.booleanOption, #helpText { font-size: 12px; }
   border: none;
   background-color: #fff;
   color: #979ca0;
+  padding: 1px 6px;
+  font-size: small;
 }
 .exclusionRemoveButton:hover {
   color: #444;
