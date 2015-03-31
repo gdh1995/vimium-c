@@ -2,15 +2,15 @@
 (function() {
   "use strict";
   var BackgroundCommands, checkKeyQueue //
-    , frameIdsForTab, generateCompletionKeys, ContentSettings //
+    , frameIdsForTab, ContentSettings //
     , handleMainPort, handleResponse, postResponse, funcDict //
     , helpDialogHtmlForCommandGroup, keyQueue, namedKeyRegex //
     , openMultiTab //
     , populateKeyCommands, splitKeyQueueRegex //
     , removeTabsRelative, selectTab //
     , requestHandlers, sendRequestToAllTabs //
-    , shouldShowUpgradeMessage, singleKeyCommands, splitKeyQueue //
-    , validFirstKeys, shouldShowActionIcon, setBadge;
+    , shouldShowUpgradeMessage, firstKeys, splitKeyQueue //
+    , secondKeys, currentFirst, shouldShowActionIcon, setBadge;
 
   shouldShowActionIcon = chrome.browserAction && chrome.browserAction.setIcon ? true : false;
 
@@ -721,62 +721,51 @@
   });
 
   populateKeyCommands = function() {
-    var key, len, len2;
-    validFirstKeys = {};
-    singleKeyCommands = [];
+    var key, len, len2, ref1, ref2, first;
+    ref1 = firstKeys = [];
+    ref2 = secondKeys = {};
     for (key in Commands.keyToCommandRegistry) {
       if (key.charCodeAt(0) === 60) {
         len = key.indexOf(">") + 1;
         if (len === key.length) {
-          singleKeyCommands.push(key);
+          ref1.push(key);
           continue;
         }
       } else if (key.length <= 1) {
-        singleKeyCommands.push(key);
+        ref1.push(key);
         continue;
       } else {
         len = 1;
       }
-      len2 = key.indexOf(">", len) + 1;
-      if ((len2 || (len + 1)) === key.length) {
-        validFirstKeys[key.substring(0, len)] = 1;
-      } else {
+      if ((key.indexOf(">", len) + 1 || (len + 1)) !== key.length) {
         console.warn("invalid key command:", key);
+        continue;
+      }
+      first = key.substring(0, len);
+      key = key.substring(len);
+      if (first in ref2) {
+        ref2[first].push(key);
+      } else {
+        ref1.push(first);
+        ref2[first] = [key];
       }
     }
+    ref1.sort().reverse();
+    for (first in ref2) {
+      ref2[first].sort().reverse();
+    }
+    ref2[""] = [];
   };
 
   Settings.setUpdateHook("postKeyMappings", function() {
     populateKeyCommands();
-    keyQueue = "";
+    currentFirst = keyQueue = "";
     sendRequestToAllTabs({
       name: "refreshKeyMapping",
-      singles: singleKeyCommands,
-      firsts: validFirstKeys
+      firstKeys: firstKeys,
+      secondKeys: secondKeys
     });
   });
-
-  generateCompletionKeys = function() {
-    if (!keyQueue) {
-      return null;
-    }
-    var command = splitKeyQueueRegex.exec(keyQueue)[2], completionKeys, key, ind;
-    if (command.charCodeAt(0) === 60) {
-      if (command.indexOf(">") + 1 < command.length) {
-        return null;
-      }
-    } else if (command.length !== 1) {
-      return null;
-    }
-    completionKeys = [];
-    ind = command.length;
-    for (key in Commands.keyToCommandRegistry) {
-      if (key.startsWith(command)) {
-        completionKeys.push(key.substring(ind));
-      }
-    }
-    return completionKeys.length ? completionKeys : null;
-  };
 
   handleResponse = function(msgId, func, request, tab) {
     this.postMessage({_msgId: msgId, response: func(request, tab)});
@@ -809,16 +798,16 @@
     }
     else if (key = request.handlerKey) {
       if (key === "<esc>") {
-        key = "";
+        currentFirst = key = "";
       } else {
         key = checkKeyQueue(keyQueue + key, port);
       }
       if (keyQueue !== key) {
         keyQueue = key;
         port.postMessage({
-          name: "refreshCompletionKeys",
-          completions: generateCompletionKeys(),
-          keyQueue: keyQueue
+          name: "refreshKeyQueue",
+          keyQueue: keyQueue,
+          currentFirst: currentFirst
         });
       }
     }
@@ -895,12 +884,24 @@
     } else if (registryEntry = Commands.keyToCommandRegistry[command = splitHash[2]]) {
       count = parseInt(splitHash[1] || 1, 10);
     } else if ((count = (command.charCodeAt(0) === 60) ? (command.indexOf(">") + 1) : 1) >= command.length) {
-      return validFirstKeys[command] ? splitHash[0] : "";
+      command = command.substring(0, count);
+      if (command in secondKeys) {
+        currentFirst = command;
+        return splitHash[0];
+      }
+      return "";
     } else if (registryEntry = Commands.keyToCommandRegistry[command = command.substring(count)]) {
       count = 1;
     } else {
-      count = command.charCodeAt(0) - 48;
-      return (count > 0 && count <= 9 || count && validFirstKeys[command]) ? command : "";
+      currentFirst = "";
+      if (count = command.charCodeAt(0) - 48) {
+        if (count > 0 && count <= 9) {
+          return command;
+        } else if (command in secondKeys) {
+          return currentFirst = command;
+        }
+      }
+      return "";
     }
     command = registryEntry.command;
     if (registryEntry.noRepeat === true) {
@@ -926,6 +927,7 @@
       });
       keyQueue = "";
     }
+    currentFirst = "";
     return "";
   };
 
@@ -1018,12 +1020,12 @@
     isEnabledForUrl: function(request) {
       var rule = Exclusions.getRule(request.url), ret;
       return (rule && !rule.passKeys) ? { enabled: false } : {
-        completions: generateCompletionKeys(),
         enabled: true,
         keyQueue: keyQueue,
+        currentFirst: currentFirst,
         passKeys: (rule ? rule.passKeys : ""),
-        singles: singleKeyCommands,
-        firsts: validFirstKeys
+        firstKeys: firstKeys,
+        secondKeys: secondKeys
       };
     },
     saveHelpDialogSettings: function(request) {
