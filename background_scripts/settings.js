@@ -144,7 +144,7 @@ var Settings = {
     showOmniRelevancy: false,
     scrollStepSize: 100,
     smoothScroll: true,
-    keyMappings: "# Insert your preferred key mappings here.",
+    keyMappings: "",
     linkHintCharacters: "asdqwerzxcv",
     linkHintNumbers: "1234567890",
     filterLinkHints: false,
