@@ -34,12 +34,9 @@ var Commands = {
     delete this.keyToCommandRegistry[key];
   },
   _keyLeftRegex: /<[acf]-/ig,
-  _keyRegex: /<([acf]-)?([a-zA-Z0-9]{2,5})>/g,
   normalizeKey: function(key) {
     return key.replace(this._keyLeftRegex, function(match) {
       return match.toLowerCase();
-    }).replace(this._keyRegex, function(match, optionalPrefix, keyName) {
-      return "<" + (optionalPrefix || "") + keyName.toLowerCase() + ">";
     });
   },
   _spaceSpliter: /\s+/,
