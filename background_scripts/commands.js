@@ -155,7 +155,7 @@ Commands._defaultKeyMappings = {
   "J": "previousTab",
   "gt": "nextTab",
   "gT": "previousTab",
-  "<<": "moveTabLeft",
+  "<<><<>": "moveTabLeft",
   ">>": "moveTabRight",
   "g0": "firstTab",
   "g$": "lastTab",
