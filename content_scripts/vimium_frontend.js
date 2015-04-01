@@ -501,7 +501,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
   };
 
   ELs.onKeypress = function(event) {
-    if (!isEnabledForUrl || !handlerStack.bubbleEvent('keypress', event) || event.keyCode <= 31) {
+    if (!isEnabledForUrl || !handlerStack.bubbleEvent('keypress', event) || event.keyCode < 32) {
       return;
     }
     var keyChar = String.fromCharCode(event.charCode);
@@ -533,7 +533,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       return;
     }
     var modifiers = null, keyChar = "", isInsert = isInsertMode(), isEscape, action = -1;
-    if (((event.metaKey || event.ctrlKey || event.altKey) && event.keyCode > 31)
+    if (((event.metaKey || event.ctrlKey || event.altKey) && event.keyCode >= 32)
         || ! event.keyIdentifier.startsWith("U+")) {
       isEscape = false;
       modifiers = "";
