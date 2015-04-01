@@ -16,8 +16,6 @@
 
   window.currentVersion = Utils.getCurrentVersion();
 
-  keyQueue = "";
-
   frameIdsForTab = {};
   
   window.getFrameIdsForTab = function() {
@@ -724,6 +722,7 @@
     var key, len, len2, ref1, ref2, first;
     ref1 = firstKeys = [];
     ref2 = secondKeys = {};
+    currentFirst = keyQueue = "";
     for (key in Commands.keyToCommandRegistry) {
       if (key.charCodeAt(0) === 60) {
         len = key.indexOf(">") + 1;
@@ -759,7 +758,6 @@
 
   Settings.setUpdateHook("postKeyMappings", function() {
     populateKeyCommands();
-    currentFirst = keyQueue = "";
     sendRequestToAllTabs({
       name: "refreshKeyMapping",
       firstKeys: firstKeys,
@@ -1088,6 +1086,13 @@
       requestHandlers[ref[i]].useTab = true;
     }
 
+    if (typeof Sync === "object" && typeof Sync.init === "function" && Settings.get("vimSync") === true) {
+      Sync.init();
+    } else {
+      var blank = function() {};
+      window.Sync = {debug: false, clear: blank, set: blank, init: blank};
+    }
+
     key = Settings.get("previousVersion");
     if (!key) {
       Settings.set("previousVersion", currentVersion);
@@ -1099,13 +1104,6 @@
     sendRequestToAllTabs({
       name: "reRegisterFrame"
     });
-
-    if (typeof Sync === "object" && typeof Sync.init === "function" && Settings.get("vimSync") === true) {
-      Sync.init();
-    } else {
-      var blank = function() {};
-      window.Sync = {debug: false, clear: blank, set: blank, init: blank};
-    }
   })();
 
   ContentSettings.clear("images");
