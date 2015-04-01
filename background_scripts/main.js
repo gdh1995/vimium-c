@@ -1010,7 +1010,7 @@
       };
     },
     saveHelpDialogSettings: function(request) {
-      Settings.set("helpDialog_showAdvancedCommands", request.showAdvancedCommands);
+      Settings.set("showAdvancedCommands", request.showAdvancedCommands);
     },
     selectSpecificTab: function(request) {
       chrome.tabs.get(request.sessionId, function(tab) {

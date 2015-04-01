@@ -192,7 +192,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     values: {},
     valuesToLoad: ["scrollStepSize", "linkHintCharacters", "linkHintNumbers", "filterLinkHints" //
       , "hideHud", "previousPatterns", "nextPatterns", "findModeRawQuery", "regexFindMode" //
-      , "helpDialog_showAdvancedCommands", "smoothScroll", "showOmniRelevancy" //
+      , "showAdvancedCommands", "smoothScroll", "showOmniRelevancy" //
       , "findModeRawQueryList"
     ], // should be the same as bg.Settings.valuesToLoad
     isLoading: 0,
@@ -1015,7 +1015,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     container.innerHTML = html;
     VimiumHelpDialog = {
       getShowAdvancedCommands: function() {
-        return settings.values.helpDialog_showAdvancedCommands ? true : false;
+        return settings.values.showAdvancedCommands ? true : false;
       },
       init: function() {
         this.dialogElement = document.getElementById("vimHelpDialog");
@@ -1027,7 +1027,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
         var showAdvanced = VimiumHelpDialog.getShowAdvancedCommands();
         DomUtils.suppressEvent(event);
         VimiumHelpDialog.showAdvancedCommands(!showAdvanced);
-        settings.set("helpDialog_showAdvancedCommands", !showAdvanced);
+        settings.set("showAdvancedCommands", !showAdvanced);
       },
       showAdvancedCommands: function(visible) {
         var advancedEls, el, _i, _len;

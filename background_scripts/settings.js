@@ -138,7 +138,8 @@ var Settings = {
   // clear localStorage & sync, if value === @defaults[key]
   defaults: {
     UILanguage: null,
-    helpDialog_showAdvancedCommands: false,
+    showAdvancedCommands: false,
+    showAdvancedOptions: 1,
     showActionIcon: false,
     vimSync: false,
     showOmniRelevancy: false,
@@ -185,7 +186,7 @@ var Settings = {
   },
   valuesToLoad: ["scrollStepSize", "linkHintCharacters", "linkHintNumbers", "filterLinkHints" //
     , "hideHud", "previousPatterns", "nextPatterns", "findModeRawQuery", "regexFindMode" //
-    , "helpDialog_showAdvancedCommands", "smoothScroll", "showOmniRelevancy" //
+    , "showAdvancedCommands", "smoothScroll", "showOmniRelevancy" //
     , "findModeRawQueryList"
   ],
   bufferToLoad: null,

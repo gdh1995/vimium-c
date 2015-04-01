@@ -2,7 +2,7 @@
 (function() {
   "use strict";
   var $, CheckBoxOption, ExclusionRulesOption, NonEmptyTextOption, NumberOption, Option, TextOption,
-    activateHelpDialog, bgSettings, bgExclusions, enableSaveButton, maintainLinkHintsView, toggleAdvancedOptions,
+    activateHelpDialog, bgSettings, bgExclusions, enableSaveButton, maintainLinkHintsView,
     ExclusionRulesOnPopupOption, initOptionsPage, initPopupPage,
     __hasProp = Object.prototype.hasOwnProperty,
     __extends = function(child, parent) {
@@ -307,7 +307,8 @@
   })(ExclusionRulesOption);
 
   initOptionsPage = function() {
-    var activateHelpDialog, element, maintainLinkHintsView, name, onUpdated, options, saveOptions, toggleAdvancedOptions, type, _i, _ref;
+    var activateHelpDialog, element, maintainLinkHintsView, name, onUpdated //
+      , options, saveOptions, toggleAdvancedOptions, type, _i, _ref;
 
     onUpdated = function() {
       var saveBtn = $("saveOptions");
@@ -332,7 +333,7 @@
       }
     };
 
-    var _advancedMode = false;
+    var _advancedMode = !bgSettings.get("showAdvancedOptions");
     toggleAdvancedOptions = function(event) {
       if (_advancedMode) {
         $("advancedOptions").style.display = "none";
@@ -342,6 +343,7 @@
         $("advancedOptionsLink").innerHTML = "Hide advanced options";
       }
       _advancedMode = !_advancedMode;
+      bgSettings.set("showAdvancedOptions", _advancedMode);
       event.preventDefault();
       document.activeElement.blur();
     };
@@ -363,6 +365,7 @@
 
     $("saveOptions").addEventListener("click", saveOptions);
     $("advancedOptionsLink").addEventListener("click", toggleAdvancedOptions);
+    toggleAdvancedOptions({preventDefault: function() {}});
     $("showCommands").addEventListener("click", activateHelpDialog);
     $("filterLinkHints").addEventListener("click", maintainLinkHintsView);
     _ref = document.getElementsByClassName("nonEmptyTextOption");
