@@ -16,8 +16,6 @@
 
   window.currentVersion = Utils.getCurrentVersion();
 
-  keyQueue = "";
-
   frameIdsForTab = {};
   
   window.getFrameIdsForTab = function() {
@@ -464,11 +462,7 @@
         return;
       }
       funcDict.makeTempWindow(options.tabId, true, //
-      funcDict.moveTabToIncognito[3].bind(null, options, tab2));
-    }, function(options, tab2) {
-      chrome.tabs.move(options.tabId, {index: tab2.index + 1, windowId: tab2.windowId});
-      chrome.tabs.update(options.tabId, {selected: true});
-      chrome.windows.update(tab2.windowId, {focused: true});
+      funcDict.moveTabToNextWindow[2].bind(null, options.tabId, tab2));
     }],
     removeTab: [function(tab, count, curTabs) {
       if (curTabs.length <= count) {
@@ -724,6 +718,7 @@
     var key, len, len2, ref1, ref2, first;
     ref1 = firstKeys = [];
     ref2 = secondKeys = {};
+    currentFirst = keyQueue = "";
     for (key in Commands.keyToCommandRegistry) {
       if (key.charCodeAt(0) === 60) {
         len = key.indexOf(">") + 1;
@@ -759,7 +754,6 @@
 
   Settings.setUpdateHook("postKeyMappings", function() {
     populateKeyCommands();
-    currentFirst = keyQueue = "";
     sendRequestToAllTabs({
       name: "refreshKeyMapping",
       firstKeys: firstKeys,
@@ -1088,6 +1082,13 @@
       requestHandlers[ref[i]].useTab = true;
     }
 
+    if (typeof Sync === "object" && typeof Sync.init === "function" && Settings.get("vimSync") === true) {
+      Sync.init();
+    } else {
+      var blank = function() {};
+      window.Sync = {debug: false, clear: blank, set: blank, init: blank};
+    }
+
     key = Settings.get("previousVersion");
     if (!key) {
       Settings.set("previousVersion", currentVersion);
@@ -1099,13 +1100,6 @@
     sendRequestToAllTabs({
       name: "reRegisterFrame"
     });
-
-    if (typeof Sync === "object" && typeof Sync.init === "function" && Settings.get("vimSync") === true) {
-      Sync.init();
-    } else {
-      var blank = function() {};
-      window.Sync = {debug: false, clear: blank, set: blank, init: blank};
-    }
   })();
 
   ContentSettings.clear("images");
