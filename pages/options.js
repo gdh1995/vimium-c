@@ -141,9 +141,9 @@
     __extends(ExclusionRulesOption, _super);
 
     function ExclusionRulesOption() {
+      this.onRemoveRow = this.onRemoveRow.bind(this);
       ExclusionRulesOption.__super__.constructor.apply(this, arguments);
       $("exclusionAddButton").addEventListener("click", this.addRule.bind(this, null));
-      this.onRemoveRow = this.onRemoveRow.bind(this);
     }
 
     ExclusionRulesOption.prototype.addRule = function(pattern) {
