@@ -4,7 +4,7 @@
   var BackgroundCommands, checkKeyQueue //
     , frameIdsForTab, ContentSettings //
     , handleMainPort, handleResponse, postResponse, funcDict //
-    , helpDialogHtmlForCommandGroup, keyQueue, namedKeyRegex //
+    , helpDialogHtmlForCommandGroup, keyQueue //
     , openMultiTab //
     , populateKeyCommands, splitKeyQueueRegex //
     , removeTabsRelative, selectTab //
@@ -21,8 +21,6 @@
   window.getFrameIdsForTab = function() {
     return frameIdsForTab;
   };
-
-  namedKeyRegex = /^(<[^>]+>)(.*)$/;
 
   window.helpDialogHtml = function(showUnboundCommands, showCommandNames, customTitle) {
     var command, commandsToKey, dialogHtml, group, key;

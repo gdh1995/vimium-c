@@ -532,22 +532,26 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       KeydownEvents.push(event);
       return;
     }
-    var modifiers = null, keyChar = "", isInsert = isInsertMode(), isEscape = KeyboardUtils.isEscape(event), action = -1;
-    if (((event.metaKey || event.ctrlKey || event.altKey) && event.keyCode > 31) || ! event.keyIdentifier.startsWith("U+")) {
+    var modifiers = null, keyChar = "", isInsert = isInsertMode(), isEscape, action = -1;
+    if (((event.metaKey || event.ctrlKey || event.altKey) && event.keyCode > 31)
+        || ! event.keyIdentifier.startsWith("U+")) {
+      isEscape = false;
       modifiers = "";
       if (keyChar = KeyboardUtils.getKeyChar(event)) {
-        if (event.ctrlKey) {
-          modifiers = event.metaKey ? "f-c-" : keyCodes.hasMeta ? "f-" : "c-";
-        } else if (event.metaKey) {
-          modifiers = "c-";
-        }
         if (event.altKey) {
-          modifiers += "a-";
+          modifiers = "a-";
+        }
+        if (event.ctrlKey) {
+          modifiers += event.metaKey ? "c-m-" : "c-";
+        } else if (event.metaKey) {
+          modifiers += "m-";
         }
         if (modifiers || keyChar.length > 1) {
           keyChar = "<" + modifiers + keyChar + ">";
         }
       }
+    } else {
+      isEscape = KeyboardUtils.isEscape(event);
     }
     if (isInsert && isEscape) {
       if (isEditable(event.srcElement) || !isEmbed(event.srcElement)) {
