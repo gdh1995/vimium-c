@@ -10,7 +10,7 @@
     , removeTabsRelative, selectTab //
     , requestHandlers, sendRequestToAllTabs //
     , shouldShowUpgradeMessage, firstKeys, splitKeyQueue //
-    , secondKeys, currentFirst, shouldShowActionIcon, setBadge;
+    , secondKeys, currentCount, currentFirst, shouldShowActionIcon, setBadge;
 
   shouldShowActionIcon = chrome.browserAction && chrome.browserAction.setIcon ? true : false;
 
@@ -713,34 +713,23 @@
   });
 
   populateKeyCommands = function() {
-    var key, len, len2, ref1, ref2, first;
+    var key, ref1, ref2, first, arr, keyRegex;
     ref1 = firstKeys = [];
     ref2 = secondKeys = {};
     currentFirst = keyQueue = "";
+    currentCount = 0;
+    keyRegex = /<(?:(?:[acm]-){1,3}.[^>]*|[^<>]+)>|./g;
     for (key in Commands.keyToCommandRegistry) {
-      if (key.charCodeAt(0) === 60) {
-        len = key.indexOf(">") + 1;
-        if (len === key.length) {
-          ref1.push(key);
-          continue;
-        }
-      } else if (key.length <= 1) {
+      arr = key.match(keyRegex) || [];
+      if (arr.length === 1) {
         ref1.push(key);
-        continue;
-      } else {
-        len = 1;
-      }
-      if ((key.indexOf(">", len) + 1 || (len + 1)) !== key.length) {
-        console.warn("invalid key command:", key);
-        continue;
-      }
-      first = key.substring(0, len);
-      key = key.substring(len);
-      if (first in ref2) {
-        ref2[first].push(key);
+      } else if (arr.length !== 2) {
+        console.warn("invalid key command:", key, "=>", arr);
+      } else if ((first = arr[0]) in ref2) {
+        ref2[first].push(arr[1]);
       } else {
         ref1.push(first);
-        ref2[first] = [key];
+        ref2[first] = [arr[1]];
       }
     }
     ref1.sort().reverse();
@@ -789,7 +778,7 @@
       }
     }
     else if (key = request.handlerKey) {
-      key = checkKeyQueue(keyQueue + key, port);
+      key = checkKeyQueue(key, port);
       if (keyQueue !== key) {
         keyQueue = key;
         port.postMessage({
@@ -865,30 +854,25 @@
   splitKeyQueueRegex = /([0-9]*)(.*)/;
 
   checkKeyQueue = function(command, port) {
-    var command, count, registryEntry, splitHash;
-    splitHash = splitKeyQueueRegex.exec(command);
-    if (!splitHash[2]) {
-      return command === "0" ? "" : command;
-    } else if (registryEntry = Commands.keyToCommandRegistry[command = splitHash[2]]) {
-      count = parseInt(splitHash[1] || 1, 10);
-    } else if ((count = (command.charCodeAt(0) === 60) ? (command.indexOf(">") + 1) : 1) >= command.length) {
-      command = command.substring(0, count);
-      if (command in secondKeys) {
-        currentFirst = command;
-        return splitHash[0];
+    var count, registryEntry;
+    if (currentFirst) {
+      if (registryEntry = Commands.keyToCommandRegistry[currentFirst + command]) {
+        count = currentCount || 1;
+      } else {
+        currentCount = 0;
       }
-      return "";
-    } else if (registryEntry = Commands.keyToCommandRegistry[command = command.substring(count)]) {
-      count = 1;
+    }
+    if (registryEntry) {
+    } else if ((count = command.charCodeAt(0) - 48) >= 0 && count <= 9) {
+      count = currentCount = currentCount * 10 + count;
+      return count ? (count + "") : "";
+    } else if (registryEntry = Commands.keyToCommandRegistry[command]) {
+      count = currentCount || 1;
+    } else if (command in secondKeys) {
+      currentFirst = command;
+      return (count = currentCount) ? (count + command) : command;
     } else {
-      currentFirst = "";
-      if (count = command.charCodeAt(0) - 48) {
-        if (count > 0 && count <= 9) {
-          return command;
-        } else if (command in secondKeys) {
-          return currentFirst = command;
-        }
-      }
+      currentCount = 0;
       return "";
     }
     command = registryEntry.command;
@@ -916,6 +900,7 @@
       keyQueue = "";
     }
     currentFirst = "";
+    currentCount = 0;
     return "";
   };
 
@@ -994,6 +979,7 @@
     },
     esc: function() {
       currentFirst = keyQueue = "";
+      currentCount = 0;
     },
     nextFrame: function(request, tab) {
       BackgroundCommands.nextFrame(tab, 1, request.frameId);
