@@ -147,7 +147,7 @@
         if (chrome.runtime.lastError) {
           chrome.contentSettings[contentType].get({primaryUrl: tab.url}, function (opt) {
             if (opt && opt.setting === "allow") { return; }
-            opt = {type: "normal", incognito: true, focused: false, url: Settings.ChromeInnerNewTab};
+            opt = {type: "normal", incognito: true, focused: false, url: "about:blank"};
             chrome.windows.create(opt, function (wnd) {
               var leftTabId = wnd.tabs[0].id;
               _this.setAndUpdate(contentType, tab, pattern, wnd.id, true, function() {
@@ -351,7 +351,7 @@
         funcDict.createTab[3](this, tab, repeat, wnds[0]);
         return;
       }
-      funcDict.makeTempWindow(Settings.ChromeInnerNewTab, false, //
+      funcDict.makeTempWindow("about:blank", false, //
       funcDict.createTab[3].bind(null, this, tab, function(newTab) {
         chrome.windows.remove(newTab.windowId);
         repeat && repeat(newTab);
@@ -410,14 +410,14 @@
       } : null);
     }, function(tab, oldIndex, tab2) {
       if (oldIndex >= 0) {
-        funcDict.moveTabToNextWindow[2](tab, tab2);
+        funcDict.moveTabToNextWindow[2](tab.id, tab2);
         return;
       }
       funcDict.makeTempWindow(tab.id, tab.incognito, //
-      funcDict.moveTabToNextWindow[2].bind(null, tab, tab2));
-    }, function(tab, tab2) {
-      chrome.tabs.move(tab.id, {index: tab2.index + 1, windowId: tab2.windowId});
-      chrome.tabs.update(tab.id, {selected: true});
+      funcDict.moveTabToNextWindow[2].bind(null, tab.id, tab2));
+    }, function(tabId, tab2) {
+      chrome.tabs.move(tabId, {index: tab2.index + 1, windowId: tab2.windowId});
+      chrome.tabs.update(tabId, {selected: true});
       chrome.windows.update(tab2.windowId, {focused: true});
     }],
     moveTabToIncognito: [function(tab, wnd) {
@@ -462,11 +462,7 @@
         return;
       }
       funcDict.makeTempWindow(options.tabId, true, //
-      funcDict.moveTabToIncognito[3].bind(null, options, tab2));
-    }, function(options, tab2) {
-      chrome.tabs.move(options.tabId, {index: tab2.index + 1, windowId: tab2.windowId});
-      chrome.tabs.update(options.tabId, {selected: true});
-      chrome.windows.update(tab2.windowId, {focused: true});
+      funcDict.moveTabToNextWindow[2].bind(null, options.tabId, tab2));
     }],
     removeTab: [function(tab, count, curTabs) {
       if (curTabs.length <= count) {
