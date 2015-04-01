@@ -508,9 +508,6 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     if (!keyChar) {
       return;
     }
-    if (keyChar === '<') {
-      keyChar = '<<>';
-    }
     if (keyChar === "f" && event[keyCodes.modifier]) {
       enterInsertModeWithoutShowingIndicator();
     } else if (findMode) {
