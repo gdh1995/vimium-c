@@ -55,7 +55,7 @@
 
   secondKeys = {};
 
-  currentSeconds = null;
+  currentSeconds = {};
   
   oldActivated = {
     target: null,
@@ -1295,7 +1295,7 @@ href='https://github.com/philc/vimium#release-notes'>what's new</a>).<a class='v
         }
       }
       keyQueue = "";
-      currentSeconds = {};
+      currentSeconds = sec2[""];
     },
     refreshKeyQueue: function(response) {
       keyQueue = response.keyQueue;
