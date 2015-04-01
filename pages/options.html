@@ -15,10 +15,10 @@
           <td>
             <div class="help">
               <div class="example">
-                Wholly or partially disable Vimium.  "Patterns" are URL regular expressions;
-                additionally, "*" matches any zero or more characters.
+                Wholly or partially disable Vimium.  "<tt>Patterns</tt>" are URL regular expressions;
+                additionally, "<tt>*</tt>" matches any zero or more characters.
                 <br/><br/>
-                If "Keys" is left empty, then Vimium is wholly disabled.
+                If "<tt>Keys</tt>" is left empty, then Vimium is wholly disabled.
                 Otherwise, just the listed keys are disabled (they are passed through).
               </div>
             </div>
@@ -54,14 +54,14 @@ unmapAll
           <td verticalAlign="top">
               <div class="help">
                 <div class="example">
-                  Add search-engine shortcuts to the Vomnibar. Format:<br/>
+                  Add search engine shortcuts to the Vomnibar. Format:<br/>
                   <pre>
 a: http://a.com/?q=%s
 b: http://b.com/?q=%s description
 Description|c|C: \
     http://c.com/?q=%s&amp;space=\s\ space_end
 # this is a comment</pre>
-                  %s will be replaced with your search terms.<br/>
+                  <tt>%s</tt> will be replaced with your search terms.<br/>
                 </div>
               </div>
               <textarea id="searchEngines"></textarea>
@@ -186,8 +186,8 @@ Description|c|C: \
             <td verticalAlign="top">
                 <div class="help">
                   <div class="example">
-                      The page to open with the "create new tab" command.
-                      Set this to "<tt>pages/blank.html</tt>" for a blank page.<br />
+                    "<tt>pages/blank.html</tt>" for a blank page. Chrome inner:<br />
+                    "<tt>chrome-search://local-ntp/local-ntp.html</tt>".
                   </div>
                 </div>
                 <input id="newTabUrl" type="text" />
@@ -199,7 +199,8 @@ Description|c|C: \
             <td verticalAlign="top">
                 <div class="help">
                   <div class="example">
-                     The search engine to use in the Vomnibar <br> (e.g. "http://www.baidu.com/s?ie=utf-8&wd=%s").
+                    The default search engine ("~" to activate in Vomnibar)<br>
+                    (e.g. "<tt>http://www.baidu.com/s?ie=utf-8&wd=%s Baidu</tt>").
                   </div>
                 </div>
                 <input id="searchUrl" type="text" />
@@ -211,8 +212,8 @@ Description|c|C: \
             <td verticalAlign="top">
               <div class="help">
                 <div class="example">
-                  To style link hints, use selectors such as ".vimI.vimB" and ".vimLH &gt; .vimMC".<br/>
-				  <br/>
+                  To style link hints, use selectors such as "<tt>.vimI.vimB</tt>" and "<tt>.vimLH &gt; .vimMC</tt>".<br/>
+                  <br/>
                   These styles are used in addition to and take precedence over Vimium's
                   default styles.
                 </div>

@@ -2,7 +2,6 @@
    both of these. */
 body {
   font: 14px "DejaVu Sans", "Arial", sans-serif;
-  color: #303942;
   margin: 0 auto;
 }
 a, a:visited { color: #15c; }
@@ -61,7 +60,7 @@ pre, code, .code {
 }
 pre {
   margin: 5px;
-  border-left: 1px solid #eee;
+  border-left: 1px solid #ccc;
   padding-left: 5px;
 }
 textarea {
@@ -77,7 +76,7 @@ textarea {
 .example {
   font-size: 12px;
   line-height: 16px;
-  color: #979ca0;
+  color: #4F5254;
   margin-left: 20px;
 }
 .info {
@@ -151,7 +150,7 @@ input, textarea {
   border: 1px solid #bfbfbf;
   border-radius: 2px;
   box-sizing: border-box;
-  color: #444;
+  color: black;
   font: inherit;
   padding: 3px;
 }
