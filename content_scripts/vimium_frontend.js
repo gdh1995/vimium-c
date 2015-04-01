@@ -506,7 +506,12 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     }
     var keyChar = String.fromCharCode(event.charCode);
     if (!keyChar) {
-    } else if (keyChar === "f" && event[keyCodes.modifier]) {
+      return;
+    }
+    if (keyChar === '<') {
+      keyChar = '<<>';
+    }
+    if (keyChar === "f" && event[keyCodes.modifier]) {
       enterInsertModeWithoutShowingIndicator();
     } else if (findMode) {
       handleKeyCharForFindMode(keyChar);
