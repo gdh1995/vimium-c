@@ -33,7 +33,7 @@ var Commands = {
   unmapKey: function(key) {
     delete this.keyToCommandRegistry[key];
   },
-  _keyLeftRegex: /<[A-Z]-/g,
+  _keyLeftRegex: /<(?:[A-Z]-){1,}/gi,
   normalizeKey: function(key) {
     return key.replace(this._keyLeftRegex, function(match) {
       return match.toLowerCase();
