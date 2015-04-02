@@ -118,7 +118,9 @@ var LinkHints = {
       this.linkActivator = this.linkActivator || function(link) {
         var str = (link.getAttribute("data-vim-url") || link.href).trim() || "";
         if (!str) return;
-        str = Utils.correctSpace(Utils.decodeURL(str));
+        // NOTE: url should not be modified
+        // although BackendUtils.convertToUrl does replace '\u3000' with ' '
+        str = Utils.decodeURL(str);
         mainPort.postMessage({
           handler: "copyToClipboard",
           data: str
