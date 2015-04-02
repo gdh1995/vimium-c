@@ -6,7 +6,7 @@
     , handleMainPort, handleResponse, postResponse, funcDict //
     , helpDialogHtmlForCommandGroup, keyQueue //
     , openMultiTab //
-    , populateKeyCommands, splitKeyQueueRegex //
+    , populateKeyCommands //
     , removeTabsRelative, selectTab //
     , requestHandlers, sendRequestToAllTabs //
     , shouldShowUpgradeMessage, firstKeys, splitKeyQueue //
@@ -720,8 +720,9 @@
     currentCount = 0;
     keyRegex = /<(?:(?:[acm]-){1,3}.[^>]*|[^<>]+)>|./g;
     for (key in Commands.keyToCommandRegistry) {
-      arr = key.match(keyRegex) || [];
-      if (arr.length === 1) {
+      if (key.charCodeAt(0) >= 48 && key.charCodeAt(0) <= 57) {
+        console.warn("invalid key command:", key, "(the first char can not be [0-9])");
+      } else if ((arr = key.match(keyRegex)).length === 1) {
         ref1.push(key);
       } else if (arr.length !== 2) {
         console.warn("invalid key command:", key, "=>", arr);
@@ -850,8 +851,6 @@
       }
     }
   };
-
-  splitKeyQueueRegex = /([0-9]*)(.*)/;
 
   checkKeyQueue = function(command, port) {
     var count, registryEntry;
