@@ -1048,8 +1048,7 @@
     }
   });
 
-  Commands.clearKeyMappingsAndSetDefaults();
-  Commands.parseCustomKeyMappings(Settings.get("keyMappings"));
+  Commands.parseKeyMappings(Settings.get("keyMappings"));
   populateKeyCommands();
 
   shouldShowActionIcon = false;

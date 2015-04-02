@@ -5,112 +5,114 @@ var Commands = {
   keyToCommandRegistry: {},
   addCommand: function(command, description, options) {
     if (command in this.availableCommands) {
-      console.log(command, "is already defined! Check code for duplicates.");
+      console.warn("Bug:", command, "is already defined!");
       return;
     }
-    options || (options = {});
     this.availableCommands[command] = {
-      description: description || command,
-      background: options.background ? true : false,
-      noRepeat: options.noRepeat
+      background: options && options.background ? true : false,
+      noRepeat: options && options.noRepeat,
+      description: description || command
     };
   },
-  mapKeyToCommand: function(key, command) {
+  mapKeyToCommand: function(key, command, argv) {
     var commandDetails;
-    if (!this.availableCommands[command]) {
+    if (commandDetails = this.availableCommands[command]) {
+      this.keyToCommandRegistry[key] = {
+        noRepeat: commandDetails.noRepeat,
+        command: command,
+        background: commandDetails.background
+      };
+      if (window._DEBUG) {
+        console.log("Mapping", key, "to", command);
+      }
+    } else {
       console.log("Command %c" + command, "color:red;", "doesn't exist!");
-      return;
-    } else if (window._DEBUG) {
-      console.log("Mapping", key, "to", command);
     }
-    commandDetails = this.availableCommands[command];
-    this.keyToCommandRegistry[key] = {
-      command: command,
-      background: commandDetails.background,
-      noRepeat: commandDetails.noRepeat
-    };
   },
   unmapKey: function(key) {
-    delete this.keyToCommandRegistry[key];
-  },
-  _keyLeftRegex: /<(?:[A-Za-z]-){1,}/g,
-  normalizeKey: function(key) {
-    return key.replace(this._keyLeftRegex, function(match) {
-      return match.toLowerCase();
-    });
-  },
-  _spaceSpliter: /\s+/,
-  parseCustomKeyMappings: function(customKeyMappings) {
-    var key, line, lineCommand, lines, splitLine, vimiumCommand, _i, _len;
-    lines = customKeyMappings.split("\n");
-    for (_i = 0, _len = lines.length; _i < _len; _i++) {
-      line = lines[_i].trim();
-      if (line[0] === "\"" || line[0] === "#") {
-        continue;
+    if (key in this.keyToCommandRegistry) {
+      delete this.keyToCommandRegistry[key];
+      if (window._DEBUG) {
+        console.log("Unmapping", key);
       }
-      splitLine = line.split(this._spaceSpliter);
-      lineCommand = splitLine[0];
-      if (lineCommand === "map") {
-        if (splitLine.length !== 3) {
-          continue;
-        }
-        key = this.normalizeKey(splitLine[1]);
-        vimiumCommand = splitLine[2];
-        this.mapKeyToCommand(key, vimiumCommand);
-      } else if (lineCommand === "unmap") {
-        if (splitLine.length !== 2) {
-          continue;
-        }
-        key = this.normalizeKey(splitLine[1]);
-        if (window._DEBUG) {
-          console.log("Unmapping", key);
-        }
-        this.unmapKey(key);
-      } else if (lineCommand === "unmapAll") {
-        this.keyToCommandRegistry = {};
-      }
+    } else {
+      console.log("Unmapping:", key, "has not been mapped");
     }
   },
-  clearKeyMappingsAndSetDefaults: function() {
-    var key, defaultmap = this._defaultKeyMappings;
+  _keyLeftRegex: /<(?:[A-Za-z]-){1,}/g,
+  strToLowerCase: function(str) {
+    return str.toLowerCase();
+  },
+  normalizeKey: function(key) {
+    return key.replace(this._keyLeftRegex, this.strToLowerCase);
+  },
+  parseKeyMappings: function(line) {
+    var key, lines, splitLine, _i, _len, defaultmap;
+    defaultmap = this._defaultKeyMappings;
     this.keyToCommandRegistry = {};
     for (key in defaultmap) {
       this.mapKeyToCommand(key, defaultmap[key]);
     }
+    lines = line.replace(/\s+/, " ").split("\n");
+    for (_i = 0, _len = lines.length; _i < _len; _i++) {
+      line = lines[_i].trim();
+      key = line[0]; 
+      if (key === "\"" || key === "#") {
+        continue;
+      }
+      splitLine = line.split(" ");
+      key = splitLine[0];
+      if (key === "map") {
+        if (splitLine.length >= 3) {
+          key = this.normalizeKey(splitLine[1]);
+          this.mapKeyToCommand(key, splitLine[2], splitLine.slice(3));
+        }
+      } else if (key === "unmap") {
+        if (splitLine.length === 2) {
+          this.unmapKey(this.normalizeKey(splitLine[1]));
+        }
+      } else if (key === "unmapAll") {
+        this.keyToCommandRegistry = {};
+      }
+    }
+    this.keyToCommandRegistry.__proto__ = null;
   },
-  commandGroups: {
-    pageNavigation: ["scrollDown", "scrollUp", "scrollLeft", "scrollRight", "scrollToTop"
-      , "scrollToBottom", "scrollToLeft", "scrollToRight", "scrollPageDown", "scrollPageUp"
-      , "scrollFullPageUp", "scrollFullPageDown", "reload", "toggleViewSource", "copyCurrentUrl"
-      , "LinkHints.activateModeToCopyLinkUrl", "LinkHints.activateModeToCopyLinkText"
-      , "openCopiedUrlInCurrentTab", "openCopiedUrlInNewTab", "goUp", "goToRoot", "enterInsertMode"
-      , "focusInput", "LinkHints.activateMode", "LinkHints.activateModeToOpenInNewTab"
-      , "LinkHints.activateModeToOpenInNewForegroundTab", "LinkHints.activateModeWithQueue"
-      , "LinkHints.activateModeToDownloadLink", "LinkHints.activateModeToOpenIncognito"
-      , "LinkHints.activateModeToHover" //
-      , "Vomnibar.activate", "Vomnibar.activateInNewTab", "Vomnibar.activateTabSelection"
-      , "Vomnibar.activateBookmarks", "Vomnibar.activateBookmarksInNewTab", "Vomnibar.activateHistory"
-      , "Vomnibar.activateHistoryInNewTab", "goPrevious", "goNext", "nextFrame"
-      , "Marks.activateCreateMode", "Vomnibar.activateEditUrl", "Vomnibar.activateEditUrlInNewTab"
-      , "Marks.activateGotoMode"],
-    historyNavigation: ["goBack", "goForward", "reloadTab", "reopenTab", "switchFocus", "simBackspace"],
-    findCommands: ["enterFindMode", "performFind", "performBackwardsFind"],
-    tabManipulation: ["nextTab", "previousTab", "firstTab", "lastTab", "createTab", "duplicateTab"
-      , "removeTab", "restoreTab", "moveTabToNextWindow", "moveTabToIncognito", "togglePinTab"
-      , "closeTabsOnLeft", "closeTabsOnRight", "closeOtherTabs", "moveTabLeft", "moveTabRight" //
-      , "enableImageTemp", "toggleImage", "clearImageCS"],
-    misc: ["showHelp", "enterVisualMode"]
-  },
-  advancedCommands: ["scrollToLeft", "scrollToRight", "moveTabToNextWindow", "moveTabToIncognito"
-    , "goUp", "goToRoot", "focusInput", "LinkHints.activateModeWithQueue", "enableImageTemp"
-    , "toggleImage", "clearImageCS"
-    , "LinkHints.activateModeToDownloadLink", "Vomnibar.activateEditUrl"
-    , "Vomnibar.activateEditUrlInNewTab", "LinkHints.activateModeToOpenIncognito"
-    , "goNext", "goPrevious", "Marks.activateCreateMode", "Marks.activateGotoMode"
-    , "moveTabLeft", "moveTabRight", "closeTabsOnLeft", "closeTabsOnRight", "closeOtherTabs"],
-  _defaultKeyMappings: null,
+  commandGroups: null,
+  advancedCommands: null,
+  _defaultKeyMappings: null
 };
 
+Commands.commandGroups = {
+  pageNavigation: ["scrollDown", "scrollUp", "scrollLeft", "scrollRight", "scrollToTop"
+    , "scrollToBottom", "scrollToLeft", "scrollToRight", "scrollPageDown", "scrollPageUp"
+    , "scrollFullPageUp", "scrollFullPageDown", "reload", "toggleViewSource", "copyCurrentUrl"
+    , "LinkHints.activateModeToCopyLinkUrl", "LinkHints.activateModeToCopyLinkText"
+    , "openCopiedUrlInCurrentTab", "openCopiedUrlInNewTab", "goUp", "goToRoot", "enterInsertMode"
+    , "focusInput", "LinkHints.activateMode", "LinkHints.activateModeToOpenInNewTab"
+    , "LinkHints.activateModeToOpenInNewForegroundTab", "LinkHints.activateModeWithQueue"
+    , "LinkHints.activateModeToDownloadLink", "LinkHints.activateModeToOpenIncognito"
+    , "LinkHints.activateModeToHover" //
+    , "Vomnibar.activate", "Vomnibar.activateInNewTab", "Vomnibar.activateTabSelection"
+    , "Vomnibar.activateBookmarks", "Vomnibar.activateBookmarksInNewTab", "Vomnibar.activateHistory"
+    , "Vomnibar.activateHistoryInNewTab", "goPrevious", "goNext", "nextFrame"
+    , "Marks.activateCreateMode", "Vomnibar.activateEditUrl", "Vomnibar.activateEditUrlInNewTab"
+    , "Marks.activateGotoMode"],
+  historyNavigation: ["goBack", "goForward", "reloadTab", "reopenTab", "switchFocus", "simBackspace"],
+  findCommands: ["enterFindMode", "performFind", "performBackwardsFind"],
+  tabManipulation: ["nextTab", "previousTab", "firstTab", "lastTab", "createTab", "duplicateTab"
+    , "removeTab", "restoreTab", "moveTabToNextWindow", "moveTabToIncognito", "togglePinTab"
+    , "closeTabsOnLeft", "closeTabsOnRight", "closeOtherTabs", "moveTabLeft", "moveTabRight" //
+    , "enableImageTemp", "toggleImage", "clearImageCS"],
+  misc: ["showHelp", "enterVisualMode"]
+};
+Commands.advancedCommands = ["scrollToLeft", "scrollToRight", "moveTabToNextWindow", "moveTabToIncognito"
+  , "goUp", "goToRoot", "focusInput", "LinkHints.activateModeWithQueue", "enableImageTemp"
+  , "toggleImage", "clearImageCS"
+  , "LinkHints.activateModeToDownloadLink", "Vomnibar.activateEditUrl"
+  , "Vomnibar.activateEditUrlInNewTab", "LinkHints.activateModeToOpenIncognito"
+  , "goNext", "goPrevious", "Marks.activateCreateMode", "Marks.activateGotoMode"
+  , "moveTabLeft", "moveTabRight", "closeTabsOnLeft", "closeTabsOnRight", "closeOtherTabs"
+];
 Commands._defaultKeyMappings = {
   "?": "showHelp",
   "j": "scrollDown",
@@ -533,7 +535,6 @@ Commands._defaultKeyMappings = {
 });
 
 Settings.setUpdateHook("keyMappings", function(value) {
-  Commands.clearKeyMappingsAndSetDefaults();
-  Commands.parseCustomKeyMappings(value);
+  Commands.parseKeyMappings(value);
   this.postUpdate("postKeyMappings", null);
 });
