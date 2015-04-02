@@ -858,9 +858,9 @@
     if (currentFirst) {
       if (registryEntry = Commands.keyToCommandRegistry[currentFirst + command]) {
         count = currentCount || 1;
-      } else {
-        currentCount = 0;
       }
+      currentCount = 0;
+      currentFirst = "";
     }
     if (registryEntry) {
     } else if ((count = command.charCodeAt(0) - 48) >= 0 && count <= 9) {
@@ -868,6 +868,7 @@
       return count ? (count + "") : "";
     } else if (registryEntry = Commands.keyToCommandRegistry[command]) {
       count = currentCount || 1;
+      currentCount = 0;
     } else if (command in secondKeys) {
       currentFirst = command;
       return (count = currentCount) ? (count + command) : command;
@@ -899,8 +900,6 @@
       });
       keyQueue = "";
     }
-    currentFirst = "";
-    currentCount = 0;
     return "";
   };
 
