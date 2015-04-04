@@ -458,7 +458,7 @@
     xhr.onreadystatechange = function() {
       if (xhr.readyState === 4) {
         $("exclusionScrollBox").innerHTML = xhr.responseText;
-        if (location.pathname.endsWith("popup.html") >= 0) {
+        if (window.location.pathname.endsWith("popup.html")) {
           chrome.tabs.getSelected(null, initPopupPage);
         } else if (location.pathname.endsWith("options.html") >= 0) {
           initOptionsPage();
