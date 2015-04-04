@@ -1252,12 +1252,14 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
           map[arr[i]] = 1;
         }
       }
-      keyQueue = "";
-      currentSeconds = sec2[""];
+      keyQueue = response.keyQueue || "";
+      currentSeconds = sec2[response.currentFirst || ""];
     },
     refreshKeyQueue: function(response) {
+      if (response) {
       keyQueue = response.keyQueue;
       currentSeconds = secondKeys[response.currentFirst];
+      }
     },
     setScrollPosition: function(request) {
       var scrollX = request.scroll[0], scrollY = request.scroll[1];
@@ -1336,7 +1338,6 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     isEnabledForUrl = true;
     initializeWhenEnabled(response.passKeys);
     requestHandlers.refreshKeyMapping(response);
-    requestHandlers.refreshKeyQueue(response);
   });
 
   ((settings.load(null, false, {
