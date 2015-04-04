@@ -1053,9 +1053,6 @@
     name: "reRegisterFrame"
   });
 
-  shouldShowActionIcon = false;
-  window.setShouldShowActionIcon(Settings.get("showActionIcon"));
-
   (function() {
     var ref, i, key, func;
     ref = ["getCurrentTabUrl", "openUrlInNewTab", "openUrlInIncognito", "openUrlInCurrentTab" //
@@ -1064,6 +1061,10 @@
     for (i = ref.length; 0 <= --i; ) {
       requestHandlers[ref[i]].useTab = true;
     }
+
+    key = shouldShowActionIcon;
+    shouldShowActionIcon = false;
+    window.setShouldShowActionIcon(key && Settings.get("showActionIcon"));
 
     if (typeof Sync === "object" && typeof Sync.init === "function" && Settings.get("vimSync") === true) {
       Sync.init();
