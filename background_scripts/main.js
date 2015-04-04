@@ -245,14 +245,12 @@
         currentPasskeys = response.passKeys;
         config = Exclusions.getRule(url);
         if (config) {
-          enabled = !config.passKeys;
+          enabled = config.passKeys ? true : false;
           passKeys = config.passKeys;
         } else {
-          enabled = false;
+          enabled = true;
           passKeys = "";
         }
-        enabled = config.enabled;
-        passKeys = config.passKeys;
         chrome.browserAction.setIcon({
           tabId: tabId,
           path: !enabled ? "img/icons/browser_action_disabled.png"
