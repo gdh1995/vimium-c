@@ -440,8 +440,8 @@
         Option.saveOptions();
         btn.innerHTML = "Saved";
         btn.disabled = true;
-        chrome.tabs.getSelected(null, function(tabs) {
-          chrome.extension.getBackgroundPage().updateActiveState(tabs[0].id);
+        chrome.tabs.getSelected(function(tab) {
+          chrome.extension.getBackgroundPage().updateActiveState(tab.id, tab.url);
         });
       };
       $("saveOptions").addEventListener("click", saveOptions);
