@@ -163,12 +163,10 @@ var Settings = {
     nextPatterns: "next,more,>,\u2192,\xbb,\u226b,>>",
     searchUrl: "http://www.baidu.com/s?ie=utf-8&wd=%s Baidu",
     searchEngines: "w|wiki|Wiki:\\\n  http://www.wikipedia.org/w/index.php?search=%s Wikipedia (en-US)\nBaidu|baidu|ba:\\\n  www.baidu.com/s?ie=utf-8&wd=%s",
-    newTabUrl: "/index.html", // note: if changed, /pages/newtab.html also needs change.
-    settingsVersion: Utils.getCurrentVersion()
+    newTabUrl: "/index.html" // note: if changed, /pages/newtab.html also needs change.
   },
   // accept only if value === @enforceBoolean[key], so that we get boolean options
   enforceBoolean: {
-    settingsVersion: "++",
     showActionIcon: true,
     vimSync: true
   },
@@ -177,6 +175,7 @@ var Settings = {
   nonPersistent: {
     help_dialog: true,
     searchEnginesMap: true,
+    settingsVersion: true,
     userDefinedCss_f: true,
     vomnibar: true
   },
