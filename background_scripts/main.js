@@ -88,7 +88,9 @@
       selected: active !== false
     };
     chrome.tabs.create(option, option.selected ? function(tab) {
-      chrome.windows.update(tab.windowId, {focused: true});
+      if (tab.windowId !== parentTab.windowId) {
+        chrome.windows.update(tab.windowId, {focused: true});
+      }
     } : null);
     if (count < 2) return;
     option.selected = false;
@@ -1042,14 +1044,22 @@
     }
   });
 
+  window.onunload = function() {
+    ContentSettings.clear("images");
+  };
+
   Commands.parseKeyMappings(Settings.get("keyMappings"));
   populateKeyCommands();
+
+  sendRequestToAllTabs({
+    name: "reRegisterFrame"
+  });
 
   shouldShowActionIcon = false;
   window.setShouldShowActionIcon(Settings.get("showActionIcon"));
 
   (function() {
-    var ref, i, key, callback, ref2;
+    var ref, i, key, func;
     ref = ["getCurrentTabUrl", "openUrlInNewTab", "openUrlInIncognito", "openUrlInCurrentTab" //
       , "openOptionsPageInNewTab", "nextFrame", "createMark" //
     ];
@@ -1060,8 +1070,8 @@
     if (typeof Sync === "object" && typeof Sync.init === "function" && Settings.get("vimSync") === true) {
       Sync.init();
     } else {
-      var blank = function() {};
-      window.Sync = {debug: false, clear: blank, set: blank, init: blank};
+      func = function() {};
+      window.Sync = {debug: false, clear: func, set: func, init: func};
     }
 
     key = Settings.get("previousVersion");
@@ -1069,15 +1079,7 @@
       Settings.set("previousVersion", currentVersion);
     } else {
     }
-
-    sendRequestToAllTabs({
-      name: "reRegisterFrame"
-    });
   })();
-
-  window.onunload = function() {
-    ContentSettings.clear("images");
-  };
 
 })();
 
