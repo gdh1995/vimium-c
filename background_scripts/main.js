@@ -1083,7 +1083,9 @@
     });
   })();
 
-  ContentSettings.clear("images");
+  window.onunload = function() {
+    ContentSettings.clear("images");
+  };
 
 })();
 
