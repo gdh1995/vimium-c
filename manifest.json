@@ -80,6 +80,7 @@
    "permissions": [
       "commands",
       "tabs",
+      "notifications",
       "bookmarks",
       "history",
       "clipboardRead",

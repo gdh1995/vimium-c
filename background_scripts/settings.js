@@ -38,6 +38,12 @@ var Settings = {
   hasPersistent: function(key) {
     return key in localStorage;
   },
+  storage: function(key, value) {
+    if (value === undefined) {
+      return JSON.parse(localStorage[key] || "null");
+    }
+    localStorage[key] = JSON.stringify(value);
+  },
   postUpdate: function(key, virtualValue) {
     var ref = this.postUpdateHooks[key];
     if (ref) {

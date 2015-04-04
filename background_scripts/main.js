@@ -1074,10 +1074,44 @@
       window.Sync = {debug: false, clear: func, set: func, init: func};
     }
 
-    key = Settings.get("previousVersion");
+    key = Settings.storage("previousVersion");
     if (!key) {
-      Settings.set("previousVersion", currentVersion);
+      Settings.storage("previousVersion", currentVersion);
+      return;
+    } else if (Utils.compareVersions(currentVersion, key) !== 1) {
+      return;
+    }
+    func = function() {
+      var key = "vim++_upgradeNotification";
+      chrome.notifications.create(key, {
+        type: "basic",
+        iconUrl: chrome.runtime.getURL("favicon.ico"),
+        title: "Vimium++ Upgrade",
+        message: "Vimium++ has been upgraded to version " + currentVersion
+          + ". Click here for more information.",
+        isClickable: true
+      }, function() {
+        if (chrome.runtime.lastError) {
+          return chrome.runtime.lastError;
+        }
+        Settings.storage("previousVersion", currentVersion);
+        chrome.notifications.onClicked.addListener(function(id) {
+          if (id !== key) { return; }
+          chrome.tabs.create({
+            url: "https://github.com/gdh1995/vim-plus#release-notes"
+          }, function(tab) {
+            chrome.windows.update(tab.windowId, {focused: true});
+          });
+          chrome.notifications.clear(key, function() {
+            return chrome.runtime.lastError;
+          });
+        });
+      });
+    };
+    if (chrome.notifications && chrome.notifications.create) {
+      func();
     } else {
+      chrome.permissions.onAdded.addListener(func);
     }
   })();
 
