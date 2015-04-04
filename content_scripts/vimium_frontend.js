@@ -142,19 +142,14 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       }
     },
     DefaultListener: function(response) {
-      var id, name, handler;
+      var id, handler;
       if (id = response._msgId) {
         if (handler = mainPort._callbacks[id]) {
           delete mainPort._callbacks[id];
           handler(response.response, id);
         }
-        return;
-      }
-      name = response.name;
-      if (isEnabledForUrl) {
-        if (handler = requestHandlers[name]) {
-          handler(response);
-        }
+      } else if (handler = requestHandlers[response.name]) {
+        handler(response);
       }
     },
     _ClearPort: function() {
@@ -234,12 +229,15 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       _this.request2 = null;
       func = response.keys ? "get" : "load";
       ref = _this._eventListeners;
-      v1 = ref[func];
+      v1 = ref[func] || [];
       delete ref[func];
       response = response.response;
+      if (response && (func = requestHandlers[response.name])) {
+        func(response);
+      }
       for (i = 0; i < v1.length; i++) {
         if (func = v1[i]) {
-          func(response);
+          func();
         }
       }
     },
@@ -256,17 +254,13 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     focusMsg: {
       handler: "frameFocused",
       tabId: 0,
+      icon: "disabled",
       url: window.location.href,
       frameId: frameId
-    },
-    iconMsg: {
-      handler: "setIcon",
-      tabId: 0,
-      icon: "disabled"
     }, //
     onKeydown: null, onKeypress: null, onKeyup: null, //
     docOnFocus: null, onBlur: null, onActivate: null, //
-    destroy: null //
+    onMsg: null, destroy: null //
   };
 
   initializeWhenEnabled = function(newPassKeys) {
@@ -1199,30 +1193,40 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
   requestHandlers = {
     checkIfEnabled: function() {
       mainPort.postMessage({
-        handler: "isEnabled",
+        handler: "checkIfEnabled",
+        tabId: ELs.focusMsg.tabId,
+        frameId: frameId,
         url: window.location.href
-      }, requestHandlers.isEnabled);
+      }, requestHandlers.ifEnabled);
     },
-    isEnabled: function(response) {
-      if (response && response.enabled) {
+    ifEnabled: function(response) {
+      if (response) {
         isEnabledForUrl = true;
-        ELs.iconMsg.icon = response.passKeys ? "partial" : "enabled";
+        ELs.focusMsg.icon = response.passKeys ? "partial" : "enabled";
+        if (response.firstKeys) {
+          ELs.focusMsg.tabId = response.tabId;
+          requestHandlers.refreshKeyMappings(response);
+        } else if (!("" in secondKeys)) {
+          mainPort.postMessage({
+            handler: "keyMappings"
+          }, requestHandlers.refreshKeyMappings);
+          currentSeconds = secondKeys[""] = {};
+        }
         initializeWhenEnabled(response.passKeys);
-        requestHandlers.refreshKeyMapping(response);
       } else {
         isEnabledForUrl = false;
-        ELs.iconMsg.icon = "disabled";
+        ELs.focusMsg.icon = "disabled";
         HUD.hide();
       }
     },
+    ifDisabled: function(response) {
+      var msg = ELs.focusMsg;
+      msg.tabId = response.tabId;
+      msg.icon = "disabled";
+    },
     settings: settings.ReceiveMessage,
     registerFrame: function(request) {
-      if (request.tabId) {
-        ELs.iconMsg.tabId = ELs.focusMsg.tabId = request.tabId;
-      }
-      if (request.css) {
-        DomUtils.DocumentReady(requestHandlers.injectCSS.bind(null, request), true);
-      }
+      DomUtils.DocumentReady(requestHandlers.injectCSS.bind(null, request), true);
     },
     reRegisterFrame: function(request) {
       mainPort.postMessage({
@@ -1264,7 +1268,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
         }), 200);
       }
     },
-    refreshKeyMapping: function(response) {
+    refreshKeyMappings: function(response) {
       var arr = response.firstKeys, i = arr.length, map, key, sec, sec2;
       map = firstKeys = {};
       map.__proto__ = null;
@@ -1287,13 +1291,9 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       currentSeconds = sec2[response.currentFirst || ""];
     },
     refreshKeyQueue: function(response) {
-      if (!response) {
-        return;
-      }
-      keyQueue = response.keyQueue;
-      currentSeconds = secondKeys[response.currentFirst];
-      if (response.showIcon && document.hasFocus()) {
-        mainPort.postMessage(ELs.iconMsg);
+      if (response) {
+        keyQueue = response.keyQueue;
+        currentSeconds = secondKeys[response.currentFirst];
       }
     },
     setScrollPosition: function(request) {
@@ -1303,6 +1303,8 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       }
     },
     executePageCommand: function(request) {
+      keyQueue = "";
+      currentSeconds = secondKeys[""];
       if (request.count < 0) {
         Utils.invokeCommandString(request.command, -request.count);
       } else {
@@ -1310,26 +1312,27 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
           Utils.invokeCommandString(request.command);
         }
       }
-      keyQueue = "";
-      currentSeconds = secondKeys[""];
     }
   };
 
-  chrome.runtime.onMessage.addListener(function(request, handler, sendResponse) {
-    if (!isEnabledForUrl) {
-      return;
-    }
-    if (handler = requestHandlers[request.name]) {
-      handler = handler(request);
-      if (handler != null) {
-        sendResponse(handler);
+  chrome.runtime.onMessage.addListener(ELs.onMsg = function(request, handler, sendResponse) {
+    if (isEnabledForUrl) {
+      if (handler = requestHandlers[request.name]) {
+        request = handler(request);
+        if (request != null) {
+          sendResponse(request);
+        }
       }
+    } else if (request.name === "checkIfEnabled") {
+      requestHandlers.checkIfEnabled();
+      sendResponse(0);
     }
   });
   
   ELs.destroy = function() {
     isEnabledForUrl = false;
     window.isEnabledForUrl_g = false;
+    chrome.runtime.onMessage.removeListener(this.onMsg);
     window.onunload = null;
     window.onfocus = null;
     window.removeEventListener("keydown", this.onKeydown, true);
@@ -1347,10 +1350,9 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     console.log("%cvim %c#" + frameId, "color:red", "color:blue", "has destroyed.");
   };
 
-  settings.addEventListener("load", requestHandlers.isEnabled);
-
   ((settings.load(null, false, {
-      handler: "isEnabled",
+      handler: "initIfEnabled",
+      isTop: window.top === window.self,
       url: window.location.href
     }) < 0)
     ? settings.addEventListener.bind(settings, "load")
@@ -1362,8 +1364,11 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       frameId: frameId,
       isTop: window.top === window.self,
     }, null);
-    window.onfocus = mainPort.postMessage.bind( //
-      mainPort, ELs.focusMsg, requestHandlers.refreshKeyQueue);
+    // NOTE: here, we should always postMessage, since
+    //     NO MESSAGE will be sent if not isEnabledForUrl,
+    // which would make the auto-destroy logic not work.
+    window.onfocus = mainPort.postMessage.bind(mainPort, ELs.focusMsg //
+      , requestHandlers.refreshKeyQueue);
   });
 
 })();

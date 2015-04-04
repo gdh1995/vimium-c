@@ -692,10 +692,9 @@ chrome.runtime.onInstalled.addListener(function(details) {
 
   populateKeyCommands = function() {
     var key, ref1, ref2, first, arr, keyRegex;
+    requestHandlers.esc();
     ref1 = firstKeys = [];
     ref2 = secondKeys = {};
-    currentFirst = keyQueue = "";
-    currentCount = 0;
     keyRegex = /<(?:(?:[acm]-){1,3}.[^>]*|[^<>]+)>|./g;
     for (key in Commands.keyToCommandRegistry) {
       if (key.charCodeAt(0) >= 48 && key.charCodeAt(0) <= 57) {
@@ -720,11 +719,7 @@ chrome.runtime.onInstalled.addListener(function(details) {
 
   Settings.setUpdateHook("postKeyMappings", function() {
     populateKeyCommands();
-    sendRequestToAllTabs({
-      name: "refreshKeyMapping",
-      firstKeys: firstKeys,
-      secondKeys: secondKeys
-    });
+    sendRequestToAllTabs(requestHandlers.keyMappings());
   });
 
   handleResponse = function(msgId, func, request, tab) {
@@ -784,23 +779,26 @@ chrome.runtime.onInstalled.addListener(function(details) {
         var values;
         if (ref = request.keys) {
           values = ref.map(Settings.get.bind(Settings));
+          port.postMessage({
+            name: "settings",
+            keys: ref,
+            values: values
+          });
         } else {
-          values = Settings.bufferToLoad;
+          port.postMessage({
+            name: "settings",
+            keys: null,
+            values: Settings.bufferToLoad,
+            response: (request = request.request) && (func = requestHandlers[request.handler])
+              ? func(request, tabId) : undefined
+          });
         }
-        port.postMessage({
-          name: "settings",
-          keys: ref,
-          values: values,
-          response: (request = request.request) && (func = requestHandlers[request.handler])
-            ? func(request) : undefined
-        });
         break;
       case "set": Settings.set(request.key, request.value); break;
       case "reg":
         port.postMessage({
           name: "registerFrame",
-          css: Settings.get("userDefinedCss_f"),
-          tabId: tabId
+          css: Settings.get("userDefinedCss_f")
         });
         // no `break;`
       case "rereg":
@@ -950,11 +948,57 @@ chrome.runtime.onInstalled.addListener(function(details) {
       if (frames && frames.length > 1 && (ind = frames.indexOf(request.frameId)) > 0) {
         frameIdsForTab[tabId] = frames.splice(ind, frames.length - ind).concat(frames);
       }
+      if (shouldShowActionIcon && tabId) {
+        chrome.browserAction.setIcon({
+          tabId: tabId,
+          path: Settings.icons[request.icon]
+        });
+      }
       return {
-        showIcon: shouldShowActionIcon,
         keyQueue: keyQueue,
         currentFirst: currentFirst
       }
+    },
+    checkIfEnabled: function(request) {
+      var rule = Exclusions.getRule(request.url), ref;
+      if (shouldShowActionIcon && (ref = frameIdsForTab[request.tabId])
+          && request.frameId === ref[0]) {
+        chrome.browserAction.setIcon({
+          tabId: request.tabId,
+          path: Settings.icons[rule ? (rule.passKeys ? "partial" : "disabled") : "enabled"]
+        });
+      }
+      return rule && !rule.passKeys ? null : {
+        passKeys: (rule ? rule.passKeys : "")
+      };
+    },
+    initIfEnabled: function(request, tabId) {
+      var rule = Exclusions.getRule(request.url);
+      if (shouldShowActionIcon && request.isTop) {
+        chrome.browserAction.setIcon({
+          tabId: tabId,
+          path: Settings.icons[rule ? (rule.passKeys ? "partial" : "disabled") : "enabled"]
+        });
+      }
+      return rule && !rule.passKeys ? {
+        name: "ifDisabled",
+        tabId: tabId
+      } : {
+        name: "ifEnabled",
+        passKeys: (rule ? rule.passKeys : ""),
+        tabId: tabId,
+        keyQueue: keyQueue,
+        currentFirst: currentFirst,
+        firstKeys: firstKeys,
+        secondKeys: secondKeys
+      };
+    },
+    keyMappings: function() {
+      return {
+        name: "refreshKeyMappings",
+        firstKeys: firstKeys,
+        secondKeys: secondKeys
+      };
     },
     esc: function() {
       currentFirst = keyQueue = "";
@@ -971,18 +1015,6 @@ chrome.runtime.onInstalled.addListener(function(details) {
     },
     copyToClipboard: function(request) {
       Clipboard.copy(request.data);
-    },
-    isEnabled: function(request) {
-      var rule = Exclusions.getRule(request.url), ret;
-      return (rule && !rule.passKeys) ? { enabled: false } : {
-        name: "isEnabled",
-        enabled: true,
-        passKeys: (rule ? rule.passKeys : ""),
-        keyQueue: keyQueue,
-        currentFirst: currentFirst,
-        firstKeys: firstKeys,
-        secondKeys: secondKeys
-      };
     },
     saveHelpDialogSettings: function(request) {
       Settings.set("showAdvancedCommands", request.showAdvancedCommands);
@@ -1013,6 +1045,7 @@ chrome.runtime.onInstalled.addListener(function(details) {
   Settings.bufferToLoad = Settings.valuesToLoad.map(Settings.get.bind(Settings));
 
   Settings.setUpdateHook("postExclusionRules", function() {
+    requestHandlers.esc();
     sendRequestToAllTabs({
       name: "checkIfEnabled"
     });
