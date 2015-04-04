@@ -152,7 +152,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
         return;
       }
       name = response.name;
-      if (isEnabledForUrl || (name === "getActiveState" || name === "setState")) {
+      if (isEnabledForUrl) {
         if (handler = requestHandlers[name]) {
           handler(response);
         }
@@ -253,7 +253,18 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     }
   };
 
-  ELs = { onUnload: null, onFocus: null, focusMsg: null, //
+  ELs = { //
+    focusMsg: {
+      handler: "frameFocused",
+      tabId: 0,
+      url: window.location.href,
+      frameId: frameId
+    },
+    iconMsg: {
+      handler: "setIcon",
+      tabId: 0,
+      icon: "disabled"
+    }, //
     onKeydown: null, onKeypress: null, onKeyup: null, //
     docOnFocus: null, onBlur: null, onActivate: null, //
     destroy: null //
@@ -262,6 +273,9 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
   initializeWhenEnabled = function(newPassKeys) {
     initializeWhenEnabled = function(newPassKeys) { passKeys = newPassKeys; };
     passKeys = newPassKeys;
+    LinkHints.init();
+    Scroller.init();
+    CursorHider.init();
     window.addEventListener("keydown", ELs.onKeydown, true);
     window.addEventListener("keypress", ELs.onKeypress, true);
     window.addEventListener("keyup", ELs.onKeyup = function(event) {
@@ -272,7 +286,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
         }
       }
     }, true);
-    // it seems document.onfocus works (only now).
+    // it seems window.addEventListener("focus") doesn't work (only now).
     document.addEventListener("focus", ELs.docOnFocus = function(event) {
       if (isEnabledForUrl && isFocusable(event.target) && !findMode) {
         enterInsertModeWithoutShowingIndicator(event.target);
@@ -1184,10 +1198,28 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
   window.mainPort = mainPort;
 
   requestHandlers = {
+    checkIfEnabled: function() {
+      mainPort.postMessage({
+        handler: "isEnabled",
+        url: window.location.href
+      }, requestHandlers.isEnabled);
+    },
+    isEnabled: function(response) {
+      if (response && response.enabled) {
+        isEnabledForUrl = true;
+        ELs.iconMsg.icon = response.passKeys ? "partial" : "enabled";
+        initializeWhenEnabled(response.passKeys);
+        requestHandlers.refreshKeyMapping(response);
+      } else {
+        isEnabledForUrl = false;
+        ELs.iconMsg.icon = "disabled";
+        HUD.hide();
+      }
+    },
     settings: settings.ReceiveMessage,
     registerFrame: function(request) {
       if (request.tabId) {
-        ELs.focusMsg.tabId = request.tabId;
+        ELs.iconMsg.tabId = ELs.focusMsg.tabId = request.tabId;
       }
       if (request.css) {
         DomUtils.DocumentReady(requestHandlers.injectCSS.bind(null, request), true);
@@ -1256,9 +1288,13 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       currentSeconds = sec2[response.currentFirst || ""];
     },
     refreshKeyQueue: function(response) {
-      if (response) {
+      if (!response) {
+        return;
+      }
       keyQueue = response.keyQueue;
       currentSeconds = secondKeys[response.currentFirst];
+      if (response.showIcon && document.hasFocus()) {
+        mainPort.postMessage(ELs.iconMsg);
       }
     },
     setScrollPosition: function(request) {
@@ -1277,28 +1313,14 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       }
       keyQueue = "";
       currentSeconds = secondKeys[""];
-    },
-    getActiveState: function() {
-      return {
-        enabled: isEnabledForUrl,
-        passKeys: passKeys
-      };
-    },
-    setState: function(request) {
-      if (isEnabledForUrl = request.enabled) {
-        initializeWhenEnabled(request.passKeys);
-      } else {
-        HUD.hide();
-      }
     }
   };
 
-  chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
-    if (!(isEnabledForUrl || request.name === 'getActiveState' || request.name === 'setState')) {
+  chrome.runtime.onMessage.addListener(function(request, handler, sendResponse) {
+    if (!isEnabledForUrl) {
       return;
     }
-    var handler = requestHandlers[request.name];
-    if (handler) {
+    if (handler = requestHandlers[request.name]) {
       handler = handler(request);
       if (handler != null) {
         sendResponse(handler);
@@ -1309,8 +1331,8 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
   ELs.destroy = function() {
     isEnabledForUrl = false;
     window.isEnabledForUrl_g = false;
-    window.removeEventListener("unload", this.onUnload);
-    window.removeEventListener("focus", this.onFocus);
+    window.onunload = null;
+    window.onfocus = null;
     window.removeEventListener("keydown", this.onKeydown, true);
     window.removeEventListener("keypress", this.onKeypress, true);
     window.removeEventListener("keyup", this.onKeyup, true);
@@ -1326,39 +1348,23 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     console.log("%cvim %c#" + frameId, "color:red", "color:blue", "has destroyed.");
   };
 
-  settings.addEventListener("load", function(response) {
-    LinkHints.init();
-    Scroller.init();
-    CursorHider.init();
-    if (!response || !response.enabled) {
-      isEnabledForUrl = false;
-      HUD.hide();
-      return;
-    }
-    isEnabledForUrl = true;
-    initializeWhenEnabled(response.passKeys);
-    requestHandlers.refreshKeyMapping(response);
-  });
+  settings.addEventListener("load", requestHandlers.isEnabled);
 
   ((settings.load(null, false, {
-      handler: "isEnabledForUrl",
+      handler: "isEnabled",
       url: window.location.href
     }) < 0)
     ? settings.addEventListener.bind(settings, "load")
     : DomUtils.DocumentReady
   )(function() {
     requestHandlers.reRegisterFrame();
-    window.addEventListener("unload", ELs.onUnload = mainPort.postMessage.bind(mainPort, {
-        handlerSettings: "unreg",
-        frameId: frameId,
-        isTop: window.top === window.self,
-    }, null));
-    window.addEventListener("focus", ELs.onFocus = mainPort.postMessage.bind(mainPort,
-    ELs.focusMsg = {
-      handler: "frameFocused",
-      tabId: 0,
-      frameId: frameId
-    }, requestHandlers.refreshKeyQueue));
+    window.onunload = mainPort.postMessage.bind(mainPort, {
+      handlerSettings: "unreg",
+      frameId: frameId,
+      isTop: window.top === window.self,
+    }, null);
+    window.onfocus = mainPort.postMessage.bind( //
+      mainPort, ELs.focusMsg, requestHandlers.refreshKeyQueue);
   });
 
 })();

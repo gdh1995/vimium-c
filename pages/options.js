@@ -412,49 +412,45 @@
     }
   };
   
-  initPopupPage = function() {
-    chrome.tabs.getSelected(null, function(tab) {
-      var exclusions, onUpdated, saveOptions, updateState;
-      exclusions = null;
-      $("optionsLink").setAttribute("href", "options.html");
-      updateState = function() {
-        var rule = bgExclusions.getRule(tab.url, exclusions.readValueFromElement());
-        $("state").innerHTML = "Vimium will " + (rule && rule.passKeys
-          ? "exclude <span class='code'>" + rule.passKeys + "</span>"
-          : rule ? "be disabled" : "be enabled");
-      };
-      onUpdated = function() {
-        var btn = $("saveOptions");
-        $("helpText").innerHTML = "Type <strong>Ctrl-Enter</strong> to save and close.";
-        btn.removeAttribute("disabled");
-        btn.innerHTML = "Save Changes";
-        if (exclusions) {
-          updateState();
-        }
-      };
-      saveOptions = function() {
-        var btn = $("saveOptions");
-        if (btn.disabled) {
-          return;
-        }
-        Option.saveOptions();
-        btn.innerHTML = "Saved";
-        btn.disabled = true;
-        chrome.tabs.getSelected(function(tab) {
-          chrome.extension.getBackgroundPage().updateActiveState(tab.id, tab.url);
-        });
-      };
-      $("saveOptions").addEventListener("click", saveOptions);
-      document.addEventListener("keyup", function(event) {
-        if (event.ctrlKey && event.keyCode === 13) {
-          saveOptions();
-          window.close();
-        }
-      });
-      exclusions = new ExclusionRulesOnPopupOption(tab.url, "exclusionRules", onUpdated);
-      updateState();
-      document.addEventListener("keyup", updateState);
+  initPopupPage = function(tab) {
+    var exclusions, onUpdated, saveOptions, updateState, url;
+    exclusions = null;
+    $("optionsLink").setAttribute("href", chrome.runtime.getURL("pages/options.html"));
+    url = chrome.extension.getBackgroundPage().urlForTab[tab.id] || tab.url;
+    updateState = function() {
+      var rule = bgExclusions.getRule(url, exclusions.readValueFromElement());
+      $("state").innerHTML = "Vimium will " + (rule && rule.passKeys
+        ? "exclude <span class='code'>" + rule.passKeys + "</span>"
+        : rule ? "be disabled" : "be enabled");
+    };
+    onUpdated = function() {
+      var btn = $("saveOptions");
+      $("helpText").innerHTML = "Type <strong>Ctrl-Enter</strong> to save and close.";
+      btn.removeAttribute("disabled");
+      btn.innerHTML = "Save Changes";
+      if (exclusions) {
+        updateState();
+      }
+    };
+    saveOptions = function() {
+      var btn = $("saveOptions");
+      if (btn.disabled) {
+        return;
+      }
+      Option.saveOptions();
+      btn.innerHTML = "Saved";
+      btn.disabled = true;
+    };
+    $("saveOptions").addEventListener("click", saveOptions);
+    document.addEventListener("keyup", function(event) {
+      if (event.ctrlKey && event.keyCode === 13) {
+        saveOptions();
+        window.close();
+      }
     });
+    exclusions = new ExclusionRulesOnPopupOption(url, "exclusionRules", onUpdated);
+    updateState();
+    document.addEventListener("keyup", updateState);
   };
 
   document.addEventListener("DOMContentLoaded", function() {
@@ -463,11 +459,10 @@
     xhr.onreadystatechange = function() {
       if (xhr.readyState === 4) {
         $("exclusionScrollBox").innerHTML = xhr.responseText;
-        if (location.pathname.indexOf("options.html") >= 0) {
+        if (location.pathname.endsWith("popup.html") >= 0) {
+          chrome.tabs.getSelected(null, initPopupPage);
+        } else if (location.pathname.endsWith("options.html") >= 0) {
           initOptionsPage();
-        }
-        else if (location.pathname.indexOf("popup.html") >= 0){
-          initPopupPage();
         }
       }
     };

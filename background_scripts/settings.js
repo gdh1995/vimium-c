@@ -189,6 +189,11 @@ var Settings = {
     vomnibar: "pages/vomnibar.html",
     help_dialog: "pages/help_dialog.html"
   },
+  icons: {
+    enabled: "img/icons/browser_action_enabled.png",
+    partial: "img/icons/browser_action_partial.png",
+    disabled: "img/icons/browser_action_disabled.png"
+  },
   valuesToLoad: ["scrollStepSize", "linkHintCharacters", "linkHintNumbers", "filterLinkHints" //
     , "hideHud", "previousPatterns", "nextPatterns", "findModeRawQuery", "regexFindMode" //
     , "showAdvancedCommands", "smoothScroll", "showOmniRelevancy" //
