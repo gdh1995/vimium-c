@@ -1065,7 +1065,6 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
   HUD = {
     _tweenId: -1,
     _displayElement: null,
-    _upgradeNotificationElement: null,
     showForDuration: function(text, duration) {
       HUD.show(text);
       HUD._showForDurationTimerId = setTimeout(HUD.hide, duration);
@@ -1081,44 +1080,12 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       HUD._tweenId = Tween.fade(el, 1.0, 150);
       el.style.display = "";
     },
-    showUpgradeNotification: function(version) {
-      var el = HUD.upgradeNotificationElement(), links;
-      el.innerHTML = "Vimium has been updated to " + version + " (<a class='vimB vimI vimL' target='_blank' \
-href='https://github.com/philc/vimium#release-notes'>what's new</a>).<a class='vimB vimI vimL vimHUDClose'>&#215;</a>";
-      links = el.getElementsByTagName("a");
-      links[0].addEventListener("click", HUD.onUpdateLinkClicked, false);
-      links[1].addEventListener("click", function(event) {
-        event.preventDefault();
-        HUD.onUpdateLinkClicked(event);
-      }, false);
-      Tween.fade(el, 1.0, 150);
-    },
-    onUpdateLinkClicked: function(event) {
-      DomUtils.suppressEvent(event);
-      HUD.hideUpgradeNotification();
-      mainPort.postMessage({
-        handler: "upgradeNotificationClosed"
-      });
-    },
-    hideUpgradeNotification: function() {
-      var el = HUD.upgradeNotificationElement();
-      Tween.fade(el, 0, 150, function() {
-        el.style.display = "none";
-      });
-    },
     displayElement: function() {
       if (!HUD._displayElement) {
         HUD._displayElement = HUD.createHudElement();
         HUD._displayElement.style.right = "150px";
       }
       return HUD._displayElement;
-    },
-    upgradeNotificationElement: function() {
-      if (!HUD._upgradeNotificationElement) {
-        HUD._upgradeNotificationElement = HUD.createHudElement();
-        HUD._upgradeNotificationElement.style.right = "315px";
-      }
-      return HUD._upgradeNotificationElement;
     },
     createHudElement: function() {
       var element = document.createElement("div");
@@ -1225,9 +1192,6 @@ href='https://github.com/philc/vimium#release-notes'>what's new</a>).<a class='v
       if (request.css) {
         DomUtils.DocumentReady(requestHandlers.injectCSS.bind(null, request), true);
       }
-      if (request.version) {
-        HUD.showUpgradeNotification(request.version);
-      }
     },
     reRegisterFrame: function(request) {
       mainPort.postMessage({
@@ -1247,12 +1211,6 @@ href='https://github.com/philc/vimium#release-notes'>what's new</a>).<a class='v
         css.innerHTML = request.css;
         document.head.appendChild(css);
       }
-    },
-    hideUpgradeNotification: function() {
-      HUD.hideUpgradeNotification();
-    },
-    showUpgradeNotification: function(request) {
-      HUD.showUpgradeNotification(request.version);
     },
     showHUDforDuration: function(request) {
       HUD.showForDuration(request.text, request.duration);

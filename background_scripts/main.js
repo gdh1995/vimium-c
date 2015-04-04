@@ -9,7 +9,7 @@
     , populateKeyCommands //
     , removeTabsRelative, selectTab //
     , requestHandlers, sendRequestToAllTabs //
-    , shouldShowUpgradeMessage, firstKeys, splitKeyQueue //
+    , firstKeys, splitKeyQueue //
     , secondKeys, currentCount, currentFirst, shouldShowActionIcon, setBadge;
 
   shouldShowActionIcon = chrome.browserAction && chrome.browserAction.setIcon ? true : false;
@@ -821,8 +821,7 @@
         port.postMessage({
           name: "registerFrame",
           css: Settings.get("userDefinedCss_f"),
-          tabId: tabId,
-          version: (shouldShowUpgradeMessage ? currentVersion : ""),
+          tabId: tabId
         });
         // no `break;`
       case "rereg":
@@ -988,11 +987,6 @@
     initVomnibar: function() {
       return Settings.get("vomnibar");
     },
-    upgradeNotificationClosed: function(request) {
-      Settings.set("previousVersion", currentVersion);
-      shouldShowUpgradeMessage = false;
-      sendRequestToAllTabs({ name: "hideUpgradeNotification" });
-    },
     copyToClipboard: function(request) {
       Clipboard.copy(request.data);
     },
@@ -1073,9 +1067,7 @@
     key = Settings.get("previousVersion");
     if (!key) {
       Settings.set("previousVersion", currentVersion);
-      shouldShowUpgradeMessage = false;
     } else {
-      shouldShowUpgradeMessage = (Utils.compareVersions(currentVersion, key) === 1);
     }
 
     sendRequestToAllTabs({
