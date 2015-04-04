@@ -381,7 +381,7 @@
       }
     };
     document.addEventListener("keyup", function(event) {
-      if ((event[keyCodes.modifier]) && event.keyCode === 13) {
+      if (event.ctrlKey && event.keyCode === 13) {
         if (document.activeElement && document.activeElement.blur) {
           document.activeElement.blur();
         }
@@ -446,7 +446,7 @@
       };
       $("saveOptions").addEventListener("click", saveOptions);
       document.addEventListener("keyup", function(event) {
-        if (event[keyCodes.modifier] && event.keyCode === 13) {
+        if (event.ctrlKey && event.keyCode === 13) {
           saveOptions();
           window.close();
         }
