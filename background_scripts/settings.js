@@ -144,7 +144,7 @@ var Settings = {
   // clear localStorage & sync, if value === @defaults[key]
   defaults: {
     UILanguage: null,
-    showAdvancedCommands: false,
+    showAdvancedCommands: 0,
     showAdvancedOptions: 1,
     showActionIcon: false,
     vimSync: false,
