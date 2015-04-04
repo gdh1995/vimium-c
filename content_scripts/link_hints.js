@@ -202,6 +202,7 @@ var LinkHints = {
     }
     if (!this.linkActivator && mode < 128) {
       this.linkActivator = function(link) {
+        // NOTE: not clear last hovered item, for that it may be a menu
         DomUtils.simulateClick(link, {
           altKey: false,
           ctrlKey: (this.mode & 2) === 2 && KeyboardUtils.platform !== "Mac",
@@ -342,7 +343,7 @@ var LinkHints = {
       if (this.mode < 128) {
         this.setOpenLinkMode((this.mode | 1) ^ (this.mode < 64 ? 3 : 67));
       }
-    } else if (_i === keyCodes[keyCodes.modifier]) {
+    } else if (_i === keyCodes.ctrlKey || _i === keyCodes.metaKey) {
       if (this.mode < 128) {
         this.setOpenLinkMode((this.mode | 2) ^ 1);
       }

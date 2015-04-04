@@ -194,10 +194,10 @@ Vomnibar.vomnibarUI = {
       action = "enter";
     } else if ((action = KeyboardUtils.getKeyChar(event)) === "up" //
         || (event.shiftKey && n === keyCodes.tab) //
-        || (event[keyCodes.modifier] && (action === "k" || action === "p"))) {
+        || ((event.ctrlKey || event.metaKey) && (action === "k" || action === "p"))) {
       action = "up";
     } else if (action === "down" || (n === keyCodes.tab && !event.shiftKey) //
-        || (event[keyCodes.modifier] && (action === "j" || action === "n"))) {
+        || ((event.ctrlKey || event.metaKey) && (action === "j" || action === "n"))) {
       action = "down";
     } else if (n == keyCodes.left || n == keyCodes.right) {
       return true;
