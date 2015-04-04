@@ -34,16 +34,6 @@ var Exclusions = {
       pattern: matchedPatterns.join(" | "),
       passKeys: Utils.distinctCharacters(matchedKeys.join(""))
     };
-  },
-  setRules: function(rules) {
-    rules = rules.filter(function(rule) {
-      return rule && rule.pattern;
-    });
-    if (JSON.stringify(rules) === JSON.stringify(Settings.defaults.exclusionRules)) {
-      rules = Settings.defaults.exclusionRules;
-    }
-    this.rules = rules;
-    Settings.set("exclusionRules", this.rules);
   }
 };
 

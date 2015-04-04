@@ -171,21 +171,6 @@
 	text-shadow: 0px 1px 2px #FFF;
 	opacity: 0;
 }
-.vimHUDClose.vimB {
-	-webkit-user-select: none;
-	color: #9C9A9A;
-	float: right;
-	font-family: 'Courier New';
-	font-size: 14px;
-	font-weight: bold;
-	margin-top: -1px;
-	padding-left: 10px;
-	text-decoration: none;
-}
-.vimHUDClose:hover {
-	-webkit-user-select: none;
-	color: #333333;
-}
 
 /* Vimium Flash */
 .vimFlash.vimB {

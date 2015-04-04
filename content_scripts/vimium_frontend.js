@@ -1072,54 +1072,51 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
   HUD = {
     _tweenId: -1,
     _displayElement: null,
+    _durationTimer: 0,
     showForDuration: function(text, duration) {
-      HUD.show(text);
-      HUD._showForDurationTimerId = setTimeout(HUD.hide, duration);
+      this.show(text);
+      this._durationTimer = setTimeout(this.hide.bind(this, false), duration);
     },
     show: function(text) {
-      if (!HUD.enabled()) {
+      if (!this.enabled()) {
         return;
       }
-      clearTimeout(HUD._showForDurationTimerId);
-      var el = HUD.displayElement();
+      clearTimeout(this._durationTimer);
+      this._durationTimer = 0;
+      var el = this.displayElement();
       el.innerText = text;
-      clearInterval(HUD._tweenId);
-      HUD._tweenId = Tween.fade(el, 1.0, 150);
+      clearInterval(this._tweenId);
+      this._tweenId = Tween.fade(el, 1.0, 150);
       el.style.display = "";
     },
     displayElement: function() {
-      if (!HUD._displayElement) {
-        HUD._displayElement = HUD.createHudElement();
-        HUD._displayElement.style.right = "150px";
+      var element = this._displayElement;
+      if (!element) {
+        element = this._displayElement = document.createElement("div");
+        element.className = "vimB vimR vimHUD";
+        document.documentElement.appendChild(element);
+        element.style.right = "150px";
       }
-      return HUD._displayElement;
-    },
-    createHudElement: function() {
-      var element = document.createElement("div");
-      element.className = "vimB vimR vimHUD";
-      document.documentElement.appendChild(element);
       return element;
     },
     hide: function(immediate) {
-      clearInterval(HUD._tweenId);
-      var el;
-      if (!(el = HUD._displayElement)) {
+      var hud = HUD, el;
+      clearInterval(hud._tweenId);
+      if (!(el = hud._displayElement)) {
       } else if (immediate) {
         el.style.display = "none";
       } else {
-        HUD._tweenId = Tween.fade(el, 0, 150, function() {
+        hud._tweenId = Tween.fade(el, 0, 150, function() {
           el.style.display = "none";
         });
       }
-    },
-    isReady: function() {
-      return document.body != null;
     },
     enabled: function() {
       return !settings.values.hideHud;
     },
     destroy: function() {
-      this._tweenId && clearInterval(this._tweenId);
+      clearInterval(this._tweenId);
+      clearInterval(this._durationTimer);
       this._displayElement && DomUtils.removeNode(this._displayElement);
       HUD = null;
     }
