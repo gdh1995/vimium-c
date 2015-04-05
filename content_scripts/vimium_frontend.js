@@ -1102,10 +1102,6 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
 
   window.HUD = HUD;
 
-  window.KeydownEvents = KeydownEvents;
-
-  window.frameId = frameId;
-
   window.mainPort = mainPort;
 
   requestHandlers = {
@@ -1247,9 +1243,8 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
   
   ELs.destroy = function() {
     isEnabledForUrl = false;
-    window.isEnabledForUrl_g = false;
-    window.onunload = null;
     window.onfocus = null;
+    window.onunload = null;
     window.removeEventListener("keydown", this.onKeydown, true);
     window.removeEventListener("keypress", this.onKeypress, true);
     window.removeEventListener("keyup", this.onKeyup, true);
@@ -1263,7 +1258,9 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     requestHandlers = null;
     console.log("%cvim %c#" + frameId + "%c has destroyed."//
       , "color:red", "color:blue", "color:auto");
+    window.frameId = frameId;
     window.tabId = ELs.focusMsg.tabId;
+    window.isEnabledForUrl = false;
     ELs = null;
   };
 
