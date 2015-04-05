@@ -6,9 +6,9 @@
     , findModeAnchorNode, findModeQuery, findModeQueryHasResults, focusFoundLink, followLink //
     , frameId, getNextQueryFromRegexMatches, handleDeleteForFindMode //
     , handleEnterForFindMode, handleEscapeForFindMode, handleKeyCharForFindMode, KeydownEvents //
-    , hideHelpDialog, CursorHider, ELs //
+    , CursorHider, ELs //
     , initializeWhenEnabled, insertModeLock, isDOMDescendant //
-    , isEditable, isEmbed, isEnabledForUrl, isFocusable, isInsertMode, isPassKey, isShowingHelpDialog //
+    , isEditable, isEmbed, isEnabledForUrl, isFocusable, isInsertMode, isPassKey //
     , isValidKey, keyQueue //
     , passKeys, performFindInPlace //
     , restoreDefaultSelectionHighlight //
@@ -41,8 +41,6 @@
   findModeQueryHasResults = false;
 
   findModeAnchorNode = null;
-
-  isShowingHelpDialog = false;
 
   isEnabledForUrl = false;
 
@@ -325,7 +323,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     goToRoot: function() {
       window.location.href = window.location.origin;
     },
-    showHelp: function(request) {
+    showHelp: function() {
       mainPort.postMessage({
         handler: "initHelp",
       }, showHelpDialog);
@@ -498,10 +496,6 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       } else if (!keyChar) {
         action = 1;
       }
-    }
-    else if (isShowingHelpDialog && isEscape) {
-      hideHelpDialog();
-      action = 2;
     }
     else if (!isInsert || (event.keyCode >= keyCodes.f1 && event.keyCode <= keyCodes.f12)) {
       if (isEscape) {
@@ -931,63 +925,71 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
   };
 
   window.showHelpDialog = function(html) {
-    var VimiumHelpDialog, container;
-    if (isShowingHelpDialog || !(document.documentElement || document.body)) {
+    var container, handlerId, oldShowHelp, //
+    getShowAdvancedCommands, hide, toggleAdvancedCommands, showAdvancedCommands;
+    if (!document.body) {
       return;
     }
-    isShowingHelpDialog = true;
     container = document.createElement("div");
     container.id = "vimHelpDialogContainer";
     container.className = "vimB vimR";
     (document.documentElement || document.body).appendChild(container);
+    container.addEventListener("mousewheel", DomUtils.suppressPropagation, false);
     container.innerHTML = html;
-    VimiumHelpDialog = {
-      getShowAdvancedCommands: function() {
-        return settings.values.showAdvancedCommands ? true : false;
-      },
-      init: function() {
-        this.dialogElement = document.getElementById("vimHelpDialog");
-        document.getElementById("vimToggleAdvancedCommands").addEventListener("click", VimiumHelpDialog.toggleAdvancedCommands, false);
-        this.dialogElement.style.maxHeight = window.innerHeight - 80;
-        this.showAdvancedCommands(this.getShowAdvancedCommands());
-      },
-      toggleAdvancedCommands: function(event) {
-        var showAdvanced = VimiumHelpDialog.getShowAdvancedCommands();
+    
+    getShowAdvancedCommands = function() {
+      return settings.values.showAdvancedCommands ? true : false;
+    };
+    hide = function(event) {
+      handlerStack.remove(handlerId);
+      DomUtils.removeNode(container);
+      window.showHelp = oldShowHelp;
+      if (event) {
         DomUtils.suppressEvent(event);
-        VimiumHelpDialog.showAdvancedCommands(!showAdvanced);
-        settings.set("showAdvancedCommands", !showAdvanced);
-      },
-      showAdvancedCommands: function(visible) {
-        var advancedEls, el, _i, _len;
-        document.getElementById("vimToggleAdvancedCommands").innerHTML = visible ? "Hide advanced commands" : "Show advanced commands";
-        advancedEls = VimiumHelpDialog.dialogElement.getElementsByClassName("vimHelpAdvanced");
-        visible = visible ? "table-row" : "none";
-        for (_i = 0, _len = advancedEls.length; _i < _len; _i++) {
-          el = advancedEls[_i];
-          el.style.display = visible;
-        }
+      }
+      container.innerHTML = "";
+      container = null;
+    };
+    toggleAdvancedCommands = function(event) {
+      var showAdvanced = getShowAdvancedCommands();
+      showAdvancedCommands(!showAdvanced);
+      settings.set("showAdvancedCommands", !showAdvanced);
+      DomUtils.suppressEvent(event);
+    };
+    showAdvancedCommands = function(visible) {
+      var advancedEls, el, _i, _len;
+      document.getElementById("vimAdvancedCommands").innerHTML = visible ? "Hide advanced commands" : "Show advanced commands...";
+      advancedEls = container.getElementsByClassName("vimHelpAdvanced");
+      visible = visible ? "table-row" : "none";
+      for (_i = 0, _len = advancedEls.length; _i < _len; _i++) {
+        el = advancedEls[_i];
+        el.style.display = visible;
       }
     };
-    VimiumHelpDialog.init();
-    container.addEventListener("mousewheel", DomUtils.suppressPropagation, false);
-    document.getElementById("vimCloseButton").addEventListener("click", hideHelpDialog, false);
+    
+    oldShowHelp = window.showHelp;
+    document.getElementById("vimAdvancedCommands").addEventListener("click" //
+      , toggleAdvancedCommands, false);
+    document.getElementById("vimCloseButton").addEventListener("click" //
+      , window.showHelp = hide, false);
     document.getElementById("vimOptionsPage").addEventListener("click", function(event) {
-      DomUtils.suppressEvent(event);
       mainPort.postMessage({
-        handler: "openOptionsPageInNewTab"
+        handler: "openRawUrlInNewTab",
+        url: "pages/options.html"
       });
-    }, false);
-  };
-
-  hideHelpDialog = function(event) {
-    var helpDialog = document.getElementById("vimHelpDialogContainer");
-    if (helpDialog) {
-      DomUtils.removeNode(helpDialog);
-    }
-    isShowingHelpDialog = false;
-    if (event) {
       DomUtils.suppressEvent(event);
-    }
+    }, false);
+    document.getElementById("vimHelpDialog").style.maxHeight = window.innerHeight - 80;
+    showAdvancedCommands(getShowAdvancedCommands());
+    handlerId = handlerStack.unshift({
+      keydown: function(event) {
+        if (KeyboardUtils.isEscape(event)) {
+          hide(event);
+          return false;
+        }
+        return true;
+      }
+    });
   };
 
   HUD = {

@@ -927,6 +927,9 @@ chrome.runtime.onInstalled.addListener(function(details) {
     restoreSession: function(request) {
       BackgroundCommands.restoreTab(null, 0, request.sessionId);
     },
+    openRawUrlInNewTab: function(request, tab) {
+      openMultiTab(request.url, tab.index + 1, 1, tab);
+    },
     openUrlInNewTab: function(request, tab) {
       openMultiTab(Utils.convertToUrl(request.url), tab.index + 1, 1, tab);
     },
@@ -937,9 +940,6 @@ chrome.runtime.onInstalled.addListener(function(details) {
       chrome.tabs.update(tab.id, {
         url: Utils.convertToUrl(request.url)
       });
-    },
-    openOptionsPageInNewTab: function(_0, tab) {
-      openMultiTab(chrome.runtime.getURL("pages/options.html"), tab.index + 1, 1, tab);
     },
     frameFocused: function(request) {
       var tabId = request.tabId, frames, ind;
@@ -1081,7 +1081,7 @@ chrome.runtime.onInstalled.addListener(function(details) {
   (function() {
     var ref, i, key, func;
     ref = ["getCurrentTabUrl", "openUrlInNewTab", "openUrlInIncognito", "openUrlInCurrentTab" //
-      , "openOptionsPageInNewTab", "nextFrame", "createMark" //
+      , "openRawUrlInNewTab", "nextFrame", "createMark" //
     ];
     for (i = ref.length; 0 <= --i; ) {
       requestHandlers[ref[i]].useTab = true;
