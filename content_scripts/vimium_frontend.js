@@ -44,7 +44,7 @@
 
   isShowingHelpDialog = false;
 
-  isEnabledForUrl = true;
+  isEnabledForUrl = false;
 
   passKeys = "";
 
@@ -69,18 +69,10 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
   ]);
   
   mainPort = {
-    fakePort: {
-      postMessage: function() {}
-    },
-    responseTimeout: 2000,
-    autoReconnectTimeout: 1000,
     _name: "main",
     _port: null,
-    _listener: null,
+    _well: true,
     _callbacks: {},
-    _hasCallbacks: false,
-    _lastWaitTime: 0,
-    _connectFailCount: 0,
     postMessage: function(request, callback) {
       if (callback) {
         request = {
@@ -88,60 +80,14 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
           request: request
         };
       }
-      try {
-        this._get().postMessage(request);
-      } catch (e) {
-        this._port = this.fakePort;
-        setTimeout(this._ClearPort, this.autoReconnectTimeout);
-        if (window._DEBUG)
-          console.log("vim pM fail:", request);
+      this._get().postMessage(request);
+      if (callback && this._well) {
+        this._callbacks[request._msgId] = callback;
       }
-      var _ref, _i = Date.now();
-      if (this._hasCallbacks && _i > this._lastWaitTime + this.responseTimeout) {
-        _ref = this._callbacks;
-        this._hasCallbacks = false;
-        this._callbacks = {};
-      }
-      if (callback) {
-        this._lastWaitTime = _i;
-        if (this._port !== this.fakePort) {
-          this._callbacks[request._msgId] = callback;
-          this._hasCallbacks = true;
-        } else {
-          setTimeout(callback.bind(null, undefined, -request._msgId), 34);
-        }
-      }
-      if (_ref) {
-        setTimeout(function() {
-          var _i, fn;
-          for (_i in _ref) {
-            fn = _ref[_i];
-            fn(undefined, -_i);
-          }
-        }, 17);
-      }
-      return (this._port === this.fakePort) ? (callback ? -request._msgId : -1)
-        : callback ? request._msgId : 1;
+      return this._well ? (callback ? request._msgId : -1)
+        : callback ? -request._msgId : 1;
     },
-    getListener: function() {
-      return this._listener;
-    },
-    setListener: function(listener) {
-      if (this._port && this._port.onMessage) {
-        if (this._listener) {
-          this._port.onMessage.removeListener(this._listener);
-        }
-        this._port.onMessage.addListener(listener);
-      }
-      this._listener = listener;
-    },
-    setPortName: function(name) {
-      this._name = name;
-      if (this._port && this._port.name != null) {
-        this._port.name = name;
-      }
-    },
-    DefaultListener: function(response) {
+    Listener: function(response) {
       var id, handler;
       if (id = response._msgId) {
         if (handler = mainPort._callbacks[id]) {
@@ -152,35 +98,27 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
         handler(response);
       }
     },
-    _ClearPort: function() {
+    ClearPort: function() {
       mainPort._port = null;
     },
     _get: function() {
-      var port = this._port;
-      if (port) {
+      var port;
+      if (port = this._port) {
         return port;
       }
       try {
         port = this._port = chrome.runtime.connect({ name: this._name });
-      } catch (e) { // the extension is reloaded
-        if (!(this._connectFailCount > 0)) {
-          this._connectFailCount = Date.now();
-        } else if (Date.now() - this._connectFailCount > 3000) {
-          isEnabledForUrl = false;
-          ELs.destroy();
-          return this.fakePort;
-        }
-        throw e;
+      } catch (e) { // maybe the extension is reloaded
+        this._well = false;
+        setTimeout(ELs.destroy.bind(ELs), 0);
+        return { postMessage: function() {} };
       }
-      this._connectFailTime = 0;
-      port.onDisconnect.addListener(this._ClearPort);
-      if (this._listener) {
-        port.onMessage.addListener(this._listener);
-      }
+      port.onDisconnect.addListener(this.ClearPort);
+      port.onMessage.addListener(this.Listener);
+      this._well = true;
       return port;
     }
   };
-  mainPort._listener = mainPort.DefaultListener;
 
   settings = {
     values: {},
@@ -191,7 +129,6 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     ], // should be the same as bg.Settings.valuesToLoad
     isLoading: 0,
     request2: null,
-    _eventListeners: {},
     autoRetryInterval: 2000,
     set: function(key, value) {
       this.values[key] = value;
@@ -211,13 +148,13 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
         (values.length > 0) ? (this.valuesToLoad = values) : (values = null);
       }
       this.request2 = request2 || this.request2;
-      return mainPort.postMessage({
+      mainPort.postMessage({
         handlerSettings: "get",
         keys: values,
         request: this.request2
       });
     },
-    ReceiveMessage: function(response) {
+    ReceiveSettings: function(response) {
       var _this = settings, ref = response.keys || _this.valuesToLoad, i, v1, v2, func;
       for (v1 = response.values, v2 = _this.values, i = v1.length; 0 <= --i; ) {
         v2[ref[i]] = v1[i];
@@ -227,25 +164,9 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
         _this.isLoading = 0;
       }
       _this.request2 = null;
-      func = response.keys ? "get" : "load";
-      ref = _this._eventListeners;
-      v1 = ref[func] || [];
-      delete ref[func];
       response = response.response;
       if (response && (func = requestHandlers[response.name])) {
         func(response);
-      }
-      for (i = 0; i < v1.length; i++) {
-        if (func = v1[i]) {
-          func();
-        }
-      }
-    },
-    addEventListener: function(eventName, callback) {
-      if (eventName in this._eventListeners) {
-        this._eventListeners[eventName].push(callback);
-      } else {
-        this._eventListeners[eventName] = [callback];
       }
     }
   };
@@ -260,7 +181,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     }, //
     onKeydown: null, onKeypress: null, onKeyup: null, //
     docOnFocus: null, onBlur: null, onActivate: null, //
-    onMsg: null, destroy: null //
+    destroy: null //
   };
 
   initializeWhenEnabled = function(newPassKeys) {
@@ -1220,8 +1141,9 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       var msg = ELs.focusMsg;
       msg.tabId = response.tabId;
       msg.icon = "disabled";
+      isEnabledForUrl = false;
     },
-    settings: settings.ReceiveMessage,
+    settings: settings.ReceiveSettings,
     registerFrame: function(request) {
       DomUtils.DocumentReady(requestHandlers.injectCSS.bind(null, request), true);
     },
@@ -1312,7 +1234,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     }
   };
 
-  chrome.runtime.onMessage.addListener(ELs.onMsg = function(request, handler, sendResponse) {
+  chrome.runtime.onMessage.addListener(function(request, handler, sendResponse) {
     if (isEnabledForUrl) {
       if (handler = requestHandlers[request.name]) {
         handler(request);
@@ -1326,7 +1248,6 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
   ELs.destroy = function() {
     isEnabledForUrl = false;
     window.isEnabledForUrl_g = false;
-    chrome.runtime.onMessage.removeListener(this.onMsg);
     window.onunload = null;
     window.onfocus = null;
     window.removeEventListener("keydown", this.onKeydown, true);
@@ -1338,20 +1259,21 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     Vomnibar.destroy();
     LinkHints.destroy();
     HUD.destroy();
-    ELs = null;
     mainPort = null;
     requestHandlers = null;
-    console.log("%cvim %c#" + frameId, "color:red", "color:blue", "has destroyed.");
+    console.log("%cvim %c#" + frameId + "%c has destroyed."//
+      , "color:red", "color:blue", "color:auto");
+    window.tabId = ELs.focusMsg.tabId;
+    ELs = null;
   };
 
-  ((settings.load(null, false, {
-      handler: "initIfEnabled",
-      isTop: window.top === window.self,
-      url: window.location.href
-    }) < 0)
-    ? settings.addEventListener.bind(settings, "load")
-    : DomUtils.DocumentReady
-  )(function() {
+  settings.load(null, false, {
+    handler: "initIfEnabled",
+    isTop: window.top === window.self,
+    url: window.location.href
+  });
+
+  DomUtils.DocumentReady(function() {
     requestHandlers.reRegisterFrame();
     window.onunload = mainPort.postMessage.bind(mainPort, {
       handlerSettings: "unreg",
@@ -1361,8 +1283,13 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     // NOTE: here, we should always postMessage, since
     //     NO MESSAGE will be sent if not isEnabledForUrl,
     // which would make the auto-destroy logic not work.
-    window.onfocus = mainPort.postMessage.bind(mainPort, ELs.focusMsg //
-      , requestHandlers.refreshKeyQueue);
+    window.onfocus = function() {
+      try {
+        mainPort.postMessage(ELs.focusMsg, requestHandlers.refreshKeyQueue);
+      } catch (e) {
+        mainPort.ClearPort();
+      }
+    };
   });
 
 })();

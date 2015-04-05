@@ -426,12 +426,12 @@ Vomnibar.background = {
       }, this.onFilter);
     },
     whiteSpaceRegex: /\s+/g,
-    _id: 0,
+    _id: -2,
     _callback: null,
     background: null,
     mapResult: null,
     onFilter: function(results, msgId) {
-      if (!msgId || this._id != msgId) { return; }
+      if (this._id !== msgId) { return; }
       var callback = this._callback;
       this._callback = null;
       if (callback) {
