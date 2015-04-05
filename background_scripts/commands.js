@@ -532,8 +532,3 @@ Commands._defaultKeyMappings = {
     }
   ]
 });
-
-Settings.setUpdateHook("keyMappings", function(value) {
-  Commands.parseKeyMappings(value);
-  this.postUpdate("postKeyMappings", null);
-});

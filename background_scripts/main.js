@@ -723,11 +723,6 @@ chrome.runtime.onInstalled.addListener(function(details) {
     ref2[""] = [];
   };
 
-  Settings.setUpdateHook("postKeyMappings", function() {
-    populateKeyCommands();
-    sendRequestToAllTabs(requestHandlers.keyMappings());
-  });
-
   handleResponse = function(msgId, func, request, tab) {
     this.postMessage({_msgId: msgId, response: func(request, tab)});
   };
@@ -1038,11 +1033,18 @@ chrome.runtime.onInstalled.addListener(function(details) {
   Settings.postUpdate("userDefinedCss");
   Settings.bufferToLoad = Settings.valuesToLoad.map(Settings.get.bind(Settings));
 
-  Settings.setUpdateHook("postExclusionRules", function() {
+  Settings.setUpdateHook("exclusionRules", function(rules) {
+    Exclusions.rules = rules;
     requestHandlers.esc();
     sendRequestToAllTabs({
       name: "checkIfEnabled"
     });
+  });
+
+  Settings.setUpdateHook("keyMappings", function(value) {
+    Commands.parseKeyMappings(value);
+    populateKeyCommands();
+    sendRequestToAllTabs(requestHandlers.keyMappings());
   });
 
   chrome.commands.onCommand.addListener(function(command) {
@@ -1068,12 +1070,12 @@ chrome.runtime.onInstalled.addListener(function(details) {
     ContentSettings.clear("images");
   };
 
-  Commands.parseKeyMappings(Settings.get("keyMappings"));
-  populateKeyCommands();
-
   sendRequestToAllTabs({
     name: "reRegisterFrame"
   });
+
+  Commands.parseKeyMappings(Settings.get("keyMappings"));
+  populateKeyCommands();
 
   (function() {
     var ref, i, key, func;

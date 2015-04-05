@@ -36,8 +36,3 @@ var Exclusions = {
     };
   }
 };
-
-Settings.setUpdateHook("exclusionRules", function(rules) {
-  Exclusions.rules = rules;
-  this.postUpdate("postExclusionRules", null);
-});
