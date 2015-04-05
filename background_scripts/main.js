@@ -1042,12 +1042,14 @@ chrome.runtime.onInstalled.addListener(function(details) {
   });
 
   chrome.commands.onCommand.addListener(function(command) {
+    var count = !currentFirst && currentCount || 1;
+    requestHandlers.esc();
     if (command === "restoreTab") {
-      BackgroundCommands[command](null, 1);
+      BackgroundCommands[command](null, count);
       return;
     }
     chrome.tabs.getSelected(null, function(tab) {
-      BackgroundCommands[command](tab, 1);
+      BackgroundCommands[command](tab, count);
       return chrome.runtime.lastError;
     });
   });
