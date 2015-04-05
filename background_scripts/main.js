@@ -881,18 +881,12 @@ chrome.runtime.onInstalled.addListener(function(details) {
   };
 
   sendRequestToAllTabs = function (args) {
-    chrome.windows.getAll({
-      populate: true
-    }, function(windows) {
-      var _i, _len, _j, _len1, _ref;
-      for (_i = 0, _len = windows.length; _i < _len; _i++) {
-        if (windows[_i].type !== "normal") {
-          continue;
-        }
-        _ref = windows[_i].tabs;
-        for (_j = 0, _len1 = _ref.length; _j < _len1; _j++) {
-          chrome.tabs.sendMessage(_ref[_j].id, args, null);
-        }
+    chrome.tabs.query({
+      windowType: "normal",
+      status: "complete"
+    }, function(tabs) {
+      for (var i = tabs.length; 0 <= --i; ) {
+        chrome.tabs.sendMessage(tabs[i].id, args, null);
       }
     });
   };
@@ -1070,6 +1064,7 @@ chrome.runtime.onInstalled.addListener(function(details) {
     ContentSettings.clear("images");
   };
 
+  // incomplete tests show that on installed, not "rereg", and all are "reg"
   sendRequestToAllTabs({
     name: "reRegisterFrame"
   });

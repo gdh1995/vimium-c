@@ -1315,15 +1315,12 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
   chrome.runtime.onMessage.addListener(ELs.onMsg = function(request, handler, sendResponse) {
     if (isEnabledForUrl) {
       if (handler = requestHandlers[request.name]) {
-        request = handler(request);
-        if (request != null) {
-          sendResponse(request);
-        }
+        handler(request);
       }
     } else if (request.name === "checkIfEnabled") {
       requestHandlers.checkIfEnabled();
-      sendResponse(0);
     }
+    sendResponse(0);
   });
   
   ELs.destroy = function() {
