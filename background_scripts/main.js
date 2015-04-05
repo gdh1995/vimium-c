@@ -312,9 +312,8 @@ chrome.runtime.onInstalled.addListener(function(details) {
       })
     },
 
-    createTab: [function(tab, count, wnd) {
-      var url = Settings.get("newTabUrl");
-      if (!(wnd.incognito && Utils.isRefusingIncognito(url))) {
+    createTab: [function(url, tab, count, wnd) {
+      if (!wnd.incognito) {
         openMultiTab(url, tab.index + 1, count, tab);
         return;
       }
@@ -522,7 +521,12 @@ chrome.runtime.onInstalled.addListener(function(details) {
   // function (const Tab tab, const int repeatCount);
   BackgroundCommands = {
     createTab: function(tab, count) {
-      chrome.windows.get(tab.windowId, funcDict.createTab[0].bind(null, tab, count));
+      var url = Settings.get("newTabUrl");
+      if (!Utils.isRefusingIncognito(url)) {
+        openMultiTab(url, tab.index + 1, count, tab);
+        return;
+      }
+      chrome.windows.get(tab.windowId, funcDict.createTab[0].bind(null, url, tab, count));
     },
     duplicateTab: function(tab, count) {
       chrome.tabs.duplicate(tab.id);
