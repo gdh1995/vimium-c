@@ -34,7 +34,7 @@ chrome.runtime.onInstalled.addListener(function(details) {
 
 (function() {
   var BackgroundCommands, checkKeyQueue, currentVersion //
-    , frameIdsForTab, ContentSettings, setShouldShowActionIcon //
+    , frameIdsForTab, urlForTab, ContentSettings, setShouldShowActionIcon //
     , handleMainPort, handleResponse, postResponse, funcDict //
     , helpDialogHtmlForCommandGroup, keyQueue //
     , openMultiTab //
@@ -50,7 +50,7 @@ chrome.runtime.onInstalled.addListener(function(details) {
 
   frameIdsForTab = {};
 
-  window.urlForTab = {};
+  window.urlForTab = urlForTab = {};
 
   window.helpDialogHtml = function(showUnboundCommands, showCommandNames, customTitle) {
     var command, commandsToKey, dialogHtml, group, key;
@@ -100,7 +100,7 @@ chrome.runtime.onInstalled.addListener(function(details) {
         if (status === 200) {
           success(text);
         } else if (onerror) {
-          onerror(status, text);
+          onerror(text, status);
         }
       }
     };
@@ -255,6 +255,12 @@ chrome.runtime.onInstalled.addListener(function(details) {
   };
 
   funcDict = {
+    setIcon: (shouldShowActionIcon ? function(tabId, type) {
+      chrome.browserAction.setIcon({
+        tabId: tabId,
+        path: Settings.icons[type]
+      });
+    } : function() {}),
     isIncNor: function(wnd) {
       return wnd.incognito && wnd.type === "normal";
     },
@@ -943,16 +949,16 @@ chrome.runtime.onInstalled.addListener(function(details) {
       openMultiTab(chrome.runtime.getURL("pages/options.html"), tab.index + 1, 1, tab);
     },
     frameFocused: function(request) {
-      var tabId = request.tabId, frames = frameIdsForTab[tabId], ind;
-      urlForTab[tabId] = request.url;
-      if (frames && frames.length > 1 && (ind = frames.indexOf(request.frameId)) > 0) {
-        frameIdsForTab[tabId] = frames.splice(ind, frames.length - ind).concat(frames);
-      }
-      if (shouldShowActionIcon && tabId) {
-        chrome.browserAction.setIcon({
-          tabId: tabId,
-          path: Settings.icons[request.icon]
-        });
+      var tabId = request.tabId, frames, ind;
+      if (tabId) {
+        urlForTab[tabId] = request.url;
+        frames = frameIdsForTab[tabId];
+        if (frames.length > 1 && (ind = frames.indexOf(request.frameId)) > 0) {
+          frameIdsForTab[tabId] = frames.splice(ind, frames.length - ind).concat(frames);
+        }
+        if (shouldShowActionIcon) {
+          funcDict.setIcon(tabId, request.icon);
+        }
       }
       return {
         keyQueue: keyQueue,
@@ -963,10 +969,7 @@ chrome.runtime.onInstalled.addListener(function(details) {
       var rule = Exclusions.getRule(request.url), ref;
       if (shouldShowActionIcon && (ref = frameIdsForTab[request.tabId])
           && request.frameId === ref[0]) {
-        chrome.browserAction.setIcon({
-          tabId: request.tabId,
-          path: Settings.icons[rule ? (rule.passKeys ? "partial" : "disabled") : "enabled"]
-        });
+        funcDict.setIcon(request.tabId, rule ? (rule.passKeys ? "partial" : "disabled") : "enabled");
       }
       return rule && !rule.passKeys ? null : {
         passKeys: (rule ? rule.passKeys : "")
@@ -975,10 +978,7 @@ chrome.runtime.onInstalled.addListener(function(details) {
     initIfEnabled: function(request, tabId) {
       var rule = Exclusions.getRule(request.url);
       if (shouldShowActionIcon && request.isTop) {
-        chrome.browserAction.setIcon({
-          tabId: tabId,
-          path: Settings.icons[rule ? (rule.passKeys ? "partial" : "disabled") : "enabled"]
-        });
+        funcDict.setIcon(tabId, rule ? (rule.passKeys ? "partial" : "disabled") : "enabled");
       }
       return rule && !rule.passKeys ? {
         name: "ifDisabled",
@@ -1029,12 +1029,6 @@ chrome.runtime.onInstalled.addListener(function(details) {
       Completers[request.omni].refresh();
     },
     setBadge: setBadge,
-    setIcon: (shouldShowActionIcon ? function(request) {
-      chrome.browserAction.setIcon({
-        tabId: request.tabId,
-        path: Settings.icons[request.icon]
-      });
-    } : function() {}),
     createMark: Marks.Create,
     gotoMark: Marks.GoTo
   };
