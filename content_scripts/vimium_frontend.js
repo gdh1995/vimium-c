@@ -384,7 +384,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       hintContainingDiv.style.top = window.scrollY + "px";
       handlerStack.push({
         keydown: function(event) {
-          if (event.keyCode === keyCodes.tab) {
+          if (event.keyCode === KeyCodes.tab) {
             hints[selectedInputIndex].classList.remove('vimS');
             if (event.shiftKey) {
               if (--selectedInputIndex === -1) {
@@ -395,7 +395,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
             }
             hints[selectedInputIndex].classList.add('vimS');
             visibleInputs[selectedInputIndex].element.focus();
-          } else if (event.keyCode !== keyCodes.shiftKey) {
+          } else if (event.keyCode !== KeyCodes.shiftKey) {
             DomUtils.removeNode(hintContainingDiv);
             handlerStack.remove();
             return true;
@@ -474,7 +474,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       }
     }
     if (isInsert) {
-      if (key === keyCodes.esc) {
+      if (key === KeyCodes.esc) {
         if (KeyboardUtils.isPlain(event)) {
           if (isEditable(event.srcElement) || !isEmbed(event.srcElement)) {
             event.srcElement.blur();
@@ -482,7 +482,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
           exitInsertMode();
           action = 2;
         }
-      } else if (key >= keyCodes.f1 && key <= keyCodes.f12) {
+      } else if (key >= KeyCodes.f1 && key <= KeyCodes.f12) {
         if (isValidKey(keyChar)) {
           action = 2;
           mainPort.postMessage({ handlerKey: keyChar });
@@ -490,22 +490,22 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       }
     }
     else if (findMode) {
-      if (key === keyCodes.esc) {
+      if (key === KeyCodes.esc) {
         if (KeyboardUtils.isPlain(event)) {
           handleEscapeForFindMode();
           action = 2;
         }
-      } else if (key === keyCodes.backspace || key === keyCodes.deleteKey) {
+      } else if (key === KeyCodes.backspace || key === KeyCodes.deleteKey) {
         handleDeleteForFindMode();
         action = 2;
-      } else if (key === keyCodes.enter) {
+      } else if (key === KeyCodes.enter) {
         handleEnterForFindMode();
         action = 2;
       } else if (!keyChar) {
         action = 1;
       }
     }
-    else if (key === keyCodes.esc) {
+    else if (key === KeyCodes.esc) {
       if (keyQueue && KeyboardUtils.isPlain(event)) {
         action = 2;
         mainPort.postMessage({ handler: "esc" });
@@ -790,7 +790,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       handlerStack.push({
         keydown: function(event) {
           handlerStack.remove();
-          if (event.keyCode === keyCodes.esc && KeyboardUtils.isPlain(event)) {
+          if (event.keyCode === KeyCodes.esc && KeyboardUtils.isPlain(event)) {
             DomUtils.simulateSelect(document.activeElement);
             enterInsertModeWithoutShowingIndicator(document.activeElement);
             return false;
@@ -989,7 +989,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     showAdvancedCommands(getShowAdvancedCommands());
     handlerId = handlerStack.unshift({
       keydown: function(event) {
-        if (event.keyCode === keyCodes.esc && KeyboardUtils.isPlain(event)) {
+        if (event.keyCode === KeyCodes.esc && KeyboardUtils.isPlain(event)) {
           hide(event);
           return false;
         }

@@ -334,23 +334,23 @@ var LinkHints = {
   onKeyDownInMode: function(event) {
     var linksMatched, _i, _j, _ref, _limit;
     if (this.delayMode || event.repeat) {
-    } else if ((_i = event.keyCode) === keyCodes.esc) {
+    } else if ((_i = event.keyCode) === KeyCodes.esc) {
       if (KeyboardUtils.isPlain(event)) {
         this.deactivateMode();
       } else {
         return true;
       }
-    } else if (_i > keyCodes.f1 && _i <= keyCodes.f12) {
+    } else if (_i > KeyCodes.f1 && _i <= KeyCodes.f12) {
       return true;
-    } else if (_i === keyCodes.shiftKey) {
+    } else if (_i === KeyCodes.shiftKey) {
       if (this.mode < 128) {
         this.setOpenLinkMode((this.mode | 1) ^ (this.mode < 64 ? 3 : 67));
       }
-    } else if (_i === keyCodes.ctrlKey || _i === keyCodes.metaKey) {
+    } else if (_i === KeyCodes.ctrlKey || _i === KeyCodes.metaKey) {
       if (this.mode < 128) {
         this.setOpenLinkMode((this.mode | 2) ^ 1);
       }
-    } else if (_i === keyCodes.altKey) {
+    } else if (_i === KeyCodes.altKey) {
       this.setOpenLinkMode((this.mode >= 128) ? (this.mode ^ 64) : ((this.mode | 2) ^ 64));
     } else if (!(linksMatched = this.markerMatcher.matchHintsByKey(this.hintMarkers, event, this.keyStatus))){
     } else if (linksMatched.length === 0) {
@@ -503,7 +503,7 @@ LinkHints.alphabetHints = {
   },
   matchHintsByKey: function(hintMarkers, event, keyStatus) {
     var keyChar, key = event.keyCode;
-    if (key === keyCodes.tab) {
+    if (key === KeyCodes.tab) {
       if (this.hintKeystrokeQueue.length === 0) {
         return null;
       }
@@ -513,7 +513,7 @@ LinkHints.alphabetHints = {
         this.hintKeystrokeQueue = [];
         keyStatus.tab = false;
       }
-      if (key === keyCodes.backspace || key === keyCodes.deleteKey || key === keyCodes.f1) {
+      if (key === KeyCodes.backspace || key === KeyCodes.deleteKey || key === KeyCodes.f1) {
         if (!this.hintKeystrokeQueue.pop()) {
           return [];
         }
@@ -611,12 +611,12 @@ LinkHints.filterHints = {
   },
   matchHintsByKey: function(hintMarkers, event, keyStatus) {
     var key = event.keyCode, keyChar, userIsTypingLinkText = false;
-    if (key === keyCodes.tab) {
+    if (key === KeyCodes.tab) {
       if (this.hintKeystrokeQueue.length === 0) {
         return null;
       }
       keyStatus.tab = !keyStatus.tab;
-    } else if (key === keyCodes.enter) {
+    } else if (key === KeyCodes.enter) {
       keyStatus.tab = false;
       for (var marker, _i = 0, _len = hintMarkers.length; _i < _len; _i++) {
         marker = hintMarkers[_i];
@@ -631,7 +631,7 @@ LinkHints.filterHints = {
         this.hintKeystrokeQueue = [];
         keyStatus.tab = false;
       }
-      if (key === keyCodes.backspace || key === keyCodes.deleteKey || key === keyCodes.f1) {
+      if (key === KeyCodes.backspace || key === KeyCodes.deleteKey || key === KeyCodes.f1) {
         if (!this.hintKeystrokeQueue.pop() && !this.linkTextKeystrokeQueue.pop()) {
           return [];
         }

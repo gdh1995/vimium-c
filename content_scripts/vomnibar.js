@@ -188,25 +188,25 @@ Vomnibar.vomnibarUI = {
   },
   onKeydown: function(event) {
     var action, n = event.keyCode;
-    if (n === keyCodes.enter) {
+    if (n === KeyCodes.enter) {
       this.openInNewTab = this.forceNewTab || event.shiftKey || event.ctrlKey || event.metaKey;
       action = "enter";
     } else if ((action = KeyboardUtils.getKeyChar(event)) === "up" //
-        || (event.shiftKey && n === keyCodes.tab) //
+        || (event.shiftKey && n === KeyCodes.tab) //
         || ((event.ctrlKey || event.metaKey) && (action === "k" || action === "p"))) {
       action = "up";
-    } else if (action === "down" || (n === keyCodes.tab && !event.shiftKey) //
+    } else if (action === "down" || (n === KeyCodes.tab && !event.shiftKey) //
         || ((event.ctrlKey || event.metaKey) && (action === "j" || action === "n"))) {
       action = "down";
-    } else if (n == keyCodes.left || n == keyCodes.right) {
+    } else if (n == KeyCodes.left || n == KeyCodes.right) {
       return true;
     } else if (!KeyboardUtils.isPlain(event)) {
       return true;
-    } else if (n === keyCodes.esc) {
+    } else if (n === KeyCodes.esc) {
       action = "dismiss";
-    } else if (n === keyCodes.f1) {
+    } else if (n === KeyCodes.f1) {
       action = (document.activeElement !== this.input) ? "focus" : "backspace";
-    } else if (n === keyCodes.f1 + 1) {
+    } else if (n === KeyCodes.f1 + 1) {
       action = (document.activeElement !== this.input) ? "focus" : "blur";
     } else {
       action = "";
@@ -336,10 +336,10 @@ Vomnibar.vomnibarUI = {
   },
   onKeyEvent: function(event) {
     var key = event.keyCode;
-    if (event.altKey || (key >= keyCodes.f1 + 2 && key <= keyCodes.f12)) {
+    if (event.altKey || (key >= KeyCodes.f1 + 2 && key <= KeyCodes.f12)) {
       return;
     }
-    else if (key == keyCodes.left || key == keyCodes.right) {
+    else if (key == KeyCodes.left || key == KeyCodes.right) {
     }
     else if (event.ctrlKey || event.metaKey || (event.shiftKey && !event.keyIdentifier.startsWith("U+"))) {
       return;
