@@ -8,9 +8,9 @@
     , handleEnterForFindMode, handleEscapeForFindMode, handleKeyCharForFindMode, KeydownEvents //
     , CursorHider, ELs //
     , initializeWhenEnabled, insertModeLock, isDOMDescendant //
-    , isEditable, isEmbed, isEnabledForUrl, isFocusable, isInsertMode, isPassKey //
-    , isValidKey, keyQueue //
-    , passKeys, performFindInPlace //
+    , isEditable, isEmbed, isEnabledForUrl, isFocusable, isInsertMode //
+    , isValidKey, getFullCommand, keyQueue //
+    , setPassKeys, performFindInPlace //
     , restoreDefaultSelectionHighlight //
     , settings, showFindModeHUDForQuery, textInputXPath, oldActivated //
     , updateFindModeQuery, goBy, getVisibleInputs, mainPort, requestHandlers //
@@ -43,8 +43,6 @@
   findModeAnchorNode = null;
 
   isEnabledForUrl = false;
-
-  passKeys = "";
 
   keyQueue = "";
 
@@ -183,8 +181,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
   };
 
   initializeWhenEnabled = function(newPassKeys) {
-    initializeWhenEnabled = function(newPassKeys) { passKeys = newPassKeys; };
-    passKeys = newPassKeys;
+    (initializeWhenEnabled = setPassKeys)(newPassKeys);
     LinkHints.init();
     Scroller.init();
     CursorHider.init();
@@ -406,10 +403,6 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     }
   });
 
-  isPassKey = function(keyChar) {
-    return passKeys && !keyQueue && passKeys.indexOf(keyChar) >= 0;
-  };
-
   KeydownEvents = {
     _handledEvents: {},
     stringify: function(event) {
@@ -439,7 +432,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     } else if (findMode) {
       handleKeyCharForFindMode(keyChar);
       DomUtils.suppressEvent(event);
-    } else if (isInsertMode() || isPassKey(keyChar)) {
+    } else if (isInsertMode()) {
     } else if (isValidKey(keyChar)) {
       mainPort.postMessage({
         handlerKey: keyChar
@@ -455,25 +448,8 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       KeydownEvents.push(event);
       return;
     }
-    var modifiers, keyChar = "", key = event.keyCode, isInsert = isInsertMode(), action = -1;
-    if (((event.metaKey || event.ctrlKey || event.altKey) && key >= 32)
-        || ! event.keyIdentifier.startsWith("U+")) {
-      modifiers = "";
-      if (keyChar = KeyboardUtils.getKeyChar(event)) {
-        if (event.altKey) {
-          modifiers = "a-";
-        }
-        if (event.ctrlKey) {
-          modifiers += event.metaKey ? "c-m-" : "c-";
-        } else if (event.metaKey) {
-          modifiers += "m-";
-        }
-        if (modifiers || keyChar.length > 1) {
-          keyChar = "<" + modifiers + keyChar + ">";
-        }
-      }
-    }
-    if (isInsert) {
+    var modifiers, keyChar, key = event.keyCode, action = -1;
+    if (isInsertMode()) {
       if (key === KeyCodes.esc) {
         if (KeyboardUtils.isPlain(event)) {
           if (isEditable(event.srcElement) || !isEmbed(event.srcElement)) {
@@ -483,9 +459,10 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
           action = 2;
         }
       } else if (key >= KeyCodes.f1 && key <= KeyCodes.f12) {
+        keyChar = getFullCommand(event, KeyboardUtils.getKeyName(event));
         if (isValidKey(keyChar)) {
-          action = 2;
           mainPort.postMessage({ handlerKey: keyChar });
+          action = 2;
         }
       }
     }
@@ -501,31 +478,32 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       } else if (key === KeyCodes.enter) {
         handleEnterForFindMode();
         action = 2;
-      } else if (!keyChar) {
+      } else if (key >= 32 && (event.metaKey || event.ctrlKey || event.altKey)) {
+        if (!KeyboardUtils.getKeyChar(event)) {
+          action = 1;
+        }
+      } else if (event.keyIdentifier.startsWith("U+")) {
+      } else if (! (key in KeyboardUtils.keyNames)) {
         action = 1;
       }
     }
     else if (key === KeyCodes.esc) {
       if (keyQueue && KeyboardUtils.isPlain(event)) {
-        action = 2;
         mainPort.postMessage({ handler: "esc" });
-        keyQueue = "";
-        currentSeconds = secondKeys[""];
-      }
-    }
-    else if (keyChar) {
-      if (isValidKey(keyChar)) {
         action = 2;
-        mainPort.postMessage({ handlerKey: keyChar });
+        currentSeconds = secondKeys[keyQueue = ""];
       }
     }
-    else {
-      if (modifiers === undefined) {
-        keyChar = KeyboardUtils.getKeyChar(event);
+    else if (!(keyChar = KeyboardUtils.getKeyChar(event))) {
+    } else if ((key >= 32 && (event.metaKey || event.ctrlKey || event.altKey)) //
+        || ! event.keyIdentifier.startsWith("U+")) {
+      keyChar = getFullCommand(event, keyChar);
+      if (isValidKey(keyChar)) {
+        mainPort.postMessage({ handlerKey: keyChar });
+        action = 2;
       }
-      if (keyChar && !isPassKey(keyChar) && isValidKey(keyChar)) {
-        action = 1;
-      }
+    } else if (isValidKey(keyChar)) {
+      action = 1;
     }
     if (action <= 0) {
       return;
@@ -538,13 +516,32 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     KeydownEvents.push(event);
   };
 
-  isValidKey = (function() {
-    var numRegex = /^[1-9]/, num0Regex = /^[0-9]/;
-    return function(key) {
-      return (key in firstKeys) || (key in currentSeconds) ||
-        (keyQueue ? num0Regex : numRegex).test(key);
+  (function() {
+    var numRegex = /^[1-9]/, num0Regex = /^[0-9]/, passKeys = "";
+    setPassKeys = function(newPassKeys) {
+      passKeys = newPassKeys;
+    };
+    isValidKey = function(key) {
+      return (keyQueue || !passKeys || passKeys.indexOf(key) === -1) && //
+      ( //
+        (key in firstKeys) || (key in currentSeconds) || //
+        (keyQueue ? num0Regex : numRegex).test(key) //
+      );
     };
   })();
+
+  getFullCommand = function(event, keyChar) {
+    var left = event.altKey ? "<a-" : "<";
+    if (event.ctrlKey) {
+      return left + (event.metaKey ? "c-m-" : "c-") + keyChar + ">";
+    } else if (event.metaKey) {
+      return left + "m-" + keyChar + ">";
+    } else if (event.altKey || keyChar.length > 1) {
+      return left + keyChar + ">";
+    } else {
+      return keyChar;
+    }
+  };
 
   isFocusable = function(element) {
     return isEditable(element) || isEmbed(element);
@@ -1226,8 +1223,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       }
     },
     executePageCommand: function(request) {
-      keyQueue = "";
-      currentSeconds = secondKeys[""];
+      currentSeconds = secondKeys[keyQueue = ""];
       if (request.count < 0) {
         Utils.invokeCommandString(request.command, -request.count);
       } else {
