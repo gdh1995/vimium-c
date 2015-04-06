@@ -455,10 +455,9 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       KeydownEvents.push(event);
       return;
     }
-    var modifiers, keyChar = "", isInsert = isInsertMode(), isEscape, action = -1;
-    if (((event.metaKey || event.ctrlKey || event.altKey) && event.keyCode >= 32)
+    var modifiers, keyChar = "", key = event.keyCode, isInsert = isInsertMode(), action = -1;
+    if (((event.metaKey || event.ctrlKey || event.altKey) && key >= 32)
         || ! event.keyIdentifier.startsWith("U+")) {
-      isEscape = false;
       modifiers = "";
       if (keyChar = KeyboardUtils.getKeyChar(event)) {
         if (event.altKey) {
@@ -473,17 +472,17 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
           keyChar = "<" + modifiers + keyChar + ">";
         }
       }
-    } else {
-      isEscape = KeyboardUtils.isEscape(event);
     }
     if (isInsert) {
-      if (isEscape) {
-        if (isEditable(event.srcElement) || !isEmbed(event.srcElement)) {
-          event.srcElement.blur();
+      if (key === keyCodes.esc) {
+        if (KeyboardUtils.isPlain(event)) {
+          if (isEditable(event.srcElement) || !isEmbed(event.srcElement)) {
+            event.srcElement.blur();
+          }
+          exitInsertMode();
+          action = 2;
         }
-        exitInsertMode();
-        action = 2;
-      } else if (event.keyCode >= keyCodes.f1 && event.keyCode <= keyCodes.f12) {
+      } else if (key >= keyCodes.f1 && key <= keyCodes.f12) {
         if (isValidKey(keyChar)) {
           action = 2;
           mainPort.postMessage({ handlerKey: keyChar });
@@ -491,21 +490,23 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       }
     }
     else if (findMode) {
-      if (isEscape) {
-        handleEscapeForFindMode();
-        action = 2;
-      } else if (event.keyCode === keyCodes.backspace || event.keyCode === keyCodes.deleteKey) {
+      if (key === keyCodes.esc) {
+        if (KeyboardUtils.isPlain(event)) {
+          handleEscapeForFindMode();
+          action = 2;
+        }
+      } else if (key === keyCodes.backspace || key === keyCodes.deleteKey) {
         handleDeleteForFindMode();
         action = 2;
-      } else if (event.keyCode === keyCodes.enter) {
+      } else if (key === keyCodes.enter) {
         handleEnterForFindMode();
         action = 2;
       } else if (!keyChar) {
         action = 1;
       }
     }
-    else if (isEscape) {
-      if (keyQueue) {
+    else if (key === keyCodes.esc) {
+      if (keyQueue && KeyboardUtils.isPlain(event)) {
         action = 2;
         mainPort.postMessage({ handler: "esc" });
         keyQueue = "";
@@ -789,7 +790,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       handlerStack.push({
         keydown: function(event) {
           handlerStack.remove();
-          if (KeyboardUtils.isEscape(event)) {
+          if (event.keyCode === keyCodes.esc && KeyboardUtils.isPlain(event)) {
             DomUtils.simulateSelect(document.activeElement);
             enterInsertModeWithoutShowingIndicator(document.activeElement);
             return false;
@@ -988,7 +989,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     showAdvancedCommands(getShowAdvancedCommands());
     handlerId = handlerStack.unshift({
       keydown: function(event) {
-        if (KeyboardUtils.isEscape(event)) {
+        if (event.keyCode === keyCodes.esc && KeyboardUtils.isPlain(event)) {
           hide(event);
           return false;
         }

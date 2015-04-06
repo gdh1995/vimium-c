@@ -334,9 +334,13 @@ var LinkHints = {
   onKeyDownInMode: function(event) {
     var linksMatched, _i, _j, _ref, _limit;
     if (this.delayMode || event.repeat) {
-    } else if (KeyboardUtils.isEscape(event)) {
-      this.deactivateMode();
-    } else if ((_i = event.keyCode) > keyCodes.f1 && _i <= keyCodes.f12) {
+    } else if ((_i = event.keyCode) === keyCodes.esc) {
+      if (KeyboardUtils.isPlain(event)) {
+        this.deactivateMode();
+      } else {
+        return true;
+      }
+    } else if (_i > keyCodes.f1 && _i <= keyCodes.f12) {
       return true;
     } else if (_i === keyCodes.shiftKey) {
       if (this.mode < 128) {

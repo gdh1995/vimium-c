@@ -200,7 +200,7 @@ Vomnibar.vomnibarUI = {
       action = "down";
     } else if (n == keyCodes.left || n == keyCodes.right) {
       return true;
-    } else if (event.shiftKey || event.ctrlKey || event.altKey || event.metaKey) {
+    } else if (!KeyboardUtils.isPlain(event)) {
       return true;
     } else if (n === keyCodes.esc) {
       action = "dismiss";
