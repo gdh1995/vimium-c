@@ -413,8 +413,8 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
   KeydownEvents = {
     _handledEvents: {},
     stringify: function(event) {
-      return [event.metaKey + event.altKey * 2 + event.ctrlKey * 4, event.keyIdentifier
-        , event.keyCode].join(",");
+      return (event.metaKey + event.altKey * 2 + event.ctrlKey * 4) + "" //
+         + event.keyCode + event.keyIdentifier;
     },
     push: function(event) {
       this._handledEvents[this.stringify(event)] = true;
@@ -455,7 +455,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       KeydownEvents.push(event);
       return;
     }
-    var modifiers = null, keyChar = "", isInsert = isInsertMode(), isEscape, action = -1;
+    var modifiers, keyChar = "", isInsert = isInsertMode(), isEscape, action = -1;
     if (((event.metaKey || event.ctrlKey || event.altKey) && event.keyCode >= 32)
         || ! event.keyIdentifier.startsWith("U+")) {
       isEscape = false;
@@ -476,12 +476,19 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     } else {
       isEscape = KeyboardUtils.isEscape(event);
     }
-    if (isInsert && isEscape) {
-      if (isEditable(event.srcElement) || !isEmbed(event.srcElement)) {
-        event.srcElement.blur();
+    if (isInsert) {
+      if (isEscape) {
+        if (isEditable(event.srcElement) || !isEmbed(event.srcElement)) {
+          event.srcElement.blur();
+        }
+        exitInsertMode();
+        action = 2;
+      } else if (event.keyCode >= keyCodes.f1 && event.keyCode <= keyCodes.f12) {
+        if (isValidKey(keyChar)) {
+          action = 2;
+          mainPort.postMessage({ handlerKey: keyChar });
+        }
       }
-      exitInsertMode();
-      action = 2;
     }
     else if (findMode) {
       if (isEscape) {
@@ -497,28 +504,26 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
         action = 1;
       }
     }
-    else if (!isInsert || (event.keyCode >= keyCodes.f1 && event.keyCode <= keyCodes.f12)) {
-      if (isEscape) {
-        if (keyQueue) {
-          action = 2;
-          mainPort.postMessage({ handler: "esc" });
-          keyQueue = "";
-          currentSeconds = secondKeys[""];
-        }
+    else if (isEscape) {
+      if (keyQueue) {
+        action = 2;
+        mainPort.postMessage({ handler: "esc" });
+        keyQueue = "";
+        currentSeconds = secondKeys[""];
       }
-      else if (keyChar) {
-        if (isValidKey(keyChar)) {
-          action = 2;
-          mainPort.postMessage({ handlerKey: keyChar });
-        }
+    }
+    else if (keyChar) {
+      if (isValidKey(keyChar)) {
+        action = 2;
+        mainPort.postMessage({ handlerKey: keyChar });
       }
-      else {
-        if (modifiers == null) {
-          keyChar = KeyboardUtils.getKeyChar(event);
-        }
-        if (keyChar && !isPassKey(keyChar) && isValidKey(keyChar)) {
-          action = 1;
-        }
+    }
+    else {
+      if (modifiers === undefined) {
+        keyChar = KeyboardUtils.getKeyChar(event);
+      }
+      if (keyChar && !isPassKey(keyChar) && isValidKey(keyChar)) {
+        action = 1;
       }
     }
     if (action <= 0) {
