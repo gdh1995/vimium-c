@@ -426,7 +426,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     if (!keyChar) {
       return;
     }
-    if (keyChar === "f" && event.ctrlKey) {
+    if (keyChar === "f" && (KeyboardUtils.isMac ? event.metaKey : event.ctrlKey)) {
       enterInsertModeWithoutShowingIndicator();
     } else if (findMode) {
       handleKeyCharForFindMode(keyChar);
@@ -447,7 +447,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       KeydownEvents.push(event);
       return;
     }
-    var modifiers, keyChar, key = event.keyCode, action = -1;
+    var keyChar, key = event.keyCode, action = -1;
     if (isInsertMode()) {
       if (key === KeyCodes.esc) {
         if (KeyboardUtils.isPlain(event)) {
