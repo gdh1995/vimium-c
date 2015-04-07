@@ -775,14 +775,6 @@ chrome.runtime.onInstalled.addListener(function(details) {
     else if (key = request.handlerSettings) {
       var tabId = port.sender.tab.id, i, ref;
       switch (key) {
-      case "get":
-        ref = request.keys,
-        port.postMessage({
-          name: "settings",
-          keys: ref,
-          values: ref.map(Settings.get.bind(Settings))
-        });
-        break;
       case "load":
         port.postMessage({
           name: "settings",
@@ -791,7 +783,6 @@ chrome.runtime.onInstalled.addListener(function(details) {
             ? requestHandlers[request.handler](request, tabId) : null)
         });
         break;
-      case "set": Settings.set(request.key, request.value); break;
       case "reg":
         port.postMessage({
           name: "registerFrame",
@@ -900,6 +891,16 @@ chrome.runtime.onInstalled.addListener(function(details) {
   requestHandlers = {
     getCurrentTabUrl: function(_0, tab) {
       return tab.url;
+    },
+    getSettings: function(request) {
+      return {
+        name: "settings",
+        keys: request.keys,
+        values: request.keys.map(Settings.get.bind(Settings))
+      };
+    },
+    setSetting: function(request) {
+      Settings.set(request.key, request.value);
     },
     parseSearchUrl: function(request) {
       var url = request.url, map, decoders, pattern, _i, str, arr;

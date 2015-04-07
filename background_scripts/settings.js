@@ -67,7 +67,9 @@ var Settings = {
     },
     userDefinedCss: function(css) {
       if (css && (css = css.replace(/\r/g, ""))) {
-        css = (css.startsWith('\n') ? "" : '\n') + css + (css.endsWith('\n') ? "" : '\n');
+        if (css.indexOf("\n") >= 0) {
+          css = (css.startsWith('\n') ? "" : '\n') + css + (css.endsWith('\n') ? "" : '\n');
+        }
       } else {
         css = "";
       }

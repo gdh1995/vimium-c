@@ -128,16 +128,16 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     set: function(key, value) {
       this.values[key] = value;
       mainPort.postMessage({
-        handlerSettings: "set",
+        handler: "setSetting",
         key: key,
         value: value
       });
     },
     refresh: function(keys) {
       mainPort.postMessage({
-        handlerSettings: "get",
+        handler: "getSettings",
         keys: ((keys instanceof Array) ? keys : [keys])
-      });
+      }, settings.ReceiveSettings);
     },
     load: function(request2, err) {
       if (this.isLoading) {
