@@ -17,16 +17,16 @@ chrome.runtime.onInstalled.addListener(function(details) {
     windowType: "normal",
     status: "complete"
   }, function(tabs) {
-    var _i = tabs.length, tabId, _j, _len, callback, url;
+    var _i = tabs.length, tabId, _j, _len, callback, url, t = chrome.tabs;
     callback = function() { return chrome.runtime.lastError; };
     for (; 0 <= --_i; ) {
       url = tabs[_i].url;
       if (url.startsWith("chrome") || url.indexOf("://") === -1) continue;
       tabId = tabs[_i].id;
       for (_j = 0, _len = css.length; _j < _len; ++_j)
-        chrome.tabs.insertCSS(tabId, css[_j], callback);
+        t.insertCSS(tabId, css[_j], callback);
       for (_j = 0, _len = js.length; _j < _len; ++_j)
-        chrome.tabs.executeScript(tabId, js[_j], callback);
+        t.executeScript(tabId, js[_j], callback);
     }
     console.log("%cvim %chas %cinstalled", "color:blue", "color:auto", "color:red", details);
   });
@@ -736,21 +736,21 @@ chrome.runtime.onInstalled.addListener(function(details) {
   };
 
   handleMainPort = function(request, port) {
-    var key, func, msgId;
-    if (msgId = request._msgId) {
+    var key, func, id;
+    if (id = request._msgId) {
       request = request.request;
       if (key = request.handler) {
         func = requestHandlers[key];
         if (func.useTab) {
-          chrome.tabs.getSelected(null, handleResponse.bind(port, msgId, func, request));
+          chrome.tabs.getSelected(null, handleResponse.bind(port, id, func, request));
         } else {
-          port.postMessage({_msgId: msgId, response: func(request)})
+          port.postMessage({_msgId: id, response: func(request)})
         }
       }
       else if (key = request.handlerOmni) {
         func = Completers[key];
         key = request.query;
-        func.filter(key ? key.split(" ") : [], postResponse.bind(port, msgId));
+        func.filter(key ? key.split(" ") : [], postResponse.bind(port, id));
       }
     }
     else if (key = request.handlerKey) {
@@ -773,14 +773,15 @@ chrome.runtime.onInstalled.addListener(function(details) {
       }
     }
     else if (key = request.handlerSettings) {
-      var tabId = port.sender.tab.id, i, ref;
+      var i, ref;
+      id = port.sender.tab.id;
       switch (key) {
       case "load":
         port.postMessage({
           name: "settings",
           values: Settings.bufferToLoad,
           response: ((request = request.request) //
-            ? requestHandlers[request.handler](request, tabId) : null)
+            ? requestHandlers[request.handler](request, id) : null)
         });
         break;
       case "reg":
@@ -791,29 +792,29 @@ chrome.runtime.onInstalled.addListener(function(details) {
         // no `break;`
       case "rereg":
         i = request.frameId;
-        ref = frameIdsForTab[tabId];
+        ref = frameIdsForTab[id];
         if (ref) {
           ref.push(i);
         } else {
-          frameIdsForTab[tabId] = [i];
+          frameIdsForTab[id] = [i];
         }
         break;
       case "doreg":
         i = request.frameId;
-        ref = frameIdsForTab[tabId];
+        ref = frameIdsForTab[id];
         if (ref) {
           if (ref.indexOf(i) === -1) {
             ref.push(i);
           }
         } else {
-          frameIdsForTab[tabId] = [i];
+          frameIdsForTab[id] = [i];
         }
         break;
       case "unreg":
         if (request.isTop) {
-          delete frameIdsForTab[tabId];
-          delete urlForTab[tabId];
-        } else if (ref = frameIdsForTab[tabId]) {
+          delete frameIdsForTab[id];
+          delete urlForTab[id];
+        } else if (ref = frameIdsForTab[id]) {
           i = ref.indexOf(request.frameId);
           if (i === ref.length - 1) {
             ref.pop();
@@ -881,8 +882,8 @@ chrome.runtime.onInstalled.addListener(function(details) {
       windowType: "normal",
       status: "complete"
     }, function(tabs) {
-      for (var i = tabs.length; 0 <= --i; ) {
-        chrome.tabs.sendMessage(tabs[i].id, args, null);
+      for (var i = tabs.length, t = chrome.tabs; 0 <= --i; ) {
+        t.sendMessage(tabs[i].id, args, null);
       }
     });
   };
