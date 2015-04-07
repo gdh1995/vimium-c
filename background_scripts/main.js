@@ -777,19 +777,19 @@ chrome.runtime.onInstalled.addListener(function(details) {
       switch (key) {
       case "get":
         ref = request.keys,
-          port.postMessage({
-            name: "settings",
-            keys: ref,
+        port.postMessage({
+          name: "settings",
+          keys: ref,
           values: ref.map(Settings.get.bind(Settings))
-          });
+        });
         break;
       case "load":
-          port.postMessage({
-            name: "settings",
-            values: Settings.bufferToLoad,
-            response: ((request = request.request) //
-              ? requestHandlers[request.handler](request, tabId) : null)
-          });
+        port.postMessage({
+          name: "settings",
+          values: Settings.bufferToLoad,
+          response: ((request = request.request) //
+            ? requestHandlers[request.handler](request, tabId) : null)
+        });
         break;
       case "set": Settings.set(request.key, request.value); break;
       case "reg":
@@ -803,6 +803,17 @@ chrome.runtime.onInstalled.addListener(function(details) {
         ref = frameIdsForTab[tabId];
         if (ref) {
           ref.push(i);
+        } else {
+          frameIdsForTab[tabId] = [i];
+        }
+        break;
+      case "doreg":
+        i = request.frameId;
+        ref = frameIdsForTab[tabId];
+        if (ref) {
+          if (ref.indexOf(i) === -1) {
+            ref.push(i);
+          }
         } else {
           frameIdsForTab[tabId] = [i];
         }
@@ -1062,7 +1073,8 @@ chrome.runtime.onInstalled.addListener(function(details) {
 
   // incomplete tests show that on installed, not "rereg", and all are "reg"
   sendRequestToAllTabs({
-    name: "reRegisterFrame"
+    name: "reRegisterFrame",
+    work: "rereg"
   });
 
   Commands.parseKeyMappings(Settings.get("keyMappings"));

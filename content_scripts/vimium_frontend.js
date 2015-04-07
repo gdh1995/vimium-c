@@ -1147,11 +1147,12 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       DomUtils.DocumentReady(requestHandlers.injectCSS.bind(null, request), true);
     },
     reRegisterFrame: function(request) {
-      mainPort.postMessage({
-        handlerSettings: request ? "rereg" : "reg",
-        isTop: window.top === window.self,
-        frameId: ((document.body && document.body.nodeName.toLowerCase() === "frameset") ? -1 : frameId)
-      });
+      if (!document.body || document.body.nodeName.toLowerCase() !== "frameset") {
+        mainPort.postMessage({
+          handlerSettings: request ? request.work : "reg",
+          frameId: frameId
+        });
+      }
     },
     injectCSS: function(request) {
       var css = document.getElementById("vimUserCss");
@@ -1270,7 +1271,9 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     handler: "initIfEnabled",
     isTop: window.top === window.self,
     url: window.location.href
-  }, requestHandlers.reRegisterFrame.bind(null, true));
+  }, requestHandlers.reRegisterFrame.bind(null, {
+    work: "doreg"
+  }));
 
   DomUtils.DocumentReady(function() {
     requestHandlers.reRegisterFrame();
