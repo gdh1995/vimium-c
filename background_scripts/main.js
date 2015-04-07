@@ -776,23 +776,20 @@ chrome.runtime.onInstalled.addListener(function(details) {
       var tabId = port.sender.tab.id, i, ref;
       switch (key) {
       case "get":
-        var values;
-        if (ref = request.keys) {
-          values = ref.map(Settings.get.bind(Settings));
+        ref = request.keys,
           port.postMessage({
             name: "settings",
             keys: ref,
-            values: values
+          values: ref.map(Settings.get.bind(Settings))
           });
-        } else {
+        break;
+      case "load":
           port.postMessage({
             name: "settings",
-            keys: null,
             values: Settings.bufferToLoad,
             response: ((request = request.request) //
               ? requestHandlers[request.handler](request, tabId) : null)
           });
-        }
         break;
       case "set": Settings.set(request.key, request.value); break;
       case "reg":

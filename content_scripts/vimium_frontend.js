@@ -124,7 +124,6 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       , "findModeRawQueryList"
     ], // should be the same as bg.Settings.valuesToLoad
     isLoading: 0,
-    request2: null,
     autoRetryInterval: 2000,
     set: function(key, value) {
       this.values[key] = value;
@@ -134,20 +133,21 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
         value: value
       });
     },
-    load: function(values, force, request2) {
-      if (!this.isLoading) {
-        this.isLoading = setInterval(this.load.bind(this, values, true, null), this.autoRetryInterval);
-      } else if (force !== true) {
-        return 0;
-      }
-      if (values) {
-        (values.length > 0) ? (this.valuesToLoad = values) : (values = null);
-      }
-      this.request2 = request2 || this.request2;
+    refresh: function(keys) {
       mainPort.postMessage({
         handlerSettings: "get",
-        keys: values,
-        request: this.request2
+        keys: ((keys instanceof Array) ? keys : [keys])
+      });
+    },
+    load: function(request2, err) {
+      if (this.isLoading) {
+        if (err) { err(); }
+      } else {
+        this.isLoading = setInterval(this.load.bind(this, request2, err), this.autoRetryInterval);
+      }
+      mainPort.postMessage({
+        handlerSettings: "load",
+        request: request2
       });
     },
     ReceiveSettings: function(response) {
@@ -159,7 +159,6 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
         clearInterval(i);
         _this.isLoading = 0;
       }
-      _this.request2 = null;
       if (response = response.response) {
         requestHandlers[response.name](response);
       }
@@ -1267,11 +1266,11 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     ELs = null;
   };
 
-  settings.load(null, false, {
+  settings.load({
     handler: "initIfEnabled",
     isTop: window.top === window.self,
     url: window.location.href
-  });
+  }, requestHandlers.reRegisterFrame.bind(null, true));
 
   DomUtils.DocumentReady(function() {
     requestHandlers.reRegisterFrame();
