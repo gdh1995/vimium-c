@@ -622,7 +622,7 @@ chrome.runtime.onInstalled.addListener(function(details) {
     },
     nextFrame: function(tab, count, frameId) {
       var tabId = tab.id, frames = frameIdsForTab[tabId];
-      if (!frames) { return; }
+      if (!frames || frames.length <= 1) { return; }
       if (frameId) {
         count += Math.max(0, frames.indexOf(frameId));
       }

@@ -1147,7 +1147,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       DomUtils.DocumentReady(requestHandlers.injectCSS.bind(null, request), true);
     },
     reRegisterFrame: function(request) {
-      if (!document.body || document.body.nodeName.toLowerCase() !== "frameset") {
+      if (document.body && document.body.nodeName.toLowerCase() !== "frameset") {
         mainPort.postMessage({
           handlerSettings: request ? request.work : "reg",
           frameId: frameId
@@ -1271,9 +1271,13 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     handler: "initIfEnabled",
     isTop: window.top === window.self,
     url: window.location.href
-  }, requestHandlers.reRegisterFrame.bind(null, {
-    work: "doreg"
-  }));
+  }, function() {
+    if (document.readyState !== "loading") {
+      requestHandlers.reRegisterFrame({
+        work: "doreg"
+      });
+    }
+  });
 
   DomUtils.DocumentReady(function() {
     requestHandlers.reRegisterFrame();
