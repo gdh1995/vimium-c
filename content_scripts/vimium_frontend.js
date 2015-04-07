@@ -18,6 +18,8 @@
   
   frameId = Math.floor(Math.random() * 999999997) + 2;
 
+  window._DEBUG = /*/ true /*/ false /**/ ;
+
   if (window._DEBUG) {
     time1 = Date.now();
   }
@@ -1302,5 +1304,9 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       }
     };
   });
+
+  if (window._DEBUG) {
+    var time2 = Date.now(); console.log(frameId + ": got:", time2 - time1);
+  }
 
 })();
