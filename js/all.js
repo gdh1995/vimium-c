@@ -688,20 +688,7 @@ wallpaper:{},
 usedWallpaper:[],
 iframeDialbox:[],
 cId:'',
-classifications:[{
-"id":"shopping",
-"title":getI18nMsg("classificationShopping"),
-"logo":urlImg + "classification/images/4.png",
-"dataUrl":urlImg + "rssData/index.php?ui_locale=" + ui_locale + "&name=shopping",
-"LTime":0
-},{
-"id":"game",
-"title":getI18nMsg("classificationGame"),
-"logo":urlImg + "classification/images/1.png",
-"dataUrl":urlImg + "rssData/index.php?ui_locale=" + ui_locale + "&name=game",
-"LTime":0
-}
-],
+classifications:[],
 dialBoxPage:1,
 privateSetup:{
 dialBoxNum:12,

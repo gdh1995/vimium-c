@@ -220,9 +220,9 @@ var _minClassificationHideFun = "";
 						}
 						if (self.isClear(2)) {
 							var newClassification = {
-								"id" : Date.now(),
-								"title" : getI18nMsg("classificationNew"),
-								"logo" : urlImg + "classification/images/" + Math.floor(Math.random() * 8) + ".png"
+								id: Date.now(),
+								title: getI18nMsg("classificationNew"),
+								logo: "js/plugin/classification/img/skin_0/" + Math.floor(Math.random() * 8) + ".png"
 							};
 							storage.relative = false;
 							self.classifications.push(newClassification);
