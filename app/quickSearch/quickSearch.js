@@ -3,7 +3,6 @@ var searchSiteOptions = {
 	"taobao" : ["http://s8.taobao.com/search", "q", "ie=utf-8"],
 	"google_cn" : ["https://www.google.com.hk/search", "q", "ie=utf-8"],
 	"bing" : ["http://cn.bing.com/search", "q", "ie=utf-8"],
-	"yahoo" : ["http://search.yahoo.com/search", "p", "ie=utf-8"],
 };
 var searchSites = ['baidu', 'google_cn', 'bing', 'taobao'];
 var _minSearchForce = false;

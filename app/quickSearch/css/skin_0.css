@@ -17,8 +17,6 @@
 .quickSearchApp .searchList .searchItem.baidu.selected{background:url(../img/baidu.png) 0px 30px;}
 .quickSearchApp .searchList .searchItem.taobao{background:url(../img/taobao.png) 0px 0px;}
 .quickSearchApp .searchList .searchItem.taobao.selected{background:url(../img/taobao.png) 0px 30px;}
-.quickSearchApp .searchList .searchItem.yahoo{background:url(../img/yahoo.png) 0px 0px;}
-.quickSearchApp .searchList .searchItem.yahoo.selected{background:url(../img/yahoo.png) 0px 30px;}
 .quickSearchApp .searchList .searchItem.bing{background:url(../img/bing.png) 0px 0px;}
 .quickSearchApp .searchList .searchItem.bing.selected{background:url(../img/bing.png) 0px 30px;}
 .quickSearchApp .searchCenter{margin:0 10px;height:30px;text-align:center;position:relative;}
