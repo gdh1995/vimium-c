@@ -943,7 +943,7 @@ chrome.runtime.onInstalled.addListener(function(details) {
           frameIdsForTab[tabId] = frames.splice(ind, frames.length - ind).concat(frames);
         }
         if (shouldShowActionIcon) {
-          funcDict.setIcon(tabId, request.icon);
+          funcDict.setIcon(tabId, request.status);
         }
       }
       return {

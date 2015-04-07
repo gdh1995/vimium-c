@@ -170,7 +170,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     focusMsg: {
       handler: "frameFocused",
       tabId: 0,
-      icon: "disabled",
+      status: "disabled",
       url: window.location.href,
       frameId: frameId
     }, //
@@ -1120,7 +1120,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     ifEnabled: function(response) {
       if (response) {
         isEnabledForUrl = true;
-        ELs.focusMsg.icon = response.passKeys ? "partial" : "enabled";
+        ELs.focusMsg.status = response.passKeys ? "partial" : "enabled";
         if (response.firstKeys) {
           ELs.focusMsg.tabId = response.tabId;
           requestHandlers.refreshKeyMappings(response);
@@ -1133,14 +1133,14 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
         initializeWhenEnabled(response.passKeys);
       } else {
         isEnabledForUrl = false;
-        ELs.focusMsg.icon = "disabled";
+        ELs.focusMsg.status = "disabled";
         HUD.hide();
       }
     },
     ifDisabled: function(response) {
       var msg = ELs.focusMsg;
       msg.tabId = response.tabId;
-      msg.icon = "disabled";
+      msg.status = "disabled";
       isEnabledForUrl = false;
     },
     settings: settings.ReceiveSettings,
