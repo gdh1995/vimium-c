@@ -19,7 +19,7 @@
   frameId = Math.floor(Math.random() * 999999997) + 2;
 
   if (window._DEBUG) {
-    time1 = Date.now(); console.log("v++", time1, "@f", frameId);
+    time1 = Date.now();
   }
 
   insertModeLock = null;
@@ -214,7 +214,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       }
     }, true);
     if (window._DEBUG) {
-      var time2 = Date.now(); console.log("v++", time2, "=+", time2 - time1);
+      var time2 = Date.now(); console.log(frameId + ": set:", time2 - time1);
     }
     if (document.activeElement && isEditable(document.activeElement) && !findMode) {
       enterInsertModeWithoutShowingIndicator(document.activeElement);
@@ -1144,7 +1144,12 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     },
     settings: settings.ReceiveSettings,
     registerFrame: function(request) {
-      DomUtils.DocumentReady(requestHandlers.injectCSS.bind(null, request), true);
+      if (window._DEBUG) {
+        var time2 = Date.now();
+        console.log(frameId + ": reg:", time2 - time1, "@", document.readyState);
+      }
+      // reRegisterFrame is called only when document.ready
+      requestHandlers.injectCSS(request);
     },
     reRegisterFrame: function(request) {
       if (document.body && document.body.nodeName.toLowerCase() !== "frameset") {
