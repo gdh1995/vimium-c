@@ -151,7 +151,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       });
     },
     ReceiveSettings: function(response) {
-      var _this = settings, ref = response.keys || _this.valuesToLoad, i, v1, v2, func;
+      var _this = settings, ref = response.keys || _this.valuesToLoad, i, v1, v2;
       for (v1 = response.values, v2 = _this.values, i = v1.length; 0 <= --i; ) {
         v2[ref[i]] = v1[i];
       }
@@ -160,9 +160,8 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
         _this.isLoading = 0;
       }
       _this.request2 = null;
-      response = response.response;
-      if (response && (func = requestHandlers[response.name])) {
-        func(response);
+      if (response = response.response) {
+        requestHandlers[response.name](response);
       }
     }
   };

@@ -740,14 +740,11 @@ chrome.runtime.onInstalled.addListener(function(details) {
     if (msgId = request._msgId) {
       request = request.request;
       if (key = request.handler) {
-        if (func = requestHandlers[key]) {
-          if (func.useTab) {
-            chrome.tabs.getSelected(null, handleResponse.bind(port, msgId, func, request));
-          } else {
-            port.postMessage({_msgId: msgId, response: func(request)})
-          }
+        func = requestHandlers[key];
+        if (func.useTab) {
+          chrome.tabs.getSelected(null, handleResponse.bind(port, msgId, func, request));
         } else {
-          port.postMessage({_msgId: msgId, error: -1});
+          port.postMessage({_msgId: msgId, response: func(request)})
         }
       }
       else if (key = request.handlerOmni) {
@@ -762,19 +759,17 @@ chrome.runtime.onInstalled.addListener(function(details) {
         keyQueue = key;
         port.postMessage({
           name: "refreshKeyQueue",
-          showIcon: false,
           keyQueue: keyQueue,
           currentFirst: currentFirst
         });
       }
     }
     else if (key = request.handler) {
-      if (func = requestHandlers[key]) {
-        if (func.useTab) {
-          chrome.tabs.getSelected(null, func.bind(null, request));
-        } else {
-          func(request);
-        }
+      func = requestHandlers[key];
+      if (func.useTab) {
+        chrome.tabs.getSelected(null, func.bind(null, request));
+      } else {
+        func(request);
       }
     }
     else if (key = request.handlerSettings) {
@@ -794,8 +789,8 @@ chrome.runtime.onInstalled.addListener(function(details) {
             name: "settings",
             keys: null,
             values: Settings.bufferToLoad,
-            response: (request = request.request) && (func = requestHandlers[request.handler])
-              ? func(request, tabId) : undefined
+            response: ((request = request.request) //
+              ? requestHandlers[request.handler](request, tabId) : null)
           });
         }
         break;
@@ -808,13 +803,11 @@ chrome.runtime.onInstalled.addListener(function(details) {
         // no `break;`
       case "rereg":
         i = request.frameId;
-        if (i > 0) {
-          ref = frameIdsForTab[tabId];
-          if (ref) {
-            ref.push(i);
-          } else {
-            frameIdsForTab[tabId] = [i];
-          }
+        ref = frameIdsForTab[tabId];
+        if (ref) {
+          ref.push(i);
+        } else {
+          frameIdsForTab[tabId] = [i];
         }
         break;
       case "unreg":
@@ -1049,7 +1042,7 @@ chrome.runtime.onInstalled.addListener(function(details) {
     var count = !currentFirst && currentCount || 1;
     requestHandlers.esc();
     if (command === "restoreTab") {
-      BackgroundCommands[command](null, count);
+      BackgroundCommands.restoreTab(null, count);
       return;
     }
     chrome.tabs.getSelected(null, function(tab) {
