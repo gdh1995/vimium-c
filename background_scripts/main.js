@@ -580,6 +580,7 @@ chrome.runtime.onInstalled.addListener(function(details) {
         chrome.sessions.restore();
       }
     },
+    blank: function() {},
     openCopiedUrlInCurrentTab: function(tab) {
       requestHandlers.openUrlInCurrentTab({
         url: Clipboard.paste()
@@ -1107,7 +1108,7 @@ chrome.runtime.onInstalled.addListener(function(details) {
       ref2[ref[i]].useTab = true;
     }
     
-    ref = ["restoreTab"];
+    ref = ["restoreTab", "blank"];
     ref2 = BackgroundCommands;
     for (i = ref.length; 0 <= --i; ) {
       ref2[ref[i]].noTab = true;

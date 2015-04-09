@@ -102,7 +102,7 @@ Commands.commandGroups = {
     , "removeTab", "restoreTab", "moveTabToNextWindow", "moveTabToIncognito", "togglePinTab"
     , "closeTabsOnLeft", "closeTabsOnRight", "closeOtherTabs", "moveTabLeft", "moveTabRight" //
     , "enableImageTemp", "toggleImage", "clearImageCS"],
-  misc: ["showHelp", "enterVisualMode"]
+  misc: ["showHelp", "enterVisualMode", "blank"]
 };
 Commands.advancedCommands = ["scrollToLeft", "scrollToRight", "moveTabToNextWindow", "moveTabToIncognito"
   , "goUp", "goToRoot", "focusInput", "LinkHints.activateModeWithQueue", "enableImageTemp"
@@ -186,6 +186,12 @@ Commands._defaultKeyMappings = {
 })({
   showHelp: [
     "Show help", {
+      noRepeat: true
+    }
+  ],
+  blank: [
+    "Do nothing", {
+      background: true,
       noRepeat: true
     }
   ],
