@@ -572,13 +572,16 @@ chrome.runtime.onInstalled.addListener(function(details) {
       }
     },
     restoreTab: function(_0, count, sessionId) {
-      if (sessionId) {
-        chrome.sessions.restore(sessionId);
-        return;
-      }
       while (--count >= 0) {
         chrome.sessions.restore();
       }
+    },
+    restoreGivenTab: function(_0, count) {
+      chrome.sessions.getRecentlyClosed(function(list) {
+        if (count <= list.length) {
+          chrome.sessions.restore(list[count - 1].tab.sessionId);
+        }
+      });
     },
     blank: function() {},
     openCopiedUrlInCurrentTab: function(tab) {
@@ -943,7 +946,7 @@ chrome.runtime.onInstalled.addListener(function(details) {
       return "";
     },
     restoreSession: function(request) {
-      BackgroundCommands.restoreTab(null, 0, request.sessionId);
+      chrome.sessions.restore(request.sessionId);
     },
     openRawUrlInNewTab: function(request, tab) {
       openMultiTab(request.url, tab.index + 1, 1, tab);
@@ -1110,7 +1113,7 @@ chrome.runtime.onInstalled.addListener(function(details) {
       ref2[ref[i]].useTab = true;
     }
     
-    ref = ["restoreTab", "blank"];
+    ref = ["restoreTab", "blank", "restoreGivenTab"];
     ref2 = BackgroundCommands;
     for (i = ref.length; 0 <= --i; ) {
       ref2[ref[i]].noTab = true;

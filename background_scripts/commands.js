@@ -99,7 +99,7 @@ Commands.commandGroups = {
   historyNavigation: ["goBack", "goForward", "reloadTab", "reopenTab", "switchFocus", "simBackspace"],
   findCommands: ["enterFindMode", "performFind", "performBackwardsFind"],
   tabManipulation: ["nextTab", "previousTab", "firstTab", "lastTab", "createTab", "duplicateTab"
-    , "removeTab", "restoreTab", "moveTabToNextWindow", "moveTabToIncognito", "togglePinTab"
+    , "removeTab", "restoreTab", "restoreGivenTab", "moveTabToNextWindow", "moveTabToIncognito", "togglePinTab"
     , "closeTabsOnLeft", "closeTabsOnRight", "closeOtherTabs", "moveTabLeft", "moveTabRight" //
     , "enableImageTemp", "toggleImage", "clearImageCS"],
   misc: ["showHelp", "enterVisualMode", "blank"]
@@ -107,7 +107,7 @@ Commands.commandGroups = {
 Commands.advancedCommands = ["scrollToLeft", "scrollToRight", "moveTabToNextWindow", "moveTabToIncognito"
   , "goUp", "goToRoot", "focusInput", "LinkHints.activateModeWithQueue", "enableImageTemp"
   , "toggleImage", "clearImageCS"
-  , "LinkHints.activateModeToDownloadLink", "Vomnibar.activateEditUrl"
+  , "LinkHints.activateModeToDownloadLink", "Vomnibar.activateEditUrl", "restoreGivenTab"
   , "Vomnibar.activateEditUrlInNewTab", "LinkHints.activateModeToOpenIncognito"
   , "goNext", "goPrevious", "Marks.activateCreateMode", "Marks.activateGotoMode"
   , "moveTabLeft", "moveTabRight", "closeTabsOnLeft", "closeTabsOnRight", "closeOtherTabs"
@@ -406,13 +406,19 @@ Commands._defaultKeyMappings = {
   removeTab: [
     "Close current tab", {
       background: true,
-      noRepeat: (chrome.sessions && chrome.sessions.MAX_SESSION_RESULTS || 25)
+      noRepeat: chrome.sessions.MAX_SESSION_RESULTS || 25
     }
   ],
   restoreTab: [
     "Restore closed tab", {
       background: true,
-      noRepeat: (chrome.session && chrome.sessions.MAX_SESSION_RESULTS || 25)
+      noRepeat: chrome.sessions.MAX_SESSION_RESULTS || 25
+    }
+  ],
+  restoreGivenTab: [
+    "Restore closed tab", {
+      background: true,
+      noRepeat: chrome.sessions.MAX_SESSION_RESULTS || 25
     }
   ],
   moveTabToNextWindow: [
