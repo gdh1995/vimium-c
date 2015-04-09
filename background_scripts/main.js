@@ -828,7 +828,7 @@ chrome.runtime.onInstalled.addListener(function(details) {
   };
 
   checkKeyQueue = function(command, port) {
-    var count, registryEntry;
+    var count, registryEntry, func;
     if (currentFirst) {
       if (registryEntry = Commands.keyToCommandRegistry[currentFirst + command]) {
         count = currentCount || 1;
@@ -863,9 +863,14 @@ chrome.runtime.onInstalled.addListener(function(details) {
     }
     if (count <= 0) {
     } else if (registryEntry.background) {
-      chrome.tabs.getSelected(null, function(tab) {
-        BackgroundCommands[command](tab, count);
-      });
+      func = BackgroundCommands[command];
+      if (func.noTab) {
+        func(null, count);
+      } else {
+        chrome.tabs.getSelected(null, function(tab) {
+          func(tab, count);
+        });
+      }
     } else {
       port.postMessage({
         name: "executePageCommand",
@@ -1058,14 +1063,15 @@ chrome.runtime.onInstalled.addListener(function(details) {
   });
 
   chrome.commands.onCommand.addListener(function(command) {
-    var count = !currentFirst && currentCount || 1;
+    var count = !currentFirst && currentCount || 1, func;
     requestHandlers.esc();
-    if (command === "restoreTab") {
-      BackgroundCommands.restoreTab(null, count);
+    func = BackgroundCommands[command];
+    if (func.noTab) {
+      func(null, count);
       return;
     }
     chrome.tabs.getSelected(null, function(tab) {
-      BackgroundCommands[command](tab, count);
+      func(tab, count);
       return chrome.runtime.lastError;
     });
   });
@@ -1092,12 +1098,19 @@ chrome.runtime.onInstalled.addListener(function(details) {
   populateKeyCommands();
 
   (function() {
-    var ref, i, key, func;
+    var ref, i, key, func, ref2;
     ref = ["getCurrentTabUrl", "openUrlInNewTab", "openUrlInIncognito", "openUrlInCurrentTab" //
       , "openRawUrlInNewTab", "nextFrame", "createMark" //
     ];
+    ref2 = requestHandlers;
     for (i = ref.length; 0 <= --i; ) {
-      requestHandlers[ref[i]].useTab = true;
+      ref2[ref[i]].useTab = true;
+    }
+    
+    ref = ["restoreTab"];
+    ref2 = BackgroundCommands;
+    for (i = ref.length; 0 <= --i; ) {
+      ref2[ref[i]].noTab = true;
     }
 
     key = shouldShowActionIcon;
