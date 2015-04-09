@@ -92,6 +92,7 @@ var Settings = {
       _j = val.search(rSpace);
       if (_j > 0) {
         name = val.substring(_j + 1).trimLeft();
+        key0 = "";
         val = val.substring(0, _j);
       } else {
         name = null;

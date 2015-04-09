@@ -3892,4 +3892,4 @@ if (!mset || mset === _config || mset.weather !== false) {
 mset = null;
 })
 };
-var a, b = function(b) { a=b; console.log(b); }, cb=b;
+var a, b = function(b) { a=b; console.log(b); }, cb=b, log=console.log.bind(console);
