@@ -36,7 +36,7 @@ chrome.runtime.onInstalled.addListener(function(details) {
   var BackgroundCommands, checkKeyQueue, currentVersion //
     , frameIdsForTab, urlForTab, ContentSettings, setShouldShowActionIcon //
     , handleMainPort, handleResponse, postResponse, funcDict //
-    , helpDialogHtmlForCommandGroup, keyQueue //
+    , helpDialogHtmlForCommandGroup, keyQueue, resetKeys //
     , openMultiTab //
     , populateKeyCommands //
     , removeTabsRelative, selectTab //
@@ -701,9 +701,14 @@ chrome.runtime.onInstalled.addListener(function(details) {
     Marks.RemoveMarksForTab(tabId);
   });
 
+  resetKeys = function() {
+    currentFirst = keyQueue = "";
+    currentCount = 0;
+  };
+
   populateKeyCommands = function() {
     var key, ref1, ref2, first, arr, keyRegex;
-    requestHandlers.esc();
+    resetKeys();
     ref1 = firstKeys = [];
     ref2 = secondKeys = {};
     keyRegex = /<(?:(?:[acm]-){1,3}.[^>]*|[^<>]+)>|./g;
@@ -1011,10 +1016,6 @@ chrome.runtime.onInstalled.addListener(function(details) {
         secondKeys: secondKeys
       };
     },
-    esc: function() {
-      currentFirst = keyQueue = "";
-      currentCount = 0;
-    },
     nextFrame: function(request, tab) {
       BackgroundCommands.nextFrame(tab, 1, request.frameId);
     },
@@ -1040,6 +1041,7 @@ chrome.runtime.onInstalled.addListener(function(details) {
       Completers[request.omni].refresh();
     },
     setBadge: setBadge,
+    esc: resetKeys,
     createMark: Marks.Create,
     gotoMark: Marks.GoTo
   };
@@ -1051,7 +1053,7 @@ chrome.runtime.onInstalled.addListener(function(details) {
 
   Settings.setUpdateHook("exclusionRules", function(rules) {
     Exclusions.rules = rules;
-    requestHandlers.esc();
+    resetKeys();
     sendRequestToAllTabs({
       name: "checkIfEnabled"
     });
@@ -1065,7 +1067,7 @@ chrome.runtime.onInstalled.addListener(function(details) {
 
   chrome.commands.onCommand.addListener(function(command) {
     var count = !currentFirst && currentCount || 1, func;
-    requestHandlers.esc();
+    resetKeys();
     func = BackgroundCommands[command];
     if (func.noTab) {
       func(null, count);
