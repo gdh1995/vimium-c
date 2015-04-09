@@ -129,7 +129,10 @@ var Settings = {
         }
         if (url && url !== "=") {
           url = url.toLowerCase().replace(RegexpCache._escapeRegEx, "\\$&");
-          return [prefix, new RegExp("[?#&]" + url + "([^&]*)", "i"), name];
+          if (prefix.startsWith("https://")) {
+            prefix = "http" + prefix.substring(5);
+          }
+          return [prefix, new RegExp("[?#&]" + url + "([^&#]*)", "i"), name];
         }
       }
     }

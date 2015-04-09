@@ -910,6 +910,9 @@ chrome.runtime.onInstalled.addListener(function(details) {
       }
       map = Settings.get("searchEnginesMap");
       decoders = map[""];
+      if (url.startsWith("https:")) {
+        url = "http:" + url.substring(6);
+      }
       for (_i = decoders.length; 0 <= --_i; ) {
         pattern = decoders[_i];
         if (url.startsWith(str = pattern[0])) {
@@ -921,6 +924,7 @@ chrome.runtime.onInstalled.addListener(function(details) {
             } else {
               str = Utils.decodeURLPart(str);
             }
+            str = str.replace(Utils.spacesRegex, " ").trim();
             return url + " " + str;
           }
         }
