@@ -77,7 +77,7 @@ var Settings = {
     }
   },
   parseSearchEngines: function(searchEnginesText, map) {
-    var a, pairs, key, val, name, obj, _i, _j, _len, _len2 //
+    var a, pairs, key, val, name, obj, _i, _j, _len, _len2, key0 //
       , rEscapeSpace = /\\\s/g, rSpace = /\s/, rEscapeS = /\\s/g;
     map = map || this.get("searchEnginesMap");
     a = searchEnginesText.replace(/\\\n/g, '').split('\n');
@@ -100,15 +100,20 @@ var Settings = {
       obj = {url: val};
       pairs = key.split('|');
       for (_j = 0, _len2 = pairs.length; _j < _len2; _j++) {
-        if (!(key = pairs[_j].trim())) continue;
-        if (!name) name = key;
-        map[key] = obj;
+        if (key = pairs[_j].trim()) {
+          if (name) {
+            if (!key0) { key0 = key; }
+          } else {
+            key0 = name = key;
+          }
+          map[key] = obj;
+        }
       }
       if (!name) continue;
       obj.name = name;
       obj.$s = val.indexOf("%s") + 1;
       obj.$S = val.indexOf("%S") + 1;
-      if (pairs = this.reparseSearchUrl(obj, name)) {
+      if (pairs = this.reparseSearchUrl(obj, key0)) {
         map[""].push(pairs);
       }
     }
