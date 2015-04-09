@@ -949,7 +949,12 @@ chrome.runtime.onInstalled.addListener(function(details) {
       if (tabId) {
         urlForTab[tabId] = request.url;
         frames = frameIdsForTab[tabId];
-        if (frames.length > 1 && (ind = frames.indexOf(request.frameId)) > 0) {
+        // frames would be undefined if in a tab, all "reg" messages were sent
+        //   to a closing port, which means the frontend try `runtime.connect`
+        //   but background kept not prepared.
+        // This can only happen when the system is too slow.
+        // For example, Chrome's first startup since the system boots.
+        if (frames && frames.length > 1 && (ind = frames.indexOf(request.frameId)) > 0) {
           frameIdsForTab[tabId] = frames.splice(ind, frames.length - ind).concat(frames);
         }
         if (shouldShowActionIcon) {
