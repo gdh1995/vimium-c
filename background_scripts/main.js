@@ -248,6 +248,7 @@ chrome.runtime.onInstalled.addListener(function(details) {
         windowId: tab.windowId,
         selected: true,
         url: tab.url,
+        openerTabId: tab.openerTabId,
         index: tab.index
       });
       chrome.tabs.remove(tab.id);
