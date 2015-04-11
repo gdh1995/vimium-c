@@ -6,12 +6,6 @@ var _browser = {
 	chrome: true,
 	cssType: "webkit",
 	protocol: "chrome",
-}, oUrls = {
-	"oDownloads": "chrome://downloads/",
-	"oBookmarks": "chrome://bookmarks/#1",
-	"oHistory": "chrome://history/",
-	"oExtensions": "chrome://extensions",
-	"oNewtab": "chrome-search://local-ntp/local-ntp.html"
 };
 _browser.version = _browser.ua.match(/WebKit\/([\d.]+)/)[1];
 function truncate(str, ind, lng) {
@@ -84,7 +78,7 @@ function isContainsClass(child, parentClass) {
 	}
 	return child && child.classList ? true : false;
 }
-function loadScript(src, fn, efn, force) {
+function loadScript(src, fn, force) {
 	fn = fn || function () {};
 	if (force) {
 		src += '?t=' + Date.now()
@@ -118,26 +112,8 @@ function getMaxZindex(obj) {
 	}
 	return maxZ
 };
-function pad(num, n) {
-	var len = num.toString().length;
-	while (len < n) {
-		num = "0" + num;
-		len++
-	}
-	return num
-}
 function getRand(v_min, v_max) {
 	return Math.floor(Math.random() * (v_max - v_min) + v_min)
-}
-function shuffle(aArr) {
-	var iLength = aArr.length, i = iLength, mTemp, iRandom;
-	while (i--) {
-		if (i !== (iRandom = Math.floor(Math.random() * iLength))) {
-			mTemp = aArr[i];
-			aArr[i] = aArr[iRandom];
-			aArr[iRandom] = mTemp
-		}
-	}
 }
 function openTab(targetSwitch, url, ctrlKey) {
 	if (targetSwitch === true) {
@@ -168,16 +144,6 @@ function openTab(targetSwitch, url, ctrlKey) {
 function isWhite(c1, c2, c3) {
 	return (c1 >= 230 && c2 >= 230 && c3 >= 230) ? true : false;
 }
-var isUrl = /^(?:(?:https|http|ftp|rtsp|mms):\/\/)?[-0-9A-Z_a-z]+\.[^\.]/;
-isUrl = new RegExp(isUrl);
-isUrl = isUrl.test.bind(isUrl);
-var urlRegEx = function(url) {
-	return url ? url.match(this) : false;
-}
-urlRegEx = urlRegEx.bind(/(\w+):\/\/([^\:|\/]+)(\:\d*)?(.*\/?)([^#|\?|\n]+)?(#.*)?(\?.*)?/i);
-function S2S(str) {
-	return str.replace(/\x01/g, "");
-}
 function showNotice(msg, sec, fn1, fn2) {
 	if (typeof notice == "undefined") {
 		loadCss("app/notice/css/skin_0.css");
@@ -187,35 +153,7 @@ function showNotice(msg, sec, fn1, fn2) {
 	} else {
 		notice.init(msg, sec, fn1, fn2)
 	}
-}
-function objClone(obj) {
-	if (typeof(obj) !== 'object') {
-		return obj
-	}
-	var re = (obj.constructor === Array ? [] : {});
-	for (var i in obj) {
-		re[i] = objClone(obj[i])
-	}
-	return re
-}
-var _normalizeUrl = function (url) {
-	return url.trim().toLowerCase().replace(this, "$1");
-}
-_normalizeUrl = _normalizeUrl.bind(/^(?:http:\/\/)?(.*?)\/?$/);
-function isLikeUrl(url1, url2) {
-	if (url1) {
-		if (url2) {
-			if (_normalizeUrl(url1) === _normalizeUrl(url2)) {
-				return true;
-			}
-		}
-		return false;
-	}
-	return !url2;
-}
-function addZero(str, length) {
-	return new Array(length - str.length + 1).join("0") + str
-}
+} /*/
 function getIframeDialboxUrl(url) {
 	var iframeDialbox = PDI.get('iframeDialbox');
 	if (iframeDialbox.length === 0) return false;
@@ -229,7 +167,7 @@ function getIframeDialboxUrl(url) {
 		}
 	}
 	return false
-}
+} //*/
 function replaceMSiteDialboxs(_dialboxs, MSite) {
 	var _save = false;
 	if (!_dialboxs || !(_dialboxs.length > 0)) {
@@ -304,7 +242,7 @@ function replaceMSiteDialboxs(_dialboxs, MSite) {
 		});
 	});
 	return _save ? _dialboxs : null;
-}
+} /*
 function replaceMSite(MSite, filters) {
 	filters = typeof filters == "undefined" ? [] : filters;
 	var _classificationsIds = [""];
@@ -332,7 +270,7 @@ function replaceMSite(MSite, filters) {
 		}
 	});
 	storage.relative = true
-}
+} //*/
 function replaceLocationDB() {
 	var OTime = PDI.get('setup', 'OTime');
 	if (OTime < 1402367000) {
@@ -424,14 +362,12 @@ var storage = {
 		if (id !== "undefined" && id !== "") {
 			this.id = "_" + id
 		}
-		this.db = localStorage;
-		this.privateKeys = ['privateSetup', 'dialBoxes', 'skins'];
 		this.relative = true;
 	},
 	id: '',
+	relative: true,
 	db: localStorage,
 	privateKeys: ['privateSetup', 'dialBoxes', 'skins'],
-	relative: true,
 	get: function (key, isJson) {
 		key = (this.relative && this.privateKeys.indexOf(key) > -1) ? key + this.id : key;
 		try {
@@ -479,9 +415,8 @@ var officialDomain = "weidunewtab.com";
 var iframeDomain = "www.94994.com";
 var urlImg = "http://hao." + officialDomain + "/";
 var _langPre = ui_locale;
-var isApp = false;
 var _config = {
-version:'4.7.9',
+version:'4.8.0',
 dataVersion:"4.0",
 lang:"zh_CN",
 oauthType:['sina','qqwb','qq','taobao','google','facebook','twitter'],
@@ -898,12 +833,8 @@ var PDI = {
 		}
 		return data.length
 	},
-	getSkins: function () {
-		var skins = PDI.get('skins');
-		return {skin_cloud: skins.skin_cloud || objClone(_config.skins.skin_cloud)}
-	},
 	getSkin: function (part, key) {
-		var data = this.getSkins(), p = data[part];
+		var data = PDI.get('skins'), p = data[part];
 		if (!p) {
 			return ''
 		}
@@ -1034,18 +965,19 @@ var PDI = {
 };
 
 var oauth = {
-	oauthId: false,
+	oauthId: '',
 	oauthKey: '',
-	oauthCode: false,
-	oauthSource: false,
+	oauthCode: '',
+	oauthSource: '',
 	oauthApiUrl: urlImg + 'oauth/ajax.php?rnd=' + Date.now(),
 	synDataApiUrl: urlImg + 'weidu/wc.json.php',
 	synDataKey: 'oauthData',
 	init: function (syn) {
 		var self = this;
 		self.oauthKey = PDI.get('setup', 'oauthKey');
-		if (!(self.oauthId && self.oauthCode && self.oauthSource)) { return; }
-		self.oauthApiUrl = self.oauthApiUrl + "&oauthKey=" + self.oauthKey;
+		if (self.oauthKey) {
+		  self.oauthApiUrl += "&oauthKey=" + self.oauthKey;
+		}
 		syn = (syn === true);
 		$.get(self.oauthApiUrl, function (data) {
 			self.oauthId = '';
@@ -1079,10 +1011,9 @@ var oauth = {
 		var self = this;
 		var url = self.synDataApiUrl + '?e=' + self.oauthId + '&ver=' + ver + '&dataVersion=' + _config.dataVersion;
 		$.post(url, function (result) {
-			if (typeof(result) == 'string') {
-				if (result.substring(0, 5) == 'ERROR') {
-					if (result.indexOf('ERROR_FILE_MSGID_') == 0) {
-						PDI.set('setup', 'msgid', parseInt(result.replace('ERROR_FILE_MSGID_', '')))
+			if (typeof result === 'string' && result.startsWith('ERROR')) {
+					if (result.startsWith('ERROR_FILE_MSGID_')) {
+					PDI.set('setup', 'msgid', parseInt(result.substring(17)))
 					}
 					if (window.location.href != window.location.protocol + '//' + window.location.hostname + window.location.pathname) {
 						window.location.hash = "";
@@ -1093,7 +1024,6 @@ var oauth = {
 					}, 200);
 					return
 				}
-			}
 			if (!self.save(result)) {
 				alert(getI18nMsg('oauthDownDataVersionError'))
 			}
@@ -1108,7 +1038,7 @@ var oauth = {
 	},
 	save: function (result) {
 		var returnStatus = true;
-		if (typeof result == 'object') {
+		if (typeof result === 'object') {
 			var self = this;
 			var urlImgList = ['http://hao.weidunewtab.com/', 'http://hao.newtabplus.com/', 'http://www.94994.com/', 'http://en.94994.com/'];
 			var curMsgId = PDI.get('setup', 'msgid');
@@ -1157,9 +1087,9 @@ var oauth = {
 	compareMsgId: function (gt, lt) {
 		var self = this;
 		var url = self.synDataApiUrl + '?e=' + self.oauthId;
-		if ((gt || lt) || self.oauthId && self.oauthCode) {
+		if ((gt || lt) && self.oauthId && self.oauthCode) {
 			$.post(url, function (result) {
-				if (typeof(result) == 'string' && result.substring(0, 5) != 'ERROR') {
+				if (typeof result === 'string' && !result.startsWith('ERROR')) {
 					var msgid = parseInt(PDI.get('setup', 'msgid'));
 					result = JSON.parse(result);
 					if (result.msgid > msgid) {
@@ -1184,7 +1114,7 @@ var oauth = {
 			data['msgid'] = parseInt(PDI.get('setup', 'msgid'));
 			data['ver'] = _config.version;
 			$.post(self.synDataApiUrl, data, function (result) {
-				if (result.substring(0, 5) != 'ERROR') {}
+				if (!result.startsWith('ERROR')) {}
 				else if (result == "ERROR_MSGID") {
 					if (parseInt(Math.random() * (100 - 1) + 1) % 3 == 1) {
 						showNotice(getI18nMsg('oauthSynMsgidError'))
@@ -1257,7 +1187,7 @@ var oauth = {
 			data['email'] = self.oauthId;
 			data['msgid'] = msgid;
 			$.post(self.synDataApiUrl, data, function (result) {
-				if (result.substring(0, 5) == 'ERROR') {
+				if (!result || result.startsWith('ERROR')) {
 					return;
 				}
 				storage.relative = false;
@@ -1559,7 +1489,6 @@ _Dialog.prototype = {
 	}
 };
 
-var _bookmarksDialogFun = "";
 var app = {
 	apps: {
 		"weather": {
@@ -1646,8 +1575,8 @@ var app = {
 					chrome.history.search({
 						text: '',
 						maxResults: 100,
-						startTime: (new Date()).getTime() - (4 * 24 * 3600 * 1000),
-						endTime: (new Date()).getTime()
+						startTime: Date.now() - (4 * 24 * 3600 * 1000),
+						endTime: Date.now()
 					}, function (data) {
 						var lastVisitedContent = lastVisited.visitedTemplate(data);
 						lastVisited.template(lastVisitedContent);
@@ -1676,9 +1605,6 @@ var app = {
 						bookmarks.template(tree, recentTree);
 						if (typeof dialogObj != 'undefined') {
 							dialogObj.changeContent(bookmarks.content);
-							if (_bookmarksDialogFun) {
-								clearTimeout(_bookmarksDialogFun)
-							}
 							try {
 								$(".bookmarksContainer .bookMarksFolderItem a").each(function (i, n) {
 									var itemUrl = $(n).attr("href");
@@ -1695,10 +1621,6 @@ var app = {
 						}
 					})
 				});
-				_bookmarksDialogFun = setTimeout(function () {
-						showNotice(getI18nMsg('loadingTimeout').replace('%s', getI18nMsg('360Error')));
-						dialogObj.remove()
-					}, 5000)
 			},
 			"run": function () {
 				var bookmarksDialog = $.dialog({
@@ -1923,30 +1845,25 @@ var app = {
 	loadedAppsReady: [],
 	runedAppObjects: {},
 	getAppConfigValue: function (appId, key) {
-		var self = this;
-		if ( typeof self.apps[appId]['langVers'] != "undefined"
-			&& typeof self.apps[appId]['langVers'][ui_locale] != "undefined"
-			&& typeof self.apps[appId]['langVers'][ui_locale][key] != "undefined") {
-			return self.apps[appId]['langVers'][ui_locale][key]
-		} else if (typeof self.apps[appId][key] != "undefined") {
-			return self.apps[appId][key]
+		var self = this, temp1 = self.apps[appId].langVers;
+		if (temp1 && temp1[ui_locale] != "undefined" && temp1[ui_locale][key] != "undefined") {
+			return temp1[ui_locale][key]
+		} else if (temp1 = self.apps[appId][key]) {
+			return temp1
 		}
-		return false
+		return null
 	},
 	loadJs: function (appId, fn) {
-		var self = this;
-		fn = fn || function () {};
-		var jsUrl = self.getAppConfigValue(appId, 'js');
-		if (jsUrl) {
-			loadScript(jsUrl, function () {
+		var self = this, jsUrl;
+		if (jsUrl = self.getAppConfigValue(appId, 'js')) {
+			loadScript(jsUrl, fn ? function () {
 				fn()
-			})
+			} : null)
 		}
 	},
 	loadCss: function (appId) {
-		var self = this;
-		var cssUrl = self.getAppConfigValue(appId, 'css');
-		if (cssUrl) {
+		var self = this, cssUrl;
+		if (cssUrl = self.getAppConfigValue(appId, 'css')) {
 			loadCss(cssUrl)
 		}
 	},
@@ -2049,11 +1966,11 @@ var app = {
 				var _chromeVer = window.navigator.userAgent.match(/chrome\/([\d.]+)/i);
 				var chromeVer = _chromeVer != null ? _chromeVer[1] : _chromeVer;
 				var oUrls = {
-					"oDownloads": _browser.protocol + "://downloads/",
-					"oBookmarks": _browser.protocol + "://bookmarks/#1",
-					"oHistory": _browser.protocol + "://history/",
-					"oExtensions": _browser.protocol + "://extensions",
-					"oNewtab": ((chromeVer >= '33') ? "chrome-search://local-ntp/local-ntp.html" : "chrome-internal://newtab/")
+					oDownloads: "chrome://downloads/",
+					oBookmarks: "chrome://bookmarks/#1",
+					oHistory: "chrome://history/",
+					oExtensions: "chrome://extensions",
+					oNewtab: "chrome-search://local-ntp/local-ntp.html"
 				};
 				var oUrl = oUrls[appId] || "";
 				if (oUrl != "") {
@@ -2074,8 +1991,7 @@ $.box = function (id, dbox, type) {
 	return new _Box(id, dbox, type)
 };
 var _Box = function Box(id, dbox, type) {
-	var self = this;
-	self.boxOptions = {
+	this.boxOptions = {
 		id: id,
 		type: type,
 		title: '',
@@ -2092,11 +2008,11 @@ var _Box = function Box(id, dbox, type) {
 		isVirtual: false,
 		isNew: false
 	};
-	self.set(null, dbox);
-	self.init()
+	this.boxObject = null,
+	this.set(null, dbox);
+	this.init();
 };
 _Box.prototype = {
-	boxObject: '',
 	set: function (key, value) {
 		var self = this;
 		if (key == '' || key == null) {
@@ -2123,7 +2039,7 @@ _Box.prototype = {
 			imgMatch = img.match(/:\/\/[^\/]+/g)
 		}
 		img = imgMatch.pop();
-		img = img.substring(3, img.length);
+		img = img.substring(3);
 		img = img.replace(/^www\./, '');
 		if (img == '' || img.indexOf('.') == -1 || img.indexOf('.') == img.length - 1) {
 			return 'img/skin_0/ie_logo.png'
@@ -2151,22 +2067,22 @@ _Box.prototype = {
 			boxItem = $('<div class="appBox ' + self.boxOptions.type + (self.boxOptions.isNew ? ' new' : '')
 				+ (self.boxOptions.isFixed ? ' boxFixed' : '') + (self.boxOptions.isApp.length == 32 ? ' chromeApp' : '')
 				+ '" id="appBox_' + self.boxOptions.id + '" appType="' + (self.boxOptions.appType || '')
-				+ '" url="' + self.getUrl() + '" appId="' + self.boxOptions.isApp + '">'
-				+ '<div class="boxLogo" notes="' + self.boxOptions.title + '"></div>'
+				+ '" url="' + self.getUrl() + '" appId="' + self.boxOptions.isApp
+				+ '"><div class="boxLogo" notes="' + self.boxOptions.title + '"></div>'
 				+ (!self.boxOptions.title ? '' : '<div class="boxTitle"><a data-vim-url="' + self.getUrl()
 					+ '">' + self.boxOptions.title + '</a></div>')
-				+ '<button class="boxClose' + (self.boxOptions.isFixed ? ' hide' : '') + '"></button>'
-				+ '</div>');
+				+ '<button class="boxClose' + (self.boxOptions.isFixed ? ' hide' : '')
+				+ '"></button></div>');
 		} else {
 			boxItem = $('<div class="appBox ' + self.boxOptions.type + (self.boxOptions.isNew ? ' new' : '')
 				+ (self.boxOptions.isFixed ? ' boxFixed' : '')
-				+ '" id="appBox_' + self.boxOptions.id + '" url="' + self.getUrl() + '">'
-				+ '<div class="boxLogo" notes="' + self.boxOptions.title + '"></div>'
+				+ '" id="appBox_' + self.boxOptions.id + '" url="' + self.getUrl()
+				+ '"><div class="boxLogo" notes="' + self.boxOptions.title + '"></div>'
 				+ (!self.boxOptions.title ? '' : '<div class="boxTitle"><a data-vim-url="' + self.getUrl()
 					+ '">' + self.boxOptions.title + '</a></div>')
-				+ '<button class="boxClose' + (self.boxOptions.isFixed ? ' hide' : '') + '"></button>'
-				+ '<button class="boxEdit ' + (self.boxOptions.isFixed ? ' hide' : '') + '" title="' + getI18nMsg('editDialbox') + '"></button>'
-				+'</div>');
+				+ '<button class="boxClose' + (self.boxOptions.isFixed ? ' hide' : '')
+				+ '"></button><button class="boxEdit ' + (self.boxOptions.isFixed ? ' hide' : '') + '" title="' + getI18nMsg('editDialbox')
+				+ '"></button></div>');
 		}
 		if (self.boxOptions.html != "") {
 			boxItem.append($('<div class="boxHtml"></div>').html(self.boxOptions.html))
@@ -2218,6 +2134,9 @@ DBOX = {
 				}, 300)
 			}
 		});
+		var clear = function () {
+			_wheelEvent = false;
+		};
 		window.onmousewheel = function (event) {
 			if (_wheelEvent) return;
 			if (_wheelFun) {
@@ -2274,9 +2193,7 @@ DBOX = {
 			} else {
 				event.returnValue = true
 			}
-			_wheelFun = setTimeout(function () {
-				_wheelEvent = false
-			}, self.page3DSwitcherOpen == true ? 400 : 460);
+			_wheelFun = setTimeout(clear, self.page3DSwitcherOpen == true ? 400 : 460);
 		};
 		window.onmessage = function (e) {
 			_down = false
@@ -2431,18 +2348,15 @@ DBOX = {
 		logoBoxWidth = self.width,
 		boxLogoColor = '191,0,0',
 		logoImgUrl = thisBox.getImg();
-		if (logoImgUrl.indexOf(urlImg) == 0) {
-			if (type == 'quick' && logoImgUrl.indexOf('/m/') > -1) {
+		if (logoImgUrl.startsWith(urlImg)) {
+			if (type == 'quick' && logoImgUrl.indexOf('/m/') !== -1) {
 				logoImgUrl = logoImgUrl.replace('/m/', '/s/')
-			} else if (type == 'normal' && logoImgUrl.indexOf('/s/') > -1) {
+			} else if (type == 'normal' && logoImgUrl.indexOf('/s/') !== -1) {
 				logoImgUrl = logoImgUrl.replace('/s/', '/m/')
 			}
 		}
 		if (thisBox.boxOptions.color == "" || self.update) {
 			var logoImg = new Image();
-			if (isApp) {
-				logoImg.crossOrigin = "*"
-			}
 			logoImg.onerror = logoImg.onload = function () {
 				logoImg.onload = null;
 				boxLogo.removeClass("cw").removeClass("ch").removeClass("lh");
@@ -2457,9 +2371,6 @@ DBOX = {
 						boxLogo.addClass(boxObj.fit);
 					}
 				} catch (e) {}
-
-				var logoImgArray = urlRegEx(logoImgUrl);
-				if (!isApp || (isApp && (logoImgArray == null || logoImgArray[2] == "hao." + officialDomain))) {
 					try {
 						var notColorList = new Array('0,0,0', '255,255,255');
 						var boxLogoCanvas = $('<canvas width="' + logoImg.width + '" height="' + logoImg.height + '"></canvas>').get(0);
@@ -2475,7 +2386,7 @@ DBOX = {
 							boxLogoColor = imageDataRgba
 						}
 					} catch (err) {}
-				}
+
 				boxObj.color = boxLogoColor;
 				if (self.radius < 30 && type != 'quick') {
 					boxLogo.css('borderBottomColor', 'rgba(' + boxLogoColor + ',.6)');
@@ -2527,6 +2438,7 @@ DBOX = {
 			}
 		}
 		boxLogo.css('backgroundImage', 'url(' + logoImgUrl + ')');
+		/*
 		var iframeDialboxUrl = getIframeDialboxUrl(thisBox.boxOptions.url);
 		if (iframeDialboxUrl) {
 			var iframeOptions = "target=" + (targetSwitch ? "top" : "blank");
@@ -2548,7 +2460,7 @@ DBOX = {
 			var iframeSrc = iframeDialboxUrl + "?" + iframeOptions;
 			boxLogo.append($("<iframe class='iframeDialbox' frameborder='no' border='0' marginwidth='0' marginheight='0' scrolling='no' src='" + iframeSrc + "'></iframe><div class='iframeDialboxMask'></div>"));
 			boxLogo.addClass('empty')
-		}
+		} //*/
 		if (type == 'quick') {
 			self.QContainer.append(thisBox.boxObject)
 		} else {
@@ -3512,7 +3424,7 @@ DBOX = {
 							"opacity": 0.2
 						})
 					}
-				}, 10);
+				}, 0);
 				window.setTimeout(function () {
 					containerClone.css({
 						"left": (self.containerLeft - 1 * distance) + "px"
@@ -3520,7 +3432,7 @@ DBOX = {
 					self.container.css({
 						"WebkitTransition": "all .1s ease-out",
 					})
-				}, 10);
+				}, 0);
 				window.setTimeout(function () {
 					if (self.opacity == 0) {
 						self.container.css({
@@ -3768,8 +3680,8 @@ replaceLocationDB();
 PDI.set('setup', 'openSwitch', true);
 oauth.init();
 
-$(function () {
 initChromeI18n();
+$(function () {
 targetSwitch = PDI.get('privateSetup', 'targetSwitch');
 $('#baseTarget').attr('target', targetSwitch ? "_self" : "_blank");
 $('#searchForm').attr('target', targetSwitch ? "_self" : "_blank");

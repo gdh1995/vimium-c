@@ -44,7 +44,7 @@
 									imgMatch = img.match(/:\/\/[^\/]+/g)
 								}
 								img = imgMatch.pop();
-								img = img.substring(3, img.length);
+								img = img.substring(3);
 								img = img.replace(/^www\./, '');
 								n.img = urlImg + "s/" + img + ".png"
 							}

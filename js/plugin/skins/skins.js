@@ -162,7 +162,7 @@
 			},
 			template : function () {
 				return '<div class="skinsContainer"><div class="skinsHeader dragArea"><div class="headerIcon"></div>' + getI18nMsg('skinsAppTitle') + ' - ' +
-				getI18nMsg('skinsAppSupported') + ' <a href="http://www.like5.com" target="_blank">LIKE5.COM</a></div><div class="skinsBody"><div class="wallpaperCategorysContainer"><div class="cloudWallpaperCategorys"></div><div class="moreSettings">' +
+				getI18nMsg('skinsAppSupported') + ' <a href="http://www.like5.com" target="_blank" style="font-size:18px;color:#454545;text-shadow:none;">LIKE5.COM</a></div><div class="skinsBody"><div class="wallpaperCategorysContainer"><div class="cloudWallpaperCategorys"></div><div class="moreSettings">' +
 				getI18nMsg('moreSettings') + '</div></div><div class="cloudWallpaperContainer"></div><div class="autoCloudWallpaperContainer"><div class="bgAutoChange">' +
 				getI18nMsg('bgAutoChange') + ':</div><div class="bgAutoTimeContainer"><div class="bgAutoTime" automin="0">' +
 					getI18nMsg('never') + '</div><div class="bgAutoTime" automin="5">5' +

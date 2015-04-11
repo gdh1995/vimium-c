@@ -267,7 +267,7 @@
 									lang : ui_locale,
 									data : this.result
 								}, function(result) {
-									if (typeof result != 'string' || result.substring(0, 5) == 'ERROR') {
+									if (!result || result.startsWith('ERROR')) {
 										showNotice(getI18nMsg('importError'));
 										return false
 									}

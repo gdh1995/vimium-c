@@ -94,7 +94,36 @@
 			},
 			template : function () {
 				var self = this;
-				return '<div class="' + self.contentClass + '"><div class="cloudHeader"><div class="headerIcon"></div>' + getI18nMsg('cloudAppTitle') + '<div class="cloudSwitch">' + getI18nMsg('websiteAdd') + '</div></div><div class="cloudBody"><div class="menu"><ul class="categoryNav"></ul><div class="etc"><input type="checkbox" id="multipleSelect" value="1" /><label class="multipleSelectTitle" for="multipleSelect">' + getI18nMsg('multi') + '</label></div></div><div class="main"><div class="container websiteList show"><div class="search"><form id="searchForm"><input id="searchKeyword" type="text" maxlength="60" placeholder="' + getI18nMsg('websiteSearch') + '"/><input type="submit" class="searchBtn" value="" /></form></div><ul class="websiteItemList"></ul></div><div class="container appList"><div class="pluginsTitle">' + getI18nMsg('pluginsTitle') + '</div><ul class="pluginsList"></ul><div class="shortcutsTitle new">' + getI18nMsg('shortcutsTitle') + '</div><ul class="shortcutsList"></ul></div><div class="container createWebsite"><form id="websiteForm"><div class="infoContainer"><div class="textInfo"><div class="webSiteUrl"><span class="itemTitle">' + getI18nMsg('webSiteUrl') + '</span><input id="webSiteUrl" name="webSiteUrl" type="text" placeholder="http://" v=""/><div id="webSiteUrlSuggest" class="suggest" style="width:438px;left:80px;top:91px;"></div><span class="message">' + getI18nMsg('webSiteUrlMessage') + '</span></div><div class="webSiteTitle"><span class="itemTitle">' + getI18nMsg('webSiteTitle') + '</span><input id="webSiteTitle" type="text" name="webSiteTitle" v=""/><span class="message">' + getI18nMsg('webSiteTitleMessage') + '</span></div></div><div class="logoInfo"><div class="logoBox"><div class="logo"></div><div class="selectArrow"><div class="arrow"></div></div></div><div class="logoContainer"><input type="file" name="logoData" id="logoData" style="visibility:hidden;width:0px;height:0px;" accept="image/*" /></div><input id="webSiteLogo" type="hidden" name="webSiteLogo"></div></div><div class="aboutContainer"><div class="aboutTabs"><div class="topTab selected">' + getI18nMsg('topVisited') + '</div><div class="currentTab">' + (isApp ? '' : getI18nMsg('currentVisiting')) + '</div></div><div class="visiteContainer selected" tab="topTab"></div><div class="visiteContainer" tab="currentTab"></div></div><div class="classificationsContainer"><div class="classificationsTabs"><div class="classificationsTab">' + getI18nMsg('classificationAppTitle') + '</div></div><div class="classificationsList"></div></div><div class="btnContainer"><input type="button" id="resetBtn" name="resetBtn" class="btn" value="' + getI18nMsg('cancel') + '"><input type="submit" id="submitBtn" name="submitBtn" class="btn" value="' + getI18nMsg('determine') + '"></div></form></div><div class="loading"><img src="img/skin_0/loading2.gif" /></div></div></div></div>'
+				return '<div class="' + self.contentClass +
+					'"><div class="cloudHeader"><div class="headerIcon"></div>' +
+					getI18nMsg('cloudAppTitle') + '<div class="cloudSwitch">' + getI18nMsg('websiteAdd') +
+					'</div></div><div class="cloudBody"><div class="menu"><ul class="categoryNav"></ul><div class="etc"><input type="checkbox" id="multipleSelect" value="1" /><label class="multipleSelectTitle" for="multipleSelect">' +
+					getI18nMsg('multi') +
+					'</label></div></div><div class="main"><div class="container websiteList show"><div class="search"><form id="searchForm"><input id="searchKeyword" type="text" maxlength="60" placeholder="' +
+					getI18nMsg('websiteSearch') +
+					'"/><input type="submit" class="searchBtn" value="" /></form></div><ul class="websiteItemList"></ul></div><div class="container appList"><div class="pluginsTitle">' +
+					getI18nMsg('pluginsTitle') +
+					'</div><ul class="pluginsList"></ul><div class="shortcutsTitle new">' +
+					getI18nMsg('shortcutsTitle') +
+					'</div><ul class="shortcutsList"></ul></div><div class="container createWebsite"><form id="websiteForm"><div class="infoContainer"><div class="textInfo"><div class="webSiteUrl"><span class="itemTitle">' +
+					getI18nMsg('webSiteUrl') +
+					'</span><input id="webSiteUrl" name="webSiteUrl" type="text" placeholder="http://" v=""/><div id="webSiteUrlSuggest" class="suggest" style="width:438px;left:80px;top:91px;"></div><span class="message">' +
+					getI18nMsg('webSiteUrlMessage') +
+					'</span></div><div class="webSiteTitle"><span class="itemTitle">' +
+					getI18nMsg('webSiteTitle') +
+					'</span><input id="webSiteTitle" type="text" name="webSiteTitle" v=""/><span class="message">' +
+					getI18nMsg('webSiteTitleMessage') +
+					'</span></div></div><div class="logoInfo"><div class="logoBox"><div class="logo"></div><div class="selectArrow"><div class="arrow"></div></div></div><div class="logoContainer"><input type="file" name="logoData" id="logoData" style="visibility:hidden;width:0px;height:0px;" accept="image/*" /></div><input id="webSiteLogo" type="hidden" name="webSiteLogo"></div></div><div class="aboutContainer"><div class="aboutTabs"><div class="topTab selected">' +
+					getI18nMsg('topVisited') +
+					'</div><div class="currentTab">' +
+					getI18nMsg('currentVisiting') +
+					'</div></div><div class="visiteContainer selected" tab="topTab"></div><div class="visiteContainer" tab="currentTab"></div></div><div class="classificationsContainer"><div class="classificationsTabs"><div class="classificationsTab">' +
+					getI18nMsg('classificationAppTitle') +
+					'</div></div><div class="classificationsList"></div></div><div class="btnContainer"><input type="button" id="resetBtn" name="resetBtn" class="btn" value="' +
+					getI18nMsg('cancel') +
+					'"><input type="submit" id="submitBtn" name="submitBtn" class="btn" value="' +
+					getI18nMsg('determine') +
+					'"></div></form></div><div class="loading"><img src="img/skin_0/loading2.gif" /></div></div></div></div>';
 			}
 		};
 		return cloud

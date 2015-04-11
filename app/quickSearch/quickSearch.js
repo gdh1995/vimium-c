@@ -7,6 +7,9 @@ var searchSiteOptions = {
 var searchSites = ['baidu', 'google_cn', 'bing', 'taobao'];
 var _minSearchForce = false;
 var _quickSearchTransformFun = '';
+function S2S(str) {
+	return str.replace(/\x01/g, "");
+}
 (function ($) {
 	$.quickSearch = function () {
 		return new quickSearch()
@@ -343,7 +346,7 @@ var _quickSearchTransformFun = '';
 						index++
 					}
 				});
-				return '<div class="quickSearchContainer"><div class="quickSearchHeader"><div class="headerIcon"></div>' + getI18nMsg('quickSearchAppTitle') + '</div><div class="quickSearchBody"><div class="main" style="width:' + searchSites.length * self.width + 'px">' + searchIframeContent + '</div><div class="pageSwitcher">' + searchPageSwitcher + '</div></div></div>'
+				return '<div class="quickSearchContainer"><div class="quickSearchHeader"><div class="headerIcon"></div>' + getI18nMsg('quickSearchAppTitle') + '</div><div class="quickSearchBody"><div class="main" style="width:' + searchSites.length * self.width + 'px">' + searchIframeContent + '</div><div class="searchPageSwitcher">' + searchPageSwitcher + '</div></div></div>'
 			}
 		};
 		return quickSearch

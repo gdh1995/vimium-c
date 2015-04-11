@@ -13,7 +13,7 @@
 		cloudWebsite.prototype = {
 			langs : {
 				'zh_CN' : 0,
-				'en' : 2000,
+				'en' : 2000
 			},
 			categorys : {
 				'Bookmark' : 1,
@@ -154,7 +154,7 @@
 								} else {
 									img = n.u.trim();
 									if (img == '') {
-										img = urlImg + 'images/ie_logo.png'
+										img = 'img/skin_0/ie_logo.png'
 									} else {
 										img = img.toLowerCase().replace(/%3a%2f%2f/ig, '://');
 										var imgMatch = img.match(/:\/\/[^\/]+/g);
@@ -163,10 +163,10 @@
 											imgMatch = img.match(/:\/\/[^\/]+/g)
 										}
 										img = imgMatch.pop();
-										img = img.substring(3, img.length);
+										img = img.substring(3);
 										img = img.replace(/^www\./, '');
 										if (img == '' || img.indexOf('.') == -1 || img.indexOf('.') == img.length - 1) {
-											img = urlImg + 'images/ie_logo.png'
+											img = 'img/skin_0/ie_logo.png'
 										} else {
 											img = urlImg + 'm/' + img + '.png'
 										}

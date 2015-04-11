@@ -66,8 +66,8 @@
 				if (data instanceof Array && data.length > 0) {
 					$.each(data, function (i, n) {
 						if (n !== undefined) {
-							if ((/^(http|https|ftp|ftps|chrome|chrome-extension|chrome-devtools)\:\/\/(.*)/).test(n.title) == false &&
-								(/^(ftp|ftps|chrome|chrome-extension)\:\/\/(.*)/).test(n.url) == false) {
+							if ((/^(http|https|ftp|ftps|file|chrome|chrome-extension|chrome-devtools)\:\/\/(.*)/).test(n.title) == false &&
+								(/^(ftp|ftps|file|chrome|chrome-extension)\:\/\/(.*)/).test(n.url) == false) {
 								var title = n.title;
 								if (title == '') {
 									return

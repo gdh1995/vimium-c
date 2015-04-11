@@ -63,7 +63,7 @@
 								$.ajax({
 									url : urlImg + "tianqi/city.php?city=" + result.city + "&t=" + curTime,
 									success : function (data) {
-										if (typeof data == 'string' && data.substring(0, 5) != 'ERROR') {
+										if (data && !data.startsWith('ERROR')) {
 											self.cityID = data
 										}
 										self.setWeatherData(fn)

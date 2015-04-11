@@ -15,7 +15,7 @@
 					id : 'recent'
 				};
 				self.openQueue = PDI.get('setup', 'bookMarksOpenQueue');
-				self.content = '<div class="bookmarksContainer"><div class="bookmarksHeader"><div class="headerIcon"></div><div class="searchBookmarks"><input type="text" class="searchBookmarksKeyword" /></div>' + getI18nMsg('bookmarksAppTitle') + '<div class="bookmarksManage">' + getI18nMsg('manage') + '</div></div><div class="bookmarksBody"><div class="bookmarksFolder search"><div class="bookmarksFolderTitle open">搜索结果</div><ul class="bookMarksFolderContainer"></ul></div>';
+				self.content = '<div class="bookmarksContainer"><div class="bookmarksHeader"><div class="headerIcon"></div><div class="searchBookmarks"><input type="text" class="searchBookmarksKeyword" /></div>' + getI18nMsg('bookmarksAppTitle') + '<div class="bookmarksManage">' + getI18nMsg('manage') + '</div></div><div class="bookmarksBody"><div class="bookmarksFolder search"><div class="bookmarksFolderTitle open">' + getI18nMsg('searchResult') + '</div><ul class="bookMarksFolderContainer"></ul></div>';
 				self.getBookmarks(tree[0]);
 				self.getBookmarks(recentTree);
 				self.content += '</div></div>';
@@ -131,7 +131,6 @@
 					}
 				} else {
 					if (tree.url.trim() != '') {
-						var itemUrlArray = urlRegEx(tree.url);
 						self.content += '<li class="bookMarksFolderItem"  fid="' + tree.id + '"><a href="' + tree.url + '" title="' + tree.title + '">' + title_fix(tree.title) + '</a><div class="bookMarksFolderItemAdd" title="' + getI18nMsg('addToDialbox') + '"></div><div class="bookMarksFolderItemDel" title="' + getI18nMsg('delete') + '"></div></li>'
 					}
 				}

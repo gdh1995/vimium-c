@@ -4,9 +4,9 @@
 .quickSearchContainer .quickSearchBody{width:700px;height:400px;overflow:hidden;}
 .quickSearchContainer .quickSearchBody .main{height:400px;overflow:hidden;left:0px;position:absolute;-webkit-transition:all .4s ease-in;}
 .quickSearchContainer .quickSearchBody .main .iframeContainer{width:700px;height:400px;overflow:hidden;float:left;}
-.quickSearchContainer .pageSwitcher{position:absolute;background-color:transparent;top:40px;border-radius:6px;height:50px;z-index:10;}
-.quickSearchContainer .pageSwitcher .pageSwitcherItem{cursor:pointer;float:left;margin-left:10px;margin-top:5px;-webkit-mask-image:-webkit-linear-gradient(top, rgba(0,0,0,0.4), rgba(0,0,0,0.4));}
-.quickSearchContainer .pageSwitcher .pageSwitcherItem.selected, .quickSearchContainer .pageSwitcher .pageSwitcherItem:hover{-webkit-mask-image:none;}
+.quickSearchContainer .searchPageSwitcher{position:absolute;background-color:transparent;top:40px;border-radius:6px;height:50px;z-index:10;}
+.quickSearchContainer .searchPageSwitcher .pageSwitcherItem{cursor:pointer;float:left;margin-left:10px;margin-top:5px;-webkit-mask-image:-webkit-linear-gradient(top, rgba(0,0,0,0.4), rgba(0,0,0,0.4));}
+.quickSearchContainer .searchPageSwitcher .pageSwitcherItem.selected, .quickSearchContainer .searchPageSwitcher .pageSwitcherItem:hover{-webkit-mask-image:none;}
 .quickSearchApp{position:absolute;width:100%;}
 .appBox.quick .quickSearchApp{display:none;}
 .quickSearchApp .searchList{height:60px;margin:0 10px;cursor:pointer;}

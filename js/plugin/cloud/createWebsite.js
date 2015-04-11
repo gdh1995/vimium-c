@@ -13,7 +13,7 @@
 		createWebsite.prototype = {
 			suggestHide : true,
 			trends : [],
-			defaultLogoUrl : urlImg + 'ie_logo.png',
+			defaultLogoUrl : 'img/skin_0/ie_logo.png',
 			defaultUrl : '',
 			defaultTitle : '',
 			url : '',
@@ -30,7 +30,7 @@
         }, function (data) {
           if (data instanceof Array && data.length > 0) {
             $.each(data, function (i, n) {
-              if (typeof n.url != "undefined" && n.url.indexOf('http') === 0) {
+              if (n.url && n.url.startsWith('http')) {
                 try {
                   var _domain = n.url.match(/[^:]+:\/\/([^\/]+)/);
                   var domain = _domain[1];
@@ -74,7 +74,7 @@
 						$.post(urlImg + "weidu/uploadLogo.php", {
 							"imgData" : this.result
 						}, function (result) {
-							if (result && result.substring(0, 5) == 'ERROR') {
+          if (!result || result.startsWith('ERROR')) {
 								showNotice(getI18nMsg('logoFileUploadError'));
 								return
 							}
@@ -88,9 +88,6 @@
 					this.files = null
 				});
 				self.container.find('.aboutTabs div').bind('click', function () {
-					if ($(this).hasClass('currentTab') && isApp) {
-						return false
-					}
 					if (!$(this).hasClass('selected')) {
 						self.container.find('.aboutTabs div').removeClass("selected");
 						self.container.find('.visiteContainer').removeClass("selected");
@@ -195,12 +192,12 @@
 						}
 						_isRefresh = "curPage"
 					} else {
-						if (self.container.find('#webSiteClassification').val() != cId) {
-							storage.setId(self.container.find('#webSiteClassification').val());
+						var valWC1 = self.container.find('#webSiteClassification').val();
+						if (valWC1 != cId) {
+							storage.setId(valWC1);
 						}
 						if (DBOX.getLastDialbox() == "cloud") {
-							var toIndex = DBOX.getDialboxIndex('normal', 'cloud');
-							PDI.appendDialbox('normal', toIndex, {
+							PDI.appendDialbox('normal', DBOX.getDialboxIndex('normal', 'cloud'), {
 								title : self.container.find('#webSiteTitle').val(),
 								url : self.container.find('#webSiteUrl').val(),
 								img : self.container.find('#webSiteLogo').val(),
@@ -216,8 +213,8 @@
 								isNew : true
 							})
 						}
-						if (self.container.find('#webSiteClassification').val() != cId) {
-							storage.setId(self.container.find('#webSiteClassification').val());
+						if (valWC1 != cId) {
+							storage.setId(cId);
 							_isRefresh = "remove"
 						} else {
 							_isRefresh = "lastPage"
@@ -281,8 +278,7 @@
 			},
 			initAboutContainer : function () {
 				var self = this;
-				if (typeof chrome.topSites != "undefined") {
-					try {
+    if (chrome.topSites) {
 						chrome.topSites.get(function (tabs) {
 							if (tabs.length > 0) {
 								$.each(tabs, function (i, n) {
@@ -317,13 +313,9 @@
 								}
 							}
 						})
-					} catch (e) {}
-
 				}
-				if (!isApp) {
-					try {
 						chrome.tabs.query({
-							"windowType" : "normal"
+      windowType: "normal"
 						}, function (tabs) {
 							var faviconLoad = false;
 							if (tabs.length > 0) {
@@ -344,7 +336,7 @@
 										faviconLoad = true
 									}
 								});
-								if (faviconLoad && isApp == false) {
+        if (faviconLoad) {
 									try {
 										$.each(self.container.find(".visiteContainer[tab='currentTab'] .visitedItem a"), function (k, v) {
 											var itemUrl = $(v).attr("url");
@@ -358,13 +350,9 @@
 											}
 										})
 									} catch (e) {}
-
 								}
 							}
 						})
-					} catch (e) {}
-
-				}
 			},
 			initClassificationsContainer : function () {
 				var self = this;
@@ -510,3 +498,13 @@
 var createWebsite = $.createWebsite({
 		"container" : $('.createWebsite')
 	});
+var isUrl = /^(?:(?:https|http|ftp|rtsp|mms):\/\/)?[-0-9A-Z_a-z]+\.[^\.]/;
+isUrl = isUrl.test.bind(isUrl);
+function pad(num, n) {
+	var len = num.toString().length;
+	while (len < n) {
+		num = "0" + num;
+		len++
+	}
+	return num
+}

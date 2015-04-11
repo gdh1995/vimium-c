@@ -1,3 +1,13 @@
+function shuffle(aArr) {
+	var iLength = aArr.length, i = iLength, mTemp, iRandom;
+	while (i--) {
+		if (i !== (iRandom = Math.floor(Math.random() * iLength))) {
+			mTemp = aArr[i];
+			aArr[i] = aArr[iRandom];
+			aArr[iRandom] = mTemp
+		}
+	}
+}
 (function ($) {
 	$.fn.cloudWallpaper = function (opt) {
 		return new cloudWallpaper($(this), opt)
@@ -18,6 +28,7 @@
 			self.init()
 		};
 		cloudWallpaper.prototype = {
+			contpp: null,
 			container : '',
 			page : 1,
 			num : 30,
@@ -176,12 +187,13 @@
 									storage.remove('skins');
 									PDI.setSkin('skin_cloud', 'style', style);
 									PDI.set('privateSetup', 'skin', 'skin_cloud');
-									if (self.cacheData['Used'].indexOf(thisSelf.attr('imgIndex')) == -1) {
-										self.cacheData['Used'].splice(0, 0, thisSelf.attr('imgIndex'));
-										if (self.cacheData['Used'].length > 50) {
-											self.cacheData['Used'].splice(50, self.cacheData['Used'].length - 50)
+									var cused = self.cacheData['Used'];
+									if (cused.indexOf(thisSelf.attr('imgIndex')) == -1) {
+										cused.splice(0, 0, thisSelf.attr('imgIndex'));
+										if (cused.length > 50) {
+											cused.splice(50, cused.length - 50);
 										}
-										PDI.set('usedWallpaper', '', self.cacheData['Used']);
+										PDI.set('usedWallpaper', '', cused);
 									}
 									oauth.updateMsgId();
 									oauth.synchronize();

@@ -14,31 +14,31 @@
 .weatherContainer .weatherContent .weatherRight .text{overflow:hidden;width:100%;height:15px;}
 .weatherContainer .weatherContent .weatherRight .calendar{margin-top:8px;height:15px;}
 .weatherContainer .weatherContent .weatherRight .lunarCalendar{margin-top:8px;height:15px;}
-.weatherContainer .weatherContent .weatherSettingButton{position:absolute;top:4px;right:4px;width:16px;height:16px;background-image:url(../img/icons.png);background-position:0 -16px;opacity:.8;cursor:pointer;}
+.weatherContainer .weatherContent .weatherSettingButton{position:absolute;top:4px;right:4px;width:16px;height:16px;background-image:url(../img/icons.png);background-position:0px -16px;opacity:0.8;cursor:pointer;}
 .weatherContainer .weatherContent .weatherSettingButton:hover{opacity:1;}
 .weatherContainer .weatherForecast{display:none;height:85px;background-color:#f8f8f8;}
-.weatherContainer .weatherForecast .item{position:relative;float:left;width:25%;height:85px;background-position:center;background-size:auto 43%;background-repeat:no-repeat;opacity:.6;}
+.weatherContainer .weatherForecast .item{position:relative;float:left;width:25%;height:85px;background-position:center;background-size:auto 43%;background-repeat:no-repeat;opacity:0.6;}
 .weatherContainer .weatherForecast .item:first-child{opacity:1;}
 .weatherContainer .weatherForecast .item .week{position:absolute;top:5px;width:100%;height:20px;color:#4f5f6f;text-align:center;}
-.weatherContainer .weatherForecast .item .temp{position:absolute;bottom:0;width:100%;height:20px;color:#4f5f6f;text-align:center;}
+.weatherContainer .weatherForecast .item .temp{position:absolute;bottom:0px;width:100%;height:20px;color:#4f5f6f;text-align:center;}
 .weatherContainer .weatherForecast.lower{height:36px;}
 .weatherContainer .weatherForecast.lower .item{overflow:hidden;width:100%;height:36px;background-position:15px center;background-size:auto 82%;text-indent:58px;font-size:13px;line-height:36px;}
-.weatherContainer .weatherLine{clear:both;width:100%;height:4px;background-color:#f8f8f8;background-image:url(../img/icons.png);background-position:0 -70px;background-repeat:repeat-x;}
+.weatherContainer .weatherLine{clear:both;width:100%;height:4px;background-color:#f8f8f8;background-image:url(../img/icons.png);background-position:0px -70px;background-repeat:repeat-x;}
 .weatherContainer .weatherMessage{border-radius:0 0 2px 2px;background-color:#f8f8f8;}
 .weatherContainer .weatherMessage .messageItem{padding:5px 8px 8px 8px;height:20px;}
 .weatherContainer .weatherMessage.thumb .messageItem{height:60px;}
 .weatherContainer .weatherMessage .messageItem .thumb{float:left;width:60px;height:60px;border-radius:2px;background-position:center;background-size:100% 100%;background-repeat:no-repeat;}
 .weatherContainer .weatherMessage .messageItem .content{position:relative;float:left;overflow:hidden;margin:2px 0 2px 9px;height:16px;min-width:230px;background-image:url(../img/icons.png);background-repeat:no-repeat;text-indent:25px;font-size:13px;line-height:16px;}
 .weatherContainer .weatherMessage.thumb .messageItem .content{margin:0 0 0 9px;width:235px;height:60px;background-image:none;text-indent:0;line-height:20px;}
-.weatherContainer .weatherMessage .messageItem .content .button{position:absolute;right:0;bottom:0;width:40px;height:20px;border-radius:2px;background-color:#019ae0;color:#FFF;text-align:center;line-height:20px;cursor:pointer;}
+.weatherContainer .weatherMessage .messageItem .content .button{position:absolute;right:0px;bottom:0px;width:40px;height:20px;border-radius:2px;background-color:#019ae0;color:#FFF;text-align:center;line-height:20px;cursor:pointer;}
 .weatherContainer .weatherSetting{position:relative;display:none;border-radius:2px;background-color:#f8f8f8;}
 .weatherContainer.setting .weatherSetting{display:block;}
-.weatherContainer .weatherSetting .submitButton{position:absolute;right:6px;bottom:6px;width:50px;height:20px;border-radius:2px;background-color:#019ae0;color:#FFF;text-align:center;font-size:12px;line-height:20px;opacity:.9;cursor:pointer;}
-.weatherContainer .weatherSetting .cancelButton{position:absolute;right:60px;bottom:6px;width:70px;height:20px;border-radius:2px;background-color:#a6a6a6;color:#FFF;text-align:center;font-size:12px;line-height:20px;opacity:.9;cursor:pointer;}
+.weatherContainer .weatherSetting .submitButton{position:absolute;right:6px;bottom:6px;width:50px;height:20px;border-radius:2px;background-color:#019ae0;color:#FFF;text-align:center;font-size:12px;line-height:20px;opacity:0.9;cursor:pointer;}
+.weatherContainer .weatherSetting .cancelButton{position:absolute;right:60px;bottom:6px;width:70px;height:20px;border-radius:2px;background-color:#a6a6a6;color:#FFF;text-align:center;font-size:12px;line-height:20px;opacity:0.9;cursor:pointer;}
 .weatherContainer .weatherSetting .submitButton:hover,.weatherContainer .weatherSetting .cancelButton:hover{opacity:1;}
 .weatherContainer .weatherSetting .citySearch{padding-top:15px;padding-left:20px;height:24px;}
-.weatherContainer .weatherSetting .citySearch .searchKeyword{float:left;width:171px;height:20px;outline:0;border:1px #b0b7bb solid;border-right:0;border-radius:2px 0 0 2px;text-indent:3px;font-size:12px;}
-.weatherContainer .weatherSetting .citySearch .searchBtn{float:left;margin:0;width:27px;height:24px;outline:0;border:1px #b0b7bb solid;background-image:url(../img/icons.png);background-position:5px -96px;background-repeat:repeat-y;cursor:pointer;}
+.weatherContainer .weatherSetting .citySearch .searchKeyword{float:left;width:171px;height:20px;outline:none;border:1px #b0b7bb solid;border-right:none;border-radius:2px 0 0 2px;text-indent:3px;font-size:12px;}
+.weatherContainer .weatherSetting .citySearch .searchBtn{float:left;margin:0;width:27px;height:24px;outline:none;border:1px #b0b7bb solid;background-image:url(../img/icons.png);background-position:5px -96px;background-repeat:repeat-y;cursor:pointer;}
 .weatherContainer .weatherSetting .citySearch .auto{float:left;margin-left:15px;height:24px;font-size:12px;line-height:24px;cursor:pointer;}
 .weatherContainer .weatherSetting .citySearch .cityList{position:absolute;top:38px;left:20px;z-index:20;display:none;overflow-y:hidden;width:280px;max-height:104px;border:1px #b0b7bb solid;background-color:#FFF;}
 .weatherContainer .weatherSetting .citySearch .cityList .item{float:left;width:33.3%;height:26px;text-indent:2px;font-size:12px;line-height:26px;cursor:pointer;}
