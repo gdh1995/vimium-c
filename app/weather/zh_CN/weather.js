@@ -14,7 +14,7 @@ var weather = {
 	weatherCache : '',
 	weekOptions : [getI18nMsg("calendarSun"), getI18nMsg("calendarMon"), getI18nMsg("calendarTue"), getI18nMsg("calendarWed"), getI18nMsg("calendarThu"), getI18nMsg("calendarFri"), getI18nMsg("calendarSat")],
 	imageOptions : {
-		1:1: {
+		"1:1": {
 			0 : [0],
 			1 : [1],
 			2 : [2],
@@ -28,7 +28,7 @@ var weather = {
 			10 : [20, 30, 29, 31],
 			11 : [18, 53, 32]
 		},
-		2:1: ['0-1', '0-5', '0-6', '0-7', '1-2', '5-7', '5-8', '7-10']
+		"2:1": ['0-1', '0-5', '0-6', '0-7', '1-2', '5-7', '5-8', '7-10']
 	},
 	init : function (opt) {
 		var self = this;

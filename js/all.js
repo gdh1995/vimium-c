@@ -317,7 +317,7 @@ function bit_rol(num,cnt){return(num<<cnt)|(num>>>(32-cnt))};
 
 var storage = {
 	setId: function (id) {
-		if (id !== "undefined" && id !== "") {
+		if (id && id !== "") {
 			this.id = "_" + id
 		}
 		this.relative = true;
@@ -1804,7 +1804,7 @@ var app = {
 	runedAppObjects: {},
 	getAppConfigValue: function (appId, key) {
 		var self = this, temp1 = self.apps[appId].langVers;
-		if (temp1 && temp1[ui_locale] != "undefined" && temp1[ui_locale][key] != "undefined") {
+		if (temp1 && temp1[ui_locale] && temp1[ui_locale][key]) {
 			return temp1[ui_locale][key]
 		} else if (temp1 = self.apps[appId][key]) {
 			return temp1
@@ -3590,7 +3590,7 @@ DBOX = {
 	}
 };
 
-var DBOX, cId = "", targetSwitch = true, serverValue = [], updateNotification = false;
+var DBOX, cId = "", targetSwitch = true, updateNotification = false;
 if (cId = PDI.get("setup", "cId")) {
 	storage.setId(cId);
 }

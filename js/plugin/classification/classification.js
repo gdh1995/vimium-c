@@ -350,45 +350,42 @@ var classification = {
 			if (_cId != "" && cIndex === false) {
 				self.changeSwitch = true;
 				showNotice(getI18nMsg('classificationNotExist'))
-			} else {
-				if (cIndex !== false && typeof self.classifications[cIndex].dataUrl != "undefined" && self.classifications[cIndex].dataUrl != "" && typeof self.classifications[cIndex].LTime != "undefined" && self.classifications[cIndex].LTime == 0) {
-					$.getJSON(self.classifications[cIndex].dataUrl + "&t=" + Date.now(), function (result) {
-						var urlImgList = ['http://hao.weidunewtab.com/', 'http://hao.newtabplus.com/', 'http://www.94994.com/', 'http://en.94994.com/'];
-						var loadDatakey = ['privateSetup', 'dialBoxes', 'skins'];
-						if (result && typeof result == 'object') {
-							cId = _cId;
-							PDI.set("setup", "cId", cId);
-							storage.relative = false;
-							storage.clear(['privateSetup_' + cId, 'dialBoxes_' + cId, 'weather_' + cId, 'skins_' + cId]);
-							$.each(result, function (k, v) {
-								if (loadDatakey.indexOf(k) > -1) {
-									PDI.set(k + "_" + cId, '', v)
-								}
-							});
-							if (typeof result["rssOptions"] != "undefined") {
-								if (typeof result["rssOptions"]['dialBoxStyle'] != "undefined" && result["rssOptions"]['dialBoxStyle'] == "square") {
-									var _screenDialboxOption = screenDialboxOptions['default'];
-									if (typeof screenDialboxOptions[screenWidth + "*" + screenHeight] != 'undefined') {
-										var _screenDialboxOption = screenDialboxOptions[screenWidth + "*" + screenHeight]
-									}
-									PDI.set("privateSetup_" + cId, 'dialBoxWidth', _screenDialboxOption["height"]);
-									PDI.set("privateSetup_" + cId, 'dialBoxHeight', _screenDialboxOption["height"])
-								}
+			} else if (cIndex !== false && self.classifications[cIndex].dataUrl && self.classifications[cIndex].LTime === 0) {
+				$.getJSON(self.classifications[cIndex].dataUrl + "&t=" + Date.now(), function (result) {
+					var loadDatakey = ['privateSetup', 'dialBoxes', 'skins'];
+					if (result && typeof result == 'object') {
+						cId = _cId;
+						PDI.set("setup", "cId", cId);
+						storage.relative = false;
+						storage.clear(['privateSetup_' + cId, 'dialBoxes_' + cId, 'weather_' + cId, 'skins_' + cId]);
+						$.each(result, function (k, v) {
+							if (loadDatakey.indexOf(k) > -1) {
+								PDI.set(k + "_" + cId, '', v)
 							}
-							storage.relative = true;
-							self.classifications[cIndex]['LTime'] = Date.now();
-							PDI.set("classifications", "", self.classifications);
-							self.changeBody(cId)
-						} else {
-							self.changeSwitch = true;
-							showNotice(getI18nMsg('classificationGetDataError'))
+						});
+						if (typeof result["rssOptions"] != "undefined") {
+							if (typeof result["rssOptions"]['dialBoxStyle'] != "undefined" && result["rssOptions"]['dialBoxStyle'] == "square") {
+								var _screenDialboxOption = screenDialboxOptions['default'];
+								if (typeof screenDialboxOptions[screenWidth + "*" + screenHeight] != 'undefined') {
+									var _screenDialboxOption = screenDialboxOptions[screenWidth + "*" + screenHeight]
+								}
+								PDI.set("privateSetup_" + cId, 'dialBoxWidth', _screenDialboxOption["height"]);
+								PDI.set("privateSetup_" + cId, 'dialBoxHeight', _screenDialboxOption["height"])
+							}
 						}
-					})
-				} else {
-					cId = _cId;
-					PDI.set("setup", "cId", cId);
-					self.changeBody(cId)
-				}
+						storage.relative = true;
+						self.classifications[cIndex]['LTime'] = Date.now();
+						PDI.set("classifications", "", self.classifications);
+						self.changeBody(cId)
+					} else {
+						self.changeSwitch = true;
+						showNotice(getI18nMsg('classificationGetDataError'))
+					}
+				})
+			} else {
+				cId = _cId;
+				PDI.set("setup", "cId", cId);
+				self.changeBody(cId)
 			}
 		}
 	},
