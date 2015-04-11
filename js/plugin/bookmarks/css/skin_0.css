@@ -1,5 +1,5 @@
 .bookmarksContainer{width:760px;height:466px;background:#F8F8F8;border-radius:6px;}
-.bookmarksContainer .bookmarksHeader{width:760px;height:36px;line-height:36px;text-indent:5px;font-size:18px;background:url(../../dialog/img/skin_0/headerBg.png);color:#454545;border-radius:6px 6px 0 0;}
+.bookmarksContainer .bookmarksHeader{width:760px;height:36px;line-height:36px;text-indent:5px;font-size:18px;background:url(../../img/headerBg.png);color:#454545;border-radius:6px 6px 0 0;}
 .bookmarksContainer .bookmarksHeader .headerIcon{float:left;width:21px;height:21px;margin:7px 0 0 15px;background:url(../img/logo.png);background-size:100%;}
 .bookmarksContainer .bookmarksHeader .searchBookmarks{position:absolute;right:125px;height:36px;border-radius:3px;}
 .bookmarksContainer .bookmarksHeader .searchBookmarks input{width:200px;outline:none;padding:0;height:23px;margin:6px 0px 0px 5px;font-size:13px;float:left;border-radius:3px;background:#FAFAFA;background-image:url(../img/skin_0/searchButton.png);background-repeat:no-repeat;background-position:center right;border:1px #BCBCBC solid;overflow:hidden;color:#A9A9A9;}

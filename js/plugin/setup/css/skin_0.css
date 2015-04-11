@@ -1,6 +1,6 @@
 .settingContainer{position:relative;width:760px;height:476px;overflow:hidden;border-radius:6px;background:#F8F8F8;}
 .settingBox{position:absolute;width:760px;height:476px;top:0px;left:0px;-webkit-transition:left .2s ease-in, opacity .2s ease-in;}
-.titleBar{width:100%;height:37px;line-height:37px;text-indent:5px;font-size:18px;background:url(../../dialog/img/skin_0/headerBg.png);color:#454545;border-radius:6px 6px 0 0;}
+.titleBar{width:100%;height:37px;line-height:37px;text-indent:5px;font-size:18px;background:url(../../img/headerBg.png);color:#454545;border-radius:6px 6px 0 0;}
 .titleBar .titleBarIcon{float:left;width:21px;height:21px;margin:7px 0 0 15px;background:url(../img/logo.png);background-size:100%;}
 .titleBar .back{width:81px;line-height:24px;cursor:pointer;text-align:center;font-size:14px;position:absolute;right:25px;top:6px;color:white;font-weight:normal;background:url(../../../../img/skin_0/wedo.png) -123px -453px;text-indent:0px;}
 .titleBar .back:hover{background:url(../../../../img/skin_0/wedo.png) -123px -488px;}

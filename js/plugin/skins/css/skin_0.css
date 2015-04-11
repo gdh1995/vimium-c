@@ -1,5 +1,5 @@
 .skinsContainer{position:relative;width:745px;height:523px;border-radius:6px;background:#f8f8f8;}
-.skinsContainer .skinsHeader{width:745px;height:37px;border-radius:6px 6px 0 0;background:url(../../dialog/img/skin_0/headerBg.png);color:#454545;text-indent:5px;font-size:18px;line-height:37px;}
+.skinsContainer .skinsHeader{width:745px;height:37px;border-radius:6px 6px 0 0;background:url(../../img/headerBg.png);color:#454545;text-indent:5px;font-size:18px;line-height:37px;}
 .skinsContainer .skinsHeader .headerIcon{float:left;margin:7px 0 0 15px;width:21px;height:21px;background:url(../img/logo.png);background-size:100%;}
 .skinsContainer .skinsBody{width:740px;height:484px;border-radius:0 0 6px 6px;}
 .skinsContainer .wallpaperCategorysContainer{padding:0 4px 5px 4px;height:29px;}
