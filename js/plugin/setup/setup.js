@@ -342,12 +342,12 @@
 						DBOX.pageIndex()
 					}
 					if ($(this).attr('id') == 'dialBoxPage3DSwitcher') {
-            if ($(this).attr('checked') == null) {
-              DBOX.page3DSwitcherOpen = true
-            } else {
-              DBOX.page3DSwitcherOpen = false
-            }
-            DBOX.init()
+						if ($(this).attr('checked') == null) {
+							DBOX.page3DSwitcherOpen = true
+						} else {
+							DBOX.page3DSwitcherOpen = false
+						}
+						DBOX.init()
 					}
 					if ($(this).attr('id') == 'dialBoxQuickSwitcher') {
 						if ($(this).attr('checked') == null) {
@@ -547,7 +547,7 @@
 					})
 				});
 				var loginButtonHtml = '';
-        PDI.set("setup", "oauthKey", '');
+				PDI.set("setup", "oauthKey", '');
 				if (oauth.oauthId) {
 					loginButtonHtml += '<div class="loginButton"><img src="js/plugin/setup/img/skin_0/login_' + oauth.oauthSource + '.png" width="87" height="32" /></div><div class="userContent"><div class="userContentArrowBorder"></div><div class="userContentArrow"></div><span class="oauthCode">' + oauth.oauthCode + '</span><span class="oauthSyn">[ ' + getI18nMsg('synchronize') + ' ]</span><span class="oauthLogout">[ ' + getI18nMsg('logout') + ' ]</span></div>'
 				} else {

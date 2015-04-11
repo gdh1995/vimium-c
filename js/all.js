@@ -2329,21 +2329,21 @@ DBOX = {
 						boxLogo.addClass(boxObj.fit);
 					}
 				} catch (e) {}
-        try {
-          var notColorList = new Array('0,0,0', '255,255,255');
-          var boxLogoCanvas = $('<canvas width="' + logoImg.width + '" height="' + logoImg.height + '"></canvas>').get(0);
-          boxLogoCanvas = boxLogoCanvas.getContext("2d");
-          boxLogoCanvas.drawImage(logoImg, 0, 0);
-          var imageData = boxLogoCanvas.getImageData(parseInt(logoImg.width / 3), parseInt(logoImg.height / 2), 1, 1).data;
-          var imageDataRgba = imageData[0] + ',' + imageData[1] + ',' + imageData[2];
-          if (notColorList.indexOf(imageDataRgba) > -1 || isWhite(imageData[0], imageData[1], imageData[2])) {
-            imageData = boxLogoCanvas.getImageData(parseInt(logoImg.width / 2), parseInt(logoImg.height / 2), 1, 1).data;
-            imageDataRgba = imageData[0] + ',' + imageData[1] + ',' + imageData[2]
-          }
-          if (notColorList.indexOf(imageDataRgba) == -1 && !isWhite(imageData[0], imageData[1], imageData[2])) {
-            boxLogoColor = imageDataRgba
-          }
-        } catch (err) {}
+				try {
+					var notColorList = new Array('0,0,0', '255,255,255');
+					var boxLogoCanvas = $('<canvas width="' + logoImg.width + '" height="' + logoImg.height + '"></canvas>').get(0);
+					boxLogoCanvas = boxLogoCanvas.getContext("2d");
+					boxLogoCanvas.drawImage(logoImg, 0, 0);
+					var imageData = boxLogoCanvas.getImageData(parseInt(logoImg.width / 3), parseInt(logoImg.height / 2), 1, 1).data;
+					var imageDataRgba = imageData[0] + ',' + imageData[1] + ',' + imageData[2];
+					if (notColorList.indexOf(imageDataRgba) > -1 || isWhite(imageData[0], imageData[1], imageData[2])) {
+						imageData = boxLogoCanvas.getImageData(parseInt(logoImg.width / 2), parseInt(logoImg.height / 2), 1, 1).data;
+						imageDataRgba = imageData[0] + ',' + imageData[1] + ',' + imageData[2]
+					}
+					if (notColorList.indexOf(imageDataRgba) == -1 && !isWhite(imageData[0], imageData[1], imageData[2])) {
+						boxLogoColor = imageDataRgba
+					}
+				} catch (err) {}
 
 				boxObj.color = boxLogoColor;
 				if (self.radius < 30 && type != 'quick') {
