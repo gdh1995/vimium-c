@@ -577,8 +577,6 @@ oauthKey:"",
 oauthCode:"",
 oauthSource:"",
 msgid:0,
-openSwitch:true,
-contextMenusSwitch:true,
 noticeID:0,
 notificationID:0,
 OTime:0,
@@ -1026,7 +1024,6 @@ var oauth = {
 					}
 				});
 				storage.relative = true;
-				PDI.set('setup', 'openSwitch', true);
 				if (PDI.get('setup', 'OTime') == 0) {
 					PDI.set('setup', 'OTime', curOTime)
 				}
@@ -3612,7 +3609,6 @@ if (lastVersion == null || lastVersion.length > 12 || parseInt(lastVersion) > 10
 	updateNotification = true
 }
 replaceLocationDB();
-PDI.set('setup', 'openSwitch', true);
 oauth.init();
 
 initChromeI18n();
@@ -3625,7 +3621,7 @@ DBOX.__init__({
 		QContainer: $('.quickDialbox'),
 		QBContainer: $('.QBannerContainer'),
 		num: PDI.get('privateSetup', 'dialBoxNum'),
-		page: PDI.get('dialBoxPage') || PDI.get('privateSetup', 'dialBoxPage'),
+		page: PDI.get('dialBoxPage'),
 		opacity: PDI.get('privateSetup', 'dialBoxOpacity'),
 		spacing: PDI.get('privateSetup', 'dialBoxSpacing'),
 		titleShow: PDI.get('privateSetup', 'dialBoxTitleSwitch'),

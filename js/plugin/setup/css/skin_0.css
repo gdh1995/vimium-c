@@ -4,7 +4,7 @@
 .titleBar .titleBarIcon{float:left;width:21px;height:21px;margin:7px 0 0 15px;background:url(../img/logo.png);background-size:100%;}
 .titleBar .back{width:81px;line-height:24px;cursor:pointer;text-align:center;font-size:14px;position:absolute;right:25px;top:6px;color:white;font-weight:normal;background:url(../../../../img/skin_0/wedo.png) -123px -453px;text-indent:0px;}
 .titleBar .back:hover{background:url(../../../../img/skin_0/wedo.png) -123px -488px;}
-.baseSettingsBar, .oathSettingsBar{height:35px;width:720px;margin:0 20px;background:#F8F8F8;}
+.baseSettingsBar, .oathSettingsBar{height:35px;width:720px;margin:20px 20px 10px 20px;background:#F8F8F8;}
 .baseSettingsBar span, .oathSettingsBar span{font-size:14px;margin-left:2px;line-height:40px;color:black;}
 .dialBoxSettingsContainer{width:718px;height:89px;margin:0px 20px 0 20px;border-bottom:#CCC 1px dashed;border-right:#CCC 1px solid;border-left:#CCC 1px solid;border-top:#CCC 1px solid;border-radius:10px 10px 0 0;}
 .dialBoxSettingsContainer .dialBoxStyle{cursor:pointer;float:left;width:80px;height:60px;margin:15px;text-align:center;border-radius:6px;}
@@ -136,7 +136,7 @@
 .settingContainer .version{right:-10px;}
 .settingContainer .suggest a, .settingContainer .useHelp a, .settingContainer .version a{color:#CCC;text-shadow:none;}
 .settingContainer .suggest a:hover, .settingContainer .useHelp a:hover{color:#545454;}
-.recovery{background-color:#ECECEC;border:#CACBCA solid 1px;width:70px;line-height:17px;margin-top:7px;margin-right:37px;border-radius:50px;cursor:pointer;text-align:center;font-size:12px;position:absolute;right:0px;font-family:arial,sans-serif;}
+.recovery{background-color:#ECECEC;border:#CACBCA solid 1px;width:60px;line-height:17px;margin-top:7px;margin-right:37px;border-radius:50px;cursor:pointer;text-align:center;font-size:12px;position:absolute;right:2px;font-family:arial,sans-serif;}
 .recovery:hover{border-color:#2A65A0;border-bottom-color:#3884CF;color:white;background-color:#3072B3;background-image:-webkit-linear-gradient(top, #3072B3, #599BDC);}
 .settingContainer input[type=checkbox]{display:none;}
 .settingContainer input[type=checkbox] + label{text-indent:-9999px;display:block;width:60px;overflow:hidden;height:21px;line-height:21px;background:transparent url(../../../../img/skin_0/ios5_button.png) no-repeat 0 0;-webkit-transition:background-position 0.3s ease-in-out;border-radius:1em 1em 1em 1em;cursor:pointer;margin:7px 3px 3px 0px;background-position:-39px 0;}
