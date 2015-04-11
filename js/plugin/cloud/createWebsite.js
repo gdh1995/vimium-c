@@ -110,7 +110,7 @@ var createWebsite = {
 				$(this).siblings('.message').html('<div class="checkOK"></div>' + getI18nMsg('webSiteUrlNoError'))
 			}
 			var img = $(this).val();
-			if (!isUrl(img)) {
+			if (! /^(?:(?:https|http|ftp|rtsp|mms):\/\/)?[-0-9A-Z_a-z]+\.[^\.]/.test(img)) {
 				img = self.defaultLogoUrl
 			} else {
 				img = img.toLowerCase().replace(/%3a%2f%2f/ig, '://');
@@ -387,7 +387,10 @@ var createWebsite = {
 			}));
 		self.container.find('.logoContainer').append('<div class="logoItemTitle">' + getI18nMsg('webSiteLogos') + '</div>');
 		for (var i = iStart + 1; i <= iStart + 30; i++) {
-			self.container.find('.logoContainer').append($('<div class="logoLine"></div><div class="logoItem" style="background-image:url(' + urlImg + 'cloudapp/generalLogo/m/' + pad(i, 4) + '.png)"></div>').bind("click", function () {
+			self.container.find('.logoContainer').append($(
+				'<div class="logoLine"></div><div class="logoItem" style="background-image:url('
+				+ urlImg + 'cloudapp/generalLogo/m/' + self.pad(i, 4) + '.png)"></div>'
+			).bind("click", function () {
 					var selectedLogo = $(this).css("backgroundImage");
 					var selectedLogoSize = $(this).css("backgroundSize");
 					self.container.find('#webSiteLogo').val(selectedLogo.replace('url(', '').replace(')', '').replace(/\"/g, ""));
@@ -478,17 +481,15 @@ var createWebsite = {
 				})
 			}
 		})
+	},
+	pad: function (num, n) {
+		var len = num.toString().length;
+		while (len < n) {
+			num = "0" + num;
+			len++
+		}
+		return num
 	}
 };
 createWebsite.container = $('.createWebsite');
 createWebsite.init();
-var isUrl = /^(?:(?:https|http|ftp|rtsp|mms):\/\/)?[-0-9A-Z_a-z]+\.[^\.]/;
-isUrl = isUrl.test.bind(isUrl);
-function pad(num, n) {
-	var len = num.toString().length;
-	while (len < n) {
-		num = "0" + num;
-		len++
-	}
-	return num
-}

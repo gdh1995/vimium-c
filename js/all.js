@@ -1220,7 +1220,7 @@ var _Dialog = function Dialog(el, opt) {
 _Dialog.prototype = {
 	id: "",
 	caption: "",
-	content: "",
+	content: '',
 	eventObj: "",
 	eventName: "click",
 	callback: {},

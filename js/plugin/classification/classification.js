@@ -1,5 +1,5 @@
-var _minClassificationHideFun = "",
-classification = {
+var classification = {
+	_minClassificationHideFun: 0,
 	content : '',
 	num : 7,
 	lineNum : 8,
@@ -152,7 +152,7 @@ classification = {
 		});
 		$('.minClassificationContainer').unbind("mouseover").bind("mouseover", function (e) {
 			if (!isMouseMoveContains(e, this)) {
-				clearTimeout(_minClassificationHideFun)
+				clearTimeout(self._minClassificationHideFun)
 			}
 		}).unbind("mouseout").bind("mouseout", function (e) {
 			if (!isMouseMoveContains(e, this)) {
@@ -163,7 +163,7 @@ classification = {
 	showMinClassification : function () {
 		var self = this;
 		if (!_move && !_edit && $('.dialog-visible').length == 0) {
-			clearTimeout(_minClassificationHideFun);
+			clearTimeout(self._minClassificationHideFun);
 			self.minClassificationTargetObj.find('.boxTitle').addClass("transparent");
 			var _offset = self.minClassificationTargetObj.offset();
 			var _left = _offset.left;
@@ -181,7 +181,7 @@ classification = {
 			self.minClassificationTargetObj.find('.boxTitle').removeClass("transparent");
 			self.minClassificationSwitch = false
 		} else {
-			_minClassificationHideFun = setTimeout(function () {
+			self._minClassificationHideFun = setTimeout(function () {
 					$('.minClassificationContainer').hide();
 					self.minClassificationTargetObj.find('.boxTitle').removeClass("transparent");
 					self.minClassificationSwitch = false
