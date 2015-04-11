@@ -153,21 +153,7 @@ function showNotice(msg, sec, fn1, fn2) {
 	} else {
 		notice.init(msg, sec, fn1, fn2)
 	}
-} /*/
-function getIframeDialboxUrl(url) {
-	var iframeDialbox = PDI.get('iframeDialbox');
-	if (iframeDialbox.length === 0) return false;
-	if (url.match(/(.*?\.)?taobao\.com\/(.*)pid=mm_(.*)/)) {
-		if (iframeDialbox.indexOf("taobao.com") > -1) {
-			return "http://www.94994.com/myapp/iframeDialbox/index.html"
-		}
-	} else if (url.match(/(.*?\.)?amazon\.com\/(.*)tag=(.*)-20/)) {
-		if (iframeDialbox.indexOf("amazon.com") > -1) {
-			return "http://www.zomela.com/iframeDialbox/index.html"
-		}
-	}
-	return false
-} //*/
+}
 function replaceMSiteDialboxs(_dialboxs, MSite) {
 	var _save = false;
 	if (!_dialboxs || !(_dialboxs.length > 0)) {
@@ -242,35 +228,7 @@ function replaceMSiteDialboxs(_dialboxs, MSite) {
 		});
 	});
 	return _save ? _dialboxs : null;
-} /*
-function replaceMSite(MSite, filters) {
-	filters = typeof filters == "undefined" ? [] : filters;
-	var _classificationsIds = [""];
-	var _classifications = storage.get('classifications', true);
-	if (_classifications && _classifications.length > 0) {
-		$.each(_classifications, function (k, v) {
-			if (filters.indexOf(v.id) == -1) {
-				_classificationsIds.push("_" + v.id)
-			}
-		})
-	}
-	storage.relative = false;
-	$.each(_classificationsIds, function (k, v) {
-		var _dialBoxes = storage.get('dialBoxes' + v, true);
-		if (!_dialBoxes) { return; }
-		var boxes = _dialBoxes.normal;
-		boxes = replaceMSiteDialboxs(boxes, MSite);
-		if (boxes) {
-			PDI.set("dialBoxes" + v, "normal", boxes)
-		}
-		boxes = _dialBoxes.quick;
-		boxes = replaceMSiteDialboxs(boxes, MSite);
-		if (boxes) {
-			PDI.set("dialBoxes" + v, "quick", boxes)
-		}
-	});
-	storage.relative = true
-} //*/
+}
 function replaceLocationDB() {
 	var OTime = PDI.get('setup', 'OTime');
 	if (OTime < 1402367000) {
@@ -1012,18 +970,18 @@ var oauth = {
 		var url = self.synDataApiUrl + '?e=' + self.oauthId + '&ver=' + ver + '&dataVersion=' + _config.dataVersion;
 		$.post(url, function (result) {
 			if (typeof result === 'string' && result.startsWith('ERROR')) {
-					if (result.startsWith('ERROR_FILE_MSGID_')) {
+				if (result.startsWith('ERROR_FILE_MSGID_')) {
 					PDI.set('setup', 'msgid', parseInt(result.substring(17)))
-					}
-					if (window.location.href != window.location.protocol + '//' + window.location.hostname + window.location.pathname) {
-						window.location.hash = "";
-						window.location.href = window.location.protocol + '//' + window.location.hostname + window.location.pathname
-					}
-					setTimeout(function () {
-						window.location.reload(true)
-					}, 200);
-					return
 				}
+				if (window.location.href != window.location.protocol + '//' + window.location.hostname + window.location.pathname) {
+					window.location.hash = "";
+					window.location.href = window.location.protocol + '//' + window.location.hostname + window.location.pathname
+				}
+				setTimeout(function () {
+					window.location.reload(true)
+				}, 200);
+				return
+			}
 			if (!self.save(result)) {
 				alert(getI18nMsg('oauthDownDataVersionError'))
 			}
@@ -2265,7 +2223,7 @@ DBOX = {
 	addBoxes: function (order) {
 		var self = this, existNum = $(self.container.find('.appBox').not('.boxDrag')).length;
 		var boxes = self.getBoxes(), page = self.page, start = (page - 1) * self.num,
-				end = start + (self.num * 1) - existNum, p = 0, q = 0,
+			end = start + (self.num * 1) - existNum, p = 0, q = 0,
 		boxQueue = [];
 		$.each(boxes, function (i, n) {
 			if (!self.isDialboxShow(n)) return;
@@ -2371,21 +2329,21 @@ DBOX = {
 						boxLogo.addClass(boxObj.fit);
 					}
 				} catch (e) {}
-					try {
-						var notColorList = new Array('0,0,0', '255,255,255');
-						var boxLogoCanvas = $('<canvas width="' + logoImg.width + '" height="' + logoImg.height + '"></canvas>').get(0);
-						boxLogoCanvas = boxLogoCanvas.getContext("2d");
-						boxLogoCanvas.drawImage(logoImg, 0, 0);
-						var imageData = boxLogoCanvas.getImageData(parseInt(logoImg.width / 3), parseInt(logoImg.height / 2), 1, 1).data;
-						var imageDataRgba = imageData[0] + ',' + imageData[1] + ',' + imageData[2];
-						if (notColorList.indexOf(imageDataRgba) > -1 || isWhite(imageData[0], imageData[1], imageData[2])) {
-							imageData = boxLogoCanvas.getImageData(parseInt(logoImg.width / 2), parseInt(logoImg.height / 2), 1, 1).data;
-							imageDataRgba = imageData[0] + ',' + imageData[1] + ',' + imageData[2]
-						}
-						if (notColorList.indexOf(imageDataRgba) == -1 && !isWhite(imageData[0], imageData[1], imageData[2])) {
-							boxLogoColor = imageDataRgba
-						}
-					} catch (err) {}
+        try {
+          var notColorList = new Array('0,0,0', '255,255,255');
+          var boxLogoCanvas = $('<canvas width="' + logoImg.width + '" height="' + logoImg.height + '"></canvas>').get(0);
+          boxLogoCanvas = boxLogoCanvas.getContext("2d");
+          boxLogoCanvas.drawImage(logoImg, 0, 0);
+          var imageData = boxLogoCanvas.getImageData(parseInt(logoImg.width / 3), parseInt(logoImg.height / 2), 1, 1).data;
+          var imageDataRgba = imageData[0] + ',' + imageData[1] + ',' + imageData[2];
+          if (notColorList.indexOf(imageDataRgba) > -1 || isWhite(imageData[0], imageData[1], imageData[2])) {
+            imageData = boxLogoCanvas.getImageData(parseInt(logoImg.width / 2), parseInt(logoImg.height / 2), 1, 1).data;
+            imageDataRgba = imageData[0] + ',' + imageData[1] + ',' + imageData[2]
+          }
+          if (notColorList.indexOf(imageDataRgba) == -1 && !isWhite(imageData[0], imageData[1], imageData[2])) {
+            boxLogoColor = imageDataRgba
+          }
+        } catch (err) {}
 
 				boxObj.color = boxLogoColor;
 				if (self.radius < 30 && type != 'quick') {
@@ -2438,29 +2396,6 @@ DBOX = {
 			}
 		}
 		boxLogo.css('backgroundImage', 'url(' + logoImgUrl + ')');
-		/*
-		var iframeDialboxUrl = getIframeDialboxUrl(thisBox.boxOptions.url);
-		if (iframeDialboxUrl) {
-			var iframeOptions = "target=" + (targetSwitch ? "top" : "blank");
-			if (typeof thisBox.boxOptions.img != "undefined" && thisBox.boxOptions.img != "") {
-				iframeOptions += "&img=" + escape(thisBox.boxOptions.img)
-			}
-			if (!self.update && typeof thisBox.boxOptions.fit != "undefined" && thisBox.boxOptions.fit != "") {
-				iframeOptions += "&fit=" + escape(thisBox.boxOptions.fit)
-			}
-			if (typeof thisBox.boxOptions.url != "undefined" && thisBox.boxOptions.url != "") {
-				iframeOptions += "&url=" + escape(thisBox.boxOptions.url)
-			}
-			if (typeof thisBox.boxOptions.html != "undefined" && thisBox.boxOptions.html != "") {
-				iframeOptions += "&html=" + escape(thisBox.boxOptions.html)
-			}
-			if (type == 'quick') {
-				iframeOptions += "&isQuickDialbox=true"
-			}
-			var iframeSrc = iframeDialboxUrl + "?" + iframeOptions;
-			boxLogo.append($("<iframe class='iframeDialbox' frameborder='no' border='0' marginwidth='0' marginheight='0' scrolling='no' src='" + iframeSrc + "'></iframe><div class='iframeDialboxMask'></div>"));
-			boxLogo.addClass('empty')
-		} //*/
 		if (type == 'quick') {
 			self.QContainer.append(thisBox.boxObject)
 		} else {
