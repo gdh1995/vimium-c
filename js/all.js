@@ -145,13 +145,24 @@ function openTab(targetSwitch, url, ctrlKey) {
 		return;
 	}
 	chrome.tabs.getSelected(null, function (curTab) {
-		var tab1 = {
+		var sel = (ctrlKey !== true), newTab = {
 			index: curTab.index + 1,
 			openerTabId: curTab.id,
-			selected: ctrlKey !== true,
+			selected: sel,
 			url: url
 		};
-		chrome.tabs.create(tab1);
+		if (sel) {
+			chrome.tabs.create(newTab);
+			return;
+		}
+		chrome.tabs.getAllInWindow(curTab.windowId, function(tabs) {
+			var id = newTab.openerTabId;
+			tabs = tabs.filter(function(tab) { return tab.openerTabId === id; });
+			if (tabs.length !== 0 && (id = tabs[tabs.length - 1].index) >= newTab.index) {
+				newTab.index = id + 1;
+			}
+			chrome.tabs.create(newTab);
+		});
 	});
 }
 function isWhite(c1, c2, c3) {
