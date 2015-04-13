@@ -1024,10 +1024,16 @@ chrome.runtime.onInstalled.addListener(function(details) {
       BackgroundCommands.nextFrame(tab, 1, request.frameId);
     },
     initHelp: function() {
-      return window.helpDialogHtml();
+      return {
+        html: helpDialogHtml(),
+        advanced: Settings.get("showAdvancedCommands")
+      };
     },
     initVomnibar: function() {
-      return Settings.get("vomnibar");
+      return {
+        html: Settings.get("vomnibar"),
+        relevancy: Settings.get("showOmniRelevancy")
+      };
     },
     copyToClipboard: function(request) {
       Clipboard.copy(request.data);

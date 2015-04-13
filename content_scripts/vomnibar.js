@@ -9,7 +9,6 @@ var Vomnibar = {
       completer.init(bg);
     }
     completer.setName(completerName);
-    bg.showRelevancy = (settings.values.showOmniRelevancy === true);
     if (vomnibarUI.init) {
       vomnibarUI.init(bg, completer);
     }
@@ -69,7 +68,7 @@ var Vomnibar = {
 
 Vomnibar.vomnibarUI = {
   box: null,
-  cleanCompletions: null,
+  background: null,
   completer: null,
   completionInput: {
     url: "",
@@ -87,7 +86,6 @@ Vomnibar.vomnibarUI = {
   isSelectionChanged: false,
   onUpdate: null,
   openInNewTab: false,
-  performAction: null,
   refreshInterval: 0,
   renderItems: null,
   selection: -1,
@@ -150,7 +148,7 @@ Vomnibar.vomnibarUI = {
   },
   populateUI: function() {
     this.list.innerHTML = this.renderItems(this.completions);
-    this.cleanCompletions(this.completions);
+    this.background.cleanCompletions(this.completions);
     if (this.completions.length > 0) {
       this.list.style.display = "";
       this.inputBar.classList.add("vimOWithList");
@@ -279,7 +277,7 @@ Vomnibar.vomnibarUI = {
     } else {
       i = -1;
     }
-    this.performAction(i >= 0 ? this.completions[i] : this.completionInput, this.openInNewTab);
+    this.background.performAction(i >= 0 ? this.completions[i] : this.completionInput, this.openInNewTab);
     this.hide();
   },
   onClick: function(event) {
@@ -347,6 +345,7 @@ Vomnibar.vomnibarUI = {
     DomUtils.suppressEvent(event);
   },
   init: function(background, completer) {
+    this.background = background;
     this.box = document.createElement("div");
     this.box.className = "vimB vimR";
     this.box.id = "vimOmnibar";
@@ -356,8 +355,6 @@ Vomnibar.vomnibarUI = {
       handler: "initVomnibar"
     }, this.init_dom.bind(this));
     this.completer = completer;
-    this.performAction = background.performAction.bind(background);
-    this.cleanCompletions = background.cleanCompletions.bind(background);
     this.onInput = this.onInput.bind(this);
     this.onClick = this.onClick.bind(this);
     this.onTimer = this.onTimer.bind(this);
@@ -365,8 +362,9 @@ Vomnibar.vomnibarUI = {
     this.onKeyEvent = this.onKeyEvent.bind(this);
     this.init = null;
   },
-  init_dom: function(html) {
-    this.box.innerHTML = html;
+  init_dom: function(response) {
+    this.background.showRelevancy = response.relevancy === true;
+    this.box.innerHTML = response.html;
     this.inputBar = this.box.querySelector("#vimOInputBar");
     this.input = this.box.querySelector("#vimOInput");
     this.list = this.box.querySelector("#vimOList");

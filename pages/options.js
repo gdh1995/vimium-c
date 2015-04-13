@@ -348,7 +348,10 @@
     };
 
     activateHelpDialog = function() {
-      showHelpDialog(chrome.extension.getBackgroundPage().helpDialogHtml(true, true, "Command Listing"));
+      showHelpDialog({
+        html: chrome.extension.getBackgroundPage().helpDialogHtml(true, true, "Command Listing"),
+        advanced: bgSettings.get("showAdvancedCommands")
+      });
       document.activeElement.blur();
     };
 

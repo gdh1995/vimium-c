@@ -206,7 +206,7 @@ var Settings = {
   },
   valuesToLoad: ["scrollStepSize", "linkHintCharacters", "linkHintNumbers", "filterLinkHints" //
     , "hideHud", "previousPatterns", "nextPatterns", "findModeRawQuery", "regexFindMode" //
-    , "showAdvancedCommands", "smoothScroll", "showOmniRelevancy" //
+    , "smoothScroll" //
     , "findModeRawQueryList"
   ],
   bufferToLoad: null,

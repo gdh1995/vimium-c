@@ -122,8 +122,8 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     values: {},
     valuesToLoad: ["scrollStepSize", "linkHintCharacters", "linkHintNumbers", "filterLinkHints" //
       , "hideHud", "previousPatterns", "nextPatterns", "findModeRawQuery", "regexFindMode" //
-      , "showAdvancedCommands", "smoothScroll", "showOmniRelevancy" //
-      , "findModeRawQueryList"
+      , "smoothScroll" //
+      , "findModeRawQueryList" //
     ], // should be the same as bg.Settings.valuesToLoad
     isLoading: 0,
     autoRetryInterval: 2000,
@@ -899,9 +899,9 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     HUD.hide();
   };
 
-  window.showHelpDialog = function(html) {
-    var container, handlerId, oldShowHelp, //
-    getShowAdvancedCommands, hide, toggleAdvancedCommands, showAdvancedCommands;
+  window.showHelpDialog = function(response) {
+    var container, handlerId, oldShowHelp, hide, toggleAdvancedCommands, //
+    showAdvancedCommands, shouldShowAdvanced = response.advanced === true;
     if (!document.body) {
       return;
     }
@@ -910,11 +910,8 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     container.className = "vimB vimR";
     (document.documentElement || document.body).appendChild(container);
     container.addEventListener("mousewheel", DomUtils.suppressPropagation, false);
-    container.innerHTML = html;
-    
-    getShowAdvancedCommands = function() {
-      return settings.values.showAdvancedCommands ? true : false;
-    };
+    container.innerHTML = response.html;
+
     hide = function(event) {
       handlerStack.remove(handlerId);
       DomUtils.removeNode(container);
@@ -926,9 +923,9 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       container = null;
     };
     toggleAdvancedCommands = function(event) {
-      var showAdvanced = getShowAdvancedCommands();
-      showAdvancedCommands(!showAdvanced);
-      settings.set("showAdvancedCommands", !showAdvanced);
+      shouldShowAdvanced = !shouldShowAdvanced;
+      showAdvancedCommands(shouldShowAdvanced);
+      settings.set("showAdvancedCommands", shouldShowAdvanced);
       DomUtils.suppressEvent(event);
     };
     showAdvancedCommands = function(visible) {
@@ -955,7 +952,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       DomUtils.suppressEvent(event);
     }, false);
     document.getElementById("vimHelpDialog").style.maxHeight = window.innerHeight - 80;
-    showAdvancedCommands(getShowAdvancedCommands());
+    showAdvancedCommands(shouldShowAdvanced);
     handlerId = handlerStack.unshift({
       keydown: function(event) {
         if (event.keyCode === KeyCodes.esc && KeyboardUtils.isPlain(event)) {
