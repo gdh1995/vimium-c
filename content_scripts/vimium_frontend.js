@@ -7,8 +7,8 @@
     , frameId, getNextQueryFromRegexMatches, handleDeleteForFindMode //
     , handleEnterForFindMode, handleEscapeForFindMode, handleKeyCharForFindMode, KeydownEvents //
     , CursorHider, ELs //
-    , initializeWhenEnabled, insertModeLock, isDOMDescendant //
-    , isEditable, isEmbed, isEnabledForUrl, isFocusable, isInsertMode //
+    , initializeWhenEnabled, insertModeLock //
+    , isEnabledForUrl, isInsertMode, elementCanTakeInput //
     , isValidKey, getFullCommand, keyQueue //
     , setPassKeys, performFindInPlace //
     , restoreDefaultSelectionHighlight //
@@ -197,8 +197,9 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     }, true);
     // it seems window.addEventListener("focus") doesn't work (only now).
     document.addEventListener("focus", ELs.docOnFocus = function(event) {
-      if (isEnabledForUrl && isFocusable(event.target) && !findMode) {
+      if (isEnabledForUrl && DomUtils.getEditableType(event.target) && !findMode) {
         enterInsertModeWithoutShowingIndicator(event.target);
+        // it seems we do not need to check DomUtils.getEditableType(event.target) >= 2
         if (!oldActivated.target || oldActivated.isSecond) {
           oldActivated.target = event.target;
           oldActivated.isSecond = true;
@@ -206,7 +207,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       }
     }, true);
     document.addEventListener("blur", ELs.onBlur = function(event) {
-      if (isEnabledForUrl && isFocusable(event.target)) {
+      if (isEnabledForUrl && DomUtils.getEditableType(event.target)) {
         exitInsertMode(event.target);
       }
     }, true);
@@ -218,7 +219,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     if (window._DEBUG) {
       var time2 = Date.now(); console.log(frameId + ": set:", time2 - time1);
     }
-    if (document.activeElement && isEditable(document.activeElement) && !findMode) {
+    if (document.activeElement && DomUtils.getEditableType(document.activeElement) >= 2 && !findMode) {
       enterInsertModeWithoutShowingIndicator(document.activeElement);
     }
   };
@@ -294,7 +295,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       var el = document.activeElement;
       if (el === document.body) {
         switchFocus();
-      } else if (!DomUtils.isVisibile(el) || !isEditable(el)) {
+      } else if (!DomUtils.isVisibile(el) || DomUtils.getEditableType(el) < 2) {
         return;
       }
       DomUtils.simulateBackspace(el);
@@ -452,7 +453,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     if (isInsertMode()) {
       if (key === KeyCodes.esc) {
         if (KeyboardUtils.isPlain(event)) {
-          if (isEditable(event.srcElement) || !isEmbed(event.srcElement)) {
+          if (DomUtils.getEditableType(event.srcElement)) {
             event.srcElement.blur();
           }
           exitInsertMode();
@@ -541,29 +542,6 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     } else {
       return keyChar;
     }
-  };
-
-  isFocusable = function(element) {
-    return isEditable(element) || isEmbed(element);
-  };
-
-  isEmbed = function(element) {
-    var s = element.nodeName.toLowerCase();
-    return s === "embed" || s === "object";
-  };
-
-  isEditable = function(target) {
-    var focusableElements, noFocus, nodeName;
-    if (target.isContentEditable) {
-      return true;
-    }
-    nodeName = target.nodeName.toLowerCase();
-    noFocus = ["radio", "checkbox"];
-    if (nodeName === "input" && noFocus.indexOf(target.type) === -1) {
-      return true;
-    }
-    focusableElements = ["textarea", "select"];
-    return focusableElements.indexOf(nodeName) >= 0;
   };
 
   window.enterInsertMode = function(target) {
@@ -664,13 +642,12 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     restoreDefaultSelectionHighlight();
     selection = window.getSelection();
     if (!selection.isCollapsed) {
-      range = window.getSelection().getRangeAt(0);
-      window.getSelection().removeAllRanges();
-      window.getSelection().addRange(range);
+      range = selection.getRangeAt(0);
+      selection.removeAllRanges();
+      selection.addRange(range);
     }
-    if (focusFoundLink()) { return; }
-    if (findModeQueryHasResults && document.activeElement && DomUtils.isSelectable(document.activeElement) //
-      && isDOMDescendant(findModeAnchorNode, document.activeElement)) {
+    focusFoundLink();
+    if (findModeQueryHasResults && DomUtils.canTakeInput(findModeAnchorNode)) {
       DomUtils.simulateSelect(document.activeElement);
       enterInsertModeWithoutShowingIndicator(document.activeElement);
     }
@@ -737,22 +714,12 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       var link, node = window.getSelection().anchorNode;
       while (node && node !== document.body) {
         if (node.nodeName.toLowerCase() === "a") {
-          return node.focus ? node.focus() : false;
+          node.focus();
+          return;
         }
         node = node.parentNode;
       }
     }
-    return false;
-  };
-
-  isDOMDescendant = function(parent, node) {
-    while (node !== null) {
-      if (node === parent) {
-        return true;
-      }
-      node = node.parentNode;
-    }
-    return false;
   };
 
   getNextQueryFromRegexMatches = function(stepSize) {
@@ -767,7 +734,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
   };
 
   findAndFocus = function(backwards) {
-    var elementCanTakeInput, mostRecentQuery, query;
+    var mostRecentQuery, query;
     mostRecentQuery = settings.values.findModeRawQuery || "";
     if (mostRecentQuery !== findModeQuery.rawQuery) {
       findModeQuery.rawQuery = mostRecentQuery;
@@ -782,8 +749,9 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       HUD.showForDuration("No matches for '" + findModeQuery.rawQuery + "'", 1000);
       return;
     }
-    elementCanTakeInput = document.activeElement && DomUtils.isSelectable(document.activeElement) && isDOMDescendant(findModeAnchorNode, document.activeElement);
-    if (elementCanTakeInput) {
+    focusFoundLink();
+    // TODO: remove this `if`
+    if (DomUtils.canTakeInput(findModeAnchorNode)) {
       handlerStack.push({
         keydown: function(event) {
           handlerStack.remove();
@@ -796,7 +764,6 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
         }
       });
     }
-    focusFoundLink();
   };
 
   window.performFind = function() {
@@ -813,7 +780,12 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     } else {
       linkElement.scrollIntoView();
       linkElement.focus();
-      DomUtils.simulateClick(linkElement);
+      DomUtils.simulateClick(linkElement, {
+        altKey: false,
+        ctrlKey: false,
+        metaKey: false,
+        shiftKey: false
+      });
     }
   };
   
