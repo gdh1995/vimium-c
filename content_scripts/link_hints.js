@@ -240,69 +240,76 @@ var LinkHints = {
       }
     }
   },
-  GetVisibleClickable: (function() {
-    var hashRegex = /^#/, quoteRegex = /"/g;
-    return function(element) {
-      var clientRect, isClickable, s;
-      switch (element.tagName.toLowerCase()) {
-      case "a": isClickable = true; break;
-      case "textarea": isClickable = !element.disabled && !element.readOnly; break;
-      case "input":
-        isClickable = !(element.type === "hidden" || element.disabled //
-          || (element.readOnly && !(element.type in this.inputsSelectable)));
-        break;
-      case "button": case "select": isClickable = !element.disabled; break;
-      case "script": case "link": case "style":
+  hashRegex: /^#/,
+  quoteRegex: /"/g,
+  GetVisibleClickable: function(element) {
+    var clientRect, isClickable = false, s, _i;
+    switch (element.tagName.toLowerCase()) {
+    case "a": isClickable = true; break;
+    case "textarea": isClickable = !element.disabled && !element.readOnly; break;
+    case "input":
+      isClickable = !(element.type === "hidden" || element.disabled //
+        || (element.readOnly && !(element.type in DomUtils.unselectableInputs)));
+      break;
+    case "button": case "select": isClickable = !element.disabled; break;
+    case "script": case "link": case "style":
+      return;
+    case "img":
+      var imgClientRects, map;
+      if ((s = element.useMap) && (imgClientRects = element.getClientRects()).length > 0) {
+        s = s.replace(LinkHints.hashRegex, "").replace(LinkHints.quoteRegex, '\\"');
+        if (map = document.querySelector('map[name="' + s + '"]')) {
+          DomUtils.getClientRectsForAreas(this, imgClientRects[0], map.getElementsByTagName("area"));
+        }
+      }
+      // no "break;"
+    default: 
+      /* if ( ((s = element.getAttribute("aria-hidden"  )) != null && (s ? s.toLowerCase() === "true" : true)) //
+        || ((s = element.getAttribute("aria-disabled")) != null && (s ? s.toLowerCase() === "true" : true)) ) {
         return;
-      case "img":
-        var imgClientRects, map;
-        if ((s = element.useMap) && (imgClientRects = element.getClientRects()).length > 0) {
-          if (map = document.querySelector('map[name="' + s.replace(hashRegex, "").replace(quoteRegex, '\\"') + '"]')) {
-            DomUtils.getClientRectsForAreas(this, imgClientRects[0], map.getElementsByTagName("area"));
-          }
-        }
-        // no "break;"
-      default: 
-        /* if ( ((s = element.getAttribute("aria-hidden"  )) != null && (s ? s.toLowerCase() === "true" : true)) //
-          || ((s = element.getAttribute("aria-disabled")) != null && (s ? s.toLowerCase() === "true" : true)) ) {
-          return;
-        } */
-        if ( element.onclick //
-          /* || ((s = element.className) && s.toLowerCase().indexOf("button") >= 0) */
-          || ((s = element.getAttribute("role")) && (s = s.toLowerCase(), s === "button" || s === "link")) //
-          || ((s = element.getAttribute("contentEditable")) != null && (s ? (s = s.toLowerCase(), s === "contenteditable" || s === "true") : true)) //
-          ) {
-          isClickable = true;
-        }
-        else {
-          if (s = element.getAttribute("jsaction")) {
-            var jsactionRules = s.split(";"), _i = jsactionRules.length;
-            while (0 <= --_i) {
-              s = jsactionRules[_i].trim();
-              if (s.startsWith("click:") || (s !== "none" && s.indexOf(":") === -1)) {
-                isClickable = true;
-                break;
-              }
-            }
-          }
-          if (!isClickable) {
-            s = element.getAttribute("tabindex");
-            if (s == null || !(s === "" || parseInt(s) >= 0)) {
-              return; // work around
-            }
-          }
-        }
+      } */
+      // NOTE: el.onclick will always be null, for it belongs to the normal `window` object
+      //      so .attr("onclick") may be not right
+      if ( element.getAttribute("onclick") //
+        /* || ((s = element.className) && s.toLowerCase().indexOf("button") >= 0) */
+        || ((s = element.getAttribute("role")) && (s = s.toLowerCase(), s === "button" || s === "link")) //
+        // NOTE: .attr("contenteditable") allows ["", "true", "false", "plaintext-only", or "inherit"]
+        //       : without case; "contentEditable" is not accepted
+        //    if the attr "contenteditable" is not set, .contentEditable will be "inherit"
+        //       : otherwise "true" or "false"
+        //    .isContentEditable can only be true or false, which may be inherited from its parent
+        || (element.contentEditable === "true")
+        ) {
+        isClickable = true;
         break;
       }
-      if (clientRect = DomUtils.getVisibleClientRect(element)) {
-        this.push({
-          element: element,
-          rect: clientRect,
-          notSecond: isClickable ? true : false
-        });
+      if (s = element.getAttribute("jsaction")) {
+        var jsactionRules = s.split(";");
+        _i = jsactionRules.length;
+        while (0 <= --_i) {
+          s = jsactionRules[_i].trim();
+          if (s.startsWith("click:") || (s !== "none" && s.indexOf(":") === -1)) {
+            isClickable = true;
+            break;
+          }
+        }
+        if (isClickable) { break; }
       }
-    };
-  })(),
+      s = element.getAttribute("tabindex");
+      if (s == null || !(s === "" || parseInt(s) >= 0)) {
+        return; // work around
+      }
+      isClickable = true, _i = -1;
+      break;
+    }
+    if (isClickable && (clientRect = DomUtils.getVisibleClientRect(element))) {
+      this.push({
+        element: element,
+        rect: clientRect,
+        notSecond: _i !== -1
+      });
+    }
+  },
   getVisibleClickableElements: function() {
     var output = [], visibleElements = [], visibleElement, rects, rects2, _len, _i;
     output.forEach.call(document.documentElement.getElementsByTagName("*") //
