@@ -18,7 +18,7 @@
   
   frameId = Math.floor(Math.random() * 999999997) + 2;
 
-  window._DEBUG = /*/ true /*/ false /**/ ;
+  window._DEBUG = /*/ 1 /*/ 0 /**/;
 
   if (window._DEBUG) {
     time1 = Date.now();
@@ -208,7 +208,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       }
     }, true);
     if (window._DEBUG) {
-      var time2 = Date.now(); console.log(frameId + ": set:", time2 - time1);
+      console.log(frameId + ": set:", Date.now() - time1);
     }
     if (document.activeElement && DomUtils.getEditableType(document.activeElement) >= 2 && !findMode) {
       enterInsertModeWithoutShowingIndicator(document.activeElement);
@@ -1107,9 +1107,8 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     },
     settings: settings.ReceiveSettings,
     registerFrame: function(request) {
-      if (window._DEBUG) {
-        var time2 = Date.now();
-        console.log(frameId + ": reg:", time2 - time1, "@", document.readyState);
+      if (window._DEBUG >= 2) {
+        console.log(frameId + ": reg:", Date.now() - time1, "@", document.readyState);
       }
       // reRegisterFrame is called only when document.ready
       requestHandlers.injectCSS(request);
@@ -1196,43 +1195,6 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     }
   };
 
-  chrome.runtime.onMessage.addListener(function(request, handler, sendResponse) {
-    if (isEnabledForUrl) {
-      if (handler = requestHandlers[request.name]) {
-        handler(request);
-      }
-    } else if (request.name === "checkIfEnabled") {
-      requestHandlers.checkIfEnabled();
-    }
-    sendResponse(0);
-  });
-  
-  ELs.destroy = function() {
-    isEnabledForUrl = false;
-    window.onfocus = null;
-    window.onunload = null;
-    window.removeEventListener("keydown", this.onKeydown, true);
-    window.removeEventListener("keypress", this.onKeypress, true);
-    window.removeEventListener("keyup", this.onKeyup, true);
-    document.removeEventListener("focus", this.docOnFocus, true);
-    document.removeEventListener("blur", this.onBlur, true);
-    document.removeEventListener("DOMActivate", this.onActivate, true);
-    Vomnibar.destroy();
-    LinkHints.destroy();
-    HUD.destroy();
-    mainPort = null;
-    requestHandlers = null;
-    if (ELs.css) {
-      DomUtils.removeNode(ELs.css);
-    }
-    console.log("%cvim %c#" + frameId + "%c has destroyed."//
-      , "color:red", "color:blue", "color:auto");
-    window.frameId = frameId;
-    window.tabId = ELs.focusMsg.tabId;
-    window.isEnabledForUrl = false;
-    ELs = null;
-  };
-
   settings.load({
     handler: "initIfEnabled",
     isTop: window.top === window.self,
@@ -1272,8 +1234,45 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
 
   sendFocus = mainPort.postMessage.bind(mainPort, ELs.focusMsg, requestHandlers.refreshKeyQueue);
 
-  if (window._DEBUG) {
-    var time2 = Date.now(); console.log(frameId + ": got:", time2 - time1);
+  chrome.runtime.onMessage.addListener(function(request, handler, sendResponse) {
+    if (isEnabledForUrl) {
+      if (handler = requestHandlers[request.name]) {
+        handler(request);
+      }
+    } else if (request.name === "checkIfEnabled") {
+      requestHandlers.checkIfEnabled();
+    }
+    sendResponse(0);
+  });
+
+  if (window._DEBUG >= 3) {
+    console.log(frameId + ": got:", Date.now() - time1);
   }
+
+  ELs.destroy = function() {
+    isEnabledForUrl = false;
+    window.onfocus = null;
+    window.onunload = null;
+    window.removeEventListener("keydown", this.onKeydown, true);
+    window.removeEventListener("keypress", this.onKeypress, true);
+    window.removeEventListener("keyup", this.onKeyup, true);
+    document.removeEventListener("focus", this.docOnFocus, true);
+    document.removeEventListener("blur", this.onBlur, true);
+    document.removeEventListener("DOMActivate", this.onActivate, true);
+    Vomnibar.destroy();
+    LinkHints.destroy();
+    HUD.destroy();
+    mainPort = null;
+    requestHandlers = null;
+    if (ELs.css) {
+      DomUtils.removeNode(ELs.css);
+    }
+    console.log("%cvim %c#" + frameId + "%c has destroyed."//
+      , "color:red", "color:blue", "color:auto");
+    window.frameId = frameId;
+    window.tabId = ELs.focusMsg.tabId;
+    window.isEnabledForUrl = false;
+    ELs = null;
+  };
 
 })();
