@@ -1,37 +1,4 @@
 "use strict";
-chrome.runtime.onInstalled.addListener(function(details) {
-  var contentScripts, js, css, allFrames, _i, _len, reason = details.reason;
-  if (["chrome_update", "shared_module_update"].indexOf(reason) >= 0) { return; }
-  contentScripts = chrome.runtime.getManifest().content_scripts[0];
-  js = contentScripts.js;
-  css = (details.reason === "install" || window._DEBUG) ? contentScripts.css : [];
-  allFrames = contentScripts.all_frames;
-  contentScripts = null;
-  for (_i = css.length; 0 <= --_i; ) {
-    css[_i] = {file: css[_i], allFrames: allFrames};
-  }
-  for (_i = js.length; 0 <= --_i; ) {
-    js[_i] = {file: js[_i], allFrames: allFrames};
-  }
-  chrome.tabs.query({
-    windowType: "normal",
-    status: "complete"
-  }, function(tabs) {
-    var _i = tabs.length, tabId, _j, _len, callback, url, t = chrome.tabs;
-    callback = function() { return chrome.runtime.lastError; };
-    for (; 0 <= --_i; ) {
-      url = tabs[_i].url;
-      if (url.startsWith("chrome") || url.indexOf("://") === -1) continue;
-      tabId = tabs[_i].id;
-      for (_j = 0, _len = css.length; _j < _len; ++_j)
-        t.insertCSS(tabId, css[_j], callback);
-      for (_j = 0, _len = js.length; _j < _len; ++_j)
-        t.executeScript(tabId, js[_j], callback);
-    }
-    console.log("%cvim %chas %cinstalled", "color:blue", "color:auto", "color:red", details);
-  });
-});
-
 (function() {
   var BackgroundCommands, checkKeyQueue, currentVersion //
     , frameIdsForTab, urlForTab, ContentSettings, setShouldShowActionIcon //
@@ -1101,11 +1068,14 @@ chrome.runtime.onInstalled.addListener(function(details) {
     ContentSettings.clear("images");
   };
 
-  // incomplete tests show that on installed, not "rereg", and all are "reg"
-  sendRequestToAllTabs({
-    name: "reRegisterFrame",
-    work: "rereg"
-  });
+  window.cb = function(b) { window.a = b; console.log(b); }
+  window.b = setTimeout(function() {
+    window.b = window.cb;
+    sendRequestToAllTabs({
+      name: "reRegisterFrame",
+      work: "rereg"
+    });
+  }, 50); // According to tests: onInstalled will be executed after 0 ~ 16 ms if needed
 
   Commands.parseKeyMappings(Settings.get("keyMappings"));
   populateKeyCommands();
@@ -1181,3 +1151,40 @@ chrome.runtime.onInstalled.addListener(function(details) {
   })();
 
 })();
+
+chrome.runtime.onInstalled.addListener(function(details) {
+  var contentScripts, js, css, allFrames, _i, _len, reason = details.reason;
+  if (["chrome_update", "shared_module_update"].indexOf(reason) >= 0) { return; }
+  if (window.b > 0) {
+    clearTimeout(window.b);
+    window.b = window.cb;
+  }
+  contentScripts = chrome.runtime.getManifest().content_scripts[0];
+  js = contentScripts.js;
+  css = (details.reason === "install" || window._DEBUG >= 3) ? contentScripts.css : [];
+  allFrames = contentScripts.all_frames;
+  contentScripts = null;
+  for (_i = css.length; 0 <= --_i; ) {
+    css[_i] = {file: css[_i], allFrames: allFrames};
+  }
+  for (_i = js.length; 0 <= --_i; ) {
+    js[_i] = {file: js[_i], allFrames: allFrames};
+  }
+  chrome.tabs.query({
+    windowType: "normal",
+    status: "complete"
+  }, function(tabs) {
+    var _i = tabs.length, tabId, _j, _len, callback, url, t = chrome.tabs;
+    callback = function() { return chrome.runtime.lastError; };
+    for (; 0 <= --_i; ) {
+      url = tabs[_i].url;
+      if (url.startsWith("chrome") || url.indexOf("://") === -1) continue;
+      tabId = tabs[_i].id;
+      for (_j = 0, _len = css.length; _j < _len; ++_j)
+        t.insertCSS(tabId, css[_j], callback);
+      for (_j = 0, _len = js.length; _j < _len; ++_j)
+        t.executeScript(tabId, js[_j], callback);
+    }
+    console.log("%cvim %chas %cinstalled", "color:blue", "color:auto", "color:red", details);
+  });
+});
