@@ -564,8 +564,9 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     if (insertModeLock !== null) {
       return true;
     }
-    if (document.activeElement && document.activeElement.isContentEditable) {
-      enterInsertModeWithoutShowingIndicator(document.activeElement);
+    var el = document.activeElement;
+    if (el && el.isContentEditable) {
+      enterInsertModeWithoutShowingIndicator(el);
       return true;
     }
     return false;

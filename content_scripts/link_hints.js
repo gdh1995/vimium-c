@@ -243,7 +243,7 @@ var LinkHints = {
   hashRegex: /^#/,
   quoteRegex: /"/g,
   GetVisibleClickable: function(element) {
-    var clientRect, isClickable = false, s, _i;
+    var arr, isClickable = false, s, _i;
     switch (element.tagName.toLowerCase()) {
     case "a": isClickable = true; break;
     case "textarea": isClickable = !element.disabled && !element.readOnly; break;
@@ -255,12 +255,9 @@ var LinkHints = {
     case "script": case "link": case "style":
       return;
     case "img":
-      var imgClientRects, map;
-      if ((s = element.useMap) && (imgClientRects = element.getClientRects()).length > 0) {
+      if ((s = element.useMap) && (arr = element.getClientRects()).length > 0) {
         s = s.replace(LinkHints.hashRegex, "").replace(LinkHints.quoteRegex, '\\"');
-        if (map = document.querySelector('map[name="' + s + '"]')) {
-          DomUtils.getClientRectsForAreas(this, imgClientRects[0], map.getElementsByTagName("area"));
-        }
+        DomUtils.getClientRectsForAreas(this, arr[0], document.querySelector('map[name="' + s + '"]'));
       }
       // no "break;"
     default: 
@@ -284,10 +281,10 @@ var LinkHints = {
         break;
       }
       if (s = element.getAttribute("jsaction")) {
-        var jsactionRules = s.split(";");
-        _i = jsactionRules.length;
+        arr = s.split(";");
+        _i = arr.length;
         while (0 <= --_i) {
-          s = jsactionRules[_i].trim();
+          s = arr[_i].trim();
           if (s.startsWith("click:") || (s !== "none" && s.indexOf(":") === -1)) {
             isClickable = true;
             break;
@@ -302,10 +299,10 @@ var LinkHints = {
       isClickable = true, _i = -1;
       break;
     }
-    if (isClickable && (clientRect = DomUtils.getVisibleClientRect(element))) {
+    if (isClickable && (arr = DomUtils.getVisibleClientRect(element))) {
       this.push({
         element: element,
-        rect: clientRect,
+        rect: arr,
         notSecond: _i !== -1
       });
     }
