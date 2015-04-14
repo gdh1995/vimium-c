@@ -6,7 +6,7 @@
     , findModeAnchorNode, findModeQuery, findModeQueryHasResults, focusFoundLink, followLink //
     , frameId, getNextQueryFromRegexMatches, handleDeleteForFindMode //
     , handleEnterForFindMode, handleEscapeForFindMode, handleKeyCharForFindMode, KeydownEvents //
-    , CursorHider, ELs //
+    , CursorHider, ELs, sendFocus //
     , initializeWhenEnabled, insertModeLock //
     , isEnabledForUrl, isInsertMode, elementCanTakeInput //
     , isValidKey, getFullCommand, keyQueue //
@@ -69,7 +69,6 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
   mainPort = {
     _name: "main",
     _port: null,
-    _well: true,
     _callbacks: {},
     postMessage: function(request, callback) {
       if (callback) {
@@ -79,11 +78,10 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
         };
       }
       this._get().postMessage(request);
-      if (callback && this._well) {
+      if (callback) {
         this._callbacks[request._msgId] = callback;
       }
-      return this._well ? (callback ? request._msgId : -1)
-        : callback ? -request._msgId : 1;
+      return callback ? request._msgId : -1;
     },
     Listener: function(response) {
       var id, handler;
@@ -104,16 +102,9 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       if (port = this._port) {
         return port;
       }
-      try {
-        port = this._port = chrome.runtime.connect({ name: this._name });
-      } catch (e) { // maybe the extension is reloaded
-        this._well = false;
-        setTimeout(ELs.destroy.bind(ELs), 0);
-        return { postMessage: function() {} };
-      }
+      port = this._port = chrome.runtime.connect({ name: this._name });
       port.onDisconnect.addListener(this.ClearPort);
       port.onMessage.addListener(this.Listener);
-      this._well = true;
       return port;
     }
   };
@@ -174,7 +165,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       status: "disabled",
       url: window.location.href,
       frameId: frameId
-    }, //
+    }, css: null, //
     onKeydown: null, onKeypress: null, onKeyup: null, //
     docOnFocus: null, onBlur: null, onActivate: null, //
     destroy: null //
@@ -1132,16 +1123,11 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       }
     },
     injectCSS: function(request) {
-      var css = document.getElementById("vimUserCss");
-      if (css) {
-        css.innerHTML = request.css;
-      } else {
-        css = document.createElement("style");
-        css.id = "vimUserCss";
-        css.type = "text/css";
-        css.innerHTML = request.css;
-        document.head.appendChild(css);
-      }
+      var css = ELs.css = document.createElement("style");
+      css.id = "vimUserCss";
+      css.type = "text/css";
+      css.innerHTML = request.css;
+      document.head.appendChild(css);
     },
     showHUDforDuration: function(request) {
       HUD.showForDuration(request.text, request.duration);
@@ -1236,6 +1222,9 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     HUD.destroy();
     mainPort = null;
     requestHandlers = null;
+    if (ELs.css) {
+      DomUtils.removeNode(ELs.css);
+    }
     console.log("%cvim %c#" + frameId + "%c has destroyed."//
       , "color:red", "color:blue", "color:auto");
     window.frameId = frameId;
@@ -1258,22 +1247,30 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
 
   DomUtils.DocumentReady(function() {
     requestHandlers.reRegisterFrame();
-    window.onunload = mainPort.postMessage.bind(mainPort, {
-      handlerSettings: "unreg",
-      frameId: frameId,
-      isTop: window.top === window.self,
-    }, null);
+    window.onunload = function() {
+      try {
+        mainPort.postMessage({
+          handlerSettings: "unreg",
+          frameId: frameId,
+          isTop: window.top === window.self,
+        });
+      } catch (e) {
+      }
+    };
     // NOTE: here, we should always postMessage, since
     //     NO MESSAGE will be sent if not isEnabledForUrl,
     // which would make the auto-destroy logic not work.
     window.onfocus = function() {
       try {
-        mainPort.postMessage(ELs.focusMsg, requestHandlers.refreshKeyQueue);
+        sendFocus();
       } catch (e) {
-        mainPort.ClearPort();
+        // this extension is reloaded
+        ELs.destroy();
       }
     };
   });
+
+  sendFocus = mainPort.postMessage.bind(mainPort, ELs.focusMsg, requestHandlers.refreshKeyQueue);
 
   if (window._DEBUG) {
     var time2 = Date.now(); console.log(frameId + ": got:", time2 - time1);
