@@ -1089,6 +1089,7 @@
       name: "reRegisterFrame",
       work: "rereg"
     });
+    // keyQueue will be reloaded when window.focus
   }, 50); // According to tests: onInstalled will be executed after 0 ~ 16 ms if needed
 
   Commands.parseKeyMappings(Settings.get("keyMappings"));

@@ -6,7 +6,7 @@
     , findModeAnchorNode, findModeQuery, findModeQueryHasResults, focusFoundLink, followLink //
     , frameId, getNextQueryFromRegexMatches, handleDeleteForFindMode //
     , handleEnterForFindMode, handleEscapeForFindMode, handleKeyCharForFindMode, KeydownEvents //
-    , CursorHider, ELs, sendFocus //
+    , CursorHider, ELs //
     , initializeWhenEnabled, insertModeLock //
     , isEnabledForUrl, isInsertMode, elementCanTakeInput //
     , isValidKey, getFullCommand, keyQueue //
@@ -1086,11 +1086,13 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
         if (response.firstKeys) {
           ELs.focusMsg.tabId = response.tabId;
           requestHandlers.refreshKeyMappings(response);
+          keyQueue = response.keyQueue;
+          currentSeconds = secondKeys[response.currentFirst];
         } else if (!("" in secondKeys)) {
           mainPort.postMessage({
             handler: "keyMappings"
           }, requestHandlers.refreshKeyMappings);
-          currentSeconds = secondKeys[""] = {};
+          secondKeys[""] = {};
         }
         initializeWhenEnabled(response.passKeys);
       } else {
@@ -1169,14 +1171,10 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
           map[arr[i]] = 1;
         }
       }
-      keyQueue = response.keyQueue || "";
-      currentSeconds = sec2[response.currentFirst || ""];
     },
     refreshKeyQueue: function(response) {
-      if (response) {
         keyQueue = response.keyQueue;
         currentSeconds = secondKeys[response.currentFirst];
-      }
     },
     setScrollPosition: function(request) {
       var scrollX = request.scroll[0], scrollY = request.scroll[1];
@@ -1223,27 +1221,26 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     // NOTE: here, we should always postMessage, since
     //     NO MESSAGE will be sent if not isEnabledForUrl,
     // which would make the auto-destroy logic not work.
-    window.onfocus = function() {
+    window.onfocus = (function() {
       try {
-        sendFocus();
+        this();
       } catch (e) {
         // this extension is reloaded
         ELs.destroy();
       }
-    };
+    }).bind(mainPort.postMessage.bind( //
+      mainPort, ELs.focusMsg, requestHandlers.refreshKeyQueue //
+    ));
   });
 
-  sendFocus = mainPort.postMessage.bind(mainPort, ELs.focusMsg, requestHandlers.refreshKeyQueue);
 
   chrome.runtime.onMessage.addListener(function(request, handler, sendResponse) {
+    sendResponse(0);
     if (isEnabledForUrl) {
-      if (handler = requestHandlers[request.name]) {
-        handler(request);
-      }
+      requestHandlers[request.name](request); // do not check `handler != null`
     } else if (request.name === "checkIfEnabled") {
       requestHandlers.checkIfEnabled();
     }
-    sendResponse(0);
   });
 
   if (window._DEBUG >= 3) {
