@@ -2117,24 +2117,24 @@ DBOX = {
 					}
 				} else if (delta < 0) {
 					if (self.container.parent().get(0).offsetHeight + self.container.parent().get(0).scrollTop >= self.container.parent().get(0).scrollHeight) {
-						self.loadBoxes('next')
-					} else {
-						_page = false
-					}
+          self.loadBoxes('next')
+        } else {
+          _page = false
+        }
 				}
 				if (_page !== false && _page == self.page && _edit === false) {
 					if (_classificationOpen) {
-						_classificationOpen = false;
-						app.runApp($('.appBox[appId=classification]'), 'classification')
+          _classificationOpen = false;
+          app.runApp($('.appBox[appId=classification]'), 'classification')
 					} else {
 						if (self.getDialboxIndex("quick", "classification") > -1 || self.getDialboxIndex("normal", "classification") > -1) {
-							_classificationOpen = true;
+          _classificationOpen = true;
 							if (delta < 0) {
-								self.pageNotice(getI18nMsg("classificationShowNotice_next"))
-							} else {
-								self.pageNotice(getI18nMsg("classificationShowNotice_pre"))
-							}
-						}
+            self.pageNotice(getI18nMsg("classificationShowNotice_next"))
+          } else {
+            self.pageNotice(getI18nMsg("classificationShowNotice_pre"))
+          }
+        }
 					}
 				} else {
 					_classificationOpen = false
@@ -2144,7 +2144,7 @@ DBOX = {
 				$('#classificationDialog').find(".close").get(0).click()
 			}
 			if (event.preventDefault) {
-				event.preventDefault()
+      event.preventDefault()
 			} else {
 				event.returnValue = true
 			}
@@ -3609,7 +3609,7 @@ if (lastVersion == null || lastVersion.length > 12 || parseInt(lastVersion) > 10
 	updateNotification = true
 }
 replaceLocationDB();
-oauth.init();
+// oauth.init();
 
 initChromeI18n();
 $(function () {
