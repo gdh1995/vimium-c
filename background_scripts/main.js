@@ -931,8 +931,8 @@
     openUrlInIncognito: function(request, tab) {
       chrome.windows.getAll(funcDict.openUrlInIncognito.bind(null, request, tab));
     },
-    openUrlInCurrentTab: function(request, tab) {
-      chrome.tabs.update(tab.id, {
+    openUrlInCurrentTab: function(request) {
+      chrome.tabs.update(null, {
         url: Utils.convertToUrl(request.url)
       });
     },
@@ -993,8 +993,8 @@
         secondKeys: secondKeys
       };
     },
-    nextFrame: function(request, tab) {
-      BackgroundCommands.nextFrame(tab, 1, request.frameId);
+    nextFrame: function(request) {
+      BackgroundCommands.nextFrame({id: request.tabId}, 1, request.frameId);
     },
     initHelp: function() {
       return {
@@ -1088,8 +1088,8 @@
 
   (function() {
     var ref, i, key, func, ref2;
-    ref = ["getCurrentTabUrl", "openUrlInNewTab", "openUrlInIncognito", "openUrlInCurrentTab" //
-      , "openRawUrlInNewTab", "nextFrame", "createMark" //
+    ref = ["getCurrentTabUrl", "openUrlInNewTab", "openUrlInIncognito" //
+      , "openRawUrlInNewTab", "createMark" //
     ];
     ref2 = requestHandlers;
     for (i = ref.length; 0 <= --i; ) {
