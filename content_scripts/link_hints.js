@@ -213,12 +213,12 @@ var LinkHints = {
     this.mode = mode;
   },
   createMarkerFor: function(link) {
-    var marker = document.createElement("div");
+    var marker = document.createElement("div"), rect;
     marker.className = "vimB vimI vimLH";
-    marker.clickableItem = link.element;
-    marker.style.left = link.rect[0] + "px";
-    marker.style.top = link.rect[1] + "px";
-    marker.rect = link.rect;
+    marker.clickableItem = link[0];
+    marker.rect = rect = link[1];
+    marker.style.left = rect[0] + "px";
+    marker.style.top = rect[1] + "px";
     return marker;
   },
   ensureRightBottom: function() {
@@ -300,11 +300,7 @@ var LinkHints = {
       break;
     }
     if (isClickable && (arr = DomUtils.getVisibleClientRect(element))) {
-      this.push({
-        element: element,
-        rect: arr,
-        notSecond: _i !== -1
-      });
+      this.push([element, arr, _i !== -1]); // {element, rect, notSecond}
     }
   },
   getVisibleClickableElements: function() {
@@ -314,23 +310,17 @@ var LinkHints = {
     visibleElements.reverse();
     for (_len = visibleElements.length; 0 <= --_len; ) {
       visibleElement = visibleElements[_len];
-      rects = [visibleElement.rect];
+      rects = [visibleElement[1]];
       for (_i = 0; _i < _len; _i++) {
-        rects.forEach(VRect.SubtractSequence.bind(rects2 = [], visibleElements[_i].rect));
+        rects.forEach(VRect.SubtractSequence.bind(rects2 = [], visibleElements[_i][1]));
         if ((rects = rects2).length === 0) {
           break;
         }
       }
       if (rects.length > 0) {
-        output.push({
-          element: visibleElement.element,
-          rect: rects[0]
-        });
-      } else if (visibleElement.notSecond) {
-        output.push({
-          element: visibleElement.element,
-          rect: visibleElement.rect
-        });
+        output.push([visibleElement[0], rects[0]]); // {element, rect}
+      } else if (visibleElement[2]) {
+        output.push([visibleElement[0], visibleElement[1]]);
       }
     }
     return output;
@@ -398,7 +388,7 @@ var LinkHints = {
         temp = [];
         this.GetVisibleClickable.call(temp, clickEl);
         if (temp.length === 1) {
-          rect = temp[0].rect;
+          rect = temp[0][1];
         } else {
           rect = matchedLink.rect;
           var dx = window.scrollX - this.initScrollX, dy = window.scrollY - this.initScrollY;
