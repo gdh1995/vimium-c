@@ -1,5 +1,5 @@
 "use strict";
-window.Scroller = {
+var Scroller = {
   Core: {
     activatedElement: null,
     activationTime: 0,
@@ -12,11 +12,9 @@ window.Scroller = {
     time: 0,
     Animate: null,
     checkVisibility: function(element) {
-      if (DomUtils.isVisibile(element)) {
-        return false;
+      if (!DomUtils.isVisibile(element)) {
+        this.activatedElement = element;
       }
-      this.activatedElement = element;
-      return true;
     },
     init: function() {
       handlerStack.push({
@@ -50,7 +48,7 @@ window.Scroller = {
         return element.scrollTop !== before;
       }
     },
-    reset: null,
+    Reset: null,
     scroll: function(element, direction, amount) {
       if (!amount) {
         return;
@@ -64,7 +62,7 @@ window.Scroller = {
         return;
       }
       this.activationTime = ++this.time;
-      this.reset(amount, direction, element);
+      this.Reset(amount, direction, element);
       requestAnimationFrame(this.Animate);
     },
     wouldNotInitiateScroll: function() {
@@ -171,7 +169,7 @@ window.Scroller = {
   }
 };
 
-Scroller.Core.Animate = (function () {
+(function () {
   var amount = 0, calibration = 1.0, direction = "", duration = 0, element = null, //
   sign = 0, timestamp = -1, totalDelta = 0, totalElapsed = 0.0, //
   animate = function(new_timestamp) {
@@ -204,11 +202,11 @@ Scroller.Core.Animate = (function () {
       }
     }
   };
-  Scroller.Core.reset = function(new_amount, new_dire, new_el) {
+  Scroller.Core.Reset = function(new_amount, new_dire, new_el) {
     amount = Math.abs(new_amount), calibration = 1.0, direction = new_dire;
     duration = Math.max(100, 20 * Math.log(amount)), element = new_el;
     sign = Scroller.getSign(new_amount);
     timestamp = -1, totalDelta = 0, totalElapsed = 0.0;
   };
-  return animate;
+  Scroller.Core.Animate = animate;
 })();

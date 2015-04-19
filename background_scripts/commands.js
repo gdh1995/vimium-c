@@ -18,8 +18,8 @@ var Commands = {
     if (commandDetails = this.availableCommands[command]) {
       this.keyToCommandRegistry[key] = {
         noRepeat: commandDetails.noRepeat,
-        command: command,
-        background: commandDetails.background
+        background: commandDetails.background,
+        command: command
       };
       if (window._DEBUG) {
         console.log("Mapping", key, "to", command);
