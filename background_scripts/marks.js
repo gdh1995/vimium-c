@@ -23,8 +23,7 @@ var Marks = {
     });
     chrome.tabs.sendMessage(mark.tabId, {
       name: "setScrollPosition",
-      scrollX: mark.scrollX,
-      scrollY: mark.scrollY
+      scroll: [mark.scrollX, mark.scrollY]
     });
     chrome.tabs.sendMessage(mark.tabId, {
       name: "showHUDforDuration",

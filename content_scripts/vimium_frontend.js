@@ -1181,12 +1181,6 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
         currentSeconds = secondKeys[""];
       }
     },
-    setScrollPosition: function(request) {
-      var scrollX = request.scroll[0], scrollY = request.scroll[1];
-      if (scrollX > 0 || scrollY > 0) {
-        DomUtils.DocumentReady(window.scrollTo.bind(window, scrollX, scrollY));
-      }
-    },
     esc: function() {
       keyQueue = false;
       currentSeconds = secondKeys[""];
@@ -1200,6 +1194,12 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
         for (var i = 0, _ref = request.count; i < _ref; ++i) {
           Utils.invokeCommandString(request.command);
         }
+      }
+    },
+    setScrollPosition: function(request) {
+      var scrollX = request.scroll[0], scrollY = request.scroll[1];
+      if (scrollX > 0 || scrollY > 0) {
+        DomUtils.DocumentReady(window.scrollTo.bind(window, scrollX, scrollY));
       }
     }
   };
