@@ -565,9 +565,15 @@
         pinned: !tab.pinned
       });
     },
-    reloadTab: function(tab) {
-      chrome.tabs.update(tab.id, {
-        url: tab.url
+    reloadTab: function(_0, count) {
+      if (count <= 1) {
+        chrome.tabs.reload();
+        return;
+      }
+      chrome.tabs.getAllInWindow(null, function(tabs) {
+        tabs.slice(getSelected(tabs).index, count).forEach(function(tab1) {
+          chrome.tabs.reload(tab1.id);
+        });
       });
     },
     reopenTab: function(tab) {

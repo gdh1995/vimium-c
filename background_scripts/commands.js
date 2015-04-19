@@ -231,7 +231,7 @@ Commands._defaultKeyMappings = {
   reloadTab: [
     "Reload the whole page", {
       background: true,
-      noRepeat: true
+      noRepeat: 20
     }
   ],
   reopenTab: [
