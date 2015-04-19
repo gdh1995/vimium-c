@@ -8,8 +8,8 @@ var Commands = {
       return;
     }
     this.availableCommands[command] = {
-      background: options && options.background ? true : false,
       noRepeat: options && options.noRepeat,
+      background: options && options.background ? true : false,
       description: description || command
     };
   },
