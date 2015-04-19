@@ -46,7 +46,7 @@
 
   isEnabledForUrl = false;
 
-  keyQueue = "";
+  keyQueue = false;
 
   firstKeys = {};
 
@@ -482,8 +482,9 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     else if (key === KeyCodes.esc) {
       if (keyQueue && KeyboardUtils.isPlain(event)) {
         mainPort.postMessage({ handler: "esc" });
-        action = 2;
-        currentSeconds = secondKeys[keyQueue = ""];
+        action = 2
+        keyQueue = false;
+        currentSeconds = secondKeys[""];
       }
     }
     else if (!(keyChar = KeyboardUtils.getKeyChar(event))) {
@@ -1086,13 +1087,12 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
         if (response.firstKeys) {
           ELs.focusMsg.tabId = response.tabId;
           requestHandlers.refreshKeyMappings(response);
-          keyQueue = response.keyQueue;
-          currentSeconds = secondKeys[response.currentFirst];
+          requestHandlers.refreshKeyQueue(response);
         } else if (!("" in secondKeys)) {
           mainPort.postMessage({
             handler: "keyMappings"
           }, requestHandlers.refreshKeyMappings);
-          secondKeys[""] = {};
+          secondKeys[""] = {}; // haven't init yet
         }
         initializeWhenEnabled(response.passKeys);
       } else {
@@ -1173,8 +1173,13 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       }
     },
     refreshKeyQueue: function(response) {
-        keyQueue = response.keyQueue;
+      if (response.currentFirst !== null) {
+        keyQueue = true;
         currentSeconds = secondKeys[response.currentFirst];
+      } else {
+        keyQueue = false;
+        currentSeconds = secondKeys[""];
+      }
     },
     setScrollPosition: function(request) {
       var scrollX = request.scroll[0], scrollY = request.scroll[1];
@@ -1182,8 +1187,13 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
         DomUtils.DocumentReady(window.scrollTo.bind(window, scrollX, scrollY));
       }
     },
+    esc: function() {
+      keyQueue = false;
+      currentSeconds = secondKeys[""];
+    },
     executePageCommand: function(request) {
-      currentSeconds = secondKeys[keyQueue = ""];
+      keyQueue = false;
+      currentSeconds = secondKeys[""];
       if (request.count < 0) {
         Utils.invokeCommandString(request.command, -request.count);
       } else {
@@ -1232,7 +1242,6 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       mainPort, ELs.focusMsg, requestHandlers.refreshKeyQueue //
     ));
   });
-
 
   chrome.runtime.onMessage.addListener(function(request, handler, sendResponse) {
     sendResponse(0);

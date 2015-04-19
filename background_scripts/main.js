@@ -3,7 +3,7 @@
   var BackgroundCommands, checkKeyQueue, currentVersion //
     , frameIdsForTab, urlForTab, ContentSettings, setShouldShowActionIcon //
     , handleMainPort, handleResponse, postResponse, funcDict //
-    , helpDialogHtmlForCommandGroup, keyQueue, resetKeys //
+    , helpDialogHtmlForCommandGroup, resetKeys //
     , openMultiTab //
     , populateKeyCommands, executeCommand, commandCount //
     , getSelected //
@@ -691,7 +691,7 @@
   });
 
   resetKeys = function() {
-    currentFirst = keyQueue = "";
+    currentFirst = null;
     currentCount = 0;
   };
 
@@ -750,12 +750,11 @@
     }
     else if (key = request.handlerKey) {
       key = checkKeyQueue(key, port);
-      if (keyQueue !== key) {
-        keyQueue = key;
+      if (currentFirst !== key) {
+        currentFirst = key;
         port.postMessage({
           name: "refreshKeyQueue",
-          keyQueue: keyQueue,
-          currentFirst: currentFirst
+          currentFirst: key
         });
       }
     }
@@ -829,24 +828,21 @@
         count = currentCount || 1;
       }
       currentCount = 0;
-      currentFirst = "";
     }
     if (registryEntry) {
     } else if ((count = command.charCodeAt(0) - 48) >= 0 && count <= 9) {
-      count = currentCount = currentCount * 10 + count;
-      return count ? (count + "") : "";
+      return (currentCount = currentCount * 10 + count) ? "" : null;
     } else if (registryEntry = Commands.keyToCommandRegistry[command]) {
       count = currentCount || 1;
       currentCount = 0;
     } else if (command in secondKeys) {
-      currentFirst = command;
-      return (count = currentCount) ? (count + command) : command;
+      return (currentFirst = command);
     } else {
       currentCount = 0;
-      return "";
+      return null;
     }
     executeCommand(registryEntry.command, registryEntry, count, port);
-    return "";
+    return null;
   };
 
   executeCommand = function(command, registryEntry, count, port, func) {
@@ -858,10 +854,9 @@
         + Commands.availableCommands[command].description
         + "\n\nAre you sure you want to continue?")
     ) {
-      count = 0;
+      return;
     }
-    if (count <= 0) {
-    } else if (registryEntry.background) {
+    if (registryEntry.background) {
       commandCount = count;
       func = BackgroundCommands[command];
       if (func.useTab === 2) {
@@ -877,7 +872,7 @@
         command: command,
         count: (registryEntry.noRepeat === false ? -count : count)
       });
-      keyQueue = "";
+      currentFirst = null;
     }
   };
 
@@ -970,7 +965,6 @@
         }
       }
       return {
-        keyQueue: keyQueue,
         currentFirst: currentFirst
       }
     },
@@ -996,7 +990,6 @@
         name: "ifEnabled",
         passKeys: (rule ? rule.passKeys : ""),
         tabId: tabId,
-        keyQueue: keyQueue,
         currentFirst: currentFirst,
         firstKeys: firstKeys,
         secondKeys: secondKeys
@@ -1065,8 +1058,11 @@
   });
 
   chrome.commands.onCommand.addListener(function(command) {
-    var count = !currentFirst && currentCount || 1;
+    var count = currentFirst ? 1 : (currentCount || 1);
     resetKeys();
+    chrome.tabs.getSelected(null, function(tab) {
+      chrome.tabs.sendMessage(tab.id, { name: "esc" });
+    });
     executeCommand(command, Commands.availableCommands[command], count);
   });
 
@@ -1089,7 +1085,7 @@
       name: "reRegisterFrame",
       work: "rereg"
     });
-    // keyQueue will be reloaded when window.focus
+    // currentFirst will be reloaded when window.focus
   }, 50); // According to tests: onInstalled will be executed after 0 ~ 16 ms if needed
 
   Commands.parseKeyMappings(Settings.get("keyMappings"));
