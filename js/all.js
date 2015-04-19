@@ -2100,54 +2100,36 @@ DBOX = {
 			_wheelEvent = true;
 			self.pageNotice();
 			if ($('.dialog-visible').length === 0) {
-				var _page = self.page;
-				var delta = 0;
-				if (!event)
-					event = window.event;
-				if (event.wheelDelta) {
-					delta = delta + event.wheelDelta
-				} else if (event.detail) {
-					delta = delta + (-event.detail * 40)
-				}
-				if (delta > 0) {
-					if (self.container.parent().get(0).scrollTop <= 0) {
+				var _page = self.page, parent = self.container.parent().get(0);
+				if (event.wheelDelta > 0) {
+					if (parent.scrollTop <= 0) {
 						self.loadBoxes('pre')
 					} else {
 						_page = false
 					}
-				} else if (delta < 0) {
-					if (self.container.parent().get(0).offsetHeight + self.container.parent().get(0).scrollTop >= self.container.parent().get(0).scrollHeight) {
-          self.loadBoxes('next')
-        } else {
-          _page = false
-        }
-				}
-				if (_page !== false && _page == self.page && _edit === false) {
-					if (_classificationOpen) {
-          _classificationOpen = false;
-          app.runApp($('.appBox[appId=classification]'), 'classification')
-					} else {
-						if (self.getDialboxIndex("quick", "classification") > -1 || self.getDialboxIndex("normal", "classification") > -1) {
-          _classificationOpen = true;
-							if (delta < 0) {
-            self.pageNotice(getI18nMsg("classificationShowNotice_next"))
-          } else {
-            self.pageNotice(getI18nMsg("classificationShowNotice_pre"))
-          }
-        }
-					}
+				} else if (parent.offsetHeight + parent.scrollTop >= parent.scrollHeight) {
+					self.loadBoxes('next')
 				} else {
+					_page = false
+				}
+				if (_page === false || _page != self.page || _edit !== false) {
 					_classificationOpen = false
+				} else if (_classificationOpen) {
+					_classificationOpen = false;
+					app.runApp($('.appBox[appId=classification]'), 'classification')
+				} else if (self.getDialboxIndex("quick", "classification") > -1 || self.getDialboxIndex("normal", "classification") > -1) {
+					_classificationOpen = true;
+					if (event.wheelDelta < 0) {
+						self.pageNotice(getI18nMsg("classificationShowNotice_next"))
+					} else {
+						self.pageNotice(getI18nMsg("classificationShowNotice_pre"))
+					}
 				}
 			} else if ($('#classificationDialog').hasClass("dialog-visible")) {
 				_classificationOpen = false;
 				$('#classificationDialog').find(".close").get(0).click()
 			}
-			if (event.preventDefault) {
-      event.preventDefault()
-			} else {
-				event.returnValue = true
-			}
+			event.preventDefault()
 			_wheelFun = setTimeout(clear, self.page3DSwitcherOpen == true ? 400 : 460);
 		};
 		window.onmessage = function (e) {
