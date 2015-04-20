@@ -50,7 +50,7 @@
 
   firstKeys = {};
 
-  secondKeys = {};
+  secondKeys = {"": {}};
 
   currentSeconds = {};
   
@@ -86,8 +86,8 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       var id, handler;
       if (id = response._msgId) {
         handler = mainPort._callbacks[id];
-          delete mainPort._callbacks[id];
-          handler(response.response, id);
+        delete mainPort._callbacks[id];
+        handler(response.response, id);
       } else {
         requestHandlers[response.name](response);
       }
@@ -1071,38 +1071,34 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
 
   requestHandlers = {
     checkIfEnabled: function() {
-      mainPort.postMessage({
-        handler: "checkIfEnabled",
+      mainPort.postMessage(initializeWhenEnabled !== setPassKeys ? {
+        handler: "initIfEnabled",
+        isTop: false, // icon is set when window.focus
         tabId: ELs.focusMsg.tabId,
-        frameId: frameId,
         url: window.location.href
-      }, requestHandlers.ifEnabled);
+      } : {
+        handler: "checkIfEnabled",
+        url: window.location.href
+      }, mainPort.Listener);
     },
     ifEnabled: function(response) {
-      if (response) {
-        isEnabledForUrl = true;
-        ELs.focusMsg.status = response.passKeys ? "partial" : "enabled";
-        if (response.firstKeys) {
-          ELs.focusMsg.tabId = response.tabId;
-          requestHandlers.refreshKeyMappings(response);
-          requestHandlers.refreshKeyQueue(response);
-        } else if (!("" in secondKeys)) {
-          mainPort.postMessage({
-            handler: "keyMappings"
-          }, requestHandlers.refreshKeyMappings);
-          secondKeys[""] = {}; // haven't init yet
-        }
-        initializeWhenEnabled(response.passKeys);
-      } else {
-        isEnabledForUrl = false;
-        ELs.focusMsg.status = "disabled";
-        HUD.hide();
+      ELs.focusMsg.status = response.passKeys ? "partial" : "enabled";
+      if (response.tabId) {
+        ELs.focusMsg.tabId = response.tabId;
+        requestHandlers.refreshKeyMappings(response);
+        requestHandlers.refreshKeyQueue(response);
       }
+      initializeWhenEnabled(response.passKeys);
+      isEnabledForUrl = true;
     },
     ifDisabled: function(response) {
       isEnabledForUrl = false;
       var msg = ELs.focusMsg;
-      msg.tabId = response.tabId;
+      if (response.tabId) {
+        msg.tabId = response.tabId;
+      } else {
+        HUD.hide();
+      }
       msg.status = "disabled";
     },
     settings: settings.ReceiveSettings,

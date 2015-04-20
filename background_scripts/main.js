@@ -969,12 +969,11 @@
       }
     },
     checkIfEnabled: function(request) {
-      var rule = Exclusions.getRule(request.url), ref;
-      if (shouldShowActionIcon && (ref = frameIdsForTab[request.tabId])
-          && request.frameId === ref[0]) {
-        funcDict.setIcon(request.tabId, rule ? (rule.passKeys ? "partial" : "disabled") : "enabled");
-      }
-      return rule && !rule.passKeys ? null : {
+      var rule = Exclusions.getRule(request.url);
+      return rule && !rule.passKeys ? {
+        name: "ifDisabled"
+      } : {
+        name: "ifEnabled",
         passKeys: (rule ? rule.passKeys : "")
       };
     },
@@ -982,6 +981,8 @@
       var rule = Exclusions.getRule(request.url);
       if (shouldShowActionIcon && request.isTop) {
         funcDict.setIcon(tabId, rule ? (rule.passKeys ? "partial" : "disabled") : "enabled");
+      } else {
+        tabId = tabId || request.tabId;
       }
       return rule && !rule.passKeys ? {
         name: "ifDisabled",
@@ -1053,7 +1054,7 @@
 
   Settings.setUpdateHook("keyMappings", function(value) {
     Commands.parseKeyMappings(value);
-    populateKeyCommands();
+    populateKeyCommands(); // resetKeys has been called in this
     sendRequestToAllTabs(requestHandlers.keyMappings());
   });
 
