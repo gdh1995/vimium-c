@@ -9,9 +9,7 @@
     , getSelected //
     , requestHandlers, sendRequestToAllTabs //
     , firstKeys, splitKeyQueue //
-    , secondKeys, currentCount, currentFirst, shouldShowActionIcon, setBadge;
-
-  shouldShowActionIcon = chrome.browserAction && chrome.browserAction.setIcon ? true : false;
+    , secondKeys, currentCount, currentFirst, setBadge;
 
   currentVersion = Utils.getCurrentVersion();
 
@@ -233,12 +231,6 @@
   };
 
   funcDict = {
-    setIcon: (shouldShowActionIcon ? function(tabId, type) {
-      chrome.browserAction.setIcon({
-        tabId: tabId,
-        path: Settings.icons[type]
-      });
-    } : function() {}),
     isIncNor: function(wnd) {
       return wnd.incognito && wnd.type === "normal";
     },
@@ -652,8 +644,10 @@
     }
   };
 
-  setShouldShowActionIcon = !shouldShowActionIcon ? (setBadge = function() {}) : (function() {
-    var currentBadge, badgeTimer, updateBadge, time1 = 50, set;
+  setShouldShowActionIcon = !(chrome.browserAction && chrome.browserAction.setIcon)
+  ? (window.setIcon = setBadge = function() {})
+  : (function() {
+    var currentBadge, badgeTimer, updateBadge, time1 = 50, set, shouldShow;
     chrome.browserAction.setBadgeBackgroundColor({color: [82, 156, 206, 255]});
     updateBadge = function(badge) {
       badgeTimer = 0;
@@ -661,7 +655,7 @@
     };
     setBadge = function(request) {
       var badge = request.badge;
-      if (badge != null && badge !== currentBadge) {
+      if (shouldShow && badge != null && badge !== currentBadge) {
         currentBadge = badge;
         if (badgeTimer) {
           clearTimeout(badgeTimer);
@@ -670,13 +664,21 @@
       }
     };
     set = function (value) {
-      value = value ? true : false;
-      if (value === shouldShowActionIcon) { return; }
+      value = Settings.get("showActionIcon");
+      if (value === shouldShow) { return; }
       // TODO: hide icon
-      if (shouldShowActionIcon = value) {
+      if (shouldShow = value) {
         chrome.browserAction.enable();
       } else {
         chrome.browserAction.disable();
+      }
+    };
+    window.setIcon = function(tabId, type) {
+      if (shouldShow) {
+        chrome.browserAction.setIcon({
+          tabId: tabId,
+          path: Settings.icons[type]
+        });
       }
     };
     Settings.setUpdateHook("showActionIcon", set);
@@ -960,9 +962,7 @@
         if (frames && frames.length > 1 && (ind = frames.indexOf(request.frameId)) > 0) {
           frameIdsForTab[tabId] = frames.splice(ind, frames.length - ind).concat(frames);
         }
-        if (shouldShowActionIcon) {
-          funcDict.setIcon(tabId, request.status);
-        }
+        setIcon(tabId, request.status);
       }
       return {
         currentFirst: currentFirst
@@ -979,8 +979,8 @@
     },
     initIfEnabled: function(request, tabId) {
       var rule = Exclusions.getRule(request.url);
-      if (shouldShowActionIcon && request.isTop) {
-        funcDict.setIcon(tabId, rule ? (rule.passKeys ? "partial" : "disabled") : "enabled");
+      if (request.isTop) {
+        setIcon(tabId, rule ? (rule.passKeys ? "partial" : "disabled") : "enabled");
       } else {
         tabId = tabId || request.tabId;
       }
@@ -1118,11 +1118,7 @@
       ref2[ref[i]].useTab = 1;
     }
 
-    key = shouldShowActionIcon;
-    if (key) {
-      shouldShowActionIcon = 0;
-      setShouldShowActionIcon(Settings.get("showActionIcon"));
-    }
+    setShouldShowActionIcon();
 
     if (typeof Sync === "object" && typeof Sync.init === "function" && Settings.get("vimSync") === true) {
       Sync.init();

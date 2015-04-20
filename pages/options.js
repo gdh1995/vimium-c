@@ -363,6 +363,7 @@
       Option.saveOptions();
       btn.disabled = true;
       btn.innerHTML = "No Changes";
+      setTimeout(window.onfocus, 100);
     };
 
     $("saveOptions").addEventListener("click", saveOptions);
@@ -442,12 +443,17 @@
       Option.saveOptions();
       btn.innerHTML = "Saved";
       btn.disabled = true;
+      var rule = bgExclusions.getRule(url);
+      chrome.extension.getBackgroundPage().setIcon(tab.id //
+        , rule ? (rule.passKeys ? "partial" : "disabled") : "enabled");
     };
     $("saveOptions").addEventListener("click", saveOptions);
     document.addEventListener("keyup", function(event) {
       if (event.ctrlKey && event.keyCode === 13) {
         saveOptions();
-        window.close();
+        // although the tab calls window.onfocus after it closes,
+        // it is too early for the tab to know new exclusion rules.
+        setTimeout(window.close, 300);
       }
     });
     exclusions = new ExclusionRulesOnPopupOption(url, "exclusionRules", onUpdated);
