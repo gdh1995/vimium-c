@@ -212,3 +212,5 @@ var Settings = {
   bufferToLoad: null,
   ChromeInnerNewTab: "chrome-search://local-ntp/local-ntp.html" // should keep lower case
 };
+
+var Sync = Sync || {clear: function() {}, set: function() {}};
