@@ -418,7 +418,6 @@
   initPopupPage = function(tab) {
     var exclusions, onUpdated, saveOptions, updateState, url;
     exclusions = null;
-    $("optionsLink").setAttribute("href", "/pages/options.html");
     url = chrome.extension.getBackgroundPage().urlForTab[tab.id] || tab.url;
     updateState = function() {
       var rule = bgExclusions.getRule(url, exclusions.readValueFromElement());
