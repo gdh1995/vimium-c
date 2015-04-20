@@ -67,7 +67,6 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
   ]);
   
   mainPort = {
-    _name: "main",
     _port: null,
     _callbacks: {},
     postMessage: function(request, callback) {
@@ -86,12 +85,11 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     Listener: function(response) {
       var id, handler;
       if (id = response._msgId) {
-        if (handler = mainPort._callbacks[id]) {
+        handler = mainPort._callbacks[id];
           delete mainPort._callbacks[id];
           handler(response.response, id);
-        }
-      } else if (handler = requestHandlers[response.name]) {
-        handler(response);
+      } else {
+        requestHandlers[response.name](response);
       }
     },
     ClearPort: function() {
@@ -102,7 +100,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       if (port = this._port) {
         return port;
       }
-      port = this._port = chrome.runtime.connect({ name: this._name });
+      port = this._port = chrome.runtime.connect({ name: "main" });
       port.onDisconnect.addListener(this.ClearPort);
       port.onMessage.addListener(this.Listener);
       return port;
@@ -1102,10 +1100,10 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       }
     },
     ifDisabled: function(response) {
+      isEnabledForUrl = false;
       var msg = ELs.focusMsg;
       msg.tabId = response.tabId;
       msg.status = "disabled";
-      isEnabledForUrl = false;
     },
     settings: settings.ReceiveSettings,
     registerFrame: function(request) {
