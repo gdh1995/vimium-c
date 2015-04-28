@@ -422,7 +422,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       handleKeyCharForFindMode(keyChar);
       DomUtils.suppressEvent(event);
     } else if (isInsertMode()) {
-    } else if (isValidKey(keyChar)) {
+    } else if (isValidKey(keyChar)) { // keyChar is just the full command
       mainPort.postMessage({
         handlerKey: keyChar
       });
@@ -483,16 +483,16 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
         keyQueue = false;
         currentSeconds = secondKeys[""];
       }
+    } else if (!(keyChar = KeyboardUtils.getKeyChar(event))) {
     }
-    else if (!(keyChar = KeyboardUtils.getKeyChar(event))) {
-    } else if ((key >= 32 && (event.metaKey || event.ctrlKey || event.altKey)) //
+    else if ((key >= 32 && (event.metaKey || event.ctrlKey || event.altKey)) //
         || ! event.keyIdentifier.startsWith("U+")) {
       keyChar = getFullCommand(event, keyChar);
       if (isValidKey(keyChar)) {
         mainPort.postMessage({ handlerKey: keyChar });
         action = 2;
       }
-    } else if (isValidKey(keyChar)) {
+    } else if (isValidKey(keyChar)) { // keyChar is just the full command
       action = 1;
     }
     if (action <= 0) {
