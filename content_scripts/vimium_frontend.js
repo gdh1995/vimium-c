@@ -417,9 +417,8 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     if (!keyChar) {
       return;
     }
-    if (keyChar === "f" && (KeyboardUtils.isMac ? event.metaKey : event.ctrlKey)) {
-      enterInsertModeWithoutShowingIndicator();
-    } else if (findMode) {
+    // it seems event can not be <a/c/m-*>
+    if (findMode) {
       handleKeyCharForFindMode(keyChar);
       DomUtils.suppressEvent(event);
     } else if (isInsertMode()) {
@@ -513,11 +512,11 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       passKeys = newPassKeys;
     };
     isValidKey = function(key) {
-      return (keyQueue || !passKeys || passKeys.indexOf(key) === -1) && //
-      ( //
-        (key in firstKeys) || (key in currentSeconds) || //
-        (keyQueue ? num0Regex : numRegex).test(key) //
-      );
+      if (passKeys && !keyQueue && passKeys.indexOf(key) !== -1) {
+        return false;
+      }
+      return (key in firstKeys) || (key in currentSeconds) || //
+        (keyQueue ? num0Regex : numRegex).test(key);
     };
   })();
 
