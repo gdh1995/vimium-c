@@ -119,12 +119,12 @@ function openTab(targetSwitch, url, ctrlKey) {
 	if (targetSwitch === true) {
 		chrome.tabs.update({url: url});
 	} else if (ctrlKey !== true) {
-	chrome.tabs.getSelected(null, function (curTab) {
+		chrome.tabs.getSelected(null, function (curTab) {
 			chrome.tabs.create({
-			index: curTab.index + 1,
-			openerTabId: curTab.id,
+				index: curTab.index + 1,
+				openerTabId: curTab.id,
 				selected: true,
-			url: url
+				url: url
 			});
 		});
 	} else {
@@ -134,7 +134,7 @@ function openTab(targetSwitch, url, ctrlKey) {
 				if (tabs[i].selected) {
 					break;
 				}
-		}
+			}
 			id = tabs[i].id;
 			i = tabs[i].index;
 			tabs = tabs.filter(function(tab) { return tab.openerTabId === id; });
@@ -146,9 +146,9 @@ function openTab(targetSwitch, url, ctrlKey) {
 				openerTabId: id,
 				selected: false,
 				url: url
+			});
 		});
-	});
-}
+	}
 }
 function isWhite(c1, c2, c3) {
 	return (c1 >= 230 && c2 >= 230 && c3 >= 230) ? true : false;
@@ -2081,10 +2081,10 @@ DBOX = {
 				}, 0)
 			}
 			if ($('.dialog-visible').length == 0 && (typeof _minSearchForce == 'undefined' || !_minSearchForce)) {
-				if (e.keyCode == 37) {
+				if (e.shiftKey || e.ctrlKey || e.metaKey || e.altKey) {
+				} else if (e.keyCode == 37) {
 					self.loadBoxes('pre')
-				}
-				if (e.keyCode == 39) {
+				} else if (e.keyCode == 39) {
 					self.loadBoxes('next')
 				}
 			}
