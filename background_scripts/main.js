@@ -292,6 +292,7 @@
           }
         } : null, wnd.tabs);
       } else {
+        tab.id = undefined;
         openMultiTab(Settings.get("newTabUrl"), commandCount, tab);
       }
     }, function(tab, repeat, allTabs) {
@@ -341,6 +342,9 @@
         callback && callback(newTab);
         chrome.tabs.update(newTab.id, { selected: true });
       });
+    }, function(tab) {
+      tab.id = undefined;
+      openMultiTab(Settings.get("newTabUrl"), commandCount, tab);
     }],
     duplicateTab: function(tab, count, wnd) {
       if (wnd.incognito && !tab.incognito) {
@@ -496,18 +500,7 @@
 
   // function (const Tab tab / const Tab tabs[], const int repeatCount);
   BackgroundCommands = {
-    createTab: function() {
-      if (Utils.isRefusingIncognito(Settings.get("newTabUrl"))) {
-        chrome.windows.getCurrent({
-          populate: true
-        }, funcDict.createTab[0]);
-      } else {
-        chrome.tabs.getSelected(null, function(tab) {
-          openMultiTab(Settings.get("newTabUrl"), commandCount, tab);
-        });
-        return;
-      }
-    },
+    createTab: null,
     duplicateTab: function(tab) {
       chrome.tabs.duplicate(tab.id);
       if (commandCount > 1) {
@@ -1001,6 +994,13 @@
   Settings.postUpdate("searchEngines", null);
   Settings.postUpdate("userDefinedCss");
   Settings.bufferToLoad = Settings.valuesToLoad.map(Settings.get.bind(Settings));
+
+  Settings.setUpdateHook("newTabUrl", function(url) {
+    ? chrome.windows.getCurrent.bind(chrome.windows, {populate: true}, funcDict.createTab[0])
+    BackgroundCommands.createTab = Utils.isRefusingIncognito(url)
+    : chrome.tabs.getSelected.bind(chrome.tabs, null, funcDict.createTab[5]);
+  });
+  Settings.postUpdate("newTabUrl");
 
   Settings.setUpdateHook("exclusionRules", function(rules) {
     Exclusions.rules = rules;

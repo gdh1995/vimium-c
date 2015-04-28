@@ -179,7 +179,7 @@ var Settings = {
     nextPatterns: "next,more,>,\u2192,\xbb,\u226b,>>",
     searchUrl: "http://www.baidu.com/s?ie=utf-8&wd=%s Baidu",
     searchEngines: "w|wiki|Wiki:\\\n  http://www.wikipedia.org/w/index.php?search=%s Wikipedia (en-US)\nBaidu|baidu|ba:\\\n  www.baidu.com/s?ie=utf-8&wd=%s",
-    newTabUrl: "/index.html" // note: if changed, /pages/newtab.html also needs change.
+    newTabUrl: "/index.html" // note: if changed, /pages/newtab.js also needs change.
   },
   // accept only if value === @enforceBoolean[key], so that we get boolean options
   enforceBoolean: {
