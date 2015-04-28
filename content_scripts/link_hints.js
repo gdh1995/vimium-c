@@ -372,7 +372,8 @@ var LinkHints = {
       DomUtils.simulateSelect(clickEl);
       this.deactivateMode(delay);
     } else {
-      if (clickEl.nodeName.toLowerCase() === "input" && clickEl.type !== "button") {
+      if (clickEl.nodeName.toLowerCase() === "input" && clickEl.type !== "button"
+          && clickEl.type !== "submit" && clickEl.type !== "image") {
         clickEl.focus();
       }
       if (clickEl.classList.contains("vimOIUrl")) {
