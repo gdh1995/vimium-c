@@ -125,16 +125,26 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
         keys: ((keys instanceof Array) ? keys : [keys])
       }, settings.ReceiveSettings);
     },
-    load: function(request2, err) {
+    load: function(request, err) {
+      request = {
+        handlerSettings: "load",
+        request: request
+      };
       if (this.isLoading) {
         if (err) { err(); }
       } else {
-        this.isLoading = setInterval(this.load.bind(this, request2, err), this.autoRetryInterval);
+        this.isLoading = setInterval(this.Load_safe, this.autoRetryInterval //
+          , request, err);
       }
-      mainPort.postMessage({
-        handlerSettings: "load",
-        request: request2
-      });
+      mainPort.postMessage(request);
+    },
+    Load_safe: function(request, err) {
+      try {
+        if (err) { err(); }
+        mainPort.postMessage(request);
+      } catch (e) {
+        ELs.destroy();
+      }
     },
     ReceiveSettings: function(response) {
       var _this = settings, ref, i;
@@ -1259,6 +1269,9 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     Vomnibar.destroy();
     LinkHints.destroy();
     HUD.destroy();
+    if (settings.isLoading) {
+      clearInterval(settings.isLoading);
+    }
     mainPort = null;
     requestHandlers = null;
     if (ELs.css) {
