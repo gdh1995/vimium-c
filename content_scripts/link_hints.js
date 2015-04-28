@@ -348,12 +348,12 @@ var LinkHints = {
       this.setOpenLinkMode((this.mode >= 128) ? (this.mode ^ 64) : ((this.mode | 2) ^ 64));
     } else if (!(linksMatched = this.markerMatcher.matchHintsByKey(this.hintMarkers, event, this.keyStatus))){
       if (linksMatched === false) {
-        this.reinit(this.keyStatus.delay);
+        this.reinit();
       }
     } else if (linksMatched.length === 0) {
       this.deactivateMode();
     } else if (linksMatched.length === 1) {
-      this.activateLink(linksMatched[0], this.keyStatus.delay);
+      this.activateLink(linksMatched[0]);
     } else {
       _limit = this.keyStatus.tab ? 0 : this.markerMatcher.hintKeystrokeQueue.length;
       for (_i = linksMatched.length; 0 <= --_i; ) {
@@ -368,12 +368,12 @@ var LinkHints = {
     }
     return false;
   },
-  activateLink: function(matchedLink, delay) {
+  activateLink: function(matchedLink) {
     var clickEl = matchedLink.clickableItem, temp, rect;
     this.delayMode = true;
     if (DomUtils.isSelectable(clickEl)) {
       DomUtils.simulateSelect(clickEl);
-      this.deactivateMode(delay);
+      this.deactivateMode();
     } else {
       if (clickEl.nodeName.toLowerCase() === "input" && clickEl.type !== "button"
           && clickEl.type !== "submit" && clickEl.type !== "image") {
@@ -403,15 +403,15 @@ var LinkHints = {
       DomUtils.flashVRect(rect);
       this.linkActivator(clickEl);
       if ((this.mode & 64) === 64) {
-        this.reinit(delay);
+        this.reinit();
       } else {
-        this.deactivateMode(delay);
+        this.deactivateMode();
       }
     }
   },
-  reinit: function(delay) {
+  reinit: function() {
     var mode = this.mode, linkActivator = this.linkActivator;
-    this.deactivateMode(delay, function() {
+    this.deactivateMode(function() {
       this.linkActivator = linkActivator;
       this.activateModeWithQueue(mode);
     });
@@ -437,7 +437,8 @@ var LinkHints = {
       callback.call(this);
     }
   },
-  deactivateMode: function(delay, callback) {
+  deactivateMode: function(callback) {
+    var delay = this.keyStatus.delay;
     if (delay) {
       setTimeout(this.deactivate2.bind(this, callback), delay);
     } else {
@@ -446,6 +447,7 @@ var LinkHints = {
   },
   destroy: function() {
     if (this.isActive) {
+      this.keyStatus.delay = 0;
       this.deactivateMode();
     }
     LinkHints = null;
