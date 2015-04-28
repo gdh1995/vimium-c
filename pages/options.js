@@ -2,7 +2,7 @@
 (function() {
   var $, CheckBoxOption, ExclusionRulesOption, NonEmptyTextOption, NumberOption, Option, TextOption,
     activateHelpDialog, bgSettings, bgExclusions, enableSaveButton, maintainLinkHintsView,
-    ExclusionRulesOnPopupOption, initOptionsPage, initPopupPage,
+    ExclusionRulesOnPopupOption, initOptionsPage, initPopupPage, BG,
     __hasProp = Object.prototype.hasOwnProperty,
     __extends = function(child, parent) {
       for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; }
@@ -12,8 +12,9 @@
     };
 
   $ = document.getElementById.bind(document);
-  bgSettings = chrome.extension.getBackgroundPage().Settings;
-  bgExclusions = chrome.extension.getBackgroundPage().Exclusions;
+  BG = chrome.extension.getBackgroundPage();
+  bgSettings = BG.Settings;
+  bgExclusions = BG.Exclusions;
 
   function Option(field, onUpdated) {
     this.field = field;
@@ -349,7 +350,7 @@
 
     activateHelpDialog = function() {
       showHelpDialog({
-        html: chrome.extension.getBackgroundPage().helpDialogHtml(true, true, "Command Listing"),
+        html: BG.helpDialogHtml(true, true, "Command Listing"),
         advanced: bgSettings.get("showAdvancedCommands")
       });
       document.activeElement.blur();
@@ -366,7 +367,7 @@
       setTimeout(function () {
         window.onfocus();
         bgSettings.buildBuffer();
-        chrome.extension.getBackgroundPage().sendRequestToAllTabs({
+        BG.sendRequestToAllTabs({
           name: "settings",
           load: bgSettings.bufferToLoad
         });
@@ -425,7 +426,7 @@
   initPopupPage = function(tab) {
     var exclusions, onUpdated, saveOptions, updateState, url;
     exclusions = null;
-    url = chrome.extension.getBackgroundPage().urlForTab[tab.id] || tab.url;
+    url = BG.urlForTab[tab.id] || tab.url;
     updateState = function() {
       var rule = bgExclusions.getRule(url, exclusions.readValueFromElement());
       $("state").innerHTML = "Vimium will " + (rule && rule.passKeys
@@ -450,7 +451,7 @@
       btn.innerHTML = "Saved";
       btn.disabled = true;
       var rule = bgExclusions.getRule(url);
-      chrome.extension.getBackgroundPage().setIcon(tab.id //
+      BG.setIcon(tab.id //
         , rule ? (rule.passKeys ? "partial" : "disabled") : "enabled");
     };
     $("saveOptions").addEventListener("click", saveOptions);
