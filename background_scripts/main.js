@@ -725,7 +725,7 @@
       case "load":
         port.postMessage({
           name: "settings",
-          values: Settings.bufferToLoad,
+          load: Settings.bufferToLoad,
           response: ((request = request.request) //
             ? requestHandlers[request.handler](request, id) : null)
         });
@@ -993,7 +993,6 @@
   Settings.reloadFiles();
   Settings.postUpdate("searchEngines", null);
   Settings.postUpdate("userDefinedCss");
-  Settings.bufferToLoad = Settings.valuesToLoad.map(Settings.get.bind(Settings));
 
   Settings.setUpdateHook("newTabUrl", function(url) {
     BackgroundCommands.createTab = Utils.isRefusingIncognito(url)
@@ -1015,6 +1014,8 @@
     populateKeyCommands(); // resetKeys has been called in this
     sendRequestToAllTabs(requestHandlers.keyMappings());
   });
+
+  Settings.buildBuffer();
 
   chrome.commands.onCommand.addListener(function(command) {
     var count = currentFirst ? 1 : (currentCount || 1);

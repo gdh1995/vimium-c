@@ -109,11 +109,6 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
 
   settings = {
     values: {},
-    valuesToLoad: ["scrollStepSize", "linkHintCharacters", "linkHintNumbers", "filterLinkHints" //
-      , "hideHud", "previousPatterns", "nextPatterns", "findModeRawQuery", "regexFindMode" //
-      , "smoothScroll" //
-      , "findModeRawQueryList" //
-    ], // should be the same as bg.Settings.valuesToLoad
     isLoading: 0,
     autoRetryInterval: 2000,
     set: function(key, value) {
@@ -142,9 +137,13 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       });
     },
     ReceiveSettings: function(response) {
-      var _this = settings, ref = response.keys || _this.valuesToLoad, i, v1, v2;
-      for (v1 = response.values, v2 = _this.values, i = v1.length; 0 <= --i; ) {
-        v2[ref[i]] = v1[i];
+      var _this = settings, ref, i, v1, v2;
+      if (response.load) {
+        _this.values = response.load;
+      } else if (ref = response.keys) {
+        for (v1 = response.values, v2 = _this.values, i = v1.length; 0 <= --i; ) {
+          v2[ref[i]] = v1[i];
+        }
       }
       if (i = _this.isLoading) {
         clearInterval(i);

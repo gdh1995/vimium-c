@@ -151,6 +151,13 @@ var Settings = {
       fetchHttpContents(files[id], this.set.bind(this, id));
     }
   },
+  buildBuffer: function() {
+    var _i, key, ref = this.valuesToLoad, ref2 = this.bufferToLoad = {};
+    for (_i = ref.length; 0 <= --_i;) {
+      key = ref[_i];
+      ref2[key] = this.get(key);
+    }
+  },
   // clear localStorage & sync, if value === @defaults[key]
   defaults: {
     UILanguage: null,
