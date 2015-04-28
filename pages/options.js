@@ -363,7 +363,14 @@
       Option.saveOptions();
       btn.disabled = true;
       btn.innerHTML = "No Changes";
-      setTimeout(window.onfocus, 100);
+      setTimeout(function () {
+        window.onfocus();
+        bgSettings.buildBuffer();
+        chrome.extension.getBackgroundPage().sendRequestToAllTabs({
+          name: "settings",
+          load: bgSettings.bufferToLoad
+        });
+      }, 100);
     };
 
     $("saveOptions").addEventListener("click", saveOptions);
