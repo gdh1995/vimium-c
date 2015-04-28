@@ -118,28 +118,37 @@ function getRand(v_min, v_max) {
 function openTab(targetSwitch, url, ctrlKey) {
 	if (targetSwitch === true) {
 		chrome.tabs.update({url: url});
-		return;
-	}
+	} else if (ctrlKey !== true) {
 	chrome.tabs.getSelected(null, function (curTab) {
-		var sel = (ctrlKey !== true), newTab = {
+			chrome.tabs.create({
 			index: curTab.index + 1,
 			openerTabId: curTab.id,
-			selected: sel,
+				selected: true,
 			url: url
-		};
-		if (sel) {
-			chrome.tabs.create(newTab);
-			return;
+			});
+		});
+	} else {
+		chrome.tabs.getAllInWindow(null, function(tabs) {
+			var i = tabs.length, id;
+			while (0 < --i) {
+				if (tabs[i].selected) {
+					break;
+				}
 		}
-		chrome.tabs.getAllInWindow(curTab.windowId, function(tabs) {
-			var id = newTab.openerTabId;
+			id = tabs[i].id;
+			i = tabs[i].index;
 			tabs = tabs.filter(function(tab) { return tab.openerTabId === id; });
-			if (tabs.length !== 0 && (id = tabs[tabs.length - 1].index) >= newTab.index) {
-				newTab.index = id + 1;
+			if (tabs.length !== 0) {
+				i = Math.max(tabs[tabs.length - 1].index, i);
 			}
-			chrome.tabs.create(newTab);
+			chrome.tabs.create({
+				index: i + 1,
+				openerTabId: id,
+				selected: false,
+				url: url
 		});
 	});
+}
 }
 function isWhite(c1, c2, c3) {
 	return (c1 >= 230 && c2 >= 230 && c3 >= 230) ? true : false;
