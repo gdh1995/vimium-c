@@ -347,6 +347,9 @@ var LinkHints = {
     } else if (_i === KeyCodes.altKey) {
       this.setOpenLinkMode((this.mode >= 128) ? (this.mode ^ 64) : ((this.mode | 2) ^ 64));
     } else if (!(linksMatched = this.markerMatcher.matchHintsByKey(this.hintMarkers, event, this.keyStatus))){
+      if (linksMatched === false) {
+        this.reinit(this.keyStatus.delay);
+      }
     } else if (linksMatched.length === 0) {
       this.deactivateMode();
     } else if (linksMatched.length === 1) {
@@ -400,15 +403,18 @@ var LinkHints = {
       DomUtils.flashVRect(rect);
       this.linkActivator(clickEl);
       if ((this.mode & 64) === 64) {
-        var mode = this.mode, linkActivator = this.linkActivator;
-        this.deactivateMode(delay, function() {
-          this.linkActivator = linkActivator;
-          this.activateModeWithQueue(mode);
-        });
+        this.reinit(delay);
       } else {
         this.deactivateMode(delay);
       }
     }
+  },
+  reinit: function(delay) {
+    var mode = this.mode, linkActivator = this.linkActivator;
+    this.deactivateMode(delay, function() {
+      this.linkActivator = linkActivator;
+      this.activateModeWithQueue(mode);
+    });
   },
   deactivate2: function(callback) {
     if (this.markerMatcher.deactivate) {
@@ -500,7 +506,7 @@ LinkHints.alphabetHints = {
     var keyChar, key = event.keyCode;
     if (key === KeyCodes.tab) {
       if (this.hintKeystrokeQueue.length === 0) {
-        return null;
+        return false;
       }
       keyStatus.tab = !keyStatus.tab;
     } else {
@@ -608,7 +614,7 @@ LinkHints.filterHints = {
     var key = event.keyCode, keyChar, userIsTypingLinkText = false;
     if (key === KeyCodes.tab) {
       if (this.hintKeystrokeQueue.length === 0) {
-        return null;
+        return false;
       }
       keyStatus.tab = !keyStatus.tab;
     } else if (key === KeyCodes.enter) {
