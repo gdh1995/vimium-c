@@ -996,8 +996,8 @@
   Settings.bufferToLoad = Settings.valuesToLoad.map(Settings.get.bind(Settings));
 
   Settings.setUpdateHook("newTabUrl", function(url) {
-    ? chrome.windows.getCurrent.bind(chrome.windows, {populate: true}, funcDict.createTab[0])
     BackgroundCommands.createTab = Utils.isRefusingIncognito(url)
+    ? chrome.windows.getCurrent.bind(chrome.windows, {populate: true}, funcDict.createTab[0])
     : chrome.tabs.getSelected.bind(chrome.tabs, null, funcDict.createTab[5]);
   });
   Settings.postUpdate("newTabUrl");
