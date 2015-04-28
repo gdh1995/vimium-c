@@ -998,26 +998,26 @@
   Settings.postUpdate("searchEngines", null);
   Settings.postUpdate("userDefinedCss");
 
-  Settings.setUpdateHook("newTabUrl", function(url) {
+  Settings.updateHooks.newTabUrl = function(url) {
     BackgroundCommands.createTab = Utils.isRefusingIncognito(url)
     ? chrome.windows.getCurrent.bind(chrome.windows, {populate: true}, funcDict.createTab[0])
     : chrome.tabs.getSelected.bind(chrome.tabs, null, funcDict.createTab[5]);
-  });
+  };
   Settings.postUpdate("newTabUrl");
 
-  Settings.setUpdateHook("exclusionRules", function(rules) {
+  Settings.updateHooks.exclusionRules = function(rules) {
     Exclusions.rules = rules;
     resetKeys();
     sendRequestToAllTabs({
       name: "checkIfEnabled"
     });
-  });
+  };
 
-  Settings.setUpdateHook("keyMappings", function(value) {
+  Settings.updateHooks.keyMappings = function(value) {
     Commands.parseKeyMappings(value);
     populateKeyCommands(); // resetKeys has been called in this
     sendRequestToAllTabs(requestHandlers.keyMappings());
-  });
+  };
 
   Settings.buildBuffer();
 

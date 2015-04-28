@@ -712,7 +712,7 @@ completers.searchEngines = {
 
   window.RegexpCache = RegexpCache;
 
-  Settings.setUpdateHook("postSearchEnginesMap", function() {
+  Settings.updateHooks.postSearchEnginesMap = function() {
     completers.searchEngines.refresh();
-  });
+  };
 })();

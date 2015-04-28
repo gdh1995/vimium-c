@@ -102,7 +102,7 @@ if (chrome.browserAction && chrome.browserAction.setIcon) (function() {
       chrome.browserAction.disable();
     }
   };
-  Settings.setUpdateHook("showActionIcon", set);
+  Settings.updateHooks.showActionIcon = set;
   set(Settings.get("showActionIcon"));
 })();
 

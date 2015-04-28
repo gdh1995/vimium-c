@@ -19,7 +19,7 @@ var Settings = {
     if ((i = this.valuesToLoad.indexOf(key)) >= 0) {
       this.bufferToLoad[i] = value;
     }
-    if ((ref = this.postUpdateHooks[key]) && ref.call(this, value, key) === false) {
+    if ((ref = this.updateHooks[key]) && ref.call(this, value, key) === false) {
       return;
     } else if (key in this.nonPersistent) {
       return;
@@ -44,15 +44,12 @@ var Settings = {
     localStorage[key] = JSON.stringify(value);
   },
   postUpdate: function(key, virtualValue) {
-    var ref = this.postUpdateHooks[key];
+    var ref = this.updateHooks[key];
     if (ref) {
       ref.call(this, virtualValue !== undefined ? virtualValue : this.get(key), key);
     }
   },
-  setUpdateHook: function(key, func) {
-    this.postUpdateHooks[key] = func;
-  },
-  postUpdateHooks: {
+  updateHooks: {
     searchEngines: function() {
       this.set("searchEnginesMap", { "": [] });
     },
