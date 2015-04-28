@@ -26,6 +26,9 @@ var Scroller = {
         keydown: function(event) {
           this.keyIsDown = true;
           this.isLastEventRepeat = event.repeat;
+          if (!event.repeat) {
+            this.time += 1;
+          }
           return true;
         },
         keyup: function() {
