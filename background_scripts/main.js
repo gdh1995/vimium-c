@@ -845,10 +845,14 @@
       return tab.url;
     },
     getSettings: function(request) {
+      var _i, key, ref = request.keys, values = {};
+      for (_i = ref.length; 0 <= --_i;) {
+        key = ref[_i];
+        values[key] = Settings.get(key);
+      }
       return {
         name: "settings",
-        keys: request.keys,
-        values: request.keys.map(Settings.get.bind(Settings))
+        values: values
       };
     },
     setSetting: function(request) {
