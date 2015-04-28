@@ -7,7 +7,7 @@
     , openMultiTab //
     , populateKeyCommands, executeCommand, commandCount //
     , getSelected //
-    , requestHandlers, sendRequestToAllTabs //
+    , requestHandlers //
     , firstKeys, splitKeyQueue //
     , secondKeys, currentCount, currentFirst;
 
@@ -828,7 +828,7 @@
     }
   };
 
-  sendRequestToAllTabs = function (args) {
+  window.sendRequestToAllTabs = function (args) {
     chrome.tabs.query({
       windowType: "normal",
       status: "complete"
