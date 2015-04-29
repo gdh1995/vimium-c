@@ -451,7 +451,7 @@
       btn.innerHTML = "Saved";
       btn.disabled = true;
       var rule = bgExclusions.getRule(url);
-      BG.setIcon(tab.id //
+      BG.g_requestHandlers.setIcon(tab.id //
         , rule ? (rule.passKeys ? "partial" : "disabled") : "enabled");
     };
     $("saveOptions").addEventListener("click", saveOptions);

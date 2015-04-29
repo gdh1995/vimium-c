@@ -920,7 +920,7 @@
       }
       return {
         currentFirst: currentFirst
-      }
+      };
     },
     checkIfEnabled: function(request) {
       var rule = Exclusions.getRule(request.url);
