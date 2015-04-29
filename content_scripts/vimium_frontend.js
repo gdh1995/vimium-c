@@ -1135,7 +1135,13 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       HUD.showForDuration(request.text, request.duration);
     },
     focusFrame: function(request) {
-      if (frameId !== request.frameId) { return; }
+      if (request.frameId === 0) {
+        if (window.top !== window) {
+          return;
+        }
+      } else if (frameId !== request.frameId) {
+        return;
+      }
       if (window.innerWidth < 3 || window.innerHeight < 3) {
         mainPort.postMessage({
           handler: "nextFrame",
@@ -1224,7 +1230,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
         mainPort.postMessage({
           handlerSettings: "unreg",
           frameId: frameId,
-          isTop: window.top === window.self,
+          isTop: window.top === window,
         });
       } catch (e) {
       }

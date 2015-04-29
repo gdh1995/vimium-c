@@ -624,6 +624,13 @@
         });
       }
     },
+    mainFrame: function(tab) {
+      chrome.tabs.sendMessage(tab.id, {
+        name: "focusFrame",
+        frameId: 0,
+        highlight: true
+      });
+    },
     closeTabsOnLeft: function(tabs) {
       funcDict.removeTabsRelative(getSelected(tabs), -commandCount, tabs);
     },

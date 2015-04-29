@@ -102,7 +102,7 @@ Commands.commandGroups = {
     , "removeTab", "restoreTab", "restoreGivenTab", "moveTabToNextWindow", "moveTabToIncognito", "togglePinTab"
     , "closeTabsOnLeft", "closeTabsOnRight", "closeOtherTabs", "moveTabLeft", "moveTabRight" //
     , "enableImageTemp", "toggleImage", "clearImageCS"],
-  misc: ["showHelp", "enterVisualMode", "blank"]
+  misc: ["showHelp", "enterVisualMode", "mainFrame", "blank"]
 };
 Commands.advancedCommands = ["scrollToLeft", "scrollToRight", "moveTabToNextWindow", "moveTabToIncognito"
   , "goUp", "goToRoot", "focusInput", "LinkHints.activateModeWithQueue", "enableImageTemp"
@@ -171,6 +171,7 @@ Commands._defaultKeyMappings = {
   "ge": "Vomnibar.activateEditUrl",
   "gE": "Vomnibar.activateEditUrlInNewTab",
   "gf": "nextFrame",
+  "gF": "mainFrame",
   "<f1>": "simBackspace",
   "<f2>": "switchFocus",
   "m": "Marks.activateCreateMode",
@@ -531,6 +532,12 @@ Commands._defaultKeyMappings = {
   nextFrame: [
     "Cycle forward to the next frame on the page", {
       background: true
+    }
+  ],
+  mainFrame: [
+    "Select the tab's main/top frame", {
+      background: true,
+      noRepeat: true
     }
   ],
   "Marks.activateCreateMode": [
