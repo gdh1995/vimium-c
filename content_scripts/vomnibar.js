@@ -54,11 +54,8 @@ var Vomnibar = {
   activateEditUrlInNewTab: function() {
     this.activateWithCompleter("omni", false, true, true);
   },
-  getUI: function() {
-    return this.vomnibarUI;
-  },
   destroy: function() {
-    if (this._uiInited) {
+    if (this.vomnibarUI.box) {
       this.vomnibarUI.hide();
       DomUtils.removeNode(this.vomnibarUI.box);
     }
