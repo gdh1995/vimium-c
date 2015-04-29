@@ -339,8 +339,11 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
           handler: "copyToClipboard",
           data: url
         });
-        HUD.showForDuration("Yanked URL" + ((url.length > 28)
-            ? (url.substring(0, 25) + "...") : url), 2000);
+        if (url.startsWith("chrome-ext")) {
+          url = url.substring(url.indexOf('/', url.indexOf('/') + 2));
+        }
+        HUD.showForDuration("Yanked " + ((url.length >= 44)
+            ? (url.substring(0, 40) + "...") : url), 2000);
       });
     },
     focusInput: function(count) {
