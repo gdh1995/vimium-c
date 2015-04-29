@@ -5,6 +5,9 @@ var Vomnibar = {
   background: null,
   activateWithCompleter: function(completerName, selectFirstResult, forceNewTab, initialQueryValue) {
     var bg = this.background, completer = bg.Completer, vomnibarUI = this.vomnibarUI;
+    if (!document.head) {
+      return;
+    }
     if (completer.init) {
       completer.init(bg);
     }
