@@ -38,16 +38,31 @@ var Scroller = {
       });
     },
     performScroll: function(element, direction, amount) {
-      var before;
+      var before, el = element;
       if (direction === "x") {
-        before = element.scrollLeft;
-        element.scrollLeft += (element.clientWidth > element.clientHeight * 2)
-          ? amount : Math.ceil(amount * 0.6);
-        return element.scrollLeft !== before;
-      } else {
+        if (el) {
+          before = el.scrollLeft;
+        } else {
+          before = window.scrollX;
+          el = document.documentElement;
+        }
+        if (el.clientWidth <= el.clientHeight * 2) {
+          amount = Math.ceil(amount * 0.6);
+        }
+        if (element) {
+          el.scrollLeft += amount;
+          return el.scrollLeft !== before;
+        }
+        window.scrollBy(amount, 0);
+        return window.scrollX !== before;
+      } else if (el) {
         before = element.scrollTop;
         element.scrollTop += amount;
         return element.scrollTop !== before;
+      } else {
+        before = window.scrollY;
+        window.scrollBy(0, amount);
+        return window.scrollY !== before;
       }
     },
     Reset: null,
@@ -108,7 +123,9 @@ var Scroller = {
   },
   scrollTo: function(direction, pos) {
     var element = this.findScrollable(this.getActivatedElement(), direction, pos, 1), //
-    amount = this.getDimension(element, direction, pos) - element[this.Properties[direction].axisName];
+    amount = this.getDimension(element, direction, pos) - (element
+      ? element[this.Properties[direction].axisName]
+      : direction === "x" ? window.scrollX : window.scrollY);
     this.Core.scroll(element, direction, amount);
   },
   findScrollable: function(element, direction, amount, factor) {
@@ -120,13 +137,15 @@ var Scroller = {
   },
   getActivatedElement: function() {
     var element = this.Core.activatedElement;
-    if (!element) {
-      element = this.Core.activatedElement = document.body && this.selectFirst(document.body) || document.body;
+    if (element) {
+      return element;
     }
-    return element;
+    return element = this.Core.activatedElement =
+      document.body ? (this.selectFirst(document.body) || document.body) : null;
   },
   getDimension: function(el, direction, name) {
     return (typeof name !== "string") ? name
+      : (!el) ? document.documentElement[this.Properties[direction][name]]
       : (name !== "viewSize" || el !== document.body) ? el[this.Properties[direction][name]]
       : (direction === "x") ? window.innerWidth : window.innerHeight;
   },
@@ -196,7 +215,7 @@ var Scroller = {
     if (int1 && _this.performScroll(element, direction, sign * int1)) {
       totalDelta += int1;
       requestAnimationFrame(animate);
-    } else {
+    } else if (element) {
       _this.checkVisibility(element);
       if (elapsed !== 0) {
         element = null;
