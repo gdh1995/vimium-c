@@ -30,6 +30,7 @@ var LinkHints = {
   initScrollY: 0,
   initScrollX: 0,
   initTimer: 0,
+  isActive: false,
   markerMatcher: null,
   init: function() {
     this.setMarkerMatcher(settings.values.filterLinkHints);
@@ -39,11 +40,6 @@ var LinkHints = {
   setMarkerMatcher: function(useFilterLinkHints) {
     this.markerMatcher = useFilterLinkHints ? this.filterHints : this.alphabetHints;
   },
-  isActive: false,
-  clickableElementsXPath: DomUtils.makeXPath(["a", "area[@href]", "textarea",
-    "button", "select", "input[not(@type='hidden' or @disabled or @readonly)]",
-    "*[@onclick or @tabindex or @role='link' or @role='button' or contains(@class, 'button') or @contenteditable='' or translate(@contenteditable, 'TRUE', 'true')='true']"
-    ]),
   activateModeToOpenInNewTab: function() {
     return this.activateMode(this.CONST.OPEN_IN_NEW_BG_TAB);
   },
