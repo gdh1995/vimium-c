@@ -7,11 +7,11 @@ var LinkHints = {
     OPEN_IN_NEW_FG_TAB: 1 + 2,
     OPEN_WITH_QUEUE: 2 + 64,
     OPEN_FG_WITH_QUEUE: 1 + 2 + 64,
-    DOWNLOAD_LINK: 128 + 0,
-    COPY_LINK_URL: 128 + 1,
-    COPY_LINK_TEXT: 128 + 2,
-    HOVER: 128 + 3,
-    OPEN_INCOGNITO: 128 + 4
+    HOVER: 128 + 0,
+    COPY_LINK_TEXT: 128 + 1,
+    COPY_LINK_URL: 128 + 4, // 128: & 4 means [data-vim-url] is used firstly
+    DOWNLOAD_LINK: 128 + 5,
+    OPEN_INCOGNITO: 128 + 6
   },
   alphabetHints: null,
   filterHints: null,
@@ -302,10 +302,23 @@ var LinkHints = {
       this.push([element, arr, _i !== -1]); // {element, rect, notSecond}
     }
   },
+  GetLinks: function(element) {
+    var a = element.getAttribute("data-vim-url"), arr;
+    if (a || ((a = element.getAttribute("href")) && a != "#")) {
+      if (arr = DomUtils.getVisibleClientRect(element)) {
+        this.push([element, arr, true]);
+      }
+    }
+  },
   getVisibleClickableElements: function() {
     var output = [], visibleElements = [], visibleElement, rects, rects2, _len, _i;
+    if (this.mode >= 132) {
+      output.forEach.call(document.documentElement.querySelectorAll(
+          "a[href],a[data-vim-url]"), this.GetLinks.bind(visibleElements));
+    } else {
     output.forEach.call(document.documentElement.getElementsByTagName("*") //
       , this.GetVisibleClickable.bind(visibleElements));
+    }
     visibleElements.reverse();
     for (_len = visibleElements.length; 0 <= --_len; ) {
       visibleElement = visibleElements[_len];
