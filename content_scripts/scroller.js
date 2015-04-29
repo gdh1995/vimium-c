@@ -8,7 +8,6 @@ var Scroller = {
     keyIsDown: false,
     maxCalibration: 1.6,
     minCalibration: 0.5,
-    smoothScroll: true,
     time: 0,
     Animate: null,
     checkVisibility: function(element) {
@@ -56,7 +55,7 @@ var Scroller = {
       if (!amount) {
         return;
       }
-      if (!this.smoothScroll) {
+      if (!settings.values.smoothScroll) {
         this.Core.performScroll(element, direction, amount);
         this.checkVisibility(element);
         return;
@@ -69,7 +68,7 @@ var Scroller = {
       requestAnimationFrame(this.Animate);
     },
     wouldNotInitiateScroll: function() {
-      return this.smoothScroll && (this.isLastEventRepeat);
+      return settings.values.smoothScroll && this.isLastEventRepeat;
     },
   },
   Properties: {
@@ -86,7 +85,6 @@ var Scroller = {
   },
   init: function() {
     this.Core.init();
-    this.Core.smoothScroll = settings.values.smoothScroll ? true : false;
   },
   scrollBy: function(direction, amount, factor) {
     var element, elementAmount;

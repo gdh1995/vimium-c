@@ -33,12 +33,8 @@ var LinkHints = {
   isActive: false,
   markerMatcher: null,
   init: function() {
-    this.setMarkerMatcher(settings.values.filterLinkHints);
     this.filterHints.spanWrap = this.alphabetHints.spanWrap = this.spanWrap;
     this.filterHints.numberToHintString = this.alphabetHints.numberToHintString = this.numberToHintString;
-  },
-  setMarkerMatcher: function(useFilterLinkHints) {
-    this.markerMatcher = useFilterLinkHints ? this.filterHints : this.alphabetHints;
   },
   activateModeToOpenInNewTab: function() {
     return this.activateMode(this.CONST.OPEN_IN_NEW_BG_TAB);
@@ -80,6 +76,7 @@ var LinkHints = {
       clearInterval(this.initTimer);
       this.initTimer = 0;
     }
+    this.markerMatcher = settings.values.filterLinkHints ? this.filterHints : this.alphabetHints;
     this.setOpenLinkMode(mode || 0);
     this.hintMarkers = this.getVisibleClickableElements().map(this.createMarkerFor);
     this.markerMatcher.fillInMarkers(this.hintMarkers);
