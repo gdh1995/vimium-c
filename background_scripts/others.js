@@ -82,7 +82,7 @@ if (chrome.browserAction && chrome.browserAction.setIcon) (function() {
       if (badgeTimer) {
         clearTimeout(badgeTimer);
       }
-      badgeTimer = setTimeout(updateBadge.bind(null, badge), time1);
+      badgeTimer = setTimeout(updateBadge, time1, badge);
     }
   };
   g_requestHandlers.setIcon = function(tabId, type) {
