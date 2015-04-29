@@ -133,15 +133,14 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       if (this.isLoading) {
         if (err) { err(); }
       } else {
-        this.isLoading = setInterval(this.Load_safe, this.autoRetryInterval //
+      this.isLoading = setInterval(this.Load_safe, this.autoRetryInterval //
           , request, err);
       }
       mainPort.postMessage(request);
     },
     Load_safe: function(request, err) {
       try {
-        if (err) { err(); }
-        request.focused = document.hasFocus(); // TODO: check if .hasFocus is too slow
+        if (err) { err(request.request); }
         mainPort.postMessage(request);
       } catch (e) {
         ELs.destroy();
@@ -1219,9 +1218,10 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
 
   settings.load({
     handler: "initIfEnabled",
-    focused: document.hasFocus(),
+    focused: document.hasFocus(), // TODO: check if .hasFocus is too slow
     url: window.location.href
-  }, function() {
+  }, function(request) {
+    request.focused = document.hasFocus();
     if (document.readyState !== "loading") {
       requestHandlers.reRegisterFrame({
         work: "doreg"
