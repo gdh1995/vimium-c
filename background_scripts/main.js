@@ -933,7 +933,7 @@
     },
     initIfEnabled: function(request, tabId) {
       var rule = Exclusions.getRule(request.url);
-      if (request.isTop) {
+      if (request.focused) {
         requestHandlers.setIcon(tabId, rule ? (rule.passKeys ? "partial" : "disabled") : "enabled");
       } else {
         tabId = tabId || request.tabId;

@@ -1079,7 +1079,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     checkIfEnabled: function() {
       mainPort.postMessage(initializeWhenEnabled !== setPassKeys ? {
         handler: "initIfEnabled",
-        isTop: false, // icon is set when window.focus
+        focused: false, // icon is set when window.focus
         tabId: ELs.focusMsg.tabId,
         url: window.location.href
       } : {
@@ -1206,7 +1206,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
 
   settings.load({
     handler: "initIfEnabled",
-    isTop: window.top === window.self,
+    focused: document.hasFocus(),
     url: window.location.href
   }, function() {
     if (document.readyState !== "loading") {
