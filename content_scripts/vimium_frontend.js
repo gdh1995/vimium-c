@@ -963,19 +963,21 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
   };
 
   HUD = {
-    _tweenId: -1,
+    _tweenId: 0,
     _displayElement: null,
     _durationTimer: 0,
     showForDuration: function(text, duration) {
       this.show(text);
-      this._durationTimer = setTimeout(this.hide.bind(this, false), duration);
+      this._durationTimer = setTimeout(this.hide, duration, false);
     },
     show: function(text) {
       if (!this.enabled()) {
         return;
       }
-      clearTimeout(this._durationTimer);
-      this._durationTimer = 0;
+      if (this._durationTimer) {
+        clearTimeout(this._durationTimer);
+        this._durationTimer = 0;
+      }
       var el = this.displayElement();
       el.innerText = text;
       clearInterval(this._tweenId);
@@ -994,6 +996,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     },
     hide: function(immediate) {
       var hud = HUD, el;
+      hud._durationTimer = 0;
       clearInterval(hud._tweenId);
       if (!(el = hud._displayElement)) {
       } else if (immediate) {
@@ -1001,8 +1004,11 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       } else {
         hud._tweenId = Tween.fade(el, 0, 150, function() {
           el.style.display = "none";
+          HUD._tweenId = 0;
         });
+        return;
       }
+      hud._tweenId = 0;
     },
     enabled: function() {
       return !settings.values.hideHud;
