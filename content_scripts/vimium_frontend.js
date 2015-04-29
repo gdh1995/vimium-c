@@ -1004,7 +1004,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       hud._tweenId = 0;
     },
     enabled: function() {
-      return !settings.values.hideHud;
+      return document.body && settings.values.hideHud === false;
     },
     destroy: function() {
       clearInterval(this._tweenId);
