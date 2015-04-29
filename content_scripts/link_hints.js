@@ -65,13 +65,18 @@ var LinkHints = {
     return this.activateMode(this.CONST.HOVER);
   },
   activateMode: function(mode) {
-    if (this.isActive || !document.documentElement) {
+    if (this.isActive) {
       return;
     } else if (document.body == null) {
       if (!this.initTimer) {
         this.initTimer = setInterval(this.activateMode.bind(this, mode), 300);
+      } else if (document.head == null) {
+        clearInterval(this.initTimer); // document is not a <html> document
+        this.initTimer = 0;
       }
-    } else if (this.initTimer) {
+      return;
+    }
+    if (this.initTimer) {
       clearInterval(this.initTimer);
       this.initTimer = 0;
     }
