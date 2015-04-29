@@ -141,6 +141,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     Load_safe: function(request, err) {
       try {
         if (err) { err(); }
+        request.focused = document.hasFocus(); // TODO: check if .hasFocus is too slow
         mainPort.postMessage(request);
       } catch (e) {
         ELs.destroy();
