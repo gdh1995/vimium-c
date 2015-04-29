@@ -22,6 +22,7 @@ var LinkHints = {
   linkActivator: null,
   mode: 0,
   delayMode: false,
+  keepHUDAfterAct: false,
   keyStatus: {
     delay: 0,
     tab: false
@@ -122,8 +123,8 @@ var LinkHints = {
           handler: "copyToClipboard",
           data: str
         });
-        // HUD.showForDuration("copy URL: " + ((str.length > 28)
-          // ? (str.substring(0, 25) + "...") : str), 2000);
+        this.keepHUDAfterAct = true;
+        HUD.showCopied(str);
       };
       break;
     case cons.COPY_LINK_TEXT:
@@ -137,8 +138,8 @@ var LinkHints = {
           handler: "copyToClipboard",
           data: str
         });
-        // HUD.showForDuration("copy text: " + ((str.length > 18)
-          // ? (str.substring(0, 15) + "...") : str), 2000);
+        this.keepHUDAfterAct = true;
+        HUD.showCopied(str);
       };
       break;
     case cons.OPEN_INCOGNITO:
@@ -427,7 +428,11 @@ var LinkHints = {
     this.keyStatus.tab = false;
     handlerStack.remove(this.handlerId);
     this.handlerId = 0;
-    HUD.hide();
+    if (this.keepHUDAfterAct) {
+      this.keepHUDAfterAct = false;
+    } else {
+      HUD.hide();
+    }
     this.mode = 0;
     this.isActive = false;
     this.delayMode = false;

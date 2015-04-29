@@ -339,11 +339,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
           handler: "copyToClipboard",
           data: url
         });
-        if (url.startsWith("chrome-ext")) {
-          url = url.substring(url.indexOf('/', url.indexOf('/') + 2));
-        }
-        HUD.showForDuration("Yanked " + ((url.length >= 44)
-            ? (url.substring(0, 40) + "...") : url), 2000);
+        HUD.showCopied(url);
       });
     },
     focusInput: function(count) {
@@ -962,6 +958,15 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     _tweenId: 0,
     _displayElement: null,
     _durationTimer: 0,
+    showCopied: function(text) {
+      if (text.startsWith("chrome-ext")) {
+        text = text.substring(text.indexOf('/', text.indexOf('/') + 2));
+      }
+      if (text.length > 44) {
+        text = text.substring(0, 40) + "...";
+      }
+      this.showForDuration("copy: " + text, 2000);
+    },
     showForDuration: function(text, duration) {
       this.show(text);
       this._durationTimer = setTimeout(this.hide, duration, false);
@@ -994,12 +999,14 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       var hud = HUD, el;
       hud._durationTimer = 0;
       clearInterval(hud._tweenId);
-      if (!(el = hud._displayElement)) {
+      if (!(el = hud._displayElement) || !hud._tweenId) {
       } else if (immediate) {
         el.style.display = "none";
+        el.innerText = "";
       } else {
         hud._tweenId = Tween.fade(el, 0, 150, function() {
           el.style.display = "none";
+          el.innerText = "";
           HUD._tweenId = 0;
         });
         return;
