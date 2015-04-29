@@ -77,9 +77,17 @@ var LinkHints = {
       clearInterval(this.initTimer);
       this.initTimer = 0;
     }
-    this.markerMatcher = settings.values.filterLinkHints ? this.filterHints : this.alphabetHints;
     this.setOpenLinkMode(mode || 0);
-    this.hintMarkers = this.getVisibleClickableElements().map(this.createMarkerFor);
+    var elements = this.getVisibleClickableElements();
+    if (settings.values.filterLinkHints) {
+      this.markerMatcher = this.filterHints;
+      elements.sort(function(a, b) {
+        return a.innerHTML.length - b.innerHTML.length;
+      })
+    } else {
+      this.markerMatcher = this.alphabetHints;
+    }
+    this.hintMarkers = elements.map(this.createMarkerFor);
     this.markerMatcher.fillInMarkers(this.hintMarkers);
     this.isActive = true;
     this.initScrollX = window.scrollX;
@@ -316,8 +324,8 @@ var LinkHints = {
       output.forEach.call(document.documentElement.querySelectorAll(
           "a[href],a[data-vim-url]"), this.GetLinks.bind(visibleElements));
     } else {
-    output.forEach.call(document.documentElement.getElementsByTagName("*") //
-      , this.GetVisibleClickable.bind(visibleElements));
+      output.forEach.call(document.documentElement.getElementsByTagName("*") //
+        , this.GetVisibleClickable.bind(visibleElements));
     }
     visibleElements.reverse();
     for (_len = visibleElements.length; 0 <= --_len; ) {
