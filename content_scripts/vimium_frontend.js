@@ -174,7 +174,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     (initializeWhenEnabled = setPassKeys)(newPassKeys);
     LinkHints.init();
     Scroller.init();
-    CursorHider.init();
+    // CursorHider.init();
     window.addEventListener("keydown", ELs.onKeydown, true);
     window.addEventListener("keypress", ELs.onKeypress, true);
     window.addEventListener("keyup", ELs.onKeyup = function(event) {
@@ -1045,7 +1045,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     }
   };
 
-  CursorHider = {
+/*   CursorHider = {
     cursorHideStyle: null,
     isScrolling: false,
     onScroll: function(event) {
@@ -1067,7 +1067,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       window.addEventListener("mousemove", this.onMouseMove);
       window.addEventListener("scroll", this.onScroll);
     }
-  };
+  }; */
 
   window.settings = settings;
 
