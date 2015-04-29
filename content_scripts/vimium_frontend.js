@@ -1244,12 +1244,15 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
   });
 
   chrome.runtime.onMessage.addListener(function(request, handler, sendResponse) {
+    var name = request.name;
     sendResponse(0);
-    if (isEnabledForUrl) {
-      requestHandlers[request.name](request); // do not check `handler != null`
-    } else if (request.name === "checkIfEnabled") {
-      requestHandlers.checkIfEnabled();
+    if (!isEnabledForUrl) {
+      if (name === "checkIfEnabled" || name === "executePageCommand") {
+      } else if (request.frameId !== 0) {
+        return;
+      }
     }
+    requestHandlers[name](request); // do not check `handler != null`
   });
 
   if (window._DEBUG >= 3) {
