@@ -110,7 +110,6 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
   settings = {
     values: null,
     isLoading: 0,
-    autoRetryInterval: 2000,
     set: function(key, value) {
       this.values[key] = value;
       mainPort.postMessage({
@@ -130,15 +129,10 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
         handlerSettings: "load",
         request: request
       };
-      if (this.isLoading) {
-        if (err) { err(); }
-      } else {
-      this.isLoading = setInterval(this.Load_safe, this.autoRetryInterval //
-          , request, err);
-      }
+      this.isLoading = setInterval(this.retry, 2000, request, err);
       mainPort.postMessage(request);
     },
-    Load_safe: function(request, err) {
+    retry: function(request, err) {
       try {
         if (err) { err(request.request); }
         mainPort.postMessage(request);
