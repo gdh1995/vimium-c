@@ -14,6 +14,7 @@ var LinkHints = {
     DOWNLOAD_LINK: 133,
     OPEN_INCOGNITO: 134
   },
+  FUNC: null,
   alphabetHints: null,
   filterHints: null,
   spanWrap: null,
@@ -106,118 +107,43 @@ var LinkHints = {
     });
   },
   setOpenLinkMode: function(mode) {
-    var cons = this.CONST;
+    var cons = this.CONST, tip, activator;
     switch (mode >= 128 ? ((mode | 64) ^ 64) : mode) {
-    case cons.OPEN_IN_NEW_BG_TAB:
-      HUD.show("Open a link in new tab");
-      break;
-    case cons.OPEN_IN_NEW_FG_TAB: 
-      HUD.show("Open in new active tab");
-      break;
-    case cons.OPEN_WITH_QUEUE:
-      HUD.show("Open multiple tabs");
-      break;
-    case cons.OPEN_FG_WITH_QUEUE:
-      HUD.show("activate link and hold on");
-      break;
+    case cons.OPEN_IN_NEW_BG_TAB: tip = "Open a link in new tab"; break;
+    case cons.OPEN_IN_NEW_FG_TAB: tip = "Open in new active tab"; break;
+    case cons.OPEN_WITH_QUEUE: tip = "Open multiple tabs"; break;
+    case cons.OPEN_FG_WITH_QUEUE: tip = "activate link and hold on"; break;
     case cons.COPY_LINK_URL:
-      HUD.show(mode >= 192 ? "Copy link URL one by one" : "Copy link URL to Clipboard");
-      this.linkActivator = this.linkActivator || function(link) {
-        var str = (link.getAttribute("data-vim-url") || link.href).trim() || "";
-        if (!str) return;
-        // NOTE: url should not be modified
-        // although BackendUtils.convertToUrl does replace '\u3000' with ' '
-        str = Utils.decodeURL(str);
-        mainPort.postMessage({
-          handler: "copyToClipboard",
-          data: str
-        });
-        this.keepHUDAfterAct = true;
-        HUD.showCopied(str);
-      };
+      tip = mode >= 192 ? "Copy link URL one by one" : "Copy link URL to Clipboard";
+      activator = this.FUNC.COPY_LINK_URL;
       break;
     case cons.COPY_LINK_TEXT:
-      HUD.show(mode >= 192 ? "Copy link text one by one" : "Copy link text to Clipboard");
-      this.linkActivator = this.linkActivator || function(link) {
-        var str = (link.getAttribute("data-vim-text") || "").trim() || link.innerText.trim();
-        str = str || Utils.decodeTextFromHtml(link.innerHTML).trim() || link.title.trim();
-        if (!str) return;
-        str = Utils.correctSpace(str);
-        mainPort.postMessage({
-          handler: "copyToClipboard",
-          data: str
-        });
-        this.keepHUDAfterAct = true;
-        HUD.showCopied(str);
-      };
+      tip = mode >= 192 ? "Copy link text one by one" : "Copy link text to Clipboard";
+      activator = this.FUNC.COPY_LINK_TEXT;
       break;
     case cons.OPEN_INCOGNITO:
-      HUD.show(mode >= 192 ? "Open multi incognito tabs" : "Open link in incognito");
-      this.linkActivator = this.linkActivator || function(link) {
-        mainPort.postMessage({
-          handler: 'openUrlInIncognito',
-          url: (link.getAttribute("data-vim-url") || link.href).trim(),
-          active: (this.mode & 64) !== 64
-        });
-      };
+      tip = mode >= 192 ? "Open multi incognito tabs" : "Open link in incognito";
+      activator = this.FUNC.OPEN_INCOGNITO;
       break;
     case cons.DOWNLOAD_LINK:
-      HUD.show(mode >= 192 ? "Download multiple links" : "Download a link");
-      this.linkActivator = this.linkActivator || function(link) {
-        var isA = (link.nodeName.toLowerCase() === "a"), oldDownload, oldUrl;
-        if (isA) {
-          oldUrl = link.getAttribute("href");
-          oldDownload = link.getAttribute("data-vim-url");
-          if (oldDownload && (oldDownload = oldDownload.trim())) {
-            link.href = oldDownload;
-          }
-          oldDownload = link.getAttribute("download");
-          if (oldDownload == null) {
-            link.download = "";
-          }
-        }
-        DomUtils.simulateClick(link, {
-          altKey: true,
-          ctrlKey: false,
-          metaKey: false,
-          shiftKey: false
-        });
-        if (isA) {
-          if (typeof oldDownload === "string") {
-            link.setAttribute("download", oldDownload);
-          } else if (oldDownload === null) {
-            link.removeAttribute("download");
-          }
-          if (typeof oldUrl === "string") {
-            link.setAttribute("href", oldUrl);
-          } else if (oldUrl === null) {
-            link.removeAttribute("href");
-          }
-        }
-      };
+      tip = mode >= 192 ? "Download multiple links" : "Download a link";
+      activator = this.FUNC.DOWNLOAD_LINK;
       break;
     case cons.HOVER:
-      HUD.show(mode >= 192 ? "hover objects continuously" : "hover selected");
-      this.linkActivator = this.linkActivator || function(link) {
-        DomUtils.simulateHover(link);
-      };
+      tip = mode >= 192 ? "hover objects continuously" : "hover selected";
+      activator = this.FUNC.HOVER;
       break;
     default:
-      HUD.show("Open link in current tab");
+      tip = "Open link in current tab";
       mode != 1 && (mode = 0);
       break;
     }
     if (!this.linkActivator && mode < 128) {
-      this.linkActivator = function(link) {
-        // NOTE: not clear last hovered item, for that it may be a menu
-        DomUtils.simulateClick(link, {
-          altKey: false,
-          ctrlKey: (this.mode & 2) === 2 && KeyboardUtils.platform !== "Mac",
-          metaKey: (this.mode & 2) === 2 && KeyboardUtils.platform === "Mac",
-          shiftKey: (this.mode & 3) === 3
-        });
-      };
+      this.linkActivator = this.FUNC.DEFAULT;
+    } else {
+      this.linkActivator = this.linkActivator || activator; // do not check null
     }
+    HUD.show(tip);
     this.mode = mode;
   },
   createMarkerFor: function(link) {
@@ -747,4 +673,79 @@ LinkHints.numberToHintString = function(number, characterSet, numHintDigits) {
     hintString.unshift(characterSet[0]);
   }
   return hintString.join("");
+};
+
+LinkHints.FUNC = {
+  COPY_LINK_URL: function(link) {
+    var str = (link.getAttribute("data-vim-url") || link.href).trim() || "";
+    if (!str) return;
+    // NOTE: url should not be modified
+    // although BackendUtils.convertToUrl does replace '\u3000' with ' '
+    str = Utils.decodeURL(str);
+    mainPort.postMessage({
+      handler: "copyToClipboard",
+      data: str
+    });
+    this.keepHUDAfterAct = true;
+    HUD.showCopied(str);
+  },
+  COPY_LINK_TEXT: function(link) {
+    var str = (link.getAttribute("data-vim-text") || "").trim() || link.innerText.trim();
+    str = str || Utils.decodeTextFromHtml(link.innerHTML).trim() || link.title.trim();
+    if (!str) return;
+    str = Utils.correctSpace(str);
+    mainPort.postMessage({
+      handler: "copyToClipboard",
+      data: str
+    });
+    this.keepHUDAfterAct = true;
+    HUD.showCopied(str);
+  },
+  OPEN_INCOGNITO: function(link) {
+    mainPort.postMessage({
+      handler: 'openUrlInIncognito',
+      url: (link.getAttribute("data-vim-url") || link.href).trim(),
+      active: (this.mode & 64) !== 64
+    });
+  },
+  DOWNLOAD_LINK: function(link) {
+    var oldDownload, oldUrl;
+    oldUrl = link.getAttribute("href");
+    oldDownload = link.getAttribute("data-vim-url");
+    if (oldDownload && (oldDownload = oldDownload.trim())) {
+      link.href = oldDownload;
+    }
+    oldDownload = link.getAttribute("download");
+    if (oldDownload == null) {
+      link.download = "";
+    }
+    DomUtils.simulateClick(link, {
+      altKey: true,
+      ctrlKey: false,
+      metaKey: false,
+      shiftKey: false
+    });
+      if (typeof oldDownload === "string") {
+        link.setAttribute("download", oldDownload);
+      } else if (oldDownload === null) {
+        link.removeAttribute("download");
+      }
+      if (typeof oldUrl === "string") {
+        link.setAttribute("href", oldUrl);
+      } else if (oldUrl === null) {
+        link.removeAttribute("href");
+      }
+  },
+  HOVER: function(link) {
+    DomUtils.simulateHover(link);
+  },
+  DEFAULT: function(link) {
+    // NOTE: not clear last hovered item, for that it may be a menu
+    DomUtils.simulateClick(link, {
+      altKey: false,
+      ctrlKey: (this.mode & 2) === 2 && KeyboardUtils.platform !== "Mac",
+      metaKey: (this.mode & 2) === 2 && KeyboardUtils.platform === "Mac",
+      shiftKey: (this.mode & 3) === 3
+    });
+  }
 };
