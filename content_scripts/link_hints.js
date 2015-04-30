@@ -2,16 +2,17 @@
 var LinkHints = {
   CONST: {
     // focused: 1; new tab: 2; queue: 64; job: 128
+    // >=128: "&4" means "must be links" and [data-vim-url] is used firstly
     OPEN_IN_CURRENT_TAB: 0, // also 1
     OPEN_IN_NEW_BG_TAB: 2,
-    OPEN_IN_NEW_FG_TAB: 1 + 2,
-    OPEN_WITH_QUEUE: 2 + 64,
-    OPEN_FG_WITH_QUEUE: 1 + 2 + 64,
-    HOVER: 128 + 0,
-    COPY_LINK_TEXT: 128 + 1,
-    COPY_LINK_URL: 128 + 4, // 128: & 4 means [data-vim-url] is used firstly
-    DOWNLOAD_LINK: 128 + 5,
-    OPEN_INCOGNITO: 128 + 6
+    OPEN_IN_NEW_FG_TAB: 3,
+    OPEN_WITH_QUEUE: 66,
+    OPEN_FG_WITH_QUEUE: 67,
+    HOVER: 128,
+    COPY_LINK_TEXT: 129,
+    COPY_LINK_URL: 132,
+    DOWNLOAD_LINK: 133,
+    OPEN_INCOGNITO: 134
   },
   alphabetHints: null,
   filterHints: null,
