@@ -6,9 +6,9 @@
     , findModeAnchorNode, findModeQuery, findModeQueryHasResults, focusFoundLink, followLink //
     , frameId, getNextQueryFromRegexMatches, handleDeleteForFindMode //
     , handleEnterForFindMode, handleEscapeForFindMode, handleKeyCharForFindMode, KeydownEvents //
-    , CursorHider, ELs //
+    , /* CursorHider, */ ELs //
     , initializeWhenEnabled, insertModeLock //
-    , isEnabledForUrl, isInsertMode, elementCanTakeInput //
+    , isEnabledForUrl, isInsertMode //
     , isValidKey, getFullCommand, keyQueue //
     , setPassKeys, performFindInPlace //
     , restoreDefaultSelectionHighlight //
