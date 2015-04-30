@@ -9,10 +9,10 @@ var LinkHints = {
     OPEN_WITH_QUEUE: 66,
     OPEN_FG_WITH_QUEUE: 67,
     HOVER: 128,
-    COPY_LINK_TEXT: 129,
+    COPY_TEXT: 129,
     COPY_LINK_URL: 132,
     DOWNLOAD_LINK: 133,
-    OPEN_INCOGNITO: 134
+    OPEN_INCOGNITO_LINK: 134
   },
   FUNC: null,
   alphabetHints: null,
@@ -49,13 +49,13 @@ var LinkHints = {
     return this.activateMode(this.CONST.COPY_LINK_URL);
   },
   activateModeToCopyLinkText: function() {
-    return this.activateMode(this.CONST.COPY_LINK_TEXT);
+    return this.activateMode(this.CONST.COPY_TEXT);
   },
   activateModeWithQueue: function(mode) {
     return this.activateMode(mode || this.CONST.OPEN_WITH_QUEUE);
   },
   activateModeToOpenIncognito: function() {
-    return this.activateMode(this.CONST.OPEN_INCOGNITO);
+    return this.activateMode(this.CONST.OPEN_INCOGNITO_LINK);
   },
   activateModeToDownloadLink: function() {
     return this.activateMode(this.CONST.DOWNLOAD_LINK);
@@ -117,13 +117,13 @@ var LinkHints = {
       tip = mode >= 192 ? "Copy link URL one by one" : "Copy link URL to Clipboard";
       activator = this.FUNC.COPY_LINK_URL;
       break;
-    case cons.COPY_LINK_TEXT:
+    case cons.COPY_TEXT:
       tip = mode >= 192 ? "Copy link text one by one" : "Copy link text to Clipboard";
-      activator = this.FUNC.COPY_LINK_TEXT;
+      activator = this.FUNC.COPY_TEXT;
       break;
-    case cons.OPEN_INCOGNITO:
+    case cons.OPEN_INCOGNITO_LINK:
       tip = mode >= 192 ? "Open multi incognito tabs" : "Open link in incognito";
-      activator = this.FUNC.OPEN_INCOGNITO;
+      activator = this.FUNC.OPEN_INCOGNITO_LINK;
       break;
     case cons.DOWNLOAD_LINK:
       tip = mode >= 192 ? "Download multiple links" : "Download a link";
@@ -141,7 +141,7 @@ var LinkHints = {
     if (!this.linkActivator && mode < 128) {
       this.linkActivator = this.FUNC.DEFAULT;
     } else {
-      this.linkActivator = this.linkActivator || activator; // do not check null
+      this.linkActivator = this.linkActivator || activator;
     }
     HUD.show(tip);
     this.mode = mode;
@@ -689,7 +689,7 @@ LinkHints.FUNC = {
     this.keepHUDAfterAct = true;
     HUD.showCopied(str);
   },
-  COPY_LINK_TEXT: function(link) {
+  COPY_TEXT: function(link) {
     var str = (link.getAttribute("data-vim-text") || "").trim() || link.innerText.trim();
     str = str || Utils.decodeTextFromHtml(link.innerHTML).trim() || link.title.trim();
     if (!str) return;
@@ -701,7 +701,7 @@ LinkHints.FUNC = {
     this.keepHUDAfterAct = true;
     HUD.showCopied(str);
   },
-  OPEN_INCOGNITO: function(link) {
+  OPEN_INCOGNITO_LINK: function(link) {
     mainPort.postMessage({
       handler: 'openUrlInIncognito',
       url: (link.getAttribute("data-vim-url") || link.href).trim(),
@@ -736,9 +736,7 @@ LinkHints.FUNC = {
         link.removeAttribute("href");
       }
   },
-  HOVER: function(link) {
-    DomUtils.simulateHover(link);
-  },
+  HOVER: DomUtils.SimulateHover,
   DEFAULT: function(link) {
     // NOTE: not clear last hovered item, for that it may be a menu
     DomUtils.simulateClick(link, {
