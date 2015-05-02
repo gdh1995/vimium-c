@@ -142,14 +142,29 @@ chrome.runtime.onInstalled.addListener(function(details) {
     console.log("%cvim %chas %cinstalled", "color:blue", "color:auto", "color:red", details);
   });
 
+  var func = function(versionA, versionB) {
+    var a, b, i, _i, _ref;
+    versionA = versionA.split('.');
+    versionB = versionB.split('.');
+    for (i = 0, _ref = Math.max(versionA.length, versionB.length); i < _ref; ++i) {
+      a = parseInt(versionA[i] || 0, 10);
+      b = parseInt(versionB[i] || 0, 10);
+      if (a < b) {
+        return -1;
+      } else if (a > b) {
+        return 1;
+      }
+    }
+    return 0;
+  };
   var key = Settings.storage("previousVersion"), currentVersion = Utils.getCurrentVersion();
   if (!key) {
     Settings.storage("previousVersion", currentVersion);
     return;
-  } else if (Utils.compareVersions(currentVersion, key) !== 1) {
+  } else if (func(currentVersion, key) !== 1) {
     return;
   }
-  var func = function() {
+  func = function() {
     var key = "vim++_upgradeNotification";
     chrome.notifications.create(key, {
       type: "basic",
