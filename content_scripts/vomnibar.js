@@ -120,6 +120,7 @@ Vomnibar.vomnibarUI = {
     this.box.removeEventListener("mousewheel", DomUtils.suppressPropagation);
     this.box.removeEventListener("keyup", this.onKeyEvent);
     this.onUpdate = null;
+    this.input.value = "";
     this.completions = [];
   },
   reset: function(input) {

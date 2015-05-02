@@ -364,9 +364,7 @@ var LinkHints = {
     });
   },
   deactivate2: function(callback) {
-    if (this.markerMatcher.deactivate) {
-      this.markerMatcher.deactivate();
-    }
+    this.markerMatcher.deactivate();
     this.linkActivator = null;
     this.hintMarkers = [];
     if (this.hintMarkerContainingDiv) {
