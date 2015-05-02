@@ -458,7 +458,7 @@
       }
       if (toCreate) {
         curTabs = (curTabs.length > 1) ? curTabs.map(function(tab) { return tab.id; }) : [tab.id];
-        toCreate.index = 0;
+        toCreate.index = curTabs.length;
         toCreate.url = url;
         chrome.tabs.create(toCreate);
         chrome.tabs.remove(curTabs);
