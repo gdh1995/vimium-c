@@ -22,12 +22,15 @@
     delete suggestion.queryTerms;
   };
 
-  Suggestion._domA = undefined;
-  Suggestion.getUrlRoot = function(url) {
-    var a = Suggestion._domA || (Suggestion._domA = document.createElement("a"));
-    a.href = url;
-    return a.protocol + "//" + a.hostname;
-  };
+  Suggestion.getUrlRoot = (function() {
+    var a = document.createElement("a");
+    return function(url) {
+      a.href = url;
+      url = a.protocol + "//" + a.hostname;
+      a.href = "";
+      return url;
+    };
+  })();
 
   Suggestion.shortenUrl = function(url) {
     return url.substring((url.startsWith("http://")) ? 7 : (url.startsWith("https://")) ? 8 : 0,
