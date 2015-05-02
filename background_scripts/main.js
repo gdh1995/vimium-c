@@ -608,15 +608,20 @@
         index: tab.index + commandCount
       });
     },
-    nextFrame: function(tab, count, frameId) {
-      var tabId = tab.id, frames = frameIdsForTab[tabId];
-      if (!frames || frames.length <= 1) { return; }
+    nextFrame: function(tab, frameId) {
+      var tabId = tab.id, frames = frameIdsForTab[tabId], count;
+      if (!frames || frames.length <= 2) { return; }
       if (frameId) {
-        count += Math.max(0, frames.indexOf(frameId));
+        count = 1
       } else {
+        frameId = frames[0];
         count = commandCount;
       }
-      if (count %= frames.length) {
+      count += Math.max(0, frames.indexOf(frameId, 1));
+      if (count %= frames.length - 1) {} else {
+        count = frames.length - 1;
+      }
+      if (frames[count] !== frames[0]) {
         chrome.tabs.sendMessage(tabId, {
           name: "focusFrame",
           frameId: frames[count],
@@ -749,7 +754,7 @@
         if (ref) {
           ref.push(i);
         } else {
-          frameIdsForTab[id] = [i];
+          frameIdsForTab[id] = [i, i];
         }
         break;
       case "doreg":
@@ -760,7 +765,7 @@
             ref.push(i);
           }
         } else {
-          frameIdsForTab[id] = [i];
+          frameIdsForTab[id] = [i, i];
         }
         break;
       case "unreg":
@@ -768,7 +773,7 @@
           delete frameIdsForTab[id];
           delete urlForTab[id];
         } else if (ref = frameIdsForTab[id]) {
-          i = ref.indexOf(request.frameId);
+          i = ref.indexOf(request.frameId, 1);
           if (i === ref.length - 1) {
             ref.pop();
           } else if (i >= 0) {
@@ -911,17 +916,16 @@
       });
     },
     frameFocused: function(request) {
-      var tabId = request.tabId, frames, ind;
+      var tabId = request.tabId, frames;
       if (tabId) {
         urlForTab[tabId] = request.url;
-        frames = frameIdsForTab[tabId];
         // frames would be undefined if in a tab, all "reg" messages were sent
         //   to a closing port, which means the frontend try `runtime.connect`
         //   but background kept not prepared.
         // This can only happen when the system is too slow.
         // For example, Chrome's first startup since the system boots.
-        if (frames && frames.length > 1 && (ind = frames.indexOf(request.frameId)) > 0) {
-          frameIdsForTab[tabId] = frames.splice(ind, frames.length - ind).concat(frames);
+        if (frames = frameIdsForTab[tabId]) {
+          frames[0] = request.frameId;
         }
         requestHandlers.setIcon(tabId, request.status);
       }
@@ -965,7 +969,7 @@
       };
     },
     nextFrame: function(request) {
-      BackgroundCommands.nextFrame({id: request.tabId}, 1, request.frameId);
+      BackgroundCommands.nextFrame({id: request.tabId}, request.frameId);
     },
     initHelp: function() {
       return {
