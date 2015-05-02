@@ -442,7 +442,7 @@
       var url = Settings.get("newTabUrl"), toCreate;
       wnds = wnds.filter(function(wnd) { return wnd.type === "normal"; });
       if (wnds.length <= 1) {
-        // retain the last window
+        // protect the last window
         toCreate = {};
         if (wnds.length === 1 && wnds[0].incognito && !Utils.isRefusingIncognito(url)) {
           toCreate.windowId = wnds[0].id;
@@ -450,7 +450,7 @@
         // other urls will be disabled if incognito else auto in current window
       }
       else if (!tab.incognito) {
-        // retain the last "normal & not incognito" window which has currentTab if it exists
+        // protect the last "normal & not incognito" window which has currentTab if it exists
         wnds = wnds.filter(function(wnd) { return !wnd.incognito; });
         if (wnds.length === 1 && wnds[0].id === tab.windowId) {
           toCreate = { windowId: tab.windowId };
