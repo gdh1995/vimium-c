@@ -276,7 +276,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       } else if (newEl.scrollIntoView) {
         newEl.scrollIntoView();
       }
-      DomUtils.simulateHover(newEl);
+      DomUtils.SimulateHover(newEl);
       if (newEl.focus) {
         newEl.focus();
       }
