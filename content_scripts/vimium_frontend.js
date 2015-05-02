@@ -1246,7 +1246,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       }
     };
     // NOTE: here, we should always postMessage, since
-    //     NO MESSAGE will be sent if not isEnabledForUrl,
+    //     NO other message will be sent if not isEnabledForUrl,
     // which would make the auto-destroy logic not work.
     window.onfocus = (function() {
       try {
