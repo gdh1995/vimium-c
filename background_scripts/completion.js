@@ -22,16 +22,6 @@
     delete suggestion.queryTerms;
   };
 
-  Suggestion.getUrlRoot = (function() {
-    var a = document.createElement("a");
-    return function(url) {
-      a.href = url;
-      url = a.protocol + "//" + a.hostname;
-      a.href = "";
-      return url;
-    };
-  })();
-
   Suggestion.shortenUrl = function(url) {
     return url.substring((url.startsWith("http://")) ? 7 : (url.startsWith("https://")) ? 8 : 0,
       url.length - +(url.charCodeAt(url.length - 1) === 47));
