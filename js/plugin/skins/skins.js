@@ -176,7 +176,7 @@ var skins = {
 			getI18nMsg('bgLayoutAutoHeight') + '</div><div class="bgButton tensile" layout="tensile">' +
 			getI18nMsg('bgLayoutTensile') + '</div></div></div><div class="bgColorContainer"><div class="bgColorTitle">' +
 		getI18nMsg('bgColor') + '</div><div class="bgColor"><button class="CE7E7E7"></button><button class="Cf8b500"></button><button class="C008000"></button><button class="C418b89"></button><button class="Cd2b48c"></button><button class="C0866A4"></button><button class="CAAD930"></button><button class="C686868"></button><button class="C0F204E"></button><button class="CFFFFFF"></button></div></div><div class="bgImportContainer" ' +
-		((_browser.msie && _browser.msie <= 9) ? 'style="display: none;"' : '') + '><div class="bgImportTitle"></div><div class="bgImport">' +
+		'><div class="bgImportTitle"></div><div class="bgImport">' +
 		getI18nMsg('bgImportFile') + '</div><input type="text" name="importFile" id="importFile" style="display:none;width:180px;height:18px;border-radius:5px;border:2px #ccc solid;padding: 1px 10px;outline:none;" /></div></div></div>'
 	}
 };

@@ -1,13 +1,4 @@
 "use strict";
-var _browser = {
-	ua: window.navigator.userAgent,
-	version: null,
-	webkit: true,
-	chrome: true,
-	cssType: "webkit",
-	protocol: "chrome",
-};
-_browser.version = _browser.ua.match(/WebKit\/([\d.]+)/)[1];
 function truncate(str, ind, lng) {
 	if (str) {
 		if (str.length > lng) {
