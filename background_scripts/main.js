@@ -284,7 +284,7 @@
       var tab = getSelected(wnd.tabs);
       if (wnd.incognito) {
         // this url will be disabled if opened in a incognito window directly
-        funcDict.createTab[1](Settings.get("newTabUrl"), tab, commandCount > 1
+        funcDict.createTab[1](Settings.get("newTabUrl_f"), tab, commandCount > 1
         ? function(newTab) {
           var left = commandCount, id = newTab.id;
           while (--left > 0) {
@@ -293,13 +293,10 @@
         } : null, wnd.tabs);
       } else {
         tab.id = undefined;
-        openMultiTab(Settings.get("newTabUrl"), commandCount, tab);
+        openMultiTab(Settings.get("newTabUrl_f"), commandCount, tab);
       }
     }, function(url, tab, repeat, allTabs) {
       var urlLower = url.toLowerCase().split('#', 1)[0], tabs;
-      if (urlLower.indexOf("://") < 0) {
-        urlLower = chrome.runtime.getURL(urlLower);
-      }
       allTabs = allTabs.filter(function(tab1) {
         var url = tab1.url.toLowerCase(), end = url.indexOf("#");
         return ((end < 0) ? url : url.substring(0, end)) === urlLower;
@@ -344,7 +341,7 @@
       });
     }, function(tab) {
       tab.id = undefined;
-      openMultiTab(Settings.get("newTabUrl"), commandCount, tab);
+      openMultiTab(Settings.get("newTabUrl_f"), commandCount, tab);
     }],
     duplicateTab: function(tab, count, wnd) {
       if (wnd.incognito && !tab.incognito) {
@@ -439,7 +436,7 @@
       funcDict.moveTabToNextWindow[2].bind(null, options.tabId, tab2));
     }],
     removeTab: function(tab, curTabs, wnds) {
-      var url = Settings.get("newTabUrl"), toCreate;
+      var url = Settings.get("newTabUrl_f"), toCreate;
       wnds = wnds.filter(function(wnd) { return wnd.type === "normal"; });
       if (wnds.length <= 1) {
         // protect the last window
@@ -1010,6 +1007,12 @@
   Settings.postUpdate("userDefinedCss");
 
   Settings.updateHooks.newTabUrl = function(url) {
+    if (/^\/?[^:\s]*$/.test(url)) {
+      url = chrome.runtime.getURL(url);
+    } else {
+      url = Utils.convertToUrl(url);
+    }
+    Settings.set('newTabUrl_f', url);
     BackgroundCommands.createTab = Utils.isRefusingIncognito(url)
     ? chrome.windows.getCurrent.bind(chrome.windows, {populate: true}, funcDict.createTab[0])
     : chrome.tabs.getSelected.bind(chrome.tabs, null, funcDict.createTab[5]);

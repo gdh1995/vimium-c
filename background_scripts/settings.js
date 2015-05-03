@@ -194,6 +194,7 @@ var Settings = {
   // not clean if exists (for simpler logic)
   nonPersistent: {
     help_dialog: true,
+    newTabUrl_f: true,
     searchEnginesMap: true,
     settingsVersion: true,
     userDefinedCss_f: true,
