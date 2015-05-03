@@ -369,6 +369,7 @@
         bgSettings.buildBuffer();
         BG.sendRequestToAllTabs({
           name: "settings",
+          frameId: 0,
           load: bgSettings.bufferToLoad
         });
       }, 100);
