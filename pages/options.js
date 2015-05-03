@@ -405,6 +405,7 @@
       exclusionRules: ExclusionRulesOption,
       filterLinkHints: CheckBoxOption,
       hideHud: CheckBoxOption,
+      vomnibarInMain: CheckBoxOption,
       keyMappings: TextOption,
       linkHintCharacters: NonEmptyTextOption,
       linkHintNumbers: NonEmptyTextOption,

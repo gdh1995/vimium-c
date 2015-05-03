@@ -170,6 +170,7 @@ var Settings = {
     linkHintNumbers: "1234567890",
     filterLinkHints: false,
     hideHud: false,
+    vomnibarInMain: true,
     regexFindMode: false,
     findModeRawQuery: "",
     userDefinedCss: "",
@@ -211,7 +212,7 @@ var Settings = {
   },
   valuesToLoad: ["scrollStepSize", "linkHintCharacters", "linkHintNumbers", "filterLinkHints" //
     , "hideHud", "previousPatterns", "nextPatterns", "findModeRawQuery", "regexFindMode" //
-    , "smoothScroll" //
+    , "smoothScroll", "vomnibarInMain" //
     , "findModeRawQueryList"
   ],
   bufferToLoad: null,
