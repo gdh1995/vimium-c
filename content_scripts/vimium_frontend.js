@@ -925,13 +925,18 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       , toggleAdvancedCommands, false);
     document.getElementById("vimCloseButton").addEventListener("click" //
       , window.showHelp = hide, false);
-    document.getElementById("vimOptionsPage").addEventListener("click", function(event) {
-      mainPort.postMessage({
-        handler: "openRawUrlInNewTab",
-        url: "pages/options.html"
-      });
-      DomUtils.suppressEvent(event);
-    }, false);
+    if (window.location.origin + '/' !== chrome.runtime.getURL('')
+        || window.location.pathname !== "/pages/options.html") {
+      document.getElementById("vimOptionsPage").addEventListener("click", function(event) {
+        mainPort.postMessage({
+          handler: "openRawUrlInNewTab",
+          url: "/pages/options.html"
+        });
+        hide(event);
+      }, false);
+    } else {
+      DomUtils.removeNode(document.getElementById("vimOptionsPage"));
+    }
     document.getElementById("vimHelpDialog").style.maxHeight = window.innerHeight - 80;
     showAdvancedCommands(shouldShowAdvanced);
     handlerId = handlerStack.unshift({
