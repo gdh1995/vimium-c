@@ -621,16 +621,14 @@
       if (frames[count] !== frames[0]) {
         chrome.tabs.sendMessage(tabId, {
           name: "focusFrame",
-          frameId: frames[count],
-          highlight: true
+          frameId: frames[count]
         });
       }
     },
     mainFrame: function(tab) {
       chrome.tabs.sendMessage(tab.id, {
         name: "focusFrame",
-        frameId: 0,
-        highlight: true
+        frameId: 0
       });
     },
     closeTabsOnLeft: function(tabs) {

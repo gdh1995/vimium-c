@@ -1134,12 +1134,15 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
         return;
       }
       window.focus();
-      if (document.body && request.highlight) {
-        var borderWas = document.body.style.border;
-        document.body.style.border = '5px solid yellow';
-        setTimeout((function() {
-          document.body.style.border = borderWas;
-        }), 200);
+      if (document.body) {
+        if (!settings.values.borderWas) {
+          settings.values.borderWas = document.body.style.border;
+          setTimeout((function() {
+            document.body.style.border = settings.values.borderWas;
+            settings.values.borderWas = "";
+          }), 200);
+        }
+        document.body.style.border = "5px solid yellow";
       }
     },
     refreshKeyMappings: function(response) {
