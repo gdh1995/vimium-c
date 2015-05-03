@@ -16,7 +16,7 @@
     , updateFindModeQuery, goBy, getVisibleInputs, mainPort, requestHandlers //
     ;
   
-  frameId = Math.floor(Math.random() * 999999997) + 2;
+  frameId = window.top === window ? 0 : Math.floor(Math.random() * 9999997) + 2;
 
   window._DEBUG = /*/ 1 /*/ 0 /**/;
 
@@ -1144,11 +1144,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       HUD.showForDuration(request.text, request.duration);
     },
     focusFrame: function(request) {
-      if (request.frameId === 0) {
-        if (window.top !== window) {
-          return;
-        }
-      } else if (frameId !== request.frameId) {
+      if (frameId !== request.frameId) {
         return;
       }
       if (window.innerWidth < 3 || window.innerHeight < 3) {
@@ -1239,8 +1235,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       try {
         mainPort.postMessage({
           handlerSettings: "unreg",
-          frameId: frameId,
-          isTop: window.top === window,
+          frameId: frameId
         });
       } catch (e) {
       }

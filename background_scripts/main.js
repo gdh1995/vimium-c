@@ -608,7 +608,7 @@
     nextFrame: function(tab, frameId) {
       var tabId = tab.id, frames = frameIdsForTab[tabId], count;
       if (!frames || frames.length <= 2) { return; }
-      if (frameId) {
+      if (frameId != null) {
         count = 1;
       } else {
         frameId = frames[0];
@@ -767,16 +767,18 @@
         }
         break;
       case "unreg":
-        if (request.isTop) {
-          delete frameIdsForTab[id];
-          delete urlForTab[id];
-        } else if (ref = frameIdsForTab[id]) {
-          i = ref.indexOf(request.frameId, 1);
+        if (i = request.frameId) {
+          if (ref = frameIdsForTab[id]) {
+            i = ref.indexOf(i, 1);
           if (i === ref.length - 1) {
             ref.pop();
           } else if (i >= 0) {
             ref.splice(i, 1);
           }
+        }
+        } else {
+          delete frameIdsForTab[id];
+          delete urlForTab[id];
         }
         break;
       }
