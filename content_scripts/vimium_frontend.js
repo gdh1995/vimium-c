@@ -1081,28 +1081,20 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       mainPort.postMessage({
         handler: "checkIfEnabled",
         url: window.location.href
-      }, mainPort.Listener);
+      }, requestHandlers.ifEnabled);
     },
     ifEnabled: function(response) {
-      ELs.focusMsg.status = response.passKeys ? "partial" : "enabled";
       if (response.tabId) {
         ELs.focusMsg.tabId = response.tabId;
         requestHandlers.refreshKeyMappings(response);
         requestHandlers.refreshKeyQueue(response);
       }
-      initializeWhenEnabled(response.passKeys);
-      isEnabledForUrl = true;
-    },
-    ifDisabled: function(response) {
-      isEnabledForUrl = false;
-      var msg = ELs.focusMsg;
-      if (response.tabId) {
-        ELs.focusMsg.tabId = response.tabId;
-        requestHandlers.refreshKeyMappings(response);
+      if (isEnabledForUrl = response.enabled) {
+        ELs.focusMsg.status = response.passKeys ? "partial" : "enabled";
+        initializeWhenEnabled(response.passKeys);
       } else {
-        HUD.hide();
+        ELs.focusMsg.status = "disabled";
       }
-      ELs.focusMsg.status = "disabled";
     },
     settings: settings.ReceiveSettings,
     reRegisterFrame: function(request) {

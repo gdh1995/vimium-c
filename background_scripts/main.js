@@ -938,7 +938,7 @@
     checkIfEnabled: function(request) {
       var rule = Exclusions.getRule(request.url);
       return {
-        name: (rule && !rule.passKeys ? "ifDisabled" : "ifEnabled"),
+        enabled: (rule ? !rule.passKeys : true),
         passKeys: (rule ? rule.passKeys : "")
       };
     },
@@ -948,7 +948,8 @@
         requestHandlers.setIcon(tabId, rule ? (rule.passKeys ? "partial" : "disabled") : "enabled");
       }
       return {
-        name: (rule && !rule.passKeys ? "ifDisabled" : "ifEnabled"),
+        name: "ifEnabled",
+        enabled: (rule ? !rule.passKeys : true),
         passKeys: (rule ? rule.passKeys : ""),
         currentFirst: currentFirst,
         firstKeys: firstKeys,
