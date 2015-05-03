@@ -104,6 +104,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
   settings = {
     values: null,
     isLoading: 0,
+    ondestroy: {},
     set: function(key, value) {
       this.values[key] = value;
       mainPort.postMessage({
@@ -897,6 +898,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       handlerStack.remove(handlerId);
       DomUtils.removeNode(container);
       window.showHelp = oldShowHelp;
+      settings.ondestroy.helpDialog = null;
       if (event) {
         DomUtils.suppressEvent(event);
       }
@@ -920,6 +922,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       }
     };
     
+    settings.ondestroy.helpDialog = hide;
     oldShowHelp = window.showHelp;
     document.getElementById("vimAdvancedCommands").addEventListener("click" //
       , toggleAdvancedCommands, false);
@@ -1259,6 +1262,13 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     if (settings.isLoading) {
       clearInterval(settings.isLoading);
     }
+    var ref = settings.ondestroy, i, func;
+    for (i in ref) {
+      func = ref[i];
+      ref[i] = null;
+      func();
+    }
+    func = null;
     mainPort = null;
     requestHandlers = null;
     if (ELs.css) {
