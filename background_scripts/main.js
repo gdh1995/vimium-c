@@ -295,8 +295,8 @@
         tab.id = undefined;
         openMultiTab(Settings.get("newTabUrl"), commandCount, tab);
       }
-    }, function(tab, repeat, allTabs) {
-      var urlLower = this.toLowerCase().split('#', 1)[0], tabs;
+    }, function(url, tab, repeat, allTabs) {
+      var urlLower = url.toLowerCase().split('#', 1)[0], tabs;
       if (urlLower.indexOf("://") < 0) {
         urlLower = chrome.runtime.getURL(urlLower);
       }
@@ -305,7 +305,7 @@
         return ((end < 0) ? url : url.substring(0, end)) === urlLower;
       });
       if (allTabs.length === 0) {
-        chrome.windows.getAll(funcDict.createTab[2].bind(this, tab, repeat));
+        chrome.windows.getAll(funcDict.createTab[2].bind(url, tab, repeat));
         return;
       }
       tabs = allTabs.filter(function(tab1) { return tab1.index >= tab.index; });
