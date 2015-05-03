@@ -7,7 +7,7 @@ a{color:#FFF;text-decoration:none;text-shadow:1px 1px 3px #000;}
 ::-webkit-scrollbar-track{box-shadow:inset 0 0 6px rgba(0,0,0,0.4);border-radius:6px;}
 ::-webkit-scrollbar-thumb{border-radius:6px;background:rgba(48, 49, 58,0.2);box-shadow:inset 0 0 6px rgba(0,0,0,0.8);}
 ::-webkit-scrollbar-thumb:window-inactive{background:rgba(231,231,231,0.4);}
-.body{width:100%;bottom:0px;top:0px;position:fixed;}
+.body{width:100%;height:100%;left:0px;position:fixed;}
 @-webkit-keyframes bodyFarAway{40%{opacity:0;}60%{opacity:0;}}
 .body.farAway{-webkit-animation:bodyFarAway .6s ease-in-out 0s 1;}
 .wallpaper{width:100%;height:100%;}
