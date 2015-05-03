@@ -71,7 +71,7 @@ var Scroller = {
         return;
       }
       if (!settings.values.smoothScroll) {
-        this.Core.performScroll(element, direction, amount);
+        this.performScroll(element, direction, amount);
         this.checkVisibility(element);
         return;
       }
