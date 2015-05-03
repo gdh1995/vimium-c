@@ -770,12 +770,12 @@
         if (i = request.frameId) {
           if (ref = frameIdsForTab[id]) {
             i = ref.indexOf(i, 1);
-          if (i === ref.length - 1) {
-            ref.pop();
-          } else if (i >= 0) {
-            ref.splice(i, 1);
+            if (i === ref.length - 1) {
+              ref.pop();
+            } else if (i >= 0) {
+              ref.splice(i, 1);
+            }
           }
-        }
         } else {
           delete frameIdsForTab[id];
           delete urlForTab[id];
@@ -835,11 +835,11 @@
       }
       return;
     }
-      port.postMessage({
-        name: "executePageCommand",
-        command: command,
-        count: (registryEntry.noRepeat === false ? -count : count)
-      });
+    port.postMessage({
+      name: "executePageCommand",
+      command: command,
+      count: (registryEntry.noRepeat === false ? -count : count)
+    });
   };
 
   window.sendRequestToAllTabs = function (args) {
@@ -1090,7 +1090,7 @@
     ref = ["duplicateTab", "moveTabToNextWindow", "moveTabToIncognito" //
       , "enableImageTemp", "toggleImage", "clearImageCS" //
       , "openCopiedUrlInNewTab", "togglePinTab" //
-      , "reopenTab", "moveTabLeft", "moveTabRight", "nextFrame" //
+      , "reopenTab", "moveTabLeft", "moveTabRight", "nextFrame", "mainFrame" //
     ];
     for (i = ref.length; 0 <= --i; ) {
       ref2[ref[i]].useTab = 1;
