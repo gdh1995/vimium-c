@@ -23,6 +23,7 @@ var Marks = {
     });
     chrome.tabs.sendMessage(mark.tabId, {
       name: "setScrollPosition",
+      // TODO: add frameId (0 or something given)
       scroll: [mark.scrollX, mark.scrollY]
     });
     chrome.tabs.sendMessage(mark.tabId, {
