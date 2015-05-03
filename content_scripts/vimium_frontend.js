@@ -942,6 +942,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     }
     document.getElementById("vimHelpDialog").style.maxHeight = window.innerHeight - 80;
     showAdvancedCommands(shouldShowAdvanced);
+    container.querySelector(".vimHelpTr").click();
     handlerId = handlerStack.unshift({
       keydown: function(event) {
         if (event.keyCode === KeyCodes.esc && KeyboardUtils.isPlain(event)) {
