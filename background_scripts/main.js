@@ -1024,7 +1024,8 @@
     Exclusions.rules = rules;
     resetKeys();
     sendRequestToAllTabs({
-      name: "checkIfEnabled"
+      name: "checkIfEnabled",
+      frameId: 0
     });
   };
 
