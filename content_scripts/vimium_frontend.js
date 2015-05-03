@@ -1193,6 +1193,16 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
         }
       }
     },
+    handlerMsg: function(request) {
+      if (request.target != null && request.target !== frameId) {
+        return;
+      }
+      var components = request.command.split('.'), obj = window, _i, _len, _ref;
+      for (_i = 0, _len = components.length - 1; _i < _len; _i++) {
+        obj = obj[components[_i]];
+      }
+      obj[components[_len]](request.source, request.args);
+    },
     setScrollPosition: function(request) {
       var scrollX = request.scroll[0], scrollY = request.scroll[1];
       if (scrollX > 0 || scrollY > 0) {
@@ -1200,6 +1210,16 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       }
     }
   };
+
+  window.sendMessageToFrames = function(target, command, args) {
+    mainPort.postMessage({
+      handlerMsg: true,
+      target: target,
+      source: frameId,
+      command: command,
+      args: args
+    });
+  }
 
   settings.load({
     handler: "initIfEnabled",

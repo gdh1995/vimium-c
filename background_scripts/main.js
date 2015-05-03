@@ -781,6 +781,13 @@
         break;
       }
     }
+    else if (request.handlerMsg) {
+      chrome.tabs.sendMessage(port.sender.tab.id, {
+        name: "handlerMsg", frameId: 0,
+        target: request.target, source: request.source,
+        command: request.command, args: request.args
+      });
+    }
   };
 
   checkKeyQueue = function(command, port) {

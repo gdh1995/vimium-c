@@ -3,7 +3,15 @@ var Vomnibar = {
   vomnibarUI: null,
   defaultRefreshInterval: 500,
   background: null,
+  _activateInMain: function(source, args) {
+    this.activateWithCompleter.apply(this, args);
+  },
   activateWithCompleter: function(completerName, selectFirstResult, forceNewTab, initialQueryValue) {
+    if (window.top !== window && settings.values.vomnibarInMain) {
+      sendMessageToFrames(0, "Vomnibar._activateInMain"//
+        , [completerName, selectFirstResult, forceNewTab, initialQueryValue]);
+      return;
+    }
     var bg = this.background, completer = bg.Completer, vomnibarUI = this.vomnibarUI;
     if (!document.head) {
       return;
