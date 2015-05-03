@@ -6,10 +6,10 @@ var Vomnibar = {
   _activateInMain: function(source, args) {
     this.activateWithCompleter.apply(this, args);
   },
-  activateWithCompleter: function(completerName, selectFirstResult, forceNewTab, initialQueryValue) {
-    if (window.top !== window && settings.values.vomnibarInMain) {
+  activateWithCompleter: function(completerName, selectFirstResult, forceNewTab, initialQueryValue, force_current) {
+    if (window.top !== window && settings.values.vomnibarInMain && !force_current) {
       sendMessageToFrames(0, "Vomnibar._activateInMain"//
-        , [completerName, selectFirstResult, forceNewTab, initialQueryValue]);
+        , [completerName, selectFirstResult, forceNewTab, initialQueryValue, true]);
       return;
     }
     var bg = this.background, completer = bg.Completer, vomnibarUI = this.vomnibarUI;

@@ -1197,6 +1197,9 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       if (request.target != null && request.target !== frameId) {
         return;
       }
+      if (!isEnabledForUrl) {
+        sendMessageToFrames(request.source, request.command, request.args);
+      }
       var components = request.command.split('.'), obj = window, _i, _len, _ref;
       for (_i = 0, _len = components.length - 1; _i < _len; _i++) {
         obj = obj[components[_i]];
