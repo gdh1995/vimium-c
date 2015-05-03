@@ -1,6 +1,6 @@
 "use strict";
 (function() {
-  var HUD, Tween, firstKeys, secondKeys, currentSeconds, time1 //
+  var HUD, Tween, firstKeys, secondKeys, currentSeconds //
     , enterInsertModeWithoutShowingIndicator, executeFind, exitFindMode //
     , exitInsertMode, findAndFocus, findMode, findChangeListened //
     , findModeAnchorNode, findModeQuery, findModeQueryHasResults, focusFoundLink, followLink //
@@ -17,12 +17,6 @@
     ;
   
   frameId = window.top === window ? 0 : Math.floor(Math.random() * 9999997) + 2;
-
-  window._DEBUG = /*/ 1 /*/ 0 /**/;
-
-  if (window._DEBUG) {
-    time1 = Date.now();
-  }
 
   insertModeLock = null;
 
@@ -206,9 +200,6 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
         handlerStack.bubbleEvent('DOMActivate', event);
       }
     }, true);
-    if (window._DEBUG) {
-      console.log(frameId + ": set:", Date.now() - time1);
-    }
     if (document.activeElement && DomUtils.getEditableType(document.activeElement) >= 2 && !findMode) {
       enterInsertModeWithoutShowingIndicator(document.activeElement);
     }
@@ -1118,13 +1109,6 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       msg.status = "disabled";
     },
     settings: settings.ReceiveSettings,
-    registerFrame: function(request) {
-      if (window._DEBUG >= 2) {
-        console.log(frameId + ": reg:", Date.now() - time1, "@", document.readyState);
-      }
-      // reRegisterFrame is called only when document.ready
-      requestHandlers.injectCSS(request);
-    },
     reRegisterFrame: function(request) {
       if (document.body && document.body.nodeName.toLowerCase() !== "frameset") {
         mainPort.postMessage({
@@ -1133,7 +1117,8 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
         });
       }
     },
-    injectCSS: function(request) {
+    registerFrame: function(request) {
+      // reRegisterFrame is called only when document.ready
       var css = ELs.css = document.createElement("style");
       css.id = "vimUserCss";
       css.type = "text/css";
@@ -1261,10 +1246,6 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       requestHandlers[request.name](request); // do not check `handler != null`
     }
   });
-
-  if (window._DEBUG >= 3) {
-    console.log(frameId + ": got:", Date.now() - time1);
-  }
 
   ELs.destroy = function() {
     isEnabledForUrl = false;
