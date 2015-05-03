@@ -937,10 +937,8 @@
     },
     checkIfEnabled: function(request) {
       var rule = Exclusions.getRule(request.url);
-      return rule && !rule.passKeys ? {
-        name: "ifDisabled"
-      } : {
-        name: "ifEnabled",
+      return {
+        name: (rule && !rule.passKeys ? "ifDisabled" : "ifEnabled"),
         passKeys: (rule ? rule.passKeys : "")
       };
     },
@@ -948,26 +946,14 @@
       var rule = Exclusions.getRule(request.url);
       if (request.focused) {
         requestHandlers.setIcon(tabId, rule ? (rule.passKeys ? "partial" : "disabled") : "enabled");
-      } else {
-        tabId = tabId || request.tabId;
       }
-      return rule && !rule.passKeys ? {
-        name: "ifDisabled",
-        tabId: tabId
-      } : {
-        name: "ifEnabled",
+      return {
+        name: (rule && !rule.passKeys ? "ifDisabled" : "ifEnabled"),
         passKeys: (rule ? rule.passKeys : ""),
-        tabId: tabId,
         currentFirst: currentFirst,
         firstKeys: firstKeys,
-        secondKeys: secondKeys
-      };
-    },
-    keyMappings: function() {
-      return {
-        name: "refreshKeyMappings",
-        firstKeys: firstKeys,
-        secondKeys: secondKeys
+        secondKeys: secondKeys,
+        tabId: tabId
       };
     },
     nextFrame: function(request) {
@@ -1032,7 +1018,12 @@
   Settings.updateHooks.keyMappings = function(value) {
     Commands.parseKeyMappings(value);
     populateKeyCommands(); // resetKeys has been called in this
-    sendRequestToAllTabs(requestHandlers.keyMappings());
+    sendRequestToAllTabs({
+      name: "refreshKeyMappings",
+      firstKeys: firstKeys,
+      secondKeys: secondKeys,
+      frameId: 0
+    });
   };
 
   Settings.buildBuffer();

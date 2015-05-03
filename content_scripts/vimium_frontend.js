@@ -1078,12 +1078,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
 
   requestHandlers = {
     checkIfEnabled: function() {
-      mainPort.postMessage(initializeWhenEnabled !== setPassKeys ? {
-        handler: "initIfEnabled",
-        focused: false, // icon is set when window.focus
-        tabId: ELs.focusMsg.tabId,
-        url: window.location.href
-      } : {
+      mainPort.postMessage({
         handler: "checkIfEnabled",
         url: window.location.href
       }, mainPort.Listener);
@@ -1102,11 +1097,12 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       isEnabledForUrl = false;
       var msg = ELs.focusMsg;
       if (response.tabId) {
-        msg.tabId = response.tabId;
+        ELs.focusMsg.tabId = response.tabId;
+        requestHandlers.refreshKeyMappings(response);
       } else {
         HUD.hide();
       }
-      msg.status = "disabled";
+      ELs.focusMsg.status = "disabled";
     },
     settings: settings.ReceiveSettings,
     reRegisterFrame: function(request) {
