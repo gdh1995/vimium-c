@@ -282,19 +282,17 @@
 
     createTab: [function(wnd) {
       var tab = getSelected(wnd.tabs);
-      if (wnd.incognito) {
-        // this url will be disabled if opened in a incognito window directly
+      if (wnd.type !== "normal") {
+        tab.windowId = undefined;
+        tab.index = 999;
+      } else if (wnd.incognito) {
+        // newTabUrl_f is disabled to be opened in a incognito window directly
         funcDict.createTab[1](Settings.get("newTabUrl_f"), tab, commandCount > 1
-        ? function(newTab) {
-          var left = commandCount, id = newTab.id;
-          while (--left > 0) {
-            chrome.tabs.duplicate(id);
+        ? funcDict.createTab[6] : null, wnd.tabs);
+        return;
           }
-        } : null, wnd.tabs);
-      } else {
         tab.id = undefined;
         openMultiTab(Settings.get("newTabUrl_f"), commandCount, tab);
-      }
     }, function(url, tab, repeat, allTabs) {
       var urlLower = url.toLowerCase().split('#', 1)[0], tabs;
       allTabs = allTabs.filter(function(tab1) {
@@ -342,6 +340,11 @@
     }, function(tab) {
       tab.id = undefined;
       openMultiTab(Settings.get("newTabUrl_f"), commandCount, tab);
+    }, function(newTab) {
+      var left = commandCount, id = newTab.id;
+      while (--left > 0) {
+        chrome.tabs.duplicate(id);
+      }
     }],
     duplicateTab: function(tab, count, wnd) {
       if (wnd.incognito && !tab.incognito) {
