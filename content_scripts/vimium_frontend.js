@@ -349,7 +349,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
         return;
       }
       selectedInputIndex = Math.min(count - 1, visibleInputs.length - 1);
-      visibleInputs[selectedInputIndex].element.focus();
+      DomUtils.simulateSelect(visibleInputs[selectedInputIndex].element);
       if (visibleInputs.length === 1) {
         return;
       }
@@ -381,7 +381,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
               selectedInputIndex = 0;
             }
             hints[selectedInputIndex].classList.add('vimS');
-            visibleInputs[selectedInputIndex].element.focus();
+            DomUtils.simulateSelect(visibleInputs[selectedInputIndex].element);
           } else if (event.keyCode !== KeyCodes.shiftKey) {
             DomUtils.removeNode(hintContainingDiv);
             handlerStack.remove();
