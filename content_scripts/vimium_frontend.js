@@ -1205,7 +1205,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       for (_i = 0, _len = components.length - 1; _i < _len; _i++) {
         obj = obj[components[_i]];
       }
-      obj[components[_len]](request.source, request.args);
+      obj[components[_len]].apply(obj, request.args);
     },
     setScrollPosition: function(request) {
       var scrollX = request.scroll[0], scrollY = request.scroll[1];
