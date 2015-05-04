@@ -207,8 +207,8 @@
           passKeys: passKeys
         });
       }
-      if (JSON.stringify(rules) === JSON.stringify(bgSettings.defaults.exclusionRules)) {
-        rules = bgSettings.defaults.exclusionRules;
+      if (JSON.stringify(rules) === JSON.stringify(bgSettings.defaults[this.field])) {
+        rules = bgSettings.defaults[this.field];
       }
       return rules;
     };
