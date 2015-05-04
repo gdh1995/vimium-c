@@ -197,11 +197,11 @@
       _ref = this.element.getElementsByClassName("exclusionRuleInstance");
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
         element = _ref[_i];
-        pattern = this.getPattern(element).value.replace(wchRegex, "");
+        pattern = this.getPattern(element).value.trim();
         if (!pattern) {
           continue;
         }
-        passKeys = this.getPassKeys(element).value.replace(wchRegex, "");
+        passKeys = this.getPassKeys(element).value.replace(wchRegex, " ").trim();
         rules.push({
           pattern: pattern,
           passKeys: passKeys
@@ -266,7 +266,7 @@
       for (_j = 0, _len1 = elements.length; _j < _len1; _j++) {
         element = elements[_j];
         pattern = this.getPattern(element).value.trim();
-        if (0 <= this.url.search(bgExclusions.getRegex(pattern))) {
+        if (bgExclusions.re[pattern](this.url)) {
           haveMatch = true;
           this.getPassKeys(element).focus();
         } else {
@@ -279,12 +279,12 @@
     };
 
     ExclusionRulesOnPopupOption.prototype.activatePatternWatcher = function(element) {
-      this.getPattern(element).addEventListener("keyup", this.onKeyup);
+      this.getPattern(element).addEventListener("change", this.onKeyup);
     };
     
     ExclusionRulesOnPopupOption.prototype.onKeyup = function(event) {
       var patternElement = event.target;
-      if (this.url.match(bgExclusions.getRegex(patternElement.value))) {
+      if (bgExclusions.getRegex(patternElement.value)(this.url)) {
         patternElement.title = patternElement.style.color = "";
       } else {
         patternElement.style.color = "red";
@@ -296,10 +296,10 @@
     ExclusionRulesOnPopupOption.prototype.urlRegex = /^[a-z]{3,}:\/\/./;
     ExclusionRulesOnPopupOption.prototype.generateDefaultPattern = function() {
       return this.httpRegex.test(this.url)
-        ? ("https?://" + this.url.split("/", 3)[2] + "/*")
+        ? ("https?://" + this.url.split("/", 3)[2] + "/")
         : this.urlRegex.test(this.url)
-        ? (this.url.split("/", 3).join("/") + "/*")
-        : (this.url + "*");
+        ? (this.url.split("/", 3).join("/") + "/")
+        : this.url;
     };
 
     return ExclusionRulesOnPopupOption;
@@ -429,11 +429,15 @@
     var exclusions, onUpdated, saveOptions, updateState, url;
     exclusions = null;
     url = BG.urlForTab[tab.id] || tab.url;
+    var escapeRegex = /[&<>]/g, escapeCallback = function(c, n) {
+      n = c.charCodeAt(0);
+      return (n === 60) ? "&lt;" : (n === 62) ? "&gt;" : "&amp;";
+    },
     updateState = function() {
-      var rule = bgExclusions.getRule(url, exclusions.readValueFromElement());
-      $("state").innerHTML = "Vimium will " + (rule && rule.passKeys
-        ? "exclude <span class='code'>" + rule.passKeys + "</span>"
-        : rule ? "be disabled" : "be enabled");
+      var pass = bgExclusions.getTemp(url, exclusions.readValueFromElement());
+      $("state").innerHTML = "Vimium will " + (pass
+        ? "exclude: <span class='code'>" + pass.replace(escapeRegex, escapeCallback) + "</span>"
+        : pass !== null ? "be disabled" : "be enabled");
     };
     onUpdated = function() {
       var btn = $("saveOptions");
@@ -452,9 +456,9 @@
       Option.saveOptions();
       btn.innerHTML = "Saved";
       btn.disabled = true;
-      var rule = bgExclusions.getRule(url);
+      var pass = bgExclusions.getPattern(url);
       BG.g_requestHandlers.setIcon(tab.id //
-        , rule ? (rule.passKeys ? "partial" : "disabled") : "enabled");
+        , pass !== null ? (pass ? "partial" : "disabled") : "enabled");
     };
     $("saveOptions").addEventListener("click", saveOptions);
     document.addEventListener("keyup", function(event) {
@@ -463,11 +467,12 @@
         // although the tab calls window.onfocus after it closes,
         // it is too early for the tab to know new exclusion rules.
         setTimeout(window.close, 300);
+      } else {
+        updateState();
       }
     });
     exclusions = new ExclusionRulesOnPopupOption(url, "exclusionRules", onUpdated);
     updateState();
-    document.addEventListener("keyup", updateState);
   };
 
   document.addEventListener("DOMContentLoaded", function() {

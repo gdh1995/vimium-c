@@ -160,7 +160,7 @@ var Settings = {
     UILanguage: null,
     showAdvancedCommands: 0,
     showAdvancedOptions: 1,
-    showActionIcon: false,
+    showActionIcon: true,
     vimSync: false,
     showOmniRelevancy: false,
     scrollStepSize: 100,

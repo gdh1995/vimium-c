@@ -1,5 +1,7 @@
 "use strict";
 var Commands = {
+  // NOTE: [^\s] is for spliting passed keys
+  keyRegex: /<(?:(?:a-(?:c-)?(?:m-)?|c-(?:m-)?|m-).[^>]*|[A-Za-z][0-9A-Za-z]+)>|[^\s]/g,
   availableCommands: {},
   keyToCommandRegistry: {},
   addCommand: function(command, description, options) {

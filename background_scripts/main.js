@@ -655,12 +655,11 @@
   };
 
   populateKeyCommands = function() {
-    var key, ref1, ref2, first, arr, keyRegex;
+    var key, ref1, ref2, first, arr, keyRegex = Commands.keyRegex;
     resetKeys();
     ref1 = firstKeys = [];
     ref2 = secondKeys = {};
     ref2.__proto__ = null;
-    keyRegex = /<(?:(?:[acm]-){1,3}.[^>]*|[^<>]+)>|./g;
     for (key in Commands.keyToCommandRegistry) {
       if (key.charCodeAt(0) >= 48 && key.charCodeAt(0) <= 57) {
         console.warn("invalid key command:", key, "(the first char can not be [0-9])");
@@ -675,11 +674,16 @@
         ref2[first] = [arr[1]];
       }
     }
+    ref1.push("1", "2", "3", "4", "5", "6", "7", "8", "9");
     ref1.sort().reverse();
     for (first in ref2) {
-      ref2[first].sort().reverse();
+      ref1 = ref2[first];
+      if (ref1.indexOf("0") === -1) {
+        ref1.push("0");
+      }
+      ref1.sort().reverse();
     }
-    ref2[""] = [];
+    ref2[""] = ["0"];
   };
 
   handleResponse = function(msgId, func, request, tab) {
@@ -941,21 +945,16 @@
       };
     },
     checkIfEnabled: function(request) {
-      var rule = Exclusions.getRule(request.url);
-      return {
-        enabled: (rule ? !rule.passKeys : true),
-        passKeys: (rule ? rule.passKeys : "")
-      };
+      return Exclusions.getPattern(request.url);
     },
     initIfEnabled: function(request, tabId) {
-      var rule = Exclusions.getRule(request.url);
+      var pass = Exclusions.getPattern(request.url);
       if (request.focused) {
-        requestHandlers.setIcon(tabId, rule ? (rule.passKeys ? "partial" : "disabled") : "enabled");
+        requestHandlers.setIcon(tabId, pass !== null ? (pass ? "partial" : "disabled") : "enabled");
       }
       return {
         name: "ifEnabled",
-        enabled: (rule ? !rule.passKeys : true),
-        passKeys: (rule ? rule.passKeys : ""),
+        passKeys: pass,
         currentFirst: currentFirst,
         firstKeys: firstKeys,
         secondKeys: secondKeys,
@@ -1013,7 +1012,7 @@
   Settings.postUpdate("newTabUrl");
 
   Settings.updateHooks.exclusionRules = function(rules) {
-    Exclusions.rules = rules;
+    Exclusions.setRules(rules);
     resetKeys();
     sendRequestToAllTabs({
       name: "checkIfEnabled",
@@ -1067,6 +1066,7 @@
 
   Commands.parseKeyMappings(Settings.get("keyMappings"));
   populateKeyCommands();
+  Exclusions.setRules(Settings.get("exclusionRules"));
 
   (function() {
     var ref, i, key, func, ref2;

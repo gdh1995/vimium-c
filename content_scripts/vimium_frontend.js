@@ -499,16 +499,22 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
   };
 
   (function() {
-    var numRegex = /^[1-9]/, num0Regex = /^[0-9]/, passKeys = "";
+    var passKeys, passStr;
     setPassKeys = function(newPassKeys) {
-      passKeys = newPassKeys;
+      if (passStr = newPassKeys) {
+        var arr = newPassKeys.split(' '), _i;
+        passKeys = {};
+        passKeys.__proto__ = null;
+        for (_i = arr.length; 0 <= --_i; ) {
+          passKeys[arr[_i]] = true;
+        }
+      } else {
+        passKeys = null;
+      }
     };
     isValidKey = function(key) {
-      if (passKeys && !keyQueue && passKeys.indexOf(key) !== -1) {
-        return false;
-      }
-      return (key in firstKeys) || (key in currentSeconds) || //
-        (keyQueue ? num0Regex : numRegex).test(key);
+      return keyQueue ? ((key in currentSeconds) || (key in firstKeys))
+        : (passKeys && (key in passKeys)) ? false : (key in firstKeys);
     };
   })();
 
@@ -1090,17 +1096,18 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       mainPort.postMessage({
         handler: "checkIfEnabled",
         url: window.location.href
-      }, requestHandlers.ifEnabled);
+      }, requestHandlers.setPassKeys);
     },
     ifEnabled: function(response) {
-      if (response.tabId) {
-        ELs.focusMsg.tabId = response.tabId;
-        requestHandlers.refreshKeyMappings(response);
-        requestHandlers.refreshKeyQueue(response);
-      }
-      if (isEnabledForUrl = response.enabled) {
-        ELs.focusMsg.status = response.passKeys ? "partial" : "enabled";
-        initializeWhenEnabled(response.passKeys);
+      ELs.focusMsg.tabId = response.tabId;
+      requestHandlers.refreshKeyMappings(response);
+      requestHandlers.refreshKeyQueue(response);
+      requestHandlers.setPassKeys(response.passKeys);
+    },
+    setPassKeys: function(passKeys) {
+      if (isEnabledForUrl = (passKeys !== "")) {
+        ELs.focusMsg.status = passKeys ? "partial" : "enabled";
+        initializeWhenEnabled(passKeys);
       } else {
         ELs.focusMsg.status = "disabled";
       }
@@ -1156,7 +1163,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       map = firstKeys = {};
       map.__proto__ = null;
       while (0 <= --i) {
-        map[arr[i]] = 1;
+        map[arr[i]] = true;
       }
       sec = response.secondKeys;
       sec2 = secondKeys = {};
@@ -1167,7 +1174,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
         map.__proto__ = null;
         i = arr.length;
         while (0 <= --i) {
-          map[arr[i]] = 1;
+          map[arr[i]] = true;
         }
       }
     },

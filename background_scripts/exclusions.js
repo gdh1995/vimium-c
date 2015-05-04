@@ -1,38 +1,64 @@
 "use strict";
 var Exclusions = {
-  _cache: {},
+  re: {},
   _emptyStringRegex: /^$/,
-  _sharpRegex: /\*/g,
+  _starRegex: /\*/g,
+  _caretRegex: /^\^/,
+  _regChars: /[\[\]\|\(\)\^\$\?\*]/,
   getRegex: function(pattern) {
-    var regexp;
-    if (regexp = this._cache[pattern]) {
-      return regexp;
-    }
-    try {
-      return this._cache[pattern] = new RegExp("^" + pattern.replace(this._sharpRegex, ".*") + "$");
+    var regex = this.re[pattern];
+    if (regex) { return regex; }
+    if (!this._regChars.test(pattern)) {
+      regex = this._startsWith.bind(pattern);
+    } else try {
+      regex = new RegExp("^" + pattern.replace(this._starRegex, ".*").replace(this._caretRegex, ""));
+      regex = regex.test.bind(regex);
     } catch (e) {
-      return this._cache[pattern] = this._emptyStringRegex;
+      regex = this._startsWith.bind(pattern);
     }
+    return this.re[pattern] = regex;
   },
-  rules: Settings.get("exclusionRules"),
-  getRule: function(url, rules) {
-    var rule, _i, _len, _ref, matchedPatterns = [], matchedKeys = [];
-    if (rules == null) {
-      rules = this.rules;
+  _startsWith: function(url) {
+    return url.startsWith(this);
+  },
+  rules: [],
+  setRules: function(rules) {
+    this.re = {};
+    this.rules = this.Format(rules);
+    this.getPattern = (this.rules.length !== 0) ? this._getPatternByRules : this._getNull;
+  },
+  Format: function(rules) {
+    var keyRegex = Commands.keyRegex, _i, rule, pattern, pass, arr, out = [];
+    for (_i = rules.length; 0 <= --_i; ) {
+      pattern = (rule = rules[_i]).pattern;
+      if (!pattern) { continue; }
+      pass = rule.passKeys;
+      out.push([this.getRegex(pattern), pass && (arr = pass.match(keyRegex))
+        ? (arr.join(" ") + " ") : ""]);
     }
+    return out;
+  },
+  getPattern: null,
+  _getNull: function() {
+    return null;
+  },
+  _getPatternByRules: function(url) {
+    var rules = this.rules, _i, _len, matchedKeys = "";
     for (_i = 0, _len = rules.length; _i < _len; _i++) {
-      rule = rules[_i];
-      if (rule.pattern && 0 <= url.search(this.getRegex(rule.pattern))) {
-        if (!rule.passKeys) {
-          return rule;
+      if (rules[_i][0](url)) {
+        if (!rules[_i][1]) {
+          return "";
         }
-        matchedPatterns.push(rule.pattern);
-        matchedKeys.push(rule.passKeys);
+        matchedKeys += rules[_i][1];
       }
     }
-    return (matchedKeys.length === 0) ? null : {
-      pattern: matchedPatterns.join(" | "),
-      passKeys: Utils.distinctCharacters(matchedKeys.join(""))
-    };
+    return matchedKeys || null;
+  },
+  getTemp: function(url, rules) {
+    var old = this.rules;
+    this.rules = this.Format(rules);
+    url = this._getPatternByRules(url);
+    this.rules = old;
+    return url;
   }
 };
