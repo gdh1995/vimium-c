@@ -292,12 +292,12 @@
       }
     }
 
-    ExclusionRulesOnPopupOption.httpRegex = /^https?:\/\/./;
-    ExclusionRulesOnPopupOption.urlRegex = /^[a-z]{3,}:\/\/./;
+    ExclusionRulesOnPopupOption.prototype.httpRegex = /^https?:\/\/./;
+    ExclusionRulesOnPopupOption.prototype.urlRegex = /^[a-z]{3,}:\/\/./;
     ExclusionRulesOnPopupOption.prototype.generateDefaultPattern = function() {
-      return ExclusionRulesOnPopupOption.httpRegex.test(this.url)
-        ? ("https?://" + this.url.split("/", 3)[2] + "/*") // TODO: check why;
-        : ExclusionRulesOnPopupOption.urlRegex.test(this.url)
+      return this.httpRegex.test(this.url)
+        ? ("https?://" + this.url.split("/", 3)[2] + "/*")
+        : this.urlRegex.test(this.url)
         ? (this.url.split("/", 3).join("/") + "/*")
         : (this.url + "*");
     };
