@@ -1142,10 +1142,12 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
         if (!settings.values.borderWas) {
           settings.values.borderWas = document.body.style.border;
           setTimeout((function() {
+            document.body.classList.remove("vimHighlight");
             document.body.style.border = settings.values.borderWas;
             settings.values.borderWas = "";
           }), 200);
         }
+        document.body.classList.add("vimHighlight");
         document.body.style.border = "5px solid yellow";
       }
     },

@@ -181,6 +181,10 @@
 	z-index: 2147483647;
 }
 
+.vimHighlight {
+	border: 5px solid yellow !important;
+}
+
 /* Vimium Scrollbar */
 .vimScroll::-webkit-scrollbar,
 .vimScroll::-webkit-scrollbar-track,
