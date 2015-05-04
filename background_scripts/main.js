@@ -781,13 +781,6 @@
         break;
       }
     }
-    else if (request.handlerMsg) {
-      chrome.tabs.sendMessage(port.sender.tab.id, {
-        name: "handlerMsg", frameId: 0,
-        target: request.target, source: request.source,
-        command: request.command, args: request.args
-      });
-    }
   };
 
   checkKeyQueue = function(command, port) {
@@ -920,6 +913,13 @@
     openUrlInCurrentTab: function(request) {
       chrome.tabs.update(null, {
         url: Utils.convertToUrl(request.url)
+      });
+    },
+    dispatchMsg: function(request) {
+      chrome.tabs.sendMessage(request.tabId, {
+        name: "dispatchMsg", frameId: 0,
+        target: request.target, source: request.source,
+        command: request.command, args: request.args
       });
     },
     frameFocused: function(request) {

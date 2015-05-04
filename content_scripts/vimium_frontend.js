@@ -1195,7 +1195,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
         }
       }
     },
-    handlerMsg: function(request) {
+    dispatchMsg: function(request) {
       if (request.target != null && request.target !== frameId) {
         return;
       }
@@ -1219,11 +1219,9 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
 
   window.sendMessageToFrames = function(target, command, args) {
     mainPort.postMessage({
-      handlerMsg: true,
-      target: target,
-      source: frameId,
-      command: command,
-      args: args
+      handler: "dispatchMsg", tabId: ELs.focusMsg.tabId,
+      target: target, source: frameId,
+      command: command, args: args
     });
   }
 
