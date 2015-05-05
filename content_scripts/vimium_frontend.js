@@ -1230,7 +1230,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       target: target, source: frameId,
       command: command, args: args
     });
-  }
+  };
 
   settings.load({
     handler: "initIfEnabled",
