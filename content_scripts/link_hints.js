@@ -242,6 +242,7 @@ var LinkHints = {
     var a = element.getAttribute("data-vim-url"), arr;
     // NOTE: not judge `attr[data=vim-url] is "#"`
     //   just in case that someone make "#" an event for downloading / ...
+    //   : then he can set [href=#][data-vim-url=...] to enable LinkHints
     if (a || ((a = element.getAttribute("href")) && a != "#")) {
       if (arr = DomUtils.getVisibleClientRect(element)) {
         this.push([element, arr, true]);
@@ -726,9 +727,11 @@ LinkHints.FUNC = {
   DOWNLOAD_LINK: function(link) {
     var oldDownload, oldUrl;
     oldUrl = link.getAttribute("href");
-    oldDownload = link.getAttribute("data-vim-url");
-    if (oldDownload && (oldDownload = oldDownload.trim())) {
-      link.href = oldDownload;
+    if (!oldUrl) {
+      oldDownload = link.getAttribute("data-vim-url");
+      if (oldDownload && (oldDownload = oldDownload.trim())) {
+        link.href = oldDownload;
+      }
     }
     oldDownload = link.getAttribute("download");
     if (oldDownload == null) {
@@ -740,16 +743,16 @@ LinkHints.FUNC = {
       metaKey: false,
       shiftKey: false
     });
-      if (typeof oldDownload === "string") {
-        link.setAttribute("download", oldDownload);
-      } else if (oldDownload === null) {
-        link.removeAttribute("download");
-      }
-      if (typeof oldUrl === "string") {
-        link.setAttribute("href", oldUrl);
-      } else if (oldUrl === null) {
-        link.removeAttribute("href");
-      }
+    if (typeof oldDownload === "string") {
+      link.setAttribute("download", oldDownload);
+    } else if (oldDownload === null) {
+      link.removeAttribute("download");
+    }
+    if (typeof oldUrl === "string") {
+      link.setAttribute("href", oldUrl);
+    } else if (oldUrl === null) {
+      link.removeAttribute("href");
+    }
   },
   HOVER: DomUtils.SimulateHover,
   DEFAULT: function(link) {
