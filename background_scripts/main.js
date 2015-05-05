@@ -657,8 +657,8 @@
   populateKeyCommands = function() {
     var key, ref1, ref2, first, arr, keyRegex = Commands.keyRegex;
     resetKeys();
-    ref1 = firstKeys = [];
-    ref2 = secondKeys = {};
+    ref1 = firstKeys = ["1", "2", "3", "4", "5", "6", "7", "8", "9"];
+    ref2 = secondKeys = {"": ["0"]};
     ref2.__proto__ = null;
     for (key in Commands.keyToCommandRegistry) {
       if (key.charCodeAt(0) >= 48 && key.charCodeAt(0) <= 57) {
@@ -674,7 +674,6 @@
         ref2[first] = [arr[1]];
       }
     }
-    ref1.push("1", "2", "3", "4", "5", "6", "7", "8", "9");
     ref1.sort().reverse();
     for (first in ref2) {
       ref1 = ref2[first];
@@ -683,7 +682,6 @@
       }
       ref1.sort().reverse();
     }
-    ref2[""] = ["0"];
   };
 
   handleResponse = function(msgId, func, request, tab) {
