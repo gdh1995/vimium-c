@@ -702,9 +702,14 @@ LinkHints.FUNC = {
     HUD.showCopied(str);
   },
   OPEN_INCOGNITO_LINK: function(link) {
+    var url = (link.getAttribute("data-vim-url") || link.href).trim();
+    if (url.startsWith("javascript:")) {
+      mainPort.postMessage({ handler: "openUrlInCurrentTab", url: url });
+      return;
+    }
     mainPort.postMessage({
       handler: 'openUrlInIncognito',
-      url: (link.getAttribute("data-vim-url") || link.href).trim(),
+      url: url,
       active: (this.mode & 64) !== 64
     });
   },

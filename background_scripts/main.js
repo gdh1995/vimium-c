@@ -915,8 +915,14 @@
       chrome.windows.getAll(funcDict.openUrlInIncognito.bind(null, request, tab));
     },
     openUrlInCurrentTab: function(request) {
+      var url = Utils.convertToUrl(request.url);
       chrome.tabs.update(null, {
-        url: Utils.convertToUrl(request.url)
+        url: url
+      }, function() {
+        if (chrome.runtime.lastError) {
+          console.log("Error when update tab to: ", url);
+        }
+        return chrome.runtime.lastError;
       });
     },
     dispatchMsg: function(request) {

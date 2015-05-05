@@ -550,16 +550,13 @@ Vomnibar.background = {
   },
   completionActions: {
     navigateToUrl: function(openInNewTab) {
-      if (this.url.startsWith("javascript:")) {
-        var script = document.createElement('script');
-        script.textContent = this.url.substring(11);
-        (document.documentElement || document.body || document.head).appendChild(script);
-      } else {
-        mainPort.postMessage({
-          handler: openInNewTab ? "openUrlInNewTab" : "openUrlInCurrentTab",
-          url: this.url
-        });
+      if (openInNewTab && this.url.startsWith("javascript:")) {
+        openInNewTab = false;
       }
+      mainPort.postMessage({
+        handler: (openInNewTab ? "openUrlInNewTab" : "openUrlInCurrentTab"),
+        url: this.url
+      });
     },
     switchToTab: function() {
       mainPort.postMessage({
