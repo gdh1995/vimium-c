@@ -19,6 +19,7 @@ var LinkHints = {
   filterHints: null,
   spanWrap: null,
   numberToHintString: null,
+  getUrlData: null,
   hintMarkerContainingDiv: null,
   hintMarkers: [],
   linkActivator: null,
@@ -675,9 +676,18 @@ LinkHints.numberToHintString = function(number, characterSet, numHintDigits) {
   return hintString.join("");
 };
 
+LinkHints.getUrlData = function(link) {
+  var str = link.getAttribute("data-vim-url");
+  if (str) {
+    link = document.createElement("a");
+    link.href = str.trim();
+  }
+  return link.href || "";
+};
+
 LinkHints.FUNC = {
   COPY_LINK_URL: function(link) {
-    var str = (link.getAttribute("data-vim-url") || link.href).trim() || "";
+    var str = this.getUrlData(link);
     if (!str) return;
     // NOTE: url should not be modified
     // although BackendUtils.convertToUrl does replace '\u3000' with ' '
@@ -702,7 +712,7 @@ LinkHints.FUNC = {
     HUD.showCopied(str);
   },
   OPEN_INCOGNITO_LINK: function(link) {
-    var url = (link.getAttribute("data-vim-url") || link.href).trim();
+    var url = this.getUrlData(link);
     if (url.startsWith("javascript:")) {
       mainPort.postMessage({ handler: "openUrlInCurrentTab", url: url });
       return;
