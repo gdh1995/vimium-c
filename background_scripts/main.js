@@ -494,7 +494,7 @@
     }
   };
 
-  // function (const Tab tab / const Tab tabs[], const int repeatCount);
+  // function (const Tab tab <% if .useTab is 1 else %> const Tab tabs[]);
   BackgroundCommands = {
     createTab: null,
     duplicateTab: function(tab) {
