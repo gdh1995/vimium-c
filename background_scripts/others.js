@@ -106,7 +106,7 @@ if (chrome.browserAction && chrome.browserAction.setIcon) (function() {
   set(Settings.get("showActionIcon"));
 })();
 
-chrome.runtime.onInstalled.addListener(function(details) {
+chrome.runtime.onInstalled.addListener(window.a = function(details) {
   var contentScripts, js, css, allFrames, _i, _len, reason = details.reason;
   if (["chrome_update", "shared_module_update"].indexOf(reason) >= 0) { return; }
   if (window.b > 0) {
@@ -197,3 +197,7 @@ chrome.runtime.onInstalled.addListener(function(details) {
     chrome.permissions.onAdded.addListener(func);
   }
 });
+setTimeout(function(){
+  chrome.runtime.onInstalled.removeListener(window.a);
+  window.a = null;
+}, 50);
