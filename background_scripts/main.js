@@ -826,9 +826,10 @@
     if (registryEntry.background) {
       commandCount = count;
       var func = BackgroundCommands[command];
-      if (func.useTab === 2) {
+      count = func.useTab;
+      if (count === 2) {
         chrome.tabs.getAllInWindow(null, func);
-      } else if (func.useTab) {
+      } else if (count) {
         chrome.tabs.getSelected(null, func);
       } else {
         func();
@@ -1073,7 +1074,7 @@
   Exclusions.setRules(Settings.get("exclusionRules"));
 
   (function() {
-    var ref, i, key, func, ref2;
+    var ref, i, ref2;
     ref = ["getCurrentTabUrl", "openUrlInNewTab", "openUrlInIncognito" //
       , "openRawUrl", "createMark" //
     ];
