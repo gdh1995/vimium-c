@@ -938,7 +938,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
         || window.location.pathname !== "/pages/options.html") {
       document.getElementById("vimOptionsPage").addEventListener("click", function(event) {
         mainPort.postMessage({
-          handler: "openRawUrlInNewTab",
+          handler: "openRawUrl",
           url: "/pages/options.html"
         });
         hide(event);

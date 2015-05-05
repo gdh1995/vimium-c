@@ -563,8 +563,8 @@ Vomnibar.background = {
     },
     switchToTab: function() {
       mainPort.postMessage({
-        handler: "selectSpecificTab",
-        sessionId: this.sessionId
+        handler: "selectTab",
+        tabId: this.sessionId
       });
     },
     restoreSession: function() {

@@ -905,7 +905,7 @@
     restoreSession: function(request) {
       chrome.sessions.restore(request.sessionId);
     },
-    openRawUrlInNewTab: function(request, tab) {
+    openRawUrl: function(request, tab) {
       openMultiTab(request.url, 1, tab);
     },
     openUrlInNewTab: function(request, tab) {
@@ -982,9 +982,9 @@
     saveHelpDialogSettings: function(request) {
       Settings.set("showAdvancedCommands", request.showAdvancedCommands);
     },
-    selectSpecificTab: function(request) {
-      chrome.tabs.get(request.sessionId, function(tab) {
-        chrome.tabs.update(request.sessionId, { selected: true });
+    selectTab: function(request) {
+      chrome.tabs.update(request.tabId, { selected: true });
+      chrome.tabs.get(request.tabId, function(tab) {
         chrome.windows.update(tab.windowId, { focused: true });
       });
     },
@@ -1071,7 +1071,7 @@
   (function() {
     var ref, i, key, func, ref2;
     ref = ["getCurrentTabUrl", "openUrlInNewTab", "openUrlInIncognito" //
-      , "openRawUrlInNewTab", "createMark" //
+      , "openRawUrl", "createMark" //
     ];
     ref2 = requestHandlers;
     for (i = ref.length; 0 <= --i; ) {
