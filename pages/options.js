@@ -190,13 +190,17 @@
       this.onUpdated();
     };
 
-    ExclusionRulesOption.prototype.readValueFromElement = function() {
+    ExclusionRulesOption.prototype.readValueFromElement = function(part) {
       var element, passKeys, pattern, rules, _i, _len, _ref, wchRegex;
       rules = [];
       wchRegex = /\s+/;
       _ref = this.element.getElementsByClassName("exclusionRuleInstance");
+      part = (part === true);
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
         element = _ref[_i];
+        if (part && element.style.display === "none") {
+          continue;
+        }
         pattern = this.getPattern(element).value.trim();
         if (!pattern) {
           continue;
@@ -270,7 +274,7 @@
           haveMatch = true;
           this.getPassKeys(element).focus();
         } else {
-          element.style.display = 'none';
+          element.style.display = "none";
         }
       }
       if (!haveMatch) {
@@ -433,7 +437,7 @@
       return (n === 60) ? "&lt;" : (n === 62) ? "&gt;" : "&amp;";
     },
     updateState = function() {
-      var pass = bgExclusions.getTemp(url, exclusions.readValueFromElement());
+      var pass = bgExclusions.getTemp(url, exclusions.readValueFromElement(true));
       $("state").innerHTML = "Vimium will " + (pass
         ? "exclude: <span class='code'>" + pass.replace(escapeRegex, escapeCallback) + "</span>"
         : pass !== null ? "be disabled" : "be enabled");
