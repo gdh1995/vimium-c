@@ -8,21 +8,14 @@ var Settings = {
     return this._buffer[key];
   },
   set: function(key, value) {
-    var ref = this.defaults[key], clear = false, i;
-    if (value === ref) {
-      clear = true;
-    }
+    var ref;
     this._buffer[key] = value;
-    if ((i = this.valuesToLoad.indexOf(key)) >= 0) {
-      this.bufferToLoad[i] = value;
+    if (ref = this.updateHooks[key]) {
+      ref.call(this, value, key);
     }
-    if ((ref = this.updateHooks[key]) && ref.call(this, value, key) === false) {
-      return;
-    } else if (key in this.nonPersistent) {
-      return;
-    }
-    if (clear) {
-      if (key in localStorage) delete localStorage[key];
+    if (key in this.nonPersistent) {
+    } else if (value === this.defaults[key]) {
+      delete localStorage[key];
       Sync.clear(key);
     } else {
       Sync.set(key, localStorage[key] = JSON.stringify(value));
@@ -59,7 +52,6 @@ var Settings = {
       this.parseSearchEngines(this.get("searchEngines"), value);
       this.parseSearchEngines("~:" + this.get("searchUrl"), value);
       this.postUpdate("postSearchEnginesMap", null);
-      return false;
     },
     userDefinedCss: function(css) {
       if (css && (css = css.replace(/\r/g, ""))) {
