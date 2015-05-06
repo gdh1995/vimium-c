@@ -44,7 +44,7 @@
   };
 
   Option.prototype.restoreToDefault = function() {
-    bgSettings.clear(this.field);
+    bgSettings.set(this.field, bgSettings.defaults[this.field]);
     return this.fetch();
   };
 
@@ -369,7 +369,6 @@
         bgSettings.buildBuffer();
         bgSettings.postUpdate("updateAll", {
           name: "settings",
-          frameId: 0,
           load: bgSettings.bufferToLoad
         });
       }, 100);

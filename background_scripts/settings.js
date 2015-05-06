@@ -11,9 +11,6 @@ var Settings = {
     var ref = this.defaults[key], clear = false, i;
     if (value === ref) {
       clear = true;
-    } else if (key in this.enforceBoolean && value !== this.enforceBoolean[key]) {
-      value = ref;
-      clear = true;
     }
     this._buffer[key] = value;
     if ((i = this.valuesToLoad.indexOf(key)) >= 0) {
@@ -31,26 +28,18 @@ var Settings = {
       Sync.set(key, localStorage[key] = JSON.stringify(value));
     }
   },
-  clear: function(key) {
-    this.set(key, this.defaults[key]);
-  },
-  hasPersistent: function(key) {
-    return key in localStorage;
-  },
   storage: function(key, value) {
     if (value === undefined) {
       return JSON.parse(localStorage[key] || "null");
     }
     localStorage[key] = JSON.stringify(value);
   },
-  postUpdate: function(key, virtualValue) {
-    var ref = this.updateHooks[key];
-    if (ref) {
-      ref.call(this, virtualValue !== undefined ? virtualValue : this.get(key), key);
-    }
+  postUpdate: function(key, value) {
+    this.updateHooks[key].call(this, value !== undefined ? value : this.get(key), key);
   },
   updateHooks: {
     updateAll: function (request) {
+      request.frameId = 0;
       chrome.tabs.query({
         windowType: "normal",
         status: "complete"
@@ -178,6 +167,7 @@ var Settings = {
   },
   buildBuffer: function() {
     var _i, key, ref = this.valuesToLoad, ref2 = this.bufferToLoad = {};
+    ref2.__proto__ = null;
     for (_i = ref.length; 0 <= --_i;) {
       key = ref[_i];
       ref2[key] = this.get(key);
@@ -214,11 +204,6 @@ var Settings = {
     searchEngines: "w|wiki|Wiki:\\\n  http://www.wikipedia.org/w/index.php?search=%s Wikipedia (en-US)\nBaidu|baidu|ba:\\\n  www.baidu.com/s?ie=utf-8&wd=%s",
     newTabUrl: "/index.html" // note: if changed, /pages/newtab.js also needs change.
   },
-  // accept only if value === @enforceBoolean[key], so that we get boolean options
-  enforceBoolean: {
-    showActionIcon: true,
-    vimSync: true
-  },
   // not set localStorage, neither sync, if key in @nonPersistent
   // not clean if exists (for simpler logic)
   nonPersistent: {
@@ -230,21 +215,22 @@ var Settings = {
     vomnibar: true
   },
   files: {
-    vomnibar: "pages/vomnibar.html",
-    help_dialog: "pages/help_dialog.html"
+    help_dialog: "pages/help_dialog.html",
+    vomnibar: "pages/vomnibar.html"
   },
   icons: {
+    disabled: "img/icons/browser_action_disabled.png",
     enabled: "img/icons/browser_action_enabled.png",
-    partial: "img/icons/browser_action_partial.png",
-    disabled: "img/icons/browser_action_disabled.png"
+    partial: "img/icons/browser_action_partial.png"
   },
-  valuesToLoad: ["scrollStepSize", "linkHintCharacters", "linkHintNumbers", "filterLinkHints" //
-    , "hideHud", "previousPatterns", "nextPatterns", "findModeRawQuery", "regexFindMode" //
-    , "smoothScroll", "vomnibarInMain" //
-    , "findModeRawQueryList"
+  valuesToLoad: ["filterLinkHints", "findModeRawQuery", "findModeRawQueryList" //
+    , "hideHud", "linkHintCharacters", "linkHintNumbers", "nextPatterns" //
+    , "previousPatterns", "regexFindMode", "scrollStepSize", "smoothScroll" //
+    , "vomnibarInMain" //
   ],
   bufferToLoad: null,
   ChromeInnerNewTab: "chrome-search://local-ntp/local-ntp.html" // should keep lower case
 };
+Settings._buffer.__proto__ = null;
 
 var Sync = Sync || {clear: function() {}, set: function() {}};

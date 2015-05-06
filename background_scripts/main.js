@@ -474,6 +474,7 @@
       }
     }
   };
+  funcDict.__proto__ = null;
 
   // function (const Tab tab <% if .useTab is 1 else %> const Tab tabs[]);
   BackgroundCommands = {
@@ -622,6 +623,7 @@
       funcDict.removeTabsRelative(funcDict.selectFrom(tabs), 0, tabs);
     }
   };
+  BackgroundCommands.__proto__ = null;
 
   chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab) {
     if (changeInfo.status !== "loading" || frameIdsForTab[tabId]) {
@@ -972,6 +974,7 @@
     createMark: Marks.Create,
     gotoMark: Marks.GoTo
   };
+  requestHandlers.__proto__ = null;
 
   Settings.reloadFiles();
   Settings.postUpdate("searchEngines", null);
@@ -979,7 +982,7 @@
 
   Settings.updateHooks.newTabUrl = function(url) {
     url = (/^\/?[^:\s]*$/.test(url)) ? chrome.runtime.getURL(url) : Utils.convertToUrl(url);
-    Settings.set('newTabUrl_f', url);
+    this.set('newTabUrl_f', url);
     BackgroundCommands.createTab = Utils.isRefusingIncognito(url)
     ? chrome.windows.getCurrent.bind(chrome.windows, {populate: true}, funcDict.createTab[0])
     : chrome.tabs.getSelected.bind(chrome.tabs, null, funcDict.createTab[5]);
@@ -990,8 +993,7 @@
     Exclusions.setRules(rules);
     resetKeys();
     this.postUpdate("updateAll", {
-      name: "checkIfEnabled",
-      frameId: 0
+      name: "checkIfEnabled"
     });
   };
 
@@ -1001,8 +1003,7 @@
     this.postUpdate("updateAll", {
       name: "refreshKeyMappings",
       firstKeys: firstKeys,
-      secondKeys: secondKeys,
-      frameId: 0
+      secondKeys: secondKeys
     });
   };
 
@@ -1063,13 +1064,11 @@
 })();
 
 var a, b, c, cb, log;
-c = setTimeout(function() {
+c = setTimeout(function() { // currentFirst will be reloaded when window.focus
   c = 0;
   Settings.postUpdate("updateAll", { name: "reRegisterFrame", work: "rereg" });
-  // currentFirst will be reloaded when window.focus
 }, 50); // According to tests: onInstalled will be executed after 0 ~ 16 ms if needed
 setTimeout(function() {
-  a = c = null;
-  b = cb = function(b) { window.a = b; console.log(b); };
-  log = console.log.bind(console);
+  a = c = null, b = cb, log = console.log.bind(console);
 }, 100);
+cb = function(b) { a = b; console.log(b); };
