@@ -18,9 +18,8 @@
 
   function Option(field, onUpdated) {
     this.field = field;
-    this.onUpdated = onUpdated;
     this.element = $(this.field);
-    this.element.addEventListener("change", this.onUpdated);
+    this.element.addEventListener("change", this.onUpdated = onUpdated);
     this.fetch();
     Option.all.push(this);
   }
@@ -246,7 +245,7 @@
 
     function ExclusionRulesOnPopupOption(url) {
       this.url = url;
-      this.onKeyup = this.onKeyup.bind(this);
+      this.onInput = this.onInput.bind(this);
       ExclusionRulesOnPopupOption.__super__.constructor.apply(this,
         2 <= arguments.length ? Array.prototype.slice.call(arguments, 1) : []);
     }
@@ -283,10 +282,10 @@
     };
 
     ExclusionRulesOnPopupOption.prototype.activatePatternWatcher = function(element) {
-      this.getPattern(element).addEventListener("change", this.onKeyup);
+      this.getPattern(element).addEventListener("input", this.onInput);
     };
     
-    ExclusionRulesOnPopupOption.prototype.onKeyup = function(event) {
+    ExclusionRulesOnPopupOption.prototype.onInput = function(event) {
       var patternElement = event.target;
       if (bgExclusions.getRegex(patternElement.value)(this.url)) {
         patternElement.title = patternElement.style.color = "";
