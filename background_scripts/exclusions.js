@@ -38,6 +38,15 @@ var Exclusions = {
     }
     return out;
   },
+  rebuildRegex: function() {
+    var rules = Settings.get("exclusionRules"), ref = this.re = {}, ref2 = this.rules //
+      , _i, _j, pattern;
+    for (_i = rules.length, _j = 0; 0 <= --_i; ) {
+      pattern = rules[_i].pattern;
+      if (!pattern) { continue; }
+      ref[pattern] = ref2[_j++][0];
+    }
+  },
   getPattern: null,
   _getNull: function() {
     return null;

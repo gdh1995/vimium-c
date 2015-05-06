@@ -428,9 +428,10 @@
   };
   
   initPopupPage = function(tab) {
-    var exclusions, onUpdated, saveOptions, updateState, url;
+    var exclusions, onUpdated, saveOptions, updateState, url, hasNew;
     exclusions = null;
     url = BG.urlForTab[tab.id] || tab.url;
+    hasNew = false;
     var escapeRegex = /[&<>]/g, escapeCallback = function(c, n) {
       n = c.charCodeAt(0);
       return (n === 60) ? "&lt;" : (n === 62) ? "&gt;" : "&amp;";
@@ -447,6 +448,7 @@
       btn.removeAttribute("disabled");
       btn.innerHTML = "Save Changes";
       if (exclusions) {
+        hasNew = true;
         updateState();
       }
     };
@@ -456,8 +458,11 @@
         return;
       }
       Option.saveOptions();
+      hasNew = false;
       btn.innerHTML = "Saved";
       btn.disabled = true;
+      // although the tab calls window.onfocus after it closes,
+      // it is too early for the tab to know new exclusion rules.
       var pass = bgExclusions.getPattern(url);
       BG.g_requestHandlers.setIcon(tab.id //
         , pass !== null ? (pass ? "partial" : "disabled") : "enabled");
@@ -466,15 +471,16 @@
     document.addEventListener("keyup", function(event) {
       if (event.ctrlKey && event.keyCode === 13) {
         saveOptions();
-        // although the tab calls window.onfocus after it closes,
-        // it is too early for the tab to know new exclusion rules.
         setTimeout(window.close, 300);
-      } else {
-        updateState();
       }
     });
     exclusions = new ExclusionRulesOnPopupOption(url, "exclusionRules", onUpdated);
     updateState();
+    window.onunload = function() {
+      if (hasNew) {
+        bgExclusions.rebuildRegex();
+      }
+    }
   };
 
   document.addEventListener("DOMContentLoaded", function() {
