@@ -21,12 +21,6 @@ var Settings = {
       Sync.set(key, localStorage[key] = JSON.stringify(value));
     }
   },
-  storage: function(key, value) {
-    if (value === undefined) {
-      return JSON.parse(localStorage[key] || "null");
-    }
-    localStorage[key] = JSON.stringify(value);
-  },
   postUpdate: function(key, value) {
     this.updateHooks[key].call(this, value !== undefined ? value : this.get(key), key);
   },
