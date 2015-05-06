@@ -51,25 +51,6 @@
     return html.join("");
   };
 
-  window.fetchHttpContents = function(url, success, onerror) {
-    var req = new XMLHttpRequest(), i = url.indexOf(":"), j;
-    url = i >= 0 && ((j = url.indexOf("?")) === -1 || j > i) ? url : chrome.runtime.getURL(url);
-    req.open("GET", url, true);
-    req.onreadystatechange = function () {
-      if(req.readyState === 4) {
-        var text = req.responseText, status = req.status;
-        req = null;
-        if (status === 200) {
-          success(text);
-        } else if (onerror) {
-          onerror(text, status);
-        }
-      }
-    };
-    req.send();
-    return req;
-  };
-
   openMultiTab = function(rawUrl, count, parentTab) {
     if (!(count >= 1)) return;
     var wndId = parentTab.windowId, option = {
@@ -843,17 +824,6 @@
     });
   };
 
-  window.sendRequestToAllTabs = function (args) {
-    chrome.tabs.query({
-      windowType: "normal",
-      status: "complete"
-    }, function(tabs) {
-      for (var i = tabs.length, t = chrome.tabs; 0 <= --i; ) {
-        t.sendMessage(tabs[i].id, args, null);
-      }
-    });
-  };
-
   // function (request, Tab tab = null);
   window.g_requestHandlers = requestHandlers = {
     getCurrentTabUrl: function(_0, tab) {
@@ -1019,7 +989,7 @@
   Settings.updateHooks.exclusionRules = function(rules) {
     Exclusions.setRules(rules);
     resetKeys();
-    sendRequestToAllTabs({
+    this.postUpdate("updateAll", {
       name: "checkIfEnabled",
       frameId: 0
     });
@@ -1028,7 +998,7 @@
   Settings.updateHooks.keyMappings = function(value) {
     Commands.parseKeyMappings(value);
     populateKeyCommands(); // resetKeys has been called in this
-    sendRequestToAllTabs({
+    this.postUpdate("updateAll", {
       name: "refreshKeyMappings",
       firstKeys: firstKeys,
       secondKeys: secondKeys,
@@ -1058,16 +1028,6 @@
   window.onunload = function() {
     ContentSettings.clear("images");
   };
-
-  window.cb = function(b) { window.a = b; console.log(b); }
-  window.b = setTimeout(function() {
-    window.b = window.cb;
-    sendRequestToAllTabs({
-      name: "reRegisterFrame",
-      work: "rereg"
-    });
-    // currentFirst will be reloaded when window.focus
-  }, 50); // According to tests: onInstalled will be executed after 0 ~ 16 ms if needed
 
   Commands.parseKeyMappings(Settings.get("keyMappings"));
   populateKeyCommands();
@@ -1101,3 +1061,15 @@
   })();
 
 })();
+
+var a, b, c, cb, log;
+c = setTimeout(function() {
+  c = 0;
+  Settings.postUpdate("updateAll", { name: "reRegisterFrame", work: "rereg" });
+  // currentFirst will be reloaded when window.focus
+}, 50); // According to tests: onInstalled will be executed after 0 ~ 16 ms if needed
+setTimeout(function() {
+  a = c = null;
+  b = cb = function(b) { window.a = b; console.log(b); };
+  log = console.log.bind(console);
+}, 100);

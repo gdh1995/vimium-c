@@ -367,7 +367,7 @@
       setTimeout(function () {
         window.onfocus();
         bgSettings.buildBuffer();
-        BG.sendRequestToAllTabs({
+        bgSettings.postUpdate("updateAll", {
           name: "settings",
           frameId: 0,
           load: bgSettings.bufferToLoad
