@@ -120,35 +120,17 @@ var Settings = {
       }
     }
   },
-  fetchHttpContents: function(url, success, onerror) {
-    var req = new XMLHttpRequest(), i = url.indexOf(":"), j;
-    url = i >= 0 && ((j = url.indexOf("?")) === -1 || j > i) ? url : chrome.runtime.getURL(url);
-    req.open("GET", url, true);
-    req.onreadystatechange = function () {
-      if(req.readyState === 4) {
-        var text = req.responseText, status = req.status;
-        req = null;
-        if (status === 200) {
-          success(text);
-        } else if (onerror) {
-          onerror(text, status);
-        }
-      }
-    };
-    req.send();
-    return req;
-  },
   readFile: function(id, url) {
     var _this = this;
     this.set(id, "");
     url = url || this.files[id];
-    this.fetchHttpContents(url, this.set.bind(this, id));
+    Utils.fetchHttpContents(url, this.set.bind(this, id));
   },
   reloadFiles: function() {
     var files = this.files, id;
     for (id in files) {
       this.set(id, "");
-      this.fetchHttpContents(files[id], this.set.bind(this, id));
+      Utils.fetchHttpContents(files[id], this.set.bind(this, id));
     }
   },
   buildBuffer: function() {
