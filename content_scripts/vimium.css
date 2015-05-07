@@ -166,10 +166,10 @@
 	min-width: 150px;
 	padding: 3px 3px 2px 3px;
 	position: fixed;
+	right: 150px;
 	/* less than vimium's hint markers, so link hints can be shown e.g. for the panel's close button. */
 	z-index: 2147483645;
 	text-shadow: 0px 1px 2px #FFF;
-	opacity: 0;
 }
 
 /* Vimium Flash */
