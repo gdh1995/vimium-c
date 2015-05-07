@@ -114,7 +114,7 @@
 }
 
 /* Linkhints CSS */
-#vimHMC.vimB {
+#vimHMC.vimR {
 	font-weight: bold;
 	height: 100%;
 	pointer-events: none;
@@ -137,7 +137,7 @@
 }
 
 /* Input hints CSS */
-#vimIMC.vimB {
+#vimIMC.vimR {
 	overflow: visible;
 	pointer-events: none;
 	position: absolute;
@@ -155,7 +155,7 @@
 }
 
 /* Vimium HUD CSS */
-#vimHUD.vimB {
+#vimHUD.vimR {
 	background-color: #ebebeb;
 	border: 1px solid #b3b3b3;
 	border-radius: 4px 4px 0 0;
@@ -181,7 +181,7 @@
 	z-index: 2147483647;
 }
 
-#vimHighlightMask.vimB {
+#vimHighlightMask.vimR {
 	border: 5px solid yellow !important;
 	box-sizing: border-box;
 	height: 100%;

@@ -10,7 +10,7 @@
 <style type="text/css">
 /* Help Dialog CSS */
 
-#vimHelpDialog {
+#vimHelpDialog.vimR {
 	background-color: #eee;
 	/* border: 2px solid #b3b3b3; */
 	border-radius: 6px;
@@ -67,7 +67,7 @@
 /* .vimHelpAdvanced.vimB    { display: none; } */
 /* .vimHelpCommandName.vimB { font-family: "Courier New"; } */
 /* .vimHelpCommandInfo.vimB { color: #555; } */
-#vimCloseButton {
+#vimCloseButton.vimR {
 	-webkit-user-select: none;
 	color: #555;
 	font-family: "Courier New";
@@ -84,12 +84,12 @@
 	color: black;
 	text-decoration: none;
 }
-#vimOptionsPage {
+#vimOptionsPage.vimR {
 	position: absolute;
 	right: 60px;
 	top: 8px;
 }
-#vimAdvancedCommands {
+#vimAdvancedCommands.vimR {
 	position: absolute;
 	right: 2px;
 	top: -34px;
@@ -97,8 +97,8 @@
 </style>
 
 <div class="vimB vimR vimScroll" id="vimHelpDialog">
-	<a class="vimB vimI vimL" id="vimOptionsPage">Options</a>
-	<a class="vimB vimI vimL" id="vimCloseButton">&#215;</a>
+	<a class="vimB vimR vimL" id="vimOptionsPage">Options</a>
+	<a class="vimB vimR vimL" id="vimCloseButton">&#215;</a>
 	<div class="vimB vimI" style="display:block;font-size:20px;line-height:130%;"><span class="vimB vimI" style="color:#2f508e">Vim</span>ium++ {{title}}</div>
 	<div class="vimB vimI vimColumnBox">
 		<table class="vimB vimI vimHelpTable">
@@ -127,7 +127,7 @@
 	<div class="vimB vimI" style="display: block; height: 1px; width: 92%; margin: 10px auto; background-color: #9a9a9a;"></div>
 
 	<div class="vimB vimI" style="display:block; position:relative;">
-		<a class="vimB vimI vimL" id="vimAdvancedCommands">Show advanced commands</a>
+		<a class="vimB vimR vimL" id="vimAdvancedCommands">Show advanced commands</a>
 
 		<div class="vimB vimI" style="float:left; width: 50%;">
 			Enjoying Vimium++ ? <a class="vimB vimI vimL" href="https://chrome.google.com/extensions/detail/dbepggeogbaibhgnhhndojpepiihcmeb">Leave Vimium feedback</a>.
