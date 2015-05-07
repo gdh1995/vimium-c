@@ -155,7 +155,7 @@
 }
 
 /* Vimium HUD CSS */
-.vimHUD.vimB {
+#vimHUD.vimB {
 	background-color: #ebebeb;
 	border: 1px solid #b3b3b3;
 	border-radius: 4px 4px 0 0;

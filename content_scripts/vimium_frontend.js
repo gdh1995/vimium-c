@@ -995,7 +995,8 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       var element = this._displayElement;
       if (!element) {
         element = this._displayElement = document.createElement("div");
-        element.className = "vimB vimR vimHUD";
+        element.className = "vimB vimR";
+        element.id = "vimHUD";
         document.documentElement.appendChild(element);
         element.style.right = "150px";
       }
