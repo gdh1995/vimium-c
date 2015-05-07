@@ -181,8 +181,16 @@
 	z-index: 2147483647;
 }
 
-.vimHighlight {
+#vimHighlightMask.vimB {
 	border: 5px solid yellow !important;
+	box-sizing: border-box;
+	height: 100%;
+	left: 0px;
+	pointer-events: none;
+	position: fixed;
+	top: 0px;
+	width: 100%;
+	z-index: 2147483644;
 }
 
 /* Vimium Scrollbar */

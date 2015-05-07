@@ -1145,18 +1145,22 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
         return;
       }
       window.focus();
-      if (document.body) {
-        if (!settings.values.borderWas) {
-          settings.values.borderWas = document.body.style.border;
-          setTimeout((function() {
-            document.body.classList.remove("vimHighlight");
-            document.body.style.border = settings.values.borderWas;
-            settings.values.borderWas = "";
-          }), 200);
-        }
-        document.body.classList.add("vimHighlight");
-        document.body.style.border = "5px solid yellow";
+      if (!settings.values.highlightTimer) {
+        var dom1 = document.createElement("div");
+        dom1.className = "vimB vimR";
+        dom1.id = "vimHighlightMask";
+        document.documentElement.appendChild(dom1);
+      } else {
+        clearTimeout(settings.values.highlightTimer);
       }
+      settings.values.highlightTimer = setTimeout(requestHandlers.removeHighlightMask, 200);
+    },
+    removeHighlightMask: function() {
+      var maskNode = document.getElementById("vimHighlightMask");
+      if (maskNode) {
+        DomUtils.removeNode(maskNode);
+      }
+      settings.values.highlightTimer = 0;
     },
     refreshKeyMappings: function(response) {
       var arr = response.firstKeys, i = arr.length, map, key, sec, sec2;
