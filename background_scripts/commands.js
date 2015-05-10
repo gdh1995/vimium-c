@@ -5,10 +5,10 @@ var Commands = {
   availableCommands: {},
   keyToCommandRegistry: {},
   addCommand: function(command, description, options) {
-    if (command in this.availableCommands) {
+    if (command in this.availableCommands) { // #if DEBUG
       console.warn("Bug:", command, "is already defined!");
       return;
-    }
+    } // #endif
     this.availableCommands[command] = {
       noRepeat: options && options.noRepeat,
       background: options && options.background ? true : false,
@@ -286,9 +286,7 @@ Commands._defaultKeyMappings = {
     }
   ],
   focusInput: [
-    "Focus the first text box on the page. Cycle between them using tab", {
-      noRepeat: false
-    }
+    "Focus the first text box on the page. Cycle between them using tab"
   ],
   "LinkHints.activateMode": [
     "Open a link in the current tab", {
@@ -353,19 +351,13 @@ Commands._defaultKeyMappings = {
     }
   ],
   goBack: [
-    "Go back in history", {
-      noRepeat: false
-    }
+    "Go back in history"
   ],
   goForward: [
-    "Go forward in history", {
-      noRepeat: false
-    }
+    "Go forward in history"
   ],
   goUp: [
-    "Go up the URL hierarchy", {
-      noRepeat: false
-    }
+    "Go up the URL hierarchy"
   ],
   goToRoot: [
     "Go to root of current URL hierarchy", {

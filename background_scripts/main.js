@@ -822,7 +822,7 @@
     port.postMessage({
       name: "executePageCommand",
       command: command,
-      count: (registryEntry.noRepeat === false ? -count : count)
+      count: count
     });
   };
 

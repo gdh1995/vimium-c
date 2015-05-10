@@ -219,29 +219,29 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     scrollToRight: function() {
       Scroller.scrollTo("x", "max");
     },
-    scrollUp: function() {
-      Scroller.scrollBy("y", -1 * (settings.values.scrollStepSize || 100));
+    scrollUp: function(count) {
+      Scroller.scrollBy("y", -count * (settings.values.scrollStepSize || 100));
     },
-    scrollDown: function() {
-      Scroller.scrollBy("y", settings.values.scrollStepSize || 100);
+    scrollDown: function(count) {
+      Scroller.scrollBy("y", count * (settings.values.scrollStepSize || 100));
     },
-    scrollPageUp: function() {
-      Scroller.scrollBy("y", "viewSize", -1 / 2);
+    scrollPageUp: function(count) {
+      Scroller.scrollBy("y", -count / 2, "viewSize");
     },
-    scrollPageDown: function() {
-      Scroller.scrollBy("y", "viewSize", 1 / 2);
+    scrollPageDown: function(count) {
+      Scroller.scrollBy("y", count / 2, "viewSize");
     },
-    scrollFullPageUp: function() {
-      Scroller.scrollBy("y", "viewSize", -1);
+    scrollFullPageUp: function(count) {
+      Scroller.scrollBy("y", -count, "viewSize");
     },
-    scrollFullPageDown: function() {
-      Scroller.scrollBy("y", "viewSize");
+    scrollFullPageDown: function(count) {
+      Scroller.scrollBy("y", count, "viewSize");
     },
-    scrollLeft: function() {
-      Scroller.scrollBy("x", -1 * (settings.values.scrollStepSize || 60));
+    scrollLeft: function(count) {
+      Scroller.scrollBy("x", -count * (settings.values.scrollStepSize || 60));
     },
-    scrollRight: function() {
-      Scroller.scrollBy("x", settings.values.scrollStepSize || 60);
+    scrollRight: function(count) {
+      Scroller.scrollBy("x", count * (settings.values.scrollStepSize || 60));
     },
 
     reload: function() {
@@ -678,7 +678,11 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     findMode = true;
     document.body.classList.add("vimFindMode");
     HUD.hide(true);
-    findModeQueryHasResults = !!window.find(query, options.caseSensitive, options.backwards, true, false, true, false);
+    result = options.repeat;
+    do {
+      findModeQueryHasResults = window.find(query, options.caseSensitive
+        , options.backwards, true, false, true, false);
+    } while (findModeQueryHasResults && 0 < --result);
     if (findChangeListened === 0) {
       findChangeListened = setTimeout(function() {
         document.addEventListener("selectionchange", restoreDefaultSelectionHighlight, true);
@@ -721,7 +725,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     return findModeQuery.regexMatches[findModeQuery.activeRegexIndex];
   };
 
-  findAndFocus = function(backwards) {
+  findAndFocus = function(count, backwards) {
     var mostRecentQuery, query;
     mostRecentQuery = settings.values.findModeRawQuery || "";
     if (mostRecentQuery !== findModeQuery.rawQuery) {
@@ -730,6 +734,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     }
     query = findModeQuery.isRegex ? getNextQueryFromRegexMatches(backwards ? -1 : 1) : findModeQuery.parsedQuery;
     executeFind(query, {
+      repeat: count,
       backwards: backwards,
       caseSensitive: !findModeQuery.ignoreCase
     });
@@ -754,12 +759,12 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     }
   };
 
-  window.performFind = function() {
-    findAndFocus();
+  window.performFind = function(count) {
+    findAndFocus(count);
   };
 
-  window.performBackwardsFind = function() {
-    findAndFocus(true);
+  window.performBackwardsFind = function(count) {
+    findAndFocus(count, true);
   };
 
   followLink = function(linkElement) {
@@ -1162,13 +1167,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     executePageCommand: function(request) {
       keyQueue = false;
       currentSeconds = secondKeys[""];
-      if (request.count < 0) {
-        Utils.invokeCommandString(request.command, -request.count);
-      } else {
-        for (var i = 0, _ref = request.count; i < _ref; ++i) {
-          Utils.invokeCommandString(request.command);
-        }
-      }
+      Utils.invokeCommandString(request.command, request.count);
     },
     dispatchMsg: function(request) {
       if (request.target != null && request.target !== frameId) {
