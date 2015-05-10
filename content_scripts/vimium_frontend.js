@@ -323,7 +323,16 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
         });
       });
     },
-    copyCurrentUrl: function() {
+    autoCopy: function() {
+      var sel = document.getSelection(), str;
+      if (sel.type == "Range" && (str = sel.toString().trim())) {
+        mainPort.postMessage({
+          handler: "copyToClipboard",
+          data: str
+        });
+        HUD.showCopied(str);
+        return;
+      }
       mainPort.postMessage({
         handler: "getCurrentTabUrl"
       }, function(url) {
@@ -333,18 +342,6 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
         });
         HUD.showCopied(url);
       });
-    },
-    autoCopy: function() {
-      var sel = document.getSelection(), str;
-      if (sel.type !== "Range" || !(str = sel.toString().trim())) {
-        requestHandlers.copyCurrentUrl();
-        return;
-      }
-      mainPort.postMessage({
-        handler: "copyToClipboard",
-        data: str
-      });
-      HUD.showCopied(str);
     },
     focusInput: function(count) {
       var hintContainingDiv, hints, selectedInputIndex, visibleInputs;

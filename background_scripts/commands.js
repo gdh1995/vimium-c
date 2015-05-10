@@ -250,6 +250,7 @@ Commands._defaultKeyMappings = {
   ],
   copyCurrentUrl: [
     "Copy the current URL to the clipboard", {
+      background: true,
       noRepeat: true
     }
   ],
