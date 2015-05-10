@@ -655,7 +655,7 @@
     var key, ref1, ref2, first, arr, keyRegex = Commands.keyRegex;
     resetKeys();
     ref1 = firstKeys = ["1", "2", "3", "4", "5", "6", "7", "8", "9"];
-    ref2 = secondKeys = {"": ["0"]};
+    ref2 = secondKeys = {"": ["0"]}; // "0" is for key queues like "10n"
     ref2.__proto__ = null;
     for (key in Commands.keyToCommandRegistry) {
       if (key.charCodeAt(0) >= 48 && key.charCodeAt(0) <= 57) {
@@ -674,9 +674,6 @@
     ref1.sort().reverse();
     for (first in ref2) {
       ref1 = ref2[first];
-      if (ref1.indexOf("0") === -1) {
-        ref1.push("0");
-      }
       ref1.sort().reverse();
     }
   };
