@@ -157,11 +157,11 @@ Vomnibar.vomnibarUI = {
     this.background.cleanCompletions(this.completions);
     if (this.completions.length > 0) {
       this.list.style.display = "";
-      this.inputBar.classList.add("vimOWithList");
+      this.input.parentElement.classList.add("vimOWithList");
       this.selection = (this.completions[0].type === "search") ? 0 : this.initialSelectionValue;
     } else {
       this.list.style.display = "none";
-      this.inputBar.classList.remove("vimOWithList");
+      this.input.parentElement.classList.remove("vimOWithList");
       this.selection = -1;
     }
     this.isSelectionChanged = false;
@@ -288,7 +288,7 @@ Vomnibar.vomnibarUI = {
   },
   onClick: function(event) {
     var el = event.target, _i;
-    if (el === this.inputBar) {
+    if (el === this.input.parentElement) {
       this.onAction("focus");
     } else if (el === this.input) {
       this.focused = true;
@@ -371,7 +371,6 @@ Vomnibar.vomnibarUI = {
   init_dom: function(response) {
     this.background.showRelevancy = response.relevancy === true;
     this.box.innerHTML = response.html;
-    this.inputBar = this.box.querySelector("#vimOInputBar");
     this.input = this.box.querySelector("#vimOInput");
     this.list = this.box.querySelector("#vimOList");
     var str = this.box.querySelector("#vimOITemplate").innerHTML;
@@ -383,17 +382,16 @@ Vomnibar.vomnibarUI = {
       this.onCompletions(this.completions);
     }
   },
-  computeHint: function(li) {
-    var i = +li.getAttribute("data-vim-index"), a, item, rect;
+  computeHint: function(li, a) {
+    var i = +li.getAttribute("data-vim-index"), item, rect;
     if (!(i >= 0 && i < this.completions.length)) { return null; }
-    a = li.querySelector(".vimOIUrl");
     if (!a.getAttribute("data-vim-url")) {
       item = this.completions[i];
       a.setAttribute("data-vim-text", item.title);
       a.setAttribute("data-vim-url", item.url);
     }
-    rect = VRect.copy(li.querySelector(".vimOIWrap").getBoundingClientRect());
-    rect[2] -= 2, rect[3] -= 2;
+    rect = VRect.copy(li.getBoundingClientRect());
+    rect[0] += 10, rect[2] -= 12, rect[3] -= 3;
     return rect;
   }
 };
@@ -521,7 +519,7 @@ Vomnibar.background = {
   prepareToRender: function(item) {
     item.textSplit = this.cutUrl(item.text, item.textSplit, item.url);
     item.titleSplit = this.highlightTerms(item.title, item.titleSplit);
-     if (this.showFavIcon && item.url.indexOf("://") >= 0) {
+    if (this.showFavIcon && item.url.indexOf("://") >= 0) {
       item.favIconUrl = " vimOIIcon\" style=\"background-image: url(" + (item.favIconUrl ||
         ("chrome://favicon/size/16/" + item.url)) + ")";
     } else {

@@ -331,12 +331,9 @@ var LinkHints = {
         clickEl.focus();
       }
       if (clickEl.classList.contains("vimOIUrl")) {
-        var parEl = clickEl;
-        do {
-          parEl = parEl.parentElement;
-        } while (parEl && !parEl.classList.contains("vimOItem"));
-        if (parEl) {
-          rect = Vomnibar.vomnibarUI.computeHint(parEl);
+        var parEl = clickEl.parentElement.parentElement;
+        if (parEl.classList.contains("vimOItem")) {
+          rect = Vomnibar.vomnibarUI.computeHint(parEl, clickEl);
         }
       }
       if (!rect) {
