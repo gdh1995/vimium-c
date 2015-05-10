@@ -319,13 +319,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
         return;
       }
       mainPort.postMessage({
-        handler: "getCurrentTabUrl"
-      }, function(url) {
-        mainPort.postMessage({
-          handler: "copyToClipboard",
-          data: url
-        });
-        HUD.showCopied(url);
+        handler: "copyCurrentUrl"
       });
     },
     focusInput: function(count) {

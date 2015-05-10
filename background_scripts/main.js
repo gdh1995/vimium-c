@@ -842,9 +842,6 @@
 
   // function (request, Tab tab = null);
   window.g_requestHandlers = requestHandlers = {
-    getCurrentTabUrl: function(_0, tab) {
-      return tab.url;
-    },
     getSettings: function(request) {
       var _i, key, ref = request.keys, values = {};
       for (_i = ref.length; 0 <= --_i;) {
@@ -970,6 +967,9 @@
     copyToClipboard: function(request) {
       Clipboard.copy(request.data);
     },
+    copyCurrentUrl: function(_0, tab) {
+      Clipboard.copy(tab.url);
+    },
     saveHelpDialogSettings: function(request) {
       Settings.set("showAdvancedCommands", request.showAdvancedCommands);
     },
@@ -1050,7 +1050,7 @@
 
   (function() {
     var ref, i, ref2;
-    ref = ["getCurrentTabUrl", "openUrlInNewTab", "openUrlInIncognito" //
+    ref = ["copyCurrentUrl", "openUrlInNewTab", "openUrlInIncognito" //
       , "openRawUrl", "createMark" //
     ];
     ref2 = requestHandlers;
