@@ -52,8 +52,8 @@ var LinkHints = {
   activateModeToCopyLinkText: function() {
     return this.activateMode(this.CONST.COPY_TEXT);
   },
-  activateModeWithQueue: function(mode) {
-    return this.activateMode(mode || this.CONST.OPEN_WITH_QUEUE);
+  activateModeWithQueue: function() {
+    return this.activateMode(this.CONST.OPEN_WITH_QUEUE);
   },
   activateModeToOpenIncognito: function() {
     return this.activateMode(this.CONST.OPEN_INCOGNITO_LINK);
@@ -366,7 +366,7 @@ var LinkHints = {
     var mode = this.mode, linkActivator = this.linkActivator;
     this.deactivateMode(function() {
       this.linkActivator = linkActivator;
-      this.activateModeWithQueue(mode);
+      this.activateMode(mode);
     });
   },
   deactivate2: function(callback) {
