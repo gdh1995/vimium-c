@@ -113,21 +113,20 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
         value: value
       });
     },
-    load: function(request, err) {
+    load: function(request, onerror) {
       request = {
         handlerSettings: "load",
         request: request
       };
-      this.isLoading = setInterval(this.retry, 2000, request, err);
       mainPort.postMessage(request);
-    },
-    retry: function(request, err) {
-      try {
-        if (err) { err(request.request); }
-        mainPort.postMessage(request);
-      } catch (e) {
-        ELs.destroy();
-      }
+      this.isLoading = setInterval(function() {
+        try {
+          if (onerror) { onerror(request.request); }
+          mainPort.postMessage(request);
+        } catch (e) {
+          ELs.destroy();
+        }
+      }, 2000);
     },
     ReceiveSettings: function(response) {
       var _this = settings, ref, i;
