@@ -627,6 +627,14 @@
     },
     copyCurrentUrl: function(tab) {
       Clipboard.copy(tab.url);
+    },
+    toggleViewSource: function(tab) {
+      if (tab.url.startsWith("view-source:")) {
+        tab.url = tab.url.substring(12);
+      } else {
+        tab.url = "view-source:" + tab.url;
+      }
+      requestHandlers.openUrlInNewTab(tab, tab);
     }
   };
   BackgroundCommands.__proto__ = null;
@@ -1061,7 +1069,7 @@
       , "enableImageTemp", "toggleImage", "clearImageCS" //
       , "openCopiedUrlInNewTab", "togglePinTab" //
       , "reopenTab", "moveTabLeft", "moveTabRight", "nextFrame", "mainFrame" //
-      , "copyCurrentTitle", "copyCurrentUrl"
+      , "copyCurrentTitle", "copyCurrentUrl", "toggleViewSource"
     ];
     for (i = ref.length; 0 <= --i; ) {
       ref2[ref[i]].useTab = 1;

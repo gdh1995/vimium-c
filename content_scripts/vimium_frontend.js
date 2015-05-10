@@ -308,21 +308,6 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
         handler: "initHelp",
       }, showHelpDialog);
     },
-    toggleViewSource: function() {
-      mainPort.postMessage({
-        handler: "getCurrentTabUrl"
-      }, function(url) {
-        if (url.substring(0, 12) === "view-source:") {
-          url = url.substring(12);
-        } else {
-          url = "view-source:" + url;
-        }
-        mainPort.postMessage({
-          handler: "openUrlInNewTab",
-          url: url
-        });
-      });
-    },
     autoCopy: function() {
       var sel = document.getSelection(), str;
       if (sel.type == "Range" && (str = sel.toString().trim())) {

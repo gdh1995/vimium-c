@@ -245,6 +245,7 @@ Commands._defaultKeyMappings = {
   ],
   toggleViewSource: [
     "View page source", {
+      background: true,
       noRepeat: true
     }
   ],
