@@ -3,6 +3,7 @@ var Vomnibar = {
   vomnibarUI: null,
   defaultRefreshInterval: 500,
   background: null,
+  disabled: false,
   activateWithCompleter: function(completerName, selectFirstResult, forceNewTab, initialQueryValue, force_current) {
     if (window.top !== window && !force_current) {
       sendMessageToFrames(0, "Vomnibar.activateWithCompleter"//
@@ -13,13 +14,19 @@ var Vomnibar = {
     if (!document.head) {
       return;
     }
-    if (completer.init) {
+    if (!vomnibarUI.init) {
+    } else if (this.disabled) {
+      return;
+    } else {
+      var box = document.createElement("div");
+      if (!box.style) {
+        this.disabled = true;
+        return;
+      }
       completer.init(bg);
+      vomnibarUI.init(box, bg, completer);
     }
     completer.setName(completerName);
-    if (vomnibarUI.init) {
-      vomnibarUI.init(bg, completer);
-    }
     vomnibarUI.initialSelectionValue = selectFirstResult ? 0 : -1;
     vomnibarUI.refreshInterval = this.defaultRefreshInterval || 250;
     vomnibarUI.forceNewTab = forceNewTab ? true : false;
@@ -350,9 +357,9 @@ Vomnibar.vomnibarUI = {
     }
     DomUtils.suppressEvent(event);
   },
-  init: function(background, completer) {
+  init: function(box, background, completer) {
     this.background = background;
-    this.box = document.createElement("div");
+    this.box = box;
     this.box.className = "vimB vimR";
     this.box.id = "vimOmnibar";
     this.box.style.display = "none";

@@ -894,6 +894,10 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       return;
     }
     container = document.createElement("div");
+    if (!container.style) {
+      window.showHelp = window.showHelpDialog = function() {};
+      return;
+    }
     container.id = "vimHelpDialogContainer";
     container.className = "vimB vimR";
     (document.documentElement || document.body).appendChild(container);
@@ -974,12 +978,13 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       this.showForDuration("copy: " + text, 2000);
     },
     showForDuration: function(text, duration) {
-      this.show(text);
-      this._durationTimer = setTimeout(this.hide, duration, false);
+      if (this.show(text)) {
+        this._durationTimer = setTimeout(this.hide, duration, false);
+      }
     },
     show: function(text) {
       if (!this.enabled()) {
-        return;
+        return false;
       }
       if (this._hideId) {
         clearInterval(this._hideId);
@@ -990,19 +995,24 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       }
       var el = this._element;
       if (!el) {
-        el = this._element = document.createElement("div");
+        el = document.createElement("div");
+        if (!el.style) {
+          this.enabled = function() { return false; }
+          return false;
+        }
         el.className = "vimB vimR";
         el.id = "vimHUD";
-        el.style.opacity = "0";
-        document.documentElement.appendChild(el);
+        document.documentElement.appendChild(this._element = el);
       }
       el.innerText = text;
       el.style.display = "";
+      el.style.opacity = "0";
       setTimeout(this.tween, 0);
+      return true;
     },
     tween: function() {
       var style;
-      if (HUD && !(style = HUD._element.style).display) {
+      if (HUD && !(style = HUD._element.style).display && style.opacity === "0") {
         style.opacity = "1";
       }
     },

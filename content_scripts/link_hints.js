@@ -73,10 +73,10 @@ var LinkHints = {
       } else if (document.head == null) {
         clearInterval(this.initTimer); // document is not a <html> document
         this.initTimer = 0;
+        this.isActive = true; // disable self
       }
       return;
-    }
-    if (this.initTimer) {
+    } else if (this.initTimer) {
       clearInterval(this.initTimer);
       this.initTimer = 0;
     }
@@ -100,12 +100,17 @@ var LinkHints = {
       className: "vimB vimR"
     });
     this.ensureRightBottom();
-    this.hintMarkerContainingDiv.style.left = window.scrollX + "px";
-    this.hintMarkerContainingDiv.style.top = window.scrollY + "px";
     this.handlerId = handlerStack.push({
       keydown: this.onKeyDownInMode,
       _this: this
     });
+    if (!this.hintMarkerContainingDiv.style) {
+      this.deactivate2();
+      this.isActive = true;
+      return;
+    }
+    this.hintMarkerContainingDiv.style.left = window.scrollX + "px";
+    this.hintMarkerContainingDiv.style.top = window.scrollY + "px";
   },
   setOpenLinkMode: function(mode) {
     var cons = this.CONST, tip, activator;
