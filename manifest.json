@@ -17,6 +17,9 @@
     "default_title": "Vimium++",
     "default_popup": "pages/popup.html"
   }, //*/
+  "chrome_url_overrides": {
+    "newtab": "pages/newtab.html"
+  },
   "commands": {
     "createTab": {
       "suggested_key": {
@@ -42,9 +45,6 @@
       },
       "description": "Go one tab right"
     }
-  },
-  "chrome_url_overrides": {
-    "newtab": "pages/newtab.html"
   },
   "content_scripts": [ {
     "all_frames": true,
