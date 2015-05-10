@@ -113,12 +113,6 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
         value: value
       });
     },
-    refresh: function(keys) {
-      mainPort.postMessage({
-        handler: "getSettings",
-        keys: ((keys instanceof Array) ? keys : [keys])
-      }, settings.ReceiveSettings);
-    },
     load: function(request, err) {
       request = {
         handlerSettings: "load",

@@ -842,17 +842,6 @@
 
   // function (request, Tab tab = null);
   window.g_requestHandlers = requestHandlers = {
-    getSettings: function(request) {
-      var _i, key, ref = request.keys, values = {};
-      for (_i = ref.length; 0 <= --_i;) {
-        key = ref[_i];
-        values[key] = Settings.get(key);
-      }
-      return {
-        name: "settings",
-        values: values
-      };
-    },
     setSetting: function(request) {
       Settings.set(request.key, request.value);
     },
