@@ -104,7 +104,7 @@ Commands.commandGroups = {
     , "removeTab", "restoreTab", "restoreGivenTab", "moveTabToNextWindow", "moveTabToIncognito", "togglePinTab"
     , "closeTabsOnLeft", "closeTabsOnRight", "closeOtherTabs", "moveTabLeft", "moveTabRight" //
     , "enableImageTemp", "toggleImage", "clearImageCS"],
-  misc: ["showHelp", "enterVisualMode", "mainFrame", "blank"]
+  misc: ["showHelp", "enterVisualMode", "autoCopy", "mainFrame", "blank"]
 };
 Commands.advancedCommands = ["scrollToLeft", "scrollToRight", "moveTabToNextWindow", "moveTabToIncognito"
   , "goUp", "goToRoot", "focusInput", "LinkHints.activateModeWithQueue", "enableImageTemp"
@@ -250,6 +250,11 @@ Commands._defaultKeyMappings = {
   ],
   copyCurrentUrl: [
     "Copy the current URL to the clipboard", {
+      noRepeat: true
+    }
+  ],
+  autoCopy: [
+    "Copy the selected text or current URL", {
       noRepeat: true
     }
   ],
