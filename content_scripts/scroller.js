@@ -103,27 +103,18 @@ var Scroller = {
   },
   scrollBy: function(direction, amount, factor) {
     var element, elementAmount;
-    if (factor == null) {
-      factor = 1;
-    }
-    if (!document.body && amount instanceof Number) {
-      if (direction === "x") {
-        window.scrollBy(amount, 0);
-      } else {
-        window.scrollBy(0, amount);
-      }
-      return;
-    }
     element = this.getActivatedElement();
     if (!this.Core.wouldNotInitiateScroll()) {
       element = this.findScrollable(element, direction, amount, factor);
-      elementAmount = factor * this.getDimension(element, direction, amount);
+      elementAmount = amount * this.getDimension(element, direction, factor);
       this.Core.scroll(element, direction, elementAmount);
     }
   },
   scrollTo: function(direction, pos) {
-    var element = this.findScrollable(this.getActivatedElement(), direction, pos, 1), //
-    amount = this.getDimension(element, direction, pos) - (element
+    var amount, element;
+    pos >= 0 ? (amount = pos, pos = "") : (amount = 1);
+    element = this.findScrollable(this.getActivatedElement(), direction, amount, pos);
+    amount = amount * this.getDimension(element, direction, pos) - (element
       ? element[this.Properties[direction].axisName]
       : direction === "x" ? window.scrollX : window.scrollY);
     this.Core.scroll(element, direction, amount);
@@ -144,7 +135,7 @@ var Scroller = {
       document.body ? (this.selectFirst(document.body) || document.body) : null;
   },
   getDimension: function(el, direction, name) {
-    return (typeof name !== "string") ? name
+    return !name ? 1
       : (!el) ? document.documentElement[this.Properties[direction][name]]
       : (name !== "viewSize" || el !== document.body) ? el[this.Properties[direction][name]]
       : (direction === "x") ? window.innerWidth : window.innerHeight;
@@ -153,7 +144,7 @@ var Scroller = {
     return val === 0 ? 0 : val < 0 ? -1 : 1;
   },
   scrollDo: function(element, direction, amount, factor) {
-    var delta = factor * this.getDimension(element, direction, amount) > 0 ? 1 : -1;
+    var delta = amount * this.getDimension(element, direction, factor) > 0 ? 1 : -1;
     return this.Core.performScroll(element, direction, delta) && this.Core.performScroll(element, direction, -delta);
   },
   selectFirst: function(element) {
