@@ -95,7 +95,7 @@ Commands.commandGroups = {
     , "LinkHints.activateModeToHover", "LinkHints.activateModeToSearchLinkText" //
     , "Vomnibar.activate", "Vomnibar.activateInNewTab", "Vomnibar.activateTabSelection"
     , "Vomnibar.activateBookmarks", "Vomnibar.activateBookmarksInNewTab", "Vomnibar.activateHistory"
-    , "Vomnibar.activateHistoryInNewTab", "goPrevious", "goNext", "nextFrame"
+    , "Vomnibar.activateHistoryInNewTab", "goPrevious", "goNext", "nextFrame", "copyCurrentTitle"
     , "Marks.activateCreateMode", "Vomnibar.activateEditUrl", "Vomnibar.activateEditUrlInNewTab"
     , "Marks.activateGotoMode"],
   historyNavigation: ["goBack", "goForward", "reloadTab", "reopenTab", "switchFocus", "simBackspace"],
@@ -245,6 +245,12 @@ Commands._defaultKeyMappings = {
   ],
   toggleViewSource: [
     "View page source", {
+      noRepeat: true
+    }
+  ],
+  copyCurrentTitle: [
+    "Copy the current tabs's title", {
+      background: true,
       noRepeat: true
     }
   ],

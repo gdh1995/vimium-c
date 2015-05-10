@@ -622,6 +622,9 @@
     closeOtherTabs: function(tabs) {
       funcDict.removeTabsRelative(funcDict.selectFrom(tabs), 0, tabs);
     },
+    copyCurrentTitle: function(tab) {
+      Clipboard.copy(tab.title);
+    },
     copyCurrentUrl: function(tab) {
       Clipboard.copy(tab.url);
     }
@@ -1058,7 +1061,7 @@
       , "enableImageTemp", "toggleImage", "clearImageCS" //
       , "openCopiedUrlInNewTab", "togglePinTab" //
       , "reopenTab", "moveTabLeft", "moveTabRight", "nextFrame", "mainFrame" //
-      , "copyCurrentUrl"
+      , "copyCurrentTitle", "copyCurrentUrl"
     ];
     for (i = ref.length; 0 <= --i; ) {
       ref2[ref[i]].useTab = 1;
