@@ -1239,6 +1239,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
 
   ELs.destroy = function() {
     isEnabledForUrl = false;
+    try {
     window.onfocus = null;
     window.onunload = null;
     window.removeEventListener("keydown", this.onKeydown, true);
@@ -1265,6 +1266,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     if (ELs.css) {
       DomUtils.removeNode(ELs.css);
     }
+    } catch (e) {}
     console.log("%cvim %c#" + frameId + "%c has destroyed."//
       , "color:red", "color:blue", "color:auto");
     window.frameId = frameId;
