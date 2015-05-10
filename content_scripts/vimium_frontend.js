@@ -1002,11 +1002,11 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
         }
         el.className = "vimB vimR";
         el.id = "vimHUD";
+        el.style.opacity = "0";
         document.documentElement.appendChild(this._element = el);
       }
       el.innerText = text;
       el.style.display = "";
-      el.style.opacity = "0";
       setTimeout(this.tween, 0);
       return true;
     },
@@ -1023,7 +1023,6 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
         return;
       }
       if (immediate) {
-        el.style.opacity = "0";
         el.style.display = "none";
         el.innerText = "";
         if (hud._hideId) {
