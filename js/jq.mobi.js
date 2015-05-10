@@ -32,7 +32,7 @@ ready:function(a){(j.readyState==="complete"||j.readyState==="loaded")&&a();j.ad
 find:function(a){if(this.length===0)return f;for(var c=[],b,e=0;e<this.length;e++){b=d(a,this[e]);for(var h=0;h<b.length;h++)c.push(b[h])}return d(o(c))},
 html:function(a){if(this.length===0)return f;if(a===f)return this[0].innerHTML;for(var c=0;c<this.length;c++)this[c].innerHTML=a;return this},
 text:function(a){if(this.length===0)return f;if(a===f)return this[0].textContent;for(var c=0;c<this.length;c++)this[c].textContent=a;return this},
-css:function(a,c,b){b=b!=f?b:this[0];if(this.length===0)return f;if(c==f&&typeof a==="string")return g.getComputedStyle(b),b.style[a]?b.style[a]:g.getComputedStyle(b)[a];for(b=0;b<this.length;b++)if(d.isObject(a))for(var e in a)this[b].style[e]=a[e];else this[b].style[a]=c;return this},
+css:function(a,c,b){if(this.length===0)return f;if(c==f&&typeof a==="string"){b=b!=f?b:this[0];return b.style[a]||g.getComputedStyle(b)[a]}for(b=0;b<this.length;b++)if(d.isObject(a))for(var e in a)this[b].style[e]=a[e];else this[b].style[a]=c;return this},
 empty:function(){for(var a=0;a<this.length;a++)this[a].innerHTML="";return this},
 hide:function(){if(this.length===0)return this;for(var a=0;a<this.length;a++)if(this.css("display",null,this[a])!="none")this[a].setAttribute("jqmOldStyle",this.css("display",null,this[a])),this[a].style.display="none";return this},
 show:function(){if(this.length===0)return this;for(var a=0;a<this.length;a++)if(this.css("display",null,this[a])=="none")this[a].style.display=this[a].getAttribute("jqmOldStyle")?this[a].getAttribute("jqmOldStyle"):"block",this[a].removeAttribute("jqmOldStyle");return this},
