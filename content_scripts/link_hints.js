@@ -704,8 +704,8 @@ LinkHints.FUNC = {
   },
   COPY_TEXT: function(link) {
     var str = (link.getAttribute("data-vim-text") || "").trim() || link.innerText.trim();
-    // do not decode .innerTtml, because no case has proved that's needed
-    str || (str = link.title.trim());
+    // .innerText is "" if "display:block; height:0px; overflow:hidden; width:0px;"
+    str = str || Utils.decodeTextFromHtml(link.innerHTML).trim() || link.title.trim();
     if (!str) return;
     str = Utils.correctSpace(str);
     mainPort.postMessage({
