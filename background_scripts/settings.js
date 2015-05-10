@@ -150,7 +150,6 @@ var Settings = {
     linkHintNumbers: "1234567890",
     filterLinkHints: false,
     hideHud: false,
-    vomnibarInMain: true,
     regexFindMode: false,
     findModeRawQuery: "",
     userDefinedCss: "",
@@ -188,7 +187,6 @@ var Settings = {
   valuesToLoad: ["filterLinkHints", "findModeRawQuery", "findModeRawQueryList" //
     , "hideHud", "linkHintCharacters", "linkHintNumbers", "nextPatterns" //
     , "previousPatterns", "regexFindMode", "scrollStepSize", "smoothScroll" //
-    , "vomnibarInMain" //
   ],
   bufferToLoad: null,
   ChromeInnerNewTab: "chrome-search://local-ntp/local-ntp.html" // should keep lower case
