@@ -10,6 +10,7 @@ var LinkHints = {
     OPEN_FG_WITH_QUEUE: 67,
     HOVER: 128,
     COPY_TEXT: 129,
+    SEARCH_TEXT: 130,
     COPY_LINK_URL: 132,
     DOWNLOAD_LINK: 133,
     OPEN_INCOGNITO_LINK: 134
@@ -51,6 +52,9 @@ var LinkHints = {
   },
   activateModeToCopyLinkText: function() {
     return this.activateMode(this.CONST.COPY_TEXT);
+  },
+  activateModeToSearchLinkText: function() {
+    return this.activateMode(this.CONST.SEARCH_TEXT);
   },
   activateModeWithQueue: function() {
     return this.activateMode(this.CONST.OPEN_WITH_QUEUE);
@@ -125,6 +129,10 @@ var LinkHints = {
       break;
     case cons.COPY_TEXT:
       tip = mode >= 192 ? "Copy link text one by one" : "Copy link text to Clipboard";
+      activator = this.FUNC.COPY_TEXT;
+      break;
+    case cons.SEARCH_TEXT:
+      tip = mode >= 192 ? "Search link text one by one" : "Search selected text";
       activator = this.FUNC.COPY_TEXT;
       break;
     case cons.OPEN_INCOGNITO_LINK:
@@ -706,8 +714,19 @@ LinkHints.FUNC = {
     var str = (link.getAttribute("data-vim-text") || "").trim() || link.innerText.trim();
     // .innerText is "" if "display:block; height:0px; overflow:hidden; width:0px;"
     str = str || Utils.decodeTextFromHtml(link.innerHTML).trim() || link.title.trim();
-    if (!str) return;
+    if (!str) {
+      HUD.showForDuration("No text found!", 1000);
+      this.keepHUDAfterAct = true;
+      return;
+    }
     str = Utils.correctSpace(str);
+    if (this.mode === this.CONST.SEARCH_TEXT) {
+      mainPort.postMessage({
+        handler: "openUrlInNewTab",
+        url: str
+      });
+      return;
+    }
     mainPort.postMessage({
       handler: "copyToClipboard",
       data: str

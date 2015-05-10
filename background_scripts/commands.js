@@ -92,7 +92,7 @@ Commands.commandGroups = {
     , "focusInput", "LinkHints.activateMode", "LinkHints.activateModeToOpenInNewTab"
     , "LinkHints.activateModeToOpenInNewForegroundTab", "LinkHints.activateModeWithQueue"
     , "LinkHints.activateModeToDownloadLink", "LinkHints.activateModeToOpenIncognito"
-    , "LinkHints.activateModeToHover" //
+    , "LinkHints.activateModeToHover", "LinkHints.activateModeToSearchLinkText" //
     , "Vomnibar.activate", "Vomnibar.activateInNewTab", "Vomnibar.activateTabSelection"
     , "Vomnibar.activateBookmarks", "Vomnibar.activateBookmarksInNewTab", "Vomnibar.activateHistory"
     , "Vomnibar.activateHistoryInNewTab", "goPrevious", "goNext", "nextFrame"
@@ -260,6 +260,11 @@ Commands._defaultKeyMappings = {
   ],
   "LinkHints.activateModeToCopyLinkText": [
     "Copy a link text to the clipboard", {
+      noRepeat: true
+    }
+  ],
+  "LinkHints.activateModeToSearchLinkText": [
+    "Open or search a link text", {
       noRepeat: true
     }
   ],
