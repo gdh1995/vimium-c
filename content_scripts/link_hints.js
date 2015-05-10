@@ -683,7 +683,7 @@ LinkHints.getUrlData = function(link) {
     link = document.createElement("a");
     link.href = str.trim();
   }
-  return link.href || "";
+  return link.href;
 };
 
 LinkHints.FUNC = {
@@ -702,7 +702,8 @@ LinkHints.FUNC = {
   },
   COPY_TEXT: function(link) {
     var str = (link.getAttribute("data-vim-text") || "").trim() || link.innerText.trim();
-    str = str || Utils.decodeTextFromHtml(link.innerHTML).trim() || link.title.trim();
+    // do not decode .innerTtml, because no case has proved that's needed
+    str || (str = link.title.trim());
     if (!str) return;
     str = Utils.correctSpace(str);
     mainPort.postMessage({
@@ -727,7 +728,7 @@ LinkHints.FUNC = {
   DOWNLOAD_LINK: function(link) {
     var oldDownload, oldUrl;
     oldUrl = link.getAttribute("href");
-    if (!oldUrl) {
+    if (!oldUrl || oldUrl === "#") {
       oldDownload = link.getAttribute("data-vim-url");
       if (oldDownload && (oldDownload = oldDownload.trim())) {
         link.href = oldDownload;
