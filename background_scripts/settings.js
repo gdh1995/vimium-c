@@ -120,12 +120,6 @@ var Settings = {
       }
     }
   },
-  readFile: function(id, url) {
-    var _this = this;
-    this.set(id, "");
-    url = url || this.files[id];
-    Utils.fetchHttpContents(url, this.set.bind(this, id));
-  },
   reloadFiles: function() {
     var files = this.files, id;
     for (id in files) {
