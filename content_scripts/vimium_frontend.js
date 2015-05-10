@@ -310,16 +310,27 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     },
     autoCopy: function() {
       var sel = document.getSelection(), str;
-      if (sel.type == "Range" && (str = sel.toString().trim())) {
+      if (sel.type !== "Range" || (str = sel.toString().trim())) {
         mainPort.postMessage({
-          handler: "copyToClipboard",
-          data: str
+          handler: "copyCurrentUrl"
         });
-        HUD.showCopied(str);
         return;
       }
       mainPort.postMessage({
-        handler: "copyCurrentUrl"
+        handler: "copyToClipboard",
+        data: str
+      });
+      HUD.showCopied(str);
+    },
+    autoSearch: function() {
+      var sel = document.getSelection(), str;
+      if (sel.type !== "Range" || !(str = sel.toString().trim())) {
+        HUD.showForDuration("No text found!", 1000);
+        return;
+      }
+      mainPort.postMessage({
+        handler: "openUrlInNewTab",
+        url: str
       });
     },
     focusInput: function(count) {
