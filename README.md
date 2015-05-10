@@ -34,7 +34,7 @@ Vimium: 1.49 (2014-12-16)
     https://github.com/philc/vimium).
 * Supports Chrome (ver >~ 38) only. For an old version, please try
     [:for-old-chrome](
-    https://github.com/gdh1995/vim-plus/tree/for-old-chrome).
+    https://github.com/gdh1995/vimium-plus/tree/for-old-chrome).
 
 X New Tab Page: 4.8.0 (2015-03-19)
 * All merged.

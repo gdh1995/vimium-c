@@ -800,7 +800,7 @@
       count = 1;
     } else if (!(registryEntry.noRepeat > 0 && count > registryEntry.noRepeat)) {
     } else if (!
-      confirm("You have asked vim++ to perform " + count + " repeats of the command:\n\t"
+      confirm("You have asked Vimium++ to perform " + count + " repeats of the command:\n\t"
         + Commands.availableCommands[command].description
         + "\n\nAre you sure you want to continue?")
     ) {

@@ -41,7 +41,6 @@ Lang["zh_CN"] = {
 	"cancel" : "取消",
 	"chrome_extension_description" : "Vimium优化版, 附带微度新标签页",
 	"chrome_extension_name" : "Vimium++",
-	"chrome_extension_short_name" : "vim++",
 	"classificationAdd" : "添加分类",
 	"classificationAppTitle" : "分类",
 	"classificationDel" : "删除分类",

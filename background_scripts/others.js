@@ -183,7 +183,7 @@ chrome.runtime.onInstalled.addListener(window.b = function(details) {
   }
   
   func = function() {
-    var key = "vim++_upgradeNotification";
+    var key = "vimium++_upgradeNotification";
     chrome.notifications.create(key, {
       type: "basic",
       iconUrl: chrome.runtime.getURL("favicon.ico"),
@@ -199,7 +199,7 @@ chrome.runtime.onInstalled.addListener(window.b = function(details) {
       chrome.notifications.onClicked.addListener(function(id) {
         if (id !== key) { return; }
         chrome.tabs.create({
-          url: "https://github.com/gdh1995/vim-plus#release-notes"
+          url: "https://github.com/gdh1995/vimium-plus#release-notes"
         }, function(tab) {
           chrome.windows.update(tab.windowId, {focused: true});
         });
