@@ -1,6 +1,6 @@
 "use strict";
 (function() {
-  var HUD, Tween, firstKeys, secondKeys, currentSeconds //
+  var HUD, firstKeys, secondKeys, currentSeconds //
     , enterInsertModeWithoutShowingIndicator, executeFind, exitFindMode //
     , exitInsertMode, findAndFocus, findMode, findChangeListened //
     , findModeAnchorNode, findModeQuery, findModeQueryHasResults, focusFoundLink, followLink //
@@ -961,8 +961,8 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
   };
 
   HUD = {
-    _tweenId: 0,
-    _displayElement: null,
+    _hideId: 0,
+    _element: null,
     _durationTimer: 0,
     showCopied: function(text) {
       if (text.startsWith("chrome-ext")) {
@@ -981,110 +981,64 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       if (!this.enabled()) {
         return;
       }
-      if (this._durationTimer) {
+      if (this._hideId) {
+        clearInterval(this._hideId);
+        this._hideId = 0;
+      } else if (this._durationTimer) {
         clearTimeout(this._durationTimer);
         this._durationTimer = 0;
       }
-      var el = this.displayElement();
-      el.innerText = text;
-      clearInterval(this._tweenId);
-      this._tweenId = Tween.fade(el, 1.0, 150);
-      el.style.display = "";
-    },
-    displayElement: function() {
-      var element = this._displayElement;
-      if (!element) {
-        element = this._displayElement = document.createElement("div");
-        element.className = "vimB vimR";
-        element.id = "vimHUD";
-        document.documentElement.appendChild(element);
+      var el = this._element;
+      if (!el) {
+        el = this._element = document.createElement("div");
+        el.className = "vimB vimR";
+        el.id = "vimHUD";
+        el.style.opacity = "0";
+        document.documentElement.appendChild(el);
       }
-      return element;
+      el.innerText = text;
+      el.style.display = "";
+      setTimeout(this.tween, 0);
+    },
+    tween: function() {
+      var style;
+      if (HUD && !(style = HUD._element.style).display) {
+        style.opacity = "1";
+      }
     },
     hide: function(immediate) {
       var hud = HUD, el;
       hud._durationTimer = 0;
-      clearInterval(hud._tweenId);
-      if (!(el = hud._displayElement) || !hud._tweenId) {
-      } else if (immediate) {
-        el.style.display = "none";
-        el.innerText = "";
-      } else {
-        hud._tweenId = Tween.fade(el, 0, 150, function() {
-          el.style.display = "none";
-          el.innerText = "";
-          HUD._tweenId = 0;
-        });
+      if (!(el = hud._element) || el.style.display === "none") {
         return;
       }
-      hud._tweenId = 0;
+      if (immediate) {
+        el.style.opacity = "0";
+        el.style.display = "none";
+        el.innerText = "";
+        if (hud._hideId) {
+          clearInterval(hud._hideId);
+          hud._hideId = 0;
+        }
+      } else if (!hud._hideId) {
+        el.style.opacity = "0";
+        hud._hideId = setTimeout(function() {
+          HUD._element.style.display = "none";
+          HUD._element.innerText = "";
+          HUD._hideId = 0;
+        }, 170);
+      }
     },
     enabled: function() {
       return document.body && settings.values.hideHud === false;
     },
     destroy: function() {
-      clearInterval(this._tweenId);
+      clearInterval(this._hideId);
       clearInterval(this._durationTimer);
-      this._displayElement && DomUtils.removeNode(this._displayElement);
+      this._element && DomUtils.removeNode(this._element);
       HUD = null;
     }
   };
-
-  Tween = {
-    fade: function(element, toAlpha, duration, onComplete) {
-      var state = {
-        duration: duration,
-        startTime: Date.now(),
-        from: parseInt(element.style.opacity) || 0,
-        to: toAlpha,
-        onUpdate: null,
-        timerId: 0
-      };
-      state.onUpdate = function(value) {
-        element.style.opacity = value;
-        if (value === state.to && onComplete) {
-          onComplete();
-        }
-      };
-      element.style.opacity = state.from;
-      return state.timerId = setInterval((function() {
-        Tween.performTweenStep(state);
-      }), 50);
-    },
-    performTweenStep: function(state) {
-      var elapsed = Date.now() - state.startTime;
-      if (elapsed >= state.duration) {
-        clearInterval(state.timerId);
-        state.onUpdate(state.to);
-      } else {
-        state.onUpdate((elapsed / state.duration) * (state.to - state.from) + state.from);
-      }
-    }
-  };
-
-/*   CursorHider = {
-    cursorHideStyle: null,
-    isScrolling: false,
-    onScroll: function(event) {
-      CursorHider.isScrolling = true;
-      if (!CursorHider.cursorHideStyle.parentElement) {
-        document.head.appendChild(CursorHider.cursorHideStyle);
-      }
-    },
-    onMouseMove: function(event) {
-      if (CursorHider.cursorHideStyle.parentElement && !CursorHider.isScrolling) {
-        CursorHider.cursorHideStyle.remove();
-      }
-      return CursorHider.isScrolling = false;
-    },
-    init: function() {
-      return;
-      this.cursorHideStyle = document.createElement("style");
-      this.cursorHideStyle.innerHTML = "body * {pointer-events: none !important; cursor: none !important;}\nbody, html {cursor: none !important;}";
-      window.addEventListener("mousemove", this.onMouseMove);
-      window.addEventListener("scroll", this.onScroll);
-    }
-  }; */
 
   window.settings = settings;
 
