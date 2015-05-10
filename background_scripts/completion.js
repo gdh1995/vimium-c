@@ -73,7 +73,6 @@
 completers.bookmarks = {
   bookmarks: undefined,
   currentSearch: null,
-  folderSeparator: "/",
   filter: function(queryTerms, onComplete) {
     this.currentSearch = {
       queryTerms: queryTerms,
@@ -86,11 +85,6 @@ completers.bookmarks = {
       this.refresh();
     }
   },
-  onBookmarksLoaded: function() {
-    if (this.currentSearch) {
-      this.performSearch();
-    }
-  },
   performSearch: function() {
     if (this.currentSearch.queryTerms.length === 0) {
       var onComplete = this.currentSearch.onComplete;
@@ -99,7 +93,7 @@ completers.bookmarks = {
       return;
     }
     var q = this.currentSearch.queryTerms, c = this.computeRelevancy, results, usePathAndTitle;
-    usePathAndTitle = this.currentSearch.queryTerms.join("").indexOf(this.folderSeparator) >= 0;
+    usePathAndTitle = this.currentSearch.queryTerms.join("").indexOf('/') >= 0;
     results = this.bookmarks.filter(usePathAndTitle ? function(i) {
       return RankingUtils.matches(q, i.text + '\n' + i.path);
     } : function(i) {
@@ -115,35 +109,41 @@ completers.bookmarks = {
   },
   refresh: function() {
     this.bookmarks = null;
-    chrome.bookmarks.getTree(this.readTree);
+    chrome.bookmarks.getTree(this.ReadTree);
   },
-  readTree: function(bookmarks) {
+  ReadTree: function(bookmarks) {
     var _this = completers.bookmarks;
-    _this.bookmarks = _this.traverseBookmarks(bookmarks).filter(_this.getUrl);
+    _this.bookmarks = _this.traverseBookmarks(bookmarks).filter(_this.GetUrl);
     Decoder.decodeList(_this.bookmarks);
-    _this.onBookmarksLoaded();
+    if (_this.currentSearch) {
+      _this.performSearch();
+    }
   },
-  getUrl: function(b) {
+  GetUrl: function(b) {
     return b.url;
   },
-  ignoreTopLevel: ["Bookmarks Bar", "Other Bookmarks" //
-    , "Mobile Bookmarks", "\u4E66\u7B7E\u680F", "\u5176\u4ED6\u4E66\u7B7E" //
-  ],
+  ignoreTopLevel: {
+    "Bookmarks Bar": true,
+    "Other Bookmarks": true,
+    "Mobile Bookmarks": true,
+    "\u4E66\u7B7E\u680F":true,
+    "\u5176\u4ED6\u4E66\u7B7E":true
+  },
   traverseBookmarks: function(bookmarks) {
     var results = [], _this = this;
     bookmarks.forEach(function(folder) {
-      _this.traverseBookmarksRecursive(folder, results, { path: "" });
+      _this.traverseBookmarksRecursive(folder, results, "");
     });
     return results;
   },
-  traverseBookmarksRecursive: function(bookmark, results, parent) {
-    bookmark.path = bookmark.title && (parent.path || !this.ignoreTopLevel.indexOf(bookmark.title)) //
-      ? parent.path + this.folderSeparator + bookmark.title : parent.path;
+  traverseBookmarksRecursive: function(bookmark, results, path) {
+    bookmark.path = !bookmark.title ? "" : path ? (path + '/' + bookmark.title)
+      : (bookmark.title in this.ignoreTopLevel) ? "" : ('/' + bookmark.title);
     results.push(bookmark);
     if (bookmark.children) {
       var _this = this;
       bookmark.children.forEach(function(child) {
-        _this.traverseBookmarksRecursive(child, results, bookmark);
+        _this.traverseBookmarksRecursive(child, results, bookmark.path);
       });
     }
   },
@@ -692,7 +692,11 @@ completers.searchEngines = {
     }
     ref = lang.bookmarkTitles;
     if (ref && ref.length > 0) {
-      [].push.apply(completers.bookmarks.ignoreTopLevel, ref);
+      var i = ref.length, ref2 = completers.bookmarks.ignoreTopLevel;
+      ref.sort().reverse();
+      for (; 0 <= --i; ) {
+        ref2[ref[i]] = true;
+      }
     }
   })(Settings.get("UILanguage"));
 
