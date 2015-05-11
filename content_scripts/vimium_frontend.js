@@ -597,7 +597,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
         error = _error;
         return;
       }
-      text = document.body.innerText;
+      text = document.documentElement.innerText;
       findModeQuery.regexMatches = text.match(pattern);
       findModeQuery.activeRegexIndex = 0;
       findModeQuery.matchCount = (findModeQuery.regexMatches || []).length;
@@ -607,7 +607,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
         return "\\" + ch;
       });
       pattern = new RegExp(parsedNonRegexQuery, "g" + (findModeQuery.ignoreCase ? "i" : ""));
-      text = document.body.innerText;
+      text = document.documentElement.innerText;
       findModeQuery.matchCount = (text.match(pattern) || []).length;
     }
   };
