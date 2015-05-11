@@ -418,7 +418,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       KeydownEvents.push(event);
       return;
     }
-    var keyChar, key = event.keyCode, action = -1;
+    var keyChar, key = event.keyCode, action = false;
     if (isInsertMode()) {
       if (key === KeyCodes.esc) {
         if (KeyboardUtils.isPlain(event)) {
@@ -426,61 +426,46 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
             event.srcElement.blur();
           }
           exitInsertMode();
-          action = 2;
+          action = true;
         }
       } else if (key >= KeyCodes.f1 && key <= KeyCodes.f12) {
         keyChar = getFullCommand(event, KeyboardUtils.getKeyName(event));
-        if (checkValidKey(keyChar)) {
-          action = 2;
-        }
+        action = checkValidKey(keyChar);
       }
     }
     else if (findMode) {
       if (key === KeyCodes.esc) {
         if (KeyboardUtils.isPlain(event)) {
           handleEscapeForFindMode();
-          action = 2;
+          action = true;
         }
       } else if (key === KeyCodes.backspace || key === KeyCodes.deleteKey) {
         handleDeleteForFindMode();
-        action = 2;
+        action = true;
       } else if (key === KeyCodes.enter) {
         handleEnterForFindMode();
-        action = 2;
-      } else if (key >= 32 && (event.metaKey || event.ctrlKey || event.altKey)) {
-        if (!KeyboardUtils.getKeyChar(event)) {
-          action = 1;
-        }
-      } else if (event.keyIdentifier.startsWith("U+")) {
-      } else if (! (key in KeyboardUtils.keyNames)) {
-        action = 1;
+        action = true;
       }
     }
     else if (key === KeyCodes.esc) {
       if (keyQueue && KeyboardUtils.isPlain(event)) {
-        action = 2;
         mainPort.postMessage({ handler: "esc" });
         keyQueue = false;
         currentSeconds = secondKeys[""];
+        action = true;
       }
-    } else if (keyChar = KeyboardUtils.getKeyChar(event)) {
-      if ((key >= 32 && (event.metaKey || event.ctrlKey || event.altKey)) //
-          || ! event.keyIdentifier.startsWith("U+")) {
+    }
+    else if ((key >= 32 && (event.metaKey || event.ctrlKey || event.altKey)) //
+        || ! event.keyIdentifier.startsWith("U+")) {
+      if (keyChar = KeyboardUtils.getKeyChar(event)) {
         keyChar = getFullCommand(event, keyChar);
-      } // else: keyChar is just the full command
-      if (checkValidKey(keyChar)) {
-        action = 2;
+        action = checkValidKey(keyChar);
       }
     }
-    if (action <= 0) {
-      return;
-    }
-    if (action === 2) {
+    if (action) {
       DomUtils.suppressEvent(event);
-    } else {
-      DomUtils.suppressPropagation(event);
+      KeydownEvents.push(event);
     }
-    KeydownEvents.push(event);
   };
 
   (function() {
