@@ -74,7 +74,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       if (callback) {
         this._callbacks[request._msgId] = callback;
       }
-      return callback ? request._msgId : -1;
+      return callback ? request._msgId : 0;
     },
     Listener: function(response) {
       var id, handler;
