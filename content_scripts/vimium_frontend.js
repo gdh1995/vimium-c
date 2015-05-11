@@ -428,6 +428,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
           exitInsertMode();
           action = 2;
         }
+      // TODO: insert mode: active or passive ?
       } else if (key >= KeyCodes.f1 && key <= KeyCodes.f12) {
         keyChar = getFullCommand(event, KeyboardUtils.getKeyName(event));
         action = checkValidKey(keyChar);
