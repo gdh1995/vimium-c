@@ -794,7 +794,7 @@
       count = currentCount || 1;
       currentCount = 0;
     } else if (command in secondKeys) {
-      return (currentFirst = command);
+      return command;
     } else {
       currentCount = 0;
       return null;
