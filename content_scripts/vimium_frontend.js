@@ -465,8 +465,8 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       }
     } else if (keyChar = KeyboardUtils.getKeyChar(event)) {
       if ((key >= 32 && (event.metaKey || event.ctrlKey || event.altKey)) //
-        || ! event.keyIdentifier.startsWith("U+")) {
-      keyChar = getFullCommand(event, keyChar);
+          || ! event.keyIdentifier.startsWith("U+")) {
+        keyChar = getFullCommand(event, keyChar);
       } // else: keyChar is just the full command
       if (checkValidKey(keyChar)) {
         action = 2;
@@ -549,7 +549,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       return true;
     }
     var el = document.activeElement;
-    if (el && el.isContentEditable) {
+    if (el.isContentEditable) {
       enterInsertModeWithoutShowingIndicator(el);
       return true;
     }
