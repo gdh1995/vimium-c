@@ -514,11 +514,14 @@
     },
     removeTab: function(tabs) {
       var tab = tabs[0];
-      if (tab.selected && tabs.length <= commandCount) {
-        chrome.windows.getAll(funcDict.removeTab.bind(null, tab, tabs));
-        return;
+      if (tab.selected) {
+        if (tabs.length <= commandCount) {
+          chrome.windows.getAll(funcDict.removeTab.bind(null, tab, tabs));
+          return;
+        }
+      } else {
+        tab = funcDict.selectFrom(tabs);
       }
-      tab = funcDict.selectFrom(tabs);
       if (1 < commandCount) {
         --tab.index;
         funcDict.removeTabsRelative(tab, commandCount, tabs);
