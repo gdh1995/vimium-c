@@ -1106,12 +1106,18 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       if (frameId !== request.frameId) {
         return;
       }
-      if (window.innerWidth < 3 || window.innerHeight < 3) {
+      if (window.onunload == null || window.innerWidth < 3 || window.innerHeight < 3) {
         mainPort.postMessage({
           handler: "nextFrame",
           tabId: ELs.focusMsg.tabId,
           frameId: frameId
         });
+        if (window.onunload == null) {
+          setTimeout(mainPort.postMessage.bind(mainPort, {
+            handlerSettings: "unreg", // sandboxed
+            frameId: frameId
+          }, null), 20);
+        }
         return;
       }
       window.focus();
