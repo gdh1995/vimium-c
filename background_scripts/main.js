@@ -1010,11 +1010,17 @@
   Settings.buildBuffer();
 
   chrome.commands.onCommand.addListener(function(command) {
-    var count = currentFirst ? 1 : (currentCount || 1);
-    resetKeys();
-    chrome.tabs.getSelected(null, function(tab) {
-      chrome.tabs.sendMessage(tab.id, { name: "esc" });
-    });
+    var count;
+    if (currentFirst !== null) {
+      count = currentFirst ? 1 : (currentCount || 1);
+      resetKeys();
+      chrome.tabs.getSelected(null, function(tab) {
+        // `frameId: 0` is not needed, for currentFirst is refreshed frequently
+        chrome.tabs.sendMessage(tab.id, { name: "esc" });
+      });
+    } else {
+      count = 0;
+    }
     executeCommand(command, Commands.availableCommands[command], count);
   });
 
