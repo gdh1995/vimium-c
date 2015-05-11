@@ -651,7 +651,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
   handleEnterForFindMode = function() {
     exitFindMode();
     focusFoundLink();
-    document.body.classList.add("vimFindMode");
+    // document.body.classList.add("vimFindMode");
     settings.set("findModeRawQuery", findModeQuery.rawQuery);
   };
 
@@ -671,7 +671,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
   executeFind = function(query, options) {
     var oldFindMode = findMode, result;
     findMode = true;
-    document.body.classList.add("vimFindMode");
+    // document.body.classList.add("vimFindMode");
     HUD.hide(true);
     result = options.repeat;
     do {
@@ -688,7 +688,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
   };
 
   restoreDefaultSelectionHighlight = function() {
-    document.body.classList.remove("vimFindMode");
+    // document.body.classList.remove("vimFindMode");
     document.removeEventListener("selectionchange", restoreDefaultSelectionHighlight, true);
     if (findChangeListened) {
       clearTimeout(findChangeListened);
@@ -900,7 +900,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     }
     container.id = "vimHelpDialogContainer";
     container.className = "vimB vimR";
-    (document.documentElement || document.body).appendChild(container);
+    document.documentElement.appendChild(container);
     container.addEventListener("mousewheel", DomUtils.suppressPropagation, false);
     container.innerHTML = response.html;
 
