@@ -42,38 +42,41 @@ var LinkHints = {
     this.filterHints.numberToHintString = this.alphabetHints.numberToHintString = this.numberToHintString;
   },
   activateModeToOpenInNewTab: function() {
-    return this.activateMode(this.CONST.OPEN_IN_NEW_BG_TAB);
+    this._activateMode(this.CONST.OPEN_IN_NEW_BG_TAB);
   },
   activateModeToOpenInNewForegroundTab: function() {
-    return this.activateMode(this.CONST.OPEN_IN_NEW_FG_TAB);
+    this._activateMode(this.CONST.OPEN_IN_NEW_FG_TAB);
   },
   activateModeToCopyLinkUrl: function() {
-    return this.activateMode(this.CONST.COPY_LINK_URL);
+    this._activateMode(this.CONST.COPY_LINK_URL);
   },
   activateModeToCopyLinkText: function() {
-    return this.activateMode(this.CONST.COPY_TEXT);
+    this._activateMode(this.CONST.COPY_TEXT);
   },
   activateModeToSearchLinkText: function() {
-    return this.activateMode(this.CONST.SEARCH_TEXT);
+    this._activateMode(this.CONST.SEARCH_TEXT);
   },
   activateModeWithQueue: function() {
-    return this.activateMode(this.CONST.OPEN_WITH_QUEUE);
+    this._activateMode(this.CONST.OPEN_WITH_QUEUE);
   },
   activateModeToOpenIncognito: function() {
-    return this.activateMode(this.CONST.OPEN_INCOGNITO_LINK);
+    this._activateMode(this.CONST.OPEN_INCOGNITO_LINK);
   },
   activateModeToDownloadLink: function() {
-    return this.activateMode(this.CONST.DOWNLOAD_LINK);
+    this._activateMode(this.CONST.DOWNLOAD_LINK);
   },
   activateModeToHover: function() {
-    return this.activateMode(this.CONST.HOVER);
+    this._activateMode(this.CONST.HOVER);
   },
-  activateMode: function(mode) {
+  activateMode: function() {
+    this._activateMode(this.CONST.OPEN_IN_CURRENT_TAB);
+  },
+  _activateMode: function(mode) {
     if (this.isActive) {
       return;
     } else if (document.body == null) {
       if (!this.initTimer) {
-        this.initTimer = setInterval(this.activateMode.bind(this, mode), 300);
+        this.initTimer = setInterval(this._activateMode.bind(this, mode), 300);
       } else if (document.head == null) {
         clearInterval(this.initTimer); // document is not a <html> document
         this.initTimer = 0;
@@ -84,7 +87,7 @@ var LinkHints = {
       clearInterval(this.initTimer);
       this.initTimer = 0;
     }
-    this.setOpenLinkMode(mode || 0);
+    this.setOpenLinkMode(mode);
     var elements = this.getVisibleClickableElements();
     if (settings.values.filterLinkHints) {
       this.markerMatcher = this.filterHints;
@@ -122,7 +125,7 @@ var LinkHints = {
     case cons.OPEN_IN_NEW_BG_TAB: tip = "Open a link in new tab"; break;
     case cons.OPEN_IN_NEW_FG_TAB: tip = "Open in new active tab"; break;
     case cons.OPEN_WITH_QUEUE: tip = "Open multiple tabs"; break;
-    case cons.OPEN_FG_WITH_QUEUE: tip = "activate link and hold on"; break;
+    case cons.OPEN_FG_WITH_QUEUE: tip = "Activate link and hold on"; break;
     case cons.COPY_LINK_URL:
       tip = mode >= 192 ? "Copy link URL one by one" : "Copy link URL to Clipboard";
       activator = this.FUNC.COPY_LINK_URL;
@@ -144,7 +147,7 @@ var LinkHints = {
       activator = this.FUNC.DOWNLOAD_LINK;
       break;
     case cons.HOVER:
-      tip = mode >= 192 ? "hover objects continuously" : "hover selected";
+      tip = mode >= 192 ? "Hover nodes continuously" : "Hover selected";
       activator = this.FUNC.HOVER;
       break;
     default:
@@ -309,7 +312,7 @@ var LinkHints = {
         this.setOpenLinkMode((this.mode | 2) ^ 1);
       }
     } else if (_i === KeyCodes.altKey) {
-      this.setOpenLinkMode((this.mode >= 128) ? (this.mode ^ 64) : ((this.mode | 2) ^ 64));
+      this.setOpenLinkMode(((this.mode >= 128 ? 0 : 2) | this.mode) ^ 64);
     } else if (!(linksMatched = this.markerMatcher.matchHintsByKey(this.hintMarkers, event, this.keyStatus))){
       if (linksMatched === false) {
         this.reinit();
@@ -374,7 +377,7 @@ var LinkHints = {
     var mode = this.mode, linkActivator = this.linkActivator;
     this.deactivateMode(function() {
       this.linkActivator = linkActivator;
-      this.activateMode(mode);
+      this._activateMode(mode);
     });
   },
   deactivate2: function(callback) {
@@ -778,12 +781,13 @@ LinkHints.FUNC = {
   },
   HOVER: DomUtils.SimulateHover,
   DEFAULT: function(link) {
+    var mode = this.mode & 3;
     // NOTE: not clear last hovered item, for that it may be a menu
     DomUtils.simulateClick(link, {
       altKey: false,
-      ctrlKey: (this.mode & 2) === 2 && KeyboardUtils.platform !== "Mac",
-      metaKey: (this.mode & 2) === 2 && KeyboardUtils.platform === "Mac",
-      shiftKey: (this.mode & 3) === 3
+      ctrlKey: mode >= 2 && KeyboardUtils.platform !== "Mac",
+      metaKey: mode >= 2 && KeyboardUtils.platform === "Mac",
+      shiftKey: mode === 3
     });
   }
 };
