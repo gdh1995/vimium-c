@@ -655,7 +655,7 @@
     var key, ref1, ref2, first, arr, keyRegex = Commands.keyRegex;
     resetKeys();
     ref1 = firstKeys = ["1", "2", "3", "4", "5", "6", "7", "8", "9"];
-    ref2 = secondKeys = {"": ["0"]}; // "0" is for key queues like "10n"
+    ref2 = secondKeys = {};
     ref2.__proto__ = null;
     for (key in Commands.keyToCommandRegistry) {
       if (key.charCodeAt(0) >= 48 && key.charCodeAt(0) <= 57) {
@@ -672,10 +672,12 @@
       }
     }
     ref1.sort().reverse();
+    keyRegex = function(key) { return ref1.indexOf(key) === -1; };
     for (first in ref2) {
-      ref1 = ref2[first];
-      ref1.sort().reverse();
+      arr = ref2[first] = ref2[first].filter(keyRegex);
+      arr.sort().reverse();
     }
+    ref2[""] = ["0"]; // "0" is for key queues like "10n"
   };
 
   handleResponse = function(msgId, func, request, tab) {
