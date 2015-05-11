@@ -418,7 +418,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       KeydownEvents.push(event);
       return;
     }
-    var keyChar, key = event.keyCode, action = false;
+    var keyChar, key = event.keyCode, action = 0;
     if (isInsertMode()) {
       if (key === KeyCodes.esc) {
         if (KeyboardUtils.isPlain(event)) {
@@ -426,7 +426,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
             event.srcElement.blur();
           }
           exitInsertMode();
-          action = true;
+          action = 2;
         }
       } else if (key >= KeyCodes.f1 && key <= KeyCodes.f12) {
         keyChar = getFullCommand(event, KeyboardUtils.getKeyName(event));
@@ -437,14 +437,21 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       if (key === KeyCodes.esc) {
         if (KeyboardUtils.isPlain(event)) {
           handleEscapeForFindMode();
-          action = true;
+          action = 2;
         }
       } else if (key === KeyCodes.backspace || key === KeyCodes.deleteKey) {
         handleDeleteForFindMode();
-        action = true;
+        action = 2;
       } else if (key === KeyCodes.enter) {
         handleEnterForFindMode();
-        action = true;
+        action = 2;
+      } else if (key >= 32 && (event.metaKey || event.ctrlKey || event.altKey)) {
+        if (!KeyboardUtils.getKeyChar(event)) {
+          action = 1;
+        }
+      } else if (event.keyIdentifier.startsWith("U+")) {
+      } else if (! (key in KeyboardUtils.keyNames)) {
+        action = 1;
       }
     }
     else if (key === KeyCodes.esc) {
@@ -452,20 +459,26 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
         mainPort.postMessage({ handler: "esc" });
         keyQueue = false;
         currentSeconds = secondKeys[""];
-        action = true;
+        action = 2;
       }
+    } else if (!(keyChar = KeyboardUtils.getKeyChar(event))) {
     }
     else if ((key >= 32 && (event.metaKey || event.ctrlKey || event.altKey)) //
-        || ! event.keyIdentifier.startsWith("U+")) {
-      if (keyChar = KeyboardUtils.getKeyChar(event)) {
-        keyChar = getFullCommand(event, keyChar);
-        action = checkValidKey(keyChar);
-      }
+          || ! event.keyIdentifier.startsWith("U+")) {
+      keyChar = getFullCommand(event, keyChar);
+      action = checkValidKey(keyChar);
+    } else if (checkValidKey(keyChar, true)) { // keyChar is just the full command
+      action = 1;
     }
-    if (action) {
+    if (action <= 0) {
+      return;
+    }
+    if (action === 2) {
       DomUtils.suppressEvent(event);
-      KeydownEvents.push(event);
+    } else {
+      DomUtils.suppressPropagation(event);
     }
+    KeydownEvents.push(event);
   };
 
   (function() {
@@ -483,20 +496,22 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
         passKeys = null;
       }
     };
-    checkValidKey = function(key) {
+    checkValidKey = function(key, noPost) {
       if (keyQueue) {
         if ((key in firstKeys) || (key in currentSeconds)) {
         } else {
           mainPort.postMessage({ handler: "esc" });
           keyQueue = false;
           currentSeconds = secondKeys[""];
-          return false;
+          return 0;
         }
       } else if (passKeys && (key in passKeys) || !(key in firstKeys)) {
-        return false;
+        return 0;
       }
-      mainPort.postMessage({ handlerKey: key });
-      return true;
+      if (!noPost) {
+        mainPort.postMessage({ handlerKey: key });
+      }
+      return 2;
     };
   })();
 
