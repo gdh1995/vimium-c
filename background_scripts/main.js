@@ -1019,7 +1019,7 @@
         chrome.tabs.sendMessage(tab.id, { name: "esc" });
       });
     } else {
-      count = 0;
+      count = 1;
     }
     executeCommand(command, Commands.availableCommands[command], count);
   });
