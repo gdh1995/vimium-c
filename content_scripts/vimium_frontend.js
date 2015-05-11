@@ -191,7 +191,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     }, true);
     document.addEventListener("DOMActivate", ELs.onActivate = function(event) {
       if (isEnabledForUrl) {
-        handlerStack.bubbleEvent('DOMActivate', event);
+        handlerStack.bubbleEvent("DOMActivate", event);
       }
     }, true);
     if (document.activeElement && DomUtils.getEditableType(document.activeElement) >= 2 && !findMode) {
@@ -394,7 +394,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
   };
 
   ELs.onKeypress = function(event) {
-    if (!isEnabledForUrl || !handlerStack.bubbleEvent('keypress', event) || event.keyCode < 32) {
+    if (!isEnabledForUrl || !handlerStack.bubbleEvent("keypress", event) || event.keyCode < 32) {
       return;
     }
     var keyChar = String.fromCharCode(event.charCode);
@@ -414,7 +414,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
   ELs.onKeydown = function(event) {
     if (!isEnabledForUrl) {
       return;
-    } else if (!handlerStack.bubbleEvent('keydown', event)) {
+    } else if (!handlerStack.bubbleEvent("keydown", event)) {
       KeydownEvents.push(event);
       return;
     }
@@ -738,7 +738,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       return;
     }
     focusFoundLink();
-    // TODO: remove this `if`
+    // NOTE: this `if` should not be removed
     if (DomUtils.canTakeInput(findModeAnchorNode)) {
       handlerStack.push({
         keydown: function(event) {
@@ -953,7 +953,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     document.getElementById("vimHelpDialog").style.maxHeight = window.innerHeight - 80;
     showAdvancedCommands(shouldShowAdvanced);
     container.querySelector(".vimHelpTr").click();
-    handlerId = handlerStack.unshift({
+    handlerId = handlerStack.push({
       keydown: function(event) {
         if (event.keyCode === KeyCodes.esc && KeyboardUtils.isPlain(event)) {
           hide(event);
