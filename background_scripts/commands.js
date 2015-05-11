@@ -87,22 +87,23 @@ Commands.commandGroups = {
   pageNavigation: ["scrollDown", "scrollUp", "scrollLeft", "scrollRight", "scrollToTop"
     , "scrollToBottom", "scrollToLeft", "scrollToRight", "scrollPageDown", "scrollPageUp"
     , "scrollFullPageUp", "scrollFullPageDown", "reload", "toggleViewSource", "copyCurrentUrl"
+    , "copyCurrentTitle"
     , "LinkHints.activateModeToCopyLinkUrl", "LinkHints.activateModeToCopyLinkText"
     , "openCopiedUrlInCurrentTab", "openCopiedUrlInNewTab", "goUp", "goToRoot", "enterInsertMode"
     , "focusInput", "LinkHints.activateMode", "LinkHints.activateModeToOpenInNewTab"
     , "LinkHints.activateModeToOpenInNewForegroundTab", "LinkHints.activateModeWithQueue"
     , "LinkHints.activateModeToDownloadLink", "LinkHints.activateModeToOpenIncognito"
-    , "LinkHints.activateModeToHover", "LinkHints.activateModeToSearchLinkText" //
+    , "LinkHints.activateModeToHover", "LinkHints.activateModeToSearchLinkText"
     , "Vomnibar.activate", "Vomnibar.activateInNewTab", "Vomnibar.activateTabSelection"
     , "Vomnibar.activateBookmarks", "Vomnibar.activateBookmarksInNewTab", "Vomnibar.activateHistory"
-    , "Vomnibar.activateHistoryInNewTab", "goPrevious", "goNext", "nextFrame", "copyCurrentTitle"
+    , "Vomnibar.activateHistoryInNewTab", "goPrevious", "goNext", "nextFrame"
     , "Marks.activateCreateMode", "Vomnibar.activateEditUrl", "Vomnibar.activateEditUrlInNewTab"
     , "Marks.activateGotoMode"],
   historyNavigation: ["goBack", "goForward", "reloadTab", "reopenTab", "switchFocus", "simBackspace"],
   findCommands: ["enterFindMode", "performFind", "performBackwardsFind"],
   tabManipulation: ["nextTab", "previousTab", "firstTab", "lastTab", "createTab", "duplicateTab"
     , "removeTab", "restoreTab", "restoreGivenTab", "moveTabToNextWindow", "moveTabToIncognito", "togglePinTab"
-    , "closeTabsOnLeft", "closeTabsOnRight", "closeOtherTabs", "moveTabLeft", "moveTabRight" //
+    , "closeTabsOnLeft", "closeTabsOnRight", "closeOtherTabs", "moveTabLeft", "moveTabRight"
     , "enableImageTemp", "toggleImage", "clearImageCS"],
   misc: ["showHelp", "enterVisualMode", "autoCopy", "autoSearch", "mainFrame", "blank"]
 };
@@ -250,7 +251,7 @@ Commands._defaultKeyMappings = {
     }
   ],
   copyCurrentTitle: [
-    "Copy the current tabs's title", {
+    "Copy the current tab's title", {
       background: true,
       noRepeat: true
     }
