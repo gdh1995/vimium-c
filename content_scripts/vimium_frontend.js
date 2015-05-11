@@ -245,7 +245,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       if (newEl !== document.body) {
         oldActivated.target = newEl;
         oldActivated.isSecond = false;
-        if (newEl.blur) {
+        if (newEl && newEl.blur) {
           newEl.blur();
         }
         return;
@@ -268,7 +268,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     },
     simBackspace: function() {
       var el = document.activeElement;
-      if (el === document.body) {
+      if (el && el === document.body) {
         switchFocus();
       } else if (!DomUtils.isVisibile(el) || DomUtils.getEditableType(el) < 2) {
         return;
@@ -547,7 +547,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       return true;
     }
     var el = document.activeElement;
-    if (el.isContentEditable) {
+    if (el && el.isContentEditable) {
       enterInsertModeWithoutShowingIndicator(el);
       return true;
     }
