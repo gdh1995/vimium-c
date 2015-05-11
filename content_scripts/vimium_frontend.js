@@ -445,11 +445,9 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       } else if (key === KeyCodes.enter) {
         handleEnterForFindMode();
         action = 2;
-      } else if (key >= 32 && (event.metaKey || event.ctrlKey || event.altKey)) {
-        if (!KeyboardUtils.getKeyChar(event)) {
-          action = 1;
-        }
+      } else if (event.metaKey || event.ctrlKey || event.altKey) {
       } else if (event.keyIdentifier.startsWith("U+")) {
+        action = 1;
       } else if (! (key in KeyboardUtils.keyNames)) {
         action = 1;
       }
