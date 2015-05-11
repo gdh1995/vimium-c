@@ -296,7 +296,11 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     goToRoot: function() {
       window.location.href = window.location.origin;
     },
-    showHelp: function() {
+    showHelp: function(_0, force_current) {
+      if (window.top !== window && !force_current) {
+        sendMessageToFrames(0, "showHelp", [1, true]);
+        return;
+      }
       mainPort.postMessage({
         handler: "initHelp",
       }, showHelpDialog);
@@ -953,6 +957,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     }
     document.getElementById("vimHelpDialog").style.maxHeight = window.innerHeight - 80;
     showAdvancedCommands(shouldShowAdvanced);
+    window.focus();
     container.querySelector(".vimHelpTr").click();
     handlerId = handlerStack.push({
       keydown: function(event) {
