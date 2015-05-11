@@ -781,7 +781,11 @@ LinkHints.FUNC = {
   },
   HOVER: DomUtils.SimulateHover,
   DEFAULT: function(link) {
-    var mode = this.mode & 3;
+    var mode = this.mode & 3, alterTarget;
+    if (mode >= 2 && link.target === "_blank") {
+      alterTarget = true;
+      link.target = "_top";
+    }
     // NOTE: not clear last hovered item, for that it may be a menu
     DomUtils.simulateClick(link, {
       altKey: false,
@@ -789,5 +793,8 @@ LinkHints.FUNC = {
       metaKey: mode >= 2 && KeyboardUtils.platform === "Mac",
       shiftKey: mode === 3
     });
+    if (alterTarget && link.target === "_top") {
+      link.target = "_blank";
+    }
   }
 };
