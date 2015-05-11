@@ -1220,8 +1220,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     ));
   });
 
-  chrome.runtime.onMessage.addListener(function(request, handler, sendResponse) {
-    sendResponse(0);
+  chrome.runtime.onMessage.addListener(function(request, handler) {
     if (isEnabledForUrl || request.frameId === 0) {
       requestHandlers[request.name](request); // do not check `handler != null`
     }
