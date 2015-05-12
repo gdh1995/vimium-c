@@ -895,9 +895,8 @@
         url: url
       }, function() {
         if (chrome.runtime.lastError) {
-          console.log("Error when update tab to: ", url);
+          return chrome.runtime.lastError;
         }
-        return chrome.runtime.lastError;
       });
     },
     dispatchMsg: function(request) {
