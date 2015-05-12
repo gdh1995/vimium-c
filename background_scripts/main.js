@@ -189,6 +189,8 @@
   };
 
   funcDict = {
+    globalCommand: null,
+
     isIncNor: function(wnd) {
       return wnd.incognito && wnd.type === "normal";
     },
@@ -1014,7 +1016,7 @@
 
   Settings.buildBuffer();
 
-  chrome.commands.onCommand.addListener(function(command) {
+  chrome.commands.onCommand.addListener(funcDict.globalCommand = function(command) {
     var count;
     if (currentFirst !== null) {
       count = currentFirst ? 1 : (currentCount || 1);
@@ -1027,6 +1029,23 @@
       count = 1;
     }
     executeCommand(command, Commands.availableCommands[command], count);
+  });
+
+  chrome.runtime.onMessageExternal.addListener(function(message) {
+    var command;
+    if (typeof message === "string") { command = message; }
+    else if (typeof message === "object") {
+      if (message.handler === "command") {
+        if (message.count) {
+          currentFirst = "";
+          currentCount = message.count;
+        }
+        command = message.command;
+      }
+    }
+    if (command && Commands.availableCommands[command]) {
+      funcDict.globalCommand(command);
+    }
   });
 
   chrome.runtime.onConnect.addListener(function(port) {
