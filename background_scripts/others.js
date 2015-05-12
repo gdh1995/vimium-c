@@ -118,13 +118,15 @@ if (chrome.browserAction && chrome.browserAction.setIcon) (function() {
 
 chrome.runtime.onInstalled.addListener(window.b = function(details) {
   var contentScripts, js, css, allFrames, _i, _len, reason = details.reason;
-  if (["chrome_update", "shared_module_update"].indexOf(reason) >= 0) { return; }
+  if (reason === "install") { reason = ""; }
+  else if (reason === "update") { reason = details.previousVersion; }
+  else { return; }
   if (window.c > 0) {
     clearTimeout(window.c);
   }
   contentScripts = chrome.runtime.getManifest().content_scripts[0];
   js = contentScripts.js;
-  css = (details.reason === "install" || window._DEBUG >= 3) ? contentScripts.css : [];
+  css = (!reason || window._DEBUG >= 3) ? contentScripts.css : [];
   allFrames = contentScripts.all_frames;
   contentScripts = null;
   for (_i = css.length; 0 <= --_i; ) {
@@ -151,17 +153,7 @@ chrome.runtime.onInstalled.addListener(window.b = function(details) {
     console.log("%cvim %chas %cinstalled", "color:blue", "color:auto", "color:red", details);
   });
 
-  var func = function(key, value) {
-    if (value === undefined) {
-      value = localStorage[key];
-      return value ? JSON.parse(value) : null;
-    }
-    localStorage[key] = JSON.stringify(value);
-  }, key = func("previousVersion"), currentVersion = Utils.getCurrentVersion();
-  if (!key) {
-    func("previousVersion", currentVersion);
-    return;
-  }
+  if (!reason && chrome.notifications && chrome.notifications.create) { return; }
 
   func = function(versionA, versionB) {
     var a, b, i, _i, _ref;
@@ -178,42 +170,32 @@ chrome.runtime.onInstalled.addListener(window.b = function(details) {
     }
     return 0;
   };
-  if (func(currentVersion, key) !== 1) {
-    return;
-  }
-  
-  func = function() {
-    var key = "vimium++_upgradeNotification";
-    chrome.notifications.create(key, {
-      type: "basic",
-      iconUrl: chrome.runtime.getURL("favicon.ico"),
-      title: "Vimium++ Upgrade",
-      message: "Vimium++ has been upgraded to version " + currentVersion
-        + ". Click here for more information.",
-      isClickable: true
-    }, function() {
-      if (chrome.runtime.lastError) {
+  if (func(currentVersion, reason) !== 1) { return; }
+
+  var key = "vimium++_upgradeNotification";
+  chrome.notifications.create(key, {
+    type: "basic",
+    iconUrl: chrome.runtime.getURL("favicon.ico"),
+    title: "Vimium++ Upgrade",
+    message: "Vimium++ has been upgraded to version " + currentVersion
+      + ". Click here for more information.",
+    isClickable: true
+  }, function() {
+    if (chrome.runtime.lastError) {
+      return chrome.runtime.lastError;
+    }
+    chrome.notifications.onClicked.addListener(function(id) {
+      if (id !== key) { return; }
+      chrome.tabs.create({
+        url: "https://github.com/gdh1995/vimium-plus#release-notes"
+      }, function(tab) {
+        chrome.windows.update(tab.windowId, {focused: true});
+      });
+      chrome.notifications.clear(key, function() {
         return chrome.runtime.lastError;
-      }
-      Settings.storage("previousVersion", currentVersion);
-      chrome.notifications.onClicked.addListener(function(id) {
-        if (id !== key) { return; }
-        chrome.tabs.create({
-          url: "https://github.com/gdh1995/vimium-plus#release-notes"
-        }, function(tab) {
-          chrome.windows.update(tab.windowId, {focused: true});
-        });
-        chrome.notifications.clear(key, function() {
-          return chrome.runtime.lastError;
-        });
       });
     });
-  };
-  if (chrome.notifications && chrome.notifications.create) {
-    func();
-  } else {
-    chrome.permissions.onAdded.addListener(func);
-  }
+  });
 });
 setTimeout(function() {
   chrome.runtime.onInstalled.removeListener(window.b);
