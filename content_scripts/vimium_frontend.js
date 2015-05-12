@@ -971,8 +971,9 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
   };
 
   HUD = {
-    _hideId: 0,
+    _tweenId: 0,
     _element: null,
+    opacity: 0,
     _durationTimer: 0,
     showCopied: function(text) {
       if (text.startsWith("chrome-ext")) {
@@ -992,13 +993,6 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       if (!this.enabled()) {
         return false;
       }
-      if (this._hideId) {
-        clearInterval(this._hideId);
-        this._hideId = 0;
-      } else if (this._durationTimer) {
-        clearTimeout(this._durationTimer);
-        this._durationTimer = 0;
-      }
       var el = this._element;
       if (!el) {
         el = document.createElement("div");
@@ -1010,46 +1004,58 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
         el.id = "vimHUD";
         el.style.opacity = "0";
         document.documentElement.appendChild(this._element = el);
+      } else if (this._durationTimer) {
+        clearTimeout(this._durationTimer);
+        this._durationTimer = 0;
       }
       el.innerText = text;
       el.style.display = "";
-      setTimeout(this.tween, 0);
+      if (!this._tweenId) {
+        this._tweenId = setInterval(this.tween, 40);
+      }
+      this.opacity = 1;
       return true;
     },
     tween: function() {
-      var style;
-      if (HUD && !(style = HUD._element.style).display && style.opacity === "0") {
-        style.opacity = "1";
+      var hud = HUD, el = hud._element, opacity = +el.style.opacity;
+      if (opacity !== hud.opacity) {
+        opacity += opacity < hud.opacity ? 0.25 : -0.25;
+        el.style.opacity = opacity;
+        if (opacity !== hud.opacity) {
+          return;
+        }
       }
+      if (opacity == 0) {
+        el.style.display = "none";
+        el.innerText = "";
+      }
+      clearInterval(hud._tweenId);
+      hud._tweenId = 0;
     },
     hide: function(immediate) {
       var hud = HUD, el;
-      hud._durationTimer = 0;
+      if (hud._durationTimer) {
+        clearTimeout(hud._durationTimer);
+        hud._durationTimer = 0;
+      }
       if (!(el = hud._element) || el.style.display === "none") {
         return;
       }
       if (immediate) {
         el.style.display = "none";
         el.innerText = "";
-        if (hud._hideId) {
-          clearInterval(hud._hideId);
-          hud._hideId = 0;
-        }
-      } else if (!hud._hideId) {
-        el.style.opacity = "0";
-        hud._hideId = setTimeout(function() {
-          HUD._element.style.display = "none";
-          HUD._element.innerText = "";
-          HUD._hideId = 0;
-        }, 170);
+        el.style.opacity = 0;
+      } else if (!hud._tweenId) {
+        hud._tweenId = setInterval(hud.tween, 40);
       }
+      hud.opacity = 0;
     },
     enabled: function() {
       return document.body && settings.values.hideHud === false;
     },
     destroy: function() {
-      clearInterval(this._hideId);
-      clearInterval(this._durationTimer);
+      clearInterval(this._tweenId);
+      clearTimeout(this._durationTimer);
       this._element && DomUtils.removeNode(this._element);
       HUD = null;
     }
