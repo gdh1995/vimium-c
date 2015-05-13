@@ -161,8 +161,9 @@
 	border-radius: 4px 4px 0 0;
 	bottom: 0px;
 	font-family: Arial, Helvetica, sans-serif;
-	min-height: 13px;
-	max-width: 400px;
+	font-size: 12px !important;
+	height: 13px;
+	max-width: 300px;
 	min-width: 150px;
 	padding: 3px 3px 2px 3px;
 	position: fixed;

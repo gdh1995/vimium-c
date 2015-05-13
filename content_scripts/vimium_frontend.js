@@ -979,7 +979,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       if (text.startsWith("chrome-ext")) {
         text = text.substring(text.indexOf('/', text.indexOf('/') + 2));
       }
-      if (text.length > 44) {
+      if (text.length > 43) {
         text = text.substring(0, 40) + "...";
       }
       this.showForDuration("copy: " + text, 2000);
