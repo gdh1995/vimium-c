@@ -125,6 +125,7 @@ Vomnibar.vomnibarUI = {
     this.box.style.display = "none";
     this.input.blur();
     this.list.innerHTML = "";
+    this.input.value = "";
     handlerStack.remove(this.handlerId);
     this.handlerId = 0;
     this.input.removeEventListener("input", this.onInput);
@@ -132,7 +133,8 @@ Vomnibar.vomnibarUI = {
     this.box.removeEventListener("mousewheel", DomUtils.suppressPropagation);
     this.box.removeEventListener("keyup", this.onKeyEvent);
     this.onUpdate = null;
-    this.input.value = "";
+    this.completionInput.text = "";
+    this.completionInput.url = "";
     this.completions = [];
   },
   reset: function(input) {
