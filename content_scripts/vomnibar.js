@@ -30,16 +30,19 @@ var Vomnibar = {
     vomnibarUI.initialSelectionValue = selectFirstResult ? 0 : -1;
     vomnibarUI.refreshInterval = this.defaultRefreshInterval || 250;
     vomnibarUI.forceNewTab = forceNewTab ? true : false;
-    if (initialQueryValue !== true) {
-      vomnibarUI.reset(initialQueryValue);
+    if (!initialQueryValue) {
+      vomnibarUI.reset();
       return;
     }
     mainPort.postMessage({
       handler: "parseSearchUrl",
       url: window.location.href
     }, function(url) {
-      url = url || Utils.decodeURL(window.location.href);
-      Vomnibar.vomnibarUI.reset(url);
+      if (url) {
+        Vomnibar.vomnibarUI.reset(url, url.indexOf(' ') + 1, url.length);
+      } else {
+        Vomnibar.vomnibarUI.reset(Utils.decodeURL(window.location.href));
+      }
     });
   },
   activate: function() {
@@ -137,10 +140,18 @@ Vomnibar.vomnibarUI = {
     this.completionInput.url = "";
     this.completions = [];
   },
-  reset: function(input) {
-    input = input ? input.trimLeft() : "";
-    this.completionInput.text = input;
-    this.completionInput.url = input.trimRight();
+  reset: function(input, start, end) {
+    if (input) {
+      this.completionInput.text = input;
+      this.completionInput.url = input.trimRight();
+      if (start <= end) {
+        this.update(0, function() {
+          this.show();
+          this.input.setSelectionRange(start, end);
+        });
+        return;
+      }
+    }
     this.update(0, this.show);
   },
   update: function(updateDelay, callback) {
