@@ -95,7 +95,7 @@ function getMaxZindex(obj) {
 	var maxZ = 0, objSiblings = obj.siblings(), i, temp;
 	if (objSiblings.length > 0) {
 		for (i = 0; i < objSiblings.length; i++) {
-			temp = parseInt(objSiblings[i].style.zIndex);
+			temp = parseInt(objSiblings[i].style.zIndex, 10);
 			if (maxZ < temp) {
 				maxZ = temp
 			}
