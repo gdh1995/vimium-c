@@ -3,7 +3,10 @@ var lastVisited = {
 	init : function () {},
 	template : function (visitedTemplate) {
 		var self = this;
-		var contentObj = $('<div class="lastVisitedContainer"><div class="lastVisitedHeader"><div class="headerIcon"></div>' + getI18nMsg('lastVisitedAppTitle') + '<div id="removeAll" class="lastVisitedBtn removeAll">' + getI18nMsg('removeAll') + '</div><div id="openManager" class="lastVisitedBtn">' + getI18nMsg('manage') + '</div></div><div class="lastVisitedBody">' + visitedTemplate + '</div></div>');
+		var contentObj = $('<div class="lastVisitedContainer"><div class="lastVisitedHeader"><div class="headerIcon"></div>'
+			+ getI18nMsg('lastVisitedAppTitle') + '<a id="removeAll" class="lastVisitedBtn removeAll">'
+			+ getI18nMsg('removeAll') + '</a><a id="openManager" class="lastVisitedBtn">'
+			+ getI18nMsg('manage') + '</a></div><div class="lastVisitedBody">' + visitedTemplate + '</div></div>');
 		contentObj.find('.visitedItemAdd').unbind('click').bind('click', function () {
 			var url = $(this).siblings('a').attr('href');
 			var title = $(this).siblings('a').text();
@@ -48,7 +51,7 @@ var lastVisited = {
 			}
 		});
 		contentObj.find('#openManager').unbind('click').bind('click', function (e) {
-			openTab(false, "chrome://history/", e.ctrlKey || e.metaKey);
+			openTab(false, "chrome://history", e.ctrlKey || e.metaKey);
 		});
 		self.content = contentObj;
 		return contentObj

@@ -3,11 +3,11 @@
 .bookmarksContainer .bookmarksHeader .headerIcon{float:left;width:21px;height:21px;margin:7px 0 0 15px;background:url(../img/logo.png);background-size:100%;}
 .bookmarksContainer .bookmarksHeader .searchBookmarks{position:absolute;right:125px;height:36px;border-radius:3px;}
 .bookmarksContainer .bookmarksHeader .searchBookmarks input{width:200px;outline:none;padding:0;height:23px;margin:6px 0px 0px 5px;font-size:13px;float:left;border-radius:3px;background:#FAFAFA;background-image:url(../img/skin_0/searchButton.png);background-repeat:no-repeat;background-position:center right;border:1px #BCBCBC solid;overflow:hidden;color:#A9A9A9;}
-.bookmarksContainer .bookmarksHeader .bookmarksManage{width:81px;line-height:24px;cursor:pointer;text-align:center;font-size:14px;position:absolute;right:25px;top:6px;color:white;font-weight:normal;background:url(/img/skin_0/wedo.png) -123px -453px;text-indent:0px;}
-.bookmarksContainer .bookmarksHeader .bookmarksManage:hover{background:url(/img/skin_0/wedo.png) -123px -488px;}
+.bookmarksContainer .bookmarksHeader #bookmarksManage{width:81px;line-height:24px;cursor:pointer;text-align:center;font-size:14px;position:absolute;right:25px;top:6px;color:white;font-weight:normal;background:url(/img/skin_0/wedo.png) -123px -453px;text-indent:0px;}
+.bookmarksContainer .bookmarksHeader #bookmarksManage:hover{background:url(/img/skin_0/wedo.png) -123px -488px;}
 .bookmarksContainer .bookmarksBody{width:743px;height:415px;overflow-y:auto;border-radius:0 0 6px 6px;margin:7px 0 8px 13px;}
 .bookmarksContainer .bookmarksBody .bookmarksFolder.search{display:none;}
-.bookmarksContainer .bookmarksBody .bookmarksFolder .bookmarksFolderTitle{cursor:pointer;background:url(/img/skin_0/wedo.png) -90px -472px;background-repeat:repeat-y;text-indent:30px;line-height:24px;color:#333;text-shadow:none;overflow:hidden;border-radius:5px 0 0 5px;}
+.bookmarksContainer .bookmarksBody .bookmarksFolder .bookmarksFolderTitle{cursor:pointer;background:url(/img/skin_0/wedo.png) -90px -472px;background-repeat:repeat-y;text-indent:30px;line-height:24px;color:#333;text-shadow:none;overflow:hidden;border-radius:5px;display:block;}
 .bookmarksContainer .bookmarksBody .bookmarksFolder .bookmarksFolderTitle.open{background:url(/img/skin_0/wedo.png) -90px -448px;background-repeat:repeat-y;}
 .bookmarksContainer .bookmarksBody .bookmarksFolder .bookmarksFolderTitle.recent{background:url(/img/skin_0/wedo.png) -90px -492px;background-repeat:repeat-y;}
 .bookmarksContainer .bookmarksBody .bookmarksFolder .bookmarksFolderTitle:hover{background-color:#E5E5E5;}

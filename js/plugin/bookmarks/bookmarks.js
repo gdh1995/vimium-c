@@ -9,7 +9,10 @@ var bookmarks = {
 			id : 'recent'
 		};
 		self.openQueue = PDI.get('setup', 'bookMarksOpenQueue');
-		self.content = '<div class="bookmarksContainer"><div class="bookmarksHeader"><div class="headerIcon"></div><div class="searchBookmarks"><input type="text" class="searchBookmarksKeyword" /></div>' + getI18nMsg('bookmarksAppTitle') + '<div class="bookmarksManage">' + getI18nMsg('manage') + '</div></div><div class="bookmarksBody"><div class="bookmarksFolder search"><div class="bookmarksFolderTitle open">' + getI18nMsg('searchResult') + '</div><ul class="bookMarksFolderContainer"></ul></div>';
+		self.content = '<div class="bookmarksContainer"><div class="bookmarksHeader"><div class="headerIcon"></div><div class="searchBookmarks"><input type="text" class="searchBookmarksKeyword" /></div>'
+			+ getI18nMsg('bookmarksAppTitle') + '<a id="bookmarksManage">' + getI18nMsg('manage')
+			+ '</a></div><div class="bookmarksBody"><div class="bookmarksFolder search"><div class="bookmarksFolderTitle open">'
+			+ getI18nMsg('searchResult') + '</div><ul class="bookMarksFolderContainer"></ul></div>';
 		self.getBookmarks(tree[0]);
 		self.getBookmarks(recentTree);
 		self.content += '</div></div>';
@@ -35,8 +38,8 @@ var bookmarks = {
 				})
 			}
 		});
-		self.content.find(".bookmarksManage").bind("click", function (e) {
-			openTab(false, "chrome://bookmarks/#1", e.ctrlKey || e.metaKey);
+		self.content.find("#bookmarksManage").bind("click", function (e) {
+			openTab(false, "chrome://bookmarks", e.ctrlKey || e.metaKey);
 		});
 		self.content.find(".bookmarksFolderTitle").bind('click', function () {
 			var fid = $(this).attr('fid');
@@ -92,9 +95,15 @@ var bookmarks = {
 			if (typeof tree.children != 'undefined' && tree.children.length > 0) {
 				if (tree.id != 0 && tree.title != '') {
 					if (self.openQueue.length == 0) {
-						self.content += '<div class="bookmarksFolder"><div class="bookmarksFolderTitle' + (tree.title == getI18nMsg('bookmarksRecent') ? ' recent' : '') + (tree.id == 'recent' ? ' open' : '') + '" fid="' + tree.id + '">' + title_fix(tree.title) + '</div><ul class="bookMarksFolderContainer">'
+						self.content += '<div class="bookmarksFolder"><a class="bookmarksFolderTitle'
+							+ (tree.title == getI18nMsg('bookmarksRecent') ? ' recent' : '')
+							+ (tree.id == 'recent' ? ' open' : '') + '" fid="' + tree.id
+							+ '">' + title_fix(tree.title) + '</a><ul class="bookMarksFolderContainer">'
 					} else {
-						self.content += '<div class="bookmarksFolder"><div class="bookmarksFolderTitle' + (tree.title == getI18nMsg('bookmarksRecent') ? ' recent' : '') + (self.openQueue.indexOf(tree.id) != -1 ? ' open' : '') + '" fid="' + tree.id + '">' + title_fix(tree.title) + '</div><ul class="bookMarksFolderContainer">'
+						self.content += '<div class="bookmarksFolder"><a class="bookmarksFolderTitle'
+							+ (tree.title == getI18nMsg('bookmarksRecent') ? ' recent' : '')
+							+ (self.openQueue.indexOf(tree.id) != -1 ? ' open' : '') + '" fid="' + tree.id
+							+ '">' + title_fix(tree.title) + '</a><ul class="bookMarksFolderContainer">'
 					}
 				}
 				var folder = false;

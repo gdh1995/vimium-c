@@ -1921,9 +1921,9 @@ var app = {
 				var _chromeVer = window.navigator.userAgent.match(/chrome\/([\d.]+)/i);
 				var chromeVer = _chromeVer != null ? _chromeVer[1] : _chromeVer;
 				var oUrls = {
-					oDownloads: "chrome://downloads/",
-					oBookmarks: "chrome://bookmarks/#1",
-					oHistory: "chrome://history/",
+					oDownloads: "chrome://downloads",
+					oBookmarks: "chrome://bookmarks",
+					oHistory: "chrome://history",
 					oExtensions: "chrome://extensions",
 					oNewtab: "chrome-search://local-ntp/local-ntp.html"
 				};
