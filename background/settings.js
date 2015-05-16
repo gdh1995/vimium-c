@@ -16,9 +16,9 @@ var Settings = {
     if (key in this.nonPersistent) {
     } else if (value === this.defaults[key]) {
       delete localStorage[key];
-      Sync.clear(key);
+      this.Sync.clear(key);
     } else {
-      Sync.set(key, localStorage[key] = JSON.stringify(value));
+      this.Sync.set(key, localStorage[key] = JSON.stringify(value));
     }
   },
   postUpdate: function(key, value) {
@@ -189,8 +189,13 @@ var Settings = {
     , "previousPatterns", "regexFindMode", "scrollStepSize", "smoothScroll" //
   ],
   bufferToLoad: null,
+  Sync: null,
   ChromeInnerNewTab: "chrome-search://local-ntp/local-ntp.html" // should keep lower case
 };
 Settings._buffer.__proto__ = null;
 
-var Sync = Sync || {clear: function() {}, set: function() {}};
+(function() {
+  var ref, ref2, ref3, i, func;
+  func = function() {};
+  Settings.Sync = {clear: func, set: func};
+})();

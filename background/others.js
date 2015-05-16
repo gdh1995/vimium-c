@@ -11,7 +11,7 @@ setTimeout(function() {
 cb = function(b) { a = b; console.log(b); };
 
 if (Settings.get("vimSync") === true) {
-  var Sync = {
+  Settings.Sync = {
     debug: window._DEBUG,
     storage: chrome.storage.sync,
     doNotSync: ["settingsVersion", "previousVersion"],
@@ -74,8 +74,8 @@ if (Settings.get("vimSync") === true) {
       return this.doNotSync.index(key) < 0;
     }
   };
-  chrome.storage.onChanged.addListener(Sync.handleStorageUpdate.bind(Sync));
-  Sync.fetchAsync();
+  chrome.storage.onChanged.addListener(Settings.Sync.handleStorageUpdate.bind(Settings.Sync));
+  Settings.Sync.fetchAsync();
 }
 
 if (chrome.browserAction && chrome.browserAction.setIcon) (function() {
