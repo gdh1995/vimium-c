@@ -31,12 +31,13 @@ var Utils = {
   hasOrdinaryUrlPrefix: function(url) {
     return this._urlPrefix.test(url);
   },
+  // url: only accept real tab's
   isRefusingIncognito: function(url) {
     url = url.toLowerCase();
     if (url.startsWith('chrome://')) {
-      return !url.startsWith("chrome://downloads/");
+      return !url.startsWith("chrome://downloads");
     }
-    return url !== Settings.ChromeInnerNewTab && url.startsWith('chrome');
+    return !url.startsWith(Settings.ChromeInnerNewTab) && url.startsWith('chrome');
   },
   _hostRegex: /^([^:]+(:[^:]+)?@)?([^:]+|\[[^\]]+\])(:\d+)?$/,
   _nonENTlds: ".\u4e2d\u56fd",
