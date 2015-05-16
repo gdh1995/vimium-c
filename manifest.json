@@ -1,8 +1,8 @@
 {
   "background": {
     "scripts": [
-      "lib/backend_utils.js",
-      "lib/clipboard.js",
+      "background_scripts/utils.js",
+      "background_scripts/clipboard.js",
       "background_scripts/settings.js",
       "background_scripts/commands.js",
       "background_scripts/exclusions.js",
@@ -50,7 +50,7 @@
     "all_frames": true,
     "css": [ "content_scripts/vimium.css" ],
     "js": [
-      "lib/frontend_utils.js",
+      "lib/utils.js",
       "lib/keyboard_utils.js",
       "lib/dom_utils.js",
       "lib/handler_stack.js",
