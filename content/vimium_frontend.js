@@ -94,7 +94,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       if (port = this._port) {
         return port;
       }
-      port = this._port = chrome.runtime.connect({ name: "main" });
+      port = this._port = chrome.runtime.connect("hfjbmagddngcpeloejdejnfgbamkjaeg", { name: "vimium++" });
       port.onDisconnect.addListener(this.ClearPort);
       port.onMessage.addListener(this.Listener);
       return port;

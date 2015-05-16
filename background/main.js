@@ -1048,7 +1048,7 @@
   });
 
   chrome.runtime.onConnect.addListener(function(port) {
-    if (port.name === "main") {
+    if (port.name === "vimium++") {
       port.onMessage.addListener(handleMainPort);
     } else {
       port.disconnect();
