@@ -1,15 +1,15 @@
 {
   "background": {
     "scripts": [
-      "background_scripts/utils.js",
-      "background_scripts/clipboard.js",
-      "background_scripts/settings.js",
-      "background_scripts/commands.js",
-      "background_scripts/exclusions.js",
-      "background_scripts/completion.js",
-      "background_scripts/marks.js",
-      "background_scripts/main.js"
-      // , "background_scripts/others.js"
+      "background/utils.js",
+      "background/clipboard.js",
+      "background/settings.js",
+      "background/commands.js",
+      "background/exclusions.js",
+      "background/completion.js",
+      "background/marks.js",
+      "background/main.js"
+      // , "background/others.js"
     ]
   }, /*/
   "browser_action": {
@@ -48,23 +48,23 @@
   },
   "content_scripts": [ {
     "all_frames": true,
-    "css": [ "content_scripts/vimium.css" ],
+    "css": [ "content/vimium.css" ],
     "js": [
       "lib/utils.js",
       "lib/keyboard_utils.js",
       "lib/dom_utils.js",
       "lib/handler_stack.js",
-      "content_scripts/link_hints.js",
-      "content_scripts/vomnibar.js",
-      "content_scripts/scroller.js",
-      "content_scripts/marks.js",
-      "content_scripts/vimium_frontend.js"
+      "content/link_hints.js",
+      "content/vomnibar.js",
+      "content/scroller.js",
+      "content/marks.js",
+      "content/vimium_frontend.js"
     ],
     "matches": [ "\u003Call_urls>" ],
     "run_at": "document_start"
   }, {
     "all_frames": true,
-    "css": [ "content_scripts/file_urls.css" ],
+    "css": [ "content/file_urls.css" ],
     "matches": [ "file:///*" ],
     "run_at": "document_start"
   } ],
