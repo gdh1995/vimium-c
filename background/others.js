@@ -170,14 +170,14 @@ chrome.runtime.onInstalled.addListener(window.b = function(details) {
     }
     return 0;
   };
-  if (func(currentVersion, reason) !== 1) { return; }
+  if (func(Settings.CurrentVersion, reason) !== 1) { return; }
 
   var key = "vimium++_upgradeNotification";
   chrome.notifications.create(key, {
     type: "basic",
     iconUrl: chrome.runtime.getURL("favicon.ico"),
     title: "Vimium++ Upgrade",
-    message: "Vimium++ has been upgraded to version " + currentVersion
+    message: "Vimium++ has been upgraded to version " + Settings.CurrentVersion
       + ". Click here for more information.",
     isClickable: true
   }, function() {

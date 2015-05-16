@@ -190,12 +190,16 @@ var Settings = {
   ],
   bufferToLoad: null,
   Sync: null,
+  CurrentVersion: "",
   ChromeInnerNewTab: "chrome-search://local-ntp/local-ntp.html" // should keep lower case
 };
 Settings._buffer.__proto__ = null;
 
 (function() {
   var ref, ref2, ref3, i, func;
+  ref = chrome.runtime.getManifest();
+  Settings.CurrentVersion = ref.version;
+
   func = function() {};
   Settings.Sync = {clear: func, set: func};
 })();

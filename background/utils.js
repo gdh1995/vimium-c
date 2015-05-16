@@ -1,8 +1,5 @@
 "use strict";
 var Utils = {
-  getCurrentVersion: function() {
-    return chrome.runtime.getManifest().version;
-  },
   fetchHttpContents: function(url, success, onerror) {
     var req = new XMLHttpRequest();
     req.open("GET", url, true);

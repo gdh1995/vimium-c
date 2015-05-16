@@ -23,7 +23,7 @@
     }
     dialogHtml = Settings.get("help_dialog");
     return dialogHtml.replace(new RegExp("\\{\\{(version|title|" + Object.keys(Commands.commandGroups).join('|') + ")\\}\\}", "g"), function(_, group) {
-      return (group === "version") ? Utils.getCurrentVersion()
+      return (group === "version") ? Settings.CurrentVersion
         : (group === "title") ? (customTitle || "Help")
         : helpDialogHtmlForCommandGroup(group, commandsToKey, Commands.availableCommands, showUnboundCommands, showCommandNames);
     });
