@@ -117,24 +117,23 @@ if (chrome.browserAction && chrome.browserAction.setIcon) (function() {
 })();
 
 chrome.runtime.onInstalled.addListener(window.b = function(details) {
-  var contentScripts, js, css, allFrames, _i, _len, reason = details.reason;
+  var contentScripts, func, js, css, reason = details.reason;
   if (reason === "install") { reason = ""; }
   else if (reason === "update") { reason = details.previousVersion; }
   else { return; }
   if (window.c > 0) {
     clearTimeout(window.c);
   }
-  contentScripts = Settings.ContentScripts;
-  js = contentScripts.js;
-  css = (!reason || window._DEBUG >= 3) ? contentScripts.css : [];
-  allFrames = contentScripts.all_frames;
+
+  contentScripts = chrome.runtime.getManifest().content_scripts[0];
+  if (contentScripts.all_frames) {
+    func = function(url) { return {file: url, allFrames: true}; };
+  } else {
+    func = function(url) { return {file: url, allFrames: false}; };
+  }
+  css = contentScripts.css.map(func);
+  js = contentScripts.js.map(func);
   contentScripts = null;
-  for (_i = css.length; 0 <= --_i; ) {
-    css[_i] = {file: css[_i], allFrames: allFrames};
-  }
-  for (_i = js.length; 0 <= --_i; ) {
-    js[_i] = {file: js[_i], allFrames: allFrames};
-  }
   chrome.tabs.query({
     windowType: "normal",
     status: "complete"
@@ -155,7 +154,7 @@ chrome.runtime.onInstalled.addListener(window.b = function(details) {
 
   if (!reason && chrome.notifications && chrome.notifications.create) { return; }
 
-  var func = function(versionA, versionB) {
+  func = function(versionA, versionB) {
     var a, b, i, _i, _ref;
     versionA = versionA.split('.');
     versionB = versionB.split('.');
