@@ -171,8 +171,8 @@ chrome.runtime.onInstalled.addListener(window.b = function(details) {
   };
   if (func(Settings.CurrentVersion, reason) === 0) { return; }
 
-  var key = "vimium++_upgradeNotification";
-  chrome.notifications.create(key, {
+  reason = "vimium++_upgradeNotification";
+  chrome.notifications.create(reason, {
     type: "basic",
     iconUrl: chrome.runtime.getURL("favicon.ico"),
     title: "Vimium++ Upgrade",
@@ -184,13 +184,13 @@ chrome.runtime.onInstalled.addListener(window.b = function(details) {
       return chrome.runtime.lastError;
     }
     chrome.notifications.onClicked.addListener(function(id) {
-      if (id !== key) { return; }
+      if (id !== reason) { return; }
       chrome.tabs.create({
         url: "https://github.com/gdh1995/vimium-plus#release-notes"
       }, function(tab) {
         chrome.windows.update(tab.windowId, {focused: true});
       });
-      chrome.notifications.clear(key, function() {
+      chrome.notifications.clear(reason, function() {
         return chrome.runtime.lastError;
       });
     });
