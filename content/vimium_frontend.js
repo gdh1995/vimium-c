@@ -1287,7 +1287,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       DomUtils.removeNode(ELs.css);
     }
     } catch (e) {}
-    console.log("%cvim %c#" + frameId + "%c has destroyed."//
+    console.log("%cVimium++ %c#" + frameId + "%c has destroyed."//
       , "color:red", "color:blue", "color:auto");
     window.frameId = frameId;
     window.tabId = ELs.focusMsg.tabId;

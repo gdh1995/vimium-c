@@ -149,7 +149,7 @@ chrome.runtime.onInstalled.addListener(window.b = function(details) {
       for (_j = 0, _len = js.length; _j < _len; ++_j)
         t.executeScript(tabId, js[_j], callback);
     }
-    console.log("%cvim %chas %cinstalled", "color:blue", "color:auto", "color:red", details);
+    console.log("%cVimium++ %chas %cinstalled", "color:blue", "color:auto", "color:red", details);
   });
 
   if (!reason && chrome.notifications && chrome.notifications.create) { return; }
