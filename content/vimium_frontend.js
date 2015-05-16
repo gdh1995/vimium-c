@@ -943,8 +943,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       , toggleAdvancedCommands, false);
     document.getElementById("vimCloseButton").addEventListener("click" //
       , window.showHelp = hide, false);
-    if (window.location.origin + '/' !== chrome.runtime.getURL('')
-        || window.location.pathname !== "/pages/options.html") {
+    if (! window.location.href.startsWith("chrome-extension://hfjbmagddngcpeloejdejnfgbamkjaeg/pages/options.html")) {
       document.getElementById("vimOptionsPage").addEventListener("click", function(event) {
         mainPort.postMessage({
           handler: "openRawUrl",
@@ -1251,6 +1250,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     ));
   });
 
+  chrome.runtime.onMessage &&
   chrome.runtime.onMessage.addListener(function(request, handler) {
     if (isEnabledForUrl || request.frameId === 0) {
       requestHandlers[request.name](request); // do not check `handler != null`

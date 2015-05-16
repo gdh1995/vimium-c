@@ -190,6 +190,7 @@
 
   funcDict = {
     globalCommand: null,
+    globalConnect: null,
 
     isIncNor: function(wnd) {
       return wnd.incognito && wnd.type === "normal";
@@ -1030,16 +1031,21 @@
     executeCommand(command, Commands.availableCommands[command], count);
   });
 
-  chrome.runtime.onMessageExternal.addListener(function(message) {
+  chrome.runtime.onMessageExternal.addListener(function(message, _1, sendResponse) {
     var command;
     if (typeof message === "string") { command = message; }
     else if (typeof message === "object") {
-      if (message.handler === "command") {
+      switch (message.handler) {
+      case "command":
         if (message.count) {
           currentFirst = "";
           currentCount = message.count;
         }
         command = message.command;
+        break;
+      case "content_scripts":
+        sendResponse(Settings.ContentScripts);
+        break;
       }
     }
     if (command && Commands.availableCommands[command]) {
@@ -1047,13 +1053,15 @@
     }
   });
 
-  chrome.runtime.onConnect.addListener(function(port) {
+  chrome.runtime.onConnect.addListener(funcDict.globalConnect = function(port) {
     if (port.name === "vimium++") {
       port.onMessage.addListener(handleMainPort);
     } else {
       port.disconnect();
     }
   });
+
+  chrome.runtime.onConnectExternal.addListener(funcDict.globalConnect);
 
   window.onunload = function() {
     ContentSettings.clear("images");

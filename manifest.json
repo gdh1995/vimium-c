@@ -91,5 +91,9 @@
     "\u003Call_urls>"
   ],
   "update_url": "https://clients2.google.com/service/update2/crx",
-  "version": "1.49"
+  "version": "1.49",
+  "web_accessible_resources": [
+    "content/*",
+    "lib/*"
+  ]
 }
