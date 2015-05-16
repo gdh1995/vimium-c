@@ -58,7 +58,7 @@
       "content/vomnibar.js",
       "content/scroller.js",
       "content/marks.js",
-      "content/vimium_frontend.js"
+      "content/frontend.js"
     ],
     "matches": [ "\u003Call_urls>" ],
     "run_at": "document_start"
