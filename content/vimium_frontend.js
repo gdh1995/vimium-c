@@ -1289,9 +1289,6 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     } catch (e) {}
     console.log("%cVimium++ %c#" + frameId + "%c has destroyed."//
       , "color:red", "color:blue", "color:auto");
-    window.frameId = frameId;
-    window.tabId = ELs.focusMsg.tabId;
-    window.isEnabledForUrl = false;
     ELs = null;
   };
 
