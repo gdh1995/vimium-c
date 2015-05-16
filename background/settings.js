@@ -191,14 +191,27 @@ var Settings = {
   bufferToLoad: null,
   Sync: null,
   CurrentVersion: "",
+  ContentScripts: null,
   ChromeInnerNewTab: "chrome-search://local-ntp/local-ntp.html" // should keep lower case
 };
 Settings._buffer.__proto__ = null;
 
 (function() {
   var ref, ref2, ref3, i, func;
+  func = (function(path) { return this(path); }).bind(chrome.runtime.getURL);
   ref = chrome.runtime.getManifest();
   Settings.CurrentVersion = ref.version;
+  ref = ref.content_scripts;
+  ref3 = { all_frames: false, css: [], js: [] };
+  ref3.__proto__ = null;
+  for (i = 0; i < ref.length; i++) {
+    ref2 = ref[i];
+    if (ref2.matches.indexOf("<all_urls>") === -1) { continue; }
+    ref3.all_frames = ref3.all_frames || ref2.all_frames;
+    ref3.css = ref3.css.concat(ref2.css.map(func));
+    ref3.js = ref3.js.concat(ref2.js.map(func));
+  }
+  Settings.ContentScripts = ref3;
 
   func = function() {};
   Settings.Sync = {clear: func, set: func};

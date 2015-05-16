@@ -124,7 +124,7 @@ chrome.runtime.onInstalled.addListener(window.b = function(details) {
   if (window.c > 0) {
     clearTimeout(window.c);
   }
-  contentScripts = chrome.runtime.getManifest().content_scripts[0];
+  contentScripts = Settings.ContentScripts;
   js = contentScripts.js;
   css = (!reason || window._DEBUG >= 3) ? contentScripts.css : [];
   allFrames = contentScripts.all_frames;
