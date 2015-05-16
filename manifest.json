@@ -89,7 +89,7 @@
     "sessions",
     "tabs",
     "\u003Call_urls>"
-   ],
+  ],
   "update_url": "https://clients2.google.com/service/update2/crx",
   "version": "1.49"
 }

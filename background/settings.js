@@ -195,6 +195,10 @@ var Settings = {
   ChromeInnerNewTab: "chrome-search://local-ntp/local-ntp.html" // should keep lower case
 };
 Settings._buffer.__proto__ = null;
+Settings.updateHooks.__proto__ = null;
+Settings.defaults.__proto__ = null;
+Settings.nonPersistent.__proto__ = null;
+Settings.icons.__proto__ = null;
 
 (function() {
   var ref, ref2, ref3, i, func;
