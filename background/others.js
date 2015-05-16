@@ -155,7 +155,7 @@ chrome.runtime.onInstalled.addListener(window.b = function(details) {
 
   if (!reason && chrome.notifications && chrome.notifications.create) { return; }
 
-  func = function(versionA, versionB) {
+  var func = function(versionA, versionB) {
     var a, b, i, _i, _ref;
     versionA = versionA.split('.');
     versionB = versionB.split('.');
