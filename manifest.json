@@ -79,7 +79,6 @@
   "options_page": "pages/options.html",
   "permissions": [
     "bookmarks",
-    "chrome://favicon/*",
     "clipboardRead",
     "commands",
     "contentSettings",
