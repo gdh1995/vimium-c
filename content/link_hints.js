@@ -793,7 +793,7 @@ LinkHints.FUNC = {
       metaKey: mode >= 2 &&  KeyboardUtils.onMac,
       shiftKey: mode === 3
     });
-    if (alterTarget && link.target === "_top") {
+    if (alterTarget) {
       link.target = "_blank";
     }
   }

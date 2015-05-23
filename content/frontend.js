@@ -77,10 +77,11 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       return callback ? request._msgId : 0;
     },
     Listener: function(response) {
-      var id, handler;
+      var id, handler, arr;
       if (id = response._msgId) {
-        handler = mainPort._callbacks[id];
-        delete mainPort._callbacks[id];
+        arr = mainPort._callbacks;
+        handler = arr[id];
+        delete arr[id];
         handler(response.response, id);
       } else {
         requestHandlers[response.name](response);
