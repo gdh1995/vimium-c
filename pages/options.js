@@ -369,7 +369,7 @@
       btn.innerHTML = "No Changes";
       setTimeout(function () {
         window.onfocus();
-        bgSettings.buildBuffer();
+        bgSettings.postUpdate("bufferToLoad", null);
         bgSettings.postUpdate("broadcast", {
           name: "settings",
           load: bgSettings.bufferToLoad

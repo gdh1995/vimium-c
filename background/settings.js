@@ -1,6 +1,7 @@
 "use strict";
 var Settings = {
   _buffer: {},
+  bufferToLoad: null,
   get: function(key) {
     if (! (key in this._buffer)) {
       return this._buffer[key] = (key in localStorage) ? JSON.parse(localStorage[key]) : this.defaults[key];
@@ -35,6 +36,14 @@ var Settings = {
           t.sendMessage(tabs[i].id, request, null);
         }
       });
+    },
+    bufferToLoad: function() {
+      var _i, key, ref = this.valuesToLoad, ref2 = this.bufferToLoad = {};
+      ref2.__proto__ = null;
+      for (_i = ref.length; 0 <= --_i;) {
+        key = ref[_i];
+        ref2[key] = this.get(key);
+      }
     },
     searchEngines: function() {
       this.set("searchEnginesMap", { "": [] });
@@ -127,14 +136,6 @@ var Settings = {
       Utils.fetchHttpContents(files[id], this.set.bind(this, id));
     }
   },
-  buildBuffer: function() {
-    var _i, key, ref = this.valuesToLoad, ref2 = this.bufferToLoad = {};
-    ref2.__proto__ = null;
-    for (_i = ref.length; 0 <= --_i;) {
-      key = ref[_i];
-      ref2[key] = this.get(key);
-    }
-  },
   // clear localStorage & sync, if value === @defaults[key]
   defaults: {
     UILanguage: null,
@@ -188,7 +189,6 @@ var Settings = {
     , "hideHud", "linkHintCharacters", "linkHintNumbers", "nextPatterns" //
     , "previousPatterns", "regexFindMode", "scrollStepSize", "smoothScroll" //
   ],
-  bufferToLoad: null,
   Sync: null,
   CurrentVersion: "",
   ContentScripts: null,

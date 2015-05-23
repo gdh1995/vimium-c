@@ -1014,7 +1014,7 @@
     });
   };
 
-  Settings.buildBuffer();
+  Settings.postUpdate("bufferToLoad", null);
 
   chrome.commands.onCommand.addListener(funcDict.globalCommand = function(command) {
     var count;
