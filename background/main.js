@@ -999,7 +999,7 @@
   Settings.updateHooks.exclusionRules = function(rules) {
     Exclusions.setRules(rules);
     resetKeys();
-    this.postUpdate("updateAll", {
+    this.postUpdate("broadcast", {
       name: "checkIfEnabled"
     });
   };
@@ -1007,7 +1007,7 @@
   Settings.updateHooks.keyMappings = function(value) {
     Commands.parseKeyMappings(value);
     populateKeyCommands(); // resetKeys has been called in this
-    this.postUpdate("updateAll", {
+    this.postUpdate("broadcast", {
       name: "refreshKeyMappings",
       firstKeys: firstKeys,
       secondKeys: secondKeys

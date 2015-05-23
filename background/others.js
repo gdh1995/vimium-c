@@ -3,7 +3,7 @@
 var a, b, c, cb, log; // for DEBUG only
 c = setTimeout(function() { // currentFirst will be reloaded when window.focus
   c = 0;
-  Settings.postUpdate("updateAll", { name: "reRegisterFrame", work: "rereg" });
+  Settings.postUpdate("broadcast", { name: "reRegisterFrame", work: "rereg" });
 }, 50); // According to tests: onInstalled will be executed after 0 ~ 16 ms if needed
 setTimeout(function() {
   a = c = null, b = cb, log = console.log.bind(console);

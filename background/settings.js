@@ -25,7 +25,7 @@ var Settings = {
     this.updateHooks[key].call(this, value !== undefined ? value : this.get(key), key);
   },
   updateHooks: {
-    updateAll: function (request) {
+    broadcast: function (request) {
       request.frameId = 0;
       chrome.tabs.query({
         windowType: "normal",

@@ -370,7 +370,7 @@
       setTimeout(function () {
         window.onfocus();
         bgSettings.buildBuffer();
-        bgSettings.postUpdate("updateAll", {
+        bgSettings.postUpdate("broadcast", {
           name: "settings",
           load: bgSettings.bufferToLoad
         });
