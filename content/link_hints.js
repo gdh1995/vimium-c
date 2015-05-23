@@ -122,7 +122,7 @@ var LinkHints = {
   setOpenLinkMode: function(mode) {
     var cons = this.CONST, tip, activator;
     switch (mode >= 128 ? ((mode | 64) ^ 64) : mode) {
-    case cons.OPEN_IN_NEW_BG_TAB: tip = "Open a link in new tab"; break;
+    case cons.OPEN_IN_NEW_BG_TAB: tip = "Open link in new tab"; break;
     case cons.OPEN_IN_NEW_FG_TAB: tip = "Open in new active tab"; break;
     case cons.OPEN_WITH_QUEUE: tip = "Open multiple tabs"; break;
     case cons.OPEN_FG_WITH_QUEUE: tip = "Activate link and hold on"; break;
@@ -143,7 +143,7 @@ var LinkHints = {
       activator = this.FUNC.OPEN_INCOGNITO_LINK;
       break;
     case cons.DOWNLOAD_LINK:
-      tip = mode >= 192 ? "Download multiple links" : "Download a link";
+      tip = mode >= 192 ? "Download multiple links" : "Download link";
       activator = this.FUNC.DOWNLOAD_LINK;
       break;
     case cons.HOVER:
