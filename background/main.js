@@ -988,6 +988,12 @@
   Settings.postUpdate("searchEngines", null);
 
   Settings.postUpdate("userDefinedCss");
+  Settings.updateHooks.userDefinedCss_f = function(css) {
+    this.postUpdate("broadcast", {
+      name: "insertCSS",
+      css: css
+    });
+  };
 
   Settings.updateHooks.newTabUrl = function(url) {
     url = (/^\/?[^:\s]*$/.test(url)) ? chrome.runtime.getURL(url) : Utils.convertToUrl(url);

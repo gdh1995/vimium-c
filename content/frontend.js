@@ -1099,11 +1099,23 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     },
     registerFrame: function(request) {
       // reRegisterFrame is called only when document.ready
-      var css = ELs.css = document.createElement("style");
-      css.id = "vimUserCss";
+      requestHandlers.insertCSS(request);
+    },
+    insertCSS: function(request) {
+      var css = ELs.css;
+      if (request.css) {
+        if (css) {
+          css.innerHTML = request.css;
+          return;
+        }
+        css = ELs.css = document.createElement("style");
       css.type = "text/css";
       css.innerHTML = request.css;
       document.head.appendChild(css);
+      } else if (css) {
+        DomUtils.removeNode(css);
+        ELs.css = null;
+      }
     },
     showHUDforDuration: function(request) {
       HUD.showForDuration(request.text, request.duration);
