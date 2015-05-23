@@ -185,7 +185,7 @@ Vomnibar.vomnibarUI = {
       this.selection = -1;
     }
     this.isSelectionChanged = false;
-    this.updateSelection();
+    this.updateSelection(this.selection);
   },
   updateInput: function() {
     if (this.selection === -1) {
@@ -200,14 +200,15 @@ Vomnibar.vomnibarUI = {
       this.input.value = ref.text;
     }
   },
-  updateSelection: function() {
-    for (var _i = 0, _ref = this.list.children, selected = this.selection; _i < _ref.length; ++_i) {
-      (_i != selected) && _ref[_i].classList.remove("vimS");
+  updateSelection: function(sel) {
+    var _ref = this.list.children, old = this.selection;
+    this.selection = sel;
+    if (old >= 0 && old < _ref.length) {
+      _ref[old].classList.remove("vimS");
     }
-    if (selected >= 0 && selected < _ref.length) {
-      _ref = _ref[selected];
-      _ref.classList.add("vimS");
-      _ref.scrollIntoViewIfNeeded();
+    if (sel >= 0 && sel < _ref.length) {
+      _ref[sel].classList.add("vimS");
+      _ref[sel].scrollIntoViewIfNeeded();
     }
   },
   onKeydown: function(event) {
@@ -262,6 +263,7 @@ Vomnibar.vomnibarUI = {
     return false;
   },
   onAction: function(action) {
+    var sel;
     switch(action) {
     case "dismiss": this.hide(); break;
     case "focus": this.focused = true; this.input.focus(); break;
@@ -269,17 +271,18 @@ Vomnibar.vomnibarUI = {
     case "backspace": DomUtils.simulateBackspace(this.input); break;
     case "up":
       this.isSelectionChanged = true;
-      if (this.selection < 0) this.selection = this.completions.length;
-      this.selection -= 1;
+      sel = this.selection;
+      if (sel < 0) sel = this.completions.length;
+      sel -= 1;
+      this.updateSelection(sel);
       this.updateInput();
-      this.updateSelection();
       break;
     case "down":
       this.isSelectionChanged = true;
-      this.selection += 1;
-      if (this.selection >= this.completions.length) this.selection = -1;
+      sel = this.selection + 1;
+      if (sel >= this.completions.length) sel = -1;
+      this.updateSelection(sel);
       this.updateInput(); 
-      this.updateSelection();
       break;
     case "enter":
       if (this.timer) {
