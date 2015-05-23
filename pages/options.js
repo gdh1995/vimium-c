@@ -25,6 +25,7 @@
   }
 
   Option.all = [];
+  Option.syncToFrontend = false;
 
   Option.prototype.fetch = function() {
     this.populateElement(this.previous = bgSettings.get(this.field));
@@ -35,6 +36,9 @@
     var value = this.readValueFromElement();
     if (!this.areEqual(value, this.previous)) {
       bgSettings.set(this.field, this.previous = value);
+      if (this.field in bgSettings.bufferToLoad) {
+        Option.syncToFrontend = true;
+      }
     }
   };
 
@@ -369,11 +373,14 @@
       btn.innerHTML = "No Changes";
       setTimeout(function () {
         window.onfocus();
-        bgSettings.postUpdate("bufferToLoad", null);
-        bgSettings.postUpdate("broadcast", {
-          name: "settings",
-          load: bgSettings.bufferToLoad
-        });
+        if (Option.syncToFrontend) {
+          bgSettings.postUpdate("bufferToLoad", null);
+          bgSettings.postUpdate("broadcast", {
+            name: "settings",
+            load: bgSettings.bufferToLoad
+          });
+          Option.syncToFrontend = false;
+        }
       }, 100);
     };
 
