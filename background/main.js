@@ -984,7 +984,9 @@
   requestHandlers.__proto__ = null;
 
   Settings.reloadFiles();
+
   Settings.postUpdate("searchEngines", null);
+
   Settings.postUpdate("userDefinedCss");
 
   Settings.updateHooks.newTabUrl = function(url) {

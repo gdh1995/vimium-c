@@ -1074,10 +1074,11 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       }, requestHandlers.setPassKeys);
     },
     ifEnabled: function(response) {
+      var r = requestHandlers;
       ELs.focusMsg.tabId = response.tabId;
-      requestHandlers.refreshKeyMappings(response);
-      requestHandlers.refreshKeyQueue(response);
-      requestHandlers.setPassKeys(response.passKeys);
+      r.refreshKeyMappings(response);
+      r.refreshKeyQueue(response);
+      r.setPassKeys(response.passKeys);
     },
     setPassKeys: function(passKeys) {
       if (isEnabledForUrl = (passKeys !== "")) {
