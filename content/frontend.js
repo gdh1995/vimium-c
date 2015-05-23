@@ -70,7 +70,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
           request: request
         };
       }
-      this._get().postMessage(request);
+      this._port.postMessage(request);
       if (callback) {
         this._callbacks[request._msgId] = callback;
       }
@@ -90,15 +90,14 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     ClearPort: function() {
       mainPort._port = null;
     },
-    _get: function() {
+    connect: function() {
       var port;
-      if (port = this._port) {
-        return port;
+      if (this._port) {
+        return;
       }
       port = this._port = chrome.runtime.connect("hfjbmagddngcpeloejdejnfgbamkjaeg", { name: "vimium++" });
       port.onDisconnect.addListener(this.ClearPort);
       port.onMessage.addListener(this.Listener);
-      return port;
     }
   };
 
@@ -122,6 +121,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       mainPort.postMessage(request);
       this.isLoading = setInterval(function() {
         try {
+          mainPort.connect();
           if (onerror) { onerror(request.request); }
           mainPort.postMessage(request);
         } catch (e) {
@@ -1112,9 +1112,9 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
           return;
         }
         css = ELs.css = document.createElement("style");
-      css.type = "text/css";
-      css.innerHTML = request.css;
-      document.head.appendChild(css);
+        css.type = "text/css";
+        css.innerHTML = request.css;
+        document.head.appendChild(css);
       } else if (css) {
         DomUtils.removeNode(css);
         ELs.css = null;
@@ -1227,6 +1227,8 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     });
   };
 
+  mainPort.connect();
+
   settings.load({
     handler: "initIfEnabled",
     focused: document.hasFocus(), // TODO: check if .hasFocus is too slow
@@ -1256,6 +1258,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     // which would make the auto-destroy logic not work.
     window.onfocus = (function() {
       try {
+        mainPort.connect();
         this();
       } catch (e) {
         // this extension is reloaded
