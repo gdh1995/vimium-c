@@ -189,6 +189,7 @@ var Settings = {
     , "hideHud", "linkHintCharacters", "linkHintNumbers", "nextPatterns" //
     , "previousPatterns", "regexFindMode", "scrollStepSize", "smoothScroll" //
   ],
+  onMac: false,
   Sync: null,
   CurrentVersion: "",
   ContentScripts: null,
@@ -220,3 +221,7 @@ Settings.icons.__proto__ = null;
   func = function() {};
   Settings.Sync = {clear: func, set: func};
 })();
+
+chrome.runtime.getPlatformInfo(function(info) {
+  Settings.onMac = info.os === "mac";
+});

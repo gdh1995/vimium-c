@@ -789,8 +789,8 @@ LinkHints.FUNC = {
     // NOTE: not clear last hovered item, for that it may be a menu
     DomUtils.simulateClick(link, {
       altKey: false,
-      ctrlKey: mode >= 2 && KeyboardUtils.platform !== "Mac",
-      metaKey: mode >= 2 && KeyboardUtils.platform === "Mac",
+      ctrlKey: mode >= 2 && !KeyboardUtils.onMac,
+      metaKey: mode >= 2 &&  KeyboardUtils.onMac,
       shiftKey: mode === 3
     });
     if (alterTarget && link.target === "_top") {

@@ -936,6 +936,7 @@
       return {
         name: "ifEnabled",
         passKeys: pass,
+        onMac: Settings.onMac,
         currentFirst: currentFirst,
         firstKeys: firstKeys,
         secondKeys: secondKeys,

@@ -1076,9 +1076,11 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     ifEnabled: function(response) {
       var r = requestHandlers;
       ELs.focusMsg.tabId = response.tabId;
+      KeyboardUtils.init(response.onMac);
       r.refreshKeyMappings(response);
       r.refreshKeyQueue(response);
       r.setPassKeys(response.passKeys);
+      r.ifEnabled = null;
     },
     setPassKeys: function(passKeys) {
       if (isEnabledForUrl = (passKeys !== "")) {
