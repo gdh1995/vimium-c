@@ -1068,13 +1068,11 @@
 
   chrome.runtime.onConnectExternal.addListener(funcDict.globalConnect);
 
-  window.onunload = function() {
-    ContentSettings.clear("images");
-  };
-
   Commands.parseKeyMappings(Settings.get("keyMappings"));
   populateKeyCommands();
   Exclusions.setRules(Settings.get("exclusionRules"));
+
+  ContentSettings.clear("images");
 
   (function() {
     var ref, i, ref2;
