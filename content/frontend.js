@@ -1124,9 +1124,6 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       HUD.showForDuration(request.text, request.duration);
     },
     focusFrame: function(request) {
-      if (frameId !== request.frameId) {
-        return;
-      }
       if (window.onunload == null || window.innerWidth < 3 || window.innerHeight < 3) {
         mainPort.postMessage({
           handler: "nextFrame",
@@ -1198,9 +1195,6 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       Utils.invokeCommandString(request.command, request.count);
     },
     dispatchMsg: function(request) {
-      if (request.target != null && request.target !== frameId) {
-        return;
-      }
       if (!isEnabledForUrl) {
         sendMessageToFrames(request.source, request.command, request.args);
         return;
@@ -1222,7 +1216,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
   window.sendMessageToFrames = function(target, command, args) {
     mainPort.postMessage({
       handler: "dispatchMsg", tabId: ELs.focusMsg.tabId,
-      target: target, source: frameId,
+      frameId: target, source: frameId,
       command: command, args: args
     });
   };
@@ -1271,7 +1265,8 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
 
   chrome.runtime.id === "hfjbmagddngcpeloejdejnfgbamkjaeg" &&
   chrome.runtime.onMessage.addListener(function(request, handler) {
-    if (isEnabledForUrl || request.frameId === 0) {
+    var id = request.frameId;
+    if (id === undefined || id === frameId) {
       requestHandlers[request.name](request); // do not check `handler != null`
     }
   });

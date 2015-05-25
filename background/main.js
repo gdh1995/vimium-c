@@ -596,7 +596,7 @@
     nextFrame: function(tab, frameId) {
       var tabId = tab.id, frames = frameIdsForTab[tabId], count;
       if (!frames || frames.length <= 2) { return; }
-      if (frameId != null) {
+      if (frameId >= 0) {
         count = 1;
       } else {
         frameId = frames[0];
@@ -750,8 +750,7 @@
         // no `break;`
       case "rereg":
         i = request.frameId;
-        ref = frameIdsForTab[id];
-        if (ref) {
+        if (ref = frameIdsForTab[id]) {
           ref.push(i);
         } else {
           frameIdsForTab[id] = [i, i];
@@ -759,8 +758,7 @@
         break;
       case "doreg":
         i = request.frameId;
-        ref = frameIdsForTab[id];
-        if (ref) {
+        if (ref = frameIdsForTab[id]) {
           if (ref.indexOf(i) === -1) {
             ref.push(i);
           }
@@ -902,8 +900,7 @@
     },
     dispatchMsg: function(request) {
       chrome.tabs.sendMessage(request.tabId, {
-        name: "dispatchMsg", frameId: 0,
-        target: request.target, source: request.source,
+        name: "dispatchMsg", frameId: request.frameId, source: request.source,
         command: request.command, args: request.args
       });
     },
@@ -1031,7 +1028,6 @@
       count = currentFirst ? 1 : (currentCount || 1);
       resetKeys();
       chrome.tabs.getSelected(null, function(tab) {
-        // `frameId: 0` is not needed, for currentFirst is refreshed frequently
         chrome.tabs.sendMessage(tab.id, { name: "esc" });
       });
     } else {

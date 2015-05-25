@@ -27,7 +27,6 @@ var Settings = {
   },
   updateHooks: {
     broadcast: function (request) {
-      request.frameId = 0;
       chrome.tabs.query({
         windowType: "normal",
         status: "complete"
