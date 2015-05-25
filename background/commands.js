@@ -92,6 +92,7 @@ Commands.commandGroups = {
     , "openCopiedUrlInCurrentTab", "openCopiedUrlInNewTab", "goUp", "goToRoot", "enterInsertMode"
     , "focusInput", "LinkHints.activateMode", "LinkHints.activateModeToOpenInNewTab"
     , "LinkHints.activateModeToOpenInNewForegroundTab", "LinkHints.activateModeWithQueue"
+    , "LinkHints.activateModeToDownloadImage"
     , "LinkHints.activateModeToDownloadLink", "LinkHints.activateModeToOpenIncognito"
     , "LinkHints.activateModeToHover", "LinkHints.activateModeToSearchLinkText"
     , "Vomnibar.activate", "Vomnibar.activateInNewTab", "Vomnibar.activateTabSelection"
@@ -109,7 +110,7 @@ Commands.commandGroups = {
 };
 Commands.advancedCommands = ["scrollToLeft", "scrollToRight", "moveTabToNextWindow", "moveTabToIncognito"
   , "goUp", "goToRoot", "focusInput", "LinkHints.activateModeWithQueue", "enableImageTemp"
-  , "toggleImage", "clearImageCS"
+  , "toggleImage", "clearImageCS", "LinkHints.activateModeToDownloadImage"
   , "LinkHints.activateModeToDownloadLink", "Vomnibar.activateEditUrl", "restoreGivenTab"
   , "Vomnibar.activateEditUrlInNewTab", "LinkHints.activateModeToOpenIncognito"
   , "goNext", "goPrevious", "Marks.activateCreateMode", "Marks.activateGotoMode"
@@ -334,6 +335,11 @@ Commands._defaultKeyMappings = {
   ],
   "LinkHints.activateModeToOpenIncognito": [
     "Open a link in incognito window", {
+      noRepeat: true
+    }
+  ],
+  "LinkHints.activateModeToDownloadImage": [
+    "Download <img> image", {
       noRepeat: true
     }
   ],

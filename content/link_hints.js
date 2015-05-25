@@ -11,8 +11,9 @@ var LinkHints = {
     HOVER: 128,
     COPY_TEXT: 129,
     SEARCH_TEXT: 130,
-    COPY_LINK_URL: 132,
-    DOWNLOAD_LINK: 133,
+    DOWNLOAD_IMAGE: 131,
+    DOWNLOAD_LINK: 132,
+    COPY_LINK_URL: 133,
     OPEN_INCOGNITO_LINK: 134
   },
   FUNC: null,
@@ -64,6 +65,9 @@ var LinkHints = {
   },
   activateModeToDownloadLink: function() {
     this._activateMode(this.CONST.DOWNLOAD_LINK);
+  },
+  activateModeToDownloadImage: function() {
+    this._activateMode(this.CONST.DOWNLOAD_IMAGE);
   },
   activateModeToHover: function() {
     this._activateMode(this.CONST.HOVER);
@@ -126,9 +130,9 @@ var LinkHints = {
     case cons.OPEN_IN_NEW_FG_TAB: tip = "Open in new active tab"; break;
     case cons.OPEN_WITH_QUEUE: tip = "Open multiple tabs"; break;
     case cons.OPEN_FG_WITH_QUEUE: tip = "Activate link and hold on"; break;
-    case cons.COPY_LINK_URL:
-      tip = mode >= 192 ? "Copy link URL one by one" : "Copy link URL to Clipboard";
-      activator = this.FUNC.COPY_LINK_URL;
+    case cons.HOVER:
+      tip = mode >= 192 ? "Hover nodes continuously" : "Hover selected";
+      activator = this.FUNC.HOVER;
       break;
     case cons.COPY_TEXT:
       tip = mode >= 192 ? "Copy link text one by one" : "Copy link text to Clipboard";
@@ -142,13 +146,17 @@ var LinkHints = {
       tip = mode >= 192 ? "Open multi incognito tabs" : "Open link in incognito";
       activator = this.FUNC.OPEN_INCOGNITO_LINK;
       break;
+    case cons.DOWNLOAD_IMAGE:
+      tip = mode >= 192 ? "Download multiple images" : "Download image";
+      activator = this.FUNC.DOWNLOAD_IMAGE;
+      break;
     case cons.DOWNLOAD_LINK:
       tip = mode >= 192 ? "Download multiple links" : "Download link";
       activator = this.FUNC.DOWNLOAD_LINK;
       break;
-    case cons.HOVER:
-      tip = mode >= 192 ? "Hover nodes continuously" : "Hover selected";
-      activator = this.FUNC.HOVER;
+    case cons.COPY_LINK_URL:
+      tip = mode >= 192 ? "Copy link URL one by one" : "Copy link URL to Clipboard";
+      activator = this.FUNC.COPY_LINK_URL;
       break;
     default:
       tip = "Open link in current tab";
@@ -259,15 +267,24 @@ var LinkHints = {
     // NOTE: not judge `attr[data=vim-url] is "#"`
     //   just in case that someone make "#" an event for downloading / ...
     //   : then he can set [href=#][data-vim-url=...] to enable LinkHints
-    if (a || ((a = element.getAttribute("href")) && a != "#")) {
+    if (a || ((a = element.getAttribute("href")) && a !== "#")) {
       if (arr = DomUtils.getVisibleClientRect(element)) {
         this.push([element, arr, true]);
       }
     }
   },
+  GetImages: function(element) {
+    var arr;
+    if (arr = DomUtils.getVisibleClientRect(element)) {
+      this.push([element, arr, true]);
+    }
+  },
   getVisibleClickableElements: function() {
     var output = [], visibleElements = [], visibleElement, rects, rects2, _len, _i;
-    if (this.mode >= 132) {
+    if (this.mode == this.CONST.DOWNLOAD_IMAGE) {
+      output.forEach.call(document.documentElement.querySelectorAll(
+        "img[src]"), this.GetImages.bind(visibleElements));
+    } else if (this.mode >= 132) {
       output.forEach.call(document.documentElement.querySelectorAll(
           "a[href],a[data-vim-url]"), this.GetLinks.bind(visibleElements));
     } else {
@@ -702,7 +719,11 @@ LinkHints.getUrlData = function(link) {
 LinkHints.FUNC = {
   COPY_LINK_URL: function(link) {
     var str = this.getUrlData(link);
-    if (!str) return;
+    if (!str) {
+      HUD.showForDuration("No url found", 1000);
+      this.keepHUDAfterAct = true;
+      return;
+    }
     // NOTE: url should not be modified
     // although BackendUtils.convertToUrl does replace '\u3000' with ' '
     str = Utils.decodeURL(str);
@@ -718,7 +739,7 @@ LinkHints.FUNC = {
     // .innerText is "" if "display:block; height:0px; overflow:hidden; width:0px;"
     str = str || Utils.decodeTextFromHtml(link.innerHTML).trim() || link.title.trim();
     if (!str) {
-      HUD.showForDuration("No text found!", 1000);
+      HUD.showForDuration("No text found", 1000);
       this.keepHUDAfterAct = true;
       return;
     }
@@ -748,6 +769,27 @@ LinkHints.FUNC = {
       url: url,
       active: (this.mode & 64) !== 64
     });
+  },
+  DOWNLOAD_IMAGE: function(img) {
+    var text = img.src, i, a;
+    this.keepHUDAfterAct = true;
+    if (!text) {
+      HUD.showForDuration("Not an image", 1000);
+      return;
+    }
+    i = text.indexOf("://");
+    if (i > 0) {
+      text = text.substring(text.indexOf('/', i + 4) + 1);
+    }
+    if (text.length > 39) {
+      text = text.substring(0, 36) + "...";
+    }
+    a = document.createElement("a");
+    a.href = img.src;
+    a.download = "";
+    a.click();
+    HUD.showForDuration("download: " + text, 2000);
+    return;
   },
   DOWNLOAD_LINK: function(link) {
     var oldDownload, oldUrl;
