@@ -1,14 +1,14 @@
 /*
- * Many CSS class names in this file use the verbose "vimiumXYZ" as the class name. This is so we don't
+ * Many CSS class names in this file use the verbose "vimXYZ" as the class name. This is so we don't
  * use the same CSS class names that the page is using, so the page's CSS doesn't mess with the style of our
- * Vimium dialogs.
+ * Vimium++ dialogs.
  *
  * The z-indexes of Vimium elements are very large, because we always want them to show on top. Chrome may
  * support up to Number.MAX_VALUE, which is approximately 1.7976e+308. We're using 2^31, which is the max
  * value of a singed 32 bit int. Let's try larger valeus if 2**31 empirically isn't large enough.
  *
  *
- * vimB: vimium Base; vimR: Reset; vimI: Inherit; vimL: Link; vimS: Selected
+ * vimB: Base; vimR: Reset; vimI: Inherit; vimL: Link; vimS: Selected
  *
  * HMC: HintMarkerContainer; LH: LinkHint; MC: MatchingCharacter;
  * IMC: InputMarkerContainer, IH: InputHint;
@@ -154,7 +154,7 @@
 	border: 1px solid #993333 !important;
 }
 
-/* Vimium HUD CSS */
+/* HUD CSS */
 #vimHUD.vimR {
 	background-color: #ebebeb;
 	border: 1px solid #b3b3b3;
@@ -168,12 +168,12 @@
 	padding: 3px 3px 2px 3px;
 	position: fixed;
 	right: 150px;
-	/* less than vimium's hint markers, so link hints can be shown e.g. for the panel's close button. */
+	/* less than hint markers', so link hints can be shown e.g. for the panel's close button. */
 	z-index: 2147483645;
 	text-shadow: 0px 1px 2px #FFF;
 }
 
-/* Vimium Flash */
+/* Flash */
 .vimFlash.vimB {
 	box-shadow: 0px 0px 4px 2px #4183C4;
 	padding: 1px;
@@ -194,7 +194,7 @@
 	z-index: 2147483644;
 }
 
-/* Vimium Scrollbar */
+/* Scrollbar */
 .vimScroll::-webkit-scrollbar,
 .vimScroll::-webkit-scrollbar-track,
 .vimScroll::-webkit-scrollbar-thumb {

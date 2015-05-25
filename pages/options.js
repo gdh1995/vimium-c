@@ -444,7 +444,7 @@
     },
     updateState = function() {
       var pass = bgExclusions.getTemp(url, exclusions.readValueFromElement(true));
-      $("state").innerHTML = "Vimium will " + (pass
+      $("state").innerHTML = "Vimium++ will " + (pass
         ? "exclude: <span class='code'>" + pass.replace(escapeRegex, escapeCallback) + "</span>"
         : pass !== null ? "be disabled" : "be enabled");
     };
