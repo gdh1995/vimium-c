@@ -95,11 +95,12 @@ if (chrome.browserAction && chrome.browserAction.setIcon) (function() {
       badgeTimer = setTimeout(updateBadge, time1, badge);
     }
   };
-  g_requestHandlers.setIcon = function(tabId, type) {
+  g_requestHandlers.setIcon = function(tabId, type, pass) {
     if (shouldShow) {
       chrome.browserAction.setIcon({
         tabId: tabId,
-        path: Settings.icons[type]
+        path: Settings.icons[type ||
+          (pass === null ? "enabled" : pass ? "partial" : "disabled")]
       });
     }
   };

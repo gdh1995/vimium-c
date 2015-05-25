@@ -928,7 +928,7 @@
     initIfEnabled: function(request, tabId) {
       var pass = Exclusions.getPattern(request.url);
       if (request.focused) {
-        requestHandlers.setIcon(tabId, pass !== null ? (pass ? "partial" : "disabled") : "enabled");
+        requestHandlers.setIcon(tabId, null, pass);
       }
       return {
         name: "ifEnabled",

@@ -470,8 +470,7 @@
       // although the tab calls window.onfocus after it closes,
       // it is too early for the tab to know new exclusion rules.
       var pass = bgExclusions.getPattern(url);
-      BG.g_requestHandlers.setIcon(tab.id //
-        , pass !== null ? (pass ? "partial" : "disabled") : "enabled");
+      BG.g_requestHandlers.setIcon(tab.id, null, pass);
     };
     $("saveOptions").addEventListener("click", saveOptions);
     document.addEventListener("keyup", function(event) {
