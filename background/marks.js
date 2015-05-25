@@ -26,7 +26,7 @@ var Marks = {
       markName: req.markName
     });
     chrome.tabs.update(mark.tabId, {
-      selected: true
+      active: true
     });
   }
 };

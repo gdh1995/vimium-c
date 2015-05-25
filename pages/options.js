@@ -436,6 +436,7 @@
   initPopupPage = function(tab) {
     var exclusions, onUpdated, saveOptions, updateState, url, hasNew;
     exclusions = null;
+    tab = tab[0];
     url = BG.urlForTab[tab.id] || tab.url;
     hasNew = false;
     var escapeRegex = /[&<>]/g, escapeCallback = function(c, n) {
@@ -495,7 +496,7 @@
       if (xhr.readyState === 4) {
         $("exclusionScrollBox").innerHTML = xhr.responseText;
         if (window.location.pathname.endsWith("popup.html")) {
-          chrome.tabs.getSelected(null, initPopupPage);
+          chrome.tabs.query({currentWindow: true, active: true}, initPopupPage);
         } else if (location.pathname.endsWith("options.html") >= 0) {
           initOptionsPage();
         }

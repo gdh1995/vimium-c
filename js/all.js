@@ -110,19 +110,22 @@ function openTab(targetSwitch, url, ctrlKey) {
 	if (targetSwitch === true) {
 		chrome.tabs.update({url: url});
 	} else if (ctrlKey !== true) {
-		chrome.tabs.getSelected(null, function (curTab) {
+		chrome.tabs.query({
+			currentWindow: true,
+			active: true
+		}, function (curTabs) {
 			chrome.tabs.create({
-				index: curTab.index + 1,
-				openerTabId: curTab.id,
-				selected: true,
+				index: curTabs[0].index + 1,
+				openerTabId: curTabs[0].id,
+				active: true,
 				url: url
 			});
 		});
 	} else {
-		chrome.tabs.getAllInWindow(null, function(tabs) {
+		chrome.tabs.query({currentWindow: true}, function(tabs) {
 			var i = tabs.length, id;
 			while (0 < --i) {
-				if (tabs[i].selected) {
+				if (tabs[i].active) {
 					break;
 				}
 			}
@@ -135,7 +138,7 @@ function openTab(targetSwitch, url, ctrlKey) {
 			chrome.tabs.create({
 				index: i + 1,
 				openerTabId: id,
-				selected: false,
+				active: false,
 				url: url
 			});
 		});

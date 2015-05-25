@@ -2,7 +2,7 @@
 (function() {
   var BackgroundCommands, checkKeyQueue //
     , frameIdsForTab, urlForTab, ContentSettings //
-    , handleMainPort, handleResponse, postResponse, funcDict //
+    , handleMainPort, funcDict //
     , helpDialogHtmlForCommandGroup, resetKeys //
     , openMultiTab //
     , populateKeyCommands, executeCommand, commandCount //
@@ -58,15 +58,15 @@
       windowId: wndId,
       index: parentTab.index + 1,
       openerTabId: parentTab.id,
-      selected: parentTab.active
+      active: parentTab.active
     };
-    chrome.tabs.create(option, option.selected ? function(tab) {
+    chrome.tabs.create(option, option.active ? function(tab) {
       if (tab.windowId !== wndId) {
         chrome.windows.update(tab.windowId, {focused: true});
       }
     } : null);
     if (count < 2) return;
-    option.selected = false;
+    option.active = false;
     do {
       ++option.index;
       chrome.tabs.create(option);
@@ -175,7 +175,7 @@
     },
     updateTab: function(tab, newWindowId, callback) {
       tab.windowId = newWindowId ? newWindowId : tab.windowId;
-      tab.selected = true;
+      tab.active = true;
       if (!newWindowId || tab.windowId === newWindowId) {
         ++tab.index;
       } else {
@@ -198,7 +198,7 @@
     selectFrom: function(tabs) {
       var i = tabs.length;
       while (0 < --i) {
-        if (tabs[i].selected) {
+        if (tabs[i].active) {
           return tabs[i];
         }
       }
@@ -207,7 +207,6 @@
     reopenTab: function(tab) {
       chrome.tabs.create({
         windowId: tab.windowId,
-        selected: true,
         url: tab.url,
         openerTabId: tab.openerTabId,
         index: tab.index
@@ -304,7 +303,7 @@
       }));
     }, function(url, tab, callback, wnd) {
       chrome.tabs.create({
-        selected: false,
+        active: false,
         windowId: wnd.id,
         url: url
       }, function(newTab) {
@@ -317,11 +316,11 @@
         windowId: this.windowId
       }, function() {
         callback && callback(newTab);
-        chrome.tabs.update(newTab.id, { selected: true });
+        chrome.tabs.update(newTab.id, {active: true});
       });
-    }, function(tab) {
-      tab.id = undefined;
-      openMultiTab(Settings.get("newTabUrl_f"), commandCount, tab);
+    }, function(tabs) {
+      tabs[0].id = undefined;
+      openMultiTab(Settings.get("newTabUrl_f"), commandCount, tabs[0]);
     }],
     duplicateTab: [function(tab, wnd) {
       if (wnd.incognito && !tab.incognito) {
@@ -344,8 +343,8 @@
         ids = wnds.map(function(wnd) { return wnd.id; });
         index = ids.indexOf(tab.windowId);
         if (ids.length >= 2 || index === -1) {
-          chrome.tabs.getSelected(ids[(index + 1) % ids.length] //
-            , funcDict.moveTabToNextWindow[1].bind(null, tab, index));
+          chrome.tabs.query({windowId: ids[(index + 1) % ids.length], active: true},
+          funcDict.moveTabToNextWindow[1].bind(null, tab, index));
           return;
         }
       } else {
@@ -363,6 +362,7 @@
         chrome.windows.update(wnd.id, {state: state});
       } : null);
     }, function(tab, oldIndex, tab2) {
+      tab2 = tab2[0];
       if (oldIndex >= 0) {
         funcDict.moveTabToNextWindow[2](tab.id, tab2);
         return;
@@ -371,7 +371,7 @@
       funcDict.moveTabToNextWindow[2].bind(null, tab.id, tab2));
     }, function(tabId, tab2) {
       chrome.tabs.move(tabId, {index: tab2.index + 1, windowId: tab2.windowId});
-      chrome.tabs.update(tabId, {selected: true});
+      chrome.tabs.update(tabId, {active: true});
       chrome.windows.update(tab2.windowId, {focused: true});
     }],
     moveTabToIncognito: [function(tab, wnd) {
@@ -394,8 +394,10 @@
       var tabId;
       wnds = wnds.filter(funcDict.isIncNor);
       if (wnds.length) {
-        chrome.tabs.getSelected(wnds[wnds.length - 1].id,
-        funcDict.moveTabToIncognito[2].bind(null, options));
+        chrome.tabs.query({
+          windowId: wnds[wnds.length - 1].id,
+          active: true
+        }, funcDict.moveTabToIncognito[2].bind(null, options));
         return;
       }
       if (options.url) {
@@ -409,6 +411,7 @@
         chrome.tabs.remove(tabId);
       }
     }, function(options, tab2) {
+      tab2 = tab2[0];
       if (options.url) {
         chrome.tabs.create({url: options.url, index: tab2.index + 1, windowId: tab2.windowId});
         chrome.tabs.remove(options.tabId);
@@ -450,9 +453,9 @@
       var len = tabs.length, toSelect;
       if (len > 1) {
         toSelect = tabs[(ind >= 0 ? 0 : len) + (ind % len)];
-        if (!toSelect.selected) {
+        if (!toSelect.active) {
           chrome.tabs.update(toSelect.id, {
-            selected: true
+            active: true
           });
         }
       }
@@ -517,7 +520,7 @@
     },
     removeTab: function(tabs) {
       var tab = tabs[0];
-      if (tab.selected) {
+      if (tab.active) {
         if (tabs.length <= commandCount) {
           chrome.windows.getAll(funcDict.removeTab.bind(null, tab, tabs));
           return;
@@ -564,7 +567,7 @@
         chrome.tabs.reload();
         return;
       }
-      chrome.tabs.getAllInWindow(null, function(tabs) {
+      chrome.tabs.query({currentWindow: true}, function(tabs) {
         tabs.slice(funcDict.selectFrom(tabs).index, commandCount) //
         .forEach(function(tab1) {
           chrome.tabs.reload(tab1.id);
@@ -685,15 +688,7 @@
     }
     ref2[""] = ["0"]; // "0" is for key queues like "10n"
   };
-
-  handleResponse = function(msgId, func, request, tab) {
-    this.postMessage({_msgId: msgId, response: func(request, tab)});
-  };
   
-  postResponse = function(msgId, response) {
-    this.postMessage({_msgId: msgId, response: response});
-  };
-
   handleMainPort = function(request, port) {
     var key, func, id;
     if (id = request._msgId) {
@@ -701,7 +696,9 @@
       if (key = request.handler) {
         func = requestHandlers[key];
         if (func.useTab) {
-          chrome.tabs.getSelected(null, handleResponse.bind(port, id, func, request));
+          chrome.tabs.query({currentWindow: true, active: true}, function(ts) {
+            port.postMessage({_msgId: id, response: func(request, ts[0])});
+          });
         } else {
           port.postMessage({_msgId: id, response: func(request)})
         }
@@ -709,7 +706,9 @@
       else if (key = request.handlerOmni) {
         func = Completers[key];
         key = request.query;
-        func.filter(key ? key.split(" ") : [], postResponse.bind(port, id));
+        func.filter(key ? key.split(" ") : [], function(response) {
+          port.postMessage({_msgId: id, response: response});
+        });
       }
     }
     else if (key = request.handlerKey) {
@@ -725,7 +724,9 @@
     else if (key = request.handler) {
       func = requestHandlers[key];
       if (func.useTab) {
-        chrome.tabs.getSelected(null, func.bind(null, request));
+        chrome.tabs.query({currentWindow: true, active: true}, function(tabs) {
+          func(request, tabs[0]);
+        });
       } else {
         func(request);
       }
@@ -828,9 +829,11 @@
       var func = BackgroundCommands[command];
       count = func.useTab;
       if (count === 2) {
-        chrome.tabs.getAllInWindow(null, func);
+        chrome.tabs.query({currentWindow: true}, func);
       } else if (count) {
-        chrome.tabs.getSelected(null, func);
+        chrome.tabs.query({currentWindow: true, active: true}, function(tabs) {
+          func(tabs[0]);
+        });
       } else {
         func();
       }
@@ -965,7 +968,7 @@
       Settings.set("showAdvancedCommands", request.showAdvancedCommands);
     },
     selectTab: function(request) {
-      chrome.tabs.update(request.tabId, { selected: true });
+      chrome.tabs.update(request.tabId, {active: true});
       chrome.tabs.get(request.tabId, function(tab) {
         chrome.windows.update(tab.windowId, { focused: true });
       });
@@ -998,7 +1001,7 @@
     this.set('newTabUrl_f', url);
     BackgroundCommands.createTab = Utils.isRefusingIncognito(url)
     ? chrome.windows.getCurrent.bind(chrome.windows, {populate: true}, funcDict.createTab[0])
-    : chrome.tabs.getSelected.bind(chrome.tabs, null, funcDict.createTab[5]);
+    : chrome.tabs.query.bind(chrome.tabs, {currentWindow: true, active: true}, funcDict.createTab[5]);
   };
   Settings.postUpdate("newTabUrl");
 
@@ -1027,8 +1030,8 @@
     if (currentFirst !== null) {
       count = currentFirst ? 1 : (currentCount || 1);
       resetKeys();
-      chrome.tabs.getSelected(null, function(tab) {
-        chrome.tabs.sendMessage(tab.id, { name: "esc" });
+      chrome.tabs.query({currentWindow: true, active: true}, function(tabs) {
+        chrome.tabs.sendMessage(tabs[0].id, { name: "esc" });
       });
     } else {
       count = 1;
