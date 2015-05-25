@@ -1120,9 +1120,6 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
         ELs.css = null;
       }
     },
-    showHUDforDuration: function(request) {
-      HUD.showForDuration(request.text, request.duration);
-    },
     focusFrame: function(request) {
       if (window.onunload == null || window.innerWidth < 3 || window.innerHeight < 3) {
         mainPort.postMessage({
@@ -1206,11 +1203,8 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       }
       obj[components[_len]].apply(obj, request.args);
     },
-    setScrollPosition: function(request) {
-      var scrollX = request.scroll[0], scrollY = request.scroll[1];
-      if (scrollX > 0 || scrollY > 0) {
-        DomUtils.DocumentReady(window.scrollTo.bind(window, scrollX, scrollY));
-      }
+    gotoMark: function(request) {
+      Marks.goTo(request);
     }
   };
 
