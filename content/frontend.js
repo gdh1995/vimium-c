@@ -1130,9 +1130,10 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
           tabId: ELs.focusMsg.tabId,
           frameId: frameId
         });
-        if (window.onunload == null) {
+        if (window.onunload == null) { // sandboxed
+          // Do not destroy self, just in case of Marks.goTo / ...
           setTimeout(mainPort.postMessage.bind(mainPort, {
-            handlerSettings: "unreg", // sandboxed
+            handlerSettings: "unreg",
             frameId: frameId
           }, null), 20);
         }
