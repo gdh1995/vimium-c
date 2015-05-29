@@ -1147,6 +1147,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
         clearTimeout(settings.values.highlightTimer);
       }
       settings.values.highlightTimer = setTimeout(requestHandlers.removeHighlightMask, 200);
+      document.documentElement.scrollIntoViewIfNeeded();
     },
     removeHighlightMask: function() {
       var maskNode = document.getElementById("vimHighlightMask");
