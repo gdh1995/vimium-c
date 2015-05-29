@@ -56,7 +56,7 @@
   textInputXPath = DomUtils.makeXPath([
     'input[not(@disabled or @readonly) and (@type="text" or @type="search" or @type="email" \
 or @type="url" or @type="number" or @type="password" or @type="date" or @type="tel" or not(@type))]',
-    "textarea",
+    "textarea[not(@disabled or @readonly)]",
     "*[@contenteditable='' or translate(@contenteditable, 'TRUE', 'true')='true']"
   ]);
   
