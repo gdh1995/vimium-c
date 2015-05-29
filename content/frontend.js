@@ -373,6 +373,8 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
             }
             hints[selectedInputIndex].classList.add('vimS');
             DomUtils.simulateSelect(visibleInputs[selectedInputIndex]);
+          } else if (event.keyCode === KeyCodes.f12) {
+            return true;
           } else if (event.keyCode !== KeyCodes.shiftKey) {
             DomUtils.removeNode(hintContainingDiv);
             handlerStack.remove();
