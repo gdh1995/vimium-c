@@ -337,11 +337,11 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       if (visibleInputs.length === 0) {
         return;
       }
-      selectedInputIndex = Math.min(count - 1, visibleInputs.length - 1);
-      DomUtils.simulateSelect(visibleInputs[selectedInputIndex].element);
       if (visibleInputs.length === 1) {
+        DomUtils.simulateSelect(visibleInputs[0].element);
         return;
       }
+      selectedInputIndex = Math.min(count - 1, visibleInputs.length - 1);
       hints = visibleInputs.map(function(tuple) {
         var hint = document.createElement("div");
         hint.className = "vimB vimI vimIH";
@@ -358,6 +358,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       });
       hintContainingDiv.style.left = window.scrollX + "px";
       hintContainingDiv.style.top = window.scrollY + "px";
+      DomUtils.simulateSelect(visibleInputs[selectedInputIndex].element);
       handlerStack.push({
         keydown: function(event) {
           if (event.keyCode === KeyCodes.tab) {
