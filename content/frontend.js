@@ -334,21 +334,23 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     focusInput: function(count) {
       var hintContainingDiv, hints, selectedInputIndex, visibleInputs;
       visibleInputs = getVisibleInputs(DomUtils.evaluateXPath(textInputXPath, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE));
-      if (visibleInputs.length === 0) {
+      selectedInputIndex = visibleInputs.length;
+      if (selectedInputIndex === 0) {
+        return;
+      } else if (selectedInputIndex === 1) {
+        DomUtils.simulateSelect(visibleInputs[0]);
         return;
       }
-      if (visibleInputs.length === 1) {
-        DomUtils.simulateSelect(visibleInputs[0].element);
-        return;
-      }
-      selectedInputIndex = Math.min(count - 1, visibleInputs.length - 1);
-      hints = visibleInputs.map(function(tuple) {
-        var hint = document.createElement("div");
+      selectedInputIndex = Math.min(count, selectedInputIndex) - 1;
+      DomUtils.simulateSelect(visibleInputs[selectedInputIndex]);
+      hints = visibleInputs.map(function(element) {
+        var hint = document.createElement("div"), style = hint.style
+          , rect = element.getBoundingClientRect();
         hint.className = "vimB vimI vimIH";
-        hint.style.left = (tuple.rect[0] - 1) + "px";
-        hint.style.top = (tuple.rect[1] - 1) + "px";
-        hint.style.width = (tuple.rect[2] - tuple.rect[0]) + "px";
-        hint.style.height = (tuple.rect[3] - tuple.rect[1]) + "px";
+        style.left = (rect.left - 1) + "px";
+        style.top = (rect.top - 1) + "px";
+        style.width = rect.width + "px";
+        style.height = rect.height + "px";
         return hint;
       });
       hints[selectedInputIndex].classList.add('vimS');
@@ -358,7 +360,6 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       });
       hintContainingDiv.style.left = window.scrollX + "px";
       hintContainingDiv.style.top = window.scrollY + "px";
-      DomUtils.simulateSelect(visibleInputs[selectedInputIndex].element);
       handlerStack.push({
         keydown: function(event) {
           if (event.keyCode === KeyCodes.tab) {
@@ -371,7 +372,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
               selectedInputIndex = 0;
             }
             hints[selectedInputIndex].classList.add('vimS');
-            DomUtils.simulateSelect(visibleInputs[selectedInputIndex].element);
+            DomUtils.simulateSelect(visibleInputs[selectedInputIndex]);
           } else if (event.keyCode !== KeyCodes.shiftKey) {
             DomUtils.removeNode(hintContainingDiv);
             handlerStack.remove();
@@ -566,10 +567,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       element = pathSet.snapshotItem(i);
       rect = DomUtils.getVisibleClientRect(element);
       if (rect) {
-        results.push({
-          element: element,
-          rect: rect
-        });
+        results.push(element);
       }
     }
     return results;
@@ -805,7 +803,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     while (0 <= --_len) {
       link = links.snapshotItem(_len);
       boundingClientRect = link.getBoundingClientRect();
-      if (boundingClientRect.width === 0 || boundingClientRect.height === 0) {
+      if (boundingClientRect.width < 0.5 || boundingClientRect.height < 0.5) {
         continue;
       }
       computedStyle = window.getComputedStyle(link, null);
