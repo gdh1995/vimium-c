@@ -808,7 +808,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       if (boundingClientRect.width < 0.5 || boundingClientRect.height < 0.5) {
         continue;
       }
-      computedStyle = window.getComputedStyle(link, null);
+      computedStyle = window.getComputedStyle(link);
       if (computedStyle.getPropertyValue("visibility") !== "visible" || computedStyle.getPropertyValue("display") === "none") {
         continue;
       }
