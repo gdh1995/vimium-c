@@ -82,9 +82,7 @@
         return;
       }
       cs.clear({ scope: "regular" });
-      cs.clear({ scope: "incognito_session_only" }, function() {
-        return chrome.runtime.lastError;
-      });
+      cs.clear({ scope: "incognito_session_only" }, funcDict.onRuntimeError);
     },
     turnCurrent: function(contentType, tab) {
       if (!Utils.hasOrdinaryUrlPrefix(tab.url) || tab.url.startsWith("chrome")) {
@@ -222,6 +220,9 @@
         tabId: tabIdUrl > 0 ? tabIdUrl : undefined,
         url: tabIdUrl > 0 ? undefined : tabIdUrl
       }, callback);
+    },
+    onRuntimeError: function() {
+      return chrome.runtime.lastError;
     },
 
     openUrlInIncognito: function(request, tab, wnds) {
@@ -449,6 +450,11 @@
         chrome.windows.remove(tab.windowId);
       }
     },
+    restoreGivenTab: function(list) {
+      if (commandCount <= list.length) {
+        chrome.sessions.restore(list[commandCount - 1].tab.sessionId);
+      }
+    },
     selectTab: function(tabs, ind) {
       var len = tabs.length, toSelect;
       if (len > 1) {
@@ -482,29 +488,34 @@
   };
   funcDict.__proto__ = null;
 
-  // function (const Tab tab <% if .useTab is 1 else %> const Tab tabs[]);
+  /*
+    function (null <% if .useTab is 0 else %>
+      Tab [] tabs <% if .useTab is 2 else %>
+      Tab [1] tabs = [selected] <% if .useTab is 1 else ERROR %>
+    );
+    */
   BackgroundCommands = {
     createTab: null,
-    duplicateTab: function(tab) {
-      chrome.tabs.duplicate(tab.id);
+    duplicateTab: function(tabs) {
+      chrome.tabs.duplicate(tabs[0].id);
       if (--commandCount > 0) {
-        chrome.windows.get(tab.windowId, funcDict.duplicateTab[0].bind(null, tab));
+        chrome.windows.get(tabs[0].windowId, funcDict.duplicateTab[0].bind(null, tabs[0]));
       }
     },
-    moveTabToNextWindow: function(tab) {
-      chrome.windows.getAll(funcDict.moveTabToNextWindow[0].bind(null, tab));
+    moveTabToNextWindow: function(tabs) {
+      chrome.windows.getAll(funcDict.moveTabToNextWindow[0].bind(null, tabs[0]));
     },
-    moveTabToIncognito: function(tab) {
-      chrome.windows.get(tab.windowId, funcDict.moveTabToIncognito[0].bind(null, tab));
+    moveTabToIncognito: function(tabs) {
+      chrome.windows.get(tabs[0].windowId, funcDict.moveTabToIncognito[0].bind(null, tabs[0]));
     },
-    enableImageTemp: function(tab) {
-      ContentSettings.ensure("images", tab);
+    enableImageTemp: function(tabs) {
+      ContentSettings.ensure("images", tabs[0]);
     },
-    toggleImage: function(tab) {
-      ContentSettings.turnCurrent("images", tab);
+    toggleImage: function(tabs) {
+      ContentSettings.turnCurrent("images", tabs[0]);
     },
-    clearImageCS: function(tab) {
-      ContentSettings.clear("images", tab);
+    clearImageCS: function(tabs) {
+      ContentSettings.clear("images", tabs[0]);
     },
     nextTab: function(tabs) {
       funcDict.selectTab(tabs, funcDict.selectFrom(tabs).index + commandCount);
@@ -542,11 +553,7 @@
       }
     },
     restoreGivenTab: function() {
-      chrome.sessions.getRecentlyClosed(function(list) {
-        if (commandCount <= list.length) {
-          chrome.sessions.restore(list[commandCount - 1].tab.sessionId);
-        }
-      });
+      chrome.sessions.getRecentlyClosed(funcDict.restoreGivenTab);
     },
     blank: function() {},
     openCopiedUrlInCurrentTab: function() {
@@ -554,12 +561,12 @@
         url: Clipboard.paste()
       });
     },
-    openCopiedUrlInNewTab: function(tab) {
-      openMultiTab(Utils.convertToUrl(Clipboard.paste()), commandCount, tab);
+    openCopiedUrlInNewTab: function(tabs) {
+      openMultiTab(Utils.convertToUrl(Clipboard.paste()), commandCount, tabs[0]);
     },
-    togglePinTab: function(tab) {
-      chrome.tabs.update(tab.id, {
-        pinned: !tab.pinned
+    togglePinTab: function(tabs) {
+      chrome.tabs.update(tabs[0].id, {
+        pinned: !tabs[0].pinned
       });
     },
     reloadTab: function() {
@@ -574,7 +581,8 @@
         });
       });
     },
-    reopenTab: function(tab) {
+    reopenTab: function(tabs) {
+      var tab = tabs[0]; tabs = null;
       ++tab.index;
       if (!Utils.isRefusingIncognito(tab.url)) {
         funcDict.reopenTab(tab);
@@ -586,18 +594,18 @@
         }
       });
     },
-    moveTabLeft: function(tab) {
-      chrome.tabs.move(tab.id, {
-        index: Math.max(0, tab.index - commandCount)
+    moveTabLeft: function(tabs) {
+      chrome.tabs.move(tabs[0].id, {
+        index: Math.max(0, tabs[0].index - commandCount)
       });
     },
-    moveTabRight: function(tab) {
-      chrome.tabs.move(tab.id, {
-        index: tab.index + commandCount
+    moveTabRight: function(tabs) {
+      chrome.tabs.move(tabs[0].id, {
+        index: tabs[0].index + commandCount
       });
     },
-    nextFrame: function(tab, frameId) {
-      var tabId = tab.id, frames = frameIdsForTab[tabId], count;
+    nextFrame: function(tabs, frameId) {
+      var tabId = tabs[0].id, frames = frameIdsForTab[tabId], count;
       if (!frames || frames.length <= 2) { return; }
       if (frameId >= 0) {
         count = 1;
@@ -616,8 +624,8 @@
         });
       }
     },
-    mainFrame: function(tab) {
-      chrome.tabs.sendMessage(tab.id, {
+    mainFrame: function(tabs) {
+      chrome.tabs.sendMessage(tabs[0].id, {
         name: "focusFrame",
         frameId: 0
       });
@@ -631,19 +639,16 @@
     closeOtherTabs: function(tabs) {
       funcDict.removeTabsRelative(funcDict.selectFrom(tabs), 0, tabs);
     },
-    copyCurrentTitle: function(tab) {
-      Clipboard.copy(tab.title);
+    copyCurrentTitle: function(tabs) {
+      Clipboard.copy(tabs[0].title);
     },
-    copyCurrentUrl: function(tab) {
-      Clipboard.copy(tab.url);
+    copyCurrentUrl: function(tabs) {
+      Clipboard.copy(tabs[0].url);
     },
-    toggleViewSource: function(tab) {
-      if (tab.url.startsWith("view-source:")) {
-        tab.url = tab.url.substring(12);
-      } else {
-        tab.url = "view-source:" + tab.url;
-      }
-      requestHandlers.openUrlInNewTab(tab, tab);
+    toggleViewSource: function(tabs) {
+      var url = tabs[0].url;
+      url = url.startsWith("view-source:") ? url.substring(12) : ("view-source:" + url);
+      openMultiTab(Utils.convertToUrl(url), 1, tabs[0]);
     }
   };
   BackgroundCommands.__proto__ = null;
@@ -697,7 +702,7 @@
         func = requestHandlers[key];
         if (func.useTab) {
           chrome.tabs.query({currentWindow: true, active: true}, function(ts) {
-            port.postMessage({_msgId: id, response: func(request, ts[0])});
+            port.postMessage({_msgId: id, response: func(request, ts)});
           });
         } else {
           port.postMessage({_msgId: id, response: func(request)})
@@ -724,9 +729,7 @@
     else if (key = request.handler) {
       func = requestHandlers[key];
       if (func.useTab) {
-        chrome.tabs.query({currentWindow: true, active: true}, function(tabs) {
-          func(request, tabs[0]);
-        });
+        chrome.tabs.query({currentWindow: true, active: true}, func.bind(null, request));
       } else {
         func(request);
       }
@@ -831,9 +834,7 @@
       if (count === 2) {
         chrome.tabs.query({currentWindow: true}, func);
       } else if (count) {
-        chrome.tabs.query({currentWindow: true, active: true}, function(tabs) {
-          func(tabs[0]);
-        });
+        chrome.tabs.query({currentWindow: true, active: true}, func);
       } else {
         func();
       }
@@ -846,7 +847,7 @@
     });
   };
 
-  // function (request, Tab tab = null);
+  // function (request, Tab [1] tabs = [selected] <% if .useTab is 1 else %> null);
   window.g_requestHandlers = requestHandlers = {
     setSetting: function(request) {
       Settings.set(request.key, request.value);
@@ -880,26 +881,22 @@
       return "";
     },
     restoreSession: function(request) {
-      chrome.sessions.restore(request.sessionId);
+      chrome.sessions.restore(request.sessionId, funcDict.onRuntimeError);
     },
-    openRawUrl: function(request, tab) {
-      openMultiTab(request.url, 1, tab);
+    openRawUrl: function(request, tabs) {
+      openMultiTab(request.url, 1, tabs[0]);
     },
-    openUrlInNewTab: function(request, tab) {
-      openMultiTab(Utils.convertToUrl(request.url), 1, tab);
+    openUrlInNewTab: function(request, tabs) {
+      openMultiTab(Utils.convertToUrl(request.url), 1, tabs[0]);
     },
-    openUrlInIncognito: function(request, tab) {
-      chrome.windows.getAll(funcDict.openUrlInIncognito.bind(null, request, tab));
+    openUrlInIncognito: function(request, tabs) {
+      chrome.windows.getAll(funcDict.openUrlInIncognito.bind(null, request, tabs[0]));
     },
     openUrlInCurrentTab: function(request) {
       var url = Utils.convertToUrl(request.url);
       chrome.tabs.update(null, {
         url: url
-      }, function() {
-        if (chrome.runtime.lastError) {
-          return chrome.runtime.lastError;
-        }
-      });
+      }, funcDict.onRuntimeError);
     },
     dispatchMsg: function(request) {
       chrome.tabs.sendMessage(request.tabId, {
@@ -961,8 +958,8 @@
     copyToClipboard: function(request) {
       Clipboard.copy(request.data);
     },
-    copyCurrentUrl: function(_0, tab) {
-      Clipboard.copy(tab.url);
+    copyCurrentUrl: function(_0, tabs) {
+      Clipboard.copy(tabs[0].url);
     },
     saveHelpDialogSettings: function(request) {
       Settings.set("showAdvancedCommands", request.showAdvancedCommands);
@@ -1078,30 +1075,29 @@
   ContentSettings.clear("images");
 
   (function() {
-    var ref, i, ref2;
+    var ref, i, ref2, key;
+    ref2 = requestHandlers;
+    for (key in ref2) { ref2[key].useTab = 0; }
     ref = ["copyCurrentUrl", "openUrlInNewTab", "openUrlInIncognito" //
       , "openRawUrl", "createMark" //
     ];
-    ref2 = requestHandlers;
     for (i = ref.length; 0 <= --i; ) {
       ref2[ref[i]].useTab = 1;
     }
 
+    ref2 = BackgroundCommands;
+    for (key in ref2) { ref2[key].useTab = 1; }
     ref = ["nextTab", "previousTab", "firstTab", "lastTab", "removeTab" //
       , "closeTabsOnLeft", "closeTabsOnRight", "closeOtherTabs" //
     ];
-    ref2 = BackgroundCommands;
     for (i = ref.length; 0 <= --i; ) {
       ref2[ref[i]].useTab = 2;
     }
-    ref = ["duplicateTab", "moveTabToNextWindow", "moveTabToIncognito" //
-      , "enableImageTemp", "toggleImage", "clearImageCS" //
-      , "openCopiedUrlInNewTab", "togglePinTab" //
-      , "reopenTab", "moveTabLeft", "moveTabRight", "nextFrame", "mainFrame" //
-      , "copyCurrentTitle", "copyCurrentUrl", "toggleViewSource"
+    ref = ["createTab", "restoreTab", "restoreGivenTab", "blank", "reloadTab" //
+      , "openCopiedUrlInCurrentTab" //
     ];
     for (i = ref.length; 0 <= --i; ) {
-      ref2[ref[i]].useTab = 1;
+      ref2[ref[i]].useTab = 0;
     }
   })();
 })();

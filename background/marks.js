@@ -1,9 +1,9 @@
 "use strict";
 var Marks = {
   _marks: {},
-  Create: function(req, tab) {
+  Create: function(req, tabs) {
     Marks._marks[req.markName] = {
-      tabId: tab.id,
+      tabId: tab[0].id,
       scroll: req.scroll
     };
     return true;
