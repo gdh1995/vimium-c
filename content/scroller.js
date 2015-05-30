@@ -103,11 +103,11 @@ var Scroller = {
     }
     this.Core.scroll(element, di, amount);
   },
-  scrollTo: function(direction, pos) {
+  scrollTo: function(direction, factor) {
     var amount, element, di = direction === "y" ? 1 : 0;;
-    pos >= 0 ? (amount = pos, pos = "") : (amount = 1);
-    element = this.findScrollable(this.getActivatedElement(), di, amount, pos);
-    amount = amount * this.getDimension(element, di, pos) - (element
+    factor >= 0 ? (amount = factor, factor = "") : (amount = 1);
+    element = this.findScrollable(this.getActivatedElement(), di, amount, factor);
+    amount = amount * this.getDimension(element, di, factor) - (element
       ? element[this.Properties[di].axisName] : di ? window.scrollY : window.scrollX);
     this.Core.scroll(element, di, amount);
   },
@@ -123,8 +123,9 @@ var Scroller = {
     if (element) {
       return element;
     }
-    return element = this.Core.activatedElement =
-      document.body ? (this.selectFirst(document.body) || document.body) : null;
+    element = document.body;
+    return element = this.Core.activatedElement = element
+      ? (this.selectFirst(element) || element) : null;
   },
   getDimension: function(el, di, name) {
     return !name ? 1
@@ -136,8 +137,8 @@ var Scroller = {
     return val === 0 ? 0 : val < 0 ? -1 : 1;
   },
   scrollDo: function(element, di, amount, factor) {
-    var delta = amount * this.getDimension(element, di, factor) > 0 ? 1 : -1;
-    return this.Core.performScroll(element, di, delta) && this.Core.performScroll(element, di, -delta);
+    amount = amount * this.getDimension(element, di, factor) > 0 ? 1 : -1;
+    return this.Core.performScroll(element, di, amount) && this.Core.performScroll(element, di, -amount);
   },
   selectFirst: function(element) {
     if (this.scrollDo(element, 1, 1, 1) || this.scrollDo(element, 1, -1, 1)) {
