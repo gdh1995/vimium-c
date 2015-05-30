@@ -46,9 +46,6 @@ var Scroller = {
           before = window.scrollX;
           el = document.documentElement;
         }
-        if (el.clientWidth <= el.clientHeight * 2) {
-          amount = Math.ceil(amount * 0.6);
-        }
         if (element) {
           el.scrollLeft += amount;
           return el.scrollLeft !== before;
