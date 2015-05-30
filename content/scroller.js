@@ -93,21 +93,19 @@ var Scroller = {
     this.Core.init();
   },
   scrollBy: function(direction, amount, factor, zoomX) {
-    var element, elementAmount, di;
-    element = this.getActivatedElement();
+    var element, di;
     if (this.Core.wouldNotInitiateScroll()) { return; }
     di = direction === "y" ? 1 : 0;
-    element = this.findScrollable(element, di, amount, factor);
-    elementAmount = amount * this.getDimension(element, di, factor);
-    this.Core.scroll(element, di, elementAmount);
+    element = this.findScrollable(this.getActivatedElement(), di, amount, factor);
+    amount *= this.getDimension(element, di, factor);
+    this.Core.scroll(element, di, amount);
   },
   scrollTo: function(direction, pos) {
     var amount, element, di = direction === "y" ? 1 : 0;;
     pos >= 0 ? (amount = pos, pos = "") : (amount = 1);
     element = this.findScrollable(this.getActivatedElement(), di, amount, pos);
     amount = amount * this.getDimension(element, di, pos) - (element
-      ? element[this.Properties[di].axisName]
-      : di ? window.scrollY : window.scrollX);
+      ? element[this.Properties[di].axisName] : di ? window.scrollY : window.scrollX);
     this.Core.scroll(element, di, amount);
   },
   findScrollable: function(element, di, amount, factor) {
