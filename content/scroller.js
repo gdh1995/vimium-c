@@ -37,9 +37,9 @@ var Scroller = {
         }
       });
     },
-    performScroll: function(element, direction, amount) {
+    performScroll: function(element, di, amount) {
       var before, el = element;
-      if (direction === "x") {
+      if (di === 0) {
         if (el) {
           before = el.scrollLeft;
         } else {
@@ -66,12 +66,12 @@ var Scroller = {
       }
     },
     Reset: null,
-    scroll: function(element, direction, amount) {
+    scroll: function(element, di, amount) {
       if (!amount) {
         return;
       }
       if (!settings.values.smoothScroll) {
-        this.performScroll(element, direction, amount);
+        this.performScroll(element, di, amount);
         this.checkVisibility(element);
         return;
       }
@@ -79,49 +79,46 @@ var Scroller = {
         return;
       }
       this.activationTime = ++this.time;
-      this.Reset(amount, direction, element);
+      this.Reset(amount, di, element);
       requestAnimationFrame(this.Animate);
     },
     wouldNotInitiateScroll: function() {
       return settings.values.smoothScroll && this.isLastEventRepeat;
     },
   },
-  Properties: {
-    x: {
+  Properties: [{
       axisName: "scrollLeft",
       max: "scrollWidth",
       viewSize: "clientWidth"
-    },
-    y: {
+  }, {
       axisName: "scrollTop",
       max: "scrollHeight",
       viewSize: "clientHeight"
-    }
-  },
+  }],
   init: function() {
     this.Core.init();
   },
-  scrollBy: function(direction, amount, factor) {
-    var element, elementAmount;
+  scrollBy: function(direction, amount, factor, zoomX) {
+    var element, elementAmount, di;
     element = this.getActivatedElement();
-    if (!this.Core.wouldNotInitiateScroll()) {
-      element = this.findScrollable(element, direction, amount, factor);
-      elementAmount = amount * this.getDimension(element, direction, factor);
-      this.Core.scroll(element, direction, elementAmount);
-    }
+    if (this.Core.wouldNotInitiateScroll()) { return; }
+    di = direction === "y" ? 1 : 0;
+    element = this.findScrollable(element, di, amount, factor);
+    elementAmount = amount * this.getDimension(element, di, factor);
+    this.Core.scroll(element, di, elementAmount);
   },
   scrollTo: function(direction, pos) {
-    var amount, element;
+    var amount, element, di = direction === "y" ? 1 : 0;;
     pos >= 0 ? (amount = pos, pos = "") : (amount = 1);
-    element = this.findScrollable(this.getActivatedElement(), direction, amount, pos);
-    amount = amount * this.getDimension(element, direction, pos) - (element
-      ? element[this.Properties[direction].axisName]
-      : direction === "x" ? window.scrollX : window.scrollY);
-    this.Core.scroll(element, direction, amount);
+    element = this.findScrollable(this.getActivatedElement(), di, amount, pos);
+    amount = amount * this.getDimension(element, di, pos) - (element
+      ? element[this.Properties[di].axisName]
+      : di ? window.scrollY : window.scrollX);
+    this.Core.scroll(element, di, amount);
   },
-  findScrollable: function(element, direction, amount, factor) {
-    while (element !== document.body && !(this.scrollDo(element, direction, amount, factor)
-        && this.shouldScroll(element, direction))) {
+  findScrollable: function(element, di, amount, factor) {
+    while (element !== document.body && !(this.scrollDo(element, di, amount, factor)
+        && this.shouldScroll(element, di))) {
       element = element.parentElement || document.body;
     }
     return element;
@@ -134,21 +131,21 @@ var Scroller = {
     return element = this.Core.activatedElement =
       document.body ? (this.selectFirst(document.body) || document.body) : null;
   },
-  getDimension: function(el, direction, name) {
+  getDimension: function(el, di, name) {
     return !name ? 1
-      : (!el) ? document.documentElement[this.Properties[direction][name]]
-      : (name !== "viewSize" || el !== document.body) ? el[this.Properties[direction][name]]
-      : (direction === "x") ? window.innerWidth : window.innerHeight;
+      : (!el) ? document.documentElement[this.Properties[di][name]]
+      : (name !== "viewSize" || el !== document.body) ? el[this.Properties[di][name]]
+      : di ? window.innerHeight : window.innerWidth;
   },
   getSign: function(val) {
     return val === 0 ? 0 : val < 0 ? -1 : 1;
   },
-  scrollDo: function(element, direction, amount, factor) {
-    var delta = amount * this.getDimension(element, direction, factor) > 0 ? 1 : -1;
-    return this.Core.performScroll(element, direction, delta) && this.Core.performScroll(element, direction, -delta);
+  scrollDo: function(element, di, amount, factor) {
+    var delta = amount * this.getDimension(element, di, factor) > 0 ? 1 : -1;
+    return this.Core.performScroll(element, di, delta) && this.Core.performScroll(element, di, -delta);
   },
   selectFirst: function(element) {
-    if (this.scrollDo(element, "y", 1, 1) || this.scrollDo(element, "y", -1, 1)) {
+    if (this.scrollDo(element, 1, 1, 1) || this.scrollDo(element, 1, -1, 1)) {
       return element;
     }
     var children = [], rect, _ref = element.children, _len = _ref.length;
@@ -168,10 +165,10 @@ var Scroller = {
     }
     return null;
   },
-  shouldScroll: function(element, direction) {
+  shouldScroll: function(element, di) {
     var computedStyle = window.getComputedStyle(element), _ref;
     return (computedStyle.getPropertyValue("display") === "none") //
-      || (computedStyle.getPropertyValue("overflow-" + direction) === "hidden") //
+      || (computedStyle.getPropertyValue(di ? "overflow-y" : "overflow-x") === "hidden") //
       || ((_ref = computedStyle.getPropertyValue("visibility")) === "hidden" || _ref === "collapse") //
       ? false : true;
   },
@@ -181,7 +178,7 @@ var Scroller = {
 };
 
 (function () {
-  var amount = 0, calibration = 1.0, direction = "", duration = 0, element = null, //
+  var amount = 0, calibration = 1.0, di = 0, duration = 0, element = null, //
   sign = 0, timestamp = -1, totalDelta = 0, totalElapsed = 0.0, //
   animate = function(new_timestamp) {
     var int1 = timestamp, elapsed, _this = Scroller.Core;
@@ -203,7 +200,7 @@ var Scroller = {
       int1 = Math.ceil(amount * (elapsed / duration) * calibration);
       int1 = Math.max(0, Math.min(int1, amount - totalDelta));
     }
-    if (int1 && _this.performScroll(element, direction, sign * int1)) {
+    if (int1 && _this.performScroll(element, di, sign * int1)) {
       totalDelta += int1;
       requestAnimationFrame(animate);
     } else if (element) {
@@ -213,8 +210,8 @@ var Scroller = {
       }
     }
   };
-  Scroller.Core.Reset = function(new_amount, new_dire, new_el) {
-    amount = Math.abs(new_amount), calibration = 1.0, direction = new_dire;
+  Scroller.Core.Reset = function(new_amount, new_di, new_el) {
+    amount = Math.abs(new_amount), calibration = 1.0, di = new_di;
     duration = Math.max(100, 20 * Math.log(amount)), element = new_el;
     sign = Scroller.getSign(new_amount);
     timestamp = -1, totalDelta = 0, totalElapsed = 0.0;
