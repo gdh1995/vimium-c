@@ -141,7 +141,7 @@ var Scroller = {
     return this.Core.performScroll(element, di, amount) && this.Core.performScroll(element, di, -amount);
   },
   selectFirst: function(element) {
-    if (this.scrollDo(element, 1, 1, 1) || this.scrollDo(element, 1, -1, 1)) {
+    if (this.scrollDo(element, 1, 1, "") || this.scrollDo(element, 1, -1, "")) {
       return element;
     }
     var children = [], rect, _ref = element.children, _len = _ref.length;
