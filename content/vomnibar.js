@@ -383,11 +383,16 @@ Vomnibar.vomnibarUI = {
     this.init = null;
   },
   init_dom: function(response) {
-    this.background.showRelevancy = response.relevancy === true;
+    var str;
+    this.background.showRelevancy = response.relevancy;
+    if (chrome.runtime.getManifest && (str = chrome.runtime.getManifest().permissions)) {
+      str = str.join("/");
+      this.background.showFavIcon = str.indexOf("<all_urls>") >= 0 || str.indexOf("chrome://favicon/") >= 0;
+    }
     this.box.innerHTML = response.html;
     this.input = this.box.querySelector("#vimOInput");
     this.list = this.box.querySelector("#vimOList");
-    var str = this.box.querySelector("#vimOITemplate").innerHTML;
+    str = this.box.querySelector("#vimOITemplate").innerHTML;
     str = str.substring(str.indexOf('>') + 1, str.lastIndexOf('<'));
     this.renderItems = Utils.makeListRenderBySplit(str);
     this._waitInit = 0;
@@ -460,7 +465,7 @@ Vomnibar.background = {
 
   showRelevancy: false,
   maxCharNum: 160,
-  showFavIcon: window.location.protocol.startsWith("chrome"),
+  showFavIcon: false,
   resolve: function(result) {
     this.prepareToRender(result);
     result.action = (result.type === "tab") ? "switchToTab"
