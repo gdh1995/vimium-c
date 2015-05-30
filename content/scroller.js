@@ -37,29 +37,26 @@ var Scroller = {
         }
       });
     },
-    performScroll: function(element, di, amount) {
-      var before, el = element;
-      if (di === 0) {
+    performScroll: function(el, di, amount) {
+      var before;
+      if (di) {
         if (el) {
-          before = el.scrollLeft;
+          before = el.scrollTop;
+          el.scrollTop += amount;
+          return el.scrollTop !== before;
         } else {
-          before = window.scrollX;
-          el = document.documentElement;
+          before = window.scrollY;
+          window.scrollBy(0, amount);
+          return window.scrollY !== before;
         }
-        if (element) {
-          el.scrollLeft += amount;
-          return el.scrollLeft !== before;
-        }
+      } else if (el) {
+        before = el.scrollLeft;
+        el.scrollLeft += amount;
+        return el.scrollLeft !== before;
+      } else {
+        before = window.scrollX;
         window.scrollBy(amount, 0);
         return window.scrollX !== before;
-      } else if (el) {
-        before = element.scrollTop;
-        element.scrollTop += amount;
-        return element.scrollTop !== before;
-      } else {
-        before = window.scrollY;
-        window.scrollBy(0, amount);
-        return window.scrollY !== before;
       }
     },
     Reset: null,
@@ -84,13 +81,13 @@ var Scroller = {
     },
   },
   Properties: [{
-      axisName: "scrollLeft",
-      max: "scrollWidth",
-      viewSize: "clientWidth"
+    axisName: "scrollLeft",
+    max: "scrollWidth",
+    viewSize: "clientWidth"
   }, {
-      axisName: "scrollTop",
-      max: "scrollHeight",
-      viewSize: "clientHeight"
+    axisName: "scrollTop",
+    max: "scrollHeight",
+    viewSize: "clientHeight"
   }],
   init: function() {
     this.Core.init();
