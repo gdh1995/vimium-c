@@ -297,16 +297,8 @@ Vomnibar.vomnibarUI = {
     }
   },
   onEnter: function() {
-    var i = this.selection, ref = this.list.children;
-    if (i >= 0 && i < ref.length) {
-      i = + ref[this.selection].getAttribute("data-vim-index");
-      if (!(i >= 0 && i < this.completions.length)) {
-        return;
-      }
-    } else {
-      i = -1;
-    }
-    this.background.performAction(i >= 0 ? this.completions[i] : this.completionInput, this.openInNewTab);
+    this.background.performAction(this.selection === -1 ? this.completionInput
+      : this.completions[this.selection], this.openInNewTab);
     this.hide();
   },
   onClick: function(event) {
@@ -406,9 +398,9 @@ Vomnibar.vomnibarUI = {
     document.documentElement.appendChild(this.box);
   },
   computeHint: function(li, a) {
-    var i = +li.getAttribute("data-vim-index"), item, rect;
-    if (!(i >= 0 && i < this.completions.length)) { return null; }
-    if (!a.getAttribute("data-vim-url")) {
+    var i = [].indexOf.call(this.box, li), item, rect;
+    if (i === -1) { return null; }
+    if (!a.hasAttribute("data-vim-url")) {
       item = this.completions[i];
       a.setAttribute("data-vim-text", item.title);
       a.setAttribute("data-vim-url", item.url);
