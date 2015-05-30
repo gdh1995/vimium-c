@@ -98,6 +98,9 @@ var Scroller = {
     di = direction === "y" ? 1 : 0;
     element = this.findScrollable(this.getActivatedElement(), di, amount, factor);
     amount *= this.getDimension(element, di, factor);
+    if (zoomX && element && di === 0 && element.clientWidth <= element.clientHeight * 2) {
+      amount = Math.ceil(amount * 0.6);
+    }
     this.Core.scroll(element, di, amount);
   },
   scrollTo: function(direction, pos) {

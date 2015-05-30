@@ -232,10 +232,10 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       Scroller.scrollBy("y", count, "viewSize");
     },
     scrollLeft: function(count) {
-      Scroller.scrollBy("x", -count * (settings.values.scrollStepSize || 100));
+      Scroller.scrollBy("x", -count * (settings.values.scrollStepSize || 100), "", true);
     },
     scrollRight: function(count) {
-      Scroller.scrollBy("x", count * (settings.values.scrollStepSize || 100));
+      Scroller.scrollBy("x", count * (settings.values.scrollStepSize || 100), "", true);
     },
 
     reload: function() {
