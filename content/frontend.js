@@ -237,6 +237,18 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     scrollRight: function(count) {
       Scroller.scrollBy("x", count * (settings.values.scrollStepSize || 100), "", true);
     },
+    scrollPxUp: function(count) {
+      Scroller.scrollBy("y", -count);
+    },
+    scrollPxDown: function(count) {
+      Scroller.scrollBy("y", count);
+    },
+    scrollPxLeft: function(count) {
+      Scroller.scrollBy("x", -count);
+    },
+    scrollPxRight: function(count) {
+      Scroller.scrollBy("x", count);
+    },
 
     reload: function() {
       window.location.reload();

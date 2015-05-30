@@ -106,7 +106,9 @@ Commands.commandGroups = {
     , "removeTab", "restoreTab", "restoreGivenTab", "moveTabToNextWindow", "moveTabToIncognito", "togglePinTab"
     , "closeTabsOnLeft", "closeTabsOnRight", "closeOtherTabs", "moveTabLeft", "moveTabRight"
     , "enableImageTemp", "toggleImage", "clearImageCS"],
-  misc: ["showHelp", "enterVisualMode", "autoCopy", "autoSearch", "mainFrame", "blank"]
+  misc: ["showHelp", "enterVisualMode", "autoCopy", "autoSearch", "mainFrame"
+    , "scrollPxDown", "scrollPxUp", "scrollPxLeft", "scrollPxRight"
+    , "blank"]
 };
 Commands.advancedCommands = ["scrollToLeft", "scrollToRight", "moveTabToNextWindow", "moveTabToIncognito"
   , "goUp", "goToRoot", "focusInput", "LinkHints.activateModeWithQueue", "enableImageTemp"
@@ -115,6 +117,7 @@ Commands.advancedCommands = ["scrollToLeft", "scrollToRight", "moveTabToNextWind
   , "Vomnibar.activateEditUrlInNewTab", "LinkHints.activateModeToOpenIncognito"
   , "goNext", "goPrevious", "Marks.activateCreateMode", "Marks.activateGotoMode"
   , "moveTabLeft", "moveTabRight", "closeTabsOnLeft", "closeTabsOnRight", "closeOtherTabs"
+  , "scrollPxDown", "scrollPxUp", "scrollPxLeft", "scrollPxRight"
 ];
 Commands._defaultKeyMappings = {
   "?": "showHelp",
@@ -204,6 +207,10 @@ Commands._defaultKeyMappings = {
   scrollUp: ["Scroll up"],
   scrollLeft: ["Scroll left"],
   scrollRight: ["Scroll right"],
+  scrollPxDown: ["Scroll 1px down"],
+  scrollPxUp: ["Scroll 1px up"],
+  scrollPxLeft: ["Scroll 1px left"],
+  scrollPxRight: ["Scroll 1px right"],
   scrollToTop: [
     "Scroll to the top of the page", {
       noRepeat: true
