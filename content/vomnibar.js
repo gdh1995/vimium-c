@@ -237,12 +237,12 @@ Vomnibar.vomnibarUI = {
       action = "";
       n = this.selection >= 0 && this.isSelectionChanged ? 1 : 0;
       if (event.keyCode === 32) {
-        if ((n === 1 || this.completions.length <= 1) && document.activeElement === this.input //
+        if (document.activeElement !== this.input) {
+          action = "focus";
+        } else if ((n === 1 || this.completions.length <= 1)
             && this.input.value.endsWith("  ")) {
           this.openInNewTab = this.forceNewTab;
           action = "enter";
-        } else if (document.activeElement !== this.input) {
-          action = "focus";
         }
       }
       else if (n === 1 || document.activeElement !== this.input) {
@@ -376,10 +376,9 @@ Vomnibar.vomnibarUI = {
   init: function(box, background, completer) {
     this.background = background;
     this.box = box;
-    this.box.className = "vimB vimR";
-    this.box.id = "vimOmnibar";
-    this.box.style.display = "none";
-    document.documentElement.appendChild(this.box);
+    box.className = "vimB vimR";
+    box.id = "vimOmnibar";
+    box.style.display = "none";
     mainPort.postMessage({
       handler: "initVomnibar"
     }, this.init_dom.bind(this));
@@ -404,6 +403,7 @@ Vomnibar.vomnibarUI = {
     if (this.completions) {
       this.onCompletions(this.completions);
     }
+    document.documentElement.appendChild(this.box);
   },
   computeHint: function(li, a) {
     var i = +li.getAttribute("data-vim-index"), item, rect;
