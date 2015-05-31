@@ -15,6 +15,7 @@ var Settings, VHUD, MainPort;
     , restoreDefaultSelectionHighlight //
     , settings, showFindModeHUDForQuery, textInputXPath, oldActivated //
     , updateFindModeQuery, goBy, getVisibleInputs, mainPort, requestHandlers //
+    , isInjected = typeof VimiumInjector == "string" ? true : false
     ;
   
   frameId = window.top === window ? 0 : Math.floor(Math.random() * 9999997) + 2;
@@ -173,6 +174,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     }, css: null, //
     onKeydown: null, onKeypress: null, onKeyup: null, //
     docOnFocus: null, onBlur: null, onActivate: null, //
+    onFocus: null, onUnload: null, onHashChagne: null, //
     destroy: null //
   };
 
@@ -1255,7 +1257,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
 
   DomUtils.DocumentReady(function() {
     requestHandlers.reg();
-    window.onunload = function() {
+    ELs.onUnload = function() {
       try {
         mainPort.postMessage({
           handlerSettings: "unreg",
@@ -1267,26 +1269,54 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     // NOTE: here, we should always postMessage, since
     //     NO other message will be sent if not isEnabledForUrl,
     // which would make the auto-destroy logic not work.
-    window.onfocus = mainPort.safePost.bind(
+    ELs.onFocus = mainPort.safePost.bind(
       mainPort, ELs.focusMsg, requestHandlers.refreshKeyQueue, null //
     );
-    window.onhashchange = requestHandlers.checkIfEnabled;
-  });
-
-  chrome.runtime.id === "hfjbmagddngcpeloejdejnfgbamkjaeg" &&
-  chrome.runtime.onMessage.addListener(function(request, handler) {
-    var id = request.frameId;
-    if (id === undefined || id === frameId) {
-      requestHandlers[request.name](request); // do not check `handler != null`
+    ELs.onHashChange = requestHandlers.checkIfEnabled;
+    if (isInjected) {
+      window.addEventListener("focus", ELs.onFocus = (function(event) {
+        if (event.target == window) {
+          this();
+        }
+      }).bind(ELs.onFocus));
+      window.addEventListener("unload", ELs.onUnload);
+      window.addEventListener("hashchange", ELs.onHashChange);
+    } else {
+      window.onunload = ELs.onUnload;
+      window.onfocus = ELs.onFocus;
+      window.onhashchange = ELs.onHashChange;
     }
   });
+
+  if (isInjected) {
+    chrome.runtime.onMessageExternal.addListener(function(request, sender) {
+      if (sender.id !== "hfjbmagddngcpeloejdejnfgbamkjaeg") { return; }
+      var id = request.frameId;
+      if (id === undefined || id === frameId) {
+        requestHandlers[request.name](request);
+      }
+    });
+  } else {
+     chrome.runtime.onMessage.addListener(function(request, id) {
+      id = request.frameId;
+      if (id === undefined || id === frameId) {
+        requestHandlers[request.name](request); // do not check `handler != null`
+      }
+    });
+  }
 
   ELs.destroy = function() {
     isEnabledForUrl = false;
     try {
-    window.onfocus = null;
-    window.onunload = null;
-    window.onhashchange = null;
+    if (isInjected) {
+      window.removeEventListener("unload", this.onUnload);
+      window.removeEventListener("focus", this.onFocus);
+      window.removeEventListener("hashchange", this.onHashChange);
+    } else {
+      window.onfocus = null;
+      window.onunload = null;
+      window.onhashchange = null;
+    }
     window.removeEventListener("keydown", this.onKeydown, true);
     window.removeEventListener("keypress", this.onKeypress, true);
     window.removeEventListener("keyup", this.onKeyup, true);
