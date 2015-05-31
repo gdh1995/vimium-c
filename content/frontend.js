@@ -925,7 +925,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
   };
 
   showHelpDialog = function(response) {
-    var container, handlerId, oldShowHelp, hide, //
+    var container, handlerId, oldShowHelp, hide, node1, //
     showAdvancedCommands, shouldShowAdvanced = response.advanced === true;
     if (!document.body) {
       return;
@@ -940,15 +940,13 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     container.innerHTML = response.html;
     document.documentElement.appendChild(container);
     container.addEventListener("mousewheel", DomUtils.suppressPropagation, false);
+    container.addEventListener("click", DomUtils.suppressPropagation, false);
 
-    hide = function(event) {
+    hide = function() {
       handlerStack.remove(handlerId);
       DomUtils.removeNode(container);
       Commands.showHelp = oldShowHelp;
       settings.ondestroy.helpDialog = null;
-      if (event) {
-        DomUtils.suppressEvent(event);
-      }
       container.innerHTML = "";
       container = null;
     };
@@ -965,38 +963,33 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     };
     
     settings.ondestroy.helpDialog = hide;
-    document.getElementById("vimAdvancedCommands").addEventListener("click", function(event) {
     oldShowHelp = Commands.showHelp;
+    document.getElementById("vimAdvancedCommands").onclick = function() {
       shouldShowAdvanced = !shouldShowAdvanced;
       showAdvancedCommands(shouldShowAdvanced);
       settings.set("showAdvancedCommands", shouldShowAdvanced);
-      DomUtils.suppressEvent(event);
-    }, false);
-    document.getElementById("vimCloseButton").addEventListener("click" //
-      , Commands.showHelp = hide, false);
+    };
+    document.getElementById("vimCloseButton").onclick = Commands.showHelp = hide;
+    node1 = document.getElementById("vimOptionsPage");
     if (! window.location.href.startsWith(response.optionUrl)) {
-      document.getElementById("vimOptionsPage").addEventListener("click", function(event) {
-        mainPort.postMessage({
-          handler: "openRawUrl",
-          url: "/pages/options.html"
-        });
-        hide(event);
-      }, false);
+      node1.href = response.optionUrl;
+      node1.onclick = hide;
     } else {
-      DomUtils.removeNode(document.getElementById("vimOptionsPage"));
+      DomUtils.removeNode(node1);
     }
     showAdvancedCommands(shouldShowAdvanced);
-    document.getElementById("vimHelpDialog").style.maxHeight = window.innerHeight - 80;
+    node1 = document.getElementById("vimHelpDialog");
+    node1.style.maxHeight = window.innerHeight - 80;
     window.focus();
     handlerStack.bubbleEvent("DOMActivate", {
       preventDefault: function() {},
       stopImmediatePropagation: function() {},
-      target: document.getElementById("vimHelpDialog")
+      target: node1
     });
     handlerId = handlerStack.push({
       keydown: function(event) {
         if (event.keyCode === KeyCodes.esc && KeyboardUtils.isPlain(event)) {
-          hide(event);
+          hide();
           return false;
         }
         return true;
