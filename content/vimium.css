@@ -193,14 +193,3 @@
 	width: 100%;
 	z-index: 2147483644;
 }
-
-/* UIComponent CSS */
-.vimUIHidden.vimB {
-  display: none;
-}
-.vimUIVisible.vimB {
-  display: block;
-}
-.vimUIReactivated.vimB {
-  border: 5px solid yellow;
-}
