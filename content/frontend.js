@@ -965,8 +965,8 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     };
     
     settings.ondestroy.helpDialog = hide;
-    oldShowHelp = window.showHelp;
     document.getElementById("vimAdvancedCommands").addEventListener("click", function(event) {
+    oldShowHelp = Commands.showHelp;
       shouldShowAdvanced = !shouldShowAdvanced;
       showAdvancedCommands(shouldShowAdvanced);
       settings.set("showAdvancedCommands", shouldShowAdvanced);
