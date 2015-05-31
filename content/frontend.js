@@ -6,7 +6,7 @@
     , findModeAnchorNode, findModeQuery, findModeQueryHasResults, focusFoundLink, followLink //
     , frameId, getNextQueryFromRegexMatches, handleDeleteForFindMode //
     , handleEnterForFindMode, handleEscapeForFindMode, handleKeyCharForFindMode, KeydownEvents //
-    , /* CursorHider, */ ELs //
+    , /* CursorHider, */ ELs, Commands //
     , initializeWhenEnabled, insertModeLock //
     , isEnabledForUrl, isInsertMode //
     , checkValidKey, getFullCommand, keyQueue //
@@ -63,10 +63,11 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
   mainPort = {
     _port: null,
     _callbacks: {},
+    _lastMsg: 1,
     postMessage: function(request, callback) {
       if (callback) {
         request = {
-          _msgId: Utils.createUniqueId(),
+          _msgId: ++this._lastMsg,
           request: request
         };
       }
@@ -139,7 +140,10 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       if (ref = response.load) {
         _this.values = ref;
       } else {
-        extend(_this.values, response.values);
+        ref = response.values;
+        for (i in ref) {
+          _this.values[i] = ref[i];
+        }
       }
       if (i = _this.isLoading) {
         clearInterval(i);
@@ -205,7 +209,11 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     }
   };
 
-  extend(window, {
+  Commands = {
+    Vomnibar: Vomnibar,
+    LinkHints: LinkHints,
+    Marks: Marks,
+
     scrollToBottom: function() {
       Scroller.scrollTo("y", "max");
     },
@@ -255,6 +263,28 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       Scroller.scrollBy("x", count);
     },
 
+    performFind: function(count) {
+      findAndFocus(count);
+    },
+    performBackwardsFind: function(count) {
+      findAndFocus(count, true);
+    },
+    enterInsertMode: function(target) {
+      enterInsertModeWithoutShowingIndicator(target);
+      HUD.show("Insert mode");
+    },
+    enterVisualMode: function() {}, // TODO
+    enterFindMode: function() {
+      findModeQuery.rawQuery = "";
+      findMode = true;
+      HUD.show("/");
+    },
+    goPrevious: function() {
+      goBy("prev", settings.values.previousPatterns || "");
+    },
+    goNext: function() {
+      goBy("next", settings.values.nextPatterns || "");
+    },
     reload: function() {
       window.location.reload();
     },
@@ -401,7 +431,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
         }
       });
     }
-  });
+  };
 
   KeydownEvents = {
     _handledEvents: {},
@@ -551,11 +581,6 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     } else {
       return keyChar;
     }
-  };
-
-  window.enterInsertMode = function(target) {
-    enterInsertModeWithoutShowingIndicator(target);
-    HUD.show("Insert mode");
   };
 
   enterInsertModeWithoutShowingIndicator = function(target) {
@@ -778,14 +803,6 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     }
   };
 
-  window.performFind = function(count) {
-    findAndFocus(count);
-  };
-
-  window.performBackwardsFind = function(count) {
-    findAndFocus(count, true);
-  };
-
   followLink = function(linkElement) {
     if (linkElement.nodeName.toLowerCase() === "link") {
       window.location.href = linkElement.href;
@@ -884,14 +901,6 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     return false;
   };
 
-  window.goPrevious = function() {
-    goBy("prev", settings.values.previousPatterns || "");
-  };
-
-  window.goNext = function() {
-    goBy("next", settings.values.nextPatterns || "");
-  };
-
   showFindModeHUDForQuery = function() {
     if (findModeQueryHasResults || !findModeQuery.parsedQuery) {
       HUD.show("/" + findModeQuery.rawQuery + " (" + findModeQuery.matchCount + " Matches)");
@@ -900,11 +909,6 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     }
   };
 
-  window.enterFindMode = function() {
-    findModeQuery.rawQuery = "";
-    findMode = true;
-    HUD.show("/");
-  };
 
   exitFindMode = function() {
     findMode = false;
@@ -1213,14 +1217,18 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     executePageCommand: function(request) {
       keyQueue = false;
       currentSeconds = secondKeys[""];
-      Utils.invokeCommandString(request.command, request.count);
+      var components = request.command.split('.'), obj = Commands, _i, _len, _ref;
+      for (_i = 0, _len = components.length - 1; _i < _len; _i++) {
+        obj = obj[components[_i]];
+      }
+      obj[components[_len]](request.count);
     },
     dispatchMsg: function(request) {
       if (!isEnabledForUrl) {
         sendMessageToFrames(request.source, request.command, request.args);
         return;
       }
-      var components = request.command.split('.'), obj = window, _i, _len, _ref;
+      var components = request.command.split('.'), obj = Commands, _i, _len, _ref;
       for (_i = 0, _len = components.length - 1; _i < _len; _i++) {
         obj = obj[components[_i]];
       }
