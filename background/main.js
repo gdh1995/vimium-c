@@ -943,7 +943,7 @@
     initHelp: function() {
       return {
         html: helpDialogHtml(),
-        optionUrl: chrome.runtime.getURL("pages/options.html");
+        optionUrl: chrome.runtime.getURL("pages/options.html"),
         advanced: Settings.get("showAdvancedCommands")
       };
     },
