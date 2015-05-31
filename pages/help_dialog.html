@@ -72,6 +72,12 @@
 	cursor: pointer;
 	text-decoration: underline;
 }
+
+.vimTopLink.vimR {
+	float: right;
+	margin-right: 20px;
+	top: 8px;
+}
 #vimCloseButton.vimR {
 	-webkit-user-select: none;
 	color: #555;
@@ -79,21 +85,16 @@
 	font-size: 20px;
 	font-weight: bold;
 	line-height: 100%;
-	position: absolute;
-	right: 7px;
+	text-align: right;
 	text-decoration: none;
-	top: 5px;
+	margin: -2px 0 0 0;
 }
 #vimCloseButton:hover {
 	-webkit-user-select: none;
 	color: black;
 	text-decoration: none;
 }
-#vimOptionsPage.vimR {
-	position: absolute;
-	right: 60px;
-	top: 8px;
-}
+
 #vimAdvancedCommands.vimR {
 	position: absolute;
 	right: 2px;
@@ -126,8 +127,9 @@
 </style>
 
 <div class="vimB vimR vimScroll" id="vimHelpDialog">
-	<a class="vimB vimR vimL" id="vimCloseButton">&#215;</a>
-	<a class="vimB vimR vimL" id="vimOptionsPage" target="_blank">Options</a>
+	<a class="vimB vimR vimL vimTopLink" id="vimCloseButton">&#215;</a>
+	<a class="vimB vimR vimL vimTopLink" id="vimOptionsPage" target="_blank">Options</a>
+	<a class="vimB vimR vimL vimTopLink" target="_blank" href="https://github.com/philc/vimium/wiki">Wiki</a>
 	<div class="vimB vimI" style="display:block;font-size:20px;line-height:130%;"><span class="vimB vimI" style="color:#2f508e">Vim</span>ium++ {{title}}</div>
 	<div class="vimB vimI vimColumnBox">
 		<table class="vimB vimI vimHelpTable">
