@@ -467,7 +467,7 @@
       hasNew = false;
       btn.innerHTML = "Saved";
       btn.disabled = true;
-      // although the tab calls window.onfocus after it closes,
+      // although the tab calls window.onfocus after this popup page closes,
       // it is too early for the tab to know new exclusion rules.
       var pass = bgExclusions.getPattern(url);
       BG.g_requestHandlers.setIcon(tab.id, null, pass);
