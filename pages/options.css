@@ -6,6 +6,7 @@ body {
 }
 a, a:visited {
   color: blue;
+  cursor: pointer;
   text-decoration: underline;
 }
 a:active { color: #052577; }
