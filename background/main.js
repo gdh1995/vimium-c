@@ -265,18 +265,23 @@
     },
 
     createTab: [function(wnd) {
+      var tab, url = Settings.get("newTabUrl_f");
+      if (!wnd) {
+        chrome.tabs.create({url: url});
+        return chrome.runtime.lastError;
+      }
       var tab = funcDict.selectFrom(wnd.tabs);
       if (wnd.type !== "normal") {
         tab.windowId = undefined;
         tab.index = 999;
       } else if (wnd.incognito) {
         // newTabUrl_f is disabled to be opened in a incognito window directly
-        funcDict.createTab[1](Settings.get("newTabUrl_f"), tab
+        funcDict.createTab[1](url, tab
           , (--commandCount > 0) ? funcDict.duplicateTab[1] : null, wnd.tabs);
         return;
       }
       tab.id = undefined;
-      openMultiTab(Settings.get("newTabUrl_f"), commandCount, tab);
+      openMultiTab(url, commandCount, tab);
     }, function(url, tab, repeat, allTabs) {
       var urlLower = url.toLowerCase().split('#', 1)[0], tabs;
       allTabs = allTabs.filter(function(tab1) {
