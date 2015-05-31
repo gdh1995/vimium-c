@@ -1,7 +1,7 @@
 "use strict";
 (function() {
   var BackgroundCommands, checkKeyQueue //
-    , frameIdsForTab, urlForTab, ContentSettings //
+    , frameIdsForTab, urlForTab, globalMarks, ContentSettings //
     , handleMainPort, funcDict //
     , helpDialogHtmlForCommandGroup, resetKeys //
     , openMultiTab //
@@ -13,6 +13,8 @@
   frameIdsForTab = {};
 
   window.urlForTab = urlForTab = {};
+
+  globalMarks = {};
 
   window.helpDialogHtml = function(showUnboundCommands, showCommandNames, customTitle) {
     var command, commandsToKey, dialogHtml, group, key;
@@ -971,8 +973,26 @@
     setBadge: function() {},
     setIcon: function() {},
     esc: resetKeys,
-    createMark: Marks.Create,
-    gotoMark: Marks.GoTo
+    createMark: function(req, tabs) {
+      globalMarks[req.markName] = {
+        tabId: tab[0].id,
+        scroll: req.scroll
+      };
+      return true;
+    },
+    goToMark: function(req) {
+      var mark = globalMarks[req.markName];
+      if (!mark) { return; }
+      chrome.tabs.sendMessage(mark.tabId, {
+        name: "gotoMark",
+        frameId: 0,
+        scroll: mark.scroll,
+        markName: req.markName
+      });
+      chrome.tabs.update(mark.tabId, {
+        active: true
+      });
+    }
   };
   requestHandlers.__proto__ = null;
 
