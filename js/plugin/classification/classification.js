@@ -124,17 +124,16 @@ var classification = {
 				minClassificationList.append('<div class="minClassification' + (n.id == cId ? " selected" : "") + '" cId="' + n.id + '"><img title="' + n.title + '" src="' + n.logo + '" border="0">' + (n.id == cId ? '<div class="selected"></div>' : '') + '</div>')
 			})
 		}
-		minClassificationList.find(".minClassification").css({
-			"width" : (DBOX.QWidth - 26) + "px",
-			"height" : (DBOX.QHeight - 26) + "px"
-		});
 		minClassificationList.find(".minClassificationArrow").css({
 			"left" : parseInt(((self.classifications.length + 1) * (DBOX.QWidth - 26) + (self.classifications.length + 2) * 10) / 2 - 8) + "px"
 		});
 		minClassificationList.css({
 			"bottom" : (DBOX.QHeight + 15) + "px"
 		});
-		minClassificationList.find(".minClassification").unbind("click").bind("click", function () {
+		minClassificationList.find(".minClassification").css({
+			"width" : (DBOX.QWidth - 26) + "px",
+			"height" : (DBOX.QHeight - 26) + "px"
+		}).unbind("click").bind("click", function () {
 			if (!$(this).hasClass('selected')) {
 				self.hideMinClassification(true);
 				self.change($(this).attr("cId"))
@@ -391,7 +390,7 @@ var classification = {
 	},
 	changeBody : function (cId) {
 		var self = this;
-		$(".body").addClass("farAway");
+		$(".dialbox").addClass("farAway");
 		setTimeout(function () {
 			storage.setId(cId);
 			targetSwitch = PDI.get('privateSetup', 'targetSwitch');
@@ -419,12 +418,11 @@ var classification = {
 			_classificationOpen = false;
 			var skin = PDI.get('privateSetup', 'skin');
 			if (skin != "" && PDI.getSkin(skin, 'style') != '') {
-				$('.wallpaper').css(PDI.getSkin(skin, 'style').background);
-				$(".wallpaper").css(PDI.getStyle('background'))
+				$('.wallpaper').css(PDI.getSkin(skin, 'style').background).css(PDI.getStyle('background'))
 			}
 		}, 150);
 		setTimeout(function () {
-			$(".body").removeClass("farAway");
+			$(".dialbox").removeClass("farAway");
 			self.changeSwitch = true
 		}, 610);
 		oauth.updateMsgId();

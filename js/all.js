@@ -2578,14 +2578,11 @@ DBOX = {
 		not_boxDrag = quickBoxList.not('.boxDrag');
 		self.QContainer.find('.boxLogo').removeClass('noTitle');
 		self.QContainer.find('.boxTitle').css('backgroundColor', 'transparent');
-		if (!self.dialBoxQuickHide) {
-			if (self.QTotalnum <= 0) {
-				self.QBContainer.css("visibility", "hidden")
-			} else {
-				self.QBContainer.css("visibility", "visible")
-			}
+		if (!self.dialBoxQuickHide && self.QTotalnum <= 0) {
+      self.QBContainer.addClass("hide");
 		}
-		self.QBContainer.css("width", self.QBContainerWidth + "px");
+    self.QBContainer.css("width", self.QBContainerWidth + "px")
+      .css("margin-left", -self.QBContainerWidth / 2 + "px");
 		self.QBContainer.find('.center').css("width", (self.QBContainerWidth - 156) + "px");
 		var _spaceWidth = 240;
 		if (screenWidth <= 1024) {
@@ -3190,40 +3187,38 @@ DBOX = {
 	},
 	pageIndex: function () {
 		var self = this;
-		if (self.totalPage > 1) {
-			if (self.pageSwitcher == '') {
-				self.container.parent().siblings(".pageSwitcher").remove();
-				self.pageSwitcher = $('<div class="pageSwitcher up" pageSwitch="pre"><a><div></div></a></div><div class="pageSwitcher down" pageSwitch="next"><a><div></div></a></div>');
-				self.pageSwitcher.bind('click', function () {
-					self.loadBoxes($(this).attr('pageSwitch'))
-				}).insertBefore(self.container.parent())
-			}
-			self.container.parent().siblings(".pageSwitcher").css("display", self.pageSwitcherShow != false ? "block" : "none");
-			if (self.page == 1) {
-				self.container.parent().siblings('.pageSwitcher.up').css("display", "none")
-			} else if (self.page == self.totalPage) {
-				self.container.parent().siblings('.pageSwitcher.down').css("display", "none")
-			}
-			if (self.pageIndexSwitcher == '') {
-				self.container.parent().find(".pageIndex").remove();
-				self.pageIndexSwitcher = $('<div class="pageIndex"><div></div></div>');
-				self.pageIndexSwitcher.insertAfter(self.container)
-			}
-			self.container.parent().find(".pageIndex div").empty();
-			for (var i = 1; i <= self.totalPage; i++) {
-				self.container.parent().find(".pageIndex div").append($('<a index="' + i + '"></a>').bind('click', function () {
-						self.loadBoxes($(this).attr('index'))
-					}))
-			}
-			self.container.parent().find(".pageIndex div").css("width", (self.totalPage * 18 + 4) + "px");
-			self.container.parent().find(".pageIndex a").removeClass('selected');
-			self.container.parent().find(".pageIndex a[index='" + self.page + "']").addClass('selected')
-		} else {
-			self.container.parent().siblings(".pageSwitcher").remove();
-			self.container.parent().find(".pageIndex").remove();
+    var parent = self.container.parent();
+		if (!(self.totalPage > 1)) {
+			parent.siblings(".pageSwitcher").remove();
+			parent.find(".pageIndex").remove();
 			self.pageSwitcher = '';
-			self.pageIndexSwitcher = ''
-		}
+			self.pageIndexSwitcher = '';
+      return;
+    }
+    if (self.pageSwitcher == '') {
+      self.pageSwitcher = $('<a class="pageSwitcher up" data-page="pre"></a><a class="pageSwitcher down" data-page="next"></a>');
+      self.pageSwitcher.bind('click', function () {
+        self.loadBoxes($(this).attr('data-page'))
+      }).insertBefore(parent);
+    }
+    if (self.pageSwitcherShow != false) {
+      $(self.pageSwitcher[0]).css("display", self.page != 1 ? "block" : "none");
+      $(self.pageSwitcher[1]).css("display", self.page != self.totalPage ? "block" : "none")
+    } else {
+      self.pageSwitcher.css("display",  "none");
+    }
+    if (self.pageIndexSwitcher == '') {
+      self.pageIndexSwitcher = $('<div class="pageIndex"></div>')
+      self.pageIndexSwitcher.on('click', 'a', function () {
+        self.loadBoxes($(this).attr('data-index'))
+      }).insertAfter(self.container);
+    }
+    var str = "";
+    for (var i = 1; i <= self.totalPage; i++) {
+      str += '<a data-index="' + i + (i == self.page ? '" class="selected' : '') + '"></a>';
+    }
+    self.pageIndexSwitcher.html(str).css("width", (self.totalPage * 18 + 4) + "px")
+      .css("margin-left", -(self.totalPage * 9 + 2) + "px");
 	},
 	pageNotice: function (message) {
 		var self = this;
