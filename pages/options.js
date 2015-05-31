@@ -340,19 +340,18 @@
       }
     };
 
-    var _advancedMode = !bgSettings.get("showAdvancedOptions");
+    var advancedMode = !bgSettings.get("showAdvancedOptions");
     toggleAdvancedOptions = function(event) {
-      if (_advancedMode) {
+      if (advancedMode) {
         $("advancedOptions").style.display = "none";
-        $("advancedOptionsLink").innerHTML = "Show advanced options&hellip;";
+        $("advancedOptionsButton").innerHTML = "Show Advanced Options";
       } else {
         $("advancedOptions").style.display = "table-row-group";
-        $("advancedOptionsLink").innerHTML = "Hide advanced options";
+        $("advancedOptionsButton").innerHTML = "Hide Advanced Options";
       }
-      _advancedMode = !_advancedMode;
-      bgSettings.set("showAdvancedOptions", _advancedMode);
-      event.preventDefault();
-      document.activeElement.blur();
+      advancedMode = !advancedMode;
+      bgSettings.set("showAdvancedOptions", advancedMode);
+      $("advancedOptionsButton").blur();
     };
 
     activateHelpDialog = function() {
@@ -385,7 +384,7 @@
     };
 
     $("saveOptions").addEventListener("click", saveOptions);
-    $("advancedOptionsLink").addEventListener("click", toggleAdvancedOptions);
+    $("advancedOptionsButton").addEventListener("click", toggleAdvancedOptions);
     toggleAdvancedOptions({preventDefault: function() {}});
     $("showCommands").addEventListener("click", activateHelpDialog);
     $("filterLinkHints").addEventListener("click", maintainLinkHintsView);

@@ -135,7 +135,6 @@ div#exampleKeyMapping {
   white-space: nowrap;
 }
 #buttonsPanel { width: 100%; }
-#advancedOptionsLink { line-height: 24px; }
 .help {
   position: absolute;
   right: -320px;
@@ -228,9 +227,11 @@ td.booleanOption, #helpText { font-size: 12px; }
   max-height: 30px;
 }
 #saveOptionsTableData {
-  float: right;
+  white-space: nowrap;
+}
+#advancedOptionsButton {
+  width: 170px;
 }
 #saveOptions {
-  white-space: nowrap;
   width: 110px;
 }
