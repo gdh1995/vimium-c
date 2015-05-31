@@ -886,6 +886,10 @@
     openRawUrl: function(request, tabs) {
       openMultiTab(request.url, 1, tabs[0]);
     },
+    openImageUrl: function(request, tabs) {
+      var url = encodeURIComponent(request.url);
+      openMultiTab("/pages/show.html#?image=" + url, 1, tabs[0]);
+    },
     openUrlInNewTab: function(request, tabs) {
       openMultiTab(Utils.convertToUrl(request.url), 1, tabs[0]);
     },
@@ -1079,7 +1083,7 @@
     ref2 = requestHandlers;
     for (key in ref2) { ref2[key].useTab = 0; }
     ref = ["copyCurrentUrl", "openUrlInNewTab", "openUrlInIncognito" //
-      , "openRawUrl", "createMark" //
+      , "openRawUrl", "openImageUrl", "createMark" //
     ];
     for (i = ref.length; 0 <= --i; ) {
       ref2[ref[i]].useTab = 1;

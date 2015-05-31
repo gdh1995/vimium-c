@@ -92,7 +92,7 @@ Commands.commandGroups = {
     , "openCopiedUrlInCurrentTab", "openCopiedUrlInNewTab", "goUp", "goToRoot", "enterInsertMode"
     , "focusInput", "LinkHints.activateMode", "LinkHints.activateModeToOpenInNewTab"
     , "LinkHints.activateModeToOpenInNewForegroundTab", "LinkHints.activateModeWithQueue"
-    , "LinkHints.activateModeToDownloadImage"
+    , "LinkHints.activateModeToDownloadImage", "LinkHints.activateModeToOpenImage"
     , "LinkHints.activateModeToDownloadLink", "LinkHints.activateModeToOpenIncognito"
     , "LinkHints.activateModeToHover", "LinkHints.activateModeToSearchLinkText"
     , "Vomnibar.activate", "Vomnibar.activateInNewTab", "Vomnibar.activateTabSelection"
@@ -113,6 +113,7 @@ Commands.commandGroups = {
 Commands.advancedCommands = ["scrollToLeft", "scrollToRight", "moveTabToNextWindow", "moveTabToIncognito"
   , "goUp", "goToRoot", "focusInput", "LinkHints.activateModeWithQueue", "enableImageTemp"
   , "toggleImage", "clearImageCS", "LinkHints.activateModeToDownloadImage"
+  , "LinkHints.activateModeToOpenImage"
   , "LinkHints.activateModeToDownloadLink", "Vomnibar.activateEditUrl", "restoreGivenTab"
   , "Vomnibar.activateEditUrlInNewTab", "LinkHints.activateModeToOpenIncognito"
   , "goNext", "goPrevious", "Marks.activateCreateMode", "Marks.activateGotoMode"
@@ -347,6 +348,11 @@ Commands._defaultKeyMappings = {
   ],
   "LinkHints.activateModeToDownloadImage": [
     "Download <img> image", {
+      noRepeat: true
+    }
+  ],
+  "LinkHints.activateModeToOpenImage": [
+    "Show <img> image in new extension's tab", {
       noRepeat: true
     }
   ],

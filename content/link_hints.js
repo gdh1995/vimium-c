@@ -12,9 +12,10 @@ var LinkHints = {
     COPY_TEXT: 129,
     SEARCH_TEXT: 130,
     DOWNLOAD_IMAGE: 131,
-    DOWNLOAD_LINK: 132,
-    COPY_LINK_URL: 133,
-    OPEN_INCOGNITO_LINK: 134
+    OPEN_IMAGE: 132,
+    DOWNLOAD_LINK: 136,
+    COPY_LINK_URL: 137,
+    OPEN_INCOGNITO_LINK: 138
   },
   FUNC: null,
   alphabetHints: null,
@@ -68,6 +69,9 @@ var LinkHints = {
   },
   activateModeToDownloadImage: function() {
     this._activateMode(this.CONST.DOWNLOAD_IMAGE);
+  },
+  activateModeToOpenImage: function() {
+    this._activateMode(this.CONST.OPEN_IMAGE);
   },
   activateModeToHover: function() {
     this._activateMode(this.CONST.HOVER);
@@ -149,6 +153,10 @@ var LinkHints = {
     case cons.DOWNLOAD_IMAGE:
       tip = mode >= 192 ? "Download multiple images" : "Download image";
       activator = this.FUNC.DOWNLOAD_IMAGE;
+      break;
+    case cons.OPEN_IMAGE:
+      tip = mode >= 192 ? "Open multiple image" : "Open image";
+      activator = this.FUNC.OPEN_IMAGE;
       break;
     case cons.DOWNLOAD_LINK:
       tip = mode >= 192 ? "Download multiple links" : "Download link";
@@ -281,10 +289,10 @@ var LinkHints = {
   },
   getVisibleClickableElements: function() {
     var output = [], visibleElements = [], visibleElement, rects, rects2, _len, _i;
-    if (this.mode == this.CONST.DOWNLOAD_IMAGE) {
+    if (this.mode == this.CONST.DOWNLOAD_IMAGE || this.mode == this.CONST.OPEN_IMAGE) {
       output.forEach.call(document.documentElement.querySelectorAll(
         "img[src]"), this.GetImages.bind(visibleElements));
-    } else if (this.mode >= 132) {
+    } else if (this.mode >= 136) {
       output.forEach.call(document.documentElement.querySelectorAll(
           "a[href],a[data-vim-url]"), this.GetLinks.bind(visibleElements));
     } else {
@@ -765,7 +773,7 @@ LinkHints.FUNC = {
       return;
     }
     mainPort.postMessage({
-      handler: 'openUrlInIncognito',
+      handler: "openUrlInIncognito",
       url: url,
       active: (this.mode & 64) !== 64
     });
@@ -789,7 +797,17 @@ LinkHints.FUNC = {
     a.download = "";
     a.click();
     HUD.showForDuration("download: " + text, 2000);
-    return;
+  },
+  OPEN_IMAGE: function(img) {
+    if (!img.src) {
+      this.keepHUDAfterAct = true;
+      HUD.showForDuration("Not an image", 1000);
+      return;
+    }
+    mainPort.postMessage({
+      handler: "openImageUrl",
+      url: img.src
+    });
   },
   DOWNLOAD_LINK: function(link) {
     var oldDownload, oldUrl;
