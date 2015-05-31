@@ -1110,6 +1110,6 @@
   Settings.Timer = setTimeout(function() {
     Settings.Timer = 0;
     // currentFirst will be reloaded when window.focus
-    Settings.postUpdate("broadcast", {name: "reRegisterFrame", work: "rereg"});
+    Settings.postUpdate("broadcast", {name: "reg", work: "rereg"});
   }, 50);
 })();

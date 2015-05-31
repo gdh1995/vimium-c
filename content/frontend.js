@@ -76,6 +76,18 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       }
       return callback ? request._msgId : 0;
     },
+    safePost: function(request, callback, ifConnected) {
+      if (!this._port) {
+        try {
+          this.connect();
+        } catch (e) { // this extension is reloaded or disabled
+          ELs.destroy();
+          return;
+        }
+      }
+      ifConnected && ifConnected();
+      this.postMessage(request, callback);
+    },
     Listener: function(response) {
       var id, handler, arr;
       if (id = response._msgId) {
@@ -92,9 +104,6 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     },
     connect: function() {
       var port;
-      if (this._port) {
-        return;
-      }
       port = this._port = chrome.runtime.connect("hfjbmagddngcpeloejdejnfgbamkjaeg", { name: "vimium++" });
       port.onDisconnect.addListener(this.ClearPort);
       port.onMessage.addListener(this.Listener);
@@ -119,15 +128,11 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
         request: request
       };
       mainPort.postMessage(request);
-      this.isLoading = setInterval(function() {
-        try {
-          mainPort.connect();
-          if (onerror) { onerror(request.request); }
-          mainPort.postMessage(request);
-        } catch (e) {
-          ELs.destroy();
-        }
-      }, 2000);
+      if (onerror) {
+        onerror = onerror.bind(null, request.request);
+      }
+      this.isLoading = setInterval(mainPort.safePost.bind(
+        mainPort, request, null, onerror), 2000);
     },
     ReceiveSettings: function(response) {
       var _this = settings, ref, i;
@@ -1109,16 +1114,16 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       }
     },
     settings: settings.ReceiveSettings,
-    reRegisterFrame: function(request) {
+    reg: function(request) {
       if (document.body && document.body.nodeName.toLowerCase() !== "frameset") {
-        mainPort.postMessage({
+        mainPort.safePost({
           handlerSettings: request ? request.work : "reg",
           frameId: frameId
         });
       }
     },
     registerFrame: function(request) {
-      // reRegisterFrame is called only when document.ready
+      // @reg is called only when document.ready
       requestHandlers.insertCSS(request);
     },
     insertCSS: function(request) {
@@ -1243,14 +1248,12 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
   }, function(request) {
     request.focused = document.hasFocus();
     if (document.readyState !== "loading") {
-      requestHandlers.reRegisterFrame({
-        work: "doreg"
-      });
+      requestHandlers.reg({name: "doreg"});
     }
   });
 
   DomUtils.DocumentReady(function() {
-    requestHandlers.reRegisterFrame();
+    requestHandlers.reg();
     window.onunload = function() {
       try {
         mainPort.postMessage({
@@ -1263,17 +1266,9 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     // NOTE: here, we should always postMessage, since
     //     NO other message will be sent if not isEnabledForUrl,
     // which would make the auto-destroy logic not work.
-    window.onfocus = (function() {
-      try {
-        mainPort.connect();
-        this();
-      } catch (e) {
-        // this extension is reloaded
-        ELs.destroy();
-      }
-    }).bind(mainPort.postMessage.bind( //
-      mainPort, ELs.focusMsg, requestHandlers.refreshKeyQueue //
-    ));
+    window.onfocus = mainPort.safePost.bind(
+      mainPort, ELs.focusMsg, requestHandlers.refreshKeyQueue, null //
+    );
     window.onhashchange = requestHandlers.checkIfEnabled;
   });
 
