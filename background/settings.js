@@ -193,6 +193,7 @@ var Settings = {
   Sync: null,
   CurrentVersion: "",
   ContentScripts: null,
+  ChromeVersion: 38,
   ChromeInnerNewTab: "chrome-search://local-ntp/local-ntp.html" // should keep lower case
 };
 Settings._buffer.__proto__ = null;
@@ -217,6 +218,9 @@ Settings.icons.__proto__ = null;
     ref3.js = ref3.js.concat(ref2.js.map(func));
   }
   Settings.ContentScripts = ref3;
+
+  i = navigator.appVersion.indexOf("Chrome");
+  Settings.ChromeVersion = parseFloat(navigator.appVersion.substring(i + 7));
 
   func = function() {};
   Settings.Sync = {clear: func, set: func};

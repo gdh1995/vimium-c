@@ -920,7 +920,10 @@
       };
     },
     checkIfEnabled: function(request) {
-      return Exclusions.getPattern(request.url);
+      return {
+        name: "setPassKeys",
+        passKeys: Exclusions.getPattern(request.url)
+      };
     },
     initIfEnabled: function(request, tabId) {
       var pass = Exclusions.getPattern(request.url);
@@ -1063,9 +1066,12 @@
 
   chrome.runtime.onConnectExternal.addListener(funcDict.globalConnect);
 
-  chrome.webNavigation.onHistoryStateUpdated.addListener(function(details) {
-    chrome.tabs.sendMessage(details.tabId, {name: "checkIfEnabled"}
-      , details.frameId >= 0 ? {frameId: details.frameId} : null);
+  chrome.webNavigation.onHistoryStateUpdated.addListener(Settings.ChromeVersion >= 41
+  ? function(details) {
+    chrome.tabs.sendMessage(details.tabId
+      , requestHandlers.checkIfEnabled(details), {frameId: details.frameId});
+  } : function(details) {
+    chrome.tabs.sendMessage(details.tabId, {name: "checkIfEnabled"});
   });
 
   Commands.parseKeyMappings(Settings.get("keyMappings"));

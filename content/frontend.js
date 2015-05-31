@@ -1096,10 +1096,11 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       KeyboardUtils.init(response.onMac);
       r.refreshKeyMappings(response);
       r.refreshKeyQueue(response);
-      r.setPassKeys(response.passKeys);
+      r.setPassKeys(response);
       r.ifEnabled = null;
     },
-    setPassKeys: function(passKeys) {
+    setPassKeys: function(response) {
+      var passKeys = response.passKeys;
       if (isEnabledForUrl = (passKeys !== "")) {
         ELs.focusMsg.status = passKeys ? "partial" : "enabled";
         initializeWhenEnabled(passKeys);
