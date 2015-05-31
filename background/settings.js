@@ -188,6 +188,7 @@ var Settings = {
     , "hideHud", "linkHintCharacters", "linkHintNumbers", "nextPatterns" //
     , "previousPatterns", "regexFindMode", "scrollStepSize", "smoothScroll" //
   ],
+  Timer: 0,
   onMac: false,
   Sync: null,
   CurrentVersion: "",

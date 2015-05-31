@@ -1095,4 +1095,10 @@
       ref2[ref[i]].useTab = 0;
     }
   })();
+
+  Settings.Timer = setTimeout(function() {
+    Settings.Timer = 0;
+    // currentFirst will be reloaded when window.focus
+    Settings.postUpdate("broadcast", {name: "reRegisterFrame", work: "rereg"});
+  }, 50);
 })();

@@ -1,15 +1,5 @@
 "use strict";
 
-var a, b, c, cb, log; // for DEBUG only
-c = setTimeout(function() { // currentFirst will be reloaded when window.focus
-  c = 0;
-  Settings.postUpdate("broadcast", { name: "reRegisterFrame", work: "rereg" });
-}, 50); // According to tests: onInstalled will be executed after 0 ~ 16 ms if needed
-setTimeout(function() {
-  a = c = null, b = cb, log = console.log.bind(console);
-}, 100);
-cb = function(b) { a = b; console.log(b); };
-
 if (Settings.get("vimSync") === true) {
   Settings.Sync = {
     debug: window._DEBUG,
@@ -117,13 +107,15 @@ if (chrome.browserAction && chrome.browserAction.setIcon) (function() {
   set(Settings.get("showActionIcon"));
 })();
 
+// According to tests: onInstalled will be executed after 0 ~ 16 ms if needed
 chrome.runtime.onInstalled.addListener(window.b = function(details) {
   var contentScripts, func, js, css, reason = details.reason;
   if (reason === "install") { reason = ""; }
   else if (reason === "update") { reason = details.previousVersion; }
   else { return; }
-  if (window.c > 0) {
-    clearTimeout(window.c);
+  if (Settings.Timer > 0) {
+    clearTimeout(Settings.Timer);
+    Settings.Timer = 0;
   }
 
   contentScripts = chrome.runtime.getManifest().content_scripts[0];
@@ -201,3 +193,9 @@ setTimeout(function() {
   chrome.runtime.onInstalled.removeListener(window.b);
   window.b = null;
 }, 50);
+
+var a, b, c, cb, log; // for DEBUG only
+cb = function(b) { a = b; console.log(b); };
+setTimeout(function() {
+  a = c = null, b = cb, log = console.log.bind(console);
+}, 100);
