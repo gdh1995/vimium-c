@@ -8,14 +8,6 @@ var Marks = {
     };
     return true;
   },
-  RemoveMarksForTab: function(id) {
-    var marks = Marks._marks, markName;
-    for (var markName in marks) {
-      if (marks[markName].tabId === id) {
-        delete marks[markName];
-      }
-    }
-  },
   GoTo: function(req) {
     var mark = Marks._marks[req.markName];
     if (!mark) { return; }
@@ -30,5 +22,3 @@ var Marks = {
     });
   }
 };
-
-chrome.tabs.onRemoved.addListener(Marks.RemoveMarksForTab);

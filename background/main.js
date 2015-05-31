@@ -657,7 +657,6 @@
     if (changeInfo.status !== "loading" || frameIdsForTab[tabId]) {
       return; // topFrame is alive, so loading is caused by may an iframe
     }
-    Marks.RemoveMarksForTab(tabId);
   });
 
   resetKeys = function() {
