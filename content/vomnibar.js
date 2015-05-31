@@ -6,7 +6,7 @@ var Vomnibar = {
   disabled: false,
   activateWithCompleter: function(completerName, selectFirstResult, forceNewTab, initialQueryValue, force_current) {
     if (window.top !== window && !force_current) {
-      sendMessageToFrames(0, "Vomnibar.activateWithCompleter"//
+      MainPort.sendMessageToFrames(0, "Vomnibar.activateWithCompleter"//
         , [completerName, selectFirstResult, forceNewTab, initialQueryValue, true]);
       return;
     }
@@ -34,7 +34,7 @@ var Vomnibar = {
       vomnibarUI.reset();
       return;
     }
-    mainPort.postMessage({
+    MainPort.postMessage({
       handler: "parseSearchUrl",
       url: window.location.href
     }, function(url) {
@@ -371,7 +371,7 @@ Vomnibar.vomnibarUI = {
     box.className = "vimB vimR";
     box.id = "vimOmnibar";
     box.style.display = "none";
-    mainPort.postMessage({
+    MainPort.postMessage({
       handler: "initVomnibar"
     }, this.init_dom.bind(this));
     this.completer = completer;
@@ -435,14 +435,14 @@ Vomnibar.background = {
       }
     },
     refresh: function() {
-      mainPort.postMessage({
+      MainPort.postMessage({
         handler: "refreshCompleter",
         omni: this.name
       });
     },
     filter: function(query, callback) {
       this._callback = callback;
-      this._id = mainPort.postMessage({
+      this._id = MainPort.postMessage({
         handlerOmni: this.name,
         query: query && query.trim().replace(this.whiteSpaceRegex, ' ')
       }, this.onFilter);
@@ -571,19 +571,19 @@ Vomnibar.background = {
       if (openInNewTab && this.url.startsWith("javascript:")) {
         openInNewTab = false;
       }
-      mainPort.postMessage({
+      MainPort.postMessage({
         handler: (openInNewTab ? "openUrlInNewTab" : "openUrlInCurrentTab"),
         url: this.url
       });
     },
     switchToTab: function() {
-      mainPort.postMessage({
+      MainPort.postMessage({
         handler: "selectTab",
         tabId: this.sessionId
       });
     },
     restoreSession: function() {
-      mainPort.postMessage({
+      MainPort.postMessage({
         handler: "restoreSession",
         sessionId: this.sessionId,
       });

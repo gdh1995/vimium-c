@@ -97,7 +97,7 @@ var LinkHints = {
     }
     this.setOpenLinkMode(mode);
     var elements = this.getVisibleClickableElements();
-    if (settings.values.filterLinkHints) {
+    if (Settings.values.filterLinkHints) {
       this.markerMatcher = this.filterHints;
       elements.sort(function(a, b) {
         return a.innerHTML.length - b.innerHTML.length;
@@ -176,7 +176,7 @@ var LinkHints = {
     } else {
       this.linkActivator = this.linkActivator || activator;
     }
-    HUD.show(tip);
+    VHUD.show(tip);
     this.mode = mode;
   },
   createMarkerFor: function(link) {
@@ -419,7 +419,7 @@ var LinkHints = {
     if (this.keepHUDAfterAct) {
       this.keepHUDAfterAct = false;
     } else {
-      HUD.hide();
+      VHUD.hide();
     }
     this.mode = 0;
     this.isActive = false;
@@ -464,7 +464,7 @@ LinkHints.alphabetHints = {
   },
   hintStrings: function(linkCount) {
     var digitsNeeded, hintStrings, i, linkHintCharacters, longHintCount, shortHintCount, start, _ref;
-    linkHintCharacters = settings.values.linkHintCharacters || "";
+    linkHintCharacters = Settings.values.linkHintCharacters || "";
     digitsNeeded = Math.ceil(this.logXOfBase(linkCount, linkHintCharacters.length));
     shortHintCount = Math.floor((Math.pow(linkHintCharacters.length, digitsNeeded) - linkCount) / linkHintCharacters.length);
     longHintCount = linkCount - shortHintCount;
@@ -556,7 +556,7 @@ LinkHints.filterHints = {
     }
   },
   generateHintString: function(linkHintNumber) {
-    return (this.numberToHintString(linkHintNumber + 1, settings.values.linkHintNumbers || "")).toUpperCase();
+    return (this.numberToHintString(linkHintNumber + 1, Settings.values.linkHintNumbers || "")).toUpperCase();
   },
   generateLinkText: function(element) {
     var linkText, nodeName, showLinkText;
@@ -630,7 +630,7 @@ LinkHints.filterHints = {
           return [];
         }
       } else if (keyChar = KeyboardUtils.getKeyChar(event).toLowerCase()) {
-        if ((settings.values.linkHintNumbers || "").indexOf(keyChar) >= 0) {
+        if ((Settings.values.linkHintNumbers || "").indexOf(keyChar) >= 0) {
           this.hintKeystrokeQueue.push(keyChar);
         } else {
           this.hintKeystrokeQueue = [];
@@ -728,51 +728,51 @@ LinkHints.FUNC = {
   COPY_LINK_URL: function(link) {
     var str = this.getUrlData(link);
     if (!str) {
-      HUD.showForDuration("No url found", 1000);
+      VHUD.showForDuration("No url found", 1000);
       this.keepHUDAfterAct = true;
       return;
     }
     // NOTE: url should not be modified
     // although BackendUtils.convertToUrl does replace '\u3000' with ' '
     str = Utils.decodeURL(str);
-    mainPort.postMessage({
+    MainPort.postMessage({
       handler: "copyToClipboard",
       data: str
     });
     this.keepHUDAfterAct = true;
-    HUD.showCopied(str);
+    VHUD.showCopied(str);
   },
   COPY_TEXT: function(link) {
     var str = (link.getAttribute("data-vim-text") || "").trim() || link.innerText.trim();
     // .innerText is "" if "display:block; height:0px; overflow:hidden; width:0px;"
     str = str || Utils.decodeTextFromHtml(link.innerHTML).trim() || link.title.trim();
     if (!str) {
-      HUD.showForDuration("No text found", 1000);
+      VHUD.showForDuration("No text found", 1000);
       this.keepHUDAfterAct = true;
       return;
     }
     str = Utils.correctSpace(str);
     if (this.mode === this.CONST.SEARCH_TEXT) {
-      mainPort.postMessage({
+      MainPort.postMessage({
         handler: "openUrlInNewTab",
         url: str
       });
       return;
     }
-    mainPort.postMessage({
+    MainPort.postMessage({
       handler: "copyToClipboard",
       data: str
     });
     this.keepHUDAfterAct = true;
-    HUD.showCopied(str);
+    VHUD.showCopied(str);
   },
   OPEN_INCOGNITO_LINK: function(link) {
     var url = this.getUrlData(link);
     if (url.startsWith("javascript:")) {
-      mainPort.postMessage({ handler: "openUrlInCurrentTab", url: url });
+      MainPort.postMessage({ handler: "openUrlInCurrentTab", url: url });
       return;
     }
-    mainPort.postMessage({
+    MainPort.postMessage({
       handler: "openUrlInIncognito",
       url: url,
       active: (this.mode & 64) !== 64
@@ -782,7 +782,7 @@ LinkHints.FUNC = {
     var text = img.src, i, a;
     this.keepHUDAfterAct = true;
     if (!text) {
-      HUD.showForDuration("Not an image", 1000);
+      VHUD.showForDuration("Not an image", 1000);
       return;
     }
     i = text.indexOf("://");
@@ -796,15 +796,15 @@ LinkHints.FUNC = {
     a.href = img.src;
     a.download = "";
     a.click();
-    HUD.showForDuration("download: " + text, 2000);
+    VHUD.showForDuration("download: " + text, 2000);
   },
   OPEN_IMAGE: function(img) {
     if (!img.src) {
       this.keepHUDAfterAct = true;
-      HUD.showForDuration("Not an image", 1000);
+      VHUD.showForDuration("Not an image", 1000);
       return;
     }
-    mainPort.postMessage({
+    MainPort.postMessage({
       handler: "openImageUrl",
       url: img.src
     });

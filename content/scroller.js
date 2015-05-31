@@ -64,7 +64,7 @@ var Scroller = {
       if (!amount) {
         return;
       }
-      if (!settings.values.smoothScroll) {
+      if (!Settings.values.smoothScroll) {
         this.performScroll(element, di, amount);
         this.checkVisibility(element);
         return;
@@ -77,7 +77,7 @@ var Scroller = {
       requestAnimationFrame(this.Animate);
     },
     wouldNotInitiateScroll: function() {
-      return settings.values.smoothScroll && this.isLastEventRepeat;
+      return Settings.values.smoothScroll && this.isLastEventRepeat;
     },
   },
   Properties: [{

@@ -21,19 +21,19 @@ var Marks = {
       return false;
     }
     if (this.upperRegex.test(keyChar)) { // TODO: check keyChar more strictly
-      mainPort.postMessage({
+      MainPort.postMessage({
         handler: 'createMark',
         markName: keyChar,
         scroll: [window.scrollX, window.scrollY]
       }, function(req) {
         if (req) {
-          HUD.showForDuration("Created global mark '" + keyChar + "'", 1000);
+          VHUD.showForDuration("Created global mark '" + keyChar + "'", 1000);
         }
       });
     } else if (this.lowerRegex.test(keyChar)) {
       localStorage["vimiumMark|" + this.getUrl() + "|" + keyChar] =
         JSON.stringify([window.scrollX, window.scrollY]);
-      HUD.showForDuration("Created local mark '" + keyChar + "'", 1000);
+      VHUD.showForDuration("Created local mark '" + keyChar + "'", 1000);
     }
     handlerStack.remove();
     return false;
@@ -45,7 +45,7 @@ var Marks = {
       return false;
     }
     if (this.upperRegex.test(keyChar)) {
-      mainPort.postMessage({
+      MainPort.postMessage({
         handler: 'gotoMark',
         markName: keyChar
       });
@@ -54,7 +54,7 @@ var Marks = {
       if (markString != null) {
         mark = JSON.parse(markString);
         window.scrollTo(mark[0], mark[1]);
-        HUD.showForDuration("Jumped to local mark '" + keyChar + "'", 1000);
+        VHUD.showForDuration("Jumped to local mark '" + keyChar + "'", 1000);
       }
     }
     handlerStack.remove();
@@ -64,7 +64,7 @@ var Marks = {
     var scroll = request.scroll;
     window.scrollTo(scroll[0], scroll[1]);
     if (request.markName) {
-      HUD.showForDuration("Jumped to global mark '" + request.markName + "'", 1000);
+      VHUD.showForDuration("Jumped to global mark '" + request.markName + "'", 1000);
     }
   },
   getUrl: function() {

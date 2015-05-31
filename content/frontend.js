@@ -1,4 +1,5 @@
 "use strict";
+var Settings, VHUD, MainPort;
 (function() {
   var HUD, firstKeys, secondKeys, currentSeconds //
     , enterInsertModeWithoutShowingIndicator, executeFind, exitFindMode //
@@ -10,7 +11,7 @@
     , initializeWhenEnabled, insertModeLock //
     , isEnabledForUrl, isInsertMode //
     , checkValidKey, getFullCommand, keyQueue //
-    , setPassKeys, performFindInPlace //
+    , setPassKeys, performFindInPlace, showHelpDialog //
     , restoreDefaultSelectionHighlight //
     , settings, showFindModeHUDForQuery, textInputXPath, oldActivated //
     , updateFindModeQuery, goBy, getVisibleInputs, mainPort, requestHandlers //
@@ -60,7 +61,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     "*[@contenteditable='' or translate(@contenteditable, 'TRUE', 'true')='true']"
   ]);
   
-  mainPort = {
+  MainPort = mainPort = {
     _port: null,
     _callbacks: {},
     _lastMsg: 1,
@@ -89,6 +90,13 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       ifConnected && ifConnected();
       this.postMessage(request, callback);
     },
+    sendMessageToFrames: function(target, command, args) {
+      this.postMessage({
+        handler: "dispatchMsg", tabId: ELs.focusMsg.tabId,
+        frameId: target, source: frameId,
+        command: command, args: args
+      });
+    },
     Listener: function(response) {
       var id, handler, arr;
       if (id = response._msgId) {
@@ -111,7 +119,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     }
   };
 
-  settings = {
+  Settings = settings = {
     values: null,
     isLoading: 0,
     ondestroy: {},
@@ -346,7 +354,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     },
     showHelp: function(_0, force_current) {
       if (window.top !== window && !force_current) {
-        sendMessageToFrames(0, "showHelp", [1, true]);
+        mainPort.sendMessageToFrames(0, "showHelp", [1, true]);
         return;
       }
       mainPort.postMessage({
@@ -909,13 +917,12 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     }
   };
 
-
   exitFindMode = function() {
     findMode = false;
     HUD.hide();
   };
 
-  window.showHelpDialog = function(response) {
+  showHelpDialog = function(response) {
     var container, handlerId, oldShowHelp, hide, //
     showAdvancedCommands, shouldShowAdvanced = response.advanced === true;
     if (!document.body) {
@@ -923,7 +930,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     }
     container = document.createElement("div");
     if (!container.style) {
-      window.showHelp = window.showHelpDialog = function() {};
+      Commands.showHelp = showHelpDialog = function() {};
       return;
     }
     container.className = "vimB vimR";
@@ -935,7 +942,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     hide = function(event) {
       handlerStack.remove(handlerId);
       DomUtils.removeNode(container);
-      window.showHelp = oldShowHelp;
+      Commands.showHelp = oldShowHelp;
       settings.ondestroy.helpDialog = null;
       if (event) {
         DomUtils.suppressEvent(event);
@@ -964,7 +971,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       DomUtils.suppressEvent(event);
     }, false);
     document.getElementById("vimCloseButton").addEventListener("click" //
-      , window.showHelp = hide, false);
+      , Commands.showHelp = hide, false);
     if (! window.location.href.startsWith(response.optionUrl)) {
       document.getElementById("vimOptionsPage").addEventListener("click", function(event) {
         mainPort.postMessage({
@@ -995,7 +1002,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     });
   };
 
-  HUD = {
+  VHUD = HUD = {
     _tweenId: 0,
     _element: null,
     opacity: 0,
@@ -1085,12 +1092,6 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       HUD = null;
     }
   };
-
-  window.settings = settings;
-
-  window.HUD = HUD;
-
-  window.mainPort = mainPort;
 
   requestHandlers = {
     checkIfEnabled: function() {
@@ -1225,7 +1226,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     },
     dispatchMsg: function(request) {
       if (!isEnabledForUrl) {
-        sendMessageToFrames(request.source, request.command, request.args);
+        mainPort.sendMessageToFrames(request.source, request.command, request.args);
         return;
       }
       var components = request.command.split('.'), obj = Commands, _i, _len, _ref;
@@ -1237,14 +1238,6 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     gotoMark: function(request) {
       Marks.goTo(request);
     }
-  };
-
-  window.sendMessageToFrames = function(target, command, args) {
-    mainPort.postMessage({
-      handler: "dispatchMsg", tabId: ELs.focusMsg.tabId,
-      frameId: target, source: frameId,
-      command: command, args: args
-    });
   };
 
   mainPort.connect();
