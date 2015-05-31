@@ -87,6 +87,7 @@
     "notifications",
     "sessions",
     "tabs",
+    "webNavigation",
     "\u003Call_urls>"
   ],
   "update_url": "https://clients2.google.com/service/update2/crx",

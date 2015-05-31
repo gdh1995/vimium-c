@@ -1273,6 +1273,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     }).bind(mainPort.postMessage.bind( //
       mainPort, ELs.focusMsg, requestHandlers.refreshKeyQueue //
     ));
+    window.onhashchange = requestHandlers.checkIfEnabled;
   });
 
   chrome.runtime.id === "hfjbmagddngcpeloejdejnfgbamkjaeg" &&
@@ -1288,6 +1289,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     try {
     window.onfocus = null;
     window.onunload = null;
+    window.onhashchange = null;
     window.removeEventListener("keydown", this.onKeydown, true);
     window.removeEventListener("keypress", this.onKeypress, true);
     window.removeEventListener("keyup", this.onKeyup, true);

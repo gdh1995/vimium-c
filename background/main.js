@@ -1063,6 +1063,11 @@
 
   chrome.runtime.onConnectExternal.addListener(funcDict.globalConnect);
 
+  chrome.webNavigation.onHistoryStateUpdated.addListener(function(details) {
+    chrome.tabs.sendMessage(details.tabId, {name: "checkIfEnabled"}
+      , details.frameId >= 0 ? {frameId: details.frameId} : null);
+  });
+
   Commands.parseKeyMappings(Settings.get("keyMappings"));
   populateKeyCommands();
   Exclusions.setRules(Settings.get("exclusionRules"));
