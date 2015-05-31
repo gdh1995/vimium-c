@@ -86,6 +86,7 @@ var Commands = {
 Commands.commandGroups = {
   pageNavigation: ["scrollDown", "scrollUp", "scrollLeft", "scrollRight", "scrollToTop"
     , "scrollToBottom", "scrollToLeft", "scrollToRight", "scrollPageDown", "scrollPageUp"
+    , "scrollPxDown", "scrollPxUp", "scrollPxLeft", "scrollPxRight"
     , "scrollFullPageUp", "scrollFullPageDown", "reload", "toggleViewSource", "copyCurrentUrl"
     , "copyCurrentTitle"
     , "LinkHints.activateModeToCopyLinkUrl", "LinkHints.activateModeToCopyLinkText"
@@ -95,11 +96,12 @@ Commands.commandGroups = {
     , "LinkHints.activateModeToDownloadImage", "LinkHints.activateModeToOpenImage"
     , "LinkHints.activateModeToDownloadLink", "LinkHints.activateModeToOpenIncognito"
     , "LinkHints.activateModeToHover", "LinkHints.activateModeToSearchLinkText"
-    , "Vomnibar.activate", "Vomnibar.activateInNewTab", "Vomnibar.activateTabSelection"
+    , "goPrevious", "goNext", "nextFrame"
+    , "Marks.activateCreateMode", "Marks.activateGotoMode"],
+  vomnibarCommands: ["Vomnibar.activate", "Vomnibar.activateInNewTab"
     , "Vomnibar.activateBookmarks", "Vomnibar.activateBookmarksInNewTab", "Vomnibar.activateHistory"
-    , "Vomnibar.activateHistoryInNewTab", "goPrevious", "goNext", "nextFrame"
-    , "Marks.activateCreateMode", "Vomnibar.activateEditUrl", "Vomnibar.activateEditUrlInNewTab"
-    , "Marks.activateGotoMode"],
+    , "Vomnibar.activateHistoryInNewTab", "Vomnibar.activateTabSelection"
+    , "Vomnibar.activateEditUrl", "Vomnibar.activateEditUrlInNewTab"],
   historyNavigation: ["goBack", "goForward", "reloadTab", "reopenTab", "switchFocus", "simBackspace"],
   findCommands: ["enterFindMode", "performFind", "performBackwardsFind"],
   tabManipulation: ["nextTab", "previousTab", "firstTab", "lastTab", "createTab", "duplicateTab"
@@ -107,7 +109,6 @@ Commands.commandGroups = {
     , "closeTabsOnLeft", "closeTabsOnRight", "closeOtherTabs", "moveTabLeft", "moveTabRight"
     , "enableImageTemp", "toggleImage", "clearImageCS"],
   misc: ["showHelp", "enterVisualMode", "autoCopy", "autoSearch", "mainFrame"
-    , "scrollPxDown", "scrollPxUp", "scrollPxLeft", "scrollPxRight"
     , "blank"]
 };
 Commands.advancedCommands = ["scrollToLeft", "scrollToRight", "moveTabToNextWindow", "moveTabToIncognito"
