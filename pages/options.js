@@ -354,12 +354,21 @@
       $("advancedOptionsButton").blur();
     };
 
-    activateHelpDialog = function() {
-      showHelpDialog({
-        html: BG.helpDialogHtml(true, true, "Command Listing"),
-        advanced: bgSettings.get("showAdvancedCommands")
+    activateHelpDialog = function(event) {
+      var node;
+      if (node = $("vimHelpDialog")) {
+        node.click();
+        DomUtils.suppressEvent(event);
+        return;
+      }
+      chrome.tabs.getCurrent(function(tab) {
+        chrome.tabs.sendMessage(tab.id, {
+          name: "showHelpDialog",
+          html: BG.helpDialogHtml(true, true, "Command Listing"),
+          optionUrl: location.href,
+          advanced: bgSettings.get("showAdvancedCommands")
+        });
       });
-      document.activeElement.blur();
     };
 
     saveOptions = function() {

@@ -11,7 +11,7 @@ var Settings, VHUD, MainPort;
     , initializeWhenEnabled, insertModeLock //
     , isEnabledForUrl, isInsertMode //
     , checkValidKey, getFullCommand, keyQueue //
-    , setPassKeys, performFindInPlace, showHelpDialog //
+    , setPassKeys, performFindInPlace //
     , restoreDefaultSelectionHighlight //
     , settings, showFindModeHUDForQuery, textInputXPath, oldActivated //
     , updateFindModeQuery, goBy, getVisibleInputs, mainPort, requestHandlers //
@@ -361,7 +361,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       }
       mainPort.postMessage({
         handler: "initHelp",
-      }, showHelpDialog);
+      }, requestHandlers.showHelpDialog);
     },
     autoCopy: function() {
       var sel = document.getSelection(), str;
@@ -924,79 +924,6 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     HUD.hide();
   };
 
-  showHelpDialog = function(response) {
-    var container, handlerId, oldShowHelp, hide, node1, //
-    showAdvancedCommands, shouldShowAdvanced = response.advanced === true;
-    if (!document.body) {
-      return;
-    }
-    container = document.createElement("div");
-    if (!container.style) {
-      Commands.showHelp = showHelpDialog = function() {};
-      return;
-    }
-    container.className = "vimB vimR";
-    container.id = "vimHelpDialogContainer";
-    container.innerHTML = response.html;
-    document.documentElement.appendChild(container);
-    container.addEventListener("mousewheel", DomUtils.suppressPropagation, false);
-    container.addEventListener("click", DomUtils.suppressPropagation, false);
-
-    hide = function() {
-      handlerStack.remove(handlerId);
-      DomUtils.removeNode(container);
-      Commands.showHelp = oldShowHelp;
-      settings.ondestroy.helpDialog = null;
-      container.innerHTML = "";
-      container = null;
-    };
-    showAdvancedCommands = function(visible) {
-      var advancedEls, el, _i, _len;
-      document.getElementById("vimAdvancedCommands").innerHTML = visible
-        ? "Hide advanced commands" : "Show advanced commands...";
-      advancedEls = container.getElementsByClassName("vimHelpAdvanced");
-      visible = visible ? "table-row" : "none";
-      for (_i = 0, _len = advancedEls.length; _i < _len; _i++) {
-        el = advancedEls[_i];
-        el.style.display = visible;
-      }
-    };
-    
-    settings.ondestroy.helpDialog = hide;
-    oldShowHelp = Commands.showHelp;
-    document.getElementById("vimAdvancedCommands").onclick = function() {
-      shouldShowAdvanced = !shouldShowAdvanced;
-      showAdvancedCommands(shouldShowAdvanced);
-      settings.set("showAdvancedCommands", shouldShowAdvanced);
-    };
-    document.getElementById("vimCloseButton").onclick = Commands.showHelp = hide;
-    node1 = document.getElementById("vimOptionsPage");
-    if (! window.location.href.startsWith(response.optionUrl)) {
-      node1.href = response.optionUrl;
-      node1.onclick = hide;
-    } else {
-      DomUtils.removeNode(node1);
-    }
-    showAdvancedCommands(shouldShowAdvanced);
-    node1 = document.getElementById("vimHelpDialog");
-    node1.style.maxHeight = window.innerHeight - 80;
-    window.focus();
-    handlerStack.bubbleEvent("DOMActivate", {
-      preventDefault: function() {},
-      stopImmediatePropagation: function() {},
-      target: node1
-    });
-    handlerId = handlerStack.push({
-      keydown: function(event) {
-        if (event.keyCode === KeyCodes.esc && KeyboardUtils.isPlain(event)) {
-          hide();
-          return false;
-        }
-        return true;
-      }
-    });
-  };
-
   VHUD = HUD = {
     _tweenId: 0,
     _element: null,
@@ -1232,8 +1159,83 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     },
     gotoMark: function(request) {
       Marks.goTo(request);
-    }
+    },
+    showHelpDialog: null
   };
+  
+  requestHandlers.showHelpDialog = function(response) {
+    var container, handlerId, oldShowHelp, hide, node1, //
+    showAdvancedCommands, shouldShowAdvanced = response.advanced === true;
+    if (!document.body) {
+      return;
+    }
+    container = document.createElement("div");
+    if (!container.style) {
+      Commands.showHelp = requestHandlers.showHelpDialog = function() {};
+      return;
+    }
+    container.className = "vimB vimR";
+    container.id = "vimHelpDialogContainer";
+    container.innerHTML = response.html;
+    document.documentElement.appendChild(container);
+    container.addEventListener("mousewheel", DomUtils.suppressPropagation, false);
+    container.addEventListener("click", DomUtils.suppressPropagation, false);
+
+    hide = function() {
+      handlerStack.remove(handlerId);
+      DomUtils.removeNode(container);
+      Commands.showHelp = oldShowHelp;
+      settings.ondestroy.helpDialog = null;
+      container.innerHTML = "";
+      container = null;
+    };
+    showAdvancedCommands = function(visible) {
+      var advancedEls, el, _i, _len;
+      document.getElementById("vimAdvancedCommands").innerHTML = visible
+        ? "Hide advanced commands" : "Show advanced commands...";
+      advancedEls = container.getElementsByClassName("vimHelpAdvanced");
+      visible = visible ? "table-row" : "none";
+      for (_i = 0, _len = advancedEls.length; _i < _len; _i++) {
+        el = advancedEls[_i];
+        el.style.display = visible;
+      }
+    };
+    
+    settings.ondestroy.helpDialog = hide;
+    oldShowHelp = Commands.showHelp;
+    document.getElementById("vimAdvancedCommands").onclick = function() {
+      shouldShowAdvanced = !shouldShowAdvanced;
+      showAdvancedCommands(shouldShowAdvanced);
+      settings.set("showAdvancedCommands", shouldShowAdvanced);
+    };
+    document.getElementById("vimCloseButton").onclick = Commands.showHelp = hide;
+    node1 = document.getElementById("vimOptionsPage");
+    if (! window.location.href.startsWith(response.optionUrl)) {
+      node1.href = response.optionUrl;
+      node1.onclick = hide;
+    } else {
+      DomUtils.removeNode(node1);
+    }
+    showAdvancedCommands(shouldShowAdvanced);
+    node1 = document.getElementById("vimHelpDialog");
+    node1.style.maxHeight = window.innerHeight - 80;
+    window.focus();
+    handlerStack.bubbleEvent("DOMActivate", {
+      preventDefault: function() {},
+      stopImmediatePropagation: function() {},
+      target: node1
+    });
+    handlerId = handlerStack.push({
+      keydown: function(event) {
+        if (event.keyCode === KeyCodes.esc && KeyboardUtils.isPlain(event)) {
+          hide();
+          return false;
+        }
+        return true;
+      }
+    });
+  };
+
 
   mainPort.connect();
 
