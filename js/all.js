@@ -2579,10 +2579,10 @@ DBOX = {
 		self.QContainer.find('.boxLogo').removeClass('noTitle');
 		self.QContainer.find('.boxTitle').css('backgroundColor', 'transparent');
 		if (!self.dialBoxQuickHide && self.QTotalnum <= 0) {
-      self.QBContainer.addClass("hide");
+			self.QBContainer.addClass("hide");
 		}
-    self.QBContainer.css("width", self.QBContainerWidth + "px")
-      .css("margin-left", -self.QBContainerWidth / 2 + "px");
+		self.QBContainer.css("width", self.QBContainerWidth + "px")
+			.css("margin-left", -self.QBContainerWidth / 2 + "px");
 		self.QBContainer.find('.center').css("width", (self.QBContainerWidth - 156) + "px");
 		var _spaceWidth = 240;
 		if (screenWidth <= 1024) {
@@ -3187,38 +3187,38 @@ DBOX = {
 	},
 	pageIndex: function () {
 		var self = this;
-    var parent = self.container.parent();
+		var parent = self.container.parent();
 		if (!(self.totalPage > 1)) {
 			parent.siblings(".pageSwitcher").remove();
 			parent.find(".pageIndex").remove();
 			self.pageSwitcher = '';
 			self.pageIndexSwitcher = '';
-      return;
-    }
-    if (self.pageSwitcher == '') {
-      self.pageSwitcher = $('<a class="pageSwitcher up" data-page="pre"></a><a class="pageSwitcher down" data-page="next"></a>');
-      self.pageSwitcher.bind('click', function () {
-        self.loadBoxes($(this).attr('data-page'))
-      }).insertBefore(parent);
-    }
-    if (self.pageSwitcherShow != false) {
-      $(self.pageSwitcher[0]).css("display", self.page != 1 ? "block" : "none");
-      $(self.pageSwitcher[1]).css("display", self.page != self.totalPage ? "block" : "none")
-    } else {
-      self.pageSwitcher.css("display",  "none");
-    }
-    if (self.pageIndexSwitcher == '') {
-      self.pageIndexSwitcher = $('<div class="pageIndex"></div>')
-      self.pageIndexSwitcher.on('click', 'a', function () {
-        self.loadBoxes($(this).attr('data-index'))
-      }).insertAfter(self.container);
-    }
-    var str = "";
-    for (var i = 1; i <= self.totalPage; i++) {
-      str += '<a data-index="' + i + (i == self.page ? '" class="selected' : '') + '"></a>';
-    }
-    self.pageIndexSwitcher.html(str).css("width", (self.totalPage * 18 + 4) + "px")
-      .css("margin-left", -(self.totalPage * 9 + 2) + "px");
+			return;
+		}
+		if (self.pageSwitcher == '') {
+			self.pageSwitcher = $('<a class="pageSwitcher up" data-page="pre"></a><a class="pageSwitcher down" data-page="next"></a>');
+			self.pageSwitcher.bind('click', function () {
+				self.loadBoxes($(this).attr('data-page'))
+			}).insertBefore(parent);
+		}
+		if (self.pageSwitcherShow != false) {
+			$(self.pageSwitcher[0]).css("display", self.page != 1 ? "block" : "none");
+			$(self.pageSwitcher[1]).css("display", self.page != self.totalPage ? "block" : "none")
+		} else {
+			self.pageSwitcher.css("display",  "none");
+		}
+		if (self.pageIndexSwitcher == '') {
+			self.pageIndexSwitcher = $('<div class="pageIndex"></div>')
+			self.pageIndexSwitcher.on('click', 'a', function () {
+				self.loadBoxes($(this).attr('data-index'))
+			}).insertAfter(self.container);
+		}
+		var str = "";
+		for (var i = 1; i <= self.totalPage; i++) {
+			str += '<a data-index="' + i + (i == self.page ? '" class="selected' : '') + '"></a>';
+		}
+		self.pageIndexSwitcher.html(str).css("width", (self.totalPage * 18 + 4) + "px")
+			.css("margin-left", -(self.totalPage * 9 + 2) + "px");
 	},
 	pageNotice: function (message) {
 		var self = this;
