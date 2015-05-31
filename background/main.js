@@ -525,19 +525,24 @@
       ContentSettings.clear("images", tabs[0]);
     },
     nextTab: function(tabs) {
+      if (tabs.length <= 0) { return; }
       funcDict.selectTab(tabs, funcDict.selectFrom(tabs).index + commandCount);
     },
     previousTab: function(tabs) {
+      if (tabs.length <= 0) { return; }
       funcDict.selectTab(tabs, funcDict.selectFrom(tabs).index - commandCount);
     },
     firstTab: function(tabs) {
+      if (tabs.length <= 0) { return; }
       funcDict.selectTab(tabs, 0);
     },
     lastTab: function(tabs) {
+      if (tabs.length <= 0) { return; }
       funcDict.selectTab(tabs, -1);
     },
     removeTab: function(tabs) {
       var tab = tabs[0];
+      if (!tabs) { return; }
       if (tab.active) {
         if (tabs.length <= commandCount) {
           chrome.windows.getAll(funcDict.removeTab.bind(null, tab, tabs));
@@ -590,6 +595,7 @@
     },
     reopenTab: function(tabs) {
       var tab = tabs[0]; tabs = null;
+      if (!tab) { return; }
       ++tab.index;
       if (!Utils.isRefusingIncognito(tab.url)) {
         funcDict.reopenTab(tab);
@@ -632,6 +638,7 @@
       }
     },
     mainFrame: function(tabs) {
+      if (tabs.length <= 0) { return; }
       chrome.tabs.sendMessage(tabs[0].id, {
         name: "focusFrame",
         frameId: 0
