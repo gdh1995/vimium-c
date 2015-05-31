@@ -104,15 +104,6 @@
 	zoom: normal;
 }
 
-.vimL.vimB,
-.vimL:visited,
-.vimL:link,
-.vimL:hover {
-	color: blue;
-	cursor: pointer;
-	text-decoration: underline;
-}
-
 /* Linkhints CSS */
 #vimHMC.vimR {
 	font-weight: bold;

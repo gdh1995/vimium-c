@@ -63,10 +63,15 @@
 	font-weight: bold;
 	padding-top: 3px;
 }
-/* Advanced commands are hidden by default until you show them. */
-/* .vimHelpAdvanced.vimB    { display: none; } */
-/* .vimHelpCommandName.vimB { font-family: "Courier New"; } */
-/* .vimHelpCommandInfo.vimB { color: #555; } */
+
+.vimL.vimB,
+.vimL:visited,
+.vimL:link,
+.vimL:hover {
+	color: blue;
+	cursor: pointer;
+	text-decoration: underline;
+}
 #vimCloseButton.vimR {
 	-webkit-user-select: none;
 	color: #555;
