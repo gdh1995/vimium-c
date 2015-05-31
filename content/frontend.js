@@ -1095,17 +1095,17 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
         url: window.location.href
       }, requestHandlers.setPassKeys);
     },
-    ifEnabled: function(response) {
+    ifEnabled: function(request) {
       var r = requestHandlers;
-      ELs.focusMsg.tabId = response.tabId;
-      KeyboardUtils.init(response.onMac);
-      r.refreshKeyMappings(response);
-      r.refreshKeyQueue(response);
-      r.setPassKeys(response);
+      ELs.focusMsg.tabId = request.tabId;
+      KeyboardUtils.init(request.onMac);
+      r.refreshKeyMappings(request);
+      r.refreshKeyQueue(request);
+      r.setPassKeys(request);
       r.ifEnabled = null;
     },
-    setPassKeys: function(response) {
-      var passKeys = response.passKeys;
+    setPassKeys: function(request) {
+      var passKeys = request.passKeys;
       if (isEnabledForUrl = (passKeys !== "")) {
         ELs.focusMsg.status = passKeys ? "partial" : "enabled";
         initializeWhenEnabled(passKeys);
@@ -1177,14 +1177,14 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       }
       settings.values.highlightTimer = 0;
     },
-    refreshKeyMappings: function(response) {
-      var arr = response.firstKeys, i = arr.length, map, key, sec, sec2;
+    refreshKeyMappings: function(request) {
+      var arr = request.firstKeys, i = arr.length, map, key, sec, sec2;
       map = firstKeys = {};
       map.__proto__ = null;
       while (0 <= --i) {
         map[arr[i]] = true;
       }
-      sec = response.secondKeys;
+      sec = request.secondKeys;
       sec2 = secondKeys = {};
       sec2.__proto__ = null;
       for (key in sec) {
@@ -1197,10 +1197,10 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
         }
       }
     },
-    refreshKeyQueue: function(response) {
-      if (response.currentFirst !== null) {
+    refreshKeyQueue: function(request) {
+      if (request.currentFirst !== null) {
         keyQueue = true;
-        currentSeconds = secondKeys[response.currentFirst];
+        currentSeconds = secondKeys[request.currentFirst];
       } else {
         keyQueue = false;
         currentSeconds = secondKeys[""];
