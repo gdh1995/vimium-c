@@ -653,12 +653,6 @@
   };
   BackgroundCommands.__proto__ = null;
 
-  chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab) {
-    if (changeInfo.status !== "loading" || frameIdsForTab[tabId]) {
-      return; // topFrame is alive, so loading is caused by may an iframe
-    }
-  });
-
   resetKeys = function() {
     currentFirst = null;
     currentCount = 0;
