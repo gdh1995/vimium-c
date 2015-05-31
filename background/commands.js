@@ -40,16 +40,21 @@ var Commands = {
       console.log("Unmapping:", key, "has not been mapped");
     }
   },
-  _keyLeftRegex: /<(?:[A-Za-z]-){1,}/g,
-  strToLowerCase: function(str) {
-    return str.toLowerCase();
+  _keyLeftRegex: /<((?:[acmACM]-){1,3})?(.+?)>/g,
+  _upperRegex: /[A-Z]/,
+  onNormalize: function(match, option, key) {
+    option = option ? option.toLowerCase() : "";
+    if (Commands._upperRegex.test(key)) {
+      key = key.toUpperCase();
+    }
+    return "<" + option + key + ">";
   },
   normalizeKey: function(key) {
-    return key.replace(this._keyLeftRegex, this.strToLowerCase);
+    return key.replace(this._keyLeftRegex, this.onNormalize);
   },
   parseKeyMappings: function(line) {
     var key, lines, splitLine, _i, _len, defaultmap;
-    defaultmap = this._defaultKeyMappings;
+    defaultmap = this.defaultKeyMappings;
     this.keyToCommandRegistry = {};
     for (key in defaultmap) {
       this.mapKeyToCommand(key, defaultmap[key]);
@@ -80,7 +85,7 @@ var Commands = {
   },
   commandGroups: null,
   advancedCommands: null,
-  _defaultKeyMappings: null
+  defaultKeyMappings: null
 };
 
 Commands.commandGroups = {
@@ -121,7 +126,7 @@ Commands.advancedCommands = ["scrollToLeft", "scrollToRight", "moveTabToNextWind
   , "moveTabLeft", "moveTabRight", "closeTabsOnLeft", "closeTabsOnRight", "closeOtherTabs"
   , "scrollPxDown", "scrollPxUp", "scrollPxLeft", "scrollPxRight"
 ];
-Commands._defaultKeyMappings = {
+Commands.defaultKeyMappings = {
   "?": "showHelp",
   "j": "scrollDown",
   "k": "scrollUp",
