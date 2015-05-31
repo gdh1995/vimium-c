@@ -1157,9 +1157,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       }
       obj[components[_len]].apply(obj, request.args);
     },
-    gotoMark: function(request) {
-      Marks.goTo(request);
-    },
+    gotoMark: Marks.GoTo,
     showHelpDialog: null
   };
   

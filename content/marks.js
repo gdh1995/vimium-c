@@ -60,7 +60,7 @@ var Marks = {
     handlerStack.remove();
     return false;
   },
-  goTo: function(request) {
+  GoTo: function(request) {
     var scroll = request.scroll;
     window.scrollTo(scroll[0], scroll[1]);
     if (request.markName) {
