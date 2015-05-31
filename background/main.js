@@ -950,6 +950,7 @@
     initHelp: function() {
       return {
         html: helpDialogHtml(),
+        optionUrl: chrome.runtime.getURL("pages/options.html");
         advanced: Settings.get("showAdvancedCommands")
       };
     },
@@ -964,9 +965,6 @@
     },
     copyCurrentUrl: function(_0, tabs) {
       Clipboard.copy(tabs[0].url);
-    },
-    saveHelpDialogSettings: function(request) {
-      Settings.set("showAdvancedCommands", request.showAdvancedCommands);
     },
     selectTab: function(request) {
       chrome.tabs.update(request.tabId, {active: true});

@@ -907,7 +907,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
   };
 
   window.showHelpDialog = function(response) {
-    var container, handlerId, oldShowHelp, hide, toggleAdvancedCommands, //
+    var container, handlerId, oldShowHelp, hide, //
     showAdvancedCommands, shouldShowAdvanced = response.advanced === true;
     if (!document.body) {
       return;
@@ -917,11 +917,11 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       window.showHelp = window.showHelpDialog = function() {};
       return;
     }
-    container.id = "vimHelpDialogContainer";
     container.className = "vimB vimR";
+    container.id = "vimHelpDialogContainer";
+    container.innerHTML = response.html;
     document.documentElement.appendChild(container);
     container.addEventListener("mousewheel", DomUtils.suppressPropagation, false);
-    container.innerHTML = response.html;
 
     hide = function(event) {
       handlerStack.remove(handlerId);
@@ -934,15 +934,10 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       container.innerHTML = "";
       container = null;
     };
-    toggleAdvancedCommands = function(event) {
-      shouldShowAdvanced = !shouldShowAdvanced;
-      showAdvancedCommands(shouldShowAdvanced);
-      settings.set("showAdvancedCommands", shouldShowAdvanced);
-      DomUtils.suppressEvent(event);
-    };
     showAdvancedCommands = function(visible) {
       var advancedEls, el, _i, _len;
-      document.getElementById("vimAdvancedCommands").innerHTML = visible ? "Hide advanced commands" : "Show advanced commands...";
+      document.getElementById("vimAdvancedCommands").innerHTML = visible
+        ? "Hide advanced commands" : "Show advanced commands...";
       advancedEls = container.getElementsByClassName("vimHelpAdvanced");
       visible = visible ? "table-row" : "none";
       for (_i = 0, _len = advancedEls.length; _i < _len; _i++) {
@@ -953,11 +948,15 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     
     settings.ondestroy.helpDialog = hide;
     oldShowHelp = window.showHelp;
-    document.getElementById("vimAdvancedCommands").addEventListener("click" //
-      , toggleAdvancedCommands, false);
+    document.getElementById("vimAdvancedCommands").addEventListener("click", function(event) {
+      shouldShowAdvanced = !shouldShowAdvanced;
+      showAdvancedCommands(shouldShowAdvanced);
+      settings.set("showAdvancedCommands", shouldShowAdvanced);
+      DomUtils.suppressEvent(event);
+    }, false);
     document.getElementById("vimCloseButton").addEventListener("click" //
       , window.showHelp = hide, false);
-    if (! window.location.href.startsWith("chrome-extension://hfjbmagddngcpeloejdejnfgbamkjaeg/pages/options.html")) {
+    if (! window.location.href.startsWith(response.optionUrl)) {
       document.getElementById("vimOptionsPage").addEventListener("click", function(event) {
         mainPort.postMessage({
           handler: "openRawUrl",
@@ -968,10 +967,14 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     } else {
       DomUtils.removeNode(document.getElementById("vimOptionsPage"));
     }
-    document.getElementById("vimHelpDialog").style.maxHeight = window.innerHeight - 80;
     showAdvancedCommands(shouldShowAdvanced);
+    document.getElementById("vimHelpDialog").style.maxHeight = window.innerHeight - 80;
     window.focus();
-    container.querySelector(".vimHelpTr").click();
+    handlerStack.bubbleEvent("DOMActivate", {
+      preventDefault: function() {},
+      stopImmediatePropagation: function() {},
+      target: document.getElementById("vimHelpDialog")
+    });
     handlerId = handlerStack.push({
       keydown: function(event) {
         if (event.keyCode === KeyCodes.esc && KeyboardUtils.isPlain(event)) {
