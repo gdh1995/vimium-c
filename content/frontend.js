@@ -314,11 +314,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       }
       document.activeElement = newEl;
       oldActivated.target = null;
-      if (newEl.scrollIntoViewIfNeeded) {
-        newEl.scrollIntoViewIfNeeded();
-      } else if (newEl.scrollIntoView) {
-        newEl.scrollIntoView();
-      }
+      newEl.scrollIntoViewIfNeeded();
       DomUtils.SimulateHover(newEl);
       if (newEl.focus) {
         newEl.focus();
@@ -817,7 +813,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     if (linkElement.nodeName.toLowerCase() === "link") {
       window.location.href = linkElement.href;
     } else {
-      linkElement.scrollIntoView();
+      linkElement.scrollIntoViewIfNeeded();
       linkElement.focus();
       DomUtils.simulateClick(linkElement, {
         altKey: false,
@@ -1086,23 +1082,31 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
         return;
       }
       window.focus();
-      if (!settings.values.highlightTimer) {
+      if (!settings.values.highlightMask) {
         var dom1 = document.createElement("div");
         dom1.className = "vimB vimR";
         dom1.id = "vimHighlightMask";
         document.documentElement.appendChild(dom1);
+        settings.values.highlightMask = {
+          node: dom1,
+          more: false,
+          timer: setInterval(requestHandlers.removeHighlightMask, 200)
+        };
       } else {
-        clearTimeout(settings.values.highlightTimer);
+        settings.values.highlightMask.more = true;
       }
-      settings.values.highlightTimer = setTimeout(requestHandlers.removeHighlightMask, 200);
       document.documentElement.scrollIntoViewIfNeeded();
     },
     removeHighlightMask: function() {
-      var maskNode = document.getElementById("vimHighlightMask");
-      if (maskNode) {
-        DomUtils.removeNode(maskNode);
+      var ref = settings.values.highlightMask;
+      if (!ref) {
+      } else if (ref.more) {
+        ref.more = false;
+      } else {
+        DomUtils.removeNode(ref.node);
+        clearInterval(ref.timer);
+        settings.values.highlightMask = null;
       }
-      settings.values.highlightTimer = 0;
     },
     refreshKeyMappings: function(request) {
       var arr = request.firstKeys, i = arr.length, map, key, sec, sec2;
@@ -1189,7 +1193,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     };
     showAdvancedCommands = function(visible) {
       var advancedEls, el, _i, _len;
-      document.getElementById("vimAdvancedCommands").innerHTML = visible
+      container.querySelector("#vimAdvancedCommands").innerHTML = visible
         ? "Hide advanced commands" : "Show advanced commands...";
       advancedEls = container.getElementsByClassName("vimHelpAdvanced");
       visible = visible ? "table-row" : "none";
@@ -1201,13 +1205,13 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     
     settings.ondestroy.helpDialog = hide;
     oldShowHelp = Commands.showHelp;
-    document.getElementById("vimAdvancedCommands").onclick = function() {
+    container.querySelector("#vimAdvancedCommands").onclick = function() {
       shouldShowAdvanced = !shouldShowAdvanced;
       showAdvancedCommands(shouldShowAdvanced);
       settings.set("showAdvancedCommands", shouldShowAdvanced);
     };
-    document.getElementById("vimCloseButton").onclick = Commands.showHelp = hide;
-    node1 = document.getElementById("vimOptionsPage");
+    container.querySelector("#vimCloseButton").onclick = Commands.showHelp = hide;
+    node1 = container.querySelector("#vimOptionsPage");
     if (! window.location.href.startsWith(response.optionUrl)) {
       node1.href = response.optionUrl;
       node1.onclick = hide;
@@ -1215,7 +1219,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       DomUtils.removeNode(node1);
     }
     showAdvancedCommands(shouldShowAdvanced);
-    node1 = document.getElementById("vimHelpDialog");
+    node1 = container.querySelector("#vimHelpDialog");
     node1.style.maxHeight = window.innerHeight - 80;
     window.focus();
     handlerStack.bubbleEvent("DOMActivate", {
