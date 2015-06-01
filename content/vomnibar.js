@@ -111,10 +111,6 @@ Vomnibar.vomnibarUI = {
     this.input.value = this.completionInput.text;
     this.input.focus();
     this.focused = true;
-    this.input.addEventListener("input", this.onInput);
-    this.box.addEventListener("click", this.onClick);
-    this.box.addEventListener("mousewheel", DomUtils.suppressPropagation);
-    this.box.addEventListener("keyup", this.onKeyEvent);
     this.handlerId = handlerStack.push({
       keydown: this.onKeydown,
       _this: this
@@ -131,10 +127,6 @@ Vomnibar.vomnibarUI = {
     this.input.value = "";
     handlerStack.remove(this.handlerId);
     this.handlerId = 0;
-    this.input.removeEventListener("input", this.onInput);
-    this.list.removeEventListener("click", this.onClick);
-    this.box.removeEventListener("mousewheel", DomUtils.suppressPropagation);
-    this.box.removeEventListener("keyup", this.onKeyEvent);
     this.onUpdate = null;
     this.completionInput.text = "";
     this.completionInput.url = "";
@@ -375,11 +367,11 @@ Vomnibar.vomnibarUI = {
       handler: "initVomnibar"
     }, this.init_dom.bind(this));
     this.completer = completer;
-    this.onInput = this.onInput.bind(this);
-    this.onClick = this.onClick.bind(this);
     this.onTimer = this.onTimer.bind(this);
     this.onCompletions = this.onCompletions.bind(this);
-    this.onKeyEvent = this.onKeyEvent.bind(this);
+    box.addEventListener("keyup", this.onKeyEvent.bind(this));
+    box.addEventListener("click", this.onClick.bind(this));
+    box.addEventListener("mousewheel", DomUtils.suppressPropagation);
     this.init = null;
   },
   init_dom: function(response) {
@@ -401,6 +393,7 @@ Vomnibar.vomnibarUI = {
       this.onCompletions(this.completions);
     }
     document.documentElement.appendChild(this.box);
+    this.input.oninput = this.onInput.bind(this);
   },
   computeHint: function(li, a) {
     var i = [].indexOf.call(this.box, li), item, rect;
