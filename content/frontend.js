@@ -1296,14 +1296,14 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     } else if (requestHandlers.reg()) {
       return;
     }
-      window.onunload = ELs.onUnload;
-      window.onhashchange = ELs.onHashChange;
-      // NOTE: here, we should always postMessage, since
-      //     NO other message will be sent if not isEnabledForUrl,
-      // which would make the auto-destroy logic not work.
-      window.onfocus = ELs.onFocus = mainPort.safePost.bind(
-        mainPort, ELs.focusMsg, requestHandlers.refreshKeyQueue, null //
-      );
+    window.onunload = ELs.onUnload;
+    window.onhashchange = ELs.onHashChange;
+    // NOTE: here, we should always postMessage, since
+    //     NO other message will be sent if not isEnabledForUrl,
+    // which would make the auto-destroy logic not work.
+    window.onfocus = ELs.onFocus = mainPort.safePost.bind(
+      mainPort, ELs.focusMsg, requestHandlers.refreshKeyQueue, null //
+    );
   });
 
   ELs.onMessage = function(request, id) {
@@ -1343,8 +1343,6 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     Vomnibar.destroy();
     LinkHints.destroy();
     HUD.destroy();
-    VRect = Utils = KeyboardUtils = DomUtils = handlerStack = Scroller = //
-    VHUD = Marks = null;
 
     if (settings.isLoading) {
       clearInterval(settings.isLoading);
@@ -1355,10 +1353,12 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       ref[i] = null;
       func();
     }
-    Commands = requestHandlers = MainPort = mainPort = func = null;
     if (ELs.css) {
       DomUtils.removeNode(ELs.css);
     }
+    Commands = requestHandlers = MainPort = VHUD = mainPort = KeydownEvents = //
+    VRect = Utils = KeyboardUtils = DomUtils = handlerStack = Scroller = //
+    Marks = func = null;
 
     console.log("%cVimium++ %c#" + frameId + "%c has destroyed."//
       , "color:red", "color:blue", "color:auto");
