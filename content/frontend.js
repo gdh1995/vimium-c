@@ -926,7 +926,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     opacity: 0,
     _durationTimer: 0,
     showCopied: function(text) {
-      if (text.startsWith("chrome-ext")) {
+      if (text.startsWith("chrome-")) {
         text = text.substring(text.indexOf('/', text.indexOf('/') + 2));
       }
       if (text.length > 43) {

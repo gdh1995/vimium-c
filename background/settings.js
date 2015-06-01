@@ -31,8 +31,8 @@ var Settings = {
         windowType: "normal",
         status: "complete"
       }, function(tabs) {
-        for (var i = tabs.length, t = chrome.tabs; 0 <= --i; ) {
-          t.sendMessage(tabs[i].id, request, null);
+        for (var i = tabs.length, t = chrome.tabs, req = request; 0 <= --i; ) {
+          t.sendMessage(tabs[i].id, req, null);
         }
       });
     },
