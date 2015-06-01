@@ -67,10 +67,6 @@ pre {
   border-left: 1px solid #ccc;
   padding-left: 5px;
 }
-textarea {
-  /* Horizontal resizing is pretty screwy-looking. */
-  resize: vertical;
-}
 #options {
   width: 100%;
   font-size: 14px;
