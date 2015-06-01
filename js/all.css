@@ -10,7 +10,7 @@ a{color:#FFF;text-decoration:none;text-shadow:1px 1px 3px #000;}
 @-webkit-keyframes nodeFarAway{40%{opacity:0;}60%{opacity:0;}}
 .dialbox.farAway{-webkit-animation:nodeFarAway .6s ease-in-out 0s 1;}
 .QBannerContainer{position:absolute;bottom:0px;width:1040px;height:48px;left:50%;-webkit-transition:opacity .2s ease-in;}
-.QBannerContainer.hide,.dialbox .quickDialbox.hide{visibility:hidden;opacity:0;}
+.QBannerContainer.hide,.dialbox > .quickDialbox.hide{visibility:hidden;opacity:0;}
 .QBannerContainer > .left{float:left;width:78px;height:48px;background-image:url(../img/skin_0/q_left.png);}
 .QBannerContainer > .center{float:left;width:884px;height:48px;background-image:url(../img/skin_0/q_bg.png);}
 .QBannerContainer > .right{float:right;width:78px;height:48px;background-image:url(../img/skin_0/q_right.png);}
@@ -22,9 +22,9 @@ a{color:#FFF;text-decoration:none;text-shadow:1px 1px 3px #000;}
 .pageSwitcher.up:hover{margin-left:-12px;}
 .pageSwitcher.down{right:0px;margin-right:-42px;background:url(../img/skin_0/right.png);}
 .pageSwitcher.down:hover{margin-right:-12px;}
-.dialbox .quickDialbox{left:50%;bottom:0px;position:absolute;height:48px;-webkit-transition:opacity .2s ease-in;}
-.dialbox.edit .quickDialbox{box-shadow:inset 0 10px 15px 2px rgba(200, 200, 200,0.7);}
-.dialbox .normalDialbox{position:absolute;display:none;border-radius:10px;}
+.dialbox > .quickDialbox{left:50%;bottom:0px;position:fixed;height:48px;-webkit-transition:opacity .2s ease-in;}
+.dialbox.edit > .quickDialbox{box-shadow:inset 0 10px 15px 2px rgba(200, 200, 200,0.7);}
+.dialbox > .normalDialbox{position:absolute;display:none;border-radius:10px;}
 @-webkit-keyframes rightFlipFir{from{-webkit-transform:rotateY(0deg);}to{-webkit-transform:rotateY(-90deg);opacity:0.2;}}
 @-webkit-keyframes rightFlipSec{from{-webkit-transform:rotateY(-90deg);opacity:0.2;}to{-webkit-transform:rotateY(0deg);}}
 @-webkit-keyframes leftFlipFir{from{-webkit-transform:rotateY(0deg);}to{-webkit-transform:rotateY(90deg);opacity:0.2;}}
@@ -101,7 +101,8 @@ a{color:#FFF;text-decoration:none;text-shadow:1px 1px 3px #000;}
 .appBox.quick:not(:hover) .boxTitle{height:0px;}
 .appBox.quick .boxTitle.transparent{opacity:0;}
 .appBox.quick .boxLogo:hover ~ .boxTitle{text-shadow:none;display:block;}
-.dialbox > .pageIndex{position:absolute;height:10px;left:50%;opacity:0.8;bottom:100px;}
+.dialbox {position:absolute;top:0px;bottom:0px;width:100%;overflow-y:auto;overflow-x:hidden;}
+.dialbox > .pageIndex{position:fixed;height:10px;left:50%;opacity:0.8;bottom:100px;}
 .dialbox > .pageIndex > a{cursor:pointer;display:block;width:8px;height:8px;background:rgba(149,149,149,0.8);border-radius:5px;margin:0px 5px;float:left;border:rgba(149,149,149,0.8) 1px solid;}
 .dialbox > .pageIndex > a.selected, .dialbox > .pageIndex > a:hover{background:#FFF;border:#FFF 1px solid;}
 .dialbox .pageNotice{position:fixed;width:500px;height:40px;line-height:40px;background-color:rgba(0,0,0,0.5);border-radius:6px;left:50%;margin-left:-250px;color:#FFF;font-size:16px;text-align:center;opacity:0;-webkit-transition:opacity .2s ease-in;}
