@@ -33,13 +33,10 @@ var Settings = {
         status: "complete"
       }, function(tabs) {
         for (var i = tabs.length, t = chrome.tabs, req = request; 0 <= --i; ) {
-          if (!tabs[i].url.startsWith("chrome")) {
-            t.sendMessage(tabs[i].id, req, null);
-          }
+          t.sendMessage(tabs[i].id, req, null);
         }
       });
       var r = chrome.runtime, arr = Settings.extIds, i, req;
-      r.sendMessage(arr[0], request, null);
       req = {"vimium++": request};
       for (i = arr.length; 1 <= --i; ) {
         r.sendMessage(arr[i], req, null);

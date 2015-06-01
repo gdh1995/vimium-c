@@ -1153,12 +1153,10 @@ chrome.tabs.query({windowType: "normal", status: "complete"}, function(arr) {
     if (url.length >= 51 && url.startsWith("chrome-extension:")) {
       url = url.substring(19, 51);
       if (exts.indexOf(url) === -1) { exts.push(url); }
-      continue;
     }
     o.sendMessage(arr[i].id, request, null);
   }
   o = chrome.runtime;
-  o.sendMessage(exts[0], request, null);
   request.name = "regExt";
   request = {"vimium++": request};
   for (i = exts.length; 1 <= --i; ) {
