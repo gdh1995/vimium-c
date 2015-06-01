@@ -92,8 +92,8 @@ Commands.commandGroups = {
   pageNavigation: ["scrollDown", "scrollUp", "scrollLeft", "scrollRight", "scrollToTop"
     , "scrollToBottom", "scrollToLeft", "scrollToRight", "scrollPageDown", "scrollPageUp"
     , "scrollPxDown", "scrollPxUp", "scrollPxLeft", "scrollPxRight"
-    , "scrollFullPageUp", "scrollFullPageDown", "reload", "toggleViewSource", "copyCurrentUrl"
-    , "copyCurrentTitle"
+    , "scrollFullPageUp", "scrollFullPageDown", "reload", "reloadTab", "toggleViewSource"
+    , "copyCurrentUrl", "copyCurrentTitle", "switchFocus", "simBackspace"
     , "LinkHints.activateModeToCopyLinkUrl", "LinkHints.activateModeToCopyLinkText"
     , "openCopiedUrlInCurrentTab", "openCopiedUrlInNewTab", "goUp", "goToRoot", "enterInsertMode"
     , "focusInput", "LinkHints.activateMode", "LinkHints.activateModeToOpenInNewTab"
@@ -101,30 +101,30 @@ Commands.commandGroups = {
     , "LinkHints.activateModeToDownloadImage", "LinkHints.activateModeToOpenImage"
     , "LinkHints.activateModeToDownloadLink", "LinkHints.activateModeToOpenIncognito"
     , "LinkHints.activateModeToHover", "LinkHints.activateModeToSearchLinkText"
-    , "goPrevious", "goNext", "nextFrame"
+    , "goPrevious", "goNext", "nextFrame", "mainFrame"
     , "Marks.activateCreateMode", "Marks.activateGotoMode"],
   vomnibarCommands: ["Vomnibar.activate", "Vomnibar.activateInNewTab"
     , "Vomnibar.activateBookmarks", "Vomnibar.activateBookmarksInNewTab", "Vomnibar.activateHistory"
     , "Vomnibar.activateHistoryInNewTab", "Vomnibar.activateTabSelection"
     , "Vomnibar.activateEditUrl", "Vomnibar.activateEditUrlInNewTab"],
-  historyNavigation: ["goBack", "goForward", "reloadTab", "reopenTab", "switchFocus", "simBackspace"],
+  historyNavigation: ["goBack", "goForward", "reopenTab"],
   findCommands: ["enterFindMode", "performFind", "performBackwardsFind"],
   tabManipulation: ["nextTab", "previousTab", "firstTab", "lastTab", "createTab", "duplicateTab"
     , "removeTab", "restoreTab", "restoreGivenTab", "moveTabToNextWindow", "moveTabToIncognito", "togglePinTab"
     , "closeTabsOnLeft", "closeTabsOnRight", "closeOtherTabs", "moveTabLeft", "moveTabRight"
     , "enableImageTemp", "toggleImage", "clearImageCS"],
-  misc: ["showHelp", "enterVisualMode", "autoCopy", "autoSearch", "mainFrame"
+  misc: ["showHelp", "enterVisualMode", "autoCopy", "autoSearch"
     , "blank"]
 };
 Commands.advancedCommands = ["scrollToLeft", "scrollToRight", "moveTabToNextWindow", "moveTabToIncognito"
   , "goUp", "goToRoot", "focusInput", "LinkHints.activateModeWithQueue", "enableImageTemp"
-  , "toggleImage", "clearImageCS", "LinkHints.activateModeToDownloadImage"
+  , "toggleImage", "clearImageCS", "LinkHints.activateModeToDownloadImage", "reopenTab"
   , "LinkHints.activateModeToOpenImage"
   , "LinkHints.activateModeToDownloadLink", "Vomnibar.activateEditUrl", "restoreGivenTab"
   , "Vomnibar.activateEditUrlInNewTab", "LinkHints.activateModeToOpenIncognito"
   , "goNext", "goPrevious", "Marks.activateCreateMode", "Marks.activateGotoMode"
   , "moveTabLeft", "moveTabRight", "closeTabsOnLeft", "closeTabsOnRight", "closeOtherTabs"
-  , "scrollPxDown", "scrollPxUp", "scrollPxLeft", "scrollPxRight"
+  , "scrollPxDown", "scrollPxUp", "scrollPxLeft", "scrollPxRight", "blank"
 ];
 Commands.defaultKeyMappings = {
   "?": "showHelp",
