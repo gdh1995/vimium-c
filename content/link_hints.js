@@ -100,7 +100,7 @@ var LinkHints = {
     if (Settings.values.filterLinkHints) {
       this.markerMatcher = this.filterHints;
       elements.sort(function(a, b) {
-        return a.innerHTML.length - b.innerHTML.length;
+        return a[0].innerHTML.length - b[0].innerHTML.length;
       })
     } else {
       this.markerMatcher = this.alphabetHints;
