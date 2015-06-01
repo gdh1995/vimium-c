@@ -1300,7 +1300,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
   if (isInjected) {
     ELs.onMessage = (function(request, sender) {
       if (sender.id === "hfjbmagddngcpeloejdejnfgbamkjaeg") {
-        this(request);
+        this(request["vimium++"]);
       }
     }).bind(ELs.onMessage);
     chrome.runtime.onMessageExternal.addListener(ELs.onMessage);
