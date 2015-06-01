@@ -361,7 +361,8 @@
         DomUtils.suppressEvent(event);
         return;
       }
-      Settings.RequestHandlers.showHelpDialog({
+      MainPort.Listener({
+        name: "showHelpDialog",
         html: BG.helpDialogHtml(true, true, "Command Listing"),
         optionUrl: location.href,
         advanced: bgSettings.get("showAdvancedCommands")
