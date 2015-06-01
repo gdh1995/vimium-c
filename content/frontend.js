@@ -1330,7 +1330,8 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     Vomnibar.destroy();
     LinkHints.destroy();
     HUD.destroy();
-    Utils = KeyboardUtils = DomUtils = handlerStack = Scroller = Marks = null;
+    VRect = Utils = KeyboardUtils = DomUtils = handlerStack = Scroller = //
+    VHUD = Marks = null;
 
     if (settings.isLoading) {
       clearInterval(settings.isLoading);
@@ -1341,7 +1342,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       ref[i] = null;
       func();
     }
-    Commands = requestHandlers = mainPort = func = null;
+    Commands = requestHandlers = MainPort = mainPort = func = null;
     if (ELs.css) {
       DomUtils.removeNode(ELs.css);
     }
