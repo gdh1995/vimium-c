@@ -142,7 +142,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
         onerror = onerror.bind(null, request.request);
       }
       this.isLoading = setInterval(mainPort.safePost.bind(
-        mainPort, request, null, onerror), 2000);
+        mainPort , request, null, onerror), 2000);
     },
     ReceiveSettings: function(response) {
       var _this = settings, ref, i;
@@ -175,7 +175,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     onKeydown: null, onKeypress: null, onKeyup: null, //
     docOnFocus: null, onBlur: null, onActivate: null, //
     onFocus: null, onUnload: null, onHashChagne: null, //
-    destroy: null //
+    onMessage: null, destroy: null //
   };
 
   initializeWhenEnabled = function(newPassKeys) {
@@ -1263,48 +1263,52 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       } catch (e) {
       }
     };
-    // NOTE: here, we should always postMessage, since
-    //     NO other message will be sent if not isEnabledForUrl,
-    // which would make the auto-destroy logic not work.
-    ELs.onFocus = mainPort.safePost.bind(
-      mainPort, ELs.focusMsg, requestHandlers.refreshKeyQueue, null //
-    );
     ELs.onHashChange = requestHandlers.checkIfEnabled;
     if (isInjected) {
       window.addEventListener("focus", ELs.onFocus = (function(event) {
         if (event.target == window) {
           this();
         }
-      }).bind(ELs.onFocus));
+      }).bind(mainPort.safePost.bind(mainPort, ELs.focusMsg, requestHandlers.refreshKeyQueue
+      , setTimeout.bind(null, function() {
+          if (!mainPort._port) {
+            ELs.destroy();
+          }
+        }, 50) //
+      )));
       window.addEventListener("unload", ELs.onUnload);
       window.addEventListener("hashchange", ELs.onHashChange);
     } else {
       window.onunload = ELs.onUnload;
-      window.onfocus = ELs.onFocus;
       window.onhashchange = ELs.onHashChange;
+      // NOTE: here, we should always postMessage, since
+      //     NO other message will be sent if not isEnabledForUrl,
+      // which would make the auto-destroy logic not work.
+      window.onfocus = ELs.onFocus = mainPort.safePost.bind(
+        mainPort, ELs.focusMsg, requestHandlers.refreshKeyQueue, null //
+      );
     }
   });
 
+  ELs.onMessage = function(request, id) {
+    id = request.frameId;
+    if (id === undefined || id === frameId) {
+      requestHandlers[request.name](request); // do not check `handler != null`
+    }
+  };
   if (isInjected) {
-    chrome.runtime.onMessageExternal.addListener(function(request, sender) {
-      if (sender.id !== "hfjbmagddngcpeloejdejnfgbamkjaeg") { return; }
-      var id = request.frameId;
-      if (id === undefined || id === frameId) {
-        requestHandlers[request.name](request);
+    ELs.onMessage = (function(request, sender) {
+      if (sender.id === "hfjbmagddngcpeloejdejnfgbamkjaeg") {
+        this(request);
       }
-    });
+    }).bind(ELs.onMessage);
+    chrome.runtime.onMessageExternal.addListener(ELs.onMessage);
   } else {
-     chrome.runtime.onMessage.addListener(function(request, id) {
-      id = request.frameId;
-      if (id === undefined || id === frameId) {
-        requestHandlers[request.name](request); // do not check `handler != null`
-      }
-    });
+    chrome.runtime.onMessage.addListener(ELs.onMessage);
   }
 
   ELs.destroy = function() {
     isEnabledForUrl = false;
-    try {
     if (isInjected) {
       window.removeEventListener("unload", this.onUnload);
       window.removeEventListener("focus", this.onFocus);
@@ -1338,10 +1342,18 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     if (ELs.css) {
       DomUtils.removeNode(ELs.css);
     }
-    } catch (e) {}
+
     console.log("%cVimium++ %c#" + frameId + "%c has destroyed."//
       , "color:red", "color:blue", "color:auto");
+
+    // only the below may throw errors
+    try {
+      if (isInjected) {
+        chrome.runtime.onMessageExternal.removeEventListener(ELs.onMessage);
+      } else {
+        chrome.runtime.onMessage.removeEventListener(ELs.onMessage);
+      }
+    } catch (e) {}
     ELs = null;
   };
-
 })();
