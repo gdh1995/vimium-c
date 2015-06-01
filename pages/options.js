@@ -19,7 +19,7 @@
   function Option(field, onUpdated) {
     this.field = field;
     this.element = $(this.field);
-    this.element.addEventListener("change", this.onUpdated = onUpdated);
+    this.onUpdated = onUpdated;
     this.fetch();
     Option.all.push(this);
   }
@@ -61,7 +61,8 @@
     __extends(NumberOption, _super);
 
     function NumberOption() {
-      return NumberOption.__super__.constructor.apply(this, arguments);
+      NumberOption.__super__.constructor.apply(this, arguments);
+      this.element.addEventListener("input", this.onUpdated);
     }
 
     NumberOption.prototype.populateElement = function(value) {
@@ -99,7 +100,7 @@
   NonEmptyTextOption = (function(_super) {
     __extends(NonEmptyTextOption, _super);
 
-    function NonEmptyTextOption(field, enableSaveButton) {
+    function NonEmptyTextOption() {
       NonEmptyTextOption.__super__.constructor.apply(this, arguments);
       this.element.addEventListener("input", this.onUpdated);
     }
@@ -125,7 +126,8 @@
     __extends(CheckBoxOption, _super);
 
     function CheckBoxOption() {
-      return CheckBoxOption.__super__.constructor.apply(this, arguments);
+      CheckBoxOption.__super__.constructor.apply(this, arguments);
+      this.element.addEventListener("change", this.onUpdated);
     }
 
     CheckBoxOption.prototype.populateElement = function(value) {
@@ -170,17 +172,14 @@
     };
 
     ExclusionRulesOption.prototype.appendRule = function(rule) {
-      var element, field, row, _i, _j, _ref, _ref1;
+      var element, field, row, _i, _ref;
       row = document.importNode($('exclusionRuleTemplate').content, true);
       _ref = ["pattern", "passKeys"];
-      _ref1 = ["input", "change"];
       for (_i = _ref.length; 0 <= --_i; ) {
         field = _ref[_i];
         element = row.querySelector('.' + field);
         element.value = rule[field];
-        for (_j = _ref1.length; 0 <= --_j; ) {
-          element.addEventListener(_ref1[_j], this.onUpdated);
-        }
+        element.addEventListener("input", this.onUpdated);
       }
       this.getRemoveButton(row).addEventListener("click", this.onRemoveRow);
       this.element.appendChild(row);
