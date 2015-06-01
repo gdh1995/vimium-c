@@ -361,13 +361,10 @@
         DomUtils.suppressEvent(event);
         return;
       }
-      chrome.tabs.getCurrent(function(tab) {
-        chrome.tabs.sendMessage(tab.id, {
-          name: "showHelpDialog",
-          html: BG.helpDialogHtml(true, true, "Command Listing"),
-          optionUrl: location.href,
-          advanced: bgSettings.get("showAdvancedCommands")
-        });
+      Settings.RequestHandlers.showHelpDialog({
+        html: BG.helpDialogHtml(true, true, "Command Listing"),
+        optionUrl: location.href,
+        advanced: bgSettings.get("showAdvancedCommands")
       });
     };
 
