@@ -104,8 +104,11 @@ div#exampleKeyMapping {
 #scrollStepSize {
   width: 66px;
   margin-right: 4px;
-  text-align: left;
-  text-indent: 17px;
+  text-align: center;
+  text-indent: 16px;
+}
+#scrollStepSize::-webkit-inner-spin-button {
+  margin-left: 1px;
 }
 #userDefinedCss {
   width: 100%;
