@@ -495,7 +495,10 @@
     }
   };
 
-  document.addEventListener("DOMContentLoaded", function() {
+  var onDOMLoaded;
+  document.addEventListener("DOMContentLoaded", onDOMLoaded = function() {
+    document.removeEventListener("DOMContentLoaded", onDOMLoaded);
+    onDOMLoaded = null;
     var xhr = new XMLHttpRequest();
     xhr.open("GET", "/pages/exclusions.html", true);
     xhr.onreadystatechange = function() {
