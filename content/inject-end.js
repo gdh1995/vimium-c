@@ -37,7 +37,7 @@ Settings.ELs.onMessage = (function(request, sender) {
 }).bind(Settings.ELs.onMessage);
 chrome.runtime.onMessageExternal.addListener(Settings.ELs.onMessage);
 
-Settings.ondestroy.injected = function() {
+Settings.ELs.onDestroy.injected = function() {
   window.removeEventListener("unload", this.onUnload);
   window.removeEventListener("focus", this.onFocus);
   window.removeEventListener("hashchange", this.onHashChange);

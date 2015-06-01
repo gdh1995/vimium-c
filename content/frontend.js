@@ -125,7 +125,6 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     RequestHandlers: null,
     values: null,
     isLoading: 0,
-    ondestroy: {},
     set: function(key, value) {
       this.values[key] = value;
       mainPort.postMessage({
@@ -177,7 +176,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     onKeydown: null, onKeypress: null, onKeyup: null, //
     docOnFocus: null, onBlur: null, onActivate: null, //
     onFocus: null, onUnload: null, onHashChagne: null, //
-    onMessage: null, destroy: null //
+    onMessage: null, onDestroy: {}, destroy: null //
   };
 
   initializeWhenEnabled = function(newPassKeys) {
@@ -1191,7 +1190,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       handlerStack.remove(handlerId);
       DomUtils.removeNode(container);
       Commands.showHelp = oldShowHelp;
-      settings.ondestroy.helpDialog = null;
+      ELs.onDestroy.helpDialog = null;
       container.innerHTML = "";
       container = null;
     };
@@ -1207,7 +1206,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       }
     };
     
-    settings.ondestroy.helpDialog = hide;
+    ELs.onDestroy.helpDialog = hide;
     oldShowHelp = Commands.showHelp;
     container.querySelector("#vimAdvancedCommands").onclick = function() {
       shouldShowAdvanced = !shouldShowAdvanced;
@@ -1314,12 +1313,15 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     if (settings.isLoading) {
       clearInterval(settings.isLoading);
     }
-    var ref = settings.ondestroy, i, func;
+    var ref = this.onDestroy, i, func;
     for (i in ref) {
       func = ref[i];
+      if (func) {
       ref[i] = null;
       func.call(this);
     }
+    }
+    this.onDestroy = null;
     if (this.css) {
       DomUtils.removeNode(this.css);
     }
