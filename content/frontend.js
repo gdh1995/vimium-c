@@ -165,7 +165,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     }
   };
 
-  settings.ELs = ELs = { //
+  ELs = { //
     focusMsg: {
       handler: "frameFocused",
       tabId: 0,
@@ -1013,7 +1013,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
   };
 
   // { function x | x's `this` should be requestHandlers unless x is used at other place}
-  settings.RequestHandlers = requestHandlers = {
+  requestHandlers = {
     checkIfEnabled: function() {
       mainPort.postMessage({
         handler: "checkIfEnabled",
@@ -1266,11 +1266,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       }
     };
     ELs.onHashChange = requestHandlers.checkIfEnabled;
-    if (isInjected) {
-      ELs.onFocus = mainPort.safePost.bind(mainPort, ELs.focusMsg
-        , requestHandlers.refreshKeyQueue);
-      return;
-    } else if (requestHandlers.reg()) {
+    if (isInjected || requestHandlers.reg()) {
       return;
     }
     window.onunload = ELs.onUnload;
@@ -1289,7 +1285,10 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       requestHandlers[request.name](request); // do not check `handler != null`
     }
   };
-  if (!isInjected) {
+  if (isInjected) {
+    settings.RequestHandlers = requestHandlers;
+    settings.ELs = ELs;
+  } else {
     chrome.runtime.onMessage.addListener(ELs.onMessage);
   }
 
@@ -1317,9 +1316,9 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     for (i in ref) {
       func = ref[i];
       if (func) {
-      ref[i] = null;
-      func.call(this);
-    }
+        ref[i] = null;
+        func.call(this);
+      }
     }
     this.onDestroy = null;
     if (this.css) {

@@ -22,7 +22,8 @@ DomUtils.DocumentReady(function() {
     if (event.target == window) {
       this();
     }
-  }).bind(ELs.onFocus.bind(null, setTimeout.bind(null, function() {
+  }).bind(MainPort.safePost.bind(MainPort, ELs.focusMsg
+  , Settings.RequestHandlers.refreshKeyQueue, setTimeout.bind(null, function() {
       if (!MainPort._port) {
         Settings.ELs.destroy();
       }
