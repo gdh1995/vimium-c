@@ -45,4 +45,4 @@ Settings.ELs.onDestroy.injected = function() {
   try {
     chrome.runtime.onMessageExternal.removeEventListener(this.onMessage);
   } catch (e) {}
-}
+};
