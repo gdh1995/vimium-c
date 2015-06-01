@@ -226,6 +226,7 @@ Settings.icons.__proto__ = null;
     ref3.css = ref3.css.concat(ref2.css.map(func));
     ref3.js = ref3.js.concat(ref2.js.map(func));
   }
+  ref3.js.push(func("content/inject-end.js"));
   Settings.ContentScripts = ref3;
 
   i = navigator.appVersion.indexOf("Chrome");

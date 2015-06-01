@@ -121,6 +121,8 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
   };
 
   Settings = settings = {
+    ELs: null,
+    RequestHandlers: null,
     values: null,
     isLoading: 0,
     ondestroy: {},
@@ -164,7 +166,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     }
   };
 
-  ELs = { //
+  settings.ELs = ELs = { //
     focusMsg: {
       handler: "frameFocused",
       tabId: 0,
@@ -1011,7 +1013,8 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     }
   };
 
-  requestHandlers = {
+  // { function x | x's `this` should be requestHandlers unless x is used at other place}
+  settings.RequestHandlers = requestHandlers = {
     checkIfEnabled: function() {
       mainPort.postMessage({
         handler: "checkIfEnabled",
@@ -1047,7 +1050,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     },
     registerFrame: function(request) {
       // @reg is called only when document.ready
-      requestHandlers.insertCSS(request);
+      this.insertCSS(request);
     },
     insertCSS: function(request) {
       var css = ELs.css;
@@ -1163,17 +1166,6 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       obj[components[_len]].apply(obj, request.args);
     },
     gotoMark: Marks.GoTo,
-    regExt: function(request) {
-      if (requestHandlers.reg(request)) {
-        return true;
-      }
-      if (window.top === window && chrome.runtime.id) {
-        mainPort.postMessage({
-          handler: "regExt",
-          extId: chrome.runtime.id
-        });
-      }
-    },
     showHelpDialog: null
   };
   
@@ -1276,22 +1268,8 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     };
     ELs.onHashChange = requestHandlers.checkIfEnabled;
     if (isInjected) {
-      if (requestHandlers.regExt()) {
-        return;
-      }
-      window.addEventListener("focus", ELs.onFocus = (function(event) {
-        if (event.target == window) {
-          this();
-        }
-      }).bind(mainPort.safePost.bind(mainPort, ELs.focusMsg, requestHandlers.refreshKeyQueue
-      , setTimeout.bind(null, function() {
-          if (!mainPort._port) {
-            ELs.destroy();
-          }
-        }, 50) //
-      )));
-      window.addEventListener("unload", ELs.onUnload);
-      window.addEventListener("hashchange", ELs.onHashChange);
+      ELs.onFocus = mainPort.safePost.bind(mainPort, ELs.focusMsg
+        , requestHandlers.refreshKeyQueue);
       return;
     } else if (requestHandlers.reg()) {
       return;
@@ -1301,7 +1279,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     // NOTE: here, we should always postMessage, since
     //     NO other message will be sent if not isEnabledForUrl,
     // which would make the auto-destroy logic not work.
-    window.onfocus = ELs.onFocus = mainPort.safePost.bind(
+    window.onfocus = mainPort.safePost.bind(
       mainPort, ELs.focusMsg, requestHandlers.refreshKeyQueue, null //
     );
   });
@@ -1312,24 +1290,13 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       requestHandlers[request.name](request); // do not check `handler != null`
     }
   };
-  if (isInjected) {
-    ELs.onMessage = (function(request, sender) {
-      if (sender.id === "hfjbmagddngcpeloejdejnfgbamkjaeg") {
-        this(request["vimium++"]);
-      }
-    }).bind(ELs.onMessage);
-    chrome.runtime.onMessageExternal.addListener(ELs.onMessage);
-  } else {
+  if (!isInjected) {
     chrome.runtime.onMessage.addListener(ELs.onMessage);
   }
 
   ELs.destroy = function() {
     isEnabledForUrl = false;
-    if (isInjected) {
-      window.removeEventListener("unload", this.onUnload);
-      window.removeEventListener("focus", this.onFocus);
-      window.removeEventListener("hashchange", this.onHashChange);
-    } else {
+    if (!isInjected) {
       window.onfocus = null;
       window.onunload = null;
       window.onhashchange = null;
@@ -1351,26 +1318,22 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     for (i in ref) {
       func = ref[i];
       ref[i] = null;
-      func();
+      func.call(this);
     }
-    if (ELs.css) {
-      DomUtils.removeNode(ELs.css);
+    if (this.css) {
+      DomUtils.removeNode(this.css);
     }
     Commands = requestHandlers = MainPort = VHUD = mainPort = KeydownEvents = //
     VRect = Utils = KeyboardUtils = DomUtils = handlerStack = Scroller = //
-    Marks = func = null;
+    settings.RequestHandlers = Marks = func = null;
 
     console.log("%cVimium++ %c#" + frameId + "%c has destroyed."//
       , "color:red", "color:blue", "color:auto");
 
-    // only the below may throw errors
-    try {
-      if (isInjected) {
-        chrome.runtime.onMessageExternal.removeEventListener(ELs.onMessage);
-      } else {
-        chrome.runtime.onMessage.removeEventListener(ELs.onMessage);
-      }
-    } catch (e) {}
-    ELs = null;
+    if (!isInjected) { try {
+      // only the below may throw errors
+      chrome.runtime.onMessage.removeEventListener(this.onMessage);
+    } catch (e) {} }
+    settings.ELs = ELs = null;
   };
 })();
