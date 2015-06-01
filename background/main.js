@@ -906,9 +906,9 @@
         url: url
       }, funcDict.onRuntimeError);
     },
-    dispatchMsg: function(request) {
+    dispatchCommand: function(request) {
       chrome.tabs.sendMessage(request.tabId, {
-        name: "dispatchMsg", frameId: request.frameId, source: request.source,
+        name: "dispatchCommand", frameId: request.frameId, source: request.source,
         command: request.command, args: request.args
       });
     },

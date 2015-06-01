@@ -91,9 +91,9 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       ifConnected && ifConnected();
       this.postMessage(request, callback);
     },
-    sendMessageToFrames: function(target, command, args) {
+    sendCommadToFrame: function(target, command, args) {
       this.postMessage({
-        handler: "dispatchMsg", tabId: ELs.focusMsg.tabId,
+        handler: "dispatchCommand", tabId: ELs.focusMsg.tabId,
         frameId: target, source: frameId,
         command: command, args: args
       });
@@ -352,7 +352,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     },
     showHelp: function(_0, force_current) {
       if (window.top !== window && !force_current) {
-        mainPort.sendMessageToFrames(0, "showHelp", [1, true]);
+        mainPort.sendCommadToFrame(0, "showHelp", [0]);
         return;
       }
       mainPort.postMessage({
@@ -1150,9 +1150,10 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       }
       obj[components[_len]](request.count);
     },
-    dispatchMsg: function(request) {
+    dispatchCommand: function(request) {
       if (!isEnabledForUrl) {
-        mainPort.sendMessageToFrames(request.source, request.command, request.args);
+        request.args.push(true);
+        mainPort.sendCommadToFrame(request.source, request.command, request.args);
         return;
       }
       var components = request.command.split('.'), obj = Commands, _i, _len, _ref;

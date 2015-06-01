@@ -6,8 +6,8 @@ var Vomnibar = {
   disabled: false,
   activateWithCompleter: function(completerName, selectFirstResult, forceNewTab, initialQueryValue, force_current) {
     if (window.top !== window && !force_current) {
-      MainPort.sendMessageToFrames(0, "Vomnibar.activateWithCompleter"//
-        , [completerName, selectFirstResult, forceNewTab, initialQueryValue, true]);
+      MainPort.sendCommadToFrame(0, "Vomnibar.activateWithCompleter"//
+        , [completerName, selectFirstResult, forceNewTab, initialQueryValue]);
       return;
     }
     var bg = this.background, completer = bg.Completer, vomnibarUI = this.vomnibarUI;
