@@ -1004,6 +1004,12 @@
       chrome.tabs.update(mark.tabId, {
         active: true
       });
+    },
+    regExt: function(request) {
+      var id = request.extId, ref;
+      if (id && id.length === 32 && (ref = Settings.extIds).indexOf(id) === -1) {
+        ref.push(id);
+      }
     }
   };
   requestHandlers.__proto__ = null;
@@ -1135,10 +1141,28 @@
       ref2[ref[i]].useTab = 0;
     }
   })();
-
-  Settings.Timer = setTimeout(function() {
-    Settings.Timer = 0;
-    // currentFirst will be reloaded when window.focus
-    Settings.postUpdate("broadcast", {name: "reg", work: "rereg"});
-  }, 50);
 })();
+
+Settings.Timer = setTimeout(function() {
+Settings.Timer = 0;
+// currentFirst will be reloaded when window.focus
+chrome.tabs.query({windowType: "normal", status: "complete"}, function(arr) {
+  var url, i, o, exts = [chrome.runtime.id], request = {name: "reg", work: "rereg"};
+  for (i = arr.length, o = chrome.tabs; 0 <= --i; ) {
+    url = arr[i].url;
+    if (url.length >= 51 && url.startsWith("chrome-extension:")) {
+      url = url.substring(19, 51);
+      if (exts.indexOf(url) === -1) { exts.push(url); }
+      continue;
+    }
+    o.sendMessage(arr[i].id, request, null);
+  }
+  o = chrome.runtime;
+  o.sendMessage(exts[0], request, null);
+  request.name = "regExt";
+  request = {"vimium++": request};
+  for (i = exts.length; 1 <= --i; ) {
+    o.sendMessage(exts[i], request, null);
+  }
+});
+}, 50);

@@ -2,6 +2,7 @@
 var Settings = {
   _buffer: {},
   bufferToLoad: null,
+  extIds: [chrome.runtime.id],
   get: function(key) {
     if (! (key in this._buffer)) {
       return this._buffer[key] = (key in localStorage) ? JSON.parse(localStorage[key]) : this.defaults[key];
@@ -32,9 +33,17 @@ var Settings = {
         status: "complete"
       }, function(tabs) {
         for (var i = tabs.length, t = chrome.tabs, req = request; 0 <= --i; ) {
-          t.sendMessage(tabs[i].id, req, null);
+          if (!tabs[i].url.startsWith("chrome")) {
+            t.sendMessage(tabs[i].id, req, null);
+          }
         }
       });
+      var r = chrome.runtime, arr = Settings.extIds, i, req;
+      r.sendMessage(arr[0], request, null);
+      req = {"vimium++": request};
+      for (i = arr.length; 1 <= --i; ) {
+        r.sendMessage(arr[i], req, null);
+      }
     },
     bufferToLoad: function() {
       var _i, key, ref = this.valuesToLoad, ref2 = this.bufferToLoad = {};

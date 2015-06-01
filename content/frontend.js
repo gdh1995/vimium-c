@@ -1163,6 +1163,17 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       obj[components[_len]].apply(obj, request.args);
     },
     gotoMark: Marks.GoTo,
+    regExt: function(request) {
+      if (requestHandlers.reg(request)) {
+        return true;
+      }
+      if (window.top === window && chrome.runtime.id) {
+        mainPort.postMessage({
+          handler: "regExt",
+          extId: chrome.runtime.id
+        });
+      }
+    },
     showHelpDialog: null
   };
   
@@ -1254,9 +1265,6 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
   });
 
   DomUtils.DocumentReady(function() {
-    if (requestHandlers.reg()) {
-      return;
-    }
     ELs.onUnload = function() {
       try {
         mainPort.postMessage({
@@ -1268,6 +1276,9 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     };
     ELs.onHashChange = requestHandlers.checkIfEnabled;
     if (isInjected) {
+      if (requestHandlers.regExt()) {
+        return;
+      }
       window.addEventListener("focus", ELs.onFocus = (function(event) {
         if (event.target == window) {
           this();
@@ -1281,7 +1292,10 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       )));
       window.addEventListener("unload", ELs.onUnload);
       window.addEventListener("hashchange", ELs.onHashChange);
-    } else {
+      return;
+    } else if (requestHandlers.reg()) {
+      return;
+    }
       window.onunload = ELs.onUnload;
       window.onhashchange = ELs.onHashChange;
       // NOTE: here, we should always postMessage, since
@@ -1290,7 +1304,6 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       window.onfocus = ELs.onFocus = mainPort.safePost.bind(
         mainPort, ELs.focusMsg, requestHandlers.refreshKeyQueue, null //
       );
-    }
   });
 
   ELs.onMessage = function(request, id) {
