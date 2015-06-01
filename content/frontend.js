@@ -85,7 +85,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
           this.connect();
         } catch (e) { // this extension is reloaded or disabled
           ELs.destroy();
-          return;
+          return true;
         }
       }
       ifConnected && ifConnected();
@@ -1039,7 +1039,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     settings: settings.ReceiveSettings,
     reg: function(request) {
       if (document.body && document.body.nodeName.toLowerCase() !== "frameset") {
-        mainPort.safePost({
+        return mainPort.safePost({
           handlerSettings: request ? request.work : "reg",
           frameId: frameId
         });
@@ -1254,7 +1254,9 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
   });
 
   DomUtils.DocumentReady(function() {
-    requestHandlers.reg();
+    if (requestHandlers.reg()) {
+      return;
+    }
     ELs.onUnload = function() {
       try {
         mainPort.postMessage({
