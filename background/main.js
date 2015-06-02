@@ -952,7 +952,7 @@
       };
     },
     nextFrame: function(request) {
-      BackgroundCommands.nextFrame({id: request.tabId}, request.frameId);
+      BackgroundCommands.nextFrame([{id: request.tabId}], request.frameId);
     },
     initHelp: function() {
       return {
