@@ -28,10 +28,7 @@ var Settings = {
   },
   updateHooks: {
     broadcast: function (request) {
-      chrome.tabs.query({
-        windowType: "normal",
-        status: "complete"
-      }, function(tabs) {
+      chrome.tabs.query({status: "complete"}, function(tabs) {
         for (var i = tabs.length, t = chrome.tabs, req = request; 0 <= --i; ) {
           t.sendMessage(tabs[i].id, req, null);
         }

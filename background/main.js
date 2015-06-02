@@ -215,7 +215,7 @@
     },
     makeTempWindow: function(tabIdUrl, incognito, callback) {
       chrome.windows.create({
-        type: "normal",
+        type: "normal", // not popup, because popup windows are always on top
         left: 0, top: 0, width: 50, height: 50,
         focused: false,
         incognito: incognito,
@@ -1146,7 +1146,7 @@
 Settings.Timer = setTimeout(function() {
 Settings.Timer = 0;
 // currentFirst will be reloaded when window.focus
-chrome.tabs.query({windowType: "normal", status: "complete"}, function(arr) {
+chrome.tabs.query({status: "complete"}, function(arr) {
   var url, i, o, exts = [chrome.runtime.id], request = {name: "reg", work: "rereg"};
   for (i = arr.length, o = chrome.tabs; 0 <= --i; ) {
     url = arr[i].url;
