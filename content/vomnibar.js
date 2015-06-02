@@ -377,7 +377,8 @@ Vomnibar.vomnibarUI = {
   init_dom: function(response) {
     var str;
     this.background.showRelevancy = response.relevancy;
-    if (chrome.runtime.getManifest && (str = chrome.runtime.getManifest().permissions)) {
+    if (location.protocol.startsWith("chrome") && chrome.runtime.getManifest
+        && (str = chrome.runtime.getManifest().permissions)) {
       str = str.join("/");
       this.background.showFavIcon = str.indexOf("<all_urls>") >= 0 || str.indexOf("chrome://favicon/") >= 0;
     }
