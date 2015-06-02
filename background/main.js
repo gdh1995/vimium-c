@@ -642,7 +642,7 @@
       chrome.tabs.sendMessage(tabs[0].id, {
         name: "focusFrame",
         frameId: 0
-      });
+      }, Settings.ChromeVersion >= 41 ? {frameId: 0} : null);
     },
     closeTabsOnLeft: function(tabs) {
       funcDict.removeTabsRelative(funcDict.selectFrom(tabs), -commandCount, tabs);
