@@ -683,7 +683,7 @@ completers.searchEngines = {
   })();
   
   (function(lang) {
-    if (!lang) {
+    if (!lang || !(lang = lang[chrome.i18n.getUILanguage()])) {
       return;
     }
     var ref = lang.urlCharset;
