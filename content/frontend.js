@@ -11,7 +11,7 @@ var Settings, VHUD, MainPort;
     , initializeWhenEnabled, insertModeLock //
     , isEnabledForUrl, isInsertMode //
     , checkValidKey, getFullCommand, keyQueue //
-    , setPassKeys, performFindInPlace //
+    , passKeys, setPassKeys, performFindInPlace //
     , restoreDefaultSelectionHighlight //
     , settings, showFindModeHUDForQuery, textInputXPath, oldActivated //
     , updateFindModeQuery, goBy, getVisibleInputs, mainPort, requestHandlers //
@@ -49,6 +49,8 @@ var Settings, VHUD, MainPort;
   secondKeys = {"": {}};
 
   currentSeconds = {};
+
+  passKeys = null;
   
   oldActivated = {
     target: null,
@@ -541,39 +543,37 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     KeydownEvents.push(event);
   };
 
-  (function() {
-    var passKeys;
-    setPassKeys = function(newPassKeys) {
-      var passStr;
-      if (passStr = newPassKeys) {
-        var arr = newPassKeys.split(' '), _i;
-        passKeys = {};
-        passKeys.__proto__ = null;
-        for (_i = arr.length; 0 <= --_i; ) {
-          passKeys[arr[_i]] = true;
-        }
-      } else {
-        passKeys = null;
+  setPassKeys = function(newPassKeys) {
+    var passStr;
+    if (passStr = newPassKeys) {
+      var arr = newPassKeys.split(' '), _i;
+      passKeys = {};
+      passKeys.__proto__ = null;
+      for (_i = arr.length; 0 <= --_i; ) {
+        passKeys[arr[_i]] = true;
       }
-    };
-    checkValidKey = function(key, noPost) {
-      if (keyQueue) {
-        if ((key in firstKeys) || (key in currentSeconds)) {
-        } else {
-          mainPort.postMessage({ handler: "esc" });
-          keyQueue = false;
-          currentSeconds = secondKeys[""];
-          return 0;
-        }
-      } else if (passKeys && (key in passKeys) || !(key in firstKeys)) {
+    } else {
+      passKeys = null;
+    }
+  };
+
+  checkValidKey = function(key, noPost) {
+    if (keyQueue) {
+      if ((key in firstKeys) || (key in currentSeconds)) {
+      } else {
+        mainPort.postMessage({ handler: "esc" });
+        keyQueue = false;
+        currentSeconds = secondKeys[""];
         return 0;
       }
-      if (!noPost) {
-        mainPort.postMessage({ handlerKey: key });
-      }
-      return 2;
-    };
-  })();
+    } else if (passKeys && (key in passKeys) || !(key in firstKeys)) {
+      return 0;
+    }
+    if (!noPost) {
+      mainPort.postMessage({ handlerKey: key });
+    }
+    return 2;
+  };
 
   getFullCommand = function(event, keyChar) {
     var left = event.altKey ? "<a-" : "<";
@@ -1328,7 +1328,9 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     }
     Commands = requestHandlers = MainPort = VHUD = mainPort = KeydownEvents = //
     VRect = Utils = KeyboardUtils = DomUtils = handlerStack = Scroller = //
-    KeyCodes = firstKeys = secondKeys = oldActivated = Marks = func = null;
+    currentSeconds = initializeWhenEnabled = setPassKeys = checkValidKey = //
+    KeyCodes = passKeys =firstKeys = secondKeys = oldActivated = Marks = func = //
+    null;
 
     console.log("%cVimium++ %c#" + frameId + "%c has destroyed."//
       , "color:red", "color:blue", "color:auto");
