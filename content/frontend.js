@@ -121,8 +121,6 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
   };
 
   Settings = settings = {
-    ELs: null,
-    RequestHandlers: null,
     values: null,
     isLoading: 0,
     set: function(key, value) {
@@ -1315,7 +1313,12 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     if (settings.isLoading) {
       clearInterval(settings.isLoading);
     }
+    if (this.css) {
+      DomUtils.removeNode(this.css);
+      this.css = null;
+    }
     var ref = this.onDestroy, i, func;
+    this.onDestroy = null;
     for (i in ref) {
       func = ref[i];
       if (func) {
@@ -1323,13 +1326,9 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
         func.call(this);
       }
     }
-    this.onDestroy = null;
-    if (this.css) {
-      DomUtils.removeNode(this.css);
-    }
     Commands = requestHandlers = MainPort = VHUD = mainPort = KeydownEvents = //
     VRect = Utils = KeyboardUtils = DomUtils = handlerStack = Scroller = //
-    settings.RequestHandlers = Marks = func = null;
+    KeyCodes = firstKeys = secondKeys = oldActivated = Marks = func = null;
 
     console.log("%cVimium++ %c#" + frameId + "%c has destroyed."//
       , "color:red", "color:blue", "color:auto");
@@ -1338,6 +1337,6 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       // only the below may throw errors
       chrome.runtime.onMessage.removeEventListener(this.onMessage);
     } catch (e) {} }
-    settings.ELs = ELs = null;
+    ELs = null;
   };
 })();
