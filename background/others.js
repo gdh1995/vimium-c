@@ -128,7 +128,6 @@ chrome.runtime.onInstalled.addListener(window.b = function(details) {
   js = contentScripts.js.map(func);
   contentScripts = null;
   chrome.tabs.query({
-    windowType: "normal",
     status: "complete"
   }, function(tabs) {
     var _i = tabs.length, tabId, _j, _len, callback, url, t = chrome.tabs;
