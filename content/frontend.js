@@ -1256,13 +1256,16 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
   });
 
   DomUtils.DocumentReady(function() {
+    // NOTE: when port is disconnected:
+    // * if backend asks to re-reg, then rH.reg will call safePort;
+    // * if extension is stopped, then ELs.destroy is called when focused,
+    //   so, only closed without pre-focusing may make port is null
     ELs.onUnload = function() {
-      try {
+      if (mainPort._port) {
         mainPort.postMessage({
           handlerSettings: "unreg",
           frameId: frameId
         });
-      } catch (e) {
       }
     };
     ELs.onHashChange = requestHandlers.checkIfEnabled;
