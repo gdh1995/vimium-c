@@ -1210,7 +1210,14 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     node1 = container.querySelector("#vimOptionsPage");
     if (! window.location.href.startsWith(response.optionUrl)) {
       node1.href = response.optionUrl;
-      node1.onclick = hide;
+      node1.onclick = function(event) {
+        mainPort.postMessage({
+          handler: "openUrlInNewTab",
+          url: container.querySelector("#vimOptionsPage").href
+        })
+        hide();
+        DomUtils.suppressEvent(event);
+      };
     } else {
       DomUtils.removeNode(node1);
     }
