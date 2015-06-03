@@ -361,10 +361,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     autoCopy: function() {
       var sel = document.getSelection(), str;
       if (sel.type !== "Range" || !(str = sel.toString().trim())) {
-        mainPort.postMessage({
-          handler: "copyCurrentUrl"
-        });
-        return;
+        str = location.href;
       }
       mainPort.postMessage({
         handler: "copyToClipboard",

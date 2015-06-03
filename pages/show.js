@@ -7,7 +7,9 @@ function decodeHash() {
     type = "image";
   }
   if (url) {
-    url = decodeURIComponent(url);
+    try {
+      url = decodeURIComponent(url);
+    } catch (e) {}
   } else {
     return;
   }
@@ -25,5 +27,5 @@ function decodeHash() {
   }
 };
 
-window.onhashchange = decodeHash;
+window.addEventListener("hashchange", decodeHash);
 window.onload = decodeHash;
