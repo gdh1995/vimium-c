@@ -20,6 +20,7 @@
     this.field = field;
     this.element = $(this.field);
     this.onUpdated = onUpdated;
+    this.previous = null;
     this.fetch();
     Option.all.push(this);
   }
@@ -29,7 +30,6 @@
 
   Option.prototype.fetch = function() {
     this.populateElement(this.previous = bgSettings.get(this.field));
-    return this.previous;
   };
 
   Option.prototype.save = function() {
@@ -48,12 +48,19 @@
 
   Option.prototype.restoreToDefault = function() {
     bgSettings.set(this.field, bgSettings.defaults[this.field]);
-    return this.fetch();
+    this.fetch();
+    return this.previous;
   };
 
   Option.saveOptions = function() {
     Option.all.forEach(function(option) {
       option.save();
+    });
+  };
+
+  Option.needSaveOptions = function() {
+    return !Option.all.every(function(option) {
+      return option.areEqual(option.readValueFromElement(), option.previous);
     });
   };
 
@@ -402,7 +409,7 @@
     }
     maintainLinkHintsView();
     window.onbeforeunload = function() {
-      if (!$("saveOptions").disabled) {
+      if (!$("saveOptions").disabled && Option.needSaveOptions()) {
         return "You have unsaved changes to options.";
       }
     };
