@@ -1,7 +1,7 @@
 "use strict";
 (function() {
   var BackgroundCommands, checkKeyQueue //
-    , frameIdsForTab, urlForTab, globalMarks, ContentSettings //
+    , frameIdsForTab, urlForTab, extForTab, globalMarks, ContentSettings //
     , handleMainPort, funcDict //
     , helpDialogHtmlForCommandGroup, resetKeys //
     , openMultiTab //
@@ -12,6 +12,8 @@
   frameIdsForTab = {};
 
   window.urlForTab = urlForTab = {};
+
+  extForTab = {};
 
   globalMarks = {};
 
@@ -786,9 +788,19 @@
               ref.splice(i, 1);
             }
           }
+          if (request.isExt) {
+            delete extForTab[id];
+          }
         } else {
           delete frameIdsForTab[id];
           delete urlForTab[id];
+          delete extForTab[id];
+        }
+        break;
+      case "ext":
+        extForTab[id] = request.extId;
+        if ((ref = Settings.extIds).indexOf(request.extId) === -1) {
+          ref.push(request.extId);
         }
         break;
       }
@@ -1003,12 +1015,6 @@
       chrome.tabs.update(mark.tabId, {
         active: true
       });
-    },
-    regExt: function(request) {
-      var id = request.extId, ref;
-      if (id && id.length === 32 && (ref = Settings.extIds).indexOf(id) === -1) {
-        ref.push(id);
-      }
     }
   };
   requestHandlers.__proto__ = null;

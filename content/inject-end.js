@@ -3,10 +3,11 @@ Settings.RequestHandlers.regExt = function(request) {
   if (this.reg(request)) {
     return true;
   }
-  if (chrome.runtime.id) {
+  var id = chrome.runtime.id;
+  if (typeof id === "string" && id.length === 32) {
     MainPort.postMessage({
-      handler: "regExt",
-      extId: chrome.runtime.id
+      handlerSettings: "ext",
+      extId: id
     });
   }
 };
@@ -16,6 +17,7 @@ DomUtils.DocumentReady(function() {
     return;
   }
   var ELs = Settings.ELs;
+  ELs.unloadMsg.isExt = true;
   window.addEventListener("unload", ELs.onUnload);
   window.addEventListener("hashchange", ELs.onHashChange);
   window.addEventListener("focus", ELs.onFocus = (function(event) {

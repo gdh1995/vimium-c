@@ -172,7 +172,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       status: "disabled",
       url: window.location.href,
       frameId: frameId
-    }, css: null, //
+    }, unloadMsg: null, css: null, //
     onKeydown: null, onKeypress: null, onKeyup: null, //
     docOnFocus: null, onBlur: null, onActivate: null, //
     onFocus: null, onUnload: null, onHashChagne: null, //
@@ -1257,13 +1257,11 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     // NOTE: when port is disconnected:
     // * if backend asks to re-reg, then rH.reg will call safePort;
     // * if extension is stopped, then ELs.destroy is called when focused,
-    //   so, only closed without pre-focusing may make port is null
+    // so, only being removed without pre-focusing may make port is null
+    ELs.unloadMsg = {handlerSettings: "unreg", frameId: frameId};
     ELs.onUnload = function() {
       if (mainPort._port) {
-        mainPort.postMessage({
-          handlerSettings: "unreg",
-          frameId: frameId
-        });
+        mainPort.postMessage(ELs.unloadMsg);
       }
     };
     ELs.onHashChange = requestHandlers.checkIfEnabled;
