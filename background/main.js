@@ -699,15 +699,20 @@
       } else if ((first = arr[0]) in ref2) {
         ref2[first].push(arr[1]);
       } else {
-        ref1.push(first);
         ref2[first] = [arr[1]];
       }
     }
-    ref1.sort().reverse();
+
+    for (first in ref2) {
+      if (ref1.indexOf(first) !== -1) {
+        console.warn("inactive first key:", first, "with", ref2[first].sort());
+        delete ref2[first];
+      }
+    }
+    firstKeys = ref1 = ref1.concat(Object.keys(ref2)).sort().reverse();
     keyRegex = function(key) { return ref1.indexOf(key) === -1; };
     for (first in ref2) {
-      arr = ref2[first] = ref2[first].filter(keyRegex);
-      arr.sort().reverse();
+      ref2[first] = ref2[first].filter(keyRegex).sort().reverse();
     }
     ref2[""] = ["0"]; // "0" is for key queues like "10n"
   };
