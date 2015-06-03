@@ -404,7 +404,7 @@ Vomnibar.vomnibarUI = {
       a.setAttribute("data-vim-text", item.title);
       a.setAttribute("data-vim-url", item.url);
     }
-    rect = VRect.copy(li.getBoundingClientRect());
+    rect = VRect.fromClientRect(li.getBoundingClientRect());
     rect[0] += 10, rect[2] -= 12, rect[3] -= 3;
     return rect;
   }
