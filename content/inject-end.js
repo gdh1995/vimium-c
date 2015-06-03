@@ -3,10 +3,12 @@ Settings.RequestHandlers.regExt = function(request) {
   if (this.reg(request)) {
     return true;
   }
+  if (chrome.runtime.id) {
     MainPort.postMessage({
       handler: "regExt",
       extId: chrome.runtime.id
     });
+  }
 };
 
 DomUtils.DocumentReady(function() {
