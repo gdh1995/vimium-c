@@ -266,24 +266,24 @@ Commands.defaultKeyMappings = {
     }
   ],
   copyCurrentTitle: [
-    "Copy the current tab's title", {
+    "Copy current tab's title", {
       background: true,
       noRepeat: true
     }
   ],
   copyCurrentUrl: [
-    "Copy the current URL to the clipboard", {
+    "Copy current tabs's URL", {
       background: true,
       noRepeat: true
     }
   ],
   autoCopy: [
-    "Copy the selected text or current URL", {
+    "Copy selected text or current frame URL", {
       noRepeat: true
     }
   ],
   autoSearch: [
-    "Open the selected text in new tab", {
+    "Open selected text in a new tab", {
       noRepeat: true
     }
   ],
