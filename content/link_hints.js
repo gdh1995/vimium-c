@@ -114,7 +114,6 @@ var LinkHints = {
       id: "vimHMC",
       className: "vimB vimR"
     });
-    this.ensureRightBottom();
     this.handlerId = handlerStack.push({
       keydown: this.onKeyDownInMode,
       _this: this
@@ -124,6 +123,7 @@ var LinkHints = {
       this.isActive = true;
       return;
     }
+    this.ensureRightBottom();
     this.hintMarkerContainingDiv.style.left = window.scrollX + "px";
     this.hintMarkerContainingDiv.style.top = window.scrollY + "px";
   },
@@ -190,9 +190,6 @@ var LinkHints = {
   },
   ensureRightBottom: function() {
     var ww, wh, _ref = this.hintMarkers, _i = _ref.length, el, temp, pos, str;
-    if (_i <= 0) {
-      return;
-    }
     ww = window.innerWidth, wh = window.innerHeight - 13;
     str = wh + "px";
     while (0 <= --_i) {

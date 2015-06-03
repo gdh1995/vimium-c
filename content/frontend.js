@@ -453,16 +453,20 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
   KeydownEvents = {
     _handledEvents: {},
     stringify: function(event) {
-      return (event.metaKey + event.altKey * 2 + event.ctrlKey * 4) + "" //
+      return ("" + event.metaKey + event.altKey * 2 + event.ctrlKey * 4) //
          + event.keyCode + event.keyIdentifier;
     },
     push: function(event) {
       this._handledEvents[this.stringify(event)] = true;
     },
     pop: function(event) {
-      var key = this.stringify(event), value = this._handledEvents[key];
-      delete this._handledEvents[key];
-      return value;
+      var key = this.stringify(event), ref = this._handledEvents;
+      if (key in ref) {
+        delete ref[key];
+        return true;
+      } else {
+        return false;
+      }
     }
   };
 
@@ -622,10 +626,9 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
   };
 
   getVisibleInputs = function(pathSet) {
-    for (var element, rect, results = [], i = 0, _ref = pathSet.snapshotLength; i < _ref; ++i) {
+    for (var element, results = [], i = 0, _ref = pathSet.snapshotLength; i < _ref; ++i) {
       element = pathSet.snapshotItem(i);
-      rect = DomUtils.getVisibleClientRect(element);
-      if (rect) {
+      if (DomUtils.getVisibleClientRect(element)) {
         results.push(element);
       }
     }
