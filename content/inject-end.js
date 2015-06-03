@@ -48,6 +48,7 @@ DomUtils.DocumentReady(function() {
   )));
 });
 
+if (chrome.runtime.onMessageExternal) {
 Settings.ELs.onMessage = (function(request, sender) {
   if (sender.id === "hfjbmagddngcpeloejdejnfgbamkjaeg") {
     request = request["vimium++"];
@@ -57,6 +58,12 @@ Settings.ELs.onMessage = (function(request, sender) {
   }
 }).bind(Settings.ELs.onMessage);
 chrome.runtime.onMessageExternal.addListener(Settings.ELs.onMessage);
+} else {
+  console.log("%cVimium++ %c#" + Settings.ELs.focusMsg.frameId
+    + "%c: injected %cpartly%c into %c" + chrome.runtime.id
+    , "color: red;", "color: blue;", "color: auto;"
+    , "color: red;", "color: auto;", "color: blue;");
+}
 
 Settings.ELs.onDestroy.injected = function() {
   window.removeEventListener("unload", this.onUnload);
