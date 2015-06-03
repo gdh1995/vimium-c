@@ -113,13 +113,13 @@ Commands.commandGroups = {
     , "removeTab", "restoreTab", "restoreGivenTab", "moveTabToNextWindow", "moveTabToIncognito", "togglePinTab"
     , "closeTabsOnLeft", "closeTabsOnRight", "closeOtherTabs", "moveTabLeft", "moveTabRight"
     , "enableImageTemp", "toggleImage", "clearImageCS"],
-  misc: ["showHelp", "enterVisualMode", "autoCopy", "autoSearch"
+  misc: ["showHelp", "enterVisualMode", "autoCopy", "autoSearch", "searchAs"
     , "blank"]
 };
 Commands.advancedCommands = ["scrollToLeft", "scrollToRight", "moveTabToNextWindow", "moveTabToIncognito"
   , "goUp", "goToRoot", "focusInput", "LinkHints.activateModeWithQueue", "enableImageTemp"
   , "toggleImage", "clearImageCS", "LinkHints.activateModeToDownloadImage", "reopenTab"
-  , "LinkHints.activateModeToOpenImage"
+  , "LinkHints.activateModeToOpenImage", "searchAs"
   , "LinkHints.activateModeToDownloadLink", "Vomnibar.activateEditUrl", "restoreGivenTab"
   , "Vomnibar.activateEditUrlInNewTab", "LinkHints.activateModeToOpenIncognito"
   , "goNext", "goPrevious", "Marks.activateCreateMode", "Marks.activateGotoMode"
@@ -272,7 +272,7 @@ Commands.defaultKeyMappings = {
     }
   ],
   copyCurrentUrl: [
-    "Copy current tabs's URL", {
+    "Copy current tab's URL", {
       background: true,
       noRepeat: true
     }
@@ -284,6 +284,11 @@ Commands.defaultKeyMappings = {
   ],
   autoSearch: [
     "Open selected text in a new tab", {
+      noRepeat: true
+    }
+  ],
+  searchAs: [
+    "Search selected or copied text using current engine", {
       noRepeat: true
     }
   ],

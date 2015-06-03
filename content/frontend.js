@@ -380,6 +380,21 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
         url: str
       });
     },
+    searchAs: function() {
+      var sel = document.getSelection(), str;
+      if (sel.type !== "Range" || !(str = sel.toString().trim())) {
+        str = "";
+      }
+      mainPort.postMessage({
+        handler: "searchAs",
+        url: window.location.href,
+        search: str
+      }, function(response) {
+        if (response) {
+          HUD.showForDuration("No " + response + " found!", 1000);
+        }
+      });
+    },
     focusInput: function(count) {
       var hintContainingDiv, hints, selectedInputIndex, visibleInputs;
       visibleInputs = getVisibleInputs(DomUtils.evaluateXPath(textInputXPath, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE));

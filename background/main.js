@@ -908,6 +908,25 @@
       }
       return "";
     },
+    searchAs: function(request) {
+      var search = requestHandlers.parseSearchUrl(request), i;
+      if (!search) {
+        return "search engine";
+      }
+      if (!request.search) {
+        request.search = Clipboard.paste();
+        if (!request.search) {
+          return "selected or copied text";
+        }
+      }
+      i = search.indexOf(" ");
+      search = Utils.createSearchUrl(
+          Settings.get("searchEnginesMap")[search.substring(0, i)],
+          request.search.split(" ")).url;
+      chrome.tabs.update({
+        url: search
+      });
+    },
     restoreSession: function(request) {
       chrome.sessions.restore(request.sessionId, funcDict.onRuntimeError);
     },
