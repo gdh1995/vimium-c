@@ -34,7 +34,7 @@ var Settings = {
         }
       });
       var r = chrome.runtime, arr = Settings.extIds, i, req;
-      req = {"vimium++": request};
+      req = {"vimium++": {request: request}};
       for (i = arr.length; 1 <= --i; ) {
         r.sendMessage(arr[i], req, null);
       }

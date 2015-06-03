@@ -35,7 +35,10 @@ DomUtils.DocumentReady(function() {
 
 Settings.ELs.onMessage = (function(request, sender) {
   if (sender.id === "hfjbmagddngcpeloejdejnfgbamkjaeg") {
-    this(request["vimium++"]);
+    request = request["vimium++"];
+    if (request && (request.tabId ? request.tabId === Settings.ELs.focusMsg.tabId : true)) {
+      this(request.request);
+    }
   }
 }).bind(Settings.ELs.onMessage);
 chrome.runtime.onMessageExternal.addListener(Settings.ELs.onMessage);

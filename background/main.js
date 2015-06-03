@@ -5,7 +5,7 @@
     , handleMainPort, funcDict //
     , helpDialogHtml, helpDialogHtmlForCommandGroup, resetKeys //
     , openMultiTab //
-    , populateKeyCommands, executeCommand, commandCount //
+    , populateKeyCommands, executeCommand, commandCount, sendToTab //
     , requestHandlers //
     , firstKeys, secondKeys, currentCount, currentFirst;
 
@@ -195,6 +195,13 @@
   funcDict = {
     globalCommand: null,
     globalConnect: null,
+    sendToTab: function(tabId, request, options, request2) {
+      chrome.tabs.sendMessage(tabId, request, options);
+      if (extForTab[tabId]) {
+        request = { "vimium++": {tabId: tabId, request: request2 || request} };
+        chrome.runtime.sendMessage(extForTab[tabId], request);
+      }
+    },
 
     isIncNor: function(wnd) {
       return wnd.incognito && wnd.type === "normal";
@@ -635,7 +642,7 @@
         count = frames.length - 1;
       }
       if (frames[count] !== frames[0]) {
-        chrome.tabs.sendMessage(tabId, {
+        funcDict.sendToTab(tabId, {
           name: "focusFrame",
           frameId: frames[count]
         });
@@ -643,7 +650,7 @@
     },
     mainFrame: function(tabs) {
       if (tabs.length <= 0) { return; }
-      chrome.tabs.sendMessage(tabs[0].id, {
+      funcDict.sendToTab(tabs[0].id, {
         name: "focusFrame",
         frameId: 0
       }, Settings.ChromeVersion >= 41 ? {frameId: 0} : null);
@@ -921,7 +928,7 @@
       }, funcDict.onRuntimeError);
     },
     dispatchCommand: function(request) {
-      chrome.tabs.sendMessage(request.tabId, {
+      funcDict.sendToTab(request.tabId, {
         name: "dispatchCommand", frameId: request.frameId, source: request.source,
         command: request.command, args: request.args
       });
@@ -1010,7 +1017,7 @@
     goToMark: function(req) {
       var mark = globalMarks[req.markName];
       if (!mark) { return; }
-      chrome.tabs.sendMessage(mark.tabId, {
+      funcDict.sendToTab(mark.tabId, {
         name: "gotoMark",
         frameId: 0,
         scroll: mark.scroll,
@@ -1070,7 +1077,7 @@
       count = currentFirst ? 1 : (currentCount || 1);
       resetKeys();
       chrome.tabs.query({currentWindow: true, active: true}, function(tabs) {
-        chrome.tabs.sendMessage(tabs[0].id, { name: "esc" });
+        funcDict.sendToTab(tabs[0].id, { name: "esc" });
       });
     } else {
       count = 1;
@@ -1112,10 +1119,11 @@
 
   chrome.webNavigation.onHistoryStateUpdated.addListener(Settings.ChromeVersion >= 41
   ? function(details) {
-    chrome.tabs.sendMessage(details.tabId
-      , requestHandlers.checkIfEnabled(details), {frameId: details.frameId});
+    funcDict.sendToTab(details.tabId
+      , requestHandlers.checkIfEnabled(details), {frameId: details.frameId}
+      , {name: "checkIfEnabled"});
   } : function(details) {
-    chrome.tabs.sendMessage(details.tabId, {name: "checkIfEnabled"});
+    funcDict.sendToTab(details.tabId, {name: "checkIfEnabled"});
   });
 
   Commands.parseKeyMappings(Settings.get("keyMappings"));
@@ -1167,7 +1175,7 @@ chrome.tabs.query({status: "complete"}, function(arr) {
   }
   o = chrome.runtime;
   request.name = "regExt";
-  request = {"vimium++": request};
+  request = {"vimium++": {request: request}};
   for (i = exts.length; 1 <= --i; ) {
     o.sendMessage(exts[i], request, null);
   }
