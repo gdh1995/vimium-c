@@ -82,16 +82,14 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       return callback ? request._msgId : 0;
     },
     safePost: function(request, callback, ifConnected) {
-      if (!this._port) {
-        try {
-          this.connect();
-        } catch (e) { // this extension is reloaded or disabled
-          ELs.destroy();
-          return true;
-        }
+      try {
+        if (!this._port) { this.connect(); }
+        ifConnected && ifConnected();
+        this.postMessage(request, callback);
+      } catch (e) { // this extension is reloaded or disabled
+        ELs.destroy();
+        return true;
       }
-      ifConnected && ifConnected();
-      this.postMessage(request, callback);
     },
     sendCommadToFrame: function(target, command, args) {
       this.postMessage({
@@ -1259,11 +1257,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     // * if extension is stopped, then ELs.destroy is called when focused,
     // so, only being removed without pre-focusing may make port is null
     ELs.unloadMsg = {handlerSettings: "unreg", frameId: frameId};
-    ELs.onUnload = function() {
-      if (mainPort._port) {
-        mainPort.postMessage(ELs.unloadMsg);
-      }
-    };
+    ELs.onUnload = mainPort.safePost.bind(mainPort, ELs.unloadMsg, null, null);
     ELs.onHashChange = requestHandlers.checkIfEnabled;
     if (isInjected || requestHandlers.reg()) {
       return;
