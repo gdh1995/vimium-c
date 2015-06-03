@@ -195,6 +195,7 @@ var Settings = {
   onMac: false,
   Sync: null,
   CurrentVersion: "",
+  OptionsPage: "",
   ContentScripts: null,
   ChromeVersion: 38,
   ChromeInnerNewTab: "chrome-search://local-ntp/local-ntp.html" // should keep lower case
@@ -210,6 +211,7 @@ Settings.icons.__proto__ = null;
   func = (function(path) { return this(path); }).bind(chrome.runtime.getURL);
   ref = chrome.runtime.getManifest();
   Settings.CurrentVersion = ref.version;
+  Settings.OptionsPage = func(ref.options_page);
   ref = ref.content_scripts;
   ref3 = { all_frames: false, css: [], js: [] };
   ref3.__proto__ = null;

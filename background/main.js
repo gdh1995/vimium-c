@@ -998,7 +998,7 @@
       return {
         name: "showHelpDialog",
         html: helpDialogHtml(request.unbound, request.names, request.title),
-        optionUrl: chrome.runtime.getURL("pages/options.html"),
+        optionUrl: Settings.OptionsPage,
         advanced: Settings.get("showAdvancedCommands")
       };
     },
