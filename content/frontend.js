@@ -1066,13 +1066,13 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       }
     },
     focusFrame: function(request) {
-      if (window.onunload == null || window.innerWidth < 3 || window.innerHeight < 3) {
+      if (DomUtils.isSandboxed() || window.innerWidth < 3 || window.innerHeight < 3) {
         mainPort.postMessage({
           handler: "nextFrame",
           tabId: ELs.focusMsg.tabId,
           frameId: frameId
         });
-        if (window.onunload == null) { // sandboxed
+        if (DomUtils.isSandboxed()) {
           // Do not destroy self, just in case of Marks.goTo / ...
           setTimeout(mainPort.postMessage.bind(mainPort, {
             handlerSettings: "unreg",
