@@ -109,15 +109,10 @@
 
     function NonEmptyTextOption() {
       NonEmptyTextOption.__super__.constructor.apply(this, arguments);
-      this.element.addEventListener("input", this.onUpdated);
     }
 
-    NonEmptyTextOption.prototype.populateElement = function(value) {
-      return this.element.value = value.replace(/\n /g, '\n\xa0');
-    };
-
     NonEmptyTextOption.prototype.readValueFromElement = function() {
-      var value = this.element.value.trim().replace(/\xa0/g, ' ');
+      var value = NonEmptyTextOption.__super__.readValueFromElement.call(this);
       if (value) {
         return value;
       } else {
@@ -127,7 +122,7 @@
 
     return NonEmptyTextOption;
 
-  })(Option);
+  })(TextOption);
 
   CheckBoxOption = (function(_super) {
     __extends(CheckBoxOption, _super);
@@ -403,7 +398,7 @@
     }
     maintainLinkHintsView();
     window.onbeforeunload = function() {
-      if (!$("saveOptions").disabled && Option.needSaveOptions()) {
+      if (status !== 0 && Option.needSaveOptions()) {
         return "You have unsaved changes to options.";
       }
     };
