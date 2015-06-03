@@ -1,7 +1,7 @@
 "use strict";
 (function() {
   var $, CheckBoxOption, ExclusionRulesOption, NonEmptyTextOption, NumberOption, Option, TextOption,
-    activateHelpDialog, bgSettings, bgExclusions, enableSaveButton, maintainLinkHintsView,
+    bgSettings, bgExclusions,
     ExclusionRulesOnPopupOption, initOptionsPage, initPopupPage, BG,
     __hasProp = Object.prototype.hasOwnProperty,
     __extends = function(child, parent) {
@@ -321,29 +321,22 @@
 
   initOptionsPage = function() {
     var activateHelpDialog, element, maintainLinkHintsView, name, onUpdated //
-      , options, saveOptions, toggleAdvancedOptions, type, _i, _ref;
+      , options, saveOptions, toggleAdvancedOptions, type, _i, _ref, status = 0;
 
     onUpdated = function() {
+      if (status == 1) { return; }
+      status = 1;
       var saveBtn = $("saveOptions");
       saveBtn.removeAttribute("disabled");
       saveBtn.innerHTML = "Save Changes";
     };
 
     maintainLinkHintsView = function() {
-      var hide, show;
-      hide = function(el) {
-        el.parentNode.parentNode.style.display = "none";
-      };
-      show = function(el) {
-        el.parentNode.parentNode.style.display = "table-row";
-      };
-      if ($("filterLinkHints").checked) {
-        hide($("linkHintCharacters"));
-        show($("linkHintNumbers"));
-      } else {
-        show($("linkHintCharacters"));
-        hide($("linkHintNumbers"));
-      }
+      var set = function(el, stat) {
+        $(el).parentNode.parentNode.style.display = stat ? "" : "none";
+      }, checked = $("filterLinkHints").checked;
+      set("linkHintCharacters", !checked);
+      set("linkHintNumbers", checked);
     };
 
     var advancedMode = !bgSettings.get("showAdvancedOptions");
@@ -352,7 +345,7 @@
         $("advancedOptions").style.display = "none";
         $("advancedOptionsButton").innerHTML = "Show Advanced Options";
       } else {
-        $("advancedOptions").style.display = "table-row-group";
+        $("advancedOptions").style.display = "";
         $("advancedOptionsButton").innerHTML = "Hide Advanced Options";
       }
       advancedMode = !advancedMode;
@@ -383,6 +376,7 @@
       Option.saveOptions();
       btn.disabled = true;
       btn.innerHTML = "No Changes";
+      status = 0;
       setTimeout(function () {
         window.onfocus();
         if (Option.syncToFrontend) {
@@ -396,11 +390,11 @@
       }, 100);
     };
 
-    $("saveOptions").addEventListener("click", saveOptions);
-    $("advancedOptionsButton").addEventListener("click", toggleAdvancedOptions);
+    $("saveOptions").onclick = saveOptions;
+    $("advancedOptionsButton").onclick = toggleAdvancedOptions;
     toggleAdvancedOptions({preventDefault: function() {}});
-    $("showCommands").addEventListener("click", activateHelpDialog);
-    $("filterLinkHints").addEventListener("click", maintainLinkHintsView);
+    $("showCommands").onclick = activateHelpDialog;
+    $("filterLinkHints").onclick = maintainLinkHintsView;
     _ref = document.getElementsByClassName("nonEmptyTextOption");
     for (_i = _ref.length; 0 <= --_i; ) {
       element = _ref[_i];
@@ -446,7 +440,7 @@
   };
   
   initPopupPage = function(tab) {
-    var exclusions, onUpdated, saveOptions, updateState, url, hasNew;
+    var exclusions, onUpdated, saveOptions, updateState, url, hasNew, status;
     exclusions = null;
     tab = tab[0];
     url = BG.urlForTab[tab.id] || tab.url;
@@ -462,10 +456,13 @@
         : pass !== null ? "be disabled" : "be enabled");
     };
     onUpdated = function() {
-      var btn = $("saveOptions");
-      $("helpText").innerHTML = "Type <strong>Ctrl-Enter</strong> to save and close.";
-      btn.removeAttribute("disabled");
-      btn.innerHTML = "Save Changes";
+      if (status != 1) {
+        status = 1;
+        var btn = $("saveOptions");
+        $("helpText").innerHTML = "Type <strong>Ctrl-Enter</strong> to save and close.";
+        btn.removeAttribute("disabled");
+        btn.innerHTML = "Save Changes";
+      }
       if (exclusions) {
         hasNew = true;
         updateState();
@@ -480,12 +477,13 @@
       hasNew = false;
       btn.innerHTML = "Saved";
       btn.disabled = true;
+      status = 0;
       // although the tab calls window.onfocus after this popup page closes,
       // it is too early for the tab to know new exclusion rules.
       var pass = bgExclusions.getPattern(url);
       BG.g_requestHandlers.setIcon(tab.id, null, pass);
     };
-    $("saveOptions").addEventListener("click", saveOptions);
+    $("saveOptions").onclick = saveOptions;
     document.addEventListener("keyup", function(event) {
       if (event.ctrlKey && event.keyCode === 13) {
         saveOptions();
