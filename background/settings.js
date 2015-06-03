@@ -12,15 +12,15 @@ var Settings = {
   set: function(key, value) {
     var ref;
     this._buffer[key] = value;
-    if (ref = this.updateHooks[key]) {
-      ref.call(this, value, key);
-    }
     if (key in this.nonPersistent) {
     } else if (value === this.defaults[key]) {
       delete localStorage[key];
       this.Sync.clear(key);
     } else {
       this.Sync.set(key, localStorage[key] = JSON.stringify(value));
+    }
+    if (ref = this.updateHooks[key]) {
+      ref.call(this, value, key);
     }
   },
   postUpdate: function(key, value) {
