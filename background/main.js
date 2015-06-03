@@ -7,8 +7,7 @@
     , openMultiTab //
     , populateKeyCommands, executeCommand, commandCount //
     , requestHandlers //
-    , firstKeys, splitKeyQueue //
-    , secondKeys, currentCount, currentFirst;
+    , firstKeys, secondKeys, currentCount, currentFirst;
 
   frameIdsForTab = {};
 
