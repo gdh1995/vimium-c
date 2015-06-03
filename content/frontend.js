@@ -411,10 +411,10 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
         var hint = document.createElement("div"), style = hint.style
           , rect = element.getBoundingClientRect();
         hint.className = "vimB vimI vimIH";
-        style.left = (rect.left - 1) + "px";
-        style.top = (rect.top - 1) + "px";
-        style.width = rect.width + "px";
-        style.height = rect.height + "px";
+        style.left = (rect.left | 0) - 1 + "px";
+        style.top = (rect.top | 0) - 1 + "px";
+        style.width = (rect.width | 0) + "px";
+        style.height = (rect.height | 0) + "px";
         return hint;
       });
       hints[selectedInputIndex].classList.add('vimS');
