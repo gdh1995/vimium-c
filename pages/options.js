@@ -360,12 +360,12 @@
         DomUtils.suppressEvent(event);
         return;
       }
-      MainPort.Listener({
-        name: "showHelpDialog",
-        html: BG.helpDialogHtml(true, true, "Command Listing"),
-        optionUrl: location.href,
-        advanced: bgSettings.get("showAdvancedCommands")
-      });
+      MainPort.postMessage({
+        handler: "initHelp",
+        unbound: true,
+        names: true,
+        title: "Command Listing"
+      }, MainPort.Listener);
     };
 
     saveOptions = function() {

@@ -3,7 +3,7 @@
   var BackgroundCommands, checkKeyQueue //
     , frameIdsForTab, urlForTab, extForTab, globalMarks, ContentSettings //
     , handleMainPort, funcDict //
-    , helpDialogHtmlForCommandGroup, resetKeys //
+    , helpDialogHtml, helpDialogHtmlForCommandGroup, resetKeys //
     , openMultiTab //
     , populateKeyCommands, executeCommand, commandCount //
     , requestHandlers //
@@ -17,17 +17,20 @@
 
   globalMarks = {};
 
-  window.helpDialogHtml = function(showUnboundCommands, showCommandNames, customTitle) {
+  helpDialogHtml = function(showUnboundCommands, showCommandNames, customTitle) {
     var command, commandsToKey, dialogHtml, group, key;
     commandsToKey = {};
     for (key in Commands.keyToCommandRegistry) {
       command = Commands.keyToCommandRegistry[key].command;
       commandsToKey[command] = (commandsToKey[command] || []).concat(key);
     }
+    showUnboundCommands = showUnboundCommands ? true : false;
+    showCommandNames = showCommandNames ? true : false;
+    customTitle || (customTitle = "Help");
     dialogHtml = Settings.get("help_dialog");
     return dialogHtml.replace(new RegExp("\\{\\{(version|title|" + Object.keys(Commands.commandGroups).join('|') + ")\\}\\}", "g"), function(_, group) {
       return (group === "version") ? Settings.CurrentVersion
-        : (group === "title") ? (customTitle || "Help")
+        : (group === "title") ? customTitle
         : helpDialogHtmlForCommandGroup(group, commandsToKey, Commands.availableCommands, showUnboundCommands, showCommandNames);
     });
   };
@@ -965,9 +968,10 @@
     nextFrame: function(request) {
       BackgroundCommands.nextFrame([{id: request.tabId}], request.frameId);
     },
-    initHelp: function() {
+    initHelp: function(request) {
       return {
-        html: helpDialogHtml(),
+        name: "showHelpDialog",
+        html: helpDialogHtml(request.unbound, request.names, request.title),
         optionUrl: chrome.runtime.getURL("pages/options.html"),
         advanced: Settings.get("showAdvancedCommands")
       };
