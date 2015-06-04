@@ -1,6 +1,7 @@
 {
   "content_security_policy": "script-src 'self'; object-src 'self';",
   "description": "custom Weidu New Tab supporting Vimium++",
+  "homepage_url": "https://github.com/gdh1995/vimium-plus/tree/master/weidu",
   "icons": {
     "128": "img/icon_128.png",
     "16": "favicon.ico"

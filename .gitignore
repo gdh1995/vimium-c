@@ -1,5 +1,6 @@
 test*
 *.coffee
+*.crx
 .*/
 !.git*
 *~

@@ -166,7 +166,7 @@ var Settings = {
     nextPatterns: "next,more,>,\u2192,\xbb,\u226b,>>",
     searchUrl: "http://www.baidu.com/s?ie=utf-8&wd=%s Baidu",
     searchEngines: "w|wiki|Wiki:\\\n  http://www.wikipedia.org/w/index.php?search=%s Wikipedia (en-US)\nBaidu|baidu|ba:\\\n  www.baidu.com/s?ie=utf-8&wd=%s",
-    newTabUrl: "/index.html" // note: if changed, /pages/newtab.js also needs change.
+    newTabUrl: "pages/blank.html" // note: if changed, /pages/newtab.js also needs change.
   },
   // not set localStorage, neither sync, if key in @nonPersistent
   // not clean if exists (for simpler logic)
@@ -183,9 +183,9 @@ var Settings = {
     vomnibar: "pages/vomnibar.html"
   },
   icons: {
-    disabled: "img/icons/browser_action_disabled.png",
-    enabled: "img/icons/browser_action_enabled.png",
-    partial: "img/icons/browser_action_partial.png"
+    disabled: "img/browser_action_disabled.png",
+    enabled: "img/browser_action_enabled.png",
+    partial: "img/browser_action_partial.png"
   },
   valuesToLoad: ["filterLinkHints", "findModeRawQuery", "findModeRawQueryList" //
     , "hideHud", "linkHintCharacters", "linkHintNumbers", "nextPatterns" //

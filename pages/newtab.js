@@ -1,1 +1,1 @@
-var a=localStorage.newTabUrl;chrome.tabs.create({url:a?JSON.parse(a):"/index.html"});close();
+var a=localStorage.newTabUrl;chrome.tabs.create({url:a?JSON.parse(a):"/pages/blank.html"});close();

@@ -1,6 +1,6 @@
 Vimium++
 =============================
-A custom Vimium with 微度新标签页, by gdh1995@qq.com.
+A custom Vimium, by gdh1995@qq.com. In the *weidu* directory is 微度新标签页.
 
 This branch supports Chrome with sessions only.
 
@@ -10,10 +10,11 @@ __Vimium:__
 * from [philc/vimium:master](https://github.com/philc/vimium) [![Build
     Status](https://secure.travis-ci.org/philc/vimium.png?branch=master
     )](https://travis-ci.org/philc/vimium).
-* customized after translating it into JavaScript using `cake build`.
+* optimized after translating it into JavaScript using `cake build`.
 * more functions, more powerful, and more convenient (for me, at least).
 
 __微度新标签页 (X New Tab Page):__
+* In folder [*weidu*](https://github.com/gdh1995/vimium-plus/tree/master/weidu)
 * 一款基于Html5的Chrome浏览器扩展程序。
   它提供了网站快速拨号、网站云添加、数据云备份等功能来增强 Chrome
     原生新标签页（New Tab）；
@@ -41,7 +42,7 @@ X New Tab Page: 4.8.0 (2015-03-19)
 
 License
 -------
-Vimium: Copyright (c) Phil Crosby, Ilya Sukhar. See MIT-LICENSE.txt for
+Thanks for:
+* Vimium: Copyright (c) Phil Crosby, Ilya Sukhar. See MIT-LICENSE.txt for
     details.
-
-微度新标签页: ©2012 杭州佐拉网络有限公司. 保留所有权利.
+* 微度新标签页: ©2012 杭州佐拉网络有限公司. 保留所有权利.
