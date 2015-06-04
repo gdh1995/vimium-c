@@ -40,9 +40,8 @@ Vimium: 1.49 (2014-12-16)
 X New Tab Page: 4.8.0 (2015-03-19)
 * All merged.
 
-License
+Thanks & License
 -------
-Thanks for:
 * Vimium: Copyright (c) Phil Crosby, Ilya Sukhar. See MIT-LICENSE.txt for
     details.
 * 微度新标签页: ©2012 杭州佐拉网络有限公司. 保留所有权利.
