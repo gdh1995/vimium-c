@@ -1,0 +1,122 @@
+html{font-family:'Segoe UI', Arial, 'Microsoft Yahei', Simsun, sans-serif;height:100%;overflow:hidden;}
+body{margin:0;font-size:13px;-webkit-user-select:none;width:100%;height:100%;position:absolute;overflow:hidden;}
+ul,li,dl,dd{margin:0;padding:0;list-style:none;}
+a{color:#FFF;text-decoration:none;text-shadow:1px 1px 3px #000;}
+::-webkit-scrollbar{width:6px;}
+::-webkit-scrollbar:horizontal{height:8px;}
+::-webkit-scrollbar-track{box-shadow:inset 0 0 6px rgba(0,0,0,0.4);border-radius:6px;}
+::-webkit-scrollbar-thumb{border-radius:6px;background:rgba(48, 49, 58,0.2);box-shadow:inset 0 0 6px rgba(0,0,0,0.8);}
+::-webkit-scrollbar-thumb:window-inactive{background:rgba(231,231,231,0.4);}
+@-webkit-keyframes nodeFarAway{40%{opacity:0;}60%{opacity:0;}}
+.dialbox.farAway{-webkit-animation:nodeFarAway .6s ease-in-out 0s 1;}
+.QBannerContainer{position:absolute;bottom:0px;width:1040px;height:48px;left:50%;-webkit-transition:opacity .2s ease-in;}
+.QBannerContainer.hide,.dialbox > .quickDialbox.hide{visibility:hidden;opacity:0;}
+.QBannerContainer > .left{float:left;width:78px;height:48px;background-image:url(../img/skin_0/q_left.png);}
+.QBannerContainer > .center{float:left;width:884px;height:48px;background-image:url(../img/skin_0/q_bg.png);}
+.QBannerContainer > .right{float:right;width:78px;height:48px;background-image:url(../img/skin_0/q_right.png);}
+.synLoading{width:100%;height:100%;}
+.synLoading img{position:absolute;left:50%;top:50%;margin-top:-32px;margin-left:-32px;}
+@media (transform-3d), (-webkit-transform-3d){#test3D{position:absolute;left:9px;height:3px;visibility:hidden;}}
+.pageSwitcher{padding:0;position:absolute;margin-top:-80px;width:66px;top:50%;z-index:5;cursor:pointer;height:131px;-webkit-transition:all .2s ease-in;}
+.pageSwitcher.up{left:0px;background:url(../img/skin_0/left.png);margin-left:-42px;}
+.pageSwitcher.up:hover{margin-left:-12px;}
+.pageSwitcher.down{right:0px;margin-right:-42px;background:url(../img/skin_0/right.png);}
+.pageSwitcher.down:hover{margin-right:-12px;}
+.dialbox > .quickDialbox{left:50%;bottom:0px;position:fixed;height:48px;-webkit-transition:opacity .2s ease-in;}
+.dialbox.edit > .quickDialbox{box-shadow:inset 0 10px 15px 2px rgba(200, 200, 200,0.7);}
+.dialbox > .normalDialbox{position:absolute;display:none;border-radius:10px;}
+@-webkit-keyframes rightFlipFir{from{-webkit-transform:rotateY(0deg);}to{-webkit-transform:rotateY(-90deg);opacity:0.2;}}
+@-webkit-keyframes rightFlipSec{from{-webkit-transform:rotateY(-90deg);opacity:0.2;}to{-webkit-transform:rotateY(0deg);}}
+@-webkit-keyframes leftFlipFir{from{-webkit-transform:rotateY(0deg);}to{-webkit-transform:rotateY(90deg);opacity:0.2;}}
+@-webkit-keyframes leftFlipSec{from{-webkit-transform:rotateY(90deg);opacity:0.2;}to{-webkit-transform:rotateY(0deg);}}
+.normalDialbox.rightFlipFir{-webkit-animation:rightFlipFir .18s linear 0s 1;}
+.normalDialbox.rightFlipSec{-webkit-animation:rightFlipSec .18s linear 0s 1;}
+.normalDialbox.leftFlipFir{-webkit-animation:leftFlipFir .18s linear 0s 1;}
+.normalDialbox.leftFlipSec{-webkit-animation:leftFlipSec .18s linear 0s 1;}
+.dialbox.visual3D > .normalDialbox{-webkit-perspective-origin-x:50%;-webkit-perspective-origin-y:40%;-webkit-perspective:400px;-webkit-transform:rotateY(0deg);-webkit-transform-style:preserve-3d;}
+.dialbox.edit > .normalDialbox{box-shadow:inset 0 0 30px 10px rgba(200, 200, 200,0.7);}
+.normalDialbox.op_0{opacity:0;}
+.normalDialbox.op_1{opacity:0.1;}
+.normalDialbox.op_2{opacity:0.2;}
+.normalDialbox.op_3{opacity:0.3;}
+.normalDialbox.op_4{opacity:0.4;}
+.normalDialbox.op_5{opacity:0.5;}
+.normalDialbox.op_6{opacity:0.6;}
+.normalDialbox.op_7{opacity:0.7;}
+.normalDialbox.op_8{opacity:0.8;}
+.normalDialbox.op_9{opacity:0.9;}
+.normalDialbox.op_10{opacity:1;}
+.normalDialbox.op_0 ~ .pageIndex{opacity:0;}
+.normalDialbox.op_1 ~ .pageIndex{opacity:0.1;}
+.normalDialbox.op_2 ~ .pageIndex{opacity:0.2;}
+.normalDialbox.op_3 ~ .pageIndex{opacity:0.3;}
+.normalDialbox.op_4 ~ .pageIndex{opacity:0.4;}
+.normalDialbox.op_5 ~ .pageIndex{opacity:0.5;}
+.normalDialbox.op_6 ~ .pageIndex{opacity:0.6;}
+.normalDialbox.op_7 ~ .pageIndex{opacity:0.7;}
+.normalDialbox.op_8 ~ .pageIndex{opacity:0.8;}
+.normalDialbox.op_9 ~ .pageIndex{opacity:0.9;}
+.normalDialbox.op_10 ~ .pageIndex{opacity:1;}
+.normalDialbox{-webkit-transition:opacity 0.2s ease-in;}
+.normalDialbox:hover ~ .pageIndex{opacity:1;}
+.normalDialbox:hover{opacity:1;-webkit-transition:opacity 0.1s ease-in;}
+.appBox{position:absolute;display:none;}
+.appBox.quick.chromeApp{background-image:url(/img/skin_0/qBoxBg.png);background-size:78% auto;background-position:center;background-repeat:no-repeat;}
+.dialbox.visual3D .appBox{-webkit-transform-style:preserve-3d;}
+@-webkit-keyframes graduallyBig{0%{-webkit-transform:scale(0);}40%{-webkit-transform:scale(1.2);}80%{-webkit-transform:scale(0.8);}100%{-webkit-transform:scale(1);}}
+.appBox.new{-webkit-animation:graduallyBig .7s ease-out 0s 1;}
+.appBox .boxLogo{width:100%;position:absolute;top:0px;bottom:32px;border-bottom:transparent 2px solid;cursor:pointer;background-repeat:no-repeat;background-position:center;background-color:#FFF;-webkit-mask-image:-webkit-linear-gradient(bottom,rgba(0,0,0,0.96),rgba(0,0,0,0.96));}
+.appBox:hover .boxLogo{-webkit-mask-image:none;}
+.appBox .boxLogo.lh{background-size:auto 100%;background-position:left;}
+.appBox .boxLogo.lw{background-size:100% auto;background-position:left;}
+.appBox .boxLogo.ch{background-size:auto 100%;background-position:center;}
+.appBox .boxLogo.cw{background-size:100% auto;background-position:center;}
+.appBox .boxLogo.cwh{background-size:100% 100%;background-position:center;}
+.appBox .boxLogo.empty{background-size:0%;}
+.appBox .boxLogo.hidden{background-size:0% 0%;}
+.appBox .boxLogo.noTitle{bottom:0px;}
+.appBox .boxClose{cursor:pointer;position:absolute;border:none;outline:none;top:-22px;right:-5px;height:35px;width:35px;background:url(../img/skin_0/idialog_s.png) no-repeat scroll 0px -59px;opacity:1;padding:0;display:none;}
+.dialbox.edit .appBox .boxClose:hover{background:url(../img/skin_0/idialog_s.png) no-repeat scroll 0px -93px;}
+.appBox.quick .boxClose{top:-13px;right:-15px;}
+.appBox .boxEdit{cursor:pointer;position:absolute;border:none;outline:none;top:14px;right:1px;height:25px;width:25px;background:url(../img/skin_0/wedo.png) no-repeat scroll -37px -46px;opacity:1;padding:0;display:none;}
+.dialbox.edit .appBox.boxFixed .boxClose, .dialbox.edit .appBox.boxFixed .boxEdit{display:none;}
+.dialbox.edit .appBox .boxClose.hide, .dialbox.edit .appBox .boxEdit.hide{display:none;}
+.dialbox.edit .appBox .boxClose, .dialbox.edit .appBox .boxEdit{display:block;}
+.dialbox.edit .appBox.quick .boxEdit{display:none;}
+.appBox .boxTitle{position:absolute;bottom:0px;height:32px;line-height:32px;width:100%;text-align:center;overflow:hidden;background-color:transparent;z-index:999;}
+.appBox .boxTitle.middle{bottom:30px;}
+.appBox.quick .boxTitle{font-size:13px;}
+.appBox .boxLogo.noTitle ~ .boxTitle{height:0px;-webkit-transition:height .2s ease-in;}
+.appBox:hover .boxLogo.noTitle ~ .boxTitle{height:32px;}
+.appBox .boxTitle a{cursor:pointer;}
+.appBox .iframeDialbox{position:absolute;width:100%;height:100%;}
+.appBox .iframeDialboxMask{position:absolute;width:100%;height:100%;cursor:pointer;}
+.appBox .boxHtml{width:1px;height:1px;visibility:hidden;}
+.appBox.quick .boxLogo{border-radius:0px;border-bottom-width:0px;background-color:transparent;background-size:78% auto;background-position:center;bottom:0px;}
+.appBox.quick .boxLogo.empty{background-size:0%;}
+.appBox.quick.chromeApp .boxLogo{background-size:60% auto;}
+@-webkit-keyframes enlarge{to{-webkit-transform:scale(1.1);-webkit-transform-origin:bottom;}}
+.appBox.quick:hover{-webkit-animation:enlarge .1s ease-in forwards;}
+.appBox.quick .boxTitle{line-height:25px;font-size:12px;background-image:url(../img/skin_0/titleBg.png);bottom:70px;overflow:hidden;display:block;}
+.appBox.quick:not(:hover) .boxTitle{height:0px;}
+.appBox.quick .boxTitle.transparent{opacity:0;}
+.appBox.quick .boxLogo:hover ~ .boxTitle{text-shadow:none;display:block;}
+.dialbox {position:absolute;top:0px;bottom:0px;width:100%;overflow-y:auto;overflow-x:hidden;}
+.dialbox > .pageIndex{position:fixed;height:10px;left:50%;opacity:0.8;bottom:100px;}
+.dialbox > .pageIndex > a{cursor:pointer;display:block;width:8px;height:8px;background:rgba(149,149,149,0.8);border-radius:5px;margin:0px 5px;float:left;border:rgba(149,149,149,0.8) 1px solid;}
+.dialbox > .pageIndex > a.selected, .dialbox > .pageIndex > a:hover{background:#FFF;border:#FFF 1px solid;}
+.dialbox .pageNotice{position:fixed;width:500px;height:40px;line-height:40px;background-color:rgba(0,0,0,0.5);border-radius:6px;left:50%;margin-left:-250px;color:#FFF;font-size:16px;text-align:center;opacity:0;-webkit-transition:opacity .2s ease-in;}
+.dialbox .pageNotice.show{opacity:1;}
+.dialog{position:absolute;box-shadow:0px 10px 23px rgba(0, 0, 0, 0.8);border-radius:6px 6px 6px 6px;-webkit-transform:scale(0);opacity:0;}
+.dialog-visible{-webkit-transform:scale(1);opacity:1;}
+.dialog .dragArea{cursor:pointer;}
+.dialog .dialogMessage{margin:15px;}
+.dialog .dialogButton{margin:10px;text-align:right;}
+.dialog .head{width:100%;height:36px;background:#ececec;}
+.dialog .head .title{width:60px;padding:8px 0 0 8px;height:20px;float:left;font-size:14px;font-weight:bold;}
+.dialog .close{background:url(../img/skin_0/idialog_s.png) no-repeat 0 -60px;width:32px;height:32px;float:right;cursor:pointer;position:absolute;border:0;right:-12px;top:-12px;z-index:10;outline:none;}
+.dialog .close.hide{display:none;}
+.dialog .close:hover{background-position:0 -94px;}
+.dialogMask{background-color:transparent;position:fixed;left:0;top:0;bottom:90px;width:100%;overflow:hidden;border-radius:6px;}
+.dialog .emptyLoading{width:180px;height:120px;background:white;border-radius:2px;}
+.dialog .emptyLoading img{position:absolute;left:60px;top:30px;}

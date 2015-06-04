@@ -1,0 +1,21 @@
+{
+  "content_security_policy": "script-src 'self'; object-src 'self';",
+  "description": "custom Weidu New Tab supporting Vimium++",
+  "icons": {
+    "128": "img/icon_128.png",
+    "16": "favicon.ico"
+  },
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAyUdZlC359E0FNp2J8wy7jXndYL538bG7VWB861oI+KlWTKihaSDgt1yerFU5uBGeD6HmeK9UZb4R3/gRI1OXadx2pD8IliSbrUEgE1i/pUcfTcS41e/GS5lbAe3+xbHxEQiHmecye1cTCl3LDH91sVj7SOTzR3u+BMMAVCJgoMUc3/Jwhj9upMh/L0yg3XI2jxEEvhb7ZqURJlytORHD+K6l98Gxk2+7rf8HHsQrgWcCLExb04rQ+WEdRJRoPLW6wqxYgWx7i2CLaHQkDBmeGH5ZYCo97u4f2CVcOwXhb+6o+5eMkCBN1JRoI7mNeWNz7Y0yPijVtN6ADA6DfFIr0QIDAQAB",
+  "manifest_version": 2,
+  "name": "Weidu New Tab",
+  "options_page": "index.html",
+  "permissions": [
+    "bookmarks",
+    "history",
+    "management",
+    "tabs",
+    "\u003Call_urls>"
+  ],
+  "update_url": "https://clients2.google.com/service/update2/crx",
+  "version": "4.80"
+}
