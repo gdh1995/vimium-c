@@ -234,16 +234,15 @@ var setup = {
 				var force2 = function(i) {
 					return ((i <= 9) ? '0'  : '') + i;
 				}
-				hiddenA[0].download = ['vim++_', d.getFullYear(), force2(d.getMonth() + 1), force2(d.getDate()),
+				hiddenA[0].download = ['weidu_', d.getFullYear(), force2(d.getMonth() + 1), force2(d.getDate()),
 					'_', force2(d.getHours()), force2(d.getMinutes()), force2(d.getSeconds()), '.json'].join('');
-				hiddenA[0].href = 'data:application/json;charset=utf-8;base64,'+rstr2b64(str2rstr_utf8(data));
+				hiddenA[0].href = 'data:application/json;charset=UTF-8,' + encodeURIComponent(data);
 				hiddenA[0].click();
 			}
 		});
 		self.content.find("#importData").bind('change', function () {
 			var file = this.files[0];
 			this.value = '';
-			this.files = null;
 			var reader = new FileReader();
 			reader.onload = function (e) {
 				var oriUpdateConf = function (obj) {
