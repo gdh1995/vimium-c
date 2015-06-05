@@ -47,6 +47,9 @@ var Settings = {
         ref2[key] = this.get(key);
       }
     },
+    newTabUrl_f: function(value) {
+      localStorage.newTabUrl_f = value;
+    },
     searchEngines: function() {
       this.set("searchEnginesMap", { "": [] });
     },
@@ -166,7 +169,8 @@ var Settings = {
     nextPatterns: "next,more,>,\u2192,\xbb,\u226b,>>",
     searchUrl: "http://www.baidu.com/s?ie=utf-8&wd=%s Baidu",
     searchEngines: "w|wiki|Wiki:\\\n  http://www.wikipedia.org/w/index.php?search=%s Wikipedia (en-US)\nBaidu|baidu|ba:\\\n  www.baidu.com/s?ie=utf-8&wd=%s",
-    newTabUrl: "pages/blank.html" // note: if changed, /pages/newtab.js also needs change.
+    // note: if changed, ../pages/newtab.js also needs change.
+    newTabUrl: "chrome-search://local-ntp/local-ntp.html"
   },
   // not set localStorage, neither sync, if key in @nonPersistent
   // not clean if exists (for simpler logic)
