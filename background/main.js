@@ -29,7 +29,7 @@
     customTitle || (customTitle = "Help");
     dialogHtml = Settings.get("help_dialog");
     return dialogHtml.replace(new RegExp("\\{\\{(version|title|" + Object.keys(Commands.commandGroups).join('|') + ")\\}\\}", "g"), function(_, group) {
-      return (group === "version") ? Settings.CurrentVersion
+      return (group === "version") ? Settings.CONST.CurrentVersion
         : (group === "title") ? customTitle
         : helpDialogHtmlForCommandGroup(group, commandsToKey, Commands.availableCommands, showUnboundCommands, showCommandNames);
     });
@@ -653,7 +653,7 @@
       funcDict.sendToTab(tabs[0].id, {
         name: "focusFrame",
         frameId: 0
-      }, Settings.ChromeVersion >= 41 ? {frameId: 0} : null);
+      }, Settings.CONST.ChromeVersion >= 41 ? {frameId: 0} : null);
     },
     closeTabsOnLeft: function(tabs) {
       funcDict.removeTabsRelative(funcDict.selectFrom(tabs), -commandCount, tabs);
@@ -989,7 +989,7 @@
       return {
         name: "ifEnabled",
         passKeys: pass,
-        onMac: Settings.onMac,
+        onMac: Settings.CONST.onMac,
         currentFirst: currentFirst,
         firstKeys: firstKeys,
         secondKeys: secondKeys,
@@ -1003,7 +1003,7 @@
       return {
         name: "showHelpDialog",
         html: helpDialogHtml(request.unbound, request.names, request.title),
-        optionUrl: Settings.OptionsPage,
+        optionUrl: Settings.CONST.OptionsPage,
         advanced: Settings.get("showAdvancedCommands")
       };
     },
@@ -1122,7 +1122,7 @@
         command = message.command;
         break;
       case "content_scripts":
-        sendResponse(Settings.ContentScripts);
+        sendResponse(Settings.CONST.ContentScripts);
         break;
       }
     }
@@ -1141,7 +1141,7 @@
 
   chrome.runtime.onConnectExternal.addListener(funcDict.globalConnect);
 
-  chrome.webNavigation.onHistoryStateUpdated.addListener(Settings.ChromeVersion >= 41
+  chrome.webNavigation.onHistoryStateUpdated.addListener(Settings.CONST.ChromeVersion >= 41
   ? function(details) {
     funcDict.sendToTab(details.tabId
       , requestHandlers.checkIfEnabled(details), {frameId: details.frameId}
@@ -1184,8 +1184,8 @@
   })();
 })();
 
-Settings.Timer = setTimeout(function() {
-Settings.Timer = 0;
+Settings.CONST.Timer = setTimeout(function() {
+Settings.CONST.Timer = 0;
 // currentFirst will be reloaded when window.focus
 chrome.tabs.query({status: "complete"}, function(arr) {
   var url, i, o, exts = [chrome.runtime.id], request = {name: "reg", work: "rereg"};

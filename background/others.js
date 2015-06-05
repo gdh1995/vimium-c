@@ -113,9 +113,9 @@ chrome.runtime.onInstalled.addListener(window.b = function(details) {
   if (reason === "install") { reason = ""; }
   else if (reason === "update") { reason = details.previousVersion; }
   else { return; }
-  if (Settings.Timer > 0) {
-    clearTimeout(Settings.Timer);
-    Settings.Timer = 0;
+  if (Settings.CONST.Timer > 0) {
+    clearTimeout(Settings.CONST.Timer);
+    Settings.CONST.Timer = 0;
   }
 
   contentScripts = chrome.runtime.getManifest().content_scripts[0];
@@ -161,14 +161,14 @@ chrome.runtime.onInstalled.addListener(window.b = function(details) {
     }
     return 0;
   };
-  if (func(Settings.CurrentVersion, reason) === 0) { return; }
+  if (func(Settings.CONST.CurrentVersion, reason) === 0) { return; }
 
   reason = "vimium++_upgradeNotification";
   chrome.notifications.create(reason, {
     type: "basic",
     iconUrl: chrome.runtime.getURL("favicon.ico"),
     title: "Vimium++ Upgrade",
-    message: "Vimium++ has been upgraded to version " + Settings.CurrentVersion
+    message: "Vimium++ has been upgraded to version " + Settings.CONST.CurrentVersion
       + ". Click here for more information.",
     isClickable: true
   }, function() {

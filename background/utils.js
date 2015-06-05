@@ -37,7 +37,7 @@ var Utils = {
     if (url.startsWith('chrome://')) {
       return !url.startsWith("chrome://downloads");
     }
-    return !url.startsWith(Settings.ChromeInnerNewTab) && url.startsWith('chrome');
+    return !url.startsWith(Settings.CONST.ChromeInnerNewTab) && url.startsWith('chrome');
   },
   _hostRegex: /^([^:]+(:[^:]+)?@)?([^:]+|\[[^\]]+\])(:\d+)?$/,
   _nonENTlds: ".\u4e2d\u56fd",

@@ -487,7 +487,7 @@
     });
     exclusions = new ExclusionRulesOnPopupOption(url, "exclusionRules", onUpdated);
     updateState();
-    $("optionsLink").href = bgSettings.OptionsPage;
+    $("optionsLink").href = bgSettings.CONST.OptionsPage;
     window.onunload = function() {
       if (hasNew) {
         bgExclusions.rebuildRegex();

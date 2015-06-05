@@ -169,8 +169,7 @@ var Settings = {
     nextPatterns: "next,more,>,\u2192,\xbb,\u226b,>>",
     searchUrl: "http://www.baidu.com/s?ie=utf-8&wd=%s Baidu",
     searchEngines: "w|wiki|Wiki:\\\n  http://www.wikipedia.org/w/index.php?search=%s Wikipedia (en-US)\nBaidu|baidu|ba:\\\n  www.baidu.com/s?ie=utf-8&wd=%s",
-    // note: if changed, ../pages/newtab.js also needs change.
-    newTabUrl: "chrome-search://local-ntp/local-ntp.html"
+    newTabUrl: ""
   },
   NonJSON: {
     findModeRawQuery: true,
@@ -201,14 +200,16 @@ var Settings = {
     , "hideHud", "linkHintCharacters", "linkHintNumbers", "nextPatterns" //
     , "previousPatterns", "regexFindMode", "scrollStepSize", "smoothScroll" //
   ],
-  Timer: 0,
-  onMac: false,
   Sync: null,
-  CurrentVersion: "",
-  OptionsPage: "",
-  ContentScripts: null,
-  ChromeVersion: 38,
-  ChromeInnerNewTab: "chrome-search://local-ntp/local-ntp.html" // should keep lower case
+  CONST: {
+    Timer: 0,
+    onMac: false,
+    CurrentVersion: "",
+    OptionsPage: "",
+    ContentScripts: null,
+    ChromeVersion: 38,
+    ChromeInnerNewTab: "chrome-search://local-ntp/local-ntp.html" // should keep lower case
+  } 
 };
 Settings._buffer.__proto__ = null;
 Settings.updateHooks.__proto__ = null;
@@ -216,12 +217,15 @@ Settings.defaults.__proto__ = null;
 Settings.nonPersistent.__proto__ = null;
 Settings.icons.__proto__ = null;
 
+// note: if changed, ../pages/newtab.js also needs change.
+Settings.defaults.newTabUrl = Settings.CONST.ChromeInnerNewTab;
+
 (function() {
   var ref, ref2, ref3, i, func;
   func = (function(path) { return this(path); }).bind(chrome.runtime.getURL);
   ref = chrome.runtime.getManifest();
-  Settings.CurrentVersion = ref.version;
-  Settings.OptionsPage = func(ref.options_page);
+  Settings.CONST.CurrentVersion = ref.version;
+  Settings.CONST.OptionsPage = func(ref.options_page);
   ref = ref.content_scripts;
   ref3 = { all_frames: false, css: [], js: [] };
   ref3.__proto__ = null;
@@ -233,7 +237,7 @@ Settings.icons.__proto__ = null;
     ref3.js = ref3.js.concat(ref2.js.map(func));
   }
   ref3.js.push(func("content/inject-end.js"));
-  Settings.ContentScripts = ref3;
+  Settings.CONST.ContentScripts = ref3;
 
   i = navigator.appVersion.indexOf("Chrome");
   Settings.ChromeVersion = parseFloat(navigator.appVersion.substring(i + 7));
@@ -243,5 +247,5 @@ Settings.icons.__proto__ = null;
 })();
 
 chrome.runtime.getPlatformInfo(function(info) {
-  Settings.onMac = info.os === "mac";
+  Settings.CONST.onMac = info.os === "mac";
 });
