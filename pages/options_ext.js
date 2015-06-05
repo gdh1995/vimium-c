@@ -1,11 +1,5 @@
 var CheckBoxOption, NonEmptyTextOption, NumberOption, TextOption,
-initOptionsPage;
-
-Option.prototype.restoreToDefault = function() {
-  bgSettings.set(this.field, bgSettings.defaults[this.field]);
-  this.fetch();
-  return this.previous;
-};
+initOptionsPage, importSettings, exportSetting;
 
 Option.saveOptions = function() {
   Option.all.forEach(function(option) {
@@ -71,7 +65,9 @@ NonEmptyTextOption = (function(_super) {
     if (value) {
       return value;
     } else {
-      return this.restoreToDefault();
+      bgSettings.set(this.field, bgSettings.defaults[this.field]);
+      this.fetch();
+      return this.previous;
     }
   };
 
@@ -110,6 +106,7 @@ initOptionsPage = function() {
     var saveBtn = $("saveOptions");
     saveBtn.removeAttribute("disabled");
     saveBtn.innerHTML = "Save Changes";
+    $("exportButton").disabled = true;
   };
 
   maintainLinkHintsView = function() {
@@ -151,12 +148,12 @@ initOptionsPage = function() {
 
   saveOptions = function() {
     var btn = $("saveOptions");
-    if (btn.disabled) {
-      return;
+    if (!btn.disabled) {
+      Option.saveOptions();
     }
-    Option.saveOptions();
     btn.disabled = true;
     btn.innerHTML = "No Changes";
+    $("exportButton").disabled = false;
     status = 0;
     setTimeout(function () {
       window.onfocus();
@@ -183,6 +180,18 @@ initOptionsPage = function() {
     element.innerHTML = "Leave empty to reset this option.";
   }
   maintainLinkHintsView();
+  $("settingsFile").onchange = function() {
+    var file = this.files[0], reader;
+    this.value = "";
+    if (!file) { return; }
+    reader = new FileReader();
+    reader.onload = importSettings;
+    reader.readAsText(file);
+  };
+  $("importButton").onclick = function() {
+    $("settingsFile").click();
+  };
+  $("exportButton").onclick = exportSetting;
   window.onbeforeunload = function() {
     if (status !== 0 && Option.needSaveOptions()) {
       return "You have unsaved changes to options.";
@@ -218,4 +227,100 @@ initOptionsPage = function() {
     type = options[name];
     new type(name, onUpdated);
   }
+};
+
+exportSetting = function() {
+  var exported_object, exported_data, file_name, force2, d, nodeA;
+  exported_object = {name: "Vimium++", time: 0};
+  (function() {
+    var storage = localStorage, i, len, key;
+    for (i = 0, len = storage.length; i < len; i++) {
+      key = storage.key(i);
+      if (key === "name" || key === "time") { continue; }
+      exported_object[key] = storage.getItem(key);
+    }
+  })();
+  delete exported_object.findModeRawQuery;
+  d = new Date();
+  exported_object.time = d.getTime();
+  exported_data = JSON.stringify(exported_object, null, '\t');
+  exported_object = null;
+  force2 = function(i) { return ((i <= 9) ? '0'  : '') + i; }
+  file_name = 'vimium++_' + d.getFullYear() + force2(d.getMonth() + 1) + force2(d.getDate())
+    + '_' + force2(d.getHours()) + force2(d.getMinutes()) + force2(d.getSeconds()) + '.json';
+
+  nodeA = document.createElement("a");
+  nodeA.download = file_name;
+  nodeA.href = "data:application/json;charset=UTF-8," + encodeURIComponent(exported_data);
+  nodeA.click();
+  console.log("EXPORT settings to", file_name, "at", d);
+};
+
+importSettings = function() {
+  var new_data;
+  try {
+    new_data = JSON.parse(this.result);
+  } catch (e) {}
+  if (!new_data || new_data.name !== "Vimium++" || !(new_data.time > 10000)) {
+    VHUD.showForDuration("No settings data found!", 2000);
+    return;
+  } else if (!confirm(
+    "You are loading a settings copy exported at:\n        "
+    + new Date(new_data.time - new Date().getTimezoneOffset() * 1000 * 60
+      ).toJSON().substring(0, 16).replace('T', ' ')
+    + "\n\nAre you sure you want to continue?"
+  )) {
+    VHUD.showForDuration("You cancelled importing.", 1000);
+    return;
+  }
+
+  var storage = localStorage, i, key, new_value, func;
+  func = function(val) {
+    return typeof val !== "string" ? val : val.substring(0, 72);
+  };
+  delete new_data.findModeRawQuery;
+  console.log("IMPORT settings at", new Date(new_data.time));
+  for (i = storage.length; 0 <= --i; ) {
+    key = storage.key(i);
+    if (!(key in new_data)) {
+      new_data[key] = null;
+    }
+  }
+  Option.all.forEach(function(item) {
+    var key = item.field, new_value = new_data[key];
+    delete new_data[key];
+    if (new_value == null) {
+      new_value = bgSettings.defaults[key];
+    }
+    if (!item.areEqual(bgSettings.get(key), new_value)) {
+      console.log("import", key, func(new_value));
+      bgSettings.set(key, new_value);
+    }
+    item.fetch();
+  });
+  for (key in new_data) {
+    new_value = new_data[key];
+    if (new_value == null) {
+      if (key in bgSettings.defaults) {
+        new_value = bgSettings.defaults[key];
+        if (bgSettings.get(key) !== new_value) {
+          bgSettings.set(key, new_value);
+          console.log("reset", key, func(new_value));
+        }
+      } else if (storage.getItem(key) != null) {
+        new_value = storage.getItem(key);
+        storage.removeItem(key);
+        console.log("remove", key, "<=", func(new_value));
+      }
+    } else if (key in bgSettings.defaults) {
+      if (bgSettings.get(key) !== new_value) {
+        bgSettings.set(key, new_value);
+        console.log("save", key, func(new_value));
+      }
+    }
+  }
+  var btn = $("saveOptions");
+  btn.disabled = true;
+  btn.click();
+  VHUD.showForDuration("Import settings data: OK!", 1000);
 };
