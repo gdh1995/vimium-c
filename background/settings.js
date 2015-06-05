@@ -5,7 +5,9 @@ var Settings = {
   extIds: [chrome.runtime.id],
   get: function(key) {
     if (! (key in this._buffer)) {
-      return this._buffer[key] = (key in localStorage) ? JSON.parse(localStorage[key]) : this.defaults[key];
+      return this._buffer[key] = !(key in localStorage) ? this.defaults[key]
+        : (key in this.NonJSON) ? localStorage[key]
+        : JSON.parse(localStorage[key]);
     }
     return this._buffer[key];
   },
@@ -17,7 +19,8 @@ var Settings = {
       delete localStorage[key];
       this.Sync.clear(key);
     } else {
-      this.Sync.set(key, localStorage[key] = JSON.stringify(value));
+      this.Sync.set(key, localStorage[key] = (key in this.NonJSON)
+        ? value : JSON.stringify(value));
     }
     if (ref = this.updateHooks[key]) {
       ref.call(this, value, key);
@@ -46,9 +49,6 @@ var Settings = {
         key = ref[_i];
         ref2[key] = this.get(key);
       }
-    },
-    newTabUrl_f: function(value) {
-      localStorage.newTabUrl_f = value;
     },
     searchEngines: function() {
       this.set("searchEnginesMap", { "": [] });
@@ -171,6 +171,12 @@ var Settings = {
     searchEngines: "w|wiki|Wiki:\\\n  http://www.wikipedia.org/w/index.php?search=%s Wikipedia (en-US)\nBaidu|baidu|ba:\\\n  www.baidu.com/s?ie=utf-8&wd=%s",
     // note: if changed, ../pages/newtab.js also needs change.
     newTabUrl: "chrome-search://local-ntp/local-ntp.html"
+  },
+  NonJSON: {
+    findModeRawQuery: true,
+    keyMappings: true, linkHintCharacters: true, linkHintNumbers: true,
+    newTabUrl: true, nextPatterns: true, previousPatterns: true,
+    searchEngines: true, searchUrl: true, userDefinedCss: true
   },
   // not set localStorage, neither sync, if key in @nonPersistent
   // not clean if exists (for simpler logic)
