@@ -202,7 +202,9 @@ initOptionsPage = function() {
       if (document.activeElement && document.activeElement.blur) {
         document.activeElement.blur();
       }
-      saveOptions();
+      if (status != 0) {
+        saveOptions();
+      }
     }
   });
 
