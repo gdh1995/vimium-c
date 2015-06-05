@@ -195,8 +195,10 @@
   funcDict = {
     globalCommand: null,
     globalConnect: null,
-    sendToTab: function(tabId, request, options, request2) {
-      chrome.tabs.sendMessage(tabId, request, options);
+    sendToTab: function(tabId, request, frameId, request2) {
+      chrome.tabs.sendMessage(tabId, request, Settings.CONST.ChromeVersion < 41
+        ? null : frameId != null ? {frameId: frameId}
+        : request.frameId === 0 ? {frameId: 0} : null);
       if (extForTab[tabId]) {
         request = { "vimium++": {tabId: tabId, request: request2 || request} };
         chrome.runtime.sendMessage(extForTab[tabId], request);
@@ -653,7 +655,7 @@
       funcDict.sendToTab(tabs[0].id, {
         name: "focusFrame",
         frameId: 0
-      }, Settings.CONST.ChromeVersion >= 41 ? {frameId: 0} : null);
+      });
     },
     closeTabsOnLeft: function(tabs) {
       funcDict.removeTabsRelative(funcDict.selectFrom(tabs), -commandCount, tabs);
@@ -1144,7 +1146,7 @@
   chrome.webNavigation.onHistoryStateUpdated.addListener(Settings.CONST.ChromeVersion >= 41
   ? function(details) {
     funcDict.sendToTab(details.tabId
-      , requestHandlers.checkIfEnabled(details), {frameId: details.frameId}
+      , requestHandlers.checkIfEnabled(details), details.frameId
       , {name: "checkIfEnabled"});
   } : function(details) {
     funcDict.sendToTab(details.tabId, {name: "checkIfEnabled"});
