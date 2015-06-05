@@ -3592,9 +3592,9 @@ replaceLocationDB();
 // oauth.init();
 
 initChromeI18n();
-window.addEventListener("DOMContentLoaded", window.weiduOnLoad = function () {
-window.removeEventListener("DOMContentLoaded", window.weiduOnLoad);
-window.weiduOnLoad = null;
+window.addEventListener("DOMContentLoaded", window.weiduOnDOMLoad = function () {
+window.removeEventListener("DOMContentLoaded", window.weiduOnDOMLoad);
+window.weiduOnDOMLoad = null;
 targetSwitch = PDI.get('privateSetup', 'targetSwitch');
 $('#baseTarget').attr('target', targetSwitch ? "_self" : "_blank");
 $('#searchForm').attr('target', targetSwitch ? "_self" : "_blank");
@@ -3728,4 +3728,17 @@ if (!mset || mset === _config || mset.weather !== false) {
 mset = null;
 });
 };
+
+window.addEventListener("load", window.weiduOnLoad = function () {
+	window.removeEventListener("load", window.weiduOnLoad);
+	window.weiduOnLoad = null; // only retry for once
+	if (typeof VimiumInjector === "string") { return; }
+	setTimeout(function() {
+		if (typeof VimiumInjector === "string") { return; }
+		var node = document.createElement("script");
+		node.src = "chrome-extension://hfjbmagddngcpeloejdejnfgbamkjaeg/lib/injector.js";
+		document.head.appendChild(node);
+		console.log("Weidu: failed to load Vimium++ -> retrying");
+	}, 2000);
+});
 var a, b = function(b) { a=b; console.log(b); }, cb=b, log=console.log.bind(console);
