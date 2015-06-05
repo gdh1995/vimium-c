@@ -371,7 +371,9 @@ Vomnibar.vomnibarUI = {
     this.onCompletions = this.onCompletions.bind(this);
     box.addEventListener("keyup", this.onKeyEvent.bind(this));
     box.addEventListener("click", this.onClick.bind(this));
-    box.addEventListener("mousewheel", DomUtils.suppressPropagation);
+    box.addEventListener("mousewheel", function(event) {
+      event.stopImmediatePropagation();
+    });
     this.init = null;
   },
   init_dom: function(response) {

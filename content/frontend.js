@@ -188,7 +188,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       if (isEnabledForUrl) {
         var handledKeydown = KeydownEvents.pop(event);
         if (handlerStack.bubbleEvent("keyup", event) && handledKeydown) {
-          DomUtils.suppressPropagation(event);
+          event.stopImmediatePropagation();
         }
       }
     }, true);
@@ -552,7 +552,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     if (action === 2) {
       DomUtils.suppressEvent(event);
     } else {
-      DomUtils.suppressPropagation(event);
+      event.stopImmediatePropagation();
     }
     KeydownEvents.push(event);
   };
@@ -1194,8 +1194,10 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     container.id = "vimHelpDialogContainer";
     container.innerHTML = response.html;
     document.documentElement.appendChild(container);
-    container.addEventListener("mousewheel", DomUtils.suppressPropagation, false);
-    container.addEventListener("click", DomUtils.suppressPropagation, false);
+    container.addEventListener("mousewheel", hide = function(event) {
+      event.stopImmediatePropagation();
+    }, false);
+    container.addEventListener("click", hide, false);
 
     hide = function() {
       handlerStack.remove(handlerId);
