@@ -181,7 +181,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     (initializeWhenEnabled = setPassKeys)(newPassKeys);
     LinkHints.init();
     Scroller.init();
-    // CursorHider.init();
+    // Assume that all the below listeners won't throw any port exception
     window.addEventListener("keydown", ELs.onKeydown, true);
     window.addEventListener("keypress", ELs.onKeypress, true);
     window.addEventListener("keyup", ELs.onKeyup = function(event) {
@@ -1030,7 +1030,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
   // { function x | x's `this` should be requestHandlers unless x is used at other place}
   requestHandlers = {
     checkIfEnabled: function() {
-      mainPort.postMessage({
+      mainPort.safePost({
         handler: "checkIfEnabled",
         url: window.location.href
       }, requestHandlers.setPassKeys);
@@ -1289,7 +1289,11 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     // * if extension is stopped, then ELs.destroy is called when focused,
     // so, only being removed without pre-focusing may make port is null
     ELs.unloadMsg = {handlerSettings: "unreg", frameId: frameId};
-    ELs.onUnload = mainPort.safePost.bind(mainPort, ELs.unloadMsg, null, null);
+    ELs.onUnload = function() {
+      try {
+        mainPort._port && mainPort.postMessage(ELs.unloadMsg);
+      } catch (e) {}
+    };
     ELs.onHashChange = requestHandlers.checkIfEnabled;
     if (isInjected || requestHandlers.reg()) {
       return;
@@ -1307,6 +1311,9 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
   ELs.onMessage = function(request, id) {
     id = request.frameId;
     if (id === undefined || id === frameId) {
+      if (!mainPort._port) {
+        mainPort.connect();
+      }
       requestHandlers[request.name](request); // do not check `handler != null`
     }
   };
