@@ -1,7 +1,7 @@
 "use strict";
 (function() {
   var BackgroundCommands, checkKeyQueue //
-    , frameIdsForTab, urlForTab, extForTab, globalMarks, ContentSettings //
+    , frameIdsForTab, urlForTab, extForTab, ContentSettings //
     , handleMainPort, funcDict //
     , helpDialogHtml, helpDialogHtmlForCommandGroup, resetKeys //
     , openMultiTab //
@@ -14,8 +14,6 @@
   window.urlForTab = urlForTab = {};
 
   extForTab = {};
-
-  globalMarks = {};
 
   helpDialogHtml = function(showUnboundCommands, showCommandNames, customTitle) {
     var command, commandsToKey, dialogHtml, group, key;
@@ -246,6 +244,9 @@
     },
     onRuntimeError: function() {
       return chrome.runtime.lastError;
+    },
+    getMarkKey: function(keyChar) {
+      return "vimiumGlobalMark|" + keyChar;
     },
 
     openUrlInIncognito: function(request, tab, wnds) {
@@ -514,13 +515,20 @@
       }
     },
     gotoMark: function(markInfo, tab) {
-      var tabId = markInfo.tabId = tab.id;
+      var tabId = tab.id;
       if (markInfo.scroll) {
         funcDict.sendToTab(tabId, {
           name: "scroll", frameId: 0,
           scroll: markInfo.scroll,
           markName: markInfo.markName
         });
+        if (markInfo.tabId !== tabId && markInfo.markName) {
+          localStorage[funcDict.getMarkKey(markInfo.markName)] = JSON.stringify({
+            tabId: tabId,
+            url: markInfo.url,
+            scroll: markInfo.scroll
+          });
+        }
       }
       chrome.tabs.update(tabId, {active: true});
     },
@@ -1073,33 +1081,35 @@
           force: true,
           frameId: 0
         });
-        return false;
+        return;
       }
-      globalMarks[request.markName] = {
+      localStorage[funcDict.getMarkKey(request.markName)] = JSON.stringify({
         tabId: tabs[0].id,
-        markName: request.markName,
         url: request.url,
         scroll: request.scroll
-      };
+      });
       return true;
     },
     gotoMark: function(request) {
-      var key = request.markName, markInfo = globalMarks[key];
-      if (!markInfo) {
+      var str = request.markName, markInfo;
+      str = localStorage[funcDict.getMarkKey(request.markName)];
+      if (!str) {
         return false;
-      } else if (frameIdsForTab[markInfo.tabId]) {
-        chrome.tabs.get(markInfo.tabId, function(tab) {
-          if (!chrome.runtime.lastError && tab.url.split("#", 1)[0] === markInfo.url) {
-            funcDict.gotoMark(markInfo, tab);
-          } else {
-            requestHandlers.focusOrLaunch(markInfo);
-          }
-        });
-        return true;
-      } else {
+      }
+      markInfo = JSON.parse(str);
+      markInfo.markName = request.markName;
+      if (!frameIdsForTab[markInfo.tabId]) {
         requestHandlers.focusOrLaunch(markInfo);
         return null;
       }
+      chrome.tabs.get(markInfo.tabId, function(tab) {
+        if (!chrome.runtime.lastError && tab.url.startsWith(markInfo.url)) {
+          funcDict.gotoMark(markInfo, tab);
+        } else {
+          requestHandlers.focusOrLaunch(markInfo);
+        }
+      });
+      return true;
     },
     focusOrLaunch: function(request) {
       // * do not limit windowId or windowType
