@@ -138,7 +138,7 @@ initOptionsPage = function() {
       DomUtils.suppressEvent(event);
       return;
     }
-    MainPort.postMessage({
+    MainPort.sendRequest({
       handler: "initHelp",
       unbound: true,
       names: true,

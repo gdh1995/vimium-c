@@ -75,7 +75,7 @@ var Marks = {
     var keyChar = String.fromCharCode(event.charCode), markString, position;
     handlerStack.remove();
     if (event.shiftKey) {
-      MainPort.postMessage({
+      MainPort.sendRequest({
         handler: "Marks.gotoMark",
         markName: keyChar
       }, function(req) {

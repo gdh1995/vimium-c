@@ -68,31 +68,32 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     _port: null,
     _callbacks: {},
     _lastMsg: 1,
-    postMessage: function(request, callback) {
-      if (callback) {
-        request = {
-          _msgId: ++this._lastMsg,
-          request: request
-        };
-      }
+    sendRequest: function(request, callback) {
+      var id = ++this._lastMsg;
+      this._port.postMessage({_msgId: id, request: request});
+      this._callbacks[id] = callback;
+      return id;
+    },
+    // not bind postMessage to port, so that ClearPort only needs to set _port = null
+    postMessage: function(request) {
       this._port.postMessage(request);
-      if (callback) {
-        this._callbacks[request._msgId] = callback;
-      }
-      return callback ? request._msgId : 0;
     },
     safePost: function(request, callback, ifConnected) {
       try {
         if (!this._port) { this.connect(); }
         ifConnected && ifConnected();
-        this.postMessage(request, callback);
+        if (callback) {
+          this.sendRequest(request, callback);
+        } else {
+          this._port.postMessage(request);
+        }
       } catch (e) { // this extension is reloaded or disabled
         ELs.destroy();
         return true;
       }
     },
     sendCommadToFrame: function(target, command, args) {
-      this.postMessage({
+      this._port.postMessage({
         handler: "dispatchCommand", tabId: ELs.focusMsg.tabId,
         frameId: target, source: frameId,
         command: command, args: args
@@ -359,7 +360,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
         mainPort.sendCommadToFrame(0, "showHelp", [0]);
         return;
       }
-      mainPort.postMessage({
+      mainPort.sendRequest({
         handler: "initHelp",
       }, requestHandlers.showHelpDialog);
     },
@@ -390,7 +391,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       if (sel.type !== "Range" || !(str = sel.toString().trim())) {
         str = "";
       }
-      mainPort.postMessage({
+      mainPort.sendRequest({
         handler: "searchAs",
         url: window.location.href,
         search: str
@@ -1105,7 +1106,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
           setTimeout(mainPort.postMessage.bind(mainPort, {
             handlerSettings: "unreg",
             frameId: frameId
-          }, null), 20);
+          }), 20);
         }
         return;
       }
