@@ -1017,7 +1017,7 @@
     },
     checkIfEnabled: function(request) {
       return {
-        name: "setPassKeys",
+        name: "setEnabled",
         passKeys: Exclusions.getPattern(request.url)
       };
     },

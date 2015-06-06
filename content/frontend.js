@@ -1044,7 +1044,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       mainPort.safePost({
         handler: "checkIfEnabled",
         url: window.location.href
-      }, requestHandlers.setPassKeys);
+      }, requestHandlers.setEnabled);
     },
     ifEnabled: function(request) {
       var r = requestHandlers;
@@ -1052,10 +1052,10 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       KeyboardUtils.init(request.onMac);
       r.refreshKeyMappings(request);
       r.refreshKeyQueue(request);
-      r.setPassKeys(request);
+      r.setEnabled(request);
       r.ifEnabled = null;
     },
-    setPassKeys: function(request) {
+    setEnabled: function(request) {
       var passKeys = request.passKeys;
       if (isEnabledForUrl = (passKeys !== "")) {
         ELs.focusMsg.status = passKeys ? "partial" : "enabled";
