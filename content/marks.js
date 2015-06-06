@@ -32,9 +32,6 @@ var Marks = {
   getLocationKey: function(keyChar) {
     return "vimiumMark|" + this.getBaseUrl() + "|" + keyChar;
   },
-  getMarkString: function() {
-    return ;
-  },
   // previousPositionRegisters: ["`", "'"],
   _previous: null,
   setPreviousPosition: function() {
@@ -48,7 +45,6 @@ var Marks = {
     handlerStack.remove();
     if (event.shiftKey) {
       this.CreateGlobalMark({markName: keyChar});
-      VHUD.hide();
       return;
     }
     if (keyChar === "`" || keyChar === "'") {
@@ -99,6 +95,7 @@ var Marks = {
     var keyChar = request.markName;
     if (window.top !== window && !request.force) {
       MainPort.postMessage({handler: 'Marks.createMark', markName: keyChar});
+      VHUD.hide();
       return;
     }
     MainPort.postMessage({
