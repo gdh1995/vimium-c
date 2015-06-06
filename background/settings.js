@@ -207,7 +207,7 @@ var Settings = {
     CurrentVersion: "",
     OptionsPage: "",
     ContentScripts: null,
-    ChromeVersion: 38,
+    ChromeVersion: 37,
     ChromeInnerNewTab: "chrome-search://local-ntp/local-ntp.html" // should keep lower case
   } 
 };

@@ -2,7 +2,7 @@ Vimium++
 =============================
 A custom Vimium, by gdh1995@qq.com. In the *weidu* directory is 微度新标签页.
 
-This branch supports Chrome with sessions only.
+This branch supports Chrome with sessions only (ver >= 37).
 
 __Vimium:__
 * a Chrome extension that provides keyboard-based navigation and control
@@ -33,7 +33,7 @@ Release Notes
 Vimium: 1.49 (2014-12-16)
 * There are may some commits behind [philc/vimium:master](
     https://github.com/philc/vimium).
-* Supports Chrome (ver >~ 38) only. For an old version, please try
+* Supports Chrome (ver >= 37) only. For an earlier version, please try
     [:for-old-chrome](
     https://github.com/gdh1995/vimium-plus/tree/for-old-chrome).
 
