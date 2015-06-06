@@ -486,8 +486,10 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       handleKeyCharForFindMode(keyChar);
       DomUtils.suppressEvent(event);
     } else if (isInsertMode()) {
-    } else if (checkValidKey(keyChar)) { // keyChar is just the full command
+    } else {
+      if (checkValidKey(keyChar)) { // keyChar is just the full command
       DomUtils.suppressEvent(event);
+    }
     }
   };
 
@@ -508,8 +510,9 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
           exitInsertMode();
           action = 2;
         }
+      }
       // TODO: insert mode: active or passive ?
-      } else if (key >= KeyCodes.f1 && key <= KeyCodes.f12) {
+      else if (key >= KeyCodes.f1 && key <= KeyCodes.f12) {
         keyChar = getFullCommand(event, KeyboardUtils.getKeyName(event));
         action = checkValidKey(keyChar);
       }
@@ -540,8 +543,8 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
         currentSeconds = secondKeys[""];
         action = 2;
       }
-    } else if (!(keyChar = KeyboardUtils.getKeyChar(event))) {
     }
+    else if (!(keyChar = KeyboardUtils.getKeyChar(event))) {}
     else if ((key >= 32 && (event.metaKey || event.ctrlKey || event.altKey)) //
           || ! event.keyIdentifier.startsWith("U+")) {
       keyChar = getFullCommand(event, keyChar);
