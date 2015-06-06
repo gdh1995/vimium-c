@@ -141,7 +141,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
         onerror = onerror.bind(null, request.request);
       }
       this.isLoading = setInterval(mainPort.safePost.bind(
-        mainPort , request, null, onerror), 2000);
+        mainPort, request, null, onerror), 2000);
     },
     ReceiveSettings: function(response) {
       var _this = settings, ref, i;
