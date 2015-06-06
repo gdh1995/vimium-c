@@ -3,7 +3,7 @@
 var Marks = {
   createMark: function(request, tabs) {
     if (!request.scroll) {
-      SendToTab(tabs[0].id, {
+      g_requestHandlers.sendToTab(tabs[0].id, {
         name: "createMark",
         markName: request.markName,
         force: true,
@@ -45,7 +45,7 @@ var Marks = {
   gotoTab: function(markInfo, tab) {
     var tabId = tab.id;
     if (markInfo.scroll) {
-      SendToTab(tabId, {
+      g_requestHandlers.sendToTab(tabId, {
         name: "scroll", frameId: 0,
         scroll: markInfo.scroll,
         markName: markInfo.markName

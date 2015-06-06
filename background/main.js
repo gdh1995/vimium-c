@@ -77,6 +77,16 @@
     } while(--count > 1);
   };
 
+  sendToTab = Settings.CONST.ChromeVersion < 41
+  ? function(tabId, request, frameId) {
+    chrome.tabs.sendMessage(tabId, request, null);
+    funcDict.sendToExt(tabId, request);
+  } : function(tabId, request, frameId, request2) {
+    chrome.tabs.sendMessage(tabId, request, frameId != null ? {frameId: frameId}
+      : request.frameId === 0 ? {frameId: 0} : null);
+    funcDict.sendToExt(tabId, request2 || request);
+  };
+
   ContentSettings = {
     _urlHeadRegex: /^[a-z]+:\/\/[^\/]+\//,
     clear: function(contentType, tab) {
@@ -200,15 +210,6 @@
         chrome.runtime.sendMessage(extId, request);
       }
     },
-    sendToTab: (Settings.CONST.ChromeVersion < 41
-    ? function(tabId, request, frameId) {
-      chrome.tabs.sendMessage(tabId, request, null);
-      funcDict.sendToExt(tabId, request);
-    } : function(tabId, request, frameId, request2) {
-      chrome.tabs.sendMessage(tabId, request, frameId != null ? {frameId: frameId}
-        : request.frameId === 0 ? {frameId: 0} : null);
-      funcDict.sendToExt(tabId, request2 || request);
-    }),
 
     isIncNor: function(wnd) {
       return wnd.incognito && wnd.type === "normal";
@@ -526,7 +527,6 @@
     }
   };
   funcDict.__proto__ = null;
-  window.SendToTab = funcDict.sendToTab;
 
   /*
     function (null <% if .useTab is 0 else %>
@@ -664,7 +664,7 @@
         count = frames.length - 1;
       }
       if (frames[count] !== frames[0]) {
-        funcDict.sendToTab(tabId, {
+        sendToTab(tabId, {
           name: "focusFrame",
           frameId: frames[count]
         });
@@ -672,7 +672,7 @@
     },
     mainFrame: function(tabs) {
       if (tabs.length <= 0) { return; }
-      funcDict.sendToTab(tabs[0].id, {
+      sendToTab(tabs[0].id, {
         name: "focusFrame",
         frameId: 0
       });
@@ -975,7 +975,7 @@
       }, funcDict.onRuntimeError);
     },
     dispatchCommand: function(request) {
-      funcDict.sendToTab(request.tabId, {
+      sendToTab(request.tabId, {
         name: "dispatchCommand", frameId: request.frameId, source: request.source,
         command: request.command, args: request.args
       });
@@ -1062,7 +1062,8 @@
       chrome.tabs.query({
         url: request.url
       }, funcDict.focusOrLaunch.bind(null, request));
-    }
+    },
+    sendToTab: sendToTab
   };
   requestHandlers.__proto__ = null;
 
@@ -1113,7 +1114,7 @@
       count = currentFirst ? 1 : (currentCount || 1);
       resetKeys();
       chrome.tabs.query({currentWindow: true, active: true}, function(tabs) {
-        funcDict.sendToTab(tabs[0].id, { name: "esc" });
+        sendToTab(tabs[0].id, { name: "esc" });
       });
     } else {
       count = 1;
@@ -1155,11 +1156,11 @@
 
   chrome.webNavigation.onHistoryStateUpdated.addListener(Settings.CONST.ChromeVersion >= 41
   ? function(details) {
-    funcDict.sendToTab(details.tabId
+    sendToTab(details.tabId
       , requestHandlers.checkIfEnabled(details), details.frameId
       , {name: "checkIfEnabled"});
   } : function(details) {
-    funcDict.sendToTab(details.tabId, {name: "checkIfEnabled"});
+    sendToTab(details.tabId, {name: "checkIfEnabled"});
   });
 
   Commands.parseKeyMappings(Settings.get("keyMappings"));
