@@ -858,3 +858,9 @@ LinkHints.FUNC = {
     }
   }
 };
+
+LinkHints.__proto__ = null;
+LinkHints.alphabetHints.__proto__ = null;
+LinkHints.filterHints.__proto__ = null;
+LinkHints.CONST.__proto__ = null;
+LinkHints.FUNC.__proto__ = null;

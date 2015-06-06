@@ -81,6 +81,8 @@ var Commands = {
   advancedCommands: null,
   defaultKeyMappings: null
 };
+Commands.__proto__ = null;
+Commands.availableCommands.__proto__ = null;
 
 Commands.commandGroups = {
   pageNavigation: ["scrollDown", "scrollUp", "scrollLeft", "scrollRight", "scrollToTop"
@@ -190,6 +192,7 @@ Commands.defaultKeyMappings = {
 
 (function(descriptions) {
   var command, description, commands = Commands;
+  descriptions.__proto__ = null;
   for (command in descriptions) {
     description = descriptions[command];
     commands.addCommand(command, description[0], description[1]);

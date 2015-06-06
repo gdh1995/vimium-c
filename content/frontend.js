@@ -119,6 +119,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       port.onMessage.addListener(this.Listener);
     }
   };
+  mainPort.__proto__ = null;
 
   Settings = settings = {
     values: null,
@@ -162,6 +163,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       }
     }
   };
+  settings.__proto__ = null;
 
   ELs = { //
     focusMsg: {
@@ -452,6 +454,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       });
     }
   };
+  Commands.__proto__ = null;
 
   KeydownEvents = {
     _handledEvents: {},
@@ -472,6 +475,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       }
     }
   };
+  KeydownEvents.__proto__ = null;
 
   ELs.onKeypress = function(event) {
     if (!isEnabledForUrl || !handlerStack.bubbleEvent("keypress", event) || event.keyCode < 32) {
@@ -489,8 +493,8 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     } else {
       if (keyChar === " ") { keyChar = event.shiftKey ? "<SPACE>" : "<space>"; }
       if (checkValidKey(keyChar)) { // keyChar is just the full command
-      DomUtils.suppressEvent(event);
-    }
+        DomUtils.suppressEvent(event);
+      }
     }
   };
 
@@ -553,8 +557,8 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     } else {
       if (keyChar.length > 1) { keyChar = '<' + keyChar + '>'; }
       if (checkValidKey(keyChar, true)) { // keyChar is just the full command
-      action = 1;
-    }
+        action = 1;
+      }
     }
     if (action <= 0) {
       return;
@@ -1032,6 +1036,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       HUD = null;
     }
   };
+  HUD.__proto__ = null;
 
   // { function x | x's `this` should be requestHandlers unless x is used at other place}
   requestHandlers = {
@@ -1192,7 +1197,8 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     },
     showHelpDialog: null
   };
-  
+  requestHandlers.__proto__ = null;
+
   requestHandlers.showHelpDialog = function(response) {
     var container, handlerId, oldShowHelp, hide, node1, //
     showAdvancedCommands, shouldShowAdvanced = response.advanced === true;

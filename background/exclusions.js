@@ -23,7 +23,7 @@ var Exclusions = {
   },
   rules: [],
   setRules: function(rules) {
-    this.re = {};
+    (this.re = {}).__proto__ = null;
     this.rules = this.Format(rules);
     this.getPattern = (this.rules.length !== 0) ? this._getPatternByRules : this._getNull;
   },
@@ -41,6 +41,7 @@ var Exclusions = {
   rebuildRegex: function() {
     var rules = Settings.get("exclusionRules"), ref = this.re = {}, ref2 = this.rules //
       , _i, _j, pattern;
+    ref.__proto__ = null;
     for (_i = rules.length, _j = 0; 0 <= --_i; ) {
       pattern = rules[_i].pattern;
       if (!pattern) { continue; }
@@ -71,3 +72,4 @@ var Exclusions = {
     return url;
   }
 };
+Exclusions.__proto__ = null;

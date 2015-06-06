@@ -133,3 +133,4 @@ var Marks = {
     }
   }
 };
+Marks.__proto__ = null;

@@ -491,7 +491,7 @@ completers.searchEngines = {
 
   RegexpCache = {
     _upperRegex: /[A-Z]/,
-    _escapeRegEx: /[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g,
+    _escapeRegex: /[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g,
     _cache: {},
     clear: function() {
       this._cache = {};

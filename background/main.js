@@ -10,10 +10,13 @@
     , firstKeys, secondKeys, currentCount, currentFirst;
 
   Settings.frameIdsForTab = frameIdsForTab = {};
+  frameIdsForTab.__proto__ = null;
 
   Settings.urlForTab = urlForTab = {};
+  urlForTab.__proto__ = null;
 
   extForTab = {};
+  extForTab.__proto__ = null;
 
   helpDialogHtml = function(showUnboundCommands, showCommandNames, customTitle) {
     var command, commandsToKey, dialogHtml, group, key;
@@ -199,6 +202,7 @@
       }
     }
   };
+  ContentSettings.__proto__ = null;
 
   funcDict = {
     globalCommand: null,

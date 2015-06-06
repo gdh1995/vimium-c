@@ -30,3 +30,4 @@ var Clipboard = {
     return value;
   }
 };
+Clipboard.__proto__ = null;

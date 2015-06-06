@@ -586,3 +586,8 @@ Vomnibar.background = {
     }
   }
 };
+
+Vomnibar.__proto__ = null;
+Vomnibar.vomnibarUI.__proto__ = null;
+Vomnibar.background.__proto__ = null;
+Vomnibar.background.Completer.__proto__ = null;

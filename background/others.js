@@ -65,6 +65,7 @@ if (Settings.get("vimSync") === true) {
   };
   chrome.storage.onChanged.addListener(Settings.Sync.handleStorageUpdate.bind(Settings.Sync));
   Settings.Sync.fetchAsync();
+  Settings.Sync.__proto__ = null;
 }
 
 if (chrome.browserAction && chrome.browserAction.setIcon) (function() {

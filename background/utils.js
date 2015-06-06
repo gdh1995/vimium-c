@@ -195,3 +195,4 @@ var Utils = {
     return arr.join("");
   }
 };
+Utils.__proto__ = null;

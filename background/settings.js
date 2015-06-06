@@ -127,7 +127,7 @@ var Settings = {
           url = url.substring(ind);
         }
         if (url && url !== "=") {
-          url = url.toLowerCase().replace(RegexpCache._escapeRegEx, "\\$&");
+          url = url.toLowerCase().replace(RegexpCache._escapeRegex, "\\$&");
           if (prefix.startsWith("https://")) {
             prefix = "http" + prefix.substring(5);
           }
@@ -213,11 +213,14 @@ var Settings = {
     ChromeInnerNewTab: "chrome-search://local-ntp/local-ntp.html" // should keep lower case
   } 
 };
+Settings.__proto__ = null;
 Settings._buffer.__proto__ = null;
 Settings.updateHooks.__proto__ = null;
 Settings.defaults.__proto__ = null;
+Settings.NonJSON.__proto__ = null;
 Settings.nonPersistent.__proto__ = null;
 Settings.icons.__proto__ = null;
+Settings.CONST.__proto__ = null;
 
 // note: if changed, ../pages/newtab.js also needs change.
 Settings.defaults.newTabUrl = Settings.CONST.ChromeInnerNewTab;
@@ -234,7 +237,7 @@ Settings.defaults.newTabUrl = Settings.CONST.ChromeInnerNewTab;
   for (i = 0; i < ref.length; i++) {
     ref2 = ref[i];
     if (ref2.matches.indexOf("<all_urls>") === -1) { continue; }
-    ref3.all_frames = ref3.all_frames || ref2.all_frames;
+    ref3.all_frames || (ref3.all_frames = ref2.all_frames);
     ref3.css = ref3.css.concat(ref2.css.map(func));
     ref3.js = ref3.js.concat(ref2.js.map(func));
   }
@@ -246,6 +249,7 @@ Settings.defaults.newTabUrl = Settings.CONST.ChromeInnerNewTab;
 
   func = function() {};
   Settings.Sync = {clear: func, set: func};
+  Settings.Sync.__proto__ = null;
 })();
 
 chrome.runtime.getPlatformInfo(function(info) {
