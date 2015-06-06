@@ -70,5 +70,10 @@ var Marks = {
         storage.removeItem(key);
       }
     }
+    g_requestHandlers.sendToCurrent({
+      name: "showHUD",
+      text: "Global marks have been cleared.",
+      time: 1500
+    });
   }
 };

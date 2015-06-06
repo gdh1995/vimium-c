@@ -564,6 +564,11 @@
     },
     clearImageCS: function(tabs) {
       ContentSettings.clear("images", tabs[0]);
+      funcDict.sendToCurrent({
+        name: "showHUD",
+        text: "Image content settings have been cleared.",
+        time: 1500
+      }, tabs);
     },
     nextTab: function(tabs) {
       if (tabs.length <= 0) { return; }

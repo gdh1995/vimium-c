@@ -29,7 +29,7 @@ var Marks = {
         storage.removeItem(key);
       }
     }
-    VHUD.showForDuration("Marks are cleared.", 1500);
+    VHUD.showForDuration("Local marks have been cleared.", 1000);
   },
   onKeydown: function() {
     if (event.keyCode === KeyCodes.esc && KeyboardUtils.isPlain(event)) {
