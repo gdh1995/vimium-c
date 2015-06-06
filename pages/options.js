@@ -218,7 +218,7 @@ initPopupPage = function(tab) {
   var exclusions, onUpdated, saveOptions, updateState, url, hasNew, status;
   exclusions = null;
   tab = tab[0];
-  url = BG.urlForTab[tab.id] || tab.url;
+  url = bgSettings.urlForTab[tab.id] || tab.url;
   hasNew = false;
   var escapeRegex = /[&<>]/g, escapeCallback = function(c, n) {
     n = c.charCodeAt(0);

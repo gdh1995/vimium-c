@@ -9,9 +9,9 @@
     , requestHandlers //
     , firstKeys, secondKeys, currentCount, currentFirst;
 
-  window.frameIdsForTab = frameIdsForTab = {};
+  Settings.frameIdsForTab = frameIdsForTab = {};
 
-  window.urlForTab = urlForTab = {};
+  Settings.urlForTab = urlForTab = {};
 
   extForTab = {};
 

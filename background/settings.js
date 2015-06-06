@@ -2,6 +2,8 @@
 var Settings = {
   _buffer: {},
   bufferToLoad: null,
+  frameIdsForTab: null,
+  urlForTab: null,
   extIds: [chrome.runtime.id],
   get: function(key) {
     if (! (key in this._buffer)) {

@@ -26,7 +26,7 @@ var Marks = {
     }
     markInfo = JSON.parse(str);
     markInfo.markName = request.markName;
-    if (!frameIdsForTab[markInfo.tabId]) {
+    if (!Settings.frameIdsForTab[markInfo.tabId]) {
       g_requestHandlers.focusOrLaunch(markInfo);
       return null;
     }
