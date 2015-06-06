@@ -210,6 +210,14 @@
         chrome.runtime.sendMessage(extId, request);
       }
     },
+    sendToCurrent: function(request, tabs) {
+      if (tabs.length === 0) { return; }
+      var tabId = tabs[0].id, ref;
+      if (ref = frameIdsForTab[tabId]) {
+        request.frameId = ref[0];
+        sendToTab(tabId, request);
+      }
+    },
 
     isIncNor: function(wnd) {
       return wnd.incognito && wnd.type === "normal";
@@ -1063,7 +1071,11 @@
         url: request.url
       }, funcDict.focusOrLaunch.bind(null, request));
     },
-    sendToTab: sendToTab
+    sendToTab: sendToTab,
+    sendToCurrent: function(request) {
+      chrome.tabs.query({currentWindow: true, active: true},
+      funcDict.sendToCurrent.bind(null, request));
+    }
   };
   requestHandlers.__proto__ = null;
 

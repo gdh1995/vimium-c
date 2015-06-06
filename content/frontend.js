@@ -1181,6 +1181,9 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     },
     createMark: Marks.CreateGlobalMark,
     scroll: Marks.Goto,
+    showHUD: function(request) {
+      HUD.showForDuration(request.text, request.time);
+    },
     showHelpDialog: null
   };
   
