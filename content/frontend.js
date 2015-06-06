@@ -487,6 +487,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       DomUtils.suppressEvent(event);
     } else if (isInsertMode()) {
     } else {
+      if (keyChar === " ") { keyChar = event.shiftKey ? "<SPACE>" : "<space>"; }
       if (checkValidKey(keyChar)) { // keyChar is just the full command
       DomUtils.suppressEvent(event);
     }
@@ -549,8 +550,11 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
           || ! event.keyIdentifier.startsWith("U+")) {
       keyChar = getFullCommand(event, keyChar);
       action = checkValidKey(keyChar);
-    } else if (checkValidKey(keyChar, true)) { // keyChar is just the full command
+    } else {
+      if (keyChar.length > 1) { keyChar = '<' + keyChar + '>'; }
+      if (checkValidKey(keyChar, true)) { // keyChar is just the full command
       action = 1;
+    }
     }
     if (action <= 0) {
       return;

@@ -228,7 +228,7 @@ Vomnibar.vomnibarUI = {
     } else {
       action = "";
       n = this.selection >= 0 && this.isSelectionChanged ? 1 : 0;
-      if (event.keyCode === 32) {
+      if (event.keyCode === KeyCodes.space) {
         if (document.activeElement !== this.input) {
           action = "focus";
         } else if ((n === 1 || this.completions.length <= 1)

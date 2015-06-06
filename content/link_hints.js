@@ -508,6 +508,8 @@ LinkHints.alphabetHints = {
         if (!this.hintKeystrokeQueue.pop()) {
           return [];
         }
+      } else if (key === KeyCodes.space) {
+        return [];
       } else if (keyChar = KeyboardUtils.getKeyChar(event).toLowerCase()) {
         this.hintKeystrokeQueue.push(keyChar);
       } else {
@@ -627,7 +629,8 @@ LinkHints.filterHints = {
           return [];
         }
       } else if (keyChar = KeyboardUtils.getKeyChar(event).toLowerCase()) {
-        if ((Settings.values.linkHintNumbers || "").indexOf(keyChar) >= 0) {
+        if (key !== KeyCodes.space &&
+            (Settings.values.linkHintNumbers || "").indexOf(keyChar) >= 0) {
           this.hintKeystrokeQueue.push(keyChar);
         } else {
           this.hintKeystrokeQueue = [];
