@@ -34,7 +34,7 @@ var Exclusions = {
       if (!pattern) { continue; }
       pass = rule.passKeys;
       out.push([this.getRegex(pattern), pass && (arr = pass.match(keyRegex))
-        ? (arr.join(" ") + " ") : ""]);
+        ? (arr.sort().join(" ") + " ") : ""]);
     }
     return out;
   },

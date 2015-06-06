@@ -561,14 +561,13 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
   };
 
   setPassKeys = function(newPassKeys) {
-    var passStr;
-    if (passStr = newPassKeys) {
-      var arr = newPassKeys.split(' '), _i;
-      passKeys = {};
-      passKeys.__proto__ = null;
-      for (_i = arr.length; 0 <= --_i; ) {
-        passKeys[arr[_i]] = true;
-      }
+    if (newPassKeys) {
+      var pass = {}, arr = newPassKeys.split(' '), i = 0, len = arr.length;
+      pass.__proto__ = null;
+      do {
+        pass[arr[i]] = true;
+      } while (len > ++i);
+      passKeys = pass;
     } else {
       passKeys = null;
     }
