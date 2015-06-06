@@ -1237,7 +1237,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       node1.href = response.optionUrl;
       node1.onclick = function(event) {
         mainPort.postMessage({
-          handler: "openUrlInNewTab",
+          handler: "focusOrLaunch",
           url: container.querySelector("#vimOptionsPage").href
         })
         hide();
