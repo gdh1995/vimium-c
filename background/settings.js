@@ -205,8 +205,8 @@ var Settings = {
   Sync: null,
   CONST: {
     Timer: 0,
-    onMac: false,
     CurrentVersion: "",
+    OnMac: false,
     OptionsPage: "",
     ContentScripts: null,
     ChromeVersion: 37,
@@ -253,5 +253,5 @@ Settings.defaults.newTabUrl = Settings.CONST.ChromeInnerNewTab;
 })();
 
 chrome.runtime.getPlatformInfo(function(info) {
-  Settings.CONST.onMac = info.os === "mac";
+  Settings.CONST.OnMac = info.os === "mac";
 });

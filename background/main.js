@@ -1029,7 +1029,7 @@
       return {
         name: "ifEnabled",
         passKeys: pass,
-        onMac: Settings.CONST.onMac,
+        onMac: Settings.CONST.OnMac,
         currentFirst: currentFirst,
         firstKeys: firstKeys,
         secondKeys: secondKeys,
