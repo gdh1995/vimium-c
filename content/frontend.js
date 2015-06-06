@@ -224,9 +224,11 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     Marks: Marks,
 
     scrollToBottom: function() {
+      Marks.setPreviousPosition();
       Scroller.scrollTo("y", "max");
     },
     scrollToTop: function() {
+      Marks.setPreviousPosition();
       Scroller.scrollTo("y", 0);
     },
     scrollToLeft: function() {
@@ -284,6 +286,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     },
     enterVisualMode: function() {}, // TODO
     enterFindMode: function() {
+      Marks.setPreviousPosition();
       findModeQuery.rawQuery = "";
       findMode = true;
       HUD.show("/");
@@ -789,6 +792,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
 
   findAndFocus = function(count, backwards) {
     var mostRecentQuery, query;
+    Marks.setPreviousPosition();
     mostRecentQuery = settings.values.findModeRawQuery || "";
     if (mostRecentQuery !== findModeQuery.rawQuery) {
       findModeQuery.rawQuery = mostRecentQuery;
@@ -1175,7 +1179,8 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       }
       obj[components[_len]].apply(obj, request.args);
     },
-    gotoMark: Marks.GoTo,
+    createMark: Marks.CreateGlobalMark,
+    scroll: Marks.Goto,
     showHelpDialog: null
   };
   

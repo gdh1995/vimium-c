@@ -512,6 +512,30 @@
       if (tabs.length > 0) {
         chrome.tabs.remove(tabs.map(function(tab) { return tab.id; }));
       }
+    },
+    gotoMark: function(markInfo, tab) {
+      var tabId = markInfo.tabId = tab.id;
+      if (markInfo.scroll) {
+        funcDict.sendToTab(tabId, {
+          name: "scroll", frameId: 0,
+          scroll: markInfo.scroll,
+          markName: markInfo.markName
+        });
+      }
+      chrome.tabs.update(tabId, {active: true});
+    },
+    focusOrLaunch: function(request, tabs) {
+      if (tabs.length === 0) {
+        // TODO: here we should wait for tab finishing to load
+        chrome.tabs.create({url: request.url}, !request.scroll ? null
+          : setTimeout.bind(window, funcDict.gotoMark, 1000, request));
+        return;
+      }
+      chrome.windows.getCurrent(function(wnd) {
+        var wndId = wnd.id, tabs2, tab;
+        tabs2 = tabs.filter(function(tab) {return tab.windowId === wndId;});
+        funcDict.gotoMark(request, tabs2[0] || tabs[0]);
+      });
     }
   };
   funcDict.__proto__ = null;
@@ -1041,25 +1065,48 @@
     setBadge: function() {},
     setIcon: function() {},
     esc: resetKeys,
-    createMark: function(req, tabs) {
-      globalMarks[req.markName] = {
-        tabId: tab[0].id,
-        scroll: req.scroll
+    createMark: function(request, tabs) {
+      if (!request.scroll) {
+        funcDict.sendToTab(tabs[0].id, {
+          name: "createMark",
+          markName: request.markName,
+          force: true,
+          frameId: 0
+        });
+        return false;
+      }
+      globalMarks[request.markName] = {
+        tabId: tabs[0].id,
+        markName: request.markName,
+        url: request.url,
+        scroll: request.scroll
       };
       return true;
     },
-    goToMark: function(req) {
-      var mark = globalMarks[req.markName];
-      if (!mark) { return; }
-      funcDict.sendToTab(mark.tabId, {
-        name: "gotoMark",
-        frameId: 0,
-        scroll: mark.scroll,
-        markName: req.markName
-      });
-      chrome.tabs.update(mark.tabId, {
-        active: true
-      });
+    gotoMark: function(request) {
+      var key = request.markName, markInfo = globalMarks[key];
+      if (!markInfo) {
+        return false;
+      } else if (frameIdsForTab[markInfo.tabId]) {
+        chrome.tabs.get(markInfo.tabId, function(tab) {
+          if (!chrome.runtime.lastError && tab.url.split("#", 1)[0] === markInfo.url) {
+            funcDict.gotoMark(markInfo, tab);
+          } else {
+            requestHandlers.focusOrLaunch(markInfo);
+          }
+        });
+        return true;
+      } else {
+        requestHandlers.focusOrLaunch(markInfo);
+        return null;
+      }
+    },
+    focusOrLaunch: function(request) {
+      // * do not limit windowId or windowType
+      // * in this case, chrome will ignore url's hash
+      chrome.tabs.query({
+        url: request.url
+      }, funcDict.focusOrLaunch.bind(null, request));
     }
   };
   requestHandlers.__proto__ = null;
