@@ -85,7 +85,7 @@ var LinkHints = {
     } else if (document.body == null) {
       if (!this.initTimer) {
         this.initTimer = setInterval(this._activateMode.bind(this, mode), 300);
-      } else if (document.head == null) {
+      } else if (!document.head) {
         clearInterval(this.initTimer); // document is not a <html> document
         this.initTimer = 0;
         this.isActive = true; // disable self

@@ -1087,7 +1087,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
         css = ELs.css = document.createElement("style");
         css.type = "text/css";
         css.innerHTML = request.css;
-        document.head.appendChild(css);
+        (document.head || document.documentElement).appendChild(css);
       } else if (css) {
         DomUtils.removeNode(css);
         ELs.css = null;
