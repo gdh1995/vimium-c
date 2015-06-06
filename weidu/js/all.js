@@ -9,8 +9,18 @@ function truncate(str, ind, lng) {
 	}
 	return ''
 }
+var HtmlUtil = {
+  _escapeRegex: /[&<>]/g,
+  _escapeCallback: function(c, n) {
+    n = c.charCodeAt(0);
+    return (n === 60) ? "&lt;" : (n === 62) ? "&gt;" : "&amp;";
+  },
+  escapeHtml: function(s) {
+    return s.replace(this._escapeRegex, this._escapeCallback);
+  }
+};
 function title_fix(text) {
-	return text ? Utils.escapeHtml(text) : "";
+	return text ? HtmlUtil.escapeHtml(text) : "";
 }
 var I18n = Lang['zh_CN'];
 function getI18nMsg(msgname) {
