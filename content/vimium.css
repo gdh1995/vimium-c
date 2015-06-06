@@ -50,6 +50,7 @@
 	position: static;
 	right: auto;
 	text-align: left;
+	text-overflow: clip;
 	text-decoration: none;
 	text-indent: 0;
 	text-shadow: none;
@@ -94,6 +95,7 @@
 	text-align: inherit;
 	text-decoration: inherit;
 	text-indent: inherit;
+	text-overflow: clip;
 	text-shadow: inherit;
 	text-transform: inherit;
 	top: auto;
