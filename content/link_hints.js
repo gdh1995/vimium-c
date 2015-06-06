@@ -461,7 +461,7 @@ LinkHints.alphabetHints = {
   },
   hintStrings: function(linkCount) {
     var digitsNeeded, hintStrings, i, linkHintCharacters, longHintCount, shortHintCount, start, _ref;
-    linkHintCharacters = Settings.values.linkHintCharacters || "";
+    linkHintCharacters = Settings.values.linkHintCharacters;
     digitsNeeded = Math.ceil(this.logXOfBase(linkCount, linkHintCharacters.length));
     shortHintCount = Math.floor((Math.pow(linkHintCharacters.length, digitsNeeded) - linkCount) / linkHintCharacters.length);
     longHintCount = linkCount - shortHintCount;
@@ -630,7 +630,7 @@ LinkHints.filterHints = {
         }
       } else if (keyChar = KeyboardUtils.getKeyChar(event).toLowerCase()) {
         if (key !== KeyCodes.space &&
-            (Settings.values.linkHintNumbers || "").indexOf(keyChar) >= 0) {
+            (Settings.values.linkHintNumbers).indexOf(keyChar) >= 0) {
           this.hintKeystrokeQueue.push(keyChar);
         } else {
           this.hintKeystrokeQueue = [];

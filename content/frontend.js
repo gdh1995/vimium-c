@@ -240,10 +240,10 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       Scroller.scrollTo("x", "max");
     },
     scrollUp: function(count) {
-      Scroller.scrollBy("y", -count * (settings.values.scrollStepSize || 100));
+      Scroller.scrollBy("y", -count * settings.values.scrollStepSize);
     },
     scrollDown: function(count) {
-      Scroller.scrollBy("y", count * (settings.values.scrollStepSize || 100));
+      Scroller.scrollBy("y", count * settings.values.scrollStepSize);
     },
     scrollPageUp: function(count) {
       Scroller.scrollBy("y", -count / 2, "viewSize");
@@ -258,10 +258,10 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       Scroller.scrollBy("y", count, "viewSize");
     },
     scrollLeft: function(count) {
-      Scroller.scrollBy("x", -count * (settings.values.scrollStepSize || 100), "", true);
+      Scroller.scrollBy("x", -count * settings.values.scrollStepSize, "", true);
     },
     scrollRight: function(count) {
-      Scroller.scrollBy("x", count * (settings.values.scrollStepSize || 100), "", true);
+      Scroller.scrollBy("x", count * settings.values.scrollStepSize, "", true);
     },
     scrollPxUp: function(count) {
       Scroller.scrollBy("y", -count);
@@ -294,10 +294,10 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       HUD.show("/");
     },
     goPrevious: function() {
-      goBy("prev", settings.values.previousPatterns || "");
+      goBy("prev", settings.values.previousPatterns);
     },
     goNext: function() {
-      goBy("next", settings.values.nextPatterns || "");
+      goBy("next", settings.values.nextPatterns);
     },
     reload: function() {
       window.location.reload();
@@ -650,7 +650,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
   
   updateFindModeQuery = function() {
     var error, escapeRegEx, hasNoIgnoreCaseFlag, parsedNonRegexQuery, pattern, text, _ref;
-    findModeQuery.isRegex = settings.values.regexFindMode ? true : false;
+    findModeQuery.isRegex = settings.values.regexFindMode;
     hasNoIgnoreCaseFlag = false;
     findModeQuery.parsedQuery = findModeQuery.rawQuery.replace(/\\./g, function(match) {
       switch (match) {
@@ -803,7 +803,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
   findAndFocus = function(count, backwards) {
     var mostRecentQuery, query;
     Marks.setPreviousPosition();
-    mostRecentQuery = settings.values.findModeRawQuery || "";
+    mostRecentQuery = settings.values.findModeRawQuery;
     if (mostRecentQuery !== findModeQuery.rawQuery) {
       findModeQuery.rawQuery = mostRecentQuery;
       updateFindModeQuery();
@@ -1110,7 +1110,9 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
         return;
       }
       window.focus();
-      if (!settings.values.highlightMask) {
+      if (settings.values.highlightMask) {
+        settings.values.highlightMask.more = true;
+      } else {
         var dom1 = document.createElement("div");
         dom1.className = "vimB vimR";
         dom1.id = "vimHighlightMask";
@@ -1120,8 +1122,6 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
           more: false,
           timer: setInterval(requestHandlers.removeHighlightMask, 200)
         };
-      } else {
-        settings.values.highlightMask.more = true;
       }
       document.documentElement.scrollIntoViewIfNeeded();
     },
