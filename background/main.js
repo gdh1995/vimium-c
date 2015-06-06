@@ -195,15 +195,22 @@
   funcDict = {
     globalCommand: null,
     globalConnect: null,
-    sendToTab: function(tabId, request, frameId, request2) {
-      chrome.tabs.sendMessage(tabId, request, Settings.CONST.ChromeVersion < 41
-        ? null : frameId != null ? {frameId: frameId}
-        : request.frameId === 0 ? {frameId: 0} : null);
-      if (extForTab[tabId]) {
-        request = { "vimium++": {tabId: tabId, request: request2 || request} };
-        chrome.runtime.sendMessage(extForTab[tabId], request);
+    sendToExt: function(tabId, request) {
+      var extId;
+      if (extId = extForTab[tabId]) {
+        request = { "vimium++": {tabId: tabId, request: request} };
+        chrome.runtime.sendMessage(extId, request);
       }
     },
+    sendToTab: (Settings.CONST.ChromeVersion < 41
+    ? function(tabId, request, frameId) {
+      chrome.tabs.sendMessage(tabId, request, null);
+      funcDict.sendToExt(tabId, request);
+    } : function(tabId, request, frameId, request2) {
+      chrome.tabs.sendMessage(tabId, request, frameId != null ? {frameId: frameId}
+        : request.frameId === 0 ? {frameId: 0} : null);
+      funcDict.sendToExt(tabId, request2 || request);
+    }),
 
     isIncNor: function(wnd) {
       return wnd.incognito && wnd.type === "normal";
