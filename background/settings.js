@@ -146,32 +146,27 @@ var Settings = {
   // clear localStorage & sync, if value === @defaults[key]
   defaults: {
     UILanguage: null,
-    showAdvancedCommands: 0,
-    showAdvancedOptions: 1,
-    showActionIcon: true,
-    vimSync: false,
-    showOmniRelevancy: false,
-    scrollStepSize: 100,
-    smoothScroll: true,
+    exclusionRules: [{pattern: "http*://mail.google.com/*", passKeys: ""}],
+    filterLinkHints: false,
+    findModeRawQuery: "",
+    hideHud: false,
     keyMappings: "",
     linkHintCharacters: "asdqwerzxcv",
     linkHintNumbers: "1234567890",
-    filterLinkHints: false,
-    hideHud: false,
-    regexFindMode: false,
-    findModeRawQuery: "",
-    userDefinedCss: "",
-    exclusionRules: [
-      {
-        pattern: "http*://mail.google.com/*",
-        passKeys: ""
-      }
-    ],
-    previousPatterns: "prev,previous,back,<,\u2190,\xab,\u226a,<<",
+    newTabUrl: "",
     nextPatterns: "next,more,>,\u2192,\xbb,\u226b,>>",
+    previousPatterns: "prev,previous,back,<,\u2190,\xab,\u226a,<<",
+    regexFindMode: false,
+    scrollStepSize: 100,
     searchUrl: "http://www.baidu.com/s?ie=utf-8&wd=%s Baidu",
     searchEngines: "w|wiki|Wiki:\\\n  http://www.wikipedia.org/w/index.php?search=%s Wikipedia (en-US)\nBaidu|baidu|ba:\\\n  www.baidu.com/s?ie=utf-8&wd=%s",
-    newTabUrl: ""
+    showActionIcon: true,
+    showAdvancedCommands: 0,
+    showAdvancedOptions: 1,
+    showOmniRelevancy: false,
+    smoothScroll: true,
+    userDefinedCss: "",
+    vimSync: false
   },
   NonJSON: {
     findModeRawQuery: true,
@@ -204,13 +199,13 @@ var Settings = {
   ],
   Sync: null,
   CONST: {
-    Timer: 0,
+    ChromeInnerNewTab: "chrome-search://local-ntp/local-ntp.html", // should keep lower case
+    ChromeVersion: 37,
+    ContentScripts: null,
     CurrentVersion: "",
     OnMac: false,
     OptionsPage: "",
-    ContentScripts: null,
-    ChromeVersion: 37,
-    ChromeInnerNewTab: "chrome-search://local-ntp/local-ntp.html" // should keep lower case
+    Timer: 0
   } 
 };
 Settings.__proto__ = null;
