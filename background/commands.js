@@ -23,9 +23,6 @@ var Commands = {
         background: commandDetails.background,
         command: command
       };
-      if (window._DEBUG) {
-        console.log("Mapping", key, "to", command);
-      }
     } else {
       console.log("Command %c" + command, "color:red;", "doesn't exist!");
     }
@@ -33,9 +30,6 @@ var Commands = {
   unmapKey: function(key) {
     if (key in this.keyToCommandRegistry) {
       delete this.keyToCommandRegistry[key];
-      if (window._DEBUG) {
-        console.log("Unmapping", key);
-      }
     } else {
       console.log("Unmapping:", key, "has not been mapped");
     }

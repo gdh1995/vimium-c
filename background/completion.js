@@ -647,9 +647,6 @@ completers.searchEngines = {
           _this.dict[url] = text = text.substring(1, text.length - 1);
         }
         _this.working = 0;
-        if (window._DEBUG) {
-          console.log(url, " => ", text);
-        }
         _this.Work();
       }
     },

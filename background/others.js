@@ -2,7 +2,6 @@
 
 if (Settings.get("vimSync") === true) {
   Settings.Sync = {
-    debug: window._DEBUG,
     storage: chrome.storage.sync,
     doNotSync: ["settingsVersion", "previousVersion"],
     fetchAsync: function() {
@@ -193,8 +192,8 @@ setTimeout(function() {
   window.b = null;
 }, 50);
 
-var a, b, c, cb, log; // for DEBUG only
+var a, b, c, cb, log; // #if DEBUG
 cb = function(b) { a = b; console.log(b); };
 setTimeout(function() {
   a = c = null, b = cb, log = console.log.bind(console);
-}, 100);
+}, 100); // #endif
