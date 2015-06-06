@@ -66,7 +66,10 @@ var Marks = {
     var keyChar = String.fromCharCode(event.charCode), markString, position;
     handlerStack.remove();
     if (event.shiftKey) {
-      MainPort.postMessage({handler: "gotoMark", markName: keyChar}, function(req) {
+      MainPort.postMessage({
+        handler: "Marks.gotoMark",
+        markName: keyChar
+      }, function(req) {
         if (req === false) {
           VHUD.showForDuration("Global mark not set '" + keyChar + "'", 1500);
         }
@@ -95,11 +98,11 @@ var Marks = {
   CreateGlobalMark: function(request) {
     var keyChar = request.markName;
     if (window.top !== window && !request.force) {
-      MainPort.postMessage({handler: 'createMark', markName: keyChar});
+      MainPort.postMessage({handler: 'Marks.createMark', markName: keyChar});
       return;
     }
     MainPort.postMessage({
-      handler: 'createMark',
+      handler: 'Marks.createMark',
       markName: keyChar,
       url: Marks.getBaseUrl(),
       scroll: [window.scrollX, window.scrollY]

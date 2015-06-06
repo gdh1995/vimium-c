@@ -9,7 +9,7 @@
     , requestHandlers //
     , firstKeys, secondKeys, currentCount, currentFirst;
 
-  frameIdsForTab = {};
+  window.frameIdsForTab = frameIdsForTab = {};
 
   window.urlForTab = urlForTab = {};
 
@@ -244,9 +244,6 @@
     },
     onRuntimeError: function() {
       return chrome.runtime.lastError;
-    },
-    getMarkKey: function(keyChar) {
-      return "vimiumGlobalMark|" + keyChar;
     },
 
     openUrlInIncognito: function(request, tab, wnds) {
@@ -514,39 +511,22 @@
         chrome.tabs.remove(tabs.map(function(tab) { return tab.id; }));
       }
     },
-    gotoMark: function(markInfo, tab) {
-      var tabId = tab.id;
-      if (markInfo.scroll) {
-        funcDict.sendToTab(tabId, {
-          name: "scroll", frameId: 0,
-          scroll: markInfo.scroll,
-          markName: markInfo.markName
-        });
-        if (markInfo.tabId !== tabId && markInfo.markName) {
-          localStorage[funcDict.getMarkKey(markInfo.markName)] = JSON.stringify({
-            tabId: tabId,
-            url: markInfo.url,
-            scroll: markInfo.scroll
-          });
-        }
-      }
-      chrome.tabs.update(tabId, {active: true});
-    },
     focusOrLaunch: function(request, tabs) {
       if (tabs.length === 0) {
         // TODO: here we should wait for tab finishing to load
         chrome.tabs.create({url: request.url}, !request.scroll ? null
-          : setTimeout.bind(window, funcDict.gotoMark, 1000, request));
+          : setTimeout.bind(window, Marks.gotoTab, 1000, request));
         return;
       }
       chrome.windows.getCurrent(function(wnd) {
         var wndId = wnd.id, tabs2, tab;
         tabs2 = tabs.filter(function(tab) {return tab.windowId === wndId;});
-        funcDict.gotoMark(request, tabs2[0] || tabs[0]);
+        Marks.gotoTab(request, tabs2[0] || tabs[0]);
       });
     }
   };
   funcDict.__proto__ = null;
+  window.SendToTab = funcDict.sendToTab;
 
   /*
     function (null <% if .useTab is 0 else %>
@@ -1073,44 +1053,8 @@
     setBadge: function() {},
     setIcon: function() {},
     esc: resetKeys,
-    createMark: function(request, tabs) {
-      if (!request.scroll) {
-        funcDict.sendToTab(tabs[0].id, {
-          name: "createMark",
-          markName: request.markName,
-          force: true,
-          frameId: 0
-        });
-        return;
-      }
-      localStorage[funcDict.getMarkKey(request.markName)] = JSON.stringify({
-        tabId: tabs[0].id,
-        url: request.url,
-        scroll: request.scroll
-      });
-      return true;
-    },
-    gotoMark: function(request) {
-      var str = request.markName, markInfo;
-      str = localStorage[funcDict.getMarkKey(request.markName)];
-      if (!str) {
-        return false;
-      }
-      markInfo = JSON.parse(str);
-      markInfo.markName = request.markName;
-      if (!frameIdsForTab[markInfo.tabId]) {
-        requestHandlers.focusOrLaunch(markInfo);
-        return null;
-      }
-      chrome.tabs.get(markInfo.tabId, function(tab) {
-        if (!chrome.runtime.lastError && tab.url.startsWith(markInfo.url)) {
-          funcDict.gotoMark(markInfo, tab);
-        } else {
-          requestHandlers.focusOrLaunch(markInfo);
-        }
-      });
-      return true;
-    },
+    "Marks.createMark": Marks.createMark,
+    "Marks.gotoMark": Marks.gotoMark,
     focusOrLaunch: function(request) {
       // * do not limit windowId or windowType
       // * in this case, chrome will ignore url's hash
@@ -1228,7 +1172,7 @@
     ref2 = requestHandlers;
     for (key in ref2) { ref2[key].useTab = 0; }
     ref = ["copyCurrentUrl", "openUrlInNewTab", "openUrlInIncognito" //
-      , "openImageUrl", "createMark" //
+      , "openImageUrl", "Marks.createMark" //
     ];
     for (i = ref.length; 0 <= --i; ) {
       ref2[ref[i]].useTab = 1;
