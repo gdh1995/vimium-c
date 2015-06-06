@@ -390,7 +390,7 @@ var classification = {
 	},
 	changeBody : function (cId) {
 		var self = this;
-		$(".dialbox").addClass("farAway");
+		$(".body").addClass("farAway");
 		setTimeout(function () {
 			storage.setId(cId);
 			targetSwitch = PDI.get('privateSetup', 'targetSwitch');
@@ -422,7 +422,7 @@ var classification = {
 			}
 		}, 150);
 		setTimeout(function () {
-			$(".dialbox").removeClass("farAway");
+			$(".body").removeClass("farAway");
 			self.changeSwitch = true
 		}, 610);
 		oauth.updateMsgId();

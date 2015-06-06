@@ -2588,8 +2588,12 @@ DBOX = {
 		not_boxDrag = quickBoxList.not('.boxDrag');
 		self.QContainer.find('.boxLogo').removeClass('noTitle');
 		self.QContainer.find('.boxTitle').css('backgroundColor', 'transparent');
-		if (!self.dialBoxQuickHide && self.QTotalnum <= 0) {
-			self.QBContainer.addClass("hide");
+		if (!self.dialBoxQuickHide) {
+			if (self.QTotalnum <= 0) {
+				self.QBContainer.css("visibility", "hidden")
+			} else {
+				self.QBContainer.css("visibility", "visible")
+			}
 		}
 		self.QBContainer.css("width", self.QBContainerWidth + "px")
 			.css("margin-left", -self.QBContainerWidth / 2 + "px");
