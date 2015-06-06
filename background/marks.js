@@ -59,5 +59,16 @@ var Marks = {
       }
     }
     chrome.tabs.update(tabId, {active: true});
+  },
+  clearGlobal: function() {
+    var key_start, storage, i, key;
+    key_start = Marks.getMarkKey("");
+    storage = localStorage;
+    for (i = storage.length; 0 <= --i; ) {
+      key = storage.key(i);
+      if (key.startsWith(key_start)) {
+        storage.removeItem(key);
+      }
+    }
   }
 };

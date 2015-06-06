@@ -696,7 +696,8 @@
       var url = tabs[0].url;
       url = url.startsWith("view-source:") ? url.substring(12) : ("view-source:" + url);
       openMultiTab(Utils.convertToUrl(url), 1, tabs[0]);
-    }
+    },
+    "Marks.clearGlobal": Marks.clearGlobal
   };
   BackgroundCommands.__proto__ = null;
 
@@ -1187,7 +1188,7 @@
       ref2[ref[i]].useTab = 2;
     }
     ref = ["createTab", "restoreTab", "restoreGivenTab", "blank", "reloadTab" //
-      , "openCopiedUrlInCurrentTab" //
+      , "openCopiedUrlInCurrentTab", "Marks.clearGlobal" //
     ];
     for (i = ref.length; 0 <= --i; ) {
       ref2[ref[i]].useTab = 0;

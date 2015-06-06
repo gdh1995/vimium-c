@@ -102,7 +102,9 @@ Commands.commandGroups = {
     , "LinkHints.activateModeToDownloadLink", "LinkHints.activateModeToOpenIncognito"
     , "LinkHints.activateModeToHover", "LinkHints.activateModeToSearchLinkText"
     , "goPrevious", "goNext", "nextFrame", "mainFrame"
-    , "Marks.activateCreateMode", "Marks.activateGotoMode"],
+    , "Marks.activateCreateMode", "Marks.activateGotoMode"
+    , "Marks.clearLocal", "Marks.clearGlobal"
+    ],
   vomnibarCommands: ["Vomnibar.activate", "Vomnibar.activateInNewTab"
     , "Vomnibar.activateBookmarks", "Vomnibar.activateBookmarksInNewTab", "Vomnibar.activateHistory"
     , "Vomnibar.activateHistoryInNewTab", "Vomnibar.activateTabSelection"
@@ -122,7 +124,7 @@ Commands.advancedCommands = ["scrollToLeft", "scrollToRight", "moveTabToNextWind
   , "LinkHints.activateModeToOpenImage", "searchAs"
   , "LinkHints.activateModeToDownloadLink", "Vomnibar.activateEditUrl", "restoreGivenTab"
   , "Vomnibar.activateEditUrlInNewTab", "LinkHints.activateModeToOpenIncognito"
-  , "goNext", "goPrevious", "Marks.activateCreateMode", "Marks.activateGotoMode"
+  , "goNext", "goPrevious", "Marks.clearLocal", "Marks.clearGlobal"
   , "moveTabLeft", "moveTabRight", "closeTabsOnLeft", "closeTabsOnRight", "closeOtherTabs"
   , "scrollPxDown", "scrollPxUp", "scrollPxLeft", "scrollPxRight", "blank"
 ];
@@ -595,6 +597,17 @@ Commands.defaultKeyMappings = {
   ],
   "Marks.activateGotoMode": [
     "Go to a mark", {
+      noRepeat: true
+    }
+  ],
+  "Marks.clearLocal": [
+    "Remove all local marks for this site", {
+      noRepeat: true
+    }
+  ],
+  "Marks.clearGlobal": [
+    "Remove all global marks", {
+      background: true,
       noRepeat: true
     }
   ]

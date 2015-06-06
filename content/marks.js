@@ -18,6 +18,19 @@ var Marks = {
     });
     VHUD.show("Go to mark ...");
   },
+  clearLocal: function() {
+    var key_start, storage, i, key;
+    this._previous = null;
+    key_start = this.getLocationKey("");
+    storage = localStorage;
+    for (i = storage.length; 0 <= --i; ) {
+      key = storage.key(i);
+      if (key.startsWith(key_start)) {
+        storage.removeItem(key);
+      }
+    }
+    VHUD.showForDuration("Marks are cleared.", 1500);
+  },
   onKeydown: function() {
     if (event.keyCode === KeyCodes.esc && KeyboardUtils.isPlain(event)) {
       handlerStack.remove();
