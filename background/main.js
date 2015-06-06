@@ -229,6 +229,7 @@
         windowId: tab.windowId,
         url: tab.url,
         openerTabId: tab.openerTabId,
+        active: tab.active,
         index: tab.index
       });
       chrome.tabs.remove(tab.id);
@@ -614,7 +615,7 @@
       });
     },
     reopenTab: function(tabs) {
-      var tab = tabs[0]; tabs = null;
+      var tab = tabs[0];
       if (!tab) { return; }
       ++tab.index;
       if (!Utils.isRefusingIncognito(tab.url)) {

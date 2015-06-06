@@ -1277,7 +1277,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
 
   DomUtils.DocumentReady(function() {
     // NOTE: when port is disconnected:
-    // * if backend asks to re-reg, then rH.reg will call safePort;
+    // * if backend asks to re-reg, then rH.reg will call safePost;
     // * if extension is stopped, then ELs.destroy is called when focused,
     // so, only being removed without pre-focusing may make port is null
     ELs.unloadMsg = {handlerSettings: "unreg", frameId: frameId};
