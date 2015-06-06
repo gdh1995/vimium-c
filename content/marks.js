@@ -33,70 +33,90 @@ var Marks = {
     return "vimiumMark|" + this.getBaseUrl() + "|" + keyChar;
   },
   getMarkString: function() {
-    return JSON.stringify({scrollX: window.scrollX, scrollY: window.scrollY});
+    return ;
   },
   // previousPositionRegisters: ["`", "'"],
   _previous: null,
   setPreviousPosition: function() {
-    this._previous = [window.scrollX, window.scrollY];
+    this._previous = {
+      scrollX: window.scrollX,
+      scrollY: window.scrollY
+    };
   },
   _create: function(event) {
     var keyChar = String.fromCharCode(event.charCode);
     handlerStack.remove();
-    if (event.shiftKey && keyChar !== "`" && keyChar !== "'") {
+    if (event.shiftKey) {
       this.CreateGlobalMark({markName: keyChar});
       VHUD.hide();
-    } else {
-      localStorage[this.getLocationKey(keyChar)] = this.getMarkString();
-      VHUD.showForDuration("Created local mark '" + keyChar + "'", 1000);
+      return;
     }
+    if (keyChar === "`" || keyChar === "'") {
+      this.setPreviousPosition();
+    } else {
+      localStorage[this.getLocationKey(keyChar)] = JSON.stringify({
+        scrollX: window.scrollX,
+        scrollY: window.scrollY
+      });
+    }
+    VHUD.showForDuration("Created local mark '" + keyChar + "'", 1000);
     return false;
   },
   _goto: function(event) {
     var keyChar = String.fromCharCode(event.charCode), markString, position;
     handlerStack.remove();
-    if (keyChar === "`" || keyChar === "'") {
-      window.scrollTo(this._previous[0], this._previous[1]);
-      VHUD.showForDuration("Jumped to local mark \"" + keyChar + "\"", 1000);
-    } else if (event.shiftKey) {
-      MainPort.postMessage({
-        handler: "gotoMark",
-        markName: keyChar
-      }, function(req) {
+    if (event.shiftKey) {
+      MainPort.postMessage({handler: "gotoMark", markName: keyChar}, function(req) {
         if (req === false) {
           VHUD.showForDuration("Global mark not set '" + keyChar + "'", 1500);
         }
       });
       VHUD.hide();
+      return false;
+    }
+    if (keyChar === "`" || keyChar === "'") {
+      if (!(position = this._previous)) {
+        this.setPreviousPosition();
+        VHUD.showForDuration("Created local mark '" + keyChar + "'", 1000);
+        return;
+      }
     } else if (markString = localStorage[this.getLocationKey(keyChar)]) {
-      this.setPreviousPosition();
       position = JSON.parse(markString);
+    }
+    if (position) {
+      this.setPreviousPosition();
       window.scrollTo(position.scrollX, position.scrollY);
-      VHUD.showForDuration("Jumped to local mark '" + keyChar + "'", 1000);
+      VHUD.showForDuration("Jumped to local mark ' " + keyChar + " '", 1000);
     } else {
-      VHUD.showForDuration("Local mark not set '" + keyChar + "'", 1000);
+      VHUD.showForDuration("Local mark not set '" + keyChar + "'", 2000);
     }
     return false;
   },
   CreateGlobalMark: function(request) {
     var keyChar = request.markName;
+    if (window.top !== window && !request.force) {
+      MainPort.postMessage({handler: 'createMark', markName: keyChar});
+      return;
+    }
     MainPort.postMessage({
       handler: 'createMark',
       markName: keyChar,
       url: Marks.getBaseUrl(),
-      scroll: (window.top === window || request.force
-        ? [window.scrollX, window.scrollY] : null)
-    }, function(req) {
-      if (req) {
-        VHUD.showForDuration("Created global mark '" + keyChar + "'", 1000);
-      }
+      scroll: [window.scrollX, window.scrollY]
     });
+    VHUD.showForDuration("Created global mark '" + keyChar + "'", 1000);
   },
   Goto: function(request) {
     var scroll = request.scroll;
-    window.scrollTo(scroll[0], scroll[1]);
+    if (!document.body || document.body.nodeName.toLowerCase() !== "frameset") {
+      window.focus();
+    }
     if (request.markName) {
-      VHUD.showForDuration("Jumped to global mark '" + request.markName + "'", 1000);
+      Marks.setPreviousPosition();
+      window.scrollTo(scroll[0], scroll[1]);
+      VHUD.showForDuration("Jumped to global mark '" + request.markName + "'", 2000);
+    } else {
+      window.scrollTo(scroll[0], scroll[1]);
     }
   }
 };
