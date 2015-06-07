@@ -3,12 +3,12 @@
 var Marks = {
   createMark: function(request, tabs) {
     if (!request.scroll) {
-      g_requestHandlers.sendToTab(tabs[0].id, {
+      g_requestHandlers.sendToTab({
         name: "createMark",
         markName: request.markName,
         force: true,
         frameId: 0
-      });
+      }, tabs[0].id);
       return;
     }
     localStorage[Marks.getMarkKey(request.markName)] = JSON.stringify({
@@ -45,11 +45,11 @@ var Marks = {
   gotoTab: function(markInfo, tab) {
     var tabId = tab.id;
     if (markInfo.scroll) {
-      g_requestHandlers.sendToTab(tabId, {
+      g_requestHandlers.sendToTab({
         name: "scroll", frameId: 0,
         scroll: markInfo.scroll,
         markName: markInfo.markName
-      });
+      }, tabId);
       if (markInfo.tabId !== tabId && markInfo.markName) {
         localStorage[Marks.getMarkKey(markInfo.markName)] = JSON.stringify({
           tabId: tabId,

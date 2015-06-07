@@ -81,13 +81,13 @@
   };
 
   sendToTab = Settings.CONST.ChromeVersion < 41
-  ? function(tabId, request, frameId) {
+  ? function(request, tabId, frameId) {
     chrome.tabs.sendMessage(tabId, request, null);
-    funcDict.sendToExt(tabId, request);
-  } : function(tabId, request, frameId, request2) {
+    funcDict.sendToExt(request, tabId);
+  } : function(request, tabId, frameId, request2) {
     chrome.tabs.sendMessage(tabId, request, frameId != null ? {frameId: frameId}
       : request.frameId === 0 ? {frameId: 0} : null);
-    funcDict.sendToExt(tabId, request2 || request);
+    funcDict.sendToExt(request2 || request, tabId);
   };
 
   ContentSettings = {
@@ -207,7 +207,7 @@
   funcDict = {
     globalCommand: null,
     globalConnect: null,
-    sendToExt: function(tabId, request) {
+    sendToExt: function(request, tabId) {
       var extId;
       if (extId = extForTab[tabId]) {
         request = { "vimium++": {tabId: tabId, request: request} };
@@ -219,7 +219,7 @@
       var tabId = tabs[0].id, ref;
       if (ref = frameIdsForTab[tabId]) {
         request.frameId = ref[0];
-        sendToTab(tabId, request);
+        sendToTab(request, tabId);
       }
     },
 
@@ -681,18 +681,18 @@
         count = frames.length - 1;
       }
       if (frames[count] !== frames[0]) {
-        sendToTab(tabId, {
+        sendToTab({
           name: "focusFrame",
           frameId: frames[count]
-        });
+        }, tabId);
       }
     },
     mainFrame: function(tabs) {
       if (tabs.length <= 0) { return; }
-      sendToTab(tabs[0].id, {
+      sendToTab({
         name: "focusFrame",
         frameId: 0
-      });
+      }, tabs[0].id);
     },
     closeTabsOnLeft: function(tabs) {
       funcDict.removeTabsRelative(funcDict.selectFrom(tabs), -commandCount, tabs);
@@ -992,10 +992,10 @@
       }, funcDict.onRuntimeError);
     },
     dispatchCommand: function(request) {
-      sendToTab(request.tabId, {
+      sendToTab({
         name: "dispatchCommand", frameId: request.frameId, source: request.source,
         command: request.command, args: request.args
-      });
+      }, request.tabId);
     },
     frameFocused: function(request) {
       var tabId = request.tabId, frames;
@@ -1135,7 +1135,7 @@
       count = currentFirst ? 1 : (currentCount || 1);
       resetKeys();
       chrome.tabs.query({currentWindow: true, active: true}, function(tabs) {
-        sendToTab(tabs[0].id, { name: "esc" });
+        sendToTab({ name: "esc" }, tabs[0].id);
       });
     } else {
       count = 1;
@@ -1177,11 +1177,10 @@
 
   chrome.webNavigation.onHistoryStateUpdated.addListener(Settings.CONST.ChromeVersion >= 41
   ? function(details) {
-    sendToTab(details.tabId
-      , requestHandlers.checkIfEnabled(details), details.frameId
-      , {name: "checkIfEnabled"});
+    sendToTab(requestHandlers.checkIfEnabled(details), details.tabId
+      , details.frameId, {name: "checkIfEnabled"});
   } : function(details) {
-    sendToTab(details.tabId, {name: "checkIfEnabled"});
+    sendToTab({name: "checkIfEnabled"}, details.tabId);
   });
 
   Commands.parseKeyMappings(Settings.get("keyMappings"));
