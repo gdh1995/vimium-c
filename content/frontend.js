@@ -1050,7 +1050,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       r.ifEnabled = null;
     },
     setEnabled: function(request) {
-      var passKeys = passKeys;
+      var passKeys = request.passKeys;
       if (isEnabledForUrl = (passKeys !== "")) {
         ELs.focusMsg.status = passKeys ? "partial" : "enabled";
         initializeWhenEnabled(passKeys, request);
