@@ -234,12 +234,16 @@ initOptionsPage = function() {
 exportSetting = function() {
   var exported_object, exported_data, file_name, force2, d, nodeA;
   exported_object = {name: "Vimium++", time: 0};
+  exported_object.__proto__ = null;
   (function() {
-    var storage = localStorage, i, len, key;
+    var storage = localStorage, i, len, key, mark_head, all = bgSettings.defaults;
+    mark_head = BG.Marks.getMarkKey("");
     for (i = 0, len = storage.length; i < len; i++) {
       key = storage.key(i);
-      if (key === "name" || key === "time") { continue; }
-      exported_object[key] = storage.getItem(key);
+      if (key === "name" || key === "time" || key.startsWith(mark_head)) {
+        continue;
+      }
+      exported_object[key] = (key in all) ? bgSettings.get(key) : storage.getItem(key);
     }
   })();
   delete exported_object.findModeRawQuery;
@@ -276,12 +280,14 @@ importSettings = function() {
     return;
   }
 
-  var storage = localStorage, i, key, new_value, func;
+  var storage = localStorage, i, key, new_value, func, all = bgSettings.defaults;
   func = function(val) {
     return typeof val !== "string" ? val : val.substring(0, 72);
   };
-  delete new_data.findModeRawQuery;
   console.log("IMPORT settings at", new Date(new_data.time));
+  delete new_data.name;
+  delete new_data.time;
+  delete new_data.findModeRawQuery;
   for (i = storage.length; 0 <= --i; ) {
     key = storage.key(i);
     if (!(key in new_data)) {
@@ -292,7 +298,7 @@ importSettings = function() {
     var key = item.field, new_value = new_data[key];
     delete new_data[key];
     if (new_value == null) {
-      new_value = bgSettings.defaults[key];
+      new_value = all[key];
     }
     if (!item.areEqual(bgSettings.get(key), new_value)) {
       console.log("import", key, func(new_value));
@@ -303,22 +309,27 @@ importSettings = function() {
   for (key in new_data) {
     new_value = new_data[key];
     if (new_value == null) {
-      if (key in bgSettings.defaults) {
-        new_value = bgSettings.defaults[key];
+      if (key in all) {
+        new_value = all[key];
         if (bgSettings.get(key) !== new_value) {
           bgSettings.set(key, new_value);
           console.log("reset", key, func(new_value));
+          continue;
         }
-      } else if (storage.getItem(key) != null) {
+        new_value = bgSettings.get(key);
+      } else {
         new_value = storage.getItem(key);
-        storage.removeItem(key);
-        console.log("remove", key, "<=", func(new_value));
       }
-    } else if (key in bgSettings.defaults) {
+      storage.removeItem(key);
+      console.log("remove", key, "<=", func(new_value));
+    } else if (key in all) {
       if (bgSettings.get(key) !== new_value) {
         bgSettings.set(key, new_value);
-        console.log("save", key, func(new_value));
+        console.log("update", key, func(new_value));
       }
+    } else {
+      storage.setItem(key, new_value);
+      console.log("save", key, func(new_value));
     }
   }
   var btn = $("saveOptions");
