@@ -133,9 +133,9 @@ initOptionsPage = function() {
 
   activateHelpDialog = function(event) {
     var node;
-    if (node = $("vimHelpDialog")) {
+    DomUtils.suppressEvent(event);
+    if (node = document.querySelector('.vimHelpCommandName')) {
       node.click();
-      DomUtils.suppressEvent(event);
       return;
     }
     MainPort.sendMessage({
@@ -143,7 +143,16 @@ initOptionsPage = function() {
       unbound: true,
       names: true,
       title: "Command Listing"
-    }, MainPort.Listener);
+    }, function(response) {
+      if (node = $("vimHelpDialog")) {
+        MainPort.Listener({
+          name: "executePageCommand",
+          command: "showHelp",
+          count: 1
+        });
+      }
+      MainPort.Listener(response);
+    });
   };
 
   saveOptions = function() {
