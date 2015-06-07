@@ -735,7 +735,7 @@ LinkHints.FUNC = {
     // NOTE: url should not be modified
     // although BackendUtils.convertToUrl does replace '\u3000' with ' '
     str = Utils.decodeURL(str);
-    MainPort.postMessage({
+    MainPort.port.postMessage({
       handler: "copyToClipboard",
       data: str
     });
@@ -753,13 +753,13 @@ LinkHints.FUNC = {
     }
     str = Utils.correctSpace(str);
     if (this.mode === this.CONST.SEARCH_TEXT) {
-      MainPort.postMessage({
+      MainPort.port.postMessage({
         handler: "openUrlInNewTab",
         url: str
       });
       return;
     }
-    MainPort.postMessage({
+    MainPort.port.postMessage({
       handler: "copyToClipboard",
       data: str
     });
@@ -769,10 +769,10 @@ LinkHints.FUNC = {
   OPEN_INCOGNITO_LINK: function(link) {
     var url = this.getUrlData(link);
     if (url.startsWith("javascript:")) {
-      MainPort.postMessage({ handler: "openUrlInCurrentTab", url: url });
+      MainPort.port.postMessage({ handler: "openUrlInCurrentTab", url: url });
       return;
     }
-    MainPort.postMessage({
+    MainPort.port.postMessage({
       handler: "openUrlInIncognito",
       url: url,
       active: (this.mode & 64) !== 64
@@ -804,7 +804,7 @@ LinkHints.FUNC = {
       VHUD.showForDuration("Not an image", 1000);
       return;
     }
-    MainPort.postMessage({
+    MainPort.port.postMessage({
       handler: "openImageUrl",
       url: img.src
     });

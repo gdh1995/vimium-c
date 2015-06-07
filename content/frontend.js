@@ -74,10 +74,6 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       this._callbacks[id] = callback;
       return id;
     },
-    // not bind postMessage to port, so that ClearPort only needs to set port = null
-    postMessage: function(request) {
-      this.port.postMessage(request);
-    },
     safePost: function(request, callback, ifConnected) {
       try {
         if (!this.port) { this.connect(); }
@@ -127,7 +123,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     isLoading: 0,
     set: function(key, value) {
       this.values[key] = value;
-      mainPort.postMessage({
+      mainPort.port.postMessage({
         handler: "setSetting",
         key: key,
         value: value
@@ -138,7 +134,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
         handlerSettings: "load",
         request: request
       };
-      mainPort.postMessage(request);
+      mainPort.port.postMessage(request);
       if (onerror) {
         onerror = onerror.bind(null, request.request);
       }
@@ -369,7 +365,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       if (sel.type !== "Range" || !(str = sel.toString().trim())) {
         str = location.href;
       }
-      mainPort.postMessage({
+      mainPort.port.postMessage({
         handler: "copyToClipboard",
         data: str
       });
@@ -381,7 +377,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
         HUD.showForDuration("No text found!", 1000);
         return;
       }
-      mainPort.postMessage({
+      mainPort.port.postMessage({
         handler: "openUrlInNewTab",
         url: str
       });
@@ -542,7 +538,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     }
     else if (key === KeyCodes.esc) {
       if (keyQueue && KeyboardUtils.isPlain(event)) {
-        mainPort.postMessage({ handler: "esc" });
+        mainPort.port.postMessage({ handler: "esc" });
         keyQueue = false;
         currentSeconds = secondKeys[""];
         action = 2;
@@ -587,7 +583,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     if (keyQueue) {
       if ((key in firstKeys) || (key in currentSeconds)) {
       } else {
-        mainPort.postMessage({ handler: "esc" });
+        mainPort.port.postMessage({ handler: "esc" });
         keyQueue = false;
         currentSeconds = secondKeys[""];
         return 0;
@@ -596,7 +592,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       return 0;
     }
     if (!noPost) {
-      mainPort.postMessage({ handlerKey: key });
+      mainPort.port.postMessage({ handlerKey: key });
     }
     return 2;
   };
@@ -1094,7 +1090,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     },
     focusFrame: function(request) {
       if (DomUtils.isSandboxed() || window.innerWidth < 3 || window.innerHeight < 3) {
-        mainPort.postMessage({
+        mainPort.port.postMessage({
           handler: "nextFrame",
           tabId: ELs.focusMsg.tabId,
           frameId: frameId
@@ -1247,7 +1243,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     if (! window.location.href.startsWith(response.optionUrl)) {
       node1.href = response.optionUrl;
       node1.onclick = function(event) {
-        mainPort.postMessage({
+        mainPort.port.postMessage({
           handler: "focusOrLaunch",
           url: container.querySelector("#vimOptionsPage").href
         })

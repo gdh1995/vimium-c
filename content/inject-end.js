@@ -5,7 +5,7 @@ Settings.RequestHandlers.regExt = function(request) {
   }
   var id = chrome.runtime.id;
   if (typeof id === "string" && id.length === 32) {
-    MainPort.postMessage({
+    MainPort.port.postMessage({
       handlerSettings: "ext",
       extId: id
     });

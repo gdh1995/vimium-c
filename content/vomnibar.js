@@ -431,7 +431,7 @@ Vomnibar.background = {
       }
     },
     refresh: function() {
-      MainPort.postMessage({
+      MainPort.port.postMessage({
         handler: "refreshCompleter",
         omni: this.name
       });
@@ -567,19 +567,19 @@ Vomnibar.background = {
       if (openInNewTab && this.url.startsWith("javascript:")) {
         openInNewTab = false;
       }
-      MainPort.postMessage({
+      MainPort.port.postMessage({
         handler: (openInNewTab ? "openUrlInNewTab" : "openUrlInCurrentTab"),
         url: this.url
       });
     },
     switchToTab: function() {
-      MainPort.postMessage({
+      MainPort.port.postMessage({
         handler: "selectTab",
         tabId: this.sessionId
       });
     },
     restoreSession: function() {
-      MainPort.postMessage({
+      MainPort.port.postMessage({
         handler: "restoreSession",
         sessionId: this.sessionId,
       });

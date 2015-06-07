@@ -107,11 +107,11 @@ var Marks = {
   CreateGlobalMark: function(request) {
     var keyChar = request.markName;
     if (window.top !== window && !request.force) {
-      MainPort.postMessage({handler: 'Marks.createMark', markName: keyChar});
+      MainPort.port.postMessage({handler: 'Marks.createMark', markName: keyChar});
       VHUD.hide();
       return;
     }
-    MainPort.postMessage({
+    MainPort.port.postMessage({
       handler: 'Marks.createMark',
       markName: keyChar,
       url: Marks.getBaseUrl(),
