@@ -65,27 +65,27 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
   ]);
   
   MainPort = mainPort = {
-    _port: null,
+    port: null,
     _callbacks: {},
     _lastMsg: 1,
     sendRequest: function(request, callback) {
       var id = ++this._lastMsg;
-      this._port.postMessage({_msgId: id, request: request});
+      this.port.postMessage({_msgId: id, request: request});
       this._callbacks[id] = callback;
       return id;
     },
-    // not bind postMessage to port, so that ClearPort only needs to set _port = null
+    // not bind postMessage to port, so that ClearPort only needs to set port = null
     postMessage: function(request) {
-      this._port.postMessage(request);
+      this.port.postMessage(request);
     },
     safePost: function(request, callback, ifConnected) {
       try {
-        if (!this._port) { this.connect(); }
+        if (!this.port) { this.connect(); }
         ifConnected && ifConnected();
         if (callback) {
           this.sendRequest(request, callback);
         } else {
-          this._port.postMessage(request);
+          this.port.postMessage(request);
         }
       } catch (e) { // this extension is reloaded or disabled
         ELs.destroy();
@@ -93,7 +93,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       }
     },
     sendCommadToFrame: function(target, command, args) {
-      this._port.postMessage({
+      this.port.postMessage({
         handler: "dispatchCommand", tabId: ELs.focusMsg.tabId,
         frameId: target, source: frameId,
         command: command, args: args
@@ -111,11 +111,11 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       }
     },
     ClearPort: function() {
-      mainPort._port = null;
+      mainPort.port = null;
     },
     connect: function() {
       var port;
-      port = this._port = chrome.runtime.connect("hfjbmagddngcpeloejdejnfgbamkjaeg", { name: "vimium++" });
+      port = this.port = chrome.runtime.connect("hfjbmagddngcpeloejdejnfgbamkjaeg", { name: "vimium++" });
       port.onDisconnect.addListener(this.ClearPort);
       port.onMessage.addListener(this.Listener);
     }
@@ -1295,11 +1295,13 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     // NOTE: when port is disconnected:
     // * if backend asks to re-reg, then rH.reg will call safePost;
     // * if extension is stopped, then ELs.destroy is called when focused,
-    // so, only being removed without pre-focusing may make port is null
+    // so, only being removed without pre-focusing and before a "rereg" message
+    //   may meet a null port
     ELs.unloadMsg = {handlerSettings: "unreg", frameId: frameId};
     ELs.onUnload = function() {
+      var ref = mainPort.port;
       try {
-        mainPort._port && mainPort.postMessage(ELs.unloadMsg);
+        ref && ref.postMessage(ELs.unloadMsg);
       } catch (e) {}
     };
     ELs.onHashChange = requestHandlers.checkIfEnabled;
@@ -1319,7 +1321,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
   ELs.onMessage = function(request, id) {
     id = request.frameId;
     if (id === undefined || id === frameId) {
-      if (!mainPort._port) {
+      if (!mainPort.port) {
         mainPort.connect();
       }
       requestHandlers[request.name](request); // do not check `handler != null`
