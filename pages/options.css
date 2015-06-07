@@ -161,7 +161,7 @@ td.booleanOption, #helpText { font-size: 12px; }
   overflow: scroll;
   overflow-x: hidden;
   overflow-y: auto;
-  max-height: 215px;
+  max-height: 130px;
   min-height: 77px;
   border-radius: 2px;
   color: #444;
