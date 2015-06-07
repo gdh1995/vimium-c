@@ -141,12 +141,6 @@ div#exampleKeyMapping {
   width: 320px;
   margin-top: -2px;
 }
-input:read-only {
-  background-color: #eee;
-  color: #666;
-  pointer-events: none;
-  -webkit-user-select: none;
-}
 input, textarea {
   border: 1px solid #bfbfbf;
   border-radius: 2px;
@@ -184,6 +178,7 @@ td.booleanOption, #helpText { font-size: 12px; }
   width: 1px; /* 1px; smaller than the button itself. */
 }
 .exclusionRemoveButton {
+  -webkit-user-select: none;
   border: none;
   background-color: #fff;
   color: #979ca0;
@@ -205,9 +200,8 @@ td.booleanOption, #helpText { font-size: 12px; }
 }
 .exclusionMask {
   padding: 0px 6px;
-  font-size: x-small;
   position: relative;
-  right: 100%;
+  visibility: hidden;
 }
 #exclusionAddButton {
   float: right;

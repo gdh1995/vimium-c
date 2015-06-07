@@ -324,7 +324,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     simBackspace: function() {
       var el = document.activeElement;
       if (el && el === document.body) {
-        switchFocus();
+        Commands.switchFocus();
       } else if (!DomUtils.isVisibile(el) || DomUtils.getEditableType(el) < 2) {
         return;
       }
