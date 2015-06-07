@@ -1,7 +1,7 @@
 "use strict";
 (function() {
   var BackgroundCommands, checkKeyQueue //
-    , frameIdsForTab, urlForTab, extForTab, ContentSettings //
+    , frameIdsForTab, urlForTab, extForTab, needIcon, ContentSettings //
     , handleMainPort, funcDict //
     , helpDialogHtml, helpDialogHtmlForCommandGroup, resetKeys //
     , openMultiTab //
@@ -17,6 +17,8 @@
 
   extForTab = {};
   extForTab.__proto__ = null;
+
+  needIcon = false;
 
   helpDialogHtml = function(showUnboundCommands, showCommandNames, customTitle) {
     var command, commandsToKey, dialogHtml, group, key;
@@ -1009,7 +1011,9 @@
         if (frames = frameIdsForTab[tabId]) {
           frames[0] = request.frameId;
         }
-        requestHandlers.setIcon(tabId, request.status);
+        if (needIcon) {
+          requestHandlers.setIcon(tabId, request.status);
+        }
       }
       return {
         currentFirst: currentFirst
@@ -1023,7 +1027,7 @@
     },
     initIfEnabled: function(request, tabId) {
       var pass = Exclusions.getPattern(request.url);
-      if (request.focused) {
+      if (needIcon && request.focused) {
         requestHandlers.setIcon(tabId, null, pass);
       }
       return {
@@ -1128,6 +1132,10 @@
   };
 
   Settings.postUpdate("bufferToLoad", null);
+
+  Settings.updateHooks.showActionIcon = function (value) {
+    needIcon = chrome.browserAction && value ? true : false;
+  };
 
   chrome.commands.onCommand.addListener(funcDict.globalCommand = function(command) {
     var count;

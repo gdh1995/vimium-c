@@ -69,7 +69,7 @@ if (Settings.get("vimSync") === true) {
 }
 
 if (chrome.browserAction && chrome.browserAction.setIcon) (function() {
-  var currentBadge, badgeTimer, updateBadge, time1 = 50, set, shouldShow;
+  var currentBadge, badgeTimer, updateBadge, time1 = 50, shouldShow;
   chrome.browserAction.setBadgeBackgroundColor({color: [82, 156, 206, 255]});
   updateBadge = function(badge) {
     badgeTimer = 0;
@@ -94,7 +94,8 @@ if (chrome.browserAction && chrome.browserAction.setIcon) (function() {
       });
     }
   };
-  set = function (value) {
+  Settings.updateHooks.showActionIcon = (function (value) {
+    this(value = value ? true : false);
     if (value === shouldShow) { return; }
     // TODO: hide icon
     if (shouldShow = value) {
@@ -102,9 +103,8 @@ if (chrome.browserAction && chrome.browserAction.setIcon) (function() {
     } else {
       chrome.browserAction.disable();
     }
-  };
-  Settings.updateHooks.showActionIcon = set;
-  set(Settings.get("showActionIcon"));
+  }).bind(Settings.updateHooks.showActionIcon);
+  Settings.postUpdate("showActionIcon");
 })();
 
 // According to tests: onInstalled will be executed after 0 ~ 16 ms if needed
