@@ -48,11 +48,11 @@ ExclusionRulesOption = (function(_super) {
   __extends(ExclusionRulesOption, _super);
 
   function ExclusionRulesOption() {
-    this.onRemoveRow = this.onRemoveRow.bind(this);
     this.template = $('exclusionRuleTemplate').content.children[0];
     ExclusionRulesOption.__super__.constructor.apply(this, arguments);
     $("exclusionAddButton").addEventListener("click", this.addRule.bind(this, null));
     this.element.addEventListener("input", this.onUpdated);
+    this.element.addEventListener("click", this.onRemoveRow.bind(this));
   }
 
   ExclusionRulesOption.prototype.addRule = function(pattern) {
@@ -62,9 +62,11 @@ ExclusionRulesOption = (function(_super) {
       passKeys: ""
     });
     this.getPattern(element).focus();
-    exclusionScrollBox = $("exclusionScrollBox");
+    exclusionScrollBox = this.element.parentElement;
     exclusionScrollBox.scrollTop = exclusionScrollBox.scrollHeight;
-    this.onUpdated();
+    if (pattern) {
+      this.onUpdated();
+    }
     return element;
   };
 
@@ -82,13 +84,15 @@ ExclusionRulesOption = (function(_super) {
     row = document.importNode(this.template, true);
     row.querySelector('.pattern').value = rule.pattern;
     row.querySelector('.passKeys').value = rule.passKeys;
-    this.getRemoveButton(row).addEventListener("click", this.onRemoveRow);
     list.appendChild(row);
     return row;
   };
   
   ExclusionRulesOption.prototype.onRemoveRow = function(event) {
     var row1 = event.target.parentNode.parentNode;
+    if (! row1.classList.contains("exclusionRuleInstance")) {
+      return;
+    }
     row1.parentNode.removeChild(row1);
     this.onUpdated();
   };
@@ -149,17 +153,13 @@ ExclusionRulesOnPopupOption = (function(_super) {
 
   function ExclusionRulesOnPopupOption(url) {
     this.url = url;
-    this.onInput = this.onInput.bind(this);
     ExclusionRulesOnPopupOption.__super__.constructor.apply(this,
       2 <= arguments.length ? Array.prototype.slice.call(arguments, 1) : []);
+    this.element.addEventListener("input", this.onInput.bind(this));
   }
 
   ExclusionRulesOnPopupOption.prototype.addRule = function() {
-    var element = ExclusionRulesOnPopupOption.__super__.addRule.call(this,
-      this.generateDefaultPattern());
-    this.activatePatternWatcher(element);
-    this.getPassKeys(element).focus();
-    return element;
+    ExclusionRulesOnPopupOption.__super__.addRule.call(this, this.generateDefaultPattern());
   };
 
   ExclusionRulesOnPopupOption.prototype.populateElement = function(rules) {
@@ -169,7 +169,6 @@ ExclusionRulesOnPopupOption = (function(_super) {
     haveMatch = -1;
     for (_i = 0, _len = elements.length; _i < _len; _i++) {
       element = elements[_i];
-      this.activatePatternWatcher(element);
       pattern = this.getPattern(element).value.trim();
       if (bgExclusions.re[pattern](this.url)) {
         haveMatch = _i;
@@ -183,13 +182,12 @@ ExclusionRulesOnPopupOption = (function(_super) {
       this.addRule();
     }
   };
-
-  ExclusionRulesOnPopupOption.prototype.activatePatternWatcher = function(element) {
-    this.getPattern(element).addEventListener("input", this.onInput);
-  };
   
   ExclusionRulesOnPopupOption.prototype.onInput = function(event) {
     var patternElement = event.target;
+    if (!patternElement.classList.contains("pattern")) {
+      return;
+    }
     if (bgExclusions.getRegex(patternElement.value)(this.url)) {
       patternElement.title = patternElement.style.color = "";
     } else {
