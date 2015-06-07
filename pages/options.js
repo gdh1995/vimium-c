@@ -49,17 +49,16 @@ ExclusionRulesOption = (function(_super) {
 
   function ExclusionRulesOption() {
     this.onRemoveRow = this.onRemoveRow.bind(this);
+    this.template = $('exclusionRuleTemplate').content.children[0];
     ExclusionRulesOption.__super__.constructor.apply(this, arguments);
     $("exclusionAddButton").addEventListener("click", this.addRule.bind(this, null));
+    this.element.addEventListener("input", this.onUpdated);
   }
 
   ExclusionRulesOption.prototype.addRule = function(pattern) {
     var element, exclusionScrollBox;
-    if (pattern == null) {
-      pattern = "";
-    }
-    element = this.appendRule({
-      pattern: pattern,
+    element = this.appendRule(this.element, {
+      pattern: pattern || "",
       passKeys: ""
     });
     this.getPattern(element).focus();
@@ -70,22 +69,22 @@ ExclusionRulesOption = (function(_super) {
   };
 
   ExclusionRulesOption.prototype.populateElement = function(rules) {
-    rules.forEach(this.appendRule.bind(this));
+    var frag = document.createDocumentFragment(), head;
+    head = this.element.querySelector('tr');
+    frag.appendChild(head);
+    this.element.innerHTML = "";
+    rules.forEach(this.appendRule.bind(this, frag));
+    this.element.appendChild(frag);
   };
 
-  ExclusionRulesOption.prototype.appendRule = function(rule) {
-    var element, field, row, _i, _ref;
-    row = document.importNode($('exclusionRuleTemplate').content, true);
-    _ref = ["pattern", "passKeys"];
-    for (_i = _ref.length; 0 <= --_i; ) {
-      field = _ref[_i];
-      element = row.querySelector('.' + field);
-      element.value = rule[field];
-      element.addEventListener("input", this.onUpdated);
-    }
+  ExclusionRulesOption.prototype.appendRule = function(list, rule) {
+    var row;
+    row = document.importNode(this.template, true);
+    row.querySelector('.pattern').value = rule.pattern;
+    row.querySelector('.passKeys').value = rule.passKeys;
     this.getRemoveButton(row).addEventListener("click", this.onRemoveRow);
-    this.element.appendChild(row);
-    return this.element.children[this.element.children.length - 1];
+    list.appendChild(row);
+    return row;
   };
   
   ExclusionRulesOption.prototype.onRemoveRow = function(event) {
