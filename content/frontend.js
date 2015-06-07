@@ -388,9 +388,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     },
     searchAs: function() {
       var sel = document.getSelection(), str;
-      if (sel.type !== "Range" || !(str = sel.toString().trim())) {
-        str = "";
-      }
+      str = sel.type === "Range" ? sel.toString().trim() : "";
       mainPort.sendRequest({
         handler: "searchAs",
         url: window.location.href,
@@ -1103,10 +1101,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
         });
         if (DomUtils.isSandboxed()) {
           // Do not destroy self, just in case of Marks.goTo / ...
-          setTimeout(mainPort.postMessage.bind(mainPort, {
-            handlerSettings: "unreg",
-            frameId: frameId
-          }), 20);
+          setTimeout(ELs.onUnload, 20);
         }
         return;
       }
