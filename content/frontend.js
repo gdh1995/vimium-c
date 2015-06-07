@@ -1,23 +1,22 @@
 "use strict";
 var Settings, VHUD, MainPort;
 (function() {
-  var HUD, firstKeys, secondKeys, currentSeconds //
+  var Commands, ELs, HUD, KeydownEvents, checkValidKey, currentSeconds //
     , enterInsertModeWithoutShowingIndicator, executeFind, exitFindMode //
-    , exitInsertMode, findAndFocus, findMode, findChangeListened //
-    , findModeAnchorNode, findModeQuery, findModeQueryHasResults, focusFoundLink, followLink //
-    , frameId, getNextQueryFromRegexMatches, handleDeleteForFindMode //
-    , handleEnterForFindMode, handleEscapeForFindMode, handleKeyCharForFindMode, KeydownEvents //
-    , /* CursorHider, */ ELs, Commands //
-    , initializeWhenEnabled, insertModeLock //
-    , isEnabledForUrl, isInsertMode //
-    , checkValidKey, getFullCommand, keyQueue //
-    , passKeys, setPassKeys, performFindInPlace //
-    , restoreDefaultSelectionHighlight //
-    , settings, showFindModeHUDForQuery, textInputXPath, oldActivated //
-    , updateFindModeQuery, goBy, getVisibleInputs, mainPort, requestHandlers //
-    , isInjected = typeof VimiumInjector == "string" ? true : false
+    , exitInsertMode, findAndFocus, findChangeListened, findMode //
+    , findModeAnchorNode, findModeQuery, findModeQueryHasResults, firstKeys //
+    , focusFoundLink, followLink, frameId, getFullCommand //
+    , getNextQueryFromRegexMatches, getVisibleInputs, goBy //
+    , handleDeleteForFindMode, handleEnterForFindMode, handleEscapeForFindMode //
+    , handleKeyCharForFindMode, initializeWhenEnabled, insertModeLock //
+    , isEnabledForUrl, isInjected, isInsertMode, keyQueue, mainPort //
+    , oldActivated, passKeys, performFindInPlace, requestHandlers //
+    , restoreDefaultSelectionHighlight, secondKeys, setPassKeys, settings //
+    , showFindModeHUDForQuery, textInputXPath, updateFindModeQuery
     ;
   
+  isInjected = typeof VimiumInjector == "string" ? true : false;
+
   frameId = window.top === window ? 0 : Math.floor(Math.random() * 9999997) + 2;
 
   insertModeLock = null;

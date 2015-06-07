@@ -1,13 +1,11 @@
 "use strict";
 (function() {
-  var BackgroundCommands, checkKeyQueue //
-    , frameIdsForTab, urlForTab, extForTab, needIcon, ContentSettings //
-    , handleMainPort, funcDict //
-    , helpDialogHtml, helpDialogHtmlForCommandGroup, resetKeys //
-    , openMultiTab //
-    , populateKeyCommands, executeCommand, commandCount, sendToTab //
-    , requestHandlers //
-    , firstKeys, secondKeys, currentCount, currentFirst;
+  var BackgroundCommands, ContentSettings, checkKeyQueue, commandCount //
+    , currentCount, currentFirst, executeCommand, extForTab, firstKeys //
+    , frameIdsForTab, funcDict, handleMainPort, helpDialogHtml //
+    , helpDialogHtmlForCommandGroup, needIcon, openMultiTab //
+    , populateKeyCommands, requestHandlers, resetKeys, secondKeys, sendToTab //
+    , urlForTab;
 
   Settings.frameIdsForTab = frameIdsForTab = {};
   frameIdsForTab.__proto__ = null;

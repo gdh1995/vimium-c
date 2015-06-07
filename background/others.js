@@ -69,7 +69,7 @@ if (Settings.get("vimSync") === true) {
 }
 
 if (chrome.browserAction && chrome.browserAction.setIcon) (function() {
-  var currentBadge, badgeTimer, updateBadge, time1 = 50, shouldShow;
+  var currentBadge, badgeTimer, updateBadge, time1 = 50;
   chrome.browserAction.setBadgeBackgroundColor({color: [82, 156, 206, 255]});
   updateBadge = function(badge) {
     badgeTimer = 0;
@@ -77,7 +77,7 @@ if (chrome.browserAction && chrome.browserAction.setIcon) (function() {
   };
   g_requestHandlers.setBadge = function(request) {
     var badge = request.badge;
-    if (shouldShow && badge != null && badge !== currentBadge) {
+    if (badge != null && badge !== currentBadge) {
       currentBadge = badge;
       if (badgeTimer) {
         clearTimeout(badgeTimer);
@@ -86,19 +86,16 @@ if (chrome.browserAction && chrome.browserAction.setIcon) (function() {
     }
   };
   g_requestHandlers.setIcon = function(tabId, type, pass) {
-    if (shouldShow) {
-      chrome.browserAction.setIcon({
-        tabId: tabId,
-        path: Settings.icons[type ||
-          (pass === null ? "enabled" : pass ? "partial" : "disabled")]
-      });
-    }
+    chrome.browserAction.setIcon({
+      tabId: tabId,
+      path: Settings.icons[type ||
+        (pass === null ? "enabled" : pass ? "partial" : "disabled")]
+    });
   };
   Settings.updateHooks.showActionIcon = (function (value) {
-    this(value = value ? true : false);
-    if (value === shouldShow) { return; }
+    this(value);
     // TODO: hide icon
-    if (shouldShow = value) {
+    if (value) {
       chrome.browserAction.enable();
     } else {
       chrome.browserAction.disable();
