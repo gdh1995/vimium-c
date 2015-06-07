@@ -68,7 +68,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     port: null,
     _callbacks: {},
     _lastMsg: 1,
-    sendRequest: function(request, callback) {
+    sendMessage: function(request, callback) {
       var id = ++this._lastMsg;
       this.port.postMessage({_msgId: id, request: request});
       this._callbacks[id] = callback;
@@ -79,7 +79,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
         if (!this.port) { this.connect(); }
         ifConnected && ifConnected();
         if (callback) {
-          this.sendRequest(request, callback);
+          this.sendMessage(request, callback);
         } else {
           this.port.postMessage(request);
         }
@@ -356,7 +356,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
         mainPort.sendCommadToFrame(0, "showHelp", [0]);
         return;
       }
-      mainPort.sendRequest({
+      mainPort.sendMessage({
         handler: "initHelp",
       }, requestHandlers.showHelpDialog);
     },
@@ -385,7 +385,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     searchAs: function() {
       var sel = document.getSelection(), str;
       str = sel.type === "Range" ? sel.toString().trim() : "";
-      mainPort.sendRequest({
+      mainPort.sendMessage({
         handler: "searchAs",
         url: window.location.href,
         search: str

@@ -34,7 +34,7 @@ var Vomnibar = {
       vomnibarUI.reset();
       return;
     }
-    MainPort.sendRequest({
+    MainPort.sendMessage({
       handler: "parseSearchUrl",
       url: window.location.href
     }, function(url) {
@@ -363,7 +363,7 @@ Vomnibar.vomnibarUI = {
     box.className = "vimB vimR";
     box.id = "vimOmnibar";
     box.style.display = "none";
-    MainPort.sendRequest({
+    MainPort.sendMessage({
       handler: "initVomnibar"
     }, this.init_dom.bind(this));
     this.completer = completer;
@@ -438,7 +438,7 @@ Vomnibar.background = {
     },
     filter: function(query, callback) {
       this._callback = callback;
-      this._id = MainPort.sendRequest({
+      this._id = MainPort.sendMessage({
         handlerOmni: this.name,
         query: query && query.trim().replace(this.whiteSpaceRegex, ' ')
       }, this.onFilter);
