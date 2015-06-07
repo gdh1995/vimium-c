@@ -164,24 +164,23 @@ ExclusionRulesOnPopupOption = (function(_super) {
   };
 
   ExclusionRulesOnPopupOption.prototype.populateElement = function(rules) {
-    var element, elements, haveMatch, pattern, _i, _j, _len, _len1;
+    var element, elements, haveMatch, pattern, _i, _len;
     ExclusionRulesOnPopupOption.__super__.populateElement.call(this, rules);
     elements = this.element.getElementsByClassName("exclusionRuleInstance");
+    haveMatch = -1;
     for (_i = 0, _len = elements.length; _i < _len; _i++) {
-      this.activatePatternWatcher(elements[_i]);
-    }
-    haveMatch = false;
-    for (_j = 0, _len1 = elements.length; _j < _len1; _j++) {
-      element = elements[_j];
+      element = elements[_i];
+      this.activatePatternWatcher(element);
       pattern = this.getPattern(element).value.trim();
       if (bgExclusions.re[pattern](this.url)) {
-        haveMatch = true;
-        this.getPassKeys(element).focus();
+        haveMatch = _i;
       } else {
         element.style.display = "none";
       }
     }
-    if (!haveMatch) {
+    if (haveMatch >= 0) {
+      this.getPassKeys(elements[haveMatch]).focus();
+    } else {
       this.addRule();
     }
   };
