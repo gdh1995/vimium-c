@@ -299,6 +299,8 @@ Vomnibar.vomnibarUI = {
       this.onAction("focus");
     } else if (el === this.input) {
       this.focused = true;
+      event.stopImmediatePropagation();
+      return;
     } else if (el === this.list || this.timer) {
     } else if (document.getSelection().type !== "Range") {
       var ind = [].indexOf;
