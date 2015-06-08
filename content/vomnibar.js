@@ -536,8 +536,8 @@ Vomnibar.background = {
     item.textSplit = this.cutUrl(item.text, item.textSplit, item.url);
     item.titleSplit = this.highlightTerms(item.title, item.titleSplit);
     if (this.showFavIcon && item.url.indexOf("://") >= 0) {
-      item.favIconUrl = " vimOIIcon\" style=\"background-image: url(" + Utils.escapeHtml(item.favIconUrl ||
-        ("chrome://favicon/size/16/" + item.url)) + ")";
+      item.favIconUrl = " vimOIIcon\" style=\"background-image: url('" + Utils.escapeHtml(item.favIconUrl ||
+        ("chrome://favicon/size/16/" + item.url)) + "')";
     } else {
       item.favIconUrl = "";
     }

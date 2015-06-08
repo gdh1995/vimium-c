@@ -53,7 +53,7 @@ var Commands = {
     for (key in defaultmap) {
       this.mapKeyToCommand(key, defaultmap[key]);
     }
-    lines = line.replace(/\t[\t ]*/g, " ").split("\n");
+    lines = line.replace(/[\t ]+/g, " ").split("\n");
     for (_i = 0, _len = lines.length; _i < _len; _i++) {
       line = lines[_i].trim();
       key = line[0]; 
