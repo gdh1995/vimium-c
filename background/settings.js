@@ -189,9 +189,9 @@ var Settings = {
     vomnibar: "pages/vomnibar.html"
   },
   icons: {
-    disabled: "img/browser_action_disabled.png",
-    enabled: "img/browser_action_enabled.png",
-    partial: "img/browser_action_partial.png"
+    disabled: "icons/browser_action_disabled.png",
+    enabled: "icons/browser_action_enabled.png",
+    partial: "icons/browser_action_partial.png"
   },
   valuesToLoad: ["filterLinkHints", "findModeRawQuery", "findModeRawQueryList" //
     , "hideHud", "linkHintCharacters", "linkHintNumbers", "nextPatterns" //
