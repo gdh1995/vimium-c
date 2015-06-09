@@ -69,7 +69,7 @@
     "run_at": "document_start"
   } ],
   "content_security_policy": "script-src 'self'; object-src 'self';",
-  "description": "optimized Vimium with the Weidu new tab",
+  "description": "optimized Vimium supporting global commands and other extensions",
   "homepage_url": "https://github.com/gdh1995/vimium-plus",
   "icons": {
     "128": "icons/icon128.png",
