@@ -471,8 +471,7 @@ Commands.defaultKeyMappings = {
   ],
   restoreGivenTab: [
     "Restore the last n-th tab", {
-      background: true,
-      noRepeat: chrome.sessions.MAX_SESSION_RESULTS || 25
+      background: true
     }
   ],
   moveTabToNextWindow: [
