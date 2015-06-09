@@ -897,7 +897,7 @@
   };
 
   executeCommand = function(command, registryEntry, count, port) {
-    if (registryEntry.noRepeat === true) {
+    if (registryEntry.noRepeat === 1) {
       count = 1;
     } else if (!(registryEntry.noRepeat > 0 && count > registryEntry.noRepeat)) {
     } else if (!
