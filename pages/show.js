@@ -1,4 +1,5 @@
 "use strict";
+var $ = document.getElementById.bind(document);
 function decodeHash() {
   var shownNode, url, type;
   url = location.hash;
@@ -16,7 +17,7 @@ function decodeHash() {
 
   switch (type) {
   case "image":
-    shownNode = document.getElementById("shownImage");
+    shownNode = $("shownImage");
     shownNode.src = url;
     break;
   default: return;
