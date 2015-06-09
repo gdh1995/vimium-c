@@ -71,7 +71,7 @@ Settings.ELs.onDestroy.injected = function() {
   window.removeEventListener("focus", this.onFocus);
   window.removeEventListener("hashchange", this.onHashChange);
   try {
-    chrome.runtime.onMessageExternal.removeEventListener(this.onMessage);
+    chrome.runtime.onMessageExternal.removeListener(this.onMessage);
   } catch (e) {}
   Settings.RequestHandlers = Settings.ELs = null;
 };
