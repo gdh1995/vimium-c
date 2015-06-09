@@ -278,8 +278,14 @@ var LinkHints = {
       }
     }
   },
+  imageUrlRegex: /\.(?:png|jpg|gif|jpeg|bmp|svg|ico|webp)\b/i,
   GetImages: function(element) {
-    var arr;
+    var arr, str;
+    if (element.nodeName.toLowerCase() === "a" && (str = element.href)) {
+      if (!LinkHints.imageUrlRegex.test(element)) {
+        return;
+      }
+    }
     if (arr = DomUtils.getVisibleClientRect(element)) {
       this.push([element, arr, true]);
     }
@@ -288,7 +294,7 @@ var LinkHints = {
     var output = [], visibleElements = [], visibleElement, rects, rects2, _len, _i;
     if (this.mode == this.CONST.DOWNLOAD_IMAGE || this.mode == this.CONST.OPEN_IMAGE) {
       output.forEach.call(document.documentElement.querySelectorAll(
-        "img[src]"), this.GetImages.bind(visibleElements));
+        "a[href],img[src]"), this.GetImages.bind(visibleElements));
     } else if (this.mode >= 136) {
       output.forEach.call(document.documentElement.querySelectorAll(
           "a[href],a[data-vim-url]"), this.GetLinks.bind(visibleElements));
@@ -779,7 +785,7 @@ LinkHints.FUNC = {
     });
   },
   DOWNLOAD_IMAGE: function(img) {
-    var text = img.src, i, a;
+    var text = img.nodeName.toLowerCase() === "a" ? img.href : img.src, i, a;
     this.keepHUDAfterAct = true;
     if (!text) {
       VHUD.showForDuration("Not an image", 1000);
@@ -799,14 +805,15 @@ LinkHints.FUNC = {
     VHUD.showForDuration("download: " + text, 2000);
   },
   OPEN_IMAGE: function(img) {
-    if (!img.src) {
+    var text = img.nodeName.toLowerCase() === "a" ? img.href : img.src;
+    if (!text) {
       this.keepHUDAfterAct = true;
       VHUD.showForDuration("Not an image", 1000);
       return;
     }
     MainPort.port.postMessage({
       handler: "openImageUrl",
-      url: img.src
+      url: text
     });
   },
   DOWNLOAD_LINK: function(link) {
