@@ -591,8 +591,8 @@
       funcDict.selectTab(tabs, -1);
     },
     removeTab: function(tabs) {
-      var tab = tabs[0];
       if (!tabs) { return; }
+      var tab = tabs[0];
       if (tab.active) {
         if (tabs.length <= commandCount) {
           chrome.windows.getAll(funcDict.removeTab.bind(null, tab, tabs));
@@ -606,6 +606,13 @@
         funcDict.removeTabsRelative(tab, commandCount, tabs);
       } else {
         chrome.tabs.remove(tab.id);
+      }
+    },
+    removeGivenTab: function(tabs) {
+      if (!tabs) { return; }
+      var ind = funcDict.selectFrom(tabs).index + commandCount;
+      if (ind < tabs.length) {
+        chrome.tabs.remove(tabs[ind].id);
       }
     },
     restoreTab: function() {
@@ -1209,7 +1216,7 @@
     ref2 = BackgroundCommands;
     for (key in ref2) { ref2[key].useTab = 1; }
     ref = ["nextTab", "previousTab", "firstTab", "lastTab", "removeTab" //
-      , "closeTabsOnLeft", "closeTabsOnRight", "closeOtherTabs" //
+      , "closeTabsOnLeft", "closeTabsOnRight", "closeOtherTabs", "removeGivenTab" //
     ];
     for (i = ref.length; 0 <= --i; ) {
       ref2[ref[i]].useTab = 2;

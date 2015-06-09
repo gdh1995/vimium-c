@@ -108,7 +108,8 @@ Commands.commandGroups = {
   historyNavigation: ["goBack", "goForward", "reopenTab"],
   findCommands: ["enterFindMode", "performFind", "performBackwardsFind"],
   tabManipulation: ["nextTab", "previousTab", "firstTab", "lastTab", "createTab", "duplicateTab"
-    , "removeTab", "restoreTab", "restoreGivenTab", "moveTabToNextWindow", "moveTabToIncognito", "togglePinTab"
+    , "removeTab", "removeGivenTab", "restoreTab", "restoreGivenTab", "moveTabToNextWindow"
+    , "moveTabToIncognito", "togglePinTab"
     , "closeTabsOnLeft", "closeTabsOnRight", "closeOtherTabs", "moveTabLeft", "moveTabRight"
     , "enableImageTemp", "toggleImage", "clearImageCS"],
   misc: ["showHelp", "enterVisualMode", "autoCopy", "autoSearch", "searchAs"
@@ -117,7 +118,7 @@ Commands.commandGroups = {
 Commands.advancedCommands = ["scrollToLeft", "scrollToRight", "moveTabToNextWindow", "moveTabToIncognito"
   , "goUp", "goToRoot", "focusInput", "LinkHints.activateModeWithQueue", "enableImageTemp"
   , "toggleImage", "clearImageCS", "LinkHints.activateModeToDownloadImage", "reopenTab"
-  , "LinkHints.activateModeToOpenImage", "searchAs"
+  , "LinkHints.activateModeToOpenImage", "searchAs", "removeGivenTab"
   , "LinkHints.activateModeToDownloadLink", "Vomnibar.activateEditUrl", "restoreGivenTab"
   , "Vomnibar.activateEditUrlInNewTab", "LinkHints.activateModeToOpenIncognito"
   , "goNext", "goPrevious", "Marks.clearLocal", "Marks.clearGlobal"
@@ -455,6 +456,11 @@ Commands.defaultKeyMappings = {
     "Close current tab", {
       background: true,
       noRepeat: chrome.sessions.MAX_SESSION_RESULTS || 25
+    }
+  ],
+  removeGivenTab: [
+    "Close the last n-th tab", {
+      background: true
     }
   ],
   restoreTab: [
