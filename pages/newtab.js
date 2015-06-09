@@ -1,1 +1,1 @@
-chrome.tabs.update({url:localStorage.newTabUrl||"chrome-search://local-ntp/local-ntp.html"});
+chrome.tabs.create({url:localStorage.newTabUrl||"chrome-search://local-ntp/local-ntp.html"});close();
