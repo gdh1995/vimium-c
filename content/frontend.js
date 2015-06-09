@@ -2,7 +2,7 @@
 var Settings, VHUD, MainPort;
 (function() {
   var Commands, ELs, HUD, KeydownEvents, checkValidKey, currentSeconds //
-    , enterInsertModeWithoutShowingIndicator, executeFind, exitFindMode //
+    , enterInsertModeOnly, executeFind, exitFindMode //
     , exitInsertMode, findAndFocus, findChangeListened, findMode //
     , findModeAnchorNode, findModeQuery, findModeQueryHasResults, firstKeys //
     , focusFoundLink, followLink, frameId, getFullCommand //
@@ -194,7 +194,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     // it seems window.addEventListener("focus") doesn't work (only now).
     document.addEventListener("focus", ELs.docOnFocus = function(event) {
       if (isEnabledForUrl && DomUtils.getEditableType(event.target) && !findMode) {
-        enterInsertModeWithoutShowingIndicator(event.target);
+        enterInsertModeOnly(event.target);
         // it seems we do not need to check DomUtils.getEditableType(event.target) >= 2
         if (!oldActivated.target || oldActivated.isSecond) {
           oldActivated.target = event.target;
@@ -213,7 +213,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       }
     }, true);
     if (document.activeElement && DomUtils.getEditableType(document.activeElement) >= 2 && !findMode) {
-      enterInsertModeWithoutShowingIndicator(document.activeElement);
+      enterInsertModeOnly(document.activeElement);
     }
   };
 
@@ -279,8 +279,8 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     performBackwardsFind: function(count) {
       findAndFocus(count, true);
     },
-    enterInsertMode: function(target) {
-      enterInsertModeWithoutShowingIndicator(target);
+    enterInsertMode: function() {
+      enterInsertModeOnly();
       HUD.show("Insert mode");
     },
     enterVisualMode: function() {}, // TODO
@@ -610,7 +610,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     }
   };
 
-  enterInsertModeWithoutShowingIndicator = function(target) {
+  enterInsertModeOnly = function(target) {
     insertModeLock = target;
   };
 
@@ -627,7 +627,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     }
     var el = document.activeElement;
     if (el && el.isContentEditable) {
-      enterInsertModeWithoutShowingIndicator(el);
+      enterInsertModeOnly(el);
       return true;
     }
     return false;
@@ -707,7 +707,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     focusFoundLink();
     if (findModeQueryHasResults && DomUtils.canTakeInput(findModeAnchorNode)) {
       DomUtils.simulateSelect(document.activeElement);
-      enterInsertModeWithoutShowingIndicator(document.activeElement);
+      enterInsertModeOnly(document.activeElement);
     }
   };
 
@@ -821,7 +821,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
           handlerStack.remove();
           if (event.keyCode === KeyCodes.esc && KeyboardUtils.isPlain(event)) {
             DomUtils.simulateSelect(document.activeElement);
-            enterInsertModeWithoutShowingIndicator(document.activeElement);
+            enterInsertModeOnly(document.activeElement);
             return false;
           }
           return true;
