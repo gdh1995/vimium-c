@@ -40,7 +40,8 @@ DomUtils.DocumentReady(function() {
       this();
     }
   }).bind(MainPort.safePost.bind(MainPort, ELs.focusMsg
-  , Settings.RequestHandlers.refreshKeyQueue, setTimeout.bind(null, function() {
+  , Settings.RequestHandlers.refreshKeyQueue, null
+  , setTimeout.bind(null, function() {
       if (MainPort && !MainPort.port) {
         Settings.ELs.destroy();
       }

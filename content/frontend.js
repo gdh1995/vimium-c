@@ -73,9 +73,12 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       this._callbacks[id] = callback;
       return id;
     },
-    safePost: function(request, callback, ifConnected) {
+    safePost: function(request, callback, ifConnected, ifReconnect) {
       try {
-        if (!this.port) { this.connect(); }
+        if (!this.port) {
+          this.connect();
+          ifReconnect && ifReconnect();
+        }
         ifConnected && ifConnected();
         if (callback) {
           this.sendMessage(request, callback);
@@ -138,7 +141,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
         onerror = onerror.bind(null, request.request);
       }
       this.isLoading = setInterval(mainPort.safePost.bind(
-        mainPort, request, null, onerror), 2000);
+        mainPort, request, null, onerror, null), 2000);
     },
     ReceiveSettings: function(response) {
       var _this = settings, ref, i;
@@ -1309,7 +1312,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     //     NO other message will be sent if not isEnabledForUrl,
     // which would make the auto-destroy logic not work.
     window.onfocus = mainPort.safePost.bind(
-      mainPort, ELs.focusMsg, requestHandlers.refreshKeyQueue, null //
+      mainPort, ELs.focusMsg, requestHandlers.refreshKeyQueue, null, null //
     );
   });
 
