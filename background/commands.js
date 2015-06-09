@@ -248,7 +248,7 @@ Commands.defaultKeyMappings = {
     }
   ],
   reloadTab: [
-    "Reload the whole page", {
+    "Reload N tab(s)", {
       background: true,
       noRepeat: 20
     }
@@ -314,7 +314,7 @@ Commands.defaultKeyMappings = {
     }
   ],
   openCopiedUrlInNewTab: [
-    "Open the clipboard's URL in a new tab", {
+    "Open the clipboard's URL in N new tab(s)", {
       background: true,
       noRepeat: 20
     }
@@ -441,36 +441,36 @@ Commands.defaultKeyMappings = {
     }
   ],
   createTab: [
-    "Create new tab", {
+    "Create new tab(s)", {
       background: true,
       noRepeat: 20
     }
   ],
   duplicateTab: [
-    "Duplicate current tab", {
+    "Duplicate current tab for N times", {
       background: true,
       noRepeat: 20
     }
   ],
   removeTab: [
-    "Close current tab", {
+    "Close N tab(s)", {
       background: true,
-      noRepeat: chrome.sessions.MAX_SESSION_RESULTS || 25
+      noRepeat: chrome.sessions.MAX_SESSION_RESULTS
     }
   ],
   removeGivenTab: [
-    "Close the last n-th tab", {
+    "Close the last N-th tab", {
       background: true
     }
   ],
   restoreTab: [
     "Restore closed tab(s)", {
       background: true,
-      noRepeat: chrome.sessions.MAX_SESSION_RESULTS || 25
+      noRepeat: chrome.sessions.MAX_SESSION_RESULTS
     }
   ],
   restoreGivenTab: [
-    "Restore the last n-th tab", {
+    "Restore the last N-th tab", {
       background: true
     }
   ],
