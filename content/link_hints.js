@@ -278,24 +278,23 @@ var LinkHints = {
   },
   imageUrlRegex: /\.(?:png|jpg|gif|jpeg|bmp|svg|ico|webp)\b/i,
   GetImages: function(element) {
-    var arr, str, rect, cr;
+    var str, rect, cr, w, h;
     if (element.nodeName.toLowerCase() === "img") {
-      rect = element.getBoundingClientRect();
-      if (rect.width >= 8 || rect.height >= 8) {
-        if (DomUtils.isStyleVisible(element)) {
-          cr = VRect.cropRectToVisible(rect.left, rect.top, rect.right, rect.bottom);
-          if (cr && cr[2] - cr[0] >= 3 && cr[3] - cr[1] >= 3) {
-            this.push([element, cr, true]);
-          }
-        }
+      if (!element.src) { return; }
+      else if ((w = element.width) < 8 && (h = element.height) < 8) {
+        if (w !== h || (w !== 0 && w !== 3)) { return; }
+        rect = element.getBoundingClientRect();
+        w = rect.left, h = rect.top;
+        cr = VRect.cropRectToVisible(w, h, w + 8, h + 8);
+      } else if (DomUtils.isStyleVisible(element)) {
+        rect = element.getBoundingClientRect();
+        cr = VRect.cropRectToVisible(rect.left, rect.top, rect.right, rect.bottom);
       }
-      return;
+    } else if ((str = element.href) && LinkHints.imageUrlRegex.test(str)) {
+      cr = DomUtils.getVisibleClientRect(element);
     }
-    str = element.href;
-    if (str && LinkHints.imageUrlRegex.test(str)) {
-      if (arr = DomUtils.getVisibleClientRect(element)) {
-        this.push([element, arr, true]);
-      }
+    if (cr) {
+      this.push([element, cr, true]);
     }
   },
   getVisibleClickableElements: function() {
