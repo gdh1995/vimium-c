@@ -19,7 +19,7 @@
  * declarations contain more specifiers than necessary to increase their specificity (precedence).
  */
 .vimR.vimB {
-	animation: none;
+	-webkit-animation: none;
 	background: none;
 	background-image: none;
 	border: none;
@@ -56,6 +56,7 @@
 	text-indent: 0;
 	text-shadow: none;
 	text-transform: none;
+	transform: none;
 	transition: none;
 	top: auto;
 	vertical-align: baseline;
@@ -64,7 +65,7 @@
 	zoom: normal;
 }
 .vimI.vimB {
-	animation: none;
+	-webkit-animation: none;
 	background: none;
 	background-image: none;
 	border: none;
@@ -101,6 +102,7 @@
 	text-overflow: clip;
 	text-shadow: inherit;
 	text-transform: inherit;
+	transform: none;
 	transition: none;
 	top: auto;
 	vertical-align: inherit;
