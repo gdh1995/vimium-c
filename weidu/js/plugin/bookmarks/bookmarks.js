@@ -39,7 +39,7 @@ var bookmarks = {
 			}
 		});
 		self.content.find("#bookmarksManage").bind("click", function (e) {
-			openTab(false, "chrome://bookmarks", e.ctrlKey || e.metaKey);
+			openTab(false, "chrome://bookmarks", e);
 		});
 		self.content.find(".bookmarksFolderTitle").bind('click', function () {
 			var fid = $(this).attr('fid');

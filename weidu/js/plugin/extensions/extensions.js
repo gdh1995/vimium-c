@@ -21,10 +21,10 @@ var extensions = {
 		});
 		self.content = $('<div class="extensionsContainer"><div class="extensionsHeader"><div class="headerIcon"></div>' + getI18nMsg('extensionsAppTitle') + '<div class="extensionsManage">' + getI18nMsg('extensionsManage') + '</div><div class="extensionsAddMore">' + getI18nMsg('appItemGetMore') + '</div></div><div class="extensionsBody"><div class="extensionsClass"><div class="classItem exist" type="exist">' + getI18nMsg('appItemExist') + '</div><div class="classItem notExist" type="notExist">' + getI18nMsg('appItemNotExist') + '</div><div class="classItem all selected" type="all">' + getI18nMsg('all') + '</div></div></div></div>');
 		self.content.find(".extensionsManage").bind("click", function (e) {
-			openTab(false, "chrome://extensions", e.ctrlKey || e.metaKey);
+			openTab(false, "chrome://extensions", e);
 		});
 		self.content.find(".extensionsAddMore").bind("click", function (e) {
-			openTab(false, "https://chrome.google.com/webstore", e.ctrlKey || e.metaKey);
+			openTab(false, "https://chrome.google.com/webstore", e);
 		});
 		if (extensions instanceof Array && extensions.length > 0) {
 			$.each(extensions, function (i, n) {
@@ -71,14 +71,14 @@ var extensions = {
 			if (extension.type == "packaged_app") {
 				chrome.management.launchApp(extension.id)
 			} else {
-				openTab(targetSwitch, extension.appLaunchUrl, e.ctrlKey || e.metaKey);
+				openTab(targetSwitch, extension.appLaunchUrl, e);
 			}
 		});
 		extensionItem.find(".actButton.goTo").unbind('click').bind('click', function (e) {
 			if (extension.type == "packaged_app") {
 				chrome.management.launchApp(extension.id)
 			} else {
-				openTab(targetSwitch, extension.appLaunchUrl, e.ctrlKey || e.metaKey);
+				openTab(targetSwitch, extension.appLaunchUrl, e);
 			}
 		});
 		extensionItem.find(".actButton.delete").unbind('click').bind('click', function () {

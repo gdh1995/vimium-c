@@ -116,7 +116,15 @@ function getMaxZindex(obj) {
 function getRand(v_min, v_max) {
 	return Math.floor(Math.random() * (v_max - v_min) + v_min)
 }
-function openTab(targetSwitch, url, ctrlKey) {
+function openTab(targetSwitch, url, event) {
+  var ctrlKey = false, shiftKey = false;
+  if (event === false) {
+  } else if (event === true) {
+    ctrlKey = true;
+  } else {
+    ctrlKey = event.ctrlKey || event.metaKey;
+    shiftKey = event.shiftKey;
+  }
 	if (targetSwitch === true) {
 		chrome.tabs.update({url: url});
 	} else if (ctrlKey !== true) {
@@ -148,7 +156,7 @@ function openTab(targetSwitch, url, ctrlKey) {
 			chrome.tabs.create({
 				index: i + 1,
 				openerTabId: id,
-				active: false,
+				active: shiftKey,
 				url: url
 			});
 		});
@@ -1904,7 +1912,7 @@ var app = {
 					if (typeof event != "undefined" && event.button == 1) {
 						openTab(targetSwitch, targetUrl, true)
 					} else {
-						openTab(targetSwitch, targetUrl, event.ctrlKey || event.metaKey);
+						openTab(targetSwitch, targetUrl, event);
 					}
 				}
 			} else {
@@ -1920,7 +1928,7 @@ var app = {
 			if (typeof event != "undefined" && event.button == 1) {
 				openTab(targetSwitch, eventObj.attr('url'), true)
 			} else {
-				openTab(targetSwitch, eventObj.attr('url'), event.ctrlKey || event.metaKey);
+				openTab(targetSwitch, eventObj.attr('url'), event);
 			}
 		} else {
 			if (appId.indexOf("classification_") === 0) {
@@ -1945,7 +1953,7 @@ var app = {
 					if (typeof event != "undefined" && event.button == 1) {
 						openTab(targetSwitch, oUrl, true)
 					} else {
-						openTab(targetSwitch, oUrl, event.ctrlKey || event.metaKey);
+						openTab(targetSwitch, oUrl, event);
 					}
 				}
 			}
@@ -3121,7 +3129,7 @@ DBOX = {
 							if (e.button == 1 || self.container.parent().hasClass('edit')) {
 								openTab(targetSwitch, eventObj.attr('url'), true)
 							} else {
-								openTab(targetSwitch, eventObj.attr('url'), e.ctrlKey || e.metaKey);
+								openTab(targetSwitch, eventObj.attr('url'), e);
 							}
 						}
 					}
