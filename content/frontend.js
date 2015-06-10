@@ -637,6 +637,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
   };
 
   getVisibleInputs = function(pathSet) {
+    DomUtils.prepareCrop();
     for (var element, results = [], i = 0, _ref = pathSet.snapshotLength; i < _ref; ++i) {
       element = pathSet.snapshotItem(i);
       if (DomUtils.getVisibleClientRect(element)) {

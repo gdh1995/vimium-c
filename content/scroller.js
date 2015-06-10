@@ -144,6 +144,7 @@ var Scroller = {
     if (this.scrollDo(element, 1, 1, "") || this.scrollDo(element, 1, -1, "")) {
       return element;
     }
+    DomUtils.prepareCrop();
     var children = [], rect, _ref = element.children, _len = _ref.length;
     while (0 <= --_len) {
       element = _ref[_len];

@@ -299,6 +299,7 @@ var LinkHints = {
   },
   getVisibleClickableElements: function() {
     var output = [], visibleElements = [], visibleElement, rects, rects2, _len, _i;
+    DomUtils.prepareCrop();
     if (this.mode == this.CONST.DOWNLOAD_IMAGE || this.mode == this.CONST.OPEN_IMAGE) {
       output.forEach.call(document.documentElement.querySelectorAll(
         "a[href],img[src]"), this.GetImages.bind(visibleElements));
