@@ -454,26 +454,22 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
   };
   Commands.__proto__ = null;
 
-  KeydownEvents = {
-    _handledEvents: {},
-    stringify: function(event) {
-      return ("" + event.metaKey + event.altKey * 2 + event.ctrlKey * 4) //
-         + event.keyCode + event.keyIdentifier;
-    },
-    push: function(event) {
-      this._handledEvents[this.stringify(event)] = true;
-    },
-    pop: function(event) {
-      var key = this.stringify(event), ref = this._handledEvents;
-      if (key in ref) {
-        delete ref[key];
-        return true;
-      } else {
-        return false;
-      }
+  (function() {
+    var matchedEvents = new Array(256), i;
+    KeydownEvents = {
+      push: function(event) {
+        matchedEvents[event.keyCode] = false;
+      },
+      pop: function(event) {
+        var key = event.keyCode;
+        return matchedEvents[key] ? false : (matchedEvents[key] = true);
+      },
     }
-  };
-  KeydownEvents.__proto__ = null;
+    KeydownEvents.__proto__ = null;
+    for (i = matchedEvents.length; 0 <= --i; ) {
+      matchedEvents[i] = true;
+    }
+  })();
 
   ELs.onKeypress = function(event) {
     if (!isEnabledForUrl || !handlerStack.bubbleEvent("keypress", event) || event.keyCode < 32) {
