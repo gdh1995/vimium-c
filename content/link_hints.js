@@ -857,8 +857,8 @@ LinkHints.FUNC = {
   HOVER: DomUtils.SimulateHover,
   DEFAULT: function(link) {
     var mode = this.mode & 3, alterTarget;
-    if (mode >= 2 && link.target === "_blank") {
-      alterTarget = true;
+    if (mode >= 2 && link.nodeName.toLowerCase() === "a") {
+      alterTarget = link.getAttribute('target');
       link.target = "_top";
     }
     // NOTE: not clear last hovered item, for that it may be a menu
@@ -868,8 +868,11 @@ LinkHints.FUNC = {
       metaKey: mode >= 2 &&  KeyboardUtils.onMac,
       shiftKey: mode === 3
     });
-    if (alterTarget) {
-      link.target = "_blank";
+    if (alterTarget === undefined) {}
+    else if (alterTarget === null) {
+      link.removeAttribute("target");
+    } else {
+      link.setAttribute("target", alterTarget);
     }
   }
 };
