@@ -156,7 +156,7 @@ Lang["zh_CN"] = {
 	"suggest" : "● 意见反馈",
 	"synchronize" : "上传备份数据",
 	"taobaoLoginTypeTitle" : "淘宝",
-	"targetSwitch" : "本窗口打开链接",
+	"targetSwitch" : "本页面打开链接",
 	"title" : "微度新标签页",
 	"toolsAppTitle" : "实用工具",
 	"topVisited" : "经常访问",

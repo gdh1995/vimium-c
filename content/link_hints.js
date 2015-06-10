@@ -171,10 +171,8 @@ var LinkHints = {
       mode != 1 && (mode = 0);
       break;
     }
-    if (!this.linkActivator && mode < 128) {
-      this.linkActivator = this.FUNC.DEFAULT;
-    } else {
-      this.linkActivator = this.linkActivator || activator;
+    if (!this.linkActivator) {
+      this.linkActivator = mode < 128 ? this.FUNC.DEFAULT : activator;
     }
     VHUD.show(tip);
     this.mode = mode;
