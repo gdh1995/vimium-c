@@ -131,8 +131,8 @@ var LinkHints = {
     var cons = this.CONST, tip, activator;
     switch (mode >= 128 ? ((mode | 64) ^ 64) : mode) {
     case cons.OPEN_IN_NEW_BG_TAB: tip = "Open link in new tab"; break;
-    case cons.OPEN_IN_NEW_FG_TAB: tip = "Open in new active tab"; break;
-    case cons.OPEN_WITH_QUEUE: tip = "Open multiple tabs"; break;
+    case cons.OPEN_IN_NEW_FG_TAB: tip = "Open link in new active tab"; break;
+    case cons.OPEN_WITH_QUEUE: tip = "Open multiple links in new tabs"; break;
     case cons.OPEN_FG_WITH_QUEUE: tip = "Activate link and hold on"; break;
     case cons.HOVER:
       tip = mode >= 192 ? "Hover nodes continuously" : "Hover selected";
@@ -301,10 +301,10 @@ var LinkHints = {
     var output = [], visibleElements = [], visibleElement, rects, rects2, _len, _i;
     DomUtils.prepareCrop();
     if (this.mode == this.CONST.DOWNLOAD_IMAGE || this.mode == this.CONST.OPEN_IMAGE) {
-      output.forEach.call(document.documentElement.querySelectorAll(
+      output.forEach.call(document.querySelectorAll(
         "a[href],img[src]"), this.GetImages.bind(visibleElements));
     } else if (this.mode >= 136) {
-      output.forEach.call(document.documentElement.querySelectorAll(
+      output.forEach.call(document.querySelectorAll(
           "a[href],a[data-vim-url]"), this.GetLinks.bind(visibleElements));
     } else {
       output.forEach.call(document.documentElement.getElementsByTagName("*") //
