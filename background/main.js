@@ -3,6 +3,7 @@
   var BackgroundCommands, ContentSettings, checkKeyQueue, commandCount //
     , currentCount, currentFirst, executeCommand, extForTab, firstKeys //
     , frameIdsForTab, funcDict, handleMainPort, helpDialogHtml //
+    , helpDialogHtmlForCommand //
     , helpDialogHtmlForCommandGroup, needIcon, openMultiTab //
     , populateKeyCommands, requestHandlers, resetKeys, secondKeys, sendToTab //
     , urlForTab;
@@ -18,44 +19,65 @@
 
   needIcon = false;
 
-  helpDialogHtml = function(showUnboundCommands, showCommandNames, customTitle) {
+  helpDialogHtml = function(showUnbound, showNames, customTitle) {
     var command, commandsToKey, dialogHtml, group, key;
     commandsToKey = {};
     for (key in Commands.keyToCommandRegistry) {
       command = Commands.keyToCommandRegistry[key].command;
       commandsToKey[command] = (commandsToKey[command] || []).concat(key);
     }
-    showUnboundCommands = showUnboundCommands ? true : false;
-    showCommandNames = showCommandNames ? true : false;
+    showUnbound = showUnbound ? true : false;
+    showNames = showNames ? true : false;
     customTitle || (customTitle = "Help");
     dialogHtml = Settings.get("help_dialog");
     return dialogHtml.replace(new RegExp("\\{\\{(version|title|" + Object.keys(Commands.commandGroups).join('|') + ")\\}\\}", "g"), function(_, group) {
       return (group === "version") ? Settings.CONST.CurrentVersion
         : (group === "title") ? customTitle
-        : helpDialogHtmlForCommandGroup(group, commandsToKey, Commands.availableCommands, showUnboundCommands, showCommandNames);
+        : helpDialogHtmlForCommandGroup(group, commandsToKey, Commands.availableCommands, showUnbound, showNames);
     });
   };
 
-  helpDialogHtmlForCommandGroup = function(group, commandsToKey, availableCommands, showUnboundCommands, showCommandNames) {
-    var bindings, command, html, isAdvanced, _i, _len, _ref;
+  helpDialogHtmlForCommandGroup = function(group, commandsToKey, availableCommands, showUnbound, showNames) {
+    var bindings, command, html, isAdvanced, _i, _len, _ref, keys, description;
     html = [];
     _ref = Commands.commandGroups[group];
     for (_i = 0, _len = _ref.length; _i < _len; _i++) {
       command = _ref[_i];
-      bindings = (commandsToKey[command] || [""]).join(", ");
-      if (showUnboundCommands || commandsToKey[command]) {
-        isAdvanced = Commands.advancedCommands.indexOf(command) >= 0;
-        html.push("<tr class='vimB vimI vimHelpTr" + (isAdvanced ? " vimHelpAdvanced" : "")
-          , "'>\n\t<td class='vimB vimI vimHelpTd vimHelpShortKey'>\n\t\t<span class='vimB vimI vimHelpShortKey2'>", Utils.escapeHtml(bindings)
-          , "</span>\n\t</td>\n\t<td class='vimB vimI vimHelpTd'>:</td>\n\t<td class='vimB vimI vimHelpTd vimHelpCommandInfo'>"
-          , Utils.escapeHtml(availableCommands[command].description));
-        if (showCommandNames) {
-          html.push("\n\t\t<span class='vimB vimI vimHelpCommandName'>(" + command + ")</span>");
-        }
-        html.push("</td>\n</tr>\n");
+      if ((keys = commandsToKey[command]) || showUnbound) {
+      bindings = keys ? keys.join(", ") : "";
+      isAdvanced = Commands.advancedCommands.indexOf(command) >= 0;
+      description = availableCommands[command].description;
+      if (bindings.length <= 8) {
+        helpDialogHtmlForCommand(html, isAdvanced, bindings, description, showNames ? command : "");
+      } else {
+        helpDialogHtmlForCommand(html, isAdvanced, bindings, "", "");
+        helpDialogHtmlForCommand(html, isAdvanced, "", description, showNames ? command : "");
+      }
       }
     }
     return html.join("");
+  };
+
+  helpDialogHtmlForCommand = function(html, isAdvanced, bindings, description, command) {
+    html.push('<tr class="vimB vimI vimHelpTr', isAdvanced
+      ? " vimHelpAdvanced" : "", '">\n\t');
+    if (description) {
+      html.push('<td class="vimB vimI vimHelpTd vimHelpKey">\n\t\t'
+        , '<span class="vimB vimI vimHelpShortKey">'
+        , bindings && Utils.escapeHtml(bindings), "</span>\n\t</td>\n\t"
+        , '<td class="vimB vimI vimHelpTd">', bindings && ":", "</td>\n\t"
+        , '<td class="vimB vimI vimHelpTd vimHelpCommandInfo">'
+        , Utils.escapeHtml(description));
+      if (command) {
+        html.push('\n\t\t<span class="vimB vimI vimHelpCommandName">('
+          , command, ")</span>\n\t");
+      }
+    } else {
+      html.push('<td class="vimB vimI vimHelpTd" colspan="3">\n\t\t'
+        , '<span class="vimB vimI vimHelpLongKey">'
+        , Utils.escapeHtml(bindings), "</span>&#160;:</td>\n\t");
+    }
+    html.push("</td>\n</tr>\n");
   };
 
   openMultiTab = function(rawUrl, count, parentTab) {

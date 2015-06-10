@@ -46,14 +46,19 @@
 	padding: 1px;
 }
 
-.vimHelpShortKey.vimB {
-	max-width: 40px;
+.vimHelpKey.vimB {
+	max-width: 53px;
 }
-.vimHelpShortKey > .vimHelpShortKey2 {
+.vimHelpLongKey.vimB,
+.vimHelpKey > .vimHelpShortKey {
 	color: #2f508e;
 	float: right;
 	font-weight: bold;
 	white-space: nowrap;
+	font-family: Consolas, "Liberation Mono", Courier, monospace;
+}
+.vimHelpLongKey.vimB {
+	float: none;
 }
 /* Make the description column as wide as it can be. */
 .vimHelpCommandInfo.vimB {
@@ -132,7 +137,7 @@
 	<a class="vimB vimR vimL vimTopLink" id="vimOptionsPage" target="_blank">Options</a>
 	<a class="vimB vimR vimL vimTopLink" target="_blank" href="https://github.com/philc/vimium/wiki">Wiki</a>
 	<div class="vimB vimI" style="display:block;font-size:20px;line-height:130%;"><span class="vimB vimI" style="color:#2f508e">Vim</span>ium++ {{title}}</div>
-	<div class="vimB vimI vimColumnBox">
+	<div class="vimB vimI vimColumnBox" style="margin: 0 5px 0 -10px;">
 		<table class="vimB vimI vimHelpTable">
 		<tbody class="vimB vimI vimColumn">
 			<tr class="vimB vimI vimHelpTr"><td class="vimB vimI vimHelpTd"></td><td class="vimB vimI vimHelpTd"></td><td class="vimB vimI vimHelpTd vimHelpSectionTitle">Navigating the page</td></tr>
