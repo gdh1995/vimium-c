@@ -208,17 +208,28 @@ Vomnibar.vomnibarUI = {
     if (n === KeyCodes.enter) {
       this.openInNewTab = this.forceNewTab || event.shiftKey || event.ctrlKey || event.metaKey;
       action = "enter";
-    } else if ((action = KeyboardUtils.getKeyChar(event)) === "up" //
-        || (event.shiftKey && n === KeyCodes.tab) //
-        || ((event.ctrlKey || event.metaKey) && (action === "k" || action === "p"))) {
+    } else if (event.ctrlKey || event.metaKey) {
+      if (event.shiftKey || event.altKey) { return true; }
+      else if (n === KeyCodes.up || n === KeyCodes.down) {
+        MainPort.Listener({
+          name: "executePageCommand",
+          command: n === KeyCodes.up ? "scrollUp" : "scrollDown",
+          count: 1
+        });
+        return false;
+      }
+      action = String.fromCharCode(event.keyCode);
+      if (action === "K" || action === "P") { action = "up";}
+      else if (action === "J" || action === "N") { action = "down"; }
+      else { return true; }
+    } else if (n === KeyCodes.tab) {
+      action = event.shiftKey ? "up" : "down";
+    } else if (n == KeyCodes.left || n == KeyCodes.right || event.shiftKey || event.altKey) {
+      return true;
+    } else if (n === KeyCodes.up) {
       action = "up";
-    } else if (action === "down" || (n === KeyCodes.tab && !event.shiftKey) //
-        || ((event.ctrlKey || event.metaKey) && (action === "j" || action === "n"))) {
+    } else if (n === KeyCodes.down) {
       action = "down";
-    } else if (n == KeyCodes.left || n == KeyCodes.right) {
-      return true;
-    } else if (!KeyboardUtils.isPlain(event)) {
-      return true;
     } else if (n === KeyCodes.esc) {
       action = "dismiss";
     } else if (n === KeyCodes.f1) {
