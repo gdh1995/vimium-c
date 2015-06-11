@@ -288,7 +288,9 @@ var LinkHints = {
         cr = VRect.cropRectToVisible(w, h, w + 8, h + 8);
       } else if (DomUtils.isStyleVisible(element)) {
         rect = element.getBoundingClientRect();
-        cr = VRect.cropRectToVisible(rect.left, rect.top, rect.right, rect.bottom);
+        w = rect.right + (rect.width < 3 ? 3 : 0);
+        h = rect.bottom + (rect.height < 3 ? 3 : 0);
+        cr = VRect.cropRectToVisible(rect.left, rect.top, w, h);
       }
     } else if ((str = element.href) && LinkHints.imageUrlRegex.test(str)) {
       cr = DomUtils.getVisibleClientRect(element);
