@@ -200,7 +200,6 @@ Vomnibar.vomnibarUI = {
     }
     if (sel >= 0 && sel < _ref.length) {
       _ref[sel].classList.add("vimS");
-      _ref[sel].scrollIntoViewIfNeeded();
     }
   },
   onKeydown: function(event) {

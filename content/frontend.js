@@ -318,11 +318,8 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       }
       document.activeElement = newEl;
       oldActivated.target = null;
-      newEl.scrollIntoViewIfNeeded();
       DomUtils.SimulateHover(newEl);
-      if (newEl.focus) {
-        newEl.focus();
-      }
+      newEl.focus();
     },
     simBackspace: function() {
       var el = document.activeElement;
@@ -833,16 +830,16 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
   followLink = function(linkElement) {
     if (linkElement.nodeName.toLowerCase() === "link") {
       window.location.href = linkElement.href;
-    } else {
-      linkElement.scrollIntoViewIfNeeded();
-      linkElement.focus();
-      DomUtils.simulateClick(linkElement, {
-        altKey: false,
-        ctrlKey: false,
-        metaKey: false,
-        shiftKey: false
-      });
+      return;
     }
+    linkElement.scrollIntoViewIfNeeded();
+    linkElement.focus();
+    DomUtils.simulateClick(linkElement, {
+      altKey: false,
+      ctrlKey: false,
+      metaKey: false,
+      shiftKey: false
+    });
   };
   
   goBy = function(relName, pattern) {
@@ -1103,18 +1100,17 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       window.focus();
       if (settings.values.highlightMask) {
         settings.values.highlightMask.more = true;
-      } else {
-        var dom1 = document.createElement("div");
-        dom1.className = "vimB vimR";
-        dom1.id = "vimHighlightMask";
-        document.documentElement.appendChild(dom1);
-        settings.values.highlightMask = {
-          node: dom1,
-          more: false,
-          timer: setInterval(requestHandlers.removeHighlightMask, 200)
-        };
+        return;
       }
-      document.documentElement.scrollIntoViewIfNeeded();
+      var dom1 = document.createElement("div");
+      dom1.className = "vimB vimR";
+      dom1.id = "vimHighlightMask";
+      document.documentElement.appendChild(dom1);
+      settings.values.highlightMask = {
+        node: dom1,
+        more: false,
+        timer: setInterval(requestHandlers.removeHighlightMask, 200)
+      };
     },
     removeHighlightMask: function() {
       var ref = settings.values.highlightMask;
