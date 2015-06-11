@@ -379,36 +379,32 @@ var LinkHints = {
     if (DomUtils.isSelectable(clickEl)) {
       DomUtils.simulateSelect(clickEl);
       this.deactivateMode();
+      return;
+    }
+    if (clickEl.nodeName.toLowerCase() === "input" && clickEl.type !== "button"
+        && clickEl.type !== "submit" && clickEl.type !== "image") {
+      clickEl.focus();
+    }
+    if (clickEl.classList.contains("vimOIUrl")) {
+      var parEl = clickEl.parentElement.parentElement;
+      if (parEl.classList.contains("vimOItem")) {
+        rect = Vomnibar.vomnibarUI.computeHint(parEl, clickEl);
+      }
+    }
+    if (rect) {
+    } else if (clickEl.nodeName.toLowerCase() !== "area") {
+      rect = VRect.fromClientRect(clickEl.getBoundingClientRect());
     } else {
-      if (clickEl.nodeName.toLowerCase() === "input" && clickEl.type !== "button"
-          && clickEl.type !== "submit" && clickEl.type !== "image") {
-        clickEl.focus();
-      }
-      if (clickEl.classList.contains("vimOIUrl")) {
-        var parEl = clickEl.parentElement.parentElement;
-        if (parEl.classList.contains("vimOItem")) {
-          rect = Vomnibar.vomnibarUI.computeHint(parEl, clickEl);
-        }
-      }
-      if (!rect) {
-        temp = [];
-        this.GetVisibleClickable.call(temp, clickEl);
-        if (temp.length === 1) {
-          rect = temp[0][1];
-        } else {
-          rect = matchedLink.rect;
-          var dx = window.scrollX - this.initScrollX, dy = window.scrollY - this.initScrollY;
-          rect[0] -= dx, rect[2] -= dx, rect[1] -= dy, rect[3] -= dy;
-        }
-        temp = null;
-      }
-      DomUtils.flashVRect(rect);
-      this.linkActivator(clickEl);
-      if ((this.mode & 64) === 64) {
-        this.reinit();
-      } else {
-        this.deactivateMode();
-      }
+      var dx = window.scrollX - this.initScrollX, dy = window.scrollY - this.initScrollY;
+      rect = matchedLink.rect;
+      rect[0] -= dx, rect[2] -= dx, rect[1] -= dy, rect[3] -= dy;
+    }
+    DomUtils.flashVRect(rect);
+    this.linkActivator(clickEl);
+    if ((this.mode & 64) === 64) {
+      this.reinit();
+    } else {
+      this.deactivateMode();
     }
   },
   reinit: function() {
