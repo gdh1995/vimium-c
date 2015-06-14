@@ -345,6 +345,7 @@ var LinkHints = {
     } else if (linksMatched.length === 0) {
       this.deactivateMode();
     } else if (linksMatched.length === 1) {
+      DomUtils.suppressEvent(event);
       this.activateLink(linksMatched[0]);
     } else {
       _limit = this.keyStatus.tab ? 0 : this.markerMatcher.hintKeystrokeQueue.length;
