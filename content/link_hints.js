@@ -182,7 +182,7 @@ var LinkHints = {
     var marker = document.createElement("div"), rect;
     marker.className = "vimB vimI vimLH";
     marker.clickableItem = link[0];
-    marker.rect = rect = link[1];
+    rect = link[1];
     marker.style.left = rect[0] + "px";
     marker.style.top = rect[1] + "px";
     return marker;
@@ -361,7 +361,7 @@ var LinkHints = {
     return false;
   },
   activateLink: function(matchedLink) {
-    var clickEl = matchedLink.clickableItem, temp, rect;
+    var clickEl = matchedLink.clickableItem, temp, rect, parEl;
     this.delayMode = true;
     if (this.mode < 128) {
       if (DomUtils.isSelectable(clickEl)) {
@@ -384,9 +384,20 @@ var LinkHints = {
     } else if (clickEl.nodeName.toLowerCase() !== "area") {
       rect = VRect.fromClientRect(clickEl.getBoundingClientRect());
     } else {
-      var dx = window.scrollX - this.initScrollX, dy = window.scrollY - this.initScrollY;
-      rect = matchedLink.rect;
-      rect[0] -= dx, rect[2] -= dx, rect[1] -= dy, rect[3] -= dy;
+      parEl = clickEl;
+      while (parEl = parEl.parentElement) {
+      if (parEl.nodeName.toLowerCase() !== "map") { continue; }
+      temp = parEl.name.replace(LinkHints.quoteRegex, '\\"');
+      parEl = document.querySelector('img[usemap="#' + temp + '"],img[usemap="'
+        + temp + '"]');
+      if (parEl) {
+        DomUtils.getClientRectsForAreas(rect = [], parEl.getBoundingClientRect()
+          , true, [clickEl]);
+        rect = rect[0];
+      }
+      break;
+      }
+      rect || (rect = [0, 0, 0, 0]);
     }
     DomUtils.flashVRect(rect);
     this.linkActivator(clickEl);
