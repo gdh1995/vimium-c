@@ -758,6 +758,14 @@ LinkHints.FUNC = {
     this.keepHUDAfterAct = true;
     VHUD.showCopied(str);
   },
+  HOVER: function(element) {
+    handlerStack.bubbleEvent("DOMActivate", {
+      preventDefault: function() {},
+      stopImmediatePropagation: function() {},
+      target: element
+    });
+    DomUtils.simulateHover(element);
+  },
   COPY_TEXT: function(link) {
     var str = (link.getAttribute("data-vim-text") || "").trim() || link.innerText.trim();
     // .innerText is "" if "display:block; height:0px; overflow:hidden; width:0px;"
@@ -856,7 +864,6 @@ LinkHints.FUNC = {
       link.removeAttribute("href");
     }
   },
-  HOVER: DomUtils.SimulateHover,
   DEFAULT: function(link) {
     var mode = this.mode & 3, alterTarget;
     if (mode >= 2 && link.nodeName.toLowerCase() === "a") {

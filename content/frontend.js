@@ -318,7 +318,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       }
       document.activeElement = newEl;
       oldActivated.target = null;
-      DomUtils.SimulateHover(newEl);
+      DomUtils.simulateHover(newEl);
       newEl.focus();
     },
     simBackspace: function() {
