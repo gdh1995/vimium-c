@@ -363,14 +363,18 @@ var LinkHints = {
   activateLink: function(matchedLink) {
     var clickEl = matchedLink.clickableItem, temp, rect;
     this.delayMode = true;
-    if (DomUtils.isSelectable(clickEl)) {
-      DomUtils.simulateSelect(clickEl);
-      this.deactivateMode();
-      return;
-    }
-    if (clickEl.nodeName.toLowerCase() === "input" && clickEl.type !== "button"
-        && clickEl.type !== "submit" && clickEl.type !== "image") {
-      clickEl.focus();
+    if (this.mode < 128) {
+      if (DomUtils.isSelectable(clickEl)) {
+        DomUtils.simulateSelect(clickEl);
+        this.deactivateMode();
+        return;
+      }
+      if (clickEl.nodeName.toLowerCase() === "input") {
+        temp = clickEl.type;
+        if (temp !== "button" && temp !== "submit" && temp !== "image") {
+          clickEl.focus();
+        }
+      }
     }
     if (clickEl.classList.contains("vimOIUrl")) {
       var parEl = clickEl.parentElement.parentElement;
