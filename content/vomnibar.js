@@ -411,7 +411,7 @@ Vomnibar.vomnibarUI = {
     this.input.oninput = this.onInput.bind(this);
   },
   computeHint: function(li, a) {
-    var i = [].indexOf.call(this.box, li), item, rect;
+    var i = [].indexOf.call(this.list.children, li), item, rect;
     if (i === -1) { return null; }
     if (!a.hasAttribute("data-vim-url")) {
       item = this.completions[i];
