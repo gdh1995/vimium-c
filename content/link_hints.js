@@ -125,7 +125,6 @@ var LinkHints = {
       this.isActive = true;
       return;
     }
-    this.ensureRightBottom();
     this.hintMarkerContainingDiv.style.left = window.scrollX + "px";
     this.hintMarkerContainingDiv.style.top = window.scrollY + "px";
   },
@@ -187,22 +186,6 @@ var LinkHints = {
     marker.style.left = rect[0] + "px";
     marker.style.top = rect[1] + "px";
     return marker;
-  },
-  ensureRightBottom: function() {
-    var ww, wh, _ref = this.hintMarkers, _i = _ref.length, el, temp, pos, str;
-    ww = window.innerWidth, wh = window.innerHeight - 13;
-    str = wh + "px";
-    while (0 <= --_i) {
-      el = _ref[_i];
-      pos = el.innerText.length;
-      pos = ww - (pos <= 3 ? pos * 10 + 4 : 40);
-      if (el.rect[0] > pos) {
-        el.style.left = pos + "px";
-      }
-      if (el.rect[1] > wh) {
-        el.style.top = str;
-      }
-    }
   },
   hashRegex: /^#/,
   quoteRegex: /"/g,
