@@ -3,6 +3,7 @@ var LinkHints = {
   CONST: {
     // focused: 1; new tab: 2; queue: 64; job: 128
     // >=128: "&4" means "must be links" and [data-vim-url] is used firstly
+    //   &~64 >= 136 means only `<a>`
     OPEN_IN_CURRENT_TAB: 0, // also 1
     OPEN_IN_NEW_BG_TAB: 2,
     OPEN_IN_NEW_FG_TAB: 3,
@@ -106,6 +107,7 @@ var LinkHints = {
       this.markerMatcher = this.alphabetHints;
     }
     this.hintMarkers = elements.map(this.createMarkerFor);
+    elements = null;
     this.markerMatcher.fillInMarkers(this.hintMarkers);
     this.isActive = true;
     this.initScrollX = window.scrollX;
@@ -146,10 +148,6 @@ var LinkHints = {
       tip = mode >= 192 ? "Search link text one by one" : "Search selected text";
       activator = this.FUNC.COPY_TEXT;
       break;
-    case cons.OPEN_INCOGNITO_LINK:
-      tip = mode >= 192 ? "Open multi incognito tabs" : "Open link in incognito";
-      activator = this.FUNC.OPEN_INCOGNITO_LINK;
-      break;
     case cons.DOWNLOAD_IMAGE:
       tip = mode >= 192 ? "Download multiple images" : "Download image";
       activator = this.FUNC.DOWNLOAD_IMAGE;
@@ -165,6 +163,10 @@ var LinkHints = {
     case cons.COPY_LINK_URL:
       tip = mode >= 192 ? "Copy link URL one by one" : "Copy link URL to Clipboard";
       activator = this.FUNC.COPY_LINK_URL;
+      break;
+    case cons.OPEN_INCOGNITO_LINK:
+      tip = mode >= 192 ? "Open multi incognito tabs" : "Open link in incognito";
+      activator = this.FUNC.OPEN_INCOGNITO_LINK;
       break;
     default:
       tip = "Open link in current tab";
@@ -218,6 +220,7 @@ var LinkHints = {
       return;
     case "img":
       if ((s = element.useMap) && (arr = element.getClientRects()).length > 0) {
+        // replace is necessary: chrome allows "&quot;", and also allows no "#"
         s = s.replace(LinkHints.hashRegex, "").replace(LinkHints.quoteRegex, '\\"');
         DomUtils.getClientRectsForAreas(this, arr[0], document.querySelector('map[name="' + s + '"]'));
       }
