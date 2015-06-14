@@ -376,11 +376,9 @@ var LinkHints = {
         }
       }
     }
-    if (clickEl.classList.contains("vimOIUrl")) {
-      var parEl = clickEl.parentElement.parentElement;
-      if (parEl.classList.contains("vimOItem")) {
-        rect = Vomnibar.vomnibarUI.computeHint(parEl, clickEl);
-      }
+    if (clickEl.classList.contains("vimOIUrl")
+      && DomUtils.isDOMDescendant(Vomnibar.vomnibarUI.box, clickEl)) {
+      rect = Vomnibar.vomnibarUI.computeHint(clickEl.parentElement.parentElement, clickEl);
     }
     if (rect) {
     } else if (clickEl.nodeName.toLowerCase() !== "area") {
