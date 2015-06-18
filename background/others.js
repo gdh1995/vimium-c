@@ -94,7 +94,6 @@ if (chrome.browserAction && chrome.browserAction.setIcon) (function() {
   };
   Settings.updateHooks.showActionIcon = (function (value) {
     this(value);
-    // TODO: hide icon
     if (value) {
       chrome.browserAction.enable();
     } else {

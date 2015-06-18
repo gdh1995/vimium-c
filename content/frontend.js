@@ -489,6 +489,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     }
   };
 
+  // TODO: an active insert mode object should be inserted if needed
   ELs.onKeydown = function(event) {
     if (!isEnabledForUrl) {
       return;
@@ -507,7 +508,6 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
           action = 2;
         }
       }
-      // TODO: insert mode: active or passive ?
       else if (key >= KeyCodes.f1 && key <= KeyCodes.f12) {
         keyChar = getFullCommand(event, KeyboardUtils.getKeyName(event));
         action = checkValidKey(keyChar);
@@ -1273,7 +1273,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
 
   settings.load({
     handler: "initIfEnabled",
-    focused: document.hasFocus(), // TODO: check if .hasFocus is too slow
+    focused: document.hasFocus(), // .hasFocus has a time cost less than 0.8 us
     url: window.location.href
   }, function(request) {
     request.focused = document.hasFocus();
