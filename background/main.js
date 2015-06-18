@@ -733,10 +733,14 @@
       funcDict.removeTabsRelative(funcDict.selectFrom(tabs), 0, tabs);
     },
     copyCurrentTitle: function(tabs) {
-      Clipboard.copy(tabs[0].title);
+      var str = tabs[0].title;
+      Clipboard.copy(str);
+      funcDict.sendToCurrent({name: "showCopied", text: str}, tabs);
     },
     copyCurrentUrl: function(tabs) {
-      Clipboard.copy(tabs[0].url);
+      var str = tabs[0].url;
+      Clipboard.copy(str);
+      funcDict.sendToCurrent({name: "showCopied", text: str}, tabs);
     },
     toggleViewSource: function(tabs) {
       var url = tabs[0].url;

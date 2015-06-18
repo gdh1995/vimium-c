@@ -1182,6 +1182,9 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     showHUD: function(request) {
       HUD.showForDuration(request.text, request.time);
     },
+    showCopied: function(request) {
+      HUD.showCopied(request.text);
+    },
     showHelpDialog: null
   };
   requestHandlers.__proto__ = null;
