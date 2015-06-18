@@ -513,22 +513,21 @@ LinkHints.alphabetHints = {
         return false;
       }
       keyStatus.tab = !keyStatus.tab;
-    } else {
-      if (keyStatus.tab) {
-        this.hintKeystrokeQueue = [];
-        keyStatus.tab = false;
-      }
-      if (key === KeyCodes.backspace || key === KeyCodes.deleteKey || key === KeyCodes.f1) {
-        if (!this.hintKeystrokeQueue.pop()) {
-          return [];
-        }
-      } else if (key === KeyCodes.space) {
+    } else if (keyStatus.tab) {
+      this.hintKeystrokeQueue = [];
+      keyStatus.tab = false;
+    }
+    if (key === KeyCodes.tab) {}
+    else if (key === KeyCodes.backspace || key === KeyCodes.deleteKey || key === KeyCodes.f1) {
+      if (!this.hintKeystrokeQueue.pop()) {
         return [];
-      } else if (keyChar = KeyboardUtils.getKeyChar(event).toLowerCase()) {
-        this.hintKeystrokeQueue.push(keyChar);
-      } else {
-        return null;
       }
+    } else if (key === KeyCodes.space) {
+      return [];
+    } else if (keyChar = KeyboardUtils.getKeyChar(event).toLowerCase()) {
+      this.hintKeystrokeQueue.push(keyChar);
+    } else {
+      return null;
     }
     keyChar = this.hintKeystrokeQueue.join("");
     keyStatus.delay = 0;
@@ -618,12 +617,7 @@ LinkHints.filterHints = {
   },
   matchHintsByKey: function(hintMarkers, event, keyStatus) {
     var key = event.keyCode, keyChar, userIsTypingLinkText = false;
-    if (key === KeyCodes.tab) {
-      if (this.hintKeystrokeQueue.length === 0) {
-        return false;
-      }
-      keyStatus.tab = !keyStatus.tab;
-    } else if (key === KeyCodes.enter) {
+    if (key === KeyCodes.enter) {
       keyStatus.tab = false;
       for (var marker, _i = 0, _len = hintMarkers.length; _i < _len; _i++) {
         marker = hintMarkers[_i];
@@ -633,27 +627,29 @@ LinkHints.filterHints = {
         }
       }
       return null;
+    }
+    if (key === KeyCodes.tab) {
+      if (this.hintKeystrokeQueue.length === 0) {
+        return false;
+      }
+      keyStatus.tab = !keyStatus.tab;
+    } else if (keyStatus.tab) {
+      this.hintKeystrokeQueue = [];
+      keyStatus.tab = false;
+    }
+    if (key === KeyCodes.tab) {}
+    else if (key === KeyCodes.backspace || key === KeyCodes.deleteKey || key === KeyCodes.f1) {
+      if (!this.hintKeystrokeQueue.pop() && !this.linkTextKeystrokeQueue.pop()) {
+        return [];
+      }
+    } else if (!(keyChar = KeyboardUtils.getKeyChar(event).toLowerCase())) {
+      return null;
+    } else if (key !== KeyCodes.space && (Settings.values.linkHintNumbers).indexOf(keyChar) >= 0) {
+      this.hintKeystrokeQueue.push(keyChar);
     } else {
-      if (keyStatus.tab) {
-        this.hintKeystrokeQueue = [];
-        keyStatus.tab = false;
-      }
-      if (key === KeyCodes.backspace || key === KeyCodes.deleteKey || key === KeyCodes.f1) {
-        if (!this.hintKeystrokeQueue.pop() && !this.linkTextKeystrokeQueue.pop()) {
-          return [];
-        }
-      } else if (keyChar = KeyboardUtils.getKeyChar(event).toLowerCase()) {
-        if (key !== KeyCodes.space &&
-            (Settings.values.linkHintNumbers).indexOf(keyChar) >= 0) {
-          this.hintKeystrokeQueue.push(keyChar);
-        } else {
-          this.hintKeystrokeQueue = [];
-          this.linkTextKeystrokeQueue.push(keyChar);
-          userIsTypingLinkText = true;
-        }
-      } else {
-        return null;
-      }
+      this.hintKeystrokeQueue = [];
+      this.linkTextKeystrokeQueue.push(keyChar);
+      userIsTypingLinkText = true;
     }
     keyChar = this.hintKeystrokeQueue.join("");
     hintMarkers = this.filterLinkHints(hintMarkers).filter(keyStatus.tab ? function(linkMarker) {
@@ -769,7 +765,7 @@ LinkHints.FUNC = {
     str = str ? str
       : (str = link.nodeName.toLowerCase()) === "textarea" ? link.value
       : (str === "input" && !(link.type in DomUtils.inputsNoFocus)) ? link.value
-    // .innerText is "" if "display:block; height:0px; overflow:hidden; width:0px;"
+      // .innerText is "" if "display:block; height:0px; overflow:hidden; width:0px;"
       : (link.innerText.trim() || Utils.decodeTextFromHtml(link.innerHTML));
     str = (str.trim() || link.title).replace(Utils.spacesRegex, ' ').trim();
     if (!str) {
