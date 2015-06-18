@@ -548,7 +548,7 @@
     },
     focusOrLaunch: function(request, tabs) {
       if (tabs.length === 0) {
-        // TODO: here we should wait for tab finishing to load
+        // TODO: how to wait for tab finishing to load
         chrome.tabs.create({url: request.url}, !request.scroll ? null
           : setTimeout.bind(window, Marks.gotoTab, 1000, request));
         return;

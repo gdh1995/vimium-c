@@ -320,6 +320,7 @@ var LinkHints = {
   onKeyDownInMode: function(event) {
     var linksMatched, _i, _j, _ref, _limit;
     if (this.delayMode || event.repeat) {
+      // NOTE: should always prevent repeated keys.
     } else if ((_i = event.keyCode) === KeyCodes.esc) {
       if (KeyboardUtils.isPlain(event)) {
         this.deactivateMode();
@@ -772,7 +773,6 @@ LinkHints.FUNC = {
       this.keepHUDAfterAct = true;
       return;
     }
-    str = Utils.correctSpace(str);
     if (this.mode === this.CONST.SEARCH_TEXT) {
       MainPort.port.postMessage({
         handler: "openUrlInNewTab",

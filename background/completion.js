@@ -1,6 +1,6 @@
 "use strict";
 (function() {
-  var HistoryCache, RankingUtils, RegexpCache, Suggestion, Decoder, completers;
+  var HistoryCache, RankingUtils, RegexpCache, Decoder, completers;
 
   completers = {};
 

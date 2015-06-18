@@ -53,7 +53,7 @@ var Utils = {
   _nonENTldRegex: /[^a-z]/,
   _jsNotEscapeRegex: /["\[\]{}\u00ff-\uffff]|%(?![\dA-Fa-f]{2})/,
   convertToUrl: function(string) {
-    if (string.substring(0, 11).toLowerCase() == "javascript:") {
+    if (string.substring(0, 11).toLowerCase() === "javascript:") {
       if (string.indexOf('%', 11) > 0 && !this._jsNotEscapeRegex.test(string)) {
         string = this.decodeEachURLPart(string);
       }

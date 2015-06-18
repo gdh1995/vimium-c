@@ -288,7 +288,7 @@ Commands.defaultKeyMappings = {
     }
   ],
   searchAs: [
-    "Search selected or copied text using current engine", {
+    "Search selected or copied text using current search engine", {
       noRepeat: 1
     }
   ],
