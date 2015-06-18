@@ -112,7 +112,7 @@ Commands.commandGroups = {
     , "moveTabToIncognito", "togglePinTab"
     , "closeTabsOnLeft", "closeTabsOnRight", "closeOtherTabs", "moveTabLeft", "moveTabRight"
     , "enableImageTemp", "toggleImage", "clearImageCS"],
-  misc: ["showHelp", "enterVisualMode", "autoCopy", "autoSearch", "searchAs"
+  misc: ["showHelp", "enterVisualMode", "autoCopy", "autoOpen", "searchAs"
     , "blank"]
 };
 Commands.advancedCommands = ["scrollToLeft", "scrollToRight", "moveTabToNextWindow", "moveTabToIncognito"
@@ -278,12 +278,12 @@ Commands.defaultKeyMappings = {
     }
   ],
   autoCopy: [
-    "Copy selected text or current frame URL", {
+    "Copy selected text or current frame's title", {
       noRepeat: 1
     }
   ],
-  autoSearch: [
-    "Open selected text in a new tab", {
+  autoOpen: [
+    "Open selected or copied text in a new tab", {
       noRepeat: 1
     }
   ],

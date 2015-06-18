@@ -363,23 +363,38 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     autoCopy: function() {
       var sel = document.getSelection(), str;
       if (sel.type !== "Range" || !(str = sel.toString().trim())) {
-        str = location.href;
+        str = location.title.trim();
       }
-      mainPort.port.postMessage({
-        handler: "copyToClipboard",
-        data: str
-      });
-      HUD.showCopied(str);
-    },
-    autoSearch: function() {
-      var sel = document.getSelection(), str;
-      if (sel.type !== "Range" || !(str = sel.toString().trim())) {
+      if (str = str.replace(Utils.spacesRegex, ' ').trim()) {
+        mainPort.port.postMessage({
+          handler: "copyToClipboard",
+          data: str
+        });
+        HUD.showCopied(str);
+      } else {
         HUD.showForDuration("No text found!", 1000);
+      }
+    },
+    autoOpen: function() {
+      var sel = document.getSelection(), str;
+      if (sel.type === "Range" && (str = sel.toString().trim())) {
+          mainPort.port.postMessage({
+            handler: "openUrlInNewTab",
+            url: str
+          });
         return;
       }
       mainPort.port.postMessage({
-        handler: "openUrlInNewTab",
-        url: str
+        handler: "pasteFromClipboard"
+      }, function(str) {
+        if (!str) {
+          HUD.showForDuration("No text found!", 1000);
+          return;
+        }
+        mainPort.port.postMessage({
+          handler: "openUrlInNewTab",
+          url: str
+        });
       });
     },
     searchAs: function() {

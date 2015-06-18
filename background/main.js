@@ -987,15 +987,11 @@
       return "";
     },
     searchAs: function(request) {
-      var search = requestHandlers.parseSearchUrl(request), i;
-      if (!search) {
-        return "search engine";
-      }
-      if (!request.search) {
-        request.search = Clipboard.paste();
-        if (!request.search) {
-          return "selected or copied text";
-        }
+      var search = requestHandlers.parseSearchUrl(request), query, i;
+      if (!search) { return "search engine"; }
+      if (!(query = request.search)) {
+        query = Clipboard.paste().replace(Utils.spacesRegex, ' ').trim();
+        if (!query) { return "selected or copied text"; }
       }
       i = search.indexOf(" ");
       search = Utils.createSearchUrl(
@@ -1087,6 +1083,10 @@
         html: Settings.get("vomnibar"),
         relevancy: Settings.get("showOmniRelevancy")
       };
+    },
+    pasteFromClipboard: function() {
+      var str = Clipboard.paste();
+      return str && str.replace(Utils.spacesRegex, ' ').trim();
     },
     copyToClipboard: function(request) {
       Clipboard.copy(request.data);

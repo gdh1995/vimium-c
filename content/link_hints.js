@@ -765,9 +765,13 @@ LinkHints.FUNC = {
     DomUtils.simulateHover(element);
   },
   COPY_TEXT: function(link) {
-    var str = (link.getAttribute("data-vim-text") || "").trim() || link.innerText.trim();
+    var str = (link.getAttribute("data-vim-text") || "").trim();
+    str = str ? str
+      : (str = link.nodeName.toLowerCase()) === "textarea" ? link.value
+      : (str === "input" && !(link.type in DomUtils.inputsNoFocus)) ? link.value
     // .innerText is "" if "display:block; height:0px; overflow:hidden; width:0px;"
-    str = str || Utils.decodeTextFromHtml(link.innerHTML).trim() || link.title.trim();
+      : (link.innerText.trim() || Utils.decodeTextFromHtml(link.innerHTML));
+    str = (str.trim() || link.title).replace(Utils.spacesRegex, ' ').trim();
     if (!str) {
       VHUD.showForDuration("No text found", 1000);
       this.keepHUDAfterAct = true;
