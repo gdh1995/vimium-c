@@ -122,23 +122,31 @@ var Settings = {
     }
   },
   reparseSearchUrl: function (pattern, name) {
-    var url = pattern.url, insert = pattern.$s || pattern.$S, ind;
-    if (insert && Utils.hasOrdinaryUrlPrefix(url)) {
-      if (ind = (url.indexOf("?") + 1) || (url.indexOf("#") + 1)) {
-        var prefix = url.substring(0, ind - 1);
-        url = url.substring(ind, insert - 1);
-        if (ind = url.lastIndexOf("&") + 1) {
-          url = url.substring(ind);
-        }
-        if (url && url !== "=") {
-          url = url.toLowerCase().replace(RegexpCache._escapeRegex, "\\$&");
-          if (prefix.startsWith("https://")) {
-            prefix = "http" + prefix.substring(5);
-          }
-          return [prefix, new RegExp("[?#&]" + url + "([^&#]*)", "i"), name];
-        }
+    var url, ind = pattern.$s || pattern.$S, prefix;
+    if (!ind || !Utils.hasOrdinaryUrlPrefix(url = pattern.url)) { return; }
+    url = url.substring(0, ind - 1);
+    if (ind = (url.indexOf("?") + 1) || (url.indexOf("#") + 1)) {
+      prefix = url.substring(0, ind - 1);
+      url = url.substring(ind);
+      if (ind = url.lastIndexOf("&") + 1) {
+        url = url.substring(ind);
       }
+      if (url && url !== "=" && !url.endsWith("/")) {
+        url = url.toLowerCase().replace(RegexpCache._escapeRegex, "\\$&");
+        if (prefix.startsWith("https://")) {
+          prefix = "http" + prefix.substring(5);
+        }
+        return [prefix, new RegExp("[?#&]" + url + "([^&#]*)", "i"), name];
+      }
+      url = pattern.url.substring(0, (pattern.$s || pattern.$S) - 1);
     }
+    prefix = url;
+    url = pattern.url.substring(url.length + 2);
+    url = url.toLowerCase().replace(RegexpCache._escapeRegex, "\\$&");
+    if (prefix.startsWith("https://")) {
+      prefix = "http" + prefix.substring(5);
+    }
+    return [prefix, new RegExp("^([^?#]*)" + url, "i"), name];
   },
   reloadFiles: function() {
     var files = this.files, id;
