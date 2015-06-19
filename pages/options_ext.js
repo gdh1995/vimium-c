@@ -96,9 +96,10 @@ CheckBoxOption = (function(_super) {
 })(Option);
 
 
-initOptionsPage = function() {
+initPage = function() {
   var activateHelpDialog, element, maintainLinkHintsView, name, onUpdated //
     , options, saveOptions, toggleAdvancedOptions, type, _i, _ref, status = 0;
+  initPage = null;
 
   onUpdated = function() {
     if (status == 1) { return; }

@@ -1,6 +1,6 @@
 "use strict";
 var $, Option, ExclusionRulesOption, ExclusionRulesOnPopupOption,
-bgSettings, bgExclusions, initPopupPage, BG,
+bgSettings, bgExclusions, initPage, BG,
 __hasProp = Object.prototype.hasOwnProperty,
 __extends = function(child, parent) {
   for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; }
@@ -210,7 +210,7 @@ ExclusionRulesOnPopupOption = (function(_super) {
 
 })(ExclusionRulesOption);
 
-initPopupPage = function(tab) {
+initPage = function(tab) {
   var exclusions, onUpdated, saveOptions, updateState, url, hasNew, status;
   exclusions = null;
   tab = tab[0];
@@ -268,7 +268,8 @@ initPopupPage = function(tab) {
     if (hasNew) {
       bgExclusions.rebuildRegex();
     }
-  }
+  };
+  initPage = null;
 };
 
 var onDOMLoaded;
@@ -281,9 +282,9 @@ document.addEventListener("DOMContentLoaded", onDOMLoaded = function() {
     if (xhr.readyState === 4) {
       $("exclusionScrollBox").innerHTML = xhr.responseText;
       if (window.location.pathname.endsWith("popup.html")) {
-        chrome.tabs.query({currentWindow: true, active: true}, initPopupPage);
+        chrome.tabs.query({currentWindow: true, active: true}, initPage);
       } else if (location.pathname.endsWith("options.html") >= 0) {
-        initOptionsPage();
+        initPage();
       }
     }
   };
