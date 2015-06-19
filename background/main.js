@@ -556,7 +556,12 @@
       chrome.windows.getCurrent(function(wnd) {
         var wndId = wnd.id, tabs2, tab;
         tabs2 = tabs.filter(function(tab) {return tab.windowId === wndId;});
-        Marks.gotoTab(request, tabs2[0] || tabs[0]);
+        if (tabs2[0]) {
+          Marks.gotoTab(request, tabs2[0]);
+        } else {
+          Marks.gotoTab(request, tabs[0]);
+          chrome.windows.update(tabs[0].windowId, {focused: true});
+        }
       });
     }
   };
