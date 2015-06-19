@@ -75,14 +75,17 @@ var Settings = {
     }
   },
   parseSearchEngines: function(searchEnginesText, map) {
-    var a, pairs, key, val, name, obj, _i, _j, _len, _len2, key0 //
-      , rEscapeSpace = /\\\s/g, rSpace = /\s/, rEscapeS = /\\s/g;
+    var a, pairs, key, val, name, obj, _i, _j, _len, _len2, key0, //
+    rEscapeSpace = /\\\s/g, rSpace = /\s/, rEscapeS = /\\s/g, rColon = /\\:/g;
     map = map || this.get("searchEnginesMap");
     a = searchEnginesText.replace(/\\\n/g, '').split('\n');
     for (_i = 0, _len = a.length; _i < _len; _i++) {
       val = a[_i].trim();
       if (!val || val[0] === '#' || val[0] === '"') continue;
-      _j = val.indexOf(":");
+      _j = 0;
+      do {
+        _j = val.indexOf(":", _j + 1);
+      } while (val[_j - 1] === '\\');
       if (_j <= 0 || !(key = val.substring(0, _j).trimRight())) continue;
       val = val.substring(_j + 1).trimLeft();
       if (!val) continue;
@@ -97,6 +100,7 @@ var Settings = {
       }
       val = val.replace(rEscapeS, " ");
       obj = {url: val};
+      key = key.replace(rColon, ":");
       pairs = key.split('|');
       for (_j = 0, _len2 = pairs.length; _j < _len2; _j++) {
         if (key = pairs[_j].trim()) {
