@@ -378,10 +378,12 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     autoOpen: function() {
       var sel = document.getSelection(), str;
       if (sel.type === "Range" && (str = sel.toString().trim())) {
+        if (! Utils.evalIfOK(str)) {
           mainPort.port.postMessage({
             handler: "openUrlInNewTab",
             url: str
           });
+        }
         return;
       }
       mainPort.port.postMessage({
@@ -391,6 +393,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
           HUD.showForDuration("No text found!", 1000);
           return;
         }
+        if (Utils.evalIfOK(str)) { return; }
         mainPort.port.postMessage({
           handler: "openUrlInNewTab",
           url: str

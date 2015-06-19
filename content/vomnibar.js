@@ -187,7 +187,7 @@ Vomnibar.vomnibarUI = {
       if (!this.focused) this.input.blur();
       var ref = this.completions[this.selection];
       if (!ref.text) {
-        ref.text = ref.url.startsWith("javascript:") ? ref.url : Utils.decodeURL(ref.url);
+        ref.text = Utils.jsUrlRegex.test(url) ? ref.url : Utils.decodeURL(ref.url);
       }
       this.input.value = ref.text;
     }
@@ -499,7 +499,7 @@ Vomnibar.background = {
     return out.join("");
   },
   cutUrl: function(string, ranges, strCoded) {
-    if (ranges.length === 0 || string.startsWith("javascript:")) {
+    if (ranges.length === 0 || Utils.jsUrlRegex.test(string)) {
       if (string.length <= this.maxCharNum) {
         return Utils.escapeHtml(string);
       } else {
@@ -576,9 +576,7 @@ Vomnibar.background = {
   },
   completionActions: {
     navigateToUrl: function(openInNewTab) {
-      if (openInNewTab && this.url.startsWith("javascript:")) {
-        openInNewTab = false;
-      }
+      if (Utils.evalIfOK(this.url)) { return; }
       MainPort.port.postMessage({
         handler: (openInNewTab ? "openUrlInNewTab" : "openUrlInCurrentTab"),
         url: this.url

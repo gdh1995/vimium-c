@@ -789,10 +789,7 @@ LinkHints.FUNC = {
   },
   OPEN_INCOGNITO_LINK: function(link) {
     var url = this.getUrlData(link);
-    if (url.startsWith("javascript:")) {
-      MainPort.port.postMessage({ handler: "openUrlInCurrentTab", url: url });
-      return;
-    }
+    if (Utils.evalIfOK(url)) { return; }
     MainPort.port.postMessage({
       handler: "openUrlInIncognito",
       url: url,
