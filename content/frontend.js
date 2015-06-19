@@ -386,7 +386,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
         }
         return;
       }
-      mainPort.port.postMessage({
+      mainPort.sendMessage({
         handler: "pasteFromClipboard"
       }, function(str) {
         if (!str) {
