@@ -648,12 +648,14 @@
     },
     blank: function() {},
     openCopiedUrlInCurrentTab: function() {
-      requestHandlers.openUrlInCurrentTab({
-        url: Clipboard.paste()
-      });
+      var url = requestHandlers.getCopiedUrl_f();
+      chrome.tabs.update(null, {
+        url: url
+      }, funcDict.onRuntimeError);
     },
     openCopiedUrlInNewTab: function(tabs) {
-      openMultiTab(Utils.convertToUrl(Clipboard.paste()), commandCount, tabs[0]);
+      var url = requestHandlers.getCopiedUrl_f();
+      openMultiTab(url, commandCount, tabs[0]);
     },
     togglePinTab: function(tabs) {
       chrome.tabs.update(tabs[0].id, {
@@ -1084,9 +1086,16 @@
         relevancy: Settings.get("showOmniRelevancy")
       };
     },
-    pasteFromClipboard: function() {
-      var str = Clipboard.paste();
-      return str && str.replace(Utils.spacesRegex, ' ').trim();
+    getCopiedUrl_f: function() {
+      var url = Clipboard.paste().trim(), arr;
+      if (url) {
+        arr = url.match(Utils.filePathRegex);
+        url = arr ? arr[1] : Utils.convertToUrl(url);
+      }
+      return url;
+    },
+    openUrl_fInNewTab: function(request, tabs) {
+      openMultiTab(request.url, 1, tabs[0]);
     },
     copyToClipboard: function(request) {
       Clipboard.copy(request.data);
@@ -1233,7 +1242,7 @@
     ref2 = requestHandlers;
     for (key in ref2) { ref2[key].useTab = 0; }
     ref = ["copyCurrentUrl", "openUrlInNewTab", "openUrlInIncognito" //
-      , "openImageUrl", "Marks.createMark" //
+      , "openImageUrl", "openUrl_fInNewTab", "Marks.createMark" //
     ];
     for (i = ref.length; 0 <= --i; ) {
       ref2[ref[i]].useTab = 1;

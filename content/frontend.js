@@ -387,7 +387,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
         return;
       }
       mainPort.sendMessage({
-        handler: "pasteFromClipboard"
+        handler: "getCopiedUrl_f"
       }, function(str) {
         if (!str) {
           HUD.showForDuration("No text found!", 1000);
@@ -395,7 +395,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
         }
         if (Utils.evalIfOK(str)) { return; }
         mainPort.port.postMessage({
-          handler: "openUrlInNewTab",
+          handler: "openUrl_fInNewTab",
           url: str
         });
       });

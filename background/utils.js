@@ -52,6 +52,7 @@ var Utils = {
   spacesRegex: /[\s\u3000]+/g,
   _nonENTldRegex: /[^a-z]/,
   _jsNotEscapeRegex: /["\[\]{}\u00ff-\uffff]|%(?![\dA-Fa-f]{2})/,
+  filePathRegex: /^['"]?((?:[A-Za-z]:[\\/]|\/(?:Users|home|root)\/)[^'"]*)['"]?$/,
   convertToUrl: function(string) {
     if (string.substring(0, 11).toLowerCase() === "javascript:") {
       if (string.indexOf('%', 11) > 0 && !this._jsNotEscapeRegex.test(string)) {
