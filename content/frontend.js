@@ -1382,7 +1382,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     Commands = requestHandlers = MainPort = VHUD = mainPort = KeydownEvents = //
     VRect = Utils = KeyboardUtils = DomUtils = handlerStack = Scroller = //
     currentSeconds = initializeWhenEnabled = setPassKeys = checkValidKey = //
-    KeyCodes = passKeys =firstKeys = secondKeys = oldActivated = Marks = func = //
+    KeyCodes = passKeys = firstKeys = secondKeys = oldActivated = Marks = func = //
     null;
 
     console.log("%cVimium++ %c#" + frameId + "%c has destroyed."//
