@@ -745,7 +745,7 @@
     toggleViewSource: function(tabs) {
       var url = tabs[0].url;
       url = url.startsWith("view-source:") ? url.substring(12) : ("view-source:" + url);
-      openMultiTab(Utils.convertToUrl(url), 1, tabs[0]);
+      openMultiTab(url, 1, tabs[0]);
     },
     "Marks.clearGlobal": Marks.clearGlobal
   };
