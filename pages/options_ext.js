@@ -102,7 +102,18 @@ initPage = function() {
   initPage = null;
 
   onUpdated = function() {
-    if (status == 1) { return; }
+    if (this.areEqual(this.readValueFromElement(), this.previous)) {
+      if (status == 1 && !Option.needSaveOptions()) {
+        var btn = $("saveOptions");
+        btn.disabled = true;
+        btn.innerHTML = "No Changes";
+        $("exportButton").disabled = false;
+        status = 0;
+      }
+      return;
+    } else if (status == 1) {
+      return;
+    }
     status = 1;
     var saveBtn = $("saveOptions");
     saveBtn.removeAttribute("disabled");
