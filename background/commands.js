@@ -113,7 +113,7 @@ Commands.commandGroups = {
     , "closeTabsOnLeft", "closeTabsOnRight", "closeOtherTabs", "moveTabLeft", "moveTabRight"
     , "enableImageTemp", "toggleImage", "clearImageCS"],
   misc: ["showHelp", "enterVisualMode", "autoCopy", "autoOpen", "searchAs"
-    , "blank"]
+    , "debugBackground", "blank"]
 };
 Commands.advancedCommands = ["scrollToLeft", "scrollToRight", "moveTabToNextWindow", "moveTabToIncognito"
   , "goUp", "goToRoot", "focusInput", "LinkHints.activateModeWithQueue", "enableImageTemp"
@@ -123,7 +123,7 @@ Commands.advancedCommands = ["scrollToLeft", "scrollToRight", "moveTabToNextWind
   , "Vomnibar.activateEditUrlInNewTab", "LinkHints.activateModeToOpenIncognito"
   , "goNext", "goPrevious", "Marks.clearLocal", "Marks.clearGlobal"
   , "moveTabLeft", "moveTabRight", "closeTabsOnLeft", "closeTabsOnRight", "closeOtherTabs"
-  , "scrollPxDown", "scrollPxUp", "scrollPxLeft", "scrollPxRight", "blank"
+  , "scrollPxDown", "scrollPxUp", "scrollPxLeft", "scrollPxRight", "debugBackground", "blank"
 ];
 Commands.defaultKeyMappings = {
   "?": "showHelp",
@@ -201,6 +201,12 @@ Commands.defaultKeyMappings = {
 })({
   showHelp: [
     "Show help", {
+      noRepeat: 1
+    }
+  ],
+  debugBackground: [
+    "Debug the background page", {
+      background: true,
       noRepeat: 1
     }
   ],

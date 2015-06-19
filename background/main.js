@@ -754,6 +754,11 @@
       url = url.startsWith("view-source:") ? url.substring(12) : ("view-source:" + url);
       openMultiTab(url, 1, tabs[0]);
     },
+    debugBackground: function() {
+      requestHandlers.focusOrLaunch({
+        url: "chrome://extensions/?id=" + chrome.runtime.id
+      });
+    },
     "Marks.clearGlobal": Marks.clearGlobal
   };
   BackgroundCommands.__proto__ = null;
@@ -1257,6 +1262,7 @@
     for (key in ref2) { ref2[key].useTab = 1; }
     ref = ["nextTab", "previousTab", "firstTab", "lastTab", "removeTab" //
       , "closeTabsOnLeft", "closeTabsOnRight", "closeOtherTabs", "removeGivenTab" //
+      , "debugBackground" //
     ];
     for (i = ref.length; 0 <= --i; ) {
       ref2[ref[i]].useTab = 2;
