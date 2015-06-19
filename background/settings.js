@@ -81,7 +81,7 @@ var Settings = {
     a = searchEnginesText.replace(/\\\n/g, '').split('\n');
     for (_i = 0, _len = a.length; _i < _len; _i++) {
       val = a[_i].trim();
-      if (!val || val[0] === '#') continue;
+      if (!val || val[0] === '#' || val[0] === '"') continue;
       _j = val.indexOf(":");
       if (_j <= 0 || !(key = val.substring(0, _j).trimRight())) continue;
       val = val.substring(_j + 1).trimLeft();
