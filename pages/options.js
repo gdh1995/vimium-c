@@ -17,6 +17,10 @@ bgExclusions = BG.Exclusions;
 function Option(field, onUpdated) {
   this.field = field;
   this.element = $(this.field);
+  if (field in bgSettings.bufferToLoad) {
+    this.onUpdated1 = onUpdated;
+    onUpdated = this._onUpdated;
+  }
   this.onUpdated = onUpdated.bind(this);
   this.previous = null;
   this.fetch();
@@ -25,6 +29,11 @@ function Option(field, onUpdated) {
 
 Option.all = [];
 Option.syncToFrontend = false;
+
+Option.prototype._onUpdated = function() {
+  this.onUpdated1();
+  Settings.values[this.field] = this.readValueFromElement();
+};
 
 Option.prototype.fetch = function() {
   this.populateElement(this.previous = bgSettings.get(this.field));
