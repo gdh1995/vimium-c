@@ -17,7 +17,7 @@ bgExclusions = BG.Exclusions;
 function Option(field, onUpdated) {
   this.field = field;
   this.element = $(this.field);
-  this.onUpdated = onUpdated;
+  this.onUpdated = onUpdated.bind(this);
   this.previous = null;
   this.fetch();
   Option.all.push(this);
