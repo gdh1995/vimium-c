@@ -242,6 +242,7 @@ initPage = function() {
     regexFindMode: CheckBoxOption,
     scrollStepSize: NumberOption,
     smoothScroll: CheckBoxOption,
+    showActionIcon: CheckBoxOption,
     searchEngines: TextOption,
     searchUrl: NonEmptyTextOption,
     userDefinedCss: TextOption

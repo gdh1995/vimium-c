@@ -95,9 +95,15 @@ if (chrome.browserAction && chrome.browserAction.setIcon) (function() {
   Settings.updateHooks.showActionIcon = (function (value) {
     this(value);
     if (value) {
+      chrome.browserAction.setTitle({
+        title: "Vimium++"
+      });
       chrome.browserAction.enable();
     } else {
       chrome.browserAction.disable();
+      chrome.browserAction.setTitle({
+        title: "Vimium++\nThis icon is not in use"
+      });
     }
   }).bind(Settings.updateHooks.showActionIcon);
   Settings.postUpdate("showActionIcon");

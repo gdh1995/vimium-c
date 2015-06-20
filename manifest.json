@@ -8,8 +8,17 @@
       "background/exclusions.js",
       "background/completion.js",
       "background/marks.js",
-      "background/main.js"
+      "background/main.js",
+      "background/others.js"
     ]
+  },
+  "browser_action": {
+    "default_icon": {
+      "19": "icons/enabled_19.png",
+      "38": "icons/enabled_38.png"
+    },
+    "default_title": "Vimium++",
+    "default_popup": "pages/popup.html"
   },
   "chrome_url_overrides": {
     "newtab": "pages/newtab.html"

@@ -201,9 +201,18 @@ var Settings = {
     vomnibar: "pages/vomnibar.html"
   },
   icons: {
-    disabled: "icons/browser_action_disabled.png",
-    enabled: "icons/browser_action_enabled.png",
-    partial: "icons/browser_action_partial.png"
+    disabled: {
+      "19": "icons/disabled_19.png",
+      "38": "icons/disabled_38.png"
+    },
+    enabled: {
+      "19": "icons/enabled_19.png",
+      "38": "icons/enabled_38.png"
+    },
+    partial: {
+      "19": "icons/partial_19.png",
+      "38": "icons/partial_38.png"
+    }
   },
   valuesToLoad: ["filterLinkHints", "findModeRawQuery", "findModeRawQueryList" //
     , "hideHud", "linkHintCharacters", "linkHintNumbers", "nextPatterns" //
