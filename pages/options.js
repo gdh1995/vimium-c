@@ -98,6 +98,9 @@ ExclusionRulesOption = (function(_super) {
   };
   
   ExclusionRulesOption.prototype.onRemoveRow = function(event) {
+    if (!event.target.classList.contains("exclusionRemoveButton")) {
+      return;
+    }
     var row1 = event.target.parentNode.parentNode;
     if (! row1.classList.contains("exclusionRuleInstance")) {
       return;
