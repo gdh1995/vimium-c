@@ -188,7 +188,7 @@ Vomnibar.vomnibarUI = {
       if (!this.focused) this.input.blur();
       var ref = this.completions[this.selection];
       if (!ref.text) {
-        ref.text = Utils.jsUrlRegex.test(url) ? ref.url : Utils.decodeURL(ref.url);
+        ref.text = Utils.jsUrlRegex.test(ref.url) ? ref.url : Utils.decodeURL(ref.url);
       }
       this.input.value = ref.text;
     }
