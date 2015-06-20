@@ -200,7 +200,6 @@ td.booleanOption, #helpText { font-size: 12px; }
 }
 .exclusionMask {
   padding: 0px 6px;
-  position: relative;
   visibility: hidden;
 }
 #exclusionAddButton {
