@@ -183,6 +183,7 @@ var setup = {
 		});
 		self.content.find(".loginButtonMore").bind("click", function () {
 			$(this).hide();
+			self.content.find(".loginContainer ~ span").hide()
 			self.content.find(".loginButton").show()
 		});
 		self.content.find(".oauthSyn").bind("click", function () {
@@ -569,9 +570,10 @@ var setup = {
 			+ '</span><div class="dataContainer"><div class="dataAction"><input type="file" name="importData" id="importData" style="visibility:hidden;width:0px;height:0px;" accept="*/*" /></div><div class="dataAction export"><div class="icon export"></div><div>'
 			+ getI18nMsg('export')
 			+ '</div></div><div class="dataAction import"><div class="icon import"></div><div>'
-			+ getI18nMsg('import') + '</div></div></div></div><div class="settingsItem"><span>'
+			+ getI18nMsg('import') + '</div></div></div></div><div class="settingsItem">'
+      + '<div class="loginContainer">' + loginButtonHtml + '</div><span>'
 			+ (oauth.oauthId ? getI18nMsg('autoBackup') : getI18nMsg('openAutoBackup'))
-			+ '</span><div class="loginContainer">' + loginButtonHtml + '</div></div></div>' + suggestHtml
+			+ '</span></div></div>' + suggestHtml
 			+ '</div><div class="dialBoxSettingsBox"><div class="titleBar dragArea"><div class="titleBarIcon"></div>'
 			+ getI18nMsg('dialBoxSettingsMore') + '<div class="back">' + getI18nMsg('backSettings')
 			+ '</div></div><div class="settingsMoreContainer"><div class="containerBorder"><div class="dialBoxPage3DBar"><span>'
