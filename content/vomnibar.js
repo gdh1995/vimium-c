@@ -11,7 +11,8 @@ var Vomnibar = {
       return;
     }
     var bg = this.background, completer = bg.Completer, vomnibarUI = this.vomnibarUI;
-    if (!document.head) {
+    // <svg> document has not head nor body; document with pdf <embed> has body
+    if (!(document.head || document.body)) {
       return;
     }
     if (!vomnibarUI.init) {
