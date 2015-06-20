@@ -142,6 +142,9 @@ var Settings = {
     }
     prefix = url;
     url = pattern.url.substring(url.length + 2);
+    if (ind = (url.indexOf("?") + 1) || (url.indexOf("#") + 1)) {
+      url = url.substring(0, ind);
+    }
     url = url.toLowerCase().replace(RegexpCache._escapeRegex, "\\$&");
     if (prefix.startsWith("https://")) {
       prefix = "http" + prefix.substring(5);

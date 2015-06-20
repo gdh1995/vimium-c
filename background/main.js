@@ -984,7 +984,8 @@
         pattern = decoders[_i];
         if (url.startsWith(str = pattern[0])) {
           arr = pattern[1].exec(url.substring(str.length));
-          if (arr && (str = arr[1])) {
+          if (arr) {
+            str = arr[1];
             url = pattern[2];
             if (map[url].$s) {
               str = str.split("+").map(Utils.decodeURLPart).join(" ");
