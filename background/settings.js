@@ -171,7 +171,12 @@ var Settings = {
     regexFindMode: false,
     scrollStepSize: 100,
     searchUrl: "http://www.baidu.com/s?ie=utf-8&wd=%s Baidu",
-    searchEngines: "w|wiki|Wiki:\\\n  http://www.wikipedia.org/w/index.php?search=%s Wikipedia (en-US)\nBaidu|baidu|ba:\\\n  www.baidu.com/s?ie=utf-8&wd=%s",
+    searchEngines: "b|ba|baidu|Baidu: www.baidu.com/s?ie=utf-8&wd=%s \u767e\u5ea6"
+      + "\nbi|bing|Bing: https://www.bing.com/search?q=%s Bing"
+      + "\ng|go|gg|google|Google: http://www.google.com/search?q=%s Google"
+      + "\njs\\:: javascript:\\ %S; Javascript"
+      + "\nw|wiki:\\\n  http://www.wikipedia.org/w/index.php?search=%s Wikipedia (en-US)"
+      ,
     showActionIcon: true,
     showAdvancedCommands: 0,
     showAdvancedOptions: 1,
