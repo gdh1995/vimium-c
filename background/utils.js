@@ -26,7 +26,10 @@ var Utils = {
     return s.replace(this._escapeRegex, this._escapeCallback);
   },
   // "javascript" should be treated specially
-  _chromePrefixes: ["about", "view-source", "chrome-search", "chrome-extension", "data"],
+  _chromePrefixes: {
+    "about": true, "blob": true, "chrome-extension": true,
+    "chrome-search": true, "data": true, "view-source": true
+  },
   _urlPrefix: /^[a-z]{3,}:\/\/./,
   hasOrdinaryUrlPrefix: function(url) {
     return this._urlPrefix.test(url);
@@ -73,7 +76,7 @@ var Utils = {
       }
       else if (index0 === -1) {}
       else if (string.substring(index0, index0 + 3) !== "://") {
-        if (this._chromePrefixes.indexOf(string.substring(0, index0)) !== -1) {
+        if (string.substring(0, index0) in this._chromePrefixes) {
           type = 2;
         } else {
           index0 = -1;
@@ -114,7 +117,7 @@ var Utils = {
       }
     }
     else if ((index = string.indexOf(':')) > 3 && index < 17 &&
-        this._chromePrefixes.indexOf(string.substring(0, index)) !== -1) {
+        (string.substring(0, index) in this._chromePrefixes)) {
       type = 0;
     } else {
       string = (index = string.indexOf('/')) !== -1 ? string.substring(0, index) : string;
