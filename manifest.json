@@ -19,13 +19,13 @@
       "suggested_key": {
         "default": "Alt+T"
       },
-      "description": "Open New Tab URL in vim++"
+      "description": "Create a new tab"
     },
     "reloadTab": {
       "suggested_key": {
         "default": "Alt+R"
       },
-      "description": "Reload current tab"
+      "description": "Reload tab(s)"
     },
     "previousTab": {
       "suggested_key": {
