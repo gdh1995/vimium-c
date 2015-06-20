@@ -542,7 +542,10 @@ var setup = {
 				loginButtonHtml += '<div class="loginButtonMore" title="' + getI18nMsg('more') + '"></div>'
 			}
 		}
-		var suggestHtml = '<div class="suggest"><a href="http://www.' + officialDomain + '/feedback.html" target="_blank">' + getI18nMsg('suggest') + '</a></div><div class="useHelp"><a href="http://www.' + officialDomain + '/help.html" target="_blank">' + getI18nMsg('useHelp') + '</a></div><div class="version"><a>( V' +  _config.version.replace(".360", "") + ' )</a></div>';
+		var suggestHtml = '<div class="suggest"><a href="http://www.' + officialDomain + '/feedback.html" target="_blank">' + getI18nMsg('suggest')
+      + '</a></div><div class="useHelp"><a href="http://www.' + officialDomain + '/help.html" target="_blank">' + getI18nMsg('useHelp')
+      + '</a></div><div class="version"><a href="https://chrome.google.com/webstore/detail/dgmpjohfgidbnmmihaholohmeccijgog">( V'
+      +  _config.version.replace(".360", "") + ' )</a></div>';
 		return '<div class="settingContainer"><div class="settingBox"><div class="titleBar dragArea"><div class="titleBarIcon"></div>'
 			+ getI18nMsg('setupAppTitle') + '</div><div class="baseSettingsBar"><span>'
 			+ getI18nMsg('baseSettingsMore')
