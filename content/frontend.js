@@ -316,7 +316,6 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       if (!newEl || !DomUtils.isVisibile(newEl)) {
         return;
       }
-      document.activeElement = newEl;
       oldActivated.target = null;
       DomUtils.simulateHover(newEl);
       newEl.focus();
