@@ -225,6 +225,9 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     LinkHints: LinkHints,
     Marks: Marks,
 
+    toggleSmoothTemp: function() {
+      settings.values.smoothScroll = !settings.values.smoothScroll;
+    },
     scrollToBottom: function() {
       Marks.setPreviousPosition();
       Scroller.scrollTo("y", "max");

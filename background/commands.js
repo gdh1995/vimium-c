@@ -113,7 +113,7 @@ Commands.commandGroups = {
     , "closeTabsOnLeft", "closeTabsOnRight", "closeOtherTabs", "moveTabLeft", "moveTabRight"
     , "enableImageTemp", "toggleImage", "clearImageCS"],
   misc: ["showHelp", "enterVisualMode", "autoCopy", "autoOpen", "searchAs"
-    , "debugBackground", "blank"]
+    , "toggleSmoothTemp", "debugBackground", "blank"]
 };
 Commands.advancedCommands = ["scrollToLeft", "scrollToRight", "moveTabToNextWindow", "moveTabToIncognito"
   , "goUp", "goToRoot", "focusInput", "LinkHints.activateModeWithQueue", "enableImageTemp"
@@ -124,6 +124,7 @@ Commands.advancedCommands = ["scrollToLeft", "scrollToRight", "moveTabToNextWind
   , "goNext", "goPrevious", "Marks.clearLocal", "Marks.clearGlobal"
   , "moveTabLeft", "moveTabRight", "closeTabsOnLeft", "closeTabsOnRight", "closeOtherTabs"
   , "scrollPxDown", "scrollPxUp", "scrollPxLeft", "scrollPxRight", "debugBackground", "blank"
+  , "toggleSmoothTemp"
 ];
 Commands.defaultKeyMappings = {
   "?": "showHelp",
@@ -213,6 +214,11 @@ Commands.defaultKeyMappings = {
   blank: [
     "Do nothing", {
       background: true,
+      noRepeat: 1
+    }
+  ],
+  toggleSmoothTemp: [
+    "Toggle smooth-scroll switch only in currnet page", {
       noRepeat: 1
     }
   ],
