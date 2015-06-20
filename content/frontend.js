@@ -1393,5 +1393,6 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       chrome.runtime.onMessage.removeListener(this.onMessage);
     } catch (e) {} }
     ELs = null;
+    window.VimiumInjector = -1 - frameId;
   };
 })();
