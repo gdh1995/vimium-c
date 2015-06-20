@@ -1,3 +1,9 @@
+This is [gdh1995](https://github.com/gdh1995)'s custom version of
+[*Vimium*](https://github.com/philc/vimium).
+
+Vimium
+======
+
 Copyright (c) 2010 Phil Crosby, Ilya Sukhar.
 
 Permission is hereby granted, free of charge, to any person
