@@ -1008,7 +1008,7 @@
       i = search.indexOf(" ");
       search = Utils.createSearchUrl(
           Settings.get("searchEnginesMap")[search.substring(0, i)],
-          request.search.split(" ")).url;
+          query.split(" ")).url;
       chrome.tabs.update({
         url: search
       });
