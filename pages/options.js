@@ -221,6 +221,7 @@ ExclusionRulesOnPopupOption = (function(_super) {
 
 initPage = function(tab) {
   var exclusions, onUpdated, saveOptions, updateState, url, hasNew, status;
+  initPage = null;
   exclusions = null;
   tab = tab[0];
   url = bgSettings.urlForTab[tab.id] || tab.url;
@@ -278,7 +279,6 @@ initPage = function(tab) {
       bgExclusions.rebuildRegex();
     }
   };
-  initPage = null;
 };
 
 var onDOMLoaded;
