@@ -1,7 +1,7 @@
 "use strict";
 var Commands = {
   // NOTE: [^\s] is for spliting passed keys
-  keyRegex: /<(?:(?:a-(?:c-)?(?:m-)?|c-(?:m-)?|m-).[^>]*|[A-Za-z][0-9A-Za-z]+)>|[^\s]/g,
+  keyRegex: /<(?:(?:a-(?:c-)?(?:m-)?|c-(?:m-)?|m-)([A-Z][0-9A-Z]+|[a-z][0-9a-z]+|[^\s])|[A-Z][0-9A-Z]+|[a-z][0-9a-z]+)>|[^\s]/g,
   availableCommands: {},
   keyToCommandRegistry: {},
   addCommand: function(command, description, options) {
@@ -34,7 +34,7 @@ var Commands = {
       console.log("Unmapping:", key, "has not been mapped");
     }
   },
-  _keyLeftRegex: /<((?:[acmACM]-){1,3})?(.+?)>/g,
+  _keyLeftRegex: /<((?:[acmACM]-){0,3})([A-Za-z][0-9A-Za-z]+|.)>/g,
   _upperRegex: /[A-Z]/,
   onNormalize: function(match, option, key) {
     option = option ? option.toLowerCase() : "";
