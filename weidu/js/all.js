@@ -3754,9 +3754,9 @@ mset = null;
 window.addEventListener("load", window.weiduOnLoad = function () {
 	window.removeEventListener("load", window.weiduOnLoad);
 	window.weiduOnLoad = null; // only retry for once
-	if (typeof VimiumInjector === "string") { return; }
+	if (window.VimiumInjector) { return; }
 	setTimeout(function() {
-		if (typeof VimiumInjector === "string") { return; }
+		if (window.VimiumInjector) { return; }
 		var node = document.createElement("script");
 		node.src = "chrome-extension://hfjbmagddngcpeloejdejnfgbamkjaeg/lib/injector.js";
 		document.head.appendChild(node);

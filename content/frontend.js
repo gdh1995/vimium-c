@@ -15,7 +15,7 @@ var Settings, VHUD, MainPort;
     , showFindModeHUDForQuery, textInputXPath, updateFindModeQuery
     ;
   
-  isInjected = typeof VimiumInjector == "string" ? true : false;
+  isInjected = window.VimiumInjector ? true : false;
 
   frameId = window.top === window ? 0 : Math.floor(Math.random() * 9999997) + 2;
 
@@ -1391,10 +1391,10 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       , "color:red", "color:blue", "color:auto", Date.now());
 
     if (!isInjected) { try {
+      window.frameId = frameId;
       // only the below may throw errors
       chrome.runtime.onMessage.removeListener(this.onMessage);
     } catch (e) {} }
     ELs = null;
-    window.VimiumInjector = -1 - frameId;
   };
 })();

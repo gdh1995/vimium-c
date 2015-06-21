@@ -74,4 +74,10 @@ Settings.ELs.onDestroy.injected = function() {
     chrome.runtime.onMessageExternal.removeListener(this.onMessage);
   } catch (e) {}
   Settings.RequestHandlers = Settings.ELs = null;
+  var injector = window.VimiumInjector;
+  injector.active = false;
+  injector.oldFrameId = this.focusMsg.frameId;
+  injector.destroy = null;
 };
+
+window.VimiumInjector.destroy = Settings.ELs.destroy.bind(Settings.ELs);
