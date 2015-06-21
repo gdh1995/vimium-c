@@ -157,17 +157,15 @@ chrome.runtime.onInstalled.addListener(window.b = function(details) {
     message: "Vimium++ has been upgraded to version " + Settings.CONST.CurrentVersion
       + ". Click here for more information.",
     isClickable: true
-  }, function() {
+  }, function(notificationId) {
     if (chrome.runtime.lastError) {
       return chrome.runtime.lastError;
     }
+    reason = notificationId || reason;
     chrome.notifications.onClicked.addListener(function(id) {
       if (id !== reason) { return; }
       g_requestHandlers.focusOrLaunch({
         url: "https://github.com/gdh1995/vimium-plus#release-notes"
-      });
-      chrome.notifications.clear(reason, function() {
-        return chrome.runtime.lastError;
       });
     });
   });
