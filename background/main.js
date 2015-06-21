@@ -1066,8 +1066,12 @@
     },
     initIfEnabled: function(request, tabId) {
       var pass = Exclusions.getPattern(request.url);
-      if (needIcon && request.focused) {
-        requestHandlers.setIcon(tabId, null, pass);
+      // NOTE: we needn't to store url into urlForTab here.
+      if (request.focused) {
+        urlForTab[tabId] = request.url;
+        if (needIcon) {
+          requestHandlers.setIcon(tabId, null, pass);
+        }
       }
       return {
         name: "ifEnabled",
