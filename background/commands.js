@@ -108,7 +108,7 @@ Commands.commandGroups = {
     , "closeTabsOnLeft", "closeTabsOnRight", "closeOtherTabs", "moveTabLeft", "moveTabRight"
     , "enableCSTemp", "toggleCS", "clearCS"],
   misc: ["showHelp", "autoCopy", "autoOpen", "searchAs"
-    , "toggleSmoothTemp", "debugBackground", "blank"]
+    , "toggleSwitchTemp", "debugBackground", "blank"]
 };
 Commands.advancedCommands = ["scrollToLeft", "scrollToRight", "moveTabToNextWindow"
   , "moveTabToNewWindow", "moveTabToIncognito"
@@ -120,7 +120,7 @@ Commands.advancedCommands = ["scrollToLeft", "scrollToRight", "moveTabToNextWind
   , "goNext", "goPrevious", "Marks.clearLocal", "Marks.clearGlobal"
   , "moveTabLeft", "moveTabRight", "closeTabsOnLeft", "closeTabsOnRight", "closeOtherTabs"
   , "scrollPxDown", "scrollPxUp", "scrollPxLeft", "scrollPxRight", "debugBackground", "blank"
-  , "toggleSmoothTemp"
+  , "toggleSwitchTemp"
 ];
 Commands.defaultKeyMappings = {
   "?": "showHelp",
@@ -225,8 +225,8 @@ Commands.defaultKeyMappings = {
       repeat: 1
     }
   ],
-  toggleSmoothTemp: [
-    "Toggle smooth-scroll switch only in currnet page", {
+  toggleSwitchTemp: [
+    "Toggle switch only in currnet page (use key)", {
       repeat: 1
     }
   ],

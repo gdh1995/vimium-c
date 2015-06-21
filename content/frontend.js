@@ -225,10 +225,15 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     LinkHints: LinkHints,
     Marks: Marks,
 
-    toggleSmoothTemp: function() {
-      settings.values.smoothScroll = !settings.values.smoothScroll;
-      HUD.showForDuration("Now smooth scroll is " + (settings.values.smoothScroll
-        ? "on" : "off"), 1000);
+    toggleSwitchTemp: function(_0, options) {
+      var key = options && options.key, values = settings.values;
+      if (typeof values[key] !== "boolean") {
+        HUD.showForDuration("`" + key + "` is not a boolean switch", 2000);
+      } else if (values[key] = !values[key]) {
+        HUD.showForDuration("Now `" + key + "` is on.", 1000);
+      } else {
+        HUD.showForDuration("`" + key + "` has been turned off", 1000);
+      }
     },
     scrollToBottom: function() {
       Marks.setPreviousPosition();
