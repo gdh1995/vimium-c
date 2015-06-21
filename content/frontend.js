@@ -1326,12 +1326,10 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
         ref && ref.postMessage(ELs.unloadMsg);
       } catch (e) {}
     };
-    ELs.onHashChange = requestHandlers.checkIfEnabled;
     if (isInjected || requestHandlers.reg()) {
       return;
     }
     window.onunload = ELs.onUnload;
-    window.onhashchange = ELs.onHashChange;
     // NOTE: here, we should always postMessage, since
     //     NO other message will be sent if not isEnabledForUrl,
     // which would make the auto-destroy logic not work.
