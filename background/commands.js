@@ -203,6 +203,7 @@ Commands.defaultKeyMappings = {
     ref[command] = {
       background: options && options.background ? true : false,
       description: description[0],
+      options: description[2] || null,
       repeat: options && options.repeat || 0
     };
   }

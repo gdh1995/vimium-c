@@ -1,8 +1,8 @@
 "use strict";
 (function() {
   var BackgroundCommands, ContentSettings, checkKeyQueue, commandCount //
-    , currentCount, currentFirst, executeCommand, extForTab, firstKeys //
-    , frameIdsForTab, funcDict, globalPort, handleMainPort, helpDialogHtml //
+    , currentCount, currentFirst, currentCommand, executeCommand, extForTab
+    , firstKeys, frameIdsForTab, funcDict, handleMainPort, helpDialogHtml //
     , helpDialogHtmlForCommand //
     , helpDialogHtmlForCommandGroup, needIcon, openMultiTab //
     , populateKeyCommands, requestHandlers, resetKeys, secondKeys, sendToTab //
@@ -18,6 +18,11 @@
   extForTab.__proto__ = null;
 
   needIcon = false;
+
+  currentCommand = {
+    options: {},
+    port: null,
+  };
 
   helpDialogHtml = function(showUnbound, showNames, customTitle) {
     var command, commandsToKey, dialogHtml, group, key;
@@ -977,7 +982,8 @@
       commandCount = count;
       var func = BackgroundCommands[command];
       count = func.useTab;
-      globalPort = port;
+      currentCommand.options = registryEntry.options;
+      currentCommand.port = port;
       if (count === 2) {
         chrome.tabs.query({currentWindow: true}, func);
       } else if (count) {
@@ -1177,9 +1183,14 @@
     sendToTab: sendToTab,
     sendToCurrent: function(request) {
       try {
-        globalPort.postMessage(request);
+        currentCommand.port.postMessage(request);
       } catch (e) {}
-      globalPort = null;
+      currentCommand.port = null;
+    },
+    getOptions: function() {
+      var opt = currentCommand.options || {};
+      currentCommand.options = null;
+      return opt;
     }
   };
   requestHandlers.__proto__ = null;
