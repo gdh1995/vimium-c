@@ -59,7 +59,7 @@ var Commands = {
             repeat: details.repeat
           };
         } else {
-          console.log("Command %c" + command, "color:red;", "doesn't exist!");
+          console.log("Command %c" + key, "color:red;", "doesn't exist!");
         }
       } else if (key === "unmapAll") {
         registry = this.keyToCommandRegistry = {};
@@ -103,7 +103,7 @@ Commands.commandGroups = {
   historyNavigation: ["goBack", "goForward", "reopenTab"],
   findCommands: ["enterFindMode", "performFind", "performBackwardsFind"],
   tabManipulation: ["nextTab", "previousTab", "firstTab", "lastTab", "createTab", "duplicateTab"
-    , "removeTab", "removeGivenTab", "restoreTab", "restoreGivenTab", "moveTabToNextWindow"
+    , "removeTab", "removeRightTab", "restoreTab", "restoreGivenTab", "moveTabToNextWindow"
     , "moveTabToNewWindow", "moveTabToIncognito", "togglePinTab"
     , "closeTabsOnLeft", "closeTabsOnRight", "closeOtherTabs", "moveTabLeft", "moveTabRight"
     , "enableImageTemp", "toggleImage", "clearImageCS"],
@@ -114,7 +114,7 @@ Commands.advancedCommands = ["scrollToLeft", "scrollToRight", "moveTabToNextWind
   , "moveTabToNewWindow", "moveTabToIncognito"
   , "goUp", "goToRoot", "focusInput", "LinkHints.activateModeWithQueue", "enableImageTemp"
   , "toggleImage", "clearImageCS", "LinkHints.activateModeToDownloadImage", "reopenTab"
-  , "LinkHints.activateModeToOpenImage", "searchAs", "removeGivenTab"
+  , "LinkHints.activateModeToOpenImage", "searchAs", "removeRightTab"
   , "LinkHints.activateModeToDownloadLink", "Vomnibar.activateEditUrl", "restoreGivenTab"
   , "Vomnibar.activateEditUrlInNewTab", "LinkHints.activateModeToOpenIncognito"
   , "goNext", "goPrevious", "Marks.clearLocal", "Marks.clearGlobal"
@@ -482,8 +482,8 @@ Commands.defaultKeyMappings = {
       repeat: chrome.sessions.MAX_SESSION_RESULTS
     }
   ],
-  removeGivenTab: [
-    "Close the last N-th tab", {
+  removeRightTab: [
+    "Close N-th tab on the right", {
       background: true
     }
   ],

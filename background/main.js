@@ -644,7 +644,7 @@
         chrome.tabs.remove(tab.id);
       }
     },
-    removeGivenTab: function(tabs) {
+    removeRightTab: function(tabs) {
       if (!tabs) { return; }
       var ind = funcDict.selectFrom(tabs).index + commandCount;
       if (ind < tabs.length) {
@@ -1295,7 +1295,7 @@
     ref2 = BackgroundCommands;
     for (key in ref2) { ref2[key].useTab = 1; }
     ref = ["nextTab", "previousTab", "firstTab", "lastTab", "removeTab" //
-      , "closeTabsOnLeft", "closeTabsOnRight", "closeOtherTabs", "removeGivenTab" //
+      , "closeTabsOnLeft", "closeTabsOnRight", "closeOtherTabs", "removeRightTab" //
       , "moveTabLeft", "moveTabRight", "togglePinTab", "debugBackground" //
     ];
     for (i = ref.length; 0 <= --i; ) {
