@@ -128,7 +128,7 @@
       cs.clear({ scope: "regular" });
       cs.clear({ scope: "incognito_session_only" }, funcDict.onRuntimeError);
     },
-    turnCurrent: function(contentType, tab) {
+    toggleCurrent: function(contentType, tab) {
       if (!Utils.hasOrdinaryUrlPrefix(tab.url) || tab.url.startsWith("chrome")) {
         return;
       }
@@ -603,14 +603,14 @@
     },
     moveTabToIncognito: chrome.windows.getCurrent.bind(chrome.windows
       , {populate: true}, funcDict.moveTabToIncognito[0]),
-    enableImageTemp: function(tabs) {
-      ContentSettings.ensure("images", tabs[0]);
+    enableCSTemp: function(tabs) {
+      ContentSettings.ensure(requestHandlers.getOptions().type, tabs[0]);
     },
-    toggleImage: function(tabs) {
-      ContentSettings.turnCurrent("images", tabs[0]);
+    toggleCS: function(tabs) {
+      ContentSettings.toggleCurrent(requestHandlers.getOptions().type, tabs[0]);
     },
-    clearImageCS: function(tabs) {
-      ContentSettings.clear("images", tabs[0]);
+    clearCS: function(tabs) {
+      ContentSettings.clear(requestHandlers.getOptions().type, tabs[0]);
       requestHandlers.sendToCurrent({
         name: "showHUD",
         text: "Image content settings have been cleared.",

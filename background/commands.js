@@ -106,14 +106,14 @@ Commands.commandGroups = {
     , "removeTab", "removeRightTab", "restoreTab", "restoreGivenTab", "moveTabToNextWindow"
     , "moveTabToNewWindow", "moveTabToIncognito", "togglePinTab"
     , "closeTabsOnLeft", "closeTabsOnRight", "closeOtherTabs", "moveTabLeft", "moveTabRight"
-    , "enableImageTemp", "toggleImage", "clearImageCS"],
+    , "enableCSTemp", "toggleCS", "clearCS"],
   misc: ["showHelp", "autoCopy", "autoOpen", "searchAs"
     , "toggleSmoothTemp", "debugBackground", "blank"]
 };
 Commands.advancedCommands = ["scrollToLeft", "scrollToRight", "moveTabToNextWindow"
   , "moveTabToNewWindow", "moveTabToIncognito"
-  , "goUp", "goToRoot", "focusInput", "LinkHints.activateModeWithQueue", "enableImageTemp"
-  , "toggleImage", "clearImageCS", "LinkHints.activateModeToDownloadImage", "reopenTab"
+  , "goUp", "goToRoot", "focusInput", "LinkHints.activateModeWithQueue", "enableCSTemp"
+  , "toggleCS", "clearCS", "LinkHints.activateModeToDownloadImage", "reopenTab"
   , "LinkHints.activateModeToOpenImage", "searchAs", "removeRightTab"
   , "LinkHints.activateModeToDownloadLink", "Vomnibar.activateEditUrl", "restoreGivenTab"
   , "Vomnibar.activateEditUrlInNewTab", "LinkHints.activateModeToOpenIncognito"
@@ -549,20 +549,20 @@ Commands.defaultKeyMappings = {
       background: true
     }
   ],
-  enableImageTemp: [
-    "enable the site's image temporarily in incognito", {
+  enableCSTemp: [
+    "enable the site's CS temporarily (use type)", {
       background: true,
       repeat: 1
     }
   ],
-  toggleImage: [
-    "turn on/off the site's image", {
+  toggleCS: [
+    "turn on/off the site's CS (use type)", {
       background: true,
       repeat: 1
     }
   ],
-  clearImageCS: [
-    "clear extension's image content settings", {
+  clearCS: [
+    "clear extension's content settings (use type)", {
       background: true,
       repeat: 1
     }
