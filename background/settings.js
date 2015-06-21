@@ -269,7 +269,7 @@ Settings.defaults.newTabUrl = Settings.CONST.ChromeInnerNewTab;
   Settings.CONST.ContentScripts = ref3;
 
   i = navigator.appVersion.indexOf("Chrome");
-  Settings.ChromeVersion = parseFloat(navigator.appVersion.substring(i + 7));
+  Settings.CONST.ChromeVersion = parseFloat(navigator.appVersion.substring(i + 7));
 
   func = function() {};
   Settings.Sync = {clear: func, set: func};
