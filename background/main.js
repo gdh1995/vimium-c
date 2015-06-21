@@ -666,9 +666,18 @@
       openMultiTab(url, commandCount, tabs[0]);
     },
     togglePinTab: function(tabs) {
-      chrome.tabs.update(tabs[0].id, {
-        pinned: !tabs[0].pinned
-      });
+      var tab = funcDict.selectFrom(tabs), i = tab.index
+        , len = Math.min(tabs.length, i + commandCount), action = {pinned: true};
+      if (tab.pinned) {
+        action.pinned = false;
+        do {
+          chrome.tabs.update(tabs[i].id, action);
+        } while (len > ++i && tabs[i].pinned);
+      } else {
+        do {
+          chrome.tabs.update(tabs[i].id, action);
+        } while (len > ++i);
+      }
     },
     reloadTab: function() {
       if (commandCount <= 1) {
@@ -1269,7 +1278,7 @@
     for (key in ref2) { ref2[key].useTab = 1; }
     ref = ["nextTab", "previousTab", "firstTab", "lastTab", "removeTab" //
       , "closeTabsOnLeft", "closeTabsOnRight", "closeOtherTabs", "removeGivenTab" //
-      , "debugBackground" //
+      , "togglePinTab", "debugBackground" //
     ];
     for (i = ref.length; 0 <= --i; ) {
       ref2[ref[i]].useTab = 2;

@@ -512,7 +512,7 @@ Commands.defaultKeyMappings = {
   togglePinTab: [
     "Pin/unpin current tab", {
       background: true,
-      repeat: 1
+      repeat: 20
     }
   ],
   closeTabsOnLeft: [
