@@ -178,9 +178,9 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     onMessage: null, onDestroy: {}, destroy: null //
   };
 
-  initializeWhenEnabled = function(newPassKeys, request) {
+  initializeWhenEnabled = function(newPassKeys) {
     (initializeWhenEnabled = setPassKeys)(newPassKeys);
-    KeyboardUtils.init(request.onMac);
+    KeyboardUtils.init();
     LinkHints.init();
     Scroller.init();
     // Assume that all the below listeners won't throw any port exception
@@ -1065,6 +1065,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       ELs.focusMsg.tabId = request.tabId;
       r.refreshKeyMappings(request);
       r.refreshKeyQueue(request);
+      KeyboardUtils.onMac = request.onMac;
       r.setEnabled(request);
       r.ifEnabled = null;
     },
@@ -1072,7 +1073,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       var passKeys = request.passKeys;
       if (isEnabledForUrl = (passKeys !== "")) {
         ELs.focusMsg.status = passKeys ? "partial" : "enabled";
-        initializeWhenEnabled(passKeys, request);
+        initializeWhenEnabled(passKeys);
       } else {
         ELs.focusMsg.status = "disabled";
       }

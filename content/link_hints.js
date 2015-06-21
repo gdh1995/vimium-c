@@ -43,6 +43,7 @@ var LinkHints = {
   init: function() {
     this.filterHints.spanWrap = this.alphabetHints.spanWrap = this.spanWrap;
     this.filterHints.numberToHintString = this.alphabetHints.numberToHintString = this.numberToHintString;
+    this.init = null;
   },
   activateModeToOpenInNewTab: function() {
     this._activateMode(this.CONST.OPEN_IN_NEW_BG_TAB);

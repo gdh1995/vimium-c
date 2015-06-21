@@ -16,6 +16,7 @@ var Scroller = {
       }
     },
     init: function() {
+      this.init = null;
       handlerStack.push({
         _this: this,
         DOMActivate: function(event) {
@@ -91,6 +92,7 @@ var Scroller = {
   }],
   init: function() {
     this.Core.init();
+    this.init = null;
   },
   scrollBy: function(direction, amount, factor, zoomX) {
     var element, di;
