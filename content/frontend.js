@@ -1325,10 +1325,11 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     // * if extension is stopped, then ELs.destroy is called when focused,
     // so, only being removed without pre-focusing and before a "rereg" message
     //   may meet a null port
-    ELs.unloadMsg = {handlerSettings: "unreg", frameId: frameId};
+    ELs.unloadMsg = {handlerSettings: "unreg", frameId: frameId, tabId: 0};
     ELs.onUnload = function() {
       var ref = mainPort.port;
       try {
+        ELs.unloadMsg.tabId = ELs.focusMsg.tabId;
         ref && ref.postMessage(ELs.unloadMsg);
       } catch (e) {}
     };

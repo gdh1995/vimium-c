@@ -878,14 +878,13 @@
     }
     else if (key = request.handlerSettings) {
       var i, ref;
-      id = port.sender.tab.id;
       switch (key) {
       case "load":
         port.postMessage({
           name: "settings",
           load: Settings.bufferToLoad,
           response: ((request = request.request) //
-            ? requestHandlers[request.handler](request, id) : null)
+            ? requestHandlers[request.handler](request, port.sender.tab.id) : null)
         });
         break;
       case "reg":
@@ -896,7 +895,7 @@
         // no `break;`
       case "rereg":
         i = request.frameId;
-        if (ref = frameIdsForTab[id]) {
+        if (ref = frameIdsForTab[id = port.sender.tab.id]) {
           ref.push(i);
         } else {
           frameIdsForTab[id] = [i, i];
@@ -904,7 +903,7 @@
         break;
       case "doreg":
         i = request.frameId;
-        if (ref = frameIdsForTab[id]) {
+        if (ref = frameIdsForTab[id = port.sender.tab.id]) {
           if (ref.indexOf(i) === -1) {
             ref.push(i);
           }
@@ -913,6 +912,7 @@
         }
         break;
       case "unreg":
+        id = request.tabId;
         if (i = request.frameId) {
           if (ref = frameIdsForTab[id]) {
             i = ref.indexOf(i, 1);
@@ -932,7 +932,7 @@
         }
         break;
       case "ext":
-        extForTab[id] = request.extId;
+        extForTab[port.sender.tab.id] = request.extId;
         if ((ref = Settings.extIds).indexOf(request.extId) === -1) {
           ref.push(request.extId);
         }
