@@ -549,8 +549,12 @@
     focusOrLaunch: function(request, tabs) {
       if (tabs.length === 0) {
         // TODO: how to wait for tab finishing to load
-        chrome.tabs.create({url: request.url}, !request.scroll ? null
-          : setTimeout.bind(window, Marks.gotoTab, 1000, request));
+        chrome.tabs.create({url: request.url}, function(tab) {
+          chrome.windows.update(tab.windowId, {focused: true});
+          if (request.scroll) {
+            setTimeout(Marks.gotoTab, 1000, request);
+          };
+        });
         return;
       }
       chrome.windows.getCurrent(function(wnd) {
