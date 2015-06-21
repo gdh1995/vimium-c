@@ -365,7 +365,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     autoCopy: function() {
       var sel = document.getSelection(), str;
       if (sel.type !== "Range" || !(str = sel.toString().trim())) {
-        str = location.title.trim();
+        str = document.title.trim();
       }
       if (str = str.replace(Utils.spacesRegex, ' ').trim()) {
         mainPort.port.postMessage({
