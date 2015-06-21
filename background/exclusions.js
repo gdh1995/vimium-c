@@ -4,12 +4,13 @@ var Exclusions = {
   _emptyStringRegex: /^$/,
   _starRegex: /\*/g,
   _caretRegex: /^\^/,
-  _regChars: /[\[\]\|\(\)\^\$\?\*]/,
+  _regChars: /[^\\][\[\]\|\(\)\^\$\*]|/,
+  _escapeRegex: /\\./g,
   getRegex: function(pattern) {
     var regex = this.re[pattern];
     if (regex) { return regex; }
     if (!this._regChars.test(pattern)) {
-      regex = this._startsWith.bind(pattern);
+      regex = this._startsWith.bind(pattern.replace(this._escapeRegex, "$&"));
     } else try {
       regex = new RegExp("^" + pattern.replace(this._starRegex, ".*").replace(this._caretRegex, ""));
       regex = regex.test.bind(regex);
