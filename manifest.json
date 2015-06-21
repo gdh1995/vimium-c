@@ -2,8 +2,8 @@
   "background": {
     "scripts": [
       "background/utils.js",
-      "background/clipboard.js",
       "background/settings.js",
+      "background/clipboard.js",
       "background/commands.js",
       "background/exclusions.js",
       "background/completion.js",
