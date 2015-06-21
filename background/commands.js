@@ -10,18 +10,18 @@ var Commands = {
       return;
     } // #endif
     this.availableCommands[command] = {
-      noRepeat: options && options.noRepeat || 0,
       background: options && options.background ? true : false,
-      description: description || command
+      description: description,
+      noRepeat: options && options.noRepeat || 0
     };
   },
   mapKeyToCommand: function(key, command, argv) {
     var commandDetails;
     if (commandDetails = this.availableCommands[command]) {
       this.keyToCommandRegistry[key] = {
-        noRepeat: commandDetails.noRepeat,
         background: commandDetails.background,
-        command: command
+        command: command,
+        noRepeat: commandDetails.noRepeat
       };
     } else {
       console.log("Command %c" + command, "color:red;", "doesn't exist!");
