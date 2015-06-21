@@ -147,7 +147,7 @@ chrome.runtime.onInstalled.addListener(window.b = function(details) {
     }
     return 0;
   };
-  if (func(Settings.CONST.CurrentVersion, reason) === 0) { return; }
+  if (func(Settings.CONST.CurrentVersion, reason) <= 0) { return; }
 
   reason = "vimium++_upgradeNotification";
   chrome.notifications.create(reason, {
