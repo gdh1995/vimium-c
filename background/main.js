@@ -858,6 +858,7 @@
       }
     }
     else if (key = request.handlerKey) {
+      // NOTE: here is a race condition which is now ignored totally
       key = checkKeyQueue(key, port);
       if (currentFirst !== key) {
         currentFirst = key;
