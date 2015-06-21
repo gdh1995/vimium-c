@@ -227,6 +227,8 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
 
     toggleSmoothTemp: function() {
       settings.values.smoothScroll = !settings.values.smoothScroll;
+      HUD.showForDuration("Now smooth scroll is " + (settings.values.smoothScroll
+        ? "on" : "off"), 1000);
     },
     scrollToBottom: function() {
       Marks.setPreviousPosition();
