@@ -1188,7 +1188,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       for (_i = 0, _len = components.length - 1; _i < _len; _i++) {
         obj = obj[components[_i]];
       }
-      obj[components[_len]](request.count);
+      obj[components[_len]](request.count, request.options);
     },
     dispatchCommand: function(request) {
       if (!isEnabledForUrl) {

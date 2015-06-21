@@ -996,7 +996,8 @@
     port.postMessage({
       name: "executePageCommand",
       command: command,
-      count: count
+      count: count,
+      options: registryEntry.options
     });
   };
 
