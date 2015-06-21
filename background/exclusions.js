@@ -22,12 +22,33 @@ var Exclusions = {
   _startsWith: function(url) {
     return url.startsWith(this);
   },
+  _listening: false,
   rules: [],
   setRules: function(rules) {
     (this.re = {}).__proto__ = null;
     this.rules = this.Format(rules);
-    this.getPattern = (this.rules.length !== 0) ? this._getPatternByRules : this._getNull;
+    if (this.rules.length === 0) {
+      this.getPattern = this._getNull;
+      chrome.webNavigation.onHistoryStateUpdated.removeListener(this.onURLChange);
+      chrome.webNavigation.onReferenceFragmentUpdated.removeListener(this.onURLChange);
+      this._listening = false;
+      return;
+    } else if (!this._listening) {
+      chrome.webNavigation.onHistoryStateUpdated.addListener(this.onURLChange);
+      chrome.webNavigation.onReferenceFragmentUpdated.addListener(this.onURLChange);
+      this._listening = true;
+    }
+    this.getPattern = this._getPatternByRules;
   },
+  onURLChange: (Settings.CONST.ChromeVersion >= 41
+  ? function(details) {
+    var response = g_requestHandlers.checkIfEnabled(details);
+    response.name = "updateUrl";
+    g_requestHandlers.sendToTab(response, details.tabId
+      , details.frameId, {name: "checkIfEnabled"});
+  } : function(details) {
+    g_requestHandlers.sendToTab({name: "checkIfEnabled"}, details.tabId);
+  }),
   Format: function(rules) {
     var keyRegex = Commands.keyRegex, _i, rule, pattern, pass, arr, out = [];
     for (_i = rules.length; 0 <= --_i; ) {

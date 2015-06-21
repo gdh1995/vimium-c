@@ -229,7 +229,6 @@
   funcDict = {
     globalCommand: null,
     globalConnect: null,
-    globalRecheck: null,
     sendToExt: function(request, tabId) {
       var extId;
       if (extId = extForTab[tabId]) {
@@ -1244,18 +1243,6 @@
   });
 
   chrome.runtime.onConnectExternal.addListener(funcDict.globalConnect);
-
-  chrome.webNavigation.onHistoryStateUpdated.addListener(
-  funcDict.globalRecheck = Settings.CONST.ChromeVersion >= 41
-  ? function(details) {
-    var response = requestHandlers.checkIfEnabled(details);
-    response.name = "updateUrl";
-    sendToTab(response, details.tabId
-      , details.frameId, {name: "checkIfEnabled"});
-  } : function(details) {
-    sendToTab({name: "checkIfEnabled"}, details.tabId);
-  });
-  chrome.webNavigation.onReferenceFragmentUpdated.addListener(funcDict.globalRecheck);
 
   Commands.parseKeyMappings(Settings.get("keyMappings"));
   populateKeyCommands();
