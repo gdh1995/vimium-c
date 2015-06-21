@@ -163,10 +163,8 @@ chrome.runtime.onInstalled.addListener(window.b = function(details) {
     }
     chrome.notifications.onClicked.addListener(function(id) {
       if (id !== reason) { return; }
-      chrome.tabs.create({
+      g_requestHandlers.focusOrLaunch({
         url: "https://github.com/gdh1995/vimium-plus#release-notes"
-      }, function(tab) {
-        chrome.windows.update(tab.windowId, {focused: true});
       });
       chrome.notifications.clear(reason, function() {
         return chrome.runtime.lastError;
