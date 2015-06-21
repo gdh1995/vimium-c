@@ -2,7 +2,7 @@
 (function() {
   var BackgroundCommands, ContentSettings, checkKeyQueue, commandCount //
     , currentCount, currentFirst, executeCommand, extForTab, firstKeys //
-    , frameIdsForTab, funcDict, handleMainPort, helpDialogHtml //
+    , frameIdsForTab, funcDict, globalPort, handleMainPort, helpDialogHtml //
     , helpDialogHtmlForCommand //
     , helpDialogHtmlForCommandGroup, needIcon, openMultiTab //
     , populateKeyCommands, requestHandlers, resetKeys, secondKeys, sendToTab //
@@ -234,14 +234,6 @@
       if (extId = extForTab[tabId]) {
         request = { "vimium++": {tabId: tabId, request: request} };
         chrome.runtime.sendMessage(extId, request);
-      }
-    },
-    sendToCurrent: function(request, tabs) {
-      if (tabs.length === 0) { return; }
-      var tabId = tabs[0].id, ref;
-      if (ref = frameIdsForTab[tabId]) {
-        request.frameId = ref[0];
-        sendToTab(request, tabId);
       }
     },
 
@@ -598,11 +590,11 @@
     },
     clearImageCS: function(tabs) {
       ContentSettings.clear("images", tabs[0]);
-      funcDict.sendToCurrent({
+      requestHandlers.sendToCurrent({
         name: "showHUD",
         text: "Image content settings have been cleared.",
         time: 1500
-      }, tabs);
+      });
     },
     nextTab: function(tabs) {
       if (tabs.length <= 0) { return; }
@@ -764,12 +756,12 @@
     copyCurrentTitle: function(tabs) {
       var str = tabs[0].title;
       Clipboard.copy(str);
-      funcDict.sendToCurrent({name: "showCopied", text: str}, tabs);
+      requestHandlers.sendToCurrent({name: "showCopied", text: str});
     },
     copyCurrentUrl: function(tabs) {
       var str = tabs[0].url;
       Clipboard.copy(str);
-      funcDict.sendToCurrent({name: "showCopied", text: str}, tabs);
+      requestHandlers.sendToCurrent({name: "showCopied", text: str});
     },
     toggleViewSource: function(tabs) {
       var url = tabs[0].url;
@@ -971,6 +963,7 @@
       commandCount = count;
       var func = BackgroundCommands[command];
       count = func.useTab;
+      globalPort = port;
       if (count === 2) {
         chrome.tabs.query({currentWindow: true}, func);
       } else if (count) {
@@ -1169,8 +1162,10 @@
     },
     sendToTab: sendToTab,
     sendToCurrent: function(request) {
-      chrome.tabs.query({currentWindow: true, active: true},
-      funcDict.sendToCurrent.bind(null, request));
+      try {
+        globalPort.postMessage(request);
+      } catch (e) {}
+      globalPort = null;
     }
   };
   requestHandlers.__proto__ = null;
@@ -1231,7 +1226,7 @@
     } else {
       count = 1;
     }
-    executeCommand(command, Commands.availableCommands[command], count);
+    executeCommand(command, Commands.availableCommands[command], count, null);
   });
 
   chrome.runtime.onMessageExternal.addListener(function(message, _1, sendResponse) {
