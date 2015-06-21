@@ -12,7 +12,7 @@ var Commands = {
     this.availableCommands[command] = {
       background: options && options.background ? true : false,
       description: description,
-      noRepeat: options && options.noRepeat || 0
+      repeat: options && options.repeat || 0
     };
   },
   mapKeyToCommand: function(key, command, argv) {
@@ -21,7 +21,7 @@ var Commands = {
       this.keyToCommandRegistry[key] = {
         background: commandDetails.background,
         command: command,
-        noRepeat: commandDetails.noRepeat
+        repeat: commandDetails.repeat
       };
     } else {
       console.log("Command %c" + command, "color:red;", "doesn't exist!");
@@ -202,24 +202,24 @@ Commands.defaultKeyMappings = {
 })({
   showHelp: [
     "Show help", {
-      noRepeat: 1
+      repeat: 1
     }
   ],
   debugBackground: [
     "Debug the background page", {
       background: true,
-      noRepeat: 1
+      repeat: 1
     }
   ],
   blank: [
     "Do nothing", {
       background: true,
-      noRepeat: 1
+      repeat: 1
     }
   ],
   toggleSmoothTemp: [
     "Toggle smooth-scroll switch only in currnet page", {
-      noRepeat: 1
+      repeat: 1
     }
   ],
   scrollDown: ["Scroll down"],
@@ -232,22 +232,22 @@ Commands.defaultKeyMappings = {
   scrollPxRight: ["Scroll 1px right"],
   scrollToTop: [
     "Scroll to the top of the page", {
-      noRepeat: 1
+      repeat: 1
     }
   ],
   scrollToBottom: [
     "Scroll to the bottom of the page", {
-      noRepeat: 1
+      repeat: 1
     }
   ],
   scrollToLeft: [
     "Scroll all the way to the left", {
-      noRepeat: 1
+      repeat: 1
     }
   ],
   scrollToRight: [
     "Scroll all the way to the right", {
-      noRepeat: 1
+      repeat: 1
     }
   ],
   scrollPageDown: ["Scroll a page down"],
@@ -256,89 +256,89 @@ Commands.defaultKeyMappings = {
   scrollFullPageUp: ["Scroll a full page up"],
   reload: [
     "Reload current frame", {
-      noRepeat: 1
+      repeat: 1
     }
   ],
   reloadTab: [
     "Reload N tab(s)", {
       background: true,
-      noRepeat: 20
+      repeat: 20
     }
   ],
   reopenTab: [
     "Reopen current page", {
       background: true,
-      noRepeat: 1
+      repeat: 1
     }
   ],
   toggleViewSource: [
     "View page source", {
       background: true,
-      noRepeat: 1
+      repeat: 1
     }
   ],
   copyCurrentTitle: [
     "Copy current tab's title", {
       background: true,
-      noRepeat: 1
+      repeat: 1
     }
   ],
   copyCurrentUrl: [
     "Copy current tab's URL", {
       background: true,
-      noRepeat: 1
+      repeat: 1
     }
   ],
   autoCopy: [
     "Copy selected text or current frame's title", {
-      noRepeat: 1
+      repeat: 1
     }
   ],
   autoOpen: [
     "Open selected or copied text in a new tab", {
-      noRepeat: 1
+      repeat: 1
     }
   ],
   searchAs: [
     "Search selected or copied text using current search engine", {
-      noRepeat: 1
+      repeat: 1
     }
   ],
   "LinkHints.activateModeToCopyLinkUrl": [
     "Copy a link URL to the clipboard", {
-      noRepeat: 1
+      repeat: 1
     }
   ],
   "LinkHints.activateModeToCopyLinkText": [
     "Copy a link text to the clipboard", {
-      noRepeat: 1
+      repeat: 1
     }
   ],
   "LinkHints.activateModeToSearchLinkText": [
     "Open or search a link text", {
-      noRepeat: 1
+      repeat: 1
     }
   ],
   openCopiedUrlInCurrentTab: [
     "Open the clipboard's URL in the current tab", {
       background: true,
-      noRepeat: 1
+      repeat: 1
     }
   ],
   openCopiedUrlInNewTab: [
     "Open the clipboard's URL in N new tab(s)", {
       background: true,
-      noRepeat: 20
+      repeat: 20
     }
   ],
   enterInsertMode: [
     "Enter insert mode", {
-      noRepeat: 1
+      repeat: 1
     }
   ],
   enterVisualMode: [
     "Enter visual mode", {
-      noRepeat: 1
+      repeat: 1
     }
   ],
   focusInput: [
@@ -346,74 +346,74 @@ Commands.defaultKeyMappings = {
   ],
   "LinkHints.activateMode": [
     "Open a link in the current tab", {
-      noRepeat: 1
+      repeat: 1
     }
   ],
   "LinkHints.activateModeToOpenInNewTab": [
     "Open a link in a new tab", {
-      noRepeat: 1
+      repeat: 1
     }
   ],
   "LinkHints.activateModeToOpenInNewForegroundTab": [
     "Open a link in a new tab & switch to it", {
-      noRepeat: 1
+      repeat: 1
     }
   ],
   "LinkHints.activateModeWithQueue": [
     "Open multiple links in a new tab", {
-      noRepeat: 1
+      repeat: 1
     }
   ],
   "LinkHints.activateModeToOpenIncognito": [
     "Open a link in incognito window", {
-      noRepeat: 1
+      repeat: 1
     }
   ],
   "LinkHints.activateModeToDownloadImage": [
     "Download <img> image", {
-      noRepeat: 1
+      repeat: 1
     }
   ],
   "LinkHints.activateModeToOpenImage": [
     "Show <img> image in new extension's tab", {
-      noRepeat: 1
+      repeat: 1
     }
   ],
   "LinkHints.activateModeToDownloadLink": [
     "Download link url", {
-      noRepeat: 1
+      repeat: 1
     }
   ],
   "LinkHints.activateModeToHover": [
     "select an element and hover", {
-      noRepeat: 1
+      repeat: 1
     }
   ],
   enterFindMode: [
     "Enter find mode", {
-      noRepeat: 1
+      repeat: 1
     }
   ],
   performFind: ["Cycle forward to the next find match"],
   performBackwardsFind: ["Cycle backward to the previous find match"],
   switchFocus: [
     "blur activeElement or refocus it", {
-      noRepeat: 1
+      repeat: 1
     }
   ],
   simBackspace: [
     "simulate backspace for once if focused", {
-      noRepeat: 1
+      repeat: 1
     }
   ],
   goPrevious: [
     "Follow the link labeled previous or <", {
-      noRepeat: 1
+      repeat: 1
     }
   ],
   goNext: [
     "Follow the link labeled next or >", {
-      noRepeat: 1
+      repeat: 1
     }
   ],
   goBack: [
@@ -427,7 +427,7 @@ Commands.defaultKeyMappings = {
   ],
   goToRoot: [
     "Go to root of current URL hierarchy", {
-      noRepeat: 1
+      repeat: 1
     }
   ],
   nextTab: [
@@ -443,31 +443,31 @@ Commands.defaultKeyMappings = {
   firstTab: [
     "Go to the first tab", {
       background: true,
-      noRepeat: 1
+      repeat: 1
     }
   ],
   lastTab: [
     "Go to the last tab", {
       background: true,
-      noRepeat: 1
+      repeat: 1
     }
   ],
   createTab: [
     "Create new tab(s)", {
       background: true,
-      noRepeat: 20
+      repeat: 20
     }
   ],
   duplicateTab: [
     "Duplicate current tab for N times", {
       background: true,
-      noRepeat: 20
+      repeat: 20
     }
   ],
   removeTab: [
     "Close N tab(s)", {
       background: true,
-      noRepeat: chrome.sessions.MAX_SESSION_RESULTS
+      repeat: chrome.sessions.MAX_SESSION_RESULTS
     }
   ],
   removeGivenTab: [
@@ -478,7 +478,7 @@ Commands.defaultKeyMappings = {
   restoreTab: [
     "Restore closed tab(s)", {
       background: true,
-      noRepeat: chrome.sessions.MAX_SESSION_RESULTS
+      repeat: chrome.sessions.MAX_SESSION_RESULTS
     }
   ],
   restoreGivenTab: [
@@ -489,19 +489,19 @@ Commands.defaultKeyMappings = {
   moveTabToNextWindow: [
     "Move tab to next window", {
       background: true,
-      noRepeat: 1
+      repeat: 1
     }
   ],
   moveTabToIncognito: [
     "Make tab in a incognito window", {
       background: true,
-      noRepeat: 1
+      repeat: 1
     }
   ],
   togglePinTab: [
     "Pin/unpin current tab", {
       background: true,
-      noRepeat: 1
+      repeat: 1
     }
   ],
   closeTabsOnLeft: [
@@ -517,7 +517,7 @@ Commands.defaultKeyMappings = {
   closeOtherTabs: [
     "Close all other tabs", {
       background: true,
-      noRepeat: 1
+      repeat: 1
     }
   ],
   moveTabLeft: [
@@ -533,64 +533,64 @@ Commands.defaultKeyMappings = {
   enableImageTemp: [
     "enable the site's image temporarily in incognito", {
       background: true,
-      noRepeat: 1
+      repeat: 1
     }
   ],
   toggleImage: [
     "turn on/off the site's image", {
       background: true,
-      noRepeat: 1
+      repeat: 1
     }
   ],
   clearImageCS: [
     "clear extension's image content settings", {
       background: true,
-      noRepeat: 1
+      repeat: 1
     }
   ],
   "Vomnibar.activate": [
     "Open URL, bookmark, or history entry", {
-      noRepeat: 1
+      repeat: 1
     }
   ],
   "Vomnibar.activateInNewTab": [
     "Open URL, bookmark, history entry, in a new tab", {
-      noRepeat: 1
+      repeat: 1
     }
   ],
   "Vomnibar.activateTabSelection": [
     "Search through your open tabs", {
-      noRepeat: 1
+      repeat: 1
     }
   ],
   "Vomnibar.activateBookmarks": [
     "Open a bookmark", {
-      noRepeat: 1
+      repeat: 1
     }
   ],
   "Vomnibar.activateBookmarksInNewTab": [
     "Open a bookmark in a new tab", {
-      noRepeat: 1
+      repeat: 1
     }
   ],
   "Vomnibar.activateHistory": [
     "Open a history", {
-      noRepeat: 1
+      repeat: 1
     }
   ],
   "Vomnibar.activateHistoryInNewTab": [
     "Open a history in a new tab", {
-      noRepeat: 1
+      repeat: 1
     }
   ],
   "Vomnibar.activateEditUrl": [
     "Edit the current URL", {
-      noRepeat: 1
+      repeat: 1
     }
   ],
   "Vomnibar.activateEditUrlInNewTab": [
     "Edit the current URL and open in a new tab", {
-      noRepeat: 1
+      repeat: 1
     }
   ],
   nextFrame: [
@@ -601,28 +601,28 @@ Commands.defaultKeyMappings = {
   mainFrame: [
     "Select the tab's main/top frame", {
       background: true,
-      noRepeat: 1
+      repeat: 1
     }
   ],
   "Marks.activateCreateMode": [
     "Create a new mark", {
-      noRepeat: 1
+      repeat: 1
     }
   ],
   "Marks.activateGotoMode": [
     "Go to a mark", {
-      noRepeat: 1
+      repeat: 1
     }
   ],
   "Marks.clearLocal": [
     "Remove all local marks for this site", {
-      noRepeat: 1
+      repeat: 1
     }
   ],
   "Marks.clearGlobal": [
     "Remove all global marks", {
       background: true,
-      noRepeat: 1
+      repeat: 1
     }
   ]
 });

@@ -935,9 +935,9 @@
   };
 
   executeCommand = function(command, registryEntry, count, port) {
-    if (registryEntry.noRepeat === 1) {
+    if (registryEntry.repeat === 1) {
       count = 1;
-    } else if (!(registryEntry.noRepeat > 0 && count > registryEntry.noRepeat)) {
+    } else if (!(registryEntry.repeat > 0 && count > registryEntry.repeat)) {
     } else if (!
       confirm("You have asked Vimium++ to perform " + count + " repeats of the command:\n        "
         + Commands.availableCommands[command].description
