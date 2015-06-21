@@ -76,7 +76,7 @@ var Marks = {
     handlerStack.remove();
     if (event.shiftKey) {
       MainPort.sendMessage({
-        handler: "Marks.gotoMark",
+        handler: "gotoMark",
         markName: keyChar
       }, function(req) {
         if (req === false) {
@@ -107,12 +107,12 @@ var Marks = {
   CreateGlobalMark: function(request) {
     var keyChar = request.markName;
     if (window.top !== window && !request.force) {
-      MainPort.port.postMessage({handler: 'Marks.createMark', markName: keyChar});
+      MainPort.port.postMessage({handler: "createMark", markName: keyChar});
       VHUD.hide();
       return;
     }
     MainPort.port.postMessage({
-      handler: 'Marks.createMark',
+      handler: "createMark",
       markName: keyChar,
       url: Marks.getBaseUrl(),
       scroll: [window.scrollX, window.scrollY]

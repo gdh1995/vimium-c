@@ -1158,8 +1158,8 @@
     setBadge: function() {},
     setIcon: function() {},
     esc: resetKeys,
-    "Marks.createMark": Marks.createMark,
-    "Marks.gotoMark": Marks.gotoMark,
+    createMark: Marks.createMark,
+    gotoMark: Marks.gotoMark,
     focusOrLaunch: function(request) {
       // * do not limit windowId or windowType
       // * in this case, chrome will ignore url's hash
@@ -1277,7 +1277,7 @@
     ref2 = requestHandlers;
     for (key in ref2) { ref2[key].useTab = 0; }
     ref = ["copyCurrentUrl", "openUrlInNewTab", "openUrlInIncognito" //
-      , "openImageUrl", "openUrl_fInNewTab", "Marks.createMark" //
+      , "openImageUrl", "openUrl_fInNewTab", "createMark" //
     ];
     for (i = ref.length; 0 <= --i; ) {
       ref2[ref[i]].useTab = 1;
