@@ -1167,7 +1167,6 @@
     refreshCompleter: function(request) {
       Completers[request.omni].refresh();
     },
-    setBadge: function() {},
     setIcon: function() {},
     esc: resetKeys,
     createMark: Marks.createMark,

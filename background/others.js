@@ -69,22 +69,6 @@ if (Settings.get("vimSync") === true) {
 }
 
 if (chrome.browserAction && chrome.browserAction.setIcon) (function() {
-  var currentBadge, badgeTimer, updateBadge, time1 = 50;
-  chrome.browserAction.setBadgeBackgroundColor({color: [82, 156, 206, 255]});
-  updateBadge = function(badge) {
-    badgeTimer = 0;
-    chrome.browserAction.setBadgeText({text: badge});
-  };
-  g_requestHandlers.setBadge = function(request) {
-    var badge = request.badge;
-    if (badge != null && badge !== currentBadge) {
-      currentBadge = badge;
-      if (badgeTimer) {
-        clearTimeout(badgeTimer);
-      }
-      badgeTimer = setTimeout(updateBadge, time1, badge);
-    }
-  };
   g_requestHandlers.setIcon = function(tabId, type, pass) {
     chrome.browserAction.setIcon({
       tabId: tabId,
