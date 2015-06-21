@@ -1059,9 +1059,16 @@
       };
     },
     checkIfEnabled: function(request) {
+      var frames, pattern = Exclusions.getPattern(request.url);
+      // NOTE: here request.frameId may be Chrome's, but we may assume that
+      //     it won't crash with ours
+      if (needIcon && (frames = frameIdsForTab[request.tabId])
+          && frames[0] === request.frameId) {
+        requestHandlers.setIcon(request.tabId, null, pattern);
+      }
       return {
-        name: "setEnabled",
-        passKeys: Exclusions.getPattern(request.url)
+        name: "updateUrl",
+        passKeys: pattern
       };
     },
     initIfEnabled: function(request, tabId) {

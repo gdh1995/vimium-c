@@ -1053,9 +1053,12 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
   // { function x | x's `this` should be requestHandlers unless x is used at other place}
   requestHandlers = {
     checkIfEnabled: function() {
+      var url = ELs.focusMsg.url = window.location.href;
       mainPort.safePost({
         handler: "checkIfEnabled",
-        url: window.location.href
+        frameId: frameId,
+        tabId: ELs.focusMsg.tabId,
+        url: url
       }, requestHandlers.setEnabled);
     },
     ifEnabled: function(request) {
@@ -1074,6 +1077,10 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       } else {
         ELs.focusMsg.status = "disabled";
       }
+    },
+    updateUrl: function(request) {
+      ELs.focusMsg.url = window.location.href;
+      requestHandlers.setEnabled(request);
     },
     settings: settings.ReceiveSettings,
     reg: function(request) {
