@@ -706,14 +706,23 @@
       });
     },
     moveTabLeft: function(tabs) {
-      chrome.tabs.move(tabs[0].id, {
-        index: Math.max(0, tabs[0].index - commandCount)
-      });
+      var tab = funcDict.selectFrom(tabs), index = Math.max(0, tab.index - commandCount);
+      if (!tab.pinned) {
+        while (tabs[index].pinned) { ++index; }
+      }
+      if (index != tab.index) {
+        chrome.tabs.move(tab.id, {index: index});
+      }
     },
     moveTabRight: function(tabs) {
-      chrome.tabs.move(tabs[0].id, {
-        index: tabs[0].index + commandCount
-      });
+      var tab = funcDict.selectFrom(tabs), index;
+      index = Math.min(tabs.length - 1, tab.index + commandCount);
+      if (tab.pinned) {
+        while (!tabs[index].pinned) { --index; }
+      }
+      if (index != tab.index) {
+        chrome.tabs.move(tab.id, {index: index});
+      }
     },
     nextFrame: function(tabs, frameId) {
       var tabId = tabs[0].id, frames = frameIdsForTab[tabId], count;
@@ -1278,7 +1287,7 @@
     for (key in ref2) { ref2[key].useTab = 1; }
     ref = ["nextTab", "previousTab", "firstTab", "lastTab", "removeTab" //
       , "closeTabsOnLeft", "closeTabsOnRight", "closeOtherTabs", "removeGivenTab" //
-      , "togglePinTab", "debugBackground" //
+      , "moveTabLeft", "moveTabRight", "togglePinTab", "debugBackground" //
     ];
     for (i = ref.length; 0 <= --i; ) {
       ref2[ref[i]].useTab = 2;
