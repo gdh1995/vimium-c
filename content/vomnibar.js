@@ -152,13 +152,12 @@ Vomnibar.vomnibarUI = {
     if (typeof updateDelay === "number") {
       if (this.timer > 0) {
         window.clearTimeout(this.timer);
-        this.timer = 0;
       }
       if (updateDelay <= 0) {
         this.onTimer();
         return;
       }
-    } else if (this.timer) {
+    } else if (this.timer > 0) {
       return;
     } else {
       updateDelay = this.refreshInterval;
@@ -348,11 +347,11 @@ Vomnibar.vomnibarUI = {
     var func = function(completions) {
       this.completions = completions;
       this.populateUI();
+      if (this.timer > 0) { return; }
       this.timer = 0;
       if (this.onUpdate) {
-        var onUpdate = this.onUpdate;
+        this.onUpdate();
         this.onUpdate = null;
-        onUpdate.call(this);
       }
     };
     this.onCompletions = func = func.bind(this);
