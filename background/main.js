@@ -1043,7 +1043,7 @@
       if (tabId) {
         urlForTab[tabId] = request.url;
         // frames would be undefined if in a tab, all "reg" messages were sent
-        //   to a closing port, which means the frontend try `runtime.connect`
+        //   to a closing port, which means the frontend tried `runtime.connect`
         //   but background kept not prepared.
         // This can only happen when the system is too slow.
         // For example, Chrome's first startup since the system boots.
