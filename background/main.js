@@ -591,15 +591,13 @@
         chrome.windows.get(tabs[0].windowId, funcDict.duplicateTab[0].bind(null, tabs[0]));
       }
     },
-    moveTabToNewWindow: function() {
-      chrome.windows.getCurrent({populate: true}, funcDict.moveTabToNewWindow);
-    },
+    moveTabToNewWindow: chrome.windows.getCurrent.bind(chrome.windows
+      , {populate: true}, funcDict.moveTabToNewWindow),
     moveTabToNextWindow: function(tabs) {
       chrome.windows.getAll(funcDict.moveTabToNextWindow[0].bind(null, tabs[0]));
     },
-    moveTabToIncognito: function() {
-      chrome.windows.getCurrent({populate: true}, funcDict.moveTabToIncognito[0]);
-    },
+    moveTabToIncognito: chrome.windows.getCurrent.bind(chrome.windows
+      , {populate: true}, funcDict.moveTabToIncognito[0]),
     enableImageTemp: function(tabs) {
       ContentSettings.ensure("images", tabs[0]);
     },
@@ -623,11 +621,9 @@
       funcDict.selectTab(tabs, funcDict.selectFrom(tabs).index - commandCount);
     },
     firstTab: function(tabs) {
-      if (tabs.length <= 0) { return; }
       funcDict.selectTab(tabs, 0);
     },
     lastTab: function(tabs) {
-      if (tabs.length <= 0) { return; }
       funcDict.selectTab(tabs, -1);
     },
     removeTab: function(tabs) {
