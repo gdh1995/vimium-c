@@ -1219,7 +1219,10 @@
   Settings.updateHooks.exclusionRules = function(rules) {
     Exclusions.setRules(rules);
     resetKeys();
-    this.postUpdate("broadcast", {
+    this.postUpdate("broadcast", Exclusions.rules.length === 0 ? {
+      name: "setEnabled",
+      passKeys: null
+    } : {
       name: "checkIfEnabled"
     });
   };
