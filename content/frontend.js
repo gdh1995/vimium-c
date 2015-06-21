@@ -1050,7 +1050,6 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
   };
   HUD.__proto__ = null;
 
-  // { function x | x's `this` should be requestHandlers unless x is used at other place}
   requestHandlers = {
     checkIfEnabled: function() {
       var url = ELs.focusMsg.url = window.location.href;
@@ -1091,10 +1090,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
         });
       }
     },
-    registerFrame: function(request) {
-      // @reg is called only when document.ready
-      this.insertCSS(request);
-    },
+    registerFrame: null,
     insertCSS: function(request) {
       var css = ELs.css;
       if (request.css) {
@@ -1105,6 +1101,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
         css = ELs.css = document.createElement("style");
         css.type = "text/css";
         css.innerHTML = request.css;
+        // @reg is called only when document.ready
         (document.head || document.documentElement).appendChild(css);
       } else if (css) {
         DomUtils.removeNode(css);
@@ -1215,6 +1212,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     showHelpDialog: null
   };
   requestHandlers.__proto__ = null;
+  requestHandlers.registerFrame = requestHandlers.insertCSS;
 
   requestHandlers.showHelpDialog = function(response) {
     var container, handlerId, oldShowHelp, hide, node1, //

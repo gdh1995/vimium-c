@@ -1,6 +1,6 @@
 "use strict";
 Settings.RequestHandlers.regExt = function(request) {
-  if (this.reg(request)) {
+  if (Settings.RequestHandlers.reg(request)) {
     return true;
   }
   var id = chrome.runtime.id;
