@@ -739,15 +739,12 @@
       var tabId = tabs[0].id, frames = frameIdsForTab[tabId], count;
       if (!frames || frames.length <= 2) { return; }
       if (frameId >= 0) {
-        count = 1;
+        count = 0;
       } else {
         frameId = frames[0];
-        count = commandCount;
+        count = commandCount - 1;
       }
-      count += Math.max(0, frames.indexOf(frameId, 1));
-      if (count %= frames.length - 1) {} else {
-        count = frames.length - 1;
-      }
+      count = (count + Math.max(0, frames.indexOf(frameId, 1))) % (frames.length - 1) + 1;
       if (frames[count] !== frames[0]) {
         sendToTab({
           name: "focusFrame",
