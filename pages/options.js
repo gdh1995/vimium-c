@@ -262,8 +262,8 @@ initPage = function(tab) {
     btn.innerHTML = "Saved";
     btn.disabled = true;
     status = 0;
-    // here, since the popup page is showing, needIcon must be true
-    // although the tab calls window.onfocus after this popup page closes,
+    // Here, since the popup page is showing, needIcon must be true.
+    // Although the tab calls window.onfocus after this popup page closes,
     // it is too early for the tab to know new exclusion rules.
     BG.g_requestHandlers.setIcon(tab.id, null, bgExclusions.getPattern(url));
   };
