@@ -20,7 +20,7 @@
   needIcon = false;
 
   currentCommand = {
-    options: {},
+    options: null,
     port: null,
   };
 
