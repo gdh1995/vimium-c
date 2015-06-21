@@ -1300,6 +1300,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     url: window.location.href
   }, function(request) {
     request.focused = document.hasFocus();
+    request.url = window.location.href;
     if (document.readyState !== "loading") {
       requestHandlers.reg({name: "doreg"});
     }
