@@ -4,75 +4,70 @@ var Commands = {
   keyRegex: /<(?:(?:a-(?:c-)?(?:m-)?|c-(?:m-)?|m-)([A-Z][0-9A-Z]+|[a-z][0-9a-z]+|[^\s])|[A-Z][0-9A-Z]+|[a-z][0-9a-z]+)>|[^\s]/g,
   availableCommands: {},
   keyToCommandRegistry: {},
-  addCommand: function(command, description, options) {
-    if (command in this.availableCommands) { // #if DEBUG
-      console.warn("Bug:", command, "is already defined!");
-      return;
-    } // #endif
-    this.availableCommands[command] = {
-      background: options && options.background ? true : false,
-      description: description,
-      repeat: options && options.repeat || 0
-    };
-  },
-  mapKeyToCommand: function(key, command, argv) {
-    var commandDetails;
-    if (commandDetails = this.availableCommands[command]) {
-      this.keyToCommandRegistry[key] = {
-        background: commandDetails.background,
-        command: command,
-        repeat: commandDetails.repeat
-      };
-    } else {
-      console.log("Command %c" + command, "color:red;", "doesn't exist!");
-    }
-  },
-  unmapKey: function(key) {
-    if (key in this.keyToCommandRegistry) {
-      delete this.keyToCommandRegistry[key];
-    } else {
-      console.log("Unmapping:", key, "has not been mapped");
-    }
-  },
   _keyLeftRegex: /<((?:[acmACM]-){0,3})([A-Za-z][0-9A-Za-z]+|.)>/g,
   _upperRegex: /[A-Z]/,
   onNormalize: function(match, option, key) {
-    option = option ? option.toLowerCase() : "";
-    if (Commands._upperRegex.test(key)) {
-      key = key.toUpperCase();
-    }
-    return "<" + option + key + ">";
+    return (option ? ("<" + option.toLowerCase()) : "<")
+      + (Commands._upperRegex.test(key) ? key.toUpperCase() : key)
+      + ">";
   },
   normalizeKey: function(key) {
     return key.replace(this._keyLeftRegex, this.onNormalize);
   },
-  parseKeyMappings: function(line) {
-    var key, lines, splitLine, _i, _len, defaultmap;
-    defaultmap = this.defaultKeyMappings;
-    this.keyToCommandRegistry = {};
-    for (key in defaultmap) {
-      this.mapKeyToCommand(key, defaultmap[key]);
+  getOptions: function(argv) {
+    var opt = {}, i, len, ind, str, val, e;
+    for (i = 0, len = argv.length; i < len; ) {
+      str = argv[i++];
+      ind = str.indexOf("=");
+      if (ind <= 0 || ind === str.length) { continue; }
+      val = str.substring(ind + 1);
+      try {
+        val = decodeURIComponent(val);
+        val = JSON.parse(val);
+      } catch (e) {}
+      opt[str.substring(0, ind)] = val;
     }
-    lines = line.replace(/[\t ]+/g, " ").split("\n");
+    return opt;
+  },
+  parseKeyMappings: function(line) {
+    var key, lines, splitLine, _i, _len, defaultMap, registry, details;
+    defaultMap = this.defaultKeyMappings;
+    registry = this.keyToCommandRegistry = {};
+    lines = line.replace(/\\\n/g, "").replace(/[\t ]+/g, " ").split("\n");
+    for (key in defaultMap) {
+      line = defaultMap[key];
+      details = this.availableCommands[line];
+      registry[key] = {
+        background: details.background,
+        command: line,
+        options: {},
+        repeat: details.repeat
+      };
+    }
     for (_i = 0, _len = lines.length; _i < _len; _i++) {
       line = lines[_i].trim();
-      key = line[0]; 
-      if (key === "\"" || key === "#") {
-        continue;
-      }
+      if (!(line.charCodeAt(0) > 35)) { continue; } // mask: /[ !"#]/
       splitLine = line.split(" ");
       key = splitLine[0];
       if (key === "map") {
-        if (splitLine.length >= 3) {
-          key = this.normalizeKey(splitLine[1]);
-          this.mapKeyToCommand(key, splitLine[2], splitLine.slice(3));
-        }
-      } else if (key === "unmap") {
-        if (splitLine.length === 2) {
-          this.unmapKey(this.normalizeKey(splitLine[1]));
+        if (splitLine.length < 3) {
+        } else if (details = this.availableCommands[key = splitLine[2]]) {
+          this.keyToCommandRegistry[this.normalizeKey(splitLine[1])] = {
+            background: details.background,
+            command: key,
+            options: this.getOptions(splitLine.slice(3)),
+            repeat: details.repeat
+          };
+        } else {
+          console.log("Command %c" + command, "color:red;", "doesn't exist!");
         }
       } else if (key === "unmapAll") {
-        this.keyToCommandRegistry = {};
+        registry = this.keyToCommandRegistry = {};
+      } else if (key !== "unmap" || splitLine.length !== 2) {
+      } else if ((key = this.normalizeKey(splitLine[1])) in registry) {
+        delete registry[key];
+      } else {
+        console.log("Unmapping:", key, "has not been mapped");
       }
     }
     this.keyToCommandRegistry.__proto__ = null;
@@ -82,7 +77,6 @@ var Commands = {
   defaultKeyMappings: null
 };
 Commands.__proto__ = null;
-Commands.availableCommands.__proto__ = null;
 
 Commands.commandGroups = {
   pageNavigation: ["scrollDown", "scrollUp", "scrollLeft", "scrollRight", "scrollToTop"
@@ -91,13 +85,14 @@ Commands.commandGroups = {
     , "scrollFullPageUp", "scrollFullPageDown", "reload", "reloadTab", "toggleViewSource"
     , "copyCurrentUrl", "copyCurrentTitle", "switchFocus", "simBackspace"
     , "LinkHints.activateModeToCopyLinkUrl", "LinkHints.activateModeToCopyLinkText"
-    , "openCopiedUrlInCurrentTab", "openCopiedUrlInNewTab", "goUp", "goToRoot", "enterInsertMode"
+    , "openCopiedUrlInCurrentTab", "openCopiedUrlInNewTab", "goUp", "goToRoot"
     , "focusInput", "LinkHints.activateMode", "LinkHints.activateModeToOpenInNewTab"
     , "LinkHints.activateModeToOpenInNewForegroundTab", "LinkHints.activateModeWithQueue"
     , "LinkHints.activateModeToDownloadImage", "LinkHints.activateModeToOpenImage"
     , "LinkHints.activateModeToDownloadLink", "LinkHints.activateModeToOpenIncognito"
     , "LinkHints.activateModeToHover", "LinkHints.activateModeToSearchLinkText"
     , "goPrevious", "goNext", "nextFrame", "mainFrame"
+    , "enterInsertMode", "enterVisualMode", "enterVisualLineMode"
     , "Marks.activateCreateMode", "Marks.activateGotoMode"
     , "Marks.clearLocal", "Marks.clearGlobal"
     ],
@@ -112,7 +107,7 @@ Commands.commandGroups = {
     , "moveTabToIncognito", "togglePinTab"
     , "closeTabsOnLeft", "closeTabsOnRight", "closeOtherTabs", "moveTabLeft", "moveTabRight"
     , "enableImageTemp", "toggleImage", "clearImageCS"],
-  misc: ["showHelp", "enterVisualMode", "autoCopy", "autoOpen", "searchAs"
+  misc: ["showHelp", "autoCopy", "autoOpen", "searchAs"
     , "toggleSmoothTemp", "debugBackground", "blank"]
 };
 Commands.advancedCommands = ["scrollToLeft", "scrollToRight", "moveTabToNextWindow", "moveTabToIncognito"
@@ -146,6 +141,7 @@ Commands.defaultKeyMappings = {
   "gs": "toggleViewSource",
   "i": "enterInsertMode",
   "v": "enterVisualMode",
+  "V": "enterVisualLineMode",
   "H": "goBack",
   "L": "goForward",
   "gu": "goUp",
@@ -193,11 +189,21 @@ Commands.defaultKeyMappings = {
 };
 
 (function(descriptions) {
-  var command, description, commands = Commands;
+  var command, description, ref = Commands.availableCommands, options;
   descriptions.__proto__ = null;
+  ref.__proto__ = null;
   for (command in descriptions) {
     description = descriptions[command];
-    commands.addCommand(command, description[0], description[1]);
+    if (command in ref) { // #if DEBUG
+      console.warn("Bug:", command, "is already defined!");
+      continue;
+    } // #endif
+    options = description[1];
+    ref[command] = {
+      background: options && options.background ? true : false,
+      description: description[0],
+      repeat: options && options.repeat || 0
+    };
   }
 })({
   showHelp: [
@@ -338,6 +344,11 @@ Commands.defaultKeyMappings = {
   ],
   enterVisualMode: [
     "Enter visual mode", {
+      repeat: 1
+    }
+  ],
+  enterVisualLineMode: [
+    "Enter visual line mode (beta feature)", {
       repeat: 1
     }
   ],
