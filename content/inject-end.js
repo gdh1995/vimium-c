@@ -60,6 +60,7 @@ Settings.ELs.onMessage = (function(request, sender) {
 }).bind(Settings.ELs.onMessage);
 chrome.runtime.onMessageExternal.addListener(Settings.ELs.onMessage);
 } else {
+  Settings.ELs.onMessage = null;
   console.log("%cVimium++ %c#" + Settings.ELs.focusMsg.frameId
     + "%c: injected %cpartly%c into %c" + chrome.runtime.id
     , "color: red;", "color: blue;", "color: auto;"
@@ -71,7 +72,7 @@ Settings.ELs.onDestroy.injected = function() {
   window.removeEventListener("focus", this.onFocus);
   window.removeEventListener("hashchange", this.onHashChange);
   try {
-    chrome.runtime.onMessageExternal.removeListener(this.onMessage);
+    this.onMessage && chrome.runtime.onMessageExternal.removeListener(this.onMessage);
   } catch (e) {}
   Settings.RequestHandlers = Settings.ELs = null;
   var injector = window.VimiumInjector;
