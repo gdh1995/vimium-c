@@ -1203,6 +1203,7 @@
   Settings.updateHooks.userDefinedCss_f = function(css) {
     this.postUpdate("broadcast", {
       name: "insertCSS",
+      onReady: true,
       css: css
     });
   };

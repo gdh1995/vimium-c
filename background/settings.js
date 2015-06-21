@@ -33,13 +33,15 @@ var Settings = {
   },
   updateHooks: {
     broadcast: function (request) {
-      chrome.tabs.query({status: "complete"}, function(tabs) {
+      chrome.tabs.query(request.onReady ? {status: "complete"} : {},
+      function(tabs) {
         for (var i = tabs.length, t = chrome.tabs, req = request; 0 <= --i; ) {
           t.sendMessage(tabs[i].id, req, null);
         }
       });
       var r = chrome.runtime, arr = Settings.extIds, i, req;
       req = {"vimium++": {request: request}};
+      // NOTE: injector only begin to work when dom is ready
       for (i = arr.length; 1 <= --i; ) {
         r.sendMessage(arr[i], req, null);
       }
