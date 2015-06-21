@@ -103,7 +103,7 @@
   };
 
   sendToTab = Settings.CONST.ChromeVersion < 41
-  ? function(request, tabId, frameId) {
+  ? function(request, tabId) {
     chrome.tabs.sendMessage(tabId, request, null);
     funcDict.sendToExt(request, tabId);
   } : function(request, tabId, frameId, request2) {
@@ -724,6 +724,7 @@
     },
     mainFrame: function(tabs) {
       if (tabs.length <= 0) { return; }
+      // NOTE: need not check if registered
       sendToTab({
         name: "focusFrame",
         frameId: 0
