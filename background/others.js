@@ -152,7 +152,7 @@ chrome.runtime.onInstalled.addListener(window.b = function(details) {
   reason = "vimium++_upgradeNotification";
   chrome.notifications.create(reason, {
     type: "basic",
-    iconUrl: chrome.runtime.getURL("favicon.ico"),
+    iconUrl: chrome.runtime.getURL("icons/icon128.png"),
     title: "Vimium++ Upgrade",
     message: "Vimium++ has been upgraded to version " + Settings.CONST.CurrentVersion
       + ". Click here for more information.",
