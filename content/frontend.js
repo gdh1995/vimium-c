@@ -1387,8 +1387,8 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     KeyCodes = passKeys = firstKeys = secondKeys = oldActivated = Marks = func = //
     null;
 
-    console.log("%cVimium++ %c#" + frameId + "%c has destroyed."//
-      , "color:red", "color:blue", "color:auto");
+    console.log("%cVimium++ %c#" + frameId + "%c has destroyed at"//
+      , "color:red", "color:blue", "color:auto", Date.now());
 
     if (!isInjected) { try {
       // only the below may throw errors
