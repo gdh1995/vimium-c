@@ -560,7 +560,6 @@
           Marks.gotoTab(request, tabs2[0]);
         } else {
           Marks.gotoTab(request, tabs[0]);
-          chrome.windows.update(tabs[0].windowId, {focused: true});
         }
       });
     }

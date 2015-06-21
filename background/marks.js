@@ -59,6 +59,7 @@ var Marks = {
       }
     }
     chrome.tabs.update(tabId, {active: true});
+    chrome.windows.update(tab.windowId, {focused: true});
   },
   clearGlobal: function() {
     var key_start, storage, i, key;
