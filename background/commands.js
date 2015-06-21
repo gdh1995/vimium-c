@@ -104,13 +104,14 @@ Commands.commandGroups = {
   findCommands: ["enterFindMode", "performFind", "performBackwardsFind"],
   tabManipulation: ["nextTab", "previousTab", "firstTab", "lastTab", "createTab", "duplicateTab"
     , "removeTab", "removeGivenTab", "restoreTab", "restoreGivenTab", "moveTabToNextWindow"
-    , "moveTabToIncognito", "togglePinTab"
+    , "moveTabToNewWindow", "moveTabToIncognito", "togglePinTab"
     , "closeTabsOnLeft", "closeTabsOnRight", "closeOtherTabs", "moveTabLeft", "moveTabRight"
     , "enableImageTemp", "toggleImage", "clearImageCS"],
   misc: ["showHelp", "autoCopy", "autoOpen", "searchAs"
     , "toggleSmoothTemp", "debugBackground", "blank"]
 };
-Commands.advancedCommands = ["scrollToLeft", "scrollToRight", "moveTabToNextWindow", "moveTabToIncognito"
+Commands.advancedCommands = ["scrollToLeft", "scrollToRight", "moveTabToNextWindow"
+  , "moveTabToNewWindow", "moveTabToIncognito"
   , "goUp", "goToRoot", "focusInput", "LinkHints.activateModeWithQueue", "enableImageTemp"
   , "toggleImage", "clearImageCS", "LinkHints.activateModeToDownloadImage", "reopenTab"
   , "LinkHints.activateModeToOpenImage", "searchAs", "removeGivenTab"
@@ -495,6 +496,12 @@ Commands.defaultKeyMappings = {
   restoreGivenTab: [
     "Restore the last N-th tab", {
       background: true
+    }
+  ],
+  moveTabToNewWindow: [
+    "Move tab to new window", {
+      background: true,
+      repeat: 1
     }
   ],
   moveTabToNextWindow: [

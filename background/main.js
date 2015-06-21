@@ -390,6 +390,19 @@
         chrome.tabs.duplicate(id);
       }
     }],
+    moveTabToNewWindow: function(wnd) {
+      var tab, state;
+      if (wnd.tabs.length <= 1) { return; }
+      tab = funcDict.selectFrom(wnd.tabs);
+      state = wnd.state;
+      chrome.windows.create({
+        type: "normal",
+        tabId: tab.id,
+        incognito: tab.incognito
+      }, wnd.type === "normal" ? function(wnd) {
+        chrome.windows.update(wnd.id, {state: state});
+      } : null);
+    },
     moveTabToNextWindow: [function(tab, wnds0) {
       var wnds, ids, index, state;
       wnds = wnds0.filter(function(wnd) { return wnd.incognito === tab.incognito && wnd.type === "normal"; });
@@ -577,6 +590,9 @@
       if (--commandCount > 0) {
         chrome.windows.get(tabs[0].windowId, funcDict.duplicateTab[0].bind(null, tabs[0]));
       }
+    },
+    moveTabToNewWindow: function() {
+      chrome.windows.getCurrent({populate: true}, funcDict.moveTabToNewWindow);
     },
     moveTabToNextWindow: function(tabs) {
       chrome.windows.getAll(funcDict.moveTabToNextWindow[0].bind(null, tabs[0]));
@@ -1290,6 +1306,7 @@
       ref2[ref[i]].useTab = 2;
     }
     ref = ["createTab", "restoreTab", "restoreGivenTab", "blank", "reloadTab" //
+      , "moveTabToNewWindow" //
       , "moveTabToIncognito", "openCopiedUrlInCurrentTab", "Marks.clearGlobal" //
     ];
     for (i = ref.length; 0 <= --i; ) {
