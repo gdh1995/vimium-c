@@ -428,7 +428,8 @@
       chrome.tabs.update(tabId, {active: true});
       chrome.windows.update(tab2.windowId, {focused: true});
     }],
-    moveTabToIncognito: [function(tab, wnd) {
+    moveTabToIncognito: [function(wnd) {
+      var tab = funcDict.selectFrom(wnd.tabs);
       if (wnd.incognito && tab.incognito) { return; }
       var options = {type: "normal", tabId: tab.id, incognito: true}, url = tab.url;
       if (tab.incognito) {
@@ -443,6 +444,7 @@
       } else {
         options.url = url;
       }
+      wnd.tabs = null;
       chrome.windows.getAll(funcDict.moveTabToIncognito[1].bind(null, options, wnd));
     }, function(options, wnd, wnds) {
       var tabId;
@@ -579,8 +581,8 @@
     moveTabToNextWindow: function(tabs) {
       chrome.windows.getAll(funcDict.moveTabToNextWindow[0].bind(null, tabs[0]));
     },
-    moveTabToIncognito: function(tabs) {
-      chrome.windows.get(tabs[0].windowId, funcDict.moveTabToIncognito[0].bind(null, tabs[0]));
+    moveTabToIncognito: function() {
+      chrome.windows.getCurrent({populate: true}, funcDict.moveTabToIncognito[0]);
     },
     enableImageTemp: function(tabs) {
       ContentSettings.ensure("images", tabs[0]);
@@ -1288,7 +1290,7 @@
       ref2[ref[i]].useTab = 2;
     }
     ref = ["createTab", "restoreTab", "restoreGivenTab", "blank", "reloadTab" //
-      , "openCopiedUrlInCurrentTab", "Marks.clearGlobal" //
+      , "moveTabToIncognito", "openCopiedUrlInCurrentTab", "Marks.clearGlobal" //
     ];
     for (i = ref.length; 0 <= --i; ) {
       ref2[ref[i]].useTab = 0;
