@@ -2,8 +2,8 @@
 (function() {
   var BackgroundCommands, ContentSettings, checkKeyQueue, commandCount //
     , currentCount, currentFirst, currentCommand, executeCommand, extForTab
-    , firstKeys, frameIdsForTab, funcDict, handleMainPort, helpDialogHtml //
-    , helpDialogHtmlForCommand //
+    , firstKeys, frameIdsForTab, funcDict, getOptions, handleMainPort
+    , helpDialogHtml, helpDialogHtmlForCommand //
     , helpDialogHtmlForCommandGroup, needIcon, openMultiTab //
     , populateKeyCommands, requestHandlers, resetKeys, secondKeys, sendToTab //
     , urlForTab;
@@ -21,7 +21,12 @@
 
   currentCommand = {
     options: null,
-    port: null,
+    port: null
+  };
+  getOptions = function() {
+    var opt = currentCommand.options || {};
+    currentCommand.options = null;
+    return opt;
   };
 
   helpDialogHtml = function(showUnbound, showNames, customTitle) {
@@ -604,13 +609,13 @@
     moveTabToIncognito: chrome.windows.getCurrent.bind(chrome.windows
       , {populate: true}, funcDict.moveTabToIncognito[0]),
     enableCSTemp: function(tabs) {
-      ContentSettings.ensure(requestHandlers.getOptions().type, tabs[0]);
+      ContentSettings.ensure(getOptions().type, tabs[0]);
     },
     toggleCS: function(tabs) {
-      ContentSettings.toggleCurrent(requestHandlers.getOptions().type, tabs[0]);
+      ContentSettings.toggleCurrent(getOptions().type, tabs[0]);
     },
     clearCS: function(tabs) {
-      ContentSettings.clear(requestHandlers.getOptions().type, tabs[0]);
+      ContentSettings.clear(getOptions().type, tabs[0]);
       requestHandlers.sendToCurrent({
         name: "showHUD",
         text: "Image content settings have been cleared.",
@@ -1184,11 +1189,6 @@
         currentCommand.port.postMessage(request);
       } catch (e) {}
       currentCommand.port = null;
-    },
-    getOptions: function() {
-      var opt = currentCommand.options || {};
-      currentCommand.options = null;
-      return opt;
     }
   };
   requestHandlers.__proto__ = null;
