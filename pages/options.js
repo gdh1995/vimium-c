@@ -1,6 +1,6 @@
 "use strict";
 var $, Option, ExclusionRulesOption, ExclusionRulesOnPopupOption,
-bgSettings, bgExclusions, initPage, BG,
+bgSettings, bgExclusions, initPage, BG, isPopup,
 __hasProp = Object.prototype.hasOwnProperty,
 __extends = function(child, parent) {
   for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; }
@@ -13,6 +13,7 @@ $ = document.getElementById.bind(document);
 BG = chrome.extension.getBackgroundPage();
 bgSettings = BG.Settings;
 bgExclusions = BG.Exclusions;
+isPopup = window.location.pathname.endsWith("popup.html");
 
 function Option(field, onUpdated) {
   this.field = field;
@@ -160,6 +161,7 @@ ExclusionRulesOption = (function(_super) {
 
 })(Option);
 
+if (isPopup)
 ExclusionRulesOnPopupOption = (function(_super) {
   __extends(ExclusionRulesOnPopupOption, _super);
 
@@ -222,6 +224,7 @@ ExclusionRulesOnPopupOption = (function(_super) {
 
 })(ExclusionRulesOption);
 
+if (isPopup)
 initPage = function(tab) {
   var exclusions, onUpdated, saveOptions, updateState, url, hasNew, status;
   initPage = null;
@@ -293,9 +296,9 @@ document.addEventListener("DOMContentLoaded", onDOMLoaded = function() {
   xhr.onreadystatechange = function() {
     if (xhr.readyState === 4) {
       $("exclusionScrollBox").innerHTML = xhr.responseText;
-      if (window.location.pathname.endsWith("popup.html")) {
+      if (isPopup) {
         chrome.tabs.query({currentWindow: true, active: true}, initPage);
-      } else if (location.pathname.endsWith("options.html")) {
+      } else {
         initPage();
       }
     }
