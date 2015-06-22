@@ -199,6 +199,7 @@ var Settings = {
   // not set localStorage, neither sync, if key in @nonPersistent
   // not clean if exists (for simpler logic)
   nonPersistent: {
+    exclusionTemplate: true,
     help_dialog: true,
     newTabUrl_f: true,
     searchEnginesMap: true,
@@ -207,6 +208,7 @@ var Settings = {
     vomnibar: true
   },
   files: {
+    exclusionTemplate: "pages/exclusions.html",
     help_dialog: "pages/help_dialog.html",
     vomnibar: "pages/vomnibar.html"
   },

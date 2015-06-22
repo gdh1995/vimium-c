@@ -291,17 +291,10 @@ var onDOMLoaded;
 document.addEventListener("DOMContentLoaded", onDOMLoaded = function() {
   document.removeEventListener("DOMContentLoaded", onDOMLoaded);
   onDOMLoaded = null;
-  var xhr = new XMLHttpRequest();
-  xhr.open("GET", "exclusions.html", true);
-  xhr.onreadystatechange = function() {
-    if (this.readyState === 4) {
-      $("exclusionScrollBox").innerHTML = this.responseText;
-      if (isPopup) {
-        chrome.tabs.query({currentWindow: true, active: true}, initPage);
-      } else {
-        initPage();
-      }
-    }
-  };
-  xhr.send();
+  $("exclusionScrollBox").innerHTML = bgSettings.get("exclusionTemplate");
+  if (isPopup) {
+    chrome.tabs.query({currentWindow: true, active: true}, initPage);
+  } else {
+    initPage();
+  }
 });
