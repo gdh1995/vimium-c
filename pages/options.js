@@ -271,8 +271,8 @@ chrome.tabs.query({currentWindow: true, active: true}, function(tab) {
     BG.g_requestHandlers.setIcon(tab.id, null, bgExclusions.getPattern(url));
   };
   $("saveOptions").onclick = saveOptions;
-  document.addEventListener("keypress", function(event) {
-    if (event.ctrlKey && event.keyCode === 13 && !event.repeat) {
+  document.addEventListener("keyup", function(event) {
+    if (event.ctrlKey && event.keyCode === 13) {
       saveOptions();
       setTimeout(window.close, 300);
     }

@@ -178,8 +178,8 @@ CheckBoxOption = (function(_super) {
       return "You have unsaved changes to options.";
     }
   };
-  document.addEventListener("keypress", function(event) {
-    if (event.ctrlKey && event.keyCode === 13 && !event.repeat) {
+  document.addEventListener("keyup", function(event) {
+    if (event.ctrlKey && event.keyCode === 13) {
       var element = document.activeElement;
       if (element && element.blur) {
         element.blur();
