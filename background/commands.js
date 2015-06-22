@@ -82,7 +82,8 @@ Commands.commandGroups = {
   pageNavigation: ["scrollDown", "scrollUp", "scrollLeft", "scrollRight", "scrollToTop"
     , "scrollToBottom", "scrollToLeft", "scrollToRight", "scrollPageDown", "scrollPageUp"
     , "scrollPxDown", "scrollPxUp", "scrollPxLeft", "scrollPxRight"
-    , "scrollFullPageUp", "scrollFullPageDown", "reload", "reloadTab", "toggleViewSource"
+    , "scrollFullPageUp", "scrollFullPageDown", "reload", "reloadTab", "reloadGivenTab"
+    , "toggleViewSource"
     , "copyCurrentUrl", "copyCurrentTitle", "switchFocus", "simBackspace"
     , "LinkHints.activateModeToCopyLinkUrl", "LinkHints.activateModeToCopyLinkText"
     , "openCopiedUrlInCurrentTab", "openCopiedUrlInNewTab", "goUp", "goToRoot"
@@ -111,7 +112,7 @@ Commands.commandGroups = {
     , "toggleSwitchTemp", "debugBackground", "blank"]
 };
 Commands.advancedCommands = ["scrollToLeft", "scrollToRight", "moveTabToNextWindow"
-  , "moveTabToNewWindow", "moveTabToIncognito"
+  , "moveTabToNewWindow", "moveTabToIncognito", "reloadGivenTab"
   , "goUp", "goToRoot", "focusInput", "LinkHints.activateModeWithQueue", "enableCSTemp"
   , "toggleCS", "clearCS", "LinkHints.activateModeToDownloadImage", "reopenTab"
   , "LinkHints.activateModeToOpenImage", "searchAs", "removeRightTab"
@@ -138,7 +139,8 @@ Commands.defaultKeyMappings = {
   "u": "scrollPageUp",
   "r": "reload",
   "R": "reloadTab",
-  "<a-r>": "reopenTab",
+  "<a-r>": "reloadGivenTab",
+  "<a-R>": "reopenTab",
   "gs": "toggleViewSource",
   "i": "enterInsertMode",
   "v": "enterVisualMode",
@@ -271,6 +273,11 @@ Commands.defaultKeyMappings = {
     "Reload N tab(s)", {
       background: true,
       repeat: 20
+    }
+  ],
+  reloadGivenTab: [
+    "Reload N-th tab", {
+      background: true
     }
   ],
   reopenTab: [

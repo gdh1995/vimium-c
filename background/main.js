@@ -707,6 +707,18 @@
         });
       });
     },
+    reloadGivenTab: function() {
+      if (commandCount === 1) {
+        chrome.tabs.reload();
+        return;
+      }
+      chrome.tabs.query({currentWindow: true}, function(tabs) {
+        var tab = tabs[funcDict.selectFrom(tabs).index + commandCount - 1];
+        if (tab) {
+          chrome.tabs.reload(tab.id);
+        }
+      });
+    },
     reopenTab: function(tabs) {
       var tab = tabs[0];
       if (!tab) { return; }
@@ -1310,12 +1322,13 @@
     ref = ["nextTab", "previousTab", "firstTab", "lastTab", "removeTab" //
       , "closeTabsOnLeft", "closeTabsOnRight", "closeOtherTabs", "removeRightTab" //
       , "moveTabLeft", "moveTabRight", "togglePinTab", "debugBackground" //
+      , "reloadGivenTab" //
     ];
     for (i = ref.length; 0 <= --i; ) {
       ref2[ref[i]].useTab = 2;
     }
     ref = ["createTab", "restoreTab", "restoreGivenTab", "blank", "reloadTab" //
-      , "moveTabToNewWindow" //
+      , "moveTabToNewWindow", "reloadGivenTab" //
       , "moveTabToIncognito", "openCopiedUrlInCurrentTab", "Marks.clearGlobal" //
     ];
     for (i = ref.length; 0 <= --i; ) {
