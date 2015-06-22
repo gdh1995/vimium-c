@@ -201,7 +201,6 @@ initPage = function() {
     element.className = element.className + " example info";
     element.innerHTML = "Leave empty to reset this option.";
   }
-  maintainLinkHintsView();
   $("settingsFile").onchange = function() {
     var file = this.files[0], reader;
     this.value = "";
@@ -252,6 +251,7 @@ initPage = function() {
     type = options[name];
     new type(name, onUpdated);
   }
+  maintainLinkHintsView();
 };
 
 exportSetting = function() {
