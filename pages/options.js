@@ -1,5 +1,5 @@
 "use strict";
-var $, Option, ExclusionRulesOption, ExclusionRulesOnPopupOption,
+var $, ExclusionRulesOption, ExclusionRulesOnPopupOption,
 bgSettings, bgExclusions, BG, isPopup,
 __hasProp = Object.prototype.hasOwnProperty,
 __extends = function(child, parent) {

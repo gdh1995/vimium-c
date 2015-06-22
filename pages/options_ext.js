@@ -1,5 +1,4 @@
-var CheckBoxOption, NonEmptyTextOption, NumberOption, TextOption,
-initOptionsPage, importSettings;
+var CheckBoxOption, NonEmptyTextOption, NumberOption, TextOption, importSettings;
 
 Option.saveOptions = function() {
   Option.all.forEach(function(option) {
