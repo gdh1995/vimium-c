@@ -97,16 +97,17 @@ CheckBoxOption = (function(_super) {
 
 
 initPage = function() {
-  var activateHelpDialog, element, maintainLinkHintsView, name, onUpdated //
-    , options, saveOptions, toggleAdvancedOptions, type, _i, _ref, status = 0;
+  var advancedMode, element, name, onUpdated //
+    , saveOptions, type, _i, _ref, status = 0;
   initPage = null;
 
   onUpdated = function() {
+    var saveBtn;
     if (this.areEqual(this.readValueFromElement(), this.previous)) {
       if (status == 1 && !Option.needSaveOptions()) {
-        var btn = $("saveOptions");
-        btn.disabled = true;
-        btn.innerHTML = "No Changes";
+        saveBtn = $("saveOptions");
+        saveBtn.disabled = true;
+        saveBtn.innerHTML = "No Changes";
         $("exportButton").disabled = false;
         status = 0;
       }
@@ -115,36 +116,13 @@ initPage = function() {
       return;
     }
     status = 1;
-    var saveBtn = $("saveOptions");
+    saveBtn = $("saveOptions");
     saveBtn.removeAttribute("disabled");
     saveBtn.innerHTML = "Save Changes";
     $("exportButton").disabled = true;
   };
 
-  maintainLinkHintsView = function() {
-    var set = function(el, stat) {
-      $(el).parentNode.parentNode.style.display = stat ? "" : "none";
-    }, checked = $("filterLinkHints").checked;
-    set("linkHintCharacters", !checked);
-    set("linkHintNumbers", checked);
-  };
-
-  var advancedMode = bgSettings.get("showAdvancedOptions");
-  toggleAdvancedOptions = function(_0, init) {
-    if (!init) {
-      advancedMode = !advancedMode;
-      bgSettings.set("showAdvancedOptions", advancedMode);
-    }
-    if (advancedMode) {
-      $("advancedOptions").style.display = "";
-      $("advancedOptionsButton").innerHTML = "Hide Advanced Options";
-    } else {
-      $("advancedOptions").style.display = "none";
-      $("advancedOptionsButton").innerHTML = "Show Advanced Options";
-    }
-  };
-
-  activateHelpDialog = function(event) {
+  $("showCommands").onclick = function(event) {
     var node;
     DomUtils.suppressEvent(event);
     if (node = document.querySelector('.vimHelpCommandName')) {
@@ -189,18 +167,15 @@ initPage = function() {
       }
     }, 100);
   };
-
   $("saveOptions").onclick = saveOptions;
-  $("advancedOptionsButton").onclick = toggleAdvancedOptions;
-  toggleAdvancedOptions(null, true);
-  $("showCommands").onclick = activateHelpDialog;
-  $("filterLinkHints").onclick = maintainLinkHintsView;
+
   _ref = document.getElementsByClassName("nonEmptyTextOption");
   for (_i = _ref.length; 0 <= --_i; ) {
     element = _ref[_i];
     element.className = element.className + " example info";
     element.innerHTML = "Leave empty to reset this option.";
   }
+
   $("settingsFile").onchange = function() {
     var file = this.files[0], reader;
     this.value = "";
@@ -213,6 +188,7 @@ initPage = function() {
     $("settingsFile").click();
   };
   $("exportButton").onclick = exportSetting;
+
   window.onbeforeunload = function() {
     if (status !== 0 && Option.needSaveOptions()) {
       return "You have unsaved changes to options.";
@@ -220,8 +196,9 @@ initPage = function() {
   };
   document.addEventListener("keyup", function(event) {
     if (event.ctrlKey && event.keyCode === 13) {
-      if (document.activeElement && document.activeElement.blur) {
-        document.activeElement.blur();
+      var element = document.activeElement;
+      if (element && element.blur) {
+        element.blur();
       }
       if (status != 0) {
         saveOptions();
@@ -229,7 +206,7 @@ initPage = function() {
     }
   });
 
-  options = {
+  _ref = {
     exclusionRules: ExclusionRulesOption,
     filterLinkHints: CheckBoxOption,
     hideHud: CheckBoxOption,
@@ -247,11 +224,39 @@ initPage = function() {
     searchUrl: NonEmptyTextOption,
     userDefinedCss: TextOption
   };
-  for (name in options) {
-    type = options[name];
+  for (name in _ref) {
+    type = _ref[name];
     new type(name, onUpdated);
   }
-  maintainLinkHintsView();
+
+  advancedMode = bgSettings.get("showAdvancedOptions");
+  element = $("advancedOptionsButton");
+  element.onclick = function(_0, init) {
+    if (!init) {
+      advancedMode = !advancedMode;
+      bgSettings.set("showAdvancedOptions", advancedMode);
+    }
+    if (advancedMode) {
+      $("advancedOptions").style.display = "";
+      this.innerHTML = "Hide Advanced Options";
+    } else {
+      $("advancedOptions").style.display = "none";
+      this.innerHTML = "Show Advanced Options";
+    }
+  };
+  element.onclick(null, true);
+
+  element = $("filterLinkHints");
+  element.onclick = function() {
+    var set = function(el, stat) {
+      $(el).parentNode.parentNode.style.display = stat ? "" : "none";
+    };
+    set("linkHintCharacters", !this.checked);
+    set("linkHintNumbers", this.checked);
+  };
+  element.onclick();
+
+  element = null;
 };
 
 exportSetting = function() {

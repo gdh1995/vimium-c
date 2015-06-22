@@ -295,7 +295,7 @@ document.addEventListener("DOMContentLoaded", onDOMLoaded = function() {
       $("exclusionScrollBox").innerHTML = xhr.responseText;
       if (window.location.pathname.endsWith("popup.html")) {
         chrome.tabs.query({currentWindow: true, active: true}, initPage);
-      } else if (location.pathname.endsWith("options.html") >= 0) {
+      } else if (location.pathname.endsWith("options.html")) {
         initPage();
       }
     }
