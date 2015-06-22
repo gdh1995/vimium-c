@@ -50,7 +50,7 @@ var Utils = {
   _nonENTldRegex: /[^a-z]/,
   _jsNotEscapeRegex: /["\[\]{}\u00ff-\uffff]|%(?![\dA-Fa-f]{2})/,
   filePathRegex: /^['"]?((?:[A-Za-z]:[\\/]|\/(?:Users|home|root)\/)[^'"]*)['"]?$/,
-  convertToUrl: function(string) {
+  convertToUrl: function(string, keyword) {
     if (string.substring(0, 11).toLowerCase() === "javascript:") {
       if (string.indexOf('%', 11) > 0 && !this._jsNotEscapeRegex.test(string)) {
         string = this.decodeEachURLPart(string);
@@ -144,7 +144,8 @@ var Utils = {
       type = this.isTld(string.substring(index0, index)) ? 2 : 1;
     }
     return type === 0 ? oldString : type === 1 ? ("http://" + oldString)
-      : this.createSearchUrl(Settings.get("searchEnginesMap")["~"], oldString.split(' ')).url;
+      : this.createSearchUrl(Settings.get("searchEnginesMap")[
+          keyword || "~"], oldString.split(' ')).url;
   },
   isTld: function(tld) {
     if (this._nonENTldRegex.test(tld)) {

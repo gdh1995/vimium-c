@@ -384,7 +384,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
         HUD.showForDuration("No text found!", 1000);
       }
     },
-    autoOpen: function() {
+    autoOpen: function(_0, options) {
       var sel = document.getSelection(), str;
       if (sel.type === "Range" && (str = sel.toString().trim())) {
         if (! Utils.evalIfOK(str)) {
@@ -396,7 +396,8 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
         return;
       }
       mainPort.sendMessage({
-        handler: "getCopiedUrl_f"
+        handler: "getCopiedUrl_f",
+        keyword: options && options.keyword
       }, function(str) {
         if (!str) {
           HUD.showForDuration("No text found!", 1000);

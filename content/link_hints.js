@@ -40,6 +40,7 @@ var LinkHints = {
   initTimer: 0,
   isActive: false,
   markerMatcher: null,
+  options: {},
   init: function() {
     this.filterHints.spanWrap = this.alphabetHints.spanWrap = this.spanWrap;
     this.filterHints.numberToHintString = this.alphabetHints.numberToHintString = this.numberToHintString;
@@ -57,8 +58,9 @@ var LinkHints = {
   activateModeToCopyLinkText: function() {
     this._activateMode(this.CONST.COPY_TEXT);
   },
-  activateModeToSearchLinkText: function() {
+  activateModeToSearchLinkText: function(_0, options) {
     this._activateMode(this.CONST.SEARCH_TEXT);
+    this.options = options || {};
   },
   activateModeWithQueue: function() {
     this._activateMode(this.CONST.OPEN_WITH_QUEUE);
@@ -790,6 +792,7 @@ LinkHints.FUNC = {
     if (this.mode === this.CONST.SEARCH_TEXT) {
       MainPort.port.postMessage({
         handler: "openUrlInNewTab",
+        keyword: this.options.keyword,
         url: str
       });
       return;
@@ -806,6 +809,7 @@ LinkHints.FUNC = {
     if (Utils.evalIfOK(url)) { return; }
     MainPort.port.postMessage({
       handler: "openUrlInIncognito",
+      keyword: this.options.keyword,
       url: url,
       active: (this.mode & 64) !== 64
     });

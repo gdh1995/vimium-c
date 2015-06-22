@@ -286,7 +286,7 @@
     openUrlInIncognito: function(request, tab, wnds) {
       wnds = wnds.filter(funcDict.isIncNor);
       request.active = (request.active !== false);
-      request.url = Utils.convertToUrl(request.url);
+      request.url = Utils.convertToUrl(request.url, request.keyword);
       if (wnds.length) {
         var inCurWnd = wnds.filter(function(wnd) {
           return wnd.id === tab.windowId
@@ -672,13 +672,13 @@
     },
     blank: function() {},
     openCopiedUrlInCurrentTab: function() {
-      var url = requestHandlers.getCopiedUrl_f();
+      var url = requestHandlers.getCopiedUrl_f(getOptions());
       chrome.tabs.update(null, {
         url: url
       }, funcDict.onRuntimeError);
     },
     openCopiedUrlInNewTab: function(tabs) {
-      var url = requestHandlers.getCopiedUrl_f();
+      var url = requestHandlers.getCopiedUrl_f(getOptions());
       openMultiTab(url, commandCount, tabs[0]);
     },
     togglePinTab: function(tabs) {
@@ -1061,13 +1061,13 @@
       openMultiTab("/pages/show.html#?image=" + url, 1, tabs[0]);
     },
     openUrlInNewTab: function(request, tabs) {
-      openMultiTab(Utils.convertToUrl(request.url), 1, tabs[0]);
+      openMultiTab(Utils.convertToUrl(request.url, request.keyword), 1, tabs[0]);
     },
     openUrlInIncognito: function(request, tabs) {
       chrome.windows.getAll(funcDict.openUrlInIncognito.bind(null, request, tabs[0]));
     },
     openUrlInCurrentTab: function(request) {
-      var url = Utils.convertToUrl(request.url);
+      var url = Utils.convertToUrl(request.url, request.keyword);
       chrome.tabs.update(null, {
         url: url
       }, funcDict.onRuntimeError);
@@ -1146,11 +1146,11 @@
         relevancy: Settings.get("showOmniRelevancy")
       };
     },
-    getCopiedUrl_f: function() {
+    getCopiedUrl_f: function(request) {
       var url = Clipboard.paste().trim(), arr;
       if (url) {
         arr = url.match(Utils.filePathRegex);
-        url = arr ? arr[1] : Utils.convertToUrl(url);
+        url = arr ? arr[1] : Utils.convertToUrl(url, request.keyword);
       }
       return url;
     },

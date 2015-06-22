@@ -34,6 +34,9 @@ var Vomnibar = {
     if (!initialQueryValue) {
       vomnibarUI.reset();
       return;
+    } else if (typeof initialQueryValue === "string") {
+      vomnibarUI.reset(initialQueryValue + " ");
+      return;
     }
     MainPort.sendMessage({
       handler: "parseSearchUrl",
@@ -46,11 +49,11 @@ var Vomnibar = {
       }
     });
   },
-  activate: function() {
-    this.activateWithCompleter("omni");
+  activate: function(_0, options) {
+    this.activateWithCompleter("omni", false, false, options && options.keyword);
   },
-  activateInNewTab: function() {
-    this.activateWithCompleter("omni", false, true);
+  activateInNewTab: function(_0, options) {
+    this.activateWithCompleter("omni", false, true, options && options.keyword);
   },
   activateTabSelection: function() {
     this.activateWithCompleter("tabs", true);
