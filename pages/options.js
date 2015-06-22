@@ -271,8 +271,8 @@ initPage = function(tab) {
     BG.g_requestHandlers.setIcon(tab.id, null, bgExclusions.getPattern(url));
   };
   $("saveOptions").onclick = saveOptions;
-  document.addEventListener("keyup", function(event) {
-    if (event.ctrlKey && event.keyCode === 13) {
+  document.addEventListener("keypress", function(event) {
+    if (event.ctrlKey && event.keyCode === 13 && !event.repeat) {
       saveOptions();
       setTimeout(window.close, 300);
     }

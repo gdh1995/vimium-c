@@ -194,8 +194,8 @@ initPage = function() {
       return "You have unsaved changes to options.";
     }
   };
-  document.addEventListener("keyup", function(event) {
-    if (event.ctrlKey && event.keyCode === 13) {
+  document.addEventListener("keypress", function(event) {
+    if (event.ctrlKey && event.keyCode === 13 && !event.repeat) {
       var element = document.activeElement;
       if (element && element.blur) {
         element.blur();
