@@ -129,18 +129,19 @@ initPage = function() {
     set("linkHintNumbers", checked);
   };
 
-  var advancedMode = !bgSettings.get("showAdvancedOptions");
-  toggleAdvancedOptions = function(event) {
+  var advancedMode = bgSettings.get("showAdvancedOptions");
+  toggleAdvancedOptions = function(_0, init) {
+    if (!init) {
+      advancedMode = !advancedMode;
+      bgSettings.set("showAdvancedOptions", advancedMode);
+    }
     if (advancedMode) {
-      $("advancedOptions").style.display = "none";
-      $("advancedOptionsButton").innerHTML = "Show Advanced Options";
-    } else {
       $("advancedOptions").style.display = "";
       $("advancedOptionsButton").innerHTML = "Hide Advanced Options";
+    } else {
+      $("advancedOptions").style.display = "none";
+      $("advancedOptionsButton").innerHTML = "Show Advanced Options";
     }
-    advancedMode = !advancedMode;
-    bgSettings.set("showAdvancedOptions", advancedMode);
-    $("advancedOptionsButton").blur();
   };
 
   activateHelpDialog = function(event) {
@@ -191,7 +192,7 @@ initPage = function() {
 
   $("saveOptions").onclick = saveOptions;
   $("advancedOptionsButton").onclick = toggleAdvancedOptions;
-  toggleAdvancedOptions({preventDefault: function() {}});
+  toggleAdvancedOptions(null, true);
   $("showCommands").onclick = activateHelpDialog;
   $("filterLinkHints").onclick = maintainLinkHintsView;
   _ref = document.getElementsByClassName("nonEmptyTextOption");
