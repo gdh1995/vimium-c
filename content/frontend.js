@@ -360,9 +360,9 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     goToRoot: function() {
       window.location.href = window.location.origin;
     },
-    showHelp: function(_0, force_current) {
+    showHelp: function(_0, _1, force_current) {
       if (window.top !== window && !force_current) {
-        mainPort.sendCommadToFrame(0, "showHelp", [0]);
+        mainPort.sendCommadToFrame(0, "showHelp", [0, null]);
         return;
       }
       mainPort.sendMessage({
