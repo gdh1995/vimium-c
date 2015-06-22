@@ -227,7 +227,7 @@ ExclusionRulesOnPopupOption = (function(_super) {
 
 if (isPopup)
 chrome.tabs.query({currentWindow: true, active: true}, function(tab) {
-  var exclusions, onUpdated, saveOptions, updateState, url, hasNew, status;
+  var exclusions, onUpdated, saveOptions, updateState, url, hasNew, status = 0;
   exclusions = null;
   tab = tab[0];
   url = bgSettings.urlForTab[tab.id] || tab.url;
@@ -273,7 +273,9 @@ chrome.tabs.query({currentWindow: true, active: true}, function(tab) {
   $("saveOptions").onclick = saveOptions;
   document.addEventListener("keyup", function(event) {
     if (event.ctrlKey && event.keyCode === 13) {
-      saveOptions();
+      if (status === 1) {
+        saveOptions();
+      }
       setTimeout(window.close, 300);
     }
   });

@@ -221,6 +221,8 @@ td.booleanOption, #helpText { font-size: 12px; }
 }
 #saveOptionsTableData {
   white-space: nowrap;
+  position: relative;
+  right: -2px;
 }
 #advancedOptionsButton {
   width: 170px;
