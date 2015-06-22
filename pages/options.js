@@ -294,8 +294,8 @@ document.addEventListener("DOMContentLoaded", onDOMLoaded = function() {
   var xhr = new XMLHttpRequest();
   xhr.open("GET", "exclusions.html", true);
   xhr.onreadystatechange = function() {
-    if (xhr.readyState === 4) {
-      $("exclusionScrollBox").innerHTML = xhr.responseText;
+    if (this.readyState === 4) {
+      $("exclusionScrollBox").innerHTML = this.responseText;
       if (isPopup) {
         chrome.tabs.query({currentWindow: true, active: true}, initPage);
       } else {

@@ -4,14 +4,8 @@ var Utils = {
     var req = new XMLHttpRequest();
     req.open("GET", url, true);
     req.onreadystatechange = function () {
-      if(req.readyState === 4) {
-        var text = req.responseText, status = req.status;
-        req = null;
-        if (status === 200) {
-          success(text);
-        } else if (onerror) {
-          onerror(text, status);
-        }
+      if (this.readyState === 4 && this.status === 200) {
+        success(this.responseText);
       }
     };
     req.send();
