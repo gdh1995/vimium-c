@@ -1,6 +1,6 @@
 "use strict";
 var $, Option, ExclusionRulesOption, ExclusionRulesOnPopupOption,
-bgSettings, bgExclusions, initPage, BG, isPopup,
+bgSettings, bgExclusions, BG, isPopup,
 __hasProp = Object.prototype.hasOwnProperty,
 __extends = function(child, parent) {
   for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; }
@@ -14,6 +14,7 @@ BG = chrome.extension.getBackgroundPage();
 bgSettings = BG.Settings;
 bgExclusions = BG.Exclusions;
 isPopup = window.location.pathname.endsWith("popup.html");
+$("exclusionScrollBox").innerHTML = bgSettings.get("exclusionTemplate");
 
 function Option(field, onUpdated) {
   this.field = field;
@@ -225,9 +226,8 @@ ExclusionRulesOnPopupOption = (function(_super) {
 })(ExclusionRulesOption);
 
 if (isPopup)
-initPage = function(tab) {
+chrome.tabs.query({currentWindow: true, active: true}, function(tab) {
   var exclusions, onUpdated, saveOptions, updateState, url, hasNew, status;
-  initPage = null;
   exclusions = null;
   tab = tab[0];
   url = bgSettings.urlForTab[tab.id] || tab.url;
@@ -285,16 +285,4 @@ initPage = function(tab) {
       bgExclusions.rebuildRegex();
     }
   };
-};
-
-var onDOMLoaded;
-document.addEventListener("DOMContentLoaded", onDOMLoaded = function() {
-  document.removeEventListener("DOMContentLoaded", onDOMLoaded);
-  onDOMLoaded = null;
-  $("exclusionScrollBox").innerHTML = bgSettings.get("exclusionTemplate");
-  if (isPopup) {
-    chrome.tabs.query({currentWindow: true, active: true}, initPage);
-  } else {
-    initPage();
-  }
 });

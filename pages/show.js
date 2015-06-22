@@ -29,4 +29,4 @@ function decodeHash() {
 };
 
 window.addEventListener("hashchange", decodeHash);
-window.onload = decodeHash;
+decodeHash();

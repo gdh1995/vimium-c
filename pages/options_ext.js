@@ -1,5 +1,5 @@
 var CheckBoxOption, NonEmptyTextOption, NumberOption, TextOption,
-initOptionsPage, importSettings, exportSetting;
+initOptionsPage, importSettings;
 
 Option.saveOptions = function() {
   Option.all.forEach(function(option) {
@@ -96,10 +96,8 @@ CheckBoxOption = (function(_super) {
 })(Option);
 
 
-initPage = function() {
-  var advancedMode, element, name, onUpdated //
-    , saveOptions, type, _i, _ref, status = 0;
-  initPage = null;
+(function() {
+  var advancedMode, element, name, onUpdated, saveOptions, type, _i, _ref, status = 0;
 
   onUpdated = function() {
     var saveBtn;
@@ -176,19 +174,6 @@ initPage = function() {
     element.innerHTML = "Leave empty to reset this option.";
   }
 
-  $("settingsFile").onchange = function() {
-    var file = this.files[0], reader;
-    this.value = "";
-    if (!file) { return; }
-    reader = new FileReader();
-    reader.onload = importSettings;
-    reader.readAsText(file);
-  };
-  $("importButton").onclick = function() {
-    $("settingsFile").click();
-  };
-  $("exportButton").onclick = exportSetting;
-
   window.onbeforeunload = function() {
     if (status !== 0 && Option.needSaveOptions()) {
       return "You have unsaved changes to options.";
@@ -257,9 +242,9 @@ initPage = function() {
   element.onclick();
 
   element = null;
-};
+})();
 
-exportSetting = function() {
+$("exportButton").onclick = function() {
   var exported_object, exported_data, file_name, force2, d, nodeA;
   exported_object = {name: "Vimium++", time: 0};
   exported_object.__proto__ = null;
@@ -364,4 +349,16 @@ importSettings = function() {
   btn.disabled = true;
   btn.click();
   VHUD.showForDuration("Import settings data: OK!", 1000);
+};
+
+$("settingsFile").onchange = function() {
+  var file = this.files[0], reader;
+  this.value = "";
+  if (!file) { return; }
+  reader = new FileReader();
+  reader.onload = importSettings;
+  reader.readAsText(file);
+};
+$("importButton").onclick = function() {
+  $("settingsFile").click();
 };
