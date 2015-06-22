@@ -54,6 +54,12 @@ var Settings = {
         ref2[key] = this.get(key);
       }
     },
+    files: function() {
+      var files = this.files, id;
+      for (id in files) {
+        Utils.fetchHttpContents(files[id], this.set.bind(this, id));
+      }
+    },
     searchEngines: function() {
       this.set("searchEnginesMap", { "": [] });
     },
@@ -152,13 +158,6 @@ var Settings = {
       prefix = "http" + prefix.substring(5);
     }
     return [prefix, new RegExp("^([^?#]*)" + url, "i"), name];
-  },
-  reloadFiles: function() {
-    var files = this.files, id;
-    for (id in files) {
-      this.set(id, "");
-      Utils.fetchHttpContents(files[id], this.set.bind(this, id));
-    }
   },
   // clear localStorage & sync, if value === @defaults[key]
   defaults: {

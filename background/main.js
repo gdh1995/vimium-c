@@ -1193,7 +1193,7 @@
   };
   requestHandlers.__proto__ = null;
 
-  Settings.reloadFiles();
+  Settings.postUpdate("files", null);
 
   Settings.postUpdate("searchEngines", null);
 
