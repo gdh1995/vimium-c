@@ -390,6 +390,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
         if (! Utils.evalIfOK(str)) {
           mainPort.port.postMessage({
             handler: "openUrlInNewTab",
+            keyword: options && options.keyword,
             url: str
           });
         }
