@@ -85,7 +85,7 @@
     } else {
       html.push('<td class="vimB vimI vimHelpTd" colspan="3">\n\t\t'
         , '<span class="vimB vimI vimHelpLongKey">'
-        , Utils.escapeHtml(bindings), "</span>&#160;:</td>\n\t");
+        , Utils.escapeHtml(bindings), "</span>&#160;:\n\t");
     }
     html.push("</td>\n</tr>\n");
   };
