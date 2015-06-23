@@ -43,7 +43,7 @@ var Exclusions = {
   onURLChange: (Settings.CONST.ChromeVersion >= 41
   ? function(details) {
     var response = g_requestHandlers.checkIfEnabled(details);
-    response.name = "updateUrl";
+    response.name = "updateEnabled";
     g_requestHandlers.sendToTab(response, details.tabId
       , details.frameId, {name: "checkIfEnabled"});
   } : function(details) {

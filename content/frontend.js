@@ -1086,7 +1086,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
         ELs.focusMsg.status = "disabled";
       }
     },
-    updateUrl: function(request) {
+    updateEnabled: function(request) {
       ELs.focusMsg.url = window.location.href;
       requestHandlers.setEnabled(request);
     },
@@ -1367,7 +1367,6 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     if (!isInjected) {
       window.onfocus = null;
       window.onunload = null;
-      window.onhashchange = null;
     }
     window.removeEventListener("keydown", this.onKeydown, true);
     window.removeEventListener("keypress", this.onKeypress, true);
