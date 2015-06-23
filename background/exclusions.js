@@ -95,3 +95,14 @@ var Exclusions = {
   }
 };
 Exclusions.__proto__ = null;
+
+Settings.updateHooks.exclusionRules = function(rules) {
+  Exclusions.setRules(rules);
+  g_requestHandlers.esc();
+  this.postUpdate("broadcast", Exclusions.rules.length === 0 ? {
+    name: "setEnabled",
+    passKeys: null
+  } : {
+    name: "checkIfEnabled"
+  });
+};

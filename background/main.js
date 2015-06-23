@@ -1227,17 +1227,6 @@
   };
   Settings.postUpdate("newTabUrl");
 
-  Settings.updateHooks.exclusionRules = function(rules) {
-    Exclusions.setRules(rules);
-    resetKeys();
-    this.postUpdate("broadcast", Exclusions.rules.length === 0 ? {
-      name: "setEnabled",
-      passKeys: null
-    } : {
-      name: "checkIfEnabled"
-    });
-  };
-
   Settings.updateHooks.keyMappings = function(value) {
     Commands.parseKeyMappings(value);
     populateKeyCommands(); // resetKeys has been called in this
