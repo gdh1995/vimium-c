@@ -123,13 +123,18 @@ var LinkHints = {
       keydown: this.onKeyDownInMode,
       _this: this
     });
-    if (!this.hintMarkerContainingDiv.style) {
+    var style = this.hintMarkerContainingDiv.style;
+    if (!style) {
       this.deactivate2();
       this.isActive = true;
       return;
     }
-    this.hintMarkerContainingDiv.style.left = window.scrollX + "px";
-    this.hintMarkerContainingDiv.style.top = window.scrollY + "px";
+    style.left = (mode = window.scrollX) + "px";
+    mode = document.documentElement.scrollWidth - mode;
+    style.width = Math.min(mode | 0, window.innerWidth + 60) + "px";
+    style.top = (mode = window.scrollY) + "px";
+    mode = document.documentElement.scrollHeight - mode;
+    style.height = Math.min(mode | 0, window.innerHeight + 20) + "px";
   },
   setOpenLinkMode: function(mode) {
     var cons = this.CONST, tip, activator;
