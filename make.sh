@@ -13,4 +13,4 @@ else
 ARGS="$*"
 fi
 
-zip -r0oX -MM $ARGS "$OUTPUT" . -x ".*" "*.sh" "weidu/*" "test/*"
+zip -roX -MM $ARGS "$OUTPUT" . -x ".*" "*.sh" "weidu/*" "test/*"
