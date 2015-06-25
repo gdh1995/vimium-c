@@ -100,7 +100,8 @@ var LinkHints = {
       this.initTimer = 0;
     }
     this.setOpenLinkMode(mode);
-    var elements = this.getVisibleClickableElements();
+    var elements = this.getVisibleClickableElements(), rect, style;
+
     if (Settings.values.filterLinkHints) {
       this.markerMatcher = this.filterHints;
       elements.sort(function(a, b) {
@@ -113,28 +114,32 @@ var LinkHints = {
     elements = null;
     this.markerMatcher.fillInMarkers(this.hintMarkers);
     this.isActive = true;
+
+    // NOTE: if zoom > 1, although document.documentElement.scrollHeight is integer,
+    //   its real rect may has a float width, such as 471.333 / 472
+    rect = VRect.fromClientRect(document.documentElement.getBoundingClientRect());
+    rect[0] = this.initScrollX = window.scrollX;
+    rect[1] = this.initScrollY = window.scrollY;
+    rect[2] = Math.min(rect[2], window.innerWidth + 60);
+    rect[3] = Math.min(rect[3], window.innerHeight + 20);
     this.initScrollX = window.scrollX;
     this.initScrollY = window.scrollY;
     this.hintMarkerContainingDiv = DomUtils.addElementList(this.hintMarkers, {
       id: "vimHMC",
       className: "vimB vimR"
     });
+    if (style = this.hintMarkerContainingDiv.style) {
+      style.left = rect[0] + "px", style.top = rect[1] + "px";
+      style.width = rect[2] + "px", style.height = rect[3] + "px";
+    } else {
+      this.deactivate();
+      this.isActive = true;
+      return;
+    }
     this.handlerId = handlerStack.push({
       keydown: this.onKeyDownInMode,
       _this: this
     });
-    var style = this.hintMarkerContainingDiv.style;
-    if (!style) {
-      this.deactivate2();
-      this.isActive = true;
-      return;
-    }
-    style.left = (mode = window.scrollX) + "px";
-    mode = document.documentElement.scrollWidth - mode;
-    style.width = Math.min(mode | 0, window.innerWidth + 60) + "px";
-    style.top = (mode = window.scrollY) + "px";
-    mode = document.documentElement.scrollHeight - mode;
-    style.height = Math.min(mode | 0, window.innerHeight + 20) + "px";
   },
   setOpenLinkMode: function(mode) {
     var cons = this.CONST, tip, activator;
