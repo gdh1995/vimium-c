@@ -1401,8 +1401,11 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     KeyCodes = passKeys = firstKeys = secondKeys = oldActivated = Marks = func = //
     settings.onDestroy = null;
 
-    console.log("%cVimium++ %c#" + frameId + "%c has destroyed at %o."//
-      , "color:red", "color:blue", "color:auto", Date.now());
+    console.log("%cVimium++ %c#%d%c in %c%s%c has destroyed at %o." //
+      , "color:red", "color:blue", frameId, "color:auto"
+      , "color:darkred", location.pathname.replace(/^.*\/([^\/]+)\/?$/, "$1")
+      , "color:auto", Date.now()
+    );
 
     if (!isInjected) { try {
       window.frameId = frameId;
