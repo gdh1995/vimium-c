@@ -67,7 +67,7 @@ chrome.runtime.onMessageExternal.addListener(Settings.ELs.onMessage);
     , "color: red;", "color: auto;", "color: blue;");
 }
 
-Settings.ELs.onDestroy.injected = function() {
+Settings.onDestroy.injected = function() {
   window.removeEventListener("unload", this.onUnload);
   window.removeEventListener("focus", this.onFocus);
   window.removeEventListener("hashchange", Settings.RequestHandlers.checkIfEnabled);

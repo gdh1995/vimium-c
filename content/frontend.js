@@ -123,6 +123,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
   Settings = settings = {
     values: null,
     isLoading: 0,
+    onDestroy: {},
     set: function(key, value) {
       this.values[key] = value;
       mainPort.port.postMessage({
@@ -175,7 +176,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     onKeydown: null, onKeypress: null, onKeyup: null, //
     docOnFocus: null, onBlur: null, onActivate: null, //
     onFocus: null, onUnload: null, onHashChagne: null, //
-    onMessage: null, onDestroy: {}, destroy: null //
+    onMessage: null, destroy: null //
   };
 
   initializeWhenEnabled = function(newPassKeys) {
@@ -1248,7 +1249,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       handlerStack.remove(handlerId);
       DomUtils.removeNode(container);
       Commands.showHelp = oldShowHelp;
-      ELs.onDestroy.helpDialog = null;
+      settings.onDestroy.helpDialog = null;
       container.innerHTML = "";
       container = null;
     };
@@ -1264,7 +1265,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       }
     };
     
-    ELs.onDestroy.helpDialog = hide;
+    settings.onDestroy.helpDialog = hide;
     oldShowHelp = Commands.showHelp;
     container.querySelector("#vimAdvancedCommands").onclick = function() {
       shouldShowAdvanced = !shouldShowAdvanced;
@@ -1386,8 +1387,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       DomUtils.removeNode(this.css);
       this.css = null;
     }
-    var ref = this.onDestroy, i, func;
-    this.onDestroy = null;
+    var ref = settings.onDestroy, i, func;
     for (i in ref) {
       func = ref[i];
       if (func) {
@@ -1399,7 +1399,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     VRect = Utils = KeyboardUtils = DomUtils = handlerStack = Scroller = //
     currentSeconds = initializeWhenEnabled = setPassKeys = checkValidKey = //
     KeyCodes = passKeys = firstKeys = secondKeys = oldActivated = Marks = func = //
-    null;
+    settings.onDestroy = null;
 
     console.log("%cVimium++ %c#" + frameId + "%c has destroyed at %o."//
       , "color:red", "color:blue", "color:auto", Date.now());
