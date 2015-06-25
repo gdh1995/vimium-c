@@ -100,7 +100,7 @@ var LinkHints = {
       this.initTimer = 0;
     }
     this.setOpenLinkMode(mode);
-    var elements = this.getVisibleClickableElements(), rect, style;
+    var elements = this.getVisibleClickableElements(), rect, style, width, height;
 
     if (Settings.values.filterLinkHints) {
       this.markerMatcher = this.filterHints;
@@ -117,20 +117,19 @@ var LinkHints = {
 
     // NOTE: if zoom > 1, although document.documentElement.scrollHeight is integer,
     //   its real rect may has a float width, such as 471.333 / 472
-    rect = VRect.fromClientRect(document.documentElement.getBoundingClientRect());
-    rect[0] = this.initScrollX = window.scrollX;
-    rect[1] = this.initScrollY = window.scrollY;
-    rect[2] = Math.min(rect[2], window.innerWidth + 60);
-    rect[3] = Math.min(rect[3], window.innerHeight + 20);
-    this.initScrollX = window.scrollX;
-    this.initScrollY = window.scrollY;
+    rect = document.documentElement.getBoundingClientRect();
+    width = rect.width, height = rect.height;
+    width = width !== (width | 0) ? 1 : 0, height = height !== (height | 0) ? 1 : 0;
+    this.initScrollX = window.scrollX, this.initScrollY = window.scrollY;
+    width = Math.min(document.documentElement.scrollWidth - width, window.innerWidth + 60);
+    height = Math.min(document.documentElement.scrollHeight - height, window.innerHeight + 20);
     this.hintMarkerContainingDiv = DomUtils.addElementList(this.hintMarkers, {
       id: "vimHMC",
       className: "vimB vimR"
     });
     if (style = this.hintMarkerContainingDiv.style) {
-      style.left = rect[0] + "px", style.top = rect[1] + "px";
-      style.width = rect[2] + "px", style.height = rect[3] + "px";
+      style.left = this.initScrollX + "px", style.top = this.initScrollY + "px";
+      style.width = width + "px", style.height = height + "px";
     } else {
       this.deactivate();
       this.isActive = true;
