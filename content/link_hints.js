@@ -336,7 +336,7 @@ var LinkHints = {
       // NOTE: should always prevent repeated keys.
     } else if ((_i = event.keyCode) === KeyCodes.esc) {
       if (KeyboardUtils.isPlain(event)) {
-        this.deactivateMode();
+        this.deactivate();
       } else {
         return true;
       }
@@ -370,7 +370,7 @@ var LinkHints = {
         this.reinit();
       }
     } else if (linksMatched.length === 0) {
-      this.deactivateMode();
+      this.deactivate();
     } else if (linksMatched.length === 1) {
       DomUtils.suppressEvent(event);
       this.activateLink(linksMatched[0]);
@@ -394,7 +394,7 @@ var LinkHints = {
     if (this.mode < 128) {
       if (DomUtils.isSelectable(clickEl)) {
         DomUtils.simulateSelect(clickEl);
-        this.deactivateMode();
+        this.deactivate();
         return;
       }
       if (clickEl.nodeName.toLowerCase() === "input") {
@@ -432,17 +432,17 @@ var LinkHints = {
     if ((this.mode & 64) === 64) {
       this.reinit();
     } else {
-      this.deactivateMode();
+      this.deactivateWith();
     }
   },
   reinit: function() {
     var mode = this.mode, linkActivator = this.linkActivator;
-    this.deactivateMode(function() {
+    this.deactivateWith(function() {
       this.linkActivator = linkActivator;
       this._activateMode(mode);
     });
   },
-  deactivate2: function(callback) {
+  deactivate: function(callback) {
     this.markerMatcher.deactivate();
     this.linkActivator = null;
     this.hintMarkers = [];
@@ -465,18 +465,17 @@ var LinkHints = {
       callback.call(this);
     }
   },
-  deactivateMode: function(callback) {
+  deactivateWith: function(callback) {
     var delay = this.keyStatus.delay;
     if (delay) {
-      setTimeout(this.deactivate2.bind(this, callback), delay);
+      setTimeout(this.deactivate.bind(this, callback), delay);
     } else {
-      this.deactivate2(callback);
+      this.deactivate(callback);
     }
   },
   destroy: function() {
     if (this.isActive) {
-      this.keyStatus.delay = 0;
-      this.deactivateMode();
+      this.deactivate();
     }
     LinkHints = null;
   }
