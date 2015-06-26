@@ -50,15 +50,15 @@ DomUtils.DocumentReady(function() {
 });
 
 if (chrome.runtime.onMessageExternal) {
-Settings.ELs.onMessage = (function(request, sender) {
-  if (sender.id === "hfjbmagddngcpeloejdejnfgbamkjaeg") {
-    request = request["vimium++"];
-    if (request && (request.tabId ? request.tabId === Settings.ELs.focusMsg.tabId : true)) {
-      this(request.request);
+  Settings.ELs.onMessage = (function(request, sender) {
+    if (sender.id === "hfjbmagddngcpeloejdejnfgbamkjaeg") {
+      request = request["vimium++"];
+      if (request && (request.tabId ? request.tabId === Settings.ELs.focusMsg.tabId : true)) {
+        this(request.request);
+      }
     }
-  }
-}).bind(Settings.ELs.onMessage);
-chrome.runtime.onMessageExternal.addListener(Settings.ELs.onMessage);
+  }).bind(Settings.ELs.onMessage);
+  chrome.runtime.onMessageExternal.addListener(Settings.ELs.onMessage);
   VimiumInjector.alive = 1;
 } else {
   Settings.ELs.onMessage = null;
@@ -81,6 +81,17 @@ Settings.onDestroy.injected = function() {
   injector.alive = 0;
   injector.oldFrameId = this.focusMsg.frameId;
   injector.destroy = null;
+  injector.execute = function() {};
 };
 
 VimiumInjector.destroy = Settings.ELs.destroy.bind(Settings.ELs);
+VimiumInjector.execute = function(command, count, options) {
+  try {
+    MainPort.Listener({
+      name: "execute",
+      command: command,
+      count: (count > 1 ? count : 1),
+      options: options || null
+    });
+  } catch (e) {}
+};
