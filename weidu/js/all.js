@@ -3751,16 +3751,27 @@ mset = null;
 });
 };
 
-window.addEventListener("load", window.weiduOnLoad = function () {
-	window.removeEventListener("load", window.weiduOnLoad);
-	window.weiduOnLoad = null; // only retry for once
-	if (window.VimiumInjector) { return; }
+window.onload = function () {
+	var activate = function(delay) {
+		setTimeout(function() {
+			$('#normal')[0].click();
+		}, delay >= 0 ? delay : 300);
+	};
+	window.onload = null; // only retry for once
+	if (window.VimiumInjector) {
+		activate();
+		return;
+	}
 	setTimeout(function() {
-		if (window.VimiumInjector) { return; }
+		if (window.VimiumInjector) {
+			activate();
+			return;
+		}
 		var node = document.createElement("script");
 		node.src = "chrome-extension://hfjbmagddngcpeloejdejnfgbamkjaeg/lib/injector.js";
 		document.head.appendChild(node);
 		console.log("Weidu: failed to load Vimium++ -> retrying");
+		activate(1000);
 	}, 2000);
-});
-var a, b = function(b) { a=b; console.log(b); }, cb=b, log=console.log.bind(console);
+};
+var a, cb = function(b) { a=b; console.log(b); }, b=cb, log=console.log.bind(console);
