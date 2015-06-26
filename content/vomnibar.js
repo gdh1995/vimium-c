@@ -216,7 +216,8 @@ Vomnibar.vomnibarUI = {
         MainPort.Listener({
           name: "execute",
           command: n === KeyCodes.up ? "scrollUp" : "scrollDown",
-          count: 1
+          count: 1,
+          options: {}
         });
         return false;
       }
