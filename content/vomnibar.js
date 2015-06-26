@@ -115,6 +115,12 @@ Vomnibar.vomnibarUI = {
   show: function() {
     this.box.style.display = "";
     this.input.value = this.completionInput.text;
+    MainPort.Listener({
+      name: "execute",
+      command: "switchFocus",
+      count: 1,
+      options: {confirm: true}
+    });
     this.input.focus();
     this.focused = true;
     this.handlerId = handlerStack.push({

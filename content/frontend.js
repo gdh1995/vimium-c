@@ -342,7 +342,11 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     reload: function() {
       window.location.reload();
     },
-    switchFocus: function() {
+    switchFocus: function(_0, options) {
+      if (options.confirm) {
+        oldActivated.target && (oldActivated.isSecond = false);
+        return;
+      }
       var newEl = document.activeElement;
       if (newEl !== document.body) {
         oldActivated.target = newEl;
