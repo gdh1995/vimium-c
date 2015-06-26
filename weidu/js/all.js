@@ -10,14 +10,14 @@ function truncate(str, ind, lng) {
 	return ''
 }
 var HtmlUtil = {
-  _escapeRegex: /[&<>]/g,
-  _escapeCallback: function(c, n) {
-    n = c.charCodeAt(0);
-    return (n === 60) ? "&lt;" : (n === 62) ? "&gt;" : "&amp;";
-  },
-  escapeHtml: function(s) {
-    return s.replace(this._escapeRegex, this._escapeCallback);
-  }
+	_escapeRegex: /[&<>]/g,
+	_escapeCallback: function(c, n) {
+		n = c.charCodeAt(0);
+		return (n === 60) ? "&lt;" : (n === 62) ? "&gt;" : "&amp;";
+	},
+	escapeHtml: function(s) {
+		return s.replace(this._escapeRegex, this._escapeCallback);
+	}
 };
 function title_fix(text) {
 	return text ? HtmlUtil.escapeHtml(text) : "";
@@ -117,14 +117,14 @@ function getRand(v_min, v_max) {
 	return Math.floor(Math.random() * (v_max - v_min) + v_min)
 }
 function openTab(targetSwitch, url, event) {
-  var ctrlKey = false, shiftKey = false;
-  if (event === false) {
-  } else if (event === true) {
-    ctrlKey = true;
-  } else {
-    ctrlKey = event.ctrlKey || event.metaKey;
-    shiftKey = event.shiftKey;
-  }
+	var ctrlKey = false, shiftKey = false;
+	if (event === false) {
+	} else if (event === true) {
+		ctrlKey = true;
+	} else {
+		ctrlKey = event.ctrlKey || event.metaKey;
+		shiftKey = event.shiftKey;
+	}
 	if (targetSwitch === true) {
 		chrome.tabs.update({url: url});
 	} else if (ctrlKey !== true) {
@@ -953,7 +953,7 @@ var oauth = {
 		var self = this;
 		self.oauthKey = PDI.get('setup', 'oauthKey');
 		if (self.oauthKey) {
-		  self.oauthApiUrl += "&oauthKey=" + self.oauthKey;
+			self.oauthApiUrl += "&oauthKey=" + self.oauthKey;
 		}
 		syn = (syn === true);
 		$.get(self.oauthApiUrl, function (data) {
@@ -1069,7 +1069,7 @@ var oauth = {
 					var msgid = parseInt(PDI.get('setup', 'msgid'));
 					result = JSON.parse(result);
 					if (result.msgid > msgid) {
-						if (gt)	gt()
+						if (gt) gt()
 					} else if (lt) {
 						lt()
 					}
