@@ -1244,7 +1244,7 @@
   };
 
   chrome.commands.onCommand.addListener(funcDict.globalCommand = function(command) {
-    var count;
+    var count, reg;
     if (currentFirst !== null) {
       count = currentFirst ? 1 : (currentCount || 1);
       resetKeys();
@@ -1254,7 +1254,13 @@
     } else {
       count = 1;
     }
-    executeCommand(command, Commands.availableCommands[command], count, null);
+    reg = Commands.availableCommands[command];
+    executeCommand(command, {
+      background: reg.background,
+      command: command,
+      options: {},
+      repeat: reg.repeat
+    }, count, null);
   });
 
   chrome.runtime.onMessageExternal.addListener(function(message, _1, sendResponse) {

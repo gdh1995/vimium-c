@@ -29,21 +29,25 @@ var Commands = {
     }
     return opt;
   },
-  parseKeyMappings: function(line) {
-    var key, lines, splitLine, _i, _len, defaultMap, registry, details;
-    defaultMap = this.defaultKeyMappings;
-    registry = this.keyToCommandRegistry = {};
-    lines = line.replace(/\\\n/g, "").replace(/[\t ]+/g, " ").split("\n");
+  resetDefaults: function(registry) {
+    var defaultMap = this.defaultKeyMappings, available = this.availableCommands
+      , registry = this.keyToCommandRegistry = {}, key, command, details, options = {};
     for (key in defaultMap) {
-      line = defaultMap[key];
-      details = this.availableCommands[line];
+      details = available[command = defaultMap[key]];
       registry[key] = {
         background: details.background,
-        command: line,
-        options: {},
+        command: command,
+        options: options,
         repeat: details.repeat
       };
     }
+  },
+  parseKeyMappings: function(line) {
+    var key, lines, splitLine, _i, _len, registry, details, available;
+    this.resetDefaults();
+    registry = this.keyToCommandRegistry;
+    available = this.availableCommands;
+    lines = line.replace(/\\\n/g, "").replace(/[\t ]+/g, " ").split("\n");
     for (_i = 0, _len = lines.length; _i < _len; _i++) {
       line = lines[_i].trim();
       if (!(line.charCodeAt(0) > 35)) { continue; } // mask: /[ !"#]/
@@ -51,8 +55,8 @@ var Commands = {
       key = splitLine[0];
       if (key === "map") {
         if (splitLine.length < 3) {
-        } else if (details = this.availableCommands[key = splitLine[2]]) {
-          this.keyToCommandRegistry[this.normalizeKey(splitLine[1])] = {
+        } else if (details = available[key = splitLine[2]]) {
+          registry[this.normalizeKey(splitLine[1])] = {
             background: details.background,
             command: key,
             options: this.getOptions(splitLine.slice(3)),
@@ -70,7 +74,7 @@ var Commands = {
         console.log("Unmapping:", key, "has not been mapped");
       }
     }
-    this.keyToCommandRegistry.__proto__ = null;
+    registry.__proto__ = null;
   },
   commandGroups: null,
   advancedCommands: null,
@@ -205,7 +209,6 @@ Commands.defaultKeyMappings = {
     ref[command] = {
       background: options && options.background ? true : false,
       description: description[0],
-      options: description[2] || null,
       repeat: options && options.repeat || 0
     };
   }
