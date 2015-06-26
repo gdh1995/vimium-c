@@ -50,10 +50,10 @@ var Vomnibar = {
     });
   },
   activate: function(_0, options) {
-    this.activateWithCompleter("omni", false, false, options && options.keyword);
+    this.activateWithCompleter("omni", false, false, options.keyword);
   },
   activateInNewTab: function(_0, options) {
-    this.activateWithCompleter("omni", false, true, options && options.keyword);
+    this.activateWithCompleter("omni", false, true, options.keyword);
   },
   activateTabSelection: function() {
     this.activateWithCompleter("tabs", true);

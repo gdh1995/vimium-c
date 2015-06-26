@@ -227,7 +227,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     Marks: Marks,
 
     toggleSwitchTemp: function(_0, options) {
-      var key = options && options.key, values = settings.values;
+      var key = options.key, values = settings.values;
       if (typeof values[key] !== "boolean") {
         HUD.showForDuration("`" + key + "` is not a boolean switch", 2000);
       } else if (values[key] = !values[key]) {
@@ -391,7 +391,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
         if (! Utils.evalIfOK(str)) {
           mainPort.port.postMessage({
             handler: "openUrlInNewTab",
-            keyword: options && options.keyword,
+            keyword: options.keyword,
             url: str
           });
         }
@@ -399,7 +399,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       }
       mainPort.sendMessage({
         handler: "getCopiedUrl_f",
-        keyword: options && options.keyword
+        keyword: options.keyword
       }, function(str) {
         if (!str) {
           HUD.showForDuration("No text found!", 1000);

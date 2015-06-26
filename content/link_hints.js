@@ -60,7 +60,7 @@ var LinkHints = {
   },
   activateModeToSearchLinkText: function(_0, options) {
     this._activateMode(this.CONST.SEARCH_TEXT);
-    this.options = options || {};
+    this.options = options;
   },
   activateModeWithQueue: function() {
     this._activateMode(this.CONST.OPEN_WITH_QUEUE);

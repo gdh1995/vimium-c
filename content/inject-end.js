@@ -91,7 +91,7 @@ VimiumInjector.execute = function(command, count, options) {
       name: "execute",
       command: command,
       count: (count > 1 ? (count | 0) : 1),
-      options: options || null
+      options: options || {}
     });
   } catch (e) {}
 };

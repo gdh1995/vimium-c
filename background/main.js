@@ -2,7 +2,7 @@
 (function() {
   var BackgroundCommands, ContentSettings, checkKeyQueue, commandCount //
     , currentCount, currentFirst, currentCommand, executeCommand, extForTab
-    , firstKeys, frameIdsForTab, funcDict, getOptions, handleMainPort
+    , firstKeys, frameIdsForTab, funcDict, handleMainPort
     , helpDialogHtml, helpDialogHtmlForCommand //
     , helpDialogHtmlForCommandGroup, needIcon, openMultiTab //
     , populateKeyCommands, requestHandlers, resetKeys, secondKeys, sendToTab //
@@ -22,11 +22,6 @@
   currentCommand = {
     options: null,
     port: null
-  };
-  getOptions = function() {
-    var opt = currentCommand.options || {};
-    currentCommand.options = null;
-    return opt;
   };
 
   helpDialogHtml = function(showUnbound, showNames, customTitle) {
@@ -609,13 +604,13 @@
     moveTabToIncognito: chrome.windows.getCurrent.bind(chrome.windows
       , {populate: true}, funcDict.moveTabToIncognito[0]),
     enableCSTemp: function(tabs) {
-      ContentSettings.ensure(getOptions().type, tabs[0]);
+      ContentSettings.ensure(currentCommand.options.type, tabs[0]);
     },
     toggleCS: function(tabs) {
-      ContentSettings.toggleCurrent(getOptions().type, tabs[0]);
+      ContentSettings.toggleCurrent(currentCommand.options.type, tabs[0]);
     },
     clearCS: function(tabs) {
-      ContentSettings.clear(getOptions().type, tabs[0]);
+      ContentSettings.clear(currentCommand.options.type, tabs[0]);
       requestHandlers.sendToCurrent({
         name: "showHUD",
         text: "Image content settings have been cleared.",
@@ -672,13 +667,13 @@
     },
     blank: function() {},
     openCopiedUrlInCurrentTab: function() {
-      var url = requestHandlers.getCopiedUrl_f(getOptions());
+      var url = requestHandlers.getCopiedUrl_f(currentCommand.options);
       chrome.tabs.update(null, {
         url: url
       }, funcDict.onRuntimeError);
     },
     openCopiedUrlInNewTab: function(tabs) {
-      var url = requestHandlers.getCopiedUrl_f(getOptions());
+      var url = requestHandlers.getCopiedUrl_f(currentCommand.options);
       openMultiTab(url, commandCount, tabs[0]);
     },
     togglePinTab: function(tabs) {
