@@ -351,19 +351,13 @@ var LinkHints = {
       }
     } else if (_i === KeyCodes.altKey) {
       this.setOpenLinkMode(((this.mode >= 128 ? 0 : 2) | this.mode) ^ 64);
-    } else if (event.ctrlKey || event.metaKey) {
-      if (event.shiftKey || event.altKey) {}
-      else if (_i >= KeyCodes.left && _i <= KeyCodes.down) {
-        MainPort.Listener({
-          name: "execute",
-          command: (_i === KeyCodes.left ? "scrollLeft"
-            : _i === KeyCodes.up ? "scrollUp"
-            : _i === KeyCodes.right ? "scrollRight"
-            : "scrollDown"
-          ),
-          count: 1
-        });
-      }
+    } else if (_i >= KeyCodes.pageup && _i <= KeyCodes.down) {
+      MainPort.Listener({
+        name: "execute",
+        command: "scroll",
+        count: 1,
+        options: {event: event}
+      });
     } else if (!(linksMatched = this.markerMatcher.matchHintsByKey(this.hintMarkers, event, this.keyStatus))){
       if (linksMatched === false) {
         this.reinit();

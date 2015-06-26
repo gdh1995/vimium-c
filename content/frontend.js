@@ -236,6 +236,25 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
         HUD.showForDuration("`" + key + "` has been turned off", 1000);
       }
     },
+    scroll: function(_0, options) {
+      var event = options.event, keyCode, command;
+      if (!event || event.shiftKey || event.altKey) { return; }
+      keyCode = event.keyCode;
+      if (!(keyCode >= KeyCodes.pageup && keyCode <= KeyCodes.down)) { return; }
+      if (keyCode >= KeyCodes.left) {
+        command = KeyboardUtils.keyNames[keyCode].replace(/./, function(a) {
+          return a.toUpperCase();
+        });
+        if (event.ctrlKey || event.metaKey) {
+          command = "Px" + command;
+        }
+      } else if (event.ctrlKey || event.metaKey) {
+        return;
+      } else {
+        command = ["PageUp", "PageDown", "ToBottom", "ToTop"][keyCode - KeyCodes.pageup];
+      }
+      Commands["scroll" + command](1, {});
+    },
     scrollToBottom: function() {
       Marks.setPreviousPosition();
       Scroller.scrollTo("y", "max");
