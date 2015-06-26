@@ -236,6 +236,17 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
         HUD.showForDuration("`" + key + "` has been turned off", 1000);
       }
     },
+    toggleLinkHintCharacters: function(_0, options) {
+      var values = settings.values, val = options.value || "asdghjkl";
+      if (values.linkHintCharacters === val) {
+        val = values.linkHintCharacters = values.oldLinkHintCharacters;
+        values.oldLinkHintCharacters = "";
+      } else {
+        values.oldLinkHintCharacters = values.linkHintCharacters;
+        values.linkHintCharacters = val;
+      }
+      HUD.showForDuration('Now link hints use "' + val + '".', 1500);
+    },
     scroll: function(_0, options) {
       var event = options.event, keyCode, command;
       if (!event || event.shiftKey || event.altKey) { return; }

@@ -112,7 +112,7 @@ Commands.commandGroups = {
     , "moveTabToNewWindow", "moveTabToIncognito", "togglePinTab"
     , "closeTabsOnLeft", "closeTabsOnRight", "closeOtherTabs", "moveTabLeft", "moveTabRight"
     , "enableCSTemp", "toggleCS", "clearCS"],
-  misc: ["showHelp", "autoCopy", "autoOpen", "searchAs"
+  misc: ["showHelp", "autoCopy", "autoOpen", "searchAs", "toggleLinkHintCharacters"
     , "toggleSwitchTemp", "debugBackground", "blank"]
 };
 Commands.advancedCommands = ["scrollToLeft", "scrollToRight", "moveTabToNextWindow"
@@ -125,7 +125,7 @@ Commands.advancedCommands = ["scrollToLeft", "scrollToRight", "moveTabToNextWind
   , "goNext", "goPrevious", "Marks.clearLocal", "Marks.clearGlobal"
   , "moveTabLeft", "moveTabRight", "closeTabsOnLeft", "closeTabsOnRight", "closeOtherTabs"
   , "scrollPxDown", "scrollPxUp", "scrollPxLeft", "scrollPxRight", "debugBackground", "blank"
-  , "toggleSwitchTemp"
+  , "toggleLinkHintCharacters", "toggleSwitchTemp"
 ];
 Commands.defaultKeyMappings = {
   "?": "showHelp",
@@ -227,6 +227,11 @@ Commands.defaultKeyMappings = {
   blank: [
     "Do nothing", {
       background: true,
+      repeat: 1
+    }
+  ],
+  toggleLinkHintCharacters: [
+    "Toggle the other link hints (use value)", {
       repeat: 1
     }
   ],
