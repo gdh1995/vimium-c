@@ -994,11 +994,11 @@
       return;
     }
     if (registryEntry.background) {
-      commandCount = count;
       var func = BackgroundCommands[command];
-      count = func.useTab;
       currentCommand.options = registryEntry.options;
       currentCommand.port = port;
+      commandCount = count;
+      count = func.useTab;
       if (count === 2) {
         chrome.tabs.query({currentWindow: true}, func);
       } else if (count) {
@@ -1243,7 +1243,7 @@
     needIcon = chrome.browserAction && value ? true : false;
   };
 
-  chrome.commands.onCommand.addListener(funcDict.globalCommand = function(command) {
+  chrome.commands.onCommand.addListener(funcDict.globalCommand = function(command, options) {
     var count, reg;
     if (currentFirst !== null) {
       count = currentFirst ? 1 : (currentCount || 1);
@@ -1258,13 +1258,13 @@
     executeCommand(command, {
       background: reg.background,
       command: command,
-      options: {},
+      options: options || {},
       repeat: reg.repeat
     }, count, null);
   });
 
   chrome.runtime.onMessageExternal.addListener(function(message, _1, sendResponse) {
-    var command;
+    var command, options = null;
     if (typeof message === "string") { command = message; }
     else if (typeof message === "object") {
       switch (message.handler) {
@@ -1274,14 +1274,16 @@
           currentCount = message.count;
         }
         command = message.command;
+        options = message.options;
+        typeof options === "object" || (options = null);
         break;
       case "content_scripts":
         sendResponse(Settings.CONST.ContentScripts);
-        break;
+        return;
       }
     }
     if (command && Commands.availableCommands[command]) {
-      funcDict.globalCommand(command);
+      funcDict.globalCommand(command, options);
     }
   });
 
