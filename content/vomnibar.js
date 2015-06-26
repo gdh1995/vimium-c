@@ -35,7 +35,7 @@ var Vomnibar = {
       vomnibarUI.reset();
       return;
     } else if (typeof initialQueryValue === "string") {
-      vomnibarUI.reset(initialQueryValue + " ");
+      vomnibarUI.reset(initialQueryValue);
       return;
     }
     MainPort.sendMessage({
@@ -50,10 +50,12 @@ var Vomnibar = {
     });
   },
   activate: function(_0, options) {
-    this.activateWithCompleter("omni", false, false, options.keyword);
+    var keyword = options.keyword;
+    this.activateWithCompleter("omni", false, false, keyword ? (keyword + " ") : false);
   },
   activateInNewTab: function(_0, options) {
-    this.activateWithCompleter("omni", false, true, options.keyword);
+    var keyword = options.keyword;
+    this.activateWithCompleter("omni", false, true, keyword ? (keyword + " ") : false);
   },
   activateTabSelection: function() {
     this.activateWithCompleter("tabs", true);
