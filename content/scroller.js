@@ -1,15 +1,13 @@
 "use strict";
 var Scroller = {
   Core: {
+    Animate: null,
+    Reset: null,
     activatedElement: null,
-    activationTime: 0,
     calibrationBoundary: 150,
-    isLastEventRepeat: false,
-    keyIsDown: false,
     maxCalibration: 1.6,
     minCalibration: 0.5,
-    time: 0,
-    Animate: null,
+    keyIsDown: false,
     checkVisibility: function(element) {
       if (!DomUtils.isVisibile(element)) {
         this.activatedElement = element;
@@ -21,19 +19,6 @@ var Scroller = {
         _this: this,
         DOMActivate: function(event) {
           this.activatedElement = event.target;
-          return true;
-        },
-        keydown: function(event) {
-          this.keyIsDown = true;
-          this.isLastEventRepeat = event.repeat;
-          if (!event.repeat) {
-            this.time += 1;
-          }
-          return true;
-        },
-        keyup: function() {
-          this.keyIsDown = false;
-          this.time += 1;
           return true;
         }
       });
@@ -60,26 +45,30 @@ var Scroller = {
         return window.scrollX !== before;
       }
     },
-    Reset: null,
     scroll: function(element, di, amount) {
-      if (!amount) {
-        return;
-      }
+      if (!amount) { return; }
       if (!Settings.values.smoothScroll) {
         this.performScroll(element, di, amount);
         this.checkVisibility(element);
         return;
       }
-      if (this.isLastEventRepeat) {
-        return;
-      }
-      this.activationTime = ++this.time;
+      this.keyIsDown = true;
+      handlerStack.push({
+        _this: this,
+        keydown: this.keydown,
+        keyup: this.stopHandler
+      });
       this.Reset(amount, di, element);
       requestAnimationFrame(this.Animate);
     },
-    wouldNotInitiateScroll: function() {
-      return Settings.values.smoothScroll && this.isLastEventRepeat;
+    keydown: function() {
+      return event.repeat ? false : this.stopHandler();
     },
+    stopHandler: function() {
+      this.keyIsDown = false;
+      handlerStack.remove();
+      return false;
+    }
   },
   Properties: [{
     axisName: "scrollLeft",
@@ -96,7 +85,6 @@ var Scroller = {
   },
   scrollBy: function(direction, amount, factor, zoomX) {
     var element, di;
-    if (this.Core.wouldNotInitiateScroll()) { return; }
     di = direction === "y" ? 1 : 0;
     element = this.findScrollable(this.getActivatedElement(), di, amount, factor);
     amount *= this.getDimension(element, di, factor);
@@ -190,7 +178,7 @@ Scroller.Core.__proto__ = null;
       totalElapsed += elapsed;
     }
     timestamp = new_timestamp;
-    if (_this.time === _this.activationTime && _this.keyIsDown) {
+    if (_this.keyIsDown) {
       int1 = calibration;
       if (75 <= totalElapsed && (_this.minCalibration <= int1 && int1 <= _this.maxCalibration)) {
         int1 = _this.calibrationBoundary / amount / int1;
