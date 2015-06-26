@@ -81,7 +81,7 @@ Settings.onDestroy.injected = function() {
   injector.alive = 0;
   injector.oldFrameId = this.focusMsg.frameId;
   injector.destroy = null;
-  injector.execute = function() {};
+  injector.execute = null;
 };
 
 VimiumInjector.destroy = Settings.ELs.destroy.bind(Settings.ELs);
@@ -90,7 +90,7 @@ VimiumInjector.execute = function(command, count, options) {
     MainPort.Listener({
       name: "execute",
       command: command,
-      count: (count > 1 ? count : 1),
+      count: (count > 1 ? (count | 0) : 1),
       options: options || null
     });
   } catch (e) {}
