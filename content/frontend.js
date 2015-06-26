@@ -53,7 +53,7 @@ var Settings, VHUD, MainPort;
   
   oldActivated = {
     target: null,
-    isSecond: false
+    isSecond: true
   };
 
   textInputXPath = DomUtils.makeXPath([
@@ -200,9 +200,8 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       if (isEnabledForUrl && DomUtils.getEditableType(event.target) && !findMode) {
         enterInsertModeOnly(event.target);
         // it seems we do not need to check DomUtils.getEditableType(event.target) >= 2
-        if (!oldActivated.target || oldActivated.isSecond) {
+        if (oldActivated.isSecond) {
           oldActivated.target = event.target;
-          oldActivated.isSecond = true;
         }
       }
     }, true);
@@ -358,6 +357,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
         return;
       }
       oldActivated.target = null;
+      oldActivated.isSecond = true;
       DomUtils.simulateHover(newEl);
       newEl.focus();
     },
