@@ -1009,7 +1009,7 @@
       return;
     }
     port.postMessage({
-      name: "executePageCommand",
+      name: "execute",
       command: command,
       count: count,
       options: registryEntry.options

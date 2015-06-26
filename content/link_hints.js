@@ -355,7 +355,7 @@ var LinkHints = {
       if (event.shiftKey || event.altKey) {}
       else if (_i >= KeyCodes.left && _i <= KeyCodes.down) {
         MainPort.Listener({
-          name: "executePageCommand",
+          name: "execute",
           command: (_i === KeyCodes.left ? "scrollLeft"
             : _i === KeyCodes.up ? "scrollUp"
             : _i === KeyCodes.right ? "scrollRight"

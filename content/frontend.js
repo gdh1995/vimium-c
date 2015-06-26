@@ -1191,7 +1191,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       keyQueue = false;
       currentSeconds = secondKeys[""];
     },
-    executePageCommand: function(request) {
+    execute: function(request) {
       keyQueue = false;
       currentSeconds = secondKeys[""];
       var components = request.command.split('.'), obj = Commands, _i, _len, _ref;

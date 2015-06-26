@@ -214,7 +214,7 @@ Vomnibar.vomnibarUI = {
       if (event.shiftKey || event.altKey) { return true; }
       else if (n === KeyCodes.up || n === KeyCodes.down) {
         MainPort.Listener({
-          name: "executePageCommand",
+          name: "execute",
           command: n === KeyCodes.up ? "scrollUp" : "scrollDown",
           count: 1
         });

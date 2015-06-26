@@ -134,7 +134,7 @@ CheckBoxOption = (function(_super) {
     }, function(response) {
       if (node = $("vimHelpDialog")) {
         MainPort.Listener({
-          name: "executePageCommand",
+          name: "execute",
           command: "showHelp",
           count: 1
         });
