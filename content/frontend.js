@@ -547,7 +547,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     } else if (isInsertMode()) {
     } else {
       if (keyChar === " ") { keyChar = event.shiftKey ? "<SPACE>" : "<space>"; }
-      if (checkValidKey(keyChar)) { // keyChar is just the full command
+      if (checkValidKey(keyChar, true)) { // keyChar is just the full command
         DomUtils.suppressEvent(event);
       }
     }
@@ -574,7 +574,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       }
       else if (key >= KeyCodes.f1 && key <= KeyCodes.f12) {
         keyChar = getFullCommand(event, KeyboardUtils.getKeyName(event));
-        action = checkValidKey(keyChar);
+        action = checkValidKey(keyChar, true);
       }
     }
     else if (findMode) {
@@ -608,10 +608,10 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     else if ((key >= 32 && (event.metaKey || event.ctrlKey || event.altKey)) //
           || ! event.keyIdentifier.startsWith("U+")) {
       keyChar = getFullCommand(event, keyChar);
-      action = checkValidKey(keyChar);
+      action = checkValidKey(keyChar, true);
     } else {
       if (keyChar.length > 1) { keyChar = '<' + keyChar + '>'; }
-      if (checkValidKey(keyChar, true)) { // keyChar is just the full command
+      if (checkValidKey(keyChar, false)) { // keyChar is just the full command
         action = 1;
       }
     }
@@ -639,7 +639,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     }
   };
 
-  checkValidKey = function(key, noPost) {
+  checkValidKey = function(key, post) {
     if (keyQueue) {
       if ((key in firstKeys) || (key in currentSeconds)) {
       } else {
@@ -651,7 +651,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     } else if (passKeys && (key in passKeys) || !(key in firstKeys)) {
       return 0;
     }
-    if (!noPost) {
+    if (post) {
       mainPort.port.postMessage({ handlerKey: key });
     }
     return 2;
