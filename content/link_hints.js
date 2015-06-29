@@ -115,14 +115,16 @@ var LinkHints = {
     this.markerMatcher.fillInMarkers(this.hintMarkers);
     this.isActive = true;
 
+    this.initScrollX = window.scrollX, this.initScrollY = window.scrollY;
     // NOTE: if zoom > 1, although document.documentElement.scrollHeight is integer,
     //   its real rect may has a float width, such as 471.333 / 472
     rect = document.documentElement.getBoundingClientRect();
     width = rect.width, height = rect.height;
     width = width !== (width | 0) ? 1 : 0, height = height !== (height | 0) ? 1 : 0;
-    this.initScrollX = window.scrollX, this.initScrollY = window.scrollY;
-    width = Math.min(document.documentElement.scrollWidth - width, window.innerWidth + 60);
-    height = Math.min(document.documentElement.scrollHeight - height, window.innerHeight + 20);
+    width = document.documentElement.scrollWidth - this.initScrollX - width;
+    height = document.documentElement.scrollHeight - this.initScrollY - height;
+    width = Math.min(width, window.innerWidth + 60);
+    height = Math.min(height, window.innerHeight + 20);
     this.hintMarkerContainingDiv = DomUtils.addElementList(this.hintMarkers, {
       id: "vimHMC",
       className: "vimB vimR"
