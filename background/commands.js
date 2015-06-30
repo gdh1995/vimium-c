@@ -451,10 +451,13 @@ Commands.defaultKeyMappings = {
     "Go forward in history"
   ],
   goUp: [
-    "Go up the URL hierarchy"
+    "Go up the URL hierarchy", {
+      background: true
+    }
   ],
   goToRoot: [
     "Go to root of current URL hierarchy", {
+      background: true,
       repeat: 1
     }
   ],

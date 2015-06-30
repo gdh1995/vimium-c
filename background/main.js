@@ -728,6 +728,26 @@
         }
       });
     },
+    goUp: function(tabs) {
+      var url, urlsplit;
+      url = tabs[0].url;
+      if (url.indexOf("://") === -1) { return; }
+      if (url.endsWith("/")) {
+        url = url.slice(0, -1);
+      }
+      urlsplit = url.split("/");
+      if (urlsplit.length > 3) {
+        urlsplit = urlsplit.slice(0, Math.max(3, urlsplit.length - commandCount));
+        chrome.tabs.update(null, {url: urlsplit.join('/')});
+      }
+    },
+    goToRoot: function(tabs) {
+      var url;
+      url = tabs[0].url;
+      if (url.indexOf("://") === -1) { return; }
+      url = (new URL(url)).origin;
+      chrome.tabs.update(null, {url: url});
+    },
     moveTabLeft: function(tabs) {
       var tab = funcDict.selectFrom(tabs), index = Math.max(0, tab.index - commandCount);
       if (!tab.pinned) {

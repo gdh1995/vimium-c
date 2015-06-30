@@ -380,21 +380,6 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     goForward: function(count) {
       history.go(count);
     },
-    goUp: function(count) {
-      var url, urlsplit;
-      url = window.location.href;
-      if (url[url.length - 1] === "/") {
-        url = url.substring(0, url.length - 1);
-      }
-      urlsplit = url.split("/");
-      if (urlsplit.length > 3) {
-        urlsplit = urlsplit.slice(0, Math.max(3, urlsplit.length - count));
-        window.location.href = urlsplit.join('/');
-      }
-    },
-    goToRoot: function() {
-      window.location.href = window.location.origin;
-    },
     showHelp: function(_0, _1, force_current) {
       if (window.top !== window && !force_current) {
         mainPort.sendCommadToFrame(0, "showHelp", [0, null]);
