@@ -926,7 +926,8 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     });
     for (_i = 0, _len = linkStrings.length; _i < _len; _i++) {
       linkString = linkStrings[_i];
-      exactWordRegex = /\b/.test(linkString[0]) || /\b/.test(linkString[linkString.length - 1]) ? new RegExp("\\b" + linkString + "\\b", "i") : new RegExp(linkString, "i");
+      exactWordRegex = /\b/.test(linkString[0]) || /\b/.test(linkString.slice(-1))
+        ? new RegExp("\\b" + linkString + "\\b", "i") : new RegExp(linkString, "i");
       for (_j = 0, _len1 = candidateLinks.length; _j < _len1; _j++) {
         link = candidateLinks[_j];
         if (exactWordRegex.test(link.innerText)) {

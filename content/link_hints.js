@@ -580,7 +580,7 @@ LinkHints.filterHints = {
       forElement = label.getAttribute("for");
       if (forElement) {
         labelText = label.textContent.trim();
-        if (labelText[labelText.length - 1] === ":") {
+        if (labelText.endsWith(":")) {
           labelText = labelText.substring(0, labelText.length - 1);
         }
         this.labelMap[forElement] = labelText;
