@@ -537,19 +537,9 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       return;
     }
     var keyChar = String.fromCharCode(event.charCode);
-    if (!keyChar) {
-      return;
-    }
-    // it seems event can not be <a/c/m-*>
-    if (findMode) {
+    if (keyChar && findMode) {
       handleKeyCharForFindMode(keyChar);
       DomUtils.suppressEvent(event);
-    } else if (isInsertMode()) {
-    } else {
-      if (keyChar === " ") { keyChar = event.shiftKey ? "<SPACE>" : "<space>"; }
-      if (checkValidKey(keyChar, true)) { // keyChar is just the full command
-        DomUtils.suppressEvent(event);
-      }
     }
   };
 
@@ -574,7 +564,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       }
       else if (key >= KeyCodes.f1 && key <= KeyCodes.f12) {
         keyChar = getFullCommand(event, KeyboardUtils.getKeyName(event));
-        action = checkValidKey(keyChar, true);
+        action = checkValidKey(keyChar);
       }
     }
     else if (findMode) {
@@ -596,24 +586,17 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
         action = 1;
       }
     }
-    else if (key < 32) {
-      if (keyQueue && key === KeyCodes.esc && KeyboardUtils.isPlain(event)) {
-        mainPort.port.postMessage({ handler: "esc" });
-        keyQueue = false;
-        currentSeconds = secondKeys[""];
-        action = 2;
+    else if (key >= 32) {
+      if (keyChar = KeyboardUtils.getKeyChar(event)) {
+        keyChar = getFullCommand(event, keyChar);
+        action = checkValidKey(keyChar);
       }
     }
-    else if (!(keyChar = KeyboardUtils.getKeyChar(event))) {}
-    else if ((event.metaKey || event.ctrlKey || event.altKey) //
-          || ! event.keyIdentifier.startsWith("U+")) {
-      keyChar = getFullCommand(event, keyChar);
-      action = checkValidKey(keyChar, true);
-    } else {
-      if (keyChar.length > 1) { keyChar = '<' + keyChar + '>'; }
-      if (checkValidKey(keyChar, false)) { // keyChar is just the full command
-        action = 1;
-      }
+    else if (keyQueue && key === KeyCodes.esc && KeyboardUtils.isPlain(event)) {
+      mainPort.port.postMessage({ handler: "esc" });
+      keyQueue = false;
+      currentSeconds = secondKeys[""];
+      action = 2;
     }
     if (action <= 0) {
       return;
@@ -639,7 +622,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     }
   };
 
-  checkValidKey = function(key, post) {
+  checkValidKey = function(key) {
     if (keyQueue) {
       if ((key in firstKeys) || (key in currentSeconds)) {
       } else {
@@ -651,9 +634,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     } else if (passKeys && (key in passKeys) || !(key in firstKeys)) {
       return 0;
     }
-    if (post) {
-      mainPort.port.postMessage({ handlerKey: key });
-    }
+    mainPort.port.postMessage({ handlerKey: key });
     return 2;
   };
 
