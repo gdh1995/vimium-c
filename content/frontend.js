@@ -596,8 +596,8 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
         action = 1;
       }
     }
-    else if (key === KeyCodes.esc) {
-      if (keyQueue && KeyboardUtils.isPlain(event)) {
+    else if (key < 32) {
+      if (keyQueue && key === KeyCodes.esc && KeyboardUtils.isPlain(event)) {
         mainPort.port.postMessage({ handler: "esc" });
         keyQueue = false;
         currentSeconds = secondKeys[""];
@@ -605,7 +605,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       }
     }
     else if (!(keyChar = KeyboardUtils.getKeyChar(event))) {}
-    else if ((key >= 32 && (event.metaKey || event.ctrlKey || event.altKey)) //
+    else if ((event.metaKey || event.ctrlKey || event.altKey) //
           || ! event.keyIdentifier.startsWith("U+")) {
       keyChar = getFullCommand(event, keyChar);
       action = checkValidKey(keyChar, true);
