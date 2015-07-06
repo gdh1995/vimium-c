@@ -3,7 +3,6 @@ var Marks = {
   activateCreateMode: function() {
     handlerStack.push({
       keydown: this.onKeydown,
-      keyup: handlerStack.StopProp,
       keypress: this._create,
       _this: this
     });
@@ -12,7 +11,6 @@ var Marks = {
   activateGotoMode: function() {
     handlerStack.push({
       keydown: this.onKeydown,
-      keyup: handlerStack.StopProp,
       keypress: this._goto,
       _this: this
     });
