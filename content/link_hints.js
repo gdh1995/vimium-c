@@ -1,6 +1,8 @@
 "use strict";
 var LinkHints = {
+  __proto__: null,
   CONST: {
+    __proto__: null,
     // focused: 1; new tab: 2; queue: 64; job: 128
     // >=128: "&4" means "must be links" and [data-vim-url] is used firstly
     //   &~64 >= 136 means only `<a>`
@@ -477,6 +479,7 @@ var LinkHints = {
 };
 
 LinkHints.alphabetHints = {
+  __proto__: null,
   hintKeystrokeQueue: [],
   spanWrap: null,
   numberToHintString: null,
@@ -567,6 +570,7 @@ LinkHints.alphabetHints = {
 };
 
 LinkHints.filterHints = {
+  __proto__: null,
   hintKeystrokeQueue: [],
   linkTextKeystrokeQueue: [],
   labelMap: {},
@@ -755,6 +759,7 @@ LinkHints.getUrlData = function(link) {
 };
 
 LinkHints.FUNC = {
+  __proto__: null,
   COPY_LINK_URL: function(link) {
     var str = this.getUrlData(link);
     if (!str) {
@@ -901,9 +906,3 @@ LinkHints.FUNC = {
     }
   }
 };
-
-LinkHints.__proto__ = null;
-LinkHints.alphabetHints.__proto__ = null;
-LinkHints.filterHints.__proto__ = null;
-LinkHints.CONST.__proto__ = null;
-LinkHints.FUNC.__proto__ = null;

@@ -8,18 +8,16 @@
     , populateKeyCommands, requestHandlers, resetKeys, secondKeys, sendToTab //
     , urlForTab;
 
-  Settings.frameIdsForTab = frameIdsForTab = {};
-  frameIdsForTab.__proto__ = null;
+  Settings.frameIdsForTab = frameIdsForTab = { __proto__: null };
 
-  Settings.urlForTab = urlForTab = {};
-  urlForTab.__proto__ = null;
+  Settings.urlForTab = urlForTab = { __proto__: null };
 
-  extForTab = {};
-  extForTab.__proto__ = null;
+  extForTab = { __proto__: null };
 
   needIcon = false;
 
   currentCommand = {
+    __proto__: null,
     options: null,
     port: null
   };
@@ -118,6 +116,7 @@
   };
 
   ContentSettings = {
+    __proto__: null,
     _urlHeadRegex: /^[a-z]+:\/\/[^\/]+\//,
     clear: function(contentType, tab) {
       var cs = chrome.contentSettings[contentType];
@@ -229,9 +228,9 @@
       }
     }
   };
-  ContentSettings.__proto__ = null;
 
   funcDict = {
+    __proto__: null,
     globalCommand: null,
     globalConnect: null,
     sendToExt: function(request, tabId) {
@@ -580,7 +579,6 @@
       });
     }
   };
-  funcDict.__proto__ = null;
 
   /*
     function (null <% if .useTab is 0 else %>
@@ -589,6 +587,7 @@
     );
     */
   BackgroundCommands = {
+    __proto__: null,
     createTab: null,
     duplicateTab: function(tabs) {
       chrome.tabs.duplicate(tabs[0].id);
@@ -823,7 +822,6 @@
     },
     "Marks.clearGlobal": Marks.clearGlobal
   };
-  BackgroundCommands.__proto__ = null;
 
   resetKeys = function() {
     currentFirst = null;
@@ -834,8 +832,7 @@
     var key, ref1, ref2, first, arr, keyRegex = Commands.keyRegex;
     resetKeys();
     ref1 = firstKeys = ["1", "2", "3", "4", "5", "6", "7", "8", "9"];
-    ref2 = secondKeys = {};
-    ref2.__proto__ = null;
+    ref2 = secondKeys = { __proto__: null };
     for (key in Commands.keyToCommandRegistry) {
       if (key.charCodeAt(0) >= 48 && key.charCodeAt(0) <= 57) {
         console.warn("invalid key command:", key, "(the first char can not be [0-9])");
@@ -1033,6 +1030,7 @@
 
   // function (request, Tab [1] tabs = [selected] <% if .useTab is 1 else %> null);
   window.g_requestHandlers = requestHandlers = {
+    __proto__: null,
     setSetting: function(request) {
       Settings.set(request.key, request.value);
     },
@@ -1218,7 +1216,6 @@
       currentCommand.port = null;
     }
   };
-  requestHandlers.__proto__ = null;
 
   Settings.postUpdate("files", null);
 

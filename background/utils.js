@@ -1,5 +1,6 @@
 "use strict";
 var Utils = {
+  __proto__: null,
   fetchHttpContents: function(url, success, onerror) {
     var req = new XMLHttpRequest();
     req.open("GET", url, true);
@@ -185,4 +186,3 @@ var Utils = {
     return arr.join("");
   }
 };
-Utils.__proto__ = null;

@@ -64,8 +64,9 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
   ]);
   
   MainPort = mainPort = {
+    __proto__: null,
     port: null,
-    _callbacks: {},
+    _callbacks: { __proto__: null },
     _lastMsg: 1,
     sendMessage: function(request, callback) {
       var id = ++this._lastMsg;
@@ -118,7 +119,6 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       port.onMessage.addListener(this.Listener);
     }
   };
-  mainPort.__proto__ = null;
 
   Settings = settings = {
     values: null,
@@ -148,6 +148,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       var _this = settings, ref, i;
       if (ref = response.load) {
         _this.values = ref;
+        ref.__proto__ = null;
       } else {
         ref = response.values;
         for (i in ref) {
@@ -163,7 +164,6 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       }
     }
   };
-  settings.__proto__ = null;
 
   ELs = { //
     focusMsg: {
@@ -221,6 +221,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
   };
 
   Commands = {
+    __proto__: null,
     Vomnibar: Vomnibar,
     LinkHints: LinkHints,
     Marks: Marks,
@@ -498,11 +499,11 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       });
     }
   };
-  Commands.__proto__ = null;
 
   (function() {
     var matchedEvents = new Array(256), i;
     KeydownEvents = {
+      __proto__: null,
       push: function(event) {
         matchedEvents[event.keyCode] = false;
       },
@@ -511,7 +512,6 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
         return matchedEvents[key] ? false : (matchedEvents[key] = true);
       },
     }
-    KeydownEvents.__proto__ = null;
     for (i = matchedEvents.length; 0 <= --i; ) {
       matchedEvents[i] = true;
     }
@@ -596,8 +596,8 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
 
   setPassKeys = function(newPassKeys) {
     if (newPassKeys) {
-      var pass = {}, arr = newPassKeys.split(' '), i = 0, len = arr.length;
-      pass.__proto__ = null;
+      var pass = { __proto__: null }, arr = newPassKeys.split(' ')
+        , i = 0, len = arr.length;
       do {
         pass[arr[i]] = true;
       } while (len > ++i);
@@ -970,6 +970,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
   };
 
   VHUD = HUD = {
+    __proto__: null,
     _tweenId: 0,
     _element: null,
     opacity: 0,
@@ -1059,9 +1060,9 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       HUD = null;
     }
   };
-  HUD.__proto__ = null;
 
   requestHandlers = {
+    __proto__: null,
     checkIfEnabled: function() {
       var url = ELs.focusMsg.url = window.location.href;
       mainPort.safePost({
@@ -1161,18 +1162,15 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     },
     refreshKeyMappings: function(request) {
       var arr = request.firstKeys, i = arr.length, map, key, sec, sec2;
-      map = firstKeys = {};
-      map.__proto__ = null;
+      map = firstKeys = { __proto__: null };
       while (0 <= --i) {
         map[arr[i]] = true;
       }
       sec = request.secondKeys;
-      sec2 = secondKeys = {};
-      sec2.__proto__ = null;
+      sec2 = secondKeys = { __proto__: null };
       for (key in sec) {
         arr = sec[key];
-        map = sec2[key] = {};
-        map.__proto__ = null;
+        map = sec2[key] = { __proto__: null };
         i = arr.length;
         while (0 <= --i) {
           map[arr[i]] = true;
@@ -1223,7 +1221,6 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     },
     showHelpDialog: null
   };
-  requestHandlers.__proto__ = null;
   requestHandlers.registerFrame = requestHandlers.insertCSS;
 
   requestHandlers.showHelpDialog = function(response) {

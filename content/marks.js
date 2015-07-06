@@ -1,5 +1,6 @@
 "use strict";
 var Marks = {
+  __proto__: null,
   activateCreateMode: function() {
     handlerStack.push({
       keydown: this.onKeydown,
@@ -128,4 +129,3 @@ var Marks = {
     }
   }
 };
-Marks.__proto__ = null;

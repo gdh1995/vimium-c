@@ -1,5 +1,6 @@
 "use strict";
 var Exclusions = {
+  __proto__: null,
   re: {},
   _emptyStringRegex: /^$/,
   _starRegex: /\*/g,
@@ -25,7 +26,7 @@ var Exclusions = {
   _listening: false,
   rules: [],
   setRules: function(rules) {
-    (this.re = {}).__proto__ = null;
+    this.re = { __proto__: null };
     this.rules = this.Format(rules);
     if (this.rules.length === 0) {
       this.getPattern = this._getNull;
@@ -33,7 +34,8 @@ var Exclusions = {
       chrome.webNavigation.onReferenceFragmentUpdated.removeListener(this.onURLChange);
       this._listening = false;
       return;
-    } else if (!this._listening) {
+    }
+    if (!this._listening) {
       chrome.webNavigation.onHistoryStateUpdated.addListener(this.onURLChange);
       chrome.webNavigation.onReferenceFragmentUpdated.addListener(this.onURLChange);
       this._listening = true;
@@ -61,9 +63,8 @@ var Exclusions = {
     return out;
   },
   rebuildRegex: function() {
-    var rules = Settings.get("exclusionRules"), ref = this.re = {}, ref2 = this.rules //
-      , _i, _j, pattern;
-    ref.__proto__ = null;
+    var rules = Settings.get("exclusionRules"), ref = this.re = { __proto__: null }
+      , ref2 = this.rules, _i, _j, pattern;
     for (_i = rules.length, _j = 0; 0 <= --_i; ) {
       pattern = rules[_i].pattern;
       if (!pattern) { continue; }
@@ -94,7 +95,6 @@ var Exclusions = {
     return url;
   }
 };
-Exclusions.__proto__ = null;
 
 Settings.updateHooks.exclusionRules = function(rules) {
   Exclusions.setRules(rules);

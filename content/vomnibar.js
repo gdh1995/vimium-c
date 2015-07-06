@@ -1,5 +1,6 @@
 "use strict";
 var Vomnibar = {
+  __proto__: null,
   vomnibarUI: null,
   defaultRefreshInterval: 500,
   background: null,
@@ -437,7 +438,9 @@ Vomnibar.vomnibarUI = {
 };
 
 Vomnibar.background = {
+  __proto__: null,
   Completer: {
+    __proto__: null,
     name: "",
     _refreshed: [],
     init: function(background) {
@@ -608,8 +611,3 @@ Vomnibar.background = {
     }
   }
 };
-
-Vomnibar.__proto__ = null;
-Vomnibar.vomnibarUI.__proto__ = null;
-Vomnibar.background.__proto__ = null;
-Vomnibar.background.Completer.__proto__ = null;

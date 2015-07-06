@@ -1,5 +1,6 @@
 "use strict";
 var Scroller = {
+  __proto__: null,
   Animate: null,
   Reset: null,
   activatedElement: null,
@@ -70,6 +71,7 @@ var Scroller = {
   }
 };
 Scroller = {
+  __proto__: null,
   Core: Scroller,
   Properties: [{
     axisName: "scrollLeft",
@@ -164,8 +166,6 @@ Scroller = {
     return a[0] - b[0];
   }
 };
-Scroller.__proto__ = null;
-Scroller.Core.__proto__ = null;
 
 (function () {
   var amount = 0, calibration = 1.0, di = 0, duration = 0, element = null, //

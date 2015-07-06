@@ -1,6 +1,7 @@
 "use strict";
 var Settings = {
-  _buffer: {},
+  __proto__: null,
+  _buffer: { __proto__: null },
   bufferToLoad: null,
   frameIdsForTab: null,
   urlForTab: null,
@@ -32,6 +33,7 @@ var Settings = {
     this.updateHooks[key].call(this, value !== undefined ? value : this.get(key), key);
   },
   updateHooks: {
+    __proto__: null,
     broadcast: function (request) {
       chrome.tabs.query(request.onReady ? {status: "complete"} : {},
       function(tabs) {
@@ -47,8 +49,8 @@ var Settings = {
       }
     },
     bufferToLoad: function() {
-      var _i, key, ref = this.valuesToLoad, ref2 = this.bufferToLoad = {};
-      ref2.__proto__ = null;
+      var _i, key, ref = this.valuesToLoad, ref2;
+      ref2 = this.bufferToLoad = { __proto__: null };
       for (_i = ref.length; 0 <= --_i;) {
         key = ref[_i];
         ref2[key] = this.get(key);
@@ -161,6 +163,7 @@ var Settings = {
   },
   // clear localStorage & sync, if value === @defaults[key]
   defaults: {
+    __proto__: null,
     UILanguage: null,
     exclusionRules: [{pattern: "http*://mail.google.com/*", passKeys: ""}],
     filterLinkHints: false,
@@ -190,7 +193,7 @@ var Settings = {
     vimSync: false
   },
   NonJSON: {
-    findModeRawQuery: true,
+    __proto__: null, findModeRawQuery: true,
     keyMappings: true, linkHintCharacters: true, linkHintNumbers: true,
     newTabUrl: true, nextPatterns: true, previousPatterns: true,
     searchEngines: true, searchUrl: true, userDefinedCss: true
@@ -200,14 +203,16 @@ var Settings = {
   nonPersistent: {
     exclusionTemplate: true, help_dialog: true, newTabUrl_f: true,
     searchEnginesMap: true, settingsVersion: true, userDefinedCss_f: true,
-    vomnibar: true
+    vomnibar: true, __proto__: null
   },
   files: {
+    __proto__: null,
     exclusionTemplate: "pages/exclusions.html",
     help_dialog: "pages/help_dialog.html",
     vomnibar: "pages/vomnibar.html"
   },
   icons: {
+    __proto__: null,
     disabled: { "19": "icons/disabled_19.png", "38": "icons/disabled_38.png" },
     enabled: { "19": "icons/enabled_19.png", "38": "icons/enabled_38.png" },
     partial: { "19": "icons/partial_19.png", "38": "icons/partial_38.png" }
@@ -220,17 +225,9 @@ var Settings = {
   CONST: {
     ChromeInnerNewTab: "chrome-search://local-ntp/local-ntp.html", // should keep lower case
     ChromeVersion: 37, ContentScripts: null, CurrentVersion: "",
-    OnMac: false, OptionsPage: "", Timer: 0
-  } 
+    OnMac: false, OptionsPage: "", Timer: 0, __proto__: null
+  }
 };
-Settings.__proto__ = null;
-Settings._buffer.__proto__ = null;
-Settings.updateHooks.__proto__ = null;
-Settings.defaults.__proto__ = null;
-Settings.NonJSON.__proto__ = null;
-Settings.nonPersistent.__proto__ = null;
-Settings.icons.__proto__ = null;
-Settings.CONST.__proto__ = null;
 
 // note: if changed, ../pages/newtab.js also needs change.
 Settings.defaults.newTabUrl = Settings.CONST.ChromeInnerNewTab;
@@ -242,8 +239,7 @@ Settings.defaults.newTabUrl = Settings.CONST.ChromeInnerNewTab;
   Settings.CONST.CurrentVersion = ref.version;
   Settings.CONST.OptionsPage = func(ref.options_page);
   ref = ref.content_scripts;
-  ref3 = { all_frames: false, css: [], js: [] };
-  ref3.__proto__ = null;
+  ref3 = { __proto__: null, all_frames: false, css: [], js: [] };
   for (i = 0; i < ref.length; i++) {
     ref2 = ref[i];
     if (ref2.matches.indexOf("<all_urls>") === -1) { continue; }
@@ -258,8 +254,7 @@ Settings.defaults.newTabUrl = Settings.CONST.ChromeInnerNewTab;
   Settings.CONST.ChromeVersion = parseFloat(navigator.appVersion.substring(i + 7));
 
   func = function() {};
-  Settings.Sync = {clear: func, set: func};
-  Settings.Sync.__proto__ = null;
+  Settings.Sync = {__proto__: null, clear: func, set: func};
 })();
 
 chrome.runtime.getPlatformInfo(function(info) {

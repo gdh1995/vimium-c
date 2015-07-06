@@ -1,9 +1,10 @@
 "use strict";
 var Commands = {
+  __proto__: null,
   // NOTE: [^\s] is for spliting passed keys
   keyRegex: /<(?:(?:a-(?:c-)?(?:m-)?|c-(?:m-)?|m-)([A-Z][0-9A-Z]+|[a-z][0-9a-z]+|[^\s])|[A-Z][0-9A-Z]+|[a-z][0-9a-z]+)>|[^\s]/g,
-  availableCommands: {},
-  keyToCommandRegistry: {},
+  availableCommands: { __proto__: null },
+  keyToCommandRegistry: null,
   _keyLeftRegex: /<((?:[acmACM]-){0,3})([A-Za-z][0-9A-Za-z]+|.)>/g,
   _upperRegex: /[A-Z]/,
   onNormalize: function(match, option, key) {
@@ -31,7 +32,8 @@ var Commands = {
   },
   resetDefaults: function(registry) {
     var defaultMap = this.defaultKeyMappings, available = this.availableCommands
-      , registry = this.keyToCommandRegistry = {}, key, command, details, options = {};
+      , registry = this.keyToCommandRegistry = { __proto__: null }
+      , key, command, details, options = { __proto__: null };
     for (key in defaultMap) {
       details = available[command = defaultMap[key]];
       registry[key] = {
@@ -66,7 +68,7 @@ var Commands = {
           console.log("Command %c" + key, "color:red;", "doesn't exist!");
         }
       } else if (key === "unmapAll") {
-        registry = this.keyToCommandRegistry = {};
+        registry = this.keyToCommandRegistry = { __proto__: null };
       } else if (key !== "unmap" || splitLine.length !== 2) {
       } else if ((key = this.normalizeKey(splitLine[1])) in registry) {
         delete registry[key];
@@ -74,13 +76,11 @@ var Commands = {
         console.log("Unmapping:", key, "has not been mapped");
       }
     }
-    registry.__proto__ = null;
   },
   commandGroups: null,
   advancedCommands: null,
   defaultKeyMappings: null
 };
-Commands.__proto__ = null;
 
 Commands.commandGroups = {
   pageNavigation: ["scrollDown", "scrollUp", "scrollLeft", "scrollRight", "scrollToTop"
@@ -128,6 +128,7 @@ Commands.advancedCommands = ["scrollToLeft", "scrollToRight", "moveTabToNextWind
   , "toggleLinkHintCharacters", "toggleSwitchTemp"
 ];
 Commands.defaultKeyMappings = {
+  __proto__: null,
   "?": "showHelp",
   "j": "scrollDown",
   "k": "scrollUp",
@@ -197,8 +198,6 @@ Commands.defaultKeyMappings = {
 
 (function(descriptions) {
   var command, description, ref = Commands.availableCommands, options;
-  descriptions.__proto__ = null;
-  ref.__proto__ = null;
   for (command in descriptions) {
     description = descriptions[command];
     if (command in ref) { // #if DEBUG
@@ -213,6 +212,7 @@ Commands.defaultKeyMappings = {
     };
   }
 })({
+  __proto__: null,
   showHelp: [
     "Show help", {
       repeat: 1

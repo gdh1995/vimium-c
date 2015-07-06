@@ -1,6 +1,7 @@
 "use strict";
 // NOTE: all members should be static
 var Marks = {
+  __proto__: null,
   createMark: function(request, tabs) {
     if (!request.scroll) {
       g_requestHandlers.sendToTab({
@@ -78,4 +79,3 @@ var Marks = {
     });
   }
 };
-Marks.__proto__ = null;

@@ -2,6 +2,7 @@
 
 if (Settings.get("vimSync") === true) {
   Settings.Sync = {
+    __proto__: null,
     storage: chrome.storage.sync,
     doNotSync: ["settingsVersion", "previousVersion"],
     fetchAsync: function() {
@@ -65,7 +66,6 @@ if (Settings.get("vimSync") === true) {
   };
   chrome.storage.onChanged.addListener(Settings.Sync.handleStorageUpdate.bind(Settings.Sync));
   Settings.Sync.fetchAsync();
-  Settings.Sync.__proto__ = null;
 }
 
 if (chrome.browserAction && chrome.browserAction.setIcon) (function() {

@@ -1,5 +1,6 @@
 "use strict";
 var Clipboard = {
+  __proto__: null,
   _textArea: undefined,
   copy: function(data) {
     var textArea = this._textArea;
@@ -21,7 +22,6 @@ var Clipboard = {
     return value;
   }
 };
-Clipboard.__proto__ = null;
 
 (function() {
   var el;
