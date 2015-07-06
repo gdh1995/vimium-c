@@ -198,12 +198,8 @@ var Settings = {
   // not set localStorage, neither sync, if key in @nonPersistent
   // not clean if exists (for simpler logic)
   nonPersistent: {
-    exclusionTemplate: true,
-    help_dialog: true,
-    newTabUrl_f: true,
-    searchEnginesMap: true,
-    settingsVersion: true,
-    userDefinedCss_f: true,
+    exclusionTemplate: true, help_dialog: true, newTabUrl_f: true,
+    searchEnginesMap: true, settingsVersion: true, userDefinedCss_f: true,
     vomnibar: true
   },
   files: {
@@ -212,18 +208,9 @@ var Settings = {
     vomnibar: "pages/vomnibar.html"
   },
   icons: {
-    disabled: {
-      "19": "icons/disabled_19.png",
-      "38": "icons/disabled_38.png"
-    },
-    enabled: {
-      "19": "icons/enabled_19.png",
-      "38": "icons/enabled_38.png"
-    },
-    partial: {
-      "19": "icons/partial_19.png",
-      "38": "icons/partial_38.png"
-    }
+    disabled: { "19": "icons/disabled_19.png", "38": "icons/disabled_38.png" },
+    enabled: { "19": "icons/enabled_19.png", "38": "icons/enabled_38.png" },
+    partial: { "19": "icons/partial_19.png", "38": "icons/partial_38.png" }
   },
   valuesToLoad: ["filterLinkHints", "findModeRawQuery", "findModeRawQueryList" //
     , "hideHud", "linkHintCharacters", "linkHintNumbers", "nextPatterns" //
@@ -232,12 +219,8 @@ var Settings = {
   Sync: null,
   CONST: {
     ChromeInnerNewTab: "chrome-search://local-ntp/local-ntp.html", // should keep lower case
-    ChromeVersion: 37,
-    ContentScripts: null,
-    CurrentVersion: "",
-    OnMac: false,
-    OptionsPage: "",
-    Timer: 0
+    ChromeVersion: 37, ContentScripts: null, CurrentVersion: "",
+    OnMac: false, OptionsPage: "", Timer: 0
   } 
 };
 Settings.__proto__ = null;
