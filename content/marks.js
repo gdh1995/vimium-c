@@ -43,7 +43,6 @@ var Marks = {
   getLocationKey: function(keyChar) {
     return "vimiumMark|" + this.getBaseUrl() + "|" + keyChar;
   },
-  // previousPositionRegisters: ["`", "'"],
   _previous: null,
   setPreviousPosition: function() {
     this._previous = {
@@ -56,17 +55,16 @@ var Marks = {
     handlerStack.remove();
     if (event.shiftKey) {
       this.CreateGlobalMark({markName: keyChar});
-      return;
-    }
-    if (keyChar === "`" || keyChar === "'") {
+    } else if (keyChar === "`" || keyChar === "'") {
       this.setPreviousPosition();
+      VHUD.showForDuration("Created local mark [last].", 1000);
     } else {
       localStorage[this.getLocationKey(keyChar)] = JSON.stringify({
         scrollX: window.scrollX,
         scrollY: window.scrollY
       });
+      VHUD.showForDuration("Created local mark : ' " + keyChar + " '.", 1000);
     }
-    VHUD.showForDuration("Created local mark '" + keyChar + "'", 1000);
     return false;
   },
   _goto: function(event) {
@@ -78,27 +76,26 @@ var Marks = {
         markName: keyChar
       }, function(req) {
         if (req === false) {
-          VHUD.showForDuration("Global mark not set '" + keyChar + "'", 1500);
+          VHUD.showForDuration("Global mark not set : ' " + keyChar + " '.", 1500);
         }
       });
       VHUD.hide();
-      return false;
-    }
-    if (keyChar === "`" || keyChar === "'") {
-      if (!(position = this._previous)) {
-        this.setPreviousPosition();
-        VHUD.showForDuration("Created local mark '" + keyChar + "'", 1000);
-        return;
+    } else if (keyChar === "`" || keyChar === "'") {
+      position = this._previous;
+      this.setPreviousPosition();
+      if (position) {
+        window.scrollTo(position.scrollX, position.scrollY);
+        VHUD.showForDuration("Jumped to local mark [last]", 1000);
+      } else {
+        VHUD.showForDuration("Created local mark [last]", 1000);
       }
     } else if (markString = localStorage[this.getLocationKey(keyChar)]) {
       position = JSON.parse(markString);
-    }
-    if (position) {
       this.setPreviousPosition();
       window.scrollTo(position.scrollX, position.scrollY);
-      VHUD.showForDuration("Jumped to local mark ' " + keyChar + " '", 1000);
+      VHUD.showForDuration("Jumped to local mark : ' " + keyChar + " '.", 1000);
     } else {
-      VHUD.showForDuration("Local mark not set '" + keyChar + "'", 2000);
+      VHUD.showForDuration("Local mark not set : ' " + keyChar + " '.", 2000);
     }
     return false;
   },
@@ -115,7 +112,7 @@ var Marks = {
       url: Marks.getBaseUrl(),
       scroll: [window.scrollX, window.scrollY]
     });
-    VHUD.showForDuration("Created global mark '" + keyChar + "'", 1000);
+    VHUD.showForDuration("Created global mark : ' " + keyChar + " '.", 1000);
   },
   Goto: function(request) {
     var scroll = request.scroll;
@@ -125,7 +122,7 @@ var Marks = {
     if (request.markName) {
       Marks.setPreviousPosition();
       window.scrollTo(scroll[0], scroll[1]);
-      VHUD.showForDuration("Jumped to global mark '" + request.markName + "'", 2000);
+      VHUD.showForDuration("Jumped to global mark : ' " + request.markName + " '.", 2000);
     } else {
       window.scrollTo(scroll[0], scroll[1]);
     }
