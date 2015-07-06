@@ -79,9 +79,9 @@ var Utils = {
         type = 2;
       }
     }
-    else if (this._nonENTldRegex.test(string.substring(0, index))
-      && ! (string.substring(0, index) in this._chromePrefixes)) {
-      type = 2;
+    else if (this._nonENTldRegex.test(string.substring(0, index))) {
+      type = (string.substring(0, index) in this._chromePrefixes)
+        && (index = string.charCodeAt(index + 3)) > 32 && index !== 47 ? 0 : 2;
     }
     else if (string.startsWith("file:")) {
       if (string.charCodeAt(7) !== 47) {
