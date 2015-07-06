@@ -55,7 +55,7 @@ var Utils = {
       }
       return string;
     }
-    var type = -1, expected = 1, index, index0, oldString, arr;
+    var type = -1, expected = 1, index, index2, oldString, arr;
     // NOTE: here '\u3000' is changed to ' ', which may cause a 404 (for url)
     // NOTE: here a mulit-line string is be changed to single-line,
     //       which may be better
@@ -67,13 +67,13 @@ var Utils = {
     if ((index = string.indexOf(':')) === 0) { type = 2; }
     else if (index === -1 || string.substring(index, index + 3) !== "://") {
       if (index !== -1 && string.substring(0, index) in this._nonUrlPrefixes) {
-        index0 = string.length;
-        type = index0 < oldString.length || index0 <= index
+        index2 = string.length;
+        type = index2 < oldString.length || index2 <= index
           || string.charCodeAt(index + 1) === 47 ? 2 : 0;
       } else if ((index = string.indexOf('/')) === -1) {
         if (string.length < oldString.length) { type = 2; }
       } else if (index === 0 || string.length >= oldString.length ||
-          ((index0 = string.charCodeAt(index + 1)) > 32 && index0 !== 47)) {
+          ((index2 = string.charCodeAt(index + 1)) > 32 && index2 !== 47)) {
         string = string.substring(0, index);
       } else {
         type = 2;
@@ -95,16 +95,16 @@ var Utils = {
       type = string.length < oldString.length && string.indexOf('/', 9) === -1
         ? 2 : 0;
     }
-    else if (index0 = string.indexOf('/', index += 3),
+    else if (index2 = string.indexOf('/', index += 3),
         string.length >= oldString.length) {
-      string = string.substring(index, index0 !== -1 ? index0 : undefined);
+      string = string.substring(index, index2 !== -1 ? index2 : undefined);
       expected = 0;
     }
-    else if (index0 <= index || (expected = string.charCodeAt(index0 + 1),
+    else if (index2 <= index || (expected = string.charCodeAt(index2 + 1),
         !(expected > 32) || expected === 47 )) {
       type = 2;
     } else {
-      string = string.substring(index, index0);
+      string = string.substring(index, index2);
       expected = 0;
     }
 
@@ -126,12 +126,12 @@ var Utils = {
       type = 1;
     // the below means string is like "(?<=abc@)(uvw.)*xyz.tld"
     } else if (string.startsWith("mail") || string.indexOf(".mail") > 0
-        || (index0 = string.indexOf(".")) === index) {
+        || (index2 = string.indexOf(".")) === index) {
       type = 2;
-    } else if (string.indexOf(".", ++index0) !== index) {
+    } else if (string.indexOf(".", ++index2) !== index) {
       type = 1;
     } else {
-      type = this.isTld(string.substring(index0, index)) ? 2 : 1;
+      type = this.isTld(string.substring(index2, index)) ? 2 : 1;
     }
     // window.type = type;
     return type === 0 ? oldString : type === 1 ? ("http://" + oldString)
