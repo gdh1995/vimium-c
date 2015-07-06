@@ -20,10 +20,8 @@ var Utils = {
     return s.replace(this._escapeRegex, this._escapeCallback);
   },
   // "javascript" should be treated specially
-  _chromePrefixes: {
-    "about": true, "blob": true, "chrome-extension": true,
-    "chrome-search": true, "data": true, "view-source": true
-  },
+  _nonUrlPrefixes: { about: true, blob: true, data: true, "view-source": true },
+  _chromePrefixes: { "chrome-extension": true, "chrome-search": true },
   _urlPrefix: /^[a-z]{3,}:\/\/./,
   hasOrdinaryUrlPrefix: function(url) {
     return this._urlPrefix.test(url);
@@ -65,57 +63,51 @@ var Utils = {
     string = oldString.toLowerCase();
     if ((index = string.indexOf(' ')) > 0) {
       string = string.substring(0, index);
-      if ((index = string.indexOf('/')) <= 0 || (index0 = string.indexOf(':')) === 0) {
-        type = 2;
-      }
-      else if (index0 === -1) {}
-      else if (string.substring(index0, index0 + 3) !== "://") {
-        if (string.substring(0, index0) in this._chromePrefixes) {
-          type = 2;
-        } else {
-          index0 = -1;
-        }
-      }
-      else if (this._urlPrefix.test(string)) {
-        expected = 0;
-        if (string.startsWith("file:///")) {
-          index0 = string.charCodeAt(8);
-          type = (index0 > 32 && index0 !== 47) ? 0 : 2;
-        }
-      } else if (!string.startsWith("chrome")) {
-        type = 2;
-      }
-      if (type < 0) {
-        if (index0 > 0) {
-          index0 += 3;
-          index = string.indexOf('/', index0);
-        } else {
-          index0 = 0;
-        }
-        if (index > index0 && (type = string.charCodeAt(index + 1)) > 32 && type !== 47) {
-          string = string.substring(index0, index);
-          type = -1;
-        } else {
-          type = 2;
-        }
-      }
     }
-    else if (this._urlPrefix.test(string)) {
-      if (string.startsWith("file:") || string.startsWith("chrome:")) {
-        type = 0;
+    if ((index = string.indexOf(':')) === 0) { type = 2; }
+    else if (index === -1 || string.substring(index, index + 3) !== "://") {
+      if (index !== -1 && string.substring(0, index) in this._nonUrlPrefixes) {
+        index0 = string.length;
+        type = index0 < oldString.length || index0 <= index
+          || string.charCodeAt(index + 1) === 47 ? 2 : 0;
+      } else if ((index = string.indexOf('/')) === -1) {
+        if (string.length < oldString.length) { type = 2; }
+      } else if (index === 0 || string.length >= oldString.length ||
+          ((index0 = string.charCodeAt(index + 1)) > 32 && index0 !== 47)) {
+        string = string.substring(0, index);
       } else {
-        index0 = string.indexOf(':') + 3;
-        index = string.indexOf('/', index0);
-        string = string.substring(index0, index !== -1 ? index : undefined);
-        expected = 0;
+        type = 2;
       }
     }
-    else if ((index = string.indexOf(':')) > 3 && index < 17 &&
-        (string.substring(0, index) in this._chromePrefixes)) {
-      type = 0;
-    } else {
-      string = (index = string.indexOf('/')) !== -1 ? string.substring(0, index) : string;
+    else if (this._nonENTldRegex.test(string.substring(0, index))
+      && ! (string.substring(0, index) in this._chromePrefixes)) {
+      type = 2;
     }
+    else if (string.startsWith("file:")) {
+      if (string.charCodeAt(7) !== 47) {
+        type = 2;
+      } else {
+        index = string.charCodeAt(8);
+        type = (index > 32 && index !== 47) ? 0 : 2; // `>32`: in case of NaN
+      }
+    }
+    else if (string.startsWith("chrome:")) {
+      type = string.length < oldString.length && string.indexOf('/', 9) === -1
+        ? 2 : 0;
+    }
+    else if (index0 = string.indexOf('/', index += 3),
+        string.length >= oldString.length) {
+      string = string.substring(index, index0 !== -1 ? index0 : undefined);
+      expected = 0;
+    }
+    else if (index0 <= index || (expected = string.charCodeAt(index0 + 1),
+        !(expected > 32) || expected === 47 )) {
+      type = 2;
+    } else {
+      string = string.substring(index, index0);
+      expected = 0;
+    }
+
     if (type !== -1) {
     } else if (!(arr = this._hostRegex.exec(string))) {
       type = 2;
