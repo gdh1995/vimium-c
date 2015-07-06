@@ -32,7 +32,7 @@ var LinkHints = {
   keepHUDAfterAct: false,
   keyStatus: {
     delay: 0,
-    tab: false
+    tab: 0
   },
   handlerId: 0,
   initScrollY: 0,
@@ -445,7 +445,7 @@ var LinkHints = {
       DomUtils.removeNode(this.hintMarkerContainingDiv);
       this.hintMarkerContainingDiv = null;
     }
-    this.keyStatus.tab = false;
+    this.keyStatus.tab = 0;
     handlerStack.remove(this.handlerId);
     this.handlerId = 0;
     if (this.keepHUDAfterAct) {
@@ -532,10 +532,10 @@ LinkHints.alphabetHints = {
       if (this.hintKeystrokeQueue.length === 0) {
         return false;
       }
-      keyStatus.tab = !keyStatus.tab;
+      keyStatus.tab = keyStatus.tab ? 0 : 1;
     } else if (keyStatus.tab) {
       this.hintKeystrokeQueue = [];
-      keyStatus.tab = false;
+      keyStatus.tab = 0;
     }
     if (key === KeyCodes.tab) {}
     else if (key === KeyCodes.backspace || key === KeyCodes.deleteKey || key === KeyCodes.f1) {
@@ -638,7 +638,7 @@ LinkHints.filterHints = {
   matchHintsByKey: function(hintMarkers, event, keyStatus) {
     var key = event.keyCode, keyChar, userIsTypingLinkText = false;
     if (key === KeyCodes.enter) {
-      keyStatus.tab = false;
+      keyStatus.tab = 0;
       for (var marker, _i = 0, _len = hintMarkers.length; _i < _len; _i++) {
         marker = hintMarkers[_i];
         if (marker.style.display !== "none") {
@@ -652,10 +652,10 @@ LinkHints.filterHints = {
       if (this.hintKeystrokeQueue.length === 0) {
         return false;
       }
-      keyStatus.tab = !keyStatus.tab;
+      keyStatus.tab = keyStatus.tab ? 0 : 1;
     } else if (keyStatus.tab) {
       this.hintKeystrokeQueue = [];
-      keyStatus.tab = false;
+      keyStatus.tab = 0;
     }
     if (key === KeyCodes.tab) {}
     else if (key === KeyCodes.backspace || key === KeyCodes.deleteKey || key === KeyCodes.f1) {
