@@ -1,75 +1,76 @@
 "use strict";
 var Scroller = {
-  Core: {
-    Animate: null,
-    Reset: null,
-    activatedElement: null,
-    calibrationBoundary: 150,
-    maxCalibration: 1.6,
-    minCalibration: 0.5,
-    keyIsDown: false,
-    checkVisibility: function(element) {
-      if (!DomUtils.isVisibile(element)) {
-        this.activatedElement = element;
-      }
-    },
-    init: function() {
-      this.init = null;
-      handlerStack.push({
-        _this: this,
-        DOMActivate: function(event) {
-          this.activatedElement = event.target;
-          return true;
-        }
-      });
-    },
-    performScroll: function(el, di, amount) {
-      var before;
-      if (di) {
-        if (el) {
-          before = el.scrollTop;
-          el.scrollTop += amount;
-          return el.scrollTop !== before;
-        } else {
-          before = window.scrollY;
-          window.scrollBy(0, amount);
-          return window.scrollY !== before;
-        }
-      } else if (el) {
-        before = el.scrollLeft;
-        el.scrollLeft += amount;
-        return el.scrollLeft !== before;
-      } else {
-        before = window.scrollX;
-        window.scrollBy(amount, 0);
-        return window.scrollX !== before;
-      }
-    },
-    scroll: function(element, di, amount) {
-      if (!amount) { return; }
-      if (!Settings.values.smoothScroll) {
-        this.performScroll(element, di, amount);
-        this.checkVisibility(element);
-        return;
-      }
-      this.keyIsDown = true;
-      handlerStack.push({
-        _this: this,
-        keydown: this.keydown,
-        keyup: this.stopHandler
-      });
-      this.Reset(amount, di, element);
-      requestAnimationFrame(this.Animate);
-    },
-    keydown: function() {
-      return event.repeat ? false : this.stopHandler();
-    },
-    stopHandler: function() {
-      this.keyIsDown = false;
-      handlerStack.remove();
-      return false;
+  Animate: null,
+  Reset: null,
+  activatedElement: null,
+  calibrationBoundary: 150,
+  maxCalibration: 1.6,
+  minCalibration: 0.5,
+  keyIsDown: false,
+  checkVisibility: function(element) {
+    if (!DomUtils.isVisibile(element)) {
+      this.activatedElement = element;
     }
   },
+  init: function() {
+    this.init = null;
+    handlerStack.push({
+      _this: this,
+      DOMActivate: function(event) {
+        this.activatedElement = event.target;
+        return true;
+      }
+    });
+  },
+  performScroll: function(el, di, amount) {
+    var before;
+    if (di) {
+      if (el) {
+        before = el.scrollTop;
+        el.scrollTop += amount;
+        return el.scrollTop !== before;
+      } else {
+        before = window.scrollY;
+        window.scrollBy(0, amount);
+        return window.scrollY !== before;
+      }
+    } else if (el) {
+      before = el.scrollLeft;
+      el.scrollLeft += amount;
+      return el.scrollLeft !== before;
+    } else {
+      before = window.scrollX;
+      window.scrollBy(amount, 0);
+      return window.scrollX !== before;
+    }
+  },
+  scroll: function(element, di, amount) {
+    if (!amount) { return; }
+    if (!Settings.values.smoothScroll) {
+      this.performScroll(element, di, amount);
+      this.checkVisibility(element);
+      return;
+    }
+    this.keyIsDown = true;
+    handlerStack.push({
+      _this: this,
+      keydown: this.keydown,
+      keyup: this.stopHandler
+    });
+    this.Reset(amount, di, element);
+    requestAnimationFrame(this.Animate);
+  },
+  keydown: function() {
+    return event.repeat ? false : this.stopHandler();
+  },
+  stopHandler: function() {
+    this.keyIsDown = false;
+    handlerStack.remove();
+    return false;
+  }
+};
+Scroller = {
+  Core: Scroller,
   Properties: [{
     axisName: "scrollLeft",
     max: "scrollWidth",
