@@ -70,9 +70,9 @@ var Utils = {
         index2 = string.length;
         type = index2 < oldString.length || index2 <= index
           || string.charCodeAt(index + 1) === 47 ? 2 : 0;
-      } else if ((index = string.indexOf('/')) === -1) {
-        if (string.length < oldString.length) { type = 2; }
-      } else if (index === 0 || string.length >= oldString.length ||
+      } else if ((index = string.indexOf('/')) <= 0) {
+        if (index === 0 || string.length < oldString.length) { type = 2; }
+      } else if (string.length >= oldString.length ||
           ((index2 = string.charCodeAt(index + 1)) > 32 && index2 !== 47)) {
         string = string.substring(0, index);
       } else {
