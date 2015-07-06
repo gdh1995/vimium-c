@@ -111,7 +111,8 @@ var Utils = {
     if (type !== -1) {
     } else if (!(arr = this._hostRegex.exec(string))) {
       type = 2;
-    } else if ((string = arr[3]).indexOf(':') !== -1 || string.endsWith("localhost")) {
+    } else if ((string = arr[3]).indexOf(':') !== -1
+        || string.endsWith("localhost")) {
       type = expected;
     } else if ((index = string.lastIndexOf('.')) <= 0) {
       type = 2;
@@ -121,20 +122,18 @@ var Utils = {
       type = 2;
     } else if (expected === 0) {
       type = 0;
-    } else if (arr[2] || arr[4] || !arr[1]) {
+    } else if (arr[2] || arr[4] || !arr[1] || string.startsWith("ftp")) {
       type = 1;
-    // the below means string is like "abc@(uvw.)*xyz.tld"
-    } else if (string.startsWith("ftp.")) {
-      type = 1;
-    } else if (string.startsWith("mail") || string.indexOf(".mail") > 0) {
-      type = 2;
-    } else if ((index0 = string.indexOf(".")) === index) {
+    // the below means string is like "(?<=abc@)(uvw.)*xyz.tld"
+    } else if (string.startsWith("mail") || string.indexOf(".mail") > 0
+        || (index0 = string.indexOf(".")) === index) {
       type = 2;
     } else if (string.indexOf(".", ++index0) !== index) {
       type = 1;
     } else {
       type = this.isTld(string.substring(index0, index)) ? 2 : 1;
     }
+    // window.type = type;
     return type === 0 ? oldString : type === 1 ? ("http://" + oldString)
       : this.createSearchUrl(Settings.get("searchEnginesMap")[
           keyword || "~"], oldString.split(' ')).url;
