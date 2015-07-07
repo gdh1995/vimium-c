@@ -41,6 +41,8 @@ var Settings, VHUD, MainPort;
 
   isEnabledForUrl = false;
 
+  KeydownEvents = new Uint8Array(256);
+
   keyQueue = false;
 
   firstKeys = {};
@@ -189,9 +191,13 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     window.addEventListener("keypress", ELs.onKeypress, true);
     window.addEventListener("keyup", ELs.onKeyup = function(event) {
       if (isEnabledForUrl) {
-        var handledKeydown = KeydownEvents.pop(event);
-        if (handlerStack.bubbleEvent("keyup", event) && handledKeydown) {
-          event.stopImmediatePropagation();
+        if (KeydownEvents[event.keyCode]) {
+          KeydownEvents[event.keyCode] = 0;
+          if (handlerStack.bubbleEvent("keyup", event)) {
+            event.stopImmediatePropagation();
+          }
+        } else {
+          handlerStack.bubbleEvent("keyup", event);
         }
       }
     }, true);
@@ -500,23 +506,6 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     }
   };
 
-  (function() {
-    var matchedEvents = new Array(256), i;
-    KeydownEvents = {
-      __proto__: null,
-      push: function(event) {
-        matchedEvents[event.keyCode] = false;
-      },
-      pop: function(event) {
-        var key = event.keyCode;
-        return matchedEvents[key] ? false : (matchedEvents[key] = true);
-      },
-    }
-    for (i = matchedEvents.length; 0 <= --i; ) {
-      matchedEvents[i] = true;
-    }
-  })();
-
   ELs.onKeypress = function(event) {
     if (!isEnabledForUrl || !handlerStack.bubbleEvent("keypress", event) || event.keyCode < 32) {
       return;
@@ -533,7 +522,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     if (!isEnabledForUrl) {
       return;
     } else if (!handlerStack.bubbleEvent("keydown", event)) {
-      KeydownEvents.push(event);
+      KeydownEvents[event.keyCode] = 1;
       return;
     }
     var keyChar, key = event.keyCode, action = 0;
@@ -583,15 +572,12 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       currentSeconds = secondKeys[""];
       action = 2;
     }
-    if (action <= 0) {
-      return;
-    }
+    if (action <= 0) { return; }
     if (action === 2) {
-      DomUtils.suppressEvent(event);
-    } else {
-      event.stopImmediatePropagation();
+      event.preventDefault();
     }
-    KeydownEvents.push(event);
+    event.stopImmediatePropagation();
+    KeydownEvents[key] = 1;
   };
 
   setPassKeys = function(newPassKeys) {
