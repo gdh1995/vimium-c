@@ -62,7 +62,11 @@ var Scroller = {
     requestAnimationFrame(this.Animate);
   },
   keydown: function() {
-    return event.repeat ? false : this.stopHandler();
+    if (!event.repeat) {
+      this.keyIsDown = false;
+      handlerStack.remove();
+    }
+    return false;
   },
   stopHandler: function() {
     this.keyIsDown = false;
@@ -170,7 +174,7 @@ Scroller = {
 (function () {
   var amount = 0, calibration = 1.0, di = 0, duration = 0, element = null, //
   sign = 0, timestamp = -1, totalDelta = 0, totalElapsed = 0.0, //
-  animate = function(new_timestamp) {
+  animate = Scroller.Core.Animate = function(new_timestamp) {
     var int1 = timestamp, elapsed, _this = Scroller.Core;
     elapsed = (int1 !== -1) ? (new_timestamp - int1) : 0;
     if (elapsed === 0) {
@@ -206,5 +210,4 @@ Scroller = {
     sign = Scroller.getSign(new_amount);
     timestamp = -1, totalDelta = 0, totalElapsed = 0.0;
   };
-  Scroller.Core.Animate = animate;
 })();
