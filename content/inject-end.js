@@ -90,6 +90,11 @@ VimiumInjector.execute = function(command, count, options) {
   typeof options === "object" || (options = null);
   count = count > 1 ? (count | 0) : 1;
   if (! (command.split('.', 1)[0] in Settings.Commands)) {
+    try {
+      options = JSON.parse(JSON.stringify(options));
+    } catch (e) {
+      return -2;
+    }
     chrome.runtime.sendMessage("hfjbmagddngcpeloejdejnfgbamkjaeg", {
       handler: "command",
       command: command,
@@ -101,6 +106,7 @@ VimiumInjector.execute = function(command, count, options) {
   if (MainPort.safePost({ handler: "esc" })) {
     return -127;
   }
+  Settings.RequestHandlers.esc();
   try {
     MainPort.Listener({
       name: "execute",
