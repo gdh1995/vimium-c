@@ -86,12 +86,30 @@ Settings.onDestroy.injected = function() {
 
 VimiumInjector.destroy = Settings.ELs.destroy.bind(Settings.ELs);
 VimiumInjector.execute = function(command, count, options) {
+  if (!command || typeof command !== "string") { return -1; }
+  typeof options === "object" || (options = null);
+  count = count > 1 ? (count | 0) : 1;
+  if (! (command.split('.', 1)[0] in Settings.Commands)) {
+    chrome.runtime.sendMessage("hfjbmagddngcpeloejdejnfgbamkjaeg", {
+      handler: "command",
+      command: command,
+      count: count,
+      options: options
+    });
+    return 0;
+  }
+  if (MainPort.safePost({ handler: "esc" })) {
+    return -127;
+  }
   try {
     MainPort.Listener({
       name: "execute",
       command: command,
-      count: (count > 1 ? (count | 0) : 1),
+      count: count,
       options: options || {}
     });
-  } catch (e) {}
+    return 1;
+  } catch (e) {
+    return -2;
+  }
 };

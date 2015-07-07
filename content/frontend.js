@@ -1358,6 +1358,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
   if (isInjected) {
     settings.RequestHandlers = requestHandlers;
     settings.ELs = ELs;
+    settings.Commands = Commands;
   } else {
     chrome.runtime.onMessage.addListener(ELs.onMessage);
   }
