@@ -99,7 +99,7 @@ Commands.commandGroups = {
     , "goPrevious", "goNext", "nextFrame", "mainFrame"
     , "enterInsertMode", "enterVisualMode", "enterVisualLineMode"
     , "Marks.activateCreateMode", "Marks.activateGotoMode"
-    , "Marks.clearLocal", "Marks.clearGlobal"
+    , "Marks.clearLocal", "clearGlobalMarks"
     ],
   vomnibarCommands: ["Vomnibar.activate", "Vomnibar.activateInNewTab"
     , "Vomnibar.activateBookmarks", "Vomnibar.activateBookmarksInNewTab", "Vomnibar.activateHistory"

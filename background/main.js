@@ -820,7 +820,7 @@
         url: "chrome://extensions/?id=" + chrome.runtime.id
       });
     },
-    "Marks.clearGlobal": Marks.clearGlobal
+    clearGlobalMarks: Marks.clearGlobal
   };
 
   resetKeys = function() {
@@ -1338,7 +1338,7 @@
     }
     ref = ["createTab", "restoreTab", "restoreGivenTab", "blank", "reloadTab" //
       , "moveTabToNewWindow", "reloadGivenTab" //
-      , "moveTabToIncognito", "openCopiedUrlInCurrentTab", "Marks.clearGlobal" //
+      , "moveTabToIncognito", "openCopiedUrlInCurrentTab", "clearGlobalMarks" //
     ];
     for (i = ref.length; 0 <= --i; ) {
       ref2[ref[i]].useTab = 0;
