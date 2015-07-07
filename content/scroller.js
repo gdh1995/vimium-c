@@ -5,9 +5,11 @@ var Scroller = {
   Reset: null,
   activatedElement: null,
   calibrationBoundary: 150,
+  handlerId: 0,
   maxCalibration: 1.6,
   minCalibration: 0.5,
-  keyIsDown: false,
+  keyIsDown: 0,
+  removeTimer: 0,
   checkVisibility: function(element) {
     if (!DomUtils.isVisibile(element)) {
       this.activatedElement = element;
@@ -52,8 +54,9 @@ var Scroller = {
       this.checkVisibility(element);
       return;
     }
-    this.keyIsDown = true;
-    handlerStack.push({
+    this.keyIsDown = 1;
+    this.handlerId && handlerStack.remove(this.handlerId);
+    this.handlerId = handlerStack.push({
       _this: this,
       keydown: this.keydown,
       keyup: this.stopHandler
@@ -61,19 +64,22 @@ var Scroller = {
     this.Reset(amount, di, element);
     requestAnimationFrame(this.Animate);
   },
-  keydown: function() {
-    if (!event.repeat) {
-      this.keyIsDown = false;
-      handlerStack.remove();
-    }
-    return false;
+  keydown: function(event) {
+    return event.repeat ? (this.keyIsDown = 2, false) : this.stopHandler();
   },
   stopHandler: function() {
-    this.keyIsDown = false;
-    handlerStack.remove();
-    return false;
+    this.keyIsDown = 0;
+    handlerStack.remove(this.handlerId);
+    this.handlerId = 0;
+    return true; // keyup should be handled by KeydownEvents
+  },
+  RemoveHandler: function() {
+    var _this = Scroller.Core;
+    _this.removeTimer = 0;
+    _this.keyIsDown === 1 && _this.stopHandler();
   }
 };
+
 Scroller = {
   __proto__: null,
   Core: Scroller,
@@ -201,6 +207,10 @@ Scroller = {
       _this.checkVisibility(element);
       if (elapsed !== 0) {
         element = null;
+        if (_this.keyIsDown === 1) {
+          // this time should be large enough - as tested, 200 is not safe
+          _this.removeTimer = setTimeout(_this.RemoveHandler, 330);
+        }
       }
     }
   };
