@@ -656,7 +656,7 @@ Commands.defaultKeyMappings = {
       repeat: 1
     }
   ],
-  "Marks.clearGlobal": [
+  "clearGlobalMarks": [
     "Remove all global marks", {
       background: true,
       repeat: 1
