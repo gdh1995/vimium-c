@@ -55,6 +55,7 @@ var Scroller = {
       return;
     }
     this.keyIsDown = 1;
+    this.removeTimer && clearTimeout(this.removeTimer);
     this.handlerId && handlerStack.remove(this.handlerId);
     this.handlerId = handlerStack.push({
       _this: this,
