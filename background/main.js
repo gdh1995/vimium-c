@@ -695,8 +695,8 @@
         return;
       }
       chrome.tabs.query({currentWindow: true}, function(tabs) {
-        tabs.slice(funcDict.selectFrom(tabs).index, commandCount) //
-        .forEach(function(tab1) {
+        var ind = funcDict.selectFrom(tabs).index;
+        tabs.slice(ind, ind + commandCount).forEach(function(tab1) {
           chrome.tabs.reload(tab1.id);
         });
       });
