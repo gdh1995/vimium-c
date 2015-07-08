@@ -3,7 +3,6 @@ var Scroller = {
   __proto__: null,
   Animate: null,
   Reset: null,
-  activatedElement: null,
   calibrationBoundary: 150,
   handlerId: 0,
   maxCalibration: 1.6,
@@ -12,18 +11,8 @@ var Scroller = {
   removeTimer: 0,
   checkVisibility: function(element) {
     if (!DomUtils.isVisibile(element)) {
-      this.activatedElement = element;
+      Scroller.activatedElement = element;
     }
-  },
-  init: function() {
-    this.init = null;
-    handlerStack.push({
-      _this: this,
-      DOMActivate: function(event) {
-        this.activatedElement = event.target;
-        return true;
-      }
-    });
   },
   performScroll: function(el, di, amount) {
     var before;
@@ -84,6 +73,7 @@ var Scroller = {
 Scroller = {
   __proto__: null,
   Core: Scroller,
+  activatedElement: null,  
   Properties: [{
     axisName: "scrollLeft",
     max: "scrollWidth",
@@ -93,10 +83,6 @@ Scroller = {
     max: "scrollHeight",
     viewSize: "clientHeight"
   }],
-  init: function() {
-    this.Core.init();
-    this.init = null;
-  },
   scrollBy: function(direction, amount, factor, zoomX) {
     var element, di;
     di = direction === "y" ? 1 : 0;
@@ -123,12 +109,12 @@ Scroller = {
     return element;
   },
   getActivatedElement: function() {
-    var element = this.Core.activatedElement;
+    var element = this.activatedElement;
     if (element) {
       return element;
     }
     element = document.body;
-    return element = this.Core.activatedElement = element
+    return element = this.activatedElement = element
       ? (this.selectFirst(element) || element) : null;
   },
   getDimension: function(el, di, name) {

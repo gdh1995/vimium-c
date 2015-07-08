@@ -778,11 +778,7 @@ LinkHints.FUNC = {
     VHUD.showCopied(str);
   },
   HOVER: function(element) {
-    handlerStack.bubbleEvent("DOMActivate", {
-      preventDefault: function() {},
-      stopImmediatePropagation: function() {},
-      target: element
-    });
+    Scroller.activatedElement = element;
     DomUtils.simulateHover(element);
   },
   COPY_TEXT: function(link) {

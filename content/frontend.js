@@ -185,7 +185,6 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     (initializeWhenEnabled = setPassKeys)(newPassKeys);
     KeyboardUtils.init();
     LinkHints.init();
-    Scroller.init();
     // Assume that all the below listeners won't throw any port exception
     window.addEventListener("keydown", ELs.onKeydown, true);
     window.addEventListener("keypress", ELs.onKeypress, true);
@@ -217,9 +216,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       }
     }, true);
     document.addEventListener("DOMActivate", ELs.onActivate = function(event) {
-      if (isEnabledForUrl) {
-        handlerStack.bubbleEvent("DOMActivate", event);
-      }
+      Scroller.activatedElement = event.target;
     }, true);
     if (document.activeElement && DomUtils.getEditableType(document.activeElement) >= 2 && !findMode) {
       enterInsertModeOnly(document.activeElement);
@@ -1275,11 +1272,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     node1 = container.querySelector("#vimHelpDialog");
     node1.style.maxHeight = window.innerHeight - 80;
     window.focus();
-    handlerStack.bubbleEvent("DOMActivate", {
-      preventDefault: function() {},
-      stopImmediatePropagation: function() {},
-      target: node1
-    });
+    Scroller.activatedElement = node1;
     handlerId = handlerStack.push({
       keydown: function(event) {
         if (event.keyCode === KeyCodes.esc && KeyboardUtils.isPlain(event)) {
