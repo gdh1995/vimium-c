@@ -38,8 +38,7 @@ DomUtils.DocumentReady(function() {
     if (event.target == window) {
       this();
     }
-  }).bind(MainPort.safePost.bind(MainPort, ELs.focusMsg
-  , Settings.RequestHandlers.refreshKeyQueue, null
+  }).bind(MainPort.safePost.bind(MainPort, ELs.focusMsg, null
   , setTimeout.bind(null, function() {
       if (MainPort && !MainPort.port) {
         Settings.ELs.destroy();
@@ -105,7 +104,7 @@ VimiumInjector.execute = function(command, count, options) {
   if (MainPort.safePost({ handler: "esc" })) {
     return -127;
   }
-  Settings.RequestHandlers.esc();
+  Settings.RequestHandlers.refreshKeyQueue({ currentFirst: null });
   try {
     MainPort.Listener({
       name: "execute",

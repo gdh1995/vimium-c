@@ -1,4 +1,5 @@
 "use strict";
+var g_requestHandlers;
 (function() {
   var BackgroundCommands, ContentSettings, checkKeyQueue, commandCount //
     , currentCount, currentFirst, currentCommand, executeCommand, extForTab
@@ -803,12 +804,12 @@
     copyCurrentTitle: function(tabs) {
       var str = tabs[0].title;
       Clipboard.copy(str);
-      requestHandlers.sendToCurrent({name: "showCopied", text: str});
+      currentCommand.port.postMessage({name: "showCopied", text: str});
     },
     copyCurrentUrl: function(tabs) {
       var str = tabs[0].url;
       Clipboard.copy(str);
-      requestHandlers.sendToCurrent({name: "showCopied", text: str});
+      currentCommand.port.postMessage({name: "showCopied", text: str});
     },
     toggleViewSource: function(tabs) {
       var url = tabs[0].url;
@@ -899,7 +900,7 @@
       if (func.useTab) {
         chrome.tabs.query({currentWindow: true, active: true}, func.bind(null, request));
       } else {
-        func(request);
+        func(request, port);
       }
     }
     else if (key = request.handlerSettings) {
@@ -1026,7 +1027,7 @@
   };
 
   // function (request, Tab [1] tabs = [selected] <% if .useTab is 1 else %> null);
-  window.g_requestHandlers = requestHandlers = {
+  g_requestHandlers = requestHandlers = {
     __proto__: null,
     setSetting: function(request) {
       Settings.set(request.key, request.value);
@@ -1100,7 +1101,7 @@
         command: request.command, args: request.args
       }, request.tabId);
     },
-    frameFocused: function(request) {
+    frameFocused: function(request, port) {
       var tabId = request.tabId, frames;
       if (tabId) {
         urlForTab[tabId] = request.url;
@@ -1116,23 +1117,27 @@
           requestHandlers.setIcon(tabId, request.status);
         }
       }
-      return {
+      port.postMessage({
+        name: "refreshKeyQueue",
         currentFirst: currentFirst
-      };
+      });
     },
-    checkIfEnabled: function(request) {
-      var frames, pattern = Exclusions.getPattern(request.url);
+    checkIfEnabled: function(request, port) {
+      var frames, pattern = Exclusions.getPattern(request.url), ret;
       // NOTE: here request.frameId may be Chrome's, but we may assume that
       //     it won't crash with ours
       if (needIcon && (frames = frameIdsForTab[request.tabId])
           && frames[0] === request.frameId) {
         requestHandlers.setIcon(request.tabId, null, pattern);
       }
-      return {
-        passKeys: pattern
-      };
+      ret = { name: "reset", passKeys: pattern };
+      if (port) {
+        port.postMessage(ret);
+      } else {
+        return ret;
+      }
     },
-    initIfEnabled: function(request, tabId) {
+    init: function(request, tabId) {
       var pass = Exclusions.getPattern(request.url);
       // NOTE: we needn't to store url into urlForTab here.
       if (request.focused) {
@@ -1142,7 +1147,7 @@
         }
       }
       return {
-        name: "ifEnabled",
+        name: "init",
         passKeys: pass,
         onMac: Settings.CONST.OnMac,
         currentFirst: currentFirst,
@@ -1207,10 +1212,12 @@
     },
     sendToTab: sendToTab,
     sendToCurrent: function(request) {
+      var port = currentCommand.port;
       try {
-        currentCommand.port.postMessage(request);
-      } catch (e) {}
-      currentCommand.port = null;
+        port && port.postMessage(request);
+      } catch (e) {
+        currentCommand.port = null;
+      }
     }
   };
 
@@ -1241,6 +1248,7 @@
     populateKeyCommands(); // resetKeys has been called in this
     this.postUpdate("broadcast", {
       name: "refreshKeyMappings",
+      currentFirst: null,
       firstKeys: firstKeys,
       secondKeys: secondKeys
     });
@@ -1258,7 +1266,7 @@
       count = currentFirst ? 1 : (currentCount || 1);
       resetKeys();
       chrome.tabs.query({currentWindow: true, active: true}, function(tabs) {
-        sendToTab({ name: "esc" }, tabs[0].id);
+        sendToTab({ name: "refreshKeyQueue", currentFirst: null }, tabs[0].id);
       });
     } else {
       count = 1;
@@ -1274,25 +1282,28 @@
 
   chrome.runtime.onMessageExternal.addListener(function(message, _1, sendResponse) {
     var command, options = null;
-    if (typeof message === "string") { command = message; }
-    else if (typeof message === "object") {
-      switch (message.handler) {
-      case "command":
-        if (message.count) {
-          currentFirst = "";
-          currentCount = message.count;
-        }
-        command = message.command;
-        options = message.options;
-        typeof options === "object" || (options = null);
-        break;
-      case "content_scripts":
-        sendResponse(Settings.CONST.ContentScripts);
-        return;
+    if (typeof message === "string") {
+      command = message;
+      if (command && Commands.availableCommands[command]) {
+        funcDict.globalCommand(command, options);
       }
+      return;
     }
-    if (command && Commands.availableCommands[command]) {
-      funcDict.globalCommand(command, options);
+    if (typeof message !== "object") { return; }
+    switch (message.handler) {
+    case "command":
+      command = message.command;
+      if (!(command && Commands.availableCommands[command])) { return; }
+      if (message.count) {
+        currentFirst = "";
+        currentCount = message.count;
+      }
+      options = message.options;
+      funcDict.globalCommand(command, typeof options === "object" ? options : null);
+      break;
+    case "content_scripts":
+      sendResponse(Settings.CONST.ContentScripts);
+      return;
     }
   });
 

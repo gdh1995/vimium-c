@@ -44,10 +44,8 @@ var Exclusions = {
   },
   onURLChange: (Settings.CONST.ChromeVersion >= 41
   ? function(details) {
-    var response = g_requestHandlers.checkIfEnabled(details);
-    response.name = "updateEnabled";
-    g_requestHandlers.sendToTab(response, details.tabId
-      , details.frameId, {name: "checkIfEnabled"});
+    g_requestHandlers.sendToTab(g_requestHandlers.checkIfEnabled(details)
+      , details.tabId, details.frameId, {name: "checkIfEnabled"});
   } : function(details) {
     g_requestHandlers.sendToTab({name: "checkIfEnabled"}, details.tabId);
   }),
@@ -100,7 +98,7 @@ Settings.updateHooks.exclusionRules = function(rules) {
   Exclusions.setRules(rules);
   g_requestHandlers.esc();
   this.postUpdate("broadcast", Exclusions.rules.length === 0 ? {
-    name: "setEnabled",
+    name: "reset",
     passKeys: null
   } : {
     name: "checkIfEnabled"

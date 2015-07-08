@@ -8,7 +8,7 @@ var Settings, VHUD, MainPort;
     , focusFoundLink, followLink, frameId, getFullCommand //
     , getNextQueryFromRegexMatches, getVisibleInputs, goBy //
     , handleDeleteForFindMode, handleEnterForFindMode, handleEscapeForFindMode //
-    , handleKeyCharForFindMode, initializeWhenEnabled, insertModeLock //
+    , handleKeyCharForFindMode, initIfEnabled, insertModeLock //
     , isEnabledForUrl, isInjected, isInsertMode, keyQueue, mainPort //
     , oldActivated, passKeys, performFindInPlace, requestHandlers //
     , restoreDefaultSelectionHighlight, secondKeys, setPassKeys, settings //
@@ -76,18 +76,14 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       this._callbacks[id] = callback;
       return id;
     },
-    safePost: function(request, callback, ifConnected, ifReconnect) {
+    safePost: function(request, ifConnected, ifReconnect) {
       try {
         if (!this.port) {
           this.connect();
           ifReconnect && ifReconnect();
         }
         ifConnected && ifConnected();
-        if (callback) {
-          this.sendMessage(request, callback);
-        } else {
-          this.port.postMessage(request);
-        }
+        this.port.postMessage(request);
       } catch (e) { // this extension is reloaded or disabled
         ELs.destroy();
         return true;
@@ -144,7 +140,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
         onerror = onerror.bind(null, request.request);
       }
       this.isLoading = setInterval(mainPort.safePost.bind(
-        mainPort, request, null, onerror, null), 2000);
+        mainPort, request, onerror, null), 2000);
     },
     ReceiveSettings: function(response) {
       var _this = settings, ref, i;
@@ -181,8 +177,8 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     onMessage: null, destroy: null //
   };
 
-  initializeWhenEnabled = function(newPassKeys) {
-    (initializeWhenEnabled = setPassKeys)(newPassKeys);
+  initIfEnabled = function(newPassKeys) {
+    (initIfEnabled = setPassKeys)(newPassKeys);
     KeyboardUtils.init();
     LinkHints.init();
     // Assume that all the below listeners won't throw any port exception
@@ -1047,35 +1043,32 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
   requestHandlers = {
     __proto__: null,
     checkIfEnabled: function() {
-      var url = ELs.focusMsg.url = window.location.href;
       mainPort.safePost({
         handler: "checkIfEnabled",
         frameId: frameId,
         tabId: ELs.focusMsg.tabId,
-        url: url
-      }, requestHandlers.setEnabled);
+        url: window.location.href
+      });
     },
-    ifEnabled: function(request) {
+    init: function(request) {
       var r = requestHandlers;
       ELs.focusMsg.tabId = request.tabId;
       r.refreshKeyMappings(request);
-      r.refreshKeyQueue(request);
       KeyboardUtils.onMac = request.onMac;
-      r.setEnabled(request);
-      r.ifEnabled = null;
+      // here assume the changed url does not influence passKeys,
+      // since we do not know when the url will become useful
+      r.reset(request);
+      r.init = null;
     },
-    setEnabled: function(request) {
+    reset: function(request) {
       var passKeys = request.passKeys;
       if (isEnabledForUrl = (passKeys !== "")) {
         ELs.focusMsg.status = passKeys ? "partial" : "enabled";
-        initializeWhenEnabled(passKeys);
+        initIfEnabled(passKeys);
       } else {
         ELs.focusMsg.status = "disabled";
       }
-    },
-    updateEnabled: function(request) {
       ELs.focusMsg.url = window.location.href;
-      requestHandlers.setEnabled(request);
     },
     settings: settings.ReceiveSettings,
     reg: function(request) {
@@ -1159,19 +1152,16 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
           map[arr[i]] = true;
         }
       }
+      requestHandlers.refreshKeyQueue(request);
     },
     refreshKeyQueue: function(request) {
       if (request.currentFirst !== null) {
         keyQueue = true;
-        currentSeconds = secondKeys[request.currentFirst];
+        currentSeconds = secondKeys[request.currentFirst]; // less possible
       } else {
         keyQueue = false;
         currentSeconds = secondKeys[""];
       }
-    },
-    esc: function() {
-      keyQueue = false;
-      currentSeconds = secondKeys[""];
     },
     execute: function(request) {
       keyQueue = false;
@@ -1288,7 +1278,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
   mainPort.connect();
 
   settings.load({
-    handler: "initIfEnabled",
+    handler: "init",
     focused: document.hasFocus(), // .hasFocus has a time cost less than 0.8 us
     url: window.location.href
   }, function(request) {
@@ -1323,7 +1313,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     //     NO other message will be sent if not isEnabledForUrl,
     // which would make the auto-destroy logic not work.
     window.onfocus = mainPort.safePost.bind(
-      mainPort, ELs.focusMsg, requestHandlers.refreshKeyQueue, null, null //
+      mainPort, ELs.focusMsg, null, null //
     );
   });
 
@@ -1377,7 +1367,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     }
     Commands = requestHandlers = MainPort = VHUD = mainPort = KeydownEvents = //
     VRect = Utils = KeyboardUtils = DomUtils = handlerStack = Scroller = //
-    currentSeconds = initializeWhenEnabled = setPassKeys = checkValidKey = //
+    currentSeconds = initIfEnabled = setPassKeys = checkValidKey = //
     KeyCodes = passKeys = firstKeys = secondKeys = oldActivated = Marks = func = //
     settings.onDestroy = null;
 
