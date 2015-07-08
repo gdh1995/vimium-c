@@ -30,7 +30,7 @@
       },
       "description": "Create a new tab"
     },
-    "reloadGivenTab": {
+    "reloadTab": {
       "suggested_key": {
         "default": "Alt+R"
       },
