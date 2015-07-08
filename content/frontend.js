@@ -558,11 +558,16 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
         action = checkValidKey(keyChar);
       }
     }
-    else if (keyQueue && key === KeyCodes.esc && KeyboardUtils.isPlain(event)) {
-      mainPort.port.postMessage({ handler: "esc" });
-      keyQueue = false;
-      currentSeconds = secondKeys[""];
-      action = 2;
+    else if (key === KeyCodes.esc && KeyboardUtils.isPlain(event)) {
+      if (keyQueue) {
+        mainPort.port.postMessage({ handler: "esc" });
+        keyQueue = false;
+        currentSeconds = secondKeys[""];
+        action = 2;
+      } else if (window.getSelection().type === "Range") {
+        window.getSelection().removeAllRanges();
+        action = 2;
+      }
     }
     if (action <= 0) { return; }
     if (action === 2) {
