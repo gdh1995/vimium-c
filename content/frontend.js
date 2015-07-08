@@ -500,11 +500,10 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
   };
 
   ELs.onKeypress = function(event) {
-    if (!isEnabledForUrl || !handlerStack.bubbleEvent("keypress", event) || event.keyCode < 32) {
+    if (!isEnabledForUrl || !handlerStack.bubbleEvent("keypress", event)) {
       return;
     }
-    var keyChar = String.fromCharCode(event.charCode);
-    if (keyChar && findMode) {
+    if (findMode && (keyChar = String.fromCharCode(event.charCode))) {
       handleKeyCharForFindMode(keyChar);
       DomUtils.suppressEvent(event);
     }
