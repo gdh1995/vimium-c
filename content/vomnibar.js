@@ -120,7 +120,7 @@ Vomnibar.vomnibarUI = {
       name: "execute",
       command: "switchFocus",
       count: 1,
-      options: {confirm: true}
+      options: {ignore: this.input}
     });
     this.input.focus();
     this.focused = true;
@@ -144,6 +144,12 @@ Vomnibar.vomnibarUI = {
     this.completionInput.text = "";
     this.completionInput.url = "";
     this.completions = [];
+    MainPort.Listener({
+      name: "execute",
+      command: "switchFocus",
+      count: 1,
+      options: { ignore: null }
+    });
   },
   reset: function(input, start, end) {
     if (input) {

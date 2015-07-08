@@ -10,7 +10,7 @@ var Settings, VHUD, MainPort;
     , handleDeleteForFindMode, handleEnterForFindMode, handleEscapeForFindMode //
     , handleKeyCharForFindMode, initIfEnabled, insertModeLock //
     , isEnabledForUrl, isInjected, isInsertMode, keyQueue, mainPort //
-    , oldActivated, passKeys, performFindInPlace, requestHandlers //
+    , recentlyFocused, passKeys, performFindInPlace, requestHandlers //
     , restoreDefaultSelectionHighlight, secondKeys, setPassKeys, settings //
     , showFindModeHUDForQuery, textInputXPath, updateFindModeQuery
     ;
@@ -53,8 +53,9 @@ var Settings, VHUD, MainPort;
 
   passKeys = null;
   
-  oldActivated = {
+  recentlyFocused = {
     target: null,
+    ignore: null,
     isSecond: true
   };
 
@@ -198,11 +199,12 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     }, true);
     // it seems window.addEventListener("focus") doesn't work (only now).
     document.addEventListener("focus", ELs.docOnFocus = function(event) {
-      if (isEnabledForUrl && DomUtils.getEditableType(event.target) && !findMode) {
-        enterInsertModeOnly(event.target);
-        // it seems we do not need to check DomUtils.getEditableType(event.target) >= 2
-        if (oldActivated.isSecond) {
-          oldActivated.target = event.target;
+      var target = event.target;
+      if (isEnabledForUrl && DomUtils.getEditableType(target) && !findMode) {
+        enterInsertModeOnly(target);
+        // it seems we do not need to check getEditableType >= 2
+        if (recentlyFocused.isSecond && recentlyFocused.ignore !== target) {
+          recentlyFocused.target = target;
         }
       }
     }, true);
@@ -343,25 +345,25 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       window.location.reload();
     },
     switchFocus: function(_0, options) {
-      if (options.confirm) {
-        oldActivated.target && (oldActivated.isSecond = false);
+      if (options.ignore !== undefined) {
+        recentlyFocused.ignore = options.ignore;
         return;
       }
       var newEl = document.activeElement;
       if (newEl !== document.body) {
-        oldActivated.target = newEl;
-        oldActivated.isSecond = false;
+        recentlyFocused.target = newEl;
+        recentlyFocused.isSecond = false;
         if (newEl && newEl.blur) {
           newEl.blur();
         }
         return;
       }
-      newEl = oldActivated.target;
+      newEl = recentlyFocused.target;
       if (!newEl || !DomUtils.isVisibile(newEl)) {
         return;
       }
-      oldActivated.target = null;
-      oldActivated.isSecond = true;
+      recentlyFocused.target = null;
+      recentlyFocused.isSecond = true;
       DomUtils.simulateHover(newEl);
       newEl.focus();
     },
@@ -454,7 +456,11 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
         DomUtils.simulateSelect(visibleInputs[0]);
         return;
       }
-      selectedInputIndex = Math.min(count, selectedInputIndex) - 1;
+      if (count === 1 && recentlyFocused.target) {
+        selectedInputIndex = Math.max(0, visibleInputs.indexOf(recentlyFocused.target));
+      } else {
+        selectedInputIndex = Math.min(count, selectedInputIndex) - 1;
+      }
       DomUtils.simulateSelect(visibleInputs[selectedInputIndex]);
       hints = visibleInputs.map(function(element) {
         var hint = document.createElement("div"), style = hint.style
@@ -1372,7 +1378,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     Commands = requestHandlers = MainPort = VHUD = mainPort = KeydownEvents = //
     VRect = Utils = KeyboardUtils = DomUtils = handlerStack = Scroller = //
     currentSeconds = initIfEnabled = setPassKeys = checkValidKey = //
-    KeyCodes = passKeys = firstKeys = secondKeys = oldActivated = Marks = func = //
+    KeyCodes = passKeys = firstKeys = secondKeys = recentlyFocused = Marks = func = //
     settings.onDestroy = null;
 
     console.log("%cVimium++ %c#%d%c in %c%s%c has destroyed at %o." //
