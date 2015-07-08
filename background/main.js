@@ -948,9 +948,6 @@
               ref.splice(i, 1);
             }
           }
-          if (request.isExt) {
-            delete extForTab[id];
-          }
         } else {
           delete frameIdsForTab[id];
           delete urlForTab[id];

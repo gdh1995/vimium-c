@@ -174,7 +174,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
       status: "disabled",
       url: window.location.href,
       frameId: frameId
-    }, unloadMsg: null, css: null, //
+    }, css: null, //
     onKeydown: null, onKeypress: null, onKeyup: null, //
     docOnFocus: null, onBlur: null, onActivate: null, //
     onFocus: null, onUnload: null, onHashChagne: null, //
@@ -1305,12 +1305,14 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     // * if extension is stopped, then ELs.destroy is called when focused,
     // so, only being removed without pre-focusing and before a "rereg" message
     //   may meet a null port
-    ELs.unloadMsg = {handlerSettings: "unreg", frameId: frameId, tabId: 0};
     ELs.onUnload = function() {
-      var ref = mainPort.port;
+      var ref;
       try {
-        ELs.unloadMsg.tabId = ELs.focusMsg.tabId;
-        ref && ref.postMessage(ELs.unloadMsg);
+        (ref = mainPort.port) && ref.postMessage({
+          handlerSettings: "unreg",
+          frameId: frameId,
+          tabId: ELs.focusMsg.tabId
+        });
       } catch (e) {}
     };
     if (isInjected || requestHandlers.reg()) {

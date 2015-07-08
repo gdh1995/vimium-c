@@ -32,7 +32,6 @@ DomUtils.DocumentReady(function() {
     return;
   }
   var ELs = Settings.ELs;
-  ELs.unloadMsg.isExt = true;
   window.addEventListener("unload", ELs.onUnload);
   window.addEventListener("hashchange", Settings.RequestHandlers.checkIfEnabled);
   window.addEventListener("focus", ELs.onFocus = (function(event) {
