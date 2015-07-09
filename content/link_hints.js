@@ -233,7 +233,6 @@ var LinkHints = {
       // NOTE: el.onclick will always be null, for it belongs to the normal `window` object
       //      so .attr("onclick") may be not right
       if ( element.getAttribute("onclick") //
-        /* || ((s = element.className) && s.toLowerCase().indexOf("button") >= 0) */
         || ((s = element.getAttribute("role")) && (s = s.toLowerCase(), s === "button" || s === "link")) //
         // NOTE: .attr("contenteditable") allows ["", "true", "false", "plaintext-only", or "inherit"]
         //       : without case; "contentEditable" is not accepted

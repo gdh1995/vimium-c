@@ -870,7 +870,7 @@ var Settings, VHUD, MainPort;
 
   goBy.findAndFollowLink = function(linkStrings) {
     var boundingClientRect, candidateLinks, computedStyle, exactWordRegex, link, linkString, links, linksXPath, _i, _j, _len, _len1;
-    linksXPath = './/a | .//xhtml:a | .//*[@onclick or @role="link" or contains(@class, "button")] | .//xhtml:*[@onclick or @role="link" or contains(@class, "button")]';
+    linksXPath = './/a | .//xhtml:a | .//*[@onclick or @role="link"] | .//xhtml:*[@onclick or @role="link"]';
     links = DomUtils.evaluateXPath(linksXPath, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE);
     candidateLinks = [];
     _len = links.snapshotLength;
