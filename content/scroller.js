@@ -66,7 +66,9 @@ var Scroller = {
   RemoveHandler: function() {
     var _this = Scroller.Core;
     _this.removeTimer = 0;
-    _this.keyIsDown === 1 && _this.stopHandler();
+    if (_this.keyIsDown === 1) {
+      _this.stopHandler();
+    }
   }
 };
 
