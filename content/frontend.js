@@ -12,7 +12,7 @@ var Settings, VHUD, MainPort;
     , isEnabledForUrl, isInjected, isInsertMode, keyQueue, mainPort //
     , recentlyFocused, passKeys, performFindInPlace, requestHandlers //
     , restoreDefaultSelectionHighlight, secondKeys, setPassKeys, settings //
-    , showFindModeHUDForQuery, textInputXPath, updateFindModeQuery
+    , showFindModeHUDForQuery, updateFindModeQuery
     ;
   
   isInjected = window.VimiumInjector ? true : false;
@@ -58,13 +58,6 @@ var Settings, VHUD, MainPort;
     ignore: null,
     isSecond: true
   };
-
-  textInputXPath = DomUtils.makeXPath([
-    'input[not(@disabled or @readonly) and (@type="text" or @type="search" or @type="email" \
-or @type="url" or @type="number" or @type="password" or @type="date" or @type="tel" or not(@type))]',
-    "textarea[not(@disabled or @readonly)]",
-    "*[@contenteditable='' or translate(@contenteditable, 'TRUE', 'true')='true']"
-  ]);
   
   MainPort = mainPort = {
     __proto__: null,
@@ -448,7 +441,9 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
     },
     focusInput: function(count) {
       var hintContainingDiv, hints, selectedInputIndex, visibleInputs;
-      visibleInputs = getVisibleInputs(DomUtils.evaluateXPath(textInputXPath, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE));
+      visibleInputs = getVisibleInputs(DomUtils.evaluateXPath(
+        './/input[not(@disabled or @readonly) and (@type="text" or @type="search" or @type="email" or @type="url" or @type="number" or @type="password" or @type="date" or @type="tel" or not(@type))] | .//xhtml:input[not(@disabled or @readonly) and (@type="text" or @type="search" or @type="email" or @type="url" or @type="number" or @type="password" or @type="date" or @type="tel" or not(@type))] | .//textarea[not(@disabled or @readonly)] | .//xhtml:textarea[not(@disabled or @readonly)] | .//*[@contenteditable="" or translate(@contenteditable, "TRUE", "true")="true"] | .//xhtml:*[@contenteditable="" or translate(@contenteditable, "TRUE", "true")="true"]'
+        , XPathResult.ORDERED_NODE_SNAPSHOT_TYPE));
       selectedInputIndex = visibleInputs.length;
       if (selectedInputIndex === 0) {
         return;
@@ -875,7 +870,7 @@ or @type="url" or @type="number" or @type="password" or @type="date" or @type="t
 
   goBy.findAndFollowLink = function(linkStrings) {
     var boundingClientRect, candidateLinks, computedStyle, exactWordRegex, link, linkString, links, linksXPath, _i, _j, _len, _len1;
-    linksXPath = DomUtils.makeXPath(["a", "*[@onclick or @role='link' or contains(@class, 'button')]"]);
+    linksXPath = './/a | .//xhtml:a | .//*[@onclick or @role="link" or contains(@class, "button")] | .//xhtml:*[@onclick or @role="link" or contains(@class, "button")]';
     links = DomUtils.evaluateXPath(linksXPath, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE);
     candidateLinks = [];
     _len = links.snapshotLength;
