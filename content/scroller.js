@@ -7,7 +7,6 @@ var Scroller = {
   handlerId: 0,
   maxCalibration: 1.6,
   minCalibration: 0.5,
-  keyIsDown: false,
   checkVisibility: function(element) {
     if (!DomUtils.isVisibile(element)) {
       Scroller.activatedElement = element;
@@ -42,7 +41,7 @@ var Scroller = {
       this.checkVisibility(element);
       return;
     }
-    this.keyIsDown = true;
+    Scroller.keyIsDown = true;
     this.handlerId && handlerStack.remove(this.handlerId);
     this.handlerId = handlerStack.push({
       _this: this,
@@ -56,7 +55,7 @@ var Scroller = {
     return event.repeat ? false : this.stopHandler();
   },
   stopHandler: function() {
-    this.keyIsDown = false;
+    Scroller.keyIsDown = false;
     handlerStack.remove(this.handlerId);
     this.handlerId = 0;
     return true; // keyup should be handled by KeydownEvents
@@ -67,6 +66,7 @@ Scroller = {
   __proto__: null,
   Core: Scroller,
   activatedElement: null,  
+  keyIsDown: false,
   Properties: [{
     axisName: "scrollLeft",
     max: "scrollWidth",
@@ -169,7 +169,7 @@ Scroller = {
       totalElapsed += elapsed;
     }
     timestamp = new_timestamp;
-    if (_this.keyIsDown) {
+    if (Scroller.keyIsDown) {
       int1 = calibration;
       if (75 <= totalElapsed && (_this.minCalibration <= int1 && int1 <= _this.maxCalibration)) {
         int1 = _this.calibrationBoundary / amount / int1;
