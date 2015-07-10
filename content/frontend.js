@@ -179,6 +179,7 @@ var Settings, VHUD, MainPort;
     window.addEventListener("keydown", ELs.onKeydown, true);
     window.addEventListener("keypress", ELs.onKeypress, true);
     window.addEventListener("keyup", ELs.onKeyup = function(event) {
+      if (Scroller.keyIsDown) { Scroller.keyIsDown = false; }
       if (isEnabledForUrl) {
         if (KeydownEvents[event.keyCode]) {
           KeydownEvents[event.keyCode] = 0;
@@ -512,6 +513,13 @@ var Settings, VHUD, MainPort;
 
   // TODO: an active insert mode object should be inserted if needed
   ELs.onKeydown = function(event) {
+    if (Scroller.keyIsDown) {
+      if (event.repeat) {
+        DomUtils.suppressEvent(event);
+        return;
+      }
+      Scroller.keyIsDown = false;
+    }
     if (!isEnabledForUrl) {
       return;
     } else if (!handlerStack.bubbleEvent("keydown", event)) {

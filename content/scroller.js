@@ -4,7 +4,6 @@ var Scroller = {
   Animate: null,
   Reset: null,
   calibrationBoundary: 150,
-  handlerId: 0,
   maxCalibration: 1.6,
   minCalibration: 0.5,
   checkVisibility: function(element) {
@@ -42,24 +41,9 @@ var Scroller = {
       return;
     }
     Scroller.keyIsDown = true;
-    this.handlerId && handlerStack.remove(this.handlerId);
-    this.handlerId = handlerStack.push({
-      _this: this,
-      keydown: this.keydown,
-      keyup: this.stopHandler
-    });
     this.Reset(amount, di, element);
     requestAnimationFrame(this.Animate);
   },
-  keydown: function(event) {
-    return event.repeat ? false : this.stopHandler();
-  },
-  stopHandler: function() {
-    Scroller.keyIsDown = false;
-    handlerStack.remove(this.handlerId);
-    this.handlerId = 0;
-    return true; // keyup should be handled by KeydownEvents
-  }
 };
 
 Scroller = {
