@@ -164,7 +164,7 @@ var Settings, VHUD, MainPort;
       frameId: frameId
     }, css: null, //
     onKeydown: null, onKeypress: null, onKeyup: null, //
-    onfocus: null, onblur: null, onActivate: null, //
+    onFocus: null, onBlur: null, onActivate: null, //
     onWndFocus: function(){}, onUnload: null, onHashChagne: null, //
     onMessage: null, destroy: null //
   };
@@ -189,7 +189,7 @@ var Settings, VHUD, MainPort;
         }
       }
     }, true);
-    window.addEventListener("focus", ELs.onfocus = function(event) {
+    window.addEventListener("focus", ELs.onFocus = function(event) {
       var target = event.target;
       if (target === window) { ELs.onWndFocus(); }
       else if (!isEnabledForUrl) {}
@@ -202,19 +202,19 @@ var Settings, VHUD, MainPort;
         }
       } else if (target === InsertMode.lock) {}
       else if (target = target.shadowRoot) {
-        target.addEventListener("focus", ELs.onfocus, true);
-        target.addEventListener("blur", ELs.onblur, true);
+        target.addEventListener("focus", ELs.onFocus, true);
+        target.addEventListener("blur", ELs.onBlur, true);
       }
     }, true);
-    window.addEventListener("blur", ELs.onblur = function(event) {
+    window.addEventListener("blur", ELs.onBlur = function(event) {
       var target = event.target;
       if (target === window) {
         if (Scroller.keyIsDown) { Scroller.keyIsDown = false; }
       } else if (!isEnabledForUrl) {}
       else if (InsertMode.lock === target) { InsertMode.lock = null; }
       else if (target = target.shadowRoot) {
-        target.removeEventListener("focus", ELs.onfocus, true);
-        target.removeEventListener("blur", ELs.onblur, true);
+        target.removeEventListener("focus", ELs.onFocus, true);
+        target.removeEventListener("blur", ELs.onBlur, true);
         target.addEventListener("blur", InsertMode.OnShadowBlur, true);
       }
     }, true);
@@ -670,7 +670,7 @@ var Settings, VHUD, MainPort;
     },
     OnShadowBlur: function(event) {
       this.removeEventListener("blur", InsertMode.OnShadowBlur, true);
-      ELs.onblur(event);
+      ELs.onBlur(event);
     }
   };
 
@@ -1378,8 +1378,8 @@ var Settings, VHUD, MainPort;
     window.removeEventListener("keydown", this.onKeydown, true);
     window.removeEventListener("keypress", this.onKeypress, true);
     window.removeEventListener("keyup", this.onKeyup, true);
-    window.removeEventListener("focus", this.onfocus, true);
-    window.removeEventListener("blur", this.onblur, true);
+    window.removeEventListener("focus", this.onFocus, true);
+    window.removeEventListener("blur", this.onBlur, true);
     document.removeEventListener("DOMActivate", this.onActivate, true);
     Vomnibar.destroy();
     LinkHints.destroy();
