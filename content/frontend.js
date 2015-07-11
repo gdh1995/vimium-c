@@ -167,7 +167,7 @@ var Settings, VHUD, MainPort;
     }, css: null, //
     onKeydown: null, onKeypress: null, onKeyup: null, //
     onfocus: null, onblur: null, onActivate: null, //
-    onWndFocus: null, onUnload: null, onHashChagne: null, //
+    onWndFocus: function(){}, onUnload: null, onHashChagne: null, //
     onMessage: null, destroy: null //
   };
 
@@ -192,9 +192,11 @@ var Settings, VHUD, MainPort;
       }
     }, true);
     // it seems window.addEventListener("focus") doesn't work (only now).
-    document.addEventListener("focus", ELs.onfocus = function(event) {
+    window.addEventListener("focus", ELs.onfocus = function(event) {
       var target = event.target;
-      if (isEnabledForUrl && DomUtils.getEditableType(target) && !findMode) {
+      if (target === window) { ELs.onWndFocus(); }
+      else if (!isEnabledForUrl || findMode) {}
+      else if (DomUtils.getEditableType(target)) {
         enterInsertModeOnly(target);
         // it seems we do not need to check getEditableType >= 2
         if (recentlyFocused.isSecond && recentlyFocused.ignore !== target) {
@@ -202,8 +204,11 @@ var Settings, VHUD, MainPort;
         }
       }
     }, true);
-    document.addEventListener("blur", ELs.onblur = function(event) {
-      if (isEnabledForUrl && DomUtils.getEditableType(event.target)) {
+    window.addEventListener("blur", ELs.onblur = function(event) {
+      var target = event.target;
+      if (target === window) {}
+      else if (!isEnabledForUrl) {}
+      else if (DomUtils.getEditableType(event.target)) {
         exitInsertMode(event.target);
       }
     }, true);
@@ -1325,7 +1330,7 @@ var Settings, VHUD, MainPort;
     // NOTE: here, we should always postMessage, since
     //     NO other message will be sent if not isEnabledForUrl,
     // which would make the auto-destroy logic not work.
-    window.onfocus = mainPort.safePost.bind(
+    ELs.onWndFocus = mainPort.safePost.bind(
       mainPort, ELs.focusMsg, null, null //
     );
   });
@@ -1350,14 +1355,13 @@ var Settings, VHUD, MainPort;
   ELs.destroy = function() {
     isEnabledForUrl = false;
     if (!isInjected) {
-      window.onfocus = null;
       window.onunload = null;
     }
     window.removeEventListener("keydown", this.onKeydown, true);
     window.removeEventListener("keypress", this.onKeypress, true);
     window.removeEventListener("keyup", this.onKeyup, true);
-    document.removeEventListener("focus", this.onfocus, true);
-    document.removeEventListener("blur", this.onblur, true);
+    window.removeEventListener("focus", this.onfocus, true);
+    window.removeEventListener("blur", this.onblur, true);
     document.removeEventListener("DOMActivate", this.onActivate, true);
     Vomnibar.destroy();
     LinkHints.destroy();

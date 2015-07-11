@@ -34,17 +34,13 @@ DomUtils.DocumentReady(function() {
   var ELs = Settings.ELs;
   window.addEventListener("unload", ELs.onUnload);
   window.addEventListener("hashchange", Settings.RequestHandlers.checkIfEnabled);
-  window.addEventListener("focus", ELs.onWndFocus = (function(event) {
-    if (event.target == window) {
-      this();
-    }
-  }).bind(MainPort.safePost.bind(MainPort, ELs.focusMsg, null
-  , setTimeout.bind(null, function() {
+  ELs.onWndFocus = MainPort.safePost.bind(MainPort, ELs.focusMsg, null
+    , setTimeout.bind(null, function() {
       if (MainPort && !MainPort.port) {
         Settings.ELs.destroy();
       }
     }, 50) //
-  )));
+  );
 });
 
 if (chrome.runtime.onMessageExternal) {
@@ -69,7 +65,6 @@ if (chrome.runtime.onMessageExternal) {
 
 Settings.onDestroy.injected = function() {
   window.removeEventListener("unload", this.onUnload);
-  window.removeEventListener("focus", this.onWndFocus);
   window.removeEventListener("hashchange", Settings.RequestHandlers.checkIfEnabled);
   try {
     this.onMessage && chrome.runtime.onMessageExternal.removeListener(this.onMessage);
