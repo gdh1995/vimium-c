@@ -206,8 +206,9 @@ var Settings, VHUD, MainPort;
     }, true);
     window.addEventListener("blur", ELs.onblur = function(event) {
       var target = event.target;
-      if (target === window) {}
-      else if (!isEnabledForUrl) {}
+      if (target === window) {
+        if (Scroller.keyIsDown) { Scroller.keyIsDown = false; }
+      } else if (!isEnabledForUrl) {}
       else if (DomUtils.getEditableType(event.target)) {
         exitInsertMode(event.target);
       }
