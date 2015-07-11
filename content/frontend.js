@@ -166,8 +166,8 @@ var Settings, VHUD, MainPort;
       frameId: frameId
     }, css: null, //
     onKeydown: null, onKeypress: null, onKeyup: null, //
-    docOnFocus: null, onBlur: null, onActivate: null, //
-    onFocus: null, onUnload: null, onHashChagne: null, //
+    onfocus: null, onblur: null, onActivate: null, //
+    onWndFocus: null, onUnload: null, onHashChagne: null, //
     onMessage: null, destroy: null //
   };
 
@@ -192,7 +192,7 @@ var Settings, VHUD, MainPort;
       }
     }, true);
     // it seems window.addEventListener("focus") doesn't work (only now).
-    document.addEventListener("focus", ELs.docOnFocus = function(event) {
+    document.addEventListener("focus", ELs.onfocus = function(event) {
       var target = event.target;
       if (isEnabledForUrl && DomUtils.getEditableType(target) && !findMode) {
         enterInsertModeOnly(target);
@@ -202,7 +202,7 @@ var Settings, VHUD, MainPort;
         }
       }
     }, true);
-    document.addEventListener("blur", ELs.onBlur = function(event) {
+    document.addEventListener("blur", ELs.onblur = function(event) {
       if (isEnabledForUrl && DomUtils.getEditableType(event.target)) {
         exitInsertMode(event.target);
       }
@@ -1356,8 +1356,8 @@ var Settings, VHUD, MainPort;
     window.removeEventListener("keydown", this.onKeydown, true);
     window.removeEventListener("keypress", this.onKeypress, true);
     window.removeEventListener("keyup", this.onKeyup, true);
-    document.removeEventListener("focus", this.docOnFocus, true);
-    document.removeEventListener("blur", this.onBlur, true);
+    document.removeEventListener("focus", this.onfocus, true);
+    document.removeEventListener("blur", this.onblur, true);
     document.removeEventListener("DOMActivate", this.onActivate, true);
     Vomnibar.destroy();
     LinkHints.destroy();

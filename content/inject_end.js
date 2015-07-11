@@ -34,7 +34,7 @@ DomUtils.DocumentReady(function() {
   var ELs = Settings.ELs;
   window.addEventListener("unload", ELs.onUnload);
   window.addEventListener("hashchange", Settings.RequestHandlers.checkIfEnabled);
-  window.addEventListener("focus", ELs.onFocus = (function(event) {
+  window.addEventListener("focus", ELs.onWndFocus = (function(event) {
     if (event.target == window) {
       this();
     }
@@ -69,7 +69,7 @@ if (chrome.runtime.onMessageExternal) {
 
 Settings.onDestroy.injected = function() {
   window.removeEventListener("unload", this.onUnload);
-  window.removeEventListener("focus", this.onFocus);
+  window.removeEventListener("focus", this.onWndFocus);
   window.removeEventListener("hashchange", Settings.RequestHandlers.checkIfEnabled);
   try {
     this.onMessage && chrome.runtime.onMessageExternal.removeListener(this.onMessage);
