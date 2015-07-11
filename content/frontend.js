@@ -748,8 +748,8 @@ var Settings, VHUD, MainPort;
     }
     focusFoundLink();
     if (findModeQueryHasResults && DomUtils.canTakeInput(findModeAnchorNode)) {
+      InsertMode.lock = document.activeElement;
       DomUtils.simulateSelect(document.activeElement);
-      enterInsertModeOnly(document.activeElement);
     }
   };
 
@@ -862,8 +862,8 @@ var Settings, VHUD, MainPort;
         keydown: function(event) {
           handlerStack.remove();
           if (event.keyCode === KeyCodes.esc && KeyboardUtils.isPlain(event)) {
+            InsertMode.lock = document.activeElement;
             DomUtils.simulateSelect(document.activeElement);
-            enterInsertModeOnly(document.activeElement);
             return false;
           }
           return true;
