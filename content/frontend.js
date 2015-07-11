@@ -2,14 +2,14 @@
 var Settings, VHUD, MainPort;
 (function() {
   var Commands, ELs, HUD, KeydownEvents, checkValidKey, currentSeconds //
-    , enterInsertModeOnly, executeFind, exitFindMode //
-    , exitInsertMode, findAndFocus, findChangeListened, findMode //
+    , executeFind, exitFindMode //
+    , findAndFocus, findChangeListened, findMode //
     , findModeAnchorNode, findModeQuery, findModeQueryHasResults, firstKeys //
     , focusFoundLink, followLink, frameId, getFullCommand //
     , getNextQueryFromRegexMatches, getVisibleInputs, goBy //
     , handleDeleteForFindMode, handleEnterForFindMode, handleEscapeForFindMode //
-    , handleKeyCharForFindMode, initIfEnabled, insertModeLock //
-    , isEnabledForUrl, isInjected, isInsertMode, keyQueue, mainPort //
+    , handleKeyCharForFindMode, initIfEnabled, InsertMode //
+    , isEnabledForUrl, isInjected, keyQueue, mainPort //
     , recentlyFocused, passKeys, performFindInPlace, requestHandlers //
     , restoreDefaultSelectionHighlight, secondKeys, setPassKeys, settings //
     , showFindModeHUDForQuery, updateFindModeQuery
@@ -18,8 +18,6 @@ var Settings, VHUD, MainPort;
   isInjected = window.VimiumInjector ? true : false;
 
   frameId = window.top === window ? 0 : Math.floor(Math.random() * 9999997) + 2;
-
-  insertModeLock = null;
 
   findMode = false;
   
@@ -191,17 +189,21 @@ var Settings, VHUD, MainPort;
         }
       }
     }, true);
-    // it seems window.addEventListener("focus") doesn't work (only now).
     window.addEventListener("focus", ELs.onfocus = function(event) {
       var target = event.target;
       if (target === window) { ELs.onWndFocus(); }
-      else if (!isEnabledForUrl || findMode) {}
+      else if (!isEnabledForUrl) {}
+      else if (findMode) {} // TODO: check findMode
       else if (DomUtils.getEditableType(target)) {
-        enterInsertModeOnly(target);
         // it seems we do not need to check getEditableType >= 2
+        InsertMode.lock = target;
         if (recentlyFocused.isSecond && recentlyFocused.ignore !== target) {
           recentlyFocused.target = target;
         }
+      } else if (target === InsertMode.lock) {}
+      else if (target = target.shadowRoot) {
+        target.addEventListener("focus", ELs.onfocus, true);
+        target.addEventListener("blur", ELs.onblur, true);
       }
     }, true);
     window.addEventListener("blur", ELs.onblur = function(event) {
@@ -209,15 +211,18 @@ var Settings, VHUD, MainPort;
       if (target === window) {
         if (Scroller.keyIsDown) { Scroller.keyIsDown = false; }
       } else if (!isEnabledForUrl) {}
-      else if (DomUtils.getEditableType(event.target)) {
-        exitInsertMode(event.target);
+      else if (InsertMode.lock === target) { InsertMode.lock = null; }
+      else if (target = target.shadowRoot) {
+        target.removeEventListener("focus", ELs.onfocus, true);
+        target.removeEventListener("blur", ELs.onblur, true);
+        target.addEventListener("blur", InsertMode.OnShadowBlur, true);
       }
     }, true);
     document.addEventListener("DOMActivate", ELs.onActivate = function(event) {
       Scroller.activatedElement = event.target;
     }, true);
-    if (document.activeElement && DomUtils.getEditableType(document.activeElement) >= 2 && !findMode) {
-      enterInsertModeOnly(document.activeElement);
+    if (document.activeElement !== document.body && DomUtils.getEditableType(document.activeElement) >= 2) {
+      InsertMode.lock = document.activeElement;
     }
   };
 
@@ -325,7 +330,7 @@ var Settings, VHUD, MainPort;
       findAndFocus(count, true);
     },
     enterInsertMode: function() {
-      enterInsertModeOnly();
+      InsertMode.global = true;
       HUD.show("Insert mode");
     },
     enterVisualMode: function() {}, // TODO
@@ -526,23 +531,23 @@ var Settings, VHUD, MainPort;
       }
       Scroller.keyIsDown = false;
     }
-    if (!isEnabledForUrl) {
-      return;
-    } else if (!handlerStack.bubbleEvent("keydown", event)) {
-      KeydownEvents[event.keyCode] = 1;
+    if (isEnabledForUrl) {
+      if (!handlerStack.bubbleEvent("keydown", event)) {
+        KeydownEvents[event.keyCode] = 1;
+        return;
+      }
+    } else {
       return;
     }
     var keyChar, key = event.keyCode, action = 0;
-    if (isInsertMode()) {
+    if (InsertMode.isActive()) {
       if (key === KeyCodes.esc) {
         if (KeyboardUtils.isPlain(event)) {
-          if (DomUtils.getEditableType(event.srcElement)) {
-            event.srcElement.blur();
-          }
-          exitInsertMode();
+          InsertMode.exit(event);
           action = 2;
         }
       }
+      else if (InsertMode.global) {}
       else if (key >= KeyCodes.f1 && key <= KeyCodes.f12) {
         keyChar = getFullCommand(event, KeyboardUtils.getKeyName(event));
         action = checkValidKey(keyChar);
@@ -634,27 +639,39 @@ var Settings, VHUD, MainPort;
     }
   };
 
-  enterInsertModeOnly = function(target) {
-    insertModeLock = target;
-  };
-
-  exitInsertMode = function(target) {
-    if (target === undefined || insertModeLock === target) {
-      insertModeLock = null;
-      HUD.hide();
+  InsertMode = {
+    global: false,
+    lock: null,
+    isActive: function() {
+      if (this.lock !== null || this.global) {
+        return true;
+      } else if (document.activeElement.isContentEditable) {
+        this.lock = document.activeElement;
+        return true;
+      } else {
+        return false;
+      }
+    },
+    exit: function(event) {
+      if (this.global) {
+        this.lock = null, this.global = false;
+        HUD.hide();
+      }
+      var target = event.srcElement;
+      if (target.shadowRoot) {
+        if (target = this.lock) {
+          this.lock = null;
+          target.blur();
+        }
+      } else {
+        if (target === this.lock) { this.lock = null; }
+        DomUtils.getEditableType(target) && target.blur();
+      }
+    },
+    OnShadowBlur: function(event) {
+      this.removeEventListener("blur", InsertMode.OnShadowBlur, true);
+      ELs.onblur(event);
     }
-  };
-
-  isInsertMode = function() {
-    if (insertModeLock !== null) {
-      return true;
-    }
-    var el = document.activeElement;
-    if (el && el.isContentEditable) {
-      enterInsertModeOnly(el);
-      return true;
-    }
-    return false;
   };
 
   getVisibleInputs = function(pathSet) {
