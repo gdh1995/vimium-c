@@ -919,7 +919,7 @@ var g_requestHandlers;
           name: "settings",
           load: Settings.bufferToLoad,
           response: ((request = request.request) //
-            ? requestHandlers[request.handler](request, port.sender.tab.id) : null)
+            ? requestHandlers[request.handler](request, port) : null)
         });
         break;
       case "reg":
@@ -1145,8 +1145,8 @@ var g_requestHandlers;
         return ret;
       }
     },
-    init: function(request, tabId) {
-      var pass = Exclusions.getPattern(request.url);
+    init: function(request, port) {
+      var pass = Exclusions.getPattern(request.url), tabId = port.sender.tab.id;
       // NOTE: we needn't to store url into urlForTab here.
       if (request.focused) {
         urlForTab[tabId] = request.url;
