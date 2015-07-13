@@ -1034,7 +1034,8 @@ var g_requestHandlers;
     });
   };
 
-  // function (request, Tab [1] tabs = [selected] <% if .useTab is 1 else %> null);
+  // Signature: function(request, opt);
+  // opt: Tab [1] tabs = [selected] <% if .useTab is 1 else %> Port port
   g_requestHandlers = requestHandlers = {
     __proto__: null,
     setSetting: function(request) {
