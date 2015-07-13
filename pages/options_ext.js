@@ -153,7 +153,8 @@ CheckBoxOption = (function(_super) {
     $("exportButton").disabled = false;
     status = 0;
     setTimeout(function () {
-      window.onfocus();
+      var event = new FocusEvent("focus");
+      window.dispatchEvent(event)
       if (Option.syncToFrontend) {
         bgSettings.postUpdate("bufferToLoad", null);
         bgSettings.postUpdate("broadcast", {
