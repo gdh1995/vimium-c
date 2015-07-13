@@ -243,7 +243,7 @@ var Settings, VHUD, MainPort;
       }
     },
     toggleLinkHintCharacters: function(_0, options) {
-      var values = settings.values, val = options.value || "asdghjkl";
+      var values = settings.values, val = options.value || "sadjklewcmpgh";
       if (values.linkHintCharacters === val) {
         val = values.linkHintCharacters = values.oldLinkHintCharacters;
         values.oldLinkHintCharacters = "";

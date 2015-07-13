@@ -170,7 +170,7 @@ var Settings = {
     findModeRawQuery: "",
     hideHud: false,
     keyMappings: "",
-    linkHintCharacters: "asdqwerzxcv",
+    linkHintCharacters: "sadjklewcmpgh",
     linkHintNumbers: "1234567890",
     newTabUrl: "",
     nextPatterns: "next,more,>,\u2192,\xbb,\u226b,>>",
