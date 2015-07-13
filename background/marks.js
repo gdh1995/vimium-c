@@ -4,7 +4,7 @@ var Marks = {
   __proto__: null,
   createMark: function(request, tabs) {
     if (!request.scroll) {
-      g_requestHandlers.sendToTab({
+      g_requestHandlers.SendToTab({
         name: "createMark",
         markName: request.markName,
         force: true,
@@ -46,7 +46,7 @@ var Marks = {
   gotoTab: function(markInfo, tab) {
     var tabId = tab.id;
     if (markInfo.scroll) {
-      g_requestHandlers.sendToTab({
+      g_requestHandlers.SendToTab({
         name: "scroll", frameId: 0,
         scroll: markInfo.scroll,
         markName: markInfo.markName
@@ -72,7 +72,7 @@ var Marks = {
         storage.removeItem(key);
       }
     }
-    g_requestHandlers.sendToCurrent({
+    g_requestHandlers.SendToCurrent({
       name: "showHUD",
       text: "Global marks have been cleared.",
       time: 1500

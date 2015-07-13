@@ -611,7 +611,7 @@ var g_requestHandlers;
     },
     clearCS: function(tabs) {
       ContentSettings.clear(currentCommand.options.type, tabs[0]);
-      requestHandlers.sendToCurrent({
+      requestHandlers.SendToCurrent({
         name: "showHUD",
         text: "Image content settings have been cleared.",
         time: 1500
@@ -1218,8 +1218,8 @@ var g_requestHandlers;
         url: request.url
       }, funcDict.focusOrLaunch.bind(null, request));
     },
-    sendToTab: sendToTab,
-    sendToCurrent: function(request) {
+    SendToTab: sendToTab,
+    SendToCurrent: function(request) {
       var port = currentCommand.port;
       try {
         port && port.postMessage(request);

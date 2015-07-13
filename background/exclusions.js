@@ -44,10 +44,10 @@ var Exclusions = {
   },
   onURLChange: (Settings.CONST.ChromeVersion >= 41
   ? function(details) {
-    g_requestHandlers.sendToTab(g_requestHandlers.checkIfEnabled(details)
+    g_requestHandlers.SendToTab(g_requestHandlers.checkIfEnabled(details)
       , details.tabId, details.frameId, {name: "checkIfEnabled"});
   } : function(details) {
-    g_requestHandlers.sendToTab({name: "checkIfEnabled"}, details.tabId);
+    g_requestHandlers.SendToTab({name: "checkIfEnabled"}, details.tabId);
   }),
   Format: function(rules) {
     var keyRegex = Commands.keyRegex, _i, rule, pattern, pass, arr, out = [];
