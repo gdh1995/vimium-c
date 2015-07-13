@@ -668,13 +668,21 @@ var g_requestHandlers;
     blank: function() {},
     openCopiedUrlInCurrentTab: function() {
       var url = requestHandlers.getCopiedUrl_f(currentCommand.options);
-      chrome.tabs.update(null, {
-        url: url
-      }, funcDict.onRuntimeError);
+      chrome.tabs.update(null, { url: url }, funcDict.onRuntimeError);
     },
     openCopiedUrlInNewTab: function(tabs) {
       var url = requestHandlers.getCopiedUrl_f(currentCommand.options);
       openMultiTab(url, commandCount, tabs[0]);
+    },
+    openUrl: function() {
+      var url = Utils.convertToUrl(currentCommand.options.url || "");
+      if (currentCommand.options.newTab === false) {
+        chrome.tabs.update(null, { url: url }, funcDict.onRuntimeError);
+        return;
+      }
+      chrome.tabs.query({currentWindow: true, active: true}, function(tabs) {
+        openMultiTab(url, commandCount, tabs[0]);
+      });
     },
     togglePinTab: function(tabs) {
       var tab = funcDict.selectFrom(tabs), i = tab.index
@@ -1345,7 +1353,7 @@ var g_requestHandlers;
       ref2[ref[i]].useTab = 2;
     }
     ref = ["createTab", "restoreTab", "restoreGivenTab", "blank", "reloadTab" //
-      , "moveTabToNewWindow", "reloadGivenTab" //
+      , "moveTabToNewWindow", "reloadGivenTab", "openUrl" //
       , "moveTabToIncognito", "openCopiedUrlInCurrentTab", "clearGlobalMarks" //
     ];
     for (i = ref.length; 0 <= --i; ) {

@@ -99,7 +99,7 @@ Commands.commandGroups = {
     , "goPrevious", "goNext", "nextFrame", "mainFrame"
     , "enterInsertMode", "enterVisualMode", "enterVisualLineMode"
     , "Marks.activateCreateMode", "Marks.activateGotoMode"
-    , "Marks.clearLocal", "clearGlobalMarks"
+    , "Marks.clearLocal", "clearGlobalMarks", "openUrl"
     ],
   vomnibarCommands: ["Vomnibar.activate", "Vomnibar.activateInNewTab"
     , "Vomnibar.activateBookmarks", "Vomnibar.activateBookmarksInNewTab", "Vomnibar.activateHistory"
@@ -116,7 +116,7 @@ Commands.commandGroups = {
     , "toggleSwitchTemp", "debugBackground", "blank"]
 };
 Commands.advancedCommands = ["scrollToLeft", "scrollToRight", "moveTabToNextWindow"
-  , "moveTabToNewWindow", "moveTabToIncognito", "reloadGivenTab"
+  , "moveTabToNewWindow", "moveTabToIncognito", "reloadGivenTab", "openUrl"
   , "goUp", "goToRoot", "focusInput", "LinkHints.activateModeWithQueue", "enableCSTemp"
   , "toggleCS", "clearCS", "LinkHints.activateModeToDownloadImage", "reopenTab"
   , "LinkHints.activateModeToOpenImage", "searchAs", "removeRightTab"
@@ -660,6 +660,12 @@ Commands.defaultKeyMappings = {
     "Remove all global marks", {
       background: true,
       repeat: 1
+    }
+  ],
+  "openUrl": [
+    "open url (use url: string, newTab: bool)", {
+      background: true,
+      repeat: 20
     }
   ]
 });
