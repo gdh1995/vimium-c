@@ -236,7 +236,7 @@ Commands.defaultKeyMappings = {
     }
   ],
   toggleSwitchTemp: [
-    "Toggle switch only in currnet page (use key)", {
+    "Toggle switch only in currnet page (use key[, value])", {
       repeat: 1
     }
   ],

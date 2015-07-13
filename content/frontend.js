@@ -236,7 +236,8 @@ var Settings, VHUD, MainPort;
       var key = options.key, values = settings.values;
       if (typeof values[key] !== "boolean") {
         HUD.showForDuration("`" + key + "` is not a boolean switch", 2000);
-      } else if (values[key] = !values[key]) {
+      } else if (values[key] = typeof options.value === "boolean"
+          ? options.value : !values[key]) {
         HUD.showForDuration("Now `" + key + "` is on.", 1000);
       } else {
         HUD.showForDuration("`" + key + "` has been turned off", 1000);
