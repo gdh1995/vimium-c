@@ -96,6 +96,10 @@ var Utils = {
       type = string.length < oldString.length && string.indexOf('/', 9) === -1
         ? 2 : 0;
     }
+    else if (string.startsWith("vimium:")) {
+      type = 0;
+      oldString = chrome.runtime.getURL("/") + oldString.substring(9);
+    }
     else if (index2 = string.indexOf('/', index += 3),
         string.length >= oldString.length) {
       string = string.substring(index, index2 !== -1 ? index2 : undefined);
