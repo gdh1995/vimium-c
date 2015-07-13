@@ -517,6 +517,7 @@ var Settings, VHUD, MainPort;
     if (!isEnabledForUrl || !handlerStack.bubbleEvent("keypress", event)) {
       return;
     }
+    var keyChar;
     if (findMode && (keyChar = String.fromCharCode(event.charCode))) {
       handleKeyCharForFindMode(keyChar);
       DomUtils.suppressEvent(event);
