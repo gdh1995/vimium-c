@@ -69,7 +69,7 @@ if (Settings.get("vimSync") === true) {
 }
 
 if (chrome.browserAction && chrome.browserAction.setIcon) (function() {
-  g_requestHandlers.setIcon = function(tabId, type, pass) {
+  g_requestHandlers.SetIcon = function(tabId, type, pass) {
     chrome.browserAction.setIcon({
       tabId: tabId,
       path: Settings.icons[type ||

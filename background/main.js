@@ -1123,7 +1123,7 @@ var g_requestHandlers;
         }
         if (needIcon) {
           urlForTab[tabId] = request.url;
-          requestHandlers.setIcon(tabId, request.status);
+          requestHandlers.SetIcon(tabId, request.status);
         }
       }
       port.postMessage({
@@ -1137,7 +1137,7 @@ var g_requestHandlers;
       //     it won't crash with ours
       if (needIcon && (frames = frameIdsForTab[request.tabId])
           && frames[0] === request.frameId) {
-        requestHandlers.setIcon(request.tabId, null, pattern);
+        requestHandlers.SetIcon(request.tabId, null, pattern);
       }
       ret = { name: "reset", passKeys: pattern };
       if (port) {
@@ -1151,7 +1151,7 @@ var g_requestHandlers;
       if (request.focused) {
         if (needIcon) {
           urlForTab[tabId] = request.url;
-          requestHandlers.setIcon(tabId, null, pass);
+          requestHandlers.SetIcon(tabId, null, pass);
         }
       }
       return {
@@ -1207,7 +1207,6 @@ var g_requestHandlers;
     refreshCompleter: function(request) {
       Completers[request.omni].refresh();
     },
-    setIcon: function() {},
     esc: resetKeys,
     createMark: Marks.createMark,
     gotoMark: Marks.gotoMark,
@@ -1218,6 +1217,7 @@ var g_requestHandlers;
         url: request.url
       }, funcDict.focusOrLaunch.bind(null, request));
     },
+    SetIcon: function() {},
     SendToTab: sendToTab,
     SendToCurrent: function(request) {
       var port = currentCommand.port;

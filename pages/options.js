@@ -268,7 +268,7 @@ chrome.tabs.query({currentWindow: true, active: true}, function(tab) {
     // Here, since the popup page is showing, needIcon must be true.
     // Although the tab calls window.onfocus after this popup page closes,
     // it is too early for the tab to know new exclusion rules.
-    BG.g_requestHandlers.setIcon(tab.id, null, bgExclusions.getPattern(url));
+    BG.g_requestHandlers.SetIcon(tab.id, null, bgExclusions.getPattern(url));
   };
   $("saveOptions").onclick = saveOptions;
   document.addEventListener("keyup", function(event) {
