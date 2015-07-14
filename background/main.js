@@ -1113,7 +1113,6 @@ var g_requestHandlers;
     frameFocused: function(request, port) {
       var tabId = request.tabId, frames;
       if (tabId) {
-        urlForTab[tabId] = request.url;
         // frames would be undefined if in a tab, all "reg" messages were sent
         //   to a closing port, which means the frontend tried `runtime.connect`
         //   but background kept not prepared.
@@ -1123,6 +1122,7 @@ var g_requestHandlers;
           frames[0] = request.frameId;
         }
         if (needIcon) {
+          urlForTab[tabId] = request.url;
           requestHandlers.setIcon(tabId, request.status);
         }
       }
@@ -1149,8 +1149,8 @@ var g_requestHandlers;
     init: function(request, port) {
       var pass = Exclusions.getPattern(request.url), tabId = port.sender.tab.id;
       if (request.focused) {
-        urlForTab[tabId] = request.url;
         if (needIcon) {
+          urlForTab[tabId] = request.url;
           requestHandlers.setIcon(tabId, null, pass);
         }
       }
