@@ -1148,7 +1148,6 @@ var g_requestHandlers;
     },
     init: function(request, port) {
       var pass = Exclusions.getPattern(request.url), tabId = port.sender.tab.id;
-      // NOTE: we needn't to store url into urlForTab here.
       if (request.focused) {
         urlForTab[tabId] = request.url;
         if (needIcon) {
