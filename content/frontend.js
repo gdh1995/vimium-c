@@ -351,7 +351,7 @@ var Settings, VHUD, MainPort;
       window.location.reload();
     },
     switchFocus: function(_0, options) {
-      if (options.ignore !== undefined) {
+      if (options.ignore) {
         recentlyFocused.ignore = options.ignore;
         return;
       }
