@@ -1043,7 +1043,7 @@ var g_requestHandlers;
     },
     parseSearchUrl: function(request) {
       var url = request.url, map, decoders, pattern, _i, str, arr;
-      if (!Utils.hasOrdinaryUrlPrefix(url)) {
+      if (!(Utils.hasOrdinaryUrlPrefix(url) || url.startsWith("chrome-"))) {
         return "";
       }
       map = Settings.get("searchEnginesMap");

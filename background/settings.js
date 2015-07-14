@@ -133,7 +133,9 @@ var Settings = {
   },
   reparseSearchUrl: function (pattern, name) {
     var url, ind = pattern.$s || pattern.$S, prefix;
-    if (!ind || !Utils.hasOrdinaryUrlPrefix(url = pattern.url)) { return; }
+    if (!ind) { return; }
+    url = pattern.url.toLowerCase();
+    if (!(Utils.hasOrdinaryUrlPrefix(url) || url.startsWith("chrome-"))) { return; }
     url = url.substring(0, ind - 1);
     if (ind = (url.indexOf("?") + 1) || (url.indexOf("#") + 1)) {
       prefix = url.substring(0, ind - 1);
@@ -142,11 +144,7 @@ var Settings = {
         url = url.substring(ind);
       }
       if (url && url !== "=" && !url.endsWith("/")) {
-        url = url.toLowerCase().replace(RegexpCache._escapeRegex, "\\$&");
-        if (prefix.startsWith("https://")) {
-          prefix = "http" + prefix.substring(5);
-        }
-        return [prefix, new RegExp("[?#&]" + url + "([^&#]*)", "i"), name];
+        return this.makeReparser(prefix, "[?#&]", url, "([^&#]*)", name)
       }
       url = pattern.url.substring(0, (pattern.$s || pattern.$S) - 1);
     }
@@ -155,11 +153,16 @@ var Settings = {
     if (ind = (url.indexOf("?") + 1) || (url.indexOf("#") + 1)) {
       url = url.substring(0, ind);
     }
+    return this.makeReparser(prefix, "^([^?#]*)", url, "", name);
+  },
+  makeReparser: function(head, prefix, url, suffix, name) {
     url = url.toLowerCase().replace(RegexpCache._escapeRegex, "\\$&");
-    if (prefix.startsWith("https://")) {
-      prefix = "http" + prefix.substring(5);
+    if (head.startsWith("https://")) {
+      head = "http" + head.substring(5);
+    } else if (head.toLowerCase().startsWith("vimium://")) {
+      head = chrome.runtime.getURL("/") + head.substring(9);
     }
-    return [prefix, new RegExp("^([^?#]*)" + url, "i"), name];
+    return [head, new RegExp(prefix + url + suffix, "i"), name];
   },
   // clear localStorage & sync, if value === @defaults[key]
   defaults: {
