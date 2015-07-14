@@ -282,6 +282,12 @@ chrome.tabs.query({currentWindow: true, active: true}, function(tab) {
   exclusions = new ExclusionRulesOnPopupOption(url, "exclusionRules", onUpdated);
   updateState();
   $("optionsLink").href = bgSettings.CONST.OptionsPage;
+  $("optionsLink").onclick = function(event) {
+    BG.g_requestHandlers.focusOrLaunch({ url: this.href });
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    window.close();
+  };
   window.onunload = function() {
     if (hasNew) {
       bgExclusions.rebuildRegex();

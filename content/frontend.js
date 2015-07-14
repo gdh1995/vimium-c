@@ -1286,10 +1286,7 @@ var Settings, VHUD, MainPort;
     if (! window.location.href.startsWith(response.optionUrl)) {
       node1.href = response.optionUrl;
       node1.onclick = function(event) {
-        mainPort.port.postMessage({
-          handler: "focusOrLaunch",
-          url: container.querySelector("#vimOptionsPage").href
-        })
+        mainPort.port.postMessage({ handler: "focusOrLaunch", url: this.href });
         hide();
         DomUtils.suppressEvent(event);
       };
