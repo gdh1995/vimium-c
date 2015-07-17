@@ -1094,7 +1094,7 @@ var g_requestHandlers;
     },
     openImageUrl: function(request, tabs) {
       var url = encodeURIComponent(request.url);
-      openMultiTab("/pages/show.html#?image=" + url, 1, tabs[0]);
+      openMultiTab("/pages/show.html#!image=" + url, 1, tabs[0]);
     },
     openUrlInNewTab: function(request, tabs) {
       openMultiTab(Utils.convertToUrl(request.url, request.keyword), 1, tabs[0]);
