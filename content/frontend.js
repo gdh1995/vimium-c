@@ -209,6 +209,9 @@ var Settings, VHUD, MainPort;
     window.addEventListener("blur", ELs.onBlur = function(event) {
       var target = event.target;
       if (target === window) {
+        // NOTE: Scroller will be set null when destroying, and window.onblur
+        //   won't be used any more, so we needn't make Scroller {}
+        // NOTE: so does InsertMode
         if (Scroller.keyIsDown) { Scroller.keyIsDown = false; }
       } else if (!isEnabledForUrl) {}
       else if (InsertMode.lock === target) { InsertMode.lock = null; }
@@ -1401,9 +1404,9 @@ var Settings, VHUD, MainPort;
     }
     Commands = requestHandlers = MainPort = VHUD = mainPort = KeydownEvents = //
     VRect = Utils = KeyboardUtils = DomUtils = handlerStack = Scroller = //
-    currentSeconds = initIfEnabled = setPassKeys = checkValidKey = //
+    currentSeconds = initIfEnabled = setPassKeys = checkValidKey = InsertMode = //
     KeyCodes = passKeys = firstKeys = secondKeys = recentlyFocused = Marks = func = //
-    settings.onDestroy = null;
+    settings.onDestroy = findModeQuery = null;
 
     console.log("%cVimium++ %c#%d%c in %c%s%c has destroyed at %o." //
       , "color:red", "color:blue", frameId, "color:auto"
