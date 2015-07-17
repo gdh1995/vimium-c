@@ -667,12 +667,21 @@ var g_requestHandlers;
     },
     blank: function() {},
     openCopiedUrlInCurrentTab: function() {
-      var url = requestHandlers.getCopiedUrl_f(currentCommand.options);
-      chrome.tabs.update(null, { url: url }, funcDict.onRuntimeError);
+      requestHandlers.openCopiedUrlInNewTab([]);
     },
     openCopiedUrlInNewTab: function(tabs) {
       var url = requestHandlers.getCopiedUrl_f(currentCommand.options);
-      openMultiTab(url, commandCount, tabs[0]);
+      if (!url) {
+        requestHandlers.SendToCurrent({
+          name: "showHUD",
+          text: "No text copied!",
+          time: 1000
+        });
+      } else if (tabs.length > 0) {
+        openMultiTab(url, commandCount, tabs[0]);
+      } else {
+        chrome.tabs.update(null, { url: url }, funcDict.onRuntimeError);
+      }
     },
     openUrl: function() {
       var url = Utils.convertToUrl(currentCommand.options.url || "");
