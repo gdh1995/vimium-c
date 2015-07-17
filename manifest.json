@@ -28,7 +28,7 @@
       "suggested_key": {
         "default": "Alt+T"
       },
-      "description": "Create a new tab"
+      "description": "Create new tab(s)"
     },
     "reloadTab": {
       "suggested_key": {
