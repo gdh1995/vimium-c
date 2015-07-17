@@ -750,10 +750,14 @@ var g_requestHandlers;
       }
     },
     goToRoot: function(tabs) {
-      var url;
-      url = tabs[0].url;
+      var url = tabs[0].url, ind;
       if (url.indexOf("://") === -1) { return; }
-      url = (new URL(url)).origin;
+      ind = url.indexOf("#!");
+      if (ind !== -1) {
+        url = url.substring(0, ind);
+      } else {
+        url = (new URL(url)).origin;
+      }
       chrome.tabs.update(null, {url: url});
     },
     moveTabLeft: function(tabs) {
