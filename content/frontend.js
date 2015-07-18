@@ -1252,7 +1252,6 @@ var Settings, VHUD, MainPort;
       DomUtils.removeNode(container);
       Commands.showHelp = oldShowHelp;
       settings.onDestroy.helpDialog = null;
-      container.innerHTML = "";
       container = null;
     };
     showAdvancedCommands = function(visible) {
@@ -1260,7 +1259,7 @@ var Settings, VHUD, MainPort;
       container.querySelector("#vimAdvancedCommands").innerHTML = visible
         ? "Hide advanced commands" : "Show advanced commands...";
       advancedEls = container.getElementsByClassName("vimHelpAdvanced");
-      visible = visible ? "table-row" : "none";
+      visible = visible ? "" : "none";
       for (_i = 0, _len = advancedEls.length; _i < _len; _i++) {
         el = advancedEls[_i];
         el.style.display = visible;
