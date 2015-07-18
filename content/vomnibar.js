@@ -86,8 +86,7 @@ var Vomnibar = {
   },
   destroy: function() {
     if (this.vomnibarUI.box) {
-      this.vomnibarUI.hide();
-      DomUtils.removeNode(this.vomnibarUI.box);
+      this.vomnibarUI.destroy();
     }
     Vomnibar = null;
   }
@@ -405,8 +404,8 @@ Vomnibar.vomnibarUI = {
     this.completer = completer;
     this.onTimer = this.onTimer.bind(this);
     this.onCompletions = this.onCompletions.bind(this);
-    box.addEventListener("keyup", this.onKeyEvent.bind(this));
-    box.addEventListener("click", this.onClick.bind(this));
+    box.addEventListener("keyup", this.onKeyEvent = this.onKeyEvent.bind(this));
+    box.addEventListener("click", this.onClick = this.onClick.bind(this));
     box.addEventListener("mousewheel", DomUtils.suppressPropagation);
     this.init = null;
   },
@@ -443,6 +442,15 @@ Vomnibar.vomnibarUI = {
     rect = VRect.fromClientRect(li.getBoundingClientRect());
     rect[0] += 10, rect[2] -= 12, rect[3] -= 3;
     return rect;
+  },
+  destroy: function() {
+    var box = this.box;
+    box.removeEventListener("keyup", this.onKeyEvent);
+    box.removeEventListener("click", this.onClick);
+    box.removeEventListener("mousewheel", DomUtils.suppressPropagation);
+    this.input.oninput = null;
+    DomUtils.removeNode(box);
+    Vomnibar.vomnibarUI = null;
   }
 };
 
