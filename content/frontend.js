@@ -1244,10 +1244,8 @@ var Settings, VHUD, MainPort;
     container.id = "vimHelpDialogContainer";
     container.innerHTML = response.html;
     document.documentElement.appendChild(container);
-    container.addEventListener("mousewheel", hide = function(event) {
-      event.stopImmediatePropagation();
-    }, false);
-    container.addEventListener("click", hide, false);
+    container.addEventListener("mousewheel", DomUtils.suppressPropagation);
+    container.addEventListener("click", DomUtils.suppressPropagation);
 
     hide = function() {
       handlerStack.remove(handlerId);
