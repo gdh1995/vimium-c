@@ -762,7 +762,7 @@ var g_requestHandlers;
       var url = tabs[0].url, ind;
       if (url.indexOf("://") === -1) { return; }
       ind = url.indexOf("#!");
-      if (ind !== -1) {
+      if (ind !== -1 && url.length > ind + 3) {
         url = url.substring(0, ind);
       } else {
         url = (new URL(url)).origin;
