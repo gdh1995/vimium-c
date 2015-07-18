@@ -401,10 +401,7 @@ var Settings, VHUD, MainPort;
       }, requestHandlers.showHelpDialog);
     },
     autoCopy: function() {
-      var sel = document.getSelection(), str;
-      if (sel.type !== "Range" || !(str = sel.toString().trim())) {
-        str = document.title.trim();
-      }
+      var str = DomUtils.getSelectionText() || document.title.trim();
       if (str = str.replace(Utils.spacesRegex, ' ').trim()) {
         mainPort.port.postMessage({
           handler: "copyToClipboard",
@@ -416,39 +413,34 @@ var Settings, VHUD, MainPort;
       }
     },
     autoOpen: function(_0, options) {
-      var sel = document.getSelection(), str;
-      if (sel.type === "Range" && (str = sel.toString().trim())) {
-        if (! Utils.evalIfOK(str)) {
-          mainPort.port.postMessage({
-            handler: "openUrlInNewTab",
-            keyword: options.keyword,
-            url: str
-          });
-        }
+      var str;
+      if (str = DomUtils.getSelectionText()) {
+        Utils.evalIfOK(str) || mainPort.port.postMessage({
+          handler: "openUrlInNewTab",
+          keyword: options.keyword,
+          url: str
+        });
         return;
       }
       mainPort.sendMessage({
         handler: "getCopiedUrl_f",
         keyword: options.keyword
       }, function(str) {
-        if (!str) {
+        if (str) {
+          Utils.evalIfOK(str) || mainPort.port.postMessage({
+            handler: "openUrl_fInNewTab",
+            url: str
+          });
+        } else {
           HUD.showForDuration("No text found!", 1000);
-          return;
         }
-        if (Utils.evalIfOK(str)) { return; }
-        mainPort.port.postMessage({
-          handler: "openUrl_fInNewTab",
-          url: str
-        });
       });
     },
     searchAs: function() {
-      var sel = document.getSelection(), str;
-      str = sel.type === "Range" ? sel.toString().trim() : "";
       mainPort.sendMessage({
         handler: "searchAs",
         url: window.location.href,
-        search: str
+        search: DomUtils.getSelectionText()
       }, function(response) {
         if (response) {
           HUD.showForDuration("No " + response + " found!", 1000);
@@ -806,7 +798,7 @@ var Settings, VHUD, MainPort;
       }, 1000);
     }
     findMode = oldFindMode;
-    findModeAnchorNode = document.getSelection().anchorNode;
+    findModeAnchorNode = window.getSelection().anchorNode;
   };
 
   restoreDefaultSelectionHighlight = function() {
