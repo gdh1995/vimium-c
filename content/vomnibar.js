@@ -34,19 +34,17 @@ var Vomnibar = {
     vomnibarUI.forceNewTab = forceNewTab ? true : false;
     if (!initialQueryValue) {
       vomnibarUI.reset();
-      return;
     } else if (typeof initialQueryValue === "string") {
       vomnibarUI.reset(initialQueryValue);
-      return;
-    }
-    if (initialQueryValue = DomUtils.getSelectionText()) {
+    } else if (initialQueryValue = DomUtils.getSelectionText()) {
+      vomnibarUI.forceNewTab = true;
       this.ActivateText(initialQueryValue);
-      return;
+    } else {
+      MainPort.sendMessage({
+        handler: "parseSearchUrl",
+        url: window.location.href
+      }, this.ActivateText);
     }
-    MainPort.sendMessage({
-      handler: "parseSearchUrl",
-      url: window.location.href
-    }, this.ActivateText);
   },
   ActivateText: function(url) {
     if (url) {
