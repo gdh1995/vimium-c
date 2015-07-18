@@ -39,16 +39,21 @@ var Vomnibar = {
       vomnibarUI.reset(initialQueryValue);
       return;
     }
+    if (initialQueryValue = DomUtils.getSelectionText()) {
+      this.ActivateText(initialQueryValue);
+      return;
+    }
     MainPort.sendMessage({
       handler: "parseSearchUrl",
       url: window.location.href
-    }, function(url) {
-      if (url) {
-        Vomnibar.vomnibarUI.reset(url, url.indexOf(' ') + 1, url.length);
-      } else {
-        Vomnibar.vomnibarUI.reset(Utils.decodeURL(window.location.href));
-      }
-    });
+    }, this.ActivateText);
+  },
+  ActivateText: function(url) {
+    if (url) {
+      Vomnibar.vomnibarUI.reset(url, url.indexOf(' ') + 1, url.length);
+    } else {
+      Vomnibar.vomnibarUI.reset(Utils.decodeURL(window.location.href));
+    }
   },
   activate: function(_0, options) {
     var keyword = options.keyword;

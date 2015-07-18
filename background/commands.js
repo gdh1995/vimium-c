@@ -621,12 +621,12 @@ Commands.defaultKeyMappings = {
     }
   ],
   "Vomnibar.activateEditUrl": [
-    "Edit the current URL", {
+    "Edit & open selected text or current URL", {
       repeat: 1
     }
   ],
   "Vomnibar.activateEditUrlInNewTab": [
-    "Edit the current URL and open in a new tab", {
+    "Edit & open selected text or current URL in new tab", {
       repeat: 1
     }
   ],
