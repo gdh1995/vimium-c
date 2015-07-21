@@ -529,7 +529,7 @@ Vomnibar.background = {
     return out.join("");
   },
   cutUrl: function(string, ranges, strCoded) {
-    if (ranges.length === 0 || Utils.jsUrlRegex.test(string)) {
+    if (ranges.length === 0 || string.substring(0, 11).toLowerCase() === "javascript:") {
       if (string.length <= this.maxCharNum) {
         return Utils.escapeHtml(string);
       } else {
