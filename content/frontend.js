@@ -916,7 +916,7 @@ var Settings, VHUD, MainPort;
       if (computedStyle.getPropertyValue("visibility") !== "visible" || computedStyle.getPropertyValue("display") === "none") {
         continue;
       }
-      linkString = link.innerText.toLowerCase();
+      linkString = (link.innerText || link.title).toLowerCase();
       for (_j = 0, _len1 = linkStrings.length; _j < _len1; _j++) {
         if (linkString.indexOf(linkStrings[_j]) !== -1) {
           candidateLinks.push(link);
@@ -930,7 +930,7 @@ var Settings, VHUD, MainPort;
     }
     while (0 <= --_len) {
       link = candidateLinks[_len];
-      link.wordCount = link.innerText.trim().split(/\s+/).length;
+      link.wordCount = (link.innerText || link.title).trim().split(/\s+/).length;
       link.originalIndex = _len;
     }
     candidateLinks = candidateLinks.sort(function(a, b) {
@@ -946,7 +946,7 @@ var Settings, VHUD, MainPort;
         ? new RegExp("\\b" + linkString + "\\b", "i") : new RegExp(linkString, "i");
       for (_j = 0, _len1 = candidateLinks.length; _j < _len1; _j++) {
         link = candidateLinks[_j];
-        if (exactWordRegex.test(link.innerText)) {
+        if (exactWordRegex.test(link.innerText || link.title)) {
           followLink(link);
           return true;
         }
