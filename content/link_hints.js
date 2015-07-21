@@ -102,8 +102,9 @@ var LinkHints = {
       this.initTimer = 0;
     }
     this.setOpenLinkMode(mode);
-    var elements = this.getVisibleClickableElements(), rect, style, width, height;
+    var elements, rect, style, width, height;
 
+    elements = this.getVisibleClickableElements(document);
     if (Settings.values.filterLinkHints) {
       this.markerMatcher = this.filterHints;
       elements.sort(function(a, b) {
@@ -279,39 +280,45 @@ var LinkHints = {
     }
   },
   imageUrlRegex: /\.(?:png|jpg|gif|jpeg|bmp|svg|ico|webp)\b/i,
-  GetImages: function(element) {
-    var str, rect, cr, w, h;
-    if (element.nodeName.toLowerCase() === "img") {
-      if (!element.src) { return; }
-      else if ((w = element.width) < 8 && (h = element.height) < 8) {
-        if (w !== h || (w !== 0 && w !== 3)) { return; }
-        rect = element.getBoundingClientRect();
-        w = rect.left, h = rect.top;
-        cr = VRect.cropRectToVisible(w, h, w + 8, h + 8);
-      } else if (DomUtils.isStyleVisible(element)) {
-        rect = element.getBoundingClientRect();
-        w = rect.right + (rect.width < 3 ? 3 : 0);
-        h = rect.bottom + (rect.height < 3 ? 3 : 0);
-        cr = VRect.cropRectToVisible(rect.left, rect.top, w, h);
-      }
-    } else if ((str = element.href) && LinkHints.imageUrlRegex.test(str)) {
-      cr = DomUtils.getVisibleClientRect(element);
+  GetImagesInImg: function(element) {
+    var rect, cr, w, h;
+    if (!element.src) { return; }
+    else if ((w = element.width) < 8 && (h = element.height) < 8) {
+      if (w !== h || (w !== 0 && w !== 3)) { return; }
+      rect = element.getBoundingClientRect();
+      w = rect.left, h = rect.top;
+      cr = VRect.cropRectToVisible(w, h, w + 8, h + 8);
+    } else if (DomUtils.isStyleVisible(element)) {
+      rect = element.getBoundingClientRect();
+      w = rect.right + (rect.width < 3 ? 3 : 0);
+      h = rect.bottom + (rect.height < 3 ? 3 : 0);
+      cr = VRect.cropRectToVisible(rect.left, rect.top, w, h);
     }
     if (cr) {
       this.push([element, cr, true]);
     }
   },
-  getVisibleClickableElements: function() {
+  GetImagesInA: function(element) {
+    var str, cr;
+    if ((str = element.href) && LinkHints.imageUrlRegex.test(str)) {
+      if (cr = DomUtils.getVisibleClientRect(element)) {
+        this.push([element, cr, true]);
+      }
+    }
+  },
+  getVisibleClickableElements: function(container) {
     var output = [], visibleElements = [], visibleElement, rects, rects2, _len, _i;
     DomUtils.prepareCrop();
     if (this.mode == this.CONST.DOWNLOAD_IMAGE || this.mode == this.CONST.OPEN_IMAGE) {
-      output.forEach.call(document.querySelectorAll(
-        "a[href],img[src]"), this.GetImages.bind(visibleElements));
+      output.forEach.call(container.getElementsByTagName("img") //
+        , this.GetImagesInImg.bind(visibleElements));
+      output.forEach.call(container.getElementsByTagName("a") //
+        , this.GetImagesInA.bind(visibleElements));
     } else if (this.mode >= 136) {
-      output.forEach.call(document.querySelectorAll(
-          "a[href],a[data-vim-url]"), this.GetLinks.bind(visibleElements));
+      output.forEach.call(container.getElementsByTagName("a") //
+        , this.GetLinks.bind(visibleElements));
     } else {
-      output.forEach.call(document.documentElement.getElementsByTagName("*") //
+      output.forEach.call(container.getElementsByTagName("*") //
         , this.GetVisibleClickable.bind(visibleElements));
     }
     visibleElements.reverse();
