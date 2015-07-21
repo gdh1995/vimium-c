@@ -406,7 +406,7 @@ var Settings, VHUD, MainPort;
     },
     autoCopy: function() {
       var str = DomUtils.getSelectionText() || document.title.trim();
-      if (str = str.replace(Utils.spacesRegex, ' ').trim()) {
+      if (str = str.trim()) {
         mainPort.port.postMessage({
           handler: "copyToClipboard",
           data: str

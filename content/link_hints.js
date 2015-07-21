@@ -784,8 +784,8 @@ LinkHints.FUNC = {
       : (str = link.nodeName.toLowerCase()) === "textarea" ? link.value
       : str === "input" ? ((link.type in DomUtils.uneditableInputs) ? "" : link.value)
       // .innerText is "" if "display:block; height:0px; overflow:hidden; width:0px;"
-      : (link.innerText.trim() || Utils.decodeTextFromHtml(link.innerHTML));
-    str = (str.trim() || link.title).replace(Utils.spacesRegex, ' ').trim();
+      : (link.innerText || Utils.decodeTextFromHtml(link.innerHTML));
+    str = str.trim() || link.title.trim();
     if (!str) {
       VHUD.showForDuration("No text found", 1000);
       this.keepHUDAfterAct = true;
