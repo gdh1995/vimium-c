@@ -1025,7 +1025,7 @@ var Settings, VHUD, MainPort;
         this._durationTimer = 0;
       }
       el.innerText = text;
-      el.style.display = "";
+      el.style.visibility = "";
       if (!this._tweenId) {
         this._tweenId = setInterval(this.tween, 40);
       }
@@ -1042,7 +1042,7 @@ var Settings, VHUD, MainPort;
         }
       }
       if (opacity == 0) {
-        el.style.display = "none";
+        el.style.visibility = "hidden";
         el.innerText = "";
       }
       clearInterval(hud._tweenId);
@@ -1054,11 +1054,11 @@ var Settings, VHUD, MainPort;
         clearTimeout(hud._durationTimer);
         hud._durationTimer = 0;
       }
-      if (!(el = hud._element) || el.style.display === "none") {
+      if (!(el = hud._element) || el.style.visibility === "hidden") {
         return;
       }
       if (immediate) {
-        el.style.display = "none";
+        el.style.visibility = "hidden";
         el.innerText = "";
         el.style.opacity = 0;
       } else if (!hud._tweenId) {
