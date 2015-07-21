@@ -658,7 +658,7 @@ var Settings, VHUD, MainPort;
         this.lock = null, this.global = false;
         HUD.hide();
       }
-      var target = event.srcElement;
+      var target = event.target;
       if (target.shadowRoot) {
         if (target = this.lock) {
           this.lock = null;
