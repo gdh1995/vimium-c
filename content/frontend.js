@@ -195,6 +195,7 @@ var Settings, VHUD, MainPort;
       else if (!isEnabledForUrl) {}
       else if (findMode) {} // TODO: check findMode
       else if (DomUtils.getEditableType(target)) {
+        // NOTE: should not filter out `<select>` for windows
         InsertMode.lock = target;
         if (recentlyFocused.isSecond && recentlyFocused.ignore !== target) {
           recentlyFocused.target = target;
