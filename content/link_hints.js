@@ -387,7 +387,7 @@ var LinkHints = {
   activateLink: function(matchedLink) {
     var clickEl = matchedLink.clickableItem, temp, rect, parEl;
     this.delayMode = true;
-    if (this.mode < 128 && DomUtils.isSelectable(clickEl)) {
+    if (this.mode < 128 && DomUtils.getEditableType(clickEl)) {
       DomUtils.simulateSelect(clickEl);
       this.deactivate();
       return;
