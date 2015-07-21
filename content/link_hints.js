@@ -387,18 +387,10 @@ var LinkHints = {
   activateLink: function(matchedLink) {
     var clickEl = matchedLink.clickableItem, temp, rect, parEl;
     this.delayMode = true;
-    if (this.mode < 128) {
-      if (DomUtils.isSelectable(clickEl)) {
-        DomUtils.simulateSelect(clickEl);
-        this.deactivate();
-        return;
-      }
-      if (clickEl.nodeName.toLowerCase() === "input") {
-        temp = clickEl.type;
-        if (temp !== "button" && temp !== "submit" && temp !== "image") {
-          clickEl.focus();
-        }
-      }
+    if (this.mode < 128 && DomUtils.isSelectable(clickEl)) {
+      DomUtils.simulateSelect(clickEl);
+      this.deactivate();
+      return;
     }
     if (clickEl.classList.contains("vimOIUrl")
       && DomUtils.isDOMDescendant(Vomnibar.vomnibarUI.box, clickEl)) {
