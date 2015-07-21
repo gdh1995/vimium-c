@@ -195,7 +195,6 @@ var Settings, VHUD, MainPort;
       else if (!isEnabledForUrl) {}
       else if (findMode) {} // TODO: check findMode
       else if (DomUtils.getEditableType(target)) {
-        // it seems we do not need to check getEditableType >= 2
         InsertMode.lock = target;
         if (recentlyFocused.isSecond && recentlyFocused.ignore !== target) {
           recentlyFocused.target = target;
@@ -227,7 +226,8 @@ var Settings, VHUD, MainPort;
     document.addEventListener("DOMActivate", ELs.onActivate = function(event) {
       Scroller.activatedElement = event.target;
     }, true);
-    if (document.activeElement !== document.body && DomUtils.getEditableType(document.activeElement) >= 2) {
+    if (document.activeElement !== document.body
+        && DomUtils.getEditableType(document.activeElement)) {
       InsertMode.lock = document.activeElement;
     }
   };
@@ -383,7 +383,7 @@ var Settings, VHUD, MainPort;
       var el = document.activeElement;
       if (el && el === document.body) {
         Commands.switchFocus();
-      } else if (!DomUtils.isVisibile(el) || DomUtils.getEditableType(el) < 2) {
+      } else if (!DomUtils.isVisibile(el) || DomUtils.getEditableType(el) === 3) {
         return;
       }
       DomUtils.simulateBackspace(el);
