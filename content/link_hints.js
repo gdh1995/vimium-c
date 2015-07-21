@@ -385,15 +385,17 @@ var LinkHints = {
     return false;
   },
   activateLink: function(matchedLink) {
-    var clickEl = matchedLink.clickableItem, temp, rect, parEl;
+    var clickEl = matchedLink.clickableItem, temp, tempi, rect, parEl;
     this.delayMode = true;
-    if (this.mode < 128 && DomUtils.getEditableType(clickEl) === 3) {
-      DomUtils.simulateSelect(clickEl);
-      this.deactivate();
-      return;
-    }
-    if (clickEl.tagName.toLowerCase() === "input") {
-      clickEl.focus();
+    if (this.mode >= 128) {
+      tempi = DomUtils.getEditableType(clickEl);
+      if (tempi === 3) {
+        DomUtils.simulateSelect(clickEl);
+        this.deactivate();
+        return;
+      } else if (tempi) {
+        clickEl.focus();
+      }
     }
     if (clickEl.classList.contains("vimOIUrl")
       && DomUtils.isDOMDescendant(Vomnibar.vomnibarUI.box, clickEl)) {
