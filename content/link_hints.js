@@ -104,7 +104,7 @@ var LinkHints = {
     this.setOpenLinkMode(mode);
     var elements, rect, style, width, height;
 
-    elements = this.getVisibleClickableElements(document);
+    elements = this.getVisibleClickableElements();
     if (Settings.values.filterLinkHints) {
       this.markerMatcher = this.filterHints;
       elements.sort(function(a, b) {
@@ -307,8 +307,9 @@ var LinkHints = {
     }
   },
   getVisibleClickableElements: function(container) {
-    var output = [], visibleElements = [], visibleElement, rects, rects2, _len, _i;
+    var output = [], visibleElements = [], visibleElement, rects, rects2, _len, _i, container;
     DomUtils.prepareCrop();
+    container = document.webkitFullscreenElement || document;
     if (this.mode == this.CONST.DOWNLOAD_IMAGE || this.mode == this.CONST.OPEN_IMAGE) {
       output.forEach.call(container.getElementsByTagName("img") //
         , this.GetImagesInImg.bind(visibleElements));
