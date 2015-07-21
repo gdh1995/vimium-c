@@ -306,20 +306,19 @@ var LinkHints = {
       }
     }
   },
-  getVisibleClickableElements: function(container) {
-    var output = [], visibleElements = [], visibleElement, rects, rects2, _len, _i, container;
+  getVisibleClickableElements: function() {
+    var output = [], visibleElements = [], visibleElement, rects, rects2, _len, _i;
     DomUtils.prepareCrop();
-    container = document.webkitFullscreenElement || document;
     if (this.mode == this.CONST.DOWNLOAD_IMAGE || this.mode == this.CONST.OPEN_IMAGE) {
-      output.forEach.call(container.getElementsByTagName("img") //
+      output.forEach.call(document.getElementsByTagName("img") //
         , this.GetImagesInImg.bind(visibleElements));
-      output.forEach.call(container.getElementsByTagName("a") //
+      output.forEach.call(document.getElementsByTagName("a") //
         , this.GetImagesInA.bind(visibleElements));
     } else if (this.mode >= 136) {
-      output.forEach.call(container.getElementsByTagName("a") //
+      output.forEach.call(document.getElementsByTagName("a") //
         , this.GetLinks.bind(visibleElements));
     } else {
-      output.forEach.call(container.getElementsByTagName("*") //
+      output.forEach.call(document.getElementsByTagName("*") //
         , this.GetVisibleClickable.bind(visibleElements));
     }
     visibleElements.reverse();
