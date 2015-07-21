@@ -83,9 +83,7 @@ var Vomnibar = {
     this.activateWithCompleter("omni", false, true, true);
   },
   destroy: function() {
-    if (this.vomnibarUI.box) {
-      this.vomnibarUI.destroy();
-    }
+    this.vomnibarUI.destroy();
     Vomnibar = null;
   }
 };
@@ -442,12 +440,14 @@ Vomnibar.vomnibarUI = {
     return rect;
   },
   destroy: function() {
-    var box = this.box;
-    box.removeEventListener("keyup", this.onKeyEvent);
-    box.removeEventListener("click", this.onClick);
-    box.removeEventListener("mousewheel", DomUtils.suppressPropagation);
-    this.input.oninput = null;
-    DomUtils.removeNode(box);
+    var box;
+    if (box = this.box) {
+      box.removeEventListener("keyup", this.onKeyEvent);
+      box.removeEventListener("click", this.onClick);
+      box.removeEventListener("mousewheel", DomUtils.suppressPropagation);
+      this.input && this.input.oninput = null;
+      DomUtils.removeNode(box);
+    }
     Vomnibar.vomnibarUI = null;
   }
 };
