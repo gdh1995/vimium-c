@@ -403,10 +403,11 @@ var LinkHints = {
     if (clickEl.classList.contains("vimOIUrl")
       && DomUtils.isDOMDescendant(Vomnibar.vomnibarUI.box, clickEl)) {
       rect = Vomnibar.vomnibarUI.computeHint(clickEl.parentElement.parentElement, clickEl);
-    }
-    if (rect) {
     } else if (clickEl.nodeName.toLowerCase() !== "area") {
       rect = VRect.fromClientRect(clickEl.getBoundingClientRect());
+      if (rect[2] - rect[0] < 3 || rect[3] - rect[1] < 3) {
+        rect = DomUtils.getVisibleClientRect(clickEl);
+      }
     } else {
       parEl = clickEl;
       while (parEl = parEl.parentElement) {
