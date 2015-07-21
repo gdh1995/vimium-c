@@ -212,7 +212,7 @@ var LinkHints = {
     case "textarea": isClickable = !element.disabled && !element.readOnly; break;
     case "input":
       isClickable = !(element.type === "hidden" || element.disabled //
-        || (element.readOnly && !(element.type in DomUtils.unselectableInputs)));
+        || (element.readOnly && !(element.type in DomUtils.uneditableInputs)));
       break;
     case "button": case "select": isClickable = !element.disabled; break;
     case "script": case "link": case "style":
@@ -777,7 +777,7 @@ LinkHints.FUNC = {
     var str = (link.getAttribute("data-vim-text") || "").trim();
     str = str ? str
       : (str = link.nodeName.toLowerCase()) === "textarea" ? link.value
-      : (str === "input" && !(link.type in DomUtils.inputsNoFocus)) ? link.value
+      : str === "input" ? ((link.type in DomUtils.uneditableInputs) ? "" : link.value)
       // .innerText is "" if "display:block; height:0px; overflow:hidden; width:0px;"
       : (link.innerText.trim() || Utils.decodeTextFromHtml(link.innerHTML));
     str = (str.trim() || link.title).replace(Utils.spacesRegex, ' ').trim();
