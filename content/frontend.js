@@ -383,7 +383,7 @@ var Settings, VHUD, MainPort;
       var el = document.activeElement;
       if (el && el === document.body) {
         Commands.switchFocus();
-      } else if (!DomUtils.isVisibile(el) || DomUtils.getEditableType(el) === 3) {
+      } else if (!DomUtils.isVisibile(el) || DomUtils.getEditableType(el) !== 3) {
         return;
       }
       DomUtils.simulateBackspace(el);
