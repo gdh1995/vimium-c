@@ -205,7 +205,7 @@ Vomnibar.vomnibarUI = {
       if (!this.focused) this.input.blur();
       var ref = this.completions[this.selection];
       if (!ref.text) {
-        ref.text = Utils.jsUrlRegex.test(ref.url) ? ref.url : Utils.decodeURL(ref.url);
+        ref.text = Utils.isJSUrl(ref.url) ? ref.url : Utils.decodeURL(ref.url);
       }
       this.input.value = ref.text;
     }
@@ -529,7 +529,7 @@ Vomnibar.background = {
     return out.join("");
   },
   cutUrl: function(string, ranges, strCoded) {
-    if (ranges.length === 0 || string.substring(0, 11).toLowerCase() === "javascript:") {
+    if (ranges.length === 0 || Utils.isJSUrl(string)) {
       if (string.length <= this.maxCharNum) {
         return Utils.escapeHtml(string);
       } else {
