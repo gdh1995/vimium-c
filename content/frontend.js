@@ -109,6 +109,7 @@ var Settings, VHUD, MainPort;
       port.onMessage.addListener(this.Listener);
     }
   };
+  mainPort.connect();
 
   Settings = settings = {
     values: null,
