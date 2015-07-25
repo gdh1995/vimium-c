@@ -17,7 +17,7 @@ var Settings, VHUD, MainPort;
   
   isInjected = window.VimiumInjector ? true : false;
 
-  frameId = window.top === window ? 0 : Math.floor(Math.random() * 9999997) + 2;
+  frameId = window.top === window ? 0 : ((Math.random() * 9999997) | 0) + 2;
 
   findMode = false;
   
