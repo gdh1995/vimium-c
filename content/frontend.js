@@ -217,9 +217,9 @@ var Settings, VHUD, MainPort;
       } else if (!isEnabledForUrl) {}
       else if (InsertMode.lock === target) { InsertMode.lock = null; }
       else if (target = target.shadowRoot) {
-        // NOTE: if disabled when active, this page must have lost its focus,
-        // so a blur event has been bubbled from shadowRoot to the real lock.
-        // Then, we need not clean these listeners when destroying.
+        // NOTE: if destroyed, this page must have lost its focus before, so
+        // a blur event must have been bubbled from shadowRoot to a real lock.
+        // Then, we don't need to worry about ELs or InsertMode being null.
         target.removeEventListener("focus", ELs.onFocus, true);
         target.removeEventListener("blur", ELs.onBlur, true);
         target.addEventListener("blur", InsertMode.OnShadowBlur, true);
