@@ -224,10 +224,7 @@ var Settings, VHUD, MainPort, VInsertMode;
     document.addEventListener("DOMActivate", ELs.onActivate = function(event) {
       Scroller.activatedElement = event.target;
     }, true);
-    if (document.activeElement !== document.body
-        && DomUtils.getEditableType(document.activeElement)) {
-      InsertMode.lock = document.activeElement;
-    }
+    InsertMode.init();
   };
 
   Commands = {
@@ -643,6 +640,14 @@ var Settings, VHUD, MainPort, VInsertMode;
     ignoredEl: null,
     last: null,
     mutable: true,
+    init: function() {
+      var activeEl = document.activeElement;
+      if (activeEl !== document.body ? DomUtils.getEditableType(activeEl)
+          : activeEl.isContentEditable) {
+        InsertMode.lock = activeEl;
+      }
+      this.init = null;
+    },
     isActive: function() {
       if (this.lock !== null || this.global) {
         return true;
