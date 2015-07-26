@@ -10,7 +10,7 @@ var Settings, VHUD, MainPort;
     , handleDeleteForFindMode, handleEnterForFindMode, handleEscapeForFindMode //
     , handleKeyCharForFindMode, initIfEnabled, InsertMode //
     , isEnabledForUrl, isInjected, keyQueue, mainPort //
-    , recentlyFocused, passKeys, performFindInPlace, requestHandlers //
+    , passKeys, performFindInPlace, requestHandlers //
     , restoreDefaultSelectionHighlight, secondKeys, setPassKeys, settings //
     , showFindModeHUDForQuery, updateFindModeQuery
     ;
@@ -50,12 +50,6 @@ var Settings, VHUD, MainPort;
   currentSeconds = {};
 
   passKeys = null;
-  
-  recentlyFocused = {
-    target: null,
-    ignore: null,
-    isSecond: true
-  };
   
   MainPort = mainPort = {
     __proto__: null,
@@ -198,8 +192,8 @@ var Settings, VHUD, MainPort;
       else if (DomUtils.getEditableType(target)) {
         // NOTE: should not filter out `<select>` for windows
         InsertMode.lock = target;
-        if (recentlyFocused.isSecond && recentlyFocused.ignore !== target) {
-          recentlyFocused.target = target;
+        if (InsertMode.mutable && InsertMode.ignoredEl !== target) {
+          InsertMode.last = target;
         }
       } else if (InsertMode.lock === target) {} // TODO: check this `if`
       else if (target.shadowRoot) {
@@ -362,24 +356,24 @@ var Settings, VHUD, MainPort;
     },
     switchFocus: function(_0, options) {
       if (options.ignore) {
-        recentlyFocused.ignore = options.ignore;
+        InsertMode.ignoredEl = options.ignore;
         return;
       }
       var newEl = document.activeElement;
       if (newEl !== document.body) {
-        recentlyFocused.target = newEl;
-        recentlyFocused.isSecond = false;
+        InsertMode.target = newEl;
+        InsertMode.mutable = false;
         if (newEl && newEl.blur) {
           newEl.blur();
         }
         return;
       }
-      newEl = recentlyFocused.target;
+      newEl = InsertMode.target;
       if (!newEl || !DomUtils.isVisibile(newEl)) {
         return;
       }
-      recentlyFocused.target = null;
-      recentlyFocused.isSecond = true;
+      InsertMode.target = null;
+      InsertMode.mutable = true;
       DomUtils.simulateHover(newEl);
       newEl.focus();
     },
@@ -466,8 +460,8 @@ var Settings, VHUD, MainPort;
         DomUtils.simulateSelect(visibleInputs[0]);
         return;
       }
-      if (count === 1 && recentlyFocused.target) {
-        selectedInputIndex = Math.max(0, visibleInputs.indexOf(recentlyFocused.target));
+      if (count === 1 && InsertMode.target) {
+        selectedInputIndex = Math.max(0, visibleInputs.indexOf(InsertMode.target));
       } else {
         selectedInputIndex = Math.min(count, selectedInputIndex) - 1;
       }
@@ -646,6 +640,9 @@ var Settings, VHUD, MainPort;
   InsertMode = {
     global: false,
     lock: null,
+    ignoredEl: null,
+    last: null,
+    mutable: true,
     isActive: function() {
       if (this.lock !== null || this.global) {
         return true;
@@ -1401,7 +1398,7 @@ var Settings, VHUD, MainPort;
     Commands = requestHandlers = MainPort = VHUD = mainPort = KeydownEvents = //
     VRect = Utils = KeyboardUtils = DomUtils = handlerStack = Scroller = //
     currentSeconds = initIfEnabled = setPassKeys = checkValidKey = InsertMode = //
-    KeyCodes = passKeys = firstKeys = secondKeys = recentlyFocused = Marks = func = //
+    KeyCodes = passKeys = firstKeys = secondKeys = Marks = func = //
     settings.onDestroy = findModeQuery = null;
 
     console.log("%cVimium++ %c#%d%c in %c%s%c has destroyed at %o." //
