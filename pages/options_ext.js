@@ -194,6 +194,7 @@ CheckBoxOption = (function(_super) {
   _ref = {
     exclusionRules: ExclusionRulesOption,
     filterLinkHints: CheckBoxOption,
+    grabBackFocus: CheckBoxOption,
     hideHud: CheckBoxOption,
     keyMappings: TextOption,
     linkHintCharacters: NonEmptyTextOption,

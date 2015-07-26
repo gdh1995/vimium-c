@@ -171,6 +171,7 @@ var Settings = {
     exclusionRules: [{pattern: "http*://mail.google.com/*", passKeys: ""}],
     filterLinkHints: false,
     findModeRawQuery: "",
+    grabBackFocus: true,
     hideHud: false,
     keyMappings: "",
     linkHintCharacters: "sadjklewcmpgh",
@@ -221,6 +222,7 @@ var Settings = {
     partial: { "19": "icons/partial_19.png", "38": "icons/partial_38.png" }
   },
   valuesToLoad: ["filterLinkHints", "findModeRawQuery", "findModeRawQueryList" //
+    , "grabBackFocus" //
     , "hideHud", "linkHintCharacters", "linkHintNumbers", "nextPatterns" //
     , "previousPatterns", "regexFindMode", "scrollStepSize", "smoothScroll" //
   ],

@@ -198,13 +198,8 @@ var Settings, VHUD, MainPort, VInsertMode;
       if (target === window) { ELs.onWndFocus(); }
       else if (!isEnabledForUrl) {}
       else if (findMode) {} // TODO: check findMode
-      else if (DomUtils.getEditableType(target)) {
-        // NOTE: should not filter out `<select>` for windows
-        InsertMode.lock = target;
-        if (InsertMode.mutable && InsertMode.ignoredEl !== target) {
-          InsertMode.last = target;
-        }
-      } else if (InsertMode.lock === target) {} // TODO: check this `if`
+      else if (DomUtils.getEditableType(target)) { InsertMode.focus(event); }
+      else if (InsertMode.lock === target) {} // TODO: check this `if`
       else if (target.shadowRoot) {
         target = target.shadowRoot;
         target.addEventListener("focus", ELs.onFocus, true);
@@ -628,19 +623,43 @@ var Settings, VHUD, MainPort, VInsertMode;
   };
 
   VInsertMode = InsertMode = {
+    focus: null,
     global: false,
+    handlerId: 0,
     lock: null,
     ignoredEl: null,
     last: null,
     mutable: true,
     init: function() {
       var activeEl = document.activeElement;
-      if (activeEl == null) {}
-      else if (activeEl !== document.body ? DomUtils.getEditableType(activeEl)
-          : activeEl.isContentEditable) {
-        InsertMode.lock = activeEl;
-      }
       this.init = null;
+      this.grabBackFocus = this.grabBackFocus.bind(this);
+      if (settings.values.grabBackFocus) {
+        this.setupGrab();
+        activeEl && activeEl.blur();
+        return;
+      }
+      if (activeEl != null && (activeEl !== document.body
+          ? DomUtils.getEditableType(activeEl) : activeEl.isContentEditable)) {
+        this.lock = activeEl;
+      }
+      this.focus = focusBase;
+    },
+    setupGrab: function() {
+      this.focus = this.focusGrab;
+      this.handlerId = handlerStack.push({
+        _this: this,
+        keydown: this.grabBackFocus
+      });
+      window.addEventListener("mousedown", this.grabBackFocus, true);
+    },
+    grabBackFocus: function() {
+      if (this.focus === this.focusGrab) {
+        this.focus = this.focusBase;
+      }
+      window.removeEventListener("mousedown", this.grabBackFocus, true);
+      handlerStack.remove(this.handlerId);
+      return true;
     },
     isActive: function() {
       if (this.lock !== null || this.global) {
@@ -650,6 +669,22 @@ var Settings, VHUD, MainPort, VInsertMode;
         return true;
       } else {
         return false;
+      }
+    },
+    focusGrab: function(event) {
+      if (settings.values.grabBackFocus) {
+        DomUtils.suppressEvent(event);
+        event.target.blur();
+      } else { // just in case that we open options.html and change its checkbox
+        this.focusBase(event);
+      }
+    },
+    focusBase: function(event) {
+      var target = event.target;
+      // NOTE: should not filter out `<select>` for windows
+      this.lock = target;
+      if (this.mutable && this.ignoredEl !== target) {
+        this.last = target;
       }
     },
     exit: function(event) {
@@ -1375,6 +1410,7 @@ var Settings, VHUD, MainPort, VInsertMode;
     window.removeEventListener("focus", this.onFocus, true);
     window.removeEventListener("blur", this.onBlur, true);
     document.removeEventListener("DOMActivate", this.onActivate, true);
+    window.removeEventListener("mousedown", InsertMode.grabBackFocus, true);
     Vomnibar.destroy();
     LinkHints.destroy();
     HUD.destroy();
