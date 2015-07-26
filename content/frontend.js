@@ -201,7 +201,7 @@ var Settings, VHUD, MainPort;
         if (recentlyFocused.isSecond && recentlyFocused.ignore !== target) {
           recentlyFocused.target = target;
         }
-      } else if (target === InsertMode.lock) {}
+      } else if (InsertMode.lock === target) {} // TODO: check this `if`
       else if (target.shadowRoot) {
         target = target.shadowRoot;
         target.addEventListener("focus", ELs.onFocus, true);
