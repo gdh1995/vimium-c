@@ -116,7 +116,8 @@ Vomnibar.vomnibarUI = {
   show: function() {
     this.box.style.display = "";
     this.input.value = this.completionInput.text;
-    VInsertMode.ignoredEl = this.input;
+    VInsertMode.heldEl = this.input;
+    VInsertMode.focus = VInsertMode.focusHold;
     this.input.focus();
     this.focused = true;
     this.handlerId = handlerStack.push({
@@ -139,7 +140,7 @@ Vomnibar.vomnibarUI = {
     this.completionInput.text = "";
     this.completionInput.url = "";
     this.completions = [];
-    VInsertMode.ignoredEl = null;
+    VInsertMode.heldEl = null;
   },
   reset: function(input, start, end) {
     if (input) {
@@ -189,6 +190,7 @@ Vomnibar.vomnibarUI = {
   },
   updateInput: function() {
     if (this.selection === -1) {
+      VInsertMode.focus = VInsertMode.focusHold;
       this.input.focus();
       this.input.value = this.completionInput.text;
     } else {
@@ -277,7 +279,10 @@ Vomnibar.vomnibarUI = {
     var sel;
     switch(action) {
     case "dismiss": this.hide(); break;
-    case "focus": this.focused = true; this.input.focus(); break;
+    case "focus":
+      VInsertMode.focus = VInsertMode.focusHold; this.input.focus();
+      this.focused = document.activeElement === this.input;
+      break;
     case "blur": this.focused = false; this.input.blur(); break;
     case "backspace": DomUtils.simulateBackspace(this.input); break;
     case "up":

@@ -626,9 +626,9 @@ var Settings, VHUD, MainPort, VInsertMode;
     focus: null,
     global: false,
     handlerId: 0,
-    lock: null,
-    ignoredEl: null,
+    heldEl: null,
     last: null,
+    lock: null,
     mutable: true,
     init: function() {
       var activeEl = document.activeElement;
@@ -679,11 +679,16 @@ var Settings, VHUD, MainPort, VInsertMode;
         this.focusBase(event);
       }
     },
+    focusHold: function(event) {
+      if (this.heldEl === event.target) { event.stopImmediatePropagation(); }
+      this.focus = this.focusBase;
+      this.focusBase(event);
+    },
     focusBase: function(event) {
       var target = event.target;
       // NOTE: should not filter out `<select>` for windows
       this.lock = target;
-      if (this.mutable && this.ignoredEl !== target) {
+      if (this.mutable && this.heldEl !== target) {
         this.last = target;
       }
     },
