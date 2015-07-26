@@ -167,6 +167,7 @@ var Settings, VHUD, MainPort, VInsertMode;
   initIfEnabled = function(newPassKeys) {
     (initIfEnabled = setPassKeys)(newPassKeys);
     KeyboardUtils.init();
+    InsertMode.init();
     LinkHints.init();
     // Assume that all the below listeners won't throw any port exception
     window.addEventListener("keydown", ELs.onKeydown, true);
@@ -232,7 +233,6 @@ var Settings, VHUD, MainPort, VInsertMode;
     document.addEventListener("DOMActivate", ELs.onActivate = function(event) {
       Scroller.activatedElement = event.target;
     }, true);
-    InsertMode.init();
   };
 
   Commands = {
@@ -360,10 +360,6 @@ var Settings, VHUD, MainPort, VInsertMode;
       window.location.reload();
     },
     switchFocus: function(_0, options) {
-      if (options.ignore) {
-        InsertMode.ignoredEl = options.ignore;
-        return;
-      }
       var newEl = document.activeElement;
       if (newEl !== document.body) {
         InsertMode.target = newEl;
