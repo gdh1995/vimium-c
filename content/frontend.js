@@ -202,7 +202,8 @@ var Settings, VHUD, MainPort;
           recentlyFocused.target = target;
         }
       } else if (target === InsertMode.lock) {}
-      else if (target = target.shadowRoot) {
+      else if (target.shadowRoot) {
+        target = target.shadowRoot;
         target.addEventListener("focus", ELs.onFocus, true);
         target.addEventListener("blur", ELs.onBlur, true);
       }
@@ -216,7 +217,8 @@ var Settings, VHUD, MainPort;
         if (Scroller.keyIsDown) { Scroller.keyIsDown = false; }
       } else if (!isEnabledForUrl) {}
       else if (InsertMode.lock === target) { InsertMode.lock = null; }
-      else if (target = target.shadowRoot) {
+      else if (target.shadowRoot) {
+        target = target.shadowRoot;
         // NOTE: if destroyed, this page must have lost its focus before, so
         // a blur event must have been bubbled from shadowRoot to a real lock.
         // Then, we don't need to worry about ELs or InsertMode being null.
