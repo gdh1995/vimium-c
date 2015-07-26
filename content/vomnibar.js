@@ -116,12 +116,7 @@ Vomnibar.vomnibarUI = {
   show: function() {
     this.box.style.display = "";
     this.input.value = this.completionInput.text;
-    MainPort.Listener({
-      name: "execute",
-      command: "switchFocus",
-      count: 1,
-      options: {ignore: this.input}
-    });
+    VInsertMode.ignoredEl = this.input;
     this.input.focus();
     this.focused = true;
     this.handlerId = handlerStack.push({
@@ -144,12 +139,7 @@ Vomnibar.vomnibarUI = {
     this.completionInput.text = "";
     this.completionInput.url = "";
     this.completions = [];
-    MainPort.Listener({
-      name: "execute",
-      command: "switchFocus",
-      count: 1,
-      options: { ignore: null }
-    });
+    VInsertMode.ignoredEl = null;
   },
   reset: function(input, start, end) {
     if (input) {

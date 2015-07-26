@@ -1,5 +1,5 @@
 "use strict";
-var Settings, VHUD, MainPort;
+var Settings, VHUD, MainPort, VInsertMode;
 (function() {
   var Commands, ELs, HUD, KeydownEvents, checkValidKey, currentSeconds //
     , executeFind, exitFindMode //
@@ -637,7 +637,7 @@ var Settings, VHUD, MainPort;
     }
   };
 
-  InsertMode = {
+  VInsertMode = InsertMode = {
     global: false,
     lock: null,
     ignoredEl: null,
@@ -1398,7 +1398,7 @@ var Settings, VHUD, MainPort;
     Commands = requestHandlers = MainPort = VHUD = mainPort = KeydownEvents = //
     VRect = Utils = KeyboardUtils = DomUtils = handlerStack = Scroller = //
     currentSeconds = initIfEnabled = setPassKeys = checkValidKey = InsertMode = //
-    KeyCodes = passKeys = firstKeys = secondKeys = Marks = func = //
+    KeyCodes = passKeys = firstKeys = secondKeys = Marks = func = VInsertMode = //
     settings.onDestroy = findModeQuery = null;
 
     console.log("%cVimium++ %c#%d%c in %c%s%c has destroyed at %o." //
