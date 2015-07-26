@@ -170,7 +170,15 @@ var Settings, VHUD, MainPort, VInsertMode;
     LinkHints.init();
     // Assume that all the below listeners won't throw any port exception
     window.addEventListener("keydown", ELs.onKeydown, true);
-    window.addEventListener("keypress", ELs.onKeypress, true);
+    window.addEventListener("keypress", ELs.onKeypress = function(event) {
+      if (isEnabledForUrl && handlerStack.bubbleEvent("keypress", event)) {
+        var keyChar;
+        if (findMode && (keyChar = String.fromCharCode(event.charCode))) {
+          handleKeyCharForFindMode(keyChar);
+          DomUtils.suppressEvent(event);
+        }
+      }
+    }, true);
     window.addEventListener("keyup", ELs.onKeyup = function(event) {
       if (Scroller.keyIsDown) { Scroller.keyIsDown = false; }
       if (isEnabledForUrl) {
@@ -503,17 +511,6 @@ var Settings, VHUD, MainPort, VInsertMode;
           return false;
         }
       });
-    }
-  };
-
-  ELs.onKeypress = function(event) {
-    if (!isEnabledForUrl || !handlerStack.bubbleEvent("keypress", event)) {
-      return;
-    }
-    var keyChar;
-    if (findMode && (keyChar = String.fromCharCode(event.charCode))) {
-      handleKeyCharForFindMode(keyChar);
-      DomUtils.suppressEvent(event);
     }
   };
 
