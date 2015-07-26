@@ -755,7 +755,9 @@ var g_requestHandlers;
       urlsplit = url.split("/");
       if (urlsplit.length > 3) {
         urlsplit = urlsplit.slice(0, Math.max(3, urlsplit.length - commandCount));
-        chrome.tabs.update(null, {url: urlsplit.join('/')});
+        url = urlsplit.join('/');
+        if (url.endsWith("#!")) { url = url.slice(0, -2); }
+        chrome.tabs.update(null, {url: url});
       }
     },
     goToRoot: function(tabs) {
