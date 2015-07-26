@@ -639,7 +639,8 @@ var Settings, VHUD, MainPort, VInsertMode;
     mutable: true,
     init: function() {
       var activeEl = document.activeElement;
-      if (activeEl !== document.body ? DomUtils.getEditableType(activeEl)
+      if (activeEl == null) {}
+      else if (activeEl !== document.body ? DomUtils.getEditableType(activeEl)
           : activeEl.isContentEditable) {
         InsertMode.lock = activeEl;
       }
