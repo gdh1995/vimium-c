@@ -1,8 +1,9 @@
 "use strict";
 var Marks = {
   __proto__: null,
+  handlerId: 0,
   activateCreateMode: function() {
-    handlerStack.push({
+    this.handlerId = handlerStack.push({
       keydown: this.onKeydown,
       keypress: this._create,
       _this: this
@@ -10,7 +11,7 @@ var Marks = {
     VHUD.show("Create mark ...");
   },
   activateGotoMode: function() {
-    handlerStack.push({
+    this.handlerId = handlerStack.push({
       keydown: this.onKeydown,
       keypress: this._goto,
       _this: this
@@ -32,7 +33,7 @@ var Marks = {
   },
   onKeydown: function() {
     if (event.keyCode === KeyCodes.esc && KeyboardUtils.isPlain(event)) {
-      handlerStack.remove();
+      handlerStack.remove(this.handlerId);
       VHUD.hide();
       return false;
     }
@@ -53,7 +54,7 @@ var Marks = {
   },
   _create: function(event) {
     var keyChar = String.fromCharCode(event.charCode);
-    handlerStack.remove();
+    handlerStack.remove(this.handlerId);
     if (event.shiftKey) {
       this.CreateGlobalMark({markName: keyChar});
     } else if (keyChar === "`" || keyChar === "'") {
@@ -70,7 +71,7 @@ var Marks = {
   },
   _goto: function(event) {
     var keyChar = String.fromCharCode(event.charCode), markString, position;
-    handlerStack.remove();
+    handlerStack.remove(this.handlerId);
     if (event.shiftKey) {
       MainPort.sendMessage({
         handler: "gotoMark",

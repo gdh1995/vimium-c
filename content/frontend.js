@@ -496,7 +496,7 @@ var Settings, VHUD, MainPort, VInsertMode;
             return true;
           } else if (event.keyCode !== KeyCodes.shiftKey) {
             DomUtils.removeNode(hintContainingDiv);
-            handlerStack.remove();
+            handlerStack.remove(this.handlerId);
             return true;
           }
           return false;
@@ -900,7 +900,7 @@ var Settings, VHUD, MainPort, VInsertMode;
     if (DomUtils.canTakeInput(findModeAnchorNode)) {
       handlerStack.push({
         keydown: function(event) {
-          handlerStack.remove();
+          handlerStack.remove(this.handlerId);
           if (event.keyCode === KeyCodes.esc && KeyboardUtils.isPlain(event)) {
             InsertMode.lock = document.activeElement;
             DomUtils.simulateSelect(document.activeElement);
