@@ -636,8 +636,14 @@ var Settings, VHUD, MainPort, VInsertMode;
       this.init = null;
       this.exitGrab = this.exitGrab.bind(this);
       if (settings.values.grabBackFocus) {
+        if (activeEl) {
+          activeEl.blur();
+          if (DomUtils.getEditableType(document.activeElement)) {
+            this.lock = document.activeElement;
+            return;
+          }
+        }
         this.setupGrab();
-        activeEl && activeEl.blur();
         return;
       }
       if (activeEl != null && (activeEl !== document.body
@@ -647,7 +653,7 @@ var Settings, VHUD, MainPort, VInsertMode;
     },
     setupGrab: function() {
       this.focus = this.grabBackFocus;
-      this.handlerId = handlerStack.push({
+      this.handlerId = this.handlerId || handlerStack.push({
         _this: this,
         keydown: this.exitGrab
       });
@@ -659,6 +665,7 @@ var Settings, VHUD, MainPort, VInsertMode;
       }
       window.removeEventListener("mousedown", this.exitGrab, true);
       handlerStack.remove(this.handlerId);
+      this.handlerId = 0;
       return true;
     },
     grabBackFocus: function(event) {
