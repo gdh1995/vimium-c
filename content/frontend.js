@@ -646,7 +646,7 @@ var Settings, VHUD, MainPort, VInsertMode;
       this.focus = this.focusBase;
     },
     setupGrab: function() {
-      this.focus = this.focusGrab;
+      this.focus = this.grabBackFocus;
       this.handlerId = handlerStack.push({
         _this: this,
         keydown: this.exitGrab
@@ -654,7 +654,7 @@ var Settings, VHUD, MainPort, VInsertMode;
       window.addEventListener("mousedown", this.exitGrab, true);
     },
     exitGrab: function() {
-      if (this.focus === this.focusGrab) {
+      if (this.focus === this.grabBackFocus) {
         this.focus = this.focusBase;
       }
       window.removeEventListener("mousedown", this.exitGrab, true);
@@ -671,7 +671,7 @@ var Settings, VHUD, MainPort, VInsertMode;
         return false;
       }
     },
-    focusGrab: function(event) {
+    grabBackFocus: function(event) {
       if (settings.values.grabBackFocus) {
         DomUtils.suppressEvent(event);
         event.target.blur();
