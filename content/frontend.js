@@ -643,7 +643,7 @@ var Settings, VHUD, MainPort, VInsertMode;
           ? DomUtils.getEditableType(activeEl) : activeEl.isContentEditable)) {
         this.lock = activeEl;
       }
-      this.focus = focusBase;
+      this.focus = this.focusBase;
     },
     setupGrab: function() {
       this.focus = this.focusGrab;
