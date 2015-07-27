@@ -693,8 +693,10 @@ var Settings, VHUD, MainPort, VInsertMode;
     isActive: function() {
       if (this.lock !== null || this.global) {
         return true;
-      } else if (document.activeElement.isContentEditable) {
-        this.lock = document.activeElement;
+      }
+      var el;
+      if ((el = document.activeElement) && el.isContentEditable) {
+        this.lock = el;
         return true;
       } else {
         return false;
