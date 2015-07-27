@@ -181,15 +181,11 @@ var Settings, VHUD, MainPort, VInsertMode;
       }
     }, true);
     window.addEventListener("keyup", ELs.onKeyup = function(event) {
-      if (Scroller.keyIsDown) { Scroller.keyIsDown = false; }
       if (isEnabledForUrl) {
+        if (Scroller.keyIsDown) { Scroller.keyIsDown = false; }
         if (KeydownEvents[event.keyCode]) {
           KeydownEvents[event.keyCode] = 0;
-          if (handlerStack.bubbleEvent("keyup", event)) {
-            event.stopImmediatePropagation();
-          }
-        } else {
-          handlerStack.bubbleEvent("keyup", event);
+          event.stopImmediatePropagation();
         }
       }
     }, true);
