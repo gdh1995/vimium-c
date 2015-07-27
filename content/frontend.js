@@ -633,7 +633,7 @@ var Settings, VHUD, MainPort, VInsertMode;
     init: function() {
       var activeEl = document.activeElement;
       this.init = null;
-      this.grabBackFocus = this.grabBackFocus.bind(this);
+      this.exitGrab = this.exitGrab.bind(this);
       if (settings.values.grabBackFocus) {
         this.setupGrab();
         activeEl && activeEl.blur();
@@ -649,15 +649,15 @@ var Settings, VHUD, MainPort, VInsertMode;
       this.focus = this.focusGrab;
       this.handlerId = handlerStack.push({
         _this: this,
-        keydown: this.grabBackFocus
+        keydown: this.exitGrab
       });
-      window.addEventListener("mousedown", this.grabBackFocus, true);
+      window.addEventListener("mousedown", this.exitGrab, true);
     },
-    grabBackFocus: function() {
+    exitGrab: function() {
       if (this.focus === this.focusGrab) {
         this.focus = this.focusBase;
       }
-      window.removeEventListener("mousedown", this.grabBackFocus, true);
+      window.removeEventListener("mousedown", this.exitGrab, true);
       handlerStack.remove(this.handlerId);
       return true;
     },
@@ -1415,7 +1415,7 @@ var Settings, VHUD, MainPort, VInsertMode;
     window.removeEventListener("focus", this.onFocus, true);
     window.removeEventListener("blur", this.onBlur, true);
     document.removeEventListener("DOMActivate", this.onActivate, true);
-    window.removeEventListener("mousedown", InsertMode.grabBackFocus, true);
+    window.removeEventListener("mousedown", InsertMode.exitGrab, true);
     Vomnibar.destroy();
     LinkHints.destroy();
     HUD.destroy();
