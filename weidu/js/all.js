@@ -3224,23 +3224,28 @@ DBOX = {
 			}).insertBefore(parent);
 		}
 		if (self.pageSwitcherShow != false) {
-			$(self.pageSwitcher[0]).css("display", self.page != 1 ? "block" : "none");
-			$(self.pageSwitcher[1]).css("display", self.page != self.totalPage ? "block" : "none")
+			self.pageSwitcher[0].style.display = self.page != 1 ? "block" : "none";
+			self.pageSwitcher[1].style.display = self.page != self.totalPage ? "block" : "none"
 		} else {
 			self.pageSwitcher.css("display",  "none");
 		}
 		if (self.pageIndexSwitcher == '') {
-			self.pageIndexSwitcher = $('<div class="pageIndex"></div>')
-			self.pageIndexSwitcher.on('click', 'a', function () {
-				self.loadBoxes($(this).attr('data-index'))
-			}).insertAfter(self.container);
+			self.pageIndexSwitcher = $('<div class="pageIndex"></div>');
+			self.pageIndexSwitcher.insertAfter(self.container);
+		} else {
+			self.pageIndexSwitcher.empty();
 		}
+		self.pageIndexSwitcher.css({
+			"width": (self.totalPage * 18 + 4) + "px",
+			"margin-left": -(self.totalPage * 9 + 2) + "px"
+		});
 		var str = "";
 		for (var i = 1; i <= self.totalPage; i++) {
 			str += '<a data-index="' + i + (i == self.page ? '" class="selected' : '') + '"></a>';
 		}
-		self.pageIndexSwitcher.html(str).css("width", (self.totalPage * 18 + 4) + "px")
-			.css("margin-left", -(self.totalPage * 9 + 2) + "px");
+		self.pageIndexSwitcher.append($(str).bind('click', function () {
+			self.loadBoxes($(this).attr('data-index'))
+		}));
 	},
 	pageNotice: function (message) {
 		var self = this;
