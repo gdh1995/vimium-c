@@ -661,16 +661,6 @@ var Settings, VHUD, MainPort, VInsertMode;
       handlerStack.remove(this.handlerId);
       return true;
     },
-    isActive: function() {
-      if (this.lock !== null || this.global) {
-        return true;
-      } else if (document.activeElement.isContentEditable) {
-        this.lock = document.activeElement;
-        return true;
-      } else {
-        return false;
-      }
-    },
     grabBackFocus: function(event) {
       if (settings.values.grabBackFocus) {
         DomUtils.suppressEvent(event);
@@ -690,6 +680,16 @@ var Settings, VHUD, MainPort, VInsertMode;
       this.lock = target;
       if (this.mutable && this.heldEl !== target) {
         this.last = target;
+      }
+    },
+    isActive: function() {
+      if (this.lock !== null || this.global) {
+        return true;
+      } else if (document.activeElement.isContentEditable) {
+        this.lock = document.activeElement;
+        return true;
+      } else {
+        return false;
       }
     },
     exit: function(event) {
