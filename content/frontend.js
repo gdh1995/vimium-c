@@ -632,6 +632,7 @@ var Settings, VHUD, MainPort, VInsertMode;
     mutable: true,
     init: function() {
       var activeEl = document.activeElement;
+      this.focus = this.lockFocus;
       this.init = null;
       this.exitGrab = this.exitGrab.bind(this);
       if (settings.values.grabBackFocus) {
@@ -643,7 +644,6 @@ var Settings, VHUD, MainPort, VInsertMode;
           ? DomUtils.getEditableType(activeEl) : activeEl.isContentEditable)) {
         this.lock = activeEl;
       }
-      this.focus = this.focusBase;
     },
     setupGrab: function() {
       this.focus = this.grabBackFocus;
@@ -655,7 +655,7 @@ var Settings, VHUD, MainPort, VInsertMode;
     },
     exitGrab: function() {
       if (this.focus === this.grabBackFocus) {
-        this.focus = this.focusBase;
+        this.focus = this.lockFocus;
       }
       window.removeEventListener("mousedown", this.exitGrab, true);
       handlerStack.remove(this.handlerId);
@@ -666,15 +666,15 @@ var Settings, VHUD, MainPort, VInsertMode;
         DomUtils.suppressEvent(event);
         event.target.blur();
       } else { // just in case that we open options.html and change its checkbox
-        this.focusBase(event);
+        this.lockFocus(event);
       }
     },
-    focusHold: function(event) {
+    holdFocus: function(event) {
       if (this.heldEl === event.target) { event.stopImmediatePropagation(); }
-      this.focus = this.focusBase;
-      this.focusBase(event);
+      this.focus = this.lockFocus;
+      this.focus(event);
     },
-    focusBase: function(event) {
+    lockFocus: function(event) {
       var target = event.target;
       // NOTE: should not filter out `<select>` for windows
       this.lock = target;

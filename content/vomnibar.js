@@ -117,7 +117,7 @@ Vomnibar.vomnibarUI = {
     this.box.style.display = "";
     this.input.value = this.completionInput.text;
     VInsertMode.heldEl = this.input;
-    VInsertMode.focus = VInsertMode.focusHold;
+    VInsertMode.focus = VInsertMode.holdFocus;
     this.input.focus();
     this.focused = true;
     this.handlerId = handlerStack.push({
@@ -190,7 +190,7 @@ Vomnibar.vomnibarUI = {
   },
   updateInput: function() {
     if (this.selection === -1) {
-      VInsertMode.focus = VInsertMode.focusHold;
+      VInsertMode.focus = VInsertMode.holdFocus;
       this.input.focus();
       this.input.value = this.completionInput.text;
     } else {
@@ -280,7 +280,7 @@ Vomnibar.vomnibarUI = {
     switch(action) {
     case "dismiss": this.hide(); break;
     case "focus":
-      VInsertMode.focus = VInsertMode.focusHold; this.input.focus();
+      VInsertMode.focus = VInsertMode.holdFocus; this.input.focus();
       this.focused = document.activeElement === this.input;
       break;
     case "blur": this.focused = false; this.input.blur(); break;
