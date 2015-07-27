@@ -6,7 +6,7 @@ var g_requestHandlers;
     , firstKeys, frameIdsForTab, funcDict, handleMainPort
     , helpDialogHtml, helpDialogHtmlForCommand //
     , helpDialogHtmlForCommandGroup, needIcon, openMultiTab //
-    , populateKeyCommands, requestHandlers, resetKeys, secondKeys, sendToTab //
+    , populateCommandKeys, requestHandlers, resetKeys, secondKeys, sendToTab //
     , urlForTab;
 
   Settings.frameIdsForTab = frameIdsForTab = { __proto__: null };
@@ -852,13 +852,14 @@ var g_requestHandlers;
     currentCount = 0;
   };
 
-  populateKeyCommands = function() {
-    var key, ref1, ref2, first, arr, keyRegex = Commands.keyRegex;
+  populateCommandKeys = function() {
+    var key, ref1, ref2, first, arr, keyRegex = Commands.keyRegex, ch;
     resetKeys();
     ref1 = firstKeys = ["1", "2", "3", "4", "5", "6", "7", "8", "9"];
     ref2 = secondKeys = { __proto__: null };
     for (key in Commands.keyToCommandRegistry) {
-      if (key.charCodeAt(0) >= 48 && key.charCodeAt(0) <= 57) {
+      ch = key.charCodeAt(0);
+      if (ch >= 48 && ch < 58) {
         console.warn("invalid key command:", key, "(the first char can not be [0-9])");
       } else if ((arr = key.match(keyRegex)).length === 1) {
         ref1.push(key);
@@ -1268,7 +1269,7 @@ var g_requestHandlers;
 
   Settings.updateHooks.keyMappings = function(value) {
     Commands.parseKeyMappings(value);
-    populateKeyCommands(); // resetKeys has been called in this
+    populateCommandKeys(); // resetKeys has been called in this
     this.postUpdate("broadcast", {
       name: "refreshKeyMappings",
       currentFirst: null,
@@ -1341,7 +1342,7 @@ var g_requestHandlers;
   chrome.runtime.onConnectExternal.addListener(funcDict.globalConnect);
 
   Commands.parseKeyMappings(Settings.get("keyMappings"));
-  populateKeyCommands();
+  populateCommandKeys();
   Exclusions.setRules(Settings.get("exclusionRules"));
 
   ContentSettings.clear("images");
