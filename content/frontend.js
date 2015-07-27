@@ -628,6 +628,7 @@ var Settings, VHUD, MainPort, VInsertMode;
     handlerId: 0,
     heldEl: null,
     last: null,
+    loading: (document.readyState !== "complete"),
     lock: null,
     mutable: true,
     init: function() {
@@ -635,7 +636,7 @@ var Settings, VHUD, MainPort, VInsertMode;
       this.focus = this.lockFocus;
       this.init = null;
       this.exitGrab = this.exitGrab.bind(this);
-      if (settings.values.grabBackFocus) {
+      if (settings.values.grabBackFocus && this.loading) {
         if (activeEl) {
           activeEl.blur();
           if (DomUtils.getEditableType(document.activeElement)) {
