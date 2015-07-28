@@ -209,6 +209,7 @@ var Settings, VHUD, MainPort, VInsertMode;
         //   won't be used any more, so we needn't make Scroller {}
         // NOTE: so does InsertMode
         if (Scroller.keyIsDown) { Scroller.keyIsDown = false; }
+        KeydownEvents = new Uint8Array(256);
       } else if (!isEnabledForUrl) {}
       else if (InsertMode.lock === target) { InsertMode.lock = null; }
       else if (target.shadowRoot) {
