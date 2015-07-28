@@ -217,8 +217,10 @@ Vomnibar.vomnibarUI = {
     if (n === KeyCodes.enter) {
       this.openInNewTab = this.forceNewTab || event.shiftKey || event.ctrlKey || event.metaKey;
       action = "enter";
+    } else if (event.altKey) {
+      return true;
     } else if (event.ctrlKey || event.metaKey) {
-      if (event.shiftKey || event.altKey) { return true; }
+      if (event.shiftKey) { return true; }
       else if (n === KeyCodes.up || n === KeyCodes.down) {
         MainPort.Listener({
           name: "execute",
@@ -234,8 +236,18 @@ Vomnibar.vomnibarUI = {
       else { return true; }
     } else if (n === KeyCodes.tab) {
       action = event.shiftKey ? "up" : "down";
-    } else if (n == KeyCodes.left || n == KeyCodes.right || event.shiftKey || event.altKey) {
-      return true;
+    } else if (n == KeyCodes.left || n == KeyCodes.right
+        || n === KeyCodes.backspace || n === KeyCodes.deleteKey) {
+      return -1;
+    } else if (n === KeyCodes.space) {
+      if (event.shiftKey) { return -1; }
+      if (document.activeElement !== this.input) { action = "focus"; }
+      else if (((this.selection >= 0 && this.isSelectionChanged)
+          || this.completions.length <= 1) && this.input.value.endsWith("  ")) {
+        this.openInNewTab = this.forceNewTab;
+        action = "enter";
+      } else { return -1; }
+    } else if (event.shiftKey) {
     } else if (n === KeyCodes.up) {
       action = "up";
     } else if (n === KeyCodes.down) {
@@ -246,34 +258,26 @@ Vomnibar.vomnibarUI = {
       action = (document.activeElement !== this.input) ? "focus" : "backspace";
     } else if (n === KeyCodes.f1 + 1) {
       action = (document.activeElement !== this.input) ? "focus" : "blur";
-    } else {
-      action = "";
-      n = this.selection >= 0 && this.isSelectionChanged ? 1 : 0;
-      if (event.keyCode === KeyCodes.space) {
-        if (document.activeElement !== this.input) {
-          action = "focus";
-        } else if ((n === 1 || this.completions.length <= 1)
-            && this.input.value.endsWith("  ")) {
-          this.openInNewTab = this.forceNewTab;
-          action = "enter";
-        }
-      }
-      else if (n === 1 || document.activeElement !== this.input) {
-        n = event.keyCode - 48;
-        if (n === 0) { n = 10; }
-        if (n > 0 && n <= this.completions.length) {
+    }
+    if (!action) {
+      if (n < 32) { return true; }
+      if (KeyboardUtils.getKeyChar(event).length !== 1) { return true; }
+      if (document.activeElement === this.input
+          && (this.selection < 0 || !this.isSelectionChanged)) { return -1; }
+      if (n >= 48 && n < 58) {
+        if (event.shift || (n = (n - 48) || 10) > this.completions.length) {
+          n = -1;
+        } else {
           this.selection = n - 1;
           this.isSelectionChanged = true;
           this.openInNewTab = this.forceNewTab;
           action = "enter";
         }
       }
-      if (!action) {
-        return true;
-      }
     }
-    this.onAction(action);
-    return false;
+    return action ? (this.onAction(action), false)
+      : n === -1 || document.activeElement === this.input
+      ? -1 : true;
   },
   onAction: function(action) {
     var sel;
