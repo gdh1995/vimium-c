@@ -213,60 +213,56 @@ Vomnibar.vomnibarUI = {
     }
   },
   onKeydown: function(event) {
-    var action, n = event.keyCode;
-    if (n === KeyCodes.enter) {
-      this.openInNewTab = this.forceNewTab || event.shiftKey || event.ctrlKey || event.metaKey;
-      action = "enter";
-    } else if (event.altKey) {
-      return true;
-    } else if (event.ctrlKey || event.metaKey) {
-      if (event.shiftKey) { return true; }
+    var action = "", n = event.keyCode, focused = VInsertMode.lock === this.input;
+    if (event.altKey) {}
+    else if (event.ctrlKey || event.metaKey) {
+      if (event.shiftKey) {}
       else if (n === KeyCodes.up || n === KeyCodes.down) {
         MainPort.Listener({
-          name: "execute",
-          command: n === KeyCodes.up ? "scrollUp" : "scrollDown",
-          count: 1,
-          options: {}
+          name: "execute", count: 1, options: {},
+          command: n === KeyCodes.up ? "scrollUp" : "scrollDown"
         });
         return false;
       }
-      action = String.fromCharCode(event.keyCode);
-      if (action === "K" || action === "P") { action = "up";}
+      else if ((action = String.fromCharCode(event.keyCode)) === "K"
+        || action === "P") { action = "up"; }
       else if (action === "J" || action === "N") { action = "down"; }
-      else { return true; }
-    } else if (n === KeyCodes.tab) {
-      action = event.shiftKey ? "up" : "down";
-    } else if (n == KeyCodes.left || n == KeyCodes.right
-        || n === KeyCodes.backspace || n === KeyCodes.deleteKey) {
-      return -1;
-    } else if (n === KeyCodes.space) {
-      if (event.shiftKey) { return -1; }
-      if (document.activeElement !== this.input) { action = "focus"; }
+      else { action = ""; }
+    }
+    else if (!focused && VInsertMode.lock) {} // other inputs
+    else if (n == KeyCodes.left || n == KeyCodes.right
+        || n === KeyCodes.backspace || n === KeyCodes.deleteKey) {}
+    if (n === KeyCodes.enter) {
+      this.openInNewTab = this.forceNewTab || event.shiftKey || event.ctrlKey || event.metaKey;
+      action = "enter";
+    }
+    else if (n === KeyCodes.tab) { action = event.shiftKey ? "up" : "down"; }
+    else if (event.shiftKey) { action = null; }
+    else if (n === KeyCodes.esc) { action = "dismiss"; }
+    else if (n === KeyCodes.space) {
+      if (!focused) { action = "focus"; }
       else if (((this.selection >= 0 && this.isSelectionChanged)
           || this.completions.length <= 1) && this.input.value.endsWith("  ")) {
         this.openInNewTab = this.forceNewTab;
         action = "enter";
-      } else { return -1; }
-    } else if (event.shiftKey) {
+      }
     } else if (n === KeyCodes.up) {
       action = "up";
     } else if (n === KeyCodes.down) {
       action = "down";
-    } else if (n === KeyCodes.esc) {
-      action = "dismiss";
     } else if (n === KeyCodes.f1) {
-      action = (document.activeElement !== this.input) ? "focus" : "backspace";
+      action = focused ? "backspace" : "focus";
     } else if (n === KeyCodes.f1 + 1) {
-      action = (document.activeElement !== this.input) ? "focus" : "blur";
+      action = focused ? "blur" : "focus";
+    } else {
+      action = null;
     }
-    if (!action) {
-      if (n < 32) { return true; }
-      if (KeyboardUtils.getKeyChar(event).length !== 1) { return true; }
-      if (document.activeElement === this.input
-          && (this.selection < 0 || !this.isSelectionChanged)) { return -1; }
-      if (n >= 48 && n < 58) {
+    if (action === null) {
+      if (n < 32 || KeyboardUtils.getKeyChar(event).length !== 1) {}
+      else if (focused && (this.selection < 0 || !this.isSelectionChanged)) {}
+      else if (n >= 48 && n < 58) {
         if (event.shift || (n = (n - 48) || 10) > this.completions.length) {
-          n = -1;
+          focused = true;
         } else {
           this.selection = n - 1;
           this.isSelectionChanged = true;
@@ -275,9 +271,7 @@ Vomnibar.vomnibarUI = {
         }
       }
     }
-    return action ? (this.onAction(action), false)
-      : n === -1 || document.activeElement === this.input
-      ? -1 : true;
+    return action ? (this.onAction(action), false) : focused ? -1 : true;
   },
   onAction: function(action) {
     var sel;
