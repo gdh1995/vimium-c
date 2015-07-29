@@ -868,7 +868,7 @@ LinkHints.FUNC = {
     if (oldDownload == null) {
       link.download = "";
     }
-    DomUtils.simulateClick(link, {
+    DomUtils.simulateMouse(link, 0, {
       altKey: true,
       ctrlKey: false,
       metaKey: false,
@@ -892,7 +892,7 @@ LinkHints.FUNC = {
       link.target = "_top";
     }
     // NOTE: not clear last hovered item, for that it may be a menu
-    DomUtils.simulateClick(link, {
+    DomUtils.simulateMouse(link, 0, {
       altKey: false,
       ctrlKey: mode >= 2 && !KeyboardUtils.onMac,
       metaKey: mode >= 2 &&  KeyboardUtils.onMac,

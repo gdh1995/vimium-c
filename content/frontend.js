@@ -367,7 +367,7 @@ var Settings, VHUD, MainPort, VInsertMode;
       }
       InsertMode.target = null;
       InsertMode.mutable = true;
-      DomUtils.simulateHover(newEl);
+      DomUtils.simulateMouse(newEl, 3, DomUtils.defaultMouseKeys);
       newEl.focus();
     },
     simBackspace: function() {
@@ -926,12 +926,7 @@ var Settings, VHUD, MainPort, VInsertMode;
     }
     linkElement.scrollIntoViewIfNeeded();
     linkElement.focus();
-    DomUtils.simulateClick(linkElement, {
-      altKey: false,
-      ctrlKey: false,
-      metaKey: false,
-      shiftKey: false
-    });
+    DomUtils.simulateMouse(linkElement, 0, DomUtils.defaultMouseKeys);
   };
   
   goBy = function(relName, pattern) {
