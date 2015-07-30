@@ -788,7 +788,7 @@ LinkHints.FUNC = {
   },
   HOVER: function(element) {
     Scroller.activatedElement = element;
-    DomUtils.simulateHover(element);
+    DomUtils.simulateMouse(element, 3, DomUtils.defaultMouseKeys);
   },
   COPY_TEXT: function(link) {
     var str = (link.getAttribute("data-vim-text") || "").trim();
