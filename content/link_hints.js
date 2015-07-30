@@ -407,6 +407,7 @@ var LinkHints = {
         clickEl.focus();
       }
     }
+    DomUtils.prepareCrop();
     if (clickEl.classList.contains("vimOIUrl")
       && DomUtils.isDOMDescendant(Vomnibar.vomnibarUI.box, clickEl)) {
       rect = Vomnibar.vomnibarUI.computeHint(clickEl.parentElement.parentElement, clickEl);
