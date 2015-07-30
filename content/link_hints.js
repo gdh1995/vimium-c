@@ -126,6 +126,8 @@ var LinkHints = {
     width = width !== (width | 0) ? 1 : 0, height = height !== (height | 0) ? 1 : 0;
     width = document.documentElement.scrollWidth - this.initScrollX - width;
     height = document.documentElement.scrollHeight - this.initScrollY - height;
+    width = Math.max(width, document.documentElement.clientWidth);
+    height = Math.max(height, document.documentElement.clientHeight);
     width = Math.min(width, window.innerWidth + 60);
     height = Math.min(height, window.innerHeight + 20);
     this.hintMarkerContainingDiv = DomUtils.addElementList(this.hintMarkers, {
