@@ -122,6 +122,7 @@ Vomnibar.vomnibarUI = {
     this.focused = true;
     this.handlerId = handlerStack.push({
       keydown: this.onKeydown,
+      keypress: this.onKeypress,
       _this: this
     });
   },
@@ -211,6 +212,9 @@ Vomnibar.vomnibarUI = {
     if (sel >= 0 && sel < _ref.length) {
       _ref[sel].classList.add("vimS");
     }
+  },
+  onKeypress: function(event) {
+    return VInsertMode.lock === this.input ? -1 : true;
   },
   onKeydown: function(event) {
     var action = "", n = event.keyCode, focused = VInsertMode.lock === this.input;
