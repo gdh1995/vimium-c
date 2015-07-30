@@ -369,18 +369,6 @@ Vomnibar.vomnibarUI = {
     this.onCompletions = func = func.bind(this);
     func(completions);
   },
-  onKeyEvent: function(event) {
-    var key = event.keyCode;
-    if (event.altKey || (key >= KeyCodes.f1 + 2 && key <= KeyCodes.f12)) {
-      return;
-    }
-    else if (key == KeyCodes.left || key == KeyCodes.right) {
-    }
-    else if (event.ctrlKey || event.metaKey || (event.shiftKey && !event.keyIdentifier.startsWith("U+"))) {
-      return;
-    }
-    DomUtils.suppressEvent(event);
-  },
   init: function(box, background, completer) {
     this.background = background;
     this.box = box;
@@ -393,7 +381,6 @@ Vomnibar.vomnibarUI = {
     this.completer = completer;
     this.onTimer = this.onTimer.bind(this);
     this.onCompletions = this.onCompletions.bind(this);
-    box.addEventListener("keyup", this.onKeyEvent = this.onKeyEvent.bind(this));
     box.addEventListener("click", this.onClick = this.onClick.bind(this));
     box.addEventListener("mousewheel", DomUtils.suppressPropagation);
     this.init = null;
@@ -435,7 +422,6 @@ Vomnibar.vomnibarUI = {
   destroy: function() {
     var box;
     if (box = this.box) {
-      box.removeEventListener("keyup", this.onKeyEvent);
       box.removeEventListener("click", this.onClick);
       box.removeEventListener("mousewheel", DomUtils.suppressPropagation);
       this.input && (this.input.oninput = null);
