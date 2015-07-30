@@ -379,7 +379,7 @@ var LinkHints = {
       this.deactivate();
     } else if (linksMatched.length === 1) {
       DomUtils.suppressEvent(event);
-      this.activateLink(linksMatched[0]);
+      this.activateLink(linksMatched[0].clickableItem);
     } else {
       _limit = this.keyStatus.tab ? 0 : this.markerMatcher.hintKeystrokeQueue.length;
       for (_i = linksMatched.length; 0 <= --_i; ) {
@@ -394,14 +394,14 @@ var LinkHints = {
     }
     return false;
   },
-  activateLink: function(matchedLink) {
-    var clickEl = matchedLink.clickableItem, temp, tempi, rect, parEl;
+  activateLink: function(clickEl) {
+    var temp, tempi, rect, parEl;
     this.delayMode = true;
     if (this.mode >= 128) {}
     else if ((tempi = DomUtils.getEditableType(clickEl)) === 3) {
-        DomUtils.simulateSelect(clickEl);
-        this.deactivate();
-        return;
+      DomUtils.simulateSelect(clickEl);
+      this.deactivate();
+      return;
     }
     else if (tempi > 0) { clickEl.focus(); }
     DomUtils.prepareCrop();
