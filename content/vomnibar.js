@@ -265,14 +265,12 @@ Vomnibar.vomnibarUI = {
       if (n < 32 || KeyboardUtils.getKeyChar(event).length !== 1) {}
       else if (focused && (this.selection < 0 || !this.isSelectionChanged)) {}
       else if (n >= 48 && n < 58) {
-        if (event.shift || (n = (n - 48) || 10) > this.completions.length) {
-          focused = true;
-        } else {
-          this.selection = n - 1;
-          this.isSelectionChanged = true;
-          this.openInNewTab = this.forceNewTab;
-          action = "enter";
-        }
+        n = (n - 48) || 10;
+        if (event.shift || n > this.completions.length) { return false; }
+        this.selection = n - 1;
+        this.isSelectionChanged = true;
+        this.openInNewTab = this.forceNewTab;
+        action = "enter";
       }
     }
     return action ? (this.onAction(action), false) : focused ? -1 : true;
