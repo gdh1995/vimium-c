@@ -413,15 +413,16 @@ var LinkHints = {
     }
   },
   flashOutline: function(clickEl) {
-    var temp, rect, parEl;
+    var temp, rect, parEl, bcr;
     DomUtils.prepareCrop();
     if (clickEl.classList.contains("vimOIUrl") && Vomnibar.vomnibarUI.box
       && DomUtils.isDOMDescendant(Vomnibar.vomnibarUI.box, clickEl)) {
       rect = Vomnibar.vomnibarUI.computeHint(clickEl.parentElement.parentElement, clickEl);
     } else if (clickEl.nodeName.toLowerCase() !== "area") {
-      rect = VRect.fromClientRect(clickEl.getBoundingClientRect());
-      if (rect[2] - rect[0] < 3 || rect[3] - rect[1] < 3) {
-        rect = DomUtils.getVisibleClientRect(clickEl);
+      rect = DomUtils.getVisibleClientRect(clickEl);
+      bcr = VRect.fromClientRect(clickEl.getBoundingClientRect());
+      if (!rect || VRect.isContaining(bcr, rect)) {
+        rect = bcr;
       }
     } else {
       parEl = clickEl;
