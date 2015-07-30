@@ -408,7 +408,7 @@ var LinkHints = {
       }
     }
     DomUtils.prepareCrop();
-    if (clickEl.classList.contains("vimOIUrl")
+    if (clickEl.classList.contains("vimOIUrl") && Vomnibar.vomnibarUI.box
       && DomUtils.isDOMDescendant(Vomnibar.vomnibarUI.box, clickEl)) {
       rect = Vomnibar.vomnibarUI.computeHint(clickEl.parentElement.parentElement, clickEl);
     } else if (clickEl.nodeName.toLowerCase() !== "area") {
