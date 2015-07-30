@@ -395,7 +395,7 @@ var LinkHints = {
     return false;
   },
   activateLink: function(clickEl) {
-    var temp, tempi, rect, parEl;
+    var tempi;
     this.delayMode = true;
     if (this.mode >= 128) {}
     else if ((tempi = DomUtils.getEditableType(clickEl)) === 3) {
@@ -404,6 +404,16 @@ var LinkHints = {
       return;
     }
     else if (tempi > 0) { clickEl.focus(); }
+    this.flashOutline(clickEl);
+    this.linkActivator(clickEl);
+    if ((this.mode & 64) === 64) {
+      this.reinit();
+    } else {
+      this.deactivateWith();
+    }
+  },
+  flashOutline: function(clickEl) {
+    var temp, rect, parEl;
     DomUtils.prepareCrop();
     if (clickEl.classList.contains("vimOIUrl") && Vomnibar.vomnibarUI.box
       && DomUtils.isDOMDescendant(Vomnibar.vomnibarUI.box, clickEl)) {
@@ -430,12 +440,6 @@ var LinkHints = {
       rect || (rect = [0, 0, 0, 0]);
     }
     DomUtils.flashVRect(rect);
-    this.linkActivator(clickEl);
-    if ((this.mode & 64) === 64) {
-      this.reinit();
-    } else {
-      this.deactivateWith();
-    }
   },
   reinit: function() {
     var mode = this.mode, linkActivator = this.linkActivator;

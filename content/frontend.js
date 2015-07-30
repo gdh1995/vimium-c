@@ -926,8 +926,7 @@ var Settings, VHUD, MainPort, VInsertMode;
     }
     linkElement.scrollIntoViewIfNeeded();
     linkElement.focus();
-    DomUtils.prepareCrop();
-    DomUtils.flashVRect(DomUtils.getVisibleClientRect(linkElement));
+    LinkHints.flashOutline(linkElement);
     DomUtils.simulateMouse(linkElement, 0, DomUtils.defaultMouseKeys);
   };
   
