@@ -20,13 +20,18 @@ var Commands = {
     for (i = 3, len = item.length; i < len; ) {
       str = item[i++];
       ind = str.indexOf("=");
-      if (ind <= 0 || ind === str.length) { continue; }
-      val = str.substring(ind + 1);
-      try {
+      if (ind <= 0) {
+        val = str;
+        str = "" + (i - 3);
+      } else {
+        val = str.substring(ind + 1);
+        str = str.substring(0, ind);
+      }
+      if (val) try {
         val = decodeURIComponent(val);
         val = JSON.parse(val);
       } catch (e) {}
-      opt[str.substring(0, ind)] = val;
+      opt[str] = val;
     }
     return opt;
   },
