@@ -108,7 +108,7 @@ var g_requestHandlers;
 
   sendToTab = Settings.CONST.ChromeVersion < 41
   ? function(request, tabId) {
-    chrome.tabs.sendMessage(tabId, request, null);
+    chrome.tabs.sendMessage(tabId, request);
     funcDict.sendToExt(request, tabId);
   } : function(request, tabId, frameId, request2) {
     chrome.tabs.sendMessage(tabId, request, frameId != null ? {frameId: frameId}
@@ -1394,7 +1394,7 @@ chrome.tabs.query({status: "complete"}, function(arr) {
       url = url.substring(19, 51);
       if (exts.indexOf(url) === -1) { exts.push(url); }
     }
-    o.sendMessage(arr[i].id, request, null);
+    o.sendMessage(arr[i].id, request);
   }
   o = chrome.runtime;
   request.name = "regExt";
