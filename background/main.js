@@ -1287,6 +1287,7 @@ var g_requestHandlers;
 
   Settings.updateHooks.showActionIcon = function (value) {
     needIcon = chrome.browserAction && value ? true : false;
+    if (!needIcon) { urlForTab = { __proto__: null}; }
   };
 
   chrome.commands.onCommand.addListener(funcDict.globalCommand = function(command, options) {
