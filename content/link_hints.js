@@ -302,8 +302,8 @@ var LinkHints = {
     }
   },
   GetImagesInA: function(element) {
-    var str, cr;
-    if ((str = element.href) && LinkHints.imageUrlRegex.test(str)) {
+    var str = element.getAttribute("href"), cr;
+    if (str && str.length > 4 && LinkHints.imageUrlRegex.test(str)) {
       if (cr = DomUtils.getVisibleClientRect(element)) {
         this.push([element, cr, true]);
       }
