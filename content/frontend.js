@@ -733,7 +733,7 @@ var Settings, VHUD, MainPort, VInsertMode;
   };
   
   updateFindModeQuery = function() {
-    var error, escapeRegEx, hasNoIgnoreCaseFlag, parsedNonRegexQuery, pattern, text, _ref;
+    var escapeRegEx, hasNoIgnoreCaseFlag, parsedNonRegexQuery, pattern, text, _ref;
     findModeQuery.isRegex = settings.values.regexFindMode;
     hasNoIgnoreCaseFlag = false;
     findModeQuery.parsedQuery = findModeQuery.rawQuery.replace(/\\./g, function(match) {
@@ -758,7 +758,6 @@ var Settings, VHUD, MainPort, VInsertMode;
       try {
         pattern = new RegExp(findModeQuery.parsedQuery, "g" + (findModeQuery.ignoreCase ? "i" : ""));
       } catch (_error) {
-        error = _error;
         return;
       }
       text = document.documentElement.innerText;
