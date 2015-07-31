@@ -943,9 +943,10 @@ var g_requestHandlers;
         });
         break;
       case "reg":
-        port.postMessage({
+        key = Settings.get("userDefinedCss_f");
+        key && port.postMessage({
           name: "registerFrame",
-          css: Settings.get("userDefinedCss_f")
+          css: key
         });
         // no `break;`
       case "rereg":
