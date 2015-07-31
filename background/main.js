@@ -1228,6 +1228,9 @@ var g_requestHandlers;
     refreshCompleter: function(request) {
       Completers[request.omni].refresh();
     },
+    refreshTabId: function(request, port) {
+      port.sender.tab.id = request.tabId;
+    },
     esc: resetKeys,
     createMark: Marks.createMark,
     gotoMark: Marks.gotoMark,
@@ -1346,6 +1349,23 @@ var g_requestHandlers;
   });
 
   chrome.runtime.onConnectExternal.addListener(funcDict.globalConnect);
+
+  chrome.tabs.onReplaced.addListener(window.updateTabId = function(addedTabId, removedTabId) {
+    var ref, request = { name: "refreshTabId", tabId: addedTabId };
+    chrome.tabs.sendMessage(addedTabId, request);
+    funcDict.sendToExt(request, removedTabId);
+    ref = frameIdsForTab;
+    ref[addedTabId] = ref[removedTabId];
+    delete ref[removedTabId];
+    ref = extForTab;
+    ref[addedTabId] = ref[removedTabId];
+    delete ref[removedTabId];
+    if (needIcon) {
+      ref = urlForTab;
+      ref[addedTabId] = ref[removedTabId];
+      delete ref[removedTabId];
+    }
+  });
 
   Commands.parseKeyMappings(Settings.get("keyMappings"));
   populateCommandKeys();

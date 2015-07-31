@@ -1240,6 +1240,13 @@ var Settings, VHUD, MainPort, VInsertMode;
         currentSeconds = secondKeys[""];
       }
     },
+    refreshTabId: function(request) {
+      ELs.focusMsg.tabId = request.tabId;
+      mainPort.port.postMessage({
+        handler: "refreshTabId",
+        tabId: request.tabId
+      });
+    },
     execute: function(request) {
       keyQueue = false;
       currentSeconds = secondKeys[""];
