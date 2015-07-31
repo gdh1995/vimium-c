@@ -693,6 +693,10 @@ var g_requestHandlers;
         openMultiTab(url, commandCount, tabs[0]);
       });
     },
+    focusOrLaunch: function(request) {
+      var url = Utils.convertToUrl(currentCommand.options.url || "");
+      requestHandlers.focusOrLaunch({url: url});
+    },
     togglePinTab: function(tabs) {
       var tab = funcDict.selectFrom(tabs), i = tab.index
         , len = Math.min(tabs.length, i + commandCount), action = {pinned: true};
@@ -1369,7 +1373,7 @@ var g_requestHandlers;
       ref2[ref[i]].useTab = 2;
     }
     ref = ["createTab", "restoreTab", "restoreGivenTab", "blank", "reloadTab" //
-      , "moveTabToNewWindow", "reloadGivenTab", "openUrl" //
+      , "moveTabToNewWindow", "reloadGivenTab", "openUrl", "focusOrLaunch" //
       , "moveTabToIncognito", "openCopiedUrlInCurrentTab", "clearGlobalMarks" //
     ];
     for (i = ref.length; 0 <= --i; ) {

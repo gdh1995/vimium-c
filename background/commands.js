@@ -104,7 +104,7 @@ Commands.commandGroups = {
     , "goPrevious", "goNext", "nextFrame", "mainFrame"
     , "enterInsertMode", "enterVisualMode", "enterVisualLineMode"
     , "Marks.activateCreateMode", "Marks.activateGotoMode"
-    , "Marks.clearLocal", "clearGlobalMarks", "openUrl"
+    , "Marks.clearLocal", "clearGlobalMarks", "openUrl", "focusOrLaunch"
     ],
   vomnibarCommands: ["Vomnibar.activate", "Vomnibar.activateInNewTab"
     , "Vomnibar.activateBookmarks", "Vomnibar.activateBookmarksInNewTab", "Vomnibar.activateHistory"
@@ -121,7 +121,7 @@ Commands.commandGroups = {
     , "toggleSwitchTemp", "debugBackground", "blank"]
 };
 Commands.advancedCommands = ["scrollToLeft", "scrollToRight", "moveTabToNextWindow"
-  , "moveTabToNewWindow", "moveTabToIncognito", "reloadGivenTab", "openUrl"
+  , "moveTabToNewWindow", "moveTabToIncognito", "reloadGivenTab", "focusOrLaunch"
   , "goUp", "goToRoot", "focusInput", "LinkHints.activateModeWithQueue", "enableCSTemp"
   , "toggleCS", "clearCS", "LinkHints.activateModeToDownloadImage", "reopenTab"
   , "LinkHints.activateModeToOpenImage", "searchAs", "removeRightTab"
@@ -671,6 +671,12 @@ Commands.defaultKeyMappings = {
     "open url (use url: string, newTab: bool)", {
       background: true,
       repeat: 20
+    }
+  ],
+  "focusOrLaunch": [
+    'focus a tab with arg "url" or open it', {
+      background: true,
+      repeat: 1
     }
   ]
 });
