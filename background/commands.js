@@ -15,10 +15,10 @@ var Commands = {
   normalizeKey: function(key) {
     return key.replace(this._keyLeftRegex, this.onNormalize);
   },
-  getOptions: function(argv) {
+  getOptions: function(item) {
     var opt = {}, i, len, ind, str, val, e;
-    for (i = 0, len = argv.length; i < len; ) {
-      str = argv[i++];
+    for (i = 3, len = item.length; i < len; ) {
+      str = item[i++];
       ind = str.indexOf("=");
       if (ind <= 0 || ind === str.length) { continue; }
       val = str.substring(ind + 1);
@@ -61,7 +61,7 @@ var Commands = {
           registry[this.normalizeKey(splitLine[1])] = {
             background: details.background,
             command: key,
-            options: this.getOptions(splitLine.slice(3)),
+            options: this.getOptions(splitLine),
             repeat: details.repeat
           };
         } else {
