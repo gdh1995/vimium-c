@@ -385,16 +385,17 @@ Vomnibar.vomnibarUI = {
     this.onCompletions = this.onCompletions.bind(this);
     box.addEventListener("click", this.onClick = this.onClick.bind(this));
     box.addEventListener("mousewheel", DomUtils.suppressPropagation);
-    this.init = null;
-  },
-  init_dom: function(response) {
     var str;
-    this.background.showRelevancy = response.relevancy;
     if (location.protocol.startsWith("chrome") && chrome.runtime.getManifest
         && (str = chrome.runtime.getManifest().permissions)) {
       str = str.join("/");
       this.background.showFavIcon = str.indexOf("<all_urls>") >= 0 || str.indexOf("chrome://favicon/") >= 0;
     }
+    this.init = null;
+  },
+  init_dom: function(response) {
+    var str;
+    this.background.showRelevancy = response.relevancy;
     this.box.innerHTML = response.html;
     this.input = this.box.querySelector("#vimOInput");
     this.list = this.box.querySelector("#vimOList");

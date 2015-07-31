@@ -273,7 +273,7 @@ var LinkHints = {
   },
   GetLinks: function(element) {
     var a = element.getAttribute("data-vim-url"), arr;
-    // NOTE: not judge `attr[data=vim-url] is "#"`
+    // NOTE: not judge `.attr("data-vim-url") is "#"`
     //   just in case that someone make "#" an event for downloading / ...
     //   : then he can set [href=#][data-vim-url=...] to enable LinkHints
     if (a || ((a = element.getAttribute("href")) && a !== "#")) {
