@@ -1157,7 +1157,6 @@ var Settings, VHUD, MainPort, VInsertMode;
         });
       }
     },
-    registerFrame: null,
     insertCSS: function(request) {
       var css = ELs.css;
       if (request.css) {
@@ -1272,7 +1271,6 @@ var Settings, VHUD, MainPort, VInsertMode;
     },
     showHelpDialog: null
   };
-  requestHandlers.registerFrame = requestHandlers.insertCSS;
 
   requestHandlers.showHelpDialog = function(response) {
     var container, handlerId, oldShowHelp, hide, node1, //

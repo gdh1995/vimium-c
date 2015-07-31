@@ -945,7 +945,7 @@ var g_requestHandlers;
       case "reg":
         key = Settings.get("userDefinedCss_f");
         key && port.postMessage({
-          name: "registerFrame",
+          name: "insertCSS",
           css: key
         });
         // no `break;`
