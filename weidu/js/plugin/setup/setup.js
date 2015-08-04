@@ -237,8 +237,9 @@ var setup = {
 				}
 				hiddenA[0].download = ['weidu_', d.getFullYear(), force2(d.getMonth() + 1), force2(d.getDate()),
 					'_', force2(d.getHours()), force2(d.getMinutes()), force2(d.getSeconds()), '.json'].join('');
-				hiddenA[0].href = 'data:application/json;charset=UTF-8,' + encodeURIComponent(data);
+				hiddenA[0].href = URL.createObjectURL(new Blob([data]));
 				hiddenA[0].click();
+				URL.revokeObjectURL(hiddenA[0].href);
 			}
 		});
 		self.content.find("#importData").bind('change', function () {

@@ -270,8 +270,9 @@ $("exportButton").onclick = function() {
 
   nodeA = document.createElement("a");
   nodeA.download = file_name;
-  nodeA.href = "data:application/json;charset=UTF-8," + encodeURIComponent(exported_data);
+  nodeA.href = URL.createObjectURL(new Blob([exported_data]));
   nodeA.click();
+  URL.revokeObjectURL(nodeA.href);
   console.log("EXPORT settings to", file_name, "at", d);
 };
 
