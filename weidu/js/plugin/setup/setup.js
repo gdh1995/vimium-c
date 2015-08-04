@@ -545,9 +545,9 @@ var setup = {
 			}
 		}
 		var suggestHtml = '<div class="suggest"><a href="http://www.' + officialDomain + '/feedback.html" target="_blank">' + getI18nMsg('suggest')
-      + '</a></div><div class="useHelp"><a href="http://www.' + officialDomain + '/help.html" target="_blank">' + getI18nMsg('useHelp')
-      + '</a></div><div class="version"><a href="https://chrome.google.com/webstore/detail/dgmpjohfgidbnmmihaholohmeccijgog">( V'
-      +  _config.version.replace(".360", "") + ' )</a></div>';
+			+ '</a></div><div class="useHelp"><a href="http://www.' + officialDomain + '/help.html" target="_blank">' + getI18nMsg('useHelp')
+			+ '</a></div><div class="version"><a href="https://chrome.google.com/webstore/detail/dgmpjohfgidbnmmihaholohmeccijgog">( V'
+			+  _config.version.replace(".360", "") + ' )</a></div>';
 		return '<div class="settingContainer"><div class="settingBox"><div class="titleBar dragArea"><div class="titleBarIcon"></div>'
 			+ getI18nMsg('setupAppTitle') + '</div><div class="baseSettingsBar"><span>'
 			+ getI18nMsg('baseSettingsMore')
@@ -572,7 +572,7 @@ var setup = {
 			+ getI18nMsg('export')
 			+ '</div></div><div class="dataAction import"><div class="icon import"></div><div>'
 			+ getI18nMsg('import') + '</div></div></div></div><div class="settingsItem">'
-      + '<div class="loginContainer">' + loginButtonHtml + '</div><span>'
+			+ '<div class="loginContainer">' + loginButtonHtml + '</div><span>'
 			+ (oauth.oauthId ? getI18nMsg('autoBackup') : getI18nMsg('openAutoBackup'))
 			+ '</span></div></div>' + suggestHtml
 			+ '</div><div class="dialBoxSettingsBox"><div class="titleBar dragArea"><div class="titleBarIcon"></div>'
