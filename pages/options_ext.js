@@ -1,4 +1,5 @@
-var CheckBoxOption, NonEmptyTextOption, NumberOption, TextOption, importSettings;
+var CheckBoxOption, NonEmptyTextOption, NumberOption, TextOption, importSettings
+  , formatDate;
 
 Option.saveOptions = function() {
   Option.all.forEach(function(option) {
@@ -245,6 +246,11 @@ CheckBoxOption = (function(_super) {
   element = null;
 })();
 
+formatDate = function(time) {
+  return new Date(time - new Date().getTimezoneOffset() * 1000 * 60
+    ).toJSON().substring(0, 19).replace('T', ' ');
+};
+
 $("exportButton").onclick = function() {
   var exported_object, exported_data, file_name, force2, d, nodeA;
   exported_object = {__proto__: null, name: "Vimium++", time: 0};
@@ -273,7 +279,7 @@ $("exportButton").onclick = function() {
   nodeA.href = URL.createObjectURL(new Blob([exported_data]));
   nodeA.click();
   URL.revokeObjectURL(nodeA.href);
-  console.log("EXPORT settings to", file_name, "at", d);
+  console.log("EXPORT settings to", file_name, "at", formatDate(d));
 };
 
 importSettings = function() {
@@ -286,8 +292,7 @@ importSettings = function() {
     return;
   } else if (!confirm(
     "You are loading a settings copy exported at:\n        "
-    + new Date(new_data.time - new Date().getTimezoneOffset() * 1000 * 60
-      ).toJSON().substring(0, 16).replace('T', ' ')
+    + formatDate(new_data.time)
     + "\n\nAre you sure you want to continue?"
   )) {
     VHUD.showForDuration("You cancelled importing.", 1000);
