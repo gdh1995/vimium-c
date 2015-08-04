@@ -123,11 +123,11 @@ completers.bookmarks = {
     return b.url;
   },
   ignoreTopLevel: {
-    "Bookmarks Bar": true,
-    "Other Bookmarks": true,
-    "Mobile Bookmarks": true,
-    "\u4E66\u7B7E\u680F":true,
-    "\u5176\u4ED6\u4E66\u7B7E":true
+    "Bookmarks Bar": 1,
+    "Other Bookmarks": 1,
+    "Mobile Bookmarks": 1,
+    "\u4E66\u7B7E\u680F": 1,
+    "\u5176\u4ED6\u4E66\u7B7E": 1
   },
   traverseBookmarks: function(bookmarks) {
     var results = [], _this = this;
@@ -692,7 +692,7 @@ completers.searchEngines = {
       var i = ref.length, ref2 = completers.bookmarks.ignoreTopLevel;
       ref.sort().reverse();
       for (; 0 <= --i; ) {
-        ref2[ref[i]] = true;
+        ref2[ref[i]] = 1;
       }
     }
   })(Settings.get("UILanguage"));

@@ -21,8 +21,8 @@ var Utils = {
     return s.replace(this._escapeRegex, this._escapeCallback);
   },
   // "javascript" should be treated specially
-  _nonUrlPrefixes: { about: true, blob: true, data: true, "view-source": true },
-  _chromePrefixes: { "chrome-extension": true, "chrome-search": true },
+  _nonUrlPrefixes: { about: 1, blob: 1, data: 1, "view-source": 1 },
+  _chromePrefixes: { "chrome-extension": 1, "chrome-search": 1 },
   _urlPrefix: /^[a-z]{3,}:\/\/./,
   hasOrdinaryUrlPrefix: function(url) {
     return this._urlPrefix.test(url);
