@@ -354,18 +354,18 @@ var Settings, VHUD, MainPort, VInsertMode;
     switchFocus: function(_0, options) {
       var newEl = document.activeElement;
       if (newEl !== document.body) {
-        InsertMode.target = newEl;
+        InsertMode.last = newEl;
         InsertMode.mutable = false;
         if (newEl && newEl.blur) {
           newEl.blur();
         }
         return;
       }
-      newEl = InsertMode.target;
+      newEl = InsertMode.last;
       if (!newEl || !DomUtils.isVisibile(newEl)) {
         return;
       }
-      InsertMode.target = null;
+      InsertMode.last = null;
       InsertMode.mutable = true;
       DomUtils.simulateMouse(newEl, 3, DomUtils.defaultMouseKeys);
       newEl.focus();
@@ -453,8 +453,8 @@ var Settings, VHUD, MainPort, VInsertMode;
         DomUtils.simulateSelect(visibleInputs[0]);
         return;
       }
-      if (count === 1 && InsertMode.target) {
-        selectedInputIndex = Math.max(0, visibleInputs.indexOf(InsertMode.target));
+      if (count === 1 && InsertMode.last) {
+        selectedInputIndex = Math.max(0, visibleInputs.indexOf(InsertMode.last));
       } else {
         selectedInputIndex = Math.min(count, selectedInputIndex) - 1;
       }
