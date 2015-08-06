@@ -943,10 +943,10 @@ var g_requestHandlers;
         });
         break;
       case "reg":
-        key = Settings.get("userDefinedCss_f");
-        key && port.postMessage({
+        ref = Settings.get("userDefinedCss_f");
+        ref && port.postMessage({
           name: "insertCSS",
-          css: key
+          css: ref
         });
         // no `break;`
       case "rereg":
@@ -1259,12 +1259,16 @@ var g_requestHandlers;
 
   Settings.postUpdate("userDefinedCss");
   Settings.updateHooks.userDefinedCss_f = function(css) {
-    this.postUpdate("broadcast", {
-      name: "insertCSS",
-      onReady: true,
-      css: css
-    });
-  };
+    setTimeout(function(css0) {
+      var css = Settings.get("userDefinedCss_f");
+      if (css !== css0) { return; }
+      Settings.postUpdate("broadcast", {
+        name: "insertCSS",
+        onReady: true,
+        css: (css || ["", ""])
+      });
+    }, 0, css);
+  }
 
   Settings.updateHooks.newTabUrl = function(url) {
     url = (/^\/?[^:\s]*$/.test(url)) ? chrome.runtime.getURL(url) : Utils.convertToUrl(url);

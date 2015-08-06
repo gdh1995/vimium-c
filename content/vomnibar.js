@@ -407,7 +407,7 @@ Vomnibar.vomnibarUI = {
     if (this.completions) {
       this.onCompletions(this.completions);
     }
-    document.documentElement.appendChild(this.box);
+    DomUtils.UI.addElement(this.box);
     this.input.oninput = this.onInput.bind(this);
   },
   computeHint: function(li, a) {

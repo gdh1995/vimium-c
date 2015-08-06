@@ -157,7 +157,7 @@ var Settings, VHUD, MainPort, VInsertMode;
       status: "disabled",
       url: window.location.href,
       frameId: frameId
-    }, css: null, //
+    }, //
     onKeydown: null, onKeypress: null, onKeyup: null, //
     onFocus: null, onBlur: null, onActivate: null, //
     onWndFocus: function(){}, onUnload: null, onHashChagne: null, //
@@ -471,7 +471,7 @@ var Settings, VHUD, MainPort, VInsertMode;
         return hint;
       });
       hints[selectedInputIndex].classList.add('vimS');
-      hintContainingDiv = DomUtils.addElementList(hints, {
+      hintContainingDiv = DomUtils.UI.addElementList(hints, {
         id: "vimIMC",
         className: "vimB vimR"
       });
@@ -1061,7 +1061,7 @@ var Settings, VHUD, MainPort, VInsertMode;
         el.className = "vimB vimR";
         el.id = "vimHUD";
         el.style.opacity = "0";
-        document.documentElement.appendChild(this._element = el);
+        DomUtils.UI.addElement(this._element = el);
       } else if (this._durationTimer) {
         clearTimeout(this._durationTimer);
         this._durationTimer = 0;
@@ -1159,21 +1159,8 @@ var Settings, VHUD, MainPort, VInsertMode;
       }
     },
     insertCSS: function(request) {
-      var css = ELs.css;
-      if (request.css) {
-        if (css) {
-          css.innerHTML = request.css;
-          return;
-        }
-        css = ELs.css = document.createElement("style");
-        css.type = "text/css";
-        css.innerHTML = request.css;
-        // @reg is called only when document.ready
-        (document.head || document.documentElement).appendChild(css);
-      } else if (css) {
-        DomUtils.removeNode(css);
-        ELs.css = null;
-      }
+      var css = request.css;
+      DomUtils.UI.insertCSS(css[0], css[1]);
     },
     focusFrame: function(request) {
       if (DomUtils.isSandboxed() || window.innerWidth < 3 || window.innerHeight < 3) {
@@ -1196,7 +1183,7 @@ var Settings, VHUD, MainPort, VInsertMode;
       var dom1 = document.createElement("div");
       dom1.className = "vimB vimR";
       dom1.id = "vimHighlightMask";
-      document.documentElement.appendChild(dom1);
+      DomUtils.UI.addElement(dom1);
       settings.values.highlightMask = {
         node: dom1,
         more: false,
@@ -1294,7 +1281,7 @@ var Settings, VHUD, MainPort, VInsertMode;
     container.className = "vimB vimR";
     container.id = "vimHelpDialogContainer";
     container.innerHTML = response.html;
-    document.documentElement.appendChild(container);
+    DomUtils.UI.addElement(container);
     container.addEventListener("mousewheel", DomUtils.suppressPropagation);
     container.addEventListener("click", DomUtils.suppressPropagation);
 
@@ -1431,9 +1418,8 @@ var Settings, VHUD, MainPort, VInsertMode;
     if (settings.isLoading) {
       clearInterval(settings.isLoading);
     }
-    if (this.css) {
-      DomUtils.removeNode(this.css);
-      this.css = null;
+    if (DomUtils.UI.container) {
+      DomUtils.removeNode(DomUtils.UI.container);
     }
     var ref = settings.onDestroy, i, func;
     for (i in ref) {

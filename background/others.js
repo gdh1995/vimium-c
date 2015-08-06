@@ -110,7 +110,7 @@ chrome.runtime.onInstalled.addListener(window.b = function(details) {
   } else {
     func = function(url) { return {file: url, allFrames: false}; };
   }
-  css = contentScripts.css.map(func);
+  css = (contentScripts.css || []).map(func);
   js = contentScripts.js.map(func);
   contentScripts = null;
   chrome.tabs.query({

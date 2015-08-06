@@ -131,7 +131,7 @@ var LinkHints = {
     height = Math.max(height, container.clientHeight);
     width  = Math.min(width,  window.innerWidth  + 60);
     height = Math.min(height, window.innerHeight + 20);
-    this.hintMarkerContainingDiv = DomUtils.addElementList(this.hintMarkers, {
+    this.hintMarkerContainingDiv = DomUtils.UI.addElementList(this.hintMarkers, {
       id: "vimHMC",
       className: "vimB vimR"
     });

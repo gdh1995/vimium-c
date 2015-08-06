@@ -209,7 +209,8 @@ CheckBoxOption = (function(_super) {
     showActionIcon: CheckBoxOption,
     searchEngines: TextOption,
     searchUrl: NonEmptyTextOption,
-    userDefinedCss: TextOption
+    userDefinedCss: TextOption,
+    userDefinedOuterCss: TextOption
   };
   for (name in _ref) {
     type = _ref[name];

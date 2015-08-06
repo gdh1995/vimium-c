@@ -51,12 +51,12 @@
   },
   "content_scripts": [ {
     "all_frames": true,
-    "css": [ "content/vimium.css" ],
     "js": [
       "lib/utils.js",
       "lib/keyboard_utils.js",
       "lib/dom_utils.js",
       "lib/handler_stack.js",
+      "content/dom_ui.js",
       "content/link_hints.js",
       "content/vomnibar.js",
       "content/scroller.js",

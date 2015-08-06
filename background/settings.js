@@ -74,15 +74,16 @@ var Settings = {
       this.parseSearchEngines("~:" + this.get("searchUrl"), value);
       this.postUpdate("postSearchEnginesMap", null);
     },
-    userDefinedCss: function(css) {
-      if (css && (css = css.replace(/\r/g, ""))) {
-        if (css.indexOf("\n") >= 0) {
-          css = (css.startsWith('\n') ? "" : '\n') + css + (css.endsWith('\n') ? "" : '\n');
-        }
-      } else {
-        css = "";
-      }
-      this.set("userDefinedCss_f", css);
+    userDefinedCss: function() {
+      var cssi, csso;
+      cssi = this.get("userDefinedCss");
+      cssi && (cssi = cssi.trim());
+      csso = this.get("userDefinedOuterCss");
+      csso && (csso = csso.trim());
+      this.set("userDefinedCss_f", (cssi || csso) ? [cssi, csso] : null);
+    },
+    userDefinedOuterCss: function() {
+      this.postUpdate("userDefinedCss", null);
     }
   },
   parseSearchEngines: function(searchEnginesText, map) {
@@ -194,20 +195,21 @@ w|wiki:\\\n  http://www.wikipedia.org/w/index.php?search=%s Wikipedia (en-US)",
     showOmniRelevancy: false,
     smoothScroll: true,
     userDefinedCss: "",
+    userDefinedOuterCss: "",
     vimSync: false
   },
   NonJSON: {
     __proto__: null, findModeRawQuery: 1,
     keyMappings: 1, linkHintCharacters: 1, linkHintNumbers: 1,
     newTabUrl: 1, nextPatterns: 1, previousPatterns: 1,
-    searchEngines: 1, searchUrl: 1, userDefinedCss: 1
+    searchEngines: 1, searchUrl: 1, userDefinedCss: 1, userDefinedOuterCss: 1
   },
   // not set localStorage, neither sync, if key in @nonPersistent
   // not clean if exists (for simpler logic)
   nonPersistent: {
     __proto__: null, exclusionTemplate: 1, help_dialog: 1, newTabUrl_f: 1,
     searchEnginesMap: 1, settingsVersion: 1, userDefinedCss_f: 1,
-    vomnibar: 1
+    userDefinedOuterCss_f: 1, vomnibar: 1
   },
   files: {
     __proto__: null,
@@ -238,22 +240,15 @@ w|wiki:\\\n  http://www.wikipedia.org/w/index.php?search=%s Wikipedia (en-US)",
 Settings.defaults.newTabUrl = Settings.CONST.ChromeInnerNewTab;
 
 (function() {
-  var ref, ref2, ref3, i, func;
+  var ref, i, func;
   func = (function(path) { return this(path); }).bind(chrome.runtime.getURL);
   ref = chrome.runtime.getManifest();
   Settings.CONST.CurrentVersion = ref.version;
   Settings.CONST.OptionsPage = func(ref.options_page);
-  ref = ref.content_scripts;
-  ref3 = { __proto__: null, all_frames: false, css: [], js: [] };
-  for (i = 0; i < ref.length; i++) {
-    ref2 = ref[i];
-    if (ref2.matches.indexOf("<all_urls>") === -1) { continue; }
-    ref3.all_frames || (ref3.all_frames = ref2.all_frames);
-    ref3.css = ref3.css.concat(ref2.css.map(func));
-    ref3.js = ref3.js.concat(ref2.js.map(func));
-  }
-  ref3.js.push(func("content/inject_end.js"));
-  Settings.CONST.ContentScripts = ref3;
+  Settings.CONST.ContentScripts = ref = ref.content_scripts[0];
+  ref.css = ref.css ? ref.css.map(func) : [];
+  ref.js  = ref.js  ? ref.js .map(func) : [];
+  ref.js.push(func("content/inject_end.js"));
 
   i = navigator.appVersion.indexOf("Chrome");
   Settings.CONST.ChromeVersion = parseFloat(navigator.appVersion.substring(i + 7));
