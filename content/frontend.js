@@ -450,6 +450,7 @@ var Settings, VHUD, MainPort, VInsertMode;
       if (selectedInputIndex === 0) {
         return;
       } else if (selectedInputIndex === 1) {
+        LinkHints.flashOutline(visibleInputs[0]);
         DomUtils.simulateSelect(visibleInputs[0]);
         return;
       }
