@@ -10,7 +10,7 @@
 <style type="text/css">
 /* Help Dialog CSS */
 
-#vimHelpDialog.vimR {
+.vimR#vimHelpDialog {
 	background-color: #eee;
 	/* border: 2px solid #b3b3b3; */
 	border-radius: 6px;
@@ -29,7 +29,7 @@
 	z-index: 2147483643;
 }
 
-.vimColumnBox.vimB {
+.vimB.vimColumnBox {
 	float: left;
 	width: 50%;
 }
@@ -37,19 +37,19 @@
 	table-layout: auto;
 	width: 100%;
 }
-.vimHelpTr.vimB {
+.vimB.vimHelpTr {
 	display: table-row;
 }
-.vimHelpTd.vimB {
+.vimB.vimHelpTd {
 	display: table-cell;
 	vertical-align: top;
 	padding: 1px;
 }
 
-.vimHelpKey.vimB {
+.vimB.vimHelpKey {
 	max-width: 53px;
 }
-.vimHelpLongKey.vimB,
+.vimB.vimHelpLongKey,
 .vimHelpKey > .vimHelpShortKey {
 	color: #2f508e;
 	float: right;
@@ -57,19 +57,19 @@
 	white-space: nowrap;
 	font-family: Consolas, "Liberation Mono", Courier, monospace;
 }
-.vimHelpLongKey.vimB {
+.vimB.vimHelpLongKey {
 	float: none;
 }
 /* Make the description column as wide as it can be. */
-.vimHelpCommandInfo.vimB {
+.vimB.vimHelpCommandInfo {
 	width: 100%;
 }
-.vimHelpSectionTitle.vimB {
+.vimB.vimHelpSectionTitle {
 	font-weight: bold;
 	padding-top: 3px;
 }
 
-.vimL.vimB,
+.vimB.vimL,
 .vimL:visited,
 .vimL:link,
 .vimL:hover {
@@ -78,12 +78,12 @@
 	text-decoration: underline;
 }
 
-.vimTopLink.vimR {
+.vimR.vimTopLink {
 	float: right;
 	margin-right: 20px;
 	top: 8px;
 }
-#vimCloseButton.vimR {
+.vimR#vimCloseButton {
 	-webkit-user-select: none;
 	color: #555;
 	font-family: "Courier New";
@@ -101,7 +101,7 @@
 	text-decoration: none;
 }
 
-#vimAdvancedCommands.vimR {
+.vimR#vimAdvancedCommands {
 	position: absolute;
 	right: 2px;
 	top: -34px;

@@ -18,7 +18,7 @@
  * case the page has declared a broad rule like "a { padding: 50px; }" which will mess up our UI. These
  * declarations contain more specifiers than necessary to increase their specificity (precedence).
  */
-.vimR.vimB {
+.vimB.vimR {
 	-webkit-animation: none;
 	background: none;
 	background-image: none;
@@ -64,7 +64,7 @@
 	width: auto;
 	zoom: normal;
 }
-.vimI.vimB {
+.vimB.vimI {
 	-webkit-animation: none;
 	background: none;
 	background-image: none;
@@ -113,7 +113,7 @@
 }
 
 /* Linkhints CSS */
-#vimHMC.vimR {
+.vimR#vimHMC {
 	font-weight: bold;
 	pointer-events: none;
 	position: absolute;
@@ -121,7 +121,7 @@
 	white-space: nowrap;
 	z-index: 2147483646;
 }
-.vimLH.vimB {
+.vimI.vimLH {
 	background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#FFF785), color-stop(100%,#FFC542));
 	border: 1px solid #E3BE23;
 	border-radius: 3px;
@@ -129,18 +129,18 @@
 	padding: 1px 3px 0px 3px;
 	position: absolute;
 }
-.vimMC.vimB {
+.vimI.vimMC {
 	color: #D4AC3A;
 }
 
 /* Input hints CSS */
-#vimIMC.vimR {
+.vimR#vimIMC {
 	overflow: visible;
 	pointer-events: none;
 	position: absolute;
 	z-index: 2147483640;
 }
-.vimIH.vimB {
+.vimI.vimIH {
 	background-color: rgba(255, 247, 133, 0.3);
 	border: 1px solid #C38A22;
 	display: block;
@@ -152,7 +152,7 @@
 }
 
 /* HUD CSS */
-#vimHUD.vimR {
+.vimR#vimHUD {
 	background-color: #ebebeb;
 	border: 1px solid #b3b3b3;
 	border-radius: 4px 4px 0 0;
@@ -173,7 +173,7 @@
 }
 
 /* Flash */
-.vimFlash.vimB {
+.vimB.vimFlash {
 	box-shadow: 0px 0px 4px 2px #4183C4;
 	padding: 1px;
 	pointer-events: none;
@@ -181,7 +181,7 @@
 	z-index: 2147483647;
 }
 
-#vimHighlightMask.vimR {
+.vimR#vimHighlightMask {
 	border: 5px solid yellow !important;
 	box-sizing: border-box;
 	height: 100%;
