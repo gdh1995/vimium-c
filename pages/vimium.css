@@ -1,0 +1,103 @@
+/*
+ * The z-indexes of Vimium elements are very large, because we always want them to show on top. Chrome may
+ * support up to Number.MAX_VALUE, which is approximately 1.7976e+308. We're using 2^31, which is the max
+ * value of a singed 32 bit int. Let's try larger valeus if 2**31 empirically isn't large enough.
+ *
+ *
+ * R: Reset; S: Selected; L: Link
+ *
+ * HMC: HintMarkerContainer; LH: LinkHint; MC: MatchingCharacter;
+ * IMC: InputMarkerContainer, IH: InputHint;
+ * HUD: HUD; O: vOmnibar; OI: vOmnibarItem
+ *
+ */
+.R {
+	color: black;
+	cursor: auto;
+	font-family: 'Helvetica Neue', Arial, Helvetica, sans-serif;
+	font-size: 12px;
+	letter-spacing: 0;
+	line-height: 100%;
+	overflow: hidden;
+}
+
+/* Linkhints CSS */
+#HMC {
+	font-weight: bold;
+	pointer-events: none;
+	position: absolute;
+	text-shadow: 0 1px 0 rgba(255, 255, 255, 0.6);
+	white-space: nowrap;
+	z-index: 2147483646;
+}
+.LH {
+	background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#FFF785), color-stop(100%,#FFC542));
+	border: 1px solid #E3BE23;
+	border-radius: 3px;
+	box-shadow: 0px 3px 7px 0px rgba(0, 0, 0, 0.3);
+	padding: 1px 3px 0px 3px;
+	position: absolute;
+}
+.MC {
+	color: #D4AC3A;
+}
+
+/* Input hints CSS */
+#IMC {
+	overflow: visible;
+	pointer-events: none;
+	position: absolute;
+	z-index: 2147483640;
+}
+.IH {
+	background-color: rgba(255, 247, 133, 0.3);
+	border: 1px solid #C38A22;
+	display: block;
+	position: absolute;
+}
+.IH.S {
+	background-color: rgba(255, 102, 102, 0.3);
+	border: 1px solid #993333 !important;
+}
+
+/* HUD CSS */
+#HUD {
+	background-color: #ebebeb;
+	border: 1px solid #b3b3b3;
+	border-radius: 4px 4px 0 0;
+	bottom: 0px;
+	font-family: Arial, Helvetica, sans-serif;
+	font-size: 12px !important;
+	height: 13px;
+	max-width: 300px;
+	min-width: 150px;
+	padding: 3px 3px 2px 3px;
+	position: fixed;
+	right: 150px;
+	text-overflow: ellipsis;
+	text-shadow: 0px 1px 2px #FFF;
+	white-space: nowrap;
+	/* less than hint markers', so link hints can be shown e.g. for the panel's close button. */
+	z-index: 2147483645;
+}
+
+/* Flash */
+.Flash {
+	box-shadow: 0px 0px 4px 2px #4183C4;
+	padding: 1px;
+	pointer-events: none;
+	position: absolute;
+	z-index: 2147483647;
+}
+
+#HighlightMask {
+	border: 5px solid yellow !important;
+	box-sizing: border-box;
+	height: 100%;
+	left: 0px;
+	pointer-events: none;
+	position: fixed;
+	top: 0px;
+	width: 100%;
+	z-index: 2147483644;
+}

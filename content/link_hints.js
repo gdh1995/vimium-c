@@ -131,18 +131,13 @@ var LinkHints = {
     height = Math.max(height, container.clientHeight);
     width  = Math.min(width,  window.innerWidth  + 60);
     height = Math.min(height, window.innerHeight + 20);
-    this.hintMarkerContainingDiv = DomUtils.addElementList(this.hintMarkers, {
-      id: "vimHMC",
-      className: "vimB vimR"
+    this.hintMarkerContainingDiv = DomUtils.UI.addElementList(this.hintMarkers, {
+      id: "HMC",
+      className: "R"
     });
-    if (style = this.hintMarkerContainingDiv.style) {
-      style.left = this.initScrollX + "px", style.top = this.initScrollY + "px";
-      style.width = width + "px", style.height = height + "px";
-    } else {
-      this.deactivate();
-      this.isActive = true;
-      return;
-    }
+    style = this.hintMarkerContainingDiv.style;
+    style.left = this.initScrollX + "px", style.top = this.initScrollY + "px";
+    style.width = width + "px", style.height = height + "px";
     this.handlerId = handlerStack.push({
       keydown: this.onKeyDownInMode,
       _this: this
@@ -200,7 +195,7 @@ var LinkHints = {
   },
   createMarkerFor: function(link) {
     var marker = document.createElement("div"), rect;
-    marker.className = "vimB vimI vimLH";
+    marker.className = "LH";
     marker.clickableItem = link[0];
     rect = link[1];
     marker.style.left = rect[0] + "px";
@@ -309,21 +304,28 @@ var LinkHints = {
       }
     }
   },
+  traverse: function(obj) {
+    var output = [], key, deep = Settings.values.deepHints, func;
+    DomUtils.prepareCrop();
+    for (key in obj) {
+      if (deep) {
+        output.forEach.call(document.querySelectorAll("* /deep/ " + key)
+          , obj[key].bind(output));
+        continue;
+      }
+      func = obj[key].bind(output);
+      output.forEach.call(document.getElementsByTagName(key), func);
+      output.forEach.call(DomUtils.UI.root.querySelectorAll(key), func);
+    }
+    return output;
+  },
   getVisibleClickableElements: function() {
     var output = [], visibleElements = [], visibleElement, rects, rects2, _len, _i;
-    DomUtils.prepareCrop();
-    if (this.mode == this.CONST.DOWNLOAD_IMAGE || this.mode == this.CONST.OPEN_IMAGE) {
-      output.forEach.call(document.getElementsByTagName("img") //
-        , this.GetImagesInImg.bind(visibleElements));
-      output.forEach.call(document.getElementsByTagName("a") //
-        , this.GetImagesInA.bind(visibleElements));
-    } else if (this.mode >= 136) {
-      output.forEach.call(document.getElementsByTagName("a") //
-        , this.GetLinks.bind(visibleElements));
-    } else {
-      output.forEach.call(document.getElementsByTagName("*") //
-        , this.GetVisibleClickable.bind(visibleElements));
-    }
+    visibleElements = this.traverse((this.mode == this.CONST.DOWNLOAD_IMAGE
+        || this.mode == this.CONST.OPEN_IMAGE)
+      ? { img: this.GetImagesInImg, a: this.GetImagesInA }
+      : this.mode >= 136 ? { a: this.GetLinks }
+      : { "*": this.GetVisibleClickable });
     visibleElements.reverse();
     for (_len = visibleElements.length; 0 <= --_len; ) {
       visibleElement = visibleElements[_len];
@@ -353,6 +355,10 @@ var LinkHints = {
         return true;
       }
     } else if (_i > KeyCodes.f1 && _i <= KeyCodes.f12) {
+      if (_i === KeyCodes.f1 + 1) {
+        Settings.values.deepHints = !Settings.values.deepHints;
+        return false;
+      }
       return true;
     } else if (_i === KeyCodes.shiftKey) {
       if (this.mode < 128) {
@@ -385,10 +391,10 @@ var LinkHints = {
       for (_i = linksMatched.length; 0 <= --_i; ) {
         _ref = linksMatched[_i].childNodes;
         for (_j = _ref.length; _limit <= --_j; ) {
-          _ref[_j].classList.remove("vimMC");
+          _ref[_j].classList.remove("MC");
         }
         for (; 0 <= _j; --_j) {
-          _ref[_j].classList.add("vimMC");
+          _ref[_j].classList.add("MC");
         }
       }
     }
@@ -404,43 +410,13 @@ var LinkHints = {
       return;
     }
     else if (tempi > 0) { clickEl.focus(); }
-    this.flashOutline(clickEl);
+    DomUtils.UI.flashOutline(clickEl);
     this.linkActivator(clickEl);
     if ((this.mode & 64) === 64) {
       this.reinit();
     } else {
       this.deactivateWith();
     }
-  },
-  flashOutline: function(clickEl) {
-    var temp, rect, parEl, bcr;
-    DomUtils.prepareCrop();
-    if (clickEl.classList.contains("vimOIUrl") && Vomnibar.vomnibarUI.box
-      && DomUtils.isDOMDescendant(Vomnibar.vomnibarUI.box, clickEl)) {
-      rect = Vomnibar.vomnibarUI.computeHint(clickEl.parentElement.parentElement, clickEl);
-    } else if (clickEl.nodeName.toLowerCase() !== "area") {
-      rect = DomUtils.getVisibleClientRect(clickEl);
-      bcr = VRect.fromClientRect(clickEl.getBoundingClientRect());
-      if (!rect || VRect.isContaining(bcr, rect)) {
-        rect = bcr;
-      }
-    } else {
-      parEl = clickEl;
-      while (parEl = parEl.parentElement) {
-      if (parEl.nodeName.toLowerCase() !== "map") { continue; }
-      temp = parEl.name.replace(LinkHints.quoteRegex, '\\"');
-      parEl = document.querySelector('img[usemap="#' + temp + '"],img[usemap="'
-        + temp + '"]');
-      if (parEl) {
-        DomUtils.getClientRectsForAreas(rect = [], parEl.getBoundingClientRect()
-          , true, [clickEl]);
-        rect = rect[0];
-      }
-      break;
-      }
-      rect || (rect = [0, 0, 0, 0]);
-    }
-    DomUtils.flashVRect(rect);
   },
   reinit: function() {
     var mode = this.mode, linkActivator = this.linkActivator;
@@ -454,7 +430,7 @@ var LinkHints = {
     this.linkActivator = null;
     this.hintMarkers = [];
     if (this.hintMarkerContainingDiv) {
-      DomUtils.removeNode(this.hintMarkerContainingDiv);
+      this.hintMarkerContainingDiv.remove();
       this.hintMarkerContainingDiv = null;
     }
     this.keyStatus.tab = 0;
@@ -728,7 +704,7 @@ LinkHints.filterHints = {
 
 LinkHints.spanWrap = function(hintString) {
   for (var _i = 0, _j = -1, _len = hintString.length, innerHTML = new Array(_len * 3); _i < _len; _i++) {
-    innerHTML[++_j] = "<span class=\"vimB vimI\">";
+    innerHTML[++_j] = "<span>";
     innerHTML[++_j] = hintString[_i];
     innerHTML[++_j] = "</span>";
   }

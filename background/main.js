@@ -63,22 +63,22 @@ var g_requestHandlers;
   };
 
   helpDialogHtmlForCommand = function(html, isAdvanced, bindings, description, command) {
-    html.push('<tr class="vimB vimI vimHelpTr', isAdvanced
-      ? " vimHelpAdvanced" : "", '">\n\t');
+    html.push('<tr class="HelpTr', isAdvanced
+      ? " HelpAdvanced" : "", '">\n\t');
     if (description) {
-      html.push('<td class="vimB vimI vimHelpTd vimHelpKey">\n\t\t'
-        , '<span class="vimB vimI vimHelpShortKey">'
+      html.push('<td class="HelpTd HelpKey">\n\t\t'
+        , '<span class="HelpShortKey">'
         , bindings && Utils.escapeHtml(bindings), "</span>\n\t</td>\n\t"
-        , '<td class="vimB vimI vimHelpTd">', bindings && ":", "</td>\n\t"
-        , '<td class="vimB vimI vimHelpTd vimHelpCommandInfo">'
+        , '<td class="HelpTd">', bindings && ":", "</td>\n\t"
+        , '<td class="HelpTd HelpCommandInfo">'
         , Utils.escapeHtml(description));
       if (command) {
-        html.push('\n\t\t<span class="vimB vimI vimHelpCommandName">('
+        html.push('\n\t\t<span class="HelpCommandName">('
           , command, ")</span>\n\t");
       }
     } else {
-      html.push('<td class="vimB vimI vimHelpTd" colspan="3">\n\t\t'
-        , '<span class="vimB vimI vimHelpLongKey">'
+      html.push('<td class="HelpTd" colspan="3">\n\t\t'
+        , '<span class="HelpLongKey">'
         , Utils.escapeHtml(bindings), "</span>&#160;:\n\t");
     }
     html.push("</td>\n</tr>\n");
@@ -943,10 +943,10 @@ var g_requestHandlers;
         });
         break;
       case "reg":
-        key = Settings.get("userDefinedCss_f");
-        key && port.postMessage({
+        ref = Settings.get("userDefinedCss_f");
+        ref && port.postMessage({
           name: "insertCSS",
-          css: key
+          css: ref
         });
         // no `break;`
       case "rereg":
@@ -1202,6 +1202,9 @@ var g_requestHandlers;
         relevancy: Settings.get("showOmniRelevancy")
       };
     },
+    initBaseCSS: function() {
+      return Settings.get("baseCSS");
+    },
     getCopiedUrl_f: function(request) {
       var url = Clipboard.paste().trim(), arr;
       if (url) {
@@ -1259,12 +1262,16 @@ var g_requestHandlers;
 
   Settings.postUpdate("userDefinedCss");
   Settings.updateHooks.userDefinedCss_f = function(css) {
-    this.postUpdate("broadcast", {
-      name: "insertCSS",
-      onReady: true,
-      css: css
-    });
-  };
+    setTimeout(function(css0) {
+      var css = Settings.get("userDefinedCss_f");
+      if (css !== css0) { return; }
+      Settings.postUpdate("broadcast", {
+        name: "insertCSS",
+        onReady: true,
+        css: (css || ["", ""])
+      });
+    }, 0, css);
+  }
 
   Settings.updateHooks.newTabUrl = function(url) {
     url = (/^\/?[^:\s]*$/.test(url)) ? chrome.runtime.getURL(url) : Utils.convertToUrl(url);

@@ -106,7 +106,7 @@ div#exampleKeyMapping {
 #scrollStepSize::-webkit-inner-spin-button {
   margin-left: 1px;
 }
-#userDefinedCss {
+#userDefinedCss, #userDefinedOuterCss {
   width: 100%;
   padding-bottom: 2px;
   min-height: 75px;

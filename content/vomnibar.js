@@ -21,10 +21,6 @@ var Vomnibar = {
       return;
     } else {
       var box = document.createElement("div");
-      if (!box.style) {
-        this.disabled = true;
-        return;
-      }
       completer.init(bg);
       vomnibarUI.init(box, bg, completer);
     }
@@ -175,15 +171,20 @@ Vomnibar.vomnibarUI = {
     this.timer = setTimeout(this.onTimer, updateDelay);
   },
   populateUI: function() {
+    // work-around: For a node in a shadowRoot, if it's in the DOM tree,
+    // then its children won't have `.style` if created by setting `.innerHTML`
+    this.list.remove();
     this.list.innerHTML = this.renderItems(this.completions);
+    this.box.appendChild(this.list);
     this.background.cleanCompletions(this.completions);
     if (this.completions.length > 0) {
       this.list.style.display = "";
-      this.input.parentElement.classList.add("vimOWithList");
+      this.list.lastElementChild.classList.add("OBItem");
+      this.input.parentElement.classList.add("OWithList");
       this.selection = (this.completions[0].type === "search") ? 0 : this.initialSelectionValue;
     } else {
       this.list.style.display = "none";
-      this.input.parentElement.classList.remove("vimOWithList");
+      this.input.parentElement.classList.remove("OWithList");
       this.selection = -1;
     }
     this.isSelectionChanged = false;
@@ -207,10 +208,10 @@ Vomnibar.vomnibarUI = {
     var _ref = this.list.children, old = this.selection;
     this.selection = sel;
     if (old >= 0 && old < _ref.length) {
-      _ref[old].classList.remove("vimS");
+      _ref[old].classList.remove("S");
     }
     if (sel >= 0 && sel < _ref.length) {
-      _ref[sel].classList.add("vimS");
+      _ref[sel].classList.add("S");
     }
   },
   onKeypress: function(event) {
@@ -374,8 +375,8 @@ Vomnibar.vomnibarUI = {
   init: function(box, background, completer) {
     this.background = background;
     this.box = box;
-    box.className = "vimB vimR";
-    box.id = "vimOmnibar";
+    box.className = "R";
+    box.id = "Omnibar";
     box.style.display = "none";
     MainPort.sendMessage({
       handler: "initVomnibar"
@@ -397,9 +398,9 @@ Vomnibar.vomnibarUI = {
     var str;
     this.background.showRelevancy = response.relevancy;
     this.box.innerHTML = response.html;
-    this.input = this.box.querySelector("#vimOInput");
-    this.list = this.box.querySelector("#vimOList");
-    str = this.box.querySelector("#vimOITemplate").innerHTML;
+    this.input = this.box.querySelector("#OInput");
+    this.list = this.box.querySelector("#OList");
+    str = this.box.querySelector("#OITemplate").innerHTML;
     str = str.substring(str.indexOf('>') + 1, str.lastIndexOf('<'));
     this.renderItems = Utils.makeListRenderBySplit(str);
     this._waitInit = 0;
@@ -407,7 +408,7 @@ Vomnibar.vomnibarUI = {
     if (this.completions) {
       this.onCompletions(this.completions);
     }
-    document.documentElement.appendChild(this.box);
+    DomUtils.UI.addElement(this.box);
     this.input.oninput = this.onInput.bind(this);
   },
   computeHint: function(li, a) {
@@ -428,7 +429,7 @@ Vomnibar.vomnibarUI = {
       box.removeEventListener("click", this.onClick);
       box.removeEventListener("mousewheel", DomUtils.suppressPropagation);
       this.input && (this.input.oninput = null);
-      DomUtils.removeNode(box);
+      box.remove();
     }
     Vomnibar.vomnibarUI = null;
   }
@@ -493,7 +494,7 @@ Vomnibar.background = {
       : "navigateToUrl";
     return result;
   },
-  highlightTerms: function(string, ranges) {
+  highlightTitle: function(string, ranges) {
     var _i, out, start, end;
     if (ranges.length === 0) {
       return Utils.escapeHtml(string);
@@ -503,7 +504,7 @@ Vomnibar.background = {
       start = ranges[_i];
       out.push(Utils.escapeHtml(string.substring(end, start)));
       end = ranges[_i + 1];
-      out.push("<span class=\"vimB vimI vimOmniS\">");
+      out.push("<span class=\"OSTitle\">");
       out.push(Utils.escapeHtml(string.substring(start, end)));
       out.push("</span>");
     }
@@ -542,7 +543,7 @@ Vomnibar.background = {
         lenCut += start - temp - 19;
       }
       end = ranges[i + 1];
-      out.push("<span class=\"vimB vimI vimOmniS\">");
+      out.push("<span class=\"OSUrl\">");
       out.push(Utils.escapeHtml(string.substring(start, end)));
       out.push("</span>");
     }
@@ -558,15 +559,15 @@ Vomnibar.background = {
   },
   prepareToRender: function(item) {
     item.textSplit = this.cutUrl(item.text, item.textSplit, item.url);
-    item.titleSplit = this.highlightTerms(item.title, item.titleSplit);
+    item.titleSplit = this.highlightTitle(item.title, item.titleSplit);
     if (this.showFavIcon && item.url.indexOf("://") >= 0) {
-      item.favIconUrl = " vimOIIcon\" style=\"background-image: url('" + Utils.escapeHtml(item.favIconUrl ||
+      item.favIconUrl = " OIIcon\" style=\"background-image: url('" + Utils.escapeHtml(item.favIconUrl ||
         ("chrome://favicon/size/16/" + item.url)) + "')";
     } else {
       item.favIconUrl = "";
     }
     if (this.showRelevancy) {
-      item.relevancy = "\n\t\t\t<span class=\"vimB vimI vimOIRelevancy\">" + item.relevancy + "</span>";
+      item.relevancy = "\n\t\t\t<span class=\"OIRelevancy\">" + item.relevancy + "</span>";
     } else {
       item.relevancy = "";
     }
