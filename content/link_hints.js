@@ -310,17 +310,18 @@ var LinkHints = {
       }
     }
   },
-  traverse: function(obj) {
-    var output = [], key, deep = Settings.values.deepHints, func;
+  traverse: function(map) {
+    var output = [], key, func, container;
     DomUtils.prepareCrop();
-    for (key in obj) {
-      if (deep) {
-        output.forEach.call(document.querySelectorAll("* /deep/ " + key)
-          , obj[key].bind(output));
+    container = document.webkitFullscreenElement || document;
+    for (key in map) {
+      if (Settings.values.deepHints) {
+        output.forEach.call(container.querySelectorAll("* /deep/ " + key)
+          , map[key].bind(output));
         continue;
       }
-      func = obj[key].bind(output);
-      output.forEach.call(document.getElementsByTagName(key), func);
+      func = map[key].bind(output);
+      output.forEach.call(container.getElementsByTagName(key), func);
       output.forEach.call(DomUtils.UI.root.querySelectorAll(key), func);
     }
     return output;
