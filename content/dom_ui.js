@@ -3,6 +3,7 @@ DomUtils.UI = {
   cssOuter: null,
   container: null,
   root: null,
+  fullScreen: null,
   addElement: function(element) {
     if (this.init) { this.init(); }
     this.root.appendChild(element);
@@ -22,6 +23,14 @@ DomUtils.UI = {
     this.addElement(parent);
     return parent;
   },
+  adjust: function() {
+    var parent = document.webkitFullscreenElement;
+    if (this.fullScreen == parent) { return; }
+    this.fullScreen = parent;
+    parent || (parent = document.documentElement);
+    parent.appendChild(this.container);
+    this.container.style = "";
+  },
   init: function() {
     this.init = null;
     this.container = document.createElement("div");
@@ -29,6 +38,8 @@ DomUtils.UI = {
     this.appendCSS(this.root
       , "@import url(chrome-extension://hfjbmagddngcpeloejdejnfgbamkjaeg/content/vimium.css);");
     document.documentElement.appendChild(this.container);
+    this.adjust = this.adjust.bind(this);
+    document.addEventListener("webkitfullscreenchange", this.adjust);
   },
   appendCSS: function(parent, text) {
     var css = document.createElement("style");
@@ -77,6 +88,7 @@ DomUtils.UI = {
     if (el && el.parentNode) {
       el.parentNode.removeChild(el);
     }
+    document.removeEventListener("webkitfullscreenchange", this.adjust);
     DomUtils.UI = null;
   }
 };
