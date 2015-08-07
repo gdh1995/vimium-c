@@ -170,6 +170,7 @@ var Settings = {
   defaults: {
     __proto__: null,
     UILanguage: null,
+    deepHints: false,
     exclusionRules: [{pattern: "http*://mail.google.com/*", passKeys: ""}],
     filterLinkHints: false,
     findModeRawQuery: "",
@@ -224,7 +225,8 @@ w|wiki:\\\n  http://www.wikipedia.org/w/index.php?search=%s Wikipedia (en-US)",
     enabled: { "19": "icons/enabled_19.png", "38": "icons/enabled_38.png" },
     partial: { "19": "icons/partial_19.png", "38": "icons/partial_38.png" }
   },
-  valuesToLoad: ["filterLinkHints", "findModeRawQuery", "findModeRawQueryList" //
+  valuesToLoad: ["deepHints" //
+    , "filterLinkHints", "findModeRawQuery", "findModeRawQueryList" //
     , "grabBackFocus" //
     , "hideHud", "linkHintCharacters", "linkHintNumbers", "nextPatterns" //
     , "previousPatterns", "regexFindMode", "scrollStepSize", "smoothScroll" //

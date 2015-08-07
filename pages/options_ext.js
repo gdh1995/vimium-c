@@ -206,6 +206,7 @@ CheckBoxOption = (function(_super) {
     regexFindMode: CheckBoxOption,
     scrollStepSize: NumberOption,
     smoothScroll: CheckBoxOption,
+    deepHints: CheckBoxOption,
     showActionIcon: CheckBoxOption,
     searchEngines: TextOption,
     searchUrl: NonEmptyTextOption,

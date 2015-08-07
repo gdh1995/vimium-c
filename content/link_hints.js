@@ -304,21 +304,22 @@ var LinkHints = {
       }
     }
   },
+  traverse: function(obj) {
+    var output = [], key, deep = Settings.values.deepHints;
+    DomUtils.prepareCrop();
+    for (key in obj) {
+      output.forEach.call(deep ? document.querySelectorAll("* /deep/ " + key)
+        : document.getElementsByTagName(key), obj[key].bind(output));
+    }
+    return output;
+  },
   getVisibleClickableElements: function() {
     var output = [], visibleElements = [], visibleElement, rects, rects2, _len, _i;
-    DomUtils.prepareCrop();
-    if (this.mode == this.CONST.DOWNLOAD_IMAGE || this.mode == this.CONST.OPEN_IMAGE) {
-      output.forEach.call(document.getElementsByTagName("img") //
-        , this.GetImagesInImg.bind(visibleElements));
-      output.forEach.call(document.getElementsByTagName("a") //
-        , this.GetImagesInA.bind(visibleElements));
-    } else if (this.mode >= 136) {
-      output.forEach.call(document.getElementsByTagName("a") //
-        , this.GetLinks.bind(visibleElements));
-    } else {
-      output.forEach.call(document.getElementsByTagName("*") //
-        , this.GetVisibleClickable.bind(visibleElements));
-    }
+    visibleElements = this.traverse((this.mode == this.CONST.DOWNLOAD_IMAGE
+        || this.mode == this.CONST.OPEN_IMAGE)
+      ? { img: this.GetImagesInImg, a: this.GetImagesInA }
+      : this.mode >= 136 ? { a: this.GetLinks }
+      : { "*": this.GetVisibleClickable });
     visibleElements.reverse();
     for (_len = visibleElements.length; 0 <= --_len; ) {
       visibleElement = visibleElements[_len];
@@ -348,6 +349,10 @@ var LinkHints = {
         return true;
       }
     } else if (_i > KeyCodes.f1 && _i <= KeyCodes.f12) {
+      if (_i === KeyCodes.f1 + 1) {
+        Settings.values.deepHints = !Settings.values.deepHints;
+        return false;
+      }
       return true;
     } else if (_i === KeyCodes.shiftKey) {
       if (this.mode < 128) {
