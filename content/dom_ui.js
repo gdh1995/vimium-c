@@ -35,8 +35,12 @@ DomUtils.UI = {
     this.init = null;
     this.container = document.createElement("div");
     this.root = this.container.createShadowRoot();
-    this.appendCSS(this.root
-      , "@import url(chrome-extension://hfjbmagddngcpeloejdejnfgbamkjaeg/content/vimium.css);");
+    var baseCSS = this.appendCSS(this.root, "");
+    MainPort.sendMessage({
+      handler: "initBaseCSS"
+    }, function(css) {
+      baseCSS.innerHTML = css;
+    });
     document.documentElement.appendChild(this.container);
     this.adjust = this.adjust.bind(this);
     document.addEventListener("webkitfullscreenchange", this.adjust);

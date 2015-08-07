@@ -1202,6 +1202,9 @@ var g_requestHandlers;
         relevancy: Settings.get("showOmniRelevancy")
       };
     },
+    initBaseCSS: function() {
+      return Settings.get("baseCSS");
+    },
     getCopiedUrl_f: function(request) {
       var url = Clipboard.paste().trim(), arr;
       if (url) {
