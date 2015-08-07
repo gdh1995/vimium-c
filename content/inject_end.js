@@ -74,41 +74,6 @@ Settings.onDestroy.injected = function() {
   injector.alive = 0;
   injector.oldFrameId = this.focusMsg.frameId;
   injector.destroy = null;
-  injector.execute = null;
 };
 
 VimiumInjector.destroy = Settings.ELs.destroy.bind(Settings.ELs);
-VimiumInjector.execute = function(command, count, options) {
-  if (!command || typeof command !== "string") { return -1; }
-  typeof options === "object" || (options = null);
-  count = count > 1 ? (count | 0) : 1;
-  if (! (command.split('.', 1)[0] in Settings.Commands)) {
-    try {
-      options = JSON.parse(JSON.stringify(options));
-    } catch (e) {
-      return -2;
-    }
-    chrome.runtime.sendMessage("hfjbmagddngcpeloejdejnfgbamkjaeg", {
-      handler: "command",
-      command: command,
-      count: count,
-      options: options
-    });
-    return 0;
-  }
-  if (MainPort.safePost({ handler: "esc" })) {
-    return -127;
-  }
-  Settings.RequestHandlers.refreshKeyQueue({ currentFirst: null });
-  try {
-    MainPort.Listener({
-      name: "execute",
-      command: command,
-      count: count,
-      options: options || {}
-    });
-    return 1;
-  } catch (e) {
-    return -2;
-  }
-};
