@@ -30,3 +30,21 @@ function decodeHash() {
 
 window.addEventListener("hashchange", decodeHash);
 decodeHash();
+
+window.addEventListener("keydown", function(event) {
+  var str;
+  if (!event.ctrlKey || event.shiftKey) { return; }
+  str = String.fromCharCode(event.keyCode);
+  if (str === 'S') {
+    if (str = $("shownImage").src) {
+      download(str);
+      event.preventDefault();
+    }
+  }
+});
+function download(url) {
+  var a = document.createElement('a');
+  a.download = "";
+  a.href = url;
+  a.click();
+}
