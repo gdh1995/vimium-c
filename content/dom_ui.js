@@ -72,4 +72,11 @@ DomUtils.UI = {
       this.cssOuter = this.appendCSS(this.container, outer);
     }
   },
+  destroy: function() {
+    var el = this.container;
+    if (el && el.parentNode) {
+      el.parentNode.removeChild(el);
+    }
+    DomUtils.UI = null;
+  }
 };

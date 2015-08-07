@@ -1414,12 +1414,10 @@ var Settings, VHUD, MainPort, VInsertMode;
     Vomnibar.destroy();
     LinkHints.destroy();
     HUD.destroy();
+    DomUtils.UI.destroy();
 
     if (settings.isLoading) {
       clearInterval(settings.isLoading);
-    }
-    if (DomUtils.UI.container) {
-      DomUtils.removeNode(DomUtils.UI.container);
     }
     var ref = settings.onDestroy, i, func;
     for (i in ref) {
