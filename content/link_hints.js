@@ -305,11 +305,17 @@ var LinkHints = {
     }
   },
   traverse: function(obj) {
-    var output = [], key, deep = Settings.values.deepHints;
+    var output = [], key, deep = Settings.values.deepHints, func;
     DomUtils.prepareCrop();
     for (key in obj) {
-      output.forEach.call(deep ? document.querySelectorAll("* /deep/ " + key)
-        : document.getElementsByTagName(key), obj[key].bind(output));
+      if (deep) {
+        output.forEach.call(document.querySelectorAll("* /deep/ " + key)
+          , obj[key].bind(output));
+        continue;
+      }
+      func = obj[key].bind(output);
+      output.forEach.call(document.getElementsByTagName(key), func);
+      output.forEach.call(DomUtils.UI.root.querySelectorAll(key), func);
     }
     return output;
   },
