@@ -7,8 +7,8 @@ DomUtils.UI = {
   flashLastingTime: 400,
   fullScreen: null,
   addElement: function(element) {
-    if (this.init) { this.init(); }
-    this.root.appendChild(element);
+    this.init();
+    this.addElement(element);
   },
   addElementList: function(els, overlayOptions) {
     var parent, _i, _len;
@@ -50,10 +50,11 @@ DomUtils.UI = {
     }, function(css) {
       var _this = DomUtils.UI;
       _this.cssBase.innerHTML = css;
+      document.documentElement.appendChild(_this.container);
     });
-    document.documentElement.appendChild(this.container);
     this.adjust = this.adjust.bind(this);
     document.addEventListener("webkitfullscreenchange", this.adjust);
+    this.addElement = function(element) { this.root.appendChild(element); };
   },
   appendCSS: function(parent, text) {
     var css = document.createElement("style");
