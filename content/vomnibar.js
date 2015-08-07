@@ -429,7 +429,7 @@ Vomnibar.vomnibarUI = {
       box.removeEventListener("click", this.onClick);
       box.removeEventListener("mousewheel", DomUtils.suppressPropagation);
       this.input && (this.input.oninput = null);
-      DomUtils.removeNode(box);
+      box.remove();
     }
     Vomnibar.vomnibarUI = null;
   }

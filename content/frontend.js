@@ -493,7 +493,7 @@ var Settings, VHUD, MainPort, VInsertMode;
           } else if (event.keyCode === KeyCodes.f12) {
             return true;
           } else if (event.keyCode !== KeyCodes.shiftKey) {
-            DomUtils.removeNode(hintContainingDiv);
+            hintContainingDiv.remove();
             handlerStack.remove(this.handlerId);
             return true;
           }
@@ -1110,7 +1110,7 @@ var Settings, VHUD, MainPort, VInsertMode;
     destroy: function() {
       clearInterval(this._tweenId);
       clearTimeout(this._durationTimer);
-      this._element && DomUtils.removeNode(this._element);
+      this._element && this._element.remove();
       HUD = null;
     }
   };
@@ -1192,7 +1192,7 @@ var Settings, VHUD, MainPort, VInsertMode;
       } else if (ref.more) {
         ref.more = false;
       } else {
-        DomUtils.removeNode(ref.node);
+        ref.node.remove();
         clearInterval(ref.timer);
         settings.values.highlightMask = null;
       }
@@ -1283,7 +1283,7 @@ var Settings, VHUD, MainPort, VInsertMode;
 
     hide = function() {
       handlerStack.remove(handlerId);
-      DomUtils.removeNode(container);
+      container.remove();
       Commands.showHelp = oldShowHelp;
       settings.onDestroy.helpDialog = null;
       container = null;
@@ -1317,7 +1317,7 @@ var Settings, VHUD, MainPort, VInsertMode;
         DomUtils.suppressEvent(event);
       };
     } else {
-      DomUtils.removeNode(node1);
+      node1.remove();
     }
     showAdvancedCommands(shouldShowAdvanced);
     node1 = container.querySelector("#HelpDialog");

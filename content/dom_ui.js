@@ -67,7 +67,7 @@ DomUtils.UI = {
       if (outer) {
         css.innerHTML = outer;
       } else {
-        DomUtils.removeNode(css);
+        css.remove();
         this.css = null;
       }
       return;
@@ -78,7 +78,7 @@ DomUtils.UI = {
       if (inner) {
         this.cssInner.innerHTML = inner;
       } else {
-        DomUtils.removeNode(this.cssInner);
+        this.cssInner.remove();
         this.cssInner = null;
       }
     } else if (inner) {
@@ -88,7 +88,7 @@ DomUtils.UI = {
       if (outer) {
         this.cssOuter.outerHTML = outer;
       } else {
-        DomUtils.removeNode(this.cssOuter);
+        this.cssOuter.remove();
         this.cssOuter = null;
       }
     } else if (outer) {
@@ -133,7 +133,9 @@ DomUtils.UI = {
     flashEl.style.width = (rect[2] - rect[0]) + "px";
     flashEl.style.height = (rect[3] - rect[1]) + "px";
     this.addElement(flashEl);
-    return setTimeout(DomUtils.removeNode, time || this.flashLastingTime, flashEl);
+    return setTimeout(function(el) {
+      el.remove();
+    }, time || this.flashLastingTime, flashEl);
   },
   destroy: function() {
     var el = this.container;

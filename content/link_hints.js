@@ -419,7 +419,7 @@ var LinkHints = {
     this.linkActivator = null;
     this.hintMarkers = [];
     if (this.hintMarkerContainingDiv) {
-      DomUtils.removeNode(this.hintMarkerContainingDiv);
+      this.hintMarkerContainingDiv.remove();
       this.hintMarkerContainingDiv = null;
     }
     this.keyStatus.tab = 0;
