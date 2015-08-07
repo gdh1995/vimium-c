@@ -138,6 +138,7 @@ var LinkHints = {
     style = this.hintMarkerContainingDiv.style;
     style.left = this.initScrollX + "px", style.top = this.initScrollY + "px";
     style.width = width + "px", style.height = height + "px";
+    if (document.webkitFullscreenElement) { style.position = "fixed"; }
     this.handlerId = handlerStack.push({
       keydown: this.onKeyDownInMode,
       _this: this
