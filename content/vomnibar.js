@@ -175,7 +175,11 @@ Vomnibar.vomnibarUI = {
     this.timer = setTimeout(this.onTimer, updateDelay);
   },
   populateUI: function() {
+    // work-around: For a node in a shadowRoot, if it's in the DOM tree,
+    // then its children won't have `.style` if created by setting `.innerHTML`
+    this.list.remove();
     this.list.innerHTML = this.renderItems(this.completions);
+    this.box.appendChild(this.list);
     this.background.cleanCompletions(this.completions);
     if (this.completions.length > 0) {
       this.list.style.display = "";
