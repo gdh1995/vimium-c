@@ -207,7 +207,7 @@ var LinkHints = {
   GetVisibleClickable: function(element) {
     var arr, isClickable = false, s, _i;
     switch (element.tagName.toLowerCase()) {
-    case "a": isClickable = true; break;
+    case "a": case "frame": case "iframe": isClickable = true; break;
     case "textarea": isClickable = !element.disabled && !element.readOnly; break;
     case "input":
       isClickable = !(element.type === "hidden" || element.disabled //
@@ -875,8 +875,12 @@ LinkHints.FUNC = {
     }
   },
   DEFAULT: function(link) {
-    var mode = this.mode & 3, alterTarget;
-    if (mode >= 2 && link.nodeName.toLowerCase() === "a") {
+    var mode = this.mode & 3, alterTarget, tag = link.nodeName.toLowerCase();
+    if (tag === "iframe" || tag === "frame") {
+      link.contentWindow.focus();
+      return;
+    }
+    if (mode >= 2 && tag === "a") {
       alterTarget = link.getAttribute('target');
       link.target = "_top";
     }
