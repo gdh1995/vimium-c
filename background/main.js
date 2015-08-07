@@ -1202,7 +1202,7 @@ var g_requestHandlers;
         relevancy: Settings.get("showOmniRelevancy")
       };
     },
-    initBaseCSS: function() {
+    initCSSBase: function() {
       return Settings.get("baseCSS");
     },
     getCopiedUrl_f: function(request) {

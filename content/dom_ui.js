@@ -1,4 +1,5 @@
 DomUtils.UI = {
+  cssBase: null,
   cssInner: null,
   cssOuter: null,
   container: null,
@@ -43,11 +44,12 @@ DomUtils.UI = {
       return;
     }
     this.root = this.container.createShadowRoot();
-    var baseCSS = this.appendCSS(this.root, "");
+    this.cssBase = this.appendCSS(this.root, "");
     MainPort.sendMessage({
-      handler: "initBaseCSS"
+      handler: "initCSSBase"
     }, function(css) {
-      baseCSS.innerHTML = css;
+      var _this = DomUtils.UI;
+      _this.cssBase.innerHTML = css;
     });
     document.documentElement.appendChild(this.container);
     this.adjust = this.adjust.bind(this);
