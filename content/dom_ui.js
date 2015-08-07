@@ -131,8 +131,8 @@ DomUtils.UI = {
   flashVRect: function(rect, time) {
     var flashEl = document.createElement("div");
     flashEl.className = "R Flash";
-    flashEl.style.left = rect[0] + window.scrollX + "px";
-    flashEl.style.top = rect[1] + window.scrollY + "px";
+    flashEl.style.left = rect[0] + "px";
+    flashEl.style.top = rect[1] + "px";
     flashEl.style.width = (rect[2] - rect[0]) + "px";
     flashEl.style.height = (rect[3] - rect[1]) + "px";
     this.addElement(flashEl);
