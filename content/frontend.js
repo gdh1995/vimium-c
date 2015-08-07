@@ -463,24 +463,24 @@ var Settings, VHUD, MainPort, VInsertMode;
       hints = visibleInputs.map(function(element) {
         var hint = document.createElement("div"), style = hint.style
           , rect = element.getBoundingClientRect();
-        hint.className = "vimB vimI vimIH";
+        hint.className = "IH";
         style.left = (rect.left | 0) - 1 + "px";
         style.top = (rect.top | 0) - 1 + "px";
         style.width = (rect.width | 0) + "px";
         style.height = (rect.height | 0) + "px";
         return hint;
       });
-      hints[selectedInputIndex].classList.add('vimS');
+      hints[selectedInputIndex].classList.add("S");
       hintContainingDiv = DomUtils.UI.addElementList(hints, {
-        id: "vimIMC",
-        className: "vimB vimR"
+        id: "IMC",
+        className: "R"
       });
       hintContainingDiv.style.left = window.scrollX + "px";
       hintContainingDiv.style.top = window.scrollY + "px";
       handlerStack.push({
         keydown: function(event) {
           if (event.keyCode === KeyCodes.tab) {
-            hints[selectedInputIndex].classList.remove('vimS');
+            hints[selectedInputIndex].classList.remove("S");
             if (event.shiftKey) {
               if (--selectedInputIndex === -1) {
                 selectedInputIndex = hints.length - 1;
@@ -488,7 +488,7 @@ var Settings, VHUD, MainPort, VInsertMode;
             } else if (++selectedInputIndex === hints.length) {
               selectedInputIndex = 0;
             }
-            hints[selectedInputIndex].classList.add('vimS');
+            hints[selectedInputIndex].classList.add("S");
             DomUtils.simulateSelect(visibleInputs[selectedInputIndex]);
           } else if (event.keyCode === KeyCodes.f12) {
             return true;
@@ -815,7 +815,7 @@ var Settings, VHUD, MainPort, VInsertMode;
   handleEnterForFindMode = function() {
     exitFindMode();
     focusFoundLink();
-    // document.body.classList.add("vimFindMode");
+    // document.body.classList.add("FindMode");
     settings.set("findModeRawQuery", findModeQuery.rawQuery);
   };
 
@@ -835,7 +835,7 @@ var Settings, VHUD, MainPort, VInsertMode;
   executeFind = function(query, options) {
     var oldFindMode = findMode, result;
     findMode = true;
-    // document.body.classList.add("vimFindMode");
+    // document.body.classList.add("FindMode");
     HUD.hide(true);
     result = options.repeat;
     do {
@@ -852,7 +852,7 @@ var Settings, VHUD, MainPort, VInsertMode;
   };
 
   restoreDefaultSelectionHighlight = function() {
-    // document.body.classList.remove("vimFindMode");
+    // document.body.classList.remove("FindMode");
     document.removeEventListener("selectionchange", restoreDefaultSelectionHighlight, true);
     if (findChangeListened) {
       clearTimeout(findChangeListened);
@@ -1058,8 +1058,8 @@ var Settings, VHUD, MainPort, VInsertMode;
           this.enabled = function() { return false; }
           return false;
         }
-        el.className = "vimB vimR";
-        el.id = "vimHUD";
+        el.className = "R";
+        el.id = "HUD";
         el.style.opacity = "0";
         DomUtils.UI.addElement(this._element = el);
       } else if (this._durationTimer) {
@@ -1181,8 +1181,8 @@ var Settings, VHUD, MainPort, VInsertMode;
         return;
       }
       var dom1 = document.createElement("div");
-      dom1.className = "vimB vimR";
-      dom1.id = "vimHighlightMask";
+      dom1.className = "R";
+      dom1.id = "HighlightMask";
       DomUtils.UI.addElement(dom1);
       settings.values.highlightMask = {
         node: dom1,
@@ -1278,8 +1278,8 @@ var Settings, VHUD, MainPort, VInsertMode;
       Commands.showHelp = requestHandlers.showHelpDialog = function() {};
       return;
     }
-    container.className = "vimB vimR";
-    container.id = "vimHelpDialogContainer";
+    container.className = "R";
+    container.id = "HelpDialogContainer";
     container.innerHTML = response.html;
     DomUtils.UI.addElement(container);
     container.addEventListener("mousewheel", DomUtils.suppressPropagation);
@@ -1294,9 +1294,9 @@ var Settings, VHUD, MainPort, VInsertMode;
     };
     showAdvancedCommands = function(visible) {
       var advancedEls, el, _i, _len;
-      container.querySelector("#vimAdvancedCommands").innerHTML = visible
+      container.querySelector("#AdvancedCommands").innerHTML = visible
         ? "Hide advanced commands" : "Show advanced commands...";
-      advancedEls = container.getElementsByClassName("vimHelpAdvanced");
+      advancedEls = container.getElementsByClassName("HelpAdvanced");
       visible = visible ? "" : "none";
       for (_i = 0, _len = advancedEls.length; _i < _len; _i++) {
         el = advancedEls[_i];
@@ -1306,13 +1306,13 @@ var Settings, VHUD, MainPort, VInsertMode;
     
     settings.onDestroy.helpDialog = hide;
     oldShowHelp = Commands.showHelp;
-    container.querySelector("#vimAdvancedCommands").onclick = function() {
+    container.querySelector("#AdvancedCommands").onclick = function() {
       shouldShowAdvanced = !shouldShowAdvanced;
       showAdvancedCommands(shouldShowAdvanced);
       settings.set("showAdvancedCommands", shouldShowAdvanced);
     };
-    container.querySelector("#vimCloseButton").onclick = Commands.showHelp = hide;
-    node1 = container.querySelector("#vimOptionsPage");
+    container.querySelector("#CloseButton").onclick = Commands.showHelp = hide;
+    node1 = container.querySelector("#OptionsPage");
     if (! window.location.href.startsWith(response.optionUrl)) {
       node1.href = response.optionUrl;
       node1.onclick = function(event) {
@@ -1324,7 +1324,7 @@ var Settings, VHUD, MainPort, VInsertMode;
       DomUtils.removeNode(node1);
     }
     showAdvancedCommands(shouldShowAdvanced);
-    node1 = container.querySelector("#vimHelpDialog");
+    node1 = container.querySelector("#HelpDialog");
     node1.style.maxHeight = window.innerHeight - 80;
     window.focus();
     Scroller.activatedElement = node1;

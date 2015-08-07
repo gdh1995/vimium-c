@@ -123,7 +123,7 @@ CheckBoxOption = (function(_super) {
   $("showCommands").onclick = function(event) {
     var node;
     DomUtils.suppressEvent(event);
-    if (node = document.querySelector('.vimHelpCommandName')) {
+    if (node = document.querySelector('.HelpCommandName')) {
       node.click();
       return;
     }
@@ -133,7 +133,7 @@ CheckBoxOption = (function(_super) {
       names: true,
       title: "Command Listing"
     }, function(response) {
-      if (node = $("vimHelpDialog")) {
+      if (node = $("HelpDialog")) {
         MainPort.Listener({
           name: "execute",
           command: "showHelp",

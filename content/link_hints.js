@@ -132,8 +132,8 @@ var LinkHints = {
     width  = Math.min(width,  window.innerWidth  + 60);
     height = Math.min(height, window.innerHeight + 20);
     this.hintMarkerContainingDiv = DomUtils.UI.addElementList(this.hintMarkers, {
-      id: "vimHMC",
-      className: "vimB vimR"
+      id: "HMC",
+      className: "R"
     });
     if (style = this.hintMarkerContainingDiv.style) {
       style.left = this.initScrollX + "px", style.top = this.initScrollY + "px";
@@ -200,7 +200,7 @@ var LinkHints = {
   },
   createMarkerFor: function(link) {
     var marker = document.createElement("div"), rect;
-    marker.className = "vimB vimI vimLH";
+    marker.className = "LH";
     marker.clickableItem = link[0];
     rect = link[1];
     marker.style.left = rect[0] + "px";
@@ -385,10 +385,10 @@ var LinkHints = {
       for (_i = linksMatched.length; 0 <= --_i; ) {
         _ref = linksMatched[_i].childNodes;
         for (_j = _ref.length; _limit <= --_j; ) {
-          _ref[_j].classList.remove("vimMC");
+          _ref[_j].classList.remove("MC");
         }
         for (; 0 <= _j; --_j) {
-          _ref[_j].classList.add("vimMC");
+          _ref[_j].classList.add("MC");
         }
       }
     }
@@ -415,7 +415,7 @@ var LinkHints = {
   flashOutline: function(clickEl) {
     var temp, rect, parEl, bcr;
     DomUtils.prepareCrop();
-    if (clickEl.classList.contains("vimOIUrl") && Vomnibar.vomnibarUI.box
+    if (clickEl.classList.contains("OIUrl") && Vomnibar.vomnibarUI.box
       && DomUtils.isDOMDescendant(Vomnibar.vomnibarUI.box, clickEl)) {
       rect = Vomnibar.vomnibarUI.computeHint(clickEl.parentElement.parentElement, clickEl);
     } else if (clickEl.nodeName.toLowerCase() !== "area") {
@@ -728,7 +728,7 @@ LinkHints.filterHints = {
 
 LinkHints.spanWrap = function(hintString) {
   for (var _i = 0, _j = -1, _len = hintString.length, innerHTML = new Array(_len * 3); _i < _len; _i++) {
-    innerHTML[++_j] = "<span class=\"vimB vimI\">";
+    innerHTML[++_j] = "<span>";
     innerHTML[++_j] = hintString[_i];
     innerHTML[++_j] = "</span>";
   }

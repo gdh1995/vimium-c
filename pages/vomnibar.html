@@ -1,13 +1,12 @@
 
 <style type="text/css">
-.vimR#vimOmnibar {
+#Omnibar {
 	border: 1px solid #aaa;
 	border-radius: 5px;
 	box-shadow: 0px 2px 10px rgba(0, 0, 0, 0.8);
 	left: 50%;
 	margin: 0 0 0 -40%;
 	min-width: 400px;
-	overflow: hidden;
 	position: fixed;
 	top: 70px;
 	width: 80%;
@@ -15,88 +14,73 @@
 	z-index: 2147483643;
 }
 
-#vimOmnibar > #vimOInputBar {
+#OInputBar {
 	background: #F1F1F1;
 	padding: 10px;
 }
-#vimOmnibar > #vimOInputBar.vimOWithList {
+.OWithList {
 	border-bottom: 1px dashed #C6C9CE;
 }
-#vimOInputBar > #vimOInput {
-	-webkit-appearance: none;
+#OInput {
 	background-color: white;
 	border: 1px solid #E8E8E8;
 	border-radius: 3px;
 	box-shadow: #444 0px 0px 1px;
 	box-sizing: border-box;
 	color: black;
-	cursor: text;
-	font-family: Arial, Helvetica, sans-serif !important;
 	font-size: 20px;
 	height: 34px;
-	line-height: 100%;
-	margin: 0;
-	max-height: 34px;
-	max-width: 100%;
-	min-height: 0;
-	min-width: 0;
 	outline: none;
 	padding: 4px;
-	text-align: left;
-	text-decoration: none;
 	width: 100%;
 }
 
-#vimOmnibar > #vimOList {
+#OList {
 	background-color: white;
-	padding-bottom: 3px;
-}
-.vimB.vimOItem {
-	border-bottom: 1px solid #ddd;
-	display: list-item;
 	list-style: none;
-	padding: 5px 10px 3px 10px;
-	position: relative;
+	margin: 0;
+	padding: 0 0 3px 0;
 	white-space: nowrap;
 }
-.vimOItem:last-child {
+.OItem {
+	border-bottom: 1px solid #ddd;
+	padding: 5px 10px 3px 10px;
+}
+.OBItem {
 	border-bottom-style: none;
 	margin-bottom: -3px;
 	padding-bottom: 6px;
 }
-.vimOItem:hover {
+.OItem:hover {
 	background-color: #CFDDEF;
 }
-.vimOItem.vimS {
+.OItem.S {
 	background-color: #BBCEE9;
 }
 
-.vimB.vimOITop {
-	display: block;
+.OITop {
 	font-size: 16px;
 	height: 18px;
 	line-height: 18px;
-	overflow: hidden;
 }
-.vimB.vimOISource {
+.OISource {
 	color: #777;
-	font-family: Arial, Helvetica, sans-serif !important;
-	position: absolute;
+	float: left;
+	font-family: Arial, Helvetica, sans-serif;
+	width: 51px;
 }
-.vimB.vimOITitle {
+.OITitle {
 	box-sizing: border-box;
 	max-width: 100%;
 	overflow: hidden;
-	padding-left: 51px;
 }
-.vimOITitle > .vimOmniS {
+.OSTitle {
 	color: #333;
 	font-weight: bold;
 	text-decoration: underline;
 }
 
-.vimB.vimOIBottom {
-	display: block;
+.OIBottom {
 	font-size: 14px;
 	height: 16px;
 	line-height: 17px;
@@ -104,42 +88,42 @@
 	overflow: hidden;
 	padding-right: 6px;
 }
-.vimB.vimOIIcon {
+.OIIcon {
 	background-position: 30px 50%;
 	background-repeat: no-repeat;
 	background-size: 16px;
 }
-.vimB.vimOIUrl {
+.OIUrl {
 	box-sizing: border-box;
 	color: #224684;
 	display: inline-block;
-	font-family: Consolas, 'Courier New', Courier, monospace !important;
+	font-family: Consolas, 'Courier New', Courier, monospace;
 	max-width: 100%;
 	overflow: hidden;
 	padding-left: 51px;
 }
-.vimOIUrl > .vimOmniS {
+.OSUrl {
 	color: black;
 	font-weight: bold;
 }
-.vimB.vimOIRelevancy {
+.OIRelevancy {
 	font-family: 'Courier New', Courier, monospace;
 	margin-left: 10px;
 	position: absolute;
 }
 </style>
-<div class="vimB vimR vimOWithList" id="vimOInputBar">
-	<input type="text" class="vimB vimR" id="vimOInput" />
+<div class="R OWithList" id="OInputBar">
+	<input type="search" class="R" id="OInput" />
 </div>
-<ul class="vimB vimR" id="vimOList">
-	<div id="vimOITemplate"><div>
-	<li class="vimB vimI vimOItem">
-		<div class="vimB vimI vimOITop">
-			<span class="vimB vimI vimOISource">{{type}}</span>
-			<span class="vimB vimI vimOITitle">{{titleSplit}}</span>
+<ul class="R" id="OList">
+	<div id="OITemplate"><div>
+	<li class="OItem">
+		<div class="OITop">
+			<span class="OISource">{{type}}</span>
+			<span class="OITitle">{{titleSplit}}</span>
 		</div>
-		<div class="vimB vimI vimOIBottom{{favIconUrl}}">
-			<a class="vimB vimI vimOIUrl">{{textSplit}}</a>{{relevancy}}
+		<div class="OIBottom{{favIconUrl}}">
+			<a class="OIUrl">{{textSplit}}</a>{{relevancy}}
 		</div>
 	</li></div></div>
 </ul>
