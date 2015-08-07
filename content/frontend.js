@@ -450,7 +450,7 @@ var Settings, VHUD, MainPort, VInsertMode;
       if (selectedInputIndex === 0) {
         return;
       } else if (selectedInputIndex === 1) {
-        LinkHints.flashOutline(visibleInputs[0]);
+        DomUtils.UI.flashOutline(visibleInputs[0]);
         DomUtils.simulateSelect(visibleInputs[0]);
         return;
       }
@@ -926,7 +926,7 @@ var Settings, VHUD, MainPort, VInsertMode;
     }
     linkElement.scrollIntoViewIfNeeded();
     linkElement.focus();
-    LinkHints.flashOutline(linkElement);
+    DomUtils.UI.flashOutline(linkElement);
     DomUtils.simulateMouse(linkElement, 0, DomUtils.defaultMouseKeys);
   };
   

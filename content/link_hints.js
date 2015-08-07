@@ -399,43 +399,13 @@ var LinkHints = {
       return;
     }
     else if (tempi > 0) { clickEl.focus(); }
-    this.flashOutline(clickEl);
+    DomUtils.UI.flashOutline(clickEl);
     this.linkActivator(clickEl);
     if ((this.mode & 64) === 64) {
       this.reinit();
     } else {
       this.deactivateWith();
     }
-  },
-  flashOutline: function(clickEl) {
-    var temp, rect, parEl, bcr;
-    DomUtils.prepareCrop();
-    if (clickEl.classList.contains("OIUrl") && Vomnibar.vomnibarUI.box
-      && DomUtils.isDOMDescendant(Vomnibar.vomnibarUI.box, clickEl)) {
-      rect = Vomnibar.vomnibarUI.computeHint(clickEl.parentElement.parentElement, clickEl);
-    } else if (clickEl.nodeName.toLowerCase() !== "area") {
-      rect = DomUtils.getVisibleClientRect(clickEl);
-      bcr = VRect.fromClientRect(clickEl.getBoundingClientRect());
-      if (!rect || VRect.isContaining(bcr, rect)) {
-        rect = bcr;
-      }
-    } else {
-      parEl = clickEl;
-      while (parEl = parEl.parentElement) {
-      if (parEl.nodeName.toLowerCase() !== "map") { continue; }
-      temp = parEl.name.replace(LinkHints.quoteRegex, '\\"');
-      parEl = document.querySelector('img[usemap="#' + temp + '"],img[usemap="'
-        + temp + '"]');
-      if (parEl) {
-        DomUtils.getClientRectsForAreas(rect = [], parEl.getBoundingClientRect()
-          , true, [clickEl]);
-        rect = rect[0];
-      }
-      break;
-      }
-      rect || (rect = [0, 0, 0, 0]);
-    }
-    DomUtils.flashVRect(rect);
   },
   reinit: function() {
     var mode = this.mode, linkActivator = this.linkActivator;

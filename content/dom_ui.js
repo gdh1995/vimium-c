@@ -3,6 +3,7 @@ DomUtils.UI = {
   cssOuter: null,
   container: null,
   root: null,
+  flashLastingTime: 400,
   fullScreen: null,
   addElement: function(element) {
     if (this.init) { this.init(); }
@@ -93,6 +94,46 @@ DomUtils.UI = {
     } else if (outer) {
       this.cssOuter = this.appendCSS(this.container, outer);
     }
+  },
+  flashOutline: function(clickEl) {
+    var temp, rect, parEl, bcr;
+    DomUtils.prepareCrop();
+    if (clickEl.classList.contains("OIUrl") && Vomnibar.vomnibarUI.box
+      && DomUtils.isDOMDescendant(Vomnibar.vomnibarUI.box, clickEl)) {
+      rect = Vomnibar.vomnibarUI.computeHint(clickEl.parentElement.parentElement, clickEl);
+    } else if (clickEl.nodeName.toLowerCase() !== "area") {
+      rect = DomUtils.getVisibleClientRect(clickEl);
+      bcr = VRect.fromClientRect(clickEl.getBoundingClientRect());
+      if (!rect || VRect.isContaining(bcr, rect)) {
+        rect = bcr;
+      }
+    } else {
+      parEl = clickEl;
+      while (parEl = parEl.parentElement) {
+      if (parEl.nodeName.toLowerCase() !== "map") { continue; }
+      temp = parEl.name.replace(LinkHints.quoteRegex, '\\"');
+      parEl = document.querySelector('img[usemap="#' + temp + '"],img[usemap="'
+        + temp + '"]');
+      if (parEl) {
+        DomUtils.getClientRectsForAreas(rect = [], parEl.getBoundingClientRect()
+          , true, [clickEl]);
+        rect = rect[0];
+      }
+      break;
+      }
+      rect || (rect = [0, 0, 0, 0]);
+    }
+    this.flashVRect(rect);
+  },
+  flashVRect: function(rect, time) {
+    var flashEl = document.createElement("div");
+    flashEl.className = "R Flash";
+    flashEl.style.left = rect[0] + window.scrollX + "px";
+    flashEl.style.top = rect[1] + window.scrollY + "px";
+    flashEl.style.width = (rect[2] - rect[0]) + "px";
+    flashEl.style.height = (rect[3] - rect[1]) + "px";
+    this.addElement(flashEl);
+    return setTimeout(DomUtils.removeNode, time || this.flashLastingTime, flashEl);
   },
   destroy: function() {
     var el = this.container;
