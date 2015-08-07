@@ -34,6 +34,13 @@ DomUtils.UI = {
   init: function() {
     this.init = null;
     this.container = document.createElement("div");
+    if (!this.container.style) {
+      this.root = this.container;
+      LinkHints.isActive = true;
+      Vomnibar.disabled = true;
+      VHUD.enabled = function() { return false; };
+      return;
+    }
     this.root = this.container.createShadowRoot();
     var baseCSS = this.appendCSS(this.root, "");
     MainPort.sendMessage({

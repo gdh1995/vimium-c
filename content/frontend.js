@@ -1054,13 +1054,9 @@ var Settings, VHUD, MainPort, VInsertMode;
       var el = this._element;
       if (!el) {
         el = document.createElement("div");
-        if (!el.style) {
-          this.enabled = function() { return false; }
-          return false;
-        }
         el.className = "R";
         el.id = "HUD";
-        el.style.opacity = "0";
+        el.style.opacity = 0;
         DomUtils.UI.addElement(this._element = el);
       } else if (this._durationTimer) {
         clearTimeout(this._durationTimer);

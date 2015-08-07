@@ -21,10 +21,6 @@ var Vomnibar = {
       return;
     } else {
       var box = document.createElement("div");
-      if (!box.style) {
-        this.disabled = true;
-        return;
-      }
       completer.init(bg);
       vomnibarUI.init(box, bg, completer);
     }

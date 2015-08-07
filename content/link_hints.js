@@ -135,14 +135,9 @@ var LinkHints = {
       id: "HMC",
       className: "R"
     });
-    if (style = this.hintMarkerContainingDiv.style) {
-      style.left = this.initScrollX + "px", style.top = this.initScrollY + "px";
-      style.width = width + "px", style.height = height + "px";
-    } else {
-      this.deactivate();
-      this.isActive = true;
-      return;
-    }
+    style = this.hintMarkerContainingDiv.style;
+    style.left = this.initScrollX + "px", style.top = this.initScrollY + "px";
+    style.width = width + "px", style.height = height + "px";
     this.handlerId = handlerStack.push({
       keydown: this.onKeyDownInMode,
       _this: this
