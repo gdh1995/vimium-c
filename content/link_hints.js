@@ -214,6 +214,12 @@ var LinkHints = {
         || (element.readOnly && !(element.type in DomUtils.uneditableInputs)));
       break;
     case "button": case "select": isClickable = !element.disabled; break;
+    case "object": case "embed":
+      s = element.type;
+      if (s && s.endsWith("x-shockwave-flash")) {}
+      else { return; }
+      isClickable = true;
+      break;
     case "script": case "link": case "style":
       return;
     case "img":
