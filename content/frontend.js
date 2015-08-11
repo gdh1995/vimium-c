@@ -1326,7 +1326,8 @@ var Settings, VHUD, MainPort, VInsertMode;
     Scroller.activatedElement = node1;
     handlerId = handlerStack.push({
       keydown: function(event) {
-        if (event.keyCode === KeyCodes.esc && KeyboardUtils.isPlain(event)) {
+        if (event.keyCode === KeyCodes.esc && !VInsertMode.lock
+            && KeyboardUtils.isPlain(event)) {
           hide();
           return false;
         }
