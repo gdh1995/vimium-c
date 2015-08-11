@@ -4,7 +4,7 @@
  * value of a singed 32 bit int. Let's try larger valeus if 2**31 empirically isn't large enough.
  *
  *
- * R: Reset; S: Selected; L: Link
+ * R: Reset; S: Selected
  *
  * HMC: HintMarkerContainer; LH: LinkHint; MC: MatchingCharacter;
  * IMC: InputMarkerContainer, IH: InputHint;
