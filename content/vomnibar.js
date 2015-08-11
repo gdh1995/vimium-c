@@ -85,8 +85,9 @@ var Vomnibar = {
 };
 
 Vomnibar.vomnibarUI = {
-  box: null,
+  _waitInit: 1,
   background: null,
+  box: null,
   completer: null,
   completionInput: {
     url: "",
@@ -94,21 +95,19 @@ Vomnibar.vomnibarUI = {
     type: "input",
     action: "navigateToUrl"
   },
-  list: null,
   completions: null,
+  focused: true,
   forceNewTab: false,
   handlerId: 0,
   initialSelectionValue: -1,
   input: null,
-  focused: true,
   isSelectionChanged: false,
+  list: null,
   onUpdate: null,
-  openInNewTab: false,
   refreshInterval: 0,
   renderItems: null,
   selection: -1,
   timer: 0,
-  _waitInit: 1,
   show: function() {
     this.box.style.display = "";
     this.input.value = this.completionInput.text;
@@ -219,60 +218,47 @@ Vomnibar.vomnibarUI = {
   },
   onKeydown: function(event) {
     var action = "", n = event.keyCode, focused = VInsertMode.lock === this.input;
-    if (event.altKey) {}
-    else if (event.ctrlKey || event.metaKey) {
-      if (event.shiftKey) {}
-      else if (n === KeyCodes.up || n === KeyCodes.down) {
-        MainPort.Listener({
-          name: "execute", count: 1, options: {},
-          command: n === KeyCodes.up ? "scrollUp" : "scrollDown"
-        });
-        return false;
-      }
-      else if ((action = String.fromCharCode(event.keyCode)) === "K"
-        || action === "P") { action = "up"; }
-      else if (action === "J" || action === "N") { action = "down"; }
-      else { action = ""; }
+    if ((!focused && VInsertMode.lock) || event.altKey) { return true; }
+    if (event.shiftKey || !(event.ctrlKey || event.metaKey)) {}
+    else if (n === KeyCodes.up || n === KeyCodes.down) {
+      MainPort.Listener({
+        name: "execute", count: 1, options: {},
+        command: n === KeyCodes.up ? "scrollUp" : "scrollDown"
+      });
+      return false;
     }
-    else if (!focused && VInsertMode.lock) {} // other inputs
-    else if (n == KeyCodes.left || n == KeyCodes.right
-        || n === KeyCodes.backspace || n === KeyCodes.deleteKey) {}
-    if (n === KeyCodes.enter) {
-      this.openInNewTab = this.forceNewTab || event.shiftKey || event.ctrlKey || event.metaKey;
+    else if (n === 74 || n === 78) { action = "down"; } // 'J' or 'N'
+    else if (n === 75 || n === 80) { action = "up"; } // 'K' or 'P'
+
+    if (action) {}
+    else if (event.shiftKey || event.ctrlKey || event.metaKey) {
+      if (n === KeyCodes.enter) { this.forceNewTab = true; action = "enter"; }
+    }
+    else if (n === KeyCodes.enter) { action = "enter"; }
+    else if (n === KeyCodes.tab) { action = event.shiftKey ? "up" : "down"; }
+    else if (n === KeyCodes.esc) { action = "dismiss"; }
+    else if (n === KeyCodes.up) { action = "up"; }
+    else if (n === KeyCodes.down) { action = "down"; }
+    else if (n === KeyCodes.f1) { action = focused ? "backspace" : "focus"; }
+    else if (n === KeyCodes.f1 + 1) { action = focused ? "blur" : "focus"; }
+    else if (n !== KeyCodes.space) {}
+    else if (!focused) { action = "focus"; }
+    else if (((this.selection >= 0 && this.isSelectionChanged)
+        || this.completions.length <= 1) && this.input.value.endsWith("  ")) {
       action = "enter";
     }
-    else if (n === KeyCodes.tab) { action = event.shiftKey ? "up" : "down"; }
-    else if (event.shiftKey) { action = null; }
-    else if (n === KeyCodes.esc) { action = "dismiss"; }
-    else if (n === KeyCodes.space) {
-      if (!focused) { action = "focus"; }
-      else if (((this.selection >= 0 && this.isSelectionChanged)
-          || this.completions.length <= 1) && this.input.value.endsWith("  ")) {
-        this.openInNewTab = this.forceNewTab;
-        action = "enter";
-      }
-    } else if (n === KeyCodes.up) {
-      action = "up";
-    } else if (n === KeyCodes.down) {
-      action = "down";
-    } else if (n === KeyCodes.f1) {
-      action = focused ? "backspace" : "focus";
-    } else if (n === KeyCodes.f1 + 1) {
-      action = focused ? "blur" : "focus";
-    } else {
-      action = null;
+
+    if (action || n <= 32) {}
+    else if (KeyboardUtils.getKeyChar(event).length !== 1) {
+      if (n > KeyCodes.f1 && n <= KeyCodes.f12) { focused = false; }
     }
-    if (action === null) {
-      if (n < 32 || KeyboardUtils.getKeyChar(event).length !== 1) {}
-      else if (focused && (this.selection < 0 || !this.isSelectionChanged)) {}
-      else if (n >= 48 && n < 58) {
-        n = (n - 48) || 10;
-        if (event.shift || n > this.completions.length) { return false; }
-        this.selection = n - 1;
-        this.isSelectionChanged = true;
-        this.openInNewTab = this.forceNewTab;
-        action = "enter";
-      }
+    else if (focused && (this.selection < 0 || !this.isSelectionChanged)) {}
+    else if (n >= 48 && n < 58) {
+      n = (n - 48) || 10;
+      if (event.shiftKey || n > this.completions.length) { return false; }
+      this.selection = n - 1;
+      this.isSelectionChanged = true;
+      action = "enter";
     }
     return action ? (this.onAction(action), false) : focused ? -1 : true;
   },
@@ -315,7 +301,7 @@ Vomnibar.vomnibarUI = {
   },
   onEnter: function() {
     this.background.performAction(this.selection === -1 ? this.completionInput
-      : this.completions[this.selection], this.openInNewTab);
+      : this.completions[this.selection], this.forceNewTab);
     this.hide();
   },
   onClick: function(event) {
@@ -334,7 +320,7 @@ Vomnibar.vomnibarUI = {
       if (_i >= 0) {
         this.selection = _i;
         this.isSelectionChanged = true;
-        this.openInNewTab = this.forceNewTab || (event.shiftKey || event.ctrlKey || event.metaKey);
+        this.forceNewTab || (this.forceNewTab = event.shiftKey || event.ctrlKey || event.metaKey);
         this.onAction("enter");
       }
     }
