@@ -37,7 +37,6 @@
 
 #OList {
 	background-color: white;
-	list-style: none;
 	padding-botton: 3px;
 	white-space: nowrap;
 }
@@ -111,11 +110,11 @@
 }
 </style>
 <div class="OWithList" id="OInputBar">
-	<input type="search" id="OInput" />
+	<input type="text" id="OInput" />
 </div>
-<ul id="OList">
+<div id="OList">
 	<div id="OITemplate"><div>
-	<li class="OItem">
+	<div class="OItem">
 		<div class="OITop">
 			<span class="OISource">{{type}}</span>
 			<span class="OITitle">{{titleSplit}}</span>
@@ -123,5 +122,5 @@
 		<div class="OIBottom{{favIconUrl}}">
 			<a class="OIUrl">{{textSplit}}</a>{{relevancy}}
 		</div>
-	</li></div></div>
-</ul>
+	</div></div></div>
+</div>
