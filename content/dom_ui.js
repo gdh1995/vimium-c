@@ -26,10 +26,9 @@ DomUtils.UI = {
     return parent;
   },
   adjust: function() {
-    var parent = document.webkitFullscreenElement;
-    if (this.fullScreen == parent) { return; }
+    var parent = document.webkitFullscreenElement || document.documentElement;
+    if (this.fullScreen === parent) { return; }
     this.fullScreen = parent;
-    parent || (parent = document.documentElement);
     parent.appendChild(this.container);
     this.container.style = "";
   },
@@ -50,7 +49,7 @@ DomUtils.UI = {
     }, function(css) {
       var _this = DomUtils.UI;
       _this.cssBase.innerHTML = css;
-      document.documentElement.appendChild(_this.container);
+      _this.adjust();
     });
     this.adjust = this.adjust.bind(this);
     document.addEventListener("webkitfullscreenchange", this.adjust);
