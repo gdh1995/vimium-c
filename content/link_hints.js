@@ -329,10 +329,11 @@ var LinkHints = {
   },
   getVisibleClickableElements: function() {
     var output = [], visibleElements = [], visibleElement, rects, rects2, _len, _i;
-    visibleElements = this.traverse((this.mode == this.CONST.DOWNLOAD_IMAGE
-        || this.mode == this.CONST.OPEN_IMAGE)
+    _i = this.mode & ~64;
+    visibleElements = this.traverse(
+      (_i == this.CONST.DOWNLOAD_IMAGE || _i == this.CONST.OPEN_IMAGE)
       ? { img: this.GetImagesInImg, a: this.GetImagesInA }
-      : this.mode >= 136 ? { a: this.GetLinks }
+      : _i >= 136 ? { a: this.GetLinks }
       : { "*": this.GetVisibleClickable });
     visibleElements.reverse();
     for (_len = visibleElements.length; 0 <= --_len; ) {
@@ -788,7 +789,7 @@ LinkHints.FUNC = {
       this.keepHUDAfterAct = true;
       return;
     }
-    if (this.mode === this.CONST.SEARCH_TEXT) {
+    if ((this.mode & ~64) === this.CONST.SEARCH_TEXT) {
       MainPort.port.postMessage({
         handler: "openUrlInNewTab",
         keyword: this.options.keyword,
