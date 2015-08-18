@@ -1110,11 +1110,14 @@ var g_requestHandlers;
       chrome.sessions.restore(request.sessionId, funcDict.onRuntimeError);
     },
     openImageUrl: function(request, tabs) {
-      var url = encodeURIComponent(request.url);
-      openMultiTab("/pages/show.html#!image=" + url, 1, tabs[0]);
+      var tab = tabs[0], url = encodeURIComponent(request.url);
+      if (request.active === false) { tab.active = false; }
+      openMultiTab("/pages/show.html#!image=" + url, 1, tab);
     },
     openUrlInNewTab: function(request, tabs) {
-      openMultiTab(Utils.convertToUrl(request.url, request.keyword), 1, tabs[0]);
+      var tab = tabs[0];
+      if (request.active === false) { tab.active = false; }
+      openMultiTab(Utils.convertToUrl(request.url, request.keyword), 1, tab);
     },
     openUrlInIncognito: function(request, tabs) {
       chrome.windows.getAll(funcDict.openUrlInIncognito.bind(null, request, tabs[0]));

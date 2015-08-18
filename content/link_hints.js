@@ -792,6 +792,7 @@ LinkHints.FUNC = {
     if ((this.mode & ~64) === this.CONST.SEARCH_TEXT) {
       MainPort.port.postMessage({
         handler: "openUrlInNewTab",
+        active: !(this.mode & 64),
         keyword: this.options.keyword,
         url: str
       });
@@ -809,9 +810,9 @@ LinkHints.FUNC = {
     if (Utils.evalIfOK(url)) { return; }
     MainPort.port.postMessage({
       handler: "openUrlInIncognito",
+      active: !(this.mode & 64),
       keyword: this.options.keyword,
-      url: url,
-      active: (this.mode & 64) !== 64
+      url: url
     });
   },
   DOWNLOAD_IMAGE: function(img) {
@@ -843,6 +844,7 @@ LinkHints.FUNC = {
     }
     MainPort.port.postMessage({
       handler: "openImageUrl",
+      active: !(this.mode & 64),
       url: text
     });
   },
