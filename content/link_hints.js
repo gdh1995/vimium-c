@@ -783,16 +783,10 @@ LinkHints.FUNC = {
   },
   HOVER: function(element) {
     Scroller.activatedElement = element;
-    var mouseEvent = document.createEvent("MouseEvents");
-    mouseEvent.initMouseEvent("mouseover", true, true, window, 1, 0, 0, 0, 0
-      , false, false, false, false, 0, null);
-    element.dispatchEvent(mouseEvent);
+    DomUtils.simulateMouse(element, "mouseover");
   },
   LEAVE: function(element) {
-    var mouseEvent = document.createEvent("MouseEvents");
-    mouseEvent.initMouseEvent("mouseout", true, true, window, 1, 0, 0, 0, 0
-      , false, false, false, false, 0, null);
-    element.dispatchEvent(mouseEvent);
+    DomUtils.simulateMouse(element, "mouseout");
   },
   COPY_TEXT: function(link) {
     var str = (link.getAttribute("data-vim-text") || "").trim();
