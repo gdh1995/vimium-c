@@ -362,8 +362,10 @@ var Settings, VHUD, MainPort, VInsertMode;
         return;
       }
       newEl = InsertMode.last;
-      if (!newEl || !DomUtils.isVisibile(newEl)) {
-        return;
+      if (!newEl) { return; }
+      else if (!DomUtils.isVisibile(newEl)) {
+        newEl.scrollIntoViewIfNeeded();
+        if (!DomUtils.isVisibile(newEl)) { return; }
       }
       InsertMode.last = null;
       InsertMode.mutable = true;
@@ -371,12 +373,10 @@ var Settings, VHUD, MainPort, VInsertMode;
     },
     simBackspace: function() {
       var el = document.activeElement;
-      if (el && el === document.body) {
-        Commands.switchFocus();
-      } else if (!DomUtils.isVisibile(el) || DomUtils.getEditableType(el) !== 3) {
-        return;
-      }
-      DomUtils.simulateBackspace(el);
+      if (el && el === document.body) { Commands.switchFocus(); }
+      else if (DomUtils.getEditableType(el) !== 3) {}
+      else if (DomUtils.isVisibile(el)) { DomUtils.simulateBackspace(el); }
+      else { el.scrollIntoViewIfNeeded(); }
     },
     goBack: function(count) {
       history.go(-count);
