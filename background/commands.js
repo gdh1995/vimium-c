@@ -100,7 +100,8 @@ Commands.commandGroups = {
     , "LinkHints.activateModeToOpenInNewForegroundTab", "LinkHints.activateModeWithQueue"
     , "LinkHints.activateModeToDownloadImage", "LinkHints.activateModeToOpenImage"
     , "LinkHints.activateModeToDownloadLink", "LinkHints.activateModeToOpenIncognito"
-    , "LinkHints.activateModeToHover", "LinkHints.activateModeToSearchLinkText"
+    , "LinkHints.activateModeToHover", "LinkHints.activateModeToLeave"
+    , "LinkHints.activateModeToSearchLinkText"
     , "goPrevious", "goNext", "nextFrame", "mainFrame"
     , "enterInsertMode", "enterVisualMode", "enterVisualLineMode"
     , "Marks.activateCreateMode", "Marks.activateGotoMode"
@@ -130,7 +131,7 @@ Commands.advancedCommands = ["scrollToLeft", "scrollToRight", "moveTabToNextWind
   , "goNext", "goPrevious", "Marks.clearLocal", "Marks.clearGlobal"
   , "moveTabLeft", "moveTabRight", "closeTabsOnLeft", "closeTabsOnRight", "closeOtherTabs"
   , "scrollPxDown", "scrollPxUp", "scrollPxLeft", "scrollPxRight", "debugBackground", "blank"
-  , "toggleLinkHintCharacters", "toggleSwitchTemp"
+  , "toggleLinkHintCharacters", "toggleSwitchTemp", "LinkHints.activateModeToLeave"
 ];
 Commands.defaultKeyMappings = {
   __proto__: null,
@@ -419,6 +420,11 @@ Commands.defaultKeyMappings = {
   ],
   "LinkHints.activateModeToHover": [
     "select an element and hover", {
+      repeat: 1
+    }
+  ],
+  "LinkHints.activateModeToLeave": [
+    "let mouse leave link", {
       repeat: 1
     }
   ],

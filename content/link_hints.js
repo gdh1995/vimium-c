@@ -12,10 +12,11 @@ var LinkHints = {
     OPEN_WITH_QUEUE: 66,
     OPEN_FG_WITH_QUEUE: 67,
     HOVER: 128,
-    COPY_TEXT: 129,
-    SEARCH_TEXT: 130,
-    DOWNLOAD_IMAGE: 131,
-    OPEN_IMAGE: 132,
+    LEAVE: 129,
+    COPY_TEXT: 130,
+    SEARCH_TEXT: 131,
+    DOWNLOAD_IMAGE: 132,
+    OPEN_IMAGE: 133,
     DOWNLOAD_LINK: 136,
     COPY_LINK_URL: 137,
     OPEN_INCOGNITO_LINK: 138
@@ -81,6 +82,9 @@ var LinkHints = {
   },
   activateModeToHover: function() {
     this._activateMode(this.CONST.HOVER);
+  },
+  activateModeToLeave: function() {
+    this._activateMode(this.CONST.LEAVE);
   },
   activateMode: function() {
     this._activateMode(this.CONST.OPEN_IN_CURRENT_TAB);
@@ -152,8 +156,12 @@ var LinkHints = {
     case cons.OPEN_WITH_QUEUE: tip = "Open multiple links in new tabs"; break;
     case cons.OPEN_FG_WITH_QUEUE: tip = "Activate link and hold on"; break;
     case cons.HOVER:
-      tip = mode >= 192 ? "Hover nodes continuously" : "Hover selected";
+      tip = mode >= 192 ? "Hover over nodes continuously" : "Hover over node";
       activator = this.FUNC.HOVER;
+      break;
+    case cons.LEAVE:
+      tip = mode >= 192 ? "Simulate mouse leaving continuously" : "Simulate mouse leaving link";
+      activator = this.FUNC.LEAVE;
       break;
     case cons.COPY_TEXT:
       tip = mode >= 192 ? "Copy link text one by one" : "Copy link text to Clipboard";
@@ -775,6 +783,12 @@ LinkHints.FUNC = {
   HOVER: function(element) {
     Scroller.activatedElement = element;
     DomUtils.simulateMouse(element, 3, DomUtils.defaultMouseKeys);
+  },
+  LEAVE: function(element) {
+    var mouseEvent = document.createEvent("MouseEvents");
+    mouseEvent.initMouseEvent("mouseout", true, true, window, 1, 0, 0, 0, 0
+      , false, false, false, false, 0, null);
+    element.dispatchEvent(mouseEvent);
   },
   COPY_TEXT: function(link) {
     var str = (link.getAttribute("data-vim-text") || "").trim();
