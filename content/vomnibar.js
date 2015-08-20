@@ -233,9 +233,11 @@ Vomnibar.vomnibarUI = {
     if (action) {}
     else if (event.shiftKey || event.ctrlKey || event.metaKey) {
       if (n === KeyCodes.enter) { this.forceNewTab = true; action = "enter"; }
+      else if (event.ctrlKey || event.metaKey) {}
+      else if (n === KeyCodes.tab) { action = "up"; }
     }
     else if (n === KeyCodes.enter) { action = "enter"; }
-    else if (n === KeyCodes.tab) { action = event.shiftKey ? "up" : "down"; }
+    else if (n === KeyCodes.tab) { action = "down"; }
     else if (n === KeyCodes.esc) { action = "dismiss"; }
     else if (n === KeyCodes.up) { action = "up"; }
     else if (n === KeyCodes.down) { action = "down"; }
