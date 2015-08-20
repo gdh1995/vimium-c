@@ -367,8 +367,7 @@ var Settings, VHUD, MainPort, VInsertMode;
       }
       InsertMode.last = null;
       InsertMode.mutable = true;
-      DomUtils.simulateMouse(newEl, 3, DomUtils.defaultMouseKeys);
-      newEl.focus();
+      DomUtils.simulateSelect(newEl);
     },
     simBackspace: function() {
       var el = document.activeElement;
