@@ -243,6 +243,7 @@ Vomnibar.vomnibarUI = {
     else if (n === KeyCodes.down) { action = "down"; }
     else if (n === KeyCodes.f1) { action = focused ? "backspace" : "focus"; }
     else if (n === KeyCodes.f1 + 1) { action = focused ? "blur" : "focus"; }
+    else if (n === KeyCodes.backspace) { if (!focused) { return false; } }
     else if (n !== KeyCodes.space) {}
     else if (!focused) { action = "focus"; }
     else if (((this.selection >= 0 && this.isSelectionChanged)
