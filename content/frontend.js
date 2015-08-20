@@ -926,7 +926,7 @@ var Settings, VHUD, MainPort, VInsertMode;
     linkElement.scrollIntoViewIfNeeded();
     linkElement.focus();
     DomUtils.UI.flashOutline(linkElement);
-    DomUtils.simulateMouse(linkElement, 0, DomUtils.defaultMouseKeys);
+    DomUtils.simulateClick(linkElement);
   };
   
   goBy = function(relName, pattern) {

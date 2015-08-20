@@ -783,7 +783,10 @@ LinkHints.FUNC = {
   },
   HOVER: function(element) {
     Scroller.activatedElement = element;
-    DomUtils.simulateMouse(element, 3, DomUtils.defaultMouseKeys);
+    var mouseEvent = document.createEvent("MouseEvents");
+    mouseEvent.initMouseEvent("mouseover", true, true, window, 1, 0, 0, 0, 0
+      , false, false, false, false, 0, null);
+    element.dispatchEvent(mouseEvent);
   },
   LEAVE: function(element) {
     var mouseEvent = document.createEvent("MouseEvents");
@@ -876,7 +879,7 @@ LinkHints.FUNC = {
     if (oldDownload == null) {
       link.download = "";
     }
-    DomUtils.simulateMouse(link, 0, {
+    DomUtils.simulateClick(link, {
       altKey: true,
       ctrlKey: false,
       metaKey: false,
@@ -904,7 +907,7 @@ LinkHints.FUNC = {
       link.target = "_top";
     }
     // NOTE: not clear last hovered item, for that it may be a menu
-    DomUtils.simulateMouse(link, 0, {
+    DomUtils.simulateClick(link, {
       altKey: false,
       ctrlKey: mode >= 2 && !KeyboardUtils.onMac,
       metaKey: mode >= 2 &&  KeyboardUtils.onMac,
