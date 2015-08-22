@@ -31,6 +31,10 @@ var LinkHints = {
   hintMarkers: [],
   linkActivator: null,
   mode: 0,
+  ngIgnored: true,
+  ngAttribute: "",
+  // find /^((?:x|data)[:_\-])?ng-|^ng:/, and ignore "data:", "data_" and "x_"
+  ngAttributes: ["x:ng-click", "ng:click", "x-ng-click", "data-ng-click", "ng-click"],
   delayMode: false,
   keepHUDAfterAct: false,
   keyStatus: {
@@ -255,6 +259,20 @@ var LinkHints = {
         isClickable = true;
         break;
       }
+      if (LinkHints.ngIgnored) {}
+      else if (s = LinkHints.ngAttribute) {
+        if (element.getAttribute(s)) { isClickable = true; break; }
+      } else {
+        for (arr = LinkHints.ngAttributes, _i = arr.length; 0 <= --_i; ) {
+          s = element.getAttribute(arr[_i]);
+          if (s !== null) {
+            LinkHints.ngAttribute = arr[_i];
+            isClickable = !!s;
+            break;
+          }
+        }
+        if (isClickable) { break; }
+      }
       if (s = element.getAttribute("jsaction")) {
         arr = s.split(";");
         _i = arr.length;
@@ -320,6 +338,9 @@ var LinkHints = {
     var output = [], key, func, container;
     DomUtils.prepareCrop();
     container = document.webkitFullscreenElement || document;
+    if (this.ngIgnored && "*" in map) {
+      this.ngIgnored = container.querySelector('.ng-scope') === null;
+    }
     for (key in map) {
       if (Settings.values.deepHints) {
         output.forEach.call(container.querySelectorAll("* /deep/ " + key)
@@ -330,6 +351,7 @@ var LinkHints = {
       output.forEach.call(container.getElementsByTagName(key), func);
       output.forEach.call(DomUtils.UI.root.querySelectorAll(key), func);
     }
+    if (!this.ngIgnored && !this.ngAttribute) { this.ngAttribute = "ng-click"; }
     return output;
   },
   getVisibleClickableElements: function() {
