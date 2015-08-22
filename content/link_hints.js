@@ -229,8 +229,6 @@ var LinkHints = {
       else { return; }
       isClickable = true;
       break;
-    case "script": case "link": case "style":
-      return;
     case "img":
       if ((s = element.useMap) && (arr = element.getClientRects()).length > 0
           && arr[0].height >= 3 && arr[0].width >= 3) {
