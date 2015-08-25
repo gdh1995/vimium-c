@@ -794,22 +794,28 @@ var g_requestHandlers;
         chrome.tabs.move(tab.id, {index: index});
       }
     },
-    nextFrame: function(tabs, frameId) {
+    nextFrame: function(tabs, frameId, port) {
       var tabId = tabs[0].id, frames = frameIdsForTab[tabId], count;
-      if (!frames || frames.length <= 2) { return; }
-      if (frameId >= 0) {
-        count = 0;
-      } else {
-        frameId = frames[0];
-        count = commandCount - 1;
+      if (frames && frames.length > 2) {
+        if (frameId >= 0) {
+          count = 0;
+        } else {
+          frameId = frames[0];
+          count = commandCount - 1;
+        }
+        count = (count + Math.max(0, frames.indexOf(frameId, 1))) % (frames.length - 1) + 1;
+        if (frames[count] !== frames[0]) {
+          sendToTab({
+            name: "focusFrame",
+            frameId: frames[count]
+          }, tabId);
+          return;
+        }
       }
-      count = (count + Math.max(0, frames.indexOf(frameId, 1))) % (frames.length - 1) + 1;
-      if (frames[count] !== frames[0]) {
-        sendToTab({
-          name: "focusFrame",
-          frameId: frames[count]
-        }, tabId);
-      }
+      (port || currentCommand.port).postMessage({
+        name: "focusFrame",
+        frameId: -1
+      });
     },
     mainFrame: function(tabs) {
       if (tabs.length <= 0) { return; }
@@ -1188,8 +1194,8 @@ var g_requestHandlers;
         tabId: tabId
       };
     },
-    nextFrame: function(request) {
-      BackgroundCommands.nextFrame([{id: request.tabId}], request.frameId);
+    nextFrame: function(request, port) {
+      BackgroundCommands.nextFrame([{id: request.tabId}], request.frameId, port);
     },
     initHelp: function(request) {
       return {
