@@ -393,6 +393,7 @@ var LinkHints = {
     } else if (_i > KeyCodes.f1 && _i <= KeyCodes.f12) {
       if (_i === KeyCodes.f1 + 1) {
         Settings.values.deepHints = !Settings.values.deepHints;
+        this.reinit();
         return false;
       }
       return true;
