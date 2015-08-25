@@ -5,7 +5,7 @@ var Settings, VHUD, MainPort, VInsertMode;
     , executeFind, exitFindMode //
     , findAndFocus, findChangeListened, findMode //
     , findModeAnchorNode, findModeQuery, findModeQueryHasResults, firstKeys //
-    , focusFoundLink, followLink, frameId, getFullCommand //
+    , focusFoundLink, followLink, frameId, FrameMask, getFullCommand //
     , getNextQueryFromRegexMatches, getVisibleInputs, goBy //
     , handleDeleteForFindMode, handleEnterForFindMode, handleEscapeForFindMode //
     , handleKeyCharForFindMode, initIfEnabled, InsertMode //
@@ -1026,6 +1026,52 @@ var Settings, VHUD, MainPort, VInsertMode;
     HUD.hide();
   };
 
+  FrameMask = {
+    more: false,
+    node: null,
+    timer: 0,
+    timeout: 200,
+    Focus: function(request) {
+      if (DomUtils.isSandboxed()) {
+        // Do not destroy self, just in case of Marks.goTo / ...
+        setTimeout(ELs.onUnload, 20);
+      }
+      if (request.frameId === -1) {}
+      else if (DomUtils.isSandboxed() || window.innerWidth < 3 || window.innerHeight < 3) {
+        mainPort.port.postMessage({
+          handler: "nextFrame",
+          tabId: ELs.focusMsg.tabId,
+          frameId: frameId
+        });
+        return;
+      }
+      window.focus();
+      var _this = FrameMask, dom1;
+      if (dom1 = _this.node) {
+        _this.more = true;
+      } else {
+        dom1 = _this.node = document.createElement("div");
+        dom1.className = "R";
+        dom1.id = "HighlightMask";
+        DomUtils.UI.addElement(dom1);
+        _this.more = false;
+        _this.timer = setInterval(_this.Remove, _this.timeout);
+      }
+      dom1.style.borderColor = request.frameId !== -1 ? "yellow" : "lightsalmon";
+    },
+    Remove: function() {
+      var _this = FrameMask;
+      if (!_this.node) {
+      } else if (_this.more) {
+        _this.more = false;
+      } else {
+        _this.node.remove();
+        _this.node = null;
+        clearInterval(_this.timer);
+      }
+    }    
+  };
+
   VHUD = HUD = {
     __proto__: null,
     _tweenId: 0,
@@ -1157,45 +1203,7 @@ var Settings, VHUD, MainPort, VInsertMode;
       var css = request.css;
       DomUtils.UI.insertCSS(css[0], css[1]);
     },
-    focusFrame: function(request) {
-      if (DomUtils.isSandboxed() || window.innerWidth < 3 || window.innerHeight < 3) {
-        mainPort.port.postMessage({
-          handler: "nextFrame",
-          tabId: ELs.focusMsg.tabId,
-          frameId: frameId
-        });
-        if (DomUtils.isSandboxed()) {
-          // Do not destroy self, just in case of Marks.goTo / ...
-          setTimeout(ELs.onUnload, 20);
-        }
-        return;
-      }
-      window.focus();
-      if (settings.values.highlightMask) {
-        settings.values.highlightMask.more = true;
-        return;
-      }
-      var dom1 = document.createElement("div");
-      dom1.className = "R";
-      dom1.id = "HighlightMask";
-      DomUtils.UI.addElement(dom1);
-      settings.values.highlightMask = {
-        node: dom1,
-        more: false,
-        timer: setInterval(requestHandlers.removeHighlightMask, 200)
-      };
-    },
-    removeHighlightMask: function() {
-      var ref = settings.values.highlightMask;
-      if (!ref) {
-      } else if (ref.more) {
-        ref.more = false;
-      } else {
-        ref.node.remove();
-        clearInterval(ref.timer);
-        settings.values.highlightMask = null;
-      }
-    },
+    focusFrame: FrameMask.Focus,
     refreshKeyMappings: function(request) {
       var arr = request.firstKeys, i = arr.length, map, key, sec, sec2;
       map = firstKeys = { __proto__: null };
