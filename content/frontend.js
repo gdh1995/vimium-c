@@ -1428,14 +1428,12 @@ var Settings, VHUD, MainPort, VInsertMode;
     }
     var ref = settings.onDestroy, i, func;
     for (i in ref) {
-      func = ref[i];
-      if (func) {
-        ref[i] = null;
+      if (func = ref[i]) {
         func.call(this);
       }
     }
     Commands = requestHandlers = MainPort = VHUD = mainPort = KeydownEvents = //
-    VRect = Utils = KeyboardUtils = DomUtils = handlerStack = Scroller = //
+    VRect = Utils = KeyboardUtils = DomUtils = handlerStack = Scroller = ref = //
     currentSeconds = initIfEnabled = setPassKeys = checkValidKey = InsertMode = //
     KeyCodes = passKeys = firstKeys = secondKeys = Marks = func = VInsertMode = //
     settings.onDestroy = findModeQuery = FrameMask = null;
