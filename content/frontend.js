@@ -1064,7 +1064,7 @@ var Settings, VHUD, MainPort, VInsertMode;
     },
     Remove: function() {
       var _this = FrameMask;
-      if (!_this.node) {
+      if (!(_this && _this.node)) {
       } else if (_this.more) {
         _this.more = false;
       } else {
@@ -1072,7 +1072,7 @@ var Settings, VHUD, MainPort, VInsertMode;
         _this.node = null;
         clearInterval(_this.timer);
       }
-    }    
+    }
   };
 
   VHUD = HUD = {
@@ -1438,7 +1438,7 @@ var Settings, VHUD, MainPort, VInsertMode;
     VRect = Utils = KeyboardUtils = DomUtils = handlerStack = Scroller = //
     currentSeconds = initIfEnabled = setPassKeys = checkValidKey = InsertMode = //
     KeyCodes = passKeys = firstKeys = secondKeys = Marks = func = VInsertMode = //
-    settings.onDestroy = findModeQuery = null;
+    settings.onDestroy = findModeQuery = FrameMask = null;
 
     console.log("%cVimium++ %c#%d%c in %c%s%c has destroyed at %o." //
       , "color:red", "color:blue", frameId, "color:auto"
