@@ -207,7 +207,7 @@ var LinkHints = {
     this.mode = mode;
   },
   createMarkerFor: function(link) {
-    var marker = document.createElement("div"), rect;
+    var marker = DomUtils.createElement("div"), rect;
     marker.className = "LH";
     marker.clickableItem = link[0];
     rect = link[1];
@@ -776,7 +776,7 @@ LinkHints.numberToHintString = function(number, characterSet, numHintDigits) {
 LinkHints.getUrlData = function(link) {
   var str = link.getAttribute("data-vim-url");
   if (str) {
-    link = document.createElement("a");
+    link = DomUtils.createElement("a");
     link.href = str.trim();
   }
   return link.href;
@@ -861,7 +861,7 @@ LinkHints.FUNC = {
     if (text.length > 39) {
       text = text.substring(0, 36) + "...";
     }
-    a = document.createElement("a");
+    a = DomUtils.createElement("a");
     a.href = img.src;
     a.download = "";
     a.click();

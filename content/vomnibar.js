@@ -20,7 +20,7 @@ var Vomnibar = {
     } else if (this.disabled) {
       return;
     } else {
-      var box = document.createElement("div");
+      var box = DomUtils.createElement("div");
       completer.init(bg);
       vomnibarUI.init(box, bg, completer);
     }

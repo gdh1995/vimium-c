@@ -12,7 +12,7 @@ DomUtils.UI = {
   },
   addElementList: function(els, overlayOptions) {
     var parent, _i, _len;
-    parent = document.createElement("div");
+    parent = DomUtils.createElement("div");
     if (overlayOptions.className != null) {
       parent.className = overlayOptions.className;
     }
@@ -34,14 +34,7 @@ DomUtils.UI = {
   },
   init: function() {
     this.init = null;
-    this.container = document.createElement("div");
-    if (!this.container.style) {
-      this.root = this.container;
-      LinkHints.isActive = true;
-      Vomnibar.disabled = true;
-      VHUD.enabled = function() { return false; };
-      return;
-    }
+    this.container = DomUtils.createElement("div");
     this.root = this.container.createShadowRoot();
     this.cssBase = this.appendCSS(this.root, "");
     MainPort.sendMessage({
@@ -56,7 +49,7 @@ DomUtils.UI = {
     this.addElement = function(element) { this.root.appendChild(element); };
   },
   appendCSS: function(parent, text) {
-    var css = document.createElement("style");
+    var css = DomUtils.createElement("style");
     css.type = "text/css";
     css.innerHTML = text;
     parent.appendChild(css);
@@ -128,7 +121,7 @@ DomUtils.UI = {
     this.flashVRect(rect);
   },
   flashVRect: function(rect, time) {
-    var flashEl = document.createElement("div");
+    var flashEl = DomUtils.createElement("div");
     flashEl.className = "R Flash";
     flashEl.style.left = rect[0] + "px";
     flashEl.style.top = rect[1] + "px";

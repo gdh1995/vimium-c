@@ -460,7 +460,7 @@ var Settings, VHUD, MainPort, VInsertMode;
       }
       DomUtils.simulateSelect(visibleInputs[selectedInputIndex]);
       hints = visibleInputs.map(function(element) {
-        var hint = document.createElement("div"), style = hint.style
+        var hint = DomUtils.createElement("div"), style = hint.style
           , rect = element.getBoundingClientRect();
         hint.className = "IH";
         style.left = (rect.left | 0) - 1 + "px";
@@ -1049,7 +1049,7 @@ var Settings, VHUD, MainPort, VInsertMode;
       var _this = FrameMask, dom1;
       if (dom1 = _this.node) {
         _this.more = true;
-      } else if ((dom1 = document.createElement("div")).style) {
+      } else if ((dom1 = DomUtils.createElement("div")).style) {
         dom1.className = "R";
         dom1.id = "HighlightMask";
         DomUtils.UI.addElement(_this.node = dom1);
@@ -1101,7 +1101,7 @@ var Settings, VHUD, MainPort, VInsertMode;
       }
       var el = this._element;
       if (!el) {
-        el = document.createElement("div");
+        el = DomUtils.createElement("div");
         el.className = "R";
         el.id = "HUD";
         el.style.opacity = 0;
@@ -1279,7 +1279,7 @@ var Settings, VHUD, MainPort, VInsertMode;
     if (!document.body) {
       return;
     }
-    container = document.createElement("div");
+    container = DomUtils.createElement("div");
     if (!container.style) {
       Commands.showHelp = requestHandlers.showHelpDialog = function() {};
       return;

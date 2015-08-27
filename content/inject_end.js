@@ -15,7 +15,7 @@ Settings.RequestHandlers.regExt = function(request) {
 DomUtils.isSandboxed = function () {
   var i = 0, node;
   if (window.onunload == null) {
-    node = document.createElement('div');
+    node = DomUtils.createElement('div');
     node.onclick = function() { ++i };
     node.click();
     if (i === 0) {
