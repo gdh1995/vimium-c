@@ -1049,16 +1049,12 @@ var Settings, VHUD, MainPort, VInsertMode;
       var _this = FrameMask, dom1;
       if (dom1 = _this.node) {
         _this.more = true;
-      } else if ((dom1 = DomUtils.createElement("div")).style) {
+      } else {
+        dom1 = DomUtils.createElement("div");
         dom1.className = "R";
         dom1.id = "HighlightMask";
         DomUtils.UI.addElement(_this.node = dom1);
-        _this.more = false;
         _this.timer = setInterval(_this.Remove, _this.timeout);
-      } else {
-        FrameMask = null;
-        requestHandlers.focusFrame = function() {};
-        return;
       }
       dom1.style.borderColor = request.frameId !== -1 ? "yellow" : "lightsalmon";
     },
@@ -1417,6 +1413,7 @@ var Settings, VHUD, MainPort, VInsertMode;
     window.removeEventListener("blur", this.onBlur, true);
     document.removeEventListener("DOMActivate", this.onActivate, true);
     window.removeEventListener("mousedown", InsertMode.exitGrab, true);
+    FrameMask.Remove();
     Vomnibar.destroy();
     LinkHints.destroy();
     HUD.destroy();
