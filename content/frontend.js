@@ -185,6 +185,7 @@ var Settings, VHUD, MainPort, VInsertMode;
         if (Scroller.keyIsDown) { Scroller.keyIsDown = false; }
         if (KeydownEvents[event.keyCode]) {
           KeydownEvents[event.keyCode] = 0;
+          event.preventDefault();
           event.stopImmediatePropagation();
         }
       }
