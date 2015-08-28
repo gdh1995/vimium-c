@@ -1291,8 +1291,8 @@ var Settings, VHUD, MainPort, VInsertMode;
       handlerStack.remove(handlerId);
       container.remove();
       Commands.showHelp = oldShowHelp;
-      settings.onDestroy.helpDialog = null;
       container = null;
+      settings.onDestroy.helpDialog = null;
     };
     showAdvancedCommands = function(visible) {
       var advancedEls, el, _i, _len;
@@ -1432,7 +1432,7 @@ var Settings, VHUD, MainPort, VInsertMode;
     VRect = Utils = KeyboardUtils = DomUtils = handlerStack = Scroller = ref = //
     currentSeconds = initIfEnabled = setPassKeys = checkValidKey = InsertMode = //
     KeyCodes = passKeys = firstKeys = secondKeys = Marks = func = VInsertMode = //
-    settings.onDestroy = findModeQuery = FrameMask = null;
+    settings.onDestroy = findModeQuery = FrameMask = Settings = settings = null;
 
     console.log("%cVimium++ %c#%d%c in %c%s%c has destroyed at %o." //
       , "color:red", "color:blue", frameId, "color:auto"
@@ -1440,11 +1440,13 @@ var Settings, VHUD, MainPort, VInsertMode;
       , "color:auto", Date.now()
     );
 
-    if (!isInjected) { try {
+    if (!isInjected) {
       window.frameId = frameId;
       // only the below may throw errors
-      chrome.runtime.onMessage.removeListener(this.onMessage);
-    } catch (e) {} }
+      try {
+        chrome.runtime.onMessage.removeListener(this.onMessage);
+      } catch (e) {}
+    }
     ELs = null;
   };
 })();
