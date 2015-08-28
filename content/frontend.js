@@ -1331,7 +1331,6 @@ var Settings, VHUD, MainPort, VInsertMode;
     }
     showAdvancedCommands(shouldShowAdvanced);
     node1 = container.querySelector("#HelpDialog");
-    node1.style.maxHeight = window.innerHeight - 80;
     window.focus();
     Scroller.activatedElement = node1;
     handlerId = handlerStack.push({

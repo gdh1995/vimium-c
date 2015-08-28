@@ -1,9 +1,7 @@
 <!--
 	This is shown when typing "?". This HTML is loaded by the background page and then populated with the
 	latest keybindings information before displaying.
--->
 
-<!--
 	Note that the template placeholders (e.g. "pageNavigation") will be filled in by the background
 	page with the up-to-date key bindings when the dialog is shown.
 -->
@@ -33,12 +31,19 @@
 	float: left;
 	width: 50%;
 }
-.ColumnBox > .HelpTable {
+.HelpTable {
+	border-spacing: 2px;
+	line-height: 130%;
 	table-layout: auto;
 	width: 100%;
+	word-break: normal;
+}
+.Column {
+	white-space: normal;
 }
 .HelpTr {
 	display: table-row;
+	height: 17px;
 }
 .HelpTd {
 	display: table-cell;
@@ -49,8 +54,7 @@
 .HelpKey {
 	max-width: 53px;
 }
-.HelpLongKey,
-.HelpKey > .HelpShortKey {
+.HelpLongKey, .HelpShortKey {
 	color: #2f508e;
 	float: right;
 	font-weight: bold;
@@ -134,7 +138,7 @@ a {
 	<a class="TopLink" target="_blank" href="https://github.com/philc/vimium/wiki">Wiki</a>
 	<div style="display:block;font-size:20px;line-height:130%;"><span style="color:#2f508e">Vim</span>ium++ {{title}}</div>
 	<div class="ColumnBox" style="margin: 0 5px 0 -10px;">
-		<table class="HelpTable">
+		<table class="R HelpTable">
 		<tbody class="Column">
 			<tr class="HelpTr"><td class="HelpTd"></td><td class="HelpTd"></td><td class="HelpTd HelpSectionTitle">Navigating the page</td></tr>
 {{pageNavigation}}
@@ -142,7 +146,7 @@ a {
 		</table>
 	</div>
 	<div class="ColumnBox">
-		<table class="HelpTable">
+		<table class="R HelpTable">
 		<tbody class="Column">
 			<tr class="HelpTr"><td class="HelpTd" colspan="2"></td><td class="HelpTd HelpSectionTitle">Using the Vomnibar</td></tr>
 {{vomnibarCommands}}
