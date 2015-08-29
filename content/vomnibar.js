@@ -77,10 +77,6 @@ var Vomnibar = {
   },
   activateEditUrlInNewTab: function() {
     this.activateWithCompleter("omni", false, true, true);
-  },
-  destroy: function() {
-    this.vomnibarUI.destroy();
-    Vomnibar = null;
   }
 };
 
@@ -411,16 +407,6 @@ Vomnibar.vomnibarUI = {
     rect = VRect.fromClientRect(li.getBoundingClientRect());
     rect[0] += 10, rect[2] -= 12, rect[3] -= 3;
     return rect;
-  },
-  destroy: function() {
-    var box;
-    if (box = this.box) {
-      box.removeEventListener("click", this.onClick);
-      box.removeEventListener("mousewheel", DomUtils.suppressPropagation);
-      this.input && (this.input.oninput = null);
-      box.remove();
-    }
-    Vomnibar.vomnibarUI = null;
   }
 };
 

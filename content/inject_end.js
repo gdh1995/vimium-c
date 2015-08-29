@@ -74,6 +74,10 @@ Settings.onDestroy.injected = function() {
   injector.alive = 0;
   injector.oldFrameId = this.focusMsg.frameId;
   injector.destroy = null;
+  [].forEach.call(document.querySelectorAll(
+  'script[src^="chrome-extension://hfjbmagddngcpeloejdejnfgbamkjaeg/"],\
+    link[href^="chrome-extension://hfjbmagddngcpeloejdejnfgbamkjaeg/"]'
+  ), function(node) { node.remove(); });
 };
 
 VimiumInjector.destroy = Settings.ELs.destroy.bind(Settings.ELs);

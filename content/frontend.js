@@ -140,10 +140,7 @@ var Settings, VHUD, MainPort, VInsertMode;
           _this.values[i] = ref[i];
         }
       }
-      if (i = _this.isLoading) {
-        clearInterval(i);
-        _this.isLoading = 0;
-      }
+      clearInterval(_this.isLoading);
       if (response = response.response) {
         requestHandlers[response.name](response);
       }
@@ -1061,23 +1058,22 @@ var Settings, VHUD, MainPort, VInsertMode;
     },
     Remove: function() {
       var _this = FrameMask;
-      if (!(_this && _this.node)) {
-      } else if (_this.more) {
+      if (_this.more) {
         _this.more = false;
-      } else {
-        _this.node.remove();
-        _this.node = null;
-        clearInterval(_this.timer);
+        return;
       }
+      _this.node.remove();
+      _this.node = null;
+      clearInterval(_this.timer);
     }
   };
 
   VHUD = HUD = {
     __proto__: null,
-    _tweenId: 0,
+    tweenId: 0,
     _element: null,
     opacity: 0,
-    _durationTimer: 0,
+    durationTimer: 0,
     showCopied: function(text) {
       if (text.startsWith("chrome-")) {
         text = text.substring(text.indexOf('/', text.indexOf('/') + 2));
@@ -1089,7 +1085,7 @@ var Settings, VHUD, MainPort, VInsertMode;
     },
     showForDuration: function(text, duration) {
       if (this.show(text)) {
-        this._durationTimer = setTimeout(this.hide, duration, false);
+        this.durationTimer = setTimeout(this.hide, duration, false);
       }
     },
     show: function(text) {
@@ -1103,14 +1099,14 @@ var Settings, VHUD, MainPort, VInsertMode;
         el.id = "HUD";
         el.style.opacity = 0;
         DomUtils.UI.addElement(this._element = el);
-      } else if (this._durationTimer) {
-        clearTimeout(this._durationTimer);
-        this._durationTimer = 0;
+      } else if (this.durationTimer) {
+        clearTimeout(this.durationTimer);
+        this.durationTimer = 0;
       }
       el.innerText = text;
       el.style.visibility = "";
-      if (!this._tweenId) {
-        this._tweenId = setInterval(this.tween, 40);
+      if (!this.tweenId) {
+        this.tweenId = setInterval(this.tween, 40);
       }
       this.opacity = 1;
       return true;
@@ -1128,14 +1124,14 @@ var Settings, VHUD, MainPort, VInsertMode;
         el.style.visibility = "hidden";
         el.innerText = "";
       }
-      clearInterval(hud._tweenId);
-      hud._tweenId = 0;
+      clearInterval(hud.tweenId);
+      hud.tweenId = 0;
     },
     hide: function(immediate) {
       var hud = HUD, el;
-      if (hud._durationTimer) {
-        clearTimeout(hud._durationTimer);
-        hud._durationTimer = 0;
+      if (hud.durationTimer) {
+        clearTimeout(hud.durationTimer);
+        hud.durationTimer = 0;
       }
       if (!(el = hud._element) || el.style.visibility === "hidden") {
         return;
@@ -1144,19 +1140,13 @@ var Settings, VHUD, MainPort, VInsertMode;
         el.style.visibility = "hidden";
         el.innerText = "";
         el.style.opacity = 0;
-      } else if (!hud._tweenId) {
-        hud._tweenId = setInterval(hud.tween, 40);
+      } else if (!hud.tweenId) {
+        hud.tweenId = setInterval(hud.tween, 40);
       }
       hud.opacity = 0;
     },
     enabled: function() {
       return document.body && settings.values.hideHud === false;
-    },
-    destroy: function() {
-      clearInterval(this._tweenId);
-      clearTimeout(this._durationTimer);
-      this._element && this._element.remove();
-      HUD = null;
     }
   };
 
@@ -1293,7 +1283,7 @@ var Settings, VHUD, MainPort, VInsertMode;
       container.remove();
       Commands.showHelp = oldShowHelp;
       container = null;
-      settings.onDestroy.helpDialog = null;
+      delete settings.onDestroy.helpDialog;
     };
     showAdvancedCommands = function(visible) {
       var advancedEls, el, _i, _len;
@@ -1414,26 +1404,19 @@ var Settings, VHUD, MainPort, VInsertMode;
     window.removeEventListener("blur", this.onBlur, true);
     document.removeEventListener("DOMActivate", this.onActivate, true);
     window.removeEventListener("mousedown", InsertMode.exitGrab, true);
-    FrameMask.Remove();
-    Vomnibar.destroy();
-    LinkHints.destroy();
-    HUD.destroy();
-    DomUtils.UI.destroy();
 
-    if (settings.isLoading) {
-      clearInterval(settings.isLoading);
-    }
-    var ref = settings.onDestroy, i, func;
+    clearInterval(settings.isLoading);
+    clearInterval(FrameMask.timer);
+    clearInterval(HUD.tweenId);
+    clearTimeout(HUD.durationTimer);
+
+    var ref = settings.onDestroy, i;
     for (i in ref) {
-      if (func = ref[i]) {
-        func.call(this);
-      }
+      ref[i].call(this);
     }
-    Commands = requestHandlers = MainPort = VHUD = mainPort = KeydownEvents = //
-    VRect = Utils = KeyboardUtils = DomUtils = handlerStack = Scroller = ref = //
-    currentSeconds = initIfEnabled = setPassKeys = checkValidKey = InsertMode = //
-    KeyCodes = passKeys = firstKeys = secondKeys = Marks = func = VInsertMode = //
-    settings.onDestroy = findModeQuery = FrameMask = Settings = settings = null;
+    Utils = KeyCodes = KeyboardUtils = DomUtils = VRect = handlerStack = //
+    LinkHints = Vomnibar = Scroller = Marks = //
+    Settings = VHUD = MainPort = VInsertMode = null;
 
     console.log("%cVimium++ %c#%d%c in %c%s%c has destroyed at %o." //
       , "color:red", "color:blue", frameId, "color:auto"

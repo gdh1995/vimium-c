@@ -37,16 +37,21 @@ DomUtils.UI = {
     this.container = DomUtils.createElement("div");
     this.root = this.container.createShadowRoot();
     this.cssBase = this.appendCSS(this.root, "");
+    this.adjust = this.adjust.bind(this);
+    this.addElement = function(element) { this.root.appendChild(element); };
     MainPort.sendMessage({
       handler: "initCSSBase"
     }, function(css) {
       var _this = DomUtils.UI;
       _this.cssBase.innerHTML = css;
       _this.adjust();
+      document.addEventListener("webkitfullscreenchange", _this.adjust);
+      Settings.onDestroy.UI = function() {
+        var _this = DomUtils.UI;
+        _this.container.remove();
+        document.removeEventListener("webkitfullscreenchange", _this.adjust);
+      };
     });
-    this.adjust = this.adjust.bind(this);
-    document.addEventListener("webkitfullscreenchange", this.adjust);
-    this.addElement = function(element) { this.root.appendChild(element); };
   },
   appendCSS: function(parent, text) {
     var css = DomUtils.createElement("style");
@@ -131,13 +136,5 @@ DomUtils.UI = {
     return setTimeout(function(el) {
       el.remove();
     }, time || this.flashLastingTime, flashEl);
-  },
-  destroy: function() {
-    var el = this.container;
-    if (el && el.parentNode) {
-      el.parentNode.removeChild(el);
-    }
-    document.removeEventListener("webkitfullscreenchange", this.adjust);
-    DomUtils.UI = null;
   }
 };
