@@ -1,6 +1,5 @@
 "use strict";
 var Marks = {
-  __proto__: null,
   handlerId: 0,
   activateCreateMode: function() {
     this.handlerId = handlerStack.push({

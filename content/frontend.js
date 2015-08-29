@@ -108,7 +108,7 @@ var Settings, VHUD, MainPort, VInsertMode;
   Settings = settings = {
     values: null,
     isLoading: 0,
-    onDestroy: {},
+    onDestroy: { __proto__: null },
     set: function(key, value) {
       this.values[key] = value;
       mainPort.port.postMessage({

@@ -1,6 +1,5 @@
 "use strict";
 var Scroller = {
-  __proto__: null,
   Animate: null,
   Reset: null,
   calibrationBoundary: 150,
@@ -47,7 +46,6 @@ var Scroller = {
 };
 
 Scroller = {
-  __proto__: null,
   Core: Scroller,
   activatedElement: null,  
   keyIsDown: false,

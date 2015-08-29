@@ -1,6 +1,5 @@
 "use strict";
 var LinkHints = {
-  __proto__: null,
   CONST: {
     __proto__: null,
     // focused: 1; new tab: 2; queue: 64; job: 128
@@ -497,7 +496,6 @@ var LinkHints = {
 };
 
 LinkHints.alphabetHints = {
-  __proto__: null,
   hintKeystrokeQueue: [],
   spanWrap: null,
   numberToHintString: null,
@@ -588,7 +586,6 @@ LinkHints.alphabetHints = {
 };
 
 LinkHints.filterHints = {
-  __proto__: null,
   hintKeystrokeQueue: [],
   linkTextKeystrokeQueue: [],
   labelMap: {},
