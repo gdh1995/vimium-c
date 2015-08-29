@@ -216,6 +216,7 @@ var LinkHints = {
   },
   hashRegex: /^#/,
   quoteRegex: /"/g,
+  btnRegex: /\b[Bb](?:utto|t)n\b/,
   GetVisibleClickable: function(element) {
     var arr, isClickable = false, s, _i;
     switch (element.tagName.toLowerCase()) {
@@ -248,6 +249,7 @@ var LinkHints = {
       //      so .attr("onclick") may be not right
       if ( element.getAttribute("onclick") //
         || ((s = element.getAttribute("role")) && (s = s.toLowerCase(), s === "button" || s === "link")) //
+        || ((s = element.className) && LinkHints.btnRegex.test(s))
         // NOTE: .attr("contenteditable") allows ["", "true", "false", "plaintext-only", or "inherit"]
         //       : without case; "contentEditable" is not accepted
         //    if the attr "contenteditable" is not set, .contentEditable will be "inherit"
