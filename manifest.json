@@ -69,7 +69,7 @@
     "all_frames": true,
     "css": [ "content/file_urls.css" ],
     "matches": [ "file:///*" ],
-    "run_at": "document_start"
+    "run_at": "document_idle"
   } ],
   "content_security_policy": "script-src 'self'; object-src 'self';",
   "description": "optimized Vimium supporting global commands and other extensions",
