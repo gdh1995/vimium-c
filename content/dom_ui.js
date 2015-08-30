@@ -35,11 +35,6 @@ DomUtils.UI = {
     this.init = null;
     this.container = DomUtils.createElement("div");
     document.documentElement.appendChild(this.container);
-    Settings.onDestroy.UI = function() {
-      var _this = DomUtils.UI;
-      _this.container.remove();
-      document.removeEventListener("webkitfullscreenchange", _this.Adjust);
-    };
   },
   initInner: function(element, cssBase) {
     this.initInner = null;
