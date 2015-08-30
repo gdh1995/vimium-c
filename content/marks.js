@@ -21,6 +21,7 @@ var Marks = {
     var key_start, storage, i, key;
     this._previous = null;
     key_start = this.getLocationKey("");
+    try {
     storage = localStorage;
     for (i = storage.length; 0 <= --i; ) {
       key = storage.key(i);
@@ -28,6 +29,7 @@ var Marks = {
         storage.removeItem(key);
       }
     }
+    } catch (key) {}
     VHUD.showForDuration("Local marks have been cleared.", 1000);
   },
   onKeydown: function() {
@@ -60,10 +62,15 @@ var Marks = {
       this.setPreviousPosition();
       VHUD.showForDuration("Created local mark [last].", 1000);
     } else {
-      localStorage[this.getLocationKey(keyChar)] = JSON.stringify({
-        scrollX: window.scrollX,
-        scrollY: window.scrollY
-      });
+      try {
+        localStorage[this.getLocationKey(keyChar)] = JSON.stringify({
+          scrollX: window.scrollX,
+          scrollY: window.scrollY
+        });
+      } catch (keyChar) {
+        VHUD.showForDuration("Failed to creat local mark (localStorage error)", 2000);
+        return false;
+      }
       VHUD.showForDuration("Created local mark : ' " + keyChar + " '.", 1000);
     }
     return false;
@@ -90,13 +97,18 @@ var Marks = {
       } else {
         VHUD.showForDuration("Created local mark [last]", 1000);
       }
-    } else if (markString = localStorage[this.getLocationKey(keyChar)]) {
-      position = JSON.parse(markString);
-      this.setPreviousPosition();
-      window.scrollTo(position.scrollX, position.scrollY);
-      VHUD.showForDuration("Jumped to local mark : ' " + keyChar + " '.", 1000);
     } else {
-      VHUD.showForDuration("Local mark not set : ' " + keyChar + " '.", 2000);
+      try {
+        markString = localStorage[this.getLocationKey(keyChar)];
+      } catch (keyChar) {}
+      if (markString) {
+        position = JSON.parse(markString);
+        this.setPreviousPosition();
+        window.scrollTo(position.scrollX, position.scrollY);
+        VHUD.showForDuration("Jumped to local mark : ' " + keyChar + " '.", 1000);
+      } else {
+        VHUD.showForDuration("Local mark not set : ' " + keyChar + " '.", 2000);
+      }
     }
     return false;
   },
