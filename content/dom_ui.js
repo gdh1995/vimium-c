@@ -1,14 +1,15 @@
 DomUtils.UI = {
-  cssBase: null,
-  cssInner: null,
-  cssOuter: null,
   container: null,
+  styleIn: null,
+  styleOut: null,
   root: null,
   flashLastingTime: 400,
   fullScreen: null,
   addElement: function(element) {
-    this.init();
-    this.addElement(element);
+    MainPort.sendMessage({ handler: "initCSSBase" }, this.initInner.bind(this, element));
+    this.container || this.init();
+    this.root = this.container.createShadowRoot();
+    this.addElement = element.appendChild.bind(this.root);
   },
   addElementList: function(els, overlayOptions) {
     var parent, _i, _len;
@@ -25,74 +26,53 @@ DomUtils.UI = {
     this.addElement(parent);
     return parent;
   },
-  adjust: function() {
-    var parent = document.webkitFullscreenElement || document.documentElement;
-    if (this.fullScreen === parent) { return; }
-    this.fullScreen = parent;
-    parent.appendChild(this.container);
-    this.container.style = "";
+  Adjust: function() {
+    var _this = DomUtils.UI;
+    (_this.fullScreen = document.webkitFullscreenElement
+        || document.documentElement).appendChild(_this.container);
   },
   init: function() {
     this.init = null;
     this.container = DomUtils.createElement("div");
-    this.root = this.container.createShadowRoot();
-    this.cssBase = this.appendCSS(this.root, "");
-    this.adjust = this.adjust.bind(this);
-    this.addElement = function(element) { this.root.appendChild(element); };
-    MainPort.sendMessage({
-      handler: "initCSSBase"
-    }, function(css) {
+    document.documentElement.appendChild(this.container);
+    Settings.onDestroy.UI = function() {
       var _this = DomUtils.UI;
-      _this.cssBase.innerHTML = css;
-      _this.adjust();
-      document.addEventListener("webkitfullscreenchange", _this.adjust);
-      Settings.onDestroy.UI = function() {
-        var _this = DomUtils.UI;
-        _this.container.remove();
-        document.removeEventListener("webkitfullscreenchange", _this.adjust);
-      };
-    });
+      _this.container.remove();
+      document.removeEventListener("webkitfullscreenchange", _this.Adjust);
+    };
+  },
+  initInner: function(element, cssBase) {
+    this.initInner = null;
+    this.appendCSS(this.root, cssBase);
+    this.styleIn && this.addElement(this.styleIn);
+    this.addElement(element); // here's a race-condition, but it's not important
+    document.webkitFullscreenElement && this.Adjust();
+    document.addEventListener("webkitfullscreenchange", this.Adjust);
   },
   appendCSS: function(parent, text) {
     var css = DomUtils.createElement("style");
     css.type = "text/css";
     css.innerHTML = text;
-    parent.appendChild(css);
+    parent && parent.appendChild(css);
     return css;
   },
   insertCSS: function(inner, outer) {
-    var css = this.cssInner;
-    if (css) {
-      this.css2.innerHTML = inner;
-      if (outer) {
-        css.innerHTML = outer;
-      } else {
-        css.remove();
-        this.css = null;
-      }
-      return;
-    }
-    if (this.init) { this.init(); }
-    // this is called only when document.ready
-    if (this.cssInner) {
-      if (inner) {
-        this.cssInner.innerHTML = inner;
-      } else {
-        this.cssInner.remove();
-        this.cssInner = null;
-      }
+    var style;
+    if (style = this.styleIn) {
+      style.innerHTML = inner;
     } else if (inner) {
-      this.cssInner = this.appendCSS(this.root, inner);
+      this.styleIn = this.appendCSS(this.root, inner);
     }
-    if (this.cssOuter) {
+    if (style = this.styleOut) {
       if (outer) {
-        this.cssOuter.outerHTML = outer;
+        style.innerHTML = outer;
       } else {
-        this.cssOuter.remove();
-        this.cssOuter = null;
+        style.remove();
+        this.styleOut = null;
       }
     } else if (outer) {
-      this.cssOuter = this.appendCSS(this.container, outer);
+      this.container || this.init();
+      this.appendCSS(this.container, outer);
     }
   },
   flashOutline: function(clickEl) {
