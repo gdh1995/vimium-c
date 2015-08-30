@@ -216,7 +216,7 @@ var LinkHints = {
   },
   hashRegex: /^#/,
   quoteRegex: /"/g,
-  btnRegex: /\b[Bb](?:utto|t)n\b/,
+  btnRegex: /\b[Bb](?:utto|t)n(?:$| )/,
   GetVisibleClickable: function(element) {
     var arr, isClickable = false, s, _i;
     switch (element.tagName.toLowerCase()) {
