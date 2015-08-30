@@ -108,7 +108,7 @@ var Settings, VHUD, MainPort, VInsertMode;
   Settings = settings = {
     values: null,
     isLoading: 0,
-    onDestroy: { __proto__: null },
+    onDestroy: {},
     set: function(key, value) {
       this.values[key] = value;
       mainPort.port.postMessage({
@@ -1430,7 +1430,7 @@ var Settings, VHUD, MainPort, VInsertMode;
       try {
         chrome.runtime.onMessage.removeListener(this.onMessage);
       } catch (e) {}
+      chrome = null;
     }
-    ELs = null;
   };
 })();
