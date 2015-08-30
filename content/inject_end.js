@@ -69,7 +69,11 @@ Settings.onDestroy.injected = function() {
   try {
     this.onMessage && chrome.runtime.onMessageExternal.removeListener(this.onMessage);
   } catch (e) {}
-  Settings.RequestHandlers = Settings.ELs = null;
+  if (MainPort.port) {
+    try {
+      MainPort.port.disconnect();
+    } catch (e) {}
+  }
   var injector = VimiumInjector;
   injector.alive = 0;
   injector.oldFrameId = this.focusMsg.frameId;
@@ -80,4 +84,4 @@ Settings.onDestroy.injected = function() {
   ), function(node) { node.remove(); });
 };
 
-VimiumInjector.destroy = Settings.ELs.destroy.bind(Settings.ELs);
+VimiumInjector.destroy = function() { Settings.ELs.destroy(); };
