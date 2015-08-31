@@ -207,8 +207,8 @@ w|wiki:\\\n  http://www.wikipedia.org/w/index.php?search=%s Wikipedia (en-US)",
   },
   // not set localStorage, neither sync, if key in @nonPersistent
   // not clean if exists (for simpler logic)
-  nonPersistent: {
-    __proto__: null, exclusionTemplate: 1, help_dialog: 1, newTabUrl_f: 1,
+  nonPersistent: { __proto__: null,
+    baseCSS: 1, exclusionTemplate: 1, help_dialog: 1, newTabUrl_f: 1,
     searchEnginesMap: 1, settingsVersion: 1, userDefinedCss_f: 1,
     userDefinedOuterCss_f: 1, vomnibar: 1
   },
