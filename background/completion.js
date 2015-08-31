@@ -679,7 +679,8 @@ completers.searchEngines = {
     return work;
   })();
   
-  (function(lang) {
+  setTimeout(function() {
+    var lang = Settings.get("UILanguage");
     if (!lang || !(lang = lang[chrome.i18n.getUILanguage()])) {
       return;
     }
@@ -695,7 +696,7 @@ completers.searchEngines = {
         ref2[ref[i]] = 1;
       }
     }
-  })(Settings.get("UILanguage"));
+  }, 16);
 
   window.Completers = {
     omni: new MultiCompleter([completers.searchEngines, completers.bookmarks, completers.history, completers.domains]),
