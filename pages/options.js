@@ -30,7 +30,7 @@ function Option(field, onUpdated) {
 }
 
 Option.all = [];
-Option.syncToFrontend = false;
+Option.syncToFrontend = [];
 
 Option.prototype._onUpdated = function() {
   this.onUpdated1();
@@ -46,7 +46,7 @@ Option.prototype.save = function() {
   if (!this.areEqual(value, this.previous)) {
     bgSettings.set(this.field, this.previous = value);
     if (this.field in bgSettings.bufferToLoad) {
-      Option.syncToFrontend = true;
+      Option.syncToFrontend.push(this.field);
     }
   }
 };

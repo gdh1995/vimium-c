@@ -147,21 +147,27 @@ CheckBoxOption = (function(_super) {
     if (virtually !== false) {
       Option.saveOptions();
     }
+    toSync = Option.syncToFrontend;
+    Option.syncToFrontend = [];
     btn.disabled = true;
     btn.innerHTML = "No Changes";
     $("exportButton").disabled = false;
     status = 0;
     setTimeout(function () {
-      var event = new FocusEvent("focus");
-      window.dispatchEvent(event)
-      if (Option.syncToFrontend) {
+      var event = new FocusEvent("focus"), i, key, ref;
+      window.dispatchEvent(event);
+      i = toSync.length;
+      if (i === 0) { return; }
       bgSettings.postUpdate("bufferToLoad", null);
+      var i, key, ref = bgSettings.bufferToLoad, obj = {};
+      while (0 <= --i) {
+        key = toSync[i];
+        obj[key] = ref[key];
+      }
       bgSettings.postUpdate("broadcast", {
         name: "settings",
-          load: bgSettings.bufferToLoad
+        values: obj
       });
-        Option.syncToFrontend = false;
-      }
     }, 100);
   };
   $("saveOptions").onclick = saveOptions;
@@ -323,7 +329,7 @@ importSettings = function() {
       console.log("import", key, func(new_value));
       bgSettings.set(key, new_value);
       if (key in bgSettings.bufferToLoad) {
-        Option.syncToFrontend = true;
+        Option.syncToFrontend.push(key);
       }
     }
     item.fetch();
