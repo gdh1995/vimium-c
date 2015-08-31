@@ -142,9 +142,9 @@ CheckBoxOption = (function(_super) {
     });
   };
 
-  saveOptions = function() {
+  saveOptions = function(virtually) {
     var btn = $("saveOptions");
-    if (!btn.disabled) {
+    if (virtually !== false) {
       Option.saveOptions();
     }
     btn.disabled = true;
@@ -155,11 +155,11 @@ CheckBoxOption = (function(_super) {
       var event = new FocusEvent("focus");
       window.dispatchEvent(event)
       if (Option.syncToFrontend) {
-        bgSettings.postUpdate("bufferToLoad", null);
-        bgSettings.postUpdate("broadcast", {
-          name: "settings",
+      bgSettings.postUpdate("bufferToLoad", null);
+      bgSettings.postUpdate("broadcast", {
+        name: "settings",
           load: bgSettings.bufferToLoad
-        });
+      });
         Option.syncToFrontend = false;
       }
     }, 100);
@@ -322,6 +322,9 @@ importSettings = function() {
     if (!item.areEqual(bgSettings.get(key), new_value)) {
       console.log("import", key, func(new_value));
       bgSettings.set(key, new_value);
+      if (key in bgSettings.bufferToLoad) {
+        Option.syncToFrontend = true;
+      }
     }
     item.fetch();
   });
@@ -352,8 +355,7 @@ importSettings = function() {
     }
   }
   var btn = $("saveOptions");
-  btn.disabled = true;
-  btn.click();
+  btn.onclick(false);
   VHUD.showForDuration("Import settings data: OK!", 1000);
 };
 
