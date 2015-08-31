@@ -62,13 +62,11 @@ NonEmptyTextOption = (function(_super) {
 
   NonEmptyTextOption.prototype.readValueFromElement = function() {
     var value = NonEmptyTextOption.__super__.readValueFromElement.call(this);
-    if (value) {
-      return value;
-    } else {
-      bgSettings.set(this.field, bgSettings.defaults[this.field]);
-      this.fetch();
-      return this.previous;
+    if (!value) {
+      value = bgSettings.defaults[this.field];
+      this.populateElement(value);
     }
+    return value;
   };
 
   return NonEmptyTextOption;
