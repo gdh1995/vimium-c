@@ -1265,19 +1265,6 @@ var g_requestHandlers;
     }
   };
 
-  Settings.postUpdate("userDefinedCss");
-  Settings.updateHooks.userDefinedCss_f = function(css) {
-    setTimeout(function(css0) {
-      var css = Settings.get("2");
-      if (css !== css0) { return; }
-      Settings.postUpdate("broadcast", {
-        name: "insertCSS",
-        onReady: true,
-        css: (css || ["", ""])
-      });
-    }, 0, css);
-  };
-
   Settings.updateHooks.newTabUrl = function(url) {
     url = (/^\/?[^:\s]*$/.test(url)) ? chrome.runtime.getURL(url) : Utils.convertToUrl(url);
     this.set('newTabUrl_f', url);
@@ -1349,15 +1336,13 @@ var g_requestHandlers;
     }
   });
 
-  chrome.runtime.onConnect.addListener(funcDict.globalConnect = function(port) {
+  funcDict.globalConnect = function(port) {
     if (port.name === "vimium++") {
       port.onMessage.addListener(handleMainPort);
     } else {
       port.disconnect();
     }
-  });
-
-  chrome.runtime.onConnectExternal.addListener(funcDict.globalConnect);
+  };
 
   chrome.tabs.onReplaced.addListener(window.updateTabId = function(addedTabId, removedTabId) {
     var ref, request = { name: "refreshTabId", tabId: addedTabId };
@@ -1379,13 +1364,16 @@ var g_requestHandlers;
   setTimeout(function() {
     Commands.parseKeyMappings(Settings.get("keyMappings"));
     populateCommandKeys();
-    Settings.postUpdate("bufferToLoad", null);
     Exclusions.setRules(Settings.get("exclusionRules"));
+    Settings.postUpdate("bufferToLoad", null);
+    Settings.postUpdate("userDefinedCss");
+
+    chrome.runtime.onConnect.addListener(funcDict.globalConnect);
+    chrome.runtime.onConnectExternal.addListener(funcDict.globalConnect);
   }, 17);
 
   setTimeout(function() {
     Settings.postUpdate("files", null);
-    Settings.postUpdate("searchEngines", null);
     Settings.postUpdate("newTabUrl");
 
     var ref, i, ref2, key;
@@ -1417,8 +1405,23 @@ var g_requestHandlers;
     }
 
     ContentSettings.clear("images");
-  }, 17);
+  }, 50);
 })();
+
+setTimeout(function() {
+  Settings.postUpdate("searchEngines", null);
+
+  Settings.updateHooks.userDefinedCss_f =
+  setTimeout.bind(window, function(css0) {
+    var css = Settings.get("2");
+    if (css !== css0) { return; }
+    Settings.postUpdate("broadcast", {
+      name: "insertCSS",
+      onReady: true,
+      css: (css || ["", ""])
+    });
+  }, 0);
+}, 100);
 
 Settings.CONST.Timer = setTimeout(function() {
 Settings.CONST.Timer = 0;
