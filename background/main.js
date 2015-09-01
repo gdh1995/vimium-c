@@ -1228,9 +1228,6 @@ var g_requestHandlers;
     copyToClipboard: function(request) {
       Clipboard.copy(request.data);
     },
-    copyCurrentUrl: function(_0, tabs) {
-      Clipboard.copy(tabs[0].url);
-    },
     selectTab: function(request) {
       chrome.tabs.update(request.tabId, {active: true});
       chrome.tabs.get(request.tabId, function(tab) {
@@ -1381,7 +1378,7 @@ var g_requestHandlers;
     var ref, i, ref2, key;
     ref2 = requestHandlers;
     for (key in ref2) { ref2[key].useTab = 0; }
-    ref = ["copyCurrentUrl", "openUrlInNewTab", "openUrlInIncognito" //
+    ref = ["openUrlInNewTab", "openUrlInIncognito" //
       , "openImageUrl", "openUrl_fInNewTab", "createMark" //
     ];
     for (i = ref.length; 0 <= --i; ) {
