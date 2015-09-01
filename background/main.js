@@ -1265,14 +1265,10 @@ var g_requestHandlers;
     }
   };
 
-  Settings.postUpdate("files", null);
-
-  Settings.postUpdate("searchEngines", null);
-
   Settings.postUpdate("userDefinedCss");
   Settings.updateHooks.userDefinedCss_f = function(css) {
     setTimeout(function(css0) {
-      var css = Settings.get("userDefinedCss_f");
+      var css = Settings.get("2");
       if (css !== css0) { return; }
       Settings.postUpdate("broadcast", {
         name: "insertCSS",
@@ -1280,7 +1276,7 @@ var g_requestHandlers;
         css: (css || ["", ""])
       });
     }, 0, css);
-  }
+  };
 
   Settings.updateHooks.newTabUrl = function(url) {
     url = (/^\/?[^:\s]*$/.test(url)) ? chrome.runtime.getURL(url) : Utils.convertToUrl(url);
@@ -1289,7 +1285,6 @@ var g_requestHandlers;
     ? chrome.windows.getCurrent.bind(chrome.windows, {populate: true}, funcDict.createTab[0])
     : chrome.tabs.query.bind(chrome.tabs, {currentWindow: true, active: true}, funcDict.createTab[5]);
   };
-  Settings.postUpdate("newTabUrl");
 
   Settings.updateHooks.keyMappings = function(value) {
     Commands.parseKeyMappings(value);
@@ -1301,8 +1296,6 @@ var g_requestHandlers;
       secondKeys: secondKeys
     });
   };
-
-  Settings.postUpdate("bufferToLoad", null);
 
   Settings.updateHooks.showActionIcon = function (value) {
     needIcon = chrome.browserAction && value ? true : false;
@@ -1386,8 +1379,14 @@ var g_requestHandlers;
   setTimeout(function() {
     Commands.parseKeyMappings(Settings.get("keyMappings"));
     populateCommandKeys();
+    Settings.postUpdate("bufferToLoad", null);
     Exclusions.setRules(Settings.get("exclusionRules"));
-    ContentSettings.clear("images");
+  }, 17);
+
+  setTimeout(function() {
+    Settings.postUpdate("files", null);
+    Settings.postUpdate("searchEngines", null);
+    Settings.postUpdate("newTabUrl");
 
     var ref, i, ref2, key;
     ref2 = requestHandlers;
@@ -1416,6 +1415,8 @@ var g_requestHandlers;
     for (i = ref.length; 0 <= --i; ) {
       ref2[ref[i]].useTab = 0;
     }
+
+    ContentSettings.clear("images");
   }, 17);
 })();
 
