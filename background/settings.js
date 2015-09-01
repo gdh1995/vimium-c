@@ -74,16 +74,15 @@ var Settings = {
       this.parseSearchEngines("~:" + this.get("searchUrl"), value);
       this.postUpdate("postSearchEnginesMap", null);
     },
-    userDefinedCss: function() {
-      var cssi, csso;
-      cssi = this.get("userDefinedCss");
+    userDefinedCss: function(cssi) {
+      var csso;
       cssi && (cssi = cssi.trim());
       csso = this.get("userDefinedOuterCss");
       csso && (csso = csso.trim());
       this.set("userDefinedCss_f", (cssi || csso) ? [cssi, csso] : null);
     },
     userDefinedOuterCss: function() {
-      this.postUpdate("userDefinedCss", null);
+      this.postUpdate("userDefinedCss");
     }
   },
   parseSearchEngines: function(searchEnginesText, map) {

@@ -1413,14 +1413,14 @@ setTimeout(function() {
 
   Settings.updateHooks.userDefinedCss_f =
   setTimeout.bind(window, function(css0) {
-    var css = Settings.get("2");
+    var css = Settings.get("userDefinedCss_f");
     if (css !== css0) { return; }
     Settings.postUpdate("broadcast", {
       name: "insertCSS",
       onReady: true,
       css: (css || ["", ""])
     });
-  }, 0);
+  }, 34);
 }, 100);
 
 Settings.CONST.Timer = setTimeout(function() {
