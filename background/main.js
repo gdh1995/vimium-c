@@ -1267,10 +1267,11 @@ var g_requestHandlers;
 
   Settings.updateHooks.newTabUrl = function(url) {
     url = (/^\/?[^:\s]*$/.test(url)) ? chrome.runtime.getURL(url) : Utils.convertToUrl(url);
-    this.set('newTabUrl_f', url);
+    if (this.get("newTabUrl_f") !== url) { this.set('newTabUrl_f', url); }
     BackgroundCommands.createTab = Utils.isRefusingIncognito(url)
     ? chrome.windows.getCurrent.bind(chrome.windows, {populate: true}, funcDict.createTab[0])
     : chrome.tabs.query.bind(chrome.tabs, {currentWindow: true, active: true}, funcDict.createTab[5]);
+    BackgroundCommands.createTab.newTab = 1;
   };
 
   Settings.updateHooks.keyMappings = function(value) {
@@ -1374,6 +1375,7 @@ var g_requestHandlers;
 
   setTimeout(function() {
     Settings.postUpdate("files", null);
+    Settings.postUpdate("searchUrl");
     Settings.postUpdate("newTabUrl");
 
     var ref, i, ref2, key;

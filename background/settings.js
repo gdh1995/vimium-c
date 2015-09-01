@@ -64,7 +64,7 @@ var Settings = {
       }
     },
     searchEngines: function() {
-      this.set("searchEnginesMap", { "": [] });
+      this.set("searchEnginesMap", { "": [], __proto__: null });
     },
     searchUrl: function(value) {
       this.parseSearchEngines("~:" + value);
@@ -179,6 +179,7 @@ var Settings = {
     linkHintCharacters: "sadjklewcmpgh",
     linkHintNumbers: "1234567890",
     newTabUrl: "",
+    newTabUrl_f: "",
     nextPatterns: "next,more,>,\u2192,\xbb,\u226b,>>",
     previousPatterns: "prev,previous,back,<,\u2190,\xab,\u226a,<<",
     regexFindMode: false,
@@ -189,6 +190,7 @@ bi|bing|Bing: https://www.bing.com/search?q=%s Bing\n\
 g|go|gg|google|Google: http://www.google.com/search?q=%s Google\n\
 js\\:|Js: javascript:\\ %S; Javascript\n\
 w|wiki:\\\n  http://www.wikipedia.org/w/index.php?search=%s Wikipedia (en-US)",
+    searchEnginesMap: { "": [] },
     showActionIcon: true,
     showAdvancedCommands: 0,
     showAdvancedOptions: 1,
@@ -201,13 +203,13 @@ w|wiki:\\\n  http://www.wikipedia.org/w/index.php?search=%s Wikipedia (en-US)",
   NonJSON: {
     __proto__: null, findModeRawQuery: 1,
     keyMappings: 1, linkHintCharacters: 1, linkHintNumbers: 1,
-    newTabUrl: 1, nextPatterns: 1, previousPatterns: 1,
+    newTabUrl: 1, newTabUrl_f: 1, nextPatterns: 1, previousPatterns: 1,
     searchEngines: 1, searchUrl: 1, userDefinedCss: 1, userDefinedOuterCss: 1
   },
   // not set localStorage, neither sync, if key in @nonPersistent
   // not clean if exists (for simpler logic)
   nonPersistent: { __proto__: null,
-    baseCSS: 1, exclusionTemplate: 1, help_dialog: 1, newTabUrl_f: 1,
+    baseCSS: 1, exclusionTemplate: 1, help_dialog: 1, 
     searchEnginesMap: 1, settingsVersion: 1, userDefinedCss_f: 1,
     userDefinedOuterCss_f: 1, vomnibar: 1
   },

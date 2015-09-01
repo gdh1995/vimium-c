@@ -272,6 +272,7 @@ $("exportButton").onclick = function() {
     }
   })();
   delete exported_object.findModeRawQuery;
+  delete exported_object.newTabUrl_f;
   d = new Date();
   exported_object.time = d.getTime();
   exported_data = JSON.stringify(exported_object, null, '\t');
