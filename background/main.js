@@ -1344,7 +1344,7 @@ var g_requestHandlers;
     }
   };
 
-  chrome.tabs.onReplaced.addListener(window.updateTabId = function(addedTabId, removedTabId) {
+  chrome.tabs.onReplaced.addListener(function(addedTabId, removedTabId) {
     var ref, request = { name: "refreshTabId", tabId: addedTabId };
     chrome.tabs.sendMessage(addedTabId, request);
     funcDict.sendToExt(request, removedTabId);
