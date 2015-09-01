@@ -9,9 +9,8 @@ DomUtils.UI = {
   addElement: function(element) {
     MainPort.sendMessage({ handler: "initCSSBase" }, this.initInner.bind(this));
     this.container || this.init();
-    this.root = this.container.createShadowRoot();
-    this.container.style.display = "none";
-    this.addElement = this.root.appendChild.bind(this.root);
+    this.root = document.createDocumentFragment();
+    this.addElement = function(element) { this.root.appendChild(element); }
     this.root.appendChild(element);
   },
   addElementList: function(els, overlayOptions) {
@@ -46,7 +45,8 @@ DomUtils.UI = {
     this.initInner = null;
     this.appendCSS(this.root, cssBase);
     this.styleIn && this.addElement(this.styleIn);
-    this.container.removeAttribute("style");
+    this.container.createShadowRoot().appendChild(this.root);
+    this.root = this.container.shadowRoot;
     document.webkitFullscreenElement && this.Adjust();
     if (this.toFocus) {
       this.toFocus.focus();
