@@ -582,9 +582,9 @@ var g_requestHandlers;
   };
 
   /*
-    function (null <% if .useTab is 0 else %>
-      Tab [] tabs <% if .useTab is 2 else %>
-      Tab [1] tabs = [selected] <% if .useTab is 1 else ERROR %>
+    function (null <% if .useTab is -1 else %>
+      Tab [] tabs <% if .useTab is 1 else %>
+      Tab [1] tabs = [selected] <% if not .useTab else ERROR %>
     );
     */
   BackgroundCommands = {
@@ -1044,9 +1044,9 @@ var g_requestHandlers;
       currentCommand.port = port;
       commandCount = count;
       count = func.useTab;
-      if (count === 2) {
+      if (count === 1) {
         chrome.tabs.query({currentWindow: true}, func);
-      } else if (count) {
+      } else if (count !== -1) {
         chrome.tabs.query({currentWindow: true, active: true}, func);
       } else {
         func();
@@ -1389,21 +1389,21 @@ var g_requestHandlers;
     }
 
     ref2 = BackgroundCommands;
-    for (key in ref2) { ref2[key].useTab = 1; }
+    for (key in ref2) { ref2[key].useTab = 0; }
     ref = ["nextTab", "previousTab", "firstTab", "lastTab", "removeTab" //
       , "closeTabsOnLeft", "closeTabsOnRight", "closeOtherTabs", "removeRightTab" //
       , "moveTabLeft", "moveTabRight", "togglePinTab", "debugBackground" //
       , "reloadGivenTab" //
     ];
     for (i = ref.length; 0 <= --i; ) {
-      ref2[ref[i]].useTab = 2;
+      ref2[ref[i]].useTab = 1;
     }
     ref = ["createTab", "restoreTab", "restoreGivenTab", "blank", "reloadTab" //
       , "moveTabToNewWindow", "reloadGivenTab", "openUrl", "focusOrLaunch" //
       , "moveTabToIncognito", "openCopiedUrlInCurrentTab", "clearGlobalMarks" //
     ];
     for (i = ref.length; 0 <= --i; ) {
-      ref2[ref[i]].useTab = 0;
+      ref2[ref[i]].useTab = -1;
     }
 
     ContentSettings.clear("images");
