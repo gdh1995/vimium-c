@@ -391,8 +391,9 @@ var Settings, VHUD, MainPort, VInsertMode;
         handler: "initHelp",
       }, requestHandlers.showHelpDialog);
     },
-    autoCopy: function() {
-      var str = DomUtils.getSelectionText() || document.title.trim();
+    autoCopy: function(_0, options) {
+      var str = DomUtils.getSelectionText() ||
+        (options.url ? location.href : document.title.trim());
       if (str = str.trim()) {
         mainPort.port.postMessage({
           handler: "copyToClipboard",

@@ -313,13 +313,13 @@ Commands.defaultKeyMappings = {
     }
   ],
   copyCurrentUrl: [
-    "Copy current tab's URL", {
+    "Copy current page's URL (use frame=true)", {
       background: true,
       repeat: 1
     }
   ],
   autoCopy: [
-    "Copy selected text or current frame's title", {
+    "Copy selected text or current frame's title or url (use url=true)", {
       repeat: 1
     }
   ],

@@ -840,7 +840,18 @@ var g_requestHandlers;
       currentCommand.port.postMessage({name: "showCopied", text: str});
     },
     copyCurrentUrl: function(tabs) {
-      var str = tabs[0].url;
+      var str;
+      if (currentCommand.options.frame === true && !(str = urlForTab[tabs[0].id])) {
+        currentCommand.port.postMessage({
+          name: "execute",
+          command: "autoCopy",
+          count: 1,
+          options: { url: true }
+        });
+        return;
+      } else {
+        str = tabs[0].url;
+      }
       Clipboard.copy(str);
       currentCommand.port.postMessage({name: "showCopied", text: str});
     },
