@@ -4,13 +4,12 @@ DomUtils.UI = {
   styleOut: null,
   root: null,
   flashLastingTime: 400,
-  fullScreen: null,
   toFocus: null,
   addElement: function(element) {
     MainPort.sendMessage({ handler: "initCSSBase" }, this.initInner.bind(this));
-    this.container || this.init();
-    this.root = document.createDocumentFragment();
-    this.addElement = function(element) { this.root.appendChild(element); }
+    this.container = DomUtils.createElement("div");
+    this.root = this.container.createShadowRoot();
+    this.addElement = this.root.appendChild.bind(this.root);
     this.root.appendChild(element);
   },
   addElementList: function(els, overlayOptions) {
@@ -29,25 +28,17 @@ DomUtils.UI = {
     return parent;
   },
   Adjust: function() {
-    var _this = DomUtils.UI;
-    (_this.fullScreen = document.webkitFullscreenElement
-        || document.documentElement).appendChild(_this.container);
+    (document.webkitFullscreenElement || document.documentElement).appendChild(DomUtils.UI.container);
   },
   focus: function(element) {
     this.initInner ? (this.toFocus = element) : element.focus();
   },
-  init: function() {
-    this.init = null;
-    this.container = DomUtils.createElement("div");
-    document.documentElement.appendChild(this.container);
-  },
   initInner: function(cssBase) {
     this.initInner = null;
     this.appendCSS(this.root, cssBase);
-    this.styleIn && this.addElement(this.styleIn);
-    this.container.createShadowRoot().appendChild(this.root);
-    this.root = this.container.shadowRoot;
-    document.webkitFullscreenElement && this.Adjust();
+    this.styleIn && this.root.appendChild(this.styleIn);
+    this.Adjust();
+    this.styleOut && this.container.appendChild(this.styleOut);
     if (this.toFocus) {
       this.toFocus.focus();
       this.toFocus = null;
@@ -76,8 +67,8 @@ DomUtils.UI = {
         this.styleOut = null;
       }
     } else if (outer) {
-      this.container || this.init();
-      this.appendCSS(this.container, outer);
+      this.styleOut = this.appendCSS(this.container || document.body
+        || document.documentElement, outer);
     }
   },
   flashOutline: function(clickEl) {
