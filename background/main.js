@@ -1383,13 +1383,12 @@ var g_requestHandlers;
     }
   });
 
-  Commands.parseKeyMappings(Settings.get("keyMappings"));
-  populateCommandKeys();
-  Exclusions.setRules(Settings.get("exclusionRules"));
+  setTimeout(function() {
+    Commands.parseKeyMappings(Settings.get("keyMappings"));
+    populateCommandKeys();
+    Exclusions.setRules(Settings.get("exclusionRules"));
+    ContentSettings.clear("images");
 
-  ContentSettings.clear("images");
-
-  (function() {
     var ref, i, ref2, key;
     ref2 = requestHandlers;
     for (key in ref2) { ref2[key].useTab = 0; }
@@ -1417,7 +1416,7 @@ var g_requestHandlers;
     for (i = ref.length; 0 <= --i; ) {
       ref2[ref[i]].useTab = 0;
     }
-  })();
+  }, 17);
 })();
 
 Settings.CONST.Timer = setTimeout(function() {

@@ -1,6 +1,6 @@
 "use strict";
 
-if (Settings.get("vimSync") === true) {
+if (Settings.get("vimSync") === true) setTimeout(function() {
   Settings.Sync = {
     __proto__: null,
     storage: chrome.storage.sync,
@@ -66,9 +66,9 @@ if (Settings.get("vimSync") === true) {
   };
   chrome.storage.onChanged.addListener(Settings.Sync.handleStorageUpdate.bind(Settings.Sync));
   Settings.Sync.fetchAsync();
-}
+}, 100);
 
-if (chrome.browserAction && chrome.browserAction.setIcon) (function() {
+if (chrome.browserAction && chrome.browserAction.setIcon) setTimeout(function() {
   g_requestHandlers.SetIcon = function(tabId, type, pass) {
     chrome.browserAction.setIcon({
       tabId: tabId,
@@ -91,7 +91,7 @@ if (chrome.browserAction && chrome.browserAction.setIcon) (function() {
     }
   }).bind(Settings.updateHooks.showActionIcon);
   Settings.postUpdate("showActionIcon");
-})();
+}, 50);
 
 // According to tests: onInstalled will be executed after 0 ~ 16 ms if needed
 chrome.runtime.onInstalled.addListener(window.b = function(details) {
@@ -175,8 +175,9 @@ setTimeout(function() {
   window.b = null;
 }, 50);
 
-var a, b, c, cb, log; // #if DEBUG
+//* #if DEBUG
+var a, b, c, cb, log;
 cb = function(b) { a = b; console.log(b); };
 setTimeout(function() {
   a = c = null, b = cb, log = console.log.bind(console);
-}, 100); // #endif
+}, 100); // #endif */

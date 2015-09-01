@@ -696,7 +696,7 @@ completers.searchEngines = {
         ref2[ref[i]] = 1;
       }
     }
-  }, 16);
+  }, 100);
 
   window.Completers = {
     omni: new MultiCompleter([completers.searchEngines, completers.bookmarks, completers.history, completers.domains]),
