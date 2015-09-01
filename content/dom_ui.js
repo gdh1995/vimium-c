@@ -6,10 +6,12 @@ DomUtils.UI = {
   flashLastingTime: 400,
   fullScreen: null,
   addElement: function(element) {
-    MainPort.sendMessage({ handler: "initCSSBase" }, this.initInner.bind(this, element));
+    MainPort.sendMessage({ handler: "initCSSBase" }, this.initInner.bind(this));
     this.container || this.init();
     this.root = this.container.createShadowRoot();
-    this.addElement = element.appendChild.bind(this.root);
+    this.container.style.display = "none";
+    this.addElement = this.root.appendChild.bind(this.root);
+    this.root.appendChild(element);
   },
   addElementList: function(els, overlayOptions) {
     var parent, _i, _len;
@@ -36,11 +38,11 @@ DomUtils.UI = {
     this.container = DomUtils.createElement("div");
     document.documentElement.appendChild(this.container);
   },
-  initInner: function(element, cssBase) {
+  initInner: function(cssBase) {
     this.initInner = null;
     this.appendCSS(this.root, cssBase);
     this.styleIn && this.addElement(this.styleIn);
-    this.addElement(element); // here's a race-condition, but it's not important
+    this.container.removeAttribute("style");
     document.webkitFullscreenElement && this.Adjust();
     document.addEventListener("webkitfullscreenchange", this.Adjust);
   },
