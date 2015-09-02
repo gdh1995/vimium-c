@@ -10,9 +10,7 @@ var Scroller = {
   maxInterval: 28,
   minDelay: 500,
   checkVisibility: function(element) {
-    if (!DomUtils.isVisibile(Scroller.activatedElement)) {
-      Scroller.activatedElement = element;
-    }
+    DomUtils.isVisibile(Scroller.current) || (Scroller.current = element);
   },
   performScroll: function(el, di, amount) {
     var before;
@@ -50,7 +48,7 @@ var Scroller = {
 
 Scroller = {
   Core: Scroller,
-  activatedElement: null,  
+  current: null,  
   keyIsDown: 0,
   Properties: [{
     axisName: "scrollLeft",
@@ -87,12 +85,12 @@ Scroller = {
     return element;
   },
   getActivatedElement: function() {
-    var element = this.activatedElement;
+    var element = this.current;
     if (element) {
       return element;
     }
     element = document.body;
-    return element = this.activatedElement = element
+    return element = this.current = element
       ? (this.selectFirst(element) || element) : null;
   },
   getDimension: function(el, di, name) {

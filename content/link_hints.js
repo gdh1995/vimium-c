@@ -795,7 +795,7 @@ LinkHints.FUNC = {
     VHUD.showCopied(str);
   },
   HOVER: function(element) {
-    Scroller.activatedElement = element;
+    Scroller.current = element;
     DomUtils.simulateMouse(element, "mouseover");
   },
   LEAVE: function(element) {

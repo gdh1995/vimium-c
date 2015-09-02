@@ -221,7 +221,7 @@ var Settings, VHUD, MainPort, VInsertMode;
       }
     }, true);
     document.addEventListener("DOMActivate", ELs.onActivate = function(event) {
-      Scroller.activatedElement = event.target;
+      Scroller.current = event.target;
     }, true);
   };
 
@@ -1321,7 +1321,7 @@ var Settings, VHUD, MainPort, VInsertMode;
     showAdvancedCommands(shouldShowAdvanced);
     node1 = container.querySelector("#HelpDialog");
     window.focus();
-    Scroller.activatedElement = node1;
+    Scroller.current = node1;
     handlerId = handlerStack.push({
       keydown: function(event) {
         if (event.keyCode === KeyCodes.esc && !VInsertMode.lock
