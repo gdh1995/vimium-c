@@ -230,8 +230,7 @@ var LinkHints = {
     case "button": case "select": isClickable = !element.disabled; break;
     case "object": case "embed":
       s = element.type;
-      if (!s) {}
-      else if (s.endsWith("x-shockwave-flash")) { isClickable = true; break; }
+      if (s && s.endsWith("x-shockwave-flash")) { isClickable = true; break; }
       return;
     case "img":
       if ((s = element.useMap) && (arr = element.getClientRects()).length > 0
