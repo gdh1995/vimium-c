@@ -143,6 +143,7 @@ Scroller.Core.Animate = function () {
     timestamp = new_timestamp;
     if (int1 === -1) {
       requestAnimationFrame(animate);
+      return;
     }
     elapsed = new_timestamp - int1;
     int1 = (totalElapsed += elapsed);
@@ -164,11 +165,8 @@ Scroller.Core.Animate = function () {
     if (int1 && _this.performScroll(element, di, sign * int1)) {
       totalDelta += int1;
       requestAnimationFrame(animate);
-    } else {
+    } else if (Scroller.current !== element) {
       DomUtils.isVisibile(Scroller.current) || (Scroller.current = element);
-      if (elapsed !== 0) {
-        element = null;
-      }
     }
   };
   Scroller.Core.Animate = function(new_amount, new_di, new_el) {
