@@ -139,7 +139,7 @@ Scroller = {
   }
 };
 
-(function () {
+Scroller.Core.Reset = function () {
   var amount = 0, calibration = 1.0, di = 0, duration = 0, element = null, //
   sign = 0, timestamp = -1, totalDelta = 0, totalElapsed = 0.0, //
   animate = Scroller.Core.Animate = function(new_timestamp) {
@@ -178,4 +178,5 @@ Scroller = {
     sign = Scroller.getSign(new_amount);
     timestamp = -1, totalDelta = 0, totalElapsed = 0.0;
   };
-})();
+  Scroller.Core.Reset.apply(null, arguments);
+};
