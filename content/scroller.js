@@ -1,7 +1,6 @@
 "use strict";
 var Scroller = {
   Animate: null,
-  Reset: null,
   calibrationBoundary: 150,
   maxCalibration: 1.6,
   minCalibration: 0.5,
@@ -38,9 +37,8 @@ var Scroller = {
       DomUtils.isVisibile(Scroller.current) || (Scroller.current = element);
       return;
     }
-    this.Reset(amount, di, element);
-    requestAnimationFrame(this.Animate);
-  },
+    this.Animate(amount, di, element);
+  }
 };
 
 Scroller = {
@@ -137,22 +135,22 @@ Scroller = {
   }
 };
 
-Scroller.Core.Reset = function () {
+Scroller.Core.Animate = function () {
   var amount = 0, calibration = 1.0, di = 0, duration = 0, element = null, //
   sign = 0, timestamp = -1, totalDelta = 0, totalElapsed = 0.0, //
-  animate = Scroller.Core.Animate = function(new_timestamp) {
-    var int1 = timestamp, elapsed, _this = Scroller.Core;
-    elapsed = (int1 !== -1) ? (new_timestamp - int1) : 0;
-    if (elapsed === 0) {
-      requestAnimationFrame(animate);
-    } else {
-      totalElapsed += elapsed;
-    }
+  animate = function(new_timestamp) {
+    var int1 = timestamp, elapsed, _this;
     timestamp = new_timestamp;
+    if (int1 === -1) {
+      requestAnimationFrame(animate);
+    }
+    elapsed = new_timestamp - int1;
+    int1 = (totalElapsed += elapsed);
+    _this = Scroller.Core;
     if (Scroller.keyIsDown) {
-      int1 = calibration;
-      if (totalElapsed >= 75) {
-        if (totalElapsed > _this.minDelay) { --Scroller.keyIsDown; }
+      if (int1 >= 75) {
+        if (int1 > _this.minDelay) { --Scroller.keyIsDown; }
+        int1 = calibration;
         if (_this.minCalibration <= int1 && int1 <= _this.maxCalibration) {
           int1 = _this.calibrationBoundary / amount / int1;
           calibration *= (int1 > 1.05) ? 1.05 : (int1 < 0.95) ? 0.95 : 1.0;
@@ -173,12 +171,13 @@ Scroller.Core.Reset = function () {
       }
     }
   };
-  Scroller.Core.Reset = function(new_amount, new_di, new_el) {
+  Scroller.Core.Animate = function(new_amount, new_di, new_el) {
     amount = Math.abs(new_amount), calibration = 1.0, di = new_di;
     duration = Math.max(100, 20 * Math.log(amount)), element = new_el;
     sign = Scroller.getSign(new_amount);
     timestamp = -1, totalDelta = 0, totalElapsed = 0.0;
     Scroller.keyIsDown = Scroller.Core.maxInterval;
+    requestAnimationFrame(animate);
   };
-  Scroller.Core.Reset.apply(null, arguments);
+  Scroller.Core.Animate.apply(null, arguments);
 };
