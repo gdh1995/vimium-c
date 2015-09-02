@@ -5,6 +5,10 @@ var Scroller = {
   calibrationBoundary: 150,
   maxCalibration: 1.6,
   minCalibration: 0.5,
+  // high:  60f / 1000ms :  400ms / 24f
+  // low:   15f /  250ms :   33ms /  2f
+  maxInterval: 28,
+  minDelay: 500;
   checkVisibility: function(element) {
     if (!DomUtils.isVisibile(element)) {
       Scroller.activatedElement = element;
@@ -47,7 +51,7 @@ var Scroller = {
 Scroller = {
   Core: Scroller,
   activatedElement: null,  
-  keyIsDown: false,
+  keyIsDown: 0,
   Properties: [{
     axisName: "scrollLeft",
     max: "scrollWidth",
@@ -153,6 +157,7 @@ Scroller.Core.Reset = function () {
     if (Scroller.keyIsDown) {
       int1 = calibration;
       if (totalElapsed >= 75) {
+        if (totalElapsed > _this.minDelay) { --Scroller.keyIsDown; }
         if (_this.minCalibration <= int1 && int1 <= _this.maxCalibration) {
           int1 = _this.calibrationBoundary / amount / int1;
           calibration *= (int1 > 1.05) ? 1.05 : (int1 < 0.95) ? 0.95 : 1.0;
@@ -178,7 +183,7 @@ Scroller.Core.Reset = function () {
     duration = Math.max(100, 20 * Math.log(amount)), element = new_el;
     sign = Scroller.getSign(new_amount);
     timestamp = -1, totalDelta = 0, totalElapsed = 0.0;
-    Scroller.keyIsDown = true;
+    Scroller.keyIsDown = Scroller.Core.maxInterval;
   };
   Scroller.Core.Reset.apply(null, arguments);
 };

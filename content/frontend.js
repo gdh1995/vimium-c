@@ -179,7 +179,7 @@ var Settings, VHUD, MainPort, VInsertMode;
     }, true);
     window.addEventListener("keyup", ELs.onKeyup = function(event) {
       if (isEnabledForUrl) {
-        if (Scroller.keyIsDown) { Scroller.keyIsDown = false; }
+        if (Scroller.keyIsDown) { Scroller.keyIsDown = 0; }
         if (KeydownEvents[event.keyCode]) {
           KeydownEvents[event.keyCode] = 0;
           event.preventDefault();
@@ -206,7 +206,7 @@ var Settings, VHUD, MainPort, VInsertMode;
         // NOTE: Scroller will be set null when destroying, and window.onblur
         //   won't be used any more, so we needn't make Scroller {}
         // NOTE: so does InsertMode
-        if (Scroller.keyIsDown) { Scroller.keyIsDown = false; }
+        if (Scroller.keyIsDown) { Scroller.keyIsDown = 0; }
         KeydownEvents = new Uint8Array(256);
       } else if (!isEnabledForUrl) {}
       else if (InsertMode.lock === target) { InsertMode.lock = null; }
@@ -505,10 +505,11 @@ var Settings, VHUD, MainPort, VInsertMode;
   ELs.onKeydown = function(event) {
     if (Scroller.keyIsDown) {
       if (event.repeat) {
+        Scroller.keyIsDown = Scroller.Core.maxInterval;
         DomUtils.suppressEvent(event);
         return;
       }
-      Scroller.keyIsDown = false;
+      Scroller.keyIsDown = 0;
     }
     if (isEnabledForUrl) {
       if (!handlerStack.bubbleEvent("keydown", event)) {
