@@ -39,7 +39,6 @@ var Scroller = {
       this.checkVisibility(element);
       return;
     }
-    Scroller.keyIsDown = true;
     this.Reset(amount, di, element);
     requestAnimationFrame(this.Animate);
   },
@@ -153,9 +152,11 @@ Scroller.Core.Reset = function () {
     timestamp = new_timestamp;
     if (Scroller.keyIsDown) {
       int1 = calibration;
-      if (75 <= totalElapsed && (_this.minCalibration <= int1 && int1 <= _this.maxCalibration)) {
-        int1 = _this.calibrationBoundary / amount / int1;
-        calibration *= (int1 > 1.05) ? 1.05 : (int1 < 0.95) ? 0.95 : 1.0;
+      if (totalElapsed >= 75) {
+        if (_this.minCalibration <= int1 && int1 <= _this.maxCalibration) {
+          int1 = _this.calibrationBoundary / amount / int1;
+          calibration *= (int1 > 1.05) ? 1.05 : (int1 < 0.95) ? 0.95 : 1.0;
+        }
       }
       int1 = Math.ceil(amount * (elapsed / duration) * calibration);
     } else {
@@ -165,7 +166,7 @@ Scroller.Core.Reset = function () {
     if (int1 && _this.performScroll(element, di, sign * int1)) {
       totalDelta += int1;
       requestAnimationFrame(animate);
-    } else if (element) {
+    } else {
       _this.checkVisibility(element);
       if (elapsed !== 0) {
         element = null;
@@ -177,6 +178,7 @@ Scroller.Core.Reset = function () {
     duration = Math.max(100, 20 * Math.log(amount)), element = new_el;
     sign = Scroller.getSign(new_amount);
     timestamp = -1, totalDelta = 0, totalElapsed = 0.0;
+    Scroller.keyIsDown = true;
   };
   Scroller.Core.Reset.apply(null, arguments);
 };
