@@ -10,7 +10,7 @@ var Scroller = {
   maxInterval: 28,
   minDelay: 500,
   checkVisibility: function(element) {
-    if (!DomUtils.isVisibile(element)) {
+    if (!DomUtils.isVisibile(Scroller.activatedElement)) {
       Scroller.activatedElement = element;
     }
   },
