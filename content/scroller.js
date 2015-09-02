@@ -9,9 +9,6 @@ var Scroller = {
   // low:   15f /  250ms :   33ms /  2f
   maxInterval: 28,
   minDelay: 500,
-  checkVisibility: function(element) {
-    DomUtils.isVisibile(Scroller.current) || (Scroller.current = element);
-  },
   performScroll: function(el, di, amount) {
     var before;
     if (di) {
@@ -38,7 +35,7 @@ var Scroller = {
     if (!amount) { return; }
     if (!Settings.values.smoothScroll) {
       this.performScroll(element, di, amount);
-      this.checkVisibility(element);
+      DomUtils.isVisibile(Scroller.current) || (Scroller.current = element);
       return;
     }
     this.Reset(amount, di, element);
@@ -170,7 +167,7 @@ Scroller.Core.Reset = function () {
       totalDelta += int1;
       requestAnimationFrame(animate);
     } else {
-      _this.checkVisibility(element);
+      DomUtils.isVisibile(Scroller.current) || (Scroller.current = element);
       if (elapsed !== 0) {
         element = null;
       }
