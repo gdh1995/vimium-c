@@ -1,6 +1,6 @@
 "use strict";
 var Scroller = {
-  Animate: null,
+  animate: null,
   calibrationBoundary: 150,
   maxCalibration: 1.6,
   minCalibration: 0.5,
@@ -37,7 +37,7 @@ var Scroller = {
       DomUtils.isVisibile(Scroller.current) || (Scroller.current = element);
       return;
     }
-    this.Animate(amount, di, element);
+    this.animate(amount, di, element);
   }
 };
 
@@ -135,7 +135,7 @@ Scroller = {
   }
 };
 
-Scroller.Core.Animate = function () {
+Scroller.Core.animate = function () {
   var amount = 0, calibration = 1.0, di = 0, duration = 0, element = null, //
   sign = 0, timestamp = -1, totalDelta = 0, totalElapsed = 0.0, //
   animate = function(new_timestamp) {
@@ -169,7 +169,7 @@ Scroller.Core.Animate = function () {
       DomUtils.isVisibile(Scroller.current) || (Scroller.current = element);
     }
   };
-  Scroller.Core.Animate = function(new_amount, new_di, new_el) {
+  Scroller.Core.animate = function(new_amount, new_di, new_el) {
     amount = Math.abs(new_amount), calibration = 1.0, di = new_di;
     duration = Math.max(100, 20 * Math.log(amount)), element = new_el;
     sign = Scroller.getSign(new_amount);
@@ -177,5 +177,5 @@ Scroller.Core.Animate = function () {
     Scroller.keyIsDown = Scroller.Core.maxInterval;
     requestAnimationFrame(animate);
   };
-  Scroller.Core.Animate.apply(null, arguments);
+  Scroller.Core.animate.apply(null, arguments);
 };
