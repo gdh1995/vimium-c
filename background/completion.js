@@ -584,10 +584,6 @@ completers.searchEngines = {
 
   Decoder = {
     _f: decodeURIComponent, // core function
-    setCore: function(core) {
-      this._f = core;
-      this.decodeURL.setCore(core);
-    },
     decodeURL: null,
     decodeList: function(a) {
       var i = -1, j, l = a.length, d = Decoder, f = d._f;
@@ -666,17 +662,14 @@ completers.searchEngines = {
   };
   
   Decoder.decodeURL = (function() {
-    var d = Decoder.dict, f = Decoder._f, t = Decoder.todos, work = function(a) {
+    var d = Decoder.dict, f = Decoder._f, t = Decoder.todos;
+    return function(a) {
       try {
         return f(a);
       } catch (e) {
         return d[a] || (t.push(a), a);
       }
     };
-    work.setCore = function(core) {
-      f = core;
-    };
-    return work;
   })();
   
   setTimeout(function() {
