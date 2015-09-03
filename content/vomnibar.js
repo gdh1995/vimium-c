@@ -310,8 +310,8 @@ Vomnibar.vomnibarUI = {
       this.focused = true;
       event.stopImmediatePropagation();
       return;
-    } else if (el === this.list || this.timer) {
-    } else if (window.getSelection().type !== "Range") {
+    } else if (el === this.list || this.timer) {}
+    else if (window.getSelection().type !== "Range") {
       var ind = [].indexOf;
       _i = ind.call(event.path, this.list);
       _i = _i > 0 ? ind.call(this.list.children, event.path[_i - 1]) : -1;

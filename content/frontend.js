@@ -592,8 +592,7 @@ var Settings, VHUD, MainPort, VInsertMode;
 
   checkValidKey = function(key) {
     if (keyQueue) {
-      if ((key in firstKeys) || (key in currentSeconds)) {
-      } else {
+      if (!((key in firstKeys) || (key in currentSeconds))) {
         mainPort.port.postMessage({ handler: "esc" });
         keyQueue = false;
         currentSeconds = secondKeys[""];
