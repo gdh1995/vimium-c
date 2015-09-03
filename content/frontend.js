@@ -545,8 +545,8 @@ var Settings, VHUD, MainPort, VInsertMode;
       } else if (key === KeyCodes.enter) {
         handleEnterForFindMode();
         action = 2;
-      } else if (event.metaKey || event.ctrlKey || event.altKey) {
-      } else if (event.keyIdentifier.startsWith("U+")) {
+      } else if (event.metaKey || event.ctrlKey || event.altKey) {}
+      else if (event.keyIdentifier.startsWith("U+")) {
         action = 1;
       } else if (! (key in KeyboardUtils.keyNames)) {
         action = 1;
