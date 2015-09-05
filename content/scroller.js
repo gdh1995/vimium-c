@@ -4,10 +4,10 @@ var Scroller = {
   calibrationBoundary: 150,
   maxCalibration: 1.6,
   minCalibration: 0.5,
-  // high:  60f / 1000ms :  400ms / 24f
-  // low:   15f /  250ms :   33ms /  2f
+  // high:  60f / 1000ms :  400ms / 24f # 600 / 28
+  // low:   15f /  250ms :   33ms /  2f # 200 / 6
   maxInterval: 28,
-  minDelay: 500,
+  minDelay: 600,
   performScroll: function(el, di, amount) {
     var before;
     if (di) {
