@@ -261,14 +261,17 @@ $("exportButton").onclick = function() {
   var exported_object, exported_data, file_name, force2, d, nodeA;
   exported_object = {__proto__: null, name: "Vimium++", time: 0};
   (function() {
-    var storage = localStorage, i, len, key, mark_head, all = bgSettings.defaults;
+    var storage = localStorage, i, len, key, mark_head, all = bgSettings.defaults
+      , strArr = bgSettings.NonJSON, arr1;
     mark_head = BG.Marks.getMarkKey("");
     for (i = 0, len = storage.length; i < len; i++) {
       key = storage.key(i);
       if (key === "name" || key === "time" || key.startsWith(mark_head)) {
         continue;
       }
-      exported_object[key] = (key in all) ? bgSettings.get(key) : storage.getItem(key);
+      exported_object[key] = (key in strArr) && storage.getItem(key).indexOf("\n") > 0
+        ? storage.getItem(key).split("\n")
+        : (key in all) ? bgSettings.get(key) : storage.getItem(key);
     }
   })();
   delete exported_object.findModeRawQuery;
@@ -306,7 +309,8 @@ importSettings = function() {
     return;
   }
 
-  var storage = localStorage, i, key, new_value, func, all = bgSettings.defaults;
+  var storage = localStorage, i, key, new_value, func, all = bgSettings.defaults
+    , strArr = bgSettings.NonJSON;
   func = function(val) {
     return typeof val !== "string" ? val : val.substring(0, 72);
   };
@@ -325,6 +329,8 @@ importSettings = function() {
     delete new_data[key];
     if (new_value == null) {
       new_value = all[key];
+    } else if (new_value.join && (key in strArr)) {
+      new_value = new_value.join("\n");
     }
     if (!item.areEqual(bgSettings.get(key), new_value)) {
       console.log("import", key, func(new_value));
@@ -335,6 +341,7 @@ importSettings = function() {
     }
     item.fetch();
   });
+  bgSettings.postUpdate("newTabUrl");
   for (key in new_data) {
     new_value = new_data[key];
     if (new_value == null) {
@@ -351,7 +358,12 @@ importSettings = function() {
       }
       storage.removeItem(key);
       console.log("remove", key, "<=", func(new_value));
-    } else if (key in all) {
+      continue;
+    }
+    if (new_value.join && (key in strArr)) {
+      new_value = new_value.join("\n");
+    }
+    if (key in all) {
       if (bgSettings.get(key) !== new_value) {
         bgSettings.set(key, new_value);
         console.log("update", key, func(new_value));
