@@ -94,11 +94,8 @@ Scroller = {
       : (name !== "viewSize" || el !== document.body) ? el[this.Properties[di][name]]
       : di ? window.innerHeight : window.innerWidth;
   },
-  getSign: function(val) {
-    return val === 0 ? 0 : val < 0 ? -1 : 1;
-  },
   scrollDo: function(element, di, amount, factor) {
-    amount = amount * this.getDimension(element, di, factor) > 0 ? 1 : -1;
+    amount = (amount * this.getDimension(element, di, factor) > 0) ? 1 : -1;
     return this.Core.performScroll(element, di, amount) && this.Core.performScroll(element, di, -amount);
   },
   selectFirst: function(element) {
@@ -172,7 +169,7 @@ Scroller.Core.animate = function () {
   this.animate = function(new_amount, new_di, new_el) {
     amount = Math.abs(new_amount), calibration = 1.0, di = new_di;
     duration = Math.max(100, 20 * Math.log(amount)), element = new_el;
-    sign = Scroller.getSign(new_amount);
+    sign = new_amount === 0 ? 0 : new_amount < 0 ? -1 : 1;
     timestamp = -1, totalDelta = 0, totalElapsed = 0.0;
     Scroller.keyIsDown = Scroller.Core.maxInterval;
     var keyboard = Settings.values.keyboard;
