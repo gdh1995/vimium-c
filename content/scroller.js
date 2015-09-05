@@ -169,13 +169,16 @@ Scroller.Core.animate = function () {
       DomUtils.isVisibile(Scroller.current) || (Scroller.current = element);
     }
   };
-  Scroller.Core.animate = function(new_amount, new_di, new_el) {
+  this.animate = function(new_amount, new_di, new_el) {
     amount = Math.abs(new_amount), calibration = 1.0, di = new_di;
     duration = Math.max(100, 20 * Math.log(amount)), element = new_el;
     sign = Scroller.getSign(new_amount);
     timestamp = -1, totalDelta = 0, totalElapsed = 0.0;
     Scroller.keyIsDown = Scroller.Core.maxInterval;
+    var keyboard = Settings.values.keyboard;
+    this.maxInterval = Math.round(keyboard[1] / 16.67) + 4;
+    this.minDelay = (((keyboard[0] - keyboard[1]) / 30) | 0) * 30;
     requestAnimationFrame(animate);
   };
-  Scroller.Core.animate.apply(null, arguments);
+  this.animate.apply(this, arguments);
 };

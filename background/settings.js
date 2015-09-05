@@ -175,6 +175,7 @@ var Settings = {
     findModeRawQuery: "",
     grabBackFocus: true,
     hideHud: false,
+    keyboard: [500, 33],
     keyMappings: "",
     linkHintCharacters: "sadjklewcmpgh",
     linkHintNumbers: "1234567890",
@@ -228,8 +229,8 @@ w|wiki:\\\n  http://www.wikipedia.org/w/index.php?search=%s Wikipedia (en-US)",
   },
   valuesToLoad: ["deepHints" //
     , "filterLinkHints", "findModeRawQuery", "findModeRawQueryList" //
-    , "grabBackFocus" //
-    , "hideHud", "linkHintCharacters", "linkHintNumbers", "nextPatterns" //
+    , "grabBackFocus", "hideHud", "keyboard" //
+    , "linkHintCharacters", "linkHintNumbers", "nextPatterns" //
     , "previousPatterns", "regexFindMode", "scrollStepSize", "smoothScroll" //
   ],
   Sync: null,
