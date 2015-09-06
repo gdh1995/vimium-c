@@ -3,7 +3,6 @@ var Vomnibar = {
   vomnibarUI: null,
   defaultRefreshInterval: 500,
   background: null,
-  disabled: false,
   activateWithCompleter: function(completerName, selectFirstResult, forceNewTab, initialQueryValue, force_current) {
     if (window.top !== window && !force_current) {
       MainPort.sendCommadToFrame(0, "Vomnibar.activateWithCompleter"//
@@ -11,14 +10,11 @@ var Vomnibar = {
       return;
     }
     var bg = this.background, completer = bg.Completer, vomnibarUI = this.vomnibarUI;
-    // <svg> document has not head nor body; document with pdf <embed> has body
-    if (!(document.head || document.body)) {
-      return;
-    }
-    if (!vomnibarUI.init) {
-    } else if (this.disabled) {
-      return;
-    } else {
+    if (vomnibarUI.init) {
+      // <svg> document has not head nor body; document with pdf <embed> has body
+      if (!(document.head || document.body)) {
+        return;
+      }
       var box = DomUtils.createElement("div");
       completer.init(bg);
       vomnibarUI.init(box, bg, completer);
@@ -135,12 +131,12 @@ Vomnibar.vomnibarUI = {
   },
   reset: function(input, start, end) {
     if (input) {
-      this.completionInput.text = input;
-      this.completionInput.url = input.trimRight();
+    this.completionInput.text = input;
+    this.completionInput.url = input.trimRight();
       if (start <= end) {
         this.update(0, function() {
-          this.show();
-          this.input.setSelectionRange(start, end);
+      this.show();
+      this.input.setSelectionRange(start, end);
         });
         return;
       }
