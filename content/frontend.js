@@ -11,7 +11,7 @@ var Settings, VHUD, MainPort, VInsertMode;
     , handleKeyCharForFindMode, initIfEnabled, InsertMode //
     , isEnabledForUrl, isInjected, keyQueue, mainPort //
     , passKeys, performFindInPlace, requestHandlers //
-    , restoreDefaultSelectionHighlight, secondKeys, setPassKeys, settings //
+    , restoreDefaultSelectionHighlight, secondKeys, settings //
     , showFindModeHUDForQuery, updateFindModeQuery
     ;
   
@@ -162,7 +162,19 @@ var Settings, VHUD, MainPort, VInsertMode;
   };
 
   initIfEnabled = function(newPassKeys) {
-    (initIfEnabled = setPassKeys)(newPassKeys);
+    initIfEnabled = function(newPassKeys) {
+      if (newPassKeys) {
+        var pass = { __proto__: null }, arr = newPassKeys.split(' ')
+          , i = 0, len = arr.length;
+        do {
+          pass[arr[i]] = true;
+        } while (len > ++i);
+        passKeys = pass;
+      } else {
+        passKeys = null;
+      }
+    };
+    initIfEnabled(newPassKeys);
     KeyboardUtils.init();
     InsertMode.init();
     LinkHints.init();
@@ -575,19 +587,6 @@ var Settings, VHUD, MainPort, VInsertMode;
     }
     event.stopImmediatePropagation();
     KeydownEvents[key] = 1;
-  };
-
-  setPassKeys = function(newPassKeys) {
-    if (newPassKeys) {
-      var pass = { __proto__: null }, arr = newPassKeys.split(' ')
-        , i = 0, len = arr.length;
-      do {
-        pass[arr[i]] = true;
-      } while (len > ++i);
-      passKeys = pass;
-    } else {
-      passKeys = null;
-    }
   };
 
   checkValidKey = function(key) {
