@@ -728,6 +728,10 @@ var Settings, VHUD, MainPort, VInsertMode;
         results.push(element);
       }
     }
+    element = Vomnibar.vomnibarUI.box;
+    if (element && element.style.display !== "none") {
+      results.unshift(Vomnibar.vomnibarUI.input);
+    }
     return results;
   };
   
