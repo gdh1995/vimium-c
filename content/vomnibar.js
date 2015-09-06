@@ -130,18 +130,13 @@ Vomnibar.vomnibarUI = {
     VInsertMode.heldEl = null;
   },
   reset: function(input, start, end) {
-    if (input) {
+    input || (input = "");
     this.completionInput.text = input;
     this.completionInput.url = input.trimRight();
-      if (start <= end) {
-        this.update(0, function() {
+    this.update(0, input && start <= end ? function() {
       this.show();
       this.input.setSelectionRange(start, end);
-        });
-        return;
-      }
-    }
-    this.update(0, this.show);
+    } : this.show);
   },
   update: function(updateDelay, callback) {
     this.onUpdate = callback;
