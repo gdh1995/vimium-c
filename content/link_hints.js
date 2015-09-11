@@ -221,11 +221,12 @@ var LinkHints = {
     var arr, isClickable = false, s, _i;
     switch (element.tagName.toLowerCase()) {
     case "a": case "frame": case "iframe": isClickable = true; break;
-    case "textarea": isClickable = !element.disabled && (!element.readOnly || LinkHints.mode >= 128); break;
+    case "textarea": isClickable = !element.disabled && (!element.readOnly
+        || LinkHints.mode >= 128 || element.getAttribute("onclick")); break;
     case "input":
       isClickable = !(element.type === "hidden" || element.disabled //
         || (element.readOnly && LinkHints.mode < 128 &&
-            !(element.type in DomUtils.uneditableInputs)));
+            !(element.type in DomUtils.uneditableInputs) && !element.getAttribute("onclick")));
       break;
     case "button": case "select": isClickable = !element.disabled; break;
     case "object": case "embed":
