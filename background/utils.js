@@ -47,12 +47,12 @@ var Utils = {
   _ipRegex: /^(\d{1,3}\.){3}\d{1,3}$/,
   spacesRegex: /[\s\u3000]+/g,
   _nonENTldRegex: /[^a-z]/,
-  _jsNotEscapeRegex: /["\[\]{}\u00ff-\uffff]|%(?![\dA-Fa-f]{2})/,
+  _jsNotEscapeRegex: /["\[\]{}\u00ff-\uffff]|%(?![\dA-F]{2}|[\da-f]{2})/,
   filePathRegex: /^['"]?((?:[A-Za-z]:[\\/]|\/(?:Users|home|root)\/)[^'"]*)['"]?$/,
   convertToUrl: function(string, keyword) {
     if (string.substring(0, 11).toLowerCase() === "javascript:") {
       if (string.indexOf('%', 11) > 0 && !this._jsNotEscapeRegex.test(string)) {
-        string = this.decodeEachURLPart(string);
+        string = this.decodeURLPart(string);
       }
       return string;
     }
@@ -170,23 +170,7 @@ var Utils = {
   decodeURLPart: function(url) {
     try {
       url = decodeURIComponent(url);
-    } catch (e) {
-    }
+    } catch (e) {}
     return url;
-  },
-  _urlEscapeRegex: /((?:%[\dA-Fa-f]{2})+)/g,
-  decodeEachURLPart: function(url) {
-    var arr = url.split(this._urlEscapeRegex), i = arr.length, e, decode;
-    decode = decodeURIComponent;
-    for (; ; ) {
-      try {
-        while (0 < (i -= 2)) {
-          arr[i] = decode(arr[i]);
-        };
-        break;
-      } catch (e) {
-      }
-    }
-    return arr.join("");
   }
 };
