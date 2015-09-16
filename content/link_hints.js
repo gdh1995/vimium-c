@@ -228,6 +228,13 @@ var LinkHints = {
         || (element.readOnly && LinkHints.mode < 128 &&
             !(element.type in DomUtils.uneditableInputs) && !element.getAttribute("onclick")));
       break;
+    case "label":
+      if (element.control) {
+        arr = [];
+        LinkHints.GetVisibleClickable.call(arr, element.control);
+        isClickable = arr.length === 0;
+      }
+      break;
     case "button": case "select": isClickable = !element.disabled; break;
     case "object": case "embed":
       s = element.type;
