@@ -661,18 +661,18 @@ completers.searchEngines = {
     }
   };
   
-  Decoder.decodeURL = (function() {
-    var d = Decoder.dict, f = Decoder._f, t = Decoder.todos;
-    return function(a) {
-      try {
-        return f(a);
-      } catch (e) {
-        return d[a] || (t.push(a), a);
-      }
-    };
-  })();
-  
   setTimeout(function() {
+    (function() {
+      var d = Decoder.dict, f = Decoder._f, t = Decoder.todos;
+      Decoder.decodeURL = function(a) {
+        try {
+          return f(a);
+        } catch (e) {
+          return d[a] || (t.push(a), a);
+        }
+      };
+    })();
+
     var lang = Settings.get("UILanguage");
     if (!lang || !(lang = lang[chrome.i18n.getUILanguage()])) {
       return;
