@@ -7,10 +7,10 @@ DomUtils.UI = {
   toFocus: null,
   addElement: function(element) {
     MainPort.sendMessage({ handler: "initCSSBase" }, this.initInner.bind(this));
-    this.container = DomUtils.createElement("div");
+    this.init && this.init();
     this.root = this.container.createShadowRoot();
-    this.addElement = this.root.appendChild.bind(this.root);
     this.root.appendChild(element);
+    this.addElement = this.root.appendChild.bind(this.root);
   },
   addElementList: function(els, overlayOptions) {
     var parent, _i, _len;
@@ -32,6 +32,14 @@ DomUtils.UI = {
   },
   focus: function(element) {
     this.initInner ? (this.toFocus = element) : element.focus();
+  },
+  init: function() {
+    var el = this.container = DomUtils.createElement("div");
+    if (this.styleOut) {
+      el.appendChild(this.styleOut);
+      document.documentElement.appendChild(el);
+    }
+    this.init = null;
   },
   initInner: function(cssBase) {
     this.initInner = null;
@@ -67,8 +75,8 @@ DomUtils.UI = {
         this.styleOut = null;
       }
     } else if (outer) {
-      this.styleOut = this.appendCSS(this.container || document.body
-        || document.documentElement, outer);
+      this.styleOut = this.appendCSS(this.container, outer);
+      this.init && this.init();
     }
   },
   flashOutline: function(clickEl) {
