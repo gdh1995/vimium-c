@@ -491,8 +491,37 @@ var LinkHints = {
 
 LinkHints.alphabetHints = {
   hintKeystrokeQueue: [],
-  spanWrap: null,
-  numberToHintString: null,
+  spanWrap: function(hintString) {
+    for (var _i = 0, _j = -1, _len = hintString.length, innerHTML = new Array(_len * 3); _i < _len; _i++) {
+      innerHTML[++_j] = "<span>";
+      innerHTML[++_j] = hintString[_i];
+      innerHTML[++_j] = "</span>";
+    }
+    return innerHTML.join("");
+  },
+  numberToHintString: function(number, characterSet, numHintDigits) {
+    var base, hintString, leftLength, remainder;
+    if (numHintDigits == null) {
+      numHintDigits = 0;
+    }
+    base = characterSet.length;
+    hintString = [];
+    remainder = 0;
+    while (true) {
+      remainder = number % base;
+      hintString.unshift(characterSet[remainder]);
+      number -= remainder;
+      number /= Math.floor(base);
+      if (!(number > 0)) {
+        break;
+      }
+    }
+    leftLength = numHintDigits - hintString.length;
+    while (0 <= --leftLength) {
+      hintString.unshift(characterSet[0]);
+    }
+    return hintString.join("");
+  },
   logXOfBase: function(x, base) {
     return Math.log(x) / Math.log(base);
   },
@@ -577,39 +606,6 @@ LinkHints.alphabetHints = {
   deactivate: function() {
     this.hintKeystrokeQueue = [];
   }
-};
-
-LinkHints.alphabetHints.spanWrap = function(hintString) {
-  for (var _i = 0, _j = -1, _len = hintString.length, innerHTML = new Array(_len * 3); _i < _len; _i++) {
-    innerHTML[++_j] = "<span>";
-    innerHTML[++_j] = hintString[_i];
-    innerHTML[++_j] = "</span>";
-  }
-  return innerHTML.join("");
-};
-
-LinkHints.alphabetHints.numberToHintString = function(number, characterSet, numHintDigits) {
-  var base, hintString, leftLength, remainder;
-  if (numHintDigits == null) {
-    numHintDigits = 0;
-  }
-  base = characterSet.length;
-  hintString = [];
-  remainder = 0;
-  while (true) {
-    remainder = number % base;
-    hintString.unshift(characterSet[remainder]);
-    number -= remainder;
-    number /= Math.floor(base);
-    if (!(number > 0)) {
-      break;
-    }
-  }
-  leftLength = numHintDigits - hintString.length;
-  while (0 <= --leftLength) {
-    hintString.unshift(characterSet[0]);
-  }
-  return hintString.join("");
 };
 
 LinkHints.getUrlData = function(link) {
