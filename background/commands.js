@@ -669,19 +669,19 @@ setTimeout(function(descriptions) {
       repeat: 1
     }
   ],
-  "clearGlobalMarks": [
+  clearGlobalMarks: [
     "Remove all global marks", {
       background: true,
       repeat: 1
     }
   ],
-  "openUrl": [
+  openUrl: [
     "open url (use url: string, newTab: bool)", {
       background: true,
       repeat: 20
     }
   ],
-  "focusOrLaunch": [
+  focusOrLaunch: [
     'focus a tab with arg "url" or open it', {
       background: true,
       repeat: 1

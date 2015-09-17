@@ -217,7 +217,7 @@ var Utils = {
       if (pairs = this.reparseSearchUrl(obj, key0)) {
         map[""].push(pairs);
       }
-  }
+    }
   },
   reparseSearchUrl: function (pattern, name) {
     var url, ind = pattern.$s || pattern.$S, prefix;
@@ -253,5 +253,6 @@ var Utils = {
     }
     return [head, new RegExp(prefix + url + suffix, "i"), name];
   },
+  Decoder: null,
   upperRegex: /[A-Z]/
 };

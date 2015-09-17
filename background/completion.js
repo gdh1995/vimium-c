@@ -698,7 +698,7 @@ completers.searchEngines = {
     tabs: new MultiCompleter([completers.tabs])
   };
 
-  window.RegexpCache = RegexpCache;
+  Utils.Decoder = Decoder;
 
   Settings.updateHooks.postSearchEnginesMap = function() {
     completers.searchEngines.refresh();
