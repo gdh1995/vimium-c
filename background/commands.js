@@ -6,10 +6,9 @@ var Commands = {
   availableCommands: { __proto__: null },
   keyToCommandRegistry: null,
   _keyLeftRegex: /<((?:[acmACM]-){0,3})([A-Za-z][0-9A-Za-z]+|.)>/g,
-  _upperRegex: /[A-Z]/,
   onNormalize: function(match, option, key) {
     return (option ? ("<" + option.toLowerCase()) : "<")
-      + (Commands._upperRegex.test(key) ? key.toUpperCase() : key)
+      + (Utils.upperRegex.test(key) ? key.toUpperCase() : key)
       + ">";
   },
   normalizeKey: function(key) {

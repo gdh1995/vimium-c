@@ -252,5 +252,6 @@ var Utils = {
       head = chrome.runtime.getURL("/") + head.substring(9);
     }
     return [head, new RegExp(prefix + url + suffix, "i"), name];
-  }
+  },
+  upperRegex: /[A-Z]/
 };

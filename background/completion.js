@@ -490,16 +490,16 @@ completers.searchEngines = {
   };
 
   RegexpCache = {
-    _upperRegex: /[A-Z]/,
-    _escapeRegex: /[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g,
     _cache: {},
     clear: function() {
       this._cache = {};
     },
+    escapeRegex: Utils.escapeAllRegex,
     get: function(s, p, n) {
-      var r = p + s.replace(this._escapeRegex, "\\$&") + n, v;
-      return (v = this._cache)[r] || (v[r] = new RegExp(r, (this._upperRegex.test(s) ? "" : "i")));
-    }
+      var r = p + s.replace(this.escapeRegex, "\\$&") + n, v;
+      return (v = this._cache)[r] || (v[r] = new RegExp(r, (this.upperRegex.test(s) ? "" : "i")));
+    },
+    upperRegex: Utils.upperRegex
   };
 
   HistoryCache = {
