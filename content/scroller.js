@@ -75,7 +75,9 @@ Scroller = {
   findScrollable: function(element, di, amount, factor) {
     while (element !== document.body && !(this.scrollDo(element, di, amount, factor)
         && this.shouldScroll(element, di))) {
-      element = element.parentElement || document.body;
+      element = element.parentElement
+        || (element.parentNode && element.parentNode.host)
+        || document.body;
     }
     return element;
   },
