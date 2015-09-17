@@ -174,8 +174,8 @@ Settings.defaults.newTabUrl = Settings.CONST.ChromeInnerNewTab;
   ref.js  = ref.js  ? ref.js .map(func) : [];
   ref.js.push(func("content/inject_end.js"));
 
-  i = navigator.appVersion.indexOf("Chrome");
-  Settings.CONST.ChromeVersion = parseFloat(navigator.appVersion.substring(i + 7));
+  i = navigator.appVersion.match(/Chrom(?:e|ium)\/([^\s]*)/)[1];
+  Settings.CONST.ChromeVersion = parseFloat(i);
 
   func = function() {};
   Settings.Sync = {__proto__: null, clear: func, set: func};
