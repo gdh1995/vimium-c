@@ -51,7 +51,7 @@ var Utils = {
   filePathRegex: /^['"]?((?:[A-Za-z]:[\\/]|\/(?:Users|home|root)\/)[^'"]*)['"]?$/,
   convertToUrl: function(string, keyword) {
     if (string.substring(0, 11).toLowerCase() === "javascript:") {
-      if (Settings.CONST.ChromeVersion >= 46 && string.indexOf('%', 11) > 0
+      if (Settings.CONST.ChromeVersion < 46 && string.indexOf('%', 11) > 0
           && !this._jsNotEscapeRegex.test(string)) {
         string = this.decodeURLPart(string);
       }
