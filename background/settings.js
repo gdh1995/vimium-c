@@ -67,11 +67,11 @@ var Settings = {
       this.set("searchEnginesMap", { "": [], __proto__: null });
     },
     searchUrl: function(value) {
-      this.parseSearchEngines("~:" + value);
+      Utils.parseSearchEngines("~:" + value, this.get("searchEnginesMap"));
     },
     searchEnginesMap: function(value) {
-      this.parseSearchEngines(this.get("searchEngines"), value);
-      this.parseSearchEngines("~:" + this.get("searchUrl"), value);
+      Utils.parseSearchEngines(this.get("searchEngines"), value);
+      this.postUpdate("searchUrl");
       this.postUpdate("postSearchEnginesMap", null);
     },
     userDefinedCss: function(cssi) {
@@ -84,86 +84,6 @@ var Settings = {
     userDefinedOuterCss: function() {
       this.postUpdate("userDefinedCss");
     }
-  },
-  parseSearchEngines: function(searchEnginesText, map) {
-    var a, pairs, key, val, name, obj, _i, _j, _len, _len2, key0, //
-    rEscapeSpace = /\\\s/g, rSpace = /\s/, rEscapeS = /\\s/g, rColon = /\\:/g;
-    map = map || this.get("searchEnginesMap");
-    a = searchEnginesText.replace(/\\\n/g, '').split('\n');
-    for (_i = 0, _len = a.length; _i < _len; _i++) {
-      val = a[_i].trim();
-      if (!(val.charCodeAt(0) > 35)) { continue; } // mask: /[ !"#]/
-      _j = 0;
-      do {
-        _j = val.indexOf(":", _j + 1);
-      } while (val[_j - 1] === '\\');
-      if (_j <= 0 || !(key = val.substring(0, _j).trimRight())) continue;
-      val = val.substring(_j + 1).trimLeft();
-      if (!val) continue;
-      val = val.replace(rEscapeSpace, "\\s");
-      _j = val.search(rSpace);
-      if (_j > 0) {
-        name = val.substring(_j + 1).trimLeft();
-        key0 = "";
-        val = val.substring(0, _j);
-      } else {
-        name = null;
-      }
-      val = val.replace(rEscapeS, " ");
-      obj = {url: val};
-      key = key.replace(rColon, ":");
-      pairs = key.split('|');
-      for (_j = 0, _len2 = pairs.length; _j < _len2; _j++) {
-        if (key = pairs[_j].trim()) {
-          if (name) {
-            if (!key0) { key0 = key; }
-          } else {
-            key0 = name = key;
-          }
-          map[key] = obj;
-        }
-      }
-      if (!name) continue;
-      obj.name = name;
-      obj.$s = val.indexOf("%s") + 1;
-      obj.$S = val.indexOf("%S") + 1;
-      if (pairs = this.reparseSearchUrl(obj, key0)) {
-        map[""].push(pairs);
-      }
-    }
-  },
-  reparseSearchUrl: function (pattern, name) {
-    var url, ind = pattern.$s || pattern.$S, prefix;
-    if (!ind) { return; }
-    url = pattern.url.toLowerCase();
-    if (!(Utils.hasOrdinaryUrlPrefix(url) || url.startsWith("chrome-"))) { return; }
-    url = url.substring(0, ind - 1);
-    if (ind = (url.indexOf("?") + 1) || (url.indexOf("#") + 1)) {
-      prefix = url.substring(0, ind - 1);
-      url = url.substring(ind);
-      if (ind = url.lastIndexOf("&") + 1) {
-        url = url.substring(ind);
-      }
-      if (url && url !== "=" && !url.endsWith("/")) {
-        return this.makeReparser(prefix, "[?#&]", url, "([^&#]*)", name)
-      }
-      url = pattern.url.substring(0, (pattern.$s || pattern.$S) - 1);
-    }
-    prefix = url;
-    url = pattern.url.substring(url.length + 2);
-    if (ind = (url.indexOf("?") + 1) || (url.indexOf("#") + 1)) {
-      url = url.substring(0, ind);
-    }
-    return this.makeReparser(prefix, "^([^?#]*)", url, "", name);
-  },
-  makeReparser: function(head, prefix, url, suffix, name) {
-    url = url.toLowerCase().replace(RegexpCache._escapeRegex, "\\$&");
-    if (head.startsWith("https://")) {
-      head = "http" + head.substring(5);
-    } else if (head.toLowerCase().startsWith("vimium://")) {
-      head = chrome.runtime.getURL("/") + head.substring(9);
-    }
-    return [head, new RegExp(prefix + url + suffix, "i"), name];
   },
   // clear localStorage & sync, if value === @defaults[key]
   defaults: {
