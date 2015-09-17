@@ -104,7 +104,7 @@ Vomnibar.vomnibarUI = {
     this.input.value = this.completionInput.text;
     VInsertMode.heldEl = this.input;
     VInsertMode.focus = VInsertMode.holdFocus;
-    DomUtils.UI.focus(this.input);
+    this.input.focus();
     this.focused = true;
     this.handlerId = handlerStack.push({
       keydown: this.onKeydown,

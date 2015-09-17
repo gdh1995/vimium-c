@@ -4,7 +4,6 @@ DomUtils.UI = {
   styleOut: null,
   root: null,
   flashLastingTime: 400,
-  toFocus: null,
   addElement: function(element) {
     MainPort.sendMessage({ handler: "initCSSBase" }, this.initInner.bind(this));
     this.init && this.init();
@@ -30,9 +29,6 @@ DomUtils.UI = {
   Adjust: function() {
     (document.webkitFullscreenElement || document.documentElement).appendChild(DomUtils.UI.container);
   },
-  focus: function(element) {
-    this.initInner ? (this.toFocus = element) : element.focus();
-  },
   init: function() {
     var el = this.container = DomUtils.createElement("div");
     if (this.styleOut) {
@@ -47,10 +43,6 @@ DomUtils.UI = {
     this.styleIn && this.root.appendChild(this.styleIn);
     this.Adjust();
     this.styleOut && this.container.appendChild(this.styleOut);
-    if (this.toFocus) {
-      this.toFocus.focus();
-      this.toFocus = null;
-    }
     document.addEventListener("webkitfullscreenchange", this.Adjust);
   },
   appendCSS: function(parent, text) {
