@@ -485,13 +485,13 @@ setTimeout(function(descriptions) {
     }
   ],
   firstTab: [
-    "Go to the first tab", {
+    "Go to the first N-th tab", {
       background: true,
       repeat: 1
     }
   ],
   lastTab: [
-    "Go to the last tab", {
+    "Go to the last N-th tab", {
       background: true,
       repeat: 1
     }

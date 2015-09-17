@@ -626,10 +626,10 @@ var g_requestHandlers;
       funcDict.selectTab(tabs, funcDict.selectFrom(tabs).index - commandCount);
     },
     firstTab: function(tabs) {
-      funcDict.selectTab(tabs, 0);
+      funcDict.selectTab(tabs, commandCount - 1);
     },
     lastTab: function(tabs) {
-      funcDict.selectTab(tabs, -1);
+      funcDict.selectTab(tabs, -commandCount);
     },
     removeTab: function(tabs) {
       if (!tabs) { return; }
