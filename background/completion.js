@@ -1,8 +1,9 @@
 "use strict";
-(function() {
-  var HistoryCache, RankingUtils, RegexpCache, Decoder, completers;
+var Completers;
+setTimeout(function() {
+  var HistoryCache, RankingUtils, RegexpCache, Decoder;
 
-  completers = {};
+  Completers = {};
 
   function Suggestion(queryTerms, type, url, text, title, computeRelevancy, extraData) {
     this.queryTerms = queryTerms;
@@ -70,7 +71,7 @@
     return mergedRanges;
   };
 
-completers.bookmarks = {
+Completers.bookmarks = {
   bookmarks: undefined,
   currentSearch: null,
   filter: function(queryTerms, onComplete) {
@@ -109,14 +110,13 @@ completers.bookmarks = {
   },
   refresh: function() {
     this.bookmarks = null;
-    chrome.bookmarks.getTree(this.ReadTree);
+    chrome.bookmarks.getTree(this.readTree);
   },
-  ReadTree: function(bookmarks) {
-    var _this = completers.bookmarks;
-    _this.bookmarks = _this.traverseBookmarks(bookmarks).filter(_this.GetUrl);
-    Decoder.decodeList(_this.bookmarks);
-    if (_this.currentSearch) {
-      _this.performSearch();
+  readTree: function(bookmarks) {
+    this.bookmarks = this.traverseBookmarks(bookmarks).filter(this.GetUrl);
+    Decoder.decodeList(this.bookmarks);
+    if (this.currentSearch) {
+      this.performSearch();
     }
   },
   GetUrl: function(b) {
@@ -151,8 +151,9 @@ completers.bookmarks = {
     return RankingUtils.wordRelevancy(suggestion.queryTerms, suggestion.text, suggestion.title);
   }
 };
+Completers.bookmarks.readTree = Completers.bookmarks.readTree.bind(Completers.bookmarks);
 
-completers.history = {
+Completers.history = {
   filter: function(queryTerms, onComplete) {
     var _this = this;
     if (queryTerms.length > 0) {
@@ -217,7 +218,7 @@ completers.history = {
   }
 };
 
-completers.domains = {
+Completers.domains = {
   domains: null,
   filter: function(queryTerms, onComplete) {
     if (queryTerms.length !== 1 || queryTerms[0].indexOf("/") !== -1) {
@@ -305,7 +306,7 @@ completers.domains = {
   }
 };
 
-completers.tabs = {
+Completers.tabs = {
   filter: function(queryTerms, onComplete) {
     var _this = this;
     chrome.tabs.query({}, this.filter1.bind(this, queryTerms, onComplete));
@@ -332,9 +333,10 @@ completers.tabs = {
   }
 };
 
-completers.searchEngines = {
+Completers.searchEngines = {
+  engines: null,
   filter: function(queryTerms, onComplete) {
-    var pattern = this.searchEngines[queryTerms[0]];
+    var pattern = this.engines[queryTerms[0]];
     if (!pattern) {
       onComplete([]);
       return;
@@ -346,9 +348,6 @@ completers.searchEngines = {
   },
   computeRelevancy: function() {
     return 9;
-  },
-  refresh: function() {
-    this.searchEngines = Settings.get("searchEnginesMap");
   }
 };
 
@@ -683,7 +682,7 @@ completers.searchEngines = {
     }
     ref = lang.bookmarkTitles;
     if (ref && ref.length > 0) {
-      var i = ref.length, ref2 = completers.bookmarks.ignoreTopLevel;
+      var i = ref.length, ref2 = Completers.bookmarks.completers[0].ignoreTopLevel;
       ref.sort().reverse();
       for (; 0 <= --i; ) {
         ref2[ref[i]] = 1;
@@ -691,16 +690,19 @@ completers.searchEngines = {
     }
   }, 100);
 
-  window.Completers = {
-    omni: new MultiCompleter([completers.searchEngines, completers.bookmarks, completers.history, completers.domains]),
-    bookmarks: new MultiCompleter([completers.bookmarks]),
-    history: new MultiCompleter([completers.history]),
-    tabs: new MultiCompleter([completers.tabs])
+  Settings.updateHooks.searchEnginesMap = (function(func, value) {
+    func.call(Settings, value);
+    this.engines = value;
+  }).bind(Completers.searchEngines, Settings.updateHooks.searchEnginesMap);
+  Completers.searchEngines.engines = Settings.get("searchEnginesMap");
+
+  Completers = {
+    omni: new MultiCompleter([Completers.searchEngines, Completers.bookmarks, Completers.history, Completers.domains]),
+    bookmarks: new MultiCompleter([Completers.bookmarks]),
+    history: new MultiCompleter([Completers.history]),
+    tabs: new MultiCompleter([Completers.tabs])
   };
 
   Utils.Decoder = Decoder;
 
-  Settings.updateHooks.postSearchEnginesMap = function() {
-    completers.searchEngines.refresh();
-  };
-})();
+}, 120);

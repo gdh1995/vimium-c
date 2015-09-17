@@ -72,7 +72,6 @@ var Settings = {
     searchEnginesMap: function(value) {
       Utils.parseSearchEngines(this.get("searchEngines"), value);
       this.postUpdate("searchUrl");
-      this.postUpdate("postSearchEnginesMap", null);
     },
     userDefinedCss: function(cssi) {
       var csso;
