@@ -118,7 +118,7 @@ var g_requestHandlers;
 
   ContentSettings = {
     __proto__: null,
-    _urlHeadRegex: /^[a-z]+:\/\/[^\/]+\//,
+    _urlHeadRe: /^[a-z]+:\/\/[^\/]+\//,
     clear: function(contentType, tab) {
       var cs = chrome.contentSettings[contentType];
       if (tab) {
@@ -138,7 +138,7 @@ var g_requestHandlers;
         incognito: tab.incognito
       }, function (opt) {
         if (!pattern.startsWith("file:")) {
-          pattern = _this._urlHeadRegex.exec(pattern)[0] + "*";
+          pattern = _this._urlHeadRe.exec(pattern)[0] + "*";
         }
         chrome.contentSettings[contentType].set({
           primaryPattern: pattern,
@@ -157,7 +157,7 @@ var g_requestHandlers;
       var pattern = tab.url, _this = this;
       chrome.contentSettings[contentType].get({primaryUrl: pattern, incognito: true }, function(opt) {
         if (!pattern.startsWith("file:")) {
-          pattern = _this._urlHeadRegex.exec(pattern)[0] + "*";
+          pattern = _this._urlHeadRe.exec(pattern)[0] + "*";
         }
         if (chrome.runtime.lastError) {
           chrome.contentSettings[contentType].get({primaryUrl: tab.url}, function (opt) {
@@ -874,7 +874,7 @@ var g_requestHandlers;
   };
 
   Commands.populateCommandKeys = function() {
-    var key, ref1, ref2, first, arr, keyRegex = Commands.keyRegex, ch;
+    var key, ref1, ref2, first, arr, keyRe = Commands.keyRe, ch;
     resetKeys();
     ref1 = firstKeys = ["1", "2", "3", "4", "5", "6", "7", "8", "9"];
     ref2 = secondKeys = { __proto__: null };
@@ -882,7 +882,7 @@ var g_requestHandlers;
       ch = key.charCodeAt(0);
       if (ch >= 48 && ch < 58) {
         console.warn("invalid key command:", key, "(the first char can not be [0-9])");
-      } else if ((arr = key.match(keyRegex)).length === 1) {
+      } else if ((arr = key.match(keyRe)).length === 1) {
         ref1.push(key);
       } else if (arr.length !== 2) {
         console.warn("invalid key command:", key, "=>", arr);
@@ -900,9 +900,9 @@ var g_requestHandlers;
       }
     }
     firstKeys = ref1 = ref1.concat(Object.keys(ref2)).sort().reverse();
-    keyRegex = function(key) { return ref1.indexOf(key) === -1; };
+    keyRe = function(key) { return ref1.indexOf(key) === -1; };
     for (first in ref2) {
-      ref2[first] = ref2[first].filter(keyRegex).sort().reverse();
+      ref2[first] = ref2[first].filter(keyRe).sort().reverse();
     }
     ref2[""] = ["0"]; // "0" is for key queues like "10n"
   };
@@ -1101,7 +1101,7 @@ var g_requestHandlers;
             } else {
               str = Utils.decodeURLPart(str);
             }
-            str = str.replace(Utils.spacesRegex, " ").trim();
+            str = str.replace(Utils.spacesRe, " ").trim();
             return url + " " + str;
           }
         }
@@ -1112,7 +1112,7 @@ var g_requestHandlers;
       var search = requestHandlers.parseSearchUrl(request), query, i;
       if (!search) { return "search engine"; }
       if (!(query = request.search)) {
-        query = Clipboard.paste().replace(Utils.spacesRegex, ' ').trim();
+        query = Clipboard.paste().replace(Utils.spacesRe, ' ').trim();
         if (!query) { return "selected or copied text"; }
       }
       i = search.indexOf(" ");
@@ -1228,7 +1228,7 @@ var g_requestHandlers;
     getCopiedUrl_f: function(request) {
       var url = Clipboard.paste().trim(), arr;
       if (url) {
-        arr = url.match(Utils.filePathRegex);
+        arr = url.match(Utils.filePathRe);
         url = arr ? arr[1] : Utils.convertToUrl(url, request.keyword);
       }
       return url;

@@ -428,10 +428,10 @@ Vomnibar.background = {
       this._callback = callback;
       this._id = MainPort.sendMessage({
         handlerOmni: this.name,
-        query: query && query.trim().replace(this.whiteSpaceRegex, ' ')
+        query: query && query.trim().replace(this.whiteSpaceRe, ' ')
       }, this.onFilter);
     },
-    whiteSpaceRegex: /\s+/g,
+    whiteSpaceRe: /\s+/g,
     _id: -2,
     _callback: null,
     background: null,

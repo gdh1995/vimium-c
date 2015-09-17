@@ -198,9 +198,9 @@ var LinkHints = {
     marker.style.top = rect[1] + "px";
     return marker;
   },
-  hashRegex: /^#/,
-  quoteRegex: /"/g,
-  btnRegex: /\b[Bb](?:utto|t)n(?:$| )/,
+  hashRe: /^#/,
+  quoteRe: /"/g,
+  btnRe: /\b[Bb](?:utto|t)n(?:$| )/,
   GetVisibleClickable: function(element) {
     var arr, isClickable = false, s, _i;
     switch (element.tagName.toLowerCase()) {
@@ -228,7 +228,7 @@ var LinkHints = {
       if ((s = element.useMap) && (arr = element.getClientRects()).length > 0
           && arr[0].height >= 3 && arr[0].width >= 3) {
         // replace is necessary: chrome allows "&quot;", and also allows no "#"
-        s = s.replace(LinkHints.hashRegex, "").replace(LinkHints.quoteRegex, '\\"');
+        s = s.replace(LinkHints.hashRe, "").replace(LinkHints.quoteRe, '\\"');
         DomUtils.getClientRectsForAreas(this, arr[0], document.querySelector('map[name="' + s + '"]'));
       }
       // no "break;"
@@ -241,7 +241,7 @@ var LinkHints = {
       //      so .attr("onclick") may be not right
       if ( element.getAttribute("onclick") //
         || ((s = element.getAttribute("role")) && (s = s.toLowerCase(), s === "button" || s === "link")) //
-        || ((s = element.className) && LinkHints.btnRegex.test(s))
+        || ((s = element.className) && LinkHints.btnRe.test(s))
         // NOTE: .attr("contenteditable") allows ["", "true", "false", "plaintext-only", or "inherit"]
         //       : without case; "contentEditable" is not accepted
         //    if the attr "contenteditable" is not set, .contentEditable will be "inherit"
@@ -300,7 +300,7 @@ var LinkHints = {
       }
     }
   },
-  imageUrlRegex: /\.(?:png|jpg|gif|jpeg|bmp|svg|ico|webp)\b/i,
+  imageUrlRe: /\.(?:png|jpg|gif|jpeg|bmp|svg|ico|webp)\b/i,
   GetImagesInImg: function(element) {
     var rect, cr, w, h;
     if (!element.src) { return; }
@@ -321,7 +321,7 @@ var LinkHints = {
   },
   GetImagesInA: function(element) {
     var str = element.getAttribute("href"), cr;
-    if (str && str.length > 4 && LinkHints.imageUrlRegex.test(str)) {
+    if (str && str.length > 4 && LinkHints.imageUrlRe.test(str)) {
       if (cr = DomUtils.getVisibleClientRect(element)) {
         this.push([element, cr, true]);
       }

@@ -2,18 +2,18 @@
 var Exclusions = {
   __proto__: null,
   re: {},
-  _emptyStringRegex: /^$/,
-  _starRegex: /\*/g,
-  _caretRegex: /^\^/,
+  _emptyStringRe: /^$/,
+  _starRe: /\*/g,
+  _caretRe: /^\^/,
   _regChars: /[^\\][\[\]\|\(\)\^\$\*]|/,
-  _escapeRegex: /\\./g,
-  getRegex: function(pattern) {
+  _escapeRe: /\\./g,
+  getRe: function(pattern) {
     var regex = this.re[pattern];
     if (regex) { return regex; }
     if (!this._regChars.test(pattern)) {
-      regex = this._startsWith.bind(pattern.replace(this._escapeRegex, "$&"));
+      regex = this._startsWith.bind(pattern.replace(this._escapeRe, "$&"));
     } else try {
-      regex = new RegExp("^" + pattern.replace(this._starRegex, ".*").replace(this._caretRegex, ""));
+      regex = new RegExp("^" + pattern.replace(this._starRe, ".*").replace(this._caretRe, ""));
       regex = regex.test.bind(regex);
     } catch (e) {
       regex = this._startsWith.bind(pattern);
@@ -50,17 +50,17 @@ var Exclusions = {
     g_requestHandlers.SendToTab({name: "checkIfEnabled"}, details.tabId);
   }),
   Format: function(rules) {
-    var keyRegex = Commands.keyRegex, _i, rule, pattern, pass, arr, out = [];
+    var keyRe = Commands.keyRe, _i, rule, pattern, pass, arr, out = [];
     for (_i = rules.length; 0 <= --_i; ) {
       pattern = (rule = rules[_i]).pattern;
       if (!pattern) { continue; }
       pass = rule.passKeys;
-      out.push([this.getRegex(pattern), pass && (arr = pass.match(keyRegex))
+      out.push([this.getRe(pattern), pass && (arr = pass.match(keyRe))
         ? (arr.sort().join(" ") + " ") : ""]);
     }
     return out;
   },
-  rebuildRegex: function() {
+  rebuildRe: function() {
     var rules = Settings.get("exclusionRules"), ref = this.re = { __proto__: null }
       , ref2 = this.rules, _i, _j, pattern;
     for (_i = rules.length, _j = 0; 0 <= --_i; ) {

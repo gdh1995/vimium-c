@@ -6,7 +6,7 @@ var Settings, VHUD, MainPort, VInsertMode;
     , findAndFocus, findChangeListened, findMode //
     , findModeAnchorNode, findModeQuery, findModeQueryHasResults, firstKeys //
     , focusFoundLink, followLink, frameId, FrameMask, getFullCommand //
-    , getNextQueryFromRegexMatches, getVisibleInputs, goBy //
+    , getNextQueryFromRegexpMatches, getVisibleInputs, goBy //
     , handleDeleteForFindMode, handleEnterForFindMode, handleEscapeForFindMode //
     , handleKeyCharForFindMode, initIfEnabled, InsertMode //
     , isEnabledForUrl, isInjected, keyQueue, mainPort //
@@ -27,9 +27,9 @@ var Settings, VHUD, MainPort, VInsertMode;
     rawQuery: "",
     matchCount: 0,
     parsedQuery: "",
-    isRegex: false,
+    isRe: false,
     ignoreCase: false,
-    activeRegexIndex: 0,
+    activeRegexpIndex: 0,
     regexMatches: null
   };
 
@@ -734,16 +734,16 @@ var Settings, VHUD, MainPort, VInsertMode;
   };
   
   updateFindModeQuery = function() {
-    var escapeRegEx, hasNoIgnoreCaseFlag, parsedNonRegexQuery, pattern, text, _ref;
-    findModeQuery.isRegex = settings.values.regexFindMode;
+    var escapeRegEx, hasNoIgnoreCaseFlag, parsedNonRegexpQuery, pattern, text, _ref;
+    findModeQuery.isRe = settings.values.regexFindMode;
     hasNoIgnoreCaseFlag = false;
     findModeQuery.parsedQuery = findModeQuery.rawQuery.replace(/\\./g, function(match) {
       switch (match) {
         case "\\r":
-          findModeQuery.isRegex = true;
+          findModeQuery.isRe = true;
           return "";
         case "\\R":
-          findModeQuery.isRegex = false;
+          findModeQuery.isRe = false;
           return "";
         case "\\I":
           hasNoIgnoreCaseFlag = true;
@@ -754,8 +754,8 @@ var Settings, VHUD, MainPort, VInsertMode;
           return match;
       }
     });
-    findModeQuery.ignoreCase = !hasNoIgnoreCaseFlag && !Utils.upperRegex.test(findModeQuery.parsedQuery);
-    if (findModeQuery.isRegex) {
+    findModeQuery.ignoreCase = !hasNoIgnoreCaseFlag && !Utils.upperRe.test(findModeQuery.parsedQuery);
+    if (findModeQuery.isRe) {
       try {
         pattern = new RegExp(findModeQuery.parsedQuery, "g" + (findModeQuery.ignoreCase ? "i" : ""));
       } catch (_error) {
@@ -763,14 +763,14 @@ var Settings, VHUD, MainPort, VInsertMode;
       }
       text = document.documentElement.innerText;
       findModeQuery.regexMatches = text.match(pattern);
-      findModeQuery.activeRegexIndex = 0;
+      findModeQuery.activeRegexpIndex = 0;
       findModeQuery.matchCount = (findModeQuery.regexMatches || []).length;
     } else {
       escapeRegEx = /[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g;
-      parsedNonRegexQuery = findModeQuery.parsedQuery.replace(escapeRegEx, function(ch) {
+      parsedNonRegexpQuery = findModeQuery.parsedQuery.replace(escapeRegEx, function(ch) {
         return "\\" + ch;
       });
-      pattern = new RegExp(parsedNonRegexQuery, "g" + (findModeQuery.ignoreCase ? "i" : ""));
+      pattern = new RegExp(parsedNonRegexpQuery, "g" + (findModeQuery.ignoreCase ? "i" : ""));
       text = document.documentElement.innerText;
       findModeQuery.matchCount = (text.match(pattern) || []).length;
     }
@@ -821,7 +821,7 @@ var Settings, VHUD, MainPort, VInsertMode;
 
   performFindInPlace = function() {
     var cachedScrollX = window.scrollX, cachedScrollY = window.scrollY
-      , query = findModeQuery.isRegex ? getNextQueryFromRegexMatches(0) : findModeQuery.parsedQuery;
+      , query = findModeQuery.isRe ? getNextQueryFromRegexpMatches(0) : findModeQuery.parsedQuery;
     executeFind(query, {
       backwards: true,
       caseSensitive: !findModeQuery.ignoreCase
@@ -873,15 +873,15 @@ var Settings, VHUD, MainPort, VInsertMode;
     }
   };
 
-  getNextQueryFromRegexMatches = function(stepSize) {
+  getNextQueryFromRegexpMatches = function(stepSize) {
     var totalMatches;
     if (!findModeQuery.regexMatches) {
       return "";
     }
     totalMatches = findModeQuery.regexMatches.length;
-    findModeQuery.activeRegexIndex += stepSize + totalMatches;
-    findModeQuery.activeRegexIndex %= totalMatches;
-    return findModeQuery.regexMatches[findModeQuery.activeRegexIndex];
+    findModeQuery.activeRegexpIndex += stepSize + totalMatches;
+    findModeQuery.activeRegexpIndex %= totalMatches;
+    return findModeQuery.regexMatches[findModeQuery.activeRegexpIndex];
   };
 
   findAndFocus = function(count, backwards) {
@@ -892,7 +892,7 @@ var Settings, VHUD, MainPort, VInsertMode;
       findModeQuery.rawQuery = mostRecentQuery;
       updateFindModeQuery();
     }
-    query = findModeQuery.isRegex ? getNextQueryFromRegexMatches(backwards ? -1 : 1) : findModeQuery.parsedQuery;
+    query = findModeQuery.isRe ? getNextQueryFromRegexpMatches(backwards ? -1 : 1) : findModeQuery.parsedQuery;
     executeFind(query, {
       repeat: count,
       backwards: backwards,
@@ -943,7 +943,7 @@ var Settings, VHUD, MainPort, VInsertMode;
   };
 
   goBy.findAndFollowLink = function(linkStrings) {
-    var boundingClientRect, candidateLinks, computedStyle, exactWordRegex, link, linkString, links, linksXPath, _i, _j, _len, _len1;
+    var boundingClientRect, candidateLinks, computedStyle, exactWordRe, link, linkString, links, linksXPath, _i, _j, _len, _len1;
     linksXPath = './/a | .//xhtml:a | .//*[@onclick or @role="link"] | .//xhtml:*[@onclick or @role="link"]';
     links = DomUtils.evaluateXPath(linksXPath, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE);
     candidateLinks = [];
@@ -984,11 +984,11 @@ var Settings, VHUD, MainPort, VInsertMode;
     });
     for (_i = 0, _len = linkStrings.length; _i < _len; _i++) {
       linkString = linkStrings[_i];
-      exactWordRegex = /\b/.test(linkString[0]) || /\b/.test(linkString.slice(-1))
+      exactWordRe = /\b/.test(linkString[0]) || /\b/.test(linkString.slice(-1))
         ? new RegExp("\\b" + linkString + "\\b", "i") : new RegExp(linkString, "i");
       for (_j = 0, _len1 = candidateLinks.length; _j < _len1; _j++) {
         link = candidateLinks[_j];
-        if (exactWordRegex.test(link.innerText || link.title)) {
+        if (exactWordRe.test(link.innerText || link.title)) {
           followLink(link);
           return true;
         }

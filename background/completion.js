@@ -493,12 +493,12 @@ Completers.searchEngines = {
     clear: function() {
       this._cache = {};
     },
-    escapeRegex: Utils.escapeAllRegex,
+    escapeRe: Utils.escapeAllRe,
     get: function(s, p, n) {
-      var r = p + s.replace(this.escapeRegex, "\\$&") + n, v;
-      return (v = this._cache)[r] || (v[r] = new RegExp(r, (this.upperRegex.test(s) ? "" : "i")));
+      var r = p + s.replace(this.escapeRe, "\\$&") + n, v;
+      return (v = this._cache)[r] || (v[r] = new RegExp(r, (this.upperRe.test(s) ? "" : "i")));
     },
-    upperRegex: Utils.upperRegex
+    upperRe: Utils.upperRe
   };
 
   HistoryCache = {

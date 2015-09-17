@@ -87,7 +87,7 @@ DomUtils.UI = {
       parEl = clickEl;
       while (parEl = parEl.parentElement) {
       if (parEl.nodeName.toLowerCase() !== "map") { continue; }
-      temp = parEl.name.replace(LinkHints.quoteRegex, '\\"');
+      temp = parEl.name.replace(LinkHints.quoteRe, '\\"');
       parEl = document.querySelector('img[usemap="#' + temp + '"],img[usemap="'
         + temp + '"]');
       if (parEl) {

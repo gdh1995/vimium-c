@@ -112,9 +112,9 @@ ExclusionRulesOption = (function(_super) {
   };
 
   ExclusionRulesOption.prototype.readValueFromElement = function(part) {
-    var element, passKeys, pattern, rules, _i, _len, _ref, wchRegex;
+    var element, passKeys, pattern, rules, _i, _len, _ref, wchRe;
     rules = [];
-    wchRegex = /\s+/;
+    wchRe = /\s+/;
     _ref = this.element.getElementsByClassName("exclusionRuleInstance");
     part = (part === true);
     for (_i = 0, _len = _ref.length; _i < _len; _i++) {
@@ -126,7 +126,7 @@ ExclusionRulesOption = (function(_super) {
       if (!pattern) {
         continue;
       }
-      passKeys = this.getPassKeys(element).value.replace(wchRegex, " ").trim();
+      passKeys = this.getPassKeys(element).value.replace(wchRe, " ").trim();
       rules.push({
         pattern: pattern,
         passKeys: passKeys
@@ -203,7 +203,7 @@ ExclusionRulesOnPopupOption = (function(_super) {
     if (!patternElement.classList.contains("pattern")) {
       return;
     }
-    if (bgExclusions.getRegex(patternElement.value)(this.url)) {
+    if (bgExclusions.getRe(patternElement.value)(this.url)) {
       patternElement.title = patternElement.style.color = "";
     } else {
       patternElement.style.color = "red";
@@ -211,12 +211,12 @@ ExclusionRulesOnPopupOption = (function(_super) {
     }
   }
 
-  ExclusionRulesOnPopupOption.prototype.httpRegex = /^https?:\/\/./;
-  ExclusionRulesOnPopupOption.prototype.urlRegex = /^[a-z]{3,}:\/\/./;
+  ExclusionRulesOnPopupOption.prototype.httpRe = /^https?:\/\/./;
+  ExclusionRulesOnPopupOption.prototype.urlRe = /^[a-z]{3,}:\/\/./;
   ExclusionRulesOnPopupOption.prototype.generateDefaultPattern = function() {
-    return this.httpRegex.test(this.url)
+    return this.httpRe.test(this.url)
       ? ("https?://" + this.url.split("/", 3)[2] + "/")
-      : this.urlRegex.test(this.url)
+      : this.urlRe.test(this.url)
       ? (this.url.split("/", 3).join("/") + "/")
       : this.url;
   };
@@ -232,14 +232,14 @@ chrome.tabs.query({currentWindow: true, active: true}, function(tab) {
   tab = tab[0];
   url = bgSettings.urlForTab[tab.id] || tab.url;
   hasNew = false;
-  var escapeRegex = /[&<>]/g, escapeCallback = function(c, n) {
+  var escapeRe = /[&<>]/g, escapeCallback = function(c, n) {
     n = c.charCodeAt(0);
     return (n === 60) ? "&lt;" : (n === 62) ? "&gt;" : "&amp;";
   },
   updateState = function() {
     var pass = bgExclusions.getTemp(url, exclusions.readValueFromElement(true));
     $("state").innerHTML = "Vimium++ will " + (pass
-      ? "exclude: <span class='code'>" + pass.replace(escapeRegex, escapeCallback) + "</span>"
+      ? "exclude: <span class='code'>" + pass.replace(escapeRe, escapeCallback) + "</span>"
       : pass !== null ? "be disabled" : "be enabled");
   };
   onUpdated = function() {
@@ -290,7 +290,7 @@ chrome.tabs.query({currentWindow: true, active: true}, function(tab) {
   };
   window.onunload = function() {
     if (hasNew) {
-      bgExclusions.rebuildRegex();
+      bgExclusions.rebuildRe();
     }
   };
 });
