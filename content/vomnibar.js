@@ -106,6 +106,7 @@ Vomnibar.vomnibarUI = {
     VInsertMode.focus = VInsertMode.holdFocus;
     this.input.focus();
     this.focused = true;
+    handlerStack.remove(this.handlerId);
     this.handlerId = handlerStack.push({
       keydown: this.onKeydown,
       keypress: this.onKeypress,
@@ -122,7 +123,6 @@ Vomnibar.vomnibarUI = {
     this.list.innerHTML = "";
     this.input.value = "";
     handlerStack.remove(this.handlerId);
-    this.handlerId = 0;
     this.onUpdate = null;
     this.completionInput.text = "";
     this.completionInput.url = "";
