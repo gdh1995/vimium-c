@@ -184,22 +184,22 @@ function replaceMSiteDialboxs(_dialboxs, MSite) {
 		var urli = _dialboxs[i]['url'];
 		if (!urli) { return; }
 		$.each(MSite, function (skey, svalue) {
-			var isReplace = false, str = svalue.type, regex, flag1 = !str;
+			var isReplace = false, str = svalue.type, re, flag1 = !str;
 			if (flag1 || str.indexOf("all") > -1) {
-				regex = new RegExp("^(http:\/\/)?" + skey + "\/?$", "i");
-				if (urli.match(regex) != null) {
+				re = new RegExp("^(http:\/\/)?" + skey + "\/?$", "i");
+				if (urli.match(re) != null) {
 					isReplace = true
 				}
 			}
 			if (!isReplace && (flag1 || str.indexOf("begin") > -1)) {
-				regex = new RegExp("^(http:\/\/)?" + skey + "\/?[\\?&]", "i");
-				if (urli.match(regex) != null) {
+				re = new RegExp("^(http:\/\/)?" + skey + "\/?[\\?&]", "i");
+				if (urli.match(re) != null) {
 					isReplace = true
 				}
 			}
 			if (!isReplace && (flag1 || str.indexOf("end") > -1)) {
-				regex = new RegExp("[?&]([tul]|out|ulp|url)=(http:\/\/)?" + skey + "\/?$", "i");
-				if (urli.match(regex) != null) {
+				re = new RegExp("[?&]([tul]|out|ulp|url)=(http:\/\/)?" + skey + "\/?$", "i");
+				if (urli.match(re) != null) {
 					isReplace = true
 				}
 			}

@@ -8,17 +8,17 @@ var Exclusions = {
   _regChars: /[^\\][\[\]\|\(\)\^\$\*]|/,
   _escapeRe: /\\./g,
   getRe: function(pattern) {
-    var regex = this.re[pattern];
-    if (regex) { return regex; }
+    var re = this.re[pattern];
+    if (re) { return re; }
     if (!this._regChars.test(pattern)) {
-      regex = this._startsWith.bind(pattern.replace(this._escapeRe, "$&"));
+      re = this._startsWith.bind(pattern.replace(this._escapeRe, "$&"));
     } else try {
-      regex = new RegExp("^" + pattern.replace(this._starRe, ".*").replace(this._caretRe, ""));
-      regex = regex.test.bind(regex);
+      re = new RegExp("^" + pattern.replace(this._starRe, ".*").replace(this._caretRe, ""));
+      re = re.test.bind(re);
     } catch (e) {
-      regex = this._startsWith.bind(pattern);
+      re = this._startsWith.bind(pattern);
     }
-    return this.re[pattern] = regex;
+    return this.re[pattern] = re;
   },
   _startsWith: function(url) {
     return url.startsWith(this);

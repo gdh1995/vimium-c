@@ -734,7 +734,7 @@ var Settings, VHUD, MainPort, VInsertMode;
   };
   
   updateFindModeQuery = function() {
-    var escapeRegEx, hasNoIgnoreCaseFlag, parsedNonRegexpQuery, pattern, text, _ref;
+    var escapeRe, hasNoIgnoreCaseFlag, parsedNonRegexpQuery, pattern, text, _ref;
     findModeQuery.isRe = settings.values.regexFindMode;
     hasNoIgnoreCaseFlag = false;
     findModeQuery.parsedQuery = findModeQuery.rawQuery.replace(/\\./g, function(match) {
@@ -766,8 +766,8 @@ var Settings, VHUD, MainPort, VInsertMode;
       findModeQuery.activeRegexpIndex = 0;
       findModeQuery.matchCount = (findModeQuery.regexMatches || []).length;
     } else {
-      escapeRegEx = /[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g;
-      parsedNonRegexpQuery = findModeQuery.parsedQuery.replace(escapeRegEx, function(ch) {
+      escapeRe = /[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g;
+      parsedNonRegexpQuery = findModeQuery.parsedQuery.replace(escapeRe, function(ch) {
         return "\\" + ch;
       });
       pattern = new RegExp(parsedNonRegexpQuery, "g" + (findModeQuery.ignoreCase ? "i" : ""));
