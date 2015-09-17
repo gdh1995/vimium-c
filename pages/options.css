@@ -93,7 +93,7 @@ div#exampleKeyMapping {
   margin-left: 10px;
   margin-top: 5px;
 }
-#linkHintCharacters, #linkHintNumbers, #newTabUrl, #searchUrl,
+#linkHintCharacters, #newTabUrl, #searchUrl,
 #footer, #footerTable, #footerTableData {
   width: 100%;
 }

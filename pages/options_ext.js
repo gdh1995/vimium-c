@@ -198,12 +198,10 @@ CheckBoxOption = (function(_super) {
 
   _ref = {
     exclusionRules: ExclusionRulesOption,
-    filterLinkHints: CheckBoxOption,
     grabBackFocus: CheckBoxOption,
     hideHud: CheckBoxOption,
     keyMappings: TextOption,
     linkHintCharacters: NonEmptyTextOption,
-    linkHintNumbers: NonEmptyTextOption,
     newTabUrl: NonEmptyTextOption,
     nextPatterns: NonEmptyTextOption,
     previousPatterns: NonEmptyTextOption,
@@ -238,16 +236,6 @@ CheckBoxOption = (function(_super) {
     }
   };
   element.onclick(null, true);
-
-  element = $("filterLinkHints");
-  element.onclick = function() {
-    var set = function(el, stat) {
-      $(el).parentNode.parentNode.style.display = stat ? "" : "none";
-    };
-    set("linkHintCharacters", !this.checked);
-    set("linkHintNumbers", this.checked);
-  };
-  element.onclick();
 
   element = null;
 })();

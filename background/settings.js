@@ -90,14 +90,12 @@ var Settings = {
     UILanguage: null,
     deepHints: false,
     exclusionRules: [{pattern: "http*://mail.google.com/*", passKeys: ""}],
-    filterLinkHints: false,
     findModeRawQuery: "",
     grabBackFocus: true,
     hideHud: false,
     keyboard: [500, 33],
     keyMappings: "",
     linkHintCharacters: "sadjklewcmpgh",
-    linkHintNumbers: "1234567890",
     newTabUrl: "",
     newTabUrl_f: "",
     nextPatterns: "next,more,newer,>,\u2192,\xbb,\u226b,>>",
@@ -122,7 +120,7 @@ w|wiki:\\\n  http://www.wikipedia.org/w/index.php?search=%s Wikipedia (en-US)",
   },
   NonJSON: {
     __proto__: null, findModeRawQuery: 1,
-    keyMappings: 1, linkHintCharacters: 1, linkHintNumbers: 1,
+    keyMappings: 1, linkHintCharacters: 1,
     newTabUrl: 1, newTabUrl_f: 1, nextPatterns: 1, previousPatterns: 1,
     searchEngines: 1, searchUrl: 1, userDefinedCss: 1, userDefinedOuterCss: 1
   },
@@ -147,9 +145,9 @@ w|wiki:\\\n  http://www.wikipedia.org/w/index.php?search=%s Wikipedia (en-US)",
     partial: { "19": "icons/partial_19.png", "38": "icons/partial_38.png" }
   },
   valuesToLoad: ["deepHints" //
-    , "filterLinkHints", "findModeRawQuery", "findModeRawQueryList" //
+    , "findModeRawQuery", "findModeRawQueryList" //
     , "grabBackFocus", "hideHud", "keyboard" //
-    , "linkHintCharacters", "linkHintNumbers", "nextPatterns" //
+    , "linkHintCharacters", "nextPatterns" //
     , "previousPatterns", "regexFindMode", "scrollStepSize", "smoothScroll" //
   ],
   Sync: null,

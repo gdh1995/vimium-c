@@ -22,9 +22,6 @@ var LinkHints = {
   },
   FUNC: null,
   alphabetHints: null,
-  filterHints: null,
-  spanWrap: null,
-  numberToHintString: null,
   getUrlData: null,
   hintMarkerContainingDiv: null,
   hintMarkers: [],
@@ -45,13 +42,7 @@ var LinkHints = {
   initScrollX: 0,
   initTimer: 0,
   isActive: false,
-  markerMatcher: null,
   options: {},
-  init: function() {
-    this.filterHints.spanWrap = this.alphabetHints.spanWrap = this.spanWrap;
-    this.filterHints.numberToHintString = this.alphabetHints.numberToHintString = this.numberToHintString;
-    this.init = null;
-  },
   activateModeToOpenInNewTab: function() {
     this._activateMode(this.CONST.OPEN_IN_NEW_BG_TAB);
   },
@@ -112,17 +103,10 @@ var LinkHints = {
     var elements, rect, style, width, height;
 
     elements = this.getVisibleClickableElements();
-    if (Settings.values.filterLinkHints) {
-      this.markerMatcher = this.filterHints;
-      elements.sort(function(a, b) {
-        return a[0].innerHTML.length - b[0].innerHTML.length;
-      })
-    } else {
-      this.markerMatcher = this.alphabetHints;
-    }
+    this.alphabetHints = this.alphabetHints;
     this.hintMarkers = elements.map(this.createMarkerFor);
     elements = null;
-    this.markerMatcher.fillInMarkers(this.hintMarkers);
+    this.alphabetHints.fillInMarkers(this.hintMarkers);
     this.isActive = true;
 
     this.initScrollX = window.scrollX, this.initScrollY = window.scrollY;
@@ -423,7 +407,7 @@ var LinkHints = {
         count: 1,
         options: {event: event}
       });
-    } else if (!(linksMatched = this.markerMatcher.matchHintsByKey(this.hintMarkers, event, this.keyStatus))){
+    } else if (!(linksMatched = this.alphabetHints.matchHintsByKey(this.hintMarkers, event, this.keyStatus))){
       if (linksMatched === false) {
         this.reinit();
       }
@@ -433,7 +417,7 @@ var LinkHints = {
       DomUtils.suppressEvent(event);
       this.activateLink(linksMatched[0].clickableItem);
     } else {
-      _limit = this.keyStatus.tab ? 0 : this.markerMatcher.hintKeystrokeQueue.length;
+      _limit = this.keyStatus.tab ? 0 : this.alphabetHints.hintKeystrokeQueue.length;
       for (_i = linksMatched.length; 0 <= --_i; ) {
         _ref = linksMatched[_i].childNodes;
         for (_j = _ref.length; _limit <= --_j; ) {
@@ -473,7 +457,7 @@ var LinkHints = {
     });
   },
   deactivate: function(callback) {
-    this.markerMatcher.deactivate();
+    this.alphabetHints.deactivate();
     this.linkActivator = null;
     this.hintMarkers = [];
     if (this.hintMarkerContainingDiv) {
@@ -595,153 +579,7 @@ LinkHints.alphabetHints = {
   }
 };
 
-LinkHints.filterHints = {
-  hintKeystrokeQueue: [],
-  linkTextKeystrokeQueue: [],
-  labelMap: {},
-  spanWrap: null,
-  numberToHintString: null,
-  generateLabelMap: function() {
-    var forElement, label, labelText, labels, _i, _len;
-    labels = document.querySelectorAll("label");
-    for (_i = 0, _len = labels.length; _i < _len; _i++) {
-      label = labels[_i];
-      forElement = label.getAttribute("for");
-      if (forElement) {
-        labelText = label.textContent.trim();
-        if (labelText.endsWith(":")) {
-          labelText = labelText.substring(0, labelText.length - 1);
-        }
-        this.labelMap[forElement] = labelText;
-      }
-    }
-  },
-  generateHintString: function(linkHintNumber) {
-    return (this.numberToHintString(linkHintNumber + 1, Settings.values.linkHintNumbers || "")).toUpperCase();
-  },
-  generateLinkText: function(element) {
-    var linkText, nodeName, showLinkText;
-    linkText = "";
-    showLinkText = false;
-    nodeName = element.nodeName.toLowerCase();
-    if (nodeName === "input") {
-      if (this.labelMap[element.id]) {
-        linkText = this.labelMap[element.id];
-        showLinkText = true;
-      } else if (element.type !== "password") {
-        linkText = element.value;
-        if (!linkText && element.placeholder) {
-          linkText = element.placeholder;
-        }
-      }
-    } else if (nodeName === "a" && !element.textContent.trim() && element.firstElementChild && element.firstElementChild.nodeName.toLowerCase() === "img") {
-      linkText = element.firstElementChild.alt || element.firstElementChild.title;
-      if (linkText) {
-        showLinkText = true;
-      }
-    } else {
-      linkText = element.textContent || element.innerHTML;
-    }
-    return {
-      text: linkText,
-      show: showLinkText
-    };
-  },
-  renderMarker: function(marker) {
-    marker.innerHTML = marker.showLinkText ? this.spanWrap(marker.hintString + ": " + marker.linkText) : this.spanWrap(marker.hintString);
-  },
-  fillInMarkers: function(hintMarkers) {
-    var idx, linkTextObject, marker, _i, _len;
-    this.generateLabelMap();
-    for (idx = _i = 0, _len = hintMarkers.length; _i < _len; idx = ++_i) {
-      marker = hintMarkers[idx];
-      marker.hintString = this.generateHintString(idx);
-      linkTextObject = this.generateLinkText(marker.clickableItem);
-      marker.linkText = linkTextObject.text;
-      marker.linkTextLower = linkTextObject.text.toLowerCase();
-      marker.showLinkText = linkTextObject.show;
-      this.renderMarker(marker);
-    }
-    return hintMarkers;
-  },
-  matchHintsByKey: function(hintMarkers, event, keyStatus) {
-    var key = event.keyCode, keyChar, userIsTypingLinkText = false;
-    if (key === KeyCodes.enter) {
-      keyStatus.tab = 0;
-      for (var marker, _i = 0, _len = hintMarkers.length; _i < _len; _i++) {
-        marker = hintMarkers[_i];
-        if (marker.style.display !== "none") {
-          keyStatus.delay = 0;
-          return [marker];
-        }
-      }
-      return null;
-    }
-    if (key === KeyCodes.tab) {
-      if (this.hintKeystrokeQueue.length === 0) {
-        return false;
-      }
-      keyStatus.tab = keyStatus.tab ? 0 : 1;
-    } else if (keyStatus.tab) {
-      this.hintKeystrokeQueue = [];
-      keyStatus.tab = 0;
-    }
-    if (key === KeyCodes.tab) {}
-    else if (key === KeyCodes.backspace || key === KeyCodes.deleteKey || key === KeyCodes.f1) {
-      if (!this.hintKeystrokeQueue.pop() && !this.linkTextKeystrokeQueue.pop()) {
-        return [];
-      }
-    } else if (!(keyChar = KeyboardUtils.getKeyChar(event).toLowerCase())) {
-      return null;
-    } else if (key !== KeyCodes.space && (Settings.values.linkHintNumbers).indexOf(keyChar) >= 0) {
-      this.hintKeystrokeQueue.push(keyChar);
-    } else {
-      this.hintKeystrokeQueue = [];
-      this.linkTextKeystrokeQueue.push(keyChar);
-      userIsTypingLinkText = true;
-    }
-    keyChar = this.hintKeystrokeQueue.join("");
-    hintMarkers = this.filterLinkHints(hintMarkers).filter(keyStatus.tab ? function(linkMarker) {
-      var pass = ! linkMarker.hintString.startsWith(keyChar);
-      linkMarker.style.display = pass ? "" : "none";
-      return pass;
-    } : function(linkMarker) {
-      var pass = linkMarker.hintString.startsWith(keyChar);
-      linkMarker.style.display = pass ? "" : "none";
-      return pass;
-    });
-    keyStatus.delay = (hintMarkers.length === 1 && userIsTypingLinkText) ? 200 : 0;
-    return hintMarkers;
-  },
-  filterLinkHints: function(hintMarkers) {
-    var linkMarker, linkSearchString, linksMatched, oldHintString, _i, _len, doLinkSearch;
-    linksMatched = [];
-    linkSearchString = this.linkTextKeystrokeQueue.join("");
-    doLinkSearch = linkSearchString.length > 0;
-    for (_i = 0, _len = hintMarkers.length; _i < _len; _i++) {
-      linkMarker = hintMarkers[_i];
-      if (doLinkSearch && linkMarker.linkTextLower.indexOf(linkSearchString) === -1) {
-        linkMarker.style.display = "none";
-        continue;
-      }
-      oldHintString = linkMarker.hintString;
-      linkMarker.hintString = this.generateHintString(linksMatched.length);
-      if (linkMarker.hintString !== oldHintString) {
-        this.renderMarker(linkMarker);
-      }
-      linkMarker.style.display = "";
-      linksMatched.push(linkMarker);
-    }
-    return linksMatched;
-  },
-  deactivate: function() {
-    this.hintKeystrokeQueue = [];
-    this.linkTextKeystrokeQueue = [];
-    this.labelMap = {};
-  }
-};
-
-LinkHints.spanWrap = function(hintString) {
+LinkHints.alphabetHints.spanWrap = function(hintString) {
   for (var _i = 0, _j = -1, _len = hintString.length, innerHTML = new Array(_len * 3); _i < _len; _i++) {
     innerHTML[++_j] = "<span>";
     innerHTML[++_j] = hintString[_i];
@@ -750,7 +588,7 @@ LinkHints.spanWrap = function(hintString) {
   return innerHTML.join("");
 };
 
-LinkHints.numberToHintString = function(number, characterSet, numHintDigits) {
+LinkHints.alphabetHints.numberToHintString = function(number, characterSet, numHintDigits) {
   var base, hintString, leftLength, remainder;
   if (numHintDigits == null) {
     numHintDigits = 0;
