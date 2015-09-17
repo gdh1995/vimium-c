@@ -6,7 +6,7 @@ var g_requestHandlers;
     , firstKeys, frameIdsForTab, funcDict, handleMainPort
     , helpDialogHtml, helpDialogHtmlForCommand //
     , helpDialogHtmlForCommandGroup, needIcon, openMultiTab //
-    , populateCommandKeys, requestHandlers, resetKeys, secondKeys, sendToTab //
+    , requestHandlers, resetKeys, secondKeys, sendToTab //
     , urlForTab;
 
   Settings.frameIdsForTab = frameIdsForTab = { __proto__: null };
@@ -873,7 +873,7 @@ var g_requestHandlers;
     currentCount = 0;
   };
 
-  populateCommandKeys = function() {
+  Commands.populateCommandKeys = function() {
     var key, ref1, ref2, first, arr, keyRegex = Commands.keyRegex, ch;
     resetKeys();
     ref1 = firstKeys = ["1", "2", "3", "4", "5", "6", "7", "8", "9"];
@@ -906,7 +906,7 @@ var g_requestHandlers;
     }
     ref2[""] = ["0"]; // "0" is for key queues like "10n"
   };
-  
+
   handleMainPort = function(request, port) {
     var key, func, id;
     if (id = request._msgId) {
@@ -1284,7 +1284,6 @@ var g_requestHandlers;
 
   Settings.updateHooks.keyMappings = function(value) {
     Commands.parseKeyMappings(value);
-    populateCommandKeys(); // resetKeys has been called in this
     this.postUpdate("broadcast", {
       name: "refreshKeyMappings",
       currentFirst: null,
@@ -1371,8 +1370,6 @@ var g_requestHandlers;
   });
 
   setTimeout(function() {
-    Commands.parseKeyMappings(Settings.get("keyMappings"));
-    populateCommandKeys();
     Exclusions.setRules(Settings.get("exclusionRules"));
     Settings.postUpdate("bufferToLoad", null);
     Settings.postUpdate("userDefinedCss");

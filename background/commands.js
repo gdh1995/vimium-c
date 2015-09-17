@@ -80,7 +80,9 @@ var Commands = {
         console.log("Unmapping:", key, "has not been mapped");
       }
     }
+    this.populateCommandKeys();
   },
+  populateCommandKeys: null,
   commandGroups: null,
   advancedCommands: null,
   defaultKeyMappings: null
@@ -201,7 +203,7 @@ Commands.defaultKeyMappings = {
   "`": "Marks.activateGotoMode"
 };
 
-(function(descriptions) {
+setTimeout(function(descriptions) {
   var command, description, ref = Commands.availableCommands, options;
   for (command in descriptions) {
     description = descriptions[command];
@@ -216,7 +218,8 @@ Commands.defaultKeyMappings = {
       repeat: options && options.repeat || 0
     };
   }
-})({
+  setTimeout(Commands.parseKeyMappings.bind(Commands), 1, Settings.get("keyMappings"));
+}, 67, {
   __proto__: null,
   showHelp: [
     "Show help", {
