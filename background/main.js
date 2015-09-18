@@ -1,5 +1,5 @@
 "use strict";
-var g_requestHandlers;
+var g_requestHandlers, Marks, Clipboard, Completers;
 (function() {
   var BackgroundCommands, ContentSettings, checkKeyQueue, commandCount //
     , currentCount, currentFirst, currentCommand, executeCommand, extForTab
