@@ -94,7 +94,8 @@ if (chrome.browserAction && chrome.browserAction.setIcon) setTimeout(function() 
 }, 50);
 
 // According to tests: onInstalled will be executed after 0 ~ 16 ms if needed
-chrome.runtime.onInstalled.addListener(window.b = function(details) {
+chrome.runtime.onInstalled.addListener(b = setTimeout.bind(window,
+function(details) {
   var contentScripts, func, js, css, reason = details.reason;
   if (reason === "install") { reason = ""; }
   else if (reason === "update") { reason = details.previousVersion; }
@@ -169,15 +170,16 @@ chrome.runtime.onInstalled.addListener(window.b = function(details) {
       });
     });
   });
-});
+}, 500));
+
 setTimeout(function() {
   chrome.runtime.onInstalled.removeListener(window.b);
-  window.b = null;
-}, 50);
+  b = null;
+}, 600);
 
 //* #if DEBUG
 var a, b, c, cb, log;
 cb = function(b) { a = b; console.log(b); };
 setTimeout(function() {
   a = c = null, b = cb, log = console.log.bind(console);
-}, 100); // #endif */
+}, 1000); // #endif */
