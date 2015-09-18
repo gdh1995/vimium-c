@@ -649,7 +649,7 @@ LinkHints.FUNC = {
       if (str === "password") {
         str = "";
       } else if (!(str in DomUtils.uneditableInputs)) {
-        str = link.value.trim() || link.placeholder.trim();
+        str = (link.value || link.placeholder).trim();
       } else if (str === "file") {
         str = link.files.length > 0 ? link.files[0].name : "";
       } else if (["button", "submit", "reset"].indexOf(str) >= 0) {
