@@ -80,7 +80,6 @@ var Commands = {
         console.log("Unmapping:", key, "has not been mapped");
       }
     }
-    this.populateCommandKeys();
   },
   populateCommandKeys: null,
   commandGroups: null,
@@ -218,7 +217,10 @@ setTimeout(function(descriptions) {
       repeat: options && options.repeat || 0
     };
   }
-  setTimeout(Commands.parseKeyMappings.bind(Commands), 1, Settings.get("keyMappings"));
+  setTimeout(function() {
+    Commands.parseKeyMappings(Settings.get("keyMappings"));
+    Commands.populateCommandKeys();
+  }, 1);
 }, 67, {
   __proto__: null,
   showHelp: [

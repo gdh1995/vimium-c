@@ -1284,6 +1284,7 @@ var g_requestHandlers;
 
   Settings.updateHooks.keyMappings = function(value) {
     Commands.parseKeyMappings(value);
+    Commands.populateCommandKeys();
     this.postUpdate("broadcast", {
       name: "refreshKeyMappings",
       currentFirst: null,
