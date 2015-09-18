@@ -81,7 +81,6 @@ var Commands = {
       }
     }
   },
-  populateCommandKeys: null,
   commandGroups: null,
   advancedCommands: null,
   defaultKeyMappings: null
@@ -217,10 +216,6 @@ setTimeout(function(descriptions) {
       repeat: options && options.repeat || 0
     };
   }
-  setTimeout(function() {
-    Commands.parseKeyMappings(Settings.get("keyMappings"));
-    Commands.populateCommandKeys();
-  }, 1);
 }, 67, {
   __proto__: null,
   showHelp: [
