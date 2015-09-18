@@ -645,12 +645,27 @@ LinkHints.FUNC = {
   },
   COPY_TEXT: function(link) {
     var str = (link.getAttribute("data-vim-text") || "").trim();
-    str = str ? str
-      : (str = link.nodeName.toLowerCase()) === "textarea" ? link.value
-      : str === "input" ? ((link.type in DomUtils.uneditableInputs) ? "" : link.value)
-      // .innerText is "" if "display:block; height:0px; overflow:hidden; width:0px;"
-      : (link.innerText || Utils.decodeTextFromHtml(link.innerHTML));
-    str = str.trim() || link.title.trim();
+    if (str) {}
+    else if (str === "input") {
+      str = link.type;
+      if (str === "password") {
+        str = "";
+      } else if (!(str in DomUtils.uneditableInputs)) {
+        str = link.value.trim() || link.placeholder.trim();
+      } else if (str === "file") {
+        str = link.files.length > 0 ? link.files[0].name : "";
+      } else if (["button", "submit", "reset"].indexOf(str) >= 0) {
+        str = link.value.trim() || link.title.trim();
+      } else {
+        str = link.title.trim(); // including `[type="image"]`
+      }
+    } else {
+      str = (str = link.nodeName.toLowerCase()) === "textarea" ? link.value
+        : str === "select" ? (link.selectedIndex < 0 ? "" : link.options[link.selectedIndex].text)
+        // .innerText is "" if "display:block; height:0px; overflow:hidden; width:0px;"
+        : (link.innerText || Utils.decodeTextFromHtml(link.innerHTML));
+      str = str.trim() || link.title.trim();
+    }
     if (!str) {
       VHUD.showForDuration("No text found", 1000);
       this.keepHUDAfterAct = true;
