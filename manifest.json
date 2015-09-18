@@ -6,10 +6,10 @@
       "background/clipboard.js",
       "background/commands.js",
       "background/exclusions.js",
-      "background/completion.js",
       "background/marks.js",
       "background/main.js",
-      "background/others.js"
+      "background/others.js",
+      "background/completion.js"
     ]
   },
   "browser_action": {

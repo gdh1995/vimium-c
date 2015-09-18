@@ -705,4 +705,4 @@ Completers.searchEngines = {
 
   Utils.Decoder = Decoder;
 
-}, 120);
+}, 200);
