@@ -862,7 +862,7 @@ var g_requestHandlers;
         url: "chrome://extensions/?id=" + chrome.runtime.id
       });
     },
-    clearGlobalMarks: Marks.clearGlobal
+    clearGlobalMarks: function() { Marks.clearGlobal(); }
   };
 
   resetKeys = function() {
@@ -1253,8 +1253,8 @@ var g_requestHandlers;
       port.sender.tab.id = request.tabId;
     },
     esc: resetKeys,
-    createMark: Marks.createMark,
-    gotoMark: Marks.gotoMark,
+    createMark: function(request, tabs) { Marks.createMark(request, tabs); },
+    gotoMark: function(request) { Marks.gotoMark(request); },
     focusOrLaunch: function(request) {
       // * do not limit windowId or windowType
       // * in this case, chrome will ignore url's hash
