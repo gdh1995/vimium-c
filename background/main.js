@@ -18,7 +18,6 @@ var g_requestHandlers;
   needIcon = false;
 
   currentCommand = {
-    __proto__: null,
     options: null,
     port: null
   };
@@ -117,7 +116,6 @@ var g_requestHandlers;
   };
 
   ContentSettings = {
-    __proto__: null,
     _urlHeadRe: /^[a-z]+:\/\/[^\/]+\//,
     clear: function(contentType, tab) {
       var cs = chrome.contentSettings[contentType];
@@ -231,7 +229,6 @@ var g_requestHandlers;
   };
 
   funcDict = {
-    __proto__: null,
     globalCommand: null,
     globalConnect: null,
     sendToExt: function(request, tabId) {
@@ -877,7 +874,7 @@ var g_requestHandlers;
     var key, ref1, ref2, first, arr, keyRe = Commands.keyRe, ch;
     resetKeys();
     ref1 = firstKeys = ["1", "2", "3", "4", "5", "6", "7", "8", "9"];
-    ref2 = secondKeys = { __proto__: null };
+    ref2 = secondKeys = Utils.makeNullProto();
     for (key in Commands.keyToCommandRegistry) {
       ch = key.charCodeAt(0);
       if (ch >= 48 && ch < 58) {
@@ -1299,7 +1296,7 @@ var g_requestHandlers;
 
   Settings.updateHooks.showActionIcon = function (value) {
     needIcon = chrome.browserAction && value ? true : false;
-    if (!needIcon) { urlForTab = { __proto__: null}; }
+    if (!needIcon) { urlForTab = Utils.makeNullProto(); }
   };
 
   chrome.commands.onCommand.addListener(funcDict.globalCommand = function(command, options) {

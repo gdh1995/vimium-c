@@ -1,6 +1,5 @@
 "use strict";
 var Exclusions = {
-  __proto__: null,
   re: {},
   _emptyStringRe: /^$/,
   _starRe: /\*/g,
@@ -26,7 +25,7 @@ var Exclusions = {
   _listening: false,
   rules: [],
   setRules: function(rules) {
-    this.re = { __proto__: null };
+    this.re = Utils.makeNullProto();
     this.rules = this.Format(rules);
     if (this.rules.length === 0) {
       this.getPattern = this._getNull;
@@ -61,7 +60,7 @@ var Exclusions = {
     return out;
   },
   rebuildRe: function() {
-    var rules = Settings.get("exclusionRules"), ref = this.re = { __proto__: null }
+    var rules = Settings.get("exclusionRules"), ref = this.re = Utils.makeNullProto()
       , ref2 = this.rules, _i, _j, pattern;
     for (_i = rules.length, _j = 0; 0 <= --_i; ) {
       pattern = rules[_i].pattern;

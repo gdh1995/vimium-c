@@ -1,6 +1,8 @@
 "use strict";
 var Utils = {
-  __proto__: null,
+  makeNullProto: function() {
+    return {__proto__: null};
+  },
   fetchHttpContents: function(url, success, onerror) {
     var req = new XMLHttpRequest();
     req.open("GET", url, true);

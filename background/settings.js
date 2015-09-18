@@ -1,6 +1,5 @@
 "use strict";
 var Settings = {
-  __proto__: null,
   _buffer: { __proto__: null },
   bufferToLoad: null,
   frameIdsForTab: null,
@@ -51,7 +50,7 @@ var Settings = {
     },
     bufferToLoad: function() {
       var _i, key, ref = this.valuesToLoad, ref2;
-      ref2 = this.bufferToLoad = { __proto__: null };
+      ref2 = this.bufferToLoad = Utils.makeNullProto();
       for (_i = ref.length; 0 <= --_i;) {
         key = ref[_i];
         ref2[key] = this.get(key);
@@ -154,7 +153,7 @@ w|wiki:\\\n  http://www.wikipedia.org/w/index.php?search=%s Wikipedia (en-US)",
   CONST: {
     ChromeInnerNewTab: "chrome-search://local-ntp/local-ntp.html", // should keep lower case
     ChromeVersion: 37, ContentScripts: null, CurrentVersion: "",
-    OnMac: false, OptionsPage: "", Timer: 0, __proto__: null
+    OnMac: false, OptionsPage: "", Timer: 0
   }
 };
 

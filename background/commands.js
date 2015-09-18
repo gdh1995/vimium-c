@@ -1,9 +1,8 @@
 "use strict";
 var Commands = {
-  __proto__: null,
   // NOTE: [^\s] is for spliting passed keys
   keyRe: /<(?:(?:a-(?:c-)?(?:m-)?|c-(?:m-)?|m-)(?:[A-Z][0-9A-Z]+|[a-z][0-9a-z]+|[^\s])|[A-Z][0-9A-Z]+|[a-z][0-9a-z]+)>|[^\s]/g,
-  availableCommands: { __proto__: null },
+  availableCommands: {},
   keyToCommandRegistry: null,
   _keyLeftRe: /<((?:[acmACM]-){0,3})([A-Za-z][0-9A-Za-z]+|.)>/g,
   onNormalize: function(match, option, key) {
@@ -36,8 +35,8 @@ var Commands = {
   },
   resetDefaults: function(registry) {
     var defaultMap = this.defaultKeyMappings, available = this.availableCommands
-      , registry = this.keyToCommandRegistry = { __proto__: null }
-      , key, command, details, options = { __proto__: null };
+      , registry = this.keyToCommandRegistry = Utils.makeNullProto()
+      , key, command, details, options = Utils.makeNullProto();
     for (key in defaultMap) {
       details = available[command = defaultMap[key]];
       registry[key] = {
@@ -72,7 +71,7 @@ var Commands = {
           console.log("Command %c" + key, "color:red;", "doesn't exist!");
         }
       } else if (key === "unmapAll") {
-        registry = this.keyToCommandRegistry = { __proto__: null };
+        registry = this.keyToCommandRegistry = Utils.makeNullProto();
       } else if (key !== "unmap" || splitLine.length !== 2) {
       } else if ((key = this.normalizeKey(splitLine[1])) in registry) {
         delete registry[key];
@@ -133,7 +132,6 @@ Commands.advancedCommands = ["scrollToLeft", "scrollToRight", "moveTabToNextWind
   , "toggleLinkHintCharacters", "toggleSwitchTemp", "LinkHints.activateModeToLeave"
 ];
 Commands.defaultKeyMappings = {
-  __proto__: null,
   "?": "showHelp",
   j: "scrollDown",
   k: "scrollUp",
@@ -217,7 +215,6 @@ setTimeout(function(descriptions) {
     };
   }
 }, 67, {
-  __proto__: null,
   showHelp: [
     "Show help", {
       repeat: 1

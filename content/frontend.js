@@ -52,7 +52,6 @@ var Settings, VHUD, MainPort, VInsertMode;
   passKeys = null;
   
   MainPort = mainPort = {
-    __proto__: null,
     port: null,
     _callbacks: { __proto__: null },
     _lastMsg: 1,
@@ -164,7 +163,7 @@ var Settings, VHUD, MainPort, VInsertMode;
   initIfEnabled = function(newPassKeys) {
     initIfEnabled = function(newPassKeys) {
       if (newPassKeys) {
-        var pass = { __proto__: null }, arr = newPassKeys.split(' ')
+        var pass = Utils.makeNullProto(), arr = newPassKeys.split(' ')
           , i = 0, len = arr.length;
         do {
           pass[arr[i]] = true;
@@ -1072,7 +1071,6 @@ var Settings, VHUD, MainPort, VInsertMode;
   };
 
   VHUD = HUD = {
-    __proto__: null,
     tweenId: 0,
     _element: null,
     opacity: 0,
@@ -1199,15 +1197,15 @@ var Settings, VHUD, MainPort, VInsertMode;
     focusFrame: FrameMask.Focus,
     refreshKeyMappings: function(request) {
       var arr = request.firstKeys, i = arr.length, map, key, sec, sec2;
-      map = firstKeys = { __proto__: null };
+      map = firstKeys = Utils.makeNullProto();
       while (0 <= --i) {
         map[arr[i]] = true;
       }
       sec = request.secondKeys;
-      sec2 = secondKeys = { __proto__: null };
+      sec2 = secondKeys = Utils.makeNullProto();
       for (key in sec) {
         arr = sec[key];
-        map = sec2[key] = { __proto__: null };
+        map = sec2[key] = Utils.makeNullProto();
         i = arr.length;
         while (0 <= --i) {
           map[arr[i]] = true;

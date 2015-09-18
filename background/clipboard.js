@@ -1,6 +1,5 @@
 "use strict";
 var Clipboard = {
-  __proto__: null,
   _textArea: null,
   _getTextArea: function() {
     var el = this._textArea;

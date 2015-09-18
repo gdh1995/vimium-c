@@ -1,7 +1,6 @@
 "use strict";
 var LinkHints = {
   CONST: {
-    __proto__: null,
     // focused: 1; new tab: 2; queue: 64; job: 128
     // >=128: "&4" means "must be links" and [data-vim-url] is used firstly
     //   &~64 >= 136 means only `<a>`
@@ -618,7 +617,6 @@ LinkHints.getUrlData = function(link) {
 };
 
 LinkHints.FUNC = {
-  __proto__: null,
   COPY_LINK_URL: function(link) {
     var str = this.getUrlData(link);
     if (!str) {

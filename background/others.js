@@ -2,7 +2,6 @@
 
 if (Settings.get("vimSync") === true) setTimeout(function() {
   Settings.Sync = {
-    __proto__: null,
     storage: chrome.storage.sync,
     doNotSync: ["settingsVersion", "previousVersion"],
     fetchAsync: function() {
