@@ -3,12 +3,12 @@
     "scripts": [
       "background/utils.js",
       "background/settings.js",
-      "background/clipboard.js",
       "background/commands.js",
       "background/exclusions.js",
       "background/marks.js",
       "background/main.js",
       "background/others.js",
+      "background/clipboard.js",
       "background/completion.js"
     ]
   },
