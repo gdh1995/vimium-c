@@ -1,10 +1,12 @@
 "use strict";
-var g_requestHandlers, Marks, Clipboard, Completers,
+var Marks, Clipboard, Completers,
 Commands = {
   PopulateCommandKeys: null,
   availableCommands: {},
   initIsSlow: false
-};
+},
+g_requestHandlers
+;
 (function() {
   var BackgroundCommands, ContentSettings, checkKeyQueue, commandCount //
     , currentCount, currentFirst, currentCommand, executeCommand, extForTab
@@ -914,7 +916,7 @@ Commands = {
     } else {
       Commands.initIsSlow = true;
     }
-  }, 120);
+  }, 84);
 
   handleMainPort = function(request, port) {
     var key, func, id;
