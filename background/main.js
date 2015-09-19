@@ -23,10 +23,10 @@ var g_requestHandlers, Marks, Clipboard, Completers;
   };
 
   helpDialogHtml = function(showUnbound, showNames, customTitle) {
-    var command, commandsToKey, dialogHtml, group, key;
+    var command, commandsToKey, dialogHtml, group, key, ref = Commands.keyToCommandRegistry;
     commandsToKey = {};
-    for (key in Commands.keyToCommandRegistry) {
-      command = Commands.keyToCommandRegistry[key].command;
+    for (key in ref) {
+      command = ref[key].command;
       commandsToKey[command] = (commandsToKey[command] || []).concat(key);
     }
     showUnbound = showUnbound ? true : false;

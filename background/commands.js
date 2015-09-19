@@ -203,7 +203,8 @@ Commands.defaultKeyMappings = {
 };
 
 setTimeout(function(descriptions) {
-  var command, description, ref = Commands.availableCommands, options;
+  var command, description, ref, options;
+  ref = Commands.availableCommands = Utils.makeNullProto();
   for (command in descriptions) {
     description = descriptions[command];
     if (command in ref) { // #if DEBUG
