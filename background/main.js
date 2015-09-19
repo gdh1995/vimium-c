@@ -1,8 +1,7 @@
 "use strict";
 var Marks, Clipboard, Completers,
 Commands = { PopulateCommandKeys: null, availableCommands: {}, initIsSlow: false },
-g_requestHandlers
-;
+g_requestHandlers;
 (function() {
   var BackgroundCommands, ContentSettings, checkKeyQueue, commandCount //
     , currentCount, currentFirst, currentCommand, executeCommand, extForTab
