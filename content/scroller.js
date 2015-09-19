@@ -173,10 +173,10 @@ Scroller.Core.animate = function () {
     duration = Math.max(100, 20 * Math.log(amount)), element = new_el;
     sign = new_amount === 0 ? 0 : new_amount < 0 ? -1 : 1;
     timestamp = -1, totalDelta = 0, totalElapsed = 0.0;
-    Scroller.keyIsDown = Scroller.Core.maxInterval;
     var keyboard = Settings.values.keyboard;
     this.maxInterval = Math.round(keyboard[1] / 16.67) + 4;
     this.minDelay = (((keyboard[0] - keyboard[1]) / 30) | 0) * 30;
+    Scroller.keyIsDown = this.maxInterval;
     requestAnimationFrame(animate);
   };
   this.animate.apply(this, arguments);
