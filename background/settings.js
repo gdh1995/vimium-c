@@ -94,6 +94,7 @@ var Settings = {
     hideHud: false,
     keyboard: [500, 33],
     keyMappings: "",
+    enableDefaultMappings: true,
     linkHintCharacters: "sadjklewcmpgh",
     newTabUrl: "",
     newTabUrl_f: "",

@@ -33,9 +33,9 @@ var Commands = {
     }
     return opt;
   },
-  resetDefaults: function(registry) {
+  loadDefaults: function(registry) {
     var defaultMap = this.defaultKeyMappings, available = this.availableCommands
-      , registry = this.keyToCommandRegistry = Utils.makeNullProto()
+      , registry = this.keyToCommandRegistry
       , key, command, details, options = Utils.makeNullProto();
     for (key in defaultMap) {
       details = available[command = defaultMap[key]];
@@ -49,7 +49,10 @@ var Commands = {
   },
   parseKeyMappings: function(line) {
     var key, lines, splitLine, _i, _len, registry, details, available;
-    this.resetDefaults();
+    this.keyToCommandRegistry = Utils.makeNullProto();
+    if (Settings.get("enableDefaultMappings") === true) {
+      this.loadDefaults();
+    }
     registry = this.keyToCommandRegistry;
     available = this.availableCommands;
     lines = line.replace(/\\\n/g, "").replace(/[\t ]+/g, " ").split("\n");
