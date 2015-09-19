@@ -1,10 +1,6 @@
 "use strict";
 var Marks, Clipboard, Completers,
-Commands = {
-  PopulateCommandKeys: null,
-  availableCommands: {},
-  initIsSlow: false
-},
+Commands = { PopulateCommandKeys: null, availableCommands: {}, initIsSlow: false },
 g_requestHandlers
 ;
 (function() {
