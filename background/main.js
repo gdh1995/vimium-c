@@ -1,12 +1,17 @@
 "use strict";
-var g_requestHandlers, Marks, Clipboard, Completers;
+var g_requestHandlers, Marks, Clipboard, Completers,
+Commands = {
+  PopulateCommandKeys: null,
+  availableCommands: {},
+  initIsSlow: false
+};
 (function() {
   var BackgroundCommands, ContentSettings, checkKeyQueue, commandCount //
     , currentCount, currentFirst, currentCommand, executeCommand, extForTab
     , firstKeys, frameIdsForTab, funcDict, handleMainPort
     , helpDialogHtml, helpDialogHtmlForCommand //
     , helpDialogHtmlForCommandGroup, needIcon, openMultiTab //
-    , populateCommandKeys, requestHandlers, resetKeys, secondKeys, sendToTab //
+    , requestHandlers, resetKeys, secondKeys, sendToTab //
     , urlForTab;
 
   Settings.frameIdsForTab = frameIdsForTab = { __proto__: null };
@@ -870,7 +875,7 @@ var g_requestHandlers, Marks, Clipboard, Completers;
     currentCount = 0;
   };
 
-  populateCommandKeys = function() {
+  Commands.PopulateCommandKeys = function() {
     var key, ref1, ref2, first, arr, keyRe = Commands.keyRe, ch;
     resetKeys();
     ref1 = firstKeys = ["1", "2", "3", "4", "5", "6", "7", "8", "9"];
@@ -904,8 +909,11 @@ var g_requestHandlers, Marks, Clipboard, Completers;
     ref2[""] = ["0"]; // "0" is for key queues like "10n"
   };
   setTimeout(function() {
-    Commands.parseKeyMappings(Settings.get("keyMappings"));
-    setTimeout(populateCommandKeys, 1);
+    if ("createTab" in Commands.availableCommands) {
+      Commands.parseKeyMappings(Settings.get("keyMappings"), 1);
+    } else {
+      Commands.initIsSlow = true;
+    }
   }, 120);
 
   handleMainPort = function(request, port) {
@@ -1284,8 +1292,7 @@ var g_requestHandlers, Marks, Clipboard, Completers;
   };
 
   Settings.updateHooks.keyMappings = function(value) {
-    Commands.parseKeyMappings(value);
-    populateCommandKeys(); // resetKeys has been called in this
+    Commands.parseKeyMappings(value, 0);
     this.postUpdate("broadcast", {
       name: "refreshKeyMappings",
       currentFirst: null,

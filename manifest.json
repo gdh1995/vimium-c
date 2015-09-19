@@ -3,9 +3,9 @@
     "scripts": [
       "background/utils.js",
       "background/settings.js",
-      "background/commands.js",
       "background/exclusions.js",
       "background/main.js",
+      "background/commands.js",
       "background/others.js",
       "background/clipboard.js",
       "background/marks.js",

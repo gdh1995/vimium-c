@@ -3,6 +3,7 @@ var Commands = {
   // NOTE: [^\s] is for spliting passed keys
   keyRe: /<(?:(?:a-(?:c-)?(?:m-)?|c-(?:m-)?|m-)(?:[A-Z][0-9A-Z]+|[a-z][0-9a-z]+|[^\s])|[A-Z][0-9A-Z]+|[a-z][0-9a-z]+)>|[^\s]/g,
   availableCommands: {},
+  initIsSlow: Commands.initIsSlow,
   keyToCommandRegistry: null,
   _keyLeftRe: /<((?:[acmACM]-){0,3})([A-Za-z][0-9A-Za-z]+|.)>/g,
   onNormalize: function(match, option, key) {
@@ -47,7 +48,7 @@ var Commands = {
       };
     }
   },
-  parseKeyMappings: function(line) {
+  parseKeyMappings: function(line, delay) {
     var key, lines, splitLine, _i, _len, registry, details, available;
     this.keyToCommandRegistry = Utils.makeNullProto();
     if (Settings.get("enableDefaultMappings") === true) {
@@ -82,7 +83,12 @@ var Commands = {
         console.log("Unmapping:", key, "has not been mapped");
       }
     }
+    if (delay > 0) {
+      return setTimeout(Commands.PopulateCommandKeys, delay);
+    }
+    Commands.PopulateCommandKeys(); // resetKeys has been called in this
   },
+  PopulateCommandKeys: Commands.PopulateCommandKeys,
   commandGroups: null,
   advancedCommands: null,
   defaultKeyMappings: null
@@ -204,6 +210,11 @@ Commands.defaultKeyMappings = {
 
 setTimeout(function(descriptions) {
   var command, description, ref, options;
+  if (Commands.initIsSlow) {
+    setTimeout(function() {
+      Commands.parseKeyMappings(Settings.get("keyMappings"), 1);
+    }, 1);
+  }
   ref = Commands.availableCommands = Utils.makeNullProto();
   for (command in descriptions) {
     description = descriptions[command];
