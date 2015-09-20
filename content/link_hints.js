@@ -644,7 +644,7 @@ LinkHints.FUNC = {
   COPY_TEXT: function(link) {
     var str = (link.getAttribute("data-vim-text") || "").trim();
     if (str) {}
-    else if (str === "input") {
+    else if ((str = link.nodeName.toLowerCase()) === "input") {
       str = link.type;
       if (str === "password") {
         str = "";
@@ -658,7 +658,7 @@ LinkHints.FUNC = {
         str = link.title.trim(); // including `[type="image"]`
       }
     } else {
-      str = (str = link.nodeName.toLowerCase()) === "textarea" ? link.value
+      str = str === "textarea" ? link.value
         : str === "select" ? (link.selectedIndex < 0 ? "" : link.options[link.selectedIndex].text)
         // .innerText is "" if "display:block; height:0px; overflow:hidden; width:0px;"
         : (link.innerText || Utils.decodeTextFromHtml(link.innerHTML));
