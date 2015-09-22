@@ -6,7 +6,7 @@ DomUtils.UI = {
   flashLastingTime: 400,
   addElement: function(element) {
     MainPort.sendMessage({ handler: "initCSSBase" }, this.initInner.bind(this));
-    this.init && this.init();
+    this.container || this.init();
     this.container.style.display = "none";
     this.root = this.container.createShadowRoot();
     this.root.appendChild(element);
@@ -44,7 +44,6 @@ DomUtils.UI = {
     this.styleIn && this.root.appendChild(this.styleIn);
     this.Adjust();
     this.container.removeAttribute("style");
-    this.styleOut && this.container.appendChild(this.styleOut);
     document.addEventListener("webkitfullscreenchange", this.Adjust);
   },
   appendCSS: function(parent, text) {
@@ -70,7 +69,7 @@ DomUtils.UI = {
       }
     } else if (outer) {
       this.styleOut = this.appendCSS(this.container, outer);
-      this.init && this.init();
+      this.container || this.init();
     }
   },
   flashOutline: function(clickEl) {
