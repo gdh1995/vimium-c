@@ -7,6 +7,7 @@ DomUtils.UI = {
   addElement: function(element) {
     MainPort.sendMessage({ handler: "initCSSBase" }, this.initInner.bind(this));
     this.init && this.init();
+    this.container.style.display = "none";
     this.root = this.container.createShadowRoot();
     this.root.appendChild(element);
     this.addElement = this.root.appendChild.bind(this.root);
@@ -42,6 +43,7 @@ DomUtils.UI = {
     this.appendCSS(this.root, cssBase);
     this.styleIn && this.root.appendChild(this.styleIn);
     this.Adjust();
+    this.container.removeAttribute("style");
     this.styleOut && this.container.appendChild(this.styleOut);
     document.addEventListener("webkitfullscreenchange", this.Adjust);
   },
