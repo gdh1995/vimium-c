@@ -125,6 +125,10 @@ div#exampleKeyMapping {
 #previousPatterns, #nextPatterns {
   width: 100%;
 }
+#keyboard {
+  width: 120px;
+  text-align: center;
+}
 #status {
   margin-left: 10px;
   font-size: 80%;

@@ -3,7 +3,7 @@
 if (Settings.get("vimSync") === true) setTimeout(function() {
   Settings.Sync = {
     storage: chrome.storage.sync,
-    doNotSync: ["settingsVersion", "previousVersion"],
+    doNotSync: ["settingsVersion", "previousVersion", "keyboard"],
     fetchAsync: function() {
       var _this = this;
       this.storage.get(null, function(items) {

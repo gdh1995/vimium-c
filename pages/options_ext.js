@@ -73,6 +73,38 @@ NonEmptyTextOption = (function(_super) {
 
 })(TextOption);
 
+JSONOption = (function(_super) {
+  __extends(JSONOption, _super);
+
+  function JSONOption() {
+    JSONOption.__super__.constructor.apply(this, arguments);
+  }
+
+  JSONOption.prototype.populateElement = function(obj) {
+    return JSONOption.__super__.populateElement.call(this, JSON.stringify(obj));
+  };
+
+  JSONOption.prototype.readValueFromElement = function() {
+    var value = JSONOption.__super__.readValueFromElement.call(this), obj, std;
+    std = obj = bgSettings.defaults[this.field];
+    if (value) {
+      try {
+        obj = JSON.parse(value);
+        if (JSON.stringify(obj) == JSON.stringify(std)) {
+          obj = std;
+        }
+      } catch (e) {}
+    } else {
+      this.populateElement(obj);
+    }
+    return obj;
+  };
+
+  return JSONOption;
+
+})(TextOption);
+
+
 CheckBoxOption = (function(_super) {
   __extends(CheckBoxOption, _super);
 
@@ -212,6 +244,7 @@ CheckBoxOption = (function(_super) {
     showActionIcon: CheckBoxOption,
     searchEngines: TextOption,
     searchUrl: NonEmptyTextOption,
+    keyboard: JSONOption,
     userDefinedCss: TextOption,
     userDefinedOuterCss: TextOption
   };

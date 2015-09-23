@@ -215,11 +215,24 @@ Description|c|C: \
             <td>
                 <div class="help">
                   <div class="example">
-                    The default search engine ("~" to activate in Vomnibar)<br>
+                    The default search engine ("~" to use it in Vomnibar)<br>
                     (e.g. "<tt>http://www.baidu.com/s?ie=utf-8&wd=%s Baidu</tt>").
                   </div>
                 </div>
                 <input id="searchUrl" type="text" />
+                <div class="nonEmptyTextOption"></div>
+            </td>
+          </tr>
+          <tr>
+            <td class="caption">Keyboard settings</td>
+            <td>
+                <div class="help">
+                  <div class="example">
+                    Your keyboard delay settings on this computer. Format:<br>
+                    <tt>[ &lt;delay (ms)&gt;, &lt;repeat period&gt; ]</tt> (e.g. <tt>[ 500, 33 ]</tt>)
+                  </div>
+                </div>
+                <input id="keyboard" type="text" />
                 <div class="nonEmptyTextOption"></div>
             </td>
           </tr>
