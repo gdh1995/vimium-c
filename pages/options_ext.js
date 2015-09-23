@@ -1,5 +1,4 @@
-var CheckBoxOption, NonEmptyTextOption, NumberOption, TextOption, importSettings
-  , formatDate;
+"use strict";
 
 Option.saveOptions = function() {
   Option.all.forEach(function(option) {
@@ -13,118 +12,86 @@ Option.needSaveOptions = function() {
   });
 };
 
-NumberOption = (function(_super) {
-  __extends(NumberOption, _super);
+function NumberOption() {
+  NumberOption.__super__.constructor.apply(this, arguments);
+  this.element.addEventListener("input", this.onUpdated);
+}
+__extends(NumberOption, Option);
 
-  function NumberOption() {
-    NumberOption.__super__.constructor.apply(this, arguments);
-    this.element.addEventListener("input", this.onUpdated);
+NumberOption.prototype.populateElement = function(value) {
+  return this.element.value = value;
+};
+
+NumberOption.prototype.readValueFromElement = function() {
+  return parseFloat(this.element.value);
+};
+
+function TextOption() {
+  TextOption.__super__.constructor.apply(this, arguments);
+  this.element.addEventListener("input", this.onUpdated);
+}
+__extends(TextOption, Option);
+
+TextOption.prototype.populateElement = function(value) {
+  return this.element.value = value.replace(/\n /g, '\n\xa0');
+};
+
+TextOption.prototype.readValueFromElement = function() {
+  return this.element.value.trim().replace(/\xa0/g, ' ');
+};
+
+function NonEmptyTextOption() {
+  NonEmptyTextOption.__super__.constructor.apply(this, arguments);
+}
+__extends(NonEmptyTextOption, TextOption);
+
+NonEmptyTextOption.prototype.readValueFromElement = function() {
+  var value = NonEmptyTextOption.__super__.readValueFromElement.call(this);
+  if (!value) {
+    value = bgSettings.defaults[this.field];
+    this.populateElement(value);
   }
+  return value;
+};
 
-  NumberOption.prototype.populateElement = function(value) {
-    return this.element.value = value;
-  };
+function JSONOption() {
+  JSONOption.__super__.constructor.apply(this, arguments);
+}
+__extends(JSONOption, TextOption);
 
-  NumberOption.prototype.readValueFromElement = function() {
-    return parseFloat(this.element.value);
-  };
+JSONOption.prototype.populateElement = function(obj) {
+  return JSONOption.__super__.populateElement.call(this, JSON.stringify(obj));
+};
 
-  return NumberOption;
-
-})(Option);
-
-TextOption = (function(_super) {
-  __extends(TextOption, _super);
-
-  function TextOption() {
-    TextOption.__super__.constructor.apply(this, arguments);
-    this.element.addEventListener("input", this.onUpdated);
+JSONOption.prototype.readValueFromElement = function() {
+  var value = JSONOption.__super__.readValueFromElement.call(this), obj, std;
+  obj = std = bgSettings.defaults[this.field];
+  if (value) {
+    try {
+      obj = JSON.parse(value);
+      if (JSON.stringify(obj) == JSON.stringify(std)) {
+        obj = std;
+      }
+    } catch (e) {}
+  } else {
+    this.populateElement(obj);
   }
+  return obj;
+};
 
-  TextOption.prototype.populateElement = function(value) {
-    return this.element.value = value.replace(/\n /g, '\n\xa0');
-  };
+function CheckBoxOption() {
+  CheckBoxOption.__super__.constructor.apply(this, arguments);
+  this.element.addEventListener("change", this.onUpdated);
+}
+__extends(CheckBoxOption, Option);
 
-  TextOption.prototype.readValueFromElement = function() {
-    return this.element.value.trim().replace(/\xa0/g, ' ');
-  };
+CheckBoxOption.prototype.populateElement = function(value) {
+  return this.element.checked = value;
+};
 
-  return TextOption;
-
-})(Option);
-
-NonEmptyTextOption = (function(_super) {
-  __extends(NonEmptyTextOption, _super);
-
-  function NonEmptyTextOption() {
-    NonEmptyTextOption.__super__.constructor.apply(this, arguments);
-  }
-
-  NonEmptyTextOption.prototype.readValueFromElement = function() {
-    var value = NonEmptyTextOption.__super__.readValueFromElement.call(this);
-    if (!value) {
-      value = bgSettings.defaults[this.field];
-      this.populateElement(value);
-    }
-    return value;
-  };
-
-  return NonEmptyTextOption;
-
-})(TextOption);
-
-JSONOption = (function(_super) {
-  __extends(JSONOption, _super);
-
-  function JSONOption() {
-    JSONOption.__super__.constructor.apply(this, arguments);
-  }
-
-  JSONOption.prototype.populateElement = function(obj) {
-    return JSONOption.__super__.populateElement.call(this, JSON.stringify(obj));
-  };
-
-  JSONOption.prototype.readValueFromElement = function() {
-    var value = JSONOption.__super__.readValueFromElement.call(this), obj, std;
-    std = obj = bgSettings.defaults[this.field];
-    if (value) {
-      try {
-        obj = JSON.parse(value);
-        if (JSON.stringify(obj) == JSON.stringify(std)) {
-          obj = std;
-        }
-      } catch (e) {}
-    } else {
-      this.populateElement(obj);
-    }
-    return obj;
-  };
-
-  return JSONOption;
-
-})(TextOption);
-
-
-CheckBoxOption = (function(_super) {
-  __extends(CheckBoxOption, _super);
-
-  function CheckBoxOption() {
-    CheckBoxOption.__super__.constructor.apply(this, arguments);
-    this.element.addEventListener("change", this.onUpdated);
-  }
-
-  CheckBoxOption.prototype.populateElement = function(value) {
-    return this.element.checked = value;
-  };
-
-  CheckBoxOption.prototype.readValueFromElement = function() {
-    return this.element.checked;
-  };
-
-  return CheckBoxOption;
-
-})(Option);
-
+CheckBoxOption.prototype.readValueFromElement = function() {
+  return this.element.checked;
+};
 
 (function() {
   var advancedMode, element, name, onUpdated, saveOptions, type, _i, _ref, status = 0;
@@ -273,7 +240,7 @@ CheckBoxOption = (function(_super) {
   element = null;
 })();
 
-formatDate = function(time) {
+var formatDate = function(time) {
   return new Date(time - new Date().getTimezoneOffset() * 1000 * 60
     ).toJSON().substring(0, 19).replace('T', ' ');
 };
@@ -313,7 +280,7 @@ $("exportButton").onclick = function() {
   console.log("EXPORT settings to", file_name, "at", formatDate(d));
 };
 
-importSettings = function() {
+var importSettings = function() {
   var new_data;
   try {
     new_data = JSON.parse(this.result);
