@@ -387,10 +387,10 @@ var Settings, VHUD, MainPort, VInsertMode;
       else { el.scrollIntoViewIfNeeded(); }
     },
     goBack: function(count) {
-      history.go(-count);
+      history.go(-Math.min(count, history.length - 1));
     },
     goForward: function(count) {
-      history.go(count);
+      history.go(Math.min(count, history.length - 1));
     },
     showHelp: function(_0, _1, force_current) {
       if (window.top !== window && !force_current) {
