@@ -448,6 +448,11 @@ var LinkHints = {
       this.deactivateWith();
     }
   },
+  lastHovered: null,
+  unhoverLast: function(element) {
+    this.lastHovered && DomUtils.simulateMouse(this.lastHovered, "mouseout", element);
+    this.lastHovered = element;
+  },
   reinit: function() {
     var mode = this.mode, linkActivator = this.linkActivator;
     this.deactivateWith(function() {
@@ -730,6 +735,7 @@ LinkHints.FUNC = {
   },
   DOWNLOAD_LINK: function(link) {
     var oldDownload, oldUrl;
+    this.unhoverLast(link);
     oldUrl = link.getAttribute("href");
     if (!oldUrl || oldUrl === "#") {
       oldDownload = link.getAttribute("data-vim-url");
@@ -760,6 +766,7 @@ LinkHints.FUNC = {
   },
   DEFAULT: function(link) {
     var mode = this.mode & 3, alterTarget, tag = link.nodeName.toLowerCase();
+    this.unhoverLast(link);
     if (tag === "iframe" || tag === "frame") {
       link.contentWindow.focus();
       return;
