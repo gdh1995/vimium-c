@@ -142,7 +142,7 @@ CheckBoxOption.prototype.readValueFromElement = function() {
   };
 
   saveOptions = function(virtually) {
-    var btn = $("saveOptions");
+    var btn = $("saveOptions"), toSync;
     if (virtually !== false) {
       Option.saveOptions();
     }
