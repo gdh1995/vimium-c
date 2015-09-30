@@ -1083,7 +1083,11 @@ g_requestHandlers;
   g_requestHandlers = requestHandlers = {
     __proto__: null,
     setSetting: function(request) {
-      Settings.set(request.key, request.value);
+      var key = request.key;
+      Settings.set(key, request.value);
+      if (Settings.valuesToLoad.indexOf(key) >= 0) {
+        Settings.bufferToLoad[key] = Settings.get(key);
+      }
     },
     parseSearchUrl: function(request) {
       var url = request.url, map, decoders, pattern, _i, str, arr;
