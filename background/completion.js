@@ -341,7 +341,7 @@ Completers.searchEngines = {
       onComplete([]);
       return;
     }
-    queryTerms.shift();
+    queryTerms = queryTerms.slice(1);
     var obj = Utils.createSearchUrl(pattern, queryTerms, true);
     onComplete([new Suggestion(queryTerms, "search", obj.url, obj.url
       , pattern.name + ": " + obj.$S, this.computeRelevancy)]);

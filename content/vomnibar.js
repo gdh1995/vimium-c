@@ -542,7 +542,6 @@ Vomnibar.background = {
       delete item.titleSplit;
       delete item.favIconUrl;
       delete item.relevancy;
-      item.text = "";
     }
   },
   performAction: function(item, arg) {
