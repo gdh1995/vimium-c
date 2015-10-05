@@ -370,10 +370,10 @@ Settings.updateHooks.searchEnginesMap = (function(prev, value) {
 
   function MultiCompleter(completers) {
     this.completers = completers;
-    this.mostRecentQuery = false;
   }
 
   MultiCompleter.maxResults = 10;
+  MultiCompleter.mostRecentQuery = null;
   
   MultiCompleter.prototype.refresh = function() {
     for (var completer, _i = this.completers.length; 0 <= --_i; ) {
@@ -384,19 +384,19 @@ Settings.updateHooks.searchEnginesMap = (function(prev, value) {
   };
 
   MultiCompleter.prototype.filter = function(queryTerms, onComplete) {
-    if (this.mostRecentQuery) {
+    if (MultiCompleter.mostRecentQuery) {
       if (arguments.length !== 0) {
-        this.mostRecentQuery = {
+        MultiCompleter.mostRecentQuery = {
           queryTerms: queryTerms,
           onComplete: onComplete
         };
         return;
       }
-      queryTerms = this.mostRecentQuery.queryTerms;
-      onComplete = this.mostRecentQuery.onComplete;
+      queryTerms = MultiCompleter.mostRecentQuery.queryTerms;
+      onComplete = MultiCompleter.mostRecentQuery.onComplete;
     }
     RegexpCache.clear();
-    this.mostRecentQuery = true;
+    MultiCompleter.mostRecentQuery = true;
     var r = this.completers, i = 0, l = r.length, counter = l, suggestions = [], _this = this,
       callback = function(newSuggestions) {
         suggestions = suggestions.concat(newSuggestions);
@@ -414,10 +414,10 @@ Settings.updateHooks.searchEnginesMap = (function(prev, value) {
         suggestions.forEach(Suggestion.prepareHtml);
         onComplete(suggestions);
         suggestions = null;
-        if (typeof _this.mostRecentQuery === "object") {
+        if (typeof MultiCompleter.mostRecentQuery === "object") {
           setTimeout(_this.filter.bind(_this), 0);
         } else {
-          _this.mostRecentQuery = false;
+          MultiCompleter.mostRecentQuery = false;
         }
       };
     for (; i < l; i++) {
