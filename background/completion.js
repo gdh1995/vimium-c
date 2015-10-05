@@ -384,13 +384,6 @@ MultiCompleter = {
   generator: null,
   maxResults: 10,
   mostRecentQuery: null,
-  refresh: function() {
-    for (var completer, _i = this.completers.length; 0 <= --_i; ) {
-      if ((completer = this.completers[_i]).refresh) {
-        completer.refresh();
-      }
-    }
-  },
   filter: function(completers, queryTerms, onComplete) {
     RegexpCache.clear();
     this.completers = completers;
@@ -433,9 +426,15 @@ MultiCompleter = {
   MultiCompleter.generator = function(completers) {
     this.completers = completers;
   };
-  MultiCompleter.generator.prototype.refresh = MultiCompleter.refresh;
   MultiCompleter.generator.prototype.filter = function(queryTerms, onComplete) {
     MultiCompleter.filter(this.completers, queryTerms, onComplete);
+  };
+  MultiCompleter.generator.prototype.refresh = function() {
+    for (var completer, _i = this.completers.length; 0 <= --_i; ) {
+      if ((completer = this.completers[_i]).refresh) {
+        completer.refresh();
+      }
+    }
   };
 
   RankingUtils = {
