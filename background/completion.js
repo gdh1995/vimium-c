@@ -74,6 +74,7 @@ setTimeout(function() {
 Completers.bookmarks = {
   bookmarks: null,
   currentSearch: null,
+  path: "",
   filter: function(queryTerms, onComplete) {
     this.currentSearch = {
       queryTerms: queryTerms,
@@ -121,17 +122,16 @@ Completers.bookmarks = {
       chrome.bookmarks.onCreated.addListener(Completers.bookmarks.completers[0].readTree);
     });
     this.refresh = null;
+    this.traverseBookmark = this.traverseBookmark.bind(this);
     bookmarks.getTree(this.readTree);
   },
   readTree: function(bookmarks) {
-    this.bookmarks = this.traverseBookmarks(bookmarks).filter(this.GetUrl);
+    this.bookmarks = [];
+    bookmarks.forEach(this.traverseBookmark);
     Decoder.decodeList(this.bookmarks);
     if (this.currentSearch) {
       this.performSearch();
     }
-  },
-  GetUrl: function(b) {
-    return b.url;
   },
   ignoreTopLevel: {
     "Bookmarks Bar": 1,
@@ -140,22 +140,16 @@ Completers.bookmarks = {
     "\u4E66\u7B7E\u680F": 1,
     "\u5176\u4ED6\u4E66\u7B7E": 1
   },
-  traverseBookmarks: function(bookmarks) {
-    var results = [], _this = this;
-    bookmarks.forEach(function(folder) {
-      _this.traverseBookmarksRecursive(folder, results, "");
-    });
-    return results;
-  },
-  traverseBookmarksRecursive: function(bookmark, results, path) {
+  traverseBookmark: function(bookmark) {
+    var path = this.path;
     bookmark.path = !bookmark.title ? "" : path ? (path + '/' + bookmark.title)
       : (bookmark.title in this.ignoreTopLevel) ? "" : ('/' + bookmark.title);
-    results.push(bookmark);
     if (bookmark.children) {
-      var _this = this;
-      bookmark.children.forEach(function(child) {
-        _this.traverseBookmarksRecursive(child, results, bookmark.path);
-      });
+      this.path = bookmark.path;
+      bookmark.children.forEach(this.traverseBookmark);
+      this.path = path;
+    } else {
+      this.bookmarks.push(bookmark);
     }
   },
   computeRelevancy: function(suggestion) {
