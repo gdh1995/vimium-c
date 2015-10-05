@@ -97,9 +97,9 @@ Completers.bookmarks = {
     var q = this.currentSearch.queryTerms, c = this.computeRelevancy, results, usePathAndTitle;
     usePathAndTitle = this.currentSearch.queryTerms.some(this.StartsWithSlash);
     results = this.bookmarks.filter(usePathAndTitle ? function(i) {
-      return RankingUtils.matches(q, i.text + '\n' + i.path);
+      return RankingUtils.match2(q, i.text, i.path);
     } : function(i) {
-      return RankingUtils.matches(q, i.text + '\n' + i.title);
+      return RankingUtils.match2(q, i.text, i.title);
     }).map(usePathAndTitle ? function(i) {
       return new Suggestion(q, "bookm", i.url, i.text, i.path, c);
     } : function(i) {
@@ -164,7 +164,7 @@ Completers.history = {
     if (queryTerms.length > 0) {
       HistoryCache.use(function(history) {
         onComplete(history.filter(function(entry) {
-          return RankingUtils.matches(queryTerms, entry.text + '\n' + entry.title);
+          return RankingUtils.match2(queryTerms, entry.text, entry.title);
         }).map(function(i) {
           return new Suggestion(queryTerms, "history", i.url, i.text, i.title, _this.computeRelevancy, i.lastVisitTime);
         }));
@@ -319,7 +319,7 @@ Completers.tabs = {
   filter1: function(queryTerms, onComplete, tabs) {
     var c = this.computeRelevancy, suggestions = tabs.filter(function(tab) {
       var text = Decoder.decodeURL(tab.url);
-      if (RankingUtils.matches(queryTerms, text + '\n' + tab.title)) {
+      if (RankingUtils.match2(queryTerms, text, tab.title)) {
         tab.text = text;
         return true;
       }
@@ -423,13 +423,11 @@ Completers.searchEngines = {
   }
 
   RankingUtils = {
-    matches: function(queryTerms, thing) {
-      var matchedTerm, regexp, _i, _len;
-      for (_i = 0, _len = queryTerms.length; _i < _len; ++_i) {
-        regexp = RegexpCache.get(queryTerms[_i], "", "");
-        if (! thing.match(regexp)) {
-          return false;
-        }
+    match2: function(queryTerms, s1, s2) {
+      var i = queryTerms.length, cache = RegexpCache, regexp;
+      while (0 <= --i) {
+        regexp = cache.get(queryTerms[i], "", "");
+        if (!(regexp.test(s1) && regexp.test(s2))) { return false; }
       }
       return true;
     },
