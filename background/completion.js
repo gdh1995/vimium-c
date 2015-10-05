@@ -345,7 +345,7 @@ Completers.tabs = {
 Completers.searchEngines = {
   engines: null,
   filter: function(queryTerms, onComplete) {
-    var pattern = this.engines[queryTerms[0]];
+    var pattern = queryTerms.length > 0 ? this.engines[queryTerms[0]] : null;
     if (!pattern) {
       onComplete([]);
       return;
@@ -353,7 +353,7 @@ Completers.searchEngines = {
     if (queryTerms.length > 1) {
       queryTerms.shift();
     } else {
-      queryTerms = queryTerms.slice(1);
+      queryTerms = [];
     }
     var obj = Utils.createSearchUrl(pattern, queryTerms, true);
     onComplete([new Suggestion(queryTerms, "search", obj.url, obj.url
