@@ -1,7 +1,7 @@
 "use strict";
 var Completers;
 setTimeout(function() {
-  var HistoryCache, RankingUtils, RegexpCache, Decoder;
+  var HistoryCache, RankingUtils, RegexpCache, Decoder, MultiCompleter;
 
   Completers = {};
 
@@ -75,21 +75,19 @@ Completers.bookmarks = {
   bookmarks: null,
   currentSearch: null,
   path: "",
-  filter: function(queryTerms, onComplete) {
-    this.currentSearch = {
-      queryTerms: queryTerms,
-      onComplete: onComplete
-    };
+  filter: function(query) {
     if (this.bookmarks) {
-      this.performSearch();
-    } else if (this.refresh) {
+      this.performSearch(query);
+      return;
+    }
+    this.currentSearch = query;
+    if (this.refresh) {
       this.refresh();
     }
   },
   StartsWithSlash: function(str) { return str.charCodeAt(0) === 47; },
-  performSearch: function() {
-    var onComplete = this.currentSearch.onComplete, q = this.currentSearch.queryTerms
-      , c, results, usePathAndTitle;
+  performSearch: function(query) {
+    var q = query.queryTerms, c, results, usePathAndTitle;
     if (q.length === 0) {
       results = [];
     } else {
@@ -105,8 +103,7 @@ Completers.bookmarks = {
         return new Suggestion(q, "bookm", i.url, i.text, i.title, c);
       });
     }
-    this.currentSearch = null;
-    onComplete(results);
+    query.onComplete(results);
   },
   refresh: function() {
     var bookmarks = chrome.bookmarks, listener;
@@ -123,15 +120,19 @@ Completers.bookmarks = {
     });
     this.refresh = null;
     this.traverseBookmark = this.traverseBookmark.bind(this);
-    bookmarks.getTree(this.readTree);
+    bookmarks.getTree((function(bookmarks) {
+      this.readTree(bookmarks);
+      var query = this.currentSearch;
+      this.currentSearch = null;
+      if (query && query.isCurrent) {
+        this.performSearch(query);
+      }
+    }).bind(this));
   },
   readTree: function(bookmarks) {
     this.bookmarks = [];
     bookmarks.forEach(this.traverseBookmark);
     Decoder.decodeList(this.bookmarks);
-    if (this.currentSearch) {
-      this.performSearch();
-    }
   },
   ignoreTopLevel: {
     "Bookmarks Bar": 1,
@@ -158,19 +159,22 @@ Completers.bookmarks = {
 };
 
 Completers.history = {
-  filter: function(queryTerms, onComplete) {
+  filter: function(query) {
     var _this = this;
-    if (queryTerms.length > 0) {
+    if (query.queryTerms.length > 0) {
       HistoryCache.use(function(history) {
-        onComplete(history.filter(function(entry) {
+        if (!query.isCurrent) { return; }
+        var queryTerms = query.queryTerms, cr = _this.computeRelevancy;
+        query.onComplete(history.filter(function(entry) {
           return RankingUtils.match2(queryTerms, entry.text, entry.title);
         }).map(function(i) {
-          return new Suggestion(queryTerms, "history", i.url, i.text, i.title, _this.computeRelevancy, i.lastVisitTime);
+          return new Suggestion(queryTerms, "history", i.url, i.text, i.title, cr, i.lastVisitTime);
         }));
       });
       return;
     }
     chrome.sessions.getRecentlyClosed(null, function(sessions) {
+      if (!query.isCurrent) { return; }
       var historys = [], arr = {};
       sessions.forEach(function(entry) {
         if (!entry.tab || entry.tab.url in arr) { return; }
@@ -179,7 +183,7 @@ Completers.history = {
         arr[entry.url] = 1;
         historys.push(entry);
       });
-      _this.filterFill(historys, onComplete, arr);
+      _this.filterFill(historys, query, arr);
     });
     if (! HistoryCache.history) {
       setTimeout(function() {
@@ -187,9 +191,9 @@ Completers.history = {
       }, 50);
     }
   },
-  filterFill: function(historys, onComplete, arr) {
+  filterFill: function(historys, query, arr) {
     if (historys.length >= MultiCompleter.maxResults) {
-      this.filterFinish(historys, onComplete);
+      this.filterFinish(historys, query);
       return;
     }
     var _this = this;
@@ -197,17 +201,18 @@ Completers.history = {
       text: "",
       maxResults: MultiCompleter.maxResults
     }, function(historys2) {
+      if (!query.isCurrent) { return; }
       var a = arr;
       historys2 = historys2.filter(function(i) {
         return !(i.url in a);
       });
       historys = historys.concat(historys2);
-      _this.filterFinish(historys, onComplete);
+      _this.filterFinish(historys, query);
     });
   },
-  filterFinish: function(historys, onComplete) {
+  filterFinish: function(historys, query) {
     var s = Suggestion, c = this.computeRelevancyByTime, d = Decoder.decodeURL;
-    onComplete(historys.sort(this.rsortByLvt).slice(0, MultiCompleter.maxResults).map(function(e) {
+    query.onComplete(historys.sort(this.rsortByLvt).slice(0, MultiCompleter.maxResults).map(function(e) {
       var o = new s([], "history", e.url, d(e.url), e.title, c, e.lastVisitTime);
       e.sessionId && (o.sessionId = e.sessionId);
       return o;
@@ -229,32 +234,34 @@ Completers.history = {
 
 Completers.domains = {
   domains: null,
-  filter: function(queryTerms, onComplete) {
-    if (queryTerms.length !== 1 || queryTerms[0].indexOf("/") !== -1) {
-      onComplete([]);
+  filter: function(query) {
+    if (query.queryTerms.length !== 1 || query.queryTerms[0].indexOf("/") !== -1) {
+      query.onComplete([]);
     } else if (this.domains) {
-      this.performSearch(queryTerms, onComplete);
+      this.performSearch(query);
     } else {
       var _this = this;
       HistoryCache.use(function(history) {
         _this.populateDomains(history);
-        _this.performSearch(queryTerms, onComplete);
+        if (!query.isCurrent) { return; }
+        _this.performSearch(query);
       });
     }
   },
-  performSearch: function(queryTerms, onComplete) {
-    var domain, domainCandidates = [], query = queryTerms[0];
+  performSearch: function(query) {
+    var domain, domainCandidates = [], word = query.queryTerms[0];
     for (domain in this.domains) {
-      if (domain.indexOf(query) >= 0) {
+      if (domain.indexOf(word) >= 0) {
         domainCandidates.push(domain);
       }
     }
     if (domainCandidates.length === 0) {
-      onComplete([]);
+      query.onComplete([]);
       return;
     }
-    domain = this.firstDomainByRelevancy(queryTerms, domainCandidates);
-    onComplete([new Suggestion(queryTerms, "domain", domain, domain, null, this.computeRelevancy)]);
+    domain = this.firstDomainByRelevancy(query.queryTerms, domainCandidates);
+    query.onComplete([new Suggestion(query.queryTerms
+        , "domain", domain, domain, null, this.computeRelevancy)]);
   },
   firstDomainByRelevancy: function(queryTerms, domainCandidates) {
     var domain, recencyScore, wordRelevancy, score, _i, _len, result = "", result_score = -1000;
@@ -316,11 +323,13 @@ Completers.domains = {
 };
 
 Completers.tabs = {
-  filter: function(queryTerms, onComplete) {
+  filter: function(query) {
     var _this = this;
-    chrome.tabs.query({}, this.filter1.bind(this, queryTerms, onComplete));
+    chrome.tabs.query({}, this.filter1.bind(this, query));
   },
-  filter1: function(queryTerms, onComplete, tabs) {
+  filter1: function(query, tabs) {
+    if (!query.isCurrent) { return; }
+    var queryTerms = query.queryTerms;
     var c = this.computeRelevancy, suggestions = tabs.filter(function(tab) {
       var text = Decoder.decodeURL(tab.url);
       if (RankingUtils.match2(queryTerms, text, tab.title)) {
@@ -334,7 +343,7 @@ Completers.tabs = {
       suggestion.favIconUrl = tab.favIconUrl;
       return suggestion;
     });
-    onComplete(suggestions);
+    query.onComplete(suggestions);
     Decoder.continueToWork();
   },
   computeRelevancy: function(suggestion) {
@@ -344,10 +353,11 @@ Completers.tabs = {
 
 Completers.searchEngines = {
   engines: Settings.get("searchEnginesMap"),
-  filter: function(queryTerms, onComplete) {
-    var pattern = queryTerms.length > 0 ? this.engines[queryTerms[0]] : null;
+  filter: function(query) {
+    var queryTerms = query.queryTerms
+      , pattern = queryTerms.length > 0 ? this.engines[queryTerms[0]] : null;
     if (!pattern) {
-      onComplete([]);
+      query.onComplete([]);
       return;
     }
     if (queryTerms.length > 1) {
@@ -356,7 +366,7 @@ Completers.searchEngines = {
       queryTerms = [];
     }
     var obj = Utils.createSearchUrl(pattern, queryTerms, true);
-    onComplete([new Suggestion(queryTerms, "search", obj.url, obj.url
+    query.onComplete([new Suggestion(queryTerms, "search", obj.url, obj.url
       , pattern.name + ": " + obj.$S, this.computeRelevancy)]);
   },
   computeRelevancy: function() {
@@ -368,66 +378,65 @@ Settings.updateHooks.searchEnginesMap = (function(prev, value) {
   this.engines = value;
 }).bind(Completers.searchEngines, Settings.updateHooks.searchEnginesMap);
 
-  function MultiCompleter(completers) {
-    this.completers = completers;
-  }
-
-  MultiCompleter.maxResults = 10;
-  MultiCompleter.mostRecentQuery = null;
-  
-  MultiCompleter.prototype.refresh = function() {
+MultiCompleter = {
+  completers: null,
+  counter: 0,
+  generator: null,
+  maxResults: 10,
+  mostRecentQuery: null,
+  refresh: function() {
     for (var completer, _i = this.completers.length; 0 <= --_i; ) {
       if ((completer = this.completers[_i]).refresh) {
         completer.refresh();
       }
     }
-  };
-
-  MultiCompleter.prototype.filter = function(queryTerms, onComplete) {
-    if (MultiCompleter.mostRecentQuery) {
-      if (arguments.length !== 0) {
-        MultiCompleter.mostRecentQuery = {
-          queryTerms: queryTerms,
-          onComplete: onComplete
-        };
-        return;
-      }
-      queryTerms = MultiCompleter.mostRecentQuery.queryTerms;
-      onComplete = MultiCompleter.mostRecentQuery.onComplete;
-    }
+  },
+  filter: function(completers, queryTerms, onComplete) {
     RegexpCache.clear();
-    MultiCompleter.mostRecentQuery = true;
-    var r = this.completers, i = 0, l = r.length, counter = l, suggestions = [], _this = this,
-      callback = function(newSuggestions) {
-        suggestions = suggestions.concat(newSuggestions);
-        --counter;
-        if (counter > 0) { return; }
-        
-        newSuggestions = null;
-        suggestions.sort(_this.rsortByRelevancy);
-        if (suggestions.length > MultiCompleter.maxResults) {
-          suggestions = suggestions.slice(0, MultiCompleter.maxResults);
-        }
-        if (queryTerms.length > 0) {
-          queryTerms[0] = Suggestion.shortenUrl(queryTerms[0]);
-        }
-        suggestions.forEach(Suggestion.prepareHtml);
-        onComplete(suggestions);
-        suggestions = null;
-        if (typeof MultiCompleter.mostRecentQuery === "object") {
-          setTimeout(_this.filter.bind(_this), 0);
-        } else {
-          MultiCompleter.mostRecentQuery = false;
-        }
-      };
-    for (; i < l; i++) {
-      r[i].filter(queryTerms, callback);
+    this.completers = completers;
+    this.onComplete = onComplete;
+    if (this.mostRecentQuery) { this.mostRecentQuery.isCurrent = false; }
+    var query = this.mostRecentQuery = {
+      isCurrent: true,
+      onComplete: null,
+      queryTerms: queryTerms
+    }, i, l;
+    query.onComplete = this.next.bind(this, query);
+    this.suggestions = [];
+    for (i = 0, l = this.counter = completers.length; i < l; i++) {
+      completers[i].filter(query);
     };
+  },
+  next: function(query, newSuggestions) {
+    if (!query.isCurrent) { return; }
+    var suggestions = this.suggestions.concat(newSuggestions);
+    if (0 < --this.counter) {
+      this.suggestions = suggestions;
+      return;
+    }
+    
+    this.mostRecentQuery = this.suggestions = newSuggestions = null;
+    suggestions.sort(this.rsortByRelevancy);
+    if (suggestions.length > this.maxResults) {
+      suggestions = suggestions.slice(0, this.maxResults);
+    }
+    var queryTerms = query.queryTerms;
+    if (queryTerms.length > 0) {
+      queryTerms[0] = Suggestion.shortenUrl(queryTerms[0]);
+    }
+    suggestions.forEach(Suggestion.prepareHtml);
+    this.onComplete.call(null, suggestions);
+  },
+  rsortByRelevancy: function(a, b) { return b.relevancy - a.relevancy; }
+};
+
+  MultiCompleter.generator = function(completers) {
+    this.completers = completers;
   };
-  
-  MultiCompleter.prototype.rsortByRelevancy = function(a, b) {
-    return b.relevancy - a.relevancy;
-  }
+  MultiCompleter.generator.prototype.refresh = MultiCompleter.refresh;
+  MultiCompleter.generator.prototype.filter = function(queryTerms, onComplete) {
+    MultiCompleter.filter(this.completers, queryTerms, onComplete);
+  };
 
   RankingUtils = {
     match2: function(queryTerms, s1, s2) {
@@ -705,10 +714,10 @@ Settings.updateHooks.searchEnginesMap = (function(prev, value) {
   }, 100);
 
   Completers = {
-    omni: new MultiCompleter([Completers.searchEngines, Completers.bookmarks, Completers.history, Completers.domains]),
-    bookmarks: new MultiCompleter([Completers.bookmarks]),
-    history: new MultiCompleter([Completers.history]),
-    tabs: new MultiCompleter([Completers.tabs])
+    bookmarks: new MultiCompleter.generator([Completers.bookmarks]),
+    history: new MultiCompleter.generator([Completers.history]),
+    omni: new MultiCompleter.generator([Completers.searchEngines, Completers.bookmarks, Completers.history, Completers.domains]),
+    tabs: new MultiCompleter.generator([Completers.tabs])
   };
 
   Utils.Decoder = Decoder;
