@@ -341,7 +341,11 @@ Completers.searchEngines = {
       onComplete([]);
       return;
     }
-    queryTerms = queryTerms.slice(1);
+    if (queryTerms.length > 1) {
+      queryTerms.shift();
+    } else {
+      queryTerms = queryTerms.slice(1);
+    }
     var obj = Utils.createSearchUrl(pattern, queryTerms, true);
     onComplete([new Suggestion(queryTerms, "search", obj.url, obj.url
       , pattern.name + ": " + obj.$S, this.computeRelevancy)]);
