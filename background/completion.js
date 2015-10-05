@@ -181,6 +181,11 @@ Completers.history = {
       });
       _this.filterFill(historys, onComplete, arr);
     });
+    if (! HistoryCache.history) {
+      setTimeout(function() {
+        HistoryCache.use(function() {});
+      }, 50);
+    }
   },
   filterFill: function(historys, onComplete, arr) {
     if (historys.length >= MultiCompleter.maxResults) {
