@@ -86,6 +86,7 @@ Completers.bookmarks = {
       this.refresh();
     }
   },
+  StartsWithSlash: function(str) { return str.charCodeAt(0) === 47; },
   performSearch: function() {
     if (this.currentSearch.queryTerms.length === 0) {
       var onComplete = this.currentSearch.onComplete;
@@ -94,7 +95,7 @@ Completers.bookmarks = {
       return;
     }
     var q = this.currentSearch.queryTerms, c = this.computeRelevancy, results, usePathAndTitle;
-    usePathAndTitle = this.currentSearch.queryTerms.join("").indexOf('/') >= 0;
+    usePathAndTitle = this.currentSearch.queryTerms.some(this.StartsWithSlash);
     results = this.bookmarks.filter(usePathAndTitle ? function(i) {
       return RankingUtils.matches(q, i.text + '\n' + i.path);
     } : function(i) {
