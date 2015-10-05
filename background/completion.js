@@ -88,24 +88,23 @@ Completers.bookmarks = {
   },
   StartsWithSlash: function(str) { return str.charCodeAt(0) === 47; },
   performSearch: function() {
-    if (this.currentSearch.queryTerms.length === 0) {
-      var onComplete = this.currentSearch.onComplete;
-      this.currentSearch = null;
-      onComplete([]);
-      return;
+    var onComplete = this.currentSearch.onComplete, q = this.currentSearch.queryTerms
+      , c, results, usePathAndTitle;
+    if (q.length === 0) {
+      results = [];
+    } else {
+      c = this.computeRelevancy;
+      usePathAndTitle = q.some(this.StartsWithSlash);
+      results = this.bookmarks.filter(usePathAndTitle ? function(i) {
+        return RankingUtils.match2(q, i.text, i.path);
+      } : function(i) {
+        return RankingUtils.match2(q, i.text, i.title);
+      }).map(usePathAndTitle ? function(i) {
+        return new Suggestion(q, "bookm", i.url, i.text, i.path, c);
+      } : function(i) {
+        return new Suggestion(q, "bookm", i.url, i.text, i.title, c);
+      });
     }
-    var q = this.currentSearch.queryTerms, c = this.computeRelevancy, results, usePathAndTitle;
-    usePathAndTitle = this.currentSearch.queryTerms.some(this.StartsWithSlash);
-    results = this.bookmarks.filter(usePathAndTitle ? function(i) {
-      return RankingUtils.match2(q, i.text, i.path);
-    } : function(i) {
-      return RankingUtils.match2(q, i.text, i.title);
-    }).map(usePathAndTitle ? function(i) {
-      return new Suggestion(q, "bookm", i.url, i.text, i.path, c);
-    } : function(i) {
-      return new Suggestion(q, "bookm", i.url, i.text, i.title, c);
-    });
-    var onComplete = this.currentSearch.onComplete;
     this.currentSearch = null;
     onComplete(results);
   },
@@ -136,8 +135,8 @@ Completers.bookmarks = {
   },
   ignoreTopLevel: {
     "Bookmarks Bar": 1,
-    "Other Bookmarks": 1,
     "Mobile Bookmarks": 1,
+    "Other Bookmarks": 1,
     "\u4E66\u7B7E\u680F": 1,
     "\u5176\u4ED6\u4E66\u7B7E": 1
   },
