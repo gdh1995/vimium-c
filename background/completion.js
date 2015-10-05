@@ -72,7 +72,7 @@ setTimeout(function() {
   };
 
 Completers.bookmarks = {
-  bookmarks: undefined,
+  bookmarks: null,
   currentSearch: null,
   filter: function(queryTerms, onComplete) {
     this.currentSearch = {
@@ -81,8 +81,7 @@ Completers.bookmarks = {
     };
     if (this.bookmarks) {
       this.performSearch();
-    }
-    else if (this.bookmarks === undefined) {
+    } else if (this.refresh) {
       this.refresh();
     }
   },
@@ -109,8 +108,20 @@ Completers.bookmarks = {
     onComplete(results);
   },
   refresh: function() {
-    this.bookmarks = null;
-    chrome.bookmarks.getTree(this.readTree);
+    var bookmarks = chrome.bookmarks, listener;
+    listener = this.readTree = this.readTree.bind(this);
+    bookmarks.onCreated.addListener(listener);
+    bookmarks.onRemoved.addListener(listener);
+    bookmarks.onChanged.addListener(listener);
+    bookmarks.onMoved.addListener(listener);
+    bookmarks.onImportBegan.addListener(function() {
+      chrome.bookmarks.onCreated.removeListener(Completers.bookmarks.completers[0].readTree);
+    });
+    bookmarks.onImportEnded.addListener(function() {
+      chrome.bookmarks.onCreated.addListener(Completers.bookmarks.completers[0].readTree);
+    });
+    this.refresh = null;
+    bookmarks.getTree(this.readTree);
   },
   readTree: function(bookmarks) {
     this.bookmarks = this.traverseBookmarks(bookmarks).filter(this.GetUrl);
@@ -151,7 +162,6 @@ Completers.bookmarks = {
     return RankingUtils.wordRelevancy(suggestion.queryTerms, suggestion.text, suggestion.title);
   }
 };
-Completers.bookmarks.readTree = Completers.bookmarks.readTree.bind(Completers.bookmarks);
 
 Completers.history = {
   filter: function(queryTerms, onComplete) {
