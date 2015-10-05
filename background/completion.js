@@ -343,7 +343,7 @@ Completers.tabs = {
 };
 
 Completers.searchEngines = {
-  engines: null,
+  engines: Settings.get("searchEnginesMap"),
   filter: function(queryTerms, onComplete) {
     var pattern = queryTerms.length > 0 ? this.engines[queryTerms[0]] : null;
     if (!pattern) {
@@ -363,6 +363,10 @@ Completers.searchEngines = {
     return 9;
   }
 };
+Settings.updateHooks.searchEnginesMap = (function(prev, value) {
+  prev.call(Settings, value);
+  this.engines = value;
+}).bind(Completers.searchEngines, Settings.updateHooks.searchEnginesMap);
 
   function MultiCompleter(completers) {
     this.completers = completers;
@@ -372,9 +376,8 @@ Completers.searchEngines = {
   MultiCompleter.maxResults = 10;
   
   MultiCompleter.prototype.refresh = function() {
-    for (var completer, _i = 0, _len = this.completers.length; _i < _len; ++_i) {
-      completer = this.completers[_i];
-      if (completer.refresh) {
+    for (var completer, _i = this.completers.length; 0 <= --_i; ) {
+      if ((completer = this.completers[_i]).refresh) {
         completer.refresh();
       }
     }
@@ -700,12 +703,6 @@ Completers.searchEngines = {
       }
     }
   }, 100);
-
-  Settings.updateHooks.searchEnginesMap = (function(func, value) {
-    func.call(Settings, value);
-    this.engines = value;
-  }).bind(Completers.searchEngines, Settings.updateHooks.searchEnginesMap);
-  Completers.searchEngines.engines = Settings.get("searchEnginesMap");
 
   Completers = {
     omni: new MultiCompleter([Completers.searchEngines, Completers.bookmarks, Completers.history, Completers.domains]),
