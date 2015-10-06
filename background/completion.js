@@ -444,7 +444,7 @@ MultiCompleter = {
       var i = queryTerms.length, cache = RegexpCache, regexp;
       while (0 <= --i) {
         regexp = cache.get(queryTerms[i], "", "");
-        if (!(regexp.test(s1) && regexp.test(s2))) { return false; }
+        if (!(regexp.test(s1) || regexp.test(s2))) { return false; }
       }
       return true;
     },
