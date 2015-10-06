@@ -232,7 +232,7 @@ Vomnibar.vomnibarUI = {
     else if (n === KeyCodes.backspace) { if (!focused) { return false; } }
     else if (n !== KeyCodes.space) {}
     else if (!focused) { action = "focus"; }
-    else if (((this.selection >= 0 && this.isSelectionChanged)
+    else if ((this.selection >= 0
         || this.completions.length <= 1) && this.input.value.endsWith("  ")) {
       action = "enter";
     }
