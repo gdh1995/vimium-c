@@ -1272,9 +1272,8 @@ var Settings, VHUD, MainPort, VInsertMode;
       Commands.showHelp = requestHandlers.showHelpDialog = function() {};
       return;
     }
-    container.className = "R";
-    container.id = "HelpDialogContainer";
     container.innerHTML = response.html;
+    container = container.firstElementChild;
     DomUtils.UI.addElement(container);
     container.addEventListener("mousewheel", DomUtils.suppressPropagation);
     container.addEventListener("click", DomUtils.suppressPropagation);
