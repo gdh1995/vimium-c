@@ -343,7 +343,6 @@ var Settings, VHUD, MainPort, VInsertMode;
       InsertMode.global = true;
       HUD.show("Insert mode");
     },
-    enterVisualMode: function() {}, // TODO
     enterFindMode: function() {
       Marks.setPreviousPosition();
       findModeQuery.rawQuery = "";

@@ -110,7 +110,7 @@ Commands.commandGroups = {
     , "LinkHints.activateModeToHover", "LinkHints.activateModeToLeave"
     , "LinkHints.activateModeToSearchLinkText"
     , "goPrevious", "goNext", "nextFrame", "mainFrame"
-    , "enterInsertMode", "enterVisualMode", "enterVisualLineMode"
+    , "enterInsertMode"
     , "Marks.activateCreateMode", "Marks.activateGotoMode"
     , "Marks.clearLocal", "clearGlobalMarks", "openUrl", "focusOrLaunch"
     ],
@@ -160,8 +160,6 @@ Commands.defaultKeyMappings = {
   "<a-R>": "reopenTab",
   gs: "toggleViewSource",
   i: "enterInsertMode",
-  v: "enterVisualMode",
-  V: "enterVisualLineMode",
   H: "goBack",
   L: "goForward",
   gu: "goUp",
@@ -373,16 +371,6 @@ setTimeout(function(descriptions) {
   ],
   enterInsertMode: [
     "Enter insert mode", {
-      repeat: 1
-    }
-  ],
-  enterVisualMode: [
-    "Enter visual mode", {
-      repeat: 1
-    }
-  ],
-  enterVisualLineMode: [
-    "Enter visual line mode (beta feature)", {
       repeat: 1
     }
   ],
