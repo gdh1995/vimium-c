@@ -381,14 +381,12 @@ Settings.updateHooks.searchEnginesMap = (function(prev, value) {
 }).bind(Completers.searchEngines, Settings.updateHooks.searchEnginesMap);
 
 MultiCompleter = {
-  completers: null,
   counter: 0,
   generator: null,
   maxResults: 10,
   mostRecentQuery: null,
   filter: function(completers, queryTerms, onComplete) {
     RegexpCache.clear();
-    this.completers = completers;
     this.onComplete = onComplete;
     if (this.mostRecentQuery) { this.mostRecentQuery.isCurrent = false; }
     var query = this.mostRecentQuery = {
@@ -396,13 +394,13 @@ MultiCompleter = {
       onComplete: null,
       queryTerms: queryTerms
     }, i, l;
-    query.onComplete = this.next.bind(this, query);
+    query.onComplete = this.next.bind(this, query, onComplete);
     this.suggestions = [];
     for (i = 0, l = this.counter = completers.length; i < l; i++) {
       completers[i].filter(query);
     };
   },
-  next: function(query, newSuggestions) {
+  next: function(query, onComplete, newSuggestions) {
     if (!query.isCurrent) { return; }
     var suggestions = this.suggestions.concat(newSuggestions);
     if (0 < --this.counter) {
@@ -420,7 +418,7 @@ MultiCompleter = {
       queryTerms[0] = Suggestion.shortenUrl(queryTerms[0]);
     }
     suggestions.forEach(Suggestion.prepareHtml);
-    this.onComplete.call(null, suggestions);
+    onComplete(suggestions);
   },
   rsortByRelevancy: function(a, b) { return b.relevancy - a.relevancy; }
 };
