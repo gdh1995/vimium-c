@@ -102,19 +102,18 @@ var LinkHints = {
     var elements, rect, style, width, height;
 
     elements = this.getVisibleClickableElements();
-    this.alphabetHints = this.alphabetHints;
     this.hintMarkers = elements.map(this.createMarkerFor);
     elements = null;
     this.alphabetHints.fillInMarkers(this.hintMarkers);
     this.isActive = true;
 
-    this.initScrollX = window.scrollX, this.initScrollY = window.scrollY;
+    this.initScrollX = window.scrollX; this.initScrollY = window.scrollY;
     var container = document.documentElement;
     // NOTE: if zoom > 1, although document.documentElement.scrollHeight is integer,
     //   its real rect may has a float width, such as 471.333 / 472
     rect = container.getBoundingClientRect();
-    width = rect.width, height = rect.height;
-    width = width !== (width | 0) ? 1 : 0, height = height !== (height | 0) ? 1 : 0;
+    width = rect.width; height = rect.height;
+    width = width !== (width | 0) ? 1 : 0; height = height !== (height | 0) ? 1 : 0;
     width  = container.scrollWidth  - this.initScrollX - width ;
     height = container.scrollHeight - this.initScrollY - height;
     width  = Math.max(width,  container.clientWidth );
@@ -126,8 +125,8 @@ var LinkHints = {
       className: "R"
     });
     style = this.hintMarkerContainingDiv.style;
-    style.left = this.initScrollX + "px", style.top = this.initScrollY + "px";
-    style.width = width + "px", style.height = height + "px";
+    style.left = this.initScrollX + "px"; style.top = this.initScrollY + "px";
+    style.width = width + "px"; style.height = height + "px";
     if (document.webkitFullscreenElement) { style.position = "fixed"; }
     this.handlerId = handlerStack.push({
       keydown: this.onKeyDownInMode,
@@ -281,7 +280,7 @@ var LinkHints = {
       if (s == null || !(s === "" || parseInt(s, 10) >= -1)) {
         return; // work around
       }
-      isClickable = true, _i = -1;
+      isClickable = true; _i = -1;
       break;
     }
     if (isClickable && (arr = DomUtils.getVisibleClientRect(element))) {
@@ -306,7 +305,7 @@ var LinkHints = {
     else if ((w = element.width) < 8 && (h = element.height) < 8) {
       if (w !== h || (w !== 0 && w !== 3)) { return; }
       rect = element.getBoundingClientRect();
-      w = rect.left, h = rect.top;
+      w = rect.left; h = rect.top;
       cr = VRect.cropRectToVisible(w, h, w + 8, h + 8);
     } else if (DomUtils.isStyleVisible(element)) {
       rect = element.getBoundingClientRect();
@@ -347,7 +346,7 @@ var LinkHints = {
     return output;
   },
   getVisibleClickableElements: function() {
-    var output = [], visibleElements = [], visibleElement, rects, rects2, _len, _i;
+    var output = [], visibleElements, visibleElement, rects, rects2, _len, _i;
     _i = this.mode & ~64;
     visibleElements = this.traverse(
       (_i == this.CONST.DOWNLOAD_IMAGE || _i == this.CONST.OPEN_IMAGE)
@@ -510,16 +509,12 @@ LinkHints.alphabetHints = {
     }
     base = characterSet.length;
     hintString = [];
-    remainder = 0;
-    while (true) {
+    do {
       remainder = number % base;
       hintString.unshift(characterSet[remainder]);
       number -= remainder;
       number /= Math.floor(base);
-      if (!(number > 0)) {
-        break;
-      }
-    }
+    } while (number > 0);
     leftLength = numHintDigits - hintString.length;
     while (0 <= --leftLength) {
       hintString.unshift(characterSet[0]);

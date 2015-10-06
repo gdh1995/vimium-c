@@ -65,8 +65,13 @@ Scroller = {
     this.Core.scroll(element, di, amount);
   },
   scrollTo: function(direction, factor) {
-    var amount, element, di = direction === "y" ? 1 : 0;;
-    factor >= 0 ? (amount = factor, factor = "") : (amount = 1);
+    var amount, element, di = direction === "y" ? 1 : 0;
+    if (factor >= 0) {
+      amount = factor;
+      factor = "";
+    } else {
+      amount = 1;
+    }
     element = this.findScrollable(this.getActivatedElement(), di, amount, factor);
     amount = amount * this.getDimension(element, di, factor) - (element
       ? element[this.Properties[di].axisName] : di ? window.scrollY : window.scrollX);
@@ -87,8 +92,7 @@ Scroller = {
       return element;
     }
     element = document.body;
-    return element = this.current = element
-      ? (this.selectFirst(element) || element) : null;
+    return this.current = element ? (this.selectFirst(element) || element) : null;
   },
   getDimension: function(el, di, name) {
     return !name ? 1
@@ -124,10 +128,9 @@ Scroller = {
   },
   shouldScroll: function(element, di) {
     var computedStyle = window.getComputedStyle(element), _ref;
-    return (computedStyle.getPropertyValue("display") === "none") //
+    return !((computedStyle.getPropertyValue("display") === "none") //
       || (computedStyle.getPropertyValue(di ? "overflow-y" : "overflow-x") === "hidden") //
-      || ((_ref = computedStyle.getPropertyValue("visibility")) === "hidden" || _ref === "collapse") //
-      ? false : true;
+      || ((_ref = computedStyle.getPropertyValue("visibility")) === "hidden" || _ref === "collapse"));
   },
   sortBy0: function(a, b) {
     return a[0] - b[0];
@@ -169,10 +172,10 @@ Scroller.Core.animate = function () {
     }
   };
   this.animate = function(new_amount, new_di, new_el) {
-    amount = Math.abs(new_amount), calibration = 1.0, di = new_di;
-    duration = Math.max(100, 20 * Math.log(amount)), element = new_el;
+    amount = Math.abs(new_amount); calibration = 1.0; di = new_di;
+    duration = Math.max(100, 20 * Math.log(amount)); element = new_el;
     sign = new_amount === 0 ? 0 : new_amount < 0 ? -1 : 1;
-    timestamp = -1, totalDelta = 0, totalElapsed = 0.0;
+    timestamp = -1; totalDelta = 0; totalElapsed = 0.0;
     var keyboard = Settings.values.keyboard;
     this.maxInterval = Math.round(keyboard[1] / 16.67) + 4;
     this.minDelay = (((keyboard[0] - keyboard[1]) / 30) | 0) * 30;

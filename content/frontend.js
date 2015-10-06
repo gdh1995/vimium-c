@@ -203,7 +203,6 @@ var Settings, VHUD, MainPort, VInsertMode;
       else if (!isEnabledForUrl) {}
       else if (findMode) {} // TODO: check findMode
       else if (DomUtils.getEditableType(target)) { InsertMode.focus(event); }
-      else if (InsertMode.lock === target) {} // TODO: check this `if`
       else if (target.shadowRoot) {
         target = target.shadowRoot;
         target.addEventListener("focus", ELs.onFocus, true);
@@ -358,7 +357,7 @@ var Settings, VHUD, MainPort, VInsertMode;
     reload: function() {
       window.location.reload();
     },
-    switchFocus: function(_0, options) {
+    switchFocus: function() {
       var newEl = document.activeElement;
       if (newEl !== document.body) {
         InsertMode.last = newEl;
@@ -397,7 +396,7 @@ var Settings, VHUD, MainPort, VInsertMode;
         return;
       }
       mainPort.sendMessage({
-        handler: "initHelp",
+        handler: "initHelp"
       }, requestHandlers.showHelpDialog);
     },
     autoCopy: function(_0, options) {
@@ -510,7 +509,6 @@ var Settings, VHUD, MainPort, VInsertMode;
     }
   };
 
-  // TODO: an active insert mode object should be inserted if needed
   ELs.onKeydown = function(event) {
     if (Scroller.keyIsDown) {
       if (event.repeat) {
@@ -696,7 +694,7 @@ var Settings, VHUD, MainPort, VInsertMode;
     },
     exit: function(event) {
       if (this.global) {
-        this.lock = null, this.global = false;
+        this.lock = null; this.global = false;
         HUD.hide();
       }
       var target = event.target;
@@ -732,25 +730,26 @@ var Settings, VHUD, MainPort, VInsertMode;
   };
   
   updateFindModeQuery = function() {
-    var escapeRe, hasNoIgnoreCaseFlag, parsedNonRegexpQuery, pattern, text, _ref;
+    var escapeRe, hasNoIgnoreCaseFlag, parsedNonRegexpQuery, pattern, text;
     findModeQuery.isRe = settings.values.regexFindMode;
     hasNoIgnoreCaseFlag = false;
     findModeQuery.parsedQuery = findModeQuery.rawQuery.replace(/\\./g, function(match) {
       switch (match) {
-        case "\\r":
-          findModeQuery.isRe = true;
-          return "";
-        case "\\R":
-          findModeQuery.isRe = false;
-          return "";
-        case "\\I":
-          hasNoIgnoreCaseFlag = true;
-          return "";
-        case "\\\\":
-          return "\\";
-        default:
-          return match;
+      case "\\r":
+        findModeQuery.isRe = true;
+        break;
+      case "\\R":
+        findModeQuery.isRe = false;
+        break;
+      case "\\I":
+        hasNoIgnoreCaseFlag = true;
+        break;
+      case "\\\\":
+        return "\\";
+      default:
+        return match;
       }
+      return "";
     });
     findModeQuery.ignoreCase = !hasNoIgnoreCaseFlag && !Utils.upperRe.test(findModeQuery.parsedQuery);
     if (findModeQuery.isRe) {
@@ -813,7 +812,6 @@ var Settings, VHUD, MainPort, VInsertMode;
   handleEnterForFindMode = function() {
     exitFindMode();
     focusFoundLink();
-    // document.body.classList.add("FindMode");
     settings.set("findModeRawQuery", findModeQuery.rawQuery);
   };
 
@@ -832,8 +830,6 @@ var Settings, VHUD, MainPort, VInsertMode;
 
   executeFind = function(query, options) {
     var oldFindMode = findMode, result;
-    findMode = true;
-    // document.body.classList.add("FindMode");
     HUD.hide(true);
     result = options.repeat;
     do {
@@ -850,7 +846,6 @@ var Settings, VHUD, MainPort, VInsertMode;
   };
 
   restoreDefaultSelectionHighlight = function() {
-    // document.body.classList.remove("FindMode");
     document.removeEventListener("selectionchange", restoreDefaultSelectionHighlight, true);
     if (findChangeListened) {
       clearTimeout(findChangeListened);
@@ -859,15 +854,14 @@ var Settings, VHUD, MainPort, VInsertMode;
   };
 
   focusFoundLink = function() {
-    if (findModeQueryHasResults) {
-      var link, node = window.getSelection().anchorNode;
-      while (node && node !== document.body) {
-        if (node.nodeName.toLowerCase() === "a") {
-          node.focus();
-          return;
-        }
-        node = node.parentNode;
+    if (!findModeQueryHasResults) { return; }
+    var node = window.getSelection().anchorNode;
+    while (node && node !== document.body) {
+      if (node.nodeName.toLowerCase() === "a") {
+        node.focus();
+        return;
       }
+      node = node.parentNode;
     }
   };
 
@@ -1231,7 +1225,7 @@ var Settings, VHUD, MainPort, VInsertMode;
     execute: function(request) {
       keyQueue = false;
       currentSeconds = secondKeys[""];
-      var components = request.command.split('.'), obj = Commands, _i, _len, _ref;
+      var components = request.command.split('.'), obj = Commands, _i, _len;
       for (_i = 0, _len = components.length - 1; _i < _len; _i++) {
         obj = obj[components[_i]];
       }
@@ -1243,7 +1237,7 @@ var Settings, VHUD, MainPort, VInsertMode;
         mainPort.sendCommadToFrame(request.source, request.command, request.args);
         return;
       }
-      var components = request.command.split('.'), obj = Commands, _i, _len, _ref;
+      var components = request.command.split('.'), obj = Commands, _i, _len;
       for (_i = 0, _len = components.length - 1; _i < _len; _i++) {
         obj = obj[components[_i]];
       }
@@ -1274,8 +1268,8 @@ var Settings, VHUD, MainPort, VInsertMode;
     container.innerHTML = response.html;
     container = container.firstElementChild;
     DomUtils.UI.addElement(container);
-    container.addEventListener("mousewheel", DomUtils.suppressPropagation);
-    container.addEventListener("click", DomUtils.suppressPropagation);
+    container.addEventListener("mousewheel", DomUtils.SuppressPropagation);
+    container.addEventListener("click", DomUtils.SuppressPropagation);
 
     hide = function() {
       handlerStack.remove(handlerId);

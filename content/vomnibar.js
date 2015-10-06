@@ -199,7 +199,7 @@ Vomnibar.vomnibarUI = {
       _ref[sel].classList.add("S");
     }
   },
-  onKeypress: function(event) {
+  onKeypress: function() {
     return VInsertMode.lock === this.input ? -1 : true;
   },
   onKeydown: function(event) {
@@ -249,7 +249,11 @@ Vomnibar.vomnibarUI = {
       this.isSelectionChanged = true;
       action = "enter";
     }
-    return action ? (this.onAction(action), false) : focused ? -1 : true;
+    if (action) {
+      this.onAction(action);
+      return false;
+    }
+    return focused ? -1 : true;
   },
   onAction: function(action) {
     var sel;
@@ -360,7 +364,7 @@ Vomnibar.vomnibarUI = {
     this.onTimer = this.onTimer.bind(this);
     this.onCompletions = this.onCompletions.bind(this);
     box.addEventListener("click", this.onClick = this.onClick.bind(this));
-    box.addEventListener("mousewheel", DomUtils.suppressPropagation);
+    box.addEventListener("mousewheel", DomUtils.SuppressPropagation);
     var str;
     if (location.protocol.startsWith("chrome") && chrome.runtime.getManifest
         && (str = chrome.runtime.getManifest().permissions)) {
@@ -395,7 +399,7 @@ Vomnibar.vomnibarUI = {
       a.setAttribute("data-vim-url", item.url);
     }
     rect = VRect.fromClientRect(li.getBoundingClientRect());
-    rect[0] += 10, rect[2] -= 12, rect[3] -= 3;
+    rect[0] += 10; rect[2] -= 12; rect[3] -= 3;
     return rect;
   }
 };
@@ -566,7 +570,7 @@ Vomnibar.background = {
     restoreSession: function() {
       MainPort.port.postMessage({
         handler: "restoreSession",
-        sessionId: this.sessionId,
+        sessionId: this.sessionId
       });
     }
   }

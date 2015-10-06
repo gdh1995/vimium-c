@@ -19,11 +19,11 @@ DomUtils.isSandboxed = function () {
     node.onclick = function() { ++i };
     node.click();
     if (i === 0) {
-      DomUtils.isSandboxed = function() { return true; }
+      DomUtils.isSandboxed = function() { return true; };
       return true;
     }
   }
-  DomUtils.isSandboxed = function() { return false; }
+  DomUtils.isSandboxed = function() { return false; };
   return false;
 };
 
