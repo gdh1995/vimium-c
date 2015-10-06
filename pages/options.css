@@ -53,9 +53,6 @@ button[disabled], button[disabled]:hover, button[disabled]:active {
   text-shadow: 0 1px 0 #f0f0f0;
   color: #888;
 }
-input[type="checkbox"] {
-  -webkit-user-select: none;
-}
 label:hover {
   color: black;
 }
@@ -68,10 +65,10 @@ pre {
   padding-left: 5px;
 }
 #options {
-  width: 100%;
+  border-spacing: 0 23px;
   font-size: 14px;
   position: relative;
-  border-spacing: 0 23px;
+  width: 100%;
 }
 .example {
   font-size: 12px;
@@ -93,7 +90,6 @@ div#exampleKeyMapping {
   margin-left: 10px;
   margin-top: 5px;
 }
-#linkHintCharacters, #newTabUrl, #searchUrl,
 #footer, #footerTable, #footerTableData {
   width: 100%;
 }
@@ -107,23 +103,14 @@ div#exampleKeyMapping {
   margin-left: 1px;
 }
 #userDefinedCss, #userDefinedOuterCss {
-  width: 100%;
   padding-bottom: 2px;
   min-height: 75px;
-  white-space: nowrap;
 }
 #keyMappings {
-  width: 100%;
   min-height: 134px;
-  white-space: nowrap;
 }
 #searchEngines {
-  width: 100%;
   min-height: 116px;
-  white-space: nowrap;
-}
-#previousPatterns, #nextPatterns {
-  width: 100%;
 }
 #keyboard {
   width: 120px;
@@ -141,7 +128,7 @@ div#exampleKeyMapping {
 #buttonsPanel { width: 100%; }
 .help {
   position: absolute;
-  right: -320px;
+  left: 100%;
   width: 320px;
   margin-top: -2px;
 }
@@ -152,6 +139,11 @@ input, textarea {
   color: black;
   font: inherit;
   padding: 3px;
+  white-space: nowrap;
+  width: 100%;
+}
+input[type="checkbox"] {
+  width: auto;
 }
 button:focus, input:focus, textarea:focus {
   -webkit-transition: border-color 200ms;
@@ -162,7 +154,6 @@ button:focus, input:focus, textarea:focus {
 td.booleanOption, #helpText { font-size: 12px; }
 /* Ids and classes for rendering exclusionRules */
 #exclusionScrollBox {
-  overflow: scroll;
   overflow-x: hidden;
   overflow-y: auto;
   max-height: 130px;
