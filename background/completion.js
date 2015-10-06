@@ -106,28 +106,30 @@ Completers.bookmarks = {
     query.onComplete(results);
   },
   refresh: function() {
-    var bookmarks = chrome.bookmarks, listener;
-    listener = this.readTree = this.readTree.bind(this);
+    var bookmarks = chrome.bookmarks, listener, _this = this;
+    listener = function() {
+      chrome.bookmarks.getTree(_this.readTree.bind(_this));
+    };
     bookmarks.onCreated.addListener(listener);
     bookmarks.onRemoved.addListener(listener);
     bookmarks.onChanged.addListener(listener);
     bookmarks.onMoved.addListener(listener);
     bookmarks.onImportBegan.addListener(function() {
-      chrome.bookmarks.onCreated.removeListener(Completers.bookmarks.completers[0].readTree);
+      chrome.bookmarks.onCreated.removeListener(listener);
     });
     bookmarks.onImportEnded.addListener(function() {
-      chrome.bookmarks.onCreated.addListener(Completers.bookmarks.completers[0].readTree);
+      chrome.bookmarks.onCreated.addListener(listener);
     });
     this.refresh = null;
     this.traverseBookmark = this.traverseBookmark.bind(this);
-    bookmarks.getTree((function(bookmarks) {
-      this.readTree(bookmarks);
-      var query = this.currentSearch;
-      this.currentSearch = null;
+    bookmarks.getTree(function(bookmarks) {
+      _this.readTree(bookmarks);
+      var query = _this.currentSearch;
+      _this.currentSearch = null;
       if (query && query.isCurrent) {
-        this.performSearch(query);
+        _this.performSearch(query);
       }
-    }).bind(this));
+    });
   },
   readTree: function(bookmarks) {
     this.bookmarks = [];
