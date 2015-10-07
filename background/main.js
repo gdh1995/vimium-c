@@ -320,7 +320,7 @@ g_requestHandlers;
         chrome.tabs.create({url: url});
         return chrome.runtime.lastError;
       }
-      var tab = funcDict.selectFrom(wnd.tabs);
+      tab = funcDict.selectFrom(wnd.tabs);
       if (wnd.type !== "normal") {
         tab.windowId = undefined;
         tab.index = 999;
@@ -564,12 +564,12 @@ g_requestHandlers;
           chrome.windows.update(tab.windowId, {focused: true});
           if (request.scroll) {
             setTimeout(Marks.gotoTab, 1000, request);
-          };
+          }
         });
         return;
       }
       chrome.windows.getCurrent(function(wnd) {
-        var wndId = wnd.id, tabs2, tab;
+        var wndId = wnd.id, tabs2;
         tabs2 = tabs.filter(function(tab) {return tab.windowId === wndId;});
         if (tabs2[0]) {
           Marks.gotoTab(request, tabs2[0]);
@@ -692,7 +692,7 @@ g_requestHandlers;
         openMultiTab(url, commandCount, tabs[0]);
       });
     },
-    focusOrLaunch: function(request) {
+    focusOrLaunch: function() {
       var url = Utils.convertToUrl(currentCommand.options.url || "");
       requestHandlers.focusOrLaunch({url: url});
     },
@@ -875,7 +875,7 @@ g_requestHandlers;
   Commands.PopulateCommandKeys = function() {
     var key, ref1, ref2, first, arr, keyRe = Commands.keyRe, ch;
     resetKeys();
-    ref1 = firstKeys = ["1", "2", "3", "4", "5", "6", "7", "8", "9"];
+    ref1 = ["1", "2", "3", "4", "5", "6", "7", "8", "9"];
     ref2 = secondKeys = Utils.makeNullProto();
     for (key in Commands.keyToCommandRegistry) {
       ch = key.charCodeAt(0);

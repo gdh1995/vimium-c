@@ -67,7 +67,7 @@ setTimeout(function() {
         mergedRanges.push(range[0], range[1]);
         i += 2;
       }
-    };
+    }
     return mergedRanges;
   };
 
@@ -326,7 +326,6 @@ Completers.domains = {
 
 Completers.tabs = {
   filter: function(query) {
-    var _this = this;
     chrome.tabs.query({}, this.filter1.bind(this, query));
   },
   filter1: function(query, tabs) {
@@ -398,7 +397,7 @@ MultiCompleter = {
     this.suggestions = [];
     for (i = 0, l = this.counter = completers.length; i < l; i++) {
       completers[i].filter(query);
-    };
+    }
   },
   next: function(query, onComplete, newSuggestions) {
     if (!query.isCurrent) { return; }
@@ -479,13 +478,11 @@ MultiCompleter = {
       urlCount = titleCount = 0;
       for (_i = 0, _len = queryTerms.length; _i < _len; ++_i) {
         term = queryTerms[_i];
-        _ref = this.scoreTerm(term, url), s = _ref[0], c = _ref[1];
-        urlScore += s;
-        urlCount += c;
+        _ref = this.scoreTerm(term, url); s = _ref[0]; c = _ref[1];
+        urlScore += s; urlCount += c;
         if (title) {
-          _ref1 = this.scoreTerm(term, title), s = _ref1[0], c = _ref1[1];
-          titleScore += s;
-          titleCount += c;
+          _ref1 = this.scoreTerm(term, title); s = _ref1[0]; c = _ref1[1];
+          titleScore += s; titleCount += c;
         }
       }
       maximumPossibleScore = this.matchWeights.maximumScore * queryTerms.length + 0.01;
@@ -633,7 +630,7 @@ MultiCompleter = {
       }
     },
     Work: function() {
-      var _this = Decoder;
+      var _this = Decoder, url, text;
       if (_this.working === -1) {
         _this.init();
         _this.working = 0;
@@ -643,7 +640,7 @@ MultiCompleter = {
         _this._timer = 0;
         _this._link.href = "";
       } else if (_this.working === 0) {
-        var url = _this.todos[0];
+        url = _this.todos[0];
         if (url.url) {
           url = url.url;
         }
@@ -655,11 +652,10 @@ MultiCompleter = {
             + "%7Bfont-family%3A%22" + url + "%22%7D";
         }
       } else if (_this.working === 1) {
-        _this.working = 2;
-        var text = window.getComputedStyle(_this._div).fontFamily, url = _this.todos.shift();
+        text = window.getComputedStyle(_this._div).fontFamily;
+        url = _this.todos.shift();
         if (url.url) {
           _this.dict[url.url] = url.text = text = text.substring(1, text.length - 1);
-          url = url.url;
         } else {
           _this.dict[url] = text = text.substring(1, text.length - 1);
         }

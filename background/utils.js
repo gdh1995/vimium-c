@@ -3,7 +3,7 @@ var Utils = {
   makeNullProto: function() {
     return {__proto__: null};
   },
-  fetchHttpContents: function(url, success, onerror) {
+  fetchHttpContents: function(url, success) {
     var req = new XMLHttpRequest();
     req.open("GET", url, true);
     req.onreadystatechange = function () {

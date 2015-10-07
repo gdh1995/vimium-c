@@ -15,7 +15,7 @@ var Commands = {
     return key.replace(this._keyLeftRe, this.onNormalize);
   },
   getOptions: function(item) {
-    var opt = {}, i, len, ind, str, val, e;
+    var opt = {}, i, len, ind, str, val;
     for (i = 3, len = item.length; i < len; ) {
       str = item[i++];
       ind = str.indexOf("=");
@@ -34,7 +34,7 @@ var Commands = {
     }
     return opt;
   },
-  loadDefaults: function(registry) {
+  loadDefaults: function() {
     var defaultMap = this.defaultKeyMappings, available = this.availableCommands
       , registry = this.keyToCommandRegistry
       , key, command, details, options = Utils.makeNullProto();

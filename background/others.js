@@ -19,7 +19,7 @@ if (Settings.get("vimSync") === true) setTimeout(function() {
         }
       });
     },
-    handleStorageUpdate: function(changes, area) {
+    handleStorageUpdate: function(changes) {
       var change, key;
       for (key in changes) {
         if (!Object.prototype.hasOwnProperty.call(changes, key)) continue;
@@ -133,7 +133,7 @@ function(details) {
   if (!reason && chrome.notifications && chrome.notifications.create) { return; }
 
   func = function(versionA, versionB) {
-    var a, b, i, _i, _ref;
+    var a, b, i, _ref;
     versionA = versionA.split('.');
     versionB = versionB.split('.');
     for (i = 0, _ref = Math.max(versionA.length, versionB.length); i < _ref; ++i) {
@@ -180,5 +180,5 @@ setTimeout(function() {
 var a, b, c, cb, log;
 cb = function(b) { a = b; console.log(b); };
 setTimeout(function() {
-  a = c = null, b = cb, log = console.log.bind(console);
+  a = c = null; b = cb; log = console.log.bind(console);
 }, 1000); // #endif */

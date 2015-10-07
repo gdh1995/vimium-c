@@ -19,7 +19,7 @@ var Marks = {
     return true;
   },
   gotoMark: function(request) {
-    var str = request.markName, markInfo;
+    var str, markInfo;
     str = localStorage[Marks.getMarkKey(request.markName)];
     if (!str) {
       return false;
