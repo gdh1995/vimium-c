@@ -263,6 +263,15 @@ g_requestHandlers;
       });
       chrome.tabs.remove(tab.id);
     },
+    makeWindow: function(option, state) {
+      if (state && Settings.CONST.ChromeVersion >= 44) {
+        option.state = state;
+      }
+      chrome.windows.create(option, state && Settings.CONST.ChromeVersion < 44
+      ? function(wnd) {
+        chrome.windows.update(wnd.id, {state: state});
+      } : null);
+    },
     makeTempWindow: function(tabIdUrl, incognito, callback) {
       chrome.windows.create({
         type: "normal", // not popup, because popup windows are always on top
@@ -270,6 +279,7 @@ g_requestHandlers;
         focused: false,
         incognito: incognito,
         tabId: tabIdUrl > 0 ? tabIdUrl : undefined,
+        state: Settings.CONST.ChromeVersion >= 44 ? "minimized" : undefined,
         url: tabIdUrl > 0 ? undefined : tabIdUrl
       }, callback);
     },
@@ -298,20 +308,25 @@ g_requestHandlers;
         }
         return;
       }
-      chrome.windows.create({
-        type: "normal",
-        url: request.url,
-        incognito: true
-      }, function(newWnd) {
-        if (!request.active) {
-          chrome.windows.update(tab.windowId, {focused: true});
+      chrome.windows.get(tab.windowId, function(oldWnd) {
+        var state;
+        if (oldWnd.type === "normal") {
+          state = oldWnd.state;
         }
-        chrome.windows.get(tab.windowId, function(wnd) {
-          if (wnd.type === "normal") {
-            chrome.windows.update(newWnd.id, {state: wnd.state});
+        chrome.windows.create({
+          type: "normal",
+          state: Settings.CONST.ChromeVersion >= 44 ? state : undefined,
+          url: request.url,
+          incognito: true
+        }, function(newWnd) {
+          if (!request.active) {
+            chrome.windows.update(tab.windowId, {focused: true});
+          }
+          if (state && Settings.CONST.ChromeVersion < 44) {
+            chrome.windows.update(newWnd.id, {state: state});
           }
         });
-      })
+      });
     },
 
     createTab: [function(wnd) {
@@ -395,20 +410,17 @@ g_requestHandlers;
       }
     }],
     moveTabToNewWindow: function(wnd) {
-      var tab, state;
+      var tab;
       if (wnd.tabs.length <= 1) { return; }
       tab = funcDict.selectFrom(wnd.tabs);
-      state = wnd.state;
-      chrome.windows.create({
+      funcDict.makeWindow({
         type: "normal",
         tabId: tab.id,
         incognito: tab.incognito
-      }, wnd.type === "normal" ? function(wnd) {
-        chrome.windows.update(wnd.id, {state: state});
-      } : null);
+      }, wnd.type === "normal" ? wnd.state : null);
     },
     moveTabToNextWindow: [function(tab, wnds0) {
-      var wnds, ids, index, state;
+      var wnds, ids, index;
       wnds = wnds0.filter(function(wnd) { return wnd.incognito === tab.incognito && wnd.type === "normal"; });
       if (wnds.length > 0) {
         ids = wnds.map(function(wnd) { return wnd.id; });
@@ -422,16 +434,11 @@ g_requestHandlers;
         index = tab.windowId;
         wnds = wnds0.filter(function(wnd) { return wnd.id === index; });
       }
-      if (wnds.length === 1 && wnds[0].type === "normal") {
-        state = wnds[0].state;
-      }
-      chrome.windows.create({
+      funcDict.makeWindow({
         type: "normal",
         tabId: tab.id,
         incognito: tab.incognito
-      }, state ? function(wnd) {
-        chrome.windows.update(wnd.id, {state: state});
-      } : null);
+      }, wnds.length === 1 && wnds[0].type === "normal" ? wnds[0].state : null);
     }, function(tab, oldIndex, tab2) {
       tab2 = tab2[0];
       if (oldIndex >= 0) {
@@ -477,9 +484,7 @@ g_requestHandlers;
         tabId = options.tabId;
         options.tabId = undefined;
       }
-      chrome.windows.create(options, wnd.type !== "normal" ? null : function(newWnd) {
-        chrome.windows.update(newWnd.id, {state: wnd.state});
-      });
+      funcDict.makeWindow(options, wnd.type === "normal" ? wnd.state : null);
       if (options.url) {
         chrome.tabs.remove(tabId);
       }
