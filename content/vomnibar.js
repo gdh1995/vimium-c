@@ -217,12 +217,14 @@ Vomnibar.vomnibarUI = {
     else if (n === 75 || n === 80) { action = "up"; } // 'K' or 'P'
 
     if (action) {}
-    else if (event.shiftKey || event.ctrlKey || event.metaKey) {
-      if (n === KeyCodes.enter) { this.forceNewTab = true; action = "enter"; }
-      else if (event.ctrlKey || event.metaKey) {}
-      else if (n === KeyCodes.tab) { action = "up"; }
+    else if (n === KeyCodes.enter) {
+      if (event.shiftKey || event.ctrlKey || event.metaKey) { this.forceNewTab = true; }
+      action = "enter";
     }
-    else if (n === KeyCodes.enter) { action = "enter"; }
+    else if (event.ctrlKey || event.metaKey) {}
+    else if (event.shiftKey) {
+      if (n === KeyCodes.tab) { action = "up"; }
+    }
     else if (n === KeyCodes.tab) { action = "down"; }
     else if (n === KeyCodes.esc) { action = "dismiss"; }
     else if (n === KeyCodes.up) { action = "up"; }
