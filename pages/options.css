@@ -111,6 +111,7 @@ div#exampleKeyMapping {
 }
 #searchEngines {
   min-height: 116px;
+  line-height: 18px;
 }
 #keyboard {
   width: 120px;
