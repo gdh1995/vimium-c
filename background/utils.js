@@ -259,3 +259,13 @@ var Utils = {
   Decoder: null,
   upperRe: /[A-Z]/
 };
+
+if (!String.prototype.startsWith) {
+String.prototype.startsWith = function(s) {
+  return this.length >= s.length && this.lastIndexOf(s, 0) === 0;
+};
+String.prototype.endsWith || (String.prototype.endsWith = function(s) {
+  var i = this.length - s.length;
+  return i >= 0 && this.indexOf(s, i) === i;
+});
+}
