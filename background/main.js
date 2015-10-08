@@ -1007,12 +1007,6 @@ g_requestHandlers;
           delete extForTab[id];
         }
         break;
-      case "ext":
-        extForTab[port.sender.tab.id] = request.extId;
-        if ((ref = Settings.extIds).indexOf(request.extId) === -1) {
-          ref.push(request.extId);
-        }
-        break;
       }
     }
   };
@@ -1160,6 +1154,13 @@ g_requestHandlers;
         name: "dispatchCommand", frameId: request.frameId, source: request.source,
         command: request.command, args: request.args
       }, request.tabId);
+    },
+    ext: function(request, port) {
+      var ref = Settings.extIds, extId = request.extId;
+      extForTab[port.sender.tab.id] = extId;
+      if (ref.indexOf(extId) === -1) {
+        ref.push(extId);
+      }
     },
     frameFocused: function(request, port) {
       var tabId = request.tabId, frames;
