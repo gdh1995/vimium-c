@@ -988,8 +988,8 @@ var oauth = {
 		var self = this;
 		var url = self.synDataApiUrl + '?e=' + self.oauthId + '&ver=' + ver + '&dataVersion=' + _config.dataVersion;
 		$.post(url, function (result) {
-			if (typeof result === 'string' && result.startsWith('ERROR')) {
-				if (result.startsWith('ERROR_FILE_MSGID_')) {
+			if (typeof result === 'string' && result.substring(0, 5) === 'ERROR') {
+				if (result.substring(0, 17) === 'ERROR_FILE_MSGID_') {
 					PDI.set('setup', 'msgid', parseInt(result.substring(17)))
 				}
 				if (window.location.href != window.location.protocol + '//' + window.location.hostname + window.location.pathname) {
@@ -1065,7 +1065,7 @@ var oauth = {
 		var url = self.synDataApiUrl + '?e=' + self.oauthId;
 		if ((gt || lt) && self.oauthId && self.oauthCode) {
 			$.post(url, function (result) {
-				if (typeof result === 'string' && !result.startsWith('ERROR')) {
+				if (typeof result === 'string' && result.substring(0, 5) !== 'ERROR') {
 					var msgid = parseInt(PDI.get('setup', 'msgid'));
 					result = JSON.parse(result);
 					if (result.msgid > msgid) {
@@ -1090,7 +1090,7 @@ var oauth = {
 			data['msgid'] = parseInt(PDI.get('setup', 'msgid'));
 			data['ver'] = _config.version;
 			$.post(self.synDataApiUrl, data, function (result) {
-				if (!result.startsWith('ERROR')) {}
+				if (result.substring(0, 5) !== 'ERROR') {}
 				else if (result == "ERROR_MSGID") {
 					if (parseInt(Math.random() * (100 - 1) + 1) % 3 == 1) {
 						showNotice(getI18nMsg('oauthSynMsgidError'))
@@ -1123,7 +1123,7 @@ var oauth = {
 		storage.relative = false;
 		for (var i = 0, k, skinsStorage; i < _cacheKeys.length; i++) {
 			k = _cacheKeys[i];
-			if (!k.startsWith('skins')) {
+			if (k.substring(0, 5) !== 'skins') {
 				oauthData[self.oauthId][k] = JSON.stringify(PDI.get(k));
 				continue
 			} else if (skinsStorage = storage.get(k, true)) {
@@ -1163,7 +1163,7 @@ var oauth = {
 			data['email'] = self.oauthId;
 			data['msgid'] = msgid;
 			$.post(self.synDataApiUrl, data, function (result) {
-				if (!result || result.startsWith('ERROR')) {
+				if (!result || result.substring(0, 5) === 'ERROR') {
 					return;
 				}
 				storage.relative = false;
@@ -2306,7 +2306,7 @@ DBOX = {
 		logoBoxWidth = self.width,
 		boxLogoColor = '191,0,0',
 		logoImgUrl = thisBox.getImg();
-		if (logoImgUrl.startsWith(urlImg)) {
+		if (logoImgUrl.substring(0, urlImg.length) === urlImg) {
 			if (type == 'quick' && logoImgUrl.indexOf('/m/') !== -1) {
 				logoImgUrl = logoImgUrl.replace('/m/', '/s/')
 			} else if (type == 'normal' && logoImgUrl.indexOf('/s/') !== -1) {

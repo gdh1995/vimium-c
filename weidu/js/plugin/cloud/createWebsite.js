@@ -18,7 +18,7 @@ var createWebsite = {
 		}, function (data) {
 			if (data instanceof Array && data.length > 0) {
 				$.each(data, function (i, n) {
-					if (n.url && n.url.startsWith('http')) {
+					if (n.url && n.url.substring(0, 4) === 'http') {
 						try {
 							var _domain = n.url.match(/[^:]+:\/\/([^\/]+)/);
 							var domain = _domain[1];
@@ -62,7 +62,7 @@ var createWebsite = {
 				$.post(urlImg + "weidu/uploadLogo.php", {
 					"imgData" : this.result
 				}, function (result) {
-					if (!result || result.startsWith('ERROR')) {
+					if (!result || result.substring(0, 5) === 'ERROR') {
 						showNotice(getI18nMsg('logoFileUploadError'));
 						return
 					}

@@ -262,7 +262,7 @@ var setup = {
 							lang : ui_locale,
 							data : this.result
 						}, function(result) {
-							if (!result || result.startsWith('ERROR')) {
+							if (!result || result.substring(0, 5) === 'ERROR') {
 								showNotice(getI18nMsg('importError'));
 								return false
 							}
