@@ -300,7 +300,7 @@ var importSettings = function() {
   var storage = localStorage, i, key, new_value, func, all = bgSettings.defaults
     , strArr = bgSettings.NonJSON;
   func = function(val) {
-    return typeof val !== "string" ? val : val.substring(0, 72);
+    return typeof val === "string" && val.length > 68 ? val.substring(0, 68) + " ..." : val;
   };
   console.log("IMPORT settings at", new Date(new_data.time));
   delete new_data.name;
