@@ -154,7 +154,7 @@ var Utils = {
     }
     return false;
   },
-  _searchWordRe: /%[sS]/g,
+  searchWordRe: /%[sS]/g,
   createSearchUrl: function(pattern, query, $S) {
     if ($S != null ? ($S === true) : pattern.$S) {
       $S = query.join(' ');
@@ -162,11 +162,11 @@ var Utils = {
     if (pattern.$s) {
       query = query.map(encodeURIComponent).join('+');
     }
-    query = pattern.url.replace(this._searchWordRe, function(s) {
-      return (s === "%s") ? query : $S;
-    });
     return {
-      url: query,
+      url: pattern.url.replace(this.searchWordRe, function(s) {
+        return (s === "%s") ? query : $S;
+      }),
+      $s: query,
       $S: $S
     };
   },
