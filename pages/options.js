@@ -1,7 +1,7 @@
 "use strict";
 
 var $, ExclusionRulesOption, ExclusionRulesOnPopupOption,
-bgSettings, bgExclusions, BG, isPopup,
+bgSettings, bgExclusions, BG,
 __hasProp = Object.prototype.hasOwnProperty,
 __extends = function(child, parent) {
   for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; }
@@ -14,7 +14,6 @@ $ = document.getElementById.bind(document);
 BG = chrome.extension.getBackgroundPage();
 bgSettings = BG.Settings;
 bgExclusions = BG.Exclusions;
-isPopup = window.location.pathname.substr(-11) === "/popup.html";
 $("exclusionScrollBox").innerHTML = bgSettings.get("exclusionTemplate");
 
 function Option(field, onUpdated) {
@@ -153,7 +152,7 @@ ExclusionRulesOption.prototype.getPassKeys = function(element) {
   return element.querySelector(".passKeys");
 };
 
-if (isPopup)
+if (location.pathname.substring(location.pathname.length - 11) === "/popup.html") {
 function ExclusionRulesOnPopupOption(url) {
   this.url = url;
   ExclusionRulesOnPopupOption.__super__.constructor.apply(this,
@@ -210,8 +209,6 @@ ExclusionRulesOnPopupOption.prototype.generateDefaultPattern = function() {
     : this.url;
 };
 
-
-if (isPopup)
 chrome.tabs.query({currentWindow: true, active: true}, function(tab) {
   var exclusions, onUpdated, saveOptions, updateState, url, hasNew, status = 0;
   exclusions = null;
@@ -281,3 +278,5 @@ chrome.tabs.query({currentWindow: true, active: true}, function(tab) {
     }
   };
 });
+
+}
