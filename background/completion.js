@@ -355,7 +355,7 @@ Completers.tabs = {
 Completers.searchEngines = {
   engines: Settings.get("searchEnginesMap"),
   filter: function(query) {
-    var queryTerms = query.queryTerms
+    var queryTerms = query.queryTerms, obj, sug, text
       , pattern = queryTerms.length > 0 ? this.engines[queryTerms[0]] : null;
     if (!pattern) {
       query.onComplete([]);
@@ -366,9 +366,31 @@ Completers.searchEngines = {
     } else {
       queryTerms = [];
     }
-    var obj = Utils.createSearchUrl(pattern, queryTerms, true);
-    query.onComplete([new Suggestion(queryTerms, "search", obj.url, obj.url
-      , pattern.name + ": " + obj.$S, this.computeRelevancy)]);
+    obj = Utils.createSearchUrl(pattern, queryTerms, true);
+    text = Utils.decodeURLPart(Suggestion.shortenUrl(obj.url));
+    sug = new Suggestion(null, "search", obj.url, text
+      , pattern.name + ": " + obj.$S, this.computeRelevancy);
+    if (queryTerms.length > 0) {
+      sug.titleSplit = [pattern.name.length + 2, sug.title.length];
+      text = Utils.decodeURLPart(Suggestion.shortenUrl(pattern.url
+        ).replace(Utils.searchWordRe, this.encodeSearchKey));
+      sug.textSplit = this.splitText(obj, sug.text, text);
+    } else {
+      sug.textSplit = sug.titleSplit = [];
+    }
+    query.onComplete([sug]);
+  },
+  encodeSearchKey: function(str) { return "%25" + str.substring(1); },
+  splitText: function(obj, text, template) {
+    var arr = template.split(Utils.searchWordRe), start = 0, ret = [];
+    arr.pop();
+    arr.forEach(function(str) {
+      start += str.length;
+      var end = start + obj["$" + template.substring(start + 1, start + 2)].length;
+      ret.push(start, end);
+      start = end;
+    });
+    return ret;
   },
   computeRelevancy: function() {
     return 9;
