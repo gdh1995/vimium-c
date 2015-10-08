@@ -457,7 +457,7 @@ Vomnibar.background = {
   resolve: function(result) {
     this.prepareToRender(result);
     result.action = (result.type === "tab") ? "switchToTab"
-      : ("sessionId" in result) ? "restoreSession"
+      : result.hasOwnProperty('sessionId') ? "restoreSession"
       : "navigateToUrl";
     return result;
   },

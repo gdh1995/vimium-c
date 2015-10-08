@@ -277,6 +277,7 @@ var setup = {
 					}
 					var ver = data.confver;
 					delete data.confver;
+					data.__proto__ = null;
 					if (ver >= 1) {
 						var db = storage.db;
 						db.clear();

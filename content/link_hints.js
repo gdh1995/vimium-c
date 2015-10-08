@@ -327,6 +327,7 @@ var LinkHints = {
   },
   traverse: function(map) {
     var output = [], key, func, container;
+    Utils.setNullProto(map);
     DomUtils.prepareCrop();
     container = document.webkitFullscreenElement || document;
     if (this.ngIgnored && "*" in map) {

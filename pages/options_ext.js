@@ -306,6 +306,7 @@ var importSettings = function() {
   delete new_data.name;
   delete new_data.time;
   delete new_data.findModeRawQuery;
+  Utils.setNullProto(new_data);
   for (i = storage.length; 0 <= --i; ) {
     key = storage.key(i);
     if (!(key in new_data)) {

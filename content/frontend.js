@@ -132,9 +132,10 @@ var Settings, VHUD, MainPort, VInsertMode;
       var _this = settings, ref, i;
       if (ref = response.load) {
         _this.values = ref;
-        ref.__proto__ = null;
+        Utils.setNullProto(ref);
       } else {
         ref = response.values;
+        Utils.setNullProto(ref);
         for (i in ref) {
           _this.values[i] = ref[i];
         }
@@ -1195,6 +1196,7 @@ var Settings, VHUD, MainPort, VInsertMode;
         map[arr[i]] = true;
       }
       sec = request.secondKeys;
+      Utils.setNullProto(sec);
       sec2 = secondKeys = Utils.makeNullProto();
       for (key in sec) {
         arr = sec[key];
@@ -1406,6 +1408,7 @@ var Settings, VHUD, MainPort, VInsertMode;
     clearTimeout(HUD.durationTimer);
 
     var ref = settings.onDestroy, i;
+    Utils.setNullProto(ref);
     for (i in ref) {
       ref[i].call(this);
     }
