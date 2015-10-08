@@ -1,7 +1,7 @@
 "use strict";
 (function() {
   var insertLocation, insertLink, insertJS;
-  insertLocation = document.querySelector('script[src$="content_script_loader.js"]') || document.head.firstChild,
+  insertLocation = document.querySelector('script[src$="content_script_loader.js"]') || document.head.firstChild;
   insertLink = function(src) {
     var styleElement = document.createElement("link");
     styleElement.type = "text/css";

@@ -112,7 +112,7 @@ CheckBoxOption.prototype.readValueFromElement = function() {
     }
     status = 1;
     saveBtn = $("saveOptions");
-    saveBtn.removeAttribute("disabled");
+    saveBtn.disabled = false;
     saveBtn.innerHTML = "Save Changes";
     $("exportButton").disabled = true;
   };

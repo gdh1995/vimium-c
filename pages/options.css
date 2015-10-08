@@ -77,7 +77,7 @@ pre {
   margin-left: 20px;
 }
 .info {
-  margin-left: 0px;
+  margin-left: 0;
 }
 .caption {
   margin-right: 10px;
@@ -194,19 +194,19 @@ td.booleanOption, #helpText { font-size: 12px; }
   margin-right: 1px;
 }
 .exclusionMask {
-  padding: 0px 6px;
+  padding: 0 6px;
   visibility: hidden;
 }
 #exclusionAddButton {
   float: right;
-  margin-right: 0px;
+  margin-right: 0;
   margin-top: 5px;
 }
 #footer {
   background: #f5f5f5;
   border-top: 1px solid #979ca0;
   position: fixed;
-  bottom: 0px;
+  bottom: 0;
   z-index: 10;
 }
 #endSpace {

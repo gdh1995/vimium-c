@@ -26,7 +26,7 @@ function decodeHash() {
   if (shownNode) {
     shownNode.style.display = "";
   }
-};
+}
 
 window.addEventListener("hashchange", decodeHash);
 decodeHash();

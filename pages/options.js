@@ -5,8 +5,8 @@ bgSettings, bgExclusions, BG, isPopup,
 __hasProp = Object.prototype.hasOwnProperty,
 __extends = function(child, parent) {
   for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; }
-  function ctor() { this.constructor = child; } ctor.prototype = parent.prototype;
-  child.prototype = new ctor(); child.__super__ = parent.prototype;
+  function Ctor() { this.constructor = child; } Ctor.prototype = parent.prototype;
+  child.prototype = new Ctor(); child.__super__ = parent.prototype;
   return child;
 };
 
@@ -155,10 +155,6 @@ ExclusionRulesOption = (function(_super) {
     return element.querySelector(".passKeys");
   };
 
-  ExclusionRulesOption.prototype.getRemoveButton = function(element) {
-    return element.querySelector(".exclusionRemoveButton");
-  };
-
   return ExclusionRulesOption;
 
 })(Option);
@@ -210,7 +206,7 @@ ExclusionRulesOnPopupOption = (function(_super) {
       patternElement.style.color = "red";
       patternElement.title = "Red text means that the pattern does not\nmatch the current URL.";
     }
-  }
+  };
 
   ExclusionRulesOnPopupOption.prototype.httpRe = /^https?:\/\/./;
   ExclusionRulesOnPopupOption.prototype.urlRe = /^[a-z]{3,}:\/\/./;
@@ -236,7 +232,7 @@ chrome.tabs.query({currentWindow: true, active: true}, function(tab) {
   var escapeRe = /[&<>]/g, escapeCallback = function(c, n) {
     n = c.charCodeAt(0);
     return (n === 60) ? "&lt;" : (n === 62) ? "&gt;" : "&amp;";
-  },
+  };
   updateState = function() {
     var pass = bgExclusions.getTemp(url, exclusions.readValueFromElement(true));
     $("state").innerHTML = "Vimium++ will " + (pass
@@ -282,8 +278,9 @@ chrome.tabs.query({currentWindow: true, active: true}, function(tab) {
   });
   exclusions = new ExclusionRulesOnPopupOption(url, "exclusionRules", onUpdated);
   updateState();
-  $("optionsLink").href = bgSettings.CONST.OptionsPage;
-  $("optionsLink").onclick = function(event) {
+  var link = $("optionsLink");
+  link.href = bgSettings.CONST.OptionsPage;
+  link.onclick = function(event) {
     BG.g_requestHandlers.focusOrLaunch({ url: this.href });
     event.preventDefault();
     event.stopImmediatePropagation();
