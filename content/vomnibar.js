@@ -224,6 +224,7 @@ Vomnibar.vomnibarUI = {
     else if (event.ctrlKey || event.metaKey) {}
     else if (event.shiftKey) {
       if (n === KeyCodes.tab) { action = "up"; }
+      else if (n === KeyCodes.f1) { action = focused ? "blur" : "focus"; }
     }
     else if (n === KeyCodes.tab) { action = "down"; }
     else if (n === KeyCodes.esc) { action = "dismiss"; }

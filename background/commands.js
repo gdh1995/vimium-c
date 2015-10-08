@@ -201,6 +201,7 @@ Commands.defaultKeyMappings = {
   gf: "nextFrame",
   gF: "mainFrame",
   "<f1>": "simBackspace",
+  "<F1>": "switchFocus",
   "<f2>": "switchFocus",
   m: "Marks.activateCreateMode",
   "`": "Marks.activateGotoMode"
