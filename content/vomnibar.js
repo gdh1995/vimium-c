@@ -493,17 +493,12 @@ Vomnibar.background = {
     return out.join("");
   },
   cutUrl: function(string, ranges, strCoded) {
-    if (ranges.length === 0 || Utils.isJSUrl(string)) {
-      if (string.length <= this.maxCharNum) {
-        return Utils.escapeHtml(string);
-      } else {
-        return Utils.escapeHtml(string.substring(0, this.maxCharNum - 3)) + "...";
-      }
-    }
     var out = [], cutStart = -1, temp, lenCut, i, end, start;
     if (! (string.length <= this.maxCharNum)) {
-      cutStart = strCoded.indexOf("://");
-      if (cutStart >= 0) {
+      cutStart = strCoded.indexOf(":");
+      if (cutStart < 0) {}
+      else if (string.substring(cutStart, cutStart + 3) !== "://") { ++cutStart; }
+      else {
         cutStart = strCoded.indexOf("/", cutStart + 4);
         if (cutStart >= 0) {
           temp = string.indexOf("://");
