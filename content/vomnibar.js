@@ -322,6 +322,16 @@ Vomnibar.vomnibarUI = {
     }
     DomUtils.suppressEvent(event);
   },
+  OnSelected: function() {
+    var el = this, left;
+    if (el.selectionStart !== 0 || el.selectionDirection !== "backward") { return; }
+    left = el.value;
+    if (el.value.charCodeAt(el.selectionEnd - 1) !== 32) { return; }
+    left = left.substring(0, el.selectionEnd).trimRight();
+    if (left.indexOf(" ") === -1) {
+      el.setSelectionRange(0, left.length);
+    }
+  },
   onInput: function() {
     var str = this.input.value.trimLeft();
     this.completionInput.text = str;
@@ -392,6 +402,7 @@ Vomnibar.vomnibarUI = {
     }
     DomUtils.UI.addElement(this.box);
     this.input.oninput = this.onInput.bind(this);
+    this.input.onselect = this.OnSelected;
   },
   computeHint: function(li, a) {
     var i = [].indexOf.call(this.list.children, li), item, rect;
