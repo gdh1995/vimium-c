@@ -3,7 +3,7 @@ var $ = document.getElementById.bind(document);
 function decodeHash() {
   var shownNode, url, type;
   url = location.hash;
-  if (url.startsWith("#!image=")) {
+  if (url.lastIndexOf("#!image=", 0) === 0) {
     url = url.substring(8);
     type = "image";
   }

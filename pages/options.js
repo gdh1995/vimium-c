@@ -14,7 +14,7 @@ $ = document.getElementById.bind(document);
 BG = chrome.extension.getBackgroundPage();
 bgSettings = BG.Settings;
 bgExclusions = BG.Exclusions;
-isPopup = window.location.pathname.endsWith("popup.html");
+isPopup = window.location.pathname.substr(-11) === "/popup.html";
 $("exclusionScrollBox").innerHTML = bgSettings.get("exclusionTemplate");
 
 function Option(field, onUpdated) {
