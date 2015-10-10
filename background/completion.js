@@ -255,7 +255,7 @@ Completers.domains = {
       , wordRelevancy, score, result = "", result_score = -1000;
     for (domain in ref) {
       if (domain.indexOf(word) === -1) { continue; }
-      score = RankingUtils.recencyScore(ref[domain].entry.lastVisitTime || 0);
+      score = RankingUtils.recencyScore(ref[domain][0]);
       wordRelevancy = RankingUtils.wordRelevancy(terms, domain, null);
       score = score <= wordRelevancy ? wordRelevancy : (wordRelevancy + score) / 2;
       if (score > result_score) { result_score = score; result = domain; }
@@ -275,19 +275,14 @@ Completers.domains = {
     chrome.history.onVisitRemoved.addListener(this.onVisitRemoved.bind(this));
   },
   onPageVisited: function(newPage) {
-    var domain = this.parseDomainAndScheme(newPage.url);
-    if (domain) {
-      var slot = this.domains[domain];
-      if (slot) {
-        if (slot.entry.lastVisitTime < newPage.lastVisitTime) {
-          slot.entry = newPage;
-        }
-        ++ slot.referenceCount;
+    var domain, slot, time;
+    if (domain = this.parseDomainAndScheme(newPage.url)) {
+      time = newPage.lastVisitTime;
+      if (slot = this.domains[domain]) {
+        if (slot[0] < time) { slot[0] = time; }
+        ++slot[1];
       } else {
-        this.domains[domain] = {
-          entry: newPage,
-          referenceCount: 1
-        };
+        this.domains[domain] = [time, 1];
       }
     }
   },
@@ -298,8 +293,8 @@ Completers.domains = {
     }
     var domains = this.domains, parse = this.parseDomainAndScheme;
     toRemove.urls.forEach(function(url) {
-      var domain = parse(url);
-      if (domain && domains[domain] && (-- domains[domain].referenceCount) === 0) {
+      var domain = parse(url), entry;
+      if (domain && (entry = domains[domain]) && (-- entry[1]) <= 0) {
         delete domains[domain];
       }
     });
