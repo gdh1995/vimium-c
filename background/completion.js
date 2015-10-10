@@ -396,6 +396,7 @@ MultiCompleter = {
   mostRecentQuery: null,
   filter: function(completers, queryTerms, onComplete) {
     RegexpCache.clear();
+    RankingUtils.timeAgo = Date.now() - RankingUtils.timeCalibrator;
     this.onComplete = onComplete;
     if (this.mostRecentQuery) { this.mostRecentQuery.isOff = true; }
     var query = this.mostRecentQuery = {
@@ -504,8 +505,8 @@ MultiCompleter = {
           * this.normalizeDifference(titleCount, title.length);
       return (urlScore < titleScore) ? titleScore : ((urlScore + titleScore) / 2);
     },
-    timeCalibrator: 1000 * 60 * 60 * 24,
-    timeAgo: Date.now() - 1000 * 60 * 60 * 24,
+    timeCalibrator: 604800000, // 7 days
+    timeAgo: 0,
     recencyScore: function(lastAccessedTime) {
       var score = Math.max(0, lastAccessedTime - this.timeAgo) / this.timeCalibrator;
       return score * score * score * this.recCalibrator;
