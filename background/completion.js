@@ -264,8 +264,8 @@ Completers.domains = {
       query.onComplete([]);
       return;
     }
-    query.onComplete([new Suggestion(terms
-        , "domain", domain, domain, null, this.computeRelevancy)]);
+    query.onComplete([new Suggestion(terms, "domain", (ref[domain][2]
+        ? "https://" + domain : domain), domain, null, this.computeRelevancy)]);
   },
   populateDomains: function(history) {
     var callback = this.onPageVisited.bind(this);
@@ -275,14 +275,14 @@ Completers.domains = {
     chrome.history.onVisitRemoved.addListener(this.onVisitRemoved.bind(this));
   },
   onPageVisited: function(newPage) {
-    var domain, slot, time;
-    if (domain = this.parseDomainAndScheme(newPage.url)) {
+    var item, slot, time;
+    if (item = this.parseDomainAndScheme(newPage.url)) {
       time = newPage.lastVisitTime;
-      if (slot = this.domains[domain]) {
+      if (slot = this.domains[item[0]]) {
         if (slot[0] < time) { slot[0] = time; }
-        ++slot[1];
+        ++slot[1]; slot[2] = item[1];
       } else {
-        this.domains[domain] = [time, 1];
+        this.domains[item[0]] = [time, 1, item[1]];
       }
     }
   },
@@ -293,14 +293,19 @@ Completers.domains = {
     }
     var domains = this.domains, parse = this.parseDomainAndScheme;
     toRemove.urls.forEach(function(url) {
-      var domain = parse(url), entry;
-      if (domain && (entry = domains[domain]) && (-- entry[1]) <= 0) {
-        delete domains[domain];
+      var item = parse(url), entry;
+      if (item && (entry = domains[item[0]]) && (-- entry[1]) <= 0) {
+        delete domains[item[0]];
       }
     });
   },
   parseDomainAndScheme: function(url) {
-    return Utils.hasOrdinaryUrlPrefix(url) ? url.split("/", 3).join("/") : "";
+    var d, i;
+    if (url.startsWith("http://")) { d = 7; }
+    else if (url.startsWith("https://")) { d = 8; }
+    else { return null; }
+    i = url.indexOf('/', d);
+    return [url.substring(d, i > 0 ? i : undefined), d - 7];
   },
   computeRelevancy: function() {
     return 2;
