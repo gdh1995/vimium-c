@@ -1398,8 +1398,7 @@ g_requestHandlers;
 
   setTimeout(function() {
     Settings.postUpdate("files", null);
-    Settings.postUpdate("searchUrl");
-    Settings.postUpdate("newTabUrl");
+    Settings.postUpdate("searchUrl"); // will also update newTabUrl
 
     var ref, i, ref2, key;
     ref2 = requestHandlers;
@@ -1421,7 +1420,7 @@ g_requestHandlers;
     for (i = ref.length; 0 <= --i; ) {
       ref2[ref[i]].useTab = 1;
     }
-    ref = ["createTab", "restoreTab", "restoreGivenTab", "blank", "reloadTab" //
+    ref = ["restoreTab", "restoreGivenTab", "blank", "reloadTab" //
       , "moveTabToNewWindow", "reloadGivenTab", "openUrl", "focusOrLaunch" //
       , "moveTabToIncognito", "openCopiedUrlInCurrentTab", "clearGlobalMarks" //
     ];

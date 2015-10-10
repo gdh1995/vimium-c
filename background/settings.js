@@ -79,18 +79,19 @@ var Settings = {
     newTabUrl: function(url) {
       url = /^\/?pages\/[a-zA-Z0-9_%]+.html?/.test(url)
         ? chrome.runtime.getURL(url) : Utils.convertToUrl(url);
-      if (this.get("newTabUrl_f") !== url) { this.set('newTabUrl_f', url); }
+      if (this.get("newTabUrl_f") !== url) { this.setUnique('newTabUrl_f', url); }
       else { this.postUpdate('newTabUrl_f', url); }
     },
     searchEngines: function() {
       this.set("searchEnginesMap", { "": [], __proto__: null });
     },
-    searchUrl: function(value) {
-      Utils.parseSearchEngines("~:" + value, this.get("searchEnginesMap"));
-    },
     searchEnginesMap: function(value) {
       Utils.parseSearchEngines(this.get("searchEngines"), value);
-      this.postUpdate("searchUrl");
+      Utils.parseSearchEngines("~:" + this.get("searchUrl"), value);
+    },
+    searchUrl: function(value) {
+      Utils.parseSearchEngines("~:" + value, this.get("searchEnginesMap"));
+      this.postUpdate("newTabUrl");
     },
     userDefinedCss: function(cssi) {
       var csso = this.get("userDefinedOuterCss");
