@@ -500,13 +500,13 @@ g_requestHandlers;
       funcDict.moveTabToNextWindow[2].bind(null, options.tabId, tab2));
     }],
     removeTab: function(tab, curTabs, wnds) {
-      var url = Settings.get("newTabUrl_f"), toCreate;
+      var url, windowId;
       wnds = wnds.filter(function(wnd) { return wnd.type === "normal"; });
       if (wnds.length <= 1) {
         // protect the last window
-        toCreate = {};
+        url = Settings.get("newTabUrl_f");
         if (wnds.length === 1 && wnds[0].incognito && !Utils.isRefusingIncognito(url)) {
-          toCreate.windowId = wnds[0].id;
+          windowId = wnds[0].id;
         }
         // other urls will be disabled if incognito else auto in current window
       }
@@ -514,14 +514,17 @@ g_requestHandlers;
         // protect the last "normal & not incognito" window which has currentTab if it exists
         wnds = wnds.filter(function(wnd) { return !wnd.incognito; });
         if (wnds.length === 1 && wnds[0].id === tab.windowId) {
-          toCreate = { windowId: tab.windowId };
+          windowId = tab.windowId;
+          url = Settings.get("newTabUrl_f");
         }
       }
-      if (toCreate) {
+      if (url != null) {
         curTabs = (curTabs.length > 1) ? curTabs.map(function(tab) { return tab.id; }) : [tab.id];
-        toCreate.index = curTabs.length;
-        toCreate.url = url;
-        chrome.tabs.create(toCreate);
+        chrome.tabs.create({
+          index: curTabs.length,
+          url: url,
+          windowId: windowId
+        });
         chrome.tabs.remove(curTabs);
       } else {
         chrome.windows.remove(tab.windowId);
