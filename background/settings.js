@@ -3,7 +3,7 @@ var Settings = {
   _buffer: { __proto__: null },
   bufferToLoad: null,
   frameIdsForTab: null,
-  keyToSet: { __proto__: null },
+  keyToSet: [],
   timerForSet: 0,
   urlForTab: null,
   extIds: [chrome.runtime.id],
@@ -31,14 +31,17 @@ var Settings = {
       ref.call(this, value, key);
     }
   },
-  delayForUnique: function(key, value) {
-    this.keyToSet[key] = value;
+  setUnique: function(key, value) {
+    this._buffer[key] = value; this.keyToSet.push(key);
     this.timerForSet || (this.timerForSet = setTimeout(this.onUnique, 17));
   },
   onUnique: function() { // has been bound
-    var ref = this.keyToSet, key;
+    var ref = this.keyToSet, i = ref.length, key, vals = this._buffer;
     this.keyToSet = []; this.timerForSet = 0;
-    for (key in ref) { this.set(key, ref[key]); }
+    while (0 <= --i) {
+      key = ref[i];
+      this.set(key, vals[key]);
+    }
   },
   postUpdate: function(key, value) {
     this.updateHooks[key].call(this, value !== undefined ? value : this.get(key), key);
@@ -93,7 +96,7 @@ var Settings = {
       var csso = this.get("userDefinedOuterCss");
       csso && (csso = csso.trim());
       cssi && (cssi = cssi.trim());
-      this.delayForUnique("userDefinedCss_f", (cssi || csso) ? [cssi, csso] : null);
+      this.setUnique("userDefinedCss_f", (cssi || csso) ? [cssi, csso] : null);
     },
     userDefinedCss_f: function(css) {
       this.postUpdate("broadcast", {
