@@ -330,9 +330,9 @@ g_requestHandlers;
     },
 
     createTab: [function(wnd) {
-      var tab, url = Settings.get("newTabUrl_f");
+      var tab;
       if (!wnd) {
-        chrome.tabs.create({url: url});
+        chrome.tabs.create({url: this});
         return chrome.runtime.lastError;
       }
       tab = funcDict.selectFrom(wnd.tabs);
@@ -340,12 +340,12 @@ g_requestHandlers;
         tab.windowId = undefined;
       } else if (wnd.incognito) {
         // url is disabled to be opened in a incognito window directly
-        funcDict.createTab[1](url, tab
+        funcDict.createTab[1](this, tab
           , (--commandCount > 0) ? funcDict.duplicateTab[1] : null, wnd.tabs);
         return;
       }
       tab.id = undefined;
-      openMultiTab(url, commandCount, tab);
+      openMultiTab(this, commandCount, tab);
     }, function(url, tab, repeat, allTabs) {
       var urlLower = url.toLowerCase().split('#', 1)[0], tabs;
       allTabs = allTabs.filter(function(tab1) {
@@ -392,7 +392,7 @@ g_requestHandlers;
       });
     }, function(tabs) {
       tabs[0].id = undefined;
-      openMultiTab(Settings.get("newTabUrl_f"), commandCount, tabs[0]);
+      openMultiTab(this, commandCount, tabs[0]);
     }],
     duplicateTab: [function(tab, wnd) {
       if (wnd.incognito && !tab.incognito) {
@@ -1295,8 +1295,10 @@ g_requestHandlers;
     url = (/^\/?[^:\s]*$/.test(url)) ? chrome.runtime.getURL(url) : Utils.convertToUrl(url);
     if (this.get("newTabUrl_f") !== url) { this.set('newTabUrl_f', url); }
     BackgroundCommands.createTab = Utils.isRefusingIncognito(url)
-    ? chrome.windows.getCurrent.bind(chrome.windows, {populate: true}, funcDict.createTab[0])
-    : chrome.tabs.query.bind(chrome.tabs, {currentWindow: true, active: true}, funcDict.createTab[5]);
+    ? chrome.windows.getCurrent.bind(chrome.windows, {populate: true}
+        , funcDict.createTab[0].bind(url))
+    : chrome.tabs.query.bind(chrome.tabs, {currentWindow: true, active: true}
+        , funcDict.createTab[5].bind(url));
     BackgroundCommands.createTab.newTab = 1;
   };
 
