@@ -595,7 +595,7 @@ g_requestHandlers;
     */
   BackgroundCommands = {
     __proto__: null,
-    createTab: null,
+    createTab: function() {},
     duplicateTab: function(tabs) {
       chrome.tabs.duplicate(tabs[0].id);
       if (--commandCount > 0) {
@@ -1420,7 +1420,7 @@ g_requestHandlers;
     for (i = ref.length; 0 <= --i; ) {
       ref2[ref[i]].useTab = 1;
     }
-    ref = ["restoreTab", "restoreGivenTab", "blank", "reloadTab" //
+    ref = ["createTab", "restoreTab", "restoreGivenTab", "blank", "reloadTab" //
       , "moveTabToNewWindow", "reloadGivenTab", "openUrl", "focusOrLaunch" //
       , "moveTabToIncognito", "openCopiedUrlInCurrentTab", "clearGlobalMarks" //
     ];
