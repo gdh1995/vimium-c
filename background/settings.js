@@ -96,10 +96,8 @@ var Settings = {
       Utils.parseSearchEngines("~:" + value, this.get("searchEnginesMap"));
       this.postUpdate("newTabUrl");
     },
-    userDefinedCss: function(cssi) {
-      var csso = this.get("userDefinedOuterCss");
-      csso && (csso = csso.trim());
-      cssi && (cssi = cssi.trim());
+    userDefinedCss: function() {
+      var csso = this.get("userDefinedOuterCss"), cssi = this.get("userDefinedCss");
       this.setUnique("userDefinedCss_f", (cssi || csso) ? [cssi, csso] : null);
     },
     userDefinedCss_f: function(css) {
@@ -108,9 +106,6 @@ var Settings = {
         onReady: true,
         css: (css || ["", ""])
       });
-    },
-    userDefinedOuterCss: function() {
-      this.postUpdate("userDefinedCss");
     }
   },
   // clear localStorage & sync, if value === @defaults[key]
@@ -159,7 +154,7 @@ w|wiki:\\\n  http://www.wikipedia.org/w/index.php?search=%s Wikipedia (en-US)",
   nonPersistent: { __proto__: null,
     baseCSS: 1, exclusionTemplate: 1, help_dialog: 1, 
     searchEnginesMap: 1, settingsVersion: 1, userDefinedCss_f: 1,
-    userDefinedOuterCss_f: 1, vomnibar: 1
+    vomnibar: 1
   },
   files: {
     __proto__: null,
@@ -192,6 +187,7 @@ Settings.onUnique = Settings.onUnique.bind(Settings);
 // note: if changed, ../pages/newtab.js also needs change.
 Settings.defaults.newTabUrl = Settings.CONST.ChromeInnerNewTab;
 Settings.updateHooks.keyMappings = Settings.updateHooks.enableDefaultMappings;
+Settings.updateHooks.userDefinedOuterCss = Settings.updateHooks.userDefinedCss;
 
 (function() {
   var ref, i, func;
