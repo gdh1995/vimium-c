@@ -1390,7 +1390,7 @@ g_requestHandlers;
   setTimeout(function() {
     Exclusions.setRules(Settings.get("exclusionRules"));
     Settings.postUpdate("bufferToLoad", null);
-    Settings.postUpdate("userDefinedCss");
+    Settings.postUpdate("userDefinedCss", null);
 
     chrome.runtime.onConnect.addListener(funcDict.globalConnect);
     chrome.runtime.onConnectExternal.addListener(funcDict.globalConnect);
