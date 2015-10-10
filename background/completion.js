@@ -126,7 +126,7 @@ Completers.bookmarks = {
       _this.readTree(bookmarks);
       var query = _this.currentSearch;
       _this.currentSearch = null;
-      if (query && query.isCurrent) {
+      if (query && !query.isOff) {
         _this.performSearch(query);
       }
     });
@@ -165,7 +165,7 @@ Completers.history = {
     var _this = this;
     if (query.queryTerms.length > 0) {
       HistoryCache.use(function(history) {
-        if (!query.isCurrent) { return; }
+        if (query.isOff) { return; }
         var queryTerms = query.queryTerms, cr = _this.computeRelevancy;
         query.onComplete(history.filter(function(entry) {
           return RankingUtils.match2(queryTerms, entry.text, entry.title);
@@ -176,7 +176,7 @@ Completers.history = {
       return;
     }
     chrome.sessions.getRecentlyClosed(null, function(sessions) {
-      if (!query.isCurrent) { return; }
+      if (query.isOff) { return; }
       var historys = [], arr = {};
       sessions.forEach(function(entry) {
         if (!entry.tab || entry.tab.url in arr) { return; }
@@ -203,7 +203,7 @@ Completers.history = {
       text: "",
       maxResults: MultiCompleter.maxResults
     }, function(historys2) {
-      if (!query.isCurrent) { return; }
+      if (query.isOff) { return; }
       var a = arr;
       historys2 = historys2.filter(function(i) {
         return !(i.url in a);
@@ -245,7 +245,7 @@ Completers.domains = {
       var _this = this;
       HistoryCache.use(function(history) {
         _this.populateDomains(history);
-        if (!query.isCurrent) { return; }
+        if (query.isOff) { return; }
         _this.performSearch(query);
       });
     }
@@ -317,7 +317,7 @@ Completers.tabs = {
     chrome.tabs.query({}, this.filter1.bind(this, query));
   },
   filter1: function(query, tabs) {
-    if (!query.isCurrent) { return; }
+    if (query.isOff) { return; }
     var queryTerms = query.queryTerms;
     var c = this.computeRelevancy, suggestions = tabs.filter(function(tab) {
       var text = Decoder.decodeURL(tab.url);
@@ -397,9 +397,9 @@ MultiCompleter = {
   filter: function(completers, queryTerms, onComplete) {
     RegexpCache.clear();
     this.onComplete = onComplete;
-    if (this.mostRecentQuery) { this.mostRecentQuery.isCurrent = false; }
+    if (this.mostRecentQuery) { this.mostRecentQuery.isOff = true; }
     var query = this.mostRecentQuery = {
-      isCurrent: true,
+      isOff: false,
       onComplete: null,
       queryTerms: queryTerms
     }, i, l;
@@ -410,7 +410,7 @@ MultiCompleter = {
     }
   },
   next: function(query, onComplete, newSuggestions) {
-    if (!query.isCurrent) { return; }
+    if (query.isOff) { return; }
     var suggestions = this.suggestions.concat(newSuggestions);
     if (0 < --this.counter) {
       this.suggestions = suggestions;
