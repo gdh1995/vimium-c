@@ -481,26 +481,27 @@ MultiCompleter = {
       return [score, count < string.length ? count : string.length];
     },
     wordRelevancy: function(queryTerms, url, title) {
-      var c, maximumPossibleScore, s, term, titleCount, titleScore, urlCount, urlScore, _i, _len, _ref, _ref1;
+      var c, maximumPossibleScore, s, term, titleCount, titleScore
+        , urlCount, urlScore, _i = queryTerms.length, _ref;
       urlScore = titleScore = 0.0;
       urlCount = titleCount = 0;
-      for (_i = 0, _len = queryTerms.length; _i < _len; ++_i) {
+      while (0 <= --_i) {
         term = queryTerms[_i];
         _ref = this.scoreTerm(term, url); s = _ref[0]; c = _ref[1];
         urlScore += s; urlCount += c;
         if (title) {
-          _ref1 = this.scoreTerm(term, title); s = _ref1[0]; c = _ref1[1];
+          _ref = this.scoreTerm(term, title); s = _ref[0]; c = _ref[1];
           titleScore += s; titleCount += c;
         }
       }
       maximumPossibleScore = this.maximumScore * queryTerms.length + 0.01;
-      urlScore /= maximumPossibleScore;
-      urlScore *= this.normalizeDifference(urlCount, url.length);
+      urlScore = urlScore / maximumPossibleScore
+          * this.normalizeDifference(urlCount, url.length);
       if (!title) {
         return urlScore;
       }
-      titleScore /= maximumPossibleScore;
-      titleScore *= this.normalizeDifference(titleCount, title.length);
+      titleScore = titleScore / maximumPossibleScore
+          * this.normalizeDifference(titleCount, title.length);
       return (urlScore < titleScore) ? titleScore : ((urlScore + titleScore) / 2);
     },
     timeCalibrator: 1000 * 60 * 60 * 24,
