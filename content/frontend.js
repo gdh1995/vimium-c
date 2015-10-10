@@ -129,20 +129,19 @@ var Settings, VHUD, MainPort, VInsertMode;
         mainPort, request, onerror, null), 2000);
     },
     ReceiveSettings: function(response) {
-      var _this = settings, ref, i;
-      if (ref = response.load) {
-        _this.values = ref;
-        Utils.setNullProto(ref);
-      } else {
-        ref = response.values;
-        Utils.setNullProto(ref);
-        for (i in ref) {
-          _this.values[i] = ref[i];
-        }
-      }
-      clearInterval(_this.isLoading);
-      if (response = response.response) {
-        requestHandlers[response.name](response);
+      ref = response.load;
+      Utils.setNullProto(ref);
+      settings.values = ref;
+      clearInterval(settings.isLoading);
+      response = response.response;
+      requestHandlers[response.name](response);
+    },
+    OnUpdate: function(response) {
+      var _this = settings;
+      Utils.setNullProto(response);
+      delete response.name;
+      for (i in ref) {
+        settings.values[i] = ref[i];
       }
     }
   };
@@ -1176,6 +1175,7 @@ var Settings, VHUD, MainPort, VInsertMode;
       ELs.focusMsg.url = window.location.href;
     },
     settings: settings.ReceiveSettings,
+    settingsUpdate: settings.OnUpdate,
     reg: function(request) {
       if (document.body && document.body.nodeName.toLowerCase() !== "frameset") {
         return mainPort.safePost({

@@ -158,15 +158,12 @@ CheckBoxOption.prototype.readValueFromElement = function() {
       i = toSync.length;
       if (i === 0) { return; }
       bgSettings.postUpdate("bufferToLoad", null);
-      var i, key, ref = bgSettings.bufferToLoad, obj = {};
+      var i, key, ref = bgSettings.bufferToLoad, obj = {name: "settingsUpdate"};
       while (0 <= --i) {
         key = toSync[i];
         obj[key] = ref[key];
       }
-      bgSettings.postUpdate("broadcast", {
-        name: "settings",
-        values: obj
-      });
+      bgSettings.postUpdate("broadcast", obj);
     }, 100);
   };
   $("saveOptions").onclick = saveOptions;
