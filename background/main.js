@@ -338,9 +338,8 @@ g_requestHandlers;
       tab = funcDict.selectFrom(wnd.tabs);
       if (wnd.type !== "normal") {
         tab.windowId = undefined;
-        tab.index = 999;
       } else if (wnd.incognito) {
-        // newTabUrl_f is disabled to be opened in a incognito window directly
+        // url is disabled to be opened in a incognito window directly
         funcDict.createTab[1](url, tab
           , (--commandCount > 0) ? funcDict.duplicateTab[1] : null, wnd.tabs);
         return;
