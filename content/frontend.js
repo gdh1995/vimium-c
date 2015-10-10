@@ -129,7 +129,7 @@ var Settings, VHUD, MainPort, VInsertMode;
         mainPort, request, onerror, null), 2000);
     },
     ReceiveSettings: function(response) {
-      ref = response.load;
+      var ref = response.load;
       Utils.setNullProto(ref);
       settings.values = ref;
       clearInterval(settings.isLoading);
@@ -140,8 +140,8 @@ var Settings, VHUD, MainPort, VInsertMode;
       var _this = settings;
       Utils.setNullProto(response);
       delete response.name;
-      for (i in ref) {
-        settings.values[i] = ref[i];
+      for (i in response) {
+        settings.values[i] = response[i];
       }
     }
   };

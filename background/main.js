@@ -1297,7 +1297,7 @@ g_requestHandlers;
         , funcDict.createTab[0].bind(url))
     : chrome.tabs.query.bind(chrome.tabs, {currentWindow: true, active: true}
         , funcDict.createTab[5].bind(url));
-    BackgroundCommands.createTab.newTab = 1;
+    BackgroundCommands.createTab.useTab = -1;
   };
 
   Settings.updateHooks.postKeyMappings = function(value) {
