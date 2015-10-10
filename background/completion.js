@@ -251,33 +251,21 @@ Completers.domains = {
     }
   },
   performSearch: function(query) {
-    var domain, domainCandidates = [], word = query.queryTerms[0];
-    for (domain in this.domains) {
-      if (domain.indexOf(word) >= 0) {
-        domainCandidates.push(domain);
-      }
+    var ref = this.domains, domain, word = query.queryTerms[0], terms = [word]
+      , wordRelevancy, score, result = "", result_score = -1000;
+    for (domain in ref) {
+      if (domain.indexOf(word) === -1) { continue; }
+      score = RankingUtils.recencyScore(ref[domain].entry.lastVisitTime || 0);
+      wordRelevancy = RankingUtils.wordRelevancy(terms, domain, null);
+      score = score <= wordRelevancy ? wordRelevancy : (wordRelevancy + score) / 2;
+      if (score > result_score) { result_score = score; result = domain; }
     }
-    if (domainCandidates.length === 0) {
+    if (!result) {
       query.onComplete([]);
       return;
     }
-    domain = this.firstDomainByRelevancy(query.queryTerms, domainCandidates);
-    query.onComplete([new Suggestion(query.queryTerms
+    query.onComplete([new Suggestion(terms
         , "domain", domain, domain, null, this.computeRelevancy)]);
-  },
-  firstDomainByRelevancy: function(queryTerms, domainCandidates) {
-    var domain, recencyScore, wordRelevancy, score, _i, _len, result = "", result_score = -1000;
-    for (_i = 0, _len = domainCandidates.length; _i < _len; ++_i) {
-      domain = domainCandidates[_i];
-      recencyScore = RankingUtils.recencyScore(this.domains[domain].entry.lastVisitTime || 0);
-      wordRelevancy = RankingUtils.wordRelevancy(queryTerms, domain, null);
-      score = recencyScore <= wordRelevancy ? wordRelevancy : (wordRelevancy + recencyScore) / 2;
-      if (score > result_score) {
-        result_score = score;
-        result = domain;
-      }
-    }
-    return result;
   },
   populateDomains: function(history) {
     var callback = this.onPageVisited.bind(this);
