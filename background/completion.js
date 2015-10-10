@@ -455,13 +455,11 @@ MultiCompleter = {
       }
       return true;
     },
-    matchWeights: {
-      matchAnywhere: 1,
-      matchStartOfWord: 1,
-      matchWholeWord: 1,
-      maximumScore: 3,
-      recencyCalibrator: 2.0 / 3.0
-    },
+    anywhere: 1,
+    startOfWord: 1,
+    wholeWord: 1,
+    maximumScore: 3,
+    recCalibrator: 2.0 / 3.0,
     _reduceLength: function(p, c) {
       return p - c.length;
     },
@@ -471,12 +469,12 @@ MultiCompleter = {
       count = 0;
       nonMatching = string.split(RegexpCache.get(term, "", ""));
       if (nonMatching.length > 1) {
-        score = this.matchWeights.matchAnywhere;
+        score = this.anywhere;
         count = nonMatching.reduce(this._reduceLength, string.length);
         if (RegexpCache.get(term, "\\b", "").test(string)) {
-          score += this.matchWeights.matchStartOfWord;
+          score += this.startOfWord;
           if (RegexpCache.get(term, "\\b", "\\b").test(string)) {
-            score += this.matchWeights.matchWholeWord;
+            score += this.wholeWord;
           }
         }
       }
@@ -495,7 +493,7 @@ MultiCompleter = {
           titleScore += s; titleCount += c;
         }
       }
-      maximumPossibleScore = this.matchWeights.maximumScore * queryTerms.length + 0.01;
+      maximumPossibleScore = this.maximumScore * queryTerms.length + 0.01;
       urlScore /= maximumPossibleScore;
       urlScore *= this.normalizeDifference(urlCount, url.length);
       if (!title) {
@@ -509,7 +507,7 @@ MultiCompleter = {
     timeAgo: Date.now() - 1000 * 60 * 60 * 24,
     recencyScore: function(lastAccessedTime) {
       var score = Math.max(0, lastAccessedTime - this.timeAgo) / this.timeCalibrator;
-      return score * score * score * this.matchWeights.recencyCalibrator;
+      return score * score * score * this.recCalibrator;
     },
     normalizeDifference: function(a, b) {
       var max = Math.max(a, b);
