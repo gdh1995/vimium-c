@@ -70,6 +70,9 @@ var Settings = {
         ref2[key] = this.get(key);
       }
     },
+    enableDefaultMappings: function() {
+      this.setUnique("postKeyMappings", 1);
+    },
     files: function() {
       var files = this.files, id;
       for (id in files) {
@@ -115,13 +118,13 @@ var Settings = {
     __proto__: null,
     UILanguage: null,
     deepHints: false,
+    enableDefaultMappings: true,
     exclusionRules: [{pattern: "http*://mail.google.com/*", passKeys: ""}],
     findModeRawQuery: "",
     grabBackFocus: true,
     hideHud: false,
     keyboard: [500, 33],
     keyMappings: "",
-    enableDefaultMappings: true,
     linkHintCharacters: "sadjklewcmpgh",
     newTabUrl: "",
     newTabUrl_f: "",
@@ -188,6 +191,7 @@ w|wiki:\\\n  http://www.wikipedia.org/w/index.php?search=%s Wikipedia (en-US)",
 Settings.onUnique = Settings.onUnique.bind(Settings);
 // note: if changed, ../pages/newtab.js also needs change.
 Settings.defaults.newTabUrl = Settings.CONST.ChromeInnerNewTab;
+Settings.updateHooks.keyMappings = Settings.updateHooks.enableDefaultMappings;
 
 (function() {
   var ref, i, func;

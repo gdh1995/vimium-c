@@ -1300,8 +1300,8 @@ g_requestHandlers;
     BackgroundCommands.createTab.newTab = 1;
   };
 
-  Settings.updateHooks.keyMappings = function(value) {
-    Commands.parseKeyMappings(value, 0);
+  Settings.updateHooks.postKeyMappings = function(value) {
+    Commands.parseKeyMappings(Settings.get("keyMappings"), 0);
     this.postUpdate("broadcast", {
       name: "refreshKeyMappings",
       currentFirst: null,

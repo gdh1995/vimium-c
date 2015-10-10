@@ -204,6 +204,7 @@ CheckBoxOption.prototype.readValueFromElement = function() {
     regexFindMode: CheckBoxOption,
     scrollStepSize: NumberOption,
     smoothScroll: CheckBoxOption,
+    enableDefaultMappings: CheckBoxOption,
     deepHints: CheckBoxOption,
     showActionIcon: CheckBoxOption,
     searchEngines: TextOption,
