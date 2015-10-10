@@ -25,7 +25,7 @@ var Utils = {
   // "javascript" should be treated specially
   _nonUrlPrefixes: { about: 1, blob: 1, data: 1, "view-source": 1 },
   _chromePrefixes: { "chrome-extension": 1, "chrome-search": 1 },
-  _urlPrefix: /^[a-z]{3,}:\/\/./,
+  _urlPrefix: /^[a-z]{3,}:\/\//,
   hasOrdinaryUrlPrefix: function(url) {
     return this._urlPrefix.test(url);
   },
