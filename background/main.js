@@ -1291,9 +1291,7 @@ g_requestHandlers;
     }
   };
 
-  Settings.updateHooks.newTabUrl = function(url) {
-    url = (/^\/?[^:\s]*$/.test(url)) ? chrome.runtime.getURL(url) : Utils.convertToUrl(url);
-    if (this.get("newTabUrl_f") !== url) { this.set('newTabUrl_f', url); }
+  Settings.updateHooks.newTabUrl_f = function(url) {
     BackgroundCommands.createTab = Utils.isRefusingIncognito(url)
     ? chrome.windows.getCurrent.bind(chrome.windows, {populate: true}
         , funcDict.createTab[0].bind(url))
