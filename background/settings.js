@@ -3,6 +3,8 @@ var Settings = {
   _buffer: { __proto__: null },
   bufferToLoad: null,
   frameIdsForTab: null,
+  keyToSet: { __proto__: null },
+  timerForSet: 0,
   urlForTab: null,
   extIds: [chrome.runtime.id],
   get: function(key) {
@@ -28,6 +30,15 @@ var Settings = {
     if (ref = this.updateHooks[key]) {
       ref.call(this, value, key);
     }
+  },
+  delayForUnique: function(key, value) {
+    this.keyToSet[key] = value;
+    this.timerForSet || (this.timerForSet = setTimeout(this.onUnique, 17));
+  },
+  onUnique: function() { // has been bound
+    var ref = this.keyToSet, key;
+    this.keyToSet = []; this.timerForSet = 0;
+    for (key in ref) { this.set(key, ref[key]); }
   },
   postUpdate: function(key, value) {
     this.updateHooks[key].call(this, value !== undefined ? value : this.get(key), key);
@@ -73,11 +84,17 @@ var Settings = {
       this.postUpdate("searchUrl");
     },
     userDefinedCss: function(cssi) {
-      var csso;
-      cssi && (cssi = cssi.trim());
-      csso = this.get("userDefinedOuterCss");
+      var csso = this.get("userDefinedOuterCss");
       csso && (csso = csso.trim());
-      this.set("userDefinedCss_f", (cssi || csso) ? [cssi, csso] : null);
+      cssi && (cssi = cssi.trim());
+      this.delayForUnique("userDefinedCss_f", (cssi || csso) ? [cssi, csso] : null);
+    },
+    userDefinedCss_f: function(css) {
+      this.postUpdate("broadcast", {
+        name: "insertCSS",
+        onReady: true,
+        css: (css || ["", ""])
+      });
     },
     userDefinedOuterCss: function() {
       this.postUpdate("userDefinedCss");
@@ -158,6 +175,7 @@ w|wiki:\\\n  http://www.wikipedia.org/w/index.php?search=%s Wikipedia (en-US)",
   }
 };
 
+Settings.onUnique = Settings.onUnique.bind(Settings);
 // note: if changed, ../pages/newtab.js also needs change.
 Settings.defaults.newTabUrl = Settings.CONST.ChromeInnerNewTab;
 
