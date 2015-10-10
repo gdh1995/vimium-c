@@ -264,8 +264,8 @@ Completers.domains = {
       query.onComplete([]);
       return;
     }
-    query.onComplete([new Suggestion(terms, "domain", (ref[domain][2]
-        ? "https://" + domain : domain), domain, null, this.computeRelevancy)]);
+    query.onComplete([new Suggestion(terms, "domain", (ref[result][2]
+        ? "https://" + result : result), result, null, this.computeRelevancy)]);
   },
   populateDomains: function(history) {
     var callback = this.onPageVisited.bind(this);
