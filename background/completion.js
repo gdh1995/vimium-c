@@ -308,7 +308,7 @@ Completers.domains = {
     return Utils.hasOrdinaryUrlPrefix(url) ? url.split("/", 3).join("/") : "";
   },
   computeRelevancy: function() {
-    return 1;
+    return 2;
   }
 };
 
