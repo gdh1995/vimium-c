@@ -32,6 +32,7 @@ var LinkHints = {
   ngAttributes: ["x:ng-click", "ng:click", "x-ng-click", "data-ng-click", "ng-click"],
   keepHUDAfterAct: false,
   keyStatus: {
+    known: 1,
     tab: 0
   },
   handlerId: 0,
@@ -410,6 +411,7 @@ var LinkHints = {
       }
     } else if (linksMatched.length === 0) {
       this.deactivate();
+      this.suppressTail(this.keyStatus.known);
     } else if (linksMatched.length === 1) {
       DomUtils.suppressEvent(event);
       this.activateLink(linksMatched[0].clickableItem);
@@ -449,6 +451,26 @@ var LinkHints = {
   unhoverLast: function(element) {
     this.lastHovered && DomUtils.simulateMouse(this.lastHovered, "mouseout", element);
     this.lastHovered = element;
+  },
+  suppressTail: function(onlyRepeated) {
+    var func, handlerId, tick, timer;
+    if (onlyRepeated) {
+      func = function(event) {
+        if (event.repeat) { return false; }
+        handlerStack.remove(handlerId);
+        return true;
+      };
+    } else {
+      func = function(event) { tick = Date.now(); return false; };
+      tick = Date.now() + Settings.values.keyboard[0];
+      timer = setInterval(function() {
+        if (Date.now() - tick > 150) {
+          clearInterval(timer);
+          handlerStack.remove(handlerId);
+        }
+      }, 75);
+    }
+    handlerId = handlerStack.push({ keydown: func, keypress: func });
   },
   reinit: function() {
     var mode = this.mode, linkActivator = this.linkActivator;
@@ -566,15 +588,22 @@ LinkHints.alphabetHints = {
     if (key === KeyCodes.tab) {}
     else if (key === KeyCodes.backspace || key === KeyCodes.deleteKey || key === KeyCodes.f1) {
       if (!this.hintKeystrokeQueue.pop()) {
+        keyStatus.known = 1;
         return [];
       }
     } else if (key === KeyCodes.space) {
+      keyStatus.known = 1;
       return [];
     } else if (keyChar = KeyboardUtils.getKeyChar(event).toLowerCase()) {
+      if (Settings.values.linkHintCharacters.indexOf(keyChar) === -1) {
+        keyStatus.known = 1;
+        return [];
+      }
       this.hintKeystrokeQueue.push(keyChar);
     } else {
       return null;
     }
+    keyStatus.known = 0;
     keyChar = this.hintKeystrokeQueue.join("");
     return hintMarkers.filter(keyStatus.tab ? function(linkMarker) {
       var pass = ! linkMarker.hintString.startsWith(keyChar);
