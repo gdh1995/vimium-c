@@ -5,7 +5,7 @@ var Settings, VHUD, MainPort, VInsertMode;
     , executeFind, exitFindMode //
     , findAndFocus, findChangeListened, findMode //
     , findModeAnchorNode, findModeQuery, findModeQueryHasResults, firstKeys //
-    , focusFoundLink, followLink, frameId, FrameMask, getFullCommand //
+    , focusFoundLink, followLink, frameId, FrameMask //
     , getNextQueryFromRegexpMatches, getVisibleInputs, goBy //
     , handleDeleteForFindMode, handleEnterForFindMode, handleEscapeForFindMode //
     , handleKeyCharForFindMode, initIfEnabled, InsertMode //
@@ -536,8 +536,7 @@ var Settings, VHUD, MainPort, VInsertMode;
       }
       else if (InsertMode.global) {}
       else if (key >= KeyCodes.f1 && key <= KeyCodes.f12) {
-        keyChar = getFullCommand(event, KeyboardUtils.getKeyName(event));
-        action = checkValidKey(keyChar);
+        action = checkValidKey(event, KeyboardUtils.getKeyName(event));
       }
     }
     else if (findMode) {
@@ -561,8 +560,7 @@ var Settings, VHUD, MainPort, VInsertMode;
     }
     else if (key >= 32) {
       if (keyChar = KeyboardUtils.getKeyChar(event)) {
-        keyChar = getFullCommand(event, keyChar);
-        action = checkValidKey(keyChar);
+        action = checkValidKey(event, keyChar);
       }
     }
     else if (key === KeyCodes.esc && KeyboardUtils.isPlain(event)) {
@@ -584,7 +582,15 @@ var Settings, VHUD, MainPort, VInsertMode;
     KeydownEvents[key] = 1;
   };
 
-  checkValidKey = function(key) {
+  checkValidKey = function(event, key) {
+    var left = event.altKey ? "<a-" : "<";
+    if (event.ctrlKey) {
+      key = left + (event.metaKey ? "c-m-" : "c-") + key + ">";
+    } else if (event.metaKey) {
+      key = left + "m-" + key + ">";
+    } else if (event.altKey || key.length > 1) {
+      key = left + key + ">";
+    }
     if (keyQueue) {
       if (!((key in firstKeys) || (key in currentSeconds))) {
         mainPort.port.postMessage({ handler: "esc" });
@@ -597,19 +603,6 @@ var Settings, VHUD, MainPort, VInsertMode;
     }
     mainPort.port.postMessage({ handlerKey: key });
     return 2;
-  };
-
-  getFullCommand = function(event, keyChar) {
-    var left = event.altKey ? "<a-" : "<";
-    if (event.ctrlKey) {
-      return left + (event.metaKey ? "c-m-" : "c-") + keyChar + ">";
-    } else if (event.metaKey) {
-      return left + "m-" + keyChar + ">";
-    } else if (event.altKey || keyChar.length > 1) {
-      return left + keyChar + ">";
-    } else {
-      return keyChar;
-    }
   };
 
   VInsertMode = InsertMode = {
