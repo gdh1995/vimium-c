@@ -30,10 +30,8 @@ var LinkHints = {
   ngAttribute: "",
   // find /^((?:x|data)[:_\-])?ng-|^ng:/, and ignore "data:", "data_" and "x_"
   ngAttributes: ["x:ng-click", "ng:click", "x-ng-click", "data-ng-click", "ng-click"],
-  delayMode: false,
   keepHUDAfterAct: false,
   keyStatus: {
-    delay: 0,
     tab: 0
   },
   handlerId: 0,
@@ -374,7 +372,7 @@ var LinkHints = {
   },
   onKeyDownInMode: function(event) {
     var linksMatched, _i, _j, _ref, _limit;
-    if (this.delayMode || event.repeat) {
+    if (event.repeat) {
       // NOTE: should always prevent repeated keys.
     } else if ((_i = event.keyCode) === KeyCodes.esc) {
       if (KeyboardUtils.isPlain(event)) {
@@ -431,7 +429,6 @@ var LinkHints = {
   },
   activateLink: function(clickEl) {
     var tempi;
-    this.delayMode = true;
     if (this.mode >= 128) {}
     else if ((tempi = DomUtils.getEditableType(clickEl)) === 3) {
       DomUtils.simulateSelect(clickEl);
@@ -445,7 +442,7 @@ var LinkHints = {
     if ((this.mode & 64) === 64) {
       this.reinit();
     } else {
-      this.deactivateWith();
+      this.deactivate();
     }
   },
   lastHovered: null,
@@ -455,12 +452,11 @@ var LinkHints = {
   },
   reinit: function() {
     var mode = this.mode, linkActivator = this.linkActivator;
-    this.deactivateWith(function() {
-      this.linkActivator = linkActivator;
-      this._activateMode(mode);
-    });
+    this.deactivate();
+    this.linkActivator = linkActivator;
+    this._activateMode(mode);
   },
-  deactivate: function(callback) {
+  deactivate: function() {
     this.alphabetHints.deactivate();
     this.linkActivator = null;
     this.hintMarkers = [];
@@ -478,18 +474,6 @@ var LinkHints = {
     }
     this.mode = 0;
     this.isActive = false;
-    this.delayMode = false;
-    if (callback) {
-      callback.call(this);
-    }
-  },
-  deactivateWith: function(callback) {
-    var delay = this.keyStatus.delay;
-    if (delay) {
-      setTimeout(this.deactivate.bind(this, callback), delay);
-    } else {
-      this.deactivate(callback);
-    }
   }
 };
 
@@ -592,7 +576,6 @@ LinkHints.alphabetHints = {
       return null;
     }
     keyChar = this.hintKeystrokeQueue.join("");
-    keyStatus.delay = 0;
     return hintMarkers.filter(keyStatus.tab ? function(linkMarker) {
       var pass = ! linkMarker.hintString.startsWith(keyChar);
       linkMarker.style.display = pass ? "" : "none";
