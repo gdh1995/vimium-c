@@ -156,17 +156,18 @@ var Utils = {
   },
   searchWordRe: /%[sS]/g,
   createSearchUrl: function(pattern, query, $S) {
+    var queryStr;
     if ($S != null ? ($S === true) : pattern.$S) {
       $S = query.join(' ');
     }
     if (pattern.$s) {
-      query = query.map(encodeURIComponent).join('+');
+      queryStr = query.map(encodeURIComponent).join('+');
     }
     return {
       url: pattern.url.replace(this.searchWordRe, function(s) {
-        return (s === "%s") ? query : $S;
+        return (s === "%s") ? queryStr : $S;
       }),
-      $s: query,
+      $s: queryStr,
       $S: $S
     };
   },
