@@ -360,8 +360,11 @@ Completers.searchEngines = {
       , pattern.name + ": " + obj.$S, this.computeRelevancy);
     if (queryTerms.length > 0) {
       sug.titleSplit = [pattern.name.length + 2, sug.title.length];
-      text = Utils.decodeURLPart(Suggestion.shortenUrl(pattern.url
-        ).replace(Utils.searchWordRe, this.encodeSearchKey));
+      text = Suggestion.shortenUrl(pattern.url);
+      try {
+        text = decodeURIComponent(text //
+          .replace(Utils.searchWordRe, this.encodeSearchKey));
+      } catch (e) {}
       sug.textSplit = this.splitText(obj, sug.text, text);
     } else {
       sug.textSplit = sug.titleSplit = [];
