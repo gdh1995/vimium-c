@@ -1,7 +1,7 @@
 "use strict";
 var Completers;
 setTimeout(function() {
-  var HistoryCache, RankingUtils, RegexpCache, Decoder, MultiCompleter;
+  var TabRecency, HistoryCache, RankingUtils, RegexpCache, Decoder, MultiCompleter;
 
   Completers = {};
 
@@ -312,28 +312,73 @@ Completers.domains = {
   }
 };
 
+TabRecency = {
+  Array: null,
+  clean: null,
+  tabId: null,
+  stamp: null
+};
+TabRecency.stamp = function() {
+  var cache = Utils.makeNullProto(), last = 0, stamp = 1, time = 0;
+  chrome.tabs.onActivated.addListener(function(activeInfo) {
+    var now = Date.now(), tabId = activeInfo.tabId;
+    if (now - time > 500) {
+      cache[last] = ++stamp;
+      if (stamp === 255) { TabRecency.clean(); }
+    }
+    last = tabId; time = now;
+  });
+  this.clean = function() {
+    var ref = cache, i;
+    for (i in ref) {
+      if (ref[i] <= 192) { delete ref[i]; }
+      else {ref[i] -= 191; }
+    }
+    stamp = 64;
+  };
+  chrome.tabs.query({currentWindow: true, active: true}, function(tab) {
+    time = Date.now();
+    if (chrome.runtime.lastError) { return chrome.runtime.lastError; }
+    last = tab.id;
+  });
+  this.Array = cache;
+  this.tabId = function() { return last; };
+  this.stamp = function() { return stamp; };
+};
+
 Completers.tabs = {
   filter: function(query) {
     chrome.tabs.query({}, this.filter1.bind(this, query));
   },
   filter1: function(query, tabs) {
     if (query.isOff) { return; }
-    var queryTerms = query.queryTerms;
-    var c = this.computeRelevancy, suggestions = tabs.filter(function(tab) {
-      var text = Decoder.decodeURL(tab.url);
-      if (RankingUtils.match2(queryTerms, text, tab.title)) {
-        tab.text = text;
-        return true;
-      }
-      return false;
-    }).map(function(tab) {
-      var suggestion = new Suggestion(queryTerms, "tab", tab.url, tab.text, tab.title, c);
-      suggestion.sessionId = tab.id;
+    var queryTerms = query.queryTerms, curTabId = TabRecency.tabId(), c, suggestions;
+    if (queryTerms.length > 0) {
+      tabs = tabs.filter(function(tab) {
+        var text = Decoder.decodeURL(tab.url);
+        if (RankingUtils.match2(queryTerms, text, tab.title)) {
+          tab.text = text;
+          return true;
+        }
+        return false;
+      });
+      c = this.computeRelevancy;
+    } else {
+      c = this.computeRecency;
+    }
+    suggestions = tabs.map(function(tab) {
+      var tabId = tab.id, suggestion = new Suggestion(queryTerms
+          , "tab", tab.url, tab.text, tab.title, c, tabId);
+      suggestion.sessionId = tabId;
       suggestion.favIconUrl = tab.favIconUrl;
+      if (curTabId === tabId) { suggestion.relevancy = 0; }
       return suggestion;
     });
     query.onComplete(suggestions);
     Decoder.continueToWork();
+  },
+  computeRecency: function(_0, sessionId) {
+    return TabRecency.Array[sessionId] || 1;
   },
   computeRelevancy: function(suggestion) {
     return RankingUtils.wordRelevancy(suggestion.queryTerms, suggestion.text, suggestion.title);
@@ -702,6 +747,8 @@ MultiCompleter = {
         }
       };
     })();
+
+    TabRecency.stamp();
 
     var lang = Settings.get("UILanguage");
     if (!lang || !(lang = lang[chrome.i18n.getUILanguage()])) {
