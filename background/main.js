@@ -1120,18 +1120,18 @@ g_requestHandlers;
       return "";
     },
     searchAs: function(request) {
-      var search = requestHandlers.parseSearchUrl(request), query, i;
+      var search = requestHandlers.parseSearchUrl(request), query;
       if (!search) { return "search engine"; }
       if (!(query = request.search)) {
         query = Clipboard.paste().replace(Utils.spacesRe, ' ').trim();
         if (!query) { return "selected or copied text"; }
       }
-      i = search.indexOf(" ");
-      search = Utils.createSearchUrl(
-          Settings.get("searchEnginesMap")[search.substring(0, i)],
+      search = search.substring(0, search.indexOf(" "));
+      query = Utils.createSearchUrl(
+          Settings.get("searchEnginesMap")[search],
           query.split(" ")).url;
       chrome.tabs.update({
-        url: search
+        url: query
       });
     },
     restoreSession: function(request) {
