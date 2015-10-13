@@ -156,6 +156,9 @@ var Utils = {
   searchWordRe: /%[sS]/g,
   createSearchUrl: function(query, keyword) {
     query = this.createSearch(query, Settings.get("searchEnginesMap")[keyword]).url;
+    if (keyword != "~") {
+      query = this.convertToUrl(query);
+    }
     return query;
   },
   createSearch: function(query, pattern, $S) {
