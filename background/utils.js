@@ -23,7 +23,7 @@ var Utils = {
     return s.replace(this._escapeRe, this._escapeCallback);
   },
   // "javascript" should be treated specially
-  _nonUrlPrefixes: { about: 1, blob: 1, data: 1, "view-source": 1 },
+  _nonUrlPrefixes: { about: 1, blob: 1, data: 1, mailto: 1, "view-source": 1 },
   _chromePrefixes: { "chrome-extension": 1, "chrome-search": 1 },
   _urlPrefix: /^[a-z]{3,}:\/\//,
   hasOrdinaryUrlPrefix: function(url) {
