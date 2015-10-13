@@ -143,8 +143,7 @@ var Utils = {
     }
     // window.type = type;
     return type === 0 ? oldString : type === 1 ? ("http://" + oldString)
-      : this.createSearchUrl(Settings.get("searchEnginesMap")[
-          keyword || "~"], oldString.split(' ')).url;
+      : this.createSearchUrl(oldString.split(' '), keyword || "~");
   },
   isTld: function(tld) {
     if (this._nonENTldRe.test(tld)) {
@@ -155,7 +154,11 @@ var Utils = {
     return false;
   },
   searchWordRe: /%[sS]/g,
-  createSearchUrl: function(pattern, query, $S) {
+  createSearchUrl: function(query, keyword) {
+    query = this.createSearch(query, Settings.get("searchEnginesMap")[keyword]).url;
+    return query;
+  },
+  createSearch: function(query, pattern, $S) {
     var queryStr;
     if ($S != null ? ($S === true) : pattern.$S) {
       $S = query.join(' ');

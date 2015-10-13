@@ -399,7 +399,7 @@ Completers.searchEngines = {
     } else {
       queryTerms = [];
     }
-    obj = Utils.createSearchUrl(pattern, queryTerms, true);
+    obj = Utils.createSearch(queryTerms, pattern, true);
     text = Utils.decodeURLPart(Suggestion.shortenUrl(obj.url));
     sug = new Suggestion(null, "search", obj.url, text
       , pattern.name + ": " + obj.$S, this.computeRelevancy);

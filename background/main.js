@@ -1127,9 +1127,7 @@ g_requestHandlers;
         if (!query) { return "selected or copied text"; }
       }
       search = search.substring(0, search.indexOf(" "));
-      query = Utils.createSearchUrl(
-          Settings.get("searchEnginesMap")[search],
-          query.split(" ")).url;
+      query = Utils.createSearchUrl(query.split(" "), search);
       chrome.tabs.update({
         url: query
       });
