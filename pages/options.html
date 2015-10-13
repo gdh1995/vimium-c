@@ -68,6 +68,32 @@ MainName|c|c\:|C: \
               <textarea id="searchEngines"></textarea>
           </td>
         </tr>
+        <tr>
+          <td class="caption">Default search<br/>engine</td>
+          <td>
+              <div class="help">
+                <div class="example">
+                  The default search engine ("~" to use it in Vomnibar)<br>
+                  (e.g. "<kbd>http://www.baidu.com/s?ie=utf-8&wd=%s Baidu</kbd>").
+                </div>
+              </div>
+              <input id="searchUrl" type="text" />
+              <div class="nonEmptyTextOption"></div>
+          </td>
+        </tr>
+        <tr>
+          <td class="caption">New tab URL</td>
+          <td>
+              <div class="help">
+                <div class="example">
+                  "<kbd>pages/blank.html</kbd>" for a blank page. Chrome inner:<br />
+                  "<kbd>chrome-search://local-ntp/local-ntp.html</kbd>".
+                </div>
+              </div>
+              <input id="newTabUrl" type="text" />
+              <div class="nonEmptyTextOption"></div>
+          </td>
+        </tr>
         <tbody id="advancedOptions" style="display: none;">
           <tr>
             <td colspan="2"><header>Advanced Options</header></td>
@@ -208,32 +234,6 @@ MainName|c|c\:|C: \
                   </div>
                 </div>
                 <input id="nextPatterns" type="text" />
-                <div class="nonEmptyTextOption"></div>
-            </td>
-          </tr>
-          <tr>
-            <td class="caption">New tab URL</td>
-            <td>
-                <div class="help">
-                  <div class="example">
-                    "<kbd>pages/blank.html</kbd>" for a blank page. Chrome inner:<br />
-                    "<kbd>chrome-search://local-ntp/local-ntp.html</kbd>".
-                  </div>
-                </div>
-                <input id="newTabUrl" type="text" />
-                <div class="nonEmptyTextOption"></div>
-            </td>
-          </tr>
-          <tr>
-            <td class="caption">Default search<br/>engine</td>
-            <td>
-                <div class="help">
-                  <div class="example">
-                    The default search engine ("~" to use it in Vomnibar)<br>
-                    (e.g. "<kbd>http://www.baidu.com/s?ie=utf-8&wd=%s Baidu</kbd>").
-                  </div>
-                </div>
-                <input id="searchUrl" type="text" />
                 <div class="nonEmptyTextOption"></div>
             </td>
           </tr>
