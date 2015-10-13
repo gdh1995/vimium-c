@@ -123,6 +123,7 @@ Vomnibar.vomnibarUI = {
     this.list.innerHTML = "";
     this.input.value = "";
     handlerStack.remove(this.handlerId);
+    this.handlerId = 0;
     this.onUpdate = null;
     this.completionInput.text = "";
     this.completionInput.url = "";
