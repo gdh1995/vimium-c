@@ -305,6 +305,7 @@ var importSettings = function() {
   delete new_data.name;
   delete new_data.time;
   delete new_data.findModeRawQuery;
+  delete new_data.newTabUrl_f;
   Utils.setNullProto(new_data);
   for (i = storage.length; 0 <= --i; ) {
     key = storage.key(i);
