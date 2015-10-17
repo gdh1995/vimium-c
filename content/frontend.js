@@ -940,7 +940,7 @@ var Settings, VHUD, MainPort, VInsertMode;
         continue;
       }
       computedStyle = window.getComputedStyle(link);
-      if (computedStyle.getPropertyValue("visibility") !== "visible" || computedStyle.getPropertyValue("display") === "none") {
+      if (computedStyle.visibility !== "visible" || computedStyle.display === "none") {
         continue;
       }
       linkString = (link.innerText || link.title).toLowerCase();
