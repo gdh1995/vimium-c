@@ -128,9 +128,9 @@ Scroller = {
   },
   shouldScroll: function(element, di) {
     var computedStyle = window.getComputedStyle(element), _ref;
-    return !((computedStyle.display === "none") //
-      || (computedStyle[di ? "overflowY" : "overflowX"] === "hidden") //
-      || ((_ref = computedStyle.visibility) === "hidden" || _ref === "collapse"));
+    return computedStyle.display !== "none" //
+      && computedStyle[di ? "overflowY" : "overflowX"] !== "hidden" //
+      && computedStyle.visibility === "visible";
   },
   sortBy0: function(a, b) {
     return a[0] - b[0];

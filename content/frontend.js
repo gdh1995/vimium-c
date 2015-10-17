@@ -928,7 +928,7 @@ var Settings, VHUD, MainPort, VInsertMode;
   };
 
   goBy.findAndFollowLink = function(linkStrings) {
-    var boundingClientRect, candidateLinks, computedStyle, exactWordRe, link, linkString, links, linksXPath, _i, _j, _len, _len1;
+    var boundingClientRect, candidateLinks, exactWordRe, link, linkString, links, linksXPath, _i, _j, _len, _len1;
     linksXPath = './/a | .//xhtml:a | .//*[@onclick or @role="link"] | .//xhtml:*[@onclick or @role="link"]';
     links = DomUtils.evaluateXPath(linksXPath, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE);
     candidateLinks = [];
@@ -939,10 +939,7 @@ var Settings, VHUD, MainPort, VInsertMode;
       if (boundingClientRect.width < 0.5 || boundingClientRect.height < 0.5) {
         continue;
       }
-      computedStyle = window.getComputedStyle(link);
-      if (computedStyle.visibility !== "visible" || computedStyle.display === "none") {
-        continue;
-      }
+      if (!DomUtils.isStyleVisible(link)) { continue; }
       linkString = (link.innerText || link.title).toLowerCase();
       for (_j = 0, _len1 = linkStrings.length; _j < _len1; _j++) {
         if (linkString.indexOf(linkStrings[_j]) !== -1) {
