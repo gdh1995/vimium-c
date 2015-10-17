@@ -230,7 +230,7 @@ var Settings, VHUD, MainPort, VInsertMode;
       }
     }, true);
     document.addEventListener("DOMActivate", ELs.onActivate = function(event) {
-      Scroller.current = (event.deepPath || event.path || [])[0] || event.target;
+      Scroller.current = event.path[0];
     }, true);
   };
 
