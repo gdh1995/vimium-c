@@ -129,7 +129,7 @@ Scroller = {
   shouldScroll: function(element, di) {
     var computedStyle = window.getComputedStyle(element), _ref;
     return computedStyle.display !== "none" //
-      && computedStyle[di ? "overflowY" : "overflowX"] !== "hidden" //
+      && (di ? computedStyle.overflowY : computedStyle.overflowX) !== "hidden" //
       && computedStyle.visibility === "visible";
   },
   sortBy0: function(a, b) {
