@@ -306,7 +306,7 @@ var LinkHints = {
       rect = element.getBoundingClientRect();
       w = rect.left; h = rect.top;
       cr = VRect.cropRectToVisible(w, h, w + 8, h + 8);
-    } else if (DomUtils.isStyleVisible(element)) {
+    } else if (DomUtils.isStyleVisible(window.getComputedStyle(element))) {
       rect = element.getBoundingClientRect();
       w = rect.right + (rect.width < 3 ? 3 : 0);
       h = rect.bottom + (rect.height < 3 ? 3 : 0);

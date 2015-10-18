@@ -939,7 +939,7 @@ var Settings, VHUD, MainPort, VInsertMode;
       if (boundingClientRect.width < 0.5 || boundingClientRect.height < 0.5) {
         continue;
       }
-      if (!DomUtils.isStyleVisible(link)) { continue; }
+      if (!DomUtils.isStyleVisible(window.getComputedStyle(link))) { continue; }
       linkString = (link.innerText || link.title).toLowerCase();
       for (_j = 0, _len1 = linkStrings.length; _j < _len1; _j++) {
         if (linkString.indexOf(linkStrings[_j]) !== -1) {
