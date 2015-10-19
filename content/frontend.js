@@ -1389,8 +1389,7 @@ var Settings, VHUD, MainPort, VInsertMode;
     window.removeEventListener("blur", this.onBlur, true);
     window.removeEventListener("mousedown", InsertMode.exitGrab, true);
     document.removeEventListener("DOMActivate", this.onActivate, true);
-    document.removeEventListener("webkitfullscreenchange", DomUtils.UI.Adjust);
-    DomUtils.UI.container && DomUtils.UI.container.remove();
+    DomUtils.UI.destroy();
 
     clearInterval(settings.isLoading);
     clearInterval(FrameMask.timer);

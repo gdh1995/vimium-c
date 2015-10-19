@@ -46,6 +46,10 @@ DomUtils.UI = {
     this.container.removeAttribute("style");
     document.addEventListener("webkitfullscreenchange", this.Adjust);
   },
+  destroy: function() {
+    document.removeEventListener("webkitfullscreenchange", this.Adjust);
+    this.container && this.container.remove();
+  },
   appendCSS: function(parent, text) {
     var css = DomUtils.createElement("style");
     css.type = "text/css";
