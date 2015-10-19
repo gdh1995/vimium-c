@@ -198,9 +198,8 @@ Settings.updateHooks.userDefinedOuterCss = Settings.updateHooks.userDefinedCss;
   Settings.CONST.CurrentVersion = ref.version;
   Settings.CONST.OptionsPage = func(ref.options_page);
   Settings.CONST.ContentScripts = ref = ref.content_scripts[0];
-  ref.css = ref.css ? ref.css.map(func) : [];
-  ref.js  = ref.js  ? ref.js .map(func) : [];
-  ref.js.push(func("content/inject_end.js"));
+  ref.js[ref.js.length - 1] = "content/inject_end.js";
+  ref.js = ref.js.map(func);
 
   i = navigator.appVersion.match(/Chrom(?:e|ium)\/([^\s]*)/)[1];
   Settings.CONST.ChromeVersion = parseFloat(i);

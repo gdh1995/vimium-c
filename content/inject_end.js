@@ -93,8 +93,7 @@ Settings.onDestroy.injected = function() {
   injector.oldFrameId = this.focusMsg.frameId;
   injector.destroy = null;
   [].forEach.call(document.querySelectorAll(
-  'script[src^="chrome-extension://hfjbmagddngcpeloejdejnfgbamkjaeg/"],\
-    link[href^="chrome-extension://hfjbmagddngcpeloejdejnfgbamkjaeg/"]'
+  'script[src^="chrome-extension://hfjbmagddngcpeloejdejnfgbamkjaeg/"]'
   ), function(node) { node.remove(); });
 };
 
