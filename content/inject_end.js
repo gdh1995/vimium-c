@@ -43,6 +43,20 @@ DomUtils.DocumentReady(function() {
   );
 });
 
+(function() {
+var _listen = Element.prototype.addEventListener, handler;
+if (_listen.vimiumHooked === true) { return; }
+
+handler = function(type) {
+  if (type === "click" && this instanceof Element) {
+    this.hasOnclick = true;
+  }
+  return _listen.apply(this, arguments);
+};
+handler.vimiumHooked = true;
+EventTarget.prototype.addEventListener = handler;
+})();
+
 if (chrome.runtime.onMessageExternal) {
   Settings.ELs.onMessage = (function(request, sender) {
     if (sender.id === "hfjbmagddngcpeloejdejnfgbamkjaeg") {

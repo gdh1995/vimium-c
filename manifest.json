@@ -61,7 +61,8 @@
       "content/vomnibar.js",
       "content/scroller.js",
       "content/marks.js",
-      "content/frontend.js"
+      "content/frontend.js",
+      "content/extend_click.js"
     ],
     "matches": [ "\u003Call_urls>" ],
     "run_at": "document_start"
