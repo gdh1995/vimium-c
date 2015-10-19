@@ -1302,9 +1302,8 @@ var Settings, VHUD, MainPort, VInsertMode;
       node1.remove();
     }
     showAdvancedCommands(shouldShowAdvanced);
-    node1 = container.querySelector("#HelpDialog");
     window.focus();
-    Scroller.current = node1;
+    Scroller.current = container;
     handlerId = handlerStack.push({
       keydown: function(event) {
         if (event.keyCode === KeyCodes.esc && !VInsertMode.lock
