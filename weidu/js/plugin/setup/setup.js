@@ -569,7 +569,7 @@ var setup = {
 			+ '</span><span class="right">' + getI18nMsg('loginMemo')
 			+ '</span></div><div class="oathSettingsContainer"><div class="settingsItem" style="display:'
 			+ (cId != "" ? "none" : "block") + '"><span>' + getI18nMsg('backup')
-			+ '</span><div class="dataContainer"><div class="dataAction"><input type="file" name="importData" id="importData" style="visibility:hidden;width:0px;height:0px;" accept="*/*" /></div><div class="dataAction export"><div class="icon export"></div><div>'
+			+ '</span><div class="dataContainer"><div style="float:left"><input type="file" name="importData" id="importData" style="visibility:hidden;width:0px;height:0px;" accept="*/*" /></div><div class="dataAction export"><div class="icon export"></div><div>'
 			+ getI18nMsg('export')
 			+ '</div></div><div class="dataAction import"><div class="icon import"></div><div>'
 			+ getI18nMsg('import') + '</div></div></div></div><div class="settingsItem">'
