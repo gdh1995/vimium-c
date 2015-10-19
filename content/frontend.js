@@ -1259,7 +1259,6 @@ var Settings, VHUD, MainPort, VInsertMode;
     }
     container.innerHTML = response.html;
     container = container.firstElementChild;
-    DomUtils.UI.addElement(container);
     container.addEventListener("mousewheel", DomUtils.SuppressPropagation);
     container.addEventListener("click", DomUtils.SuppressPropagation);
 
@@ -1302,6 +1301,7 @@ var Settings, VHUD, MainPort, VInsertMode;
       node1.remove();
     }
     showAdvancedCommands(shouldShowAdvanced);
+    DomUtils.UI.addElement(container);
     window.focus();
     Scroller.current = container;
     handlerId = handlerStack.push({
