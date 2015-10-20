@@ -1,5 +1,5 @@
 "use strict";
-chrome.runtime.getBackgroundPage || (function(func) {
+(function(func) {
   var script = document.createElementNS("http://www.w3.org/1999/xhtml", "script"), parent;
   script.type = "text/javascript";
   script.id = "vimium-plus-extend-click";
