@@ -95,7 +95,7 @@ if (chrome.browserAction && chrome.browserAction.setIcon) setTimeout(function() 
 // According to tests: onInstalled will be executed after 0 ~ 16 ms if needed
 chrome.runtime.onInstalled.addListener(b = setTimeout.bind(window,
 function(details) {
-  var contentScripts, func, js, css, reason = details.reason;
+  var reason = details.reason, func;
   if (reason === "install") { reason = ""; }
   else if (reason === "update") { reason = details.previousVersion; }
   else { return; }
@@ -104,28 +104,23 @@ function(details) {
     Settings.CONST.Timer = 0;
   }
 
-  contentScripts = chrome.runtime.getManifest().content_scripts[0];
-  if (contentScripts.all_frames) {
-    func = function(url) { return {file: url, allFrames: true}; };
-  } else {
-    func = function(url) { return {file: url, allFrames: false}; };
-  }
-  css = (contentScripts.css || []).map(func);
-  js = contentScripts.js.map(func);
-  contentScripts = null;
   chrome.tabs.query({
     status: "complete"
   }, function(tabs) {
-    var _i = tabs.length, tabId, _j, _len, callback, url, t = chrome.tabs;
+    var _i = tabs.length, tabId, _j, _len, callback, url, t = chrome.tabs, ref, contentScripts, js;
     callback = function() { return chrome.runtime.lastError; };
+    contentScripts = chrome.runtime.getManifest().content_scripts[0];
+    ref = {file: "", allFrames: contentScripts.all_frames};
+    js = contentScripts.js;
+    js.pop();
     for (; 0 <= --_i; ) {
       url = tabs[_i].url;
       if (url.startsWith("chrome") || url.indexOf("://") === -1) continue;
       tabId = tabs[_i].id;
-      for (_j = 0, _len = css.length; _j < _len; ++_j)
-        t.insertCSS(tabId, css[_j], callback);
-      for (_j = 0, _len = js.length; _j < _len; ++_j)
-        t.executeScript(tabId, js[_j], callback);
+      for (_j = 0, _len = js.length; _j < _len; ++_j) {
+        ref.file = js[_j];
+        t.executeScript(tabId, ref, callback);
+      }
     }
     console.log("%cVimium++ %chas %cinstalled", "color:blue", "color:auto", "color:red", details);
   });
