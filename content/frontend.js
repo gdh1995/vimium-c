@@ -618,7 +618,7 @@ var Settings, VHUD, MainPort, VInsertMode;
       var activeEl = document.activeElement;
       this.focus = this.lockFocus;
       this.init = null;
-      this.exitGrab = this.exitGrab.bind(this);
+      this.onGrab = this.onGrab.bind(this);
       if (settings.values.grabBackFocus && this.loading) {
         if (activeEl) {
           activeEl.blur();
@@ -638,16 +638,15 @@ var Settings, VHUD, MainPort, VInsertMode;
     setupGrab: function() {
       this.focus = this.grabBackFocus;
       this.handlerId = this.handlerId || handlerStack.push({
-        _this: this,
-        keydown: this.exitGrab
+        keydown: this.onGrab
       });
-      window.addEventListener("mousedown", this.exitGrab, true);
+      window.addEventListener("mousedown", this.onGrab, true);
     },
-    exitGrab: function() {
+    onGrab: function() {
       if (this.focus === this.grabBackFocus) {
         this.focus = this.lockFocus;
       }
-      window.removeEventListener("mousedown", this.exitGrab, true);
+      window.removeEventListener("mousedown", this.onGrab, true);
       handlerStack.remove(this.handlerId);
       this.handlerId = 0;
       return true;
@@ -1386,7 +1385,7 @@ var Settings, VHUD, MainPort, VInsertMode;
     window.removeEventListener("keyup", this.onKeyup, true);
     window.removeEventListener("focus", this.onFocus, true);
     window.removeEventListener("blur", this.onBlur, true);
-    window.removeEventListener("mousedown", InsertMode.exitGrab, true);
+    window.removeEventListener("mousedown", InsertMode.onGrab, true);
     document.removeEventListener("DOMActivate", this.onActivate, true);
     DomUtils.UI.destroy();
 
