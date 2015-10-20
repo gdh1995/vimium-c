@@ -686,10 +686,6 @@ var Settings, VHUD, MainPort, VInsertMode;
       }
     },
     exit: function(event) {
-      if (this.global) {
-        this.lock = null; this.global = false;
-        HUD.hide();
-      }
       var target = event.target;
       if (target.shadowRoot) {
         if (target = this.lock) {
@@ -699,6 +695,10 @@ var Settings, VHUD, MainPort, VInsertMode;
       } else {
         if (target === this.lock) { this.lock = null; }
         DomUtils.getEditableType(target) && target.blur();
+      }
+      if (this.global) {
+        this.lock = null; this.global = false;
+        HUD.hide();
       }
     },
     OnShadowBlur: function(event) {
