@@ -11,7 +11,7 @@
     event.target.hasOnclick = true;
     event.stopPropagation();
   }, true);
-  Settings.onDestroy.onclick = function() {
+  Settings.onDestroy.registerClick = function() {
     window.removeEventListener("VimiumRegistrationElementEvent", installer, true);
     window.removeEventListener("VimiumRegistrationElementEvent-onclick", onclick, true);
     container && container.removeEventListener("VimiumRegistrationElementEvent-onclick", onclick, true);
@@ -22,7 +22,7 @@
   script.textContent = "(" + func.toString() + ")()";
   parent = document.head || document.documentElement;
   parent.insertBefore(script, parent.firstElementChild);
-  setTimeout(function() { script.remove(); }, 34);
+  setTimeout(function() { script.remove(); }, 16);
 })(function() {
 "use strict";
 var _listen, toRegister, handler, register, container;
