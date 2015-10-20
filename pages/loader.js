@@ -1,7 +1,7 @@
 "use strict";
 (function() {
   var insertLocation, arr;
-  insertLocation = document.querySelector('script[src$="content_script_loader.js"]') || document.head.firstChild;
+  insertLocation = document.querySelector('script[src$="loader.js"]') || document.head.firstChild;
   arr = chrome.runtime.getManifest().content_scripts[0].js;
   arr.pop();
   arr.forEach(function(src) {
