@@ -154,16 +154,16 @@ w|wiki:\\\n  http://www.wikipedia.org/w/index.php?search=%s Wikipedia (en-US)",
   // not set localStorage, neither sync, if key in @nonPersistent
   // not clean if exists (for simpler logic)
   nonPersistent: { __proto__: null,
-    baseCSS: 1, exclusionTemplate: 1, help_dialog: 1, 
+    baseCSS: 1, exclusionTemplate: 1, help_dialog: 1,
     searchEnginesMap: 1, settingsVersion: 1, userDefinedCss_f: 1,
     vomnibar: 1
   },
   files: {
     __proto__: null,
-    baseCSS: "pages/vimium.min.css",
+    baseCSS: "front/vimium.min.css",
     exclusionTemplate: "pages/exclusions.html",
-    help_dialog: "pages/help_dialog.html",
-    vomnibar: "pages/vomnibar.html"
+    help_dialog: "front/help_dialog.html",
+    vomnibar: "front/vomnibar.html"
   },
   icons: {
     __proto__: null,
