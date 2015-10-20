@@ -62,13 +62,13 @@
       "content/scroller.js",
       "content/marks.js",
       "content/frontend.js",
-      "content/extend_click.js"
+      "pages/extend_click.js"
     ],
     "matches": [ "\u003Call_urls>" ],
     "run_at": "document_start"
   }, {
     "all_frames": true,
-    "css": [ "content/file_urls.css" ],
+    "css": [ "pages/file_urls.css" ],
     "matches": [ "file:///*" ],
     "run_at": "document_idle"
   } ],
