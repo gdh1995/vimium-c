@@ -205,9 +205,10 @@ var LinkHints = {
     case "textarea": isClickable = !element.disabled && (!element.readOnly
         || LinkHints.mode >= 128 || element.getAttribute("onclick")); break;
     case "input":
-      isClickable = !(element.type === "hidden" || element.disabled //
-        || (element.readOnly && LinkHints.mode < 128 &&
-            !(element.type in DomUtils.uneditableInputs) && !element.getAttribute("onclick")));
+      isClickable = element.type !== "hidden" && !element.disabled //
+        && (!element.readOnly || LinkHints.mode >= 128 ||
+             element.getAttribute("onclick") || element.hasOwnProperty('hasOnclick')
+             || (element.type in DomUtils.uneditableInputs));
       break;
     case "label":
       if (element.control) {
@@ -237,7 +238,6 @@ var LinkHints = {
       // NOTE: el.onclick will always be null, for it belongs to the normal `window` object
       //      so .attr("onclick") may be not right
       if ( element.getAttribute("onclick") //
-        || element.hasOnclick
         || ((s = element.getAttribute("role")) && (s = s.toLowerCase(), s === "button" || s === "link")) //
         || ((s = element.className) && LinkHints.btnRe.test(s))
         // NOTE: .attr("contenteditable") allows ["", "true", "false", "plaintext-only", or "inherit"]
@@ -246,6 +246,7 @@ var LinkHints = {
         //       : otherwise "true" or "false"
         //    .isContentEditable can only be true or false, which may be inherited from its parent
         || (element.contentEditable === "true")
+        || element.hasOwnProperty('hasOnclick')
         ) {
         isClickable = true;
         break;
