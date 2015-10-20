@@ -22,7 +22,7 @@
   script.textContent = "(" + func.toString() + ")()";
   parent = document.head || document.documentElement;
   parent.insertBefore(script, parent.firstElementChild);
-  setTimeout(function() { script.remove(); }, 16);
+  script.remove();
 })(function() {
 "use strict";
 var _listen, container, handler, reg, register, toRegister;
