@@ -19,7 +19,7 @@
   script = document.createElementNS("http://www.w3.org/1999/xhtml", "script");
   script.type = "text/javascript";
   script.id = "vimium-plus-extend-click";
-  script.innerHTML = "(" + func.toString() + ")()";
+  script.textContent = "(" + func.toString() + ")()";
   parent = document.head || document.documentElement;
   parent.insertBefore(script, parent.firstElementChild);
   setTimeout(function() { script.remove(); }, 34);
