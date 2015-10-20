@@ -28,7 +28,6 @@
 var _listen, toRegister, handler, register, container;
 
 _listen = Element.prototype.addEventListener;
-if (_listen.vimiumHooked === true) { return; }
 toRegister = [];
 container = null;
 
@@ -38,7 +37,6 @@ handler = function(type) {
   }
   return _listen.apply(this, arguments);
 };
-handler.vimiumHooked = true;
 EventTarget.prototype.addEventListener = handler;
 
 handler = function() {
@@ -64,12 +62,8 @@ handler = function() {
   window.removeEventListener("DOMContentLoaded", handler, true);
   handler = toRegister = null;
 };
-if (document.readyState === "loading") {
-  _listen.call(window, "DOMContentLoaded", handler, true);
-  register = function(element) {
-    toRegister.push(element);
-  };
-} else {
-  handler();
-}
+_listen.call(window, "DOMContentLoaded", handler, true);
+register = function(element) {
+  toRegister.push(element);
+};
 });
