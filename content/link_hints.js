@@ -24,9 +24,7 @@ var LinkHints = {
   getUrlData: null,
   hintMarkerContainingDiv: null,
   hintMarkers: [],
-  installOnClickMarker: null,
   linkActivator: null,
-  markTargetClickable: null,
   mode: 0,
   ngIgnored: true,
   ngAttribute: "",
@@ -499,10 +497,6 @@ var LinkHints = {
     }
     this.mode = 0;
     this.isActive = false;
-  },
-  destroy: function() {
-    window.removeEventListener("VimiumRegistrationElementEvent", this.installOnClickMarker, true);
-    window.removeEventListener("VimiumRegistrationElementEvent-onclick", this.markTargetClickable, true);
   }
 };
 
@@ -805,17 +799,3 @@ LinkHints.FUNC = {
     }
   }
 };
-
-if (!chrome.runtime.getBackgroundPage) {
-LinkHints.installOnClickMarker = function(event) {
-  window.removeEventListener("VimiumRegistrationElementEvent", LinkHints.installOnClickMarker, true);
-  event.target.addEventListener("VimiumRegistrationElementEvent-click", LinkHints.markTargetClickable, true);
-  LinkHints.installOnClickMarker = null;
-};
-window.addEventListener("VimiumRegistrationElementEvent", LinkHints.installOnClickMarker, true);
-LinkHints.markTargetClickable = function(event) {
-  event.target.hasOnclick = true;
-  event.stopPropagation();
-};
-window.addEventListener("VimiumRegistrationElementEvent-onclick", LinkHints.markTargetClickable, true);
-}

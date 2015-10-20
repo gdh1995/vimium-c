@@ -1388,7 +1388,6 @@ var Settings, VHUD, MainPort, VInsertMode;
     window.removeEventListener("blur", this.onBlur, true);
     window.removeEventListener("mousedown", InsertMode.exitGrab, true);
     document.removeEventListener("DOMActivate", this.onActivate, true);
-    LinkHints.destroy();
     DomUtils.UI.destroy();
 
     clearInterval(settings.isLoading);

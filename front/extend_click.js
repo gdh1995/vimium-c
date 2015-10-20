@@ -1,6 +1,22 @@
 "use strict";
 (function(func) {
-  var script = document.createElementNS("http://www.w3.org/1999/xhtml", "script"), parent;
+  var script, parent, installer, onclick, container;
+  window.addEventListener("VimiumRegistrationElementEvent", installer = function (event) {
+    window.removeEventListener("VimiumRegistrationElementEvent", installer, true);
+    container = event.target;
+    container.addEventListener("VimiumRegistrationElementEvent-click", onclick, true);
+    installer = null;
+  }, true);
+  window.addEventListener("VimiumRegistrationElementEvent-onclick", onclick = function(event) {
+    event.target.hasOnclick = true;
+    event.stopPropagation();
+  }, true);
+  Settings.onDestroy.onclick = function() {
+    window.removeEventListener("VimiumRegistrationElementEvent", installer, true);
+    window.removeEventListener("VimiumRegistrationElementEvent-onclick", onclick, true);
+    container && container.removeEventListener("VimiumRegistrationElementEvent-onclick", onclick, true);
+  };
+  script = document.createElementNS("http://www.w3.org/1999/xhtml", "script");
   script.type = "text/javascript";
   script.id = "vimium-plus-extend-click";
   script.innerHTML = "(" + func.toString() + ")()";
