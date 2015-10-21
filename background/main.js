@@ -820,7 +820,7 @@ g_requestHandlers;
       }
       currentCommand.port.postMessage({
         name: "focusFrame",
-        frameId: -1
+        frameId: count > 0 ? frames[0] : -1
       });
     },
     mainFrame: function(tabs) {
