@@ -208,7 +208,7 @@ CheckBoxOption.prototype.readValueFromElement = function() {
     enableDefaultMappings: CheckBoxOption,
     deepHints: CheckBoxOption,
     showActionIcon: CheckBoxOption,
-    searchEngines: TextOption,
+    searchEngines: NonEmptyTextOption,
     searchUrl: NonEmptyTextOption,
     vimSync: CheckBoxOption,
     keyboard: JSONOption,
