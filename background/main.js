@@ -800,7 +800,7 @@ g_requestHandlers;
         chrome.tabs.move(tab.id, {index: index});
       }
     },
-    nextFrame: function(tabs, frameId, port) {
+    nextFrame: function(tabs, frameId) {
       var tabId = tabs[0].id, frames = frameIdsForTab[tabId], count;
       if (frames && frames.length > 2) {
         if (frameId >= 0) {
@@ -818,7 +818,7 @@ g_requestHandlers;
           return;
         }
       }
-      (port || currentCommand.port).postMessage({
+      currentCommand.port.postMessage({
         name: "focusFrame",
         frameId: -1
       });
@@ -1222,7 +1222,8 @@ g_requestHandlers;
       };
     },
     nextFrame: function(request, port) {
-      BackgroundCommands.nextFrame([{id: request.tabId}], request.frameId, port);
+      currentCommand.port = port;
+      BackgroundCommands.nextFrame([{id: request.tabId}], request.frameId);
     },
     initHelp: function(request) {
       return {
