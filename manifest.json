@@ -92,6 +92,7 @@
     "history",
     "notifications",
     "sessions",
+    "storage",
     "tabs",
     "webNavigation",
     "\u003Call_urls>"
