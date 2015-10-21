@@ -202,6 +202,7 @@ CheckBoxOption.prototype.readValueFromElement = function() {
     nextPatterns: NonEmptyTextOption,
     previousPatterns: NonEmptyTextOption,
     regexFindMode: CheckBoxOption,
+    vimSync: CheckBoxOption,
     scrollStepSize: NumberOption,
     smoothScroll: CheckBoxOption,
     enableDefaultMappings: CheckBoxOption,
