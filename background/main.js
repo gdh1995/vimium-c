@@ -973,7 +973,7 @@ g_requestHandlers;
         });
         break;
       case "reg":
-        ref = Settings.get("userDefinedCss_f");
+        ref = Settings.get("userDefinedOuterCss");
         ref && port.postMessage({
           name: "insertCSS",
           css: ref
@@ -1239,8 +1239,8 @@ g_requestHandlers;
         relevancy: Settings.get("showOmniRelevancy")
       };
     },
-    initCSSBase: function() {
-      return Settings.get("baseCSS");
+    initInnerCSS: function() {
+      return Settings.get("innerCss");
     },
     getCopiedUrl_f: function(request) {
       var url = Clipboard.paste().trim(), arr;
@@ -1389,7 +1389,6 @@ g_requestHandlers;
   setTimeout(function() {
     Exclusions.setRules(Settings.get("exclusionRules"));
     Settings.postUpdate("bufferToLoad", null);
-    Settings.postUpdate("userDefinedCss", null);
 
     chrome.runtime.onConnect.addListener(funcDict.globalConnect);
     chrome.runtime.onConnectExternal.addListener(funcDict.globalConnect);

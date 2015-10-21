@@ -1174,8 +1174,10 @@ var Settings, VHUD, MainPort, VInsertMode;
       }
     },
     insertCSS: function(request) {
-      var css = request.css;
-      DomUtils.UI.insertCSS(css[0], css[1]);
+      DomUtils.UI.insertCSS(request.css);
+    },
+    insertInnerCss: function(request) {
+      DomUtils.UI.insertInnerCSS(request.css);
     },
     focusFrame: FrameMask.Focus,
     refreshKeyMappings: function(request) {

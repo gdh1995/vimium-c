@@ -5,7 +5,7 @@ DomUtils.UI = {
   root: null,
   flashLastingTime: 400,
   addElement: function(element) {
-    MainPort.sendMessage({ handler: "initCSSBase" }, this.initInner.bind(this));
+    MainPort.sendMessage({ handler: "initInnerCSS" }, this.initInner.bind(this));
     this.container || this.init();
     this.container.style.display = "none";
     this.root = this.container.createShadowRoot();
@@ -38,42 +38,42 @@ DomUtils.UI = {
     }
     this.init = null;
   },
-  initInner: function(cssBase) {
+  initInner: function(innerCss) {
     this.initInner = null;
-    this.appendCSS(this.root, cssBase);
-    this.styleIn && this.root.appendChild(this.styleIn);
+    this.styleIn = this.createStyle(innerCss);
+    this.root.insertBefore(this.styleIn, this.root.firstElementChild);
+    this.container.style.display = "";
     this.Adjust();
-    this.container.removeAttribute("style");
     document.addEventListener("webkitfullscreenchange", this.Adjust);
   },
   destroy: function() {
     document.removeEventListener("webkitfullscreenchange", this.Adjust);
     this.container && this.container.remove();
   },
-  appendCSS: function(parent, text) {
+  createStyle: function(text) {
     var css = DomUtils.createElement("style");
     css.type = "text/css";
-    css.innerHTML = text;
-    parent && parent.appendChild(css);
+    css.textContent = text;
     return css;
   },
-  insertCSS: function(inner, outer) {
-    var style;
-    if (style = this.styleIn) {
-      style.innerHTML = inner;
-    } else if (inner) {
-      this.styleIn = this.appendCSS(this.root, inner);
-    }
-    if (style = this.styleOut) {
+  insertInnerCSS: function(inner) {
+    this.styleIn && (this.styleIn.textContent = inner);
+  },
+  insertCSS: function(outer) {
+    if (this.styleOut) {
       if (outer) {
-        style.innerHTML = outer;
+        this.styleOut.textContent = outer;
       } else {
-        style.remove();
+        this.styleOut.remove();
         this.styleOut = null;
       }
-    } else if (outer) {
-      this.styleOut = this.appendCSS(this.container, outer);
-      this.container || this.init();
+    } else {
+      this.styleOut = this.createStyle(outer);
+      if (this.container) {
+        this.container.appendChild(this.styleOut);
+      } else {
+        this.init();
+      }
     }
   },
   flashOutline: function(clickEl) {

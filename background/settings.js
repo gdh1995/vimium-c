@@ -96,15 +96,23 @@ var Settings = {
       Utils.parseSearchEngines("~:" + value, this.get("searchEnginesMap"));
       this.postUpdate("newTabUrl");
     },
-    userDefinedCss: function() {
-      var csso = this.get("userDefinedOuterCss"), cssi = this.get("userDefinedCss");
-      this.setUnique("userDefinedCss_f", (cssi || csso) ? [cssi, csso] : null);
+    baseCSS: function(css) {
+      css += this.get("userDefinedCss");
+      this.set("innerCss", css);
     },
-    userDefinedCss_f: function(css) {
+    userDefinedCss: function(css) {
+      this.postUpdate("baseCSS");
+      this.postUpdate("broadcast", {
+        name: "insertInnerCss",
+        onReady: true,
+        css: this.get("innerCss")
+      });
+    },
+    userDefinedOuterCss: function(css) {
       this.postUpdate("broadcast", {
         name: "insertCSS",
         onReady: true,
-        css: (css || ["", ""])
+        css: css
       });
     }
   },
@@ -155,9 +163,8 @@ w|wiki:\\\n  http://www.wikipedia.org/w/index.php?search=%s Wikipedia (en-US)",
   // not set localStorage, neither sync, if key in @nonPersistent
   // not clean if exists (for simpler logic)
   nonPersistent: { __proto__: null,
-    baseCSS: 1, exclusionTemplate: 1, help_dialog: 1,
-    searchEnginesMap: 1, settingsVersion: 1, userDefinedCss_f: 1,
-    vomnibar: 1
+    baseCSS: 1, exclusionTemplate: 1, help_dialog: 1, innerCss: 1,
+    searchEnginesMap: 1, settingsVersion: 1, vomnibar: 1
   },
   files: {
     __proto__: null,
@@ -190,7 +197,6 @@ Settings.onUnique = Settings.onUnique.bind(Settings);
 // note: if changed, ../pages/newtab.js also needs change.
 Settings.defaults.newTabUrl = Settings.CONST.ChromeInnerNewTab;
 Settings.updateHooks.keyMappings = Settings.updateHooks.enableDefaultMappings;
-Settings.updateHooks.userDefinedOuterCss = Settings.updateHooks.userDefinedCss;
 
 (function() {
   var ref, i, func;
