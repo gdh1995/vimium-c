@@ -751,7 +751,7 @@ MultiCompleter = {
     TabRecency.stamp();
 
     var lang = Settings.get("UILanguage");
-    if (!lang || !(lang = lang[chrome.i18n.getUILanguage()])) {
+    if (!lang) {
       return;
     }
     var ref = lang.urlCharset;
