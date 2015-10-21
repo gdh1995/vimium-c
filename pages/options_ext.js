@@ -198,6 +198,7 @@ CheckBoxOption.prototype.readValueFromElement = function() {
     hideHud: CheckBoxOption,
     keyMappings: TextOption,
     linkHintCharacters: NonEmptyTextOption,
+    isClickListened: CheckBoxOption,
     newTabUrl: NonEmptyTextOption,
     nextPatterns: NonEmptyTextOption,
     previousPatterns: NonEmptyTextOption,

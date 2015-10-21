@@ -26,6 +26,7 @@ var LinkHints = {
   hintMarkers: [],
   linkActivator: null,
   mode: 0,
+  isClickListened: true,
   ngIgnored: true,
   ngAttribute: "",
   // find /^((?:x|data)[:_\-])?ng-|^ng:/, and ignore "data:", "data_" and "x_"
@@ -246,7 +247,7 @@ var LinkHints = {
         //       : otherwise "true" or "false"
         //    .isContentEditable can only be true or false, which may be inherited from its parent
         || (element.contentEditable === "true")
-        || element.hasOnclick
+        || (LinkHints.isClickListened && element.hasOnclick)
         ) {
         isClickable = true;
         break;
@@ -334,6 +335,7 @@ var LinkHints = {
     if (this.ngIgnored && "*" in map) {
       this.ngIgnored = container.querySelector('.ng-scope') === null;
     }
+    this.isClickListened = Settings.values.isClickListened;
     for (key in map) {
       if (Settings.values.deepHints) {
         output.forEach.call(container.querySelectorAll("* /deep/ " + key)
@@ -385,7 +387,11 @@ var LinkHints = {
       }
     } else if (_i > KeyCodes.f1 && _i <= KeyCodes.f12) {
       if (_i === KeyCodes.f1 + 1) {
-        Settings.values.deepHints = !Settings.values.deepHints;
+        if (event.shiftKey) {
+          Settings.values.isClickListened = !Settings.values.isClickListened;
+        } else {
+          Settings.values.deepHints = !Settings.values.deepHints;
+        }
         this.reinit();
         return false;
       }
