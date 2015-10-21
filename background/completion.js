@@ -754,11 +754,11 @@ MultiCompleter = {
     if (!lang) {
       return;
     }
-    var ref = lang.urlCharset;
+    var ref = lang.urlCode;
     if (ref && typeof ref === "string") {
       Decoder.charset = ref;
     }
-    ref = lang.bookmarkTitles;
+    ref = lang.bookmarkTypes;
     if (ref && ref.length > 0) {
       var i = ref.length, ref2 = Completers.bookmarks.completers[0].ignoreTopLevel;
       ref.sort().reverse();

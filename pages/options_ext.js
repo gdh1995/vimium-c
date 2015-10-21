@@ -202,7 +202,6 @@ CheckBoxOption.prototype.readValueFromElement = function() {
     nextPatterns: NonEmptyTextOption,
     previousPatterns: NonEmptyTextOption,
     regexFindMode: CheckBoxOption,
-    vimSync: CheckBoxOption,
     scrollStepSize: NumberOption,
     smoothScroll: CheckBoxOption,
     enableDefaultMappings: CheckBoxOption,
@@ -210,7 +209,9 @@ CheckBoxOption.prototype.readValueFromElement = function() {
     showActionIcon: CheckBoxOption,
     searchEngines: TextOption,
     searchUrl: NonEmptyTextOption,
+    vimSync: CheckBoxOption,
     keyboard: JSONOption,
+    UILanguage: JSONOption,
     userDefinedCss: TextOption,
     userDefinedOuterCss: TextOption
   };
