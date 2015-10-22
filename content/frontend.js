@@ -445,7 +445,7 @@ var Settings, VHUD, MainPort, VInsertMode;
       });
     },
     focusInput: function(count) {
-      var hintContainingDiv, hints, selectedInputIndex, visibleInputs;
+      var hintContainingDiv, hints, selectedInputIndex, visibleInputs, handlerId;
       visibleInputs = getVisibleInputs(DomUtils.evaluateXPath(
         './/input[not(@disabled or @readonly) and (@type="text" or @type="search" or @type="email" or @type="url" or @type="number" or @type="password" or @type="date" or @type="tel" or not(@type))] | .//xhtml:input[not(@disabled or @readonly) and (@type="text" or @type="search" or @type="email" or @type="url" or @type="number" or @type="password" or @type="date" or @type="tel" or not(@type))] | .//textarea[not(@disabled or @readonly)] | .//xhtml:textarea[not(@disabled or @readonly)] | .//*[@contenteditable="" or translate(@contenteditable, "TRUE", "true")="true"] | .//xhtml:*[@contenteditable="" or translate(@contenteditable, "TRUE", "true")="true"]'
         , XPathResult.ORDERED_NODE_SNAPSHOT_TYPE));
@@ -480,7 +480,7 @@ var Settings, VHUD, MainPort, VInsertMode;
       });
       hintContainingDiv.style.left = window.scrollX + "px";
       hintContainingDiv.style.top = window.scrollY + "px";
-      handlerStack.push({
+      handlerId = handlerStack.push({
         keydown: function(event) {
           if (event.keyCode === KeyCodes.tab) {
             hints[selectedInputIndex].classList.remove("S");
@@ -497,7 +497,7 @@ var Settings, VHUD, MainPort, VInsertMode;
             return true;
           } else if (event.keyCode !== KeyCodes.shiftKey) {
             hintContainingDiv.remove();
-            handlerStack.remove(this.handlerId);
+            handlerStack.remove(handlerId);
             return true;
           }
           return false;
@@ -866,7 +866,7 @@ var Settings, VHUD, MainPort, VInsertMode;
   };
 
   findAndFocus = function(count, backwards) {
-    var mostRecentQuery, query;
+    var mostRecentQuery, query, handlerId;
     Marks.setPreviousPosition();
     mostRecentQuery = settings.values.findModeRawQuery;
     if (mostRecentQuery !== findModeQuery.rawQuery) {
@@ -886,12 +886,11 @@ var Settings, VHUD, MainPort, VInsertMode;
     focusFoundLink();
     // NOTE: this `if` should not be removed
     if (DomUtils.canTakeInput(findModeAnchorNode)) {
-      handlerStack.push({
+      handlerId = handlerStack.push({
         keydown: function(event) {
-          handlerStack.remove(this.handlerId);
+          handlerStack.remove(handlerId);
           if (event.keyCode === KeyCodes.esc && KeyboardUtils.isPlain(event)) {
-            InsertMode.lock = document.activeElement;
-            DomUtils.simulateSelect(document.activeElement);
+            DomUtils.simulateSelect(InsertMode.lock = document.activeElement);
             return false;
           }
           return true;
