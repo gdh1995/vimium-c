@@ -55,7 +55,7 @@ reg = setTimeout.bind(window, function(element) {
   wrapIncontainer = !document.contains(element);
   if (wrapIncontainer) {
     for (e1 = element; (e2 = e1.parentElement) != null; e1 = e2) {}
-    if (e1.parentNode instanceof ShadowRoot) { return; }
+    if (e1.parentNode != null) { return; }
     container.appendChild(e1);
   }
   registrationEvent = new CustomEvent("VimiumRegistrationElementEvent-onclick");
