@@ -107,7 +107,7 @@ Commands.commandGroups = {
     , "LinkHints.activateModeToOpenInNewForegroundTab", "LinkHints.activateModeWithQueue"
     , "LinkHints.activateModeToDownloadImage", "LinkHints.activateModeToOpenImage"
     , "LinkHints.activateModeToDownloadLink", "LinkHints.activateModeToOpenIncognito"
-    , "LinkHints.activateModeToHover", "LinkHints.activateModeToLeave"
+    , "LinkHints.activateModeToHover", "LinkHints.activateModeToLeave", "LinkHints.unhoverLast"
     , "LinkHints.activateModeToSearchLinkText"
     , "goPrevious", "goNext", "nextFrame", "mainFrame"
     , "enterInsertMode"
@@ -138,6 +138,7 @@ Commands.advancedCommands = ["scrollToLeft", "scrollToRight", "moveTabToNextWind
   , "goNext", "goPrevious", "Marks.clearLocal", "Marks.clearGlobal"
   , "moveTabLeft", "moveTabRight", "closeTabsOnLeft", "closeTabsOnRight", "closeOtherTabs"
   , "scrollPxDown", "scrollPxUp", "scrollPxLeft", "scrollPxRight", "debugBackground", "blank"
+  , "LinkHints.activateModeToHover", "LinkHints.unhoverLast"
   , "toggleLinkHintCharacters", "toggleSwitchTemp", "LinkHints.activateModeToLeave"
 ];
 Commands.defaultKeyMappings = {
@@ -425,6 +426,11 @@ setTimeout(function(descriptions) {
   ],
   "LinkHints.activateModeToLeave": [
     "let mouse leave link", {
+      repeat: 1
+    }
+  ],
+  "LinkHints.unhoverLast": [
+    "Stop hovering at last location", {
       repeat: 1
     }
   ],

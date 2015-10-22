@@ -457,6 +457,9 @@ var LinkHints = {
   },
   lastHovered: null,
   unhoverLast: function(element) {
+    if (!(element instanceof Element)) {
+      element = null;
+    }
     this.lastHovered && DomUtils.simulateMouse(this.lastHovered, "mouseout", element);
     this.lastHovered = element;
   },
@@ -656,6 +659,7 @@ LinkHints.FUNC = {
     VHUD.showCopied(str);
   },
   HOVER: function(element) {
+    this.lastHovered = element;
     Scroller.current = element;
     DomUtils.simulateMouse(element, "mouseover");
   },
