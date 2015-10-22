@@ -6,7 +6,7 @@
   window.addEventListener("VimiumRegistrationElementEvent", installer = function(event) {
     window.removeEventListener("VimiumRegistrationElementEvent", installer, true);
     container = event.target;
-    container.addEventListener("VimiumRegistrationElementEvent-click", onclick, true);
+    container.addEventListener("VimiumRegistrationElementEvent-onclick", onclick, true);
     installer = null;
   }, true);
   window.addEventListener("VimiumRegistrationElementEvent-onclick", onclick = function(event) {
