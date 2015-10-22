@@ -1304,7 +1304,7 @@ g_requestHandlers;
     if (!needIcon) { urlForTab = Utils.makeNullProto(); }
   };
 
-  chrome.commands.onCommand.addListener(funcDict.globalCommand = function(command, options) {
+  funcDict.globalCommand = function(command, options) {
     var count, reg;
     if (currentFirst !== null) {
       count = currentFirst ? 1 : (currentCount || 1);
@@ -1322,7 +1322,10 @@ g_requestHandlers;
       options: options || {},
       repeat: reg.repeat
     }, count, null);
-  });
+  };
+  setTimeout(function() {
+    chrome.commands.onCommand.addListener(funcDict.globalCommand);
+  }, 500);
 
   chrome.runtime.onMessageExternal.addListener(function(message, _1, sendResponse) {
     var command, options = null;
