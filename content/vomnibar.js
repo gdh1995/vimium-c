@@ -23,6 +23,9 @@ var Vomnibar = {
     vomnibarUI.initialSelectionValue = selectFirstResult ? 0 : -1;
     vomnibarUI.refreshInterval = this.defaultRefreshInterval || 250;
     vomnibarUI.forceNewTab = forceNewTab ? true : false;
+    vomnibarUI.handlerId = handlerStack.push({
+      keydown: function() { return false; }
+    });
     if (!initialQueryValue) {
       vomnibarUI.reset();
     } else if (typeof initialQueryValue === "string") {
@@ -31,9 +34,6 @@ var Vomnibar = {
       vomnibarUI.forceNewTab = true;
       this.ActivateText(initialQueryValue);
     } else {
-      vomnibarUI.handlerId = handlerStack.push({
-        keydown: function() { return false; }
-      });
       MainPort.sendMessage({
         handler: "parseSearchUrl",
         url: window.location.href
@@ -109,6 +109,12 @@ Vomnibar.vomnibarUI = {
     VInsertMode.focus = VInsertMode.holdFocus;
     this.input.focus();
     this.focused = true;
+    handlerStack.remove(this.handlerId);
+    this.handlerId = handlerStack.push({
+      keydown: this.onKeydown,
+      keypress: this.onKeypress,
+      _this: this
+    });
   },
   hide: function() {
     if (this.timer > 0) {
@@ -129,12 +135,6 @@ Vomnibar.vomnibarUI = {
   },
   reset: function(input, start, end) {
     input || (input = "");
-    handlerStack.remove(this.handlerId);
-    this.handlerId = handlerStack.push({
-      keydown: this.onKeydown,
-      keypress: this.onKeypress,
-      _this: this
-    });
     this.completionInput.text = input;
     this.completionInput.url = input.trimRight();
     this.update(0, input && start <= end ? function() {
