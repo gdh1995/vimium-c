@@ -1325,11 +1325,6 @@ var Settings, VHUD, MainPort, VInsertMode;
   }, function(request) {
     request.focused = document.hasFocus();
     request.url = window.location.href;
-    if (document.readyState !== "loading") {
-      setTimeout(function() {
-        requestHandlers.reg({name: "doreg"});
-      }, 1000);
-    }
   });
 
   DomUtils.DocumentReady(function() {

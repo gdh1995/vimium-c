@@ -987,16 +987,6 @@ g_requestHandlers;
           frameIdsForTab[id] = [i, i];
         }
         break;
-      case "doreg":
-        i = request.frameId;
-        if (ref = frameIdsForTab[id = port.sender.tab.id]) {
-          if (ref.indexOf(i) === -1) {
-            ref.push(i);
-          }
-        } else {
-          frameIdsForTab[id] = [i, i];
-        }
-        break;
       case "unreg":
         id = request.tabId;
         if (i = request.frameId) {
