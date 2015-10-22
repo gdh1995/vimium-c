@@ -117,14 +117,12 @@ var Settings, VHUD, MainPort, VInsertMode;
       });
     },
     load: function(request, onerror) {
+      onerror && (onerror = onerror.bind(null, request));
       request = {
         handlerSettings: "load",
         request: request
       };
       mainPort.port.postMessage(request);
-      if (onerror) {
-        onerror = onerror.bind(null, request.request);
-      }
       this.isLoading = setInterval(mainPort.safePost.bind(
         mainPort, request, onerror, null), 2000);
     },
@@ -137,11 +135,11 @@ var Settings, VHUD, MainPort, VInsertMode;
       requestHandlers[response.name](response);
     },
     OnUpdate: function(response) {
-      var _this = settings;
+      var ref = settings.values;
       Utils.setNullProto(response);
       delete response.name;
       for (i in response) {
-        settings.values[i] = response[i];
+        ref[i] = response[i];
       }
     }
   };
