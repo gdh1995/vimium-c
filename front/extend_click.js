@@ -52,16 +52,15 @@ _listen.call(window, "DOMContentLoaded", handler, true);
 
 reg = setTimeout.bind(window, function(element) {
   var e1, e2, registrationEvent, wrapIncontainer;
-  wrapIncontainer = !document.contains(element);
-  if (wrapIncontainer) {
-    for (e1 = element; (e2 = e1.parentElement) != null; e1 = e2) {}
-    if (e1.parentNode != null) { return; }
-    container.appendChild(e1);
-  }
   registrationEvent = new CustomEvent("VimiumRegistrationElementEvent-onclick");
-  element.dispatchEvent(registrationEvent);
-  if (wrapIncontainer) {
-    container.removeChild(e1);
+  if (document.contains(element)) {
+    element.dispatchEvent(registrationEvent);
+    return;
   }
+  for (e1 = element; (e2 = e1.parentElement) != null; e1 = e2) {}
+  if (e1.parentNode != null) { return; }
+  container.appendChild(e1);
+  element.dispatchEvent(registrationEvent);
+  container.removeChild(e1);
 }, 0);
 });
