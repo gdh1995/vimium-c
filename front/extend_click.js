@@ -1,6 +1,6 @@
 "use strict";
 (function(func) {
-  var script, parent, installer, onclick, container;
+  var script, installer, onclick, container;
   script = document.createElement("script");
   if (script.style === null) { return; }
   window.addEventListener("VimiumRegistrationElementEvent", installer = function(event) {
@@ -21,8 +21,8 @@
   script.type = "text/javascript";
   script.id = "vimium-plus-extend-click";
   script.textContent = "(" + func.toString() + ")()";
-  parent = document.head || document.documentElement;
-  parent.insertBefore(script, parent.firstElementChild);
+  container = document.head || document.documentElement;
+  container.insertBefore(script, container.firstElementChild);
   script.remove();
 })(function() {
 "use strict";
