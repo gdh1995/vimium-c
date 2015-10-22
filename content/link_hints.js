@@ -510,12 +510,12 @@ var LinkHints = {
 LinkHints.alphabetHints = {
   hintKeystrokeQueue: [],
   spanWrap: function(hintString) {
-    for (var _i = 0, _j = -1, _len = hintString.length, innerHTML = new Array(_len * 3); _i < _len; _i++) {
-      innerHTML[++_j] = "<span>";
-      innerHTML[++_j] = hintString[_i];
-      innerHTML[++_j] = "</span>";
+    for (var _i = 0, _j = -1, _len = hintString.length, html = new Array(_len * 3); _i < _len; _i++) {
+      html[_j + 1] = "<span>";
+      html[_j + 2] = hintString[_i];
+      html[_j += 3] = "</span>";
     }
-    return innerHTML.join("");
+    return html.join("");
   },
   numberToHintString: function(number, characterSet, numHintDigits) {
     var base, hintString, leftLength, remainder;

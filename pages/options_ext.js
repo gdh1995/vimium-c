@@ -102,7 +102,7 @@ CheckBoxOption.prototype.readValueFromElement = function() {
       if (status == 1 && !Option.needSaveOptions()) {
         saveBtn = $("saveOptions");
         saveBtn.disabled = true;
-        saveBtn.innerHTML = "No Changes";
+        saveBtn.textContent = "No Changes";
         $("exportButton").disabled = false;
         status = 0;
       }
@@ -113,7 +113,7 @@ CheckBoxOption.prototype.readValueFromElement = function() {
     status = 1;
     saveBtn = $("saveOptions");
     saveBtn.disabled = false;
-    saveBtn.innerHTML = "Save Changes";
+    saveBtn.textContent = "Save Changes";
     $("exportButton").disabled = true;
   };
 
@@ -149,7 +149,7 @@ CheckBoxOption.prototype.readValueFromElement = function() {
     toSync = Option.syncToFrontend;
     Option.syncToFrontend = [];
     btn.disabled = true;
-    btn.innerHTML = "No Changes";
+    btn.textContent = "No Changes";
     $("exportButton").disabled = false;
     status = 0;
     setTimeout(function () {
@@ -172,7 +172,7 @@ CheckBoxOption.prototype.readValueFromElement = function() {
   for (_i = _ref.length; 0 <= --_i; ) {
     element = _ref[_i];
     element.className = element.className + " example info";
-    element.innerHTML = "Leave empty to reset this option.";
+    element.textContent = "Leave empty to reset this option.";
   }
 
   window.onbeforeunload = function() {
@@ -230,10 +230,10 @@ CheckBoxOption.prototype.readValueFromElement = function() {
     }
     if (advancedMode) {
       $("advancedOptions").style.display = "";
-      this.innerHTML = "Hide Advanced Options";
+      this.textContent = "Hide Advanced Options";
     } else {
       $("advancedOptions").style.display = "none";
-      this.innerHTML = "Show Advanced Options";
+      this.textContent = "Show Advanced Options";
     }
   };
   element.onclick(null, true);

@@ -117,7 +117,7 @@ Vomnibar.vomnibarUI = {
     }
     this.box.style.display = "none";
     this.input.blur();
-    this.list.innerHTML = "";
+    this.list.textContent = "";
     this.input.value = "";
     handlerStack.remove(this.handlerId);
     this.handlerId = 0;

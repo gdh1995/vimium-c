@@ -83,7 +83,7 @@ ExclusionRulesOption.prototype.populateElement = function(rules) {
   var frag = document.createDocumentFragment(), head;
   head = this.element.querySelector('tr');
   frag.appendChild(head);
-  this.element.innerHTML = "";
+  this.element.textContent = "";
   rules.forEach(this.appendRule.bind(this, frag));
   this.element.appendChild(frag);
 };
@@ -231,7 +231,7 @@ chrome.tabs.query({currentWindow: true, active: true}, function(tab) {
       var btn = $("saveOptions");
       $("helpText").innerHTML = "Type <strong>Ctrl-Enter</strong> to save and close.";
       btn.removeAttribute("disabled");
-      btn.innerHTML = "Save Changes";
+      btn.textContent = "Save Changes";
     }
     if (exclusions) {
       hasNew = true;
@@ -245,7 +245,7 @@ chrome.tabs.query({currentWindow: true, active: true}, function(tab) {
     }
     exclusions.save();
     hasNew = false;
-    btn.innerHTML = "Saved";
+    btn.textContent = "Saved";
     btn.disabled = true;
     status = 0;
     // Here, since the popup page is showing, needIcon must be true.

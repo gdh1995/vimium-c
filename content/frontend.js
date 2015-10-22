@@ -1083,7 +1083,7 @@ var Settings, VHUD, MainPort, VInsertMode;
         clearTimeout(this.durationTimer);
         this.durationTimer = 0;
       }
-      el.innerText = text;
+      el.textContent = text;
       el.style.visibility = "";
       if (!this.tweenId) {
         this.tweenId = setInterval(this.tween, 40);
@@ -1102,7 +1102,7 @@ var Settings, VHUD, MainPort, VInsertMode;
       }
       if (opacity == 0) {
         el.style.visibility = "hidden";
-        el.innerText = "";
+        el.textContent = "";
       }
       clearInterval(hud.tweenId);
       hud.tweenId = 0;
@@ -1118,7 +1118,7 @@ var Settings, VHUD, MainPort, VInsertMode;
       }
       if (immediate) {
         el.style.visibility = "hidden";
-        el.innerText = "";
+        el.textContent = "";
         el.style.opacity = 0;
       } else if (!hud.tweenId) {
         hud.tweenId = setInterval(hud.tween, 40);
@@ -1269,7 +1269,7 @@ var Settings, VHUD, MainPort, VInsertMode;
     };
     showAdvancedCommands = function(visible) {
       var advancedEls, el, _i, _len;
-      container.querySelector("#AdvancedCommands").innerHTML = visible
+      container.querySelector("#AdvancedCommands").textContent = visible
         ? "Hide advanced commands" : "Show advanced commands...";
       advancedEls = container.getElementsByClassName("HelpAdvanced");
       visible = visible ? "" : "none";
