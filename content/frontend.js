@@ -151,10 +151,143 @@ var Settings, VHUD, MainPort, VInsertMode;
       url: window.location.href,
       frameId: frameId
     }, //
-    onKeydown: null, onKeypress: null, onKeyup: null, //
-    onFocus: null, onBlur: null, onActivate: null, //
-    onWndFocus: function(){}, onUnload: null, onHashChagne: null, //
-    onMessage: null, destroy: null //
+    onKeydown: function(event) {
+      if (Scroller.keyIsDown) {
+        if (event.repeat) {
+          Scroller.keyIsDown = Scroller.Core.maxInterval;
+          DomUtils.suppressEvent(event);
+          return;
+        }
+        Scroller.keyIsDown = 0;
+      }
+      if (isEnabledForUrl) {
+        if (!handlerStack.bubbleEvent("keydown", event)) {
+          KeydownEvents[event.keyCode] = 1;
+          return;
+        }
+      } else {
+        return;
+      }
+      var keyChar, key = event.keyCode, action = 0;
+      if (InsertMode.isActive()) {
+        if (key === KeyCodes.esc) {
+          if (KeyboardUtils.isPlain(event)) {
+            InsertMode.exit(event);
+            action = 2;
+          }
+        }
+        else if (InsertMode.global) {}
+        else if (key >= KeyCodes.f1 && key <= KeyCodes.f12) {
+          action = checkValidKey(event, KeyboardUtils.getKeyName(event));
+        }
+      }
+      else if (findMode) {
+        if (key === KeyCodes.esc) {
+          if (KeyboardUtils.isPlain(event)) {
+            handleEscapeForFindMode();
+            action = 2;
+          }
+        } else if (key === KeyCodes.backspace || key === KeyCodes.deleteKey) {
+          handleDeleteForFindMode();
+          action = 2;
+        } else if (key === KeyCodes.enter) {
+          handleEnterForFindMode();
+          action = 2;
+        } else if (event.metaKey || event.ctrlKey || event.altKey) {}
+        else if (event.keyIdentifier.startsWith("U+")) {
+          action = 1;
+        } else if (! (key in KeyboardUtils.keyNames)) {
+          action = 1;
+        }
+      }
+      else if (key >= 32) {
+        if (keyChar = KeyboardUtils.getKeyChar(event)) {
+          action = checkValidKey(event, keyChar);
+        }
+      }
+      else if (key === KeyCodes.esc && KeyboardUtils.isPlain(event)) {
+        if (keyQueue) {
+          mainPort.port.postMessage({ handler: "esc" });
+          keyQueue = false;
+          currentSeconds = secondKeys[""];
+          action = 2;
+        } else if (window.getSelection().type === "Range") {
+          window.getSelection().removeAllRanges();
+          action = 2;
+        }
+      }
+      if (action <= 0) { return; }
+      if (action === 2) {
+        event.preventDefault();
+      }
+      event.stopImmediatePropagation();
+      KeydownEvents[key] = 1;
+    },
+    onKeypress: function(event) {
+      if (isEnabledForUrl && handlerStack.bubbleEvent("keypress", event)) {
+        var keyChar;
+        if (findMode && (keyChar = String.fromCharCode(event.charCode))) {
+          handleKeyCharForFindMode(keyChar);
+          DomUtils.suppressEvent(event);
+        }
+      }
+    },
+    onKeyup: function(event) {
+      if (isEnabledForUrl) {
+        if (Scroller.keyIsDown) { Scroller.keyIsDown = 0; }
+        if (KeydownEvents[event.keyCode]) {
+          KeydownEvents[event.keyCode] = 0;
+          event.preventDefault();
+          event.stopImmediatePropagation();
+        }
+      }
+    },
+    onFocus: function(event) {
+      var target = event.target;
+      if (target === window) { ELs.onWndFocus(); }
+      else if (!isEnabledForUrl) {}
+      else if (findMode) {} // TODO: check findMode
+      else if (DomUtils.getEditableType(target)) { InsertMode.focus(event); }
+      else if (target.shadowRoot) {
+        target = target.shadowRoot;
+        target.addEventListener("focus", ELs.onFocus, true);
+        target.addEventListener("blur", ELs.onBlur, true);
+      }
+    },
+    onBlur: function(event) {
+      var target = event.target;
+      if (target === window) {
+        // NOTE: Scroller will be set null when destroying, and window.onblur
+        //   won't be used any more, so we needn't make Scroller {}
+        // NOTE: so does InsertMode
+        if (Scroller.keyIsDown) { Scroller.keyIsDown = 0; }
+        KeydownEvents = new Uint8Array(256);
+      } else if (!isEnabledForUrl) {}
+      else if (InsertMode.lock === target) { InsertMode.lock = null; }
+      else if (target.shadowRoot) {
+        target = target.shadowRoot;
+        // NOTE: if destroyed, this page must have lost its focus before, so
+        // a blur event must have been bubbled from shadowRoot to a real lock.
+        // Then, we don't need to worry about ELs or InsertMode being null.
+        target.removeEventListener("focus", ELs.onFocus, true);
+        target.removeEventListener("blur", ELs.onBlur, true);
+        target.addEventListener("blur", InsertMode.OnShadowBlur, true);
+      }
+    },
+    onActivate: function(event) {
+      Scroller.current = event.path[0];
+    },
+    onMessage: function(request, id) {
+      id = request.frameId;
+      if (id === undefined || id === frameId) {
+        if (!mainPort.port) {
+          mainPort.connect();
+        }
+        requestHandlers[request.name](request); // do not check `handler != null`
+      }
+    },
+    onWndFocus: function(){}, onUnload: null, //
+    destroy: null
   };
 
   initIfEnabled = function(newPassKeys) {
@@ -175,60 +308,11 @@ var Settings, VHUD, MainPort, VInsertMode;
     InsertMode.init();
     // Assume that all the below listeners won't throw any port exception
     window.addEventListener("keydown", ELs.onKeydown, true);
-    window.addEventListener("keypress", ELs.onKeypress = function(event) {
-      if (isEnabledForUrl && handlerStack.bubbleEvent("keypress", event)) {
-        var keyChar;
-        if (findMode && (keyChar = String.fromCharCode(event.charCode))) {
-          handleKeyCharForFindMode(keyChar);
-          DomUtils.suppressEvent(event);
-        }
-      }
-    }, true);
-    window.addEventListener("keyup", ELs.onKeyup = function(event) {
-      if (isEnabledForUrl) {
-        if (Scroller.keyIsDown) { Scroller.keyIsDown = 0; }
-        if (KeydownEvents[event.keyCode]) {
-          KeydownEvents[event.keyCode] = 0;
-          event.preventDefault();
-          event.stopImmediatePropagation();
-        }
-      }
-    }, true);
-    window.addEventListener("focus", ELs.onFocus = function(event) {
-      var target = event.target;
-      if (target === window) { ELs.onWndFocus(); }
-      else if (!isEnabledForUrl) {}
-      else if (findMode) {} // TODO: check findMode
-      else if (DomUtils.getEditableType(target)) { InsertMode.focus(event); }
-      else if (target.shadowRoot) {
-        target = target.shadowRoot;
-        target.addEventListener("focus", ELs.onFocus, true);
-        target.addEventListener("blur", ELs.onBlur, true);
-      }
-    }, true);
-    window.addEventListener("blur", ELs.onBlur = function(event) {
-      var target = event.target;
-      if (target === window) {
-        // NOTE: Scroller will be set null when destroying, and window.onblur
-        //   won't be used any more, so we needn't make Scroller {}
-        // NOTE: so does InsertMode
-        if (Scroller.keyIsDown) { Scroller.keyIsDown = 0; }
-        KeydownEvents = new Uint8Array(256);
-      } else if (!isEnabledForUrl) {}
-      else if (InsertMode.lock === target) { InsertMode.lock = null; }
-      else if (target.shadowRoot) {
-        target = target.shadowRoot;
-        // NOTE: if destroyed, this page must have lost its focus before, so
-        // a blur event must have been bubbled from shadowRoot to a real lock.
-        // Then, we don't need to worry about ELs or InsertMode being null.
-        target.removeEventListener("focus", ELs.onFocus, true);
-        target.removeEventListener("blur", ELs.onBlur, true);
-        target.addEventListener("blur", InsertMode.OnShadowBlur, true);
-      }
-    }, true);
-    document.addEventListener("DOMActivate", ELs.onActivate = function(event) {
-      Scroller.current = event.path[0];
-    }, true);
+    window.addEventListener("keypress", ELs.onKeypress, true);
+    window.addEventListener("keyup", ELs.onKeyup, true);
+    window.addEventListener("focus", ELs.onFocus, true);
+    window.addEventListener("blur", ELs.onBlur, true);
+    document.addEventListener("DOMActivate", ELs.onActivate, true);
   };
 
   Commands = {
@@ -504,79 +588,6 @@ var Settings, VHUD, MainPort, VInsertMode;
         }
       });
     }
-  };
-
-  ELs.onKeydown = function(event) {
-    if (Scroller.keyIsDown) {
-      if (event.repeat) {
-        Scroller.keyIsDown = Scroller.Core.maxInterval;
-        DomUtils.suppressEvent(event);
-        return;
-      }
-      Scroller.keyIsDown = 0;
-    }
-    if (isEnabledForUrl) {
-      if (!handlerStack.bubbleEvent("keydown", event)) {
-        KeydownEvents[event.keyCode] = 1;
-        return;
-      }
-    } else {
-      return;
-    }
-    var keyChar, key = event.keyCode, action = 0;
-    if (InsertMode.isActive()) {
-      if (key === KeyCodes.esc) {
-        if (KeyboardUtils.isPlain(event)) {
-          InsertMode.exit(event);
-          action = 2;
-        }
-      }
-      else if (InsertMode.global) {}
-      else if (key >= KeyCodes.f1 && key <= KeyCodes.f12) {
-        action = checkValidKey(event, KeyboardUtils.getKeyName(event));
-      }
-    }
-    else if (findMode) {
-      if (key === KeyCodes.esc) {
-        if (KeyboardUtils.isPlain(event)) {
-          handleEscapeForFindMode();
-          action = 2;
-        }
-      } else if (key === KeyCodes.backspace || key === KeyCodes.deleteKey) {
-        handleDeleteForFindMode();
-        action = 2;
-      } else if (key === KeyCodes.enter) {
-        handleEnterForFindMode();
-        action = 2;
-      } else if (event.metaKey || event.ctrlKey || event.altKey) {}
-      else if (event.keyIdentifier.startsWith("U+")) {
-        action = 1;
-      } else if (! (key in KeyboardUtils.keyNames)) {
-        action = 1;
-      }
-    }
-    else if (key >= 32) {
-      if (keyChar = KeyboardUtils.getKeyChar(event)) {
-        action = checkValidKey(event, keyChar);
-      }
-    }
-    else if (key === KeyCodes.esc && KeyboardUtils.isPlain(event)) {
-      if (keyQueue) {
-        mainPort.port.postMessage({ handler: "esc" });
-        keyQueue = false;
-        currentSeconds = secondKeys[""];
-        action = 2;
-      } else if (window.getSelection().type === "Range") {
-        window.getSelection().removeAllRanges();
-        action = 2;
-      }
-    }
-    if (action <= 0) { return; }
-    if (action === 2) {
-      event.preventDefault();
-    }
-    event.stopImmediatePropagation();
-    KeydownEvents[key] = 1;
   };
 
   checkValidKey = function(event, key) {
@@ -1352,15 +1363,6 @@ var Settings, VHUD, MainPort, VInsertMode;
     );
   });
 
-  ELs.onMessage = function(request, id) {
-    id = request.frameId;
-    if (id === undefined || id === frameId) {
-      if (!mainPort.port) {
-        mainPort.connect();
-      }
-      requestHandlers[request.name](request); // do not check `handler != null`
-    }
-  };
   if (isInjected) {
     settings.RequestHandlers = requestHandlers;
     settings.ELs = ELs;
