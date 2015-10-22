@@ -1367,7 +1367,6 @@ var Settings, VHUD, MainPort, VInsertMode;
   if (isInjected) {
     settings.RequestHandlers = requestHandlers;
     settings.ELs = ELs;
-    settings.Commands = Commands;
   } else {
     chrome.runtime.onMessage.addListener(ELs.onMessage);
   }
