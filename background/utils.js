@@ -74,9 +74,16 @@ var Utils = {
         index2 = string.length;
         type = index2 < oldString.length || index2 <= index
           || string.charCodeAt(index + 1) === 47 ? 2 : 0;
-      } else if ((index = string.indexOf('/')) <= 0) {
-        if (index === 0 || string.length < oldString.length) { type = 2; }
-      } else if (string.length >= oldString.length ||
+      } else if (string.startsWith("//")) {
+        string = string.substring(2);
+        index2 = 2;
+      } else {
+        index2 = 0;
+      }
+      if (type !== -1) {}
+      else if ((index = string.indexOf('/')) <= 0) {
+        if (index === 0 || string.length < oldString.length - index2) { type = 2; }
+      } else if (string.length >= oldString.length - index2 ||
           ((index2 = string.charCodeAt(index + 1)) > 32 && index2 !== 47)) {
         string = string.substring(0, index);
       } else {
@@ -142,7 +149,8 @@ var Utils = {
       type = this.isTld(string.substring(index2, index)) ? 2 : 1;
     }
     // window.type = type;
-    return type === 0 ? oldString : type === 1 ? ("http://" + oldString)
+    return type === 0 ? oldString : type === 1
+      ? ((oldString.startsWith("//") ? "http:" : "http://") + oldString)
       : this.createSearchUrl(oldString.split(' '), keyword || "~");
   },
   isTld: function(tld) {
