@@ -617,9 +617,9 @@ var Settings, VHUD, MainPort, VInsertMode;
       this.init = null;
       this.onGrab = this.onGrab.bind(this);
       if (settings.values.grabBackFocus && this.loading) {
-        if (activeEl) {
+        if (activeEl !== document.body) {
           activeEl.blur();
-          if (DomUtils.getEditableType(document.activeElement)) {
+          if (document.activeElement !== document.body) {
             this.lock = document.activeElement;
             return;
           }
@@ -627,8 +627,7 @@ var Settings, VHUD, MainPort, VInsertMode;
         this.setupGrab();
         return;
       }
-      if (activeEl != null && (activeEl !== document.body
-          ? DomUtils.getEditableType(activeEl) : activeEl.isContentEditable)) {
+      if (activeEl !== document.body && DomUtils.getEditableType(activeEl)) {
         this.lock = activeEl;
       }
     },
