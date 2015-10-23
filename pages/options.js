@@ -153,9 +153,10 @@ ExclusionRulesOption.prototype.getPassKeys = function(element) {
 
 if (location.pathname.substring(location.pathname.length - 11) === "/popup.html") {
 chrome.tabs.query({currentWindow: true, active: true}, function(tab) {
-  var exclusions, onUpdated, saveOptions, updateState, url, hasNew, status = 0;
+  var exclusions, onUpdated, saveOptions, updateState, url, status = 0;
 
 exclusions = {
+hasNew: false,
 init: function(url, element, onUpdated) {
   this.url = url;
   this.__proto__ = ExclusionRulesOption.prototype;
@@ -183,6 +184,7 @@ populateElement: function(rules) {
   if (haveMatch >= 0) {
     this.getPassKeys(elements[haveMatch]).focus();
   } else {
+    this.hasNew = true;
     this.addRule();
   }
 },
@@ -211,7 +213,6 @@ generateDefaultPattern: function() {
 
   tab = tab[0];
   url = bgSettings.urlForTab[tab.id] || tab.url;
-  hasNew = false;
   var escapeRe = /[&<>]/g, escapeCallback = function(c, n) {
     n = c.charCodeAt(0);
     return (n === 60) ? "&lt;" : (n === 62) ? "&gt;" : "&amp;";
@@ -231,7 +232,7 @@ generateDefaultPattern: function() {
       btn.textContent = "Save Changes";
     }
     if (!exclusions.init) {
-      hasNew = true;
+      exclusions.hasNew = true;
       updateState();
     }
   };
@@ -241,7 +242,7 @@ generateDefaultPattern: function() {
       return;
     }
     exclusions.save();
-    hasNew = false;
+    exclusions.hasNew = true;
     btn.textContent = "Saved";
     btn.disabled = true;
     status = 0;
@@ -270,7 +271,7 @@ generateDefaultPattern: function() {
     window.close();
   };
   window.onunload = function() {
-    if (hasNew) {
+    if (exclusions.hasNew) {
       bgExclusions.rebuildRe();
     }
   };
