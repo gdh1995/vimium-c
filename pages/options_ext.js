@@ -40,7 +40,7 @@ TextOption.prototype.readValueFromElement = function() {
   return this.element.value.trim().replace(/\xa0/g, ' ');
 };
 
-function NonEmptyTextOption() {
+function NonEmptyTextOption(element) {
   NonEmptyTextOption.__super__.constructor.apply(this, arguments);
 }
 __extends(NonEmptyTextOption, TextOption);
@@ -192,33 +192,11 @@ CheckBoxOption.prototype.readValueFromElement = function() {
     }
   });
 
-  _ref = {
-    exclusionRules: ExclusionRulesOption,
-    grabBackFocus: CheckBoxOption,
-    hideHud: CheckBoxOption,
-    keyMappings: TextOption,
-    linkHintCharacters: NonEmptyTextOption,
-    isClickListened: CheckBoxOption,
-    newTabUrl: NonEmptyTextOption,
-    nextPatterns: NonEmptyTextOption,
-    previousPatterns: NonEmptyTextOption,
-    regexFindMode: CheckBoxOption,
-    scrollStepSize: NumberOption,
-    smoothScroll: CheckBoxOption,
-    enableDefaultMappings: CheckBoxOption,
-    deepHints: CheckBoxOption,
-    showActionIcon: CheckBoxOption,
-    searchEngines: NonEmptyTextOption,
-    searchUrl: NonEmptyTextOption,
-    vimSync: CheckBoxOption,
-    keyboard: JSONOption,
-    UILanguage: JSONOption,
-    userDefinedCss: TextOption,
-    userDefinedOuterCss: TextOption
-  };
-  for (name in _ref) {
-    type = _ref[name];
-    new type(name, onUpdated);
+  _ref = document.querySelectorAll("[data-model]");
+  for (_i = _ref.length; 0 <= --_i; ) {
+    element = _ref[_i];
+    type = window[element.getAttribute("data-model") + "Option"];
+    new type(element, onUpdated);
   }
 
   advancedMode = bgSettings.get("showAdvancedOptions");

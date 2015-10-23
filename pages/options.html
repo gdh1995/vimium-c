@@ -47,7 +47,8 @@ unmapAll
                 <a id="showCommands">Show available commands.</a>
               </div>
             </div>
-            <textarea id="keyMappings" placeholder="# Insert your preferred key mappings here."></textarea>
+            <textarea id="keyMappings" data-model="Text"
+              placeholder="# Insert your preferred key mappings here."></textarea>
           </td>
         </tr>
         <tr>
@@ -65,7 +66,7 @@ MainName|c|c\:|C: \
                   <var>%s</var> will be replaced with your search terms.<br/>
                 </div>
               </div>
-              <textarea id="searchEngines"></textarea>
+              <textarea id="searchEngines" data-model="NonEmptyText"></textarea>
               <div class="nonEmptyTextOption"></div>
           </td>
         </tr>
@@ -78,7 +79,7 @@ MainName|c|c\:|C: \
                   (e.g. "<kbd>http://www.baidu.com/s?ie=utf-8&wd=%s Baidu</kbd>").
                 </div>
               </div>
-              <input id="searchUrl" type="text" />
+              <input id="searchUrl" type="text" data-model="NonEmptyText" />
               <div class="nonEmptyTextOption"></div>
           </td>
         </tr>
@@ -91,7 +92,7 @@ MainName|c|c\:|C: \
                   "<kbd>chrome-search://local-ntp/local-ntp.html</kbd>".
                 </div>
               </div>
-              <input id="newTabUrl" type="text" />
+              <input id="newTabUrl" type="text" data-model="NonEmptyText" />
               <div class="nonEmptyTextOption"></div>
           </td>
         </tr>
@@ -107,7 +108,7 @@ MainName|c|c\:|C: \
                   The size for basic long movements (short = * 0.6).
                 </div>
               </div>
-              <input id="scrollStepSize" type="number" />px
+              <input id="scrollStepSize" type="number" data-model="Number" />px
             </td>
           </tr>
           <tr>
@@ -118,7 +119,7 @@ MainName|c|c\:|C: \
                   The characters placed next to each link after typing "f" to enter link-hint mode.
                 </div>
               </div>
-              <input id="linkHintCharacters" type="text" />
+              <input id="linkHintCharacters" type="text" data-model="NonEmptyText" />
               <div class="nonEmptyTextOption"></div>
             </td>
           </tr>
@@ -131,7 +132,7 @@ MainName|c|c\:|C: \
                 </div>
               </div>
               <label>
-                <input id="showActionIcon" type="checkbox" />
+                <input id="showActionIcon" type="checkbox" data-model="CheckBox" />
                 Use the browser action icon on the top right
               </label>
             </td>
@@ -139,7 +140,7 @@ MainName|c|c\:|C: \
           <tr>
             <td class="booleanOption">
               <label>
-                <input id="smoothScroll" type="checkbox" />
+                <input id="smoothScroll" type="checkbox" data-model="CheckBox" />
                 Use smooth scrolling
               </label>
             </td>
@@ -153,7 +154,7 @@ MainName|c|c\:|C: \
                 </div>
               </div>
               <label>
-                <input id="enableDefaultMappings" type="checkbox" />
+                <input id="enableDefaultMappings" type="checkbox" data-model="CheckBox" />
                 Enable built-in key mappings
               </label>
             </td>
@@ -168,7 +169,7 @@ MainName|c|c\:|C: \
                 </div>
               </div>
               <label>
-                <input id="deepHints" type="checkbox" />
+                <input id="deepHints" type="checkbox" data-model="CheckBox" />
                 Match links even in shadow DOMs by default
               </label>
             </td>
@@ -183,7 +184,7 @@ MainName|c|c\:|C: \
                 </div>
               </div>
               <label>
-                <input id="isClickListened" type="checkbox" />
+                <input id="isClickListened" type="checkbox" data-model="CheckBox" />
                 Link-hint mode will check nodes' <var>click</var> listeners.
               </label>
             </td>
@@ -197,7 +198,7 @@ MainName|c|c\:|C: \
                 </div>
               </div>
               <label>
-                <input id="grabBackFocus" type="checkbox" />
+                <input id="grabBackFocus" type="checkbox" data-model="CheckBox" />
                 Don't let pages steal the focus on load
               </label>
             </td>
@@ -211,7 +212,7 @@ MainName|c|c\:|C: \
                 </div>
               </div>
               <label>
-                <input id="hideHud" type="checkbox" />
+                <input id="hideHud" type="checkbox" data-model="CheckBox" />
                 Hide the Heads Up Display (HUD)
               </label>
             </td>
@@ -225,7 +226,7 @@ MainName|c|c\:|C: \
                 </div>
               </div>
               <label>
-                <input id="regexFindMode" type="checkbox" />
+                <input id="regexFindMode" type="checkbox" data-model="CheckBox" />
                 Treat find queries as regular expressions
               </label>
             </td>
@@ -239,7 +240,7 @@ MainName|c|c\:|C: \
                 </div>
               </div>
               <label>
-                <input id="vimSync" type="checkbox" />
+                <input id="vimSync" type="checkbox" data-model="CheckBox" />
                 Sync settings using with your current Google account
               </label>
             </td>
@@ -252,7 +253,7 @@ MainName|c|c\:|C: \
                     The "navigate to previous page" command uses these patterns to find the link to follow.
                   </div>
                 </div>
-                <input id="previousPatterns" type="text" />
+                <input id="previousPatterns" type="text" data-model="NonEmptyText" />
                 <div class="nonEmptyTextOption"></div>
             </td>
           </tr>
@@ -264,7 +265,7 @@ MainName|c|c\:|C: \
                     The "navigate to next page" command uses these patterns to find the link to follow.
                   </div>
                 </div>
-                <input id="nextPatterns" type="text" />
+                <input id="nextPatterns" type="text" data-model="NonEmptyText" />
                 <div class="nonEmptyTextOption"></div>
             </td>
           </tr>
@@ -279,7 +280,7 @@ MainName|c|c\:|C: \
                   default styles.
                 </div>
               </div>
-              <textarea id="userDefinedCss" class="code"></textarea>
+              <textarea id="userDefinedCss" class="code" data-model="Text"></textarea>
             </td>
           </tr>
           <tr>
@@ -292,7 +293,7 @@ MainName|c|c\:|C: \
                   These styles are used in addition to and take precedence over all pages' style.
                 </div>
               </div>
-              <textarea id="userDefinedOuterCss" class="code"></textarea>
+              <textarea id="userDefinedOuterCss" class="code" data-model="Text"></textarea>
             </td>
           </tr>
           <tr>
@@ -304,7 +305,7 @@ MainName|c|c\:|C: \
                     <kbd>[ &lt;delay (ms)&gt;, &lt;repeat period&gt; ]</kbd> (e.g. <kbd>[ 500, 33 ]</kbd>)
                   </div>
                 </div>
-                <input id="keyboard" type="text" />
+                <input id="keyboard" type="text" data-model="JSON" />
                 <div class="nonEmptyTextOption"></div>
             </td>
           </tr>
@@ -319,7 +320,7 @@ MainName|c|c\:|C: \
                     }</kbd>
                   </div>
                 </div>
-                <textarea id="UILanguage" class="code"></textarea>
+                <textarea id="UILanguage" class="code" data-model="JSON"></textarea>
                 <div class="nonEmptyTextOption"></div>
             </td>
           </tr>

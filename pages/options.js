@@ -16,10 +16,10 @@ bgSettings = BG.Settings;
 bgExclusions = BG.Exclusions;
 $("exclusionScrollBox").innerHTML = bgSettings.get("exclusionTemplate");
 
-function Option(field, onUpdated) {
-  this.field = field;
-  this.element = $(this.field);
-  if (field in bgSettings.bufferToLoad) {
+function Option(element, onUpdated) {
+  this.element = element;
+  this.field = element.id;
+  if (this.field in bgSettings.bufferToLoad) {
     this.onUpdated1 = onUpdated;
     onUpdated = this._onUpdated;
   }
@@ -262,7 +262,7 @@ chrome.tabs.query({currentWindow: true, active: true}, function(tab) {
       setTimeout(window.close, 300);
     }
   });
-  exclusions = new ExclusionRulesOnPopupOption(url, "exclusionRules", onUpdated);
+  exclusions = new ExclusionRulesOnPopupOption(url, $("exclusionRules"), onUpdated);
   updateState();
   var link = $("optionsLink");
   link.href = bgSettings.CONST.OptionsPage;
