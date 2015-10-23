@@ -156,59 +156,59 @@ chrome.tabs.query({currentWindow: true, active: true}, function(tab) {
   var exclusions, onUpdated, saveOptions, updateState, url, status = 0;
 
 exclusions = {
-hasNew: false,
-init: function(url, element, onUpdated) {
-  this.url = url;
-  this.__proto__ = ExclusionRulesOption.prototype;
-  ExclusionRulesOption.call(this, element, onUpdated);
-  this.element.addEventListener("input", this.onInput.bind(this));
-  this.init = null;
-},
-addRule: function() {
-  this.__proto__.addRule.call(this, this.generateDefaultPattern());
-},
-populateElement: function(rules) {
-  var element, elements, haveMatch, pattern, _i, _len;
-  this.__proto__.populateElement.call(this, rules);
-  elements = this.element.getElementsByClassName("exclusionRuleInstance");
-  haveMatch = -1;
-  for (_i = 0, _len = elements.length; _i < _len; _i++) {
-    element = elements[_i];
-    pattern = this.getPattern(element).value.trim();
-    if (bgExclusions.re[pattern](this.url)) {
-      haveMatch = _i;
-    } else {
-      element.style.display = "none";
+  hasNew: false,
+  init: function(url, element, onUpdated) {
+    this.url = url;
+    this.__proto__ = ExclusionRulesOption.prototype;
+    ExclusionRulesOption.call(this, element, onUpdated);
+    this.element.addEventListener("input", this.onInput.bind(this));
+    this.init = null;
+  },
+  addRule: function() {
+    this.__proto__.addRule.call(this, this.generateDefaultPattern());
+  },
+  populateElement: function(rules) {
+    var element, elements, haveMatch, pattern, _i, _len;
+    this.__proto__.populateElement.call(this, rules);
+    elements = this.element.getElementsByClassName("exclusionRuleInstance");
+    haveMatch = -1;
+    for (_i = 0, _len = elements.length; _i < _len; _i++) {
+      element = elements[_i];
+      pattern = this.getPattern(element).value.trim();
+      if (bgExclusions.re[pattern](this.url)) {
+        haveMatch = _i;
+      } else {
+        element.style.display = "none";
+      }
     }
+    if (haveMatch >= 0) {
+      this.getPassKeys(elements[haveMatch]).focus();
+    } else {
+      this.hasNew = true;
+      this.addRule();
+    }
+  },
+  onInput: function(event) {
+    var patternElement = event.target;
+    if (!patternElement.classList.contains("pattern")) {
+      return;
+    }
+    if (bgExclusions.getRe(patternElement.value)(this.url)) {
+      patternElement.title = patternElement.style.color = "";
+    } else {
+      patternElement.style.color = "red";
+      patternElement.title = "Red text means that the pattern does not\nmatch the current URL.";
+    }
+  },
+  httpRe: /^https?:\/\/./,
+  urlRe: /^[a-z]{3,}:\/\/./,
+  generateDefaultPattern: function() {
+    return this.httpRe.test(this.url)
+      ? ("https?://" + this.url.split("/", 3)[2] + "/")
+      : this.urlRe.test(this.url)
+      ? (this.url.split("/", 3).join("/") + "/")
+      : this.url;
   }
-  if (haveMatch >= 0) {
-    this.getPassKeys(elements[haveMatch]).focus();
-  } else {
-    this.hasNew = true;
-    this.addRule();
-  }
-},
-onInput: function(event) {
-  var patternElement = event.target;
-  if (!patternElement.classList.contains("pattern")) {
-    return;
-  }
-  if (bgExclusions.getRe(patternElement.value)(this.url)) {
-    patternElement.title = patternElement.style.color = "";
-  } else {
-    patternElement.style.color = "red";
-    patternElement.title = "Red text means that the pattern does not\nmatch the current URL.";
-  }
-},
-httpRe: /^https?:\/\/./,
-urlRe: /^[a-z]{3,}:\/\/./,
-generateDefaultPattern: function() {
-  return this.httpRe.test(this.url)
-    ? ("https?://" + this.url.split("/", 3)[2] + "/")
-    : this.urlRe.test(this.url)
-    ? (this.url.split("/", 3).join("/") + "/")
-    : this.url;
-}
 };
 
   tab = tab[0];
