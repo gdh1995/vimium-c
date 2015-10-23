@@ -1,7 +1,6 @@
 "use strict";
 
-var $, ExclusionRulesOption, ExclusionRulesOnPopupOption,
-bgSettings, bgExclusions, BG,
+var $, ExclusionRulesOption, bgSettings, bgExclusions, BG,
 __hasProp = Object.prototype.hasOwnProperty,
 __extends = function(child, parent) {
   for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; }
@@ -153,21 +152,23 @@ ExclusionRulesOption.prototype.getPassKeys = function(element) {
 };
 
 if (location.pathname.substring(location.pathname.length - 11) === "/popup.html") {
-function ExclusionRulesOnPopupOption(url) {
+chrome.tabs.query({currentWindow: true, active: true}, function(tab) {
+  var exclusions, onUpdated, saveOptions, updateState, url, hasNew, status = 0;
+
+exclusions = {
+init: function(url, element, onUpdated) {
   this.url = url;
-  ExclusionRulesOnPopupOption.__super__.constructor.apply(this,
-    2 <= arguments.length ? Array.prototype.slice.call(arguments, 1) : []);
+  this.__proto__ = ExclusionRulesOption.prototype;
+  ExclusionRulesOption.call(this, element, onUpdated);
   this.element.addEventListener("input", this.onInput.bind(this));
-}
-__extends(ExclusionRulesOnPopupOption, ExclusionRulesOption);
-
-ExclusionRulesOnPopupOption.prototype.addRule = function() {
-  ExclusionRulesOnPopupOption.__super__.addRule.call(this, this.generateDefaultPattern());
-};
-
-ExclusionRulesOnPopupOption.prototype.populateElement = function(rules) {
+  this.init = null;
+},
+addRule: function() {
+  this.__proto__.addRule.call(this, this.generateDefaultPattern());
+},
+populateElement: function(rules) {
   var element, elements, haveMatch, pattern, _i, _len;
-  ExclusionRulesOnPopupOption.__super__.populateElement.call(this, rules);
+  this.__proto__.populateElement.call(this, rules);
   elements = this.element.getElementsByClassName("exclusionRuleInstance");
   haveMatch = -1;
   for (_i = 0, _len = elements.length; _i < _len; _i++) {
@@ -184,9 +185,8 @@ ExclusionRulesOnPopupOption.prototype.populateElement = function(rules) {
   } else {
     this.addRule();
   }
-};
-
-ExclusionRulesOnPopupOption.prototype.onInput = function(event) {
+},
+onInput: function(event) {
   var patternElement = event.target;
   if (!patternElement.classList.contains("pattern")) {
     return;
@@ -197,21 +197,18 @@ ExclusionRulesOnPopupOption.prototype.onInput = function(event) {
     patternElement.style.color = "red";
     patternElement.title = "Red text means that the pattern does not\nmatch the current URL.";
   }
-};
-
-ExclusionRulesOnPopupOption.prototype.httpRe = /^https?:\/\/./;
-ExclusionRulesOnPopupOption.prototype.urlRe = /^[a-z]{3,}:\/\/./;
-ExclusionRulesOnPopupOption.prototype.generateDefaultPattern = function() {
+},
+httpRe: /^https?:\/\/./,
+urlRe: /^[a-z]{3,}:\/\/./,
+generateDefaultPattern: function() {
   return this.httpRe.test(this.url)
     ? ("https?://" + this.url.split("/", 3)[2] + "/")
     : this.urlRe.test(this.url)
     ? (this.url.split("/", 3).join("/") + "/")
     : this.url;
+}
 };
 
-chrome.tabs.query({currentWindow: true, active: true}, function(tab) {
-  var exclusions, onUpdated, saveOptions, updateState, url, hasNew, status = 0;
-  exclusions = null;
   tab = tab[0];
   url = bgSettings.urlForTab[tab.id] || tab.url;
   hasNew = false;
@@ -233,7 +230,7 @@ chrome.tabs.query({currentWindow: true, active: true}, function(tab) {
       btn.removeAttribute("disabled");
       btn.textContent = "Save Changes";
     }
-    if (exclusions) {
+    if (!exclusions.init) {
       hasNew = true;
       updateState();
     }
@@ -262,7 +259,7 @@ chrome.tabs.query({currentWindow: true, active: true}, function(tab) {
       setTimeout(window.close, 300);
     }
   });
-  exclusions = new ExclusionRulesOnPopupOption(url, $("exclusionRules"), onUpdated);
+  exclusions.init(url, $("exclusionRules"), onUpdated);
   updateState();
   var link = $("optionsLink");
   link.href = bgSettings.CONST.OptionsPage;
