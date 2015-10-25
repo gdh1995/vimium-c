@@ -1,7 +1,5 @@
 "use strict";
-var Marks, Clipboard, Completers,
-Commands = { PopulateCommandKeys: null, availableCommands: {}, initIsSlow: false },
-g_requestHandlers;
+var Marks, Clipboard, Completers, Commands, g_requestHandlers;
 (function() {
   var BackgroundCommands, ContentSettings, checkKeyQueue, commandCount //
     , currentCount, currentFirst, currentCommand, executeCommand, extForTab
@@ -51,7 +49,7 @@ g_requestHandlers;
       if ((keys = commandsToKey[command]) || showUnbound) {
       bindings = keys ? keys.join(", ") : "";
       isAdvanced = Commands.advancedCommands.indexOf(command) >= 0;
-      description = availableCommands[command].description;
+      description = availableCommands[command][0];
       if (bindings.length <= 8) {
         helpDialogHtmlForCommand(html, isAdvanced, bindings, description, showNames ? command : "");
       } else {
@@ -879,7 +877,7 @@ g_requestHandlers;
     currentCount = 0;
   };
 
-  Commands.PopulateCommandKeys = function() {
+  Settings.updateHooks.PopulateCommandKeys = function() {
     var key, ref1, ref2, first, arr, keyRe = Commands.keyRe, ch;
     resetKeys();
     ref1 = ["1", "2", "3", "4", "5", "6", "7", "8", "9"];
@@ -912,13 +910,6 @@ g_requestHandlers;
     }
     ref2[""] = ["0"]; // "0" is for key queues like "10n"
   };
-  setTimeout(function() {
-    if ("createTab" in Commands.availableCommands) {
-      Commands.parseKeyMappings(Settings.get("keyMappings"), 1);
-    } else {
-      Commands.initIsSlow = true;
-    }
-  }, 84);
 
   handleMainPort = function(request, port) {
     var key, func, id;
@@ -1041,7 +1032,7 @@ g_requestHandlers;
     } else if (!(registryEntry.repeat > 0 && count > registryEntry.repeat)) {
     } else if (!
       confirm("You have asked Vimium++ to perform " + count + " repeats of the command:\n        "
-        + Commands.availableCommands[command].description
+        + Commands.availableCommands[command][0]
         + "\n\nAre you sure you want to continue?")
     ) {
       return;
@@ -1290,7 +1281,9 @@ g_requestHandlers;
   };
 
   Settings.updateHooks.postKeyMappings = function(value) {
-    Commands.parseKeyMappings(Settings.get("keyMappings"), 0);
+    Commands.parseKeyMappings(Settings.get("keyMappings"));
+    Settings.postUpdate("PopulateCommandKeys", null);
+    // resetKeys has been called
     this.postUpdate("broadcast", {
       name: "refreshKeyMappings",
       currentFirst: null,
@@ -1317,15 +1310,15 @@ g_requestHandlers;
     }
     reg = Commands.availableCommands[command];
     executeCommand(command, {
-      background: reg.background,
+      background: reg[2],
       command: command,
       options: options || {},
-      repeat: reg.repeat
+      repeat: reg[1]
     }, count, null);
   };
   setTimeout(function() {
     chrome.commands.onCommand.addListener(funcDict.globalCommand);
-  }, 500);
+  }, 200);
 
   chrome.runtime.onMessageExternal.addListener(function(message, _1, sendResponse) {
     var command, options = null;

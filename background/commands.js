@@ -2,8 +2,6 @@
 var Commands = {
   // NOTE: [^\s] is for spliting passed keys
   keyRe: /<(?:(?:a-(?:c-)?(?:m-)?|c-(?:m-)?|m-)(?:[A-Z][0-9A-Z]+|[a-z][0-9a-z]+|[^\s])|[A-Z][0-9A-Z]+|[a-z][0-9a-z]+)>|[^\s]/g,
-  availableCommands: {},
-  initIsSlow: Commands.initIsSlow,
   keyToCommandRegistry: null,
   _keyLeftRe: /<((?:[acmACM]-){0,3})([A-Za-z][0-9A-Za-z]+|.)>/g,
   onNormalize: function(match, option, key) {
@@ -41,14 +39,14 @@ var Commands = {
     for (key in defaultMap) {
       details = available[command = defaultMap[key]];
       registry[key] = {
-        background: details.background,
+        background: details[2],
         command: command,
         options: options,
-        repeat: details.repeat
+        repeat: details[1]
       };
     }
   },
-  parseKeyMappings: function(line, delay) {
+  parseKeyMappings: function(line) {
     var key, lines, splitLine, _i, _len, registry, details, available;
     this.keyToCommandRegistry = Utils.makeNullProto();
     if (Settings.get("enableDefaultMappings") === true) {
@@ -66,10 +64,10 @@ var Commands = {
         if (splitLine.length < 3) {
         } else if (details = available[key = splitLine[2]]) {
           registry[this.normalizeKey(splitLine[1])] = {
-            background: details.background,
+            background: details[2],
             command: key,
             options: this.getOptions(splitLine),
-            repeat: details.repeat
+            repeat: details[1]
           };
         } else {
           console.log("Command %c" + key, "color:red;", "doesn't exist!");
@@ -83,18 +81,10 @@ var Commands = {
         console.log("Unmapping:", key, "has not been mapped");
       }
     }
-    if (delay > 0) {
-      return setTimeout(Commands.PopulateCommandKeys, delay);
-    }
-    Commands.PopulateCommandKeys(); // resetKeys has been called in this
   },
-  PopulateCommandKeys: Commands.PopulateCommandKeys,
-  commandGroups: null,
-  advancedCommands: null,
-  defaultKeyMappings: null
-};
 
-Commands.commandGroups = {
+commandGroups: {
+  __proto__: null,
   pageNavigation: ["scrollDown", "scrollUp", "scrollLeft", "scrollRight", "scrollToTop"
     , "scrollToBottom", "scrollToLeft", "scrollToRight", "scrollPageDown", "scrollPageUp"
     , "scrollPxDown", "scrollPxUp", "scrollPxLeft", "scrollPxRight"
@@ -127,8 +117,8 @@ Commands.commandGroups = {
     , "enableCSTemp", "toggleCS", "clearCS"],
   misc: ["showHelp", "autoCopy", "autoOpen", "searchAs", "toggleLinkHintCharacters"
     , "toggleSwitchTemp", "debugBackground", "blank"]
-};
-Commands.advancedCommands = ["scrollToLeft", "scrollToRight", "moveTabToNextWindow"
+},
+advancedCommands: ["scrollToLeft", "scrollToRight", "moveTabToNextWindow"
   , "moveTabToNewWindow", "moveTabToIncognito", "reloadGivenTab", "focusOrLaunch"
   , "goUp", "goToRoot", "focusInput", "LinkHints.activateModeWithQueue", "enableCSTemp"
   , "toggleCS", "clearCS", "LinkHints.activateModeToDownloadImage", "reopenTab"
@@ -140,8 +130,9 @@ Commands.advancedCommands = ["scrollToLeft", "scrollToRight", "moveTabToNextWind
   , "scrollPxDown", "scrollPxUp", "scrollPxLeft", "scrollPxRight", "debugBackground", "blank"
   , "LinkHints.activateModeToHover", "LinkHints.unhoverLast"
   , "toggleLinkHintCharacters", "toggleSwitchTemp", "LinkHints.activateModeToLeave"
-];
-Commands.defaultKeyMappings = {
+],
+defaultKeyMappings: {
+  __proto__: null,
   "?": "showHelp",
   j: "scrollDown",
   k: "scrollUp",
@@ -206,29 +197,10 @@ Commands.defaultKeyMappings = {
   "<f2>": "switchFocus",
   m: "Marks.activateCreateMode",
   "`": "Marks.activateGotoMode"
-};
+},
 
-setTimeout(function(descriptions) {
-  var command, description, ref;
-  if (Commands.initIsSlow) {
-    setTimeout(function() {
-      Commands.parseKeyMappings(Settings.get("keyMappings"), 1);
-    }, 1);
-  }
-  ref = Commands.availableCommands = Utils.makeNullProto();
-  for (command in descriptions) {
-    description = descriptions[command];
-    if (command in ref) { // #if DEBUG
-      console.warn("Bug:", command, "is already defined!");
-      continue;
-    } // #endif
-    ref[command] = {
-      background: description[2] || false,
-      description: description[0],
-      repeat: description[1] || 0
-    };
-  }
-}, 67, {
+availableCommands: {
+  __proto__: null,
   showHelp: [ "Show help", 1, false ],
   debugBackground: [ "Debug the background page", 1, true ],
   blank: [ "Do nothing", 1, true ],
@@ -328,4 +300,10 @@ setTimeout(function(descriptions) {
   clearGlobalMarks: [ "Remove all global marks", 1, true ],
   openUrl: [ "open url (use url: string, newTab: bool)", 20, true ],
   focusOrLaunch: [ 'focus a tab with arg "url" or open it', 1, true ]
-});
+}
+};
+
+setTimeout(function() {
+  Commands.parseKeyMappings(Settings.get("keyMappings"));
+  setTimeout(Settings.updateHooks.PopulateCommandKeys, 3);
+}, 67);
