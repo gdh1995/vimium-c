@@ -538,12 +538,12 @@ LinkHints.alphabetHints = {
   },
   fillInMarkers: function(hintMarkers) {
     var hintStrings, idx, marker, _len;
-    this.chars = Settings.values.linkHintCharacters.toLowerCase();
+    this.chars = Settings.values.linkHintCharacters.toUpperCase();
     hintStrings = this.hintStrings(hintMarkers.length);
     for (idx = 0, _len = hintMarkers.length; idx < _len; ++idx) {
       marker = hintMarkers[idx];
       marker.hintString = hintStrings[idx];
-      marker.innerHTML = this.spanWrap(marker.hintString.toUpperCase());
+      marker.innerHTML = this.spanWrap(marker.hintString);
     }
     return hintMarkers;
   },
@@ -605,7 +605,7 @@ LinkHints.alphabetHints = {
     } else if (key === KeyCodes.space) {
       keyStatus.known = 1;
       return [];
-    } else if (keyChar = KeyboardUtils.getKeyChar(event).toLowerCase()) {
+    } else if (keyChar = KeyboardUtils.getKeyChar(event).toUpperCase()) {
       if (this.chars.indexOf(keyChar) === -1) {
         keyStatus.known = 1;
         return [];
