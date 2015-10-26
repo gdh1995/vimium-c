@@ -522,7 +522,7 @@ LinkHints.alphabetHints = {
     return html.join("");
   },
   numberToHintString: function(number, characterSet, numHintDigits) {
-    var base, hintString, leftLength, remainder;
+    var base, hintString, remainder;
     base = characterSet.length;
     hintString = [];
     do {
@@ -537,14 +537,14 @@ LinkHints.alphabetHints = {
     return hintString.join("");
   },
   fillInMarkers: function(hintMarkers) {
-    var hintStrings, idx, marker, _len;
+    var hintStrings, marker, len;
     this.chars = Settings.values.linkHintCharacters.toUpperCase();
-    hintStrings = this.hintStrings(hintMarkers.length);
-    for (idx = 0, _len = hintMarkers.length; idx < _len; ++idx) {
-      marker = hintMarkers[idx];
-      marker.hintString = hintStrings[idx];
-      marker.innerHTML = this.spanWrap(marker.hintString);
-    }
+    len = hintMarkers.length;
+    hintStrings = this.hintStrings(len);
+    while (0 <= --len) {
+      marker = hintMarkers[len];
+      marker.innerHTML = this.spanWrap(marker.hintString = hintStrings[len]);
+    };
     return hintMarkers;
   },
   hintStrings: function(linkCount) {
@@ -570,18 +570,21 @@ LinkHints.alphabetHints = {
     return this.shuffleHints(hintStrings);
   },
   shuffleHints: function(hints) {
-    var buckets, result, i, _len, characterSetLength = this.chars.length;
+    var buckets, result, i, j, len, ref, characterSetLength = this.chars.length;
     if (hints.length <= characterSetLength) { return hints; }
     buckets = new Array(characterSetLength);
     for (i = characterSetLength; 0 <= --i; ) {
       buckets[i] = [];
     }
-    for (i = 0, _len = hints.length; i < _len; ++i) {
+    for (i = 0, len = hints.length; i < len; ++i) {
       buckets[i % characterSetLength].push(hints[i]);
     }
-    result = []; hints = null;
-    for (i = 0, _len = characterSetLength; i < _len; ++i) {
-      result = result.concat(buckets[i]);
+    result = new Array(len); hints = null;
+    for (i = characterSetLength; 0 <= --i; ) {
+      ref = buckets[i];
+      for (j = ref.length; 0 <= --j; ) {
+        result[--len] = ref[j];
+      }
     }
     return result;
   },
