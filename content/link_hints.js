@@ -511,6 +511,7 @@ var LinkHints = {
 };
 
 LinkHints.alphabetHints = {
+  chars: "",
   hintKeystrokeQueue: [],
   spanWrap: function(hintString) {
     for (var _i = 0, _j = -1, _len = hintString.length, html = new Array(_len * 3); _i < _len; _i++) {
@@ -544,6 +545,7 @@ LinkHints.alphabetHints = {
   },
   fillInMarkers: function(hintMarkers) {
     var hintStrings, idx, marker, _len;
+    this.chars = Settings.values.linkHintCharacters.toLowerCase();
     hintStrings = this.hintStrings(hintMarkers.length);
     for (idx = 0, _len = hintMarkers.length; idx < _len; ++idx) {
       marker = hintMarkers[idx];
@@ -554,7 +556,7 @@ LinkHints.alphabetHints = {
   },
   hintStrings: function(linkCount) {
     var digitsNeeded, hintStrings, i, linkHintCharacters, longHintCount, shortHintCount, start, _ref;
-    linkHintCharacters = Settings.values.linkHintCharacters;
+    linkHintCharacters = this.chars;
     digitsNeeded = Math.ceil(this.logXOfBase(linkCount, linkHintCharacters.length));
     shortHintCount = Math.floor((Math.pow(linkHintCharacters.length, digitsNeeded) - linkCount) / linkHintCharacters.length);
     longHintCount = linkCount - shortHintCount;
@@ -568,10 +570,10 @@ LinkHints.alphabetHints = {
     for (i = start, _ref = start + longHintCount; i < _ref; ++i) {
       hintStrings.push(this.numberToHintString(i, linkHintCharacters, digitsNeeded));
     }
-    return this.shuffleHints(hintStrings, linkHintCharacters.length);
+    return this.shuffleHints(hintStrings);
   },
-  shuffleHints: function(hints, characterSetLength) {
-    var buckets, result, i, _len;
+  shuffleHints: function(hints) {
+    var buckets, result, i, _len, characterSetLength = this.chars.length;
     buckets = new Array(characterSetLength);
     for (i = 0, _len = characterSetLength; i < _len; ++i) {
       buckets[i] = [];
@@ -606,7 +608,7 @@ LinkHints.alphabetHints = {
       keyStatus.known = 1;
       return [];
     } else if (keyChar = KeyboardUtils.getKeyChar(event).toLowerCase()) {
-      if (Settings.values.linkHintCharacters.indexOf(keyChar) === -1) {
+      if (this.chars.indexOf(keyChar) === -1) {
         keyStatus.known = 1;
         return [];
       }
