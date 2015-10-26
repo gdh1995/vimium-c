@@ -540,9 +540,6 @@ LinkHints.alphabetHints = {
     }
     return hintString.join("");
   },
-  logXOfBase: function(x, base) {
-    return Math.log(x) / Math.log(base);
-  },
   fillInMarkers: function(hintMarkers) {
     var hintStrings, idx, marker, _len;
     this.chars = Settings.values.linkHintCharacters.toLowerCase();
@@ -557,7 +554,7 @@ LinkHints.alphabetHints = {
   hintStrings: function(linkCount) {
     var digitsNeeded, hintStrings, i, linkHintCharacters, longHintCount, shortHintCount, start, _ref;
     linkHintCharacters = this.chars;
-    digitsNeeded = Math.ceil(this.logXOfBase(linkCount, linkHintCharacters.length));
+    digitsNeeded = Math.ceil(Math.log(linkCount) / Math.log(linkHintCharacters.length));
     shortHintCount = Math.floor((Math.pow(linkHintCharacters.length, digitsNeeded) - linkCount) / linkHintCharacters.length);
     longHintCount = linkCount - shortHintCount;
     hintStrings = [];
@@ -574,14 +571,15 @@ LinkHints.alphabetHints = {
   },
   shuffleHints: function(hints) {
     var buckets, result, i, _len, characterSetLength = this.chars.length;
+    if (hints.length <= characterSetLength) { return hints; }
     buckets = new Array(characterSetLength);
-    for (i = 0, _len = characterSetLength; i < _len; ++i) {
+    for (i = characterSetLength; 0 <= --i; ) {
       buckets[i] = [];
     }
     for (i = 0, _len = hints.length; i < _len; ++i) {
       buckets[i % characterSetLength].push(hints[i]);
     }
-    result = [];
+    result = []; hints = null;
     for (i = 0, _len = characterSetLength; i < _len; ++i) {
       result = result.concat(buckets[i]);
     }
