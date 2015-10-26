@@ -514,29 +514,25 @@ LinkHints.alphabetHints = {
   chars: "",
   hintKeystrokeQueue: [],
   spanWrap: function(hintString) {
-    for (var _i = 0, _j = -1, _len = hintString.length, html = new Array(_len * 3); _i < _len; _i++) {
-      html[_j + 1] = "<span>";
-      html[_j + 2] = hintString[_i];
-      html[_j += 3] = "</span>";
+    for (var i = 0, j = -1, len = hintString.length, html = new Array(len * 3); i < len; i++) {
+      html[j + 1] = "<span>";
+      html[j + 2] = hintString[i];
+      html[j += 3] = "</span>";
     }
     return html.join("");
   },
   numberToHintString: function(number, characterSet, numHintDigits) {
     var base, hintString, leftLength, remainder;
-    if (numHintDigits == null) {
-      numHintDigits = 0;
-    }
     base = characterSet.length;
     hintString = [];
     do {
       remainder = number % base;
       hintString.unshift(characterSet[remainder]);
-      number -= remainder;
-      number /= Math.floor(base);
+      number = (number - remainder) / base;
     } while (number > 0);
-    leftLength = numHintDigits - hintString.length;
-    while (0 <= --leftLength) {
-      hintString.unshift(characterSet[0]);
+    number = numHintDigits - hintString.length;
+    if (number > 0) {
+      hintString.unshift(characterSet[0].repeat(number));
     }
     return hintString.join("");
   },
@@ -553,23 +549,23 @@ LinkHints.alphabetHints = {
   },
   hintStrings: function(linkCount) {
     var dn, hintStrings, i, len, end, a;
-    hintStrings = [];
+    hintStrings = new Array(linkCount);
     len = this.chars.length;
     a = Math.log(linkCount) / Math.log(len);
     dn = Math.ceil(a);
+    i = 0;
     if (dn >= 2 && dn > a) {
       a = Math.pow(len, a - Math.floor(a));
       end = Math.floor((len - a) / (len - 1) * len) * Math.pow(len, dn - 2);
-      for (i = 0; i < end; ++i) {
-        hintStrings.push(this.numberToHintString(i, this.chars, dn - 1));
+      for (; i < end; ++i) {
+        hintStrings[i] = this.numberToHintString(i, this.chars, dn - 1);
       }
-      i = end * len;
-      end = linkCount - end + i;
+      end *= len - 1;
     } else {
-      i = 0; end = linkCount;
+      end = 0;
     }
-    for (; i < end; ++i) {
-      hintStrings.push(this.numberToHintString(i, this.chars, dn));
+    for (; i < linkCount; ++i) {
+      hintStrings[i] = this.numberToHintString(i + end, this.chars, dn);
     }
     return this.shuffleHints(hintStrings);
   },
