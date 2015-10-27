@@ -178,7 +178,7 @@ var Settings, VHUD, MainPort, VInsertMode;
         }
         else if (InsertMode.global) {}
         else if (key >= KeyCodes.f1 && key <= KeyCodes.f12) {
-          action = checkValidKey(event, KeyboardUtils.getKeyName(event));
+          action = checkValidKey(event, KeyboardUtils.getKeyName(event, event.shiftKey));
         }
       }
       else if (findMode) {
@@ -201,7 +201,7 @@ var Settings, VHUD, MainPort, VInsertMode;
         }
       }
       else if (key >= 32) {
-        if (keyChar = KeyboardUtils.getKeyChar(event)) {
+        if (keyChar = KeyboardUtils.getKeyChar(event, event.shiftKey)) {
           action = checkValidKey(event, keyChar);
         }
       }
