@@ -606,7 +606,7 @@ LinkHints.alphabetHints = {
     } else if (key === KeyCodes.space) {
       keyStatus.known = 1;
       return [];
-    } else if (keyChar = KeyboardUtils.getKeyChar(event, event.shiftKey)) {
+    } else if (keyChar = KeyboardUtils.getKeyChar(event, false)) {
       if (this.chars.indexOf(keyChar) === -1) {
         keyStatus.known = 1;
         return [];
