@@ -516,7 +516,7 @@ LinkHints.alphabetHints = {
   chars: "",
   hintKeystrokeQueue: [],
   spanWrap: function(hintString) {
-    for (var i = 0, j = -1, len = hintString.length, html = new Array(len * 3); i < len; i++) {
+    for (var i = 0, j = -1, end = hintString.length, html = new Array(end * 3); i < end; i++) {
       html[j + 1] = "<span>";
       html[j + 2] = hintString[i];
       html[j += 3] = "</span>";
@@ -539,13 +539,13 @@ LinkHints.alphabetHints = {
     return hintString;
   },
   fillInMarkers: function(hintMarkers) {
-    var hintStrings, marker, len;
+    var hintStrings, marker, end;
     this.chars = Settings.values.linkHintCharacters.toUpperCase();
-    len = hintMarkers.length;
-    hintStrings = this.hintStrings(len);
-    while (0 <= --len) {
-      marker = hintMarkers[len];
-      marker.innerHTML = this.spanWrap(marker.hintString = hintStrings[len]);
+    end = hintMarkers.length;
+    hintStrings = this.hintStrings(end);
+    while (0 <= --end) {
+      marker = hintMarkers[end];
+      marker.innerHTML = this.spanWrap(marker.hintString = hintStrings[end]);
     };
     return hintMarkers;
   },
