@@ -376,17 +376,17 @@ var LinkHints = {
     return output;
   },
   onKeyDownInMode: function(event) {
-    var linksMatched, _i, _j, _ref, _limit;
+    var linksMatched, i, j, ref, limit;
     if (event.repeat) {
       // NOTE: should always prevent repeated keys.
-    } else if ((_i = event.keyCode) === KeyCodes.esc) {
+    } else if ((i = event.keyCode) === KeyCodes.esc) {
       if (KeyboardUtils.isPlain(event)) {
         this.deactivate();
       } else {
         return true;
       }
-    } else if (_i > KeyCodes.f1 && _i <= KeyCodes.f12) {
-      if (_i === KeyCodes.f1 + 1) {
+    } else if (i > KeyCodes.f1 && i <= KeyCodes.f12) {
+      if (i === KeyCodes.f1 + 1) {
         if (event.shiftKey) {
           Settings.values.isClickListened = !Settings.values.isClickListened;
         } else {
@@ -396,17 +396,17 @@ var LinkHints = {
         return false;
       }
       return true;
-    } else if (_i === KeyCodes.shiftKey) {
+    } else if (i === KeyCodes.shiftKey) {
       if (this.mode < 128) {
         this.setOpenLinkMode((this.mode | 1) ^ (this.mode < 64 ? 3 : 67));
       }
-    } else if (_i === KeyCodes.ctrlKey || _i === KeyCodes.metaKey) {
+    } else if (i === KeyCodes.ctrlKey || i === KeyCodes.metaKey) {
       if (this.mode < 128) {
         this.setOpenLinkMode((this.mode | 2) ^ 1);
       }
-    } else if (_i === KeyCodes.altKey) {
+    } else if (i === KeyCodes.altKey) {
       this.setOpenLinkMode(((this.mode >= 128 ? 0 : 2) | this.mode) ^ 64);
-    } else if (_i >= KeyCodes.pageup && _i <= KeyCodes.down) {
+    } else if (i >= KeyCodes.pageup && i <= KeyCodes.down) {
       MainPort.Listener({
         name: "execute",
         command: "scroll",
@@ -424,14 +424,14 @@ var LinkHints = {
       DomUtils.suppressEvent(event);
       this.activateLink(linksMatched[0].clickableItem);
     } else {
-      _limit = this.keyStatus.tab ? 0 : this.alphabetHints.hintKeystrokeQueue.length;
-      for (_i = linksMatched.length; 0 <= --_i; ) {
-        _ref = linksMatched[_i].childNodes;
-        for (_j = _ref.length; _limit <= --_j; ) {
-          _ref[_j].classList.remove("MC");
+      limit = this.keyStatus.tab ? 0 : this.alphabetHints.hintKeystrokeQueue.length;
+      for (i = linksMatched.length; 0 <= --i; ) {
+        ref = linksMatched[i].childNodes;
+        for (j = ref.length; limit <= --j; ) {
+          ref[j].classList.remove("MC");
         }
-        for (; 0 <= _j; --_j) {
-          _ref[_j].classList.add("MC");
+        for (; 0 <= j; --j) {
+          ref[j].classList.add("MC");
         }
       }
     }
