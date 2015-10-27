@@ -34,6 +34,7 @@ var LinkHints = {
   keepHUDAfterAct: false,
   keyStatus: {
     known: 1,
+    newHintLength: 0,
     tab: 0
   },
   handlerId: 0,
@@ -424,7 +425,7 @@ var LinkHints = {
       DomUtils.suppressEvent(event);
       this.activateLink(linksMatched[0].clickableItem);
     } else {
-      limit = this.keyStatus.tab ? 0 : this.alphabetHints.hintKeystroke.length;
+      limit = this.keyStatus.tab ? 0 : this.keyStatus.newHintLength;
       for (i = linksMatched.length; 0 <= --i; ) {
         ref = linksMatched[i].childNodes;
         for (j = ref.length; limit <= --j; ) {
@@ -614,8 +615,9 @@ LinkHints.alphabetHints = {
     } else {
       return null;
     }
-    keyStatus.known = 0;
     keyChar = this.hintKeystroke;
+    keyStatus.newHintLength = keyChar.length;
+    keyStatus.known = 0;
     return hintMarkers.filter(keyStatus.tab ? function(linkMarker) {
       var pass = ! linkMarker.hintString.startsWith(keyChar);
       linkMarker.style.display = pass ? "" : "none";
