@@ -132,14 +132,6 @@ var Settings, VHUD, MainPort, VInsertMode;
       clearInterval(settings.isLoading);
       response = response.response;
       requestHandlers[response.name](response);
-    },
-    OnUpdate: function(response) {
-      var ref = settings.values;
-      Utils.setNullProto(response);
-      delete response.name;
-      for (i in response) {
-        ref[i] = response[i];
-      }
     }
   };
 
@@ -1170,7 +1162,14 @@ var Settings, VHUD, MainPort, VInsertMode;
       ELs.focusMsg.url = window.location.href;
     },
     settings: settings.ReceiveSettings,
-    settingsUpdate: settings.OnUpdate,
+    settingsUpdate: function(response) {
+      var ref = settings.values, i;
+      Utils.setNullProto(response);
+      delete response.name;
+      for (i in response) {
+        ref[i] = response[i];
+      }
+    },
     reg: function(request) {
       if (document.body && document.body.nodeName.toLowerCase() !== "frameset") {
         return mainPort.safePost({
