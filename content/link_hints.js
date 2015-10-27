@@ -55,8 +55,8 @@ var LinkHints = {
     this._activateMode(this.CONST.COPY_TEXT);
   },
   activateModeToSearchLinkText: function(_0, options) {
-    this._activateMode(this.CONST.SEARCH_TEXT);
     this.options = options;
+    this._activateMode(this.CONST.SEARCH_TEXT);
   },
   activateModeWithQueue: function() {
     this._activateMode(this.CONST.OPEN_WITH_QUEUE);
@@ -484,9 +484,10 @@ var LinkHints = {
     handlerId = handlerStack.push({ keydown: func, keypress: func });
   },
   reinit: function() {
-    var mode = this.mode, linkActivator = this.linkActivator;
+    var mode = this.mode, linkActivator = this.linkActivator, options = this.options;
     this.deactivate();
     this.linkActivator = linkActivator;
+    this.options = options;
     this._activateMode(mode);
   },
   deactivate: function() {
@@ -506,6 +507,7 @@ var LinkHints = {
       VHUD.hide();
     }
     this.mode = 0;
+    this.options = null;
     this.isActive = false;
   }
 };
