@@ -572,21 +572,17 @@ LinkHints.alphabetHints = {
     return this.shuffleHints(hintStrings);
   },
   shuffleHints: function(hints) {
-    var buckets, result, i, j, len, ref, characterSetLength = this.chars.length;
-    if (hints.length <= characterSetLength) { return hints; }
-    buckets = new Array(characterSetLength);
-    for (i = characterSetLength; 0 <= --i; ) {
-      buckets[i] = [];
+    var result, count, len, dn, more, start;
+    count = hints.length; len = this.chars.length;
+    if (count <= len) { return hints; }
+    result = new Array(count);
+    more = count % len; count -= more; dn = count / len; start = more * dn;
+    while (start <= --count) {
+      result[count + more] = hints[count % dn * len + Math.floor(count / dn)];
     }
-    for (i = 0, len = hints.length; i < len; ++i) {
-      buckets[i % characterSetLength].push(hints[i]);
-    }
-    result = new Array(len); hints = null;
-    for (i = characterSetLength; 0 <= --i; ) {
-      ref = buckets[i];
-      for (j = ref.length; 0 <= --j; ) {
-        result[--len] = ref[j];
-      }
+    count = start + more; ++dn;
+    while (0 <= --count) {
+      result[count] = hints[count % dn * len + Math.floor(count / dn)];
     }
     return result;
   },
