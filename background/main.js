@@ -32,7 +32,7 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
     showUnbound = showUnbound ? true : false;
     showNames = showNames ? true : false;
     customTitle || (customTitle = "Help");
-    dialogHtml = Settings.get("help_dialog");
+    dialogHtml = Settings.get("helpDialog");
     return dialogHtml.replace(new RegExp("\\{\\{(version|title|" + Object.keys(Commands.commandGroups).join('|') + ")\\}\\}", "g"), function(_, group) {
       return (group === "version") ? Settings.CONST.CurrentVersion
         : (group === "title") ? customTitle
