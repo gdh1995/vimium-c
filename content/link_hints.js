@@ -597,19 +597,17 @@ LinkHints.alphabetHints = {
       this.hintKeystroke = "";
       keyStatus.tab = 0;
     }
+    keyStatus.known = 1;
     if (key === KeyCodes.tab) {}
     else if (key === KeyCodes.backspace || key === KeyCodes.deleteKey || key === KeyCodes.f1) {
       if (!this.hintKeystroke) {
-        keyStatus.known = 1;
         return [];
       }
       this.hintKeystroke = this.hintKeystroke.slice(0, -1);
     } else if (key === KeyCodes.space) {
-      keyStatus.known = 1;
       return [];
     } else if (keyChar = KeyboardUtils.getKeyChar(event, false)) {
       if (this.chars.indexOf(keyChar) === -1) {
-        keyStatus.known = 1;
         return [];
       }
       this.hintKeystroke += keyChar;
