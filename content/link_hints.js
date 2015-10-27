@@ -526,17 +526,17 @@ LinkHints.alphabetHints = {
   numberToHintString: function(number, characterSet, numHintDigits) {
     var base, hintString, remainder;
     base = characterSet.length;
-    hintString = [];
+    hintString = "";
     do {
       remainder = number % base;
-      hintString.unshift(characterSet[remainder]);
+      hintString = characterSet[remainder] + hintString;
       number = (number - remainder) / base;
     } while (number > 0);
     number = numHintDigits - hintString.length;
     if (number > 0) {
-      hintString.unshift(characterSet[0].repeat(number));
+      hintString = characterSet[0].repeat(number) + hintString;
     }
-    return hintString.join("");
+    return hintString;
   },
   fillInMarkers: function(hintMarkers) {
     var hintStrings, marker, len;
