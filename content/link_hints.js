@@ -607,7 +607,7 @@ LinkHints.alphabetHints = {
       this.hintKeystroke = this.hintKeystroke.slice(0, -1);
     } else if (key === KeyCodes.space) {
       return [];
-    } else if (keyChar = KeyboardUtils.getKeyChar(event, false)) {
+    } else if (keyChar = KeyboardUtils.getKeyChar(event, false).toUpperCase()) {
       if (this.chars.indexOf(keyChar) === -1) {
         return [];
       }
