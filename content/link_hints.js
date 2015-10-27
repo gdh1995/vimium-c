@@ -424,7 +424,7 @@ var LinkHints = {
       DomUtils.suppressEvent(event);
       this.activateLink(linksMatched[0].clickableItem);
     } else {
-      limit = this.keyStatus.tab ? 0 : this.alphabetHints.hintKeystrokeQueue.length;
+      limit = this.keyStatus.tab ? 0 : this.alphabetHints.hintKeystroke.length;
       for (i = linksMatched.length; 0 <= --i; ) {
         ref = linksMatched[i].childNodes;
         for (j = ref.length; limit <= --j; ) {
@@ -514,7 +514,7 @@ var LinkHints = {
 
 LinkHints.alphabetHints = {
   chars: "",
-  hintKeystrokeQueue: [],
+  hintKeystroke: "",
   spanWrap: function(hintString) {
     for (var i = 0, j = -1, end = hintString.length, html = new Array(end * 3); i < end; i++) {
       html[j + 1] = "<span>";
@@ -589,20 +589,21 @@ LinkHints.alphabetHints = {
   matchHintsByKey: function(hintMarkers, event, keyStatus) {
     var keyChar, key = event.keyCode;
     if (key === KeyCodes.tab) {
-      if (this.hintKeystrokeQueue.length === 0) {
+      if (!this.hintKeystroke) {
         return false;
       }
       keyStatus.tab = keyStatus.tab ? 0 : 1;
     } else if (keyStatus.tab) {
-      this.hintKeystrokeQueue = [];
+      this.hintKeystroke = "";
       keyStatus.tab = 0;
     }
     if (key === KeyCodes.tab) {}
     else if (key === KeyCodes.backspace || key === KeyCodes.deleteKey || key === KeyCodes.f1) {
-      if (!this.hintKeystrokeQueue.pop()) {
+      if (!this.hintKeystroke) {
         keyStatus.known = 1;
         return [];
       }
+      this.hintKeystroke = this.hintKeystroke.slice(0, -1);
     } else if (key === KeyCodes.space) {
       keyStatus.known = 1;
       return [];
@@ -611,12 +612,12 @@ LinkHints.alphabetHints = {
         keyStatus.known = 1;
         return [];
       }
-      this.hintKeystrokeQueue.push(keyChar);
+      this.hintKeystroke += keyChar;
     } else {
       return null;
     }
     keyStatus.known = 0;
-    keyChar = this.hintKeystrokeQueue.join("");
+    keyChar = this.hintKeystroke;
     return hintMarkers.filter(keyStatus.tab ? function(linkMarker) {
       var pass = ! linkMarker.hintString.startsWith(keyChar);
       linkMarker.style.display = pass ? "" : "none";
@@ -628,7 +629,7 @@ LinkHints.alphabetHints = {
     });
   },
   deactivate: function() {
-    this.hintKeystrokeQueue = [];
+    this.hintKeystroke = "";
   }
 };
 
