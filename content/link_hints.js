@@ -547,24 +547,23 @@ alphabetHints: {
     return hintMarkers;
   },
   hintStrings: function(linkCount) {
-    var dn, hintStrings, i, len, end, a;
+    var dn, hintStrings, i, chars, end, a;
     hintStrings = new Array(linkCount);
-    len = this.chars.length;
-    a = Math.log(linkCount) / Math.log(len);
-    dn = Math.ceil(a);
+    chars = this.chars;
+    end = chars.length;
+    dn = Math.ceil(Math.log(linkCount) / Math.log(end));
+    end = Math.floor((Math.pow(end, dn) - linkCount) / (end - 1));
     i = 0;
-    if (dn >= 2 && dn > a) {
-      a = Math.pow(len, a - Math.floor(a));
-      end = Math.floor((len - a) / (len - 1) * len) * Math.pow(len, dn - 2);
+    if (end > 0) {
+      --dn;
       for (; i < end; ++i) {
-        hintStrings[i] = this.numberToHintString(i, this.chars, dn - 1);
+        hintStrings[i] = this.numberToHintString(i, chars, dn);
       }
-      end *= len - 1;
-    } else {
-      end = 0;
+      ++dn;
+      end *= chars.length - 1;
     }
     for (; i < linkCount; ++i) {
-      hintStrings[i] = this.numberToHintString(i + end, this.chars, dn);
+      hintStrings[i] = this.numberToHintString(i + end, chars, dn);
     }
     return this.shuffleHints(hintStrings);
   },
