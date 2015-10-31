@@ -1,3 +1,4 @@
+"use strict";
 DomUtils.UI = {
   container: null,
   styleIn: null,

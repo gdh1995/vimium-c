@@ -1,8 +1,6 @@
 "use strict";
 var Vomnibar = {
-  vomnibarUI: null,
   defaultRefreshInterval: 500,
-  background: null,
   activateWithCompleter: function(completerName, selectFirstResult, forceNewTab, initialQueryValue, force_current) {
     if (window.top !== window && !force_current) {
       MainPort.sendCommadToFrame(0, "Vomnibar.activateWithCompleter"//
@@ -75,10 +73,9 @@ var Vomnibar = {
   },
   activateEditUrlInNewTab: function() {
     this.activateWithCompleter("omni", false, true, true);
-  }
-};
+  },
 
-Vomnibar.vomnibarUI = {
+vomnibarUI: {
   _waitInit: 1,
   background: null,
   box: null,
@@ -420,9 +417,9 @@ Vomnibar.vomnibarUI = {
     rect[0] += 10; rect[2] -= 12; rect[3] -= 3;
     return rect;
   }
-};
+},
 
-Vomnibar.background = {
+background: {
   Completer: {
     name: "",
     _refreshed: [],
@@ -587,4 +584,5 @@ Vomnibar.background = {
       });
     }
   }
+}
 };

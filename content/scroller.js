@@ -1,5 +1,6 @@
 "use strict";
 var Scroller = {
+Core: {
   animate: null,
   calibrationBoundary: 150,
   maxCalibration: 1.6,
@@ -39,10 +40,8 @@ var Scroller = {
     }
     this.animate(amount, di, element);
   }
-};
+},
 
-Scroller = {
-  Core: Scroller,
   current: null,  
   keyIsDown: 0,
   Properties: [{

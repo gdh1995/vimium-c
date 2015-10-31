@@ -19,9 +19,6 @@ var LinkHints = {
     COPY_LINK_URL: 137,
     OPEN_INCOGNITO_LINK: 138
   },
-  FUNC: null,
-  alphabetHints: null,
-  getUrlData: null,
   hintMarkerContainingDiv: null,
   hintMarkers: [],
   linkActivator: null,
@@ -510,10 +507,9 @@ var LinkHints = {
     this.mode = 0;
     this.options = null;
     this.isActive = false;
-  }
-};
+  },
 
-LinkHints.alphabetHints = {
+alphabetHints: {
   chars: "",
   hintKeystroke: "",
   spanWrap: function(hintString) {
@@ -631,18 +627,18 @@ LinkHints.alphabetHints = {
   deactivate: function() {
     this.hintKeystroke = "";
   }
-};
+},
 
-LinkHints.getUrlData = function(link) {
+getUrlData: function(link) {
   var str = link.getAttribute("data-vim-url");
   if (str) {
     link = DomUtils.createElement("a");
     link.href = str.trim();
   }
   return link.href;
-};
+},
 
-LinkHints.FUNC = {
+FUNC: {
   COPY_LINK_URL: function(link) {
     var str = this.getUrlData(link);
     if (!str) {
@@ -811,4 +807,5 @@ LinkHints.FUNC = {
       link.setAttribute("target", alterTarget);
     }
   }
+}
 };
