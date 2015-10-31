@@ -142,7 +142,7 @@ var Settings, VHUD, MainPort, VInsertMode;
       status: "disabled",
       url: window.location.href,
       frameId: frameId
-    }, //
+    },
     onKeydown: function(event) {
       if (Scroller.keyIsDown) {
         if (event.repeat) {
