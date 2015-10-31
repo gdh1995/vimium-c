@@ -44,9 +44,7 @@ DomUtils.UI = {
     this.styleIn = this.createStyle(innerCss);
     this.root.insertBefore(this.styleIn, this.root.firstElementChild);
     this.container.style.display = "";
-    if (Vomnibar.vomnibarUI.input) {
-      Vomnibar.vomnibarUI.input.focus();
-    }
+    VInsertMode.heldEl && VInsertMode.heldEl.focus();
     this.Adjust();
     document.addEventListener("webkitfullscreenchange", this.Adjust);
   },
