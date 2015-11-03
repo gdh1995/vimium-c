@@ -278,15 +278,16 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
       } : null);
     },
     makeTempWindow: function(tabIdUrl, incognito, callback) {
-      chrome.windows.create({
+      var option = {
         type: "normal", // not popup, because popup windows are always on top
         left: 0, top: 0, width: 50, height: 50,
         focused: false,
         incognito: incognito,
         tabId: tabIdUrl > 0 ? tabIdUrl : undefined,
-        state: Settings.CONST.ChromeVersion >= 44 ? "minimized" : undefined,
         url: tabIdUrl > 0 ? undefined : tabIdUrl
-      }, callback);
+      };
+      if (Settings.CONST.ChromeVersion >= 44) { option.state = "minimized"; }
+      chrome.windows.create(option, callback);
     },
     onRuntimeError: function() {
       return chrome.runtime.lastError;
@@ -314,16 +315,17 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
         return;
       }
       chrome.windows.get(tab.windowId, function(oldWnd) {
-        var state;
+        var state, option;
         if (oldWnd.type === "normal") {
           state = oldWnd.state;
         }
-        chrome.windows.create({
+        option = {
           type: "normal",
-          state: Settings.CONST.ChromeVersion >= 44 ? state : undefined,
           url: request.url,
           incognito: true
-        }, function(newWnd) {
+        };
+        if (Settings.CONST.ChromeVersion >= 44) { option.state = state; }
+        chrome.windows.create(option, function(newWnd) {
           if (!request.active) {
             chrome.windows.update(tab.windowId, {focused: true});
           }
