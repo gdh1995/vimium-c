@@ -126,7 +126,7 @@ var Utils = {
         || string.endsWith("localhost")) {
       type = expected;
     } else if ((index = string.lastIndexOf('.')) <= 0) {
-      type = 2;
+      type = oldString.indexOf("://") > 0 ? 0 : oldString.startsWith("//") ? 1 : 2;
     } else if (this._ipRe.test(string)) {
       type = expected;
     } else if (!this.isTld(string.substring(index + 1))) {
