@@ -39,7 +39,7 @@ var LinkHints = {
   initScrollX: 0,
   initTimer: 0,
   isActive: false,
-  options: {},
+  options: null,
   activateModeToOpenInNewTab: function() {
     this._activateMode(this.CONST.OPEN_IN_NEW_BG_TAB);
   },
@@ -59,7 +59,8 @@ var LinkHints = {
   activateModeWithQueue: function() {
     this._activateMode(this.CONST.OPEN_WITH_QUEUE);
   },
-  activateModeToOpenIncognito: function() {
+  activateModeToOpenIncognito: function(_0, options) {
+    this.options = options;
     this._activateMode(this.CONST.OPEN_INCOGNITO_LINK);
   },
   activateModeToDownloadLink: function() {
