@@ -623,7 +623,7 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
     clearCS: function(tabs) {
       var type = currentCommand.options.type;
       ContentSettings.clear(type.toLowerCase(), tabs[0]);
-      requestHandlers.SendToCurrent({
+      currentCommand.port.postMessage({
         name: "showHUD",
         text: type + " content settings have been cleared.",
         time: 1500
@@ -687,7 +687,7 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
         requestHandlers.SendToCurrent({
           name: "showHUD",
           text: "No text copied!",
-          time: 1000
+          time: 1500
         });
       } else if (tabs.length > 0) {
         openMultiTab(url, commandCount, tabs[0]);
