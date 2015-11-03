@@ -117,6 +117,17 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
 
   ContentSettings = {
     _urlHeadRe: /^[a-z]+:\/\/[^\/]+\//,
+    complaint: function(url) {
+      if (Utils.hasOrdinaryUrlPrefix(url) && !url.startsWith("chrome")) {
+        return false;
+      }
+      currentCommand.port.postMessage({
+        name: "showHUD",
+        text: "Chrome doesn't allow Vimium++ to do on this page",
+        time: 1500
+      });
+      return true;
+    },
     clear: function(contentType, tab) {
       var cs = chrome.contentSettings[contentType];
       if (tab) {
@@ -127,10 +138,8 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
       cs.clear({ scope: "incognito_session_only" }, funcDict.onRuntimeError);
     },
     toggleCurrent: function(contentType, tab) {
-      if (!Utils.hasOrdinaryUrlPrefix(tab.url) || tab.url.startsWith("chrome")) {
-        return;
-      }
       var pattern = tab.url, _this = this;
+      if (this.complaint(pattern)) { return; }
       chrome.contentSettings[contentType].get({
         primaryUrl: pattern,
         incognito: tab.incognito
@@ -149,10 +158,8 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
       });
     },
     ensure: function (contentType, tab) {
-      if (!Utils.hasOrdinaryUrlPrefix(tab.url) || tab.url.startsWith("chrome")) {
-        return;
-      }
       var pattern = tab.url, _this = this;
+      if (this.complaint(pattern)) { return; }
       chrome.contentSettings[contentType].get({primaryUrl: pattern, incognito: true }, function(opt) {
         if (!pattern.startsWith("file:")) {
           pattern = _this._urlHeadRe.exec(pattern)[0] + "*";
