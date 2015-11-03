@@ -76,7 +76,7 @@ var Utils = {
           || string.charCodeAt(index + 1) === 47 ? 2 : 0;
       } else if (string.startsWith("//")) {
         string = string.substring(2);
-        index2 = 2;
+        expected = 3; index2 = 2;
       } else {
         index2 = 0;
       }
@@ -122,17 +122,16 @@ var Utils = {
     if (type !== -1) {
     } else if (!(arr = this._hostRe.exec(string))) {
       type = 2;
-    } else if ((string = arr[3]).indexOf(':') !== -1
-        || string.endsWith("localhost")) {
+    } else if ((string = arr[3]).indexOf(':') !== -1 || string.endsWith("localhost")) {
       type = expected;
     } else if ((index = string.lastIndexOf('.')) <= 0) {
-      type = oldString.indexOf("://") > 0 ? 0 : oldString.startsWith("//") ? 1 : 2;
+      type = expected !== 1 ? expected : 2;
     } else if (this._ipRe.test(string)) {
       type = expected;
     } else if (!this.isTld(string.substring(index + 1))) {
       type = 2;
-    } else if (expected === 0) {
-      type = 0;
+    } else if (expected !== 1) {
+      type = expected;
     } else if (arr[2] || arr[4] || !arr[1] || string.startsWith("ftp")) {
       type = 1;
     // the below means string is like "(?<=abc@)(uvw.)*xyz.tld"
@@ -146,7 +145,7 @@ var Utils = {
     }
     // window.type = type;
     return type === 0 ? oldString : type === 1
-      ? ((oldString.startsWith("//") ? "http:" : "http://") + oldString)
+      ? ("http://" + oldString) : type === 3 ? ("http:" + oldString)
       : this.createSearchUrl(oldString.split(' '), keyword || "~");
   },
   isTld: function(tld) {
