@@ -608,16 +608,17 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
     moveTabToIncognito: chrome.windows.getCurrent.bind(chrome.windows
       , {populate: true}, funcDict.moveTabToIncognito[0]),
     enableCSTemp: function(tabs) {
-      ContentSettings.ensure(currentCommand.options.type, tabs[0]);
+      ContentSettings.ensure(currentCommand.options.type.toLowerCase(), tabs[0]);
     },
     toggleCS: function(tabs) {
-      ContentSettings.toggleCurrent(currentCommand.options.type, tabs[0]);
+      ContentSettings.toggleCurrent(currentCommand.options.type.toLowerCase(), tabs[0]);
     },
     clearCS: function(tabs) {
-      ContentSettings.clear(currentCommand.options.type, tabs[0]);
+      var type = currentCommand.options.type;
+      ContentSettings.clear(type.toLowerCase(), tabs[0]);
       requestHandlers.SendToCurrent({
         name: "showHUD",
-        text: "Image content settings have been cleared.",
+        text: type + " content settings have been cleared.",
         time: 1500
       });
     },
