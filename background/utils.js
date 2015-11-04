@@ -267,7 +267,7 @@ var Utils = {
     }
     return this.makeReparser(prefix, "^([^?#]*)", url, "");
   },
-  escapeAllRe: /[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g,
+  escapeAllRe: /[\[\]\{\}\(\)\*\+\?\.\\\^\$\|]/g,
   makeReparser: function(head, prefix, url, suffix) {
     url = url.toLowerCase().replace(this.escapeAllRe, "\\$&");
     if (head.startsWith("https://")) {
