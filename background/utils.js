@@ -234,8 +234,8 @@ var Utils = {
         val = str.substring(0, ind);
         str = str.substring(ind + 1);
         ind = str.search(rSpace);
-        // TODO: add `try catch`
-        map[""].push([key, new RegExp(val, ind > 0 ? str.substring(0, ind) : str), pairs[0]]);
+        val = this.makeRegexp(val, ind > 0 ? str.substring(0, ind) : str);
+        val && map[""].push([key, val, pairs[0]]);
         str = ind > 0 ? str.substring(ind + 1).trimLeft() : "";
       } else {
         str = str.substring(ind + 3).trimLeft();
@@ -276,6 +276,15 @@ var Utils = {
       head = chrome.runtime.getURL("/") + head.substring(9);
     }
     return [head, new RegExp(prefix + url + suffix, "i")];
+  },
+  makeRegexp: function(pattern, suffix) {
+    try {
+      return new RegExp(pattern, suffix);
+    } catch (e) {
+      console.log("%c/%s/%s%c %s", "color:#C41A16;"
+        , pattern, suffix, "color:auto;", "is not a valid regexp.");
+    }
+    return null;
   },
   Decoder: null,
   upperRe: /[A-Z]/
