@@ -4,7 +4,7 @@ var Exclusions = {
   _emptyStringRe: /^$/,
   _starRe: /\*/g,
   _caretRe: /^\^/,
-  _regChars: /[^\\][\[\]\|\(\)\^\$\*]|/,
+  _regChars: /[^\\][\$\(\)\*\[\]\^\|]|/,
   _escapeRe: /\\./g,
   getRe: function(pattern) {
     var re = this.re[pattern];
