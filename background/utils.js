@@ -187,16 +187,19 @@ var Utils = {
     return url;
   },
   parseSearchEngines: function(searchEnginesText, map) {
-    var a, pairs, key, val, name, obj, _i, _j, _len, _len2, key0, //
+    var a, pairs, key, val, name, obj, _i, _j, _len, func, //
     rEscapeSpace = /\\\s/g, rSpace = /\s/, rEscapeS = /\\s/g, rColon = /\\:/g;
     a = searchEnginesText.replace(/\\\n/g, '').split('\n');
+    func = function(key) {
+      return (key = key.trim()) && (map[key] = obj);
+    };
     for (_i = 0, _len = a.length; _i < _len; _i++) {
       val = a[_i].trim();
       if (!(val.charCodeAt(0) > 35)) { continue; } // mask: /[ !"#]/
       _j = 0;
       do {
         _j = val.indexOf(":", _j + 1);
-      } while (val[_j - 1] === '\\');
+      } while (val.charCodeAt(_j - 1)  === 92);
       if (_j <= 0 || !(key = val.substring(0, _j).trimRight())) continue;
       val = val.substring(_j + 1).trimLeft();
       if (!val) continue;
@@ -204,30 +207,21 @@ var Utils = {
       _j = val.search(rSpace);
       if (_j > 0) {
         name = val.substring(_j + 1).trimLeft();
-        key0 = "";
         val = val.substring(0, _j);
       } else {
-        name = null;
+        name = "";
       }
       val = val.replace(rEscapeS, " ");
-      obj = {url: val};
-      key = key.replace(rColon, ":");
-      pairs = key.split('|');
-      for (_j = 0, _len2 = pairs.length; _j < _len2; _j++) {
-        if (key = pairs[_j].trim()) {
-          if (name) {
-            if (!key0) { key0 = key; }
-          } else {
-            key0 = name = key;
-          }
-          map[key] = obj;
-        }
-      }
-      if (!name) continue;
-      obj.name = name;
-      obj.$s = val.indexOf("%s") + 1;
-      obj.$S = val.indexOf("%S") + 1;
-      if (pairs = this.reparseSearchUrl(obj, key0)) {
+      obj = {
+        $S: val.indexOf("%S") + 1,
+        $s: val.indexOf("%s") + 1,
+        name: null,
+        url: val
+      };
+      pairs = key.replace(rColon, ":").split('|').filter(func);
+      if (pairs.length === 0) continue;
+      obj.name = name || pairs[0];
+      if (pairs = this.reparseSearchUrl(obj, pairs[0])) {
         map[""].push(pairs);
       }
     }
