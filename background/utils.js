@@ -221,7 +221,7 @@ var Utils = {
       pairs = key.replace(rColon, ":").split('|').filter(func);
       if (pairs.length === 0) continue;
       key = pairs[0];
-      obj.name = name || key;
+      obj.name = name ? this.decodeURLPart(name) : pairs[pairs.length - 1];
       if (pairs = this.reparseSearchUrl(obj)) {
         pairs.push(key);
         map[""].push(pairs);
