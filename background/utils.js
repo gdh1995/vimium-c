@@ -220,13 +220,15 @@ var Utils = {
       };
       pairs = key.replace(rColon, ":").split('|').filter(func);
       if (pairs.length === 0) continue;
-      obj.name = name || pairs[0];
-      if (pairs = this.reparseSearchUrl(obj, pairs[0])) {
+      key = pairs[0];
+      obj.name = name || key;
+      if (pairs = this.reparseSearchUrl(obj)) {
+        pairs.push(key);
         map[""].push(pairs);
       }
     }
   },
-  reparseSearchUrl: function (pattern, name) {
+  reparseSearchUrl: function (pattern) {
     var url, ind = pattern.$s || pattern.$S, prefix;
     if (!ind) { return; }
     url = pattern.url.toLowerCase();
@@ -239,7 +241,7 @@ var Utils = {
         url = url.substring(ind);
       }
       if (url && url !== "=" && !url.endsWith("/")) {
-        return this.makeReparser(prefix, "[?#&]", url, "([^&#]*)", name)
+        return this.makeReparser(prefix, "[?#&]", url, "([^&#]*)")
       }
       url = pattern.url.substring(0, (pattern.$s || pattern.$S) - 1);
     }
@@ -248,17 +250,17 @@ var Utils = {
     if (ind = (url.indexOf("?") + 1) || (url.indexOf("#") + 1)) {
       url = url.substring(0, ind);
     }
-    return this.makeReparser(prefix, "^([^?#]*)", url, "", name);
+    return this.makeReparser(prefix, "^([^?#]*)", url, "");
   },
   escapeAllRe: /[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g,
-  makeReparser: function(head, prefix, url, suffix, name) {
+  makeReparser: function(head, prefix, url, suffix) {
     url = url.toLowerCase().replace(this.escapeAllRe, "\\$&");
     if (head.startsWith("https://")) {
       head = "http" + head.substring(5);
     } else if (head.toLowerCase().startsWith("vimium://")) {
       head = chrome.runtime.getURL("/") + head.substring(9);
     }
-    return [head, new RegExp(prefix + url + suffix, "i"), name];
+    return [head, new RegExp(prefix + url + suffix, "i")];
   },
   Decoder: null,
   upperRe: /[A-Z]/
