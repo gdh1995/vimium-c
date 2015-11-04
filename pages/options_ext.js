@@ -359,3 +359,18 @@ $("settingsFile").onchange = function() {
 $("importButton").onclick = function() {
   $("settingsFile").click();
 };
+
+(function() {
+  var arr = document.querySelectorAll("[data-auto-scale]"), i, func;
+  func = function() {
+    var target = $(this.getAttribute("data-auto-scale"));
+    if (target.scrollHeight > target.clientHeight) {
+      target.style.maxWidth = window.innerWidth - 520 + "px";
+      target.style.height = target.scrollHeight + 20 + "px";
+      target.style.width  = target.scrollWidth  + 20 + "px";
+    }
+  };
+  for (i = arr.length; 0 <= --i; ) {
+    arr[i].onclick = func;
+  }
+})();
