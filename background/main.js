@@ -33,7 +33,8 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
     showNames = showNames ? true : false;
     customTitle || (customTitle = "Help");
     dialogHtml = Settings.get("helpDialog");
-    return dialogHtml.replace(new RegExp("\\{\\{(version|title|" + Object.keys(Commands.commandGroups).join('|') + ")\\}\\}", "g"), function(_, group) {
+    return dialogHtml.replace(new RegExp("\\{\\{(version|title|" +
+        Object.keys(Commands.commandGroups).join('|') + ")\\}\\}", "g"), function(_, group) {
       return (group === "version") ? Settings.CONST.CurrentVersion
         : (group === "title") ? customTitle
         : helpDialogHtmlForCommandGroup(group, commandsToKey, Commands.availableCommands, showUnbound, showNames);
