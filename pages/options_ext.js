@@ -364,11 +364,12 @@ $("importButton").onclick = function() {
   var arr = document.querySelectorAll("[data-auto-scale]"), i, func;
   func = function() {
     var target = $(this.getAttribute("data-auto-scale"));
-    if (target.scrollHeight > target.clientHeight) {
-      target.style.maxWidth = Math.max(window.innerWidth, 920) - 520 + "px";
-      target.style.height = target.scrollHeight + 20 + "px";
-      target.style.width  = target.scrollWidth  + 20 + "px";
-    }
+    if (target.scrollHeight <= target.clientHeight) { return; }
+    target.style.overflow = "hidden";
+    target.style.maxWidth = Math.max(window.innerWidth, 920) - 520 + "px";
+    target.style.width  = target.scrollWidth  + 6 + "px";
+    target.style.height = target.scrollHeight + 3 + "px";
+    target.style.overflow = "";
   };
   for (i = arr.length; 0 <= --i; ) {
     arr[i].onclick = func;
