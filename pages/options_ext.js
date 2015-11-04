@@ -365,7 +365,7 @@ $("importButton").onclick = function() {
   func = function() {
     var target = $(this.getAttribute("data-auto-scale"));
     if (target.scrollHeight > target.clientHeight) {
-      target.style.maxWidth = window.innerWidth - 520 + "px";
+      target.style.maxWidth = Math.max(window.innerWidth, 920) - 520 + "px";
       target.style.height = target.scrollHeight + 20 + "px";
       target.style.width  = target.scrollWidth  + 20 + "px";
     }
