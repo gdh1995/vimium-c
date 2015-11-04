@@ -187,7 +187,7 @@ var Utils = {
     return url;
   },
   parseSearchEngines: function(searchEnginesText, map) {
-    var a, pairs, key, val, name, obj, _i, _len, ind, func, //
+    var a, pairs, key, val, str, obj, _i, _len, ind, func, //
     rEscapeSpace = /\\\s/g, rSpace = /\s/, rEscapeS = /\\s/g, rColon = /\\:/g;
     a = searchEnginesText.replace(/\\\n/g, '').split('\n');
     func = function(key) {
@@ -206,10 +206,10 @@ var Utils = {
       val = val.replace(rEscapeSpace, "\\s");
       ind = val.search(rSpace);
       if (ind > 0) {
-        name = val.substring(ind + 1).trimLeft();
+        str = val.substring(ind + 1).trimLeft();
         val = val.substring(0, ind);
       } else {
-        name = "";
+        str = "";
       }
       val = val.replace(rEscapeS, " ");
       obj = {
@@ -221,7 +221,7 @@ var Utils = {
       pairs = key.replace(rColon, ":").split('|').filter(func);
       if (pairs.length === 0) continue;
       key = pairs[0];
-      obj.name = name ? this.decodeURLPart(name) : pairs[pairs.length - 1];
+      obj.name = str ? this.decodeURLPart(str) : pairs[pairs.length - 1];
       if (pairs = this.reparseSearchUrl(obj)) {
         pairs.push(key);
         map[""].push(pairs);
