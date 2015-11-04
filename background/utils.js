@@ -187,7 +187,7 @@ var Utils = {
     return url;
   },
   parseSearchEngines: function(searchEnginesText, map) {
-    var a, pairs, key, val, str, obj, _i, _len, ind, func, //
+    var a, pairs, key, val, str, obj, _i, _len, ind, func, rSlash = /[^\\]\//,
     rEscapeSpace = /\\\s/g, rSpace = /\s/, rEscapeS = /\\s/g, rColon = /\\:/g;
     a = searchEnginesText.replace(/\\\n/g, '').split('\n');
     func = function(key) {
@@ -208,6 +208,7 @@ var Utils = {
       if (ind > 0) {
         str = val.substring(ind + 1).trimLeft();
         val = val.substring(0, ind);
+        ind = str.indexOf("re=");
       } else {
         str = "";
       }
@@ -220,12 +221,26 @@ var Utils = {
       };
       pairs = key.replace(rColon, ":").split('|').filter(func);
       if (pairs.length === 0) continue;
-      key = pairs[0];
-      obj.name = str ? this.decodeURLPart(str) : pairs[pairs.length - 1];
-      if (pairs = this.reparseSearchUrl(obj)) {
-        pairs.push(key);
-        map[""].push(pairs);
+      if (ind === -1) {
+        key = pairs[0];
+        if (pairs = this.reparseSearchUrl(obj)) {
+          pairs.push(key);
+          map[""].push(pairs);
+        }
+      } else if (str.charCodeAt(ind + 3) === 47) {
+        key = ind > 0 ? str.substring(0, ind).trimRight() : "";
+        str = str.substring(ind + 4);
+        ind = str.search(rSlash) + 1;
+        val = str.substring(0, ind);
+        str = str.substring(ind + 1);
+        ind = str.search(rSpace);
+        // TODO: add `try catch`
+        map[""].push([key, new RegExp(val, ind > 0 ? str.substring(0, ind) : str), pairs[0]]);
+        str = ind > 0 ? str.substring(ind + 1).trimLeft() : "";
+      } else {
+        str = str.substring(ind + 3).trimLeft();
       }
+      obj.name = str ? this.decodeURLPart(str) : pairs[pairs.length - 1];
     }
   },
   reparseSearchUrl: function (pattern) {
