@@ -78,7 +78,7 @@ var Commands = {
       } else if ((key = this.normalizeKey(splitLine[1])) in registry) {
         delete registry[key];
       } else {
-        console.log("Unmapping:", key, "has not been mapped");
+        console.log("Unmapping:", key, "has not been mapped.");
       }
     }
   },

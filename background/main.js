@@ -185,8 +185,8 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
         chrome.windows.getAll(function(wnds) {
           wnds = wnds.filter(funcDict.isIncNor);
           if (!wnds.length) {
-            console.log("%cContentSettings.ensure", "color:red;", "get incognito content settings", opt //
-              , " but can not find a incognito window");
+            console.log("%cContentSettings.ensure%c", "color:red;", "color:auto;"
+              , "get incognito content settings", opt, " but can not find a incognito window.");
           } else if (opt && opt.setting === "allow") {
             _this.updateTab(tab, wnds[wnds.length - 1].id);
           } else if (tab.incognito && wnds.filter(function(wnd) { return wnd.id === tab.windowId; }).length === 1) {

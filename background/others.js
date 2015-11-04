@@ -122,7 +122,8 @@ function(details) {
         t.executeScript(tabId, ref, callback);
       }
     }
-    console.log("%cVimium++ %chas %cinstalled", "color:blue", "color:auto", "color:red", details);
+    console.log("%cVimium++%c has %cinstalled%c", "color:blue", "color:auto"
+      , "color:red", "color:auto;", "with", details, ".");
   });
 
   if (!reason && chrome.notifications && chrome.notifications.create) { return; }
