@@ -187,7 +187,7 @@ var Utils = {
     return url;
   },
   parseSearchEngines: function(searchEnginesText, map) {
-    var a, pairs, key, val, name, obj, _i, _j, _len, func, //
+    var a, pairs, key, val, name, obj, _i, _len, ind, func, //
     rEscapeSpace = /\\\s/g, rSpace = /\s/, rEscapeS = /\\s/g, rColon = /\\:/g;
     a = searchEnginesText.replace(/\\\n/g, '').split('\n');
     func = function(key) {
@@ -196,18 +196,18 @@ var Utils = {
     for (_i = 0, _len = a.length; _i < _len; _i++) {
       val = a[_i].trim();
       if (!(val.charCodeAt(0) > 35)) { continue; } // mask: /[ !"#]/
-      _j = 0;
+      ind = 0;
       do {
-        _j = val.indexOf(":", _j + 1);
-      } while (val.charCodeAt(_j - 1)  === 92);
-      if (_j <= 0 || !(key = val.substring(0, _j).trimRight())) continue;
-      val = val.substring(_j + 1).trimLeft();
+        ind = val.indexOf(":", ind + 1);
+      } while (val.charCodeAt(ind - 1)  === 92);
+      if (ind <= 0 || !(key = val.substring(0, ind).trimRight())) continue;
+      val = val.substring(ind + 1).trimLeft();
       if (!val) continue;
       val = val.replace(rEscapeSpace, "\\s");
-      _j = val.search(rSpace);
-      if (_j > 0) {
-        name = val.substring(_j + 1).trimLeft();
-        val = val.substring(0, _j);
+      ind = val.search(rSpace);
+      if (ind > 0) {
+        name = val.substring(ind + 1).trimLeft();
+        val = val.substring(0, ind);
       } else {
         name = "";
       }
