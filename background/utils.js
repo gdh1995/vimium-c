@@ -46,7 +46,7 @@ var Utils = {
     ".museum.travel"
   ],
   _hostRe: /^([^:]+(:[^:]+)?@)?([^:]+|\[[^\]]+\])(:\d{2,5})?$/,
-  _ipRe: /^(\d{1,3}\.){3}\d{1,3}$/,
+  _ipRe: /^(?:\d{1,3}\.){3}\d{1,3}$/,
   spacesRe: /[\s\u3000]+/g,
   _nonENTldRe: /[^a-z]/,
   _jsNotEscapeRe: /["\[\]{}\u00ff-\uffff]|%(?![\dA-F]{2}|[\da-f]{2})/,
