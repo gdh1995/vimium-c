@@ -102,9 +102,8 @@ vomnibarUI: {
   show: function() {
     this.box.style.display = "";
     this.input.value = this.completionInput.text;
-    VInsertMode.heldEl = this.input;
     VInsertMode.focus = VInsertMode.holdFocus;
-    this.input.focus();
+    VInsertMode.heldEl = this.input; this.input.focus();
     this.focused = true;
     handlerStack.remove(this.handlerId);
     this.handlerId = handlerStack.push({
@@ -128,7 +127,7 @@ vomnibarUI: {
     this.completionInput.text = "";
     this.completionInput.url = "";
     this.completions = [];
-    VInsertMode.heldEl = null;
+    VInsertMode.focus = VInsertMode.lockFocus;
   },
   reset: function(input, start, end) {
     input || (input = "");
@@ -178,8 +177,7 @@ vomnibarUI: {
   },
   updateInput: function() {
     if (this.selection === -1) {
-      VInsertMode.focus = VInsertMode.holdFocus;
-      this.input.focus();
+      VInsertMode.heldEl = this.input; this.input.focus();
       this.input.value = this.completionInput.text;
     } else {
       if (!this.focused) this.input.blur();
@@ -264,7 +262,7 @@ vomnibarUI: {
     switch(action) {
     case "dismiss": this.hide(); break;
     case "focus":
-      VInsertMode.focus = VInsertMode.holdFocus; this.input.focus();
+      VInsertMode.heldEl = this.input; this.input.focus();
       this.focused = document.activeElement === this.input;
       break;
     case "blur": this.focused = false; this.input.blur(); break;

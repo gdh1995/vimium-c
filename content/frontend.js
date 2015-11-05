@@ -660,8 +660,7 @@ var Settings, VHUD, MainPort, VInsertMode;
     },
     holdFocus: function(event) {
       if (this.heldEl === event.target) { event.stopImmediatePropagation(); }
-      this.focus = this.lockFocus;
-      this.focus(event);
+      this.lockFocus(event);
     },
     lockFocus: function(event) {
       var target = event.target;
