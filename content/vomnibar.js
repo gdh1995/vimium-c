@@ -2,13 +2,13 @@
 var Vomnibar = {
   defaultRefreshInterval: 500,
   activateWithCompleter: function(completerName, selectFirstResult, forceNewTab, initialQueryValue, force_current) {
-    if (window.top !== window && !force_current) {
-      MainPort.sendCommadToFrame(0, "Vomnibar.activateWithCompleter"//
-        , [completerName, selectFirstResult, forceNewTab, initialQueryValue]);
-      return;
-    }
     var bg = this.background, completer = bg.Completer, vomnibarUI = this.vomnibarUI;
     if (vomnibarUI.init) {
+      if (window.top !== window && !force_current) {
+        MainPort.sendCommadToFrame(0, "Vomnibar.activateWithCompleter"//
+          , [completerName, selectFirstResult, forceNewTab, initialQueryValue]);
+        return;
+      }
       // <svg> document has not head nor body; document with pdf <embed> has body
       if (!(document.head || document.body)) {
         return;
