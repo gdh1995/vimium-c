@@ -463,8 +463,12 @@ var Settings, VHUD, MainPort, VInsertMode;
     goForward: function(count) {
       history.go(Math.min(count, history.length - 1));
     },
-    goUp: function(count) {
+    goUp: function(count, _1, force_current) {
       var url, urlsplit;
+      if (window.top !== window && !force_current) {
+        MainPort.sendCommadToFrame(0, "goUp", [count]);
+        return;
+      }
       url = window.location.href;
       if (url.indexOf("://") === -1) { return; }
       if (url.endsWith("/")) { url = url.slice(0, -1); }
