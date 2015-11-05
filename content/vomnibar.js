@@ -378,7 +378,7 @@ vomnibarUI: {
     box.addEventListener("click", this.onClick = this.onClick.bind(this));
     box.addEventListener("mousewheel", DomUtils.SuppressPropagation);
     var str;
-    if (location.protocol.startsWith("chrome") && chrome.runtime.getManifest
+    if (window.location.protocol.startsWith("chrome") && chrome.runtime.getManifest
         && (str = chrome.runtime.getManifest().permissions)) {
       str = str.join("/");
       this.background.showFavIcon = str.indexOf("<all_urls>") >= 0 || str.indexOf("chrome://favicon/") >= 0;

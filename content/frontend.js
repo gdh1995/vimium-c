@@ -474,7 +474,7 @@ var Settings, VHUD, MainPort, VInsertMode;
     },
     autoCopy: function(_0, options) {
       var str = DomUtils.getSelectionText() ||
-        (options.url ? location.href : document.title.trim());
+        (options.url ? window.location.href : document.title.trim());
       if (str = str.trim()) {
         mainPort.port.postMessage({
           handler: "copyToClipboard",
@@ -1397,8 +1397,8 @@ var Settings, VHUD, MainPort, VInsertMode;
     Settings = VHUD = MainPort = VInsertMode = null;
 
     console.log("%cVimium++ %c#%d%c in %c%s%c has destroyed at %o." //
-      , "color:red", "color:blue", frameId, "color:auto"
-      , "color:darkred", location.pathname.replace(/^.*\/([^\/]+)\/?$/, "$1")
+      , "color:red", "color:blue", frameId, "color:auto", "color:darkred"
+      , window.location.pathname.replace(/^.*\/([^\/]+)\/?$/, "$1")
       , "color:auto", Date.now()
     );
 
