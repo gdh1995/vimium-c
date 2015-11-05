@@ -259,7 +259,7 @@ availableCommands: {
   goNext: [ "Follow the link labeled next or >", 1, false ],
   goBack: [ "Go back in history", 0, false ],
   goForward: [ "Go forward in history", 0, false ],
-  goUp: [ "Go up the URL hierarchy", 0, true ],
+  goUp: [ "Go up the URL hierarchy", 0 ],
   goToRoot: [ "Go to root of current URL hierarchy", 1, true ],
   nextTab: [ "Go one tab right", 0, true ],
   previousTab: [ "Go one tab left", 0, true ],

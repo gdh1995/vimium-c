@@ -764,21 +764,6 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
         }
       });
     },
-    goUp: function(tabs) {
-      var url, urlsplit;
-      url = tabs[0].url;
-      if (url.indexOf("://") === -1) { return; }
-      if (url.endsWith("/")) {
-        url = url.slice(0, -1);
-      }
-      urlsplit = url.split("/");
-      if (urlsplit.length > 3) {
-        urlsplit = urlsplit.slice(0, Math.max(3, urlsplit.length - commandCount));
-        url = urlsplit.join('/');
-        if (url.endsWith("#!")) { url = url.slice(0, -2); }
-        chrome.tabs.update(null, {url: url});
-      }
-    },
     goToRoot: function(tabs) {
       var url = tabs[0].url, ind;
       if (url.indexOf("://") === -1) { return; }

@@ -463,6 +463,18 @@ var Settings, VHUD, MainPort, VInsertMode;
     goForward: function(count) {
       history.go(Math.min(count, history.length - 1));
     },
+    goUp: function(count) {
+      var url, urlsplit;
+      url = window.location.href;
+      if (url.indexOf("://") === -1) { return; }
+      if (url.endsWith("/")) { url = url.slice(0, -1); }
+      urlsplit = url.split("/");
+      if (urlsplit.length <= 3) { return; }
+      urlsplit = urlsplit.slice(0, Math.max(3, urlsplit.length - count));
+      url = urlsplit.join('/');
+      if (url.endsWith("#!")) { url = url.slice(0, -2); }
+      window.location.href = url;
+    },
     showHelp: function(_0, _1, force_current) {
       if (window.top !== window && !force_current) {
         mainPort.sendCommadToFrame(0, "showHelp", [0, null]);
