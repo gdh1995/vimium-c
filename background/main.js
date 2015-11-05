@@ -1146,11 +1146,18 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
         url: url
       }, funcDict.onRuntimeError);
     },
-    dispatchCommand: function(request) {
-      sendToTab({
-        name: "dispatchCommand", frameId: request.frameId, source: request.source,
-        command: request.command, args: request.args
-      }, request.tabId);
+    dispatchCommand: function(request, port) {
+      var frames = frameIdsForTab[request.tabId];
+      request.name = request.handler;
+      delete request.handler;
+      if (frames && frames.indexOf(request.frameId, 1) > 0) {
+        sendToTab(request, request.tabId);
+        return;
+      }
+      request.args.push(true);
+      request.frameId = request.source;
+      request.source = -1;
+      port.postMessage(request);
     },
     ext: function(request, port) {
       var ref = Settings.extIds, extId = request.extId;
