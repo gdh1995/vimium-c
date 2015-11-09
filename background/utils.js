@@ -234,9 +234,9 @@ var Utils = {
         val = str.substring(0, ind);
         str = str.substring(ind + 1);
         ind = str.search(rSpace);
-        val = this.makeRegexp(val, ind > 0 ? str.substring(0, ind) : str);
+        val = this.makeRegexp(val, ind >= 0 ? str.substring(0, ind) : str);
         val && map[""].push([key, val, pairs[0]]);
-        str = ind > 0 ? str.substring(ind + 1).trimLeft() : "";
+        str = ind >= 0 ? str.substring(ind + 1).trimLeft() : "";
       } else {
         str = str.substring(ind + 3).trimLeft();
       }
