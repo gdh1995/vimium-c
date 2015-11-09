@@ -221,11 +221,11 @@ var Utils = {
       };
       ids = key.replace(rColon, ":").split('|').filter(func);
       if (ids.length === 0) continue;
+      pairs = null;
       if (ind === -1) {
         key = ids[0];
         if (pairs = this.reparseSearchUrl(obj)) {
           pairs.push(key);
-          map[""].push(pairs);
         }
       } else if (str.charCodeAt(ind + 3) === 47) {
         key = ind > 0 ? str.substring(0, ind).trimRight() : "";
@@ -235,12 +235,14 @@ var Utils = {
         str = str.substring(ind + 1);
         ind = str.search(rSpace);
         val = this.makeRegexp(val, ind >= 0 ? str.substring(0, ind) : str);
-        val && map[""].push([key, val, ids[0]]);
+        val && (pairs = [key, val, ids[0]]);
         str = ind >= 0 ? str.substring(ind + 1).trimLeft() : "";
       } else {
         str = str.substring(ind + 3).trimLeft();
       }
       obj.name = str ? this.decodeURLPart(str) : ids[ids.length - 1];
+      if (!pairs) { continue; }
+      map[""].push(pairs);
     }
   },
   reparseSearchUrl: function (pattern) {
