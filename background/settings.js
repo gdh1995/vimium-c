@@ -90,10 +90,10 @@ var Settings = {
     },
     searchEngineMap: function(value) {
       Utils.parseSearchEngines(this.get("searchEngines"), value);
-      Utils.parseSearchEngines("~:" + this.get("searchUrl"), value);
+      Utils.parseSearchEngines("~:" + this.get("searchUrl"), value, 1);
     },
     searchUrl: function(value) {
-      Utils.parseSearchEngines("~:" + value, this.get("searchEngineMap"));
+      Utils.parseSearchEngines("~:" + value, this.get("searchEngineMap"), -1);
       this.postUpdate("newTabUrl");
     },
     baseCSS: function(css) {
