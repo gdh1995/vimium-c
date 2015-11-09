@@ -186,10 +186,10 @@ var Utils = {
     } catch (e) {}
     return url;
   },
-  parseSearchEngines: function(searchEnginesText, map) {
-    var a, pairs, key, val, str, obj, _i, _len, ind, func, rSlash = /[^\\]\//,
+  parseSearchEngines: function(str, map, first) {
+    var pairs, key, val, obj, _i, _len, ind, rSlash = /[^\\]\//,
     rEscapeSpace = /\\\s/g, rSpace = /\s/, rEscapeS = /\\s/g, rColon = /\\:/g;
-    a = searchEnginesText.replace(/\\\n/g, '').split('\n');
+    var a = str.replace(/\\\n/g, '').split('\n'),
     func = function(key) {
       return (key = key.trim()) && (map[key] = obj);
     };
