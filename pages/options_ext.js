@@ -327,7 +327,7 @@ var importSettings = function() {
         new_value = storage.getItem(key);
       }
       storage.removeItem(key);
-      console.log("remove", key, "<=", func(new_value));
+      console.log("remove", key, ":=", func(new_value));
       continue;
     }
     if (new_value.join && (key in strArr)) {
