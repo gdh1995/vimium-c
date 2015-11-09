@@ -188,8 +188,8 @@ var Utils = {
   },
   parseSearchEngines: function(str, map, first) {
     var pairs, key, val, obj, _i, _len, ind, rSlash = /[^\\]\//,
-    rEscapeSpace = /\\\s/g, rSpace = /\s/, rEscapeS = /\\s/g, rColon = /\\:/g;
-    var a = str.replace(/\\\n/g, '').split('\n'),
+    rEscapeSpace = /\\\s/g, rSpace = /\s/, rEscapeS = /\\s/g, rColon = /\\:/g,
+    a = str.replace(/\\\n/g, '').split('\n'),
     func = function(key) {
       return (key = key.trim()) && (map[key] = obj);
     };
