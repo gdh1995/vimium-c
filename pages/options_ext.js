@@ -285,8 +285,6 @@ var importSettings = function() {
   console.log("IMPORT settings at", new Date(new_data.time));
   delete new_data.name;
   delete new_data.time;
-  delete new_data.findModeRawQuery;
-  delete new_data.newTabUrl_f;
   Utils.setNullProto(new_data);
   for (i = storage.length; 0 <= --i; ) {
     key = storage.key(i);
@@ -294,6 +292,8 @@ var importSettings = function() {
       new_data[key] = null;
     }
   }
+  delete new_data.findModeRawQuery;
+  delete new_data.newTabUrl_f;
   Option.all.forEach(function(item) {
     var key = item.field, new_value = new_data[key];
     delete new_data[key];
@@ -311,7 +311,6 @@ var importSettings = function() {
     }
     item.fetch();
   });
-  bgSettings.postUpdate("newTabUrl");
   for (key in new_data) {
     new_value = new_data[key];
     if (new_value == null) {
