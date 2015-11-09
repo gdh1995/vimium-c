@@ -187,7 +187,7 @@ var Utils = {
     return url;
   },
   parseSearchEngines: function(str, map, first) {
-    var pairs, key, val, obj, _i, _len, ind, rSlash = /[^\\]\//,
+    var ids, pairs, key, val, obj, _i, _len, ind, rSlash = /[^\\]\//,
     rEscapeSpace = /\\\s/g, rSpace = /\s/, rEscapeS = /\\s/g, rColon = /\\:/g,
     a = str.replace(/\\\n/g, '').split('\n'),
     func = function(key) {
@@ -219,10 +219,10 @@ var Utils = {
         name: null,
         url: val
       };
-      pairs = key.replace(rColon, ":").split('|').filter(func);
-      if (pairs.length === 0) continue;
+      ids = key.replace(rColon, ":").split('|').filter(func);
+      if (ids.length === 0) continue;
       if (ind === -1) {
-        key = pairs[0];
+        key = ids[0];
         if (pairs = this.reparseSearchUrl(obj)) {
           pairs.push(key);
           map[""].push(pairs);
@@ -235,12 +235,12 @@ var Utils = {
         str = str.substring(ind + 1);
         ind = str.search(rSpace);
         val = this.makeRegexp(val, ind >= 0 ? str.substring(0, ind) : str);
-        val && map[""].push([key, val, pairs[0]]);
+        val && map[""].push([key, val, ids[0]]);
         str = ind >= 0 ? str.substring(ind + 1).trimLeft() : "";
       } else {
         str = str.substring(ind + 3).trimLeft();
       }
-      obj.name = str ? this.decodeURLPart(str) : pairs[pairs.length - 1];
+      obj.name = str ? this.decodeURLPart(str) : ids[ids.length - 1];
     }
   },
   reparseSearchUrl: function (pattern) {
