@@ -86,14 +86,14 @@ var Settings = {
       else { this.postUpdate('newTabUrl_f', url); }
     },
     searchEngines: function() {
-      this.set("searchEnginesMap", { "": [], __proto__: null });
+      this.set("searchEngineMap", { "": [], __proto__: null });
     },
-    searchEnginesMap: function(value) {
+    searchEngineMap: function(value) {
       Utils.parseSearchEngines(this.get("searchEngines"), value);
       Utils.parseSearchEngines("~:" + this.get("searchUrl"), value);
     },
     searchUrl: function(value) {
-      Utils.parseSearchEngines("~:" + value, this.get("searchEnginesMap"));
+      Utils.parseSearchEngines("~:" + value, this.get("searchEngineMap"));
       this.postUpdate("newTabUrl");
     },
     baseCSS: function(css) {
@@ -144,7 +144,7 @@ bi|bing|Bing: http://www.bing.com/search?q=%s Bing\n\
 g|go|gg|google|Google: http://www.google.com/search?q=%s Google\n\
 js\\:|Js: javascript:\\ %S; Javascript\n\
 w|wiki:\\\n  http://www.wikipedia.org/w/index.php?search=%s Wikipedia (en-US)",
-    searchEnginesMap: { "": [] }, // may be modified, but this action is safe
+    searchEngineMap: { "": [] }, // may be modified, but this action is safe
     showActionIcon: true,
     showAdvancedCommands: 0,
     showAdvancedOptions: 1,
@@ -164,7 +164,7 @@ w|wiki:\\\n  http://www.wikipedia.org/w/index.php?search=%s Wikipedia (en-US)",
   // not clean if exists (for simpler logic)
   nonPersistent: { __proto__: null,
     baseCSS: 1, exclusionTemplate: 1, helpDialog: 1, innerCss: 1,
-    postKeyMappings: 1, searchEnginesMap: 1, settingsVersion: 1, vomnibar: 1
+    postKeyMappings: 1, searchEngineMap: 1, settingsVersion: 1, vomnibar: 1
   },
   files: {
     __proto__: null,

@@ -1072,7 +1072,7 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
       if (!(Utils.hasOrdinaryUrlPrefix(url) || url.startsWith("chrome-"))) {
         return "";
       }
-      map = Settings.get("searchEnginesMap");
+      map = Settings.get("searchEngineMap");
       decoders = map[""];
       if (url.startsWith("https:")) {
         url = "http:" + url.substring(6);
