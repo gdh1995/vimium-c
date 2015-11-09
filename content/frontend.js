@@ -458,10 +458,12 @@ var Settings, VHUD, MainPort, VInsertMode;
       else { el.scrollIntoViewIfNeeded(); }
     },
     goBack: function(count) {
-      history.go(-Math.min(count, history.length - 1));
+      var step = Math.min(count, history.length - 1);
+      step > 0 && history.go(-step);
     },
     goForward: function(count) {
-      history.go(Math.min(count, history.length - 1));
+      var step = Math.min(count, history.length - 1);
+      step > 0 && history.go(step);
     },
     goUp: function(count, _1, force_current) {
       var url, urlsplit;
