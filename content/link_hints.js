@@ -480,7 +480,7 @@ var LinkHints = {
         }
       }, 75);
     }
-    handlerId = handlerStack.push({ keydown: func, keypress: func });
+    handlerId = handlerStack.push({ keydown: func });
   },
   reinit: function() {
     var mode = this.mode, linkActivator = this.linkActivator, options = this.options;
