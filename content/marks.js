@@ -1,18 +1,19 @@
 "use strict";
 var Marks = {
   handlerId: 0,
+  onKeypress: null,
   activateCreateMode: function() {
+    this.onKeypress = this._create;
     this.handlerId = handlerStack.push({
       keydown: this.onKeydown,
-      keypress: this._create,
       _this: this
     });
     VHUD.show("Create mark ...");
   },
   activateGotoMode: function() {
+    this.onKeypress = this._goto;
     this.handlerId = handlerStack.push({
       keydown: this.onKeydown,
-      keypress: this._goto,
       _this: this
     });
     VHUD.show("Go to mark ...");
@@ -33,10 +34,19 @@ var Marks = {
     VHUD.showForDuration("Local marks have been cleared.", 1000);
   },
   onKeydown: function() {
-    if (event.keyCode === KeyCodes.esc && KeyboardUtils.isPlain(event)) {
-      handlerStack.remove(this.handlerId);
-      VHUD.hide();
-      return false;
+    var keyCode = event.keyCode, keyChar;
+    if (keyCode === KeyCodes.esc) {
+      if (KeyboardUtils.isPlain(event)) {
+        handlerStack.remove(this.handlerId);
+        VHUD.hide();
+        return false;
+      }
+    } else if (keyCode > 32 && keyCode < 127) {
+      if (keyChar = KeyboardUtils.getKeyChar(event, event.shiftKey)) {
+        handlerStack.remove(this.handlerId);
+        this.onKeypress(event, keyChar);
+        return false;
+      }
     }
     return -1;
   },
@@ -53,9 +63,7 @@ var Marks = {
       scrollY: window.scrollY
     };
   },
-  _create: function(event) {
-    var keyChar = String.fromCharCode(event.charCode);
-    handlerStack.remove(this.handlerId);
+  _create: function(event, keyChar) {
     if (event.shiftKey) {
       this.CreateGlobalMark({markName: keyChar});
     } else if (keyChar === "`" || keyChar === "'") {
@@ -69,15 +77,13 @@ var Marks = {
         });
       } catch (keyChar) {
         VHUD.showForDuration("Failed to creat local mark (localStorage error)", 2000);
-        return false;
+        return;
       }
       VHUD.showForDuration("Created local mark : ' " + keyChar + " '.", 1000);
     }
-    return false;
   },
-  _goto: function(event) {
-    var keyChar = String.fromCharCode(event.charCode), markString, position;
-    handlerStack.remove(this.handlerId);
+  _goto: function(event, keyChar) {
+    var markString, position;
     if (event.shiftKey) {
       MainPort.sendMessage({
         handler: "gotoMark",
@@ -110,7 +116,6 @@ var Marks = {
         VHUD.showForDuration("Local mark not set : ' " + keyChar + " '.", 2000);
       }
     }
-    return false;
   },
   CreateGlobalMark: function(request) {
     var keyChar = request.markName;
