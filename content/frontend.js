@@ -216,7 +216,7 @@ var Settings, VHUD, MainPort, VInsertMode;
       KeydownEvents[key] = 1;
     },
     onKeypress: function(event) {
-      if (isEnabledForUrl && handlerStack.bubbleEvent("keypress", event)) {
+      if (isEnabledForUrl) {
         var keyChar;
         if (findMode && (keyChar = String.fromCharCode(event.charCode))) {
           handleKeyCharForFindMode(keyChar);
