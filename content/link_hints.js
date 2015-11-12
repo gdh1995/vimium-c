@@ -380,7 +380,7 @@ var LinkHints = {
       // NOTE: should always prevent repeated keys.
     } else if ((i = event.keyCode) === KeyCodes.esc) {
       if (KeyboardUtils.isPlain(event)) {
-        this.deactivate();
+        this.deactivate(); // do not suppress tail
       } else {
         return true;
       }
@@ -417,8 +417,7 @@ var LinkHints = {
         this.reinit();
       }
     } else if (linksMatched.length === 0) {
-      this.deactivate();
-      this.suppressTail(this.keyStatus.known);
+      this.deactivate(this.keyStatus.known);
     } else if (linksMatched.length === 1) {
       DomUtils.suppressEvent(event);
       this.activateLink(linksMatched[0].clickableItem);
@@ -442,7 +441,7 @@ var LinkHints = {
     else if ((tempi = DomUtils.getEditableType(clickEl)) === 3) {
       DomUtils.simulateSelect(clickEl);
       DomUtils.UI.flashOutline(clickEl);
-      this.deactivate();
+      this.deactivate(true);
       return;
     }
     else if (tempi > 0) { clickEl.focus(); }
@@ -451,7 +450,7 @@ var LinkHints = {
     if ((this.mode & 64) === 64) {
       this.reinit();
     } else {
-      this.deactivate();
+      this.deactivate(true);
     }
   },
   lastHovered: null,
@@ -489,7 +488,7 @@ var LinkHints = {
     this.options = options;
     this._activateMode(mode);
   },
-  deactivate: function() {
+  deactivate: function(suppressType) {
     this.alphabetHints.deactivate();
     this.linkActivator = null;
     this.hintMarkers = [];
@@ -508,6 +507,9 @@ var LinkHints = {
     this.mode = 0;
     this.options = null;
     this.isActive = false;
+    if (suppressType != null) {
+      this.suppressTail(suppressType);
+    }
   },
 
 alphabetHints: {
