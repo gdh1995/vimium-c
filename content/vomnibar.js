@@ -108,7 +108,6 @@ vomnibarUI: {
     handlerStack.remove(this.handlerId);
     this.handlerId = handlerStack.push({
       keydown: this.onKeydown,
-      keypress: this.onKeypress,
       _this: this
     });
   },
@@ -197,9 +196,6 @@ vomnibarUI: {
     if (sel >= 0 && sel < _ref.length) {
       _ref[sel].classList.add("S");
     }
-  },
-  onKeypress: function() {
-    return VInsertMode.lock === this.input ? -1 : true;
   },
   onKeydown: function(event) {
     var action = "", n = event.keyCode, focused = VInsertMode.lock === this.input;
