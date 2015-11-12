@@ -220,8 +220,11 @@ var Settings, VHUD, MainPort, VInsertMode;
         var keyChar;
         if (findMode && (keyChar = String.fromCharCode(event.charCode))) {
           handleKeyCharForFindMode(keyChar);
-          DomUtils.suppressEvent(event);
+          event.preventDefault();
+        } else if (VInsertMode.lock !== VInsertMode.heldEl) {
+          return;
         }
+        event.stopImmediatePropagation();
       }
     },
     onKeyup: function(event) {
@@ -230,8 +233,10 @@ var Settings, VHUD, MainPort, VInsertMode;
         if (KeydownEvents[event.keyCode]) {
           KeydownEvents[event.keyCode] = 0;
           event.preventDefault();
-          event.stopImmediatePropagation();
+        } else if (VInsertMode.lock !== VInsertMode.heldEl) {
+          return;
         }
+        event.stopImmediatePropagation();
       }
     },
     onFocus: function(event) {
