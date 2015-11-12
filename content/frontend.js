@@ -153,7 +153,7 @@ var Settings, VHUD, MainPort, VInsertMode;
         Scroller.keyIsDown = 0;
       }
       if (isEnabledForUrl) {
-        if (!handlerStack.bubbleEvent("keydown", event)) {
+        if (!handlerStack.bubbleEvent(event)) {
           KeydownEvents[event.keyCode] = 1;
           return;
         }
