@@ -1,26 +1,28 @@
 "use strict";
-var $ = document.getElementById.bind(document);
+var $ = document.getElementById.bind(document), shownNode;
 function decodeHash() {
-  var shownNode, url, type;
+  var url, type;
   url = location.hash;
   if (url.lastIndexOf("#!image=", 0) === 0) {
     url = url.substring(8);
     type = "image";
-  }
-  if (url) {
-    try {
-      url = decodeURIComponent(url);
-    } catch (e) {}
   } else {
     return;
   }
+  try {
+    url = decodeURIComponent(url);
+  } catch (e) {}
 
   switch (type) {
   case "image":
     shownNode = $("shownImage");
     shownNode.src = url;
+    shownNode.onclick = function() {
+      clickLink(this.src, {
+        target: "_blank"
+      });
+    };
     break;
-  default: return;
   }
 
   if (shownNode) {
@@ -33,18 +35,23 @@ decodeHash();
 
 window.addEventListener("keydown", function(event) {
   var str;
-  if (!event.ctrlKey || event.shiftKey) { return; }
+  if (!event.ctrlKey || event.shiftKey || !shownNode) { return; }
   str = String.fromCharCode(event.keyCode);
   if (str === 'S') {
-    if (str = $("shownImage").src) {
-      download(str);
+    if (str = shownNode.src) {
       event.preventDefault();
+      clickLink(str, {
+        download: ""
+      });
     }
   }
 });
-function download(url) {
-  var a = document.createElement('a');
-  a.download = "";
+
+function clickLink(url, options) {
+  var a = document.createElement('a'), i;
+  for (i in options) {
+    a.setAttribute(i, options[i]);
+  }
   a.href = url;
   a.click();
 }
