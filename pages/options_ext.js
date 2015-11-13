@@ -181,7 +181,7 @@ CheckBoxOption.prototype.readValueFromElement = function() {
     }
   };
   document.addEventListener("keyup", function(event) {
-    if (event.ctrlKey && event.keyCode === 13) {
+    if ((event.ctrlKey || event.metaKey) && event.keyCode === 13) {
       var element = document.activeElement;
       if (element && element.blur) {
         element.blur();

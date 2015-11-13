@@ -35,7 +35,8 @@ decodeHash();
 
 window.addEventListener("keydown", function(event) {
   var str;
-  if (!event.ctrlKey || event.shiftKey || !shownNode) { return; }
+  if (!(event.ctrlKey || event.metaKey) || event.altKey
+    || event.shiftKey || !shownNode) { return; }
   str = String.fromCharCode(event.keyCode);
   if (str === 'S') {
     if (str = shownNode.src) {
