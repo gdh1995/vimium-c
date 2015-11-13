@@ -153,7 +153,7 @@ var Settings, VHUD, MainPort, VInsertMode;
         Scroller.keyIsDown = 0;
       }
       if (isEnabledForUrl) {
-        if (!handlerStack.bubbleEvent(event)) {
+        if (handlerStack.bubbleEvent(event)) {
           KeydownEvents[event.keyCode] = 1;
           return;
         }
@@ -592,13 +592,13 @@ var Settings, VHUD, MainPort, VInsertMode;
           hints[selectedInputIndex].classList.add("S");
           DomUtils.simulateSelect(visibleInputs[selectedInputIndex]);
         } else if (event.keyCode === KeyCodes.f12) {
-          return true;
+          return 0;
         } else if (event.keyCode !== KeyCodes.shiftKey) {
           hintContainingDiv.remove();
           handlerStack.remove(handlerId);
-          return true;
+          return 0;
         }
-        return false;
+        return 2;
       });
     }
   };
@@ -667,7 +667,7 @@ var Settings, VHUD, MainPort, VInsertMode;
       window.removeEventListener("mousedown", this.onGrab, true);
       handlerStack.remove(this.handlerId);
       this.handlerId = 0;
-      return true;
+      return 0;
     },
     grabBackFocus: function(event) {
       if (settings.values.grabBackFocus) {
@@ -910,9 +910,9 @@ var Settings, VHUD, MainPort, VInsertMode;
         handlerStack.remove(handlerId);
         if (event.keyCode === KeyCodes.esc && KeyboardUtils.isPlain(event)) {
           DomUtils.simulateSelect(InsertMode.lock = document.activeElement);
-          return false;
+          return 2;
         }
-        return true;
+        return 0;
       });
     }
   };
@@ -1330,9 +1330,9 @@ var Settings, VHUD, MainPort, VInsertMode;
       if (event.keyCode === KeyCodes.esc && !VInsertMode.lock
           && KeyboardUtils.isPlain(event)) {
         hide();
-        return false;
+        return 2;
       }
-      return true;
+      return 0;
     });
   };
 

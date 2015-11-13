@@ -33,16 +33,16 @@ var Marks = {
       if (KeyboardUtils.isPlain(event)) {
         handlerStack.remove(this.handlerId);
         VHUD.hide();
-        return false;
+        return 2;
       }
     } else if (keyCode > 32 && keyCode < 127) {
       if (keyChar = KeyboardUtils.getKeyChar(event, event.shiftKey)) {
         handlerStack.remove(this.handlerId);
         this.onKeypress(event, keyChar);
-        return false;
+        return 2;
       }
     }
-    return -1;
+    return 1;
   },
   getBaseUrl: function() {
     return window.location.href.split('#', 1)[0];

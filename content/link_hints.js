@@ -379,7 +379,7 @@ var LinkHints = {
       if (KeyboardUtils.isPlain(event)) {
         this.deactivate(); // do not suppress tail
       } else {
-        return true;
+        return 0;
       }
     } else if (i > KeyCodes.f1 && i <= KeyCodes.f12) {
       if (i === KeyCodes.f1 + 1) {
@@ -389,9 +389,9 @@ var LinkHints = {
           Settings.values.deepHints = !Settings.values.deepHints;
         }
         this.reinit();
-        return false;
+        return 2;
       }
-      return true;
+      return 0;
     } else if (i === KeyCodes.shiftKey) {
       if (this.mode < 128) {
         this.setOpenLinkMode((this.mode | 1) ^ (this.mode < 64 ? 3 : 67));
@@ -430,7 +430,7 @@ var LinkHints = {
         }
       }
     }
-    return false;
+    return 2;
   },
   activateLink: function(clickEl) {
     var tempi;
@@ -462,12 +462,12 @@ var LinkHints = {
     var func, handlerId, tick, timer;
     if (onlyRepeated) {
       func = function(event) {
-        if (event.repeat) { return false; }
+        if (event.repeat) { return 2; }
         handlerStack.remove(handlerId);
-        return true;
+        return 0;
       };
     } else {
-      func = function(event) { tick = Date.now(); return false; };
+      func = function(event) { tick = Date.now(); return 2; };
       tick = Date.now() + Settings.values.keyboard[0];
       timer = setInterval(function() {
         if (Date.now() - tick > 150) {

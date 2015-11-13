@@ -21,7 +21,7 @@ var Vomnibar = {
     vomnibarUI.initialSelectionValue = selectFirstResult ? 0 : -1;
     vomnibarUI.refreshInterval = this.defaultRefreshInterval || 250;
     vomnibarUI.forceNewTab = forceNewTab ? true : false;
-    vomnibarUI.handlerId = handlerStack.push(function() { return false; });
+    vomnibarUI.handlerId = handlerStack.push(function() { return 2; });
     if (!initialQueryValue) {
       vomnibarUI.reset();
     } else if (typeof initialQueryValue === "string") {
@@ -194,14 +194,14 @@ vomnibarUI: {
   },
   onKeydown: function(event) {
     var action = "", n = event.keyCode, focused = VInsertMode.lock === this.input;
-    if ((!focused && VInsertMode.lock) || event.altKey) { return true; }
+    if ((!focused && VInsertMode.lock) || event.altKey) { return 0; }
     if (event.shiftKey || !(event.ctrlKey || event.metaKey)) {}
     else if (n === KeyCodes.up || n === KeyCodes.down) {
       MainPort.Listener({
         name: "execute", count: 1, options: {},
         command: n === KeyCodes.up ? "scrollUp" : "scrollDown"
       });
-      return false;
+      return 2;
     }
     else if (n === 74 || n === 78) { action = "down"; } // 'J' or 'N'
     else if (n === 75 || n === 80) { action = "up"; } // 'K' or 'P'
@@ -222,7 +222,7 @@ vomnibarUI: {
     else if (n === KeyCodes.down) { action = "down"; }
     else if (n === KeyCodes.f1) { action = focused ? "backspace" : "focus"; }
     else if (n === KeyCodes.f1 + 1) { action = focused ? "blur" : "focus"; }
-    else if (n === KeyCodes.backspace) { if (!focused) { return false; } }
+    else if (n === KeyCodes.backspace) { if (!focused) { return 2; } }
     else if (n !== KeyCodes.space) {}
     else if (!focused) { action = "focus"; }
     else if ((this.selection >= 0
@@ -237,16 +237,16 @@ vomnibarUI: {
     else if (focused && (this.selection < 0 || !this.isSelectionChanged)) {}
     else if (n >= 48 && n < 58) {
       n = (n - 48) || 10;
-      if (event.shiftKey || n > this.completions.length) { return false; }
+      if (event.shiftKey || n > this.completions.length) { return 2; }
       this.selection = n - 1;
       this.isSelectionChanged = true;
       action = "enter";
     }
     if (action) {
       this.onAction(action);
-      return false;
+      return 2;
     }
-    return focused ? -1 : true;
+    return focused ? 1 : 0;
   },
   onAction: function(action) {
     var sel;
