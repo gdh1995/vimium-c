@@ -254,9 +254,6 @@ var Settings, VHUD, MainPort, VInsertMode;
     onBlur: function(event) {
       var target = event.target;
       if (target === window) {
-        // NOTE: Scroller will be set null when destroying, and window.onblur
-        //   won't be used any more, so we needn't make Scroller {}
-        // NOTE: so does InsertMode
         if (Scroller.keyIsDown) { Scroller.keyIsDown = 0; }
         KeydownEvents = new Uint8Array(256);
       } else if (!isEnabledForUrl) {}
