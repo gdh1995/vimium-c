@@ -574,12 +574,19 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
     },
     focusOrLaunch: function(request, tabs) {
       if (tabs.length === 0) {
-        // TODO: how to wait for tab finishing to load
-        chrome.tabs.create({url: request.url}, function(tab) {
-          chrome.windows.update(tab.windowId, {focused: true});
-          if (request.scroll) {
-            setTimeout(Marks.gotoTab, 1000, request);
-          }
+        chrome.tabs.query({currentWindow: true, active: true}, function(tabs) {
+          var tab = tabs[0];
+          // TODO: how to wait for tab finishing to load
+          chrome.tabs.create({
+            index: tab.index + 1,
+            url: request.url,
+            windowId: tab.windowId
+          }, function(tab) {
+            chrome.windows.update(tab.windowId, {focused: true});
+            if (request.scroll) {
+              setTimeout(Marks.gotoTab, 1000, request);
+            }
+          });
         });
         return;
       }
@@ -1256,6 +1263,7 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
     createMark: function(request, tabs) { Marks.createMark(request, tabs); },
     gotoMark: function(request) { Marks.gotoMark(request); },
     focusOrLaunch: function(request) {
+      // * request.url is guaranteed to be well formatted by frontend
       // * do not limit windowId or windowType
       // * in this case, chrome will ignore url's hash
       chrome.tabs.query({
