@@ -1,5 +1,5 @@
 "use strict";
-var $ = document.getElementById.bind(document), shownNode;
+var $ = document.getElementById.bind(document), shownNode, bgLink;
 function decodeHash() {
   var url, type;
   url = location.hash;
@@ -22,6 +22,22 @@ function decodeHash() {
         target: "_blank"
       });
     };
+    bgLink = $('bgLink');
+    bgLink.setAttribute('data-vim-url', url);
+    bgLink.style.display = "none";
+    shownNode.onload = function() {
+      bgLink.style.height = this.height + "px";
+      bgLink.style.width = this.width + "px";
+      bgLink.style.display = "";
+      bgLink.onclick = function() {
+        shownNode.click();
+      };
+    };
+    shownNode.onerror = function() {
+      setTimeout(function(){
+        shownNode.onload();
+      }, 34);
+    }
     break;
   }
 
