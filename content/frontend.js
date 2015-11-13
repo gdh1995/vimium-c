@@ -208,7 +208,7 @@ var Settings, VHUD, MainPort, VInsertMode;
           action = 2;
         }
       }
-      if (action <= 0) { return; }
+      if (action === 0) { return; }
       if (action === 2) {
         event.preventDefault();
       }
