@@ -127,10 +127,7 @@ var LinkHints = {
     style.left = this.initScrollX + "px"; style.top = this.initScrollY + "px";
     style.width = width + "px"; style.height = height + "px";
     if (document.webkitFullscreenElement) { style.position = "fixed"; }
-    this.handlerId = handlerStack.push({
-      keydown: this.onKeyDownInMode,
-      _this: this
-    });
+    this.handlerId = handlerStack.push(this.onKeyDownInMode, this);
   },
   setOpenLinkMode: function(mode) {
     var cons = this.CONST, tip, activator;
@@ -479,7 +476,7 @@ var LinkHints = {
         }
       }, 75);
     }
-    handlerId = handlerStack.push({ keydown: func });
+    handlerId = handlerStack.push(func);
   },
   reinit: function() {
     var mode = this.mode, linkActivator = this.linkActivator, options = this.options;

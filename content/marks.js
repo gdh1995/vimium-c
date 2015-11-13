@@ -4,18 +4,12 @@ var Marks = {
   onKeypress: null,
   activateCreateMode: function() {
     this.onKeypress = this._create;
-    this.handlerId = handlerStack.push({
-      keydown: this.onKeydown,
-      _this: this
-    });
+    this.handlerId = handlerStack.push(this.onKeydown, this);
     VHUD.show("Create mark ...");
   },
   activateGotoMode: function() {
     this.onKeypress = this._goto;
-    this.handlerId = handlerStack.push({
-      keydown: this.onKeydown,
-      _this: this
-    });
+    this.handlerId = handlerStack.push(this.onKeydown, this);
     VHUD.show("Go to mark ...");
   },
   clearLocal: function() {

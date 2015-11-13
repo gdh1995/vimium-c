@@ -21,9 +21,7 @@ var Vomnibar = {
     vomnibarUI.initialSelectionValue = selectFirstResult ? 0 : -1;
     vomnibarUI.refreshInterval = this.defaultRefreshInterval || 250;
     vomnibarUI.forceNewTab = forceNewTab ? true : false;
-    vomnibarUI.handlerId = handlerStack.push({
-      keydown: function() { return false; }
-    });
+    vomnibarUI.handlerId = handlerStack.push(function() { return false; });
     if (!initialQueryValue) {
       vomnibarUI.reset();
     } else if (typeof initialQueryValue === "string") {
@@ -106,10 +104,7 @@ vomnibarUI: {
     VInsertMode.heldEl = this.input; this.input.focus();
     this.focused = true;
     handlerStack.remove(this.handlerId);
-    this.handlerId = handlerStack.push({
-      keydown: this.onKeydown,
-      _this: this
-    });
+    this.handlerId = handlerStack.push(this.onKeydown, this);
   },
   hide: function() {
     if (this.timer > 0) {

@@ -579,28 +579,26 @@ var Settings, VHUD, MainPort, VInsertMode;
       });
       hintContainingDiv.style.left = window.scrollX + "px";
       hintContainingDiv.style.top = window.scrollY + "px";
-      handlerId = handlerStack.push({
-        keydown: function(event) {
-          if (event.keyCode === KeyCodes.tab) {
-            hints[selectedInputIndex].classList.remove("S");
-            if (event.shiftKey) {
-              if (--selectedInputIndex === -1) {
-                selectedInputIndex = hints.length - 1;
-              }
-            } else if (++selectedInputIndex === hints.length) {
-              selectedInputIndex = 0;
+      handlerId = handlerStack.push(function(event) {
+        if (event.keyCode === KeyCodes.tab) {
+          hints[selectedInputIndex].classList.remove("S");
+          if (event.shiftKey) {
+            if (--selectedInputIndex === -1) {
+              selectedInputIndex = hints.length - 1;
             }
-            hints[selectedInputIndex].classList.add("S");
-            DomUtils.simulateSelect(visibleInputs[selectedInputIndex]);
-          } else if (event.keyCode === KeyCodes.f12) {
-            return true;
-          } else if (event.keyCode !== KeyCodes.shiftKey) {
-            hintContainingDiv.remove();
-            handlerStack.remove(handlerId);
-            return true;
+          } else if (++selectedInputIndex === hints.length) {
+            selectedInputIndex = 0;
           }
-          return false;
+          hints[selectedInputIndex].classList.add("S");
+          DomUtils.simulateSelect(visibleInputs[selectedInputIndex]);
+        } else if (event.keyCode === KeyCodes.f12) {
+          return true;
+        } else if (event.keyCode !== KeyCodes.shiftKey) {
+          hintContainingDiv.remove();
+          handlerStack.remove(handlerId);
+          return true;
         }
+        return false;
       });
     }
   };
@@ -659,9 +657,7 @@ var Settings, VHUD, MainPort, VInsertMode;
     },
     setupGrab: function() {
       this.focus = this.grabBackFocus;
-      this.handlerId = this.handlerId || handlerStack.push({
-        keydown: this.onGrab
-      });
+      this.handlerId = this.handlerId || handlerStack.push(this.onGrab);
       window.addEventListener("mousedown", this.onGrab, true);
     },
     onGrab: function() {
@@ -910,15 +906,13 @@ var Settings, VHUD, MainPort, VInsertMode;
     focusFoundLink();
     // NOTE: this `if` should not be removed
     if (DomUtils.canTakeInput(findModeAnchorNode)) {
-      handlerId = handlerStack.push({
-        keydown: function(event) {
-          handlerStack.remove(handlerId);
-          if (event.keyCode === KeyCodes.esc && KeyboardUtils.isPlain(event)) {
-            DomUtils.simulateSelect(InsertMode.lock = document.activeElement);
-            return false;
-          }
-          return true;
+      handlerId = handlerStack.push(function(event) {
+        handlerStack.remove(handlerId);
+        if (event.keyCode === KeyCodes.esc && KeyboardUtils.isPlain(event)) {
+          DomUtils.simulateSelect(InsertMode.lock = document.activeElement);
+          return false;
         }
+        return true;
       });
     }
   };
@@ -1332,15 +1326,13 @@ var Settings, VHUD, MainPort, VInsertMode;
     DomUtils.UI.addElement(container);
     window.focus();
     Scroller.current = container;
-    handlerId = handlerStack.push({
-      keydown: function(event) {
-        if (event.keyCode === KeyCodes.esc && !VInsertMode.lock
-            && KeyboardUtils.isPlain(event)) {
-          hide();
-          return false;
-        }
-        return true;
+    handlerId = handlerStack.push(function(event) {
+      if (event.keyCode === KeyCodes.esc && !VInsertMode.lock
+          && KeyboardUtils.isPlain(event)) {
+        hide();
+        return false;
       }
+      return true;
     });
   };
 
