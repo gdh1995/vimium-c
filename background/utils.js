@@ -3,14 +3,16 @@ var Utils = {
   makeNullProto: function() {
     return {__proto__: null};
   },
+  _onXHR: function () {
+    if (this.readyState === 4 && this.status === 200) {
+      this.onsuccess(this.responseText);
+    }
+  },
   fetchHttpContents: function(url, success) {
     var req = new XMLHttpRequest();
     req.open("GET", url, true);
-    req.onreadystatechange = function () {
-      if (this.readyState === 4 && this.status === 200) {
-        success(this.responseText);
-      }
-    };
+    req.onreadystatechange = this._onXHR;
+    req.onsuccess = success;
     req.send();
     return req;
   },
