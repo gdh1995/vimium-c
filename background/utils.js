@@ -274,8 +274,10 @@ var Utils = {
     return this.makeReparser(prefix, "^([^?#]*)", url, "");
   },
   escapeAllRe: /[\$\(\)\*\+\.\?\[\\\]\^\{\|\}]/g,
+  _spaceOrPlusRe: /\\+|%20/g,
   makeReparser: function(head, prefix, matched_body, suffix) {
-    matched_body = matched_body.replace(this.escapeAllRe, "\\$&");
+    matched_body = matched_body.replace(this.escapeAllRe, "\\$&"
+      ).replace(this._spaceOrPlusRe, "(?:\\+|%20)");
     head = head.toLowerCase();
     if (head.startsWith("https://")) {
       head = "http" + head.substring(5);
