@@ -254,20 +254,20 @@ var Utils = {
     if (!ind) { return; }
     url = pattern.url.toLowerCase();
     if (!(this.hasOrdinaryUrlPrefix(url) || url.startsWith("chrome-"))) { return; }
-    url = url.substring(0, ind - 1);
-    if (ind = (url.indexOf("?") + 1) || (url.indexOf("#") + 1)) {
-      prefix = url.substring(0, ind - 1);
-      url = url.substring(ind);
+    prefix = url.substring(0, ind - 1);
+    if (ind = (prefix.indexOf("?") + 1) || (prefix.indexOf("#") + 1)) {
+      url = prefix.substring(ind);
+      prefix = prefix.substring(0, ind - 1);
       if (ind = url.lastIndexOf("&") + 1) {
         url = url.substring(ind);
       }
       if (url && url !== "=" && !url.endsWith("/")) {
         return this.makeReparser(prefix, "[?#&]", url, "([^&#]*)")
       }
-      url = pattern.url.substring(0, (pattern.$s || pattern.$S) - 1);
+      url = pattern.url.toLowerCase();
+      prefix = url.substring(0, (pattern.$s || pattern.$S) - 1);
     }
-    prefix = url;
-    url = pattern.url.substring(url.length + 2);
+    url = url.substring(prefix.length + 2);
     if (ind = (url.indexOf("?") + 1) || (url.indexOf("#") + 1)) {
       url = url.substring(0, ind);
     }
@@ -278,7 +278,6 @@ var Utils = {
   makeReparser: function(head, prefix, matched_body, suffix) {
     matched_body = matched_body.replace(this.escapeAllRe, "\\$&"
       ).replace(this._spaceOrPlusRe, "(?:\\+|%20)");
-    head = head.toLowerCase();
     if (head.startsWith("https://")) {
       head = "http" + head.substring(5);
     } else if (head.startsWith("vimium://")) {
