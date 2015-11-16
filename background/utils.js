@@ -274,14 +274,15 @@ var Utils = {
     return this.makeReparser(prefix, "^([^?#]*)", url, "");
   },
   escapeAllRe: /[\$\(\)\*\+\.\?\[\\\]\^\{\|\}]/g,
-  makeReparser: function(head, prefix, url, suffix) {
-    url = url.toLowerCase().replace(this.escapeAllRe, "\\$&");
+  makeReparser: function(head, prefix, matched_body, suffix) {
+    matched_body = matched_body.replace(this.escapeAllRe, "\\$&");
+    head = head.toLowerCase();
     if (head.startsWith("https://")) {
       head = "http" + head.substring(5);
-    } else if (head.toLowerCase().startsWith("vimium://")) {
+    } else if (head.startsWith("vimium://")) {
       head = chrome.runtime.getURL("/") + head.substring(9);
     }
-    return [head, new RegExp(prefix + url + suffix, "i")];
+    return [head, new RegExp(prefix + matched_body + suffix, "i")];
   },
   makeRegexp: function(pattern, suffix) {
     try {
