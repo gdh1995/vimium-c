@@ -248,22 +248,19 @@ var Utils = {
     return rules;
   },
   reparseSearchUrl: function (pattern) {
-    var url, ind = pattern.$s || pattern.$S, prefix;
+    var url, ind = pattern.$s || pattern.$S, prefix, str, ind2;
     if (!ind) { return; }
     url = pattern.url.toLowerCase();
     if (!(this.hasOrdinaryUrlPrefix(url) || url.startsWith("chrome-"))) { return; }
     prefix = url.substring(0, ind - 1);
-    if (ind = (prefix.indexOf("?") + 1) || (prefix.indexOf("#") + 1)) {
-      url = prefix.substring(ind);
-      prefix = prefix.substring(0, ind - 1);
-      if (ind = url.lastIndexOf("&") + 1) {
-        url = url.substring(ind);
+    if (ind = (prefix.lastIndexOf("?") + 1) || (prefix.lastIndexOf("#") + 1)) {
+      str = prefix.substring(ind);
+      if (ind2 = str.lastIndexOf("&") + 1) {
+        str = str.substring(ind2);
       }
-      if (url && url !== "=" && !url.endsWith("/")) {
-        return this.makeReparser(prefix, "[?#&]", url, "([^&#]*)")
+      if (str && str !== "=" && !str.endsWith("/")) {
+        return this.makeReparser(prefix.substring(0, ind - 1), "[?#&]", str, "([^&#]*)")
       }
-      url = pattern.url.toLowerCase();
-      prefix = url.substring(0, (pattern.$s || pattern.$S) - 1);
     }
     url = url.substring(prefix.length + 2);
     if (ind = (url.indexOf("?") + 1) || (url.indexOf("#") + 1)) {
