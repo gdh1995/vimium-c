@@ -86,14 +86,25 @@ var Settings = {
       else { this.postUpdate('newTabUrl_f', url); }
     },
     searchEngines: function() {
-      this.set("searchEngineMap", { "": [], __proto__: null });
+      this.set("searchEngineMap", Utils.makeNullProto());
     },
     searchEngineMap: function(value) {
-      Utils.parseSearchEngines(this.get("searchEngines"), value);
-      Utils.parseSearchEngines("~:" + this.get("searchUrl"), value, 1);
+      var rule  = Utils.parseSearchEngines("~:" + this.get("searchUrl"), value)[0],
+          rules = Utils.parseSearchEngines(this.get("searchEngines"), value);
+      if (rule) {
+        rules.unshift(rule);
+      }
+      this.set("searchEngineRules", rules);
     },
     searchUrl: function(value) {
-      Utils.parseSearchEngines("~:" + value, this.get("searchEngineMap"), -1);
+      var rule = Utils.parseSearchEngines("~:" + value, this.get("searchEngineMap"))[0],
+          rules = this.get("searchEngineRules");
+      if (rules.length > 0 && rules[0][2] === "~") {
+        if (rule) { rules[0] = rule; }
+        else { rules.shift(); }
+      } else if (rule) {
+        rules.unshift(rule);
+      }
       this.postUpdate("newTabUrl");
     },
     baseCSS: function(css) {
@@ -144,7 +155,8 @@ bi|bing|Bing: http://www.bing.com/search?q=%s Bing\n\
 g|go|gg|google|Google: http://www.google.com/search?q=%s Google\n\
 js\\:|Js: javascript:\\ %S; Javascript\n\
 w|wiki:\\\n  http://www.wikipedia.org/w/index.php?search=%s Wikipedia (en-US)",
-    searchEngineMap: { "": [] }, // may be modified, but this action is safe
+    searchEngineMap: {}, // may be modified, but this action is safe
+    searchEngineRules: [],
     showActionIcon: true,
     showAdvancedCommands: 0,
     showAdvancedOptions: 1,
@@ -164,7 +176,7 @@ w|wiki:\\\n  http://www.wikipedia.org/w/index.php?search=%s Wikipedia (en-US)",
   // not clean if exists (for simpler logic)
   nonPersistent: { __proto__: null,
     baseCSS: 1, exclusionTemplate: 1, helpDialog: 1, innerCss: 1,
-    postKeyMappings: 1, searchEngineMap: 1, settingsVersion: 1, vomnibar: 1
+    postKeyMappings: 1, searchEngineMap: 1, searchEngineRules: 1, settingsVersion: 1, vomnibar: 1
   },
   files: {
     __proto__: null,

@@ -1080,7 +1080,7 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
         return "";
       }
       map = Settings.get("searchEngineMap");
-      decoders = map[""];
+      decoders = Settings.get("searchEngineRules");
       if (url.startsWith("https:")) {
         url = "http:" + url.substring(6);
       }
