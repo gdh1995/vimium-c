@@ -272,7 +272,7 @@ var Utils = {
     return this.makeReparser(prefix, "^([^?#]*)", url, "");
   },
   escapeAllRe: /[\$\(\)\*\+\.\?\[\\\]\^\{\|\}]/g,
-  _spaceOrPlusRe: /\\+|%20/g,
+  _spaceOrPlusRe: /\\\+|%20| /g,
   makeReparser: function(head, prefix, matched_body, suffix) {
     matched_body = matched_body.replace(this.escapeAllRe, "\\$&"
       ).replace(this._spaceOrPlusRe, "(?:\\+|%20)");
