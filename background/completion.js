@@ -386,10 +386,9 @@ Completers.tabs = {
 };
 
 Completers.searchEngines = {
-  engines: Settings.get("searchEngineMap"),
   filter: function(query) {
     var queryTerms = query.queryTerms, obj, sug, text
-      , pattern = queryTerms.length > 0 ? this.engines[queryTerms[0]] : null;
+      , pattern = queryTerms.length > 0 ? Settings.get("searchEngineMap")[queryTerms[0]] : null;
     if (!pattern) {
       query.onComplete([]);
       return;
@@ -432,10 +431,6 @@ Completers.searchEngines = {
     return 9;
   }
 };
-Settings.updateHooks.searchEngineMap = (function(prev, value) {
-  prev.call(Settings, value);
-  this.engines = value;
-}).bind(Completers.searchEngines, Settings.updateHooks.searchEngineMap);
 
 MultiCompleter = {
   counter: 0,
