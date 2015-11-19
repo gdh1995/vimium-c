@@ -1075,7 +1075,7 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
       }
     },
     parseSearchUrl: function(request) {
-      var url = request.url, map, decoders, pattern, _i, str, arr;
+      var url = request.url.toLowerCase(), map, decoders, pattern, _i, str, arr;
       if (!(Utils.hasOrdinaryUrlPrefix(url) || url.startsWith("chrome-"))) {
         return "";
       }
@@ -1087,7 +1087,7 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
       for (_i = decoders.length; 0 <= --_i; ) {
         pattern = decoders[_i];
         if (url.startsWith(str = pattern[0])) {
-          arr = pattern[1].exec(url.substring(str.length));
+          arr = pattern[1].exec(request.url.substring(str.length));
           if (arr) {
             str = arr[1];
             url = pattern[2];
