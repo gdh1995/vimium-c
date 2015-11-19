@@ -258,7 +258,7 @@ var Utils = {
       if (ind2 = str.lastIndexOf("&") + 1) {
         str = str.substring(ind2);
       }
-      if (str && str !== "=" && !str.endsWith("/")) {
+      if (str && str.indexOf("=") >= 1) {
         return this.makeReparser(prefix.substring(0, ind - 1), "[?#&]", str, "([^&#]*)")
       }
     }
