@@ -253,7 +253,7 @@ var Utils = {
     url = pattern.url.toLowerCase();
     if (!(this.hasOrdinaryUrlPrefix(url) || url.startsWith("chrome-"))) { return; }
     prefix = url.substring(0, ind - 1);
-    if (ind = (prefix.lastIndexOf("?") + 1) || (prefix.lastIndexOf("#") + 1)) {
+    if (ind = Math.max(prefix.lastIndexOf("?"), prefix.lastIndexOf("#")) + 1) {
       str = prefix.substring(ind);
       if (ind2 = str.lastIndexOf("&") + 1) {
         str = str.substring(ind2);
@@ -263,7 +263,7 @@ var Utils = {
       }
     }
     url = url.substring(prefix.length + 2);
-    if (ind = (url.indexOf("?") + 1) || (url.indexOf("#") + 1)) {
+    if (ind = Math.max(url.indexOf("?"), url.indexOf("#")) + 1) {
       url = url.substring(0, ind);
     }
     return this.makeReparser(prefix, "^([^?#]*)", url, "");
