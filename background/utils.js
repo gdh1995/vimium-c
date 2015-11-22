@@ -267,7 +267,7 @@ var Utils = {
     }
     url = url.substring(prefix.length + 2);
     if (ind = Math.max(url.indexOf("?"), url.indexOf("#")) + 1) {
-      url = url.substring(0, ind);
+      url = url.substring(0, ind - 1);
     }
     return this.makeReparser(prefix, "^([^?#]*)", url, "");
   },
