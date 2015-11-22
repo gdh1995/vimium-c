@@ -255,12 +255,15 @@ var Utils = {
     prefix = url.substring(0, ind - 1);
     if (ind = Math.max(prefix.lastIndexOf("?"), prefix.lastIndexOf("#")) + 1) {
       str = prefix.substring(ind);
+      prefix = prefix.substring(0, Math.max(prefix.indexOf("?"), prefix.indexOf("#")));
       if (ind2 = str.lastIndexOf("&") + 1) {
         str = str.substring(ind2);
       }
       if (str && str.indexOf("=") >= 1) {
-        return this.makeReparser(prefix.substring(0, ind - 1), "[?#&]", str, "([^&#]*)")
+        return this.makeReparser(prefix, "[#&?]", str, "([^#&]*)");
       }
+      url = url[ind - 1] === "?" ? "\\?" : "#";
+      return this.makeReparser(prefix, url, str, "([^#&?]*)");
     }
     url = url.substring(prefix.length + 2);
     if (ind = Math.max(url.indexOf("?"), url.indexOf("#")) + 1) {
@@ -271,7 +274,7 @@ var Utils = {
   escapeAllRe: /[\$\(\)\*\+\.\?\[\\\]\^\{\|\}]/g,
   _spaceOrPlusRe: /\\\+|%20| /g,
   makeReparser: function(head, prefix, matched_body, suffix) {
-    matched_body = matched_body.replace(this.escapeAllRe, "\\$&"
+    matched_body = matched_body && matched_body.replace(this.escapeAllRe, "\\$&"
       ).replace(this._spaceOrPlusRe, "(?:\\+|%20)");
     if (head.startsWith("https://")) {
       head = "http" + head.substring(5);
