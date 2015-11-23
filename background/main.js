@@ -1075,24 +1075,22 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
       }
     },
     parseSearchUrl: function(request) {
-      var url = request.url.toLowerCase(), map, decoders, pattern, _i, str, arr;
+      var url = request.url.toLowerCase(), decoders, pattern, _i, str, arr;
       if (!(Utils.hasOrdinaryUrlPrefix(url) || url.startsWith("chrome-"))) {
         return "";
       }
-      map = Settings.get("searchEngineMap");
       decoders = Settings.get("searchEngineRules");
       if (url.startsWith("https:")) {
         url = "http:" + url.substring(6);
       }
       for (_i = decoders.length; 0 <= --_i; ) {
         pattern = decoders[_i];
-        if (url.startsWith(str = pattern[0])) {
-          arr = pattern[1].exec(request.url.substring(str.length));
-          if (arr) {
+        if (url.startsWith(pattern[0])) {
+          if (arr = pattern[1].exec(request.url.substring(pattern[0].length))) {
             arr.shift();
             str = arr.join(" ");
             url = pattern[2];
-            if (map[url].$s) {
+            if (Settings.get("searchEngineMap")[url].$s) {
               str = str.split("+").map(Utils.decodeURLPart).join(" ");
             } else {
               str = Utils.decodeURLPart(str);
