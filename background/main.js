@@ -1089,7 +1089,8 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
         if (url.startsWith(str = pattern[0])) {
           arr = pattern[1].exec(request.url.substring(str.length));
           if (arr) {
-            str = arr[1];
+            arr.shift();
+            str = arr.join(" ");
             url = pattern[2];
             if (map[url].$s) {
               str = str.split("+").map(Utils.decodeURLPart).join(" ");
