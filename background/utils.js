@@ -191,7 +191,7 @@ var Utils = {
   parseSearchEngines: function(str, map) {
     var ids, pair, key, val, obj, _i, _len, ind, rSlash = /[^\\]\//, rules = [],
     rEscapeSpace = /\\\s/g, rSpace = /\s/, rEscapeS = /\\s/g, rColon = /\\:/g,
-    a = str.replace(/\\\n/g, '').split('\n'),
+    rRe = /\sre=/i, a = str.replace(/\\\n/g, '').split('\n'),
     func = function(key) {
       return (key = key.trim()) && (map[key] = obj);
     };
@@ -208,9 +208,9 @@ var Utils = {
       str = val.replace(rEscapeSpace, "\\s");
       ind = str.search(rSpace);
       if (ind > 0) {
-        str = val.substring(ind + 1).trimLeft();
+        str = val.substring(ind);
         val = val.substring(0, ind);
-        ind = str.indexOf("re=");
+        ind = str.search(rRe);
       } else {
         val = str;
         str = "";
@@ -229,9 +229,9 @@ var Utils = {
           pair.push(ids[0]);
           rules.push(pair);
         }
-      } else if (str.charCodeAt(ind + 3) === 47) {
-        key = ind > 0 ? str.substring(0, ind).trimRight() : "";
-        str = str.substring(ind + 4);
+      } else if (str.charCodeAt(ind + 4) === 47) {
+        key = ind > 1 ? str.substring(1, ind).trim() : "";
+        str = str.substring(ind + 5);
         ind = str.search(rSlash) + 1;
         val = str.substring(0, ind);
         str = str.substring(ind + 1);
@@ -240,10 +240,11 @@ var Utils = {
         if (val) {
           rules.push([key, val, ids[0]]);
         }
-        str = ind >= 0 ? str.substring(ind + 1).trimLeft() : "";
+        str = ind >= 0 ? str.substring(ind + 1) : "";
       } else {
-        str = str.substring(ind + 3).trimLeft();
+        str = str.substring(ind + 4);
       }
+      str = str.trimLeft();
       obj.name = str ? this.decodeURLPart(str) : ids[ids.length - 1];
     }
     return rules;
