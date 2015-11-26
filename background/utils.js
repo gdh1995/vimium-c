@@ -205,13 +205,14 @@ var Utils = {
       if (ind <= 0 || !(key = val.substring(0, ind).trimRight())) continue;
       val = val.substring(ind + 1).trimLeft();
       if (!val) continue;
-      val = val.replace(rEscapeSpace, "\\s");
-      ind = val.search(rSpace);
+      str = val.replace(rEscapeSpace, "\\s");
+      ind = str.search(rSpace);
       if (ind > 0) {
         str = val.substring(ind + 1).trimLeft();
         val = val.substring(0, ind);
         ind = str.indexOf("re=");
       } else {
+        val = str;
         str = "";
       }
       val = val.replace(rEscapeS, " ");
