@@ -226,7 +226,7 @@ var Utils = {
       if (ids.length === 0) continue;
       if (ind === -1) {
         if (pair = this.reparseSearchUrl(obj)) {
-          pair.push(ids[0]);
+          pair.push(ids[0].trimRight());
           rules.push(pair);
         }
       } else if (str.charCodeAt(ind + 4) === 47) {
@@ -238,14 +238,14 @@ var Utils = {
         ind = str.search(rSpace);
         val = this.makeRegexp(val, ind >= 0 ? str.substring(0, ind) : str);
         if (val) {
-          rules.push([key, val, ids[0]]);
+          rules.push([key, val, ids[0].trimRight()]);
         }
         str = ind >= 0 ? str.substring(ind + 1) : "";
       } else {
         str = str.substring(ind + 4);
       }
       str = str.trimLeft();
-      obj.name = str ? this.decodeURLPart(str) : ids[ids.length - 1];
+      obj.name = str ? this.decodeURLPart(str) : ids[ids.length - 1].trimLeft();
     }
     return rules;
   },
