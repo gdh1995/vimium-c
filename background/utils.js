@@ -161,6 +161,7 @@ var Utils = {
     return false;
   },
   searchWordRe: /%[sS]/g,
+  encodedSearchWordRe: /%25([sS])/g,
   createSearchUrl: function(query, keyword) {
     query = this.createSearch(query, Settings.get("searchEngineMap")[keyword]).url;
     if (keyword != "~") {
@@ -229,6 +230,15 @@ var Utils = {
       if (ids.length === 0) continue;
       if (ind === -1) {
         if (ind = obj.$s || obj.$S) {
+          if (map["~"]) {
+            val = this.convertToUrl(val);
+            if (this.lastUrlType === 2) {
+              val = val.replace(this.encodedSearchWordRe, "%$1");
+              ind = (val.indexOf("%s") + 1) || (val.indexOf("%S") + 1);
+            } else if (this.lastUrlType > 0) {
+              ind += this.lastUrlType === 1 ? 7 : 5;
+            }
+          }
           if (pair = this.reparseSearchUrl(val.toLowerCase(), ind)) {
             pair.push(ids[0].trimRight());
             rules.push(pair);
