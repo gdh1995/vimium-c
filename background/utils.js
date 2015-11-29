@@ -160,8 +160,9 @@ var Utils = {
     }
     return false;
   },
-  searchWordRe: /%[sS]/g,
-  encodedSearchWordRe: /%25([sS])/g,
+  searchWordRe: /\$[sS]/g,
+  searchWordRe2: /%([sS])/g,
+  encodedSearchWordRe: /%24([sS])/g,
   createSearchUrl: function(query, keyword) {
     query = this.createSearch(query, Settings.get("searchEngineMap")[keyword]).url;
     if (keyword != "~") {
@@ -179,7 +180,7 @@ var Utils = {
     }
     return {
       url: pattern.url.replace(this.searchWordRe, function(s) {
-        return (s === "%s") ? queryStr : $S;
+        return (s === "$s") ? queryStr : $S;
       }),
       $s: queryStr,
       $S: $S
@@ -219,10 +220,10 @@ var Utils = {
         val = key;
         str = "";
       }
-      val = val.replace(rEscapeS, " ").trim();
+      val = val.replace(rEscapeS, " ").trim().replace(this.searchWordRe2, "$$$1");
       obj = {
-        $S: val.indexOf("%S") + 1,
-        $s: val.indexOf("%s") + 1,
+        $S: val.indexOf("$S") + 1,
+        $s: val.indexOf("$s") + 1,
         name: null,
         url: val
       };
@@ -233,8 +234,8 @@ var Utils = {
           if (map["~"]) {
             val = this.convertToUrl(val);
             if (this.lastUrlType === 2) {
-              val = val.replace(this.encodedSearchWordRe, "%$1");
-              ind = (val.indexOf("%s") + 1) || (val.indexOf("%S") + 1);
+              val = val.replace(this.encodedSearchWordRe, "$$$1");
+              ind = (val.indexOf("$s") + 1) || (val.indexOf("$S") + 1);
             } else if (this.lastUrlType > 0) {
               ind += this.lastUrlType === 1 ? 7 : 5;
             }

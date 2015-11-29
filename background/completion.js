@@ -404,22 +404,19 @@ Completers.searchEngines = {
       , pattern.name + ": " + obj.$S, this.computeRelevancy);
     if (queryTerms.length > 0) {
       sug.titleSplit = [pattern.name.length + 2, sug.title.length];
-      text = Suggestion.shortenUrl(pattern.url);
-      text = Utils.decodeURLPart(text //
-          .replace(Utils.searchWordRe, this.encodeSearchKey));
+      text = Utils.decodeURLPart(Suggestion.shortenUrl(pattern.url));
       sug.textSplit = this.splitText(obj, sug.text, text);
     } else {
       sug.textSplit = sug.titleSplit = [];
     }
     query.onComplete([sug]);
   },
-  encodeSearchKey: function(str) { return "%25" + str.substring(1); },
   splitText: function(obj, text, template) {
     var arr = template.split(Utils.searchWordRe), start = 0, ret = [];
     arr.pop();
     arr.forEach(function(str) {
       start += str.length;
-      var end = start + obj["$" + template.substring(start + 1, start + 2)].length;
+      var end = start + obj[template.substring(start, start + 2)].length;
       ret.push(start, end);
       start = end;
     });
