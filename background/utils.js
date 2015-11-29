@@ -116,8 +116,7 @@ var Utils = {
       type = string.length < oldString.length && string.indexOf('/', 9) === -1 ? 2 : 0;
     }
     else if (string.startsWith("vimium:")) {
-      type = 0;
-      oldString = chrome.runtime.getURL("/") + oldString.substring(9);
+      type = 4;
     } else {
       string = string.substring(index + 3, index2 !== -1 ? index2 : undefined);
       expected = 0;
@@ -148,8 +147,10 @@ var Utils = {
       type = this.isTld(string.substring(index2, index)) ? 2 : 1;
     }
     this.lastUrlType = type;
-    return type === 0 ? oldString : type === 1
-      ? ("http://" + oldString) : type === 3 ? ("http:" + oldString)
+    return type === 0 ? oldString
+      : type === 1 ? ("http://" + oldString)
+      : type === 3 ? ("http:" + oldString)
+      : type === 4 ? (chrome.runtime.getURL("/") + oldString.substring(9))
       : this.createSearchUrl(oldString.split(' '), keyword || "~");
   },
   isTld: function(tld) {
@@ -237,7 +238,8 @@ var Utils = {
               val = val.replace(this.encodedSearchWordRe, "$$$1");
               ind = (val.indexOf("$s") + 1) || (val.indexOf("$S") + 1);
             } else if (this.lastUrlType > 0) {
-              ind += this.lastUrlType === 1 ? 7 : 5;
+              ind += this.lastUrlType === 1 ? 7 : this.lastUrlType === 3 ? 5
+                : 43;
             }
           }
           if (pair = this.reparseSearchUrl(val.toLowerCase(), ind)) {
