@@ -298,8 +298,6 @@ var Utils = {
       ).replace(this._spaceOrPlusRe, "(?:\\+|%20)");
     if (head.startsWith("http")) {
       head = head.substring(head.charAt(4) === 's' ? 8 : 7);
-    } else if (head.startsWith("vimium://")) {
-      head = chrome.runtime.getURL("/") + head.substring(9);
     }
     return [head, new RegExp(prefix + matched_body + suffix, "i")];
   },
