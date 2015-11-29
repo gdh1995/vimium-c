@@ -405,10 +405,8 @@ Completers.searchEngines = {
     if (queryTerms.length > 0) {
       sug.titleSplit = [pattern.name.length + 2, sug.title.length];
       text = Suggestion.shortenUrl(pattern.url);
-      try {
-        text = decodeURIComponent(text //
+      text = Utils.decodeURLPart(text //
           .replace(Utils.searchWordRe, this.encodeSearchKey));
-      } catch (e) {}
       sug.textSplit = this.splitText(obj, sug.text, text);
     } else {
       sug.textSplit = sug.titleSplit = [];
