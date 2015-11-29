@@ -238,6 +238,9 @@ var Utils = {
         ind = str.search(rSpace);
         val = this.makeRegexp(val, ind >= 0 ? str.substring(0, ind) : str);
         if (val) {
+          if (key.startsWith("http:") || key.startsWith("https:")) {
+            key = key.substring(key.charAt(4) === 's' ? 8 : 7);
+          }
           rules.push([key, val, ids[0].trimRight()]);
         }
         str = ind >= 0 ? str.substring(ind + 1) : "";
@@ -278,8 +281,8 @@ var Utils = {
   makeReparser: function(head, prefix, matched_body, suffix) {
     matched_body = matched_body && matched_body.replace(this.escapeAllRe, "\\$&"
       ).replace(this._spaceOrPlusRe, "(?:\\+|%20)");
-    if (head.startsWith("https://")) {
-      head = "http" + head.substring(5);
+    if (head.startsWith("http")) {
+      head = head.substring(head.charAt(4) === 's' ? 8 : 7);
     } else if (head.startsWith("vimium://")) {
       head = chrome.runtime.getURL("/") + head.substring(9);
     }

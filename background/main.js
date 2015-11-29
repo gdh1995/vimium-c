@@ -1080,9 +1080,10 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
         return "";
       }
       decoders = Settings.get("searchEngineRules");
-      if (url.startsWith("https:")) {
-        url = "http:" + url.substring(6);
-        request.url = "http:" + request.url.substring(6);
+      if (url.startsWith("http")) {
+        _i = url.charAt(4) === 's' ? 8 : 7;
+        url = url.substring(_i);
+        request.url = request.url.substring(_i);
       }
       for (_i = decoders.length; 0 <= --_i; ) {
         pattern = decoders[_i];
