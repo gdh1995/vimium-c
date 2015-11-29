@@ -59,12 +59,12 @@ unmapAll
                 <div class="example">
                   Add search engine shortcuts to the Vomnibar. Format:<br/>
                   <pre>
-a: http://a.com/?q=%s
-js\:|JS: javascript:%S; Run JavaScript
-MainName|c|c\:|C: \
+a: http://a.com/?q=$s
+js\:|JS: javascript:$S; Run JavaScript
+MainKey|c|c\:|MainName: \
     http://c.com/?q=%s&amp;space=\s\ space_end
 # this is a comment</pre>
-                  <var>%s</var> will be replaced with your search terms.
+                  <var>$s</var> will be replaced with your search terms.
                   <a data-auto-scale="searchEngines">Scale to fit</a>.
                 </div>
               </div>
@@ -78,7 +78,7 @@ MainName|c|c\:|C: \
               <div class="help">
                 <div class="example">
                   The default search engine ("~" to use it on Vomnibar)<br>
-                  (e.g. "<kbd>http://www.baidu.com/s?ie=utf-8&wd=%s Baidu</kbd>").
+                  (e.g. "<kbd>http://www.baidu.com/s?ie=utf-8&wd=$s Baidu</kbd>").
                 </div>
               </div>
               <input id="searchUrl" type="text" data-model="NonEmptyText" />
