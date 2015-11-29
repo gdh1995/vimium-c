@@ -53,12 +53,14 @@ var Utils = {
   _nonENTldRe: /[^a-z]/,
   _jsNotEscapeRe: /["\[\]{}\u00ff-\uffff]|%(?![\dA-F]{2}|[\da-f]{2})/,
   filePathRe: /^['"]?((?:[A-Za-z]:[\\/]|\/(?:Users|home|root)\/)[^'"]*)['"]?$/,
+  lastUrlType: 0,
   convertToUrl: function(string, keyword) {
     if (string.substring(0, 11).toLowerCase() === "javascript:") {
       if (Settings.CONST.ChromeVersion < 46 && string.indexOf('%', 11) > 0
           && !this._jsNotEscapeRe.test(string)) {
         string = this.decodeURLPart(string);
       }
+      this.lastUrlType = 0;
       return string;
     }
     var type = -1, expected = 1, index, index2, oldString, arr;
@@ -145,7 +147,7 @@ var Utils = {
     } else {
       type = this.isTld(string.substring(index2, index)) ? 2 : 1;
     }
-    // window.type = type;
+    this.lastUrlType = type;
     return type === 0 ? oldString : type === 1
       ? ("http://" + oldString) : type === 3 ? ("http:" + oldString)
       : this.createSearchUrl(oldString.split(' '), keyword || "~");
