@@ -89,22 +89,12 @@ var Settings = {
       this.set("searchEngineMap", Utils.makeNullProto());
     },
     searchEngineMap: function(value) {
-      var rule  = Utils.parseSearchEngines("~:" + this.get("searchUrl"), value)[0],
-          rules = Utils.parseSearchEngines(this.get("searchEngines"), value);
-      if (rule) {
-        rules.unshift(rule);
-      }
+      Utils.parseSearchEngines("~:" + this.get("searchUrl"), value);
+      var rules = Utils.parseSearchEngines(this.get("searchEngines"), value);
       this.set("searchEngineRules", rules);
     },
     searchUrl: function(value) {
-      var rule = Utils.parseSearchEngines("~:" + value, this.get("searchEngineMap"))[0],
-          rules = this.get("searchEngineRules");
-      if (rules.length > 0 && rules[0][2] === "~") {
-        if (rule) { rules[0] = rule; }
-        else { rules.shift(); }
-      } else if (rule) {
-        rules.unshift(rule);
-      }
+      Utils.parseSearchEngines("~:" + value, this.get("searchEngineMap"));
       this.postUpdate("newTabUrl");
     },
     baseCSS: function(css) {
