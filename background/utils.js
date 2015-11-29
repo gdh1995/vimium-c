@@ -228,9 +228,11 @@ var Utils = {
       ids = ids.filter(func);
       if (ids.length === 0) continue;
       if (ind === -1) {
-        if (pair = this.reparseSearchUrl(obj)) {
-          pair.push(ids[0].trimRight());
-          rules.push(pair);
+        if (ind = obj.$s || obj.$S) {
+          if (pair = this.reparseSearchUrl(val.toLowerCase(), ind)) {
+            pair.push(ids[0].trimRight());
+            rules.push(pair);
+          }
         }
       } else if (str.charCodeAt(ind + 4) === 47) {
         key = ind > 1 ? str.substring(1, ind).trim() : "";
@@ -255,10 +257,8 @@ var Utils = {
     }
     return rules;
   },
-  reparseSearchUrl: function (pattern) {
-    var url, ind = pattern.$s || pattern.$S, prefix, str, ind2;
-    if (!ind) { return; }
-    url = pattern.url.toLowerCase();
+  reparseSearchUrl: function (url, ind, map) {
+    var prefix, str, ind2;
     if (!(this.hasOrdinaryUrlPrefix(url) || url.startsWith("chrome-"))) { return; }
     prefix = url.substring(0, ind - 1);
     if (ind = Math.max(prefix.lastIndexOf("?"), prefix.lastIndexOf("#")) + 1) {
