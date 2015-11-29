@@ -80,7 +80,7 @@ var Utils = {
           || string.charCodeAt(index + 1) === 47 ? 2 : 0;
       } else if (string.startsWith("//")) {
         string = string.substring(2);
-        expected = 3; index2 = 2;
+        expected = 4; index2 = 2;
       } else {
         index2 = 0;
       }
@@ -116,7 +116,7 @@ var Utils = {
       type = string.length < oldString.length && string.indexOf('/', 9) === -1 ? 2 : 0;
     }
     else if (string.startsWith("vimium:")) {
-      type = 4;
+      type = 3;
     } else {
       string = string.substring(index + 3, index2 !== -1 ? index2 : undefined);
       expected = 0;
@@ -149,9 +149,9 @@ var Utils = {
     this.lastUrlType = type;
     return type === 0 ? oldString
       : type === 1 ? ("http://" + oldString)
-      : type === 3 ? ("http:" + oldString)
-      : type === 4 ? (chrome.runtime.getURL("/") + oldString.substring(9))
-      : this.createSearchUrl(oldString.split(' '), keyword || "~");
+      : type === 2 ? this.createSearchUrl(oldString.split(' '), keyword || "~")
+      : type === 3 ? (chrome.runtime.getURL("/") + oldString.substring(9))
+      : ("http:" + oldString);
   },
   isTld: function(tld) {
     if (this._nonENTldRe.test(tld)) {
@@ -238,8 +238,7 @@ var Utils = {
               val = val.replace(this.encodedSearchWordRe, "$$$1");
               ind = (val.indexOf("$s") + 1) || (val.indexOf("$S") + 1);
             } else if (this.lastUrlType > 0) {
-              ind += this.lastUrlType === 1 ? 7 : this.lastUrlType === 3 ? 5
-                : 43;
+              ind += this.lastUrlType === 1 ? 7 : this.lastUrlType === 3 ? 43 : 5;
             }
           }
           if (pair = this.reparseSearchUrl(val.toLowerCase(), ind)) {
