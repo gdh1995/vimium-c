@@ -203,16 +203,17 @@ var Utils = {
         ind = val.indexOf(":", ind + 1);
       } while (val.charCodeAt(ind - 1)  === 92);
       if (ind <= 0 || !(key = val.substring(0, ind).trimRight())) continue;
+      ids = key.replace(rColon, ":").split('|');
       val = val.substring(ind + 1).trimLeft();
       if (!val) continue;
-      str = val.replace(rEscapeSpace, "\\s");
-      ind = str.search(rSpace);
+      key = val.replace(rEscapeSpace, "\\s");
+      ind = key.search(rSpace);
       if (ind > 0) {
         str = val.substring(ind);
-        val = val.substring(0, ind);
+        val = key.substring(0, ind);
         ind = str.search(rRe);
       } else {
-        val = str;
+        val = key;
         str = "";
       }
       val = val.replace(rEscapeS, " ");
@@ -222,7 +223,7 @@ var Utils = {
         name: null,
         url: val
       };
-      ids = key.replace(rColon, ":").split('|').filter(func);
+      ids = ids.filter(func);
       if (ids.length === 0) continue;
       if (ind === -1) {
         if (pair = this.reparseSearchUrl(obj)) {
