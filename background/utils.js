@@ -218,7 +218,7 @@ var Utils = {
         val = key;
         str = "";
       }
-      val = val.replace(rEscapeS, " ");
+      val = val.replace(rEscapeS, " ").trim();
       obj = {
         $S: val.indexOf("%S") + 1,
         $s: val.indexOf("%s") + 1,
