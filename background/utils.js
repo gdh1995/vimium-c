@@ -163,7 +163,7 @@ var Utils = {
     return false;
   },
   searchWordRe: /\$[sS]/g,
-  searchWordRe2: /%([sS])/g,
+  searchWordRe2: /([^\\]|^)%([sS])/g,
   encodedSearchWordRe: /%24([sS])/g,
   createSearchUrl: function(query, keyword) {
     query = this.createSearch(query, Settings.get("searchEngineMap")[keyword]).url;
@@ -197,7 +197,7 @@ var Utils = {
   parseSearchEngines: function(str, map) {
     var ids, pair, key, val, obj, _i, _len, ind, rSlash = /[^\\]\//, rules = [],
     rEscapeSpace = /\\\s/g, rSpace = /\s/, rEscapeS = /\\s/g, rColon = /\\:/g,
-    rRe = /\sre=/i, a = str.replace(/\\\n/g, '').split('\n'),
+    rPercent = /\\%/g, rRe = /\sre=/i, a = str.replace(/\\\n/g, '').split('\n'),
     func = function(key) {
       return (key = key.trim()) && (map[key] = obj);
     };
@@ -222,7 +222,8 @@ var Utils = {
         val = key;
         str = "";
       }
-      val = val.replace(rEscapeS, " ").trim().replace(this.searchWordRe2, "$$$1");
+      val = val.replace(rEscapeS, " ").trim().replace(this.searchWordRe2, "$1$$$2"
+        ).replace(rPercent, "%");
       obj = {
         $S: val.indexOf("$S") + 1,
         $s: val.indexOf("$s") + 1,
