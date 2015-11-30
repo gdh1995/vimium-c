@@ -116,6 +116,7 @@ var Utils = {
       type = string.length < oldString.length && string.indexOf('/', 9) === -1 ? 2 : 0;
     }
     else if (string.startsWith("vimium:")) {
+      oldString = chrome.runtime.getURL("/") + oldString.substring(9);
       type = 3;
     } else {
       string = string.substring(index + 3, index2 !== -1 ? index2 : undefined);
@@ -150,8 +151,8 @@ var Utils = {
     return type === 0 ? oldString
       : type === 1 ? ("http://" + oldString)
       : type === 2 ? this.createSearchUrl(oldString.split(' '), keyword || "~")
-      : type === 3 ? (chrome.runtime.getURL("/") + oldString.substring(9))
-      : ("http:" + oldString);
+      : type === 4 ? ("http:" + oldString)
+      : oldString;
   },
   isTld: function(tld) {
     if (this._nonENTldRe.test(tld)) {
