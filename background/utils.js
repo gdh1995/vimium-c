@@ -258,7 +258,7 @@ var Utils = {
         val = this.makeRegexp(val, ind >= 0 ? str.substring(0, ind) : str);
         if (val) {
           if (key.startsWith("http:") || key.startsWith("https:")) {
-            key = key.substring(key.charAt(4) === 's' ? 8 : 7);
+            key = key.substring(key[4] === 's' ? 8 : 7);
           }
           rules.push([key, val, ids[0].trimRight()]);
         }
@@ -299,7 +299,7 @@ var Utils = {
     matched_body = matched_body && matched_body.replace(this.escapeAllRe, "\\$&"
       ).replace(this._spaceOrPlusRe, "(?:\\+|%20)");
     if (head.startsWith("http")) {
-      head = head.substring(head.charAt(4) === 's' ? 8 : 7);
+      head = head.substring(head[4] === 's' ? 8 : 7);
     }
     return [head, new RegExp(prefix + matched_body + suffix, "i")];
   },
