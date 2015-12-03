@@ -406,7 +406,7 @@ Completers.searchEngines = {
       sug.text = obj.url;
       sug.textSplit = obj.indexes;
     } else {
-      sug.text = Utils.decodeURLPart(Suggestion.shortenUrl(obj.url));
+      sug.text = Utils.DecodeURLPart(Suggestion.shortenUrl(obj.url));
       sug.textSplit = sug.titleSplit = [];
     }
     query.onComplete([sug]);
@@ -414,10 +414,10 @@ Completers.searchEngines = {
   makeText: function(obj) {
     var url = obj.url, arr = obj.indexes, len = arr.length, i = 0, str, ind;
     ind = arr[0];
-    str = Utils.decodeURLPart(Suggestion.shortenUrl(url.substring(0, ind)));
+    str = Utils.DecodeURLPart(Suggestion.shortenUrl(url.substring(0, ind)));
     arr[0] = str.length;
     while (len > ++i) {
-      str += Utils.decodeURLPart(url.substring(ind, arr[i]));
+      str += Utils.DecodeURLPart(url.substring(ind, arr[i]));
       ind = arr[i];
       arr[i] = str.length;
     }
@@ -430,7 +430,6 @@ Completers.searchEngines = {
 
 MultiCompleter = {
   counter: 0,
-  generator: null,
   maxResults: 10,
   mostRecentQuery: null,
   filter: function(completers, queryTerms, onComplete) {
@@ -469,16 +468,14 @@ MultiCompleter = {
     suggestions.forEach(Suggestion.prepareHtml);
     onComplete(suggestions);
   },
+  Generator: function(completers) { this.completers = completers; },
   rsortByRelevancy: function(a, b) { return b.relevancy - a.relevancy; }
 };
 
-  MultiCompleter.generator = function(completers) {
-    this.completers = completers;
-  };
-  MultiCompleter.generator.prototype.filter = function(queryTerms, onComplete) {
+  MultiCompleter.Generator.prototype.filter = function(queryTerms, onComplete) {
     MultiCompleter.filter(this.completers, queryTerms, onComplete);
   };
-  MultiCompleter.generator.prototype.refresh = function() {
+  MultiCompleter.Generator.prototype.refresh = function() {
     for (var completer, _i = this.completers.length; 0 <= --_i; ) {
       if ((completer = this.completers[_i]).refresh) {
         completer.refresh();
@@ -760,10 +757,10 @@ MultiCompleter = {
   }, 100);
 
   Completers = {
-    bookmarks: new MultiCompleter.generator([Completers.bookmarks]),
-    history: new MultiCompleter.generator([Completers.history]),
-    omni: new MultiCompleter.generator([Completers.searchEngines, Completers.bookmarks, Completers.history, Completers.domains]),
-    tabs: new MultiCompleter.generator([Completers.tabs])
+    bookmarks: new MultiCompleter.Generator([Completers.bookmarks]),
+    history: new MultiCompleter.Generator([Completers.history]),
+    omni: new MultiCompleter.Generator([Completers.searchEngines, Completers.bookmarks, Completers.history, Completers.domains]),
+    tabs: new MultiCompleter.Generator([Completers.tabs])
   };
 
   Utils.Decoder = Decoder;

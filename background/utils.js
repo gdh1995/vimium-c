@@ -58,7 +58,7 @@ var Utils = {
     if (string.substring(0, 11).toLowerCase() === "javascript:") {
       if (Settings.CONST.ChromeVersion < 46 && string.indexOf('%', 11) > 0
           && !this._jsNotEscapeRe.test(string)) {
-        string = this.decodeURLPart(string);
+        string = this.DecodeURLPart(string);
       }
       this.lastUrlType = 0;
       return string;
@@ -199,7 +199,7 @@ var Utils = {
       indexes: indexes
     };
   },
-  decodeURLPart: function(url) {
+  DecodeURLPart: function(url) {
     try {
       url = decodeURIComponent(url);
     } catch (e) {}
@@ -284,7 +284,7 @@ var Utils = {
         str = str.substring(ind + 4);
       }
       str = str.trimLeft();
-      obj.name = str ? this.decodeURLPart(str) : ids[ids.length - 1].trimLeft();
+      obj.name = str ? this.DecodeURLPart(str) : ids[ids.length - 1].trimLeft();
     }
     return rules;
   },

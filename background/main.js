@@ -1100,7 +1100,7 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
         } else {
           arr = arr[1].split(str);
         }
-        str = arr.map(Utils.decodeURLPart).join(" ");
+        str = arr.map(Utils.DecodeURLPart).join(" ");
         return pattern[2] + " " + str.replace(Utils.spacesRe, " ").trim();
       }
       return "";
