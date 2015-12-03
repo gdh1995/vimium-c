@@ -415,7 +415,7 @@ background: {
     init: function(background) {
       this._refreshed = [];
       this.onFilter = this.onFilter.bind(this);
-      this.mapResult = background.resolve.bind(background);
+      this.mapResult = background.parse.bind(background);
       this.background = background;
       this.init = null;
     },
@@ -458,13 +458,6 @@ background: {
   showRelevancy: false,
   maxCharNum: 160,
   showFavIcon: false,
-  resolve: function(result) {
-    this.prepareToRender(result);
-    result.action = (result.type === "tab") ? "switchToTab"
-      : result.hasOwnProperty('sessionId') ? "restoreSession"
-      : "navigateToUrl";
-    return result;
-  },
   highlightTitle: function(string, ranges) {
     var _i, out, start, end;
     if (ranges.length === 0) {
@@ -523,7 +516,7 @@ background: {
     }
     return out.join("");
   },
-  prepareToRender: function(item) {
+  parse: function(item) {
     item.textSplit = this.cutUrl(item.text, item.textSplit, item.url);
     item.titleSplit = this.highlightTitle(item.title, item.titleSplit);
     if (this.showFavIcon && item.url.indexOf("://") >= 0) {
@@ -537,6 +530,10 @@ background: {
     } else {
       item.relevancy = "";
     }
+    item.action = (item.type === "tab") ? "switchToTab"
+      : item.hasOwnProperty('sessionId') ? "restoreSession"
+      : "navigateToUrl";
+    return item;
   },
   cleanCompletions: function(list) {
     for (var _i = list.length, item; 0 <= --_i; ) {
