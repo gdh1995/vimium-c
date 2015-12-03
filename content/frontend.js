@@ -478,7 +478,7 @@ var Settings, VHUD, MainPort, VInsertMode;
       if (url.endsWith("/")) { url = url.slice(0, -1); }
       urlsplit = url.split("/");
       if (urlsplit.length <= 3) { return; }
-      urlsplit = urlsplit.slice(0, Math.max(3, urlsplit.length - count));
+      urlsplit.length = Math.max(3, urlsplit.length - count);
       url = urlsplit.join('/');
       if (url.endsWith("#!")) { url = url.slice(0, -2); }
       window.location.href = url;

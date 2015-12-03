@@ -87,20 +87,16 @@ Completers.bookmarks = {
   },
   StartsWithSlash: function(str) { return str.charCodeAt(0) === 47; },
   performSearch: function(query) {
-    var q = query.queryTerms, c, results, usePathAndTitle;
+    var q = query.queryTerms, c, results, name;
     if (q.length === 0) {
       results = [];
     } else {
       c = this.computeRelevancy;
-      usePathAndTitle = q.some(this.StartsWithSlash);
-      results = this.bookmarks.filter(usePathAndTitle ? function(i) {
-        return RankingUtils.match2(q, i.text, i.path);
-      } : function(i) {
-        return RankingUtils.match2(q, i.text, i.title);
-      }).map(usePathAndTitle ? function(i) {
-        return new Suggestion(q, "bookm", i.url, i.text, i.path, c);
-      } : function(i) {
-        return new Suggestion(q, "bookm", i.url, i.text, i.title, c);
+      name = q.some(this.StartsWithSlash) ? "path" : "title";
+      results = this.bookmarks.filter(function(i) {
+        return RankingUtils.match2(q, i.text, i[name]);
+      }).map(function(i) {
+        return new Suggestion(q, "bookm", i.url, i.text, i[name], c);
       });
     }
     query.onComplete(results);
@@ -214,11 +210,14 @@ Completers.history = {
   },
   filterFinish: function(historys, query) {
     var s = Suggestion, c = this.computeRelevancyByTime, d = Decoder.decodeURL;
-    query.onComplete(historys.sort(this.rsortByLvt).slice(0, MultiCompleter.maxResults).map(function(e) {
+    historys.sort(this.rsortByLvt);
+    historys.length = MultiCompleter.maxResults;
+    historys.forEach(function(e, i, arr) {
       var o = new s([], "history", e.url, d(e.url), e.title, c, e.lastVisitTime);
       e.sessionId && (o.sessionId = e.sessionId);
-      return o;
-    }));
+      arr[i] = o;
+    });
+    query.onComplete(historys);
     Decoder.continueToWork();
   },
   rsortByLvt: function(a, b) {
@@ -461,7 +460,7 @@ MultiCompleter = {
     this.mostRecentQuery = this.suggestions = newSuggestions = null;
     suggestions.sort(this.rsortByRelevancy);
     if (suggestions.length > this.maxResults) {
-      suggestions = suggestions.slice(0, this.maxResults);
+      suggestions.length = this.maxResults;
     }
     var queryTerms = query.queryTerms;
     if (queryTerms.length > 0) {
