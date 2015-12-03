@@ -17,12 +17,29 @@ setTimeout(function() {
 
   Suggestion.prepareHtml = function(sug) {
     if (! sug.queryTerms) { return; }
-    sug.titleSplit = this.highlight1(sug.title);
+    sug.titleSplit = this.highlightTitle(sug.title, sug.queryTerms);
     sug.text = this.shortenUrl(sug.text);
-    sug.textSplit = this.highlight1(sug.text);
+    sug.textSplit = this.highlight1(sug.text, sug.queryTerms);
     delete sug.queryTerms;
   };
   Suggestion.prepareHtml = Suggestion.prepareHtml.bind(Suggestion);
+
+  Suggestion.highlightTitle = function(string, queryTerms) {
+    var ranges, _i, out, start, end;
+    ranges = this.highlight1(string, queryTerms);
+    if (ranges.length === 0) { return Utils.escapeHtml(string); }
+    out = [];
+    for(_i = 0, end = 0; _i < ranges.length; _i += 2) {
+      start = ranges[_i];
+      out.push(Utils.escapeHtml(string.substring(end, start)));
+      end = ranges[_i + 1];
+      out.push("<span class=\"OSTitle\">");
+      out.push(Utils.escapeHtml(string.substring(start, end)));
+      out.push("</span>");
+    }
+    out.push(Utils.escapeHtml(string.substring(end)));
+    return out.join("");
+  },
 
   Suggestion.shortenUrl = function(url) {
     return url.substring((url.startsWith("http://")) ? 7 : (url.startsWith("https://")) ? 8 : 0,
@@ -40,14 +57,12 @@ setTimeout(function() {
     }
   };
 
-  Suggestion.highlight1 = function(string) {
-    var ranges = [], _i, _len, _ref = this.queryTerms;
+  Suggestion.highlight1 = function(string, _ref) {
+    var ranges = [], _i, _len;
     for (_i = 0, _len = _ref.length; _i < _len; ++_i) {
       this.pushMatchingRanges(string, _ref[_i], ranges);
     }
-    if (ranges.length === 0) {
-      return ranges;
-    }
+    if (ranges.length === 0) { return ranges; }
     ranges.sort(this.rsortBy0);
     return this.mergeRanges(ranges);
   };

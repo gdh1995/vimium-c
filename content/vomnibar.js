@@ -458,23 +458,6 @@ background: {
   showRelevancy: false,
   maxCharNum: 160,
   showFavIcon: false,
-  highlightTitle: function(string, ranges) {
-    var _i, out, start, end;
-    if (ranges.length === 0) {
-      return Utils.escapeHtml(string);
-    }
-    out = [];
-    for(_i = 0, end = 0; _i < ranges.length; _i += 2) {
-      start = ranges[_i];
-      out.push(Utils.escapeHtml(string.substring(end, start)));
-      end = ranges[_i + 1];
-      out.push("<span class=\"OSTitle\">");
-      out.push(Utils.escapeHtml(string.substring(start, end)));
-      out.push("</span>");
-    }
-    out.push(Utils.escapeHtml(string.substring(end)));
-    return out.join("");
-  },
   cutUrl: function(string, ranges, strCoded) {
     var out = [], cutStart = -1, temp, lenCut, i, end, start;
     if (! (string.length <= this.maxCharNum)) {
@@ -518,7 +501,6 @@ background: {
   },
   parse: function(item) {
     item.textSplit = this.cutUrl(item.text, item.textSplit, item.url);
-    item.titleSplit = this.highlightTitle(item.title, item.titleSplit);
     if (this.showFavIcon && item.url.indexOf("://") >= 0) {
       item.favIconUrl = " OIIcon\" style=\"background-image: url('" + Utils.escapeHtml(item.favIconUrl ||
         ("chrome://favicon/size/16/" + item.url)) + "')";
