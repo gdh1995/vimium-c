@@ -162,30 +162,41 @@ var Utils = {
     }
     return false;
   },
-  searchWordRe: /\$[sS]/g,
+  searchWordRe: /\$([sS])(?:\{([^\}]*)\})?/g,
   searchWordRe2: /([^\\]|^)%([sS])/g,
-  encodedSearchWordRe: /%24([sS])/g,
+  searchVariable: /\$([\d])/g,
   createSearchUrl: function(query, keyword) {
-    query = this.createSearch(query, Settings.get("searchEngineMap")[keyword]).url;
+    var pattern = Settings.get("searchEngineMap")[keyword];
+    if (pattern) {
+      query = this.createSearch(query, pattern, null);
+    }
     if (keyword != "~") {
       query = this.convertToUrl(query);
     }
     return query;
   },
-  createSearch: function(query, pattern, $S) {
-    var queryStr;
-    if ($S != null ? ($S === true) : pattern.$S) {
-      $S = query.join(' ');
-    }
-    if (pattern.$s) {
-      queryStr = query.map(encodeURIComponent).join('+');
-    }
-    return {
-      url: pattern.url.replace(this.searchWordRe, function(s) {
-        return (s === "$s") ? queryStr : $S;
-      }),
-      $s: queryStr,
-      $S: $S
+  createSearch: function(query, pattern, indexes) {
+    var q2, url, delta = 0;
+    url = pattern.url.replace(this.searchWordRe, function(_s, s1, s2, ind) {
+      var arr = s1 === "S" ? query : (q2 || (q2 = query.map(encodeURIComponent)));
+      if (arr.length === 0) { return ""; }
+      if (s2 && s2.indexOf('$') !== -1) {
+        s2 = s2.replace(Utils.searchVariable, function(_s, s1) {
+          return arr[s1 - 1] || "";
+        });
+      } else {
+        s2 = arr.join(s2 != null ? s2 : s1 === "s" ? "+" : " ");
+      }
+      if (indexes !== null) {
+        ind += delta;
+        indexes.push(ind, ind + s2.length);
+        delta += s2.length - _s.length;
+      }
+      return s2;
+    });
+    return indexes === null ? url : {
+      url: url,
+      indexes: indexes
     };
   },
   decodeURLPart: function(url) {
@@ -200,7 +211,7 @@ var Utils = {
     rPercent = /\\%/g, rRe = /\sre=/i, a = str.replace(/\\\n/g, '').split('\n'),
     func = function(key) {
       return (key = key.trim()) && (map[key] = obj);
-    };
+    }, encodedSearchWordRe = /%24([sS])/g, re = this.searchWordRe;
     for (_i = 0, _len = a.length; _i < _len; _i++) {
       val = a[_i].trim();
       if (!(val.charCodeAt(0) > 35)) { continue; } // mask: /[ !"#]/
@@ -224,28 +235,34 @@ var Utils = {
       }
       val = val.replace(rEscapeS, " ").trim().replace(this.searchWordRe2, "$1$$$2"
         ).replace(rPercent, "%");
+      re.lastIndex = 0;
+      pair = re.exec(val);
       obj = {
-        $S: val.indexOf("$S") + 1,
-        $s: val.indexOf("$s") + 1,
+        ind: pair ? (pair.index + 1) : 0,
         name: null,
-        url: val
+        url: val,
       };
       ids = ids.filter(func);
       if (ids.length === 0) continue;
       if (ind === -1) {
-        if (ind = obj.$s || obj.$S) {
-          if (map["~"]) {
-            val = this.convertToUrl(val);
-            if (this.lastUrlType === 2) {
-              val = val.replace(this.encodedSearchWordRe, "$$$1");
-              ind = (val.indexOf("$s") + 1) || (val.indexOf("$S") + 1);
-            } else if (this.lastUrlType > 0) {
-              ind += this.lastUrlType === 1 ? 7 : this.lastUrlType === 3 ? 43 : 5;
-            }
+        if (ind = obj.ind) {
+          key = pair[2];
+          if (key) {
+            val = this.convertToUrl(val.replace(re, "$$$1"));
+          } else {
+            key = pair[1] === "s" ? "+" : " ";
+          }
+          if (this.lastUrlType === 2) {
+            val = val.replace(encodedSearchWordRe, decodeURIComponent);
+            ind = val.search(re) + 1;
+          } else if (this.lastUrlType > 0) {
+            ind += this.lastUrlType === 1 ? 7 : this.lastUrlType === 3 ? 43 : 5;
           }
           if (pair = this.reparseSearchUrl(val.toLowerCase(), ind)) {
-            pair.push(ids[0].trimRight());
-            rules.push(pair);
+            if (key.indexOf("$") >= 0) {
+              key = new RegExp("^" + key.replace(this.searchVariable, "(.*)"), "i");
+            }
+            rules.push([pair[0], pair[1], ids[0].trimRight(), key]);
           }
         }
       } else if (str.charCodeAt(ind + 4) === 47) {
@@ -260,7 +277,7 @@ var Utils = {
           if (key.startsWith("http:") || key.startsWith("https:")) {
             key = key.substring(key[4] === 's' ? 8 : 7);
           }
-          rules.push([key, val, ids[0].trimRight()]);
+          rules.push([key, val, ids[0].trimRight(), pair && pair[1] === "S" ? " " : "+"]);
         }
         str = ind >= 0 ? str.substring(ind + 1) : "";
       } else {
@@ -296,8 +313,8 @@ var Utils = {
       if (str2 = url.substring(prefix.length + 2)) {
         if (ind = str2.search(this._queryRe) + 1) {
           str2 = str2.substring(0, ind - 1);
+        }
       }
-    }
       url = "";
     }
     str2 = str2 && str2.replace(this.escapeAllRe, "\\$&"

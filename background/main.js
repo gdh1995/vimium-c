@@ -1087,20 +1087,21 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
       }
       for (_i = decoders.length; 0 <= --_i; ) {
         pattern = decoders[_i];
-        if (url.startsWith(pattern[0])) {
-          if (arr = pattern[1].exec(request.url.substring(pattern[0].length))) {
-            arr.shift();
-            str = arr.join(" ");
-            url = pattern[2];
-            if (Settings.get("searchEngineMap")[url].$s) {
-              str = str.split("+").map(Utils.decodeURLPart).join(" ");
-            } else {
-              str = Utils.decodeURLPart(str);
-            }
-            str = str.replace(Utils.spacesRe, " ").trim();
-            return url + " " + str;
-          }
+        if (!url.startsWith(pattern[0])) { continue; }
+        arr = pattern[1].exec(request.url.substring(pattern[0].length));
+        if (!arr) { continue; }
+        str = pattern[3];
+        if (arr.length !== 2) {
+          arr.shift();
+        } else if (str instanceof RegExp) {
+          url = arr[1]; 
+          arr = url.match(str);
+          arr ? arr.shift() : (arr = [url]);
+        } else {
+          arr = arr[1].split(str);
         }
+        str = arr.map(Utils.decodeURLPart).join(" ");
+        return pattern[2] + " " + str.replace(Utils.spacesRe, " ").trim();
       }
       return "";
     },

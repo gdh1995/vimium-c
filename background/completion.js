@@ -398,29 +398,31 @@ Completers.searchEngines = {
     } else {
       queryTerms = [];
     }
-    obj = Utils.createSearch(queryTerms, pattern, true);
-    text = Utils.decodeURLPart(Suggestion.shortenUrl(obj.url));
-    sug = new Suggestion(null, "search", obj.url, text
-      , pattern.name + ": " + obj.$S, this.computeRelevancy);
+    obj = Utils.createSearch(queryTerms, pattern, []);
+    sug = new Suggestion(null, "search", obj.url, ""
+      , pattern.name + ": " + queryTerms.join(" "), this.computeRelevancy);
     if (queryTerms.length > 0) {
       sug.titleSplit = [pattern.name.length + 2, sug.title.length];
-      text = Utils.decodeURLPart(Suggestion.shortenUrl(pattern.url));
-      sug.textSplit = this.splitText(obj, sug.text, text);
+      this.makeText(obj);
+      sug.text = obj.url;
+      sug.textSplit = obj.indexes;
     } else {
+      sug.text = Utils.decodeURLPart(Suggestion.shortenUrl(obj.url));
       sug.textSplit = sug.titleSplit = [];
     }
     query.onComplete([sug]);
   },
-  splitText: function(obj, text, template) {
-    var arr = template.split(Utils.searchWordRe), start = 0, ret = [];
-    arr.pop();
-    arr.forEach(function(str) {
-      start += str.length;
-      var end = start + obj[template.substring(start, start + 2)].length;
-      ret.push(start, end);
-      start = end;
-    });
-    return ret;
+  makeText: function(obj) {
+    var url = obj.url, arr = obj.indexes, len = arr.length, i = 0, str, ind;
+    ind = arr[0];
+    str = Utils.decodeURLPart(Suggestion.shortenUrl(url.substring(0, ind)));
+    arr[0] = str.length;
+    while (len > ++i) {
+      str += Utils.decodeURLPart(url.substring(ind, arr[i]));
+      ind = arr[i];
+      arr[i] = str.length;
+    }
+    obj.url = str;
   },
   computeRelevancy: function() {
     return 9;
