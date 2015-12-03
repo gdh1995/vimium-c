@@ -1,7 +1,8 @@
 "use strict";
 var Completers;
 setTimeout(function() {
-  var TabRecency, HistoryCache, RankingUtils, RegexpCache, Decoder, MultiCompleter;
+  var TabRecency, HistoryCache, RankingUtils, RegexpCache, Decoder, MultiCompleter,
+      maxCharNum = 160;
 
   Completers = {};
 
@@ -19,7 +20,7 @@ setTimeout(function() {
     if (! sug.queryTerms) { return; }
     sug.titleSplit = this.highlightTitle(sug.title, sug.queryTerms);
     sug.text = this.shortenUrl(sug.text);
-    sug.textSplit = this.highlight1(sug.text, sug.queryTerms);
+    sug.textSplit = this.cutUrl(sug.text, this.highlight1(sug.text, sug.queryTerms), sug.url);
     delete sug.queryTerms;
   };
   Suggestion.prepareHtml = Suggestion.prepareHtml.bind(Suggestion);
@@ -85,6 +86,42 @@ setTimeout(function() {
       }
     }
     return mergedRanges;
+  };
+
+  Suggestion.cutUrl = function(string, ranges, strCoded) {
+    var out = [], cutStart = -1, temp, lenCut, i, end, start;
+    if (string.length <= maxCharNum || (cutStart = strCoded.indexOf(":")) < 0) {}
+    else if (string.substring(cutStart, cutStart + 3) !== "://") { ++cutStart; }
+    else if ((cutStart = strCoded.indexOf("/", cutStart + 4)) >= 0) {
+      temp = string.indexOf("://");
+      cutStart = string.indexOf("/", (temp < 0 || temp > cutStart) ? 0 : (temp + 4));
+    }
+    cutStart = (cutStart < 0) ? string.length : (cutStart + 1);
+    for(i = 0, lenCut = 0, end = 0; i < ranges.length; i += 2) {
+      start = ranges[i];
+      temp = (end >= cutStart) ? end : cutStart;
+      if (temp + 20 > start) {
+        out.push(Utils.escapeHtml(string.substring(end, start)));
+      } else {
+        out.push(Utils.escapeHtml(string.substring(end, temp + 10)));
+        out.push("...");
+        out.push(Utils.escapeHtml(string.substring(start - 6, start)));
+        lenCut += start - temp - 19;
+      }
+      end = ranges[i + 1];
+      out.push("<span class=\"OSUrl\">");
+      out.push(Utils.escapeHtml(string.substring(start, end)));
+      out.push("</span>");
+    }
+    temp = maxCharNum + lenCut;
+    if (string.length <= temp) {
+      out.push(Utils.escapeHtml(string.substring(end)));
+    } else {
+      out.push(Utils.escapeHtml(string.substring(end,
+        (temp - 3 > end) ? (temp - 3) : (end + 10))));
+      out.push("...");
+    }
+    return out.join("");
   };
 
 Completers.bookmarks = {
@@ -488,7 +525,8 @@ MultiCompleter = {
   rsortByRelevancy: function(a, b) { return b.relevancy - a.relevancy; }
 };
 
-  MultiCompleter.Generator.prototype.filter = function(queryTerms, onComplete) {
+  MultiCompleter.Generator.prototype.filter = function(queryTerms, clientWidth, onComplete) {
+    maxCharNum = Math.floor((clientWidth * 0.8 - 70) / 7.72);
     MultiCompleter.filter(this.completers, queryTerms, onComplete);
   };
   MultiCompleter.Generator.prototype.refresh = function() {

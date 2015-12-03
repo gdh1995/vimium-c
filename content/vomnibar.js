@@ -436,6 +436,7 @@ background: {
       this._callback = callback;
       this._id = MainPort.sendMessage({
         handlerOmni: this.name,
+        clientWidth: window.innerWidth,
         query: query && query.trim().replace(this.whiteSpaceRe, ' ')
       }, this.onFilter);
     },
@@ -448,59 +449,13 @@ background: {
       if (this._id !== msgId) { return; }
       var callback = this._callback;
       this._callback = null;
-      if (callback) {
-        this.background.maxCharNum = Math.floor((window.innerWidth * 0.8 - 70) / 7.72);
-        callback(msgId > 0 ? results.map(this.mapResult) : []);
-      }
+      callback(msgId > 0 ? results.map(this.mapResult) : []);
     }
   },
 
   showRelevancy: false,
-  maxCharNum: 160,
   showFavIcon: false,
-  cutUrl: function(string, ranges, strCoded) {
-    var out = [], cutStart = -1, temp, lenCut, i, end, start;
-    if (! (string.length <= this.maxCharNum)) {
-      cutStart = strCoded.indexOf(":");
-      if (cutStart < 0) {}
-      else if (string.substring(cutStart, cutStart + 3) !== "://") { ++cutStart; }
-      else {
-        cutStart = strCoded.indexOf("/", cutStart + 4);
-        if (cutStart >= 0) {
-          temp = string.indexOf("://");
-          cutStart = string.indexOf("/", (temp < 0 || temp > cutStart) ? 0 : (temp + 4));
-        }
-      }
-    }
-    cutStart = (cutStart < 0) ? string.length : (cutStart + 1);
-    for(i = 0, lenCut = 0, end = 0; i < ranges.length; i += 2) {
-      start = ranges[i];
-      temp = (end >= cutStart) ? end : cutStart;
-      if (temp + 20 > start) {
-        out.push(Utils.escapeHtml(string.substring(end, start)));
-      } else {
-        out.push(Utils.escapeHtml(string.substring(end, temp + 10)));
-        out.push("...");
-        out.push(Utils.escapeHtml(string.substring(start - 6, start)));
-        lenCut += start - temp - 19;
-      }
-      end = ranges[i + 1];
-      out.push("<span class=\"OSUrl\">");
-      out.push(Utils.escapeHtml(string.substring(start, end)));
-      out.push("</span>");
-    }
-    temp = this.maxCharNum + lenCut;
-    if (! (string.length > temp)) {
-      out.push(Utils.escapeHtml(string.substring(end)));
-    } else {
-      out.push(Utils.escapeHtml(string.substring(end,
-        (temp - 3 > end) ? (temp - 3) : (end + 10))));
-      out.push("...");
-    }
-    return out.join("");
-  },
   parse: function(item) {
-    item.textSplit = this.cutUrl(item.text, item.textSplit, item.url);
     if (this.showFavIcon && item.url.indexOf("://") >= 0) {
       item.favIconUrl = " OIIcon\" style=\"background-image: url('" + Utils.escapeHtml(item.favIconUrl ||
         ("chrome://favicon/size/16/" + item.url)) + "')";
