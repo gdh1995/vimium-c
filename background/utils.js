@@ -271,37 +271,41 @@ var Utils = {
     }
     return rules;
   },
-  reparseSearchUrl: function (url, ind, map) {
-    var prefix, str, ind2;
+  escapeAllRe: /[\$\(\)\*\+\.\?\[\\\]\^\{\|\}]/g,
+  _spaceOrPlusRe: /\\\+|%20| /g,
+  _queryRe: /[#?]/,
+  reparseSearchUrl: function (url, ind) {
+    var prefix, str, str2, ind2;
     if (!(this.hasOrdinaryUrlPrefix(url) || url.startsWith("chrome-"))) { return; }
     prefix = url.substring(0, ind - 1);
     if (ind = Math.max(prefix.lastIndexOf("?"), prefix.lastIndexOf("#")) + 1) {
-      str = prefix.substring(ind);
-      prefix = prefix.substring(0, Math.max(prefix.indexOf("?"), prefix.indexOf("#")));
+      str2 = str = prefix.substring(ind);
+      prefix = prefix.substring(0, prefix.search(this._queryRe));
       if (ind2 = str.lastIndexOf("&") + 1) {
-        str = str.substring(ind2);
+        str2 = str.substring(ind2);
       }
-      if (str && str.indexOf("=") >= 1) {
-        return this.makeReparser(prefix, "[#&?]", str, "([^#&]*)");
+      if (str2 && str2.indexOf("=") >= 1) {
+        str = "[#&?]";
+      } else {
+        str2 = str;
+        str = url[ind - 1] === "#" ? "#" : str2 ? "[#\\?]" : "\\?";
       }
-      url = url[ind - 1] === "?" ? "\\?" : "#";
-      return this.makeReparser(prefix, url, str, "([^#&?]*)");
+      url = "([^#&?]*)";
+    } else {
+      str = "^([^?#]*)";
+      if (str2 = url.substring(prefix.length + 2)) {
+        if (ind = str2.search(this._queryRe) + 1) {
+          str2 = str2.substring(0, ind - 1);
+      }
     }
-    url = url.substring(prefix.length + 2);
-    if (ind = Math.max(url.indexOf("?"), url.indexOf("#")) + 1) {
-      url = url.substring(0, ind - 1);
+      url = "";
     }
-    return this.makeReparser(prefix, "^([^?#]*)", url, "");
-  },
-  escapeAllRe: /[\$\(\)\*\+\.\?\[\\\]\^\{\|\}]/g,
-  _spaceOrPlusRe: /\\\+|%20| /g,
-  makeReparser: function(head, prefix, matched_body, suffix) {
-    matched_body = matched_body && matched_body.replace(this.escapeAllRe, "\\$&"
+    str2 = str2 && str2.replace(this.escapeAllRe, "\\$&"
       ).replace(this._spaceOrPlusRe, "(?:\\+|%20)");
-    if (head.startsWith("http")) {
-      head = head.substring(head[4] === 's' ? 8 : 7);
+    if (prefix.startsWith("http")) {
+      prefix = prefix.substring(prefix[4] === 's' ? 8 : 7);
     }
-    return [head, new RegExp(prefix + matched_body + suffix, "i")];
+    return [prefix, new RegExp(str + str2 + url, "i")];
   },
   makeRegexp: function(pattern, suffix) {
     try {
