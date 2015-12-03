@@ -15,20 +15,21 @@ setTimeout(function() {
     this.relevancy = computeRelevancy(this, extraData);
   }
 
-  Suggestion.prepareHtml = function(suggestion) {
-    if (! suggestion.queryTerms) { return; }
-    suggestion.titleSplit = suggestion.highlight1(suggestion.title);
-    suggestion.text = Suggestion.shortenUrl(suggestion.text);
-    suggestion.textSplit = suggestion.highlight1(suggestion.text);
-    delete suggestion.queryTerms;
+  Suggestion.prepareHtml = function(sug) {
+    if (! sug.queryTerms) { return; }
+    sug.titleSplit = this.highlight1(sug.title);
+    sug.text = this.shortenUrl(sug.text);
+    sug.textSplit = this.highlight1(sug.text);
+    delete sug.queryTerms;
   };
+  Suggestion.prepareHtml = Suggestion.prepareHtml.bind(Suggestion);
 
   Suggestion.shortenUrl = function(url) {
     return url.substring((url.startsWith("http://")) ? 7 : (url.startsWith("https://")) ? 8 : 0,
       url.length - +(url.charCodeAt(url.length - 1) === 47));
   };
 
-  Suggestion.prototype.pushMatchingRanges = function(string, term, ranges) {
+  Suggestion.pushMatchingRanges = function(string, term, ranges) {
     var index = 0, textPosition = 0, matchedEnd,
       splits = string.split(RegexpCache.get(term, "(", ")")),
       _ref = splits.length - 2;
@@ -39,7 +40,7 @@ setTimeout(function() {
     }
   };
 
-  Suggestion.prototype.highlight1 = function(string) {
+  Suggestion.highlight1 = function(string) {
     var ranges = [], _i, _len, _ref = this.queryTerms;
     for (_i = 0, _len = _ref.length; _i < _len; ++_i) {
       this.pushMatchingRanges(string, _ref[_i], ranges);
@@ -47,7 +48,7 @@ setTimeout(function() {
     if (ranges.length === 0) {
       return ranges;
     }
-    ranges.sort(Suggestion.rsortBy0);
+    ranges.sort(this.rsortBy0);
     return this.mergeRanges(ranges);
   };
 
@@ -55,7 +56,7 @@ setTimeout(function() {
     return b[0] - a[0];
   };
 
-  Suggestion.prototype.mergeRanges = function(ranges) {
+  Suggestion.mergeRanges = function(ranges) {
     var mergedRanges = ranges.pop(), i = 1, range, ind = ranges.length;
     while (0 <= --ind) {
       range = ranges[ind];
