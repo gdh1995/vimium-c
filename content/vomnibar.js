@@ -325,8 +325,8 @@ vomnibarUI: {
   onInput: function() {
     var str = this.input.value.trimLeft();
     this.completionInput.text = str;
-    str = str.trimRight();
-    if ((this.selection === -1 ? this.completionInput.url : this.completions[this.selection].text) !== str) {
+    if ((str = str.trimRight()) !== ((this.selection === -1 || !this.isSelectionChanged)
+          ? this.completionInput.url : this.completions[this.selection].text)) {
       this.update();
       this.completionInput.url = str;
     }
