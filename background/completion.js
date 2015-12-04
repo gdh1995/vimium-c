@@ -2,7 +2,7 @@
 var Completers;
 setTimeout(function() {
   var TabRecency, HistoryCache, RankingUtils, RegexpCache, Decoder, MultiCompleter,
-      maxCharNum = 160, queryTerms = null;
+      maxCharNum = 160, queryTerms = null, SuggestionUtils;
 
   Completers = {};
 
@@ -15,16 +15,15 @@ setTimeout(function() {
     this.relevancy = computeRelevancy(this, extraData);
   }
 
-  Suggestion.prepareHtml = function(sug) {
+SuggestionUtils = {
+  PrepareHtml: function(sug) {
     if (sug.textSplit) { return; }
-    sug.titleSplit = this.highlightTitle(sug.title, this.highlight1(sug.title));
+    sug.titleSplit = this.highlight(sug.title, this.getRanges(sug.title));
     var str = sug.text = this.shortenUrl(sug.text);
-    sug.textSplit = this.cutUrl(str, this.highlight1(str), sug.url);
-  };
-  Suggestion.prepareHtml = Suggestion.prepareHtml.bind(Suggestion);
-
-  Suggestion.highlightTitle = function(string, ranges) {
-    var ranges, _i, out, start, end;
+    sug.textSplit = this.cutUrl(str, this.getRanges(str), sug.url);
+  },
+  highlight: function(string, ranges) {
+    var _i, out, start, end;
     if (ranges.length === 0) { return Utils.escapeHtml(string); }
     out = [];
     for(_i = 0, end = 0; _i < ranges.length; _i += 2) {
@@ -38,13 +37,11 @@ setTimeout(function() {
     out.push(Utils.escapeHtml(string.substring(end)));
     return out.join("");
   },
-
-  Suggestion.shortenUrl = function(url) {
+  shortenUrl: function(url) {
     return url.substring((url.startsWith("http://")) ? 7 : (url.startsWith("https://")) ? 8 : 0,
       url.length - +(url.charCodeAt(url.length - 1) === 47));
-  };
-
-  Suggestion.pushMatchingRanges = function(string, term, ranges) {
+  },
+  pushMatchingRanges: function(string, term, ranges) {
     var index = 0, textPosition = 0, matchedEnd,
       splits = string.split(RegexpCache.get(term, "(", ")")),
       _ref = splits.length - 2;
@@ -53,9 +50,8 @@ setTimeout(function() {
       ranges.push([textPosition, matchedEnd]);
       textPosition = matchedEnd;
     }
-  };
-
-  Suggestion.highlight1 = function(string) {
+  },
+  getRanges: function(string) {
     var ranges = [], _i, _len, _ref = queryTerms;
     for (_i = 0, _len = _ref.length; _i < _len; ++_i) {
       this.pushMatchingRanges(string, _ref[_i], ranges);
@@ -63,13 +59,9 @@ setTimeout(function() {
     if (ranges.length === 0) { return ranges; }
     ranges.sort(this.rsortBy0);
     return this.mergeRanges(ranges);
-  };
-
-  Suggestion.rsortBy0 = function(a, b) {
-    return b[0] - a[0];
-  };
-
-  Suggestion.mergeRanges = function(ranges) {
+  },
+  rsortBy0: function(a, b) { return b[0] - a[0]; },
+  mergeRanges: function(ranges) {
     var mergedRanges = ranges.pop(), i = 1, range, ind = ranges.length;
     while (0 <= --ind) {
       range = ranges[ind];
@@ -83,9 +75,8 @@ setTimeout(function() {
       }
     }
     return mergedRanges;
-  };
-
-  Suggestion.cutUrl = function(string, ranges, strCoded) {
+  },
+  cutUrl: function(string, ranges, strCoded) {
     var out = [], cutStart = -1, temp, lenCut, i, end, start;
     if (string.length <= maxCharNum || (cutStart = strCoded.indexOf(":")) < 0) {}
     else if (string.substring(cutStart, cutStart + 3) !== "://") { ++cutStart; }
@@ -119,7 +110,9 @@ setTimeout(function() {
       out.push("...");
     }
     return out.join("");
-  };
+  }
+};
+SuggestionUtils.PrepareHtml = SuggestionUtils.PrepareHtml.bind(SuggestionUtils);
 
 Completers.bookmarks = {
   bookmarks: null,
@@ -314,7 +307,7 @@ Completers.domains = {
       sug = new Suggestion("domain", (ref[result][2]
           ? "https://" + result : result), result, null, this.computeRelevancy);
       sug.titleSplit = "";
-      sug.textSplit = Suggestion.cutUrl(result, Suggestion.highlight1(result), sug.url);
+      sug.textSplit = SuggestionUtils.cutUrl(result, SuggestionUtils.getRanges(result), sug.url);
     }
     queryTerms = q;
     query.onComplete(sug ? [sug] : []);
@@ -455,11 +448,11 @@ Completers.searchEngines = {
       , pattern.name + ": " + q.join(" "), this.computeRelevancy);
     if (q.length > 0) {
       this.makeText(obj);
-      sug.textSplit = Suggestion.highlightTitle(sug.text = obj.url, obj.indexes);
-      sug.titleSplit = Suggestion.highlightTitle(sug.title
+      sug.textSplit = SuggestionUtils.highlight(sug.text = obj.url, obj.indexes);
+      sug.titleSplit = SuggestionUtils.highlight(sug.title
         , [pattern.name.length + 2, sug.title.length]);
     } else {
-      sug.text = Utils.DecodeURLPart(Suggestion.shortenUrl(obj.url));
+      sug.text = Utils.DecodeURLPart(SuggestionUtils.shortenUrl(obj.url));
       sug.textSplit = sug.text;
       sug.titleSplit = sug.title;
     }
@@ -468,7 +461,7 @@ Completers.searchEngines = {
   makeText: function(obj) {
     var url = obj.url, arr = obj.indexes, len = arr.length, i = 0, str, ind;
     ind = arr[0];
-    str = Utils.DecodeURLPart(Suggestion.shortenUrl(url.substring(0, ind)));
+    str = Utils.DecodeURLPart(SuggestionUtils.shortenUrl(url.substring(0, ind)));
     arr[0] = str.length;
     while (len > ++i) {
       str += Utils.DecodeURLPart(url.substring(ind, arr[i]));
@@ -515,9 +508,9 @@ MultiCompleter = {
       suggestions.length = this.maxResults;
     }
     if (queryTerms.length > 0) {
-      queryTerms[0] = Suggestion.shortenUrl(queryTerms[0]);
+      queryTerms[0] = SuggestionUtils.shortenUrl(queryTerms[0]);
     }
-    suggestions.forEach(Suggestion.prepareHtml);
+    suggestions.forEach(SuggestionUtils.PrepareHtml);
     queryTerms = null;
     onComplete(suggestions);
   },
