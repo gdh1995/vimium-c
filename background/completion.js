@@ -454,13 +454,14 @@ Completers.searchEngines = {
     sug = new Suggestion("search", obj.url, ""
       , pattern.name + ": " + q.join(" "), this.computeRelevancy);
     if (q.length > 0) {
-      sug.titleSplit = [pattern.name.length + 2, sug.title.length];
       this.makeText(obj);
-      sug.text = obj.url;
-      sug.textSplit = obj.indexes;
+      sug.textSplit = Suggestion.highlightTitle(sug.text = obj.url, obj.indexes);
+      sug.titleSplit = Suggestion.highlightTitle(sug.title
+        , [pattern.name.length + 2, sug.title.length]);
     } else {
       sug.text = Utils.DecodeURLPart(Suggestion.shortenUrl(obj.url));
-      sug.textSplit = sug.titleSplit = [];
+      sug.textSplit = sug.text;
+      sug.titleSplit = sug.title;
     }
     query.onComplete([sug]);
   },
@@ -474,7 +475,7 @@ Completers.searchEngines = {
       ind = arr[i];
       arr[i] = str.length;
     }
-    obj.url = str;
+    obj.url = str + Utils.DecodeURLPart(url.substring(ind));
   },
   computeRelevancy: function() {
     return 9;
