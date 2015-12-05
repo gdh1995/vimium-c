@@ -321,6 +321,8 @@ var Utils = {
       ).replace(this._spaceOrPlusRe, "(?:\\+|%20)");
     if (prefix.startsWith("http")) {
       prefix = prefix.substring(prefix[4] === 's' ? 8 : 7);
+    } else if (prefix.startsWith("vimium://")) {
+      prefix = chrome.runtime.getURL("/") + prefix.substring(9);
     }
     return [prefix, new RegExp(str + str2 + url, "i")];
   },
