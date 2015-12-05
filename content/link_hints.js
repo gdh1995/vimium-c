@@ -658,7 +658,7 @@ FUNC: {
       this.keepHUDAfterAct = true;
       return;
     }
-    if (this.CONST.SEARCH_TEXT) {
+    if (this.mode === this.CONST.EDIT_TEXT) {
       Vomnibar.activateEditUrlInNewTab(1, {
         url: str,
         keyword: this.options.keyword
@@ -711,7 +711,7 @@ FUNC: {
       this.keepHUDAfterAct = true;
       return;
     }
-    if (this.CONST.SEARCH_TEXT) {
+    if (this.mode === this.CONST.EDIT_TEXT) {
       Vomnibar.activateEditUrlInNewTab(1, {
         url: str,
         keyword: this.options.keyword
