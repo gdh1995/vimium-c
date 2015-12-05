@@ -28,26 +28,37 @@ var Vomnibar = {
       vomnibarUI.reset(initialQueryValue);
     } else if (initialQueryValue = DomUtils.getSelectionText()) {
       vomnibarUI.forceNewTab = true;
-      this.ActivateText(initialQueryValue);
+      this.activateText(initialQueryValue);
     } else {
+      initialQueryValue = this.options.url = this.options.url || window.location.href;
+      if (initialQueryValue.indexOf("://") === -1) {
+        this.activateText(initialQueryValue);
+        return;
+      }
       MainPort.sendMessage({
         handler: "parseSearchUrl",
-        url: window.location.href
-      }, this.ActivateText);
+        url: initialQueryValue
+      }, this.activateText.bind(this));
     }
   },
-  ActivateText: function(url) {
+  activateText: function(url) {
     var start, end;
-    if (typeof url === "object") {
-      start = url.start;
-      url = url.url;
-      end = url.length;
-    } else if (url) {
-      start = url.indexOf(' ') + 1;
-      end = url.length;
+    if (!url) { url = this.options.url; }
+    else if (url !== this.options.url && this.options.keyword) {
+      url = url.substring(0, url.indexOf(" "));
     } else {
-      url = Utils.decodeURL(window.location.href);
+      try {
+        url = window.decodeURIComponent(url);
+      } catch (e) {}
     }
+    url = url.replace(Utils.spacesRe, " ").trim();
+    if (this.options.keyword) {
+      url = this.options.keyword + " " + url;
+      start = url.indexOf(' ') + 1;
+      if (start > 0) { end = url.length; }
+      else { start = null; }
+    }
+    this.options = null;
     Vomnibar.vomnibarUI.reset(url, start, end);
   },
   activate: function(_0, options) {
@@ -73,12 +84,15 @@ var Vomnibar = {
   activateHistoryInNewTab: function() {
     this.activateWithCompleter("history", true, true);
   },
-  activateEditUrl: function() {
+  activateEditUrl: function(_0, options) {
+    this.options = options;
     this.activateWithCompleter("omni", false, false, true);
   },
-  activateEditUrlInNewTab: function() {
+  activateEditUrlInNewTab: function(_0, options) {
+    this.options = options;
     this.activateWithCompleter("omni", false, true, true);
   },
+  options: null,
 
 vomnibarUI: {
   _waitInit: 1,

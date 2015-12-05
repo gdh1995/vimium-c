@@ -98,7 +98,7 @@ commandGroups: {
     , "LinkHints.activateModeToDownloadImage", "LinkHints.activateModeToOpenImage"
     , "LinkHints.activateModeToDownloadLink", "LinkHints.activateModeToOpenIncognito"
     , "LinkHints.activateModeToHover", "LinkHints.activateModeToLeave", "LinkHints.unhoverLast"
-    , "LinkHints.activateModeToSearchLinkText"
+    , "LinkHints.activateModeToSearchLinkText", "LinkHints.activateModeToOpenVomnibar"
     , "goPrevious", "goNext", "nextFrame", "mainFrame"
     , "enterInsertMode"
     , "Marks.activateCreateMode", "Marks.activateGotoMode"
@@ -235,6 +235,7 @@ availableCommands: {
   "LinkHints.activateModeToCopyLinkUrl": [ "Copy a link URL to the clipboard", 1, false ],
   "LinkHints.activateModeToCopyLinkText": [ "Copy a link text to the clipboard", 1, false ],
   "LinkHints.activateModeToSearchLinkText": [ "Open or search a link text", 1, false ],
+  "LinkHints.activateModeToOpenVomnibar": [ "Edit a link text on Vomnibar (use url=true)", 1, false ],
   openCopiedUrlInCurrentTab: [ "Open the clipboard's URL in the current tab", 1, true ],
   openCopiedUrlInNewTab: [ "Open the clipboard's URL in N new tab(s)", 20, true ],
   enterInsertMode: [ "Enter insert mode", 1, false ],

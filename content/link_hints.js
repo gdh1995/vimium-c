@@ -4,6 +4,7 @@ var LinkHints = {
     // focused: 1; new tab: 2; queue: 64; job: 128
     // >=128: "&4" means "must be links" and [data-vim-url] is used firstly
     //   &~64 >= 136 means only `<a>`
+    // >= 256: queue not allowed
     OPEN_IN_CURRENT_TAB: 0, // also 1
     OPEN_IN_NEW_BG_TAB: 2,
     OPEN_IN_NEW_FG_TAB: 3,
@@ -17,7 +18,8 @@ var LinkHints = {
     OPEN_IMAGE: 133,
     DOWNLOAD_LINK: 136,
     COPY_LINK_URL: 137,
-    OPEN_INCOGNITO_LINK: 138
+    OPEN_INCOGNITO_LINK: 138,
+    EDIT_TEXT: 256
   },
   hintMarkerContainingDiv: null,
   hintMarkers: [],
@@ -55,6 +57,10 @@ var LinkHints = {
   activateModeToSearchLinkText: function(_0, options) {
     this.options = options;
     this._activateMode(this.CONST.SEARCH_TEXT);
+  },
+  activateModeToOpenVomnibar: function(_0, options) {
+    this.options = options;
+    this._activateMode(this.CONST.EDIT_TEXT);
   },
   activateModeWithQueue: function() {
     this._activateMode(this.CONST.OPEN_WITH_QUEUE);
@@ -151,6 +157,10 @@ var LinkHints = {
     case cons.SEARCH_TEXT:
       tip = mode >= 192 ? "Search link text one by one" : "Search selected text";
       activator = this.FUNC.COPY_TEXT;
+      break;
+    case cons.EDIT_TEXT:
+      tip = "Edit link " + (this.options.url ? "url" : "text") + " on Vomnibar";
+      activator = this.options.url ? this.FUNC.COPY_LINK_URL : this.FUNC.COPY_TEXT;
       break;
     case cons.DOWNLOAD_IMAGE:
       tip = mode >= 192 ? "Download multiple images" : "Download image";
@@ -351,7 +361,8 @@ var LinkHints = {
     visibleElements = this.traverse(
       (_i == this.CONST.DOWNLOAD_IMAGE || _i == this.CONST.OPEN_IMAGE)
       ? { img: this.GetImagesInImg, a: this.GetImagesInA }
-      : _i >= 136 ? { a: this.GetLinks }
+      : _i == this.CONST.EDIT_TEXT && this.options.url
+      || (_i < 256 && _i >= 136) ? { a: this.GetLinks }
       : { "*": this.GetVisibleClickable });
     visibleElements.reverse();
     for (_len = visibleElements.length; 0 <= --_len; ) {
@@ -401,7 +412,9 @@ var LinkHints = {
         this.setOpenLinkMode((this.mode | 2) ^ 1);
       }
     } else if (i === KeyCodes.altKey) {
-      this.setOpenLinkMode(((this.mode >= 128 ? 0 : 2) | this.mode) ^ 64);
+      if (this.mode < 256) {
+        this.setOpenLinkMode(((this.mode >= 128 ? 0 : 2) | this.mode) ^ 64);
+      }
     } else if (i >= KeyCodes.pageup && i <= KeyCodes.down) {
       MainPort.Listener({
         name: "execute",
@@ -645,6 +658,13 @@ FUNC: {
       this.keepHUDAfterAct = true;
       return;
     }
+    if (this.CONST.SEARCH_TEXT) {
+      Vomnibar.activateEditUrlInNewTab(1, {
+        url: str,
+        keyword: this.options.keyword
+      });
+      return;
+    }
     // NOTE: url should not be modified
     // although BackendUtils.convertToUrl does replace '\u3000' with ' '
     str = Utils.decodeURL(str);
@@ -691,7 +711,13 @@ FUNC: {
       this.keepHUDAfterAct = true;
       return;
     }
-    if ((this.mode & ~64) === this.CONST.SEARCH_TEXT) {
+    if (this.CONST.SEARCH_TEXT) {
+      Vomnibar.activateEditUrlInNewTab(1, {
+        url: str,
+        keyword: this.options.keyword
+      });
+      return;
+    } else if ((this.mode & ~64) === this.CONST.SEARCH_TEXT) {
       MainPort.port.postMessage({
         handler: "openUrlInNewTab",
         active: !(this.mode & 64),
