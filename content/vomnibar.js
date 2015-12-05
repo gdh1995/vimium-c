@@ -119,6 +119,7 @@ vomnibarUI: {
   selection: -1,
   timer: 0,
   show: function() {
+    DomUtils.UI.addElement(this.box);
     this.box.style.display = "";
     this.input.value = this.completionInput.text;
     VInsertMode.focus = VInsertMode.holdFocus;
@@ -171,7 +172,7 @@ vomnibarUI: {
     this.timer = setTimeout(this.onTimer, updateDelay);
   },
   populateUI: function() {
-    // work-around: For a node in a shadowRoot, if it's in the DOM tree,
+    // work-around: For a node in a shadowRoot, if it's in the XML DOM tree,
     // then its children won't have `.style` if created by setting `.innerHTML`
     this.list.remove();
     this.list.innerHTML = this.renderItems(this.completions);
@@ -415,6 +416,7 @@ vomnibarUI: {
     if (this.completions) {
       this.onCompletions(this.completions);
     }
+    // setup DOM node on initing, so that we do less when showing
     DomUtils.UI.addElement(this.box);
     this.input.oninput = this.onInput.bind(this);
     this.input.onselect = this.OnSelected;
