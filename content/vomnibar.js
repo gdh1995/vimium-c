@@ -1,44 +1,44 @@
 "use strict";
 var Vomnibar = {
-  activateWithCompleter: function(completerName, selectFirstResult, forceNewTab, initialQueryValue, force_current) {
-    var completer = this.Completer, vomnibarUI = this.vomnibarUI;
-    if (vomnibarUI.init) {
-      if (window.top !== window && !force_current) {
-        MainPort.sendCommadToFrame(0, "Vomnibar.activateWithCompleter"//
-          , [completerName, selectFirstResult, forceNewTab, initialQueryValue]);
-        return;
-      }
-      // <svg> document has not head nor body; document with pdf <embed> has body
-      if (!(document.head || document.body)) {
-        return;
-      }
-      var box = DomUtils.createElement("div");
-      completer.init();
-      vomnibarUI.init(box);
+activateWithCompleter: function(completerName, selectFirstResult, forceNewTab, initialQueryValue, force_current) {
+  var completer = this.Completer, vomnibarUI = this.vomnibarUI;
+  if (vomnibarUI.init) {
+    if (window.top !== window && !force_current) {
+      MainPort.sendCommadToFrame(0, "Vomnibar.activateWithCompleter"//
+        , [completerName, selectFirstResult, forceNewTab, initialQueryValue]);
+      return;
     }
-    completer.setName(completerName);
-    vomnibarUI.initialSelectionValue = selectFirstResult ? 0 : -1;
-    vomnibarUI.forceNewTab = forceNewTab ? true : false;
-    vomnibarUI.handlerId = handlerStack.push(vomnibarUI.preventBefore);
-    if (!initialQueryValue) {
-      vomnibarUI.reset();
-    } else if (typeof initialQueryValue === "string") {
-      vomnibarUI.reset(initialQueryValue);
-    } else if (initialQueryValue = DomUtils.getSelectionText()) {
-      vomnibarUI.forceNewTab = true;
+    // <svg> document has not head nor body; document with pdf <embed> has body
+    if (!(document.head || document.body)) {
+      return;
+    }
+    var box = DomUtils.createElement("div");
+    completer.init();
+    vomnibarUI.init(box);
+  }
+  completer.setName(completerName);
+  vomnibarUI.initialSelectionValue = selectFirstResult ? 0 : -1;
+  vomnibarUI.forceNewTab = forceNewTab ? true : false;
+  vomnibarUI.handlerId = handlerStack.push(vomnibarUI.preventBefore);
+  if (!initialQueryValue) {
+    vomnibarUI.reset();
+  } else if (typeof initialQueryValue === "string") {
+    vomnibarUI.reset(initialQueryValue);
+  } else if (initialQueryValue = DomUtils.getSelectionText()) {
+    vomnibarUI.forceNewTab = true;
+    this.activateText(initialQueryValue);
+  } else {
+    initialQueryValue = this.options.url = this.options.url || window.location.href;
+    if (initialQueryValue.indexOf("://") === -1) {
       this.activateText(initialQueryValue);
-    } else {
-      initialQueryValue = this.options.url = this.options.url || window.location.href;
-      if (initialQueryValue.indexOf("://") === -1) {
-        this.activateText(initialQueryValue);
-        return;
-      }
-      MainPort.sendMessage({
-        handler: "parseSearchUrl",
-        url: initialQueryValue
-      }, this.activateText.bind(this));
+      return;
     }
-  },
+    MainPort.sendMessage({
+      handler: "parseSearchUrl",
+      url: initialQueryValue
+    }, this.activateText.bind(this));
+  }
+},
   activateText: function(url) {
     var start, end;
     if (!url) { url = this.options.url; }
@@ -430,47 +430,47 @@ vomnibarUI: {
   }
 },
 
-  Completer: {
-    name: "",
-    _refreshed: [],
-    init: function() {
-      this._refreshed = [];
-      this.onFilter = this.onFilter.bind(this);
-      this.mapResult = Vomnibar.background.parse.bind(Vomnibar.background);
-      this.init = null;
-    },
-    setName: function(name) {
-      this.name = name;
-      if (this._refreshed.indexOf(name) < 0) {
-        this._refreshed.push(name);
-        this.refresh();
-      }
-    },
-    refresh: function() {
-      MainPort.port.postMessage({
-        handler: "refreshCompleter",
-        omni: this.name
-      });
-    },
-    filter: function(query, callback) {
-      this._callback = callback;
-      this._id = MainPort.sendMessage({
-        handlerOmni: this.name,
-        clientWidth: window.innerWidth,
-        query: query && query.trim().replace(this.whiteSpaceRe, ' ')
-      }, this.onFilter);
-    },
-    whiteSpaceRe: /\s+/g,
-    _id: -2,
-    _callback: null,
-    mapResult: null,
-    onFilter: function(results, msgId) {
-      if (this._id !== msgId) { return; }
-      var callback = this._callback;
-      this._callback = null;
-      callback(results.map(this.mapResult));
+Completer: {
+  name: "",
+  _refreshed: [],
+  init: function() {
+    this._refreshed = [];
+    this.onFilter = this.onFilter.bind(this);
+    this.mapResult = Vomnibar.background.parse.bind(Vomnibar.background);
+    this.init = null;
+  },
+  setName: function(name) {
+    this.name = name;
+    if (this._refreshed.indexOf(name) < 0) {
+      this._refreshed.push(name);
+      this.refresh();
     }
   },
+  refresh: function() {
+    MainPort.port.postMessage({
+      handler: "refreshCompleter",
+      omni: this.name
+    });
+  },
+  filter: function(query, callback) {
+    this._callback = callback;
+    this._id = MainPort.sendMessage({
+      handlerOmni: this.name,
+      clientWidth: window.innerWidth,
+      query: query && query.trim().replace(this.whiteSpaceRe, ' ')
+    }, this.onFilter);
+  },
+  whiteSpaceRe: /\s+/g,
+  _id: -2,
+  _callback: null,
+  mapResult: null,
+  onFilter: function(results, msgId) {
+    if (this._id !== msgId) { return; }
+    var callback = this._callback;
+    this._callback = null;
+    callback(results.map(this.mapResult));
+  }
+},
 
 background: {
   showRelevancy: false,
