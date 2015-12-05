@@ -37,11 +37,18 @@ var Vomnibar = {
     }
   },
   ActivateText: function(url) {
-    if (url) {
-      Vomnibar.vomnibarUI.reset(url, url.indexOf(' ') + 1, url.length);
+    var start, end;
+    if (typeof url === "object") {
+      start = url.start;
+      url = url.url;
+      end = url.length;
+    } else if (url) {
+      start = url.indexOf(' ') + 1;
+      end = url.length;
     } else {
-      Vomnibar.vomnibarUI.reset(Utils.decodeURL(window.location.href));
+      url = Utils.decodeURL(window.location.href);
     }
+    Vomnibar.vomnibarUI.reset(url, start, end);
   },
   activate: function(_0, options) {
     var keyword = options.keyword;

@@ -1075,7 +1075,8 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
       }
     },
     parseSearchUrl: function(request) {
-      var url = request.url.toLowerCase(), decoders, pattern, _i, str, arr;
+      var url = request.url.toLowerCase(), decoders, pattern, _i, str, arr,
+          selectLast;
       if (!(Utils.hasOrdinaryUrlPrefix(url) || url.startsWith("chrome-"))) {
         return "";
       }
@@ -1095,13 +1096,21 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
           arr.shift();
         } else if (str instanceof RegExp) {
           url = arr[1]; 
-          arr = url.match(str);
-          arr ? arr.shift() : (arr = [url]);
+          if (arr = url.match(str)) {
+            arr.shift();
+            selectLast = true;
+          } else {
+            arr = [url];
+          }
         } else {
           arr = arr[1].split(str);
         }
         str = arr.map(Utils.DecodeURLPart).join(" ");
-        return pattern[2] + " " + str.replace(Utils.spacesRe, " ").trim();
+        url = pattern[2] + " " + str.replace(Utils.spacesRe, " ").trim();
+        return selectLast ? {
+          url: url,
+          start: url.lastIndexOf(" ") + 1
+        } : url;
       }
       return "";
     },
