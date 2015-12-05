@@ -1,6 +1,5 @@
 "use strict";
 var Vomnibar = {
-  defaultRefreshInterval: 500,
   activateWithCompleter: function(completerName, selectFirstResult, forceNewTab, initialQueryValue, force_current) {
     var bg = this.background, completer = bg.Completer, vomnibarUI = this.vomnibarUI;
     if (vomnibarUI.init) {
@@ -19,7 +18,6 @@ var Vomnibar = {
     }
     completer.setName(completerName);
     vomnibarUI.initialSelectionValue = selectFirstResult ? 0 : -1;
-    vomnibarUI.refreshInterval = this.defaultRefreshInterval || 250;
     vomnibarUI.forceNewTab = forceNewTab ? true : false;
     vomnibarUI.handlerId = handlerStack.push(vomnibarUI.preventBefore);
     if (!initialQueryValue) {
@@ -114,7 +112,7 @@ vomnibarUI: {
   isSelectionChanged: false,
   list: null,
   onUpdate: null,
-  refreshInterval: 0,
+  refreshInterval: 500,
   renderItems: null,
   selection: -1,
   timer: 0,
