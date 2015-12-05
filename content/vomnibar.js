@@ -1,7 +1,7 @@
 "use strict";
 var Vomnibar = {
   activateWithCompleter: function(completerName, selectFirstResult, forceNewTab, initialQueryValue, force_current) {
-    var bg = this.background, completer = bg.Completer, vomnibarUI = this.vomnibarUI;
+    var completer = this.Completer, vomnibarUI = this.vomnibarUI;
     if (vomnibarUI.init) {
       if (window.top !== window && !force_current) {
         MainPort.sendCommadToFrame(0, "Vomnibar.activateWithCompleter"//
@@ -13,8 +13,8 @@ var Vomnibar = {
         return;
       }
       var box = DomUtils.createElement("div");
-      completer.init(bg);
-      vomnibarUI.init(box, bg, completer);
+      completer.init();
+      vomnibarUI.init(box);
     }
     completer.setName(completerName);
     vomnibarUI.initialSelectionValue = selectFirstResult ? 0 : -1;
@@ -94,9 +94,7 @@ var Vomnibar = {
 
 vomnibarUI: {
   _waitInit: 1,
-  background: null,
   box: null,
-  completer: null,
   completionInput: {
     url: "",
     text: "",
@@ -175,7 +173,7 @@ vomnibarUI: {
     this.list.remove();
     this.list.innerHTML = this.renderItems(this.completions);
     this.box.appendChild(this.list);
-    this.background.cleanCompletions(this.completions);
+    Vomnibar.background.cleanCompletions(this.completions);
     if (this.completions.length > 0) {
       this.list.style.display = "";
       this.list.lastElementChild.classList.add("OBItem");
@@ -310,7 +308,7 @@ vomnibarUI: {
     }
   },
   onEnter: function() {
-    this.background.performAction(this.selection === -1 ? this.completionInput
+    Vomnibar.background.performAction(this.selection === -1 ? this.completionInput
       : this.completions[this.selection], this.forceNewTab);
     this.hide();
   },
@@ -358,7 +356,7 @@ vomnibarUI: {
   },
   onTimer: function() {
     this.timer = -1;
-    this.completer.filter(this.completionInput.url, this.onCompletions);
+    Vomnibar.Completer.filter(this.completionInput.url, this.onCompletions);
   },
   onCompletions: function(completions) {
     if (this._waitInit) {
@@ -378,8 +376,7 @@ vomnibarUI: {
     this.onCompletions = func = func.bind(this);
     func(completions);
   },
-  init: function(box, background, completer) {
-    this.background = background;
+  init: function(box) {
     this.box = box;
     box.className = "R";
     box.id = "Omnibar";
@@ -387,7 +384,6 @@ vomnibarUI: {
     MainPort.sendMessage({
       handler: "initVomnibar"
     }, this.init_dom.bind(this));
-    this.completer = completer;
     this.onTimer = this.onTimer.bind(this);
     this.onCompletions = this.onCompletions.bind(this);
     box.addEventListener("click", this.onClick = this.onClick.bind(this));
@@ -396,13 +392,14 @@ vomnibarUI: {
     if (window.location.protocol.startsWith("chrome") && chrome.runtime.getManifest
         && (str = chrome.runtime.getManifest().permissions)) {
       str = str.join("/");
-      this.background.showFavIcon = str.indexOf("<all_urls>") >= 0 || str.indexOf("chrome://favicon/") >= 0;
+      Vomnibar.background.showFavIcon = str.indexOf("<all_urls>") >= 0 ||
+          str.indexOf("chrome://favicon/") >= 0;
     }
     this.init = null;
   },
   init_dom: function(response) {
     var str;
-    this.background.showRelevancy = response.relevancy;
+    Vomnibar.background.showRelevancy = response.relevancy;
     this.box.innerHTML = response.html;
     this.input = this.box.querySelector("#OInput");
     this.list = this.box.querySelector("#OList");
@@ -433,15 +430,13 @@ vomnibarUI: {
   }
 },
 
-background: {
   Completer: {
     name: "",
     _refreshed: [],
-    init: function(background) {
+    init: function() {
       this._refreshed = [];
       this.onFilter = this.onFilter.bind(this);
-      this.mapResult = background.parse.bind(background);
-      this.background = background;
+      this.mapResult = Vomnibar.background.parse.bind(Vomnibar.background);
       this.init = null;
     },
     setName: function(name) {
@@ -468,16 +463,16 @@ background: {
     whiteSpaceRe: /\s+/g,
     _id: -2,
     _callback: null,
-    background: null,
     mapResult: null,
     onFilter: function(results, msgId) {
       if (this._id !== msgId) { return; }
       var callback = this._callback;
       this._callback = null;
-      callback(msgId > 0 ? results.map(this.mapResult) : []);
+      callback(results.map(this.mapResult));
     }
   },
 
+background: {
   showRelevancy: false,
   showFavIcon: false,
   parse: function(item) {
