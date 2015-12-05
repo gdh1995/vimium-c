@@ -333,22 +333,21 @@ var LinkHints = {
       }
     }
   },
-  traverse: function(map) {
+  traverse: function(filters) {
     var output = [], key, func, container;
-    Utils.setNullProto(map);
+    Utils.setNullProto(filters);
     DomUtils.prepareCrop();
     container = document.webkitFullscreenElement || document;
-    if (this.ngIgnored && "*" in map) {
+    if (this.ngIgnored && "*" in filters) {
       this.ngIgnored = container.querySelector('.ng-scope') === null;
     }
     this.isClickListened = Settings.values.isClickListened;
-    for (key in map) {
+    for (key in filters) {
+      func = filters[key].bind(output);
       if (Settings.values.deepHints) {
-        output.forEach.call(container.querySelectorAll("* /deep/ " + key)
-          , map[key].bind(output));
+        output.forEach.call(container.querySelectorAll("* /deep/ " + key), func);
         continue;
       }
-      func = map[key].bind(output);
       output.forEach.call(container.getElementsByTagName(key), func);
       output.forEach.call(DomUtils.UI.root.querySelectorAll(key), func);
     }
