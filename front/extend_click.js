@@ -19,8 +19,7 @@
     container && container.removeEventListener("VimiumRegistrationElementEvent-onclick", onclick, true);
   };
   script.type = "text/javascript";
-  script.id = "vimium-plus-extend-click";
-  script.textContent = "(" + func.toString() + ")()";
+  script.textContent = "(" + func.toString() + ")();";
   container = document.head || document.documentElement;
   container.insertBefore(script, container.firstElementChild);
   script.remove();
