@@ -448,6 +448,7 @@ Completer: {
     this._id = MainPort.sendMessage({
       handlerOmni: this.name,
       clientWidth: window.innerWidth,
+      showFavIcon: Vomnibar.background.showFavIcon,
       query: query && query.trim().replace(this.whiteSpaceRe, ' ')
     }, this.onFilter);
   },
@@ -465,11 +466,11 @@ Completer: {
 
 background: {
   showRelevancy: false,
-  showFavIcon: false,
   parse: function(item) {
-    if (this.showFavIcon && item.url.indexOf("://") >= 0) {
-      item.favIconUrl = " OIIcon\" style=\"background-image: url('" + Utils.escapeHtml(item.favIconUrl ||
-        ("chrome://favicon/size/16/" + item.url)) + "')";
+    var str;
+    if (this.showFavIcon && (str = item.favIconUrl)) {
+      item.favIconUrl = " OIIcon\" style=\"background-image: url('" +
+        (str[0] !== "/" ? str : "chrome://favicon/size/16" + str) + "')";
     } else {
       item.favIconUrl = "";
     }

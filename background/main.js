@@ -931,7 +931,7 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
       else if (key = request.handlerOmni) {
         func = Completers[key];
         key = request.query;
-        func.filter(key ? key.split(" ") : [], request.clientWidth, function(response) {
+        func.filter(key ? key.split(" ") : [], request, function(response) {
           port.postMessage({_msgId: id, response: response});
         });
       }

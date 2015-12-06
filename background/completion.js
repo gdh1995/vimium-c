@@ -2,7 +2,7 @@
 var Completers;
 setTimeout(function() {
   var TabRecency, HistoryCache, RankingUtils, RegexpCache, Decoder, MultiCompleter,
-      maxCharNum = 160, queryTerms = null, SuggestionUtils;
+      maxCharNum = 160, showFavIcon, queryTerms = null, SuggestionUtils;
 
   Completers = {};
 
@@ -21,6 +21,10 @@ SuggestionUtils = {
     sug.titleSplit = this.highlight(sug.title, this.getRanges(sug.title));
     var str = sug.text = this.shortenUrl(sug.text);
     sug.textSplit = this.cutUrl(str, this.getRanges(str), sug.url);
+    if (showFavIcon && sug.url.indexOf("://") > 0 && !sug.favIconUrl) {
+      str = Utils.escapeHtml(sug.url);
+      sug.favIconUrl = str && ("/" + str);
+    }
   },
   highlight: function(string, ranges) {
     var _i, out, start, end;
@@ -415,7 +419,9 @@ Completers.tabs = {
       var tabId = tab.id, suggestion = new Suggestion("tab",
             tab.url, tab.text, tab.title, c, tabId);
       suggestion.sessionId = tabId;
-      suggestion.favIconUrl = tab.favIconUrl;
+      if (showFavIcon) {
+        suggestion.favIconUrl = Utils.escapeHtml(tab.favIconUrl);
+      }
       if (curTabId === tabId) { suggestion.relevancy = 0; }
       return suggestion;
     });
@@ -518,9 +524,10 @@ MultiCompleter = {
   rsortByRelevancy: function(a, b) { return b.relevancy - a.relevancy; }
 };
 
-  MultiCompleter.Generator.prototype.filter = function(query, clientWidth, onComplete) {
+  MultiCompleter.Generator.prototype.filter = function(query, options, onComplete) {
     queryTerms = query;
-    maxCharNum = Math.floor((clientWidth * 0.8 - 70) / 7.72);
+    maxCharNum = Math.floor((options.clientWidth * 0.8 - 70) / 7.72);
+    showFavIcon = options.showFavIcon;
     MultiCompleter.filter(this.completers, onComplete);
   };
   MultiCompleter.Generator.prototype.refresh = function() {
