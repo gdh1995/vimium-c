@@ -101,11 +101,10 @@ ExclusionRulesOption.prototype.onRemoveRow = function(event) {
     return;
   }
   var row1 = event.target.parentNode.parentNode;
-  if (! row1.classList.contains("exclusionRuleInstance")) {
-    return;
+  if (row1.classList.contains("exclusionRuleInstance")) {
+    row1.remove();
+    this.onUpdated();
   }
-  row1.parentNode.removeChild(row1);
-  this.onUpdated();
 };
 
 ExclusionRulesOption.prototype.readValueFromElement = function(part) {
