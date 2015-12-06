@@ -35,7 +35,8 @@ var Marks = {
         VHUD.hide();
         return 2;
       }
-    } else if (keyCode > 32 && keyCode < 127) {
+    } else if (keyCode > KeyCodes.f1 && keyCode <= KeyCodes.f12) {}
+    else if (keyCode > 32) {
       if (keyChar = KeyboardUtils.getKeyChar(event, event.shiftKey)) {
         handlerStack.remove(this.handlerId);
         this.onKeypress(event, keyChar);

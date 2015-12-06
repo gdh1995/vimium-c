@@ -1271,8 +1271,8 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
       port.sender.tab.id = request.tabId;
     },
     esc: resetKeys,
-    createMark: function(request, tabs) { Marks.createMark(request, tabs); },
-    gotoMark: function(request) { Marks.gotoMark(request); },
+    createMark: function(request, tabs) { return Marks.createMark(request, tabs); },
+    gotoMark: function(request) { return Marks.gotoMark(request); },
     focusOrLaunch: function(request) {
       // * request.url is guaranteed to be well formatted by frontend
       // * do not limit windowId or windowType
