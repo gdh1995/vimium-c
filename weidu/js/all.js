@@ -14,13 +14,10 @@ var HtmlUtil = {
 	_escapeCallback: function(c, n) {
 		n = c.charCodeAt(0);
 		return (n === 60) ? "&lt;" : (n === 62) ? "&gt;" : "&amp;";
-	},
-	escapeHtml: function(s) {
-		return s.replace(this._escapeRe, this._escapeCallback);
 	}
 };
 function title_fix(text) {
-	return text ? HtmlUtil.escapeHtml(text) : "";
+	return text ? text.replace(HtmlUtil._escapeRe, HtmlUtil._escapeCallback) : "";
 }
 var I18n = Lang['zh_CN'];
 function getI18nMsg(msgname) {
