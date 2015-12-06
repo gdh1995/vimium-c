@@ -130,8 +130,8 @@ function openTab(targetSwitch, url, event) {
 			active: true
 		}, function (curTabs) {
 			chrome.tabs.create({
-				index: curTabs[0].index + 1,
-				openerTabId: curTabs[0].id,
+				index: curTabs[0] ? (curTabs[0].index + 1) : undefined,
+				openerTabId: curTabs[0] ? curTabs[0].id : undefined,
 				active: true,
 				url: url
 			});
