@@ -41,14 +41,9 @@ activateWithCompleter: function(completerName, selectFirstResult, forceNewTab, i
 },
   activateText: function(url) {
     var start, end;
-    if (!url) { url = this.options.url; }
-    else if (url !== this.options.url && this.options.keyword) {
-      url = url.substring(0, url.indexOf(" "));
-    } else {
-      try {
-        url = window.decodeURIComponent(url);
-      } catch (e) {}
-    }
+    url = !url ? Utils.decodeURL(this.options.url)
+      : url !== this.options.url && this.options.keyword ? url.substring(0, url.indexOf(" "))
+      : Utils.decodeURL(url, window.decodeURIComponent)
     url = url.replace(Utils.spacesRe, " ").trim();
     if (this.options.keyword) {
       url = this.options.keyword + " " + url;
