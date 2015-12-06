@@ -314,7 +314,7 @@ Completers.domains = {
   },
   populateDomains: function(history) {
     var callback = this.onPageVisited.bind(this);
-    this.domains = {};
+    this.domains = Utils.makeNullProto();
     history.forEach(callback);
     chrome.history.onVisited.addListener(callback);
     chrome.history.onVisitRemoved.addListener(this.onVisitRemoved.bind(this));
@@ -618,16 +618,12 @@ MultiCompleter = {
     size: 20000,
     history: null,
     callbacks: [],
-    reset: function() {
-      this.history = null;
-      this.callbacks = [];
-    },
     use: function(callback) {
-      if (! this.history) {
+      if (this.history) {
+        callback(this.history);
+      } else {
         this.fetchHistory(callback);
-        return;
       }
-      callback(this.history);
     },
     fetchHistory: function(callback) {
       this.callbacks.push(callback);
@@ -668,7 +664,7 @@ MultiCompleter = {
     },
     onVisitRemoved: function(toRemove) {
       if (toRemove.allHistory) {
-        this.reset();
+        this.history = null;
         return;
       }
       var bs = this.binarySearch, h = this.history;
@@ -806,7 +802,8 @@ MultiCompleter = {
   Completers = {
     bookmarks: new MultiCompleter.Generator([Completers.bookmarks]),
     history: new MultiCompleter.Generator([Completers.history]),
-    omni: new MultiCompleter.Generator([Completers.searchEngines, Completers.bookmarks, Completers.history, Completers.domains]),
+    omni: new MultiCompleter.Generator([Completers.searchEngines, Completers.domains
+      , Completers.bookmarks, Completers.history]),
     tabs: new MultiCompleter.Generator([Completers.tabs])
   };
 
