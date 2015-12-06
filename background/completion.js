@@ -786,20 +786,19 @@ MultiCompleter = {
 
     TabRecency.stamp();
 
-    var lang = Settings.get("UILanguage");
-    if (!lang) {
-      return;
-    }
-    var ref = lang.urlCode;
-    if (ref && typeof ref === "string") {
-      Decoder.charset = ref;
-    }
-    ref = lang.bookmarkTypes;
-    if (ref && ref.length > 0) {
-      var i = ref.length, ref2 = Completers.bookmarks.completers[0].ignoreTopLevel;
-      ref.sort().reverse();
-      for (; 0 <= --i; ) {
-        ref2[ref[i]] = 1;
+    var lang;
+    if (lang = Settings.get("UILanguage")) {
+      var ref = lang.urlCode;
+      if (ref && typeof ref === "string") {
+        Decoder.charset = ref;
+      }
+      ref = lang.bookmarkTypes;
+      if (ref && ref.length > 0) {
+        var i = ref.length, ref2 = Completers.bookmarks.completers[0].ignoreTopLevel;
+        ref.sort().reverse();
+        for (; 0 <= --i; ) {
+          ref2[ref[i]] = 1;
+        }
       }
     }
   }, 100);
