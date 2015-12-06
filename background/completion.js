@@ -797,6 +797,17 @@ MultiCompleter = {
         }
       }
     }
+
+    setTimeout(function() {
+      if (queryTerms) { return; }
+      HistoryCache.use(function(history) {
+        if (queryTerms) { return; }
+        setTimeout(function() {
+          if (queryTerms) { return; }
+          Completers.omni.completers[1].populateDomains(history);
+        }, 50);
+      });
+    }, 30000);
   }, 100);
 
   Completers = {
