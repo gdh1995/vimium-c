@@ -366,9 +366,9 @@ $("importButton").onclick = function() {
     if (target.scrollHeight <= target.clientHeight) { return; }
     target.style.maxWidth = Math.min(window.innerWidth, 1024) - 120 + "px";
     delta = target.offsetHeight - target.clientHeight;
-    target.style.width  = target.scrollWidth  + 3
-      + (target.offsetWidth - target.clientWidth) + "px";
-    target.style.height = target.scrollHeight + 7 + delta + "px";
+    target.style.width = target.scrollWidth + 3 +
+      (target.offsetWidth - target.clientWidth) + "px";
+    target.style.height = target.scrollHeight + 20 + delta + "px";
   };
   for (i = arr.length; 0 <= --i; ) {
     arr[i].onclick = func;
