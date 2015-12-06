@@ -106,7 +106,13 @@ var LinkHints = {
     this.setOpenLinkMode(mode);
     var elements, rect, style, width, height;
 
-    elements = this.getVisibleClickableElements();
+    if (!this.frameNested) {
+      elements = this.getVisibleClickableElements();
+    }
+    if (this.frameNested && this.tryNestedFrame(mode)) {
+      if (document.readyState !== "complete") { this.frameNested = false; }
+      return;
+    }
     this.hintMarkers = elements.map(this.createMarkerFor);
     elements = null;
     this.alphabetHints.fillInMarkers(this.hintMarkers);
@@ -192,6 +198,21 @@ var LinkHints = {
     }
     VHUD.show(tip);
     this.mode = mode;
+  },
+  tryNestedFrame: function(mode) {
+    try {
+      var childLinkHints = this.frameNested.contentWindow.LinkHints;
+      if (childLinkHints.isActive) {
+        if (!this.frameNested.contentDocument.head) { return false; }
+        childLinkHints.deactivate(true);
+      } else {
+        childLinkHints.options = this.options;
+        childLinkHints._activateMode(mode);
+      }
+      this.frameNested.contentWindow.focus();
+      return true;
+    } catch (e) {}
+    return false;
   },
   createMarkerFor: function(link) {
     var marker = DomUtils.createElement("div"), rect;
@@ -352,7 +373,39 @@ var LinkHints = {
       output.forEach.call(DomUtils.UI.root.querySelectorAll(key), func);
     }
     if (!this.ngIgnored && !this.ngAttribute) { this.ngAttribute = "ng-click"; }
+    if (this.frameNested !== false) {}
+    else if (output.length > 3) {
+      this.frameNested = null;
+    } else if ("*" in filters) {
+      this.checkNestedFrame(output);
+    } else {
+      this.traverse({"*": this.GetVisibleClickable})
+    }
     return output;
+  },
+  frameNested: false,
+  checkNestedFrame: function(output) {
+    var rect, element, str;
+    output = output.filter(function(item) {
+      return item[0] !== document.body && item[0] !== document.documentElement;
+    });
+    if (output.length !== 1) {
+      if (output.length > 1) { this.frameNested = null; }
+      return;
+    }
+    element = output[0][0];
+    str = element.tagName.toLowerCase();
+    if (str !== "iframe" && str !== "frame") {
+      this.frameNested = null;
+      return;
+    }
+    if (element.scrollLeft < 20 && element.scrollTop < 20
+        && element.scrollWidth > document.documentElement.scrollWidth - 40
+        && element.scrollHeight > document.documentElement.scrollHeight - 40) {
+      this.frameNested = element;
+    } else if (document.readyState === "complete") {
+      this.frameNested = null;
+    }
   },
   getVisibleClickableElements: function() {
     var output = [], visibleElements, visibleElement, rects, rects2, _len, _i;
@@ -363,6 +416,7 @@ var LinkHints = {
       : _i == this.CONST.EDIT_TEXT && this.options.url
       || (_i < 256 && _i >= 136) ? { a: this.GetLinks }
       : { "*": this.GetVisibleClickable });
+    if (this.frameNested) { return; }
     visibleElements.reverse();
     for (_len = visibleElements.length; 0 <= --_len; ) {
       visibleElement = visibleElements[_len];
