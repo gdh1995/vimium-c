@@ -193,11 +193,7 @@ vomnibarUI: {
       this.input.value = this.completionInput.text;
     } else {
       if (!this.focused) this.input.blur();
-      var ref = this.completions[this.selection];
-      if (!ref.text) {
-        ref.text = Utils.isJSUrl(ref.url) ? ref.url : Utils.decodeURL(ref.url);
-      }
-      this.input.value = ref.text;
+      this.input.value = this.completions[this.selection].text;
     }
   },
   updateSelection: function(sel) {
