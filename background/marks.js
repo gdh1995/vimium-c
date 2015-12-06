@@ -2,21 +2,20 @@
 // NOTE: all members should be static
 var Marks = {
   createMark: function(request, tabs) {
-    if (!request.scroll) {
-      g_requestHandlers.SendToTab({
-        name: "createMark",
-        markName: request.markName,
-        force: true,
-        frameId: 0
-      }, tabs[0].id);
-      return;
+    if (request.scroll) {
+      localStorage[Marks.getMarkKey(request.markName)] = JSON.stringify({
+        tabId: tabs[0].id,
+        url: request.url,
+        scroll: request.scroll
+      });
+      return true;
     }
-    localStorage[Marks.getMarkKey(request.markName)] = JSON.stringify({
-      tabId: tabs[0].id,
-      url: request.url,
-      scroll: request.scroll
-    });
-    return true;
+    g_requestHandlers.SendToTab({
+      name: "createMark",
+      markName: request.markName,
+      force: true,
+      frameId: 0
+    }, tabs[0].id);
   },
   gotoMark: function(request) {
     var str, markInfo;

@@ -27,7 +27,7 @@ var Marks = {
     } catch (key) {}
     VHUD.showForDuration("Local marks have been cleared.", 1000);
   },
-  onKeydown: function() {
+  onKeydown: function(event) {
     var keyCode = event.keyCode, keyChar;
     if (keyCode === KeyCodes.esc) {
       if (KeyboardUtils.isPlain(event)) {
