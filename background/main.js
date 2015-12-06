@@ -23,7 +23,7 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
   };
 
   helpDialogHtml = function(showUnbound, showNames, customTitle) {
-    var command, commandsToKey, dialogHtml, group, key, ref = Commands.keyToCommandRegistry;
+    var command, commandsToKey, dialogHtml, key, ref = Commands.keyToCommandRegistry;
     commandsToKey = {};
     for (key in ref) {
       command = ref[key].command;
@@ -1302,7 +1302,7 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
     BackgroundCommands.createTab.useTab = -1;
   };
 
-  Settings.updateHooks.postKeyMappings = function(value) {
+  Settings.updateHooks.postKeyMappings = function() {
     Commands.parseKeyMappings(Settings.get("keyMappings"));
     Settings.postUpdate("PopulateCommandKeys", null);
     // resetKeys has been called

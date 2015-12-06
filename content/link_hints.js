@@ -533,7 +533,7 @@ var LinkHints = {
         return 0;
       };
     } else {
-      func = function(event) { tick = Date.now(); return 2; };
+      func = function() { tick = Date.now(); return 2; };
       tick = Date.now() + Settings.values.keyboard[0];
       timer = setInterval(function() {
         if (Date.now() - tick > 150) {
@@ -609,11 +609,11 @@ alphabetHints: {
     while (0 <= --end) {
       marker = hintMarkers[end];
       marker.innerHTML = this.spanWrap(marker.hintString = hintStrings[end]);
-    };
+    }
     return hintMarkers;
   },
   hintStrings: function(linkCount) {
-    var dn, hintStrings, i, chars, end, a;
+    var dn, hintStrings, i, chars, end;
     hintStrings = new Array(linkCount);
     chars = this.chars;
     end = chars.length;

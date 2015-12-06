@@ -240,7 +240,7 @@ var Utils = {
       obj = {
         ind: pair ? (pair.index + 1) : 0,
         name: null,
-        url: val,
+        url: val
       };
       ids = ids.filter(func);
       if (ids.length === 0) continue;

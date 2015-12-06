@@ -43,7 +43,7 @@ activateWithCompleter: function(completerName, selectFirstResult, forceNewTab, i
     var start, end;
     url = !url ? Utils.decodeURL(this.options.url)
       : url !== this.options.url && this.options.keyword ? url.substring(0, url.indexOf(" "))
-      : Utils.decodeURL(url, window.decodeURIComponent)
+      : Utils.decodeURL(url, window.decodeURIComponent);
     url = url.replace(Utils.spacesRe, " ").trim();
     if (this.options.keyword) {
       url = this.options.keyword + " " + url;

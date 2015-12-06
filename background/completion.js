@@ -293,9 +293,9 @@ Completers.domains = {
     }
   },
   performSearch: function(query) {
-    var ref = this.domains, domain, q = queryTerms, word = q[0], terms = [word]
+    var ref = this.domains, domain, q = queryTerms, word = q[0]
       , sug, wordRelevancy, score, result = "", result_score = -1000;
-    queryTerms = terms;
+    queryTerms = [word];
     for (domain in ref) {
       if (domain.indexOf(word) === -1) { continue; }
       score = RankingUtils.recencyScore(ref[domain][0]);
@@ -432,7 +432,7 @@ Completers.tabs = {
 
 Completers.searchEngines = {
   filter: function(query) {
-    var obj, sug, text, q = queryTerms, pattern = q.length === 0 ? null
+    var obj, sug, q = queryTerms, pattern = q.length === 0 ? null
           : Settings.get("searchEngineMap")[q[0]];
     if (!pattern) {
       query.onComplete([]);

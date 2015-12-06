@@ -101,7 +101,7 @@ var Settings = {
       css += this.get("userDefinedCss");
       this.set("innerCss", css);
     },
-    userDefinedCss: function(css) {
+    userDefinedCss: function() {
       this.postUpdate("baseCSS");
       this.postUpdate("broadcast", {
         name: "insertInnerCss",
