@@ -184,8 +184,8 @@ w|wiki:\\\n  http://www.wikipedia.org/w/index.php?search=$s Wikipedia (en-US)",
   valuesToLoad: ["deepHints" //
     , "findModeRawQuery" //
     , "grabBackFocus", "hideHud", "isClickListened", "keyboard" //
-    , "linkHintCharacters", "nextPatterns" //
-    , "previousPatterns", "regexFindMode", "scrollStepSize", "smoothScroll" //
+    , "linkHintCharacters", "nextPatterns", "previousPatterns" //
+    , "regexFindMode", "scrollStepSize", "smoothScroll" //
   ],
   Sync: null,
   CONST: {

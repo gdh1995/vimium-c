@@ -93,13 +93,13 @@ div#exampleKeyMapping {
 #footer, #footerTable, #footerTableData {
   width: 100%;
 }
-#scrollStepSize {
+input[type=number] {
   width: 66px;
   margin-right: 4px;
   text-align: center;
   text-indent: 16px;
 }
-#scrollStepSize::-webkit-inner-spin-button {
+input[type=number]::-webkit-inner-spin-button {
   margin-left: 1px;
 }
 #userDefinedCss, #userDefinedOuterCss, #UILanguage {
