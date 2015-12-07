@@ -551,6 +551,13 @@ var LinkHints = {
     this.deactivate();
     this.linkActivator = linkActivator;
     this.options = options;
+    this.handlerId = handlerStack.push(handlerStack.SuppressMost);
+    if (Settings.values.queueDelay > 0) {
+      setTimeout(function() {
+        LinkHints && LinkHints._activateMode(mode);
+      }, Settings.values.queueDelay);
+      return ;
+    }
     this._activateMode(mode);
   },
   deactivate: function(suppressType) {

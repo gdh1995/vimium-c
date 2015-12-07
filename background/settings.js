@@ -137,6 +137,7 @@ var Settings = {
       + ",next,more,newer,>,\u2192,\xbb,\u226b,>>",
     previousPatterns: "\u4e0a\u9875,\u4e0a\u4e00\u9875,\u4e0a\u4e00\u7ae0,\u524d\u4e00\u9875"
       + ",prev,previous,back,older,<,\u2190,\xab,\u226a,<<",
+    queueDelay: 250,
     regexFindMode: false,
     scrollStepSize: 100,
     searchUrl: "http://www.baidu.com/s?ie=utf-8&wd=$s Baidu",
@@ -185,7 +186,7 @@ w|wiki:\\\n  http://www.wikipedia.org/w/index.php?search=$s Wikipedia (en-US)",
     , "findModeRawQuery" //
     , "grabBackFocus", "hideHud", "isClickListened", "keyboard" //
     , "linkHintCharacters", "nextPatterns", "previousPatterns" //
-    , "regexFindMode", "scrollStepSize", "smoothScroll" //
+    , "queueDelay", "regexFindMode", "scrollStepSize", "smoothScroll" //
   ],
   Sync: null,
   CONST: {
