@@ -810,8 +810,9 @@ MultiCompleter = {
       HistoryCache.use(function(history) {
         if (queryTerms) { return; }
         setTimeout(function() {
-          if (queryTerms) { return; }
-          Completers.omni.completers[1].populateDomains(history);
+          var domainsCompleter = Completers.omni.completers[1];
+          if (queryTerms || domainsCompleter.domains) { return; }
+          domainsCompleter.populateDomains(history);
         }, 50);
       });
     }, 30000);
