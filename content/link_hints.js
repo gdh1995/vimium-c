@@ -141,7 +141,7 @@ var LinkHints = {
     style.width = width + "px"; style.height = height + "px";
     if (document.webkitFullscreenElement) { style.position = "fixed"; }
     this.handlerId = handlerStack.push(this.onKeyDownInMode, this);
-    VInsertMode.onWndBlur = this.onWndBlur;
+    VInsertMode.onWndBlur = this.OnWndBlur;
   },
   setOpenLinkMode: function(mode) {
     var cons = this.CONST, tip, activator;
@@ -499,6 +499,24 @@ var LinkHints = {
       }
     }
     return 2;
+  },
+  OnWndBlur: function(keydowns) {
+    var mode = LinkHints.mode;
+    if (mode >= 256) { return; }
+    if (keydowns[KeyCodes.altKey]) {
+      mode = ((mode >= 128 ? 0 : 2) | mode) ^ 64;
+    }
+    if (mode < 128) {
+      if (keydowns[KeyCodes.ctrlKey] || keydowns[KeyCodes.metaKey]) {
+        mode = (mode | 2) ^ 1;
+      }
+      if (keydowns[KeyCodes.shiftKey]) {
+        mode = (mode | 1) ^ (mode < 64 ? 3 : 67);
+      }
+    }
+    if (mode !== LinkHints.mode) {
+      LinkHints.setOpenLinkMode(mode);
+    }
   },
   activateLink: function(clickEl) {
     var tempi;
