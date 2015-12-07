@@ -244,8 +244,10 @@ var Settings, VHUD, MainPort, VInsertMode;
       if (target === window) { ELs.onWndFocus(); }
       else if (!isEnabledForUrl) {}
       else if (findMode) {} // TODO: check findMode
-      else if (DomUtils.getEditableType(target)) { InsertMode.focus(event); }
-      else if (target.shadowRoot) {
+      else if (DomUtils.getEditableType(target)) {
+        InsertMode.focus(event);
+        if (target === VInsertMode.heldEl) { DomUtils.suppressEvent(event); }
+      } else if (target.shadowRoot) {
         target = target.shadowRoot;
         target.addEventListener("focus", ELs.onFocus, true);
         target.addEventListener("blur", ELs.onBlur, true);
@@ -257,8 +259,10 @@ var Settings, VHUD, MainPort, VInsertMode;
         if (Scroller.keyIsDown) { Scroller.keyIsDown = 0; }
         KeydownEvents = new Uint8Array(256);
       } else if (!isEnabledForUrl) {}
-      else if (InsertMode.lock === target) { InsertMode.lock = null; }
-      else if (target.shadowRoot) {
+      else if (InsertMode.lock === target) {
+        InsertMode.lock = null;
+        if (target === VInsertMode.heldEl) { DomUtils.suppressEvent(event); }
+      } else if (target.shadowRoot) {
         target = target.shadowRoot;
         // NOTE: if destroyed, this page must have lost its focus before, so
         // a blur event must have been bubbled from shadowRoot to a real lock.
