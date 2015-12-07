@@ -58,6 +58,7 @@ reg = setTimeout.bind(window, function(element) {
   }
   for (e1 = element; (e2 = e1.parentElement) != null; e1 = e2) {}
   if (e1.parentNode != null) { return; }
+  // NOTE: ignore nodes belonging to a shadowRoot
   container.appendChild(e1);
   element.dispatchEvent(registrationEvent);
   e1.remove();
