@@ -30,11 +30,11 @@ var _listen, container, handler, reg, register, toRegister;
 _listen = EventTarget.prototype.addEventListener;
 toRegister = [];
 register = function(element) { toRegister.push(element); };
-EventTarget.prototype.addEventListener = function(type) {
+EventTarget.prototype.addEventListener = function(type, listener, useCapture) {
   if (type === "click" && this instanceof Element) {
     register(this);
   }
-  return _listen.apply(this, arguments);
+  return _listen.call(this, type, listener, useCapture);
 };
 
 handler = function() {

@@ -44,17 +44,16 @@ DomUtils.DocumentReady(function() {
 });
 
 (function() {
-var _listen = Element.prototype.addEventListener, handler;
+var _listen = Element.prototype.addEventListener;
 if (_listen.vimiumHooked === true) { return; }
 
-handler = function(type) {
+EventTarget.prototype.addEventListener = function(type, listener, useCapture) {
   if (type === "click" && this instanceof Element) {
     this.hasOnclick = true;
   }
-  return _listen.apply(this, arguments);
+  return _listen.call(this, type, listener, useCapture);
 };
-handler.vimiumHooked = true;
-EventTarget.prototype.addEventListener = handler;
+EventTarget.prototype.addEventListener.vimiumHooked = true;
 })();
 
 if (chrome.runtime.onMessageExternal) {
