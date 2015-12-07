@@ -19,7 +19,7 @@ activateWithCompleter: function(completerName, selectFirstResult, forceNewTab, i
   completer.setName(completerName);
   vomnibarUI.initialSelectionValue = selectFirstResult ? 0 : -1;
   vomnibarUI.forceNewTab = forceNewTab ? true : false;
-  vomnibarUI.handlerId = handlerStack.push(vomnibarUI.preventBefore);
+  vomnibarUI.handlerId = handlerStack.push(handlerStack.SuppressMost);
   if (!initialQueryValue) {
     vomnibarUI.reset();
   } else if (typeof initialQueryValue === "string") {
@@ -200,10 +200,6 @@ vomnibarUI: {
     if (sel >= 0 && sel < _ref.length) {
       _ref[sel].classList.add("S");
     }
-  },
-  preventBefore: function(event) {
-    var n = event.keyCode;
-    return (n > KeyCodes.f1 && n <= KeyCodes.f12) ? 1 : 2;
   },
   onKeydown: function(event) {
     var action = "", n = event.keyCode, focused = VInsertMode.lock === this.input;
