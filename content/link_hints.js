@@ -104,6 +104,7 @@ var LinkHints = {
       this.initTimer = 0;
     }
     this.setOpenLinkMode(mode);
+    handlerStack.remove(this.handlerId);
     var elements, rect, style, width, height;
 
     if (!this.frameNested) {
@@ -525,11 +526,11 @@ var LinkHints = {
     this.lastHovered = element;
   },
   suppressTail: function(onlyRepeated) {
-    var func, handlerId, tick, timer;
+    var func, tick, timer;
     if (onlyRepeated) {
       func = function(event) {
         if (event.repeat) { return 2; }
-        handlerStack.remove(handlerId);
+        handlerStack.remove(this.handlerId);
         return 0;
       };
     } else {
@@ -538,11 +539,11 @@ var LinkHints = {
       timer = setInterval(function() {
         if (Date.now() - tick > 150) {
           clearInterval(timer);
-          handlerStack.remove(handlerId);
+          handlerStack.remove(this.handlerId);
         }
       }, 75);
     }
-    handlerId = handlerStack.push(func);
+    this.handlerId = handlerStack.push(func, this);
   },
   reinit: function() {
     var mode = this.mode, linkActivator = this.linkActivator, options = this.options;
@@ -561,7 +562,6 @@ var LinkHints = {
     }
     this.keyStatus.tab = 0;
     handlerStack.remove(this.handlerId);
-    this.handlerId = 0;
     if (this.keepHUDAfterAct) {
       this.keepHUDAfterAct = false;
     } else {
@@ -572,6 +572,8 @@ var LinkHints = {
     this.isActive = false;
     if (suppressType != null) {
       this.suppressTail(suppressType);
+    } else {
+      this.handlerId = 0;
     }
   },
 
