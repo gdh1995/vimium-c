@@ -141,6 +141,7 @@ var LinkHints = {
     style.width = width + "px"; style.height = height + "px";
     if (document.webkitFullscreenElement) { style.position = "fixed"; }
     this.handlerId = handlerStack.push(this.onKeyDownInMode, this);
+    VInsertMode.onWndBlur = this.onWndBlur;
   },
   setOpenLinkMode: function(mode) {
     var cons = this.CONST, tip, activator;
@@ -562,6 +563,7 @@ var LinkHints = {
     }
     this.keyStatus.tab = 0;
     handlerStack.remove(this.handlerId);
+    VInsertMode.onWndBlur = null;
     if (this.keepHUDAfterAct) {
       this.keepHUDAfterAct = false;
     } else {

@@ -257,6 +257,7 @@ var Settings, VHUD, MainPort, VInsertMode;
       var target = event.target;
       if (target === window) {
         if (Scroller.keyIsDown) { Scroller.keyIsDown = 0; }
+        VInsertMode.onWndBlur && VInsertMode.onWndBlur(KeydownEvents);
         KeydownEvents = new Uint8Array(256);
       } else if (!isEnabledForUrl) {}
       else if (InsertMode.lock === target) {
@@ -636,6 +637,7 @@ var Settings, VHUD, MainPort, VInsertMode;
     loading: (document.readyState !== "complete"),
     lock: null,
     mutable: true,
+    onWndBlur: null,
     init: function() {
       var activeEl = document.activeElement;
       this.focus = this.lockFocus;
