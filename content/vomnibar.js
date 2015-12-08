@@ -41,13 +41,21 @@ activateWithCompleter: function(completerName, selectFirstResult, forceNewTab, i
 },
   activateText: function(url) {
     var start, end;
+    if (typeof url === "object") {
+      start = url.start;
+      url = url.url;
+    } else {
+      start = url && url !== this.options.url ? 1 : 0;
+    }
     url = !url ? Utils.decodeURL(this.options.url)
       : url !== this.options.url && this.options.keyword ? url.substring(0, url.indexOf(" "))
       : Utils.decodeURL(url, window.decodeURIComponent);
     url = url.replace(Utils.spacesRe, " ").trim();
     if (this.options.keyword) {
       url = this.options.keyword + " " + url;
-      start = url.indexOf(' ') + 1;
+    }
+    if (start >= 0) {
+      start = start || (url.indexOf(' ') + 1);
       if (start > 0) { end = url.length; }
       else { start = null; }
     }
