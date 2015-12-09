@@ -207,7 +207,7 @@ var LinkHints = {
   },
   tryNestedFrame: function(request) {
     try {
-      var child = this.frameNested.contentWindow;
+      var child = this.frameNested.contentWindow, keydownEvents;
       if (request.command.startsWith("LinkHints.activate") && child.LinkHints.isActive) {
         if (!this.frameNested.contentDocument.head) {
           this.frameNested = null;
@@ -218,7 +218,9 @@ var LinkHints = {
         child.MainPort.Listener(request);
         if (document.readyState !== "complete") { this.frameNested = false; }
       }
+      keydownEvents = VInsertMode.keydownEvents();
       child.focus();
+      child.VInsertMode.keydownEvents(keydownEvents);
       return true;
     } catch (e) {}
     this.frameNested = null;

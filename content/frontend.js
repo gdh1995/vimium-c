@@ -720,6 +720,13 @@ var Settings, VHUD, MainPort, VInsertMode;
         HUD.hide(true);
       }
     },
+    keydownEvents: function(arr) {
+      if (arr) {
+        KeydownEvents = arr;
+      } else {
+        return KeydownEvents;
+      }
+    },
     OnShadowBlur: function(event) {
       this.removeEventListener("blur", InsertMode.OnShadowBlur, true);
       ELs.onBlur(event);
