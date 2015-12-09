@@ -109,8 +109,12 @@ var LinkHints = {
     if (!this.frameNested) {
       elements = this.getVisibleClickableElements();
     }
-    if (this.frameNested && this.tryNestedFrame(mode)) {
-      if (document.readyState !== "complete") { this.frameNested = false; }
+    if (this.frameNested && this.tryNestedFrame({
+      name: "execute",
+      command: "LinkHints.activate",
+      count: mode,
+      options: this.options
+    })) {
       VHUD.hide(true);
       return;
     }
@@ -201,19 +205,23 @@ var LinkHints = {
     VHUD.show(tip);
     this.mode = mode;
   },
-  tryNestedFrame: function(mode) {
+  tryNestedFrame: function(request) {
     try {
-      var childLinkHints = this.frameNested.contentWindow.LinkHints;
-      if (childLinkHints.isActive) {
-        if (!this.frameNested.contentDocument.head) { return false; }
-        childLinkHints.deactivate(true);
+      var child = this.frameNested.contentWindow;
+      if (request.command.startsWith("LinkHints.activate") && child.LinkHints.isActive) {
+        if (!this.frameNested.contentDocument.head) {
+          this.frameNested = null;
+          return false;
+        }
+        child.LinkHints.deactivate(true);
       } else {
-        childLinkHints.options = this.options;
-        childLinkHints._activateMode(mode);
+        child.MainPort.Listener(request);
+        if (document.readyState !== "complete") { this.frameNested = false; }
       }
-      this.frameNested.contentWindow.focus();
+      child.focus();
       return true;
     } catch (e) {}
+    this.frameNested = null;
     return false;
   },
   createMarkerFor: function(link) {
