@@ -43,53 +43,53 @@ var LinkHints = {
   isActive: false,
   options: null,
   activateModeToOpenInNewTab: function() {
-    this._activateMode(this.CONST.OPEN_IN_NEW_BG_TAB);
+    this.activate(this.CONST.OPEN_IN_NEW_BG_TAB);
   },
   activateModeToOpenInNewForegroundTab: function() {
-    this._activateMode(this.CONST.OPEN_IN_NEW_FG_TAB);
+    this.activate(this.CONST.OPEN_IN_NEW_FG_TAB);
   },
   activateModeToCopyLinkUrl: function() {
-    this._activateMode(this.CONST.COPY_LINK_URL);
+    this.activate(this.CONST.COPY_LINK_URL);
   },
   activateModeToCopyLinkText: function() {
-    this._activateMode(this.CONST.COPY_TEXT);
+    this.activate(this.CONST.COPY_TEXT);
   },
   activateModeToSearchLinkText: function(_0, options) {
-    this._activateMode(this.CONST.SEARCH_TEXT, options);
+    this.activate(this.CONST.SEARCH_TEXT, options);
   },
   activateModeToOpenVomnibar: function(_0, options) {
-    this._activateMode(this.CONST.EDIT_TEXT, options);
+    this.activate(this.CONST.EDIT_TEXT, options);
   },
   activateModeWithQueue: function() {
-    this._activateMode(this.CONST.OPEN_WITH_QUEUE);
+    this.activate(this.CONST.OPEN_WITH_QUEUE);
   },
   activateModeToOpenIncognito: function(_0, options) {
-    this._activateMode(this.CONST.OPEN_INCOGNITO_LINK, options);
+    this.activate(this.CONST.OPEN_INCOGNITO_LINK, options);
   },
   activateModeToDownloadLink: function() {
-    this._activateMode(this.CONST.DOWNLOAD_LINK);
+    this.activate(this.CONST.DOWNLOAD_LINK);
   },
   activateModeToDownloadImage: function() {
-    this._activateMode(this.CONST.DOWNLOAD_IMAGE);
+    this.activate(this.CONST.DOWNLOAD_IMAGE);
   },
   activateModeToOpenImage: function() {
-    this._activateMode(this.CONST.OPEN_IMAGE);
+    this.activate(this.CONST.OPEN_IMAGE);
   },
   activateModeToHover: function() {
-    this._activateMode(this.CONST.HOVER);
+    this.activate(this.CONST.HOVER);
   },
   activateModeToLeave: function() {
-    this._activateMode(this.CONST.LEAVE);
+    this.activate(this.CONST.LEAVE);
   },
   activateMode: function() {
-    this._activateMode(this.CONST.OPEN_IN_CURRENT_TAB);
+    this.activate(this.CONST.OPEN_IN_CURRENT_TAB);
   },
-  _activateMode: function(mode, options) {
+  activate: function(mode, options) {
     if (this.isActive) { return;}
     this.options = options || {};
     if (document.body == null) {
       if (!this.initTimer) {
-        this.initTimer = setInterval(this._activateMode.bind(this, mode), 300);
+        this.initTimer = setInterval(this.activate.bind(this, mode), 300);
       } else if (!document.head) {
         clearInterval(this.initTimer); // document is not a <html> document
         this.initTimer = 0;
@@ -101,6 +101,7 @@ var LinkHints = {
       clearInterval(this.initTimer);
       this.initTimer = 0;
     }
+    if (this.options.mode != null) { mode = options.mode; }
     this.setOpenLinkMode(mode);
     handlerStack.remove(this.handlerId);
     var elements, rect, style, width, height;
@@ -568,7 +569,7 @@ var LinkHints = {
     this.deactivate();
     this.linkActivator = linkActivator;
     this.options = options;
-    this._activateMode(mode);
+    this.activate(mode);
   },
   deactivate: function(suppressType) {
     this.alphabetHints.deactivate();
