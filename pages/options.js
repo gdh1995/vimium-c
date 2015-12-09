@@ -1,6 +1,7 @@
 "use strict";
 
 var $, ExclusionRulesOption, bgSettings, bgExclusions, BG,
+KeyRe = /<(?:(?:a-(?:c-)?(?:m-)?|c-(?:m-)?|m-)(?:[A-Z][0-9A-Z]+|[a-z][0-9a-z]+|[^\s])|[A-Z][0-9A-Z]+|[a-z][0-9a-z]+)>|[^\s]/g,
 __hasProp = Object.prototype.hasOwnProperty,
 __extends = function(child, parent) {
   for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; }
@@ -107,12 +108,10 @@ ExclusionRulesOption.prototype.onRemoveRow = function(event) {
   }
 };
 
-ExclusionRulesOption.keyRe = /<(?:(?:a-(?:c-)?(?:m-)?|c-(?:m-)?|m-)(?:[A-Z][0-9A-Z]+|[a-z][0-9a-z]+|[^\s])|[A-Z][0-9A-Z]+|[a-z][0-9a-z]+)>|[^\s]/g;
 ExclusionRulesOption.prototype.readValueFromElement = function(part) {
-  var element, passKeys, pattern, rules, _i, _len, _ref, passArr, re;
+  var element, passKeys, pattern, rules, _i, _len, _ref, passArr;
   rules = [];
   _ref = this.element.getElementsByClassName("exclusionRuleInstance");
-  re = ExclusionRulesOption.keyRe;
   part = (part === true);
   for (_i = 0, _len = _ref.length; _i < _len; _i++) {
     element = _ref[_i];
@@ -125,7 +124,7 @@ ExclusionRulesOption.prototype.readValueFromElement = function(part) {
     }
     passKeys = this.getPassKeys(element).value;
     if (passKeys) {
-      passArr = passKeys.match(re);
+      passArr = passKeys.match(KeyRe);
       passKeys = passArr ? (passArr.sort().join(" ") + " ") : "";
     }
     rules.push({
