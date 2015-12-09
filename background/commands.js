@@ -1,9 +1,9 @@
 "use strict";
 var Commands = {
   // NOTE: [^\s] is for spliting passed keys
-  keyRe: /<(?:(?:a-(?:c-)?(?:m-)?|c-(?:m-)?|m-)(?:[A-Z][0-9A-Z]+|[a-z][0-9a-z]+|[^\s])|[A-Z][0-9A-Z]+|[a-z][0-9a-z]+)>|[^\s]/g,
+  keyRe: /<(?:.-){0,3}.[^>]*>|./g,
   keyToCommandRegistry: null,
-  _keyLeftRe: /<((?:[acmACM]-){0,3})([A-Za-z][0-9A-Za-z]+|.)>/g,
+  _keyLeftRe: /<((?:[acmACM]-){0,3})(.[^>]*)>/g,
   onNormalize: function(match, option, key) {
     return (option ? ("<" + option.toLowerCase()) : "<")
       + (Utils.upperRe.test(key) ? key.toUpperCase() : key)
