@@ -25,9 +25,8 @@ var Exclusions = {
   _listening: false,
   rules: [],
   setRules: function(rules) {
-    this.re = Utils.makeNullProto();
-    this.rules = this.Format(rules);
-    if (this.rules.length === 0) {
+    if (rules.length === 0) {
+      this.rules = [];
       this.getPattern = function() { return null; };
       if (this._listening) {
         chrome.webNavigation.onHistoryStateUpdated.removeListener(this.onURLChange);
@@ -36,6 +35,8 @@ var Exclusions = {
       }
       return;
     }
+    this.re = Utils.makeNullProto();
+    this.rules = this.format(rules);
     if (!this._listening) {
       chrome.webNavigation.onHistoryStateUpdated.addListener(this.onURLChange);
       chrome.webNavigation.onReferenceFragmentUpdated.addListener(this.onURLChange);
@@ -60,7 +61,7 @@ var Exclusions = {
   } : function(details) {
     g_requestHandlers.SendToTab({name: "checkIfEnabled"}, details.tabId);
   }),
-  Format: function(rules) {
+  format: function(rules) {
     var _i = rules.length, rule, out = new Array(_i);
     while (0 <= --_i) {
       rule = rules[_i];
@@ -80,7 +81,7 @@ var Exclusions = {
   getPattern: null,
   getTemp: function(url, rules) {
     var old = this.rules;
-    this.rules = this.Format(rules);
+    this.rules = this.format(rules);
     url = this._getPatternByRules(url);
     this.rules = old;
     return url;
