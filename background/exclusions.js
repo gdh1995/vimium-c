@@ -28,10 +28,12 @@ var Exclusions = {
     this.re = Utils.makeNullProto();
     this.rules = this.Format(rules);
     if (this.rules.length === 0) {
-      this.getPattern = this._getNull;
-      chrome.webNavigation.onHistoryStateUpdated.removeListener(this.onURLChange);
-      chrome.webNavigation.onReferenceFragmentUpdated.removeListener(this.onURLChange);
-      this._listening = false;
+      this.getPattern = function() { return null; };
+      if (this._listening) {
+        chrome.webNavigation.onHistoryStateUpdated.removeListener(this.onURLChange);
+        chrome.webNavigation.onReferenceFragmentUpdated.removeListener(this.onURLChange);
+        this._listening = false;
+      }
       return;
     }
     if (!this._listening) {
@@ -39,7 +41,17 @@ var Exclusions = {
       chrome.webNavigation.onReferenceFragmentUpdated.addListener(this.onURLChange);
       this._listening = true;
     }
-    this.getPattern = this._getPatternByRules;
+    this.getPattern = function(url) {
+      var rules = this.rules, _i, _len, matchedKeys = "", str;
+      for (_i = 0, _len = rules.length; _i < _len; _i++) {
+        if (rules[_i][0](url)) {
+          str = rules[_i][1];
+          if (!str) { return ""; }
+          matchedKeys += str;
+        }
+      }
+      return matchedKeys || null;
+    };
   },
   onURLChange: (Settings.CONST.ChromeVersion >= 41
   ? function(details) {
@@ -63,27 +75,12 @@ var Exclusions = {
     var rules = Settings.get("exclusionRules"), ref = this.re = Utils.makeNullProto()
       , ref2 = this.rules, _i, _j, pattern;
     for (_i = rules.length, _j = 0; 0 <= --_i; ) {
-      pattern = rules[_i].pattern;
-      if (!pattern) { continue; }
+      if (pattern = rules[_i].pattern) {
       ref[pattern] = ref2[_j++][0];
+    }
     }
   },
   getPattern: null,
-  _getNull: function() {
-    return null;
-  },
-  _getPatternByRules: function(url) {
-    var rules = this.rules, _i, _len, matchedKeys = "";
-    for (_i = 0, _len = rules.length; _i < _len; _i++) {
-      if (rules[_i][0](url)) {
-        if (!rules[_i][1]) {
-          return "";
-        }
-        matchedKeys += rules[_i][1];
-      }
-    }
-    return matchedKeys || null;
-  },
   getTemp: function(url, rules) {
     var old = this.rules;
     this.rules = this.Format(rules);
