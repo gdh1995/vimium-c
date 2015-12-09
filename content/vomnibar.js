@@ -50,7 +50,7 @@ activateWithCompleter: function(completerName, selectFirstResult, forceNewTab, i
     url = !url ? Utils.decodeURL(this.options.url)
       : url !== this.options.url && this.options.keyword ? url.substring(0, url.indexOf(" "))
       : Utils.decodeURL(url, window.decodeURIComponent);
-    url = url.replace(Utils.spacesRe, " ").trim();
+    url = url.replace(/[\s\u3000]+/g, " ").trim();
     if (this.options.keyword) {
       url = this.options.keyword + " " + url;
     }
