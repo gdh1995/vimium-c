@@ -272,9 +272,9 @@ availableCommands: {
   toggleCS: [ "turn on/off the site's CS (use type)", 1, true ],
   clearCS: [ "clear extension's content settings (use type)", 1, true ],
   "Vomnibar.activate": [
-    "Open URL, bookmark, or history entry (use keyword, url=true/<string>)", 1, false ],
+    "Open URL, bookmark, or history entry\n (use keyword, url=true/<string>)", 1, false ],
   "Vomnibar.activateInNewTab": [
-    "Open URL, bookmark, history entry, in a new tab (use url=true/<string>)", 1, false ],
+    "Open URL, bookmark, history entry,\n in a new tab (use url=true/<string>)", 1, false ],
   "Vomnibar.activateTabSelection": [ "Search through your open tabs", 1, false ],
   "Vomnibar.activateBookmarks": [ "Open a bookmark", 1, false ],
   "Vomnibar.activateBookmarksInNewTab": [ "Open a bookmark in a new tab", 1, false ],

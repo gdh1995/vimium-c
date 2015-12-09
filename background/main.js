@@ -27,7 +27,7 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
     commandsToKey = {};
     for (key in ref) {
       command = ref[key].command;
-      commandsToKey[command] = (commandsToKey[command] || []).concat(key);
+      (commandsToKey[command] || (commandsToKey[command] = [])).push(key);
     }
     showUnbound = showUnbound ? true : false;
     showNames = showNames ? true : false;
@@ -71,7 +71,7 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
         , bindings && Utils.escapeHtml(bindings), "</span>\n\t</td>\n\t"
         , '<td class="HelpTd">', bindings && ":", "</td>\n\t"
         , '<td class="HelpTd HelpCommandInfo">'
-        , Utils.escapeHtml(description));
+        , Utils.escapeHtml(description).replace('\n', "<br />"));
       if (command) {
         html.push('\n\t\t<span class="HelpCommandName">('
           , command, ")</span>\n\t");
