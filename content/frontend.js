@@ -1104,7 +1104,7 @@ var Settings, VHUD, MainPort, VInsertMode;
         this.durationTimer = 0;
       }
       el.textContent = text;
-      el.style.visibility = "";
+      el.style.display = "";
       if (!this.tweenId) {
         this.tweenId = setInterval(this.tween, 40);
       }
@@ -1121,7 +1121,7 @@ var Settings, VHUD, MainPort, VInsertMode;
         }
       }
       if (opacity == 0) {
-        el.style.visibility = "hidden";
+        el.style.display = "none";
         el.textContent = "";
       }
       clearInterval(hud.tweenId);
@@ -1133,11 +1133,11 @@ var Settings, VHUD, MainPort, VInsertMode;
         clearTimeout(hud.durationTimer);
         hud.durationTimer = 0;
       }
-      if (!(el = hud._element) || el.style.visibility === "hidden") {
+      if (!(el = hud._element) || el.style.display === "none") {
         return;
       }
       if (immediate) {
-        el.style.visibility = "hidden";
+        el.style.display = "none";
         el.textContent = "";
         el.style.opacity = 0;
       } else if (!hud.tweenId) {
