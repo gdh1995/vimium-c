@@ -881,7 +881,7 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
   };
 
   Settings.updateHooks.PopulateCommandKeys = function() {
-    var key, ref1, ref2, first, arr, keyRe = Commands.keyRe, ch;
+    var key, ref1, ref2, first, arr, keyRe = Commands.keyRe, ch, func;
     resetKeys();
     ref1 = ["1", "2", "3", "4", "5", "6", "7", "8", "9"];
     ref2 = secondKeys = Utils.makeNullProto();
@@ -907,9 +907,9 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
       }
     }
     firstKeys = ref1 = ref1.concat(Object.keys(ref2)).sort().reverse();
-    keyRe = function(key) { return ref1.indexOf(key) === -1; };
+    func = function(key) { return ref1.indexOf(key) === -1; };
     for (first in ref2) {
-      ref2[first] = ref2[first].filter(keyRe).sort().reverse();
+      ref2[first] = ref2[first].filter(func).sort().reverse();
     }
     ref2[""] = ["0"]; // "0" is for key queues like "10n"
   };
