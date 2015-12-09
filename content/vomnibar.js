@@ -20,24 +20,26 @@ activateWithCompleter: function(completerName, selectFirstResult, forceNewTab, i
   vomnibarUI.initialSelectionValue = selectFirstResult ? 0 : -1;
   vomnibarUI.forceNewTab = forceNewTab ? true : false;
   vomnibarUI.handlerId = handlerStack.push(handlerStack.SuppressMost);
-  if (!initialQueryValue) {
+  if (initialQueryValue == null) {
     vomnibarUI.reset();
-  } else if (typeof initialQueryValue === "string") {
-    vomnibarUI.reset(initialQueryValue);
-  } else if (initialQueryValue = DomUtils.getSelectionText()) {
-    vomnibarUI.forceNewTab = true;
-    this.activateText(initialQueryValue);
-  } else {
-    initialQueryValue = this.options.url = this.options.url || window.location.href;
-    if (initialQueryValue.indexOf("://") === -1) {
-      this.activateText(initialQueryValue);
-      return;
-    }
-    MainPort.sendMessage({
-      handler: "parseSearchUrl",
-      url: initialQueryValue
-    }, this.activateText.bind(this));
+    return;
   }
+  if (initialQueryValue === true) {
+    if (initialQueryValue = DomUtils.getSelectionText()) {
+      vomnibarUI.forceNewTab = true;
+    } else {
+      initialQueryValue = window.location.href;
+    }
+    this.options.url = initialQueryValue;
+  }
+  if (initialQueryValue.indexOf("://") === -1) {
+    this.activateText(initialQueryValue);
+    return;
+  }
+  MainPort.sendMessage({
+    handler: "parseSearchUrl",
+    url: initialQueryValue
+  }, this.activateText.bind(this));
 },
   activateText: function(url) {
     var start, end;
@@ -63,12 +65,12 @@ activateWithCompleter: function(completerName, selectFirstResult, forceNewTab, i
     Vomnibar.vomnibarUI.reset(url, start, end);
   },
   activate: function(_0, options) {
-    var keyword = options.keyword;
-    this.activateWithCompleter("omni", false, false, keyword ? (keyword + " ") : false);
+    this.options = options;
+    this.activateWithCompleter("omni", false, false, options.url);
   },
   activateInNewTab: function(_0, options) {
-    var keyword = options.keyword;
-    this.activateWithCompleter("omni", false, true, keyword ? (keyword + " ") : false);
+    this.options = options;
+    this.activateWithCompleter("omni", false, true, options.url);
   },
   activateTabSelection: function() {
     this.activateWithCompleter("tabs", true);
