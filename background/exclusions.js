@@ -61,13 +61,10 @@ var Exclusions = {
     g_requestHandlers.SendToTab({name: "checkIfEnabled"}, details.tabId);
   }),
   Format: function(rules) {
-    var keyRe = Commands.keyRe, _i, rule, pattern, pass, arr, out = [];
-    for (_i = rules.length; 0 <= --_i; ) {
-      pattern = (rule = rules[_i]).pattern;
-      if (!pattern) { continue; }
-      pass = rule.passKeys;
-      out.push([this.getRe(pattern), pass && (arr = pass.match(keyRe))
-        ? (arr.sort().join(" ") + " ") : ""]);
+    var _i = rules.length, rule, out = new Array(_i);
+    while (0 <= --_i) {
+      rule = rules[_i];
+      out[_i] = [this.getRe(rule.pattern), rule.passKeys];
     }
     return out;
   },
@@ -76,8 +73,8 @@ var Exclusions = {
       , ref2 = this.rules, _i, _j, pattern;
     for (_i = rules.length, _j = 0; 0 <= --_i; ) {
       if (pattern = rules[_i].pattern) {
-      ref[pattern] = ref2[_j++][0];
-    }
+        ref[pattern] = ref2[_j++][0];
+      }
     }
   },
   getPattern: null,

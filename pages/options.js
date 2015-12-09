@@ -107,11 +107,12 @@ ExclusionRulesOption.prototype.onRemoveRow = function(event) {
   }
 };
 
+ExclusionRulesOption.keyRe = /<(?:(?:a-(?:c-)?(?:m-)?|c-(?:m-)?|m-)(?:[A-Z][0-9A-Z]+|[a-z][0-9a-z]+|[^\s])|[A-Z][0-9A-Z]+|[a-z][0-9a-z]+)>|[^\s]/g;
 ExclusionRulesOption.prototype.readValueFromElement = function(part) {
-  var element, passKeys, pattern, rules, _i, _len, _ref, wchRe;
+  var element, passKeys, pattern, rules, _i, _len, _ref, passArr, re;
   rules = [];
-  wchRe = /\s+/;
   _ref = this.element.getElementsByClassName("exclusionRuleInstance");
+  re = ExclusionRulesOption.keyRe;
   part = (part === true);
   for (_i = 0, _len = _ref.length; _i < _len; _i++) {
     element = _ref[_i];
@@ -122,7 +123,11 @@ ExclusionRulesOption.prototype.readValueFromElement = function(part) {
     if (!pattern) {
       continue;
     }
-    passKeys = this.getPassKeys(element).value.replace(wchRe, " ").trim();
+    passKeys = this.getPassKeys(element).value;
+    if (passKeys) {
+      passArr = passKeys.match(re);
+      passKeys = passArr ? (passArr.sort().join(" ") + " ") : "";
+    }
     rules.push({
       pattern: pattern,
       passKeys: passKeys
