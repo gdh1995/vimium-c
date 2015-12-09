@@ -40,13 +40,10 @@ var Commands = {
   },
   parseKeyMappings: function(line) {
     var key, lines, splitLine, _i, _len, registry, details, available;
-    this.keyToCommandRegistry = Utils.makeNullProto();
-    if (Settings.get("enableDefaultMappings") === true) {
-      this.loadDefaults();
-    }
-    registry = this.keyToCommandRegistry;
+    registry = this.keyToCommandRegistry = Utils.makeNullProto();
     available = this.availableCommands;
     lines = line.replace(/\\\n/g, "").replace(/[\t ]+/g, " ").split("\n");
+    lines[0] !== "unmapAll" && this.loadDefaults();
     for (_i = 0, _len = lines.length; _i < _len; _i++) {
       line = lines[_i].trim();
       if (!(line.charCodeAt(0) > 35)) { continue; } // mask: /[ !"#]/

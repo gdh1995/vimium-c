@@ -70,9 +70,6 @@ var Settings = {
         ref2[key] = this.get(key);
       }
     },
-    enableDefaultMappings: function() {
-      this.setUnique("postKeyMappings", 1);
-    },
     files: function() {
       var files = this.files, id;
       for (id in files) {
@@ -122,7 +119,6 @@ var Settings = {
     __proto__: null,
     UILanguage: null,
     deepHints: false,
-    enableDefaultMappings: true,
     exclusionRules: [{pattern: "http*://mail.google.com/*", passKeys: ""}],
     findModeRawQuery: "",
     grabBackFocus: true,
@@ -166,7 +162,7 @@ w|wiki:\\\n  http://www.wikipedia.org/w/index.php?search=$s Wikipedia (en-US)",
   // not clean if exists (for simpler logic)
   nonPersistent: { __proto__: null,
     baseCSS: 1, exclusionTemplate: 1, helpDialog: 1, innerCss: 1,
-    postKeyMappings: 1, searchEngineMap: 1, searchEngineRules: 1, settingsVersion: 1, vomnibar: 1
+    searchEngineMap: 1, searchEngineRules: 1, settingsVersion: 1, vomnibar: 1
   },
   files: {
     __proto__: null,
@@ -198,7 +194,6 @@ w|wiki:\\\n  http://www.wikipedia.org/w/index.php?search=$s Wikipedia (en-US)",
 Settings.onUnique = Settings.onUnique.bind(Settings);
 // note: if changed, ../pages/newtab.js also needs change.
 Settings.defaults.newTabUrl = Settings.CONST.ChromeInnerNewTab;
-Settings.updateHooks.keyMappings = Settings.updateHooks.enableDefaultMappings;
 
 (function() {
   var ref, i, func;

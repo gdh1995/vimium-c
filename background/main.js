@@ -1302,8 +1302,8 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
     BackgroundCommands.createTab.useTab = -1;
   };
 
-  Settings.updateHooks.postKeyMappings = function() {
-    Commands.parseKeyMappings(Settings.get("keyMappings"));
+  Settings.updateHooks.keyMappings = function(value) {
+    Commands.parseKeyMappings(value);
     Settings.postUpdate("PopulateCommandKeys", null);
     // resetKeys has been called
     this.postUpdate("broadcast", {
