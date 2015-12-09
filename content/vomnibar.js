@@ -45,7 +45,7 @@ activateWithCompleter: function(completerName, selectFirstResult, forceNewTab, i
       start = url.start;
       url = url.url;
     } else {
-      start = url && url !== this.options.url ? 1 : 0;
+      start = url && url !== this.options.url ? 0 : null;
     }
     url = !url ? Utils.decodeURL(this.options.url)
       : url !== this.options.url && this.options.keyword ? url.substring(0, url.indexOf(" "))
