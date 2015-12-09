@@ -1098,13 +1098,13 @@ var Settings, VHUD, MainPort, VInsertMode;
         el.className = "R";
         el.id = "HUD";
         el.style.opacity = 0;
+        el.style.display = "none";
         DomUtils.UI.addElement(this._element = el);
       } else if (this.durationTimer) {
         clearTimeout(this.durationTimer);
         this.durationTimer = 0;
       }
       el.textContent = text;
-      el.style.display = "";
       if (!this.tweenId) {
         this.tweenId = setInterval(this.tween, 40);
       }
@@ -1114,6 +1114,7 @@ var Settings, VHUD, MainPort, VInsertMode;
     tween: function() {
       var hud = HUD, el = hud._element, opacity = +el.style.opacity;
       if (opacity !== hud.opacity) {
+        if (opacity === 0) { el.style.display = ""; }
         opacity += opacity < hud.opacity ? 0.25 : -0.25;
         el.style.opacity = opacity;
         if (opacity !== hud.opacity) {
@@ -1133,17 +1134,17 @@ var Settings, VHUD, MainPort, VInsertMode;
         clearTimeout(hud.durationTimer);
         hud.durationTimer = 0;
       }
-      if (!(el = hud._element) || el.style.display === "none") {
-        return;
-      }
+      hud.opacity = 0;
       if (immediate) {
+        clearInterval(hud.tweenId);
+        hud.tweenId = 0;
+        el = hud._element;
         el.style.display = "none";
         el.textContent = "";
         el.style.opacity = 0;
       } else if (!hud.tweenId) {
         hud.tweenId = setInterval(hud.tween, 40);
       }
-      hud.opacity = 0;
     },
     enabled: function() {
       return document.body && settings.values.hideHud === false;
