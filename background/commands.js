@@ -39,12 +39,12 @@ var Commands = {
     }
   },
   parseKeyMappings: function(line) {
-    var key, lines, splitLine, _i, _len, registry, details, available;
+    var key, lines, splitLine, _i = 0, _len, registry, details, available;
     registry = this.keyToCommandRegistry = Utils.makeNullProto();
     available = this.availableCommands;
     lines = line.replace(/\\\n/g, "").replace(/[\t ]+/g, " ").split("\n");
-    lines[0] !== "unmapAll" && this.loadDefaults();
-    for (_i = 0, _len = lines.length; _i < _len; _i++) {
+    lines[0] !== "unmapAll" ? this.loadDefaults() : (_i = 1);
+    for (_len = lines.length; _i < _len; _i++) {
       line = lines[_i].trim();
       if (!(line.charCodeAt(0) > 35)) { continue; } // mask: /[ !"#]/
       splitLine = line.split(" ");
@@ -64,6 +64,7 @@ var Commands = {
       } else if (key === "unmapAll") {
         registry = this.keyToCommandRegistry = Utils.makeNullProto();
       } else if (key !== "unmap" || splitLine.length !== 2) {
+        console.log("Unknown mapping command: '" + key + "' in", line);
       } else if ((key = this.normalizeKey(splitLine[1])) in registry) {
         delete registry[key];
       } else {
