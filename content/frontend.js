@@ -763,7 +763,7 @@ var Settings, VHUD, MainPort, VInsertMode;
       }
       return "";
     });
-    findModeQuery.ignoreCase = !hasNoIgnoreCaseFlag && !Utils.upperRe.test(findModeQuery.parsedQuery);
+    findModeQuery.ignoreCase = !hasNoIgnoreCaseFlag && !/[A-Z]/.test(findModeQuery.parsedQuery);
     if (findModeQuery.isRe) {
       try {
         pattern = new RegExp(findModeQuery.parsedQuery, "g" + (findModeQuery.ignoreCase ? "i" : ""));
