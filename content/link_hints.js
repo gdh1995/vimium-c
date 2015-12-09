@@ -112,6 +112,7 @@ var LinkHints = {
     }
     if (this.frameNested && this.tryNestedFrame(mode)) {
       if (document.readyState !== "complete") { this.frameNested = false; }
+      VHUD.hide(true);
       return;
     }
     this.hintMarkers = elements.map(this.createMarkerFor);
