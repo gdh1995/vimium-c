@@ -55,19 +55,16 @@ var LinkHints = {
     this._activateMode(this.CONST.COPY_TEXT);
   },
   activateModeToSearchLinkText: function(_0, options) {
-    this.options = options;
-    this._activateMode(this.CONST.SEARCH_TEXT);
+    this._activateMode(this.CONST.SEARCH_TEXT, options);
   },
   activateModeToOpenVomnibar: function(_0, options) {
-    this.options = options;
-    this._activateMode(this.CONST.EDIT_TEXT);
+    this._activateMode(this.CONST.EDIT_TEXT, options);
   },
   activateModeWithQueue: function() {
     this._activateMode(this.CONST.OPEN_WITH_QUEUE);
   },
   activateModeToOpenIncognito: function(_0, options) {
-    this.options = options;
-    this._activateMode(this.CONST.OPEN_INCOGNITO_LINK);
+    this._activateMode(this.CONST.OPEN_INCOGNITO_LINK, options);
   },
   activateModeToDownloadLink: function() {
     this._activateMode(this.CONST.DOWNLOAD_LINK);
@@ -87,16 +84,17 @@ var LinkHints = {
   activateMode: function() {
     this._activateMode(this.CONST.OPEN_IN_CURRENT_TAB);
   },
-  _activateMode: function(mode) {
-    if (this.isActive) {
-      return;
-    } else if (document.body == null) {
+  _activateMode: function(mode, options) {
+    if (this.isActive) { return;}
+    this.options = options || {};
+    if (document.body == null) {
       if (!this.initTimer) {
         this.initTimer = setInterval(this._activateMode.bind(this, mode), 300);
       } else if (!document.head) {
         clearInterval(this.initTimer); // document is not a <html> document
         this.initTimer = 0;
         this.isActive = true; // disable self
+        this.options = null;
       }
       return;
     } else if (this.initTimer) {
