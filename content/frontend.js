@@ -717,7 +717,7 @@ var Settings, VHUD, MainPort, VInsertMode;
       }
       if (this.global) {
         this.lock = null; this.global = false;
-        HUD.hide();
+        HUD.hide(true);
       }
     },
     OnShadowBlur: function(event) {
@@ -842,7 +842,7 @@ var Settings, VHUD, MainPort, VInsertMode;
 
   executeFind = function(query, options) {
     var oldFindMode = findMode, result;
-    HUD.hide(true);
+    HUD.hide(); // window.find can not break through shadowDOMs, so needn't worry
     result = options.repeat;
     do {
       findModeQueryHasResults = window.find(query, options.caseSensitive
