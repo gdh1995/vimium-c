@@ -1,11 +1,12 @@
 "use strict";
 var Vomnibar = {
-activateWithCompleter: function(completerName, selectFirstResult, forceNewTab, initialQueryValue, force_current) {
+activateWithCompleter: function(completerName, selectFirstResult, forceNewTab
+    , initialQueryValue, keyword, force_current) {
   var completer = this.Completer, vomnibarUI = this.vomnibarUI;
   if (vomnibarUI.init) {
     if (window.top !== window && !force_current) {
       MainPort.sendCommadToFrame(0, "Vomnibar.activateWithCompleter"//
-        , [completerName, selectFirstResult, forceNewTab, initialQueryValue]);
+        , [completerName, selectFirstResult, forceNewTab, initialQueryValue, keyword]);
       return;
     }
     // <svg> document has not head nor body; document with pdf <embed> has body
@@ -30,47 +31,43 @@ activateWithCompleter: function(completerName, selectFirstResult, forceNewTab, i
     } else {
       initialQueryValue = window.location.href;
     }
-    this.options.url = initialQueryValue;
   }
   if (initialQueryValue.indexOf("://") === -1) {
-    this.activateText(initialQueryValue);
+    this.activateText(initialQueryValue, keyword, initialQueryValue);
     return;
   }
   MainPort.sendMessage({
     handler: "parseSearchUrl",
     url: initialQueryValue
-  }, this.activateText.bind(this));
+  }, this.activateText.bind(this, initialQueryValue, keyword));
 },
-  activateText: function(url) {
+  activateText: function(old_url, keyword, url) {
     var start, end;
     if (typeof url === "object") {
       start = url.start;
       url = url.url;
     } else {
-      start = url && url !== this.options.url ? 0 : null;
+      start = url && url !== old_url ? 0 : null;
     }
-    url = !url ? Utils.decodeURL(this.options.url)
-      : url !== this.options.url && this.options.keyword ? url.substring(0, url.indexOf(" "))
+    url = !url ? Utils.decodeURL(old_url)
+      : url !== old_url && keyword ? url.substring(0, url.indexOf(" "))
       : Utils.decodeURL(url, window.decodeURIComponent);
     url = url.replace(/[\s\u3000]+/g, " ").trim();
-    if (this.options.keyword) {
-      url = this.options.keyword + " " + url;
+    if (keyword) {
+      url = keyword + " " + url;
     }
     if (start >= 0) {
       start = start || (url.indexOf(' ') + 1);
       if (start > 0) { end = url.length; }
       else { start = null; }
     }
-    this.options = null;
     Vomnibar.vomnibarUI.reset(url, start, end);
   },
   activate: function(_0, options) {
-    this.options = options;
-    this.activateWithCompleter("omni", false, false, options.url);
+    this.activateWithCompleter("omni", false, false, options.url, options.keyword);
   },
   activateInNewTab: function(_0, options) {
-    this.options = options;
-    this.activateWithCompleter("omni", false, true, options.url);
+    this.activateWithCompleter("omni", false, true, options.url, options.keyword);
   },
   activateTabSelection: function() {
     this.activateWithCompleter("tabs", true);
@@ -87,15 +84,6 @@ activateWithCompleter: function(completerName, selectFirstResult, forceNewTab, i
   activateHistoryInNewTab: function() {
     this.activateWithCompleter("history", true, true);
   },
-  activateEditUrl: function(_0, options) {
-    this.options = options;
-    this.activateWithCompleter("omni", false, false, true);
-  },
-  activateEditUrlInNewTab: function(_0, options) {
-    this.options = options;
-    this.activateWithCompleter("omni", false, true, true);
-  },
-  options: null,
 
 vomnibarUI: {
   _waitInit: 1,

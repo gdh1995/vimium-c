@@ -96,8 +96,7 @@ commandGroups: {
     ],
   vomnibarCommands: ["Vomnibar.activate", "Vomnibar.activateInNewTab"
     , "Vomnibar.activateBookmarks", "Vomnibar.activateBookmarksInNewTab", "Vomnibar.activateHistory"
-    , "Vomnibar.activateHistoryInNewTab", "Vomnibar.activateTabSelection"
-    , "Vomnibar.activateEditUrl", "Vomnibar.activateEditUrlInNewTab"],
+    , "Vomnibar.activateHistoryInNewTab", "Vomnibar.activateTabSelection"],
   historyNavigation: ["goBack", "goForward", "reopenTab"],
   findCommands: ["enterFindMode", "performFind", "performBackwardsFind"],
   tabManipulation: ["nextTab", "previousTab", "firstTab", "lastTab", "createTab", "duplicateTab"
@@ -113,8 +112,8 @@ advancedCommands: ["scrollToLeft", "scrollToRight", "moveTabToNextWindow"
   , "goUp", "goToRoot", "focusInput", "LinkHints.activateModeWithQueue", "enableCSTemp"
   , "toggleCS", "clearCS", "LinkHints.activateModeToDownloadImage", "reopenTab"
   , "LinkHints.activateModeToOpenImage", "searchAs", "removeRightTab"
-  , "LinkHints.activateModeToDownloadLink", "Vomnibar.activateEditUrl", "restoreGivenTab"
-  , "Vomnibar.activateEditUrlInNewTab", "LinkHints.activateModeToOpenIncognito"
+  , "LinkHints.activateModeToDownloadLink", "restoreGivenTab"
+  , "LinkHints.activateModeToOpenIncognito"
   , "goNext", "goPrevious", "Marks.clearLocal", "Marks.clearGlobal"
   , "moveTabLeft", "moveTabRight", "closeTabsOnLeft", "closeTabsOnRight", "closeOtherTabs"
   , "scrollPxDown", "scrollPxUp", "scrollPxLeft", "scrollPxRight", "debugBackground", "blank"
@@ -178,8 +177,6 @@ defaultKeyMappings: {
   T: "Vomnibar.activateTabSelection",
   b: "Vomnibar.activateBookmarks",
   B: "Vomnibar.activateBookmarksInNewTab",
-  ge: "Vomnibar.activateEditUrl",
-  gE: "Vomnibar.activateEditUrlInNewTab",
   gf: "nextFrame",
   gF: "mainFrame",
   "<f1>": "simBackspace",
@@ -274,15 +271,15 @@ availableCommands: {
   enableCSTemp: [ "enable the site's CS temporarily (use type)", 1, true ],
   toggleCS: [ "turn on/off the site's CS (use type)", 1, true ],
   clearCS: [ "clear extension's content settings (use type)", 1, true ],
-  "Vomnibar.activate": [ "Open URL, bookmark, or history entry", 1, false ],
-  "Vomnibar.activateInNewTab": [ "Open URL, bookmark, history entry, in a new tab", 1, false ],
+  "Vomnibar.activate": [
+    "Open URL, bookmark, or history entry (use keyword, url=true/<string>)", 1, false ],
+  "Vomnibar.activateInNewTab": [
+    "Open URL, bookmark, history entry, in a new tab (use url=true/<string>)", 1, false ],
   "Vomnibar.activateTabSelection": [ "Search through your open tabs", 1, false ],
   "Vomnibar.activateBookmarks": [ "Open a bookmark", 1, false ],
   "Vomnibar.activateBookmarksInNewTab": [ "Open a bookmark in a new tab", 1, false ],
   "Vomnibar.activateHistory": [ "Open a history", 1, false ],
   "Vomnibar.activateHistoryInNewTab": [ "Open a history in a new tab", 1, false ],
-  "Vomnibar.activateEditUrl": [ "Edit & open selected text or current URL", 1, false ],
-  "Vomnibar.activateEditUrlInNewTab": [ "Edit & open selected text or current URL in new tab", 1, false ],
   nextFrame: [ "Cycle forward to the next frame on the page", 0, true ],
   mainFrame: [ "Select the tab's main/top frame", 1, true ],
   "Marks.activateCreateMode": [ "Create a new mark", 1, false ],

@@ -735,7 +735,7 @@ FUNC: {
       return;
     }
     if (this.mode === this.CONST.EDIT_TEXT) {
-      Vomnibar.activateEditUrlInNewTab(1, {
+      Vomnibar.activate(1, {
         url: str,
         keyword: this.options.keyword
       });
@@ -788,7 +788,7 @@ FUNC: {
       return;
     }
     if (this.mode === this.CONST.EDIT_TEXT) {
-      Vomnibar.activateEditUrlInNewTab(1, {
+      Vomnibar.activateInNewTab(1, {
         url: str,
         keyword: this.options.keyword
       });
