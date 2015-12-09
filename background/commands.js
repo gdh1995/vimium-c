@@ -3,15 +3,7 @@ var Commands = {
   // NOTE: [^\s] is for spliting passed keys
   keyRe: /<(?:.-){0,3}.[^>]*>|./g,
   keyToCommandRegistry: null,
-  _keyLeftRe: /<((?:[acmACM]-){0,3})(.[^>]*)>/g,
-  onNormalize: function(match, option, key) {
-    return (option ? ("<" + option.toLowerCase()) : "<")
-      + (Utils.upperRe.test(key) ? key.toUpperCase() : key)
-      + ">";
-  },
-  normalizeKey: function(key) {
-    return key.replace(this._keyLeftRe, this.onNormalize);
-  },
+  normalizeKey: function(key) { return key; },
   getOptions: function(item) {
     var opt = {}, i, len, ind, str, val;
     for (i = 3, len = item.length; i < len; ) {
