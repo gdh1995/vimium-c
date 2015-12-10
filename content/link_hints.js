@@ -367,7 +367,7 @@ var LinkHints = {
     }
   },
   traverse: function(filters) {
-    var output = [], key, func, container;
+    var output = [], key, func, container, ind;
     Utils.setNullProto(filters);
     DomUtils.prepareCrop();
     container = document.webkitFullscreenElement || document;
@@ -385,11 +385,16 @@ var LinkHints = {
       output.forEach.call(DomUtils.UI.root.querySelectorAll(key), func);
     }
     if (!this.ngIgnored && !this.ngAttribute) { this.ngAttribute = "ng-click"; }
+    if ("*" in filters) {
+      ind = +(output[0] === document.documentElement);
+      if (output[ind] === document.body) { ++ind; }
+      if (ind > 0) { output.splice(0, ind); }
+    }
     if (this.frameNested !== false) {}
-    else if (output.length > 3) {
-      this.frameNested = null;
-    } else if ("*" in filters) {
+    else if ("*" in filters) {
       this.checkNestedFrame(output);
+    } else if (output.length > 0) {
+      this.frameNested = null;
     } else {
       this.traverse({"*": this.GetVisibleClickable})
     }
@@ -398,9 +403,6 @@ var LinkHints = {
   frameNested: false,
   checkNestedFrame: function(output) {
     var rect, element, str;
-    output = output.filter(function(item) {
-      return item[0] !== document.body && item[0] !== document.documentElement;
-    });
     if (output.length !== 1) {
       if (output.length > 1) { this.frameNested = null; }
       return;
