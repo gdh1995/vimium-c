@@ -109,12 +109,8 @@ var LinkHints = {
     if (!this.frameNested) {
       elements = this.getVisibleClickableElements();
     }
-    if (this.frameNested && this.tryNestedFrame({
-      name: "execute",
-      command: "LinkHints.activate",
-      count: mode,
-      options: this.options
-    })) {
+    if (this.frameNested &&
+        this.tryNestedFrame("LinkHints.activate", [mode, this.options])) {
       VHUD.hide(true);
       return;
     }
@@ -205,17 +201,18 @@ var LinkHints = {
     VHUD.show(tip);
     this.mode = mode;
   },
-  tryNestedFrame: function(request) {
+  tryNestedFrame: function(command, args) {
     try {
-      var child = this.frameNested.contentWindow, keydownEvents;
-      if (request.command.startsWith("LinkHints.activate") && child.LinkHints.isActive) {
+      var child = this.frameNested.contentWindow, keydownEvents, arr;
+      if (command.startsWith("LinkHints.activate") && child.LinkHints.isActive) {
         if (!this.frameNested.contentDocument.head) {
           this.frameNested = null;
           return false;
         }
         child.LinkHints.deactivate(true);
       } else {
-        child.MainPort.Listener(request);
+        arr = Utils.findCommand(child, command);
+        arr[0][arr[1]].apply(arr[0], args);
         if (document.readyState !== "complete") { this.frameNested = false; }
       }
       keydownEvents = VInsertMode.keydownEvents();
@@ -388,8 +385,8 @@ var LinkHints = {
     }
     if (!this.ngIgnored && !this.ngAttribute) { this.ngAttribute = "ng-click"; }
     if ("*" in filters) {
-      ind = +(output[0] === document.documentElement);
-      if (output[ind] === document.body) { ++ind; }
+      ind = +(output[0][0] === document.documentElement);
+      if (output[ind][0] === document.body) { ++ind; }
       if (ind > 0) { output.splice(0, ind); }
     }
     if (this.frameNested !== false) {}

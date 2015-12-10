@@ -1252,12 +1252,6 @@ var Settings, VHUD, MainPort, VInsertMode;
     execute: function(request) {
       keyQueue = false;
       currentSeconds = secondKeys[""];
-      if (request.command.startsWith("scroll")) {
-        LinkHints.frameNested === false && LinkHints.checkNestedFrame();
-        if (LinkHints.frameNested) {
-          if (LinkHints.tryNestedFrame(request)) { return; }
-        }
-      }
       var arr = Utils.findCommand(Commands, request.command);
       arr[0][arr[1]](request.count, request.options);
     },

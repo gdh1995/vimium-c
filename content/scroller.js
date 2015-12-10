@@ -54,6 +54,8 @@ Core: {
     viewSize: "clientHeight"
   }],
   scrollBy: function(direction, amount, factor, zoomX) {
+    LinkHints.frameNested === false && LinkHints.checkNestedFrame();
+    if (LinkHints.frameNested && LinkHints.tryNestedFrame("Scroller.scrollBy", arguments)) { return; }
     var element, di;
     di = direction === "y" ? 1 : 0;
     element = this.findScrollable(this.getActivatedElement(), di, amount, factor);
@@ -64,6 +66,8 @@ Core: {
     this.Core.scroll(element, di, amount);
   },
   scrollTo: function(direction, factor) {
+    LinkHints.frameNested === false && LinkHints.checkNestedFrame();
+    if (LinkHints.frameNested && LinkHints.tryNestedFrame("Scroller.scrollTo", arguments)) { return; }
     var amount, element, di = direction === "y" ? 1 : 0;
     if (factor >= 0) {
       amount = factor;
