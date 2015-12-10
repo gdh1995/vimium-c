@@ -1258,11 +1258,8 @@ var Settings, VHUD, MainPort, VInsertMode;
           if (LinkHints.tryNestedFrame(request)) { return; }
         }
       }
-      var components = request.command.split('.'), obj = Commands, _i, _len;
-      for (_i = 0, _len = components.length - 1; _i < _len; _i++) {
-        obj = obj[components[_i]];
-      }
-      obj[components[_len]](request.count, request.options);
+      var arr = Utils.findCommand(Commands, request.command);
+      arr[0][arr[1]](request.count, request.options);
     },
     dispatchCommand: function(request) {
       if (!isEnabledForUrl) {
@@ -1270,11 +1267,8 @@ var Settings, VHUD, MainPort, VInsertMode;
         mainPort.sendCommadToFrame(request.source, request.command, request.args);
         return;
       }
-      var components = request.command.split('.'), obj = Commands, _i, _len;
-      for (_i = 0, _len = components.length - 1; _i < _len; _i++) {
-        obj = obj[components[_i]];
-      }
-      obj[components[_len]].apply(obj, request.args);
+      var arr = Utils.findCommand(Commands, request.command);
+      arr[0][arr[1]].apply(arr[0], request.args);
     },
     createMark: Marks.CreateGlobalMark,
     scroll: Marks.Goto,
