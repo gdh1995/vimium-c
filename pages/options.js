@@ -56,11 +56,12 @@ Option.prototype.areEqual = function(a, b) {
 };
 
 function ExclusionRulesOption() {
+  var _this = this;
   this.template = $('exclusionRuleTemplate').content.children[0];
   ExclusionRulesOption.__super__.constructor.apply(this, arguments);
-  $("exclusionAddButton").addEventListener("click", this.addRule.bind(this, null));
+  $("exclusionAddButton").addEventListener("click", function() { _this.addRule(null); });
   this.element.addEventListener("input", this.onUpdated);
-  this.element.addEventListener("click", this.onRemoveRow.bind(this));
+  this.element.addEventListener("click", function() { _this.onRemoveRow(); });
 }
 __extends(ExclusionRulesOption, Option);
 
@@ -159,12 +160,13 @@ chrome.tabs.query({currentWindow: true, active: true}, function(tab) {
   var exclusions, onUpdated, saveOptions, updateState, url, status = 0;
 
 exclusions = {
+  url: "",
   hasNew: false,
   init: function(url, element, onUpdated) {
     this.url = url;
     this.__proto__ = ExclusionRulesOption.prototype;
     ExclusionRulesOption.call(this, element, onUpdated);
-    this.element.addEventListener("input", this.onInput.bind(this));
+    this.element.addEventListener("input", this.OnInput);
     this.init = null;
   },
   addRule: function() {
@@ -191,7 +193,7 @@ exclusions = {
       this.addRule();
     }
   },
-  onInput: function(event) {
+  OnInput: function(event) {
     var patternElement = event.target;
     if (!patternElement.classList.contains("pattern")) {
       return;
@@ -206,11 +208,13 @@ exclusions = {
   httpRe: /^https?:\/\/./,
   urlRe: /^[a-z]{3,}:\/\/./,
   generateDefaultPattern: function() {
-    return this.httpRe.test(this.url)
+    var url = this.httpRe.test(this.url)
       ? ("https?://" + this.url.split("/", 3)[2] + "/")
       : this.urlRe.test(this.url)
       ? (this.url.split("/", 3).join("/") + "/")
       : this.url;
+    this.generateDefaultPattern = function() { return url; };
+    return url;
   }
 };
 

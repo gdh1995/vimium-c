@@ -6,12 +6,12 @@ DomUtils.UI = {
   root: null,
   flashLastingTime: 400,
   addElement: function(element) {
-    MainPort.sendMessage({ handler: "initInnerCSS" }, this.initInner.bind(this));
+    MainPort.sendMessage({ handler: "initInnerCSS" }, this.InitInner);
     this.container || this.init();
     this.container.style.display = "none";
     this.root = this.container.createShadowRoot();
     this.root.appendChild(element);
-    this.addElement = this.root.appendChild.bind(this.root);
+    this.addElement = function(element) { this.root.appendChild(element); };
   },
   addElementList: function(els, overlayOptions) {
     var parent, _i, _len;
@@ -39,14 +39,15 @@ DomUtils.UI = {
     }
     this.init = null;
   },
-  initInner: function(innerCss) {
-    this.initInner = null;
-    this.styleIn = this.createStyle(innerCss);
-    this.root.insertBefore(this.styleIn, this.root.firstElementChild);
-    this.container.style.display = "";
+  InitInner: function(innerCss) {
+    var _this = DomUtils.UI;
+    _this.InitInner = null;
+    _this.styleIn = _this.createStyle(innerCss);
+    _this.root.insertBefore(_this.styleIn, _this.root.firstElementChild);
+    _this.container.style.display = "";
     VInsertMode.heldEl && VInsertMode.heldEl.focus();
-    this.Adjust();
-    document.addEventListener("webkitfullscreenchange", this.Adjust);
+    _this.Adjust();
+    document.addEventListener("webkitfullscreenchange", _this.Adjust);
   },
   destroy: function() {
     document.removeEventListener("webkitfullscreenchange", this.Adjust);

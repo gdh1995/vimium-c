@@ -116,14 +116,16 @@ var Settings, VHUD, MainPort, VInsertMode;
       });
     },
     load: function(request, onerror) {
-      onerror && (onerror = onerror.bind(null, request));
       request = {
         handlerSettings: "load",
         request: request
       };
       mainPort.port.postMessage(request);
-      this.isLoading = setInterval(mainPort.safePost.bind(
-        mainPort, request, onerror, null), 2000);
+      this.isLoading = setInterval(function() {
+        mainPort.safePost(request, onerror && function() {
+          onerror(request.request);
+        });
+      }, 2000);
     },
     ReceiveSettings: function(response) {
       var ref = response.load;
@@ -642,7 +644,6 @@ var Settings, VHUD, MainPort, VInsertMode;
       var activeEl = document.activeElement;
       this.focus = this.lockFocus;
       this.init = null;
-      this.onGrab = this.onGrab.bind(this);
       if (settings.values.grabBackFocus && this.loading) {
         if (activeEl !== document.body) {
           activeEl.blur();
@@ -659,8 +660,9 @@ var Settings, VHUD, MainPort, VInsertMode;
       }
     },
     setupGrab: function() {
+      this.onGrab = this.onGrab.bind(this);
       this.focus = this.grabBackFocus;
-      this.handlerId = this.handlerId || handlerStack.push(this.onGrab);
+      this.handlerId || (this.handlerId = handlerStack.push(this.onGrab));
       window.addEventListener("mousedown", this.onGrab, true);
     },
     onGrab: function() {
@@ -1385,9 +1387,7 @@ var Settings, VHUD, MainPort, VInsertMode;
     // NOTE: here, we should always postMessage, since
     //     NO other message will be sent if not isEnabledForUrl,
     // which would make the auto-destroy logic not work.
-    ELs.onWndFocus = mainPort.safePost.bind(
-      mainPort, ELs.focusMsg, null, null //
-    );
+    ELs.onWndFocus = mainPort.safePost.bind(mainPort, ELs.focusMsg);
   });
 
   if (isInjected) {

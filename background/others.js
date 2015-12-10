@@ -19,12 +19,13 @@ if (Settings.get("vimSync") === true) setTimeout(function() {
         }
       });
     },
-    handleStorageUpdate: function(changes) {
+    HandleStorageUpdate: function(changes) {
       var change, key;
+      var _this = Settings.Sync, func = Object.prototype.hasOwnProperty;
       for (key in changes) {
-        if (!Object.prototype.hasOwnProperty.call(changes, key)) continue;
+        if (!func.call(changes, key)) continue;
         change = changes[key];
-        this.storeAndPropagate(key, change != null ? change.newValue : undefined);
+        _this.storeAndPropagate(key, change != null ? change.newValue : undefined);
       }
     },
     storeAndPropagate: function(key, value) {
@@ -63,11 +64,12 @@ if (Settings.get("vimSync") === true) setTimeout(function() {
       return this.doNotSync.index(key) < 0;
     }
   };
-  chrome.storage.onChanged.addListener(Settings.Sync.handleStorageUpdate.bind(Settings.Sync));
+  chrome.storage.onChanged.addListener(Settings.Sync.HandleStorageUpdate);
   Settings.Sync.fetchAsync();
 }, 100);
 
 if (chrome.browserAction && chrome.browserAction.setIcon) setTimeout(function() {
+  var func;
   g_requestHandlers.SetIcon = function(tabId, type, pass) {
     chrome.browserAction.setIcon({
       tabId: tabId,
@@ -75,8 +77,9 @@ if (chrome.browserAction && chrome.browserAction.setIcon) setTimeout(function() 
         (pass === null ? "enabled" : pass ? "partial" : "disabled")]
     });
   };
-  Settings.updateHooks.showActionIcon = (function (value) {
-    this(value);
+  func = Settings.updateHooks.showActionIcon;
+  Settings.updateHooks.showActionIcon = function (value) {
+    func.call(Settings, value);
     if (value) {
       chrome.browserAction.setTitle({
         title: "Vimium++"
@@ -88,13 +91,13 @@ if (chrome.browserAction && chrome.browserAction.setIcon) setTimeout(function() 
         title: "Vimium++\nThis icon is not in use"
       });
     }
-  }).bind(Settings.updateHooks.showActionIcon);
+  };
   Settings.postUpdate("showActionIcon");
 }, 50);
 
 // According to tests: onInstalled will be executed after 0 ~ 16 ms if needed
-chrome.runtime.onInstalled.addListener(window.b = setTimeout.bind(window,
-function(details) {
+chrome.runtime.onInstalled.addListener(function(details) {
+window.b = setTimeout(function() {
   var reason = details.reason, func;
   if (reason === "install") { reason = ""; }
   else if (reason === "update") { reason = details.previousVersion; }
@@ -165,16 +168,19 @@ function(details) {
       });
     });
   });
-}, 500));
+}, 500);
+});
 
 setTimeout(function() {
   chrome.runtime.onInstalled.removeListener(window.b);
   window.b = null;
-}, 600);
+}, 200);
 
 //* #if DEBUG
 var a, b, c, cb, log;
 cb = function(b) { a = b; console.log(b); };
 setTimeout(function() {
-  a = c = null; b = cb; log = console.log.bind(console);
+  a = c = null; b = cb; log = function() {
+    console.log.apply(console, arguments);
+  };
 }, 2000); // #endif */

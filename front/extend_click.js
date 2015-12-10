@@ -38,13 +38,13 @@ EventTarget.prototype.addEventListener = function(type, listener, useCapture) {
 };
 
 handler = function() {
+  window.removeEventListener("DOMContentLoaded", handler, true);
   container = document.createElementNS("http://www.w3.org/1999/xhtml", "div");
   document.documentElement.appendChild(container);
   container.dispatchEvent(new CustomEvent("VimiumRegistrationElementEvent"));
   container.remove();
   register = reg;
   for (var i = toRegister.length; 0 <= --i; ) { register(toRegister[i]); }
-  window.removeEventListener("DOMContentLoaded", handler, true);
   handler = toRegister = reg = null;
 };
 _listen.call(window, "DOMContentLoaded", handler, true);

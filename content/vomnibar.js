@@ -282,10 +282,10 @@ vomnibarUI: {
       break;
     case "enter":
       if (this.timer) {
-        if (this.timer && (this.selection === -1 || !this.isSelectionChanged)) {
+        if (this.selection === -1 || !this.isSelectionChanged) {
           this.update(0, this.onEnter);
         }
-      } else if (this.selection >= 0 || this.input.value.trim().length > 0) {
+      } else if (this.selection >= 0 || this.completionInput.url.length > 0) {
         this.onEnter();
       }
       break;
@@ -341,7 +341,7 @@ vomnibarUI: {
   },
   onTimer: function() {
     this.timer = -1;
-    Vomnibar.Completer.filter(this.completionInput.url, this.onCompletions);
+    Vomnibar.Completer.filter(this.completionInput.url);
   },
   onCompletions: function(completions) {
     if (this._waitInit) {
@@ -358,20 +358,20 @@ vomnibarUI: {
         this.onUpdate = null;
       }
     };
-    this.onCompletions = func = func.bind(this);
-    func(completions);
+    this.onCompletions = func;
+    this.onCompletions(completions);
   },
   init: function(box) {
+    var _this = this;
     this.box = box;
     box.className = "R";
     box.id = "Omnibar";
     box.style.display = "none";
     MainPort.sendMessage({
       handler: "initVomnibar"
-    }, this.init_dom.bind(this));
+    }, function(response) { _this.init_dom(response); });
     this.onTimer = this.onTimer.bind(this);
-    this.onCompletions = this.onCompletions.bind(this);
-    box.addEventListener("click", this.onClick = this.onClick.bind(this));
+    box.addEventListener("click", function (event) { _this.onClick(event); });
     box.addEventListener("mousewheel", DomUtils.SuppressPropagation);
     var str;
     if (window.location.protocol.startsWith("chrome") && chrome.runtime.getManifest
@@ -437,8 +437,7 @@ Completer: {
       omni: this.name
     });
   },
-  filter: function(query, callback) {
-    this._callback = callback;
+  filter: function(query) {
     this._id = MainPort.sendMessage({
       handlerOmni: this.name,
       clientWidth: window.innerWidth,
@@ -452,9 +451,7 @@ Completer: {
   mapResult: null,
   onFilter: function(results, msgId) {
     if (this._id !== msgId) { return; }
-    var callback = this._callback;
-    this._callback = null;
-    callback(results.map(this.mapResult));
+    Vomnibar.vomnibarUI.onCompletions(results.map(this.mapResult));
   }
 },
 

@@ -6,7 +6,7 @@ var Settings = {
   keyToSet: [],
   timerForSet: 0,
   urlForTab: null,
-  extIds: [chrome.runtime.id],
+  extIds: null,
   get: function(key) {
     if (key in this._buffer) {
       return this._buffer[key];
@@ -33,14 +33,14 @@ var Settings = {
   },
   setUnique: function(key, value) {
     this._buffer[key] = value; this.keyToSet.push(key);
-    this.timerForSet || (this.timerForSet = setTimeout(this.onUnique, 17));
+    this.timerForSet || (this.timerForSet = setTimeout(this.OnUnique, 17));
   },
-  onUnique: function() { // has been bound
-    var ref = this.keyToSet, i = ref.length, key, vals = this._buffer;
-    this.keyToSet = []; this.timerForSet = 0;
+  OnUnique: function() { // has been bound
+    var _t = Settings, ref = _t.keyToSet, i = ref.length, key, vals = _t._buffer;
+    _t.keyToSet = []; _t.timerForSet = 0;
     while (0 <= --i) {
       key = ref[i];
-      this.set(key, vals[key]);
+      _t.set(key, vals[key]);
     }
   },
   postUpdate: function(key, value) {
@@ -191,19 +191,17 @@ w|wiki:\\\n  http://www.wikipedia.org/w/index.php?search=$s Wikipedia (en-US)",
   }
 };
 
-Settings.onUnique = Settings.onUnique.bind(Settings);
 // note: if changed, ../pages/newtab.js also needs change.
 Settings.defaults.newTabUrl = Settings.CONST.ChromeInnerNewTab;
 
 (function() {
-  var ref, i, func;
-  func = (function(path) { return this(path); }).bind(chrome.runtime.getURL);
+  var ref, i, func = chrome.runtime.getURL;
   ref = chrome.runtime.getManifest();
   Settings.CONST.CurrentVersion = ref.version;
   Settings.CONST.OptionsPage = func(ref.options_page);
   ref = ref.content_scripts[0].js;
   ref[ref.length - 1] = "content/inject_end.js";
-  ref = ref.map(func);
+  ref = ref.map(function(path) { return func(path); });
   Settings.CONST.ContentScripts = {js: ref};
 
   i = navigator.appVersion.match(/Chrom(?:e|ium)\/([^\s]*)/)[1];
@@ -211,6 +209,7 @@ Settings.defaults.newTabUrl = Settings.CONST.ChromeInnerNewTab;
 
   func = function() {};
   Settings.Sync = {__proto__: null, clear: func, set: func};
+  Settings.extIds = [chrome.runtime.id];
 })();
 
 chrome.runtime.getPlatformInfo(function(info) {

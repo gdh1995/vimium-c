@@ -17,9 +17,10 @@ setTimeout(function() {
 SuggestionUtils = {
   PrepareHtml: function(sug) {
     if (sug.textSplit) { return; }
-    sug.titleSplit = this.highlight(sug.title, this.getRanges(sug.title));
-    var str = sug.text = this.shortenUrl(sug.text);
-    sug.textSplit = this.cutUrl(str, this.getRanges(str), sug.url);
+    var _this = SuggestionUtils;
+    sug.titleSplit = _this.highlight(sug.title, _this.getRanges(sug.title));
+    var str = sug.text = _this.shortenUrl(sug.text);
+    sug.textSplit = _this.cutUrl(str, _this.getRanges(str), sug.url);
     if (showFavIcon && sug.url.indexOf("://") > 0 && !sug.favIconUrl) {
       str = Utils.escapeHtml(sug.url);
       sug.favIconUrl = str && ("/" + str);
@@ -115,7 +116,6 @@ SuggestionUtils = {
     return out.join("");
   }
 };
-SuggestionUtils.PrepareHtml = SuggestionUtils.PrepareHtml.bind(SuggestionUtils);
 
 TabRecency = {
   Array: null,
@@ -184,7 +184,7 @@ bookmarks: {
   refresh: function() {
     var bookmarks = chrome.bookmarks, listener, _this = this;
     listener = function() {
-      chrome.bookmarks.getTree(_this.readTree.bind(_this));
+      chrome.bookmarks.getTree(function(tree) { _this.readTree(tree); });
     };
     bookmarks.onCreated.addListener(listener);
     bookmarks.onRemoved.addListener(listener);
@@ -354,7 +354,7 @@ domains: {
     this.domains = Utils.makeNullProto();
     history.forEach(callback);
     chrome.history.onVisited.addListener(callback);
-    chrome.history.onVisitRemoved.addListener(this.onVisitRemoved.bind(this));
+    chrome.history.onVisitRemoved.addListener(this.OnVisitRemoved);
   },
   onPageVisited: function(newPage) {
     var item, slot, time;
@@ -368,12 +368,13 @@ domains: {
       }
     }
   },
-  onVisitRemoved: function(toRemove) {
+  OnVisitRemoved: function(toRemove) {
+    var _this = Completers.domains;
     if (toRemove.allHistory) {
-      this.domains = {};
+      _this.domains = {};
       return;
     }
-    var domains = this.domains, parse = this.parseDomainAndScheme;
+    var domains = _this.domains, parse = _this.parseDomainAndScheme;
     toRemove.urls.forEach(function(url) {
       var item = parse(url), entry;
       if (item && (entry = domains[item[0]]) && (-- entry[1]) <= 0) {
@@ -647,7 +648,7 @@ MultiCompleter = {
         Decoder.decodeList(history);
         _this.history = history;
         chrome.history.onVisited.addListener(_this.onPageVisited.bind(_this));
-        chrome.history.onVisitRemoved.addListener(_this.onVisitRemoved.bind(_this));
+        chrome.history.onVisitRemoved.addListener(_this.OnVisitRemoved);
         for (var i = 0, len = _this.callbacks.length, callback; i < len; ++i) {
           callback = _this.callbacks[i];
           callback(_this.history);
@@ -670,11 +671,12 @@ MultiCompleter = {
       Decoder.decodeList([newPage]);
     },
     onVisitRemoved: function(toRemove) {
+      var _this = HistoryCache;
       if (toRemove.allHistory) {
-        this.history = null;
+        _this.history = null;
         return;
       }
-      var bs = this.binarySearch, h = this.history;
+      var bs = _this.binarySearch, h = _this.history;
       toRemove.urls.forEach(function(url) {
         var i = bs(url, h);
         if (i >= 0) {
