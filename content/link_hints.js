@@ -382,7 +382,9 @@ var LinkHints = {
         continue;
       }
       output.forEach.call(container.getElementsByTagName(key), func);
-      output.forEach.call(DomUtils.UI.root.querySelectorAll(key), func);
+      if (DomUtils.UI.root) {
+        output.forEach.call(DomUtils.UI.root.querySelectorAll(key), func);
+      }
     }
     if (!this.ngIgnored && !this.ngAttribute) { this.ngAttribute = "ng-click"; }
     if ("*" in filters) {
