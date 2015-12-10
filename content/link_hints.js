@@ -398,15 +398,30 @@ var LinkHints = {
     } else if (output.length > 0) {
       this.frameNested = null;
     } else {
-      this.traverse({"*": this.GetVisibleClickable})
+      this.checkNestedFrame(null);
     }
     return output;
   },
   frameNested: false,
   checkNestedFrame: function(output) {
-    var rect, element, str;
+    var rect, element, str, func;
+    if (document.webkitFullscreenElement !== null) {
+      this.frameNested = null;
+      return;
+    }
+    if (output == null) {
+      output = [];
+      func = this.GetVisibleClickable.bind(output);
+      DomUtils.prepareCrop();
+      output.some.call(document.body.getElementsByTagName("*"), function(element) {
+        func(element);
+        return output.length > 1;
+      });
+    }
     if (output.length !== 1) {
-      if (output.length > 1) { this.frameNested = null; }
+      if (output.length !== 0 || document.readyState === "complete") {
+        this.frameNested = null;
+      }
       return;
     }
     element = output[0][0];

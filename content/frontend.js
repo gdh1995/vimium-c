@@ -1252,8 +1252,11 @@ var Settings, VHUD, MainPort, VInsertMode;
     execute: function(request) {
       keyQueue = false;
       currentSeconds = secondKeys[""];
-      if (LinkHints.frameNested && request.command.startsWith("scroll")) {
-        if (LinkHints.tryNestedFrame(request)) { return; }
+      if (request.command.startsWith("scroll")) {
+        LinkHints.frameNested === false && LinkHints.checkNestedFrame();
+        if (LinkHints.frameNested) {
+          if (LinkHints.tryNestedFrame(request)) { return; }
+        }
       }
       var components = request.command.split('.'), obj = Commands, _i, _len;
       for (_i = 0, _len = components.length - 1; _i < _len; _i++) {
