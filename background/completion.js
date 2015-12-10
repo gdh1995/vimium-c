@@ -2,9 +2,8 @@
 var Completers;
 setTimeout(function() {
   var TabRecency, HistoryCache, RankingUtils, RegexpCache, Decoder, MultiCompleter,
+      Completers,
       maxCharNum = 160, showFavIcon, queryTerms = null, SuggestionUtils;
-
-  Completers = {};
 
   function Suggestion(type, url, text, title, computeRelevancy, extraData) {
     this.type = type;
@@ -118,7 +117,41 @@ SuggestionUtils = {
 };
 SuggestionUtils.PrepareHtml = SuggestionUtils.PrepareHtml.bind(SuggestionUtils);
 
-Completers.bookmarks = {
+TabRecency = {
+  Array: null,
+  clean: null,
+  tabId: null,
+  stamp: function() {
+    var cache = Utils.makeNullProto(), last = 0, stamp = 1, time = 0;
+    chrome.tabs.onActivated.addListener(function(activeInfo) {
+      var now = Date.now(), tabId = activeInfo.tabId;
+      if (now - time > 500) {
+        cache[last] = ++stamp;
+        if (stamp === 255) { TabRecency.clean(); }
+      }
+      last = tabId; time = now;
+    });
+    this.clean = function() {
+      var ref = cache, i;
+      for (i in ref) {
+        if (ref[i] <= 192) { delete ref[i]; }
+        else {ref[i] -= 191; }
+      }
+      stamp = 64;
+    };
+    chrome.tabs.query({currentWindow: true, active: true}, function(tab) {
+      time = Date.now();
+      if (chrome.runtime.lastError) { return chrome.runtime.lastError; }
+      last = tab.id;
+    });
+    this.Array = cache;
+    this.tabId = function() { return last; };
+    this.stamp = function() { return stamp; };
+  }
+};
+
+Completers = {
+bookmarks: {
   bookmarks: null,
   currentSearch: null,
   path: "",
@@ -201,9 +234,9 @@ Completers.bookmarks = {
   computeRelevancy: function(suggestion) {
     return RankingUtils.wordRelevancy(suggestion.text, suggestion.title);
   }
-};
+},
 
-Completers.history = {
+history: {
   filter: function(query) {
     var _this = this;
     if (queryTerms.length > 0) {
@@ -278,9 +311,9 @@ Completers.history = {
   computeRelevancyByTime: function(suggestion, lastVisitTime) {
     return RankingUtils.recencyScore(lastVisitTime);
   }
-};
+},
 
-Completers.domains = {
+domains: {
   domains: null,
   filter: function(query) {
     if (queryTerms.length !== 1 || queryTerms[0].indexOf("/") !== -1) {
@@ -359,43 +392,9 @@ Completers.domains = {
   computeRelevancy: function() {
     return 2;
   }
-};
+},
 
-TabRecency = {
-  Array: null,
-  clean: null,
-  tabId: null,
-  stamp: null
-};
-TabRecency.stamp = function() {
-  var cache = Utils.makeNullProto(), last = 0, stamp = 1, time = 0;
-  chrome.tabs.onActivated.addListener(function(activeInfo) {
-    var now = Date.now(), tabId = activeInfo.tabId;
-    if (now - time > 500) {
-      cache[last] = ++stamp;
-      if (stamp === 255) { TabRecency.clean(); }
-    }
-    last = tabId; time = now;
-  });
-  this.clean = function() {
-    var ref = cache, i;
-    for (i in ref) {
-      if (ref[i] <= 192) { delete ref[i]; }
-      else {ref[i] -= 191; }
-    }
-    stamp = 64;
-  };
-  chrome.tabs.query({currentWindow: true, active: true}, function(tab) {
-    time = Date.now();
-    if (chrome.runtime.lastError) { return chrome.runtime.lastError; }
-    last = tab.id;
-  });
-  this.Array = cache;
-  this.tabId = function() { return last; };
-  this.stamp = function() { return stamp; };
-};
-
-Completers.tabs = {
+tabs: {
   filter: function(query) {
     chrome.tabs.query({}, this.filter1.bind(this, query));
   },
@@ -434,9 +433,9 @@ Completers.tabs = {
   computeRelevancy: function(suggestion) {
     return RankingUtils.wordRelevancy(suggestion.text, suggestion.title);
   }
-};
+},
 
-Completers.searchEngines = {
+searchEngines: {
   filter: function(query) {
     var obj, sug, q = queryTerms, pattern = q.length === 0 ? null
           : Settings.get("searchEngineMap")[q[0]];
@@ -479,6 +478,7 @@ Completers.searchEngines = {
   computeRelevancy: function() {
     return 9;
   }
+}
 };
 
 MultiCompleter = {
@@ -797,7 +797,7 @@ MultiCompleter = {
       }
       ref = lang.bookmarkTypes;
       if (ref && ref.length > 0) {
-        var i = ref.length, ref2 = Completers.bookmarks.completers[0].ignoreTopLevel;
+        var i = ref.length, ref2 = Completers.bookmarks.ignoreTopLevel;
         ref.sort().reverse();
         for (; 0 <= --i; ) {
           ref2[ref[i]] = 1;
@@ -810,7 +810,7 @@ MultiCompleter = {
       HistoryCache.use(function(history) {
         if (queryTerms) { return; }
         setTimeout(function() {
-          var domainsCompleter = Completers.omni.completers[1];
+          var domainsCompleter = Completers.domains;
           if (queryTerms || domainsCompleter.domains) { return; }
           domainsCompleter.populateDomains(history);
         }, 50);
@@ -818,7 +818,7 @@ MultiCompleter = {
     }, 30000);
   }, 100);
 
-  Completers = {
+  window.Completers = {
     bookmarks: new MultiCompleter.Generator([Completers.bookmarks]),
     history: new MultiCompleter.Generator([Completers.history]),
     omni: new MultiCompleter.Generator([Completers.searchEngines, Completers.domains
