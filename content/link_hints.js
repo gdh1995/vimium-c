@@ -408,6 +408,12 @@ var LinkHints = {
     }
     if (output == null) {
       output = [];
+      if (document.body === null) {
+        if (document.readyState === "complete") {
+          this.frameNested = null;
+        }
+        return;
+      }
       func = this.GetVisibleClickable.bind(output);
       DomUtils.prepareCrop();
       output.some.call(document.body.getElementsByTagName("*"), function(element) {
