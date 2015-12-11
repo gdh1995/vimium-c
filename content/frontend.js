@@ -723,11 +723,9 @@ var Settings, VHUD, MainPort, VInsertMode;
       }
     },
     keydownEvents: function(arr) {
-      if (arr) {
-        KeydownEvents = arr;
-      } else {
-        return KeydownEvents;
-      }
+      if (!arr) { return KeydownEvents; }
+      if (!isEnabledForUrl) { throw 1; }
+      KeydownEvents = arr;
     },
     OnShadowBlur: function(event) {
       this.removeEventListener("blur", InsertMode.OnShadowBlur, true);

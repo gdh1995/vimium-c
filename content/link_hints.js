@@ -202,26 +202,26 @@ var LinkHints = {
     this.mode = mode;
   },
   tryNestedFrame: function(command, args) {
+    this.frameNested === false && this.checkNestedFrame();
+    if (!this.frameNested) { return false; }
     try {
-      var child = this.frameNested.contentWindow, keydownEvents, arr;
+      var child = this.frameNested.contentWindow, arr;
       if (command.startsWith("LinkHints.activate") && child.LinkHints.isActive) {
-        if (!this.frameNested.contentDocument.head) {
-          this.frameNested = null;
-          return false;
-        }
+        if (!this.frameNested.contentDocument.head) { throw 1; }
         child.LinkHints.deactivate(true);
-      } else {
-        arr = Utils.findCommand(child, command);
-        arr[0][arr[1]].apply(arr[0], args);
-        if (document.readyState !== "complete") { this.frameNested = false; }
+        child.focus();
+        return true;
       }
-      keydownEvents = VInsertMode.keydownEvents();
-      child.focus();
-      child.VInsertMode.keydownEvents(keydownEvents);
-      return true;
-    } catch (e) {}
-    this.frameNested = null;
-    return false;
+      child.VInsertMode.keydownEvents(VInsertMode.keydownEvents());
+    } catch (e) {
+      this.frameNested = null;
+      return false;
+    }
+    arr = Utils.findCommand(child, command);
+    arr[0][arr[1]].apply(arr[0], args);
+    if (document.readyState !== "complete") { this.frameNested = false; }
+    child.focus();
+    return true;
   },
   createMarkerFor: function(link) {
     var marker = DomUtils.createElement("div"), rect;
@@ -395,7 +395,7 @@ var LinkHints = {
     } else if (output.length > 0) {
       this.frameNested = null;
     } else {
-      this.checkNestedFrame(null);
+      this.checkNestedFrame();
     }
     return output;
   },
@@ -425,9 +425,7 @@ var LinkHints = {
     str = element.tagName.toLowerCase();
     if (str !== "iframe" && str !== "frame") {
       this.frameNested = null;
-      return;
-    }
-    if (element.scrollLeft < 20 && element.scrollTop < 20
+    } else if (element.scrollLeft < 20 && element.scrollTop < 20
         && element.scrollWidth > document.documentElement.scrollWidth - 40
         && element.scrollHeight > document.documentElement.scrollHeight - 40) {
       this.frameNested = element;
