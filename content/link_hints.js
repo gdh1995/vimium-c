@@ -204,22 +204,24 @@ var LinkHints = {
   tryNestedFrame: function(command, args) {
     this.frameNested === false && this.checkNestedFrame();
     if (!this.frameNested) { return false; }
+    var child, arr, done = false;
     try {
-      var child = this.frameNested.contentWindow, arr;
+      child = this.frameNested.contentWindow;
       if (command.startsWith("LinkHints.activate") && child.LinkHints.isActive) {
         if (!this.frameNested.contentDocument.head) { throw 1; }
         child.LinkHints.deactivate(true);
-        child.focus();
-        return true;
+        done = true;
       }
       child.VInsertMode.keydownEvents(VInsertMode.keydownEvents());
     } catch (e) {
       this.frameNested = null;
       return false;
     }
-    arr = Utils.findCommand(child, command);
-    arr[0][arr[1]].apply(arr[0], args);
-    if (document.readyState !== "complete") { this.frameNested = false; }
+    if (done === false) {
+      if (document.readyState !== "complete") { this.frameNested = false; }
+      arr = Utils.findCommand(child, command);
+      arr[0][arr[1]].apply(arr[0], args);
+    }
     child.focus();
     return true;
   },

@@ -274,7 +274,7 @@ var Utils = {
         ind = str.search(rSpace);
         val = this.makeRegexp(val, ind >= 0 ? str.substring(0, ind) : str);
         if (val) {
-          if (key.startsWith("http:") || key.startsWith("https:")) {
+          if (key.startsWith("http://") || key.startsWith("https://")) {
             key = key.substring(key[4] === 's' ? 8 : 7);
           }
           rules.push([key, val, ids[0].trimRight(), pair && pair[1] === "S" ? " " : "+"]);
@@ -319,7 +319,7 @@ var Utils = {
     }
     str2 = str2 && str2.replace(this.escapeAllRe, "\\$&"
       ).replace(this._spaceOrPlusRe, "(?:\\+|%20)");
-    if (prefix.startsWith("http")) {
+    if (prefix.startsWith("http://") || prefix.startsWith("https://")) {
       prefix = prefix.substring(prefix[4] === 's' ? 8 : 7);
     } else if (prefix.startsWith("vimium://")) {
       prefix = chrome.runtime.getURL("/") + prefix.substring(9);
