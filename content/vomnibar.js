@@ -348,7 +348,7 @@ vomnibarUI: {
       this.completions = completions;
       return;
     }
-    var func = function(completions) {
+    var onCompletions = function(completions) {
       this.completions = completions;
       this.populateUI();
       if (this.timer > 0) { return; }
@@ -358,7 +358,7 @@ vomnibarUI: {
         this.onUpdate = null;
       }
     };
-    this.onCompletions = func;
+    this.onCompletions = onCompletions;
     this.onCompletions(completions);
   },
   init: function(box) {
