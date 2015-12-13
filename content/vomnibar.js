@@ -319,6 +319,16 @@ vomnibarUI: {
     }
     DomUtils.suppressEvent(event);
   },
+  onMenu: function (event) {
+    var path = event.path, _i, el;
+    for (_i = 0; (el = path[_i]) !== this.list; ++_i) {
+      if (el.classList.contains("OIUrl")) { break; }
+    }
+    if (el === this.list) { return; }
+    _i = [].indexOf.call(this.list.children, el.parentElement.parentElement);
+    el.href = this.completions[_i].url;
+    DomUtils.SuppressPropagation(event);
+  },
   OnSelected: function() {
     var el = this, left;
     if (el.selectionStart !== 0 || el.selectionDirection !== "backward") { return; }
@@ -362,7 +372,7 @@ vomnibarUI: {
     this.onCompletions(completions);
   },
   init: function(box) {
-    var _this = this;
+    var _this = this, str;
     this.box = box;
     box.className = "R";
     box.id = "Omnibar";
@@ -373,7 +383,6 @@ vomnibarUI: {
     this.onTimer = this.onTimer.bind(this);
     box.addEventListener("click", function (event) { _this.onClick(event); });
     box.addEventListener("mousewheel", DomUtils.SuppressPropagation);
-    var str;
     if (window.location.protocol.startsWith("chrome") && chrome.runtime.getManifest
         && (str = chrome.runtime.getManifest().permissions)) {
       str = str.join("/");
@@ -383,7 +392,7 @@ vomnibarUI: {
     this.init = null;
   },
   init_dom: function(response) {
-    var str;
+    var _this = this, str;
     Vomnibar.background.showRelevancy = response.relevancy;
     this.box.innerHTML = response.html;
     this.input = this.box.querySelector("#OInput");
@@ -401,6 +410,7 @@ vomnibarUI: {
     }
     this.input.oninput = this.onInput.bind(this);
     this.input.onselect = this.OnSelected;
+    this.list.addEventListener("contextmenu", function(event) { _this.onMenu(event); });
   },
   computeHint: function(li, a) {
     var i = [].indexOf.call(this.list.children, li), item, rect;
