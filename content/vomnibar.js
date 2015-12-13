@@ -395,9 +395,10 @@ vomnibarUI: {
     this.init_dom = null;
     if (this.completions) {
       this.onCompletions(this.completions);
+    } else {
+      // setup DOM node on initing, so that we do less when showing
+      DomUtils.UI.addElement(this.box);
     }
-    // setup DOM node on initing, so that we do less when showing
-    DomUtils.UI.addElement(this.box);
     this.input.oninput = this.onInput.bind(this);
     this.input.onselect = this.OnSelected;
   },
