@@ -83,7 +83,7 @@ DomUtils.UI = {
     var temp, rect, parEl, bcr;
     DomUtils.prepareCrop();
     if (clickEl.classList.contains("OIUrl") && Vomnibar.vomnibarUI.box
-      && DomUtils.isDOMDescendant(Vomnibar.vomnibarUI.box, clickEl)) {
+        && Vomnibar.vomnibarUI.box.contains(clickEl)) {
       rect = Vomnibar.vomnibarUI.computeHint(clickEl.parentElement.parentElement, clickEl);
     } else if (clickEl.nodeName.toLowerCase() !== "area") {
       rect = DomUtils.getVisibleClientRect(clickEl);

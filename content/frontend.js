@@ -810,9 +810,12 @@ var Settings, VHUD, MainPort, VInsertMode;
       selection.addRange(range);
     }
     focusFoundLink();
-    if (findModeQueryHasResults && DomUtils.canTakeInput(findModeAnchorNode)) {
-      InsertMode.lock = document.activeElement;
-      DomUtils.simulateSelect(document.activeElement);
+    var el;
+    if (findModeQueryHasResults && findModeAnchorNode
+        && DomUtils.getEditableType(el = document.activeElement) === 3
+        && findModeAnchorNode.contains(el)) {
+      InsertMode.lock = el;
+      DomUtils.simulateSelect(el);
     }
   };
 
@@ -915,11 +918,14 @@ var Settings, VHUD, MainPort, VInsertMode;
     }
     focusFoundLink();
     // NOTE: this `if` should not be removed
-    if (DomUtils.canTakeInput(findModeAnchorNode)) {
+    var el;
+    if (findModeAnchorNode
+        && DomUtils.getEditableType(el = document.activeElement) === 3
+        && findModeAnchorNode.contains(el)) {
       handlerId = handlerStack.push(function(event) {
         handlerStack.remove(handlerId);
         if (event.keyCode === KeyCodes.esc && KeyboardUtils.isPlain(event)) {
-          DomUtils.simulateSelect(InsertMode.lock = document.activeElement);
+          DomUtils.simulateSelect(InsertMode.lock = el);
           return 2;
         }
         return 0;
