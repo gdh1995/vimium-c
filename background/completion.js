@@ -438,8 +438,8 @@ tabs: {
 
 searchEngines: {
   filter: function(query) {
-    var obj, sug, q = queryTerms, pattern = q.length === 0 ? null
-          : Settings.get("searchEngineMap")[q[0]];
+    var obj, sug, q = queryTerms, keyword, pattern = q.length === 0 ? null
+          : Settings.get("searchEngineMap")[keyword = q[0]];
     if (!pattern) {
       query.onComplete([]);
       return;
@@ -452,6 +452,9 @@ searchEngines: {
     obj = Utils.createSearch(q, pattern, []);
     sug = new Suggestion("search", obj.url, ""
       , pattern.name + ": " + q.join(" "), this.computeRelevancy);
+    if (keyword && keyword != "~") {
+      sug.url = Utils.convertToUrl(obj.url);
+    }
     if (q.length > 0) {
       this.makeText(obj);
       sug.textSplit = SuggestionUtils.highlight(sug.text = obj.url, obj.indexes);
