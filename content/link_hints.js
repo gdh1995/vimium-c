@@ -109,10 +109,12 @@ var LinkHints = {
     if (!this.frameNested) {
       elements = this.getVisibleClickableElements();
     }
-    if (this.frameNested &&
-        this.tryNestedFrame("LinkHints.activate", [mode, this.options])) {
-      VHUD.hide(true);
-      return;
+    if (this.frameNested) {
+      if (this.tryNestedFrame("LinkHints.activate", [mode, this.options])) {
+        VHUD.hide(true);
+        return;
+      }
+      elements || (elements = this.getVisibleClickableElements());
     }
     this.hintMarkers = elements.map(this.createMarkerFor);
     elements = null;
