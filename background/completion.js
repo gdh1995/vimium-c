@@ -790,6 +790,7 @@ MultiCompleter = {
     })();
 
     TabRecency.stamp();
+    window.Completers.__proto__ = null;
 
     var lang;
     if (lang = Settings.get("UILanguage")) {
