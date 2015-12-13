@@ -1,7 +1,7 @@
 "use strict";
 var Completers;
 setTimeout(function() {
-  var TabRecency, HistoryCache, RankingUtils, RegexpCache, Decoder, MultiCompleter,
+  var TabRecency, HistoryCache, RankingUtils, RegexpCache, Decoder,
       Completers,
       maxCharNum = 160, showFavIcon, queryTerms = null, SuggestionUtils;
 
@@ -270,14 +270,14 @@ history: {
     }
   },
   filterFill: function(historys, query, arr) {
-    if (historys.length >= MultiCompleter.maxResults) {
+    if (historys.length >= Completers.maxResults) {
       this.filterFinish(historys, query);
       return;
     }
     var _this = this;
     chrome.history.search({
       text: "",
-      maxResults: MultiCompleter.maxResults
+      maxResults: Completers.maxResults
     }, function(historys2) {
       if (query.isOff) { return; }
       var a = arr;
@@ -291,7 +291,7 @@ history: {
   filterFinish: function(historys, query) {
     var s = Suggestion, c = this.computeRelevancyByTime, d = Decoder.decodeURL;
     historys.sort(this.rsortByLvt);
-    historys.length = MultiCompleter.maxResults;
+    historys.length = Completers.maxResults;
     historys.forEach(function(e, i, arr) {
       var o = new s("history", e.url, d(e.url), e.title, c, e.lastVisitTime);
       e.sessionId && (o.sessionId = e.sessionId);
@@ -479,10 +479,8 @@ searchEngines: {
   computeRelevancy: function() {
     return 9;
   }
-}
-};
+},
 
-MultiCompleter = {
   counter: 0,
   maxResults: 10,
   mostRecentQuery: null,
@@ -521,17 +519,17 @@ MultiCompleter = {
     queryTerms = null;
     onComplete(suggestions);
   },
-  Generator: function(completers) { this.completers = completers; },
+  MultiCompleter: function(completers) { this.completers = completers; },
   rsortByRelevancy: function(a, b) { return b.relevancy - a.relevancy; }
 };
 
-  MultiCompleter.Generator.prototype.filter = function(query, options, onComplete) {
+  Completers.MultiCompleter.prototype.filter = function(query, options, onComplete) {
     queryTerms = query;
     maxCharNum = Math.floor((options.clientWidth * 0.8 - 70) / 7.72);
     showFavIcon = options.showFavIcon;
-    MultiCompleter.filter(this.completers, onComplete);
+    Completers.filter(this.completers, onComplete);
   };
-  MultiCompleter.Generator.prototype.refresh = function() {
+  Completers.MultiCompleter.prototype.refresh = function() {
     for (var completer, _i = this.completers.length; 0 <= --_i; ) {
       if ((completer = this.completers[_i]).refresh) {
         completer.refresh();
@@ -822,11 +820,11 @@ MultiCompleter = {
   }, 100);
 
   window.Completers = {
-    bookmarks: new MultiCompleter.Generator([Completers.bookmarks]),
-    history: new MultiCompleter.Generator([Completers.history]),
-    omni: new MultiCompleter.Generator([Completers.searchEngines, Completers.domains
+    bookmarks: new Completers.MultiCompleter([Completers.bookmarks]),
+    history: new Completers.MultiCompleter([Completers.history]),
+    omni: new Completers.MultiCompleter([Completers.searchEngines, Completers.domains
       , Completers.bookmarks, Completers.history]),
-    tabs: new MultiCompleter.Generator([Completers.tabs])
+    tabs: new Completers.MultiCompleter([Completers.tabs])
   };
 
   Utils.Decoder = Decoder;
