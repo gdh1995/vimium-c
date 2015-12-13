@@ -6,7 +6,6 @@
   arr.pop();
   arr.forEach(function(src) {
     var scriptElement = document.createElement("script");
-    scriptElement.type = "text/javascript";
     scriptElement.async = false;
     scriptElement.src = (src[0] !== "/") ? ("/" + src) : src;
     insertLocation.parentElement.insertBefore(scriptElement, insertLocation);
