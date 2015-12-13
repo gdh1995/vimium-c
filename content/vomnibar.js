@@ -405,11 +405,9 @@ vomnibarUI: {
   computeHint: function(li, a) {
     var i = [].indexOf.call(this.list.children, li), item, rect;
     if (i === -1) { return null; }
-    if (!a.hasAttribute("data-vim-url")) {
-      item = this.completions[i];
-      a.setAttribute("data-vim-text", item.title);
-      a.setAttribute("data-vim-url", item.url);
-    }
+    item = this.completions[i];
+    a.setAttribute("data-vim-text", item.title);
+    a.href = item.url;
     rect = VRect.fromClientRect(li.getBoundingClientRect());
     rect[0] += 10; rect[2] -= 12; rect[3] -= 3;
     return rect;
