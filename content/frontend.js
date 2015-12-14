@@ -52,6 +52,7 @@ var Settings, VHUD, MainPort, VInsertMode;
   passKeys = null;
   
   MainPort = mainPort = {
+    frameId: frameId,
     port: null,
     _callbacks: { __proto__: null },
     _lastMsg: 1,
