@@ -1153,7 +1153,7 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
       var frames = frameIdsForTab[request.tabId];
       request.name = request.handler;
       delete request.handler;
-      if (frames && frames.indexOf(request.frameId, 1) > 0) {
+      if (request.frameId === 0 || (frames && frames.indexOf(request.frameId, 1) > 0)) {
         sendToTab(request, request.tabId);
         return;
       }
