@@ -39,7 +39,7 @@ var Settings, VHUD, MainPort, VInsertMode;
 
   isEnabledForUrl = false;
 
-  KeydownEvents = new Uint8Array(256);
+  KeydownEvents = null;
 
   keyQueue = false;
 
@@ -661,6 +661,7 @@ var Settings, VHUD, MainPort, VInsertMode;
       var activeEl = document.activeElement;
       this.focus = this.lockFocus;
       this.init = null;
+      KeydownEvents = new Uint8Array(256);
       if (settings.values.grabBackFocus && this.loading) {
         if (activeEl !== document.body) {
           activeEl.blur();
@@ -740,8 +741,8 @@ var Settings, VHUD, MainPort, VInsertMode;
       }
     },
     keydownEvents: function(arr) {
-      if (!arr) { return KeydownEvents; }
       if (!isEnabledForUrl) { throw Error("vimium-disabled"); }
+      if (!arr) { return KeydownEvents; }
       KeydownEvents = arr;
     },
     OnShadowBlur: function(event) {
