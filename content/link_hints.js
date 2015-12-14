@@ -210,12 +210,14 @@ var LinkHints = {
     try {
       child = this.frameNested.contentWindow;
       if (command.startsWith("LinkHints.activate") && child.LinkHints.isActive) {
-        if (!this.frameNested.contentDocument.head) { throw 1; }
+        if (!this.frameNested.contentDocument.head) { throw Error("vimium-disabled"); }
         child.LinkHints.deactivate(true);
         done = true;
       }
       child.VInsertMode.keydownEvents(VInsertMode.keydownEvents());
     } catch (e) {
+      // It's cross-site, or Vimium on the child is wholly disabled
+      // * Cross-site: it's in an abnormal situation, so we needn't focus the child;
       this.frameNested = null;
       return false;
     }

@@ -724,7 +724,7 @@ var Settings, VHUD, MainPort, VInsertMode;
     },
     keydownEvents: function(arr) {
       if (!arr) { return KeydownEvents; }
-      if (!isEnabledForUrl) { throw 1; }
+      if (!isEnabledForUrl) { throw Error("vimium-disabled"); }
       KeydownEvents = arr;
     },
     OnShadowBlur: function(event) {
