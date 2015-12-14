@@ -5,9 +5,10 @@ activateWithCompleter: function(completerName, selectFirstResult, forceNewTab
   var completer = this.Completer, vomnibarUI = this.vomnibarUI;
   if (vomnibarUI.init) {
     if (window.top !== window && !force_current) {
-      MainPort.sendCommadToFrame(0, "Vomnibar.activateWithCompleter"//
-        , [completerName, selectFirstResult, forceNewTab, initialQueryValue, keyword]);
-      return;
+      if (MainPort.sendCommadToFrame(0, "Vomnibar.activateWithCompleter"//
+        , [completerName, selectFirstResult, forceNewTab, initialQueryValue, keyword])) {
+        return;
+      }
     }
     // <svg> document has not head nor body; document with pdf <embed> has body
     if (!(document.head || document.body)) {

@@ -76,11 +76,30 @@ var Settings, VHUD, MainPort, VInsertMode;
       }
     },
     sendCommadToFrame: function(target, command, args) {
-      this.port.postMessage({
-        handler: "dispatchCommand", tabId: ELs.focusMsg.tabId,
-        frameId: target, source: frameId,
-        command: command, args: args
+      var top = window.top, topF;
+      try {
+        if (target > 0) { throw Error("other-frame"); }
+        topF = top.LinkHints.frameNested;
+        if (!topF) { top.VInsertMode.keydownEvents(KeydownEvents); }
+      } catch (e) {
+        if (e.message == "vimium-disabled") { return false; }
+        this.port.postMessage({
+          handler: "dispatchCommand", tabId: ELs.focusMsg.tabId,
+          frameId: target, source: frameId,
+          command: command, args: args
+        });
+        return true;
+      }
+      if (topF) {
+        do { top = topF.contentWindow; } while (topF = top.LinkHints.frameNested);
+        if (window === top) { return false; }
+        top.VInsertMode.keydownEvents(KeydownEvents);
+      }
+      top.MainPort.Listener({
+        name: "dispatchCommand", command: command, args: args
       });
+      top.focus(); // WARNING: vomnibar can still fail to focus itself
+      return true;
     },
     Listener: function(response) {
       var id, handler, arr;
@@ -477,10 +496,6 @@ var Settings, VHUD, MainPort, VInsertMode;
     },
     goUp: function(count, _1, force_current) {
       var url, urlsplit;
-      if (window.top !== window && !force_current) {
-        MainPort.sendCommadToFrame(0, "goUp", [count]);
-        return;
-      }
       url = window.location.href;
       if (url.indexOf("://") === -1) { return; }
       if (url.endsWith("/")) { url = url.slice(0, -1); }
@@ -493,8 +508,9 @@ var Settings, VHUD, MainPort, VInsertMode;
     },
     showHelp: function(_0, _1, force_current) {
       if (window.top !== window && !force_current) {
-        mainPort.sendCommadToFrame(0, "showHelp", [0, null]);
-        return;
+        if (mainPort.sendCommadToFrame(0, "showHelp", [0, null])) {
+          return;
+        }
       }
       mainPort.sendMessage({
         handler: "initHelp"
@@ -1268,6 +1284,7 @@ var Settings, VHUD, MainPort, VInsertMode;
       }
       var arr = Utils.findCommand(Commands, request.command);
       arr[0][arr[1]].apply(arr[0], request.args);
+      top.focus();
     },
     createMark: Marks.CreateGlobalMark,
     scroll: Marks.Goto,
