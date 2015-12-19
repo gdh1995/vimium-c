@@ -1078,7 +1078,7 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
       var url = request.url.toLowerCase(), decoders, pattern, _i, str, arr,
           selectLast;
       if (!(Utils.hasOrdinaryUrlPrefix(url) || url.startsWith("chrome-"))) {
-        return "";
+        return null;
       }
       decoders = Settings.get("searchEngineRules");
       if (url.startsWith("http")) {
@@ -1106,13 +1106,14 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
           arr = arr[1].split(str);
         }
         str = arr.map(Utils.DecodeURLPart).join(" ");
-        url = pattern[2] + " " + str.replace(Utils.spacesRe, " ").trim();
-        return selectLast ? {
+        url = str.replace(Utils.spacesRe, " ").trim();
+        return {
+          keyword: pattern[2],
           url: url,
-          start: url.lastIndexOf(" ") + 1
-        } : url;
+          start: selectLast ? url.lastIndexOf(" ") + 1 : 0
+        };
       }
-      return "";
+      return null;
     },
     searchAs: function(request) {
       var search = requestHandlers.parseSearchUrl(request), query;
@@ -1121,8 +1122,7 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
         query = Clipboard.paste().replace(Utils.spacesRe, ' ').trim();
         if (!query) { return "No selected or copied text found!"; }
       }
-      search = search.substring(0, search.indexOf(" "));
-      query = Utils.createSearchUrl(query.split(" "), search);
+      query = Utils.createSearchUrl(query.split(" "), search.keyword);
       chrome.tabs.update({
         url: query
       });

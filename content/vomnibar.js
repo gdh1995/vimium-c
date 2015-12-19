@@ -34,7 +34,7 @@ activateWithCompleter: function(completerName, selectFirstResult, forceNewTab
     }
   }
   if (initialQueryValue.indexOf("://") === -1) {
-    this.activateText(initialQueryValue, keyword, initialQueryValue);
+    this.activateText(initialQueryValue, keyword, "");
     return;
   }
   MainPort.sendMessage({
@@ -42,30 +42,23 @@ activateWithCompleter: function(completerName, selectFirstResult, forceNewTab
     url: initialQueryValue
   }, this.activateText.bind(this, initialQueryValue, keyword));
 },
-  activateText: function(old_url, keyword, url) {
-    var start, end, parsed;
-    if (typeof url === "object") {
-      start = url.start;
-      url = url.url;
-      parsed = true;
+  activateText: function(url, keyword, search) {
+    var start;
+    if (search) {
+      start = search.start;
+      url = search.url;
+      keyword || (keyword = search.keyword);
     } else {
-      start = url && url !== old_url ? (parsed = true, 0) : null;
+      url = search === null ? Utils.decodeURL(url)
+        : Utils.decodeURL(url, window.decodeURIComponent);
     }
-    url = !url ? Utils.decodeURL(old_url)
-      : url !== old_url && keyword ? url.substring(url.indexOf(" ") + 1)
-      : Utils.decodeURL(url, window.decodeURIComponent);
-    if (!parsed) {
-      url = url.replace(/[\s\u3000]+/g, " ").trim();
-    }
+    url = url.replace(/[\s\u3000]+/g, " ").trim();
     if (keyword) {
-      url = keyword + " " + url;
+      start = (start || 0) + keyword.length + 1;
+      Vomnibar.vomnibarUI.reset(keyword + " " + url, start, start + url.length);
+    } else {
+      Vomnibar.vomnibarUI.reset(url);
     }
-    if (start >= 0) {
-      start = start || (url.indexOf(' ') + 1);
-      if (start > 0) { end = url.length; }
-      else { start = null; }
-    }
-    Vomnibar.vomnibarUI.reset(url, start, end);
   },
   activate: function(_0, options) {
     this.activateWithCompleter("omni", false, false, options.url, options.keyword);
