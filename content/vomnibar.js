@@ -51,7 +51,7 @@ activateWithCompleter: function(completerName, selectFirstResult, forceNewTab
       start = url && url !== old_url ? 0 : null;
     }
     url = !url ? Utils.decodeURL(old_url)
-      : url !== old_url && keyword ? url.substring(0, url.indexOf(" "))
+      : url !== old_url && keyword ? url.substring(url.indexOf(" ") + 1)
       : Utils.decodeURL(url, window.decodeURIComponent);
     url = url.replace(/[\s\u3000]+/g, " ").trim();
     if (keyword) {
