@@ -43,17 +43,20 @@ activateWithCompleter: function(completerName, selectFirstResult, forceNewTab
   }, this.activateText.bind(this, initialQueryValue, keyword));
 },
   activateText: function(old_url, keyword, url) {
-    var start, end;
+    var start, end, parsed;
     if (typeof url === "object") {
       start = url.start;
       url = url.url;
+      parsed = true;
     } else {
-      start = url && url !== old_url ? 0 : null;
+      start = url && url !== old_url ? (parsed = true, 0) : null;
     }
     url = !url ? Utils.decodeURL(old_url)
       : url !== old_url && keyword ? url.substring(url.indexOf(" ") + 1)
       : Utils.decodeURL(url, window.decodeURIComponent);
-    url = url.replace(/[\s\u3000]+/g, " ").trim();
+    if (!parsed) {
+      url = url.replace(/[\s\u3000]+/g, " ").trim();
+    }
     if (keyword) {
       url = keyword + " " + url;
     }
