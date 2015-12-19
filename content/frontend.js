@@ -559,9 +559,7 @@ var Settings, VHUD, MainPort, VInsertMode;
         url: window.location.href,
         search: DomUtils.getSelectionText()
       }, function(response) {
-        if (response) {
-          HUD.showForDuration("No " + response + " found!", 1000);
-        }
+        response && HUD.showForDuration(response, 1000);
       });
     },
     focusInput: function(count) {

@@ -1116,10 +1116,10 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
     },
     searchAs: function(request) {
       var search = requestHandlers.parseSearchUrl(request), query;
-      if (!search) { return "search engine"; }
+      if (!search) { return "No search engine found!"; }
       if (!(query = request.search)) {
         query = Clipboard.paste().replace(Utils.spacesRe, ' ').trim();
-        if (!query) { return "selected or copied text"; }
+        if (!query) { return "No selected or copied text found!"; }
       }
       search = search.substring(0, search.indexOf(" "));
       query = Utils.createSearchUrl(query.split(" "), search);
