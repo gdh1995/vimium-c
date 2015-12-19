@@ -23,7 +23,7 @@ activateWithCompleter: function(completerName, selectFirstResult, forceNewTab
   vomnibarUI.forceNewTab = forceNewTab ? true : false;
   vomnibarUI.handlerId = handlerStack.push(handlerStack.SuppressMost);
   if (initialQueryValue == null) {
-    vomnibarUI.reset();
+    vomnibarUI.reset(keyword ? keyword + " " : "");
     return;
   }
   if (initialQueryValue === true) {
