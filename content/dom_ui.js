@@ -32,7 +32,7 @@ DomUtils.UI = {
     (document.webkitFullscreenElement || document.documentElement).appendChild(DomUtils.UI.container);
   },
   init: function() {
-    var el = this.container = DomUtils.createElement("div");
+    var el = this.container = DomUtils.createElement("vimium");
     if (this.styleOut) {
       el.appendChild(this.styleOut);
       document.documentElement.appendChild(el);
