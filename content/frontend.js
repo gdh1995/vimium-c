@@ -98,7 +98,6 @@ var Settings, VHUD, MainPort, VInsertMode;
       top.MainPort.Listener({
         name: "dispatchCommand", command: command, args: args
       });
-      top.focus(); // WARNING: vomnibar can still fail to focus itself
       return true;
     },
     Listener: function(response) {
@@ -1281,9 +1280,9 @@ var Settings, VHUD, MainPort, VInsertMode;
         mainPort.sendCommadToFrame(request.source, request.command, request.args);
         return;
       }
+      window.focus(); // WARNING: vomnibar can still fail to focus itself
       var arr = Utils.findCommand(Commands, request.command);
       arr[0][arr[1]].apply(arr[0], request.args);
-      top.focus();
     },
     createMark: Marks.CreateGlobalMark,
     scroll: Marks.Goto,
