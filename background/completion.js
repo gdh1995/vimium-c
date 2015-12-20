@@ -544,7 +544,8 @@ searchEngines: {
 
   Completers.MultiCompleter.prototype.filter = function(query, options, onComplete) {
     queryTerms = query;
-    maxCharNum = Math.floor((options.clientWidth * 0.8 - 70) / 7.72);
+    maxCharNum = options.clientWidth <= 0 ? 100
+      : Math.min(Math.floor((options.clientWidth * 0.8 - 70) / 7.72), 200);
     showFavIcon = options.showFavIcon;
     Completers.filter(this.completers, onComplete);
   };
