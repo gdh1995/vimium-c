@@ -473,16 +473,27 @@ searchEngines: {
     query.onComplete([sug]);
   },
   makeText: function(obj) {
-    var url = obj.url, arr = obj.indexes, len = arr.length, i = 0, str, ind;
+    var url = obj.url, arr = obj.indexes, len = arr.length, i, str, ind;
     ind = arr[0];
-    str = Utils.DecodeURLPart(SuggestionUtils.shortenUrl(url.substring(0, ind)));
+    str = Utils.DecodeURLPart(url.substring(0, ind));
+    if (i = (str.startsWith("http://")) ? 7 : (str.startsWith("https://")) ? 8 : 0) {
+      str = str.substring(i);
+      i = 0;
+    }
     arr[0] = str.length;
     while (len > ++i) {
       str += Utils.DecodeURLPart(url.substring(ind, arr[i]));
       ind = arr[i];
       arr[i] = str.length;
     }
-    obj.url = str + Utils.DecodeURLPart(url.substring(ind));
+    if (ind < url.length) {
+      url = Utils.DecodeURLPart(url.substring(ind));
+      if (url.charCodeAt(url.length - 1) === 47) {
+        url = url.substring(0, url.length - 1);
+      }
+      str += url;
+    }
+    obj.url = str;
   },
   computeRelevancy: function() {
     return 9;
