@@ -44,8 +44,10 @@ DomUtils.UI = {
     _this.InitInner = null;
     _this.styleIn = _this.createStyle(innerCss);
     _this.root.insertBefore(_this.styleIn, _this.root.firstElementChild);
-    _this.container.style.display = "";
-    VInsertMode.heldEl && VInsertMode.heldEl.focus();
+    setTimeout(function() {
+      DomUtils.UI.container.style.display = "";
+      VInsertMode.heldEl && VInsertMode.heldEl.focus();
+    }, 17);
     _this.Adjust();
     document.addEventListener("webkitfullscreenchange", _this.Adjust);
   },

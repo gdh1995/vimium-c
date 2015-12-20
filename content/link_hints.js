@@ -221,12 +221,12 @@ var LinkHints = {
       this.frameNested = null;
       return false;
     }
+    child.focus();
     if (done === false) {
       if (document.readyState !== "complete") { this.frameNested = false; }
       arr = Utils.findCommand(child, command);
       arr[0][arr[1]].apply(arr[0], args);
     }
-    child.focus();
     return true;
   },
   createMarkerFor: function(link) {
