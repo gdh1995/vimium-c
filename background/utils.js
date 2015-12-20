@@ -51,6 +51,7 @@ var Utils = {
   _ipRe: /^(?:\d{1,3}\.){3}\d{1,3}$/,
   spacesRe: /[\s\u3000]+/g,
   _nonENTldRe: /[^a-z]/,
+  _nonProtocolRe: /[^0-9a-z\-]/,
   _jsNotEscapeRe: /["\[\]{}\u00ff-\uffff]|%(?![\dA-F]{2}|[\da-f]{2})/,
   filePathRe: /^['"]?((?:[A-Za-z]:[\\/]|\/(?:Users|home|root)\/)[^'"]*)['"]?$/,
   lastUrlType: 0,
@@ -101,8 +102,8 @@ var Utils = {
       type = 2;
     }
     else if (this._nonENTldRe.test(string.substring(0, index))) {
-      type = (string.substring(0, index) in this._chromePrefixes)
-        && (index = string.charCodeAt(index + 3)) > 32 && index !== 47 ? 0 : 2;
+      type = !this._nonProtocolRe.test(string.substring(0, index)) &&
+        (index = string.charCodeAt(index + 3)) > 32 && index !== 47 ? 0 : 2;
     }
     else if (string.startsWith("file:")) {
       if (string.charCodeAt(7) !== 47) {
