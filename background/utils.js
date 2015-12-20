@@ -134,7 +134,7 @@ var Utils = {
       type = expected;
     } else if (!this.isTld(string.substring(index + 1))) {
       type = 2;
-    } else if (expected !== 1 || string.length < oldString.length) {
+    } else if (expected !== 1 || arr[0].length < oldString.length) {
       type = expected;
     } else if (arr[2] || arr[4] || !arr[1] || string.startsWith("ftp")) {
       type = 1;
