@@ -58,7 +58,7 @@ var Utils = {
   _jsNotEscapeRe: /["\[\]{}\u00ff-\uffff]|%(?![\dA-F]{2}|[\da-f]{2})/,
   filePathRe: /^['"]?((?:[A-Za-z]:[\\/]|\/(?:Users|home|root)\/)[^'"]*)['"]?$/,
   lastUrlType: 0,
-  convertToUrl: function(string, keyword) {
+  convertToUrl: function(string, keyword, noCustomProtocol) {
     if (string.substring(0, 11).toLowerCase() === "javascript:") {
       if (Settings.CONST.ChromeVersion < 46 && string.indexOf('%', 11) > 0
           && !this._jsNotEscapeRe.test(string)) {
@@ -119,7 +119,7 @@ var Utils = {
     else if (string.startsWith("chrome:")) {
       type = string.length < oldString.length && string.indexOf('/', 9) === -1 ? 2 : 0;
     }
-    else if (string.startsWith("vimium:")) {
+    else if (!noCustomProtocol && string.startsWith("vimium:")) {
       oldString = chrome.runtime.getURL("/") + oldString.substring(9);
       type = 3;
     } else {

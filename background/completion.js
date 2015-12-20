@@ -457,8 +457,8 @@ searchEngines: {
     obj = Utils.createSearch(q, pattern, []);
     sug = new Suggestion("search", obj.url, ""
       , pattern.name + ": " + q.join(" "), this.computeRelevancy);
-    if (keyword && keyword != "~") {
-      sug.url = Utils.convertToUrl(obj.url);
+    if (keyword !== "~") {
+      sug.url = Utils.convertToUrl(obj.url, null, true);
     }
     if (q.length > 0) {
       this.makeText(obj);
