@@ -737,17 +737,16 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
         } while (len > ++i);
       }
     },
-    reloadTab: function() {
-      if (commandCount <= 1) {
+    reloadTab: function(tabs) {
+      if (tabs.length <= 0) {}
+      else if (commandCount <= 1 || tabs.length == 1) {
         chrome.tabs.reload();
-        return;
-      }
-      chrome.tabs.query({currentWindow: true}, function(tabs) {
+      } else {
         var ind = funcDict.selectFrom(tabs).index;
         tabs.slice(ind, ind + commandCount).forEach(function(tab1) {
           chrome.tabs.reload(tab1.id);
         });
-      });
+      }
     },
     reloadGivenTab: function() {
       if (commandCount === 1) {
@@ -1425,12 +1424,12 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
     ref = ["nextTab", "previousTab", "firstTab", "lastTab", "removeTab" //
       , "closeTabsOnLeft", "closeTabsOnRight", "closeOtherTabs", "removeRightTab" //
       , "moveTabLeft", "moveTabRight", "togglePinTab", "debugBackground" //
-      , "reloadGivenTab" //
+      , "reloadTab", "reloadGivenTab" //
     ];
     for (i = ref.length; 0 <= --i; ) {
       ref2[ref[i]].useTab = 1;
     }
-    ref = ["createTab", "restoreTab", "restoreGivenTab", "blank", "reloadTab" //
+    ref = ["createTab", "restoreTab", "restoreGivenTab", "blank" //
       , "moveTabToNewWindow", "reloadGivenTab", "openUrl", "focusOrLaunch" //
       , "moveTabToIncognito", "openCopiedUrlInCurrentTab", "clearGlobalMarks" //
     ];
