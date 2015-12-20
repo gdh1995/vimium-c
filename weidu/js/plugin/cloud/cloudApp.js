@@ -62,7 +62,7 @@ var cloudApp = {
 		type == typeof type == 'undefined' ? 'self' : type;
 		var appItem = $('<li class="appItem"><div class="itemWindow"  title="' + getI18nMsg('itemAdd') +
       '"></div><div class="itemBottom"><a class="openWeb" title="' + getI18nMsg('openWeb') +
-      '">' + truncate(title_fix(app.title), 0, 12) +
+      '">' + title_fix(truncate(app.title, 0, 12)) +
       '</a></div><div class="itemData"><div class="itemLogo" style="background-image:url(' + app.img +
       ');"></div></div><div class="itemInstall' + (self.installApps.indexOf(app.id) >= 0 ? ' selected' : '') +
       '"><div class="installBar"></div><div class="selected"></div></div>' +
