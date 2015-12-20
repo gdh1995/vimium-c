@@ -52,6 +52,7 @@ var Utils = {
   spacesRe: /[\s\u3000]+/g,
   _nonENTldRe: /[^a-z]/,
   _nonProtocolRe: /[^0-9a-z\-]/,
+  _nonENDoaminRe: /[^\.0-9a-z\-]|^\-/,
   _jsNotEscapeRe: /["\[\]{}\u00ff-\uffff]|%(?![\dA-F]{2}|[\da-f]{2})/,
   filePathRe: /^['"]?((?:[A-Za-z]:[\\/]|\/(?:Users|home|root)\/)[^'"]*)['"]?$/,
   lastUrlType: 0,
@@ -134,6 +135,9 @@ var Utils = {
     } else if (this._ipRe.test(string)) {
       type = expected;
     } else if ((type = this.isTld(string.substring(index + 1))) == 0) {
+      type = 2;
+    } else if ((string.length !== index + 3 && type === 1) && this._nonENDoaminRe.test(string)) {
+      // `non-english.non-ccTld` AND NOT `non-english.non-english-tld`
       type = 2;
     } else if (expected !== 1 || arr[0].length < oldString.length) {
       type = expected;
