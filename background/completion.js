@@ -849,7 +849,7 @@ searchEngines: {
 
   Utils.Decoder = Decoder;
 
-  setTimeout(function() {
+  chrome.omnibox && setTimeout(function() {
   var last, firstUrl, lastSuggest, spanRe = /<(\/?)span(?: [^>]+)?>/g,
   format = function(sug) {
     var str = sug.textSplit.replace(spanRe, "<$1match>");

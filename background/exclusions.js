@@ -28,20 +28,20 @@ var Exclusions = {
     if (rules.length === 0) {
       this.rules = [];
       this.getPattern = function() { return null; };
-      if (this._listening) {
+      if (this._listening && chrome.webNavigation) {
         chrome.webNavigation.onHistoryStateUpdated.removeListener(this.onURLChange);
         chrome.webNavigation.onReferenceFragmentUpdated.removeListener(this.onURLChange);
-        this._listening = false;
       }
+      this._listening = false;
       return;
     }
     this.re = Utils.makeNullProto();
     this.rules = this.format(rules);
-    if (!this._listening) {
+    if (!this._listening && chrome.webNavigation) {
       chrome.webNavigation.onHistoryStateUpdated.addListener(this.onURLChange);
       chrome.webNavigation.onReferenceFragmentUpdated.addListener(this.onURLChange);
-      this._listening = true;
     }
+    this._listening = true;
     this.getPattern = function(url) {
       var rules = this.rules, _i, _len, matchedKeys = "", str;
       for (_i = 0, _len = rules.length; _i < _len; _i++) {

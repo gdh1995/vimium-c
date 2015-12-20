@@ -1,6 +1,6 @@
 "use strict";
 
-if (Settings.get("vimSync") === true) setTimeout(function() {
+if (chrome.storage && Settings.get("vimSync") === true) setTimeout(function() {
   Settings.Sync = {
     storage: chrome.storage.sync,
     doNotSync: ["settingsVersion", "previousVersion", "keyboard"],
