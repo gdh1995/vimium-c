@@ -467,8 +467,8 @@ searchEngines: {
         , [pattern.name.length + 2, sug.title.length]);
     } else {
       sug.text = Utils.DecodeURLPart(SuggestionUtils.shortenUrl(obj.url));
-      sug.textSplit = sug.text;
-      sug.titleSplit = sug.title;
+      sug.textSplit = Utils.escapeText(sug.text);
+      sug.titleSplit = Utils.escapeText(sug.title);
     }
     query.onComplete([sug]);
   },
