@@ -464,7 +464,11 @@ var Settings, VHUD, MainPort, VInsertMode;
       goBy("next", settings.values.nextPatterns);
     },
     reload: function() {
-      window.location.reload();
+      if (window.location.protocol.startsWith("chrome") || DomUtils.isSandboxed()) {
+        setTimeout(function() { window.location.reload(); }, 30);
+      } else {
+        Utils.evalIfOK("javascript: window.location.reload();");
+      }
     },
     switchFocus: function() {
       var newEl = document.activeElement;
