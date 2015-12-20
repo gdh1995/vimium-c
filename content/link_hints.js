@@ -391,8 +391,8 @@ var LinkHints = {
     }
     if (!this.ngIgnored && !this.ngAttribute) { this.ngAttribute = "ng-click"; }
     if ("*" in filters) {
-      ind = +(output[0][0] === document.documentElement);
-      if (output[ind][0] === document.body) { ++ind; }
+      ind = output[0] ? +(output[0][0] === document.documentElement) : 0;
+      if (output[ind] && output[ind][0] === document.body) { ++ind; }
       if (ind > 0) { output.splice(0, ind); }
     }
     if (this.frameNested !== false) {}
