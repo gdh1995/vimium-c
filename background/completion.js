@@ -438,8 +438,13 @@ tabs: {
 
 searchEngines: {
   filter: function(query) {
-    var obj, sug, q = queryTerms, keyword, pattern = q.length === 0 ? null
-          : Settings.get("searchEngineMap")[keyword = q[0]];
+    var obj, sug, q = queryTerms, keyword, pattern;
+    if (q.length === 0) {}
+    else if ((keyword = q[0])[0] === "\\") {
+      q[0] = keyword.substring(1);
+    } else {
+      pattern = Settings.get("searchEngineMap")[keyword];
+    }
     if (!pattern) {
       query.onComplete([]);
       return;
