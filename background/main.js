@@ -1267,9 +1267,6 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
         chrome.windows.update(tab.windowId, { focused: true });
       });
     },
-    refreshCompleter: function(request) {
-      Completers[request.omni].refresh();
-    },
     refreshTabId: function(request, port) {
       port.sender.tab.id = request.tabId;
     },

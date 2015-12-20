@@ -422,25 +422,13 @@ vomnibarUI: {
 
 Completer: {
   name: "",
-  _refreshed: [],
   init: function() {
-    this._refreshed = [];
     this.onFilter = this.onFilter.bind(this);
     this.mapResult = Vomnibar.background.parse.bind(Vomnibar.background);
     this.init = null;
   },
   setName: function(name) {
     this.name = name;
-    if (this._refreshed.indexOf(name) < 0) {
-      this._refreshed.push(name);
-      this.refresh();
-    }
-  },
-  refresh: function() {
-    MainPort.port.postMessage({
-      handler: "refreshCompleter",
-      omni: this.name
-    });
   },
   filter: function(query) {
     this._id = MainPort.sendMessage({

@@ -553,13 +553,6 @@ searchEngines: {
     showFavIcon = options.showFavIcon;
     Completers.filter(this.completers, onComplete);
   };
-  Completers.MultiCompleter.prototype.refresh = function() {
-    for (var completer, _i = this.completers.length; 0 <= --_i; ) {
-      if ((completer = this.completers[_i]).refresh) {
-        completer.refresh();
-      }
-    }
-  };
 
   RankingUtils = {
     match2: function(s1, s2) {
@@ -889,9 +882,6 @@ searchEngines: {
     suggest(response);
   };
 
-  chrome.omnibox.onInputStarted.addListener(function() {
-    window.Completers.omni.refresh();
-  });
   chrome.omnibox.onInputChanged.addListener(function(key, suggest) {
     key && (key = key.trim());
     if (key === last) { return; }
