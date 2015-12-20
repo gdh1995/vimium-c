@@ -4,11 +4,10 @@ activateWithCompleter: function(completerName, selectFirstResult, forceNewTab
     , initialQueryValue, keyword, force_current) {
   var completer = this.Completer, vomnibarUI = this.vomnibarUI;
   if (vomnibarUI.init) {
-    if (window.top !== window && !force_current) {
-      if (MainPort.sendCommadToFrame(0, "Vomnibar.activateWithCompleter"//
-        , [completerName, selectFirstResult, forceNewTab, initialQueryValue, keyword])) {
-        return;
-      }
+    if (window.top !== window && !force_current &&
+        MainPort.sendCommandToTop("Vomnibar.activateWithCompleter", 
+          [].slice.call(arguments, 0, 5))) {
+      return;
     }
     // <svg> document has not head nor body; document with pdf <embed> has body
     if (!(document.head || document.body)) {

@@ -75,26 +75,33 @@ var Settings, VHUD, MainPort, VInsertMode;
         return true;
       }
     },
-    sendCommadToFrame: function(target, command, args) {
-      var top = window.top, topF;
+    sendCommand: function(target, command, args) {
+      this.port.postMessage({
+        handler: "dispatchCommand", tabId: ELs.focusMsg.tabId,
+        frameId: target, source: frameId,
+        command: command, args: args
+      });
+    },
+    sendCommandToTop: function(command, args) {
+      var top = window.top, topF, top2;
       try {
-        if (target > 0) { throw Error("other-frame"); }
         topF = top.LinkHints.frameNested;
-        if (!topF) { top.VInsertMode.keydownEvents(KeydownEvents); }
-      } catch (e) {
-        if (e.message == "vimium-disabled") { return false; }
-        this.port.postMessage({
-          handler: "dispatchCommand", tabId: ELs.focusMsg.tabId,
-          frameId: target, source: frameId,
-          command: command, args: args
-        });
+        if (!topF) { top.VInsertMode.keydownEvents(); }
+      } catch (e) { if (e.message != "vimium-disabled") {
+        this.sendCommand(0, command, args);
         return true;
-      }
+      } else {
+        top = null;
+        for (top2 = window.parent; top2 !== top; top2 = top2.parent) {
+          try { top2.VInsertMode.keydownEvents(); top = top2; } catch (e) {}
+        }
+        if (!top) { return false; }
+      } }
       if (topF) {
         do { top = topF.contentWindow; } while (topF = top.LinkHints.frameNested);
         if (window === top) { return false; }
-        top.VInsertMode.keydownEvents(KeydownEvents);
       }
+      top.VInsertMode.keydownEvents(KeydownEvents);
       args.push(true);
       top.MainPort.Listener({
         name: "dispatchCommand", command: command, args: args
@@ -507,10 +514,9 @@ var Settings, VHUD, MainPort, VInsertMode;
       window.location.href = url;
     },
     showHelp: function(_0, _1, force_current) {
-      if (window.top !== window && !force_current) {
-        if (mainPort.sendCommadToFrame(0, "showHelp", [0, null])) {
-          return;
-        }
+      if (window.top !== window && !force_current &&
+          mainPort.sendCommandToTop("showHelp", [1, 0])) {
+        return;
       }
       mainPort.sendMessage({
         handler: "initHelp"
@@ -1278,7 +1284,7 @@ var Settings, VHUD, MainPort, VInsertMode;
     dispatchCommand: function(request) {
       if (!isEnabledForUrl && request.source >= 0) {
         request.args.push(true);
-        mainPort.sendCommadToFrame(request.source, request.command, request.args);
+        mainPort.sendCommand(request.source, request.command, request.args);
         return;
       }
       window.focus(); // WARNING: vomnibar can still fail to focus itself
