@@ -132,7 +132,7 @@ var Utils = {
       type = expected !== 1 ? expected : 2;
     } else if (this._ipRe.test(string)) {
       type = expected;
-    } else if (!this.isTld(string.substring(index + 1))) {
+    } else if ((type = this.isTld(string.substring(index + 1))) == 0) {
       type = 2;
     } else if (expected !== 1 || arr[0].length < oldString.length) {
       type = expected;
@@ -144,8 +144,12 @@ var Utils = {
       type = 2;
     } else if (string.indexOf(".", ++index2) !== index) {
       type = 1;
+    } else if (string.length === index + 3 && type == 1) { // treat as a ccTLD
+      string = string.substring(index2, index);
+      type = string.length < this._tlds.length &&
+          this._tlds[string.length].indexOf(string) > 0 ? 2 : 1;
     } else {
-      type = this.isTld(string.substring(index2, index)) ? 2 : 1;
+      type = 1;
     }
     this.lastUrlType = type;
     return type === 0 ? oldString
@@ -156,11 +160,11 @@ var Utils = {
   },
   isTld: function(tld) {
     if (this._nonENTldRe.test(tld)) {
-      return this._nonENTlds.indexOf(tld) !== -1;
+      return this._nonENTlds.indexOf(tld) !== -1 ? 2 : 0;
     } else if (tld.length < this._tlds.length) {
-      return this._tlds[tld.length].indexOf(tld) > 0;
+      return this._tlds[tld.length].indexOf(tld) > 0 ? 1 : 0;
     }
-    return false;
+    return 0;
   },
   searchWordRe: /\$([sS])(?:\{([^\}]*)\})?/g,
   searchWordRe2: /([^\\]|^)%([sS])/g,
