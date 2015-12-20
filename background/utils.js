@@ -55,7 +55,7 @@ var Utils = {
   ],
   _hostRe: /^([^:]+(:[^:]+)?@)?([^:]+|\[[^\]]+\])(:\d{2,5})?$/,
   _ipRe: /^(?:\d{1,3}\.){3}\d{1,3}$/,
-  spacesRe: /[\s\u3000]+/g,
+  spacesRe: /\s+/g,
   _nonENTldRe: /[^a-z]/,
   _nonProtocolRe: /[^0-9a-z\-]/,
   _nonENDoaminRe: /[^\.0-9a-z\-]|^\-/,
@@ -75,7 +75,7 @@ var Utils = {
     // NOTE: here '\u3000' is changed to ' ', which may cause a 404 (for url)
     // NOTE: here a mulit-line string is be changed to single-line,
     //       which may be better
-    oldString = string.replace(this.spacesRe, ' ').trim();
+    oldString = string.trim().replace(this.spacesRe, ' ');
     string = oldString.toLowerCase();
     if ((index = string.indexOf(' ')) > 0) {
       string = string.substring(0, index);

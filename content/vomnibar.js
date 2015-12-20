@@ -51,7 +51,7 @@ activateWithCompleter: function(completerName, selectFirstResult, forceNewTab
       url = search === null ? Utils.decodeURL(url)
         : Utils.decodeURL(url, window.decodeURIComponent);
     }
-    url = url.replace(/[\s\u3000]+/g, " ").trim();
+    url = url.trim().replace(Utils.spacesRe, " ");
     if (keyword) {
       start = (start || 0) + keyword.length + 1;
       Vomnibar.vomnibarUI.reset(keyword + " " + url, start, start + url.length);
@@ -447,10 +447,9 @@ Completer: {
       handlerOmni: this.name,
       clientWidth: window.innerWidth,
       showFavIcon: Vomnibar.background.showFavIcon,
-      query: query && query.trim().replace(this.whiteSpaceRe, ' ')
+      query: query && query.replace(Utils.spacesRe, ' ')
     }, this.onFilter);
   },
-  whiteSpaceRe: /\s+/g,
   _id: -2,
   _callback: null,
   mapResult: null,
