@@ -95,6 +95,7 @@ var Settings, VHUD, MainPort, VInsertMode;
         if (window === top) { return false; }
         top.VInsertMode.keydownEvents(KeydownEvents);
       }
+      args.push(true);
       top.MainPort.Listener({
         name: "dispatchCommand", command: command, args: args
       });
@@ -1275,7 +1276,7 @@ var Settings, VHUD, MainPort, VInsertMode;
       arr[0][arr[1]](request.count, request.options);
     },
     dispatchCommand: function(request) {
-      if (!isEnabledForUrl) {
+      if (!isEnabledForUrl && request.source >= 0) {
         request.args.push(true);
         mainPort.sendCommadToFrame(request.source, request.command, request.args);
         return;
