@@ -160,7 +160,11 @@ bookmarks: {
       this.performSearch(query);
       return;
     }
-    this.currentSearch = query;
+    if (queryTerms.length === 0) {
+      query.onComplete([]);
+    } else {
+      this.currentSearch = query;
+    }
     if (this.refresh) {
       this.refresh();
     }
