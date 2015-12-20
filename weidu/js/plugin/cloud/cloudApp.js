@@ -60,7 +60,14 @@ var cloudApp = {
 	addApp : function (app, containerObj, type) {
 		var self = this;
 		type == typeof type == 'undefined' ? 'self' : type;
-		var appItem = $('<li class="appItem"><div class="itemWindow"  title="' + getI18nMsg('itemAdd') + '"></div><div class="itemBottom"><a class="openWeb" title="' + getI18nMsg('openWeb') + '">' + truncate(title_fix(app.title), 0, 12) + '</a></div><div class="itemData"><div class="itemLogo" style="background-image:url(' + app.img + ');"></div></div><div class="itemInstall' + (self.installApps.indexOf(app.id) >= 0 ? ' selected' : '') + '"><div class="installBar"></div><div class="selected"></div></div>' + (type == 'chrome' ? '<a class="itemDelete" title="' + getI18nMsg('appItemDelete') + '"></a>' : '') + '</li>');
+		var appItem = $('<li class="appItem"><div class="itemWindow"  title="' + getI18nMsg('itemAdd') +
+      '"></div><div class="itemBottom"><a class="openWeb" title="' + getI18nMsg('openWeb') +
+      '">' + truncate(title_fix(app.title), 0, 12) +
+      '</a></div><div class="itemData"><div class="itemLogo" style="background-image:url(' + app.img +
+      ');"></div></div><div class="itemInstall' + (self.installApps.indexOf(app.id) >= 0 ? ' selected' : '') +
+      '"><div class="installBar"></div><div class="selected"></div></div>' +
+      (type == 'chrome' ? '<a class="itemDelete" title="' + getI18nMsg('appItemDelete') +
+      '"></a>' : '') + '</li>');
 		appItem.find('.itemDelete').unbind('click').bind('click', function () {
 			chrome.management.uninstall(app.id, function () {
 				appItem.remove()
