@@ -17,36 +17,36 @@
       "19": "icons/enabled_19.png",
       "38": "icons/enabled_38.png"
     },
-    "default_title": "Vimium++",
-    "default_popup": "pages/popup.html"
+    "default_popup": "pages/popup.html",
+    "default_title": "Vimium++"
   },
   "chrome_url_overrides": {
     "newtab": "pages/newtab.html"
   },
   "commands": {
     "createTab": {
+      "description": "Create new tab(s)",
       "suggested_key": {
         "default": "Alt+T"
-      },
-      "description": "Create new tab(s)"
-    },
-    "reloadTab": {
-      "suggested_key": {
-        "default": "Alt+R"
-      },
-      "description": "Reload tab(s)"
-    },
-    "previousTab": {
-      "suggested_key": {
-        "default": "Alt+C"
-      },
-      "description": "Go one tab left"
+      }
     },
     "nextTab": {
+      "description": "Go one tab right",
       "suggested_key": {
         "default": "Alt+V"
-      },
-      "description": "Go one tab right"
+      }
+    },
+    "previousTab": {
+      "description": "Go one tab left",
+      "suggested_key": {
+        "default": "Alt+C"
+      }
+    },
+    "reloadTab": {
+      "description": "Reload tab(s)",
+      "suggested_key": {
+        "default": "Alt+R"
+      }
     }
   },
   "content_scripts": [ {
@@ -77,8 +77,8 @@
   "homepage_url": "https://github.com/gdh1995/vimium-plus",
   "icons": {
     "128": "icons/icon128.png",
-    "48": "icons/icon48.png",
-    "16": "icons/icon16.png"
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png"
   },
   "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAnaZQnkvrHvNlwXPnSfavEya+9sPtVgBR2hWLsNvwdv6+zHRGr/qhqEbtof1v7gDXzpC5+Dr4kOay6aflw5CaFzA1zyVJySAjpb0RkVh774kp9msRpjyb39obSIWAIB76PTwawEAE+K1f26jXDbTC2gEBe4OWk5KW9u9+KoTmeKLHo73ScR1jFcFaOTbrhwHtIDqj00vpIfrSAofpLIq1gP//Og+FoOT4dF107fwlVfDJuu171svuT68wmcKStl6OANxcnXCXE6OWbeZcjMehcQH41wzTtDugmt0o8w+hJ2WVugwWWmGmE8qSiwo9QYZTJW+5EvMcmNZWUmPbTLGkGQIDAQAB",
   "manifest_version": 2,
