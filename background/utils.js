@@ -124,7 +124,7 @@ var Utils = {
       type = string.length < oldString.length && string.indexOf('/', 9) === -1 ? 2 : 0;
     }
     else if (!noCustomProtocol && string.startsWith("vimium:")) {
-      oldString = chrome.runtime.getURL("/") + oldString.substring(9);
+      oldString = this.parseVimiumUrl(oldString.substring(9));
       type = 3;
     } else {
       string = string.substring(index + 3, index2 !== -1 ? index2 : undefined);
@@ -176,6 +176,16 @@ var Utils = {
       return this._tlds[tld.length].indexOf(tld) > 0 ? 1 : 0;
     }
     return 0;
+  },
+  parseVimiumUrl: function(path) {
+    var root = chrome.runtime.getURL("/") + "pages/";
+    if (!path) { return root; }
+    var ind = path.indexOf(".html");
+    if (ind > 0 && !this._nonENTldRe.test(path.substring(0, ind))) {
+      return root + path;
+    }
+    path = root + path + ".html";
+    return path;
   },
   searchWordRe: /\$([sS])(?:\{([^\}]*)\})?/g,
   searchWordRe2: /([^\\]|^)%([sS])/g,
@@ -337,7 +347,7 @@ var Utils = {
     if (prefix.startsWith("http://") || prefix.startsWith("https://")) {
       prefix = prefix.substring(prefix[4] === 's' ? 8 : 7);
     } else if (prefix.startsWith("vimium://")) {
-      prefix = chrome.runtime.getURL("/") + prefix.substring(9);
+      prefix = this.parseVimiumUrl(prefix.substring(9));
     }
     return [prefix, new RegExp(str + str2 + url, "i")];
   },
