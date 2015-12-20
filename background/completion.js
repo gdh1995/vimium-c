@@ -849,4 +849,75 @@ searchEngines: {
 
   Utils.Decoder = Decoder;
 
+  setTimeout(function() {
+  var last, firstUrl, lastSuggest, spanRe = /<(\/?)span(?: [^>]+)?>/g,
+  format = function(sug) {
+    var str = sug.textSplit.replace(spanRe, "<$1match>");
+    str = "<url>" + str + "</url><dim> - " + Utils.escapeText(sug.title) + "</dim>";
+    return {
+      content: sug.url,
+      description: str
+    }
+  },
+  clean = function() {
+    firstUrl = last = null;
+    if (lastSuggest) {
+      lastSuggest.isOff = true;
+      lastSuggest = null;
+    }
+  },
+  onComplete = function(suggest, response) {
+    if (!lastSuggest || suggest.isOff) { return; }
+    if (response.length === 0) {
+      firstUrl = "";
+      chrome.omnibox.setDefaultSuggestion({
+        description: "<dim>Open: </dim><url>%s</url>"
+      });
+      suggest([]);
+      return;
+    }
+    firstUrl = response[0].url;
+    var text = response[0].textSplit;
+    text = "<url>" + text.replace(spanRe, "<$1match>") + "</url>";
+    chrome.omnibox.setDefaultSuggestion({ description: text });
+    response.shift();
+    response = response.map(format);
+    suggest(response);
+  };
+
+  chrome.omnibox.onInputStarted.addListener(function() {
+    window.Completers.omni.refresh();
+  });
+  chrome.omnibox.onInputChanged.addListener(function(key, suggest) {
+    key && (key = key.trim());
+    if (key === last) { return; }
+    lastSuggest && (lastSuggest.isOff = true);
+    last = key;
+    lastSuggest = suggest;
+    window.Completers.omni.filter(key ? key.split(Utils.spacesRe) : [], {
+      clientWidth: 0,
+      showFavIcon: false
+    }, onComplete.bind(null, suggest));
+  });
+  chrome.omnibox.onInputEntered.addListener(function(text, disposition) {
+    if (text === last && firstUrl) {
+      text = firstUrl;
+    }
+    clean();
+    switch (disposition) {
+    case "currentTab":
+      g_requestHandlers.openUrlInCurrentTab({ url: text });
+      break;
+    case "newForegroundTab": case "newBackgroundTab":
+      chrome.tabs.query({currentWindow: true, active: true},
+      g_requestHandlers.openUrlInNewTab.bind(null, {
+        active: disposition === "newForegroundTab",
+        url: text
+      }));
+      break;
+    }
+  });
+  chrome.omnibox.onInputCancelled.addListener(clean);
+  }, 1000);
 }, 200);
+
