@@ -1126,7 +1126,7 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
         if (!query) { return "No selected or copied text found!"; }
       }
       query = Utils.createSearchUrl(query.split(" "), search.keyword);
-      chrome.tabs.update({
+      chrome.tabs.update(null, {
         url: query
       });
     },

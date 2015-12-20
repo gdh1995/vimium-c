@@ -122,7 +122,7 @@ function openTab(targetSwitch, url, event) {
 		shiftKey = event.shiftKey;
 	}
 	if (targetSwitch === true) {
-		chrome.tabs.update({url: url});
+		chrome.tabs.update(null, {url: url});
 	} else if (ctrlKey !== true) {
 		chrome.tabs.query({
 			currentWindow: true,
