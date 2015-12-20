@@ -16,13 +16,17 @@ var Utils = {
     req.send();
     return req;
   },
-  _escapeRe: /[&<>]/g,
+  _escapeRe: /[&<]/g,
+  _quoteRe: /"/g,
   _escapeCallback: function(c, n) {
     n = c.charCodeAt(0);
-    return (n === 60) ? "&lt;" : (n === 62) ? "&gt;" : "&amp;";
+    return (n === 38) ? "&amp;" : "&lt;";
   },
-  escapeHtml: function(s) {
+  escapeText: function(s) {
     return s.replace(this._escapeRe, this._escapeCallback);
+  },
+  escapeAttr: function(s) {
+    return this.escapeText(s).replace(this._quoteRe, "&quot;");
   },
   // "javascript" should be treated specially
   _nonUrlPrefixes: { about: 1, blob: 1, data: 1, mailto: 1, "view-source": 1 },

@@ -68,10 +68,10 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
     if (description) {
       html.push('<td class="HelpTd HelpKey">\n\t\t'
         , '<span class="HelpShortKey">'
-        , bindings && Utils.escapeHtml(bindings), "</span>\n\t</td>\n\t"
+        , bindings && Utils.escapeText(bindings), "</span>\n\t</td>\n\t"
         , '<td class="HelpTd">', bindings && ":", "</td>\n\t"
         , '<td class="HelpTd HelpCommandInfo">'
-        , Utils.escapeHtml(description).replace('\n', "<br />"));
+        , Utils.escapeText(description).replace('\n', "<br />"));
       if (command) {
         html.push('\n\t\t<span class="HelpCommandName">('
           , command, ")</span>\n\t");
@@ -79,7 +79,7 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
     } else {
       html.push('<td class="HelpTd" colspan="3">\n\t\t'
         , '<span class="HelpLongKey">'
-        , Utils.escapeHtml(bindings), "</span>&#160;:\n\t");
+        , Utils.escapeText(bindings), "</span>&#160;:\n\t");
     }
     html.push("</td>\n</tr>\n");
   };

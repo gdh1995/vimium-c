@@ -22,23 +22,23 @@ SuggestionUtils = {
     var str = sug.text = _this.shortenUrl(sug.text);
     sug.textSplit = _this.cutUrl(str, _this.getRanges(str), sug.url);
     if (showFavIcon && !sug.favIconUrl && sug.url.indexOf("://") > 0) {
-      str = Utils.escapeHtml(sug.url);
+      str = Utils.escapeAttr(sug.url);
       sug.favIconUrl = str && ("/" + str);
     }
   },
   highlight: function(string, ranges) {
     var _i, out, start, end;
-    if (ranges.length === 0) { return Utils.escapeHtml(string); }
+    if (ranges.length === 0) { return Utils.escapeText(string); }
     out = [];
     for(_i = 0, end = 0; _i < ranges.length; _i += 2) {
       start = ranges[_i];
-      out.push(Utils.escapeHtml(string.substring(end, start)));
+      out.push(Utils.escapeText(string.substring(end, start)));
       end = ranges[_i + 1];
       out.push("<span class=\"OSTitle\">");
-      out.push(Utils.escapeHtml(string.substring(start, end)));
+      out.push(Utils.escapeText(string.substring(start, end)));
       out.push("</span>");
     }
-    out.push(Utils.escapeHtml(string.substring(end)));
+    out.push(Utils.escapeText(string.substring(end)));
     return out.join("");
   },
   shortenUrl: function(url) {
@@ -93,23 +93,23 @@ SuggestionUtils = {
       start = ranges[i];
       temp = (end >= cutStart) ? end : cutStart;
       if (temp + 20 > start) {
-        out.push(Utils.escapeHtml(string.substring(end, start)));
+        out.push(Utils.escapeText(string.substring(end, start)));
       } else {
-        out.push(Utils.escapeHtml(string.substring(end, temp + 10)));
+        out.push(Utils.escapeText(string.substring(end, temp + 10)));
         out.push("...");
-        out.push(Utils.escapeHtml(string.substring(start - 6, start)));
+        out.push(Utils.escapeText(string.substring(start - 6, start)));
         lenCut += start - temp - 19;
       }
       end = ranges[i + 1];
       out.push("<span class=\"OSUrl\">");
-      out.push(Utils.escapeHtml(string.substring(start, end)));
+      out.push(Utils.escapeText(string.substring(start, end)));
       out.push("</span>");
     }
     temp = maxCharNum + lenCut;
     if (string.length <= temp) {
-      out.push(Utils.escapeHtml(string.substring(end)));
+      out.push(Utils.escapeText(string.substring(end)));
     } else {
-      out.push(Utils.escapeHtml(string.substring(end,
+      out.push(Utils.escapeText(string.substring(end,
         (temp - 3 > end) ? (temp - 3) : (end + 10))));
       out.push("...");
     }
@@ -420,7 +420,7 @@ tabs: {
             tab.url, tab.text, tab.title, c, tabId);
       suggestion.sessionId = tabId;
       if (showFavIcon) {
-        suggestion.favIconUrl = Utils.escapeHtml(tab.favIconUrl);
+        suggestion.favIconUrl = Utils.escapeAttr(tab.favIconUrl);
       }
       if (curTabId === tabId) { suggestion.relevancy = 0; }
       return suggestion;

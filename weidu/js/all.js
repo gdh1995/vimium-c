@@ -9,16 +9,15 @@ function truncate(str, ind, lng) {
 	}
 	return ''
 }
-var HtmlUtil = {
-	_escapeRe: /[&<>]/g,
-	_escapeCallback: function(c, n) {
+var title_fix = (function() {
+	var escapeRe = /[&<]/g, escapeCallback = function(c, n) {
 		n = c.charCodeAt(0);
-		return (n === 60) ? "&lt;" : (n === 62) ? "&gt;" : "&amp;";
-	}
-};
-function title_fix(text) {
-	return text ? text.replace(HtmlUtil._escapeRe, HtmlUtil._escapeCallback) : "";
-}
+		return (n === 38) ? "&amp;" : "&lt;";
+	};
+  return function (text) {
+    return text ? text.replace(escapeRe, escapeCallback) : "";
+  }
+})();
 var I18n = Lang['zh_CN'];
 function getI18nMsg(msgname) {
 	return I18n[msgname] || msgname;
