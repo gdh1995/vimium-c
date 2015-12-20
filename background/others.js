@@ -68,7 +68,7 @@ if (Settings.get("vimSync") === true) setTimeout(function() {
   Settings.Sync.fetchAsync();
 }, 100);
 
-if (chrome.browserAction && chrome.browserAction.setIcon) setTimeout(function() {
+if (chrome.browserAction) setTimeout(function() {
   var func;
   g_requestHandlers.SetIcon = function(tabId, type, pass) {
     chrome.browserAction.setIcon({
@@ -129,7 +129,7 @@ window.b = setTimeout(function() {
       , "color:red", "color:auto;", "with", details, ".");
   });
 
-  if (!reason && chrome.notifications && chrome.notifications.create) { return; }
+  if (!reason || !chrome.notifications) { return; }
 
   func = function(versionA, versionB) {
     var a, b, i, _ref;
