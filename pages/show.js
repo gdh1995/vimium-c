@@ -72,3 +72,10 @@ function clickLink(url, options) {
   a.href = url;
   a.click();
 }
+
+(function() {
+  var a = document.createElement('script');
+  a.src = '/lib/math_parser.js';
+  document.head.appendChild(a);console.log(window.MathParser);
+  
+})();
