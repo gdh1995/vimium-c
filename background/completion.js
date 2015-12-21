@@ -824,10 +824,8 @@ searchEngines: {
     }
 
     setTimeout(function() {
-      if (queryTerms) { return; }
-      HistoryCache.use(function(history) {
-        if (queryTerms) { return; }
-        setTimeout(function() {
+      queryTerms || HistoryCache.history || HistoryCache.use(function(history) {
+        queryTerms || setTimeout(function() {
           var domainsCompleter = Completers.domains;
           if (queryTerms || domainsCompleter.domains) { return; }
           domainsCompleter.populateDomains(history);
