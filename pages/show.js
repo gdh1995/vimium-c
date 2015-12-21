@@ -1,13 +1,11 @@
 "use strict";
 var $ = document.getElementById.bind(document), shownNode, bgLink;
 function decodeHash() {
-  var url, type;
+  var url, type, node;
   url = location.hash;
   if (url.lastIndexOf("#!image=", 0) === 0) {
     url = url.substring(8);
     type = "image";
-  } else {
-    return;
   }
   try {
     url = decodeURIComponent(url);
@@ -38,6 +36,11 @@ function decodeHash() {
         shownNode.onload();
       }, 34);
     }
+    break;
+  default:
+    node = $("shownImage");
+    node.src = "../icons/vimium.png";
+    node.style.display = "";
     break;
   }
 
