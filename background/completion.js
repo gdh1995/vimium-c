@@ -848,6 +848,7 @@ searchEngines: {
 
   chrome.omnibox && setTimeout(function() {
   var last, firstUrl, lastSuggest, spanRe = /<(\/?)span(?: [^>]+)?>/g,
+  defaultSug = { description: "<dim>Open: </dim><url>%s</url>" },
   format = function(sug) {
     var str = sug.textSplit.replace(spanRe, "<$1match>");
     str = "<url>" + str + "</url><dim> - " + Utils.escapeText(sug.title) + "</dim>";
@@ -865,19 +866,16 @@ searchEngines: {
   },
   onComplete = function(suggest, response) {
     if (!lastSuggest || suggest.isOff) { return; }
-    if (response.length === 0) {
+    if (response.length === 0 || response[0].type !== "search") {
       firstUrl = "";
-      chrome.omnibox.setDefaultSuggestion({
-        description: "<dim>Open: </dim><url>%s</url>"
-      });
-      suggest([]);
-      return;
+      chrome.omnibox.setDefaultSuggestion(defaultSug);
+    } else {
+      firstUrl = response[0].url;
+      var text = response[0].textSplit;
+      text = "<url>" + text.replace(spanRe, "<$1match>") + "</url>";
+      chrome.omnibox.setDefaultSuggestion({ description: text });
+      response.shift();
     }
-    firstUrl = response[0].url;
-    var text = response[0].textSplit;
-    text = "<url>" + text.replace(spanRe, "<$1match>") + "</url>";
-    chrome.omnibox.setDefaultSuggestion({ description: text });
-    response.shift();
     response = response.map(format);
     suggest(response);
   };
