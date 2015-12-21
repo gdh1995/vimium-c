@@ -871,8 +871,10 @@ searchEngines: {
       chrome.omnibox.setDefaultSuggestion(defaultSug);
     } else {
       firstUrl = response[0].url;
-      var text = response[0].textSplit;
-      text = "<url>" + text.replace(spanRe, "<$1match>") + "</url>";
+      var text = response[0].title;
+      text = Utils.escapeText(text.substring(0, text.indexOf(":")));
+      text = "<dim>" + text + " - </dim><url>" +
+        response[0].textSplit.replace(spanRe, "<$1match>") + "</url>";
       chrome.omnibox.setDefaultSuggestion({ description: text });
       response.shift();
     }
