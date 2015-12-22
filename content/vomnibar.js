@@ -462,8 +462,7 @@ background: {
     } else {
       item.relevancy = "";
     }
-    item.action = (item.type === "tab") ? "switchToTab"
-      : item.hasOwnProperty('sessionId') ? "restoreSession"
+    item.action = item.hasOwnProperty('sessionId') ? "gotoSession"
       : "navigateToUrl";
     return item;
   },
@@ -489,14 +488,11 @@ background: {
         url: this.url
       });
     },
-    switchToTab: function() {
-      MainPort.port.postMessage({
+    gotoSession: function() {
+      MainPort.port.postMessage(typeof this.sessionId === "number" ? {
         handler: "selectTab",
         tabId: this.sessionId
-      });
-    },
-    restoreSession: function() {
-      MainPort.port.postMessage({
+      } : {
         handler: "restoreSession",
         sessionId: this.sessionId
       });
