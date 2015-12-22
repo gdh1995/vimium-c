@@ -124,7 +124,7 @@ var Utils = {
       type = string.length < oldString.length && string.indexOf('/', 9) === -1 ? 2 : 0;
     }
     else if (!noCustomProtocol && string.startsWith("vimium:")) {
-      oldString = this.parseVimiumUrl(oldString.substring(9));
+      oldString = this.formatVimiumUrl(oldString.substring(9));
       type = 3;
     } else {
       string = string.substring(index + 3, index2 !== -1 ? index2 : undefined);
@@ -178,7 +178,7 @@ var Utils = {
     return 0;
   },
   _fileExtRe: /\.\w+$/,
-  parseVimiumUrl: function(path, partly) {
+  formatVimiumUrl: function(path, partly) {
     var ind, query;
     path = path.trim();
     if (!path) { return partly ? "" : chrome.runtime.getURL("/pages/"); }
@@ -355,7 +355,7 @@ var Utils = {
     if (prefix.startsWith("http://") || prefix.startsWith("https://")) {
       prefix = prefix.substring(prefix[4] === 's' ? 8 : 7);
     } else if (prefix.startsWith("vimium://")) {
-      prefix = this.parseVimiumUrl(prefix.substring(9));
+      prefix = this.formatVimiumUrl(prefix.substring(9));
     }
     return [prefix, new RegExp(str + str2 + url, "i")];
   },
