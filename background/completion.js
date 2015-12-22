@@ -508,7 +508,8 @@ searchEngines: {
     sug.textSplit = Utils.escapeText(sug.text);
     text && (sug.text = text);
     if (Utils.lastUrlType === 2) {
-      sug.titleSplit = SuggestionUtils.highlight("~: " + keyword, [3, 3 + keyword.length]);
+      sug.title = "~: " + keyword;
+      sug.titleSplit = SuggestionUtils.highlight(sug.title, [3, 3 + keyword.length]);
     } else {
       sug.titleSplit = Utils.escapeText(keyword);
     }
@@ -885,7 +886,7 @@ searchEngines: {
       chrome.omnibox.setDefaultSuggestion(defaultSug);
     } else {
       firstUrl = response[0].url;
-      var text = response[0].title;
+      var text = response[0].titleSplit.replace(spanRe, "");
       text = Utils.escapeText(text.substring(0, text.indexOf(":")));
       text = "<dim>" + text + " - </dim><url>" +
         response[0].textSplit.replace(spanRe, "<$1match>") + "</url>";
