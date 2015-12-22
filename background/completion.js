@@ -863,8 +863,9 @@ searchEngines: {
   var last, firstUrl, lastSuggest, spanRe = /<(\/?)span(?: [^>]+)?>/g,
   defaultSug = { description: "<dim>Open: </dim><url>%s</url>" },
   format = function(sug) {
-    var str = sug.textSplit.replace(spanRe, "<$1match>");
-    str = "<url>" + str + "</url><dim> - " + Utils.escapeText(sug.title) + "</dim>";
+    var str = "<url>" + sug.textSplit.replace(spanRe, "<$1match>");
+    str += sug.title ? "</url><dim> - " + Utils.escapeText(sug.title) + "</dim>"
+      : "</url>";
     return {
       content: sug.url,
       description: str
