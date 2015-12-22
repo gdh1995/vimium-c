@@ -465,8 +465,8 @@ searchEngines: {
       sug.url = Utils.convertToUrl(obj.url, null, true);
     }
     if (q.length > 0) {
-      this.makeText(obj);
-      sug.textSplit = SuggestionUtils.highlight(sug.text = obj.url, obj.indexes);
+      sug.text = this.makeText(obj.url, obj.indexes);
+      sug.textSplit = SuggestionUtils.highlight(sug.text, obj.indexes);
       sug.titleSplit = SuggestionUtils.highlight(sug.title
         , [pattern.name.length + 2, sug.title.length]);
     } else {
@@ -476,8 +476,8 @@ searchEngines: {
     }
     query.onComplete([sug]);
   },
-  makeText: function(obj) {
-    var url = obj.url, arr = obj.indexes, len = arr.length, i, str, ind;
+  makeText: function(url, arr) {
+    var len = arr.length, i, str, ind;
     ind = arr[0];
     str = Utils.DecodeURLPart(url.substring(0, ind));
     if (i = (str.startsWith("http://")) ? 7 : (str.startsWith("https://")) ? 8 : 0) {
@@ -497,7 +497,7 @@ searchEngines: {
       }
       str += url;
     }
-    obj.url = str;
+    return str;
   },
   computeRelevancy: function() {
     return 9;
