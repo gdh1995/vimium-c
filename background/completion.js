@@ -10,7 +10,6 @@ setTimeout(function() {
     this.url = url;
     this.text = text || url;
     this.title = title || "";
-    this.relevancy = 0;
     this.relevancy = computeRelevancy(this, extraData);
   }
 
@@ -881,15 +880,16 @@ searchEngines: {
   },
   onComplete = function(suggest, response) {
     if (!lastSuggest || suggest.isOff) { return; }
-    if (response.length === 0 || response[0].type !== "search") {
+    var sug = response[0];
+    if (!sug || sug.type !== "search") {
       firstUrl = "";
       chrome.omnibox.setDefaultSuggestion(defaultSug);
     } else {
-      firstUrl = response[0].url;
-      var text = response[0].titleSplit.replace(spanRe, "");
+      firstUrl = sug.url;
+      var text = sug.titleSplit.replace(spanRe, "");
       text = Utils.escapeText(text.substring(0, text.indexOf(":")));
       text = "<dim>" + text + " - </dim><url>" +
-        response[0].textSplit.replace(spanRe, "<$1match>") + "</url>";
+        sug.textSplit.replace(spanRe, "<$1match>") + "</url>";
       chrome.omnibox.setDefaultSuggestion({ description: text });
       response.shift();
     }
