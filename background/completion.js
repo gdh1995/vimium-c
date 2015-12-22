@@ -446,11 +446,13 @@ searchEngines: {
     if (q.length === 0) {}
     else if ((keyword = q[0])[0] === "\\") {
       q[0] = keyword.substring(1);
+      keyword = q.join(" ");
+      sug = this.makeUrlSuggestion(keyword, "\\" + keyword);
     } else {
       pattern = Settings.get("searchEngineMap")[keyword];
     }
     if (!pattern) {
-      query.onComplete([]);
+      query.onComplete(sug ? [sug] : []);
       return;
     }
     if (q.length > 1) {
@@ -498,6 +500,19 @@ searchEngines: {
       str += url;
     }
     return str;
+  },
+  makeUrlSuggestion: function(keyword, text) {
+    var sug = new Suggestion("search", Utils.convertToUrl(keyword, null, true),
+      "", keyword, this.computeRelevancy);
+    sug.text = Utils.DecodeURLPart(SuggestionUtils.shortenUrl(sug.url));
+    sug.textSplit = Utils.escapeText(sug.text);
+    text && (sug.text = text);
+    if (Utils.lastUrlType === 2) {
+      sug.titleSplit = SuggestionUtils.highlight("~: " + keyword, [3, 3 + keyword.length]);
+    } else {
+      sug.titleSplit = Utils.escapeText(keyword);
+    }
+    return sug;
   },
   computeRelevancy: function() {
     return 9;
