@@ -102,6 +102,12 @@ var Utils = {
         type = 2;
       }
     }
+    else if (string.startsWith("vimium:")) {
+      if (!noCustomProtocol) {
+        oldString = this.formatVimiumUrl(oldString.substring(9));
+      }
+      type = 3;
+    }
     else if ((index2 = string.indexOf('/', index + 3)) === -1
         ? string.length < oldString.length
         : (expected = string.charCodeAt(index2 + 1), expected <= 32 || expected === 47 )
@@ -122,10 +128,6 @@ var Utils = {
     }
     else if (string.startsWith("chrome:")) {
       type = string.length < oldString.length && string.indexOf('/', 9) === -1 ? 2 : 0;
-    }
-    else if (!noCustomProtocol && string.startsWith("vimium:")) {
-      oldString = this.formatVimiumUrl(oldString.substring(9));
-      type = 3;
     } else {
       string = string.substring(index + 3, index2 !== -1 ? index2 : undefined);
       expected = 0;
