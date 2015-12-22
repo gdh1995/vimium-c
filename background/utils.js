@@ -229,11 +229,11 @@ var PluginDefers = {}, Utils = {
       defer.reject(name);
     }, timeout || Utils.jsLoadingTimeout);
     document.body.appendChild(document.createElement("script")).src = "lib/" + file;
-    return defer.promise.then(function(plugin) {
+    defer.promise.then(function() {
       delete PluginDefers[name];
       clearTimeout(timeout);
-      return plugin;
     });
+    return defer.promise;
   },
   searchWordRe: /\$([sS])(?:\{([^\}]*)\})?/g,
   searchWordRe2: /([^\\]|^)%([sS])/g,
