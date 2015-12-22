@@ -1,5 +1,5 @@
 "use strict";
-var Utils = {
+var PluginDefers = {}, Utils = {
   makeNullProto: function() {
     return {__proto__: null};
   },
@@ -196,6 +196,41 @@ var Utils = {
       path = chrome.runtime.getURL(path.startsWith("/") ? path : "/pages/" + path);
     }
     return path + (query ? ("#!" + query) : "");
+  },
+  evalVimiumUrl: function(path) {
+    var ind, cmd;
+    path = path.trim();
+    if (!path || (ind = path.indexOf(" ")) <= 0 ||
+        this._nonENTldRe.test(cmd = path.substring(0, ind))) {
+      return "";
+    }
+    path = path.substring(ind + 1).trimLeft();
+    switch (cmd) {
+    case "e": case "exec": case "eval": case "expr": case "calc": case "math":
+      return this.loadPlugin("MathParser", "math_parser.js"
+      ).then(function(MathParser) {
+         return ["" + MathParser.evaluate(path), "math", path];
+      });
+    default: break;
+    }
+    return "";
+  },
+  jsLoadingTimeout: 300,
+  loadPlugin: function(name, file, timeout) {
+    if (window[name]) {
+      return Promise.resolve(window[name]);
+    }
+    var defer = PluginDefers[name] = Promise.defer();
+    timeout = setTimeout(function() {
+      delete PluginDefers[name];
+      defer.reject(name);
+    }, timeout || Utils.jsLoadingTimeout);
+    document.body.appendChild(document.createElement("script")).src = "lib/" + file;
+    return defer.promise.then(function(plugin) {
+      delete PluginDefers[name];
+      clearTimeout(timeout);
+      return plugin;
+    });
   },
   searchWordRe: /\$([sS])(?:\{([^\}]*)\})?/g,
   searchWordRe2: /([^\\]|^)%([sS])/g,

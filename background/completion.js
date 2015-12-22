@@ -441,7 +441,7 @@ tabs: {
 
 searchEngines: {
   filter: function(query) {
-    var obj, sug, q = queryTerms, keyword, pattern;
+    var obj, sug, q = queryTerms, keyword, pattern, promise;
     if (q.length === 0) {}
     else if ((keyword = q[0])[0] === "\\") {
       q[0] = keyword.substring(1);
@@ -462,9 +462,6 @@ searchEngines: {
     obj = Utils.createSearch(q, pattern, []);
     sug = new Suggestion("search", obj.url, ""
       , pattern.name + ": " + q.join(" "), this.computeRelevancy);
-    if (keyword !== "~") {
-      sug.url = Utils.convertToUrl(obj.url, null, true);
-    }
     if (q.length > 0) {
       sug.text = this.makeText(obj.url, obj.indexes);
       sug.textSplit = SuggestionUtils.highlight(sug.text, obj.indexes);
@@ -475,7 +472,28 @@ searchEngines: {
       sug.textSplit = Utils.escapeText(sug.text);
       sug.titleSplit = Utils.escapeText(sug.title);
     }
-    query.onComplete([sug]);
+
+    if (keyword !== "~") {
+      sug.url = Utils.convertToUrl(obj.url, null, true);
+      if (sug.url.startsWith("vimium://")) {
+        promise = Utils.evalVimiumUrl(sug.url.substring(9));
+      }
+    }
+    promise ? promise.then(function(arr) {
+      if (query.isOff) { return; }
+      var output = [sug];
+      sug = new Suggestion(arr[1], "", "", "", Completers.searchEngines.computeRelevancy);
+      output.push(sug);
+      --sug.relevancy;
+      sug.text = sug.title = arr[0];
+      sug.url = "vimium://copy " + arr[0];
+      sug.titleSplit = Utils.escapeText(sug.title);
+      sug.textSplit = Utils.escapeText(arr[2]);
+      query.onComplete(output);
+    }).catch(function(e) {
+      if (query.isOff) { return; }
+      query.onComplete([sug]);
+    }) : query.onComplete([sug]);
   },
   makeText: function(url, arr) {
     var len = arr.length, i, str, ind;
@@ -863,9 +881,14 @@ searchEngines: {
   var last, firstUrl, lastSuggest, spanRe = /<(\/?)span(?: [^>]+)?>/g,
   defaultSug = { description: "<dim>Open: </dim><url>%s</url>" },
   format = function(sug) {
-    var str = "<url>" + sug.textSplit.replace(spanRe, "<$1match>");
-    str += sug.title ? "</url><dim> - " + Utils.escapeText(sug.title) + "</dim>"
-      : "</url>";
+    var str;
+    if (sug.description) {
+      str = sug.description;
+    } else {
+      str = "<url>" + sug.textSplit.replace(spanRe, "<$1match>");
+      str += sug.title ? "</url><dim> - " + Utils.escapeText(sug.title) + "</dim>"
+        : "</url>";
+    }
     return {
       content: sug.url,
       description: str
@@ -892,6 +915,12 @@ searchEngines: {
         sug.textSplit.replace(spanRe, "<$1match>") + "</url>";
       chrome.omnibox.setDefaultSuggestion({ description: text });
       response.shift();
+      if (sug = response[0]) switch (sug.type) {
+      case "math":
+        sug.description = "<dim>" + sug.textSplit + " = </dim><url><match>" +
+          sug.titleSplit + "</match></url>";
+        break;
+      }
     }
     response = response.map(format);
     suggest(response);
