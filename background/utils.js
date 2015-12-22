@@ -177,15 +177,23 @@ var Utils = {
     }
     return 0;
   },
-  parseVimiumUrl: function(path) {
-    var root = chrome.runtime.getURL("/") + "pages/";
-    if (!path) { return root; }
-    var ind = path.indexOf(".html");
-    if (ind > 0 && !this._nonENTldRe.test(path.substring(0, ind))) {
-      return root + path;
+  _fileExtRe: /\.\w+$/,
+  parseVimiumUrl: function(path, partly) {
+    var ind, query;
+    path = path.trim();
+    if (!path) { return partly ? "" : chrome.runtime.getURL("/pages/"); }
+    ind = path.indexOf(" ");
+    if (ind > 0) {
+      query = path.substring(ind + 1).trim();
+      path = path.substring(0, ind);
     }
-    path = root + path + ".html";
-    return path;
+    if (!this._fileExtRe.test(path)) {
+      path += ".html";
+    }
+    if (!partly) {
+      path = chrome.runtime.getURL(path.startsWith("/") ? path : "/pages/" + path);
+    }
+    return path + (query ? ("#!" + query) : "");
   },
   searchWordRe: /\$([sS])(?:\{([^\}]*)\})?/g,
   searchWordRe2: /([^\\]|^)%([sS])/g,
