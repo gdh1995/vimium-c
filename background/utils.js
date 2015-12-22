@@ -217,10 +217,13 @@ var PluginDefers = {}, Utils = {
   },
   jsLoadingTimeout: 300,
   loadPlugin: function(name, file, timeout) {
+    var defer;
     if (window[name]) {
       return Promise.resolve(window[name]);
+    } else if (defer = PluginDefers[name]) {
+      return defer.promise;
     }
-    var defer = PluginDefers[name] = Promise.defer();
+    defer = PluginDefers[name] = Promise.defer();
     timeout = setTimeout(function() {
       delete PluginDefers[name];
       defer.reject(name);
