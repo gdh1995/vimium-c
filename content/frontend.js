@@ -555,7 +555,7 @@ var Settings, VHUD, MainPort, VInsertMode;
       }, function(str) {
         if (str) {
           Utils.evalIfOK(str) || mainPort.port.postMessage({
-            handler: "openUrl_fInNewTab",
+            handler: "openUrlInNewTab",
             url: str
           });
         } else {

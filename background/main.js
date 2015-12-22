@@ -1255,9 +1255,6 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
       }
       return url;
     },
-    openUrl_fInNewTab: function(request, tabs) {
-      openMultiTab(request.url, 1, tabs[0]);
-    },
     copyToClipboard: function(request) {
       Clipboard.copy(request.data);
     },
@@ -1410,7 +1407,7 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
     ref2 = requestHandlers;
     for (key in ref2) { ref2[key].useTab = 0; }
     ref = ["openUrlInNewTab", "openUrlInIncognito" //
-      , "openImageUrl", "openUrl_fInNewTab", "createMark" //
+      , "openImageUrl", "createMark" //
     ];
     for (i = ref.length; 0 <= --i; ) {
       ref2[ref[i]].useTab = 1;
