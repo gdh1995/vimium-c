@@ -8,7 +8,7 @@ setTimeout(function() {
   function Suggestion(type, url, text, title, computeRelevancy, extraData) {
     this.type = type;
     this.url = url;
-    this.text = text || url;
+    this.text = text || "";
     this.title = title || "";
     this.relevancy = 0;
     this.relevancy = computeRelevancy(this, extraData);
@@ -19,7 +19,7 @@ SuggestionUtils = {
     if (sug.textSplit) { return; }
     var _this = SuggestionUtils;
     sug.titleSplit = _this.highlight(sug.title, _this.getRanges(sug.title));
-    var str = sug.text = _this.shortenUrl(sug.text);
+    var str = sug.text = _this.shortenUrl(sug.text || sug.url);
     sug.textSplit = _this.cutUrl(str, _this.getRanges(str), sug.url);
     if (showFavIcon && !sug.favIconUrl && sug.url.indexOf("://") > 0) {
       str = Utils.escapeAttr(sug.url);
