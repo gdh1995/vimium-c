@@ -435,6 +435,7 @@ Completer: {
       handlerOmni: this.name,
       clientWidth: window.innerWidth,
       showFavIcon: Vomnibar.background.showFavIcon,
+      maxResults: 10,
       query: query && query.replace(Utils.spacesRe, ' ')
     }, this.onFilter);
   },

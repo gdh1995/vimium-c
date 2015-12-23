@@ -169,6 +169,7 @@ if (chrome.omnibox) setTimeout(function() {
     lastSuggest = suggest;
     Completers.omni.filter(key ? key.split(Utils.spacesRe) : [], {
       clientWidth: 0,
+      maxResults: 6,
       showFavIcon: false
     }, onComplete.bind(null, suggest));
   };
