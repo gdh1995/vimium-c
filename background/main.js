@@ -301,7 +301,6 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
     openUrlInIncognito: function(request, tab, wnds) {
       wnds = wnds.filter(funcDict.isIncNor);
       request.active = (request.active !== false);
-      request.url = Utils.convertToUrl(request.url, request.keyword);
       if (wnds.length) {
         var inCurWnd = wnds.filter(function(wnd) {
           return wnd.id === tab.windowId
@@ -1143,15 +1142,20 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
       openMultiTab("/pages/show.html#!image=" + url, 1, tab);
     },
     openUrlInNewTab: function(request, tabs) {
-      var tab = tabs[0];
+      var tab = tabs[0], url = Utils.convertToUrl(request.url, request.keyword, 2);
+      if (!url) { return; }
       if (request.active === false) { tab.active = false; }
-      openMultiTab(Utils.convertToUrl(request.url, request.keyword), 1, tab);
+      openMultiTab(url, 1, tab);
     },
     openUrlInIncognito: function(request, tabs) {
+      request.url = Utils.convertToUrl(request.url, request.keyword, 2);
+      if (!request.url) { return; }
+      request.keyword = "";
       chrome.windows.getAll(funcDict.openUrlInIncognito.bind(null, request, tabs[0]));
     },
     openUrlInCurrentTab: function(request) {
       var url = Utils.convertToUrl(request.url, request.keyword);
+      if (!url) { return; }
       chrome.tabs.update(null, {
         url: url
       }, funcDict.onRuntimeError);

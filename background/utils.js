@@ -103,11 +103,18 @@ var PluginDefers = {}, Utils = {
       }
     }
     else if (string.startsWith("vimium:")) {
+      type = 3;
       vimiumUrlWork |= 0;
       if (vimiumUrlWork >= 0) {
-        oldString = this.formatVimiumUrl(oldString.substring(9));
+        string = oldString.substring(9);
+        if (vimiumUrlWork > 0 &&
+            (oldString = this.evalVimiumUrl(string, vimiumUrlWork))) {
+          type = 5;
+          oldString = "";
+        } else {
+          oldString = this.formatVimiumUrl(string);
+        }
       }
-      type = 3;
     }
     else if ((index2 = string.indexOf('/', index + 3)) === -1
         ? string.length < oldString.length
@@ -213,6 +220,10 @@ var PluginDefers = {}, Utils = {
       ).then(function(MathParser) {
          return ["" + MathParser.evaluate(path), "math", path];
       });
+    } else if (workType === 2) switch (cmd) {
+    case "c": case "copy":
+      Clipboard.copy(path); // TODO: ? merge Clipboard
+      return Promise.resolve(["", "copy", path]);
     }
     return "";
   },
