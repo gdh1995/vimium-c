@@ -903,6 +903,7 @@ searchEngines: {
   },
   onComplete = function(suggest, response) {
     if (!lastSuggest || suggest.isOff) { return; }
+    if (suggest === lastSuggest) { lastSuggest = null; }
     var sug = response[0];
     if (!sug || sug.type !== "search") {
       firstUrl = "";
