@@ -482,7 +482,7 @@ searchEngines: {
     promise ? promise.then(function(arr) {
       if (query.isOff) { return; }
       var output = [sug];
-      sug = new Suggestion(arr[1], "", "", "", Completers.searchEngines.computeRelevancy);
+      sug = new Suggestion("math", "", "", "", Completers.searchEngines.computeRelevancy);
       output.push(sug);
       --sug.relevancy;
       sug.text = sug.title = arr[0];
