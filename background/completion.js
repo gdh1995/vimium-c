@@ -474,7 +474,7 @@ searchEngines: {
     }
 
     if (keyword !== "~") {
-      sug.url = Utils.convertToUrl(obj.url, null, true);
+      sug.url = Utils.convertToUrl(obj.url, null, 2);
       if (sug.url.startsWith("vimium://")) {
         promise = Utils.evalVimiumUrl(sug.url.substring(9));
       }

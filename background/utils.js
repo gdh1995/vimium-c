@@ -62,7 +62,7 @@ var PluginDefers = {}, Utils = {
   _jsNotEscapeRe: /["\[\]{}\u00ff-\uffff]|%(?![\dA-F]{2}|[\da-f]{2})/,
   filePathRe: /^['"]?((?:[A-Za-z]:[\\/]|\/(?:Users|home|root)\/)[^'"]*)['"]?$/,
   lastUrlType: 0,
-  convertToUrl: function(string, keyword, noCustomProtocol) {
+  convertToUrl: function(string, keyword, vimiumUrlWork) {
     if (string.substring(0, 11).toLowerCase() === "javascript:") {
       if (Settings.CONST.ChromeVersion < 46 && string.indexOf('%', 11) > 0
           && !this._jsNotEscapeRe.test(string)) {
@@ -103,7 +103,8 @@ var PluginDefers = {}, Utils = {
       }
     }
     else if (string.startsWith("vimium:")) {
-      if (!noCustomProtocol) {
+      vimiumUrlWork |= 0;
+      if (vimiumUrlWork <= 0) {
         oldString = this.formatVimiumUrl(oldString.substring(9));
       }
       type = 3;
