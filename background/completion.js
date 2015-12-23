@@ -879,6 +879,7 @@ searchEngines: {
 
   chrome.omnibox && setTimeout(function() {
   var last, firstUrl, lastSuggest, spanRe = /<(\/?)span(?: [^>]+)?>/g,
+  tempRequest = [], timeout = 0,
   defaultSug = { description: "<dim>Open: </dim><url>%s</url>" },
   format = function(sug) {
     var str;
@@ -899,6 +900,15 @@ searchEngines: {
     if (lastSuggest) {
       lastSuggest.isOff = true;
       lastSuggest = null;
+    }
+    tempRequest = null;
+  },
+  onTimer = function() {
+    timeout = 0;
+    var arr;
+    if (arr = tempRequest) {
+      tempRequest = null;
+      onInput(arr[0], arr[1]);
     }
   },
   onComplete = function(suggest, response) {
@@ -930,6 +940,11 @@ searchEngines: {
     key && (key = key.trim());
     if (key === last) { return; }
     lastSuggest && (lastSuggest.isOff = true);
+    if (timeout) {
+      tempRequest = [key, suggest];
+      return;
+    }
+    timeout = setTimeout(onTimer, 500);
     last = key;
     lastSuggest = suggest;
     window.Completers.omni.filter(key ? key.split(Utils.spacesRe) : [], {
