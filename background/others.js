@@ -189,7 +189,6 @@ if (chrome.omnibox) setTimeout(function() {
       break;
     }
   });
-  chrome.omnibox.onInputCancelled.addListener(clean);
 }, 1500);
 
 // According to tests: onInstalled will be executed after 0 ~ 16 ms if needed
