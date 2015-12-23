@@ -924,9 +924,8 @@ searchEngines: {
     }
     response = response.map(format);
     suggest(response);
-  };
-
-  chrome.omnibox.onInputChanged.addListener(function(key, suggest) {
+  },
+  onInput = function(key, suggest) {
     key && (key = key.trim());
     if (key === last) { return; }
     lastSuggest && (lastSuggest.isOff = true);
@@ -936,11 +935,10 @@ searchEngines: {
       clientWidth: 0,
       showFavIcon: false
     }, onComplete.bind(null, suggest));
-  });
+  };
+  chrome.omnibox.onInputChanged.addListener(onInput);
   chrome.omnibox.onInputEntered.addListener(function(text, disposition) {
-    if (text === last && firstUrl) {
-      text = firstUrl;
-    }
+    if (text === last && firstUrl) { text = firstUrl; }
     clean();
     switch (disposition) {
     case "currentTab":
