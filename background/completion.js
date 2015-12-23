@@ -896,7 +896,7 @@ searchEngines: {
     }
   },
   clean = function() {
-    firstUrl = last = null;
+    firstUrl = last = "";
     if (lastSuggest) {
       lastSuggest.isOff = true;
       lastSuggest = null;
@@ -916,7 +916,6 @@ searchEngines: {
     if (suggest === lastSuggest) { lastSuggest = null; }
     var sug = response[0];
     if (!sug || sug.type !== "search") {
-      firstUrl = "";
       chrome.omnibox.setDefaultSuggestion(defaultSug);
     } else {
       firstUrl = sug.url;
@@ -945,6 +944,7 @@ searchEngines: {
       return;
     }
     timeout = setTimeout(onTimer, 500);
+    firstUrl = "";
     last = key;
     lastSuggest = suggest;
     window.Completers.omni.filter(key ? key.split(Utils.spacesRe) : [], {
