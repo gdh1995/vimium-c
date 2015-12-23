@@ -557,6 +557,10 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
         }
       }
     },
+    selectWnd: function(tab) {
+      tab && chrome.windows.update(tab.windowId, { focused: true });
+      return chrome.runtime.lastError;
+    },
     removeTabsRelative: function(activeTab, direction, tabs) {
       var i = activeTab.index;
       if (direction > 0) {
@@ -1259,10 +1263,7 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
       Clipboard.copy(request.data);
     },
     selectTab: function(request) {
-      chrome.tabs.update(request.tabId, {active: true});
-      chrome.tabs.get(request.tabId, function(tab) {
-        chrome.windows.update(tab.windowId, { focused: true });
-      });
+      chrome.tabs.update(request.tabId, {active: true}, funcDict.selectWnd);
     },
     refreshTabId: function(request, port) {
       port.sender.tab.id = request.tabId;
