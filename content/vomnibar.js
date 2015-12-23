@@ -17,7 +17,7 @@ activateWithCompleter: function(completerName, selectFirstResult, forceNewTab
     completer.init();
     vomnibarUI.init(box);
   }
-  completer.setName(completerName);
+  completer.name = completerName;
   vomnibarUI.initialSelectionValue = selectFirstResult ? 0 : -1;
   vomnibarUI.forceNewTab = forceNewTab ? true : false;
   vomnibarUI.handlerId = handlerStack.push(handlerStack.SuppressMost);
@@ -428,9 +428,6 @@ Completer: {
     this.mapResult = Vomnibar.background.parse.bind(Vomnibar.background);
     this.init = null;
   },
-  setName: function(name) {
-    this.name = name;
-  },
   filter: function(query) {
     MainPort.sendMessage({
       handlerOmni: this.name,
@@ -441,7 +438,6 @@ Completer: {
     }, this.onFilter);
   },
   _id: 0,
-  _callback: null,
   mapResult: null,
   onFilter: function(results, msgId) {
     if (this._id >= msgId) { return; }
