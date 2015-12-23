@@ -175,7 +175,7 @@ var PluginDefers = {}, Utils = {
     this.lastUrlType = type;
     return type === 0 ? oldString
       : type === 1 ? ("http://" + oldString)
-      : type === 2 ? this.createSearchUrl(oldString.split(' '), keyword || "~", vimiumUrlWork)
+      : type === 2 ? this.createSearchUrl(oldString.split(' '), keyword || "~")
       : type === 4 ? ("http:" + oldString)
       : oldString;
   },
@@ -250,13 +250,13 @@ var PluginDefers = {}, Utils = {
   searchWordRe: /\$([sS])(?:\{([^\}]*)\})?/g,
   searchWordRe2: /([^\\]|^)%([sS])/g,
   searchVariable: /\$([\d])/g,
-  createSearchUrl: function(query, keyword, vimiumUrlWork) {
+  createSearchUrl: function(query, keyword) {
     var pattern = Settings.get("searchEngineMap")[keyword];
     if (pattern) {
       query = this.createSearch(query, pattern, null);
     }
     if (keyword != "~") {
-      query = this.convertToUrl(query, null, vimiumUrlWork);
+      query = this.convertToUrl(query);
     }
     return query;
   },
