@@ -474,9 +474,9 @@ searchEngines: {
     }
 
     if (keyword !== "~") {
-      sug.url = Utils.convertToUrl(obj.url, null, 2);
+      sug.url = Utils.convertToUrl(obj.url, null, -1);
       if (sug.url.startsWith("vimium://")) {
-        promise = Utils.evalVimiumUrl(sug.url.substring(9));
+        promise = Utils.evalVimiumUrl(sug.url.substring(9), 1);
       }
     }
     promise ? promise.then(function(arr) {
@@ -519,7 +519,7 @@ searchEngines: {
     return str;
   },
   makeUrlSuggestion: function(keyword, text) {
-    var sug = new Suggestion("search", Utils.convertToUrl(keyword, null, true),
+    var sug = new Suggestion("search", Utils.convertToUrl(keyword, null, -1),
       "", keyword, this.computeRelevancy);
     sug.text = Utils.DecodeURLPart(SuggestionUtils.shortenUrl(sug.url));
     sug.textSplit = Utils.escapeText(sug.text);

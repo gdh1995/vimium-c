@@ -104,7 +104,7 @@ var PluginDefers = {}, Utils = {
     }
     else if (string.startsWith("vimium:")) {
       vimiumUrlWork |= 0;
-      if (vimiumUrlWork <= 0) {
+      if (vimiumUrlWork >= 0) {
         oldString = this.formatVimiumUrl(oldString.substring(9));
       }
       type = 3;
@@ -168,7 +168,7 @@ var PluginDefers = {}, Utils = {
     this.lastUrlType = type;
     return type === 0 ? oldString
       : type === 1 ? ("http://" + oldString)
-      : type === 2 ? this.createSearchUrl(oldString.split(' '), keyword || "~")
+      : type === 2 ? this.createSearchUrl(oldString.split(' '), keyword || "~", vimiumUrlWork)
       : type === 4 ? ("http:" + oldString)
       : oldString;
   },
@@ -198,21 +198,21 @@ var PluginDefers = {}, Utils = {
     }
     return path + (query ? ("#!" + query) : "");
   },
-  evalVimiumUrl: function(path) {
+  evalVimiumUrl: function(path, workType) {
     var ind, cmd;
     path = path.trim();
-    if (!path || (ind = path.indexOf(" ")) <= 0 ||
+    if (!path || !(workType > 0) || (ind = path.indexOf(" ")) <= 0 ||
         this._nonENTldRe.test(cmd = path.substring(0, ind))) {
       return "";
     }
     path = path.substring(ind + 1).trimLeft();
-    switch (cmd) {
+    if (!path) { return ""; }
+    if (workType === 1) switch (cmd) {
     case "e": case "exec": case "eval": case "expr": case "calc": case "math":
       return this.loadPlugin("MathParser", "math_parser.js"
       ).then(function(MathParser) {
          return ["" + MathParser.evaluate(path), "math", path];
       });
-    default: break;
     }
     return "";
   },
@@ -239,13 +239,13 @@ var PluginDefers = {}, Utils = {
   searchWordRe: /\$([sS])(?:\{([^\}]*)\})?/g,
   searchWordRe2: /([^\\]|^)%([sS])/g,
   searchVariable: /\$([\d])/g,
-  createSearchUrl: function(query, keyword) {
+  createSearchUrl: function(query, keyword, vimiumUrlWork) {
     var pattern = Settings.get("searchEngineMap")[keyword];
     if (pattern) {
       query = this.createSearch(query, pattern, null);
     }
     if (keyword != "~") {
-      query = this.convertToUrl(query);
+      query = this.convertToUrl(query, null, vimiumUrlWork);
     }
     return query;
   },
