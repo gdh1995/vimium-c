@@ -95,7 +95,6 @@ if (chrome.browserAction) setTimeout(function() {
   Settings.postUpdate("showActionIcon");
 }, 50);
 
-
 if (chrome.omnibox) setTimeout(function() {
   var last, firstUrl, lastSuggest, spanRe = /<(\/?)span(?: [^>]+)?>/g,
   tempRequest = [], timeout = 0,

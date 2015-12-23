@@ -1335,7 +1335,7 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
       repeat: reg[1]
     }, count, null);
   };
-  chrome.commands && setTimeout(function() {
+  if (chrome.commands) setTimeout(function() {
     chrome.commands.onCommand.addListener(funcDict.globalCommand);
   }, 200);
 
