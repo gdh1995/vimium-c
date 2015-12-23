@@ -97,7 +97,7 @@ if (chrome.browserAction) setTimeout(function() {
 
 if (chrome.omnibox) setTimeout(function() {
   var last, firstUrl, lastSuggest, spanRe = /<(\/?)span(?: [^>]+)?>/g,
-  tempRequest = [], timeout = 0,
+  tempRequest, timeout = 0,
   defaultSug = { description: "<dim>Open: </dim><url>%s</url>" },
   format = function(sug) {
     var str;
