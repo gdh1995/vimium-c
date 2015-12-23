@@ -432,7 +432,7 @@ Completer: {
     this.name = name;
   },
   filter: function(query) {
-    this._id = MainPort.sendMessage({
+    MainPort.sendMessage({
       handlerOmni: this.name,
       clientWidth: window.innerWidth,
       showFavIcon: Vomnibar.background.showFavIcon,
@@ -440,11 +440,12 @@ Completer: {
       query: query && query.replace(Utils.spacesRe, ' ')
     }, this.onFilter);
   },
-  _id: -2,
+  _id: 0,
   _callback: null,
   mapResult: null,
   onFilter: function(results, msgId) {
-    if (this._id !== msgId) { return; }
+    if (this._id >= msgId) { return; }
+    this._id = msgId;
     Vomnibar.vomnibarUI.onCompletions(results.map(this.mapResult));
   }
 },
