@@ -60,7 +60,6 @@ var Settings, VHUD, MainPort, VInsertMode;
       var id = ++this._lastMsg;
       this.port.postMessage({_msgId: id, request: request});
       this._callbacks[id] = callback;
-      return id;
     },
     safePost: function(request, ifConnected, ifReconnect) {
       try {
