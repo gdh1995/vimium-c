@@ -115,7 +115,8 @@ if (chrome.omnibox) setTimeout(function() {
     }
   },
   clean = function() {
-    firstUrl = last = "";
+    firstUrl = "";
+    last = null;
     if (lastSuggest) {
       lastSuggest.isOff = true;
       lastSuggest = null;
