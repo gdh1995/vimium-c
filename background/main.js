@@ -297,6 +297,14 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
     onRuntimeError: function() {
       return chrome.runtime.lastError;
     },
+    onEvalUrl: function(arr) {
+      delete Defers.url;
+      switch(arr[1]) {
+      case "copy":
+        requestHandlers.SendToCurrent({name: "showCopied", text: arr[2]});
+        break;
+      }
+    },
 
     openUrlInIncognito: function(request, tab, wnds) {
       wnds = wnds.filter(funcDict.isIncNor);
@@ -956,6 +964,7 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
     else if (key = request.handler) {
       func = requestHandlers[key];
       if (func.useTab) {
+        currentCommand.port = port;
         chrome.tabs.query({currentWindow: true, active: true}, func.bind(null, request));
       } else {
         func(request, port);
@@ -1143,19 +1152,29 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
     },
     openUrlInNewTab: function(request, tabs) {
       var tab = tabs[0], url = Utils.convertToUrl(request.url, request.keyword, 2);
-      if (!url) { return; }
+      if (!url) {
+        Defers.url.then(funcDict.onEvalUrl);
+        return;
+      }
       if (request.active === false) { tab.active = false; }
       openMultiTab(url, 1, tab);
     },
     openUrlInIncognito: function(request, tabs) {
       request.url = Utils.convertToUrl(request.url, request.keyword, 2);
-      if (!request.url) { return; }
+      if (!url) {
+        Defers.url.then(funcDict.onEvalUrl);
+        return;
+      }
       request.keyword = "";
       chrome.windows.getAll(funcDict.openUrlInIncognito.bind(null, request, tabs[0]));
     },
-    openUrlInCurrentTab: function(request) {
-      var url = Utils.convertToUrl(request.url, request.keyword);
-      if (!url) { return; }
+    openUrlInCurrentTab: function(request, port) {
+      var url = Utils.convertToUrl(request.url, request.keyword, 2);
+      if (!url) {
+        currentCommand.port = port;
+        Defers.url.then(funcDict.onEvalUrl);
+        return;
+      }
       chrome.tabs.update(null, {
         url: url
       }, funcDict.onRuntimeError);

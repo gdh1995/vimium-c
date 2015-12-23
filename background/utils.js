@@ -109,6 +109,7 @@ var Defers = {}, Utils = {
         string = oldString.substring(9);
         if (vimiumUrlWork > 0 &&
             (oldString = this.evalVimiumUrl(string, vimiumUrlWork))) {
+          Defers.url = oldString;
           type = 5;
           oldString = "";
         } else {
