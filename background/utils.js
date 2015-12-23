@@ -1,5 +1,5 @@
 "use strict";
-var PluginDefers = {}, Utils = {
+var Defers = {}, Utils = {
   makeNullProto: function() {
     return {__proto__: null};
   },
@@ -232,17 +232,17 @@ var PluginDefers = {}, Utils = {
     var defer;
     if (window[name]) {
       return Promise.resolve(window[name]);
-    } else if (defer = PluginDefers[name]) {
+    } else if (defer = Defers[name]) {
       return defer.promise;
     }
-    defer = PluginDefers[name] = Promise.defer();
+    defer = Defers[name] = Promise.defer();
     timeout = setTimeout(function() {
-      delete PluginDefers[name];
+      delete Defers[name];
       defer.reject(name);
     }, timeout || Utils.jsLoadingTimeout);
     document.body.appendChild(document.createElement("script")).src = "lib/" + file;
     defer.promise.then(function() {
-      delete PluginDefers[name];
+      delete Defers[name];
       clearTimeout(timeout);
     });
     return defer.promise;
