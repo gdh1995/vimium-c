@@ -97,8 +97,13 @@ if (chrome.browserAction) setTimeout(function() {
 
 if (chrome.omnibox) setTimeout(function() {
   var last, firstUrl, lastSuggest, spanRe = /<(\/?)span(?: [^>]+)?>/g,
-  tempRequest, timeout = 0,
+  tempRequest, timeout = 0, sessionIds,
   defaultSug = { description: "<dim>Open: </dim><url>%s</url>" },
+  formatSessionId = function(sug) {
+    if (sug.sessionId != null) {
+      sessionIds[sug.url] = sug.sessionId;
+    }
+  },
   format = function(sug) {
     var str;
     if (sug.description) {
@@ -121,6 +126,7 @@ if (chrome.omnibox) setTimeout(function() {
       lastSuggest = null;
     }
     tempRequest = null;
+    sessionIds = null;
   },
   onTimer = function() {
     timeout = 0;
@@ -136,6 +142,8 @@ if (chrome.omnibox) setTimeout(function() {
     var sug = response[0];
     if (!sug || sug.type !== "search") {
       chrome.omnibox.setDefaultSuggestion(defaultSug);
+      sessionIds = Utils.makeNullProto();
+      response.forEach(formatSessionId);
     } else {
       firstUrl = sug.url;
       var text = sug.titleSplit.replace(spanRe, "");
@@ -164,6 +172,7 @@ if (chrome.omnibox) setTimeout(function() {
     }
     timeout = setTimeout(onTimer, 500);
     firstUrl = "";
+    sessionIds = null;
     last = key;
     lastSuggest = suggest;
     Completers.omni.filter(key ? key.split(Utils.spacesRe) : [], {
@@ -175,7 +184,16 @@ if (chrome.omnibox) setTimeout(function() {
   chrome.omnibox.onInputChanged.addListener(onInput);
   chrome.omnibox.onInputEntered.addListener(function(text, disposition) {
     if (text === last && firstUrl) { text = firstUrl; }
+    var sessionId = sessionIds && sessionIds[text];
     clean();
+    if (sessionId != null) {
+      if (typeof sessionId === "number") {
+        g_requestHandlers.selectTab({ tabId: sessionId });
+      } else {
+        g_requestHandlers.restoreSession({ sessionId: sessionId });
+      }
+      return;
+    }
     switch (disposition) {
     case "currentTab":
       g_requestHandlers.openUrlInCurrentTab({ url: text });
