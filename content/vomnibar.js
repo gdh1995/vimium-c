@@ -340,8 +340,9 @@ vomnibarUI: {
     this.completionInput.text = str;
     if ((str = str.trimRight()) !== ((this.selection === -1 || !this.isSelectionChanged)
           ? this.completionInput.url : this.completions[this.selection].text)) {
-      this.update();
+      // here's no race condition
       this.completionInput.url = str;
+      this.update();
     }
     return false;
   },
