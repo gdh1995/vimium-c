@@ -206,11 +206,13 @@ var Defers = {}, Utils = {
     }
     return path + (query ? ("#!" + query) : "");
   },
+  _vimiumCmdRe: /^[a-z][0-9a-z\-]*(\.[0-9a-z\-]{4,})?$/i,
   evalVimiumUrl: function(path, workType) {
     var ind, cmd;
     path = path.trim();
     if (!path || !(workType > 0) || (ind = path.indexOf(" ")) <= 0 ||
-        this._nonENTldRe.test(cmd = path.substring(0, ind))) {
+        !this._vimiumCmdRe.test(cmd = path.substring(0, ind)) ||
+        cmd.endsWith(".html")) {
       return "";
     }
     path = path.substring(ind + 1).trimLeft();
