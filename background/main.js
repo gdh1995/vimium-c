@@ -298,7 +298,6 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
       return chrome.runtime.lastError;
     },
     onEvalUrl: function(arr) {
-      delete Defers.url;
       switch(arr[1]) {
       case "copy":
         requestHandlers.SendToCurrent({name: "showCopied", text: arr[2]});

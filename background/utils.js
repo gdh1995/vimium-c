@@ -112,6 +112,7 @@ var Defers = { __proto__: null }, Utils = {
         oldString = this.formatVimiumUrl(string);
       } else if (oldString instanceof Promise) {
         Defers.url = oldString;
+        Defers.url.then(this.ReleaseUrlPromise);
         type = 5;
         oldString = "";
       } else {
@@ -181,6 +182,7 @@ var Defers = { __proto__: null }, Utils = {
       : type === 4 ? ("http:" + oldString)
       : oldString;
   },
+  ReleaseUrlPromise: function() { delete Defers.url; },
   isTld: function(tld) {
     if (this._nonENTldRe.test(tld)) {
       return this._nonENTlds.indexOf("." + tld + ".") !== -1 ? 2 : 0;
