@@ -255,8 +255,11 @@ var Defers = {}, Utils = {
   searchVariable: /\$([\d])/g,
   createSearchUrl: function(query, keyword) {
     var url, pattern = Settings.get("searchEngineMap")[keyword];
-    if (!pattern) { return ""; }
-    url = this.createSearch(query, pattern);
+    if (pattern) {
+      url = this.createSearch(query, pattern);
+    } else {
+      url = query.join(" ");
+    }
     if (keyword != "~") {
       url = this.convertToUrl(url);
     }
