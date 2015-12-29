@@ -340,7 +340,7 @@ var Defers = {}, Utils = {
           }
           val = this.convertToUrl(val);
           if (this.lastUrlType === 2) {
-            val = val.replace(encodedSearchWordRe, decodeURIComponent);
+            val = val.replace(encodedSearchWordRe, "$$$1");
             ind = val.search(re) + 1;
           } else if (this.lastUrlType > 0) {
             ind += this.lastUrlType === 1 ? 7 : this.lastUrlType === 3 ? 43 : 5;
