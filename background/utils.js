@@ -252,14 +252,13 @@ var Defers = {}, Utils = {
   searchWordRe2: /([^\\]|^)%([sS])/g,
   searchVariable: /\$([\d])/g,
   createSearchUrl: function(query, keyword) {
-    var pattern = Settings.get("searchEngineMap")[keyword];
-    if (pattern) {
-      query = this.createSearch(query, pattern, null);
-    }
+    var url, pattern = Settings.get("searchEngineMap")[keyword];
+    if (!pattern) { return ""; }
+    url = this.createSearch(query, pattern);
     if (keyword != "~") {
-      query = this.convertToUrl(query);
+      url = this.convertToUrl(url);
     }
-    return query;
+    return url;
   },
   createSearch: function(query, pattern, indexes) {
     var q2, url, delta = 0;
@@ -273,14 +272,14 @@ var Defers = {}, Utils = {
       } else {
         s2 = arr.join(s2 != null ? s2 : s1 === "s" ? "+" : " ");
       }
-      if (indexes !== null) {
+      if (indexes != null) {
         ind += delta;
         indexes.push(ind, ind + s2.length);
         delta += s2.length - _s.length;
       }
       return s2;
     });
-    return indexes === null ? url : {
+    return indexes == null ? url : {
       url: url,
       indexes: indexes
     };
