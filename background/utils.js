@@ -107,8 +107,7 @@ var Defers = { __proto__: null }, Utils = {
       type = 3;
       vimiumUrlWork |= 0;
       if (vimiumUrlWork < 0 || !(string = oldString.substring(9))) {}
-      else if (vimiumUrlWork === 0 ||
-          !(oldString = this.evalVimiumUrl(string, vimiumUrlWork))) {
+      else if (!(oldString = this.evalVimiumUrl(string, vimiumUrlWork))) {
         oldString = this.formatVimiumUrl(string);
       } else if (oldString instanceof Promise) {
         Defers.url = oldString;
@@ -213,7 +212,7 @@ var Defers = { __proto__: null }, Utils = {
   evalVimiumUrl: function(path, workType) {
     var ind, cmd;
     path = path.trim();
-    if (!path || !(workType > 0) || (ind = path.indexOf(" ")) <= 0 ||
+    if (!path || !(workType >= 0) || (ind = path.indexOf(" ")) <= 0 ||
         !this._vimiumCmdRe.test(cmd = path.substring(0, ind)) ||
         cmd.endsWith(".html")) {
       return null;
@@ -230,6 +229,15 @@ var Defers = { __proto__: null }, Utils = {
     case "c": case "copy":
       Clipboard.copy(path); // TODO: ? merge Clipboard
       return Promise.resolve(["", "copy", path]);
+    }
+    if (workType >= 0) switch (cmd) {
+    case "u": case "url": case "search":
+      var arr = path.split(this.spacesRe);
+      if (workType === 1) {
+        return [arr, "search"];
+      }
+      path = arr.shift();
+      return this.createSearchUrl(arr, path);
     }
     return null;
   },

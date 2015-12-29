@@ -459,9 +459,27 @@ searchEngines: {
     } else {
       q = [];
     }
+
     obj = Utils.createSearch(q, pattern, []);
     sug = new Suggestion("search", obj.url, ""
       , pattern.name + ": " + q.join(" "), this.computeRelevancy);
+    if (keyword === "~") {}
+    else if (obj.url.startsWith("vimium://")) {
+      keyword = Utils.evalVimiumUrl(obj.url.substring(9), 1);
+      if (keyword instanceof Promise) {
+        promise = keyword;
+      } else if (keyword instanceof Array) {
+        switch (keyword[1]) {
+        case "search":
+          queryTerms = keyword[0];
+          this.filter(query);
+          return;
+        }
+      }
+    } else {
+      sug.url = Utils.convertToUrl(obj.url, null, -1);
+    }
+
     if (q.length > 0) {
       sug.text = this.makeText(obj.url, obj.indexes);
       sug.textSplit = SuggestionUtils.highlight(sug.text, obj.indexes);
@@ -473,17 +491,6 @@ searchEngines: {
       sug.titleSplit = Utils.escapeText(sug.title);
     }
 
-    if (keyword !== "~") {
-      sug.url = Utils.convertToUrl(obj.url, null, -1);
-      if (sug.url.startsWith("vimium://")) {
-        keyword = Utils.evalVimiumUrl(sug.url.substring(9), 1);
-        if (keyword instanceof Promise) {
-          promise = keyword;
-        } else {
-          sug.url = keyword;
-        }
-      }
-    }
     promise ? promise.then(function(arr) {
       if (query.isOff) { return; }
       var output = [sug];
