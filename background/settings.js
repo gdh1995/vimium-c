@@ -1,5 +1,6 @@
 "use strict";
 var Settings = {
+  __proto__: null,
   _buffer: { __proto__: null },
   bufferToLoad: null,
   frameIdsForTab: null,

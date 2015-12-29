@@ -1,5 +1,6 @@
 "use strict";
-var Defers = {}, Utils = {
+var Defers = { __proto__: null }, Utils = {
+  __proto__: null,
   makeNullProto: function() {
     return {__proto__: null};
   },
