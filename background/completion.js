@@ -476,7 +476,12 @@ searchEngines: {
     if (keyword !== "~") {
       sug.url = Utils.convertToUrl(obj.url, null, -1);
       if (sug.url.startsWith("vimium://")) {
-        promise = Utils.evalVimiumUrl(sug.url.substring(9), 1);
+        keyword = Utils.evalVimiumUrl(sug.url.substring(9), 1);
+        if (keyword instanceof Promise) {
+          promise = keyword;
+        } else {
+          sug.url = keyword;
+        }
       }
     }
     promise ? promise.then(function(arr) {

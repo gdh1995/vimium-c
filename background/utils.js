@@ -105,16 +105,16 @@ var Defers = {}, Utils = {
     else if (string.startsWith("vimium:")) {
       type = 3;
       vimiumUrlWork |= 0;
-      if (vimiumUrlWork >= 0) {
-        string = oldString.substring(9);
-        if (vimiumUrlWork > 0 &&
-            (oldString = this.evalVimiumUrl(string, vimiumUrlWork))) {
-          Defers.url = oldString;
-          type = 5;
-          oldString = "";
-        } else {
-          oldString = this.formatVimiumUrl(string);
-        }
+      if (vimiumUrlWork < 0 || !(string = oldString.substring(9))) {}
+      else if (vimiumUrlWork === 0 ||
+          !(oldString = this.evalVimiumUrl(string, vimiumUrlWork))) {
+        oldString = this.formatVimiumUrl(string);
+      } else if (oldString instanceof Promise) {
+        Defers.url = oldString;
+        type = 5;
+        oldString = "";
+      } else {
+        type = 6;
       }
     }
     else if ((index2 = string.indexOf('/', index + 3)) === -1
@@ -213,10 +213,10 @@ var Defers = {}, Utils = {
     if (!path || !(workType > 0) || (ind = path.indexOf(" ")) <= 0 ||
         !this._vimiumCmdRe.test(cmd = path.substring(0, ind)) ||
         cmd.endsWith(".html")) {
-      return "";
+      return null;
     }
     path = path.substring(ind + 1).trimLeft();
-    if (!path) { return ""; }
+    if (!path) { return null; }
     if (workType === 1) switch (cmd) {
     case "e": case "exec": case "eval": case "expr": case "calc": case "math":
       return this.loadPlugin("MathParser", "math_parser.js"
@@ -228,7 +228,7 @@ var Defers = {}, Utils = {
       Clipboard.copy(path); // TODO: ? merge Clipboard
       return Promise.resolve(["", "copy", path]);
     }
-    return "";
+    return null;
   },
   jsLoadingTimeout: 300,
   loadPlugin: function(name, file, timeout) {
