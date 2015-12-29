@@ -334,10 +334,11 @@ var Defers = {}, Utils = {
         if (ind = obj.ind) {
           key = pair[2];
           if (key) {
-            val = this.convertToUrl(val.replace(re, "$$$1"));
+            val = val.replace(re, "$$$1");
           } else {
             key = pair[1] === "s" ? "+" : " ";
           }
+          val = this.convertToUrl(val);
           if (this.lastUrlType === 2) {
             val = val.replace(encodedSearchWordRe, decodeURIComponent);
             ind = val.search(re) + 1;
