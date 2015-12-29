@@ -208,13 +208,13 @@ var Defers = { __proto__: null }, Utils = {
     }
     return path + (query ? ("#!" + query) : "");
   },
-  _vimiumCmdRe: /^[a-z][0-9a-z\-]*(\.[0-9a-z\-]{4,})?$/i,
+  _vimiumCmdRe: /^[a-z][0-9a-z\-]*(?:\.[a-z][0-9a-z\-]*)*$/i,
   evalVimiumUrl: function(path, workType) {
     var ind, cmd;
     path = path.trim();
     if (!path || !(workType >= 0) || (ind = path.indexOf(" ")) <= 0 ||
         !this._vimiumCmdRe.test(cmd = path.substring(0, ind)) ||
-        cmd.endsWith(".html")) {
+        cmd.endsWith(".html") || cmd.endsWith(".js") || cmd.endsWith(".css")) {
       return null;
     }
     path = path.substring(ind + 1).trimLeft();
