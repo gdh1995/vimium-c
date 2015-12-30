@@ -20,6 +20,7 @@ activateWithCompleter: function(completerName, selectFirstResult, forceNewTab
   completer.name = completerName;
   vomnibarUI.initialSelectionValue = selectFirstResult ? 0 : -1;
   vomnibarUI.forceNewTab = forceNewTab ? true : false;
+  handlerStack.remove(vomnibarUI.handlerId);
   vomnibarUI.handlerId = handlerStack.push(handlerStack.SuppressMost);
   if (initialQueryValue == null) {
     vomnibarUI.reset(keyword ? keyword + " " : "");
