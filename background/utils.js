@@ -257,7 +257,7 @@ var exports = {}, Utils = {
     defer.timeout = setTimeout(function() {
       exports[name].reject(name);
     }, timeout || this.jsLoadingTimeout);
-    document.body.appendChild(document.createElement("script")).src = "lib/2" + file;
+    document.body.appendChild(document.createElement("script")).src = "lib/" + file;
     if (!exports._vimium) {
       exports._vimium = true;
       Object.observe(exports, function(changes) {
