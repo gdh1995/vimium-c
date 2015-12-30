@@ -378,11 +378,11 @@ var exports = {}, Utils = {
             key = pair[1] === "s" ? "+" : " ";
           }
           val = this.convertToUrl(val);
-          if (this.lastUrlType === 2) {
+          if (this.lastUrlType === 2 || this.lastUrlType === 3) {
             val = val.replace(encodedSearchWordRe, "$$$1");
             ind = val.search(re) + 1;
           } else if (this.lastUrlType > 0) {
-            ind += this.lastUrlType === 1 ? 7 : this.lastUrlType === 3 ? 43 : 5;
+            ind += this.lastUrlType === 1 ? 7 : 5;
           }
           if (pair = this.reparseSearchUrl(val.toLowerCase(), ind)) {
             if (key.indexOf("$") >= 0) {
