@@ -704,7 +704,7 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
     },
     blank: function() {},
     openCopiedUrlInCurrentTab: function() {
-      requestHandlers.openCopiedUrlInNewTab([]);
+      BackgroundCommands.openCopiedUrlInNewTab([]);
     },
     openCopiedUrlInNewTab: function(tabs) {
       var url = requestHandlers.getCopiedUrl_f(currentCommand.options);
