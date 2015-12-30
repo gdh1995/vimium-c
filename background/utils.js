@@ -1,5 +1,5 @@
 "use strict";
-var Defers = { __proto__: null }, Utils = {
+var exports = {}, Utils = {
   __proto__: null,
   makeNullProto: function() {
     return {__proto__: null};
@@ -217,7 +217,7 @@ var Defers = { __proto__: null }, Utils = {
     if (!path) { return null; }
     if (workType === 1) switch (cmd) {
     case "e": case "exec": case "eval": case "expr": case "calc": case "math":
-      return this.loadPlugin("MathParser", "math_parser.js"
+      return this.require("MathParser", "math_parser.js"
       ).then(function(MathParser) {
          return ["" + MathParser.evaluate(path), "math", path];
       });
@@ -238,22 +238,28 @@ var Defers = { __proto__: null }, Utils = {
     return null;
   },
   jsLoadingTimeout: 300,
-  loadPlugin: function(name, file, timeout) {
-    var defer;
-    if (window[name]) {
-      return Promise.resolve(window[name]);
-    } else if (defer = Defers[name]) {
-      return defer.promise;
+  require: function(name, file, timeout) {
+    var defer = exports[name];
+    if (defer) {
+      return defer.promise || Promise.resolve(defer);
     }
-    defer = Defers[name] = Promise.defer();
-    timeout = setTimeout(function() {
-      defer.reject(name);
-    }, timeout || Utils.jsLoadingTimeout);
-    document.body.appendChild(document.createElement("script")).src = "lib/" + file;
-    defer.promise.then(function() {
-      delete Defers[name];
-      clearTimeout(timeout);
-    });
+    defer = exports[name] = Promise.defer();
+    defer.timeout = setTimeout(function() {
+      exports[name].reject(name);
+    }, timeout || this.jsLoadingTimeout);
+    document.body.appendChild(document.createElement("script")).src = "lib/2" + file;
+    if (!exports._vimium) {
+      exports._vimium = true;
+      Object.observe(exports, function(changes) {
+        for (var i = changes.length, obj, defer; 0 <= --i; ) {
+          obj = changes[i];
+          if ((defer = obj.oldValue) && defer.promise) {
+            clearTimeout(defer.timeout);
+            defer.resolve(obj.object[obj.name]);
+          }
+        }
+      }, ['update']);
+    }
     return defer.promise;
   },
   searchWordRe: /\$([sS])(?:\{([^\}]*)\})?/g,
