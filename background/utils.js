@@ -220,6 +220,18 @@ var exports = {}, Utils = {
          return ["" + MathParser.evaluate(path), "math", path];
       });
     } else if (workType === 2) switch (cmd) {
+    case "url-copy": case "search-copy": case "search.copy":
+      path = this.convertToUrl(path, null, 1);
+      if (this.lastUrlType !== 5) {}
+      else if (path instanceof Array) {
+        path = path[0];
+      } else if (path instanceof Promise) {
+        return path.then(function(arr) {
+          Clipboard.copy(arr[0]);
+          return [arr[0], "copy"];
+        });
+      }
+      // no break;
     case "c": case "copy":
       Clipboard.copy(path); // TODO: ? merge Clipboard
       return [path, "copy"];
