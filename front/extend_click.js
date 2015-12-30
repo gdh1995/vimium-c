@@ -25,7 +25,7 @@
   script.remove();
 })(function() {
 "use strict";
-var _listen, container, handler, reg, register, toRegister;
+var _listen, container, handler, reg, register, toRegister, timeout;
 
 _listen = EventTarget.prototype.addEventListener;
 toRegister = [];
@@ -39,6 +39,7 @@ EventTarget.prototype.addEventListener = function(type, listener, useCapture) {
 
 handler = function() {
   window.removeEventListener("DOMContentLoaded", handler, true);
+  clearTimeout(timeout);
   container = document.createElementNS("http://www.w3.org/1999/xhtml", "div");
   document.documentElement.appendChild(container);
   container.dispatchEvent(new CustomEvent("VimiumRegistrationElementEvent"));
@@ -48,6 +49,7 @@ handler = function() {
   handler = toRegister = reg = null;
 };
 _listen.call(window, "DOMContentLoaded", handler, true);
+timeout = setTimeout(handler, 1000);
 
 reg = setTimeout.bind(window, function(element) {
   var e1, e2, registrationEvent, wrapIncontainer;
