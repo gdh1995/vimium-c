@@ -1152,7 +1152,7 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
     openUrlInNewTab: function(request, tabs) {
       var tab = tabs[0], url = Utils.convertToUrl(request.url, request.keyword, 2);
       if (Utils.lastUrlType === 5) {
-        Defers.url.then(funcDict.onEvalUrl);
+        url.then(funcDict.onEvalUrl);
         return;
       }
       if (request.active === false) { tab.active = false; }
@@ -1161,7 +1161,7 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
     openUrlInIncognito: function(request, tabs) {
       request.url = Utils.convertToUrl(request.url, request.keyword, 2);
       if (Utils.lastUrlType === 5) {
-        Defers.url.then(funcDict.onEvalUrl);
+        url.then(funcDict.onEvalUrl);
         return;
       }
       request.keyword = "";
@@ -1171,7 +1171,7 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
       var url = Utils.convertToUrl(request.url, request.keyword, 2);
       if (Utils.lastUrlType === 5) {
         currentCommand.port = port;
-        Defers.url.then(funcDict.onEvalUrl);
+        url.then(funcDict.onEvalUrl);
         return;
       }
       chrome.tabs.update(null, {
