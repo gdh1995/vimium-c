@@ -387,6 +387,8 @@ var exports = {}, Utils = {
           if (pair = this.reparseSearchUrl(val.toLowerCase(), ind)) {
             if (key.indexOf("$") >= 0) {
               key = new RegExp("^" + key.replace(this.searchVariable, "(.*)"), "i");
+            } else {
+              key = key.trim() || " ";
             }
             rules.push([pair[0], pair[1], ids[0].trimRight(), key]);
           }
