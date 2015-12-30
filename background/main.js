@@ -298,6 +298,7 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
       return chrome.runtime.lastError;
     },
     onEvalUrl2: function(arr) {
+      if (arr instanceof Promise) { return arr.then(funcDict.onEvalUrl2); }
       switch(arr[1]) {
       case "copy":
         requestHandlers.SendToCurrent({name: "showCopied", text: arr[0]});

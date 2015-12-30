@@ -109,10 +109,8 @@ var exports = {}, Utils = {
       if (vimiumUrlWork < 0 || !(string = oldString.substring(9))) {}
       else if (!(oldString = this.evalVimiumUrl(string, vimiumUrlWork))) {
         oldString = this.formatVimiumUrl(string);
-      } else if (oldString instanceof Promise) {
+      } else if (typeof oldString !== "string") {
         type = 5;
-      } else {
-        type = 6;
       }
     }
     else if ((index2 = string.indexOf('/', index + 3)) === -1
