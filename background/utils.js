@@ -218,6 +218,8 @@ var exports = {}, Utils = {
       return this.require("MathParser", "math_parser.js"
       ).then(function(MathParser) {
          return ["" + MathParser.evaluate(path), "math", path];
+      }).catch(function(e) {
+        return ["", "math", path];
       });
     } else if (workType === 2) switch (cmd) {
     case "url-copy": case "search-copy": case "search.copy":
@@ -227,8 +229,9 @@ var exports = {}, Utils = {
         path = path[0];
       } else if (path instanceof Promise) {
         return path.then(function(arr) {
-          Clipboard.copy(arr[0]);
-          return [arr[0], "copy"];
+          var path = arr[0] || arr[2];
+          Clipboard.copy(path);
+          return [path, "copy"];
         });
       }
       // no break;

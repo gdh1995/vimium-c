@@ -493,6 +493,10 @@ searchEngines: {
 
     promise ? promise.then(function(arr) {
       if (query.isOff) { return; }
+      if (!arr[0]) {
+        query.onComplete([sug]);
+        return;
+      }
       var output = [sug];
       sug = new Suggestion("math", "", "", "", Completers.searchEngines.computeRelevancy);
       output.push(sug);
@@ -502,9 +506,6 @@ searchEngines: {
       sug.titleSplit = Utils.escapeText(sug.title);
       sug.textSplit = Utils.escapeText(arr[2]);
       query.onComplete(output);
-    }).catch(function(e) {
-      if (query.isOff) { return; }
-      query.onComplete([sug]);
     }) : query.onComplete([sug]);
   },
   makeText: function(url, arr) {
