@@ -213,10 +213,11 @@ var exports = {}, Utils = {
     }
     path = path.substring(ind + 1).trimLeft();
     if (!path) { return null; }
-    if (workType === 1) switch (cmd) {
+    if (workType <= 1) switch (cmd) {
     case "e": case "exec": case "eval": case "expr": case "calc": case "math":
-      return this.require("MathParser", "math_parser.js"
-      ).then(function(MathParser) {
+      cmd = this.require("MathParser", "math_parser.js");
+      if (workType === 0) { return this.tryEvalMath(path); }
+      return cmd.then(function(MathParser) {
          return ["" + MathParser.evaluate(path), "math", path];
       }).catch(function(e) {
         return ["", "math", path];
@@ -249,6 +250,15 @@ var exports = {}, Utils = {
       return this.createSearchUrl(arr, path);
     }
     return null;
+  },
+  tryEvalMath: function(expr) {
+    var MathParser = exports.MathParser, result = null;
+    if (MathParser && MathParser.evaluate) {
+      try {
+        result = "" + MathParser.evaluate(expr);
+      } catch (expr) {}
+    }
+    return result;
   },
   jsLoadingTimeout: 300,
   require: function(name, file, timeout) {
