@@ -224,9 +224,9 @@ var exports = {}, Utils = {
     } else if (workType === 2) switch (cmd) {
     case "c": case "copy":
       Clipboard.copy(path); // TODO: ? merge Clipboard
-      return Promise.resolve(["", "copy", path]);
+      return [path, "copy"];
     }
-    if (workType >= 0) switch (cmd) {
+    switch (cmd) {
     case "u": case "url": case "search":
       var arr = path.split(this.spacesRe);
       if (workType === 1) {

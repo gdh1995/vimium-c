@@ -297,10 +297,10 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
     onRuntimeError: function() {
       return chrome.runtime.lastError;
     },
-    onEvalUrl: function(arr) {
+    onEvalUrl2: function(arr) {
       switch(arr[1]) {
       case "copy":
-        requestHandlers.SendToCurrent({name: "showCopied", text: arr[2]});
+        requestHandlers.SendToCurrent({name: "showCopied", text: arr[0]});
         break;
       }
     },
@@ -1152,7 +1152,7 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
     openUrlInNewTab: function(request, tabs) {
       var tab = tabs[0], url = Utils.convertToUrl(request.url, request.keyword, 2);
       if (Utils.lastUrlType === 5) {
-        url.then(funcDict.onEvalUrl);
+        funcDict.onEvalUrl2(url);
         return;
       }
       if (request.active === false) { tab.active = false; }
@@ -1161,7 +1161,7 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
     openUrlInIncognito: function(request, tabs) {
       request.url = Utils.convertToUrl(request.url, request.keyword, 2);
       if (Utils.lastUrlType === 5) {
-        url.then(funcDict.onEvalUrl);
+        funcDict.onEvalUrl2(url);
         return;
       }
       request.keyword = "";
@@ -1171,7 +1171,7 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
       var url = Utils.convertToUrl(request.url, request.keyword, 2);
       if (Utils.lastUrlType === 5) {
         currentCommand.port = port;
-        url.then(funcDict.onEvalUrl);
+        funcDict.onEvalUrl2(url);
         return;
       }
       chrome.tabs.update(null, {
