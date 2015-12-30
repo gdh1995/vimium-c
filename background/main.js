@@ -707,8 +707,11 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
       BackgroundCommands.openCopiedUrlInNewTab([]);
     },
     openCopiedUrlInNewTab: function(tabs) {
+      Utils.lastUrlType = 0;
       var url = requestHandlers.getCopiedUrl_f(currentCommand.options);
-      if (!url) {
+      if (Utils.lastUrlType === 5) {
+        funcDict.onEvalUrl2(url);
+      } else if (!url) {
         requestHandlers.SendToCurrent({
           name: "showHUD",
           text: "No text copied!",
@@ -1274,11 +1277,13 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
     initInnerCSS: function() {
       return Settings.get("innerCss");
     },
-    getCopiedUrl_f: function(request) {
+    getCopiedUrl_f: function(request, port) {
       var url = Clipboard.paste().trim(), arr;
-      if (url) {
-        arr = url.match(Utils.filePathRe);
-        url = arr ? arr[1] : Utils.convertToUrl(url, request.keyword);
+      if (!url) {}
+      else if (arr = url.match(Utils.filePathRe)) {
+        url = arr[1];
+      } else {
+        url = Utils.convertToUrl(url, request.keyword, port ? null : 2);
       }
       return url;
     },
