@@ -247,7 +247,6 @@ var Defers = { __proto__: null }, Utils = {
     }
     defer = Defers[name] = Promise.defer();
     timeout = setTimeout(function() {
-      delete Defers[name];
       defer.reject(name);
     }, timeout || Utils.jsLoadingTimeout);
     document.body.appendChild(document.createElement("script")).src = "lib/" + file;
