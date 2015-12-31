@@ -348,14 +348,17 @@ var LinkHints = {
     if (!element.src) { return; }
     else if ((w = element.width) < 8 && (h = element.height) < 8) {
       if (w !== h || (w !== 0 && w !== 3)) { return; }
-      rect = element.getBoundingClientRect();
-      w = rect.left; h = rect.top;
-      cr = VRect.cropRectToVisible(w, h, w + 8, h + 8);
+      rect = element.getClientRects()[0];
+      if (rect) {
+        w = rect.left; h = rect.top;
+        cr = VRect.cropRectToVisible(w, h, w + 8, h + 8);
+      }
     } else if (DomUtils.isStyleVisible(window.getComputedStyle(element))) {
-      rect = element.getBoundingClientRect();
-      w = rect.right + (rect.width < 3 ? 3 : 0);
-      h = rect.bottom + (rect.height < 3 ? 3 : 0);
-      cr = VRect.cropRectToVisible(rect.left, rect.top, w, h);
+      if (rect = element.getClientRects()[0]) {
+        w = rect.right + (rect.width < 3 ? 3 : 0);
+        h = rect.bottom + (rect.height < 3 ? 3 : 0);
+        cr = VRect.cropRectToVisible(rect.left, rect.top, w, h);
+      }
     }
     if (cr) {
       this.push([element, cr, true]);
