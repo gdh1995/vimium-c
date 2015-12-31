@@ -267,22 +267,22 @@ var exports = {}, Utils = {
       return defer.promise || Promise.resolve(defer);
     }
     defer = exports[name] = Promise.defer();
-    defer.timeout = setTimeout(function() {
+    defer.timer = setTimeout(function() {
       exports[name].reject(name);
     }, timeout || this.jsLoadingTimeout);
-    document.body.appendChild(document.createElement("script")).src = "lib/" + file;
     if (!exports._vimium) {
       exports._vimium = true;
       Object.observe(exports, function(changes) {
         for (var i = changes.length, obj, defer; 0 <= --i; ) {
           obj = changes[i];
           if ((defer = obj.oldValue) && defer.promise) {
-            clearTimeout(defer.timeout);
+            clearTimeout(defer.timer);
             defer.resolve(obj.object[obj.name]);
           }
         }
       }, ['update']);
     }
+    document.body.appendChild(document.createElement("script")).src = "lib/" + file;
     return defer.promise;
   },
   searchWordRe: /\$([sS])(?:\{([^\}]*)\})?/g,
