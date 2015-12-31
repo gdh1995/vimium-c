@@ -241,17 +241,16 @@ bookmarks: {
 
 history: {
   filter: function(query) {
-    var _this = this;
+    var _this = this, history = HistoryCache.history;
     if (queryTerms.length > 0) {
-      HistoryCache.use(function(history) {
-        if (query.isOff) { return; }
-        var cr = _this.computeRelevancy;
-        query.onComplete(history.filter(function(entry) {
-          return RankingUtils.Match2(entry.text, entry.title);
-        }).map(function(i) {
-          return new Suggestion("history", i.url, i.text, i.title, cr, i.lastVisitTime);
-        }));
-      });
+      if (history) {
+        query.onComplete(this.quickSearch(history));
+      } else {
+        HistoryCache.use(function(history) {
+          if (query.isOff) { return; }
+          query.onComplete(Completers.history.quickSearch(history));
+        });
+      }
       return;
     }
     chrome.sessions.getRecentlyClosed(null, function(sessions) {
@@ -266,11 +265,58 @@ history: {
       });
       _this.filterFill(historys, query, arr);
     });
-    if (! HistoryCache.history) {
+    if (! history) {
       setTimeout(function() {
         HistoryCache.use(function() {});
       }, 50);
     }
+  },
+  quickSearch: function(history) {
+    var maxNum = Completers.maxResults * 2, results = new Array(maxNum), sug,
+    query = queryTerms, regexps = [], len = history.length, i, len2, j, s1,
+    score, item, getRele = this.computeRelevancy;
+    for (j = maxNum; 0 <= --j; ) {
+      results[j] = 0.0;
+    }
+    maxNum -= 2;
+    // inline RankingUtils.Match2
+    for (j = len2 = queryTerms.length; 0 <= --j; ) {
+      regexps.push(RegexpCache.get(query[j], "", ""));
+    }
+    for (i = 0; i < len; ++i) {
+      item = history[i];
+      for (j = 0; j < len2; ++j) {
+        if (!(regexps[j].test(item.text) || regexps[j].test(item.title))) { break; }
+      }
+      if (j !== len2) { continue; }
+      score = getRele(item.text, item.title, item.lastVisitTime);
+      if (results[maxNum] >= score) { continue; }
+      j = maxNum - 2;
+      if (results[j] >= score) {
+        results[maxNum] = score;
+        results[maxNum + 1] = item;
+        continue;
+      }
+      results.length = j;
+      for (; 0 <= (j -= 2); ) {
+        if (results[j] >= score) { break; }
+      }
+      if (j >= 0) {
+        results.splice(j, 0, score, item);
+      } else {
+        results.unshift(score, item);
+      }
+    }
+    getRele = this.getRelevancy0;
+    for (j = i = 0; i <= maxNum; i += 2) {
+      score = results[i];
+      if (score <= 0) { break; }
+      item = results[i + 1];
+      sug = results[j++] = new Suggestion("history", item.url, item.text, item.title, getRele);
+      sug.relevancy = score;
+    }
+    results.length = j;
+    return results;
   },
   filterFill: function(historys, query, arr) {
     if (historys.length >= Completers.maxResults) {
@@ -308,9 +354,10 @@ history: {
   rsortByLvt: function(a, b) {
     return b.lastVisitTime - a.lastVisitTime;
   },
-  computeRelevancy: function(suggestion, lastVisitTime) {
+  getRelevancy0: function() { return 0; },
+  computeRelevancy: function(text, title, lastVisitTime) {
     var recencyScore = RankingUtils.recencyScore(lastVisitTime),
-      wordRelevancy = RankingUtils.wordRelevancy(suggestion.text, suggestion.title);
+      wordRelevancy = RankingUtils.wordRelevancy(text, title);
     return recencyScore <= wordRelevancy ? wordRelevancy : (wordRelevancy + recencyScore) / 2;
   },
   computeRelevancyByTime: function(suggestion, lastVisitTime) {
