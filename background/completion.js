@@ -177,7 +177,7 @@ bookmarks: {
       name = queryTerms.some(this.StartsWithSlash) ? "path" : "title";
       c = this.computeRelevancy;
       results = this.bookmarks.filter(function(i) {
-        return RankingUtils.match2(i.text, i[name]);
+        return RankingUtils.Match2(i.text, i[name]);
       }).map(function(i) {
         return new Suggestion("bookm", i.url, i.text, i[name], c);
       });
@@ -247,7 +247,7 @@ history: {
         if (query.isOff) { return; }
         var cr = _this.computeRelevancy;
         query.onComplete(history.filter(function(entry) {
-          return RankingUtils.match2(entry.text, entry.title);
+          return RankingUtils.Match2(entry.text, entry.title);
         }).map(function(i) {
           return new Suggestion("history", i.url, i.text, i.title, cr, i.lastVisitTime);
         }));
@@ -410,7 +410,7 @@ tabs: {
     if (queryTerms.length > 0) {
       tabs = tabs.filter(function(tab) {
         var text = Decoder.decodeURL(tab.url);
-        if (RankingUtils.match2(text, tab.title)) {
+        if (RankingUtils.Match2(text, tab.title)) {
           tab.text = text;
           return true;
         }
@@ -604,7 +604,7 @@ searchEngines: {
   };
 
   RankingUtils = {
-    match2: function(s1, s2) {
+    Match2: function(s1, s2) {
       var i = queryTerms.length, cache = RegexpCache, regexp;
       while (0 <= --i) {
         regexp = cache.get(queryTerms[i], "", "");
