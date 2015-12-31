@@ -294,7 +294,9 @@ history: {
   filterFinish: function(historys, query) {
     var s = Suggestion, c = this.computeRelevancyByTime, d = Decoder.decodeURL;
     historys.sort(this.rsortByLvt);
-    historys.length = Completers.maxResults;
+    if (historys.length > Completers.maxResults) {
+      historys.length = Completers.maxResults;
+    }
     historys.forEach(function(e, i, arr) {
       var o = new s("history", e.url, d(e.url), e.title, c, e.lastVisitTime);
       e.sessionId && (o.sessionId = e.sessionId);
