@@ -1186,8 +1186,21 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
       var frames = frameIdsForTab[request.tabId];
       request.name = request.handler;
       delete request.handler;
-      if (request.frameId === 0 || (frames && frames.indexOf(request.frameId, 1) > 0)) {
+      if (frames && frames.indexOf(request.frameId, 1) > 0) {
         sendToTab(request, request.tabId);
+        return;
+      }
+      if (request.frameId === 0) {
+        // cross-origined top frame: it's a frameset or vimium is not enabled
+        chrome.tabs.get(request.tabId, function(tab) {
+          if (tab.url.startsWith("chrome")) {
+            sendToTab(request, request.tabId);
+            return;
+          }
+          request.frameId = request.source;
+          request.source = -1;
+          port.postMessage(request);
+        });
         return;
       }
       request.frameId = request.source;
