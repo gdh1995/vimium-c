@@ -49,7 +49,7 @@ if (_listen.vimiumHooked === true) { return; }
 
 EventTarget.prototype.addEventListener = function(type, listener, useCapture) {
   if (type === "click" && this instanceof Element) {
-    this.hasOnclick = true;
+    this.vimiumHasOnclick = true;
   }
   return _listen.call(this, type, listener, useCapture);
 };

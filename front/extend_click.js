@@ -10,7 +10,7 @@
     installer = null;
   }, true);
   window.addEventListener("VimiumRegistrationElementEvent-onclick", onclick = function(event) {
-    event.target.hasOnclick = true;
+    event.target.vimiumHasOnclick = true;
     event.stopPropagation();
   }, true);
   Settings.onDestroy.registerClick = function() {

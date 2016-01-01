@@ -250,7 +250,7 @@ var LinkHints = {
     case "input":
       isClickable = element.type !== "hidden" && !element.disabled //
         && (!element.readOnly || LinkHints.mode >= 128 ||
-             element.getAttribute("onclick") || element.hasOnclick
+             element.getAttribute("onclick") || element.vimiumHasOnclick
              || (element.type in DomUtils.uneditableInputs));
       break;
     case "label":
@@ -289,7 +289,7 @@ var LinkHints = {
         //       : otherwise "true" or "false"
         //    .isContentEditable can only be true or false, which may be inherited from its parent
         || (element.contentEditable === "true")
-        || (LinkHints.isClickListened && element.hasOnclick)
+        || (LinkHints.isClickListened && element.vimiumHasOnclick)
         ) {
         isClickable = true;
         break;
