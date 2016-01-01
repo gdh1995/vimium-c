@@ -280,7 +280,7 @@ var Settings, VHUD, MainPort, VInsertMode;
       } else if (target.shadowRoot) {
         target = target.shadowRoot;
         target.addEventListener("focus", ELs.onFocus, true);
-        target.addEventListener("blur", ELs.onBlur, true);
+        target.addEventListener("blur", InsertMode.OnShadowBlur, true);
       }
     },
     onBlur: function(event) {
@@ -302,8 +302,7 @@ var Settings, VHUD, MainPort, VInsertMode;
         // a blur event must have been bubbled from shadowRoot to a real lock.
         // Then, we don't need to worry about ELs or InsertMode being null.
         target.removeEventListener("focus", ELs.onFocus, true);
-        target.removeEventListener("blur", ELs.onBlur, true);
-        target.addEventListener("blur", InsertMode.OnShadowBlur, true);
+        target.vimiumBlurred = true;
       }
     },
     onActivate: function(event) {
@@ -758,7 +757,10 @@ var Settings, VHUD, MainPort, VInsertMode;
       KeydownEvents = arr;
     },
     OnShadowBlur: function(event) {
-      this.removeEventListener("blur", InsertMode.OnShadowBlur, true);
+      if (this.vimiumBlurred) {
+        this.vimiumBlurred = false;
+        this.removeEventListener("blur", InsertMode.OnShadowBlur, true);
+      }
       ELs.onBlur(event);
     }
   };
