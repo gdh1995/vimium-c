@@ -297,7 +297,7 @@ history: {
         results[maxNum + 1] = item;
         continue;
       }
-      results.length = j;
+      results.length = maxNum;
       for (; 0 <= (j -= 2); ) {
         if (results[j] >= score) { break; }
       }
