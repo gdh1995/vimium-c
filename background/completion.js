@@ -42,7 +42,7 @@ SuggestionUtils = {
   },
   shortenUrl: function(url) {
     return url.substring((url.startsWith("http://")) ? 7 : (url.startsWith("https://")) ? 8 : 0,
-      url.length - +(url.charCodeAt(url.length - 1) === 47));
+      url.length - +(url.charCodeAt(url.length - 1) === 47 && !url.endsWith("://")));
   },
   pushMatchingRanges: function(string, term, ranges) {
     var index = 0, textPosition = 0, matchedEnd,
@@ -575,7 +575,7 @@ searchEngines: {
     }
     if (ind < url.length) {
       url = Utils.DecodeURLPart(url.substring(ind));
-      if (url.charCodeAt(url.length - 1) === 47) {
+      if (url.charCodeAt(url.length - 1) === 47 && !url.endsWith("://")) {
         url = url.substring(0, url.length - 1);
       }
       str += url;
