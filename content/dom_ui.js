@@ -28,9 +28,7 @@ DomUtils.UI = {
     this.addElement(parent);
     return parent;
   },
-  Adjust: function() {
-    (document.webkitFullscreenElement || document.documentElement).appendChild(DomUtils.UI.container);
-  },
+  adjust: null,
   init: function() {
     var el = this.container = DomUtils.createElement("vimium");
     if (this.styleOut) {
@@ -48,12 +46,7 @@ DomUtils.UI = {
       DomUtils.UI.container.style.display = "";
       VInsertMode.heldEl && VInsertMode.heldEl.focus();
     }, 17);
-    _this.Adjust();
-    document.addEventListener("webkitfullscreenchange", _this.Adjust);
-  },
-  destroy: function() {
-    document.removeEventListener("webkitfullscreenchange", this.Adjust);
-    this.container && this.container.remove();
+    _this.adjust();
   },
   createStyle: function(text) {
     var css = DomUtils.createElement("style");

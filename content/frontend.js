@@ -277,10 +277,11 @@ var Settings, VHUD, MainPort, VInsertMode;
           event.stopImmediatePropagation();
           target.focused = true;
         }
-      } else if (target.shadowRoot) {
+      } else if (target.shadowRoot && target !== DomUtils.UI.container) {
         target = target.shadowRoot;
         target.addEventListener("focus", ELs.onFocus, true);
         target.addEventListener("blur", InsertMode.OnShadowBlur, true);
+        console.log("shadowDOM", "focus", "add");
       }
     },
     onBlur: function(event) {
@@ -296,13 +297,14 @@ var Settings, VHUD, MainPort, VInsertMode;
           event.stopImmediatePropagation();
           target.focused = false;
         }
-      } else if (target.shadowRoot) {
+      } else if (target.shadowRoot && target !== DomUtils.UI.container) {
         target = target.shadowRoot;
         // NOTE: if destroyed, this page must have lost its focus before, so
         // a blur event must have been bubbled from shadowRoot to a real lock.
         // Then, we don't need to worry about ELs or InsertMode being null.
         target.removeEventListener("focus", ELs.onFocus, true);
         target.vimiumBlurred = true;
+        console.log("shadowDOM", "blur", "mark");
       }
     },
     onActivate: function(event) {
@@ -760,6 +762,7 @@ var Settings, VHUD, MainPort, VInsertMode;
       if (this.vimiumBlurred) {
         this.vimiumBlurred = false;
         this.removeEventListener("blur", InsertMode.OnShadowBlur, true);
+        console.log("shadowDOM", "blur", "remove");
       }
       ELs.onBlur(event);
     }
@@ -1215,6 +1218,16 @@ var Settings, VHUD, MainPort, VInsertMode;
       // since we do not know when the url will become useful
       r.reset(request);
       r.init = null;
+      DomUtils.UI.adjust = function() {
+        this.root.addEventListener("focus", ELs.onFocus, true);
+        this.root.addEventListener("blur", ELs.onBlur, true);
+        var func = this.adjust = function() {
+          (document.webkitFullscreenElement || document.documentElement
+            ).appendChild(DomUtils.UI.container);
+        };
+        func();
+        document.addEventListener("webkitfullscreenchange", func);
+      };
     },
     reset: function(request) {
       var passKeys = request.passKeys;
@@ -1437,7 +1450,8 @@ var Settings, VHUD, MainPort, VInsertMode;
     window.removeEventListener("blur", this.onBlur, true);
     window.removeEventListener("mousedown", InsertMode.onGrab, true);
     document.removeEventListener("DOMActivate", this.onActivate, true);
-    DomUtils.UI.destroy();
+    document.removeEventListener("webkitfullscreenchange", DomUtils.UI.adjust);
+    DomUtils.UI.container && DomUtils.UI.container.remove();
 
     clearInterval(settings.isLoading);
     clearInterval(FrameMask.timer);
