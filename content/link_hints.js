@@ -440,7 +440,8 @@ var LinkHints = {
     str = element.tagName.toLowerCase();
     if (str !== "iframe" && str !== "frame") {
       this.frameNested = null;
-    } else if (element.scrollLeft < 20 && element.scrollTop < 20
+    } else if ((rect = element.getClientRects()[0])
+        && window.scrollY + rect.top < 20 && window.scrollX + rect.left < 20
         && element.scrollWidth > document.documentElement.scrollWidth - 40
         && element.scrollHeight > document.documentElement.scrollHeight - 40) {
       this.frameNested = element;
