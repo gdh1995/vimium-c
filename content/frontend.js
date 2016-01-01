@@ -81,6 +81,15 @@ var Settings, VHUD, MainPort, VInsertMode;
         command: command, args: args
       });
     },
+    sendCommandToContainer: function(command, args) {
+      var ind = args.length - 1;
+      if (window.top !== window && args[ind] === 0) {
+        args[ind] = 1;
+        if (this.sendCommandToTop(command, args)) { return true; }
+      }
+      args[ind] = 2;
+      return LinkHints.tryNestedFrame(command, args);
+    },
     sendCommandToTop: function(command, args) {
       var top = window.top, topF, top2;
       try {
@@ -523,8 +532,9 @@ var Settings, VHUD, MainPort, VInsertMode;
       window.location.href = url;
     },
     showHelp: function(_0, _1, force_current) {
-      if (window.top !== window && !force_current &&
-          mainPort.sendCommandToTop("showHelp", [1, 0])) {
+      force_current |= 0;
+      if (force_current < 2 &&
+        mainPort.sendCommandToContainer("showHelp", [1, 0, force_current | 0])) {
         return;
       }
       mainPort.sendMessage({
@@ -1306,7 +1316,7 @@ var Settings, VHUD, MainPort, VInsertMode;
     },
     dispatchCommand: function(request) {
       if (!isEnabledForUrl && request.source >= 0) {
-        request.args.push(true);
+        request.args[request.args.length - 1] = 2;
         mainPort.sendCommand(request.source, request.command, request.args);
         return;
       }

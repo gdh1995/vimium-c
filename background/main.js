@@ -1190,7 +1190,6 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
         sendToTab(request, request.tabId);
         return;
       }
-      request.args.push(true);
       request.frameId = request.source;
       request.source = -1;
       port.postMessage(request);

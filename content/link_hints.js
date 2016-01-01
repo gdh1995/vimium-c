@@ -222,12 +222,10 @@ var LinkHints = {
       return false;
     }
     child.focus();
-    if (done === false) {
-      if (document.readyState !== "complete") { this.frameNested = false; }
-      arr = Utils.findCommand(child, command);
-      arr[0][arr[1]].apply(arr[0], args);
-    }
-    return true;
+    if (done !== false) { return true; }
+    if (document.readyState !== "complete") { this.frameNested = false; }
+    arr = Utils.findCommand(child, command);
+    return arr[0][arr[1]].apply(arr[0], args) !== false;
   },
   createMarkerFor: function(link) {
     var marker = DomUtils.createElement("div"), rect;

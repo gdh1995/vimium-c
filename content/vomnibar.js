@@ -2,16 +2,19 @@
 var Vomnibar = {
 activateWithCompleter: function(completerName, selectFirstResult, forceNewTab
     , initialQueryValue, keyword, force_current) {
-  var completer = this.Completer, vomnibarUI = this.vomnibarUI;
+  var completer = this.Completer, vomnibarUI = this.vomnibarUI, args;
   if (vomnibarUI.init) {
-    if (window.top !== window && !force_current &&
-        MainPort.sendCommandToTop("Vomnibar.activateWithCompleter", 
-          [].slice.call(arguments, 0, 5))) {
-      return;
+    force_current |= 0;
+    if (force_current < 2) {
+      args = [].slice.call(arguments, 0, 5);
+      args.push(force_current);
+      if (MainPort.sendCommandToContainer("Vomnibar.activateWithCompleter", args)) {
+        return;
+      }
     }
     // <svg> document has not head nor body; document with pdf <embed> has body
     if (!(document.head || document.body)) {
-      return;
+      return false;
     }
     var box = DomUtils.createElement("div");
     completer.init();
