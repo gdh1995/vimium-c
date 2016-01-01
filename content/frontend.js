@@ -657,7 +657,7 @@ var Settings, VHUD, MainPort, VInsertMode;
     focus: null,
     global: false,
     handlerId: 0,
-    heldEl: null,
+    heldEl: false,
     last: null,
     loading: (document.readyState !== "complete"),
     lock: null,
