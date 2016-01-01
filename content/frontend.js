@@ -1385,7 +1385,7 @@ var Settings, VHUD, MainPort, VInsertMode;
     request.url = window.location.href;
   });
 
-  DomUtils.DocumentReady(function() {
+  DomUtils.documentReady(function() {
     // NOTE: when port is disconnected:
     // * if backend asks to re-reg, then rH.reg will call safePost;
     // * if extension is stopped, then ELs.destroy is called when focused,

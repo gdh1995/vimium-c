@@ -15,19 +15,19 @@ Settings.RequestHandlers.regExt = function(request) {
 DomUtils.isSandboxed = function () {
   var i = 0, node;
   if (window.onunload == null) {
-    node = DomUtils.createElement('div');
+    node = this.createElement('div');
     node.onclick = function() { ++i };
     node.click();
     if (i === 0) {
-      DomUtils.isSandboxed = function() { return true; };
+      this.isSandboxed = function() { return true; };
       return true;
     }
   }
-  DomUtils.isSandboxed = function() { return false; };
+  this.isSandboxed = function() { return false; };
   return false;
 };
 
-DomUtils.DocumentReady(function() {
+DomUtils.documentReady(function() {
   if (Settings.RequestHandlers.regExt()) {
     return;
   }
