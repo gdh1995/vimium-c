@@ -279,7 +279,7 @@ history: {
       results[j] = 0.0;
     }
     maxNum -= 2;
-    // inline RankingUtils.Match2
+    // inline version of RankingUtils.Match2
     for (j = len2 = queryTerms.length; 0 <= --j; ) {
       regexps.push(RegexpCache.get(query[j], "", ""));
     }
