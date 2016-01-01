@@ -1202,7 +1202,7 @@ var Settings, VHUD, MainPort, VInsertMode;
         el.style.display = "none";
         el.textContent = "";
         el.style.opacity = 0;
-      } else if (!hud.tweenId) {
+      } else if (!hud.tweenId && hud._element) {
         hud.tweenId = setInterval(hud.tween, 40);
       }
     },
