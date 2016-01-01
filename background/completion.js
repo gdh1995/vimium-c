@@ -551,7 +551,9 @@ searchEngines: {
       output.push(sug);
       --sug.relevancy;
       sug.text = sug.title = arr[0];
-      sug.url = "vimium://copy " + arr[0];
+      if (!arr[0].startsWith("vimium://copy")) {
+        sug.url = "vimium://copy " + arr[0];
+      }
       sug.titleSplit = Utils.escapeText(sug.title);
       sug.textSplit = Utils.escapeText(arr[2]);
       query.onComplete(output);

@@ -223,7 +223,7 @@ var exports = {}, Utils = {
         return ["", "math", path];
       });
     } else if (workType === 2) switch (cmd) {
-    case "url-copy": case "search-copy": case "search.copy":
+    case "url-copy": case "search-copy": case "search.copy": case "copy-url": 
       path = this.convertToUrl(path, null, 1);
       if (this.lastUrlType !== 5) {}
       else if (path instanceof Array) {
