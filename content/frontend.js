@@ -1327,7 +1327,7 @@ var Settings, VHUD, MainPort, VInsertMode;
       arr[0][arr[1]].apply(arr[0], request.args);
     },
     omni: function(response) {
-      Vomnibar.Completer.onFilter(response.list);
+      Vomnibar.vomnibarUI.onCompletions(response.list.map(Vomnibar.background.parse));
     },
     createMark: Marks.CreateGlobalMark,
     scroll: Marks.Goto,

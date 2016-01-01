@@ -2,7 +2,7 @@
 var Vomnibar = {
 activateWithCompleter: function(completerName, selectFirstResult, forceNewTab
     , initialQueryValue, keyword, force_current) {
-  var completer = this.Completer, vomnibarUI = this.vomnibarUI, args;
+  var vomnibarUI = this.vomnibarUI, args;
   if (vomnibarUI.init) {
     force_current |= 0;
     if (force_current < 2) {
@@ -15,10 +15,10 @@ activateWithCompleter: function(completerName, selectFirstResult, forceNewTab
     // <svg> document has not head nor body; document with pdf <embed> has body
     if (!document.body) { return false; }
     var box = DomUtils.createElement("div");
-    completer.init();
+    this.background.init();
     vomnibarUI.init(box);
   }
-  completer.name = completerName;
+  this.background.name = completerName;
   vomnibarUI.initialSelectionValue = selectFirstResult ? 0 : -1;
   vomnibarUI.forceNewTab = forceNewTab ? true : false;
   handlerStack.remove(vomnibarUI.handlerId);
@@ -351,7 +351,7 @@ vomnibarUI: {
   },
   onTimer: function() {
     this.timer = -1;
-    Vomnibar.Completer.filter(this.completionInput.url);
+    Vomnibar.background.filter(this.completionInput.url);
   },
   onCompletions: function(completions) {
     if (this._waitInit) {
@@ -424,11 +424,10 @@ vomnibarUI: {
   }
 },
 
-Completer: {
+background: {
   name: "",
   init: function() {
-    this.mapResult = Vomnibar.background.parse.bind(Vomnibar.background);
-    this.init = null;
+    this.parse = this.parse.bind(this);
   },
   filter: function(query) {
     MainPort.port.postMessage({
@@ -440,13 +439,7 @@ Completer: {
       query: query && query.replace(Utils.spacesRe, ' ')
     });
   },
-  mapResult: null,
-  onFilter: function(results) {
-    Vomnibar.vomnibarUI.onCompletions(results.map(this.mapResult));
-  }
-},
 
-background: {
   showRelevancy: false,
   parse: function(item) {
     var str;
