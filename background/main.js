@@ -1190,22 +1190,22 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
         sendToTab(request, request.tabId);
         return;
       }
-      if (request.frameId === 0) {
-        // cross-origined top frame: it's a frameset or vimium is not enabled
-        chrome.tabs.get(request.tabId, function(tab) {
-          if (tab.url.startsWith("chrome")) {
-            sendToTab(request, request.tabId);
-            return;
-          }
-          request.frameId = request.source;
-          request.source = -1;
-          port.postMessage(request);
-        });
+      if (request.frameId !== 0) {
+        request.frameId = request.source;
+        request.source = -1;
+        port.postMessage(request);
         return;
       }
-      request.frameId = request.source;
-      request.source = -1;
-      port.postMessage(request);
+      // cross-origined top frame: it's a frameset or vimium is not enabled
+      chrome.tabs.get(request.tabId, function(tab) {
+        if (tab.url.startsWith("chrome")) {
+          sendToTab(request, request.tabId);
+          return;
+        }
+        request.frameId = request.source;
+        request.source = -1;
+        port.postMessage(request);
+      });
     },
     ext: function(request, port) {
       var ref = Settings.extIds, extId = request.extId;
