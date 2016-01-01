@@ -179,7 +179,7 @@ vomnibarUI: {
   },
   updateInput: function() {
     if (this.selection === -1) {
-      VInsertMode.heldEl = this.input; this.input.focus();
+      this.input.focus();
       this.input.value = this.completionInput.text;
     } else {
       if (!this.focused) this.input.blur();
@@ -259,7 +259,7 @@ vomnibarUI: {
       DomUtils.removeSelection(DomUtils.UI.root) || this.hide();
       break;
     case "focus":
-      VInsertMode.heldEl = this.input; this.input.focus();
+      this.input.focus();
       this.focused = document.activeElement === this.input;
       break;
     case "blur": this.focused = false; this.input.blur(); break;
