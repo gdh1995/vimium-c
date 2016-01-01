@@ -255,7 +255,9 @@ vomnibarUI: {
   onAction: function(action) {
     var sel;
     switch(action) {
-    case "dismiss": this.hide(); break;
+    case "dismiss":
+      DomUtils.removeSelection(DomUtils.UI.root) || this.hide();
+      break;
     case "focus":
       VInsertMode.heldEl = this.input; this.input.focus();
       this.focused = document.activeElement === this.input;

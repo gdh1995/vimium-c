@@ -231,8 +231,7 @@ var Settings, VHUD, MainPort, VInsertMode;
           keyQueue = false;
           currentSeconds = secondKeys[""];
           action = 2;
-        } else if (window.getSelection().type === "Range") {
-          window.getSelection().removeAllRanges();
+        } else if (DomUtils.removeSelection(window)) {
           action = 2;
         }
       }
@@ -1366,7 +1365,7 @@ var Settings, VHUD, MainPort, VInsertMode;
     handlerId = handlerStack.push(function(event) {
       if (event.keyCode === KeyCodes.esc && !VInsertMode.lock
           && KeyboardUtils.isPlain(event)) {
-        hide();
+        DomUtils.removeSelection(DomUtils.UI.root) || hide();
         return 2;
       }
       return 0;
