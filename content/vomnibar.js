@@ -13,9 +13,7 @@ activateWithCompleter: function(completerName, selectFirstResult, forceNewTab
       }
     }
     // <svg> document has not head nor body; document with pdf <embed> has body
-    if (!(document.head || document.body)) {
-      return false;
-    }
+    if (!document.body) { return false; }
     var box = DomUtils.createElement("div");
     completer.init();
     vomnibarUI.init(box);

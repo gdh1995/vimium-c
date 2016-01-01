@@ -537,6 +537,7 @@ var Settings, VHUD, MainPort, VInsertMode;
         mainPort.sendCommandToContainer("showHelp", [1, 0, force_current | 0])) {
         return;
       }
+      if (!document.body) { return false; }
       mainPort.sendMessage({
         handler: "initHelp"
       }, requestHandlers.showHelpDialog);
@@ -1103,6 +1104,7 @@ var Settings, VHUD, MainPort, VInsertMode;
         return;
       }
       window.focus();
+      if (!document.body) { return false; }
       var _this = FrameMask, dom1;
       if (dom1 = _this.node) {
         _this.more = true;
@@ -1338,14 +1340,7 @@ var Settings, VHUD, MainPort, VInsertMode;
   requestHandlers.showHelpDialog = function(response) {
     var container, handlerId, oldShowHelp, hide, node1, //
     showAdvancedCommands, shouldShowAdvanced = response.advanced === true;
-    if (!document.body) {
-      return;
-    }
     container = DomUtils.createElement("div");
-    if (!container.style) {
-      Commands.showHelp = requestHandlers.showHelpDialog = function() {};
-      return;
-    }
     container.innerHTML = response.html;
     container = container.firstElementChild;
     container.addEventListener("mousewheel", DomUtils.SuppressPropagation);
