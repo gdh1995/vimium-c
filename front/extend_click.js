@@ -1,7 +1,6 @@
 "use strict";
 (function(func) {
-  var script, installer, onclick, container;
-  script = document.createElement("script");
+  var script = document.createElement("script"), installer, onclick, container;
   if (script.style === null) { return; }
   window.addEventListener("VimiumRegistrationElementEvent", installer = function(event) {
     window.removeEventListener("VimiumRegistrationElementEvent", installer, true);
@@ -20,8 +19,7 @@
   };
   script.type = "text/javascript";
   script.textContent = "(" + func.toString() + ")();";
-  container = document.head || document.documentElement;
-  container.insertBefore(script, container.firstElementChild);
+  document.documentElement.insertBefore(script, document.documentElement.firstElementChild);
   script.remove();
 })(function() {
 "use strict";
