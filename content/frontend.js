@@ -248,7 +248,7 @@ var Settings, VHUD, MainPort, VInsertMode;
         if (findMode && (keyChar = String.fromCharCode(event.charCode))) {
           handleKeyCharForFindMode(keyChar);
           event.preventDefault();
-        } else if (VInsertMode.lock !== VInsertMode.heldEl) {
+        } else if (InsertMode.lock !== InsertMode.heldEl) {
           return;
         }
         event.stopImmediatePropagation();
@@ -260,7 +260,7 @@ var Settings, VHUD, MainPort, VInsertMode;
         if (KeydownEvents[event.keyCode]) {
           KeydownEvents[event.keyCode] = 0;
           event.preventDefault();
-        } else if (VInsertMode.lock !== VInsertMode.heldEl) {
+        } else if (InsertMode.lock !== InsertMode.heldEl) {
           return;
         }
         event.stopImmediatePropagation();
@@ -273,7 +273,7 @@ var Settings, VHUD, MainPort, VInsertMode;
       else if (findMode) {} // TODO: check findMode
       else if (DomUtils.getEditableType(target)) {
         InsertMode.focus(event);
-        if (target === VInsertMode.heldEl) { event.stopImmediatePropagation(); }
+        if (target === InsertMode.heldEl) { event.stopImmediatePropagation(); }
       } else if (target.shadowRoot) {
         target = target.shadowRoot;
         target.addEventListener("focus", ELs.onFocus, true);
@@ -284,12 +284,12 @@ var Settings, VHUD, MainPort, VInsertMode;
       var target = event.target;
       if (target === window) {
         if (Scroller.keyIsDown) { Scroller.keyIsDown = 0; }
-        VInsertMode.onWndBlur && VInsertMode.onWndBlur(KeydownEvents);
+        InsertMode.onWndBlur && InsertMode.onWndBlur(KeydownEvents);
         KeydownEvents = new Uint8Array(256);
       } else if (!isEnabledForUrl) {}
       else if (InsertMode.lock === target) {
         InsertMode.lock = null;
-        if (target === VInsertMode.heldEl) { event.stopImmediatePropagation(); }
+        if (target === InsertMode.heldEl) { event.stopImmediatePropagation(); }
       } else if (target.shadowRoot) {
         target = target.shadowRoot;
         // NOTE: if destroyed, this page must have lost its focus before, so
@@ -1363,7 +1363,7 @@ var Settings, VHUD, MainPort, VInsertMode;
     window.focus();
     Scroller.current = container;
     handlerId = handlerStack.push(function(event) {
-      if (event.keyCode === KeyCodes.esc && !VInsertMode.lock
+      if (event.keyCode === KeyCodes.esc && !InsertMode.lock
           && KeyboardUtils.isPlain(event)) {
         DomUtils.removeSelection(DomUtils.UI.root) || hide();
         return 2;
