@@ -92,7 +92,6 @@ vomnibarUI: {
     action: "navigateToUrl"
   },
   completions: null,
-  focused: true,
   forceNewTab: false,
   handlerId: 0,
   initialSelectionValue: -1,
@@ -109,8 +108,8 @@ vomnibarUI: {
     this.box.style.display = "";
     this.input.value = this.completionInput.text;
     VInsertMode.focus = VInsertMode.holdFocus;
-    VInsertMode.heldEl = this.input; this.input.focus();
-    this.focused = true;
+    VInsertMode.heldEl = this.input;
+    this.input.focus();
     handlerStack.remove(this.handlerId);
     this.handlerId = handlerStack.push(this.onKeydown, this);
   },
@@ -120,7 +119,6 @@ vomnibarUI: {
       this.timer = 0;
     }
     this.box.style.display = "none";
-    this.input.blur();
     this.list.textContent = "";
     this.input.value = "";
     handlerStack.remove(this.handlerId);
@@ -178,11 +176,13 @@ vomnibarUI: {
     this.updateSelection(this.selection);
   },
   updateInput: function() {
+    var focused = this.input.focused;
     if (this.selection === -1) {
       this.input.focus();
+      this.input.focused = focused;
       this.input.value = this.completionInput.text;
     } else {
-      if (!this.focused) this.input.blur();
+      if (!focused) this.input.blur();
       this.input.value = this.completions[this.selection].text;
     }
   },
@@ -261,9 +261,8 @@ vomnibarUI: {
       break;
     case "focus":
       this.input.focus();
-      this.focused = document.activeElement === this.input;
       break;
-    case "blur": this.focused = false; this.input.blur(); break;
+    case "blur": this.input.blur(); break;
     case "backspace": DomUtils.simulateBackspace(this.input); break;
     case "up":
       this.isSelectionChanged = true;
@@ -302,7 +301,6 @@ vomnibarUI: {
     if (el === this.input.parentElement) {
       this.onAction("focus");
     } else if (el === this.input) {
-      this.focused = true;
       event.stopImmediatePropagation();
       return;
     } else if (el === this.list || this.timer) {}

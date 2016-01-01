@@ -273,7 +273,10 @@ var Settings, VHUD, MainPort, VInsertMode;
       else if (findMode) {} // TODO: check findMode
       else if (DomUtils.getEditableType(target)) {
         InsertMode.focus(event);
-        if (target === InsertMode.heldEl) { event.stopImmediatePropagation(); }
+        if (target === InsertMode.heldEl) {
+          event.stopImmediatePropagation();
+          target.focused = true;
+        }
       } else if (target.shadowRoot) {
         target = target.shadowRoot;
         target.addEventListener("focus", ELs.onFocus, true);
@@ -289,7 +292,10 @@ var Settings, VHUD, MainPort, VInsertMode;
       } else if (!isEnabledForUrl) {}
       else if (InsertMode.lock === target) {
         InsertMode.lock = null;
-        if (target === InsertMode.heldEl) { event.stopImmediatePropagation(); }
+        if (target === InsertMode.heldEl) {
+          event.stopImmediatePropagation();
+          target.focused = false;
+        }
       } else if (target.shadowRoot) {
         target = target.shadowRoot;
         // NOTE: if destroyed, this page must have lost its focus before, so
