@@ -209,6 +209,7 @@ vomnibarUI: {
     }
     else if (n === 74 || n === 78) { action = "down"; } // 'J' or 'N'
     else if (n === 75 || n === 80) { action = "up"; } // 'K' or 'P'
+    else if (n === 219 || n === 91) { action = "dismiss"; } // '['
 
     if (action) {}
     else if (n === KeyCodes.enter) {
