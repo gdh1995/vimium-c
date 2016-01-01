@@ -427,24 +427,21 @@ vomnibarUI: {
 Completer: {
   name: "",
   init: function() {
-    this.onFilter = this.onFilter.bind(this);
     this.mapResult = Vomnibar.background.parse.bind(Vomnibar.background);
     this.init = null;
   },
   filter: function(query) {
-    MainPort.sendMessage({
-      handlerOmni: this.name,
+    MainPort.port.postMessage({
+      handler: "omni",
+      type: this.name,
       clientWidth: window.innerWidth,
       showFavIcon: Vomnibar.background.showFavIcon,
       maxResults: 10,
       query: query && query.replace(Utils.spacesRe, ' ')
-    }, this.onFilter);
+    });
   },
-  _id: 0,
   mapResult: null,
-  onFilter: function(results, msgId) {
-    if (this._id >= msgId) { return; }
-    this._id = msgId;
+  onFilter: function(results) {
     Vomnibar.vomnibarUI.onCompletions(results.map(this.mapResult));
   }
 },

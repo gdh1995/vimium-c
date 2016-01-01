@@ -604,24 +604,24 @@ searchEngines: {
   counter: 0,
   maxResults: 10,
   mostRecentQuery: null,
-  filter: function(completers, onComplete) {
+  onComplete: null,
+  filter: function(completers) {
     RegexpCache.clear();
     RankingUtils.timeAgo = Date.now() - RankingUtils.timeCalibrator;
-    this.onComplete = onComplete;
     if (this.mostRecentQuery) { this.mostRecentQuery.isOff = true; }
     var query = this.mostRecentQuery = {
       isOff: false,
       onComplete: null
     }, i, l;
-    query.onComplete = this.next.bind(this, query, onComplete);
+    query.onComplete = this.next.bind(this, query);
     this.suggestions = [];
     for (i = 0, l = this.counter = completers.length; i < l; i++) {
       completers[i].filter(query);
     }
   },
-  next: function(query, onComplete, newSuggestions) {
+  next: function(query, newSuggestions) {
     if (query.isOff) { return; }
-    var suggestions = this.suggestions.concat(newSuggestions);
+    var suggestions = this.suggestions.concat(newSuggestions), func;
     if (0 < --this.counter) {
       this.suggestions = suggestions;
       return;
@@ -637,7 +637,9 @@ searchEngines: {
     }
     suggestions.forEach(SuggestionUtils.PrepareHtml);
     queryTerms = null;
-    onComplete(suggestions);
+    func = this.onComplete || g_requestHandlers.PostCompletions;
+    this.onComplete = null;
+    func(suggestions);
   },
   MultiCompleter: function(completers) { this.completers = completers; },
   rsortByRelevancy: function(a, b) { return b.relevancy - a.relevancy; }
@@ -649,7 +651,8 @@ searchEngines: {
       : Math.min(((options.clientWidth * 0.8 - 70) / 7.72) | 0, 200);
     Completers.maxResults = Math.min(Math.max(options.maxResults, 5), 25) | 0;
     showFavIcon = options.showFavIcon;
-    Completers.filter(this.completers, onComplete);
+    Completers.onComplete = onComplete;
+    Completers.filter(this.completers);
   };
 
   RankingUtils = {

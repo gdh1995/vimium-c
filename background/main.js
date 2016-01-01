@@ -935,22 +935,13 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
     var key, func, id;
     if (id = request._msgId) {
       request = request.request;
-      if (key = request.handler) {
-        func = requestHandlers[key];
-        if (func.useTab) {
-          chrome.tabs.query({currentWindow: true, active: true}, function(ts) {
-            port.postMessage({_msgId: id, response: func(request, ts)});
-          });
-        } else {
-          port.postMessage({_msgId: id, response: func(request)})
-        }
-      }
-      else if (key = request.handlerOmni) {
-        func = Completers[key];
-        key = request.query;
-        func.filter(key ? key.split(" ") : [], request, function(response) {
-          port.postMessage({_msgId: id, response: response});
+      func = requestHandlers[request.handler];
+      if (func.useTab) {
+        chrome.tabs.query({currentWindow: true, active: true}, function(ts) {
+          port.postMessage({_msgId: id, response: func(request, ts)});
         });
+      } else {
+        port.postMessage({_msgId: id, response: func(request)})
       }
     }
     else if (key = request.handlerKey) {
@@ -1289,6 +1280,11 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
     initInnerCSS: function() {
       return Settings.get("innerCss");
     },
+    omni: function(request, port) {
+      var key = request.query;
+      currentCommand.port = port;
+      Completers[request.type].filter(key ? key.split(" ") : [], request);
+    },
     getCopiedUrl_f: function(request, port) {
       var url = Clipboard.paste().trim(), arr;
       if (!url) {}
@@ -1318,6 +1314,9 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
       chrome.tabs.query({
         url: request.url
       }, funcDict.focusOrLaunch.bind(null, request));
+    },
+    PostCompletions: function(list) {
+      currentCommand.port.postMessage({ name: "omni", list: list });
     },
     SetIcon: function() {},
     SendToTab: sendToTab,
