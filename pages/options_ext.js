@@ -376,7 +376,7 @@ $("importButton").onclick = function() {
   }
 })();
 
-(function() {
+BG.Commands.strict || (function() {
   var keyLeftRe = /<((?:[acmACM]-){0,3})(.[^>]*)>/g, upRe = BG.Utils.upperRe,
   func = function(match, option, key) {
     return (option ? ("<" + option.toLowerCase()) : "<")
@@ -384,6 +384,7 @@ $("importButton").onclick = function() {
       + ">";
   };
   BG.Commands.keyRe = KeyRe;
+  BG.Commands.strict = true;
   BG.Commands.normalizeKey = function(key) {
     return key.replace(keyLeftRe, func);
   };
