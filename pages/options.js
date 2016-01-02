@@ -159,7 +159,7 @@ ExclusionRulesOption.prototype.getPassKeys = function(element) {
   return element.querySelector(".passKeys");
 };
 
-if (location.pathname.substring(location.pathname.length - 11) === "/popup.html") {
+if (location.pathname.indexOf("/popup.html", location.pathname.length - 11) !== -1) {
 chrome.tabs.query({currentWindow: true, active: true}, function(tab) {
   var exclusions, onUpdated, saveOptions, updateState, url, status = 0;
 
