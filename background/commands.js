@@ -4,6 +4,17 @@ var Commands = {
   keyRe: /<(?:.-){0,3}.[^>]*>|./g,
   keyToCommandRegistry: null,
   normalizeKey: function(key) { return key; },
+  setStrict: function(keyReSource) {
+    var keyLeftRe = /<((?:[acmACM]-){0,3})(.[^>]*)>/g, upRe = Utils.upperRe,
+    func = function(_0, option, key) {
+      return (option ? ("<" + option.toLowerCase()) : "<")
+        + (upRe.test(key) ? key.toUpperCase() : key)
+        + ">";
+    };
+    this.normalizeKey = function(key) { return key.replace(keyLeftRe, func); };
+    this.keyRe = new RegExp(keyReSource, "g");
+    this.setStrict = null;
+  },
   getOptions: function(item) {
     var opt = {}, i, len, ind, str, val;
     for (i = 3, len = item.length; i < len; ) {

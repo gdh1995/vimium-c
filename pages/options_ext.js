@@ -376,16 +376,4 @@ $("importButton").onclick = function() {
   }
 })();
 
-BG.Commands.strict || (function() {
-  var keyLeftRe = /<((?:[acmACM]-){0,3})(.[^>]*)>/g, upRe = BG.Utils.upperRe,
-  func = function(match, option, key) {
-    return (option ? ("<" + option.toLowerCase()) : "<")
-      + (upRe.test(key) ? key.toUpperCase() : key)
-      + ">";
-  };
-  BG.Commands.keyRe = KeyRe;
-  BG.Commands.strict = true;
-  BG.Commands.normalizeKey = function(key) {
-    return key.replace(keyLeftRe, func);
-  };
-})();
+BG.Commands.setStrict && BG.Commands.setStrict(KeyRe.source);
