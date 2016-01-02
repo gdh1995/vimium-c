@@ -85,6 +85,9 @@ pre {
   padding-top: 3px;
   vertical-align: top;
 }
+.hide {
+  display: none;
+}
 td { padding: 0; }
 div#exampleKeyMapping {
   margin-left: 10px;
@@ -228,4 +231,9 @@ td.booleanOption, #helpText { font-size: 12px; }
 }
 #saveOptions {
   width: 110px;
+}
+#settingFileManager{
+  position: absolute;
+  margin-left: 20px;
+  display: inline-block;
 }

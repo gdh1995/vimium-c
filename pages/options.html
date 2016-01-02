@@ -219,7 +219,7 @@ MainKey|c|c\:|MainName: \
               </label>
             </td>
           </tr>
-          <tr style="display: none;">
+          <tr class="hide">
             <td class="caption"></td>
             <td class="booleanOption">
               <div class="help">
@@ -335,8 +335,8 @@ MainKey|c|c\:|MainName: \
             <td id="saveOptionsTableData">
 							<button id="advancedOptionsButton">Show Advanced Options</button>
               <button id="saveOptions" disabled="disabled">No Changes</button>
-              <div style="position: absolute; margin-left: 20px; display: inline-block;">
-                <input  id="settingsFile" type="file" style="display: none;" accept=".json,application/json" />
+              <div id="settingFileManager">
+                <input  id="settingsFile" type="file" class="hide" accept=".json,application/json" />
                 <button id="importButton">Import Settings</button>
                 <button id="exportButton">Export Settings</button>
               </div>
