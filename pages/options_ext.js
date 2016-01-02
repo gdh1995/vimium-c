@@ -259,17 +259,18 @@ $("exportButton").onclick = function() {
   console.log("EXPORT settings to", file_name, "at", formatDate(d));
 };
 
-var importSettings = function() {
-  var new_data;
+var importSettings = function(time, event) {
+  var new_data, fileReader = event.target;
   try {
-    new_data = JSON.parse(this.result);
+    new_data = JSON.parse(fileReader.result);
+    time = new_data.time < 0 ? time : (new_data.time || 0);
   } catch (e) {}
-  if (!new_data || new_data.name !== "Vimium++" || !(new_data.time > 10000)) {
+  if (!new_data || new_data.name !== "Vimium++" || (time < 10000 && time > 0)) {
     VHUD.showForDuration("No settings data found!", 2000);
     return;
   } else if (!confirm(
-    "You are loading a settings copy exported at:\n        "
-    + formatDate(new_data.time)
+    "You are loading a settings copy exported" + (time ? " at:\n        "
+    + formatDate(time) : " before.")
     + "\n\nAre you sure you want to continue?"
   )) {
     VHUD.showForDuration("You cancelled importing.", 1000);
@@ -282,7 +283,7 @@ var importSettings = function() {
     return typeof val !== "string" || val.length <= 72 ? val
       : val.substring(0, 68).trimRight() + " ...";
   };
-  console.log("IMPORT settings at", new Date(new_data.time));
+  console.log("IMPORT settings at", new Date(time));
   delete new_data.name;
   delete new_data.time;
   Utils.setNullProto(new_data);
@@ -352,7 +353,7 @@ $("settingsFile").onchange = function() {
   this.value = "";
   if (!file) { return; }
   reader = new FileReader();
-  reader.onload = importSettings;
+  reader.onload = importSettings.bind(null, file.lastModified);
   reader.readAsText(file);
 };
 $("importButton").onclick = function() {
