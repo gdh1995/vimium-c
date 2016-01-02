@@ -360,17 +360,16 @@ var exports = {}, Utils = {
       }
       val = val.replace(rEscapeS, " ").trim().replace(this.searchWordRe2, "$1$$$2"
         ).replace(rPercent, "%");
-      re.lastIndex = 0;
-      pair = re.exec(val);
       obj = {
-        ind: pair ? (pair.index + 1) : 0,
         name: null,
         url: val
       };
       ids = ids.filter(func);
       if (ids.length === 0) continue;
       if (ind === -1) {
-        if (ind = obj.ind) {
+        re.lastIndex = 0;
+        pair = re.exec(val);
+        if (ind = pair ? (pair.index + 1) : 0) {
           key = pair[2];
           if (key) {
             val = val.replace(re, "$$$1");
@@ -405,7 +404,7 @@ var exports = {}, Utils = {
           if (key.startsWith("http://") || key.startsWith("https://")) {
             key = key.substring(key[4] === 's' ? 8 : 7);
           }
-          rules.push([key, val, ids[0].trimRight(), pair && pair[1] === "S" ? " " : "+"]);
+          rules.push([key, val, ids[0].trimRight(), obj.url.lastIndexOf("$S") ? " " : "+"]);
         }
         str = ind >= 0 ? str.substring(ind + 1) : "";
       } else {
