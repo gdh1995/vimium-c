@@ -102,6 +102,9 @@ input[type=number] {
 input[type=number]::-webkit-inner-spin-button {
   margin-left: 1px;
 }
+#linkHintCharacters {
+  margin-top: 1px;
+}
 #userDefinedCss, #userDefinedOuterCss, #UILanguage {
   padding-bottom: 2px;
   min-height: 75px;
