@@ -1441,7 +1441,7 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
 
   setTimeout(function() {
     Settings.postUpdate("files", null);
-    Settings.postUpdate("searchUrl"); // will also update newTabUrl
+    Settings.postUpdate("searchUrl", null); // will also update newTabUrl
 
     var ref, i, ref2, key;
     ref2 = requestHandlers;

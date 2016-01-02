@@ -91,8 +91,26 @@ var Settings = {
       var rules = Utils.parseSearchEngines(this.get("searchEngines"), value);
       this.set("searchEngineRules", rules);
     },
-    searchUrl: function(value) {
-      Utils.parseSearchEngines("~:" + value, this.get("searchEngineMap"));
+    searchUrl: function(str) {
+      var map = this.get("searchEngineMap"), obj, ind;
+      if (str) {
+        Utils.parseSearchEngines("~:" + str, map);
+        obj = map["~"];
+        str = obj.url.replace(Utils.spacesRe, "%20");
+        if (obj.name) { str += " " + obj.name; }
+        if (str !== arguments[0]) {
+          this.set("searchUrl", str);
+          return;
+        }
+      } else if (str = this.get("newTabUrl_f")) {
+        this.updateHooks.newTabUrl_f(str);
+        return;
+      } else {
+        str = this.get("searchUrl");
+        ind = str.indexOf(" ");
+        if (ind > 0) { str = str.substring(0, ind); }
+        map["~"] = { url: str };
+      }
       this.postUpdate("newTabUrl");
     },
     baseCSS: function(css) {
