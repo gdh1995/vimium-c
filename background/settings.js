@@ -99,6 +99,9 @@ var Settings = {
       css += this.get("userDefinedCss");
       this.set("innerCss", css);
     },
+    vimSync: function() {
+      window.location.reload();
+    },
     userDefinedCss: function() {
       this.postUpdate("baseCSS");
       this.postUpdate("broadcast", {
