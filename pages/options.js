@@ -45,6 +45,10 @@ Option.prototype.save = function() {
   var value = this.readValueFromElement();
   if (!this.areEqual(value, this.previous)) {
     bgSettings.set(this.field, this.previous = value);
+    value = bgSettings.get(this.field);
+    if (this.previous !== value) {
+      this.populateElement(this.previous = value);
+    }
     if (this.field in bgSettings.bufferToLoad) {
       Option.syncToFrontend.push(this.field);
     }
