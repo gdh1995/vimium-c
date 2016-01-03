@@ -426,13 +426,14 @@ domains: {
       _this.domains = {};
       return;
     }
-    var domains = _this.domains, parse = _this.parseDomainAndScheme;
-    toRemove.urls.forEach(function(url) {
-      var item = parse(url), entry;
+    var domains = _this.domains, parse = _this.parseDomainAndScheme,
+    arr = toRemove.urls, j = arr.length, item, entry;
+    while (0 <= --j) {
+      item = parse(arr[j]);
       if (item && (entry = domains[item[0]]) && (-- entry[1]) <= 0) {
         delete domains[item[0]];
       }
-    });
+    };
   },
   parseDomainAndScheme: function(url) {
     var d, i;
@@ -792,13 +793,13 @@ searchEngines: {
         _this.history = null;
         return;
       }
-      var bs = _this.binarySearch, h = _this.history;
-      toRemove.urls.forEach(function(url) {
-        var i = bs(url, h);
+      var bs = _this.binarySearch, h = _this.history, arr = toRemove.urls, j, i;
+      for (j = arr.length; 0 <= --j; ) {
+        i = bs(arr[j], h);
         if (i >= 0) {
           h.splice(i, 1);
         }
-      });
+      }
     },
     binarySearch: function(u, a) {
       var e, h = a.length - 1, l = 0, m = 0;
