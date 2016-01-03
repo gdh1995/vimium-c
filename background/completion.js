@@ -786,7 +786,7 @@ searchEngines: {
       }
       Decoder.decodeList([newPage]);
     },
-    onVisitRemoved: function(toRemove) {
+    OnVisitRemoved: function(toRemove) {
       var _this = HistoryCache;
       if (toRemove.allHistory) {
         _this.history = null;
