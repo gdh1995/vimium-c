@@ -596,7 +596,7 @@ var LinkHints = {
       timer = setInterval(function() {
         if (Date.now() - tick > 150) {
           clearInterval(timer);
-          handlerStack.remove(this.handlerId);
+          handlerStack.remove(LinkHints.handlerId);
         }
       }, 75);
     }
