@@ -872,7 +872,7 @@ FUNC: {
     }
     a = DomUtils.createElement("a");
     a.href = img.src;
-    a.download = "";
+    a.download = img.getAttribute("download") || "";
     a.click();
     VHUD.showForDuration("download: " + text, 2000);
   },
