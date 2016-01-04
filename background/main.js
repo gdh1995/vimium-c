@@ -673,11 +673,13 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
     },
     nextTab: function(tabs) {
       if (tabs.length <= 0) { return; }
-      funcDict.selectTab(tabs, funcDict.selectFrom(tabs).index + commandCount);
+      funcDict.selectTab(tabs, commandCount > tabs.length * 2 ? tabs.length - 1
+          : funcDict.selectFrom(tabs).index + commandCount);
     },
     previousTab: function(tabs) {
       if (tabs.length <= 0) { return; }
-      funcDict.selectTab(tabs, funcDict.selectFrom(tabs).index - commandCount);
+      funcDict.selectTab(tabs, commandCount > tabs.length * 2 ? 0
+          : funcDict.selectFrom(tabs).index - commandCount);
     },
     firstTab: function(tabs) {
       funcDict.selectTab(tabs, Math.min(tabs.length, commandCount) - 1);
