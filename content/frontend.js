@@ -1118,8 +1118,7 @@ var Settings, VHUD, MainPort, VInsertMode;
         dom1.style.maxWidth = request.box[0] + "px";
         dom1.style.maxHeight = request.box[1] + "px";
       }
-      dom1.style.borderColor = request.frameId === -1 ? "lightsalmon"
-        : request.frameId === -2 ? "cornflowerblue" : "yellow";
+      dom1.style.borderColor = request.frameId === -1 ? "lightsalmon" : "yellow";
     },
     Remove: function() {
       var _this = FrameMask;
