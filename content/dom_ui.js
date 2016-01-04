@@ -74,7 +74,7 @@ DomUtils.UI = {
       }
     }
   },
-  flashOutline: function(clickEl) {
+  flashOutline: function(clickEl, virtual) {
     var temp, rect, parEl, bcr;
     DomUtils.prepareCrop();
     if (clickEl.classList.contains("OIUrl") && Vomnibar.vomnibarUI.box
@@ -102,7 +102,10 @@ DomUtils.UI = {
       }
       rect || (rect = [0, 0, 0, 0]);
     }
-    this.flashVRect(rect);
+    if (virtual !== true) {
+      this.flashVRect(rect);
+    }
+    return rect;
   },
   flashVRect: function(rect, time) {
     var flashEl = DomUtils.createElement("div"), x, y;

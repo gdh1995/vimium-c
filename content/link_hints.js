@@ -557,7 +557,7 @@ var LinkHints = {
     }
   },
   activateLink: function(clickEl) {
-    var tempi;
+    var tempi, rect;
     if (this.mode >= 128) {}
     else if ((tempi = DomUtils.getEditableType(clickEl)) === 3) {
       DomUtils.simulateSelect(clickEl);
@@ -566,8 +566,11 @@ var LinkHints = {
       return;
     }
     else if (tempi > 0) { clickEl.focus(); }
-    DomUtils.UI.flashOutline(clickEl);
-    this.linkActivator(clickEl);
+    // must get outline first, because clickEl may hide itself when activated
+    rect = DomUtils.UI.flashOutline(clickEl, true);
+    if (this.linkActivator(clickEl) !== false) {
+      DomUtils.UI.flashVRect(rect);
+    }
     if ((this.mode & 64) === 64) {
       this.reinit();
     } else {
@@ -763,6 +766,20 @@ getUrlData: function(link) {
   return link.href;
 },
 
+highlightFrame: function(child) {
+  try {
+    child.VInsertMode.keydownEvents(VInsertMode.keydownEvents());
+  } catch (e) {
+    child.focus();
+    return;
+  }
+  child.MainPort.Listener({
+    name: "focusFrame",
+    frameId: -2
+  });
+  return false;
+},
+
 FUNC: {
   COPY_LINK_URL: function(link) {
     var str = this.getUrlData(link);
@@ -924,8 +941,7 @@ FUNC: {
     var mode = this.mode & 3, alterTarget, tag = link.nodeName.toLowerCase();
     this.unhoverLast(link);
     if (tag === "iframe" || tag === "frame") {
-      link.contentWindow.focus();
-      return;
+      return this.highlightFrame(link.contentWindow);
     }
     if (mode >= 2 && tag === "a") {
       alterTarget = link.getAttribute('target');

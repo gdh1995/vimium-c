@@ -1088,13 +1088,12 @@ var Settings, VHUD, MainPort, VInsertMode;
     more: false,
     node: null,
     timer: 0,
-    timeout: 200,
     Focus: function(request) {
       if (DomUtils.isSandboxed()) {
         // Do not destroy self, just in case of Marks.goTo / ...
         setTimeout(ELs.onUnload, 20);
       }
-      if (request.frameId === -1) {}
+      if (request.frameId < 0) {}
       else if (DomUtils.isSandboxed() || window.innerWidth < 3 || window.innerHeight < 3) {
         mainPort.port.postMessage({
           handler: "nextFrame",
@@ -1113,9 +1112,10 @@ var Settings, VHUD, MainPort, VInsertMode;
         dom1.className = "R";
         dom1.id = "HighlightMask";
         DomUtils.UI.addElement(_this.node = dom1);
-        _this.timer = setInterval(_this.Remove, _this.timeout);
+        _this.timer = setInterval(_this.Remove, 200);
       }
-      dom1.style.borderColor = request.frameId !== -1 ? "yellow" : "lightsalmon";
+      dom1.style.borderColor = request.frameId === -1 ? "lightsalmon"
+        : request.frameId === -2 ? "cornflowerblue" : "yellow";
     },
     Remove: function() {
       var _this = FrameMask;
