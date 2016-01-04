@@ -7,7 +7,7 @@ function decodeHash() {
     url = url.substring(8);
     type = "image";
   }
-  try {
+  if (url.indexOf("://") === -1) try {
     url = decodeURIComponent(url);
   } catch (e) {}
 
