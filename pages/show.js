@@ -1,51 +1,61 @@
 "use strict";
-var $ = document.getElementById.bind(document), shownNode, bgLink;
+var $ = document.getElementById.bind(document),
+    shownNode, bgLink = $('bgLink'),
+    url, type, file;
+
 function decodeHash() {
-  var url, type, node;
+  type = file = "";
   url = location.hash;
   if (url.lastIndexOf("#!image=", 0) === 0) {
     url = url.substring(8);
     type = "image";
   }
-  if (url.indexOf("://") === -1) try {
-    url = decodeURIComponent(url);
-  } catch (e) {}
+  var ind = url.lastIndexOf("&download=");
+  if (ind > 0) {
+    file = decodeURLPart(url.substring(ind + 10));
+    url = url.substring(0, ind);
+  }
+  if (url.indexOf("://") === -1) {
+    url = decodeURLPart(url);
+  }
+  bgLink.setAttribute("data-vim-url", url);
+  bgLink.setAttribute("data-vim-text", file);
+  bgLink.download = file;
 
+  shownNode = null;
   switch (type) {
   case "image":
     shownNode = $("shownImage");
     shownNode.src = url;
-    shownNode.onclick = function() {
-      clickLink(this.src, {
-        target: "_blank"
-      });
-    };
-    bgLink = $('bgLink');
-    bgLink.setAttribute('data-vim-url', url);
+    shownNode.onclick = openByDefault;
     bgLink.style.display = "none";
     shownNode.onload = function() {
       bgLink.style.height = this.height + "px";
       bgLink.style.width = this.width + "px";
       bgLink.style.display = "";
-      bgLink.onclick = function() {
-        shownNode.click();
-      };
     };
     shownNode.onerror = function() {
-      setTimeout(function(){
+      setTimeout(function() {
         shownNode.onload();
       }, 34);
-    }
+    };
     break;
   default:
-    node = $("shownImage");
-    node.src = "../icons/vimium.png";
-    node.style.display = "";
+    url = "";
+    shownNode = $("shownImage");
+    shownNode.src = "../icons/vimium.png";
     break;
   }
 
   if (shownNode) {
+    shownNode.setAttribute("download", file);
     shownNode.style.display = "";
+    bgLink.onclick = function(event) {
+      event.preventDefault();
+      shownNode.onclick(event);
+    };
+  } else {
+    bgLink.onclick = openByDefault;
   }
 }
 
@@ -55,23 +65,40 @@ decodeHash();
 window.addEventListener("keydown", function(event) {
   var str;
   if (!(event.ctrlKey || event.metaKey) || event.altKey
-    || event.shiftKey || !shownNode) { return; }
+    || event.shiftKey || !url) { return; }
   str = String.fromCharCode(event.keyCode);
   if (str === 'S') {
-    if (str = shownNode.src) {
-      event.preventDefault();
-      clickLink(str, {
-        download: ""
-      });
-    }
+    event.preventDefault();
+    clickLink({
+      download: file
+    }, event);
   }
 });
 
-function clickLink(url, options) {
+function clickLink(options, event) {
   var a = document.createElement('a'), i;
   for (i in options) {
     a.setAttribute(i, options[i]);
   }
   a.href = url;
-  a.click();
+  if (window.DomUtils) {
+    DomUtils.simulateClick(a, event);
+  } else {
+    a.click();
+  }
+}
+
+function decodeURLPart(url) {
+  try {
+    url = decodeURIComponent(url);
+  } catch (e) {}
+  return url;
+}
+
+function openByDefault(event) {
+  clickLink(event.altKey ? {
+    download: file
+  } : {
+    target: "_blank"
+  }, event);  
 }
