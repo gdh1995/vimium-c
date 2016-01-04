@@ -78,7 +78,7 @@ var Settings = {
       }
     },
     newTabUrl: function(url) {
-      url = /^\/?pages\/[a-zA-Z0-9_%]+.html?/.test(url)
+      url = /^\/?pages\/\S[\S ]*.html?\b/.test(url)
         ? chrome.runtime.getURL(url) : Utils.convertToUrl(url);
       if (this.get("newTabUrl_f") !== url) { this.setUnique('newTabUrl_f', url); }
       else { this.postUpdate('newTabUrl_f', url); }
