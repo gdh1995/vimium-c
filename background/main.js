@@ -163,11 +163,23 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
           scope: tab.incognito ? "incognito_session_only" : "regular",
           setting: (opt && opt.setting === "allow") ? "block" : "allow"
         }, function() {
+          var tabId = tab.id;
           if (currentCommand.options.action === "reopen") {
             ++tab.index;
             funcDict.reopenTab(tab);
+          } else if (tab.index > 0) {
+            chrome.tabs.remove(tabId, function() {
+              chrome.tabs.get(tabId, function(tab) {
+                if (chrome.runtime.lastError) {
+                  chrome.sessions.restore();
+                } else {
+                  chrome.tabs.reload(tab.id);
+                }
+                return chrome.runtime.lastError;
+              });
+            });
           } else {
-            chrome.tabs.reload(tab.id);
+            chrome.tabs.reload(tabId);
           }
         });
       });
