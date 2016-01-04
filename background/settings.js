@@ -32,18 +32,6 @@ var Settings = {
       ref.call(this, value, key);
     }
   },
-  setUnique: function(key, value) {
-    this._buffer[key] = value; this.keyToSet.push(key);
-    this.timerForSet || (this.timerForSet = setTimeout(this.OnUnique, 17));
-  },
-  OnUnique: function() { // has been bound
-    var _t = Settings, ref = _t.keyToSet, i = ref.length, key, vals = _t._buffer;
-    _t.keyToSet = []; _t.timerForSet = 0;
-    while (0 <= --i) {
-      key = ref[i];
-      _t.set(key, vals[key]);
-    }
-  },
   postUpdate: function(key, value) {
     this.updateHooks[key].call(this, value !== undefined ? value : this.get(key), key);
   },
@@ -80,8 +68,7 @@ var Settings = {
     newTabUrl: function(url) {
       url = /^\/?pages\/\S[\S ]*.html?\b/.test(url)
         ? chrome.runtime.getURL(url) : Utils.convertToUrl(url);
-      if (this.get("newTabUrl_f") !== url) { this.setUnique('newTabUrl_f', url); }
-      else { this.postUpdate('newTabUrl_f', url); }
+      this.set('newTabUrl_f', url);
     },
     searchEngines: function() {
       this.set("searchEngineMap", Utils.makeNullProto());
