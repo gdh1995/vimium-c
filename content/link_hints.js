@@ -766,17 +766,21 @@ getUrlData: function(link) {
   return link.href;
 },
 
-highlightFrame: function(child) {
+highlightChild: function(child, box) {
   try {
     child.VInsertMode.keydownEvents(VInsertMode.keydownEvents());
   } catch (e) {
     child.focus();
     return;
   }
-  child.MainPort.Listener({
+  var cmd = {
     name: "focusFrame",
     frameId: -2
-  });
+  }
+  if (box) {
+    cmd.box = [box.width, box.height];
+  }
+  child.MainPort.Listener(cmd);
   return false;
 },
 
@@ -941,7 +945,7 @@ FUNC: {
     var mode = this.mode & 3, alterTarget, tag = link.nodeName.toLowerCase();
     this.unhoverLast(link);
     if (tag === "iframe" || tag === "frame") {
-      return this.highlightFrame(link.contentWindow);
+      return this.highlightChild(link.contentWindow, link.getClientRects()[0]);
     }
     if (mode >= 2 && tag === "a") {
       alterTarget = link.getAttribute('target');

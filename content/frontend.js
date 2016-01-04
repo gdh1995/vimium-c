@@ -1114,6 +1114,10 @@ var Settings, VHUD, MainPort, VInsertMode;
         DomUtils.UI.addElement(_this.node = dom1);
         _this.timer = setInterval(_this.Remove, 200);
       }
+      if (request.box) {
+        dom1.style.maxWidth = request.box[0] + "px";
+        dom1.style.maxHeight = request.box[1] + "px";
+      }
       dom1.style.borderColor = request.frameId === -1 ? "lightsalmon"
         : request.frameId === -2 ? "cornflowerblue" : "yellow";
     },
