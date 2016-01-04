@@ -129,6 +129,15 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
       });
       return true;
     },
+    clearCS: function(contentType, tab) {
+      contentType || (contentType = "images");
+      ContentSettings.clear(contentType, tab);
+      currentCommand.port.postMessage({
+        name: "showHUD",
+        text: contentType + " content settings have been cleared.",
+        time: 1500
+      });
+    },
     clear: function(contentType, tab) {
       var cs = chrome.contentSettings[contentType];
       if (tab) {
@@ -141,6 +150,7 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
     toggleCurrent: function(contentType, tab) {
       var pattern = tab.url, _this = this;
       if (this.complaint(pattern)) { return; }
+      contentType || (contentType = "images");
       chrome.contentSettings[contentType].get({
         primaryUrl: pattern,
         incognito: tab.incognito
@@ -165,6 +175,7 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
     ensure: function (contentType, tab) {
       var pattern = tab.url, _this = this;
       if (this.complaint(pattern)) { return; }
+      contentType || (contentType = "images");
       chrome.contentSettings[contentType].get({primaryUrl: pattern, incognito: true }, function(opt) {
         if (!pattern.startsWith("file:")) {
           pattern = _this._urlHeadRe.exec(pattern)[0] + "*";
@@ -640,19 +651,13 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
     moveTabToIncognito: chrome.windows.getCurrent.bind(chrome.windows
       , {populate: true}, funcDict.moveTabToIncognito[0]),
     enableCSTemp: function(tabs) {
-      ContentSettings.ensure(currentCommand.options.type.toLowerCase(), tabs[0]);
+      ContentSettings.ensure(currentCommand.options.type, tabs[0]);
     },
     toggleCS: function(tabs) {
-      ContentSettings.toggleCurrent(currentCommand.options.type.toLowerCase(), tabs[0]);
+      ContentSettings.toggleCurrent(currentCommand.options.type, tabs[0]);
     },
     clearCS: function(tabs) {
-      var type = currentCommand.options.type;
-      ContentSettings.clear(type.toLowerCase(), tabs[0]);
-      currentCommand.port.postMessage({
-        name: "showHUD",
-        text: type + " content settings have been cleared.",
-        time: 1500
-      });
+      ContentSettings.clearCS(currentCommand.options.type, tabs[0]);
     },
     nextTab: function(tabs) {
       if (tabs.length <= 0) { return; }
