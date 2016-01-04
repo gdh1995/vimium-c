@@ -680,10 +680,10 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
       funcDict.selectTab(tabs, funcDict.selectFrom(tabs).index - commandCount);
     },
     firstTab: function(tabs) {
-      funcDict.selectTab(tabs, commandCount - 1);
+      funcDict.selectTab(tabs, Math.min(tabs.length, commandCount) - 1);
     },
     lastTab: function(tabs) {
-      funcDict.selectTab(tabs, -commandCount);
+      funcDict.selectTab(tabs, Math.max(0, tabs.length - commandCount));
     },
     removeTab: function(tabs) {
       if (!tabs) { return; }
