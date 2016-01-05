@@ -218,9 +218,8 @@ var exports = {}, Utils = {
       cmd = this.require("MathParser", "math_parser.js");
       if (workType === 0) { return this.tryEvalMath(path); }
       return cmd.then(function(MathParser) {
-         return ["" + MathParser.evaluate(path), "math", path];
-      }).catch(function(e) {
-        return ["", "math", path];
+        var result = Utils.tryEvalMath(path, MathParser) || "";
+        return [result, "math", path];
       });
     } else if (workType === 2) switch (cmd) {
     case "url-copy": case "search-copy": case "search.copy": case "copy-url": 
@@ -251,12 +250,14 @@ var exports = {}, Utils = {
     }
     return null;
   },
-  tryEvalMath: function(expr) {
-    var MathParser = exports.MathParser, result = null;
+  tryEvalMath: function(expr, MathParser) {
+    var result = null;
+    MathParser || (MathParser = exports.MathParser);
     if (MathParser && MathParser.evaluate) {
       try {
         result = "" + MathParser.evaluate(expr);
       } catch (expr) {}
+      MathParser.expression = "";
     }
     return result;
   },
