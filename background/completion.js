@@ -490,19 +490,23 @@ tabs: {
 },
 
 searchEngines: {
-  filter: function(query) {
+  filter: function(query, failIfNull) {
     var obj, sug, q = queryTerms, keyword, pattern, promise;
     if (q.length === 0) {}
     else if ((keyword = q[0])[0] === "\\") {
       q[0] = keyword.substring(1);
       keyword = q.join(" ");
       sug = this.makeUrlSuggestion(keyword, "\\" + keyword);
+      query.onComplete([sug]);
+      return;
     } else {
       pattern = Settings.get("searchEngineMap")[keyword];
     }
     if (!pattern) {
-      query.onComplete(sug ? [sug] : []);
-      return;
+      if (failIfNull !== true) {
+        query.onComplete([]);
+      }
+      return true;
     }
     if (q.length > 1) {
       q.shift();
@@ -522,8 +526,10 @@ searchEngines: {
         switch (keyword[1]) {
         case "search":
           queryTerms = keyword[0];
-          this.filter(query);
-          return;
+          if (this.filter(query, true) !== true) {
+            return;
+          }
+          break;
         }
       }
     } else {
