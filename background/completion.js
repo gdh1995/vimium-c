@@ -555,7 +555,8 @@ searchEngines: {
       if (!arr[0].startsWith("vimium://copy")) {
         sug.url = "vimium://copy " + arr[0];
       }
-      sug.titleSplit = Utils.escapeText(sug.title);
+      sug.titleSplit = "<span class=\"OSTitle\" style=\"text-decoration: none;\">" +
+        Utils.escapeText(sug.title) + "<span>";
       sug.textSplit = Utils.escapeText(arr[2]);
       query.onComplete(output);
     }) : query.onComplete([sug]);
