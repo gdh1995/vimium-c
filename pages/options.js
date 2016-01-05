@@ -65,7 +65,7 @@ function ExclusionRulesOption() {
   ExclusionRulesOption.__super__.constructor.apply(this, arguments);
   $("exclusionAddButton").addEventListener("click", function() { _this.addRule(null); });
   this.element.addEventListener("input", this.onUpdated);
-  this.element.addEventListener("click", function() { _this.onRemoveRow(); });
+  this.element.addEventListener("click", function(e) { _this.onRemoveRow(e); });
 }
 __extends(ExclusionRulesOption, Option);
 
