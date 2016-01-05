@@ -205,6 +205,12 @@ var Settings, VHUD, MainPort, VInsertMode;
             action = 2;
           }
         }
+        else if (key === 219 || key === 91) {
+          if (event.ctrlKey && !(event.shiftKey || event.altKey || event.metaKey)) {
+            InsertMode.exit(event);
+            action = 2;
+          }
+        }
         else if (InsertMode.global) {}
         else if (key >= KeyCodes.f1 && key <= KeyCodes.f12) {
           action = checkValidKey(event, KeyboardUtils.getKeyName(event, event.shiftKey));
