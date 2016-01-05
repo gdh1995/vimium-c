@@ -258,7 +258,7 @@ vomnibarUI: {
     var sel;
     switch(action) {
     case "dismiss":
-      DomUtils.removeSelection(DomUtils.UI.root) || this.hide();
+      DomUtils.UI.removeSelection() || this.hide();
       break;
     case "focus":
       this.input.focus();

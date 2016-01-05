@@ -240,7 +240,7 @@ var Settings, VHUD, MainPort, VInsertMode;
           keyQueue = false;
           currentSeconds = secondKeys[""];
           action = 2;
-        } else if (DomUtils.removeSelection(window)) {
+        } else if (DomUtils.UI.removeSelection(window)) {
           action = 2;
         }
       }

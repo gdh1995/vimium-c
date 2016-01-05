@@ -28,6 +28,19 @@ DomUtils.UI = {
     this.addElement(parent);
     return parent;
   },
+  removeSelection: function(root) {
+    var sel = (root || this.root).getSelection(), el, ind;
+    if (sel.type !== "Range" || !sel.anchorNode) {
+      return false;
+    }
+    if (!root && (el = VInsertMode.lock)) {
+      ind = el.selectionDirection === "forward" ? el.selectionStart : el.selectionEnd;
+      el.setSelectionRange(ind, ind);
+    } else {
+      sel.removeAllRanges();
+    }
+    return true;
+  },
   adjust: null,
   init: function() {
     var el = this.container = DomUtils.createElement("vimium");
