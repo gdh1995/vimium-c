@@ -117,7 +117,7 @@ SuggestionUtils = {
 };
 
 TabRecency = {
-  Array: null,
+  array: null,
   clean: null,
   tabId: null,
   stamp: function() {
@@ -143,7 +143,7 @@ TabRecency = {
       if (chrome.runtime.lastError) { return chrome.runtime.lastError; }
       last = tab.id;
     });
-    this.Array = cache;
+    this.array = cache;
     this.tabId = function() { return last; };
     this.stamp = function() { return stamp; };
   }
@@ -482,7 +482,7 @@ tabs: {
     Decoder.continueToWork();
   },
   computeRecency: function(_0, sessionId) {
-    return TabRecency.Array[sessionId] || 1;
+    return TabRecency.array[sessionId] || 1;
   },
   computeRelevancy: function(suggestion) {
     return RankingUtils.wordRelevancy(suggestion.text, suggestion.title);
@@ -734,7 +734,7 @@ searchEngines: {
     escapeRe: Utils.escapeAllRe,
     get: function(s, p, n) {
       var r = p + s.replace(this.escapeRe, "\\$&") + n, v;
-      return (v = this._cache)[r] || (v[r] = new RegExp(r, (this.upperRe.test(s) ? "" : "i")));
+      return (v = this._cache)[r] || (v[r] = new RegExp(r, this.upperRe.test(s) ? "" : "i"));
     },
     upperRe: Utils.upperRe
   };
