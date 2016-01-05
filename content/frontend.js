@@ -1154,7 +1154,7 @@ var Settings, VHUD, MainPort, VInsertMode;
     },
     showForDuration: function(text, duration) {
       if (this.show(text)) {
-        this.durationTimer = setTimeout(this.hide, duration, false);
+        this.durationTimer = setTimeout(this.hide, duration);
       }
     },
     show: function(text) {
@@ -1204,7 +1204,7 @@ var Settings, VHUD, MainPort, VInsertMode;
         hud.durationTimer = 0;
       }
       hud.opacity = 0;
-      if (immediate) {
+      if (immediate === true) {
         clearInterval(hud.tweenId);
         hud.tweenId = 0;
         el = hud._element;
