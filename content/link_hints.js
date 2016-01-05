@@ -37,8 +37,6 @@ var LinkHints = {
     tab: 0
   },
   handlerId: 0,
-  initScrollY: 0,
-  initScrollX: 0,
   initTimer: 0,
   isActive: false,
   options: null,
@@ -108,7 +106,7 @@ var LinkHints = {
     if (this.hintMarkerContainingDiv) {
       this.hintMarkerContainingDiv.remove();
     }
-    var elements, rect, style, width, height;
+    var elements, rect, style, width, height, x, y;
 
     if (!this.frameNested) {
       elements = this.getVisibleClickableElements();
@@ -125,15 +123,15 @@ var LinkHints = {
     this.alphabetHints.fillInMarkers(this.hintMarkers);
     this.isActive = true;
 
-    this.initScrollX = window.scrollX; this.initScrollY = window.scrollY;
+    x = window.scrollX; y = window.scrollY;
     var container = document.documentElement;
     // NOTE: if zoom > 1, although document.documentElement.scrollHeight is integer,
     //   its real rect may has a float width, such as 471.333 / 472
     rect = container.getBoundingClientRect();
     width = rect.width; height = rect.height;
     width = width !== (width | 0) ? 1 : 0; height = height !== (height | 0) ? 1 : 0;
-    width  = container.scrollWidth  - this.initScrollX - width ;
-    height = container.scrollHeight - this.initScrollY - height;
+    width  = container.scrollWidth  - x - width ;
+    height = container.scrollHeight - y - height;
     width  = Math.max(width,  container.clientWidth );
     height = Math.max(height, container.clientHeight);
     width  = Math.min(width,  window.innerWidth  + 60);
@@ -143,7 +141,7 @@ var LinkHints = {
       className: "R"
     });
     style = this.hintMarkerContainingDiv.style;
-    style.left = this.initScrollX + "px"; style.top = this.initScrollY + "px";
+    style.left = x + "px"; style.top = y + "px";
     style.width = width + "px"; style.height = height + "px";
     if (document.webkitFullscreenElement) { style.position = "fixed"; }
     this.keyStatus.tab = 0;
