@@ -104,6 +104,9 @@ var LinkHints = {
     if (this.options.mode != null) { mode = options.mode; }
     this.setOpenLinkMode(mode);
     handlerStack.remove(this.handlerId);
+    if (this.hintMarkerContainingDiv) {
+      this.hintMarkerContainingDiv.remove();
+    }
     var elements, rect, style, width, height;
 
     if (!this.frameNested) {
@@ -142,6 +145,7 @@ var LinkHints = {
     style.left = this.initScrollX + "px"; style.top = this.initScrollY + "px";
     style.width = width + "px"; style.height = height + "px";
     if (document.webkitFullscreenElement) { style.position = "fixed"; }
+    this.keyStatus.tab = 0;
     this.handlerId = handlerStack.push(this.onKeyDownInMode, this);
     VInsertMode.onWndBlur = this.OnWndBlur;
   },
@@ -603,12 +607,11 @@ var LinkHints = {
     this.handlerId = handlerStack.push(func, this);
   },
   reinit: function() {
-    var mode = this.mode, options = this.options;
-    this.deactivate();
-    this.activate(mode, options);
+    this.isActive = false;
+    this.activate(this.mode, this.options);
   },
   deactivate: function(suppressType) {
-    this.alphabetHints.deactivate();
+    this.alphabetHints.hintKeystroke = "";
     this.linkActivator = null;
     this.hintMarkers = [];
     if (this.hintMarkerContainingDiv) {
@@ -661,6 +664,7 @@ alphabetHints: {
   fillInMarkers: function(hintMarkers) {
     var hintStrings, marker, end;
     this.chars = Settings.values.linkHintCharacters.toUpperCase();
+    this.hintKeystroke = "";
     end = hintMarkers.length;
     hintStrings = this.hintStrings(end);
     while (0 <= --end) {
@@ -745,9 +749,6 @@ alphabetHints: {
       linkMarker.style.display = pass ? "" : "none";
       return pass;
     });
-  },
-  deactivate: function() {
-    this.hintKeystroke = "";
   }
 },
 
