@@ -486,16 +486,13 @@ var LinkHints = {
         return 0;
       }
     } else if (i > KeyCodes.f1 && i <= KeyCodes.f12) {
-      if (i === KeyCodes.f1 + 1) {
-        if (event.shiftKey) {
-          Settings.values.isClickListened = !Settings.values.isClickListened;
-        } else {
-          Settings.values.deepHints = !Settings.values.deepHints;
-        }
-        this.reinit();
-        return 2;
+      if (i !== KeyCodes.f1 + 1) { return 0; }
+      if (event.shiftKey) {
+        Settings.values.isClickListened = !Settings.values.isClickListened;
+      } else {
+        Settings.values.deepHints = !Settings.values.deepHints;
       }
-      return 0;
+      this.reinit();
     } else if (i === KeyCodes.shiftKey) {
       if (this.mode < 128) {
         this.setOpenLinkMode((this.mode | 1) ^ (this.mode < 64 ? 3 : 67));
@@ -571,7 +568,7 @@ var LinkHints = {
     if (this.linkActivator(clickEl) !== false) {
       DomUtils.UI.flashVRect(rect);
     }
-    if ((this.mode & 64) === 64) {
+    if (this.mode & 64) {
       this.reinit();
     } else {
       this.deactivate(true);
@@ -606,11 +603,9 @@ var LinkHints = {
     this.handlerId = handlerStack.push(func, this);
   },
   reinit: function() {
-    var mode = this.mode, linkActivator = this.linkActivator, options = this.options;
+    var mode = this.mode, options = this.options;
     this.deactivate();
-    this.linkActivator = linkActivator;
-    this.options = options;
-    this.activate(mode);
+    this.activate(mode, options);
   },
   deactivate: function(suppressType) {
     this.alphabetHints.deactivate();
@@ -622,6 +617,7 @@ var LinkHints = {
     }
     this.keyStatus.tab = 0;
     handlerStack.remove(this.handlerId);
+    this.handlerId = 0;
     VInsertMode.onWndBlur = null;
     if (this.keepHUDAfterAct) {
       this.keepHUDAfterAct = false;
@@ -633,8 +629,6 @@ var LinkHints = {
     this.isActive = false;
     if (suppressType != null) {
       this.suppressTail(suppressType);
-    } else {
-      this.handlerId = 0;
     }
   },
 
