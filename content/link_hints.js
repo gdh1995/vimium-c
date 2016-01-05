@@ -42,6 +42,7 @@ var LinkHints = {
   initTimer: 0,
   isActive: false,
   options: null,
+  timer: 0,
   activateModeToOpenInNewTab: function() {
     this.activate(this.CONST.OPEN_IN_NEW_BG_TAB);
   },
@@ -573,7 +574,7 @@ var LinkHints = {
       DomUtils.UI.flashVRect(rect);
     }
     if (this.mode & 64) {
-      this.reinit();
+      this.reinit(clickEl, rect);
     } else {
       this.deactivate(true);
     }
@@ -606,9 +607,30 @@ var LinkHints = {
     }
     this.handlerId = handlerStack.push(func, this);
   },
-  reinit: function() {
+  reinit: function(lastEl, rect) {
     this.isActive = false;
     this.activate(this.mode, this.options);
+    this.timer && clearTimeout(this.timer);
+    if (lastEl && this.mode < 128) {
+      this.timer = setTimeout(this.TestLastEl, 255, lastEl, rect);
+    } else {
+      this.timer = 0;
+    }
+  },
+  TestLastEl: function(el, r) {
+    var r2;
+    if (!LinkHints) { return; }
+    LinkHints.timer = 0;
+    if (!LinkHints.isActive || LinkHints.hintMarkers.length > 128
+        || LinkHints.alphabetHints.hintKeystroke) {
+      return;
+    }
+    DomUtils.prepareCrop();
+    r2 = DomUtils.getVisibleClientRect(el);
+    if (r2 && r && Math.abs(r2[0] - r[0]) < 100 && Math.abs(r2[1] - r[1]) < 60) {
+      return;
+    }
+    LinkHints.reinit();
   },
   deactivate: function(suppressType) {
     this.alphabetHints.hintKeystroke = "";
