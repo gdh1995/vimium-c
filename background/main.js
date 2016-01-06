@@ -168,16 +168,7 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
             ++tab.index;
             funcDict.reopenTab(tab);
           } else if (tab.index > 0) {
-            chrome.tabs.remove(tabId, function() {
-              chrome.tabs.get(tabId, function(tab) {
-                if (chrome.runtime.lastError) {
-                  chrome.sessions.restore();
-                } else {
-                  chrome.tabs.reload(tab.id);
-                }
-                return chrome.runtime.lastError;
-              });
-            });
+            funcDict.refreshTab[0](tabId);
           } else {
             chrome.tabs.reload(tabId);
           }
@@ -296,6 +287,17 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
       });
       chrome.tabs.remove(tab.id);
     },
+    refreshTab: [function(tabId) {
+      chrome.tabs.remove(tabId, function() {
+        chrome.tabs.get(tabId, funcDict.refreshTab[1]);
+      });
+    }, function(tab) {
+      if (chrome.runtime.lastError) {
+        chrome.sessions.restore();
+        return chrome.runtime.lastError;
+      }
+      tab && chrome.tabs.reload(tab.id, funcDict.refreshTab[1].bind(null, null));
+    }],
     makeWindow: function(option, state) {
       if (state && Settings.CONST.ChromeVersion >= 44) {
         option.state = state;
