@@ -1403,7 +1403,7 @@ var Settings, VHUD, MainPort, VInsertMode;
     handlerId = handlerStack.push(function(event) {
       if (event.keyCode === KeyCodes.esc && !InsertMode.lock
           && KeyboardUtils.isPlain(event)) {
-        DomUtils.removeSelection(DomUtils.UI.root) || hide();
+        DomUtils.UI.removeSelection() || hide();
         return 2;
       }
       return 0;
