@@ -1,8 +1,8 @@
-Vimium++ [![license](https://img.shields.io/npm/l/express.svg)
-    ](https://github.com/gdh1995/vimium-plus/blob/master/README.md) ![version
-    ](https://img.shields.io/badge/release-v1.50-orange.svg)
-    
+Vimium++
 ========
+[![license](https://img.shields.io/npm/l/express.svg)
+    ](https://github.com/gdh1995/vimium-plus/blob/master/README.md)
+![version](https://img.shields.io/badge/release-v1.50-orange.svg)
 
 A custom Vimium, by gdh1995@qq.com. In the *weidu* directory is 微度新标签页.
 
