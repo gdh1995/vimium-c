@@ -34,7 +34,7 @@ Option.syncToFrontend = [];
 
 Option.prototype._onUpdated = function() {
   this.onUpdated1();
-  Settings.values[this.field] = this.readValueFromElement();
+  Settings.cache[this.field] = this.readValueFromElement();
 };
 
 Option.prototype.fetch = function() {

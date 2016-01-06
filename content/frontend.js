@@ -139,11 +139,11 @@ var Settings, VHUD, MainPort, VInsertMode;
   };
 
   Settings = settings = {
-    values: null,
+    cache: null,
     isLoading: 0,
     onDestroy: {},
     set: function(key, value) {
-      this.values[key] = value;
+      this.cache[key] = value;
       mainPort.port.postMessage({
         handler: "setSetting",
         key: key,
@@ -165,7 +165,7 @@ var Settings, VHUD, MainPort, VInsertMode;
     ReceiveSettings: function(response) {
       var ref = response.load;
       Utils.setNullProto(ref);
-      settings.values = ref;
+      settings.cache = ref;
       clearInterval(settings.isLoading);
       response = response.response;
       requestHandlers[response.name](response);
@@ -365,7 +365,7 @@ var Settings, VHUD, MainPort, VInsertMode;
     Marks: Marks,
 
     toggleSwitchTemp: function(_0, options) {
-      var key = options.key, values = settings.values;
+      var key = options.key, values = settings.cache;
       if (typeof values[key] !== "boolean") {
         HUD.showForDuration("`" + key + "` is not a boolean switch", 2000);
       } else if (values[key] = typeof options.value === "boolean"
@@ -376,7 +376,7 @@ var Settings, VHUD, MainPort, VInsertMode;
       }
     },
     toggleLinkHintCharacters: function(_0, options) {
-      var values = settings.values, val = options.value || "sadjklewcmpgh";
+      var values = settings.cache, val = options.value || "sadjklewcmpgh";
       if (values.linkHintCharacters === val) {
         val = values.linkHintCharacters = values.oldLinkHintCharacters;
         values.oldLinkHintCharacters = "";
@@ -420,10 +420,10 @@ var Settings, VHUD, MainPort, VInsertMode;
       Scroller.scrollTo("x", "max");
     },
     scrollUp: function(count) {
-      Scroller.scrollBy("y", -count * settings.values.scrollStepSize);
+      Scroller.scrollBy("y", -count * settings.cache.scrollStepSize);
     },
     scrollDown: function(count) {
-      Scroller.scrollBy("y", count * settings.values.scrollStepSize);
+      Scroller.scrollBy("y", count * settings.cache.scrollStepSize);
     },
     scrollPageUp: function(count) {
       Scroller.scrollBy("y", -count / 2, "viewSize");
@@ -438,10 +438,10 @@ var Settings, VHUD, MainPort, VInsertMode;
       Scroller.scrollBy("y", count, "viewSize");
     },
     scrollLeft: function(count) {
-      Scroller.scrollBy("x", -count * settings.values.scrollStepSize, "", true);
+      Scroller.scrollBy("x", -count * settings.cache.scrollStepSize, "", true);
     },
     scrollRight: function(count) {
-      Scroller.scrollBy("x", count * settings.values.scrollStepSize, "", true);
+      Scroller.scrollBy("x", count * settings.cache.scrollStepSize, "", true);
     },
     scrollPxUp: function(count) {
       Scroller.scrollBy("y", -count);
@@ -476,10 +476,10 @@ var Settings, VHUD, MainPort, VInsertMode;
       HUD.show("/");
     },
     goPrevious: function() {
-      goBy("prev", settings.values.previousPatterns);
+      goBy("prev", settings.cache.previousPatterns);
     },
     goNext: function() {
-      goBy("next", settings.values.nextPatterns);
+      goBy("next", settings.cache.nextPatterns);
     },
     reload: function() {
       if (window.location.protocol.startsWith("chrome") || DomUtils.isSandboxed()) {
@@ -690,7 +690,7 @@ var Settings, VHUD, MainPort, VInsertMode;
       this.focus = this.lockFocus;
       this.init = null;
       KeydownEvents = new Uint8Array(256);
-      if (settings.values.grabBackFocus && this.loading) {
+      if (settings.cache.grabBackFocus && this.loading) {
         if (activeEl !== document.body) {
           activeEl.blur();
           if (document.activeElement !== document.body) {
@@ -721,7 +721,7 @@ var Settings, VHUD, MainPort, VInsertMode;
       return 0;
     },
     grabBackFocus: function(event) {
-      if (settings.values.grabBackFocus) {
+      if (settings.cache.grabBackFocus) {
         DomUtils.suppressEvent(event);
         event.target.blur();
       } else { // just in case that we open options.html and change its checkbox
@@ -795,7 +795,7 @@ var Settings, VHUD, MainPort, VInsertMode;
   
   updateFindModeQuery = function() {
     var escapeRe, hasNoIgnoreCaseFlag, parsedNonRegexpQuery, pattern, text;
-    findModeQuery.isRe = settings.values.regexFindMode;
+    findModeQuery.isRe = settings.cache.regexFindMode;
     hasNoIgnoreCaseFlag = false;
     findModeQuery.parsedQuery = findModeQuery.rawQuery.replace(/\\./g, function(match) {
       switch (match) {
@@ -946,7 +946,7 @@ var Settings, VHUD, MainPort, VInsertMode;
   findAndFocus = function(count, backwards) {
     var mostRecentQuery, query, handlerId;
     Marks.setPreviousPosition();
-    mostRecentQuery = settings.values.findModeRawQuery;
+    mostRecentQuery = settings.cache.findModeRawQuery;
     if (mostRecentQuery !== findModeQuery.rawQuery) {
       findModeQuery.rawQuery = mostRecentQuery;
       updateFindModeQuery();
@@ -1209,7 +1209,7 @@ var Settings, VHUD, MainPort, VInsertMode;
       }
     },
     enabled: function() {
-      return document.body && settings.values.hideHud === false;
+      return document.body && settings.cache.hideHud === false;
     }
   };
 
@@ -1267,7 +1267,7 @@ var Settings, VHUD, MainPort, VInsertMode;
     },
     settings: settings.ReceiveSettings,
     settingsUpdate: function(response) {
-      var ref = settings.values, i;
+      var ref = settings.cache, i;
       Utils.setNullProto(response);
       delete response.name;
       for (i in response) {

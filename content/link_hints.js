@@ -381,10 +381,10 @@ var LinkHints = {
     if (this.ngIgnored && "*" in filters) {
       this.ngIgnored = container.querySelector('.ng-scope') === null;
     }
-    this.isClickListened = Settings.values.isClickListened;
+    this.isClickListened = Settings.cache.isClickListened;
     for (key in filters) {
       func = filters[key].bind(output);
-      if (Settings.values.deepHints) {
+      if (Settings.cache.deepHints) {
         output.forEach.call(container.querySelectorAll("* /deep/ " + key), func);
         continue;
       }
@@ -491,9 +491,9 @@ var LinkHints = {
     } else if (i > KeyCodes.f1 && i <= KeyCodes.f12) {
       if (i !== KeyCodes.f1 + 1) { return 0; }
       if (event.shiftKey) {
-        Settings.values.isClickListened = !Settings.values.isClickListened;
+        Settings.cache.isClickListened = !Settings.cache.isClickListened;
       } else {
-        Settings.values.deepHints = !Settings.values.deepHints;
+        Settings.cache.deepHints = !Settings.cache.deepHints;
       }
       this.reinit();
     } else if (i === KeyCodes.shiftKey) {
@@ -595,7 +595,7 @@ var LinkHints = {
       };
     } else {
       func = function() { tick = Date.now(); return 2; };
-      tick = Date.now() + Settings.values.keyboard[0];
+      tick = Date.now() + Settings.cache.keyboard[0];
       timer = setInterval(function() {
         if (Date.now() - tick > 150) {
           clearInterval(timer);
@@ -683,7 +683,7 @@ alphabetHints: {
   },
   fillInMarkers: function(hintMarkers) {
     var hintStrings, marker, end;
-    this.chars = Settings.values.linkHintCharacters.toUpperCase();
+    this.chars = Settings.cache.linkHintCharacters.toUpperCase();
     this.hintKeystroke = "";
     end = hintMarkers.length;
     hintStrings = this.hintStrings(end);
