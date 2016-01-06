@@ -6,4 +6,3 @@
 .IH.S{background-color:rgba(255,102,102,.3);border:1px solid #933}
 #HUD{background-color:#ebebeb;border:1px solid #b3b3b3;border-radius:4px 4px 0 0;bottom:0;height:13px;max-width:300px;min-width:150px;padding:3px 3px 2px 3px;position:fixed;right:150px;text-overflow:ellipsis;text-shadow:0 1px 2px #FFF;white-space:nowrap;z-index:2147483645}
 .Flash{box-shadow:0 0 4px 2px #4183C4;padding:1px;pointer-events:none;position:fixed;z-index:2147483647}
-#HighlightMask{border:5px solid #ff0;box-sizing:border-box;height:100%;left:0;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483644}
