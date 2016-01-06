@@ -71,7 +71,7 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
         , bindings && Utils.escapeText(bindings), "</span>\n\t</td>\n\t"
         , '<td class="HelpTd">', bindings && ":", "</td>\n\t"
         , '<td class="HelpTd HelpCommandInfo">'
-        , Utils.escapeText(description).replace('\n', "<br />"));
+        , description);
       if (command) {
         html.push('\n\t\t<span class="HelpCommandName">('
           , command, ")</span>\n\t");
