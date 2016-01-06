@@ -236,7 +236,7 @@ availableCommands: {
   "LinkHints.activateModeToOpenVomnibar": [ "Edit a link text on Vomnibar (use url=true)", 1, false ],
   openCopiedUrlInCurrentTab: [ "Open the clipboard's URL in the current tab", 1, true ],
   openCopiedUrlInNewTab: [ "Open the clipboard's URL in N new tab(s)", 20, true ],
-  enterInsertMode: [ "Enter insert mode", 1, false ],
+  enterInsertMode: [ "Enter insert mode (use code=27, stat=0)", 1, false ],
   focusInput: [ "Focus the first text box on the page. Cycle between them using tab", 0, false ],
   "LinkHints.activateMode": [ "Open a link in the current tab", 1, false ],
   "LinkHints.activateModeToOpenInNewTab": [ "Open a link in a new tab", 1, false ],

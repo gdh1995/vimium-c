@@ -6,6 +6,7 @@
 		"map ? showHelp",
 		"map <a-/> enterInsertMode",
 		"map <c-/> enterInsertMode",
+		"map <a-?> enterInsertMode stat=8",
 		"",
 		"map w scrollPageUp",
 		"map s scrollPageDown",

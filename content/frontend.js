@@ -199,7 +199,8 @@ var Settings, VHUD, MainPort, VInsertMode;
       }
       var keyChar, key = event.keyCode, action = 0;
       if (InsertMode.isActive()) {
-        if (false ? true
+        if (InsertMode.global ? key === InsertMode.global.code
+              && KeyboardUtils.getKeyStat(event) === InsertMode.global.stat
             : key === KeyCodes.esc ? KeyboardUtils.isPlain(event)
             : key === 219 || key === 91 ? KeyboardUtils.getKeyStat(event) === 2
             : false
@@ -463,8 +464,11 @@ var Settings, VHUD, MainPort, VInsertMode;
     performBackwardsFind: function(count) {
       findAndFocus(count, true);
     },
-    enterInsertMode: function() {
-      InsertMode.global = true;
+    enterInsertMode: function(_1, options) {
+      InsertMode.global = {
+        code: options.code || KeyCodes.esc,
+        stat: options.stat || 0
+      };
       HUD.show("Insert mode");
     },
     enterFindMode: function() {
