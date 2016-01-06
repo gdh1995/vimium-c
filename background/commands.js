@@ -27,13 +27,16 @@ var Commands = {
         val = str.substring(ind + 1);
         str = str.substring(0, ind);
       }
-      if (val) try {
-        val = decodeURIComponent(val);
-        val = JSON.parse(val);
-      } catch (e) {}
-      opt[str] = val;
+      opt[str] = val && this.parseDecoded(val);
     }
     return opt;
+  },
+  parseDecoded: function(val) {
+    try {
+      val = decodeURIComponent(val);
+      val = JSON.parse(val);
+    } catch (e) {}
+    return val;
   },
   loadDefaults: function() {
     var defaultMap = this.defaultKeyMappings, available = this.availableCommands
