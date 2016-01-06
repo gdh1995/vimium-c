@@ -226,14 +226,14 @@ availableCommands: {
   reopenTab: [ "Reopen current page", 1, true ],
   toggleViewSource: [ "View page source", 1, true ],
   copyCurrentTitle: [ "Copy current tab's title", 1, true ],
-  copyCurrentUrl: [ "Copy current page's URL (use frame=true)", 1, true ],
-  autoCopy: [ "Copy selected text or current frame's title or url (use url=true)", 1, false ],
+  copyCurrentUrl: [ "Copy current page's URL (use frame=false)", 1, true ],
+  autoCopy: [ "Copy selected text or current frame's title or url (use url=false)", 1, false ],
   autoOpen: [ "Open selected or copied text in a new tab", 1, false ],
   searchAs: [ "Search selected or copied text using current search engine", 1, false ],
   "LinkHints.activateModeToCopyLinkUrl": [ "Copy a link URL to the clipboard", 1, false ],
   "LinkHints.activateModeToCopyLinkText": [ "Copy a link text to the clipboard", 1, false ],
   "LinkHints.activateModeToSearchLinkText": [ "Open or search a link text", 1, false ],
-  "LinkHints.activateModeToOpenVomnibar": [ "Edit a link text on Vomnibar (use url=true)", 1, false ],
+  "LinkHints.activateModeToOpenVomnibar": [ "Edit a link text on Vomnibar (use url=false)", 1, false ],
   openCopiedUrlInCurrentTab: [ "Open the clipboard's URL in the current tab", 1, true ],
   openCopiedUrlInNewTab: [ "Open the clipboard's URL in N new tab(s)", 20, true ],
   enterInsertMode: [ "Enter insert mode (use code=27, stat=0)", 1, false ],
@@ -283,9 +283,9 @@ availableCommands: {
   toggleCS: [ "turn on/off the site's CS (use type)", 1, true ],
   clearCS: [ "clear extension's content settings (use type)", 1, true ],
   "Vomnibar.activate": [
-    "Open URL, bookmark, or history entry\n (use keyword, url=true/<string>)", 1, false ],
+    "Open URL, bookmark, or history entry\n (use keyword='', url=false/<string>)", 1, false ],
   "Vomnibar.activateInNewTab": [
-    "Open URL, bookmark, history entry,\n in a new tab (use url=true/<string>)", 1, false ],
+    "Open URL, bookmark, history entry,\n in a new tab (use url=false/<string>)", 1, false ],
   "Vomnibar.activateTabSelection": [ "Search through your open tabs", 1, false ],
   "Vomnibar.activateBookmarks": [ "Open a bookmark", 1, false ],
   "Vomnibar.activateBookmarksInNewTab": [ "Open a bookmark in a new tab", 1, false ],
@@ -297,7 +297,7 @@ availableCommands: {
   "Marks.activateGotoMode": [ "Go to a mark", 1, false ],
   "Marks.clearLocal": [ "Remove all local marks for this site", 1, false ],
   clearGlobalMarks: [ "Remove all global marks", 1, true ],
-  openUrl: [ "open url (use url: string, newTab: bool)", 20, true ],
+  openUrl: [ "open url (use url, newTab=true)", 20, true ],
   focusOrLaunch: [ 'focus a tab with arg "url" or open it', 1, true ]
 }
 };
