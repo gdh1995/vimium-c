@@ -293,7 +293,6 @@ var Settings, VHUD, MainPort, VInsertMode;
         target = target.shadowRoot;
         target.addEventListener("focus", ELs.onFocus, true);
         target.addEventListener("blur", InsertMode.OnShadowBlur, true);
-        console.log("shadowDOM", "focus", "add");
       }
     },
     onBlur: function(event) {
@@ -316,7 +315,6 @@ var Settings, VHUD, MainPort, VInsertMode;
         // Then, we don't need to worry about ELs or InsertMode being null.
         target.removeEventListener("focus", ELs.onFocus, true);
         target.vimiumBlurred = true;
-        console.log("shadowDOM", "blur", "mark");
       }
     },
     onActivate: function(event) {
@@ -779,7 +777,6 @@ var Settings, VHUD, MainPort, VInsertMode;
       if (this.vimiumBlurred) {
         this.vimiumBlurred = false;
         this.removeEventListener("blur", InsertMode.OnShadowBlur, true);
-        console.log("shadowDOM", "blur", "remove");
       }
       ELs.onBlur(event);
     }
