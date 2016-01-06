@@ -201,8 +201,8 @@ var Settings, VHUD, MainPort, VInsertMode;
       if (InsertMode.isActive()) {
         if (false ? true
             : key === KeyCodes.esc ? KeyboardUtils.isPlain(event)
-            : key !== 219 && key !== 91 ? false
-            : event.ctrlKey && !(event.shiftKey || event.altKey || event.metaKey)
+            : key === 219 || key === 91 ? KeyboardUtils.getKeyStat(event) === 2
+            : false
         ) {
           InsertMode.exit(event);
           action = 2;
