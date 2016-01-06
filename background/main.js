@@ -11,8 +11,6 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
 
   Settings.frameIdsForTab = frameIdsForTab = { __proto__: null };
 
-  Settings.urlForTab = urlForTab = { __proto__: null };
-
   extForTab = { __proto__: null };
 
   needIcon = false;
@@ -888,7 +886,7 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
       var str;
       if (currentCommand.options.frame !== true) {
         str = tabs[0].url;
-      } else if (!(str = urlForTab[tabs[0].id])) {
+      } else if (!needIcon || !(str = urlForTab[tabs[0].id])) {
         currentCommand.port.postMessage({
           name: "execute",
           command: "autoCopy",
@@ -1024,7 +1022,7 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
           }
         } else {
           delete frameIdsForTab[id];
-          delete urlForTab[id];
+          needIcon && (delete urlForTab[id]);
           delete extForTab[id];
         }
         break;
@@ -1374,7 +1372,7 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
 
   Settings.updateHooks.showActionIcon = function (value) {
     needIcon = chrome.browserAction && value ? true : false;
-    if (!needIcon) { urlForTab = Utils.makeNullProto(); }
+    Settings.urlForTab = urlForTab = needIcon ? urlForTab || Utils.makeNullProto() : null;
   };
 
   funcDict.globalCommand = function(command, options) {
