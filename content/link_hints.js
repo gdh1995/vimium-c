@@ -412,7 +412,7 @@ var LinkHints = {
   frameNested: false,
   checkNestedFrame: function(output) {
     var rect, element, str, func;
-    if (document.webkitFullscreenElement !== null) {
+    if (window.frames[0] == null || document.webkitFullscreenElement !== null) {
       this.frameNested = null;
       return;
     }
