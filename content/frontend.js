@@ -285,11 +285,11 @@ var Settings, VHUD, MainPort, VInsertMode;
       else if (findMode) {} // TODO: check findMode
       else if (DomUtils.getEditableType(target)) {
         InsertMode.focus(event);
-        if (target === InsertMode.heldEl) {
+      } else if (target.shadowRoot) {
+        if (target === DomUtils.UI.container) {
           event.stopImmediatePropagation();
-          target.focused = true;
+          return;
         }
-      } else if (target.shadowRoot && target !== DomUtils.UI.container) {
         target = target.shadowRoot;
         target.addEventListener("focus", ELs.onFocus, true);
         target.addEventListener("blur", InsertMode.OnShadowBlur, true);
@@ -304,11 +304,11 @@ var Settings, VHUD, MainPort, VInsertMode;
       } else if (!isEnabledForUrl) {}
       else if (InsertMode.lock === target) {
         InsertMode.lock = null;
-        if (target === InsertMode.heldEl) {
+      } else if (target.shadowRoot) {
+        if (target === DomUtils.UI.container) {
           event.stopImmediatePropagation();
-          target.focused = false;
+          return;
         }
-      } else if (target.shadowRoot && target !== DomUtils.UI.container) {
         target = target.shadowRoot;
         // NOTE: if destroyed, this page must have lost its focus before, so
         // a blur event must have been bubbled from shadowRoot to a real lock.
@@ -727,10 +727,6 @@ var Settings, VHUD, MainPort, VInsertMode;
       } else { // just in case that we open options.html and change its checkbox
         this.lockFocus(event);
       }
-    },
-    holdFocus: function(event) {
-      if (this.heldEl === event.target) { event.stopImmediatePropagation(); }
-      this.lockFocus(event);
     },
     lockFocus: function(event) {
       var target = event.target;
@@ -1237,8 +1233,20 @@ var Settings, VHUD, MainPort, VInsertMode;
       r.reset(request);
       r.init = null;
       DomUtils.UI.adjust = function() {
-        this.root.addEventListener("focus", ELs.onFocus, true);
-        this.root.addEventListener("blur", ELs.onBlur, true);
+        this.root.addEventListener("focusin", function(event) {
+          var target;
+          if (findMode) {} // TODO: check findMode
+          else if (DomUtils.getEditableType(target = event.target)) {
+            InsertMode.lock = target;
+            target.focused = true;
+          }
+        });
+        this.root.addEventListener("focusout", function(event) {
+          if (InsertMode.lock === event.target) {
+            InsertMode.lock = null;
+            event.target.focused = false;
+          }
+        });
         var func = this.adjust = function() {
           (document.webkitFullscreenElement || document.documentElement
             ).appendChild(DomUtils.UI.container);
