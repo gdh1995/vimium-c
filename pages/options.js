@@ -42,16 +42,21 @@ Option.prototype.fetch = function() {
 };
 
 Option.prototype.save = function() {
-  var value = this.readValueFromElement();
-  if (!this.areEqual(value, this.previous)) {
-    bgSettings.set(this.field, this.previous = value);
-    value = bgSettings.get(this.field);
-    if (this.previous !== value) {
-      this.populateElement(this.previous = value);
-    }
-    if (this.field in bgSettings.bufferToLoad) {
-      Option.syncToFrontend.push(this.field);
-    }
+  var value = this.readValueFromElement(), previous = this.previous, notJSON = true;
+  if (typeof value === "object") {
+    previous = JSON.stringify(this.previous);
+    if (JSON.stringify(value) === previous) { return; }
+    notJSON = false;
+  } else if (value === previous) {
+    return;
+  }
+  bgSettings.set(this.field, value);
+  this.previous = value = bgSettings.get(this.field);
+  if (previous !== (notJSON ? value : JSON.stringify(value))) {
+    this.populateElement(value);
+  }
+  if (this.field in bgSettings.bufferToLoad) {
+    Option.syncToFrontend.push(this.field);
   }
 };
 
