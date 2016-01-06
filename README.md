@@ -22,7 +22,7 @@ __微度新标签页 (X New Tab Page):__
     天气、云壁纸、快速搜索等插件，为用户提供最快捷的上网方式。
 * 微度新标签页: [www.weidunewtab.com](http://www.weidunewtab.com/);
     X New Tab Page: [www.newtabplus.com](http://www.newtabplus.com/).
-* its official online version supporting mulit browsers:
+* its official online version supporting multi browsers:
     [www.94994.com](http://www.94994.com/).
 * selected only one language: zh_CN.UTF-8.
 * some is customized.
