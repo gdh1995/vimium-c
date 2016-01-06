@@ -886,7 +886,9 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
     },
     copyCurrentUrl: function(tabs) {
       var str;
-      if (currentCommand.options.frame === true && !(str = urlForTab[tabs[0].id])) {
+      if (currentCommand.options.frame !== true) {
+        str = tabs[0].url;
+      } else if (!(str = urlForTab[tabs[0].id])) {
         currentCommand.port.postMessage({
           name: "execute",
           command: "autoCopy",
@@ -894,8 +896,6 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
           options: { url: true }
         });
         return;
-      } else {
-        str = tabs[0].url;
       }
       Clipboard.copy(str);
       currentCommand.port.postMessage({name: "showCopied", text: str});
