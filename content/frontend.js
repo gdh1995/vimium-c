@@ -1108,7 +1108,7 @@ var Settings, VHUD, MainPort, VInsertMode;
         _this.more = true;
       } else {
         dom1 = DomUtils.createElement("div");
-        dom1.setAttribute("style", "background:none;border:5px solid yellow;box-sizing:border-box;"
+        dom1.setAttribute("style", "background:none;border:5px solid yellow;box-sizing:border-box;display:block;"
           + "height:100%;left:0;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483644;");
         (document.webkitFullscreenElement || document.documentElement).appendChild(_this.node = dom1);
         _this.timer = setInterval(_this.Remove, 200);
