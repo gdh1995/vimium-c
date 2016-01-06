@@ -59,6 +59,10 @@ Option.prototype.areEqual = function(a, b) {
   return a === b;
 };
 
+Option.areJSONEqual = function(a, b) {
+  return JSON.stringify(a) === JSON.stringify(b);
+};
+
 function ExclusionRulesOption() {
   var _this = this;
   this.template = $('exclusionRuleTemplate').content.children[0];
@@ -147,9 +151,7 @@ ExclusionRulesOption.prototype.flatten = function(rule) {
   return (rule && rule.pattern) ? (rule.pattern + "\r" + rule.passKeys) : "";
 };
 
-ExclusionRulesOption.prototype.areEqual = function(a, b) {
-  return a.map(this.flatten).join("\n") === b.map(this.flatten).join("\n");
-};
+ExclusionRulesOption.prototype.areEqual = Option.areJSONEqual;
 
 ExclusionRulesOption.prototype.getPattern = function(element) {
   return element.querySelector(".pattern");

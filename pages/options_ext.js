@@ -79,6 +79,8 @@ JSONOption.prototype.readValueFromElement = function() {
   return obj;
 };
 
+JSONOption.prototype.areEqual = Option.areJSONEqual;
+
 function CheckBoxOption() {
   CheckBoxOption.__super__.constructor.apply(this, arguments);
   this.element.addEventListener("change", this.onUpdated);
