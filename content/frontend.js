@@ -677,7 +677,7 @@ var Settings, VHUD, MainPort, VInsertMode;
 
   VInsertMode = InsertMode = {
     focus: null,
-    global: false,
+    global: null,
     handlerId: 0,
     heldEl: false,
     last: null,
@@ -764,7 +764,7 @@ var Settings, VHUD, MainPort, VInsertMode;
         DomUtils.getEditableType(target) && target.blur();
       }
       if (this.global) {
-        this.lock = null; this.global = false;
+        this.lock = null; this.global = null;
         HUD.hide(true);
       }
     },
