@@ -199,17 +199,13 @@ var Settings, VHUD, MainPort, VInsertMode;
       }
       var keyChar, key = event.keyCode, action = 0;
       if (InsertMode.isActive()) {
-        if (key === KeyCodes.esc) {
-          if (KeyboardUtils.isPlain(event)) {
-            InsertMode.exit(event);
-            action = 2;
-          }
-        }
-        else if (key === 219 || key === 91) {
-          if (event.ctrlKey && !(event.shiftKey || event.altKey || event.metaKey)) {
-            InsertMode.exit(event);
-            action = 2;
-          }
+        if (false ? true
+            : key === KeyCodes.esc ? KeyboardUtils.isPlain(event)
+            : key !== 219 && key !== 91 ? false
+            : event.ctrlKey && !(event.shiftKey || event.altKey || event.metaKey)
+        ) {
+          InsertMode.exit(event);
+          action = 2;
         }
         else if (InsertMode.global) {}
         else if (key >= KeyCodes.f1 && key <= KeyCodes.f12) {
