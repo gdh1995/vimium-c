@@ -51,7 +51,7 @@ Option.prototype.save = function() {
     if (value === JSON.stringify(bgSettings.defaults[this.field])) {
       value = bgSettings.defaults[this.field];
     } else {
-      value = JSON.parse(value);
+      value = BG.JSON.parse(value);
     }
   } else if (value === previous) {
     return;
