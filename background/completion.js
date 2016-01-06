@@ -500,7 +500,7 @@ searchEngines: {
       query.onComplete([sug]);
       return;
     } else {
-      pattern = Settings.get("searchEngineMap")[keyword];
+      pattern = Settings.cache.searchEngineMap[keyword];
     }
     if (!pattern) {
       if (failIfNull !== true) {

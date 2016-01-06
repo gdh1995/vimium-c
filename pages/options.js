@@ -14,7 +14,7 @@ $ = document.getElementById.bind(document);
 BG = chrome.extension.getBackgroundPage();
 bgSettings = BG.Settings;
 bgExclusions = BG.Exclusions;
-$("exclusionScrollBox").innerHTML = bgSettings.get("exclusionTemplate");
+$("exclusionScrollBox").innerHTML = bgSettings.cache.exclusionTemplate;
 
 function Option(element, onUpdated) {
   this.element = element;

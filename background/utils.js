@@ -289,7 +289,7 @@ var exports = {}, Utils = {
   searchWordRe2: /([^\\]|^)%([sS])/g,
   searchVariable: /\$([\d])/g,
   createSearchUrl: function(query, keyword) {
-    var url, pattern = Settings.get("searchEngineMap")[keyword || query[0]];
+    var url, pattern = Settings.cache.searchEngineMap[keyword || query[0]];
     if (pattern) {
       if (!keyword) { query.shift(); }
       url = this.createSearch(query, pattern);

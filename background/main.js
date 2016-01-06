@@ -32,7 +32,7 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
     showUnbound = showUnbound ? true : false;
     showNames = showNames ? true : false;
     customTitle || (customTitle = "Help");
-    dialogHtml = Settings.get("helpDialog");
+    dialogHtml = Settings.cache.helpDialog;
     return dialogHtml.replace(new RegExp("\\{\\{(version|title|" +
         Object.keys(Commands.commandGroups).join('|') + ")\\}\\}", "g"), function(_, group) {
       return (group === "version") ? Settings.CONST.CurrentVersion
@@ -547,7 +547,7 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
       wnds = wnds.filter(function(wnd) { return wnd.type === "normal"; });
       if (wnds.length <= 1) {
         // protect the last window
-        url = Settings.get("newTabUrl_f");
+        url = Settings.cache.newTabUrl_f;
         if (wnds.length === 1 && wnds[0].incognito && !Utils.isRefusingIncognito(url)) {
           windowId = wnds[0].id;
         }
@@ -558,7 +558,7 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
         wnds = wnds.filter(function(wnd) { return !wnd.incognito; });
         if (wnds.length === 1 && wnds[0].id === tab.windowId) {
           windowId = tab.windowId;
-          url = Settings.get("newTabUrl_f");
+          url = Settings.cache.newTabUrl_f;
         }
       }
       if (url != null) {
@@ -997,7 +997,7 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
         });
         break;
       case "reg":
-        ref = Settings.get("userDefinedOuterCss");
+        ref = Settings.cache.userDefinedOuterCss;
         ref && port.postMessage({
           name: "insertCSS",
           css: ref
@@ -1101,7 +1101,7 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
       var key = request.key;
       Settings.set(key, request.value);
       if (Settings.valuesToLoad.indexOf(key) >= 0) {
-        Settings.bufferToLoad[key] = Settings.get(key);
+        Settings.bufferToLoad[key] = Settings.cache[key];
       }
     },
     parseSearchUrl: function(request) {
@@ -1110,7 +1110,7 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
       if (!(Utils.hasOrdinaryUrlPrefix(url) || url.startsWith("chrome-"))) {
         return null;
       }
-      decoders = Settings.get("searchEngineRules");
+      decoders = Settings.cache.searchEngineRules;
       if (url.startsWith("http")) {
         _i = url.charAt(4) === 's' ? 8 : 7;
         url = url.substring(_i);
@@ -1294,12 +1294,12 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
     },
     initVomnibar: function() {
       return {
-        html: Settings.get("vomnibar"),
-        relevancy: Settings.get("showOmniRelevancy")
+        html: Settings.cache.vomnibar,
+        relevancy: Settings.cache.showOmniRelevancy
       };
     },
     initInnerCSS: function() {
-      return Settings.get("innerCss");
+      return Settings.cache.innerCss;
     },
     omni: function(request, port) {
       var key = request.query;
@@ -1455,6 +1455,8 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
   setTimeout(function() {
     Exclusions.setRules(Settings.get("exclusionRules"));
     Settings.postUpdate("bufferToLoad", null);
+    Settings.get("userDefinedOuterCss", true);
+    Settings.get("showOmniRelevancy", true);
 
     chrome.runtime.onConnect.addListener(funcDict.globalConnect);
     chrome.runtime.onConnectExternal.addListener(funcDict.globalConnect);

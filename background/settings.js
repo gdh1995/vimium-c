@@ -1,25 +1,28 @@
 "use strict";
 var Settings = {
   __proto__: null,
-  _buffer: { __proto__: null },
+  cache: { __proto__: null },
   bufferToLoad: null,
   frameIdsForTab: null,
   keyToSet: [],
   timerForSet: 0,
   urlForTab: null,
   extIds: null,
-  get: function(key) {
-    if (key in this._buffer) {
-      return this._buffer[key];
-    } else {
-      return this._buffer[key] = !(key in localStorage) ? this.defaults[key]
+  get: function(key, forCache) {
+    if (key in this.cache) {
+      return this.cache[key];
+    }
+    var value = !(key in localStorage) ? this.defaults[key]
         : (key in this.NonJSON) ? localStorage[key]
         : JSON.parse(localStorage[key]);
+    if (forCache) {
+      this.cache[key] = value;
     }
+    return value;
   },
   set: function(key, value) {
     var ref;
-    this._buffer[key] = value;
+    this.cache[key] = value;
     if (key in this.nonPersistent) {
     } else if (value === this.defaults[key]) {
       delete localStorage[key];
@@ -79,9 +82,9 @@ var Settings = {
       this.set("searchEngineRules", rules);
     },
     searchUrl: function(str) {
-      var map = this.get("searchEngineMap"), obj, ind;
+      var map, obj, ind;
       if (str) {
-        Utils.parseSearchEngines("~:" + str, map);
+        Utils.parseSearchEngines("~:" + str, map = this.cache.searchEngineMap);
         obj = map["~"];
         str = obj.url.replace(Utils.spacesRe, "%20");
         if (obj.name) { str += " " + obj.name; }
@@ -89,14 +92,14 @@ var Settings = {
           this.set("searchUrl", str);
           return;
         }
-      } else if (str = this.get("newTabUrl_f")) {
+      } else if (str = this.get("newTabUrl_f", true)) {
         this.updateHooks.newTabUrl_f(str);
         return;
       } else {
         str = this.get("searchUrl");
         ind = str.indexOf(" ");
         if (ind > 0) { str = str.substring(0, ind); }
-        map["~"] = { url: str };
+        this.get("searchEngineMap", true)["~"] = { url: str };
       }
       this.postUpdate("newTabUrl");
     },
@@ -112,7 +115,7 @@ var Settings = {
       this.postUpdate("broadcast", {
         name: "insertInnerCss",
         onReady: true,
-        css: this.get("innerCss")
+        css: this.cache.innerCss
       });
     },
     userDefinedOuterCss: function(css) {
