@@ -32,12 +32,14 @@ function TextOption() {
 }
 __extends(TextOption, Option);
 
+TextOption.prototype.headWhiteRe = /\n /g;
+TextOption.prototype.whiteMaskRe = /\xa0/g;
 TextOption.prototype.populateElement = function(value) {
-  return this.element.value = value.replace(/\n /g, '\n\xa0');
+  return this.element.value = value.replace(this.headWhiteRe, '\n\xa0');
 };
 
 TextOption.prototype.readValueFromElement = function() {
-  return this.element.value.trim().replace(/\xa0/g, ' ');
+  return this.element.value.trim().replace(this.whiteMaskRe, ' ');
 };
 
 function NonEmptyTextOption(element) {
@@ -60,7 +62,7 @@ function JSONOption() {
 __extends(JSONOption, TextOption);
 
 JSONOption.prototype.populateElement = function(obj) {
-  return JSONOption.__super__.populateElement.call(this, JSON.stringify(obj));
+  return JSONOption.__super__.populateElement.call(this, JSON.stringify(obj, null, 2));
 };
 
 JSONOption.prototype.readValueFromElement = function() {
