@@ -64,16 +64,15 @@ JSONOption.prototype.populateElement = function(obj) {
 };
 
 JSONOption.prototype.readValueFromElement = function() {
-  var value = JSONOption.__super__.readValueFromElement.call(this), obj, std;
-  obj = std = bgSettings.defaults[this.field];
+  var value = JSONOption.__super__.readValueFromElement.call(this), obj;
   if (value) {
     try {
       obj = JSON.parse(value);
-      if (JSON.stringify(obj) == JSON.stringify(std)) {
-        obj = std;
-      }
-    } catch (e) {}
+    } catch (e) {
+      obj = null;
+    }
   } else {
+    obj = bgSettings.defaults[this.field];
     this.populateElement(obj);
   }
   return obj;

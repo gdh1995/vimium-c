@@ -44,9 +44,15 @@ Option.prototype.fetch = function() {
 Option.prototype.save = function() {
   var value = this.readValueFromElement(), previous = this.previous, notJSON = true;
   if (typeof value === "object") {
+    value = JSON.stringify(value);
     previous = JSON.stringify(this.previous);
-    if (JSON.stringify(value) === previous) { return; }
+    if (value === previous) { return; }
     notJSON = false;
+    if (value === JSON.stringify(bgSettings.defaults[this.field])) {
+      value = bgSettings.defaults[this.field];
+    } else {
+      value = JSON.parse(value);
+    }
   } else if (value === previous) {
     return;
   }
@@ -145,9 +151,6 @@ ExclusionRulesOption.prototype.readValueFromElement = function(part) {
       pattern: pattern,
       passKeys: passKeys
     });
-  }
-  if (JSON.stringify(rules) === JSON.stringify(bgSettings.defaults[this.field])) {
-    rules = bgSettings.defaults[this.field];
   }
   return rules;
 };
