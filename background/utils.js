@@ -203,6 +203,7 @@ var exports = {}, Utils = {
       path = path.substring(0, ind);
     }
     if (!(this._fileExtRe.test(path) || this._queryRe.test(path))) {
+      path = path.toLowerCase();
       if (tempStr = this.vimiumFiles[path]) {
         path = tempStr;
       } else {
@@ -225,7 +226,7 @@ var exports = {}, Utils = {
     var ind, cmd;
     path = path.trim();
     if (!path || !(workType >= 0) || (ind = path.indexOf(" ")) <= 0 ||
-        !this._vimiumCmdRe.test(cmd = path.substring(0, ind)) ||
+        !this._vimiumCmdRe.test(cmd = path.substring(0, ind).toLowerCase()) ||
         cmd.endsWith(".html") || cmd.endsWith(".js") || cmd.endsWith(".css")) {
       return null;
     }
