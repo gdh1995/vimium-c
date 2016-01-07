@@ -218,6 +218,7 @@ var exports = {}, Utils = {
   vimiumFiles: {
     help: "https://github.com/philc/vimium/wiki",
     license: "/MIT-LICENSE.txt",
+    popup: "options.html",
     readme: "/README.md",
     __proto__: null
   },
@@ -265,6 +266,8 @@ var exports = {}, Utils = {
         return [arr, "search"];
       }
       return this.createSearchUrl(arr);
+    case "newtab":
+      return Settings.cache.newTabUrl_f;
     }
     return null;
   },
