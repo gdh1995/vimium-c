@@ -28,7 +28,6 @@ function decodeHash() {
     shownNode = $("shownImage");
     shownNode.src = url;
     shownNode.onclick = openByDefault;
-    bgLink.style.display = "none";
     shownNode.onload = function() {
       bgLink.style.height = this.height + "px";
       bgLink.style.width = this.width + "px";
@@ -44,6 +43,7 @@ function decodeHash() {
     url = "";
     shownNode = $("shownImage");
     shownNode.src = "../icons/vimium.png";
+    bgLink.style.display = "";
     break;
   }
 
