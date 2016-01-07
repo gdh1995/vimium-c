@@ -732,7 +732,7 @@ var Settings, VHUD, MainPort, VInsertMode;
       var target = event.target;
       // NOTE: should not filter out `<select>` for windows
       this.lock = target;
-      if (this.mutable && this.heldEl !== target) {
+      if (this.mutable) {
         this.last = target;
       }
     },
