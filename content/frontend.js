@@ -1248,12 +1248,14 @@ var Settings, VHUD, MainPort, VInsertMode;
             event.target.focused = false;
           }
         });
-        var func = this.adjust = function() {
+        this.adjust = function() {
           (document.webkitFullscreenElement || document.documentElement
             ).appendChild(DomUtils.UI.container);
         };
-        func();
-        document.addEventListener("webkitfullscreenchange", func);
+        document.addEventListener("webkitfullscreenchange", this.adjust);
+        if (document.webkitFullscreenElement) {
+          document.webkitFullscreenElement.appendChild(this.container);
+        }
       };
     },
     reset: function(request) {
