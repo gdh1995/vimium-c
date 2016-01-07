@@ -217,9 +217,9 @@ var exports = {}, Utils = {
   },
   vimiumFiles: {
     help: "https://github.com/philc/vimium/wiki",
-    license: "/MIT-LICENSE.txt",
+    license: "https://raw.githubusercontent.com/gdh1995/vimium-plus/master/MIT-LICENSE.txt",
     popup: "options.html",
-    readme: "/README.md",
+    readme: "https://github.com/gdh1995/vimium-plus/blob/master/README.md",
     __proto__: null
   },
   _vimiumCmdRe: /^[a-z][0-9a-z\-]*(?:\.[a-z][0-9a-z\-]*)*$/i,
