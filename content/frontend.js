@@ -1371,7 +1371,6 @@ var Settings, VHUD, MainPort, VInsertMode;
       container.remove();
       Commands.showHelp = oldShowHelp;
       container = null;
-      delete settings.onDestroy.helpDialog;
     };
     showAdvancedCommands = function(visible) {
       var advancedEls, el, _i, _len;
@@ -1385,7 +1384,6 @@ var Settings, VHUD, MainPort, VInsertMode;
       }
     };
     
-    settings.onDestroy.helpDialog = hide;
     oldShowHelp = Commands.showHelp;
     container.querySelector("#AdvancedCommands").onclick = function() {
       shouldShowAdvanced = !shouldShowAdvanced;
@@ -1479,9 +1477,6 @@ var Settings, VHUD, MainPort, VInsertMode;
     DomUtils.UI.container && DomUtils.UI.container.remove();
 
     clearInterval(settings.isLoading);
-    clearInterval(FrameMask.timer);
-    clearInterval(HUD.tweenId);
-    clearTimeout(HUD.durationTimer);
 
     var ref = settings.onDestroy, i;
     Utils.setNullProto(ref);
