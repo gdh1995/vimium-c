@@ -1,7 +1,7 @@
 Vimium++
 ========
-[![license](https://img.shields.io/npm/l/express.svg)](MIT-LICENSE.txt)
-![version](https://img.shields.io/badge/release-v1.50-orange.svg)
+[![license](https://img.shields.io/badge/license-MIT-blue.svg)](MIT-LICENSE.txt)
+![version](https://img.shields.io/badge/release-1.50-orange.svg)
 
 A custom Vimium, by gdh1995@qq.com. In the *weidu* directory is 微度新标签页.
 
