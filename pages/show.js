@@ -17,6 +17,9 @@ function decodeHash() {
   }
   if (url.indexOf("://") === -1) {
     url = decodeURLPart(url);
+    if (url.indexOf("://") === -1) {
+      url = chrome.runtime.getURL(url);
+    }
   }
   bgLink.setAttribute("data-vim-url", url);
   bgLink.setAttribute("data-vim-text", file);
