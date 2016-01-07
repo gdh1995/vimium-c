@@ -179,7 +179,7 @@ w|wiki:\\\n  http://www.wikipedia.org/w/index.php?search=$s Wikipedia (en-US)",
   files: {
     __proto__: null,
     baseCSS: "front/vimium.min.css",
-    exclusionTemplate: "pages/exclusions.html",
+    exclusionTemplate: "front/exclusions.html",
     helpDialog: "front/help_dialog.html",
     vomnibar: "front/vomnibar.html"
   },
