@@ -202,7 +202,7 @@ var exports = {}, Utils = {
       query = path.substring(ind + 1).trim();
       path = path.substring(0, ind);
     }
-    if (!this._fileExtRe.test(path)) {
+    if (!(this._fileExtRe.test(path) || this._queryRe.test(path))) {
       path += ".html";
     }
     if (!partly) {
