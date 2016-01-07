@@ -413,7 +413,7 @@ var exports = {}, Utils = {
           if (key.startsWith("http://") || key.startsWith("https://")) {
             key = key.substring(key[4] === 's' ? 8 : 7);
           }
-          rules.push([key, val, ids[0].trimRight(), obj.url.lastIndexOf("$S") ? " " : "+"]);
+          rules.push([key, val, ids[0].trimRight(), obj.url.lastIndexOf("$S") >= 0 ? " " : "+"]);
         }
         str = ind >= 0 ? str.substring(ind + 1) : "";
       } else {
