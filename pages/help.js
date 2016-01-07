@@ -1,1 +1,0 @@
-location.replace("https://github.com/philc/vimium/wiki");

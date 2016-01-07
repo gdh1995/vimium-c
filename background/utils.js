@@ -216,9 +216,9 @@ var exports = {}, Utils = {
     return path + (!query ? "" : (path.indexOf("#") > 0 ? "&" : "#!") + query);
   },
   vimiumFiles: {
-    readme: "/README.md",
-    license: "/MIT-LICENSE.txt",
     help: "https://github.com/philc/vimium/wiki",
+    license: "/MIT-LICENSE.txt",
+    readme: "/README.md",
     __proto__: null
   },
   _vimiumCmdRe: /^[a-z][0-9a-z\-]*(?:\.[a-z][0-9a-z\-]*)*$/i,
