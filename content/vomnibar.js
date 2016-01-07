@@ -108,7 +108,6 @@ vomnibarUI: {
     DomUtils.UI.addElement(this.box);
     this.box.style.display = "";
     this.input.value = this.completionInput.text;
-    VInsertMode.focus = VInsertMode.holdFocus;
     VInsertMode.heldEl = this.input;
     this.input.focus();
     handlerStack.remove(this.handlerId);
