@@ -194,7 +194,7 @@ var exports = {}, Utils = {
   },
   _fileExtRe: /\.\w+$/,
   formatVimiumUrl: function(path, partly) {
-    var ind, query;
+    var ind, query, tempStr;
     path = path.trim();
     if (!path) { return partly ? "" : chrome.runtime.getURL("/pages/"); }
     ind = path.indexOf(" ");
@@ -203,12 +203,22 @@ var exports = {}, Utils = {
       path = path.substring(0, ind);
     }
     if (!(this._fileExtRe.test(path) || this._queryRe.test(path))) {
-      path += ".html";
+      if (tempStr = this.vimiumFiles[path]) {
+        path = tempStr;
+      } else {
+        path += ".html";
+      }
     }
-    if (!partly) {
+    if (!partly && (!tempStr || tempStr.indexOf("://") < 0)) {
       path = chrome.runtime.getURL(path.startsWith("/") ? path : "/pages/" + path);
     }
-    return path + (query ? ("#!" + query) : "");
+    return path + (!query ? "" : (path.indexOf("#") > 0 ? "&" : "#!") + query);
+  },
+  vimiumFiles: {
+    readme: "/README.md",
+    license: "/MIT-LICENSE.txt",
+    help: "https://github.com/philc/vimium/wiki",
+    __proto__: null
   },
   _vimiumCmdRe: /^[a-z][0-9a-z\-]*(?:\.[a-z][0-9a-z\-]*)*$/i,
   evalVimiumUrl: function(path, workType) {
