@@ -335,6 +335,7 @@ vomnibarUI: {
     left = left.substring(0, el.selectionEnd).trimRight();
     if (left.indexOf(" ") === -1) {
       el.setSelectionRange(0, left.length);
+      el.selectionDirection = 'backward';
     }
   },
   onInput: function() {

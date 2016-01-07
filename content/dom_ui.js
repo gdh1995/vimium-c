@@ -34,7 +34,8 @@ DomUtils.UI = {
       return false;
     }
     if (!root && (el = VInsertMode.lock)) {
-      ind = el.selectionDirection === "forward" ? el.selectionStart : el.selectionEnd;
+      ind = el.selectionDirection === "forward" && el.selectionEnd < el.value.length ?
+          el.selectionStart : el.selectionEnd;
       el.setSelectionRange(ind, ind);
     } else {
       sel.removeAllRanges();
