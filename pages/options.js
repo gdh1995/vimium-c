@@ -7,9 +7,16 @@ Option.saveOptions = function() {
 };
 
 Option.needSaveOptions = function() {
-  return !Option.all.every(function(option) {
-    return option.areEqual(option.readValueFromElement(), option.previous);
-  });
+  for (var arr = Option.all, i = arr.length; 0 <= --i; ) {
+    if (!arr[i].saved) {
+      return true;
+    }
+  }
+  return false;
+};
+
+Option.prototype.areEqual = function(a, b) {
+  return this.saved = a === b;
 };
 
 function NumberOption() {

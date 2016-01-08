@@ -25,7 +25,8 @@ function Option(element, onUpdated) {
   }
   this.onUpdated = onUpdated.bind(this);
   this.previous = null;
-  this.fetch();
+  this.saved = true;
+  this.fetch(bgSettings.get(this.field));
   Option.all.push(this);
 }
 
@@ -39,6 +40,7 @@ Option.prototype._onUpdated = function() {
 
 Option.prototype.fetch = function() {
   this.populateElement(this.previous = bgSettings.get(this.field));
+  this.saved = true;
 };
 
 Option.prototype.save = function() {
@@ -66,12 +68,8 @@ Option.prototype.save = function() {
   }
 };
 
-Option.prototype.areEqual = function(a, b) {
-  return a === b;
-};
-
 Option.areJSONEqual = function(a, b) {
-  return JSON.stringify(a) === JSON.stringify(b);
+  return this.saved = JSON.stringify(a) === JSON.stringify(b);
 };
 
 function ExclusionRulesOption() {
