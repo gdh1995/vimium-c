@@ -1861,22 +1861,13 @@ var app = {
 				self.loadJs(appId, function () {
 					self.loadedAppsReady.push(appId);
 					self.runApp(targetObj, appId);
-					if (typeof self.apps[appId]['init'] == "function") {
-						self.apps[appId]['init'](targetObj, self, true)
-					}
 				})
 			}, 0)
-		} else {
-			if (self.loadedAppsReady.indexOf(appId) > -1) {
-				if (typeof self.apps[appId]['init'] == "function") {
-					self.apps[appId]['init'](targetObj, self)
-				}
-			} else {
-				setTimeout(function () {
-					self.loadAppContent(targetObj, appId)
-				}, 350)
-			}
-		}
+		} else if (self.loadedAppsReady.indexOf(appId) === -1) {
+      setTimeout(function () {
+        self.loadAppContent(targetObj, appId)
+      }, 350)
+    }
 	},
 	runApp: function (targetObj, appId, event) {
 		var self = this;
