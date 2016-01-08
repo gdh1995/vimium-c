@@ -84,6 +84,9 @@ var extensions = {
 		extensionItem.find(".actButton.delete").unbind('click').bind('click', function () {
 			if (confirm(getI18nMsg('appItemDelete_confirm'))) {
 				chrome.management.uninstall(extension.id, function () {
+					if (chrome.runtime.lastError) {
+						return chrome.runtime.lastError;
+					}
 					extensionItem.remove()
 				})
 			}

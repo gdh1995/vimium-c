@@ -70,6 +70,9 @@ var cloudApp = {
       '"></a>' : '') + '</li>');
 		appItem.find('.itemDelete').unbind('click').bind('click', function () {
 			chrome.management.uninstall(app.id, function () {
+				if (chrome.runtime.lastError) {
+					return chrome.runtime.lastError;
+				}
 				appItem.remove()
 			})
 		});
