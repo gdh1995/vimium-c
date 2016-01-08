@@ -309,6 +309,7 @@ var importSettings = function(time, event) {
     var key = item.field, new_value = new_data[key];
     delete new_data[key];
     if (new_value == null) {
+      // NOTE: we assume all nullable settings have the same default value: null
       new_value = all[key];
     } else if (new_value.join && (key in strArr)) {
       new_value = new_value.join("\n");
