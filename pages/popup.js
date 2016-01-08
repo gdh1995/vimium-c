@@ -60,6 +60,7 @@ Option.prototype.save = function() {
   }
   bgSettings.set(this.field, value);
   this.previous = value = bgSettings.get(this.field);
+  this.saved = true;
   if (previous !== (notJSON ? value : JSON.stringify(value))) {
     this.populateElement(value);
   }
