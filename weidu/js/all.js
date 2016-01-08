@@ -1843,11 +1843,12 @@ var app = {
 	loadApp: function (targetObj, appId) {
 		var self = this;
 		if (typeof self.apps[appId] != "undefined") {
-			if (self.apps[appId]['type'] == 'immediate') {
+			if (self.apps[appId].type == 'immediate') {
 				self.loadAppContent(targetObj, appId)
 			} else {
 				targetObj.unbind('mouseover').bind('mouseover', function () {
 					self.loadAppContent(targetObj, appId)
+					targetObj.unbind('mouseover')
 				})
 			}
 		}
@@ -1863,11 +1864,7 @@ var app = {
 					self.runApp(targetObj, appId);
 				})
 			}, 0)
-		} else if (self.loadedAppsReady.indexOf(appId) === -1) {
-      setTimeout(function () {
-        self.loadAppContent(targetObj, appId)
-      }, 350)
-    }
+		}
 	},
 	runApp: function (targetObj, appId, event) {
 		var self = this;
