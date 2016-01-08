@@ -14,9 +14,9 @@ var title_fix = (function() {
 		n = c.charCodeAt(0);
 		return (n === 38) ? "&amp;" : "&lt;";
 	};
-  return function (text) {
-    return text ? text.replace(escapeRe, escapeCallback) : "";
-  }
+	return function (text) {
+		return text ? text.replace(escapeRe, escapeCallback) : "";
+	}
 })();
 var I18n = Lang['zh_CN'];
 function getI18nMsg(msgname) {
@@ -84,9 +84,9 @@ function loadScript(src, fn, force) {
 	obj.src = src;
 	obj.charset = 'utf-8';
 	document.head.appendChild(obj);
-  if (fn) {
-    obj.onload = fn;
-  }
+	if (fn) {
+		obj.onload = fn;
+	}
 }
 function loadCss(src, force) {
 	if (force) {
@@ -1196,7 +1196,7 @@ var oauth = {
 var _dialogDown = false, _dialogX = 0, _dialogY = 0, _dialogCx = 0, _dialogCy = 0;
 $(document).bind('contextmenu', function (e) {
 	if (!isContainsClass(e.target, 'dialog')) {
-    var a = $('.dialog-visible');
+		var a = $('.dialog-visible');
 		if (a.length > 0) {
 			a.find('.close').get(0).click()
 		}
@@ -1658,7 +1658,7 @@ var app = {
 			"js": "js/plugin/cloud/cloud.js",
 			"css": "js/plugin/cloud/css/skin_0.css",
 			"loadData": function (dialogObj, targetObj) {
-        cloud.showDialog(dialogObj, targetObj.attr('url') && targetObj, true);
+				cloud.showDialog(dialogObj, targetObj.attr('url') && targetObj, true);
 			},
 			"run": function () {
 				var cloudDialog = $.dialog({
@@ -1999,10 +1999,10 @@ DBOX = {
 		_classificationOpen = false;
 		$(document).unbind('keyup.dialboxEsc').bind('keyup.dialboxEsc', function (e) {
 			if (e.keyCode == 27) {
-        if ($('.dialog-visible').length > 0) {
-          $('.dialog-visible').find('.close').get(0).click()
-          return;
-        }
+				if ($('.dialog-visible').length > 0) {
+					$('.dialog-visible').find('.close').get(0).click()
+					return;
+				}
 				_edit = false;
 				setTimeout(function () {
 					self.container.parent().removeClass('edit');
