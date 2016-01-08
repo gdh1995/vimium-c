@@ -2202,6 +2202,8 @@ DBOX = {
 			}
 		});
 		self.addBoxes();
+		$(document).unbind("mousemove.dialbox").bind("mousemove.dialbox", self.docOnMouseMove.bind(self)
+			).unbind("mouseup.dialbox").bind("mouseup.dialbox", self.docOnMouseUp.bind(self));
 		self.addQBoxes();
 		self.position()
 	},
@@ -2624,6 +2626,10 @@ DBOX = {
 	dragBox: function (box) {
 		var self = this;
 		box.boxObject.unbind('mousedown.dialbox').bind('mousedown.dialbox', function (e) {
+			self.boxOnMouseDown.call(this, self, box, e);
+		});
+	},
+		boxOnMouseDown: function (self, box, e) {
 			var selfWidth = $(this).hasClass('quick') ? self.QWidth : self.width;
 			if (_down == false && e.button != 2 && Math.abs(this.offsetWidth - selfWidth) < parseInt(selfWidth / 2)) {
 				if (!_edit) {
@@ -2701,8 +2707,9 @@ DBOX = {
 						}, 120)
 				}
 			}
-		});
-		$(document).unbind("mousemove.dialbox").bind("mousemove.dialbox", function (e) {
+		},
+		docOnMouseMove: function (e) {
+			var self = this;
 			if (_down == true && _move == true && _editfun) {
 				if (Math.abs(e.pageX - _dx) > 5 || Math.abs(e.pageY - _dy) > 5) {
 					clearTimeout(_editfun)
@@ -2982,7 +2989,9 @@ DBOX = {
 					}
 				}
 			}
-		}).unbind("mouseup.dialbox").bind("mouseup.dialbox", function (e) {
+		},
+		docOnMouseUp: function (e) {
+			var self = this;
 			if (_downfun) {
 				clearTimeout(_downfun)
 			}
@@ -3121,8 +3130,7 @@ DBOX = {
 					_down = false
 				}
 			}
-		})
-	},
+		},
 	changePosition: function (curBoxList, curNotCloneBoxList, obj, i, ignore) {
 		var self = this;
 		var coffset = $(curNotCloneBoxList[i]).offset();
