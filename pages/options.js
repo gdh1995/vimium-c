@@ -163,15 +163,15 @@ CheckBoxOption.prototype.readValueFromElement = function() {
     $("exportButton").disabled = false;
     status = 0;
     setTimeout(function () {
-      var event = new FocusEvent("focus"), i, key, ref;
+      var event = new FocusEvent("focus"), i, key, ref, obj;
       window.dispatchEvent(event);
       i = toSync.length;
       if (i === 0) { return; }
-      bgSettings.postUpdate("bufferToLoad", null);
-      var i, key, ref = bgSettings.bufferToLoad, obj = {name: "settingsUpdate"};
+      ref = bgSettings.bufferToLoad;
+      obj = {name: "settingsUpdate"};
       while (0 <= --i) {
         key = toSync[i];
-        obj[key] = ref[key];
+        obj[key] = ref[key] = bgSettings.get(key);
       }
       bgSettings.postUpdate("broadcast", obj);
     }, 100);
