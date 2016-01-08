@@ -6,7 +6,6 @@ var quickSearch = {
 		bing: ["http://cn.bing.com/search", "q", "ie=utf-8"],
 	},
 	searchSites: ['baidu', 'google_cn', 'bing', 'taobao'],
-	_minSearchForce: false,
 	_quickSearchTransformFun: 0,
 	width : 700,
 	content : '',
@@ -306,9 +305,9 @@ var quickSearch = {
 					}, 0)
 				}
 			}).unbind('focus').bind('focus', function () {
-				self._minSearchForce = true
+				window._minSearchForce = true
 			}).unbind('blur').bind('blur', function () {
-				self._minSearchForce = false
+				window._minSearchForce = false
 			});
 			targetObj.unbind('mouseout').bind('mouseout', function (e) {
 				if (!targetObj.hasClass('quick') && !isMouseMoveContains(e, this) && Math.abs(targetObj.get(0).offsetWidth - DBOX.width) >= parseInt(DBOX.width / 2)) {

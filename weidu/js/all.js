@@ -1203,10 +1203,11 @@ $(document).unbind("keyup.dialogEsc").bind('keyup.dialogEsc', function (e) {
 });
 $(document).bind('contextmenu', function (e) {
 	if (!isContainsClass(e.target, 'dialog')) {
-		if ($('.dialog-visible').length > 0) {
-			$('.dialog-visible').find('.close').get(0).click()
+    var a = $('.dialog-visible');
+		if (a.length > 0) {
+			a.find('.close').get(0).click()
 		}
-		if (typeof _minSearchForce == "undefined" || _minSearchForce == false) {
+		if (!_minSearchForce) {
 			return false
 		}
 	}
@@ -1492,7 +1493,7 @@ var app = {
 				if (first) {
 					$(document).unbind("keyup.classification").bind("keyup.classification", function (e) {
 						if (typeof self.runedAppObjects.classification != "undefined") {
-							if (e.keyCode == 192 && (typeof _minSearchForce == 'undefined' || !_minSearchForce)) {
+							if (e.keyCode == 192 && !_minSearchForce) {
 								if ($('.dialog.dialog-visible').length == 0 && _edit === false) {
 									self.runApp(targetObj, "classification")
 								}
@@ -1947,6 +1948,7 @@ var app = {
 };
 
 var _move = false, _down = false, _realMove = false, _edit = false, _flip = true, _wheelEvent = false, _wheelFun = "", _resize = false, _destory = false, _downfun = "", _editfun = "", _flipfun = "", _noticeFun = "", _quickDialBox = false, _moveQuickDialBox = false, _removeLastDialBox = false, _isRefresh = false, _classificationOpen = false, _x = 0, _y = 0, _dx = 0, _dy = 0, eventObj = '', eclone = '', ecloneCss = '', onDragID = '', onTargetID = '', onSelectedID = '', trends = [], onSeizeID = '', dialboxType = '', _cx = 0, _cy = 0, _cw = 0, _ch = 0;
+var _minSearchForce = false;
 var dragExcludeClassList = ['boxClose', 'boxEdit', 'searchCenter', 'searchItem'];
 $.box = function (id, dbox, type) {
 	return new _Box(id, dbox, type)
@@ -2077,7 +2079,7 @@ DBOX = {
 					self.container.addClass('op_' + self.opacity * 10)
 				}, 0)
 			}
-			if ($('.dialog-visible').length == 0 && (typeof _minSearchForce == 'undefined' || !_minSearchForce)) {
+			if (!_minSearchForce && $('.dialog-visible').length == 0) {
 				if (e.shiftKey || e.ctrlKey || e.metaKey || e.altKey) {
 				} else if (e.keyCode == 37) {
 					self.loadBoxes('pre')
@@ -3013,7 +3015,7 @@ DBOX = {
 							}, 0)
 						}
 					} else {
-						if (e.button == 2 && (typeof _minSearchForce == "undefined" || _minSearchForce == false)) {
+						if (e.button == 2 && !_minSearchForce) {
 							if (classification && classification.minClassificationSwitch == true) {
 								classification.hideMinClassification(true)
 							}
