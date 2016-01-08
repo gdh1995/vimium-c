@@ -76,7 +76,6 @@ function isContainsClass(child, parentClass) {
 	return child && child.classList ? true : false;
 }
 function loadScript(src, fn, force) {
-	fn = fn || function () {};
 	if (force) {
 		src += '?t=' + Date.now()
 	}
@@ -85,7 +84,9 @@ function loadScript(src, fn, force) {
 	obj.src = src;
 	obj.charset = 'utf-8';
 	document.head.appendChild(obj);
-	obj.onload = fn;
+  if (fn) {
+    obj.onload = fn;
+  }
 }
 function loadCss(src, force) {
 	if (force) {
