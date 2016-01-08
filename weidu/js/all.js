@@ -1194,13 +1194,6 @@ var oauth = {
 };
 
 var _dialogDown = false, _dialogX = 0, _dialogY = 0, _dialogCx = 0, _dialogCy = 0;
-$(document).unbind("keyup.dialogEsc").bind('keyup.dialogEsc', function (e) {
-	if (e.keyCode == 27) {
-		if ($('.dialog-visible').length > 0) {
-			$('.dialog-visible').find('.close').get(0).click()
-		}
-	}
-});
 $(document).bind('contextmenu', function (e) {
 	if (!isContainsClass(e.target, 'dialog')) {
     var a = $('.dialog-visible');
@@ -2069,7 +2062,11 @@ DBOX = {
 		self.pageNotice();
 		_classificationOpen = false;
 		$(document).unbind('keyup.dialboxEsc').bind('keyup.dialboxEsc', function (e) {
-			if ($('.dialog-visible').length == 0 && e.keyCode == 27) {
+			if (e.keyCode == 27) {
+        if ($('.dialog-visible').length > 0) {
+          $('.dialog-visible').find('.close').get(0).click()
+          return;
+        }
 				_edit = false;
 				setTimeout(function () {
 					self.container.parent().removeClass('edit');
@@ -2078,8 +2075,8 @@ DBOX = {
 					}
 					self.container.addClass('op_' + self.opacity * 10)
 				}, 0)
-			}
-			if (!_minSearchForce && $('.dialog-visible').length == 0) {
+			} else if (e.keyCode != 37 && e.keyCode != 39) {}
+			else if (!_minSearchForce && $('.dialog-visible').length == 0) {
 				if (e.shiftKey || e.ctrlKey || e.metaKey || e.altKey) {
 				} else if (e.keyCode == 37) {
 					self.loadBoxes('pre')
