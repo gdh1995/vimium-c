@@ -1658,71 +1658,7 @@ var app = {
 			"js": "js/plugin/cloud/cloud.js",
 			"css": "js/plugin/cloud/css/skin_0.css",
 			"loadData": function (dialogObj, targetObj) {
-				if (typeof cloudApp == 'undefined') {
-					loadScript('js/plugin/cloud/cloudApp.js')
-				} else {
-					cloudApp.init()
-				}
-				if (typeof cloudWebsite == 'undefined') {
-					loadScript('js/plugin/cloud/cloudWebsite.js')
-				} else {
-					cloudWebsite.init()
-				}
-				if (typeof createWebsite == 'undefined') {
-					loadScript('js/plugin/cloud/createWebsite.js', function () {
-						if (targetObj.attr('url') != null && targetObj.attr('url') != "") {
-							$('.cloudBody .menu').removeClass('hide').addClass('hide');
-							$(".cloudHeader .cloudSwitch").text(getI18nMsg('cloudAppTitle'));
-							$('.cloudBody .container').removeClass("show");
-							$('.cloudBody .container.createWebsite').addClass("show");
-							$('.cloudBody .aboutContainer').hide();
-							$('.cloudBody .classificationsContainer').show();
-							createWebsite.initClassificationsContainer();
-							createWebsite.initWebsite(targetObj.attr('url'), targetObj.find('.boxTitle').text()
-								, targetObj.find('.boxLogo').css('backgroundImage').replace("url(", "").replace(")", "").replace(/\"/g, "")
-								, targetObj.hasClass('quick') ? 'quick' : 'normal', targetObj.attr('id'))
-						} else {
-							$('.cloudBody .menu').removeClass('hide');
-							$(".cloudHeader .cloudSwitch").text(getI18nMsg('websiteAdd'));
-							$('.cloudBody .container').removeClass("show");
-							if ($('.cloudBody .navItem.selected').attr('category') != "myApps") {
-								$('.cloudBody .container.websiteList').addClass("show")
-							} else {
-								$('.cloudBody .container.appList').addClass("show")
-							}
-							$('.cloudBody .aboutContainer').show();
-							$('.cloudBody .classificationsContainer').hide();
-							createWebsite.initClassificationsContainer();
-							createWebsite.initWebsite()
-						}
-					})
-				} else {
-					if (targetObj.attr('url') != null && targetObj.attr('url') != "") {
-						$('.cloudBody .menu').removeClass('hide').addClass('hide');
-						$(".cloudHeader .cloudSwitch").text(getI18nMsg('cloudAppTitle'));
-						$('.cloudBody .container').removeClass("show");
-						$('.cloudBody .container.createWebsite').addClass("show");
-						$('.cloudBody .aboutContainer').hide();
-						$('.cloudBody .classificationsContainer').show();
-						createWebsite.initClassificationsContainer();
-						createWebsite.initWebsite(targetObj.attr('url'), targetObj.find('.boxTitle').text()
-							, targetObj.find('.boxLogo').css('backgroundImage').replace("url(", "").replace(")", "").replace(/\"/g, "")
-							, targetObj.hasClass('quick') ? 'quick' : 'normal', targetObj.attr('id'))
-					} else {
-						$('.cloudBody .menu').removeClass('hide');
-						$(".cloudHeader .cloudSwitch").text(getI18nMsg('websiteAdd'));
-						$('.cloudBody .container').removeClass("show");
-						if ($('.cloudBody .navItem.selected').attr('category') != "myApps") {
-							$('.cloudBody .container.websiteList').addClass("show")
-						} else {
-							$('.cloudBody .container.appList').addClass("show")
-						}
-						$('.cloudBody .aboutContainer').show();
-						$('.cloudBody .classificationsContainer').hide();
-						createWebsite.initClassificationsContainer();
-						createWebsite.initWebsite()
-					}
-				}
+        cloud.showDialog(dialogObj, targetObj.attr('url') && targetObj, true);
 			},
 			"run": function () {
 				var cloudDialog = $.dialog({

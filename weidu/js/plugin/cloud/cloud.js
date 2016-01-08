@@ -34,17 +34,9 @@ var cloud = {
 		});
 		template.find(".cloudSwitch").bind("click", function () {
 			if (template.find('.container.createWebsite').hasClass("show")) {
-				$(this).text(getI18nMsg('websiteAdd'));
-				template.find(".menu").removeClass('hide');
-				if (template.find(".menu .navItem.selected").attr("category") == "myApps") {
-					self.toggleContainer('appList')
-				} else {
-					self.toggleContainer('websiteList')
-				}
+				cloud.showDialog(null, false)
 			} else {
-				$(this).text(getI18nMsg('cloudAppTitle'));
-				template.find(".menu").addClass('hide');
-				self.toggleContainer('createWebsite')
+				cloud.showDialog(null, true)
 			}
 		});
 		self.content = template;
@@ -118,5 +110,61 @@ var cloud = {
 			'"><input type="submit" id="submitBtn" name="submitBtn" class="btn" value="' +
 			getI18nMsg('determine') +
 			'"></div></form></div><div class="loading"><img src="img/skin_0/loading2.gif" /></div></div></div></div>';
+	},
+	getScript: function(file) {
+		return new Promise(function(resolve) {
+			loadScript(file, resolve);
+		});
+	},
+	showCreate: function(targetObj) {
+		var self = cloud, el = self.content;
+		el.find('.menu').addClass('hide');
+		el.find('.cloudSwitch').text(getI18nMsg('cloudAppTitle'));
+		el.find('.container').removeClass("show");
+		el.find('.container.createWebsite').addClass("show");
+		el.find('.aboutContainer').hide();
+		el.find('.classificationsContainer').show();
+		if (targetObj.attr) {
+			createWebsite.initClassificationsContainer();
+			createWebsite.initWebsite(targetObj.attr('url'), targetObj.find('.boxTitle').text()
+				, targetObj.find('.boxLogo').css('backgroundImage').replace("url(", "").replace(")", "").replace(/\"/g, "")
+				, targetObj.hasClass('quick') ? 'quick' : 'normal', targetObj.attr('id'))
+		}
+	},
+	showWebsite: function() {
+		var self = cloud, el = self.content;
+		el.find('.menu').removeClass('hide');
+		el.find(".cloudSwitch").text(getI18nMsg('websiteAdd'));
+		el.find('.container').removeClass("show");
+		el.find('.aboutContainer').show();
+		el.find('.classificationsContainer').hide();
+		if (el.find(".menu .navItem.selected").attr("category") == "myApps") {
+			self.toggleContainer('appList')
+		} else {
+			self.toggleContainer('websiteList')
+		}
+	},
+	showDialog: function(_0, targetObj, reinit) {
+		var promise;
+		if (!targetObj) {
+			promise = Promise.all([
+				typeof cloudApp == 'undefined' && this.getScript('js/plugin/cloud/cloudApp.js'),
+				typeof cloudWebsite == 'undefined' && this.getScript('js/plugin/cloud/cloudWebsite.js')
+			]);
+			if (reinit === true || typeof cloudApp == 'undefined' || typeof cloudWebsite == 'undefined') {
+				promise = promise.then(function() {
+					cloudApp.init();
+					cloudWebsite.init();
+				})
+			}
+		} else if (typeof createWebsite == 'undefined') {
+			promise = this.getScript('js/plugin/cloud/createWebsite.js');
+			this.content.find('.loading').css("visibility", "hidden");
+		} else {
+			promise = Promise.resolve();
+		}
+		return promise.then(targetObj ? function() {
+			cloud.showCreate(targetObj);
+		} : this.showWebsite);
 	}
 };
