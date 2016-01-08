@@ -66,7 +66,6 @@ var cloudWebsite = {
 		if (typeof page != 'undefined') {
 			self.page = page
 		}
-		self.loadCacheData = false;
 		self.loadDataIndex = 1;
 		self.isSearch = false;
 		self.container.empty();
@@ -102,7 +101,7 @@ var cloudWebsite = {
 		var self = this;
 		var start = (self.page - 1) * self.num,
 		end = start + self.num;
-		if (typeof force == 'undefined' || force !== false) {
+		if (force !== false) {
 			force = true
 		}
 		if (self.loadCacheData === false) {
