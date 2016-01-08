@@ -109,6 +109,11 @@ var createWebsite = {
 			} else {
 				$(this).siblings('.message').html('<div class="checkOK"></div>' + getI18nMsg('webSiteUrlNoError'))
 			}
+			var img = self.container.find('#webSiteLogo').val();
+			if (img && img !== self.defaultLogoUrl &&
+				!(img.startsWith(urlImg) && img.indexOf("/m/") > 0)) {
+				return;
+			}
 			var img = $(this).val();
 			if (! /^(?:(?:https|http|ftp|rtsp|mms):\/\/)?[-0-9A-Z_a-z]+\.[^\.]/.test(img)) {
 				img = self.defaultLogoUrl
@@ -217,19 +222,12 @@ var createWebsite = {
 		self.initSuggest()
 	},
 	loadLogo : function (logoUrl) {
-		var self = this;
+		var logo = this.container.find('.logoBox .logo')
 		var logoImg = new Image();
 		logoImg.onload = function () {
-			if ((150 / 90) < (logoImg.width / logoImg.height)) {
-				self.container.find('.logoBox .logo').css({
-					'backgroundSize' : '100% auto'
-				})
-			} else {
-				self.container.find('.logoBox .logo').css({
-					'backgroundSize' : 'auto 100%'
-				})
-			}
-			self.container.find('.logoBox .logo').css({
+			logo.css({
+				backgroundSize: (150 / 90) < (logoImg.width / logoImg.height)
+					? '100% auto' : 'auto 100%',
 				'backgroundImage' : 'url(' + logoUrl + ')'
 			})
 		};
