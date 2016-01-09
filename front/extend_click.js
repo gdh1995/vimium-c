@@ -2,20 +2,20 @@
 (function(func) {
   var script = document.createElement("script"), installer, onclick, container;
   if (!script.style) { return; }
-  window.addEventListener("VimiumRegistrationElementEvent", installer = function(event) {
-    window.removeEventListener("VimiumRegistrationElementEvent", installer, true);
+  window.addEventListener("VimiumReg", installer = function(event) {
+    window.removeEventListener("VimiumReg", installer, true);
     container = event.target;
-    container.addEventListener("VimiumRegistrationElementEvent-onclick", onclick, true);
+    container.addEventListener("VimiumOnclick", onclick, true);
     installer = null;
   }, true);
-  window.addEventListener("VimiumRegistrationElementEvent-onclick", onclick = function(event) {
+  window.addEventListener("VimiumOnclick", onclick = function(event) {
     event.target.vimiumHasOnclick = true;
     event.stopPropagation();
   }, true);
   Settings.onDestroy.registerClick = function() {
-    window.removeEventListener("VimiumRegistrationElementEvent", installer, true);
-    window.removeEventListener("VimiumRegistrationElementEvent-onclick", onclick, true);
-    container && container.removeEventListener("VimiumRegistrationElementEvent-onclick", onclick, true);
+    window.removeEventListener("VimiumReg", installer, true);
+    window.removeEventListener("VimiumOnclick", onclick, true);
+    container && container.removeEventListener("VimiumOnclick", onclick, true);
   };
   script.type = "text/javascript";
   script.textContent = "(" + func.toString() + ")();";
@@ -40,7 +40,7 @@ handler = function() {
   clearTimeout(timeout);
   container = document.createElementNS("http://www.w3.org/1999/xhtml", "div");
   document.documentElement.appendChild(container);
-  container.dispatchEvent(new CustomEvent("VimiumRegistrationElementEvent"));
+  container.dispatchEvent(new CustomEvent("VimiumReg"));
   container.remove();
   register = reg;
   for (var i = toRegister.length; 0 <= --i; ) { register(toRegister[i]); }
@@ -51,7 +51,7 @@ timeout = setTimeout(handler, 1000);
 
 reg = setTimeout.bind(window, function(element) {
   var e1, e2, registrationEvent, wrapIncontainer;
-  registrationEvent = new CustomEvent("VimiumRegistrationElementEvent-onclick");
+  registrationEvent = new CustomEvent("VimiumOnclick");
   if (document.contains(element)) {
     element.dispatchEvent(registrationEvent);
     return;
