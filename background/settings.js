@@ -1,7 +1,7 @@
 "use strict";
 var Settings = {
   __proto__: null,
-  cache: { __proto__: null },
+  cache: Object.create(null),
   bufferToLoad: null,
   frameIdsForTab: null,
   keyToSet: [],
@@ -220,7 +220,7 @@ Settings.defaults.newTabUrl = Settings.CONST.ChromeInnerNewTab;
   Settings.CONST.ChromeVersion = parseFloat(i);
 
   func = function() {};
-  Settings.Sync = {__proto__: null, clear: func, set: func};
+  Settings.Sync = {clear: func, set: func};
   Settings.extIds = [chrome.runtime.id];
 })();
 

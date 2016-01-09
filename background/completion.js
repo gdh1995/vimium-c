@@ -913,7 +913,6 @@ searchEngines: {
     })();
 
     TabRecency.stamp();
-    window.Completers.__proto__ = null;
 
     var lang;
     if (lang = Settings.get("UILanguage")) {
@@ -949,6 +948,7 @@ searchEngines: {
       , Completers.bookmarks, Completers.history]),
     tabs: new Completers.MultiCompleter([Completers.tabs])
   };
+  Object.setPrototypeOf(window.Completers, null);
 
   Utils.Decoder = Decoder;
 

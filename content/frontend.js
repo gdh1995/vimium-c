@@ -54,7 +54,7 @@ var Settings, VHUD, MainPort, VInsertMode;
   MainPort = mainPort = {
     frameId: frameId,
     port: null,
-    _callbacks: { __proto__: null },
+    _callbacks: Object.create(null),
     _lastMsg: 1,
     sendMessage: function(request, callback) {
       var id = ++this._lastMsg;

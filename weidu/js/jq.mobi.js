@@ -8,7 +8,7 @@ function y(a,c,b){d.isObject(a)?d.each(a,b):a.split(/\s/).forEach(function(a){b(
 function q(a,c,b,e,f){var i=a._jqmid||(a._jqmid=t++),g=p[i]||(p[i]=[]);y(c,b,function(b,c){var i=f&&f(c,b),j=i||c,k=function(b){var c=b.data?j.apply(a,[b].concat(b.data)):j.call(a,b);c===!1&&b.preventDefault();return c},i=d.extend(x(b),{fn:c,proxy:k,sel:e,del:i,i:g.length});g.push(i);a.addEventListener(i.e,k,!1)})}
 function r(a,c,b,e){var d=a._jqmid||(a._jqmid=t++);y(c||"",b,function(b,c){A(a,b,c,e).forEach(function(b){delete p[d][b.i];a.removeEventListener(b.e,b.proxy,!1)})})}
 function m(a,c){this.length=0;if(a)if(a instanceof m&&c==f)return a;else if(d.isArray(a)&&a.length!=f){for(var b=0;b<a.length;b++)this[this.length++]=a[b];return this}else if(d.isObject(a)&&d.isObject(c)){if(a.length==f)a.parentNode==c&&(this[this.length++]=a);else for(b=0;b<a.length;b++)a[b].parentNode==c&&(this[this.length++]=a[b]);return this}else if(d.isObject(a)&&c==f)return this[this.length++]=a,this;else if(c!==f){if(c instanceof m)return c.find(a)}else c=j;else return this;if(b=this.selector(a,c))if(d.isArray(b))for(var e=0;e<b.length;e++)this[this.length++]=b[e];else this[this.length++]=b;return this}
-var f,g=window,j=document,l=[].__proto__,s=[],H=/^\s*<(\w+)[^>]*>/,k={},p={},t=1,
+var f,g=window,j=document,l=Array.prototype,s=[],H=/^\s*<(\w+)[^>]*>/,k={},p={},t=1,
 d=function (a,c){return new m(a,c)},n=function(){},
 z={type:"GET",beforeSend:n,success:n,error:n,complete:n,context:f,timeout:0,crossDomain:!1};
 
@@ -19,7 +19,6 @@ d.isFunction=function(a){return typeof a==="function"};
 d.isObject=function(a){return typeof a==="object"};
 
 d.fn=m.prototype={
-__proto__:l,
 constructor:m,push:l.push,indexOf:l.indexOf,concat:l.concat,oldElement:f,
 selector:function(a,c){var b;if(a[0]==="#"&&a.indexOf(" ")===-1&&a.indexOf(">")===-1)return b=c==j?c.getElementById(a.replace("#","")):l.slice.call(c.querySelectorAll(a));a=a.trim();a[0]==="<"&&a[a.length-1]===">"?(b=j.createElement("div"),b.innerHTML=a.trim(),b=l.slice.call(b.childNodes)):b=l.slice.call(c.querySelectorAll(a));return b},
 setupOld:function(a){if(a==f)return d();a.oldElement=this;return a},
@@ -54,6 +53,7 @@ data:function(a,c){return this.attr("data-"+a,c)},
 end:function(){return this.oldElement!=f?this.oldElement:d()},
 clone:function(a){a=a===!1?!1:!0;if(this.length==0)return f;for(var c=[],b=0;b<this.length;b++)c.push(this[b].cloneNode(a));return d(c)}
 };
+Object.setPrototypeOf(m.prototype, l);
 
 d.ajax=function(a){var c;try{c=new g.XMLHttpRequest;var b=a||{},e;for(e in z)b[e]||(b[e]=z[e]);if(!b.url)b.url=g.location;if(!b.contentType)b.contentType="application/x-www-form-urlencoded";if(!b.headers)b.headers={};if(b.dataType)switch(b.dataType){case"json":b.dataType="application/json";break;case"xml":b.dataType="application/xml, text/xml";break;case"text":b.dataType="text/plain";break;case"html":default:b.dataType="text/html"}else b.dataType="text/html";if(d.isObject(b.data))b.data=d.param(b.data);b.type.toLowerCase()==="get"&&b.data&&(b.url+=b.url.indexOf("?")===-1?"?"+b.data:"&"+b.data);if(!b.crossDomain)b.crossDomain=/^([\w-]+:)?\/\/([^\/]+)/.test(b.url)&&RegExp.$2!=g.location.host;if(!b.crossDomain)b.headers=d.extend({"X-Requested-With":"XMLHttpRequest"},b.headers);var f,i=b.context,j=/^([\w-]+:)\/\//.test(b.url)?RegExp.$1:g.location.protocol;c.onreadystatechange=function(){var a=b.dataType;if(c.readyState===4){clearTimeout(f);var d,e=!1;if(c.status>=200&&c.status<300||c.status===0&&j=="file:"){if(a==="application/json"&&!/^\s*$/.test(c.responseText))try{d=JSON.parse(c.responseText)}catch(g){e=g}else d=c.responseText;c.status===0&&d.length===0&&(e=!0);e?b.error.call(i,c,"parsererror",e):b.success.call(i,d,"success",c)}else e=!0,b.error.call(i,c,"error");b.complete.call(i,c,e?"error":"success")}};c.open(b.type,b.url,!0);if(b.contentType)b.headers["Content-Type"]=b.contentType;for(var k in b.headers)c.setRequestHeader(k,b.headers[k]);if(b.beforeSend.call(i,c,b)===!1)return c.abort(),!1;b.timeout>0&&(f=setTimeout(function(){c.onreadystatechange=n;c.abort();b.error.call(i,c,"timeout")},b.timeout));c.send(b.data)}catch(l){console.log(l)}return c};
 d.get=function(a,c){return this.ajax({url:a,success:c})};

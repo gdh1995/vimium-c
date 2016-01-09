@@ -9,9 +9,9 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
     , requestHandlers, resetKeys, secondKeys, sendToTab //
     , urlForTab;
 
-  Settings.frameIdsForTab = frameIdsForTab = { __proto__: null };
+  Settings.frameIdsForTab = frameIdsForTab = Object.create(null);
 
-  extForTab = { __proto__: null };
+  extForTab = Object.create(null);
 
   needIcon = false;
 

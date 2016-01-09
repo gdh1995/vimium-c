@@ -191,7 +191,7 @@ exclusions = {
   init: function(url, element, onUpdated) {
     this.url = url;
     this.rebuildTesters();
-    this.__proto__ = ExclusionRulesOption.prototype;
+    Object.setPrototypeOf(this, ExclusionRulesOption.prototype);
     ExclusionRulesOption.call(this, element, onUpdated);
     this.element.addEventListener("input", this.OnInput);
     this.init = null;

@@ -236,7 +236,9 @@ var formatDate = function(time) {
 
 $("exportButton").onclick = function() {
   var exported_object, exported_data, file_name, force2, d, nodeA;
-  exported_object = {__proto__: null, name: "Vimium++", time: 0};
+  exported_object = Object.create(null);
+  exported_object.name = "Vimium++";
+  exported_object.time = 0;
   (function() {
     var storage = localStorage, i, len, key, mark_head, all = bgSettings.defaults
       , strArr = bgSettings.NonJSON, arr1;
