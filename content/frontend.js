@@ -336,7 +336,7 @@ var Settings, VHUD, MainPort, VInsertMode;
   initIfEnabled = function(newPassKeys) {
     initIfEnabled = function(newPassKeys) {
       if (newPassKeys) {
-        var pass = Utils.makeNullProto(), arr = newPassKeys.split(' ')
+        var pass = Object.create(null), arr = newPassKeys.split(' ')
           , i = 0, len = arr.length;
         do {
           pass[arr[i]] = true;
@@ -1295,16 +1295,16 @@ var Settings, VHUD, MainPort, VInsertMode;
     focusFrame: FrameMask.Focus,
     refreshKeyMappings: function(request) {
       var arr = request.firstKeys, i = arr.length, map, key, sec, sec2;
-      map = firstKeys = Utils.makeNullProto();
+      map = firstKeys = Object.create(null);
       while (0 <= --i) {
         map[arr[i]] = true;
       }
       sec = request.secondKeys;
       Utils.setNullProto(sec);
-      sec2 = secondKeys = Utils.makeNullProto();
+      sec2 = secondKeys = Object.create(null);
       for (key in sec) {
         arr = sec[key];
-        map = sec2[key] = Utils.makeNullProto();
+        map = sec2[key] = Object.create(null);
         i = arr.length;
         while (0 <= --i) {
           map[arr[i]] = true;

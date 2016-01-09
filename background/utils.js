@@ -1,9 +1,6 @@
 "use strict";
 var exports = {}, Utils = {
   __proto__: null,
-  makeNullProto: function() {
-    return {__proto__: null};
-  },
   _onXHR: function () {
     if (this.readyState === 4 && this.status === 200) {
       this.onsuccess(this.responseText);

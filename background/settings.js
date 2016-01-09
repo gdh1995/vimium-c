@@ -56,7 +56,7 @@ var Settings = {
     },
     bufferToLoad: function() {
       var _i, key, ref = this.valuesToLoad, ref2;
-      ref2 = this.bufferToLoad = Utils.makeNullProto();
+      ref2 = this.bufferToLoad = Object.create(null);
       for (_i = ref.length; 0 <= --_i;) {
         key = ref[_i];
         ref2[key] = this.get(key);
@@ -74,7 +74,7 @@ var Settings = {
       this.set('newTabUrl_f', url);
     },
     searchEngines: function() {
-      this.set("searchEngineMap", Utils.makeNullProto());
+      this.set("searchEngineMap", Object.create(null));
     },
     searchEngineMap: function(value) {
       Utils.parseSearchEngines("~:" + this.get("searchUrl"), value);

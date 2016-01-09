@@ -198,7 +198,7 @@ exclusions = {
   },
   rebuildTesters: function() {
     var rules = bgSettings.get("exclusionRules")
-      , ref = bgExclusions.testers = {}
+      , ref = bgExclusions.testers = Object.create(null)
       , ref2 = bgExclusions.rules, _i, _j, pattern;
     for (_i = rules.length, _j = 0; 0 <= --_i; ) {
       if (pattern = rules[_i].pattern) {
@@ -311,7 +311,7 @@ exclusions = {
     window.close();
   };
   window.onunload = function() {
-    bgExclusions.testers = BG.Utils.makeNullProto();
+    bgExclusions.testers = BG.Object.create(null);
   };
 });
 

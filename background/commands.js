@@ -41,7 +41,7 @@ var Commands = {
   loadDefaults: function() {
     var defaultMap = this.defaultKeyMappings, available = this.availableCommands
       , registry = this.keyToCommandRegistry
-      , key, command, details, options = Utils.makeNullProto();
+      , key, command, details, options = Object.create(null);
     for (key in defaultMap) {
       details = available[command = defaultMap[key]];
       registry[key] = {
@@ -54,7 +54,7 @@ var Commands = {
   },
   parseKeyMappings: function(line) {
     var key, lines, splitLine, _i = 0, _len, registry, details, available;
-    registry = this.keyToCommandRegistry = Utils.makeNullProto();
+    registry = this.keyToCommandRegistry = Object.create(null);
     available = this.availableCommands;
     lines = line.replace(/\\\n/g, "").replace(/[\t ]+/g, " ").split("\n");
     lines[0] !== "unmapAll" ? this.loadDefaults() : (_i = 1);
@@ -76,7 +76,7 @@ var Commands = {
           console.log("Command %c" + key, "color:red;", "doesn't exist!");
         }
       } else if (key === "unmapAll") {
-        registry = this.keyToCommandRegistry = Utils.makeNullProto();
+        registry = this.keyToCommandRegistry = Object.create(null);
       } else if (key !== "unmap" || splitLine.length !== 2) {
         console.log("Unknown mapping command: '" + key + "' in", line);
       } else if ((key = this.normalizeKey(splitLine[1])) in registry) {

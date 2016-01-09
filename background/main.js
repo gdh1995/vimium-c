@@ -920,7 +920,7 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
     var key, ref1, ref2, first, arr, keyRe = Commands.keyRe, ch, func;
     resetKeys();
     ref1 = ["1", "2", "3", "4", "5", "6", "7", "8", "9"];
-    ref2 = secondKeys = Utils.makeNullProto();
+    ref2 = secondKeys = Object.create(null);
     for (key in Commands.keyToCommandRegistry) {
       ch = key.charCodeAt(0);
       if (ch >= 48 && ch < 58) {
@@ -1372,7 +1372,7 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
 
   Settings.updateHooks.showActionIcon = function (value) {
     needIcon = chrome.browserAction && value ? true : false;
-    Settings.urlForTab = urlForTab = needIcon ? urlForTab || Utils.makeNullProto() : null;
+    Settings.urlForTab = urlForTab = needIcon ? urlForTab || Object.create(null) : null;
   };
 
   funcDict.globalCommand = function(command, options) {

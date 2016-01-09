@@ -25,11 +25,11 @@ var Exclusions = {
         chrome.webNavigation.onReferenceFragmentUpdated.removeListener(this.onURLChange);
       }
       this._listening = false;
-      this.testers = Utils.makeNullProto();
+      this.testers = Object.create(null);
       return;
     }
     this.rules = this.format(rules);
-    this.testers = Utils.makeNullProto();
+    this.testers = Object.create(null);
     if (!this._listening && chrome.webNavigation) {
       chrome.webNavigation.onHistoryStateUpdated.addListener(this.onURLChange);
       chrome.webNavigation.onReferenceFragmentUpdated.addListener(this.onURLChange);

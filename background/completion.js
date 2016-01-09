@@ -121,7 +121,7 @@ TabRecency = {
   clean: null,
   tabId: null,
   stamp: function() {
-    var cache = Utils.makeNullProto(), last = 0, stamp = 1, time = 0;
+    var cache = Object.create(null), last = 0, stamp = 1, time = 0;
     chrome.tabs.onActivated.addListener(function(activeInfo) {
       var now = Date.now(), tabId = activeInfo.tabId;
       if (now - time > 500) {
@@ -403,7 +403,7 @@ domains: {
   },
   populateDomains: function(history) {
     var callback = this.onPageVisited.bind(this);
-    this.domains = Utils.makeNullProto();
+    this.domains = Object.create(null);
     history.forEach(callback);
     chrome.history.onVisited.addListener(callback);
     chrome.history.onVisitRemoved.addListener(this.OnVisitRemoved);

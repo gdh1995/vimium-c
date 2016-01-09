@@ -142,7 +142,7 @@ if (chrome.omnibox) setTimeout(function() {
     var sug = response[0];
     if (!sug || sug.type !== "search") {
       chrome.omnibox.setDefaultSuggestion(defaultSug);
-      sessionIds = Utils.makeNullProto();
+      sessionIds = Object.create(null);
       response.forEach(formatSessionId);
     } else {
       firstUrl = sug.url;
