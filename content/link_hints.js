@@ -378,7 +378,7 @@ var LinkHints = {
   },
   traverse: function(filters) {
     var output = [], key, func, container, ind;
-    Utils.setNullProto(filters);
+    Object.setPrototypeOf(filters, null);
     DomUtils.prepareCrop();
     container = document.webkitFullscreenElement || document;
     if (this.ngIgnored && "*" in filters) {

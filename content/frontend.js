@@ -164,7 +164,7 @@ var Settings, VHUD, MainPort, VInsertMode;
     },
     ReceiveSettings: function(response) {
       var ref = response.load;
-      Utils.setNullProto(ref);
+      Object.setPrototypeOf(ref, null);
       settings.cache = ref;
       clearInterval(settings.isLoading);
       response = response.response;
@@ -1272,7 +1272,7 @@ var Settings, VHUD, MainPort, VInsertMode;
     settings: settings.ReceiveSettings,
     settingsUpdate: function(response) {
       var ref = settings.cache, i;
-      Utils.setNullProto(response);
+      Object.setPrototypeOf(response, null);
       delete response.name;
       for (i in response) {
         ref[i] = response[i];
@@ -1300,7 +1300,7 @@ var Settings, VHUD, MainPort, VInsertMode;
         map[arr[i]] = true;
       }
       sec = request.secondKeys;
-      Utils.setNullProto(sec);
+      Object.setPrototypeOf(sec, null);
       sec2 = secondKeys = Object.create(null);
       for (key in sec) {
         arr = sec[key];
@@ -1480,7 +1480,7 @@ var Settings, VHUD, MainPort, VInsertMode;
     clearInterval(settings.isLoading);
 
     var ref = settings.onDestroy, i;
-    Utils.setNullProto(ref);
+    Object.setPrototypeOf(ref, null);
     for (i in ref) {
       ref[i].call(this);
     }
