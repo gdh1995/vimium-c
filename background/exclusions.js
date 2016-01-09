@@ -42,17 +42,19 @@ var Exclusions = {
       chrome.webNavigation.onReferenceFragmentUpdated.addListener(this.onURLChange);
     }
     this._listening = true;
-    this.getPattern = function(url) {
-      var rules = this.rules, _i, _len, matchedKeys = "", str;
-      for (_i = 0, _len = rules.length; _i < _len; _i++) {
-        if (rules[_i][0](url)) {
-          str = rules[_i][1];
-          if (!str) { return ""; }
-          matchedKeys += str;
-        }
+    this.getPattern = this._getPattern;
+  },
+  getPattern: null,
+  _getPattern: function(url) {
+    var rules = this.rules, _i, _len, matchedKeys = "", str;
+    for (_i = 0, _len = rules.length; _i < _len; _i++) {
+      if (rules[_i][0](url)) {
+        str = rules[_i][1];
+        if (!str) { return ""; }
+        matchedKeys += str;
       }
-      return matchedKeys || null;
-    };
+    }
+    return matchedKeys || null;
   },
   onURLChange: (Settings.CONST.ChromeVersion >= 41
   ? function(details) {
@@ -78,11 +80,10 @@ var Exclusions = {
       }
     }
   },
-  getPattern: null,
   getTemp: function(url, rules) {
     var old = this.rules;
     this.rules = this.format(rules);
-    url = this._getPatternByRules(url);
+    url = this._getPattern(url);
     this.rules = old;
     return url;
   }
