@@ -238,14 +238,12 @@ exclusions = {
       patternElement.title = "Red text means that the pattern does not\nmatch the current URL.";
     }
   },
-  httpRe: /^https?:\/\/./,
-  urlRe: /^[a-z]{3,}:\/\/./,
   generateDefaultPattern: function() {
-    var url = this.httpRe.test(this.url)
-      ? ("https?://" + this.url.split("/", 3)[2] + "/")
-      : this.urlRe.test(this.url)
-      ? (this.url.split("/", 3).join("/") + "/")
-      : this.url;
+    var url = this.url.lastIndexOf("https:", 0) === 0
+      ? "^https?://" + this.url.split("/", 3)[2].replace(/\./g, "\\.") + "/"
+      : /^[a-z]{3,}:\/\/./.test(this.url)
+      ? ":" + (this.url.split("/", 3).join("/") + "/")
+      : ":" + this.url;
     this.generateDefaultPattern = function() { return url; };
     return url;
   }
