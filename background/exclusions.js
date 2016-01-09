@@ -1,18 +1,15 @@
 "use strict";
 var Exclusions = {
-  re: {},
+  testers: null,
   getRe: function(pattern) {
-    var re = this.re[pattern];
-    if (re) { return re; }
-    if (pattern[0] !== '^') {
-      re = this._startsWith.bind(pattern.substring(1));
-    } else try {
-      re = new RegExp(pattern);
-      re = re.test.bind(re);
-    } catch (e) {
-      re = this._startsWith.bind(pattern.substring(1));
+    var func = this.testers[pattern], re;
+    if (func) { return func; }
+    if (pattern[0] === '^' && (re = Utils.makeRegexp(pattern, "", false))) {
+      func = re.test.bind(re);
+    } else {
+      func = this._startsWith.bind(pattern.substring(1));
     }
-    return this.re[pattern] = re;
+    return this.testers[pattern] = func;
   },
   _startsWith: function(url) {
     return url.startsWith(this);
@@ -30,8 +27,9 @@ var Exclusions = {
       this._listening = false;
       return;
     }
-    this.re = Utils.makeNullProto();
+    this.testers = Utils.makeNullProto();
     this.rules = this.format(rules);
+    this.testers = null;
     if (!this._listening && chrome.webNavigation) {
       chrome.webNavigation.onHistoryStateUpdated.addListener(this.onURLChange);
       chrome.webNavigation.onReferenceFragmentUpdated.addListener(this.onURLChange);
@@ -65,15 +63,6 @@ var Exclusions = {
       out[_i] = [this.getRe(rule.pattern), rule.passKeys];
     }
     return out;
-  },
-  rebuildRe: function() {
-    var rules = Settings.get("exclusionRules"), ref = this.re = Utils.makeNullProto()
-      , ref2 = this.rules, _i, _j, pattern;
-    for (_i = rules.length, _j = 0; 0 <= --_i; ) {
-      if (pattern = rules[_i].pattern) {
-        ref[pattern] = ref2[_j++][0];
-      }
-    }
   },
   getTemp: function(url, rules) {
     var old = this.rules;

@@ -476,11 +476,11 @@ var exports = {}, Utils = {
     }
     return [prefix, new RegExp(str + str2 + url, "i")];
   },
-  makeRegexp: function(pattern, suffix) {
+  makeRegexp: function(pattern, suffix, logError) {
     try {
       return new RegExp(pattern, suffix);
     } catch (e) {
-      console.log("%c/%s/%s%c %s", "color:#C41A16;"
+      logError === false || console.log("%c/%s/%s%c %s", "color:#C41A16;"
         , pattern, suffix, "color:auto;", "is not a valid regexp.");
     }
     return null;

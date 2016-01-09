@@ -184,13 +184,24 @@ chrome.tabs.query({currentWindow: true, active: true}, function(tab) {
 
 exclusions = {
   url: "",
-  hasNew: false,
+  testers: null,
   init: function(url, element, onUpdated) {
     this.url = url;
+    this.rebuildTesters();
     this.__proto__ = ExclusionRulesOption.prototype;
     ExclusionRulesOption.call(this, element, onUpdated);
     this.element.addEventListener("input", this.OnInput);
     this.init = null;
+  },
+  rebuildTesters: function() {
+    var rules = bgSettings.get("exclusionRules")
+      , ref = bgExclusions.testers = {}
+      , ref2 = bgExclusions.rules, _i, _j, pattern;
+    for (_i = rules.length, _j = 0; 0 <= --_i; ) {
+      if (pattern = rules[_i].pattern) {
+        ref[pattern] = ref2[_j++][0];
+      }
+    }
   },
   addRule: function() {
     this.__proto__.addRule.call(this, this.generateDefaultPattern());
@@ -203,7 +214,7 @@ exclusions = {
     for (_i = 0, _len = elements.length; _i < _len; _i++) {
       element = elements[_i];
       pattern = this.getPattern(element).value.trim();
-      if (bgExclusions.re[pattern](this.url)) {
+      if (bgExclusions.testers[pattern](this.url)) {
         haveMatch = _i;
       } else {
         element.style.display = "none";
@@ -212,7 +223,6 @@ exclusions = {
     if (haveMatch >= 0) {
       this.getPassKeys(elements[haveMatch]).focus();
     } else {
-      this.hasNew = true;
       this.addRule();
     }
   },
@@ -261,7 +271,6 @@ exclusions = {
       btn.textContent = "Save Changes";
     }
     if (!exclusions.init) {
-      exclusions.hasNew = true;
       updateState();
     }
   };
@@ -271,7 +280,6 @@ exclusions = {
       return;
     }
     exclusions.save();
-    exclusions.hasNew = true;
     btn.textContent = "Saved";
     btn.disabled = true;
     status = 0;
@@ -300,9 +308,7 @@ exclusions = {
     window.close();
   };
   window.onunload = function() {
-    if (exclusions.hasNew) {
-      bgExclusions.rebuildRe();
-    }
+    bgExclusions.testers = null;
   };
 });
 
