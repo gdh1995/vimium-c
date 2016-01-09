@@ -180,7 +180,7 @@ ExclusionRulesOption.prototype.getPassKeys = function(element) {
 
 if (location.pathname.indexOf("/popup.html", location.pathname.length - 11) !== -1) {
 chrome.tabs.query({currentWindow: true, active: true}, function(tab) {
-  var exclusions, onUpdated, saveOptions, updateState, url, status = 0;
+  var exclusions, onUpdated, saveOptions, updateState, status = 0;
 
 exclusions = {
   url: "",
@@ -242,13 +242,12 @@ exclusions = {
 };
 
   tab = tab[0];
-  url = bgSettings.urlForTab[tab.id] || tab.url;
   var escapeRe = /[&<>]/g, escapeCallback = function(c, n) {
     n = c.charCodeAt(0);
     return (n === 60) ? "&lt;" : (n === 62) ? "&gt;" : "&amp;";
   };
   updateState = function() {
-    var pass = bgExclusions.getTemp(url, exclusions.readValueFromElement(true));
+    var pass = bgExclusions.getTemp(exclusions.url, exclusions.readValueFromElement(true));
     $("state").innerHTML = "Vimium++ will " + (pass
       ? "exclude: <span class='code'>" + pass.replace(escapeRe, escapeCallback) + "</span>"
       : pass !== null ? "be disabled" : "be enabled");
@@ -279,7 +278,7 @@ exclusions = {
     // Here, since the popup page is showing, needIcon must be true.
     // Although the tab calls window.onfocus after this popup page closes,
     // it is too early for the tab to know new exclusion rules.
-    BG.g_requestHandlers.SetIcon(tab.id, null, bgExclusions.getPattern(url));
+    BG.g_requestHandlers.SetIcon(tab.id, null, bgExclusions.getPattern(exclusions.url));
   };
   $("saveOptions").onclick = saveOptions;
   document.addEventListener("keyup", function(event) {
@@ -290,7 +289,7 @@ exclusions = {
       setTimeout(window.close, 300);
     }
   });
-  exclusions.init(url, $("exclusionRules"), onUpdated);
+  exclusions.init(bgSettings.urlForTab[tab.id] || tab.url, $("exclusionRules"), onUpdated);
   updateState();
   var link = $("optionsLink");
   link.href = bgSettings.CONST.OptionsPage;
