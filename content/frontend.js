@@ -1266,6 +1266,7 @@ var Settings, VHUD, MainPort, VInsertMode;
       } else {
         ELs.focusMsg.status = "disabled";
       }
+      DomUtils.UI.container && DomUtils.UI.Toggle(isEnabledForUrl);
       ELs.focusMsg.url = window.location.href;
     },
     settings: settings.ReceiveSettings,

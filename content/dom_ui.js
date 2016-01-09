@@ -56,11 +56,12 @@ DomUtils.UI = {
     _this.InitInner = null;
     _this.styleIn = _this.createStyle(innerCss);
     _this.root.insertBefore(_this.styleIn, _this.root.firstElementChild);
-    setTimeout(function() {
-      DomUtils.UI.container.style.display = "";
-      VInsertMode.heldEl && VInsertMode.heldEl.focus();
-    }, 17);
+    setTimeout(_this.Toggle, 17, true);
     _this.adjust();
+  },
+  Toggle: function(enabled) {
+    DomUtils.UI.container.style.display = enabled ? "" : "none";
+    enabled && VInsertMode.heldEl && VInsertMode.heldEl.focus();
   },
   createStyle: function(text) {
     var css = DomUtils.createElement("style");
