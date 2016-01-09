@@ -355,11 +355,13 @@ var LinkHints = {
         w = rect.left; h = rect.top;
         cr = VRect.cropRectToVisible(w, h, w + 8, h + 8);
       }
-    } else if (DomUtils.isStyleVisible(window.getComputedStyle(element))) {
-      if (rect = element.getClientRects()[0]) {
-        w = rect.right + (rect.width < 3 ? 3 : 0);
-        h = rect.bottom + (rect.height < 3 ? 3 : 0);
-        cr = VRect.cropRectToVisible(rect.left, rect.top, w, h);
+    } else if (rect = element.getClientRects()[0]) {
+      w = rect.right + (rect.width < 3 ? 3 : 0);
+      h = rect.bottom + (rect.height < 3 ? 3 : 0);
+      if (cr = VRect.cropRectToVisible(rect.left, rect.top, w, h)) {
+        if (!DomUtils.isStyleVisible(window.getComputedStyle(element))) {
+          cr = null;
+        }
       }
     }
     if (cr) {
