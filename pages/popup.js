@@ -221,7 +221,7 @@ exclusions = {
     if (!patternElement.classList.contains("pattern")) {
       return;
     }
-    if (bgExclusions.getRe(patternElement.value)(this.url)) {
+    if (bgExclusions.getRe(patternElement.value)(exclusions.url)) {
       patternElement.title = patternElement.style.color = "";
     } else {
       patternElement.style.color = "red";
