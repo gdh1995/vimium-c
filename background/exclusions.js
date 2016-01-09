@@ -1,6 +1,6 @@
 "use strict";
 var Exclusions = {
-  testers: null,
+  testers: {},
   getRe: function(pattern) {
     var func = this.testers[pattern], re;
     if (func) { return func; }
@@ -25,11 +25,11 @@ var Exclusions = {
         chrome.webNavigation.onReferenceFragmentUpdated.removeListener(this.onURLChange);
       }
       this._listening = false;
+      this.testers = Utils.makeNullProto();
       return;
     }
-    this.testers = Utils.makeNullProto();
     this.rules = this.format(rules);
-    this.testers = null;
+    this.testers = Utils.makeNullProto();
     if (!this._listening && chrome.webNavigation) {
       chrome.webNavigation.onHistoryStateUpdated.addListener(this.onURLChange);
       chrome.webNavigation.onReferenceFragmentUpdated.addListener(this.onURLChange);

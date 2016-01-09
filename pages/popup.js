@@ -276,11 +276,13 @@ exclusions = {
     }
   };
   saveOptions = function() {
-    var btn = $("saveOptions");
+    var btn = $("saveOptions"), testers;
     if (btn.disabled) {
       return;
     }
+    testers = bgExclusions.testers;
     exclusions.save();
+    bgExclusions.testers = testers;
     btn.textContent = "Saved";
     btn.disabled = true;
     status = 0;
@@ -309,7 +311,7 @@ exclusions = {
     window.close();
   };
   window.onunload = function() {
-    bgExclusions.testers = null;
+    bgExclusions.testers = BG.Utils.makeNullProto();
   };
 });
 
