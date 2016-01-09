@@ -17,8 +17,10 @@
           <td>
             <div class="help">
               <div class="example">
-                Wholly or partially disable Vimium++.  "<var>Patterns</var>" are URL regular expressions;
-                additionally, "<kbd>*</kbd>" matches any zero or more characters.
+                Wholly or partially disable Vimium++.  A "<var>Pattern</var>"
+                is a regular expression if it starts with "<kbd> ^ </kbd>",
+                or the header of URLs for "<kbd> : </kbd>".
+                Otherwise it will be converted.
                 <br/><br/>
                 If "<var>Keys</var>" is left empty, then Vimium++ will be wholly disabled.
                 Otherwise, just the listed keys are disabled (they are passed through).

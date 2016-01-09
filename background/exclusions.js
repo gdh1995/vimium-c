@@ -1,21 +1,16 @@
 "use strict";
 var Exclusions = {
   re: {},
-  _emptyStringRe: /^$/,
-  _starRe: /\*/g,
-  _caretRe: /^\^/,
-  regChars: /^[\^\*]|[^\\][\$\(\)\*\+\?\[\]\{\|\}]/,
-  _escapeRe: /\\./g,
   getRe: function(pattern) {
     var re = this.re[pattern];
     if (re) { return re; }
-    if (!this.regChars.test(pattern)) {
-      re = this._startsWith.bind(pattern.replace(this._escapeRe, "$&"));
+    if (pattern[0] !== '^') {
+      re = this._startsWith.bind(pattern.substring(1));
     } else try {
-      re = new RegExp("^" + pattern.replace(this._starRe, ".*").replace(this._caretRe, ""));
+      re = new RegExp(pattern);
       re = re.test.bind(re);
     } catch (e) {
-      re = this._startsWith.bind(pattern);
+      re = this._startsWith.bind(pattern.substring(1));
     }
     return this.re[pattern] = re;
   },

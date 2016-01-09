@@ -131,7 +131,7 @@ var Settings = {
     __proto__: null,
     UILanguage: null,
     deepHints: false,
-    exclusionRules: [{pattern: "http*://mail.google.com/*", passKeys: ""}],
+    exclusionRules: [{pattern: "^https?://mail.google.com/", passKeys: ""}],
     findModeRawQuery: "",
     grabBackFocus: true,
     hideHud: false,

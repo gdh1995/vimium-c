@@ -127,6 +127,8 @@ ExclusionRulesOption.prototype.onRemoveRow = function(event) {
   }
 };
 
+ExclusionRulesOption.prototype.reChar = /^[\^\*]|[^\\][\$\(\)\*\+\?\[\]\{\|\}]/;
+ExclusionRulesOption.prototype._escapeRe = /\\./g;
 ExclusionRulesOption.prototype.readValueFromElement = function(part) {
   var element, passKeys, pattern, rules, _i, _len, _ref, passArr;
   rules = [];
@@ -140,6 +142,14 @@ ExclusionRulesOption.prototype.readValueFromElement = function(part) {
     pattern = this.getPattern(element).value.trim();
     if (!pattern) {
       continue;
+    }
+    if (pattern[0] === ":" || element.style.display === "none") {}
+    else if (this.reChar.test(pattern)) {
+      pattern = pattern[0] === "^" ? pattern
+        : (pattern.indexOf("://") === -1 ? "^http://" : "^") + pattern;
+    } else {
+      pattern = pattern.replace(this._escapeRe, "$&");
+      pattern = (pattern.indexOf("://") === -1 ? ":http://" : ":") + pattern;
     }
     passKeys = this.getPassKeys(element).value;
     if (passKeys) {
