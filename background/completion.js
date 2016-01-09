@@ -733,17 +733,16 @@ searchEngines: {
     }
   };
 
-  RegexpCache = {
-    _cache: {},
+  window.RegexpCache = RegexpCache = {
+    _cache: Object.create(null),
     clear: function() {
-      this._cache = {};
+      this._cache = Object.create(null);
     },
     escapeRe: Utils.escapeAllRe,
     get: function(s, p, n) {
       var r = p + s.replace(this.escapeRe, "\\$&") + n, v;
-      return (v = this._cache)[r] || (v[r] = new RegExp(r, this.upperRe.test(s) ? "" : "i"));
-    },
-    upperRe: Utils.upperRe
+      return (v = this._cache)[r] || (v[r] = new RegExp(r, Utils.upperRe.test(s) ? "" : "i"));
+    }
   };
 
   HistoryCache = {

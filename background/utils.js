@@ -435,7 +435,7 @@ var exports = {}, Utils = {
     }
     return rules;
   },
-  escapeAllRe: /[\$\(\)\*\+\.\?\[\\\]\^\{\|\}]/g,
+  escapeAllRe: /[\$\(\)\*\+\.\?\[\\\]\^\{\|\}_]/g,
   _spaceOrPlusRe: /\\\+|%20| /g,
   _queryRe: /[#?]/,
   reparseSearchUrl: function (url, ind) {
