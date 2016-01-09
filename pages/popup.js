@@ -207,11 +207,11 @@ exclusions = {
     }
   },
   addRule: function() {
-    this.__proto__.addRule.call(this, this.generateDefaultPattern());
+    ExclusionRulesOption.prototype.addRule.call(this, this.generateDefaultPattern());
   },
   populateElement: function(rules) {
     var element, elements, haveMatch, pattern, _i, _len;
-    this.__proto__.populateElement.call(this, rules);
+    ExclusionRulesOption.prototype.populateElement.call(this, rules);
     elements = this.element.getElementsByClassName("exclusionRuleInstance");
     haveMatch = -1;
     for (_i = 0, _len = elements.length; _i < _len; _i++) {

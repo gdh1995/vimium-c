@@ -647,7 +647,6 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
     );
     */
   BackgroundCommands = {
-    __proto__: null,
     createTab: function() {},
     duplicateTab: function(tabs) {
       chrome.tabs.duplicate(tabs[0].id);
@@ -910,6 +909,7 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
     },
     clearGlobalMarks: function() { Marks.clearGlobal(); }
   };
+  Object.setPrototypeOf(BackgroundCommands, null);
 
   resetKeys = function() {
     currentFirst = null;
@@ -1094,7 +1094,6 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
   // Signature: function(request, opt);
   // opt: Tab [1] tabs = [selected] <% if .useTab is 1 else %> Port port
   g_requestHandlers = requestHandlers = {
-    __proto__: null,
     setSetting: function(request) {
       var key = request.key;
       Settings.set(key, request.value);
@@ -1348,6 +1347,7 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
       }
     }
   };
+  Object.setPrototypeOf(requestHandlers, null);
 
   Settings.updateHooks.newTabUrl_f = function(url) {
     BackgroundCommands.createTab = Utils.isRefusingIncognito(url)

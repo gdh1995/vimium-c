@@ -88,7 +88,6 @@ var Commands = {
   },
 
 commandGroups: {
-  __proto__: null,
   pageNavigation: ["scrollDown", "scrollUp", "scrollLeft", "scrollRight", "scrollToTop"
     , "scrollToBottom", "scrollToLeft", "scrollToRight", "scrollPageDown", "scrollPageUp"
     , "scrollPxDown", "scrollPxUp", "scrollPxLeft", "scrollPxRight"
@@ -135,7 +134,6 @@ advancedCommands: ["scrollToLeft", "scrollToRight", "moveTabToNextWindow"
   , "toggleLinkHintCharacters", "toggleSwitchTemp", "LinkHints.activateModeToLeave"
 ],
 defaultKeyMappings: {
-  __proto__: null,
   "?": "showHelp",
   j: "scrollDown",
   k: "scrollUp",
@@ -201,7 +199,6 @@ defaultKeyMappings: {
 },
 
 availableCommands: {
-  __proto__: null,
   showHelp: [ "Show help", 1, false ],
   debugBackground: [ "Debug the background page", 1, true ],
   blank: [ "Do nothing", 1, true ],
@@ -306,6 +303,9 @@ availableCommands: {
 };
 
 setTimeout(function() {
+  Object.setPrototypeOf(Commands.commandGroups, null);
+  Object.setPrototypeOf(Commands.defaultKeyMappings, null);
+  Object.setPrototypeOf(Commands.availableCommands, null);
   Commands.parseKeyMappings(Settings.get("keyMappings"));
   setTimeout(Settings.updateHooks.PopulateCommandKeys, 3);
 }, 67);
