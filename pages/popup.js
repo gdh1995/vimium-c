@@ -49,6 +49,7 @@ Option.prototype.save = function() {
     value = JSON.stringify(value);
     previous = JSON.stringify(this.previous);
     if (value === previous) { return; }
+    previous = value;
     notJSON = false;
     if (value === JSON.stringify(bgSettings.defaults[this.field])) {
       value = bgSettings.defaults[this.field];
@@ -57,6 +58,8 @@ Option.prototype.save = function() {
     }
   } else if (value === previous) {
     return;
+  } else {
+    previous = value;
   }
   bgSettings.set(this.field, value);
   this.previous = value = bgSettings.get(this.field);
