@@ -309,7 +309,7 @@ var exports = {}, Utils = {
   },
   searchWordRe: /\$([sS])(?:\{([^\}]*)\})?/g,
   searchWordRe2: /([^\\]|^)%([sS])/g,
-  searchVariable: /\$([\d])/g,
+  searchVariable: /\$(\d+)/g,
   createSearchUrl: function(query, keyword) {
     var url, pattern = Settings.cache.searchEngineMap[keyword || query[0]];
     if (pattern) {
