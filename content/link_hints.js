@@ -25,6 +25,7 @@ var LinkHints = {
   hintMarkers: [],
   linkActivator: null,
   mode: 0,
+  lastMode: 0,
   isClickListened: true,
   ngIgnored: true,
   ngAttribute: "",
@@ -498,14 +499,23 @@ var LinkHints = {
       this.reinit();
     } else if (i === KeyCodes.shiftKey) {
       if (this.mode < 128) {
+        if (KeyboardUtils.getKeyStat(event) === 8) {
+          this.lastMode = this.mode;
+        }
         this.setOpenLinkMode((this.mode | 1) ^ (this.mode < 64 ? 3 : 67));
       }
     } else if (i === KeyCodes.ctrlKey || i === KeyCodes.metaKey) {
       if (this.mode < 128) {
+        if (!(event.shiftKey || event.altKey)) {
+          this.lastMode = this.mode;
+        }
         this.setOpenLinkMode((this.mode | 2) ^ 1);
       }
     } else if (i === KeyCodes.altKey) {
       if (this.mode < 256) {
+        if (KeyboardUtils.getKeyStat(event) === 1) {
+          this.lastMode = this.mode;
+        }
         this.setOpenLinkMode(((this.mode >= 128 ? 0 : 2) | this.mode) ^ 64);
       }
     } else if (i >= KeyCodes.pageup && i <= KeyCodes.down) {
@@ -539,18 +549,16 @@ var LinkHints = {
     return 2;
   },
   OnWndBlur: function(keydowns) {
-    var mode = LinkHints.mode;
+    var mode = LinkHints.mode, stat = 0;
     if (mode >= 256) { return; }
     if (keydowns[KeyCodes.altKey]) {
-      mode = ((mode >= 128 ? 0 : 2) | mode) ^ 64;
+      stat = 1;
+      mode = mode ^ 64;
     }
-    if (mode < 128) {
-      if (keydowns[KeyCodes.ctrlKey] || keydowns[KeyCodes.metaKey]) {
-        mode = (mode | 2) ^ 1;
-      }
-      if (keydowns[KeyCodes.shiftKey]) {
-        mode = (mode | 1) ^ (mode < 64 ? 3 : 67);
-      }
+    if (mode >= 128) {}
+    else if (stat > 0 || keydowns[KeyCodes.ctrlKey] || keydowns[KeyCodes.metaKey]
+      || keydowns[KeyCodes.shiftKey]) {
+      mode = LinkHints.lastMode;
     }
     if (mode !== LinkHints.mode) {
       LinkHints.setOpenLinkMode(mode);
@@ -645,7 +653,7 @@ var LinkHints = {
     } else {
       VHUD.hide();
     }
-    this.mode = 0;
+    this.lastMode = this.mode = 0;
     this.options = null;
     this.isActive = false;
     if (suppressType != null) {
