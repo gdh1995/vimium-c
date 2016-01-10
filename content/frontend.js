@@ -1252,9 +1252,7 @@ var Settings, VHUD, MainPort, VInsertMode;
             ).appendChild(DomUtils.UI.container);
         };
         document.addEventListener("webkitfullscreenchange", this.adjust);
-        if (document.webkitFullscreenElement) {
-          document.webkitFullscreenElement.appendChild(this.container);
-        }
+        this.adjust();
       };
     },
     reset: function(request) {
