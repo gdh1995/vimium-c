@@ -570,9 +570,9 @@ var LinkHints = {
     var tempi, rect;
     if (this.mode >= 128) {}
     else if ((tempi = DomUtils.getEditableType(clickEl)) === 3) {
+      this.deactivate(true);
       DomUtils.simulateSelect(clickEl);
       DomUtils.UI.flashOutline(clickEl);
-      this.deactivate(true);
       return;
     }
     else if (tempi > 0) { clickEl.focus(); }
