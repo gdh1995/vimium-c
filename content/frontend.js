@@ -506,7 +506,7 @@ var Settings, VHUD, MainPort, VInsertMode;
       }
       InsertMode.last = null;
       InsertMode.mutable = true;
-      DomUtils.simulateSelect(newEl);
+      DomUtils.UI.simulateSelect(newEl);
     },
     simBackspace: function() {
       var el = document.activeElement;
@@ -601,8 +601,7 @@ var Settings, VHUD, MainPort, VInsertMode;
       if (selectedInputIndex === 0) {
         return;
       } else if (selectedInputIndex === 1) {
-        DomUtils.simulateSelect(visibleInputs[0]);
-        DomUtils.UI.flashOutline(visibleInputs[0]);
+        DomUtils.UI.simulateSelect(visibleInputs[0], true);
         return;
       }
       if (count === 1 && InsertMode.last) {
@@ -610,7 +609,7 @@ var Settings, VHUD, MainPort, VInsertMode;
       } else {
         selectedInputIndex = Math.min(count, selectedInputIndex) - 1;
       }
-      DomUtils.simulateSelect(visibleInputs[selectedInputIndex]);
+      DomUtils.UI.simulateSelect(visibleInputs[selectedInputIndex]);
       hints = visibleInputs.map(function(element) {
         var hint = DomUtils.createElement("div"), style = hint.style
           , rect = element.getBoundingClientRect();
@@ -639,7 +638,7 @@ var Settings, VHUD, MainPort, VInsertMode;
             selectedInputIndex = 0;
           }
           hints[selectedInputIndex].classList.add("S");
-          DomUtils.simulateSelect(visibleInputs[selectedInputIndex]);
+          DomUtils.UI.simulateSelect(visibleInputs[selectedInputIndex]);
         } else if (event.keyCode === KeyCodes.f12) {
           return 0;
         } else if (event.keyCode !== KeyCodes.shiftKey) {
@@ -860,7 +859,7 @@ var Settings, VHUD, MainPort, VInsertMode;
         && DomUtils.getEditableType(el = document.activeElement) === 3
         && findModeAnchorNode.contains(el)) {
       InsertMode.lock = el;
-      DomUtils.simulateSelect(el);
+      DomUtils.UI.simulateSelect(el);
     }
   };
 
@@ -970,7 +969,7 @@ var Settings, VHUD, MainPort, VInsertMode;
       handlerId = handlerStack.push(function(event) {
         handlerStack.remove(handlerId);
         if (event.keyCode === KeyCodes.esc && KeyboardUtils.isPlain(event)) {
-          DomUtils.simulateSelect(InsertMode.lock = el);
+          DomUtils.UI.simulateSelect(InsertMode.lock = el);
           return 2;
         }
         return 0;

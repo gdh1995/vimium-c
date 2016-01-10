@@ -89,6 +89,20 @@ DomUtils.UI = {
     }
     return true;
   },
+  simulateSelect: function(element, flash) {
+    if (element !== VInsertMode.lock) { element.focus(); }
+    DomUtils.simulateClick(element);
+    flash === true && this.flashOutline(element);
+    if (element !== VInsertMode.lock) { return; }
+    var len = element.value ? +element.value.length : -1;
+    if (len > 0) {
+      try {
+        if (element.setSelectionRange && !element.selectionEnd) {
+          element.setSelectionRange(len, len);
+        }
+      } catch (element) {}
+    }
+  },
   flashOutline: function(clickEl, virtual) {
     var temp, rect, parEl, bcr;
     DomUtils.prepareCrop();
