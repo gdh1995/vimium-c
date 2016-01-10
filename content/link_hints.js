@@ -590,7 +590,7 @@ var LinkHints = {
   lastHovered: null,
   unhoverLast: function(element) {
     (element instanceof Element) || (element = null);
-    this.lastHovered && DomUtils.simulateMouse(this.lastHovered, "mouseout", element);
+    this.lastHovered && DomUtils.simulateMouse(this.lastHovered, "mouseout", null, element);
     this.lastHovered = element;
   },
   suppressTail: function(onlyRepeated) {
