@@ -6,7 +6,8 @@ activateWithCompleter: function(completerName, selectFirstResult, forceNewTab
   if (vomnibarUI.init) {
     force_current |= 0;
     if (force_current < 2) {
-      args = [].slice.call(arguments, 0, 5);
+      args = [].slice.call(arguments);
+      args.length = 5;
       args.push(force_current);
       if (MainPort.sendCommandToContainer("Vomnibar.activateWithCompleter", args)) {
         return;

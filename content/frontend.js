@@ -110,7 +110,6 @@ var Settings, VHUD, MainPort, VInsertMode;
         if (window === top) { return false; }
       }
       top.VInsertMode.keydownEvents(KeydownEvents);
-      args.push(true);
       top.MainPort.Listener({
         name: "dispatchCommand", command: command, args: args
       });
