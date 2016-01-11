@@ -116,8 +116,8 @@
 	"newTabUrl": "chrome-extension://hdnehngglnbnehkfcidabjckinphnief/index.html",
 	"searchEngines": [
 		"b|吧|把|ba|bd|baidu|Baidu|百度: http://www.baidu.com/s?ie=utf-8&wd=$s",
-		"bi: http://www.bing.com/search?q=$s",
-		"bi|必应: http://cn.bing.com/search?q=$s",
+		"bi: http://cn.bing.com/search?q=$s",
+		"bi|必应: http://www.bing.com/search?q=$s",
 		"bing: . www.bing.com/dict/ re=/^([^\\/]+)\\/?$/",
 		"bing: . www.bing.com/dict/ re=/^(?:search|dict|)?[?#&]q=([^&#]*)/i",
 		"bing: . cn.bing.com/dict/ re=/^([^\\/]+)\\/?$/",
