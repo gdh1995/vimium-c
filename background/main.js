@@ -165,7 +165,7 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
           if (currentCommand.options.action === "reopen") {
             ++tab.index;
             funcDict.reopenTab(tab);
-          } else if (tab.index > 0) {
+          } else if (tab.index > 0 && !tab.incognito) {
             funcDict.refreshTab[0](tabId);
           } else {
             chrome.tabs.reload(tabId);
