@@ -719,12 +719,8 @@ var Settings, VHUD, MainPort, VInsertMode;
       return 0;
     },
     grabBackFocus: function(event) {
-      if (settings.cache.grabBackFocus) {
-        DomUtils.suppressEvent(event);
-        event.target.blur();
-      } else { // just in case that we open options.html and change its checkbox
-        this.lockFocus(event);
-      }
+      event.stopImmediatePropagation();
+      event.target.blur();
     },
     lockFocus: function(event) {
       var target = event.target;
