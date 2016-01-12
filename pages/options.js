@@ -128,8 +128,8 @@ CheckBoxOption.prototype.readValueFromElement = function() {
   };
 
   $("showCommands").onclick = function(event) {
-    var node;
-    DomUtils.suppressEvent(event);
+    var node; 
+    event.preventDefault();
     if (node = document.querySelector('.HelpCommandName')) {
       node.click();
       return;

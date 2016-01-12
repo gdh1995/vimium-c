@@ -1390,7 +1390,7 @@ var Settings, VHUD, MainPort, VInsertMode;
       node1.onclick = function(event) {
         mainPort.port.postMessage({ handler: "focusOrLaunch", url: this.href });
         hide();
-        DomUtils.suppressEvent(event);
+        event.preventDefault();
       };
     } else {
       node1.remove();

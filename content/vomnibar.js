@@ -302,7 +302,6 @@ vomnibarUI: {
     if (el === this.input.parentElement) {
       this.onAction("focus");
     } else if (el === this.input) {
-      event.stopImmediatePropagation();
       return;
     } else if (el === this.list || this.timer) {}
     else if (window.getSelection().type !== "Range") {
@@ -316,7 +315,7 @@ vomnibarUI: {
         this.onAction("enter");
       }
     }
-    DomUtils.suppressEvent(event);
+    event.preventDefault();
   },
   onMenu: function (event) {
     var path = event.path, _i, el;
@@ -326,7 +325,6 @@ vomnibarUI: {
     if (el === this.list) { return; }
     _i = [].indexOf.call(this.list.children, el.parentElement.parentElement);
     el.href = this.completions[_i].url;
-    DomUtils.SuppressPropagation(event);
   },
   OnSelected: function() {
     var el = this, left;
