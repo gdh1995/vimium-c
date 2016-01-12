@@ -128,9 +128,9 @@ CheckBoxOption.prototype.readValueFromElement = function() {
   };
 
   $("showCommands").onclick = function(event) {
-    var node; 
+    var node, root = DomUtils.UI.root;
     event.preventDefault();
-    if (node = document.querySelector('.HelpCommandName')) {
+    if (root && (node = root.querySelector('.HelpCommandName'))) {
       node.click();
       return;
     }
@@ -140,7 +140,8 @@ CheckBoxOption.prototype.readValueFromElement = function() {
       names: true,
       title: "Command Listing"
     }, function(response) {
-      if (node = $("HelpDialog")) {
+      var node, root = DomUtils.UI.root;
+      if (root && (node = root.getElementById("HelpDialog"))) {
         MainPort.Listener({
           name: "execute",
           command: "showHelp",
