@@ -509,7 +509,7 @@ var Settings, VHUD, MainPort, VInsertMode;
       }
       InsertMode.last = null;
       InsertMode.mutable = true;
-      DomUtils.UI.simulateSelect(newEl);
+      DomUtils.UI.simulateSelect(newEl, false, true);
     },
     simBackspace: function() {
       var el = InsertMode.lock;
@@ -603,7 +603,7 @@ var Settings, VHUD, MainPort, VInsertMode;
       if (selectedInputIndex === 0) {
         return;
       } else if (selectedInputIndex === 1) {
-        DomUtils.UI.simulateSelect(visibleInputs[0], true);
+        DomUtils.UI.simulateSelect(visibleInputs[0], true, true);
         return;
       }
       if (count === 1 && InsertMode.last) {

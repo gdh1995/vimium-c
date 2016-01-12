@@ -89,7 +89,7 @@ DomUtils.UI = {
     }
     return true;
   },
-  simulateSelect: function(element, flash) {
+  simulateSelect: function(element, flash, suppressRepeated) {
     if (element !== VInsertMode.lock) { element.focus(); }
     DomUtils.simulateClick(element);
     flash === true && this.flashOutline(element);
@@ -102,6 +102,7 @@ DomUtils.UI = {
         }
       } catch (element) {}
     }
+    suppressRepeated === true && LinkHints.suppressTail(true);
   },
   flashOutline: function(clickEl, virtual) {
     var temp, rect, parEl, bcr;

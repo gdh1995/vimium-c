@@ -570,7 +570,7 @@ var LinkHints = {
     var tempi, rect;
     if (this.mode >= 128) {}
     else if ((tempi = DomUtils.getEditableType(clickEl)) === 3) {
-      this.deactivate(true);
+      this.deactivate(true); // always suppress tail even if fail to focus
       this.unhoverLast();
       DomUtils.UI.simulateSelect(clickEl, true);
       return;
