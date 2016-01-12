@@ -643,7 +643,7 @@ var Settings, VHUD, MainPort, VInsertMode;
           DomUtils.UI.simulateSelect(visibleInputs[selectedInputIndex]);
         } else if (event.keyCode === KeyCodes.f12) {
           return 0;
-        } else if (event.keyCode !== KeyCodes.shiftKey) {
+        } else if (!event.repeat && event.keyCode !== KeyCodes.shiftKey) {
           hintContainingDiv.remove();
           handlerStack.remove(handlerId);
           return 0;
