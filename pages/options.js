@@ -145,7 +145,8 @@ CheckBoxOption.prototype.readValueFromElement = function() {
         MainPort.Listener({
           name: "execute",
           command: "showHelp",
-          count: 1
+          count: 1,
+          options: {}
         });
       }
       MainPort.Listener(response);

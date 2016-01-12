@@ -187,7 +187,6 @@ chrome.tabs.query({currentWindow: true, active: true}, function(tab) {
 
 exclusions = {
   url: "",
-  testers: null,
   init: function(url, element, onUpdated) {
     this.url = url;
     this.rebuildTesters();

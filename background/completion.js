@@ -734,7 +734,7 @@ searchEngines: {
   };
 
   window.RegexpCache = RegexpCache = {
-    _cache: Object.create(null),
+    _cache: null,
     clear: function() {
       this._cache = Object.create(null);
     },
