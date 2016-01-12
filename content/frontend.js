@@ -488,29 +488,32 @@ var Settings, VHUD, MainPort, VInsertMode;
       }
     },
     switchFocus: function() {
-      var newEl = document.activeElement;
-      if (newEl !== document.body) {
+      var newEl = InsertMode.lock;
+      if (newEl) {
         InsertMode.last = newEl;
         InsertMode.mutable = false;
-        if (newEl && newEl.blur) {
-          newEl.blur();
-        }
+        newEl.blur();
         return;
       }
       newEl = InsertMode.last;
-      if (!newEl) { return; }
+      if (!newEl) {
+        HUD.showForDuration("Nothing was focused", 1200);
+        return;
+      }
       else if (!DomUtils.isVisibile(newEl)) {
         newEl.scrollIntoViewIfNeeded();
-        if (!DomUtils.isVisibile(newEl)) { return; }
+        if (!DomUtils.isVisibile(newEl)) {
+          HUD.showForDuration("The last focused is hidden", 2000);
+          return;
+        }
       }
       InsertMode.last = null;
       InsertMode.mutable = true;
       DomUtils.UI.simulateSelect(newEl);
     },
     simBackspace: function() {
-      var el = document.activeElement;
-      if (el && el === document.body) { Commands.switchFocus(); }
-      else if (DomUtils.getEditableType(el) !== 3) {}
+      var el = InsertMode.lock;
+      if (!el) { Commands.switchFocus(); }
       else if (DomUtils.isVisibile(el)) { DomUtils.simulateBackspace(el); }
       else { el.scrollIntoViewIfNeeded(); }
     },
