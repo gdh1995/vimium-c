@@ -310,7 +310,7 @@ exclusions = {
     window.close();
   };
   window.onunload = function() {
-    bgExclusions.testers = BG.Object.create(null);
+    bgExclusions.testers = null;
   };
 });
 
