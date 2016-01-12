@@ -15,6 +15,7 @@ var Commands = {
     this.keyRe = new RegExp(keyReSource, "g");
     this.setStrict = null;
   },
+  defaultOption: Object.create(null),
   getOptions: function(item) {
     var opt = {}, i, len, ind, str, val;
     for (i = 3, len = item.length; i < len; ) {
@@ -29,7 +30,7 @@ var Commands = {
       }
       opt[str] = val && this.parseDecoded(val);
     }
-    return opt;
+    return str ? opt : this.defaultOption;
   },
   parseDecoded: function(val) {
     try {
@@ -41,7 +42,7 @@ var Commands = {
   loadDefaults: function() {
     var defaultMap = this.defaultKeyMappings, available = this.availableCommands
       , registry = this.keyToCommandRegistry
-      , key, command, details, options = Object.create(null);
+      , key, command, details, options = this.defaultOption;
     for (key in defaultMap) {
       details = available[command = defaultMap[key]];
       registry[key] = {
