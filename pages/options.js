@@ -129,7 +129,7 @@ CheckBoxOption.prototype.readValueFromElement = function() {
 
   $("showCommands").onclick = function(event) {
     var node, root = DomUtils.UI.root;
-    event.preventDefault();
+    event && event.preventDefault();
     if (root && (node = root.querySelector('.HelpCommandName'))) {
       node.click();
       return;
@@ -394,7 +394,7 @@ BG.Commands.setStrict && BG.Commands.setStrict(KeyRe.source);
   var onhash = function(event) {
     var hash = window.location.hash.substring(1), node;
     event && event.preventDefault();
-    if (hash && (node = document.querySelector('[hash="' + hash + '"]'))) {
+    if (hash && (node = document.querySelector('[data-hash="' + hash + '"]'))) {
       node.onclick && node.onclick(null, "hash");
     }
   }
