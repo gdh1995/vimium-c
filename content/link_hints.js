@@ -420,19 +420,19 @@ var LinkHints = {
       return;
     }
     if (output == null) {
-      output = [];
       if (document.body === null) {
         if (document.readyState === "complete") {
           this.frameNested = null;
         }
         return;
       }
+      output = [];
       func = this.GetVisibleClickable.bind(output);
       DomUtils.prepareCrop();
-      output.some.call(document.body.getElementsByTagName("*"), function(element) {
-        func(element);
-        return output.length > 1;
-      });
+      output.forEach.call(document.getElementsByTagName("iframe"), func);
+      if (output.length === 0 && document.body instanceof HTMLFrameSetElement) {
+        output.forEach.call(document.body.getElementsByTagName("frame"), func);
+      }
     }
     if (output.length !== 1) {
       if (output.length !== 0 || document.readyState === "complete") {
