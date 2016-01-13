@@ -211,7 +211,7 @@ CheckBoxOption.prototype.readValueFromElement = function() {
   advancedMode = bgSettings.get("showAdvancedOptions");
   element = $("advancedOptionsButton");
   element.onclick = function(_0, init) {
-    if (!init) {
+    if (init == null || (init === "hash" && advancedMode === false)) {
       advancedMode = !advancedMode;
       bgSettings.set("showAdvancedOptions", advancedMode);
     }
@@ -389,3 +389,19 @@ $("importButton").onclick = function() {
 })();
 
 BG.Commands.setStrict && BG.Commands.setStrict(KeyRe.source);
+
+(function() {
+  var onhash = function(event) {
+    var hash = window.location.hash.substring(1), node;
+    event && event.preventDefault();
+    if (hash && (node = document.querySelector('[hash="' + hash + '"]'))) {
+      node.onclick && node.onclick(null, "hash");
+    }
+  }
+  window.addEventListener("hashchange", onhash);
+  if (window.location.hash.length <= 4) { return; }
+  window.onload = function() {
+    window.onload = null;
+    setTimeout(onhash, 33);
+  };
+})();
