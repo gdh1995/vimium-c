@@ -642,7 +642,7 @@ var Settings, VHUD, MainPort, VInsertMode;
           hints[selectedInputIndex].classList.add("S");
           DomUtils.UI.simulateSelect(visibleInputs[selectedInputIndex]);
         } else if (event.keyCode === KeyCodes.f12) {
-          return 0;
+          return KeyboardUtils.isPlain(event) ? 0 : 2;
         } else if (!event.repeat && event.keyCode !== KeyCodes.shiftKey) {
           hintContainingDiv.remove();
           handlerStack.remove(handlerId);
