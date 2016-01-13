@@ -454,7 +454,7 @@ var LinkHints = {
     }
   },
   getVisibleClickableElements: function() {
-    var output = [], visibleElements, visibleElement, rects, rects2, _len, _i;
+    var output = [], visibleElements, visibleElement, rects, _len, _i, obj, func;
     _i = this.mode & ~64;
     visibleElements = this.traverse(
       (_i == this.CONST.DOWNLOAD_IMAGE || _i == this.CONST.OPEN_IMAGE)
@@ -464,12 +464,17 @@ var LinkHints = {
       : { "*": this.GetVisibleClickable });
     if (this.frameNested) { return; }
     visibleElements.reverse();
+    
+    obj = [null, null];
+    func = VRect.SubtractSequence.bind(obj);
     for (_len = visibleElements.length; 0 <= --_len; ) {
       visibleElement = visibleElements[_len];
       rects = [visibleElement[1]];
-      for (_i = 0; _i < _len; _i++) {
-        rects.forEach(VRect.SubtractSequence.bind(rects2 = [], visibleElements[_i][1]));
-        if ((rects = rects2).length === 0) {
+      for (_i = _len; 0 <= --_i; ) {
+        obj[0] = [];
+        obj[1] = visibleElements[_i][1];
+        rects.forEach(func);
+        if ((rects = obj[0]).length === 0) {
           break;
         }
       }
