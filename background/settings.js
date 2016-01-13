@@ -140,7 +140,6 @@ var Settings = {
     keyMappings: "",
     linkHintCharacters: "sadjklewcmpgh",
     newTabUrl: "",
-    newTabUrl_f: "",
     nextPatterns: "\u4e0b\u9875,\u4e0b\u4e00\u9875,\u4e0b\u4e00\u7ae0,\u540e\u4e00\u9875"
       + ",next,more,newer,>,\u2192,\xbb,\u226b,>>",
     previousPatterns: "\u4e0a\u9875,\u4e0a\u4e00\u9875,\u4e0a\u4e00\u7ae0,\u524d\u4e00\u9875"
@@ -154,7 +153,6 @@ g|go|gg|google|Google: http://www.google.com/search?q=$s Google\n\
 js\\:|Js: javascript:\\ $S; Javascript\n\
 w|wiki:\\\n  http://www.wikipedia.org/w/index.php?search=$s Wikipedia (en-US)",
     searchEngineMap: {}, // may be modified, but this action is safe
-    searchEngineRules: [],
     showActionIcon: true,
     showAdvancedCommands: false,
     showAdvancedOptions: false,
