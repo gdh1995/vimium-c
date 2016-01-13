@@ -454,7 +454,7 @@ var LinkHints = {
     }
   },
   getVisibleClickableElements: function() {
-    var output = [], visibleElements, visibleElement, rects, _len, _i, obj, func, r, t;
+    var output = [], visibleElements, visibleElement, rects, _len, _i, _j, obj, func, r, t;
     _i = this.mode & ~64;
     visibleElements = this.traverse(
       (_i == this.CONST.DOWNLOAD_IMAGE || _i == this.CONST.OPEN_IMAGE)
@@ -470,7 +470,7 @@ var LinkHints = {
     for (_len = visibleElements.length; 0 <= --_len; ) {
       visibleElement = visibleElements[_len];
       rects = [r = visibleElement[1]];
-      for (_i = _len; 0 <= --_i; ) {
+      for (_i = _len, _j = Math.max(0, _len - 32); _j <= --_i; ) {
         t = visibleElements[_i][1];
         if (r[3] <= t[1] || r[2] <= t[0] || r[0] >= t[2]) {
           continue;
