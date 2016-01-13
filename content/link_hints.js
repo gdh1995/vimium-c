@@ -447,7 +447,9 @@ var LinkHints = {
     } else if ((rect = element.getClientRects()[0])
         && window.scrollY + rect.top < 20 && window.scrollX + rect.left < 20
         && element.scrollWidth > document.documentElement.scrollWidth - 40
-        && element.scrollHeight > document.documentElement.scrollHeight - 40) {
+        && element.scrollHeight > document.documentElement.scrollHeight - 40
+        && getComputedStyle(element).visibility === 'visible'
+    ) {
       this.frameNested = element;
     } else if (document.readyState === "complete") {
       this.frameNested = null;
