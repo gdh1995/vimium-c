@@ -2,7 +2,7 @@
 var Vomnibar = {
 activateWithCompleter: function(completerName, selectFirstResult, forceNewTab
     , initialQueryValue, keyword, force_current) {
-  var vomnibarUI = this.vomnibarUI, args;
+  var vomnibarUI = this.vomnibarUI, bg = this.background, args;
   if (vomnibarUI.init) {
     force_current |= 0;
     if (force_current < 2) {
@@ -16,10 +16,10 @@ activateWithCompleter: function(completerName, selectFirstResult, forceNewTab
     // <svg> document has not head nor body; document with pdf <embed> has body
     if (!document.body) { return false; }
     var box = DomUtils.createElement("div");
-    this.background.init();
+    bg.parse = bg.parse.bind(bg);
     vomnibarUI.init(box);
   }
-  this.background.name = completerName;
+  bg.name = completerName;
   vomnibarUI.initialSelectionValue = selectFirstResult ? 0 : -1;
   vomnibarUI.forceNewTab = forceNewTab ? true : false;
   handlerStack.remove(vomnibarUI.handlerId);
@@ -425,9 +425,6 @@ vomnibarUI: {
 
 background: {
   name: "",
-  init: function() {
-    this.parse = this.parse.bind(this);
-  },
   filter: function(query) {
     MainPort.port.postMessage({
       handler: "omni",
