@@ -41,8 +41,16 @@ __extends(TextOption, Option);
 
 TextOption.prototype.headWhiteRe = /\n /g;
 TextOption.prototype.whiteMaskRe = /\xa0/g;
-TextOption.prototype.populateElement = function(value) {
-  this.element.value = value.replace(this.headWhiteRe, '\n\xa0');
+TextOption.prototype.populateElement = function(value, enableUndo) {
+  value = value.replace(this.headWhiteRe, '\n\xa0');
+  if (enableUndo !== true) {
+    this.element.value = value;
+    return;
+  }
+  this.element.focus();
+  document.execCommand("undo");
+  this.element.setSelectionRange(0, this.element.value.length);
+  document.execCommand("insertText", false, value);
 };
 
 TextOption.prototype.readValueFromElement = function() {
@@ -58,7 +66,7 @@ NonEmptyTextOption.prototype.readValueFromElement = function() {
   var value = NonEmptyTextOption.__super__.readValueFromElement.call(this);
   if (!value) {
     value = bgSettings.defaults[this.field];
-    this.populateElement(value);
+    this.populateElement(value, true);
   }
   return value;
 };
@@ -68,8 +76,9 @@ function JSONOption() {
 }
 __extends(JSONOption, TextOption);
 
-JSONOption.prototype.populateElement = function(obj) {
-  JSONOption.__super__.populateElement.call(this, JSON.stringify(obj, null, 2));
+JSONOption.prototype.populateElement = function(obj, enableUndo) {
+  JSONOption.__super__.populateElement.call(this
+    , JSON.stringify(obj, null, 2), enableUndo);
 };
 
 JSONOption.prototype.readValueFromElement = function() {
@@ -82,7 +91,7 @@ JSONOption.prototype.readValueFromElement = function() {
     }
   } else {
     obj = bgSettings.defaults[this.field];
-    this.populateElement(obj);
+    this.populateElement(obj, true);
   }
   return obj;
 };
