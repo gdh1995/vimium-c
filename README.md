@@ -5,15 +5,13 @@ Vimium++
 
 A custom Vimium, by gdh1995@qq.com. In the *weidu* directory is 微度新标签页.
 
-This branch supports Chrome with sessions only (ver >= 37).
+Support Chrome with sessions only (ver >= 37).
 
 __Vimium:__
 
 * a Chrome extension that provides keyboard-based navigation and control
     of the web in the spirit of the Vim editor.
-* from [philc/vimium:master](https://github.com/philc/vimium) [![Build Status
-    ](https://secure.travis-ci.org/philc/vimium.png?branch=master
-    )](https://travis-ci.org/philc/vimium).
+* from [philc/vimium:master](https://github.com/philc/vimium).
 * optimized after translating it into JavaScript using `cake build`.
 * more functions, more powerful, and more convenient (for me, at least).
 
@@ -37,13 +35,9 @@ Release Notes
 -------------
 Vimium: 1.49 (2014-12-16)
 
-* There are may some commits behind [philc/vimium:master
-    ](https://github.com/philc/vimium).
-* Supports Chrome (ver >= 37) only. For an earlier version, please try
-    [:for-old-chrome
-    ](https://github.com/gdh1995/vimium-plus/tree/for-old-chrome).
+* Most new PRs have been merged, so functions except Visual Mode are latest.
 
-X New Tab Page: 4.8.0 (2015-03-19)
+X New Tab Page: 4.8.2 (2015-03-19)
 
 * All merged.
 
