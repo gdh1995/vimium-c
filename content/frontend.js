@@ -1242,8 +1242,8 @@ var Settings, VHUD, MainPort, VInsertMode;
         this.root.addEventListener("focusout", function(event) {
           if (InsertMode.lock === event.target) {
             InsertMode.lock = null;
-            event.target.focused = false;
           }
+          event.target.focused = false;
         });
         this.adjust = function() {
           (document.webkitFullscreenElement || document.documentElement
