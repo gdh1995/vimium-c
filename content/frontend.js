@@ -514,7 +514,7 @@ var Settings, VHUD, MainPort, VInsertMode;
     simBackspace: function() {
       var el = InsertMode.lock;
       if (!el) { Commands.switchFocus(); }
-      else if (DomUtils.isVisibile(el)) { DomUtils.simulateBackspace(el); }
+      else if (DomUtils.isVisibile(el)) { document.execCommand("delete"); }
       else { el.scrollIntoViewIfNeeded(); }
     },
     goBack: function(count) {

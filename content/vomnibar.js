@@ -264,7 +264,7 @@ vomnibarUI: {
       this.input.focus();
       break;
     case "blur": this.input.blur(); break;
-    case "backspace": DomUtils.simulateBackspace(this.input); break;
+    case "backspace": document.execCommand("delete"); break;
     case "up":
       this.isSelectionChanged = true;
       sel = this.selection;
