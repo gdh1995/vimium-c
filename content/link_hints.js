@@ -385,7 +385,7 @@ var LinkHints = {
     DomUtils.prepareCrop();
     container = document.webkitFullscreenElement || document;
     if (this.ngIgnored && "*" in filters) {
-      this.ngIgnored = container.querySelector('.ng-scope') === null;
+      this.ngIgnored = document.querySelector('.ng-scope') === null;
     }
     this.isClickListened = Settings.cache.isClickListened;
     for (key in filters) {
