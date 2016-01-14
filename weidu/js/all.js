@@ -392,7 +392,7 @@ var iframeDomain = "www.94994.com";
 var urlImg = "http://hao." + officialDomain + "/";
 var _langPre = ui_locale;
 var _config = {
-version:'4.8.0',
+version:'4.8.2',
 dataVersion:"4.0",
 lang:"zh_CN",
 oauthType:['sina','qqwb','qq','taobao','google','facebook','twitter'],
