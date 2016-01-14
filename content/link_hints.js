@@ -326,11 +326,11 @@ var LinkHints = {
       if (s == null || !(s === "" || parseInt(s, 10) >= -1)) {
         return; // work around
       }
-      isClickable = true; _i = -1;
+      isClickable = true; _i = -2;
       break;
     }
     if (isClickable && (arr = DomUtils.getVisibleClientRect(element))) {
-      this.push([element, arr, _i !== -1]); // {element, rect, notSecond}
+      this.push([element, arr, _i !== -2]); // {element, rect, notSecond}
     }
   },
   GetLinks: function(element) {
