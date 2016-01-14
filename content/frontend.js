@@ -1334,8 +1334,8 @@ var Settings, VHUD, MainPort, VInsertMode;
         request.args[request.args.length - 1] = 2;
         mainPort.sendCommand(request.source, request.command, request.args);
         return;
-      }
-      window.focus(); // WARNING: vomnibar can still fail to focus itself
+      } 
+      window.focus();
       var arr = Utils.findCommand(Commands, request.command);
       arr[0][arr[1]].apply(arr[0], request.args);
     },
