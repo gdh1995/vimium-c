@@ -326,11 +326,14 @@ var LinkHints = {
       if (s == null || !(s === "" || parseInt(s, 10) >= -1)) {
         return; // work around
       }
-      isClickable = true; _i = -2;
-      break;
+      isClickable = true;
+      if (arr = DomUtils.getVisibleClientRect(element)) {
+        this.push([element, arr, 0]);
+      }
+      return;
     }
     if (isClickable && (arr = DomUtils.getVisibleClientRect(element))) {
-      this.push([element, arr, _i !== -2]); // {element, rect, notSecond}
+      this.push([element, arr]);
     }
   },
   GetLinks: function(element) {
@@ -340,7 +343,7 @@ var LinkHints = {
     //   : then he can set [href=#][data-vim-url] to enable LinkHints
     if (a != null || ((a = element.getAttribute("href")) && a !== "#")) {
       if (arr = DomUtils.getVisibleClientRect(element)) {
-        this.push([element, arr, true]);
+        this.push([element, arr]);
       }
     }
   },
@@ -365,14 +368,14 @@ var LinkHints = {
       }
     }
     if (cr) {
-      this.push([element, cr, true]);
+      this.push([element, cr]);
     }
   },
   GetImagesInA: function(element) {
     var str = element.getAttribute("href"), cr;
     if (str && str.length > 4 && LinkHints.imageUrlRe.test(str)) {
       if (cr = DomUtils.getVisibleClientRect(element)) {
-        this.push([element, cr, true]);
+        this.push([element, cr]);
       }
     }
   },
@@ -456,7 +459,7 @@ var LinkHints = {
     }
   },
   getVisibleElements: function() {
-    var output = [], visibleElements, visibleElement, rects, _len, _i, _j, obj, func, r, t;
+    var visibleElements, visibleElement, rects, _len, _i, _j, obj, func, r, t;
     _i = this.mode & ~64;
     visibleElements = this.traverse(
       (_i == this.CONST.DOWNLOAD_IMAGE || _i == this.CONST.OPEN_IMAGE)
@@ -469,10 +472,11 @@ var LinkHints = {
     
     obj = [null, null];
     func = VRect.SubtractSequence.bind(obj);
-    for (_len = visibleElements.length; 0 <= --_len; ) {
+    for (_len = visibleElements.length, _j = Math.max(0, _len - 32); 0 <= --_len; ) {
+      _j > 0 && --_j;
       visibleElement = visibleElements[_len];
       rects = [r = visibleElement[1]];
-      for (_i = _len, _j = Math.max(0, _len - 32); _j <= --_i; ) {
+      for (_i = _len; _j <= --_i; ) {
         t = visibleElements[_i][1];
         if (r[3] <= t[1] || r[2] <= t[0] || r[0] >= t[2]) {
           continue;
@@ -485,12 +489,12 @@ var LinkHints = {
         }
       }
       if (rects.length > 0) {
-        output.push([visibleElement[0], rects[0]]); // {element, rect}
-      } else if (visibleElement[2]) {
-        output.push([visibleElement[0], visibleElement[1]]);
+        visibleElement[1] = rects[0];
+      } else if (visibleElement.length === 3) {
+        visibleElements.splice(_len, 1);
       }
     }
-    return output;
+    return visibleElements.reverse();
   },
   onKeyDownInMode: function(event) {
     var linksMatched, i, j, ref, limit;
