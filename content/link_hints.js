@@ -323,7 +323,7 @@ var LinkHints = {
         if (isClickable) { break; }
       }
       s = element.getAttribute("tabindex");
-      if (s == null || !(s === "" || parseInt(s, 10) >= -1)) {
+      if (s == null || !(s === "" || parseInt(s, 10) >= 0)) {
         return; // work around
       }
       isClickable = true;
