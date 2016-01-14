@@ -110,14 +110,14 @@ var LinkHints = {
     var elements, rect, style, width, height, x, y;
 
     if (!this.frameNested) {
-      elements = this.getVisibleClickableElements();
+      elements = this.getVisibleElements();
     }
     if (this.frameNested) {
       if (this.tryNestedFrame("LinkHints.activate", [mode, this.options])) {
         VHUD.hide(true);
         return;
       }
-      elements || (elements = this.getVisibleClickableElements());
+      elements || (elements = this.getVisibleElements());
     }
     this.hintMarkers = elements.map(this.createMarkerFor);
     elements = null;
@@ -243,7 +243,7 @@ var LinkHints = {
   hashRe: /^#/,
   quoteRe: /"/g,
   btnRe: /\b[Bb](?:utto|t)n(?:$| )/,
-  GetVisibleClickable: function(element) {
+  GetClickable: function(element) {
     var arr, isClickable = false, s, _i;
     switch (element.tagName.toLowerCase()) {
     case "a": case "frame": case "iframe": isClickable = true; break;
@@ -258,7 +258,7 @@ var LinkHints = {
     case "label":
       if (element.control) {
         arr = [];
-        LinkHints.GetVisibleClickable.call(arr, element.control);
+        LinkHints.GetClickable.call(arr, element.control);
         isClickable = arr.length === 0;
       }
       break;
@@ -427,7 +427,7 @@ var LinkHints = {
         return;
       }
       output = [];
-      func = this.GetVisibleClickable.bind(output);
+      func = this.GetClickable.bind(output);
       DomUtils.prepareCrop();
       output.forEach.call(document.getElementsByTagName("iframe"), func);
       if (output.length === 0 && document.body instanceof HTMLFrameSetElement) {
@@ -455,7 +455,7 @@ var LinkHints = {
       this.frameNested = null;
     }
   },
-  getVisibleClickableElements: function() {
+  getVisibleElements: function() {
     var output = [], visibleElements, visibleElement, rects, _len, _i, _j, obj, func, r, t;
     _i = this.mode & ~64;
     visibleElements = this.traverse(
@@ -463,7 +463,7 @@ var LinkHints = {
       ? { img: this.GetImagesInImg, a: this.GetImagesInA }
       : _i == this.CONST.EDIT_TEXT && this.options.url
       || (_i < 256 && _i >= 136) ? { a: this.GetLinks }
-      : { "*": this.GetVisibleClickable });
+      : { "*": this.GetClickable });
     if (this.frameNested) { return; }
     visibleElements.reverse();
     
