@@ -423,6 +423,9 @@ vomnibarUI: {
   }
 },
 
+OnCompletions: function(response) {
+  Vomnibar.vomnibarUI.onCompletions(response.list.map(Vomnibar.background.parse));
+},
 background: {
   name: "",
   filter: function(query) {
