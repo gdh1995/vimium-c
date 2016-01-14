@@ -3,21 +3,23 @@ Vimium++
 [![license](https://img.shields.io/badge/license-MIT-blue.svg)](MIT-LICENSE.txt)
 ![version](https://img.shields.io/badge/release-1.50-orange.svg)
 
-A custom Vimium, by gdh1995@qq.com. In the *weidu* directory is 微度新标签页.
+A custom [Vimium](https://github.com/philc/vimium)
+  by [gdh1995](https://github.com/gdh1995).
+  Support Chrome with sessions only (ver >= 37).
 
-Support Chrome with sessions only (ver >= 37).
+In the *weidu* directory is 微度新标签页.
 
 __Vimium:__
 
 * a Chrome extension that provides keyboard-based navigation and control
     of the web in the spirit of the Vim editor.
 * from [philc/vimium:master](https://github.com/philc/vimium).
-* optimized after translating it into JavaScript using `cake build`.
+* optimized after translating it from CoffeeScript into JavaScript.
 * more functions, more powerful, and more convenient (for me, at least).
 
 __微度新标签页 (X New Tab Page):__
 
-* In folder [*weidu*](https://github.com/gdh1995/vimium-plus/tree/master/weidu)
+* in folder [*weidu*](https://github.com/gdh1995/vimium-plus/tree/master/weidu)
 * 一款基于Html5的Chrome浏览器扩展程序。
   它提供了网站快速拨号、网站云添加、数据云备份等功能来增强 Chrome
     原生新标签页（New Tab）；
