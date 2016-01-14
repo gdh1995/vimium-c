@@ -26,7 +26,7 @@ function NumberOption() {
 __extends(NumberOption, Option);
 
 NumberOption.prototype.populateElement = function(value) {
-  return this.element.value = value;
+  this.element.value = value;
 };
 
 NumberOption.prototype.readValueFromElement = function() {
@@ -42,7 +42,7 @@ __extends(TextOption, Option);
 TextOption.prototype.headWhiteRe = /\n /g;
 TextOption.prototype.whiteMaskRe = /\xa0/g;
 TextOption.prototype.populateElement = function(value) {
-  return this.element.value = value.replace(this.headWhiteRe, '\n\xa0');
+  this.element.value = value.replace(this.headWhiteRe, '\n\xa0');
 };
 
 TextOption.prototype.readValueFromElement = function() {
@@ -69,7 +69,7 @@ function JSONOption() {
 __extends(JSONOption, TextOption);
 
 JSONOption.prototype.populateElement = function(obj) {
-  return JSONOption.__super__.populateElement.call(this, JSON.stringify(obj, null, 2));
+  JSONOption.__super__.populateElement.call(this, JSON.stringify(obj, null, 2));
 };
 
 JSONOption.prototype.readValueFromElement = function() {
@@ -96,7 +96,7 @@ function CheckBoxOption() {
 __extends(CheckBoxOption, Option);
 
 CheckBoxOption.prototype.populateElement = function(value) {
-  return this.element.checked = value;
+  this.element.checked = value;
 };
 
 CheckBoxOption.prototype.readValueFromElement = function() {
