@@ -119,9 +119,6 @@ var LinkHints = {
       }
       elements || (elements = this.getVisibleElements());
     }
-    this.hintMarkers = elements.map(this.createMarkerFor);
-    elements = null;
-    this.alphabetHints.fillInMarkers(this.hintMarkers);
     this.isActive = true;
 
     x = window.scrollX; y = window.scrollY;
@@ -137,10 +134,12 @@ var LinkHints = {
     height = Math.max(height, container.clientHeight);
     width  = Math.min(width,  window.innerWidth  + 60);
     height = Math.min(height, window.innerHeight + 20);
-    this.hintMarkerContainingDiv = DomUtils.UI.addElementList(this.hintMarkers, {
-      id: "HMC",
-      className: "R"
-    });
+    console.time("new");
+    for(var k=100 ; 0<=--k;) {
+    this.createMarkers(elements);
+    }
+    console.timeEnd("new");
+    elements = null;
     style = this.hintMarkerContainingDiv.style;
     style.left = x + "px"; style.top = y + "px";
     style.width = width + "px"; style.height = height + "px";
@@ -231,14 +230,26 @@ var LinkHints = {
     arr = Utils.findCommand(child, command);
     return arr[0][arr[1]].apply(arr[0], args) !== false;
   },
-  createMarkerFor: function(link) {
-    var marker = DomUtils.createElement("div"), rect;
-    marker.className = "LH";
-    marker.clickableItem = link[0];
-    rect = link[1];
-    marker.style.left = rect[0] + "px";
-    marker.style.top = rect[1] + "px";
-    return marker;
+  createMarkers: function(links) {
+    var i = links.length, hints = this.alphabetHints.initHintStrings(i), arr2,
+    wrap = this.alphabetHints.SpanWrap, arr = new Array(i), rect, container, el;
+    while (0 <= --i) {
+      rect = links[i][1];
+      arr[i] = '<div class="LH" style="left:' + rect[0] +
+        'px;top:' + rect[1] + 'px;">' + wrap(hints[i]) + '</div>';
+    }
+    container = DomUtils.createElement("div");
+    container.className = "R";
+    container.id = "HMC";
+    container.innerHTML = arr.join("");
+    arr2 = this.hintMarkers = arr.slice.call(container.childNodes);
+    i = arr2.length;
+    while (0 <= --i) {
+      el = arr2[i];
+      el.clickableItem = links[i][0];
+      el.hintString = hints[i];
+    }
+    DomUtils.UI.addElement(this.hintMarkerContainingDiv = container);
   },
   hashRe: /^#/,
   quoteRe: /"/g,
@@ -681,7 +692,7 @@ var LinkHints = {
 alphabetHints: {
   chars: "",
   hintKeystroke: "",
-  spanWrap: function(hintString) {
+  SpanWrap: function(hintString) {
     for (var i = 0, j = -1, end = hintString.length, html = new Array(end * 3); i < end; i++) {
       html[j + 1] = "<span>";
       html[j + 2] = hintString[i];
@@ -704,20 +715,10 @@ alphabetHints: {
     }
     return hintString;
   },
-  fillInMarkers: function(hintMarkers) {
-    var hintStrings, marker, end;
+  initHintStrings: function(linkCount) {
+    var dn, hintStrings, i, chars, end;
     this.chars = Settings.cache.linkHintCharacters.toUpperCase();
     this.hintKeystroke = "";
-    end = hintMarkers.length;
-    hintStrings = this.hintStrings(end);
-    while (0 <= --end) {
-      marker = hintMarkers[end];
-      marker.innerHTML = this.spanWrap(marker.hintString = hintStrings[end]);
-    }
-    return hintMarkers;
-  },
-  hintStrings: function(linkCount) {
-    var dn, hintStrings, i, chars, end;
     hintStrings = new Array(linkCount);
     chars = this.chars;
     end = chars.length;
