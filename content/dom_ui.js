@@ -13,15 +13,11 @@ DomUtils.UI = {
     this.root.appendChild(element);
     this.addElement = function(element) { this.root.appendChild(element); };
   },
-  addElementList: function(els, overlayOptions) {
+  addElementList: function(els, attrs) {
     var parent, _i, _len;
     parent = DomUtils.createElement("div");
-    if (overlayOptions.className != null) {
-      parent.className = overlayOptions.className;
-    }
-    if (overlayOptions.id != null) {
-      parent.id = overlayOptions.id;
-    }
+    parent.className = attrs.className;
+    parent.id = attrs.id;
     for (_i = 0, _len = els.length; _i < _len; _i++) {
       parent.appendChild(els[_i]);
     }
