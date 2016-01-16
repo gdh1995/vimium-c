@@ -43,9 +43,7 @@ function loadScript(src, fn, force) {
 		src += '?t=' + Date.now()
 	}
 	var obj = document.createElement("script");
-	obj.type = "text/javascript";
 	obj.src = src;
-	obj.charset = 'utf-8';
 	document.head.appendChild(obj);
 	if (fn) {
 		obj.onload = fn;
@@ -57,7 +55,6 @@ function loadCss(src, force) {
 	}
 	var obj = document.createElement('link');
 	obj.rel = 'stylesheet';
-	obj.type = 'text/css';
 	obj.href = src;
 	document.head.appendChild(obj);
 }
