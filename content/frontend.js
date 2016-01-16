@@ -1099,6 +1099,7 @@ var Settings, VHUD, MainPort, VInsertMode;
         return;
       }
       window.focus();
+      document.documentElement.scrollIntoViewIfNeeded();
       if (!document.body) { return false; }
       var _this = FrameMask, dom1;
       if (dom1 = _this.node) {
