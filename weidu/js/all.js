@@ -3480,9 +3480,7 @@ replaceLocationDB();
 // oauth.init();
 
 document.title = getI18nMsg('title');
-window.addEventListener("DOMContentLoaded", window.weiduOnDOMLoad = function () {
-window.removeEventListener("DOMContentLoaded", window.weiduOnDOMLoad);
-window.weiduOnDOMLoad = null;
+
 targetSwitch = PDI.get('privateSetup', 'targetSwitch');
 $('#baseTarget').attr('target', targetSwitch ? "_self" : "_blank");
 $('#searchForm').attr('target', targetSwitch ? "_self" : "_blank");
@@ -3618,7 +3616,6 @@ if (!mset || mset === _config || mset.weather !== false) {
 	app.loadApp('', 'weather');
 }
 mset = null;
-});
 };
 
 window.onload = function () {
