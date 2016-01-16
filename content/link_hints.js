@@ -105,9 +105,9 @@ var LinkHints = {
     if (this.hintMarkerContainingDiv) {
       this.hintMarkerContainingDiv.remove();
     }
-    var elements, rect, style, width, height, x, y;
+    var elements, rect, style, width, height, x, y, tip;
     if (this.options.mode != null) { mode = options.mode; }
-    this.setOpenLinkMode(mode);
+    tip = this.setOpenLinkMode(mode, true);
 
     if (!this.frameNested) {
       elements = this.getVisibleElements();
@@ -145,11 +145,12 @@ var LinkHints = {
     style.left = x + "px"; style.top = y + "px";
     style.width = width + "px"; style.height = height + "px";
     if (document.webkitFullscreenElement) { style.position = "fixed"; }
+    VHUD.show(tip);
     this.keyStatus.tab = 0;
     this.handlerId = handlerStack.push(this.onKeyDownInMode, this);
     VInsertMode.onWndBlur = this.OnWndBlur;
   },
-  setOpenLinkMode: function(mode) {
+  setOpenLinkMode: function(mode, delayTip) {
     var cons = this.CONST, tip, activator;
     switch (mode >= 128 ? ((mode | 64) ^ 64) : mode) {
     case cons.OPEN_IN_NEW_BG_TAB: tip = "Open link in new tab"; break;
@@ -203,6 +204,7 @@ var LinkHints = {
     }
     this.linkActivator = mode < 128 ? this.FUNC.DEFAULT : activator;
     this.mode = mode;
+    if (delayTip) { return tip; }
     VHUD.show(tip);
   },
   tryNestedFrame: function(command, args) {
