@@ -89,10 +89,6 @@ pre {
   display: none;
 }
 td { padding: 0; }
-div#exampleKeyMapping {
-  margin-left: 10px;
-  margin-top: 5px;
-}
 #footer, #footerTable, #footerTableData {
   width: 100%;
 }
@@ -123,16 +119,11 @@ input[type=number]::-webkit-inner-spin-button {
   width: 120px;
   text-align: center;
 }
-#status {
-  margin-left: 10px;
-  font-size: 80%;
-}
 /* Make the caption in the settings table as small as possible, to pull the other fields to the right. */
 .caption {
   width: 1px;
   white-space: nowrap;
 }
-#buttonsPanel { width: 100%; }
 .help {
   position: absolute;
   left: 100%;
