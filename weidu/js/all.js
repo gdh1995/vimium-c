@@ -22,43 +22,6 @@ var I18n = Lang['zh_CN'];
 function getI18nMsg(msgname) {
 	return I18n[msgname] || msgname;
 }
-function initChromeI18n(obj) {
-	var _data, key, _mKey, arr = ['content', 'value', 'title', 'placeholder'];
-	for (var i = arr.length, n, message, item, lang = I18n; 0 <= --i; ) {
-		_mKey = arr[i];
-		key = 'data-i18n-' + _mKey;
-		if (typeof obj != 'undefined') {
-			_data = obj.find('[' + key + ']')
-		} else {
-			_data = $('[' + key + ']')
-		}
-		if (!_data.length) { continue; }
-		n = _data.length;
-		switch (_mKey) {
-		case 'content':
-			while(0 <= --n) {
-				message = _data[n].getAttribute(key);
-				message = lang[message] || message;
-				_data[n].textContent = message;
-			}
-			break;
-		case 'value':
-			while(0 <= --n) {
-				message = _data[n].getAttribute(key);
-				message = lang[message] || message;
-				_data[n].value = message;
-			}
-			break;
-		default:
-			while(0 <= --n) {
-				message = _data[n].getAttribute(key);
-				message = lang[message] || message;
-				_data[n].setAttribute(_mKey, message)
-			}
-			break;
-		}
-	}
-}
 function isMouseMoveContains(e, parent) {
 	var child = e.relatedTarget || (e.type == 'mouseout' ? e.toElement : e.fromElement);
 	return isContains(child, parent)
@@ -3516,7 +3479,7 @@ if (lastVersion == null || lastVersion.length > 12 || parseInt(lastVersion) > 10
 replaceLocationDB();
 // oauth.init();
 
-initChromeI18n();
+document.title = getI18nMsg('title');
 window.addEventListener("DOMContentLoaded", window.weiduOnDOMLoad = function () {
 window.removeEventListener("DOMContentLoaded", window.weiduOnDOMLoad);
 window.weiduOnDOMLoad = null;
