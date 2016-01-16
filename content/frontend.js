@@ -1282,6 +1282,7 @@ var Settings, VHUD, MainPort, VInsertMode;
       }
     },
     insertCSS: function(request) {
+      window.innerWidth > 9 && window.innerWidth > 9 &&
       DomUtils.UI.insertCSS(request.css, isEnabledForUrl);
     },
     insertInnerCss: function(request) {
