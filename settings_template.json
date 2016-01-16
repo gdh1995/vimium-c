@@ -143,7 +143,7 @@
 		"  scholar.google.com re=/^(?:\\.[a-z]{2,4})?\\/scholar\\b.*?[?#&]q=([^&#]*)/i 谷歌学术",
 		"gf|gfsoso: http://gg.cytbj.com/?gws_rd=ssl#newwindow=1&q=$s 谷粉搜搜",
 		"gf.s|gfs: http://xueshu.cytbj.com/scholar?q=$s 谷粉搜搜学术",
-		"Js|js\\:|Js\\:|JS|JS\\:|javascript\\:|run|run\\:|debug|console: javascript:\\ $S; re= JavaScript",
+		"Js|js\\:|Js\\:|JS|JS\\:|javascript\\:|run\\:: javascript:\\ $S; re= JavaScript",
 		"w3s.tag|html.tag|tag.w3s: \\",
 		"  http://www.w3school.com.cn/tags/tag_$S{$1}.asp W3school Tag",
 		"w3s.attr|w3s.att|html.attr|attr.w3s: \\",
