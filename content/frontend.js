@@ -1282,7 +1282,7 @@ var Settings, VHUD, MainPort, VInsertMode;
       }
     },
     insertCSS: function(request) {
-      DomUtils.UI.insertCSS(request.css);
+      DomUtils.UI.insertCSS(request.css, isEnabledForUrl);
     },
     insertInnerCss: function(request) {
       DomUtils.UI.insertInnerCSS(request.css);

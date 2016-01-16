@@ -25,11 +25,11 @@ DomUtils.UI = {
     return parent;
   },
   adjust: null,
-  init: function() {
+  init: function(showing) {
     var el = this.container = DomUtils.createElement("vimium");
     if (this.styleOut) {
       el.appendChild(this.styleOut);
-      document.documentElement.appendChild(el);
+      showing !== false && document.documentElement.appendChild(el);
     }
     this.init = null;
   },
@@ -54,7 +54,7 @@ DomUtils.UI = {
   insertInnerCSS: function(inner) {
     this.styleIn && (this.styleIn.textContent = inner);
   },
-  insertCSS: function(outer) {
+  insertCSS: function(outer, showing) {
     if (this.styleOut) {
       if (outer) {
         this.styleOut.textContent = outer;
@@ -67,7 +67,7 @@ DomUtils.UI = {
       if (this.container) {
         this.container.appendChild(this.styleOut);
       } else {
-        this.init();
+        this.init(showing);
       }
     }
   },
