@@ -39,7 +39,7 @@ function initChromeI18n(obj) {
 			while(0 <= --n) {
 				message = _data[n].getAttribute(key);
 				message = lang[message] || message;
-				_data[n].innerHTML = message;
+				_data[n].textContent = message;
 			}
 			break;
 		case 'value':
