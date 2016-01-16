@@ -11,8 +11,8 @@ a, a:visited {
 }
 a:active { color: #052577; }
 #wrapper, #footerWrapper {
-  width: 540px;
-  margin-left: 35px;
+  width: 560px;
+  margin-left: 40px;
 }
 header {
   font-size: 18px;
