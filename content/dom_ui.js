@@ -148,8 +148,8 @@ DomUtils.UI = {
     flashEl.style.width = (rect[2] - rect[0]) + "px";
     flashEl.style.height = (rect[3] - rect[1]) + "px";
     this.addElement(flashEl);
-    return setTimeout(function(el) {
-      el.remove();
-    }, time || this.flashLastingTime, flashEl);
+    return setTimeout(function() {
+      flashEl.remove();
+    }, time || this.flashLastingTime);
   }
 };
