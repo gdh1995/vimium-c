@@ -729,6 +729,7 @@ var screenDialboxOptions = {
 };
 
 var screenWidth = window.screen.width, screenHeight = window.screen.height, temp1, temp2;
+var oHeight = window.innerHeight, oWidth = window.innerWidth;
 temp1 = screenDialboxOptions[screenWidth + "*" + screenHeight];
 if (temp1) {
 	temp2 = _config.privateSetup;
@@ -1232,8 +1233,8 @@ _Dialog.prototype = {
 				dbox.css(this.style)
 			} else {
 				dbox.css({
-					"left": parseInt((document.body.offsetWidth - dbox[0].offsetWidth) / 2) + "px",
-					"top": parseInt((document.body.offsetHeight - self.bottom - dbox[0].offsetHeight) / 2) + "px"
+					"left": parseInt((oWidth - dbox[0].offsetWidth) / 2) + "px",
+					"top": parseInt((oHeight - self.bottom - dbox[0].offsetHeight) / 2) + "px"
 				})
 			}
 		}
@@ -1256,8 +1257,8 @@ _Dialog.prototype = {
 		var dialogCoffset = {};
 		dialogCoffset['left'] = coffset.left - 30;
 		dialogCoffset['top'] = coffset.top + 40;
-		dialogCoffset['right'] = document.body.offsetWidth - coffset.left - width - 42;
-		dialogCoffset['bottom'] = document.body.offsetHeight - coffset.top + 10;
+		dialogCoffset['right'] = oWidth - coffset.left - width - 42;
+		dialogCoffset['bottom'] = oHeight - coffset.top + 10;
 		var _tmpFollow = self.isFollow.split(' ');
 		$.each(_tmpFollow, function (i, n) {
 			$("#" + self.id).css(n, dialogCoffset[n] + 'px')
@@ -1988,15 +1989,17 @@ DBOX = {
 				}
 			}
 		});
-		$(window).bind('resize', function () {
-			if (!_resize || document.body.offsetWidth > 100) {
-				_resize = true;
-				self.position();
-				window.setTimeout(function () {
-					_resize = false
-				}, 300)
-			}
-		});
+		setTimeout(function() {
+			$(window).bind('resize', function () {
+				if (!_resize || oWidth > 100) {
+					_resize = true;
+					self.position();
+					window.setTimeout(function () {
+						_resize = false
+					}, 300)
+				}
+			});
+		}, 17);
 		var clear = function () {
 			_wheelEvent = false;
 		};
@@ -2329,8 +2332,8 @@ DBOX = {
 		});
 		if (self.pageIndexSwitcher != '') {
 			var spaceBlank = self.spacing == 0 ? 40 : 20;
-			if ((self.containerTop + self.containerHeight + spaceBlank) <= (document.body.offsetHeight - 100)) {
-				self.pageIndexSwitcher.css("bottom", (document.body.offsetHeight - (self.containerTop + self.containerHeight + spaceBlank)) + "px")
+			if ((self.containerTop + self.containerHeight + spaceBlank) <= (oHeight - 100)) {
+				self.pageIndexSwitcher.css("bottom", (oHeight - (self.containerTop + self.containerHeight + spaceBlank)) + "px")
 			} else {
 				self.pageIndexSwitcher.css("bottom", "100px")
 			}
@@ -2340,8 +2343,8 @@ DBOX = {
 	},
 	measurement: function () {
 		var self = this;
-		var bodyWidth = document.body.offsetWidth,
-		bodyHeight = document.body.offsetHeight;
+		var bodyWidth = oWidth,
+		bodyHeight = oHeight;
 		if (bodyWidth > 0 && bodyHeight > 0) {
 			self.container.show();
 			var maxCols = parseInt((bodyWidth - self.spacing) / (self.width + self.spacing + 2 * self.border)),
@@ -2505,7 +2508,7 @@ DBOX = {
 		if (self.QSpacing > self.QMaxSpacing) {
 			self.QSpacing = self.QMaxSpacing
 		}
-		self.QBContainerLeft = parseInt((self.QContainer.get(0).offsetWidth - (self.QTotalnum + 1) * self.QSpacing - self.QTotalnum * self.QWidth) / 2);
+		self.QBContainerLeft = parseInt((oWidth - (self.QTotalnum + 1) * self.QSpacing - self.QTotalnum * self.QWidth) / 2);
 		window.setTimeout(function () {
 			if (typeof not_boxDrag != 'undefined' && not_boxDrag.length > 0) {
 				for (var i = 0; i < not_boxDrag.length; i++) {
@@ -3155,8 +3158,8 @@ DBOX = {
 			self.container.parent().append('<div class="pageNotice">' + message + '</div>');
 			setTimeout(function () {
 				var spaceBlank = self.spacing == 0 ? 40 : 20;
-				if ((self.containerTop + self.containerHeight + spaceBlank) <= (document.body.offsetHeight - 100)) {
-					self.container.parent().find('.pageNotice').css("bottom", (document.body.offsetHeight - (self.containerTop + self.containerHeight + spaceBlank + 15)) + "px")
+				if ((self.containerTop + self.containerHeight + spaceBlank) <= (oHeight - 100)) {
+					self.container.parent().find('.pageNotice').css("bottom", (oHeight - (self.containerTop + self.containerHeight + spaceBlank + 15)) + "px")
 				} else {
 					self.container.parent().find('.pageNotice').css("bottom", "85px")
 				}
@@ -3582,21 +3585,23 @@ var st = PDI.getStyle('background');
 if (_wallpaperUrl && st.backgroundSize == 'auto 100%' && st.backgroundPosition == '50% 50%') {
 	var bgImg = new Image();
 	bgImg.onload = function () {
-	var w = this.width, h = this.height, oldW = -1, oldH = -1;
+	var w = this.width, h = this.height;
 	wall.css(PDI.getSkin(skin, 'style').background);
 	skin = null;
 if (w > h) {
-	(window.onresize = function () {
-		if (document.body.clientWidth == oldW && document.body.clientHeight <= oldH + 45) return;
-		oldW = document.body.clientWidth;
-		oldH = document.body.clientHeight;
-		if (w / h <= (oldW / oldH)) {
+	(window.onresize = function (skip) {
+		if (skip !== true) {
+			if (window.innerWidth == oWidth && window.innerHeight <= oHeight + 45) return;
+			oWidth = window.innerWidth;
+			oHeight = window.innerHeight;
+		}
+		if (w / h <= (oWidth / oHeight)) {
 			var mod = 0;
 			if (st.backgroundSize != '100% auto') {
 				st.backgroundSize = '100% auto';
 				mod = 1;
 			}
-			var newPos = '50% ' + parseInt((oldH - oldW / w * h) / 2) + 'px';
+			var newPos = '50% ' + parseInt((oHeight - oWidth / w * h) / 2) + 'px';
 			if (st.backgroundPosition != newPos) {
 				st.backgroundPosition = newPos;
 				mod = 1;
@@ -3609,20 +3614,22 @@ if (w > h) {
 			st.backgroundPosition = '50% 0px';
 			wall.css(st);
 		}
-	})();
+	})(true);
 	wall.css(st);
 } else {
 	st.backgroundPosition = '50% 0px';
 	wall.css(st);
 	st = w = h = null;
-	(window.onresize = function () {
-		if (document.body.clientWidth == oldW && document.body.clientHeight <= oldH) return;
-		oldW = document.body.clientWidth;
-		oldH = document.body.clientHeight;
+	(window.onresize = function (skip) {
+		if (skip !== true) {
+			if (window.innerWidth == oWidth && window.innerHeight <= oHeight + 45) return;
+			oWidth = window.innerWidth;
+			oHeight = window.innerHeight;
+		}
 		wall.css({
-			"backgroundSize": 'auto ' + oldH + 'px'
+			"backgroundSize": 'auto ' + oHeight + 'px'
 		});
-	})();
+	})(true);
 }
 	};
 	bgImg.src = _wallpaperUrl;
