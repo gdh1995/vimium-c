@@ -1100,7 +1100,7 @@ var Settings, VHUD, MainPort, VInsertMode;
       }
       window.focus();
       document.documentElement.scrollIntoViewIfNeeded();
-      if (!document.body) { return false; }
+      if (!document.body) { return; }
       var _this = FrameMask, dom1;
       if (dom1 = _this.node) {
         _this.more = true;
