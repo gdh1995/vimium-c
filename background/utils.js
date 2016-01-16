@@ -287,7 +287,7 @@ var exports = {}, Utils = {
     }
     defer = exports[name] = Promise.defer();
     defer.timer = setTimeout(function() {
-      exports[name].reject(name);
+      exports[name].reject("ImportError: " + name);
     }, timeout || this.jsLoadingTimeout);
     if (!exports._vimium) {
       exports._vimium = true;
