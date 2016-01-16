@@ -101,13 +101,13 @@ var LinkHints = {
       clearInterval(this.initTimer);
       this.initTimer = 0;
     }
-    if (this.options.mode != null) { mode = options.mode; }
-    this.setOpenLinkMode(mode);
     handlerStack.remove(this.handlerId);
     if (this.hintMarkerContainingDiv) {
       this.hintMarkerContainingDiv.remove();
     }
     var elements, rect, style, width, height, x, y;
+    if (this.options.mode != null) { mode = options.mode; }
+    this.setOpenLinkMode(mode);
 
     if (!this.frameNested) {
       elements = this.getVisibleElements();
@@ -201,11 +201,9 @@ var LinkHints = {
       mode != 1 && (mode = 0);
       break;
     }
-    if (!this.linkActivator) {
-      this.linkActivator = mode < 128 ? this.FUNC.DEFAULT : activator;
-    }
-    VHUD.show(tip);
+    this.linkActivator = mode < 128 ? this.FUNC.DEFAULT : activator;
     this.mode = mode;
+    VHUD.show(tip);
   },
   tryNestedFrame: function(command, args) {
     this.frameNested === false && this.checkNestedFrame();
