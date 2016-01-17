@@ -3,7 +3,7 @@ var Completers;
 setTimeout(function() {
   var TabRecency, HistoryCache, RankingUtils, RegexpCache, Decoder,
       Completers,
-      maxCharNum = 160, showFavIcon, queryTerms = null, SuggestionUtils;
+      maxCharNum, showFavIcon, queryTerms, SuggestionUtils;
 
   function Suggestion(type, url, text, title, computeRelevancy, extraData) {
     this.type = type;
@@ -652,8 +652,8 @@ searchEngines: {
 
   Completers.MultiCompleter.prototype.filter = function(query, options, callback) {
     queryTerms = query;
-    maxCharNum = options.clientWidth <= 0 ? 100
-      : Math.min(((options.clientWidth * 0.8 - 70) / 7.72) | 0, 200);
+    maxCharNum = options.clientWidth > 0 ? Math.min((
+        (options.clientWidth * 0.8 - 70) / 7.72) | 0, 200) : 100
     Completers.maxResults = Math.min(Math.max(options.maxResults, 5), 25) | 0;
     showFavIcon = options.showFavIcon;
     Completers.callback = callback;
