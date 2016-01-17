@@ -1504,7 +1504,7 @@ Settings.CONST.Timer = setTimeout(function() {
 Settings.CONST.Timer = 0;
 // currentFirst will be reloaded when window.focus
 chrome.tabs.query({status: "complete"}, function(arr) {
-  var url, i, o, exts = [chrome.runtime.id], request = {name: "reg", work: "rereg"};
+  var url, i, o, exts = [chrome.runtime.id], request = {name: "reg"};
   for (i = arr.length, o = chrome.tabs; 0 <= --i; ) {
     url = arr[i].url;
     if (url.length >= 51 && url.startsWith("chrome-extension:")) {

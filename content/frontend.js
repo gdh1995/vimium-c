@@ -1277,7 +1277,7 @@ var Settings, VHUD, MainPort, VInsertMode;
     reg: function(request) {
       if (document.body && document.body.nodeName.toLowerCase() !== "frameset") {
         return mainPort.safePost({
-          handlerSettings: request ? request.work : "reg",
+          handlerSettings: request ? "rereg" : "reg",
           visible: window.innerWidth > 9 && window.innerWidth > 9,
           frameId: frameId
         });
