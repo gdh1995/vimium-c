@@ -3,7 +3,7 @@ var Completers;
 setTimeout(function() {
   var TabRecency, HistoryCache, RankingUtils, RegexpCache, Decoder,
       Completers,
-      maxCharNum, showFavIcon, queryTerms, SuggestionUtils;
+      maxCharNum, maxResults, showFavIcon, queryTerms, SuggestionUtils;
 
   function Suggestion(type, url, text, title, computeRelevancy, extraData) {
     this.type = type;
@@ -272,7 +272,7 @@ history: {
     }
   },
   quickSearch: function(history) {
-    var maxNum = Completers.maxResults * 2, results = new Array(maxNum), sug,
+    var maxNum = maxResults * 2, results = new Array(maxNum), sug,
     query = queryTerms, regexps = [], len = history.length, i, len2, j, s1,
     score, item, getRele = this.computeRelevancy;
     for (j = maxNum; 0 <= --j; ) {
@@ -319,14 +319,14 @@ history: {
     return results;
   },
   filterFill: function(historys, query, arr) {
-    if (historys.length >= Completers.maxResults) {
+    if (historys.length >= maxResults) {
       this.filterFinish(historys, query);
       return;
     }
     var _this = this;
     chrome.history.search({
       text: "",
-      maxResults: Completers.maxResults
+      maxResults: maxResults
     }, function(historys2) {
       if (query.isOff) { return; }
       var a = arr;
@@ -340,8 +340,8 @@ history: {
   filterFinish: function(historys, query) {
     var s = Suggestion, c = this.computeRelevancyByTime, d = Decoder.decodeURL;
     historys.sort(this.rsortByLvt);
-    if (historys.length > Completers.maxResults) {
-      historys.length = Completers.maxResults;
+    if (historys.length > maxResults) {
+      historys.length = maxResults;
     }
     historys.forEach(function(e, i, arr) {
       var o = new s("history", e.url, d(e.url), e.title, c, e.lastVisitTime);
@@ -610,7 +610,6 @@ searchEngines: {
 },
 
   counter: 0,
-  maxResults: 10,
   mostRecentQuery: null,
   callback: null,
   filter: function(completers) {
@@ -634,8 +633,8 @@ searchEngines: {
     
     this.suggestions = null;
     suggestions.sort(this.rsortByRelevancy);
-    if (suggestions.length > this.maxResults) {
-      suggestions.length = this.maxResults;
+    if (suggestions.length > maxResults) {
+      suggestions.length = maxResults;
     }
     if (queryTerms.length > 0) {
       queryTerms[0] = SuggestionUtils.shortenUrl(queryTerms[0]);
@@ -654,7 +653,7 @@ searchEngines: {
     queryTerms = query;
     maxCharNum = options.clientWidth > 0 ? Math.min((
         (options.clientWidth * 0.8 - 70) / 7.72) | 0, 200) : 100
-    Completers.maxResults = Math.min(Math.max(options.maxResults, 5), 25) | 0;
+    maxResults = Math.min(Math.max(options.maxResults | 0, 5), 25);
     showFavIcon = options.showFavIcon;
     Completers.callback = callback;
     Completers.filter(this.completers);
