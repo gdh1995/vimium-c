@@ -47,10 +47,12 @@ TextOption.prototype.populateElement = function(value, enableUndo) {
     this.element.value = value;
     return;
   }
+  this.locked = true;
   this.element.focus();
   document.execCommand("undo");
   this.element.setSelectionRange(0, this.element.value.length);
   document.execCommand("insertText", false, value);
+  this.locked = false;
 };
 
 TextOption.prototype.readValueFromElement = function() {
@@ -117,6 +119,7 @@ CheckBoxOption.prototype.readValueFromElement = function() {
 
   onUpdated = function() {
     var saveBtn;
+    if (this.locked) { return; }
     if (this.areEqual(this.readValueFromElement(), this.previous)) {
       if (status == 1 && !Option.needSaveOptions()) {
         saveBtn = $("saveOptions");
