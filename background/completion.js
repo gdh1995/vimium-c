@@ -242,8 +242,7 @@ bookmarks: {
 history: {
   filter: function(query) {
     var _this = this, history = HistoryCache.history, offset;
-    offset = queryTerms.length !== 1 ? 0
-      : Completers.getOffset(chrome.sessions.MAX_SESSION_RESULTS, 2);
+    offset = queryTerms.length !== 1 ? 0 : Completers.getOffset(50, 2);
     if (offset < 0) { return false; }
     if (queryTerms.length > 0) {
       if (history) {
@@ -267,7 +266,7 @@ history: {
         ++i > offset && historys.push(entry);
         return historys.length >= maxResults;
       }) ? _this.filterFinish(historys, query) :
-      _this.filterFill(historys, query, arr);
+      _this.filterFill(historys, query, arr, offset - i);
     });
     if (! history) {
       setTimeout(function() {
@@ -322,18 +321,19 @@ history: {
     results.length = j;
     return results;
   },
-  filterFill: function(historys, query, arr) {
+  filterFill: function(historys, query, arr, offset) {
     var _this = this;
     chrome.history.search({
       text: "",
-      maxResults: maxResults * 3
+      maxResults: (Math.max(0, offset) + maxResults) * 3
     }, function(historys2) {
       if (query.isOff) { return; }
       var a = arr;
       historys2 = historys2.filter(function(i) {
         return !(i.url in a);
       });
-      historys = historys.concat(historys2);
+      historys = offset < 0 ? historys.concat(historys2)
+        : offset == 0 ? historys2 : historys2.slice(offset);
       _this.filterFinish(historys, query);
     });
   },
