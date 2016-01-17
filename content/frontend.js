@@ -1278,12 +1278,12 @@ var Settings, VHUD, MainPort, VInsertMode;
       if (document.body && document.body.nodeName.toLowerCase() !== "frameset") {
         return mainPort.safePost({
           handlerSettings: request ? request.work : "reg",
+          visible: window.innerWidth > 9 && window.innerWidth > 9,
           frameId: frameId
         });
       }
     },
     insertCSS: function(request) {
-      window.innerWidth > 9 && window.innerWidth > 9 &&
       DomUtils.UI.insertCSS(request.css, isEnabledForUrl);
     },
     insertInnerCss: function(request) {

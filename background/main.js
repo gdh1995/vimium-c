@@ -996,7 +996,7 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
         break;
       case "reg":
         ref = Settings.cache.userDefinedOuterCss;
-        ref && port.postMessage({
+        ref && request.visible && port.postMessage({
           name: "insertCSS",
           css: ref
         });
