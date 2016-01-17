@@ -44,7 +44,7 @@ DomUtils.documentReady(function() {
 });
 
 (function() {
-var _listen = Element.prototype.addEventListener;
+var _listen = EventTarget.prototype.addEventListener;
 if (_listen.vimiumHooked === true) { return; }
 
 EventTarget.prototype.addEventListener = function(type, listener, useCapture) {
