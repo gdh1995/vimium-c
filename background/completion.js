@@ -258,11 +258,11 @@ history: {
     }
     chrome.sessions.getRecentlyClosed(null, function(sessions) {
       if (query.isOff) { return; }
-      var historys = [], arr = {}, i = 0;
-      sessions.some(function(entry) {
-        if (!entry.tab || entry.tab.url in arr) { return; }
-        entry.tab.lastVisitTime = entry.lastModified * 1000 + 60999;
-        entry = entry.tab;
+      var historys = [], arr = {}, i = 0, now = Date.now();
+      sessions.some(function(item) {
+        var entry = item.tab;
+        if (!entry || entry.url in arr) { return; }
+        entry.lastVisitTime = now + 60000 - i * 1000;
         arr[entry.url] = 1;
         ++i > offset && historys.push(entry);
         return historys.length >= maxResults;
@@ -326,7 +326,7 @@ history: {
     var _this = this;
     chrome.history.search({
       text: "",
-      maxResults: maxResults + 10
+      maxResults: maxResults * 3
     }, function(historys2) {
       if (query.isOff) { return; }
       var a = arr;
