@@ -101,32 +101,17 @@ DomUtils.UI = {
     suppressRepeated === true && LinkHints.suppressTail(true);
   },
   flashOutline: function(clickEl, virtual) {
-    var temp, rect, parEl, bcr;
+    var rect, bcr;
     DomUtils.prepareCrop();
     if (clickEl.classList.contains("OIUrl") && Vomnibar.vomnibarUI.box
         && Vomnibar.vomnibarUI.box.contains(clickEl)) {
       rect = Vomnibar.vomnibarUI.computeHint(clickEl.parentElement.parentElement, clickEl);
-    } else if (clickEl.nodeName.toLowerCase() !== "area") {
+    } else {
       rect = DomUtils.getVisibleClientRect(clickEl);
       bcr = VRect.fromClientRect(clickEl.getBoundingClientRect());
       if (!rect || VRect.isContaining(bcr, rect)) {
         rect = bcr;
       }
-    } else {
-      parEl = clickEl;
-      while (parEl = parEl.parentElement) {
-      if (parEl.nodeName.toLowerCase() !== "map") { continue; }
-      temp = parEl.name.replace(LinkHints.quoteRe, '\\"');
-      parEl = document.querySelector('img[usemap="#' + temp + '"],img[usemap="'
-        + temp + '"]');
-      if (parEl) {
-        DomUtils.getClientRectsForAreas(rect = [], parEl.getBoundingClientRect()
-          , true, [clickEl]);
-        rect = rect[0][1];
-      }
-      break;
-      }
-      rect || (rect = [0, 0, 0, 0]);
     }
     if (virtual !== true) {
       this.flashVRect(rect);

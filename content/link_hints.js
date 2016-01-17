@@ -238,6 +238,7 @@ var LinkHints = {
     rect = link[1];
     marker.style.left = rect[0] + "px";
     marker.style.top = rect[1] + "px";
+    link.length >= 4 && (marker.linkRect = link[3]);
     return marker;
   },
   hashRe: /^#/,
@@ -550,7 +551,7 @@ var LinkHints = {
       this.deactivate(this.keyStatus.known);
     } else if (linksMatched.length === 1) {
       DomUtils.suppressEvent(event);
-      this.activateLink(linksMatched[0].clickableItem);
+      this.activateLink(linksMatched[0]);
     } else {
       limit = this.keyStatus.tab ? 0 : this.keyStatus.newHintLength;
       for (i = linksMatched.length; 0 <= --i; ) {
@@ -581,8 +582,8 @@ var LinkHints = {
       LinkHints.setOpenLinkMode(mode);
     }
   },
-  activateLink: function(clickEl) {
-    var tempi, rect;
+  activateLink: function(hintEl) {
+    var tempi, rect, clickEl = hintEl.clickableItem;
     if (this.mode >= 128) {}
     else if ((tempi = DomUtils.getEditableType(clickEl)) === 3) {
       this.deactivate(true); // always suppress tail even if fail to focus
@@ -592,7 +593,7 @@ var LinkHints = {
     }
     else if (tempi > 0) { clickEl.focus(); }
     // must get outline first, because clickEl may hide itself when activated
-    rect = DomUtils.UI.flashOutline(clickEl, true);
+    rect = hintEl.linkRect || DomUtils.UI.flashOutline(clickEl, true);
     if (this.linkActivator(clickEl) !== false) {
       DomUtils.UI.flashVRect(rect);
     }
