@@ -122,7 +122,7 @@ DomUtils.UI = {
       if (parEl) {
         DomUtils.getClientRectsForAreas(rect = [], parEl.getBoundingClientRect()
           , true, [clickEl]);
-        rect = rect[0];
+        rect = rect[0][1];
       }
       break;
       }
