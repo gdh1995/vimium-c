@@ -2,7 +2,7 @@
 var Completers;
 setTimeout(function() {
   var TabRecency, HistoryCache, RankingUtils, RegexpCache, Decoder,
-      Completers,
+      Completers, cmdType,
       maxCharNum, maxResults, showFavIcon, queryTerms, SuggestionUtils;
 
   function Suggestion(type, url, text, title, computeRelevancy, extraData) {
@@ -241,7 +241,10 @@ bookmarks: {
 
 history: {
   filter: function(query) {
-    var _this = this, history = HistoryCache.history;
+    var _this = this, history = HistoryCache.history, offset;
+    offset = queryTerms.length !== 1 ? 0
+      : Completers.getOffset(chrome.sessions.MAX_SESSION_RESULTS, 2);
+    if (offset < 0) { return false; }
     if (queryTerms.length > 0) {
       if (history) {
         Completers.next(this.quickSearch(history));
@@ -255,14 +258,15 @@ history: {
     }
     chrome.sessions.getRecentlyClosed(null, function(sessions) {
       if (query.isOff) { return; }
-      var historys = [], arr = {};
-      sessions.forEach(function(entry) {
+      var historys = [], arr = {}, i = 0;
+      sessions.some(function(entry) {
         if (!entry.tab || entry.tab.url in arr) { return; }
         entry.tab.lastVisitTime = entry.lastModified * 1000 + 60999;
         entry = entry.tab;
         arr[entry.url] = 1;
-        historys.push(entry);
-      });
+        ++i > offset && historys.push(entry);
+        return historys.length >= maxResults;
+      }) ? _this.filterFinish(historys, query) :
       _this.filterFill(historys, query, arr);
     });
     if (! history) {
@@ -319,14 +323,10 @@ history: {
     return results;
   },
   filterFill: function(historys, query, arr) {
-    if (historys.length >= maxResults) {
-      this.filterFinish(historys, query);
-      return;
-    }
     var _this = this;
     chrome.history.search({
       text: "",
-      maxResults: maxResults
+      maxResults: maxResults + 10
     }, function(historys2) {
       if (query.isOff) { return; }
       var a = arr;
@@ -454,12 +454,15 @@ tabs: {
   },
   filter1: function(query, tabs) {
     if (query.isOff) { return; }
-    var curTabId = TabRecency.tabId(), c, suggestions;
+    var curTabId = TabRecency.tabId(), c, suggestions, offset;
+    offset = queryTerms.length >= 1 ? Completers.getOffset(99, 3) : 0;
+    if (offset < 0) { return; }
     if (queryTerms.length > 0) {
       tabs = tabs.filter(function(tab) {
         var text = Decoder.decodeURL(tab.url);
         if (RankingUtils.Match2(text, tab.title)) {
           tab.text = text;
+          ++offset;
           return true;
         }
         return false;
@@ -478,6 +481,12 @@ tabs: {
       if (curTabId === tabId) { suggestion.relevancy = 0; }
       return suggestion;
     });
+    if (suggestions.length > maxResults) {
+      suggestions.sort(Completers.rsortByRelevancy);
+      suggestions = suggestions.slice(offset, offset + maxResults);
+    } else if (offset < suggestions.length) {
+      suggestions = suggestions.slice(offset).concat(suggestions.slice(0, offset));
+    }
     Completers.next(suggestions);
     Decoder.continueToWork();
   },
@@ -492,8 +501,9 @@ tabs: {
 searchEngines: {
   filter: function(query, failIfNull) {
     var obj, sug, q = queryTerms, keyword, pattern, promise;
-    if (q.length === 0) {}
+    if (q.length === 0 || cmdType !== 0) {}
     else if ((keyword = q[0])[0] === "\\") {
+      cmdType = -1;
       q[0] = keyword.substring(1);
       keyword = q.join(" ");
       sug = this.makeUrlSuggestion(keyword, "\\" + keyword);
@@ -508,6 +518,7 @@ searchEngines: {
       }
       return true;
     }
+    cmdType = 1;
     if (q.length > 1) {
       q.shift();
     } else {
@@ -619,9 +630,12 @@ searchEngines: {
     var query = this.mostRecentQuery = {
       isOff: false
     }, i, l;
+    cmdType = 0;
     this.suggestions = [];
     for (i = 0, l = this.counter = completers.length; i < l; i++) {
-      completers[i].filter(query);
+      if (completers[i].filter(query) === false) {
+        break;
+      }
     }
   },
   next: function(newSuggestions) {
@@ -644,6 +658,19 @@ searchEngines: {
     func = this.callback || g_requestHandlers.PostCompletions;
     this.mostRecentQuery = this.callback = null;
     func(suggestions);
+  },
+  getOffset: function(max, newType) {
+    var str, offset;
+    if (cmdType !== 0 || (str = queryTerms[0])[0] !== "+") {}
+    else if ((offset = parseInt(str, 10)) >= 0 && offset <= max && '+' + offset === str) {
+      cmdType = newType;
+      queryTerms.shift();
+      return offset;
+    } else if (str === "+") {
+      this.suggestions = this.mostRecentQuery = this.callback = queryTerms = null;
+      return -1;
+    }
+    return 0;
   },
   MultiCompleter: function(completers) { this.completers = completers; },
   rsortByRelevancy: function(a, b) { return b.relevancy - a.relevancy; }
