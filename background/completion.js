@@ -160,7 +160,7 @@ bookmarks: {
       return;
     }
     if (queryTerms.length === 0) {
-      query.onComplete([]);
+      Completers.next([]);
     } else {
       this.currentSearch = query;
     }
@@ -182,7 +182,7 @@ bookmarks: {
         return new Suggestion("bookm", i.url, i.text, i[name], c);
       });
     }
-    query.onComplete(results);
+    Completers.next(results);
   },
   refresh: function() {
     var bookmarks = chrome.bookmarks, listener, _this = this;
@@ -244,11 +244,11 @@ history: {
     var _this = this, history = HistoryCache.history;
     if (queryTerms.length > 0) {
       if (history) {
-        query.onComplete(this.quickSearch(history));
+        Completers.next(this.quickSearch(history));
       } else {
         HistoryCache.use(function(history) {
           if (query.isOff) { return; }
-          query.onComplete(Completers.history.quickSearch(history));
+          Completers.next(Completers.history.quickSearch(history));
         });
       }
       return;
@@ -348,7 +348,7 @@ history: {
       e.sessionId && (o.sessionId = e.sessionId);
       arr[i] = o;
     });
-    query.onComplete(historys);
+    Completers.next(historys);
     Decoder.continueToWork();
   },
   rsortByLvt: function(a, b) {
@@ -369,7 +369,7 @@ domains: {
   domains: null,
   filter: function(query) {
     if (queryTerms.length !== 1 || queryTerms[0].indexOf("/") !== -1) {
-      query.onComplete([]);
+      Completers.next([]);
     } else if (this.domains) {
       this.performSearch(query);
     } else {
@@ -399,7 +399,7 @@ domains: {
       sug.textSplit = SuggestionUtils.cutUrl(result, SuggestionUtils.getRanges(result), sug.url);
     }
     queryTerms = q;
-    query.onComplete(sug ? [sug] : []);
+    Completers.next(sug ? [sug] : []);
   },
   populateDomains: function(history) {
     var callback = this.onPageVisited.bind(this);
@@ -478,7 +478,7 @@ tabs: {
       if (curTabId === tabId) { suggestion.relevancy = 0; }
       return suggestion;
     });
-    query.onComplete(suggestions);
+    Completers.next(suggestions);
     Decoder.continueToWork();
   },
   computeRecency: function(_0, sessionId) {
@@ -497,14 +497,14 @@ searchEngines: {
       q[0] = keyword.substring(1);
       keyword = q.join(" ");
       sug = this.makeUrlSuggestion(keyword, "\\" + keyword);
-      query.onComplete([sug]);
+      Completers.next([sug]);
       return;
     } else {
       pattern = Settings.cache.searchEngineMap[keyword];
     }
     if (!pattern) {
       if (failIfNull !== true) {
-        query.onComplete([]);
+        Completers.next([]);
       }
       return true;
     }
@@ -550,7 +550,7 @@ searchEngines: {
     promise ? promise.then(function(arr) {
       if (query.isOff) { return; }
       if (!arr[0]) {
-        query.onComplete([sug]);
+        Completers.next([sug]);
         return;
       }
       var output = [sug];
@@ -564,8 +564,8 @@ searchEngines: {
       sug.titleSplit = "<span class=\"OSTitle\" style=\"text-decoration: none;\">" +
         Utils.escapeText(sug.title) + "<span>";
       sug.textSplit = Utils.escapeText(arr[2]);
-      query.onComplete(output);
-    }) : query.onComplete([sug]);
+      Completers.next(output);
+    }) : Completers.next([sug]);
   },
   makeText: function(url, arr) {
     var len = arr.length, i, str, ind;
@@ -612,30 +612,27 @@ searchEngines: {
   counter: 0,
   maxResults: 10,
   mostRecentQuery: null,
-  onComplete: null,
+  callback: null,
   filter: function(completers) {
     RegexpCache.clear();
     RankingUtils.timeAgo = Date.now() - RankingUtils.timeCalibrator;
     if (this.mostRecentQuery) { this.mostRecentQuery.isOff = true; }
     var query = this.mostRecentQuery = {
-      isOff: false,
-      onComplete: null
+      isOff: false
     }, i, l;
-    query.onComplete = this.next.bind(this, query);
     this.suggestions = [];
     for (i = 0, l = this.counter = completers.length; i < l; i++) {
       completers[i].filter(query);
     }
   },
-  next: function(query, newSuggestions) {
-    if (query.isOff) { return; }
+  next: function(newSuggestions) {
     var suggestions = this.suggestions.concat(newSuggestions), func;
     if (0 < --this.counter) {
       this.suggestions = suggestions;
       return;
     }
     
-    this.mostRecentQuery = this.suggestions = newSuggestions = null;
+    this.suggestions = null;
     suggestions.sort(this.rsortByRelevancy);
     if (suggestions.length > this.maxResults) {
       suggestions.length = this.maxResults;
@@ -645,21 +642,21 @@ searchEngines: {
     }
     suggestions.forEach(SuggestionUtils.PrepareHtml);
     queryTerms = null;
-    func = this.onComplete || g_requestHandlers.PostCompletions;
-    this.onComplete = null;
+    func = this.callback || g_requestHandlers.PostCompletions;
+    this.mostRecentQuery = this.callback = null;
     func(suggestions);
   },
   MultiCompleter: function(completers) { this.completers = completers; },
   rsortByRelevancy: function(a, b) { return b.relevancy - a.relevancy; }
 };
 
-  Completers.MultiCompleter.prototype.filter = function(query, options, onComplete) {
+  Completers.MultiCompleter.prototype.filter = function(query, options, callback) {
     queryTerms = query;
     maxCharNum = options.clientWidth <= 0 ? 100
       : Math.min(((options.clientWidth * 0.8 - 70) / 7.72) | 0, 200);
     Completers.maxResults = Math.min(Math.max(options.maxResults, 5), 25) | 0;
     showFavIcon = options.showFavIcon;
-    Completers.onComplete = onComplete;
+    Completers.callback = callback;
     Completers.filter(this.completers);
   };
 
