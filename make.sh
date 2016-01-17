@@ -1,7 +1,8 @@
 #/bin/sh
+set -o noglob
 
 if [ -z "$1" ]; then
-OUTPUT=/wo/vimium++_1.49.crx
+OUTPUT=vimium++_1.50.crx
 else
 OUTPUT="$1"
 fi
@@ -13,4 +14,4 @@ else
 ARGS="$*"
 fi
 
-zip -roX -MM $ARGS "$OUTPUT" . -x ".*" "*.sh" "weidu/*" "test/*"
+zip -roX -MM $ARGS "$OUTPUT" . -x ".*" "*.sh" "weidu/*" "test*" "*.crx" "*template.json"
