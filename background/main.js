@@ -629,12 +629,16 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
         return chrome.runtime.lastError;
       }
       chrome.windows.getCurrent(function(wnd) {
-        var wndId = wnd.id, tabs2;
+        var wndId = wnd.id, tabs2, tab;
         tabs2 = tabs.filter(function(tab) {return tab.windowId === wndId;});
         if (!tabs2[0]) {
           tabs2 = tabs.filter(function(tab) {return tab.incognito === wnd.incognito;});
         }
-        Marks.gotoTab(request, tabs2[0] || tabs[0]);
+        tab = tabs2[0] || tabs[0];
+        if (tab.url !== request.url && request.url.startsWith(tab.url)) {
+          chrome.tabs.update(tab.id, {url: request.url});
+        }
+        Marks.gotoTab(request, tab);
       });
     }
   };
