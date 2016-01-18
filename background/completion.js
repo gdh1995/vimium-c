@@ -282,7 +282,7 @@ history: {
     results = new Array(maxNum), sug,
     query = queryTerms, regexps = [], len = history.length, i, len2, j, s1,
     score, item, getRele = this.computeRelevancy;
-    for (j = maxNum; 0 <= --j; ) {
+    for (j = maxNum; 0 <= (j -= 2); ) {
       results[j] = 0.0;
     }
     maxNum -= 2;
@@ -343,7 +343,7 @@ history: {
     });
   },
   filterFinish: function(historys, query) {
-    var s = Suggestion, c = this.compute0, d = Decoder.decodeURL;
+    var s = Suggestion, c = this.getRelevancy0, d = Decoder.decodeURL;
     if (historys.length > maxResults) {
       historys.length = maxResults;
     }
@@ -364,8 +364,7 @@ history: {
     var recencyScore = RankingUtils.recencyScore(lastVisitTime),
       wordRelevancy = RankingUtils.wordRelevancy(text, title);
     return recencyScore <= wordRelevancy ? wordRelevancy : (wordRelevancy + recencyScore) / 2;
-  },
-  compute0: function() { return 0; }
+  }
 },
 
 domains: {
