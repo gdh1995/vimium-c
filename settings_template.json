@@ -171,9 +171,6 @@
 		"v.mc|v.math-copy: vimium://search-copy\\ vimium://math\\ $S re= Calculate and Copy",
 		""
 	],
-	"showActionIcon": false,
-	"showAdvancedCommands": true,
-	"showAdvancedOptions": true,
 	"userDefinedOuterCss": [
 		"img, input[type=\"image\"] {",
 		"  min-width: 3px;",
