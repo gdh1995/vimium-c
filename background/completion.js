@@ -647,7 +647,9 @@ searchEngines: {
     }
   },
   next: function(newSuggestions) {
-    var suggestions = this.suggestions.concat(newSuggestions), func;
+    var suggestions, func;
+    suggestions = this.suggestions.length === 0 ? newSugs
+      : newSugs.length > 0 ? this.suggestions.concat(newSugs) : this.suggestions;
     if (0 < --this.counter) {
       this.suggestions = suggestions;
       return;
