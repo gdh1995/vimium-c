@@ -670,10 +670,10 @@ searchEngines: {
   getOffset: function(max, newType) {
     var str, offset;
     if (cmdType !== 0) { return 0; }
-    if (queryTerms.length === 0 || (str = queryTerms[0])[0] !== "+") {}
+    if ((offset = queryTerms.length) === 0 || (str = queryTerms[offset - 1])[0] !== "+") {}
     else if ((offset = parseInt(str, 10)) >= 0 && offset <= max && '+' + offset === str) {
       cmdType = newType;
-      queryTerms.shift();
+      queryTerms.pop();
       return offset;
     } else if (str === "+") {
       this.suggestions = this.mostRecentQuery = this.callback = queryTerms = null;
