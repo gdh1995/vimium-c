@@ -520,7 +520,12 @@ searchEngines: {
       }
       return true;
     }
-    if (failIfNull !== true) { queryType = 2; }
+    if (failIfNull !== true) {
+      if (queryType !== 0) {
+        q.push(queryTerms.more);
+      }
+      queryType = 2;
+    }
     if (q.length > 1) {
       q.shift();
     } else {
@@ -641,10 +646,6 @@ searchEngines: {
     } else {
       i = 0;
     }
-    if (queryType === -1) {
-      this.suggestions = this.mostRecentQuery = this.callback = queryTerms = null;
-      return;
-    }
     for (; i < l; i++) {
       completers[i].filter(query);
     }
@@ -675,15 +676,17 @@ searchEngines: {
   getOffset: function() {
     var str, i;
     offset = queryType = 0;
-    if ((i = queryTerms.length) === 0 || (str = queryTerms[i - 1])[0] !== "+") {}
-    else if ((i = parseInt(str, 10)) >= 0 && '+' + i === str
-        && i <= (queryTerms.length > 1 ? 50 : 99)) {
-      queryType = 1;
-      queryTerms.pop();
-      offset = i;
-    } else if (str === "+") {
-      queryType = -1;
+    if ((i = queryTerms.length) === 0 || (str = queryTerms[i - 1])[0] !== "+") {
+      return;
     }
+    if ((i = parseInt(str, 10)) >= 0 && '+' + i === str
+        && i <= (queryTerms.length > 1 ? 50 : 99)) {
+      offset = i;
+    } else if (str !== "+") {
+      return;
+    }
+    queryTerms.more = queryTerms.pop();
+    queryType = 1;
   },
   MultiCompleter: function(completers) { this.completers = completers; },
   rsortByRelevancy: function(a, b) { return b.relevancy - a.relevancy; }
