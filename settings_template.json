@@ -110,7 +110,8 @@
 		"map <c-right> scrollPxRight",
 		"map <a-S> toggleSwitchTemp key=smoothScroll",
 		"map <a-F12> debugBackground",
-		"map <F12> focusOrLaunch url=vimium://options"
+		"map <F12> focusOrLaunch url=vimium://options",
+		""
 	],
 	"linkHintCharacters": "asdqwerzxcv",
 	"newTabUrl": "chrome-extension://hdnehngglnbnehkfcidabjckinphnief/index.html",
@@ -167,7 +168,8 @@
 		"v.sum|sum\\:: vimium://eval\\ $S{\\ +\\ } re= Calculate",
 		"v.u|v.url|v.search|u\\:|url\\:: vimium://search\\ $S re= Search",
 		"v.c|copy\\:|v\\://copy|vimium\\://copy: vimium://copy\\ $S re= Copy to Clipboard",
-		"v.mc|v.math-copy: vimium://search-copy\\ vimium://math\\ $S re= Calculate and Copy"
+		"v.mc|v.math-copy: vimium://search-copy\\ vimium://math\\ $S re= Calculate and Copy",
+		""
 	],
 	"showActionIcon": false,
 	"showAdvancedCommands": true,
@@ -176,6 +178,7 @@
 		"img, input[type=\"image\"] {",
 		"  min-width: 3px;",
 		"  min-height:3px;",
-		"}"
+		"}",
+		""
 	]
 }

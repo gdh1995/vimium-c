@@ -259,9 +259,12 @@ $("exportButton").onclick = function() {
       if (key === "name" || key === "time" || key.startsWith(mark_head)) {
         continue;
       }
-      exported_object[key] = (key in strArr) && storage.getItem(key).indexOf("\n") > 0
-        ? storage.getItem(key).split("\n")
-        : (key in all) ? bgSettings.get(key) : storage.getItem(key);
+      if ((key in strArr) && storage.getItem(key).indexOf("\n") > 0) {
+        exported_object[key] = storage.getItem(key).split("\n");
+        exported_object[key].push("");
+      } else {
+        exported_object[key] = (key in all) ? bgSettings.get(key) : storage.getItem(key);
+      }
     }
   })();
   delete exported_object.findModeRawQuery;
@@ -325,7 +328,7 @@ var importSettings = function(time, event) {
       // NOTE: we assume all nullable settings have the same default value: null
       new_value = all[key];
     } else if (new_value.join && (key in strArr)) {
-      new_value = new_value.join("\n");
+      new_value = new_value.join("\n").trim();
     }
     if (!item.areEqual(bgSettings.get(key), new_value)) {
       console.log("import", key, func(new_value));
@@ -355,7 +358,7 @@ var importSettings = function(time, event) {
       continue;
     }
     if (new_value.join && (key in strArr)) {
-      new_value = new_value.join("\n");
+      new_value = new_value.join("\n").trim();
     }
     if (key in all) {
       if (bgSettings.get(key) !== new_value) {
