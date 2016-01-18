@@ -336,7 +336,7 @@ history: {
       historys2 = historys2.filter(function(i) {
         return !(i.url in a);
       });
-      historys2.length = Math.max(cut, 0) + maxResults;
+      historys2.length = Math.min(historys2.length, Math.max(cut, 0) + maxResults);
       historys = cut < 0 ? historys.concat(historys2)
         : cut == 0 ? historys2 : historys2.slice(cut);
       _this.filterFinish(historys, query);
