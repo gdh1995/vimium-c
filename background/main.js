@@ -615,11 +615,11 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
         chrome.tabs.query({currentWindow: true, active: true}, function(tabs) {
           var tab = tabs[0];
           // TODO: how to wait for tab finishing to load
-          chrome.tabs.create({
+          chrome.tabs.create(tab ? {
             index: tab.index + 1,
             url: request.url,
             windowId: tab.windowId
-          }, function(tab) {
+          } : {url: request.url}, function(tab) {
             chrome.windows.update(tab.windowId, {focused: true});
             if (request.scroll) {
               setTimeout(Marks.gotoTab, 1000, request);
@@ -631,11 +631,10 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
       chrome.windows.getCurrent(function(wnd) {
         var wndId = wnd.id, tabs2;
         tabs2 = tabs.filter(function(tab) {return tab.windowId === wndId;});
-        if (tabs2[0]) {
-          Marks.gotoTab(request, tabs2[0]);
-        } else {
-          Marks.gotoTab(request, tabs[0]);
+        if (!tabs2[0]) {
+          tabs2 = tabs.filter(function(tab) {return tab.incognito === wnd.incognito;});
         }
+        Marks.gotoTab(request, tabs2[0] || tabs[0]);
       });
     }
   };
