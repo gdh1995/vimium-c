@@ -1327,9 +1327,8 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
     focusOrLaunch: function(request) {
       // * request.url is guaranteed to be well formatted by frontend
       // * do not limit windowId or windowType
-      // * in this case, chrome will ignore url's hash
       chrome.tabs.query({
-        url: request.url
+        url: request.url.split("#", 1)[0]
       }, funcDict.focusOrLaunch.bind(null, request));
     },
     PostCompletions: function(list) {
