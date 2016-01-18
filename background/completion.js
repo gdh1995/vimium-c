@@ -646,7 +646,7 @@ searchEngines: {
       }
     }
   },
-  next: function(newSuggestions) {
+  next: function(newSugs) {
     var suggestions, func;
     suggestions = this.suggestions.length === 0 ? newSugs
       : newSugs.length > 0 ? this.suggestions.concat(newSugs) : this.suggestions;
@@ -655,7 +655,7 @@ searchEngines: {
       return;
     }
     
-    this.suggestions = null;
+    this.suggestions = newSugs = null;
     suggestions.sort(this.rsortByRelevancy);
     if (suggestions.length > maxResults) {
       suggestions.length = maxResults;
