@@ -110,7 +110,9 @@ vomnibarUI: {
     this.box.style.display = "";
     this.input.value = this.completionInput.text;
     VInsertMode.heldEl = this.input;
-    this.input.focus();
+    if (DomUtils.UI.container.style.display !== "none") {
+      this.input.focus();
+    }
     handlerStack.remove(this.handlerId);
     this.handlerId = handlerStack.push(this.onKeydown, this);
   },
