@@ -242,15 +242,15 @@ bookmarks: {
 history: {
   filter: function(query) {
     var _this = this, history = HistoryCache.history, offset;
-    offset = queryTerms.length !== 1 ? 0 : Completers.getOffset(50, 2);
+    offset = Completers.getOffset(queryTerms.length > 1 ? 99 : 50, 2);
     if (offset < 0) { return false; }
     if (queryTerms.length > 0) {
       if (history) {
-        Completers.next(this.quickSearch(history));
+        Completers.next(this.quickSearch(history, offset));
       } else {
         HistoryCache.use(function(history) {
           if (query.isOff) { return; }
-          Completers.next(Completers.history.quickSearch(history));
+          Completers.next(Completers.history.quickSearch(history, offset));
         });
       }
       return;
@@ -274,8 +274,8 @@ history: {
       }, 50);
     }
   },
-  quickSearch: function(history) {
-    var maxNum = maxResults * 2, results = new Array(maxNum), sug,
+  quickSearch: function(history, offset) {
+    var maxNum = (maxResults + offset) * 2, results = new Array(maxNum), sug,
     query = queryTerms, regexps = [], len = history.length, i, len2, j, s1,
     score, item, getRele = this.computeRelevancy;
     for (j = maxNum; 0 <= --j; ) {
@@ -311,7 +311,7 @@ history: {
       }
     }
     getRele = this.getRelevancy0;
-    for (j = i = 0; i <= maxNum; i += 2) {
+    for (i = offset * 2, j = 0; i <= maxNum; i += 2) {
       score = results[i];
       if (score <= 0) { break; }
       item = results[i + 1];
@@ -455,7 +455,7 @@ tabs: {
   filter1: function(query, tabs) {
     if (query.isOff) { return; }
     var curTabId = TabRecency.tabId(), c, suggestions, offset;
-    offset = queryTerms.length >= 1 ? Completers.getOffset(99, 3) : 0;
+    offset = Completers.getOffset(99, 3);
     if (offset < 0) { return; }
     if (queryTerms.length > 0) {
       tabs = tabs.filter(function(tab) {
@@ -661,7 +661,7 @@ searchEngines: {
   },
   getOffset: function(max, newType) {
     var str, offset;
-    if (cmdType !== 0 || (str = queryTerms[0])[0] !== "+") {}
+    if (queryTerms.length === 0 || cmdType !== 0 || (str = queryTerms[0])[0] !== "+") {}
     else if ((offset = parseInt(str, 10)) >= 0 && offset <= max && '+' + offset === str) {
       cmdType = newType;
       queryTerms.shift();
