@@ -136,5 +136,16 @@ DomUtils.UI = {
     return setTimeout(function() {
       flashEl.remove();
     }, time || this.flashLastingTime);
+  },
+  SuppressMost: function(event) {
+    var n = event.keyCode;
+    if (n != KeyCodes.esc) {
+      return (n > KeyCodes.f1 + 1 && n <= KeyCodes.f12) ? 1 : 2;
+    }
+    if (this && KeyboardUtils.isPlain(event)) {
+      this.remove(this.handlerId);
+      return 2;
+    }
+    return 1;
   }
 };
