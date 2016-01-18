@@ -661,7 +661,8 @@ searchEngines: {
   },
   getOffset: function(max, newType) {
     var str, offset;
-    if (queryTerms.length === 0 || cmdType !== 0 || (str = queryTerms[0])[0] !== "+") {}
+    if (cmdType !== 0) { return 0; }
+    if (queryTerms.length === 0 || (str = queryTerms[0])[0] !== "+") {}
     else if ((offset = parseInt(str, 10)) >= 0 && offset <= max && '+' + offset === str) {
       cmdType = newType;
       queryTerms.shift();
@@ -670,6 +671,7 @@ searchEngines: {
       this.suggestions = this.mostRecentQuery = this.callback = queryTerms = null;
       return -1;
     }
+    cmdType = -1;
     return 0;
   },
   MultiCompleter: function(completers) { this.completers = completers; },
