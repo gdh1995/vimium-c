@@ -309,7 +309,7 @@ history: {
         if (results[j] >= score) { break; }
       }
       if (j >= 0) {
-        results.splice(j, 0, score, item);
+        results.splice(j + 2, 0, score, item);
       } else {
         results.unshift(score, item);
       }
