@@ -153,23 +153,27 @@ Completers = {
 bookmarks: {
   bookmarks: null,
   currentSearch: null,
+  currentOffset: 0,
   path: "",
   filter: function(query) {
+    var offset = Completers.getOffset(99, 4);
+    if (offset < 0 || cmdType === 4 && queryTerms.length === 0) { return false; }
     if (this.bookmarks) {
-      this.performSearch(query);
+      this.performSearch(query, offset);
       return;
     }
     if (queryTerms.length === 0) {
       Completers.next([]);
     } else {
       this.currentSearch = query;
+      this.currentOffset = offset;
     }
     if (this.refresh) {
       this.refresh();
     }
   },
   StartsWithSlash: function(str) { return str.charCodeAt(0) === 47; },
-  performSearch: function(query) {
+  performSearch: function(query, offset) {
     var c, results, name;
     if (queryTerms.length === 0) {
       results = [];
@@ -181,6 +185,10 @@ bookmarks: {
       }).map(function(i) {
         return new Suggestion("bookm", i.url, i.text, i[name], c);
       });
+      if (offset > 0) {
+        results.sort(Completers.rsortByRelevancy);
+        results = results.slice(offset, maxResults);
+      }
     }
     Completers.next(results);
   },
@@ -206,7 +214,7 @@ bookmarks: {
       var query = _this.currentSearch;
       _this.currentSearch = null;
       if (query && !query.isOff) {
-        _this.performSearch(query);
+        _this.performSearch(query, _this.currentOffset);
       }
     });
   },
