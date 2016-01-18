@@ -108,6 +108,7 @@ var exports = {}, Utils = {
         type = 2;
       }
     }
+    else if (string.startsWith("ed2k://|")) { type = 0; }
     else if (string.startsWith("vimium:")) {
       type = 3;
       vimiumUrlWork |= 0;
