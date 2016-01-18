@@ -303,12 +303,12 @@ vomnibarUI: {
   },
   goPage: function(sel) {
     var i, arr, str;
-    arr = /(?:^|\s)(\+\d{0,2})$/.exec(this.completionInput.text);
+    str = this.completionInput.text;
+    arr = /(?:^|\s)(\+\d{0,2})$/.exec(str);
     i = (arr && arr[0]) | 0;
     sel += i;
     sel = sel <= 0 ? 0 : sel >= 50 ? 50 : sel;
     if (sel == i) { return; }
-    str = this.input.value;
     if (arr) { str = str.substring(0, str.length - arr[0].length); }
     str = str.trimRight();
     i = Math.min(this.input.selectionEnd, str.length);
