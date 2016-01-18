@@ -196,7 +196,7 @@ CheckBoxOption.prototype.readValueFromElement = function() {
   for (_i = _ref.length; 0 <= --_i; ) {
     element = _ref[_i];
     element.className = element.className + " example info";
-    element.textContent = "Leave empty to reset this option.";
+    element.textContent = "Delete all to reset this option.";
   }
 
   window.onbeforeunload = function() {
