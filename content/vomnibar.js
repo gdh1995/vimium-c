@@ -202,32 +202,29 @@ vomnibarUI: {
   onKeydown: function(event) {
     var action = "", n = event.keyCode, focused = VInsertMode.lock === this.input;
     if ((!focused && VInsertMode.lock) || event.altKey) { return 0; }
-    if (!(event.ctrlKey || event.metaKey)) {
-      if (event.shiftKey && (n === KeyCodes.up || n === KeyCodes.down)) {
-        action = n === KeyCodes.up ? "pageup" : "pagedown";
-      }
-    }
-    else if (event.shiftKey) {}
-    else if (n === KeyCodes.up || n === KeyCodes.down) {
-      MainPort.Listener({
-        name: "execute", count: 1, options: {},
-        command: n === KeyCodes.up ? "scrollUp" : "scrollDown"
-      });
-      return 2;
-    }
-    else if (n === 74 || n === 78) { action = "down"; } // 'J' or 'N'
-    else if (n === 75 || n === 80) { action = "up"; } // 'K' or 'P'
-    else if (n === 219 || n === 91) { action = "dismiss"; } // '['
-
-    if (action) {}
-    else if (n === KeyCodes.enter) {
+    if (n === KeyCodes.enter) {
       if (event.shiftKey || event.ctrlKey || event.metaKey) { this.forceNewTab = true; }
       action = "enter";
     }
-    else if (event.ctrlKey || event.metaKey) {}
+    else if (event.ctrlKey || event.metaKey) {
+      if (event.shiftKey) {}
+      else if (n === KeyCodes.up || n === KeyCodes.down) {
+        MainPort.Listener({
+          name: "execute", count: 1, options: {},
+          command: n === KeyCodes.up ? "scrollUp" : "scrollDown"
+        });
+        return 2;
+      }
+      else if (n === 74 || n === 78) { action = "down"; } // 'J' or 'N'
+      else if (n === 75 || n === 80) { action = "up"; } // 'K' or 'P'
+      else if (n === 219 || n === 91) { action = "dismiss"; } // '['
+    }
     else if (event.shiftKey) {
       if (n === KeyCodes.tab) { action = "up"; }
       else if (n === KeyCodes.f1) { action = focused ? "blur" : "focus"; }
+      else if (n === KeyCodes.up || n === KeyCodes.down) {
+        action = n === KeyCodes.up ? "pageup" : "pagedown";
+      }
     }
     else if (n === KeyCodes.tab) { action = "down"; }
     else if (n === KeyCodes.esc) { action = "dismiss"; }
