@@ -267,20 +267,18 @@ vomnibarUI: {
       break;
     case "blur": this.input.blur(); break;
     case "backspace": document.execCommand("delete"); break;
-    case "up":
+    case "up": case "down":
       this.isSelectionChanged = true;
       sel = this.selection;
-      if (sel < 0) sel = this.completions.length;
-      sel -= 1;
+      if (action === "up") {
+        if (sel < 0) sel = this.completions.length;
+        sel -= 1;
+      } else {
+        sel += 1;
+        if (sel >= this.completions.length) sel = -1;
+      }
       this.updateSelection(sel);
       this.updateInput();
-      break;
-    case "down":
-      this.isSelectionChanged = true;
-      sel = this.selection + 1;
-      if (sel >= this.completions.length) sel = -1;
-      this.updateSelection(sel);
-      this.updateInput(); 
       break;
     case "enter":
       if (this.timer) {
