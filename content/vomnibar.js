@@ -202,7 +202,12 @@ vomnibarUI: {
   onKeydown: function(event) {
     var action = "", n = event.keyCode, focused = VInsertMode.lock === this.input;
     if ((!focused && VInsertMode.lock) || event.altKey) { return 0; }
-    if (event.shiftKey || !(event.ctrlKey || event.metaKey)) {}
+    if (!(event.ctrlKey || event.metaKey)) {
+      if (event.shiftKey && (n === KeyCodes.up || n === KeyCodes.down)) {
+        action = n === KeyCodes.up ? "pageup" : "pagedown";
+      }
+    }
+    else if (event.shiftKey) {}
     else if (n === KeyCodes.up || n === KeyCodes.down) {
       MainPort.Listener({
         name: "execute", count: 1, options: {},
@@ -280,6 +285,11 @@ vomnibarUI: {
       this.updateSelection(sel);
       this.updateInput();
       break;
+    case "pageup": case "pagedown":
+      if (this.completions.length >= 10 && this.completions[0].type !== "search") {
+        this.goPage(action === "pageup" ? -10 : 10);
+      }
+      break;
     case "enter":
       if (this.timer) {
         if (this.selection === -1 || !this.isSelectionChanged) {
@@ -291,6 +301,26 @@ vomnibarUI: {
       break;
     default: break;
     }
+  },
+  goPage: function(sel) {
+    var i, arr, str;
+    arr = /(?:^|\s)(\+\d{0,2})$/.exec(this.completionInput.text);
+    i = (arr && arr[0]) | 0;
+    sel += i;
+    sel = sel <= 0 ? 0 : sel >= 50 ? 50 : sel;
+    if (sel == i) { return; }
+    str = this.input.value;
+    if (arr) { str = str.substring(0, str.length - arr[0].length); }
+    str = str.trimRight();
+    i = Math.min(this.input.selectionEnd, str.length);
+    if (sel > 0) { str = str + " +" + sel; }
+    sel = this.input.selectionStart;
+    arr = [this.input.selectionDirection];
+    this.input.value = str;
+    this.input.setSelectionRange(sel, i);
+    this.input.selectionDirection = arr[0];
+    this.update(1);
+    this.onInput();
   },
   onEnter: function() {
     Vomnibar.background.performAction(this.selection === -1 ? this.completionInput
