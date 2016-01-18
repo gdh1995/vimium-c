@@ -340,11 +340,14 @@ vomnibarUI: {
     }
   },
   onInput: function() {
-    var str = this.input.value.trimLeft();
+    var s1 = this.input.value, str = s1.trimLeft();
     this.completionInput.text = str;
     if ((str = str.trimRight()) !== ((this.selection === -1 || !this.isSelectionChanged)
           ? this.completionInput.url : this.completions[this.selection].text)) {
       // here's no race condition
+      if (this.input.selectionStart === s1.length && s1.endsWith(" +")) {
+        return;
+      }
       this.completionInput.url = str;
       this.update();
     }
