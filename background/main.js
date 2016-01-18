@@ -611,7 +611,7 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
       }
     },
     focusOrLaunch: function(request, tabs) {
-      if (tabs.length === 0) {
+      if (!tabs || tabs.length === 0) {
         chrome.tabs.query({currentWindow: true, active: true}, function(tabs) {
           var tab = tabs[0];
           // TODO: how to wait for tab finishing to load
@@ -626,7 +626,7 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
             }
           });
         });
-        return;
+        return chrome.runtime.lastError;
       }
       chrome.windows.getCurrent(function(wnd) {
         var wndId = wnd.id, tabs2;
