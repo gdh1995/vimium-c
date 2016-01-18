@@ -142,8 +142,8 @@ DomUtils.UI = {
     if (n != KeyCodes.esc) {
       return (n > KeyCodes.f1 + 1 && n <= KeyCodes.f12) ? 1 : 2;
     }
-    if (this && KeyboardUtils.isPlain(event)) {
-      this.remove(this.handlerId);
+    if (this && KeyboardUtils.isPlain(event) && this.handlerId) {
+      handlerStack.remove(this.handlerId);
       return 2;
     }
     return 1;
