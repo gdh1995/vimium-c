@@ -265,7 +265,6 @@ history: {
       sessions.some(function(item) {
         var entry = item.tab;
         if (!entry || entry.url in arr) { return; }
-        entry.lastVisitTime = now + 60000 - i * 1000;
         arr[entry.url] = 1;
         ++i > 0 && historys.push(entry);
         return historys.length >= maxResults;
@@ -337,19 +336,20 @@ history: {
       historys2 = historys2.filter(function(i) {
         return !(i.url in a);
       });
+      historys2.length = Math.max(cut, 0) + maxResults;
       historys = cut < 0 ? historys.concat(historys2)
         : cut == 0 ? historys2 : historys2.slice(cut);
       _this.filterFinish(historys, query);
     });
   },
   filterFinish: function(historys, query) {
-    var s = Suggestion, c = this.computeRelevancyByTime, d = Decoder.decodeURL;
-    historys.sort(this.rsortByLvt);
+    var s = Suggestion, c = this.compute0, d = Decoder.decodeURL;
     if (historys.length > maxResults) {
       historys.length = maxResults;
     }
     historys.forEach(function(e, i, arr) {
       var o = new s("history", e.url, d(e.url), e.title, c, e.lastVisitTime);
+      o.relevancy = 0.99 - i / 100;
       e.sessionId && (o.sessionId = e.sessionId);
       arr[i] = o;
     });
@@ -365,9 +365,7 @@ history: {
       wordRelevancy = RankingUtils.wordRelevancy(text, title);
     return recencyScore <= wordRelevancy ? wordRelevancy : (wordRelevancy + recencyScore) / 2;
   },
-  computeRelevancyByTime: function(suggestion, lastVisitTime) {
-    return RankingUtils.recencyScore(lastVisitTime);
-  }
+  compute0: function() { return 0; }
 },
 
 domains: {
