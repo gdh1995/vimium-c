@@ -510,7 +510,7 @@ searchEngines: {
   filter: function(query, failIfNull) {
     var obj, sug, q = queryTerms, keyword, pattern, promise;
     if (q.length === 0 || cmdType !== 0) {}
-    else if ((keyword = q[0])[0] === "\\") {
+    else if (failIfNull !== true && (keyword = q[0])[0] === "\\") {
       cmdType = -1;
       q[0] = keyword.substring(1);
       keyword = q.join(" ");
@@ -526,7 +526,7 @@ searchEngines: {
       }
       return true;
     }
-    cmdType = 1;
+    if (failIfNull !== true) { cmdType = 1; }
     if (q.length > 1) {
       q.shift();
     } else {
