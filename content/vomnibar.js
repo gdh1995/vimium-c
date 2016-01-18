@@ -230,6 +230,8 @@ vomnibarUI: {
     else if (n === KeyCodes.esc) { action = "dismiss"; }
     else if (n === KeyCodes.up) { action = "up"; }
     else if (n === KeyCodes.down) { action = "down"; }
+    else if (n === KeyCodes.pageup) { action = "pageup"; }
+    else if (n === KeyCodes.pageup + 1) { action = "pagedown"; }
     else if (n === KeyCodes.f1) { action = focused ? "backspace" : "focus"; }
     else if (n === KeyCodes.f1 + 1) { action = focused ? "blur" : "focus"; }
     else if (n === KeyCodes.backspace) { if (!focused) { return 2; } }
