@@ -805,7 +805,6 @@ searchEngines: {
         maxResults: this.size,
         startTime: 0
       }, function(history) {
-        history.sort(function(a, b) { return a.url.localeCompare(b.url); });
         Decoder.decodeList(history);
         _this.history = history;
         chrome.history.onVisited.addListener(_this.onPageVisited.bind(_this));
@@ -815,21 +814,45 @@ searchEngines: {
           callback(_this.history);
         }
         _this.callbacks = [];
+        setTimeout(function() {
+          HistoryCache.history.sort(function(a, b) { return a.url.localeCompare(b.url); });
+          setTimeout(HistoryCache.Clean, 2000);
+        }, 600);
       });
     },
-    onPageVisited: function(newPage) {
-      var i = this.binarySearch(newPage.url, this.history);
-      if (i >= 0) {
-        var old = this.history[i];
-        this.history[i] = newPage;
-        if (old.text !== old.url) {
-          newPage.text = old.text;
-          return;
-        }
-      } else {
-        this.history.splice(-1 - i, 0, newPage);
+    Clean: function() {
+      var arr = HistoryCache.history, i = arr.length, j;
+      while (0 <= --i) {
+        j = arr[i];
+        arr[i] = {
+          lastVisitTime: j.lastVisitTime,
+          text: j.text,
+          title: j.title,
+          url: j.url
+        };
       }
-      Decoder.decodeList([newPage]);
+      if (Decoder.todos.length > 0) {
+      setTimeout(function() {
+          Decoder.decodeList(arr);
+        }, 1000);
+      }
+    },
+    onPageVisited: function(newPage) {
+      var i = this.binarySearch(newPage.url, this.history), j;
+      if (i >= 0) {
+        j = this.history[i];
+        j.lastVisitTime = newPage.lastVisitTime;
+        j.title = newPage.title || j.title;
+        return;
+      }
+      j = {
+        lastVisitTime: newPage.lastVisitTime,
+        text: Decoder.decodeURL(newPage.url),
+        title: newPage.title,
+        url: newPage.url
+      };
+      this.history.splice(-1 - i, 0, j);
+      Decoder.continueToWork();
     },
     OnVisitRemoved: function(toRemove) {
       var _this = HistoryCache;
