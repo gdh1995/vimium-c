@@ -864,21 +864,22 @@ searchEngines: {
     _f: decodeURIComponent, // core function
     decodeURL: null,
     decodeList: function(a) {
-      var i = -1, j, l = a.length, d = Decoder, f = d._f;
+      var i = -1, j, l = a.length, d = Decoder, f = d._f, s, t, m = d.dict, w = d.todos;
       for (; ; ) {
         try {
           while (++i < l) {
             j = a[i];
-            j.text = f(j.url);
+            t = f(s = j.url);
+            j.text = t !== s ? t : s;
           }
           break;
         } catch (e) {
-          j.text = d.dict[j.url] || (d.todos.push(j), j.url);
+          j.text = m[s] || (w.push(j), s);
         }
       }
       d.continueToWork();
     },
-    dict: {},
+    dict: Object.create(null),
     todos: [], // each item is either {url: ...} or "url"
     _timer: 0,
     charset: "GBK",
