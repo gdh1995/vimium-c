@@ -462,11 +462,13 @@ var Settings, VHUD, MainPort, VInsertMode;
       findAndFocus(count, true);
     },
     enterInsertMode: function(_1, options) {
-      InsertMode.global = {
-        code: options.code || KeyCodes.esc,
-        stat: options.stat || 0
-      };
-      HUD.show("Insert mode");
+      var code = options.code || KeyCodes.esc, stat = options.stat || 0, str;
+      InsertMode.global = { code: code, stat: stat };
+      str = "Insert mode";
+      if (options.code || options.stat >= 0) {
+        str += ": " + (KeyboardUtils.keyNames[code] || code) + "/" + stat;
+      }
+      HUD.show(str);
     },
     enterFindMode: function() {
       Marks.setPreviousPosition();
