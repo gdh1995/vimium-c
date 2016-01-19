@@ -318,7 +318,7 @@ vomnibarUI: {
     this.input.value = str;
     this.input.setSelectionRange(sel, i);
     this.input.selectionDirection = arr[0];
-    this.update(1);
+    this.update(this.refreshInterval / 2);
     this.onInput();
   },
   onEnter: function() {
