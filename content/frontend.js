@@ -209,7 +209,7 @@ var Settings, VHUD, MainPort, VInsertMode;
         }
         else if (InsertMode.global) {}
         else if (key >= KeyCodes.f1 && key <= KeyCodes.f12) {
-          action = checkValidKey(event, KeyboardUtils.getKeyName(event, event.shiftKey));
+          action = checkValidKey(event, KeyboardUtils.keyName(key, event.shiftKey));
         }
       }
       else if (findMode) {
