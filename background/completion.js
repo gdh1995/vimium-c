@@ -832,7 +832,7 @@ searchEngines: {
         };
       }
       if (Decoder.todos.length > 0) {
-      setTimeout(function() {
+        setTimeout(function() {
           Decoder.decodeList(arr);
         }, 1000);
       }
@@ -905,16 +905,15 @@ searchEngines: {
     dict: Object.create(null),
     todos: [], // each item is either {url: ...} or "url"
     _timer: 0,
-    charset: "GBK",
     working: -1,
-    interval: 25,
+    interval: 18,
     continueToWork: function() {
       if (this._timer === 0 && this.todos.length > 0) {
         this._timer = setInterval(this.Work, this.interval);
       }
     },
     Work: function() {
-      var _this = Decoder, url, text;
+      var _this = Decoder, url, str, text;
       if (_this.working === -1) {
         _this.init();
         _this.working = 0;
@@ -924,32 +923,38 @@ searchEngines: {
         _this._timer = 0;
         _this._link.href = "";
       } else if (_this.working === 0) {
-        url = _this.todos[0];
-        if (url.url) {
-          url = url.url;
-        }
-        if (_this.dict[url]) {
-          _this.todos.shift();
-        } else {
-          _this.working = 1;
-          _this._link.href = "data:text/css;charset=" + _this.charset + ",%23" + _this._id //
-            + "%7Bfont-family%3A%22" + url + "%22%7D";
+        while (url = _this.todos[0]) {
+          str = url.url || url;
+          if (text = _this.dict[str]) {
+            url.url && (url.text = text);
+            _this.todos.shift();
+          } else {
+            _this.working = 1;
+            _this._link.href = _this._dataUrl + str + "%22%7D";
+            break;
+          }
         }
       } else if (_this.working === 1) {
         text = window.getComputedStyle(_this._div).fontFamily;
+        text = text.substring(1, text.length - 1);
         url = _this.todos.shift();
-        if (url.url) {
-          _this.dict[url.url] = url.text = text = text.substring(1, text.length - 1);
+        if (str = url.url) {
+          _this.dict[str] = url.text = text;
         } else {
-          _this.dict[url] = text = text.substring(1, text.length - 1);
+          _this.dict[url] = text;
         }
         _this.working = 0;
         _this.Work();
       }
     },
+    _dataUrl: "",
     _id: "_decode",
     _link: null,
     _div: null,
+    setDataUrl: function(charset) {
+      this._dataUrl = "data:text/css;charset=" + charset + ",%23" + this._id +
+          "%7Bfont-family%3A%22";
+    },
     init: function() {
       var link = this._link = document.createElement('link'),
           div = this._div = document.createElement('div');
@@ -959,6 +964,7 @@ searchEngines: {
       div.style.display = 'none';
       document.body.appendChild(link);
       document.body.appendChild(div);
+      this._dataUrl || this.setDataUrl("GBK");
     }
   };
   
@@ -980,7 +986,7 @@ searchEngines: {
     if (lang = Settings.get("UILanguage")) {
       var ref = lang.urlCode;
       if (ref && typeof ref === "string") {
-        Decoder.charset = ref;
+        Decoder.setDataUrl(ref);
       }
       ref = lang.bookmarkTypes;
       if (ref && ref.length > 0) {
