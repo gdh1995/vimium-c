@@ -986,7 +986,6 @@ searchEngines: {
       , Completers.history, Completers.bookmarks]),
     tabs: new Completers.MultiCompleter([Completers.tabs])
   };
-  Object.setPrototypeOf(window.Completers, null);
 
   Utils.Decoder = Decoder;
 
