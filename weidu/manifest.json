@@ -4,7 +4,7 @@
   "homepage_url": "https://github.com/gdh1995/vimium-plus/tree/master/weidu",
   "icons": {
     "128": "img/icon_128.png",
-    "16": "favicon.ico"
+    "16": "img/icon_16.png"
   },
   "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAyUdZlC359E0FNp2J8wy7jXndYL538bG7VWB861oI+KlWTKihaSDgt1yerFU5uBGeD6HmeK9UZb4R3/gRI1OXadx2pD8IliSbrUEgE1i/pUcfTcS41e/GS5lbAe3+xbHxEQiHmecye1cTCl3LDH91sVj7SOTzR3u+BMMAVCJgoMUc3/Jwhj9upMh/L0yg3XI2jxEEvhb7ZqURJlytORHD+K6l98Gxk2+7rf8HHsQrgWcCLExb04rQ+WEdRJRoPLW6wqxYgWx7i2CLaHQkDBmeGH5ZYCo97u4f2CVcOwXhb+6o+5eMkCBN1JRoI7mNeWNz7Y0yPijVtN6ADA6DfFIr0QIDAQAB",
   "manifest_version": 2,
