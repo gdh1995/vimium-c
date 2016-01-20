@@ -394,8 +394,7 @@ var classification = {
 		setTimeout(function () {
 			storage.setId(cId);
 			targetSwitch = PDI.get('privateSetup', 'targetSwitch');
-			$('#baseTarget').attr('target', targetSwitch ? "_self" : "_blank");
-			$('#searchForm').attr('target', targetSwitch ? "_self" : "_blank");
+			$('base,#searchForm').attr('target', targetSwitch ? "_self" : "_blank");
 			DBOX.container = $('.normalDialbox');
 			DBOX.QContainer = $('.quickDialbox');
 			DBOX.QBContainer = $('.QBannerContainer');

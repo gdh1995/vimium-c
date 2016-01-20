@@ -3479,8 +3479,7 @@ replaceLocationDB();
 document.title = getI18nMsg('title');
 
 targetSwitch = PDI.get('privateSetup', 'targetSwitch');
-$('#baseTarget').attr('target', targetSwitch ? "_self" : "_blank");
-$('#searchForm').attr('target', targetSwitch ? "_self" : "_blank");
+$('base,#searchForm').attr('target', targetSwitch ? "_self" : "_blank");
 DBOX.__init__({
 		container: $('.normalDialbox'),
 		QContainer: $('.quickDialbox'),
