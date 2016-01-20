@@ -95,6 +95,8 @@ var exports = {}, Utils = {
       } else if (string.startsWith("//")) {
         string = string.substring(2);
         expected = 4; index2 = 2;
+      } else if (string.startsWith("magnet:?xt=urn:")) {
+        type = 0;
       } else {
         index2 = 0;
       }
@@ -108,7 +110,6 @@ var exports = {}, Utils = {
         type = 2;
       }
     }
-    else if (string.startsWith("ed2k://|")) { type = 0; }
     else if (string.startsWith("vimium:")) {
       type = 3;
       vimiumUrlWork |= 0;
