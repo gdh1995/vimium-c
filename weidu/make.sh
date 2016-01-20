@@ -1,7 +1,8 @@
 #/bin/sh
+set -o noglob
 
 if [ -z "$1" ]; then
-OUTPUT=/wo/weidu_4.80.crx
+OUTPUT=weidu_4.82.crx
 else
 OUTPUT="$1"
 fi
@@ -13,4 +14,4 @@ else
 ARGS="$*"
 fi
 
-zip -r0oX -MM $ARGS "$OUTPUT" . -x ".*" "*.sh"
+zip -roX -MM $ARGS "$OUTPUT" . -x ".*" "*.sh" "img/bg/*" "img/tab_*" "*.crx" "*template.json"
