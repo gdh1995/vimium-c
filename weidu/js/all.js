@@ -3598,7 +3598,11 @@ if (w > h) {
 	st = null;
 }
 }
-app.loadApp($('.appBox[appId=classification]'), 'classification');
+var classification = $('.appBox[appId=classification]');
+if (classification.length > 0) {
+  app.loadApp(classification, 'classification');
+}
+classification = null;
 if (window.location.hash == "#setting") {
 	window.location.hash = "";
 	setTimeout(function () {
