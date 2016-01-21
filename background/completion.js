@@ -475,9 +475,6 @@ tabs: {
       var tabId = tab.id, suggestion = new Suggestion("tab",
             tab.url, tab.text, tab.title, c, tabId);
       suggestion.sessionId = tabId;
-      if (showFavIcon) {
-        suggestion.favIconUrl = Utils.escapeAttr(tab.favIconUrl);
-      }
       if (curTabId === tabId) { suggestion.relevancy = 0; }
       return suggestion;
     });
