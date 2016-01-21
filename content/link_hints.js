@@ -406,7 +406,7 @@ var LinkHints = {
       if (output[ind] && output[ind][0] === document.body) { ++ind; }
       if (ind > 0) { output.splice(0, ind); }
     }
-    if (this.frameNested !== false) {}
+    if (this.frameNested !== false) { return output; }
     else if ("*" in filters) {
       this.checkNestedFrame(output);
     } else if (output.length > 0) {
@@ -418,18 +418,15 @@ var LinkHints = {
   },
   frameNested: false,
   checkNestedFrame: function(output) {
+    var res = this._getNestedFrame(output);
+    this.frameNested = res === false && document.readyState === "complete" ? null : res;
+  },
+  _getNestedFrame: function(output) {
     var rect, element, str, func;
-    if (window.frames[0] == null || document.webkitFullscreenElement !== null) {
-      this.frameNested = null;
-      return;
-    }
+    if (window.frames[0] == null) { return false; }
+    if (document.webkitFullscreenElement !== null) { return null; }
     if (output == null) {
-      if (document.body === null) {
-        if (document.readyState === "complete") {
-          this.frameNested = null;
-        }
-        return;
-      }
+      if (document.body === null) { return false; }
       output = [];
       func = this.GetClickable.bind(output);
       DomUtils.prepareCrop();
@@ -439,24 +436,22 @@ var LinkHints = {
       }
     }
     if (output.length !== 1) {
-      if (output.length !== 0 || document.readyState === "complete") {
-        this.frameNested = null;
-      }
-      return;
+      return output.length !== 0 && null;
     }
     element = output[0][0];
-    str = element.tagName.toLowerCase();
-    if (str !== "iframe" && str !== "frame") {
-      this.frameNested = null;
-    } else if ((rect = element.getClientRects()[0])
+    if (arguments.length > 0) {
+      str = element.tagName.toLowerCase();
+      if (str !== "iframe" && str !== "frame") {
+        return null;
+      }
+    }
+    if ((rect = element.getClientRects()[0])
         && window.scrollY + rect.top < 20 && window.scrollX + rect.left < 20
         && element.scrollWidth > document.documentElement.scrollWidth - 40
         && element.scrollHeight > document.documentElement.scrollHeight - 40
         && getComputedStyle(element).visibility === 'visible'
     ) {
-      this.frameNested = element;
-    } else if (document.readyState === "complete") {
-      this.frameNested = null;
+      return element;
     }
   },
   getVisibleElements: function() {
