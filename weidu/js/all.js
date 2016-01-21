@@ -1412,7 +1412,7 @@ var app = {
 				if (first) {
 					$(document).unbind("keyup.classification").bind("keyup.classification", function (e) {
 						if (typeof self.runedAppObjects.classification != "undefined") {
-							if (e.keyCode == 192 && !_minSearchForce) {
+							if ((e.keyCode == 192 || e.keyCode == 96) && !_minSearchForce) {
 								if ($('.dialog.dialog-visible').length == 0 && _edit === false) {
 									self.runApp(targetObj, "classification")
 								}
