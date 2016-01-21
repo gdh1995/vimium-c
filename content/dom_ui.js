@@ -138,14 +138,15 @@ DomUtils.UI = {
     }, time || this.flashLastingTime);
   },
   SuppressMost: function(event) {
-    var n = event.keyCode;
+    var n = event.keyCode, plain;
     if (n != KeyCodes.esc) {
-      return (n > KeyCodes.f1 + 1 && n <= KeyCodes.f12) ? 1 : 2;
-    }
-    if (this && KeyboardUtils.isPlain(event) && this.handlerId) {
+      if (n <= KeyCodes.f1 || n > KeyCodes.f12) {
+        return 2;
+      };
+    } else if (this && KeyboardUtils.isPlain(event) && this.handlerId) {
       handlerStack.remove(this.handlerId);
       return 2;
     }
-    return 1;
+    return KeyboardUtils.isPlain(event) ? 1 : 0;
   }
 };
