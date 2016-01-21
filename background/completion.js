@@ -523,7 +523,7 @@ searchEngines: {
       if (queryType !== 0) {
         q.push(queryTerms.more);
       }
-      queryType = 2;
+      q.length > 1 && (queryType = 2);
     }
     if (q.length > 1) {
       q.shift();
