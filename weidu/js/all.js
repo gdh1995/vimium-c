@@ -262,9 +262,7 @@ function replaceLocationDB() {
 
 var storage = {
 	setId: function (id) {
-		if (id && id !== "") {
-			this.id = "_" + id
-		}
+		this.id = id ? "_" + id : "";
 		this.relative = true;
 	},
 	id: '',
@@ -1720,6 +1718,8 @@ var app = {
 				self.loadJs(appId, function () {
 					self.loadedAppsReady.push(appId);
 					self.runApp(targetObj, appId);
+					var a = self.apps[appId];
+					a.init && a.init(targetObj, self, true);
 				})
 			}, 0)
 		}
@@ -3599,7 +3599,7 @@ if (w > h) {
 }
 var classification = $('.appBox[appId=classification]');
 if (classification.length > 0) {
-  app.loadApp(classification, 'classification');
+	app.loadApp(classification, 'classification');
 }
 classification = null;
 if (window.location.hash == "#setting") {

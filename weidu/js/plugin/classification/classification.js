@@ -50,7 +50,7 @@ var classification = {
 			if (!isContainsClass(e.target, "classification")) {
 				if (self.isClear()) {
 					self.content.parent().parent().find(".close").get(0).click();
-					app.loadAppContent($('.appBox[appId=classification]'), 'classification')
+					app.apps.classification.init($('.appBox[appId=classification]'));
 				}
 			}
 		});
@@ -86,7 +86,7 @@ var classification = {
 						self.change(classificationObj);
 						setTimeout(function () {
 							self.content.parent().parent().find(".close").get(0).click();
-							app.loadAppContent($('.appBox[appId=classification]'), 'classification')
+							app.apps.classification.init($('.appBox[appId=classification]'));
 						}, 400)
 					}
 				}
@@ -324,7 +324,7 @@ var classification = {
 					self.change(classificationObj);
 					setTimeout(function () {
 						self.content.parent().parent().find(".close").get(0).click();
-						app.loadAppContent($('.appBox[appId=classification]'), 'classification')
+						app.apps.classification.init($('.appBox[appId=classification]'));
 					}, 400)
 				}
 			}
