@@ -285,9 +285,7 @@ vomnibarUI: {
       this.updateInput();
       break;
     case "pageup": case "pagedown":
-      if (this.completions.length >= 10 && this.completions[0].type !== "search") {
-        this.goPage(action === "pageup" ? -10 : 10);
-      }
+      this.goPage(action === "pageup" ? -1 : 1);
       break;
     case "enter":
       if (this.timer) {
@@ -302,10 +300,19 @@ vomnibarUI: {
     }
   },
   goPage: function(sel) {
-    var i, arr, str;
+    var i, arr, len = this.completions.length,
+    str = len ? this.completions[0].type : "", notTab;
+    if (str === "search") { return; }
+    notTab = str !== "tab";
     str = this.completionInput.text;
     arr = /(?:^|\s)(\+\d{0,2})$/.exec(str);
     i = (arr && arr[0]) | 0;
+    if (i <= 0 || sel > 0) {
+      if (i <= 0 && len <= 0 || len < (notTab ? 10 : 3)) { return; }
+      if (len >= 10 || notTab) { sel *= 10; }
+    } else if (i >= 10 || len >= 10) {
+      sel *= 10;
+    }
     sel += i;
     sel = sel <= 0 ? 0 : sel >= 50 ? 50 : sel;
     if (sel == i) { return; }
