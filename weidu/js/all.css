@@ -11,7 +11,7 @@ a{color:#FFF;text-decoration:none;text-shadow:1px 1px 3px #000;}
 @-webkit-keyframes bodyFarAway{40%{opacity:0;}60%{opacity:0;}}
 .body.farAway{-webkit-animation:bodyFarAway .6s ease-in-out 0s 1;}
 .wallpaper{width:100%;height:100%;}
-.QBannerContainer{position:absolute;bottom:0px;width:1040px;height:48px;left:50%;-webkit-transition:opacity .2s ease-in;}
+.QBannerContainer{position:fixed;bottom:0px;width:1040px;height:48px;left:50%;-webkit-transition:opacity .2s ease-in;}
 .QBannerContainer.hide,.dialbox > .quickDialbox.hide{visibility:hidden;opacity:0;}
 .QBannerContainer > .left{float:left;width:78px;height:48px;background-image:url(../img/skin_0/q_left.png);}
 .QBannerContainer > .center{float:left;width:884px;height:48px;background-image:url(../img/skin_0/q_bg.png);}
