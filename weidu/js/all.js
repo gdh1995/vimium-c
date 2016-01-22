@@ -1732,8 +1732,8 @@ var app = {
 			} else if (!(self.apps[appId]['separate'] !== true
 				|| DBOX.getDialboxIndex("quick", appId) > -1
 				|| DBOX.getDialboxIndex("normal", appId) > -1))
-			{
-			} else if (typeof self.runedAppObjects[appId] == "undefined") {
+			{}
+			else if (typeof self.runedAppObjects[appId] == "undefined") {
 				if (typeof self.apps[appId]['run'] == "function") {
 					if (self.loadedAppsReady.indexOf(appId) > -1) {
 						var appObject = self.apps[appId]['run']();
@@ -1773,31 +1773,28 @@ var app = {
 			} else {
 				openTab(targetSwitch, eventObj.attr('url'), event);
 			}
-		} else {
-			if (appId.indexOf("classification_") === 0) {
-				if (self.loadedApps.indexOf("classification") == -1) {
-					self.loadAppContent(targetObj, "classification")
-				} else {
-					classification.change(appId.replace("classification_", ""))
-				}
+		} else if (appId.lastIndexOf("classification_", 0) === 0) {
+			if (self.loadedApps.indexOf("classification") == -1) {
+				self.loadAppContent(targetObj, "classification")
+			} else {
+				classification.change(appId.replace("classification_", ""))
 			}
-			if ((/^o[A-Z]\w+/).test(appId)) {
-				var _chromeVer = window.navigator.userAgent.match(/chrome\/([\d.]+)/i);
-				var chromeVer = _chromeVer != null ? _chromeVer[1] : _chromeVer;
-				var oUrls = {
-					oDownloads: "chrome://downloads",
-					oBookmarks: "chrome://bookmarks",
-					oHistory: "chrome://history",
-					oExtensions: "chrome://extensions",
-					oNewtab: "chrome-search://local-ntp/local-ntp.html"
-				};
-				var oUrl = oUrls[appId] || "";
-				if (oUrl != "") {
-					if (typeof event != "undefined" && event.button == 1) {
-						openTab(targetSwitch, oUrl, true)
-					} else {
-						openTab(targetSwitch, oUrl, event);
-					}
+		} else if ((/^o[A-Z]\w+/).test(appId)) {
+			var _chromeVer = window.navigator.userAgent.match(/chrome\/([\d.]+)/i);
+			var chromeVer = _chromeVer != null ? _chromeVer[1] : _chromeVer;
+			var oUrls = {
+				oDownloads: "chrome://downloads",
+				oBookmarks: "chrome://bookmarks",
+				oHistory: "chrome://history",
+				oExtensions: "chrome://extensions",
+				oNewtab: "chrome-search://local-ntp/local-ntp.html"
+			};
+			var oUrl = oUrls[appId] || "";
+			if (oUrl != "") {
+				if (typeof event != "undefined" && event.button == 1) {
+					openTab(targetSwitch, oUrl, true)
+				} else {
+					openTab(targetSwitch, oUrl, event);
 				}
 			}
 		}
