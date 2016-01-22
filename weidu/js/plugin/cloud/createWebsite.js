@@ -111,7 +111,7 @@ var createWebsite = {
 			}
 			var img = self.container.find('#webSiteLogo').val();
 			if (img && img !== self.defaultLogoUrl &&
-				!(img.startsWith(urlImg) && img.indexOf("/m/") > 0)) {
+				!(img.lastIndexOf(urlImg, 0) === 0 && img.indexOf("/m/") > 0)) {
 				return;
 			}
 			var img = $(this).val();
