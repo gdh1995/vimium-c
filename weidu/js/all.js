@@ -3498,61 +3498,62 @@ DBOX.__init__({
 	});
 
 var installWall = function(skin, wallpaperUrl) {
-	var style = PDI.getSkin(skin, 'style').background, st = PDI.getStyle('background'), w, h,
-	wall = $('.wallpaper').css('backgroundColor', style.backgroundColor).css(st);
-	if (!wallpaperUrl) {
-		wallpaperUrl = style.backgroundImage.match(/url\((.*)\)/)[1];
+var style = PDI.getSkin(skin, 'style').background, st = PDI.getStyle('background'), w, h,
+wall = $('.wallpaper').css('backgroundColor', style.backgroundColor).css(st);
+if (!wallpaperUrl) {
+	wallpaperUrl = style.backgroundImage.match(/url\((.*)\)/)[1];
+}
+if (wallpaperUrl && st.backgroundSize == 'auto 100%' && st.backgroundPosition == '50% 50%') {
+} else {
+	wall.css("backgroundImage", wallpaperUrl);
+	return;
+}
+var bgImg = new Image();
+bgImg.src = wallpaperUrl;
+bgImg.onload = function () {
+w = this.width; h = this.height;
+$('.wallpaper').css("backgroundImage", "url(" + this.src + ")");
+if (w <= h) {
+	st.backgroundPosition = '50% 0px';
+	window.onresize = function (skip) {
+	if (skip !== true) {
+		if (window.innerWidth == oWidth && window.innerHeight <= oHeight + 45) return;
+		oWidth = window.innerWidth;
+		oHeight = window.innerHeight;
 	}
-	if (wallpaperUrl && st.backgroundSize == 'auto 100%' && st.backgroundPosition == '50% 50%') {
-	} else {
-		wall.css("backgroundImage", wallpaperUrl);
-		return;
-	}
-	var bgImg = new Image();
-	bgImg.onload = function () {
-		w = this.width; h = this.height;
-		$('.wallpaper').css("backgroundImage", "url(" + this.src + ")");
-		if (w > h) {
-			(window.onresize = function (skip) {
-				if (skip !== true) {
-					if (window.innerWidth == oWidth && window.innerHeight <= oHeight + 45) return;
-					oWidth = window.innerWidth;
-					oHeight = window.innerHeight;
-				}
-				if (w / h <= (oWidth / oHeight)) {
-					var mod = 0;
-					if (st.backgroundSize != '100% auto') {
-						st.backgroundSize = '100% auto';
-						mod = 1;
-					}
-					var newPos = '50% ' + parseInt((oHeight - oWidth / w * h) / 2) + 'px';
-					if (st.backgroundPosition != newPos) {
-						st.backgroundPosition = newPos;
-						mod = 1;
-					}
-					if (mod === 1) {
-						$('.wallpaper').css(st);
-					}
-				} else if (st.backgroundSize != 'auto 100%' || st.backgroundPosition != '50% 0px') {
-					st.backgroundSize = 'auto 100%';
-					st.backgroundPosition = '50% 0px';
-					$('.wallpaper').css(st);
-				}
-			})(true);
-		} else {
-			st.backgroundPosition = '50% 0px';
-			(window.onresize = function (skip) {
-				if (skip !== true) {
-					if (window.innerWidth == oWidth && window.innerHeight <= oHeight + 45) return;
-					oWidth = window.innerWidth;
-					oHeight = window.innerHeight;
-				}
-				st.backgroundSize = 'auto ' + oHeight + 'px';
-				$('.wallpaper').css(st);
-			})(true);
-		}
+	st.backgroundSize = 'auto ' + oHeight + 'px';
+	$('.wallpaper').css(st);
 	};
-	bgImg.src = wallpaperUrl;
+} else {
+	window.onresize = function (skip) {
+	if (skip !== true) {
+		if (window.innerWidth == oWidth && window.innerHeight <= oHeight + 45) return;
+		oWidth = window.innerWidth;
+		oHeight = window.innerHeight;
+	}
+	if (w / h <= (oWidth / oHeight)) {
+		var mod = 0;
+		if (st.backgroundSize != '100% auto') {
+			st.backgroundSize = '100% auto';
+			mod = 1;
+		}
+		var newPos = '50% ' + parseInt((oHeight - oWidth / w * h) / 2) + 'px';
+		if (st.backgroundPosition != newPos) {
+			st.backgroundPosition = newPos;
+			mod = 1;
+		}
+		if (mod === 1) {
+			$('.wallpaper').css(st);
+		}
+	} else if (st.backgroundSize != 'auto 100%' || st.backgroundPosition != '50% 0px') {
+		st.backgroundSize = 'auto 100%';
+		st.backgroundPosition = '50% 0px';
+		$('.wallpaper').css(st);
+	}
+	};
+}
+window.onresize(true);
+};
 };
 (function() {
 var skin = PDI.get('privateSetup', 'skin');
