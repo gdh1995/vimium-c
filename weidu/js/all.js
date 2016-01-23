@@ -1952,17 +1952,17 @@ DBOX = {
 				}
 			}
 		});
-		setTimeout(function() {
-			$(window).bind('resize', function () {
-				if (!_resize || oWidth > 100) {
-					_resize = true;
+		$(window).bind('resize', function () {
+			if (!_resize) {
+				_resize = true;
+				var oldH = oHeight;
+				window.setTimeout(function () {
+					_resize = false;
+					if (oHeight === oldH) { return; }
 					self.position();
-					window.setTimeout(function () {
-						_resize = false
-					}, 300)
-				}
-			});
-		}, 17);
+				}, 300)
+			}
+		});
 		var clear = function () {
 			_wheelEvent = false;
 		};
@@ -2009,6 +2009,7 @@ DBOX = {
 		window.onmessage = function (e) {
 			_down = false
 		};
+		this.__init__ = null;
 	},
 	container: "",
 	containerWidth: 0,
