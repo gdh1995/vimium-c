@@ -19,7 +19,7 @@
 .extensionsContainer .extensionsBody .extensionsItem .extensionsContent .extensionsTitle .extensionsStatus.enabled{background:url(/img/skin_0/wedo.png) -50px -25px;}
 .extensionsContainer .extensionsBody .extensionsItem .extensionsContent .extensionsMemo{color:#888;margin-bottom:8px;min-height:32px;line-height:19px;font-size:13px;}
 .extensionsContainer .extensionsBody .extensionsItem .extensionsContent .extensionsAct{}
-.extensionsContainer .extensionsBody .extensionsItem .extensionsContent .extensionsAct .actButton{float:right;width:70px;height:20px;line-height:18px;text-indent:18px;cursor:pointer;overflow:hidden;}
+.extensionsContainer .extensionsBody .extensionsItem .extensionsContent .extensionsAct .actButton{float:right;width:67px;height:20px;line-height:18px;text-indent:18px;cursor:pointer;overflow:hidden;}
 .extensionsContainer .extensionsBody .extensionsItem .extensionsContent .extensionsAct .actButton.delete{background:url(/img/skin_0/wedo.png) -3px -153px;}
 .extensionsContainer .extensionsBody .extensionsItem .extensionsContent .extensionsAct .actButton.addTo{background:url(/img/skin_0/wedo.png) -3px -134px;}
 .extensionsContainer .extensionsBody .extensionsItem .extensionsContent .extensionsAct .actButton.goTo{background:url(/img/skin_0/wedo.png) -2px -172px;}
