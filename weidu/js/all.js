@@ -3530,69 +3530,65 @@ if (!(skin == "skin_cloud" && unit > 0 && PDI.get('usedWallpaper').length > 0 &&
 		PDI.set("privateSetup", "BgChangeTime", parseInt(Date.now() / 1000) - dtime + parseInt(dtime / unit) * unit);
 	}
 }
-
-var wall = $('.wallpaper').css('backgroundColor', PDI.getSkin(skin, 'style').background.backgroundColor);
-if (!_wallpaperUrl) {
-	_wallpaperUrl = PDI.getSkin(skin, 'style').background.backgroundImage.match(/url\((.*)\)/)[1];
+installWall(skin, _wallpaperUrl);
 }
-var st = PDI.getStyle('background');
-if (_wallpaperUrl && st.backgroundSize == 'auto 100%' && st.backgroundPosition == '50% 50%') {
+
+function installWall(skin, _wallpaperUrl) {
+	var style = PDI.getSkin(skin, 'style').background, st = PDI.getStyle('background'), w, h,
+	wall = $('.wallpaper').css('backgroundColor', style.backgroundColor).css(st);
+	if (!_wallpaperUrl) {
+		_wallpaperUrl = style.backgroundImage.match(/url\((.*)\)/)[1];
+	}
+	if (_wallpaperUrl && st.backgroundSize == 'auto 100%' && st.backgroundPosition == '50% 50%') {
+	} else {
+		wall.css("backgroundImage", _wallpaperUrl);
+		return;
+	}
 	var bgImg = new Image();
 	bgImg.onload = function () {
-	var w = this.width, h = this.height;
-	wall.css(PDI.getSkin(skin, 'style').background);
-	skin = null;
-if (w > h) {
-	(window.onresize = function (skip) {
-		if (skip !== true) {
-			if (window.innerWidth == oWidth && window.innerHeight <= oHeight + 45) return;
-			oWidth = window.innerWidth;
-			oHeight = window.innerHeight;
-		}
-		if (w / h <= (oWidth / oHeight)) {
-			var mod = 0;
-			if (st.backgroundSize != '100% auto') {
-				st.backgroundSize = '100% auto';
-				mod = 1;
-			}
-			var newPos = '50% ' + parseInt((oHeight - oWidth / w * h) / 2) + 'px';
-			if (st.backgroundPosition != newPos) {
-				st.backgroundPosition = newPos;
-				mod = 1;
-			}
-			if (mod === 1) {
-				wall.css(st);
-			}
-		} else if (st.backgroundSize != 'auto 100%' || st.backgroundPosition != '50% 0px') {
-			st.backgroundSize = 'auto 100%';
+		w = this.width; h = this.height;
+		$('.wallpaper').css("backgroundImage", "url(" + this.src + ")");
+		if (w > h) {
+			(window.onresize = function (skip) {
+				if (skip !== true) {
+					if (window.innerWidth == oWidth && window.innerHeight <= oHeight + 45) return;
+					oWidth = window.innerWidth;
+					oHeight = window.innerHeight;
+				}
+				if (w / h <= (oWidth / oHeight)) {
+					var mod = 0;
+					if (st.backgroundSize != '100% auto') {
+						st.backgroundSize = '100% auto';
+						mod = 1;
+					}
+					var newPos = '50% ' + parseInt((oHeight - oWidth / w * h) / 2) + 'px';
+					if (st.backgroundPosition != newPos) {
+						st.backgroundPosition = newPos;
+						mod = 1;
+					}
+					if (mod === 1) {
+						$('.wallpaper').css(st);
+					}
+				} else if (st.backgroundSize != 'auto 100%' || st.backgroundPosition != '50% 0px') {
+					st.backgroundSize = 'auto 100%';
+					st.backgroundPosition = '50% 0px';
+					$('.wallpaper').css(st);
+				}
+			})(true);
+		} else {
 			st.backgroundPosition = '50% 0px';
-			wall.css(st);
+			(window.onresize = function (skip) {
+				if (skip !== true) {
+					if (window.innerWidth == oWidth && window.innerHeight <= oHeight + 45) return;
+					oWidth = window.innerWidth;
+					oHeight = window.innerHeight;
+				}
+				st.backgroundSize = 'auto ' + oHeight + 'px';
+				$('.wallpaper').css(st);
+			})(true);
 		}
-	})(true);
-	wall.css(st);
-} else {
-	st.backgroundPosition = '50% 0px';
-	wall.css(st);
-	st = w = h = null;
-	(window.onresize = function (skip) {
-		if (skip !== true) {
-			if (window.innerWidth == oWidth && window.innerHeight <= oHeight + 45) return;
-			oWidth = window.innerWidth;
-			oHeight = window.innerHeight;
-		}
-		wall.css({
-			"backgroundSize": 'auto ' + oHeight + 'px'
-		});
-	})(true);
-}
 	};
 	bgImg.src = _wallpaperUrl;
-	_wallpaperUrl = null;
-	bgImg = null;
-} else {
-	wall.css(PDI.getSkin(skin, 'style').background).css(st);
-	st = null;
-}
 }
 var classification = $('.appBox[appId=classification]');
 if (classification.length > 0) {
@@ -3614,7 +3610,7 @@ if (!mset || mset === _config || mset.weather !== false) {
 }
 mset = null;
 };
-
+installWall;
 window.onload = function () {
 	var activate = function(delay) {
 		setTimeout(function() {
