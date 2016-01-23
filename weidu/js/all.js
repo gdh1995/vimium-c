@@ -1801,7 +1801,13 @@ var app = {
 	}
 };
 
-var _move = false, _down = false, _realMove = false, _edit = false, _flip = true, _wheelEvent = false, _wheelFun = "", _resize = false, _destory = false, _downfun = "", _editfun = "", _flipfun = "", _noticeFun = "", _quickDialBox = false, _moveQuickDialBox = false, _removeLastDialBox = false, _isRefresh = false, _classificationOpen = false, _x = 0, _y = 0, _dx = 0, _dy = 0, eventObj = '', eclone = '', ecloneCss = '', onDragID = '', onTargetID = '', onSelectedID = '', trends = [], onSeizeID = '', dialboxType = '', _cx = 0, _cy = 0, _cw = 0, _ch = 0;
+var _move = false, _down = false, _realMove = false, _edit = false, _flip = true,
+_wheelEvent = false, _wheelFun = "", _resize = false, _destory = false, _downfun = "",
+_editfun = "", _flipfun = "", _noticeFun = "", _quickDialBox = false, _moveQuickDialBox = false,
+_removeLastDialBox = false, _isRefresh = false, _classificationOpen = false,
+_x = 0, _y = 0, _dx = 0, _dy = 0, eventObj = '', eclone = '', ecloneCss = '',
+onDragID = '', onTargetID = '', onSelectedID = '', trends = [], onSeizeID = '',
+dialboxType = '', _cx = 0, _cy = 0, _cw = 0, _ch = 0;
 var _minSearchForce = false;
 var dragExcludeClassList = ['boxClose', 'boxEdit', 'searchCenter', 'searchItem'];
 $.box = function (id, dbox, type) {
