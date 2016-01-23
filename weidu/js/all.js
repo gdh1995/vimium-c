@@ -1955,10 +1955,10 @@ DBOX = {
 		$(window).bind('resize', function () {
 			if (!_resize) {
 				_resize = true;
-				var oldH = oHeight;
+				var oldH = oHeight, oldW = oWidth;
 				window.setTimeout(function () {
 					_resize = false;
-					if (oHeight === oldH) { return; }
+					if (oHeight === oldH && oWidth === oldW) { return; }
 					self.position();
 				}, 300)
 			}
