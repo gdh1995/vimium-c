@@ -417,7 +417,7 @@ var classification = {
 			_classificationOpen = false;
 			var skin = PDI.get('privateSetup', 'skin');
 			if (skin != "" && PDI.getSkin(skin, 'style') != '') {
-				$('.wallpaper').css(PDI.getSkin(skin, 'style').background).css(PDI.getStyle('background'))
+				installWall(skin);
 			}
 		}, 150);
 		setTimeout(function () {

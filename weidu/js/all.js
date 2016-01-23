@@ -3496,52 +3496,16 @@ DBOX.__init__({
 		maxTop: PDI.get('privateSetup', 'dialBoxMaxTop'),
 		QBContainerWidth: PDI.get('privateSetup', 'dialBoxQBCWidth')
 	});
-var skin = PDI.get('privateSetup', 'skin');
-if (skin && PDI.getSkin(skin, 'style')) {
-var _wallpaperUrl = "", dtime = parseInt(Date.now() / 1000) - PDI.get("privateSetup", "BgChangeTime"),
-	unit = parseInt(PDI.get("privateSetup", "BgAutoTime") * 60), _wallpaper;
-if (!(skin == "skin_cloud" && unit > 0 && PDI.get('usedWallpaper').length > 0 && dtime >= unit)) {
-} else if (!(_wallpaper = PDI.get("wallpaper"))) {
-	$.getJSON(urlImg + 'cloudWallpaper/index.json', function (data) {
-		if (data) {
-			PDI.set("wallpaper", "", data)
-		}
-	})
-} else {
-	var _usedWallpaper = PDI.get('usedWallpaper'), _wallpaperId = _usedWallpaper[getRand(0, _usedWallpaper.length)];
-	if (parseInt(_wallpaperId) == _wallpaperId) {
-		_wallpaperId = parseInt(_wallpaperId);
-		$.each(_wallpaper, function (i, n) {
-			var _wallpaperLimit = n.split('-');
-			if (_wallpaperLimit.length == 2) {
-				if (_wallpaperId >= _wallpaperLimit[1] && _wallpaperId <= _wallpaperLimit[0]) {
-					_wallpaperUrl = urlImg + 'cloudWallpaper/' + i + '/' + _wallpaperId + '.jpg';
-					return false
-				}
-			}
-		});
-	} else {
-		_wallpaperUrl = _wallpaperId;
-	}
-	if (_wallpaperUrl) {
-		var _style = PDI.getSkin(skin, 'style');
-		_style.background.backgroundImage = "url(" + _wallpaperUrl + ")";
-		PDI.setSkin(skin, 'style', _style);
-		PDI.set("privateSetup", "BgChangeTime", parseInt(Date.now() / 1000) - dtime + parseInt(dtime / unit) * unit);
-	}
-}
-installWall(skin, _wallpaperUrl);
-}
 
-function installWall(skin, _wallpaperUrl) {
+var installWall = function(skin, wallpaperUrl) {
 	var style = PDI.getSkin(skin, 'style').background, st = PDI.getStyle('background'), w, h,
 	wall = $('.wallpaper').css('backgroundColor', style.backgroundColor).css(st);
-	if (!_wallpaperUrl) {
-		_wallpaperUrl = style.backgroundImage.match(/url\((.*)\)/)[1];
+	if (!wallpaperUrl) {
+		wallpaperUrl = style.backgroundImage.match(/url\((.*)\)/)[1];
 	}
-	if (_wallpaperUrl && st.backgroundSize == 'auto 100%' && st.backgroundPosition == '50% 50%') {
+	if (wallpaperUrl && st.backgroundSize == 'auto 100%' && st.backgroundPosition == '50% 50%') {
 	} else {
-		wall.css("backgroundImage", _wallpaperUrl);
+		wall.css("backgroundImage", wallpaperUrl);
 		return;
 	}
 	var bgImg = new Image();
@@ -3588,8 +3552,47 @@ function installWall(skin, _wallpaperUrl) {
 			})(true);
 		}
 	};
-	bgImg.src = _wallpaperUrl;
+	bgImg.src = wallpaperUrl;
+};
+(function() {
+var skin = PDI.get('privateSetup', 'skin');
+if (skin && PDI.getSkin(skin, 'style')) {
+var wallpaperUrl = "", dtime = parseInt(Date.now() / 1000) - PDI.get("privateSetup", "BgChangeTime"),
+	unit = parseInt(PDI.get("privateSetup", "BgAutoTime") * 60), _wallpaper;
+if (!(skin == "skin_cloud" && unit > 0 && PDI.get('usedWallpaper').length > 0 && dtime >= unit)) {
+} else if (!(_wallpaper = PDI.get("wallpaper"))) {
+	$.getJSON(urlImg + 'cloudWallpaper/index.json', function (data) {
+		if (data) {
+			PDI.set("wallpaper", "", data)
+		}
+	})
+} else {
+	var _usedWallpaper = PDI.get('usedWallpaper'), _wallpaperId = _usedWallpaper[getRand(0, _usedWallpaper.length)];
+	if (parseInt(_wallpaperId) == _wallpaperId) {
+		_wallpaperId = parseInt(_wallpaperId);
+		$.each(_wallpaper, function (i, n) {
+			var _wallpaperLimit = n.split('-');
+			if (_wallpaperLimit.length == 2) {
+				if (_wallpaperId >= _wallpaperLimit[1] && _wallpaperId <= _wallpaperLimit[0]) {
+					wallpaperUrl = urlImg + 'cloudWallpaper/' + i + '/' + _wallpaperId + '.jpg';
+					return false
+				}
+			}
+		});
+	} else {
+		wallpaperUrl = _wallpaperId;
+	}
+	if (wallpaperUrl) {
+		var _style = PDI.getSkin(skin, 'style');
+		_style.background.backgroundImage = "url(" + wallpaperUrl + ")";
+		PDI.setSkin(skin, 'style', _style);
+		PDI.set("privateSetup", "BgChangeTime", parseInt(Date.now() / 1000) - dtime + parseInt(dtime / unit) * unit);
+	}
 }
+installWall(skin, wallpaperUrl);
+}
+})();
+
 var classification = $('.appBox[appId=classification]');
 if (classification.length > 0) {
 	app.loadApp(classification, 'classification');
@@ -3610,7 +3613,7 @@ if (!mset || mset === _config || mset.weather !== false) {
 }
 mset = null;
 };
-installWall;
+
 window.onload = function () {
 	var activate = function(delay) {
 		setTimeout(function() {
