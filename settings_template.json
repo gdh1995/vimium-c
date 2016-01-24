@@ -49,7 +49,6 @@
 		"  url=true",
 		"map FT LinkHints.activateModeToOpenVomnibar",
 		"map B Vomnibar.activateBookmarksInNewTab",
-		"map T createTab",
 		"map <a-g> Vomnibar.activateInNewTab",
 		"map <c-d> duplicateTab",
 		"map <a-F> toggleLinkHintCharacters\\",
