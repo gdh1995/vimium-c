@@ -104,6 +104,11 @@ window.addEventListener("keydown", function(event) {
     clickLink({
       download: file
     }, event);
+  } else if (str === "C") {
+    if (BG && BG.Clipboard && window.getSelection().type !== "Range") {
+      BG.Clipboard.copy(url);
+      window.VHUD && VHUD.showCopied(url);
+    }
   }
 });
 
