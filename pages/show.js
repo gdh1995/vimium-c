@@ -31,16 +31,16 @@ function decodeHash() {
     shownNode = importBody("shownImage");
     shownNode.src = url;
     shownNode.onclick = openByDefault;
-    shownNode.onload = adjustBgLink;
+    shownNode.onload = showBgLink;
     shownNode.onerror = function() {
-      setTimeout(adjustBgLink, 34);
+      setTimeout(showBgLink, 34);
     };
     break;
   default:
     url = "";
     shownNode = importBody("shownImage");
     shownNode.src = "../icons/vimium.png";
-    bgLink.style.display = "";
+    bgLink.style.display = "none";
     break;
   }
 
@@ -72,7 +72,7 @@ window.addEventListener("keydown", function(event) {
   }
 });
 
-function adjustBgLink() {
+function showBgLink() {
   bgLink.style.height = shownNode.scrollHeight + "px";
   bgLink.style.width = shownNode.scrollWidth + "px";
   bgLink.style.display = "";
