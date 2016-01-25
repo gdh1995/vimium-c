@@ -336,8 +336,8 @@ var exports = {}, Utils = {
       var arr = s1 === "S" ? query : (q2 || (q2 = query.map(encodeURIComponent)));
       if (arr.length === 0) { return ""; }
       if (s2 && s2.indexOf('$') !== -1) {
-        s2 = s2.replace(Utils.searchVariable, function(_s, s1) {
-          var i = parseInt(s1, 10);
+        s2 = s2.replace(Utils.searchVariable, function(_s, s3) {
+          var i = parseInt(s3, 10);
           if (i == 0) {
             return arr.join(s1 === "s" ? "+" : " ");
           } else if (i < 0) {
