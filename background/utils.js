@@ -206,10 +206,11 @@ var exports = {}, Utils = {
       if (tempStr = this.vimiumRedirectedUrls[path]) {
         path = tempStr;
       } else if (this.vimiumKnownPages.indexOf(path) >= 0
-          || vimiumUrlWork > 0 && vimiumUrlWork != (vimiumUrlWork | 0)
           || path.startsWith("/")
       ) {
         path += ".html";
+      } else if (vimiumUrlWork > 0 && vimiumUrlWork != (vimiumUrlWork | 0)) {
+        return "vimium:// " + path + (query && " " + query);
       } else {
         path = "show.html#!url vimium://" + path;
       }
@@ -227,7 +228,7 @@ var exports = {}, Utils = {
     settings: "options.html",
     __proto__: null
   },
-  vimiumKnownPages: ["blank", "options", "show"],
+  vimiumKnownPages: ["blank", "newtab", "options", "show", "popup"],
   _vimiumCmdRe: /^[a-z][0-9a-z\-]*(?:\.[a-z][0-9a-z\-]*)*$/i,
   evalVimiumUrl: function(path, workType) {
     var ind, cmd;
