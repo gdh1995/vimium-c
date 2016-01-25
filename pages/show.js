@@ -4,7 +4,10 @@ var $ = document.getElementById.bind(document),
     url, type, file;
 
 function decodeHash() {
+  var str;
   type = file = "";
+  shownNode = null;
+
   url = location.hash;
   if (url.lastIndexOf("#!image=", 0) === 0) {
     url = url.substring(8);
@@ -17,15 +20,8 @@ function decodeHash() {
   }
   if (url.indexOf("://") === -1) {
     url = decodeURLPart(url);
-    if (url.indexOf("://") === -1) {
-      url = chrome.runtime.getURL(url);
-    }
   }
-  bgLink.setAttribute("data-vim-url", url);
-  bgLink.setAttribute("data-vim-text", file);
-  bgLink.download = file;
 
-  shownNode = null;
   switch (type) {
   case "image":
     shownNode = $("shownImage");
@@ -60,6 +56,10 @@ function decodeHash() {
   } else {
     bgLink.onclick = openByDefault;
   }
+  str = url.indexOf("://") === -1 ? chrome.runtime.getURL(url) : url;
+  bgLink.setAttribute("data-vim-url", str);
+  bgLink.setAttribute("data-vim-text", file);
+  bgLink.download = file;
 }
 
 window.addEventListener("hashchange", decodeHash);
