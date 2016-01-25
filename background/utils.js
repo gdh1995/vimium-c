@@ -316,7 +316,7 @@ var exports = {}, Utils = {
   },
   searchWordRe: /\$([sS])(?:\{([^\}]*)\})?/g,
   searchWordRe2: /([^\\]|^)%([sS])/g,
-  searchVariable: /\$(-?\d+)/g,
+  searchVariable: /\$([+-]?\d+)/g,
   createSearchUrl: function(query, keyword, vimiumUrlWork) {
     var url, pattern = Settings.cache.searchEngineMap[keyword || query[0]];
     if (pattern) {
@@ -349,6 +349,8 @@ var exports = {}, Utils = {
             return arr.join(s1);
           } else if (i < 0) {
             i += arr.length + 1;
+          } else if (s3[0] === "+") {
+            return arr.slice(i - 1).join(s1);
           }
           return arr[i - 1] || "";
         });
