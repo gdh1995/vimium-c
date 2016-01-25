@@ -1161,12 +1161,13 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
       chrome.sessions.restore(request.sessionId, funcDict.onRuntimeError);
     },
     openImageUrl: function(request, tabs) {
-      var tab = tabs[0], url = encodeURIComponent(request.url);
+      var tab = tabs[0], url;
       if (request.active === false) { tab.active = false; }
-      url = "/pages/show.html#!image=" + url;
+      url = "/pages/show.html#!image ";
       if (request.download) {
-        url += "&download=" + request.download;
+        url += "download=" + request.download + "&";
       }
+      url += encodeURIComponent(request.url);
       openMultiTab(url, 1, tab);
     },
     openUrlInNewTab: function(request, tabs) {

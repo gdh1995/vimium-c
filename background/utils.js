@@ -208,7 +208,7 @@ var exports = {}, Utils = {
       } else if (this.vimiumKnownPages.indexOf(path) >= 0) {
         path += ".html";
       } else {
-        path = "show.html#!url=vimium://" + path;
+        path = "show.html#!url vimium://" + path;
       }
     }
     if (!partly && (!tempStr || tempStr.indexOf("://") < 0)) {

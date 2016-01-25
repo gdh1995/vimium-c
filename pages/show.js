@@ -18,10 +18,10 @@ function decodeHash() {
 
   url = location.hash;
   if (url.length < 3) {}
-  else if (url.lastIndexOf("#!image=", 0) === 0) {
+  else if (url.lastIndexOf("#!image", 0) === 0) {
     url = url.substring(8);
     type = "image";
-  } else if (url.lastIndexOf("#!url=", 0) === 0) {
+  } else if (url.lastIndexOf("#!url", 0) === 0) {
     url = url.substring(6);
     type = "url";
   }
@@ -38,7 +38,7 @@ function decodeHash() {
     document.title = str;
   }
   if (url.indexOf("://") === -1) {
-    url = decodeURLPart(url);
+    url = decodeURLPart(url).trim();
   }
 
   switch (type) {
