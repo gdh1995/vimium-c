@@ -9,7 +9,7 @@ if (!(BG && BG.Utils && BG.Utils.convertToUrl)) {
 }
     
 function decodeHash() {
-  var str;
+  var str, ind;
   type = file = "";
   if (shownNode) {
     shownNode.remove();
@@ -25,17 +25,18 @@ function decodeHash() {
     url = url.substring(6);
     type = "url";
   }
-  var ind = url.lastIndexOf("&download=");
-  if (ind > 0) {
-    file = decodeURLPart(url.substring(ind + 10));
-    url = url.substring(0, ind);
-    str = document.querySelector('title').getAttribute('data-title');
-    if (BG) {
-      str = BG.Utils.createSearch(file.split(/\s+/), { url: str });
-    } else {
+  if (ind = url.indexOf("&") + 1) {
+    if (url.lastIndexOf("download=", 0) === 0) {
+      file = decodeURLPart(url.substring(9, ind - 1));
+      url = url.substring(ind);
+      str = document.querySelector('title').getAttribute('data-title');
+      if (BG) {
+        str = BG.Utils.createSearch(file.split(/\s+/), { url: str });
+      } else {
         str = str.replace(/\$[sS](?:\{[^\}]*\})?/, file && (file + " | "));
+      }
+      document.title = str;
     }
-    document.title = str;
   }
   if (url.indexOf("://") === -1) {
     url = decodeURLPart(url).trim();
