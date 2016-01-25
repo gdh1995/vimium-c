@@ -941,6 +941,7 @@ FUNC: {
     MainPort.port.postMessage({
       handler: "openImageUrl",
       active: !(this.mode & 64),
+      download: img.getAttribute("download"),
       url: text
     });
   },

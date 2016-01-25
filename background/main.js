@@ -1163,7 +1163,11 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
     openImageUrl: function(request, tabs) {
       var tab = tabs[0], url = encodeURIComponent(request.url);
       if (request.active === false) { tab.active = false; }
-      openMultiTab("/pages/show.html#!image=" + url, 1, tab);
+      url = "/pages/show.html#!image=" + url;
+      if (request.download) {
+        url += "&download=" + request.download;
+      }
+      openMultiTab(url, 1, tab);
     },
     openUrlInNewTab: function(request, tabs) {
       var tab = tabs[0], url = Utils.convertToUrl(request.url, request.keyword, 2);
