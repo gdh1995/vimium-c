@@ -1124,6 +1124,7 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
         str = pattern[3];
         if (arr.length !== 2) {
           arr.shift();
+          selectLast = true;
         } else if (str instanceof RegExp) {
           url = arr[1]; 
           if (arr = url.match(str)) {

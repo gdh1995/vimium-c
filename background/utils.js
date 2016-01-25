@@ -207,6 +207,7 @@ var exports = {}, Utils = {
         path = tempStr;
       } else if (this.vimiumKnownPages.indexOf(path) >= 0
           || vimiumUrlWork > 0 && vimiumUrlWork != (vimiumUrlWork | 0)
+          || path.startsWith("/")
       ) {
         path += ".html";
       } else {
