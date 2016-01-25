@@ -312,7 +312,7 @@ var exports = {}, Utils = {
   },
   searchWordRe: /\$([sS])(?:\{([^\}]*)\})?/g,
   searchWordRe2: /([^\\]|^)%([sS])/g,
-  searchVariable: /\$(\d+)/g,
+  searchVariable: /\$(-?\d+)/g,
   createSearchUrl: function(query, keyword) {
     var url, pattern = Settings.cache.searchEngineMap[keyword || query[0]];
     if (pattern) {
@@ -333,7 +333,13 @@ var exports = {}, Utils = {
       if (arr.length === 0) { return ""; }
       if (s2 && s2.indexOf('$') !== -1) {
         s2 = s2.replace(Utils.searchVariable, function(_s, s1) {
-          return arr[s1 - 1] || "";
+          var i = parseInt(s1, 10);
+          if (i == 0) {
+            return arr.join(s1 === "s" ? "+" : " ");
+          } else if (i < 0) {
+            i += arr.length + 1;
+          }
+          return arr[i - 1] || "";
         });
       } else {
         s2 = arr.join(s2 != null ? s2 : s1 === "s" ? "+" : " ");
