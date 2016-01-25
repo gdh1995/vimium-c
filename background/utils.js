@@ -212,7 +212,7 @@ var exports = {}, Utils = {
     if (!partly && (!tempStr || tempStr.indexOf("://") < 0)) {
       path = chrome.runtime.getURL(path.startsWith("/") ? path : "/pages/" + path);
     }
-    return path + (!query ? "" : (path.indexOf("#") > 0 ? "&" : "#!") + query);
+    return path + (!query ? "" : (path.indexOf("#") > 0 ? " " : "#!") + query);
   },
   vimiumFiles: {
     help: "https://github.com/philc/vimium/wiki",
