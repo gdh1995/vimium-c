@@ -274,8 +274,9 @@ $("exportButton").onclick = function() {
   exported_data = JSON.stringify(exported_object, null, '\t');
   exported_object = null;
   force2 = function(i) { return ((i <= 9) ? '0'  : '') + i; }
-  file_name = 'vimium++_' + d.getFullYear() + force2(d.getMonth() + 1) + force2(d.getDate())
-    + '_' + force2(d.getHours()) + force2(d.getMinutes()) + force2(d.getSeconds()) + '.json';
+  file_name = 'vimium++_';
+    file_name += formatDate(d).replace(/[\-:]/g, "").replace(" ", "_");
+  file_name += '.json';
 
   nodeA = document.createElement("a");
   nodeA.download = file_name;
@@ -309,7 +310,7 @@ var importSettings = function(time, event) {
     return typeof val !== "string" || val.length <= 72 ? val
       : val.substring(0, 68).trimRight() + " ...";
   };
-  console.log("IMPORT settings at", new Date(time));
+  console.log("IMPORT settings at", formatDate(new Date(time)));
   delete new_data.name;
   delete new_data.time;
   Object.setPrototypeOf(new_data, null);
