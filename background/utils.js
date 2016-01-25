@@ -437,9 +437,7 @@ var exports = {}, Utils = {
         ind = str.search(rSpace);
         val = this.makeRegexp(val, ind >= 0 ? str.substring(0, ind) : str);
         if (val) {
-          if (key.startsWith("http://") || key.startsWith("https://")) {
-            key = key.substring(key[4] === 's' ? 8 : 7);
-          }
+          key = this.prepareReparsingPrefix(key);
           rules.push([key, val, ids[0].trimRight(), obj.url.lastIndexOf("$S") >= 0 ? " " : "+"]);
         }
         str = ind >= 0 ? str.substring(ind + 1) : "";
@@ -482,12 +480,16 @@ var exports = {}, Utils = {
     }
     str2 = str2 && str2.replace(this.escapeAllRe, "\\$&"
       ).replace(this._spaceOrPlusRe, "(?:\\+|%20| )");
+    prefix = this.prepareReparsingPrefix(prefix);
+    return [prefix, new RegExp(str + str2 + url, "i")];
+  },
+  prepareReparsingPrefix: function(prefix) {
     if (prefix.startsWith("http://") || prefix.startsWith("https://")) {
       prefix = prefix.substring(prefix[4] === 's' ? 8 : 7);
     } else if (prefix.startsWith("vimium://")) {
       prefix = this.formatVimiumUrl(prefix.substring(9), null, 0.5);
     }
-    return [prefix, new RegExp(str + str2 + url, "i")];
+    return prefix;
   },
   makeRegexp: function(pattern, suffix, logError) {
     try {
