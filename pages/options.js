@@ -245,7 +245,7 @@ var formatDate = function(time) {
     ).toJSON().substring(0, 19).replace('T', ' ');
 };
 
-$("exportButton").onclick = function() {
+$("exportButton").onclick = function(event) {
   var exported_object, exported_data, file_name, force2, d, nodeA;
   exported_object = Object.create(null);
   exported_object.name = "Vimium++";
@@ -275,7 +275,11 @@ $("exportButton").onclick = function() {
   exported_object = null;
   force2 = function(i) { return ((i <= 9) ? '0'  : '') + i; }
   file_name = 'vimium++_';
+  if (event && (event.ctrlKey || event.metaKey || event.shiftKey)) {
+    file_name += "settings";
+  } else {
     file_name += formatDate(d).replace(/[\-:]/g, "").replace(" ", "_");
+  }
   file_name += '.json';
 
   nodeA = document.createElement("a");
