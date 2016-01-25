@@ -6,10 +6,14 @@ var $ = document.getElementById.bind(document),
 function decodeHash() {
   var str;
   type = file = "";
-  shownNode = null;
+  if (shownNode) {
+    shownNode.remove();
+    shownNode = null;
+  }
 
   url = location.hash;
-  if (url.lastIndexOf("#!image=", 0) === 0) {
+  if (url.length < 3) {}
+  else if (url.lastIndexOf("#!image=", 0) === 0) {
     url = url.substring(8);
     type = "image";
   }
@@ -24,23 +28,17 @@ function decodeHash() {
 
   switch (type) {
   case "image":
-    shownNode = $("shownImage");
+    shownNode = importBody("shownImage");
     shownNode.src = url;
     shownNode.onclick = openByDefault;
-    shownNode.onload = function() {
-      bgLink.style.height = this.height + "px";
-      bgLink.style.width = this.width + "px";
-      bgLink.style.display = "";
-    };
+    shownNode.onload = adjustBgLink;
     shownNode.onerror = function() {
-      setTimeout(function() {
-        shownNode.onload();
-      }, 34);
+      setTimeout(adjustBgLink, 34);
     };
     break;
   default:
     url = "";
-    shownNode = $("shownImage");
+    shownNode = importBody("shownImage");
     shownNode.src = "../icons/vimium.png";
     bgLink.style.display = "";
     break;
@@ -48,11 +46,7 @@ function decodeHash() {
 
   if (shownNode) {
     shownNode.setAttribute("download", file);
-    shownNode.style.display = "";
-    bgLink.onclick = function(event) {
-      event.preventDefault();
-      shownNode.onclick(event);
-    };
+    bgLink.onclick = clickShownNode;
   } else {
     bgLink.onclick = openByDefault;
   }
@@ -78,6 +72,12 @@ window.addEventListener("keydown", function(event) {
   }
 });
 
+function adjustBgLink() {
+  bgLink.style.height = shownNode.scrollHeight + "px";
+  bgLink.style.width = shownNode.scrollWidth + "px";
+  bgLink.style.display = "";
+}
+
 function clickLink(options, event) {
   var a = document.createElement('a'), i;
   for (i in options) {
@@ -98,10 +98,24 @@ function decodeURLPart(url) {
   return url;
 }
 
+function importBody(id) {
+  var template = $('bodyTemplate'),
+      node = document.importNode(template.content.getElementById(id), true);
+  document.body.insertBefore(node, $('bodyTemplate'));
+  return node;
+}
+
 function openByDefault(event) {
   clickLink(event.altKey ? {
     download: file
   } : {
     target: "_blank"
   }, event);  
+}
+
+function clickShownNode(event) {
+  event.preventDefault();
+  if (shownNode.onclick) {
+    shownNode.onclick(event);
+  }
 }

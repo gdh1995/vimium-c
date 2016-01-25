@@ -3,5 +3,11 @@
 <script defer="defer" src="loader.js"></script>
 </head><body>
 <a id="bgLink" style="position: absolute; z-index: -1; display: none;"></a>
-<img id="shownImage" alt="&nbsp;fail to load&nbsp;" style="display: none;" />
+<template id="bodyTemplate">
+  <img id="shownImage" alt="&nbsp;fail to load&nbsp;"/>
+  <div id="shownText">
+    <span id="textTip"></span>:&nbsp;
+    <span id="textBody" tabindex="0"></span>
+  </div>
+</template>
 </body></html>
