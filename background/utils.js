@@ -112,10 +112,10 @@ var exports = {}, Utils = {
     }
     else if (string.startsWith("vimium:")) {
       type = 3;
-      vimiumUrlWork |= 0;
+      vimiumUrlWork == null && (vimiumUrlWork = 0);
       if (vimiumUrlWork < 0 || !(string = oldString.substring(9))) {}
       else if (!(oldString = this.evalVimiumUrl(string, vimiumUrlWork))) {
-        oldString = this.formatVimiumUrl(string);
+        oldString = this.formatVimiumUrl(string, null, vimiumUrlWork);
       } else if (typeof oldString !== "string") {
         type = 5;
       }
@@ -192,7 +192,7 @@ var exports = {}, Utils = {
     return 0;
   },
   _fileExtRe: /\.\w+$/,
-  formatVimiumUrl: function(path, partly) {
+  formatVimiumUrl: function(path, partly, vimiumUrlWork) {
     var ind, query, tempStr;
     path = path.trim();
     if (!path) { return partly ? "" : chrome.runtime.getURL("/pages/"); }
@@ -205,7 +205,9 @@ var exports = {}, Utils = {
       path = path.toLowerCase();
       if (tempStr = this.vimiumRedirectedUrls[path]) {
         path = tempStr;
-      } else if (this.vimiumKnownPages.indexOf(path) >= 0) {
+      } else if (this.vimiumKnownPages.indexOf(path) >= 0
+          || vimiumUrlWork > 0 && vimiumUrlWork != (vimiumUrlWork | 0)
+      ) {
         path += ".html";
       } else {
         path = "show.html#!url vimium://" + path;
@@ -229,6 +231,7 @@ var exports = {}, Utils = {
   evalVimiumUrl: function(path, workType) {
     var ind, cmd;
     path = path.trim();
+    workType |= 0;
     if (!path || !(workType >= 0) || (ind = path.indexOf(" ")) <= 0 ||
         !this._vimiumCmdRe.test(cmd = path.substring(0, ind).toLowerCase()) ||
         cmd.endsWith(".html") || cmd.endsWith(".js") || cmd.endsWith(".css")) {
@@ -246,7 +249,7 @@ var exports = {}, Utils = {
       });
     } else if (workType === 2) switch (cmd) {
     case "url-copy": case "search-copy": case "search.copy": case "copy-url": 
-      path = this.convertToUrl(path, null, 1);
+      path = this.convertToUrl(path, null, arguments[1] === 2 ? 1 : 1.5);
       if (this.lastUrlType !== 5) {}
       else if (path instanceof Array) {
         path = path[0];
@@ -268,7 +271,7 @@ var exports = {}, Utils = {
       if (workType === 1) {
         return [arr, "search"];
       }
-      return this.createSearchUrl(arr);
+      return this.createSearchUrl(arr, "", arguments[1]);
     case "newtab":
       return Settings.cache.newTabUrl_f;
     }
@@ -313,7 +316,7 @@ var exports = {}, Utils = {
   searchWordRe: /\$([sS])(?:\{([^\}]*)\})?/g,
   searchWordRe2: /([^\\]|^)%([sS])/g,
   searchVariable: /\$(-?\d+)/g,
-  createSearchUrl: function(query, keyword) {
+  createSearchUrl: function(query, keyword, vimiumUrlWork) {
     var url, pattern = Settings.cache.searchEngineMap[keyword || query[0]];
     if (pattern) {
       if (!keyword) { query.shift(); }
@@ -321,8 +324,8 @@ var exports = {}, Utils = {
     } else {
       url = query.join(" ");
     }
-    if (keyword != "~") {
-      url = this.convertToUrl(url);
+    if (keyword !== "~") {
+      url = this.convertToUrl(url, null, vimiumUrlWork);
     }
     return url;
   },
@@ -408,7 +411,7 @@ var exports = {}, Utils = {
           } else {
             key = pair[1] === "s" ? "+" : " ";
           }
-          val = this.convertToUrl(val);
+          val = this.convertToUrl(val, null, 0.5);
           if (this.lastUrlType === 2 || this.lastUrlType === 3) {
             val = val.replace(encodedSearchWordRe, "$$$1");
             ind = val.search(re) + 1;
@@ -481,7 +484,7 @@ var exports = {}, Utils = {
     if (prefix.startsWith("http://") || prefix.startsWith("https://")) {
       prefix = prefix.substring(prefix[4] === 's' ? 8 : 7);
     } else if (prefix.startsWith("vimium://")) {
-      prefix = this.formatVimiumUrl(prefix.substring(9));
+      prefix = this.formatVimiumUrl(prefix.substring(9), null, 0.5);
     }
     return [prefix, new RegExp(str + str2 + url, "i")];
   },

@@ -56,7 +56,7 @@ function decodeHash() {
     shownNode = importBody("shownText");
     if (BG) {
       ind = url.lastIndexOf("vimium://", 0) === 0 ? 1 : 0;
-      str = BG.Utils.convertToUrl(url, null, ind);
+      str = BG.Utils.convertToUrl(url, null, ind + 0.5);
       if (BG.Utils.lastUrlType !== 5) {}
       else if (str instanceof BG.Promise) {
         str.then(function(arr) {
