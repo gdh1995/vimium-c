@@ -3,3 +3,30 @@
   position: absolute;
   z-index: -1;
 }
+
+#shownText {
+  display: inline-block;
+  font-size: large;
+}
+
+#textBox {
+  display: inline-block;
+  margin: 2px 0 0 20px;
+}
+
+#textTip::after {
+  content: attr(data-tip);
+  display: inline-block;
+  font-style: italic;
+  width: 55px;
+}
+
+.colon::after {
+  content: ": ";
+  font-style: italic;
+}
+
+#textBody {
+  display: inline-block;
+  padding: 0 5px;
+}
