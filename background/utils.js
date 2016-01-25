@@ -333,20 +333,27 @@ var exports = {}, Utils = {
   createSearch: function(query, pattern, indexes) {
     var q2, url, delta = 0;
     url = pattern.url.replace(this.searchWordRe, function(_s, s1, s2, ind) {
-      var arr = s1 === "S" ? query : (q2 || (q2 = query.map(encodeURIComponent)));
+      var arr;
+      if (s1 === "S") {
+        arr = query;
+        s1 = " ";
+      } else {
+        arr = (q2 || (q2 = query.map(encodeURIComponent)));
+        s1 === "+";
+      };
       if (arr.length === 0) { return ""; }
       if (s2 && s2.indexOf('$') !== -1) {
         s2 = s2.replace(Utils.searchVariable, function(_s, s3) {
           var i = parseInt(s3, 10);
           if (i == 0) {
-            return arr.join(s1 === "s" ? "+" : " ");
+            return arr.join(s1);
           } else if (i < 0) {
             i += arr.length + 1;
           }
           return arr[i - 1] || "";
         });
       } else {
-        s2 = arr.join(s2 != null ? s2 : s1 === "s" ? "+" : " ");
+        s2 = arr.join(s2 != null ? s2 : s1);
       }
       if (indexes != null) {
         ind += delta;
