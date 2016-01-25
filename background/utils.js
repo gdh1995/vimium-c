@@ -361,6 +361,7 @@ var exports = {}, Utils = {
   },
   DecodeURLPart: function(url) {
     try {
+      url || (url = "");
       url = decodeURIComponent(url);
     } catch (e) {}
     return url;
@@ -480,7 +481,7 @@ var exports = {}, Utils = {
       url = "";
     }
     str2 = str2 && str2.replace(this.escapeAllRe, "\\$&"
-      ).replace(this._spaceOrPlusRe, "(?:\\+|%20)");
+      ).replace(this._spaceOrPlusRe, "(?:\\+|%20| )");
     if (prefix.startsWith("http://") || prefix.startsWith("https://")) {
       prefix = prefix.substring(prefix[4] === 's' ? 8 : 7);
     } else if (prefix.startsWith("vimium://")) {
