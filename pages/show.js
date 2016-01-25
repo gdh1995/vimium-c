@@ -1,10 +1,15 @@
 "use strict";
 var $ = document.getElementById.bind(document),
-    shownNode, bgLink = $('bgLink'),
+    shownNode, bgLink = $('bgLink'), BG,
     url, type, file;
 
+BG = window.chrome && chrome.extension && chrome.extension.getBackgroundPage();
+if (!(BG && BG.Utils && BG.Utils.convertToUrl)) {
+  BG = null;
+}
+    
 function decodeHash() {
-  var str, BG;
+  var str;
   type = file = "";
   if (shownNode) {
     shownNode.remove();
@@ -24,6 +29,13 @@ function decodeHash() {
   if (ind > 0) {
     file = decodeURLPart(url.substring(ind + 10));
     url = url.substring(0, ind);
+    str = document.querySelector('title').getAttribute('data-title');
+    if (BG) {
+      str = BG.Utils.createSearch(file.split(/\s+/), { url: str });
+    } else {
+        str = str.replace(/\$[sS](?:\{[^\}]*\})?/, file && (file + " | "));
+    }
+    document.title = str;
   }
   if (url.indexOf("://") === -1) {
     url = decodeURLPart(url);
@@ -41,8 +53,7 @@ function decodeHash() {
     break;
   case "url":
     shownNode = importBody("shownText");
-    BG = chrome && chrome.extension && chrome.extension.getBackgroundPage();
-    if (BG && BG.Utils && BG.Utils.convertToUrl) {
+    if (BG) {
       ind = url.lastIndexOf("vimium://", 0) === 0 ? 1 : 0;
       str = BG.Utils.convertToUrl(url, null, ind);
       if (BG.Utils.lastUrlType !== 5) {}
