@@ -203,9 +203,9 @@ var exports = {}, Utils = {
     }
     if (!(this._fileExtRe.test(path) || this._queryRe.test(path))) {
       path = path.toLowerCase();
-      if (tempStr = this.vimiumFiles[path]) {
+      if (tempStr = this.vimiumRedirectedUrls[path]) {
         path = tempStr;
-      } else {
+      } else if (this.vimiumKnownPages.indexOf(path) >= 0) {
         path += ".html";
       }
     }
@@ -214,13 +214,15 @@ var exports = {}, Utils = {
     }
     return path + (!query ? "" : (path.indexOf("#") > 0 ? " " : "#!") + query);
   },
-  vimiumFiles: {
+  vimiumRedirectedUrls: {
     help: "https://github.com/philc/vimium/wiki",
     license: "https://raw.githubusercontent.com/gdh1995/vimium-plus/master/MIT-LICENSE.txt",
     popup: "options.html",
     readme: "https://github.com/gdh1995/vimium-plus/blob/master/README.md",
+    settings: "options.html",
     __proto__: null
   },
+  vimiumKnownPages: ["blank", "options", "show"],
   _vimiumCmdRe: /^[a-z][0-9a-z\-]*(?:\.[a-z][0-9a-z\-]*)*$/i,
   evalVimiumUrl: function(path, workType) {
     var ind, cmd;
