@@ -210,7 +210,7 @@ var exports = {}, Utils = {
       ) {
         path += ".html";
       } else if (vimiumUrlWork > 0 && vimiumUrlWork != (vimiumUrlWork | 0)) {
-        return "vimium:// " + path + (query && " " + query);
+        return "vimium:// " + path + (query ? " " + query : "");
       } else {
         path = "show.html#!url vimium://" + path;
       }
@@ -340,7 +340,7 @@ var exports = {}, Utils = {
         s1 = " ";
       } else {
         arr = (q2 || (q2 = query.map(encodeURIComponent)));
-        s1 === "+";
+        s1 = "+";
       };
       if (arr.length === 0) { return ""; }
       if (s2 && s2.indexOf('$') !== -1) {
