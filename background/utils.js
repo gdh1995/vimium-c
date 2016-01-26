@@ -210,7 +210,7 @@ var exports = {}, Utils = {
       ) {
         path += ".html";
       } else if (vimiumUrlWork > 0 && vimiumUrlWork != (vimiumUrlWork | 0)) {
-        return "vimium:// " + path + (query ? " " + query : "");
+        return "vimium://" + arguments[0].trim();
       } else {
         path = "show.html#!url vimium://" + path;
       }
