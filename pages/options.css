@@ -140,6 +140,15 @@ input, textarea {
   white-space: nowrap;
   width: 100%;
 }
+input[type=text]:read-only,
+input[type=number]:read-only,
+textarea:read-only {
+  background-color: #EBEBE4;
+  color: #444;
+}
+input:disabled, textarea:disabled {
+  color: #444;
+}
 input[type="checkbox"] {
   width: auto;
 }
