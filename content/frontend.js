@@ -346,7 +346,6 @@ var Settings, VHUD, MainPort, VInsertMode;
       }
     };
     initIfEnabled(newPassKeys);
-    KeyboardUtils.init();
     InsertMode.init();
     // Assume that all the below listeners won't throw any port exception
     window.addEventListener("keydown", ELs.onKeydown, true);
