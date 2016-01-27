@@ -248,13 +248,11 @@ var LinkHints = {
     var arr, isClickable = false, s, _i;
     switch (element.tagName.toLowerCase()) {
     case "a": case "frame": case "iframe": isClickable = true; break;
-    case "textarea": isClickable = !element.disabled && (!element.readOnly
-        || LinkHints.mode >= 128 || element.getAttribute("onclick")); break;
-    case "input":
-      isClickable = element.type !== "hidden" && !element.disabled //
-        && (!element.readOnly || LinkHints.mode >= 128 ||
-             element.getAttribute("onclick") || element.vimiumHasOnclick
-             || (element.type in DomUtils.uneditableInputs));
+    case "input": if (element.type === "hidden") { return; } // no "break;"
+    case "textarea":
+      isClickable = !element.disabled && (!element.readOnly
+        || LinkHints.mode >= 128 || element.vimiumHasOnclick || element.getAttribute("onclick")
+        || element instanceof HTMLInputElement && (element.type in DomUtils.uneditableInputs));
       break;
     case "label":
       if (element.control) {
