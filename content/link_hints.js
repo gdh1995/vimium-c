@@ -275,11 +275,10 @@ var LinkHints = {
       }
       // no "break;"
     default:
-      if ( element.getAttribute("onclick") //
+      if ((element.vimiumHasOnclick && LinkHints.isClickListened) || element.getAttribute("onclick")
         || ((s = element.getAttribute("role")) && (s = s.toLowerCase(), s === "button" || s === "link")) //
         || ((s = element.className) && LinkHints.btnRe.test(s))
         || (element.contentEditable === "true")
-        || (LinkHints.isClickListened && element.vimiumHasOnclick)
         ) {
         isClickable = true;
         break;
@@ -311,12 +310,10 @@ var LinkHints = {
         if (isClickable) { break; }
       }
       s = element.getAttribute("tabindex");
-      if (s == null || !(s === "" || parseInt(s, 10) >= 0)) {
-        return;
-      }
-      isClickable = true;
-      if (arr = DomUtils.getVisibleClientRect(element)) {
-        this.push([element, arr, 0]);
+      if (s != null && (s === "" || parseInt(s, 10) >= 0)) {
+        if (arr = DomUtils.getVisibleClientRect(element)) {
+          this.push([element, arr, 0]);
+        }
       }
       return;
     }
