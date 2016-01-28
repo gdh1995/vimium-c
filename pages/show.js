@@ -163,5 +163,17 @@ function clickShownNode(event) {
 function showText(tip, body) {
   $("textTip").setAttribute("data-tip", tip);
   $("textBody").textContent = body;
+  shownNode.onclick = copyUrl;
   showBgLink();
+}
+
+function copyUrl() {
+  event.preventDefault();
+  if (!window.MainPort) { return; }
+  MainPort.sendMessage({
+    handler: "copyToClipboard",
+    data: url
+  }, function() {
+    VHUD.showCopied(url);
+  });
 }
