@@ -329,7 +329,7 @@ var LinkHints = {
       }
     }
   },
-  imageUrlRe: /\.(?:png|jpg|gif|jpeg|bmp|svg|ico|webp)\b/i,
+  imageUrlRe: /\.(?:bmp|gif|ico|jpe?g|png|svg|webp)\b/i,
   GetImagesInImg: function(element) {
     var rect, cr, w, h;
     if (!element.src) { return; }
