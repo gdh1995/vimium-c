@@ -38,7 +38,7 @@ function decodeHash() {
       document.title = str;
     }
   }
-  if (url.indexOf("://") === -1) {
+  if (url.indexOf(":") <= 0) {
     url = decodeURLPart(url).trim();
   }
 
@@ -85,7 +85,7 @@ function decodeHash() {
   } else {
     bgLink.onclick = openByDefault;
   }
-  str = url && url.indexOf("://") === -1 ? chrome.runtime.getURL(url) : url;
+  str = url && url.indexOf(":") === -1 ? chrome.runtime.getURL(url) : url;
   bgLink.setAttribute("data-vim-url", str);
   bgLink.setAttribute("data-vim-text", file);
   bgLink.download = file;
