@@ -18,15 +18,15 @@ function decodeHash() {
 
   url = location.hash;
   if (url.length < 3) {}
-  else if (url.lastIndexOf("#!image", 0) === 0) {
+  else if (url.startsWith("#!image")) {
     url = url.substring(8);
     type = "image";
-  } else if (url.lastIndexOf("#!url", 0) === 0) {
+  } else if (url.startsWith("#!url")) {
     url = url.substring(6);
     type = "url";
   }
   if (ind = url.indexOf("&") + 1) {
-    if (url.lastIndexOf("download=", 0) === 0) {
+    if (url.startsWith("download=")) {
       file = decodeURLPart(url.substring(9, ind - 1));
       url = url.substring(ind);
       str = document.querySelector('title').getAttribute('data-title');
@@ -55,7 +55,7 @@ function decodeHash() {
   case "url":
     shownNode = importBody("shownText");
     if (BG) {
-      ind = url.lastIndexOf("vimium://", 0) === 0 ? 1 : 0;
+      ind = url.startsWith("vimium://") ? 1 : 0;
       str = BG.Utils.convertToUrl(url, null, ind + 0.5);
       if (BG.Utils.lastUrlType !== 5) {}
       else if (str instanceof BG.Promise) {
@@ -91,8 +91,13 @@ function decodeHash() {
   bgLink.download = file;
 }
 
-window.addEventListener("hashchange", decodeHash);
+if (!String.prototype.startsWith) {
+String.prototype.startsWith = function(s) {
+  return this.lastIndexOf(s, 0) === 0;
+};
+}
 decodeHash();
+window.addEventListener("hashchange", decodeHash);
 
 window.addEventListener("keydown", function(event) {
   var str;
