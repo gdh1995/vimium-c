@@ -386,7 +386,6 @@ var LinkHints = {
     if (this.ngIgnored && "*" in filters) {
       this.ngIgnored = document.querySelector('.ng-scope') === null;
     }
-    this.isClickListened = Settings.cache.isClickListened;
     for (key in filters) {
       func = filters[key].bind(output);
       if (Settings.cache.deepHints) {
@@ -503,7 +502,7 @@ var LinkHints = {
     } else if (i > KeyCodes.f1 && i <= KeyCodes.f12) {
       if (i !== KeyCodes.f1 + 1) { return 0; }
       if (event.shiftKey) {
-        Settings.cache.isClickListened = !Settings.cache.isClickListened;
+        this.isClickListened = !this.isClickListened;
       } else {
         Settings.cache.deepHints = !Settings.cache.deepHints;
       }
