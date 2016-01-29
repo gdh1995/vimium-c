@@ -552,15 +552,12 @@ var Settings, VHUD, MainPort, VInsertMode;
     autoCopy: function(_0, options) {
       var str = DomUtils.getSelectionText() ||
         (options.url ? window.location.href : document.title.trim());
-      if (str = str.trim()) {
-        mainPort.port.postMessage({
-          handler: "copyToClipboard",
-          data: str
-        });
-        HUD.showCopied(str);
-      } else {
-        HUD.showForDuration("No text found!", 1000);
-      }
+      str = str.trim();
+      str && mainPort.port.postMessage({
+        handler: "copyToClipboard",
+        data: str
+      });
+      HUD.showCopied(str);
     },
     autoOpen: function(_0, options) {
       var str;
@@ -582,7 +579,7 @@ var Settings, VHUD, MainPort, VInsertMode;
             url: str
           });
         } else {
-          HUD.showForDuration("No text found!", 1000);
+          HUD.showCopied("");
         }
       });
     },
@@ -1138,6 +1135,10 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483644
     opacity: 0,
     durationTimer: 0,
     showCopied: function(text) {
+      if (!text) {
+        this.showForDuration("No text found!", 1000);
+        return;
+      }
       if (text.startsWith("chrome-")) {
         text = text.substring(text.indexOf('/', text.indexOf('/') + 2));
       }

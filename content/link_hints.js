@@ -855,7 +855,7 @@ FUNC: {
       str = str.trim() || link.title.trim();
     }
     if (!str) {
-      VHUD.showForDuration("No text found", 1000);
+      VHUD.showCopied("");
       this.keepHUDAfterAct = true;
       return;
     }
