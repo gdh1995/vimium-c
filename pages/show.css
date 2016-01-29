@@ -15,6 +15,7 @@
 }
 
 #textTip::after {
+  color: gray;
   content: attr(data-tip);
   display: inline-block;
   font-style: italic;
@@ -22,6 +23,7 @@
 }
 
 .colon::after {
+  color: gray;
   content: ": ";
   font-style: italic;
 }
@@ -29,4 +31,9 @@
 #textBody {
   display: inline-block;
   padding: 0 5px;
+}
+
+.null::after {
+  color: lightgray;
+  content: "(null)";
 }

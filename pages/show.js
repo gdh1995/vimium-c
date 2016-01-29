@@ -2,7 +2,7 @@
 var $ = document.getElementById.bind(document),
     shownNode, bgLink = $('bgLink'), BG,
     url, type, file;
-
+    
 BG = window.chrome && chrome.extension && chrome.extension.getBackgroundPage();
 if (!(BG && BG.Utils && BG.Utils.convertToUrl)) {
   BG = null;
@@ -29,38 +29,42 @@ function decodeHash() {
     if (url.startsWith("download=")) {
       file = decodeURLPart(url.substring(9, ind - 1));
       url = url.substring(ind);
-      str = document.querySelector('title').getAttribute('data-title');
-      if (BG) {
-        str = BG.Utils.createSearch(file.split(/\s+/), { url: str });
-      } else {
-        str = str.replace(/\$[sS](?:\{[^\}]*\})?/, file && (file + " | "));
-      }
-      document.title = str;
     }
   }
   if (url.indexOf(":") <= 0) {
     url = decodeURLPart(url).trim();
   }
+  if (url.toLowerCase().startsWith("javascript:")) {
+    type = url = file = "";
+  }
 
   switch (type) {
   case "image":
     shownNode = importBody("shownImage");
-    shownNode.src = url;
-    shownNode.onclick = openByDefault;
-    shownNode.onload = showBgLink;
     shownNode.onerror = function() {
+      shownNode.classList.add("broken");
       setTimeout(showBgLink, 34);
     };
+    if (url.indexOf(":") > 0 || url.lastIndexOf(".") > 0) {
+      shownNode.src = url;
+      shownNode.onclick = openByDefault;
+      shownNode.onload = showBgLink;
+    } else {
+      url = "";
+      shownNode.setAttribute("alt", "\xa0(null)\xa0");
+      shownNode.onerror();
+    }
+    file && shownNode.setAttribute("download", file);
     break;
   case "url":
     shownNode = importBody("shownText");
-    if (BG) {
+    if (url && BG) {
       ind = url.startsWith("vimium://") ? 1 : 0;
       str = BG.Utils.convertToUrl(url, null, ind + 0.5);
       if (BG.Utils.lastUrlType !== 5) {}
       else if (str instanceof BG.Promise) {
         str.then(function(arr) {
-          showText(arr[1], arr[0] || arr[2]);
+          showText(arr[1], arr[0] || (arr[2] || ""));
         });
         break;
       } else if (str instanceof BG.Array) {
@@ -79,16 +83,20 @@ function decodeHash() {
     break;
   }
 
-  if (shownNode) {
-    shownNode.setAttribute("download", file);
-    bgLink.onclick = clickShownNode;
+  bgLink.setAttribute("data-vim-url", url);
+  if (file) {
+    bgLink.setAttribute("data-vim-text", file);
+    bgLink.download = file;
   } else {
-    bgLink.onclick = openByDefault;
+    bgLink.removeAttribute("data-vim-text");
+    bgLink.removeAttribute("download");
   }
-  str = url && url.indexOf(":") === -1 ? chrome.runtime.getURL(url) : url;
-  bgLink.setAttribute("data-vim-url", str);
-  bgLink.setAttribute("data-vim-text", file);
-  bgLink.download = file;
+  bgLink.onclick = shownNode ? clickShownNode : openByDefault;
+
+  str = document.querySelector('title').getAttribute('data-title');
+  str = BG ? BG.Utils.createSearch(file ? file.split(/\s+/) : [], { url: str })
+    :str.replace(/\$[sS](?:\{[^\}]*\})?/, file && (file + " | "));
+  document.title = str;
 }
 
 if (!String.prototype.startsWith) {
@@ -102,28 +110,27 @@ window.addEventListener("hashchange", decodeHash);
 window.addEventListener("keydown", function(event) {
   var str;
   if (!(event.ctrlKey || event.metaKey) || event.altKey
-    || event.shiftKey || !url) { return; }
+    || event.shiftKey || event.repeat) { return; }
   str = String.fromCharCode(event.keyCode);
   if (str === 'S') {
-    event.preventDefault();
     clickLink({
       download: file
     }, event);
   } else if (str === "C") {
-    if (BG && BG.Clipboard && window.getSelection().type !== "Range") {
-      BG.Clipboard.copy(url);
-      window.VHUD && VHUD.showCopied(url);
-    }
+    window.getSelection().type !== "Range" && copyThing(event);
   }
 });
 
 function showBgLink() {
-  bgLink.style.height = shownNode.scrollHeight + "px";
-  bgLink.style.width = shownNode.scrollWidth + "px";
+  var height = shownNode.scrollHeight, width = shownNode.scrollWidth;
+  bgLink.style.height = height + "px";
+  bgLink.style.width = width + "px";
   bgLink.style.display = "";
 }
 
 function clickLink(options, event) {
+  event.preventDefault();
+  if (!url) { return; }
   var a = document.createElement('a'), i;
   for (i in options) {
     a.setAttribute(i, options[i]);
@@ -155,7 +162,7 @@ function openByDefault(event) {
     download: file
   } : {
     target: "_blank"
-  }, event);  
+  }, event);
 }
 
 function clickShownNode(event) {
@@ -167,14 +174,22 @@ function clickShownNode(event) {
 
 function showText(tip, body) {
   $("textTip").setAttribute("data-tip", tip);
-  $("textBody").textContent = body;
-  shownNode.onclick = copyUrl;
+  if (body) {
+    $("textBody").textContent = body;
+    shownNode.onclick = copyThing;
+  } else {
+    $("textBody").classList.add("null");
+  }
   showBgLink();
 }
 
-function copyUrl() {
+function copyThing(event) {
   event.preventDefault();
-  if (!window.MainPort) { return; }
+  var str = url;
+  if (type == "url") {
+    str = $("textBody").textContent;
+  }
+  if (!(str && window.MainPort)) { return; }
   MainPort.sendMessage({
     handler: "copyToClipboard",
     data: url
