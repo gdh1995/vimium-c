@@ -274,21 +274,10 @@ var LinkHints = {
         DomUtils.getClientRectsForAreas(this, arr[0], document.querySelector('map[name="' + s + '"]'));
       }
       // no "break;"
-    default: 
-      /* if ( ((s = element.getAttribute("aria-hidden"  )) != null && (s ? s.toLowerCase() === "true" : true)) //
-        || ((s = element.getAttribute("aria-disabled")) != null && (s ? s.toLowerCase() === "true" : true)) ) {
-        return;
-      } */
-      // NOTE: el.onclick will always be null, for it belongs to the normal `window` object
-      //      so .onclick will keep null
+    default:
       if ( element.getAttribute("onclick") //
         || ((s = element.getAttribute("role")) && (s = s.toLowerCase(), s === "button" || s === "link")) //
         || ((s = element.className) && LinkHints.btnRe.test(s))
-        // NOTE: .attr("contenteditable") allows ["", "true", "false", "plaintext-only", or "inherit"]
-        //       : without case; "contentEditable" is not accepted
-        //    if the attr "contenteditable" is not set, .contentEditable will be "inherit"
-        //       : otherwise "true" or "false"
-        //    .isContentEditable can only be true or false, which may be inherited from its parent
         || (element.contentEditable === "true")
         || (LinkHints.isClickListened && element.vimiumHasOnclick)
         ) {
@@ -323,7 +312,7 @@ var LinkHints = {
       }
       s = element.getAttribute("tabindex");
       if (s == null || !(s === "" || parseInt(s, 10) >= 0)) {
-        return; // work around
+        return;
       }
       isClickable = true;
       if (arr = DomUtils.getVisibleClientRect(element)) {
@@ -337,9 +326,6 @@ var LinkHints = {
   },
   GetLinks: function(element) {
     var a = element.getAttribute("data-vim-url"), arr;
-    // NOTE: not judge `.attr("data-vim-url") is "#" or ""`
-    //   just in case that someone make "#" an event for downloading / ...
-    //   : then he can set [href=#][data-vim-url] to enable LinkHints
     if (a != null || ((a = element.getAttribute("href")) && a !== "#")) {
       if (arr = DomUtils.getVisibleClientRect(element)) {
         this.push([element, arr]);
