@@ -118,6 +118,8 @@ window.addEventListener("keydown", function(event) {
     }, event);
   } else if (str === "C") {
     window.getSelection().type !== "Range" && copyThing(event);
+  } else if (str === "A") {
+    toggleInvert();
   }
 });
 
@@ -196,4 +198,10 @@ function copyThing(event) {
   }, function() {
     VHUD.showCopied(url);
   });
+}
+
+function toggleInvert(event) {
+  if (type === "image") {
+    shownNode.classList.toggle("invert");
+  }
 }
