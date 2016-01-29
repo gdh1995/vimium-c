@@ -280,7 +280,7 @@ var LinkHints = {
         return;
       } */
       // NOTE: el.onclick will always be null, for it belongs to the normal `window` object
-      //      so .attr("onclick") may be not right
+      //      so .onclick will keep null
       if ( element.getAttribute("onclick") //
         || ((s = element.getAttribute("role")) && (s = s.toLowerCase(), s === "button" || s === "link")) //
         || ((s = element.className) && LinkHints.btnRe.test(s))
