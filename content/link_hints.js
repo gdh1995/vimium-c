@@ -386,7 +386,7 @@ var LinkHints = {
       if (output[ind] && output[ind][0] === document.body) { ++ind; }
       if (ind > 0) { output.splice(0, ind); }
     }
-    if (this.frameNested !== false) { return output; }
+    if (this.frameNested !== false) {}
     else if ("*" in filters) {
       this.checkNestedFrame(output);
     } else if (output.length > 0) {
@@ -427,8 +427,8 @@ var LinkHints = {
     }
     if ((rect = element.getClientRects()[0])
         && window.scrollY + rect.top < 20 && window.scrollX + rect.left < 20
-        && element.scrollWidth > document.documentElement.scrollWidth - 40
-        && element.scrollHeight > document.documentElement.scrollHeight - 40
+        && rect.width > document.documentElement.scrollWidth - 40
+        && rect.height > document.documentElement.scrollHeight - 40
         && getComputedStyle(element).visibility === 'visible'
     ) {
       return element;
