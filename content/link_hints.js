@@ -433,6 +433,7 @@ var LinkHints = {
     ) {
       return element;
     }
+    return null;
   },
   getVisibleElements: function() {
     var visibleElements, visibleElement, rects, _len, _i, _j, obj, func, r, t;
