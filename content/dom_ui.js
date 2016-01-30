@@ -90,13 +90,14 @@ DomUtils.UI = {
     DomUtils.simulateClick(element);
     flash === true && this.flashOutline(element);
     if (element !== VInsertMode.lock) { return; }
-    var len = element.value ? +element.value.length : -1;
-    if (len > 0) {
+    var len;
+    if ((len = element.value ? element.value.length : -1) && element.setSelectionRange) {
+      if (element instanceof HTMLInputElement || element.clientHeight >= element.scrollHeight)
       try {
-        if (element.setSelectionRange && !element.selectionEnd) {
+        if (0 == element.selectionEnd) {
           element.setSelectionRange(len, len);
         }
-      } catch (element) {}
+      } catch (len) {}
     }
     suppressRepeated === true && LinkHints.suppressTail(true);
   },
