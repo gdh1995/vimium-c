@@ -288,10 +288,9 @@ var LinkHints = {
         if (element.getAttribute(s)) { isClickable = true; break; }
       } else {
         for (arr = LinkHints.ngAttributes, _i = arr.length; 0 <= --_i; ) {
-          s = element.getAttribute(arr[_i]);
-          if (s !== null) {
-            LinkHints.ngAttribute = arr[_i];
-            isClickable = !!s;
+          if (element.hasAttribute(arr[_i])) {
+            s = LinkHints.ngAttribute = arr[_i];
+            isClickable = !!element.getAttribute(s);
             break;
           }
         }
@@ -322,8 +321,9 @@ var LinkHints = {
     }
   },
   GetLinks: function(element) {
-    var a = element.getAttribute("data-vim-url"), arr;
-    if (a != null || ((a = element.getAttribute("href")) && a !== "#")) {
+    var a, arr;
+    if ((a = element.getAttribute("href")) && a !== "#"
+        || element.hasAttribute("data-vim-url")) {
       if (arr = DomUtils.getVisibleClientRect(element)) {
         this.push([element, arr]);
       }
@@ -832,8 +832,8 @@ FUNC: {
     DomUtils.simulateMouse(element, "mouseout");
   },
   COPY_TEXT: function(link) {
-    var str = (link.getAttribute("data-vim-text") || "").trim();
-    if (str) {}
+    var str = link.getAttribute("data-vim-text");
+    if (str && (str = str.trim())) {}
     else if ((str = link.nodeName.toLowerCase()) === "input") {
       str = link.type;
       if (str === "password") {
