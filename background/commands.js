@@ -213,7 +213,7 @@ availableCommands: {
   scrollPxUp: [ "Scroll 1px up", 0, false ],
   scrollPxLeft: [ "Scroll 1px left", 0, false ],
   scrollPxRight: [ "Scroll 1px right", 0, false ],
-  scrollToTop: [ "Scroll to the top of the page", 1, false ],
+  scrollToTop: [ "Scroll to the top of the page", 0, false ],
   scrollToBottom: [ "Scroll to the bottom of the page", 1, false ],
   scrollToLeft: [ "Scroll all the way to the left", 1, false ],
   scrollToRight: [ "Scroll all the way to the right", 1, false ],

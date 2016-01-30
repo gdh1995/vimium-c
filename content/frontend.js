@@ -407,9 +407,9 @@ var Settings, VHUD, MainPort, VInsertMode;
       Marks.setPreviousPosition();
       Scroller.scrollTo("y", "max");
     },
-    scrollToTop: function() {
+    scrollToTop: function(count) {
       Marks.setPreviousPosition();
-      Scroller.scrollTo("y", 0);
+      Scroller.scrollTo("y", (count - 1) * settings.cache.scrollStepSize);
     },
     scrollToLeft: function() {
       Scroller.scrollTo("x", 0);
