@@ -30,7 +30,12 @@
 
 #textBody {
   display: inline-block;
-  padding: 0 5px;
+  padding-left: 4px;
+}
+
+#textBody::after {
+  color: transparent;
+  content: ".";
 }
 
 .null::after {
