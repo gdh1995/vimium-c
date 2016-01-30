@@ -129,7 +129,7 @@ var Marks = {
   },
   Goto: function(request) {
     var scroll = request.scroll;
-    if (!document.body || document.body.nodeName.toLowerCase() !== "frameset") {
+    if (!document.body || !(document.body instanceof HTMLFrameSetElement)) {
       window.focus();
     }
     if (request.markName) {

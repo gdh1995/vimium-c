@@ -892,7 +892,7 @@ FUNC: {
     });
   },
   DOWNLOAD_IMAGE: function(img) {
-    var text = img.nodeName.toLowerCase() === "a" ? img.href : img.src, i, a;
+    var text = img instanceof HTMLAnchorElement ? img.href : img.src, i, a;
     this.keepHUDAfterAct = true;
     if (!text) {
       VHUD.showForDuration("Not an image", 1000);
@@ -912,7 +912,7 @@ FUNC: {
     VHUD.showForDuration("download: " + text, 2000);
   },
   OPEN_IMAGE: function(img) {
-    var text = img.nodeName.toLowerCase() === "a" ? img.href : img.src;
+    var text = img instanceof HTMLAnchorElement ? img.href : img.src;
     if (!text) {
       this.keepHUDAfterAct = true;
       VHUD.showForDuration("Not an image", 1000);

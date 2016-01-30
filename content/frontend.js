@@ -919,7 +919,7 @@ var Settings, VHUD, MainPort, VInsertMode;
     if (!findModeQueryHasResults) { return; }
     var node = window.getSelection().anchorNode;
     while (node && node !== document.body) {
-      if (node.nodeName.toLowerCase() === "a") {
+      if (node instanceof HTMLAnchorElement) {
         node.focus();
         return;
       }
@@ -974,7 +974,7 @@ var Settings, VHUD, MainPort, VInsertMode;
   };
 
   followLink = function(linkElement) {
-    if (linkElement.nodeName.toLowerCase() === "link") {
+    if (linkElement instanceof HTMLLinkElement) {
       window.location.href = linkElement.href;
       return;
     }
@@ -1279,7 +1279,7 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483644
       }
     },
     reg: function(request) {
-      if (document.body && document.body.nodeName.toLowerCase() !== "frameset") {
+      if (document.body && !(document.body instanceof HTMLFrameSetElement)) {
         return mainPort.safePost({
           handlerSettings: request ? "rereg" : "reg",
           visible: window.innerWidth > 9 && window.innerWidth > 9,
