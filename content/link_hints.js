@@ -719,17 +719,16 @@ alphabetHints: {
     return this.shuffleHints(hintStrings);
   },
   shuffleHints: function(hints) {
-    var result, count, len, dn, more, start;
+    var result, count, len, start, i, j, max;
     count = hints.length; len = this.chars.length;
-    if (count <= len) { return hints; }
     result = new Array(count);
-    more = count % len; count -= more; dn = count / len; start = more * dn;
-    while (start <= --count) {
-      result[count + more] = hints[count % dn * len + Math.floor(count / dn)];
-    }
-    count = start + more; ++dn;
-    while (0 <= --count) {
-      result[count] = hints[count % dn * len + Math.floor(count / dn)];
+    start = count % len;
+    max = count - start;
+    for (i = len; 0 <= --i; ) {
+      for (j = max + i; 0 <= (j -= len); ) {
+        result[--count] = hints[j];
+      }
+      if (i == start) { max += len; }
     }
     return result;
   },
