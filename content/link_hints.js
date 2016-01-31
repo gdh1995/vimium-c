@@ -666,30 +666,32 @@ var LinkHints = {
 alphabetHints: {
   chars: "",
   hintKeystroke: "",
-  numberToHintString: function(number, characterSet, numHintDigits) {
-    var base, hintString, remainder;
+  countMax: 0,
+  countLimit: 0,
+  numberToHintString: function(number) {
+    var base, hintString, remainder, characterSet = this.chars;
     base = characterSet.length;
     hintString = "";
     do {
       remainder = number % base;
+      number = (number / base) | 0;
       hintString = characterSet[remainder] + hintString;
-      number = (number - remainder) / base;
     } while (number > 0);
-    number = numHintDigits - hintString.length;
+    number = this.countMax - hintString.length - (number < this.countLimit);
     if (number > 0) {
       hintString = characterSet[0].repeat(number) + hintString;
     }
     return hintString;
   },
   initMarkers: function(hintMarkers) {
-    var hintStrings, hintString, marker, end, i, len, node;
+    var hints, hintString, marker, end, i, len, node;
     this.chars = Settings.cache.linkHintCharacters.toUpperCase();
     this.hintKeystroke = "";
     end = hintMarkers.length;
-    hintStrings = this.hintStrings(end);
+    hints = this.buildHintIndexes(end);
     while (0 <= --end) {
       marker = hintMarkers[end];
-      hintString = hintStrings[end];
+      hintString = this.numberToHintString(hints[end]);
       marker.hintString = hintString;
       for (i = 0, len = hintString.length; i < len; i++) {
         node = document.createElement('span');
@@ -699,26 +701,21 @@ alphabetHints: {
     }
     return hintMarkers;
   },
-  hintStrings: function(linkCount) {
-    var dn, hintStrings, i, chars, end;
-    hintStrings = new Array(linkCount);
-    chars = this.chars;
-    end = chars.length;
+  buildHintIndexes: function(linkCount) {
+    var dn, hints, i, end;
+    hints = new Array(linkCount);
+    end = this.chars.length;
     dn = Math.ceil(Math.log(linkCount) / Math.log(end));
-    end = Math.floor((Math.pow(end, dn) - linkCount) / (end - 1));
-    i = 0;
-    if (end > 0) {
-      --dn;
-      for (; i < end; ++i) {
-        hintStrings[i] = this.numberToHintString(i, chars, dn);
-      }
-      ++dn;
-      end *= chars.length - 1;
+    end = ((Math.pow(end, dn) - linkCount) / (end - 1)) | 0;
+    this.countMax = dn; this.countLimit = end;
+    for (i = 0; i < end; ++i) {
+      hints[i] = i;
     }
+    end *= this.chars.length - 1;
     for (; i < linkCount; ++i) {
-      hintStrings[i] = this.numberToHintString(i + end, chars, dn);
+      hints[i] = i + end;
     }
-    return this.shuffleHints(hintStrings);
+    return this.shuffleHints(hints);
   },
   shuffleHints: function(hints) {
     var result, count, len, start, i, j, max;
