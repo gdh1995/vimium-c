@@ -735,7 +735,7 @@ alphabetHints: {
     return result;
   },
   matchHintsByKey: function(hintMarkers, event, keyStatus) {
-    var keyChar, key = event.keyCode;
+    var keyChar, key = event.keyCode, wanted;
     if (key === KeyCodes.tab) {
       if (!this.hintKeystroke) {
         return false;
@@ -765,12 +765,9 @@ alphabetHints: {
     keyChar = this.hintKeystroke;
     keyStatus.newHintLength = keyChar.length;
     keyStatus.known = 0;
-    return hintMarkers.filter(keyStatus.tab ? function(linkMarker) {
-      var pass = ! linkMarker.hintString.startsWith(keyChar);
-      linkMarker.style.display = pass ? "" : "none";
-      return pass;
-    } : function(linkMarker) {
-      var pass = linkMarker.hintString.startsWith(keyChar);
+    wanted = !keyStatus.tab;
+    return hintMarkers.filter(function(linkMarker) {
+      var pass = linkMarker.hintString.startsWith(keyChar) === wanted;
       linkMarker.style.display = pass ? "" : "none";
       return pass;
     });
