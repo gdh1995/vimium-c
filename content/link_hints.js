@@ -114,11 +114,18 @@ var LinkHints = {
     }
     if (this.frameNested) {
       if (this.tryNestedFrame("LinkHints.activate", [mode, this.options])) {
+        this.clean();
         VHUD.hide(true);
         return;
       }
       elements || (elements = this.getVisibleElements());
     }
+    if (elements.length <= 0) {
+      this.clean();
+      VHUD.showForDuration("No links to select.", 2000);
+      return;
+    }
+
     this.hintMarkers = elements.map(this.createMarkerFor);
     elements = null;
     this.alphabetHints.fillInMarkers(this.hintMarkers);
@@ -630,9 +637,13 @@ var LinkHints = {
     }
     LinkHints.reinit();
   },
+  clean: function() {
+    this.linkActivator = null;
+    this.options = null;
+    this.lastMode = this.mode = 0;
+  },
   deactivate: function(suppressType) {
     this.alphabetHints.hintKeystroke = "";
-    this.linkActivator = null;
     this.hintMarkers = [];
     if (this.hintMarkerContainingDiv) {
       this.hintMarkerContainingDiv.remove();
@@ -647,8 +658,7 @@ var LinkHints = {
     } else {
       VHUD.hide();
     }
-    this.lastMode = this.mode = 0;
-    this.options = null;
+    this.clean();
     this.isActive = false;
     if (suppressType != null) {
       this.suppressTail(suppressType);
