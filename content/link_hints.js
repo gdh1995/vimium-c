@@ -124,7 +124,7 @@ var LinkHints = {
 
     this.hintMarkers = elements.map(this.createMarkerFor);
     elements = null;
-    this.alphabetHints.fillInMarkers(this.hintMarkers);
+    this.alphabetHints.initMarkers(this.hintMarkers);
     this.isActive = true;
 
     x = window.scrollX; y = window.scrollY;
@@ -664,14 +664,6 @@ var LinkHints = {
 alphabetHints: {
   chars: "",
   hintKeystroke: "",
-  spanWrap: function(hintString) {
-    for (var i = 0, j = -1, end = hintString.length, html = new Array(end * 3); i < end; i++) {
-      html[j + 1] = "<span>";
-      html[j + 2] = hintString[i];
-      html[j += 3] = "</span>";
-    }
-    return html.join("");
-  },
   numberToHintString: function(number, characterSet, numHintDigits) {
     var base, hintString, remainder;
     base = characterSet.length;
@@ -687,15 +679,21 @@ alphabetHints: {
     }
     return hintString;
   },
-  fillInMarkers: function(hintMarkers) {
-    var hintStrings, marker, end;
+  initMarkers: function(hintMarkers) {
+    var hintStrings, hintString, marker, end, i, len, node;
     this.chars = Settings.cache.linkHintCharacters.toUpperCase();
     this.hintKeystroke = "";
     end = hintMarkers.length;
     hintStrings = this.hintStrings(end);
     while (0 <= --end) {
       marker = hintMarkers[end];
-      marker.innerHTML = this.spanWrap(marker.hintString = hintStrings[end]);
+      hintString = hintStrings[end];
+      marker.hintString = hintString;
+      for (i = 0, len = hintString.length; i < len; i++) {
+        node = document.createElement('span');
+        node.textContent = hintString[i];
+        marker.appendChild(node);
+      }
     }
     return hintMarkers;
   },
