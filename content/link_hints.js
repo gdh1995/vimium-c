@@ -89,17 +89,13 @@ var LinkHints = {
     this.options = options || {};
     if (document.body == null) {
       if (!this.initTimer) {
-        this.initTimer = setInterval(this.activate.bind(this, mode), 300);
+        this.initTimer = setTimeout(this.activate.bind(this, mode, options), 300);
       } else if (!document.head) {
-        clearInterval(this.initTimer); // document is not a <html> document
-        this.initTimer = 0;
+        // document is not a <html> document
         this.isActive = true; // disable self
         this.options = null;
       }
       return;
-    } else if (this.initTimer) {
-      clearInterval(this.initTimer);
-      this.initTimer = 0;
     }
     handlerStack.remove(this.handlerId);
     if (this.hintMarkerContainingDiv) {
