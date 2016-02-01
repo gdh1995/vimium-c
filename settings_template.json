@@ -162,7 +162,7 @@
 		"mdn: https://developer.mozilla.org/en-US/search?q=$s Mozilla DN",
 		"mdn.e: https://developer.mozilla.org/en-US/docs/Web/HTML/Element/$S{$1} MDN Element",
 		"",
-		"v\\:|v\\://: vimium://$S Vimium Pages",
+		"v\\:|v\\://: vimium://$S vimium:// re=/^([^?#]*)\\.html(?:\\#\\!?(.*))?/i Vimium Pages",
 		"v.d: vimium://show\\ #!$S Vimium Display",
 		"v.dd: . vimium://show re=/\\#\\!(\\w+)(?:\\+|%20| )download=([^&]*)&(.*)$/i",
 		"v.dd: vimium://show\\ #!$S{$1\\ download=$2&$+3} re= Vimium Display",
