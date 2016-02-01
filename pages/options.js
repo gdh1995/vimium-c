@@ -414,7 +414,8 @@ BG.Commands.setStrict && BG.Commands.setStrict(KeyRe.source);
   var onhash = function(event) {
     var hash = window.location.hash.substring(1), node;
     event && event.preventDefault();
-    if (hash && (node = document.querySelector('[data-hash="' + hash + '"]'))) {
+    if (!hash || /[^a-z0-9_]/i.test(hash)) { return; }
+    if (node = document.querySelector('[data-hash="' + hash + '"]')) {
       node.onclick && node.onclick(null, "hash");
     }
   }
