@@ -432,7 +432,8 @@ var exports = {}, Utils = {
           }
           if (pair = this.reparseSearchUrl(val.toLowerCase(), ind)) {
             if (key.indexOf("$") >= 0) {
-              key = new RegExp("^" + key.replace(this.searchVariable, "(.*)"), "i");
+              key = key.replace(this.searchVariable, "(.*)");
+              key = new RegExp("^" + key, this.charRe.test(key) ? "i" : "");
             } else {
               key = key.trim() || " ";
             }
@@ -463,6 +464,7 @@ var exports = {}, Utils = {
   escapeAllRe: /[\$\(\)\*\+\.\?\[\\\]\^\{\|\}_]/g,
   _spaceOrPlusRe: /\\\+|%20| /g,
   _queryRe: /[#?]/,
+  charRe: /[a-z]/i,
   reparseSearchUrl: function (url, ind) {
     var prefix, str, str2, ind2;
     if (!(this.hasOrdinaryUrlPrefix(url) || url.startsWith("chrome-"))) { return; }
@@ -492,7 +494,7 @@ var exports = {}, Utils = {
     str2 = str2 && str2.replace(this.escapeAllRe, "\\$&"
       ).replace(this._spaceOrPlusRe, "(?:\\+|%20| )");
     prefix = this.prepareReparsingPrefix(prefix);
-    return [prefix, new RegExp(str + str2 + url, "i")];
+    return [prefix, new RegExp(str + str2 + url, this.charRe.test(str2) ? "i" : "")];
   },
   prepareReparsingPrefix: function(prefix) {
     if (prefix.startsWith("http://") || prefix.startsWith("https://")) {
