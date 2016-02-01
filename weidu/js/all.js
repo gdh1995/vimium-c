@@ -149,13 +149,13 @@ function replaceMSiteDialboxs(_dialboxs, MSite) {
 				}
 			}
 			if (!isReplace && (flag1 || str.indexOf("begin") > -1)) {
-				re = new RegExp("^(http:\/\/)?" + skey + "\/?[\\?&]", "i");
+				re = new RegExp("^(http:\/\/)?" + skey + "\/?[?&]", "i");
 				if (urli.match(re) != null) {
 					isReplace = true
 				}
 			}
 			if (!isReplace && (flag1 || str.indexOf("end") > -1)) {
-				re = new RegExp("[?&]([tul]|out|ulp|url)=(http:\/\/)?" + skey + "\/?$", "i");
+				re = new RegExp("[&?]([tul]|out|ulp|url)=(http:\/\/)?" + skey + "\/?$", "i");
 				if (urli.match(re) != null) {
 					isReplace = true
 				}

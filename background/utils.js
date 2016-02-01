@@ -477,11 +477,11 @@ var exports = {}, Utils = {
         str = "[#&?]";
       } else {
         str2 = str;
-        str = url[ind - 1] === "#" ? "#" : str2 ? "[#\\?]" : "\\?";
+        str = url[ind - 1] === "#" ? "#" : str2 ? "[#?]" : "\\?";
       }
       url = "([^#&?]*)";
     } else {
-      str = "^([^?#]*)";
+      str = "^([^#?]*)";
       if (str2 = url.substring(prefix.length + 2)) {
         if (ind = str2.search(this._queryRe) + 1) {
           str2 = str2.substring(0, ind - 1);
