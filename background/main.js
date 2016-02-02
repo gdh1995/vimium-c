@@ -308,13 +308,16 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
     makeTempWindow: function(tabIdUrl, incognito, callback) {
       var option = {
         type: "normal", // not popup, because popup windows are always on top
-        left: 0, top: 0, width: 50, height: 50,
         focused: false,
         incognito: incognito,
+        state: "minimized",
         tabId: tabIdUrl > 0 ? tabIdUrl : undefined,
         url: tabIdUrl > 0 ? undefined : tabIdUrl
       };
-      if (Settings.CONST.ChromeVersion >= 44) { option.state = "minimized"; }
+      if (Settings.CONST.ChromeVersion < 44) {
+        option.state = undefined;
+        option.left = option.top = 0; option.width = option.height = 50;
+      }
       chrome.windows.create(option, callback);
     },
     onRuntimeError: function() {
