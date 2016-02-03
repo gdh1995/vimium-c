@@ -69,7 +69,7 @@ var Settings = {
       }
     },
     newTabUrl: function(url) {
-      url = /^\/?pages\/\S[\S ]*.html?\b/.test(url)
+      url = /^\/?pages\/[a-z]+.html\b/i.test(url)
         ? chrome.runtime.getURL(url) : Utils.convertToUrl(url);
       this.set('newTabUrl_f', url);
     },
