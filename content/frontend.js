@@ -1211,7 +1211,7 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483644
       }
     },
     enabled: function() {
-      return document.body && settings.cache.hideHud === false;
+      return settings.cache.hideHud === false && document.body;
     }
   };
 
