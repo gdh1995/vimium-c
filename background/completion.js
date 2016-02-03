@@ -770,8 +770,8 @@ searchEngines: {
     }
   };
 
-  window.RegexpCache = RegexpCache = {
-    _cache: null,
+  RegexpCache = {
+    _cache: null, 
     clear: function() {
       this._cache = Object.create(null);
     },
@@ -1014,8 +1014,6 @@ searchEngines: {
       , Completers.history, Completers.bookmarks]),
     tabs: new Completers.MultiCompleter([Completers.tabs])
   };
-
-  Utils.Decoder = Decoder;
 
 }, 200);
 

@@ -513,7 +513,6 @@ var exports = {}, Utils = {
     }
     return null;
   },
-  Decoder: null,
   upperRe: /[A-Z]/
 };
 
