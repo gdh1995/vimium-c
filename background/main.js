@@ -1295,7 +1295,7 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
         name: "showHelpDialog",
         html: helpDialogHtml(request.unbound, request.names, request.title),
         optionUrl: Settings.CONST.OptionsPage,
-        advanced: Settings.get("showAdvancedCommands")
+        advanced: Settings.get("showAdvancedCommands", true)
       };
     },
     initVomnibar: function() {
