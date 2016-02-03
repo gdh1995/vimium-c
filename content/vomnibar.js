@@ -233,7 +233,7 @@ vomnibarUI: {
     else if (n === KeyCodes.pageup + 1) { action = "pagedown"; }
     else if (n === KeyCodes.f1) { action = focused ? "backspace" : "focus"; }
     else if (n === KeyCodes.f1 + 1) { action = focused ? "blur" : "focus"; }
-    else if (n === KeyCodes.backspace) { if (!focused) { return 2; } }
+    else if (n === KeyCodes.backspace) { return focused ? 1 : 2; }
     else if (n !== KeyCodes.space) {}
     else if (!focused) { action = "focus"; }
     else if ((this.selection >= 0
@@ -470,7 +470,7 @@ background: {
       handler: "omni",
       type: this.name,
       clientWidth: window.innerWidth,
-      showFavIcon: Vomnibar.background.showFavIcon,
+      showFavIcon: this.showFavIcon,
       showRelevancy: this.showRelevancy,
       maxResults: 10,
       query: query && query.replace(Utils.spacesRe, ' ')

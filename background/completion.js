@@ -693,9 +693,9 @@ searchEngines: {
     queryTerms = query;
     maxCharNum = options.clientWidth > 0 ? Math.min((
         (options.clientWidth * 0.8 - 70) / 7.72) | 0, 200) : 100
-    maxResults = Math.min(Math.max(options.maxResults | 0, 5), 25);
-    showFavIcon = options.showFavIcon;
-    showRelevancy = options.showRelevancy || false;
+    maxResults = Math.min(Math.max(options.maxResults | 0, 3), 25);
+    showFavIcon = options.showFavIcon === true;
+    showRelevancy = options.showRelevancy === true;
     Completers.callback = callback;
     Completers.filter(this.completers);
   };
