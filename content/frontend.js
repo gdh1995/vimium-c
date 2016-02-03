@@ -1359,7 +1359,7 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483644
 
   requestHandlers.showHelpDialog = function(response) {
     var container, handlerId, oldShowHelp, hide, node1, //
-    showAdvancedCommands, shouldShowAdvanced = response.advanced === true;
+    toggleAdvanced, shouldShowAdvanced = response.advanced === true;
     container = DomUtils.createElement("div");
     container.innerHTML = response.html;
     container = container.firstElementChild;
@@ -1372,23 +1372,16 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483644
       Commands.showHelp = oldShowHelp;
       container = null;
     };
-    showAdvancedCommands = function(visible) {
-      var advancedEls, el, _i, _len;
+    toggleAdvanced = function() {
       container.querySelector("#AdvancedCommands").textContent =
-        (visible ? "Hide" : "Show") + " advanced commands";
-      container.
-      advancedEls = container.getElementsByClassName("HelpAdvanced");
-      visible = visible ? "" : "none";
-      for (_i = 0, _len = advancedEls.length; _i < _len; _i++) {
-        el = advancedEls[_i];
-        el.style.display = visible;
-      }
+        (shouldShowAdvanced ? "Hide" : "Show") + " advanced commands";
+      container.classList.toggle("HelpAdvanced");
     };
     
     oldShowHelp = Commands.showHelp;
     container.querySelector("#AdvancedCommands").onclick = function() {
       shouldShowAdvanced = !shouldShowAdvanced;
-      showAdvancedCommands(shouldShowAdvanced);
+      toggleAdvanced();
       settings.set("showAdvancedCommands", shouldShowAdvanced);
     };
     container.querySelector("#CloseButton").onclick = Commands.showHelp = hide;
@@ -1403,7 +1396,7 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483644
     } else {
       node1.remove();
     }
-    shouldShowAdvanced && showAdvancedCommands(shouldShowAdvanced);
+    shouldShowAdvanced && toggleAdvanced();
     DomUtils.UI.addElement(container);
     window.focus();
     Scroller.current = container;

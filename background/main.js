@@ -58,8 +58,7 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
   };
 
   helpDialogHtmlForCommand = function(html, isAdvanced, bindings, description, command) {
-    html.push('<tr class="HelpTr', isAdvanced
-      ? " HelpAdvanced" : "", '">\n\t');
+    html.push('<tr class="HelpTr', isAdvanced ? " HelpAdv" : "", '">\n\t');
     if (description) {
       html.push('<td class="HelpTd HelpKey">\n\t\t'
         , '<span class="HelpShortKey">'
