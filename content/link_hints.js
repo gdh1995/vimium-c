@@ -431,8 +431,8 @@ var LinkHints = {
     }
     if ((rect = element.getClientRects()[0])
         && window.scrollY + rect.top < 20 && window.scrollX + rect.left < 20
-        && rect.width > document.documentElement.scrollWidth - 40
-        && rect.height > document.documentElement.scrollHeight - 40
+        && rect.right > document.documentElement.scrollWidth - 20
+        && rect.bottom > document.documentElement.scrollHeight - 20
         && getComputedStyle(element).visibility === 'visible'
     ) {
       return element;
