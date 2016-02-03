@@ -221,7 +221,6 @@ vomnibarUI: {
     }
     else if (event.shiftKey) {
       if (n === KeyCodes.tab) { action = "up"; }
-      else if (n === KeyCodes.f1) { action = focused ? "blur" : "focus"; }
       else if (n === KeyCodes.up || n === KeyCodes.down) {
         action = n === KeyCodes.up ? "pageup" : "pagedown";
       }
