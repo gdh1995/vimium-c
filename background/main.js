@@ -21,7 +21,7 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
   };
 
   helpDialogHtml = function(showUnbound, showNames, customTitle) {
-    var command, commandsToKey, dialogHtml, key, ref = Commands.keyToCommandRegistry;
+    var command, commandsToKey, key, ref = Commands.keyToCommandRegistry;
     commandsToKey = {};
     for (key in ref) {
       command = ref[key].command;
@@ -29,11 +29,9 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
     }
     showUnbound = showUnbound ? true : false;
     showNames = showNames ? true : false;
-    customTitle || (customTitle = "Help");
-    dialogHtml = Settings.cache.helpDialog;
     return Settings.cache.helpDialog.replace(/\{\{(\w+)\}\}/g, function(_, group) {
       return (group === "version") ? Settings.CONST.CurrentVersion
-        : (group === "title") ? customTitle
+        : (group === "title") ? customTitle || "Help"
         : helpDialogHtmlForCommandGroup(group, commandsToKey, Commands.availableCommands, showUnbound, showNames);
     });
   };

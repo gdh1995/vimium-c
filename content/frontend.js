@@ -1374,8 +1374,9 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483644
     };
     showAdvancedCommands = function(visible) {
       var advancedEls, el, _i, _len;
-      container.querySelector("#AdvancedCommands").textContent = visible
-        ? "Hide advanced commands" : "Show advanced commands...";
+      container.querySelector("#AdvancedCommands").textContent =
+        (visible ? "Hide" : "Show") + " advanced commands";
+      container.
       advancedEls = container.getElementsByClassName("HelpAdvanced");
       visible = visible ? "" : "none";
       for (_i = 0, _len = advancedEls.length; _i < _len; _i++) {
@@ -1402,7 +1403,7 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483644
     } else {
       node1.remove();
     }
-    showAdvancedCommands(shouldShowAdvanced);
+    shouldShowAdvanced && showAdvancedCommands(shouldShowAdvanced);
     DomUtils.UI.addElement(container);
     window.focus();
     Scroller.current = container;
