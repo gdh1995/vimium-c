@@ -1298,10 +1298,7 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
       };
     },
     initVomnibar: function() {
-      return {
-        html: Settings.cache.vomnibar,
-        relevancy: Settings.cache.showOmniRelevancy
-      };
+      return Settings.cache.vomnibar;
     },
     initInnerCSS: function() {
       return Settings.cache.innerCss;
@@ -1461,7 +1458,6 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
     Exclusions.setRules(Settings.get("exclusionRules"));
     Settings.postUpdate("bufferToLoad", null);
     Settings.get("userDefinedOuterCss", true);
-    Settings.get("showOmniRelevancy", true);
 
     chrome.runtime.onConnect.addListener(funcDict.globalConnect);
     chrome.runtime.onConnectExternal.addListener(funcDict.globalConnect);

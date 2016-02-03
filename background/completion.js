@@ -3,7 +3,7 @@ var Completers;
 setTimeout(function() {
   var TabRecency, HistoryCache, RankingUtils, RegexpCache, Decoder,
       Completers, queryType, offset,
-      maxCharNum, maxResults, showFavIcon, queryTerms, SuggestionUtils;
+      maxCharNum, maxResults, showFavIcon, showRelevancy, queryTerms, SuggestionUtils;
 
   function Suggestion(type, url, text, title, computeRelevancy, extraData) {
     this.type = type;
@@ -15,6 +15,7 @@ setTimeout(function() {
 
 SuggestionUtils = {
   PrepareHtml: function(sug) {
+    showRelevancy || (delete sug.relevancy);
     if (sug.textSplit) { return; }
     var _this = SuggestionUtils;
     sug.titleSplit = _this.highlight(sug.title, _this.getRanges(sug.title));
@@ -694,6 +695,7 @@ searchEngines: {
         (options.clientWidth * 0.8 - 70) / 7.72) | 0, 200) : 100
     maxResults = Math.min(Math.max(options.maxResults | 0, 5), 25);
     showFavIcon = options.showFavIcon;
+    showRelevancy = options.showRelevancy || false;
     Completers.callback = callback;
     Completers.filter(this.completers);
   };

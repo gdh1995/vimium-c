@@ -431,8 +431,7 @@ vomnibarUI: {
   },
   init_dom: function(response) {
     var _this = this, str;
-    Vomnibar.background.showRelevancy = response.relevancy;
-    this.box.innerHTML = response.html;
+    this.box.innerHTML = response;
     this.input = this.box.querySelector("#OInput");
     this.list = this.box.querySelector("#OList");
     str = this.box.querySelector("#OITemplate").outerHTML;
@@ -473,6 +472,7 @@ background: {
       type: this.name,
       clientWidth: window.innerWidth,
       showFavIcon: Vomnibar.background.showFavIcon,
+      showRelevancy: this.showRelevancy,
       maxResults: 10,
       query: query && query.replace(Utils.spacesRe, ' ')
     });
