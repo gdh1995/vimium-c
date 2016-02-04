@@ -1353,10 +1353,7 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483644
     showCopied: function(request) {
       HUD.showCopied(request.text);
     },
-    showHelpDialog: null
-  };
-
-  requestHandlers.showHelpDialog = function(response) {
+  showHelpDialog: function(response) {
     var container, handlerId, oldShowHelp, hide, node1, //
     toggleAdvanced, shouldShowAdvanced = response.advanced === true;
     container = DomUtils.createElement("div");
@@ -1407,6 +1404,7 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483644
       }
       return 0;
     });
+  }
   };
 
 
