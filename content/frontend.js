@@ -685,22 +685,21 @@ var Settings, VHUD, MainPort, VInsertMode;
     mutable: true,
     onWndBlur: null,
     init: function() {
-      var activeEl = document.activeElement;
+      var activeEl = document.activeElement, notBody = activeEl !== document.body;
       this.focus = this.lockFocus;
       this.init = null;
       KeydownEvents = new Uint8Array(256);
       if (settings.cache.grabBackFocus && this.loading) {
-        if (activeEl !== document.body) {
+        if (notBody) {
           activeEl.blur();
-          if (document.activeElement !== document.body) {
-            this.lock = document.activeElement;
-            return;
-          }
+          notBody = (activeEl = document.activeElement) !== document.body;
         }
-        this.setupGrab();
-        return;
+        if (!notBody) {
+          this.setupGrab();
+          return;
+        }
       }
-      if (activeEl !== document.body && DomUtils.getEditableType(activeEl)) {
+      if (notBody && DomUtils.getEditableType(activeEl)) {
         this.lock = activeEl;
       }
     },
