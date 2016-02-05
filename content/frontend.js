@@ -384,23 +384,21 @@ var Settings, VHUD, MainPort, VInsertMode;
       HUD.showForDuration('Now link hints use "' + val + '".', 1500);
     },
     scroll: function(_0, options) {
-      var event = options.event, keyCode, command;
+      var event = options.event, keyCode, ctrl;
       if (!event || event.shiftKey || event.altKey) { return; }
       keyCode = event.keyCode;
       if (!(keyCode >= KeyCodes.pageup && keyCode <= KeyCodes.down)) { return; }
+      ctrl = event.ctrlKey || event.metaKey;
       if (keyCode >= KeyCodes.left) {
-        command = KeyboardUtils.keyNames[keyCode].replace(/./, function(a) {
-          return a.toUpperCase();
-        });
-        if (event.ctrlKey || event.metaKey) {
-          command = "Px" + command;
-        }
-      } else if (event.ctrlKey || event.metaKey) {
-        return;
+        options = { axis: keyCode & 1 && "x", view: +ctrl,
+          dir: keyCode < KeyCodes.left + 2 && -1 };
+      } else if (ctrl) { return; }
+      else if (keyCode > KeyCodes.pageup + 1) {
+        return Commands.scrollTo(1, { dest: keyCode & 1 && "max" });
       } else {
-        command = ["PageUp", "PageDown", "ToBottom", "ToTop"][keyCode - KeyCodes.pageup];
+        options = { view: "viewSize", dir: keyCode === KeyCodes.pageup ? -0.5 : 0.5 };
       }
-      Commands["scroll" + command](1, {});
+      Commands.scrollBy(1, options);
     },
     scrollTo: function(count, options) {
       Marks.setPreviousPosition();
