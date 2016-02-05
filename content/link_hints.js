@@ -43,7 +43,7 @@ var LinkHints = {
   options: null,
   timer: 0,
   activate: function(mode, options) {
-    if (this.isActive) { return;}
+    if (this.isActive) { return; }
     if (document.body == null) {
       if (!this.initTimer) {
         this.initTimer = setTimeout(this.activate.bind(this, mode, options), 300);

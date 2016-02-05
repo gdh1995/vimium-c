@@ -421,7 +421,7 @@ var Settings, VHUD, MainPort, VInsertMode;
     performFind: function(count, options) {
       findAndFocus(count, options.dir < 0);
     },
-    enterInsertMode: function(_1, options) {
+    enterInsertMode: function(_0, options) {
       var code = options.code || KeyCodes.esc, stat = options.stat || 0, str;
       InsertMode.global = { code: code, stat: stat };
       str = "Insert mode";
@@ -942,7 +942,7 @@ var Settings, VHUD, MainPort, VInsertMode;
       return true;
     }
     pattern = typeof pattern === "string" && (pattern = pattern.trim())
-      ? pattern.toLowerCase().split(/\s*,\s*/).filter(function(s) { return s.length;})
+      ? pattern.toLowerCase().split(/\s*,\s*/).filter(function(s) { return s.length; })
       : (pattern instanceof Array) ? pattern : [];
     if (pattern.length > 0) {
       goBy.findAndFollowLink(pattern);
