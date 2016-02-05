@@ -402,55 +402,20 @@ var Settings, VHUD, MainPort, VInsertMode;
       }
       Commands["scroll" + command](1, {});
     },
-    scrollToBottom: function() {
+    scrollTo: function(count, options) {
       Marks.setPreviousPosition();
-      Scroller.scrollTo("y", "max");
+      var axis = options.axis || "y", dest = options.dest ||
+          (axis === "y" ? (count - 1) * settings.cache.scrollStepSize : 0);
+      Scroller.scrollTo(axis, dest);
     },
-    scrollToTop: function(count) {
-      Marks.setPreviousPosition();
-      Scroller.scrollTo("y", (count - 1) * settings.cache.scrollStepSize);
-    },
-    scrollToLeft: function() {
-      Scroller.scrollTo("x", 0);
-    },
-    scrollToRight: function() {
-      Scroller.scrollTo("x", "max");
-    },
-    scrollUp: function(count) {
-      Scroller.scrollBy("y", -count * settings.cache.scrollStepSize);
-    },
-    scrollDown: function(count) {
-      Scroller.scrollBy("y", count * settings.cache.scrollStepSize);
-    },
-    scrollPageUp: function(count) {
-      Scroller.scrollBy("y", -count / 2, "viewSize");
-    },
-    scrollPageDown: function(count) {
-      Scroller.scrollBy("y", count / 2, "viewSize");
-    },
-    scrollFullPageUp: function(count) {
-      Scroller.scrollBy("y", -count, "viewSize");
-    },
-    scrollFullPageDown: function(count) {
-      Scroller.scrollBy("y", count, "viewSize");
-    },
-    scrollLeft: function(count) {
-      Scroller.scrollBy("x", -count * settings.cache.scrollStepSize, "", true);
-    },
-    scrollRight: function(count) {
-      Scroller.scrollBy("x", count * settings.cache.scrollStepSize, "", true);
-    },
-    scrollPxUp: function(count) {
-      Scroller.scrollBy("y", -count);
-    },
-    scrollPxDown: function(count) {
-      Scroller.scrollBy("y", count);
-    },
-    scrollPxLeft: function(count) {
-      Scroller.scrollBy("x", -count);
-    },
-    scrollPxRight: function(count) {
-      Scroller.scrollBy("x", count);
+    scrollBy: function(count, options) {
+      var axis = options.axis || "y", dir = options.dir || 1,
+        step = options.step;
+      if (!step) {
+        dir *= settings.cache.scrollStepSize;
+      }
+      Scroller.scrollBy(axis, dir * count, typeof step === "string" ? step : ""
+        , axis !== "y" && !step);
     },
 
     performFind: function(count) {
