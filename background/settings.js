@@ -63,9 +63,11 @@ var Settings = {
       }
     },
     files: function() {
-      var files = this.files, id;
+      var files = this.files, id, func = function(value) {
+        Settings.set(this.id, value);
+      };
       for (id in files) {
-        Utils.fetchHttpContents(files[id], this.set.bind(this, id));
+        Utils.fetchHttpContents(files[id], func).id = id;
       }
     },
     newTabUrl: function(url) {
