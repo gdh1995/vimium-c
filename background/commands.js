@@ -39,8 +39,16 @@ var Commands = {
     return val;
   },
   makeCommand: function(command, options, details) {
+    var opt;
     details || (details = this.availableCommands[command]);
+    opt = details[3];
+    if (options) {
+      opt && Utils.extendIf(options, opt);
+    } else {
+      options = opt;
+    }
     return {
+      alias: details[4] || null,
       background: details[2],
       command: command,
       options: options || null,

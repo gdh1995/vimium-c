@@ -14,6 +14,12 @@ var exports = {}, Utils = {
     req.send();
     return req;
   },
+  extendIf: function(b, a) {
+    var i, u;
+    for (i in a) {
+      b[i] === u && (b[i] = a[i]);
+    }
+  },
   escapeText: function(s) {
     var escapeRe = /[&<]/g, escapeCallback = function(c, n) {
       n = c.charCodeAt(0);

@@ -1070,6 +1070,7 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
     ) {
       return;
     }
+    command = registryEntry.alias || command;
     if (!registryEntry.background) {
       port.postMessage({
         name: "execute",
