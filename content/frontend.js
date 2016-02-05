@@ -410,12 +410,12 @@ var Settings, VHUD, MainPort, VInsertMode;
     },
     scrollBy: function(count, options) {
       var axis = options.axis || "y", dir = options.dir || 1,
-        step = options.step;
-      if (!step) {
+        view = options.view;
+      if (!view) {
         dir *= settings.cache.scrollStepSize;
       }
-      Scroller.scrollBy(axis, dir * count, typeof step === "string" ? step : ""
-        , axis !== "y" && !step);
+      Scroller.scrollBy(axis, dir * count, typeof view === "string" ? view : ""
+        , axis !== "y" && !view);
     },
 
     performFind: function(count, options) {
