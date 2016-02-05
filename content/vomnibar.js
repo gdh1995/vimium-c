@@ -1,17 +1,12 @@
 "use strict";
 var Vomnibar = {
-activateWithCompleter: function(completerName, selectFirstResult, forceNewTab
-    , initialQueryValue, keyword, force_current) {
-  var vomnibarUI = this.vomnibarUI, bg = this.background, args;
+activate: function(_0, options, force_current) {
+  var vomnibarUI = this.vomnibarUI, bg = this.background, initialQueryValue, keyword;
   if (vomnibarUI.init) {
     force_current |= 0;
-    if (force_current < 2) {
-      args = [].slice.call(arguments);
-      args.length = 6;
-      args[5] = force_current;
-      if (MainPort.sendCommandToContainer("Vomnibar.activateWithCompleter", args)) {
-        return;
-      }
+    if (force_current < 2 &&
+      MainPort.sendCommandToContainer("Vomnibar.activate", [1, options, force_current])) {
+      return;
     }
     // <svg> document has not head nor body; document with pdf <embed> has body
     if (!document.body) { return false; }
@@ -19,11 +14,14 @@ activateWithCompleter: function(completerName, selectFirstResult, forceNewTab
     bg.parse = bg.parse.bind(bg);
     vomnibarUI.init(box);
   }
-  bg.name = completerName;
-  vomnibarUI.initialSelectionValue = selectFirstResult ? 0 : -1;
-  vomnibarUI.forceNewTab = forceNewTab ? true : false;
+  Object.setPrototypeOf(options = options || {}, null);
+  bg.name = options.mode || "omni";
+  vomnibarUI.initialSelectionValue = options.first ? 0 : -1;
+  vomnibarUI.forceNewTab = options.force ? true : false;
   handlerStack.remove(vomnibarUI.handlerId);
   vomnibarUI.handlerId = handlerStack.push(DomUtils.UI.SuppressMost, vomnibarUI);
+  initialQueryValue = options.url;
+  keyword = options.keyword;
   if (initialQueryValue == null) {
     vomnibarUI.reset(keyword ? keyword + " " : "");
     return;
@@ -36,15 +34,15 @@ activateWithCompleter: function(completerName, selectFirstResult, forceNewTab
     }
   }
   if (initialQueryValue.indexOf("://") === -1) {
-    this.activateText(initialQueryValue, keyword, "");
+    this._activateText(initialQueryValue, keyword, "");
     return;
   }
   MainPort.sendMessage({
     handler: "parseSearchUrl",
     url: initialQueryValue
-  }, this.activateText.bind(this, initialQueryValue, keyword));
+  }, this._activateText.bind(this, initialQueryValue, keyword));
 },
-  activateText: function(url, keyword, search) {
+  _activateText: function(url, keyword, search) {
     var start;
     if (search) {
       start = search.start;
@@ -61,27 +59,6 @@ activateWithCompleter: function(completerName, selectFirstResult, forceNewTab
     } else {
       Vomnibar.vomnibarUI.reset(url);
     }
-  },
-  activate: function(_0, options) {
-    this.activateWithCompleter("omni", false, false, options.url, options.keyword);
-  },
-  activateInNewTab: function(_0, options) {
-    this.activateWithCompleter("omni", false, true, options.url, options.keyword);
-  },
-  activateTabSelection: function() {
-    this.activateWithCompleter("tabs", true);
-  },
-  activateBookmarks: function() {
-    this.activateWithCompleter("bookmarks", true);
-  },
-  activateBookmarksInNewTab: function() {
-    this.activateWithCompleter("bookmarks", true, true);
-  },
-  activateHistory: function() {
-    this.activateWithCompleter("history", true);
-  },
-  activateHistoryInNewTab: function() {
-    this.activateWithCompleter("history", true, true);
   },
 
 vomnibarUI: {
