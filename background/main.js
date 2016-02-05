@@ -1080,7 +1080,7 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
       return;
     }
     var func = BackgroundCommands[command];
-    currentCommand.options = registryEntry.options;
+    currentCommand.options = registryEntry.options || Object.create(null);
     currentCommand.port = port;
     commandCount = count;
     count = func.useTab;
@@ -1391,23 +1391,18 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
       count = 1;
     }
     reg = Commands.availableCommands[command];
-    executeCommand(command, {
-      background: reg[2],
-      command: command,
-      options: options || {},
-      repeat: reg[1]
-    }, count, null);
+    executeCommand(command, Commands.makeCommand(command, options, reg), count, null);
   };
   if (chrome.commands) setTimeout(function() {
     chrome.commands.onCommand.addListener(funcDict.globalCommand);
   }, 200);
 
   chrome.runtime.onMessageExternal.addListener(function(message, _1, sendResponse) {
-    var command, options = null;
+    var command, options;
     if (typeof message === "string") {
       command = message;
       if (command && Commands.availableCommands[command]) {
-        funcDict.globalCommand(command, options);
+        funcDict.globalCommand(command);
       }
       return;
     }

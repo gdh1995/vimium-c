@@ -15,7 +15,6 @@ var Commands = {
     this.keyRe = new RegExp(keyReSource, "g");
     this.setStrict = null;
   },
-  defaultOption: Object.create(null),
   getOptions: function(item) {
     var opt = {}, i, len, ind, str, val;
     for (i = 3, len = item.length; i < len; ) {
@@ -28,29 +27,31 @@ var Commands = {
         val = str.substring(ind + 1);
         str = str.substring(0, ind);
       }
-      opt[str] = val && this.parseDecoded(val);
+      opt[str] = val && this.decodeAndParse(val);
     }
-    return str ? opt : this.defaultOption;
+    return str ? opt : null;
   },
-  parseDecoded: function(val) {
+  decodeAndParse: function(val) {
     try {
       val = decodeURIComponent(val);
       val = JSON.parse(val);
     } catch (e) {}
     return val;
   },
+  makeCommand: function(command, options, details) {
+    details || (details = this.availableCommands[command]);
+    return {
+      background: details[2],
+      command: command,
+      options: options || null,
+      repeat: details[1]
+    };
+  },
   loadDefaults: function() {
-    var defaultMap = this.defaultKeyMappings, available = this.availableCommands
-      , registry = this.keyToCommandRegistry
-      , key, command, details, options = this.defaultOption;
+    var defaultMap = this.defaultKeyMappings, registry = this.keyToCommandRegistry
+      , key;
     for (key in defaultMap) {
-      details = available[command = defaultMap[key]];
-      registry[key] = {
-        background: details[2],
-        command: command,
-        options: options,
-        repeat: details[1]
-      };
+      registry[key] = this.makeCommand(defaultMap[key]);
     }
   },
   parseKeyMappings: function(line) {
@@ -67,12 +68,8 @@ var Commands = {
       if (key === "map") {
         if (splitLine.length < 3) {
         } else if (details = available[key = splitLine[2]]) {
-          registry[this.normalizeKey(splitLine[1])] = {
-            background: details[2],
-            command: key,
-            options: this.getOptions(splitLine),
-            repeat: details[1]
-          };
+          registry[this.normalizeKey(splitLine[1])] =
+            this.makeCommand(key, this.getOptions(splitLine), details);
         } else {
           console.log("Command %c" + key, "color:red;", "doesn't exist!");
         }
