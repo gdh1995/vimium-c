@@ -47,7 +47,8 @@ var cloudApp = {
 		chrome.management.getAll(function (_extensions) {
 			if (_extensions instanceof Array && _extensions.length > 0) {
 				$.each(_extensions, function (i, n) {
-					if ((typeof n.appLaunchUrl != "undefined" || n.type == "packaged_app") && n.enabled === true && n.id != document.location.host) {
+					if ((typeof n.appLaunchUrl != "undefined" || n.type == "packaged_app")
+							&& n.enabled === true && n.id != window.location.host) {
 						n.url = n.appLaunchUrl;
 						n.img = "chrome://extension-icon/" + n.id + "/128/0";
 						n.title = n.name;

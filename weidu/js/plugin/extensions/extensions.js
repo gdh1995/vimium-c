@@ -28,7 +28,7 @@ var extensions = {
 		});
 		if (extensions instanceof Array && extensions.length > 0) {
 			$.each(extensions, function (i, n) {
-				if (n.id != document.location.host) {
+				if (n.id != window.location.host) {
 					self.addExtensionItem(n)
 				}
 			})
