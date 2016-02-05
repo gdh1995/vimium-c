@@ -24,7 +24,7 @@
 		"map r reload",
 		"map R reloadGivenTab",
 		"map <a-R> reopenTab",
-		"map f LinkHints.activateMode",
+		"map f LinkHints.activate",
 		"map Fq LinkHints.activateModeWithQueue",
 		"map Fa LinkHints.activateModeToCopyLinkUrl",
 		"map Ft LinkHints.activateModeToCopyLinkText",

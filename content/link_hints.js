@@ -42,58 +42,14 @@ var LinkHints = {
   isActive: false,
   options: null,
   timer: 0,
-  activateModeToOpenInNewTab: function() {
-    this.activate(this.CONST.OPEN_IN_NEW_BG_TAB);
-  },
-  activateModeToOpenInNewForegroundTab: function() {
-    this.activate(this.CONST.OPEN_IN_NEW_FG_TAB);
-  },
-  activateModeToCopyLinkUrl: function() {
-    this.activate(this.CONST.COPY_LINK_URL);
-  },
-  activateModeToCopyLinkText: function() {
-    this.activate(this.CONST.COPY_TEXT);
-  },
-  activateModeToSearchLinkText: function(_0, options) {
-    this.activate(this.CONST.SEARCH_TEXT, options);
-  },
-  activateModeToOpenVomnibar: function(_0, options) {
-    this.activate(this.CONST.EDIT_TEXT, options);
-  },
-  activateModeWithQueue: function() {
-    this.activate(this.CONST.OPEN_WITH_QUEUE);
-  },
-  activateModeToOpenIncognito: function(_0, options) {
-    this.activate(this.CONST.OPEN_INCOGNITO_LINK, options);
-  },
-  activateModeToDownloadLink: function() {
-    this.activate(this.CONST.DOWNLOAD_LINK);
-  },
-  activateModeToDownloadImage: function() {
-    this.activate(this.CONST.DOWNLOAD_IMAGE);
-  },
-  activateModeToOpenImage: function() {
-    this.activate(this.CONST.OPEN_IMAGE);
-  },
-  activateModeToHover: function() {
-    this.activate(this.CONST.HOVER);
-  },
-  activateModeToLeave: function() {
-    this.activate(this.CONST.LEAVE);
-  },
-  activateMode: function() {
-    this.activate(this.CONST.OPEN_IN_CURRENT_TAB);
-  },
   activate: function(mode, options) {
     if (this.isActive) { return;}
-    this.options = options || {};
     if (document.body == null) {
       if (!this.initTimer) {
         this.initTimer = setTimeout(this.activate.bind(this, mode, options), 300);
       } else if (!document.head) {
         // document is not a <html> document
         this.isActive = true; // disable self
-        this.options = null;
       }
       return;
     }
@@ -102,7 +58,12 @@ var LinkHints = {
       this.hintMarkerContainingDiv.remove();
     }
     var elements, rect, style, width, height, x, y, tip;
-    if (this.options.mode != null) { mode = options.mode; }
+    Object.setPrototypeOf(this.options = options = options || {}, null);
+    if (options.mode != null) {
+      mode = options.mode;
+      options.mode = null;
+      typeof mode === "string" && (mode = this.CONST[mode]);
+    }
     tip = this.setOpenLinkMode(mode, true);
 
     if (!this.frameNested) {
@@ -203,7 +164,7 @@ var LinkHints = {
       break;
     default:
       tip = "Open link in current tab";
-      mode != 1 && (mode = 0);
+      mode !== 1 && (mode = 0);
       break;
     }
     this.linkActivator = mode < 128 ? this.FUNC.DEFAULT : activator;
