@@ -110,7 +110,7 @@ commandGroups: {
     , "LinkHints.activateModeToSearchLinkText", "LinkHints.activateModeToOpenVomnibar"
     , "goPrevious", "goNext", "nextFrame", "mainFrame"
     , "enterInsertMode"
-    , "Marks.activateCreateMode", "Marks.activateGotoMode"
+    , "Marks.activateCreateMode", "Marks.activate"
     , "Marks.clearLocal", "clearGlobalMarks", "openUrl", "focusOrLaunch"
     ],
   vomnibarCommands: ["Vomnibar.activate", "Vomnibar.activateInNewTab"
@@ -201,7 +201,7 @@ defaultKeyMappings: {
   "<F1>": "switchFocus",
   "<f2>": "switchFocus",
   m: "Marks.activateCreateMode",
-  "`": "Marks.activateGotoMode"
+  "`": "Marks.activate"
 },
 
 availableCommands: {
@@ -271,13 +271,13 @@ availableCommands: {
   "LinkHints.unhoverLast": [ "Stop hovering at last location", 1, false ],
   enterFindMode: [ "Enter find mode", 1, false ],
   performFind: [ "Cycle forward to the next find match", 0, false ],
-  performBackwardsFind: [ "Cycle backward to the previous find match", 0, false ],
+  performBackwardsFind: [ "Cycle backward to the previous find match", 0, false, { dir: -1 }, "performFind" ],
   switchFocus: [ "blur activeElement or refocus it", 1, false ],
   simBackspace: [ "simulate backspace for once if focused", 1, false ],
-  goPrevious: [ "Follow the link labeled previous or &lt;", 1, false ],
+  goPrevious: [ "Follow the link labeled previous or &lt;", 1, false, { dir: "prev" }, "goNext" ],
   goNext: [ "Follow the link labeled next or >", 1, false ],
   goBack: [ "Go back in history", 0, false ],
-  goForward: [ "Go forward in history", 0, false ],
+  goForward: [ "Go forward in history", 0, false, { dir: 1 }, "goBack" ],
   goUp: [ "Go up the URL hierarchy", 0, false ],
   goToRoot: [ "Go to root of current URL hierarchy", 1, true ],
   nextTab: [ "Go one tab right", 0, true ],
@@ -319,8 +319,8 @@ availableCommands: {
     { mode: "history", first: true, force: true }, "Vomnibar.activate" ],
   nextFrame: [ "Cycle forward to the next frame on the page", 0, true ],
   mainFrame: [ "Select the tab's main/top frame", 1, true ],
-  "Marks.activateCreateMode": [ "Create a new mark", 1, false ],
-  "Marks.activateGotoMode": [ "Go to a mark", 1, false ],
+  "Marks.activateCreateMode": [ "Create a new mark", 1, false, { mode: "create" }, "Marks.activate" ],
+  "Marks.activate": [ "Go to a mark", 1, false ],
   "Marks.clearLocal": [ "Remove all local marks for this site", 1, false ],
   clearGlobalMarks: [ "Remove all global marks", 1, true ],
   openUrl: [ "open url (use url, newTab=true)", 20, true ],

@@ -418,11 +418,8 @@ var Settings, VHUD, MainPort, VInsertMode;
         , axis !== "y" && !step);
     },
 
-    performFind: function(count) {
-      findAndFocus(count);
-    },
-    performBackwardsFind: function(count) {
-      findAndFocus(count, true);
+    performFind: function(count, options) {
+      findAndFocus(count, options.dir < 0);
     },
     enterInsertMode: function(_1, options) {
       var code = options.code || KeyCodes.esc, stat = options.stat || 0, str;
@@ -439,11 +436,8 @@ var Settings, VHUD, MainPort, VInsertMode;
       findMode = true;
       HUD.show("/");
     },
-    goPrevious: function() {
-      goBy("prev", settings.cache.previousPatterns);
-    },
-    goNext: function() {
-      goBy("next", settings.cache.nextPatterns);
+    goNext: function(_0, options) {
+      goBy(options.dir || "next", settings.cache.nextPatterns);
     },
     reload: function() {
       if (window.location.protocol.startsWith("chrome") || DomUtils.isSandboxed()) {
@@ -482,13 +476,9 @@ var Settings, VHUD, MainPort, VInsertMode;
       else if (DomUtils.isVisibile(el)) { document.execCommand("delete"); }
       else { el.scrollIntoViewIfNeeded(); }
     },
-    goBack: function(count) {
+    goBack: function(count, options) {
       var step = Math.min(count, history.length - 1);
-      step > 0 && history.go(-step);
-    },
-    goForward: function(count) {
-      var step = Math.min(count, history.length - 1);
-      step > 0 && history.go(step);
+      step > 0 && history.go(step * (options.dir || -1));
     },
     goUp: function(count, _1, force_current) {
       var url, urlsplit;

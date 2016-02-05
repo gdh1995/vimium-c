@@ -2,15 +2,11 @@
 var Marks = {
   handlerId: 0,
   onKeypress: null,
-  activateCreateMode: function() {
-    this.onKeypress = this._create;
+  activate: function(_0, options) {
+    var isGo = options.mode !== "create";
+    this.onKeypress = isGo ? this._goto : this._create;
     this.handlerId = handlerStack.push(this.onKeydown, this);
-    VHUD.show("Create mark ...");
-  },
-  activateGotoMode: function() {
-    this.onKeypress = this._goto;
-    this.handlerId = handlerStack.push(this.onKeydown, this);
-    VHUD.show("Go to mark ...");
+    VHUD.show((isGo ? "Go" : "Create") + " mark ...");
   },
   clearLocal: function() {
     var key_start, storage, i, key;
