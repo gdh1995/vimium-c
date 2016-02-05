@@ -82,12 +82,11 @@ var Settings, VHUD, MainPort, VInsertMode;
       });
     },
     sendCommandToContainer: function(command, args) {
-      var ind = args.length - 1;
-      if (window.top !== window && args[ind] === 0) {
-        args[ind] = 1;
+      if (window.top !== window && args[2] === 0) {
+        args[2] = 1;
         if (this.sendCommandToTop(command, args)) { return true; }
       }
-      args[ind] = 2;
+      args[2] = 2;
       return LinkHints.tryNestedFrame(command, args);
     },
     sendCommandToTop: function(command, args) {
@@ -541,7 +540,7 @@ var Settings, VHUD, MainPort, VInsertMode;
     showHelp: function(_0, _1, force_current) {
       force_current |= 0;
       if (force_current < 2 &&
-        mainPort.sendCommandToContainer("showHelp", [1, 0, force_current | 0])) {
+        mainPort.sendCommandToContainer("showHelp", [1, _1, force_current])) {
         return;
       }
       if (!document.body) { return false; }
@@ -1335,14 +1334,15 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483644
       arr[0][arr[1]](request.count, request.options || {});
     },
     dispatchCommand: function(request) {
+      var args = request.args;
       if (!isEnabledForUrl && request.source >= 0) {
-        request.args[request.args.length - 1] = 2;
-        mainPort.sendCommand(request.source, request.command, request.args);
+        args[2] = 2;
+        mainPort.sendCommand(request.source, request.command, args);
         return;
       }
       window.focus();
       var arr = Utils.findCommand(Commands, request.command);
-      arr[0][arr[1]].apply(arr[0], request.args);
+      arr[0][arr[1]](args[0], args[1], args[2]);
     },
     omni: Vomnibar.OnCompletions,
     createMark: Marks.CreateGlobalMark,
