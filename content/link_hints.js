@@ -449,7 +449,7 @@ var LinkHints = {
     if (this.frameNested) { return; }
     if (visibleElements.length > 4000) { return visibleElements; }
     visibleElements.reverse();
-    
+
     obj = [null, null];
     func = VRect.SubtractSequence.bind(obj);
     for (_len = visibleElements.length, _j = Math.max(0, _len - 32); 0 <= --_len; ) {

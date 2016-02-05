@@ -655,7 +655,7 @@ searchEngines: {
       this.suggestions = suggestions;
       return;
     }
-    
+
     this.suggestions = newSugs = null;
     suggestions.sort(this.rsortByRelevancy);
     if (suggestions.length > maxResults) {
@@ -771,7 +771,7 @@ searchEngines: {
   };
 
   RegexpCache = {
-    _cache: null, 
+    _cache: null,
     clear: function() {
       this._cache = Object.create(null);
     },
@@ -965,7 +965,7 @@ searchEngines: {
       this._dataUrl || this.setDataUrl("GBK");
     }
   };
-  
+
   setTimeout(function() {
     (function() {
       var d = Decoder.dict, f = Decoder._f, t = Decoder.todos;

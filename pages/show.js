@@ -2,12 +2,12 @@
 var $ = document.getElementById.bind(document),
     shownNode, bgLink = $('bgLink'), BG,
     url, type, file;
-    
+
 BG = window.chrome && chrome.extension && chrome.extension.getBackgroundPage();
 if (!(BG && BG.Utils && BG.Utils.convertToUrl)) {
   BG = null;
 }
-    
+
 function decodeHash() {
   var str, ind;
   type = file = "";

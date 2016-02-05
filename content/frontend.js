@@ -14,13 +14,13 @@ var Settings, VHUD, MainPort, VInsertMode;
     , restoreDefaultSelectionHighlight, secondKeys, settings //
     , showFindModeHUDForQuery, updateFindModeQuery
     ;
-  
+
   isInjected = window.VimiumInjector ? true : false;
 
   frameId = window.top === window ? 0 : ((Math.random() * 9999997) | 0) + 2;
 
   findMode = false;
-  
+
   findChangeListened = 0;
 
   findModeQuery = {
@@ -50,7 +50,7 @@ var Settings, VHUD, MainPort, VInsertMode;
   currentSeconds = {};
 
   passKeys = null;
-  
+
   MainPort = mainPort = {
     frameId: frameId,
     port: null,
@@ -786,7 +786,7 @@ var Settings, VHUD, MainPort, VInsertMode;
     }
     return results;
   };
-  
+
   updateFindModeQuery = function() {
     var escapeRe, hasNoIgnoreCaseFlag, parsedNonRegexpQuery, pattern, text;
     findModeQuery.isRe = settings.cache.regexFindMode;
@@ -982,7 +982,7 @@ var Settings, VHUD, MainPort, VInsertMode;
     DomUtils.UI.flashOutline(linkElement);
     DomUtils.simulateClick(linkElement);
   };
-  
+
   goBy = function(relName, pattern) {
     if (relName && typeof relName === "string" && goBy.findAndFollowRel(relName)) {
       return true;
@@ -1339,7 +1339,7 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483644
         request.args[request.args.length - 1] = 2;
         mainPort.sendCommand(request.source, request.command, request.args);
         return;
-      } 
+      }
       window.focus();
       var arr = Utils.findCommand(Commands, request.command);
       arr[0][arr[1]].apply(arr[0], request.args);
@@ -1373,7 +1373,7 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483644
         (shouldShowAdvanced ? "Hide" : "Show") + " advanced commands";
       container.classList.toggle("HelpAdvanced");
     };
-    
+
     oldShowHelp = Commands.showHelp;
     container.querySelector("#AdvancedCommands").onclick = function() {
       shouldShowAdvanced = !shouldShowAdvanced;

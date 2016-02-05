@@ -42,7 +42,7 @@ Core: {
   }
 },
 
-  current: null,  
+  current: null,
   keyIsDown: 0,
   Properties: [{
     axisName: "scrollLeft",
