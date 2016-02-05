@@ -477,12 +477,7 @@ var LinkHints = {
         this.setOpenLinkMode(((this.mode >= 128 ? 0 : 2) | this.mode) ^ 64);
       }
     } else if (i >= KeyCodes.pageup && i <= KeyCodes.down) {
-      MainPort.Listener({
-        name: "execute",
-        command: "scroll",
-        count: 1,
-        options: {event: event}
-      });
+      VInsertMode.scroll(event);
     } else if (!(linksMatched = this.alphabetHints.matchHintsByKey(this.hintMarkers, event, this.keyStatus))){
       if (linksMatched === false) {
         this.reinit();
