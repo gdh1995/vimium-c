@@ -575,17 +575,6 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
         chrome.sessions.restore(list[commandCount - 1].tab.sessionId);
       }
     },
-    selectTab: function(tabs, ind) {
-      var len = tabs.length, toSelect;
-      if (len > 1) {
-        toSelect = tabs[(ind >= 0 ? 0 : len) + (ind % len)];
-        if (!toSelect.active) {
-          chrome.tabs.update(toSelect.id, {
-            active: true
-          });
-        }
-      }
-    },
     selectWnd: function(tab) {
       tab && chrome.windows.update(tab.windowId, { focused: true });
       return chrome.runtime.lastError;
@@ -672,21 +661,16 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
     clearCS: function(tabs) {
       ContentSettings.clearCS(currentCommand.options.type, tabs[0]);
     },
-    nextTab: function(tabs) {
+    gotoTab: function(tabs) {
       if (tabs.length <= 0) { return; }
-      funcDict.selectTab(tabs, commandCount > tabs.length * 2 ? tabs.length - 1
-          : funcDict.selectFrom(tabs).index + commandCount);
-    },
-    previousTab: function(tabs) {
-      if (tabs.length <= 0) { return; }
-      funcDict.selectTab(tabs, commandCount > tabs.length * 2 ? 0
-          : funcDict.selectFrom(tabs).index - commandCount);
-    },
-    firstTab: function(tabs) {
-      funcDict.selectTab(tabs, Math.min(tabs.length, commandCount) - 1);
-    },
-    lastTab: function(tabs) {
-      funcDict.selectTab(tabs, Math.max(0, tabs.length - commandCount));
+      var count = (currentCommand.options.dir || 1) * commandCount,
+        len = tabs.length, toSelect;
+      count = currentCommand.options.absolute
+        ? count > 0 ? Math.min(len, count) - 1 : Math.max(0, len + count)
+        : commandCount > tabs.length * 2 ? (count > 0 ? -1 : 0)
+        : funcDict.selectFrom(tabs).index + count;
+      toSelect = tabs[(count >= 0 ? 0 : len) + (count % len)];
+      toSelect.active || chrome.tabs.update(toSelect.id, { active: true });
     },
     removeTab: function(tabs) {
       if (!tabs) { return; }
@@ -1475,7 +1459,7 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
 
     ref2 = BackgroundCommands;
     for (key in ref2) { ref2[key].useTab = 0; }
-    ref = ["nextTab", "previousTab", "firstTab", "lastTab", "removeTab" //
+    ref = ["gotoTab", "removeTab" //
       , "closeTabsOnLeft", "closeTabsOnRight", "closeOtherTabs", "removeRightTab" //
       , "moveTabLeft", "moveTabRight", "togglePinTab", "debugBackground" //
       , "reloadTab", "reloadGivenTab" //
