@@ -423,11 +423,9 @@ var LinkHints = {
       return output.length !== 0 && null;
     }
     element = output[0][0];
-    if (arguments.length > 0) {
-      str = element.tagName.toLowerCase();
-      if (str !== "iframe" && str !== "frame") {
-        return null;
-      }
+    str = element.tagName.toLowerCase();
+    if (str !== "iframe" && str !== "frame") {
+      return null;
     }
     if ((rect = element.getClientRects()[0])
         && window.scrollY + rect.top < 20 && window.scrollX + rect.left < 20
