@@ -1070,27 +1070,27 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
     ) {
       return;
     }
-    if (registryEntry.background) {
-      var func = BackgroundCommands[command];
-      currentCommand.options = registryEntry.options;
-      currentCommand.port = port;
-      commandCount = count;
-      count = func.useTab;
-      if (count === 1) {
-        chrome.tabs.query({currentWindow: true}, func);
-      } else if (count !== -1) {
-        chrome.tabs.query({currentWindow: true, active: true}, func);
-      } else {
-        func();
-      }
+    if (!registryEntry.background) {
+      port.postMessage({
+        name: "execute",
+        command: command,
+        count: count,
+        options: registryEntry.options
+      });
       return;
     }
-    port.postMessage({
-      name: "execute",
-      command: command,
-      count: count,
-      options: registryEntry.options
-    });
+    var func = BackgroundCommands[command];
+    currentCommand.options = registryEntry.options;
+    currentCommand.port = port;
+    commandCount = count;
+    count = func.useTab;
+    if (count === 1) {
+      chrome.tabs.query({currentWindow: true}, func);
+    } else if (count !== -1) {
+      chrome.tabs.query({currentWindow: true, active: true}, func);
+    } else {
+      func();
+    }
   };
 
   // Signature: function(request, opt);
