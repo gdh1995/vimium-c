@@ -356,7 +356,6 @@ var Settings, VHUD, MainPort, VInsertMode;
   };
 
   Commands = {
-    __proto__: null,
     Vomnibar: Vomnibar,
     LinkHints: LinkHints,
     Marks: Marks,
@@ -585,6 +584,7 @@ var Settings, VHUD, MainPort, VInsertMode;
       });
     }
   };
+  Object.setPrototypeOf(Commands, null);
 
   checkValidKey = function(event, key) {
     var left = event.altKey ? "<a-" : "<";
@@ -1166,7 +1166,6 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483644
   };
 
   requestHandlers = {
-    __proto__: null,
     checkIfEnabled: function() {
       mainPort.safePost({
         handler: "checkIfEnabled",
@@ -1358,7 +1357,7 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483644
     });
   }
   };
-
+  Object.setPrototypeOf(requestHandlers, null);
 
   mainPort.connect();
 
