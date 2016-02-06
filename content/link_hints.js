@@ -544,26 +544,6 @@ var LinkHints = {
     this.lastHovered && DomUtils.simulateMouse(this.lastHovered, "mouseout", null, element);
     this.lastHovered = element;
   },
-  suppressTail: function(onlyRepeated) {
-    var func, tick, timer;
-    if (onlyRepeated) {
-      func = function(event) {
-        if (event.repeat) { return 2; }
-        handlerStack.remove(this.handlerId);
-        return 0;
-      };
-    } else {
-      func = function() { tick = Date.now(); return 2; };
-      tick = Date.now() + Settings.cache.keyboard[0];
-      timer = setInterval(function() {
-        if (Date.now() - tick > 150) {
-          clearInterval(timer);
-          handlerStack.remove(LinkHints.handlerId);
-        }
-      }, 75);
-    }
-    this.handlerId = handlerStack.push(func, this);
-  },
   reinit: function(lastEl, rect) {
     this.isActive = false;
     this.activate(this.mode, this.options);
@@ -613,7 +593,7 @@ var LinkHints = {
     this.clean();
     this.isActive = false;
     if (suppressType != null) {
-      this.suppressTail(suppressType);
+      DomUtils.UI.suppressTail(suppressType);
     }
   },
 

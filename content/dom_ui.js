@@ -99,7 +99,7 @@ DomUtils.UI = {
         }
       } catch (len) {}
     }
-    suppressRepeated === true && LinkHints.suppressTail(true);
+    suppressRepeated === true && this.suppressTail(true);
   },
   flashOutline: function(clickEl, virtual) {
     var rect, bcr;
@@ -137,6 +137,26 @@ DomUtils.UI = {
     return setTimeout(function() {
       flashEl.remove();
     }, time || this.flashLastingTime);
+  },
+  suppressTail: function(onlyRepeated) {
+    var func, tick, timer, handlerId;
+    if (onlyRepeated) {
+      func = function(event) {
+        if (event.repeat) { return 2; }
+        handlerStack.remove(handlerId);
+        return 0;
+      };
+    } else {
+      func = function() { tick = Date.now(); return 2; };
+      tick = Date.now() + Settings.cache.keyboard[0];
+      timer = setInterval(function() {
+        if (Date.now() - tick > 150) {
+          clearInterval(timer);
+          handlerStack.remove(handlerId);
+        }
+      }, 75);
+    }
+    handlerId = handlerStack.push(func);
   },
   SuppressMost: function(event) {
     var n = event.keyCode, plain;
