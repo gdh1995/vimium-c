@@ -124,7 +124,6 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
       return true;
     },
     clearCS: function(contentType, tab) {
-      contentType || (contentType = "images");
       ContentSettings.clear(contentType, tab);
       currentCommand.port.postMessage({
         name: "showHUD",
@@ -144,7 +143,6 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
     toggleCurrent: function(contentType, tab) {
       var pattern = tab.url, _this = this;
       if (this.complaint(pattern)) { return; }
-      contentType || (contentType = "images");
       chrome.contentSettings[contentType].get({
         primaryUrl: pattern,
         incognito: tab.incognito
@@ -172,7 +170,6 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
     ensure: function (contentType, tab) {
       var pattern = tab.url, _this = this;
       if (this.complaint(pattern)) { return; }
-      contentType || (contentType = "images");
       chrome.contentSettings[contentType].get({primaryUrl: pattern, incognito: true }, function(opt) {
         if (!pattern.startsWith("file:")) {
           pattern = _this._urlHeadRe.exec(pattern)[0] + "*";
