@@ -785,7 +785,7 @@ FUNC: {
       str = str === "textarea" ? link.value
         : str === "select" ? (link.selectedIndex < 0 ? "" : link.options[link.selectedIndex].text)
         // .innerText is "" if "display:block; height:0px; overflow:hidden; width:0px;"
-        : (link.innerText || Utils.decodeTextFromHtml(link.innerHTML));
+        : link.innerText || link.textContent.trim() && Utils.decodeTextFromHtml(link.innerHTML);
       str = str.trim() || link.title.trim();
     }
     if (!str) {
