@@ -92,7 +92,7 @@ DomUtils.UI = {
     if (element !== VInsertMode.lock) { return; }
     var len;
     if ((len = element.value ? element.value.length : -1) && element.setSelectionRange) {
-      if (element instanceof HTMLInputElement || element.clientHeight >= element.scrollHeight)
+      if (element instanceof HTMLInputElement || element.clientHeight + 12 >= element.scrollHeight)
       try {
         if (0 == element.selectionEnd) {
           element.setSelectionRange(len, len);
