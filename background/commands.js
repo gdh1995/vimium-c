@@ -249,7 +249,7 @@ availableCommands: {
   openCopiedUrlInNewTab: [ "Open the clipboard's URL in N new tab(s)", 20, true ],
   enterInsertMode: [ "Enter insert mode (use code=27, stat=0)", 1, false ],
   focusInput: [ "Focus the first text box on the page. Cycle between them using tab", 0, false ],
-  "LinkHints.activate": [ "Open a link in the current tab", 1, false ],
+  "LinkHints.activate": [ "Open a link in the current tab", 1, false, { mode: "OPEN_IN_CURRENT_TAB" } ],
   "LinkHints.activateModeToOpenInNewTab": [ "Open a link in a new tab", 1, false,
     { mode: "OPEN_IN_NEW_BG_TAB" }, "LinkHints.activate" ],
   "LinkHints.activateModeToOpenInNewForegroundTab": [ "Open a link in a new tab &amp; switch to it", 1, false,
