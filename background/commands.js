@@ -206,7 +206,8 @@ defaultKeyMappings: {
 
 availableCommands: {
   showHelp: [ "Show help", 1, false ],
-  debugBackground: [ "Debug the background page", 1, true ],
+  debugBackground: [ "Debug the background page", 1, true,
+    { reuse: true, url: "chrome://extensions/?id=" + chrome.runtime.id }, "openUrl" ],
   blank: [ "Do nothing", 1, true ],
   toggleLinkHintCharacters: [ "Toggle the other link hints (use value)", 1, false ],
   toggleSwitchTemp: [ "Toggle switch only in currnet page (use key[, value])", 1, false ],
@@ -232,8 +233,8 @@ availableCommands: {
   reloadGivenTab: [ "Reload N-th tab", 0, true ],
   reopenTab: [ "Reopen current page", 1, true ],
   toggleViewSource: [ "View page source", 1, true ],
-  copyCurrentTitle: [ "Copy current tab's title", 1, true ],
-  copyCurrentUrl: [ "Copy current page's URL (use frame=false)", 1, true ],
+  copyCurrentTitle: [ "Copy current tab's title", 1, true, { type: "title" }, "copyTabInfo" ],
+  copyCurrentUrl: [ "Copy page's info (use type=url/frame/title)", 1, true, null, "copyTabInfo" ],
   autoCopy: [ "Copy selected text or current frame's title or url (use url=false)", 1, false ],
   autoOpen: [ "Open selected or copied text in a new tab", 1, false ],
   searchAs: [ "Search selected or copied text using current search engine", 1, false ],
@@ -294,11 +295,11 @@ availableCommands: {
   moveTabToNextWindow: [ "Move tab to next window", 1, true ],
   moveTabToIncognito: [ "Make tab in a incognito window", 1, true ],
   togglePinTab: [ "Pin/unpin current tab", 20, true ],
-  closeTabsOnLeft: [ "Close tabs on the left", 0, true ],
-  closeTabsOnRight: [ "Close tabs on the right", 0, true ],
-  closeOtherTabs: [ "Close all other tabs", 1, true ],
-  moveTabLeft: [ "Move tab to the left", 0, true ],
-  moveTabRight: [ "Move tab to the right", 0, true ],
+  closeTabsOnLeft: [ "Close tabs on the left", 0, true, { dir: -1 }, "closeTabs" ],
+  closeTabsOnRight: [ "Close tabs on the right", 0, true, { dir: 1 }, "closeTabs" ],
+  closeOtherTabs: [ "Close all other tabs", 1, true, null, "closeTabs" ],
+  moveTabLeft: [ "Move tab to the left", 0, true, null, "moveTab" ],
+  moveTabRight: [ "Move tab to the right", 0, true, { dir: 1 }, "moveTab" ],
   enableCSTemp: [ "enable the site's CS temporarily (use type=image)", 1, true, { type: "image" } ],
   toggleCS: [ "turn on/off the site's CS (use type=image)", 1, true, { type: "image" } ],
   clearCS: [ "clear extension's content settings (use type=image)", 1, true, { type: "image" } ],
@@ -323,8 +324,8 @@ availableCommands: {
   "Marks.activate": [ "Go to a mark", 1, false ],
   "Marks.clearLocal": [ "Remove all local marks for this site", 1, false ],
   clearGlobalMarks: [ "Remove all global marks", 1, true ],
-  openUrl: [ "open url (use url, newTab=true)", 20, true ],
-  focusOrLaunch: [ 'focus a tab with arg "url" or open it', 1, true ]
+  openUrl: [ "open url (use url, reuse=-1/0/1)", 20, true ],
+  focusOrLaunch: [ 'focus a tab with arg "url" or open it', 1, true, { reuse: 1 }, "openUrl" ]
 }
 };
 

@@ -728,18 +728,17 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
       }
     },
     openUrl: function() {
-      var url = Utils.convertToUrl(currentCommand.options.url || "");
-      if (currentCommand.options.newTab === false) {
+      var url = Utils.convertToUrl(currentCommand.options.url || ""), reuse;
+      reuse = currentCommand.options.reuse || -1;
+      if (reuse > 0) {
+        return requestHandlers.focusOrLaunch({url: url});
+      } else if (reuse === 0) {
         chrome.tabs.update(null, { url: url }, funcDict.onRuntimeError);
         return;
       }
       chrome.tabs.query({currentWindow: true, active: true}, function(tabs) {
         openMultiTab(url, commandCount, tabs[0]);
       });
-    },
-    focusOrLaunch: function() {
-      var url = Utils.convertToUrl(currentCommand.options.url || "");
-      requestHandlers.focusOrLaunch({url: url});
     },
     togglePinTab: function(tabs) {
       var tab = funcDict.selectFrom(tabs), i = tab.index
@@ -761,8 +760,8 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
         chrome.tabs.reload();
       } else {
         var ind = funcDict.selectFrom(tabs).index;
-        tabs.slice(ind, ind + commandCount).forEach(function(tab1) {
-          chrome.tabs.reload(tab1.id);
+        tabs.slice(ind, ind + commandCount).forEach(function(tab) {
+          chrome.tabs.reload(tab.id);
         });
       }
     },
@@ -803,21 +802,12 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
       }
       chrome.tabs.update(null, {url: url});
     },
-    moveTabLeft: function(tabs) {
-      var tab = funcDict.selectFrom(tabs), index = Math.max(0, tab.index - commandCount);
-      if (!tab.pinned) {
-        while (tabs[index].pinned) { ++index; }
-      }
-      if (index != tab.index) {
-        chrome.tabs.move(tab.id, {index: index});
-      }
-    },
-    moveTabRight: function(tabs) {
-      var tab = funcDict.selectFrom(tabs), index;
-      index = Math.min(tabs.length - 1, tab.index + commandCount);
-      if (tab.pinned) {
-        while (!tabs[index].pinned) { --index; }
-      }
+    moveTab: function(tabs) {
+      var tab = funcDict.selectFrom(tabs), index, dir, pinned;
+      dir = currentCommand.options.dir > 0 ? 1 : -1;
+      index = Math.max(0, Math.min(tabs.length - 1, tab.index + dir * commandCount));
+      pinned = tab.pinned;
+      while (pinned !== tabs[index].pinned) { index -= dir; }
       if (index != tab.index) {
         chrome.tabs.move(tab.id, {index: index});
       }
@@ -853,25 +843,17 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
         frameId: 0
       }, tabs[0].id);
     },
-    closeTabsOnLeft: function(tabs) {
-      funcDict.removeTabsRelative(funcDict.selectFrom(tabs), -commandCount, tabs);
+    closeTabs: function(tabs) {
+      var dir = currentCommand.options.dir | 0;
+      dir = dir > 0 ? 1 : dir < 0 ? -1 : 0;
+      funcDict.removeTabsRelative(funcDict.selectFrom(tabs), dir * commandCount, tabs);
     },
-    closeTabsOnRight: function(tabs) {
-      funcDict.removeTabsRelative(funcDict.selectFrom(tabs), commandCount, tabs);
-    },
-    closeOtherTabs: function(tabs) {
-      funcDict.removeTabsRelative(funcDict.selectFrom(tabs), 0, tabs);
-    },
-    copyCurrentTitle: function(tabs) {
-      var str = tabs[0].title;
-      Clipboard.copy(str);
-      currentCommand.port.postMessage({name: "showCopied", text: str});
-    },
-    copyCurrentUrl: function(tabs) {
+    copyTabInfo: function(tabs) {
       var str;
-      if (currentCommand.options.frame !== true) {
-        str = tabs[0].url;
-      } else if (!needIcon || !(str = urlForTab[tabs[0].id])) {
+      switch (currentCommand.options.type) {
+      case "title": str = tabs[0].title; break;
+      case "frame":
+        if (needIcon && (str = urlForTab[tabs[0].id])) { break; }
         currentCommand.port.postMessage({
           name: "execute",
           command: "autoCopy",
@@ -879,6 +861,7 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
           options: { url: true }
         });
         return;
+      default: str = tabs[0].url; break;
       }
       Clipboard.copy(str);
       currentCommand.port.postMessage({name: "showCopied", text: str});
@@ -887,11 +870,6 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
       var url = tabs[0].url;
       url = url.startsWith("view-source:") ? url.substring(12) : ("view-source:" + url);
       openMultiTab(url, 1, tabs[0]);
-    },
-    debugBackground: function() {
-      requestHandlers.focusOrLaunch({
-        url: "chrome://extensions/?id=" + chrome.runtime.id
-      });
     },
     clearGlobalMarks: function() { Marks.clearGlobal(); }
   };
@@ -1460,15 +1438,15 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
     ref2 = BackgroundCommands;
     for (key in ref2) { ref2[key].useTab = 0; }
     ref = ["gotoTab", "removeTab" //
-      , "closeTabsOnLeft", "closeTabsOnRight", "closeOtherTabs", "removeRightTab" //
-      , "moveTabLeft", "moveTabRight", "togglePinTab", "debugBackground" //
+      , "closeTabs", "removeRightTab" //
+      , "moveTab", "togglePinTab" //
       , "reloadTab", "reloadGivenTab" //
     ];
     for (i = ref.length; 0 <= --i; ) {
       ref2[ref[i]].useTab = 1;
     }
     ref = ["createTab", "restoreTab", "restoreGivenTab", "blank" //
-      , "moveTabToNewWindow", "reloadGivenTab", "openUrl", "focusOrLaunch" //
+      , "moveTabToNewWindow", "reloadGivenTab", "openUrl" //
       , "moveTabToIncognito", "openCopiedUrlInCurrentTab", "clearGlobalMarks" //
     ];
     for (i = ref.length; 0 <= --i; ) {
