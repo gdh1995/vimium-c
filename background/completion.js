@@ -22,7 +22,7 @@ SuggestionUtils = {
     var str = sug.text = _this.shortenUrl(sug.text);
     sug.textSplit = _this.cutUrl(str, _this.getRanges(str), sug.url);
     if (showFavIcon && sug.url.indexOf("://") > 0) {
-      sug.favIconUrl = Utils.escapeAttr(sug.url);
+      sug.favIconUrl = Utils.escapeCssUri(sug.url);
     }
   },
   highlight: function(string, ranges) {

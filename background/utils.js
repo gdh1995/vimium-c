@@ -30,10 +30,11 @@ var exports = {}, Utils = {
     };
     return this.escapeText(s);
   },
-  escapeAttr: function(s) {
-    var escapeRe = /["&<]/g, escapeCallback = function(c, n) {
-      n = c.charCodeAt(0);
-      return n === 38 ? "&amp;" : n === 34 ? "&quot;" : "&lt;";
+  escapeCssUri: function(s) {
+    var escapeRe = /["&'()<]/g, map = {
+      '"': "\\&quot;", "&": "&amp;", "'": "\\'", "(": "\\(", ")": "\\)", "<": "&lt;"
+    }, escapeCallback = function(c) {
+      return map[c[0]];
     };
     this.escapeAttr = function(s) {
       return s.replace(escapeRe, escapeCallback);
