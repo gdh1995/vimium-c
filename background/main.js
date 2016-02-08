@@ -1264,9 +1264,8 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
       return Settings.cache.innerCss;
     },
     omni: function(request, port) {
-      var key = request.query;
       currentCommand.port = port;
-      Completers[request.type].filter(key ? key.split(Utils.spacesRe) : [], request);
+      Completers[request.type].filter(request.query, request);
     },
     getCopiedUrl_f: function(request, port) {
       var url = Clipboard.paste().trim(), arr;

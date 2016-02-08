@@ -690,7 +690,7 @@ searchEngines: {
 };
 
   Completers.MultiCompleter.prototype.filter = function(query, options, callback) {
-    queryTerms = query;
+    queryTerms = query ? query.split(Utils.spacesRe) : [];
     maxCharNum = options.clientWidth > 0 ? Math.min((
         (options.clientWidth * 0.8 - 70) / 7.72) | 0, 200) : 100
     maxResults = Math.min(Math.max(options.maxResults | 0, 3), 25);

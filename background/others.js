@@ -175,7 +175,7 @@ if (chrome.omnibox) setTimeout(function() {
     sessionIds = null;
     last = key;
     lastSuggest = suggest;
-    Completers.omni.filter(key ? key.split(Utils.spacesRe) : [], {
+    Completers.omni.filter(key, {
       maxResults: 6
     }, onComplete.bind(null, suggest));
   };
