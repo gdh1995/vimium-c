@@ -20,7 +20,7 @@ var Marks = {
         storage.removeItem(key);
       }
     }
-    } catch (key) {}
+    } catch (e) {}
     VHUD.showForDuration("Local marks have been cleared.", 1000);
   },
   onKeydown: function(event) {
@@ -66,7 +66,7 @@ var Marks = {
           scrollX: window.scrollX,
           scrollY: window.scrollY
         });
-      } catch (keyChar) {
+      } catch (e) {
         VHUD.showForDuration("Failed to creat local mark (localStorage error)", 2000);
         return;
       }
@@ -97,7 +97,7 @@ var Marks = {
     } else {
       try {
         markString = localStorage[this.getLocationKey(keyChar)];
-      } catch (keyChar) {}
+      } catch (e) {}
       if (markString) {
         position = JSON.parse(markString);
         this.setPreviousPosition();

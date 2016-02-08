@@ -97,7 +97,7 @@ DomUtils.UI = {
         if (0 == element.selectionEnd) {
           element.setSelectionRange(len, len);
         }
-      } catch (len) {}
+      } catch (e) {}
     }
     suppressRepeated === true && this.suppressTail(true);
   },

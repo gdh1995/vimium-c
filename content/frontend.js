@@ -764,7 +764,7 @@ var Settings, VHUD, MainPort, VInsertMode;
     if (findModeQuery.isRe) {
       try {
         pattern = new RegExp(findModeQuery.parsedQuery, "g" + (findModeQuery.ignoreCase ? "i" : ""));
-      } catch (_error) {
+      } catch (e) {
         return;
       }
       text = document.documentElement.innerText;
