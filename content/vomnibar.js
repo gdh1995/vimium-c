@@ -150,8 +150,8 @@ activate: function(_0, options, force_current) {
       this.input.parentElement.classList.remove("OWithList");
       this.selection = -1;
     }
-    this.isSelectionChanged = false;
     this.updateSelection(this.selection);
+    this.isSelectionChanged = false;
   },
   updateInput: function() {
     var focused = this.input.focused;
@@ -167,6 +167,7 @@ activate: function(_0, options, force_current) {
   updateSelection: function(sel) {
     var _ref = this.list.children, old = this.selection;
     this.selection = sel;
+    this.isSelectionChanged = true;
     if (old >= 0 && old < _ref.length) {
       _ref[old].classList.remove("S");
     }
@@ -246,7 +247,6 @@ activate: function(_0, options, force_current) {
     case "blur": this.input.blur(); break;
     case "backspace": document.execCommand("delete"); break;
     case "up": case "down":
-      this.isSelectionChanged = true;
       sel = this.selection;
       if (action === "up") {
         if (sel < 0) sel = this.completions.length;
@@ -452,17 +452,10 @@ activate: function(_0, options, force_current) {
 
   Parse: function(item) {
     var str;
-    if (this.showFavIcon && (str = item.favIconUrl)) {
-      item.favIconUrl = " OIIcon\" style=\"background-image: url('" +
-        (str[0] !== "/" ? str : "chrome://favicon/size/16" + str) + "')";
-    } else {
-      item.favIconUrl = "";
-    }
-    if (this.showRelevancy) {
-      item.relevancy = "\n\t\t\t<span class=\"OIRelevancy\">" + item.relevancy + "</span>";
-    } else {
-      item.relevancy = "";
-    }
+    item.favIconUrl = this.showFavIcon && (str = item.favIconUrl) ?
+      ' OIIcon" style="background-image: url(chrome://favicon/size/16/' + str + ")" : "";
+    item.relevancy = this.showRelevancy ? '\n\t\t\t<span class="OIRelevancy">'
+      + item.relevancy + "</span>" : "";
     item.action = item.hasOwnProperty('sessionId') ? "gotoSession" : "navigateToUrl";
   },
   CleanCompletions: function(list) {
