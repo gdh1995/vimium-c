@@ -365,7 +365,7 @@ vomnibarUI: {
   },
   onTimer: function() {
     this.timer = -1;
-    Vomnibar.background.filter(this.completionInput.url);
+    Vomnibar && Vomnibar.background.filter(this.completionInput.url);
   },
   onCompletions: function(completions) {
     if (this._waitInit) {

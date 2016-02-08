@@ -152,7 +152,7 @@ DomUtils.UI = {
       timer = setInterval(function() {
         if (Date.now() - tick > 150) {
           clearInterval(timer);
-          handlerStack.remove(handlerId);
+          handlerStack && handlerStack.remove(handlerId);
         }
       }, 75);
     }
