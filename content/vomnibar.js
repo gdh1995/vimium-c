@@ -46,11 +46,11 @@ activate: function(_0, options, force_current) {
       start = search.start;
       url = search.url;
       keyword || (keyword = search.keyword);
+    } else if (search === null) {
+      url = Utils.decodeURL(url).replace(/\s$/g, "%20");
     } else {
-      url = search === null ? Utils.decodeURL(url)
-        : Utils.decodeURL(url, decodeURIComponent);
+      url = Utils.decodeURL(url, decodeURIComponent).trim().replace(/\s+/g, " ");
     }
-    url = url.trim().replace(Utils.spacesRe, " ");
     if (keyword) {
       start = (start || 0) + keyword.length + 1;
       this.reset(keyword + " " + url, start, start + url.length);
