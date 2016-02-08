@@ -26,16 +26,15 @@ SuggestionUtils = {
     }
   },
   highlight: function(string, ranges) {
-    var _i, out, start, end;
+    var _i, out, start, end, end2;
     if (ranges.length === 0) { return Utils.escapeText(string); }
     out = [];
     for(_i = 0, end = 0; _i < ranges.length; _i += 2) {
       start = ranges[_i];
-      out.push(Utils.escapeText(string.substring(end, start)));
-      end = ranges[_i + 1];
-      out.push("<span class=\"OSTitle\">");
-      out.push(Utils.escapeText(string.substring(start, end)));
-      out.push("</span>");
+      end2 = ranges[_i + 1];
+      out.push(Utils.escapeText(string.substring(end, start)), '<span class="OSTitle">',
+        Utils.escapeText(string.substring(start, end2)), "</span>");
+      end = end2;
     }
     out.push(Utils.escapeText(string.substring(end)));
     return out.join("");
@@ -94,23 +93,19 @@ SuggestionUtils = {
       if (temp + 20 > start) {
         out.push(Utils.escapeText(string.substring(end, start)));
       } else {
-        out.push(Utils.escapeText(string.substring(end, temp + 10)));
-        out.push("...");
-        out.push(Utils.escapeText(string.substring(start - 6, start)));
+        out.push(Utils.escapeText(string.substring(end, temp + 10)), "...",
+          Utils.escapeText(string.substring(start - 6, start)));
         lenCut += start - temp - 19;
       }
       end = ranges[i + 1];
-      out.push("<span class=\"OSUrl\">");
-      out.push(Utils.escapeText(string.substring(start, end)));
-      out.push("</span>");
+      out.push('<span class="OSUrl">', Utils.escapeText(string.substring(start, end)), "</span>");
     }
     temp = maxCharNum + lenCut;
     if (string.length <= temp) {
       out.push(Utils.escapeText(string.substring(end)));
     } else {
       out.push(Utils.escapeText(string.substring(end,
-        (temp - 3 > end) ? (temp - 3) : (end + 10))));
-      out.push("...");
+        (temp - 3 > end) ? (temp - 3) : (end + 10))), "...");
     }
     return out.join("");
   }

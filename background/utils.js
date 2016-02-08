@@ -21,9 +21,8 @@ var exports = {}, Utils = {
     }
   },
   escapeText: function(s) {
-    var escapeRe = /[&<]/g, escapeCallback = function(c, n) {
-      n = c.charCodeAt(0);
-      return n === 38 ? "&amp;" : "&lt;";
+    var escapeRe = /[&<]/g, escapeCallback = function(c) {
+      return c.charCodeAt(0) === 38 ? "&amp;" : "&lt;";
     };
     this.escapeText = function(s) {
       return s.replace(escapeRe, escapeCallback);
