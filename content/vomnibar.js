@@ -139,7 +139,6 @@ activate: function(_0, options, force_current) {
     this.list.remove();
     this.list.innerHTML = this.renderItems(this.completions);
     this.box.appendChild(this.list);
-    this.CleanCompletions(this.completions);
     if (this.completions.length > 0) {
       this.list.style.display = "";
       this.list.lastElementChild.classList.add("OBItem");
@@ -368,10 +367,11 @@ activate: function(_0, options, force_current) {
       this.completions = completions;
       return;
     }
-    var onCompletions = function(completions) {
+    this.onCompletions = function(completions) {
       completions.forEach(this.Parse);
       this.completions = completions;
       this.populateUI();
+      this.CleanCompletions(completions);
       if (this.timer > 0) { return; }
       this.timer = 0;
       if (this.onUpdate) {
@@ -379,7 +379,6 @@ activate: function(_0, options, force_current) {
         this.onUpdate = null;
       }
     };
-    this.onCompletions = onCompletions;
     this.onCompletions(completions);
   },
   init: function() {
