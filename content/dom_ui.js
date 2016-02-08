@@ -104,9 +104,9 @@ DomUtils.UI = {
   flashOutline: function(clickEl, virtual) {
     var rect, bcr;
     DomUtils.prepareCrop();
-    if (clickEl.classList.contains("OIUrl") && Vomnibar.vomnibarUI.box
-        && Vomnibar.vomnibarUI.box.contains(clickEl)) {
-      rect = Vomnibar.vomnibarUI.computeHint(clickEl.parentElement.parentElement, clickEl);
+    if (clickEl.classList.contains("OIUrl") && Vomnibar.box
+        && Vomnibar.box.contains(clickEl)) {
+      rect = Vomnibar.computeHint(clickEl.parentElement.parentElement, clickEl);
     } else {
       rect = DomUtils.getVisibleClientRect(clickEl);
       bcr = VRect.fromClientRect(clickEl.getBoundingClientRect());

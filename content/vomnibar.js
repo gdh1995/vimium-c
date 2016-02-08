@@ -1,8 +1,8 @@
 "use strict";
 var Vomnibar = {
 activate: function(_0, options, force_current) {
-  var vomnibarUI = this.vomnibarUI, bg = this.background, initialQueryValue, keyword;
-  if (vomnibarUI.init) {
+  var initialQueryValue, keyword;
+  if (this.init) {
     force_current |= 0;
     if (force_current < 2 &&
       MainPort.sendCommandToContainer("Vomnibar.activate", [1, options, force_current])) {
@@ -10,25 +10,23 @@ activate: function(_0, options, force_current) {
     }
     // <svg> document has not head nor body; document with pdf <embed> has body
     if (!document.body) { return false; }
-    var box = DomUtils.createElement("div");
-    bg.parse = bg.parse.bind(bg);
-    vomnibarUI.init(box);
+    this.init();
   }
   Object.setPrototypeOf(options = options || {}, null);
-  bg.name = options.mode || "omni";
-  vomnibarUI.initialSelectionValue = options.first ? 0 : -1;
-  vomnibarUI.forceNewTab = options.force ? true : false;
-  handlerStack.remove(vomnibarUI.handlerId);
-  vomnibarUI.handlerId = handlerStack.push(DomUtils.UI.SuppressMost, vomnibarUI);
+  this.mode.type = options.mode || "omni";
+  this.initialSelectionValue = options.first ? 0 : -1;
+  this.forceNewTab = options.force ? true : false;
+  handlerStack.remove(this.handlerId);
+  this.handlerId = handlerStack.push(DomUtils.UI.SuppressMost, this);
   initialQueryValue = options.url;
   keyword = options.keyword;
   if (initialQueryValue == null) {
-    vomnibarUI.reset(keyword ? keyword + " " : "");
+    this.reset(keyword ? keyword + " " : "");
     return;
   }
   if (initialQueryValue === true) {
     if (initialQueryValue = DomUtils.getSelectionText()) {
-      vomnibarUI.forceNewTab = true;
+      this.forceNewTab = true;
     } else {
       initialQueryValue = window.location.href;
     }
@@ -55,13 +53,12 @@ activate: function(_0, options, force_current) {
     url = url.trim().replace(Utils.spacesRe, " ");
     if (keyword) {
       start = (start || 0) + keyword.length + 1;
-      Vomnibar.vomnibarUI.reset(keyword + " " + url, start, start + url.length);
+      this.reset(keyword + " " + url, start, start + url.length);
     } else {
-      Vomnibar.vomnibarUI.reset(url);
+      this.reset(url);
     }
   },
 
-vomnibarUI: {
   _waitInit: 1,
   box: null,
   completionInput: {
@@ -106,6 +103,7 @@ vomnibarUI: {
     this.onUpdate = null;
     this.completionInput.text = "";
     this.completionInput.url = "";
+    this.mode.query = "";
     this.completions = [];
     VInsertMode.focus = VInsertMode.lockFocus;
   },
@@ -125,7 +123,7 @@ vomnibarUI: {
         window.clearTimeout(this.timer);
       }
       if (updateDelay <= 0) {
-        this.onTimer();
+        this.filter();
         return;
       }
     } else if (this.timer > 0) {
@@ -133,7 +131,7 @@ vomnibarUI: {
     } else {
       updateDelay = this.refreshInterval;
     }
-    this.timer = setTimeout(this.onTimer, updateDelay);
+    this.timer = setTimeout(this.OnTimer, updateDelay);
   },
   populateUI: function() {
     // work-around: For a node in a shadowRoot, if it's in the XML DOM tree,
@@ -141,7 +139,7 @@ vomnibarUI: {
     this.list.remove();
     this.list.innerHTML = this.renderItems(this.completions);
     this.box.appendChild(this.list);
-    Vomnibar.background.cleanCompletions(this.completions);
+    this.CleanCompletions(this.completions);
     if (this.completions.length > 0) {
       this.list.style.display = "";
       this.list.lastElementChild.classList.add("OBItem");
@@ -277,6 +275,7 @@ vomnibarUI: {
   },
   goPage: function(sel) {
     var i, arr, len = this.completions.length,
+    n = this.mode.maxResults,
     str = len ? this.completions[0].type : "", notTab;
     if (str === "search") { return; }
     notTab = str !== "tab";
@@ -284,10 +283,10 @@ vomnibarUI: {
     arr = /(?:^|\s)(\+\d{0,2})$/.exec(str);
     i = (arr && arr[0]) | 0;
     if (i <= 0 || sel > 0) {
-      if (i <= 0 && len <= 0 || len < (notTab ? 10 : 3)) { return; }
-      if (len >= 10 || notTab) { sel *= 10; }
-    } else if (i >= 10 || len >= 10) {
-      sel *= 10;
+      if (i <= 0 && len <= 0 || len < (notTab ? n : 3)) { return; }
+      if (len >= n || notTab) { sel *= n; }
+    } else if (i >= n || len >= n) {
+      sel *= n;
     }
     sel += i;
     sel = sel <= 0 ? 0 : sel >= 50 ? 50 : sel;
@@ -305,7 +304,7 @@ vomnibarUI: {
     this.onInput();
   },
   onEnter: function() {
-    Vomnibar.background.performAction(this.selection === -1 ? this.completionInput
+    this.performAction(this.selection === -1 ? this.completionInput
       : this.completions[this.selection], this.forceNewTab);
     this.hide();
   },
@@ -329,14 +328,14 @@ vomnibarUI: {
     }
     event.preventDefault();
   },
-  onMenu: function (event) {
-    var path = event.path, _i, el;
-    for (_i = 0; (el = path[_i]) !== this.list; ++_i) {
+  OnMenu: function (event) {
+    var path = event.path, _i, el, list = Vomnibar.list;
+    for (_i = 0; (el = path[_i]) !== list; ++_i) {
       if (el.classList.contains("OIUrl")) { break; }
     }
-    if (el === this.list) { return; }
-    _i = [].indexOf.call(this.list.children, el.parentElement.parentElement);
-    el.href = this.completions[_i].url;
+    if (el === list) { return; }
+    _i = [].indexOf.call(list.children, el.parentElement.parentElement);
+    el.href = Vomnibar.completions[_i].url;
   },
   OnSelected: function() {
     var el = this, left;
@@ -349,6 +348,7 @@ vomnibarUI: {
       el.selectionDirection = 'backward';
     }
   },
+  OnTimer: function() { Vomnibar && Vomnibar.filter(); },
   onInput: function() {
     var s1 = this.input.value, str = s1.trimLeft();
     this.completionInput.text = str;
@@ -363,16 +363,13 @@ vomnibarUI: {
     }
     return false;
   },
-  onTimer: function() {
-    this.timer = -1;
-    Vomnibar && Vomnibar.background.filter(this.completionInput.url);
-  },
   onCompletions: function(completions) {
     if (this._waitInit) {
       this.completions = completions;
       return;
     }
     var onCompletions = function(completions) {
+      completions.forEach(this.Parse);
       this.completions = completions;
       this.populateUI();
       if (this.timer > 0) { return; }
@@ -385,22 +382,21 @@ vomnibarUI: {
     this.onCompletions = onCompletions;
     this.onCompletions(completions);
   },
-  init: function(box) {
-    var _this = this, str;
-    this.box = box;
+  init: function() {
+    var box, str;
+    this.box = box = DomUtils.createElement("div");
     box.className = "R";
     box.id = "Omnibar";
     box.style.display = "none";
     MainPort.sendMessage({
       handler: "initVomnibar"
-    }, function(response) { _this.init_dom(response); });
-    this.onTimer = this.onTimer.bind(this);
-    box.addEventListener("click", function (event) { _this.onClick(event); });
+    }, function(response) { Vomnibar.init_dom(response); });
+    box.addEventListener("click", this.onClick.bind(this));
     box.addEventListener("mousewheel", DomUtils.SuppressPropagation);
     if (window.location.protocol.startsWith("chrome") && chrome.runtime.getManifest
         && (str = chrome.runtime.getManifest().permissions)) {
       str = str.join("/");
-      Vomnibar.background.showFavIcon = str.indexOf("<all_urls>") >= 0 ||
+      this.mode.showFavIcon = str.indexOf("<all_urls>") >= 0 ||
           str.indexOf("chrome://favicon/") >= 0;
     }
     this.init = null;
@@ -412,6 +408,7 @@ vomnibarUI: {
     this.list = this.box.querySelector("#OList");
     str = this.box.querySelector("#OITemplate").outerHTML;
     str = str.substring(str.indexOf('>') + 1, str.lastIndexOf('<'));
+    this.Parse = this.Parse.bind(this.mode);
     this.renderItems = Utils.makeListRenderBySplit(str);
     this._waitInit = 0;
     this.init_dom = null;
@@ -423,7 +420,7 @@ vomnibarUI: {
     }
     this.input.oninput = this.onInput.bind(this);
     this.input.onselect = this.OnSelected;
-    this.list.addEventListener("contextmenu", function(event) { _this.onMenu(event); });
+    this.list.addEventListener("contextmenu", this.OnMenu);
   },
   computeHint: function(li, a) {
     var i = [].indexOf.call(this.list.children, li), item, rect;
@@ -434,28 +431,26 @@ vomnibarUI: {
     rect = VRect.fromClientRect(li.getBoundingClientRect());
     rect[0] += 10; rect[2] -= 12; rect[3] -= 3;
     return rect;
-  }
-},
-
-OnCompletions: function(response) {
-  Vomnibar.vomnibarUI.onCompletions(response.list.map(Vomnibar.background.parse));
-},
-background: {
-  name: "",
-  filter: function(query) {
-    MainPort.port.postMessage({
-      handler: "omni",
-      type: this.name,
-      clientWidth: window.innerWidth,
-      showFavIcon: this.showFavIcon,
-      showRelevancy: this.showRelevancy,
-      maxResults: 10,
-      query: query && query.replace(Utils.spacesRe, ' ')
-    });
   },
 
-  showRelevancy: false,
-  parse: function(item) {
+  mode: {
+    handler: "omni",
+    type: "",
+    clientWidth: 0,
+    showRelevancy: false,
+    showFavIcon: false,
+    maxResults: 10,
+    query: ""
+  },
+  filter: function(query) {
+    var mode = this.mode;
+    mode.clientWidth = window.innerWidth,
+    mode.query = this.completionInput.url;
+    this.timer = -1;
+    MainPort.port.postMessage(mode);
+  },
+
+  Parse: function(item) {
     var str;
     if (this.showFavIcon && (str = item.favIconUrl)) {
       item.favIconUrl = " OIIcon\" style=\"background-image: url('" +
@@ -468,11 +463,9 @@ background: {
     } else {
       item.relevancy = "";
     }
-    item.action = item.hasOwnProperty('sessionId') ? "gotoSession"
-      : "navigateToUrl";
-    return item;
+    item.action = item.hasOwnProperty('sessionId') ? "gotoSession" : "navigateToUrl";
   },
-  cleanCompletions: function(list) {
+  CleanCompletions: function(list) {
     for (var _i = list.length, item; 0 <= --_i; ) {
       item = list[_i];
       delete item.textSplit;
@@ -504,5 +497,4 @@ background: {
       });
     }
   }
-}
 };

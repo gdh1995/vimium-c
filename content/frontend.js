@@ -731,9 +731,9 @@ var Settings, VHUD, MainPort, VInsertMode;
         results.push(element);
       }
     }
-    element = Vomnibar.vomnibarUI.box;
+    element = Vomnibar.box;
     if (element && element.style.display !== "none") {
-      results.unshift(Vomnibar.vomnibarUI.input);
+      results.unshift(Vomnibar.input);
     }
     return results;
   };
@@ -1296,7 +1296,7 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483644
       var arr = Utils.findCommand(Commands, request.command);
       arr[0][arr[1]](args[0], args[1], args[2]);
     },
-    omni: Vomnibar.OnCompletions,
+    omni: function(response) { Vomnibar.onCompletions(response.list); },
     createMark: Marks.CreateGlobalMark,
     scroll: Marks.Goto,
     showHUD: function(request) {
