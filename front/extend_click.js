@@ -38,7 +38,7 @@ EventTarget.prototype.addEventListener = function(type, listener, useCapture) {
 handler = function() {
   window.removeEventListener("DOMContentLoaded", handler, true);
   clearTimeout(timeout);
-  container = document.createElementNS("http://www.w3.org/1999/xhtml", "div");
+  container = document.createElement("div");
   document.documentElement.appendChild(container);
   container.dispatchEvent(new CustomEvent("VimiumReg"));
   container.remove();

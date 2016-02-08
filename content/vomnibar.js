@@ -48,7 +48,7 @@ activate: function(_0, options, force_current) {
       keyword || (keyword = search.keyword);
     } else {
       url = search === null ? Utils.decodeURL(url)
-        : Utils.decodeURL(url, window.decodeURIComponent);
+        : Utils.decodeURL(url, decodeURIComponent);
     }
     url = url.trim().replace(Utils.spacesRe, " ");
     if (keyword) {

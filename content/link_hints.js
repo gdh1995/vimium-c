@@ -776,7 +776,7 @@ FUNC: {
         str = (link.value || link.placeholder).trim();
       } else if (str === "file") {
         str = link.files.length > 0 ? link.files[0].name : "";
-      } else if ("button submit reset".indexOf(str) >= 0) {
+      } else if (["button", "submit", "reset"].indexOf(str) >= 0) {
         str = link.value.trim() || link.title.trim();
       } else {
         str = link.title.trim(); // including `[type="image"]`

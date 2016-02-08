@@ -80,7 +80,7 @@ Settings.onDestroy.injected = function() {
   window.removeEventListener("unload", this.onUnload);
   window.removeEventListener("hashchange", Settings.RequestHandlers.checkIfEnabled);
   try {
-    this.onMessage && chrome.runtime.onMessageExternal.removeListener(this.onMessage);
+    chrome.runtime.onMessageExternal.removeListener(this.onMessage);
   } catch (e) {}
   if (MainPort.port) {
     try {
