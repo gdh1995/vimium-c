@@ -1,6 +1,7 @@
 "use strict";
 (function() {
   var insertLocation, arr;
+  if (!chrome.runtime.getManifest) { return; }
   insertLocation = document.querySelector('script[src$="loader.js"]') || document.head.firstChild;
   arr = chrome.runtime.getManifest().content_scripts[0].js;
   arr.pop();
