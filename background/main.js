@@ -1350,6 +1350,7 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
       count = 1;
     }
     reg = Commands.availableCommands[command];
+    options && typeof options === "object" || (options = null);
     executeCommand(command, Commands.makeCommand(command, options, reg), count, null);
   };
   if (chrome.commands) setTimeout(function() {
@@ -1375,7 +1376,7 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
         currentCount = message.count;
       }
       options = message.options;
-      funcDict.globalCommand(command, typeof options === "object" ? options : null);
+      funcDict.globalCommand(command, options);
       break;
     case "content_scripts":
       sendResponse(Settings.CONST.ContentScripts);
