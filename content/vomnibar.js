@@ -80,9 +80,9 @@ activate: function(_0, options, force_current) {
   selection: -1,
   timer: 0,
   show: function() {
-    DomUtils.UI.addElement(this.box);
     this.box.style.display = "";
     this.input.value = this.completionInput.text;
+    DomUtils.UI.addElement(this.box);
     VInsertMode.heldEl = this.input;
     if (DomUtils.UI.container.style.display !== "none") {
       this.input.focus();
@@ -246,14 +246,8 @@ activate: function(_0, options, force_current) {
     case "blur": this.input.blur(); break;
     case "backspace": document.execCommand("delete"); break;
     case "up": case "down":
-      sel = this.selection;
-      if (action === "up") {
-        if (sel < 0) sel = this.completions.length;
-        sel -= 1;
-      } else {
-        sel += 1;
-        if (sel >= this.completions.length) sel = -1;
-      }
+      sel = this.completions.length + 1;
+      sel = (sel + 1 + this.selection + (action === "up" ? -1 : 1)) % sel - 1;
       this.updateSelection(sel);
       this.updateInput();
       break;
@@ -261,11 +255,12 @@ activate: function(_0, options, force_current) {
       this.goPage(action === "pageup" ? -1 : 1);
       break;
     case "enter":
+      sel = this.selection;
       if (this.timer) {
-        if (this.selection === -1 || !this.isSelectionChanged) {
+        if (sel === -1 || !this.isSelectionChanged) {
           this.update(0, this.onEnter);
         }
-      } else if (this.selection >= 0 || this.completionInput.url.length > 0) {
+      } else if (sel >= 0 || this.completionInput.url.length > 0) {
         this.onEnter();
       }
       break;
