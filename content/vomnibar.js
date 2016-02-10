@@ -105,7 +105,6 @@ activate: function(_0, options, force_current) {
     this.completionInput.url = "";
     this.mode.query = "";
     this.completions = [];
-    VInsertMode.focus = VInsertMode.lockFocus;
   },
   reset: function(input, start, end) {
     input || (input = "");
@@ -415,6 +414,7 @@ activate: function(_0, options, force_current) {
     }
     this.input.oninput = this.onInput.bind(this);
     this.input.onselect = this.OnSelected;
+    this.box.querySelector("#OClose").onclick = function() { Vomnibar.hide(); };
     this.list.addEventListener("contextmenu", this.OnMenu);
   },
   computeHint: function(li, a) {
