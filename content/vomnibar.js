@@ -298,8 +298,9 @@ activate: function(_0, options, force_current) {
     this.onInput();
   },
   onEnter: function() {
-    this.performAction(this.selection === -1 ? this.completionInput
-      : this.completions[this.selection], this.forceNewTab);
+    var sel = this.selection, item, action;
+    item = sel >= 0 ? this.completions[sel] : this.completionInput;
+    this.completionActions[item.action].call(item, this.forceNewTab);
     this.hide();
   },
   onClick: function(event) {
@@ -460,11 +461,6 @@ activate: function(_0, options, force_current) {
       delete item.favIconUrl;
       delete item.relevancy;
     }
-  },
-  performAction: function(item, arg) {
-    var action = this.completionActions[item.action] || item.action;
-    if (typeof action !== "function") return;
-    return action.call(item, arg);
   },
   completionActions: {
     navigateToUrl: function(openInNewTab) {
