@@ -18,10 +18,10 @@ var title_fix = (function() {
 		return text ? text.replace(escapeRe, escapeCallback) : "";
 	}
 })();
-var I18n = Lang['zh_CN'];
-function getI18nMsg(msgname) {
+var I18n = window.Lang && Lang['zh_CN'];
+var getI18nMsg = I18n ? function getI18nMsg(msgname) {
 	return I18n[msgname] || msgname;
-}
+} : function(a) { return a; };
 function isMouseMoveContains(e, parent) {
 	var child = e.relatedTarget || (e.type == 'mouseout' ? e.toElement : e.fromElement);
 	return isContains(child, parent)
