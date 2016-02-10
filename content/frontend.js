@@ -1112,7 +1112,7 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483644
         el.className = "R";
         el.id = "HUD";
         el.style.opacity = 0;
-        el.style.display = "none";
+        el.style.visibility = "hidden";
         DomUtils.UI.addElement(this._element = el);
       } else if (this.durationTimer) {
         clearTimeout(this.durationTimer);
@@ -1128,7 +1128,7 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483644
     tween: function() {
       var hud = HUD, el = hud._element, opacity = +el.style.opacity;
       if (opacity !== hud.opacity) {
-        if (opacity === 0) { el.style.display = ""; }
+        if (opacity === 0) { el.style.visibility = ""; }
         opacity += opacity < hud.opacity ? 0.25 : -0.25;
         el.style.opacity = opacity;
         if (opacity !== hud.opacity) {
@@ -1136,7 +1136,7 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483644
         }
       }
       if (opacity == 0) {
-        el.style.display = "none";
+        el.style.visibility = "hidden";
         el.textContent = "";
       }
       clearInterval(hud.tweenId);
@@ -1153,7 +1153,7 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483644
         clearInterval(hud.tweenId);
         hud.tweenId = 0;
         el = hud._element;
-        el.style.display = "none";
+        el.style.visibility = "hidden";
         el.textContent = "";
         el.style.opacity = 0;
       } else if (!hud.tweenId && hud._element) {
