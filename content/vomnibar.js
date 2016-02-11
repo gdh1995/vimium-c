@@ -63,9 +63,7 @@ activate: function(_0, options, force_current) {
   box: null,
   completionInput: {
     url: "",
-    text: "",
-    type: "input",
-    action: "navigateToUrl"
+    text: ""
   },
   completions: null,
   forceNewTab: false,
@@ -298,7 +296,10 @@ activate: function(_0, options, force_current) {
   },
   onEnter: function() {
     var sel = this.selection, item, action;
-    item = sel >= 0 ? this.completions[sel] : this.completionInput;
+    item = sel >= 0 ? this.completions[sel] : {
+      url: this.completionInput.url,
+      action: "navigateToUrl"
+    };
     this.hide();
     this.completionActions[item.action].call(item, this.forceNewTab);
   },
