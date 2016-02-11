@@ -319,6 +319,9 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
       }
     },
 
+    getCurTab: chrome.tabs.query.bind(chrome.tabs, {currentWindow: true, active: true}),
+    getCurTabs: chrome.tabs.query.bind(chrome.windows, {currentWindow: true}),
+    
     openUrlInIncognito: function(request, tab, wnds) {
       wnds = wnds.filter(funcDict.isIncNor);
       request.active = (request.active !== false);
@@ -591,7 +594,7 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
     },
     focusOrLaunch: function(request, tabs) {
       if (!tabs || tabs.length === 0) {
-        chrome.tabs.query({currentWindow: true, active: true}, function(tabs) {
+        funcDict.getCurTab(function(tabs) {
           var tab = tabs[0];
           // TODO: how to wait for tab finishing to load
           chrome.tabs.create(tab ? {
@@ -729,7 +732,7 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
         chrome.tabs.update(null, { url: url }, funcDict.onRuntimeError);
         return;
       }
-      chrome.tabs.query({currentWindow: true, active: true}, function(tabs) {
+      funcDict.getCurTab(function(tabs) {
         if (reuse === -2) { tabs[0].active = false; }
         openMultiTab(url, commandCount, tabs[0]);
       });
@@ -764,7 +767,7 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
         chrome.tabs.reload();
         return;
       }
-      chrome.tabs.query({currentWindow: true}, function(tabs) {
+      funcDict.getCurTabs(function(tabs) {
         var tab = tabs[funcDict.selectFrom(tabs).index + commandCount - 1];
         if (tab) {
           chrome.tabs.reload(tab.id);
@@ -914,7 +917,7 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
       request = request.request;
       func = requestHandlers[request.handler];
       if (func.useTab) {
-        chrome.tabs.query({currentWindow: true, active: true}, function(ts) {
+        funcDict.getCurTab(function(ts) {
           port.postMessage({_msgId: id, response: func(request, ts)});
         });
       } else {
@@ -936,7 +939,7 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
       func = requestHandlers[key];
       if (func.useTab) {
         cPort = port;
-        chrome.tabs.query({currentWindow: true, active: true}, func.bind(null, request));
+        funcDict.getCurTab(func.bind(null, request));
       } else {
         func(request, port);
       }
@@ -1042,9 +1045,9 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
     commandCount = count;
     count = func.useTab;
     if (count === 1) {
-      chrome.tabs.query({currentWindow: true}, func);
+      funcDict.getCurTabs(func);
     } else if (count !== -1) {
-      chrome.tabs.query({currentWindow: true, active: true}, func);
+      funcDict.getCurTab(func);
     } else {
       func();
     }
@@ -1303,8 +1306,7 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
     BackgroundCommands.createTab = Utils.isRefusingIncognito(url)
     ? chrome.windows.getCurrent.bind(chrome.windows, {populate: true}
         , funcDict.createTab[0].bind(url))
-    : chrome.tabs.query.bind(chrome.tabs, {currentWindow: true, active: true}
-        , funcDict.createTab[5].bind(url));
+    : funcDict.getCurTab.bind(null, funcDict.createTab[5].bind(url));
     BackgroundCommands.createTab.useTab = -1;
   };
 
@@ -1330,7 +1332,7 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
     if (currentFirst !== null) {
       count = currentFirst ? 1 : (currentCount || 1);
       resetKeys();
-      chrome.tabs.query({currentWindow: true, active: true}, function(tabs) {
+      funcDict.getCurTab(function(tabs) {
         sendToTab({ name: "refreshKeyQueue", currentFirst: null }, tabs[0].id);
       });
     } else {
