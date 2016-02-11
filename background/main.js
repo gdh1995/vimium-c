@@ -720,9 +720,11 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
     },
     openUrl: function() {
       var url = Utils.convertToUrl(cOptions.url || ""), reuse;
-      reuse = cOptions.reuse || -1;
+      reuse = cOptions.reuse;
+      reuse == null && (reuse = -1);
       if (reuse > 0) {
-        return requestHandlers.focusOrLaunch({url: url});
+        requestHandlers.focusOrLaunch({url: url});
+        return;
       } else if (reuse === 0) {
         chrome.tabs.update(null, { url: url }, funcDict.onRuntimeError);
         return;
