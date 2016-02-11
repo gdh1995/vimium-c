@@ -48,10 +48,10 @@ TabRecency = {
       }
       last = tabId; time = now;
     });
-    chrome.tabs.query({currentWindow: true, active: true}, function(tab) {
+    chrome.tabs.query({currentWindow: true, active: true}, function(tabs) {
       time = Date.now();
       if (chrome.runtime.lastError) { return chrome.runtime.lastError; }
-      last = tab.id;
+      last = tabs[0] ? tabs[0].id : chrome.tabs.TAB_ID_NONE;
     });
     _this.tabs = cache;
     _this.last = function() { return last; };
