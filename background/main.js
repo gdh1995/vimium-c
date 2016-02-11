@@ -919,13 +919,7 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
     if (id = request._msgId) {
       request = request.request;
       func = requestHandlers[request.handler];
-      if (func.useTab) {
-        funcDict.getCurTab(function(ts) {
-          port.postMessage({_msgId: id, response: func(request, ts)});
-        });
-      } else {
-        port.postMessage({_msgId: id, response: func(request)})
-      }
+      port.postMessage({_msgId: id, response: func(request)})
     }
     else if (key = request.handlerKey) {
       // NOTE: here is a race condition which is now ignored totally
@@ -940,12 +934,7 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
     }
     else if (key = request.handler) {
       func = requestHandlers[key];
-      if (func.useTab) {
-        cPort = port;
-        funcDict.getCurTab(func.bind(null, request));
-      } else {
-        func(request, port);
-      }
+      func(request, port);
     }
     else if (key = request.handlerSettings) {
       var i, ref;
@@ -1056,8 +1045,7 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
     }
   };
 
-  // Signature: function(request, opt);
-  // opt: Tab [1] tabs = [selected] <% if .useTab is 1 else %> Port port
+  // function (request, port);
   g_requestHandlers = requestHandlers = {
     setSetting: function(request) {
       var key = request.key;
@@ -1406,15 +1394,6 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
     Settings.postUpdate("searchUrl", null); // will also update newTabUrl
 
     var ref, i, ref2, key;
-    ref2 = requestHandlers;
-    for (key in ref2) { ref2[key].useTab = 0; }
-    ref = [ //
-       //
-    ];
-    for (i = ref.length; 0 <= --i; ) {
-      ref2[ref[i]].useTab = 1;
-    }
-
     ref2 = BackgroundCommands;
     for (key in ref2) { ref2[key].useTab = 0; }
     ref = ["gotoTab", "removeTab" //
