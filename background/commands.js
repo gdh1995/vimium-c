@@ -324,7 +324,7 @@ availableCommands: {
   "Marks.activate": [ "Go to a mark", 1, false ],
   "Marks.clearLocal": [ "Remove all local marks for this site", 1, false ],
   clearGlobalMarks: [ "Remove all global marks", 1, true ],
-  openUrl: [ "open url (use url, reuse=-1/0/1)", 20, true ],
+  openUrl: [ "open url (use url, reuse=[-2..1])", 20, true ],
   focusOrLaunch: [ 'focus a tab with arg "url" or open it', 1, true, { reuse: 1 }, "openUrl" ]
 }
 };

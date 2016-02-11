@@ -730,6 +730,7 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
         return;
       }
       chrome.tabs.query({currentWindow: true, active: true}, function(tabs) {
+        if (reuse === -2) { tabs[0].active = false; }
         openMultiTab(url, commandCount, tabs[0]);
       });
     },
@@ -1126,14 +1127,16 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
       url += encodeURIComponent(request.url);
       openMultiTab(url, 1, tab);
     },
-    openUrlInNewTab: function(request, tabs) {
-      var tab = tabs[0], url = Utils.convertToUrl(request.url, request.keyword, 2);
+    openUrl: function(request) {
+      request.url = Utils.convertToUrl(request.url, request.keyword, 2);
+      request.keyword = "";
       if (Utils.lastUrlType === 5) {
-        funcDict.onEvalUrl2(url);
+        funcDict.onEvalUrl2(request.url);
         return;
       }
-      if (request.active === false) { tab.active = false; }
-      openMultiTab(url, 1, tab);
+      commandCount = 1;
+      cOptions = request;
+      BackgroundCommands.openUrl();
     },
     openUrlInIncognito: function(request, tabs) {
       request.url = Utils.convertToUrl(request.url, request.keyword, 2);
@@ -1143,17 +1146,6 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
       }
       request.keyword = "";
       chrome.windows.getAll(funcDict.openUrlInIncognito.bind(null, request, tabs[0]));
-    },
-    openUrlInCurrentTab: function(request, port) {
-      var url = Utils.convertToUrl(request.url, request.keyword, 2);
-      if (Utils.lastUrlType === 5) {
-        cPort = port;
-        funcDict.onEvalUrl2(url);
-        return;
-      }
-      chrome.tabs.update(null, {
-        url: url
-      }, funcDict.onRuntimeError);
     },
     dispatchCommand: function(request, port) {
       var frames = frameIdsForTab[request.tabId];
@@ -1420,7 +1412,7 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
     var ref, i, ref2, key;
     ref2 = requestHandlers;
     for (key in ref2) { ref2[key].useTab = 0; }
-    ref = ["openUrlInNewTab", "openUrlInIncognito" //
+    ref = ["openUrlInIncognito" //
       , "openImageUrl", "createMark" //
     ];
     for (i = ref.length; 0 <= --i; ) {

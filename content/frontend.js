@@ -497,7 +497,7 @@ var Settings, VHUD, MainPort, VInsertMode;
       var str;
       if (str = DomUtils.getSelectionText()) {
         Utils.evalIfOK(str) || mainPort.port.postMessage({
-          handler: "openUrlInNewTab",
+          handler: "openUrl",
           keyword: options.keyword,
           url: str
         });
@@ -509,7 +509,7 @@ var Settings, VHUD, MainPort, VInsertMode;
       }, function(str) {
         if (str) {
           Utils.evalIfOK(str) || mainPort.port.postMessage({
-            handler: "openUrlInNewTab",
+            handler: "openUrl",
             url: str
           });
         } else {

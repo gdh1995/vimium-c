@@ -192,18 +192,11 @@ if (chrome.omnibox) setTimeout(function() {
       }
       return;
     }
-    switch (disposition) {
-    case "currentTab":
-      g_requestHandlers.openUrlInCurrentTab({ url: text });
-      break;
-    case "newForegroundTab": case "newBackgroundTab":
-      chrome.tabs.query({currentWindow: true, active: true},
-      g_requestHandlers.openUrlInNewTab.bind(null, {
-        active: disposition === "newForegroundTab",
-        url: text
-      }));
-      break;
-    }
+    g_requestHandlers.openUrl({
+      url: text,
+      reuse: (disposition === "currentTab" ? 0
+        : disposition === "newForegroundTab" ? -1 : -2)
+    });
   });
 }, 1500);
 

@@ -466,7 +466,8 @@ activate: function(_0, options, force_current) {
     navigateToUrl: function(openInNewTab) {
       if (Utils.evalIfOK(this.url)) { return; }
       MainPort.port.postMessage({
-        handler: (openInNewTab ? "openUrlInNewTab" : "openUrlInCurrentTab"),
+        handler: "openUrl",
+        reuse: -openInNewTab,
         url: this.url
       });
     },

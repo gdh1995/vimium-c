@@ -800,8 +800,8 @@ FUNC: {
       return;
     } else if ((this.mode & ~64) === this.CONST.SEARCH_TEXT) {
       MainPort.port.postMessage({
-        handler: "openUrlInNewTab",
-        active: !(this.mode & 64),
+        handler: "openUrl",
+        reuse: -2 + !(this.mode & 64),
         keyword: this.options.keyword,
         url: str
       });
