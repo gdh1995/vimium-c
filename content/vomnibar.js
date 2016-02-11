@@ -61,10 +61,7 @@ activate: function(_0, options, force_current) {
 
   _waitInit: 1,
   box: null,
-  completionInput: {
-    url: "",
-    text: ""
-  },
+  inputText: "",
   completions: null,
   forceNewTab: false,
   handlerId: 0,
@@ -79,7 +76,7 @@ activate: function(_0, options, force_current) {
   timer: 0,
   show: function() {
     this.box.style.display = "";
-    this.input.value = this.completionInput.text;
+    this.input.value = this.inputText;
     DomUtils.UI.addElement(this.box);
     VInsertMode.heldEl = this.input;
     if (DomUtils.UI.container.style.display !== "none") {
@@ -99,15 +96,14 @@ activate: function(_0, options, force_current) {
     handlerStack.remove(this.handlerId);
     this.handlerId = 0;
     this.onUpdate = null;
-    this.completionInput.text = "";
-    this.completionInput.url = "";
+    this.inputText = "";
     this.mode.query = "";
     this.completions = [];
   },
   reset: function(input, start, end) {
     input || (input = "");
-    this.completionInput.text = input;
-    this.completionInput.url = input.trimRight();
+    this.inputText = input;
+    this.mode.query = input.trimRight();
     this.update(0, input && start <= end ? function() {
       this.show();
       this.input.setSelectionRange(start, end);
@@ -154,7 +150,7 @@ activate: function(_0, options, force_current) {
     if (this.selection === -1) {
       this.input.focus();
       this.input.focused = focused;
-      this.input.value = this.completionInput.text;
+      this.input.value = this.inputText;
     } else {
       if (!focused) this.input.blur();
       this.input.value = this.completions[this.selection].text;
@@ -257,7 +253,7 @@ activate: function(_0, options, force_current) {
         if (sel === -1 || !this.isSelectionChanged) {
           this.update(0, this.onEnter);
         }
-      } else if (sel >= 0 || this.completionInput.url.length > 0) {
+      } else if (sel >= 0 || this.mode.query.length > 0) {
         this.onEnter();
       }
       break;
@@ -270,7 +266,7 @@ activate: function(_0, options, force_current) {
     str = len ? this.completions[0].type : "", notTab;
     if (str === "search") { return; }
     notTab = str !== "tab";
-    str = this.completionInput.text;
+    str = this.inputText;
     arr = /(?:^|\s)(\+\d{0,2})$/.exec(str);
     i = (arr && arr[0]) | 0;
     if (i <= 0 || sel > 0) {
@@ -296,10 +292,8 @@ activate: function(_0, options, force_current) {
   },
   onEnter: function() {
     var sel = this.selection, item, action;
-    item = sel >= 0 ? this.completions[sel] : {
-      url: this.completionInput.url,
-      action: "navigateToUrl"
-    };
+    item = sel >= 0 ? this.completions[sel]
+      : { url: this.mode.query, action: "navigateToUrl" };
     this.hide();
     this.completionActions[item.action].call(item, this.forceNewTab);
   },
@@ -346,14 +340,14 @@ activate: function(_0, options, force_current) {
   OnTimer: function() { Vomnibar && Vomnibar.filter(); },
   onInput: function() {
     var s1 = this.input.value, str = s1.trimLeft();
-    this.completionInput.text = str;
+    this.inputText = str;
     if ((str = str.trimRight()) !== ((this.selection === -1 || !this.isSelectionChanged)
-          ? this.completionInput.url : this.completions[this.selection].text)) {
+          ? this.mode.query : this.completions[this.selection].text)) {
       // here's no race condition
       if (this.input.selectionStart === s1.length && s1.endsWith(" +")) {
         return;
       }
-      this.completionInput.url = str;
+      this.mode.query = str;
       this.update();
     }
     return false;
@@ -441,7 +435,7 @@ activate: function(_0, options, force_current) {
   filter: function(query) {
     var mode = this.mode;
     mode.clientWidth = window.innerWidth,
-    mode.query = this.completionInput.url;
+    mode.query = this.mode.query;
     this.timer = -1;
     MainPort.port.postMessage(mode);
   },
