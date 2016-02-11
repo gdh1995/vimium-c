@@ -1041,7 +1041,6 @@ var Settings, VHUD, MainPort, VInsertMode;
       else if (DomUtils.isSandboxed() || window.innerWidth < 3 || window.innerHeight < 3) {
         mainPort.port.postMessage({
           handler: "nextFrame",
-          tabId: ELs.focusMsg.tabId,
           frameId: frameId
         });
         return;

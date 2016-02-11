@@ -428,9 +428,10 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
       tabs[0].id = undefined;
       openMultiTab(this, commandCount, tabs[0]);
     }],
-    duplicateTab: [function(tab, wnd) {
+    duplicateTab: [function(tabId, wnd) {
+      var tab = wnd.tabs.filter(function(tab) { return tab.id === tabId; })[0];
       if (wnd.incognito && !tab.incognito) {
-        funcDict.duplicateTab[1](tab.id);
+        funcDict.duplicateTab[1](tabId);
       } else {
         ++tab.index;
         tab.active = false;
@@ -632,10 +633,12 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
     */
   BackgroundCommands = {
     createTab: function() {},
-    duplicateTab: function(tabs) {
-      chrome.tabs.duplicate(tabs[0].id);
+    duplicateTab: function() {
+      var tabId = TabRecency.last();
+      chrome.tabs.duplicate(tabId);
       if (--commandCount > 0) {
-        chrome.windows.get(tabs[0].windowId, funcDict.duplicateTab[0].bind(null, tabs[0]));
+        chrome.windows.getCurrent({populate: true},
+        funcDict.duplicateTab[0].bind(null, tabId));
       }
     },
     moveTabToNewWindow: chrome.windows.getCurrent.bind(chrome.windows
@@ -812,8 +815,8 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
         chrome.tabs.move(tab.id, {index: index});
       }
     },
-    nextFrame: function(tabs, frameId) {
-      var tabId = tabs[0].id, frames = frameIdsForTab[tabId], count;
+    nextFrame: function(frameId) {
+      var tabId = TabRecency.last(), frames = frameIdsForTab[tabId], count;
       if (frames && frames.length > 2) {
         if (frameId >= 0) {
           count = 0;
@@ -836,12 +839,10 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
       });
     },
     mainFrame: function(tabs) {
-      if (tabs.length <= 0) { return; }
-      // NOTE: need not check if registered
       sendToTab({
         name: "focusFrame",
         frameId: 0
-      }, tabs[0].id);
+      }, TabRecency.last());
     },
     closeTabs: function(tabs) {
       var dir = cOptions.dir | 0;
@@ -1220,7 +1221,7 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
     },
     nextFrame: function(request, port) {
       cPort = port;
-      BackgroundCommands.nextFrame([{id: request.tabId}], request.frameId);
+      BackgroundCommands.nextFrame(request.frameId);
     },
     initHelp: function(request) {
       return {
@@ -1402,8 +1403,8 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
     for (i = ref.length; 0 <= --i; ) {
       ref2[ref[i]].useTab = 1;
     }
-    ref = ["createTab", "restoreTab", "restoreGivenTab", "blank" //
-      , "moveTabToNewWindow", "reloadGivenTab", "openUrl" //
+    ref = ["createTab", "restoreTab", "restoreGivenTab", "blank", "duplicateTab" //
+      , "moveTabToNewWindow", "reloadGivenTab", "openUrl", "nextFrame", "mainFrame" //
       , "moveTabToIncognito", "openCopiedUrlInCurrentTab", "clearGlobalMarks" //
     ];
     for (i = ref.length; 0 <= --i; ) {
