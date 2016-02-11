@@ -155,14 +155,13 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
           scope: tab.incognito ? "incognito_session_only" : "regular",
           setting: (opt && opt.setting === "allow") ? "block" : "allow"
         }, function() {
-          var tabId = tab.id;
           if (tab.incognito || currentCommand.options.action === "reopen") {
             ++tab.index;
             funcDict.reopenTab(tab);
           } else if (tab.index > 0) {
-            funcDict.refreshTab[0](tabId);
+            funcDict.refreshTab[0](tab.id);
           } else {
-            chrome.tabs.reload(tabId);
+            chrome.tabs.reload(tab.id);
           }
         });
       });
