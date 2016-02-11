@@ -1,27 +1,24 @@
 "use strict";
 var Clipboard = {
-  textArea: null,
-  getTextArea: function() {
-    var el = this.textArea;
-    if (! el) {
-      el = this.textArea = document.createElement("textarea");
-      el.style.position = "absolute";
-      el.style.left = "-100%";
-    }
+  _getTextArea: function() {
+    var el = document.createElement("textarea");
+    el.style.position = "absolute";
+    el.style.left = "-100%";
+    this._getTextArea = function() { return el; }
     return el;
   },
   copy: function(data) {
-    var textArea = this.getTextArea();
+    var textArea = this._getTextArea();
     textArea.value = data;
-    document.documentElement.appendChild(textArea);
+    document.body.appendChild(textArea);
     textArea.select();
     document.execCommand("Copy");
     textArea.remove();
     textArea.value = "";
   },
   paste: function() {
-    var textArea = this.getTextArea(), value;
-    document.documentElement.appendChild(textArea);
+    var textArea = this._getTextArea(), value;
+    document.body.appendChild(textArea);
     textArea.focus();
     document.execCommand("Paste");
     value = textArea.value;
