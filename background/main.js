@@ -156,10 +156,10 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
           setting: (opt && opt.setting === "allow") ? "block" : "allow"
         }, function() {
           var tabId = tab.id;
-          if (currentCommand.options.action === "reopen") {
+          if (tab.incognito || currentCommand.options.action === "reopen") {
             ++tab.index;
             funcDict.reopenTab(tab);
-          } else if (tab.index > 0 && !tab.incognito) {
+          } else if (tab.index > 0) {
             funcDict.refreshTab[0](tabId);
           } else {
             chrome.tabs.reload(tabId);
