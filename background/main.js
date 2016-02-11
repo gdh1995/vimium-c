@@ -1123,15 +1123,15 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
     restoreSession: function(request) {
       chrome.sessions.restore(request.sessionId, funcDict.onRuntimeError);
     },
-    openImageUrl: function(request, tabs) {
-      var tab = tabs[0], url;
-      if (request.active === false) { tab.active = false; }
-      url = "/pages/show.html#!image ";
+    openImageUrl: function(request) {
+      var url = "/pages/show.html#!image ";
       if (request.download) {
         url += "download=" + encodeURIComponent(request.download) + "&";
       }
       url += encodeURIComponent(request.url);
-      openMultiTab(url, 1, tab);
+      commandCount = 1;
+      cOptions = { url_f: url, reuse: request.active === false ? -2 : -1 };
+      BackgroundCommands.openUrl();
     },
     openUrl: function(request) {
       request.url_f = Utils.convertToUrl(request.url, request.keyword, 2);
@@ -1409,7 +1409,7 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
     ref2 = requestHandlers;
     for (key in ref2) { ref2[key].useTab = 0; }
     ref = [ //
-      "openImageUrl" //
+       //
     ];
     for (i = ref.length; 0 <= --i; ) {
       ref2[ref[i]].useTab = 1;
