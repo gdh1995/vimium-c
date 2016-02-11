@@ -1127,7 +1127,7 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
       if (request.active === false) { tab.active = false; }
       url = "/pages/show.html#!image ";
       if (request.download) {
-        url += "download=" + request.download + "&";
+        url += "download=" + encodeURIComponent(request.download) + "&";
       }
       url += encodeURIComponent(request.url);
       openMultiTab(url, 1, tab);
