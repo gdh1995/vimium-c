@@ -184,19 +184,17 @@ if (chrome.omnibox) setTimeout(function() {
     if (text === last && firstUrl) { text = firstUrl; }
     var sessionId = sessionIds && sessionIds[text];
     clean();
-    if (sessionId != null) {
-      if (typeof sessionId === "number") {
-        g_requestHandlers.selectTab({ tabId: sessionId });
-      } else {
-        g_requestHandlers.restoreSession({ sessionId: sessionId });
-      }
-      return;
+    if (sessionId == null) {
+      g_requestHandlers.openUrl({
+        url: text,
+        reuse: (disposition === "currentTab" ? 0
+          : disposition === "newForegroundTab" ? -1 : -2)
+      });
+    } else if (typeof sessionId === "number") {
+      g_requestHandlers.selectTab({ tabId: sessionId });
+    } else {
+      g_requestHandlers.restoreSession({ sessionId: sessionId });
     }
-    g_requestHandlers.openUrl({
-      url: text,
-      reuse: (disposition === "currentTab" ? 0
-        : disposition === "newForegroundTab" ? -1 : -2)
-    });
   });
 }, 1500);
 
