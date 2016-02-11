@@ -2,7 +2,7 @@
 var Marks, Clipboard, Completers, Commands, g_requestHandlers;
 (function() {
   var BackgroundCommands, ContentSettings, checkKeyQueue, commandCount //
-    , currentCount, currentFirst, currentCommand, executeCommand, extForTab
+    , cOptions, cPort, currentCount, currentFirst, executeCommand, extForTab
     , firstKeys, frameIdsForTab, funcDict, handleMainPort
     , helpDialogHtml, helpDialogHtmlForCommand //
     , helpDialogHtmlForCommandGroup, needIcon, openMultiTab //
@@ -14,11 +14,6 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
   extForTab = Object.create(null);
 
   needIcon = false;
-
-  currentCommand = {
-    options: null,
-    port: null
-  };
 
   helpDialogHtml = function(showUnbound, showNames, customTitle) {
     var command, commandsToKey, key, ref = Commands.keyToCommandRegistry;
@@ -116,7 +111,7 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
       if (Utils.hasOrdinaryUrlPrefix(url) && !url.startsWith("chrome")) {
         return false;
       }
-      currentCommand.port.postMessage({
+      cPort.postMessage({
         name: "showHUD",
         text: "Chrome doesn't allow Vimium++ to do on this page",
         time: 1500
@@ -125,7 +120,7 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
     },
     clearCS: function(contentType, tab) {
       ContentSettings.clear(contentType, tab);
-      currentCommand.port.postMessage({
+      cPort.postMessage({
         name: "showHUD",
         text: contentType + " content settings have been cleared.",
         time: 1500
@@ -155,7 +150,7 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
           scope: tab.incognito ? "incognito_session_only" : "regular",
           setting: (opt && opt.setting === "allow") ? "block" : "allow"
         }, function() {
-          if (tab.incognito || currentCommand.options.action === "reopen") {
+          if (tab.incognito || cOptions.action === "reopen") {
             ++tab.index;
             funcDict.reopenTab(tab);
           } else if (tab.index > 0) {
@@ -649,19 +644,19 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
     moveTabToIncognito: chrome.windows.getCurrent.bind(chrome.windows
       , {populate: true}, funcDict.moveTabToIncognito[0]),
     enableCSTemp: function(tabs) {
-      ContentSettings.ensure(currentCommand.options.type, tabs[0]);
+      ContentSettings.ensure(cOptions.type, tabs[0]);
     },
     toggleCS: function(tabs) {
-      ContentSettings.toggleCurrent(currentCommand.options.type, tabs[0]);
+      ContentSettings.toggleCurrent(cOptions.type, tabs[0]);
     },
     clearCS: function(tabs) {
-      ContentSettings.clearCS(currentCommand.options.type, tabs[0]);
+      ContentSettings.clearCS(cOptions.type, tabs[0]);
     },
     gotoTab: function(tabs) {
       if (tabs.length <= 0) { return; }
-      var count = (currentCommand.options.dir || 1) * commandCount,
+      var count = (cOptions.dir || 1) * commandCount,
         len = tabs.length, toSelect;
-      count = currentCommand.options.absolute
+      count = cOptions.absolute
         ? count > 0 ? Math.min(len, count) - 1 : Math.max(0, len + count)
         : commandCount > tabs.length * 2 ? (count > 0 ? -1 : 0)
         : funcDict.selectFrom(tabs).index + count;
@@ -708,7 +703,7 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
     },
     openCopiedUrlInNewTab: function(tabs) {
       Utils.lastUrlType = 0;
-      var url = requestHandlers.getCopiedUrl_f(currentCommand.options);
+      var url = requestHandlers.getCopiedUrl_f(cOptions);
       if (Utils.lastUrlType === 5) {
         funcDict.onEvalUrl2(url);
       } else if (!url) {
@@ -724,8 +719,8 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
       }
     },
     openUrl: function() {
-      var url = Utils.convertToUrl(currentCommand.options.url || ""), reuse;
-      reuse = currentCommand.options.reuse || -1;
+      var url = Utils.convertToUrl(cOptions.url || ""), reuse;
+      reuse = cOptions.reuse || -1;
       if (reuse > 0) {
         return requestHandlers.focusOrLaunch({url: url});
       } else if (reuse === 0) {
@@ -800,7 +795,7 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
     },
     moveTab: function(tabs) {
       var tab = funcDict.selectFrom(tabs), index, dir, pinned;
-      dir = currentCommand.options.dir > 0 ? 1 : -1;
+      dir = cOptions.dir > 0 ? 1 : -1;
       index = Math.max(0, Math.min(tabs.length - 1, tab.index + dir * commandCount));
       pinned = tab.pinned;
       while (pinned !== tabs[index].pinned) { index -= dir; }
@@ -826,7 +821,7 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
           return;
         }
       }
-      currentCommand.port.postMessage({
+      cPort.postMessage({
         name: "focusFrame",
         frameId: count > 0 ? frames[0] : -1
       });
@@ -840,17 +835,17 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
       }, tabs[0].id);
     },
     closeTabs: function(tabs) {
-      var dir = currentCommand.options.dir | 0;
+      var dir = cOptions.dir | 0;
       dir = dir > 0 ? 1 : dir < 0 ? -1 : 0;
       funcDict.removeTabsRelative(funcDict.selectFrom(tabs), dir * commandCount, tabs);
     },
     copyTabInfo: function(tabs) {
       var str;
-      switch (currentCommand.options.type) {
+      switch (cOptions.type) {
       case "title": str = tabs[0].title; break;
       case "frame":
         if (needIcon && (str = urlForTab[tabs[0].id])) { break; }
-        currentCommand.port.postMessage({
+        cPort.postMessage({
           name: "execute",
           command: "autoCopy",
           count: 1,
@@ -860,7 +855,7 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
       default: str = tabs[0].url; break;
       }
       Clipboard.copy(str);
-      currentCommand.port.postMessage({name: "showCopied", text: str});
+      cPort.postMessage({name: "showCopied", text: str});
     },
     toggleViewSource: function(tabs) {
       var url = tabs[0].url;
@@ -937,7 +932,7 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
     else if (key = request.handler) {
       func = requestHandlers[key];
       if (func.useTab) {
-        currentCommand.port = port;
+        cPort = port;
         chrome.tabs.query({currentWindow: true, active: true}, func.bind(null, request));
       } else {
         func(request, port);
@@ -1039,8 +1034,8 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
       return;
     }
     var func = BackgroundCommands[command];
-    currentCommand.options = registryEntry.options || Object.create(null);
-    currentCommand.port = port;
+    cOptions = registryEntry.options || Object.create(null);
+    cPort = port;
     commandCount = count;
     count = func.useTab;
     if (count === 1) {
@@ -1150,7 +1145,7 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
     openUrlInCurrentTab: function(request, port) {
       var url = Utils.convertToUrl(request.url, request.keyword, 2);
       if (Utils.lastUrlType === 5) {
-        currentCommand.port = port;
+        cPort = port;
         funcDict.onEvalUrl2(url);
         return;
       }
@@ -1245,7 +1240,7 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
       };
     },
     nextFrame: function(request, port) {
-      currentCommand.port = port;
+      cPort = port;
       BackgroundCommands.nextFrame([{id: request.tabId}], request.frameId);
     },
     initHelp: function(request) {
@@ -1263,7 +1258,7 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
       return Settings.cache.innerCss;
     },
     omni: function(request, port) {
-      currentCommand.port = port;
+      cPort = port;
       Completers[request.type].filter(request.query, request);
     },
     getCopiedUrl_f: function(request, port) {
@@ -1296,16 +1291,15 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
       }, funcDict.focusOrLaunch.bind(null, request));
     },
     PostCompletions: function(list) {
-      currentCommand.port.postMessage({ name: "omni", list: list });
+      cPort.postMessage({ name: "omni", list: list });
     },
     SetIcon: function() {},
     SendToTab: sendToTab,
     SendToCurrent: function(request) {
-      var port = currentCommand.port;
       try {
-        port && port.postMessage(request);
+        cPort && cPort.postMessage(request);
       } catch (e) {
-        currentCommand.port = null;
+        cPort = null;
       }
     }
   };
