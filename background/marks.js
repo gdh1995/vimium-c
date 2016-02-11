@@ -1,10 +1,11 @@
 "use strict";
 // NOTE: all members should be static
 var Marks = {
-  createMark: function(request, tabs) {
+  createMark: function(request) {
+    var tabId = TabRecency.last();
     if (request.scroll) {
       localStorage[Marks.getMarkKey(request.markName)] = JSON.stringify({
-        tabId: tabs[0].id,
+        tabId: tabId,
         url: request.url,
         scroll: request.scroll
       });
@@ -15,7 +16,7 @@ var Marks = {
       markName: request.markName,
       force: true,
       frameId: 0
-    }, tabs[0].id);
+    }, tabId);
   },
   gotoMark: function(request) {
     var str, markInfo;

@@ -1275,7 +1275,7 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
       port.sender.tab.id = request.tabId;
     },
     esc: resetKeys,
-    createMark: function(request, tabs) { return Marks.createMark(request, tabs); },
+    createMark: function(request) { return Marks.createMark(request); },
     gotoMark: function(request) { return Marks.gotoMark(request); },
     focusOrLaunch: function(request) {
       // * request.url is guaranteed to be well formatted by frontend
@@ -1413,7 +1413,7 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
     ref2 = requestHandlers;
     for (key in ref2) { ref2[key].useTab = 0; }
     ref = ["openUrlInIncognito" //
-      , "openImageUrl", "createMark" //
+      , "openImageUrl" //
     ];
     for (i = ref.length; 0 <= --i; ) {
       ref2[ref[i]].useTab = 1;
