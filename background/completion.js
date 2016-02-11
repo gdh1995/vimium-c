@@ -1,7 +1,7 @@
 "use strict";
 var Completers;
 setTimeout(function() {
-  var TabRecency, HistoryCache, RankingUtils, RegexpCache, Decoder,
+  var HistoryCache, RankingUtils, RegexpCache, Decoder,
       Completers, queryType, offset,
       maxCharNum, maxResults, showFavIcon, showRelevancy, queryTerms, SuggestionUtils;
 
@@ -108,39 +108,6 @@ SuggestionUtils = {
         (temp - 3 > end) ? (temp - 3) : (end + 10))), "...");
     }
     return out.join("");
-  }
-};
-
-TabRecency = {
-  array: null,
-  clean: null,
-  tabId: null,
-  stamp: function() {
-    var cache = Object.create(null), last = 0, stamp = 1, time = 0;
-    chrome.tabs.onActivated.addListener(function(activeInfo) {
-      var now = Date.now(), tabId = activeInfo.tabId;
-      if (now - time > 500) {
-        cache[last] = ++stamp;
-        if (stamp === 255) { TabRecency.clean(); }
-      }
-      last = tabId; time = now;
-    });
-    this.clean = function() {
-      var ref = cache, i;
-      for (i in ref) {
-        if (ref[i] <= 192) { delete ref[i]; }
-        else {ref[i] -= 191; }
-      }
-      stamp = 64;
-    };
-    chrome.tabs.query({currentWindow: true, active: true}, function(tab) {
-      time = Date.now();
-      if (chrome.runtime.lastError) { return chrome.runtime.lastError; }
-      last = tab.id;
-    });
-    this.array = cache;
-    this.tabId = function() { return last; };
-    this.stamp = function() { return stamp; };
   }
 };
 
@@ -452,7 +419,7 @@ tabs: {
   filter1: function(query, tabs) {
     if (query.isOff) { return; }
     if (queryType === 1) { queryType = 4; }
-    var curTabId = TabRecency.tabId(), c, suggestions;
+    var curTabId = TabRecency.last(), c, suggestions;
     if (queryTerms.length > 0) {
       tabs = tabs.filter(function(tab) {
         var text = Decoder.decodeURL(tab.url);
@@ -485,7 +452,7 @@ tabs: {
     Decoder.continueToWork();
   },
   computeRecency: function(_0, tabId) {
-    return TabRecency.array[tabId] || (1 - 1 / tabId);
+    return TabRecency.tabs[tabId] || (1 - 1 / tabId);
   },
   computeRelevancy: function(suggestion) {
     return RankingUtils.wordRelevancy(suggestion.text, suggestion.title);
@@ -971,8 +938,6 @@ searchEngines: {
         }
       };
     })();
-
-    TabRecency.stamp();
 
     var lang;
     if (lang = Settings.get("UILanguage")) {
