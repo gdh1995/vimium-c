@@ -324,7 +324,6 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
     
     openUrlInIncognito: function(request, tab, wnds) {
       wnds = wnds.filter(funcDict.isIncNor);
-      request.active = (request.active !== false);
       if (wnds.length) {
         var inCurWnd = wnds.filter(function(wnd) {
           return wnd.id === tab.windowId
@@ -727,12 +726,15 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
       reuse == null && (reuse = -1);
       if (reuse > 0) {
         requestHandlers.focusOrLaunch({url: url});
-        return;
       } else if (reuse === 0) {
         chrome.tabs.update(null, { url: url }, funcDict.onRuntimeError);
-        return;
-      }
-      funcDict.getCurTab(function(tabs) {
+      } else funcDict.getCurTab(function(tabs) {
+        if (cOptions.incognito) {
+          chrome.windows.getAll(function(wnd) {
+            funcDict.openUrlInIncognito(cOptions, tabs[0], wnd);
+          });
+          return;
+        }
         if (reuse === -2) { tabs[0].active = false; }
         openMultiTab(url, commandCount, tabs[0]);
       });
@@ -1141,15 +1143,6 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
       cOptions = request;
       BackgroundCommands.openUrl();
     },
-    openUrlInIncognito: function(request, tabs) {
-      request.url = Utils.convertToUrl(request.url, request.keyword, 2);
-      if (Utils.lastUrlType === 5) {
-        funcDict.onEvalUrl2(url);
-        return;
-      }
-      request.keyword = "";
-      chrome.windows.getAll(funcDict.openUrlInIncognito.bind(null, request, tabs[0]));
-    },
     dispatchCommand: function(request, port) {
       var frames = frameIdsForTab[request.tabId];
       request.name = request.handler;
@@ -1414,8 +1407,8 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
     var ref, i, ref2, key;
     ref2 = requestHandlers;
     for (key in ref2) { ref2[key].useTab = 0; }
-    ref = ["openUrlInIncognito" //
-      , "openImageUrl" //
+    ref = [ //
+      "openImageUrl" //
     ];
     for (i = ref.length; 0 <= --i; ) {
       ref2[ref[i]].useTab = 1;

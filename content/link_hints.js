@@ -818,7 +818,8 @@ FUNC: {
     var url = this.getUrlData(link);
     if (Utils.evalIfOK(url)) { return; }
     MainPort.port.postMessage({
-      handler: "openUrlInIncognito",
+      handler: "openUrl",
+      incognito: true,
       active: !(this.mode & 64),
       keyword: this.options.keyword,
       url: url
