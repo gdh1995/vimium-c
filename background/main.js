@@ -721,7 +721,7 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
       }
     },
     openUrl: function() {
-      var url = Utils.convertToUrl(cOptions.url || ""), reuse;
+      var url = cOptions.url_f || Utils.convertToUrl(cOptions.url || ""), reuse;
       reuse = cOptions.reuse;
       reuse == null && (reuse = -1);
       if (reuse > 0) {
@@ -730,6 +730,7 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
         chrome.tabs.update(null, { url: url }, funcDict.onRuntimeError);
       } else funcDict.getCurTab(function(tabs) {
         if (cOptions.incognito) {
+          cOptions.url = url;
           chrome.windows.getAll(function(wnd) {
             funcDict.openUrlInIncognito(cOptions, tabs[0], wnd);
           });
@@ -1133,10 +1134,10 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
       openMultiTab(url, 1, tab);
     },
     openUrl: function(request) {
-      request.url = Utils.convertToUrl(request.url, request.keyword, 2);
+      request.url_f = Utils.convertToUrl(request.url, request.keyword, 2);
       request.keyword = "";
       if (Utils.lastUrlType === 5) {
-        funcDict.onEvalUrl2(request.url);
+        funcDict.onEvalUrl2(request.url_f);
         return;
       }
       commandCount = 1;
