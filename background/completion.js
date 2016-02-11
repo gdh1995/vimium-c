@@ -484,8 +484,8 @@ tabs: {
     Completers.next(suggestions);
     Decoder.continueToWork();
   },
-  computeRecency: function(_0, sessionId) {
-    return TabRecency.array[sessionId] || 1;
+  computeRecency: function(_0, tabId) {
+    return TabRecency.array[tabId] || (1 - 1 / tabId);
   },
   computeRelevancy: function(suggestion) {
     return RankingUtils.wordRelevancy(suggestion.text, suggestion.title);
