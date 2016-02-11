@@ -299,8 +299,8 @@ activate: function(_0, options, force_current) {
   onEnter: function() {
     var sel = this.selection, item, action;
     item = sel >= 0 ? this.completions[sel] : this.completionInput;
-    this.completionActions[item.action].call(item, this.forceNewTab);
     this.hide();
+    this.completionActions[item.action].call(item, this.forceNewTab);
   },
   onClick: function(event) {
     var el = event.target, _i;
