@@ -270,7 +270,7 @@ var exports = {}, Utils = {
       }
       // no break;
     case "c": case "copy":
-      Clipboard.copy(path); // TODO: ? merge Clipboard
+      Clipboard.copy(path);
       return [path, "copy"];
     }
     switch (cmd) {

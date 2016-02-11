@@ -7,8 +7,8 @@
       "background/main.js",
       "background/commands.js",
       "background/others.js",
-      "background/clipboard.js",
       "background/marks.js",
+      "background/tools.js",
       "background/completion.js"
     ]
   },
