@@ -35,16 +35,16 @@ TabRecency = {
     _this = TabRecency, clean = function() {
       var ref = cache, i;
       for (i in ref) {
-        if (ref[i] <= 192) { delete ref[i]; }
-        else {ref[i] -= 191; }
+        if (ref[i] <= 896) { delete ref[i]; }
+        else {ref[i] -= 895; }
       }
-      stamp = 64;
+      stamp = 128;
     };
     chrome.tabs.onActivated.addListener(function(activeInfo) {
       var now = Date.now(), tabId = activeInfo.tabId;
       if (now - time > 500) {
         cache[last] = ++stamp;
-        if (stamp === 255) { clean(); }
+        if (stamp === 1023) { clean(); }
       }
       last = tabId; time = now;
     });
