@@ -1314,9 +1314,7 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
     if (currentFirst !== null) {
       count = currentFirst ? 1 : (currentCount || 1);
       resetKeys();
-      funcDict.getCurTab(function(tabs) {
-        sendToTab({ name: "refreshKeyQueue", currentFirst: null }, tabs[0].id);
-      });
+      sendToTab({ name: "refreshKeyQueue", currentFirst: null }, TabRecency.last());
     } else {
       count = 1;
     }
