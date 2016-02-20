@@ -80,7 +80,7 @@ var LinkHints = {
     if (elements.length <= 0 || elements.length > 4000) {
       this.clean();
       tip = elements.length > 4000 ? "Too many" : "No";
-      VHUD.showForDuration(tip + " links to select.", 2000);
+      VHUD.showForDuration(tip + " links to select.", 1000);
       return;
     }
 
