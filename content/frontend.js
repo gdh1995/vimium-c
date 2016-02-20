@@ -404,6 +404,7 @@ var Settings, VHUD, MainPort, VInsertMode;
     enterInsertMode: function(_0, options) {
       var code = options.code || KeyCodes.esc, stat = options.stat || 0, str;
       InsertMode.global = { code: code, stat: stat };
+      if (settings.cache.hideHud) { return; }
       str = "Insert mode";
       if (options.code || options.stat >= 0) {
         str += ": " + (KeyboardUtils.keyNames[code] || code) + "/" + stat;
@@ -1102,7 +1103,7 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483644
       }
     },
     show: function(text) {
-      if (!this.enabled()) {
+      if (!this.enabled) {
         return false;
       }
       var el = this._element;
@@ -1159,9 +1160,7 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483644
         hud.tweenId = setInterval(hud.tween, 40);
       }
     },
-    enabled: function() {
-      return settings.cache.hideHud === false && document.body;
-    }
+    enabled: false,
   };
 
   requestHandlers = {
@@ -1371,6 +1370,7 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483644
   });
 
   DomUtils.documentReady(function() {
+    HUD.enabled = !!document.body;
     // NOTE: when port is disconnected:
     // * if backend asks to re-reg, then rH.reg will call safePost;
     // * if extension is stopped, then ELs.destroy is called when focused,
