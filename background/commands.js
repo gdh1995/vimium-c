@@ -293,7 +293,7 @@ availableCommands: {
   removeRightTab: [ "Close N-th tab on the right", 0, true ],
   restoreTab: [ "Restore closed tab(s)", chrome.sessions.MAX_SESSION_RESULTS, true ],
   restoreGivenTab: [ "Restore the last N-th tab", 0, true ],
-  moveTabToNewWindow: [ "Move tab to new window", 1, true ],
+  moveTabToNewWindow: [ "Move N tab(s) to new window", 20, true ],
   moveTabToNextWindow: [ "Move tab to next window", 1, true ],
   moveTabToIncognito: [ "Make tab in a incognito window", 1, true ],
   togglePinTab: [ "Pin/unpin current tab", 20, true ],

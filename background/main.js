@@ -283,14 +283,15 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
       }
       tab && chrome.tabs.reload(tab.id, funcDict.refreshTab[1].bind(null, null));
     }],
-    makeWindow: function(option, state) {
+    makeWindow: function(option, state, callback) {
       if (state && Settings.CONST.ChromeVersion >= 44) {
         option.state = state;
         state = null;
       }
       chrome.windows.create(option, state ? function(wnd) {
+        callback && callback(wnd);
         chrome.windows.update(wnd.id, {state: state});
-      } : null);
+      } : callback || null);
     },
     makeTempWindow: function(tabIdUrl, incognito, callback) {
       var option = {
@@ -452,7 +453,10 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
         type: "normal",
         tabId: tab.id,
         incognito: tab.incognito
-      }, wnd.type === "normal" && wnd.state);
+      }, wnd.type === "normal" && wnd.state, commandCount > 1 && function(wnd2) {
+        var tabIds = wnd.tabs.slice(tab.index + 1, tab.index + commandCount).map(funcDict.getId);
+        chrome.tabs.move(tabIds, {index: 1, windowId: wnd2.id}, funcDict.onRuntimeError);
+      });
     },
     moveTabToNextWindow: [function(tab, wnds0) {
       var wnds, ids, index;
