@@ -1037,17 +1037,19 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
       return;
     }
     command = registryEntry.alias || command;
+    var func, options = registryEntry.options;
+    count *= options && options.count || 1;
     if (!registryEntry.background) {
       port.postMessage({
         name: "execute",
         command: command,
         count: count,
-        options: registryEntry.options
+        options: options
       });
       return;
     }
-    var func = BackgroundCommands[command];
-    cOptions = registryEntry.options || Object.create(null);
+    func = BackgroundCommands[command];
+    cOptions = options || Object.create(null);
     cPort = port;
     commandCount = count;
     count = func.useTab;
