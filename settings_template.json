@@ -85,6 +85,7 @@
 		"map <c-I> enableCSTemp",
 		"map <a-I> clearCS",
 		"map P togglePinTab",
+		"map p visitPreviousTab",
 		"",
 		"map / enterFindMode",
 		"map . performFind",

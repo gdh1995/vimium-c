@@ -120,7 +120,7 @@ commandGroups: {
   findCommands: ["enterFindMode", "performFind", "performBackwardsFind"],
   tabManipulation: ["nextTab", "previousTab", "firstTab", "lastTab", "createTab", "duplicateTab"
     , "removeTab", "removeRightTab", "restoreTab", "restoreGivenTab", "moveTabToNextWindow"
-    , "moveTabToNewWindow", "moveTabToIncognito", "togglePinTab"
+    , "moveTabToNewWindow", "moveTabToIncognito", "togglePinTab", "visitPreviousTab"
     , "closeTabsOnLeft", "closeTabsOnRight", "closeOtherTabs", "moveTabLeft", "moveTabRight"
     , "enableCSTemp", "toggleCS", "clearCS"],
   misc: ["showHelp", "autoCopy", "autoOpen", "searchAs", "toggleLinkHintCharacters"
@@ -180,6 +180,7 @@ defaultKeyMappings: {
   J: "previousTab",
   gt: "nextTab",
   gT: "previousTab",
+  "^": "visitPreviousTab",
   "<<": "moveTabLeft",
   ">>": "moveTabRight",
   g0: "firstTab",
@@ -283,6 +284,7 @@ availableCommands: {
   goToRoot: [ "Go to root of current URL hierarchy", 1, true ],
   nextTab: [ "Go one tab right", 0, true, null, "gotoTab" ],
   previousTab: [ "Go one tab left", 0, true, { dir: -1 }, "gotoTab" ],
+  visitPreviousTab: [ "Go to previously-visited tab on current window", 0, true ],
   firstTab: [ "Go to the first N-th tab", 0, true, { absolute: true }, "gotoTab" ],
   lastTab: [ "Go to the last N-th tab", 0, true, { dir: -1, absolute: true }, "gotoTab" ],
   createTab: [ "Create new tab(s)", 20, true ],

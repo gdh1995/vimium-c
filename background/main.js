@@ -849,6 +849,15 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
       dir = dir > 0 ? 1 : dir < 0 ? -1 : 0;
       funcDict.removeTabsRelative(funcDict.selectFrom(tabs), dir * commandCount, tabs);
     },
+    visitPreviousTab: function(tabs) {
+      var tabId;
+      tabs.splice(funcDict.selectFrom(tabs).index, 1);
+      tabs.sort(TabRecency.rCompare);
+      tabId = tabs[Math.min(commandCount, tabs.length) - 1].id;
+      if (tabId != TabRecency.last()) {
+        chrome.tabs.update(tabId, { active: true });
+      }
+    },
     copyTabInfo: function(tabs) {
       var str;
       switch (cOptions.type) {
@@ -1398,7 +1407,7 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
     ref = ["gotoTab", "removeTab" //
       , "closeTabs", "removeRightTab" //
       , "moveTab", "togglePinTab" //
-      , "reloadTab", "reloadGivenTab" //
+      , "reloadTab", "reloadGivenTab", "visitPreviousTab" //
     ];
     for (i = ref.length; 0 <= --i; ) {
       ref2[ref[i]].useTab = 1;

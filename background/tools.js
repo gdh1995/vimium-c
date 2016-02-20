@@ -30,6 +30,7 @@ var Clipboard = {
 TabRecency = {
   tabs: null,
   last: null,
+  rCompare: null,
   stamp: function() {
     var cache = Object.create(null), last = 0, stamp = 1, time = 0,
     _this = TabRecency, clean = function() {
@@ -56,6 +57,9 @@ TabRecency = {
     _this.tabs = cache;
     _this.last = function() { return last; };
     _this.stamp = function() { return stamp; };
+    _this.rCompare = function(a, b) {
+      return cache[a.id] < cache[b.id];
+    };
   }
 };
 
