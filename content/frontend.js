@@ -418,7 +418,8 @@ var Settings, VHUD, MainPort, VInsertMode;
       HUD.show("/");
     },
     goNext: function(_0, options) {
-      goBy(options.dir || "next", settings.cache.nextPatterns);
+      var dir = options.dir;
+      goBy(dir || "next", settings.cache[dir === "prev" ? "previousPatterns" : "nextPatterns"]);
     },
     reload: function() {
       if (window.location.protocol.startsWith("chrome") || DomUtils.isSandboxed()) {
