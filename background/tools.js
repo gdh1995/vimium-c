@@ -31,36 +31,34 @@ TabRecency = {
   tabs: null,
   last: null,
   rCompare: null,
-  stamp: function() {
-    var cache = Object.create(null), last = 0, stamp = 1, time = 0,
-    _this = TabRecency, clean = function() {
-      var ref = cache, i;
-      for (i in ref) {
-        if (ref[i] <= 896) { delete ref[i]; }
-        else {ref[i] -= 895; }
-      }
-      stamp = 128;
-    };
-    chrome.tabs.onActivated.addListener(function(activeInfo) {
-      var now = Date.now(), tabId = activeInfo.tabId;
-      if (now - time > 500) {
-        cache[last] = ++stamp;
-        if (stamp === 1023) { clean(); }
-      }
-      last = tabId; time = now;
-    });
-    chrome.tabs.query({currentWindow: true, active: true}, function(tabs) {
-      time = Date.now();
-      if (chrome.runtime.lastError) { return chrome.runtime.lastError; }
-      last = tabs[0] ? tabs[0].id : chrome.tabs.TAB_ID_NONE;
-    });
-    _this.tabs = cache;
-    _this.last = function() { return last; };
-    _this.stamp = function() { return stamp; };
-    _this.rCompare = function(a, b) {
-      return cache[a.id] < cache[b.id];
-    };
-  }
 };
 
-setTimeout(TabRecency.stamp, 120);
+setTimeout(function() {
+  var cache = Object.create(null), last = 0, stamp = 1, time = 0,
+  _this = TabRecency, clean = function() {
+    var ref = cache, i;
+    for (i in ref) {
+      if (ref[i] <= 896) { delete ref[i]; }
+      else {ref[i] -= 895; }
+    }
+    stamp = 128;
+  };
+  chrome.tabs.onActivated.addListener(function(activeInfo) {
+    var now = Date.now(), tabId = activeInfo.tabId;
+    if (now - time > 500) {
+      cache[last] = ++stamp;
+      if (stamp === 1023) { clean(); }
+    }
+    last = tabId; time = now;
+  });
+  chrome.tabs.query({currentWindow: true, active: true}, function(tabs) {
+    time = Date.now();
+    if (chrome.runtime.lastError) { return chrome.runtime.lastError; }
+    last = tabs[0] ? tabs[0].id : chrome.tabs.TAB_ID_NONE;
+  });
+  _this.tabs = cache;
+  _this.last = function() { return last; };
+  _this.rCompare = function(a, b) {
+    return cache[a.id] < cache[b.id];
+  };
+}, 120);
