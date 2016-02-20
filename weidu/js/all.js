@@ -2359,6 +2359,8 @@ DBOX = {
 				_spaceWidth = 200
 			}
 			self.Qnum = parseInt((self.QBContainerWidth - _spaceWidth) / parseInt(self.QMinSpacing + self.QWidth))
+		} else if (document.readyState !== "complete") {
+			self.container.show();
 		}
 		if (self.dialBoxQuickHide) {
 			self.QContainer.addClass("hide");
