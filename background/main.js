@@ -203,7 +203,7 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
     setAndUpdate: function(contentType, tab, pattern, wndId, doSyncWnd, callback) {
       callback = this.updateTabAndWindow.bind(this, tab, wndId, callback);
       this.setAllowInIncognito(contentType, pattern, doSyncWnd && wndId !== tab.windowId
-        ? chrome.windows.get.bind(chrome.windows, tab.windowId, callback) : callback);
+        ? chrome.windows.get.bind(null, tab.windowId, callback) : callback);
     },
     setAllowInIncognito: function(contentType, pattern, callback) {
       chrome.contentSettings[contentType].set({
@@ -319,8 +319,8 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
       }
     },
 
-    getCurTab: chrome.tabs.query.bind(chrome.tabs, {currentWindow: true, active: true}),
-    getCurTabs: chrome.tabs.query.bind(chrome.windows, {currentWindow: true}),
+    getCurTab: chrome.tabs.query.bind(null, {currentWindow: true, active: true}),
+    getCurTabs: chrome.tabs.query.bind(null, {currentWindow: true}),
     
     openUrlInIncognito: function(request, tab, wnds) {
       wnds = wnds.filter(funcDict.isIncNor);
@@ -641,12 +641,12 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
         funcDict.duplicateTab[0].bind(null, tabId));
       }
     },
-    moveTabToNewWindow: chrome.windows.getCurrent.bind(chrome.windows
+    moveTabToNewWindow: chrome.windows.getCurrent.bind(null
       , {populate: true}, funcDict.moveTabToNewWindow),
     moveTabToNextWindow: function(tabs) {
       chrome.windows.getAll(funcDict.moveTabToNextWindow[0].bind(null, tabs[0]));
     },
-    moveTabToIncognito: chrome.windows.getCurrent.bind(chrome.windows
+    moveTabToIncognito: chrome.windows.getCurrent.bind(null
       , {populate: true}, funcDict.moveTabToIncognito[0]),
     enableCSTemp: function(tabs) {
       ContentSettings.ensure(cOptions.type, tabs[0]);
@@ -1287,7 +1287,7 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
 
   Settings.updateHooks.newTabUrl_f = function(url) {
     BackgroundCommands.createTab = Utils.isRefusingIncognito(url)
-    ? chrome.windows.getCurrent.bind(chrome.windows, {populate: true}
+    ? chrome.windows.getCurrent.bind(null, {populate: true}
         , funcDict.createTab[0].bind(url))
     : funcDict.getCurTab.bind(null, funcDict.createTab[5].bind(url));
     BackgroundCommands.createTab.useTab = -1;
