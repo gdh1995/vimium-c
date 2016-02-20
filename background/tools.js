@@ -56,7 +56,6 @@ setTimeout(function() {
     if (wnd === chrome.windows.WINDOW_ID_NONE) { return; }
     chrome.tabs.query({windowId: wnd, active: true}, function(tabs) {
       tabs[0] && listener({tabId: tabs[0].id});
-      return chrome.runtime.lastError;
     });
   });
   chrome.tabs.query({currentWindow: true, active: true}, function(tabs) {
