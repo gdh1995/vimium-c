@@ -20,14 +20,16 @@ var Commands = {
     for (i = 3, len = item.length; i < len; ) {
       str = item[i++];
       ind = str.indexOf("=");
-      if (ind <= 0) {
-        val = str;
-        str = "" + (i - 3);
+      if (ind === 0) {
+        console.log("missing option key:", str);
+        continue;
+      } else if (ind < 0) {
+        opt[str] = true;
       } else {
         val = str.substring(ind + 1);
         str = str.substring(0, ind);
+        opt[str] = val && this.decodeAndParse(val);
       }
-      opt[str] = val && this.decodeAndParse(val);
     }
     return str ? opt : null;
   },
