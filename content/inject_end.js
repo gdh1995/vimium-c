@@ -43,19 +43,6 @@ DomUtils.documentReady(function() {
   });
 });
 
-(function() {
-var _listen = EventTarget.prototype.addEventListener;
-if (_listen.vimiumHooked === true) { return; }
-
-EventTarget.prototype.addEventListener = function(type, listener, useCapture) {
-  if (type === "click" && this instanceof Element) {
-    this.vimiumHasOnclick = true;
-  }
-  return _listen.call(this, type, listener, useCapture);
-};
-EventTarget.prototype.addEventListener.vimiumHooked = true;
-})();
-
 if (chrome.runtime.onMessageExternal) {
   Settings.ELs.onMessage = (function(request, sender) {
     if (sender.id === "hfjbmagddngcpeloejdejnfgbamkjaeg") {
