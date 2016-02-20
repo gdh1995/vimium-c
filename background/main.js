@@ -286,9 +286,9 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
     makeWindow: function(option, state) {
       if (state && Settings.CONST.ChromeVersion >= 44) {
         option.state = state;
+        state = null;
       }
-      chrome.windows.create(option, state && Settings.CONST.ChromeVersion < 44
-      ? function(wnd) {
+      chrome.windows.create(option, state ? function(wnd) {
         chrome.windows.update(wnd.id, {state: state});
       } : null);
     },
@@ -321,12 +321,13 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
 
     getCurTab: chrome.tabs.query.bind(null, {currentWindow: true, active: true}),
     getCurTabs: chrome.tabs.query.bind(null, {currentWindow: true}),
+    getId: function(tab) { return tab.id; },
     
     openUrlInIncognito: function(request, tab, wnds) {
       wnds = wnds.filter(funcDict.isIncNor);
       if (wnds.length) {
         var inCurWnd = wnds.filter(function(wnd) {
-          return wnd.id === tab.windowId
+          return wnd.id === tab.windowId;
         }).length > 0, options = {
           url: request.url,
           windowId: inCurWnd ? tab.windowId : wnds[wnds.length - 1].id
@@ -451,13 +452,13 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
         type: "normal",
         tabId: tab.id,
         incognito: tab.incognito
-      }, wnd.type === "normal" ? wnd.state : null);
+      }, wnd.type === "normal" && wnd.state);
     },
     moveTabToNextWindow: [function(tab, wnds0) {
       var wnds, ids, index;
       wnds = wnds0.filter(function(wnd) { return wnd.incognito === tab.incognito && wnd.type === "normal"; });
       if (wnds.length > 0) {
-        ids = wnds.map(function(wnd) { return wnd.id; });
+        ids = wnds.map(funcDict.getId);
         index = ids.indexOf(tab.windowId);
         if (ids.length >= 2 || index === -1) {
           chrome.tabs.query({windowId: ids[(index + 1) % ids.length], active: true},
@@ -472,7 +473,7 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
         type: "normal",
         tabId: tab.id,
         incognito: tab.incognito
-      }, wnds.length === 1 && wnds[0].type === "normal" ? wnds[0].state : null);
+      }, wnds.length === 1 && wnds[0].type === "normal" && wnds[0].state);
     }, function(tab, oldIndex, tab2) {
       tab2 = tab2[0];
       if (oldIndex >= 0) {
@@ -518,7 +519,7 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
         tabId = options.tabId;
         options.tabId = undefined;
       }
-      funcDict.makeWindow(options, wnd.type === "normal" ? wnd.state : null);
+      funcDict.makeWindow(options, wnd.type === "normal" && wnd.state);
       if (options.url) {
         chrome.tabs.remove(tabId);
       }
@@ -553,7 +554,7 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
         }
       }
       if (url != null) {
-        curTabs = (curTabs.length > 1) ? curTabs.map(function(tab) { return tab.id; }) : [tab.id];
+        curTabs = (curTabs.length > 1) ? curTabs.map(funcDict.getId) : [tab.id];
         chrome.tabs.create({
           index: curTabs.length,
           url: url,
@@ -589,7 +590,7 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
         }
       }
       if (tabs.length > 0) {
-        chrome.tabs.remove(tabs.map(function(tab) { return tab.id; }));
+        chrome.tabs.remove(tabs.map(funcDict.getId));
       }
     },
     focusOrLaunch: function(request, tabs) {
