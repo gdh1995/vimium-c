@@ -1231,7 +1231,7 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483644
       if (document.body && !(document.body instanceof HTMLFrameSetElement)) {
         return mainPort.safePost({
           handlerSettings: request ? "rereg" : "reg",
-          visible: window.innerWidth > 9 && window.innerWidth > 9,
+          visible: window.innerHeight > 9 && window.innerWidth > 9,
           frameId: frameId
         });
       }
