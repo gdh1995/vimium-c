@@ -42,14 +42,22 @@ setTimeout(function() {
       else {ref[i] -= 895; }
     }
     stamp = 128;
-  };
-  chrome.tabs.onActivated.addListener(function(activeInfo) {
+  }, listener;
+  listener = function(activeInfo) {
     var now = Date.now(), tabId = activeInfo.tabId;
     if (now - time > 500) {
       cache[last] = ++stamp;
       if (stamp === 1023) { clean(); }
     }
     last = tabId; time = now;
+  }
+  chrome.tabs.onActivated.addListener(listener);
+  chrome.windows.onFocusChanged.addListener(function(wnd) {
+    if (wnd == chrome.windows.WINDOW_ID_NONE) { return; }
+    chrome.tabs.query({windowId: wnd, active: true}, function(tabs) {
+      tabs[0] && listener({tabId: tabs[0].id});
+      return chrome.runtime.lastError;
+    });
   });
   chrome.tabs.query({currentWindow: true, active: true}, function(tabs) {
     time = Date.now();
