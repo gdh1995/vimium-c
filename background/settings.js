@@ -4,8 +4,6 @@ var Settings = {
   cache: Object.create(null),
   bufferToLoad: null,
   frameIdsForTab: null,
-  keyToSet: [],
-  timerForSet: 0,
   urlForTab: null,
   extIds: null,
   get: function(key, forCache) {
