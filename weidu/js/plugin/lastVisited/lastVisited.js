@@ -69,7 +69,7 @@ var lastVisited = {
 					if (title == '') {
 						return
 					}
-					var url = n.url, furl = 'chrome://favicon/' + url;
+					var url = n.url, furl = 'chrome://favicon/size/16/' + url;
 					title = truncate(title, 0, 36);
 					visitedTemplate += '<div class="lastVisitedItem" url="' + url + '"><a href="' + url
 						+ '" style="background-image: url(' + furl + ');">' + title_fix(title)
