@@ -49,7 +49,7 @@ handler = function() {
 _listen.call(window, "DOMContentLoaded", handler, true);
 timeout = setTimeout(handler, 1000);
 
-reg = setTimeout.bind(window, function(element) {
+reg = setTimeout.bind(null, function(element) {
   var e1, e2, registrationEvent, wrapIncontainer;
   registrationEvent = new CustomEvent("VimiumOnclick");
   if (document.contains(element)) {
