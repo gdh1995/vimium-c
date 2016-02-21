@@ -281,22 +281,19 @@ var createWebsite = {
 								}, 0)
 							}))
 					});
-					if (isApp == false) {
-						try {
-							$.each(self.container.find(".visiteContainer[tab='topTab'] .visitedItem a"), function (p, q) {
-								var itemUrl = $(q).attr("url");
-								var faviconPath = 'chrome://favicon/size/16/' + itemUrl;
-								var faviconImg = new Image();
-								if (itemUrl) {
-									faviconImg.onload = function () {
-										$(q).css("backgroundImage", "url(" + faviconPath + ")")
-									};
-									faviconImg.src = faviconPath
-								}
-							})
-						} catch (e) {}
-
-					}
+					try {
+						$.each(self.container.find(".visiteContainer[tab='topTab'] .visitedItem a"), function (p, q) {
+							var itemUrl = $(q).attr("url");
+							var faviconPath = 'chrome://favicon/size/16/' + itemUrl;
+							var faviconImg = new Image();
+							if (itemUrl) {
+								faviconImg.onload = function () {
+									$(q).css("backgroundImage", "url(" + faviconPath + ")")
+								};
+								faviconImg.src = faviconPath
+							}
+						})
+					} catch (e) {}
 				}
 			})
 		}
