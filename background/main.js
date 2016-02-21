@@ -241,7 +241,6 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
 
   funcDict = {
     globalCommand: null,
-    globalConnect: null,
     sendToExt: function(request, tabId) {
       var extId;
       if (extId = extForTab[tabId]) {
@@ -1370,14 +1369,6 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
     }
   });
 
-  funcDict.globalConnect = function(port) {
-    if (port.name === "vimium++") {
-      port.onMessage.addListener(handleMainPort);
-    } else {
-      port.disconnect();
-    }
-  };
-
   chrome.tabs.onReplaced.addListener(function(addedTabId, removedTabId) {
     var ref, request = { name: "refreshTabId", tabId: addedTabId };
     chrome.tabs.sendMessage(addedTabId, request);
@@ -1400,8 +1391,12 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
     Settings.postUpdate("bufferToLoad", null);
     Settings.get("userDefinedOuterCss", true);
 
-    chrome.runtime.onConnect.addListener(funcDict.globalConnect);
-    chrome.runtime.onConnectExternal.addListener(funcDict.globalConnect);
+    chrome.runtime.onConnect.addListener(function(port) {
+      port.onMessage.addListener(handleMainPort);
+    });
+    chrome.runtime.onConnectExternal.addListener(function(port) {
+        port.onMessage.addListener(handleMainPort);
+    });
   }, 17);
 
   setTimeout(function() {

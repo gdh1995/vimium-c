@@ -104,7 +104,7 @@ input[type=number]::-webkit-inner-spin-button {
 #linkHintCharacters {
   margin-top: 1px;
 }
-#userDefinedCss, #userDefinedOuterCss, #UILanguage {
+.min-height-4 {
   padding-bottom: 2px;
   min-height: 75px;
 }

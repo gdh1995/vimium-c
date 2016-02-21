@@ -405,6 +405,7 @@ $("importButton").onclick = function() {
   };
   for (i = arr.length; 0 <= --i; ) {
     arr[i].onclick = func;
+    arr[i].textContent = "Scale to fit";
   }
 })();
 
