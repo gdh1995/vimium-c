@@ -275,6 +275,20 @@ MainKey|c|c\:|MainName: \
             </td>
           </tr>
           <tr>
+            <td class="caption">White list of <br/>other extension ids</td>
+            <td>
+              <div class="help">
+                <div class="example">
+                  Only Chrome extensions on this list are allowed to request Vimium++'s support.<br/>
+                  One extension id per line.<br/>
+                  <a data-auto-scale="extWhiteList"></a>.
+                </div>
+              </div>
+              <textarea id="extWhiteList" class="code min-height-4" data-model="NonEmptyText"></textarea>
+              <div class="nonEmptyTextOption"></div>
+            </td>
+          </tr>
+          <tr>
             <td class="caption">Keyboard settings</td>
             <td>
               <div class="help">

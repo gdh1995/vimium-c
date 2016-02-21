@@ -6,6 +6,7 @@ var Settings = {
   frameIdsForTab: null,
   urlForTab: null,
   extIds: null,
+  extWhiteList: null,
   get: function(key, forCache) {
     if (key in this.cache) {
       return this.cache[key];
@@ -58,6 +59,15 @@ var Settings = {
       for (_i = ref.length; 0 <= --_i;) {
         key = ref[_i];
         ref2[key] = this.get(key);
+      }
+    },
+    extWhiteList: function(val) {
+      var arr = val.split("\n"), i, map;
+      map = this.extWhiteList = Object.create(null);
+      for (i = arr.length; 0 <= --i; ) {
+        if ((val = arr[i]).length === 32) {
+          map[val] = true;
+        }
       }
     },
     files: function() {
@@ -132,6 +142,7 @@ var Settings = {
     UILanguage: null,
     deepHints: false,
     exclusionRules: [{pattern: "^https?://mail.google.com/", passKeys: ""}],
+    extWhiteList: "hdnehngglnbnehkfcidabjckinphnief",
     findModeRawQuery: "",
     grabBackFocus: true,
     hideHud: false,
@@ -160,7 +171,7 @@ w|wiki:\\\n  http://www.wikipedia.org/w/index.php?search=$s Wikipedia (en-US)",
     vimSync: false
   },
   NonJSON: {
-    __proto__: null, findModeRawQuery: 1,
+    __proto__: null, extWhiteList: 1, findModeRawQuery: 1,
     keyMappings: 1, linkHintCharacters: 1,
     newTabUrl: 1, newTabUrl_f: 1, nextPatterns: 1, previousPatterns: 1,
     searchEngines: 1, searchUrl: 1, userDefinedCss: 1, userDefinedOuterCss: 1

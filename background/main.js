@@ -1342,8 +1342,10 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
     chrome.commands.onCommand.addListener(funcDict.globalCommand);
   }, 200);
 
-  chrome.runtime.onMessageExternal.addListener(function(message, _1, sendResponse) {
+  Settings.postUpdate("extWhiteList");
+  chrome.runtime.onMessageExternal.addListener(function(message, sender, sendResponse) {
     var command, options;
+    if (!(sender.id in Settings.extWhiteList)) { return; }
     if (typeof message === "string") {
       command = message;
       if (command && Commands.availableCommands[command]) {
@@ -1395,7 +1397,9 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
       port.onMessage.addListener(handleMainPort);
     });
     chrome.runtime.onConnectExternal.addListener(function(port) {
+      if (port.sender && port.sender.id in Settings.extWhiteList) {
         port.onMessage.addListener(handleMainPort);
+      }
     });
   }, 17);
 
