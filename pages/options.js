@@ -217,7 +217,7 @@ CheckBoxOption.prototype.readValueFromElement = function() {
   for (_i = _ref.length; 0 <= --_i; ) {
     element = _ref[_i];
     type = window[element.getAttribute("data-model") + "Option"];
-    new type(element, onUpdated);
+    element.model = new type(element, onUpdated);
   }
 
   advancedMode = bgSettings.get("showAdvancedOptions");
