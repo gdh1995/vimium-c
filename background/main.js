@@ -1029,8 +1029,7 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
     count *= options && options.count || 1;
     if (registryEntry.repeat === 1) {
       count = 1;
-    } else if (!(registryEntry.repeat > 0 && count > registryEntry.repeat)) {
-    } else if (!
+    } else if (registryEntry.repeat > 0 && count > registryEntry.repeat && !
       confirm("You have asked Vimium++ to perform " + count + " repeats of the command:\n        "
         + Commands.availableCommands[command][0]
         + "\n\nAre you sure you want to continue?")
@@ -1326,7 +1325,7 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
   };
 
   funcDict.globalCommand = function(command, options) {
-    var count, reg;
+    var count;
     if (currentFirst !== null) {
       count = currentFirst ? 1 : (currentCount || 1);
       resetKeys();
@@ -1334,9 +1333,8 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
     } else {
       count = 1;
     }
-    reg = Commands.availableCommands[command];
     options && typeof options === "object" || (options = null);
-    executeCommand(command, Commands.makeCommand(command, options, reg), count, null);
+    executeCommand(command, Commands.makeCommand(command, options), count, null);
   };
   if (chrome.commands) setTimeout(function() {
     chrome.commands.onCommand.addListener(funcDict.globalCommand);
@@ -1344,7 +1342,7 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
 
   Settings.postUpdate("extWhiteList");
   chrome.runtime.onMessageExternal.addListener(function(message, sender, sendResponse) {
-    var command, options;
+    var command;
     if (!(sender.id in Settings.extWhiteList)) { return; }
     if (typeof message === "string") {
       command = message;
@@ -1362,8 +1360,7 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
         currentFirst = "";
         currentCount = message.count;
       }
-      options = message.options;
-      funcDict.globalCommand(command, options);
+      funcDict.globalCommand(command, message.options);
       break;
     case "content_scripts":
       sendResponse(Settings.CONST.ContentScripts);
