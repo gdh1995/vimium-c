@@ -285,14 +285,13 @@ var exports = {}, Utils = {
     }
     return null;
   },
-  tryEvalMath: function(expr, MathParser) {
+  tryEvalMath: function(expr, mathParser) {
     var result = null;
-    MathParser || (MathParser = exports.MathParser);
-    if (MathParser && MathParser.evaluate) {
+    if (mathParser ? mathParser.evaluate : (mathParser = exports.MathParser)) {
       try {
-        result = "" + MathParser.evaluate(expr);
-      } catch (expr) {}
-      MathParser.expression = "";
+        result = "" + mathParser.evaluate(expr);
+      } catch (e) {}
+      mathParser.expression = "";
     }
     return result;
   },
@@ -377,8 +376,8 @@ var exports = {}, Utils = {
     };
   },
   DecodeURLPart: function(url) {
+    url || (url = "");
     try {
-      url || (url = "");
       url = decodeURIComponent(url);
     } catch (e) {}
     return url;
