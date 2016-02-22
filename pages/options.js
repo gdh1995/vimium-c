@@ -115,7 +115,7 @@ CheckBoxOption.prototype.readValueFromElement = function() {
 };
 
 (function() {
-  var advancedMode, element, onUpdated, type, _i, _ref, status = 0;
+  var advancedMode, element, onUpdated, func, _i, _ref, status = 0;
 
   onUpdated = function() {
     var saveBtn;
@@ -168,8 +168,8 @@ CheckBoxOption.prototype.readValueFromElement = function() {
   _ref = document.querySelectorAll("[data-model]");
   for (_i = _ref.length; 0 <= --_i; ) {
     element = _ref[_i];
-    type = window[element.getAttribute("data-model") + "Option"];
-    element.model = new type(element, onUpdated);
+    func = window[element.getAttribute("data-model") + "Option"];
+    element.model = new func(element, onUpdated);
   }
 
   advancedMode = bgSettings.get("showAdvancedOptions");
@@ -205,7 +205,7 @@ CheckBoxOption.prototype.readValueFromElement = function() {
     element.textContent = "Delete all to reset this option.";
   }
 
-  onUpdated = function() {
+  func = function() {
     var target = $(this.getAttribute("data-auto-scale")), delta;
     if (target.scrollHeight <= target.clientHeight) { return; }
     target.style.maxWidth = Math.min(window.innerWidth, 1024) - 120 + "px";
@@ -217,7 +217,7 @@ CheckBoxOption.prototype.readValueFromElement = function() {
   _ref = document.querySelectorAll("[data-auto-scale]");
   for (_i = _ref.length; 0 <= --_i; ) {
     element = _ref[_i];
-    element.onclick = onUpdated;
+    element.onclick = func;
     element.textContent = "Scale to fit";
   }
 
