@@ -165,15 +165,15 @@ CheckBoxOption.prototype.readValueFromElement = function() {
     });
   };
 
-  saveOptions = function(virtually) {
-    var btn = $("saveOptions"), toSync;
+  $("saveOptions").onclick = function(virtually) {
+    var toSync;
     if (virtually !== false) {
       Option.saveOptions();
     }
     toSync = Option.syncToFrontend;
     Option.syncToFrontend = [];
-    btn.disabled = true;
-    btn.textContent = "No Changes";
+    this.disabled = true;
+    this.textContent = "No Changes";
     $("exportButton").disabled = false;
     status = 0;
     setTimeout(function () {
@@ -190,7 +190,6 @@ CheckBoxOption.prototype.readValueFromElement = function() {
       bgSettings.postUpdate("broadcast", obj);
     }, 100);
   };
-  $("saveOptions").onclick = saveOptions;
 
   _ref = document.getElementsByClassName("nonEmptyTextOption");
   for (_i = _ref.length; 0 <= --_i; ) {
@@ -208,7 +207,7 @@ CheckBoxOption.prototype.readValueFromElement = function() {
     if ((event.ctrlKey || event.metaKey) && event.keyCode === 13) {
       document.activeElement.blur();
       if (status != 0) {
-        saveOptions();
+        $("saveOptions").onclick();
       }
     }
   });
@@ -368,8 +367,7 @@ var importSettings = function(time, event) {
       console.log("save", key, func(new_value));
     }
   }
-  var btn = $("saveOptions");
-  btn.onclick(false);
+  $("saveOptions").onclick(false);
   VHUD.showForDuration("Import settings data: OK!", 1000);
 };
 
