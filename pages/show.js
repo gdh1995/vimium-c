@@ -8,7 +8,7 @@ if (!(BG && BG.Utils && BG.Utils.convertToUrl)) {
   BG = null;
 }
 
-function decodeHash() {
+window.onhashchange = function() {
   var str, ind;
   type = file = "";
   if (shownNode) {
@@ -104,8 +104,7 @@ String.prototype.startsWith = function(s) {
   return this.lastIndexOf(s, 0) === 0;
 };
 }
-decodeHash();
-window.addEventListener("hashchange", decodeHash);
+window.onhashchange();
 
 window.addEventListener("keydown", function(event) {
   var str;

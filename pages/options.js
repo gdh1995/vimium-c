@@ -411,20 +411,15 @@ $("importButton").onclick = function() {
 
 BG.Commands.setStrict && BG.Commands.setStrict(KeyRe.source);
 
-(function() {
-  var onhash = function(event) {
-    var hash = window.location.hash, node;
-    event && event.preventDefault();
-    hash = hash.substring(hash[1] === "!" ? 2 : 1);
-    if (!hash || /[^a-z0-9_]/i.test(hash)) { return; }
-    if (node = document.querySelector('[data-hash="' + hash + '"]')) {
-      node.onclick && node.onclick(null, "hash");
-    }
+window.onhashchange = function(event) {
+  var hash = window.location.hash, node;
+  event && event.preventDefault();
+  hash = hash.substring(hash[1] === "!" ? 2 : 1);
+  if (!hash || /[^a-z0-9_]/i.test(hash)) { return; }
+  if (node = document.querySelector('[data-hash="' + hash + '"]')) {
+    node.onclick && node.onclick(null, "hash");
   }
-  window.addEventListener("hashchange", onhash);
-  if (window.location.hash.length <= 4) { return; }
-  window.onload = function() {
-    window.onload = null;
-    setTimeout(onhash, 33);
-  };
-})();
+};
+if (window.location.hash.length > 4) {
+  setTimeout(window.onhashchange, 50);
+}
