@@ -228,8 +228,12 @@ window.b = setTimeout(function() {
         t.executeScript(tabId, ref, callback);
       }
     }
-    console.log("%cVimium++%c has %cinstalled%c", "color:blue", "color:auto"
-      , "color:red", "color:auto;", "with", details, ".");
+    function now() {
+      return new Date(Date.now() - new Date().getTimezoneOffset() * 1000 * 60
+        ).toJSON().substring(0, 19).replace('T', ' ');
+    };
+    console.log("%cVimium++%c has %cinstalled%c with %O at %c%s%c .", "color:red", "color:auto"
+      , "color:blue", "color:auto;", details, "color:#1c00cf", now(), "color:auto");
   });
 
   if (!reason || !chrome.notifications) { return; }

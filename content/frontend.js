@@ -1430,11 +1430,10 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483644
     LinkHints = Vomnibar = Scroller = Marks = //
     Settings = VHUD = MainPort = VInsertMode = null;
 
-    console.log("%cVimium++ %c#%d%c in %c%s%c has destroyed at %o." //
+    console.log("%cVimium++ %c#%d%c in %c%s%c has destroyed at %o."
       , "color:red", "color:blue", frameId, "color:auto", "color:darkred"
       , window.location.pathname.replace(/^.*\/([^\/]+)\/?$/, "$1")
-      , "color:auto", Date.now()
-    );
+      , "color:auto", Date.now());
 
     if (!isInjected) {
       window.frameId = frameId;
