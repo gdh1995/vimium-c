@@ -153,11 +153,14 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
           if (tab.incognito || cOptions.action === "reopen" || !chrome.sessions) {
             ++tab.index;
             funcDict.reopenTab(tab);
+            return;
           } else if (tab.index > 0) {
             funcDict.refreshTab[0](tab.id);
-          } else {
-            chrome.tabs.reload(tab.id);
+            return;
           }
+          chrome.tabs.query({currentWindow: true, index: 1}, function(tabs) {
+            tabs.length > 0 ? funcDict.refreshTab[0](tab.id) : funcDict.reopenTab(tab);
+          });
         });
       });
     },
