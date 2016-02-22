@@ -220,7 +220,7 @@ history: {
       }
       return;
     }
-    chrome.sessions.getRecentlyClosed(null, function(sessions) {
+    chrome.sessions ? chrome.sessions.getRecentlyClosed(null, function(sessions) {
       if (query.isOff) { return; }
       var historys = [], arr = {}, i, now = Date.now();
       i = queryType === 3 ? -offset : 0;
@@ -232,7 +232,7 @@ history: {
         return historys.length >= maxResults;
       }) ? _this.filterFinish(historys, query) :
       _this.filterFill(historys, query, arr, -i);
-    });
+    }) : this.filterFill(null, query, {}, 0);
     if (! history) {
       setTimeout(function() {
         HistoryCache.use(function() {});

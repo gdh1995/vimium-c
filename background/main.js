@@ -150,7 +150,7 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
           scope: tab.incognito ? "incognito_session_only" : "regular",
           setting: (opt && opt.setting === "allow") ? "block" : "allow"
         }, function() {
-          if (tab.incognito || cOptions.action === "reopen") {
+          if (tab.incognito || cOptions.action === "reopen" || !chrome.sessions) {
             ++tab.index;
             funcDict.reopenTab(tab);
           } else if (tab.index > 0) {
