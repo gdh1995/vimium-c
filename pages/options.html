@@ -5,7 +5,6 @@
     <link rel="stylesheet" href="options.css">
     <script defer="defer" src="popup.js"></script>
     <script defer="defer" src="options.js"></script>
-    <script async="async" src="options_ext.js"></script>
     <script async="async" src="loader.js"></script>
   </head>
 
@@ -47,7 +46,7 @@ unmap &lt;f2&gt;
 unmapAll
 " this is a comment
 # this is also a comment</pre>
-                <a id="showCommands" data-hash="commands">Show available commands</a>.
+                <a id="showCommands" data-hash="commands" data-delay="1">Show available commands</a>.
                 &nbsp;<a data-auto-scale="keyMappings"></a>.
               </div>
             </div>
@@ -339,9 +338,9 @@ MainKey|c|c\:|MainName: \
               <button id="advancedOptionsButton" data-hash="advanced">Show Advanced Options</button>
               <button id="saveOptions" disabled="disabled">No Changes</button>
               <div id="settingFileManager">
-                <input  id="settingsFile" type="file" class="hide" accept=".json,application/json" />
+                <input  id="settingsFile" type="file" class="hide" accept=".json,application/json" data-delay="1" />
                 <button id="importButton">Import Settings</button>
-                <button id="exportButton">Export Settings</button>
+                <button id="exportButton" data-delay="1">Export Settings</button>
               </div>
             </td>
           </tr>

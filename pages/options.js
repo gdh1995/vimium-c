@@ -221,7 +221,19 @@ CheckBoxOption.prototype.readValueFromElement = function() {
     element.textContent = "Scale to fit";
   }
 
+  func = function() {
+    window._delayed = this.id;
+    document.head.appendChild(document.createElement("script")).src = "options_ext.js";
+  };
+  _ref = document.querySelectorAll("[data-delay]");
+  for (_i = _ref.length; 0 <= --_i; ) {
+    _ref[_i].onclick = func;
+  }
 })();
+
+$("importButton").onclick = function() {
+  $("settingsFile").click();
+};
 
 BG.Commands.setStrict && BG.Commands.setStrict(KeyRe.source);
 

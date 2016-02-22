@@ -173,6 +173,9 @@ $("settingsFile").onchange = function() {
   reader.onload = importSettings.bind(null, file.lastModified);
   reader.readAsText(file);
 };
-$("importButton").onclick = function() {
-  $("settingsFile").click();
-};
+$("settingsFile").onclick = function() {};
+
+if (window._delayed) {
+  $(window._delayed).onclick();
+  delete window._delayed;
+}
