@@ -1025,6 +1025,8 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
   };
 
   executeCommand = function(command, registryEntry, count, port) {
+    var func, options = registryEntry.options;
+    count *= options && options.count || 1;
     if (registryEntry.repeat === 1) {
       count = 1;
     } else if (!(registryEntry.repeat > 0 && count > registryEntry.repeat)) {
@@ -1036,8 +1038,6 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
       return;
     }
     command = registryEntry.alias || command;
-    var func, options = registryEntry.options;
-    count *= options && options.count || 1;
     if (!registryEntry.background) {
       port.postMessage({
         name: "execute",
