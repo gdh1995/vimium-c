@@ -28,14 +28,13 @@ var Commands = {
       } else {
         val = str.substring(ind + 1);
         str = str.substring(0, ind);
-        opt[str] = val && this.decodeAndParse(val);
+        opt[str] = val && this.Parse(val);
       }
     }
     return str ? opt : null;
   },
-  decodeAndParse: function(val) {
+  Parse: function(val) {
     try {
-      val = decodeURIComponent(val);
       val = JSON.parse(val);
     } catch (e) {}
     return val;
