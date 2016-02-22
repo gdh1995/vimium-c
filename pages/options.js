@@ -231,8 +231,6 @@ CheckBoxOption.prototype.readValueFromElement = function() {
     this.textContent = (advancedMode ? "Hide" : "Show") + " Advanced Options";
   };
   element.onclick(null, true);
-
-  element = null;
 })();
 
 var formatDate = function(time) {
