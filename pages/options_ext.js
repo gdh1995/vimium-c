@@ -14,13 +14,8 @@ $("showCommands").onclick = function(event) {
     title: "Command Listing"
   }, function(response) {
     var node, root = DomUtils.UI.root;
-    if (root && (node = root.getElementById("HelpDialog"))) {
-      MainPort.Listener({
-        name: "execute",
-        command: "showHelp",
-        count: 1,
-        options: {}
-      });
+    if (root && (node = root.getElementById("CloseButton"))) {
+      node.onclick();
     }
     MainPort.Listener(response);
   });
