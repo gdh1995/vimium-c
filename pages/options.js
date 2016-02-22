@@ -227,13 +227,8 @@ CheckBoxOption.prototype.readValueFromElement = function() {
       advancedMode = !advancedMode;
       bgSettings.set("showAdvancedOptions", advancedMode);
     }
-    if (advancedMode) {
-      $("advancedOptions").style.display = "";
-      this.textContent = "Hide Advanced Options";
-    } else {
-      $("advancedOptions").style.display = "none";
-      this.textContent = "Show Advanced Options";
-    }
+    $("advancedOptions").style.display = advancedMode ? "" : "none";
+    this.textContent = (advancedMode ? "Hide" : "Show") + " Advanced Options";
   };
   element.onclick(null, true);
 
