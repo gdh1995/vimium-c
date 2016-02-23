@@ -55,11 +55,17 @@ Option.prototype.save = function() {
       value = bgSettings.defaults[this.field];
     } else {
       value = BG.JSON.parse(value);
+      if (this.checker) {
+        value = this.checker.check(value);
+      }
     }
   } else if (value === previous) {
     return;
   } else {
     previous = value;
+    if (this.checker) {
+      value = this.checker.check(value);
+    }
   }
   bgSettings.set(this.field, value);
   this.previous = value = bgSettings.get(this.field);

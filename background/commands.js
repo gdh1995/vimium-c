@@ -3,17 +3,8 @@ var Commands = {
   // NOTE: [^\s] is for spliting passed keys
   keyRe: /<(?:.-){0,3}.[^>]*>|./g,
   keyToCommandRegistry: null,
-  normalizeKey: function(key) { return key; },
-  setStrict: function(keyReSource) {
-    var keyLeftRe = /<((?:[acmACM]-){0,3})(.[^>]*)>/g, upRe = Utils.upperRe,
-    func = function(_0, option, key) {
-      return (option ? ("<" + option.toLowerCase()) : "<")
-        + (upRe.test(key) ? key.toUpperCase() : key)
-        + ">";
-    };
-    this.normalizeKey = function(key) { return key.replace(keyLeftRe, func); };
+  setKeyRe: function(keyReSource) {
     this.keyRe = new RegExp(keyReSource, "g");
-    this.setStrict = null;
   },
   getOptions: function(item) {
     var opt = {}, i, len, ind, str, val;
@@ -81,7 +72,7 @@ var Commands = {
       if (key === "map") {
         if (splitLine.length < 3) {
         } else if (details = available[key = splitLine[2]]) {
-          registry[this.normalizeKey(splitLine[1])] =
+          registry[splitLine[1]] =
             this.makeCommand(key, this.getOptions(splitLine), details);
         } else {
           console.log("Command %c" + key, "color:red;", "doesn't exist!");
@@ -90,7 +81,7 @@ var Commands = {
         registry = this.keyToCommandRegistry = Object.create(null);
       } else if (key !== "unmap" || splitLine.length !== 2) {
         console.log("Unknown mapping command: '" + key + "' in", line);
-      } else if ((key = this.normalizeKey(splitLine[1])) in registry) {
+      } else if ((key = splitLine[1]) in registry) {
         delete registry[key];
       } else {
         console.log("Unmapping:", key, "has not been mapped.");

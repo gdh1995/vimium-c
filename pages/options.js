@@ -172,6 +172,13 @@ CheckBoxOption.prototype.readValueFromElement = function() {
     element.model = new func(element, onUpdated);
   }
 
+  func = loadChecker;
+  _ref = document.querySelectorAll("[data-check]");
+  for (_i = _ref.length; 0 <= --_i; ) {
+    element = _ref[_i];
+    element.addEventListener(element.getAttribute("data-check") || "input", func);
+  }
+
   advancedMode = bgSettings.get("showAdvancedOptions");
   element = $("advancedOptionsButton");
   element.onclick = function(_0, init) {
@@ -239,7 +246,9 @@ function loadJS(file) {
   document.head.appendChild(document.createElement("script")).src = file;
 }
 
-BG.Commands.setStrict && BG.Commands.setStrict(KeyRe.source);
+function loadChecker() {
+  loadJS("options_checker.js");
+}
 
 window.onhashchange = function() {
   var hash = window.location.hash, node;
