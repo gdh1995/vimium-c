@@ -21,7 +21,7 @@ Option.prototype.areEqual = function(a, b) {
 
 function NumberOption() {
   NumberOption.__super__.constructor.apply(this, arguments);
-  this.element.addEventListener("input", this.onUpdated);
+  this.element.oninput = this.onUpdated;
 }
 __extends(NumberOption, Option);
 
@@ -35,7 +35,7 @@ NumberOption.prototype.readValueFromElement = function() {
 
 function TextOption() {
   TextOption.__super__.constructor.apply(this, arguments);
-  this.element.addEventListener("input", this.onUpdated);
+  this.element.oninput = this.onUpdated;
 }
 __extends(TextOption, Option);
 
@@ -102,7 +102,7 @@ JSONOption.prototype.areEqual = Option.areJSONEqual;
 
 function CheckBoxOption() {
   CheckBoxOption.__super__.constructor.apply(this, arguments);
-  this.element.addEventListener("change", this.onUpdated);
+  this.element.onchange = this.onUpdated;
 }
 __extends(CheckBoxOption, Option);
 
