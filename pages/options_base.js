@@ -2,12 +2,9 @@
 
 var $, ExclusionRulesOption, bgSettings, bgExclusions, BG,
 KeyRe = /<(?:(?:a-(?:c-)?(?:m-)?|c-(?:m-)?|m-)(?:[A-Z][0-9A-Z]+|[a-z][0-9a-z]+|[^\s])|[A-Z][0-9A-Z]+|[a-z][0-9a-z]+)>|[^\s]/g,
-__hasProp = Object.prototype.hasOwnProperty,
 __extends = function(child, parent) {
-  for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; }
   function Ctor() { this.constructor = child; } Ctor.prototype = parent.prototype;
   child.prototype = new Ctor(); child.__super__ = parent.prototype;
-  return child;
 };
 
 $ = document.getElementById.bind(document);
