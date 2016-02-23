@@ -223,7 +223,7 @@ CheckBoxOption.prototype.readValueFromElement = function() {
 
   func = function() {
     window._delayed = this.id;
-    document.head.appendChild(document.createElement("script")).src = "options_ext.js";
+    loadJS("options_ext.js");
   };
   _ref = document.querySelectorAll("[data-delay]");
   for (_i = _ref.length; 0 <= --_i; ) {
@@ -234,6 +234,10 @@ CheckBoxOption.prototype.readValueFromElement = function() {
 $("importButton").onclick = function() {
   $("settingsFile").click();
 };
+
+function loadJS(file) {
+  document.head.appendChild(document.createElement("script")).src = file;
+}
 
 BG.Commands.setStrict && BG.Commands.setStrict(KeyRe.source);
 
