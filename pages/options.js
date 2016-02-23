@@ -39,10 +39,10 @@ function TextOption() {
 }
 __extends(TextOption, Option);
 
-TextOption.prototype.headWhiteRe = /\n /g;
+TextOption.prototype.whiteRe = / /g;
 TextOption.prototype.whiteMaskRe = /\xa0/g;
 TextOption.prototype.populateElement = function(value, enableUndo) {
-  value = value.replace(this.headWhiteRe, '\n\xa0');
+  value = value.replace(this.whiteRe, '\xa0');
   if (enableUndo !== true) {
     this.element.value = value;
     return;
