@@ -53,9 +53,6 @@ button[disabled], button[disabled]:hover, button[disabled]:active {
   text-shadow: 0 1px 0 #f0f0f0;
   color: #888;
 }
-label:hover {
-  color: black;
-}
 pre, code, .code {
   font-family: Consolas, "Liberation Mono", Courier, monospace;
 }
@@ -73,7 +70,7 @@ pre {
 .example {
   font-size: 12px;
   line-height: 16px;
-  color: #4F5254;
+  color: black;
   margin-left: 20px;
 }
 .info {
