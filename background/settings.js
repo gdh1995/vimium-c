@@ -71,7 +71,7 @@ var Settings = {
       }
     },
     files: function() {
-      var files = this.files, id, func = function() {
+      var files = Settings.files, id, func = function() {
         Settings.set(this.id, this.responseText);
       };
       for (id in files) {
