@@ -1,6 +1,6 @@
 "use strict";
-var model = $('keyMappings').model;
-window.checker = model.checker = {
+
+window.checker = $('keyMappings').model.checker = {
   normalizeKeys: null,
   init: function() {
     var keyLeftRe = /<((?:[acmACM]-){0,3})(.[^>]*)>/g, upRe = /[A-Z]/,
