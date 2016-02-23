@@ -5,7 +5,7 @@ body {
   margin: 0 auto;
 }
 a, a:visited {
-  color: blue;
+  color: #1155CC;
   cursor: pointer;
   text-decoration: underline;
 }
