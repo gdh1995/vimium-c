@@ -1,16 +1,10 @@
 "use strict";
 var exports = {}, Utils = {
   __proto__: null,
-  _onXHR: function () {
-    if (this.readyState === 4 && this.status === 200) {
-      this.onsuccess(this.responseText);
-    }
-  },
   fetchHttpContents: function(url, success) {
     var req = new XMLHttpRequest();
     req.open("GET", url, true);
-    req.onreadystatechange = this._onXHR;
-    req.onsuccess = success;
+    req.onload = success;
     req.send();
     return req;
   },

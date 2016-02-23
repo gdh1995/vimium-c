@@ -71,8 +71,8 @@ var Settings = {
       }
     },
     files: function() {
-      var files = this.files, id, func = function(value) {
-        Settings.set(this.id, value);
+      var files = this.files, id, func = function() {
+        Settings.set(this.id, this.responseText);
       };
       for (id in files) {
         Utils.fetchHttpContents(files[id], func).id = id;
