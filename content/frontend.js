@@ -1099,14 +1099,13 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483644
       this.showForDuration("copy: " + text, 2000);
     },
     showForDuration: function(text, duration) {
-      if (this.show(text)) {
+      if (this.enabled) {
+        this.show(text);
         this.durationTimer = setTimeout(this.hide, duration);
       }
     },
     show: function(text) {
-      if (!this.enabled) {
-        return false;
-      }
+      if (!this.enabled) { return; }
       var el = this._element;
       if (!el) {
         el = DomUtils.createElement("div");
@@ -1124,7 +1123,6 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483644
         this.tweenId = setInterval(this.tween, 40);
       }
       this.opacity = 1;
-      return true;
     },
     tween: function() {
       var hud = HUD, el = hud._element, opacity = +el.style.opacity;
@@ -1161,7 +1159,7 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483644
         hud.tweenId = setInterval(hud.tween, 40);
       }
     },
-    enabled: false,
+    enabled: false
   };
 
   requestHandlers = {
