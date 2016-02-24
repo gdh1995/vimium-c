@@ -27,12 +27,12 @@ var exports = {}, Utils = {
     var escapeRe = /["&'()<]/g, map = {
       '"': "\\&quot;", "&": "&amp;", "'": "\\'", "(": "\\(", ")": "\\)", "<": "&lt;"
     }, escapeCallback = function(c) {
-      return map[c[0]];
+      return map[c];
     };
-    this.escapeAttr = function(s) {
+    this.escapeCssUri = function(s) {
       return s.replace(escapeRe, escapeCallback);
     };
-    return this.escapeAttr(s);
+    return this.escapeCssUri(s);
   },
   // "javascript" should be treated specially
   _nonUrlPrefixes: { about: 1, blob: 1, data: 1, mailto: 1, "view-source": 1 },
