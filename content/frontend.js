@@ -1331,7 +1331,7 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483644
       toggleAdvanced();
       settings.set("showAdvancedCommands", shouldShowAdvanced);
     };
-    container.querySelector("#CloseButton").onclick = Commands.showHelp = hide;
+    container.querySelector("#HClose").onclick = Commands.showHelp = hide;
     node1 = container.querySelector("#OptionsPage");
     if (! window.location.href.startsWith(response.optionUrl)) {
       node1.href = response.optionUrl;

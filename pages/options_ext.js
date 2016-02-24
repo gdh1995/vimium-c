@@ -14,7 +14,7 @@ $("showCommands").onclick = function(event) {
     title: "Command Listing"
   }, function(response) {
     var node, root = DomUtils.UI.root;
-    if (root && (node = root.getElementById("CloseButton"))) {
+    if (root && (node = root.getElementById("HClose"))) {
       node.onclick();
     }
     MainPort.Listener(response);
