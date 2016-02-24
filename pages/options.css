@@ -5,7 +5,7 @@ body {
   margin: 0 auto;
 }
 a, a:visited {
-  color: #1155CC;
+  color: #15c;
   cursor: pointer;
   text-decoration: underline;
 }
@@ -140,7 +140,7 @@ input, textarea {
 input[type=text]:read-only,
 input[type=number]:read-only,
 textarea:read-only {
-  background-color: #EBEBE4;
+  background-color: #ebebe4;
   color: #444;
 }
 input:disabled, textarea:disabled {
