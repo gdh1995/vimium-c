@@ -1240,13 +1240,13 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
       cPort = port;
       BackgroundCommands.nextFrame(request.frameId);
     },
-    initHelp: function(request) {
-      return {
+    initHelp: function(request, port) {
+      port.postMessage({
         name: "showHelpDialog",
         html: helpDialogHtml(request.unbound, request.names, request.title),
         optionUrl: Settings.CONST.OptionsPage,
         advanced: Settings.get("showAdvancedCommands", true)
-      };
+      });
     },
     initVomnibar: function() {
       return Settings.cache.vomnibar;

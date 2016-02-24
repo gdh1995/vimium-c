@@ -481,9 +481,7 @@ var Settings, VHUD, MainPort, VInsertMode;
         return;
       }
       if (!document.body) { return false; }
-      mainPort.sendMessage({
-        handler: "initHelp"
-      }, requestHandlers.showHelpDialog);
+      mainPort.port.postMessage({handler: "initHelp"});
     },
     autoCopy: function(_0, options) {
       var str = DomUtils.getSelectionText() ||

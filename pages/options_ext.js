@@ -7,17 +7,15 @@ $("showCommands").onclick = function(event) {
     node.click();
     return;
   }
-  MainPort.sendMessage({
+  var node, root = DomUtils.UI.root;
+  if (root && (node = root.getElementById("HClose"))) {
+    node.onclick();
+  }
+  MainPort.port.postMessage({
     handler: "initHelp",
     unbound: true,
     names: true,
     title: "Command Listing"
-  }, function(response) {
-    var node, root = DomUtils.UI.root;
-    if (root && (node = root.getElementById("HClose"))) {
-      node.onclick();
-    }
-    MainPort.Listener(response);
   });
 };
 
