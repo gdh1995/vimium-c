@@ -431,14 +431,21 @@ var Settings, VHUD, MainPort, VInsertMode;
         return -1;
       });
       function onKeyup(event) {
-        keyCount === 0 || --keyCount || --count ? (keys[event.keyCode] = 0) : exit();
+        if (keyCount === 0 || --keyCount || --count) {
+          keys[event.keyCode] = 0;
+          HUD.show("Pass next key: " + count);
+          return;
+        }
+        exit();
       }
       function exit() {
         handlerStack.remove(handlerId);
         window.removeEventListener("keyup", onKeyup, true);
+        HUD.hide();
       }
       window.addEventListener("keyup", onKeyup, true);
       VInsertMode.onWndBlur = exit;
+      HUD.show("Pass next key: " + count);
     },
     goNext: function(_0, options) {
       var dir = options.dir;
