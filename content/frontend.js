@@ -272,7 +272,7 @@ var Settings, VHUD, MainPort, VInsertMode;
     },
     onKeyup: function(event) {
       if (isEnabledForUrl) {
-        if (Scroller.keyIsDown) { Scroller.keyIsDown = 0; }
+        Scroller.keyIsDown = 0;
         if (KeydownEvents[event.keyCode]) {
           KeydownEvents[event.keyCode] = 0;
           event.preventDefault();
@@ -302,7 +302,7 @@ var Settings, VHUD, MainPort, VInsertMode;
     onBlur: function(event) {
       var target = event.target;
       if (target === window) {
-        if (Scroller.keyIsDown) { Scroller.keyIsDown = 0; }
+        Scroller.keyIsDown = 0;
         InsertMode.onWndBlur && InsertMode.onWndBlur(KeydownEvents);
         KeydownEvents = new Uint8Array(256);
       } else if (!isEnabledForUrl) {}
