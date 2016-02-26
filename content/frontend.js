@@ -423,6 +423,23 @@ var Settings, VHUD, MainPort, VInsertMode;
       findMode = true;
       HUD.show("/");
     },
+    passNextKey: function(count) {
+      var keys = Object.create(null), keyCount = 0, handlerId;
+      handlerId = handlerStack.push(function(event) {
+        keyCount += !keys[event.keyCode];
+        keys[event.keyCode] = 1;
+        return -1;
+      });
+      function onKeyup(event) {
+        keyCount == 0 || --keyCount || --count ? (keys[event.keyCode] = 0) : exit();
+      }
+      function exit() {
+        handlerStack.remove(handlerId);
+        window.removeEventListener("keyup", onKeyup, true);
+      }
+      window.addEventListener("keyup", onKeyup, true);
+      VInsertMode.onWndBlur = exit;
+    },
     goNext: function(_0, options) {
       var dir = options.dir;
       goBy(dir || "next", settings.cache[dir === "prev" ? "previousPatterns" : "nextPatterns"]);

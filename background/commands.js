@@ -120,7 +120,7 @@ commandGroups: {
     , "closeTabsOnLeft", "closeTabsOnRight", "closeOtherTabs", "moveTabLeft", "moveTabRight"
     , "enableCSTemp", "toggleCS", "clearCS"],
   misc: ["showHelp", "autoCopy", "autoOpen", "searchAs", "toggleLinkHintCharacters"
-    , "toggleSwitchTemp", "debugBackground", "blank"]
+    , "toggleSwitchTemp", "passNextKey", "debugBackground", "blank"]
 },
 advancedCommands: ["scrollToLeft", "scrollToRight", "moveTabToNextWindow"
   , "moveTabToNewWindow", "moveTabToIncognito", "reloadGivenTab", "focusOrLaunch"
@@ -128,7 +128,7 @@ advancedCommands: ["scrollToLeft", "scrollToRight", "moveTabToNextWindow"
   , "toggleCS", "clearCS", "LinkHints.activateModeToDownloadImage", "reopenTab"
   , "LinkHints.activateModeToOpenImage", "searchAs", "removeRightTab"
   , "LinkHints.activateModeToDownloadLink", "restoreGivenTab"
-  , "LinkHints.activateModeToOpenIncognito"
+  , "LinkHints.activateModeToOpenIncognito", "passNextKey"
   , "goNext", "goPrevious", "Marks.clearLocal", "Marks.clearGlobal"
   , "moveTabLeft", "moveTabRight", "closeTabsOnLeft", "closeTabsOnRight", "closeOtherTabs"
   , "scrollPxDown", "scrollPxUp", "scrollPxLeft", "scrollPxRight", "debugBackground", "blank"
@@ -246,6 +246,7 @@ availableCommands: {
   openCopiedUrlInCurrentTab: [ "Open the clipboard's URL in the current tab", 1, true ],
   openCopiedUrlInNewTab: [ "Open the clipboard's URL in N new tab(s)", 20, true ],
   enterInsertMode: [ "Enter insert mode (use code=27, stat=0)", 1, false ],
+  passNextKey: [ "Pass the next key(s) to Chrome", 0, false ],
   focusInput: [ "Focus the first text box on the page. Cycle between them using tab", 0, false ],
   "LinkHints.activate": [ "Open a link in the current tab", 1, false, { mode: "OPEN_IN_CURRENT_TAB" } ],
   "LinkHints.activateModeToOpenInNewTab": [ "Open a link in a new tab", 1, false,
