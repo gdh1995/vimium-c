@@ -187,15 +187,21 @@ var Settings, VHUD, MainPort, VInsertMode;
         }
         Scroller.keyIsDown = 0;
       }
+      var keyChar, key = event.keyCode, action = 0;
       if (isEnabledForUrl) {
-        if (handlerStack.bubbleEvent(event)) {
-          KeydownEvents[event.keyCode] = 1;
+        if (action = handlerStack.bubbleEvent(event)) {
+          if (action === 2) {
+            event.preventDefault();
+          } else if (action < 0) {
+            return;
+          }
+          event.stopImmediatePropagation();
+          KeydownEvents[key] = 1;
           return;
         }
       } else {
         return;
       }
-      var keyChar, key = event.keyCode, action = 0;
       if (InsertMode.isActive()) {
         if (InsertMode.global ? key === InsertMode.global.code
               && KeyboardUtils.getKeyStat(event) === InsertMode.global.stat
