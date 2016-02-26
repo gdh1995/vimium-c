@@ -155,9 +155,8 @@ var Settings, VHUD, MainPort, VInsertMode;
       };
       mainPort.port.postMessage(request);
       this.isLoading = setInterval(function() {
-        mainPort.safePost(request, onerror && function() {
-          onerror(request.request);
-        });
+        onerror(request);
+        mainPort.safePost(request);
       }, 2000);
     },
     ReceiveSettings: function(response) {
@@ -1391,8 +1390,8 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483644
     focused: document.hasFocus(), // .hasFocus has a time cost less than 0.8 us
     url: window.location.href
   }, function(request) {
-    request.focused = document.hasFocus();
-    request.url = window.location.href;
+    request.request.focused = document.hasFocus();
+    request.request.url = window.location.href;
   });
 
   DomUtils.documentReady(function() {
