@@ -25,21 +25,15 @@ var Marks = {
   },
   onKeydown: function(event) {
     var keyCode = event.keyCode, keyChar;
-    if (keyCode === KeyCodes.esc) {
-      if (KeyboardUtils.isPlain(event)) {
-        handlerStack.remove(this);
-        VHUD.hide();
-        return 2;
-      }
-    } else if (keyCode > KeyCodes.f1 && keyCode <= KeyCodes.f12) {}
-    else if (keyCode > 32) {
-      if (keyChar = KeyboardUtils.getKeyChar(event, event.shiftKey)) {
-        handlerStack.remove(this);
-        this.onKeypress(event, keyChar);
-        return 2;
-      }
+    if (keyCode === KeyCodes.esc ? !KeyboardUtils.isPlain(event)
+      : keyCode > KeyCodes.f1 && keyCode <= KeyCodes.f12 || keyCode <= 32
+        || !(keyChar = KeyboardUtils.getKeyChar(event, event.shiftKey))) {
+      return 1;
     }
-    return 1;
+    handlerStack.remove(this);
+    VHUD.hide();
+    keyCode > 32 && this.onKeypress(event, keyChar);
+    return 2;
   },
   getBaseUrl: function() {
     return window.location.href.split('#', 1)[0];
