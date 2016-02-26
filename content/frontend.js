@@ -639,7 +639,7 @@ var Settings, VHUD, MainPort, VInsertMode;
   VInsertMode = InsertMode = {
     focus: null,
     global: null,
-    handlerId: 0,
+    _id: 0,
     heldEl: false,
     last: null,
     loading: (document.readyState !== "complete"),
@@ -668,7 +668,7 @@ var Settings, VHUD, MainPort, VInsertMode;
     setupGrab: function() {
       this.exitGrab = this.exitGrab.bind(this);
       this.focus = this.grabBackFocus;
-      this.handlerId || handlerStack.push(this.exitGrab, this);
+      this._id || handlerStack.push(this.exitGrab, this);
       window.addEventListener("mousedown", this.exitGrab, true);
     },
     exitGrab: function() {
@@ -677,7 +677,7 @@ var Settings, VHUD, MainPort, VInsertMode;
       }
       window.removeEventListener("mousedown", this.exitGrab, true);
       handlerStack.remove(this);
-      this.handlerId = 0;
+      this._id = 0;
       return 0;
     },
     grabBackFocus: function(event) {

@@ -64,7 +64,7 @@ activate: function(_0, options, force_current) {
   inputText: "",
   completions: null,
   forceNewTab: false,
-  handlerId: 0,
+  _id: 0,
   initialSelectionValue: -1,
   input: null,
   isSelectionChanged: false,
@@ -94,7 +94,7 @@ activate: function(_0, options, force_current) {
     this.list.textContent = "";
     this.input.value = "";
     handlerStack.remove(this);
-    this.handlerId = 0;
+    this._id = 0;
     this.onUpdate = null;
     this.inputText = "";
     this.mode.query = "";

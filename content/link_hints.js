@@ -37,7 +37,7 @@ var LinkHints = {
     newHintLength: 0,
     tab: 0
   },
-  handlerId: 0,
+  _id: 0,
   initTimer: 0,
   isActive: false,
   options: null,
@@ -583,7 +583,7 @@ var LinkHints = {
     }
     this.keyStatus.tab = 0;
     handlerStack.remove(this);
-    this.handlerId = 0;
+    this._id = 0;
     VInsertMode.onWndBlur = null;
     if (this.keepHUDAfterAct) {
       this.keepHUDAfterAct = false;
