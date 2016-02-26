@@ -247,6 +247,8 @@ function loadJS(file) {
 }
 
 function loadChecker() {
+  if (loadChecker.loaded) { return; }
+  loadChecker.loaded = true;
   loadJS("options_checker.js");
 }
 
