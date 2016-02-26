@@ -665,7 +665,7 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
       ContentSettings.clearCS(cOptions.type, tabs[0]);
     },
     gotoTab: function(tabs) {
-      if (tabs.length <= 0) { return; }
+      if (tabs.length < 2) { return; }
       var count = (cOptions.dir || 1) * commandCount,
         len = tabs.length, toSelect;
       count = cOptions.absolute
@@ -858,6 +858,7 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
     },
     visitPreviousTab: function(tabs) {
       var tabId;
+      if (tabs.length < 2) { return; }
       tabs.splice(funcDict.selectFrom(tabs).index, 1);
       tabs.sort(TabRecency.rCompare);
       tabId = tabs[Math.min(commandCount, tabs.length) - 1].id;
