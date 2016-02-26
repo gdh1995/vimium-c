@@ -431,7 +431,7 @@ var Settings, VHUD, MainPort, VInsertMode;
         return -1;
       });
       function onKeyup(event) {
-        keyCount == 0 || --keyCount || --count ? (keys[event.keyCode] = 0) : exit();
+        keyCount === 0 || --keyCount || --count ? (keys[event.keyCode] = 0) : exit();
       }
       function exit() {
         handlerStack.remove(handlerId);
