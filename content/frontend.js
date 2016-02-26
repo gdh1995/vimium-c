@@ -666,17 +666,15 @@ var Settings, VHUD, MainPort, VInsertMode;
       }
     },
     setupGrab: function() {
-      this.exitGrab = this.exitGrab.bind(this);
       this.focus = this.grabBackFocus;
-      this._id || handlerStack.push(this.exitGrab, this);
-      window.addEventListener("mousedown", this.exitGrab, true);
+      handlerStack.push(this.ExitGrab, this);
+      window.addEventListener("mousedown", this.ExitGrab, true);
     },
-    exitGrab: function() {
-      if (this.focus === this.grabBackFocus) {
-        this.focus = this.lockFocus;
-      }
-      window.removeEventListener("mousedown", this.exitGrab, true);
-      handlerStack.remove(this);
+    ExitGrab: function() {
+      var _this = InsertMode;
+      _this.focus = _this.lockFocus;
+      window.removeEventListener("mousedown", _this.ExitGrab, true);
+      handlerStack.remove(_this);
       return 0;
     },
     grabBackFocus: function(event) {
@@ -1436,7 +1434,7 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483644
     window.removeEventListener("keyup", this.onKeyup, true);
     window.removeEventListener("focus", this.onFocus, true);
     window.removeEventListener("blur", this.onBlur, true);
-    window.removeEventListener("mousedown", InsertMode.exitGrab, true);
+    window.removeEventListener("mousedown", InsertMode.ExitGrab, true);
     document.removeEventListener("DOMActivate", this.onActivate, true);
     document.removeEventListener("webkitfullscreenchange", DomUtils.UI.adjust);
     DomUtils.UI.container && DomUtils.UI.container.remove();
