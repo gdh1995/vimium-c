@@ -423,11 +423,11 @@ var Settings, VHUD, MainPort, VInsertMode;
     },
     passNextKey: function(count) {
       var keys = Object.create(null), keyCount = 0, handlerId;
-      handlerId = handlerStack.push(function(event) {
+      handlerStack.push(function(event) {
         keyCount += !keys[event.keyCode];
         keys[event.keyCode] = 1;
         return -1;
-      });
+      }, handlerId = {});
       function onKeyup(event) {
         if (keyCount === 0 || --keyCount || --count) {
           keys[event.keyCode] = 0;
@@ -588,7 +588,7 @@ var Settings, VHUD, MainPort, VInsertMode;
       });
       hintContainingDiv.style.left = window.scrollX + "px";
       hintContainingDiv.style.top = window.scrollY + "px";
-      handlerId = handlerStack.push(function(event) {
+      handlerStack.push(function(event) {
         if (event.keyCode === KeyCodes.tab) {
           hints[selectedInputIndex].classList.remove("S");
           if (event.shiftKey) {
@@ -608,7 +608,7 @@ var Settings, VHUD, MainPort, VInsertMode;
           return 0;
         }
         return 2;
-      });
+      }, handlerId = {});
     }
   };
   Object.setPrototypeOf(Commands, null);
@@ -668,7 +668,7 @@ var Settings, VHUD, MainPort, VInsertMode;
     setupGrab: function() {
       this.exitGrab = this.exitGrab.bind(this);
       this.focus = this.grabBackFocus;
-      this.handlerId || (this.handlerId = handlerStack.push(this.exitGrab));
+      this.handlerId || handlerStack.push(this.exitGrab, this);
       window.addEventListener("mousedown", this.exitGrab, true);
     },
     exitGrab: function() {
@@ -676,7 +676,7 @@ var Settings, VHUD, MainPort, VInsertMode;
         this.focus = this.lockFocus;
       }
       window.removeEventListener("mousedown", this.exitGrab, true);
-      handlerStack.remove(this.handlerId);
+      handlerStack.remove(this);
       this.handlerId = 0;
       return 0;
     },
@@ -939,14 +939,14 @@ var Settings, VHUD, MainPort, VInsertMode;
     if (findModeAnchorNode
         && DomUtils.getEditableType(el = document.activeElement) === 3
         && findModeAnchorNode.contains(el)) {
-      handlerId = handlerStack.push(function(event) {
+      handlerStack.push(function(event) {
         handlerStack.remove(handlerId);
         if (event.keyCode === KeyCodes.esc && KeyboardUtils.isPlain(event)) {
           DomUtils.UI.simulateSelect(InsertMode.lock = el);
           return 2;
         }
         return 0;
-      });
+      }, handlerId = {});
     }
   };
 
@@ -1370,14 +1370,14 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483644
     DomUtils.UI.addElement(container);
     window.focus();
     Scroller.current = container;
-    handlerId = handlerStack.push(function(event) {
+    handlerStack.push(function(event) {
       if (event.keyCode === KeyCodes.esc && !InsertMode.lock
           && KeyboardUtils.isPlain(event)) {
         DomUtils.UI.removeSelection() || hide();
         return 2;
       }
       return 0;
-    });
+    }, handlerId = {});
   }
   };
   Object.setPrototypeOf(requestHandlers, null);

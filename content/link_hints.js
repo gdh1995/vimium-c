@@ -53,7 +53,7 @@ var LinkHints = {
       }
       return;
     }
-    handlerStack.remove(this.handlerId);
+    handlerStack.remove(this);
     if (this.hintMarkerContainingDiv) {
       this.hintMarkerContainingDiv.remove();
     }
@@ -112,7 +112,7 @@ var LinkHints = {
     if (document.webkitFullscreenElement) { style.position = "fixed"; }
     VHUD.show(tip);
     this.keyStatus.tab = 0;
-    this.handlerId = handlerStack.push(this.onKeyDownInMode, this);
+    handlerStack.push(this.onKeyDownInMode, this);
     VInsertMode.onWndBlur = this.OnWndBlur;
   },
   setOpenLinkMode: function(mode, delayTip) {
@@ -582,7 +582,7 @@ var LinkHints = {
       this.hintMarkerContainingDiv = null;
     }
     this.keyStatus.tab = 0;
-    handlerStack.remove(this.handlerId);
+    handlerStack.remove(this);
     this.handlerId = 0;
     VInsertMode.onWndBlur = null;
     if (this.keepHUDAfterAct) {

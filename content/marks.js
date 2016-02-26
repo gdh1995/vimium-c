@@ -5,7 +5,7 @@ var Marks = {
   activate: function(_0, options) {
     var isGo = options.mode !== "create";
     this.onKeypress = isGo ? this._goto : this._create;
-    this.handlerId = handlerStack.push(this.onKeydown, this);
+    handlerStack.push(this.onKeydown, this);
     VHUD.show((isGo ? "Go" : "Create") + " mark ...");
   },
   clearLocal: function() {
@@ -27,14 +27,14 @@ var Marks = {
     var keyCode = event.keyCode, keyChar;
     if (keyCode === KeyCodes.esc) {
       if (KeyboardUtils.isPlain(event)) {
-        handlerStack.remove(this.handlerId);
+        handlerStack.remove(this);
         VHUD.hide();
         return 2;
       }
     } else if (keyCode > KeyCodes.f1 && keyCode <= KeyCodes.f12) {}
     else if (keyCode > 32) {
       if (keyChar = KeyboardUtils.getKeyChar(event, event.shiftKey)) {
-        handlerStack.remove(this.handlerId);
+        handlerStack.remove(this);
         this.onKeypress(event, keyChar);
         return 2;
       }

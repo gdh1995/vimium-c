@@ -156,7 +156,7 @@ DomUtils.UI = {
         }
       }, 75);
     }
-    handlerId = handlerStack.push(func);
+    handlerStack.push(func, handlerId = {});
   },
   SuppressMost: function(event) {
     var n = event.keyCode, plain;
@@ -164,8 +164,8 @@ DomUtils.UI = {
       if (n <= KeyCodes.f1 || n > KeyCodes.f12) {
         return 2;
       };
-    } else if (this && KeyboardUtils.isPlain(event) && this.handlerId) {
-      handlerStack.remove(this.handlerId);
+    } else if (this && KeyboardUtils.isPlain(event)) {
+      handlerStack.remove(this);
       return 2;
     }
     return KeyboardUtils.isPlain(event) ? 1 : 0;

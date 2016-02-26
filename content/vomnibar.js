@@ -16,8 +16,8 @@ activate: function(_0, options, force_current) {
   this.mode.type = options.mode || "omni";
   this.initialSelectionValue = options.first ? 0 : -1;
   this.forceNewTab = options.force ? true : false;
-  handlerStack.remove(this.handlerId);
-  this.handlerId = handlerStack.push(DomUtils.UI.SuppressMost, this);
+  handlerStack.remove(this);
+  handlerStack.push(DomUtils.UI.SuppressMost, this);
   initialQueryValue = options.url;
   keyword = options.keyword;
   if (initialQueryValue == null) {
@@ -82,8 +82,8 @@ activate: function(_0, options, force_current) {
     if (DomUtils.UI.container.style.display !== "none") {
       this.input.focus();
     }
-    handlerStack.remove(this.handlerId);
-    this.handlerId = handlerStack.push(this.onKeydown, this);
+    handlerStack.remove(this);
+    handlerStack.push(this.onKeydown, this);
   },
   hide: function() {
     if (this.timer > 0) {
@@ -93,7 +93,7 @@ activate: function(_0, options, force_current) {
     this.box.style.display = "none";
     this.list.textContent = "";
     this.input.value = "";
-    handlerStack.remove(this.handlerId);
+    handlerStack.remove(this);
     this.handlerId = 0;
     this.onUpdate = null;
     this.inputText = "";
