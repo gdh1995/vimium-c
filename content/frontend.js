@@ -516,7 +516,6 @@ var Settings, VHUD, MainPort, VInsertMode;
     autoCopy: function(_0, options) {
       var str = DomUtils.getSelectionText() ||
         (options.url ? window.location.href : document.title.trim());
-      str = str.trim();
       str && mainPort.port.postMessage({
         handler: "copyToClipboard",
         data: str
