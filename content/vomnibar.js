@@ -94,7 +94,6 @@ activate: function(_0, options, force_current) {
     this.list.textContent = "";
     this.input.value = "";
     handlerStack.remove(this);
-    this._id = 0;
     this.onUpdate = null;
     this.inputText = "";
     this.mode.query = "";

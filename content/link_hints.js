@@ -583,7 +583,6 @@ var LinkHints = {
     }
     this.keyStatus.tab = 0;
     handlerStack.remove(this);
-    this._id = 0;
     VInsertMode.onWndBlur = null;
     if (this.keepHUDAfterAct) {
       this.keepHUDAfterAct = false;

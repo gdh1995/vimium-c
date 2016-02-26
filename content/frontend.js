@@ -677,7 +677,6 @@ var Settings, VHUD, MainPort, VInsertMode;
       }
       window.removeEventListener("mousedown", this.exitGrab, true);
       handlerStack.remove(this);
-      this._id = 0;
       return 0;
     },
     grabBackFocus: function(event) {
