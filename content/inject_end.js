@@ -34,7 +34,7 @@ DomUtils.documentReady(function() {
   var ELs = Settings.ELs;
   window.addEventListener("unload", ELs.onUnload);
   window.addEventListener("hashchange", Settings.RequestHandlers.checkIfEnabled);
-  ELs.onWndFocus = MainPort.safePost.bind(MainPort, ELs.focusMsg, null, function() {
+  ELs.onWndFocus = MainPort.safePost.bind(MainPort, ELs.focusMsg, function() {
     setTimeout(function() {
       if (MainPort && !MainPort.port) {
         Settings.ELs.destroy();

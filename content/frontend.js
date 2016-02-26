@@ -61,13 +61,12 @@ var Settings, VHUD, MainPort, VInsertMode;
       this.port.postMessage({_msgId: id, request: request});
       this._callbacks[id] = callback;
     },
-    safePost: function(request, ifConnected, ifReconnect) {
+    safePost: function(request, ifReconnect) {
       try {
         if (!this.port) {
           this.connect();
           ifReconnect && ifReconnect();
         }
-        ifConnected && ifConnected();
         this.port.postMessage(request);
       } catch (e) { // this extension is reloaded or disabled
         ELs.destroy();
