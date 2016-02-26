@@ -55,9 +55,9 @@ var Settings, VHUD, MainPort, VInsertMode;
     frameId: frameId,
     port: null,
     _callbacks: Object.create(null),
-    _lastMsg: 1,
+    _id: 1,
     sendMessage: function(request, callback) {
-      var id = ++this._lastMsg;
+      var id = ++this._id;
       this.port.postMessage({_msgId: id, request: request});
       this._callbacks[id] = callback;
     },
