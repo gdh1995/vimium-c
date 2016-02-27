@@ -2309,59 +2309,55 @@ DBOX = {
 		var self = this;
 		var bodyWidth = oWidth,
 		bodyHeight = oHeight;
-		if (bodyWidth > 0 && bodyHeight > 0) {
-			self.container.show();
-			var maxCols = parseInt((bodyWidth - self.spacing) / (self.width + self.spacing + 2 * self.border)),
-			matrix = {};
-			for (var cols = 1; cols <= maxCols; cols++) {
-				if (self.num % cols == 0) {
-					matrix[cols] = {
-						"rows": self.num / cols,
-						"cols": cols
-					}
+		self.container.show();
+		var maxCols = parseInt((bodyWidth - self.spacing) / (self.width + self.spacing + 2 * self.border)),
+		matrix = {};
+		for (var cols = 1; cols <= maxCols; cols++) {
+			if (self.num % cols == 0) {
+				matrix[cols] = {
+					"rows": self.num / cols,
+					"cols": cols
 				}
 			}
-			var minDiff = '';
-			$.each(matrix, function (i, n) {
-				var itemWidth = self.width + self.spacing + 2 * self.border,
-				itemHeight = (self.titleShow == true ? (self.height + 32) : self.height) + self.spacing + 2 * self.border,
-				curDiff = Math.abs((bodyWidth - n.cols * itemWidth - self.spacing) / 2 - (bodyHeight - 100 - n.rows * itemHeight - self.spacing));
-				if (curDiff < minDiff || minDiff == '') {
-					minDiff = curDiff;
-					self.containerWidth = n.cols * itemWidth + self.spacing;
-					self.containerHeight = n.rows * itemHeight + self.spacing;
-					self.containerLeft = parseInt((bodyWidth - self.containerWidth) / 2);
-					if (self.dialBoxQuickHide) {
+		}
+		var minDiff = '';
+		$.each(matrix, function (i, n) {
+			var itemWidth = self.width + self.spacing + 2 * self.border,
+			itemHeight = (self.titleShow == true ? (self.height + 32) : self.height) + self.spacing + 2 * self.border,
+			curDiff = Math.abs((bodyWidth - n.cols * itemWidth - self.spacing) / 2 - (bodyHeight - 100 - n.rows * itemHeight - self.spacing));
+			if (curDiff < minDiff || minDiff == '') {
+				minDiff = curDiff;
+				self.containerWidth = n.cols * itemWidth + self.spacing;
+				self.containerHeight = n.rows * itemHeight + self.spacing;
+				self.containerLeft = parseInt((bodyWidth - self.containerWidth) / 2);
+				if (self.dialBoxQuickHide) {
+					if (bodyHeight > self.containerHeight) {
+						self.containerTop = parseInt((bodyHeight - self.containerHeight - 60) / 2)
+					} else {
+						self.containerTop = 0
+					}
+				} else {
+					if (self.maxTop == 'auto' || (bodyHeight - 90 - self.containerHeight + 2 * self.spacing) < 2 * self.maxTop || (bodyHeight - 90 - self.containerHeight + 2 * self.spacing) > 3 * self.maxTop) {
 						if (bodyHeight > self.containerHeight) {
-							self.containerTop = parseInt((bodyHeight - self.containerHeight - 60) / 2)
+							self.containerTop = parseInt((bodyHeight - self.containerHeight - 90) * 0.8 / 2)
 						} else {
 							self.containerTop = 0
 						}
 					} else {
-						if (self.maxTop == 'auto' || (bodyHeight - 90 - self.containerHeight + 2 * self.spacing) < 2 * self.maxTop || (bodyHeight - 90 - self.containerHeight + 2 * self.spacing) > 3 * self.maxTop) {
-							if (bodyHeight > self.containerHeight) {
-								self.containerTop = parseInt((bodyHeight - self.containerHeight - 90) * 0.8 / 2)
-							} else {
-								self.containerTop = 0
-							}
-						} else {
-							self.containerTop = (self.maxTop - self.spacing) > 0 ? (self.maxTop - self.spacing) : 0
-						}
+						self.containerTop = (self.maxTop - self.spacing) > 0 ? (self.maxTop - self.spacing) : 0
 					}
-					self.cols = n.cols;
-					self.rows = n.rows
 				}
-			});
-			var _spaceWidth = 240;
-			if (screenWidth <= 1024) {
-				_spaceWidth = 120
-			} else if (screenWidth <= 1366) {
-				_spaceWidth = 200
+				self.cols = n.cols;
+				self.rows = n.rows
 			}
-			self.Qnum = parseInt((self.QBContainerWidth - _spaceWidth) / parseInt(self.QMinSpacing + self.QWidth))
-		} else if (document.readyState !== "complete") {
-			self.container.show();
+		});
+		var _spaceWidth = 240;
+		if (screenWidth <= 1024) {
+			_spaceWidth = 120
+		} else if (screenWidth <= 1366) {
+			_spaceWidth = 200
 		}
+		self.Qnum = parseInt((self.QBContainerWidth - _spaceWidth) / parseInt(self.QMinSpacing + self.QWidth))
 		if (self.dialBoxQuickHide) {
 			self.QContainer.addClass("hide");
 			self.QBContainer.addClass("hide")
