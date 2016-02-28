@@ -78,7 +78,7 @@ activate: function(_0, options, force_current) {
     this.input.value = this.inputText;
     DomUtils.UI.addElement(this.box);
     VInsertMode.heldEl = this.input;
-    if (DomUtils.UI.container.style.display !== "none") {
+    if (DomUtils.UI.box.style.display !== "none") {
       this.input.focus();
     }
     handlerStack.remove(this);
