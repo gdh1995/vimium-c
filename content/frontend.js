@@ -286,7 +286,7 @@ var Settings, VHUD, MainPort, VInsertMode;
       else if (DomUtils.getEditableType(target)) {
         InsertMode.focus(event);
       } else if (target.shadowRoot) {
-        if (target === DomUtils.UI.container) {
+        if (target === DomUtils.UI.box) {
           event.stopImmediatePropagation();
           return;
         }
@@ -305,7 +305,7 @@ var Settings, VHUD, MainPort, VInsertMode;
       else if (InsertMode.lock === target) {
         InsertMode.lock = null;
       } else if (target.shadowRoot) {
-        if (target === DomUtils.UI.container) {
+        if (target === DomUtils.UI.box) {
           event.stopImmediatePropagation();
           return;
         }
@@ -552,7 +552,7 @@ var Settings, VHUD, MainPort, VInsertMode;
       });
     },
     focusInput: function(count) {
-      var hintContainingDiv, hints, selectedInputIndex, visibleInputs, handlerId;
+      var box, hints, selectedInputIndex, visibleInputs, handlerId;
       visibleInputs = getVisibleInputs(DomUtils.evaluateXPath(
         './/input[not(@disabled or @readonly) and (@type="text" or @type="search" or @type="email" or @type="url" or @type="number" or @type="password" or @type="date" or @type="tel" or not(@type))] | .//xhtml:input[not(@disabled or @readonly) and (@type="text" or @type="search" or @type="email" or @type="url" or @type="number" or @type="password" or @type="date" or @type="tel" or not(@type))] | .//textarea[not(@disabled or @readonly)] | .//xhtml:textarea[not(@disabled or @readonly)] | .//*[@contenteditable="" or translate(@contenteditable, "TRUE", "true")="true"] | .//xhtml:*[@contenteditable="" or translate(@contenteditable, "TRUE", "true")="true"]'
         , XPathResult.ORDERED_NODE_SNAPSHOT_TYPE));
@@ -580,12 +580,12 @@ var Settings, VHUD, MainPort, VInsertMode;
         return hint;
       });
       hints[selectedInputIndex].classList.add("S");
-      hintContainingDiv = DomUtils.UI.addElementList(hints, {
+      box = DomUtils.UI.addElementList(hints, {
         id: "IMC",
         className: "R"
       });
-      hintContainingDiv.style.left = window.scrollX + "px";
-      hintContainingDiv.style.top = window.scrollY + "px";
+      box.style.left = window.scrollX + "px";
+      box.style.top = window.scrollY + "px";
       handlerStack.push(function(event) {
         if (event.keyCode === KeyCodes.tab) {
           hints[selectedInputIndex].classList.remove("S");
@@ -601,7 +601,7 @@ var Settings, VHUD, MainPort, VInsertMode;
         } else if (event.keyCode === KeyCodes.f12) {
           return KeyboardUtils.isPlain(event) ? 0 : 2;
         } else if (!event.repeat && event.keyCode !== KeyCodes.shiftKey) {
-          hintContainingDiv.remove();
+          box.remove();
           handlerStack.remove(handlerId);
           return 0;
         }
@@ -1214,7 +1214,7 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483644
         });
         this.adjust = function() {
           (document.webkitFullscreenElement || document.documentElement
-            ).appendChild(DomUtils.UI.container);
+            ).appendChild(DomUtils.UI.box);
         };
         document.addEventListener("webkitfullscreenchange", this.adjust);
         this.adjust();
@@ -1230,7 +1230,7 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483644
         mainPort.port.disconnect();
         InsertMode.loading = false;
       }
-      DomUtils.UI.container && DomUtils.UI.Toggle(isEnabledForUrl);
+      DomUtils.UI.box && DomUtils.UI.Toggle(isEnabledForUrl);
       ELs.focusMsg.url = window.location.href;
     },
     settings: settings.ReceiveSettings,
@@ -1320,34 +1320,34 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483644
       HUD.showCopied(request.text);
     },
   showHelpDialog: function(response) {
-    var container, handlerId, oldShowHelp, hide, node1, //
+    var box, handlerId, oldShowHelp, hide, node1, //
     toggleAdvanced, shouldShowAdvanced = response.advanced === true;
-    container = DomUtils.createElement("div");
-    container.innerHTML = response.html;
-    container = container.firstElementChild;
-    container.addEventListener("mousewheel", DomUtils.SuppressPropagation);
-    container.addEventListener("click", DomUtils.SuppressPropagation);
+    box = DomUtils.createElement("div");
+    box.innerHTML = response.html;
+    box = box.firstElementChild;
+    box.addEventListener("mousewheel", DomUtils.SuppressPropagation);
+    box.addEventListener("click", DomUtils.SuppressPropagation);
 
     hide = function() {
       handlerStack.remove(handlerId);
-      container.remove();
+      box.remove();
       Commands.showHelp = oldShowHelp;
-      container = null;
+      box = null;
     };
     toggleAdvanced = function() {
-      container.querySelector("#AdvancedCommands").textContent =
+      box.querySelector("#AdvancedCommands").textContent =
         (shouldShowAdvanced ? "Hide" : "Show") + " advanced commands";
-      container.classList.toggle("HelpAdvanced");
+      box.classList.toggle("HelpAdvanced");
     };
 
     oldShowHelp = Commands.showHelp;
-    container.querySelector("#AdvancedCommands").onclick = function() {
+    box.querySelector("#AdvancedCommands").onclick = function() {
       shouldShowAdvanced = !shouldShowAdvanced;
       toggleAdvanced();
       settings.set("showAdvancedCommands", shouldShowAdvanced);
     };
-    container.querySelector("#HClose").onclick = Commands.showHelp = hide;
-    node1 = container.querySelector("#OptionsPage");
+    box.querySelector("#HClose").onclick = Commands.showHelp = hide;
+    node1 = box.querySelector("#OptionsPage");
     if (! window.location.href.startsWith(response.optionUrl)) {
       node1.href = response.optionUrl;
       node1.onclick = function(event) {
@@ -1359,9 +1359,9 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483644
       node1.remove();
     }
     shouldShowAdvanced && toggleAdvanced();
-    DomUtils.UI.addElement(container);
+    DomUtils.UI.addElement(box);
     window.focus();
-    Scroller.current = container;
+    Scroller.current = box;
     handlerStack.push(function(event) {
       if (event.keyCode === KeyCodes.esc && !InsertMode.lock
           && KeyboardUtils.isPlain(event)) {
@@ -1431,7 +1431,7 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483644
     window.removeEventListener("mousedown", InsertMode.ExitGrab, true);
     document.removeEventListener("DOMActivate", this.onActivate, true);
     document.removeEventListener("webkitfullscreenchange", DomUtils.UI.adjust);
-    DomUtils.UI.container && DomUtils.UI.container.remove();
+    DomUtils.UI.box && DomUtils.UI.box.remove();
 
     clearInterval(settings.isLoading);
 

@@ -21,7 +21,7 @@ var LinkHints = {
     OPEN_INCOGNITO_LINK: 138,
     EDIT_TEXT: 256
   },
-  hintMarkerContainingDiv: null,
+  box: null,
   hintMarkers: [],
   linkActivator: null,
   mode: 0,
@@ -53,8 +53,8 @@ var LinkHints = {
       return;
     }
     handlerStack.remove(this);
-    if (this.hintMarkerContainingDiv) {
-      this.hintMarkerContainingDiv.remove();
+    if (this.box) {
+      this.box.remove();
     }
     var elements, rect, style, width, height, x, y, tip;
     Object.setPrototypeOf(this.options = options = options || {}, null);
@@ -89,23 +89,23 @@ var LinkHints = {
     this.isActive = true;
 
     x = window.scrollX; y = window.scrollY;
-    var container = document.documentElement;
+    var box = document.documentElement;
     // NOTE: if zoom > 1, although document.documentElement.scrollHeight is integer,
     //   its real rect may has a float width, such as 471.333 / 472
-    rect = container.getBoundingClientRect();
+    rect = box.getBoundingClientRect();
     width = rect.width; height = rect.height;
     width = width !== (width | 0) ? 1 : 0; height = height !== (height | 0) ? 1 : 0;
-    width  = container.scrollWidth  - x - width ;
-    height = container.scrollHeight - y - height;
-    width  = Math.max(width,  container.clientWidth );
-    height = Math.max(height, container.clientHeight);
+    width  = box.scrollWidth  - x - width ;
+    height = box.scrollHeight - y - height;
+    width  = Math.max(width,  box.clientWidth );
+    height = Math.max(height, box.clientHeight);
     width  = Math.min(width,  window.innerWidth  + 60);
     height = Math.min(height, window.innerHeight + 20);
-    this.hintMarkerContainingDiv = DomUtils.UI.addElementList(this.hintMarkers, {
+    this.box = DomUtils.UI.addElementList(this.hintMarkers, {
       id: "HMC",
       className: "R"
     });
-    style = this.hintMarkerContainingDiv.style;
+    style = this.box.style;
     style.left = x + "px"; style.top = y + "px";
     style.width = width + "px"; style.height = height + "px";
     if (document.webkitFullscreenElement) { style.position = "fixed"; }
@@ -326,20 +326,20 @@ var LinkHints = {
     }
   },
   traverse: function(filters) {
-    var output = [], key, func, container, ind;
+    var output = [], key, func, box, ind;
     Object.setPrototypeOf(filters, null);
     DomUtils.prepareCrop();
-    container = document.webkitFullscreenElement || document;
+    box = document.webkitFullscreenElement || document;
     if (this.ngIgnored && "*" in filters) {
       this.ngIgnored = document.querySelector('.ng-scope') === null;
     }
     for (key in filters) {
       func = filters[key].bind(output);
       if (Settings.cache.deepHints) {
-        output.forEach.call(container.querySelectorAll("* /deep/ " + key), func);
+        output.forEach.call(box.querySelectorAll("* /deep/ " + key), func);
         continue;
       }
-      output.forEach.call(container.getElementsByTagName(key), func);
+      output.forEach.call(box.getElementsByTagName(key), func);
       if (DomUtils.UI.root) {
         output.forEach.call(DomUtils.UI.root.querySelectorAll(key), func);
       }
@@ -576,9 +576,9 @@ var LinkHints = {
   deactivate: function(suppressType) {
     this.alphabetHints.hintKeystroke = "";
     this.hintMarkers = [];
-    if (this.hintMarkerContainingDiv) {
-      this.hintMarkerContainingDiv.remove();
-      this.hintMarkerContainingDiv = null;
+    if (this.box) {
+      this.box.remove();
+      this.box = null;
     }
     this.keyStatus.tab = 0;
     handlerStack.remove(this);

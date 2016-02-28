@@ -1,15 +1,15 @@
 "use strict";
 DomUtils.UI = {
-  container: null,
+  box: null,
   styleIn: null,
   styleOut: null,
   root: null,
   flashLastingTime: 400,
   addElement: function(element) {
     MainPort.sendMessage({ handler: "initInnerCSS" }, this.InitInner);
-    this.container || this.init();
-    this.container.style.display = "none";
-    this.root = this.container.createShadowRoot();
+    this.box || this.init();
+    this.box.style.display = "none";
+    this.root = this.box.createShadowRoot();
     this.root.appendChild(element);
     this.addElement = function(element) { this.root.appendChild(element); };
   },
@@ -26,7 +26,7 @@ DomUtils.UI = {
   },
   adjust: null,
   init: function(showing) {
-    var el = this.container = DomUtils.createElement("vimium");
+    var el = this.box = DomUtils.createElement("vimium");
     if (this.styleOut) {
       el.appendChild(this.styleOut);
       showing !== false && document.documentElement.appendChild(el);
@@ -42,7 +42,7 @@ DomUtils.UI = {
     _this.adjust();
   },
   Toggle: function(enabled) {
-    DomUtils.UI.container.style.display = enabled ? "" : "none";
+    DomUtils.UI.box.style.display = enabled ? "" : "none";
     enabled && VInsertMode.heldEl && VInsertMode.heldEl.focus();
   },
   createStyle: function(text) {
@@ -64,8 +64,8 @@ DomUtils.UI = {
       }
     } else {
       this.styleOut = this.createStyle(outer);
-      if (this.container) {
-        this.container.appendChild(this.styleOut);
+      if (this.box) {
+        this.box.appendChild(this.styleOut);
       } else {
         this.init(showing);
       }
