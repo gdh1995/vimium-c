@@ -891,7 +891,6 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
     },
     clearGlobalMarks: function() { Marks.clearGlobal(); }
   };
-  Object.setPrototypeOf(BackgroundCommands, null);
 
   resetKeys = function() {
     currentFirst = null;
@@ -1301,7 +1300,6 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
       }
     }
   };
-  Object.setPrototypeOf(requestHandlers, null);
 
   Settings.updateHooks.newTabUrl_f = function(url) {
     BackgroundCommands.createTab = Utils.isRefusingIncognito(url)

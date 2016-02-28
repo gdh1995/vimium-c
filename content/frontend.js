@@ -159,9 +159,7 @@ var Settings, VHUD, MainPort, VInsertMode;
       }, 2000);
     },
     ReceiveSettings: function(response) {
-      var ref = response.load;
-      Object.setPrototypeOf(ref, null);
-      settings.cache = ref;
+      settings.cache = response.load;
       clearInterval(settings.isLoading);
       response = response.response;
       requestHandlers[response.name](response);
@@ -611,7 +609,6 @@ var Settings, VHUD, MainPort, VInsertMode;
       }, handlerId = {});
     }
   };
-  Object.setPrototypeOf(Commands, null);
 
   checkValidKey = function(event, key) {
     var left = event.altKey ? "<a-" : "<";
@@ -1376,7 +1373,6 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483644
     }, handlerId = {});
   }
   };
-  Object.setPrototypeOf(requestHandlers, null);
 
   mainPort.connect();
 
