@@ -932,11 +932,10 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
   };
 
   handleMainPort = function(request, port) {
-    var key, func, id;
+    var key, id;
     if (id = request._msgId) {
       request = request.request;
-      func = requestHandlers[request.handler];
-      port.postMessage({_msgId: id, response: func(request)})
+      port.postMessage({_msgId: id, response: requestHandlers[request.handler](request)})
     }
     else if (key = request.handlerKey) {
       // NOTE: here is a race condition which is now ignored totally
@@ -950,8 +949,7 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
       }
     }
     else if (key = request.handler) {
-      func = requestHandlers[key];
-      func(request, port);
+      requestHandlers[key](request, port);
     }
     else if (key = request.handlerSettings) {
       var i, ref;
