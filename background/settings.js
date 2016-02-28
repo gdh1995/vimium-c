@@ -1,6 +1,5 @@
 "use strict";
 var Settings = {
-  __proto__: null,
   cache: Object.create(null),
   bufferToLoad: null,
   frameIdsForTab: null,

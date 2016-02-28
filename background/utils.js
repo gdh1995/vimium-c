@@ -1,6 +1,5 @@
 "use strict";
 var exports = {}, Utils = {
-  __proto__: null,
   fetchHttpContents: function(url, success) {
     var req = new XMLHttpRequest();
     req.open("GET", url, true);
@@ -35,8 +34,8 @@ var exports = {}, Utils = {
     return this.escapeCssUri(s);
   },
   // "javascript" should be treated specially
-  _nonUrlPrefixes: { about: 1, blob: 1, data: 1, mailto: 1, "view-source": 1 },
-  _chromePrefixes: { "chrome-extension": 1, "chrome-search": 1 },
+  _nonUrlPrefixes: { about: 1, blob: 1, data: 1, mailto: 1, "view-source": 1, __proto__: null },
+  _chromePrefixes: { "chrome-extension": 1, "chrome-search": 1, __proto__: null  },
   _urlPrefix: /^[a-z]{3,}:\/\//,
   hasOrdinaryUrlPrefix: function(url) {
     return this._urlPrefix.test(url);
