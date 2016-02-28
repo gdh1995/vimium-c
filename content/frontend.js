@@ -636,7 +636,6 @@ var Settings, VHUD, MainPort, VInsertMode;
   VInsertMode = InsertMode = {
     focus: null,
     global: null,
-    _id: 0,
     heldEl: false,
     last: null,
     loading: (document.readyState !== "complete"),

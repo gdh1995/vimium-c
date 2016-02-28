@@ -64,7 +64,6 @@ activate: function(_0, options, force_current) {
   inputText: "",
   completions: null,
   forceNewTab: false,
-  _id: 0,
   initialSelectionValue: -1,
   input: null,
   isSelectionChanged: false,

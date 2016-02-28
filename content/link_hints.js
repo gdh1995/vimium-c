@@ -37,7 +37,6 @@ var LinkHints = {
     newHintLength: 0,
     tab: 0
   },
-  _id: 0,
   initTimer: 0,
   isActive: false,
   options: null,

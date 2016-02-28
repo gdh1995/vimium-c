@@ -1,6 +1,5 @@
 "use strict";
 var Marks = {
-  _id: 0,
   onKeypress: null,
   activate: function(_0, options) {
     var isGo = options.mode !== "create";
