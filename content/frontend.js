@@ -1437,7 +1437,7 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483644
     clearInterval(settings.isLoading);
 
     var ref = settings.onDestroy, i;
-    Object.setPrototypeOf(ref, null);
+    ref.__proto__ = null;
     for (i in ref) {
       ref[i].call(this);
     }
