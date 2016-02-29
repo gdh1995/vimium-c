@@ -1066,7 +1066,7 @@ var Settings, VHUD, MainPort, VInsertMode;
       }
       window.focus();
       document.documentElement.scrollIntoViewIfNeeded();
-      if (!document.body) { return; }
+      if (!document.body || document.readyState !== "complete") { return; }
       var _this = FrameMask, dom1;
       if (dom1 = _this.node) {
         _this.more = true;
