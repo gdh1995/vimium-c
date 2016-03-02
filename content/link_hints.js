@@ -791,7 +791,8 @@ FUNC: {
       return;
     }
     if (this.mode === this.CONST.EDIT_TEXT) {
-      Vomnibar.activateInNewTab(1, {
+      Vomnibar.activate(1, {
+        force: true,
         url: str,
         keyword: this.options.keyword
       });
