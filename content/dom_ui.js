@@ -28,7 +28,6 @@ DomUtils.UI = {
     return parent;
   },
   adjust: function() {},
-  listen: null,
   init: function(showing) {
     var el = this.box = DomUtils.createElement("vimium");
     if (this.styleOut) {
@@ -43,8 +42,19 @@ DomUtils.UI = {
     _this.styleIn = _this.createStyle(innerCss);
     _this.root.insertBefore(_this.styleIn, _this.root.firstElementChild);
     setTimeout(_this.Toggle, 17, true);
-    _this.listen();
-    _this.listen = null;
+    _this.root.addEventListener("focusout", function(event) {
+      if (VInsertMode.lock === event.target) {
+        VInsertMode.lock = null;
+      }
+      event.target.focused = false;
+    });
+    _this.root.addEventListener("focusin", function(event) {
+      var target;
+      if (DomUtils.getEditableType(target = event.target)) {
+        VInsertMode.lock = target;
+        target.focused = true;
+      }
+    });
     _this.adjust = function() {
       (document.webkitFullscreenElement || document.documentElement).appendChild(this.box);
     };

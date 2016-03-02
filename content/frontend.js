@@ -1200,22 +1200,6 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483644
       // since we do not know when the url will become useful
       r.reset(request);
       r.init = null;
-      DomUtils.UI.listen = function() {
-        this.root.addEventListener("focusin", function(event) {
-          var target;
-          if (findMode) {} // TODO: check findMode
-          else if (DomUtils.getEditableType(target = event.target)) {
-            InsertMode.lock = target;
-            target.focused = true;
-          }
-        });
-        this.root.addEventListener("focusout", function(event) {
-          if (InsertMode.lock === event.target) {
-            InsertMode.lock = null;
-          }
-          event.target.focused = false;
-        });
-      };
     },
     reset: function(request) {
       var passKeys = request.passKeys;
