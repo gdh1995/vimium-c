@@ -380,8 +380,7 @@ activate: function(_0, options, force_current) {
     MainPort.sendMessage({
       handler: "initVomnibar"
     }, function(response) { Vomnibar.init_dom(response); });
-    box.addEventListener("click", function(e) { Vomnibar.onClick(e) });
-    box.vimiumHasOnclick = false;
+    DomUtils.onClick(box, function(e) { Vomnibar.onClick(e) });
     if (window.location.protocol.startsWith("chrome") && chrome.runtime.getManifest
         && (str = chrome.runtime.getManifest().permissions)) {
       str = str.join("/");

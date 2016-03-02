@@ -1307,8 +1307,7 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483644
     box.innerHTML = response.html;
     box = box.firstElementChild;
     box.addEventListener("mousewheel", DomUtils.SuppressPropagation);
-    box.addEventListener("click", DomUtils.SuppressPropagation);
-    box.vimiumHasOnclick = false;
+    DomUtils.onClick(box, DomUtils.SuppressPropagation);
 
     hide = function() {
       handlerStack.remove(handlerId);
