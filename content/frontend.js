@@ -1144,7 +1144,10 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483644
     tween: function() {
       var hud = HUD, el = hud._element, opacity = +el.style.opacity;
       if (opacity !== hud.opacity) {
-        if (opacity === 0) { el.style.visibility = ""; }
+        if (opacity === 0) {
+          el.style.visibility = "";
+          DomUtils.UI.adjust();
+        }
         opacity += opacity < hud.opacity ? 0.25 : -0.25;
         el.style.opacity = opacity;
         if (opacity !== hud.opacity) {
@@ -1197,7 +1200,7 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483644
       // since we do not know when the url will become useful
       r.reset(request);
       r.init = null;
-      DomUtils.UI.adjust = function() {
+      DomUtils.UI.listen = function() {
         this.root.addEventListener("focusin", function(event) {
           var target;
           if (findMode) {} // TODO: check findMode
@@ -1212,12 +1215,6 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483644
           }
           event.target.focused = false;
         });
-        this.adjust = function() {
-          (document.webkitFullscreenElement || document.documentElement
-            ).appendChild(DomUtils.UI.box);
-        };
-        document.addEventListener("webkitfullscreenchange", this.adjust);
-        this.adjust();
       };
     },
     reset: function(request) {
@@ -1430,7 +1427,6 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483644
     window.removeEventListener("blur", this.onBlur, true);
     window.removeEventListener("mousedown", InsertMode.ExitGrab, true);
     document.removeEventListener("DOMActivate", this.onActivate, true);
-    document.removeEventListener("webkitfullscreenchange", DomUtils.UI.adjust);
     DomUtils.UI.box && DomUtils.UI.box.remove();
 
     clearInterval(settings.isLoading);

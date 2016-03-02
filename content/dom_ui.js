@@ -11,7 +11,10 @@ DomUtils.UI = {
     this.box.style.display = "none";
     this.root = this.box.createShadowRoot();
     this.root.appendChild(element);
-    this.addElement = function(element) { this.root.appendChild(element); };
+    this.addElement = function(element) {
+      this.root.appendChild(element);
+      this.adjust();
+    };
   },
   addElementList: function(els, attrs) {
     var parent, _i, _len;
@@ -24,7 +27,8 @@ DomUtils.UI = {
     this.addElement(parent);
     return parent;
   },
-  adjust: null,
+  adjust: function() {},
+  listen: null,
   init: function(showing) {
     var el = this.box = DomUtils.createElement("vimium");
     if (this.styleOut) {
@@ -39,6 +43,11 @@ DomUtils.UI = {
     _this.styleIn = _this.createStyle(innerCss);
     _this.root.insertBefore(_this.styleIn, _this.root.firstElementChild);
     setTimeout(_this.Toggle, 17, true);
+    _this.listen();
+    _this.listen = null;
+    _this.adjust = function() {
+      (document.webkitFullscreenElement || document.documentElement).appendChild(this.box);
+    };
     _this.adjust();
   },
   Toggle: function(enabled) {
