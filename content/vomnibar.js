@@ -381,6 +381,7 @@ activate: function(_0, options, force_current) {
       handler: "initVomnibar"
     }, function(response) { Vomnibar.init_dom(response); });
     box.addEventListener("click", this.onClick.bind(this));
+    box.vimiumHasOnclick = false;
     if (window.location.protocol.startsWith("chrome") && chrome.runtime.getManifest
         && (str = chrome.runtime.getManifest().permissions)) {
       str = str.join("/");
