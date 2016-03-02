@@ -83,6 +83,7 @@ activate: function(_0, options, force_current) {
     }
     handlerStack.remove(this);
     handlerStack.push(this.onKeydown, this);
+    this.box.addEventListener("mousewheel", DomUtils.SuppressPropagation);
   },
   hide: function() {
     if (this.timer > 0) {
@@ -90,6 +91,7 @@ activate: function(_0, options, force_current) {
       this.timer = 0;
     }
     this.box.style.display = "none";
+    this.box.removeEventListener("mousewheel", DomUtils.SuppressPropagation);
     this.list.textContent = "";
     this.input.value = "";
     handlerStack.remove(this);
@@ -379,7 +381,6 @@ activate: function(_0, options, force_current) {
       handler: "initVomnibar"
     }, function(response) { Vomnibar.init_dom(response); });
     box.addEventListener("click", this.onClick.bind(this));
-    box.addEventListener("mousewheel", DomUtils.SuppressPropagation);
     if (window.location.protocol.startsWith("chrome") && chrome.runtime.getManifest
         && (str = chrome.runtime.getManifest().permissions)) {
       str = str.join("/");
