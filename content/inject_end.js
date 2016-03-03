@@ -13,18 +13,15 @@ Settings.RequestHandlers.regExt = function(request) {
 };
 
 DomUtils.isSandboxed = function () {
-  var i = 0, node;
+  var i = 0, node, sandboxed = false;
   if (window.onunload == null) {
     node = this.createElement('div');
     node.onclick = function() { ++i };
     node.click();
-    if (i === 0) {
-      this.isSandboxed = function() { return true; };
-      return true;
-    }
+    sandboxed = i !== 1;
   }
-  this.isSandboxed = function() { return false; };
-  return false;
+  this.isSandboxed = function() { return sandboxed; };
+  return sandboxed;
 };
 
 DomUtils.documentReady(function() {
