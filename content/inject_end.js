@@ -26,10 +26,6 @@ DomUtils.isSandboxed = function () {
   this.isSandboxed = function() { return false; };
   return false;
 };
-DomUtils.onClick = function(el, func) {
-  el.addEventListener("click", func);
-  el.vimiumHasOnclick = false;
-};
 
 DomUtils.documentReady(function() {
   if (Settings.RequestHandlers.regExt()) {
