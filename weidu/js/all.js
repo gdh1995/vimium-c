@@ -2309,7 +2309,7 @@ DBOX = {
 		var self = this;
 		var bodyWidth = oWidth,
 		bodyHeight = oHeight;
-		self.container.show();
+		self.container[0].style.display = "block";
 		var maxCols = parseInt((bodyWidth - self.spacing) / (self.width + self.spacing + 2 * self.border)),
 		matrix = {};
 		for (var cols = 1; cols <= maxCols; cols++) {
