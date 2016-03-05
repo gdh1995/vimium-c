@@ -35,6 +35,7 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
     var bindings, command, html, isAdvanced, _i, _len, _ref, keys, description;
     html = [];
     _ref = Commands.commandGroups[group];
+    showNames = showNames || "";
     for (_i = 0, _len = _ref.length; _i < _len; _i++) {
       command = _ref[_i];
       if ((keys = commandsToKey[command]) || showUnbound) {
@@ -42,10 +43,10 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
       isAdvanced = Commands.advancedCommands.indexOf(command) >= 0;
       description = availableCommands[command][0];
       if (bindings.length <= 8) {
-        helpDialogHtmlForCommand(html, isAdvanced, bindings, description, showNames ? command : "");
+        helpDialogHtmlForCommand(html, isAdvanced, bindings, description, showNames && command);
       } else {
         helpDialogHtmlForCommand(html, isAdvanced, bindings, "", "");
-        helpDialogHtmlForCommand(html, isAdvanced, "", description, showNames ? command : "");
+        helpDialogHtmlForCommand(html, isAdvanced, "", description, showNames && command);
       }
       }
     }
