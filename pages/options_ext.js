@@ -4,7 +4,7 @@ $("showCommands").onclick = function(event) {
   var node, root = DomUtils.UI.root;
   event && event.preventDefault();
   if (root && (node = root.querySelector('.HelpCommandName'))) {
-    node.click();
+    root.getElementById("HelpDialog").click();
     return;
   }
   MainPort.sendMessage({
@@ -18,6 +18,21 @@ $("showCommands").onclick = function(event) {
       node.onclick();
     }
     MainPort.Listener(response);
+    node = root.getElementById("HelpDialog");
+    node.removeEventListener("click", DomUtils.SuppressPropagation);
+    node.addEventListener("click", function(event) {
+      var target = event.target, str;
+      if (target.classList.contains("HelpCommandName")) {
+        str = target.innerText.slice(1, -1);
+        MainPort.port.postMessage({
+          handler: "copyToClipboard",
+          data: str
+        });
+        setTimeout(function() {
+          VHUD.showCopied(str);
+        }, 17);
+      }
+    });
   });
 };
 

@@ -63,7 +63,7 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
         , '<td class="HelpTd HelpCommandInfo">'
         , description);
       if (command) {
-        html.push('\n\t\t<span class="HelpCommandName">('
+        html.push('\n\t\t<span class="HelpCommandName" role="link">('
           , command, ")</span>\n\t");
       }
     } else {
