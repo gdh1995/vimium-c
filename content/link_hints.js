@@ -113,7 +113,7 @@ var LinkHints = {
     var ref = this.Modes, i, ref2 = this.CONST, mode = ref2[options.mode] | 0, modeOpt;
     if (mode == ref2.EDIT_TEXT && options.url) {
       mode = ref2.EDIT_LINK_URL;
-    } else if (mode == ref2.EDIT_LINK_URL || mode == ref2.COPY_LINK_URL) {
+    } else if (mode == ref2.EDIT_LINK_URL || (mode & ~64) == ref2.COPY_LINK_URL) {
       options.url = true;
     }
     for (i in ref) {
