@@ -31,7 +31,6 @@ var LinkHints = {
   ngAttribute: "",
   // find /^((?:x|data)[:_\-])?ng-|^ng:/, and ignore "data:", "data_" and "x_"
   ngAttributes: ["x:ng-click", "ng:click", "x-ng-click", "data-ng-click", "ng-click"],
-  keepHUDAfterAct: false,
   keyStatus: {
     known: 1,
     newHintLength: 0,
@@ -577,11 +576,7 @@ var LinkHints = {
     this.keyStatus.tab = 0;
     handlerStack.remove(this);
     VInsertMode.onWndBlur = null;
-    if (this.keepHUDAfterAct) {
-      this.keepHUDAfterAct = false;
-    } else {
-      VHUD.hide();
-    }
+    VHUD.hide();
     do_clean !== false && this.clean();
     this.isActive = false;
     if (suppressType != null) {
@@ -758,7 +753,6 @@ FUNC: {
     }
     if (!str) {
       VHUD.showCopied("", isUrl && "url");
-      this.keepHUDAfterAct = true;
       return;
     }
     if (this.mode === this.CONST.EDIT_TEXT) {
@@ -784,7 +778,6 @@ FUNC: {
       handler: "copyToClipboard",
       data: str
     });
-    this.keepHUDAfterAct = true;
     VHUD.showCopied(str);
   },
   OPEN_INCOGNITO_LINK: function(link) {
@@ -800,7 +793,6 @@ FUNC: {
   },
   DOWNLOAD_IMAGE: function(img) {
     var text = img instanceof HTMLAnchorElement ? img.href : img.src, i, a;
-    this.keepHUDAfterAct = true;
     if (!text) {
       VHUD.showForDuration("Not an image", 1000);
       return;
@@ -821,7 +813,6 @@ FUNC: {
   OPEN_IMAGE: function(img) {
     var text = img instanceof HTMLAnchorElement ? img.href : img.src;
     if (!text) {
-      this.keepHUDAfterAct = true;
       VHUD.showForDuration("Not an image", 1000);
       return;
     }

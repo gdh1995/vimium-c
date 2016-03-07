@@ -28,9 +28,7 @@ $("showCommands").onclick = function(event) {
           handler: "copyToClipboard",
           data: str
         });
-        setTimeout(function() {
-          VHUD.showCopied(str);
-        }, 17);
+        VHUD.showCopied(str);
       }
     });
   });
