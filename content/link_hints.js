@@ -19,12 +19,13 @@ var LinkHints = {
     DOWNLOAD_LINK: 136,
     COPY_LINK_URL: 137,
     OPEN_INCOGNITO_LINK: 138,
+    EDIT_LINK_URL: 257,
     EDIT_TEXT: 256
   },
   box: null,
   hintMarkers: [],
-  linkActivator: null,
   mode: 0,
+  modeOpt: null,
   lastMode: 0,
   isClickListened: true,
   ngIgnored: true,
@@ -40,11 +41,11 @@ var LinkHints = {
   isActive: false,
   options: null,
   timer: 0,
-  activate: function(mode, options) {
+  activate: function(count, options) {
     if (this.isActive) { return; }
     if (document.body == null) {
       if (!this.initTimer) {
-        this.initTimer = setTimeout(this.activate.bind(this, mode, options), 300);
+        this.initTimer = setTimeout(this.activate.bind(this, count, options), 300);
       } else if (!document.head) {
         // document is not a <html> document
         this.isActive = true; // disable self
@@ -55,20 +56,14 @@ var LinkHints = {
     if (this.box) {
       this.box.remove();
     }
-    var elements, rect, style, width, height, x, y, tip;
-    Object.setPrototypeOf(this.options = options = options || {}, null);
-    if (options.mode != null) {
-      mode = options.mode;
-      options.mode = null;
-      typeof mode === "string" && (mode = this.CONST[mode]);
-    }
-    tip = this.setOpenLinkMode(mode, true);
+    var elements, rect, style, width, height, x, y;
+    this.setModeOpt(Object.setPrototypeOf(options || {}, null));
 
     if (!this.frameNested) {
       elements = this.getVisibleElements();
     }
     if (this.frameNested) {
-      if (this.tryNestedFrame("LinkHints.activate", [mode, this.options])) {
+      if (this.tryNestedFrame("LinkHints.activate", [count, this.options])) {
         this.clean();
         VHUD.hide(true);
         return;
@@ -77,8 +72,8 @@ var LinkHints = {
     }
     if (elements.length <= 0 || elements.length > 4000) {
       this.clean();
-      tip = elements.length > 4000 ? "Too many" : "No";
-      VHUD.showForDuration(tip + " links to select.", 1000);
+      VHUD.showForDuration((elements.length > 4000 ? "Too many" : "No")
+        + " links to select.", 1000);
       return;
     }
 
@@ -108,68 +103,33 @@ var LinkHints = {
     style.left = x + "px"; style.top = y + "px";
     style.width = width + "px"; style.height = height + "px";
     if (document.webkitFullscreenElement) { style.position = "fixed"; }
-    VHUD.show(tip);
+    VHUD.show(this.modeOpt[this.mode]);
     this.keyStatus.tab = 0;
     handlerStack.push(this.onKeyDownInMode, this);
     VInsertMode.onWndBlur = this.OnWndBlur;
   },
-  setOpenLinkMode: function(mode, delayTip) {
-    var cons = this.CONST, tip, activator;
-    switch (mode >= 128 ? ((mode | 64) ^ 64) : mode) {
-    case cons.OPEN_IN_NEW_BG_TAB: tip = "Open link in new tab"; break;
-    case cons.OPEN_IN_NEW_FG_TAB: tip = "Open link in new active tab"; break;
-    case cons.OPEN_WITH_QUEUE: tip = "Open multiple links in new tabs"; break;
-    case cons.OPEN_FG_WITH_QUEUE: tip = "Activate link and hold on"; break;
-    case cons.HOVER:
-      tip = mode >= 192 ? "Hover over nodes continuously" : "Hover over node";
-      activator = this.FUNC.HOVER;
-      break;
-    case cons.LEAVE:
-      tip = mode >= 192 ? "Simulate mouse leaving continuously" : "Simulate mouse leaving link";
-      activator = this.FUNC.LEAVE;
-      break;
-    case cons.COPY_TEXT:
-      tip = mode >= 192 ? "Copy link text one by one" : "Copy link text to Clipboard";
-      activator = this.FUNC.COPY_TEXT;
-      break;
-    case cons.SEARCH_TEXT:
-      tip = mode >= 192 ? "Search link text one by one" : "Search selected text";
-      activator = this.FUNC.COPY_TEXT;
-      break;
-    case cons.EDIT_TEXT:
-      tip = "Edit link " + (this.options.url ? "url" : "text") + " on Vomnibar";
-      activator = this.FUNC.COPY_TEXT;
-      break;
-    case cons.DOWNLOAD_IMAGE:
-      tip = mode >= 192 ? "Download multiple images" : "Download image";
-      activator = this.FUNC.DOWNLOAD_IMAGE;
-      break;
-    case cons.OPEN_IMAGE:
-      tip = mode >= 192 ? "Open multiple image" : "Open image";
-      activator = this.FUNC.OPEN_IMAGE;
-      break;
-    case cons.DOWNLOAD_LINK:
-      tip = mode >= 192 ? "Download multiple links" : "Download link";
-      activator = this.FUNC.DOWNLOAD_LINK;
-      break;
-    case cons.COPY_LINK_URL:
-      tip = mode >= 192 ? "Copy link URL one by one" : "Copy link URL to Clipboard";
-      this.options.url = true;
-      activator = this.FUNC.COPY_TEXT;
-      break;
-    case cons.OPEN_INCOGNITO_LINK:
-      tip = mode >= 192 ? "Open multi incognito tabs" : "Open link in incognito";
-      activator = this.FUNC.OPEN_INCOGNITO_LINK;
-      break;
-    default:
-      tip = "Open link in current tab";
-      mode !== 1 && (mode = 0);
-      break;
+  setModeOpt: function(options) {
+    if (this.options === options) { return; }
+    var ref = this.Modes, i, ref2 = this.CONST, mode = ref2[options.mode] | 0, modeOpt;
+    if (mode == ref2.EDIT_TEXT && options.url) {
+      mode = ref2.EDIT_LINK_URL;
+    } else if (mode == ref2.EDIT_LINK_URL || mode == ref2.COPY_LINK_URL) {
+      options.url = true;
     }
-    this.linkActivator = mode < 128 ? this.FUNC.DEFAULT : activator;
+    for (i in ref) {
+      if (ref.hasOwnProperty(i) && ref[i].hasOwnProperty(mode)) {
+        modeOpt = ref[i];
+        break;
+      }
+    }
+    if (!modeOpt) { modeOpt = ref.DEFAULT; mode = 0; }
+    this.modeOpt = modeOpt;
     this.mode = mode;
-    if (delayTip) { return tip; }
-    VHUD.show(tip);
+    this.options = options;
+  },
+  setMode: function(mode) {
+    this.mode = mode;
+    VHUD.show(this.modeOpt[mode]);
   },
   tryNestedFrame: function(command, args) {
     this.frameNested === false && this.checkNestedFrame();
@@ -403,7 +363,7 @@ var LinkHints = {
     visibleElements = this.traverse(
       (_i == this.CONST.DOWNLOAD_IMAGE || _i == this.CONST.OPEN_IMAGE)
       ? { img: this.GetImagesInImg, a: this.GetImagesInA }
-      : _i == this.CONST.EDIT_TEXT && this.options.url
+      : _i == this.CONST.EDIT_LINK_URL
       || (_i < 256 && _i >= 136) ? { a: this.GetLinks }
       : { "*": this.GetClickable });
     if (this.frameNested) { return; }
@@ -459,21 +419,21 @@ var LinkHints = {
         if (KeyboardUtils.getKeyStat(event) === 8) {
           this.lastMode = this.mode;
         }
-        this.setOpenLinkMode((this.mode | 1) ^ (this.mode < 64 ? 3 : 67));
+        this.setMode((this.mode | 1) ^ (this.mode < 64 ? 3 : 67));
       }
     } else if (i === KeyCodes.ctrlKey || i === KeyCodes.metaKey) {
       if (this.mode < 128) {
         if (!(event.shiftKey || event.altKey)) {
           this.lastMode = this.mode;
         }
-        this.setOpenLinkMode((this.mode | 2) ^ 1);
+        this.setMode((this.mode | 2) ^ 1);
       }
     } else if (i === KeyCodes.altKey) {
       if (this.mode < 256) {
         if (KeyboardUtils.getKeyStat(event) === 1) {
           this.lastMode = this.mode;
         }
-        this.setOpenLinkMode(((this.mode >= 128 ? 0 : 2) | this.mode) ^ 64);
+        this.setMode(((this.mode >= 128 ? 0 : 2) | this.mode) ^ 64);
       }
     } else if (i >= KeyCodes.pageup && i <= KeyCodes.down) {
       VInsertMode.scroll(event);
@@ -513,7 +473,7 @@ var LinkHints = {
       mode = LinkHints.lastMode;
     }
     if (mode !== LinkHints.mode) {
-      LinkHints.setOpenLinkMode(mode);
+      LinkHints.setMode(mode);
     }
   },
   activateLink: function(hintEl) {
@@ -521,7 +481,7 @@ var LinkHints = {
     this.deactivate(true, false); // always suppress tail even if fail to focus
     // must get outline first, because clickEl may hide itself when activated
     rect = hintEl.linkRect || DomUtils.UI.flashOutline(clickEl, true);
-    if (this.linkActivator(clickEl) !== false) {
+    if (this.modeOpt.activator.call(this, clickEl) !== false) {
       DomUtils.UI.flashVRect(rect);
     }
     if (this.mode & 64) {
@@ -562,8 +522,7 @@ var LinkHints = {
     LinkHints.reinit();
   },
   clean: function() {
-    this.linkActivator = null;
-    this.options = null;
+    this.options = this.modeOpt = null;
     this.lastMode = this.mode = 0;
   },
   deactivate: function(suppressType, do_clean) {
@@ -719,16 +678,33 @@ highlightChild: function(child, box) {
   return false;
 },
 
-FUNC: {
-  HOVER: function(element) {
+Modes: {
+HOVER: {
+  128: "Hover over node",
+  192: "Hover over nodes continuously",
+  activator: function(element) {
     this.lastHovered = element;
     Scroller.current = element;
     DomUtils.simulateMouse(element, "mouseover");
-  },
-  LEAVE: function(element) {
+  }
+},
+LEAVE: {
+  129: "Simulate mouse leaving link",
+  193: "Simulate mouse leaving continuously",
+  activator: function(element) {
     DomUtils.simulateMouse(element, "mouseout");
-  },
-  COPY_TEXT: function(link) {
+  }
+},
+COPY_TEXT: {
+  130: "Copy link text to Clipboard",
+  131: "Search selected text",
+  137: "Copy link URL to Clipboard",
+  194: "Copy link text one by one",
+  195: "Search link text one by one",
+  201: "Copy link URL one by one",
+  256: "Edit link text on Vomnibar",
+  257: "Edit link url on Vomnibar",
+  activator: function(link) {
     var isUrl = !!this.options.url, str;
     if (isUrl) { str = this.getUrlData(link); }
     else if ((str = link.getAttribute("data-vim-text")) && (str = str.trim())) {}
@@ -755,7 +731,7 @@ FUNC: {
       VHUD.showCopied("", isUrl && "url");
       return;
     }
-    if (this.mode === this.CONST.EDIT_TEXT) {
+    if (this.mode >= this.CONST.EDIT_TEXT && this.mode <= this.CONST.EDIT_LINK_URL) {
       Vomnibar.activate(1, {
         force: !isUrl,
         url: str,
@@ -779,8 +755,12 @@ FUNC: {
       data: str
     });
     VHUD.showCopied(str);
-  },
-  OPEN_INCOGNITO_LINK: function(link) {
+  }
+},
+OPEN_INCOGNITO_LINK: {
+  138: "Open link in incognito",
+  202: "Open multi incognito tabs",
+  activator: function(link) {
     var url = this.getUrlData(link);
     if (Utils.evalIfOK(url)) { return; }
     MainPort.port.postMessage({
@@ -790,8 +770,12 @@ FUNC: {
       keyword: this.options.keyword,
       url: url
     });
-  },
-  DOWNLOAD_IMAGE: function(img) {
+  }
+},
+DOWNLOAD_IMAGE: {
+  132: "Download image",
+  196: "Download multiple images",
+  activator: function(img) {
     var text = img instanceof HTMLAnchorElement ? img.href : img.src, i, a;
     if (!text) {
       VHUD.showForDuration("Not an image", 1000);
@@ -809,8 +793,12 @@ FUNC: {
     a.download = img.getAttribute("download") || "";
     a.click();
     VHUD.showForDuration("download: " + text, 2000);
-  },
-  OPEN_IMAGE: function(img) {
+  }
+},
+OPEN_IMAGE: {
+  133: "Open image",
+  197: "Open multiple image",
+  activator: function(img) {
     var text = img instanceof HTMLAnchorElement ? img.href : img.src;
     if (!text) {
       VHUD.showForDuration("Not an image", 1000);
@@ -822,8 +810,12 @@ FUNC: {
       download: img.getAttribute("download"),
       url: text
     });
-  },
-  DOWNLOAD_LINK: function(link) {
+  }
+},
+DOWNLOAD_LINK: {
+  136: "Download link",
+  200: "Download multiple links",
+  activator: function(link) {
     var oldDownload, oldUrl;
     this.unhoverLast(link);
     oldUrl = link.getAttribute("href");
@@ -853,8 +845,15 @@ FUNC: {
     } else if (oldUrl === null) {
       link.removeAttribute("href");
     }
-  },
-  DEFAULT: function(link) {
+  }
+},
+DEFAULT: {
+  0: "Open link in current tab",
+  2: "Open link in new tab",
+  3: "Open link in new active tab",
+  66: "Open multiple links in new tabs",
+  67: "Activate link and hold on",
+  activator: function(link) {
     var mode, alterTarget, tag = link.nodeName.toLowerCase();
     this.unhoverLast(link);
     mode = DomUtils.getEditableType(link);
@@ -887,5 +886,6 @@ FUNC: {
       link.setAttribute("target", alterTarget);
     }
   }
+}
 }
 };
