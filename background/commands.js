@@ -332,5 +332,5 @@ availableCommands: {
 
 setTimeout(function() {
   Commands.parseKeyMappings(Settings.get("keyMappings"));
-  setTimeout(Settings.updateHooks.PopulateCommandKeys, 3);
-}, 67);
+  setTimeout(Settings.updateHooks.PopulateCommandKeys, 5);
+}, 17);

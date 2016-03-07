@@ -1401,7 +1401,7 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
         port.onMessage.addListener(handleMainPort);
       }
     });
-  }, 17);
+  }, 34);
 
   setTimeout(function() {
     Settings.postUpdate("files", null);
