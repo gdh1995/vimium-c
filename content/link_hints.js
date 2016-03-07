@@ -517,15 +517,8 @@ var LinkHints = {
     }
   },
   activateLink: function(hintEl) {
-    var tempi, rect, clickEl = hintEl.clickableItem;
+    var rect, clickEl = hintEl.clickableItem;
     this.deactivate(true, false); // always suppress tail even if fail to focus
-    if (this.mode >= 128) {}
-    else if ((tempi = DomUtils.getEditableType(clickEl)) === 3) {
-      this.unhoverLast();
-      DomUtils.UI.simulateSelect(clickEl, true);
-      return;
-    }
-    else if (tempi > 0) { clickEl.focus(); }
     // must get outline first, because clickEl may hide itself when activated
     rect = hintEl.linkRect || DomUtils.UI.flashOutline(clickEl, true);
     if (this.linkActivator(clickEl) !== false) {
@@ -890,8 +883,17 @@ FUNC: {
     }
   },
   DEFAULT: function(link) {
-    var mode = this.mode & 3, alterTarget, tag = link.nodeName.toLowerCase();
+    var mode, alterTarget, tag = link.nodeName.toLowerCase();
     this.unhoverLast(link);
+    mode = DomUtils.getEditableType(link);
+    if (mode === 3) {
+      DomUtils.UI.simulateSelect(link, true);
+      return false;
+    } else if (mode > 0) {
+      link.focus();
+    }
+    mode = this.mode & 3;
+
     if (tag === "iframe" || tag === "frame") {
       return this.highlightChild(link.contentWindow, link.getClientRects()[0]);
     }
