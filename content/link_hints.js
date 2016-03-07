@@ -518,9 +518,9 @@ var LinkHints = {
   },
   activateLink: function(hintEl) {
     var tempi, rect, clickEl = hintEl.clickableItem;
+    this.deactivate(true, false); // always suppress tail even if fail to focus
     if (this.mode >= 128) {}
     else if ((tempi = DomUtils.getEditableType(clickEl)) === 3) {
-      this.deactivate(true); // always suppress tail even if fail to focus
       this.unhoverLast();
       DomUtils.UI.simulateSelect(clickEl, true);
       return;
@@ -534,7 +534,7 @@ var LinkHints = {
     if (this.mode & 64) {
       this.reinit(clickEl, rect);
     } else {
-      this.deactivate(true);
+      this.clean();
     }
   },
   lastHovered: null,
@@ -573,7 +573,7 @@ var LinkHints = {
     this.options = null;
     this.lastMode = this.mode = 0;
   },
-  deactivate: function(suppressType) {
+  deactivate: function(suppressType, do_clean) {
     this.alphabetHints.hintKeystroke = "";
     this.hintMarkers = [];
     if (this.box) {
@@ -588,7 +588,7 @@ var LinkHints = {
     } else {
       VHUD.hide();
     }
-    this.clean();
+    do_clean !== false && this.clean();
     this.isActive = false;
     if (suppressType != null) {
       DomUtils.UI.suppressTail(suppressType);
