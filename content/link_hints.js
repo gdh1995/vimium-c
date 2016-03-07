@@ -139,7 +139,7 @@ var LinkHints = {
       break;
     case cons.EDIT_TEXT:
       tip = "Edit link " + (this.options.url ? "url" : "text") + " on Vomnibar";
-      activator = this.options.url ? this.FUNC.COPY_LINK_URL : this.FUNC.COPY_TEXT;
+      activator = this.FUNC.COPY_TEXT;
       break;
     case cons.DOWNLOAD_IMAGE:
       tip = mode >= 192 ? "Download multiple images" : "Download image";
@@ -155,7 +155,8 @@ var LinkHints = {
       break;
     case cons.COPY_LINK_URL:
       tip = mode >= 192 ? "Copy link URL one by one" : "Copy link URL to Clipboard";
-      activator = this.FUNC.COPY_LINK_URL;
+      this.options.url = true;
+      activator = this.FUNC.COPY_TEXT;
       break;
     case cons.OPEN_INCOGNITO_LINK:
       tip = mode >= 192 ? "Open multi incognito tabs" : "Open link in incognito";
@@ -724,30 +725,6 @@ highlightChild: function(child, box) {
 },
 
 FUNC: {
-  COPY_LINK_URL: function(link) {
-    var str = this.getUrlData(link);
-    if (!str) {
-      VHUD.showForDuration("No url found", 1000);
-      this.keepHUDAfterAct = true;
-      return;
-    }
-    if (this.mode === this.CONST.EDIT_TEXT) {
-      Vomnibar.activate(1, {
-        url: str,
-        keyword: this.options.keyword
-      });
-      return;
-    }
-    // NOTE: url should not be modified
-    // although BackendUtils.convertToUrl does replace '\u3000' with ' '
-    str = Utils.decodeURL(str);
-    MainPort.port.postMessage({
-      handler: "copyToClipboard",
-      data: str
-    });
-    this.keepHUDAfterAct = true;
-    VHUD.showCopied(str);
-  },
   HOVER: function(element) {
     this.lastHovered = element;
     Scroller.current = element;
@@ -757,8 +734,9 @@ FUNC: {
     DomUtils.simulateMouse(element, "mouseout");
   },
   COPY_TEXT: function(link) {
-    var str = link.getAttribute("data-vim-text");
-    if (str && (str = str.trim())) {}
+    var isUrl = !!this.options.url, str;
+    if (isUrl) { str = this.getUrlData(link); }
+    else if ((str = link.getAttribute("data-vim-text")) && (str = str.trim())) {}
     else if ((str = link.nodeName.toLowerCase()) === "input") {
       str = link.type;
       if (str === "password") {
@@ -779,13 +757,13 @@ FUNC: {
       str = str.trim() || link.title.trim();
     }
     if (!str) {
-      VHUD.showCopied("");
+      VHUD.showCopied("", isUrl && "url");
       this.keepHUDAfterAct = true;
       return;
     }
     if (this.mode === this.CONST.EDIT_TEXT) {
       Vomnibar.activate(1, {
-        force: true,
+        force: !isUrl,
         url: str,
         keyword: this.options.keyword
       });
@@ -799,6 +777,9 @@ FUNC: {
       });
       return;
     }
+    // NOTE: url should not be modified
+    // although BackendUtils.convertToUrl does replace '\u3000' with ' '
+    str = isUrl ? Utils.decodeURL(str) : str;
     MainPort.port.postMessage({
       handler: "copyToClipboard",
       data: str
