@@ -43,11 +43,11 @@ var Settings, VHUD, MainPort, VInsertMode;
 
   keyQueue = false;
 
-  firstKeys = {};
+  firstKeys = null;
 
-  secondKeys = {"": {}};
+  secondKeys = null;
 
-  currentSeconds = {};
+  currentSeconds = null;
 
   passKeys = null;
 
