@@ -26,6 +26,7 @@ var LinkHints = {
   hintMarkers: [],
   mode: 0,
   modeOpt: null,
+  count: 0,
   lastMode: 0,
   isClickListened: true,
   ngIgnored: true,
@@ -57,7 +58,7 @@ var LinkHints = {
       this.box.remove();
     }
     var elements, rect, style, width, height, x, y;
-    this.setModeOpt(Object.setPrototypeOf(options || {}, null));
+    this.setModeOpt(Object.setPrototypeOf(options || {}, null), count | 0);
 
     if (!this.frameNested) {
       elements = this.getVisibleElements();
@@ -108,7 +109,7 @@ var LinkHints = {
     handlerStack.push(this.onKeyDownInMode, this);
     VInsertMode.onWndBlur = this.OnWndBlur;
   },
-  setModeOpt: function(options) {
+  setModeOpt: function(options, count) {
     if (this.options === options) { return; }
     var ref = this.Modes, i, ref2 = this.CONST, mode = ref2[options.mode] | 0, modeOpt;
     if (mode == ref2.EDIT_TEXT && options.url) {
@@ -116,16 +117,21 @@ var LinkHints = {
     } else if (mode == ref2.EDIT_LINK_URL || (mode & ~64) == ref2.COPY_LINK_URL) {
       options.url = true;
     }
+    if (count > 1) { mode <= 256 ? (mode |= 64) : (count = 1); }
     for (i in ref) {
       if (ref.hasOwnProperty(i) && ref[i].hasOwnProperty(mode)) {
         modeOpt = ref[i];
         break;
       }
     }
-    if (!modeOpt) { modeOpt = ref.DEFAULT; mode = 0; }
+    if (!modeOpt) {
+      modeOpt = ref.DEFAULT;
+      mode = count > 1 ? this.CONST.OPEN_WITH_QUEUE : this.CONST.OPEN_IN_CURRENT_TAB;
+    }
     this.modeOpt = modeOpt;
     this.mode = mode;
     this.options = options;
+    this.count = count;
   },
   setMode: function(mode) {
     this.mode = mode;
@@ -486,6 +492,9 @@ var LinkHints = {
     }
     if (this.mode & 64) {
       this.reinit(clickEl, rect);
+      if (1 === --this.count) {
+        this.setMode(this.mode & ~64);
+      }
     } else {
       this.clean();
     }
@@ -498,7 +507,7 @@ var LinkHints = {
   },
   reinit: function(lastEl, rect) {
     this.isActive = false;
-    this.activate(this.mode, this.options);
+    this.activate(0, this.options);
     this.timer && clearTimeout(this.timer);
     if (lastEl && this.mode < 128) {
       this.timer = setTimeout(this.TestLastEl, 255, lastEl, rect);
@@ -523,7 +532,7 @@ var LinkHints = {
   },
   clean: function() {
     this.options = this.modeOpt = null;
-    this.lastMode = this.mode = 0;
+    this.lastMode = this.mode = this.count = 0;
   },
   deactivate: function(suppressType, do_clean) {
     this.alphabetHints.hintKeystroke = "";
