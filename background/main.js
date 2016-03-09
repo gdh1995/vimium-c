@@ -1432,10 +1432,6 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
   }, 50);
 })();
 
-setTimeout(function() {
-  Settings.postUpdate("searchEngines", null);
-}, 100);
-
 Settings.CONST.Timer = setTimeout(function() {
 Settings.CONST.Timer = 0;
 // currentFirst will be reloaded when window.focus

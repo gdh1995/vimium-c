@@ -976,3 +976,6 @@ searchEngines: {
 
 }, 200);
 
+setTimeout(function() {
+  Settings.postUpdate("searchEngines", null);
+}, 300);
