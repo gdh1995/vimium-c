@@ -1404,7 +1404,7 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
         port.onMessage.addListener(handleMainPort);
       }
     });
-  }, 34);
+  }, 17);
 
   setTimeout(function() {
     Settings.postUpdate("files", null);
@@ -1433,7 +1433,7 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
       chrome.commands.onCommand.addListener(funcDict.globalCommand);
     };
     ContentSettings.clear("images");
-  }, 50);
+  }, 34);
 })();
 
 Settings.CONST.Timer = setTimeout(function() {
