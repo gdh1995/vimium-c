@@ -3532,7 +3532,7 @@ if (w <= h) {
 } else {
 	window.onresize = function (skip) {
 	if (skip !== true) {
-		if (window.innerWidth == oWidth && window.innerHeight <= oHeight + 45) return;
+		if (window.innerWidth == oWidth && Math.abs(window.innerHeight - oHeight) < 44) return;
 		oWidth = window.innerWidth;
 		oHeight = window.innerHeight;
 	}
