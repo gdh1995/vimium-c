@@ -13,6 +13,8 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
 
   extForTab = Object.create(null);
 
+  currentFirst = null;
+
   needIcon = false;
 
   helpDialogHtml = function(showUnbound, showNames, customTitle) {
@@ -1339,9 +1341,6 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
     options && typeof options === "object" || (options = null);
     executeCommand(command, Commands.makeCommand(command, options), count, null);
   };
-  if (chrome.commands) setTimeout(function() {
-    chrome.commands.onCommand.addListener(funcDict.globalCommand);
-  }, 200);
 
   Settings.postUpdate("extWhiteList");
   chrome.runtime.onMessageExternal.addListener(function(message, sender, sendResponse) {
@@ -1426,6 +1425,9 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
       ref2[ref[i]].useTab = -1;
     }
 
+    if (chrome.commands) {
+      chrome.commands.onCommand.addListener(funcDict.globalCommand);
+    };
     ContentSettings.clear("images");
   }, 50);
 })();
