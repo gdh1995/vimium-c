@@ -5,7 +5,7 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
     , cOptions, cPort, currentCount, currentFirst, executeCommand, extForTab
     , firstKeys, frameIdsForTab, funcDict, handleMainPort
     , helpDialogHtml, helpDialogHtmlForCommand //
-    , helpDialogHtmlForCommandGroup, needIcon, openMultiTab //
+    , helpDialogHtmlForCommandGroup, initFront, needIcon, openMultiTab //
     , requestHandlers, resetKeys, secondKeys, sendToTab //
     , urlForTab;
 
@@ -932,6 +932,8 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
       ref2[first] = ref2[first].filter(func).sort().reverse();
     }
     ref2[""] = ["0"]; // "0" is for key queues like "10n"
+
+    requestHandlers.init = initFront;
   };
 
   handleMainPort = function(request, port) {
@@ -1219,24 +1221,7 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
         return ret;
       }
     },
-    init: function(request, port) {
-      var pass = Exclusions.getPattern(request.url), tabId = port.sender.tab.id;
-      if (request.focused) {
-        if (needIcon) {
-          urlForTab[tabId] = request.url;
-          requestHandlers.SetIcon(tabId, null, pass);
-        }
-      }
-      return {
-        name: "init",
-        passKeys: pass,
-        onMac: Settings.CONST.OnMac,
-        currentFirst: currentFirst,
-        firstKeys: firstKeys,
-        secondKeys: secondKeys,
-        tabId: tabId
-      };
-    },
+    init: function() {},
     nextFrame: function(request, port) {
       cPort = port;
       BackgroundCommands.nextFrame(request.frameId);
@@ -1302,6 +1287,25 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
         cPort = null;
       }
     }
+  };
+
+  initFront = function(request, port) {
+    var pass = Exclusions.getPattern(request.url), tabId = port.sender.tab.id;
+    if (request.focused) {
+      if (needIcon) {
+        urlForTab[tabId] = request.url;
+        requestHandlers.SetIcon(tabId, null, pass);
+      }
+    }
+    return {
+      name: "init",
+      passKeys: pass,
+      onMac: Settings.CONST.OnMac,
+      currentFirst: currentFirst,
+      firstKeys: firstKeys,
+      secondKeys: secondKeys,
+      tabId: tabId
+    };
   };
 
   Settings.updateHooks.newTabUrl_f = function(url) {
