@@ -245,6 +245,8 @@ var Settings, VHUD, MainPort, VInsertMode;
           action = 2;
         } else if (DomUtils.UI.removeSelection(window)) {
           action = 2;
+        } else if (event.repeat) {
+          document.activeElement.blur();
         }
       }
       if (action === 0) { return; }
