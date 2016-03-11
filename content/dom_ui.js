@@ -158,11 +158,11 @@ DomUtils.UI = {
     }, time || this.flashLastingTime);
   },
   suppressTail: function(onlyRepeated) {
-    var func, tick, timer, handlerId;
+    var func, tick, timer, func;
     if (onlyRepeated) {
       func = function(event) {
         if (event.repeat) { return 2; }
-        handlerStack.remove(handlerId);
+        handlerStack.remove(this);
         return 0;
       };
     } else {
@@ -171,11 +171,11 @@ DomUtils.UI = {
       timer = setInterval(function() {
         if (Date.now() - tick > 150) {
           clearInterval(timer);
-          handlerStack && handlerStack.remove(handlerId);
+          handlerStack && handlerStack.remove(func);
         }
       }, 75);
     }
-    handlerStack.push(func, handlerId = {});
+    handlerStack.push(func, func);
   },
   SuppressMost: function(event) {
     var n = event.keyCode, plain;

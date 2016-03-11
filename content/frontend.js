@@ -422,12 +422,12 @@ var Settings, VHUD, MainPort, VInsertMode;
       HUD.show("/");
     },
     passNextKey: function(count) {
-      var keys = Object.create(null), keyCount = 0, handlerId;
+      var keys = Object.create(null), keyCount = 0;
       handlerStack.push(function(event) {
         keyCount += !keys[event.keyCode];
         keys[event.keyCode] = 1;
         return -1;
-      }, handlerId = {});
+      }, keys);
       function onKeyup(event) {
         if (keyCount === 0 || --keyCount || --count) {
           keys[event.keyCode] = 0;
@@ -437,7 +437,7 @@ var Settings, VHUD, MainPort, VInsertMode;
         exit();
       }
       function exit() {
-        handlerStack.remove(handlerId);
+        handlerStack.remove(keys);
         window.removeEventListener("keyup", onKeyup, true);
         HUD.hide();
       }
@@ -554,7 +554,7 @@ var Settings, VHUD, MainPort, VInsertMode;
       });
     },
     focusInput: function(count) {
-      var box, hints, selectedInputIndex, visibleInputs, handlerId;
+      var box, hints, selectedInputIndex, visibleInputs;
       visibleInputs = getVisibleInputs(DomUtils.evaluateXPath(
         './/input[not(@disabled or @readonly) and (@type="text" or @type="search" or @type="email" or @type="url" or @type="number" or @type="password" or @type="date" or @type="tel" or not(@type))] | .//xhtml:input[not(@disabled or @readonly) and (@type="text" or @type="search" or @type="email" or @type="url" or @type="number" or @type="password" or @type="date" or @type="tel" or not(@type))] | .//textarea[not(@disabled or @readonly)] | .//xhtml:textarea[not(@disabled or @readonly)] | .//*[@contenteditable="" or translate(@contenteditable, "TRUE", "true")="true"] | .//xhtml:*[@contenteditable="" or translate(@contenteditable, "TRUE", "true")="true"]'
         , XPathResult.ORDERED_NODE_SNAPSHOT_TYPE));
@@ -603,12 +603,12 @@ var Settings, VHUD, MainPort, VInsertMode;
         } else if (event.keyCode === KeyCodes.f12) {
           return KeyboardUtils.isPlain(event) ? 0 : 2;
         } else if (!event.repeat && event.keyCode !== KeyCodes.shiftKey) {
-          box.remove();
-          handlerStack.remove(handlerId);
+          this.remove();
+          handlerStack.remove(this);
           return 0;
         }
         return 2;
-      }, handlerId = {});
+      }, box);
     }
   };
 
@@ -911,7 +911,7 @@ var Settings, VHUD, MainPort, VInsertMode;
   };
 
   findAndFocus = function(count, backwards) {
-    var mostRecentQuery, query, handlerId;
+    var mostRecentQuery, query, el;
     Marks.setPreviousPosition();
     mostRecentQuery = settings.cache.findModeRawQuery;
     if (mostRecentQuery !== findModeQuery.rawQuery) {
@@ -930,18 +930,17 @@ var Settings, VHUD, MainPort, VInsertMode;
     }
     focusFoundLink();
     // NOTE: this `if` should not be removed
-    var el;
     if (findModeAnchorNode
         && DomUtils.getEditableType(el = document.activeElement) === 3
         && findModeAnchorNode.contains(el)) {
       handlerStack.push(function(event) {
-        handlerStack.remove(handlerId);
+        handlerStack.remove(this);
         if (event.keyCode === KeyCodes.esc && KeyboardUtils.isPlain(event)) {
-          DomUtils.UI.simulateSelect(InsertMode.lock = el);
+          DomUtils.UI.simulateSelect(InsertMode.lock = this);
           return 2;
         }
         return 0;
-      }, handlerId = {});
+      }, el);
     }
   };
 
@@ -1303,7 +1302,7 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483644
       HUD.showCopied(request.text);
     },
   showHelpDialog: function(response) {
-    var box, handlerId, oldShowHelp, hide, node1, //
+    var box, oldShowHelp, hide, node1, //
     toggleAdvanced, shouldShowAdvanced = response.advanced === true;
     box = DomUtils.createElement("div");
     box.innerHTML = response.html;
@@ -1313,7 +1312,7 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483644
     box.vimiumHasOnclick = false;
 
     hide = function() {
-      handlerStack.remove(handlerId);
+      handlerStack.remove(box);
       box.remove();
       Commands.showHelp = oldShowHelp;
       box = null;
@@ -1353,7 +1352,7 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483644
         return 2;
       }
       return 0;
-    }, handlerId = {});
+    }, box);
   }
   };
 
