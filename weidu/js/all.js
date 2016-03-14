@@ -119,6 +119,18 @@ function openTab(targetSwitch, url, event) {
 		});
 	}
 }
+function wantPermissions() {
+  var defer = Promise.defer();
+  chrome.permissions.request({
+    permissions: [].slice.call(arguments)
+  }, function(granted) {
+    granted ? defer.resolve() : defer.reject();
+  });
+  return defer.promise;
+}
+function removePermissions() {
+  chrome.permissions.remove({ permissions: [].slice.call(arguments) });
+}
 function isWhite(c1, c2, c3) {
 	return (c1 >= 230 && c2 >= 230 && c3 >= 230) ? true : false;
 }
@@ -1529,12 +1541,14 @@ var app = {
 			"js": "js/plugin/extensions/extensions.js",
 			"css": "js/plugin/extensions/css/skin_0.css",
 			"loadData": function (dialogObj, targetObj) {
-				chrome.management.getAll(function (_extensions) {
-					extensions.template(_extensions);
-					if (typeof dialogObj != 'undefined') {
-						dialogObj.changeContent(extensions.content)
-					}
-				})
+        wantPermissions("management").then(function() {
+          chrome.management.getAll(function (_extensions) {
+            extensions.template(_extensions);
+            if (typeof dialogObj != 'undefined') {
+              dialogObj.changeContent(extensions.content)
+            }
+          })
+        });
 			},
 			"run": function () {
 				var extensionsDialog = $.dialog({
@@ -1544,11 +1558,12 @@ var app = {
 						content: '<div class="emptyLoading"><img src="/img/skin_0/loading.gif"></div>',
 						callback: {
 							dialogClose: function () {
-								if (_isRefresh != false) {
-									DBOX.getBoxes();
-									DBOX.loadBoxes(DBOX.totalPage);
-									_isRefresh = false
-								}
+								if (_isRefresh == false) {
+                  return removePermissions("management");
+                }
+                DBOX.getBoxes();
+                DBOX.loadBoxes(DBOX.totalPage);
+                _isRefresh = false
 							}
 						}
 					});
@@ -1584,7 +1599,9 @@ var app = {
 			"js": "js/plugin/cloud/cloud.js",
 			"css": "js/plugin/cloud/css/skin_0.css",
 			"loadData": function (dialogObj, targetObj) {
-				cloud.showDialog(targetObj.attr('url') && targetObj, true);
+        wantPermissions("management").then(function() {
+          cloud.showDialog(targetObj.attr('url') && targetObj, true);
+        });
 			},
 			"run": function () {
 				var cloudDialog = $.dialog({
@@ -1594,22 +1611,23 @@ var app = {
 						content: cloud.init(),
 						callback: {
 							dialogClose: function () {
-								if (_isRefresh != false) {
-									if (_isRefresh == "lastPage") {
-										DBOX.getBoxes();
-										DBOX.loadBoxes(DBOX.totalPage)
-									} else if (_isRefresh == "curPage") {
-										DBOX.init()
-									} else if (_isRefresh == "remove") {
-										setTimeout(function () {
-											var updateOptions = createWebsite.isUpdate.split("_");
-											if (updateOptions.length > 1) {
-												$("." + updateOptions[0] + "Dialbox").find("#" + updateOptions[1] + "_" + updateOptions[2]).find('.boxClose').get(0).click()
-											}
-										}, 200)
-									}
-									_isRefresh = false
-								}
+								if (_isRefresh == false) {
+                  return removePermissions("management");
+                }
+                if (_isRefresh == "lastPage") {
+                  DBOX.getBoxes();
+                  DBOX.loadBoxes(DBOX.totalPage)
+                } else if (_isRefresh == "curPage") {
+                  DBOX.init()
+                } else if (_isRefresh == "remove") {
+                  setTimeout(function () {
+                    var updateOptions = createWebsite.isUpdate.split("_");
+                    if (updateOptions.length > 1) {
+                      $("." + updateOptions[0] + "Dialbox").find("#" + updateOptions[1] + "_" + updateOptions[2]).find('.boxClose').get(0).click()
+                    }
+                  }, 200)
+                }
+                _isRefresh = false
 							}
 						}
 					});
@@ -1766,7 +1784,10 @@ var app = {
 				}
 			}
 		} else if (targetObj.attr('appType') == "packaged_app") {
-			chrome.management.launchApp(appId)
+      wantPermissions("management").then(function() {
+        chrome.management.launchApp(appId);
+        removePermissions("management");
+      });
 		} else if (targetObj != "" && targetObj.attr('url') != null && targetObj.attr('url') != '') {
 			if (typeof event != "undefined" && event.button == 1) {
 				openTab(targetSwitch, eventObj.attr('url'), true)
