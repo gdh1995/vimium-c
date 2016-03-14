@@ -1137,7 +1137,7 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
       if (request.download) {
         url += "download=" + encodeURIComponent(request.download) + "&";
       }
-      url += encodeURIComponent(request.url);
+      url += request.url;
       commandCount = 1;
       cOptions = { url_f: url, reuse: request.active === false ? -2 : -1 };
       BackgroundCommands.openUrl();
