@@ -83,16 +83,6 @@
 .cloudContainer .cloudBody .main .container.createWebsite .classificationsContainer .classificationsList .classification .classificationSelected{position:absolute;width:22px;height:22px;background-image:url(../img/skin_0/selected.png);background-position:center center;background-repeat:no-repeat;top:2px;right:8px;display:none;}
 .cloudContainer .cloudBody .main .container.createWebsite .classificationsContainer .classificationsList .classification.selected .classificationSelected{display:block;}
 .cloudContainer .cloudBody .main .container.createWebsite .classificationsContainer .classificationsList .classification img{width:70px;height:70px;}
-.cloudContainer .cloudBody .main .container.createWebsite .aboutContainer{width:680px;height:250px;color:#545454;font-size:14px;border:1px #ACAAA4 solid;margin:0 20px;background:#FFFFFF;}
-.cloudContainer .cloudBody .main .container.createWebsite .aboutContainer .aboutTabs{height:30px;}
-.cloudContainer .cloudBody .main .container.createWebsite .aboutContainer .aboutTabs .topTab{cursor:pointer;float:left;height:30px;line-height:30px;width:339px;background:url(../img/skin_0/tabsBg.png);border-right:1px #ACAAA4 solid;color:#545454;text-align:center;}
-.cloudContainer .cloudBody .main .container.createWebsite .aboutContainer .aboutTabs .currentTab{cursor:pointer;float:left;height:30px;line-height:30px;width:340px;background:url(../img/skin_0/tabsBg.png);color:#545454;text-align:center;}
-.cloudContainer .cloudBody .main .container.createWebsite .aboutContainer .aboutTabs .topTab.selected, .cloudContainer .cloudBody .main .container.createWebsite .aboutContainer .aboutTabs .currentTab.selected{background:#FFFFFF;}
-.cloudContainer .cloudBody .main .container.createWebsite .aboutContainer .visiteContainer{width:665px;height:200px;overflow-y:auto;overflow-x:hidden;margin:10px 10px;display:none;}
-.cloudContainer .cloudBody .main .container.createWebsite .aboutContainer .visiteContainer.selected{display:block;}
-.cloudContainer .cloudBody .main .container.createWebsite .aboutContainer .visiteContainer .visitedItem{position:relative;width:100%;overflow:hidden;}
-.cloudContainer .cloudBody .main .container.createWebsite .aboutContainer .visiteContainer .visitedItem:hover{background:#F8F8F8;}
-.cloudContainer .cloudBody .main .container.createWebsite .aboutContainer .visiteContainer .visitedItem a{cursor:pointer;height:17px;background:no-repeat;background-image:url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAtUlEQVQ4y6WM0Q6CIBhGff8LJ2lkJmn4ggo30M2fnzNX+KOu2M4G+w4nIaLkH74eXddRjCQ4bEBrTc65FVJKwrYbaNvH9KHvh4V3AHfsm4GmaTcDAE40oNR9/OBpGMwC3gh8Ao8N1LViAyHw2EBV3VaBEOzw2EBZXsl7T8aYKNjhsQEpL3PARsEOjw0UxflQAB4byPPiUAAeGxDiNAnW2ijY4bGBLBOj8NwFHhtI04yOwgZ+4QVlPyfUVFbAlAAAAABJRU5ErkJggg==);background-size:16px 16px;text-indent:25px;display:block;line-height:16px;margin:8px 10px 8px 5px;color:#333;text-shadow:none;overflow:hidden;}
 .cloudContainer .cloudBody .main .container.createWebsite .btnContainer{width:723px;height:40px;margin-top:15px;}
 .cloudContainer .cloudBody .main .container.createWebsite .btnContainer .btn{cursor:pointer;float:right;width:90px;height:27px;background:url(../img/skin_0/buttonBg.png);color:white;font-size:14px;border:0px;margin-right:20px;}
 .cloudContainer .cloudBody .main .container.createWebsite .btnContainer .btn:hover{opacity:0.6;}

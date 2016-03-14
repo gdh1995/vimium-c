@@ -75,18 +75,6 @@ var createWebsite = {
 			$(this).val('');
 			this.files = null
 		});
-		self.container.find('.aboutTabs div').bind('click', function () {
-			if (!$(this).hasClass('selected')) {
-				self.container.find('.aboutTabs div').removeClass("selected");
-				self.container.find('.visiteContainer').removeClass("selected");
-				$(this).addClass("selected");
-				if ($(this).hasClass('topTab')) {
-					self.container.find(".visiteContainer[tab='topTab']").addClass("selected")
-				} else {
-					self.container.find(".visiteContainer[tab='currentTab']").addClass("selected")
-				}
-			}
-		});
 		self.container.find('#resetBtn').bind("click", function () {
 			$('#cloudDialog').find('.close').get(0).click();
 			return false
@@ -217,7 +205,6 @@ var createWebsite = {
 			return false
 		});
 		self.initLogoContainer();
-		self.initAboutContainer();
 		self.initClassificationsContainer();
 		self.initSuggest()
 	},
@@ -261,81 +248,6 @@ var createWebsite = {
 		self.container.find('.logoBox').removeClass("selected");
 		self.initLogoContainer();
 		self.container.find('.logoContainer').hide()
-	},
-	initAboutContainer : function () {
-		var self = this;
-		if (chrome.topSites) {
-			chrome.topSites.get(function (tabs) {
-				if (tabs.length > 0) {
-					$.each(tabs, function (i, n) {
-						self.container.find(".visiteContainer[tab='topTab']").append($('<div class="visitedItem"><a url="' + n.url + '">' + title_fix(truncate(n.title, 0, 36)) + '</a></div>').bind("click", function () {
-								self.initLogoContainer();
-								self.container.find('#webSiteUrl').val(n.url);
-								self.container.find('#webSiteTitle').val(n.title);
-								self.container.find('#webSiteUrl').get(0).focus();
-								setTimeout(function () {
-									self.container.find('#webSiteTitle').get(0).focus();
-									setTimeout(function () {
-										self.container.find('#webSiteTitle').get(0).blur()
-									}, 0)
-								}, 0)
-							}))
-					});
-					try {
-						$.each(self.container.find(".visiteContainer[tab='topTab'] .visitedItem a"), function (p, q) {
-							var itemUrl = $(q).attr("url");
-							var faviconPath = 'chrome://favicon/size/16/' + itemUrl;
-							var faviconImg = new Image();
-							if (itemUrl) {
-								faviconImg.onload = function () {
-									$(q).css("backgroundImage", "url(" + faviconPath + ")")
-								};
-								faviconImg.src = faviconPath
-							}
-						})
-					} catch (e) {}
-				}
-			})
-		}
-		chrome.tabs.query({
-			windowType: "normal"
-		}, function (tabs) {
-			var faviconLoad = false;
-			if (tabs.length > 0) {
-				$.each(tabs, function (i, n) {
-					if (typeof n.url != "undefined") {
-						self.container.find(".visiteContainer[tab='currentTab']").append($('<div class="visitedItem"><a url="' + n.url + '">' + title_fix(truncate(n.title, 0, 36)) + '</a></div>').bind("click", function () {
-								self.initLogoContainer();
-								self.container.find('#webSiteUrl').val(n.url);
-								self.container.find('#webSiteTitle').val(n.title);
-								self.container.find('#webSiteUrl').get(0).focus();
-								setTimeout(function () {
-									self.container.find('#webSiteTitle').get(0).focus();
-									setTimeout(function () {
-										self.container.find('#webSiteTitle').get(0).blur()
-									}, 0)
-								}, 0)
-							}));
-						faviconLoad = true
-					}
-				});
-				if (faviconLoad) {
-					try {
-						$.each(self.container.find(".visiteContainer[tab='currentTab'] .visitedItem a"), function (k, v) {
-							var itemUrl = $(v).attr("url");
-							var faviconPath = 'chrome://favicon/size/16/' + itemUrl;
-							var faviconImg = new Image();
-							if (itemUrl) {
-								faviconImg.onload = function () {
-									$(v).css("backgroundImage", "url(" + faviconPath + ")")
-								};
-								faviconImg.src = faviconPath
-							}
-						})
-					} catch (e) {}
-				}
-			}
-		})
 	},
 	initClassificationsContainer : function () {
 		var self = this;

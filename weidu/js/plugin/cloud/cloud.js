@@ -34,7 +34,7 @@ var cloud = {
 		});
 		template.find(".cloudSwitch").bind("click", function () {
 			if (template.find('.container.createWebsite').hasClass("show")) {
-				cloud.showDialog(false)
+				cloud.showDialog()
 			} else {
 				cloud.showDialog(true)
 			}
@@ -99,11 +99,8 @@ var cloud = {
 			getI18nMsg('webSiteTitle') +
 			'</span><input id="webSiteTitle" type="text" name="webSiteTitle" v=""/><span class="message">' +
 			getI18nMsg('webSiteTitleMessage') +
-			'</span></div></div><div class="logoInfo"><div class="logoBox"><div class="logo"></div><div class="selectArrow"><div class="arrow"></div></div></div><div class="logoContainer"><input type="file" name="logoData" id="logoData" style="visibility:hidden;width:0px;height:0px;" accept="image/*" /></div><input id="webSiteLogo" type="hidden" name="webSiteLogo"></div></div><div class="aboutContainer"><div class="aboutTabs"><div class="topTab selected">' +
-			getI18nMsg('topVisited') +
-			'</div><div class="currentTab">' +
-			getI18nMsg('currentVisiting') +
-			'</div></div><div class="visiteContainer selected" tab="topTab"></div><div class="visiteContainer" tab="currentTab"></div></div><div class="classificationsContainer"><div class="classificationsTabs"><div class="classificationsTab">' +
+			'</span></div></div><div class="logoInfo"><div class="logoBox"><div class="logo"></div><div class="selectArrow"><div class="arrow"></div></div></div><div class="logoContainer"><input type="file" name="logoData" id="logoData" style="visibility:hidden;width:0px;height:0px;" accept="image/*" /></div><input id="webSiteLogo" type="hidden" name="webSiteLogo"></div></div>' +
+			'<div class="classificationsContainer"><div class="classificationsTabs"><div class="classificationsTab">' +
 			getI18nMsg('classificationAppTitle') +
 			'</div></div><div class="classificationsList"></div></div><div class="btnContainer"><input type="button" id="resetBtn" name="resetBtn" class="btn" value="' +
 			getI18nMsg('cancel') +
@@ -122,7 +119,6 @@ var cloud = {
 		el.find('.cloudSwitch').text(getI18nMsg('cloudAppTitle'));
 		el.find('.container').removeClass("show");
 		el.find('.container.createWebsite').addClass("show");
-		el.find('.aboutContainer').hide();
 		el.find('.classificationsContainer').show();
 		if (targetObj.attr) {
 			createWebsite.initClassificationsContainer();
@@ -136,7 +132,6 @@ var cloud = {
 		el.find('.menu').removeClass('hide');
 		el.find(".cloudSwitch").text(getI18nMsg('websiteAdd'));
 		el.find('.container').removeClass("show");
-		el.find('.aboutContainer').show();
 		el.find('.classificationsContainer').hide();
 		if (el.find(".menu .navItem.selected").attr("category") == "myApps") {
 			self.toggleContainer('appList')
