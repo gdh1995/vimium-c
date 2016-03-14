@@ -11,9 +11,8 @@
   "name": "Weidu New Tab",
   "options_page": "index.html",
   "permissions": [
-    "tabs",
-    "chrome://favicon/",
-    "\u003Call_urls>"
+    "\u003Call_urls>",
+    "chrome://favicon/"
   ],
   "optional_permissions": [
     "bookmarks",
