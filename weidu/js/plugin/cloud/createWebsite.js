@@ -2,8 +2,6 @@ var createWebsite = {
 	suggestHide : true,
 	trends : [],
 	defaultLogoUrl : 'img/skin_0/ie_logo.png',
-	defaultUrl : '',
-	defaultTitle : '',
 	url : '',
 	title : '',
 	LogoUrl : '',
@@ -222,9 +220,9 @@ var createWebsite = {
 	},
 	initWebsite : function (url, title, logoUrl, type, id) {
 		var self = this;
-		self.url = typeof url == "undefined" ? self.defaultUrl : url;
-		self.title = typeof title == "undefined" ? self.defaultTitle : title;
-		self.logoUrl = typeof logoUrl == "undefined" ? self.defaultLogoUrl : logoUrl;
+		self.url = url || "";
+		self.title = title || "";
+		self.logoUrl = logoUrl || self.defaultLogoUrl;
 		type = typeof type == "undefined" ? '' : type;
 		id = typeof id == "undefined" ? '' : id;
 		if (type != '' && id != '') {
@@ -232,10 +230,6 @@ var createWebsite = {
 		} else {
 			self.isUpdate = false
 		}
-		self.container.find('#webSiteUrl').val(self.url);
-		self.container.find('#webSiteUrl').attr("v", self.url);
-		self.container.find('#webSiteTitle').val(self.title);
-		self.container.find('#webSiteTitle').attr("v", self.title);
 		if (type == "quick") {
 			if (self.logoUrl.indexOf(urlImg) == 0 && self.logoUrl.indexOf('/s/') > -1) {
 				self.logoUrl = self.logoUrl.replace("/s/", "/m/")
@@ -243,8 +237,8 @@ var createWebsite = {
 		}
 		self.container.find('#webSiteLogo').val(self.logoUrl);
 		self.loadLogo(self.logoUrl);
-		self.container.find('#webSiteUrl').siblings('.message').html(getI18nMsg('webSiteUrlMessage'));
-		self.container.find('#webSiteTitle').siblings('.message').html(getI18nMsg('webSiteTitleMessage'));
+		self.container.find('#webSiteUrl').val(self.url).attr("v", self.url).siblings('.message').html(getI18nMsg('webSiteUrlMessage'));
+		self.container.find('#webSiteTitle').val(self.title).attr("v", self.title).siblings('.message').html(getI18nMsg('webSiteTitleMessage'));
 		self.container.find('.logoBox').removeClass("selected");
 		self.initLogoContainer();
 		self.container.find('.logoContainer').hide()
@@ -270,19 +264,15 @@ var createWebsite = {
 		})
 	},
 	initLogoContainer : function () {
-		var self = this;
-		var iStart = 0;
-		if (ui_locale != 'zh_CN') {
-			iStart += 3000
-		}
-		self.container.find('.logoContainer').children().not('#logoData').remove();
-		self.container.find('.logoContainer').append('<div class="logoItemTitle">' + getI18nMsg('webSiteLogoUpload') + '</div>');
-		self.container.find('.logoContainer').append($('<div class="logoLine"></div><div class="logoItem" style="background-image:url(' + urlImg + 'cloudapp/images/' + _langPre + '_uploadLogo.png)"></div>').bind("click", function () {
+		var self = this, iStart = ui_locale != 'zh_CN' ? 3000 : 0, logoC = self.container.find('.logoContainer');
+		logoC.children().not('#logoData').remove();
+		logoC.append('<div class="logoItemTitle">' + getI18nMsg('webSiteLogoUpload') + '</div>');
+		logoC.append($('<div class="logoLine"></div><div class="logoItem" style="background-image:url(' + urlImg + 'cloudapp/images/' + _langPre + '_uploadLogo.png)"></div>').bind("click", function () {
 				self.container.find('#logoData').get(0).click();
 				return false
 			}));
-		self.container.find('.logoContainer').append('<div class="logoItemTitle">' + getI18nMsg('webSiteLogoOutside') + '</div>');
-		self.container.find('.logoContainer').append($('<div class="logoLine"></div><div class="logoItem" style="background-image:url(' + urlImg + 'cloudapp/images/' + _langPre + '_outSideLogo.png)"></div>').bind("click", function () {
+		logoC.append('<div class="logoItemTitle">' + getI18nMsg('webSiteLogoOutside') + '</div>');
+		logoC.append($('<div class="logoLine"></div><div class="logoItem" style="background-image:url(' + urlImg + 'cloudapp/images/' + _langPre + '_outSideLogo.png)"></div>').bind("click", function () {
 				var logoUrl = prompt(getI18nMsg('webSiteLogoOutsideUrl'), "");
 				if (logoUrl != null && logoUrl != "") {
 					self.container.find('#webSiteLogo').val(logoUrl);
@@ -292,9 +282,9 @@ var createWebsite = {
 				}
 				return false
 			}));
-		self.container.find('.logoContainer').append('<div class="logoItemTitle">' + getI18nMsg('webSiteLogos') + '</div>');
+		logoC.append('<div class="logoItemTitle">' + getI18nMsg('webSiteLogos') + '</div>');
 		for (var i = iStart + 1; i <= iStart + 30; i++) {
-			self.container.find('.logoContainer').append($(
+			logoC.append($(
 				'<div class="logoLine"></div><div class="logoItem" style="background-image:url('
 				+ urlImg + 'cloudapp/generalLogo/m/' + self.pad(i, 4) + '.png)"></div>'
 			).bind("click", function () {

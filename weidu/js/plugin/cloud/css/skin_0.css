@@ -75,7 +75,7 @@
 .cloudContainer .cloudBody .main .container.createWebsite .infoContainer .logoInfo .logoContainer .logoItem:hover{opacity:1;}
 .cloudContainer .cloudBody .main .container.createWebsite .infoContainer .logoInfo .logoContainer .logoItemTitle{width:180px;height:22px;line-height:22px;text-indent:10px;color:#2AABE2;z-index:20;font-size:12px;position:absolute;}
 .cloudContainer .cloudBody .main .container.createWebsite .infoContainer .logoInfo .logoContainer .logoLine{width:180px;height:0px;border-bottom:1px #CCC dashed;}
-.cloudContainer .cloudBody .main .container.createWebsite .classificationsContainer{width:680px;height:250px;color:#545454;font-size:14px;border:1px #ACAAA4 solid;margin:0 20px;background:#FFFFFF;display:none;}
+.cloudContainer .cloudBody .main .container.createWebsite .classificationsContainer{width:680px;height:250px;color:#545454;font-size:14px;border:1px #ACAAA4 solid;margin:0 20px;background:#FFFFFF;}
 .cloudContainer .cloudBody .main .container.createWebsite .classificationsContainer .classificationsTabs{height:30px;background:url(../img/skin_0/tabsBg.png);}
 .cloudContainer .cloudBody .main .container.createWebsite .classificationsContainer .classificationsTabs .classificationsTab{cursor:pointer;float:left;height:30px;line-height:30px;width:339px;border-right:1px #ACAAA4 solid;color:#545454;text-align:center;background:#FFFFFF;}
 .cloudContainer .cloudBody .main .container.createWebsite .classificationsContainer .classificationsList{width:665px;height:200px;overflow-y:auto;overflow-x:hidden;margin:10px 10px;}

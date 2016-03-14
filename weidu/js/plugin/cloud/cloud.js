@@ -119,7 +119,7 @@ var cloud = {
 		el.find('.cloudSwitch').text(getI18nMsg('cloudAppTitle'));
 		el.find('.container').removeClass("show");
 		el.find('.container.createWebsite').addClass("show");
-		el.find('.classificationsContainer').show();
+		// el.find('.classificationsContainer').show();
 		if (targetObj.attr) {
 			createWebsite.initClassificationsContainer();
 			createWebsite.initWebsite(targetObj.attr('url'), targetObj.find('.boxTitle').text()
@@ -132,7 +132,7 @@ var cloud = {
 		el.find('.menu').removeClass('hide');
 		el.find(".cloudSwitch").text(getI18nMsg('websiteAdd'));
 		el.find('.container').removeClass("show");
-		el.find('.classificationsContainer').hide();
+		// el.find('.classificationsContainer').hide();
 		if (el.find(".menu .navItem.selected").attr("category") == "myApps") {
 			self.toggleContainer('appList')
 		} else {
