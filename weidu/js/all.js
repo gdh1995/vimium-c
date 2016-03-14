@@ -1584,7 +1584,7 @@ var app = {
 			"js": "js/plugin/cloud/cloud.js",
 			"css": "js/plugin/cloud/css/skin_0.css",
 			"loadData": function (dialogObj, targetObj) {
-				cloud.showDialog(dialogObj, targetObj.attr('url') && targetObj, true);
+				cloud.showDialog(targetObj.attr('url') && targetObj, true);
 			},
 			"run": function () {
 				var cloudDialog = $.dialog({

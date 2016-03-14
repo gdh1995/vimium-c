@@ -34,9 +34,9 @@ var cloud = {
 		});
 		template.find(".cloudSwitch").bind("click", function () {
 			if (template.find('.container.createWebsite').hasClass("show")) {
-				cloud.showDialog(null, false)
+				cloud.showDialog(false)
 			} else {
-				cloud.showDialog(null, true)
+				cloud.showDialog(true)
 			}
 		});
 		self.content = template;
@@ -144,7 +144,7 @@ var cloud = {
 			self.toggleContainer('websiteList')
 		}
 	},
-	showDialog: function(_0, targetObj, reinit) {
+	showDialog: function(targetObj, reinit) {
 		var promise;
 		if (!targetObj) {
 			promise = Promise.all([
