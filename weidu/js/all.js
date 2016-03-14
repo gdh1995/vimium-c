@@ -1476,7 +1476,7 @@ var app = {
 			"js": "js/plugin/lastVisited/lastVisited.js",
 			"css": "js/plugin/lastVisited/css/skin_0.css",
 			"loadData": function (dialogObj, targetObj) {
-				if (typeof chrome.history != "undefined") {
+        wantPermissions("history").then(function() {
 					chrome.history.search({
 						text: '',
 						maxResults: 100,
@@ -1489,10 +1489,17 @@ var app = {
 							dialogObj.changeContent(lastVisited.content)
 						}
 					})
-				}
+				});
 			},
 			"run": function () {
 				var lastVisitedDialog = $.dialog({
+						callback: {
+							dialogClose: function () {
+								if (_isRefresh == false) {
+                  removePermissions("history");
+                }
+              }
+            },
 						id: "lastVisitedDialog",
 						isLock: true,
 						animate: "center center",
@@ -1505,6 +1512,7 @@ var app = {
 			"js": "js/plugin/bookmarks/bookmarks.js",
 			"css": "js/plugin/bookmarks/css/skin_0.css",
 			"loadData": function (dialogObj, targetObj) {
+        wantPermissions("bookmarks").then(function() {
 				chrome.bookmarks.getTree(function (tree) {
 					chrome.bookmarks.getRecent(30, function (recentTree) {
 						bookmarks.template(tree, recentTree);
@@ -1526,9 +1534,17 @@ var app = {
 						}
 					})
 				});
+        });
 			},
 			"run": function () {
 				var bookmarksDialog = $.dialog({
+						callback: {
+							dialogClose: function () {
+								if (_isRefresh == false) {
+                  removePermissions("bookmarks");
+                }
+              }
+            },
 						id: "bookmarksDialog",
 						isLock: true,
 						animate: "center center",

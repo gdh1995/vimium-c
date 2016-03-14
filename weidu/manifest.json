@@ -11,13 +11,13 @@
   "name": "Weidu New Tab",
   "options_page": "index.html",
   "permissions": [
-    "bookmarks",
-    "history",
     "tabs",
     "chrome://favicon/",
     "\u003Call_urls>"
   ],
   "optional_permissions": [
+    "bookmarks",
+    "history",
     "management"
   ],
   "update_url": "https://clients2.google.com/service/update2/crx",
