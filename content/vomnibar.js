@@ -372,7 +372,7 @@ activate: function(_0, options, force_current) {
     this.onCompletions(completions);
   },
   init: function() {
-    var box, str;
+    var box, opts, arr;
     this.box = box = DomUtils.createElement("div");
     box.className = "R";
     box.id = "Omnibar";
@@ -383,10 +383,10 @@ activate: function(_0, options, force_current) {
     box.addEventListener("click", function(e) { Vomnibar.onClick(e) });
     box.vimiumHasOnclick = false;
     if (window.location.protocol.startsWith("chrome") && chrome.runtime.getManifest
-        && (str = chrome.runtime.getManifest().permissions)) {
-      str = str.join("/");
-      this.mode.showFavIcon = str.indexOf("<all_urls>") >= 0 ||
-          str.indexOf("chrome://favicon/") >= 0;
+        && (opts = chrome.runtime.getManifest())) {
+      arr = opts.permissions || [];
+      this.mode.showFavIcon = arr.join("/").indexOf("<all_urls>") >= 0 ||
+          arr.concat(opts.optional_permissions).join("/").indexOf("chrome://favicon/") >= 0;
     }
     this.init = null;
   },
