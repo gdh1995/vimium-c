@@ -85,7 +85,7 @@ Core: {
         || (element.parentNode && element.parentNode.host)
         || document.body;
     }
-    return element;
+    return element === document.body ? this.selectFirst(element) : element;
   },
   getActivatedElement: function() {
     var element = this.current;
