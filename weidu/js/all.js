@@ -120,16 +120,16 @@ function openTab(targetSwitch, url, event) {
 	}
 }
 function wantPermissions() {
-  var defer = Promise.defer();
-  chrome.permissions.request({
-    permissions: [].slice.call(arguments)
-  }, function(granted) {
-    granted ? defer.resolve() : defer.reject();
-  });
-  return defer.promise;
+	var defer = Promise.defer();
+	chrome.permissions.request({
+		permissions: [].slice.call(arguments)
+	}, function(granted) {
+		granted ? defer.resolve() : defer.reject();
+	});
+	return defer.promise;
 }
 function removePermissions() {
-  chrome.permissions.remove({ permissions: [].slice.call(arguments) });
+	chrome.permissions.remove({ permissions: [].slice.call(arguments) });
 }
 function isWhite(c1, c2, c3) {
 	return (c1 >= 230 && c2 >= 230 && c3 >= 230) ? true : false;
@@ -1476,7 +1476,7 @@ var app = {
 			"js": "js/plugin/lastVisited/lastVisited.js",
 			"css": "js/plugin/lastVisited/css/skin_0.css",
 			"loadData": function (dialogObj, targetObj) {
-        wantPermissions("history").then(function() {
+				wantPermissions("history").then(function() {
 					chrome.history.search({
 						text: '',
 						maxResults: 100,
@@ -1496,10 +1496,10 @@ var app = {
 						callback: {
 							dialogClose: function () {
 								if (_isRefresh == false) {
-                  removePermissions("history");
-                }
-              }
-            },
+									removePermissions("history");
+								}
+							}
+						},
 						id: "lastVisitedDialog",
 						isLock: true,
 						animate: "center center",
@@ -1512,7 +1512,7 @@ var app = {
 			"js": "js/plugin/bookmarks/bookmarks.js",
 			"css": "js/plugin/bookmarks/css/skin_0.css",
 			"loadData": function (dialogObj, targetObj) {
-        wantPermissions("bookmarks").then(function() {
+				wantPermissions("bookmarks").then(function() {
 				chrome.bookmarks.getTree(function (tree) {
 					chrome.bookmarks.getRecent(30, function (recentTree) {
 						bookmarks.template(tree, recentTree);
@@ -1534,17 +1534,17 @@ var app = {
 						}
 					})
 				});
-        });
+				});
 			},
 			"run": function () {
 				var bookmarksDialog = $.dialog({
 						callback: {
 							dialogClose: function () {
 								if (_isRefresh == false) {
-                  removePermissions("bookmarks");
-                }
-              }
-            },
+									removePermissions("bookmarks");
+								}
+							}
+						},
 						id: "bookmarksDialog",
 						isLock: true,
 						animate: "center center",
@@ -1557,14 +1557,14 @@ var app = {
 			"js": "js/plugin/extensions/extensions.js",
 			"css": "js/plugin/extensions/css/skin_0.css",
 			"loadData": function (dialogObj, targetObj) {
-        wantPermissions("management").then(function() {
-          chrome.management.getAll(function (_extensions) {
-            extensions.template(_extensions);
-            if (typeof dialogObj != 'undefined') {
-              dialogObj.changeContent(extensions.content)
-            }
-          })
-        });
+				wantPermissions("management").then(function() {
+					chrome.management.getAll(function (_extensions) {
+						extensions.template(_extensions);
+						if (typeof dialogObj != 'undefined') {
+							dialogObj.changeContent(extensions.content)
+						}
+					})
+				});
 			},
 			"run": function () {
 				var extensionsDialog = $.dialog({
@@ -1575,11 +1575,11 @@ var app = {
 						callback: {
 							dialogClose: function () {
 								if (_isRefresh == false) {
-                  return removePermissions("management");
-                }
-                DBOX.getBoxes();
-                DBOX.loadBoxes(DBOX.totalPage);
-                _isRefresh = false
+									return removePermissions("management");
+								}
+								DBOX.getBoxes();
+								DBOX.loadBoxes(DBOX.totalPage);
+								_isRefresh = false
 							}
 						}
 					});
@@ -1615,9 +1615,9 @@ var app = {
 			"js": "js/plugin/cloud/cloud.js",
 			"css": "js/plugin/cloud/css/skin_0.css",
 			"loadData": function (dialogObj, targetObj) {
-        wantPermissions("management").then(function() {
-          cloud.showDialog(targetObj.attr('url') && targetObj, true);
-        });
+				wantPermissions("management").then(function() {
+					cloud.showDialog(targetObj.attr('url') && targetObj, true);
+				});
 			},
 			"run": function () {
 				var cloudDialog = $.dialog({
@@ -1628,22 +1628,22 @@ var app = {
 						callback: {
 							dialogClose: function () {
 								if (_isRefresh == false) {
-                  return removePermissions("management");
-                }
-                if (_isRefresh == "lastPage") {
-                  DBOX.getBoxes();
-                  DBOX.loadBoxes(DBOX.totalPage)
-                } else if (_isRefresh == "curPage") {
-                  DBOX.init()
-                } else if (_isRefresh == "remove") {
-                  setTimeout(function () {
-                    var updateOptions = createWebsite.isUpdate.split("_");
-                    if (updateOptions.length > 1) {
-                      $("." + updateOptions[0] + "Dialbox").find("#" + updateOptions[1] + "_" + updateOptions[2]).find('.boxClose').get(0).click()
-                    }
-                  }, 200)
-                }
-                _isRefresh = false
+									return removePermissions("management");
+								}
+								if (_isRefresh == "lastPage") {
+									DBOX.getBoxes();
+									DBOX.loadBoxes(DBOX.totalPage)
+								} else if (_isRefresh == "curPage") {
+									DBOX.init()
+								} else if (_isRefresh == "remove") {
+									setTimeout(function () {
+										var updateOptions = createWebsite.isUpdate.split("_");
+										if (updateOptions.length > 1) {
+											$("." + updateOptions[0] + "Dialbox").find("#" + updateOptions[1] + "_" + updateOptions[2]).find('.boxClose').get(0).click()
+										}
+									}, 200)
+								}
+								_isRefresh = false
 							}
 						}
 					});
@@ -1800,10 +1800,10 @@ var app = {
 				}
 			}
 		} else if (targetObj.attr('appType') == "packaged_app") {
-      wantPermissions("management").then(function() {
-        chrome.management.launchApp(appId);
-        removePermissions("management");
-      });
+			wantPermissions("management").then(function() {
+				chrome.management.launchApp(appId);
+				removePermissions("management");
+			});
 		} else if (targetObj != "" && targetObj.attr('url') != null && targetObj.attr('url') != '') {
 			if (typeof event != "undefined" && event.button == 1) {
 				openTab(targetSwitch, eventObj.attr('url'), true)
