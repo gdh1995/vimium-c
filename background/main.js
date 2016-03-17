@@ -2,10 +2,11 @@
 var Marks, Clipboard, Completers, Commands, g_requestHandlers;
 (function() {
   var BackgroundCommands, ContentSettings, checkKeyQueue, commandCount //
+    , Connections
     , cOptions, cPort, currentCount, currentFirst, executeCommand, extForTab
     , firstKeys, frameIdsForTab, funcDict, handleMainPort
     , helpDialogHtml, helpDialogHtmlForCommand //
-    , helpDialogHtmlForCommandGroup, initFront, needIcon, openMultiTab //
+    , helpDialogHtmlForCommandGroup, needIcon, openMultiTab //
     , requestHandlers, resetKeys, secondKeys, sendToTab //
     , urlForTab;
 
@@ -933,7 +934,7 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
     }
     ref2[""] = ["0"]; // "0" is for key queues like "10n"
 
-    requestHandlers.init = initFront;
+    Connections.init();
   };
 
   handleMainPort = function(request, port) {
@@ -959,14 +960,6 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
     else if (key = request.handlerSettings) {
       var i, ref;
       switch (key) {
-      case "load":
-        port.postMessage({
-          name: "settings",
-          load: Settings.bufferToLoad,
-          response: ((request = request.request) //
-            ? requestHandlers[request.handler](request, port) : null)
-        });
-        break;
       case "reg":
         ref = Settings.cache.userDefinedOuterCss;
         ref && request.visible && port.postMessage({
@@ -1221,7 +1214,6 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
         return ret;
       }
     },
-    init: function() {},
     nextFrame: function(request, port) {
       cPort = port;
       BackgroundCommands.nextFrame(request.frameId);
@@ -1289,23 +1281,39 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
     }
   };
 
-  initFront = function(request, port) {
-    var pass = Exclusions.getPattern(request.url), tabId = port.sender.tab.id;
-    if (request.focused) {
-      if (needIcon) {
-        urlForTab[tabId] = request.url;
-        requestHandlers.SetIcon(tabId, null, pass);
+  Connections = {
+    state: 0,
+    init: function() {
+      if (2 !== ++this.state) { return; }
+      chrome.runtime.onConnect.addListener(this.OnConnect);
+      chrome.runtime.onConnectExternal.addListener(function(port) {
+        if (port.sender && port.sender.id in Settings.extWhiteList
+            && port.name.startsWith("vimium++")) {
+          Connections.OnConnect(port);
+        }
+      });
+    },
+    OnConnect: function(port) {
+      port.onMessage.addListener(handleMainPort);
+      var type = port.name[8] | 0;
+      var pass = Exclusions.getPattern(port.sender.url), tabId = port.sender.tab.id;
+      if (type & 2) {
+        if (needIcon) {
+          urlForTab[tabId] = port.sender.url;
+          requestHandlers.SetIcon(tabId, null, pass);
+        }
       }
+      (type & 1) || port.postMessage({
+        name: "init",
+        load: Settings.bufferToLoad,
+        passKeys: pass,
+        onMac: Settings.CONST.OnMac,
+        currentFirst: currentFirst,
+        firstKeys: firstKeys,
+        secondKeys: secondKeys,
+        tabId: tabId
+      });
     }
-    return {
-      name: "init",
-      passKeys: pass,
-      onMac: Settings.CONST.OnMac,
-      currentFirst: currentFirst,
-      firstKeys: firstKeys,
-      secondKeys: secondKeys,
-      tabId: tabId
-    };
   };
 
   Settings.updateHooks.newTabUrl_f = function(url) {
@@ -1395,15 +1403,7 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
     Exclusions.setRules(Settings.get("exclusionRules"));
     Settings.postUpdate("bufferToLoad", null);
     Settings.get("userDefinedOuterCss", true);
-
-    chrome.runtime.onConnect.addListener(function(port) {
-      port.onMessage.addListener(handleMainPort);
-    });
-    chrome.runtime.onConnectExternal.addListener(function(port) {
-      if (port.sender && port.sender.id in Settings.extWhiteList) {
-        port.onMessage.addListener(handleMainPort);
-      }
-    });
+    Connections.init();
   }, 17);
 
   setTimeout(function() {

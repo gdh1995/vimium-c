@@ -129,7 +129,9 @@ var Settings, VHUD, MainPort, VInsertMode;
     },
     connect: function() {
       var port;
-      port = this.port = chrome.runtime.connect("hfjbmagddngcpeloejdejnfgbamkjaeg", { name: "vimium++" });
+      port = this.port = chrome.runtime.connect("hfjbmagddngcpeloejdejnfgbamkjaeg", {
+         name: "vimium++" + (document.hasFocus() * 2 + !requestHandlers.init),
+      });
       port.onDisconnect.addListener(this.ClearPort);
       port.onMessage.addListener(this.Listener);
     }
@@ -146,23 +148,6 @@ var Settings, VHUD, MainPort, VInsertMode;
         key: key,
         value: value
       });
-    },
-    load: function(request, onerror) {
-      request = {
-        handlerSettings: "load",
-        request: request
-      };
-      mainPort.port.postMessage(request);
-      this.isLoading = setInterval(function() {
-        onerror(request);
-        mainPort.safePost(request);
-      }, 2000);
-    },
-    ReceiveSettings: function(response) {
-      settings.cache = response.load;
-      clearInterval(settings.isLoading);
-      response = response.response;
-      requestHandlers[response.name](response);
     }
   };
 
@@ -1194,6 +1179,8 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483644
     },
     init: function(request) {
       var r = requestHandlers;
+      settings.cache = request.load;
+      clearInterval(settings.isLoading);
       ELs.focusMsg.tabId = request.tabId;
       KeyboardUtils.onMac = request.onMac;
       r.refreshKeyMappings(request);
@@ -1215,7 +1202,6 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483644
       DomUtils.UI.box && DomUtils.UI.Toggle(isEnabledForUrl);
       ELs.focusMsg.url = window.location.href;
     },
-    settings: settings.ReceiveSettings,
     settingsUpdate: function(response) {
       var ref = settings.cache, i;
       Object.setPrototypeOf(response, null);
@@ -1356,16 +1342,11 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483644
   }
   };
 
-  mainPort.connect();
 
-  settings.load({
-    handler: "init",
-    focused: document.hasFocus(), // .hasFocus has a time cost less than 0.8 us
-    url: window.location.href
-  }, function(request) {
-    request.request.focused = document.hasFocus();
-    request.request.url = window.location.href;
-  });
+  mainPort.connect();
+  settings.isLoading = setInterval(function() {
+    mainPort.connect();
+  }, 2000);
 
   DomUtils.documentReady(function() {
     HUD.enabled = !!document.body;
