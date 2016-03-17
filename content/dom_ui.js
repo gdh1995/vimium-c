@@ -71,7 +71,7 @@ DomUtils.UI = {
     return css;
   },
   insertInnerCSS: function(inner) {
-    this.styleIn && (this.styleIn.textContent = inner);
+    this.styleIn && (this.styleIn.textContent = inner.css);
   },
   insertCSS: function(outer, showing) {
     if (this.styleOut) {

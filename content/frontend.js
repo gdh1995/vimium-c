@@ -1222,9 +1222,7 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483644
     insertCSS: function(request) {
       DomUtils.UI.insertCSS(request.css, isEnabledForUrl);
     },
-    insertInnerCss: function(request) {
-      DomUtils.UI.insertInnerCSS(request.css);
-    },
+    insertInnerCss: DomUtils.UI.insertInnerCSS,
     focusFrame: FrameMask.Focus,
     refreshKeyMappings: function(request) {
       var arr = request.firstKeys, i = arr.length, map, key, sec, sec2;
