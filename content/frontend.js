@@ -1348,11 +1348,6 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483644
 
   DomUtils.documentReady(function() {
     HUD.enabled = !!document.body;
-    // NOTE: when port is disconnected:
-    // * if backend asks to re-reg, then rH.reg will call safePost;
-    // * if extension is stopped, then ELs.destroy is called when focused,
-    // so, only being removed without pre-focusing and before a "rereg" message
-    //   may meet a null port
     ELs.onUnload = function() {
       var ref;
       try {
