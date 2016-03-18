@@ -1443,9 +1443,9 @@ chrome.tabs.query({status: "complete"}, function(arr) {
   var url, i, o, exts = [chrome.runtime.id], request = {name: "reg"};
   for (i = arr.length, o = chrome.tabs; 0 <= --i; ) {
     url = arr[i].url;
-    if (url.length >= 51 && url.startsWith("chrome-extension:")) {
+    if (url.length >= 53 && url.startsWith("chrome-extension:")) {
       url = url.substring(19, 51);
-      if (exts.indexOf(url) === -1) { exts.push(url); }
+      if (url in Settings.extWhiteList && exts.indexOf(url) === -1) { exts.push(url); }
     }
     o.sendMessage(arr[i].id, request);
   }
