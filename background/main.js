@@ -1453,4 +1453,4 @@ chrome.tabs.query({status: "complete"}, function(arr) {
     o.sendMessage(exts[i], request, null);
   }
 });
-}, 50);
+}, 200);
