@@ -284,7 +284,6 @@ setTimeout(function() {
 var a, b, c, cb, log;
 cb = function(b) { a = b; console.log(b); };
 setTimeout(function() {
-  a = c = null; b = cb; log = function() {
-    console.log.apply(console, arguments);
-  };
+  a = c = null; b = cb;
+  log = console.log.bind(console);
 }, 2000); // #endif */

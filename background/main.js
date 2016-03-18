@@ -1297,11 +1297,9 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
       port.onMessage.addListener(handleMainPort);
       var type = port.name[8] | 0;
       var pass = Exclusions.getPattern(port.sender.url), tabId = port.sender.tab.id;
-      if (type & 2) {
-        if (needIcon) {
-          urlForTab[tabId] = port.sender.url;
-          requestHandlers.SetIcon(tabId, null, pass);
-        }
+      if ((type & 2) && needIcon) {
+        urlForTab[tabId] = port.sender.url;
+        requestHandlers.SetIcon(tabId, null, pass);
       }
       (type & 1) || port.postMessage({
         name: "init",
