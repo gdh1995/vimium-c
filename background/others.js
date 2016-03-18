@@ -199,14 +199,14 @@ if (chrome.omnibox) setTimeout(function() {
 }, 1500);
 
 // According to tests: onInstalled will be executed after 0 ~ 16 ms if needed
-chrome.runtime.onInstalled.addListener(function(details) {
+chrome.runtime.onInstalled.addListener(window.b = function(details) {
   var reason = details.reason;
   if (reason === "install") { reason = ""; }
   else if (reason === "update") { reason = details.previousVersion; }
   else { return; }
   clearTimeout(Settings.CONST.Timer);
 
-window.b = setTimeout(function() {
+setTimeout(function() {
   chrome.tabs.query({
     status: "complete"
   }, function(tabs) {
