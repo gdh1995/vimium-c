@@ -200,16 +200,13 @@ if (chrome.omnibox) setTimeout(function() {
 
 // According to tests: onInstalled will be executed after 0 ~ 16 ms if needed
 chrome.runtime.onInstalled.addListener(function(details) {
-window.b = setTimeout(function() {
-  var reason = details.reason, func;
+  var reason = details.reason;
   if (reason === "install") { reason = ""; }
   else if (reason === "update") { reason = details.previousVersion; }
   else { return; }
-  if (Settings.CONST.Timer > 0) {
-    clearTimeout(Settings.CONST.Timer);
-    Settings.CONST.Timer = 0;
-  }
+  clearTimeout(Settings.CONST.Timer);
 
+window.b = setTimeout(function() {
   chrome.tabs.query({
     status: "complete"
   }, function(tabs) {
@@ -238,7 +235,7 @@ window.b = setTimeout(function() {
 
   if (!reason || !chrome.notifications) { return; }
 
-  func = function(versionA, versionB) {
+  function compareVersion(versionA, versionB) {
     var a, b, i, _ref;
     versionA = versionA.split('.');
     versionB = versionB.split('.');
@@ -253,7 +250,7 @@ window.b = setTimeout(function() {
     }
     return 0;
   };
-  if (func(Settings.CONST.CurrentVersion, reason) <= 0) { return; }
+  if (compareVersion(Settings.CONST.CurrentVersion, reason) <= 0) { return; }
 
   reason = "vimium++_upgradeNotification";
   chrome.notifications.create(reason, {

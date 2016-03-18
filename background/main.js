@@ -1437,7 +1437,6 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
 })();
 
 Settings.CONST.Timer = setTimeout(function() {
-Settings.CONST.Timer = 0;
 // currentFirst will be reloaded when window.focus
 chrome.tabs.query({status: "complete"}, function(arr) {
   var url, i, o, exts = [chrome.runtime.id], request = {name: "reg"};
