@@ -16,6 +16,7 @@ var Commands = {
         continue;
       } else if (ind < 0) {
         opt[str] = true;
+        (opt.args || (opt.args = [])).push(str);
       } else {
         val = str.substring(ind + 1);
         str = str.substring(0, ind);
