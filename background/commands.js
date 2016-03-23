@@ -19,16 +19,10 @@ var Commands = {
       } else {
         val = str.substring(ind + 1);
         str = str.substring(0, ind);
-        opt[str] = val && this.Parse(val);
+        opt[str] = val && JSON.parse(val);
       }
     }
     return str ? opt : null;
-  },
-  Parse: function(val) {
-    try {
-      val = JSON.parse(val);
-    } catch (e) {}
-    return val;
   },
   makeCommand: function(command, options, details) {
     var opt;
