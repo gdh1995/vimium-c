@@ -162,8 +162,11 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
             funcDict.refreshTab[0](tab.id);
             return;
           }
-          chrome.tabs.query({currentWindow: true, index: 1}, function(tabs) {
-            tabs.length > 0 ? funcDict.refreshTab[0](tab.id) : funcDict.reopenTab(tab);
+          chrome.windows.getCurrent({populate: true}, function(wnd) {
+            !wnd || wnd.type !== "normal" ? chrome.tabs.reload() 
+            : wnd.tabs.length > 1 ? funcDict.refreshTab[0](tab.id)
+            : funcDict.reopenTab(tab);
+            return chrome.runtime.lastError;
           });
         });
       });
