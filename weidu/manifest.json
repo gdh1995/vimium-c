@@ -10,9 +10,11 @@
   "manifest_version": 2,
   "name": "Weidu New Tab",
   "options_page": "index.html",
+  "permissions": [
+    "chrome://favicon/"
+  ],
   "optional_permissions": [
     "bookmarks",
-    "chrome://favicon/",
     "history",
     "management"
   ],
