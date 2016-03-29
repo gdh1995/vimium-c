@@ -105,7 +105,7 @@ DomUtils.UI = {
     return true;
   },
   simulateSelect: function(element, flash, suppressRepeated) {
-    if (element !== VInsertMode.lock) { element.focus(); }
+    element.focus();
     DomUtils.simulateClick(element);
     flash === true && this.flashOutline(element);
     if (element !== VInsertMode.lock) { return; }
