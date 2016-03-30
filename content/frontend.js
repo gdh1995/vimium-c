@@ -1296,6 +1296,9 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483644
     box.vimiumHasOnclick = false;
 
     hide = function() {
+      if (box.contains(LinkHints.lastHovered)) {
+        LinkHints.lastHovered = null;
+      }
       handlerStack.remove(box);
       box.remove();
       Commands.showHelp = oldShowHelp;
