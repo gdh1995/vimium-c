@@ -289,12 +289,17 @@ var exports = {}, Utils = {
     return result;
   },
   jsLoadingTimeout: 300,
+  _defer: ,
   require: function(name, file, timeout) {
     var defer = exports[name];
     if (defer) {
       return defer.promise || Promise.resolve(defer);
     }
-    defer = exports[name] = Promise.defer();
+    defer = exports[name] = {};
+    defer.promise = new Promise(function(resolve, reject) {
+      defer.resolve = resolve;
+      defer.reject = reject;
+    });
     defer.timer = setTimeout(function() {
       exports[name].reject("ImportError: " + name);
     }, timeout || this.jsLoadingTimeout);
