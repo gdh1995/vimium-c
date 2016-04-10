@@ -289,9 +289,8 @@ var exports = {}, Utils = {
     return result;
   },
   jsLoadingTimeout: 300,
-  _defer: ,
   require: function(name, file, timeout) {
-    var defer = exports[name];
+    var defer = exports[name], script;
     if (defer) {
       return defer.promise || Promise.resolve(defer);
     }
@@ -303,19 +302,13 @@ var exports = {}, Utils = {
     defer.timer = setTimeout(function() {
       exports[name].reject("ImportError: " + name);
     }, timeout || this.jsLoadingTimeout);
-    if (!exports._vimium) {
-      exports._vimium = true;
-      Object.observe(exports, function(changes) {
-        for (var i = changes.length, obj, defer; 0 <= --i; ) {
-          obj = changes[i];
-          if ((defer = obj.oldValue) && defer.promise) {
-            clearTimeout(defer.timer);
-            defer.resolve(obj.object[obj.name]);
-          }
-        }
-      }, ['update']);
-    }
-    document.body.appendChild(document.createElement("script")).src = "lib/" + file;
+    script = document.createElement("script");
+    script.src = "lib/" + file;
+    script.onload = function() {
+      clearTimeout(defer.timer);
+      defer.resolve(exports[name]);
+    };
+    document.body.appendChild(script);
     return defer.promise;
   },
   searchWordRe: /\$([sS])(?:\{([^\}]*)\})?/g,
