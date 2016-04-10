@@ -120,13 +120,14 @@ function openTab(targetSwitch, url, event) {
 	}
 }
 function wantPermissions() {
-	var defer = Promise.defer();
-	chrome.permissions.request({
-		permissions: [].slice.call(arguments)
-	}, function(granted) {
-		granted ? defer.resolve() : defer.reject();
+  var args = [].slice.call(arguments);
+	return new Promise(function(resolve, reject) {
+		chrome.permissions.request({
+			permissions: args
+		}, function(granted) {
+			granted ? resolve() : reject();
+		});
 	});
-	return defer.promise;
 }
 function removePermissions() {
 	chrome.permissions.remove({ permissions: [].slice.call(arguments) });
