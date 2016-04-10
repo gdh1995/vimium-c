@@ -289,27 +289,24 @@ var exports = {}, Utils = {
     return result;
   },
   jsLoadingTimeout: 300,
-  require: function(name, file, timeout) {
-    var defer = exports[name], script;
+  require: function(name, file) {
+    var defer = exports[name];
     if (defer) {
-      return defer.promise || Promise.resolve(defer);
+      return defer instanceof Promise ? defer : Promise.resolve(defer);
     }
-    defer = exports[name] = {};
-    defer.promise = new Promise(function(resolve, reject) {
-      defer.resolve = resolve;
-      defer.reject = reject;
+    return exports[name] = new Promise(function(resolve, reject) {
+      var script = document.createElement("script");
+      script.src = "lib/" + file;
+      script.onerror = function() {
+        this.onload = this.onerror = null;
+        reject("ImportError: " + name);
+      };
+      script.onload = function() {
+        this.onload = this.onerror = null;
+        resolve(exports[name]);
+      };
+      document.body.appendChild(script);
     });
-    defer.timer = setTimeout(function() {
-      exports[name].reject("ImportError: " + name);
-    }, timeout || this.jsLoadingTimeout);
-    script = document.createElement("script");
-    script.src = "lib/" + file;
-    script.onload = function() {
-      clearTimeout(defer.timer);
-      defer.resolve(exports[name]);
-    };
-    document.body.appendChild(script);
-    return defer.promise;
   },
   searchWordRe: /\$([sS])(?:\{([^\}]*)\})?/g,
   searchWordRe2: /([^\\]|^)%([sS])/g,
