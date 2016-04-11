@@ -316,7 +316,7 @@ var Settings, VHUD, MainPort, VInsertMode;
         requestHandlers[request.name](request); // do not check `handler != null`
       }
     },
-    onWndFocus: function(){}, onUnload: null, //
+    onWndFocus: function(){}, //
     destroy: null
   };
 
@@ -1040,7 +1040,7 @@ var Settings, VHUD, MainPort, VInsertMode;
     Focus: function(request) {
       if (DomUtils.isSandboxed()) {
         // Do not destroy self, just in case of Marks.goTo / ...
-        setTimeout(ELs.onUnload, 20);
+        // TODO: setTimeout(ELs.onUnload, 20);
       }
       if (request.frameId < 0) {}
       else if (DomUtils.isSandboxed() || window.innerWidth < 3 || window.innerHeight < 3) {
@@ -1351,20 +1351,9 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483644
 
   DomUtils.documentReady(function() {
     HUD.enabled = !!document.body;
-    ELs.onUnload = function() {
-      var ref;
-      try {
-        (ref = mainPort.port) && ref.postMessage({
-          handlerSettings: "unreg",
-          frameId: frameId,
-          tabId: ELs.focusMsg.tabId
-        });
-      } catch (e) {}
-    };
     if (isInjected || requestHandlers.reg()) {
       return;
     }
-    window.onunload = ELs.onUnload;
     // NOTE: here, we should always postMessage, since
     //     NO other message will be sent if not isEnabledForUrl,
     // which would make the auto-destroy logic not work.
@@ -1380,9 +1369,6 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483644
 
   ELs.destroy = function() {
     isEnabledForUrl = false;
-    if (!isInjected) {
-      window.onunload = null;
-    }
     window.removeEventListener("keydown", this.onKeydown, true);
     window.removeEventListener("keypress", this.onKeypress, true);
     window.removeEventListener("keyup", this.onKeyup, true);

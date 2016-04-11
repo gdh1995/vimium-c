@@ -978,23 +978,6 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
           frameIdsForTab[id] = [i, i];
         }
         break;
-      case "unreg":
-        id = request.tabId;
-        if (i = request.frameId) {
-          if (ref = frameIdsForTab[id]) {
-            i = ref.indexOf(i, 1);
-            if (i === ref.length - 1) {
-              ref.pop();
-            } else if (i >= 0) {
-              ref.splice(i, 1);
-            }
-          }
-        } else {
-          delete frameIdsForTab[id];
-          needIcon && (delete urlForTab[id]);
-          delete extForTab[id];
-        }
-        break;
       }
     }
   };
@@ -1298,6 +1281,7 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
     },
     OnConnect: function(port) {
       port.onMessage.addListener(handleMainPort);
+      port.onDisconnect.addListener(Connections.OnDisconnect);
       var type = port.name[8] | 0;
       var pass = Exclusions.getPattern(port.sender.url), tabId = port.sender.tab.id;
       if ((type & 2) && needIcon) {
@@ -1314,6 +1298,24 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
         secondKeys: secondKeys,
         tabId: tabId
       });
+    },
+    OnDisconnect: function(port) {
+      var i, ref;
+      if (i = port.sender.frameId) {
+        if (ref = frameIdsForTab[port.sender.tab.id]) {
+          i = ref.indexOf(i, 1);
+          if (i === ref.length - 1) {
+            ref.pop();
+          } else if (i >= 0) {
+            ref.splice(i, 1);
+          }
+        }
+      } else {
+        i = port.sender.tab.id;
+        delete frameIdsForTab[i];
+        needIcon && (delete urlForTab[i]);
+        delete extForTab[i];
+      }
     }
   };
 

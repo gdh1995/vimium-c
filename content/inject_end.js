@@ -14,12 +14,10 @@ Settings.RequestHandlers.regExt = function(request) {
 
 DomUtils.isSandboxed = function () {
   var i = 0, node, sandboxed = false;
-  if (window.onunload == null) {
-    node = this.createElement('div');
-    node.onclick = function() { ++i };
-    node.click();
-    sandboxed = i !== 1;
-  }
+  node = this.createElement('div');
+  node.onclick = function() { ++i };
+  node.click();
+  sandboxed = i !== 1;
   this.isSandboxed = function() { return sandboxed; };
   return sandboxed;
 };
@@ -29,7 +27,6 @@ DomUtils.documentReady(function() {
     return;
   }
   var ELs = Settings.ELs;
-  window.addEventListener("unload", ELs.onUnload);
   window.addEventListener("hashchange", Settings.RequestHandlers.checkIfEnabled);
   ELs.onWndFocus = MainPort.safePost.bind(MainPort, ELs.focusMsg, function() {
     setTimeout(function() {
@@ -61,7 +58,6 @@ if (chrome.runtime.onMessageExternal) {
 }
 
 Settings.onDestroy.injected = function() {
-  window.removeEventListener("unload", this.onUnload);
   window.removeEventListener("hashchange", Settings.RequestHandlers.checkIfEnabled);
   try {
     chrome.runtime.onMessageExternal.removeListener(this.onMessage);
