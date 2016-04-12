@@ -73,6 +73,7 @@ activate: function(_0, options, force_current) {
   renderItems: null,
   selection: -1,
   timer: 0,
+  wheelTimer: 0,
   show: function() {
     this.box.style.display = "";
     this.input.value = this.inputText;
@@ -83,7 +84,7 @@ activate: function(_0, options, force_current) {
     }
     handlerStack.remove(this);
     handlerStack.push(this.onKeydown, this);
-    this.box.addEventListener("mousewheel", DomUtils.SuppressPropagation);
+    this.box.addEventListener("mousewheel", this.onWheel);
   },
   hide: function() {
     if (this.timer > 0) {
@@ -91,7 +92,7 @@ activate: function(_0, options, force_current) {
       this.timer = 0;
     }
     this.box.style.display = "none";
-    this.box.removeEventListener("mousewheel", DomUtils.SuppressPropagation);
+    this.box.removeEventListener("mousewheel", this.onWheel);
     this.list.textContent = "";
     this.input.value = "";
     handlerStack.remove(this);
@@ -338,6 +339,12 @@ activate: function(_0, options, force_current) {
     }
   },
   OnTimer: function() { Vomnibar && Vomnibar.filter(); },
+  onWheel: function(event) {
+    DomUtils.SuppressPropagation(event);
+    if (event.deltaX || Date.now() - this.wheelTimer < 200) { return; }
+    this.wheelTimer = Date.now();
+    this.goPage(event.deltaY > 0 ? 1 : -1);
+  },
   onInput: function() {
     var s1 = this.input.value, str = s1.trimLeft();
     this.inputText = str;
@@ -388,6 +395,7 @@ activate: function(_0, options, force_current) {
       this.mode.showFavIcon = arr.join("/").indexOf("<all_urls>") >= 0 ||
           arr.concat(opts.optional_permissions).join("/").indexOf("chrome://favicon/") >= 0;
     }
+    this.onWheel = this.onWheel.bind(this);
     this.init = null;
   },
   init_dom: function(response) {
