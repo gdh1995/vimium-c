@@ -57,9 +57,9 @@ var LinkHints = {
     if (this.box) {
       this.box.remove();
     }
-    var elements, rect, style, width, height, x, y;
     this.setModeOpt(Object.setPrototypeOf(options || {}, null), count | 0);
 
+    var elements, style, x, y;
     if (!this.frameNested) {
       elements = this.getVisibleElements();
     }
@@ -78,33 +78,22 @@ var LinkHints = {
       return;
     }
 
-    this.hintMarkers = elements.map(this.createMarkerFor);
+    x = window.scrollX; y = window.scrollY;
+    this.initBox(x, y, elements.length);
+    this.hintMarkers = elements.map(this.createMarkerFor.bind(this));
     elements = null;
     this.alphabetHints.initMarkers(this.hintMarkers);
-    this.isActive = true;
 
-    x = window.scrollX; y = window.scrollY;
-    var box = document.documentElement;
-    // NOTE: if zoom > 1, although document.documentElement.scrollHeight is integer,
-    //   its real rect may has a float width, such as 471.333 / 472
-    rect = box.getBoundingClientRect();
-    width = rect.width; height = rect.height;
-    width = width !== (width | 0) ? 1 : 0; height = height !== (height | 0) ? 1 : 0;
-    width  = box.scrollWidth  - x - width ;
-    height = box.scrollHeight - y - height;
-    width  = Math.max(width,  box.clientWidth );
-    height = Math.max(height, box.clientHeight);
-    width  = Math.min(width,  window.innerWidth  + 60);
-    height = Math.min(height, window.innerHeight + 20);
     this.box = DomUtils.UI.addElementList(this.hintMarkers, {
       id: "HMC",
       className: "R"
     });
     style = this.box.style;
     style.left = x + "px"; style.top = y + "px";
-    style.width = width + "px"; style.height = height + "px";
     if (document.webkitFullscreenElement) { style.position = "fixed"; }
+
     VHUD.show(this.modeOpt[this.mode]);
+    this.isActive = true;
     this.keyStatus.tab = 0;
     handlerStack.push(this.onKeyDownInMode, this);
     VInsertMode.onWndBlur = this.OnWndBlur;
@@ -161,13 +150,38 @@ var LinkHints = {
     arr = Utils.findCommand(child, command);
     return arr[0][arr[1]](args[0], args[1], args[2]) !== false;
   },
+  maxLeft: 0,
+  maxTop: 0,
+  maxRight: 0,
+  maxBottom: 0,
+  initBox: function(x, y, count) {
+    var box = document.documentElement, rect, width, height;
+    // NOTE: if zoom > 1, although document.documentElement.scrollHeight is integer,
+    //   its real rect may has a float width, such as 471.333 / 472
+    rect = box.getBoundingClientRect();
+    width = rect.width; height = rect.height;
+    width  = box.scrollWidth  - x - (width !== (width | 0));
+    height = box.scrollHeight - y - (height !== (height | 0));
+    this.maxRight  = Math.min(Math.max(width,  box.clientWidth ), window.innerWidth  + 64);
+    this.maxBottom = Math.min(Math.max(height, box.clientHeight), window.innerHeight + 20);
+    count = Math.ceil(Math.log(count) / Math.log(Settings.cache.linkHintCharacters.length));
+    this.maxLeft = this.maxRight - (11 * count) - 8;
+    this.maxTop = this.maxBottom - 15;
+  },
   createMarkerFor: function(link) {
-    var marker = DomUtils.createElement("div"), rect;
-    marker.className = "LH";
+    var marker = DomUtils.createElement("div"), i;
     marker.clickableItem = link[0];
-    rect = link[1];
-    marker.style.left = rect[0] + "px";
-    marker.style.top = rect[1] + "px";
+    marker.className = "LH";
+    var i = link[1][0];
+    marker.style.left = i + "px";
+    if (i > this.maxLeft) {
+      marker.style.maxWidth = this.maxRight - i + "px";
+    }
+    i = link[1][1];
+    marker.style.top = i + "px";
+    if (i > this.maxTop) {
+      marker.style.maxHeight = this.maxBottom - i + "px";
+    }
     link.length >= 4 && (marker.linkRect = link[3]);
     return marker;
   },
