@@ -1369,6 +1369,8 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483644
 
   ELs.destroy = function() {
     isEnabledForUrl = false;
+    clearInterval(settings.isLoading);
+
     window.removeEventListener("keydown", this.onKeydown, true);
     window.removeEventListener("keypress", this.onKeypress, true);
     window.removeEventListener("keyup", this.onKeyup, true);
@@ -1377,8 +1379,6 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483644
     window.removeEventListener("mousedown", InsertMode.ExitGrab, true);
     document.removeEventListener("DOMActivate", this.onActivate, true);
     DomUtils.UI.box && DomUtils.UI.box.remove();
-
-    clearInterval(settings.isLoading);
 
     var ref = settings.onDestroy, i;
     ref.__proto__ = null;
