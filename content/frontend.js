@@ -435,11 +435,10 @@ var Settings, VHUD, MainPort, VInsertMode;
       goBy(dir || "next", settings.cache[dir === "prev" ? "previousPatterns" : "nextPatterns"]);
     },
     reload: function() {
-      if (window.location.protocol.startsWith("chrome") || DomUtils.isSandboxed()) {
-        setTimeout(function() { window.location.reload(); }, 30);
-      } else {
-        Utils.evalIfOK("javascript: window.location.reload();");
+      if (window.location.protocol.startsWith("chrome") || 49 > +navigator.appVersion.match(/Chrom(?:e|ium)\/(\d+)/)[1]) {
+        return setTimeout(function() { window.location.reload(); }, 30);
       }
+      Utils.evalIfOK("javascript: window.location.reload();");
     },
     switchFocus: function() {
       var newEl = InsertMode.lock;
@@ -1038,12 +1037,8 @@ var Settings, VHUD, MainPort, VInsertMode;
     node: null,
     timer: 0,
     Focus: function(request) {
-      if (DomUtils.isSandboxed()) {
-        // Do not destroy self, just in case of Marks.goTo / ...
-        // TODO: setTimeout(ELs.onUnload, 20);
-      }
       if (request.frameId < 0) {}
-      else if (DomUtils.isSandboxed() || window.innerWidth < 3 || window.innerHeight < 3) {
+      else if (window.innerWidth < 3 || window.innerHeight < 3) {
         mainPort.port.postMessage({
           handler: "nextFrame",
           frameId: frameId
@@ -1321,9 +1316,9 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483644
     if (! window.location.href.startsWith(response.optionUrl)) {
       node1.href = response.optionUrl;
       node1.onclick = function(event) {
+        event.preventDefault();
         mainPort.port.postMessage({ handler: "focusOrLaunch", url: this.href });
         hide();
-        event.preventDefault();
       };
     } else {
       node1.remove();

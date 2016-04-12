@@ -221,8 +221,8 @@ Settings.defaults.newTabUrl = Settings.CONST.ChromeInnerNewTab;
   ref = ref.map(function(path) { return func(path); });
   Settings.CONST.ContentScripts = {js: ref};
 
-  i = navigator.appVersion.match(/Chrom(?:e|ium)\/([^\s]*)/)[1];
-  Settings.CONST.ChromeVersion = parseFloat(i);
+  i = +navigator.appVersion.match(/Chrom(?:e|ium)\/(\d+\.\d+)/)[1];
+  Settings.CONST.ChromeVersion = i;
 
   func = function() {};
   Settings.Sync = {clear: func, set: func};

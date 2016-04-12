@@ -12,16 +12,6 @@ Settings.RequestHandlers.regExt = function(request) {
   }
 };
 
-DomUtils.isSandboxed = function () {
-  var i = 0, node, sandboxed = false;
-  node = this.createElement('div');
-  node.onclick = function() { ++i };
-  node.click();
-  sandboxed = i !== 1;
-  this.isSandboxed = function() { return sandboxed; };
-  return sandboxed;
-};
-
 DomUtils.documentReady(function() {
   if (Settings.RequestHandlers.regExt()) {
     return;
