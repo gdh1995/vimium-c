@@ -1,8 +1,8 @@
 "use strict";
 // NOTE: all members should be static
 var Marks = {
-  createMark: function(request) {
-    var tabId = TabRecency.last();
+  createMark: function(request, port) {
+    var tabId = port.sender.tab.id;
     if (request.scroll) {
       localStorage[Marks.getMarkKey(request.markName)] = JSON.stringify({
         tabId: tabId,
@@ -11,12 +11,10 @@ var Marks = {
       });
       return true;
     }
-    g_requestHandlers.SendToTab({
+    (port = Settings.indexFrame(tabId, 0)) && port.postMessage({
       name: "createMark",
       markName: request.markName,
-      force: true,
-      frameId: 0
-    }, tabId);
+    });
   },
   gotoMark: function(request) {
     var str, markInfo;
@@ -26,7 +24,7 @@ var Marks = {
     }
     markInfo = JSON.parse(str);
     markInfo.markName = request.markName;
-    if (!Settings.frameIdsForTab[markInfo.tabId]) {
+    if (!Settings.framesForTab[markInfo.tabId]) {
       g_requestHandlers.focusOrLaunch(markInfo);
       return null;
     }
@@ -43,13 +41,13 @@ var Marks = {
     return "vimiumGlobalMark|" + keyChar;
   },
   gotoTab: function(markInfo, tab) {
-    var tabId = tab.id;
+    var tabId = tab.id, port;
     if (markInfo.scroll) {
-      g_requestHandlers.SendToTab({
-        name: "scroll", frameId: 0,
+      (port = Settings.indexFrame(tabId, 0)) && port.postMessage({
+        name: "scroll",
         scroll: markInfo.scroll,
         markName: markInfo.markName
-      }, tabId);
+      });
       if (markInfo.tabId !== tabId && markInfo.markName) {
         localStorage[Marks.getMarkKey(markInfo.markName)] = JSON.stringify({
           tabId: tabId,

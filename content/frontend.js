@@ -5,7 +5,7 @@ var Settings, VHUD, MainPort, VInsertMode;
     , executeFind, exitFindMode //
     , findAndFocus, findChangeListened, findMode //
     , findModeAnchorNode, findModeQuery, findModeQueryHasResults, firstKeys //
-    , focusFoundLink, followLink, frameId, FrameMask //
+    , focusFoundLink, followLink, FrameMask //
     , getNextQueryFromRegexpMatches, getVisibleInputs, goBy //
     , handleDeleteForFindMode, handleEnterForFindMode, handleEscapeForFindMode //
     , handleKeyCharForFindMode, initIfEnabled, InsertMode //
@@ -16,8 +16,6 @@ var Settings, VHUD, MainPort, VInsertMode;
     ;
 
   isInjected = window.VimiumInjector ? true : false;
-
-  frameId = window.top === window ? 0 : ((Math.random() * 9999997) | 0) + 2;
 
   findMode = false;
 
@@ -52,7 +50,6 @@ var Settings, VHUD, MainPort, VInsertMode;
   passKeys = null;
 
   MainPort = mainPort = {
-    frameId: frameId,
     port: null,
     _callbacks: Object.create(null),
     _id: 1,
@@ -75,8 +72,8 @@ var Settings, VHUD, MainPort, VInsertMode;
     },
     sendCommand: function(target, command, args) {
       this.port.postMessage({
-        handler: "dispatchCommand", tabId: ELs.focusMsg.tabId,
-        frameId: target, source: frameId,
+        handler: "dispatchCommand",
+        frameId: target,
         command: command, args: args
       });
     },
@@ -130,7 +127,7 @@ var Settings, VHUD, MainPort, VInsertMode;
     connect: function() {
       var port;
       port = this.port = chrome.runtime.connect("hfjbmagddngcpeloejdejnfgbamkjaeg", {
-         name: "vimium++" + (document.hasFocus() * 2 + !requestHandlers.init),
+         name: "vimium++." + ((window.top === window) * 4 + document.hasFocus() * 2 + !requestHandlers.init),
       });
       port.onDisconnect.addListener(this.ClearPort);
       port.onMessage.addListener(this.Listener);
@@ -152,13 +149,6 @@ var Settings, VHUD, MainPort, VInsertMode;
   };
 
   ELs = { //
-    focusMsg: {
-      handler: "frameFocused",
-      tabId: 0,
-      status: "disabled",
-      url: window.location.href,
-      frameId: frameId
-    },
     onKeydown: function(event) {
       if (Scroller.keyIsDown) {
         if (event.repeat) {
@@ -306,15 +296,6 @@ var Settings, VHUD, MainPort, VInsertMode;
     },
     onActivate: function(event) {
       Scroller.current = event.path[0];
-    },
-    onMessage: function(request, id) {
-      id = request.frameId;
-      if (id === undefined || id === frameId) {
-        if (!mainPort.port) {
-          mainPort.connect();
-        }
-        requestHandlers[request.name](request); // do not check `handler != null`
-      }
     },
     onWndFocus: function(){}, //
     destroy: null
@@ -1038,10 +1019,10 @@ var Settings, VHUD, MainPort, VInsertMode;
     timer: 0,
     Focus: function(request) {
       if (request.frameId < 0) {}
-      else if (window.innerWidth < 3 || window.innerHeight < 3) {
+      else if (window.innerWidth < 3 || window.innerHeight < 3
+        || document.body instanceof HTMLFrameSetElement) {
         mainPort.port.postMessage({
-          handler: "nextFrame",
-          frameId: frameId
+          handler: "nextFrame"
         });
         return;
       }
@@ -1164,19 +1145,10 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483644
   };
 
   requestHandlers = {
-    checkIfEnabled: function() {
-      mainPort.safePost({
-        handler: "checkIfEnabled",
-        frameId: frameId,
-        tabId: ELs.focusMsg.tabId,
-        url: window.location.href
-      });
-    },
     init: function(request) {
       var r = requestHandlers;
       settings.cache = request.load;
       clearInterval(settings.isLoading);
-      ELs.focusMsg.tabId = request.tabId;
       KeyboardUtils.onMac = request.onMac;
       r.refreshKeyMappings(request);
       // here assume the changed url does not influence passKeys,
@@ -1187,15 +1159,12 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483644
     reset: function(request) {
       var passKeys = request.passKeys;
       if (isEnabledForUrl = (passKeys !== "")) {
-        ELs.focusMsg.status = passKeys ? "partial" : "enabled";
         initIfEnabled(passKeys);
       } else {
-        ELs.focusMsg.status = "disabled";
         mainPort.port.disconnect();
         InsertMode.loading = false;
       }
       DomUtils.UI.box && DomUtils.UI.Toggle(isEnabledForUrl);
-      ELs.focusMsg.url = window.location.href;
     },
     settingsUpdate: function(response) {
       var ref = settings.cache, i;
@@ -1203,15 +1172,6 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483644
       delete response.name;
       for (i in response) {
         ref[i] = response[i];
-      }
-    },
-    reg: function(request) {
-      if (document.body && !(document.body instanceof HTMLFrameSetElement)) {
-        return mainPort.safePost({
-          handlerSettings: request ? "rereg" : "reg",
-          visible: window.innerHeight > 9 && window.innerWidth > 9,
-          frameId: frameId
-        });
       }
     },
     insertCSS: function(request) {
@@ -1246,13 +1206,6 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483644
         keyQueue = false;
         currentSeconds = secondKeys[""];
       }
-    },
-    refreshTabId: function(request) {
-      ELs.focusMsg.tabId = request.tabId;
-      mainPort.port.postMessage({
-        handler: "refreshTabId",
-        tabId: request.tabId
-      });
     },
     execute: function(request) {
       keyQueue = false;
@@ -1346,21 +1299,18 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483644
 
   DomUtils.documentReady(function() {
     HUD.enabled = !!document.body;
-    if (isInjected || requestHandlers.reg()) {
+    if (isInjected || mainPort.safePost({ handler: "reg",
+      visible: window.innerHeight > 9 && window.innerWidth > 9
+    })) {
       return;
     }
     // NOTE: here, we should always postMessage, since
     //     NO other message will be sent if not isEnabledForUrl,
     // which would make the auto-destroy logic not work.
-    ELs.onWndFocus = mainPort.safePost.bind(mainPort, ELs.focusMsg);
+    ELs.onWndFocus = mainPort.safePost.bind(mainPort, { handler: "frameFocused" });
   });
 
-  if (isInjected) {
-    settings.RequestHandlers = requestHandlers;
-    settings.ELs = ELs;
-  } else {
-    chrome.runtime.onMessage.addListener(ELs.onMessage);
-  }
+  isInjected && (settings.ELs = ELs);
 
   ELs.destroy = function() {
     isEnabledForUrl = false;
@@ -1384,17 +1334,12 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483644
     LinkHints = Vomnibar = Scroller = Marks = //
     Settings = VHUD = MainPort = VInsertMode = null;
 
-    console.log("%cVimium++ %c#%d%c in %c%s%c has destroyed at %o."
-      , "color:red", "color:blue", frameId, "color:auto", "color:darkred"
+    console.log("%cVimium++ %c in %c%s%c has destroyed at %o."
+      , "color:red", "color:auto", "color:darkred"
       , window.location.pathname.replace(/^.*\/([^\/]+)\/?$/, "$1")
       , "color:auto", Date.now());
 
     if (!isInjected) {
-      window.frameId = frameId;
-      // only the below may throw errors
-      try {
-        chrome.runtime.onMessage.removeListener(this.onMessage);
-      } catch (e) {}
       chrome = null;
     }
   };

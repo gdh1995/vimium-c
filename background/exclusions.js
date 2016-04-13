@@ -51,10 +51,13 @@ var Exclusions = {
   },
   onURLChange: (Settings.CONST.ChromeVersion >= 41
   ? function(details) {
-    g_requestHandlers.SendToTab(g_requestHandlers.checkIfEnabled(details)
-      , details.tabId, details.frameId, {name: "checkIfEnabled"});
+    g_requestHandlers.checkIfEnabled(details, null, details.tabId, details.frameId);
   } : function(details) {
-    g_requestHandlers.SendToTab({name: "checkIfEnabled"}, details.tabId);
+    var ref = Settings.framesForTab[details.tabId], i;
+    // force the tab's ports to reconnect and refresh their pass keys
+    for (i = ref && ref.length; 0 < --i; ) {
+      ref[i].disconnect();
+    }
   }),
   format: function(rules) {
     var _i = rules.length, rule, out = new Array(_i);
@@ -70,16 +73,36 @@ var Exclusions = {
     url = this._getPattern(url);
     this.rules = old;
     return url;
+  },
+  RefreshStatus: function() {
+    var ref = Settings.framesForTab, tabId, frames, i, req, pass, status = "enabled";
+    req = Exclusions.rules.length <= 0 ? null : {
+      name: "reset",
+      passKeys: null
+    };
+    for (tabId in ref) {
+      frames = ref[tabId];
+      for (i = frames.length; 0 < --i; ) {
+        if (req) {
+          if (port.sender.status === "enabled") {
+            continue;
+          }
+        } else {
+          pass = Exclusions.getPattern(port.sender.url);
+          status = pass === null ? "enabled" : pass ? "partial" : "disabled";
+          if (!pass && port.sender.status === status) {
+            continue;
+          }
+        }
+        port.postMessage(req || { name: "reset", passKeys: pass });
+        port.sender.status = status;
+      }
+    }
   }
 };
 
 Settings.updateHooks.exclusionRules = function(rules) {
   Exclusions.setRules(rules);
   g_requestHandlers.esc();
-  this.postUpdate("broadcast", Exclusions.rules.length === 0 ? {
-    name: "reset",
-    passKeys: null
-  } : {
-    name: "checkIfEnabled"
-  });
+  setTimeout(Exclusions.RefreshStatus, 17);
 };

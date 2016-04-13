@@ -186,7 +186,7 @@ ExclusionRulesOption.prototype.getPassKeys = function(element) {
 
 if (location.pathname.indexOf("/popup.html", location.pathname.length - 11) !== -1) {
 chrome.tabs.query({currentWindow: true, active: true}, function(tab) {
-  var exclusions, onUpdated, saveOptions, updateState, status = 0;
+  var exclusions, onUpdated, saveOptions, updateState, status = 0, ref, link;
 
 exclusions = {
   url: "",
@@ -278,7 +278,7 @@ exclusions = {
     }
   };
   saveOptions = function() {
-    var btn = $("saveOptions"), testers;
+    var btn = $("saveOptions"), testers, pass;
     if (btn.disabled) {
       return;
     }
@@ -291,7 +291,8 @@ exclusions = {
     // Here, since the popup page is showing, needIcon must be true.
     // Although the tab calls window.onfocus after this popup page closes,
     // it is too early for the tab to know new exclusion rules.
-    BG.g_requestHandlers.SetIcon(tab.id, null, bgExclusions.getPattern(exclusions.url));
+    pass = bgExclusions.getPattern(exclusions.url);
+    BG.g_requestHandlers.SetIcon(tab.id, null, pass === null ? "enabled" : pass ? "partial" : "disabled");
   };
   $("saveOptions").onclick = saveOptions;
   document.addEventListener("keyup", function(event) {
@@ -302,9 +303,11 @@ exclusions = {
       setTimeout(window.close, 300);
     }
   });
-  exclusions.init(bgSettings.urlForTab[tab.id] || tab.url, $("exclusionRules"), onUpdated);
+  ref = bgSettings.framesForTab[tab.id];
+  exclusions.init(ref ? ref[0].sender.url : tab.url, $("exclusionRules"), onUpdated);
+  ref = 0;
   updateState();
-  var link = $("optionsLink");
+  link = $("optionsLink");
   link.href = bgSettings.CONST.OptionsPage;
   link.onclick = function(event) {
     BG.g_requestHandlers.focusOrLaunch({ url: this.href });

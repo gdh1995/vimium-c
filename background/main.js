@@ -3,16 +3,14 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
 (function() {
   var BackgroundCommands, ContentSettings, checkKeyQueue, commandCount //
     , Connections
-    , cOptions, cPort, currentCount, currentFirst, executeCommand, extForTab
-    , firstKeys, frameIdsForTab, funcDict, handleMainPort
+    , cOptions, cPort, currentCount, currentFirst, executeCommand
+    , firstKeys, framesForTab, funcDict
     , helpDialogHtml, helpDialogHtmlForCommand //
     , helpDialogHtmlForCommandGroup, needIcon, openMultiTab //
-    , requestHandlers, resetKeys, secondKeys, sendToTab //
-    , urlForTab;
+    , requestHandlers, resetKeys, secondKeys //
+    ;
 
-  Settings.frameIdsForTab = frameIdsForTab = Object.create(null);
-
-  extForTab = Object.create(null);
+  Settings.framesForTab = framesForTab = Object.create(null);
 
   currentFirst = null;
 
@@ -97,16 +95,6 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
       ++option.index;
       chrome.tabs.create(option);
     } while(--count > 1);
-  };
-
-  sendToTab = Settings.CONST.ChromeVersion < 41
-  ? function(request, tabId) {
-    chrome.tabs.sendMessage(tabId, request);
-    funcDict.sendToExt(request, tabId);
-  } : function(request, tabId, frameId, request2) {
-    chrome.tabs.sendMessage(tabId, request, frameId != null ? {frameId: frameId}
-      : request.frameId === 0 ? {frameId: 0} : null);
-    funcDict.sendToExt(request2 || request, tabId);
   };
 
   ContentSettings = {
@@ -251,13 +239,6 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
 
   funcDict = {
     globalCommand: null,
-    sendToExt: function(request, tabId) {
-      var extId;
-      if (extId = extForTab[tabId]) {
-        request = { "vimium++": {tabId: tabId, request: request} };
-        chrome.runtime.sendMessage(extId, request);
-      }
-    },
 
     isIncNor: function(wnd) {
       return wnd.incognito && wnd.type === "normal";
@@ -830,33 +811,35 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
       }
     },
     nextFrame: function(frameId) {
-      var tabId = TabRecency.last(), frames = frameIdsForTab[tabId], count;
+      var tabId = TabRecency.last(), frames = framesForTab[tabId], count, ind, port = cPort;
       if (frames && frames.length > 2) {
         if (frameId >= 0) {
           count = 0;
+          for (ind = frames.length; 0 < --ind; ) {
+            if (frames[ind].sender.frameId === frameId) { break; }
+          }
         } else {
-          frameId = frames[0];
+          ind = Math.max(0, frames.indexOf(frames[0], 1));
           count = commandCount - 1;
         }
-        count = (count + Math.max(0, frames.indexOf(frameId, 1))) % (frames.length - 1) + 1;
-        if (frames[count] !== frames[0]) {
-          sendToTab({
-            name: "focusFrame",
-            frameId: frames[count]
-          }, tabId);
-          return;
+        while (0 <= count) {
+          if (++ind == frames.length) { ind = 1; }
+          if (!frames[ind].sender.ready) { continue; }
+          --count;
         }
+        port = frames[ind];
       }
-      cPort.postMessage({
+      port.postMessage({
         name: "focusFrame",
-        frameId: count > 0 ? frames[0] : -1
+        frameId: ind >= 0 ? cPort.frameId : -1
       });
     },
     mainFrame: function(tabs) {
-      sendToTab({
+      var port = Settings.indexFrame(TabRecency.last(), 0);
+      port && port.postMessage({
         name: "focusFrame",
         frameId: 0
-      }, TabRecency.last());
+      });
     },
     closeTabs: function(tabs) {
       var dir = cOptions.dir | 0;
@@ -878,7 +861,7 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
       switch (cOptions.type) {
       case "title": str = tabs[0].title; break;
       case "frame":
-        if (needIcon && (str = urlForTab[tabs[0].id])) { break; }
+        if (needIcon && (str = cPort.sender.url)) { break; }
         cPort.postMessage({
           name: "execute",
           command: "autoCopy",
@@ -938,48 +921,6 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
     ref2[""] = ["0"]; // "0" is for key queues like "10n"
 
     Connections.init();
-  };
-
-  handleMainPort = function(request, port) {
-    var key, id;
-    if (id = request._msgId) {
-      request = request.request;
-      port.postMessage({_msgId: id, response: requestHandlers[request.handler](request)})
-    }
-    else if (key = request.handlerKey) {
-      // NOTE: here is a race condition which is now ignored totally
-      key = checkKeyQueue(key, port);
-      if (currentFirst !== key) {
-        currentFirst = key;
-        port.postMessage({
-          name: "refreshKeyQueue",
-          currentFirst: key
-        });
-      }
-    }
-    else if (key = request.handler) {
-      requestHandlers[key](request, port);
-    }
-    else if (key = request.handlerSettings) {
-      var i, ref;
-      switch (key) {
-      case "reg":
-        ref = Settings.cache.userDefinedOuterCss;
-        ref && request.visible && port.postMessage({
-          name: "insertCSS",
-          css: ref
-        });
-        // no `break;`
-      case "rereg":
-        i = request.frameId;
-        if (ref = frameIdsForTab[id = port.sender.tab.id]) {
-          ref.push(i);
-        } else {
-          frameIdsForTab[id] = [i, i];
-        }
-        break;
-      }
-    }
   };
 
   checkKeyQueue = function(command, port) {
@@ -1133,76 +1074,58 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
       BackgroundCommands.openUrl();
     },
     dispatchCommand: function(request, port) {
-      var frames = frameIdsForTab[request.tabId];
+      var target;
       request.name = request.handler;
       delete request.handler;
-      if (frames && frames.indexOf(request.frameId, 1) > 0) {
-        sendToTab(request, request.tabId);
+      if (target = Settings.indexFrame(port.sender.tab.id, request.frameId)) {
+        request.source = port.sender.frameId;
+        target.postMessage(request);
         return;
       }
-      if (request.frameId !== 0) {
-        request.frameId = request.source;
-        request.source = -1;
-        port.postMessage(request);
-        return;
-      }
-      // cross-origined top frame: it's a frameset or vimium is not enabled
-      chrome.tabs.get(request.tabId, function(tab) {
-        if (tab.url.startsWith("chrome")) {
-          sendToTab(request, request.tabId);
-          return;
-        }
-        request.frameId = request.source;
-        request.source = -1;
-        port.postMessage(request);
-      });
-    },
-    ext: function(request, port) {
-      var ref = Settings.extIds, extId = request.extId;
-      extForTab[port.sender.tab.id] = extId;
-      if (ref.indexOf(extId) === -1) {
-        ref.push(extId);
-      }
+      request.source = -1;
+      port.postMessage(request);
     },
     frameFocused: function(request, port) {
-      var tabId = request.tabId, frames;
-      if (tabId) {
-        // frames would be undefined if in a tab, all "reg" messages were sent
-        //   to a closing port, which means the frontend tried `runtime.connect`
-        //   but background kept not prepared.
-        // This can only happen when the system is too slow.
-        // For example, Chrome's first startup since the system boots.
-        if (frames = frameIdsForTab[tabId]) {
-          frames[0] = request.frameId;
-        }
-        if (needIcon) {
-          urlForTab[tabId] = request.url;
-          requestHandlers.SetIcon(tabId, request.status);
-        }
+      var tabId = port.sender.tab.id;
+      framesForTab[tabId][0] = port;
+      if (needIcon) {
+        requestHandlers.SetIcon(tabId, port.sender.status);
       }
       port.postMessage({
         name: "refreshKeyQueue",
         currentFirst: currentFirst
       });
     },
-    checkIfEnabled: function(request, port) {
-      var frames, pattern = Exclusions.getPattern(request.url), ret;
-      // NOTE: here request.frameId may be Chrome's, but we may assume that
-      //     it won't crash with ours
-      if (needIcon && (frames = frameIdsForTab[request.tabId])
-          && frames[0] === request.frameId) {
-        requestHandlers.SetIcon(request.tabId, null, pattern);
+    checkIfEnabled: function(request, port, tabId, frameId) {
+      if (!tabId) {
+        tabId = port.sender.tab.id;
+      } else if (!(port = Settings.indexFrame(tabId, frameId))) {
+        return;
       }
-      ret = { name: "reset", passKeys: pattern };
-      if (port) {
-        port.postMessage(ret);
-      } else {
-        return ret;
+      var pattern = Exclusions.getPattern(port.sender.url = request.url)
+        , status = pattern === null ? "enabled" : pattern ? "partial" : "disabled";
+      if (port.sender.status !== status) {
+        port.sender.status = status;
+        if (needIcon && framesForTab[tabId][0] === port) {
+          requestHandlers.SetIcon(tabId, status);
+        }
+      } else if (!pattern) {
+        return;
       }
+      port.postMessage({ name: "reset", passKeys: pattern });
     },
     nextFrame: function(request, port) {
       cPort = port;
       BackgroundCommands.nextFrame(request.frameId);
+    },
+    reg: function(request, port) {
+      var key;
+      port.sender.ready = true;
+      key = Settings.cache.userDefinedOuterCss;
+      key && request.visible && port.postMessage({
+        name: "insertCSS",
+        css: key
+      });
     },
     initHelp: function(request, port) {
       var result = {
@@ -1240,11 +1163,8 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
     selectTab: function(request) {
       chrome.tabs.update(request.tabId, {active: true}, funcDict.selectWnd);
     },
-    refreshTabId: function(request, port) {
-      port.sender.tab.id = request.tabId;
-    },
     esc: resetKeys,
-    createMark: function(request) { return Marks.createMark(request); },
+    createMark: function(request, port) { return Marks.createMark(request, port); },
     gotoMark: function(request) { return Marks.gotoMark(request); },
     focusOrLaunch: function(request) {
       // * request.url is guaranteed to be well formatted by frontend
@@ -1257,7 +1177,6 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
       cPort.postMessage({ name: "omni", list: list });
     },
     SetIcon: function() {},
-    SendToTab: sendToTab,
     SendToCurrent: function(request) {
       try {
         cPort && cPort.postMessage(request);
@@ -1279,16 +1198,37 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
         }
       });
     },
-    OnConnect: function(port) {
-      port.onMessage.addListener(handleMainPort);
-      port.onDisconnect.addListener(Connections.OnDisconnect);
-      var type = port.name[8] | 0;
-      var pass = Exclusions.getPattern(port.sender.url), tabId = port.sender.tab.id;
-      if ((type & 2) && needIcon) {
-        urlForTab[tabId] = port.sender.url;
-        requestHandlers.SetIcon(tabId, null, pass);
+    OnMessage: function(request, port) {
+      var key, id;
+      if (id = request._msgId) {
+        request = request.request;
+        port.postMessage({_msgId: id, response: requestHandlers[request.handler](request)})
       }
-      (type & 1) || port.postMessage({
+      else if (key = request.handlerKey) {
+        // NOTE: here is a race condition which is now ignored totally
+        key = checkKeyQueue(key, port);
+        if (currentFirst !== key) {
+          currentFirst = key;
+          port.postMessage({
+            name: "refreshKeyQueue",
+            currentFirst: key
+          });
+        }
+      }
+      else if (key = request.handler) {
+        requestHandlers[key](request, port);
+      }
+    },
+    OnConnect: function(port) {
+      port.onMessage.addListener(Connections.OnMessage);
+      port.onDisconnect.addListener(Connections.OnDisconnect);
+      var type = port.name[9] | 0, ref, tabId = port.sender.tab.id
+        , pass = Exclusions.getPattern(port.sender.url);
+      port.sender.status = pass === null ? "enabled" : pass ? "partial" : "disabled";
+      port.postMessage((port.sender.ready = (type & 1) !== 0) ? {
+        name: "reset",
+        passKeys: pass
+      } : {
         name: "init",
         load: Settings.bufferToLoad,
         passKeys: pass,
@@ -1298,23 +1238,35 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
         secondKeys: secondKeys,
         tabId: tabId
       });
+      if (ref = framesForTab[tabId]) {
+        ref.push(port);
+      } else {
+        framesForTab[tabId] = [port, port];
+      }
+      if (Settings.CONST.ChromeVersion < 41) {
+        port.sender.frameId = (type & 4) ? 0 : ((Math.random() * 9999997) | 0) + 2;
+      }
+      if ((type & 2) && needIcon) {
+        requestHandlers.SetIcon(tabId, port.sender.status);
+      }
     },
     OnDisconnect: function(port) {
       var i, ref;
       if (i = port.sender.frameId) {
-        if (ref = frameIdsForTab[port.sender.tab.id]) {
-          i = ref.indexOf(i, 1);
+        if (ref = framesForTab[port.sender.tab.id]) {
+          i = ref.indexOf(port, 1);
           if (i === ref.length - 1) {
             ref.pop();
           } else if (i >= 0) {
             ref.splice(i, 1);
           }
+          if (port === ref[0]) {
+            ref[0] = ref[1];
+          }
         }
       } else {
         i = port.sender.tab.id;
-        delete frameIdsForTab[i];
-        needIcon && (delete urlForTab[i]);
-        delete extForTab[i];
+        delete framesForTab[i];
       }
     }
   };
@@ -1341,20 +1293,20 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
 
   Settings.updateHooks.showActionIcon = function (value) {
     needIcon = chrome.browserAction && value ? true : false;
-    Settings.urlForTab = urlForTab = needIcon ? urlForTab || Object.create(null) : null;
   };
 
   funcDict.globalCommand = function(command, options) {
-    var count;
+    var count, ref;
     if (currentFirst !== null) {
       count = currentFirst ? 1 : (currentCount || 1);
       resetKeys();
-      sendToTab({ name: "refreshKeyQueue", currentFirst: null }, TabRecency.last());
+      ref = framesForTab[TabRecency.last()];
     } else {
       count = 1;
     }
     options && typeof options === "object" || (options = null);
     executeCommand(command, Commands.makeCommand(command, options), count, null);
+    ref && ref[0].postMessage({ name: "refreshKeyQueue", currentFirst: null });
   };
 
   Settings.postUpdate("extWhiteList");
@@ -1386,19 +1338,11 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
   });
 
   chrome.tabs.onReplaced.addListener(function(addedTabId, removedTabId) {
-    var ref, request = { name: "refreshTabId", tabId: addedTabId };
-    chrome.tabs.sendMessage(addedTabId, request);
-    funcDict.sendToExt(request, removedTabId);
-    ref = frameIdsForTab;
-    ref[addedTabId] = ref[removedTabId];
+    var ref = framesForTab, frames, i;
+    frames = ref[addedTabId] = ref[removedTabId];
     delete ref[removedTabId];
-    ref = extForTab;
-    ref[addedTabId] = ref[removedTabId];
-    delete ref[removedTabId];
-    if (needIcon) {
-      ref = urlForTab;
-      ref[addedTabId] = ref[removedTabId];
-      delete ref[removedTabId];
+    for (i = frames.length; 0 < --i; ) {
+      frames[i].sender.tab.id = addedTabId;
     }
   });
 
@@ -1438,24 +1382,3 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
     ContentSettings.clear("images");
   }, 34);
 })();
-
-Settings.CONST.Timer = setTimeout(function() {
-// currentFirst will be reloaded when window.focus
-chrome.tabs.query({status: "complete"}, function(arr) {
-  var url, i, o, exts = [chrome.runtime.id], request = {name: "reg"};
-  for (i = arr.length, o = chrome.tabs; 0 <= --i; ) {
-    url = arr[i].url;
-    if (url.length >= 53 && url.startsWith("chrome-extension:")) {
-      url = url.substring(19, 51);
-      if (url in Settings.extWhiteList && exts.indexOf(url) === -1) { exts.push(url); }
-    }
-    o.sendMessage(arr[i].id, request);
-  }
-  o = chrome.runtime;
-  request.name = "regExt";
-  request = {"vimium++": {request: request}};
-  for (i = exts.length; 1 <= --i; ) {
-    o.sendMessage(exts[i], request, null);
-  }
-});
-}, 200);

@@ -2,8 +2,7 @@
 var Settings = {
   cache: Object.create(null),
   bufferToLoad: null,
-  frameIdsForTab: null,
-  urlForTab: null,
+  framesForTab: null,
   extIds: null,
   extWhiteList: null,
   get: function(key, forCache) {
@@ -39,17 +38,12 @@ var Settings = {
   updateHooks: {
     __proto__: null,
     broadcast: function (request) {
-      chrome.tabs.query(request.onReady ? {status: "complete"} : {},
-      function(tabs) {
-        for (var i = tabs.length, t = chrome.tabs, req = request; 0 <= --i; ) {
-          t.sendMessage(tabs[i].id, req, null);
+      var ref = this.framesForTab, tabId, frames, i;
+      for (tabId in ref) {
+        frames = ref[tabId];
+        for (i = frames.length; 0 < --i; ) {
+          port.postMessage(request);
         }
-      });
-      var r = chrome.runtime, arr = Settings.extIds, i, req;
-      req = {"vimium++": {request: request}};
-      // NOTE: injector only begin to work when dom is ready
-      for (i = arr.length; 1 <= --i; ) {
-        r.sendMessage(arr[i], req, null);
       }
     },
     bufferToLoad: function() {
@@ -123,17 +117,25 @@ var Settings = {
       this.postUpdate("baseCSS");
       this.postUpdate("broadcast", {
         name: "insertInnerCss",
-        onReady: true,
         css: this.cache.innerCss
       });
     },
     userDefinedOuterCss: function(css) {
       this.postUpdate("broadcast", {
         name: "insertCSS",
-        onReady: true,
         css: css
       });
     }
+  },
+  indexFrame: function(tabId, frameId) {
+    var ref = this.framesForTab[tabId], i;
+    if (!ref) { return null; }
+    for (i = 0; ref.length > ++i; ) {
+      if (ref[i].sender.frameId === frameId) {
+        return ref[i];
+      }
+    }
+    return null;
   },
   // clear localStorage & sync, if value === @defaults[key]
   defaults: {
@@ -204,7 +206,7 @@ w|wiki:\\\n  http://www.wikipedia.org/w/index.php?search=$s Wikipedia (en-US)",
   CONST: {
     ChromeInnerNewTab: "chrome-search://local-ntp/local-ntp.html", // should keep lower case
     ChromeVersion: 37, ContentScripts: null, CurrentVersion: "",
-    OnMac: false, OptionsPage: "", Timer: 0
+    OnMac: false, OptionsPage: ""
   }
 };
 

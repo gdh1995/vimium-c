@@ -1,24 +1,20 @@
 "use strict";
-Settings.RequestHandlers.regExt = function(request) {
-  if (Settings.RequestHandlers.reg(request)) {
-    return true;
-  }
-  var id = chrome.runtime.id;
-  if (typeof id === "string" && id.length === 32) {
-    MainPort.port.postMessage({
-      handler: "ext",
-      extId: id
-    });
-  }
+Settings.checkIfEnabled = function() {
+  mainPort.safePost({
+    handler: "checkIfEnabled",
+    url: window.location.href
+  });
 };
 
 DomUtils.documentReady(function() {
-  if (Settings.RequestHandlers.regExt()) {
+  if (mainPort.safePost({ handler: "reg", visible: true })) {
     return;
   }
   var ELs = Settings.ELs;
-  window.addEventListener("hashchange", Settings.RequestHandlers.checkIfEnabled);
-  ELs.onWndFocus = MainPort.safePost.bind(MainPort, ELs.focusMsg, function() {
+  window.addEventListener("hashchange", Settings.checkIfEnabled);
+  ELs.onWndFocus = MainPort.safePost.bind(MainPort, {
+    handler: "frameFocused"
+  }, function() {
     setTimeout(function() {
       if (MainPort && !MainPort.port) {
         Settings.ELs.destroy();
@@ -28,30 +24,16 @@ DomUtils.documentReady(function() {
 });
 
 if (chrome.runtime.onMessageExternal) {
-  Settings.ELs.onMessage = (function(request, sender) {
-    if (sender.id === "hfjbmagddngcpeloejdejnfgbamkjaeg") {
-      request = request["vimium++"];
-      if (request && (request.tabId ? request.tabId === Settings.ELs.focusMsg.tabId : true)) {
-        this(request.request);
-      }
-    }
-  }).bind(Settings.ELs.onMessage);
-  chrome.runtime.onMessageExternal.addListener(Settings.ELs.onMessage);
   VimiumInjector.alive = 1;
 } else {
-  Settings.ELs.onMessage = null;
   VimiumInjector.alive = 0.5;
-  console.log("%cVimium++ %c#" + Settings.ELs.focusMsg.frameId
-    + "%c: injected %cpartly%c into %c" + chrome.runtime.id
-    , "color: red;", "color: blue;", "color: auto;"
+  console.log("%cVimium++%c: injected %cpartly%c into %c" + chrome.runtime.id
+    , "color: red;", "color: auto;"
     , "color: red;", "color: auto;", "color: blue;");
 }
 
 Settings.onDestroy.injected = function() {
-  window.removeEventListener("hashchange", Settings.RequestHandlers.checkIfEnabled);
-  try {
-    chrome.runtime.onMessageExternal.removeListener(this.onMessage);
-  } catch (e) {}
+  window.removeEventListener("hashchange", Settings.checkIfEnabled);
   if (MainPort.port) {
     try {
       MainPort.port.disconnect();
@@ -59,7 +41,6 @@ Settings.onDestroy.injected = function() {
   }
   var injector = VimiumInjector;
   injector.alive = 0;
-  injector.oldFrameId = this.focusMsg.frameId;
   injector.destroy = null;
   [].forEach.call(document.querySelectorAll(
   'script[src^="chrome-extension://hfjbmagddngcpeloejdejnfgbamkjaeg/"]'

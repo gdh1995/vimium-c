@@ -70,11 +70,10 @@ if (chrome.storage && Settings.get("vimSync") === true) setTimeout(function() {
 
 if (chrome.browserAction) setTimeout(function() {
   var func;
-  g_requestHandlers.SetIcon = function(tabId, type, pass) {
+  g_requestHandlers.SetIcon = function(tabId, type) {
     chrome.browserAction.setIcon({
       tabId: tabId,
-      path: Settings.icons[type ||
-        (pass === null ? "enabled" : pass ? "partial" : "disabled")]
+      path: Settings.icons[type]
     });
   };
   func = Settings.updateHooks.showActionIcon;
@@ -204,7 +203,6 @@ chrome.runtime.onInstalled.addListener(window.b = function(details) {
   if (reason === "install") { reason = ""; }
   else if (reason === "update") { reason = details.previousVersion; }
   else { return; }
-  clearTimeout(Settings.CONST.Timer);
 
 setTimeout(function() {
   chrome.tabs.query({
