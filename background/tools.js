@@ -29,12 +29,12 @@ var Clipboard = {
 },
 TabRecency = {
   tabs: null,
-  last: null,
+  last: function() { return -1; },
   rCompare: null,
 };
 
 setTimeout(function() {
-  var cache = Object.create(null), last = 0, stamp = 1, time = 0,
+  var cache = Object.create(null), last = -1, stamp = 1, time = 0,
   _this = TabRecency, clean = function() {
     var ref = cache, i;
     for (i in ref) {
