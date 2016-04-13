@@ -107,7 +107,7 @@ DomUtils.UI = {
   simulateSelect: function(element, flash, suppressRepeated) {
     element.focus();
     DomUtils.simulateClick(element);
-    flash === true && this.flashOutline(element);
+    flash === true && this.flashVRect(this.getVRect(element));
     if (element !== VInsertMode.lock) { return; }
     var len;
     if ((len = element.value ? element.value.length : -1) && element.setSelectionRange) {
@@ -120,7 +120,7 @@ DomUtils.UI = {
     }
     suppressRepeated === true && this.suppressTail(true);
   },
-  flashOutline: function(clickEl, virtual) {
+  getVRect: function(clickEl) {
     var rect, bcr;
     DomUtils.prepareCrop();
     if (clickEl.classList.contains("OIUrl") && Vomnibar.box
@@ -132,9 +132,6 @@ DomUtils.UI = {
       if (!rect || VRect.isContaining(bcr, rect)) {
         rect = bcr;
       }
-    }
-    if (virtual !== true) {
-      this.flashVRect(rect);
     }
     return rect;
   },

@@ -934,7 +934,7 @@ var Settings, VHUD, MainPort, VInsertMode;
       return;
     }
     linkElement.scrollIntoViewIfNeeded();
-    DomUtils.UI.flashOutline(linkElement);
+    DomUtils.UI.flashVRect(DomUtils.UI.getVRect(linkElement));
     DomUtils.simulateClick(linkElement);
   };
 

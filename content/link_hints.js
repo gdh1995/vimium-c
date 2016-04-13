@@ -500,7 +500,7 @@ var LinkHints = {
     var rect, clickEl = hintEl.clickableItem;
     this.deactivate(true, false); // always suppress tail even if fail to focus
     // must get outline first, because clickEl may hide itself when activated
-    rect = hintEl.linkRect || DomUtils.UI.flashOutline(clickEl, true);
+    rect = hintEl.linkRect || DomUtils.UI.getVRect(clickEl);
     if (this.modeOpt.activator.call(this, clickEl) !== false) {
       DomUtils.UI.flashVRect(rect);
     }
