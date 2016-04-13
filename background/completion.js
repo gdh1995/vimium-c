@@ -142,7 +142,7 @@ bookmarks: {
       results = this.bookmarks.filter(function(i) {
         return RankingUtils.Match2(i.text, i[name]);
       }).map(function(i) {
-        return new Suggestion("bookm", i.url, i.text, i[name], c);
+        return new Suggestion("bookm", i.jsUrl || i.url, i.jsUrl ? "javascript: ..." : i.text, i[name], c);
       });
       if (offset > 0 && queryType === 1) {
         results.sort(Completers.rsortByRelevancy);
@@ -197,8 +197,12 @@ bookmarks: {
       this.path = bookmark.path;
       bookmark.children.forEach(this.traverseBookmark);
       this.path = path;
-    } else {
-      this.bookmarks.push(bookmark);
+      return;
+    }
+    this.bookmarks.push(bookmark);
+    if (bookmark.url.startsWith("javascript:")) {
+      bookmark.jsUrl = bookmark.url;
+      bookmark.url = "";
     }
   },
   computeRelevancy: function(suggestion) {
