@@ -153,17 +153,20 @@ bookmarks: {
   refresh: function() {
     var bookmarks = chrome.bookmarks, listener, _this = this;
     listener = function() {
-      chrome.bookmarks.getTree(function(tree) { _this.readTree(tree); });
+      bookmarks.getTree(function(tree) { _this.readTree(tree); });
     };
     bookmarks.onCreated.addListener(listener);
     bookmarks.onRemoved.addListener(listener);
     bookmarks.onChanged.addListener(listener);
     bookmarks.onMoved.addListener(listener);
     bookmarks.onImportBegan.addListener(function() {
-      chrome.bookmarks.onCreated.removeListener(listener);
+      bookmarks.onCreated.removeListener(listener);
     });
     bookmarks.onImportEnded.addListener(function() {
-      chrome.bookmarks.onCreated.addListener(listener);
+      bookmarks.getTree(function(tree) {
+        bookmarks.onCreated.addListener(listener);
+        _this.readTree(tree);
+      });
     });
     this.refresh = null;
     this.traverseBookmark = this.traverseBookmark.bind(this);
