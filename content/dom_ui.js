@@ -175,15 +175,9 @@ DomUtils.UI = {
     handlerStack.push(func, func);
   },
   SuppressMost: function(event) {
-    var n = event.keyCode, plain;
-    if (n != KeyCodes.esc) {
-      if (n <= KeyCodes.f1 || n > KeyCodes.f12) {
-        return 2;
-      };
-    } else if (this && KeyboardUtils.isPlain(event)) {
+    if (event.keyCode == KeyCodes.esc && KeyboardUtils.isPlain(event)) {
       handlerStack.remove(this);
-      return 2;
     }
-    return KeyboardUtils.isPlain(event) ? 1 : 0;
+    return 2;
   }
 };
