@@ -1,13 +1,13 @@
 "use strict";
 Settings.checkIfEnabled = function() {
-  mainPort.safePost({
+  MainPort.safePost({
     handler: "checkIfEnabled",
     url: window.location.href
   });
 };
 
 DomUtils.documentReady(function() {
-  if (mainPort.safePost({ handler: "reg", visible: true })) {
+  if (MainPort.safePost({ handler: "reg", visible: true })) {
     return;
   }
   var ELs = Settings.ELs;
