@@ -17,13 +17,13 @@ var Exclusions = {
   _listening: false,
   rules: [],
   setRules: function(rules) {
-    this.onURLChange || (this.onURLChange = g_requestHandlers.checkIfEnabled);
+    var onURLChange = chrome.webNavigation && this.onURLChange || g_requestHandlers.checkIfEnabled;
     if (rules.length === 0) {
       this.rules = [];
       this.getPattern = function() { return null; };
-      if (this._listening && chrome.webNavigation) {
-        chrome.webNavigation.onHistoryStateUpdated.removeListener(this.onURLChange);
-        chrome.webNavigation.onReferenceFragmentUpdated.removeListener(this.onURLChange);
+      if (this._listening && onURLChange) {
+        chrome.webNavigation.onHistoryStateUpdated.removeListener(onURLChange);
+        chrome.webNavigation.onReferenceFragmentUpdated.removeListener(onURLChange);
       }
       this._listening = false;
       return;
@@ -31,9 +31,9 @@ var Exclusions = {
     this.testers || (this.testers = Object.create(null));
     this.rules = this.format(rules);
     this.testers = null;
-    if (!this._listening && chrome.webNavigation) {
-      chrome.webNavigation.onHistoryStateUpdated.addListener(this.onURLChange);
-      chrome.webNavigation.onReferenceFragmentUpdated.addListener(this.onURLChange);
+    if (!this._listening && onURLChange) {
+      chrome.webNavigation.onHistoryStateUpdated.addListener(onURLChange);
+      chrome.webNavigation.onReferenceFragmentUpdated.addListener(onURLChange);
     }
     this._listening = true;
     this.getPattern = this._getPattern;
