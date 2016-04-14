@@ -17,6 +17,7 @@ var Exclusions = {
   _listening: false,
   rules: [],
   setRules: function(rules) {
+    this.onURLChange || (this.onURLChange = g_requestHandlers.checkIfEnabled);
     if (rules.length === 0) {
       this.rules = [];
       this.getPattern = function() { return null; };
@@ -49,16 +50,13 @@ var Exclusions = {
     }
     return matchedKeys || null;
   },
-  onURLChange: (Settings.CONST.ChromeVersion >= 41
-  ? function(details) {
-    g_requestHandlers.checkIfEnabled(details, null, details.tabId, details.frameId);
-  } : function(details) {
+  onURLChange: Settings.CONST.ChromeVersion < 41 && function(details) {
     var ref = Settings.framesForTab[details.tabId], i;
     // force the tab's ports to reconnect and refresh their pass keys
     for (i = ref && ref.length; 0 < --i; ) {
       ref[i].disconnect();
     }
-  }),
+  },
   format: function(rules) {
     var _i = rules.length, rule, out = new Array(_i);
     while (0 <= --_i) {

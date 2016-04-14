@@ -1096,20 +1096,18 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
         currentFirst: currentFirst
       });
     },
-    checkIfEnabled: function(request, port, tabId, frameId) {
-      if (!tabId) {
-        tabId = port.sender.tab.id;
-      } else if (!(port = Settings.indexFrame(tabId, frameId))) {
-        return;
-      }
-      var pattern = Exclusions.getPattern(port.sender.url = request.url)
+    checkIfEnabled: function(request, port) {
+      port && port.sender || (port = Settings.indexFrame(request.tabId, request.frameId));
+      if (!port) { return; }
+      var oldUrl = port.sender.url, tabId = port.sender.tab.id
+        , pattern = Exclusions.getPattern(port.sender.url = request.url)
         , status = pattern === null ? "enabled" : pattern ? "partial" : "disabled";
       if (port.sender.status !== status) {
         port.sender.status = status;
         if (needIcon && framesForTab[tabId][0] === port) {
           requestHandlers.SetIcon(tabId, status);
         }
-      } else if (!pattern) {
+      } else if (!pattern || pattern === Exclusions.getPattern(oldUrl)) {
         return;
       }
       port.postMessage({ name: "reset", passKeys: pattern });
