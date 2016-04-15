@@ -1,6 +1,6 @@
 "use strict";
 
-var $, ExclusionRulesOption, bgSettings, bgExclusions, BG,
+var $, ExclusionRulesOption, bgSettings, BG,
 KeyRe = /<(?:(?:a-(?:c-)?(?:m-)?|c-(?:m-)?|m-)(?:[A-Z][0-9A-Z]+|[a-z][0-9a-z]+|[^\s])|[A-Z][0-9A-Z]+|[a-z][0-9a-z]+)>|[^\s]/g,
 __extends = function(child, parent) {
   Object.setPrototypeOf(child.prototype, parent.prototype);
@@ -10,7 +10,6 @@ __extends = function(child, parent) {
 $ = document.getElementById.bind(document);
 BG = chrome.extension.getBackgroundPage();
 bgSettings = BG.Settings;
-bgExclusions = BG.Exclusions;
 $("exclusionScrollBox").innerHTML = bgSettings.cache.exclusionTemplate;
 
 function Option(element, onUpdated) {
@@ -186,7 +185,8 @@ ExclusionRulesOption.prototype.getPassKeys = function(element) {
 
 if (location.pathname.indexOf("/popup.html", location.pathname.length - 11) !== -1) {
 chrome.tabs.query({currentWindow: true, active: true}, function(tab) {
-  var exclusions, onUpdated, saveOptions, updateState, status = 0, ref, link;
+  var exclusions, onUpdated, saveOptions, updateState, status = 0, ref, link
+    , bgExclusions = BG.Exclusions;
 
 exclusions = {
   url: "",
