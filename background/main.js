@@ -1310,7 +1310,7 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
   Settings.postUpdate("extWhiteList");
   chrome.runtime.onMessageExternal.addListener(function(message, sender, sendResponse) {
     var command;
-    if (!(sender.id in Settings.extWhiteList)) { return; }
+    if (!(sender.id in Settings.extWhiteList)) { sendResponse(); return; }
     if (typeof message === "string") {
       command = message;
       if (command && Commands.availableCommands[command]) {
