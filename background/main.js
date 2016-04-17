@@ -823,7 +823,7 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
           count = commandCount - 1;
         }
         while (0 <= count) {
-          if (++ind == frames.length) { ind = 1; }
+          if (++ind === frames.length) { ind = 1; }
           if (!frames[ind].sender.ready) { continue; }
           --count;
         }
@@ -831,7 +831,7 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
       }
       port.postMessage({
         name: "focusFrame",
-        frameId: ind >= 0 ? cPort.frameId : -1
+        frameId: ind >= 0 ? port.sender.frameId : -1
       });
     },
     mainFrame: function(tabs) {

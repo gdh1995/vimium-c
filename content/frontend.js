@@ -1022,6 +1022,7 @@ var Settings, VHUD, MainPort, VInsertMode;
       else if (window.innerWidth < 3 || window.innerHeight < 3
         || document.body instanceof HTMLFrameSetElement) {
         mainPort.port.postMessage({
+          frameId: frameId,
           handler: "nextFrame"
         });
         return;
