@@ -684,6 +684,8 @@ getUrlData: function(link) {
 },
 
 highlightChild: function(child, box) {
+  var mode = this.mode;
+  this.mode = 0;
   try {
     child.VInsertMode.keydownEvents();
   } catch (e) {
@@ -698,6 +700,9 @@ highlightChild: function(child, box) {
     cmd.box = [box.width, box.height];
   }
   child.MainPort.Listener(cmd);
+  if (mode & 64) {
+    child.LinkHints.activate(this.count, this.options);
+  }
   return false;
 },
 
