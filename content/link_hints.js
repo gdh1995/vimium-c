@@ -685,7 +685,7 @@ getUrlData: function(link) {
 
 highlightChild: function(child, box) {
   try {
-    child.VInsertMode.keydownEvents(VInsertMode.keydownEvents());
+    child.VInsertMode.keydownEvents();
   } catch (e) {
     child.focus();
     return;
