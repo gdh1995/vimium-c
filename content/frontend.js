@@ -1161,7 +1161,6 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483644
       if (isEnabledForUrl = (passKeys !== "")) {
         initIfEnabled(passKeys);
       } else {
-        mainPort.port.disconnect();
         InsertMode.loading = false;
       }
       DomUtils.UI.box && DomUtils.UI.Toggle(isEnabledForUrl);
