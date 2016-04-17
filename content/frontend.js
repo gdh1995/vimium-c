@@ -1325,13 +1325,13 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483644
     ref = settings.onDestroy;
     ref.__proto__ = null;
     for (i in ref) {
-      ref[i].call(this);
+      (f = ref[i])();
     }
     Utils = KeyCodes = KeyboardUtils = DomUtils = VRect = handlerStack = //
     LinkHints = Vomnibar = Scroller = Marks = //
     Settings = VHUD = MainPort = VInsertMode = null;
 
-    console.log("%cVimium++ %c in %c%s%c has destroyed at %o."
+    console.log("%cVimium++%c in %c%s%c has destroyed at %o."
       , "color:red", "color:auto", "color:darkred"
       , window.location.pathname.replace(/^.*\/([^\/]+)\/?$/, "$1")
       , "color:auto", Date.now());
