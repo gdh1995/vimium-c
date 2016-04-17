@@ -2,19 +2,19 @@
 (function(func) {
   var script = document.createElement("script"), installer, onclick, box;
   if (!script.style) { return; }
-  window.addEventListener("VimiumReg", installer = function(event) {
-    window.removeEventListener("VimiumReg", installer, true);
+  addEventListener("VimiumReg", installer = function(event) {
+    removeEventListener("VimiumReg", installer, true);
     box = event.target;
     box.addEventListener("VimiumOnclick", onclick, true);
     installer = null;
   }, true);
-  window.addEventListener("VimiumOnclick", onclick = function(event) {
+  addEventListener("VimiumOnclick", onclick = function(event) {
     event.target.vimiumHasOnclick = true;
     event.stopPropagation();
   }, true);
   Settings.onDestroy.registerClick = function() {
-    window.removeEventListener("VimiumReg", installer, true);
-    window.removeEventListener("VimiumOnclick", onclick, true);
+    removeEventListener("VimiumReg", installer, true);
+    removeEventListener("VimiumOnclick", onclick, true);
     box && box.removeEventListener("VimiumOnclick", onclick, true);
   };
   script.type = "text/javascript";
@@ -36,7 +36,7 @@ EventTarget.prototype.addEventListener = function(type, listener, useCapture) {
 };
 
 handler = function() {
-  window.removeEventListener("DOMContentLoaded", handler, true);
+  removeEventListener("DOMContentLoaded", handler, true);
   clearTimeout(timeout);
   box = document.createElement("div");
   document.documentElement.appendChild(box);
@@ -46,7 +46,7 @@ handler = function() {
   for (var i = toRegister.length; 0 <= --i; ) { register(toRegister[i]); }
   handler = toRegister = reg = null;
 };
-_listen.call(window, "DOMContentLoaded", handler, true);
+_listen("DOMContentLoaded", handler, true);
 timeout = setTimeout(handler, 1000);
 
 reg = setTimeout.bind(null, function(element) {

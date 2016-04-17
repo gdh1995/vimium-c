@@ -316,11 +316,12 @@ var Settings, VHUD, MainPort, VInsertMode;
     };
     initIfEnabled(newPassKeys);
     InsertMode.init();
-    window.addEventListener("keydown", ELs.onKeydown, true);
-    window.addEventListener("keypress", ELs.onKeypress, true);
-    window.addEventListener("keyup", ELs.onKeyup, true);
-    window.addEventListener("focus", ELs.onFocus, true);
-    window.addEventListener("blur", ELs.onBlur, true);
+    var f = addEventListener;
+    f("keydown", ELs.onKeydown, true);
+    f("keypress", ELs.onKeypress, true);
+    f("keyup", ELs.onKeyup, true);
+    f("focus", ELs.onFocus, true);
+    f("blur", ELs.onBlur, true);
     document.addEventListener("DOMActivate", ELs.onActivate, true);
   };
 
@@ -403,10 +404,10 @@ var Settings, VHUD, MainPort, VInsertMode;
       }
       function exit() {
         handlerStack.remove(keys);
-        window.removeEventListener("keyup", onKeyup, true);
+        removeEventListener("keyup", onKeyup, true);
         HUD.hide();
       }
-      window.addEventListener("keyup", onKeyup, true);
+      addEventListener("keyup", onKeyup, true);
       VInsertMode.onWndBlur = exit;
       HUD.show("Pass next key: " + count);
     },
@@ -630,12 +631,12 @@ var Settings, VHUD, MainPort, VInsertMode;
     setupGrab: function() {
       this.focus = this.grabBackFocus;
       handlerStack.push(this.ExitGrab, this);
-      window.addEventListener("mousedown", this.ExitGrab, true);
+      addEventListener("mousedown", this.ExitGrab, true);
     },
     ExitGrab: function() {
       var _this = InsertMode;
       _this.focus = _this.lockFocus;
-      window.removeEventListener("mousedown", _this.ExitGrab, true);
+      removeEventListener("mousedown", _this.ExitGrab, true);
       handlerStack.remove(_this);
       return 0;
     },
@@ -1308,19 +1309,20 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483644
   isInjected && (settings.ELs = ELs);
 
   ELs.destroy = function() {
+    var f = removeEventListener, ref, i;
     isEnabledForUrl = false;
     clearInterval(settings.isLoading);
 
-    window.removeEventListener("keydown", this.onKeydown, true);
-    window.removeEventListener("keypress", this.onKeypress, true);
-    window.removeEventListener("keyup", this.onKeyup, true);
-    window.removeEventListener("focus", this.onFocus, true);
-    window.removeEventListener("blur", this.onBlur, true);
-    window.removeEventListener("mousedown", InsertMode.ExitGrab, true);
+    f("keydown", this.onKeydown, true);
+    f("keypress", this.onKeypress, true);
+    f("keyup", this.onKeyup, true);
+    f("focus", this.onFocus, true);
+    f("blur", this.onBlur, true);
+    f("mousedown", InsertMode.ExitGrab, true);
     document.removeEventListener("DOMActivate", this.onActivate, true);
     DomUtils.UI.box && DomUtils.UI.box.remove();
 
-    var ref = settings.onDestroy, i;
+    ref = settings.onDestroy;
     ref.__proto__ = null;
     for (i in ref) {
       ref[i].call(this);

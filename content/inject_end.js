@@ -11,7 +11,7 @@ DomUtils.documentReady(function() {
     return;
   }
   var ELs = Settings.ELs;
-  window.addEventListener("hashchange", Settings.checkIfEnabled);
+  addEventListener("hashchange", Settings.checkIfEnabled);
   ELs.onWndFocus = MainPort.safePost.bind(MainPort, {
     handler: "frameFocused"
   }, function() {
@@ -33,7 +33,7 @@ if (chrome.runtime.onMessageExternal) {
 }
 
 Settings.onDestroy.injected = function() {
-  window.removeEventListener("hashchange", Settings.checkIfEnabled);
+  removeEventListener("hashchange", Settings.checkIfEnabled);
   if (MainPort.port) {
     try {
       MainPort.port.disconnect();
