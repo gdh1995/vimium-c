@@ -1151,8 +1151,6 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483644
       clearInterval(settings.isLoading);
       KeyboardUtils.onMac = request.onMac;
       r.refreshKeyMappings(request);
-      // here assume the changed url does not influence passKeys,
-      // since we do not know when the url will become useful
       r.reset(request);
       r.init = null;
     },
