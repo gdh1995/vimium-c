@@ -137,7 +137,7 @@ var Settings, VHUD, MainPort, VInsertMode;
   Settings = settings = {
     cache: null,
     isLoading: 0,
-    onDestroy: {},
+    onDestroy: null,
     set: function(key, value) {
       this.cache[key] = value;
       mainPort.port.postMessage({
@@ -1309,7 +1309,7 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483644
   isInjected && (settings.ELs = ELs);
 
   ELs.destroy = function() {
-    var f = removeEventListener, ref, i;
+    var f = removeEventListener;
     isEnabledForUrl = false;
     clearInterval(settings.isLoading);
 
@@ -1321,12 +1321,8 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483644
     f("mousedown", InsertMode.ExitGrab, true);
     document.removeEventListener("DOMActivate", this.onActivate, true);
     DomUtils.UI.box && DomUtils.UI.box.remove();
+    (f = settings.onDestroy) && f();
 
-    ref = settings.onDestroy;
-    ref.__proto__ = null;
-    for (i in ref) {
-      (f = ref[i])();
-    }
     Utils = KeyCodes = KeyboardUtils = DomUtils = VRect = handlerStack = //
     LinkHints = Vomnibar = Scroller = Marks = //
     Settings = VHUD = MainPort = VInsertMode = null;

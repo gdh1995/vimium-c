@@ -32,7 +32,7 @@ if (chrome.runtime.onMessageExternal) {
     , "color: red;", "color: auto;", "color: blue;");
 }
 
-Settings.onDestroy.injected = function() {
+Settings.onDestroy = function() {
   removeEventListener("hashchange", Settings.checkIfEnabled);
   if (MainPort.port) {
     try {
