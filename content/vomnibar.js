@@ -340,8 +340,9 @@ activate: function(_0, options, force_current) {
   },
   OnTimer: function() { Vomnibar && Vomnibar.filter(); },
   onWheel: function(event) {
-    DomUtils.SuppressPropagation(event);
-    if (event.deltaX || Date.now() - this.wheelTimer < 200) { return; }
+    if (event.ctrlKey || event.metaKey) { return; }
+    DomUtils.suppressEvent(event);
+    if (event.deltaX || Date.now() - this.wheelTimer < 80) { return; }
     this.wheelTimer = Date.now();
     this.goPage(event.deltaY > 0 ? 1 : -1);
   },
