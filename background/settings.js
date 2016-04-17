@@ -42,7 +42,7 @@ var Settings = {
       for (tabId in ref) {
         frames = ref[tabId];
         for (i = frames.length; 0 < --i; ) {
-          port.postMessage(request);
+          frames[i].postMessage(request);
         }
       }
     },
