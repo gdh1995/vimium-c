@@ -702,6 +702,7 @@ highlightChild: function(child, box) {
   child.MainPort.Listener(cmd);
   if (mode & 64) {
     child.LinkHints.activate(this.count, this.options);
+    child.LinkHints.setMode(mode);
   }
   return false;
 },
