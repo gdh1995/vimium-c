@@ -1151,14 +1151,13 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483644
       KeyboardUtils.onMac = request.onMac;
       r.refreshKeyMappings(request);
       r.reset(request);
+      InsertMode.loading = false;
       r.init = null;
     },
     reset: function(request) {
       var passKeys = request.passKeys;
       if (isEnabledForUrl = (passKeys !== "")) {
         initIfEnabled(passKeys);
-      } else {
-        InsertMode.loading = false;
       }
       DomUtils.UI.box && DomUtils.UI.Toggle(isEnabledForUrl);
     },
