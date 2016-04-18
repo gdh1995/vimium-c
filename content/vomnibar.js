@@ -172,7 +172,7 @@ activate: function(_0, options, force_current) {
     var action = "", n = event.keyCode, focused = VInsertMode.lock === this.input;
     if ((!focused && VInsertMode.lock) || event.altKey) { return 0; }
     if (n === KeyCodes.enter) {
-      if (event.shiftKey || event.ctrlKey || event.metaKey) { this.forceNewTab = true; }
+      this.forceNewTab = !event.shiftKey && this.forceNewTab || event.ctrlKey || event.metaKey;
       action = "enter";
     }
     else if (event.ctrlKey || event.metaKey) {
@@ -312,7 +312,7 @@ activate: function(_0, options, force_current) {
       if (_i >= 0) {
         this.selection = _i;
         this.isSelectionChanged = true;
-        this.forceNewTab || (this.forceNewTab = event.shiftKey || event.ctrlKey || event.metaKey);
+        this.forceNewTab = !event.shiftKey && this.forceNewTab || event.ctrlKey || event.metaKey;
         this.onAction("enter");
       }
     }
