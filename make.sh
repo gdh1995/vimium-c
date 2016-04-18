@@ -1,4 +1,4 @@
-#/bin/sh
+#!/bin/sh
 set -o noglob
 
 if [ -z "$1" ]; then
