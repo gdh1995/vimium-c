@@ -80,7 +80,8 @@ __extends(JSONOption, TextOption);
 
 JSONOption.prototype.populateElement = function(obj, enableUndo) {
   JSONOption.__super__.populateElement.call(this
-    , JSON.stringify(obj, null, 2), enableUndo);
+    , JSON.stringify(obj, null, this.element instanceof HTMLInputElement ? 1 : 2)
+    , enableUndo);
 };
 
 JSONOption.prototype.readValueFromElement = function() {
