@@ -133,7 +133,7 @@ var LinkHints = {
     try {
       child = this.frameNested.contentWindow;
       if (command.startsWith("LinkHints.activate") && child.LinkHints.isActive) {
-        if (!this.frameNested.contentDocument.head) { throw Error("vimium-disabled"); }
+        if (!child.document.head) { throw Error("vimium-disabled"); }
         child.LinkHints.deactivate(true);
         done = true;
       }
