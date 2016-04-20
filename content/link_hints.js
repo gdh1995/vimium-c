@@ -684,24 +684,21 @@ getUrlData: function(link) {
 },
 
 highlightChild: function(child, box) {
-  var mode = this.mode;
-  this.mode = 0;
   try {
     child.VInsertMode.keydownEvents();
   } catch (e) {
+    this.mode = 0;
     child.focus();
     return;
   }
-  var cmd = {
+  child.MainPort.Listener({
     name: "focusFrame",
+    box: box && [box.width, box.height],
     frameId: -2
-  }
-  if (box) {
-    cmd.box = [box.width, box.height];
-  }
-  child.MainPort.Listener(cmd);
+  });
   child.LinkHints.activate(this.count, this.options);
   child.LinkHints.setMode(mode);
+  this.mode = 0;
   return false;
 },
 
