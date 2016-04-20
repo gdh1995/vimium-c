@@ -1,7 +1,7 @@
 Vimium++
 ========
 [![license](https://img.shields.io/badge/license-MIT-blue.svg)](MIT-LICENSE.txt)
-![version](https://img.shields.io/badge/release-v1.51-orange.svg)
+![version](https://img.shields.io/badge/release-v1.52-orange.svg)
 
 A custom [Vimium](https://github.com/philc/vimium)
   by [gdh1995](https://github.com/gdh1995).

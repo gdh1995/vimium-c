@@ -117,7 +117,7 @@
 	"linkHintCharacters": "asdqwerzxcv",
 	"newTabUrl": "chrome-extension://hdnehngglnbnehkfcidabjckinphnief/index.html",
 	"searchEngines": [
-		"b|吧|把|ba|bd|baidu|Baidu|百度: http://www.baidu.com/s?ie=utf-8&wd=$s",
+		"b|吧|把|ba|bd|baidu|Baidu|百度: http://www.baidu.com/s?ie=UTF-8&wd=$s",
 		"bi: http://cn.bing.com/search?q=$s",
 		"bi|必应: http://www.bing.com/search?q=$s",
 		"bing: . www.bing.com/dict/ re=/^([^\\/]+)\\/?$/",
@@ -150,6 +150,7 @@
 		"w3s.attr|w3s.att|html.attr|attr.w3s: \\",
 		"  http://www.w3school.com.cn/tags/att_$S{$1_$2}.asp W3school Tag Attr",
 		"t.i: http://m.tiebaimg.com/timg?wapp&quality=80&size=b400_2000&src=$s 百度贴吧图片",
+		"bili: http://www.bilibili.com/search?keyword=$s",
 		"bili|bilibili|b.tv|Bilibili: http://search.bilibili.com/all?keyword=$s Bilibili",
 		"acfun|Acfun: http://www.acfun.tv/search/#query=$s Acfun",
 		"t|tr|g.t|g.tr|他|它: https://translate.google.com/?ie=utf-8#auto/zh-CN/$s Google 翻译",
