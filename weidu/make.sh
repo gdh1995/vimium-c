@@ -2,7 +2,7 @@
 set -o noglob
 
 if [ -z "$1" ]; then
-OUTPUT=weidu_4.82.crx
+OUTPUT=weidu_4.83.crx
 else
 OUTPUT="$1"
 fi
