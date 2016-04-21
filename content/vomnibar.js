@@ -366,7 +366,7 @@ activate: function(_0, options, force_current) {
       return;
     }
     this.onCompletions = function(completions) {
-      completions.forEach(this.Parse);
+      completions.forEach(this.Parse, this.mode);
       this.completions = completions;
       this.populateUI();
       this.CleanCompletions(completions);
@@ -406,7 +406,6 @@ activate: function(_0, options, force_current) {
     this.list = this.box.querySelector("#OList");
     str = this.box.querySelector("#OITemplate").outerHTML;
     str = str.substring(str.indexOf('>') + 1, str.lastIndexOf('<'));
-    this.Parse = this.Parse.bind(this.mode);
     this.renderItems = Utils.makeListRenderBySplit(str);
     this._waitInit = 0;
     this.init_dom = null;

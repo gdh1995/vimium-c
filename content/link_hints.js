@@ -392,7 +392,7 @@ var LinkHints = {
     visibleElements.reverse();
 
     obj = [null, null];
-    func = VRect.SubtractSequence.bind(obj);
+    func = VRect.SubtractSequence;
     for (_len = visibleElements.length, _j = Math.max(0, _len - 32); 0 <= --_len; ) {
       _j > 0 && --_j;
       visibleElement = visibleElements[_len];
@@ -404,7 +404,7 @@ var LinkHints = {
         }
         obj[0] = [];
         obj[1] = t;
-        rects.forEach(func);
+        rects.forEach(func, obj);
         if ((rects = obj[0]).length === 0) {
           break;
         }

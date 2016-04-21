@@ -169,7 +169,6 @@ bookmarks: {
         _this.readTree(tree);
       });
     });
-    this.traverseBookmark = this.traverseBookmark.bind(this);
     _this.readTree(tree);
     var query = _this.currentSearch;
     _this.currentSearch = null;
@@ -179,7 +178,7 @@ bookmarks: {
   },
   readTree: function(bookmarks) {
     this.bookmarks = [];
-    bookmarks.forEach(this.traverseBookmark);
+    bookmarks.forEach(this.traverseBookmark, this);
     Decoder.decodeList(this.bookmarks);
   },
   ignoreTopLevel: {
@@ -195,7 +194,7 @@ bookmarks: {
       : (bookmark.title in this.ignoreTopLevel) ? "" : ('/' + bookmark.title);
     if (bookmark.children) {
       this.path = bookmark.path;
-      bookmark.children.forEach(this.traverseBookmark);
+      bookmark.children.forEach(this.traverseBookmark, this);
       this.path = path;
       return;
     }
