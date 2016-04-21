@@ -80,7 +80,7 @@ var LinkHints = {
 
     x = window.scrollX; y = window.scrollY;
     this.initBox(x, y, elements.length);
-    this.hintMarkers = elements.map(this.createMarkerFor.bind(this));
+    this.hintMarkers = elements.map(this.createMarkerFor, this);
     elements = null;
     this.alphabetHints.initMarkers(this.hintMarkers);
 
