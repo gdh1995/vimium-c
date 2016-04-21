@@ -189,7 +189,7 @@ var LinkHints = {
   quoteRe: /"/g,
   btnRe: /\b[Bb](?:utto|t)n(?:$| )/,
   GetClickable: function(element) {
-    var arr, isClickable = false, s, _i;
+    var arr, isClickable = null, s, _i;
     switch (element.tagName.toLowerCase()) {
     case "a": case "frame": case "iframe": isClickable = true; break;
     case "input": if (element.type === "hidden") { return; } // no "break;"
@@ -217,8 +217,9 @@ var LinkHints = {
         s = s.replace(LinkHints.hashRe, "").replace(LinkHints.quoteRe, '\\"');
         DomUtils.getClientRectsForAreas(this, arr[0], document.querySelector('map[name="' + s + '"]'));
       }
-      // no "break;"
-    default:
+      break;
+    }
+    while (isClickable === null) {
       if ((element.vimiumHasOnclick && LinkHints.isClickListened) || element.getAttribute("onclick")
         || ((s = element.getAttribute("role")) && (s = s.toLowerCase(), s === "button" || s === "link")) //
         || ((s = element.className) && LinkHints.btnRe.test(s))
