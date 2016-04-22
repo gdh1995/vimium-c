@@ -49,6 +49,9 @@ window.onhashchange = function() {
       shownNode.src = url;
       shownNode.onclick = openByDefault;
       shownNode.onload = showBgLink;
+    } else if (!url) {
+      shownNode.src = "../icons/vimium.png";
+      bgLink.style.display = "none";
     } else {
       url = "";
       shownNode.setAttribute("alt", "\xa0(null)\xa0");
