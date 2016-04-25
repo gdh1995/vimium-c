@@ -71,8 +71,7 @@ var Marks = {
     }
     g_requestHandlers.SendToCurrent({
       name: "showHUD",
-      text: "Global marks have been cleared.",
-      time: 1500
+      text: "Global marks have been cleared."
     });
   }
 };

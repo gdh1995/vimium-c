@@ -105,8 +105,7 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
       }
       cPort.postMessage({
         name: "showHUD",
-        text: "Chrome doesn't allow Vimium++ to do on this page",
-        time: 1500
+        text: "Chrome doesn't allow Vimium++ to do on this page"
       });
       return true;
     },
@@ -114,8 +113,7 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
       ContentSettings.clear(contentType, tab);
       cPort.postMessage({
         name: "showHUD",
-        text: contentType + " content settings have been cleared.",
-        time: 1500
+        text: contentType + " content settings have been cleared."
       });
     },
     clear: function(contentType, tab) {
@@ -694,8 +692,7 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
         && ports[0].sender.tab.incognito) {
         ports[0].postMessage({
           name: "showHUD",
-          text: "Can not restore a tab in incognito mode!",
-          time: 2000
+          text: "Can not restore a tab in incognito mode!"
         });
         return;
       }
@@ -718,8 +715,7 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
       } else if (!url) {
         requestHandlers.SendToCurrent({
           name: "showHUD",
-          text: "No text copied!",
-          time: 1500
+          text: "No text copied!"
         });
       } else if (tabs.length > 0) {
         openMultiTab(url, commandCount, tabs[0]);

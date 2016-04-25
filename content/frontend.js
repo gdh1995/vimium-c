@@ -1225,7 +1225,7 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483644
     createMark: Marks.CreateGlobalMark,
     scroll: Marks.Goto,
     showHUD: function(request) {
-      HUD.showForDuration(request.text, request.time);
+      HUD.showForDuration(request.text, 1500);
     },
     showCopied: function(request) {
       HUD.showCopied(request.text);
