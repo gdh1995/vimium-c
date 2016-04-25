@@ -1079,10 +1079,8 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483644
       this.showForDuration("copy: " + text, 2000);
     },
     showForDuration: function(text, duration) {
-      if (this.enabled) {
-        this.show(text);
-        this.durationTimer = setTimeout(this.hide, duration);
-      }
+      this.show(text);
+      this.durationTimer = this.enabled && setTimeout(this.hide, duration);
     },
     show: function(text) {
       if (!this.enabled) { return; }
