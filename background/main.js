@@ -689,7 +689,16 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
       }
     },
     restoreTab: function() {
-      var count = commandCount;
+      var count = commandCount, ports;
+      if (count === 1 && (ports = framesForTab[TabRecency.last()])
+        && ports[0].sender.tab.incognito) {
+        ports[0].postMessage({
+          name: "showHUD",
+          text: "Can not restore a tab in incognito mode!",
+          time: 2000
+        });
+        return;
+      }
       while (--count >= 0) {
         chrome.sessions.restore();
       }
