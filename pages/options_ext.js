@@ -19,8 +19,7 @@ $("showCommands").onclick = function(event) {
     }
     MainPort.Listener(response);
     node = DomUtils.UI.root.getElementById("HelpDialog");
-    node.removeEventListener("click", DomUtils.SuppressPropagation);
-    node.addEventListener("click", function(event) {
+    node.onclick = function(event) {
       var target = event.target, str;
       if (target.classList.contains("HelpCommandName")) {
         str = target.innerText.slice(1, -1);
@@ -30,7 +29,7 @@ $("showCommands").onclick = function(event) {
         });
         VHUD.showCopied(str);
       }
-    });
+    };
   });
 };
 

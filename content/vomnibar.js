@@ -84,7 +84,7 @@ activate: function(_0, options, force_current) {
     }
     handlerStack.remove(this);
     handlerStack.push(this.onKeydown, this);
-    this.box.addEventListener("mousewheel", this.onWheel);
+    this.box.onmousewheel = this.onWheel;
   },
   hide: function() {
     if (this.timer > 0) {
@@ -92,7 +92,7 @@ activate: function(_0, options, force_current) {
       this.timer = 0;
     }
     this.box.style.display = "none";
-    this.box.removeEventListener("mousewheel", this.onWheel);
+    this.box.onmousewheel = null;
     this.list.textContent = "";
     this.input.value = "";
     handlerStack.remove(this);
@@ -388,7 +388,7 @@ activate: function(_0, options, force_current) {
     MainPort.sendMessage({
       handler: "initVomnibar"
     }, function(response) { Vomnibar.init_dom(response); });
-    box.addEventListener("click", function(e) { Vomnibar.onClick(e) });
+    box.onclick = function(e) { Vomnibar.onClick(e) };
     box.vimiumHasOnclick = false;
     if (window.location.protocol.startsWith("chrome") && chrome.runtime.getManifest
         && (opts = chrome.runtime.getManifest())) {
@@ -418,7 +418,7 @@ activate: function(_0, options, force_current) {
     this.input.oninput = this.onInput.bind(this);
     this.input.onselect = this.OnSelected;
     this.box.querySelector("#OClose").onclick = function() { Vomnibar.hide(); };
-    this.list.addEventListener("contextmenu", this.OnMenu);
+    this.list.oncontextmenu = this.OnMenu;
   },
   computeHint: function(li, a) {
     var i = [].indexOf.call(this.list.children, li), item, rect;
