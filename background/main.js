@@ -70,7 +70,7 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
           , command, ")</span>\n\t");
       }
     } else {
-      html.push('<td class="HelpTd HelpKeys HelpLongKeys" colspan="3">'
+      html.push('<td class="HelpTd HelpKeys HelpLongKeys" colspan="2">'
         , bindings);
     }
     html.push("</td>\n</tr>\n");
