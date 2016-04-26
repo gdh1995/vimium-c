@@ -48,7 +48,7 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
       }
       isAdvanced = Commands.advancedCommands.indexOf(command) >= 0;
       description = availableCommands[command][0];
-      if (!keys || keys.join("").length <= 8) {
+      if (!keys || keys.join(", ").length <= 12) {
         helpDialogHtmlForCommand(html, isAdvanced, bindings, description, showNames && command);
       } else {
         helpDialogHtmlForCommand(html, isAdvanced, bindings, "", "");
