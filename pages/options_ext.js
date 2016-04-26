@@ -18,7 +18,7 @@ $("showCommands").onclick = function(event) {
       node.onclick();
     }
     MainPort.Listener(response);
-    node = root.getElementById("HelpDialog");
+    node = DomUtils.UI.root.getElementById("HelpDialog");
     node.removeEventListener("click", DomUtils.SuppressPropagation);
     node.addEventListener("click", function(event) {
       var target = event.target, str;
