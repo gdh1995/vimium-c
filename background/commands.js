@@ -88,7 +88,7 @@ commandGroups: {
   pageNavigation: ["scrollDown", "scrollUp", "scrollLeft", "scrollRight", "scrollToTop"
     , "scrollToBottom", "scrollToLeft", "scrollToRight", "scrollPageDown", "scrollPageUp"
     , "scrollPxDown", "scrollPxUp", "scrollPxLeft", "scrollPxRight"
-    , "scrollFullPageUp", "scrollFullPageDown", "reload", "reloadTab", "reloadGivenTab"
+    , "scrollFullPageDown", "scrollFullPageUp", "reload", "reloadTab", "reloadGivenTab"
     , "toggleViewSource"
     , "copyCurrentUrl", "copyCurrentTitle", "switchFocus", "simBackspace"
     , "LinkHints.activateModeToCopyLinkUrl", "LinkHints.activateModeToCopyLinkText"
