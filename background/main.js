@@ -37,13 +37,18 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
     html = [];
     _ref = Commands.commandGroups[group];
     showNames = showNames || "";
+    Utils.escapeText("");
     for (_i = 0, _len = _ref.length; _i < _len; _i++) {
       command = _ref[_i];
       if ((keys = commandsToKey[command]) || showUnbound) {
-      bindings = keys ? keys.join(", ") : "";
+      if (keys && keys.length > 0) {
+        bindings = '\n\t\t<span class="HelpKey">' + keys.map(Utils.escapeText).join('</span>, <span class="HelpKey">') + "</span>\n\t";
+      } else {
+        bindings = "";
+      }
       isAdvanced = Commands.advancedCommands.indexOf(command) >= 0;
       description = availableCommands[command][0];
-      if (bindings.length <= 8) {
+      if (!keys || keys.join("").length <= 8) {
         helpDialogHtmlForCommand(html, isAdvanced, bindings, description, showNames && command);
       } else {
         helpDialogHtmlForCommand(html, isAdvanced, bindings, "", "");
@@ -57,20 +62,16 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
   helpDialogHtmlForCommand = function(html, isAdvanced, bindings, description, command) {
     html.push('<tr class="HelpTr', isAdvanced ? " HelpAdv" : "", '">\n\t');
     if (description) {
-      html.push('<td class="HelpTd HelpKey">\n\t\t'
-        , '<span class="HelpShortKey">'
-        , bindings && Utils.escapeText(bindings), "</span>\n\t</td>\n\t"
-        , '<td class="HelpTd">', bindings && ":", "</td>\n\t"
-        , '<td class="HelpTd HelpCommandInfo">'
+      html.push('<td class="HelpTd HelpKeys">'
+        , bindings, '</td>\n\t<td class="HelpTd HelpCommandInfo">'
         , description);
       if (command) {
         html.push('\n\t\t<span class="HelpCommandName" role="link">('
           , command, ")</span>\n\t");
       }
     } else {
-      html.push('<td class="HelpTd" colspan="3">\n\t\t'
-        , '<span class="HelpLongKey">'
-        , Utils.escapeText(bindings), "</span>&#160;:\n\t");
+      html.push('<td class="HelpTd HelpKeys HelpLongKeys" colspan="3">'
+        , bindings);
     }
     html.push("</td>\n</tr>\n");
   };

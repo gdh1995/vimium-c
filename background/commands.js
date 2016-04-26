@@ -149,7 +149,6 @@ defaultKeyMappings: {
   R: "reloadTab",
   "<a-r>": "reloadGivenTab",
   "<a-R>": "reopenTab",
-  gs: "toggleViewSource",
   i: "enterInsertMode",
   H: "goBack",
   L: "goForward",

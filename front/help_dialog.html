@@ -1,23 +1,26 @@
 <div class="R Scroll" id="HelpDialog">
 <style type="text/css">
 #HelpDialog {
-	background-color: #eee;
+	background-color: white;
+	border: 2px solid #b3b3b3;
 	border-radius: 6px;
 	box-shadow: rgba(0, 0, 0, 0.4) 0 0 6px;
-	left: 50%;
+	left: calc(50% - 422px);
 	line-height: 130%;
-	margin-left: -320px;
 	max-height: calc(100% - 116px);
 	min-height: 25px;
-	opacity: 0.92;
 	overflow-y: auto;
 	padding: 8px 12px;
 	position: fixed;
 	top: 50px;
-	width: 640px;
+	width: 816px;
 	z-index: 2147483643;
 }
 
+#HTop {
+	height: 26px;
+	padding: 3px;
+}
 .ColumnBox {
 	float: left;
 	width: 50%;
@@ -35,12 +38,18 @@
 }
 .HelpTr {
 	display: table-row;
-	height: 17px;
 }
 .HelpTd {
 	display: table-cell;
-	vertical-align: top;
+	line-height: 130%;
 	padding: 1px;
+	padding-left: 3px;
+	vertical-align: top;
+}
+.HDivider {
+	border-bottom: 1px solid #999;
+	display: block;
+	margin: 10px auto;
 }
 
 .HelpAdv {
@@ -50,23 +59,36 @@
 	display: table-row;
 }
 
-.HelpKey {
-	max-width: 53px;
-}
-.HelpLongKey, .HelpShortKey {
-	color: #2f508e;
-	float: right;
-	font-weight: bold;
+.HelpKeys {
+	clear: both;
+	color: #333;
+	font-family: monospace;
+  line-height: 18.2px;
+	text-align: right;
 	white-space: nowrap;
-	font-family: Consolas, "Liberation Mono", Courier, monospace;
 }
-.HelpLongKey {
-	float: none;
+.HelpLongKeys {
+	text-align: left;
+}
+.HelpKey {
+  background-color: #f3f3f3;
+  border: solid 1px #ccc;
+  border-bottom-color: #bbb;
+  border-radius: 3px;
+  box-shadow: inset 0 -1px 0 #bbb;
+  padding: 1px 4px;
 }
 .HelpCommandInfo {
+	font-size: 14px;
 	width: 100%;
 }
+.HelpCommandName {
+	font-style: italic;
+	cursor: pointer;
+	font-size: 12px;
+}
 .HelpSectionTitle {
+	font-size: 16px;
 	font-weight: bold;
 	padding-top: 3px;
 }
@@ -81,20 +103,22 @@
 }
 .TopLink {
 	float: right;
-	margin-right: 20px;
-	top: 8px;
+	font-size: 14px;
+	margin-right: 14px;
+	position: relative;
+	top: 7px;
 }
 #HClose {
 	-webkit-user-select: none;
 	color: #555;
 	font-family: "Courier New", Courier, monospace;
-	font-size: 20px;
+	font-size: 24px;
 	font-weight: bold;
 	line-height: 12px;
 	text-align: right;
 	text-decoration: none;
-	margin-right: 0;
-	padding-top: 2px;
+	margin: 0 0 0 1px;
+	padding-top: 3px;
 }
 #HClose:hover {
 	-webkit-user-select: none;
@@ -133,14 +157,17 @@
 }
 </style>
 
-	<a class="L TopLink" id="HClose">&#215;</a>
-	<a class="L TopLink" id="OptionsPage">Options</a>
-	<a class="L TopLink" target="_blank" href="https://github.com/philc/vimium/wiki">Wiki</a>
-	<div style="display:block;font-size:20px;line-height:130%;"><span style="color:#2f508e">Vim</span>ium++ {{title}}</div>
-	<div class="ColumnBox" style="margin: 0 5px 0 -10px;">
+	<div id="HTop">
+		<a class="L TopLink" id="HClose">&#215;</a>
+		<a class="L TopLink" id="OptionsPage">Options</a>
+		<a class="L TopLink" target="_blank" href="https://github.com/philc/vimium/wiki">Wiki</a>
+		<span style="font-size:20px;line-height:130%;"><span style="color:#2f508e">Vim</span>ium++ {{title}}</span>
+	</div>
+	<div class="HDivider"></div>
+	<div class="ColumnBox">
 		<table class="R HelpTable">
 		<tbody class="Column">
-			<tr class="HelpTr"><td class="HelpTd"></td><td class="HelpTd"></td><td class="HelpTd HelpSectionTitle">Navigating the page</td></tr>
+			<tr class="HelpTr"><td class="HelpTd"></td><td class="HelpTd HelpSectionTitle">Navigating the page</td></tr>
 {{pageNavigation}}
 		</tbody>
 		</table>
@@ -148,23 +175,23 @@
 	<div class="ColumnBox">
 		<table class="R HelpTable">
 		<tbody class="Column">
-			<tr class="HelpTr"><td class="HelpTd" colspan="2"></td><td class="HelpTd HelpSectionTitle">Using the Vomnibar</td></tr>
+			<tr class="HelpTr"><td class="HelpTd"></td><td class="HelpTd HelpSectionTitle">Using the Vomnibar</td></tr>
 {{vomnibarCommands}}
-			<tr class="HelpTr"><td class="HelpTd" colspan="2"></td><td class="HelpTd HelpSectionTitle">Using find</td></tr>
+			<tr class="HelpTr"><td class="HelpTd"></td><td class="HelpTd HelpSectionTitle">Using find</td></tr>
 {{findCommands}}
-			<tr class="HelpTr"><td class="HelpTd" colspan="2"></td><td class="HelpTd HelpSectionTitle">Navigating history</td></tr>
+			<tr class="HelpTr"><td class="HelpTd"></td><td class="HelpTd HelpSectionTitle">Navigating history</td></tr>
 {{historyNavigation}}
-			<tr class="HelpTr"><td class="HelpTd" colspan="2"></td><td class="HelpTd HelpSectionTitle">Manipulating tabs</td></tr>
+			<tr class="HelpTr"><td class="HelpTd"></td><td class="HelpTd HelpSectionTitle">Manipulating tabs</td></tr>
 {{tabManipulation}}
-			<tr class="HelpTr"><td class="HelpTd" colspan="2"></td><td class="HelpTd HelpSectionTitle">Miscellaneous</td></tr>
+			<tr class="HelpTr"><td class="HelpTd"></td><td class="HelpTd HelpSectionTitle">Miscellaneous</td></tr>
 {{misc}}
-			<tr class="HelpTr"><td class="HelpTd" colspan="3">&#160;</td></tr>
+			<tr class="HelpTr"><td class="HelpTd" colspan="2">&#160;</td></tr>
 		</tbody>
 		</table>
 	</div>
 
 	<br clear="both" />
-	<div style="display: block; height: 1px; width: 92%; margin: 10px auto; background-color: #9a9a9a;"></div>
+	<div class="HDivider"></div>
 
 	<div style="display:block; position:relative;">
 		<a class="L" id="AdvancedCommands">Show advanced commands</a>
