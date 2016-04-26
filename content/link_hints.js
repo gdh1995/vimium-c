@@ -217,6 +217,7 @@ var LinkHints = {
         s = s.replace(LinkHints.hashRe, "").replace(LinkHints.quoteRe, '\\"');
         DomUtils.getClientRectsForAreas(this, arr[0], document.querySelector('map[name="' + s + '"]'));
       }
+      if ((s = element.style.cursor) && (s === "zoom-in" || s === "zoom-out")) { isClickable = true; }
       break;
     }
     while (isClickable === null) {
