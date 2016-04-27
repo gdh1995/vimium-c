@@ -371,7 +371,7 @@ domains: {
   },
   populateDomains: function(history) {
     var i = history.length;
-    this.domains = Object.create(null);
+    Utils.domains = this.domains = Object.create(null);
     while (0 <= --i) {
       this.onPageVisited(history[i]);
     }
@@ -393,7 +393,7 @@ domains: {
   OnVisitRemoved: function(toRemove) {
     var _this = Completers.domains;
     if (toRemove.allHistory) {
-      _this.domains = {};
+      Utils.domains = _this.domains = Object.create(null);
       return;
     }
     var domains = _this.domains, parse = _this.parseDomainAndScheme,

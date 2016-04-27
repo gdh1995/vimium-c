@@ -58,6 +58,7 @@ var exports = {}, Utils = {
     , ".science.website"
     , ".engineer.software"
   ],
+  domains: {},
   _hostRe: /^([^:]+(:[^:]+)?@)?([^:]+|\[[^\]]+\])(:\d{2,5})?$/,
   _ipRe: /^(?:\d{1,3}\.){3}\d{1,3}$/,
   spacesRe: /\s+/g,
@@ -150,7 +151,7 @@ var exports = {}, Utils = {
     } else if ((string = arr[3]).indexOf(':') !== -1 || string.endsWith("localhost")) {
       type = expected;
     } else if ((index = string.lastIndexOf('.')) <= 0) {
-      type = expected !== 1 ? expected : 2;
+      type = expected !== 1 || (string in this.domains) ? expected : 2;
     } else if (this._ipRe.test(string)) {
       type = expected;
     } else if ((type = this.isTld(string.substring(index + 1))) == 0) {
