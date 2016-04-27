@@ -455,7 +455,7 @@ var exports = {}, Utils = {
     }
     return rules;
   },
-  escapeAllRe: /[\$\(\)\*\+\.\?\[\\\]\^\{\|\}_]/g,
+  escapeAllRe: /[\$\(\)\*\+\.\?\[\\\]\^\{\|\}]/g,
   _spaceOrPlusRe: /\\\+|%20| /g,
   _queryRe: /[#?]/,
   alphaRe: /[a-z]/i,

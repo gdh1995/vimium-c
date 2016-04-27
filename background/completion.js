@@ -254,7 +254,7 @@ history: {
     maxNum -= 2;
     // inline version of RankingUtils.Match2
     for (j = len2 = queryTerms.length; 0 <= --j; ) {
-      regexps.push(RegexpCache.get(query[j], "", ""));
+      regexps.push(RegexpCache.item(query[j]));
     }
     for (i = 0; i < len; ++i) {
       item = history[i];
@@ -671,7 +671,7 @@ searchEngines: {
     Match2: function(s1, s2) {
       var i = queryTerms.length, cache = RegexpCache, regexp;
       while (0 <= --i) {
-        regexp = cache.get(queryTerms[i], "", "");
+        regexp = cache.item(queryTerms[i]);
         if (!(regexp.test(s1) || regexp.test(s2))) { return false; }
       }
       return true;
@@ -688,7 +688,7 @@ searchEngines: {
       var count, nonMatching, score;
       score = 0;
       count = 0;
-      nonMatching = string.split(RegexpCache.get(term, "", ""));
+      nonMatching = string.split(RegexpCache.item(term));
       if (nonMatching.length > 1) {
         score = this.anywhere;
         count = nonMatching.reduce(this._reduceLength, string.length);
@@ -746,6 +746,10 @@ searchEngines: {
     get: function(s, p, n) {
       var r = p + s.replace(this.escapeRe, "\\$&") + n, v;
       return (v = this._cache)[r] || (v[r] = new RegExp(r, Utils.upperRe.test(s) ? "" : "i"));
+    },
+    item: function(s) {
+      return this._cache[s] || (this._cache[s] = new RegExp(
+        s.replace(this.escapeRe, "\\$&"), Utils.upperRe.test(s) ? "" : "i"));
     }
   };
 
