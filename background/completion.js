@@ -350,9 +350,10 @@ domains: {
     }
   },
   performSearch: function(query) {
-    var ref = this.domains, domain, q = queryTerms, word = q[0]
+    var ref = this.domains, domain, p = RankingUtils.maxScoreP, q = queryTerms, word = q[0]
       , sug, wordRelevancy, score, result = "", result_score = -1000;
     queryTerms = [word];
+    RankingUtils.maxScoreP = RankingUtils.maximumScore;
     for (domain in ref) {
       if (domain.indexOf(word) === -1) { continue; }
       score = RankingUtils.recencyScore(ref[domain][0]);
@@ -367,6 +368,7 @@ domains: {
       sug.textSplit = SuggestionUtils.cutUrl(result, SuggestionUtils.getRanges(result), sug.url);
     }
     queryTerms = q;
+    RankingUtils.maxScoreP = p;
     Completers.next(sug ? [sug] : []);
   },
   populateDomains: function(history) {
@@ -610,6 +612,7 @@ searchEngines: {
       i = 0;
     }
     RankingUtils.timeAgo = Date.now() - RankingUtils.timeCalibrator;
+    RankingUtils.maxScoreP = RankingUtils.maximumScore * queryTerms.length || 0.01;
     for (; i < l; i++) {
       completers[i].filter(query);
     }
@@ -680,6 +683,7 @@ searchEngines: {
     startOfWord: 1,
     wholeWord: 1,
     maximumScore: 3,
+    maxScoreP: 3,
     recCalibrator: 2.0 / 3.0,
     _reduceLength: function(p, c) {
       return p - c.length;
@@ -711,14 +715,11 @@ searchEngines: {
           titleScore += a[0]; titleCount += a[1];
         }
       }
-      maximumPossibleScore = this.maximumScore * queryTerms.length + 0.01;
-      urlScore = urlScore / maximumPossibleScore
-          * this.normalizeDifference(urlCount, url.length);
+      urlScore = urlScore / this.maxScoreP * this.normalizeDifference(urlCount, url.length);
       if (!title) {
         return urlScore;
       }
-      titleScore = titleScore / maximumPossibleScore
-          * this.normalizeDifference(titleCount, title.length);
+      titleScore = titleScore / this.maxScoreP * this.normalizeDifference(titleCount, title.length);
       return (urlScore < titleScore) ? titleScore : ((urlScore + titleScore) / 2);
     },
     timeCalibrator: 604800000, // 7 days
