@@ -270,7 +270,9 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
         chrome.sessions.restore();
         return chrome.runtime.lastError;
       }
-      tab && chrome.tabs.reload(tab.id, funcDict.refreshTab[1].bind(null, null));
+      tab && setTimeout(function() {
+        chrome.tabs.reload(tab.id, funcDict.refreshTab[1].bind(null, null));
+      }, 17);
     }],
     makeWindow: function(option, state, callback) {
       if (state && Settings.CONST.ChromeVersion >= 44) {
