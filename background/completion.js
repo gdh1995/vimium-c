@@ -722,11 +722,11 @@ searchEngines: {
       titleScore = titleScore / this.maxScoreP * this.normalizeDifference(titleCount, title.length);
       return (urlScore < titleScore) ? titleScore : ((urlScore + titleScore) / 2);
     },
-    timeCalibrator: 604800000, // 7 days
+    timeCalibrator: 1814400000, // 21 days
     timeAgo: 0,
     recencyScore: function(lastAccessedTime) {
       var score = Math.max(0, lastAccessedTime - this.timeAgo) / this.timeCalibrator;
-      return score * score * score * this.recCalibrator;
+      return score * score * this.recCalibrator;
     },
     normalizeDifference: function(a, b) {
       var max = Math.max(a, b);
