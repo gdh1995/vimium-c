@@ -370,10 +370,12 @@ domains: {
     Completers.next(sug ? [sug] : []);
   },
   populateDomains: function(history) {
-    var callback = this.onPageVisited.bind(this);
+    var i = history.length;
     this.domains = Object.create(null);
-    history.forEach(callback);
-    chrome.history.onVisited.addListener(callback);
+    while (0 <= --i) {
+      this.onPageVisited(history[i]);
+    }
+    chrome.history.onVisited.addListener(this.onPageVisited.bind(this));
     chrome.history.onVisitRemoved.addListener(this.OnVisitRemoved);
   },
   onPageVisited: function(newPage) {
