@@ -253,7 +253,7 @@ history: {
     }
     maxNum -= 2;
     // inline version of RankingUtils.Match2
-    for (j = len2 = queryTerms.length; 0 <= --j; ) {
+    for (j = len2 = query.length; 0 <= --j; ) {
       regexps.push(RegexpCache.item(query[j]));
     }
     for (i = 0; i < len; ++i) {
@@ -596,7 +596,6 @@ searchEngines: {
   callback: null,
   filter: function(completers) {
     RegexpCache.clear();
-    RankingUtils.timeAgo = Date.now() - RankingUtils.timeCalibrator;
     if (this.mostRecentQuery) { this.mostRecentQuery.isOff = true; }
     var query = this.mostRecentQuery = {
       isOff: false
@@ -610,6 +609,7 @@ searchEngines: {
     } else {
       i = 0;
     }
+    RankingUtils.timeAgo = Date.now() - RankingUtils.timeCalibrator;
     for (; i < l; i++) {
       completers[i].filter(query);
     }
@@ -685,9 +685,7 @@ searchEngines: {
       return p - c.length;
     },
     scoreTerm: function(term, string) {
-      var count, nonMatching, score;
-      score = 0;
-      count = 0;
+      var count = 0, nonMatching, score = 0;
       nonMatching = string.split(RegexpCache.item(term));
       if (nonMatching.length > 1) {
         score = this.anywhere;
@@ -702,17 +700,15 @@ searchEngines: {
       return [score, count < string.length ? count : string.length];
     },
     wordRelevancy: function(url, title) {
-      var c, maximumPossibleScore, s, term, titleCount, titleScore
-        , urlCount, urlScore, _i = queryTerms.length, _ref;
-      urlScore = titleScore = 0.0;
-      urlCount = titleCount = 0;
+      var a, term, titleCount, titleScore, urlCount, urlScore, _i = queryTerms.length;
+      urlScore = titleScore = urlCount = titleCount = 0;
       while (0 <= --_i) {
         term = queryTerms[_i];
-        _ref = this.scoreTerm(term, url); s = _ref[0]; c = _ref[1];
-        urlScore += s; urlCount += c;
+        a = this.scoreTerm(term, url);
+        urlScore += a[0]; urlCount += a[1];
         if (title) {
-          _ref = this.scoreTerm(term, title); s = _ref[0]; c = _ref[1];
-          titleScore += s; titleCount += c;
+          a = this.scoreTerm(term, title);
+          titleScore += a[0]; titleCount += a[1];
         }
       }
       maximumPossibleScore = this.maximumScore * queryTerms.length + 0.01;
