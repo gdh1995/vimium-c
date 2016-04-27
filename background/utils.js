@@ -156,7 +156,7 @@ var exports = {}, Utils = {
     } else if (this._ipRe.test(string)) {
       type = expected;
     } else if ((type = this.isTld(string.substring(index + 1))) == 0) {
-      type = 2;
+      type = (string in this.domains) ? expected : 2;
     } else if ((string.length !== index + 3 && type === 1) && this._nonENDoaminRe.test(string)) {
       // `non-english.non-ccTld` AND NOT `non-english.non-english-tld`
       type = 2;
