@@ -121,7 +121,7 @@ var exports = {}, Utils = {
     }
     else if ((index2 = string.indexOf('/', index + 3)) === -1
         ? string.length < oldString.length
-        : (expected = string.charCodeAt(index2 + 1), expected <= 32 || expected === 47 )
+        : (expected = string.charCodeAt(index2 + 1), expected <= 32 || expected === 47)
     ) {
       type = 2;
     }
