@@ -34,9 +34,14 @@ Note: the "browsing activity" listed above actually includes many permissions:
     "tabs", "<all_urls>" and "webNavigation".
 
 
-Other Explanation
+Other Explanations
 =================
 
 Vimium++ also registers a search key "v" for Chrome omni bar, which makes the bar work just like Vomnibar.
 
 Vimium++ overrides the "newtab" chrome url in order to provide better user experience on chrome://newtab pages.
+
+Such permissions can be removed safely and won't break Vimium:
+* "notifications", "storage" and "webNavigation"
+* before Chrome 37, there's no "sessions" functionality, so a few commands of Vimium++ won't work,
+    but most others are not influenced.
