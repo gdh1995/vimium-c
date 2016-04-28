@@ -9,7 +9,7 @@ Your search history on `Vomnibar` and `Link Hints` modes will be cleaned immedia
 
 While Vimium++ supports both settings syncing (uploading) and exporting,
     your search keywords on `Find` mode won't be included,
-    so the your privact is very safe.
+    so the your privacy is very safe.
 
 Please pay attention that your `Find` mode search keywords on an incognito tab are remembered on your local computer,
     and keep existing until the next search keyword - just closing an incognito window won't let Vimium++ clean them.
