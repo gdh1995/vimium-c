@@ -515,12 +515,6 @@ var LinkHints = {
       this.clean();
     }
   },
-  lastHovered: null,
-  unhoverLast: function(element) {
-    (element instanceof Element) || (element = null);
-    this.lastHovered && DomUtils.simulateMouse(this.lastHovered, "mouseout", null, element);
-    this.lastHovered = element;
-  },
   reinit: function(lastEl, rect) {
     this.isActive = false;
     this.activate(0, this.options);
@@ -709,8 +703,10 @@ HOVER: {
   128: "Hover over node",
   192: "Hover over nodes continuously",
   activator: function(element) {
-    this.lastHovered = element;
+    var last = DomUtils.lastHovered;
+    last && DomUtils.simulateMouse(last, "mouseout", modifiers, last === element ? null : element);
     Scroller.current = element;
+    DomUtils.lastHovered = element;
     DomUtils.simulateMouse(element, "mouseover");
   }
 },
@@ -843,7 +839,6 @@ DOWNLOAD_LINK: {
   200: "Download multiple links",
   activator: function(link) {
     var oldDownload, oldUrl;
-    this.unhoverLast(link);
     oldUrl = link.getAttribute("href");
     if (!oldUrl || oldUrl === "#") {
       oldDownload = link.getAttribute("data-vim-url");
@@ -881,7 +876,6 @@ DEFAULT: {
   67: "Activate link and hold on",
   activator: function(link) {
     var mode, alterTarget, tag = link.nodeName.toLowerCase();
-    this.unhoverLast(link);
     mode = DomUtils.getEditableType(link);
     if (mode === 3) {
       DomUtils.UI.simulateSelect(link, true);
