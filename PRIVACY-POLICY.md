@@ -31,7 +31,7 @@ This extension Vimium++ requires such types of information and permissions:
 * your bookmarks and navigating history to provide
 
 Note: the "browsing activity" listed above actually includes many permissions:
-    "tabs", "<all_urls>" and "webNavigation".
+    "tabs", "\<all_urls\>" and "webNavigation".
 
 
 Other Explanations
