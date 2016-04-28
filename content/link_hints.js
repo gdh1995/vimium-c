@@ -704,7 +704,7 @@ HOVER: {
   192: "Hover over nodes continuously",
   activator: function(element) {
     var last = DomUtils.lastHovered;
-    last && DomUtils.simulateMouse(last, "mouseout", modifiers, last === element ? null : element);
+    last && DomUtils.simulateMouse(last, "mouseout", null, last === element ? null : element);
     Scroller.current = element;
     DomUtils.lastHovered = element;
     DomUtils.simulateMouse(element, "mouseover");
