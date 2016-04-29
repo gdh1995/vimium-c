@@ -73,12 +73,12 @@ var Exclusions = {
     return url;
   },
   RefreshStatus: function(old_disabled) {
-    var ref = Settings.framesForTab, tabId, frames, i, req, pass, status = "enabled";
-    req = Exclusions.rules.length <= 0 ? null : {
+    var ref = Settings.framesForTab, tabId, frames, i, req, pass, status = "enabled", port;
+    req = Exclusions.rules.length > 0 ? null : {
       name: "reset",
       passKeys: null
     };
-    if (old_disabled && req) {
+    if (old_disabled && !req) {
       Settings.postUpdate("broadcast", {
         name: "checkIfEnabled"
       });
@@ -87,6 +87,7 @@ var Exclusions = {
     for (tabId in ref) {
       frames = ref[tabId];
       for (i = frames.length; 0 < --i; ) {
+        port = frames[i];
         if (req) {
           if (port.sender.status === "enabled") {
             continue;
