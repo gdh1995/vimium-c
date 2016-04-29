@@ -342,7 +342,8 @@ activate: function(_0, options, force_current) {
   onWheel: function(event) {
     if (event.ctrlKey || event.metaKey) { return; }
     DomUtils.suppressEvent(event);
-    if (event.deltaX || Date.now() - this.wheelTimer < 80) { return; }
+    var delta = 80 * (KeyboardUtils.onMac ? 2.5 : 1);
+    if (event.deltaX || Date.now() - this.wheelTimer < delta) { return; }
     this.wheelTimer = Date.now();
     this.goPage(event.deltaY > 0 ? 1 : -1);
   },
