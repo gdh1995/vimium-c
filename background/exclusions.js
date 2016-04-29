@@ -17,7 +17,7 @@ var Exclusions = {
   _listening: false,
   rules: [],
   setRules: function(rules) {
-    var onURLChange = chrome.webNavigation && this.onURLChange || g_requestHandlers.checkIfEnabled;
+    var onURLChange = chrome.webNavigation && (this.onURLChange || g_requestHandlers.checkIfEnabled);
     if (rules.length === 0) {
       this.rules = [];
       this.getPattern = function() { return null; };
