@@ -2,7 +2,7 @@
 set -o noglob
 
 if [ -z "$1" ]; then
-OUTPUT=vimium++_1.52.crx
+OUTPUT=vimium++_1.52.1.crx
 else
 OUTPUT="$1"
 fi

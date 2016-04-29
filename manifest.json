@@ -100,7 +100,7 @@
     "<all_urls>"
   ],
   "update_url": "https://clients2.google.com/service/update2/crx",
-  "version": "1.52",
+  "version": "1.52.1",
   "web_accessible_resources": [
     "content/*",
     "lib/*"
