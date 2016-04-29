@@ -1037,7 +1037,7 @@ var Settings, VHUD, MainPort, VInsertMode;
         dom1 = DomUtils.createElement("div");
         dom1.setAttribute("style", "background:none;border:5px solid yellow;box-shadow:none;\
 box-sizing:border-box;display:block;float:none;height:100%;left:0;margin:0;\
-opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483644;");
+opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647;");
         _this.node = dom1;
         _this.timer = setInterval(_this.Remove, 200);
       }

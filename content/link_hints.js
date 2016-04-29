@@ -84,6 +84,7 @@ var LinkHints = {
     elements = null;
     this.alphabetHints.initMarkers(this.hintMarkers);
 
+    VHUD.show(this.modeOpt[this.mode]);
     this.box = DomUtils.UI.addElementList(this.hintMarkers, {
       id: "HMC",
       className: "R"
@@ -92,7 +93,6 @@ var LinkHints = {
     style.left = x + "px"; style.top = y + "px";
     if (document.webkitFullscreenElement) { style.position = "fixed"; }
 
-    VHUD.show(this.modeOpt[this.mode]);
     this.isActive = true;
     this.keyStatus.tab = 0;
     handlerStack.push(this.onKeyDownInMode, this);

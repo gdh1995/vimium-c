@@ -67,7 +67,7 @@
 	overflow: visible;
 	pointer-events: none;
 	position: absolute;
-	z-index: 2147483640;
+	z-index: 2147483645;
 }
 .IH {
 	background-color: rgba(255, 247, 133, 0.3);
@@ -96,7 +96,7 @@
 	text-shadow: 0 1px 2px #FFF;
 	white-space: nowrap;
 	/* less than hint markers', so link hints can be shown e.g. for the panel's close button. */
-	z-index: 2147483645;
+	z-index: 2147483646;
 }
 
 /* Flash */
