@@ -51,10 +51,10 @@ var Exclusions = {
     return matchedKeys || null;
   },
   onURLChange: Settings.CONST.ChromeVersion < 41 && function(details) {
-    var ref = Settings.framesForTab[details.tabId], i;
+    var ref = Settings.framesForTab[details.tabId], i, msg = { name: "checkIfEnabled" };
     // force the tab's ports to reconnect and refresh their pass keys
     for (i = ref && ref.length; 0 < --i; ) {
-      ref[i].disconnect();
+      ref[i].postMessage(msg);
     }
   },
   format: function(rules) {
@@ -72,12 +72,18 @@ var Exclusions = {
     this.rules = old;
     return url;
   },
-  RefreshStatus: function() {
+  RefreshStatus: function(old_disabled) {
     var ref = Settings.framesForTab, tabId, frames, i, req, pass, status = "enabled";
     req = Exclusions.rules.length <= 0 ? null : {
       name: "reset",
       passKeys: null
     };
+    if (old_disabled && req) {
+      Settings.postUpdate("broadcast", {
+        name: "checkIfEnabled"
+      });
+      return;
+    }
     for (tabId in ref) {
       frames = ref[tabId];
       for (i = frames.length; 0 < --i; ) {
@@ -100,7 +106,8 @@ var Exclusions = {
 };
 
 Settings.updateHooks.exclusionRules = function(rules) {
+  var disabled = Exclusions.rules.length <= 0;
   Exclusions.setRules(rules);
   g_requestHandlers.esc();
-  setTimeout(Exclusions.RefreshStatus, 17);
+  setTimeout(Exclusions.RefreshStatus, 17, disabled);
 };

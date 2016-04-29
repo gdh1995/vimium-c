@@ -1161,6 +1161,12 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
       }
       DomUtils.UI.box && DomUtils.UI.Toggle(isEnabledForUrl);
     },
+    checkIfEnabled: function() {
+      mainPort.port.postMessage({
+        handler: "checkIfEnabled",
+        url: window.location.href
+      });
+    },
     settingsUpdate: function(response) {
       var ref = settings.cache, i;
       Object.setPrototypeOf(response, null);
@@ -1305,7 +1311,7 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
     ELs.onWndFocus = mainPort.safePost.bind(mainPort, { handler: "frameFocused" });
   });
 
-  isInjected && (settings.ELs = ELs);
+  isInjected && (settings.ELs = ELs, settings.checkIfEnabled = requestHandlers.checkIfEnabled);
 
   ELs.destroy = function() {
     var f = removeEventListener;
