@@ -761,9 +761,17 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
       }
     },
     reloadTab: function(tabs) {
-      if (tabs.length <= 0) {}
+      if (tabs.length <= 0) {
+        chrome.windows.getCurrent(function(wnd) {
+          if (!wnd) { return chrome.runtime.lastError; }
+          chrome.tabs.query({windowId: wnd.id, active: true}, function(tabs) {
+            if (!tabs) { return chrome.runtime.lastError; }
+            tabs.length > 0 && BackgroundCommands.reloadTab(tabs);
+          });
+        });
+      }
       else if (commandCount <= 1 || tabs.length == 1) {
-        chrome.tabs.reload();
+        chrome.tabs.reload(tabs[0].id);
       } else {
         var ind = funcDict.selectFrom(tabs).index;
         tabs.slice(ind, ind + commandCount).forEach(function(tab) {
