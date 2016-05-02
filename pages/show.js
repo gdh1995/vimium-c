@@ -195,9 +195,9 @@ function copyThing(event) {
   if (!(str && window.MainPort)) { return; }
   MainPort.sendMessage({
     handler: "copyToClipboard",
-    data: url
+    data: str
   }, function() {
-    VHUD.showCopied(url);
+    VHUD.showCopied(str);
   });
 }
 
