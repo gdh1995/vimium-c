@@ -762,16 +762,13 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
     },
     reloadTab: function(tabs) {
       if (tabs.length <= 0) {
-        chrome.windows.getCurrent(function(wnd) {
+        chrome.windows.getCurrent({populate: true}, function(wnd) {
           if (!wnd) { return chrome.runtime.lastError; }
-          chrome.tabs.query({windowId: wnd.id, active: true}, function(tabs) {
-            if (!tabs) { return chrome.runtime.lastError; }
-            tabs.length > 0 && BackgroundCommands.reloadTab(tabs);
-          });
+          wnd.tabs.length > 0 && BackgroundCommands.reloadTab(wnd.tabs);
         });
       }
       else if (commandCount <= 1 || tabs.length == 1) {
-        chrome.tabs.reload(tabs[0].id);
+        chrome.tabs.reload(funcDict.selectFrom(tabs).id);
       } else {
         var ind = funcDict.selectFrom(tabs).index;
         tabs.slice(ind, ind + commandCount).forEach(function(tab) {
