@@ -1062,7 +1062,7 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
 
   VHUD = HUD = {
     tweenId: 0,
-    _element: null,
+    box: null,
     opacity: 0,
     durationTimer: 0,
     showCopied: function(text, e) {
@@ -1084,14 +1084,14 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
     },
     show: function(text) {
       if (!this.enabled) { return; }
-      var el = this._element;
+      var el = this.box;
       if (!el) {
         el = DomUtils.createElement("div");
         el.className = "R";
         el.id = "HUD";
         el.style.opacity = 0;
         el.style.visibility = "hidden";
-        DomUtils.UI.addElement(this._element = el);
+        DomUtils.UI.addElement(this.box = el);
       } else if (this.durationTimer) {
         clearTimeout(this.durationTimer);
         this.durationTimer = 0;
@@ -1103,7 +1103,7 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
       this.opacity = 1;
     },
     tween: function() {
-      var hud = HUD, el = hud._element, opacity = +el.style.opacity;
+      var hud = HUD, el = hud.box, opacity = +el.style.opacity;
       if (opacity !== hud.opacity) {
         if (opacity === 0) {
           el.style.visibility = "";
@@ -1132,11 +1132,11 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
       if (immediate === true) {
         clearInterval(hud.tweenId);
         hud.tweenId = 0;
-        el = hud._element;
+        el = hud.box;
         el.style.visibility = "hidden";
         el.textContent = "";
         el.style.opacity = 0;
-      } else if (!hud.tweenId && hud._element) {
+      } else if (!hud.tweenId && hud.box) {
         hud.tweenId = setInterval(hud.tween, 40);
       }
     },
