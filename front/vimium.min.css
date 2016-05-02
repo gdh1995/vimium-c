@@ -5,5 +5,5 @@
 #IMC{overflow:visible;pointer-events:none;position:absolute;z-index:2147483645}
 .IH{background-color:rgba(255,247,133,.3);border:1px solid #C38A22;display:block;position:absolute}
 .IH.S{background-color:rgba(255,102,102,.3);border:1px solid #933}
-#HUD{background-color:#ebebeb;border:1px solid #b3b3b3;border-radius:4px 4px 0 0;bottom:0;height:13px;max-width:300px;min-width:150px;padding:3px 3px 2px 3px;position:fixed;right:150px;text-overflow:ellipsis;text-shadow:0 1px 2px #FFF;white-space:nowrap;z-index:2147483646}
+.HUD{background-color:#ebebeb;border:1px solid #b3b3b3;border-radius:4px 4px 0 0;bottom:0;height:14px;line-height:14px;max-width:300px;min-width:150px;padding:2px 3px;position:fixed;right:150px;text-overflow:ellipsis;white-space:nowrap;z-index:2147483646}
 .Flash{box-shadow:0 0 4px 2px #4183C4;padding:1px;pointer-events:none;position:fixed;z-index:2147483647}

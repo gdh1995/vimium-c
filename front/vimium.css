@@ -81,19 +81,19 @@
 }
 
 /* HUD CSS */
-#HUD {
+.HUD {
 	background-color: #ebebeb;
 	border: 1px solid #b3b3b3;
 	border-radius: 4px 4px 0 0;
 	bottom: 0;
-	height: 13px;
+	height: 14px;
+  line-height: 14px;
 	max-width: 300px;
 	min-width: 150px;
-	padding: 3px 3px 2px 3px;
+	padding: 2px 3px;
 	position: fixed;
 	right: 150px;
 	text-overflow: ellipsis;
-	text-shadow: 0 1px 2px #FFF;
 	white-space: nowrap;
 	/* less than hint markers', so link hints can be shown e.g. for the panel's close button. */
 	z-index: 2147483646;

@@ -1087,8 +1087,7 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
       var el = this.box;
       if (!el) {
         el = DomUtils.createElement("div");
-        el.className = "R";
-        el.id = "HUD";
+        el.className = "R HUD";
         el.style.opacity = 0;
         el.style.visibility = "hidden";
         DomUtils.UI.addElement(this.box = el);
