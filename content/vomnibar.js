@@ -9,8 +9,8 @@ activate: function(_0, options, force_current) {
       return;
     }
     // <svg> document has not head nor body; document with pdf <embed> has body
-    if (!document.body) { return false; }
-    this.init();
+    if (!document.head) { return false; }
+    this.init(); 
   }
   Object.setPrototypeOf(options = options || {}, null);
   this.mode.type = options.mode || "omni";
