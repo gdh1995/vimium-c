@@ -95,7 +95,7 @@ var LinkHints = {
 
     this.isActive = true;
     this.keyStatus.tab = 0;
-    handlerStack.push(this.onKeyDownInMode, this);
+    handlerStack.push(this.onKeydown, this);
     VInsertMode.onWndBlur = this.OnWndBlur;
   },
   setModeOpt: function(options, count) {
@@ -418,7 +418,7 @@ var LinkHints = {
     }
     return visibleElements.reverse();
   },
-  onKeyDownInMode: function(event) {
+  onKeydown: function(event) {
     var linksMatched, i, j, ref, limit;
     if (event.repeat) {
       // NOTE: should always prevent repeated keys.
