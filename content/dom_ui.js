@@ -64,8 +64,8 @@ DomUtils.UI = {
     DomUtils.UI.box.style.display = enabled ? "" : "none";
     enabled && VInsertMode.heldEl && VInsertMode.heldEl.focus();
   },
-  createStyle: function(text) {
-    var css = DomUtils.createElement("style");
+  createStyle: function(text, doc) {
+    var css = (doc || DomUtils).createElement("style");
     css.type = "text/css";
     css.textContent = text;
     return css;

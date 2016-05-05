@@ -2,38 +2,17 @@
 var Settings, VHUD, MainPort, VInsertMode;
 (function() {
   var Commands, ELs, HUD, KeydownEvents, checkValidKey, currentSeconds //
-    , executeFind, exitFindMode //
-    , findAndFocus, findChangeListened, findMode //
-    , findModeAnchorNode, findModeQuery, findModeQueryHasResults, firstKeys //
-    , focusFoundLink, followLink, FrameMask //
+    , findAndFocus, findChangeListened//
+    , firstKeys //
+    , followLink, FrameMask //
     , getNextQueryFromRegexpMatches, getVisibleInputs, goBy //
-    , handleDeleteForFindMode, handleEnterForFindMode, handleEscapeForFindMode //
-    , handleKeyCharForFindMode, initIfEnabled, InsertMode //
+    , initIfEnabled, InsertMode //
     , isEnabledForUrl, isInjected, keyQueue, mainPort //
-    , passKeys, performFindInPlace, requestHandlers //
-    , restoreDefaultSelectionHighlight, secondKeys, settings //
-    , showFindModeHUDForQuery, updateFindModeQuery
+    , passKeys, requestHandlers //
+    , secondKeys, settings //
     ;
 
   isInjected = window.VimiumInjector ? true : false;
-
-  findMode = false;
-
-  findChangeListened = 0;
-
-  findModeQuery = {
-    rawQuery: "",
-    matchCount: 0,
-    parsedQuery: "",
-    isRe: false,
-    ignoreCase: false,
-    activeRegexpIndex: 0,
-    regexMatches: null
-  };
-
-  findModeQueryHasResults = false;
-
-  findModeAnchorNode = null;
 
   isEnabledForUrl = false;
 
@@ -188,28 +167,12 @@ var Settings, VHUD, MainPort, VInsertMode;
           action = checkValidKey(event, KeyboardUtils.keyName(key, event.shiftKey));
         }
       }
-      else if (findMode) {
-        if (key === KeyCodes.esc) {
-          if (KeyboardUtils.isPlain(event)) {
-            handleEscapeForFindMode();
-            action = 2;
-          }
-        } else if (key === KeyCodes.backspace || key === KeyCodes.deleteKey) {
-          handleDeleteForFindMode();
-          action = 2;
-        } else if (key === KeyCodes.enter) {
-          handleEnterForFindMode();
-          action = 2;
-        } else if (event.metaKey || event.ctrlKey || event.altKey) {}
-        else if (event.keyIdentifier.startsWith("U+")) {
-          action = 1;
-        } else if (! (key in KeyboardUtils.keyNames)) {
-          action = 1;
-        }
-      }
       else if (key >= 32) {
         if (keyChar = KeyboardUtils.getKeyChar(event, event.shiftKey)) {
           action = checkValidKey(event, keyChar);
+          if (action === 0 && InsertMode.suppressType && keyChar.length === 1) {
+            action = 2;
+          }
         }
       }
       else if (key === KeyCodes.esc && KeyboardUtils.isPlain(event)) {
@@ -232,20 +195,16 @@ var Settings, VHUD, MainPort, VInsertMode;
       KeydownEvents[key] = 1;
     },
     onKeypress: function(event) {
-      if (isEnabledForUrl) {
-        var keyChar;
-        if (findMode && (keyChar = String.fromCharCode(event.charCode))) {
-          handleKeyCharForFindMode(keyChar);
-          event.preventDefault();
-        } else if (InsertMode.lock !== InsertMode.heldEl) {
-          return;
-        }
+      if (isEnabledForUrl && InsertMode.lock === InsertMode.heldEl) {
         event.stopImmediatePropagation();
       }
     },
     onKeyup: function(event) {
       if (isEnabledForUrl) {
         Scroller.keyIsDown = 0;
+        if (InsertMode.suppressType && window.getSelection().type !== InsertMode.suppressType) {
+          InsertMode.exitSuppress();
+        }
         if (KeydownEvents[event.keyCode]) {
           KeydownEvents[event.keyCode] = 0;
           event.preventDefault();
@@ -259,7 +218,6 @@ var Settings, VHUD, MainPort, VInsertMode;
       var target = event.target;
       if (target === window) { ELs.onWndFocus(); }
       else if (!isEnabledForUrl) {}
-      else if (findMode) {} // TODO: check findMode
       else if (DomUtils.getEditableType(target)) {
         InsertMode.focus(event);
       } else if (target.shadowRoot) {
@@ -369,7 +327,7 @@ var Settings, VHUD, MainPort, VInsertMode;
     },
 
     performFind: function(count, options) {
-      findAndFocus(count, options.dir < 0);
+      VFindMode.findAndFocus(count, options.dir < 0);
     },
     enterInsertMode: function(_0, options) {
       var code = options.code || KeyCodes.esc, stat = options.stat || 0, str;
@@ -383,9 +341,7 @@ var Settings, VHUD, MainPort, VInsertMode;
     },
     enterFindMode: function() {
       Marks.setPreviousPosition();
-      findModeQuery.rawQuery = "";
-      findMode = true;
-      HUD.show("/");
+      VFindMode.activate();
     },
     passNextKey: function(count) {
       var keys = Object.create(null), keyCount = 0;
@@ -603,11 +559,13 @@ var Settings, VHUD, MainPort, VInsertMode;
   VInsertMode = InsertMode = {
     focus: null,
     global: null,
+    suppressType: null,
     heldEl: false,
     last: null,
     loading: (document.readyState !== "complete"),
     lock: null,
     mutable: true,
+    onExitSuppress: null,
     onWndBlur: null,
     init: function() {
       var activeEl = document.activeElement, notBody = activeEl !== document.body;
@@ -680,6 +638,15 @@ var Settings, VHUD, MainPort, VInsertMode;
         HUD.hide(true);
       }
     },
+    setupSuppress: function(onExit) {
+      this.suppressType = window.getSelection().type;
+      this.onExitSuppress = onExit;
+    },
+    exitSuppress: function() {
+      var f = this.onExitSuppress;
+      this.onExitSuppress = this.suppressType = null;
+      f && f();
+    },
     keydownEvents: function(arr) {
       if (!isEnabledForUrl) { throw Error("vimium-disabled"); }
       if (!arr) { return KeydownEvents; }
@@ -725,144 +692,6 @@ var Settings, VHUD, MainPort, VInsertMode;
     return results;
   };
 
-  updateFindModeQuery = function() {
-    var escapeRe, hasNoIgnoreCaseFlag, parsedNonRegexpQuery, pattern, text;
-    findModeQuery.isRe = settings.cache.regexFindMode;
-    hasNoIgnoreCaseFlag = false;
-    findModeQuery.parsedQuery = findModeQuery.rawQuery.replace(/\\./g, function(match) {
-      switch (match) {
-      case "\\r":
-        findModeQuery.isRe = true;
-        break;
-      case "\\R":
-        findModeQuery.isRe = false;
-        break;
-      case "\\I":
-        hasNoIgnoreCaseFlag = true;
-        break;
-      case "\\\\":
-        return "\\";
-      default:
-        return match;
-      }
-      return "";
-    });
-    findModeQuery.ignoreCase = !hasNoIgnoreCaseFlag && !/[A-Z]/.test(findModeQuery.parsedQuery);
-    if (findModeQuery.isRe) {
-      try {
-        pattern = new RegExp(findModeQuery.parsedQuery, "g" + (findModeQuery.ignoreCase ? "i" : ""));
-      } catch (e) {
-        return;
-      }
-      text = document.documentElement.innerText;
-      findModeQuery.regexMatches = text.match(pattern);
-      findModeQuery.activeRegexpIndex = 0;
-      findModeQuery.matchCount = (findModeQuery.regexMatches || []).length;
-    } else {
-      escapeRe = /[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g;
-      parsedNonRegexpQuery = findModeQuery.parsedQuery.replace(escapeRe, function(ch) {
-        return "\\" + ch;
-      });
-      pattern = new RegExp(parsedNonRegexpQuery, "g" + (findModeQuery.ignoreCase ? "i" : ""));
-      text = document.documentElement.innerText;
-      findModeQuery.matchCount = (text.match(pattern) || []).length;
-    }
-  };
-
-  handleKeyCharForFindMode = function(keyChar) {
-    findModeQuery.rawQuery += keyChar;
-    updateFindModeQuery();
-    performFindInPlace();
-    showFindModeHUDForQuery();
-  };
-
-  handleEscapeForFindMode = function() {
-    var range, selection;
-    exitFindMode();
-    restoreDefaultSelectionHighlight();
-    selection = window.getSelection();
-    if (!selection.isCollapsed) {
-      range = selection.getRangeAt(0);
-      selection.removeAllRanges();
-      selection.addRange(range);
-    }
-    focusFoundLink();
-    var el;
-    if (findModeQueryHasResults && findModeAnchorNode
-        && DomUtils.getEditableType(el = document.activeElement) === 3
-        && findModeAnchorNode.contains(el)) {
-      InsertMode.lock = el;
-      DomUtils.UI.simulateSelect(el);
-    }
-  };
-
-  handleDeleteForFindMode = function() {
-    if (! findModeQuery.rawQuery) {
-      exitFindMode();
-      performFindInPlace();
-    } else {
-      findModeQuery.rawQuery = findModeQuery.rawQuery.substring(0, findModeQuery.rawQuery.length - 1);
-      updateFindModeQuery();
-      performFindInPlace();
-      showFindModeHUDForQuery();
-    }
-  };
-
-  handleEnterForFindMode = function() {
-    exitFindMode();
-    focusFoundLink();
-    settings.set("findModeRawQuery", findModeQuery.rawQuery);
-  };
-
-  performFindInPlace = function() {
-    var cachedScrollX = window.scrollX, cachedScrollY = window.scrollY
-      , query = findModeQuery.isRe ? getNextQueryFromRegexpMatches(0) : findModeQuery.parsedQuery;
-    executeFind(query, {
-      backwards: true,
-      caseSensitive: !findModeQuery.ignoreCase
-    });
-    window.scrollTo(cachedScrollX, cachedScrollY);
-    executeFind(query, {
-      caseSensitive: !findModeQuery.ignoreCase
-    });
-  };
-
-  executeFind = function(query, options) {
-    var oldFindMode = findMode, result;
-    result = options.repeat;
-    do {
-      findModeQueryHasResults = window.find(query, options.caseSensitive
-        , options.backwards, true, false, true, false);
-    } while (findModeQueryHasResults && 0 < --result);
-    if (findChangeListened === 0) {
-      findChangeListened = setTimeout(function() {
-        document.addEventListener("selectionchange", restoreDefaultSelectionHighlight, true);
-      }, 1000);
-    }
-    findMode = oldFindMode;
-    findModeAnchorNode = window.getSelection().anchorNode;
-  };
-
-  restoreDefaultSelectionHighlight = function() {
-    document.removeEventListener("selectionchange", restoreDefaultSelectionHighlight, true);
-    if (findChangeListened) {
-      clearTimeout(findChangeListened);
-      findChangeListened = 0;
-    }
-  };
-
-  focusFoundLink = function() {
-    if (!findModeQueryHasResults) { return; }
-    var node = window.getSelection().anchorNode;
-    while (node && node !== document.body) {
-      if (node instanceof HTMLAnchorElement) {
-        node.focus();
-        return;
-      }
-      node = node.parentNode;
-    }
-  };
-
   getNextQueryFromRegexpMatches = function(stepSize) {
     var totalMatches;
     if (!findModeQuery.regexMatches) {
@@ -872,40 +701,6 @@ var Settings, VHUD, MainPort, VInsertMode;
     findModeQuery.activeRegexpIndex += stepSize + totalMatches;
     findModeQuery.activeRegexpIndex %= totalMatches;
     return findModeQuery.regexMatches[findModeQuery.activeRegexpIndex];
-  };
-
-  findAndFocus = function(count, backwards) {
-    var mostRecentQuery, query, el;
-    Marks.setPreviousPosition();
-    mostRecentQuery = settings.cache.findModeRawQuery;
-    if (mostRecentQuery !== findModeQuery.rawQuery) {
-      findModeQuery.rawQuery = mostRecentQuery;
-      updateFindModeQuery();
-    }
-    query = findModeQuery.isRe ? getNextQueryFromRegexpMatches(backwards ? -1 : 1) : findModeQuery.parsedQuery;
-    executeFind(query, {
-      repeat: count,
-      backwards: backwards,
-      caseSensitive: !findModeQuery.ignoreCase
-    });
-    if (!findModeQueryHasResults) {
-      HUD.showForDuration("No matches for '" + findModeQuery.rawQuery + "'", 1000);
-      return;
-    }
-    focusFoundLink();
-    // NOTE: this `if` should not be removed
-    if (findModeAnchorNode
-        && DomUtils.getEditableType(el = document.activeElement) === 3
-        && findModeAnchorNode.contains(el)) {
-      handlerStack.push(function(event) {
-        handlerStack.remove(this);
-        if (event.keyCode === KeyCodes.esc && KeyboardUtils.isPlain(event)) {
-          DomUtils.UI.simulateSelect(InsertMode.lock = this);
-          return 2;
-        }
-        return 0;
-      }, el);
-    }
   };
 
   followLink = function(linkElement) {
@@ -997,19 +792,6 @@ var Settings, VHUD, MainPort, VInsertMode;
       }
     }
     return false;
-  };
-
-  showFindModeHUDForQuery = function() {
-    if (findModeQueryHasResults || !findModeQuery.parsedQuery) {
-      HUD.show("/" + findModeQuery.rawQuery + " (" + findModeQuery.matchCount + " Matches)");
-    } else {
-      HUD.show("/" + findModeQuery.rawQuery + " (No Matches)");
-    }
-  };
-
-  exitFindMode = function() {
-    findMode = false;
-    HUD.hide();
   };
 
   FrameMask = {
@@ -1327,7 +1109,7 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
     (f = settings.onDestroy) && f();
 
     Utils = KeyCodes = KeyboardUtils = DomUtils = VRect = handlerStack = //
-    LinkHints = Vomnibar = Scroller = Marks = //
+    LinkHints = Vomnibar = Scroller = Marks = VFindMode = //
     Settings = VHUD = MainPort = VInsertMode = null;
 
     console.log("%cVimium++%c in %c%s%c has destroyed at %o."
