@@ -829,7 +829,6 @@ var Settings, VHUD, MainPort, VInsertMode;
 
   executeFind = function(query, options) {
     var oldFindMode = findMode, result;
-    HUD.hide(); // window.find can not break through shadowDOMs, so needn't worry
     result = options.repeat;
     do {
       findModeQueryHasResults = window.find(query, options.caseSensitive
