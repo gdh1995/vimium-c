@@ -128,11 +128,13 @@ CheckBoxOption.prototype.readValueFromElement = function() {
         saveBtn.textContent = "No Changes";
         $("exportButton").disabled = false;
         status = 0;
+        window.onbeforeunload = null;
       }
       return;
     } else if (status == 1) {
       return;
     }
+    window.onbeforeunload = onBeforeUnload;
     status = 1;
     saveBtn = $("saveOptions");
     saveBtn.disabled = false;
@@ -151,6 +153,7 @@ CheckBoxOption.prototype.readValueFromElement = function() {
     this.textContent = "No Changes";
     $("exportButton").disabled = false;
     status = 0;
+    window.onbeforeunload = null;
     setTimeout(function () {
       var event = new FocusEvent("focus"), i, key, ref, obj;
       window.dispatchEvent(event);
@@ -192,11 +195,6 @@ CheckBoxOption.prototype.readValueFromElement = function() {
   };
   element.onclick(null, true);
 
-  window.onbeforeunload = function() {
-    if (status !== 0 && Option.needSaveOptions()) {
-      return "You have unsaved changes to options.";
-    }
-  };
   document.addEventListener("keyup", function(event) {
     if ((event.ctrlKey || event.metaKey) && event.keyCode === 13) {
       document.activeElement.blur();
@@ -236,6 +234,10 @@ CheckBoxOption.prototype.readValueFromElement = function() {
   _ref = document.querySelectorAll("[data-delay]");
   for (_i = _ref.length; 0 <= --_i; ) {
     _ref[_i].onclick = func;
+  }
+
+  function onBeforeUnload() {
+    return "You have unsaved changes to options.";
   }
 })();
 
