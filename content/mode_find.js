@@ -74,9 +74,11 @@ body{display:inline;margin-left:1px;}body *{display:inline;}body br{display:none
   exit: function() { // need keep @hasResults
     removeEventListener("click", this.OnClick, true);
     this.box.remove();
+    this.box = this.input = this.countEl = null;
+    this.styleIn.remove();
     this.parsedQuery = this.query = "";
     VInsertMode.heldEl = this.initialRange = this.regexMatches = null;
-    this.matchCount = 0;
+    this.activeRegexIndex = this.matchCount = 0;
     this.isActive = false;
   },
   OnMousedown: function(event) { if (event.target !== VFindMode.input) { DomUtils.suppressEvent(event); } },
@@ -208,7 +210,7 @@ body{display:inline;margin-left:1px;}body *{display:inline;}body br{display:none
   toggleStyle: function(action) {
     this.bindSel("remove");
     document.documentElement.classList[action]("vimiumFindMode");
-    action === "add" ? DomUtils.UI.addElement(this.styleIn) : this.styleIn.remove();;
+    action === "add" ? DomUtils.UI.addElement(this.styleIn) : this.styleIn.remove();
   },
   getCurrentRange: function() {
     var sel = window.getSelection(), range;
