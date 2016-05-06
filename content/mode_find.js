@@ -120,6 +120,7 @@ body{display:inline;margin-left:1px;}body *{display:inline;}body br{display:none
     }
   },
   saveQuery: function() {
+    Settings.set("findModeRawQuery", this.query);
   },
   postMode: {
     lock: null,
@@ -164,6 +165,7 @@ body{display:inline;margin-left:1px;}body *{display:inline;}body br{display:none
     this.countEl.textContent = query ? " (" + (count || "No") + " match" + (count !== 1 ? "es)" : ")") : "";
     var count = this.input.getBoundingClientRect().width + this.countEl.getBoundingClientRect().width;
     this.box.style.width = (count | 0) + 4 + "px";
+    // TODO: prevent VInsertMode from locking
   },
   checkReturnToViewPort: function() {
     this.options.returnToViewport && window.scrollTo(this.scrollX, this.scrollY);
