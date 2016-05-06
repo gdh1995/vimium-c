@@ -126,7 +126,7 @@ body{display:inline;margin-left:1px;}body *{display:inline;}body br{display:none
     first: true,
     activate: function() {
       var el = VInsertMode.lock, Exit = this.exit;
-      this.lock && Exit();
+      Exit();
       if (!el || DomUtils.getEditableType(el) < 2) { return; }
       // TODO: onblur won't be called on Vomnibar.input
       el.addEventListener("blur", Exit);
@@ -146,11 +146,12 @@ body{display:inline;margin-left:1px;}body *{display:inline;}body br{display:none
       return 2;
     },
     exit: function() {
+      if (!this.lock) { return; }
       this.lock.removeEventListener("blur", this.exit, true);
       this.lock = null;
       removeEventListener("click", this.exit, true);
-      VInsertMode.exitSuppress();
       handlerStack.remove(this);
+      VInsertMode.exitSuppress();
     }
   },
   onInput: function() {
