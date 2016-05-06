@@ -146,15 +146,31 @@ activate: function(_0, options, force_current) {
     this.isSelectionChanged = false;
   },
   updateInput: function() {
-    var focused = this.input.focused;
+    var focused = this.input.focused, line, str, sel;
     if (this.selection === -1) {
       this.input.focus();
       this.input.focused = focused;
       this.input.value = this.inputText;
-    } else {
-      if (!focused) this.input.blur();
-      this.input.value = this.completions[this.selection].text;
+      return;
     }
+    if (!focused) this.input.blur();
+    line = this.completions[sel = this.selection];
+    str = line.text;
+    if (line.parsed) {
+      this.input.value = str;
+      return;
+    }
+    if (line.url.toLowerCase().startsWith("http") && str.lastIndexOf("://", 5) < 0) {
+      str = (line.url[5] === ':' ? "http://" : "https://") + str;
+    }
+    MainPort.sendMessage({
+      handler: "parseSearchUrl",
+      url: str
+    }, function(search) {
+      if (search) { line.text = search.keyword + " " + search.url; }
+      line.parsed = true;
+      sel === Vomnibar.selection && (Vomnibar.input.value = line.text);
+    });
   },
   updateSelection: function(sel) {
     var _ref = this.list.children, old = this.selection;
