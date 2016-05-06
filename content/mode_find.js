@@ -124,7 +124,6 @@ body{display:inline;margin-left:1px;}body *{display:inline;}body br{display:none
   },
   postMode: {
     lock: null,
-    first: true,
     activate: function() {
       var el = VInsertMode.lock, Exit = this.exit;
       Exit();
@@ -132,19 +131,14 @@ body{display:inline;margin-left:1px;}body *{display:inline;}body br{display:none
       // TODO: onblur won't be called on Vomnibar.input
       el.addEventListener("blur", Exit);
       this.lock = el;
-      this.first = true;
       addEventListener("click", Exit, true);
       VInsertMode.setupSuppress(Exit);
       handlerStack.push(this.onKeydown, this);
     },
     onKeydown: function(event) {
-      if (!this.first) {}
-      else if (event.keyCode === KeyCodes.esc && KeyboardUtils.isPlain(event)) {
-        this.exit();
-      } else {
-        this.first = false;
-      }
-      return 2;
+      var exit = event.keyCode === KeyCodes.esc && KeyboardUtils.isPlain(event);
+      exit ? this.exit() : handlerStack.remove(this);
+      return 2 * exit;
     },
     exit: function() {
       if (!this.lock) { return; }

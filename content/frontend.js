@@ -611,6 +611,7 @@ var Settings, VHUD, MainPort, VInsertMode;
       }
     },
     isActive: function() {
+      if (this.suppressType) { return false; }
       if (this.lock !== null || this.global) {
         return true;
       }
