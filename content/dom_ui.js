@@ -7,7 +7,7 @@ DomUtils.UI = {
   flashLastingTime: 400,
   addElement: function(element) {
     MainPort.sendMessage({ handler: "initInnerCSS" }, this.InitInner);
-    this.box || this.init();
+    this.init && this.init(false);
     this.box.style.display = "none";
     this.root = this.box.createShadowRoot();
     this.root.appendChild(element);
@@ -29,11 +29,8 @@ DomUtils.UI = {
   },
   adjust: function() {},
   init: function(showing) {
-    var el = this.box = DomUtils.createElement("vimium");
-    if (this.styleOut) {
-      el.appendChild(this.styleOut);
-      showing !== false && document.documentElement.appendChild(el);
-    }
+    this.box = DomUtils.createElement("vimium");
+    showing !== false && document.documentElement.appendChild(this.box);
     this.init = null;
   },
   InitInner: function(innerCss) {
@@ -41,7 +38,7 @@ DomUtils.UI = {
     _this.InitInner = null;
     _this.styleIn = _this.createStyle(innerCss);
     _this.root.insertBefore(_this.styleIn, _this.root.firstElementChild);
-    setTimeout(_this.Toggle, 17, true);
+    setTimeout(function() { DomUtils.UI.toggle(true); }, 17);
     _this.root.addEventListener("focusout", function(event) {
       if (VInsertMode.lock === event.target) {
         VInsertMode.lock = null;
@@ -60,8 +57,9 @@ DomUtils.UI = {
     };
     _this.adjust();
   },
-  Toggle: function(enabled) {
-    DomUtils.UI.box.style.display = enabled ? "" : "none";
+  toggle: function(enabled) {
+    this.box.style.display = enabled ? "" : "none";
+    this.styleOut && (enabled ? this.box.appendChild(this.styleOut) : this.styleOut.remove());
     enabled && VInsertMode.heldEl && VInsertMode.heldEl.focus();
   },
   createStyle: function(text, doc) {
@@ -74,21 +72,18 @@ DomUtils.UI = {
     this.styleIn && (this.styleIn.textContent = inner.css);
   },
   insertCSS: function(outer, showing) {
-    if (this.styleOut) {
-      if (outer) {
-        this.styleOut.textContent = outer;
-      } else {
-        this.styleOut.remove();
-        this.styleOut = null;
-      }
+    var el;
+    if (el = this.styleOut) {
+      el.textContent = outer;
     } else {
-      this.styleOut = this.createStyle(outer);
-      if (this.box) {
-        this.box.appendChild(this.styleOut);
-      } else {
-        this.init(showing);
-      }
+      el = this.styleOut = this.createStyle(outer);
     }
+    if (!showing) {
+      el.remove();
+      return;
+    }
+    this.init && this.init();
+    this.box.appendChild(el);
   },
   removeSelection: function(root) {
     var sel = (root || this.root).getSelection(), el, ind;
