@@ -161,8 +161,8 @@ body{display:inline;margin-left:1px;}body *{display:inline;}body br{display:none
     this.restoreSelection();
     this.execute(!this.isRegex ? this.parsedQuery : this.regexMatches ? this.regexMatches[0] : "");
     count = this.matchCount;
-    this.countEl.textContent = this.parsedQuery ? " (" + (count || "No") + " match" + (count !== 1 ? "es)" : ")") : "";
-    var count = this.input.getBoundingClientRect().width + this.countEl.getBoundingClientRect().width;
+    this.countEl.textContent = this.parsedQuery ? " (" + (count || (this.hasResults ? "Some" : "No")) + " match" + (count !== 1 ? "es)" : ")") : "";
+    count = this.input.getBoundingClientRect().width + this.countEl.getBoundingClientRect().width;
     this.box.style.width = (count | 0) + 4 + "px";
     // TODO: prevent VInsertMode from locking
   },
