@@ -16,6 +16,7 @@ var VFindMode = {
   input: null,
   countEl: null,
   styleIn: null,
+  options: null,
   cssSel: "::selection{background:#ff9632;}",
   cssIFrame: '*{font:normal normal normal 12px "Helvetica Neue",Helvetica,Arial,sans-serif !important;\
 height:12px;line-height:12px;margin:0;overflow-y:hidden;white-space:nowrap;}\
@@ -56,10 +57,11 @@ body{display:inline;margin-left:1px;}body *{display:inline;}body br{display:none
     this.isActive = true;
   },
   init: function() {
-    var ref = this.postMode;
+    var ref = this.postMode, UI = DomUtils.UI;
     ref.exit = ref.exit.bind(ref);
-    this.styleIn = DomUtils.UI.createStyle(this.cssSel);
-    DomUtils.UI.box.appendChild(DomUtils.UI.createStyle(".vimiumFindMode " + this.cssSel));
+    this.styleIn = UI.createStyle(this.cssSel);
+    UI.init && UI.init();
+    UI.box.appendChild(UI.createStyle(".vimiumFindMode " + this.cssSel));
     this.init = null;
   },
   findAndFocus: function(count, backwards) {
@@ -83,7 +85,7 @@ body{display:inline;margin-left:1px;}body *{display:inline;}body br{display:none
   exit: function() { // need keep @hasResults
     removeEventListener("click", this.OnClick, true);
     this.box.remove();
-    this.box = this.input = this.countEl = null;
+    this.box = this.input = this.countEl = this.options = null;
     this.styleIn.remove();
     this.parsedQuery = this.query = "";
     VInsertMode.heldEl = this.initialRange = this.regexMatches = null;
