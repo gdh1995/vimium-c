@@ -78,7 +78,6 @@ activate: function(_0, options, force_current) {
     this.box.style.display = "";
     this.input.value = this.inputText;
     DomUtils.UI.addElement(this.box);
-    VInsertMode.heldEl = this.input;
     if (DomUtils.UI.box.style.display !== "none") {
       this.input.focus();
     }
@@ -403,7 +402,7 @@ activate: function(_0, options, force_current) {
   init_dom: function(response) {
     var _this = this, str;
     this.box.innerHTML = response;
-    this.input = this.box.querySelector("#OInput");
+    this.input = VInsertMode.heldEl = this.box.querySelector("#OInput");
     this.list = this.box.querySelector("#OList");
     str = this.box.querySelector("#OITemplate").outerHTML;
     str = str.substring(str.indexOf('>') + 1, str.lastIndexOf('<'));

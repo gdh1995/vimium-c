@@ -157,7 +157,7 @@ body{display:inline;margin-left:1px;}body *{display:inline;}body br{display:none
     this.restoreSelection();
     this.execute(this.isRegex ? this.getNextQueryFromRegexMatches(0) : this.parsedQuery);
     count = this.matchCount;
-    this.countEl.textContent = query ? " (" + (count || "No") + " match" + (count !== 1 ? "es)" : ")") : "";
+    this.countEl.textContent = this.parsedQuery ? " (" + (count || "No") + " match" + (count !== 1 ? "es)" : ")") : "";
     var count = this.input.getBoundingClientRect().width + this.countEl.getBoundingClientRect().width;
     this.box.style.width = (count | 0) + 4 + "px";
     // TODO: prevent VInsertMode from locking
