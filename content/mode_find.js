@@ -62,6 +62,14 @@ body{display:inline;margin-left:1px;}body *{display:inline;}body br{display:none
     this.init = null;
   },
   findAndFocus: function(count, backwards) {
+    this.init && this.init();
+    this.execute(null, {count: count, backwards: backwards});
+    if (!this.hasResults) {
+      VHUD.showForDuration("No matches for '" + this.query + "'", 1000);
+      return;
+    }
+    this.focusFoundLink(window.getSelection().anchorNode);
+    this.postMode.activate();
   },
   refocus: function() {
     this.checkReturnToViewPort();
