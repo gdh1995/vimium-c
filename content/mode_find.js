@@ -30,7 +30,9 @@ body{display:inline;margin-left:1px;}body *{display:inline;}body br{display:none
     this.options = Object.setPrototypeOf(options || {}, null);
     this.scrollX = window.scrollX;
     this.scrollY = window.scrollY;
-    this.query = "";
+    this.parsedQuery = this.query = "";
+    this.regexMatches = null;
+    this.activeRegexIndex = 0;
     this.getCurrentRange();
 
     var el, wnd, doc;
@@ -89,7 +91,7 @@ body{display:inline;margin-left:1px;}body *{display:inline;}body br{display:none
     this.styleIn.remove();
     this.parsedQuery = this.query = "";
     VInsertMode.heldEl = this.initialRange = this.regexMatches = null;
-    this.activeRegexIndex = this.matchCount = 0;
+    this.matchCount = 0;
     this.isActive = false;
   },
   OnMousedown: function(event) { if (event.target !== VFindMode.input) { DomUtils.suppressEvent(event); } },
