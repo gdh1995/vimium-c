@@ -73,6 +73,7 @@
 		"map Ce openCopiedUrlInCurrentTab\\",
 		"  keyword=\"v.math-copy\"",
 		"map <c-v> openCopiedUrlInNewTab",
+		"map <a-t> createTab",
 		"",
 		"map u goUp",
 		"map i focusInput",
