@@ -2,10 +2,9 @@
 var Settings, VHUD, MainPort, VInsertMode;
 (function() {
   var Commands, ELs, HUD, KeydownEvents, checkValidKey, currentSeconds //
-    , findAndFocus, findChangeListened//
     , firstKeys //
     , followLink, FrameMask //
-    , getNextQueryFromRegexpMatches, getVisibleInputs, goBy //
+    , getVisibleInputs, goBy //
     , initIfEnabled, InsertMode //
     , isEnabledForUrl, isInjected, keyQueue, mainPort //
     , passKeys, requestHandlers //
@@ -327,6 +326,7 @@ var Settings, VHUD, MainPort, VInsertMode;
     },
 
     performFind: function(count, options) {
+      Marks.setPreviousPosition();
       VFindMode.findAndFocus(count, options.dir < 0);
     },
     enterInsertMode: function(_0, options) {
@@ -690,17 +690,6 @@ var Settings, VHUD, MainPort, VInsertMode;
       results.unshift(Vomnibar.input);
     }
     return results;
-  };
-
-  getNextQueryFromRegexpMatches = function(stepSize) {
-    var totalMatches;
-    if (!findModeQuery.regexMatches) {
-      return "";
-    }
-    totalMatches = findModeQuery.regexMatches.length;
-    findModeQuery.activeRegexpIndex += stepSize + totalMatches;
-    findModeQuery.activeRegexpIndex %= totalMatches;
-    return findModeQuery.regexMatches[findModeQuery.activeRegexpIndex];
   };
 
   followLink = function(linkElement) {
