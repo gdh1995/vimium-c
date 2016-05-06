@@ -60,7 +60,7 @@ body{display:inline;margin-left:1px;}body *{display:inline;}body br{display:none
     var ref = this.postMode, UI = DomUtils.UI;
     ref.exit = ref.exit.bind(ref);
     this.styleIn = UI.createStyle(this.cssSel);
-    UI.init && UI.init();
+    UI.init && UI.init(true);
     UI.box.appendChild(UI.createStyle(".vimiumFindMode " + this.cssSel));
     this.init = null;
   },

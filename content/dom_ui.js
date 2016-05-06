@@ -82,7 +82,7 @@ DomUtils.UI = {
       el.remove();
       return;
     }
-    this.init && this.init();
+    this.init && this.init(true);
     this.box.appendChild(el);
   },
   removeSelection: function(root) {
