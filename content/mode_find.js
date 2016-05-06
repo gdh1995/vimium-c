@@ -157,7 +157,7 @@ body{display:inline;margin-left:1px;}body *{display:inline;}body br{display:none
     this.checkReturnToViewPort();
     this.updateQuery(query);
     this.restoreSelection();
-    this.execute(this.isRegex ? this.getNextQueryFromRegexMatches(0) : this.parsedQuery);
+    this.execute(!this.isRegex ? this.parsedQuery : this.regexMatches ? this.regexMatches[0] : "");
     count = this.matchCount;
     this.countEl.textContent = this.parsedQuery ? " (" + (count || "No") + " match" + (count !== 1 ? "es)" : ")") : "";
     var count = this.input.getBoundingClientRect().width + this.countEl.getBoundingClientRect().width;
