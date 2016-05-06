@@ -21,16 +21,16 @@ var VFindMode = {
 height:12px;line-height:12px;margin:0;overflow-y:hidden;white-space:nowrap;}\
 body{display:inline;margin-left:1px;}body *{display:inline;}body br{display:none;}',
   activate: function(count, options) {
-    this.options = Object.setPrototypeOf(options || {}, null);
-    this.getCurrentRange();
-    this.query = "";
-    this.scrollX = window.scrollX;
-    this.scrollY = window.scrollY;
     if (this.isActive) {
       this.input.focus();
       this.box.contentWindow.getSelection().selectAllChildren(this.input);
       return;
     }
+    this.options = Object.setPrototypeOf(options || {}, null);
+    this.scrollX = window.scrollX;
+    this.scrollY = window.scrollY;
+    this.query = "";
+    this.getCurrentRange();
 
     var el, wnd, doc;
     DomUtils.UI.addElement(el = this.box = DomUtils.createElement("iframe"));
