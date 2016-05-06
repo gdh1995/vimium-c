@@ -146,9 +146,9 @@ body{display:inline;margin-left:1px;}body *{display:inline;}body br{display:none
     }
   },
   onInput: function() {
-    var query = this.query = this.input.textContent.replace("\u00A0", " "), count;
+    var query = this.input.textContent.replace("\u00A0", " "), count;
     this.checkReturnToViewPort();
-    this.updateQuery();
+    this.updateQuery(query);
     this.restoreSelection();
     this.execute(this.isRegex ? this.getNextQueryFromRegexMatches(0) : this.parsedQuery);
     count = this.matchCount;
@@ -161,10 +161,11 @@ body{display:inline;margin-left:1px;}body *{display:inline;}body br{display:none
   },
   _ctrlRe: /(\\\\?)([rRI]?)/g,
   escapeAllRe: /[\$\(\)\*\+\.\?\[\\\]\^\{\|\}]/g,
-  updateQuery: function() {
+  updateQuery: function(query) {
+    this.query = query;
     this.isRegex = Settings.cache.regexFindMode;
     this.hasNoIgnoreCaseFlag = false;
-    var query = this.parsedQuery = this.query.replace(this._ctrlRe, this.FormatQuery);
+    query = this.parsedQuery = query.replace(this._ctrlRe, this.FormatQuery);
     this.ignoreCase = !this.hasNoIgnoreCaseFlag && !/[A-Z]/.test(query);
     this.isRegex || (query = query.replace(this.escapeAllRe, "\\$&"));
 
@@ -196,14 +197,22 @@ body{display:inline;margin-left:1px;}body *{display:inline;}body br{display:none
     this.activeRegexIndex = count = (this.activeRegexIndex + step + count) % count;
     return this.regexMatches[count];
   },
+  getQuery: function(backwards) {
+    var query = Settings.cache.findModeRawQuery;
+    query === this.query || this.updateQuery(query);
+    return this.isRegex ? this.getNextQueryFromRegexMatches(backwards ? -1 : 1) : this.parsedQuery;
+  },
   execute: function(query, options) {
-    var el;
     options || (options = {});
+    var el, found, count = options.count | 0, backwards = !!options.backwards, q;
     options.noColor || this.toggleStyle('add');
-    this.hasResults = window.find(query, options.caseSensitive || !this.ignoreCase
-      , !!options.backwards, true, false, true, false);
+    do {
+      q = query != null ? query : this.getQuery(backwards);
+      found = window.find(q, options.caseSensitive || !this.ignoreCase, backwards, true, false, true, false);
+    } while (0 < --count && found);
     options.noColor || setTimeout(this.bindSel.bind(this, "add", 0), 0);
     (el = VInsertMode.lock) && DomUtils.getEditableType(el) > 1 && !DomUtils.isSelected(document.activeElement) && el.blur();
+    return this.hasResults = found;
   },
   RestoreHighlight: function() { VFindMode.toggleStyle('remove'); },
   bindSel: function(action) { document[action + "EventListener"]("selectionchange", this.RestoreHighlight, true); },
