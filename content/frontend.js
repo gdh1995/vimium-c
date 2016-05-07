@@ -372,10 +372,7 @@ var Settings, VHUD, MainPort, VInsertMode;
       goBy(dir || "next", settings.cache[dir === "prev" ? "previousPatterns" : "nextPatterns"]);
     },
     reload: function() {
-      if (window.location.protocol.startsWith("chrome") || 49 > +navigator.appVersion.match(/Chrom(?:e|ium)\/(\d+)/)[1]) {
-        return setTimeout(function() { window.location.reload(); }, 30);
-      }
-      Utils.evalIfOK("javascript: window.location.reload();");
+      setTimeout(function() { window.location.reload(); }, 17);
     },
     switchFocus: function() {
       var newEl = InsertMode.lock;
