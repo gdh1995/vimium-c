@@ -167,8 +167,8 @@ activate: function(_0, options, force_current) {
       handler: "parseSearchUrl",
       url: str
     }, function(search) {
-      if (search) { line.parsed = search.keyword + " " + search.url; }
-      sel === Vomnibar.selection && (Vomnibar.input.value = line.parsed || line.text);
+      line.parsed = search ? search.keyword + " " + search.url : line.text;
+      sel === Vomnibar.selection && (Vomnibar.input.value = line.parsed);
     });
   },
   updateSelection: function(sel) {
