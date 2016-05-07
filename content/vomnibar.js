@@ -155,11 +155,11 @@ activate: function(_0, options, force_current) {
     }
     if (!focused) this.input.blur();
     line = this.completions[sel = this.selection];
-    str = line.text;
     if (line.parsed) {
-      this.input.value = str;
+      this.input.value = line.parsed;
       return;
     }
+    str = line.text;
     if (line.url.toLowerCase().startsWith("http") && str.lastIndexOf("://", 5) < 0) {
       str = (line.url[5] === ':' ? "http://" : "https://") + str;
     }
@@ -167,9 +167,8 @@ activate: function(_0, options, force_current) {
       handler: "parseSearchUrl",
       url: str
     }, function(search) {
-      if (search) { line.text = search.keyword + " " + search.url; }
-      line.parsed = true;
-      sel === Vomnibar.selection && (Vomnibar.input.value = line.text);
+      if (search) { line.parsed = search.keyword + " " + search.url; }
+      sel === Vomnibar.selection && (Vomnibar.input.value = line.parsed || line.text);
     });
   },
   updateSelection: function(sel) {
