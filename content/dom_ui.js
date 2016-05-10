@@ -27,10 +27,12 @@ DomUtils.UI = {
     this.addElement(parent);
     return parent;
   },
-  adjust: function() {},
+  adjust: function() {
+    (!this.InitInner && document.webkitFullscreenElement || document.documentElement).appendChild(this.box);
+  },
   init: function(showing) {
     this.box = DomUtils.createElement("vimium");
-    showing !== false && document.documentElement.appendChild(this.box);
+    showing !== false && this.adjust();
     this.init = null;
   },
   InitInner: function(innerCss) {
@@ -38,7 +40,10 @@ DomUtils.UI = {
     _this.InitInner = null;
     _this.styleIn = _this.createStyle(innerCss);
     _this.root.insertBefore(_this.styleIn, _this.root.firstElementChild);
-    setTimeout(function() { var el = VInsertMode.heldEl; el && el.focus(); }, 17);
+    setTimeout(function() {
+      _this.box.style.display = "";
+      var el = VInsertMode.heldEl; el && el.focus();
+    }, 17);
     _this.root.addEventListener("focusout", function(event) {
       if (VInsertMode.lock === event.target) {
         VInsertMode.lock = null;
@@ -52,14 +57,11 @@ DomUtils.UI = {
         target.focused = true;
       }
     });
-    _this.adjust = function() {
-      (document.webkitFullscreenElement || document.documentElement).appendChild(this.box);
-    };
     _this.adjust();
   },
   toggle: function(enabled) {
-    this.box.style.display = enabled ? "" : "none";
-    this.styleOut && (enabled ? this.box.appendChild(this.styleOut) : this.styleOut.remove());
+    if (!enabled) { this.box.remove(); return; }
+    this.box.parentNode || this.adjust();
   },
   createStyle: function(text, doc) {
     var css = (doc || DomUtils).createElement("style");
