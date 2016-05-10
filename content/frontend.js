@@ -220,13 +220,18 @@ var Settings, VHUD, MainPort, VInsertMode;
       else if (DomUtils.getEditableType(target)) {
         InsertMode.focus(event);
       } else if (target.shadowRoot) {
-        if (target === DomUtils.UI.box) {
-          event.stopImmediatePropagation();
+        if (target !== DomUtils.UI.box) {
+          target = target.shadowRoot;
+          target.addEventListener("focus", ELs.onFocus, true);
+          target.addEventListener("blur", InsertMode.OnShadowBlur, true);
           return;
         }
-        target = target.shadowRoot;
-        target.addEventListener("focus", ELs.onFocus, true);
-        target.addEventListener("blur", InsertMode.OnShadowBlur, true);
+        event.stopImmediatePropagation();
+        target = DomUtils.UI.root.activeElement;
+        if (target === InsertMode.heldEl) {
+          InsertMode.lock = target;
+          target.focused = true;
+        }
       }
     },
     onBlur: function(event) {
@@ -241,6 +246,10 @@ var Settings, VHUD, MainPort, VInsertMode;
       } else if (target.shadowRoot) {
         if (target === DomUtils.UI.box) {
           event.stopImmediatePropagation();
+          if (InsertMode.lock === InsertMode.heldEl) {
+            InsertMode.lock.focused = false;
+            InsertMode.lock = null;
+          }
           return;
         }
         target = target.shadowRoot;

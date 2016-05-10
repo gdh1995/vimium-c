@@ -78,6 +78,7 @@ activate: function(_0, options, force_current) {
     this.box.style.display = "";
     this.input.value = this.inputText;
     DomUtils.UI.addElement(this.box);
+    VInsertMode.heldEl = this.input;
     if (DomUtils.UI.box.style.display !== "none") {
       this.input.focus();
     }
@@ -361,10 +362,6 @@ activate: function(_0, options, force_current) {
     this.wheelTimer = Date.now();
     this.goPage(event.deltaY > 0 ? 1 : -1);
   },
-  OnFocus: function(event) {
-    var focus = this.focused = event.type === "focusin", el;
-    VInsertMode.lock = focus ? this : (el = VInsertMode.lock) === this ? null : el;
-  },
   onInput: function() {
     var s1 = this.input.value, str = s1.trimLeft();
     this.inputText = str;
@@ -421,7 +418,7 @@ activate: function(_0, options, force_current) {
   init_dom: function(response) {
     var _this = this, str;
     this.box.innerHTML = response;
-    this.input = VInsertMode.heldEl = this.box.querySelector("#OInput");
+    this.input = this.box.querySelector("#OInput");
     this.list = this.box.querySelector("#OList");
     str = this.box.querySelector("#OITemplate").outerHTML;
     str = str.substring(str.indexOf('>') + 1, str.lastIndexOf('<'));
@@ -438,8 +435,6 @@ activate: function(_0, options, force_current) {
     this.input.onselect = this.OnSelected;
     this.box.querySelector("#OClose").onclick = function() { Vomnibar.hide(); };
     this.list.oncontextmenu = this.OnMenu;
-    this.input.addEventListener("focusout", this.OnFocus);
-    this.input.addEventListener("focusin", this.OnFocus);
   },
   computeHint: function(li, a) {
     var i = [].indexOf.call(this.list.children, li), item, rect;
