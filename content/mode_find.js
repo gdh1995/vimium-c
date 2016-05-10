@@ -62,7 +62,7 @@ body{display:inline;margin-left:1px;}body *{display:inline;}body br{display:none
     var ref = this.postMode, UI = DomUtils.UI;
     ref.exit = ref.exit.bind(ref);
     this.styleIn = UI.createStyle(this.cssSel);
-    UI.init && UI.init(true);
+    UI.init && UI.init();
     UI.box.appendChild(UI.createStyle(".vimiumFindMode " + this.cssSel));
     this.init = null;
   },
@@ -155,7 +155,7 @@ body{display:inline;margin-left:1px;}body *{display:inline;}body br{display:none
     }
   },
   onInput: function() {
-    var query = this.input.textContent.replace("\u00A0", " "), count;
+    var query = this.input.textContent.replace('\xa0', " "), count;
     this.checkReturnToViewPort();
     this.updateQuery(query);
     this.restoreSelection();

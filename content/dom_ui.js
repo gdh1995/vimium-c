@@ -38,7 +38,7 @@ DomUtils.UI = {
     _this.InitInner = null;
     _this.styleIn = _this.createStyle(innerCss);
     _this.root.insertBefore(_this.styleIn, _this.root.firstElementChild);
-    setTimeout(function() { DomUtils.UI.toggle(true); }, 17);
+    setTimeout(function() { var el = VInsertMode.heldEl; el && el.focus(); }, 17);
     _this.root.addEventListener("focusout", function(event) {
       if (VInsertMode.lock === event.target) {
         VInsertMode.lock = null;
@@ -60,7 +60,6 @@ DomUtils.UI = {
   toggle: function(enabled) {
     this.box.style.display = enabled ? "" : "none";
     this.styleOut && (enabled ? this.box.appendChild(this.styleOut) : this.styleOut.remove());
-    enabled && VInsertMode.heldEl && VInsertMode.heldEl.focus();
   },
   createStyle: function(text, doc) {
     var css = (doc || DomUtils).createElement("style");
@@ -78,11 +77,8 @@ DomUtils.UI = {
     } else {
       el = this.styleOut = this.createStyle(outer);
     }
-    if (!showing) {
-      el.remove();
-      return;
-    }
-    this.init && this.init(true);
+    if (!showing) { el.remove(); return; }
+    this.init && this.init();
     this.box.appendChild(el);
   },
   removeSelection: function(root) {
