@@ -44,19 +44,6 @@ DomUtils.UI = {
       _this.box.style.display = "";
       var el = VInsertMode.heldEl; el && el.focus();
     }, 17);
-    _this.root.addEventListener("focusout", function(event) {
-      if (VInsertMode.lock === event.target) {
-        VInsertMode.lock = null;
-      }
-      event.target.focused = false;
-    });
-    _this.root.addEventListener("focusin", function(event) {
-      var target;
-      if (DomUtils.getEditableType(target = event.target)) {
-        VInsertMode.lock = target;
-        target.focused = true;
-      }
-    });
     _this.adjust();
   },
   toggle: function(enabled) {

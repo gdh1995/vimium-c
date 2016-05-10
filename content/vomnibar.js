@@ -361,6 +361,9 @@ activate: function(_0, options, force_current) {
     this.wheelTimer = Date.now();
     this.goPage(event.deltaY > 0 ? 1 : -1);
   },
+  OnFocus: function(event) {
+    VInsertMode.lock = (this.focused = event.type === "focusin") ? this : null;
+  },
   onInput: function() {
     var s1 = this.input.value, str = s1.trimLeft();
     this.inputText = str;
@@ -434,6 +437,8 @@ activate: function(_0, options, force_current) {
     this.input.onselect = this.OnSelected;
     this.box.querySelector("#OClose").onclick = function() { Vomnibar.hide(); };
     this.list.oncontextmenu = this.OnMenu;
+    this.input.addEventListener("focusout", this.OnFocus);
+    this.input.addEventListener("focusin", this.OnFocus);
   },
   computeHint: function(li, a) {
     var i = [].indexOf.call(this.list.children, li), item, rect;
