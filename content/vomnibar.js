@@ -362,7 +362,8 @@ activate: function(_0, options, force_current) {
     this.goPage(event.deltaY > 0 ? 1 : -1);
   },
   OnFocus: function(event) {
-    VInsertMode.lock = (this.focused = event.type === "focusin") ? this : null;
+    var focus = this.focused = event.type === "focusin", el;
+    VInsertMode.lock = focus ? this : (el = VInsertMode.lock) === this ? null : el;
   },
   onInput: function() {
     var s1 = this.input.value, str = s1.trimLeft();
