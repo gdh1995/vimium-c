@@ -95,12 +95,18 @@ body{cursor:text;display:inline-block;padding:0 3px 0 1px;min-width:7px;}body *{
   },
   OnMousedown: function(event) { if (event.target !== VFindMode.input) { event.preventDefault(); VFindMode.input.focus(); } },
   onKeydown: function(event) {
-    var i = event.keyCode, el, el2;
+    var i = event.keyCode, n = i, el, el2;
     i = event.altKey ? 0 : i === KeyCodes.enter ? (this.saveQuery(), 2)
       : (i === KeyCodes.backspace || i === KeyCodes.deleteKey) ? +!this.query.length
       : i === KeyCodes.esc && KeyboardUtils.isPlain(event) ? 3 : 0;
-    if (!i) { return; }
+    if (!i) {
+      if (!KeyboardUtils.isPlain(event)) { return; }
+      if (n === KeyCodes.f1) { this.box.contentDocument.execCommand("delete"); }
+      else if (n === KeyCodes.f1 + 1) { window.focus(); }
+      else { return; }
+    }
     DomUtils.suppressEvent(event);
+    if (!i) { return; }
     el = this.refocus();
     if (i < 2 || !this.hasResults) { return; }
     if (i === 3 && this.styleIn.parentNode) {
