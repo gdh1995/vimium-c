@@ -84,7 +84,6 @@ body{display:inline-block;padding:0 3px 0 1px;min-width:7px;}body *{display:inli
     return el;
   },
   exit: function() { // need keep @hasResults
-    removeEventListener("click", this.OnClick, true);
     this.box.remove();
     this.box = this.input = this.countEl = this.options = null;
     this.styleIn.remove();
@@ -93,7 +92,7 @@ body{display:inline-block;padding:0 3px 0 1px;min-width:7px;}body *{display:inli
     this.matchCount = 0;
     this.isActive = false;
   },
-  OnMousedown: function(event) { if (event.target !== VFindMode.input) { DomUtils.suppressEvent(event); } },
+  OnMousedown: function(event) { if (event.target !== VFindMode.input) { DomUtils.suppressEvent(event); VFindMode.input.focus(); } },
   onKeydown: function(event) {
     var i = event.keyCode, el, el2;
     i = event.altKey ? 0 : i === KeyCodes.enter ? (this.saveQuery(), 2)
