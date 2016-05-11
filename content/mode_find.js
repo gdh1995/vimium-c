@@ -136,7 +136,7 @@ body{cursor:text;display:inline-block;padding:0 3px 0 1px;min-width:7px;}body *{
     }
   },
   saveQuery: function() {
-    Settings.set("findModeRawQuery", this.query);
+    this.query && MainPort.port.postMessage({ handler: "findQuery", query: this.query });
   },
   postMode: {
     lock: null,

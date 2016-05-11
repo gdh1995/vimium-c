@@ -238,6 +238,7 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
 
   FindModeHistory = {
     key: "findModeRawQueryList",
+    max: 50,
     rawQueryList: null,
     init: function() {
       var str = Settings.get(this.key);
@@ -251,6 +252,18 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
       if (!query) {
         return list[list.length - 1 - (index | 0)] || "";
       }
+      str = this.refreshIn(query, list);
+      str && Settings.set(this.key, str);
+    },
+    refreshIn: function(query, list) {
+      var ind = list.lastIndexOf(query);
+      if (ind >= 0) {
+        if (ind === list.length - 1) { return; }
+        list.splice(ind, 1);
+      }
+      else if (list.length >= this.max) { list.shift(); }
+      list.push(query);
+      return list.join("\n");
     }
   };
 
@@ -1035,6 +1048,9 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
       if (Settings.valuesToLoad.indexOf(key) >= 0) {
         Settings.bufferToLoad[key] = Settings.cache[key];
       }
+    },
+    findQuery: function(request) {
+      return FindModeHistory.query(request.query, request.index);
     },
     parseSearchUrl: function(request) {
       var url = request.url.toLowerCase(), decoders, pattern, _i, str, arr,
