@@ -199,6 +199,7 @@ activate: function(_0, options, force_current) {
       }
       else if (n === 74 || n === 78) { action = "down"; } // 'J' or 'N'
       else if (n === 75 || n === 80) { action = "up"; } // 'K' or 'P'
+      // TODO: check metaKey and '['
       else if (n === 219 || n === 91) { action = "dismiss"; } // '['
       else if (n === 221 || n === 93) { action = "toggle"; }
     }
