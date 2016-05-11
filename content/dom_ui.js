@@ -4,6 +4,7 @@ DomUtils.UI = {
   styleIn: null,
   styleOut: null,
   root: null,
+  focusedEl: null,
   flashLastingTime: 400,
   addElement: function(element) {
     MainPort.sendMessage({ handler: "initInnerCSS" }, this.InitInner);
@@ -42,7 +43,7 @@ DomUtils.UI = {
     _this.root.insertBefore(_this.styleIn, _this.root.firstElementChild);
     setTimeout(function() {
       _this.box.style.display = "";
-      var el = VInsertMode.heldEl; el && el.focus();
+      var el = _this.focusedEl; el && el.focus(); _this.focusedEl = null;
     }, 17);
     _this.adjust();
   },
@@ -99,6 +100,13 @@ DomUtils.UI = {
       } catch (e) {}
     }
     suppressRepeated === true && this.suppressTail(true);
+  },
+  focus: function(el) {
+    if (this.box.style.display) {
+      this.focusedEl = el;
+    } else {
+      el.focus();
+    }
   },
   getVRect: function(clickEl) {
     var rect, bcr;

@@ -43,7 +43,7 @@ body{display:inline;margin-left:1px;}body *{display:inline;}body br{display:none
     wnd.onmousedown = this.OnMousedown;
     wnd.onkeydown = this.onKeydown.bind(this);
     doc = wnd.document;
-    el = this.input = VInsertMode.heldEl = doc.body;
+    el = this.input = doc.body;
     el.contentEditable = "plaintext-only";
     el.oninput = this.onInput.bind(this);
     doc.documentElement.appendChild(this.countEl = doc.createElement("span"));
@@ -53,9 +53,7 @@ body{display:inline;margin-left:1px;}body *{display:inline;}body br{display:none
     doc.documentElement.insertBefore(new wnd.Text("/"), doc.body);
 
     this.init && this.init();
-    if (DomUtils.UI.box.style.display !== "none") {
-      this.input.focus();
-    }
+    DomUtils.UI.focus(this.input);
     this.isActive = true;
   },
   init: function() {
@@ -90,7 +88,7 @@ body{display:inline;margin-left:1px;}body *{display:inline;}body br{display:none
     this.box = this.input = this.countEl = this.options = null;
     this.styleIn.remove();
     this.parsedQuery = this.query = "";
-    VInsertMode.heldEl = this.initialRange = this.regexMatches = null;
+    this.initialRange = this.regexMatches = null;
     this.matchCount = 0;
     this.isActive = false;
   },

@@ -79,9 +79,7 @@ activate: function(_0, options, force_current) {
     this.input.value = this.inputText;
     DomUtils.UI.addElement(this.box);
     VInsertMode.heldEl = this.input;
-    if (DomUtils.UI.box.style.display !== "none") {
-      this.input.focus();
-    }
+    DomUtils.UI.focus(this.input);
     handlerStack.remove(this);
     handlerStack.push(this.onKeydown, this);
     this.box.onmousewheel = this.onWheel;
