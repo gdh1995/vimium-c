@@ -334,10 +334,6 @@ var Settings, VHUD, MainPort, VInsertMode;
         , axis !== "y" && !view);
     },
 
-    performFind: function(count, options) {
-      Marks.setPreviousPosition();
-      VFindMode.findAndFocus(count, options.dir < 0);
-    },
     enterInsertMode: function(_0, options) {
       var code = options.code || KeyCodes.esc, stat = options.stat || 0, str;
       InsertMode.global = { code: code, stat: stat };
@@ -347,10 +343,6 @@ var Settings, VHUD, MainPort, VInsertMode;
         str += ": " + (KeyboardUtils.keyNames[code] || code) + "/" + stat;
       }
       HUD.show(str);
-    },
-    enterFindMode: function() {
-      Marks.setPreviousPosition();
-      VFindMode.activate();
     },
     passNextKey: function(count) {
       var keys = Object.create(null), keyCount = 0;
@@ -1002,6 +994,7 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
       arr[0][arr[1]](args[0], args[1], args[2]);
     },
     omni: function(response) { Vomnibar.onCompletions(response.list); },
+    performFind: function(request) { VFindMode.activate(request); },
     createMark: Marks.CreateGlobalMark,
     scroll: Marks.Goto,
     showHUD: function(request) {

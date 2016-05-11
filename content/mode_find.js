@@ -21,7 +21,7 @@ var VFindMode = {
   cssIFrame: '*{font:normal normal normal 12px "Helvetica Neue",Helvetica,Arial,sans-serif !important;\
 height:14px;line-height:12px;margin:0;overflow-y:hidden;vertical-align:top;white-space:nowrap;cursor:default;}\
 body{cursor:text;display:inline-block;padding:0 3px 0 1px;min-width:7px;}body *{cursor:text;display:inline;}body br{display:none;}',
-  activate: function(count, options) {
+  activate: function(options) {
     if (!document.head) { return false; }
     if (this.isActive) {
       this.box.contentWindow.focus();
@@ -29,7 +29,22 @@ body{cursor:text;display:inline-block;padding:0 3px 0 1px;min-width:7px;}body *{
       this.box.contentWindow.getSelection().selectAllChildren(this.input);
       return;
     }
+    
+    Marks.setPreviousPosition();
+    this.init && this.init();
     this.options = Object.setPrototypeOf(options || {}, null);
+    var query = options.query;
+    if (query != null) {
+      query !== this.query && this.updateQuery(query);
+      this.execute(null, options);
+      if (this.hasResults) {
+        this.focusFoundLink(window.getSelection().anchorNode);
+        this.postMode.activate();
+      } else {
+        VHUD.showForDuration("No matches for '" + query + "'", 1000);
+      }
+      return;
+    }
     this.scrollX = window.scrollX;
     this.scrollY = window.scrollY;
     this.parsedQuery = this.query = "";
@@ -56,7 +71,6 @@ body{cursor:text;display:inline-block;padding:0 3px 0 1px;min-width:7px;}body *{
     doc.head.appendChild(el);
     doc.documentElement.insertBefore(new wnd.Text("/"), doc.body);
 
-    this.init && this.init();
     DomUtils.UI.focus(this.input);
     this.isActive = true;
   },
@@ -67,16 +81,6 @@ body{cursor:text;display:inline-block;padding:0 3px 0 1px;min-width:7px;}body *{
     UI.init && UI.init();
     UI.box.appendChild(UI.createStyle(".vimiumFindMode " + this.cssSel));
     this.init = null;
-  },
-  findAndFocus: function(count, backwards) {
-    this.init && this.init();
-    this.execute(null, {count: count, backwards: backwards});
-    if (!this.hasResults) {
-      VHUD.showForDuration("No matches for '" + this.query + "'", 1000);
-      return;
-    }
-    this.focusFoundLink(window.getSelection().anchorNode);
-    this.postMode.activate();
   },
   refocus: function() {
     this.checkReturnToViewPort();
@@ -180,7 +184,7 @@ body{cursor:text;display:inline-block;padding:0 3px 0 1px;min-width:7px;}body *{
   escapeAllRe: /[\$\(\)\*\+\.\?\[\\\]\^\{\|\}]/g,
   updateQuery: function(query) {
     this.query = query;
-    this.isRegex = Settings.cache.regexFindMode;
+    this.isRegex = this.options.isRegex;
     this.hasNoIgnoreCaseFlag = false;
     query = this.parsedQuery = query.replace(this._ctrlRe, this.FormatQuery);
     this.ignoreCase = !this.hasNoIgnoreCaseFlag && !/[A-Z]/.test(query);
@@ -215,8 +219,6 @@ body{cursor:text;display:inline-block;padding:0 3px 0 1px;min-width:7px;}body *{
     return this.regexMatches[count];
   },
   getQuery: function(backwards) {
-    var query = Settings.cache.findModeRawQuery;
-    query === this.query || this.updateQuery(query);
     return this.isRegex ? this.getNextQueryFromRegexMatches(backwards ? -1 : 1) : this.parsedQuery;
   },
   execute: function(query, options) {

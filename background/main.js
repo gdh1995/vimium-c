@@ -887,6 +887,16 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
       Clipboard.copy(str);
       cPort.postMessage({name: "showCopied", text: str});
     },
+    performFind: function() {
+      var query = cOptions.active ? null : Settings.cache.findModeRawQuery;
+      cPort.postMessage({
+        name: "performFind",
+        count: commandCount,
+        backwards: cOptions.dir < 0,
+        isRegex: Settings.cache.regexFindMode,
+        query: query
+      });
+    },
     toggleViewSource: function(tabs) {
       var url = tabs[0].url;
       url = url.startsWith("view-source:") ? url.substring(12) : ("view-source:" + url);
@@ -1382,6 +1392,7 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
     ref = ["createTab", "restoreTab", "restoreGivenTab", "blank", "duplicateTab" //
       , "moveTabToNewWindow", "reloadGivenTab", "openUrl", "nextFrame", "mainFrame" //
       , "moveTabToIncognito", "openCopiedUrlInCurrentTab", "clearGlobalMarks" //
+      , "performFind" //
     ];
     for (i = ref.length; 0 <= --i; ) {
       ref2[ref[i]].useTab = -1;
