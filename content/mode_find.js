@@ -22,6 +22,7 @@ var VFindMode = {
 height:12px;line-height:12px;margin:0;overflow-y:hidden;white-space:nowrap;}\
 body{display:inline;margin-left:1px;}body *{display:inline;}body br{display:none;}',
   activate: function(count, options) {
+    if (!document.head) { return false; }
     if (this.isActive) {
       this.input.focus();
       this.box.contentWindow.getSelection().selectAllChildren(this.input);
