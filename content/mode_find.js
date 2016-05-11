@@ -24,6 +24,7 @@ body{cursor:text;display:inline-block;padding:0 3px 0 1px;min-width:7px;}body *{
   activate: function(count, options) {
     if (!document.head) { return false; }
     if (this.isActive) {
+      this.box.contentWindow.focus();
       this.input.focus();
       this.box.contentWindow.getSelection().selectAllChildren(this.input);
       return;
