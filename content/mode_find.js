@@ -39,6 +39,7 @@ body{cursor:text;display:inline-block;padding:0 3px 0 1px;min-width:7px;}body *{
 
     var el, wnd, doc;
     DomUtils.UI.addElement(el = this.box = DomUtils.createElement("iframe"));
+    DomUtils.UI.root.insertBefore(el, VHUD.box);
     el.className = "R HUD";
     el.style.width = "0px";
     el.onmousedown = this.OnMousedown;
