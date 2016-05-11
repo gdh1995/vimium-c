@@ -693,7 +693,7 @@ highlightChild: function(child, box) {
     frameId: -2
   });
   child.LinkHints.activate(this.count, this.options);
-  child.LinkHints.setMode(mode);
+  child.LinkHints.setMode(this.mode);
   this.mode = 0;
   return false;
 },
