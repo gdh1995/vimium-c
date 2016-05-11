@@ -200,6 +200,7 @@ activate: function(_0, options, force_current) {
       else if (n === 74 || n === 78) { action = "down"; } // 'J' or 'N'
       else if (n === 75 || n === 80) { action = "up"; } // 'K' or 'P'
       else if (n === 219 || n === 91) { action = "dismiss"; } // '['
+      else if (n === 221 || n === 93) { action = "toggle"; }
     }
     else if (event.shiftKey) {
       if (n === KeyCodes.tab) { action = "up"; }
@@ -257,6 +258,11 @@ activate: function(_0, options, force_current) {
       sel = (sel + 1 + this.selection + (action === "up" ? -1 : 1)) % sel - 1;
       this.updateSelection(sel);
       this.updateInput();
+      break;
+    case "toggle":
+      if (this.selection >= 0) {
+        this.input.value = this.completions[this.selection].text;
+      }
       break;
     case "pageup": case "pagedown":
       this.goPage(action === "pageup" ? -1 : 1);
