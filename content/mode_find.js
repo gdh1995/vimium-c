@@ -20,7 +20,7 @@ var VFindMode = {
   cssSel: "::selection{background:#ff9632;}",
   cssIFrame: '*{font:normal normal normal 12px "Helvetica Neue",Helvetica,Arial,sans-serif !important;\
 height:14px;line-height:12px;margin:0;overflow-y:hidden;vertical-align:top;white-space:nowrap;cursor:default;}\
-body{display:inline-block;padding:0 3px 0 1px;min-width:7px;}body *{display:inline;}body br{display:none;}',
+body{cursor:text;display:inline-block;padding:0 3px 0 1px;min-width:7px;}body *{cursor:text;display:inline;}body br{display:none;}',
   activate: function(count, options) {
     if (!document.head) { return false; }
     if (this.isActive) {
