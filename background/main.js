@@ -1226,8 +1226,8 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
           });
         }
       }
-      else if (key = request.handler) {
-        requestHandlers[key](request, port);
+      else {
+        requestHandlers[request.handler](request, port);
       }
     },
     OnConnect: function(port) {
