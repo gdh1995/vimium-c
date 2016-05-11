@@ -892,7 +892,7 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
       cPort.postMessage({
         name: "performFind",
         count: commandCount,
-        backwards: cOptions.dir < 0,
+        dir: cOptions.dir,
         isRegex: Settings.cache.regexFindMode,
         query: query
       });

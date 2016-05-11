@@ -212,22 +212,22 @@ body{cursor:text;display:inline-block;padding:0 3px 0 1px;min-width:7px;}body *{
     sel.removeAllRanges()
     sel.addRange(range);
   },
-  getNextQueryFromRegexMatches: function(step) {
+  getNextQueryFromRegexMatches: function(dir) {
     if (!this.regexMatches) { return ""; }
     var count = this.matchCount;
-    this.activeRegexIndex = count = (this.activeRegexIndex + step + count) % count;
+    this.activeRegexIndex = count = (this.activeRegexIndex + dir + count) % count;
     return this.regexMatches[count];
   },
-  getQuery: function(backwards) {
-    return this.isRegex ? this.getNextQueryFromRegexMatches(backwards ? -1 : 1) : this.parsedQuery;
+  getQuery: function(dir) {
+    return this.isRegex ? this.getNextQueryFromRegexMatches(dir) : this.parsedQuery;
   },
   execute: function(query, options) {
     options || (options = {});
-    var el, found, count = options.count | 0, backwards = !!options.backwards, q;
+    var el, found, count = options.count | 0, dir = options.dir || 1, q;
     options.noColor || this.toggleStyle('add');
     do {
-      q = query != null ? query : this.getQuery(backwards);
-      found = window.find(q, options.caseSensitive || !this.ignoreCase, backwards, true, false, true, false);
+      q = query != null ? query : this.getQuery(dir);
+      found = window.find(q, options.caseSensitive || !this.ignoreCase, dir < 0, true, false, true, false);
     } while (0 < --count && found);
     options.noColor || setTimeout(this.bindSel.bind(this, "add", 0), 0);
     (el = VInsertMode.lock) && DomUtils.getEditableType(el) > 1 && !DomUtils.isSelected(document.activeElement) && el.blur();
