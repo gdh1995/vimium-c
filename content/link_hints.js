@@ -191,7 +191,8 @@ var LinkHints = {
   GetClickable: function(element) {
     var arr, isClickable = null, s, _i;
     switch (element.tagName.toLowerCase()) {
-    case "a": case "frame": case "iframe": isClickable = true; break;
+    case "a": case "frame": isClickable = true; break;
+    case "iframe": isClickable = element !== VFindMode.box; break;
     case "input": if (element.type === "hidden") { return; } // no "break;"
     case "textarea":
       isClickable = !element.disabled && (!element.readOnly
