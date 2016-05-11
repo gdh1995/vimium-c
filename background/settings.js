@@ -144,7 +144,7 @@ var Settings = {
     deepHints: false,
     exclusionRules: [{pattern: "^https?://mail.google.com/", passKeys: ""}],
     extWhiteList: "hdnehngglnbnehkfcidabjckinphnief",
-    findModeRawQuery: "",
+    findModeRawQueryList: "",
     grabBackFocus: true,
     hideHud: false,
     keyboard: [500, 33],
@@ -172,7 +172,7 @@ w|wiki:\\\n  http://www.wikipedia.org/w/index.php?search=$s Wikipedia (en-US)",
     vimSync: false
   },
   NonJSON: {
-    __proto__: null, extWhiteList: 1, findModeRawQuery: 1,
+    __proto__: null, extWhiteList: 1, findModeRawQueryList: 1,
     keyMappings: 1, linkHintCharacters: 1,
     newTabUrl: 1, newTabUrl_f: 1, nextPatterns: 1, previousPatterns: 1,
     searchEngines: 1, searchUrl: 1, userDefinedCss: 1, userDefinedOuterCss: 1

@@ -60,7 +60,7 @@ $("exportButton").onclick = function(event) {
       }
     }
   })();
-  delete exported_object.findModeRawQuery;
+  delete exported_object.findModeRawQueryList;
   delete exported_object.newTabUrl_f;
   d = new Date();
   exported_object.time = d.getTime();
@@ -117,7 +117,7 @@ var importSettings = function(time, event) {
       new_data[key] = null;
     }
   }
-  delete new_data.findModeRawQuery;
+  delete new_data.findModeRawQueryList;
   delete new_data.newTabUrl_f;
   Option.all.forEach(function(item) {
     var key = item.field, new_value = new_data[key];

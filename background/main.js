@@ -4,7 +4,7 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
   var BackgroundCommands, ContentSettings, checkKeyQueue, commandCount //
     , Connections
     , cOptions, cPort, currentCount, currentFirst, executeCommand
-    , firstKeys, framesForTab, funcDict
+    , FindModeHistory, firstKeys, framesForTab, funcDict
     , helpDialogHtml, helpDialogHtmlForCommand //
     , helpDialogHtmlForCommandGroup, needIcon, openMultiTab //
     , requestHandlers, resetKeys, secondKeys //
@@ -232,6 +232,24 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
       funcDict.reopenTab(tab);
       if (callback) {
         callback();
+      }
+    }
+  };
+
+  FindModeHistory = {
+    key: "findModeRawQueryList",
+    rawQueryList: null,
+    init: function() {
+      var str = Settings.get(this.key);
+      this.rawQueryList = str ? str.split("\n") : [];
+      Settings.get("regexFindMode", true);
+      this.init = null;
+    },
+    query: function(query, index) {
+      this.init && this.init();
+      var list = this.rawQueryList, str;
+      if (!query) {
+        return list[list.length - 1 - (index | 0)] || "";
       }
     }
   };
@@ -888,7 +906,7 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
       cPort.postMessage({name: "showCopied", text: str});
     },
     performFind: function() {
-      var query = cOptions.active ? null : Settings.cache.findModeRawQuery;
+      var query = cOptions.active ? null : FindModeHistory.query();
       cPort.postMessage({
         name: "performFind",
         count: commandCount,
