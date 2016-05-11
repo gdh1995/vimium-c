@@ -19,8 +19,8 @@ var VFindMode = {
   options: null,
   cssSel: "::selection{background:#ff9632;}",
   cssIFrame: '*{font:normal normal normal 12px "Helvetica Neue",Helvetica,Arial,sans-serif !important;\
-height:12px;line-height:12px;margin:0;overflow-y:hidden;white-space:nowrap;}\
-body{display:inline;margin-left:1px;}body *{display:inline;}body br{display:none;}',
+height:14px;line-height:12px;margin:0;overflow-y:hidden;vertical-align:top;white-space:nowrap;cursor:default;}\
+body{display:inline-block;padding:0 3px 0 1px;min-width:7px;}body *{display:inline;}body br{display:none;}',
   activate: function(count, options) {
     if (!document.head) { return false; }
     if (this.isActive) {
@@ -160,7 +160,7 @@ body{display:inline;margin-left:1px;}body *{display:inline;}body br{display:none
     this.restoreSelection();
     this.execute(!this.isRegex ? this.parsedQuery : this.regexMatches ? this.regexMatches[0] : "");
     count = this.matchCount;
-    this.countEl.textContent = this.parsedQuery ? " (" + (count || (this.hasResults ? "Some" : "No")) + " match" + (count !== 1 ? "es)" : ")") : "";
+    this.countEl.textContent = this.parsedQuery ? "(" + (count || (this.hasResults ? "Some" : "No")) + " match" + (count !== 1 ? "es)" : ")") : "";
     count = this.input.getBoundingClientRect().width + this.countEl.getBoundingClientRect().width;
     this.box.style.width = (count | 0) + 4 + "px";
     // TODO: prevent VInsertMode from locking
