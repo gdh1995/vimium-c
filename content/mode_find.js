@@ -40,6 +40,7 @@ body{display:inline-block;padding:0 3px 0 1px;min-width:7px;}body *{display:inli
     DomUtils.UI.addElement(el = this.box = DomUtils.createElement("iframe"));
     el.className = "R HUD";
     el.style.width = "0px";
+    el.onmousedown = this.OnMousedown;
     wnd = el.contentWindow;
     wnd.onmousedown = this.OnMousedown;
     wnd.onkeydown = this.onKeydown.bind(this);
@@ -92,7 +93,7 @@ body{display:inline-block;padding:0 3px 0 1px;min-width:7px;}body *{display:inli
     this.matchCount = 0;
     this.isActive = false;
   },
-  OnMousedown: function(event) { if (event.target !== VFindMode.input) { DomUtils.suppressEvent(event); VFindMode.input.focus(); } },
+  OnMousedown: function(event) { if (event.target !== VFindMode.input) { event.preventDefault(); VFindMode.input.focus(); } },
   onKeydown: function(event) {
     var i = event.keyCode, el, el2;
     i = event.altKey ? 0 : i === KeyCodes.enter ? (this.saveQuery(), 2)
