@@ -58,7 +58,7 @@ var Settings = {
       var arr = val.split("\n"), i, map;
       map = this.extWhiteList = Object.create(null);
       for (i = arr.length; 0 <= --i; ) {
-        if ((val = arr[i]).length === 32) {
+        if ((val = arr[i]) && (val = val.trim()).length === 32) {
           map[val] = true;
         }
       }
