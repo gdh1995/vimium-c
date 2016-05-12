@@ -148,10 +148,13 @@ body{cursor:text;display:inline-block;padding:0 3px 0 1px;min-width:7px;}body *{
     MainPort.sendMessage({ handler: "findQuery", index: ind }, this.SetQuery );
   },
   SetQuery: function(query) {
-    var _this = VFindMode;
+    var _this = VFindMode, sel;
     if (query === _this.query) { return; }
     if (!query && _this.historyIndex > 0) { --_this.historyIndex; return; }
     _this.input.textContent = query.replace(/^ /, '\xa0');
+    sel = _this.box.contentWindow.getSelection();
+    sel.selectAllChildren(_this.input);
+    sel.collapseToEnd();
     _this.onInput();
   },
   saveQuery: function() {
