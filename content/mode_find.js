@@ -29,13 +29,13 @@ body{cursor:text;display:inline-block;padding:0 3px 0 1px;min-width:7px;}body *{
       this.box.contentWindow.getSelection().selectAllChildren(this.input);
       return;
     }
-    
     Marks.setPreviousPosition();
-    this.init && this.init();
+
     this.options = Object.setPrototypeOf(options || {}, null);
-    var query = options.query;
+    var query = options.query, update = query !== this.query;
+    this.init && this.init();
     if (query != null) {
-      query !== this.query && this.updateQuery(query);
+      update && this.updateQuery(query);
       this.execute(null, options);
       if (this.hasResults) {
         this.focusFoundLink(window.getSelection().anchorNode);
@@ -229,7 +229,7 @@ body{cursor:text;display:inline-block;padding:0 3px 0 1px;min-width:7px;}body *{
       q = query != null ? query : this.getQuery(dir);
       found = window.find(q, options.caseSensitive || !this.ignoreCase, dir < 0, true, false, true, false);
     } while (0 < --count && found);
-    options.noColor || setTimeout(this.bindSel.bind(this, "add", 0), 0);
+    options.noColor || setTimeout(this.bindSel.bind(this, "add"), 0);
     (el = VInsertMode.lock) && DomUtils.getEditableType(el) > 1 && !DomUtils.isSelected(document.activeElement) && el.blur();
     return this.hasResults = found;
   },
