@@ -3,6 +3,8 @@ var VFindMode = {
   isActive: false,
   query: "",
   parsedQuery: "",
+  partialQuery: "",
+  historyIndex: 0,
   isRegex: false,
   ignoreCase: false,
   hasResults: false,
@@ -94,9 +96,9 @@ body{cursor:text;display:inline-block;padding:0 3px 0 1px;min-width:7px;}body *{
     this.box.remove();
     this.box = this.input = this.countEl = this.options = null;
     this.styleIn.remove();
-    this.parsedQuery = this.query = "";
+    this.partialQuery = this.parsedQuery = this.query = "";
     this.initialRange = this.regexMatches = null;
-    this.matchCount = 0;
+    this.historyIndex = this.matchCount = 0;
     this.isActive = false;
   },
   OnMousedown: function(event) { if (event.target !== VFindMode.input) { event.preventDefault(); VFindMode.input.focus(); } },
@@ -110,6 +112,7 @@ body{cursor:text;display:inline-block;padding:0 3px 0 1px;min-width:7px;}body *{
       if (n === KeyCodes.f1) { this.box.contentDocument.execCommand("delete"); }
       else if (n === KeyCodes.f1 + 1) { window.focus(); }
       else if (n === KeyCodes.esc) { i = 3; }
+      else if (n === KeyCodes.up || n === KeyCodes.down) { this.nextQuery(n === KeyCodes.up ? 1 : -1); }
       else { return; }
     }
     DomUtils.suppressEvent(event);
@@ -135,6 +138,21 @@ body{cursor:text;display:inline-block;padding:0 3px 0 1px;min-width:7px;}body *{
         return true;
       }
     }
+  },
+  nextQuery: function(dir) {
+    var ind = this.historyIndex + dir, query;
+    if (ind === 1 && dir > 0) { this.partialQuery = this.query; }
+    else if (ind < 1) { query = ind < 0 ? (ind = 0, this.query) : this.partialQuery; }
+    this.historyIndex = ind;
+    if (ind < 1) { this.SetQuery(query); }
+    MainPort.sendMessage({ handler: "findQuery", index: ind }, this.SetQuery );
+  },
+  SetQuery: function(query) {
+    var _this = VFindMode;
+    if (query === _this.query) { return; }
+    if (!query && _this.historyIndex > 0) { --_this.historyIndex; return; }
+    _this.input.textContent = query.replace(/^ /, '\xa0');
+    _this.onInput();
   },
   saveQuery: function() {
     this.query && MainPort.port.postMessage({ handler: "findQuery", query: this.query });
