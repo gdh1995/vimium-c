@@ -128,9 +128,10 @@ body{cursor:text;display:inline-block;padding:0 3px 0 1px;min-width:7px;}body *{
     }
     DomUtils.suppressEvent(event);
     if (!i) { return; }
+    var hasStyle = !!this.styleIn.parentNode;
     el = this.refocus();
     if (i < 2 || !this.hasResults) { return; }
-    if (i === 3 && this.styleIn.parentNode) {
+    if (i === 3 && hasStyle) {
       this.toggleStyle("remove");
       this.restoreSelection(true);
     }
@@ -224,7 +225,7 @@ body{cursor:text;display:inline-block;padding:0 3px 0 1px;min-width:7px;}body *{
 
     var re, matches;
     try {
-      re = query && new RegExp(query, this.ignoreCase ? "g" : "gi");
+      re = query && new RegExp(query, this.ignoreCase ? "gi" : "g");
     } catch (e) {}
     matches = re && (document.webkitFullscreenElement || document.documentElement).innerText.match(re);
     this.regexMatches = this.isRegex && matches || null;

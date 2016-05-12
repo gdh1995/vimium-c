@@ -250,7 +250,7 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
       this.init && this.init();
       var list = this.rawQueryList, str;
       if (!query) {
-        return list[list.length - (index | 0)] || "";
+        return list[list.length - (index || 1)] || "";
       }
       str = this.refreshIn(query, list);
       str && Settings.set(this.key, str);
