@@ -29,10 +29,10 @@ body{cursor:text;display:inline-block;padding:0 3px 0 1px;min-width:7px;}body *{
       this.box.contentWindow.getSelection().selectAllChildren(this.input);
       return;
     }
-    Marks.setPreviousPosition();
 
     this.options = Object.setPrototypeOf(options || {}, null);
     var query = options.query, update = query !== this.query;
+    update && Marks.setPreviousPosition();
     this.init && this.init();
     if (query != null) {
       update && this.updateQuery(query);
