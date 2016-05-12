@@ -1394,8 +1394,10 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
 
   chrome.tabs.onReplaced.addListener(function(addedTabId, removedTabId) {
     var ref = framesForTab, frames, i;
-    frames = ref[addedTabId] = ref[removedTabId];
+    frames = ref[removedTabId];
+    if (!frames) { return; }
     delete ref[removedTabId];
+    ref[addedTabId] = frames;
     for (i = frames.length; 0 < --i; ) {
       frames[i].sender.tab.id = addedTabId;
     }
