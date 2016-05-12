@@ -241,7 +241,7 @@ activate: function(_0, options, force_current) {
       this.onAction(action);
       return 2;
     }
-    return focused ? 1 : 0;
+    return focused && n !== KeyCodes.menuKey ? 1 : 0;
   },
   onAction: function(action) {
     var sel;
