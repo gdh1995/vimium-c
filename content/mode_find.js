@@ -25,26 +25,25 @@ height:14px;line-height:12px;margin:0;overflow-y:hidden;vertical-align:top;white
 body{cursor:text;display:inline-block;padding:0 3px 0 1px;min-width:7px;}body *{cursor:text;display:inline;}body br{display:none;}',
   activate: function(options) {
     if (!document.head) { return false; }
+    options = Object.setPrototypeOf(options || {}, null);
+    var query = options.query, update = query !== this.query;
     if (this.isActive) {
+      if (options.query != null) {
+        this.findAndFocus({dir: options.dir || 1, count: options.count || 1});
+        return;
+      }
       this.box.contentWindow.focus();
       this.input.focus();
       this.box.contentWindow.getSelection().selectAllChildren(this.input);
       return;
     }
 
-    this.options = Object.setPrototypeOf(options || {}, null);
-    var query = options.query, update = query !== this.query;
     update && Marks.setPreviousPosition();
     this.init && this.init();
+    this.options = options;
     if (query != null) {
       update && this.updateQuery(query);
-      this.execute(null, options);
-      if (this.hasResults) {
-        this.focusFoundLink(window.getSelection().anchorNode);
-        this.postMode.activate();
-      } else {
-        VHUD.showForDuration("No matches for '" + query + "'", 1000);
-      }
+      this.findAndFocus(options);
       return;
     }
     this.scrollX = window.scrollX;
@@ -84,6 +83,15 @@ body{cursor:text;display:inline-block;padding:0 3px 0 1px;min-width:7px;}body *{
     UI.box.appendChild(UI.createStyle(".vimiumFindMode " + this.cssSel));
     this.init = null;
   },
+  findAndFocus: function(options) {
+    this.execute(null, options);
+    if (!this.hasResults) {
+      this.isActive || VHUD.showForDuration("No matches for '" + this.query + "'", 1000);
+      return;
+    }
+    this.focusFoundLink(window.getSelection().anchorNode);
+    this.postMode.activate();
+  },
   refocus: function() {
     this.checkReturnToViewPort();
     window.focus();
@@ -108,8 +116,11 @@ body{cursor:text;display:inline-block;padding:0 3px 0 1px;min-width:7px;}body *{
       : (i === KeyCodes.backspace || i === KeyCodes.deleteKey) ? +!this.query.length
       : 0;
     if (!i) {
-      if (!KeyboardUtils.isPlain(event)) { return; }
-      if (n === KeyCodes.f1) { this.box.contentDocument.execCommand("delete"); }
+      if (!KeyboardUtils.isPlain(event)) {
+        if (event.shiftKey || !(event.ctrlKey || event.metaKey)) { return; }
+        else if (n === 74 || n === 78 || n === 75 || n === 80) { this.execute(null, {dir: (n % 5) ? 1 : -1 }); }
+      }
+      else if (n === KeyCodes.f1) { this.box.contentDocument.execCommand("delete"); }
       else if (n === KeyCodes.f1 + 1) { window.focus(); }
       else if (n === KeyCodes.esc) { i = 3; }
       else if (n === KeyCodes.up || n === KeyCodes.down) { this.nextQuery(n === KeyCodes.up ? 1 : -1); }
