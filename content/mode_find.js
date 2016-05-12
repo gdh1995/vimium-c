@@ -26,10 +26,10 @@ body{cursor:text;display:inline-block;padding:0 3px 0 1px;min-width:7px;}body *{
   activate: function(options) {
     if (!document.head) { return false; }
     options = Object.setPrototypeOf(options || {}, null);
-    var query = options.query, update = query !== this.query;
+    var query = options.query;
     if (this.isActive) {
-      if (options.query != null) {
-        this.findAndFocus({dir: options.dir || 1, count: options.count || 1});
+      if (query != null) {
+        this.findAndFocus(this.query || query, {dir: options.dir || 1, count: options.count || 1});
         return;
       }
       this.box.contentWindow.focus();
@@ -38,12 +38,11 @@ body{cursor:text;display:inline-block;padding:0 3px 0 1px;min-width:7px;}body *{
       return;
     }
 
-    update && Marks.setPreviousPosition();
+    query !== this.query && Marks.setPreviousPosition();
     this.init && this.init();
     this.options = options;
     if (query != null) {
-      update && this.updateQuery(query);
-      this.findAndFocus(options);
+      this.findAndFocus(query, options);
       return;
     }
     this.scrollX = window.scrollX;
@@ -83,7 +82,14 @@ body{cursor:text;display:inline-block;padding:0 3px 0 1px;min-width:7px;}body *{
     UI.box.appendChild(UI.createStyle(".vimiumFindMode " + this.cssSel));
     this.init = null;
   },
-  findAndFocus: function(options) {
+  findAndFocus: function(query, options) {
+    if (query !== this.query) {
+      this.updateQuery(query);
+      if (this.isActive) {
+        this.input.textContent = query.replace(/^ /, '\xa0');
+        this.showCount();
+      }
+    }
     this.execute(null, options);
     if (!this.hasResults) {
       this.isActive || VHUD.showForDuration("No matches for '" + this.query + "'", 1000);
@@ -204,7 +210,10 @@ body{cursor:text;display:inline-block;padding:0 3px 0 1px;min-width:7px;}body *{
     this.updateQuery(query);
     this.restoreSelection();
     this.execute(!this.isRegex ? this.parsedQuery : this.regexMatches ? this.regexMatches[0] : "");
-    count = this.matchCount;
+    this.showCount();
+  },
+  showCount: function() {
+    var count = this.matchCount;
     this.countEl.textContent = this.parsedQuery ? "(" + (count || (this.hasResults ? "Some" : "No")) + " match" + (count !== 1 ? "es)" : ")") : "";
     count = this.input.getBoundingClientRect().width + this.countEl.getBoundingClientRect().width;
     this.box.style.width = (count | 0) + 4 + "px";
