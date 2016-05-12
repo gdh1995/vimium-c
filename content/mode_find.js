@@ -197,7 +197,6 @@ body{cursor:text;display:inline-block;padding:0 3px 0 1px;min-width:7px;}body *{
     this.countEl.textContent = this.parsedQuery ? "(" + (count || (this.hasResults ? "Some" : "No")) + " match" + (count !== 1 ? "es)" : ")") : "";
     count = this.input.getBoundingClientRect().width + this.countEl.getBoundingClientRect().width;
     this.box.style.width = (count | 0) + 4 + "px";
-    // TODO: prevent VInsertMode from locking
   },
   checkReturnToViewPort: function() {
     this.options.returnToViewport && window.scrollTo(this.scrollX, this.scrollY);
