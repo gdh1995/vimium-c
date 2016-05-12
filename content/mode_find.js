@@ -177,8 +177,7 @@ body{cursor:text;display:inline-block;padding:0 3px 0 1px;min-width:7px;}body *{
     activate: function() {
       var el = VInsertMode.lock, Exit = this.exit;
       Exit();
-      if (!el || DomUtils.getEditableType(el) < 2) { return; }
-      // TODO: onblur won't be called on Vomnibar.input
+      if (!el || DomUtils.getEditableType(el) < 2 || el === Vomnibar.input) { return; }
       el.addEventListener("blur", Exit);
       this.lock = el;
       addEventListener("click", Exit, true);
