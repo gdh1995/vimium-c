@@ -264,8 +264,17 @@ var Settings, VHUD, MainPort, VInsertMode;
       Scroller.current = event.path[0];
     },
     onWndFocus: function(){}, //
+    hook: function(f) {
+      f("keydown", this.onKeydown, true);
+      f("keypress", this.onKeypress, true);
+      f("keyup", this.onKeyup, true);
+      f("focus", this.onFocus, true);
+      f("blur", this.onBlur, true);
+    },
     destroy: null
   };
+  ELs.hook(addEventListener);
+  document.addEventListener("DOMActivate", ELs.onActivate, true);
 
   initIfEnabled = function(newPassKeys) {
     initIfEnabled = function(newPassKeys) {
@@ -282,13 +291,6 @@ var Settings, VHUD, MainPort, VInsertMode;
     };
     initIfEnabled(newPassKeys);
     InsertMode.init();
-    var f = addEventListener;
-    f("keydown", ELs.onKeydown, true);
-    f("keypress", ELs.onKeypress, true);
-    f("keyup", ELs.onKeyup, true);
-    f("focus", ELs.onFocus, true);
-    f("blur", ELs.onBlur, true);
-    document.addEventListener("DOMActivate", ELs.onActivate, true);
   };
 
   Commands = {
@@ -1087,11 +1089,7 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
     isEnabledForUrl = false;
     clearInterval(settings.isLoading);
 
-    f("keydown", this.onKeydown, true);
-    f("keypress", this.onKeypress, true);
-    f("keyup", this.onKeyup, true);
-    f("focus", this.onFocus, true);
-    f("blur", this.onBlur, true);
+    this.hook(f);
     f("mousedown", InsertMode.ExitGrab, true);
     document.removeEventListener("DOMActivate", this.onActivate, true);
     DomUtils.UI.box && DomUtils.UI.box.remove();
