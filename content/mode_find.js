@@ -268,7 +268,7 @@ body{cursor:text;display:inline-block;padding:0 3px 0 1px;min-width:7px;}body *{
   toggleStyle: function(action) {
     this.bindSel("remove");
     document.documentElement.classList[action]("vimiumFindMode");
-    action === "add" ? DomUtils.UI.addElement(this.styleIn) : this.styleIn.remove();
+    action !== "add" ? this.styleIn.remove() : (this.isActive || DomUtils.UI.root) && DomUtils.UI.addElement(this.styleIn);
   },
   getCurrentRange: function() {
     var sel = window.getSelection(), range;
