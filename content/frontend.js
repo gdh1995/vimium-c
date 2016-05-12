@@ -277,20 +277,17 @@ var Settings, VHUD, MainPort, VInsertMode;
   document.addEventListener("DOMActivate", ELs.onActivate, true);
 
   initIfEnabled = function(newPassKeys) {
-    initIfEnabled = function(newPassKeys) {
-      if (newPassKeys) {
-        var pass = Object.create(null), arr = newPassKeys.split(' ')
-          , i = 0, len = arr.length;
-        do {
-          pass[arr[i]] = true;
-        } while (len > ++i);
-        passKeys = pass;
-      } else {
-        passKeys = null;
-      }
-    };
-    initIfEnabled(newPassKeys);
-    InsertMode.init();
+    if (newPassKeys) {
+      var pass = Object.create(null), arr = newPassKeys.split(' ')
+        , i = 0, len = arr.length;
+      do {
+        pass[arr[i]] = true;
+      } while (len > ++i);
+      passKeys = pass;
+    } else {
+      passKeys = null;
+    }
+    InsertMode.init && InsertMode.init();
   };
 
   Commands = {
