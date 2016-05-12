@@ -218,15 +218,12 @@ body{cursor:text;display:inline-block;padding:0 3px 0 1px;min-width:7px;}body *{
     this.activeRegexIndex = count = (this.activeRegexIndex + dir + count) % count;
     return this.regexMatches[count];
   },
-  getQuery: function(dir) {
-    return this.isRegex ? this.getNextQueryFromRegexMatches(dir) : this.parsedQuery;
-  },
   execute: function(query, options) {
     options || (options = {});
     var el, found, count = options.count | 0, dir = options.dir || 1, q;
     options.noColor || this.toggleStyle('add');
     do {
-      q = query != null ? query : this.getQuery(dir);
+      q = query != null ? query : this.isRegex ? this.getNextQueryFromRegexMatches(dir) : this.parsedQuery;
       found = window.find(q, options.caseSensitive || !this.ignoreCase, dir < 0, true, false, true, false);
     } while (0 < --count && found);
     options.noColor || setTimeout(this.bindSel.bind(this, "add"), 0);
