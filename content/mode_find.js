@@ -104,11 +104,12 @@ body{cursor:text;display:inline-block;padding:0 3px 0 1px;min-width:7px;}body *{
     var i = event.keyCode, n = i, el, el2;
     i = event.altKey ? 0 : i === KeyCodes.enter ? (this.saveQuery(), 2)
       : (i === KeyCodes.backspace || i === KeyCodes.deleteKey) ? +!this.query.length
-      : i === KeyCodes.esc && KeyboardUtils.isPlain(event) ? 3 : 0;
+      : 0;
     if (!i) {
       if (!KeyboardUtils.isPlain(event)) { return; }
       if (n === KeyCodes.f1) { this.box.contentDocument.execCommand("delete"); }
       else if (n === KeyCodes.f1 + 1) { window.focus(); }
+      else if (n === KeyCodes.esc) { i = 3; }
       else { return; }
     }
     DomUtils.suppressEvent(event);
