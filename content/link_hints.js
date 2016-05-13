@@ -44,7 +44,6 @@ var LinkHints = {
       if (!this.initTimer) {
         this.initTimer = setTimeout(this.activate.bind(this, count, options), 300);
       } else if (!document.head) {
-        // document is not a <html> document
         this.isActive = true; // disable self
       }
       return;

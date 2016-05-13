@@ -24,7 +24,7 @@ var VFindMode = {
 height:14px;line-height:12px;margin:0;overflow-y:hidden;vertical-align:top;white-space:nowrap;cursor:default;}\
 body{cursor:text;display:inline-block;padding:0 3px 0 1px;min-width:7px;}body *{cursor:text;display:inline;}body br{display:none;}',
   activate: function(options) {
-    if (!document.head) { return false; }
+    if (!document.body) { return false; }
     options = Object.setPrototypeOf(options || {}, null);
     var query = options.query;
     if (this.isActive) {

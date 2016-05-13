@@ -8,8 +8,7 @@ activate: function(_0, options, force_current) {
       MainPort.sendCommandToContainer("Vomnibar.activate", [1, options, force_current])) {
       return;
     }
-    // <svg> document has not head nor body; document with pdf <embed> has body
-    if (!document.head) { return false; }
+    if (!(document.documentElement instanceof HTMLHtmlElement)) { return false; }
     this.init();
   }
   Object.setPrototypeOf(options = options || {}, null);
