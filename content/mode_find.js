@@ -182,13 +182,15 @@ body{cursor:text;display:inline-block;padding:0 3px 0 1px;min-width:7px;}body *{
     lock: null,
     activate: function() {
       var el = VInsertMode.lock, Exit = this.exit;
-      if (el === this.lock) { el && handlerStack.set(this.onKeydown, this); return; }
-      Exit();
-      if (!el || el === Vomnibar.input) { return; }
-      this.lock = el;
-      addEventListener("click", Exit, true);
-      VInsertMode.setupSuppress(Exit);
+      if (!el || el === Vomnibar.input) { Exit(); return; }
       handlerStack.push(this.onKeydown, this);
+      if (el === this.lock) { return; }
+      if (!this.lock) {
+        addEventListener("click", Exit, true);
+        VInsertMode.setupSuppress(Exit);
+      }
+      this.exit(true);
+      this.lock = el;
       el.addEventListener("blur", Exit, true);
     },
     onKeydown: function(event) {
@@ -196,9 +198,9 @@ body{cursor:text;display:inline-block;padding:0 3px 0 1px;min-width:7px;}body *{
       exit ? this.exit() : handlerStack.remove(this);
       return 2 * exit;
     },
-    exit: function() {
-      if (!this.lock) { return; }
-      this.lock.removeEventListener("blur", this.exit, true);
+    exit: function(skip) {
+      this.lock && this.lock.removeEventListener("blur", this.exit, true);
+      if (!this.lock || skip === true) { return; }
       this.lock = null;
       removeEventListener("click", this.exit, true);
       handlerStack.remove(this);
