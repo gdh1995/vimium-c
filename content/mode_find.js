@@ -268,14 +268,14 @@ body{cursor:text;display:inline-block;padding:0 3px 0 1px;min-width:7px;}body *{
       q = query != null ? query : this.isRegex ? this.getNextQueryFromRegexMatches(dir) : this.parsedQuery;
       found = window.find(q, options.caseSensitive || !this.ignoreCase, dir < 0, true, false, true, false);
     } while (0 < --count && found);
-    options.noColor || setTimeout(this.bindSel.bind(this, "add"), 0);
+    options.noColor || setTimeout(this.hookSel.bind(this, "add"), 0);
     (el = VInsertMode.lock) && DomUtils.getEditableType(el) > 1 && !DomUtils.isSelected(document.activeElement) && el.blur();
     return this.hasResults = found;
   },
   RestoreHighlight: function() { VFindMode.toggleStyle('remove'); },
-  bindSel: function(action) { document[action + "EventListener"]("selectionchange", this.RestoreHighlight, true); },
+  hookSel: function(action) { document[action + "EventListener"]("selectionchange", this.RestoreHighlight, true); },
   toggleStyle: function(action) {
-    this.bindSel("remove");
+    this.hookSel("remove");
     document.documentElement.classList[action]("vimiumFindMode");
     action !== "add" ? this.styleIn.remove() : (this.isActive || DomUtils.UI.root) && DomUtils.UI.addElement(this.styleIn);
   },

@@ -1093,6 +1093,7 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
     document.removeEventListener("DOMActivate", this.onActivate, true);
     DomUtils.UI.box && DomUtils.UI.box.remove();
     VFindMode.postMode.exit();
+    VFindMode.hookSel("remove");
     (f = settings.onDestroy) && f();
 
     Utils = KeyCodes = KeyboardUtils = DomUtils = VRect = handlerStack = //
