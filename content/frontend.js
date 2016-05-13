@@ -837,7 +837,7 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
     durationTimer: 0,
     showCopied: function(text, e) {
       if (!text) {
-        this.showForDuration("No " + (e || text) + " found!", 1000);
+        this.showForDuration("No " + (e || "text") + " found!", 1000);
         return;
       }
       if (text.startsWith("chrome-")) {
