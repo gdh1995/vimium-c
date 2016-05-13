@@ -150,6 +150,10 @@ var LinkHints = {
   maxRight: 0,
   maxBottom: 0,
   initBox: function(x, y, count) {
+    if (document.webkitFullscreenElement) {
+      this.maxLeft = window.innerWidth; this.maxTop = window.innerHeight;
+      return;
+    }
     var box = document.documentElement, rect, width, height;
     // NOTE: if zoom > 1, although document.documentElement.scrollHeight is integer,
     //   its real rect may has a float width, such as 471.333 / 472
