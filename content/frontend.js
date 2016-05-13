@@ -361,10 +361,11 @@ var Settings, VHUD, MainPort, VInsertMode;
       function exit() {
         removeEventListener("keyup", onKeyup, true);
         handlerStack.remove(keys);
+        InsertMode.onWndBlur = null;
         HUD.hide();
       }
       addEventListener("keyup", onKeyup, true);
-      VInsertMode.onWndBlur = exit;
+      InsertMode.onWndBlur = exit;
       HUD.show("Pass next key: " + count);
     },
     goNext: function(_0, options) {
