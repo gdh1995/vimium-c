@@ -182,8 +182,9 @@ body{cursor:text;display:inline-block;padding:0 3px 0 1px;min-width:7px;}body *{
     lock: null,
     activate: function() {
       var el = VInsertMode.lock, Exit = this.exit;
+      if (el === this.lock) { el && handlerStack.set(this.onKeydown, this); return; }
       Exit();
-      if (!el || DomUtils.getEditableType(el) < 2 || el === Vomnibar.input) { return; }
+      if (!el || el === Vomnibar.input) { return; }
       el.addEventListener("blur", Exit);
       this.lock = el;
       addEventListener("click", Exit, true);
