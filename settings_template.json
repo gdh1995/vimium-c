@@ -49,7 +49,7 @@
 		"map FT LinkHints.activateModeToOpenVomnibar",
 		"map B Vomnibar.activateBookmarksInNewTab",
 		"map <a-g> Vomnibar.activateInNewTab",
-		"map <c-d> duplicateTab",
+		"map <c-D> duplicateTab",
 		"map <a-F> toggleLinkHintCharacters\\",
 		"  value=\"hjklyuiopnm\"",
 		"",
