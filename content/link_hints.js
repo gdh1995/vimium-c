@@ -483,7 +483,7 @@ var LinkHints = {
   },
   activateLink: function(hintEl) {
     var rect, clickEl = hintEl.clickableItem;
-    this.deactivate(true, false); // always suppress tail even if fail to focus
+    this.clean();
     // must get outline first, because clickEl may hide itself when activated
     rect = hintEl.linkRect || DomUtils.UI.getVRect(clickEl);
     if (this.modeOpt.activator.call(this, clickEl) !== false) {
@@ -495,7 +495,7 @@ var LinkHints = {
         this.setMode(this.mode & ~64);
       }
     } else {
-      this.clean();
+      this.deactivate(true, true);
     }
   },
   reinit: function(lastEl, rect) {
@@ -524,25 +524,22 @@ var LinkHints = {
     LinkHints.reinit();
   },
   clean: function() {
-    this.options = this.modeOpt = null;
-    this.lastMode = this.mode = this.count = 0;
-  },
-  deactivate: function(suppressType, do_clean) {
-    this.alphabetHints.hintKeystroke = "";
     this.hintMarkers = [];
     if (this.box) {
       this.box.remove();
       this.box = null;
     }
-    this.keyStatus.tab = 0;
+    VHUD.hide();
+  },
+  deactivate: function(suppressType, skip_clean) {
+    skip_clean === true || this.clean();
+    this.alphabetHints.hintKeystroke = "";
+    this.options = this.modeOpt = null;
+    this.lastMode = this.mode = this.count = 0;
     handlerStack.remove(this);
     VInsertMode.onWndBlur = null;
-    VHUD.hide();
-    do_clean !== false && this.clean();
     this.isActive = false;
-    if (suppressType != null) {
-      DomUtils.UI.suppressTail(suppressType);
-    }
+    suppressType != null && DomUtils.UI.suppressTail(suppressType);
   },
 
 alphabetHints: {
