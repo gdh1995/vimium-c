@@ -489,13 +489,13 @@ var LinkHints = {
     if (this.modeOpt.activator.call(this, clickEl) !== false) {
       DomUtils.UI.flashVRect(rect);
     }
-    if (this.mode & 64) {
-      this.reinit(clickEl, rect);
-      if (1 === --this.count) {
-        this.setMode(this.mode & ~64);
-      }
-    } else {
+    if (!(this.mode & 64)) {
       this.deactivate(true, true);
+      return;
+    }
+    this.reinit(clickEl, rect);
+    if (1 === --this.count) {
+      this.setMode(this.mode & ~64);
     }
   },
   reinit: function(lastEl, rect) {
@@ -509,11 +509,10 @@ var LinkHints = {
     }
   },
   TestLastEl: function(el, r) {
-    var r2;
-    if (!LinkHints) { return; }
-    LinkHints.timer = 0;
-    if (!LinkHints.isActive || LinkHints.hintMarkers.length > 128
-        || LinkHints.alphabetHints.hintKeystroke) {
+    var r2, _this = LinkHints;
+    if (!_this) { return; }
+    _this.timer = 0;
+    if (!_this.isActive || _this.hintMarkers.length > 128 || _this.alphabetHints.hintKeystroke) {
       return;
     }
     DomUtils.prepareCrop();
@@ -521,7 +520,7 @@ var LinkHints = {
     if (r2 && r && Math.abs(r2[0] - r[0]) < 100 && Math.abs(r2[1] - r[1]) < 60) {
       return;
     }
-    LinkHints.reinit();
+    _this.reinit();
   },
   clean: function() {
     this.hintMarkers = [];
