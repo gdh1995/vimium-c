@@ -98,15 +98,11 @@ body{cursor:text;display:inline-block;padding:0 3px 0 1px;min-width:7px;}body *{
     this.focusFoundLink(window.getSelection().anchorNode);
     this.postMode.activate();
   },
-  refocus: function() {
+  deactivate: function() { // need keep @hasResults
     this.checkReturnToViewPort();
     window.focus();
     var el = DomUtils.getSelectionFocusElement();
     el && el.focus();
-    this.exit();
-    return el;
-  },
-  exit: function() { // need keep @hasResults
     this.box.remove();
     this.box = this.input = this.countEl = this.options = null;
     this.styleIn.remove();
@@ -114,6 +110,7 @@ body{cursor:text;display:inline-block;padding:0 3px 0 1px;min-width:7px;}body *{
     this.initialRange = this.regexMatches = null;
     this.historyIndex = this.matchCount = 0;
     this.isActive = false;
+    return el;
   },
   OnMousedown: function(event) { if (event.target !== VFindMode.input) { event.preventDefault(); VFindMode.input.focus(); } },
   onKeydown: function(event) {
@@ -135,7 +132,7 @@ body{cursor:text;display:inline-block;padding:0 3px 0 1px;min-width:7px;}body *{
     DomUtils.suppressEvent(event);
     if (!i) { return; }
     var hasStyle = !!this.styleIn.parentNode;
-    el = this.refocus();
+    el = this.deactivate();
     if (i < 2 || !this.hasResults) { return; }
     if (i === 3 && hasStyle) {
       this.toggleStyle("remove");
