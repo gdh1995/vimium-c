@@ -16,8 +16,7 @@ activate: function(_0, options, force_current) {
   this.mode.type = options.mode || "omni";
   this.initialSelectionValue = options.first ? 0 : -1;
   this.forceNewTab = options.force ? true : false;
-  handlerStack.remove(this);
-  handlerStack.push(DomUtils.UI.SuppressMost, this);
+  handlerStack.set(DomUtils.UI.SuppressMost, this);
   initialQueryValue = options.url;
   keyword = options.keyword;
   if (initialQueryValue == null) {
@@ -80,8 +79,7 @@ activate: function(_0, options, force_current) {
     DomUtils.UI.addElement(this.box);
     VInsertMode.heldEl = this.input;
     DomUtils.UI.focus(this.input);
-    handlerStack.remove(this);
-    handlerStack.push(this.onKeydown, this);
+    handlerStack.set(this.onKeydown, this);
     this.box.onmousewheel = this.onWheel;
   },
   hide: function() {
