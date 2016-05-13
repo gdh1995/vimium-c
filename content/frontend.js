@@ -359,8 +359,9 @@ var Settings, VHUD, MainPort, VInsertMode;
         exit();
       }
       function exit() {
-        handlerStack.remove(keys);
         removeEventListener("keyup", onKeyup, true);
+        if (!HUD) { return; }
+        handlerStack.remove(keys);
         HUD.hide();
       }
       addEventListener("keyup", onKeyup, true);
@@ -1090,6 +1091,7 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
     f("mousedown", InsertMode.ExitGrab, true);
     document.removeEventListener("DOMActivate", this.onActivate, true);
     DomUtils.UI.box && DomUtils.UI.box.remove();
+    VFindMode.postMode.exit();
     (f = settings.onDestroy) && f();
 
     Utils = KeyCodes = KeyboardUtils = DomUtils = VRect = handlerStack = //
