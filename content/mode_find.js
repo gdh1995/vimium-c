@@ -185,11 +185,11 @@ body{cursor:text;display:inline-block;padding:0 3px 0 1px;min-width:7px;}body *{
       if (el === this.lock) { el && handlerStack.set(this.onKeydown, this); return; }
       Exit();
       if (!el || el === Vomnibar.input) { return; }
-      el.addEventListener("blur", Exit);
       this.lock = el;
       addEventListener("click", Exit, true);
       VInsertMode.setupSuppress(Exit);
       handlerStack.push(this.onKeydown, this);
+      el.addEventListener("blur", Exit, true);
     },
     onKeydown: function(event) {
       var exit = event.keyCode === KeyCodes.esc && KeyboardUtils.isPlain(event);
