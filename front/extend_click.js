@@ -18,11 +18,10 @@
     box && box.removeEventListener("VimiumOnclick", onclick, true);
   };
   script.type = "text/javascript";
-  script.textContent = "(" + func.toString() + ")();";
+  script.textContent = '"use strict";(' + func.toString() + ')();';
   document.documentElement.insertBefore(script, document.documentElement.firstElementChild);
   script.remove();
 })(function() {
-"use strict";
 var _listen, box, handler, reg, register, toRegister, timeout;
 
 _listen = EventTarget.prototype.addEventListener;
