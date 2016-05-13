@@ -7,7 +7,7 @@ var Settings, VHUD, MainPort, VInsertMode;
     , getVisibleInputs, goBy //
     , initIfEnabled, InsertMode //
     , isEnabledForUrl, isInjected, keyQueue, mainPort //
-    , passKeys, requestHandlers //
+    , onKeyup2, passKeys, requestHandlers //
     , secondKeys, settings //
     ;
 
@@ -26,6 +26,8 @@ var Settings, VHUD, MainPort, VInsertMode;
   currentSeconds = null;
 
   passKeys = null;
+
+  onKeyup2 = null;
 
   MainPort = mainPort = {
     port: null,
@@ -208,6 +210,7 @@ var Settings, VHUD, MainPort, VInsertMode;
           KeydownEvents[event.keyCode] = 0;
           event.preventDefault();
         } else if (InsertMode.lock !== InsertMode.heldEl) {
+          onKeyup2 && onKeyup2(event);
           return;
         }
         event.stopImmediatePropagation();
@@ -350,22 +353,20 @@ var Settings, VHUD, MainPort, VInsertMode;
         keys[event.keyCode] = 1;
         return -1;
       }, keys);
-      function onKeyup(event) {
+      onKeyup2 = function(event) {
         if (keyCount === 0 || --keyCount || --count) {
           keys[event.keyCode] = 0;
           HUD.show("Pass next key: " + count);
           return;
         }
-        exit();
-      }
-      function exit() {
-        removeEventListener("keyup", onKeyup, true);
+        InsertMode.onWndBlur();
+      };
+      InsertMode.onWndBlur = function() {
+        onKeyup2 = null;
         handlerStack.remove(keys);
         InsertMode.onWndBlur = null;
         HUD.hide();
-      }
-      addEventListener("keyup", onKeyup, true);
-      InsertMode.onWndBlur = exit;
+      };
       HUD.show("Pass next key: " + count);
     },
     goNext: function(_0, options) {
