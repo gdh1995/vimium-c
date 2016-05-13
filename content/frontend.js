@@ -360,7 +360,6 @@ var Settings, VHUD, MainPort, VInsertMode;
       }
       function exit() {
         removeEventListener("keyup", onKeyup, true);
-        if (!HUD) { return; }
         handlerStack.remove(keys);
         HUD.hide();
       }
