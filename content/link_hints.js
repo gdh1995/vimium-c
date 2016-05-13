@@ -29,10 +29,6 @@ var LinkHints = {
   count: 0,
   lastMode: 0,
   isClickListened: true,
-  ngIgnored: true,
-  ngAttribute: "",
-  // find /^((?:x|data)[:_\-])?ng-|^ng:/, and ignore "data:", "data_" and "x_"
-  ngAttributes: ["x:ng-click", "ng:click", "x-ng-click", "data-ng-click", "ng-click"],
   keyStatus: {
     known: 1,
     newHintLength: 0,
@@ -230,19 +226,6 @@ var LinkHints = {
         isClickable = true;
         break;
       }
-      if (LinkHints.ngIgnored) {}
-      else if (s = LinkHints.ngAttribute) {
-        if (element.getAttribute(s)) { isClickable = true; break; }
-      } else {
-        for (arr = LinkHints.ngAttributes, _i = arr.length; 0 <= --_i; ) {
-          if (element.hasAttribute(arr[_i])) {
-            s = LinkHints.ngAttribute = arr[_i];
-            isClickable = !!element.getAttribute(s);
-            break;
-          }
-        }
-        if (isClickable) { break; }
-      }
       if (s = element.getAttribute("jsaction")) {
         arr = s.split(";");
         _i = arr.length;
@@ -313,9 +296,6 @@ var LinkHints = {
     Object.setPrototypeOf(filters, null);
     DomUtils.prepareCrop();
     box = document.webkitFullscreenElement || document;
-    if (this.ngIgnored && "*" in filters) {
-      this.ngIgnored = document.querySelector('.ng-scope') === null;
-    }
     for (key in filters) {
       func = filters[key].bind(output);
       if (Settings.cache.deepHints) {
@@ -327,7 +307,6 @@ var LinkHints = {
         output.forEach.call(DomUtils.UI.root.querySelectorAll(key), func);
       }
     }
-    if (!this.ngIgnored && !this.ngAttribute) { this.ngAttribute = "ng-click"; }
     if ("*" in filters) {
       ind = output[0] ? +(output[0][0] === document.documentElement) : 0;
       if (output[ind] && output[ind][0] === document.body) { ++ind; }
