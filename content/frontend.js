@@ -410,7 +410,7 @@ var Settings, VHUD, MainPort, VInsertMode;
       var step = Math.min(count, history.length - 1);
       step > 0 && history.go(step * (options.dir || -1));
     },
-    goUp: function(count, _1, force_current) {
+    goUp: function(count) {
       var url, urlsplit;
       url = window.location.href;
       if (url.indexOf("://") === -1) { return; }
@@ -422,10 +422,10 @@ var Settings, VHUD, MainPort, VInsertMode;
       if (url.endsWith("#!")) { url = url.slice(0, -2); }
       window.location.href = url;
     },
-    showHelp: function(_0, _1, force_current) {
-      force_current |= 0;
-      if (force_current < 2 &&
-        mainPort.sendCommandToContainer("showHelp", [1, _1, force_current])) {
+    showHelp: function(_0, _1, forceCurrent) {
+      forceCurrent |= 0;
+      if (forceCurrent < 2 &&
+        mainPort.sendCommandToContainer("showHelp", [1, _1, forceCurrent])) {
         return;
       }
       if (!document.body) { return false; }

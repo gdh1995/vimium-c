@@ -139,14 +139,14 @@ Core: {
 Scroller.Core.animate = function () {
   var amount = 0, calibration = 1.0, di = 0, duration = 0, element = null, //
   sign = 0, timestamp = -1, totalDelta = 0, totalElapsed = 0.0, //
-  animate = function(new_timestamp) {
+  animate = function(newTimestamp) {
     var int1 = timestamp, elapsed, _this;
-    timestamp = new_timestamp;
+    timestamp = newTimestamp;
     if (int1 === -1) {
       requestAnimationFrame(animate);
       return;
     }
-    elapsed = new_timestamp - int1;
+    elapsed = newTimestamp - int1;
     int1 = (totalElapsed += elapsed);
     _this = Scroller.Core;
     if (Scroller.keyIsDown) {
@@ -170,10 +170,10 @@ Scroller.Core.animate = function () {
       DomUtils.isVisibile(Scroller.current) || (Scroller.current = element);
     }
   };
-  this.animate = function(new_amount, new_di, new_el) {
-    amount = Math.abs(new_amount); calibration = 1.0; di = new_di;
-    duration = Math.max(100, 20 * Math.log(amount)); element = new_el;
-    sign = new_amount === 0 ? 0 : new_amount < 0 ? -1 : 1;
+  this.animate = function(newAmount, newDi, newEl) {
+    amount = Math.abs(newAmount); calibration = 1.0; di = newDi;
+    duration = Math.max(100, 20 * Math.log(amount)); element = newEl;
+    sign = newAmount === 0 ? 0 : newAmount < 0 ? -1 : 1;
     timestamp = -1; totalDelta = 0; totalElapsed = 0.0;
     var keyboard = Settings.cache.keyboard;
     this.maxInterval = Math.round(keyboard[1] / 16.67) + 4;

@@ -1,11 +1,11 @@
 "use strict";
 var Vomnibar = {
-activate: function(_0, options, force_current) {
+activate: function(_0, options, forceCurrent) {
   var initialQueryValue, keyword;
   if (this.init) {
-    force_current |= 0;
-    if (force_current < 2 &&
-      MainPort.sendCommandToContainer("Vomnibar.activate", [1, options, force_current])) {
+    forceCurrent |= 0;
+    if (forceCurrent < 2 &&
+      MainPort.sendCommandToContainer("Vomnibar.activate", [1, options, forceCurrent])) {
       return;
     }
     if (!(document.documentElement instanceof HTMLHtmlElement)) { return false; }
@@ -405,7 +405,7 @@ activate: function(_0, options, force_current) {
     box.style.display = "none";
     MainPort.sendMessage({
       handler: "initVomnibar"
-    }, function(response) { Vomnibar.init_dom(response); });
+    }, function(response) { Vomnibar.initDom(response); });
     box.onclick = function(e) { Vomnibar.onClick(e) };
     box.vimiumHasOnclick = false;
     if (window.location.protocol.startsWith("chrome") && chrome.runtime.getManifest
@@ -417,7 +417,7 @@ activate: function(_0, options, force_current) {
     this.onWheel = this.onWheel.bind(this);
     this.init = null;
   },
-  init_dom: function(response) {
+  initDom: function(response) {
     var _this = this, str;
     this.box.innerHTML = response;
     this.input = this.box.querySelector("#OInput");
@@ -426,7 +426,7 @@ activate: function(_0, options, force_current) {
     str = str.substring(str.indexOf('>') + 1, str.lastIndexOf('<'));
     this.renderItems = Utils.makeListRenderBySplit(str);
     this._waitInit = 0;
-    this.init_dom = null;
+    this.initDom = null;
     if (this.completions) {
       this.onCompletions(this.completions);
     } else {

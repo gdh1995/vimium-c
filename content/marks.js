@@ -8,14 +8,14 @@ var Marks = {
     VHUD.show((isGo ? "Go" : "Create") + " mark ...");
   },
   clearLocal: function() {
-    var key_start, storage, i, key;
+    var keyStart, storage, i, key;
     this._previous = null;
-    key_start = this.getLocationKey("");
+    keyStart = this.getLocationKey("");
     try {
     storage = localStorage;
     for (i = storage.length; 0 <= --i; ) {
       key = storage.key(i);
-      if (key.startsWith(key_start)) {
+      if (key.startsWith(keyStart)) {
         storage.removeItem(key);
       }
     }

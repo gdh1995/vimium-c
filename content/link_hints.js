@@ -530,8 +530,8 @@ var LinkHints = {
     }
     VHUD.hide();
   },
-  deactivate: function(suppressType, skip_clean) {
-    skip_clean === true || this.clean();
+  deactivate: function(suppressType, skipClean) {
+    skipClean === true || this.clean();
     this.alphabetHints.hintKeystroke = "";
     this.options = this.modeOpt = null;
     this.lastMode = this.mode = this.count = 0;
