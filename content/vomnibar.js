@@ -178,6 +178,13 @@ activate: function(_0, options, forceCurrent) {
       _ref[sel].classList.add("S");
     }
   },
+  ctrlMap: {
+    66: "pageup", 74: "down", 75: "up", 219: "dismiss", 221: "toggle"
+    , 78: "down", 80: "up", 91: "dismiss", 93: "toggle" // TODO: check metaKey and '[', <c-p>, <c-n>
+  },
+  normalMap: {
+    9: "down", 27: "dismiss", 33: "pageup", 34: "pagedown", 38: "up", 40: "down"
+  },
   onKeydown: function(event) {
     var action = "", n = event.keyCode, focused = VInsertMode.lock === this.input;
     if ((!focused && VInsertMode.lock) || event.altKey) { return 0; }
@@ -195,25 +202,13 @@ activate: function(_0, options, forceCurrent) {
         });
         return 2;
       }
-      else if (n === 74 || n === 78) { action = "down"; } // 'J' or 'N'
-      else if (n === 75 || n === 80) { action = "up"; } // 'K' or 'P'
-      // TODO: check metaKey and '['
-      else if (n === 219 || n === 91) { action = "dismiss"; } // '['
-      else if (n === 221 || n === 93) { action = "toggle"; }
-      else if (n === 66) { action = "pageup"; } // 'B'
+      else { action = this.ctrlMap[n] || ""; }
     }
     else if (event.shiftKey) {
-      if (n === KeyCodes.tab) { action = "up"; }
-      else if (n === KeyCodes.up || n === KeyCodes.down) {
-        action = n === KeyCodes.up ? "pageup" : "pagedown";
-      }
+      action = n === KeyCodes.up ? "pageup" : n === KeyCodes.down ? "pagedown"
+        : n === KeyCodes.tab ? "up" : "";
     }
-    else if (n === KeyCodes.tab) { action = "down"; }
-    else if (n === KeyCodes.esc) { action = "dismiss"; }
-    else if (n === KeyCodes.up) { action = "up"; }
-    else if (n === KeyCodes.down) { action = "down"; }
-    else if (n === KeyCodes.pageup) { action = "pageup"; }
-    else if (n === KeyCodes.pageup + 1) { action = "pagedown"; }
+    else if (action = this.normalMap[n] || "") {}
     else if (n === KeyCodes.f1) { action = focused ? "backspace" : "focus"; }
     else if (n === KeyCodes.f1 + 1) { action = focused ? "blur" : "focus"; }
     else if (n === KeyCodes.backspace) { return focused ? 1 : 2; }
@@ -417,6 +412,8 @@ activate: function(_0, options, forceCurrent) {
           arr.concat(opts.optional_permissions).join("/").indexOf("chrome://favicon/") >= 0;
     }
     this.onWheel = this.onWheel.bind(this);
+    Object.setPrototypeOf(this.ctrlMap, null);
+    Object.setPrototypeOf(this.normalMap, null);
     this.init = null;
   },
   initDom: function(response) {
