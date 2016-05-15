@@ -186,7 +186,7 @@ activate: function(_0, options, forceCurrent) {
       action = "enter";
     }
     else if (event.ctrlKey || event.metaKey) {
-      if (event.shiftKey) {}
+      if (event.shiftKey) { if (n === 70) { action = "pagedown"; } } // 'F'
       else if (n === KeyCodes.up || n === KeyCodes.down) {
         MainPort.Listener({
           name: "execute", count: 1,
@@ -200,6 +200,7 @@ activate: function(_0, options, forceCurrent) {
       // TODO: check metaKey and '['
       else if (n === 219 || n === 91) { action = "dismiss"; } // '['
       else if (n === 221 || n === 93) { action = "toggle"; }
+      else if (n === 66) { action = "pageup"; } // 'B'
     }
     else if (event.shiftKey) {
       if (n === KeyCodes.tab) { action = "up"; }
