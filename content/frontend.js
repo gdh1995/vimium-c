@@ -659,7 +659,7 @@ var Settings, VHUD, MainPort, VInsertMode;
       if (!(keyCode >= KeyCodes.pageup && keyCode <= KeyCodes.down)) { return; }
       ctrl = event.ctrlKey || event.metaKey;
       if (keyCode >= KeyCodes.left) {
-        options = { axis: keyCode & 1 && "x", view: +ctrl, dir: keyCode < KeyCodes.left + 2 && -1 };
+        options = { axis: (keyCode & 1) && "x", view: +ctrl, dir: -(keyCode < KeyCodes.left + 2) };
       } else if (ctrl) { return; }
       else if (keyCode > KeyCodes.pageup + 1) {
         return Commands.scrollTo(1, { dest: keyCode & 1 && "max" });
