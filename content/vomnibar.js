@@ -189,8 +189,9 @@ activate: function(_0, options, forceCurrent) {
       if (event.shiftKey) {}
       else if (n === KeyCodes.up || n === KeyCodes.down) {
         MainPort.Listener({
-          name: "execute", count: 1, options: {},
-          command: n === KeyCodes.up ? "scrollUp" : "scrollDown"
+          name: "execute", count: 1,
+          command: "scrollBy",
+          options: { dir: -(n === KeyCodes.up) }
         });
         return 2;
       }
