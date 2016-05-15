@@ -191,7 +191,7 @@ activate: function(_0, options, forceCurrent) {
         MainPort.Listener({
           name: "execute", count: 1,
           command: "scrollBy",
-          options: { dir: -(n === KeyCodes.up) }
+          options: { dir: n - 39 }
         });
         return 2;
       }
