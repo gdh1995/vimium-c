@@ -90,7 +90,10 @@ body{cursor:text;display:inline-block;padding:0 3px 0 1px;min-width:7px;}body *{
         this.showCount();
       }
     }
+    var style = this.isActive || VHUD.opacity !== 1 ? null : VHUD.box.style;
+    style && (style.visibility = "hidden");
     this.execute(null, options);
+    style && (style.visibility = "");
     if (!this.hasResults) {
       this.isActive || VHUD.showForDuration("No matches for '" + this.query + "'", 1000);
       return;
