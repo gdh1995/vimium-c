@@ -108,9 +108,11 @@ var importSettings = function(time, event) {
       : val.substring(0, 68).trimRight() + " ...";
   };
   console.log("IMPORT settings at", formatDate(new Date(time)));
+  Object.setPrototypeOf(new_data, null);
   delete new_data.name;
   delete new_data.time;
-  Object.setPrototypeOf(new_data, null);
+  delete new_data.findModeRawQuery;
+  storage.removeItem("findModeRawQuery");
   for (i = storage.length; 0 <= --i; ) {
     key = storage.key(i);
     if (!(key in new_data)) {
