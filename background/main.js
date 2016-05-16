@@ -249,7 +249,7 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
       this.init = null;
     },
     initI: function() {
-      var list = this.listI = this.list.splice(0);
+      var list = this.listI = this.list.slice(0);
       chrome.windows.onRemoved.addListener(this.OnWndRemvoed);
       return list;
     },
