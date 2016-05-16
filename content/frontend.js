@@ -884,7 +884,7 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
           return;
         }
       }
-      if (opacity == 0) {
+      if (opacity === 0) {
         el.style.visibility = "hidden";
         el.textContent = "";
       }
@@ -898,14 +898,15 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
         hud.durationTimer = 0;
       }
       hud.opacity = 0;
-      if (immediate === true) {
+      if (!hud.box) {}
+      else if (immediate === true) {
         clearInterval(hud.tweenId);
         hud.tweenId = 0;
         el = hud.box;
         el.style.visibility = "hidden";
         el.textContent = "";
         el.style.opacity = 0;
-      } else if (!hud.tweenId && hud.box) {
+      } else if (!hud.tweenId) {
         hud.tweenId = setInterval(hud.tween, 40);
       }
     },
