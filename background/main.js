@@ -239,34 +239,33 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
   FindModeHistory = {
     key: "findModeRawQueryList",
     max: 50,
-    rawQueryList: null,
-    rawQueryListIncognito: null,
-    getIncognitoList: function() {
-      var list = this.rawQueryListIncognito, str;
-      if (list) { return list; }
-      list = (str = sessionStorage.rawQueryListIncognito) ? str.split("\n") : this.rawQueryList.slice(0);
-      return this.rawQueryListIncognito = list;
-    },
+    list: null,
+    listI: null,
     init: function() {
       var str = Settings.get(this.key);
-      this.rawQueryList = str ? str.split("\n") : [];
+      this.list = str ? str.split("\n") : [];
       Settings.get("regexFindMode", true);
       this.init = null;
     },
+    initI: function() {
+      var list = this.listI = this.list.splice(0);
+      return list;
+    },
     query: function(incognito, query, index) {
       this.init && this.init();
-      var list = incognito ? this.getIncognitoList() : this.rawQueryList, str;
+      var list = incognito ? this.listI || this.initI() : this.list, str;
       if (!query) {
         return list[list.length - (index || 1)] || "";
       }
-      str = this.refreshIn(query, list);
-      str && !incognito && Settings.set(this.key, str);
-      if (list = this.rawQueryListIncognito) {
-        incognito || (str = this.refreshIn(query, list));
-        str && (sessionStorage.rawQueryListIncognito = str);
+      if (incognito) {
+        this.refreshIn(query, list, true);
+        return;
       }
+      str = this.refreshIn(query, list);
+      str && Settings.set(this.key, str);
+      this.listI && this.refreshIn(query, this.listI, true);
     },
-    refreshIn: function(query, list) {
+    refreshIn: function(query, list, result) {
       var ind = list.lastIndexOf(query);
       if (ind >= 0) {
         if (ind === list.length - 1) { return; }
@@ -274,7 +273,7 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
       }
       else if (list.length >= this.max) { list.shift(); }
       list.push(query);
-      return list.join("\n");
+      return result || list.join("\n");
     }
   };
 
