@@ -240,20 +240,31 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
     key: "findModeRawQueryList",
     max: 50,
     rawQueryList: null,
+    rawQueryListIncognito: null,
+    getIncognitoList: function() {
+      var list = this.rawQueryListIncognito, str;
+      if (list) { return list; }
+      list = (str = sessionStorage.rawQueryListIncognito) ? str.split("\n") : this.rawQueryList.slice(0);
+      return this.rawQueryListIncognito = list;
+    },
     init: function() {
       var str = Settings.get(this.key);
       this.rawQueryList = str ? str.split("\n") : [];
       Settings.get("regexFindMode", true);
       this.init = null;
     },
-    query: function(query, index) {
+    query: function(incognito, query, index) {
       this.init && this.init();
-      var list = this.rawQueryList, str;
+      var list = incognito ? this.getIncognitoList() : this.rawQueryList, str;
       if (!query) {
         return list[list.length - (index || 1)] || "";
       }
       str = this.refreshIn(query, list);
-      str && Settings.set(this.key, str);
+      str && !incognito && Settings.set(this.key, str);
+      if (list = this.rawQueryListIncognito) {
+        incognito || (str = this.refreshIn(query, list));
+        str && (sessionStorage.rawQueryListIncognito = str);
+      }
     },
     refreshIn: function(query, list) {
       var ind = list.lastIndexOf(query);
@@ -919,7 +930,7 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
       cPort.postMessage({name: "showCopied", text: str});
     },
     performFind: function() {
-      var query = cOptions.active ? null : FindModeHistory.query();
+      var query = cOptions.active ? null : FindModeHistory.query(cPort.sender.tab.incognito);
       cPort.postMessage({
         name: "performFind",
         count: commandCount,
@@ -1049,8 +1060,8 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
         Settings.bufferToLoad[key] = Settings.cache[key];
       }
     },
-    findQuery: function(request) {
-      return FindModeHistory.query(request.query, request.index);
+    findQuery: function(request, port) {
+      return FindModeHistory.query(port.sender.tab.incognito, request.query, request.index);
     },
     parseSearchUrl: function(request) {
       var url = request.url.toLowerCase(), decoders, pattern, _i, str, arr,

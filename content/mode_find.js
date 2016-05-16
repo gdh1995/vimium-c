@@ -160,7 +160,7 @@ body{cursor:text;display:inline-block;padding:0 3px 0 1px;min-width:7px;}body *{
     else if (ind < 1) { query = ind < 0 ? (ind = 0, this.query) : this.partialQuery; }
     this.historyIndex = ind;
     if (ind < 1) { this.SetQuery(query); return; }
-    MainPort.sendMessage({ handler: "findQuery", index: ind }, this.SetQuery );
+    MainPort.sendMessage({ handler: "findQuery", index: ind }, this.SetQuery);
   },
   SetQuery: function(query) {
     var _this = VFindMode, sel;
