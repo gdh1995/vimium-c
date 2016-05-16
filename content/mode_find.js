@@ -39,12 +39,12 @@ body{cursor:text;display:inline-block;padding:0 3px 0 1px;min-width:7px;}body *{
     }
 
     query !== this.query && Marks.setPreviousPosition();
-    this.init && this.init();
     this.options = options;
     if (query != null) {
       this.findAndFocus(query, options);
       return;
     }
+    this.init && this.init();
     this.scrollX = window.scrollX;
     this.scrollY = window.scrollY;
     this.parsedQuery = this.query = "";
@@ -90,6 +90,7 @@ body{cursor:text;display:inline-block;padding:0 3px 0 1px;min-width:7px;}body *{
         this.showCount();
       }
     }
+    this.init && this.init();
     var style = this.isActive || VHUD.opacity !== 1 ? null : VHUD.box.style;
     style && (style.visibility = "hidden");
     this.execute(null, options);
