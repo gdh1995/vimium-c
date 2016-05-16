@@ -161,11 +161,12 @@ function importBody(id) {
 }
 
 function openByDefault(event) {
-  clickLink(event.altKey ? {
-    download: file
-  } : {
-    target: "_blank"
-  }, event);
+  if (event.altKey) {
+    clickLink({ download: file }, event);
+  } else switch (type) {
+  case "url": clickLink({ target: "_blank" }, event); break;
+  case "image": toggleInvert(); break;
+  }
 }
 
 function clickShownNode(event) {
