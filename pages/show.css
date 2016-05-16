@@ -43,8 +43,9 @@
   content: "(null)";
 }
 
-.invert {
+img.invert {
   -webkit-filter: invert();
+  background: white;
 }
 
 img.invert::selection {
