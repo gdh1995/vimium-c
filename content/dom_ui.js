@@ -43,7 +43,8 @@ DomUtils.UI = {
     _this.root.insertBefore(_this.styleIn, _this.root.firstElementChild);
     setTimeout(function() {
       _this.box.style.display = "";
-      var el = _this.focusedEl; el && el.focus(); _this.focusedEl = null;
+      var el = _this.focusedEl; _this.focusedEl = null;
+      el && setTimeout(function() { el.focus(); }, 17);
     }, 17);
     _this.adjust();
   },
