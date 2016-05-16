@@ -241,6 +241,7 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
     max: 50,
     list: null,
     listI: null,
+    timer: 0,
     init: function() {
       var str = Settings.get(this.key);
       this.list = str ? str.split("\n") : [];
@@ -249,6 +250,7 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
     },
     initI: function() {
       var list = this.listI = this.list.splice(0);
+      chrome.windows.onRemoved.addListener(this.OnWndRemvoed);
       return list;
     },
     query: function(incognito, query, index) {
@@ -274,6 +276,21 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
       else if (list.length >= this.max) { list.shift(); }
       list.push(query);
       return result || list.join("\n");
+    },
+    OnWndRemvoed: function() {
+      if (!FindModeHistory.listI) { return; }
+      FindModeHistory.timer = FindModeHistory.timer || setTimeout(FindModeHistory.TestIncognitoWnd, 34);
+    },
+    TestIncognitoWnd: function() {
+      FindModeHistory.timer = 0;
+      var left = false, i, port;
+      for (i in framesForTab) {
+        port = framesForTab[i][1];
+        if (port.sender.tab.incognito) { left = true; break; }
+      }
+      if (left) { return; }
+      FindModeHistory.listI = null;
+      chrome.windows.onRemoved.removeListener(FindModeHistory.OnWndRemvoed);
     }
   };
 
