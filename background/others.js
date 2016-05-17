@@ -177,9 +177,15 @@ if (chrome.omnibox) setTimeout(function() {
     Completers.omni.filter(key, {
       maxResults: 6
     }, onComplete.bind(null, suggest));
-  };
-  chrome.omnibox.onInputChanged.addListener(onInput);
-  chrome.omnibox.onInputEntered.addListener(function(text, disposition) {
+  },
+  onEnter = function(text, disposition) {
+    if (tempRequest && tempRequest[0] === text) {
+      tempRequest = [text, onEnter.bind(null, text, disposition)];
+      onTimer();
+      return;
+    } else if (lastSuggest) {
+      return;
+    }
     if (text === last && firstUrl) { text = firstUrl; }
     var sessionId = sessionIds && sessionIds[text];
     clean();
@@ -194,7 +200,9 @@ if (chrome.omnibox) setTimeout(function() {
     } else {
       g_requestHandlers.restoreSession({ sessionId: sessionId });
     }
-  });
+  };
+  chrome.omnibox.onInputChanged.addListener(onInput);
+  chrome.omnibox.onInputEntered.addListener(onEnter);
 }, 1500);
 
 // According to tests: onInstalled will be executed after 0 ~ 16 ms if needed
