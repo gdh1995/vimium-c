@@ -112,7 +112,7 @@ body{cursor:text;display:inline-block;padding:0 3px 0 1px;min-width:7px;}body *{
     this.styleIn.remove();
     this.partialQuery = this.parsedQuery = this.query = "";
     this.initialRange = this.regexMatches = null;
-    this.historyIndex = this.matchCount = 0;
+    this.historyIndex = this.matchCount = this.scrollY = this.scrollX = 0;
     this.isActive = false;
     return el;
   },
