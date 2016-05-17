@@ -86,7 +86,7 @@ var LinkHints = {
     });
     style = this.box.style;
     style.left = x + "px"; style.top = y + "px";
-    if (document.webkitFullscreenElement) { style.position = "fixed"; }
+    if (document.webkitIsFullScreen) { style.position = "fixed"; }
 
     this.isActive = true;
     this.keyStatus.tab = 0;
@@ -150,7 +150,7 @@ var LinkHints = {
   maxRight: 0,
   maxBottom: 0,
   initBox: function(x, y, count) {
-    if (document.webkitFullscreenElement) {
+    if (document.webkitIsFullScreen) {
       this.maxLeft = window.innerWidth; this.maxTop = window.innerHeight;
       return;
     }
@@ -334,7 +334,7 @@ var LinkHints = {
   _getNestedFrame: function(output) {
     var rect, element, str, func;
     if (window.frames[0] == null) { return false; }
-    if (document.webkitFullscreenElement !== null) { return null; }
+    if (document.webkitIsFullScreen) { return null; }
     if (output == null) {
       if (document.body === null) { return false; }
       output = [];
