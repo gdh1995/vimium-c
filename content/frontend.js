@@ -130,6 +130,7 @@ var Settings, VHUD, MainPort, VInsertMode;
 
   ELs = { //
     onKeydown: function(event) {
+      if (!isEnabledForUrl) { return; }
       if (Scroller.keyIsDown) {
         if (event.repeat) {
           Scroller.keyIsDown = Scroller.Core.maxInterval;
@@ -139,18 +140,11 @@ var Settings, VHUD, MainPort, VInsertMode;
         Scroller.keyIsDown = 0;
       }
       var keyChar, key = event.keyCode, action = 0;
-      if (isEnabledForUrl) {
-        if (action = handlerStack.bubbleEvent(event)) {
-          if (action === 2) {
-            event.preventDefault();
-          } else if (action < 0) {
-            return;
-          }
-          event.stopImmediatePropagation();
-          KeydownEvents[key] = 1;
-          return;
-        }
-      } else {
+      if (action = handlerStack.bubbleEvent(event)) {
+        if (action < 0) { return; }
+        if (action === 2) { event.preventDefault(); }
+        event.stopImmediatePropagation();
+        KeydownEvents[key] = 1;
         return;
       }
       if (InsertMode.isActive()) {
