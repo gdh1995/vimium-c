@@ -1170,9 +1170,9 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
       port.postMessage(request);
     },
     frameFocused: function(request, port) {
-      var tabId = port.sender.tab.id;
-      framesForTab[tabId][0] = port;
-      if (needIcon) {
+      var tabId = port.sender.tab.id, ref = framesForTab[tabId];
+      ref && (ref[0] = port);
+      if (needIcon && port.sender.status) {
         requestHandlers.SetIcon(tabId, port.sender.status);
       }
       port.postMessage({
