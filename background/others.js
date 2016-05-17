@@ -169,7 +169,7 @@ if (chrome.omnibox) setTimeout(function() {
       tempRequest = [key, suggest];
       return;
     }
-    timeout = setTimeout(onTimer, 500);
+    timeout = setTimeout(onTimer, 300);
     firstUrl = "";
     sessionIds = null;
     last = key;
