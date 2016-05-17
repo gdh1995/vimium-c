@@ -222,6 +222,7 @@ var exports = {}, Utils = {
     return path + (!query ? "" : (path.indexOf("#") > 0 ? " " : "#!") + query);
   },
   vimiumRedirectedUrls: {
+    about: "https://github.com/gdh1995/vimium-plus",
     help: "https://github.com/philc/vimium/wiki",
     license: "https://raw.githubusercontent.com/gdh1995/vimium-plus/master/MIT-LICENSE.txt",
     permissions: "https://github.com/gdh1995/vimium-plus/blob/master/PRIVACY-POLICY.md#permissions-required",
