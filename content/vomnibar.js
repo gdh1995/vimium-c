@@ -466,7 +466,7 @@ activate: function(_0, options, forceCurrent) {
   },
   filter: function(query) {
     var mode = this.mode;
-    mode.clientWidth = window.innerWidth,
+    mode.clientWidth = document.documentElement.clientWidth,
     mode.query = this.mode.query;
     this.timer = -1;
     MainPort.port.postMessage(mode);
