@@ -153,6 +153,9 @@ activate: function(_0, options, forceCurrent) {
     line = this.completions[sel = this.selection];
     if (line.type !== "history") {
       this.input.value = line.text;
+      if (line.type === "math") {
+        this.input.setSelectionRange(0, line.text.length);
+      }
       return;
     }
     if (line.parsed) {
