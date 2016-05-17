@@ -811,6 +811,7 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
         _this.node = dom1;
         _this.timer = setInterval(_this.Remove, 200);
       }
+      DomUtils.UI.root ? DomUtils.UI.addElement(dom1) :
       (document.webkitFullscreenElement || document.documentElement).appendChild(dom1);
       if (request.box) {
         dom1.style.maxWidth = request.box[0] + "px";
