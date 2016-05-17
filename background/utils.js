@@ -309,7 +309,11 @@ var exports = {}, Utils = {
       };
       script.onload = function() {
         this.onload = this.onerror = null;
-        resolve(exports[name]);
+        if (exports[name] instanceof Promise) {
+          reject("ImportError: " + name);
+        } else {
+          resolve(exports[name]);
+        }
       };
       document.body.appendChild(script);
     });
