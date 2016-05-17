@@ -151,6 +151,10 @@ activate: function(_0, options, forceCurrent) {
     }
     if (!focused) this.input.blur();
     line = this.completions[sel = this.selection];
+    if (line.type !== "history") {
+      this.input.value = line.text;
+      return;
+    }
     if (line.parsed) {
       this.input.value = line.parsed;
       return;
