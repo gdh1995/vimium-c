@@ -151,10 +151,11 @@ activate: function(_0, options, forceCurrent) {
     }
     if (!focused) this.input.blur();
     line = this.completions[sel = this.selection];
+    str = line.text;
     if (line.type !== "history") {
-      this.input.value = line.text;
+      this.input.value = str;
       if (line.type === "math") {
-        this.input.setSelectionRange(0, line.text.length);
+        this.input.setSelectionRange(0, str.length);
       }
       return;
     }
@@ -162,7 +163,6 @@ activate: function(_0, options, forceCurrent) {
       this.input.value = line.parsed;
       return;
     }
-    str = line.text;
     if (line.url.toLowerCase().startsWith("http") && str.lastIndexOf("://", 5) < 0) {
       str = (line.url[5] === ':' ? "http://" : "https://") + str;
     }
