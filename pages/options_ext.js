@@ -3,8 +3,11 @@
 $("showCommands").onclick = function(event) {
   var node, root = DomUtils.UI.root;
   event && event.preventDefault();
-  if (root && (node = root.querySelector('.HelpCommandName'))) {
-    root.getElementById("HelpDialog").click();
+  Vomnibar.input && Vomnibar.input.blur();
+  if (root && root.querySelector('.HelpCommandName')) {
+    node = root.getElementById("HelpDialog");
+    DomUtils.UI.addElement(node);
+    node.click();
     return;
   }
   MainPort.sendMessage({
