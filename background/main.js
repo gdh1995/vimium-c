@@ -1216,8 +1216,8 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
         optionUrl: Settings.CONST.OptionsPage,
         advanced: Settings.get("showAdvancedCommands", true)
       };
-      port && port.postMessage(result);
-      return result;
+      if (request.returned) { return result; }
+      port.postMessage(result);
     },
     initVomnibar: function() {
       return Settings.cache.vomnibar;

@@ -11,6 +11,7 @@ $("showCommands").onclick = function(event) {
     handler: "initHelp",
     unbound: true,
     names: true,
+    returned: true,
     title: "Command Listing"
   }, function(response) {
     var node, root = DomUtils.UI.root;
