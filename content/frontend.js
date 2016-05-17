@@ -170,17 +170,16 @@ var Settings, VHUD, MainPort, VInsertMode;
           }
         }
       }
-      else if (key === KeyCodes.esc && KeyboardUtils.isPlain(event)) {
-        if (keyQueue) {
-          mainPort.port.postMessage({ handler: "esc" });
-          keyQueue = false;
-          currentSeconds = secondKeys[""];
-          action = 2;
-        } else if (DomUtils.UI.removeSelection(window)) {
-          action = 2;
-        } else if (event.repeat) {
-          document.activeElement.blur();
-        }
+      else if (key !== KeyCodes.esc || !KeyboardUtils.isPlain(event)) {}
+      else if (keyQueue) {
+        mainPort.port.postMessage({ handler: "esc" });
+        keyQueue = false;
+        currentSeconds = secondKeys[""];
+        action = 2;
+      } else if (DomUtils.UI.removeSelection(window)) {
+        action = 2;
+      } else if (event.repeat) {
+        document.activeElement.blur();
       }
       if (action === 0) { return; }
       if (action === 2) {
@@ -195,34 +194,31 @@ var Settings, VHUD, MainPort, VInsertMode;
       }
     },
     onKeyup: function(event) {
-      if (isEnabledForUrl) {
-        Scroller.keyIsDown = 0;
-        if (InsertMode.suppressType && window.getSelection().type !== InsertMode.suppressType) {
-          InsertMode.exitSuppress();
-        }
-        if (KeydownEvents[event.keyCode]) {
-          KeydownEvents[event.keyCode] = 0;
-          event.preventDefault();
-        } else if (InsertMode.lock !== InsertMode.heldEl) {
-          onKeyup2 && onKeyup2(event);
-          return;
-        }
-        event.stopImmediatePropagation();
+      if (!isEnabledForUrl) { return; }
+      Scroller.keyIsDown = 0;
+      if (InsertMode.suppressType && window.getSelection().type !== InsertMode.suppressType) {
+        InsertMode.exitSuppress();
       }
+      if (KeydownEvents[event.keyCode]) {
+        KeydownEvents[event.keyCode] = 0;
+        event.preventDefault();
+      } else if (InsertMode.lock !== InsertMode.heldEl) {
+        onKeyup2 && onKeyup2(event);
+        return;
+      }
+      event.stopImmediatePropagation();
     },
     onFocus: function(event) {
       var target = event.target;
       if (target === window) { ELs.onWndFocus(); }
       else if (!isEnabledForUrl) {}
-      else if (DomUtils.getEditableType(target)) {
-        InsertMode.focus(event);
-      } else if (target.shadowRoot) {
-        if (target !== DomUtils.UI.box) {
-          target = target.shadowRoot;
-          target.addEventListener("focus", ELs.onFocus, true);
-          target.addEventListener("blur", InsertMode.OnShadowBlur, true);
-          return;
-        }
+      else if (DomUtils.getEditableType(target)) { InsertMode.focus(event); }
+      else if (!target.shadowRoot) {}
+      else if (target !== DomUtils.UI.box) {
+        target = target.shadowRoot;
+        target.addEventListener("focus", ELs.onFocus, true);
+        target.addEventListener("blur", InsertMode.OnShadowBlur, true);
+      } else {
         event.stopImmediatePropagation();
         target = DomUtils.UI.root.activeElement;
         if (target === InsertMode.heldEl) {
@@ -238,17 +234,15 @@ var Settings, VHUD, MainPort, VInsertMode;
         InsertMode.onWndBlur && InsertMode.onWndBlur(KeydownEvents);
         KeydownEvents = new Uint8Array(256);
       } else if (!isEnabledForUrl) {}
-      else if (InsertMode.lock === target) {
-        InsertMode.lock = null;
-      } else if (target.shadowRoot) {
-        if (target === DomUtils.UI.box) {
-          event.stopImmediatePropagation();
-          if (InsertMode.lock === InsertMode.heldEl) {
-            InsertMode.lock.focused = false;
-            InsertMode.lock = null;
-          }
-          return;
+      else if (InsertMode.lock === target) { InsertMode.lock = null; }
+      else if (!target.shadowRoot) {}
+      else if (target === DomUtils.UI.box) {
+        event.stopImmediatePropagation();
+        if (InsertMode.lock === InsertMode.heldEl) {
+          InsertMode.lock.focused = false;
+          InsertMode.lock = null;
         }
+      } else {
         target = target.shadowRoot;
         // NOTE: if destroyed, this page must have lost its focus before, so
         // a blur event must have been bubbled from shadowRoot to a real lock.
