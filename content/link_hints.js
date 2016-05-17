@@ -427,7 +427,7 @@ var LinkHints = {
         }
         this.setMode((this.mode | 1) ^ (this.mode < 64 ? 3 : 67));
       }
-    } else if (i === KeyCodes.ctrlKey || i === KeyCodes.metaKey) {
+    } else if (i === KeyCodes.ctrlKey || i === KeyCodes.metaKey && KeyboardUtils.onMac) {
       if (this.mode < 128) {
         if (!(event.shiftKey || event.altKey)) {
           this.lastMode = this.mode;
