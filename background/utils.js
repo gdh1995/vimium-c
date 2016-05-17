@@ -224,11 +224,11 @@ var exports = {}, Utils = {
   vimiumRedirectedUrls: {
     help: "https://github.com/philc/vimium/wiki",
     license: "https://raw.githubusercontent.com/gdh1995/vimium-plus/master/MIT-LICENSE.txt",
-    popup: "options.html",
-    readme: "https://github.com/gdh1995/vimium-plus/blob/master/README.md",
     permissions: "https://github.com/gdh1995/vimium-plus/blob/master/PRIVACY-POLICY.md#permissions-required",
     policy: "https://github.com/gdh1995/vimium-plus/blob/master/PRIVACY-POLICY.md",
+    popup: "options.html",
     privacy: "https://github.com/gdh1995/vimium-plus/blob/master/PRIVACY-POLICY.md#privacy-policy",
+    readme: "https://github.com/gdh1995/vimium-plus/blob/master/README.md",
     settings: "options.html",
     __proto__: null
   },
