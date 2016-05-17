@@ -157,7 +157,7 @@ var Settings, VHUD, MainPort, VInsertMode;
         if (InsertMode.global ? key === InsertMode.global.code
               && KeyboardUtils.getKeyStat(event) === InsertMode.global.stat
             : key === KeyCodes.esc ? KeyboardUtils.isPlain(event)
-            : key === 219 || key === 91 ? KeyboardUtils.getKeyStat(event) === 2
+            : key === 219 ? KeyboardUtils.getKeyStat(event) === 2
             : false
         ) {
           InsertMode.exit(event);
