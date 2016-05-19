@@ -248,7 +248,7 @@ var exports = {}, Utils = {
     if (!path) { return null; }
     if (workType <= 1) switch (cmd) {
     case "e": case "exec": case "eval": case "expr": case "calc": case "math":
-      cmd = this.require("MathParser", "math_parser.js");
+      cmd = this.require("MathParser", "lib/math_parser.js");
       if (workType === 0) { return this.tryEvalMath(path); }
       return cmd.then(function(MathParser) {
         var result = Utils.tryEvalMath(path, MathParser) || "";
@@ -295,14 +295,14 @@ var exports = {}, Utils = {
     return result;
   },
   jsLoadingTimeout: 300,
-  require: function(name, file) {
+  require: function(name, url) {
     var defer = exports[name];
     if (defer) {
       return defer instanceof Promise ? defer : Promise.resolve(defer);
     }
     return exports[name] = new Promise(function(resolve, reject) {
       var script = document.createElement("script");
-      script.src = "lib/" + file;
+      script.src = url;
       script.onerror = function() {
         this.onload = this.onerror = null;
         reject("ImportError: " + name);
