@@ -15,6 +15,7 @@ window.onhashchange = function() {
     shownNode.remove();
     shownNode = null;
     bgLink.style.display = "none";
+    document.body.classList.remove("close");
   }
 
   url = location.hash;
@@ -52,7 +53,12 @@ window.onhashchange = function() {
     if (url.indexOf(":") > 0 || url.lastIndexOf(".") > 0) {
       shownNode.src = url;
       shownNode.onclick = defaultOnClick;
-      shownNode.onload = showBgLink;
+      shownNode.onload = function() {
+        showBgLink();
+        if (this.width >= window.innerWidth * 0.9) {
+          document.body.classList.add("close");
+        }
+      };
     } else {
       url = "";
       shownNode.setAttribute("alt", "\xa0(null)\xa0");

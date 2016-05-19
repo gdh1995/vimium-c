@@ -1,4 +1,8 @@
 
+body.close {
+  margin: 0;
+}
+
 #bgLink {
   position: absolute;
   z-index: -1;
