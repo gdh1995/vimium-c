@@ -265,7 +265,6 @@ function loadViewer(func) {
 function toggleSlide() {
   shownNode.alt2 = shownNode.alt;
   shownNode.alt = file;
-  bgLink.style.display = "none";
   var viewer = new Viewer(shownNode, {
     navbar: false,
     shown: function() {
@@ -273,6 +272,7 @@ function toggleSlide() {
       for (i = btns.length; 0 <= --i; ) {
         btns[i].vimiumHasOnclick = true;
       }
+      bgLink.style.display = "none";
     },
     hide: function() {
       shownNode.alt = shownNode.alt2;

@@ -2,6 +2,9 @@
 body.close {
   margin: 0;
 }
+.close > img {
+	outline: none;
+}
 
 #bgLink {
   position: absolute;
