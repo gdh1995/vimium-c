@@ -32,6 +32,10 @@ Settings.onDestroy = function() {
       MainPort.port.disconnect();
     } catch (e) {}
   }
+  if (EventTarget.removeClickListener) {
+    EventTarget.removeClickListener();
+    delete EventTarget.removeClickListener;
+  }
   var injector = VimiumInjector;
   injector.alive = 0;
   injector.destroy = null;
