@@ -340,13 +340,11 @@ domains: {
       Completers.next([]);
     } else if (this.domains) {
       this.performSearch(query);
+    } else if (HistoryCache.history) {
+      this.populateDomains(HistoryCache.history);
+      this.performSearch(query);
     } else {
-      var _this = this;
-      HistoryCache.use(function(history) {
-        _this.populateDomains(history);
-        if (query.isOff) { return; }
-        _this.performSearch(query);
-      });
+      Completers.next([]);
     }
   },
   performSearch: function(query) {
