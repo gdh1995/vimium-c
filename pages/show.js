@@ -173,7 +173,10 @@ function defaultOnClick(event) {
     clickLink({ download: file }, event);
   } else switch (type) {
   case "url": clickLink({ target: "_blank" }, event); break;
-  case "image": toggleInvert(); break;
+  case "image":
+    // toggleInvert(); break;
+    loadViewer(toggleSlide).catch(defaultOnError);
+    break;
   }
 }
 
@@ -254,4 +257,18 @@ function loadViewer(func) {
   return loadJS("Viewer", "/externals/viewer.min.js").then(function(Viewer) {
     setTimeout(func, 100);
   });
+}
+
+function toggleSlide() {
+  shownNode.alt2 = shownNode.alt;
+  shownNode.alt = file;
+  var viewer = new Viewer(shownNode, {
+    navbar: false,
+    shown: function() {
+    },
+    hide: function() {
+      shownNode.alt = shownNode.alt2;
+    }
+  });
+  return viewer;
 }
