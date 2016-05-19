@@ -779,7 +779,6 @@ searchEngines: {
       }, function(history) {
         Decoder.decodeList(history);
         _this.history = history;
-        chrome.history.onVisited.addListener(_this.onPageVisited.bind(_this));
         chrome.history.onVisitRemoved.addListener(_this.OnVisitRemoved);
         for (var i = 0, len = _this.callbacks.length, callback; i < len; ++i) {
           callback = _this.callbacks[i];
@@ -789,6 +788,7 @@ searchEngines: {
         setTimeout(function() {
           HistoryCache.history.sort(function(a, b) { return a.url.localeCompare(b.url); });
           setTimeout(HistoryCache.Clean, 2000);
+          chrome.history.onVisited.addListener(HistoryCache.onPageVisited.bind(HistoryCache));
         }, 600);
       });
     },
