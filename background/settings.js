@@ -181,7 +181,7 @@ w|wiki:\\\n  http://www.wikipedia.org/w/index.php?search=$s Wikipedia (en-US)",
   // not clean if exists (for simpler logic)
   nonPersistent: { __proto__: null,
     baseCSS: 1, exclusionTemplate: 1, helpDialog: 1, innerCss: 1,
-    searchEngineMap: 1, searchEngineRules: 1, settingsVersion: 1, vomnibar: 1
+    searchEngineMap: 1, searchEngineRules: 1, vomnibar: 1
   },
   files: {
     __proto__: null,
