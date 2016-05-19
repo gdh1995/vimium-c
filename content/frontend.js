@@ -1081,9 +1081,9 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
     this.hook(f);
     f("mousedown", InsertMode.ExitGrab, true);
     document.removeEventListener("DOMActivate", this.onActivate, true);
-    DomUtils.UI.box && DomUtils.UI.box.remove();
     VFindMode.postMode.exit();
-    VFindMode.hookSel("remove");
+    VFindMode.toggleStyle("remove");
+    DomUtils.UI.box && DomUtils.UI.box.remove();
     (f = settings.onDestroy) && f();
 
     Utils = KeyCodes = KeyboardUtils = DomUtils = VRect = handlerStack = //
