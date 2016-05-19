@@ -23,10 +23,10 @@ var Settings = {
     if (key in this.nonPersistent) {
     } else if (value === this.defaults[key]) {
       delete localStorage[key];
-      this.Sync.clear(key);
+      this.Sync.set(key, null);
     } else {
-      this.Sync.set(key, localStorage[key] = (key in this.NonJSON)
-        ? value : JSON.stringify(value));
+      localStorage[key] = (key in this.NonJSON) ? value : JSON.stringify(value)
+      this.Sync.set(key, value);
     }
     if (ref = this.updateHooks[key]) {
       ref.call(this, value, key);
@@ -111,7 +111,9 @@ var Settings = {
       this.set("innerCss", css);
     },
     vimSync: function() {
-      window.location.reload();
+      setTimeout(function() {
+        window.location.reload();
+      }, 100);
     },
     userDefinedCss: function() {
       this.postUpdate("baseCSS");
@@ -138,6 +140,7 @@ var Settings = {
     return null;
   },
   // clear localStorage & sync, if value === @defaults[key]
+  // the default of any dict field should be set to null, for @Sync
   defaults: {
     __proto__: null,
     UILanguage: null,
@@ -226,7 +229,7 @@ Settings.defaults.newTabUrl = Settings.CONST.ChromeInnerNewTab;
   Settings.CONST.ChromeVersion = i;
 
   func = function() {};
-  Settings.Sync = {clear: func, set: func};
+  Settings.Sync = {set: func};
   Settings.extIds = [chrome.runtime.id];
 })();
 

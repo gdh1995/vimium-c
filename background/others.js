@@ -3,69 +3,83 @@
 setTimeout(function() { if (!chrome.storage || Settings.get("vimSync") !== true) { return; }
   Settings.Sync = {
     storage: chrome.storage.sync,
-    doNotSync: ["findModeRawQueryList", "keyboard"],
-    fetchAsync: function() {
-      var _this = this;
-      this.storage.get(null, function(items) {
-        var key, value, hasOwn;
-        if (chrome.runtime.lastError) {
-          return chrome.runtime.lastError;
-        }
-        hasOwn = Object.prototype.hasOwnProperty;
-        for (key in items) {
-          if (!hasOwn.call(items, key)) continue;
-          value = items[key];
-          _this.storeAndPropagate(key, value);
-        }
-      });
-    },
+    to_update: null,
+    doNotSync: Object.setPrototypeOf({
+      findModeRawQueryList: 1, keyboard: 1
+    }, null),
     HandleStorageUpdate: function(changes) {
       var change, key;
-      var _this = Settings.Sync, func = Object.prototype.hasOwnProperty;
+      var _this = Settings.Sync;
+      Object.setPrototypeOf(changes, null);
       for (key in changes) {
-        if (!func.call(changes, key)) continue;
         change = changes[key];
-        _this.storeAndPropagate(key, change != null ? change.newValue : undefined);
+        _this.storeAndPropagate(key, change != null ? change.newValue : null);
       }
     },
     storeAndPropagate: function(key, value) {
-      var defaultValue, defaultValueJSON;
-      if (!(key in Settings.defaults)) {
+      var curVal, jsonVal, defaultVal = Settings.defaults[key];
+      if (!this.shouldSyncKey(key)) { return; }
+      if (value == null) {
+        if (key in localStorage) {
+          Settings.set(key, defaultVal);
+        }
         return;
       }
-      if (!this.shouldSyncKey(key)) {
-        return;
-      }
-      if (value && key in localStorage && localStorage[key] === value) {
-        return;
-      }
-      defaultValue = Settings.defaults[key];
-      defaultValueJSON = JSON.stringify(defaultValue);
-      if (value && value !== defaultValueJSON) {
-        value = JSON.parse(value);
+      curVal = Settings.get(key);
+      if (key in Settings.NonJSON) {
+        jsonVal = value;
       } else {
-        value = defaultValue;
+        jsonVal = JSON.stringify(value);
+        curVal = JSON.stringify(curVal);
+      }
+      if (jsonVal === curVal) { return; }
+      curVal = (key in Settings.NonJSON) ? defaultVal : JSON.stringify(defaultVal);
+      if (jsonVal === curVal) {
+        value = defaultVal;
       }
       Settings.set(key, value);
     },
     set: function(key, value) {
-      if (this.shouldSyncKey(key)) {
-        var settings = {};
-        settings[key] = value;
-        this.storage.set(settings);
+      if (!this.shouldSyncKey(key)) { return; }
+      var items = this.to_update;
+      if (!items) {
+        setTimeout(this.DoUpdate, 60000);
+        items = this.to_update = Object.create(null);
       }
+      items[key] = value;
     },
-    clear: function(key) {
-      if (this.shouldSyncKey(key)) {
-        this.storage.remove(key);
+    DoUpdate: function() {
+      var _this = Settings.Sync, items = _this.to_update, removed = [], key, left = 0;
+      _this.to_update = null;
+      if (!items) { return; }
+      for (key in items) {
+        if (items[key] != null) {
+          ++left;
+        } else {
+          delete items[key];
+          removed.push(key);
+        }
+      }
+      if (removed.length > 0) {
+        _this.storage.remove(removed);
+      }
+      if (left > 0) {
+        _this.storage.set(items);
       }
     },
     shouldSyncKey: function(key) {
-      return this.doNotSync.index(key) < 0;
+      return (key in Settings.defaults) && !(key in this.doNotSync);
     }
   };
   chrome.storage.onChanged.addListener(Settings.Sync.HandleStorageUpdate);
-  Settings.Sync.fetchAsync();
+  Settings.Sync.storage.get(null, function(items) {
+    var key, value;
+    if (value = chrome.runtime.lastError) { return value; }
+    Object.setPrototypeOf(items, null);
+    for (key in items) {
+      Settings.Sync.storeAndPropagate(key, items[key]);
+    }
+  });
 }, 100);
 
 setTimeout(function() { if (!chrome.browserAction) { return; }
