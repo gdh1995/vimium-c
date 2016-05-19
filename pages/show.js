@@ -120,7 +120,7 @@ window.addEventListener("keydown", function(event) {
       download: file
     }, event);
   } else if (str === "C") {
-    window.getSelection().type !== "Range" && copyThing(event);
+    window.getSelection().toString() || copyThing(event);
   } else if (str === "A") {
     toggleInvert();
   }
