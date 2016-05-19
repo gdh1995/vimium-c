@@ -3,6 +3,9 @@
  http://www.undefined.ch/mparser/index.html
 
  Ported to JavaScript and modified by Matthew Crumley (email@matthewcrumley.com, http://silentmatt.com/)
+ Released under the MIT license.
+
+ Modified again by Dahan Gong(gdh1995@qq.com), in order to support Vimium++ and add functions and operators.
 
  You are free to use and modify this code in anyway you find useful. Please leave this comment in the code
  to acknowledge its original source. If you feel like it, I enjoy hearing about projects that use my code,
