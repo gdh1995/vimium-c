@@ -3,17 +3,16 @@ DomUtils.documentReady(function() {
   if (MainPort.safePost({ handler: "reg", visible: true })) {
     return;
   }
-  var ELs = Settings.ELs;
   addEventListener("hashchange", Settings.checkIfEnabled);
-  ELs.onWndFocus = MainPort.safePost.bind(MainPort, {
+  VEventMode.onWndFocus(MainPort.safePost.bind(MainPort, {
     handler: "frameFocused"
   }, function() {
     setTimeout(function() {
       if (MainPort && !MainPort.port) {
-        Settings.ELs.destroy();
+        Settings.Destroy();
       }
     }, 50);
-  });
+  }));
 });
 
 if (chrome.runtime.onMessageExternal) {
@@ -44,4 +43,4 @@ Settings.onDestroy = function() {
   ), function(node) { node.remove(); });
 };
 
-VimiumInjector.destroy = function() { Settings.ELs.destroy(); };
+VimiumInjector.destroy = Settings.Destroy;

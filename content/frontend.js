@@ -254,7 +254,7 @@ var Settings, VHUD, MainPort, VEventMode;
     onActivate: function(event) {
       Scroller.current = event.path[0];
     },
-    onWndFocus: function(){}, //
+    onWndFocus: function(){},
     onWndBlur: null,
     OnShadowBlur: function(event) {
       if (this.vimiumBlurred) {
@@ -1077,8 +1077,6 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
     ELs.onWndFocus = mainPort.safePost.bind(mainPort, { handler: "frameFocused" });
   });
 
-  isInjected && (settings.ELs = ELs, settings.checkIfEnabled = requestHandlers.checkIfEnabled);
-
   ELs.destroy = function() {
     var f = removeEventListener;
     isEnabledForUrl = false;
@@ -1086,7 +1084,7 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
 
     this.hook(f);
     f("mousedown", InsertMode.ExitGrab, true);
-    document.removeEventListener("DOMActivate", this.onActivate, true);
+    f.call(document, "DOMActivate", this.onActivate, true);
     VFindMode.postMode.exit();
     VFindMode.toggleStyle("remove");
     DomUtils.UI.box && DomUtils.UI.box.remove();
@@ -1105,4 +1103,10 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
       chrome = null;
     }
   };
+
+  if (isInjected) {
+    settings.Destroy = ELs.destroy.bind(ELs);
+    settings.checkIfEnabled = requestHandlers.checkIfEnabled;
+    VEventMode.onWndFocus = function(f) { ELs.onWndFocus = f; };
+  }
 })();
