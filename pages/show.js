@@ -46,7 +46,7 @@ window.onhashchange = function() {
   case "image":
     shownNode = importBody("shownImage");
     shownNode.onerror = function() {
-      shownNode.classList.add("broken");
+      shownNode.alt = "\xa0fail to load\xa0";
       setTimeout(showBgLink, 34);
       shownNode.onclick = clickLink.bind(null, { target: "_top" });
     };
@@ -64,7 +64,10 @@ window.onhashchange = function() {
       shownNode.setAttribute("alt", "\xa0(null)\xa0");
       shownNode.onerror();
     }
-    file && shownNode.setAttribute("download", file);
+    if (file) {
+      shownNode.setAttribute("download", file);
+      shownNode.alt = file;
+    }
     break;
   case "url":
     shownNode = importBody("shownText");
