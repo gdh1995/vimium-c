@@ -10,13 +10,13 @@ if (!(BG && BG.Utils && BG.Utils.convertToUrl)) {
 
 window.onhashchange = function() {
   var str, ind;
-  type = file = "";
   if (shownNode) {
+    clean();
+    bgLink.style.display = "none";
     shownNode.remove();
     shownNode = null;
-    bgLink.style.display = "none";
-    document.body.classList.remove("close");
   }
+  type = file = "";
 
   url = location.hash;
   if (url.length < 3) {}
@@ -280,4 +280,15 @@ function toggleSlide() {
     }
   });
   return viewer;
+}
+
+function clean() {
+  var viewer;
+  if (type === "image") {
+    document.body.classList.remove("close");
+    if (viewer = window.viewer) {
+      viewer.destroy();
+      window.viewer = null;
+    }
+  }
 }
