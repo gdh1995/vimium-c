@@ -771,13 +771,13 @@ searchEngines: {
       if (this.callbacks.length > 1) {
         return;
       }
-      var _this = this;
       chrome.history.search({
         text: "",
         maxResults: this.size,
         startTime: 0
       }, function(history) {
-        Decoder.decodeList(history);
+        var _this = HistoryCache, i = history.length, j;
+        while (0 <= --i) { j = history[i]; j.text = j.url; }
         _this.history = history;
         chrome.history.onVisitRemoved.addListener(_this.OnVisitRemoved);
         for (var i = 0, len = _this.callbacks.length, callback; i < len; ++i) {
@@ -790,6 +790,9 @@ searchEngines: {
           setTimeout(HistoryCache.Clean, 2000);
           chrome.history.onVisited.addListener(HistoryCache.onPageVisited.bind(HistoryCache));
         }, 600);
+        setTimeout(function() {
+          Decoder.decodeList(HistoryCache.history);
+        }, 1200);
       });
     },
     Clean: function() {
