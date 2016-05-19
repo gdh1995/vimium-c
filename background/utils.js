@@ -316,6 +316,7 @@ var exports = {}, Utils = {
         }
       };
       document.body.appendChild(script);
+      script.remove();
     });
   },
   searchWordRe: /\$([sS])(?:\{([^\}]*)\})?/g,

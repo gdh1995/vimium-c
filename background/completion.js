@@ -934,7 +934,9 @@ searchEngines: {
       link.rel = 'stylesheet';
       div.id = this._id;
       div.style.display = 'none';
-      document.head.appendChild(link);
+      document.head.remove();
+      document.body.textContent = "";
+      document.body.appendChild(link);
       document.body.appendChild(div);
       this._dataUrl || this.setDataUrl("GBK");
     }
