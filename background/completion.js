@@ -128,7 +128,6 @@ bookmarks: {
     }
     if (this.refresh) {
       chrome.bookmarks.getTree(this.refresh.bind(this));
-      this.refresh = null;
     }
   },
   StartsWithSlash: function(str) { return str.charCodeAt(0) === 47; },
@@ -151,9 +150,8 @@ bookmarks: {
     }
     Completers.next(results);
   },
-  refresh: function(tree) {
-    var bookmarks = chrome.bookmarks, listener, _this = this;
-    listener = function() {
+  listen: function() {
+    var bookmarks = chrome.bookmarks, _this = this, listener = function() {
       bookmarks.getTree(function(tree) { _this.readTree(tree); });
     };
     bookmarks.onCreated.addListener(listener);
@@ -169,12 +167,17 @@ bookmarks: {
         _this.readTree(tree);
       });
     });
-    _this.readTree(tree);
-    var query = _this.currentSearch;
-    _this.currentSearch = null;
+  },
+  refresh: function(tree) {
+    this.refresh = null;
+    this.readTree(tree);
+    var query = this.currentSearch;
+    this.currentSearch = null;
     if (query && !query.isOff) {
-      _this.performSearch(query);
+      this.performSearch(query);
     }
+    var _this = this;
+    setTimeout(function() { _this.listen(); }, 0);
   },
   readTree: function(bookmarks) {
     this.bookmarks = [];
