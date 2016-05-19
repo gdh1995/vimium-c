@@ -61,6 +61,7 @@ body{cursor:text;display:inline-block;padding:0 3px 0 1px;min-width:7px;}body *{
     wnd = el.contentWindow;
     wnd.onmousedown = this.OnMousedown;
     wnd.onkeydown = this.onKeydown.bind(this);
+    wnd.onfocus = VEventMode.onWndFocus();
     doc = wnd.document;
     el = this.input = doc.body;
     el.contentEditable = "plaintext-only";

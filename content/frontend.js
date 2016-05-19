@@ -637,7 +637,8 @@ var Settings, VHUD, MainPort, VEventMode;
 
   VEventMode = {
     lock: function() { return InsertMode.lock; },
-    hold: function(element) { InsertMode.heldEl = element; },
+    hold: function(el) { InsertMode.heldEl = el; },
+    onWndFocus: function() { return ELs.onWndFocus; },
     onWndBlur: function(f) { ELs.onWndBlur = f; },
     scroll: function(event) {
       var options, keyCode, ctrl;
