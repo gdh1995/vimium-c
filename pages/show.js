@@ -262,12 +262,18 @@ function loadViewer(func) {
 function toggleSlide() {
   shownNode.alt2 = shownNode.alt;
   shownNode.alt = file;
+  bgLink.style.display = "none";
   var viewer = new Viewer(shownNode, {
     navbar: false,
     shown: function() {
+      var btns = document.querySelector('.viewer-toolbar').children, i;
+      for (i = btns.length; 0 <= --i; ) {
+        btns[i].vimiumHasOnclick = true;
+      }
     },
     hide: function() {
       shownNode.alt = shownNode.alt2;
+      bgLink.style.display = "";
     }
   });
   return viewer;
