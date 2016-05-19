@@ -215,3 +215,43 @@ function toggleInvert() {
     shownNode.classList.toggle("invert");
   }
 }
+
+function loadJS(name, src) {
+  if (window[name]) {
+    return Promise.resolve(window[name]);
+  }
+  return new Promise(function(resolve, reject) {
+    var script = document.createElement("script");
+    script.src = src;
+    script.onerror = function() {
+      reject("ImportError: " + name);
+    };
+    script.onload = function() {
+      var obj = window[name];
+      obj ? resolve(obj) : reject("ImportError: " + name);
+    };
+    document.head.appendChild(script);
+    script.remove();
+  });
+}
+
+function loadCSS(src) {
+  if (document.querySelector('link[href="' + src + '"]')) {
+    return;
+  }
+	var obj = document.createElement('link');
+	obj.rel = 'stylesheet';
+	obj.href = src;
+	document.head.appendChild(obj);
+}
+
+function defaultOnError(err) {
+  err && console.log(err);
+}
+
+function loadViewer(func) {
+  loadCSS("/externals/viewer.min.css");
+  return loadJS("Viewer", "/externals/viewer.min.js").then(function(Viewer) {
+    setTimeout(func, 100);
+  });
+}
