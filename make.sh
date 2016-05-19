@@ -15,4 +15,4 @@ ARGS="$*"
 fi
 
 zip -roX -MM $ARGS "$OUTPUT" . -x ".*" "*.sh" "weidu/*" "test*" \
-  "*/.*" "*.zip" "*.crx" "*template.json"
+  "*/.*" "*.zip" "*.crx"
