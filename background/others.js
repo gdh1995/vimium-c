@@ -1,6 +1,6 @@
 "use strict";
 
-if (chrome.storage && Settings.get("vimSync") === true) setTimeout(function() {
+setTimeout(function() { if (!chrome.storage || Settings.get("vimSync") !== true) { return; }
   Settings.Sync = {
     storage: chrome.storage.sync,
     doNotSync: ["findModeRawQueryList", "keyboard"],
@@ -68,17 +68,16 @@ if (chrome.storage && Settings.get("vimSync") === true) setTimeout(function() {
   Settings.Sync.fetchAsync();
 }, 100);
 
-if (chrome.browserAction) setTimeout(function() {
-  var func;
+setTimeout(function() { if (!chrome.browserAction) { return; }
+  var func = Settings.updateHooks.showActionIcon;
   g_requestHandlers.SetIcon = function(tabId, type) {
     chrome.browserAction.setIcon({
       tabId: tabId,
       path: Settings.icons[type]
     });
   };
-  func = Settings.updateHooks.showActionIcon;
   Settings.updateHooks.showActionIcon = function (value) {
-    func.call(Settings, value);
+    func.call(this, value);
     if (value) {
       chrome.browserAction.setTitle({
         title: "Vimium++"
@@ -94,7 +93,7 @@ if (chrome.browserAction) setTimeout(function() {
   Settings.postUpdate("showActionIcon");
 }, 50);
 
-if (chrome.omnibox) setTimeout(function() {
+setTimeout(function() { if (!chrome.omnibox) { return; }
   var last, firstUrl, lastSuggest, spanRe = /<(\/?)span(?: [^>]+)?>/g,
   tempRequest, timeout = 0, sessionIds,
   defaultSug = { description: "<dim>Open: </dim><url>%s</url>" },
