@@ -77,7 +77,7 @@ DomUtils.UI = {
     if (sel.type !== "Range" || !sel.anchorNode) {
       return false;
     }
-    if (!root && (el = VInsertMode.lock)) {
+    if (!root && (el = VEventMode.lock())) {
       ind = el.selectionDirection === "forward" && el.selectionEnd < el.value.length ?
           el.selectionStart : el.selectionEnd;
       el.setSelectionRange(ind, ind);
@@ -90,7 +90,7 @@ DomUtils.UI = {
     element.focus();
     DomUtils.simulateClick(element);
     flash === true && this.flashVRect(this.getVRect(element));
-    if (element !== VInsertMode.lock) { return; }
+    if (element !== VEventMode.lock()) { return; }
     var len;
     if ((len = element.value ? element.value.length : -1) && element.setSelectionRange) {
       if (element instanceof HTMLInputElement || element.clientHeight + 12 >= element.scrollHeight)

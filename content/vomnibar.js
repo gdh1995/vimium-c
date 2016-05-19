@@ -76,7 +76,7 @@ activate: function(_0, options, forceCurrent) {
     this.box.style.display = "";
     this.input.value = this.inputText;
     DomUtils.UI.addElement(this.box);
-    VInsertMode.heldEl = this.input;
+    VEventMode.hold(this.input);
     DomUtils.UI.focus(this.input);
     handlerStack.set(this.onKeydown, this);
     this.box.onmousewheel = this.onWheel;
@@ -193,8 +193,8 @@ activate: function(_0, options, forceCurrent) {
     9: "down", 27: "dismiss", 33: "pageup", 34: "pagedown", 38: "up", 40: "down"
   },
   onKeydown: function(event) {
-    var action = "", n = event.keyCode, focused = VInsertMode.lock === this.input;
-    if ((!focused && VInsertMode.lock) || event.altKey) { return 0; }
+    var action = "", n = event.keyCode, focused = VEventMode.lock() === this.input;
+    if ((!focused && VEventMode.lock()) || event.altKey) { return 0; }
     if (n === KeyCodes.enter) {
       this.forceNewTab = !event.shiftKey && this.forceNewTab || event.ctrlKey || event.metaKey;
       action = "enter";

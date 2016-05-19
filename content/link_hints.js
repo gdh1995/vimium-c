@@ -91,7 +91,7 @@ var LinkHints = {
     this.isActive = true;
     this.keyStatus.tab = 0;
     handlerStack.push(this.onKeydown, this);
-    VInsertMode.onWndBlur = this.OnWndBlur;
+    VEventMode.onWndBlur(this.OnWndBlur);
   },
   setModeOpt: function(options, count) {
     if (this.options === options) { return; }
@@ -132,7 +132,7 @@ var LinkHints = {
         child.LinkHints.deactivate(true);
         done = true;
       }
-      child.VInsertMode.keydownEvents(VInsertMode.keydownEvents());
+      child.VEventMode.keydownEvents(VEventMode.keydownEvents());
     } catch (e) {
       // It's cross-site, or Vimium on the child is wholly disabled
       // * Cross-site: it's in an abnormal situation, so we needn't focus the child;
@@ -442,7 +442,7 @@ var LinkHints = {
         this.setMode(((this.mode >= 128 ? 0 : 2) | this.mode) ^ 64);
       }
     } else if (i >= KeyCodes.pageup && i <= KeyCodes.down) {
-      VInsertMode.scroll(event);
+      VEventMode.scroll(event);
     } else if (!(linksMatched = this.alphabetHints.matchHintsByKey(this.hintMarkers, event, this.keyStatus))){
       if (linksMatched === false) {
         this.reinit();
@@ -537,7 +537,7 @@ var LinkHints = {
     this.options = this.modeOpt = null;
     this.lastMode = this.mode = this.count = 0;
     handlerStack.remove(this);
-    VInsertMode.onWndBlur = null;
+    VEventMode.onWndBlur(null);
     this.isActive = false;
     suppressType != null && DomUtils.UI.suppressTail(suppressType);
   },
@@ -661,7 +661,7 @@ getUrlData: function(link) {
 
 highlightChild: function(child, box) {
   try {
-    child.VInsertMode.keydownEvents();
+    child.VEventMode.keydownEvents();
   } catch (e) {
     this.mode = 0;
     child.focus();

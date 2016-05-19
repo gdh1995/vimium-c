@@ -1,5 +1,5 @@
 "use strict";
-var Settings, VHUD, MainPort, VInsertMode;
+var Settings, VHUD, MainPort, VEventMode;
 (function() {
   var Commands, ELs, HUD, KeydownEvents, checkValidKey, currentSeconds //
     , firstKeys //
@@ -69,14 +69,14 @@ var Settings, VHUD, MainPort, VInsertMode;
       var top = window.top, topF, top2;
       try {
         topF = top.LinkHints.frameNested;
-        if (!topF) { top.VInsertMode.keydownEvents(); }
+        if (!topF) { top.VEventMode.keydownEvents(); }
       } catch (e) { if (e.message != "vimium-disabled") {
         this.sendCommand(0, command, args);
         return true;
       } else {
         top = null;
         for (top2 = window.parent; top2 !== top; top2 = top2.parent) {
-          try { top2.VInsertMode.keydownEvents(); top = top2; } catch (e) {}
+          try { top2.VEventMode.keydownEvents(); top = top2; } catch (e) {}
         }
         if (!top) { return false; }
       } }
@@ -84,7 +84,7 @@ var Settings, VHUD, MainPort, VInsertMode;
         do { top = topF.contentWindow; } while (topF = top.LinkHints.frameNested);
         if (window === top) { return false; }
       }
-      top.VInsertMode.keydownEvents(KeydownEvents);
+      top.VEventMode.keydownEvents(KeydownEvents);
       top.MainPort.Listener({
         name: "dispatchCommand", command: command, args: args
       });
@@ -217,7 +217,7 @@ var Settings, VHUD, MainPort, VInsertMode;
       else if (target !== DomUtils.UI.box) {
         target = target.shadowRoot;
         target.addEventListener("focus", ELs.onFocus, true);
-        target.addEventListener("blur", InsertMode.OnShadowBlur, true);
+        target.addEventListener("blur", ELs.OnShadowBlur, true);
       } else {
         event.stopImmediatePropagation();
         target = DomUtils.UI.root.activeElement;
@@ -231,7 +231,7 @@ var Settings, VHUD, MainPort, VInsertMode;
       var target = event.target;
       if (target === window) {
         Scroller.keyIsDown = 0;
-        InsertMode.onWndBlur && InsertMode.onWndBlur(KeydownEvents);
+        ELs.onWndBlur && ELs.onWndBlur(KeydownEvents);
         KeydownEvents = new Uint8Array(256);
       } else if (!isEnabledForUrl) {}
       else if (InsertMode.lock === target) { InsertMode.lock = null; }
@@ -255,6 +255,14 @@ var Settings, VHUD, MainPort, VInsertMode;
       Scroller.current = event.path[0];
     },
     onWndFocus: function(){}, //
+    onWndBlur: null,
+    OnShadowBlur: function(event) {
+      if (this.vimiumBlurred) {
+        this.vimiumBlurred = false;
+        this.removeEventListener("blur", ELs.OnShadowBlur, true);
+      }
+      ELs.onBlur(event);
+    },
     hook: function(f) {
       f("keydown", this.onKeydown, true);
       f("keypress", this.onKeypress, true);
@@ -347,12 +355,12 @@ var Settings, VHUD, MainPort, VInsertMode;
           HUD.show("Pass next key: " + count);
           return;
         }
-        InsertMode.onWndBlur();
+        ELs.onWndBlur();
       };
-      InsertMode.onWndBlur = function() {
+      ELs.onWndBlur = function() {
         onKeyup2 = null;
         handlerStack.remove(keys);
-        InsertMode.onWndBlur = null;
+        ELs.onWndBlur = null;
         HUD.hide();
       };
       HUD.show("Pass next key: " + count);
@@ -543,17 +551,15 @@ var Settings, VHUD, MainPort, VInsertMode;
     return 2;
   };
 
-  VInsertMode = InsertMode = {
+  InsertMode = {
     focus: null,
     global: null,
-    suppressType: null,
     heldEl: false,
+    suppressType: null,
     last: null,
     loading: (document.readyState !== "complete"),
     lock: null,
     mutable: true,
-    onExitSuppress: null,
-    onWndBlur: null,
     init: function() {
       var activeEl = document.activeElement, notBody = activeEl !== document.body;
       this.focus = this.lockFocus;
@@ -626,20 +632,13 @@ var Settings, VHUD, MainPort, VInsertMode;
         HUD.hide(true);
       }
     },
-    setupSuppress: function(onExit) {
-      this.suppressType = window.getSelection().type;
-      this.onExitSuppress = onExit;
-    },
-    exitSuppress: function() {
-      var f = this.onExitSuppress;
-      this.onExitSuppress = this.suppressType = null;
-      f && f();
-    },
-    keydownEvents: function(arr) {
-      if (!isEnabledForUrl) { throw Error("vimium-disabled"); }
-      if (!arr) { return KeydownEvents; }
-      KeydownEvents = arr;
-    },
+    onExitSuppress: null,
+  };
+
+  VEventMode = {
+    lock: function() { return InsertMode.lock; },
+    hold: function(element) { InsertMode.heldEl = element; },
+    onWndBlur: function(f) { ELs.onWndBlur = f; },
     scroll: function(event) {
       var options, keyCode, ctrl;
       if (!event || event.shiftKey || event.altKey) { return; }
@@ -656,12 +655,19 @@ var Settings, VHUD, MainPort, VInsertMode;
       }
       Commands.scrollBy(1, options);
     },
-    OnShadowBlur: function(event) {
-      if (this.vimiumBlurred) {
-        this.vimiumBlurred = false;
-        this.removeEventListener("blur", InsertMode.OnShadowBlur, true);
-      }
-      ELs.onBlur(event);
+    setupSuppress: function(onExit) {
+      InsertMode.suppressType = window.getSelection().type;
+      InsertMode.onExitSuppress = onExit;
+    },
+    exitSuppress: function() {
+      var f = InsertMode.onExitSuppress;
+      InsertMode.onExitSuppress = InsertMode.suppressType = null;
+      f && f();
+    },
+    keydownEvents: function(arr) {
+      if (!isEnabledForUrl) { throw Error("vimium-disabled"); }
+      if (!arr) { return KeydownEvents; }
+      KeydownEvents = arr;
     }
   };
 
@@ -1088,7 +1094,7 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
 
     Utils = KeyCodes = KeyboardUtils = DomUtils = VRect = handlerStack = //
     LinkHints = Vomnibar = Scroller = Marks = VFindMode = //
-    Settings = VHUD = MainPort = VInsertMode = null;
+    Settings = VHUD = MainPort = VEventMode = null;
 
     console.log("%cVimium++%c in %c%s%c has destroyed at %o."
       , "color:red", "color:auto", "color:darkred"

@@ -142,7 +142,7 @@ body{cursor:text;display:inline-block;padding:0 3px 0 1px;min-width:7px;}body *{
       this.toggleStyle("remove");
       this.restoreSelection(true);
     }
-    if (!el || el !== VInsertMode.lock) {
+    if (!el || el !== VEventMode.lock()) {
       el = window.getSelection().anchorNode;
       if (el && !this.focusFoundLink(el) && i === 3 && (el2 = document.activeElement)) {
         DomUtils.getEditableType(el2) === 3 && el.contains(el2) && DomUtils.UI.simulateSelect(el2);
@@ -182,13 +182,13 @@ body{cursor:text;display:inline-block;padding:0 3px 0 1px;min-width:7px;}body *{
   postMode: {
     lock: null,
     activate: function() {
-      var el = VInsertMode.lock, Exit = this.exit;
+      var el = VEventMode.lock(), Exit = this.exit;
       if (!el || el === Vomnibar.input) { Exit(); return; }
       handlerStack.push(this.onKeydown, this);
       if (el === this.lock) { return; }
       if (!this.lock) {
         addEventListener("click", Exit, true);
-        VInsertMode.setupSuppress(Exit);
+        VEventMode.setupSuppress(Exit);
       }
       this.exit(true);
       this.lock = el;
@@ -205,7 +205,7 @@ body{cursor:text;display:inline-block;padding:0 3px 0 1px;min-width:7px;}body *{
       this.lock = null;
       removeEventListener("click", this.exit, true);
       handlerStack.remove(this);
-      VInsertMode.exitSuppress();
+      VEventMode.exitSuppress();
     }
   },
   onInput: function() {
@@ -272,7 +272,7 @@ body{cursor:text;display:inline-block;padding:0 3px 0 1px;min-width:7px;}body *{
       found = window.find(q, options.caseSensitive || !this.ignoreCase, dir < 0, true, false, true, false);
     } while (0 < --count && found);
     options.noColor || setTimeout(this.hookSel.bind(this, "add"), 0);
-    (el = VInsertMode.lock) && DomUtils.getEditableType(el) > 1 && !DomUtils.isSelected(document.activeElement) && el.blur();
+    (el = VEventMode.lock()) && DomUtils.getEditableType(el) > 1 && !DomUtils.isSelected(document.activeElement) && el.blur();
     return this.hasResults = found;
   },
   RestoreHighlight: function() { VFindMode.toggleStyle('remove'); },
