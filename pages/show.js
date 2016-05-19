@@ -49,7 +49,7 @@ window.onhashchange = function() {
     };
     if (url.indexOf(":") > 0 || url.lastIndexOf(".") > 0) {
       shownNode.src = url;
-      shownNode.onclick = openByDefault;
+      shownNode.onclick = defaultOnClick;
       shownNode.onload = showBgLink;
     } else {
       url = "";
@@ -93,7 +93,7 @@ window.onhashchange = function() {
     bgLink.removeAttribute("data-vim-text");
     bgLink.removeAttribute("download");
   }
-  bgLink.onclick = shownNode ? clickShownNode : openByDefault;
+  bgLink.onclick = shownNode ? clickShownNode : defaultOnClick;
 
   str = document.querySelector('title').getAttribute('data-title');
   str = BG ? BG.Utils.createSearch(file ? file.split(/\s+/) : [], { url: str })
@@ -160,7 +160,7 @@ function importBody(id) {
   return node;
 }
 
-function openByDefault(event) {
+function defaultOnClick(event) {
   if (event.altKey) {
     clickLink({ download: file }, event);
   } else switch (type) {
@@ -202,7 +202,7 @@ function copyThing(event) {
   });
 }
 
-function toggleInvert(event) {
+function toggleInvert() {
   if (type === "image") {
     shownNode.classList.toggle("invert");
   }

@@ -304,11 +304,9 @@ var exports = {}, Utils = {
       var script = document.createElement("script");
       script.src = url;
       script.onerror = function() {
-        this.onload = this.onerror = null;
         reject("ImportError: " + name);
       };
       script.onload = function() {
-        this.onload = this.onerror = null;
         if (exports[name] instanceof Promise) {
           reject("ImportError: " + name);
         } else {
