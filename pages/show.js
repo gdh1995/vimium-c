@@ -46,6 +46,7 @@ window.onhashchange = function() {
     shownNode.onerror = function() {
       shownNode.classList.add("broken");
       setTimeout(showBgLink, 34);
+      shownNode.onclick = clickLink.bind(null, { target: "_top" });
     };
     if (url.indexOf(":") > 0 || url.lastIndexOf(".") > 0) {
       shownNode.src = url;
