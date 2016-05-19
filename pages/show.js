@@ -14,6 +14,7 @@ window.onhashchange = function() {
   if (shownNode) {
     shownNode.remove();
     shownNode = null;
+    bgLink.style.display = "none";
   }
 
   url = location.hash;
