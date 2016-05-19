@@ -265,7 +265,9 @@ function loadViewer(func) {
 function toggleSlide() {
   shownNode.alt2 = shownNode.alt;
   shownNode.alt = file;
-  var viewer = new Viewer(shownNode, {
+  var viewer = window.viewer;
+  if (viewer) { return viewer.show(); }
+  viewer = new Viewer(shownNode, {
     navbar: false,
     shown: function() {
       var btns = document.querySelector('.viewer-toolbar').children, i;
@@ -279,7 +281,8 @@ function toggleSlide() {
       bgLink.style.display = "";
     }
   });
-  return viewer;
+  window.viewer = viewer;
+  viewer.show();
 }
 
 function clean() {
