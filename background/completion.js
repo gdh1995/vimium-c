@@ -785,12 +785,12 @@ searchEngines: {
         _this.callbacks = [];
         setTimeout(function() {
           HistoryCache.history.sort(function(a, b) { return a.url.localeCompare(b.url); });
-          setTimeout(HistoryCache.Clean, 2000);
           chrome.history.onVisited.addListener(HistoryCache.onPageVisited.bind(HistoryCache));
         }, 600);
         setTimeout(function() {
           Decoder.decodeList(HistoryCache.history);
         }, 1200);
+        setTimeout(HistoryCache.Clean, 2500);
       });
     },
     Clean: function() {
