@@ -245,7 +245,7 @@ function loadCSS(src) {
 	var obj = document.createElement('link');
 	obj.rel = 'stylesheet';
 	obj.href = src;
-	document.head.appendChild(obj);
+	document.head.insertBefore(obj, document.querySelector('link[href$="show.css"]'));
 }
 
 function defaultOnError(err) {
