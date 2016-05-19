@@ -250,7 +250,7 @@ var exports = {}, Utils = {
     case "e": case "exec": case "eval": case "expr": case "calc": case "math":
       cmd = this.require("MathParser", "lib/math_parser.js");
       if (workType === 0) { return this.tryEvalMath(path); }
-      return cmd.then(function(MathParser) {
+      return cmd.catch(function() { return null; }).then(function(MathParser) {
         var result = Utils.tryEvalMath(path, MathParser) || "";
         return [result, "math", path];
       });
