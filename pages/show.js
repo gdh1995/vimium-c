@@ -129,7 +129,6 @@ function showBgLink() {
   var height = shownNode.scrollHeight, width = shownNode.scrollWidth;
   bgLink.style.height = height + "px";
   bgLink.style.width = width + "px";
-  bgLink.style.marginLeft = -width + "px";
   bgLink.style.display = "";
 }
 
@@ -156,8 +155,9 @@ function decodeURLPart(url) {
 }
 
 function importBody(id) {
-  var node = document.importNode($('bodyTemplate').content.getElementById(id), true);
-  document.body.insertBefore(node, bgLink);
+  var templates = $('bodyTemplate'), node;
+  node = document.importNode(templates.content.getElementById(id), true);
+  document.body.insertBefore(node, templates);
   return node;
 }
 
