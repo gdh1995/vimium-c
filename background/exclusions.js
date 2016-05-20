@@ -72,14 +72,14 @@ var Exclusions = {
     this.rules = old;
     return url;
   },
-  RefreshStatus: function(old_disabled) {
+  RefreshStatus: function(old_is_empty) {
     var ref = Settings.framesForTab, tabId, frames
-      , i, req, pass, status = "enabled", status0, port;
-    req = Exclusions.rules.length > 0 ? null : {
+      , i, always_enabled, pass, status = "enabled", status0, port;
+    always_enabled = Exclusions.rules.length > 0 ? null : {
       name: "reset",
       passKeys: null
     };
-    if (old_disabled && !req) {
+    if (old_is_empty && !always_enabled) {
       Settings.postUpdate("broadcast", {
         name: "checkIfEnabled"
       });
@@ -90,7 +90,7 @@ var Exclusions = {
       status0 = frames[0].sender.status;
       for (i = frames.length; 0 < --i; ) {
         port = frames[i];
-        if (req) {
+        if (always_enabled) {
           if (port.sender.status === "enabled") {
             continue;
           }
@@ -101,7 +101,7 @@ var Exclusions = {
             continue;
           }
         }
-        port.postMessage(req || { name: "reset", passKeys: pass });
+        port.postMessage(always_enabled || { name: "reset", passKeys: pass });
         port.sender.status = status;
       }
       if (status0 !== (status = frames[0].sender.status)) {
@@ -112,8 +112,8 @@ var Exclusions = {
 };
 
 Settings.updateHooks.exclusionRules = function(rules) {
-  var disabled = Exclusions.rules.length <= 0;
+  var is_empty = Exclusions.rules.length <= 0;
   Exclusions.setRules(rules);
   g_requestHandlers.esc();
-  setTimeout(Exclusions.RefreshStatus, 17, disabled);
+  setTimeout(Exclusions.RefreshStatus, 17, is_empty);
 };
