@@ -1094,14 +1094,13 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
       for (_i = decoders.length; 0 <= --_i; ) {
         pattern = decoders[_i];
         if (!url.startsWith(pattern[0])) { continue; }
-        arr = pattern[1].exec(request.url.substring(pattern[0].length));
+        arr = request.url.substring(pattern[0].length).match(pattern[1]);
         if (!arr) { continue; }
         str = pattern[3];
-        if (arr.length !== 2) {
-          arr.shift();
+        if (arr.length !== 1) {
           selectLast = true;
         } else if (str instanceof RegExp) {
-          url = arr[1];
+          url = arr[0];
           if (arr = url.match(str)) {
             arr.shift();
             selectLast = true;
@@ -1109,7 +1108,7 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
             arr = [url];
           }
         } else {
-          arr = arr[1].split(str);
+          arr = arr[0].split(str);
         }
         str = arr.map(Utils.DecodeURLPart).join(" ");
         url = str.replace(Utils.spacesRe, " ").trim();
