@@ -1174,10 +1174,6 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
       if (needIcon && port.sender.status) {
         requestHandlers.SetIcon(tabId, port.sender.status);
       }
-      port.postMessage({
-        name: "refreshKeyQueue",
-        currentFirst: currentFirst
-      });
     },
     checkIfEnabled: function(request, port) {
       port && port.sender || (port = Settings.indexFrame(request.tabId, request.frameId));

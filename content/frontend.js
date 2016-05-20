@@ -21,7 +21,7 @@ var Settings, VHUD, MainPort, VEventMode;
 
   firstKeys = null;
 
-  secondKeys = null;
+  secondKeys = {};
 
   currentSeconds = null;
 
@@ -233,6 +233,8 @@ var Settings, VHUD, MainPort, VEventMode;
         Scroller.keyIsDown = 0;
         ELs.onWndBlur && ELs.onWndBlur(KeydownEvents);
         KeydownEvents = new Uint8Array(256);
+        keyQueue = false;
+        currentSeconds = secondKeys[""];
       } else if (!isEnabledForUrl) {}
       else if (InsertMode.lock === target) { InsertMode.lock = null; }
       else if (!target.shadowRoot) {}
