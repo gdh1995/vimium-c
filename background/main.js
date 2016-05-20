@@ -1169,11 +1169,15 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
       port.postMessage(request);
     },
     frameFocused: function(request, port) {
-      var tabId = port.sender.tab.id, ref = framesForTab[tabId];
-      ref && (ref[0] = port);
-      if (needIcon && port.sender.status) {
-        requestHandlers.SetIcon(tabId, port.sender.status);
+      var tabId = port.sender.tab.id, ref = framesForTab[tabId], status;
+      if (!ref) {
+        needIcon && requestHandlers.SetIcon(tabId, port.sender.status);
+        return;
       }
+      if (needIcon && (status = port.sender.status) !== ref[0].sender.status) {
+        requestHandlers.SetIcon(tabId, status);
+      }
+      ref[0] = port;
     },
     checkIfEnabled: function(request, port) {
       port && port.sender || (port = Settings.indexFrame(request.tabId, request.frameId));
@@ -1301,7 +1305,6 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
       port.onDisconnect.addListener(Connections.OnDisconnect);
       var type = port.name[9] | 0, ref, tabId = port.sender.tab.id
         , pass = Exclusions.getPattern(port.sender.url);
-      port.sender.status = pass === null ? "enabled" : pass ? "partial" : "disabled";
       port.postMessage((port.sender.ready = (type & 1) !== 0) ? {
         name: "reset",
         passKeys: pass
@@ -1315,17 +1318,22 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
         secondKeys: secondKeys,
         tabId: tabId
       });
+      var status = pass === null ? "enabled" : pass ? "partial" : "disabled";
+      port.sender.status = status;
       if (ref = framesForTab[tabId]) {
         ref.push(port);
-        (type & 2) && (ref[0] = port);
+        if (type & 2) {
+          if (needIcon && ref[0].sender.status !== status) {
+            requestHandlers.SetIcon(tabId, status);
+          }
+          ref[0] = port;
+        }
       } else {
         framesForTab[tabId] = [port, port];
+        needIcon && requestHandlers.SetIcon(tabId, status);
       }
       if (Settings.CONST.ChromeVersion < 41) {
         port.sender.frameId = (type & 4) ? 0 : ((Math.random() * 9999997) | 0) + 2;
-      }
-      if ((type & 2) && needIcon) {
-        requestHandlers.SetIcon(tabId, port.sender.status);
       }
     },
     OnDisconnect: function(port) {

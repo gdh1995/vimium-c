@@ -73,7 +73,8 @@ var Exclusions = {
     return url;
   },
   RefreshStatus: function(old_disabled) {
-    var ref = Settings.framesForTab, tabId, frames, i, req, pass, status = "enabled", port;
+    var ref = Settings.framesForTab, tabId, frames
+      , i, req, pass, status = "enabled", status0, port;
     req = Exclusions.rules.length > 0 ? null : {
       name: "reset",
       passKeys: null
@@ -86,6 +87,7 @@ var Exclusions = {
     }
     for (tabId in ref) {
       frames = ref[tabId];
+      status0 = frames[0].sender.status;
       for (i = frames.length; 0 < --i; ) {
         port = frames[i];
         if (req) {
@@ -101,6 +103,9 @@ var Exclusions = {
         }
         port.postMessage(req || { name: "reset", passKeys: pass });
         port.sender.status = status;
+      }
+      if (status0 !== (status = frames[0].sender.status)) {
+        g_requestHandlers.SetIcon(tabId | 0, status);
       }
     }
   }
