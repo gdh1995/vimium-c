@@ -48,3 +48,8 @@ Thanks & License
 * Vimium: Copyright (c) Phil Crosby, Ilya Sukhar. See MIT-LICENSE.txt for
     details.
 * 微度新标签页: ©2012 杭州佐拉网络有限公司. 保留所有权利.
+* [JavaScript Expression Evaluator
+    ](https://github.com/silentmatt/js-expression-eval):
+    Copyright (c) 2015 Matthew Crumley
+* [Viewer.js](https://github.com/fengyuanchen/viewerjs):
+    Copyright (c) 2015-2016 Fengyuan Chen
