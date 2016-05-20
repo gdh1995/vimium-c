@@ -48,7 +48,9 @@ window.onhashchange = function() {
     shownNode.onerror = function() {
       shownNode.alt = "\xa0fail to load\xa0";
       setTimeout(showBgLink, 34);
-      shownNode.onclick = clickLink.bind(null, { target: "_top" });
+      shownNode.onclick = chrome.tabs && chrome.tabs.update ? function() {
+        chrome.tabs.update(null, {url: url});
+      } : clickLink.bind(null, { target: "_top" });
     };
     if (url.indexOf(":") > 0 || url.lastIndexOf(".") > 0) {
       shownNode.src = url;
