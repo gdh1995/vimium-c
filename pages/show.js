@@ -268,38 +268,37 @@ function defaultOnError(err) {
 function loadViewer(func) {
   loadCSS("../externals/viewer.min.css");
   return loadJS("Viewer", "..//externals/viewer.min.js").then(function(Viewer) {
-    setTimeout(func, 100);
+    Viewer.setDefaults({
+      navbar: false,
+      built: function() {
+        var btns = document.querySelector('.viewer-toolbar').children, i;
+        for (i = btns.length; 0 <= --i; ) {
+          btns[i].vimiumHasOnclick = true;
+        }
+      },
+      shown: function() { 
+        bgLink.style.display = "none";
+      },
+      hide: function() {
+        bgLink.style.display = "";
+      }
+    });
+    return func(Viewer);
   });
 }
 
-function toggleSlide() {
+function toggleSlide(Viewer) {
   var sel = window.getSelection();
   sel.type == "Range" && sel.collapseToStart();
-  var viewer = window.viewer;
-  if (viewer) { return viewer.show(); }
-  viewer = new Viewer(shownNode, {
-    navbar: false,
-    shown: function() {
-      var btns = document.querySelector('.viewer-toolbar').children, i;
-      for (i = btns.length; 0 <= --i; ) {
-        btns[i].vimiumHasOnclick = true;
-      }
-      bgLink.style.display = "none";
-    },
-    hide: function() {
-      bgLink.style.display = "";
-    }
-  });
-  window.viewer = viewer;
-  viewer.show();
+  window.viewer = window.viewer || new Viewer(shownNode);
+  window.viewer.show();
 }
 
 function clean() {
-  var viewer;
   if (type === "image") {
     document.body.classList.remove("close");
-    if (viewer = window.viewer) {
-      viewer.destroy();
+    if (window.viewer) {
+      window.viewer.destroy();
       window.viewer = null;
     }
   }
