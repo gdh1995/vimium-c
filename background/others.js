@@ -83,14 +83,35 @@ setTimeout(function() { if (!chrome.storage || Settings.get("vimSync") !== true)
 }, 100);
 
 setTimeout(function() { if (!chrome.browserAction) { return; }
-  var func = Settings.updateHooks.showActionIcon;
+  var func = Settings.updateHooks.showActionIcon, imageData = Object.create(null);
+  function loadImageAndSetIcon(tabId, type, path) {
+    var img = new Image(), img2 = new Image(), i, cache = Object.create(null), count = 0;
+    img.onerror = img2.onerror = function() {
+      console.error('Could not load action icon \'' + this.src + '\'.');
+    };
+    img.onload = img2.onload = function() {
+      var canvas = document.createElement('canvas'), w = this.width, h = this.h, ctx;
+      w = canvas.width = this.width, h = canvas.height = this.height;
+      ctx = canvas.getContext('2d');
+      ctx.clearRect(0, 0, w, h);
+      ctx.drawImage(this, 0, 0, w, h);
+      cache[w] = ctx.getImageData(0, 0, w, h);
+      imageData[type] = cache;
+      if (--count) { return; }
+      g_requestHandlers.SetIcon(tabId, type);
+    };
+    for (i in path) { (count++ ? img2 : img).src = path[i]; }
+  }
   g_requestHandlers.SetIcon = function(tabId, type) {
-    var path = Settings.icons[type];
-    if (!path) { return; }
-    chrome.browserAction.setIcon({
-      tabId: tabId,
-      path: path
-    });
+    var data = imageData[type], path;
+    if (data) {
+      chrome.browserAction.setIcon({
+        tabId: tabId,
+        imageData: data
+      });
+    } else if (path = Settings.icons[type]) {
+      setTimeout(loadImageAndSetIcon, 0, tabId, type, path);
+    }
   };
   Settings.updateHooks.showActionIcon = function (value) {
     func.call(this, value);
