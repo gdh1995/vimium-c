@@ -45,8 +45,10 @@ window.onhashchange = function() {
   switch (type) {
   case "image":
     shownNode = importBody("shownImage");
+    shownNode.style.visibility = "hidden";
     shownNode.onerror = function() {
       shownNode.alt = "\xa0fail to load\xa0";
+      shownNode.style.visibility = "";
       setTimeout(showBgLink, 34);
       shownNode.onclick = chrome.tabs && chrome.tabs.update ? function() {
         chrome.tabs.update(null, {url: url});
@@ -57,6 +59,7 @@ window.onhashchange = function() {
       shownNode.onclick = defaultOnClick;
       shownNode.onload = function() {
         showBgLink();
+        shownNode.style.visibility = "";
         if (this.width >= window.innerWidth * 0.9) {
           document.body.classList.add("close");
         }
@@ -69,6 +72,7 @@ window.onhashchange = function() {
     if (file) {
       shownNode.setAttribute("download", file);
       shownNode.alt = file;
+      shownNode.title = file;
     }
     break;
   case "url":
@@ -133,7 +137,7 @@ window.addEventListener("keydown", function(event) {
   } else if (str === "C") {
     window.getSelection().toString() || copyThing(event);
   } else if (str === "A") {
-    toggleInvert();
+    toggleInvert(event);
   }
 });
 
@@ -175,11 +179,11 @@ function importBody(id) {
 
 function defaultOnClick(event) {
   if (event.altKey) {
+    event.stopImmediatePropagation();
     clickLink({ download: file }, event);
   } else switch (type) {
   case "url": clickLink({ target: "_blank" }, event); break;
   case "image":
-    // toggleInvert(); break;
     loadViewer(toggleSlide).catch(defaultOnError);
     break;
   }
@@ -218,9 +222,13 @@ function copyThing(event) {
   });
 }
 
-function toggleInvert() {
+function toggleInvert(event) {
   if (type === "image") {
-    shownNode.classList.toggle("invert");
+    if (document.documentElement.innerText) {
+      event.preventDefault();
+    } else {
+      shownNode.classList.toggle("invert");
+    }
   }
 }
 
@@ -265,8 +273,8 @@ function loadViewer(func) {
 }
 
 function toggleSlide() {
-  shownNode.alt2 = shownNode.alt;
-  shownNode.alt = file;
+  var sel = window.getSelection();
+  sel.type == "Range" && sel.collapseToStart();
   var viewer = window.viewer;
   if (viewer) { return viewer.show(); }
   viewer = new Viewer(shownNode, {
@@ -279,7 +287,6 @@ function toggleSlide() {
       bgLink.style.display = "none";
     },
     hide: function() {
-      shownNode.alt = shownNode.alt2;
       bgLink.style.display = "";
     }
   });
