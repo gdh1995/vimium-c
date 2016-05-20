@@ -1317,6 +1317,7 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
       });
       if (ref = framesForTab[tabId]) {
         ref.push(port);
+        (type & 2) && (ref[0] = port);
       } else {
         framesForTab[tabId] = [port, port];
       }
