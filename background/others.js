@@ -85,9 +85,11 @@ setTimeout(function() { if (!chrome.storage || Settings.get("vimSync") !== true)
 setTimeout(function() { if (!chrome.browserAction) { return; }
   var func = Settings.updateHooks.showActionIcon;
   g_requestHandlers.SetIcon = function(tabId, type) {
+    var path = Settings.icons[type];
+    if (!path) { return; }
     chrome.browserAction.setIcon({
       tabId: tabId,
-      path: Settings.icons[type]
+      path: path
     });
   };
   Settings.updateHooks.showActionIcon = function (value) {
@@ -105,7 +107,7 @@ setTimeout(function() { if (!chrome.browserAction) { return; }
     }
   };
   Settings.postUpdate("showActionIcon");
-}, 50);
+}, 150);
 
 setTimeout(function() { if (!chrome.omnibox) { return; }
   var last, firstUrl, lastSuggest, spanRe = /<(\/?)span(?: [^>]+)?>/g,
