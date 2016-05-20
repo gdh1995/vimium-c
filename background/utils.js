@@ -61,6 +61,7 @@ var exports = {}, Utils = {
   domains: Object.create(null),
   _hostRe: /^([^:]+(:[^:]+)?@)?([^:]+|\[[^\]]+\])(:\d{2,5})?$/,
   _ipRe: /^(?:\d{1,3}\.){3}\d{1,3}$/,
+  lfRe: /[\r\n]+/g,
   spacesRe: /\s+/g,
   _nonENTldRe: /[^a-z]/,
   _nonProtocolRe: /[^0-9a-z\-]/,
@@ -78,10 +79,11 @@ var exports = {}, Utils = {
       return string;
     }
     var type = -1, expected = 1, index, index2, oldString, arr;
-    // NOTE: here '\u3000' is changed to ' ', which may cause a 404 (for url)
+    // NOTE: here '\u3000' is changed to ' ', which may cause a 404 (for url),
+    //       but usually a url should not include such a *mistake* character
     // NOTE: here a mulit-line string is be changed to single-line,
     //       which may be better
-    oldString = string.trim().replace(this.spacesRe, ' ');
+    oldString = string.trim().replace(this.lfRe, '').replace(this.spacesRe, ' ');
     string = oldString.toLowerCase();
     if ((index = string.indexOf(' ')) > 0) {
       string = string.substring(0, index);
