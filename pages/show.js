@@ -256,8 +256,8 @@ function defaultOnError(err) {
 }
 
 function loadViewer(func) {
-  loadCSS("/externals/viewer.min.css");
-  return loadJS("Viewer", "/externals/viewer.min.js").then(function(Viewer) {
+  loadCSS("../externals/viewer.min.css");
+  return loadJS("Viewer", "..//externals/viewer.min.js").then(function(Viewer) {
     setTimeout(func, 100);
   });
 }
