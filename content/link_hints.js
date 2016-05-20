@@ -257,6 +257,7 @@ var LinkHints = {
   GetLinks: function(element) {
     var a, arr;
     if ((a = element.getAttribute("href")) && a !== "#"
+        && (a.charCodeAt(10) !== 58 || a.substring(0, 11).toLowerCase() !== "javascript:")
         || element.hasAttribute("data-vim-url")) {
       if (arr = DomUtils.getVisibleClientRect(element)) {
         this.push([element, arr]);

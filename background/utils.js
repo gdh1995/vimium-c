@@ -70,7 +70,7 @@ var exports = {}, Utils = {
   filePathRe: /^['"]?((?:[A-Za-z]:[\\/]|\/(?:Users|home|root)\/)[^'"]*)['"]?$/,
   lastUrlType: 0,
   convertToUrl: function(string, keyword, vimiumUrlWork) {
-    if (string.substring(0, 11).toLowerCase() === "javascript:") {
+    if (string.charCodeAt(10) === 58 && string.substring(0, 11).toLowerCase() === "javascript:") {
       if (Settings.CONST.ChromeVersion < 46 && string.indexOf('%', 11) > 0
           && !this._jsNotEscapeRe.test(string)) {
         string = this.DecodeURLPart(string);
