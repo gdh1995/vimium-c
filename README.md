@@ -5,7 +5,8 @@ Vimium++
 
 A custom [Vimium](https://github.com/philc/vimium)
   by [gdh1995](https://github.com/gdh1995).
-  Support Chrome with sessions only (ver >= 37).
+  Support Chrome with the session functionalities only (ver >= 37).
+  For older version, it would try to work ^_^
 
 In the *weidu* directory is 微度新标签页.
 
