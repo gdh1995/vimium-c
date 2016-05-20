@@ -63,14 +63,6 @@ var Settings = {
         }
       }
     },
-    files: function() {
-      var files = Settings.files, id, func = function() {
-        Settings.set(this.id, this.responseText);
-      };
-      for (id in files) {
-        Utils.fetchHttpContents(files[id], func).id = id;
-      }
-    },
     newTabUrl: function(url) {
       url = /^\/?pages\/[a-z]+.html\b/i.test(url)
         ? chrome.runtime.getURL(url) : Utils.convertToUrl(url);
@@ -138,6 +130,14 @@ var Settings = {
       }
     }
     return null;
+  },
+  reloadFiles: function() {
+    var files = this.files, id, func = function() {
+      Settings.set(this.id, this.responseText);
+    };
+    for (id in files) {
+      Utils.fetchHttpContents(files[id], func).id = id;
+    }
   },
   // clear localStorage & sync, if value === @defaults[key]
   // the default of any dict field should be set to null, for @Sync

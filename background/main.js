@@ -1442,7 +1442,7 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
   }, 17);
 
   setTimeout(function() {
-    Settings.postUpdate("files", null);
+    Settings.reloadFiles();
     Settings.postUpdate("searchUrl", null); // will also update newTabUrl
 
     var ref, i, ref2, key;
