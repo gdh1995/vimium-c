@@ -29,6 +29,7 @@ var LinkHints = {
   count: 0,
   lastMode: 0,
   isClickListened: true,
+  ngEnabled: null,
   keyStatus: {
     known: 1,
     newHintLength: 0,
@@ -230,6 +231,10 @@ var LinkHints = {
         isClickable = true;
         break;
       }
+      if (LinkHints.ngEnabled && element.getAttribute("ng-click")) {
+        isClickable = true;
+        break;
+      }
       if (s = element.getAttribute("jsaction")) {
         arr = s.split(";");
         _i = arr.length;
@@ -301,6 +306,9 @@ var LinkHints = {
     Object.setPrototypeOf(filters, null);
     DomUtils.prepareCrop();
     box = document.webkitFullscreenElement || document;
+    if (this.ngEnabled === null && "*" in filters) {
+      this.ngEnabled = document.querySelector('.ng-scope') != null;
+    }
     for (key in filters) {
       func = filters[key].bind(output);
       if (Settings.cache.deepHints) {
