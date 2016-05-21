@@ -1097,7 +1097,8 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
         arr = request.url.substring(pattern[0].length).match(pattern[1]);
         if (!arr) { continue; }
         str = pattern[3];
-        if (arr.length !== 1) {
+        if (arr.length === 2) { arr[0] = arr[1]; }
+        if (arr.length > 2) {
           selectLast = true;
         } else if (str instanceof RegExp) {
           url = arr[0];
