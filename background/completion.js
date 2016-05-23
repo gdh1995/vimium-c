@@ -132,16 +132,16 @@ bookmarks: {
   },
   StartsWithSlash: function(str) { return str.charCodeAt(0) === 47; },
   performSearch: function(query) {
-    var c, results, name;
+    var c, results, isPath;
     if (queryTerms.length === 0) {
       results = [];
     } else {
-      name = queryTerms.some(this.StartsWithSlash) ? "path" : "title";
+      isPath = queryTerms.some(this.StartsWithSlash);
       c = this.computeRelevancy;
       results = this.bookmarks.filter(function(i) {
-        return RankingUtils.Match2(i.text, i[name]);
+        return RankingUtils.Match2(i.text, isPath ? i.path : i.title);
       }).map(function(i) {
-        return new Suggestion("bookm", i.jsUrl || i.url, i.jsUrl ? "javascript: ..." : i.text, i[name], c);
+        return new Suggestion("bookm", i.jsUrl || i.url, i.jsUrl ? "javascript: ..." : i.text, isPath ? i.path : i.title, c);
       });
       if (offset > 0 && queryType === 1) {
         results.sort(Completers.rsortByRelevancy);
@@ -884,7 +884,7 @@ searchEngines: {
     working: -1,
     interval: 18,
     continueToWork: function() {
-      if (this._timer === 0 && this.todos.length > 0) {
+      if (this.todos.length > 0 && this._timer === 0) {
         this._timer = setInterval(this.Work, this.interval);
       }
     },
