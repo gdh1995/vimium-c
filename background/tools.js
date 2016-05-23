@@ -10,7 +10,7 @@ var Clipboard = {
   copy: function(data) {
     var textArea = this._getTextArea();
     textArea.value = data;
-    document.body.appendChild(textArea);
+    document.documentElement.appendChild(textArea);
     textArea.select();
     document.execCommand("Copy");
     textArea.remove();
@@ -18,7 +18,7 @@ var Clipboard = {
   },
   paste: function() {
     var textArea = this._getTextArea(), value;
-    document.body.appendChild(textArea);
+    document.documentElement.appendChild(textArea);
     textArea.focus();
     document.execCommand("Paste");
     value = textArea.value;

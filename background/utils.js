@@ -315,7 +315,7 @@ var exports = {}, Utils = {
           resolve(exports[name]);
         }
       };
-      document.body.appendChild(script);
+      document.documentElement.appendChild(script);
       script.remove();
     });
   },

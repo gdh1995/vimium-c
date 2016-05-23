@@ -320,6 +320,9 @@ setTimeout(function() {
 setTimeout(function() {
   chrome.runtime.onInstalled.removeListener(window.b);
   window.b = null;
+
+  document.head.remove();
+  document.body.remove();
 }, 200);
 
 //* #if DEBUG
