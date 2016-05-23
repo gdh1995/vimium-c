@@ -182,7 +182,7 @@ bookmarks: {
   readTree: function(bookmarks) {
     this.bookmarks = [];
     bookmarks.forEach(this.traverseBookmark, this);
-    Decoder.decodeList(this.bookmarks);
+    setTimeout(Decoder.decodeList, 50, this.bookmarks);
   },
   ignoreTopLevel: {
     "Bookmarks Bar": 1,
@@ -192,19 +192,26 @@ bookmarks: {
     "\u5176\u4ED6\u4E66\u7B7E": 1
   },
   traverseBookmark: function(bookmark) {
-    var path = this.path;
-    bookmark.path = !bookmark.title ? "" : path ? (path + '/' + bookmark.title)
-      : (bookmark.title in this.ignoreTopLevel) ? "" : ('/' + bookmark.title);
+    var path = this.path, title = bookmark.title, url;
+    path = !title ? "" : path ? (path + '/' + title)
+      : (title in this.ignoreTopLevel) ? "" : ('/' + title);
     if (bookmark.children) {
       this.path = bookmark.path;
       bookmark.children.forEach(this.traverseBookmark, this);
       this.path = path;
       return;
     }
+    url = bookmark.url;
+    bookmark = {
+      url: url,
+      text: url,
+      path: path,
+      title: title
+    };
     this.bookmarks.push(bookmark);
-    if (bookmark.url.startsWith("javascript:")) {
-      bookmark.jsUrl = bookmark.url;
+    if (url.startsWith("javascript:")) {
       bookmark.url = "";
+      bookmark.jsUrl = url;
     }
   },
   computeRelevancy: function(suggestion) {
