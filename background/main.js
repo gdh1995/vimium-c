@@ -46,7 +46,7 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
       } else {
         bindings = "";
       }
-      isAdvanced = Commands.advancedCommands.indexOf(command) >= 0;
+      isAdvanced = command in Commands.advancedCommands;
       description = availableCommands[command][0];
       if (!bindings || keys.join(", ").length <= 12) {
         helpDialogHtmlForCommand(html, isAdvanced, bindings, description, showNames && command);

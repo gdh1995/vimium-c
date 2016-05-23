@@ -118,19 +118,21 @@ commandGroups: {
   misc: ["showHelp", "autoCopy", "autoOpen", "searchAs", "toggleLinkHintCharacters"
     , "toggleSwitchTemp", "passNextKey", "debugBackground", "blank"]
 },
-advancedCommands: ["scrollToLeft", "scrollToRight", "moveTabToNextWindow"
-  , "moveTabToNewWindow", "moveTabToIncognito", "reloadGivenTab", "focusOrLaunch"
-  , "goUp", "goToRoot", "focusInput", "LinkHints.activateModeWithQueue", "enableCSTemp"
-  , "toggleCS", "clearCS", "LinkHints.activateModeToDownloadImage", "reopenTab"
-  , "LinkHints.activateModeToOpenImage", "searchAs", "removeRightTab"
-  , "LinkHints.activateModeToDownloadLink", "restoreGivenTab"
-  , "LinkHints.activateModeToOpenIncognito", "passNextKey"
-  , "goNext", "goPrevious", "Marks.clearLocal", "Marks.clearGlobal"
-  , "moveTabLeft", "moveTabRight", "closeTabsOnLeft", "closeTabsOnRight", "closeOtherTabs"
-  , "scrollPxDown", "scrollPxUp", "scrollPxLeft", "scrollPxRight", "debugBackground", "blank"
-  , "LinkHints.activateModeToHover", "LinkHints.unhoverLast"
-  , "toggleLinkHintCharacters", "toggleSwitchTemp", "LinkHints.activateModeToLeave"
-],
+advancedCommands: {
+  __proto__: null
+  , scrollToLeft: 1, scrollToRight: 1, moveTabToNextWindow: 1
+  , moveTabToNewWindow: 1, moveTabToIncognito: 1, reloadGivenTab: 1, focusOrLaunch: 1
+  , goUp: 1, goToRoot: 1, focusInput: 1, "LinkHints.activateModeWithQueue": 1, enableCSTemp: 1
+  , toggleCS: 1, clearCS: 1, "LinkHints.activateModeToDownloadImage": 1, reopenTab: 1
+  , "LinkHints.activateModeToOpenImage": 1, searchAs: 1, removeRightTab: 1
+  , "LinkHints.activateModeToDownloadLink": 1, restoreGivenTab: 1
+  , "LinkHints.activateModeToOpenIncognito": 1, passNextKey: 1
+  , goNext: 1, goPrevious: 1, "Marks.clearLocal": 1, "Marks.clearGlobal": 1
+  , moveTabLeft: 1, moveTabRight: 1, closeTabsOnLeft: 1, closeTabsOnRight: 1, closeOtherTabs: 1
+  , scrollPxDown: 1, scrollPxUp: 1, scrollPxLeft: 1, scrollPxRight: 1, debugBackground: 1, blank: 1
+  , "LinkHints.activateModeToHover": 1, "LinkHints.unhoverLast": 1
+  , toggleLinkHintCharacters: 1, toggleSwitchTemp: 1, "LinkHints.activateModeToLeave": 1
+},
 defaultKeyMappings: [
   ["?", "showHelp"],
   ["j", "scrollDown"],
