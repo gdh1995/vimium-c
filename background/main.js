@@ -1470,6 +1470,6 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
       chrome.commands.onCommand.addListener(funcDict.globalCommand);
     };
 
-    setTimeout(ContentSettings.clear, 1000, "images");
+    Settings.get("autoClearCS") && setTimeout(ContentSettings.clear, 1000, "images");
   }, 34);
 })();

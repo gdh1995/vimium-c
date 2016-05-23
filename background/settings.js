@@ -144,6 +144,7 @@ var Settings = {
   defaults: {
     __proto__: null,
     UILanguage: null,
+    autoClearCS: true,
     deepHints: false,
     exclusionRules: [{pattern: "^https?://mail.google.com/", passKeys: ""}],
     extWhiteList: "hdnehngglnbnehkfcidabjckinphnief",
