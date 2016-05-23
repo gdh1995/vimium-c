@@ -73,6 +73,9 @@ pre {
   color: black;
   margin-left: 20px;
 }
+.example-2-line {
+  line-height: 28px;
+}
 .info {
   margin-left: 4px;
 }
