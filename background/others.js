@@ -1,6 +1,6 @@
 "use strict";
 
-setTimeout(function() { if (!chrome.storage || Settings.get("vimSync") !== true) { return; }
+if (Settings.get("vimSync") === true) setTimeout(function() { if (!chrome.storage) { return; }
   Settings.Sync = {
     storage: chrome.storage.sync,
     to_update: null,

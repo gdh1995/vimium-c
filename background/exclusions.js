@@ -17,11 +17,11 @@ var Exclusions = {
   _listening: false,
   rules: [],
   setRules: function(rules) {
-    var onURLChange = chrome.webNavigation && (this.onURLChange || g_requestHandlers.checkIfEnabled);
+    var onURLChange;
     if (rules.length === 0) {
       this.rules = [];
       this.getPattern = function() { return null; };
-      if (this._listening && onURLChange) {
+      if (this._listening && (onURLChange = this.getOnURLChange())) {
         chrome.webNavigation.onHistoryStateUpdated.removeListener(onURLChange);
         chrome.webNavigation.onReferenceFragmentUpdated.removeListener(onURLChange);
       }
@@ -31,7 +31,7 @@ var Exclusions = {
     this.testers || (this.testers = Object.create(null));
     this.rules = this.format(rules);
     this.testers = null;
-    if (!this._listening && onURLChange) {
+    if (!this._listening && (onURLChange = this.getOnURLChange())) {
       chrome.webNavigation.onHistoryStateUpdated.addListener(onURLChange);
       chrome.webNavigation.onReferenceFragmentUpdated.addListener(onURLChange);
     }
@@ -49,6 +49,9 @@ var Exclusions = {
       }
     }
     return matchedKeys || null;
+  },
+  getOnURLChange: function() {
+    return chrome.webNavigation && (this.onURLChange || g_requestHandlers.checkIfEnabled);
   },
   onURLChange: Settings.CONST.ChromeVersion < 41 && function(details) {
     var ref = Settings.framesForTab[details.tabId], i, msg = { name: "checkIfEnabled" };

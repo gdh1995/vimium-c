@@ -1469,6 +1469,7 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
     if (chrome.commands) {
       chrome.commands.onCommand.addListener(funcDict.globalCommand);
     };
-    ContentSettings.clear("images");
+
+    setTimeout(ContentSettings.clear, 1000, "images");
   }, 34);
 })();
