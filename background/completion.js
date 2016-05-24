@@ -952,22 +952,21 @@ searchEngines: {
         }
       };
     })();
+  }, 100);
 
-    var lang;
-    if (lang = Settings.get("UILanguage")) {
-      var ref = lang.urlCode;
-      if (ref && typeof ref === "string") {
-        Decoder.setDataUrl(ref);
-      }
-      ref = lang.bookmarkTypes;
-      if (ref && ref.length > 0) {
-        var i = ref.length, ref2 = Completers.bookmarks.ignoreTopLevel;
-        ref.sort().reverse();
-        for (; 0 <= --i; ) {
-          ref2[ref[i]] = 1;
-        }
+  Settings.updateHooks.UILanguage = function(lang) {
+    if (!lang) { return; }
+    var code = lang.urlCode, ref = lang.bookmarkTypes, i, ref2;
+    if (code && typeof code === "string") {
+      Decoder.setDataUrl(code);
+    }
+    if (ref && (i = ref.length) > 0) {
+      ref2 = Completers.bookmarks.ignoreTopLevel;
+      for (; 0 <= --i; ) {
+        ref2[ref[i]] = 1;
       }
     }
+  };
 
     setTimeout(function() {
       queryTerms || HistoryCache.history || HistoryCache.use(function(history) {
@@ -975,10 +974,9 @@ searchEngines: {
           var domainsCompleter = Completers.domains;
           if (queryTerms || domainsCompleter.domains) { return; }
           domainsCompleter.populateDomains(history);
-        }, 50);
+        }, 750);
       });
     }, 30000);
-  }, 100);
 
   window.Completers = {
     bookmarks: new Completers.MultiCompleter([Completers.bookmarks]),
@@ -992,4 +990,5 @@ searchEngines: {
 
 setTimeout(function() {
   Settings.postUpdate("searchEngines", null);
+  Settings.postUpdate("UILanguage");
 }, 300);
