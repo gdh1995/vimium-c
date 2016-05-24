@@ -128,6 +128,7 @@ bookmarks: {
     }
     if (this.refresh) {
       chrome.bookmarks.getTree(this.refresh.bind(this));
+      this.refresh = null;
     }
   },
   StartsWithSlash: function(str) { return str.charCodeAt(0) === 47; },
@@ -170,7 +171,6 @@ bookmarks: {
     });
   },
   refresh: function(tree) {
-    this.refresh = null;
     this.readTree(tree);
     var query = this.currentSearch;
     this.currentSearch = null;
@@ -837,7 +837,7 @@ searchEngines: {
     OnVisitRemoved: function(toRemove) {
       var _this = HistoryCache;
       if (toRemove.allHistory) {
-        _this.history = null;
+        _this.history = [];
         return;
       }
       var bs = _this.binarySearch, h = _this.history, arr = toRemove.urls, j, i;
