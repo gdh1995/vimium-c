@@ -174,6 +174,12 @@ activate: function(_0, options, forceCurrent) {
       sel === Vomnibar.selection && (Vomnibar.input.value = line.parsed);
     });
   },
+  toggleInput: function() {
+    if (this.selection < 0) { return; }
+    var line = this.completions[this.selection], str = this.input.value.trim();
+    this.input.value = str === line.url ? (line.parsed || line.text)
+      : str === line.text ? line.url : line.text;
+  },
   updateSelection: function(sel) {
     var _ref = this.list.children, old = this.selection;
     this.selection = sel;
@@ -262,9 +268,7 @@ activate: function(_0, options, forceCurrent) {
       this.updateInput();
       break;
     case "toggle":
-      if (this.selection >= 0) {
-        this.input.value = this.completions[this.selection].text;
-      }
+      this.toggleInput();
       break;
     case "pageup": case "pagedown":
       this.goPage(action === "pageup" ? -1 : 1);
