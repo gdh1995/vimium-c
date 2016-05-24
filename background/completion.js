@@ -343,7 +343,11 @@ history: {
 domains: {
   domains: null,
   filter: function(query) {
-    HistoryCache.history && this.refresh(HistoryCache.history);
+    if (!HistoryCache.history) {
+      Completers.next([]);
+      return;
+    }
+    this.refresh(HistoryCache.history);
     this.performSearch(query);
   },
   performSearch: function(query) {
@@ -823,7 +827,10 @@ searchEngines: {
         url: newPage.url
       };
       _this.history.splice(-1 - i, 0, j);
-      Decoder.continueToWork();
+      if (Decoder.todos.length > 0) {
+        Decoder.todos.push(j);
+        Decoder.continueToWork();
+      }
     },
     OnVisitRemoved: function(toRemove) {
       var _this = HistoryCache;
@@ -958,11 +965,11 @@ searchEngines: {
   };
 
   setTimeout(function() {
-    HistoryCache.history || queryTerms || HistoryCache.use(function(history) {
+    HistoryCache.history || queryTerms || HistoryCache.use(function() {
       queryTerms || setTimeout(function() {
         var domainsCompleter = Completers.domains;
         if (domainsCompleter.domains || queryTerms) { return; }
-        domainsCompleter.refresh(history);
+        domainsCompleter.refresh(HistoryCache.history);
       }, 750);
     });
   }, 30000);
