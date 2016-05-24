@@ -152,7 +152,7 @@ activate: function(_0, options, forceCurrent) {
     if (!focused) this.input.blur();
     line = this.completions[sel = this.selection];
     str = line.text;
-    if (line.type !== "history") {
+    if (line.type !== "history" && line.type !== "tab") {
       this.input.value = str;
       if (line.type === "math") {
         this.input.setSelectionRange(0, str.length);
