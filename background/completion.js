@@ -117,10 +117,6 @@ bookmarks: {
   currentSearch: null,
   path: "",
   filter: function(query) {
-    if (this.bookmarks) {
-      this.performSearch(query);
-      return;
-    }
     if (queryTerms.length === 0) {
       Completers.next([]);
     } else {
@@ -172,12 +168,12 @@ bookmarks: {
   },
   refresh: function(tree) {
     this.readTree(tree);
+    this.filter = this.performSearch;
     var query = this.currentSearch;
     this.currentSearch = null;
     if (query && !query.isOff) {
-      this.performSearch(query);
+      this.filter(query);
     }
-    var _this = this;
     setTimeout(this.Listen, 0);
   },
   readTree: function(bookmarks) {
@@ -347,18 +343,14 @@ history: {
 domains: {
   domains: null,
   filter: function(query) {
-    if (queryTerms.length !== 1 || queryTerms[0].indexOf("/") !== -1) {
-      Completers.next([]);
-    } else if (this.domains) {
-      this.performSearch(query);
-    } else if (HistoryCache.history) {
-      this.populateDomains(HistoryCache.history);
-      this.performSearch(query);
-    } else {
-      Completers.next([]);
-    }
+    HistoryCache.history && this.refresh(HistoryCache.history);
+    this.performSearch(query);
   },
   performSearch: function(query) {
+    if (queryTerms.length !== 1 || queryTerms[0].indexOf("/") !== -1) {
+      Completers.next([]);
+      return;
+    }
     var ref = this.domains, domain, p = RankingUtils.maxScoreP, q = queryTerms, word = q[0]
       , sug, wordRelevancy, score, result = "", result_score = -1000;
     queryTerms = [word];
@@ -380,12 +372,14 @@ domains: {
     RankingUtils.maxScoreP = p;
     Completers.next(sug ? [sug] : []);
   },
-  populateDomains: function(history) {
+  refresh: function(history) {
     var i = history.length;
+    this.refresh = null;
     Utils.domains = this.domains = Object.create(null);
     while (0 <= --i) {
       this.onPageVisited(history[i]);
     }
+    this.filter = this.performSearch;
     chrome.history.onVisited.addListener(this.onPageVisited.bind(this));
     chrome.history.onVisitRemoved.addListener(this.OnVisitRemoved);
   },
@@ -432,9 +426,9 @@ domains: {
 
 tabs: {
   filter: function(query) {
-    chrome.tabs.query({}, this.filter1.bind(this, query));
+    chrome.tabs.query({}, this.performSearch.bind(this, query));
   },
-  filter1: function(query, tabs) {
+  performSearch: function(query, tabs) {
     if (query.isOff) { return; }
     if (queryType === 1) { queryType = 4; }
     var curTabId = TabRecency.last(), c, suggestions;
@@ -769,41 +763,41 @@ searchEngines: {
     history: null,
     callbacks: [],
     use: function(callback) {
-      if (this.history) {
-        callback(this.history);
-      } else {
-        this.fetchHistory(callback);
-      }
-    },
-    fetchHistory: function(callback) {
-      this.callbacks.push(callback);
-      if (this.callbacks.length > 1) {
+      if (!this.callbacks.length) {
+        this.fetchHistory();
         return;
       }
+      this.callbacks.push(callback);
+    },
+    fetchHistory: function() {
+      this.fetchHistory = null;
       chrome.history.search({
         text: "",
         maxResults: this.size,
         startTime: 0
       }, function(history) {
-        var _this = HistoryCache, i = history.length, j;
+        var _this = HistoryCache, i = history.length, j, ref, callback;
         while (0 <= --i) { j = history[i]; j.text = j.url; }
         _this.history = history;
+        _this.use = function(callback) { callback(this.history); };
         chrome.history.onVisitRemoved.addListener(_this.OnVisitRemoved);
-        for (var i = 0, len = _this.callbacks.length, callback; i < len; ++i) {
-          callback = _this.callbacks[i];
-          callback(_this.history);
+        ref = _this.callbacks;
+        _this.callbacks = null;
+        for (i = 0; i < ref.length; ++i) {
+          callback = ref[i]; callback(history);
         }
-        _this.callbacks = [];
         setTimeout(function() {
-          HistoryCache.history.sort(function(a, b) { return a.url.localeCompare(b.url); });
-          chrome.history.onVisited.addListener(HistoryCache.OnPageVisited);
+          var _this = HistoryCache;
+          _this.history.sort(function(a, b) { return a.url.localeCompare(b.url); });
+          chrome.history.onVisited.addListener(_this.OnPageVisited);
+          setTimeout(Decoder.decodeList, 600, _this.history);
+          setTimeout(_this.Clean, 1500);
         }, 600);
-        setTimeout(Decoder.decodeList, 1200, _this.history);
-        setTimeout(_this.Clean, 2500);
       });
     },
     Clean: function() {
       var arr = HistoryCache.history, i = arr.length, j;
+      HistoryCache.Clean = null;
       while (0 <= --i) {
         j = arr[i];
         arr[i] = {
@@ -970,8 +964,8 @@ searchEngines: {
     HistoryCache.history || queryTerms || HistoryCache.use(function(history) {
       queryTerms || setTimeout(function() {
         var domainsCompleter = Completers.domains;
-        if (queryTerms || domainsCompleter.domains) { return; }
-        domainsCompleter.populateDomains(history);
+        if (domainsCompleter.domains || queryTerms) { return; }
+        domainsCompleter.refresh(history);
       }, 750);
     });
   }, 30000);
