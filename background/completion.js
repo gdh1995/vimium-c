@@ -918,7 +918,7 @@ searchEngines: {
           }
         }
       } else if (_this.working === 1) {
-        text = window.getComputedStyle(_this._div).fontFamily;
+        text = window.getComputedStyle(_this._link).fontFamily;
         text = text.substring(1, text.length - 1);
         url = _this.todos.shift();
         if (str = url.url) {
@@ -931,21 +931,14 @@ searchEngines: {
       }
     },
     _dataUrl: "",
-    _id: "_decode",
     _link: null,
-    _div: null,
     setDataUrl: function(charset) {
-      this._dataUrl = "data:text/css;charset=" + charset + ",%23" + this._id +
-          "%7Bfont-family%3A%22";
+      this._dataUrl = "data:text/css;charset=" + charset + ",style%7Bfont-family%3A%22";
     },
     init: function() {
-      var link = this._link = document.createElement('link'),
-          div = this._div = document.createElement('div');
+      var link = this._link = document.createElement('link');
       link.rel = 'stylesheet';
-      div.id = this._id;
-      div.style.display = 'none';
       document.documentElement.appendChild(link);
-      document.documentElement.appendChild(div);
       this._dataUrl || this.setDataUrl("GBK");
     }
   };
