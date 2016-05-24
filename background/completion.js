@@ -150,21 +150,22 @@ bookmarks: {
     }
     Completers.next(results);
   },
-  listen: function() {
-    var bookmarks = chrome.bookmarks, _this = this, listener = function() {
-      bookmarks.getTree(function(tree) { _this.readTree(tree); });
+  Listen: function() {
+    var bookmarks = chrome.bookmarks, listener = function() {
+      chrome.bookmarks.getTree(function(tree) { Completers.bookmarks.readTree(tree); });
     };
+    Completers.bookmarks.Listen = null;
     bookmarks.onCreated.addListener(listener);
     bookmarks.onRemoved.addListener(listener);
     bookmarks.onChanged.addListener(listener);
     bookmarks.onMoved.addListener(listener);
     bookmarks.onImportBegan.addListener(function() {
-      bookmarks.onCreated.removeListener(listener);
+      chrome.bookmarks.onCreated.removeListener(listener);
     });
     bookmarks.onImportEnded.addListener(function() {
-      bookmarks.getTree(function(tree) {
-        bookmarks.onCreated.addListener(listener);
-        _this.readTree(tree);
+      chrome.bookmarks.getTree(function(tree) {
+        chrome.bookmarks.onCreated.addListener(listener);
+        Completers.bookmarks.readTree(tree);
       });
     });
   },
@@ -177,7 +178,7 @@ bookmarks: {
       this.performSearch(query);
     }
     var _this = this;
-    setTimeout(function() { _this.listen(); }, 0);
+    setTimeout(this.Listen, 0);
   },
   readTree: function(bookmarks) {
     this.bookmarks = [];
@@ -795,12 +796,10 @@ searchEngines: {
         _this.callbacks = [];
         setTimeout(function() {
           HistoryCache.history.sort(function(a, b) { return a.url.localeCompare(b.url); });
-          chrome.history.onVisited.addListener(HistoryCache.onPageVisited.bind(HistoryCache));
+          chrome.history.onVisited.addListener(HistoryCache.OnPageVisited);
         }, 600);
-        setTimeout(function() {
-          Decoder.decodeList(HistoryCache.history);
-        }, 1200);
-        setTimeout(HistoryCache.Clean, 2500);
+        setTimeout(Decoder.decodeList, 1200, _this.history);
+        setTimeout(_this.Clean, 2500);
       });
     },
     Clean: function() {
@@ -815,15 +814,13 @@ searchEngines: {
         };
       }
       if (Decoder.todos.length > 0) {
-        setTimeout(function() {
-          Decoder.decodeList(arr);
-        }, 1000);
+        setTimeout(Decoder.decodeList, 1000, arr);
       }
     },
-    onPageVisited: function(newPage) {
-      var i = this.binarySearch(newPage.url, this.history), j;
+    OnPageVisited: function(newPage) {
+      var _this = HistoryCache, i = _this.binarySearch(newPage.url, _this.history), j;
       if (i >= 0) {
-        j = this.history[i];
+        j = _this.history[i];
         j.lastVisitTime = newPage.lastVisitTime;
         j.title = newPage.title || j.title;
         return;
@@ -834,7 +831,7 @@ searchEngines: {
         title: newPage.title,
         url: newPage.url
       };
-      this.history.splice(-1 - i, 0, j);
+      _this.history.splice(-1 - i, 0, j);
       Decoder.continueToWork();
     },
     OnVisitRemoved: function(toRemove) {
@@ -940,6 +937,7 @@ searchEngines: {
       link.rel = 'stylesheet';
       document.documentElement.appendChild(link);
       this._dataUrl || this.setDataUrl("GBK");
+      this.init = null;
     }
   };
 
