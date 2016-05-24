@@ -941,18 +941,16 @@ searchEngines: {
     }
   };
 
-  setTimeout(function() {
-    (function() {
-      var d = Decoder.dict, f = Decoder._f, t = Decoder.todos;
-      Decoder.decodeURL = function(a) {
-        try {
-          return f(a);
-        } catch (e) {
-          return d[a] || (t.push(a), a);
-        }
-      };
-    })();
-  }, 100);
+  (function() {
+    var d = Decoder.dict, f = Decoder._f, t = Decoder.todos;
+    Decoder.decodeURL = function(a) {
+      try {
+        return f(a);
+      } catch (e) {
+        return d[a] || (t.push(a), a);
+      }
+    };
+  })();
 
   Settings.updateHooks.UILanguage = function(lang) {
     if (!lang) { return; }
@@ -968,15 +966,15 @@ searchEngines: {
     }
   };
 
-    setTimeout(function() {
-      queryTerms || HistoryCache.history || HistoryCache.use(function(history) {
-        queryTerms || setTimeout(function() {
-          var domainsCompleter = Completers.domains;
-          if (queryTerms || domainsCompleter.domains) { return; }
-          domainsCompleter.populateDomains(history);
-        }, 750);
-      });
-    }, 30000);
+  setTimeout(function() {
+    HistoryCache.history || queryTerms || HistoryCache.use(function(history) {
+      queryTerms || setTimeout(function() {
+        var domainsCompleter = Completers.domains;
+        if (queryTerms || domainsCompleter.domains) { return; }
+        domainsCompleter.populateDomains(history);
+      }, 750);
+    });
+  }, 30000);
 
   window.Completers = {
     bookmarks: new Completers.MultiCompleter([Completers.bookmarks]),
