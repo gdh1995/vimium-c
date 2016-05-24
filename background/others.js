@@ -275,7 +275,7 @@ setTimeout(function() {
       , "color:blue", "color:auto;", details, "color:#1c00cf", now(), "color:auto");
   });
 
-  if (!reason || !chrome.notifications) { return; }
+  if (!reason) { return; }
 
   function compareVersion(versionA, versionB) {
     var a, b, i, _ref;
@@ -295,7 +295,7 @@ setTimeout(function() {
   if (compareVersion(Settings.CONST.CurrentVersion, reason) <= 0) { return; }
 
   reason = "vimium++_upgradeNotification";
-  chrome.notifications.create(reason, {
+  chrome.notifications && chrome.notifications.create(reason, {
     type: "basic",
     iconUrl: chrome.runtime.getURL("icons/icon128.png"),
     title: "Vimium++ Upgrade",
