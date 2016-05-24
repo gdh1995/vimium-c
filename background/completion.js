@@ -780,19 +780,18 @@ searchEngines: {
         while (0 <= --i) { j = history[i]; j.text = j.url; }
         _this.history = history;
         _this.use = function(callback) { callback(this.history); };
-        chrome.history.onVisitRemoved.addListener(_this.OnVisitRemoved);
         ref = _this.callbacks;
         _this.callbacks = null;
         for (i = 0; i < ref.length; ++i) {
           callback = ref[i]; callback(history);
         }
+        setTimeout(HistoryCache.Clean, 200);
         setTimeout(function() {
           var _this = HistoryCache;
           _this.history.sort(function(a, b) { return a.url.localeCompare(b.url); });
+          chrome.history.onVisitRemoved.addListener(_this.OnVisitRemoved);
           chrome.history.onVisited.addListener(_this.OnPageVisited);
-          setTimeout(Decoder.decodeList, 600, _this.history);
-          setTimeout(_this.Clean, 1500);
-        }, 600);
+        }, 300);
       });
     },
     Clean: function() {
@@ -802,21 +801,19 @@ searchEngines: {
         j = arr[i];
         arr[i] = {
           lastVisitTime: j.lastVisitTime,
-          text: j.text,
+          text: j.url,
           title: j.title,
           url: j.url
         };
       }
-      if (Decoder.todos.length > 0) {
-        setTimeout(Decoder.decodeList, 1000, arr);
-      }
+      setTimeout(Decoder.decodeList, 500, arr);
     },
     OnPageVisited: function(newPage) {
       var _this = HistoryCache, i = _this.binarySearch(newPage.url, _this.history), j;
       if (i >= 0) {
         j = _this.history[i];
         j.lastVisitTime = newPage.lastVisitTime;
-        j.title = newPage.title || j.title;
+        newPage.title && (j.title = newPage.title);
         return;
       }
       j = {
