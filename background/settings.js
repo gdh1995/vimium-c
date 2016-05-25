@@ -6,6 +6,7 @@ var Settings = {
   extIds: null,
   extWhiteList: null,
   globalCommand: null,
+  Init: null,
   get: function(key, forCache) {
     if (key in this.cache) {
       return this.cache[key];

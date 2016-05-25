@@ -120,3 +120,6 @@ Settings.updateHooks.exclusionRules = function(rules) {
   g_requestHandlers.esc();
   setTimeout(Exclusions.RefreshStatus, 17, is_empty);
 };
+
+Exclusions.setRules(Settings.get("exclusionRules"));
+Settings.Init();

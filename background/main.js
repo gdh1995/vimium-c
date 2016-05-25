@@ -1,5 +1,5 @@
 "use strict";
-var Marks, Clipboard, Completers, Commands, g_requestHandlers;
+var Clipboard, Commands, Completers, Exclusions, Marks, g_requestHandlers;
 (function() {
   var BackgroundCommands, ContentSettings, checkKeyQueue, commandCount //
     , Connections
@@ -999,7 +999,7 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
     }
     ref2[""] = ["0"]; // "0" is for key queues like "10n"
 
-    Connections.init();
+    Settings.Init();
   };
 
   checkKeyQueue = function(command, port) {
@@ -1266,18 +1266,20 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
     }
   };
 
+  Settings.Init = function() {
+    if (3 !== ++Connections.state) { return; }
+    Settings.Init = null;
+    chrome.runtime.onConnect.addListener(Connections.OnConnect);
+    chrome.runtime.onConnectExternal.addListener(function(port) {
+      if (port.sender && port.sender.id in Settings.extWhiteList
+          && port.name.startsWith("vimium++")) {
+        Connections.OnConnect(port);
+      }
+    });
+  };
+
   Connections = {
     state: 0,
-    init: function() {
-      if (2 !== ++this.state) { return; }
-      chrome.runtime.onConnect.addListener(this.OnConnect);
-      chrome.runtime.onConnectExternal.addListener(function(port) {
-        if (port.sender && port.sender.id in Settings.extWhiteList
-            && port.name.startsWith("vimium++")) {
-          Connections.OnConnect(port);
-        }
-      });
-    },
     OnMessage: function(request, port) {
       var key, id;
       if (id = request._msgId) {
@@ -1434,10 +1436,9 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
   });
 
   setTimeout(function() {
-    Exclusions.setRules(Settings.get("exclusionRules"));
     Settings.postUpdate("bufferToLoad", null);
     Settings.get("userDefinedOuterCss", true);
-    Connections.init();
+    Settings.Init();
   }, 0);
 
   setTimeout(function() {
