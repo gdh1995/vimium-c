@@ -66,8 +66,8 @@ window.onhashchange = function() {
       };
     } else {
       url = "";
-      shownNode.setAttribute("alt", "\xa0(null)\xa0");
       shownNode.onerror();
+      shownNode.setAttribute("alt", "\xa0(null)\xa0");
     }
     if (file) {
       shownNode.setAttribute("download", file);
