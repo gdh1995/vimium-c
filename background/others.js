@@ -80,7 +80,7 @@ if (Settings.get("vimSync") === true) setTimeout(function() { if (!chrome.storag
       Settings.Sync.storeAndPropagate(key, items[key]);
     }
   });
-}, 100);
+}, 400);
 
 setTimeout(function() { if (!chrome.browserAction) { return; }
   var func = Settings.updateHooks.showActionIcon, imageData = Object.create(null);
@@ -239,7 +239,7 @@ setTimeout(function() { if (!chrome.omnibox) { return; }
   };
   chrome.omnibox.onInputChanged.addListener(onInput);
   chrome.omnibox.onInputEntered.addListener(onEnter);
-}, 1500);
+}, 600);
 
 // According to tests: onInstalled will be executed after 0 ~ 16 ms if needed
 chrome.runtime.onInstalled.addListener(window.b = function(details) {
