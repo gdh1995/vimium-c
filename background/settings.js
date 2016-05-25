@@ -225,7 +225,10 @@ setTimeout(function() {
     Settings.CONST.OnMac = info.os === "mac";
   });
 
-  var ref, i, func = chrome.runtime.getURL;
+  var ref, i, origin = location.origin, prefix = origin + "/",
+  func = function(path) {
+    return (path.charCodeAt(0) === 47 ? origin : prefix) + path;
+  };
   ref = chrome.runtime.getManifest();
   Settings.CONST.CurrentVersion = ref.version;
   Settings.CONST.OptionsPage = func(ref.options_page);

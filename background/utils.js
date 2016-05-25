@@ -198,7 +198,7 @@ var exports = {}, Utils = {
   formatVimiumUrl: function(path, partly, vimiumUrlWork) {
     var ind, query, tempStr;
     path = path.trim();
-    if (!path) { return partly ? "" : chrome.runtime.getURL("/pages/"); }
+    if (!path) { return partly ? "" : location.origin + "/pages/"; }
     ind = path.indexOf(" ");
     if (ind > 0) {
       query = path.substring(ind + 1).trim();
@@ -208,9 +208,7 @@ var exports = {}, Utils = {
       path = path.toLowerCase();
       if (tempStr = this.vimiumRedirectedUrls[path]) {
         path = tempStr;
-      } else if (this.vimiumKnownPages.indexOf(path) >= 0
-          || path.startsWith("/")
-      ) {
+      } else if (this.vimiumKnownPages.indexOf(path) >= 0 || path.charCodeAt(0) === 47) {
         path += ".html";
       } else if (vimiumUrlWork > 0 && vimiumUrlWork != (vimiumUrlWork | 0)) {
         return "vimium://" + arguments[0].trim();
@@ -219,7 +217,7 @@ var exports = {}, Utils = {
       }
     }
     if (!partly && (!tempStr || tempStr.indexOf("://") < 0)) {
-      path = chrome.runtime.getURL(path.startsWith("/") ? path : "/pages/" + path);
+      path = location.origin + (path.charCodeAt(0) === 47 ? "" : "/pages/") + path;
     }
     return path + (!query ? "" : (path.indexOf("#") > 0 ? " " : "#!") + query);
   },

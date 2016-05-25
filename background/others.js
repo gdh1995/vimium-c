@@ -297,7 +297,7 @@ setTimeout(function() {
   reason = "vimium++_upgradeNotification";
   chrome.notifications && chrome.notifications.create(reason, {
     type: "basic",
-    iconUrl: chrome.runtime.getURL("icons/icon128.png"),
+    iconUrl: location.origin + "/icons/icon128.png",
     title: "Vimium++ Upgrade",
     message: "Vimium++ has been upgraded to version " + Settings.CONST.CurrentVersion
       + ". Click here for more information.",
