@@ -237,9 +237,9 @@ body{cursor:text;display:inline-block;padding:0 3px 0 1px;min-width:7px;}body *{
     this.isRegex || (query = this.isActive && query.replace(this.escapeAllRe, "\\$&"));
 
     var re, matches;
-    try {
-      re = query && new RegExp(query, this.ignoreCase ? "gi" : "g");
-    } catch (e) {}
+    if (query) {
+      try { re = new RegExp(query, this.ignoreCase ? "gi" : "g"); } catch (e) {}
+    }
     matches = re && (document.webkitFullscreenElement || document.documentElement).innerText.match(re);
     this.regexMatches = this.isRegex && matches || null;
     this.activeRegexIndex = 0;
