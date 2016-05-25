@@ -218,8 +218,8 @@ var LinkHints = {
         s = s.replace(LinkHints.hashRe, "").replace(LinkHints.quoteRe, '\\"');
         DomUtils.getClientRectsForAreas(this, arr[0], document.querySelector('map[name="' + s + '"]'));
       }
-      isClickable = (s = getComputedStyle(element).cursor) && s.indexOf("zoom") >= 0
-        || LinkHints.mode >= 128 && LinkHints.mode <= LinkHints.CONST.LEAVE;
+      isClickable = LinkHints.mode >= 128 && LinkHints.mode <= LinkHints.CONST.LEAVE
+        || (s = getComputedStyle(element).cursor) && s.indexOf("zoom") >= 0
       break;
     }
     while (isClickable === null) {
