@@ -83,7 +83,7 @@ var Exclusions = {
       passKeys: null
     };
     if (old_is_empty && !always_enabled) {
-      Settings.postUpdate("broadcast", {
+      Settings.broadcast({
         name: "checkIfEnabled"
       });
       return;

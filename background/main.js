@@ -1368,9 +1368,9 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
 
   Settings.updateHooks.keyMappings = function(value) {
     Commands.parseKeyMappings(value);
-    Settings.postUpdate("PopulateCommandKeys", null);
+    this.postUpdate("PopulateCommandKeys", null);
     // resetKeys has been called
-    this.postUpdate("broadcast", {
+    this.broadcast({
       name: "refreshKeyMappings",
       currentFirst: null,
       firstKeys: firstKeys,

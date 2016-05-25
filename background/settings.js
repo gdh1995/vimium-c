@@ -35,17 +35,17 @@ var Settings = {
   postUpdate: function(key, value) {
     this.updateHooks[key].call(this, value !== undefined ? value : this.get(key), key);
   },
+  broadcast: function (request) {
+    var ref = this.framesForTab, tabId, frames, i;
+    for (tabId in ref) {
+      frames = ref[tabId];
+      for (i = frames.length; 0 < --i; ) {
+        frames[i].postMessage(request);
+      }
+    }
+  },
   updateHooks: {
     __proto__: null,
-    broadcast: function (request) {
-      var ref = this.framesForTab, tabId, frames, i;
-      for (tabId in ref) {
-        frames = ref[tabId];
-        for (i = frames.length; 0 < --i; ) {
-          frames[i].postMessage(request);
-        }
-      }
-    },
     bufferToLoad: function() {
       var _i, key, ref = this.valuesToLoad, ref2;
       ref2 = this.bufferToLoad = Object.create(null);
@@ -109,13 +109,13 @@ var Settings = {
     },
     userDefinedCss: function() {
       this.postUpdate("baseCSS");
-      this.postUpdate("broadcast", {
+      this.broadcast({
         name: "insertInnerCss",
         css: this.cache.innerCss
       });
     },
     userDefinedOuterCss: function(css) {
-      this.postUpdate("broadcast", {
+      this.broadcast({
         name: "insertCSS",
         css: css
       });

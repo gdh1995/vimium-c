@@ -165,7 +165,7 @@ CheckBoxOption.prototype.readValueFromElement = function() {
         key = toSync[i];
         obj[key] = ref[key] = bgSettings.get(key);
       }
-      bgSettings.postUpdate("broadcast", obj);
+      bgSettings.broadcast(obj);
     }, 100);
   };
 
