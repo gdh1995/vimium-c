@@ -256,7 +256,7 @@ var Settings, VHUD, MainPort, VEventMode;
     onActivate: function(event) {
       Scroller.current = event.path[0];
     },
-    onWndFocus: function(){},
+    onWndFocus: function() {},
     onWndBlur: null,
     OnShadowBlur: function(event) {
       if (this.vimiumBlurred) {
@@ -640,8 +640,9 @@ var Settings, VHUD, MainPort, VEventMode;
   VEventMode = {
     lock: function() { return InsertMode.lock; },
     hold: function(el) { InsertMode.heldEl = el; },
-    onWndFocus: function() { return ELs.onWndFocus; },
+    onWndFocus: isInjected && function(f) { ELs.onWndFocus = f; },
     onWndBlur: function(f) { ELs.onWndBlur = f; },
+    on: function(name) { return ELs["on" + name]; },
     scroll: function(event) {
       var options, keyCode, ctrl;
       if (!event || event.shiftKey || event.altKey) { return; }
@@ -1110,6 +1111,5 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
   if (isInjected) {
     settings.Destroy = ELs.destroy.bind(ELs);
     settings.checkIfEnabled = requestHandlers.checkIfEnabled;
-    VEventMode.onWndFocus = function(f) { ELs.onWndFocus = f; };
   }
 })();
