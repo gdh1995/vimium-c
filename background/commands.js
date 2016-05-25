@@ -326,6 +326,8 @@ availableCommands: {
 }
 };
 
+chrome.commands && chrome.commands.onCommand.addListener(Settings.globalCommand);
+
 setTimeout(function() {
   Commands.parseKeyMappings(Settings.get("keyMappings"));
   setTimeout(Settings.updateHooks.PopulateCommandKeys, 5);

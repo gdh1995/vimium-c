@@ -1464,10 +1464,6 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
       ref2[ref[i]].useTab = -1;
     }
 
-    if (chrome.commands) {
-      chrome.commands.onCommand.addListener(Settings.globalCommand);
-    };
-
     Settings.get("autoClearCS") && setTimeout(ContentSettings.clear, 1000, "images");
   }, 34);
 })();
