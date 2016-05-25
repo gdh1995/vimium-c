@@ -117,15 +117,7 @@ var Settings, VHUD, MainPort, VEventMode;
   Settings = settings = {
     cache: null,
     isLoading: 0,
-    onDestroy: null,
-    set: function(key, value) {
-      this.cache[key] = value;
-      mainPort.port.postMessage({
-        handler: "setSetting",
-        key: key,
-        value: value
-      });
-    }
+    onDestroy: null
   };
 
   ELs = { //
@@ -1034,7 +1026,11 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
     box.querySelector("#AdvancedCommands").onclick = function() {
       shouldShowAdvanced = !shouldShowAdvanced;
       toggleAdvanced();
-      settings.set("showAdvancedCommands", shouldShowAdvanced);
+      mainPort.port.postMessage({
+        handler: "setSetting",
+        key: "showAdvancedCommands",
+        value: shouldShowAdvanced
+      });
     };
     box.querySelector("#HClose").onclick = Commands.showHelp = hide;
     node1 = box.querySelector("#OptionsPage");
