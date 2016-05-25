@@ -60,6 +60,7 @@ window.onhashchange = function() {
       shownNode.onload = function() {
         showBgLink();
         shownNode.classList.remove("hidden");
+        shownNode.classList.add("zoom-in");
         if (this.width >= window.innerWidth * 0.9) {
           document.body.classList.add("close");
         }

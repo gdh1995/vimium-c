@@ -8,6 +8,9 @@ body.close {
 .hidden {
 	visibility: hidden;
 }
+.zoom-in {
+	cursor: zoom-in;
+}
 
 #bgLink {
   position: absolute;
