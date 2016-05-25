@@ -219,12 +219,7 @@ var Settings, VHUD, MainPort, VEventMode;
         target.addEventListener("focus", ELs.onFocus, true);
         target.addEventListener("blur", ELs.OnShadowBlur, true);
       } else {
-        event.stopImmediatePropagation();
-        target = DomUtils.UI.root.activeElement;
-        if (target === InsertMode.heldEl) {
-          InsertMode.lock = target;
-          target.focused = true;
-        }
+        ELs.onUI(event);
       }
     },
     onBlur: function(event) {
@@ -239,11 +234,7 @@ var Settings, VHUD, MainPort, VEventMode;
       else if (InsertMode.lock === target) { InsertMode.lock = null; }
       else if (!target.shadowRoot) {}
       else if (target === DomUtils.UI.box) {
-        event.stopImmediatePropagation();
-        if (InsertMode.lock === InsertMode.heldEl) {
-          InsertMode.lock.focused = false;
-          InsertMode.lock = null;
-        }
+        ELs.onUI(event);
       } else {
         target = target.shadowRoot;
         // NOTE: if destroyed, this page must have lost its focus before, so
@@ -258,6 +249,17 @@ var Settings, VHUD, MainPort, VEventMode;
     },
     onWndFocus: function() {},
     onWndBlur: null,
+    onUI: function(event) {
+      event.stopImmediatePropagation();
+      var target = InsertMode.heldEl;
+      if (DomUtils.UI.root.activeElement === target) {
+        InsertMode.lock = target;
+        target.focused = true;
+      } else {
+        target && (target.focused = false);
+        InsertMode.lock = null;
+      }
+    },
     OnShadowBlur: function(event) {
       if (this.vimiumBlurred) {
         this.vimiumBlurred = false;

@@ -445,6 +445,7 @@ activate: function(_0, options, forceCurrent) {
     }
     this.input.oninput = this.onInput.bind(this);
     this.input.onselect = this.OnSelected;
+    this.input.onfocus = this.input.onblur = VEventMode.on("UI");
     this.box.querySelector("#OClose").onclick = function() { Vomnibar.hide(); };
     this.list.oncontextmenu = this.OnMenu;
   },
