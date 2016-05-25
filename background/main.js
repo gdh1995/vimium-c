@@ -1419,8 +1419,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, g_requestHandlers;
       Settings.globalCommand(command, message.options);
       break;
     case "content_scripts":
-      sendResponse(Settings.CONST.ContentScripts);
-      return;
+      return Settings.contentScripts(sendResponse);
     }
   });
 

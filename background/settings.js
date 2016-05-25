@@ -140,6 +140,10 @@ var Settings = {
       Utils.fetchHttpContents(files[id], func).id = id;
     }
   },
+  contentScripts: function(callback) {
+    setTimeout(function() { callback(Settings.CONST.ContentScripts); }, 18);
+    return true;
+  },
   // clear localStorage & sync, if value === @defaults[key]
   // the default of any dict field should be set to null, for @Sync
   defaults: {
@@ -236,4 +240,5 @@ setTimeout(function() {
   ref[ref.length - 1] = "content/inject_end.js";
   ref = ref.map(function(path) { return func(path); });
   Settings.CONST.ContentScripts = {js: ref};
+  Settings.contentScripts = function(callback) { callback(this.CONST.ContentScripts); };
 }, 17);
