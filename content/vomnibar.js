@@ -63,7 +63,7 @@ activate: function(_0, options, forceCurrent) {
   completions: null,
   forceNewTab: false,
   initialSelectionValue: -1,
-  input: null,
+  input: false,
   isSelectionChanged: false,
   list: null,
   onUpdate: null,
@@ -76,7 +76,6 @@ activate: function(_0, options, forceCurrent) {
     this.box.style.display = "";
     this.input.value = this.inputText;
     DomUtils.UI.addElement(this.box);
-    VEventMode.hold(this.input);
     DomUtils.UI.focus(this.input);
     handlerStack.set(this.onKeydown, this);
     this.box.onmousewheel = this.onWheel;

@@ -189,7 +189,7 @@ var Settings, VHUD, MainPort, VEventMode;
       KeydownEvents[key] = 1;
     },
     onKeypress: function(event) {
-      if (isEnabledForUrl && InsertMode.lock === InsertMode.heldEl) {
+      if (isEnabledForUrl && InsertMode.lock === Vomnibar.input) {
         event.stopImmediatePropagation();
       }
     },
@@ -202,7 +202,7 @@ var Settings, VHUD, MainPort, VEventMode;
       if (KeydownEvents[event.keyCode]) {
         KeydownEvents[event.keyCode] = 0;
         event.preventDefault();
-      } else if (InsertMode.lock !== InsertMode.heldEl) {
+      } else if (InsertMode.lock !== Vomnibar.input) {
         onKeyup2 && onKeyup2(event);
         return;
       }
@@ -251,7 +251,7 @@ var Settings, VHUD, MainPort, VEventMode;
     onWndBlur: null,
     onUI: function(event) {
       event.stopImmediatePropagation();
-      var target = InsertMode.heldEl;
+      var target = Vomnibar.input;
       if (DomUtils.UI.root.activeElement === target) {
         InsertMode.lock = target;
         target.focused = true;
@@ -641,7 +641,6 @@ var Settings, VHUD, MainPort, VEventMode;
 
   VEventMode = {
     lock: function() { return InsertMode.lock; },
-    hold: function(el) { InsertMode.heldEl = el; },
     onWndFocus: isInjected && function(f) { ELs.onWndFocus = f; },
     onWndBlur: function(f) { ELs.onWndBlur = f; },
     on: function(name) { return ELs["on" + name]; },
