@@ -5,6 +5,9 @@ body.close {
 .close > img {
 	outline: none;
 }
+.hidden {
+	visibility: hidden;
+}
 
 #bgLink {
   position: absolute;

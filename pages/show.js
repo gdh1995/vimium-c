@@ -45,10 +45,10 @@ window.onhashchange = function() {
   switch (type) {
   case "image":
     shownNode = importBody("shownImage");
-    shownNode.style.visibility = "hidden";
+    shownNode.classList.add("hidden");
     shownNode.onerror = function() {
       shownNode.alt = "\xa0fail to load\xa0";
-      shownNode.style.visibility = "";
+      shownNode.classList.remove("hidden");
       setTimeout(showBgLink, 34);
       shownNode.onclick = chrome.tabs && chrome.tabs.update ? function() {
         chrome.tabs.update(null, {url: url});
@@ -59,7 +59,7 @@ window.onhashchange = function() {
       shownNode.onclick = defaultOnClick;
       shownNode.onload = function() {
         showBgLink();
-        shownNode.style.visibility = "";
+        shownNode.classList.remove("hidden");
         if (this.width >= window.innerWidth * 0.9) {
           document.body.classList.add("close");
         }
