@@ -257,12 +257,12 @@ setTimeout(function() {
     contentScripts = chrome.runtime.getManifest().content_scripts[0];
     ref = {file: "", allFrames: contentScripts.all_frames};
     js = contentScripts.js;
-    js.pop();
+    _len = js.length - 1;
     for (; 0 <= --_i; ) {
       url = tabs[_i].url;
       if (url.startsWith("chrome") || url.indexOf("://") === -1) continue;
       tabId = tabs[_i].id;
-      for (_j = 0, _len = js.length; _j < _len; ++_j) {
+      for (_j = 0; _j < _len; ++_j) {
         ref.file = js[_j];
         t.executeScript(tabId, ref, callback);
       }
