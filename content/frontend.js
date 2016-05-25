@@ -271,11 +271,11 @@ var Settings, VHUD, MainPort, VEventMode;
       f("keyup", this.onKeyup, true);
       f("focus", this.onFocus, true);
       f("blur", this.onBlur, true);
+      f.call(document, "DOMActivate", ELs.onActivate, true);
     },
     destroy: null
   };
   ELs.hook(addEventListener);
-  document.addEventListener("DOMActivate", ELs.onActivate, true);
 
   initIfEnabled = function(newPassKeys) {
     if (newPassKeys) {
@@ -1088,7 +1088,6 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
 
     this.hook(f);
     f("mousedown", InsertMode.ExitGrab, true);
-    f.call(document, "DOMActivate", this.onActivate, true);
     VFindMode.postMode.exit();
     VFindMode.toggleStyle("remove");
     DomUtils.UI.box && DomUtils.UI.box.remove();
