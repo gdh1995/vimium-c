@@ -220,6 +220,7 @@ var LinkHints = {
       }
       isClickable = LinkHints.mode >= 128 && LinkHints.mode <= LinkHints.CONST.LEAVE
         || (s = getComputedStyle(element).cursor) && s.indexOf("zoom") >= 0
+        || null;
       break;
     }
     while (isClickable === null) {
