@@ -295,8 +295,6 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
   };
 
   funcDict = {
-    globalCommand: null,
-
     isIncNor: function(wnd) {
       return wnd.incognito && wnd.type === "normal";
     },
@@ -1382,7 +1380,7 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
     needIcon = chrome.browserAction && value ? true : false;
   };
 
-  funcDict.globalCommand = function(command, options) {
+  Settings.globalCommand = function(command, options) {
     var count, ref;
     if (currentFirst !== null) {
       count = currentFirst ? 1 : (currentCount || 1);
@@ -1403,7 +1401,7 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
     if (typeof message === "string") {
       command = message;
       if (command && Commands.availableCommands[command]) {
-        funcDict.globalCommand(command);
+        Settings.globalCommand(command);
       }
       return;
     }
@@ -1416,7 +1414,7 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
         currentFirst = "";
         currentCount = message.count;
       }
-      funcDict.globalCommand(command, message.options);
+      Settings.globalCommand(command, message.options);
       break;
     case "content_scripts":
       sendResponse(Settings.CONST.ContentScripts);
@@ -1467,7 +1465,7 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
     }
 
     if (chrome.commands) {
-      chrome.commands.onCommand.addListener(funcDict.globalCommand);
+      chrome.commands.onCommand.addListener(Settings.globalCommand);
     };
 
     Settings.get("autoClearCS") && setTimeout(ContentSettings.clear, 1000, "images");
