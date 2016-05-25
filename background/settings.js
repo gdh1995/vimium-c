@@ -3,7 +3,6 @@ var Settings = {
   cache: Object.create(null),
   bufferToLoad: null,
   framesForTab: null,
-  extIds: null,
   extWhiteList: null,
   globalCommand: null,
   Init: null,
@@ -233,7 +232,6 @@ Settings.defaults.newTabUrl = Settings.CONST.ChromeInnerNewTab;
 
   func = function() {};
   Settings.Sync = {set: func};
-  Settings.extIds = [chrome.runtime.id];
 })();
 
 chrome.runtime.getPlatformInfo(function(info) {
