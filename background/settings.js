@@ -237,8 +237,7 @@ setTimeout(function() {
   Settings.CONST.CurrentVersion = ref.version;
   Settings.CONST.OptionsPage = func(ref.options_page);
   ref = ref.content_scripts[0].js;
-  ref[ref.length - 1] = "content/inject_end.js";
-  ref = ref.map(function(path) { return func(path); });
-  Settings.CONST.ContentScripts = {js: ref};
+  ref[ref.length - 1] = "/content/inject_end.js";
+  Settings.CONST.ContentScripts = ref.map(func);
   Settings.contentScripts = function(callback) { callback(this.CONST.ContentScripts); };
 }, 17);
