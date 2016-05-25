@@ -1438,7 +1438,7 @@ var Marks, Clipboard, Completers, Commands, g_requestHandlers;
     Settings.postUpdate("bufferToLoad", null);
     Settings.get("userDefinedOuterCss", true);
     Connections.init();
-  }, 17);
+  }, 0);
 
   setTimeout(function() {
     Settings.reloadFiles();
