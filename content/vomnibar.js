@@ -184,10 +184,10 @@ activate: function(_0, options, forceCurrent) {
     var _ref = this.list.children, old = this.selection;
     this.selection = sel;
     this.isSelectionChanged = true;
-    if (old >= 0 && old < _ref.length) {
+    if (old >= 0) {
       _ref[old].classList.remove("S");
     }
-    if (sel >= 0 && sel < _ref.length) {
+    if (sel >= 0) {
       _ref[sel].classList.add("S");
     }
   },
@@ -263,7 +263,7 @@ activate: function(_0, options, forceCurrent) {
     case "backspace": document.execCommand("delete"); break;
     case "up": case "down":
       sel = this.completions.length + 1;
-      sel = (sel + 1 + this.selection + (action === "up" ? -1 : 1)) % sel - 1;
+      sel = (sel + this.selection + (action === "up" ? 0 : 2)) % sel - 1;
       this.updateSelection(sel);
       this.updateInput();
       break;
