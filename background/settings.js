@@ -206,7 +206,9 @@ w|wiki:\\\n  http://www.wikipedia.org/w/index.php?search=$s Wikipedia (en-US)",
     , "linkHintCharacters", "nextPatterns", "previousPatterns" //
     , "scrollStepSize", "smoothScroll" //
   ],
-  Sync: null,
+  Sync: {
+    set: function() {}
+  },
   CONST: {
     ChromeInnerNewTab: "chrome-search://local-ntp/local-ntp.html", // should keep lower case
     ChromeVersion: 37, ContentScripts: null, CurrentVersion: "",
@@ -216,8 +218,13 @@ w|wiki:\\\n  http://www.wikipedia.org/w/index.php?search=$s Wikipedia (en-US)",
 
 // note: if changed, ../pages/newtab.js also needs change.
 Settings.defaults.newTabUrl = Settings.CONST.ChromeInnerNewTab;
+Settings.CONST.ChromeVersion = +navigator.appVersion.match(/Chrom(?:e|ium)\/(\d+\.\d+)/)[1];
 
-(function() {
+setTimeout(function() {
+  chrome.runtime.getPlatformInfo(function(info) {
+    Settings.CONST.OnMac = info.os === "mac";
+  });
+
   var ref, i, func = chrome.runtime.getURL;
   ref = chrome.runtime.getManifest();
   Settings.CONST.CurrentVersion = ref.version;
@@ -226,14 +233,4 @@ Settings.defaults.newTabUrl = Settings.CONST.ChromeInnerNewTab;
   ref[ref.length - 1] = "content/inject_end.js";
   ref = ref.map(function(path) { return func(path); });
   Settings.CONST.ContentScripts = {js: ref};
-
-  i = +navigator.appVersion.match(/Chrom(?:e|ium)\/(\d+\.\d+)/)[1];
-  Settings.CONST.ChromeVersion = i;
-
-  func = function() {};
-  Settings.Sync = {set: func};
-})();
-
-chrome.runtime.getPlatformInfo(function(info) {
-  Settings.CONST.OnMac = info.os === "mac";
-});
+}, 17);
