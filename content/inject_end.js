@@ -1,4 +1,11 @@
 "use strict";
+Settings.checkIfEnabled = function() {
+  mainPort.safePost({
+    handler: "checkIfEnabled",
+    url: window.location.href
+  });
+};
+
 DomUtils.documentReady(function() {
   if (MainPort.safePost({ handler: "reg", visible: true })) {
     return;

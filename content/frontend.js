@@ -1102,8 +1102,4 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
       chrome = null;
     }
   };
-
-  if (isInjected) {
-    settings.checkIfEnabled = requestHandlers.checkIfEnabled;
-  }
 })();
