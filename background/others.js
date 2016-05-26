@@ -196,7 +196,7 @@ setTimeout(function() { if (!chrome.omnibox) { return; }
     suggest(suggestions = response);
   },
   onInput = function(key, suggest) {
-    key && (key = key.trim());
+    key = key.trim();
     if (key === last) { suggestions && suggest(suggestions); return; }
     lastSuggest && (lastSuggest.isOff = true);
     if (timeout) {
@@ -238,7 +238,6 @@ setTimeout(function() { if (!chrome.omnibox) { return; }
   chrome.omnibox.onInputChanged.addListener(onInput);
   chrome.omnibox.onInputEntered.addListener(onEnter);
   chrome.omnibox.onInputCancelled.addListener(clean);
-  window.d=clean;
 }, 600);
 
 // According to tests: onInstalled will be executed after 0 ~ 16 ms if needed
