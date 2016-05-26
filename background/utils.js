@@ -384,7 +384,7 @@ var exports = {}, Utils = {
     rEscapeSpace = /\\\s/g, rSpace = /\s/, rEscapeS = /\\s/g, rColon = /\\:/g,
     rPercent = /\\%/g, rRe = /\sre=/i, a = str.replace(/\\\n/g, '').split('\n'),
     func = function(key) {
-      return (key = key.trim()) && (map[key] = obj);
+      return (key = key.trim()) && key !== "__proto__" && (map[key] = obj);
     }, encodedSearchWordRe = /%24([sS])/g, re = this.searchWordRe;
     for (_i = 0, _len = a.length; _i < _len; _i++) {
       val = a[_i].trim();
