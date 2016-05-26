@@ -247,9 +247,9 @@ var Settings, VHUD, MainPort, VEventMode;
       if (DomUtils.UI.root.activeElement === target) {
         InsertMode.lock = target;
         target.focused = true;
-      } else {
-        target && (target.focused = false);
+      } else if (InsertMode.lock === target) {
         InsertMode.lock = null;
+        target.focused = false;
       }
     },
     OnShadowBlur: function(event) {
