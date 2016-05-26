@@ -1375,17 +1375,13 @@ var Clipboard, Commands, Completers, Exclusions, Marks, g_requestHandlers;
   };
 
   Settings.globalCommand = function(command, options) {
-    var count, ref;
+    var count = 1;
     if (currentFirst !== null) {
       count = currentFirst ? 1 : (currentCount || 1);
       resetKeys();
-      ref = framesForTab[TabRecency.last()];
-    } else {
-      count = 1;
     }
     options && typeof options === "object" || (options = null);
     executeCommand(command, Commands.makeCommand(command, options), count, null);
-    ref && ref[0].postMessage({ name: "refreshKeyQueue", currentFirst: null });
   };
 
   Settings.postUpdate("extWhiteList");

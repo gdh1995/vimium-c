@@ -791,6 +791,7 @@ var Settings, VHUD, MainPort, VEventMode;
         return;
       }
       window.focus();
+      esc();
       document.documentElement.scrollIntoViewIfNeeded();
       if (!document.body || document.readyState !== "complete") { return; }
       var _this = FrameMask, dom1;
