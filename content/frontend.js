@@ -11,7 +11,7 @@ var Settings, VHUD, MainPort, VEventMode;
     , secondKeys, settings //
     ;
 
-  isInjected = window.VimiumInjector ? true : false;
+  isInjected = window.VimiumInjector ? true : null;
 
   isEnabledForUrl = false;
 
@@ -1082,7 +1082,7 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
     isEnabledForUrl = false;
     clearInterval(settings.isLoading);
 
-    this.hook(f);
+    ELs.hook(f);
     f("mousedown", InsertMode.ExitGrab, true);
     VFindMode.postMode.exit();
     VFindMode.toggleStyle("remove");
@@ -1104,7 +1104,7 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
   };
 
   if (isInjected) {
-    settings.Destroy = ELs.destroy.bind(ELs);
+    settings.Destroy = ELs.destroy;
     settings.checkIfEnabled = requestHandlers.checkIfEnabled;
   }
 })();
