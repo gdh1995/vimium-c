@@ -73,8 +73,8 @@ var Settings = {
       this.set("searchEngineMap", Object.create(null));
     },
     searchEngineMap: function(value) {
-      Utils.parseSearchEngines("~:" + this.get("searchUrl"), value);
-      var rules = Utils.parseSearchEngines(this.get("searchEngines"), value);
+      var rules, str = "~:" + this.get("searchUrl") + this.get("searchEngines");
+      rules = Utils.parseSearchEngines(str, value);
       this.set("searchEngineRules", rules);
     },
     searchUrl: function(str) {
