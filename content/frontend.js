@@ -2,7 +2,7 @@
 var Settings, VHUD, MainPort, VEventMode;
 (function() {
   var Commands, ELs, HUD, KeydownEvents, checkValidKey, currentSeconds //
-    , firstKeys //
+    , esc, firstKeys //
     , followLink, FrameMask //
     , getVisibleInputs, goBy //
     , initIfEnabled, InsertMode //
@@ -165,8 +165,7 @@ var Settings, VHUD, MainPort, VEventMode;
       else if (key !== KeyCodes.esc || !KeyboardUtils.isPlain(event)) {}
       else if (keyQueue) {
         mainPort.port.postMessage({ handler: "esc" });
-        keyQueue = false;
-        currentSeconds = secondKeys[""];
+        esc();
         action = 2;
       } else if (DomUtils.UI.removeSelection(window)) {
         action = 2;
@@ -220,8 +219,7 @@ var Settings, VHUD, MainPort, VEventMode;
         Scroller.keyIsDown = 0;
         ELs.onWndBlur && ELs.onWndBlur(KeydownEvents);
         KeydownEvents = new Uint8Array(256);
-        keyQueue = false;
-        currentSeconds = secondKeys[""];
+        esc();
       } else if (!isEnabledForUrl) {}
       else if (InsertMode.lock === target) { InsertMode.lock = null; }
       else if (!target.shadowRoot) {}
@@ -270,6 +268,11 @@ var Settings, VHUD, MainPort, VEventMode;
     destroy: null
   };
   ELs.hook(addEventListener);
+
+  esc = function() {
+    keyQueue = false;
+    currentSeconds = secondKeys[""];
+  };
 
   initIfEnabled = function(newPassKeys) {
     if (newPassKeys) {
@@ -536,8 +539,7 @@ var Settings, VHUD, MainPort, VEventMode;
     if (keyQueue) {
       if (!((key in firstKeys) || (key in currentSeconds))) {
         mainPort.port.postMessage({ handler: "esc" });
-        keyQueue = false;
-        currentSeconds = secondKeys[""];
+        esc();
         return 0;
       }
     } else if (passKeys && (key in passKeys) || !(key in firstKeys)) {
@@ -962,17 +964,14 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
       requestHandlers.refreshKeyQueue(request);
     },
     refreshKeyQueue: function(request) {
-      if (request.currentFirst !== null) {
-        keyQueue = true;
-        currentSeconds = secondKeys[request.currentFirst]; // less possible
-      } else {
-        keyQueue = false;
-        currentSeconds = secondKeys[""];
+      if (request.currentFirst === null) {
+        return esc();
       }
+      keyQueue = true;
+      currentSeconds = secondKeys[request.currentFirst]; // less possible
     },
     execute: function(request) {
-      keyQueue = false;
-      currentSeconds = secondKeys[""];
+      esc();
       var arr = Utils.findCommand(Commands, request.command);
       arr[0][arr[1]](request.count, request.options || {});
     },
