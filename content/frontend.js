@@ -46,7 +46,7 @@ var Settings, VHUD, MainPort, VEventMode;
         }
         this.port.postMessage(request);
       } catch (e) { // this extension is reloaded or disabled
-        ELs.destroy();
+        settings.destroy();
         return true;
       }
     },
@@ -116,6 +116,7 @@ var Settings, VHUD, MainPort, VEventMode;
 
   Settings = settings = {
     cache: null,
+    destroy: null,
     isLoading: 0,
     onDestroy: null
   };
@@ -264,8 +265,7 @@ var Settings, VHUD, MainPort, VEventMode;
       f("focus", this.onFocus, true);
       f("blur", this.onBlur, true);
       f.call(document, "DOMActivate", ELs.onActivate, true);
-    },
-    destroy: null
+    }
   };
   ELs.hook(addEventListener);
 
@@ -1077,7 +1077,7 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
     ELs.onWndFocus = mainPort.safePost.bind(mainPort, { handler: "frameFocused" });
   });
 
-  ELs.destroy = function() {
+  settings.destroy = function() {
     var f = removeEventListener;
     isEnabledForUrl = false;
     clearInterval(settings.isLoading);
@@ -1104,7 +1104,6 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
   };
 
   if (isInjected) {
-    settings.Destroy = ELs.destroy;
     settings.checkIfEnabled = requestHandlers.checkIfEnabled;
   }
 })();

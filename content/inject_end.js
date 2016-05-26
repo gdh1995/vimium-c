@@ -43,4 +43,4 @@ Settings.onDestroy = function() {
   ), function(node) { node.remove(); });
 };
 
-VimiumInjector.destroy = Settings.Destroy;
+VimiumInjector.destroy = Settings.destroy;
