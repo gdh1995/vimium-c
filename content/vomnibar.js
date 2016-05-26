@@ -352,11 +352,12 @@ activate: function(_0, options, forceCurrent) {
     el.href = Vomnibar.completions[_i].url;
   },
   OnSelected: function() {
-    var el = this, left;
+    var el = this, left, end;
     if (el.selectionStart !== 0 || el.selectionDirection !== "backward") { return; }
     left = el.value;
-    if (el.value.charCodeAt(el.selectionEnd - 1) !== 32) { return; }
-    left = left.substring(0, el.selectionEnd).trimRight();
+    end = el.selectionEnd - 1;
+    if (left.charCodeAt(end) !== 32) { return; }
+    left = left.substring(0, end).trimRight();
     if (left.indexOf(" ") === -1) {
       el.setSelectionRange(0, left.length);
       el.selectionDirection = 'backward';
