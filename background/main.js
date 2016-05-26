@@ -878,19 +878,12 @@ var Clipboard, Commands, Completers, Exclusions, Marks, g_requestHandlers;
         chrome.tabs.move(tab.id, {index: index});
       }
     },
-    nextFrame: function(frameId) {
-      var port = cPort, frames = framesForTab[port.sender.tab.id], count, ind;
+    nextFrame: function(count) {
+      var port = cPort, frames = framesForTab[port.sender.tab.id], ind;
       if (frames && frames.length > 2) {
-        if (frameId >= 0) {
-          count = 0;
-          for (ind = frames.length; 0 < --ind; ) {
-            if (frames[ind].sender.frameId === frameId) { break; }
-          }
-        } else {
-          ind = Math.max(0, frames.indexOf(frames[0], 1));
-          count = commandCount - 1;
-        }
-        while (0 <= count) {
+        count || (count = commandCount);
+        ind = Math.max(0, frames.indexOf(port, 1));
+        while (0 < count) {
           if (++ind === frames.length) { ind = 1; }
           if (!frames[ind].sender.ready) { continue; }
           --count;
@@ -902,7 +895,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, g_requestHandlers;
         frameId: ind >= 0 ? port.sender.frameId : -1
       });
     },
-    mainFrame: function(tabs) {
+    mainFrame: function() {
       var port = Settings.indexFrame(TabRecency.last(), 0);
       port && port.postMessage({
         name: "focusFrame",
@@ -1195,7 +1188,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, g_requestHandlers;
     },
     nextFrame: function(request, port) {
       cPort = port;
-      BackgroundCommands.nextFrame(request.frameId);
+      BackgroundCommands.nextFrame(1);
     },
     reg: function(request, port) {
       var key;
