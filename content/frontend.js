@@ -785,7 +785,6 @@ var Settings, VHUD, MainPort, VEventMode;
       else if (window.innerWidth < 3 || window.innerHeight < 3
         || document.body instanceof HTMLFrameSetElement) {
         mainPort.port.postMessage({
-          frameId: request.frameId,
           handler: "nextFrame"
         });
         return;
@@ -916,7 +915,6 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
       KeyboardUtils.onMac = request.onMac;
       r.refreshKeyMappings(request);
       r.reset(request);
-      InsertMode.loading = false;
       r.init = null;
     },
     reset: function(request) {
