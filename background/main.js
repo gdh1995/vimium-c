@@ -885,7 +885,6 @@ var Clipboard, Commands, Completers, Exclusions, Marks, g_requestHandlers;
         ind = Math.max(0, frames.indexOf(port, 1));
         while (0 < count) {
           if (++ind === frames.length) { ind = 1; }
-          if (!frames[ind].sender.ready) { continue; }
           --count;
         }
         port = frames[ind];
@@ -1192,7 +1191,6 @@ var Clipboard, Commands, Completers, Exclusions, Marks, g_requestHandlers;
     },
     reg: function(request, port) {
       var key;
-      port.sender.ready = true;
       key = Settings.cache.userDefinedOuterCss;
       key && request.visible && port.postMessage({
         name: "insertCSS",
@@ -1298,7 +1296,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, g_requestHandlers;
       port.onDisconnect.addListener(Connections.OnDisconnect);
       var type = port.name[9] | 0, ref, tabId = port.sender.tab.id
         , pass = Exclusions.getPattern(port.sender.url);
-      port.postMessage((port.sender.ready = (type & 1) !== 0) ? {
+      port.postMessage((type & 1) ? {
         name: "reset",
         passKeys: pass
       } : {
