@@ -132,7 +132,7 @@ setTimeout(function() { if (!chrome.browserAction) { return; }
 
 setTimeout(function() { if (!chrome.omnibox) { return; }
   var last, firstUrl, lastSuggest, spanRe = /<(\/?)span(?: [^>]+)?>/g,
-  tempRequest, timeout = 0, sessionIds,
+  tempRequest, timeout = 0, sessionIds, suggestions = null,
   defaultSug = { description: "<dim>Open: </dim><url>%s</url>" },
   formatSessionId = function(sug) {
     if (sug.sessionId != null) {
@@ -155,7 +155,7 @@ setTimeout(function() { if (!chrome.omnibox) { return; }
   },
   clean = function() {
     firstUrl = "";
-    last = sessionIds = tempRequest = null;
+    last = sessionIds = tempRequest = suggestions = null;
     if (lastSuggest) {
       lastSuggest.isOff = true;
       lastSuggest = null;
@@ -193,11 +193,11 @@ setTimeout(function() { if (!chrome.omnibox) { return; }
       }
     }
     response = response.map(format);
-    suggest(response);
+    suggest(suggestions = response);
   },
   onInput = function(key, suggest) {
     key && (key = key.trim());
-    if (key === last) { return; }
+    if (key === last) { suggestions && suggest(suggestions); return; }
     lastSuggest && (lastSuggest.isOff = true);
     if (timeout) {
       tempRequest = [key, suggest];
@@ -238,6 +238,7 @@ setTimeout(function() { if (!chrome.omnibox) { return; }
   chrome.omnibox.onInputChanged.addListener(onInput);
   chrome.omnibox.onInputEntered.addListener(onEnter);
   chrome.omnibox.onInputCancelled.addListener(clean);
+  window.d=clean;
 }, 600);
 
 // According to tests: onInstalled will be executed after 0 ~ 16 ms if needed
