@@ -686,7 +686,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, g_requestHandlers;
   BackgroundCommands = {
     createTab: function() {},
     duplicateTab: function() {
-      var tabId = TabRecency.last();
+      var tabId = cPort.sender.tab.id;
       chrome.tabs.duplicate(tabId);
       if (--commandCount > 0) {
         chrome.windows.getCurrent({populate: true},
@@ -746,10 +746,9 @@ var Clipboard, Commands, Completers, Exclusions, Marks, g_requestHandlers;
       }
     },
     restoreTab: function() {
-      var count = commandCount, ports;
-      if (count === 1 && (ports = framesForTab[TabRecency.last()])
-        && ports[0].sender.tab.incognito) {
-        ports[0].postMessage({
+      var count = commandCount;
+      if (count === 1 && cPort.sender.tab.incognito) {
+        cPort.postMessage({
           name: "showHUD",
           text: "Can not restore a tab in incognito mode!"
         });
@@ -880,7 +879,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, g_requestHandlers;
       }
     },
     nextFrame: function(frameId) {
-      var tabId = TabRecency.last(), frames = framesForTab[tabId], count, ind, port = cPort;
+      var port = cPort, frames = framesForTab[port.sender.tab.id], count, ind;
       if (frames && frames.length > 2) {
         if (frameId >= 0) {
           count = 0;
