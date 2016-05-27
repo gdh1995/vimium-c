@@ -161,9 +161,9 @@ var Settings = {
     linkHintCharacters: "sadjklewcmpgh",
     newTabUrl: "",
     nextPatterns: "\u4e0b\u9875,\u4e0b\u4e00\u9875,\u4e0b\u4e00\u7ae0,\u540e\u4e00\u9875"
-      + ",next,more,newer,>,\u2192,\xbb,\u226b,>>",
+      + ",next,more,newer,>,\u203a,\u2192,\xbb,\u226b,>>",
     previousPatterns: "\u4e0a\u9875,\u4e0a\u4e00\u9875,\u4e0a\u4e00\u7ae0,\u524d\u4e00\u9875"
-      + ",prev,previous,back,older,<,\u2190,\xab,\u226a,<<",
+      + ",prev,previous,back,older,<,\u2039,\u2190,\xab,\u226a,<<",
     regexFindMode: false,
     scrollStepSize: 100,
     searchUrl: "http://www.baidu.com/s?ie=UTF-8&wd=$s Baidu",
