@@ -1486,7 +1486,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, g_requestHandlers;
     framesForTab = null;
     for (tabId in ref) {
       ports = ref[tabId];
-      for (i = ports.length; 0 < --i; ) {
+      for (i = ports.length; 0 <= --i; ) {
         ports[i].disconnect();
       }
     }
