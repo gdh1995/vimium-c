@@ -24,7 +24,7 @@ var Marks = {
     }
     markInfo = JSON.parse(str);
     markInfo.markName = request.markName;
-    if (!Settings.framesForTab[markInfo.tabId]) {
+    if (!Settings.indexPorts(markInfo.tabId)) {
       g_requestHandlers.focusOrLaunch(markInfo);
       return null;
     }

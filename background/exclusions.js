@@ -54,7 +54,7 @@ var Exclusions = {
     return chrome.webNavigation && (this.onURLChange || g_requestHandlers.checkIfEnabled);
   },
   onURLChange: Settings.CONST.ChromeVersion < 41 && function(details) {
-    var ref = Settings.framesForTab[details.tabId], i, msg = { name: "checkIfEnabled" };
+    var ref = Settings.indexPorts(details.tabId), i, msg = { name: "checkIfEnabled" };
     // force the tab's ports to reconnect and refresh their pass keys
     for (i = ref && ref.length; 0 < --i; ) {
       ref[i].postMessage(msg);
@@ -76,7 +76,7 @@ var Exclusions = {
     return url;
   },
   RefreshStatus: function(old_is_empty) {
-    var ref = Settings.framesForTab, tabId, frames
+    var ref = Settings.indexPorts(), tabId, frames
       , i, always_enabled, pass, status = "enabled", status0, port;
     always_enabled = Exclusions.rules.length > 0 ? null : {
       name: "reset",

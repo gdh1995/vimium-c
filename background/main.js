@@ -10,7 +10,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, g_requestHandlers;
     , requestHandlers, resetKeys, secondKeys, tinyMemory
     ;
 
-  Settings.framesForTab = framesForTab = Object.create(null);
+  framesForTab = Object.create(null);
 
   currentFirst = null;
 
@@ -953,6 +953,21 @@ var Clipboard, Commands, Completers, Exclusions, Marks, g_requestHandlers;
   resetKeys = function() {
     currentFirst = null;
     currentCount = 0;
+  };
+
+  Settings.indexFrame = function(tabId, frameId) {
+    var ref = this.framesForTab[tabId], i;
+    if (!ref) { return null; }
+    for (i = 0; ref.length > ++i; ) {
+      if (ref[i].sender.frameId === frameId) {
+        return ref[i];
+      }
+    }
+    return null;
+  };
+
+  Settings.indexPorts = function(tabId) {
+    return tabId ? framesForTab[tabId] : framesForTab;
   };
 
   Settings.updateHooks.PopulateCommandKeys = function() {

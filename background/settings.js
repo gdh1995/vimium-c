@@ -2,7 +2,6 @@
 var Settings = {
   cache: Object.create(null),
   bufferToLoad: null,
-  framesForTab: null,
   extWhiteList: null,
   globalCommand: null,
   Init: null,
@@ -37,7 +36,7 @@ var Settings = {
     this.updateHooks[key].call(this, value !== undefined ? value : this.get(key), key);
   },
   broadcast: function (request) {
-    var ref = this.framesForTab, tabId, frames, i;
+    var ref = this.indexPorts(), tabId, frames, i;
     for (tabId in ref) {
       frames = ref[tabId];
       for (i = frames.length; 0 < --i; ) {
@@ -120,16 +119,8 @@ var Settings = {
       });
     }
   },
-  indexFrame: function(tabId, frameId) {
-    var ref = this.framesForTab[tabId], i;
-    if (!ref) { return null; }
-    for (i = 0; ref.length > ++i; ) {
-      if (ref[i].sender.frameId === frameId) {
-        return ref[i];
-      }
-    }
-    return null;
-  },
+  indexFrame: null,
+  indexPorts: null,
   reloadFiles: function() {
     var files = this.files, id, func = function() {
       Settings.set(this.id, this.responseText);

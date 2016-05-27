@@ -303,7 +303,7 @@ exclusions = {
       setTimeout(window.close, 300);
     }
   });
-  ref = bgSettings.framesForTab[tab.id];
+  ref = bgSettings.indexPorts(tab.id);
   exclusions.init(ref ? ref[0].sender.url : tab.url, $("exclusionRules"), onUpdated);
   ref = 0;
   updateState();
