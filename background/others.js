@@ -97,11 +97,11 @@ setTimeout(function() { if (!chrome.browserAction) { return; }
       ctx.drawImage(this, 0, 0, w, h);
       cache[w] = ctx.getImageData(0, 0, w, h);
       imageData[type] = cache;
-      if (--count) { return; }
+      if (0 >= --count) { return; }
       g_requestHandlers.SetIcon(tabId, type);
     };
     for (i in path) { (count++ ? img2 : img).src = path[i]; }
-  }
+  };
   g_requestHandlers.SetIcon = function(tabId, type) {
     var data = imageData[type], path;
     if (data) {
