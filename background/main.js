@@ -1479,4 +1479,16 @@ var Clipboard, Commands, Completers, Exclusions, Marks, g_requestHandlers;
 
     Settings.get("autoClearCS") && setTimeout(ContentSettings.clear, 1000, "images");
   }, 34);
+
+  // will run only on <F5>, not on runtime.reload
+  window.onunload = function() {
+    var ref = framesForTab, tabId, ports, i;
+    framesForTab = null;
+    for (tabId in ref) {
+      ports = ref[tabId];
+      for (i = ports.length; 0 < --i; ) {
+        ports[i].disconnect();
+      }
+    }
+  };
 })();
