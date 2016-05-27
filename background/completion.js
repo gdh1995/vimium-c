@@ -964,7 +964,7 @@ searchEngines: {
     }
   };
 
-  setTimeout(function() {
+  Settings.get("tinyMemory") || setTimeout(function() {
     HistoryCache.history || queryTerms || HistoryCache.use(function() {
       queryTerms || setTimeout(function() {
         var domainsCompleter = Completers.domains;

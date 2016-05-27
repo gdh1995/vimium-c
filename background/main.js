@@ -7,14 +7,14 @@ var Clipboard, Commands, Completers, Exclusions, Marks, g_requestHandlers;
     , FindModeHistory, firstKeys, framesForTab, funcDict
     , helpDialogHtml, helpDialogHtmlForCommand //
     , helpDialogHtmlForCommandGroup, needIcon, openMultiTab //
-    , requestHandlers, resetKeys, secondKeys //
+    , requestHandlers, resetKeys, secondKeys, tinyMemory
     ;
 
   Settings.framesForTab = framesForTab = Object.create(null);
 
   currentFirst = null;
 
-  needIcon = false;
+  needIcon = tinyMemory = false;
 
   helpDialogHtml = function(showUnbound, showNames, customTitle) {
     var command, commandsToKey, key, ref = Commands.keyToCommandRegistry;
@@ -1292,6 +1292,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, g_requestHandlers;
     OnConnect: function(port) {
       port.onMessage.addListener(Connections.OnMessage);
       port.onDisconnect.addListener(Connections.OnDisconnect);
+      tinyMemory && Connections.cleanSender(port);
       var type = port.name[9] | 0, ref, tabId = port.sender.tab.id
         , pass = Exclusions.getPattern(port.sender.url);
       port.postMessage((type & 1) ? {
@@ -1343,6 +1344,18 @@ var Clipboard, Commands, Completers, Exclusions, Marks, g_requestHandlers;
         i = port.sender.tab.id;
         delete framesForTab[i];
       }
+    },
+    cleanSender: function(port) {
+      var sender = port.sender, tab = sender.tab;
+      port.sender = {
+        frameId: sender.frameId,
+        status: null,
+        tab: {
+          id: tab.id,
+          incognito: tab.incognito
+        },
+        url: sender.url
+      };
     }
   };
 
@@ -1426,6 +1439,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, g_requestHandlers;
 
   setTimeout(function() {
     Settings.reloadFiles();
+    tinyMemory = Settings.get("tinyMemory");
     Settings.postUpdate("searchUrl", null); // will also update newTabUrl
 
     var ref, i, ref2, key;
