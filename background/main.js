@@ -631,13 +631,13 @@ var Clipboard, Commands, Completers, Exclusions, Marks, g_requestHandlers;
         ++i;
         tabs = tabs.slice(i, i + direction);
       } else if (direction < 0) {
-        noPinned = true;
+        noPinned = i > 0 && !tabs[i - 1].pinned;
         tabs = tabs.slice(Math.max(i + direction, 0), i);
       } else {
-        noPinned = true;
+        noPinned = !activeTab.pinned;
         tabs.splice(i, 1);
       }
-      if (noPinned && !activeTab.pinned) {
+      if (noPinned) {
         tabs = tabs.filter(function(tab) { return !tab.pinned; });
       }
       if (tabs.length > 0) {
