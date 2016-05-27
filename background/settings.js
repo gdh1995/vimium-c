@@ -104,9 +104,7 @@ var Settings = {
       this.set("innerCss", css);
     },
     vimSync: function() {
-      setTimeout(function() {
-        window.location.reload();
-      }, 100);
+      setTimeout(function() { window.location.reload(); }, 1000);
     },
     userDefinedCss: function() {
       this.postUpdate("baseCSS");

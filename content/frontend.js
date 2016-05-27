@@ -13,21 +13,11 @@ var Settings, VHUD, MainPort, VEventMode;
 
   isInjected = window.VimiumInjector ? true : null;
 
-  isEnabledForUrl = false;
+  isEnabledForUrl = keyQueue = false;
 
-  KeydownEvents = null;
-
-  keyQueue = false;
-
-  firstKeys = null;
+  KeydownEvents = currentSeconds = firstKeys = onKeyup2 = passKeys = null;
 
   secondKeys = {};
-
-  currentSeconds = null;
-
-  passKeys = null;
-
-  onKeyup2 = null;
 
   MainPort = mainPort = {
     port: null,

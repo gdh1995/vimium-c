@@ -207,7 +207,7 @@ setTimeout(function() { if (!chrome.omnibox) { return; }
     }
     timeout = setTimeout(onTimer, 300);
     firstUrl = "";
-    sessionIds = null;
+    sessionIds = suggestions = null;
     last = key;
     lastSuggest = suggest;
     Completers.omni.filter(key, {

@@ -626,19 +626,19 @@ var Clipboard, Commands, Completers, Exclusions, Marks, g_requestHandlers;
       return chrome.runtime.lastError;
     },
     removeTabsRelative: function(activeTab, direction, tabs) {
-      var i = activeTab.index;
+      var i = activeTab.index, noPinned = false;
       if (direction > 0) {
         ++i;
         tabs = tabs.slice(i, i + direction);
+      } else if (direction < 0) {
+        noPinned = true;
+        tabs = tabs.slice(Math.max(i + direction, 0), i);
       } else {
-        if (direction < 0) {
-          tabs = tabs.slice(Math.max(i + direction, 0), i);
-        } else {
-          tabs.splice(i, 1);
-        }
-        if (!activeTab.pinned) {
-          tabs = tabs.filter(function(tab) { return !tab.pinned; });
-        }
+        noPinned = true;
+        tabs.splice(i, 1);
+      }
+      if (noPinned && !activeTab.pinned) {
+        tabs = tabs.filter(function(tab) { return !tab.pinned; });
       }
       if (tabs.length > 0) {
         chrome.tabs.remove(tabs.map(funcDict.getId));
@@ -723,15 +723,13 @@ var Clipboard, Commands, Completers, Exclusions, Marks, g_requestHandlers;
     removeTab: function(tabs) {
       if (!tabs) { return; }
       var tab = tabs[0];
-      if (tab.active) {
-        if (tabs.length <= commandCount) {
-          chrome.windows.getAll(funcDict.removeTab.bind(null, tab, tabs));
-          return;
-        }
-      } else {
+      if (!tab.active) {
         tab = funcDict.selectFrom(tabs);
+      } else if (tabs.length <= commandCount) {
+        chrome.windows.getAll(funcDict.removeTab.bind(null, tab, tabs));
+        return;
       }
-      if (1 < commandCount) {
+      if (commandCount > 1) {
         --tab.index;
         funcDict.removeTabsRelative(tab, commandCount, tabs);
       } else {
