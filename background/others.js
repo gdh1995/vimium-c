@@ -83,7 +83,7 @@ if (Settings.get("vimSync") === true) setTimeout(function() { if (!chrome.storag
 }, 400);
 
 setTimeout(function() { if (!chrome.browserAction) { return; }
-  var func = Settings.updateHooks.showActionIcon, imageData = Object.create(null);
+  var func = Settings.updateHooks.showActionIcon, imageData;
   function loadImageAndSetIcon(tabId, type, path) {
     var img = new Image(), img2 = new Image(), i, cache = Object.create(null), count = 0;
     img.onerror = img2.onerror = function() {
@@ -116,11 +116,13 @@ setTimeout(function() { if (!chrome.browserAction) { return; }
   Settings.updateHooks.showActionIcon = function (value) {
     func.call(this, value);
     if (value) {
+      imageData || (imageData = Object.create(null));
       chrome.browserAction.setTitle({
         title: "Vimium++"
       });
       chrome.browserAction.enable();
     } else {
+      imageData = null;
       chrome.browserAction.disable();
       chrome.browserAction.setTitle({
         title: "Vimium++\nThis icon is not in use"
