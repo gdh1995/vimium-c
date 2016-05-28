@@ -233,9 +233,11 @@ var Settings, VHUD, MainPort, VEventMode;
     onUI: function(event) {
       event.stopImmediatePropagation();
       var target = Vomnibar.input;
-      if (DomUtils.UI.root.activeElement === target) {
-        InsertMode.lock = target;
-        target.focused = true;
+      if (event.type !== "blur") {
+        if (DomUtils.UI.root.activeElement === target) {
+          InsertMode.lock = target;
+          target.focused = true;
+        }
       } else if (InsertMode.lock === target) {
         InsertMode.lock = null;
         target.focused = false;
