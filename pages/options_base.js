@@ -116,7 +116,7 @@ ExclusionRulesOption.prototype.appendRule = function(list, rule) {
   var row;
   row = document.importNode(this.template, true);
   row.querySelector('.pattern').value = rule.pattern;
-  row.querySelector('.passKeys').value = rule.passKeys;
+  row.querySelector('.passKeys').value = rule.passKeys.trimRight();
   list.appendChild(row);
   return row;
 };
