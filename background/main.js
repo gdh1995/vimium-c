@@ -1342,22 +1342,20 @@ var Clipboard, Commands, Completers, Exclusions, Marks, g_requestHandlers;
       }
     },
     OnDisconnect: function(port) {
-      var i, ref;
-      if (i = port.sender.frameId) {
-        if (ref = framesForTab[port.sender.tab.id]) {
-          i = ref.indexOf(port, 1);
-          if (i === ref.length - 1) {
-            ref.pop();
-          } else if (i >= 0) {
-            ref.splice(i, 1);
-          }
-          if (port === ref[0]) {
-            ref[0] = ref[1];
-          }
-        }
-      } else {
-        i = port.sender.tab.id;
+      var i = port.sender.tab.id, ref;
+      if (!port.sender.frameId) {
         delete framesForTab[i];
+        return;
+      }
+      if (!(ref = framesForTab[i])) { return; }
+      i = ref.indexOf(port, 1);
+      if (i === ref.length - 1) {
+        --ref.length;
+      } else if (i >= 0) {
+        ref.splice(i, 1);
+      }
+      if (port === ref[0]) {
+        ref[0] = ref[1];
       }
     },
     cleanSender: function(port) {
