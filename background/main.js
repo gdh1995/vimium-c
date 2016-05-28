@@ -1083,7 +1083,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, g_requestHandlers;
     },
     parseSearchUrl: function(request) {
       var url = request.url.toLowerCase(), decoders, pattern, _i, str, arr,
-          selectLast;
+          selectLast, re;
       if (!(Utils.hasOrdinaryUrlPrefix(url) || url.startsWith("chrome-"))) {
         return null;
       }
@@ -1098,20 +1098,20 @@ var Clipboard, Commands, Completers, Exclusions, Marks, g_requestHandlers;
         if (!url.startsWith(pattern[0])) { continue; }
         arr = request.url.substring(pattern[0].length).match(pattern[1]);
         if (!arr) { continue; }
-        str = pattern[3];
         if (arr.length === 2) { arr[0] = arr[1]; }
+        re = pattern[3];
         if (arr.length > 2) {
           selectLast = true;
-        } else if (str instanceof RegExp) {
+        } else if (re instanceof RegExp) {
           url = arr[0];
-          if (arr = url.match(str)) {
+          if (arr = url.match(re)) {
             arr.shift();
             selectLast = true;
           } else {
             arr = [url];
           }
         } else {
-          arr = arr[0].split(str);
+          arr = arr[0].split(re);
         }
         str = arr.map(Utils.DecodeURLPart).join(" ");
         url = str.replace(Utils.spacesRe, " ").trim();
