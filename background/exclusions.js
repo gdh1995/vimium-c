@@ -82,8 +82,8 @@ var Exclusions = {
       name: "reset",
       passKeys: null
     };
-    if (old_is_empty && !always_enabled) {
-      Settings.broadcast({
+    if (old_is_empty) {
+      always_enabled || Settings.broadcast({
         name: "checkIfEnabled"
       });
       return;

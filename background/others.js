@@ -89,7 +89,7 @@ setTimeout(function() { if (!chrome.browserAction) { return; }
     img.onerror = img2.onerror = function() {
       console.error('Could not load action icon \'' + this.src + '\'.');
     };
-    img.onload = img2.onload = function() {
+    img.onload = function() {
       var canvas = document.createElement('canvas'), w = this.width, h = this.h, ctx;
       w = canvas.width = this.width, h = canvas.height = this.height;
       ctx = canvas.getContext('2d');
@@ -100,11 +100,12 @@ setTimeout(function() { if (!chrome.browserAction) { return; }
       if (0 >= --count) { return; }
       g_requestHandlers.SetIcon(tabId, type);
     };
+    img2.onload = img.onload;
     for (i in path) { (count++ ? img2 : img).src = path[i]; }
   };
   g_requestHandlers.SetIcon = function(tabId, type) {
-    var data = imageData[type], path;
-    if (data) {
+    var data, path;
+    if (data = imageData[type]) {
       chrome.browserAction.setIcon({
         tabId: tabId,
         imageData: data
