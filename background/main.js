@@ -1098,7 +1098,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, g_requestHandlers;
         if (!url.startsWith(pattern[0])) { continue; }
         arr = request.url.substring(pattern[0].length).match(pattern[1]);
         if (!arr) { continue; }
-        if (arr.length === 2) { arr[0] = arr[1]; }
+        if (arr.length === 2 && !pattern[1].global) { arr[0] = arr[1]; }
         re = pattern[3];
         if (arr.length > 2) {
           selectLast = true;
