@@ -186,7 +186,7 @@ ExclusionRulesOption.prototype.getPassKeys = function(element) {
 if (location.pathname.indexOf("/popup.html", location.pathname.length - 11) !== -1) {
 chrome.tabs.query({currentWindow: true, active: true}, function(tab) {
   var exclusions, onUpdated, saveOptions, updateState, status = 0, ref, link
-    , bgExclusions = BG.Exclusions;
+    , bgExclusions = BG.Exclusions, tabId, passKeys;
 
 exclusions = {
   url: "",
@@ -255,12 +255,14 @@ exclusions = {
 };
 
   tab = tab[0];
+  tabId = tab.id;
   var escapeRe = /[&<>]/g, escapeCallback = function(c, n) {
     n = c.charCodeAt(0);
     return (n === 60) ? "&lt;" : (n === 62) ? "&gt;" : "&amp;";
   };
   updateState = function() {
     var pass = bgExclusions.getTemp(exclusions.url, exclusions.readValueFromElement(true));
+    passKeys = pass;
     $("state").innerHTML = "Vimium++ will " + (pass
       ? "exclude: <span class='code'>" + pass.replace(escapeRe, escapeCallback) + "</span>"
       : pass !== null ? "be disabled" : "be enabled");
@@ -278,7 +280,7 @@ exclusions = {
     }
   };
   saveOptions = function() {
-    var btn = $("saveOptions"), testers, pass;
+    var btn = $("saveOptions"), testers, pass, ref, sender;
     if (btn.disabled) {
       return;
     }
@@ -288,11 +290,14 @@ exclusions = {
     btn.textContent = "Saved";
     btn.disabled = true;
     status = 0;
-    // Here, since the popup page is showing, needIcon must be true.
-    // Although the tab calls window.onfocus after this popup page closes,
-    // it is too early for the tab to know new exclusion rules.
-    pass = bgExclusions.getPattern(exclusions.url);
-    BG.g_requestHandlers.SetIcon(tab.id, null, pass === null ? "enabled" : pass ? "partial" : "disabled");
+    if (ref = bgSettings.indexPorts(tabId)) {
+      pass = passKeys === null ? "enabled" : passKeys ? "partial" : "disabled";
+      sender = ref[0].sender;
+      if (pass !== sender.status) {
+        sender.status = pass;
+        BG.g_requestHandlers.SetIcon(tabId, pass);
+      }
+    }
   };
   $("saveOptions").onclick = saveOptions;
   document.addEventListener("keyup", function(event) {
@@ -303,9 +308,9 @@ exclusions = {
       setTimeout(window.close, 300);
     }
   });
-  ref = bgSettings.indexPorts(tab.id);
+  ref = bgSettings.indexPorts(tabId);
   exclusions.init(ref ? ref[0].sender.url : tab.url, $("exclusionRules"), onUpdated);
-  ref = 0;
+  ref = null;
   updateState();
   link = $("optionsLink");
   link.href = bgSettings.CONST.OptionsPage;
