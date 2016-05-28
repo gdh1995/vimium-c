@@ -77,6 +77,7 @@ var Exclusions = {
   },
   RefreshStatus: function(old_is_empty) {
     var ref = Settings.indexPorts(), tabId, frames
+      , needIcon = Settings.get("showActionIcon")
       , i, always_enabled, pass, status = "enabled", status0, port;
     always_enabled = Exclusions.rules.length > 0 ? null : {
       name: "reset",
@@ -107,7 +108,7 @@ var Exclusions = {
         port.postMessage(always_enabled || { name: "reset", passKeys: pass });
         port.sender.status = status;
       }
-      if (status0 !== (status = frames[0].sender.status)) {
+      if (needIcon && status0 !== (status = frames[0].sender.status)) {
         g_requestHandlers.SetIcon(tabId | 0, status);
       }
     }
