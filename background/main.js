@@ -1003,7 +1003,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, g_requestHandlers;
     }
     ref2[""] = ["0"]; // "0" is for key queues like "10n"
 
-    Settings.Init();
+    Settings.Init && Settings.Init();
   };
 
   checkKeyQueue = function(command, port) {
