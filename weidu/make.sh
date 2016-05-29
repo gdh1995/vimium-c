@@ -2,7 +2,7 @@
 set -o noglob
 
 if [ -z "$1" ]; then
-OUTPUT=weidu_4.83.crx
+OUTPUT=weidu_4.83.zip
 else
 OUTPUT="$1"
 fi
@@ -14,4 +14,4 @@ else
 ARGS="$*"
 fi
 
-zip -roX -MM $ARGS "$OUTPUT" . -x ".*" "*.sh" "img/bg/*" "img/tab_*" "*.crx" "*template.json"
+zip -roX -MM $ARGS "$OUTPUT" . -x ".*" "*.sh" "img/bg/*" "img/tab_*" "*.zip" "*.crx"

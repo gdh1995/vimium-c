@@ -2,7 +2,7 @@
 set -o noglob
 
 if [ -z "$1" ]; then
-OUTPUT=vimium++_1.53.crx
+OUTPUT=vimium-plus_1.53.zip
 else
 OUTPUT="$1"
 fi
