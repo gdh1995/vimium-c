@@ -306,6 +306,7 @@ setTimeout(function() {
     isClickable: true
   }, function(notificationId) {
     if (chrome.runtime.lastError) {
+      chrome.notifications = null;
       return chrome.runtime.lastError;
     }
     reason = notificationId || reason;
@@ -315,6 +316,7 @@ setTimeout(function() {
         url: "https://github.com/gdh1995/vimium-plus#release-notes"
       });
     });
+    chrome.notifications = null;
   });
 }, 500);
 });
