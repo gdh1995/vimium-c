@@ -313,7 +313,7 @@ setTimeout(function() {
     chrome.notifications.onClicked.addListener(function(id) {
       if (id !== reason) { return; }
       g_requestHandlers.focusOrLaunch({
-        url: "https://github.com/gdh1995/vimium-plus#release-notes"
+        url: "https://github.com/gdh1995/vimium-plus/releases"
       });
     });
     chrome.notifications = null;
