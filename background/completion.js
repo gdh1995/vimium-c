@@ -931,7 +931,8 @@ searchEngines: {
       var link = this._link = document.createElement('link');
       link.rel = 'stylesheet';
       document.documentElement.appendChild(link);
-      this._dataUrl || this.SetDataUrl("GBK");
+      Settings.updateHooks.localeEncoding = this.SetDataUrl;
+      Settings.postUpdate("localeEncoding");
       this.init = null;
     }
   };
@@ -946,20 +947,6 @@ searchEngines: {
       }
     };
   })();
-
-  Settings.updateHooks.UILanguage = function(lang) {
-    if (!lang) { return; }
-    var code = lang.urlCode, ref = lang.bookmarkTypes, i, ref2;
-    if (code && typeof code === "string") {
-      Decoder.setDataUrl(code);
-    }
-    if (ref && (i = ref.length) > 0) {
-      ref2 = Completers.bookmarks.ignoreTopLevel;
-      for (; 0 <= --i; ) {
-        ref2[ref[i]] = 1;
-      }
-    }
-  };
 
   Settings.get("tinyMemory") || setTimeout(function() {
     HistoryCache.history || queryTerms || HistoryCache.use(function() {
@@ -983,5 +970,4 @@ searchEngines: {
 
 setTimeout(function() {
   Settings.postUpdate("searchEngines", null);
-  Settings.postUpdate("UILanguage");
 }, 300);

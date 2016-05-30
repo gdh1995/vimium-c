@@ -115,7 +115,7 @@ input[type=number]::-webkit-inner-spin-button {
   min-height: 116px;
   line-height: 18px;
 }
-#keyboard {
+#keyboard, #localeEncoding {
   width: 120px;
   text-align: center;
 }

@@ -137,7 +137,6 @@ var Settings = {
   // the default of any dict field should be set to null, for @Sync
   defaults: {
     __proto__: null,
-    UILanguage: null,
     autoClearCS: true,
     deepHints: false,
     exclusionRules: [{pattern: "^https?://mail.google.com/", passKeys: ""}],
@@ -148,6 +147,7 @@ var Settings = {
     keyboard: [500, 33],
     keyMappings: "",
     linkHintCharacters: "sadjklewcmpgh",
+    localeEncoding: "GBK",
     newTabUrl: "",
     nextPatterns: "\u4e0b\u9875,\u4e0b\u4e00\u9875,\u4e0b\u4e00\u7ae0,\u540e\u4e00\u9875"
       + ",next,more,newer,>,\u203a,\u2192,\xbb,\u226b,>>",
@@ -172,7 +172,7 @@ w|wiki:\\\n  http://www.wikipedia.org/w/index.php?search=$s Wikipedia (en-US)",
   },
   NonJSON: {
     __proto__: null, extWhiteList: 1, findModeRawQueryList: 1,
-    keyMappings: 1, linkHintCharacters: 1,
+    keyMappings: 1, linkHintCharacters: 1, localeEncoding: 1,
     newTabUrl: 1, newTabUrl_f: 1, nextPatterns: 1, previousPatterns: 1,
     searchEngines: 1, searchUrl: 1, userDefinedCss: 1, userDefinedOuterCss: 1
   },

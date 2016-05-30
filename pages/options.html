@@ -333,17 +333,14 @@ MainKey|c|c\:|MainName: \
             </td>
           </tr>
           <tr>
-            <td class="caption">One more language<br>support</td>
+            <td class="caption">Locale character<br/> encoding</td>
             <td>
               <div class="help">
                 <div class="example">
-                  Tell your language words to recognize bookmarks and encoded urls. Chinese support is built-in:<br>
-                  <kbd>{ "urlCode":"gbk",<br>
-                  &nbsp;"bookmarkTypes":["&#20070;&#31614;&#26639;","&#20854;&#20182;&#20070;&#31614;","&#31227;&#21160;&#20070;&#31614;"]<br>
-                  }</kbd>
+                  In order to recognize urls whose encoding is not UTF-8. The <kbd>GBK</kbd> is for Chinese.<br/>
                 </div>
               </div>
-              <textarea id="UILanguage" class="code min-height-4" data-model="JSON"></textarea>
+              <input id="localeEncoding" type="text" data-model="NonEmptyText" />
               <div class="nonEmptyTextOption"></div>
             </td>
           </tr>
