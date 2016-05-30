@@ -186,7 +186,8 @@ bookmarks: {
     "Mobile Bookmarks": 1,
     "Other Bookmarks": 1,
     "\u4E66\u7B7E\u680F": 1,
-    "\u5176\u4ED6\u4E66\u7B7E": 1
+    "\u5176\u4ED6\u4E66\u7B7E": 1,
+    '\u79fb\u52a8\u8bbe\u5907\u4e66\u7b7e': 1
   },
   traverseBookmark: function(bookmark) {
     var path = this.path, title = bookmark.title, url;
