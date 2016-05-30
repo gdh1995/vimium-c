@@ -21,7 +21,7 @@ var Settings, VHUD, MainPort, VEventMode;
 
   MainPort = mainPort = {
     port: null,
-    _callbacks: Object.create(null),
+    _callbacks: null,
     _id: 1,
     sendMessage: function(request, callback) {
       var id = ++this._id;
@@ -101,13 +101,14 @@ var Settings, VHUD, MainPort, VEventMode;
       });
       port.onDisconnect.addListener(this.ClearPort);
       port.onMessage.addListener(this.Listener);
+      this._callbacks = Object.create(null);
     }
   };
 
   Settings = settings = {
     cache: null,
     destroy: null,
-    isLoading: 0,
+    timer: 0,
     onDestroy: null
   };
 
@@ -904,7 +905,7 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
     init: function(request) {
       var r = requestHandlers;
       settings.cache = request.load;
-      clearInterval(settings.isLoading);
+      clearInterval(settings.timer);
       KeyboardUtils.onMac = request.onMac;
       r.refreshKeyMappings(request);
       r.reset(request);
@@ -1052,7 +1053,7 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
 
 
   mainPort.connect();
-  settings.isLoading = setInterval(function() {
+  settings.timer = setInterval(function() {
     mainPort.connect();
   }, 2000);
 
@@ -1072,7 +1073,7 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
   settings.destroy = function() {
     var f = removeEventListener;
     isEnabledForUrl = false;
-    clearInterval(settings.isLoading);
+    clearInterval(settings.timer);
 
     ELs.hook(f);
     f("mousedown", InsertMode.ExitGrab, true);

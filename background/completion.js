@@ -929,14 +929,14 @@ searchEngines: {
     },
     _dataUrl: "",
     _link: null,
-    setDataUrl: function(charset) {
-      this._dataUrl = "data:text/css;charset=" + charset + ",style%7Bfont-family%3A%22";
+    SetDataUrl: function(charset) {
+      Decoder._dataUrl = "data:text/css;charset=" + charset + ",style%7Bfont-family%3A%22";
     },
     init: function() {
       var link = this._link = document.createElement('link');
       link.rel = 'stylesheet';
       document.documentElement.appendChild(link);
-      this._dataUrl || this.setDataUrl("GBK");
+      this._dataUrl || this.SetDataUrl("GBK");
       this.init = null;
     }
   };
