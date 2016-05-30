@@ -116,6 +116,7 @@ bookmarks: {
   bookmarks: null,
   currentSearch: null,
   path: "",
+  deep: 0,
   filter: function(query) {
     if (queryTerms.length === 0) {
       Completers.next([]);
@@ -181,22 +182,16 @@ bookmarks: {
     bookmarks.forEach(this.traverseBookmark, this);
     setTimeout(Decoder.decodeList, 50, this.bookmarks);
   },
-  ignoreTopLevel: {
-    "Bookmarks Bar": 1,
-    "Mobile Bookmarks": 1,
-    "Other Bookmarks": 1,
-    "\u4E66\u7B7E\u680F": 1,
-    "\u5176\u4ED6\u4E66\u7B7E": 1,
-    '\u79fb\u52a8\u8bbe\u5907\u4e66\u7b7e': 1
-  },
   traverseBookmark: function(bookmark) {
-    var path = this.path, oldPath, title = bookmark.title, url;
-    path = !title ? "" : path ? (path + '/' + title)
-      : (title in this.ignoreTopLevel) ? "" : ('/' + title);
+    var path, oldPath, title = bookmark.title, url;
+    path = this.path + '/' + (title || bookmark.id);
     if (bookmark.children) {
       oldPath = this.path;
-      this.path = path;
+      if (2 < ++this.deep) {
+        this.path = path;
+      }
       bookmark.children.forEach(this.traverseBookmark, this);
+      --this.deep;
       this.path = oldPath;
       return;
     }
