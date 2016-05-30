@@ -190,13 +190,14 @@ bookmarks: {
     '\u79fb\u52a8\u8bbe\u5907\u4e66\u7b7e': 1
   },
   traverseBookmark: function(bookmark) {
-    var path = this.path, title = bookmark.title, url;
+    var path = this.path, oldPath, title = bookmark.title, url;
     path = !title ? "" : path ? (path + '/' + title)
       : (title in this.ignoreTopLevel) ? "" : ('/' + title);
     if (bookmark.children) {
-      this.path = bookmark.path;
-      bookmark.children.forEach(this.traverseBookmark, this);
+      oldPath = this.path;
       this.path = path;
+      bookmark.children.forEach(this.traverseBookmark, this);
+      this.path = oldPath;
       return;
     }
     url = bookmark.url;
