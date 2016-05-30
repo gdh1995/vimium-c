@@ -124,7 +124,6 @@ bookmarks: {
     }
     if (this.refresh) {
       chrome.bookmarks.getTree(this.refresh.bind(this));
-      this.refresh = null;
     }
   },
   StartsWithSlash: function(str) { return str.charCodeAt(0) === 47; },
@@ -167,6 +166,7 @@ bookmarks: {
     });
   },
   refresh: function(tree) {
+    this.refresh = null;
     this.readTree(tree);
     this.filter = this.performSearch;
     var query = this.currentSearch;
