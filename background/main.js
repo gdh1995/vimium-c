@@ -1311,9 +1311,6 @@ var Clipboard, Commands, Completers, Exclusions, Marks, g_requestHandlers;
       var type = port.name[9] | 0, ref, tabId = port.sender.tab.id
         , pass = Exclusions.getPattern(port.sender.url);
       port.postMessage((type & 1) ? {
-        name: "reset",
-        passKeys: pass
-      } : {
         name: "init",
         load: Settings.bufferToLoad,
         passKeys: pass,
@@ -1322,6 +1319,9 @@ var Clipboard, Commands, Completers, Exclusions, Marks, g_requestHandlers;
         firstKeys: firstKeys,
         secondKeys: secondKeys,
         tabId: tabId
+      } : {
+        name: "reset",
+        passKeys: pass
       });
       var status = pass === null ? "enabled" : pass ? "partial" : "disabled";
       port.sender.status = status;

@@ -97,13 +97,14 @@ var Settings, VHUD, MainPort, VEventMode;
     connect: function() {
       var port;
       port = this.port = chrome.runtime.connect("hfjbmagddngcpeloejdejnfgbamkjaeg", {
-         name: "vimium++." + ((window.top === window) * 4 + document.hasFocus() * 2 + !requestHandlers.init),
+         name: "vimium++." + ((window.top === window) * 4 + document.hasFocus() * 2 + !this._callbacks),
       });
       port.onDisconnect.addListener(this.ClearPort);
       port.onMessage.addListener(this.Listener);
       this._callbacks = Object.create(null);
     }
   };
+  mainPort.connect();
 
   Settings = settings = {
     cache: null,
@@ -1052,7 +1053,6 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
   };
 
 
-  mainPort.connect();
   settings.timer = setInterval(function() {
     mainPort.connect();
   }, 2000);
