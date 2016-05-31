@@ -37,7 +37,7 @@ __微度新标签页 (X New Tab Page):__
 Release Notes
 -------------
 
-Not yet released:
+1.53.1:
 
 * Link hints: filter out those only having one single clickable child
 * use a better and more compatible way to get a bookmark\'s full path
