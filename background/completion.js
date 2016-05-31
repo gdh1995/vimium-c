@@ -922,7 +922,7 @@ searchEngines: {
     _dataUrl: "",
     _link: null,
     SetDataUrl: function(charset) {
-      Decoder._dataUrl = "data:text/css;charset=" + charset + ",style%7Bfont-family%3A%22";
+      Decoder._dataUrl = "data:text/css;charset=" + charset + ",link%7Bfont-family%3A%22";
     },
     init: function() {
       var link = this._link = document.createElement('link');
