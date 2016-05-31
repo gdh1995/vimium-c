@@ -123,9 +123,7 @@ bookmarks: {
     } else {
       this.currentSearch = query;
     }
-    if (this.refresh) {
-      chrome.bookmarks.getTree(this.refresh.bind(this));
-    }
+    this.refresh && this.refresh();
   },
   StartsWithSlash: function(str) { return str.charCodeAt(0) === 47; },
   performSearch: function(query) {
@@ -166,8 +164,11 @@ bookmarks: {
       });
     });
   },
-  refresh: function(tree) {
-    this.refresh = null;
+  refresh: function() {
+    chrome.bookmarks.getTree(this._refresh.bind(this));
+    this.refresh = this._refresh = null;
+  },
+  _refresh: function(tree) {
     this.readTree(tree);
     this.filter = this.performSearch;
     var query = this.currentSearch;
@@ -765,17 +766,16 @@ searchEngines: {
     callbacks: [],
     use: function(callback) {
       if (!this.callbacks.length) {
-        this.fetchHistory();
+        chrome.history.search({
+          text: "",
+          maxResults: this.size,
+          startTime: 0
+        }, this._use);
+        this._use = null;
       }
       this.callbacks.push(callback);
     },
-    fetchHistory: function() {
-      this.fetchHistory = null;
-      chrome.history.search({
-        text: "",
-        maxResults: this.size,
-        startTime: 0
-      }, function(history) {
+    _use: function(history) {
         var _this = HistoryCache, i = history.length, j, ref, callback;
         while (0 <= --i) { j = history[i]; j.text = j.url; }
         _this.history = history;
@@ -792,7 +792,6 @@ searchEngines: {
           chrome.history.onVisitRemoved.addListener(_this.OnVisitRemoved);
           chrome.history.onVisited.addListener(_this.OnPageVisited);
         }, 300);
-      });
     },
     Clean: function() {
       var arr = HistoryCache.history, i = arr.length, j;
