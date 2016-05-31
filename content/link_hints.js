@@ -237,9 +237,7 @@ var LinkHints = {
         break;
       }
       if (s = element.getAttribute("jsaction")) {
-        arr = s.split(";");
-        _i = arr.length;
-        while (0 <= --_i) {
+        for (arr = s.split(";"), _i = arr.length; 0 <= --_i; ) {
           s = arr[_i].trim();
           if (s.startsWith("click:") || (s !== "none" && s.indexOf(":") === -1)) {
             isClickable = true;
@@ -303,7 +301,7 @@ var LinkHints = {
     }
   },
   traverse: function(filters) {
-    var output = [], key, func, box, ind;
+    var output = [], key, func, box;
     Object.setPrototypeOf(filters, null);
     DomUtils.prepareCrop();
     box = document.webkitFullscreenElement || document;
@@ -322,9 +320,7 @@ var LinkHints = {
       }
     }
     if ("*" in filters) {
-      ind = output[0] ? +(output[0][0] === document.documentElement) : 0;
-      if (output[ind] && output[ind][0] === document.body) { ++ind; }
-      if (ind > 0) { output.splice(0, ind); }
+      this.deduplicate(output);
     }
     if (this.frameNested !== false) {}
     else if ("*" in filters) {
@@ -335,6 +331,29 @@ var LinkHints = {
       this.checkNestedFrame();
     }
     return output;
+  },
+  deduplicate: function(list) {
+    var j = list.length - 1, i, el, first, s, btnRe = this.btnRe, TextCls = Text;
+    while (0 < j) {
+      el = list[i = j][0];
+      while (el.parentNode === list[--j][0]) {
+        if ((el = list[j][0]).childElementCount !== 1
+          || (first = el.firstChild) instanceof TextCls && first.textContent.trim()
+          || !(el.vimiumHasOnclick || el.getAttribute("onclick")
+            || ((s = el.className) && btnRe.test(s))
+            || el.getAttribute("ng-click") || el.getAttribute("jsaction"))
+          || (s = el.getAttribute("role")) && (s = s.toLowerCase(), s === "button" || s === "link")
+        ) {
+          break;
+        }
+      }
+      if (j + 1 < i) {
+        list.splice(j + 1, i - j - 1);
+      }
+    }
+    i = list[0] ? +(list[0][0] === document.documentElement) : 0;
+    if (list[i] && list[i][0] === document.body) { ++i; }
+    if (i > 0) { i === 1 ? list.shift() : list.splice(0, i); }
   },
   frameNested: false,
   checkNestedFrame: function(output) {
