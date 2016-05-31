@@ -120,6 +120,7 @@ bookmarks: {
   filter: function(query) {
     if (queryTerms.length === 0) {
       Completers.next([]);
+      if (Settings.get("tinyMemory")) { return; }
     } else {
       this.currentSearch = query;
     }
@@ -947,6 +948,9 @@ searchEngines: {
   Settings.get("tinyMemory") || setTimeout(function() {
     HistoryCache.history || queryTerms || HistoryCache.use(function() {
       queryTerms || setTimeout(function() {
+        setTimeout(function() {
+          Completers.bookmarks.refresh && Completers.bookmarks.refresh();
+        }, 250);
         var domainsCompleter = Completers.domains;
         if (!domainsCompleter.refresh || queryTerms) { return; }
         domainsCompleter.refresh(HistoryCache.history);
