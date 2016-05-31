@@ -1173,6 +1173,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, g_requestHandlers;
     },
     frameFocused: function(request, port) {
       var tabId = port.sender.tab.id, ref = framesForTab[tabId], status;
+      currentFirst !== null && resetKeys();
       if (!ref) {
         needIcon && requestHandlers.SetIcon(tabId, port.sender.status);
         return;
