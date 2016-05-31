@@ -766,7 +766,6 @@ searchEngines: {
     use: function(callback) {
       if (!this.callbacks.length) {
         this.fetchHistory();
-        return;
       }
       this.callbacks.push(callback);
     },
