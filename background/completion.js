@@ -763,9 +763,9 @@ searchEngines: {
   HistoryCache = {
     size: 20000,
     history: null,
-    callbacks: [],
+    _callbacks: [],
     use: function(callback) {
-      if (!this.callbacks.length) {
+      if (!this._callbacks.length) {
         chrome.history.search({
           text: "",
           maxResults: this.size,
@@ -773,25 +773,17 @@ searchEngines: {
         }, this._use);
         this._use = null;
       }
-      this.callbacks.push(callback);
+      this._callbacks.push(callback);
     },
     _use: function(history) {
-        var _this = HistoryCache, i = history.length, j, ref, callback;
-        while (0 <= --i) { j = history[i]; j.text = j.url; }
-        _this.history = history;
-        _this.use = function(callback) { callback(this.history); };
-        ref = _this.callbacks;
-        _this.callbacks = null;
-        for (i = 0; i < ref.length; ++i) {
-          callback = ref[i]; callback(history);
-        }
-        setTimeout(HistoryCache.Clean, 200);
-        setTimeout(function() {
-          var _this = HistoryCache;
-          _this.history.sort(function(a, b) { return a.url.localeCompare(b.url); });
-          chrome.history.onVisitRemoved.addListener(_this.OnVisitRemoved);
-          chrome.history.onVisited.addListener(_this.OnPageVisited);
-        }, 300);
+      var _this = HistoryCache, i = history.length, j, ref;
+      while (0 <= --i) { j = history[i]; j.text = j.url; }
+      _this.history = history;
+      _this.use = function(callback) { callback(this.history); };
+      ref = _this._callbacks;
+      while (ref.length > ++i) { (0, ref[i])(history); }
+      _this._callbacks = null;
+      setTimeout(_this.Clean, 200);
     },
     Clean: function() {
       var arr = HistoryCache.history, i = arr.length, j;
@@ -805,6 +797,12 @@ searchEngines: {
           url: j.url
         };
       }
+      setTimeout(function() {
+        var _this = HistoryCache;
+        _this.history.sort(function(a, b) { return a.url.localeCompare(b.url); });
+        chrome.history.onVisitRemoved.addListener(_this.OnVisitRemoved);
+        chrome.history.onVisited.addListener(_this.OnPageVisited);
+      }, 100);
       setTimeout(Decoder.decodeList, 500, arr);
     },
     OnPageVisited: function(newPage) {
@@ -950,7 +948,7 @@ searchEngines: {
     HistoryCache.history || queryTerms || HistoryCache.use(function() {
       queryTerms || setTimeout(function() {
         var domainsCompleter = Completers.domains;
-        if (domainsCompleter.domains || queryTerms) { return; }
+        if (!domainsCompleter.refresh || queryTerms) { return; }
         domainsCompleter.refresh(HistoryCache.history);
       }, 750);
     });
