@@ -39,9 +39,14 @@ Release Notes
 
 Not yet released:
 
+* Link hints: filter out those only having one single clickable child
 * use a better and more compatible way to get a bookmark\'s full path
-  * fix the bug that of getting a bookmark\'s full path imported in the last version.
-* replace setting item UILanguage with simpler localeEncoding
+* replace setting item `UILanguage` with simpler `localeEncoding`
+* auto load bookmarks if `tinyMemory` is disabled, so Vomnibar's first complement is faster
+* bug fixes:
+  * fail to get a bookmark\'s full path
+  * fail to decode urls by given character encoding
+  * a potential crash in history completer
 
 1.53 includes many improvements about memory, speed and functionalities.
 
