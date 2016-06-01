@@ -282,7 +282,7 @@ body{cursor:text;display:inline-block;padding:0 3px 0 1px;min-width:7px;}body *{
     this.hookSel("remove");
     document.documentElement.classList[action]("vimiumFindMode");
     action !== "add" ? this.styleIn && this.styleIn.remove() :
-    (this.isActive || DomUtils.UI.root) && DomUtils.UI.addElement(this.styleIn);
+    DomUtils.UI.root && DomUtils.UI.addElement(this.styleIn);
   },
   getCurrentRange: function() {
     var sel = window.getSelection(), range;
