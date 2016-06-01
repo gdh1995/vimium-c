@@ -135,7 +135,7 @@ setTimeout(function() { if (!chrome.browserAction) { return; }
 
 setTimeout(function() { if (!chrome.omnibox) { return; }
   var last, firstUrl, lastSuggest, spanRe = /<(\/?)span(?: [^>]+)?>/g,
-  tempRequest, timeout = 0, sessionIds, suggestions = null,
+  tempRequest, timeout = 0, sessionIds, suggestions = null, outTimeout = 0, outTime,
   defaultSug = { description: "<dim>Open: </dim><url>%s</url>" },
   formatSessionId = function(sug) {
     if (sug.sessionId != null) {
@@ -162,6 +162,17 @@ setTimeout(function() { if (!chrome.omnibox) { return; }
     if (lastSuggest) {
       lastSuggest.isOff = true;
       lastSuggest = null;
+    }
+    if (outTimeout) {
+      clearTimeout(outTimeout);
+      outTime = outTimeout = 0;
+    }
+  },
+  outClean = function() {
+    if (Date.now() - outTime > 5000) {
+      clean();
+    } else {
+      outTimeout = setTimeout(outClean, 30000);
     }
   },
   onTimer = function() {
@@ -197,6 +208,7 @@ setTimeout(function() { if (!chrome.omnibox) { return; }
     }
     response = response.map(format);
     suggest(suggestions = response);
+    outTimeout || setTimeout(outClean, 30000);
   },
   onInput = function(key, suggest) {
     key = key.trim();
@@ -207,6 +219,7 @@ setTimeout(function() { if (!chrome.omnibox) { return; }
       return;
     }
     timeout = setTimeout(onTimer, 300);
+    outTime = Date.now();
     firstUrl = "";
     sessionIds = suggestions = null;
     last = key;
