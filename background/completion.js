@@ -603,7 +603,7 @@ searchEngines: {
   mostRecentQuery: null,
   callback: null,
   filter: function(completers) {
-    RegexpCache.clear();
+    RegexpCache.reset();
     if (this.mostRecentQuery) { this.mostRecentQuery.isOff = true; }
     var query = this.mostRecentQuery = {
       isOff: false
@@ -645,6 +645,7 @@ searchEngines: {
     }
     suggestions.forEach(SuggestionUtils.PrepareHtml);
     queryTerms = null;
+    RegexpCache.reset(null);
     func = this.callback || g_requestHandlers.PostCompletions;
     this.mostRecentQuery = this.callback = null;
     func(suggestions);
@@ -746,8 +747,8 @@ searchEngines: {
 
   RegexpCache = {
     _cache: null,
-    clear: function() {
-      this._cache = Object.create(null);
+    reset: function(obj) {
+      this._cache = obj !== undefined ? obj : Object.create(null);
     },
     escapeRe: Utils.escapeAllRe,
     get: function(s, p, n) {
