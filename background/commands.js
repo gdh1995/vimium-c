@@ -120,6 +120,7 @@ commandGroups: {
 },
 advancedCommands: {
   __proto__: null
+  , toggleViewSource: 1
   , scrollToLeft: 1, scrollToRight: 1, moveTabToNextWindow: 1
   , moveTabToNewWindow: 1, moveTabToIncognito: 1, reloadGivenTab: 1, focusOrLaunch: 1
   , goUp: 1, goToRoot: 1, focusInput: 1, "LinkHints.activateModeWithQueue": 1, enableCSTemp: 1
@@ -227,7 +228,7 @@ availableCommands: {
   reloadTab: [ "Reload N tab(s)", 20, true ],
   reloadGivenTab: [ "Reload N-th tab", 0, true ],
   reopenTab: [ "Reopen current page", 1, true ],
-  toggleViewSource: [ "View page source", 1, true ],
+  toggleViewSource: [ "View page source", 1, true ], // deprecated
   copyCurrentTitle: [ "Copy current tab's title", 1, true, { type: "title" }, "copyTabInfo" ],
   copyCurrentUrl: [ "Copy page's info (use type=url/frame/title)", 1, true, null, "copyTabInfo" ],
   autoCopy: [ "Copy selected text or current frame's title or url (use url=false)", 1, false ],
