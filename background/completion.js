@@ -87,7 +87,7 @@ SuggestionUtils = {
       cutStart = string.indexOf("/", (temp < 0 || temp > cutStart) ? 0 : (temp + 4));
     }
     cutStart = (cutStart < 0) ? string.length : (cutStart + 1);
-    for(i = 0, lenCut = 0, end = 0; i < ranges.length; i += 2) {
+    for(i = 0, lenCut = 0, end = 0; end < (temp = maxCharNum + lenCut) && i < ranges.length; i += 2) {
       start = ranges[i];
       temp = (end >= cutStart) ? end : cutStart;
       if (temp + 20 > start) {
@@ -100,7 +100,6 @@ SuggestionUtils = {
       end = ranges[i + 1];
       out.push('<span class="OSUrl">', Utils.escapeText(string.substring(start, end)), "</span>");
     }
-    temp = maxCharNum + lenCut;
     if (string.length <= temp) {
       out.push(Utils.escapeText(string.substring(end)));
     } else {
@@ -604,7 +603,7 @@ searchEngines: {
   mostRecentQuery: null,
   callback: null,
   filter: function(completers) {
-    RegexpCache.clear();
+    RegexpCache.reset();
     if (this.mostRecentQuery) { this.mostRecentQuery.isOff = true; }
     var query = this.mostRecentQuery = {
       isOff: false
@@ -646,6 +645,8 @@ searchEngines: {
     }
     suggestions.forEach(SuggestionUtils.PrepareHtml);
     queryTerms = null;
+    RegexpCache.reset(null);
+    RankingUtils.timeAgo = 0;
     func = this.callback || g_requestHandlers.PostCompletions;
     this.mostRecentQuery = this.callback = null;
     func(suggestions);
@@ -747,8 +748,8 @@ searchEngines: {
 
   RegexpCache = {
     _cache: null,
-    clear: function() {
-      this._cache = Object.create(null);
+    reset: function(obj) {
+      this._cache = obj !== undefined ? obj : Object.create(null);
     },
     escapeRe: Utils.escapeAllRe,
     get: function(s, p, n) {
