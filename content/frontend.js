@@ -194,30 +194,30 @@ var Settings, VHUD, MainPort, VEventMode;
     },
     onFocus: function(event) {
       var target = event.target;
-      if (target === window) { ELs.onWndFocus(); }
+      if (target === window) { ELs.OnWndFocus(); }
       else if (!isEnabledForUrl) {}
       else if (DomUtils.getEditableType(target)) { InsertMode.focus(event); }
       else if (!target.shadowRoot) {}
       else if (target !== DomUtils.UI.box) {
         target = target.shadowRoot;
         target.addEventListener("focus", ELs.onFocus, true);
-        target.addEventListener("blur", ELs.OnShadowBlur, true);
+        target.addEventListener("blur", ELs.onShadowBlur, true);
       } else {
-        ELs.onUI(event);
+        ELs.OnUI(event);
       }
     },
     onBlur: function(event) {
       var target = event.target;
       if (target === window) {
         Scroller.keyIsDown = 0;
-        ELs.onWndBlur && ELs.onWndBlur(KeydownEvents);
+        ELs.OnWndBlur && ELs.OnWndBlur(KeydownEvents);
         KeydownEvents = new Uint8Array(256);
         esc();
       } else if (!isEnabledForUrl) {}
       else if (InsertMode.lock === target) { InsertMode.lock = null; }
       else if (!target.shadowRoot) {}
       else if (target === DomUtils.UI.box) {
-        ELs.onUI(event);
+        ELs.OnUI(event);
       } else {
         target = target.shadowRoot;
         // NOTE: if destroyed, this page must have lost its focus before, so
@@ -230,9 +230,9 @@ var Settings, VHUD, MainPort, VEventMode;
     onActivate: function(event) {
       Scroller.current = event.path[0];
     },
-    onWndFocus: function() {},
-    onWndBlur: null,
-    onUI: function(event) {
+    OnWndFocus: function() {},
+    OnWndBlur: null,
+    OnUI: function(event) {
       event.stopImmediatePropagation();
       var target = Vomnibar.input;
       if (event.type !== "blur") {
@@ -245,10 +245,10 @@ var Settings, VHUD, MainPort, VEventMode;
         target.focused = false;
       }
     },
-    OnShadowBlur: function(event) {
+    onShadowBlur: function(event) {
       if (this.vimiumBlurred) {
         this.vimiumBlurred = false;
-        this.removeEventListener("blur", ELs.OnShadowBlur, true);
+        this.removeEventListener("blur", ELs.onShadowBlur, true);
       }
       ELs.onBlur(event);
     },
@@ -348,12 +348,12 @@ var Settings, VHUD, MainPort, VEventMode;
           HUD.show("Pass next key: " + count);
           return;
         }
-        ELs.onWndBlur();
+        ELs.OnWndBlur();
       };
-      ELs.onWndBlur = function() {
+      ELs.OnWndBlur = function() {
         onKeyup2 = null;
         handlerStack.remove(keys);
-        ELs.onWndBlur = null;
+        ELs.OnWndBlur = null;
         HUD.hide();
       };
       HUD.show("Pass next key: " + count);
@@ -629,9 +629,9 @@ var Settings, VHUD, MainPort, VEventMode;
 
   VEventMode = {
     lock: function() { return InsertMode.lock; },
-    onWndFocus: isInjected && function(f) { ELs.onWndFocus = f; },
-    onWndBlur: function(f) { ELs.onWndBlur = f; },
-    on: function(name) { return ELs["on" + name]; },
+    onWndFocus: isInjected && function(f) { ELs.OnWndFocus = f; },
+    onWndBlur: function(f) { ELs.OnWndBlur = f; },
+    on: function(name) { return ELs["On" + name]; },
     scroll: function(event) {
       var options, keyCode, ctrl;
       if (!event || event.shiftKey || event.altKey) { return; }
@@ -1067,7 +1067,7 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
     // NOTE: here, we should always postMessage, since
     //     NO other message will be sent if not isEnabledForUrl,
     // which would make the auto-destroy logic not work.
-    ELs.onWndFocus = mainPort.safePost.bind(mainPort, { handler: "frameFocused" });
+    ELs.OnWndFocus = mainPort.safePost.bind(mainPort, { handler: "frameFocused" });
   });
 
   settings.destroy = function() {
