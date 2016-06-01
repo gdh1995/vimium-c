@@ -228,7 +228,7 @@ availableCommands: {
   reloadTab: [ "Reload N tab(s)", 20, true ],
   reloadGivenTab: [ "Reload N-th tab", 0, true ],
   reopenTab: [ "Reopen current page", 1, true ],
-  toggleViewSource: [ "View page source", 1, true ], // deprecated
+  toggleViewSource: [ "View page source (deprecated)", 1, true ],
   copyCurrentTitle: [ "Copy current tab's title", 1, true, { type: "title" }, "copyTabInfo" ],
   copyCurrentUrl: [ "Copy page's info (use type=url/frame/title)", 1, true, null, "copyTabInfo" ],
   autoCopy: [ "Copy selected text or current frame's title or url (use url=false)", 1, false ],
