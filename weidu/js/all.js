@@ -3558,22 +3558,11 @@ w = this.width; h = this.height;
 $('.wallpaper').css("backgroundImage", "url(" + this.src + ")");
 if (w <= h) {
 	st.backgroundPosition = '50% 0px';
-	window.onresize = function (skip) {
-	if (skip !== true) {
-		if (window.innerWidth == oWidth && window.innerHeight <= oHeight + 45) return;
-		oWidth = window.innerWidth;
-		oHeight = window.innerHeight;
-	}
+}
+var onresize = w <= h ? function () {
 	st.backgroundSize = 'auto ' + oHeight + 'px';
 	$('.wallpaper').css(st);
-	};
-} else {
-	window.onresize = function (skip) {
-	if (skip !== true) {
-		if (window.innerWidth == oWidth && Math.abs(window.innerHeight - oHeight) < 44) return;
-		oWidth = window.innerWidth;
-		oHeight = window.innerHeight;
-	}
+} : function() {
 	if (w / h <= (oWidth / oHeight)) {
 		var mod = 0;
 		if (st.backgroundSize != '100% auto') {
@@ -3593,9 +3582,15 @@ if (w <= h) {
 		st.backgroundPosition = '50% 0px';
 		$('.wallpaper').css(st);
 	}
-	};
 }
-window.onresize(true);
+onresize();
+window.onresize = function() {
+	var h = window.innerHeight;
+	if (window.innerWidth == oWidth && h <= oHeight && h > oHeight - 45) return;
+	oWidth = window.innerWidth;
+	oHeight = window.innerHeight;
+	onresize();
+};
 };
 };
 (function() {
