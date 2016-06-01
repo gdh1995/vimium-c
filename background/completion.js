@@ -646,6 +646,7 @@ searchEngines: {
     suggestions.forEach(SuggestionUtils.PrepareHtml);
     queryTerms = null;
     RegexpCache.reset(null);
+    RankingUtils.timeAgo = 0;
     func = this.callback || g_requestHandlers.PostCompletions;
     this.mostRecentQuery = this.callback = null;
     func(suggestions);
