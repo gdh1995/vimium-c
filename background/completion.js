@@ -801,7 +801,7 @@ searchEngines: {
       }
       setTimeout(function() {
         var _this = HistoryCache;
-        _this.history.sort(function(a, b) { return a.url.localeCompare(b.url); });
+        _this.history.sort(function(a, b) { return a.url < b.url ? -1 : 1; });
         chrome.history.onVisitRemoved.addListener(_this.OnVisitRemoved);
         chrome.history.onVisited.addListener(_this.OnPageVisited);
       }, 100);
