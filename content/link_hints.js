@@ -222,6 +222,11 @@ var LinkHints = {
         || (s = getComputedStyle(element).cursor) && s.indexOf("zoom") >= 0
         || null;
       break;
+    case "ul": case "pre": case "ol":
+      if (element.clientHeight < element.scrollHeight) {
+        isClickable = true;
+      }
+      break;
     }
     while (isClickable === null) {
       if ((element.vimiumHasOnclick && LinkHints.isClickListened) || element.getAttribute("onclick")
@@ -245,6 +250,12 @@ var LinkHints = {
           }
         }
         if (isClickable) { break; }
+      }
+      if (LinkHints.mode >= 128 && (element instanceof HTMLDivElement) && LinkHints.mode <= LinkHints.CONST.LEAVE) {
+        if (element.clientHeight < element.scrollHeight) {
+          isClickable = true;
+          break;
+        }
       }
       s = element.getAttribute("tabindex");
       if (s != null && (s === "" || parseInt(s, 10) >= 0)) {
