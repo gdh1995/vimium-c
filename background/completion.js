@@ -620,7 +620,7 @@ searchEngines: {
     RankingUtils.timeAgo = Date.now() - RankingUtils.timeCalibrator;
     RankingUtils.maxScoreP = RankingUtils.maximumScore * queryTerms.length || 0.01;
     if (queryTerms.indexOf("__proto__") >= 0) {
-      queryTerms = queryTerms.join(" ").replace(this.protoRe, " __proto_ ").trim().split(" ");
+      queryTerms = queryTerms.join(" ").replace(this.protoRe, " __proto_").trimLeft().split(" ");
     }
     for (; i < l; i++) {
       completers[i].filter(query);
@@ -666,7 +666,7 @@ searchEngines: {
     queryTerms.more = queryTerms.pop();
     queryType = 1;
   },
-  protoRe: /(?:^|\s)__proto__(?:$|\s)/g,
+  protoRe: /(?:^|\s)__proto__(?=$|\s)/g,
   MultiCompleter: function(completers) { this.completers = completers; },
   rsortByRelevancy: function(a, b) { return b.relevancy - a.relevancy; }
 };
