@@ -176,6 +176,7 @@ var importSettings = function(time, event) {
   }
   $("saveOptions").onclick(false);
   VHUD.showForDuration("Import settings data: OK!", 1000);
+  console.log("IMPORT settings: finished");
 };
 
 $("settingsFile").onchange = function() {
