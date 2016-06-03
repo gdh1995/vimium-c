@@ -361,7 +361,7 @@ var LinkHints = {
     this.frameNested = res === false && document.readyState === "complete" ? null : res;
   },
   _getNestedFrame: function(output) {
-    var rect, element, str, func;
+    var rect, element, func;
     if (window.frames[0] == null) { return false; }
     if (document.webkitIsFullScreen) { return null; }
     if (output == null) {
@@ -378,11 +378,9 @@ var LinkHints = {
       return output.length !== 0 && null;
     }
     element = output[0][0];
-    str = element.tagName.toLowerCase();
-    if (str !== "iframe" && str !== "frame") {
-      return null;
-    }
-    if ((rect = element.getClientRects()[0])
+    if (
+      ((element instanceof HTMLIFrameElement) || (element instanceof HTMLFrameElement))
+        && (rect = element.getClientRects()[0])
         && window.scrollY + rect.top < 20 && window.scrollX + rect.left < 20
         && rect.right > document.documentElement.scrollWidth - 20
         && rect.bottom > document.documentElement.scrollHeight - 20
