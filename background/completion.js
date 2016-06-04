@@ -615,15 +615,14 @@ searchEngines: {
     }
   },
   next: function(newSugs) {
-    var suggestions, func;
-    suggestions = this.suggestions.length === 0 ? newSugs
-      : newSugs.length > 0 ? this.suggestions.concat(newSugs) : this.suggestions;
-    if (0 < --this.counter) {
-      this.suggestions = suggestions;
-      return;
+    this.concatSugs(newSugs);
+    if (0 === --this.counter) {
+      return this.finish();
     }
-
-    this.suggestions = newSugs = null;
+  },
+  finish: function() {
+    var suggestions = this.suggestions, func;
+    this.suggestions = null;
     suggestions.sort(this.rsortByRelevancy);
     if (suggestions.length > maxResults) {
       suggestions.length = maxResults;
@@ -638,6 +637,14 @@ searchEngines: {
     func = this.callback || g_requestHandlers.PostCompletions;
     this.mostRecentQuery = this.callback = null;
     func(suggestions);
+  },
+  concatSugs: function(newSugs) {
+    var arr = this.suggestions, i, len = newSugs.length;
+    if (len === 0) { return; }
+    if (arr.length === 0) { return this.suggestions = newSugs; }
+    for (i = 0; i < len; i++) {
+      arr.push(newSugs[i]);
+    }
   },
   getOffset: function() {
     var str, i;
