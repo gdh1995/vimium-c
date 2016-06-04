@@ -249,52 +249,39 @@ history: {
     }
   },
   quickSearch: function(history) {
-    var maxNum = (maxResults + (queryType === 3 ? offset : 0)) * 2,
-    results = new Array(maxNum), sug,
-    query = queryTerms, regexps = [], len = history.length, i, len2, j, s1,
+    var maxNum = maxResults + (queryType === 3 ? offset : 0),
+    results = [], sug,
+    sugs, query = queryTerms, regexps, len, i, len2, j, k,
     score, item, getRele = this.computeRelevancy;
-    for (j = maxNum; 0 <= (j -= 2); ) {
-      results[j] = 0.0;
-    }
-    maxNum -= 2;
-    // inline version of RankingUtils.Match2
-    for (j = len2 = query.length; 0 <= --j; ) {
-      regexps.push(RegexpCache.item(query[j]));
-    }
-    for (i = 0; i < len; ++i) {
+    for (j = maxNum; j--; ) { results.push(0.0, 0); }
+    maxNum = maxNum * 2 - 2;
+    regexps = query.map(RegexpCache.item, RegexpCache);
+    for (i = 0, len = history.length, len2 = regexps.length; i < len; i++) {
       item = history[i];
-      for (j = 0; j < len2; ++j) {
+      for (j = 0; j < len2; j++) {
         if (!(regexps[j].test(item.text) || regexps[j].test(item.title))) { break; }
       }
       if (j !== len2) { continue; }
       score = getRele(item.text, item.title, item.lastVisitTime);
       if (results[maxNum] >= score) { continue; }
-      j = maxNum - 2;
-      if (results[j] >= score) {
-        results[maxNum] = score;
-        results[maxNum + 1] = item;
-        continue;
+      for (j = maxNum - 2; 0 <= j && results[j] < score; j -= 2) {
+        results[j + 2] = results[j], results[j + 3] = results[j + 1];
       }
-      results.length = maxNum;
-      for (; 0 <= (j -= 2); ) {
-        if (results[j] >= score) { break; }
-      }
-      if (j >= 0) {
-        results.splice(j + 2, 0, score, item);
-      } else {
-        results.unshift(score, item);
-      }
+      results[j + 2] = score;
+      results[j + 3] = i;
     }
+    regexps = null;
+    sugs = [];
     getRele = this.getRelevancy0;
-    for (i = queryType === 3 ? offset * 2 : 0, j = 0; i <= maxNum; i += 2) {
+    for (i = queryType === 3 ? offset * 2 : 0; i <= maxNum; i += 2) {
       score = results[i];
       if (score <= 0) { break; }
-      item = results[i + 1];
-      sug = results[j++] = new Suggestion("history", item.url, item.text, item.title, getRele);
+      item = history[results[i + 1]];
+      sug = new Suggestion("history", item.url, item.text, item.title, getRele);
       sug.relevancy = score;
+      sugs.push(sug);
     }
-    results.length = j;
-    return results;
+    return sugs;
   },
   filterFill: function(historys, query, arr, cut) {
     var _this = this;

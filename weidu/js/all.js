@@ -2224,7 +2224,7 @@ DBOX = {
 					}
 				} catch (e) {}
 				try {
-					var notColorList = new Array('0,0,0', '255,255,255');
+					var notColorList = ["0,0,0", "255,255,255"];
 					var boxLogoCanvas = $('<canvas width="' + logoImg.width + '" height="' + logoImg.height + '"></canvas>').get(0);
 					boxLogoCanvas = boxLogoCanvas.getContext("2d");
 					boxLogoCanvas.drawImage(logoImg, 0, 0);

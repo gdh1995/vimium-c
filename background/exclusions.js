@@ -61,10 +61,10 @@ var Exclusions = {
     }
   },
   format: function(rules) {
-    var _i = rules.length, rule, out = new Array(_i);
-    while (0 <= --_i) {
+    var _i, _len, rule, out = [];
+    for (_i = 0, _len = rules.length; _i < _len; _i++) {
       rule = rules[_i];
-      out[_i] = [this.getRe(rule.pattern), rule.passKeys];
+      out.push([this.getRe(rule.pattern), rule.passKeys]);
     }
     return out;
   },
