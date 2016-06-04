@@ -344,14 +344,15 @@ var LinkHints = {
     return output;
   },
   deduplicate: function(list) {
-    var j = list.length - 1, i, el, first, s, btnRe = this.btnRe, TextCls = Text;
+    var j = list.length - 1, i, el, first, s, btnRe = this.btnRe
+      , TextCls = Text, A = HTMLAnchorElement;
     while (0 < j) {
       el = list[i = j][0];
       while (el.parentNode === list[--j][0]) {
         if ((el = list[j][0]).childElementCount !== 1
           || (first = el.firstChild) instanceof TextCls && first.textContent.trim()
           || !(el.vimiumHasOnclick || el.getAttribute("onclick")
-            || ((s = el.className) && btnRe.test(s))
+            || el instanceof A || ((s = el.className) && btnRe.test(s))
             || el.getAttribute("ng-click") || el.getAttribute("jsaction"))
           || (s = el.getAttribute("role")) && (s = s.toLowerCase(), s === "button" || s === "link")
         ) {
