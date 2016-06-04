@@ -613,6 +613,7 @@ searchEngines: {
     this.getOffset();
     if (completers[0].preFilter) {
       completers[0].preFilter(query);
+      if (!queryTerms) { return; }
       i = 1;
     } else {
       i = 0;
@@ -679,7 +680,17 @@ searchEngines: {
     showFavIcon = options.showFavIcon === true;
     showRelevancy = options.showRelevancy === true;
     Completers.callback = callback;
-    Completers.filter(this.completers);
+    var _this = this, ref, str;
+    if (queryTerms.length >= 1 && queryTerms[0].length === 2 && queryTerms[0][0] === ":") {
+      str = queryTerms[0][1];
+      ref = window.Completers;
+      _this = str === "b" ? ref.bookmarks : str === "h" ? ref.history : str === "t" ? ref.tabs
+        : str === "d" ? ref.domains : str === "s" ? ref.search : this;
+      if (_this !== this) {
+        queryTerms.shift();
+      }
+    }
+    Completers.filter(_this.completers);
   };
 
   RankingUtils = {
@@ -961,9 +972,11 @@ searchEngines: {
 
   window.Completers = {
     bookmarks: new Completers.MultiCompleter([Completers.bookmarks]),
+    domains: new Completers.MultiCompleter([Completers.domains]),
     history: new Completers.MultiCompleter([Completers.history]),
     omni: new Completers.MultiCompleter([Completers.searchEngines, Completers.domains
       , Completers.history, Completers.bookmarks]),
+    search: new Completers.MultiCompleter([Completers.searchEngines]),
     tabs: new Completers.MultiCompleter([Completers.tabs])
   };
 
