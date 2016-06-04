@@ -620,31 +620,29 @@ alphabetHints: {
   },
   buildHintIndexes: function(linkCount) {
     var dn, hints, i, end;
-    hints = new Array(linkCount);
     end = this.chars.length;
     dn = Math.ceil(Math.log(linkCount) / Math.log(end));
     end = ((Math.pow(end, dn) - linkCount) / (end - 1)) | 0;
     this.countMax = dn; this.countLimit = end;
-    for (i = 0; i < end; ++i) {
-      hints[i] = i;
+    for (hints = [], i = 0; i < end; i++) {
+      hints.push(i);
     }
-    end *= this.chars.length - 1;
-    for (; i < linkCount; ++i) {
-      hints[i] = i + end;
+    for (end *= this.chars.length - 1; i < linkCount; i++) {
+      hints.push(i + end);
     }
     return this.shuffleHints(hints);
   },
   shuffleHints: function(hints) {
-    var result, count, len, start, i, j, max;
+    var result, count, len, start, i, j, max, j0;
     count = hints.length; len = this.chars.length;
-    result = new Array(count);
-    start = count % len;
-    max = count - start;
-    for (i = len; 0 <= --i; ) {
-      for (j = max + i; 0 <= (j -= len); ) {
-        result[--count] = hints[j];
+    start = (count % len);
+    max = count - start + len;
+    result = [];
+    for (j0 = i = 0; i < len; i++, j0++) {
+      if (i === start) { max -= len; }
+      for (j = j0; j < max; j += len) {
+        result.push(hints[j]);
       }
-      if (i == start) { max += len; }
     }
     return result;
   },
