@@ -77,7 +77,7 @@ DomUtils.UI = {
     if (sel.type !== "Range" || !sel.anchorNode) {
       return false;
     }
-    if (!root && (el = VEventMode.lock())) {
+    if (el = VEventMode.lock()) {
       ind = el.selectionDirection === "forward" && el.selectionEnd < el.value.length ?
           el.selectionStart : el.selectionEnd;
       el.setSelectionRange(ind, ind);
