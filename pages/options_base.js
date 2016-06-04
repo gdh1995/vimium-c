@@ -201,11 +201,9 @@ exclusions = {
   rebuildTesters: function() {
     var rules = bgSettings.get("exclusionRules")
       , ref = bgExclusions.testers = Object.create(null)
-      , ref2 = bgExclusions.rules, _i, _j, pattern;
-    for (_i = rules.length, _j = 0; 0 <= --_i; ) {
-      if (pattern = rules[_i].pattern) {
-        ref[pattern] = ref2[_j++][0];
-      }
+      , ref2 = bgExclusions.rules, _i, _len;
+    for (_i = 0, _len = rules.length; _i < _len; _i++) {
+      ref[rules[_i].pattern] = ref2[_i * 2];
     }
   },
   addRule: function() {

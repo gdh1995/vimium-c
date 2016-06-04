@@ -41,9 +41,9 @@ var Exclusions = {
   getPattern: null,
   _getPattern: function(url) {
     var rules = this.rules, _i, _len, matchedKeys = "", str;
-    for (_i = 0, _len = rules.length; _i < _len; _i++) {
-      if (rules[_i][0](url)) {
-        str = rules[_i][1];
+    for (_i = 0, _len = rules.length; _i < _len; _i += 2) {
+      if (rules[_i](url)) {
+        str = rules[_i + 1];
         if (!str) { return ""; }
         matchedKeys += str;
       }
@@ -64,7 +64,7 @@ var Exclusions = {
     var _i, _len, rule, out = [];
     for (_i = 0, _len = rules.length; _i < _len; _i++) {
       rule = rules[_i];
-      out.push([this.getRe(rule.pattern), rule.passKeys]);
+      out.push(this.getRe(rule.pattern), rule.passKeys);
     }
     return out;
   },
