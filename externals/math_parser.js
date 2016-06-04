@@ -685,21 +685,34 @@ var MathParser = (function () {
 		},
 
 		isNumber: function () {
-			var r = false;
-			var str = "";
-			while (this.pos < this.expression.length) {
-				var code = this.expression.charCodeAt(this.pos);
-				if ((code >= 48 && code <= 57) || code === 46) {
-					str += this.expression.charAt(this.pos);
-					this.pos++;
-					this.tokennumber = parseFloat(str);
-					r = true;
-				}
-				else {
+			var i = this.pos, dot = false, str, scale = 10;
+			for (; i < this.expression.length; i++) {
+				var code = this.expression.charCodeAt(i);
+				if (code >= 48 && code <= 57) {}
+				else if (dot) { return false; }
+				else if (code === 46) { dot = true; }
+				else if (code === 69 || code === 101) { // 'E' or 'e'
+					code = this.expression.charCodeAt(i + 1);
+					i += code === 43 || code === 45 ? 1 : 0;
+					dot = true;
+					while ((code = this.expression.charCodeAt(++i)) >= 48 && code <= 57) {}
 					break;
 				}
+				else if (code === 88 || code === 120) {
+					if (i - this.pos !== 1 || this.expression.charCodeAt(i - 1) !== 48) { break; }
+					scale = 16;
+					while ((code = this.expression.charCodeAt(++i)) >= 48 && code <= 57
+						|| code >= 97 && code <= 102 || code >= 65 && code <= 70) {}
+					break;
+				}
+				else { break; }
 			}
-			return r;
+			if (i <= this.pos) { return false; }
+			str = this.expression.substring(this.pos, i);
+			this.tokennumber = dot ? parseFloat(str) : parseInt(str
+				, scale === 10 && this.expression.charCodeAt(this.pos) === 48 ? 8 : scale);
+			this.pos = i;
+			return true;
 		},
 
 		// Ported from the yajjl JSON parser at http://code.google.com/p/yajjl/
