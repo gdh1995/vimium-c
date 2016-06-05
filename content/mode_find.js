@@ -53,13 +53,12 @@ body{cursor:text;display:inline-block;padding:0 3px 0 1px;min-width:7px;}body *{
     this.getCurrentRange();
 
     var el, wnd, doc;
-    DomUtils.UI.addElement(el = this.box = DomUtils.createElement("iframe"));
-    DomUtils.UI.root.insertBefore(el, VHUD.box);
+    el = this.box = DomUtils.createElement("iframe");
     el.className = "R HUD";
     el.style.width = "0px";
-    el.onmousedown = this.OnMousedown;
+    VHUD.box ? DomUtils.UI.root.insertBefore(el, VHUD.box) : DomUtils.UI.addElement(el);
     wnd = el.contentWindow;
-    wnd.onmousedown = this.OnMousedown;
+    wnd.onmousedown = el.onmousedown = this.OnMousedown;
     wnd.onkeydown = this.onKeydown.bind(this);
     wnd.onfocus = VEventMode.on("WndFocus");
     doc = wnd.document;
