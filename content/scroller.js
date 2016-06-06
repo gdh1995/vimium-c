@@ -131,8 +131,8 @@ Core: {
     var st = window.getComputedStyle(element);
     return DomUtils.isStyleVisible(st) && (di ? st.overflowY : st.overflowX) !== "hidden";
   },
-  isScrollable: function(element) {
-    return this.scrollDo(element, 1, 1, "") && this.shouldScroll(element, 1);
+  isScrollable: function(el, di) {
+    return this.scrollDo(el, di, (di ? el.scrollTop : el.scrollLeft) > 0 ? -1 : 1, "") && this.shouldScroll(el, di);
   },
   sortBy0: function(a, b) {
     return a[0] - b[0];

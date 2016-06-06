@@ -191,7 +191,7 @@ var LinkHints = {
   quoteRe: /"/g,
   btnRe: /\b[Bb](?:utto|t)n(?:$| )/,
   GetClickable: function(element) {
-    var arr, isClickable = null, s, _i, isScrollable = false;
+    var arr, isClickable = null, s, _i, isScrollable = 0;
     // Note: isScrollable must not be true if isClickable is false
     switch (element.tagName.toLowerCase()) {
     case "a": case "frame": isClickable = true; break;
@@ -226,9 +226,7 @@ var LinkHints = {
         || null;
       break;
     case "ul": case "pre": case "ol":
-      if (element.clientHeight < element.scrollHeight) {
-        isScrollable = true;
-      }
+      isScrollable = LinkHints.getScrollable(element);
       break;
     }
     while (isClickable === null) {
@@ -255,10 +253,7 @@ var LinkHints = {
         if (isClickable) { break; }
       }
       if (LinkHints.mode >= 128 && (element instanceof HTMLDivElement) && LinkHints.mode <= LinkHints.CONST.LEAVE) {
-        if (element.clientHeight < element.scrollHeight) {
-          isScrollable = true;
-          break;
-        }
+        isScrollable = LinkHints.getScrollable(element)
       }
       if (isScrollable) { break; }
       s = element.getAttribute("tabindex");
@@ -271,9 +266,13 @@ var LinkHints = {
     }
     if (isClickable && (arr = DomUtils.getVisibleClientRect(element))) {
       this.push([element, arr]);
-    } else if (isScrollable && (arr = DomUtils.getVisibleClientRect(element)) && Scroller.isScrollable(element)) {
+    } else if (isScrollable && (arr = DomUtils.getVisibleClientRect(element))
+        && Scroller.isScrollable(element, Math.max(0, isScrollable))) {
       this.push([element, arr, 2, null]);
     }
+  },
+  getScrollable: function(el) {
+    return el.clientHeight < el.scrollHeight ? 1 : el.clientWidth < el.scrollWidth ? -1 : 0;
   },
   GetLinks: function(element) {
     var a, arr;
