@@ -1138,16 +1138,6 @@ var Clipboard, Commands, Completers, Exclusions, Marks, g_requestHandlers;
     restoreSession: function(request) {
       chrome.sessions.restore(request.sessionId, funcDict.onRuntimeError);
     },
-    openImageUrl: function(request) {
-      var url = "/pages/show.html#!image ";
-      if (request.download) {
-        url += "download=" + encodeURIComponent(request.download) + "&";
-      }
-      url += request.url;
-      commandCount = 1;
-      cOptions = { url_f: url, reuse: request.active === false ? -2 : -1 };
-      BackgroundCommands.openUrl();
-    },
     openUrl: function(request) {
       request.url_f = Utils.convertToUrl(request.url, request.keyword, 2);
       request.keyword = "";

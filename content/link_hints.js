@@ -842,16 +842,19 @@ OPEN_IMAGE: {
   133: "Open image",
   197: "Open multiple image",
   activator: function(img) {
-    var text = img instanceof HTMLAnchorElement ? img.href : img.src;
+    var text = img instanceof HTMLAnchorElement ? img.href : img.src, url, str;
     if (!text) {
       VHUD.showForDuration("Not an image", 1000);
       return;
     }
+    url = "vimium://show image ";
+    if (str = img.getAttribute("download")) {
+      url += "download=" + encodeURIComponent(str) + "&";
+    }
     MainPort.port.postMessage({
-      handler: "openImageUrl",
-      active: !(this.mode & 64),
-      download: img.getAttribute("download"),
-      url: text
+      handler: "openUrl",
+      reuse: this.mode & 64 ? -2 : -1,
+      url: url + text
     });
   }
 },
