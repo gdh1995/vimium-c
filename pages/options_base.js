@@ -288,14 +288,6 @@ exclusions = {
     btn.textContent = "Saved";
     btn.disabled = true;
     status = 0;
-    if (ref = bgSettings.indexPorts(tabId)) {
-      pass = passKeys === null ? "enabled" : passKeys ? "partial" : "disabled";
-      sender = ref[0].sender;
-      if (pass !== sender.status) {
-        sender.status = pass;
-        BG.g_requestHandlers.SetIcon(tabId, pass);
-      }
-    }
   };
   $("saveOptions").onclick = saveOptions;
   document.addEventListener("keyup", function(event) {
