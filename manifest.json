@@ -6,9 +6,9 @@
       "background/main.js",
       "background/commands.js",
       "background/exclusions.js",
-      "background/others.js",
       "background/tools.js",
-      "background/completion.js"
+      "background/completion.js",
+      "background/others.js"
     ]
   },
   "browser_action": {
