@@ -908,13 +908,12 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
       r.init = null;
     },
     reset: function(request) {
-      var newPassKeys = request.passKeys;
-      if (isEnabledForUrl = (newPassKeys !== "")) {
-        InsertMode.init && InsertMode.init();
-      }
-      isEnabledForUrl === !requestHandlers.init && ELs.hook(isEnabledForUrl ? addEventListener : removeEventListener);
+      var newPassKeys = request.passKeys, enabled;
+      enabled = isEnabledForUrl = (newPassKeys !== "");
+      enabled && InsertMode.init && InsertMode.init();
+      enabled === !requestHandlers.init && ELs.hook(enabled ? addEventListener : removeEventListener);
       passKeys = newPassKeys && parsePassKeys(newPassKeys);
-      DomUtils.UI.box && DomUtils.UI.toggle(isEnabledForUrl);
+      DomUtils.UI.box && DomUtils.UI.toggle(enabled);
     },
     checkIfEnabled: function() {
       mainPort.port.postMessage({

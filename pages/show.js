@@ -126,7 +126,7 @@ String.prototype.startsWith = function(s) {
 }
 window.onhashchange();
 
-window.addEventListener("keydown", function(event) {
+document.addEventListener("keydown", function(event) {
   var str;
   if (!(event.ctrlKey || event.metaKey) || event.altKey
     || event.shiftKey || event.repeat) { return; }
