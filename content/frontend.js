@@ -998,7 +998,7 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
     box = box.firstElementChild;
     hide = function(event) { event.stopImmediatePropagation(); };
     box.onclick = hide;
-    box.onmousewheel = hide;
+    box.addEventListener("mousewheel", hide, {passive: true});
 
     hide = function() {
       if (box.contains(LinkHints.lastHovered)) {
