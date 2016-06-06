@@ -181,14 +181,18 @@ var LinkHints = {
     if (i > this.maxTop) {
       marker.style.maxHeight = this.maxBottom - i + "px";
     }
-    link.length >= 4 && (marker.linkRect = link[3]);
+    if (link.length >= 4) {
+      marker.linkRect = link[3];
+      link[2] === 2 && (marker.wantScroll = true);
+    }
     return marker;
   },
   hashRe: /^#/,
   quoteRe: /"/g,
   btnRe: /\b[Bb](?:utto|t)n(?:$| )/,
   GetClickable: function(element) {
-    var arr, isClickable = null, s, _i;
+    var arr, isClickable = null, s, _i, isScrollable = false;
+    // Note: isScrollable must not be true if isClickable is false
     switch (element.tagName.toLowerCase()) {
     case "a": case "frame": isClickable = true; break;
     case "iframe": isClickable = element !== VFindMode.box; break;
@@ -223,7 +227,7 @@ var LinkHints = {
       break;
     case "ul": case "pre": case "ol":
       if (element.clientHeight < element.scrollHeight) {
-        isClickable = true;
+        isScrollable = true;
       }
       break;
     }
@@ -252,10 +256,11 @@ var LinkHints = {
       }
       if (LinkHints.mode >= 128 && (element instanceof HTMLDivElement) && LinkHints.mode <= LinkHints.CONST.LEAVE) {
         if (element.clientHeight < element.scrollHeight) {
-          isClickable = true;
+          isScrollable = true;
           break;
         }
       }
+      if (isScrollable) { break; }
       s = element.getAttribute("tabindex");
       if (s != null && (s === "" || parseInt(s, 10) >= 0)) {
         if (arr = DomUtils.getVisibleClientRect(element)) {
@@ -266,6 +271,8 @@ var LinkHints = {
     }
     if (isClickable && (arr = DomUtils.getVisibleClientRect(element))) {
       this.push([element, arr]);
+    } else if (isScrollable && (arr = DomUtils.getVisibleClientRect(element))) {
+      this.push([element, arr, 2, null]);
     }
   },
   GetLinks: function(element) {
@@ -525,7 +532,7 @@ var LinkHints = {
     this.clean();
     // must get outline first, because clickEl may hide itself when activated
     rect = hintEl.linkRect || DomUtils.UI.getVRect(clickEl);
-    if (this.modeOpt.activator.call(this, clickEl) !== false) {
+    if (this.modeOpt.activator.call(this, clickEl, hintEl) !== false) {
       DomUtils.UI.flashVRect(rect);
     }
     if (!(this.mode & 64)) {
@@ -898,17 +905,21 @@ DEFAULT: {
   3: "Open link in new active tab",
   66: "Open multiple links in new tabs",
   67: "Activate link and hold on",
-  activator: function(link) {
-    var mode, alterTarget, tag = link.nodeName.toLowerCase();
+  activator: function(link, hint) {
+    var mode, alterTarget, tag;
     mode = DomUtils.getEditableType(link);
     if (mode === 3) {
       DomUtils.UI.simulateSelect(link, true);
       return false;
+    } else if (hint.wantScroll) {
+      this.Modes.HOVER.activator.call(this, link);
+      return;
     } else if (mode > 0) {
       link.focus();
     }
     mode = this.mode & 3;
 
+    tag = link.nodeName.toLowerCase();
     if (tag === "iframe" || tag === "frame") {
       return this.highlightChild(link.contentWindow, link.getClientRects()[0]);
     }
