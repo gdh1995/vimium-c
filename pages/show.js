@@ -268,8 +268,8 @@ function defaultOnError(err) {
 }
 
 function loadViewer(func) {
-  loadCSS("../externals/viewer.min.css");
-  return loadJS("Viewer", "..//externals/viewer.min.js").then(function(Viewer) {
+  loadCSS("../lib/viewer.min.css");
+  return loadJS("Viewer", "..//lib/viewer.min.js").then(function(Viewer) {
     Viewer.setDefaults({
       navbar: false,
       built: function() {
