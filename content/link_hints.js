@@ -125,7 +125,7 @@ var LinkHints = {
   tryNestedFrame: function(command, args) {
     this.frameNested === false && this.checkNestedFrame();
     if (!this.frameNested) { return false; }
-    var child, arr, done = false;
+    var child, done = false;
     try {
       child = this.frameNested.contentWindow;
       if (command.startsWith("LinkHints.activate") && child.LinkHints.isActive) {
@@ -143,8 +143,7 @@ var LinkHints = {
     child.focus();
     if (done !== false) { return true; }
     if (document.readyState !== "complete") { this.frameNested = false; }
-    arr = Utils.findCommand(child, command);
-    return arr[0][arr[1]](args[0], args[1], args[2]) !== false;
+    return Utils.execCommand(child, command, args) !== false;
   },
   maxLeft: 0,
   maxTop: 0,

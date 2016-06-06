@@ -966,8 +966,7 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
     },
     execute: function(request) {
       esc();
-      var arr = Utils.findCommand(Commands, request.command);
-      arr[0][arr[1]](request.count, request.options || {});
+      Utils.execCommand(Commands, request.command, [request.count, request.options, 0]);
     },
     dispatchCommand: function(request) {
       var args = request.args;
@@ -977,8 +976,7 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
         return;
       }
       window.focus();
-      var arr = Utils.findCommand(Commands, request.command);
-      arr[0][arr[1]](args[0], args[1], args[2]);
+      Utils.execCommand(Commands, request.command, args);
     },
     omni: function(response) { Vomnibar.onCompletions(response.list); },
     performFind: function(request) { VFindMode.activate(request); },
