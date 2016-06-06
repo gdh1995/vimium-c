@@ -597,7 +597,7 @@ alphabetHints: {
     } while (number > 0);
     number = this.countMax - hintString.length - (number < this.countLimit);
     if (number > 0) {
-      hintString = characterSet[0].repeat(number) + hintString;
+      hintString = this.repeat(characterSet[0], number) + hintString;
     }
     return hintString;
   },
@@ -684,6 +684,11 @@ alphabetHints: {
       linkMarker.style.display = pass ? "" : "none";
       return pass;
     });
+  },
+  repeat: function(s, n) {
+    if (s.repeat) { return s.repeat(n); }
+    for (var s2 = s; --n; ) { s2 += s; }
+    return s2;
   }
 },
 
