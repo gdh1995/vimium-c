@@ -225,7 +225,7 @@ var LinkHints = {
         || (s = getComputedStyle(element).cursor) && s.indexOf("zoom") >= 0
         || null;
       break;
-    case "ul": case "pre": case "ol":
+    case "div": case "ul": case "pre": case "ol":
       isScrollable = LinkHints.getScrollable(element);
       break;
     }
@@ -251,9 +251,6 @@ var LinkHints = {
           }
         }
         if (isClickable) { break; }
-      }
-      if (LinkHints.mode >= 128 && (element instanceof HTMLDivElement) && LinkHints.mode <= LinkHints.CONST.LEAVE) {
-        isScrollable = LinkHints.getScrollable(element)
       }
       if (isScrollable) { break; }
       s = element.getAttribute("tabindex");
