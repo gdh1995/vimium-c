@@ -956,7 +956,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, g_requestHandlers;
   };
 
   Settings.indexFrame = function(tabId, frameId) {
-    var ref = this.framesForTab[tabId], i;
+    var ref = framesForTab[tabId], i;
     if (!ref) { return null; }
     for (i = 0; ref.length > ++i; ) {
       if (ref[i].sender.frameId === frameId) {
