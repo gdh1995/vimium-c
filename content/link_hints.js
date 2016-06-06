@@ -489,7 +489,7 @@ var LinkHints = {
     } else if (linksMatched.length === 0) {
       this.deactivate(this.keyStatus.known);
     } else if (linksMatched.length === 1) {
-      DomUtils.suppressEvent(event);
+      Utils.Prevent(event);
       this.activateLink(linksMatched[0]);
     } else {
       limit = this.keyStatus.tab ? 0 : this.keyStatus.newHintLength;

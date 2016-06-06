@@ -133,7 +133,7 @@ body{cursor:text;display:inline-block;padding:0 3px 0 1px;min-width:7px;}body *{
       else if (n === KeyCodes.up || n === KeyCodes.down) { this.nextQuery(n === KeyCodes.up ? 1 : -1); }
       else { return; }
     }
-    DomUtils.suppressEvent(event);
+    Utils.Prevent(event);
     if (!i) { return; }
     var hasStyle = !!this.styleIn.parentNode;
     el = this.deactivate();

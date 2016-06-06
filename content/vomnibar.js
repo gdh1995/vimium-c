@@ -366,7 +366,7 @@ activate: function(_0, options, forceCurrent) {
   OnTimer: function() { Vomnibar && Vomnibar.filter(); },
   onWheel: function(event) {
     if (event.ctrlKey || event.metaKey) { return; }
-    DomUtils.suppressEvent(event);
+    Utils.Prevent(event);
     var delta = 80 * (KeyboardUtils.onMac ? 2.5 : 1);
     if (event.deltaX || Date.now() - this.wheelTimer < delta) { return; }
     this.wheelTimer = Date.now();
@@ -415,7 +415,6 @@ activate: function(_0, options, forceCurrent) {
       handler: "initVomnibar"
     }, function(response) { Vomnibar.initDom(response); });
     box.onclick = function(e) { Vomnibar.onClick(e) };
-    box.vimiumHasOnclick = false;
     if (window.location.protocol.startsWith("chrome") && chrome.runtime.getManifest
         && (opts = chrome.runtime.getManifest())) {
       arr = opts.permissions || [];

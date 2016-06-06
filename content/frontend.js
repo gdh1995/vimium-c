@@ -119,7 +119,7 @@ var Settings, VHUD, MainPort, VEventMode;
       if (Scroller.keyIsDown) {
         if (event.repeat) {
           Scroller.keyIsDown = Scroller.Core.maxInterval;
-          DomUtils.suppressEvent(event);
+          Utils.Prevent(event);
           return;
         }
         Scroller.keyIsDown = 0;
@@ -996,9 +996,9 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
     box = DomUtils.createElement("div");
     box.innerHTML = response.html;
     box = box.firstElementChild;
-    box.onmousewheel = DomUtils.SuppressPropagation;
-    box.onclick = DomUtils.SuppressPropagation;
-    box.vimiumHasOnclick = false;
+    hide = function(event) { event.stopImmediatePropagation(); };
+    box.onclick = hide;
+    box.onmousewheel = hide;
 
     hide = function() {
       if (box.contains(LinkHints.lastHovered)) {
