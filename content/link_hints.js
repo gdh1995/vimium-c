@@ -458,7 +458,7 @@ var LinkHints = {
       } else {
         Settings.cache.deepHints = !Settings.cache.deepHints;
       }
-      this.reinit();
+      setTimeout(this.reinit.bind(this, null), 0);
     } else if (i === KeyCodes.shiftKey) {
       if (this.mode < 128) {
         if (KeyboardUtils.getKeyStat(event) === 8) {
@@ -484,7 +484,7 @@ var LinkHints = {
       VEventMode.scroll(event);
     } else if (!(linksMatched = this.alphabetHints.matchHintsByKey(this.hintMarkers, event, this.keyStatus))){
       if (linksMatched === false) {
-        this.reinit();
+        setTimeout(this.reinit.bind(this, null), 0);
       }
     } else if (linksMatched.length === 0) {
       this.deactivate(this.keyStatus.known);
