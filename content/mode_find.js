@@ -137,11 +137,11 @@ body{cursor:text;display:inline-block;padding:0 3px 0 1px;min-width:7px;}body *{
     if (!i) { return; }
     var hasStyle = !!this.styleIn.parentNode;
     el = this.deactivate();
-    if (i < 2 || !this.hasResults) { return; }
-    if (i === 3 && hasStyle) {
+    if ((i === 3 || !this.hasResults) && hasStyle) {
       this.toggleStyle("remove");
       this.restoreSelection(true);
     }
+    if (i < 2 || !this.hasResults) { return; }
     if (!el || el !== VEventMode.lock()) {
       el = window.getSelection().anchorNode;
       if (el && !this.focusFoundLink(el) && i === 3 && (el2 = document.activeElement)) {
