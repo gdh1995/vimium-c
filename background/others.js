@@ -83,8 +83,8 @@ if (Settings.get("vimSync") === true) setTimeout(function() { if (!chrome.storag
 }, 400);
 
 setTimeout(function() { if (!chrome.browserAction) { return; }
-  var func = Settings.updateHooks.showActionIcon, imageData;
-  function loadImageAndSetIcon(tabId, type, path) {
+  var func = Settings.updateHooks.showActionIcon, imageData, tabIds;
+  function loadImageAndSetIcon(type, path) {
     var img, i, cache = Object.create(null), count = 0,
     onerror = function() {
       console.error('Could not load action icon \'' + this.src + '\'.');
@@ -96,9 +96,13 @@ setTimeout(function() { if (!chrome.browserAction) { return; }
       ctx.clearRect(0, 0, w, h);
       ctx.drawImage(this, 0, 0, w, h);
       cache[w] = ctx.getImageData(0, 0, w, h);
-      imageData[type] = cache;
       if (count++) { return; }
-      g_requestHandlers.SetIcon(tabId, type);
+      imageData[type] = cache;
+      var arr = tabIds[type];
+      delete tabIds[type];
+      for (w = 0, h = arr.length; w < h; w++) {
+        g_requestHandlers.SetIcon(arr[w], type);
+      }
     };
     Object.setPrototypeOf(path, null);
     for (i in path) {
@@ -114,20 +118,26 @@ setTimeout(function() { if (!chrome.browserAction) { return; }
         tabId: tabId,
         imageData: data
       });
+    } else if (tabIds[type]) {
+      tabIds[type].push(tabId);
     } else if (path = Settings.icons[type]) {
-      setTimeout(loadImageAndSetIcon, 0, tabId, type, path);
+      setTimeout(loadImageAndSetIcon, 0, type, path);
+      tabIds[type] = [tabId];
     }
   };
   Settings.updateHooks.showActionIcon = function (value) {
     func.call(this, value);
     if (value) {
-      imageData || (imageData = Object.create(null));
+      if (!imageData) {
+        imageData = Object.create(null);
+        tabIds = Object.create(null);
+      }
       chrome.browserAction.setTitle({
         title: "Vimium++"
       });
       chrome.browserAction.enable();
     } else {
-      imageData = null;
+      imageData = tabIds = null;
       chrome.browserAction.disable();
       chrome.browserAction.setTitle({
         title: "Vimium++\nThis icon is not in use"
