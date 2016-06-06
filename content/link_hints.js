@@ -271,7 +271,7 @@ var LinkHints = {
     }
     if (isClickable && (arr = DomUtils.getVisibleClientRect(element))) {
       this.push([element, arr]);
-    } else if (isScrollable && (arr = DomUtils.getVisibleClientRect(element))) {
+    } else if (isScrollable && (arr = DomUtils.getVisibleClientRect(element)) && Scroller.isScrollable(element)) {
       this.push([element, arr, 2, null]);
     }
   },
