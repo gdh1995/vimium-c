@@ -55,7 +55,6 @@
       "lib/utils.js",
       "lib/keyboard_utils.js",
       "lib/dom_utils.js",
-      "lib/handler_stack.js",
       "content/dom_ui.js",
       "content/link_hints.js",
       "content/vomnibar.js",
