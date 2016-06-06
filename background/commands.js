@@ -7,8 +7,10 @@ var Commands = {
     this.keyRe = new RegExp(keyReSource, "g");
   },
   getOptions: function(item) {
-    var opt = {}, i, len, ind, str, val;
-    for (i = 3, len = item.length; i < len; ) {
+    var opt, i = 3, len = item.length, ind, str, val;
+    if (len <= i) { return null; }
+    opt = Object.create(null);
+    for (i, len; i < len; ) {
       str = item[i++];
       ind = str.indexOf("=");
       if (ind === 0) {
@@ -30,19 +32,22 @@ var Commands = {
     details || (details = this.availableCommands[command]);
     opt = details[3];
     if (options) {
-      opt && Utils.extendIf(options, opt);
+      if (opt) {
+        Object.setPrototypeOf(opt, null);
+        Utils.extendIf(options, opt);
+      }
       if (options.count == null) {}
       else if (details[1] === 1 || (options.count |= 0) <= 0) {
         delete options.count;
       }
     } else {
-      options = opt;
+      options = opt || null;
     }
     return {
       alias: details[4] || null,
       background: details[2],
       command: command,
-      options: options || null,
+      options: options,
       repeat: details[1]
     };
   },

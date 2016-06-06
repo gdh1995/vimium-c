@@ -85,11 +85,11 @@ if (Settings.get("vimSync") === true) setTimeout(function() { if (!chrome.storag
 setTimeout(function() { if (!chrome.browserAction) { return; }
   var func = Settings.updateHooks.showActionIcon, imageData;
   function loadImageAndSetIcon(tabId, type, path) {
-    var img = new Image(), img2 = new Image(), i, cache = Object.create(null), count = 0;
-    img.onerror = img2.onerror = function() {
+    var img, i, cache = Object.create(null), count = 0,
+    onerror = function() {
       console.error('Could not load action icon \'' + this.src + '\'.');
-    };
-    img.onload = function() {
+    },
+    onload = function() {
       var canvas = document.createElement('canvas'), w = this.width, h = this.h, ctx;
       w = canvas.width = this.width, h = canvas.height = this.height;
       ctx = canvas.getContext('2d');
@@ -97,11 +97,15 @@ setTimeout(function() { if (!chrome.browserAction) { return; }
       ctx.drawImage(this, 0, 0, w, h);
       cache[w] = ctx.getImageData(0, 0, w, h);
       imageData[type] = cache;
-      if (0 >= --count) { return; }
+      if (count++) { return; }
       g_requestHandlers.SetIcon(tabId, type);
     };
-    img2.onload = img.onload;
-    for (i in path) { (count++ ? img2 : img).src = path[i]; }
+    Object.setPrototypeOf(path, null);
+    for (i in path) {
+      img = new Image();
+      img.onload = onload, img.onerror = onerror;
+      img.src = path[i];
+    }
   };
   g_requestHandlers.SetIcon = function(tabId, type) {
     var data, path;

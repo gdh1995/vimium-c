@@ -153,6 +153,7 @@ function clickLink(options, event) {
   event.preventDefault();
   if (!url) { return; }
   var a = document.createElement('a'), i;
+  Object.setPrototypeOf(options, null);
   for (i in options) {
     a.setAttribute(i, options[i]);
   }
