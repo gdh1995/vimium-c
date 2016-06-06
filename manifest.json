@@ -7,7 +7,6 @@
       "background/commands.js",
       "background/exclusions.js",
       "background/others.js",
-      "background/marks.js",
       "background/tools.js",
       "background/completion.js"
     ]
