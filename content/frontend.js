@@ -5,9 +5,9 @@ var Settings, VHUD, MainPort, VEventMode;
     , esc, firstKeys //
     , followLink, FrameMask //
     , getVisibleInputs, goBy //
-    , initIfEnabled, InsertMode //
+    , InsertMode //
     , isEnabledForUrl, isInjected, keyQueue, mainPort //
-    , onKeyup2, passKeys, requestHandlers //
+    , onKeyup2, parsePassKeys, passKeys, requestHandlers //
     , secondKeys, settings //
     ;
 
@@ -268,18 +268,13 @@ var Settings, VHUD, MainPort, VEventMode;
     currentSeconds = secondKeys[""];
   };
 
-  initIfEnabled = function(newPassKeys) {
-    if (newPassKeys) {
-      var pass = Object.create(null), arr = newPassKeys.split(' ')
-        , i = 0, len = arr.length;
-      do {
-        pass[arr[i]] = true;
-      } while (len > ++i);
-      passKeys = pass;
-    } else {
-      passKeys = null;
-    }
-    InsertMode.init && InsertMode.init();
+  parsePassKeys = function(newPassKeys) {
+    var pass = Object.create(null), arr = newPassKeys.split(' ')
+      , i = 0, len = arr.length;
+    do {
+      pass[arr[i]] = true;
+    } while (len > ++i);
+    return pass;
   };
 
   Commands = {
@@ -913,10 +908,11 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
       r.init = null;
     },
     reset: function(request) {
-      var passKeys = request.passKeys;
-      if (isEnabledForUrl = (passKeys !== "")) {
-        initIfEnabled(passKeys);
+      var newPassKeys = request.passKeys;
+      if (isEnabledForUrl = (newPassKeys !== "")) {
+        InsertMode.init && InsertMode.init();
       }
+      passKeys = newPassKeys && parsePassKeys(newPassKeys);
       DomUtils.UI.box && DomUtils.UI.toggle(isEnabledForUrl);
     },
     checkIfEnabled: function() {
