@@ -23,7 +23,7 @@ var LinkHints = {
     EDIT_TEXT: 256
   },
   box: null,
-  hintMarkers: [],
+  hintMarkers: null,
   mode: 0,
   modeOpt: null,
   count: 0,
@@ -412,7 +412,6 @@ var LinkHints = {
       : _i == this.CONST.EDIT_LINK_URL
       || (_i < 256 && _i >= 136) ? { a: this.GetLinks }
       : { "*": this.GetClickable });
-    if (this.frameNested) { return; }
     visibleElements.reverse();
 
     obj = [null, null];
