@@ -67,10 +67,9 @@ var LinkHints = {
       }
       elements || (elements = this.getVisibleElements());
     }
-    if (elements.length <= 0 || elements.length > 4000) {
+    if (elements.length <= 0) {
       this.clean();
-      VHUD.showForDuration((elements.length > 4000 ? "Too many" : "No")
-        + " links to select.", 1000);
+      VHUD.showForDuration("No links to select.", 1000);
       return;
     }
 
@@ -414,7 +413,6 @@ var LinkHints = {
       || (_i < 256 && _i >= 136) ? { a: this.GetLinks }
       : { "*": this.GetClickable });
     if (this.frameNested) { return; }
-    if (visibleElements.length > 4000) { return visibleElements; }
     visibleElements.reverse();
 
     obj = [null, null];
