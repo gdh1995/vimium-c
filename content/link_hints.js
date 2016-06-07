@@ -404,7 +404,7 @@ var LinkHints = {
     return null;
   },
   getVisibleElements: function() {
-    var visibleElements, visibleElement, rects, _len, _i, _j, obj, func, r, t;
+    var visibleElements, visibleElement, _len, _i, _j, obj, func, r, r2 = null, r2s, t;
     _i = this.mode & ~64;
     visibleElements = this.traverse(
       (_i == this.CONST.DOWNLOAD_IMAGE || _i == this.CONST.OPEN_IMAGE)
@@ -414,29 +414,35 @@ var LinkHints = {
       : { "*": this.GetClickable });
     visibleElements.reverse();
 
-    obj = [null, null];
-    func = VRect.SubtractSequence;
-    for (_len = visibleElements.length, _j = Math.max(0, _len - 32); 0 <= --_len; ) {
+    obj = [r2s = [], null];
+    func = VRect.SubtractSequence.bind(obj);
+    for (_len = visibleElements.length, _j = Math.max(0, _len - 32); 0 < --_len; ) {
       _j > 0 && --_j;
       visibleElement = visibleElements[_len];
-      rects = [r = visibleElement[1]];
+      r = visibleElement[1];
       for (_i = _len; _j <= --_i; ) {
         t = visibleElements[_i][1];
         if (r[3] <= t[1] || r[2] <= t[0] || r[0] >= t[2]) {
           continue;
         }
-        obj[0] = [];
         obj[1] = t;
-        rects.forEach(func, obj);
-        if ((rects = obj[0]).length === 0) {
-          break;
+        r2 ? r2.forEach(func) : func(r);
+        if (r2s.length === 1) {
+          r = r2s[0]; r2 = null;
+          r2s.length = 0;
+          continue;
         }
+        r2 = r2s;
+        if (r2s.length === 0) { break; }
+        obj[0] = r2s = [];
       }
-      if (rects.length > 0) {
-        visibleElement[1] = rects[0];
+      if (!r2) { visibleElement[1] = r; continue; }
+      if (r2.length > 0) {
+        visibleElement[1] = r2[0];
       } else if (visibleElement.length === 3) {
         visibleElements.splice(_len, 1);
       }
+      r2 = null;
     }
     return visibleElements.reverse();
   },
