@@ -1440,7 +1440,7 @@ HelpDialog = {
   }, 0);
 
   setTimeout(function() {
-    Settings.reloadFiles();
+    Settings.fetchFile("baseCss");
     tinyMemory = Settings.get("tinyMemory");
     Settings.postUpdate("searchUrl", null); // will also update newTabUrl
 

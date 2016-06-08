@@ -136,6 +136,14 @@ var Settings = {
       Utils.fetchHttpContents(files[id], func).id = id;
     }
   },
+  fetchFile: function(file, callback) {
+    if (this.cache[file]) { return callback && callback(); }
+    Utils.fetchHttpContents(this.files[file], function() {
+      Settings.set(file, this.responseText);
+      callback && callback();
+      return;
+    });
+  },
   contentScripts: function(callback) {
     setTimeout(function() { callback(Settings.CONST.ContentScripts); }, 18);
     return true;

@@ -979,3 +979,5 @@ searchEngines: {
 setTimeout(function() {
   Settings.postUpdate("searchEngines", null);
 }, 300);
+
+Settings.fetchFile("vomnibar");
