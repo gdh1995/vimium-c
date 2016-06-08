@@ -1201,13 +1201,15 @@ HelpDialog = {
       });
     },
     initHelp: function(request, port) {
-      var result = {
-        name: "showHelpDialog",
-        html: HelpDialog.render(request.unbound, request.names, request.title),
-        optionUrl: Settings.CONST.OptionsPage,
-        advanced: Settings.get("showAdvancedCommands", true)
-      };
-      port.postMessage(result);
+      Settings.fetchFile("helpDialog", function() {
+        var result = {
+          name: "showHelpDialog",
+          html: HelpDialog.render(request.unbound, request.names, request.title),
+          optionUrl: Settings.CONST.OptionsPage,
+          advanced: Settings.get("showAdvancedCommands", true)
+        };
+        port.postMessage(result);
+      });
     },
     initVomnibar: function() {
       return Settings.cache.vomnibar;
