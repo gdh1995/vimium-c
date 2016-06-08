@@ -152,6 +152,7 @@ var Settings = {
     linkHintCharacters: "sadjklewcmpgh",
     localeEncoding: "GBK",
     newTabUrl: "",
+    newTabUrl_f: "",
     nextPatterns: "\u4e0b\u9875,\u4e0b\u4e00\u9875,\u4e0b\u4e00\u7ae0,\u540e\u4e00\u9875"
       + ",next,more,newer,>,\u203a,\u2192,\xbb,\u226b,>>",
     previousPatterns: "\u4e0a\u9875,\u4e0a\u4e00\u9875,\u4e0a\u4e00\u7ae0,\u524d\u4e00\u9875"
