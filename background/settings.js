@@ -98,15 +98,18 @@ var Settings = {
       }
       this.postUpdate("newTabUrl");
     },
-    baseCSS: function(css) {
+    baseCss: function(css) {
+      this.CONST.BaseCssLength = css.length;
       css += this.get("userDefinedCss");
+      this.cache.baseCss = null;
       this.set("innerCss", css);
     },
     vimSync: function() {
       setTimeout(function() { window.location.reload(); }, 1000);
     },
-    userDefinedCss: function() {
-      this.postUpdate("baseCSS");
+    userDefinedCss: function(css) {
+      css = this.cache.innerCss.substring(0, this.CONST.BaseCssLength) + css;
+      this.set("innerCss", css);
       this.broadcast({
         name: "insertInnerCss",
         css: this.cache.innerCss
@@ -179,12 +182,12 @@ w|wiki:\\\n  http://www.wikipedia.org/w/index.php?search=$s Wikipedia (en-US)",
   // not set localStorage, neither sync, if key in @nonPersistent
   // not clean if exists (for simpler logic)
   nonPersistent: { __proto__: null,
-    baseCSS: 1, exclusionTemplate: 1, helpDialog: 1, innerCss: 1,
+    baseCss: 1, exclusionTemplate: 1, helpDialog: 1, innerCss: 1,
     searchEngineMap: 1, searchEngineRules: 1, vomnibar: 1
   },
   files: {
     __proto__: null,
-    baseCSS: "front/vimium.min.css",
+    baseCss: "front/vimium.min.css",
     exclusionTemplate: "front/exclusions.html",
     helpDialog: "front/help_dialog.html",
     vomnibar: "front/vomnibar.html"
@@ -205,6 +208,7 @@ w|wiki:\\\n  http://www.wikipedia.org/w/index.php?search=$s Wikipedia (en-US)",
   CONST: {
     ChromeInnerNewTab: "chrome-search://local-ntp/local-ntp.html", // should keep lower case
     ChromeVersion: 37, ContentScripts: null, CurrentVersion: "",
+    BaseCssLength: 0,
     OnMac: false, OptionsPage: ""
   }
 };
