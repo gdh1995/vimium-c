@@ -131,11 +131,12 @@ DomUtils.UI = {
         rect[3] > window.innerHeight) {
       x = window.scrollX; y = window.scrollY;
       flashEl.style.position = "absolute";
-    } else {
-      x = 0; y = 0;
+      rect[0] = Math.max(0, rect[0] + x), rect[1] = Math.max(0, rect[1] + y);
+      rect[2] = Math.min(document.documentElement.scrollWidth - 2, rect[2] + x);
+      rect[3] = Math.min(document.documentElement.scrollHeight - 2, rect[3] + y);
     }
-    flashEl.style.left = x + rect[0] + "px";
-    flashEl.style.top = y + rect[1] + "px";
+    flashEl.style.left = rect[0] + "px";
+    flashEl.style.top = rect[1] + "px";
     flashEl.style.width = (rect[2] - rect[0]) + "px";
     flashEl.style.height = (rect[3] - rect[1]) + "px";
     this.addElement(flashEl);
