@@ -22,7 +22,7 @@ function Option(element, onUpdated) {
   this.onUpdated = onUpdated.bind(this);
   this.previous = null;
   this.saved = true;
-  this.fetch(bgSettings.get(this.field));
+  this.fetch();
   Option.all.push(this);
 }
 
@@ -183,7 +183,7 @@ ExclusionRulesOption.prototype.getPassKeys = function(element) {
   return element.querySelector(".passKeys");
 };
 
-if (location.pathname.indexOf("/popup.html", location.pathname.length - 11) !== -1) {
+if (location.pathname.indexOf("/popup.html", location.pathname.length - 11) !== -1)
 chrome.tabs.query({currentWindow: true, active: true}, function(tab) {
   var exclusions, onUpdated, saveOptions, updateState, status = 0, ref, link
     , bgExclusions = BG.Exclusions, tabId, passKeys;
@@ -314,5 +314,3 @@ exclusions = {
     bgExclusions.testers = null;
   };
 });
-
-}
