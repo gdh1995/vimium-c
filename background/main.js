@@ -5,8 +5,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, g_requestHandlers;
     , Connections
     , cOptions, cPort, currentCount, currentFirst, executeCommand
     , FindModeHistory, firstKeys, framesForTab, funcDict
-    , helpDialogHtml, helpDialogHtmlForCommand //
-    , helpDialogHtmlForCommandGroup, needIcon, openMultiTab //
+    , HelpDialog, needIcon, openMultiTab //
     , requestHandlers, resetKeys, secondKeys, tinyMemory
     ;
 
@@ -16,7 +15,8 @@ var Clipboard, Commands, Completers, Exclusions, Marks, g_requestHandlers;
 
   needIcon = tinyMemory = false;
 
-  helpDialogHtml = function(showUnbound, showNames, customTitle) {
+HelpDialog = {
+  render: function(showUnbound, showNames, customTitle) {
     var command, commandsToKey, key, ref = Commands.keyToCommandRegistry;
     commandsToKey = {};
     for (key in ref) {
@@ -28,19 +28,19 @@ var Clipboard, Commands, Completers, Exclusions, Marks, g_requestHandlers;
     return Settings.cache.helpDialog.replace(/\{\{(\w+)\}\}/g, function(_, group) {
       return (group === "version") ? Settings.CONST.CurrentVersion
         : (group === "title") ? customTitle || "Help"
-        : helpDialogHtmlForCommandGroup(group, commandsToKey, Commands.availableCommands, showUnbound, showNames);
+        : HelpDialog.groupHtml(group, commandsToKey, Commands.availableCommands, showUnbound, showNames);
     });
-  };
-
-  helpDialogHtmlForCommandGroup = function(group, commandsToKey, availableCommands, showUnbound, showNames) {
-    var bindings, command, html, isAdvanced, _i, _len, _ref, keys, description;
+  },
+  groupHtml: function(group, commandsToKey, availableCommands, showUnbound, showNames) {
+    var bindings, command, html, isAdvanced, _i, _len, _ref, keys, description, push;
     html = [];
     _ref = Commands.commandGroups[group];
     showNames = showNames || "";
     Utils.escapeText("");
+    push = HelpDialog.commandHtml;
     for (_i = 0, _len = _ref.length; _i < _len; _i++) {
       command = _ref[_i];
-      if ((keys = commandsToKey[command]) || showUnbound) {
+      if (!(keys = commandsToKey[command]) && !showUnbound) { continue; }
       if (keys && keys.length > 0) {
         bindings = '\n\t\t<span class="HelpKey">' + keys.map(Utils.escapeText).join('</span>, <span class="HelpKey">') + "</span>\n\t";
       } else {
@@ -49,24 +49,22 @@ var Clipboard, Commands, Completers, Exclusions, Marks, g_requestHandlers;
       isAdvanced = command in Commands.advancedCommands;
       description = availableCommands[command][0];
       if (!bindings || keys.join(", ").length <= 12) {
-        helpDialogHtmlForCommand(html, isAdvanced, bindings, description, showNames && command);
+        push(html, isAdvanced, bindings, description, showNames && command);
       } else {
-        helpDialogHtmlForCommand(html, isAdvanced, bindings, "", "");
-        helpDialogHtmlForCommand(html, isAdvanced, "", description, showNames && command);
-      }
+        push(html, isAdvanced, bindings, "", "");
+        push(html, isAdvanced, "", description, showNames && command);
       }
     }
     return html.join("");
-  };
-
-  helpDialogHtmlForCommand = function(html, isAdvanced, bindings, description, command) {
+  },
+  commandHtml: function(html, isAdvanced, bindings, description, command) {
     html.push('<tr class="HelpTr', isAdvanced ? " HelpAdv" : "", '">\n\t');
     if (description) {
       html.push('<td class="HelpTd HelpKeys">'
         , bindings, '</td>\n\t<td class="HelpTd HelpCommandInfo">'
         , description);
       if (command) {
-        html.push('\n\t\t<span class="HelpCommandName" role="link">('
+        html.push('\n\t\t<span class="HelpCommandName" role="button">('
           , command, ")</span>\n\t");
       }
     } else {
@@ -74,7 +72,8 @@ var Clipboard, Commands, Completers, Exclusions, Marks, g_requestHandlers;
         , bindings);
     }
     html.push("</td>\n</tr>\n");
-  };
+  }
+};
 
   openMultiTab = function(rawUrl, count, parentTab) {
     if (!(count >= 1)) return;
@@ -1204,7 +1203,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, g_requestHandlers;
     initHelp: function(request, port) {
       var result = {
         name: "showHelpDialog",
-        html: helpDialogHtml(request.unbound, request.names, request.title),
+        html: HelpDialog.render(request.unbound, request.names, request.title),
         optionUrl: Settings.CONST.OptionsPage,
         advanced: Settings.get("showAdvancedCommands", true)
       };
