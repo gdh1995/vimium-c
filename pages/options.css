@@ -160,7 +160,7 @@ button:focus, input:focus, textarea:focus {
 /* Boolean options have a tighter form representation than text options. */
 td.booleanOption, #helpText { font-size: 12px; }
 /* Ids and classes for rendering exclusionRules */
-#exclusionScrollBox {
+#exclusionRules {
   overflow-x: hidden;
   overflow-y: auto;
   max-height: 130px;
@@ -170,7 +170,7 @@ td.booleanOption, #helpText { font-size: 12px; }
   width: 100%;
   box-sizing: border-box;
 }
-#exclusionRules {
+#exclusionRulesTable {
   width: 100%;
 }
 .exclusionRulePassKeys {

@@ -10,7 +10,6 @@ __extends = function(child, parent) {
 $ = document.getElementById.bind(document);
 BG = chrome.extension.getBackgroundPage();
 bgSettings = BG.Settings;
-$("exclusionScrollBox").innerHTML = bgSettings.cache.exclusionTemplate;
 
 function Option(element, onUpdated) {
   this.element = element;
@@ -80,23 +79,31 @@ Option.areJSONEqual = function(a, b) {
 
 function ExclusionRulesOption() {
   var _this = this;
-  this.template = $('exclusionRuleTemplate').content.children[0];
   ExclusionRulesOption.__super__.constructor.apply(this, arguments);
   $("exclusionAddButton").onclick = function() { _this.addRule(null); };
   this.element.addEventListener("input", this.onUpdated);
   this.element.addEventListener("click", function(e) { _this.onRemoveRow(e); });
+  bgSettings.fetchFile("exclusionTemplate", function() {
+    _this.element.innerHTML = bgSettings.cache.exclusionTemplate;
+    _this.template = $('exclusionRuleTemplate').content.children[0];
+    _this.list = _this.element.querySelector("tr").parentNode;
+    _this.fetch = ExclusionRulesOption.__super__.fetch;
+    _this.fetch();
+    _this.onInit && _this.onInit();
+  });
 }
 __extends(ExclusionRulesOption, Option);
 
+ExclusionRulesOption.prototype.fetch = function() {};
+
 ExclusionRulesOption.prototype.addRule = function(pattern) {
   var element, exclusionScrollBox;
-  element = this.appendRule(this.element, {
+  element = this.appendRule(this.list, {
     pattern: pattern || "",
     passKeys: ""
   });
   this.getPattern(element).focus();
-  exclusionScrollBox = this.element.parentElement;
-  exclusionScrollBox.scrollTop = exclusionScrollBox.scrollHeight;
+  exclusionRulesTable.scrollTop = exclusionRulesTable.scrollHeight;
   if (pattern) {
     this.onUpdated();
   }
@@ -105,11 +112,11 @@ ExclusionRulesOption.prototype.addRule = function(pattern) {
 
 ExclusionRulesOption.prototype.populateElement = function(rules) {
   var frag = document.createDocumentFragment(), head;
-  head = this.element.querySelector('tr');
+  head = this.list.firstElementChild;
   frag.appendChild(head);
-  this.element.textContent = "";
+  this.list.textContent = "";
   rules.forEach(this.appendRule.bind(this, frag));
-  this.element.appendChild(frag);
+  this.list.appendChild(frag);
 };
 
 ExclusionRulesOption.prototype.appendRule = function(list, rule) {
@@ -190,10 +197,10 @@ chrome.tabs.query({currentWindow: true, active: true}, function(tab) {
 
 exclusions = {
   url: "",
-  init: function(url, element, onUpdated) {
+  init: function(url, element, onUpdated, onInit) {
     this.url = url;
     this.rebuildTesters();
-    Object.setPrototypeOf(this, ExclusionRulesOption.prototype);
+    this.onInit = onInit;
     ExclusionRulesOption.call(this, element, onUpdated);
     this.element.addEventListener("input", this.OnInput);
     this.init = null;
@@ -251,6 +258,7 @@ exclusions = {
     return url;
   }
 };
+  Object.setPrototypeOf(exclusions, ExclusionRulesOption.prototype);
 
   tab = tab[0];
   tabId = tab.id;
@@ -299,9 +307,8 @@ exclusions = {
     }
   });
   ref = bgSettings.indexPorts(tabId);
-  exclusions.init(ref ? ref[0].sender.url : tab.url, $("exclusionRules"), onUpdated);
+  exclusions.init(ref ? ref[0].sender.url : tab.url, $("exclusionRules"), onUpdated, updateState);
   ref = null;
-  updateState();
   link = $("optionsLink");
   link.href = bgSettings.CONST.OptionsPage;
   link.onclick = function(event) {

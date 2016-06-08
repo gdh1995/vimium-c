@@ -37,10 +37,10 @@
 #endSpace, #footerWrapper { width: 500px; }
 #footerWrapper { margin-left: 0; }
 
-/* Make exclusionScrollBox smaller than on the options page, because there are likely to be fewer
+/* Make exclusionRules smaller than on the options page, because there are likely to be fewer
 	 matching rules, and the popup obscures the underlying page.
  */
-#exclusionScrollBox {
+#exclusionRules {
 	height: 130px;
 }
     </style>
@@ -49,8 +49,8 @@
   <body>
     <div id="state"></div>
 
-    <div id="exclusionScrollBox">
-      <!-- Populated from exclusions.html by options.coffee. -->
+    <div id="exclusionRules">
+      <!-- Populated from exclusions.html by options_base.js. -->
     </div>
 
     <!-- Some extra space which is hidden underneath the footer. -->
