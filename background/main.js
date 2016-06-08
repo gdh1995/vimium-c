@@ -1207,7 +1207,6 @@ HelpDialog = {
         optionUrl: Settings.CONST.OptionsPage,
         advanced: Settings.get("showAdvancedCommands", true)
       };
-      if (request.returned) { return result; }
       port.postMessage(result);
     },
     initVomnibar: function() {

@@ -4,25 +4,24 @@ $("showCommands").onclick = function(event) {
   var node, root = DomUtils.UI.root;
   event && event.preventDefault();
   Vomnibar.input && Vomnibar.input.blur();
-  if (root && root.querySelector('.HelpCommandName')) {
+  if (!root) {}
+  else if (root.querySelector('.HelpCommandName')) {
     node = root.getElementById("HelpDialog");
     DomUtils.UI.addElement(node);
     node.click();
     return;
+  } else if (node = root.getElementById("HClose")) {
+    node.onclick();
   }
-  MainPort.sendMessage({
+  MainPort.port.postMessage({
     handler: "initHelp",
     unbound: true,
     names: true,
-    returned: true,
     title: "Command Listing"
-  }, function(response) {
-    var node, root = DomUtils.UI.root;
-    if (root && (node = root.getElementById("HClose"))) {
-      node.onclick();
-    }
-    MainPort.Listener(response);
-    node = DomUtils.UI.root.getElementById("HelpDialog");
+  });
+  setTimeout(function() {
+    var node = DomUtils.UI.root && DomUtils.UI.root.getElementById("HelpDialog");
+    if (!node) { return; }
     node.onclick = function(event) {
       var target = event.target, str;
       if (target.classList.contains("HelpCommandName")) {
@@ -34,7 +33,7 @@ $("showCommands").onclick = function(event) {
         VHUD.showCopied(str);
       }
     };
-  });
+  }, 50);
 };
 
 var formatDate = function(time) {
