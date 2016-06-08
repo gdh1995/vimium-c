@@ -17,7 +17,7 @@ if (Settings.get("vimSync") === true) setTimeout(function() { if (!chrome.storag
       }
     },
     storeAndPropagate: function(key, value) {
-      var curVal, jsonVal, defaultVal = Settings.defaults[key];
+      var curVal, jsonVal, defaultVal = Settings.defaults[key], notJSON;
       if (!this.shouldSyncKey(key)) { return; }
       if (value == null) {
         if (key in localStorage) {
@@ -26,14 +26,14 @@ if (Settings.get("vimSync") === true) setTimeout(function() { if (!chrome.storag
         return;
       }
       curVal = Settings.get(key);
-      if (key in Settings.NonJSON) {
+      if (notJSON = typeof defaultVal === "string") {
         jsonVal = value;
       } else {
         jsonVal = JSON.stringify(value);
         curVal = JSON.stringify(curVal);
       }
       if (jsonVal === curVal) { return; }
-      curVal = (key in Settings.NonJSON) ? defaultVal : JSON.stringify(defaultVal);
+      curVal = notJSON ? defaultVal : JSON.stringify(defaultVal);
       if (jsonVal === curVal) {
         value = defaultVal;
       }

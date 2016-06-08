@@ -9,8 +9,10 @@ var Settings = {
     if (key in this.cache) {
       return this.cache[key];
     }
-    var value = !(key in localStorage) ? this.defaults[key]
-        : (key in this.NonJSON) ? localStorage[key]
+    var initial = this.defaults[key];
+    var value = !(key in localStorage) ? initial
+        : typeof initial === "string" ? localStorage[key]
+        : initial === false || initial === true ? localStorage[key] === "true"
         : JSON.parse(localStorage[key]);
     if (forCache) {
       this.cache[key] = value;
@@ -18,15 +20,17 @@ var Settings = {
     return value;
   },
   set: function(key, value) {
-    var ref;
+    var ref, initial;
     this.cache[key] = value;
-    if (key in this.nonPersistent) {
-    } else if (value === this.defaults[key]) {
-      delete localStorage[key];
-      this.Sync.set(key, null);
-    } else {
-      localStorage[key] = (key in this.NonJSON) ? value : JSON.stringify(value)
-      this.Sync.set(key, value);
+    if (!(key in this.nonPersistent)) {
+      initial = this.defaults[key];
+      if (value === initial) {
+        delete localStorage[key];
+        this.Sync.set(key, null);
+      } else {
+        localStorage[key] = typeof initial === "string" ? value : JSON.stringify(value)
+        this.Sync.set(key, value);
+      }
     }
     if (ref = this.updateHooks[key]) {
       ref.call(this, value, key);
@@ -173,12 +177,6 @@ w|wiki:\\\n  http://www.wikipedia.org/w/index.php?search=$s Wikipedia (en-US)",
     userDefinedCss: "",
     userDefinedOuterCss: "",
     vimSync: false
-  },
-  NonJSON: {
-    __proto__: null, extWhiteList: 1, findModeRawQueryList: 1,
-    keyMappings: 1, linkHintCharacters: 1, localeEncoding: 1,
-    newTabUrl: 1, newTabUrl_f: 1, nextPatterns: 1, previousPatterns: 1,
-    searchEngines: 1, searchUrl: 1, userDefinedCss: 1, userDefinedOuterCss: 1
   },
   // not set localStorage, neither sync, if key in @nonPersistent
   // not clean if exists (for simpler logic)

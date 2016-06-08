@@ -49,18 +49,21 @@ $("exportButton").onclick = function(event) {
   exported_object.time = 0;
   (function() {
     var storage = localStorage, i, len, key, mark_head, all = bgSettings.defaults
-      , strArr = bgSettings.NonJSON, arr1;
+      , arr1, storedVal;
     mark_head = BG.Marks.getMarkKey("");
     for (i = 0, len = storage.length; i < len; i++) {
       key = storage.key(i);
       if (key === "name" || key === "time" || key.startsWith(mark_head)) {
         continue;
       }
-      if ((key in strArr) && storage.getItem(key).indexOf("\n") > 0) {
-        exported_object[key] = storage.getItem(key).split("\n");
+      storedVal = storage.getItem(key);
+      if (typeof all[key] !== "string") {
+        exported_object[key] = (key in all) ? bgSettings.get(key) : storedVal;
+      } else if (storage.getItem(key).indexOf("\n") > 0) {
+        exported_object[key] = storedVal.split("\n");
         exported_object[key].push("");
       } else {
-        exported_object[key] = (key in all) ? bgSettings.get(key) : storage.getItem(key);
+        exported_object[key] = storedVal;
       }
     }
   })();
@@ -105,8 +108,7 @@ var importSettings = function(time, event) {
     return;
   }
 
-  var storage = localStorage, i, key, new_value, func, all = bgSettings.defaults
-    , strArr = bgSettings.NonJSON;
+  var storage = localStorage, i, key, new_value, func, all = bgSettings.defaults;
   func = function(val) {
     return typeof val !== "string" || val.length <= 72 ? val
       : val.substring(0, 68).trimRight() + " ...";
@@ -131,7 +133,7 @@ var importSettings = function(time, event) {
     if (new_value == null) {
       // NOTE: we assume all nullable settings have the same default value: null
       new_value = all[key];
-    } else if (new_value.join && (key in strArr)) {
+    } else if (new_value.join && typeof all[key] === "string") {
       new_value = new_value.join("\n").trim();
     }
     if (!item.areEqual(bgSettings.get(key), new_value)) {
