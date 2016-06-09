@@ -353,7 +353,11 @@ MainKey|c|c\:|MainName: \
               <button id="saveOptions" disabled="disabled">No Changes</button>
               <div id="settingFileManager">
                 <input  id="settingsFile" type="file" class="hide" accept=".json,application/json" data-delay="" />
-                <button id="importButton">Import Settings</button>
+                <button id="importButton" class="left">Import Settings</button>
+                <select id="importOptions" class="right" data-delay="">
+                  <option selected="selected">Exported File</option>
+                  <option>Recommended</option>
+                </select>
                 <button id="exportButton" data-delay="">Export Settings</button>
               </div>
             </td>

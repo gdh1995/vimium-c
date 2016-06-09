@@ -191,6 +191,19 @@ $("settingsFile").onchange = function() {
   reader.readAsText(file);
 };
 
+$("importOptions").onchange = function() {
+  if (this.value === "Exported File") {
+    $("settingsFile").click();
+    return;
+  }
+  var req = new XMLHttpRequest();
+  req.open("GET", "../settings_template.json", true);
+  req.onload = function() {
+    importSettings(0, this.responseText);
+  };
+  req.send();
+};
+
 if (window._delayed) {
   window._delayed = $(window._delayed);
   window._delayed.onclick && window._delayed.onclick();

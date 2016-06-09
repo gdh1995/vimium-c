@@ -21,7 +21,7 @@ header {
   padding: 20px 0 15px 0;
   width: 100%;
 }
-button {
+button, select {
   -webkit-user-select: none;
   background-image: -webkit-linear-gradient(#ededed, #ededed 38%, #dedede);
   border: 1px solid rgba(0, 0, 0, 0.25);
@@ -34,13 +34,13 @@ button {
   font-size: 12px;
   padding: 0 10px;
 }
-button:hover {
+button:hover, select:hover {
   background-image: -webkit-linear-gradient(#f0f0f0, #f0f0f0 38%, #e0e0e0);
   border-color: rgba(0, 0, 0, 0.3);
   box-shadow: 0 1px 0 rgba(0, 0, 0, 0.12), inset 0 1px 2px rgba(255, 255, 255, 0.95);
   color: black;
 }
-button:active {
+button:active, select:active {
   background-image: -webkit-linear-gradient(#e7e7e7, #e7e7e7 38%, #d7d7d7);
   box-shadow: none;
   text-shadow: none;
@@ -52,6 +52,25 @@ button[disabled], button[disabled]:hover, button[disabled]:active {
   text-shadow: 0 1px 0 #f0f0f0;
   color: #888;
 }
+button.left {
+	border-bottom-right-radius: 0;
+	border-top-right-radius: 0;
+	margin-right: 0;
+}
+select.right {
+	-webkit-padding-start: 0px;
+	-webkit-padding-end: 17px;
+	border-bottom-left-radius: 0;
+	border-left-style: none;
+	border-top-left-radius: 0;
+	margin-left: -4px;
+	width: 0;
+}
+select.right:focus {
+	border-left-style: solid;
+	margin-left: -5px;
+}
+
 pre, code, .code {
   font-family: Consolas, "Liberation Mono", Courier, monospace;
 }
@@ -151,7 +170,7 @@ input:disabled, textarea:disabled {
 input[type="checkbox"] {
   width: auto;
 }
-button:focus, input:focus, textarea:focus {
+button:focus, input:focus, textarea:focus, select:focus {
   -webkit-transition: border-color 200ms;
   border-color: #4d90fe;
   outline: none;

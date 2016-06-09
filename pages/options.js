@@ -242,7 +242,8 @@ CheckBoxOption.prototype.readValueFromElement = function() {
 })();
 
 $("importButton").onclick = function() {
-  $("settingsFile").click();
+  var opt = $("importOptions");
+  opt.onchange ? opt.onchange() : $("settingsFile").click();
 };
 
 function loadJS(file) {
