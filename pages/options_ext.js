@@ -89,10 +89,9 @@ $("exportButton").onclick = function(event) {
   console.log("EXPORT settings to", file_name, "at", formatDate(d));
 };
 
-var importSettings = function(time, event) {
-  var new_data, fileReader = event.target;
+var importSettings = function(time, new_data) {
   try {
-    new_data = JSON.parse(fileReader.result);
+    new_data = new_data && JSON.parse(new_data);
     time = new_data.time < 0 ? time : (new_data.time || 0);
   } catch (e) {}
   if (!new_data || new_data.name !== "Vimium++" || (time < 10000 && time > 0)) {
@@ -181,16 +180,19 @@ var importSettings = function(time, event) {
 };
 
 $("settingsFile").onchange = function() {
-  var file = this.files[0], reader;
+  var file = this.files[0], reader, lastModified;
   this.value = "";
   if (!file) { return; }
   reader = new FileReader();
-  reader.onload = importSettings.bind(null, file.lastModified);
+  lastModified = file.lastModified;
+  reader.onload = function() {
+    importSettings(lastModified, this.result);
+  };
   reader.readAsText(file);
 };
-$("settingsFile").onclick = function() {};
 
 if (window._delayed) {
-  $(window._delayed).onclick();
+  window._delayed = $(window._delayed);
+  window._delayed.onclick && window._delayed.onclick();
   delete window._delayed;
 }
