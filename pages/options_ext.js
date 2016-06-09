@@ -90,10 +90,7 @@ $("exportButton").onclick = function(event) {
 };
 
 var importSettings = function(time, new_data) {
-  try {
-    new_data = new_data && JSON.parse(new_data);
-    time = +(new_data && new_data.time || time) || 0;
-  } catch (e) {}
+  time = +(new_data && new_data.time || time) || 0;
   if (!new_data || new_data.name !== "Vimium++" || (time < 10000 && time > 0)) {
     VHUD.showForDuration("No settings data found!", 2000);
     return;
@@ -186,7 +183,11 @@ $("settingsFile").onchange = function() {
   reader = new FileReader();
   lastModified = file.lastModified;
   reader.onload = function() {
-    importSettings(lastModified, this.result);
+    var result = this.result, data;
+    try {
+      data = result && JSON.parse(result);
+    } catch (e) {}
+    setTimeout(importSettings, 17, lastModified, data);
   };
   reader.readAsText(file);
 };
@@ -198,8 +199,9 @@ $("importOptions").onchange = function() {
   }
   var req = new XMLHttpRequest();
   req.open("GET", "../settings_template.json", true);
+  req.responseType = "json";
   req.onload = function() {
-    importSettings(0, this.responseText);
+    setTimeout(importSettings, 17, 0, this.response);
   };
   req.send();
 };
