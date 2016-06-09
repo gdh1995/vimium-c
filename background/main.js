@@ -1466,7 +1466,7 @@ HelpDialog = {
       ref2[ref[i]].useTab = -1;
     }
 
-    Settings.get("autoClearCS") && setTimeout(ContentSettings.clear, 1000, "images");
+    setTimeout(ContentSettings.clear, 100, "images");
   }, 34);
 
   // will run only on <F5>, not on runtime.reload

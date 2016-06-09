@@ -152,7 +152,6 @@ var Settings = {
   // the default of any dict field should be set to null, for @Sync
   defaults: {
     __proto__: null,
-    autoClearCS: true,
     deepHints: false,
     exclusionRules: [{pattern: "^https?://mail.google.com/", passKeys: ""}],
     extWhiteList: "hdnehngglnbnehkfcidabjckinphnief",
