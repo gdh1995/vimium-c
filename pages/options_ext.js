@@ -92,7 +92,7 @@ $("exportButton").onclick = function(event) {
 var importSettings = function(time, new_data) {
   try {
     new_data = new_data && JSON.parse(new_data);
-    time = new_data.time < 0 ? time : (new_data.time || 0);
+    time = +(new_data && new_data.time || time) || 0;
   } catch (e) {}
   if (!new_data || new_data.name !== "Vimium++" || (time < 10000 && time > 0)) {
     VHUD.showForDuration("No settings data found!", 2000);
