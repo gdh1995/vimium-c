@@ -337,16 +337,13 @@ var LinkHints = {
     return output;
   },
   deduplicate: function(list) {
-    var j = list.length - 1, i, el, first, s, btnRe = this.btnRe, TextCls = Text;
+    var j = list.length - 1, i, k, el, first, s, btnRe = this.btnRe, TextCls = Text;
     while (0 < j) {
       el = list[i = j][0];
       while (el.parentNode === list[--j][0]) {
-        if ((el = list[j][0]).childElementCount !== 1
+        if ((k = list[j][2]) < 2 || k > 4
+          || (el = list[j][0]).childElementCount !== 1
           || (first = el.firstChild) instanceof TextCls && first.textContent.trim()
-          || !(el.vimiumHasOnclick || el.getAttribute("onclick")
-            || ((s = el.className) && btnRe.test(s))
-            || el.getAttribute("ng-click") || el.getAttribute("jsaction"))
-          || (s = el.getAttribute("role")) && (s = s.toLowerCase(), s === "button" || s === "link")
         ) {
           break;
         }
@@ -395,7 +392,8 @@ var LinkHints = {
     return null;
   },
   getVisibleElements: function() {
-    var visibleElements, visibleElement, _len, _i, _j, obj, func, r, r0, r2 = null, r2s, t;
+    var visibleElements, visibleElement, _len, _i, _j, obj, func
+      , r, r0, r2 = null, r2s, t, isNormal, reason;
     _i = this.mode & ~64;
     visibleElements = this.traverse(
       (_i == this.CONST.DOWNLOAD_IMAGE || _i == this.CONST.OPEN_IMAGE)
@@ -403,6 +401,7 @@ var LinkHints = {
       : _i == this.CONST.EDIT_LINK_URL
       || (_i < 256 && _i >= 136) ? { a: this.GetLinks }
       : { "*": this.GetClickable });
+    isNormal = this.mode < 128;
     visibleElements.reverse();
 
     obj = [r2s = [], null];
@@ -430,8 +429,12 @@ var LinkHints = {
       if (!r2) { if (r0 !== r) { visibleElement[1] = r; } continue; }
       if (r2.length > 0) {
         visibleElement[1] = r2[0];
-      } else if (visibleElement[2] === 7) {
-        visibleElements.splice(_len, 1);
+      } else if (isNormal) {
+        reason = visibleElement[2];
+        if (reason === 7 || reason === 4 || reason === 2
+          && visibleElement[0].contains(visibleElements[_i][0])) {
+          visibleElements.splice(_len, 1);
+        }
       }
       r2 = null;
     }
