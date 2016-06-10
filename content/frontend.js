@@ -250,11 +250,11 @@ var Settings, VHUD, MainPort, VEventMode;
       }
       ELs.onBlur(event);
     },
-    hook: function(f) {
+    hook: function(f, c) {
       f("keydown", this.onKeydown, true);
       f("keypress", this.onKeypress, true);
       f("keyup", this.onKeyup, true);
-      f("focus", this.onFocus, true);
+      c || f("focus", this.onFocus, true);
       f("blur", this.onBlur, true);
       f.call(document, "DOMActivate", ELs.onActivate, true);
     }
@@ -907,7 +907,7 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
       var newPassKeys = request.passKeys, enabled;
       enabled = isEnabledForUrl = (newPassKeys !== "");
       enabled && InsertMode.init && InsertMode.init();
-      enabled === !requestHandlers.init && ELs.hook(enabled ? addEventListener : removeEventListener);
+      enabled === !requestHandlers.init && ELs.hook(enabled ? addEventListener : removeEventListener, 1);
       passKeys = newPassKeys && parsePassKeys(newPassKeys);
       DomUtils.UI.box && DomUtils.UI.toggle(enabled);
     },
