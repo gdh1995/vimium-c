@@ -16,7 +16,7 @@ DomUtils.documentReady(function() {
   }, function() {
     setTimeout(function() {
       if (MainPort && !MainPort.port) {
-        Settings.Destroy();
+        Settings.destroy();
       }
     }, 50);
   }));
