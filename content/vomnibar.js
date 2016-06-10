@@ -202,15 +202,17 @@ activate: function(_0, options, forceCurrent) {
   onKeydown: function(event) {
     var action = "", n = event.keyCode, focused = VEventMode.lock() === this.input;
     if ((!focused && VEventMode.lock())) { return 0; }
-    if (event.altKey) {
-      if (!focused || event.ctrlKey || event.metaKey || event.shiftKey) {}
+    if (event.altKey || event.metaKey) {
+      if (!focused || event.ctrlKey || event.shiftKey) {}
       else if (n >= 66 && n <= 70 && n !== 67) {
         this.onBashAction(n - 64);
         return 2;
       }
-      return 0; 
+      if (event.altKey) {
+        return 0;
+      }
     }
-    else if (n === KeyCodes.enter) {
+    if (n === KeyCodes.enter) {
       this.forceNewTab = !event.shiftKey && this.forceNewTab || event.ctrlKey || event.metaKey;
       this.keepAlive = event.shiftKey;
       action = "enter";
