@@ -232,35 +232,30 @@ var LinkHints = {
         : element.clientWidth < element.scrollWidth ? 8 : 0
       break;
     }
-    while (isClickable === null) {
-      if ((element.vimiumHasOnclick && LinkHints.isClickListened) || element.getAttribute("onclick")
-        || ((s = element.getAttribute("role")) && (s = s.toLowerCase(), s === "button" || s === "link")) //
-        || ((s = element.className) && LinkHints.btnRe.test(s))
-        || (element.contentEditable === "true")
-        ) {
-        isClickable = true;
-        break;
+    if (isClickable === null) {
+      if ((element.vimiumHasOnclick && LinkHints.isClickListened) || element.getAttribute("onclick")) {
+        type = 2; 
       }
-      if (LinkHints.ngEnabled && element.getAttribute("ng-click")) {
-        isClickable = true;
-        break;
-      }
-      if (s = element.getAttribute("jsaction")) {
+      type = (s = element.getAttribute("role")) && (s = s.toLowerCase(), s === "button" || s === "link")
+          || element.contentEditable === "true" ? 1
+        : type === 2 ? type
+        : LinkHints.ngEnabled && element.getAttribute("ng-click") ? 2
+        : (s = element.className) && LinkHints.btnRe.test(s) ? 4
+        : type;
+      if (type > 0 && type < 8) {}
+      else if (s = element.getAttribute("jsaction")) {
         for (arr = s.split(";"), _i = arr.length; 0 <= --_i; ) {
           s = arr[_i].trim();
           if (s.startsWith("click:") || (s !== "none" && s.indexOf(":") === -1)) {
-            isClickable = true;
+            type = 2;
             break;
           }
         }
-        if (isClickable) { break; }
       }
-      if (type) { break; }
-      s = element.getAttribute("tabindex");
-      if (s != null && (s === "" || parseInt(s, 10) >= 0)) {
+      else if ((s = element.getAttribute("tabindex")) != null
+        && (s === "" || parseInt(s, 10) >= 0)) {
         type = 7;
       }
-      break;
     }
     if ((isClickable || type) && (arr = DomUtils.getVisibleClientRect(element))
         && (type < 8 || Scroller.isScrollable(element, type - 8))) {
