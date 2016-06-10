@@ -201,8 +201,16 @@ activate: function(_0, options, forceCurrent) {
   },
   onKeydown: function(event) {
     var action = "", n = event.keyCode, focused = VEventMode.lock() === this.input;
-    if ((!focused && VEventMode.lock()) || event.altKey) { return 0; }
-    if (n === KeyCodes.enter) {
+    if ((!focused && VEventMode.lock())) { return 0; }
+    if (event.altKey) {
+      if (!focused || event.ctrlKey || event.metaKey || event.shiftKey) {}
+      else if (n >= 66 && n <= 70 && n !== 67) {
+        this.onBashAction(n - 64);
+        return 2;
+      }
+      return 0; 
+    }
+    else if (n === KeyCodes.enter) {
       this.forceNewTab = !event.shiftKey && this.forceNewTab || event.ctrlKey || event.metaKey;
       this.keepAlive = event.shiftKey;
       action = "enter";
@@ -285,6 +293,12 @@ activate: function(_0, options, forceCurrent) {
       break;
     default: break;
     }
+  },
+  onBashAction: function(code) {
+    var sel = window.getSelection();
+    sel.collapseToStart();
+    sel.modify(code === 4 ? "extend" : "move", code < 4 ? "backward" : "forward", "word");
+    code === 4 && document.execCommand("delete");
   },
   goPage: function(sel) {
     var i, arr, len = this.completions.length,
