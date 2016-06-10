@@ -1099,9 +1099,9 @@ HelpDialog = {
         if (arr) { break; }
       }
       if (!arr) { return null; }
-      if (arr.length === 2 && !pattern[1].global) { arr[0] = arr[1]; }
+      if (arr.length > 1 && !pattern[1].global) { arr.shift(); }
       re = pattern[3];
-      if (arr.length > 2) {
+      if (arr.length > 1) {
         selectLast = true;
       } else if (re instanceof RegExp) {
         url = arr[0];
