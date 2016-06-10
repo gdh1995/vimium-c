@@ -62,6 +62,7 @@ activate: function(_0, options, forceCurrent) {
   inputText: "",
   completions: null,
   forceNewTab: false,
+  keepAlive: false,
   initialSelectionValue: -1,
   input: false,
   isSelectionChanged: false,
@@ -202,6 +203,7 @@ activate: function(_0, options, forceCurrent) {
     if ((!focused && VEventMode.lock()) || event.altKey) { return 0; }
     if (n === KeyCodes.enter) {
       this.forceNewTab = !event.shiftKey && this.forceNewTab || event.ctrlKey || event.metaKey;
+      this.keepAlive = event.shiftKey;
       action = "enter";
     }
     else if (event.ctrlKey || event.metaKey) {
@@ -319,7 +321,7 @@ activate: function(_0, options, forceCurrent) {
     var sel = this.selection, item, action;
     item = sel >= 0 ? this.completions[sel]
       : { url: this.mode.query, action: "navigateToUrl" };
-    this.hide();
+    this.keepAlive ? (this.keepAlive = false) : this.hide();
     this[item.action].call(item, this.forceNewTab);
   },
   onClick: function(event) {
