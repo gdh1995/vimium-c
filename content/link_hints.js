@@ -196,7 +196,7 @@ var LinkHints = {
     case "iframe": isClickable = element !== VFindMode.box; break;
     case "input": if (element.type === "hidden") { return; } // no "break;"
     case "textarea":
-      if (element.disabled) { return; }
+      if (element.disabled && LinkHints.mode <= LinkHints.CONST.LEAVE) { return; }
       if (!element.readOnly || LinkHints.mode >= 128
         || element instanceof HTMLInputElement && (element.type in DomUtils.uneditableInputs)) {
         isClickable = true;
