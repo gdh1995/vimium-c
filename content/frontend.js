@@ -6,18 +6,16 @@ var Settings, VHUD, MainPort, VEventMode;
     , followLink, FrameMask //
     , getVisibleInputs, goBy //
     , InsertMode //
-    , isEnabledForUrl, isInjected, keyQueue, mainPort //
+    , isEnabledForUrl, isInjected, mainPort //
     , onKeyup2, parsePassKeys, passKeys, requestHandlers //
     , secondKeys, settings //
     ;
 
   isInjected = window.VimiumInjector ? true : null;
 
-  isEnabledForUrl = keyQueue = false;
+  isEnabledForUrl = false;
 
   KeydownEvents = currentSeconds = firstKeys = onKeyup2 = passKeys = null;
-
-  secondKeys = {};
 
   MainPort = mainPort = {
     port: null,
@@ -156,7 +154,7 @@ var Settings, VHUD, MainPort, VEventMode;
         }
       }
       else if (key !== KeyCodes.esc || !KeyboardUtils.isPlain(event)) {}
-      else if (keyQueue) {
+      else if (currentSeconds) {
         mainPort.port.postMessage({ handler: "esc" });
         esc();
         action = 2;
@@ -263,10 +261,7 @@ var Settings, VHUD, MainPort, VEventMode;
   };
   ELs.hook(addEventListener);
 
-  esc = function() {
-    keyQueue = false;
-    currentSeconds = secondKeys[""];
-  };
+  esc = function() { currentSeconds = null; };
 
   parsePassKeys = function(newPassKeys) {
     var pass = Object.create(null), arr = newPassKeys.split(' ')
@@ -525,7 +520,7 @@ var Settings, VHUD, MainPort, VEventMode;
     } else if (event.altKey || key.length > 1) {
       key = left + key + ">";
     }
-    if (keyQueue) {
+    if (currentSeconds) {
       if (!((key in firstKeys) || (key in currentSeconds))) {
         mainPort.port.postMessage({ handler: "esc" });
         esc();
@@ -958,7 +953,6 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
       if (request.currentFirst === null) {
         return esc();
       }
-      keyQueue = true;
       currentSeconds = secondKeys[request.currentFirst]; // less possible
     },
     execute: function(request) {
