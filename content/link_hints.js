@@ -222,8 +222,8 @@ var LinkHints = {
         DomUtils.getClientRectsForAreas(this, arr[0], document.querySelector('map[name="' + s + '"]'));
       }
       if (LinkHints.mode >= 128 && LinkHints.mode <= LinkHints.CONST.LEAVE
-        || (s = getComputedStyle(element).cursor)
-          && (s.indexOf("zoom") >= 0 || s === "pointer" || s.startsWith("url"))) {
+        || element.style.cursor || (s = getComputedStyle(element).cursor)
+          && (s.startsWith("url") || s.indexOf("zoom") >= 0)) {
         isClickable = true;
       }
       break;
