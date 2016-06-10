@@ -190,16 +190,17 @@ var LinkHints = {
   quoteRe: /"/g,
   btnRe: /\b[Bb](?:utto|t)n(?:$| )/,
   GetClickable: function(element) {
-    var arr, isClickable = null, s, _i, isScrollable = 0;
-    // Note: isScrollable must not be true if isClickable is false
+    var arr, isClickable = null, s, _i, type = 0;
     switch (element.tagName.toLowerCase()) {
     case "a": case "frame": isClickable = true; break;
     case "iframe": isClickable = element !== VFindMode.box; break;
     case "input": if (element.type === "hidden") { return; } // no "break;"
     case "textarea":
-      isClickable = !element.disabled && (!element.readOnly
-        || LinkHints.mode >= 128 || element.vimiumHasOnclick || element.getAttribute("onclick")
-        || element instanceof HTMLInputElement && (element.type in DomUtils.uneditableInputs));
+      if (element.disabled) { return; }
+      if (!element.readOnly || LinkHints.mode >= 128
+        || element instanceof HTMLInputElement && (element.type in DomUtils.uneditableInputs)) {
+        isClickable = true;
+      };
       break;
     case "label":
       if (element.control) {
@@ -227,7 +228,8 @@ var LinkHints = {
       }
       break;
     case "div": case "ul": case "pre": case "ol":
-      isScrollable = LinkHints.getScrollable(element);
+      type = element.clientHeight < element.scrollHeight ? 9
+        : element.clientWidth < element.scrollWidth ? 8 : 0
       break;
     }
     while (isClickable === null) {
@@ -253,24 +255,17 @@ var LinkHints = {
         }
         if (isClickable) { break; }
       }
-      if (isScrollable) { break; }
+      if (type) { break; }
       s = element.getAttribute("tabindex");
       if (s != null && (s === "" || parseInt(s, 10) >= 0)) {
-        if (arr = DomUtils.getVisibleClientRect(element)) {
-          this.push([element, arr, 0]);
-        }
+        type = 7;
       }
-      return;
+      break;
     }
-    if (isClickable && (arr = DomUtils.getVisibleClientRect(element))) {
-      this.push([element, arr]);
-    } else if (isScrollable && (arr = DomUtils.getVisibleClientRect(element))
-        && Scroller.isScrollable(element, Math.max(0, isScrollable))) {
-      this.push([element, arr, 2, null]);
+    if ((isClickable || type) && (arr = DomUtils.getVisibleClientRect(element))
+        && (type < 8 || Scroller.isScrollable(element, type - 8))) {
+      this.push([element, arr, type]);
     }
-  },
-  getScrollable: function(el) {
-    return el.clientHeight < el.scrollHeight ? 1 : el.clientWidth < el.scrollWidth ? -1 : 0;
   },
   GetLinks: function(element) {
     var a, arr;
@@ -440,7 +435,7 @@ var LinkHints = {
       if (!r2) { if (r0 !== r) { visibleElement[1] = r; } continue; }
       if (r2.length > 0) {
         visibleElement[1] = r2[0];
-      } else if (visibleElement.length === 3) {
+      } else if (visibleElement[2] === 7) {
         visibleElements.splice(_len, 1);
       }
       r2 = null;
