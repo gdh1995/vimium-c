@@ -1,7 +1,7 @@
 "use strict";
 (function(func) {
   var script = document.createElement("script"), installer, onclick, box;
-  if (!script.style) { return; }
+  if (!script instanceof HTMLScriptElement) { return; }
   addEventListener("VimiumReg", installer = function(event) {
     removeEventListener("VimiumReg", installer, true);
     box = event.target;

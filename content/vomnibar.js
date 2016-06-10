@@ -197,6 +197,7 @@ activate: function(_0, options, forceCurrent) {
   },
   normalMap: {
     9: "down", 27: "dismiss", 33: "pageup", 34: "pagedown", 38: "up", 40: "down"
+    , 112: "backspace", 113: "blur"
   },
   onKeydown: function(event) {
     var action = "", n = event.keyCode, focused = VEventMode.lock() === this.input;
@@ -223,8 +224,6 @@ activate: function(_0, options, forceCurrent) {
         : n === KeyCodes.tab ? "up" : "";
     }
     else if (action = this.normalMap[n] || "") {}
-    else if (n === KeyCodes.f1) { action = focused ? "backspace" : "focus"; }
-    else if (n === KeyCodes.f1 + 1) { action = focused ? "blur" : "focus"; }
     else if (n === KeyCodes.backspace) { return focused ? 1 : 2; }
     else if (n !== KeyCodes.space) {}
     else if (!focused) { action = "focus"; }
@@ -257,11 +256,11 @@ activate: function(_0, options, forceCurrent) {
     case "dismiss":
       DomUtils.UI.removeSelection() || this.hide();
       break;
-    case "focus":
-      this.input.focus();
+    case "focus": this.input.focus(); break;
+    case "backspace": case "blur":
+      VEventMode.lock() !== this.input ? this.input.focus() :
+      action === "blur" ? this.input.blur() : document.execCommand("delete");
       break;
-    case "blur": this.input.blur(); break;
-    case "backspace": document.execCommand("delete"); break;
     case "up": case "down":
       sel = this.completions.length + 1;
       sel = (sel + this.selection + (action === "up" ? 0 : 2)) % sel - 1;

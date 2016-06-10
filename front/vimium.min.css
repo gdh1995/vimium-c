@@ -1,9 +1,15 @@
-.R{background:none;border:none;box-shadow:none;box-sizing:content-box;color:black;cursor:auto;display:block;float:none;font:normal normal normal 12px 'Helvetica Neue',Arial,Helvetica,sans-serif;letter-spacing:0;line-height:100%;margin:0;opacity:1;overflow:hidden;padding:0;text-align:left;text-overflow:clip;text-decoration:none;text-indent:0;text-shadow:none;text-transform:none;vertical-align:baseline;white-space:normal;}
+.R{background:none;border:none;box-shadow:none;box-sizing:content-box;color:black;cursor:auto;
+display:block;float:none;font:normal normal normal 12px 'Helvetica Neue',Arial,Helvetica,sans-serif;
+letter-spacing:0;line-height:100%;margin:0;opacity:1;overflow:hidden;padding:0;text-align:left;text-overflow:clip;
+text-decoration:none;text-indent:0;text-shadow:none;text-transform:none;vertical-align:baseline;white-space:normal;}
 #HMC{font-weight:bold;overflow:visible;pointer-events:none;position:absolute;white-space:nowrap;z-index:2147483646}
-.LH{background:-webkit-gradient(linear,left top,left bottom,color-stop(0,#FFF785),color-stop(100%,#FFC542));border:1px solid #E3BE23;border-radius:3px;box-shadow:0 3px 7px 0 rgba(0,0,0,.3);box-sizing:border-box;display:block;padding:1px 3px 0 3px;overflow:hidden;position:absolute}
+.LH{background:-webkit-gradient(linear,left top,left bottom,color-stop(0,#FFF785),color-stop(100%,#FFC542));
+border:1px solid #E3BE23;border-radius:3px;box-shadow:0 3px 7px 0 rgba(0,0,0,.3);box-sizing:border-box;
+display:block;padding:1px 3px 0 3px;overflow:hidden;position:absolute}
 .MC{color:#D4AC3A}
 #IMC{overflow:visible;pointer-events:none;position:absolute;z-index:2147483645}
 .IH{background-color:rgba(255,247,133,.3);border:1px solid #C38A22;display:block;position:absolute}
 .IH.S{background-color:rgba(255,102,102,.3);border:1px solid #933}
-.HUD{background-color:#ebebeb;border:1px solid #b3b3b3;border-radius:4px 4px 0 0;bottom:0;height:14px;line-height:14px;max-width:300px;min-width:150px;padding:2px 3px;position:fixed;right:150px;text-overflow:ellipsis;white-space:nowrap;z-index:2147483646}
+.HUD{background-color:#ebebeb;border:1px solid #b3b3b3;border-radius:4px 4px 0 0;bottom:0;height:14px;line-height:14px;
+max-width:300px;min-width:150px;padding:2px 3px;position:fixed;right:150px;text-overflow:ellipsis;white-space:nowrap;z-index:2147483646}
 .Flash{box-shadow:0 0 4px 2px #4183C4;padding:1px;pointer-events:none;position:fixed;z-index:2147483647}

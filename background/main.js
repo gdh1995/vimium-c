@@ -1096,31 +1096,31 @@ HelpDialog = {
         pattern = decoders[_i];
         if (!url.startsWith(pattern[0])) { continue; }
         arr = request.url.substring(pattern[0].length).match(pattern[1]);
-        if (!arr) { continue; }
-        if (arr.length === 2 && !pattern[1].global) { arr[0] = arr[1]; }
-        re = pattern[3];
-        if (arr.length > 2) {
-          selectLast = true;
-        } else if (re instanceof RegExp) {
-          url = arr[0];
-          if (arr = url.match(re)) {
-            arr.shift();
-            selectLast = true;
-          } else {
-            arr = [url];
-          }
-        } else {
-          arr = arr[0].split(re);
-        }
-        str = arr.map(Utils.DecodeURLPart).join(" ");
-        url = str.replace(Utils.spacesRe, " ").trim();
-        return {
-          keyword: pattern[2],
-          url: url,
-          start: selectLast ? url.lastIndexOf(" ") + 1 : 0
-        };
+        if (arr) { break; }
       }
-      return null;
+      if (!arr) { return null; }
+      if (arr.length === 2 && !pattern[1].global) { arr[0] = arr[1]; }
+      re = pattern[3];
+      if (arr.length > 2) {
+        selectLast = true;
+      } else if (re instanceof RegExp) {
+        url = arr[0];
+        if (arr = url.match(re)) {
+          arr.shift();
+          selectLast = true;
+        } else {
+          arr = [url];
+        }
+      } else {
+        arr = arr[0].split(re);
+      }
+      str = arr.map(Utils.DecodeURLPart).join(" ");
+      url = str.replace(Utils.spacesRe, " ").trim();
+      return {
+        keyword: pattern[2],
+        url: url,
+        start: selectLast ? url.lastIndexOf(" ") + 1 : 0
+      };
     },
     searchAs: function(request) {
       var search = requestHandlers.parseSearchUrl(request), query;
