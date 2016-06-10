@@ -18,6 +18,7 @@
 	box-sizing: content-box;
 	color: black;
 	cursor: auto;
+	direction: ltr;
 	display: block;
 	float: none;
 	font: normal normal normal 12px 'Helvetica Neue',Helvetica,Arial,sans-serif;
