@@ -216,7 +216,7 @@ activate: function(_0, options, forceCurrent) {
       action = "enter";
     }
     else if (event.ctrlKey || event.metaKey) {
-      if (event.shiftKey) { if (n === 70) { action = "pagedown"; } } // 'F'
+      if (event.shiftKey) { action = n === 70 ? "pagedown" : n === 66 ? "pageup" : ""; }
       else if (n === KeyCodes.up || n === KeyCodes.down) {
         MainPort.Listener({
           name: "execute", count: 1,
