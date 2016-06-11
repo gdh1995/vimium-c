@@ -38,10 +38,7 @@ Settings.onDestroy = function() {
       MainPort.port.disconnect();
     } catch (e) {}
   }
-  if (EventTarget.removeVimiumHooks) {
-    EventTarget.removeVimiumHooks();
-    delete EventTarget.removeVimiumHooks;
-  }
+  EventTarget.removeVimiumHooks && EventTarget.removeVimiumHooks();
   var injector = VimiumInjector;
   injector.alive = 0;
   injector.destroy = null;

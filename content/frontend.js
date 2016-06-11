@@ -996,7 +996,6 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
       handlerStack.remove(box);
       box.remove();
       Commands.showHelp = oldShowHelp;
-      box = null;
     };
     toggleAdvanced = function() {
       box.querySelector("#AdvancedCommands").textContent =
@@ -1060,7 +1059,7 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
   });
 
   settings.destroy = function() {
-    var f = removeEventListener;
+    var f = removeEventListener, el;
     isEnabledForUrl = false;
     clearInterval(settings.timer);
 
@@ -1068,7 +1067,7 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
     f("mousedown", InsertMode.ExitGrab, true);
     VFindMode.postMode.exit();
     VFindMode.toggleStyle("remove");
-    DomUtils.UI.box && DomUtils.UI.box.remove();
+    (el = DomUtils.UI.box) && el.remove();
     (f = settings.onDestroy) && f();
 
     Utils = KeyCodes = KeyboardUtils = DomUtils = VRect = handlerStack = //

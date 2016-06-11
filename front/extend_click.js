@@ -20,8 +20,7 @@
   script.type = "text/javascript";
   script.textContent = '"use strict";(' + func.toString() + ')();';
   d = d.documentElement || d;
-  d.insertBefore(script, d.firstChild);
-  script.remove();
+  d.insertBefore(script, d.firstChild).remove();
 })(function() {
 var _listen, box, handler, reg, register, toRegister, timeout;
 

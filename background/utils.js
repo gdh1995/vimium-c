@@ -313,8 +313,7 @@ var exports = {}, Utils = {
           resolve(exports[name]);
         }
       };
-      document.documentElement.appendChild(script);
-      script.remove();
+      document.documentElement.appendChild(script).remove();
     });
   },
   searchWordRe: /\$([sS])(?:\{([^\}]*)\})?/g,

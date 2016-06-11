@@ -12,7 +12,7 @@ var Clipboard = {
     textArea.value = data;
     document.documentElement.appendChild(textArea);
     textArea.select();
-    document.execCommand("Copy");
+    document.execCommand("copy");
     textArea.remove();
     textArea.value = "";
   },
@@ -20,7 +20,7 @@ var Clipboard = {
     var textArea = this._getTextArea(), value;
     document.documentElement.appendChild(textArea);
     textArea.focus();
-    document.execCommand("Paste");
+    document.execCommand("paste");
     value = textArea.value;
     textArea.remove();
     textArea.value = "";

@@ -248,8 +248,7 @@ function loadJS(name, src) {
       var obj = window[name];
       obj ? resolve(obj) : reject("ImportError: " + name);
     };
-    document.head.appendChild(script);
-    script.remove();
+    document.head.appendChild(script).remove();
   });
 }
 
