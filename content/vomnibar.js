@@ -86,6 +86,7 @@ activate: function(_0, options, forceCurrent) {
       window.clearTimeout(this.timer);
       this.timer = 0;
     }
+    if (!this.box) { return; }
     this.box.style.display = "none";
     this.box.onmousewheel = null;
     this.list.textContent = "";

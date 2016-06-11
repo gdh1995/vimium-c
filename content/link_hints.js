@@ -657,7 +657,7 @@ alphabetHints: {
       this.hintKeystroke = "";
       keyStatus.tab = 0;
     }
-    keyStatus.known = 1;
+    keyStatus.known = true;
     if (key === KeyCodes.tab) {}
     else if (key === KeyCodes.backspace || key === KeyCodes.deleteKey || key === KeyCodes.f1) {
       if (!this.hintKeystroke) {
@@ -676,7 +676,7 @@ alphabetHints: {
     }
     keyChar = this.hintKeystroke;
     keyStatus.newHintLength = keyChar.length;
-    keyStatus.known = 0;
+    keyStatus.known = false;
     wanted = !keyStatus.tab;
     return hintMarkers.filter(function(linkMarker) {
       var pass = linkMarker.hintString.startsWith(keyChar) === wanted;
