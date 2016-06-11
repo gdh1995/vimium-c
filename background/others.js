@@ -111,6 +111,12 @@ setTimeout(function() { if (!chrome.browserAction) { return; }
       img.src = path[i];
     }
   };
+  Settings.SetIconBuffer = function(enabled) {
+    if (!enabled) { return imageData = tabIds = null; }
+    if (imageData) { return; }
+    imageData = Object.create(null);
+    tabIds = Object.create(null);
+  };
   g_requestHandlers.SetIcon = function(tabId, type) {
     var data, path;
     if (data = imageData[type]) {
@@ -127,17 +133,13 @@ setTimeout(function() { if (!chrome.browserAction) { return; }
   };
   Settings.updateHooks.showActionIcon = function (value) {
     func.call(this, value);
+    Settings.SetIconBuffer(value);
     if (value) {
-      if (!imageData) {
-        imageData = Object.create(null);
-        tabIds = Object.create(null);
-      }
       chrome.browserAction.setTitle({
         title: "Vimium++"
       });
       chrome.browserAction.enable();
     } else {
-      imageData = tabIds = null;
       chrome.browserAction.disable();
       chrome.browserAction.setTitle({
         title: "Vimium++\nThis icon is not in use"

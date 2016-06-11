@@ -5,6 +5,7 @@ var Settings = {
   extWhiteList: null,
   globalCommand: null,
   Init: null,
+  SetIconBuffer: null,
   get: function(key, forCache) {
     if (key in this.cache) {
       return this.cache[key];

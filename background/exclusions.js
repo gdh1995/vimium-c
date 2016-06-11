@@ -88,6 +88,12 @@ var Exclusions = {
         name: "checkIfEnabled"
       });
       return;
+    } else if (always_enabled && Settings.SetIconBuffer) {
+      needIcon = true;
+      Settings.SetIconBuffer(true);
+      setTimeout(function() {
+        Settings.SetIconBuffer(Settings.get("showActionIcon"));
+      }, 60);
     }
     for (tabId in ref) {
       frames = ref[tabId];
