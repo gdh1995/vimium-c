@@ -471,13 +471,11 @@ var Settings, VHUD, MainPort, VEventMode;
       }
       DomUtils.UI.simulateSelect(visibleInputs[selectedInputIndex]);
       hints = visibleInputs.map(function(element) {
-        var hint = DomUtils.createElement("div"), style = hint.style
-          , rect = element.getBoundingClientRect();
+        var hint = DomUtils.createElement("div")
+          , rect = VRect.fromClientRect(element.getBoundingClientRect());
         hint.className = "IH";
-        style.left = (rect.left | 0) - 1 + "px";
-        style.top = (rect.top | 0) - 1 + "px";
-        style.width = (rect.width | 0) + "px";
-        style.height = (rect.height | 0) + "px";
+        rect[0] -= 1, rect[1] -= 1;
+        VRect.setBoundary(hint.style, rect, true);
         return hint;
       });
       hints[selectedInputIndex].classList.add("S");
@@ -485,8 +483,6 @@ var Settings, VHUD, MainPort, VEventMode;
         id: "IMC",
         className: "R"
       });
-      box.style.left = window.scrollX + "px";
-      box.style.top = window.scrollY + "px";
       handlerStack.push(function(event) {
         if (event.keyCode === KeyCodes.tab) {
           hints[selectedInputIndex].classList.remove("S");
