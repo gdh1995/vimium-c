@@ -169,9 +169,12 @@ Scroller.Core.animate = function () {
     if (int1 && _this.performScroll(element, di, sign * int1)) {
       totalDelta += int1;
       requestAnimationFrame(animate);
-    } else if (Scroller.current !== element) {
+      return;
+    }
+    if (Scroller.current !== element) {
       DomUtils.isVisibile(Scroller.current) || (Scroller.current = element);
     }
+    element = null;
   };
   this.animate = function(newAmount, newDi, newEl) {
     amount = Math.abs(newAmount); calibration = 1.0; di = newDi;

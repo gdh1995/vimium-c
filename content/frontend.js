@@ -536,7 +536,6 @@ var Settings, VHUD, MainPort, VEventMode;
   InsertMode = {
     focus: null,
     global: null,
-    heldEl: false,
     suppressType: null,
     last: null,
     loading: (document.readyState !== "complete"),
@@ -908,6 +907,9 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
       enabled = isEnabledForUrl = (newPassKeys !== "");
       enabled && InsertMode.init && InsertMode.init();
       enabled === !requestHandlers.init && ELs.hook(enabled ? addEventListener : removeEventListener, 1);
+      if (!enabled) {
+        Scroller.current = DomUtils.lastHovered = InsertMode.last = null;
+      }
       passKeys = newPassKeys && parsePassKeys(newPassKeys);
       DomUtils.UI.box && DomUtils.UI.toggle(enabled);
     },
@@ -990,9 +992,8 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
     box.addEventListener("mousewheel", hide, {passive: true});
 
     hide = function() {
-      if (box.contains(LinkHints.lastHovered)) {
-        LinkHints.lastHovered = null;
-      }
+      box.contains(DomUtils.lastHovered) && (DomUtils.lastHovered = null);
+      box.contains(Scroller.current) && (Scroller.current = null);
       handlerStack.remove(box);
       box.remove();
       Commands.showHelp = oldShowHelp;
@@ -1039,7 +1040,6 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
     }, box);
   }
   };
-
 
   settings.timer = setInterval(function() {
     mainPort.connect();
