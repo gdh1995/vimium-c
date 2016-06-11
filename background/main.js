@@ -1384,7 +1384,7 @@ HelpDialog = {
   };
 
   Settings.updateHooks.showActionIcon = function (value) {
-    needIcon = chrome.browserAction && value ? true : false;
+    needIcon = value && chrome.browserAction ? true : false;
   };
 
   Settings.globalCommand = function(command, options) {
