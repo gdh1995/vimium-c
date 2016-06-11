@@ -1,6 +1,6 @@
 "use strict";
 (function(func) {
-  var script = document.createElement("script"), installer, onclick, box;
+  var d = document, script = d.createElement("script"), installer, onclick, box;
   if (!script instanceof HTMLScriptElement) { return; }
   addEventListener("VimiumReg", installer = function(event) {
     removeEventListener("VimiumReg", installer, true);
@@ -19,7 +19,8 @@
   };
   script.type = "text/javascript";
   script.textContent = '"use strict";(' + func.toString() + ')();';
-  document.documentElement.insertBefore(script, document.documentElement.firstElementChild);
+  d = d.documentElement || d;
+  d.insertBefore(script, d.firstChild);
   script.remove();
 })(function() {
 var _listen, box, handler, reg, register, toRegister, timeout;
