@@ -883,57 +883,47 @@ searchEngines: {
     dict: Object.create(null),
     todos: [], // each item is either {url: ...} or "url"
     _timer: 0,
-    working: -1,
-    interval: 18,
     continueToWork: function() {
       if (this.todos.length > 0 && this._timer === 0) {
-        this._timer = setInterval(this.Work, this.interval);
+        var xhr = new XMLHttpRequest();
+        xhr.onload = this.OnXHR;
+        this._timer = setTimeout(this.Work, 17, xhr);
       }
     },
-    Work: function() {
+    Work: function(xhr) {
       var _this = Decoder, url, str, text;
-      if (_this.working === -1) {
-        _this.init();
-        _this.working = 0;
-      }
+      _this.init && _this.init();
       if (! _this.todos.length) {
-        clearInterval(_this._timer);
         _this._timer = 0;
-        _this._link.href = "";
-      } else if (_this.working === 0) {
-        while (url = _this.todos[0]) {
-          str = url.url || url;
-          if (text = _this.dict[str]) {
-            url.url && (url.text = text);
-            _this.todos.shift();
-          } else {
-            _this.working = 1;
-            _this._link.href = _this._dataUrl + str + "%22%7D";
-            break;
-          }
-        }
-      } else if (_this.working === 1) {
-        text = window.getComputedStyle(_this._link).fontFamily;
-        text = text.substring(1, text.length - 1);
-        url = _this.todos.shift();
-        if (str = url.url) {
-          _this.dict[str] = url.text = text;
-        } else {
-          _this.dict[url] = text;
-        }
-        _this.working = 0;
-        _this.Work();
+        return;
       }
+      while (url = _this.todos[0]) {
+        str = url.url || url;
+        if (text = _this.dict[str]) {
+          url.url && (url.text = text);
+          _this.todos.shift();
+          continue;
+        }
+        xhr.open("GET", _this._dataUrl + str, true);
+        xhr.send();
+        break;
+      }
+    },
+    OnXHR: function() {
+      var _this = Decoder, url, str, text = this.responseText;
+      url = _this.todos.shift();
+      if (str = url.url) {
+        _this.dict[str] = url.text = text;
+      } else {
+        _this.dict[url] = text;
+      }
+      _this.Work(this);
     },
     _dataUrl: "",
-    _link: null,
     SetDataUrl: function(charset) {
-      Decoder._dataUrl = "data:text/css;charset=" + charset + ",link%7Bfont-family%3A%22";
+      Decoder._dataUrl = "data:text/plain;charset=" + charset + ",";
     },
     init: function() {
-      var link = this._link = document.createElement('link');
-      link.rel = 'stylesheet';
-      document.documentElement.appendChild(link);
       Settings.updateHooks.localeEncoding = this.SetDataUrl;
       Settings.postUpdate("localeEncoding");
       this.init = null;
