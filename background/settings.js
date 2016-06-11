@@ -128,14 +128,6 @@ var Settings = {
   },
   indexFrame: null,
   indexPorts: null,
-  reloadFiles: function() {
-    var files = this.files, id, func = function() {
-      Settings.set(this.id, this.responseText);
-    };
-    for (id in files) {
-      Utils.fetchHttpContents(files[id], func).id = id;
-    }
-  },
   fetchFile: function(file, callback) {
     if (this.cache[file]) { return callback && callback(); }
     Utils.fetchHttpContents(this.files[file], function() {
