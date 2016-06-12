@@ -183,7 +183,7 @@ var LinkHints = {
   quoteRe: /"/g,
   btnRe: /\b[Bb](?:utto|t)n(?:$| )/,
   GetClickable: function(element) {
-    var arr, isClickable = null, s, _i, type = 0;
+    var arr, isClickable = null, s, type = 0;
     switch (element.tagName.toLowerCase()) {
     case "a": case "frame": isClickable = true; break;
     case "iframe": isClickable = element !== VFindMode.box; break;
@@ -233,16 +233,8 @@ var LinkHints = {
           || element.contentEditable === "true" ? 1
         : type === 2 ? type
         : LinkHints.ngEnabled && element.getAttribute("ng-click") ? 2
+        : (s = element.getAttribute("jsaction")) && LinkHints.checkJSAction(s) ? 2
         : type;
-      if ((!type || type > 7) && (s = element.getAttribute("jsaction"))) {
-        for (arr = s.split(";"), _i = arr.length; 0 <= --_i; ) {
-          s = arr[_i].trim();
-          if (s.startsWith("click:") || (s !== "none" && s.indexOf(":") === -1)) {
-            type = 2;
-            break;
-          }
-        }
-      }
       type = type > 0 && type < 4 ? type
         : (s = element.getAttribute("tabindex")) != null && (s === "" || parseInt(s, 10) >= 0) : 7
         : type > 7 ? type : (s = element.className) && LinkHints.btnRe.test(s) ? 4 : 0;
@@ -250,6 +242,14 @@ var LinkHints = {
     if ((isClickable || type) && (arr = DomUtils.getVisibleClientRect(element))
         && (type < 8 || Scroller.isScrollable(element, type - 8))) {
       this.push([element, arr, type]);
+    }
+  },
+  checkJSAction: function(s) {
+    for (var arr = s.split(";"), _i = arr.length; 0 <= --_i; ) {
+      s = arr[_i].trim();
+      if (s.startsWith("click:") || (s !== "none" && s && s.indexOf(":") === -1)) {
+        return true;
+      }
     }
   },
   GetLinks: function(element) {
