@@ -123,10 +123,9 @@ var LinkHints = {
     var child, done = false;
     try {
       child = this.frameNested.contentWindow;
-      if (command.startsWith("LinkHints.activate") && child.LinkHints.isActive) {
+      if (command.startsWith("LinkHints.activate")) {
         if (!child.document.head) { throw Error("vimium-disabled"); }
-        child.LinkHints.deactivate(true);
-        done = true;
+        (done = child.LinkHints.isActive) && child.LinkHints.deactivate(true);
       }
       child.VEventMode.keydownEvents(VEventMode.keydownEvents());
     } catch (e) {
@@ -136,7 +135,7 @@ var LinkHints = {
       return false;
     }
     child.focus();
-    if (done !== false) { return true; }
+    if (done) { return true; }
     if (document.readyState !== "complete") { this.frameNested = false; }
     return Utils.execCommand(child, command, args) !== false;
   },
