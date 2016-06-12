@@ -42,11 +42,7 @@ var LinkHints = {
   activate: function(count, options) {
     if (this.isActive) { return; }
     if (document.body == null) {
-      if (!this.initTimer) {
-        this.initTimer = setTimeout(this.activate.bind(this, count, options), 300);
-      } else if (!document.head) {
-        this.isActive = true; // disable self
-      }
+      this.initTimer = this.initTimer || setTimeout(this.activate.bind(this, count, options), 300);
       return;
     }
     handlerStack.remove(this);
