@@ -235,9 +235,11 @@ var LinkHints = {
         : type > 7 ? type : (s = element.className) && LinkHints.btnRe.test(s) ? 4 : 0;
     }
     if ((isClickable || type) && (arr = DomUtils.getVisibleClientRect(element))
-        && (type < 8 || Scroller.isScrollable(element, type - 8))) {
-      this.push([element, arr, type]);
-    }
+        && (type < 8 || Scroller.isScrollable(element, type - 8))
+        && ((s = element.getAttribute("aria-hidden")) == null || s && s.toLowerCase() !== "true")
+        && ((s = element.getAttribute("aria-disabled")) == null || (s && s.toLowerCase() !== "true")
+          || LinkHints.mode >= 128)
+    ) { this.push([element, arr, type]); }
   },
   checkJSAction: function(s) {
     for (var arr = s.split(";"), _i = arr.length; 0 <= --_i; ) {
