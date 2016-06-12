@@ -905,7 +905,7 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
       enabled === !requestHandlers.init && ELs.hook(enabled ? addEventListener : removeEventListener, 1);
       if (!enabled) {
         Scroller.current = DomUtils.lastHovered = InsertMode.last = InsertMode.lock = null;
-        LinkHints.deactivate(); Vomnibar.hide();
+        LinkHints.deactivate(); Vomnibar.input && Vomnibar.hide();
       }
       passKeys = newPassKeys && parsePassKeys(newPassKeys);
       DomUtils.UI.box && DomUtils.UI.toggle(enabled);
