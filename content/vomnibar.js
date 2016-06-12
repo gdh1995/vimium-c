@@ -93,12 +93,13 @@ activate: function(_0, options, forceCurrent) {
     this.onUpdate = null;
     this.inputText = "";
     this.mode.query = "";
-    this.completions = [];
+    this.completions = null;
   },
   reset: function(input, start, end) {
     input || (input = "");
     this.inputText = input;
     this.mode.query = input.trimRight();
+    this.completions = [];
     this.update(0, input && start <= end ? function() {
       this.show();
       this.input.setSelectionRange(start, end);
@@ -408,6 +409,7 @@ activate: function(_0, options, forceCurrent) {
       return;
     }
     this.onCompletions = function(completions) {
+      if (!this.completions) { return; }
       completions.forEach(this.Parse, this.mode);
       this.completions = completions;
       this.populateUI();
