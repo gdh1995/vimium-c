@@ -728,6 +728,7 @@ HOVER: {
     Scroller.current = element;
     DomUtils.lastHovered = element;
     DomUtils.simulateMouse(element, "mouseover");
+    this.mode < 128 && VHUD.showForDuration("Hover for scrolling", 1000);
   }
 },
 LEAVE: {
