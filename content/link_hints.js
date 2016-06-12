@@ -57,14 +57,14 @@ var LinkHints = {
     }
     if (this.frameNested) {
       if (this.tryNestedFrame("LinkHints.activate", [count, this.options])) {
-        this.clean();
+        this.clean2();
         VHUD.hide(true);
         return;
       }
       elements || (elements = this.getVisibleElements());
     }
     if (elements.length <= 0) {
-      this.clean();
+      this.clean2();
       VHUD.showForDuration("No links to select.", 1000);
       return;
     }
@@ -565,11 +565,14 @@ var LinkHints = {
     }
     VHUD.hide();
   },
+  clean2: function() {
+    this.options = this.modeOpt = null;
+    this.lastMode = this.mode = this.count = 0;
+  },
   deactivate: function(suppressType, skipClean) {
     skipClean === true || this.clean();
     this.alphabetHints.hintKeystroke = "";
-    this.options = this.modeOpt = null;
-    this.lastMode = this.mode = this.count = 0;
+    this.clean2();
     handlerStack.remove(this);
     VEventMode.onWndBlur(null);
     this.isActive = false;
