@@ -226,17 +226,12 @@ var LinkHints = {
       break;
     }
     if (isClickable === null) {
-      if ((element.vimiumHasOnclick && LinkHints.isClickListened) || element.getAttribute("onclick")) {
-        type = 2; 
-      }
       type = (s = element.getAttribute("role")) && (s = s.toLowerCase(), s === "button" || s === "link")
           || element.contentEditable === "true" ? 1
-        : type === 2 ? type
-        : LinkHints.ngEnabled && element.getAttribute("ng-click") ? 2
-        : (s = element.getAttribute("jsaction")) && LinkHints.checkJSAction(s) ? 2
-        : type;
-      type = type > 0 && type < 4 ? type
-        : (s = element.getAttribute("tabindex")) != null && (s === "" || parseInt(s, 10) >= 0) : 7
+        : (element.vimiumHasOnclick && LinkHints.isClickListened) || element.getAttribute("onclick")
+          || LinkHints.ngEnabled && element.getAttribute("ng-click")
+          || (s = element.getAttribute("jsaction")) && LinkHints.checkJSAction(s) ? 2
+        : (s = element.getAttribute("tabindex")) != null && (s === "" || parseInt(s, 10) >= 0) ? 7
         : type > 7 ? type : (s = element.className) && LinkHints.btnRe.test(s) ? 4 : 0;
     }
     if ((isClickable || type) && (arr = DomUtils.getVisibleClientRect(element))
