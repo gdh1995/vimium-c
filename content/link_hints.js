@@ -176,10 +176,8 @@ var LinkHints = {
     if (i > this.maxTop) {
       marker.style.maxHeight = this.maxBottom - i + "px";
     }
-    if (link.length >= 4) {
-      marker.linkRect = link[3];
-      link[2] === 2 && (marker.wantScroll = true);
-    }
+    link[3] && (marker.linkRect = link[3]);
+    link[2] > 7 && (marker.wantScroll = true);
     return marker;
   },
   hashRe: /^#/,
