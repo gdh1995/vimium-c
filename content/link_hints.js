@@ -529,7 +529,7 @@ var LinkHints = {
       return;
     }
     this.reinit(clickEl, rect);
-    if (1 === --this.count) {
+    if (1 === --this.count && this.isActive) {
       this.setMode(this.mode & ~64);
     }
   },
@@ -712,8 +712,10 @@ highlightChild: function(child, box) {
     box: box && [box.width, box.height],
     frameId: -2
   });
-  child.LinkHints.activate(this.count, this.options);
-  child.LinkHints.setMode(this.mode);
+  var lh = child.LinkHints;
+  lh.isActive = false;
+  lh.activate(this.count, this.options);
+  lh.isActive && lh.setMode(this.mode);
   this.mode = 0;
   return false;
 },
