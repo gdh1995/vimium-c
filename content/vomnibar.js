@@ -1,7 +1,7 @@
 "use strict";
 var Vomnibar = {
 activate: function(_0, options, forceCurrent) {
-  var initialQueryValue, keyword;
+  var url, keyword;
   if (this.init) {
     forceCurrent |= 0;
     if (forceCurrent < 2 &&
@@ -17,27 +17,27 @@ activate: function(_0, options, forceCurrent) {
   this.forceNewTab = options.force ? true : false;
   handlerStack.remove(this);
   handlerStack.push(DomUtils.UI.SuppressMost, this);
-  initialQueryValue = options.url;
+  url = options.url;
   keyword = options.keyword;
-  if (initialQueryValue == null) {
+  if (url == null) {
     this.reset(keyword ? keyword + " " : "");
     return;
   }
-  if (initialQueryValue === true) {
-    if (initialQueryValue = DomUtils.getSelectionText()) {
+  if (url === true) {
+    if (url = DomUtils.getSelectionText()) {
       this.forceNewTab = true;
     } else {
-      initialQueryValue = window.location.href;
+      url = window.location.href;
     }
   }
-  if (initialQueryValue.indexOf("://") === -1) {
-    this._activateText(initialQueryValue, keyword, "");
+  if (url.indexOf("://") === -1) {
+    this._activateText(url, keyword, "");
     return;
   }
   MainPort.sendMessage({
     handler: "parseSearchUrl",
-    url: initialQueryValue
-  }, this._activateText.bind(this, initialQueryValue, keyword));
+    url: url
+  }, this._activateText.bind(this, url, keyword));
 },
   _activateText: function(url, keyword, search) {
     var start;
@@ -58,7 +58,6 @@ activate: function(_0, options, forceCurrent) {
     }
   },
 
-  _waitInit: 1,
   box: null,
   inputText: "",
   completions: null,
@@ -404,7 +403,7 @@ activate: function(_0, options, forceCurrent) {
     return false;
   },
   onCompletions: function(completions) {
-    if (this._waitInit) {
+    if (this.initDom) {
       this.completions = completions;
       return;
     }
@@ -451,7 +450,6 @@ activate: function(_0, options, forceCurrent) {
     str = this.box.querySelector("#OITemplate").outerHTML;
     str = str.substring(str.indexOf('>') + 1, str.lastIndexOf('<'));
     this.renderItems = Utils.makeListRenderBySplit(str);
-    this._waitInit = 0;
     this.initDom = null;
     if (this.completions) {
       this.onCompletions(this.completions);
