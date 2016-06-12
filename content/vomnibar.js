@@ -82,10 +82,8 @@ activate: function(_0, options, forceCurrent) {
     this.box.onmousewheel = this.onWheel;
   },
   hide: function() {
-    if (this.timer > 0) {
-      window.clearTimeout(this.timer);
-      this.timer = 0;
-    }
+    clearTimeout(this.timer);
+    this.timer = 0;
     this.box.style.display = "none";
     this.box.onmousewheel = null;
     this.list.textContent = "";
@@ -109,7 +107,7 @@ activate: function(_0, options, forceCurrent) {
     this.onUpdate = callback;
     if (typeof updateDelay === "number") {
       if (this.timer > 0) {
-        window.clearTimeout(this.timer);
+        clearTimeout(this.timer);
       }
       if (updateDelay <= 0) {
         this.filter();
