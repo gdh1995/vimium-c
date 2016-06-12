@@ -243,12 +243,9 @@ var LinkHints = {
           }
         }
       }
-      if (type) {}
-      else if ((s = element.className) && LinkHints.btnRe.test(s)) { type = 4; }
-      else if ((s = element.getAttribute("tabindex")) != null
-        && (s === "" || parseInt(s, 10) >= 0)) {
-        type = 7;
-      }
+      type = type > 0 && type < 4 ? type
+        : (s = element.getAttribute("tabindex")) != null && (s === "" || parseInt(s, 10) >= 0) : 7
+        : type > 7 ? type : (s = element.className) && LinkHints.btnRe.test(s) ? 4 : 0;
     }
     if ((isClickable || type) && (arr = DomUtils.getVisibleClientRect(element))
         && (type < 8 || Scroller.isScrollable(element, type - 8))) {
