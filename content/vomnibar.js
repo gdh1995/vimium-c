@@ -15,7 +15,8 @@ activate: function(_0, options, forceCurrent) {
   this.mode.type = options.mode || "omni";
   this.initialSelectionValue = options.first ? 0 : -1;
   this.forceNewTab = options.force ? true : false;
-  handlerStack.set(DomUtils.UI.SuppressMost, this);
+  handlerStack.remove(this);
+  handlerStack.push(DomUtils.UI.SuppressMost, this);
   initialQueryValue = options.url;
   keyword = options.keyword;
   if (initialQueryValue == null) {
@@ -78,7 +79,8 @@ activate: function(_0, options, forceCurrent) {
     this.input.value = this.inputText;
     DomUtils.UI.addElement(this.box);
     DomUtils.UI.focus(this.input);
-    handlerStack.set(this.onKeydown, this);
+    handlerStack.remove(this);
+    handlerStack.push(this.onKeydown, this);
     this.box.onmousewheel = this.onWheel;
   },
   hide: function() {
