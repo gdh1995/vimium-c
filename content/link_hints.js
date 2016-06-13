@@ -75,7 +75,7 @@ var LinkHints = {
     elements = null;
     this.alphabetHints.initMarkers(this.hintMarkers);
 
-    VHUD.show(this.modeOpt[this.mode]);
+    this.setMode(this.mode);
     this.box = DomUtils.UI.addElementList(this.hintMarkers, {
       id: "HMC",
       className: "R"
