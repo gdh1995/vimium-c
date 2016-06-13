@@ -416,9 +416,9 @@ var LinkHints = {
       if (!r2) { if (r0 !== r) { visibleElement[1] = r; } continue; }
       if (r2.length > 0) {
         visibleElement[1] = r2[0];
-      } else if (isNormal) {
+      } else {
         reason = visibleElement[2];
-        if (reason === 7 || reason === 4 || reason === 2
+        if (reason === 4 || (reason === 2 ? isNormal : reason === 7)
           && visibleElement[0].contains(visibleElements[_i][0])) {
           visibleElements.splice(_len, 1);
         }
