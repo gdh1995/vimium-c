@@ -1,6 +1,6 @@
 "use strict";
 VSettings.checkIfEnabled = function() {
-  mainPort.safePost({
+  MainPort.safePost({
     handler: "checkIfEnabled",
     url: window.location.href
   });
