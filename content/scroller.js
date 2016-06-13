@@ -33,7 +33,7 @@ Core: {
   },
   scroll: function(element, di, amount) {
     if (!amount) { return; }
-    if (!Settings.cache.smoothScroll) {
+    if (!VSettings.cache.smoothScroll) {
       this.performScroll(element, di, amount);
       DomUtils.isVisibile(Scroller.current) || (Scroller.current = element);
       return;
@@ -181,7 +181,7 @@ Scroller.Core.animate = function () {
     duration = Math.max(100, 20 * Math.log(amount)); element = newEl;
     sign = newAmount === 0 ? 0 : newAmount < 0 ? -1 : 1;
     timestamp = -1; totalDelta = 0; totalElapsed = 0.0;
-    var keyboard = Settings.cache.keyboard;
+    var keyboard = VSettings.cache.keyboard;
     this.maxInterval = Math.round(keyboard[1] / 16.67) + 4;
     this.minDelay = (((keyboard[0] - keyboard[1]) / 30) | 0) * 30;
     Scroller.keyIsDown = this.maxInterval;

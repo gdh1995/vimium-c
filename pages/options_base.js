@@ -30,7 +30,7 @@ Option.syncToFrontend = [];
 
 Option.prototype._onUpdated = function() {
   this.onUpdated1();
-  Settings.cache[this.field] = this.readValueFromElement();
+  VSettings.cache[this.field] = this.readValueFromElement();
 };
 
 Option.prototype.fetch = function() {

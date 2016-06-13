@@ -12,7 +12,7 @@
     event.target.vimiumHasOnclick = true;
     event.stopPropagation();
   }, true);
-  Settings.onDestroy = function() {
+  VSettings.onDestroy = function() {
     removeEventListener("VimiumReg", installer, true);
     removeEventListener("VimiumOnclick", onclick, true);
     box && box.removeEventListener("VimiumOnclick", onclick, true);

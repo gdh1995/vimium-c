@@ -1,5 +1,5 @@
 "use strict";
-Settings.checkIfEnabled = function() {
+VSettings.checkIfEnabled = function() {
   mainPort.safePost({
     handler: "checkIfEnabled",
     url: window.location.href
@@ -10,13 +10,13 @@ DomUtils.documentReady(function() {
   if (MainPort.safePost({ handler: "reg", visible: true })) {
     return;
   }
-  addEventListener("hashchange", Settings.checkIfEnabled);
+  addEventListener("hashchange", VSettings.checkIfEnabled);
   VEventMode.onWndFocus(MainPort.safePost.bind(MainPort, {
     handler: "frameFocused"
   }, function() {
     setTimeout(function() {
       if (MainPort && !MainPort.port) {
-        Settings.destroy();
+        VSettings.destroy();
       }
     }, 50);
   }));
@@ -31,8 +31,8 @@ if (chrome.runtime.onMessageExternal) {
     , "color: red;", "color: auto;", "color: blue;");
 }
 
-Settings.onDestroy = function() {
-  removeEventListener("hashchange", Settings.checkIfEnabled);
+VSettings.onDestroy = function() {
+  removeEventListener("hashchange", VSettings.checkIfEnabled);
   if (MainPort.port) {
     try {
       MainPort.port.disconnect();
@@ -47,4 +47,4 @@ Settings.onDestroy = function() {
   ), function(node) { node.remove(); });
 };
 
-VimiumInjector.destroy = Settings.destroy;
+VimiumInjector.destroy = VSettings.destroy;

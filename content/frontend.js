@@ -1,5 +1,5 @@
 "use strict";
-var Settings, VHUD, MainPort, VEventMode;
+var VSettings, VHUD, MainPort, VEventMode;
 (function() {
   var Commands, ELs, HUD, KeydownEvents, checkValidKey, currentSeconds //
     , esc, firstKeys //
@@ -104,7 +104,7 @@ var Settings, VHUD, MainPort, VEventMode;
   };
   mainPort.connect();
 
-  Settings = settings = {
+  VSettings = settings = {
     cache: null,
     destroy: null,
     timer: 0,
@@ -1069,7 +1069,7 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
 
     Utils = KeyCodes = KeyboardUtils = DomUtils = VRect = handlerStack = //
     LinkHints = Vomnibar = Scroller = Marks = VFindMode = //
-    Settings = VHUD = MainPort = VEventMode = null;
+    VSettings = VHUD = MainPort = VEventMode = null;
 
     console.log("%cVimium++%c in %c%s%c has destroyed at %o."
       , "color:red", "color:auto", "color:darkred"

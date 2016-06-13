@@ -157,7 +157,7 @@ var LinkHints = {
     height = box.scrollHeight - y - (height !== (height | 0));
     this.maxRight  = Math.min(Math.max(width,  box.clientWidth ), window.innerWidth  + 64);
     this.maxBottom = Math.min(Math.max(height, box.clientHeight), window.innerHeight + 20);
-    count = Math.ceil(Math.log(count) / Math.log(Settings.cache.linkHintCharacters.length));
+    count = Math.ceil(Math.log(count) / Math.log(VSettings.cache.linkHintCharacters.length));
     this.maxLeft = this.maxRight - (11 * count) - 8;
     this.maxTop = this.maxBottom - 15;
   },
@@ -301,7 +301,7 @@ var LinkHints = {
     }
     for (key in filters) {
       func = filters[key].bind(output);
-      if (Settings.cache.deepHints) {
+      if (VSettings.cache.deepHints) {
         output.forEach.call(box.querySelectorAll("* /deep/ " + key), func);
         continue;
       }
@@ -442,7 +442,7 @@ var LinkHints = {
       if (event.shiftKey) {
         this.isClickListened = !this.isClickListened;
       } else {
-        Settings.cache.deepHints = !Settings.cache.deepHints;
+        VSettings.cache.deepHints = !VSettings.cache.deepHints;
       }
       setTimeout(this.reinit.bind(this, null), 0);
     } else if (i === KeyCodes.shiftKey) {
@@ -592,7 +592,7 @@ alphabetHints: {
   },
   initMarkers: function(hintMarkers) {
     var hints, hintString, marker, end, i, len, node;
-    this.chars = Settings.cache.linkHintCharacters.toUpperCase();
+    this.chars = VSettings.cache.linkHintCharacters.toUpperCase();
     this.hintKeystroke = "";
     end = hintMarkers.length;
     hints = this.buildHintIndexes(end);
