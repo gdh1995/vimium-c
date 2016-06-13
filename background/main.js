@@ -1364,11 +1364,12 @@ HelpDialog = {
   };
 
   Settings.updateHooks.newTabUrl_f = function(url) {
-    BackgroundCommands.createTab = Utils.isRefusingIncognito(url)
+    var f;
+    BackgroundCommands.createTab = f = Utils.isRefusingIncognito(url)
     ? chrome.windows.getCurrent.bind(null, {populate: true}
         , funcDict.createTab[0].bind(url))
     : funcDict.getCurTab.bind(null, funcDict.createTab[5].bind(url));
-    BackgroundCommands.createTab.useTab = -1;
+    f.useTab = -1;
   };
 
   Settings.updateHooks.keyMappings = function(value) {
