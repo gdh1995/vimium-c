@@ -328,7 +328,6 @@ activate: function(_0, options, forceCurrent) {
     arr = [this.input.selectionDirection];
     this.input.value = str;
     this.input.setSelectionRange(sel, i, arr[0]);
-    this.update(this.refreshInterval / 2);
     this.onInput();
   },
   onEnter: function() {
