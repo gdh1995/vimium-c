@@ -1,7 +1,7 @@
 #!/bin/sh
 set -o noglob
 
-ver=1.53
+ver=`grep '"version"' manifest.json | awk -F '"' '{print $4}'`
 output="$1"
 if [ -n "$output" -a -f "$output" ]; then :
 else
