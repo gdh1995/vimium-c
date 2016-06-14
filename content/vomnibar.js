@@ -308,7 +308,7 @@ activate: function(_0, options, forceCurrent) {
     str = len ? this.completions[0].type : "", notTab;
     if (str === "search") { return; }
     notTab = str !== "tab";
-    str = this.inputText;
+    str = this.input.value;
     arr = /(?:^|\s)(\+\d{0,2})$/.exec(str);
     i = (arr && arr[0]) | 0;
     if (i <= 0 || sel > 0) {
@@ -323,12 +323,11 @@ activate: function(_0, options, forceCurrent) {
     if (arr) { str = str.substring(0, str.length - arr[0].length); }
     str = str.trimRight();
     i = Math.min(this.input.selectionEnd, str.length);
-    if (sel > 0) { str = str + " +" + sel; }
+    if (sel > 0) { str += " +" + sel; }
     sel = this.input.selectionStart;
     arr = [this.input.selectionDirection];
     this.input.value = str;
-    this.input.setSelectionRange(sel, i);
-    this.input.selectionDirection = arr[0];
+    this.input.setSelectionRange(sel, i, arr[0]);
     this.update(this.refreshInterval / 2);
     this.onInput();
   },
