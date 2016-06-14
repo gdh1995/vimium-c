@@ -78,7 +78,7 @@ var createWebsite = {
 			return false
 		});
 		self.container.find('#webSiteTitle').bind('focus', function () {
-			this.setSelectionRange(0, 200)
+			this.select();
 		});
 		self.container.find('#webSiteUrl').bind('blur', function () {
 			if (self.suggestHide) {

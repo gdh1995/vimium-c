@@ -78,7 +78,7 @@ DomUtils.UI = {
       return false;
     }
     if (el = VEventMode.lock()) {
-      ind = el.selectionDirection === "forward" && el.selectionEnd < el.value.length ?
+      ind = el.selectionDirection !== "backward" && el.selectionEnd < el.value.length ?
           el.selectionStart : el.selectionEnd;
       el.setSelectionRange(ind, ind);
     } else {

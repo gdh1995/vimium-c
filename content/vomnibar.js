@@ -155,7 +155,7 @@ activate: function(_0, options, forceCurrent) {
     if (line.type !== "history" && line.type !== "tab") {
       this.input.value = str;
       if (line.type === "math") {
-        this.input.setSelectionRange(0, str.length);
+        this.input.select();
       }
       return;
     }
@@ -376,8 +376,7 @@ activate: function(_0, options, forceCurrent) {
     if (left.charCodeAt(end) !== 32) { return; }
     left = left.substring(0, end).trimRight();
     if (left.indexOf(" ") === -1) {
-      el.setSelectionRange(0, left.length);
-      el.selectionDirection = 'backward';
+      el.setSelectionRange(0, left.length, 'backward');
     }
   },
   OnTimer: function() { Vomnibar && Vomnibar.filter(); },

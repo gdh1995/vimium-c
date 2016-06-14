@@ -50,7 +50,7 @@ TextOption.prototype.populateElement = function(value, enableUndo) {
   this.locked = true;
   this.element.focus();
   document.execCommand("undo");
-  this.element.setSelectionRange(0, this.element.value.length);
+  this.element.select();
   document.execCommand("insertText", false, value);
   this.locked = false;
 };
