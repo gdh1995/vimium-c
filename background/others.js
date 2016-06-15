@@ -1,7 +1,7 @@
 "use strict";
 
 if (Settings.get("vimSync") === true) setTimeout(function() { if (!chrome.storage) { return; }
-  Settings.Sync = {
+  var Sync = Settings.Sync = {
     storage: chrome.storage.sync,
     to_update: null,
     doNotSync: Object.setPrototypeOf({
@@ -9,11 +9,10 @@ if (Settings.get("vimSync") === true) setTimeout(function() { if (!chrome.storag
     }, null),
     HandleStorageUpdate: function(changes) {
       var change, key;
-      var _this = Settings.Sync;
       Object.setPrototypeOf(changes, null);
       for (key in changes) {
         change = changes[key];
-        _this.storeAndPropagate(key, change != null ? change.newValue : null);
+        Sync.storeAndPropagate(key, change != null ? change.newValue : null);
       }
     },
     storeAndPropagate: function(key, value) {
@@ -49,8 +48,8 @@ if (Settings.get("vimSync") === true) setTimeout(function() { if (!chrome.storag
       items[key] = value;
     },
     DoUpdate: function() {
-      var _this = Settings.Sync, items = _this.to_update, removed = [], key, left = 0;
-      _this.to_update = null;
+      var items = Sync.to_update, removed = [], key, left = 0;
+      Sync.to_update = null;
       if (!items) { return; }
       for (key in items) {
         if (items[key] != null) {
@@ -61,23 +60,23 @@ if (Settings.get("vimSync") === true) setTimeout(function() { if (!chrome.storag
         }
       }
       if (removed.length > 0) {
-        _this.storage.remove(removed);
+        Sync.storage.remove(removed);
       }
       if (left > 0) {
-        _this.storage.set(items);
+        Sync.storage.set(items);
       }
     },
     shouldSyncKey: function(key) {
       return (key in Settings.defaults) && !(key in this.doNotSync);
     }
   };
-  chrome.storage.onChanged.addListener(Settings.Sync.HandleStorageUpdate);
-  Settings.Sync.storage.get(null, function(items) {
+  chrome.storage.onChanged.addListener(Sync.HandleStorageUpdate);
+  Sync.storage.get(null, function(items) {
     var key, value;
     if (value = chrome.runtime.lastError) { return value; }
     Object.setPrototypeOf(items, null);
     for (key in items) {
-      Settings.Sync.storeAndPropagate(key, items[key]);
+      Sync.storeAndPropagate(key, items[key]);
     }
   });
 }, 400);
