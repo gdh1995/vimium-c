@@ -167,7 +167,9 @@ textarea:read-only {
 input:disabled, textarea:disabled {
   color: #444;
 }
-input[type="checkbox"] {
+input[type=checkbox] {
+  position: relative;
+  top: 2px;
   width: auto;
 }
 button:focus, input:focus, textarea:focus, select:focus {
