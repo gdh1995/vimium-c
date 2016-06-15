@@ -2,7 +2,7 @@
 var Completers;
 setTimeout(function() {
   var HistoryCache, RankingUtils, RegexpCache, Decoder,
-      Completers, queryType, offset,
+      Completers, queryType, offset, autoSelect,
       maxCharNum, maxResults, showFavIcon, showRelevancy, queryTerms, SuggestionUtils;
 
   function Suggestion(type, url, text, title, computeRelevancy, extraData) {
@@ -468,6 +468,7 @@ searchEngines: {
       q[0] = keyword.substring(1);
       keyword = q.join(" ");
       sug = this.makeUrlSuggestion(keyword, "\\" + keyword);
+      autoSelect = true;
       Completers.next([sug]);
       return;
     } else {
@@ -479,6 +480,7 @@ searchEngines: {
       }
       return true;
     }
+    autoSelect = true;
     if (failIfNull !== true) {
       if (queryType !== 0) {
         q.push(queryTerms.more);
@@ -636,7 +638,7 @@ searchEngines: {
     RankingUtils.timeAgo = 0;
     func = this.callback || g_requestHandlers.PostCompletions;
     this.mostRecentQuery = this.callback = null;
-    func(suggestions);
+    func(suggestions, autoSelect && suggestions.length > 0);
   },
   concatSugs: function(newSugs) {
     var arr = this.suggestions, i, len = newSugs.length;
@@ -667,6 +669,7 @@ searchEngines: {
 };
 
   Completers.MultiCompleter.prototype.filter = function(query, options, callback) {
+    autoSelect = false;
     queryTerms = query ? query.split(Utils.spacesRe) : [];
     maxCharNum = options.clientWidth > 0 ? Math.min((
         (options.clientWidth * 0.8 - 74) / 7.72) | 0, 200) : 128
@@ -682,6 +685,7 @@ searchEngines: {
         : str === "d" ? ref.domains : str === "s" ? ref.search : this;
       if (_this !== this) {
         queryTerms.shift();
+        autoSelect = true;
       }
     }
     Completers.filter(_this.completers);
