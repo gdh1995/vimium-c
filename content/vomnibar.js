@@ -246,8 +246,7 @@ activate: function(_0, options, forceCurrent) {
     else if (KeyboardUtils.getKeyChar(event, event.shiftKey).length !== 1) {
       if (n > KeyCodes.f1 && n <= KeyCodes.f12) { focused = false; }
     }
-    else if (focused && (this.selection < 0 || !this.isSelectionChanged)) {}
-    else if (n >= 48 && n < 58) {
+    else if (!focused && n >= 48 && n < 58) {
       n = (n - 48) || 10;
       if (event.shiftKey || n > this.completions.length) { return 2; }
       this.selection = n - 1;
