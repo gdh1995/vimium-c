@@ -13,7 +13,7 @@ activate: function(_0, options, forceCurrent) {
   }
   Object.setPrototypeOf(options = options || {}, null);
   this.mode.type = options.mode || "omni";
-  this.initialSelectionValue = options.first ? 0 : -1;
+  this.initialSelectionValue = this.mode.type !== "omni" ? 0 : -1;
   this.forceNewTab = options.force ? true : false;
   handlerStack.remove(this);
   handlerStack.push(DomUtils.UI.SuppressMost, this);
