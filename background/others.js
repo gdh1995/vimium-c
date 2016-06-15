@@ -245,6 +245,7 @@ setTimeout(function() { if (!chrome.omnibox) { return; }
     }, onComplete.bind(null, suggest));
   },
   onEnter = function(text, disposition) {
+    text = text.trim();
     if (tempRequest && tempRequest[0] === text) {
       tempRequest = [text, onEnter.bind(null, text, disposition)];
       onTimer();
@@ -252,7 +253,7 @@ setTimeout(function() { if (!chrome.omnibox) { return; }
     } else if (lastSuggest) {
       return;
     }
-    if (text === last && firstUrl) { text = firstUrl; }
+    if (firstUrl && text === last) { text = firstUrl; }
     var sessionId = sessionIds && sessionIds[text];
     clean();
     if (sessionId == null) {
