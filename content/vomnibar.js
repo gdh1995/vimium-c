@@ -335,7 +335,7 @@ activate: function(_0, options, forceCurrent) {
     item = sel >= 0 ? this.completions[sel]
       : { url: this.mode.query, action: "navigateToUrl" };
     this.keepAlive ? (this.keepAlive = false) : this.hide();
-    this[item.action].call(item, this.forceNewTab);
+    this[item.action].call(this, item);
   },
   onClick: function(event) {
     var el = event.target, _i;
@@ -507,21 +507,18 @@ activate: function(_0, options, forceCurrent) {
       delete item.relevancy;
     }
   },
-  navigateToUrl: function(openInNewTab) {
-    if (Utils.evalIfOK(this.url)) { return; }
+  navigateToUrl: function(item) {
+    if (Utils.evalIfOK(item.url)) { return; }
     MainPort.port.postMessage({
       handler: "openUrl",
-      reuse: -openInNewTab,
-      url: this.url
+      reuse: -this.forceNewTab,
+      url: item.url
     });
   },
-  gotoSession: function() {
-    MainPort.port.postMessage(typeof this.sessionId === "number" ? {
-      handler: "selectTab",
-      tabId: this.sessionId
-    } : {
-      handler: "restoreSession",
-      sessionId: this.sessionId
+  gotoSession: function(item) {
+    MainPort.port.postMessage({
+      handler: "gotoSession",
+      sessionId: item.sessionId
     });
   }
 };

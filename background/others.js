@@ -263,16 +263,14 @@ setTimeout(function() { if (!chrome.omnibox) { return; }
     var sessionId = sessionIds && sessionIds[text];
     clean();
     if (sessionId == null) {
-      g_requestHandlers.openUrl({
-        url: text,
-        reuse: (disposition === "currentTab" ? 0
-          : disposition === "newForegroundTab" ? -1 : -2)
-      });
-    } else if (typeof sessionId === "number") {
-      g_requestHandlers.selectTab({ tabId: sessionId });
-    } else {
-      g_requestHandlers.restoreSession({ sessionId: sessionId });
+      g_requestHandlers.gotoSession({ sessionId: sessionId });
+      return;
     }
+    g_requestHandlers.openUrl({
+      url: text,
+      reuse: (disposition === "currentTab" ? 0
+        : disposition === "newForegroundTab" ? -1 : -2)
+    });
   };
   chrome.omnibox.onInputChanged.addListener(onInput);
   chrome.omnibox.onInputEntered.addListener(onEnter);

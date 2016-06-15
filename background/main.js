@@ -1134,8 +1134,11 @@ HelpDialog = {
         url: query
       });
     },
-    restoreSession: function(request) {
-      chrome.sessions.restore(request.sessionId, funcDict.onRuntimeError);
+    gotoSession: function(request) {
+      var id = request.sessionId;
+      typeof id === "number"
+      ? chrome.tabs.update(id, {active: true}, funcDict.selectWnd)
+      : chrome.sessions.restore(id, funcDict.onRuntimeError);
     },
     openUrl: function(request) {
       request.url_f = Utils.convertToUrl(request.url, request.keyword, 2);
@@ -1233,9 +1236,6 @@ HelpDialog = {
     },
     copyToClipboard: function(request) {
       Clipboard.copy(request.data);
-    },
-    selectTab: function(request) {
-      chrome.tabs.update(request.tabId, {active: true}, funcDict.selectWnd);
     },
     esc: resetKeys,
     createMark: function(request, port) { return Marks.createMark(request, port); },
