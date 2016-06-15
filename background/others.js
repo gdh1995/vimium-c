@@ -199,28 +199,34 @@ setTimeout(function() { if (!chrome.omnibox) { return; }
       onInput(arr[0], arr[1]);
     }
   },
-  onComplete = function(suggest, response) {
+  onComplete = function(suggest, response, autoSelect) {
     if (!lastSuggest || suggest.isOff) { return; }
     if (suggest === lastSuggest) { lastSuggest = null; }
     var sug = response[0];
-    if (!sug || sug.type !== "search") {
-      chrome.omnibox.setDefaultSuggestion(defaultSug);
+    if (sug && "sessionId" in sug) {
       sessionIds = Object.create(null);
       response.forEach(formatSessionId);
-    } else {
+    }
+    if (autoSelect) {
       firstUrl = sug.url;
+      response.shift();
+    }
+    if (!autoSelect) {
+      chrome.omnibox.setDefaultSuggestion(defaultSug);
+    } else if (sug.type === "search") {
       var text = sug.titleSplit.replace(spanRe, "");
       text = Utils.escapeText(text.substring(0, text.indexOf(":")));
       text = "<dim>" + text + " - </dim><url>" +
         sug.textSplit.replace(spanRe, "<$1match>") + "</url>";
       chrome.omnibox.setDefaultSuggestion({ description: text });
-      response.shift();
       if (sug = response[0]) switch (sug.type) {
       case "math":
         sug.description = "<dim>" + sug.textSplit + " = </dim><url><match>" +
           sug.titleSplit + "</match></url>";
         break;
       }
+    } else {
+      chrome.omnibox.setDefaultSuggestion({ description: format(sug).description });
     }
     response = response.map(format);
     suggest(suggestions = response);
