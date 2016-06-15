@@ -109,8 +109,12 @@ var Settings = {
       this.cache.baseCss = null;
       this.set("innerCss", css);
     },
-    vimSync: function() {
-      setTimeout(function() { window.location.reload(); }, 1000);
+    vimSync: function(value) {
+      if (value || !this.Sync.HandleStorageUpdate) { return; }
+      setTimeout(function() {
+        chrome.storage.onChanged.removeListener(Sync.HandleStorageUpdate);
+        Settings.Sync = { set: function() {} };
+      }, 100);
     },
     userDefinedCss: function(css) {
       css = this.cache.innerCss.substring(0, this.CONST.BaseCssLength) + css;
@@ -142,7 +146,7 @@ var Settings = {
     return true;
   },
   // clear localStorage & sync, if value === @defaults[key]
-  // the default of any dict field should be set to null, for @Sync
+  // the default of any dict field must be set to null for compatibility with @Sync.set
   defaults: {
     __proto__: null,
     deepHints: false,
