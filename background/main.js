@@ -1247,8 +1247,8 @@ HelpDialog = {
         url: request.url.split("#", 1)[0]
       }, funcDict.focusOrLaunch.bind(null, request));
     },
-    PostCompletions: function(list) {
-      cPort.postMessage({ name: "omni", list: list });
+    PostCompletions: function(list, autoSelect) {
+      cPort.postMessage({ name: "omni", list: list, autoSelect: autoSelect });
     },
     SetIcon: function() {},
     SendToCurrent: function(request) {

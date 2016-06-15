@@ -13,7 +13,6 @@ activate: function(_0, options, forceCurrent) {
   }
   Object.setPrototypeOf(options = options || {}, null);
   this.mode.type = options.mode || "omni";
-  this.initialSelectionValue = this.mode.type !== "omni" ? 0 : -1;
   this.forceNewTab = options.force ? true : false;
   handlerStack.remove(this);
   handlerStack.push(DomUtils.UI.SuppressMost, this);
@@ -63,7 +62,6 @@ activate: function(_0, options, forceCurrent) {
   completions: null,
   forceNewTab: false,
   keepAlive: false,
-  initialSelectionValue: -1,
   input: false,
   isSelectionChanged: false,
   list: null,
@@ -125,21 +123,23 @@ activate: function(_0, options, forceCurrent) {
   populateUI: function() {
     // work-around: For a node in a shadowRoot, if it's in the XML DOM tree,
     // then its children won't have `.style` if created by setting `.innerHTML`
-    this.list.remove();
-    this.list.innerHTML = this.renderItems(this.completions);
-    this.box.appendChild(this.list);
+    var list = this.list, barCls = this.input.parentElement.classList;
+    list.remove();
+    list.innerHTML = this.renderItems(this.completions);
+    this.selection = -1;
     if (this.completions.length > 0) {
-      this.list.style.display = "";
-      this.list.lastElementChild.classList.add("OBItem");
-      this.input.parentElement.classList.add("OWithList");
-      this.selection = (this.completions[0].type === "search") ? 0 : this.initialSelectionValue;
+      list.style.display = "";
+      list.lastElementChild.classList.add("OBItem");
+      barCls.add("OWithList");
+      if (this.autoSelect || this.mode.type !== "omni") {
+        this.selection = 0;
+        list.firstElementChild.classList.add("S");
+      };
     } else {
-      this.list.style.display = "none";
-      this.input.parentElement.classList.remove("OWithList");
-      this.selection = -1;
+      list.style.display = "none";
+      barCls.remove("OWithList");
     }
-    this.updateSelection(this.selection);
-    this.isSelectionChanged = false;
+    this.box.appendChild(list);
   },
   updateInput: function() {
     var focused = this.input.focused, line, str, sel;
