@@ -212,6 +212,7 @@ exclusions = {
     for (_i = 0, _len = rules.length; _i < _len; _i++) {
       ref[rules[_i].pattern] = ref2[_i * 2];
     }
+    this.rebuildTesters = null;
   },
   addRule: function() {
     ExclusionRulesOption.prototype.addRule.call(this, this.generateDefaultPattern());
@@ -277,7 +278,7 @@ exclusions = {
     if (status != 1) {
       status = 1;
       var btn = $("saveOptions");
-      $("helpText").innerHTML = "Type <strong>Ctrl-Enter</strong> to save and close.";
+      $("helpSpan").innerHTML = "Type <strong>Ctrl-Enter</strong> to save and close.";
       btn.removeAttribute("disabled");
       btn.textContent = "Save Changes";
     }
