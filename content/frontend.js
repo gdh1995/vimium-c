@@ -335,7 +335,7 @@ var VSettings, VHUD, MainPort, VEventMode;
       onKeyup2 = function(event) {
         if (keyCount === 0 || --keyCount || --count) {
           keys[event.keyCode] = 0;
-          HUD.show("Pass next key: " + count);
+          HUD.show("Pass next " + (count > 1 ? count + " keys." : "key."));
           return;
         }
         ELs.OnWndBlur();
@@ -346,7 +346,7 @@ var VSettings, VHUD, MainPort, VEventMode;
         ELs.OnWndBlur = null;
         HUD.hide();
       };
-      HUD.show("Pass next key: " + count);
+      onKeyup2({keyCode: 0});
     },
     goNext: function(_0, options) {
       var dir = options.dir;
