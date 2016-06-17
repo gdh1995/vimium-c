@@ -84,6 +84,10 @@ function ExclusionRulesOption() {
   this.element.addEventListener("input", this.onUpdated);
   this.element.addEventListener("click", function(e) { _this.onRemoveRow(e); });
   bgSettings.fetchFile("exclusionTemplate", function() {
+    var sortBtn = $("exclusionSortButton");
+    if (sortBtn) {
+      sortBtn.onclick = function() { _this.sortRules(this); };
+    }
     _this.element.innerHTML = bgSettings.cache.exclusionTemplate;
     _this.template = $('exclusionRuleTemplate').content.children[0];
     _this.list = _this.element.querySelector("tr").parentNode;
@@ -189,6 +193,25 @@ ExclusionRulesOption.prototype.getPattern = function(element) {
 ExclusionRulesOption.prototype.getPassKeys = function(element) {
   return element.querySelector(".passKeys");
 };
+
+ExclusionRulesOption.prototype.sortRules = function(element) {
+  var rules = this.readValueFromElement(), _i, rule, key, arr
+    , hostRe = /^(?:[:^]?[a-z?*]+:\/\/)?(?:www\.)?(.*)/;
+  for (_i = 0; _i < rules.length; _i++) {
+    rule = rules[_i];
+    if (arr = hostRe.exec(key = rule.pattern)) {
+      key = arr[1] || key;
+    }
+    rule.key = key;
+  }
+  rules.sort(function(a, b) { return a.key < b.key ? -1 : a.key === b.key ? 0 : 1; });
+  this.populateElement(rules);
+  if (!element || element.timer) { return; }
+  element.timer = setTimeout(function(el, text) {
+    el.textContent = text, el.timer = 0;
+  }, 1000, element, element.textContent);
+  element.textContent = "(Sorted)";
+}
 
 if (location.pathname.indexOf("/popup.html", location.pathname.length - 11) !== -1)
 chrome.tabs.query({currentWindow: true, active: true}, function(tab) {

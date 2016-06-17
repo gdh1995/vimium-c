@@ -231,10 +231,13 @@ td.booleanOption { font-size: 12px; }
   padding: 0 6px;
   visibility: hidden;
 }
-#exclusionAddButton {
-  float: right;
-  margin-right: 0;
+#exclusionToolbar {
+  -webkit-user-select: none;
   margin-top: 5px;
+  text-align: right;
+}
+#exclusionSortButton {
+  width: 80px;
 }
 #footer {
   background: #f5f5f5;
