@@ -126,6 +126,7 @@ activate: function(_0, options, forceCurrent) {
     var list = this.list, barCls = this.input.parentElement.classList;
     list.remove();
     list.innerHTML = this.renderItems(this.completions);
+    this.box.appendChild(list);
     this.selection = -1;
     if (this.completions.length > 0) {
       list.style.display = "";
@@ -139,7 +140,6 @@ activate: function(_0, options, forceCurrent) {
       list.style.display = "none";
       barCls.remove("OWithList");
     }
-    this.box.appendChild(list);
   },
   updateInput: function() {
     var focused = this.input.focused, line, str, sel;
