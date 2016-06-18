@@ -80,8 +80,7 @@ pre {
 }
 #wrapper {
   border-spacing: 0 23px;
-}
-#top {
+  margin-bottom: 30px;
   margin-top: -23px;
 }
 .info {
@@ -236,13 +235,13 @@ td.booleanOption { font-size: 12px; }
 #exclusionToolbar {
   margin-top: 5px;
 }
-#exclusionAddButton {
+#exclusionButtons {
   float: right;
+}
+#exclusionAddButton {
   visibility: visible;
-  margin-left: 4px;
 }
 #exclusionSortButton {
-  float: right;
   width: 80px;
 }
 #footer {
@@ -254,11 +253,6 @@ td.booleanOption { font-size: 12px; }
   right: 0;
   white-space: nowrap;
   z-index: 10;
-}
-#endSpace {
-  /* Leave space for the fixed footer. */
-  min-height: 30px;
-  max-height: 30px;
 }
 #footerWrapper {
   height: 30px;
@@ -275,10 +269,10 @@ td.booleanOption { font-size: 12px; }
   padding: 3px 0;
 }
 #advancedOptionsButton {
-  width: 170px;
+  width: 156px;
 }
 #saveOptions {
-  width: 110px;
+  width: 103px;
 }
 #settingFileManager {
   float: right;

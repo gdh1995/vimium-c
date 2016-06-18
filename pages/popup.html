@@ -9,23 +9,13 @@
 	padding: 0;
 }
 
-.middle {
-	vertical-align: middle;
-}
-
-#helpTd, #state {
+#helpText, #state {
 	font-family : "Helvetica Neue", "Helvetica", "Arial", sans-serif;
 	font-size: 12px;
-	width: 100%;
-}
-
-#exclusionAddButton {
-	width: 80px;
-	margin-top: 0;
 }
 
 #saveOptions {
-	margin-left: 5px;
+	margin-left: 4px;
 	float: right;
 }
 
@@ -34,15 +24,15 @@
 	background: #f5f5f5;
 	border-bottom: 1px solid #979ca0;
 	margin: 0;
+	width: 495px;
 }
 
 /* These are overridden from options.css. */
 
-#endSpace, #footerWrapper { width: 500px; }
-#footerWrapper {
-	height: 28px;
-	margin-left: 0;
-	padding: 0;
+#footer {
+	padding: 2px 2px 0 2px;
+	line-height: 24px;
+	text-align: right;
 }
 
 /* Make exclusionRules smaller than on the options page, because there are likely to be fewer
@@ -50,6 +40,7 @@
  */
 #exclusionRules {
 	height: 130px;
+	margin-bottom: 27px;
 }
     </style>
     <script defer="" src="options_base.js"></script>
@@ -61,26 +52,13 @@
       <!-- Populated from exclusions.html by options_base.js. -->
     </div>
 
-    <!-- Some extra space which is hidden underneath the footer. -->
-    <div id="endSpace"></div>
-
     <div id="footer">
-      <div id="footerWrapper">
-        <table>
-          <tr>
-            <td id="helpTd" style="line-height: 26px;">
-              <span id="helpSpan">These are the rules matching this page.</span>
-              <a id="optionsLink" target="_blank" tabindex="99">Options</a>
-            </td>
-            <td class="middle">
-              <button id="exclusionAddButton">Add Rule</button>
-            </td>
-            <td class="middle">
-              <button id="saveOptions" disabled="disabled">No Changes</button>
-            </td>
-          </tr>
-        </table>
+      <div id="helpText">
+        <span id="helpSpan">These are the rules matching this page.</span>
+        <a id="optionsLink" target="_blank" tabindex="99">Options</a>
       </div>
+      <button id="exclusionAddButton">Add Rule</button>
+      <button id="saveOptions" disabled="disabled">No Changes</button>
     </div>
   </body>
 </html>

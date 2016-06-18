@@ -12,7 +12,7 @@
   <body>
       <table id="wrapper">
 				<thead><tr><td colspan="2">
-					<header id="top">Vimium++ Options</header>
+					<header>Vimium++ Options</header>
 				</td></tr></thead>
         <tr>
           <td class="caption">Excluded URLs<br/>and keys</td>
@@ -29,8 +29,10 @@
                 <input id="exclusionListenHash" type="checkbox" data-model="CheckBox" />
                 Listen hash changes
               </label>
-              <button id="exclusionAddButton">Add Rule</button>
-              <button id="exclusionSortButton">Sort Rules</button>
+              <div id="exclusionButtons">
+                <button id="exclusionSortButton">Sort Rules</button>
+                <button id="exclusionAddButton">Add Rule</button>
+              </div>
             </div>
           </td>
           <td class="help"><div class="help-inner">
@@ -127,7 +129,7 @@ MainKey|c|c\:|MainName: \
           </tr>
           <tr>
             <td class="caption" rowspan="8">Miscellaneous<br/>options</td>
-            <td class="booleanOption" colspan="2">
+            <td class="booleanOption">
               <label>
                 <input id="smoothScroll" type="checkbox" data-model="CheckBox" />
                 Use smooth scrolling
@@ -294,9 +296,6 @@ MainKey|c|c\:|MainName: \
           </tr>
         </tbody>
       </table>
-
-    <!-- Some extra space which is hidden underneath the footer. -->
-    <div id="endSpace"></div>
 
     <div id="footer">
       <div id="footerWrapper">
