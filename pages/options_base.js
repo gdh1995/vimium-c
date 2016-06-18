@@ -135,8 +135,8 @@ ExclusionRulesOption.prototype.populateElement = function(rules) {
 ExclusionRulesOption.prototype.appendRule = function(list, rule) {
   var row;
   row = document.importNode(this.template, true);
-  row.querySelector('.pattern').value = rule.pattern;
-  row.querySelector('.passKeys').value = rule.passKeys.trimRight();
+  row.getElementsByClassName('pattern')[0].value = rule.pattern;
+  row.getElementsByClassName('passKeys')[0].value = rule.passKeys.trimRight();
   list.appendChild(row);
   return row;
 };
@@ -197,11 +197,11 @@ ExclusionRulesOption.prototype.flatten = function(rule) {
 ExclusionRulesOption.prototype.areEqual = Option.areJSONEqual;
 
 ExclusionRulesOption.prototype.getPattern = function(element) {
-  return element.querySelector(".pattern");
+  return element.getElementsByClassName("pattern")[0];
 };
 
 ExclusionRulesOption.prototype.getPassKeys = function(element) {
-  return element.querySelector(".passKeys");
+  return element.getElementsByClassName("passKeys")[0];
 };
 
 ExclusionRulesOption.prototype.sortRules = function(element) {
