@@ -1,13 +1,15 @@
 "use strict";
 
 Option.saveOptions = function() {
-  for (var arr = Option.all, i = arr.length; 0 <= --i; ) {
+  var arr = Option.all, i;
+  for (i in arr) {
     arr[i].saved || arr[i].save();
   }
 };
 
 Option.needSaveOptions = function() {
-  for (var arr = Option.all, i = arr.length; 0 <= --i; ) {
+  var arr = Option.all, i;
+  for (i in arr) {
     if (!arr[i].saved) {
       return true;
     }

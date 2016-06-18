@@ -22,10 +22,10 @@ function Option(element, onUpdated) {
   this.previous = null;
   this.saved = true;
   this.fetch();
-  Option.all.push(this);
+  Option.all[this.field] = this;
 }
 
-Option.all = [];
+Option.all = Object.create(null);
 Option.syncToFrontend = [];
 
 Option.prototype._onUpdated = function() {
