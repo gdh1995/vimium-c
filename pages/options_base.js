@@ -83,19 +83,20 @@ function ExclusionRulesOption() {
   bgSettings.fetchFile("exclusionTemplate", function() {
     _this.element.innerHTML = bgSettings.cache.exclusionTemplate;
     _this.template = $('exclusionRuleTemplate').content.children[0];
+    var el = $("exclusionSortButton");
+    if (el) {
+      el.onclick = function() { _this.sortRules(this); };
+    } else {
+      _this.onRowChange = function() {};
+    }
     _this.list = _this.element.getElementsByTagName('tbody')[0];
     _this.fetch = ExclusionRulesOption.__super__.fetch;
     _this.fetch();
     _this.list.addEventListener("input", _this.onUpdated);
     _this.list.addEventListener("click", function(e) { _this.onRemoveRow(e); });
     $("exclusionAddButton").onclick = function() { _this.addRule(null); };
-    var el = $("exclusionSortButton");
-    if (el) {
-      el.onclick = function() { _this.sortRules(this); };
-      _this.list.childElementCount > 1 &&
-      ($("exclusionToolbar").style.visibility = "");
-    } else {
-      _this.onRowChange = function() {};
+    if (el && _this.list.childElementCount > 0) {
+      $("exclusionToolbar").style.visibility = "";
     }
     _this.onInit && _this.onInit();
   });
