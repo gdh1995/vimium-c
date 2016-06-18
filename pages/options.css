@@ -1,7 +1,7 @@
 /* NOTE: This stylesheet is included in both options.html and popup.html.  So changes here affect
    both of these. */
 body {
-  font: 14px "DejaVu Sans", "Arial", sans-serif;
+  font: 14px "Arial", sans-serif;
   margin: 0 auto;
 }
 a, a:visited {
@@ -10,10 +10,6 @@ a, a:visited {
   text-decoration: underline;
 }
 a:active { color: #052577; }
-#wrapper, #footerWrapper {
-  width: 890px;
-  margin-left: 35px;
-}
 header {
   font-size: 18px;
   font-weight: normal;
@@ -27,11 +23,11 @@ button, select {
   border-radius: 2px;
   box-shadow: 0 1px 0 rgba(0, 0, 0, 0.08), inset 0 1px 2px rgba(255, 255, 255, 0.75);
   color: #444;
-  font: inherit;
-  text-shadow: 0 1px 0 #f0f0f0;
-  height: 24px;
   font-size: 12px;
+  height: 24px;
+  outline: none;
   padding: 0 10px;
+  text-shadow: 0 1px 0 #f0f0f0;
 }
 button:hover, select:hover {
   background-image: -webkit-linear-gradient(#f0f0f0, #f0f0f0 38%, #e0e0e0);
@@ -44,11 +40,7 @@ button:active, select:active {
   box-shadow: none;
   text-shadow: none;
 }
-button[disabled], button[disabled]:hover, button[disabled]:active {
-  background-image: -webkit-linear-gradient(#ededed, #ededed 38%, #dedede);
-  border: 1px solid rgba(0, 0, 0, 0.25);
-  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.08), inset 0 1px 2px rgba(255, 255, 255, 0.75);
-  text-shadow: 0 1px 0 #f0f0f0;
+button[disabled] {
   color: #888;
 }
 button.left {
@@ -78,6 +70,54 @@ pre {
   border-left: 1px solid #ccc;
   padding-left: 5px;
 }
+td {
+  padding: 0;
+  vertical-align: top;
+}
+
+input, textarea {
+  border: 1px solid #bfbfbf;
+  border-radius: 2px;
+  box-sizing: border-box;
+  color: black;
+  font: inherit;
+  outline: none;
+  padding: 3px;
+  white-space: nowrap;
+  width: 100%;
+}
+input[type=number] {
+  width: 66px;
+  margin-right: 4px;
+  text-align: center;
+  text-indent: 16px;
+}
+input[type=number]::-webkit-inner-spin-button {
+  margin-left: 1px;
+}
+input[type=checkbox] {
+  position: relative;
+  top: 2px;
+  width: auto;
+}
+input[type=text]:read-only,
+input[type=number]:read-only,
+textarea:read-only {
+  background-color: #ebebe4;
+  color: #444;
+}
+input:disabled, textarea:disabled {
+  color: #444;
+}
+button:focus, input:focus, select:focus, textarea:focus {
+  -webkit-transition: border-color 200ms;
+  border-color: #4d90fe;
+}
+
+#wrapper, #footerWrapper {
+  width: 890px;
+  margin-left: 35px;
+}
 #wrapper {
   border-spacing: 0 23px;
   margin-bottom: 30px;
@@ -94,19 +134,6 @@ pre {
 }
 .hide {
   display: none;
-}
-td {
-  padding: 0;
-  vertical-align: top;
-}
-input[type=number] {
-  width: 66px;
-  margin-right: 4px;
-  text-align: center;
-  text-indent: 16px;
-}
-input[type=number]::-webkit-inner-spin-button {
-  margin-left: 1px;
 }
 #linkHintCharacters {
   margin-top: 1px;
@@ -152,35 +179,7 @@ input[type=number]::-webkit-inner-spin-button {
 .help-inner.line-2x {
   top: 4px;
 }
-input, textarea {
-  border: 1px solid #bfbfbf;
-  border-radius: 2px;
-  box-sizing: border-box;
-  color: black;
-  font: inherit;
-  padding: 3px;
-  white-space: nowrap;
-  width: 100%;
-}
-input[type=text]:read-only,
-input[type=number]:read-only,
-textarea:read-only {
-  background-color: #ebebe4;
-  color: #444;
-}
-input:disabled, textarea:disabled {
-  color: #444;
-}
-input[type=checkbox] {
-  position: relative;
-  top: 2px;
-  width: auto;
-}
-button:focus, input:focus, textarea:focus, select:focus {
-  -webkit-transition: border-color 200ms;
-  border-color: #4d90fe;
-  outline: none;
-}
+
 /* Boolean options have a tighter form representation than text options. */
 td.booleanOption { font-size: 12px; }
 /* Ids and classes for rendering exclusionRules */
