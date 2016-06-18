@@ -117,6 +117,19 @@ CheckBoxOption.prototype.readValueFromElement = function() {
   return this.element.checked;
 };
 
+ExclusionRulesOption.prototype._onRowChange = ExclusionRulesOption.prototype.onRowChange;
+ExclusionRulesOption.prototype.managedCheckboxes = ["exclusionListenHash", "exclusionOnlyFirstMatch"];
+ExclusionRulesOption.prototype.onRowChange = function(isAdd) {
+  if (this._onRowChange(isAdd)) { return; }
+  var keys = this.managedCheckboxes, i, opt, style;
+  for (i = 0; i < keys.length; i++) {
+    opt = Option.all[keys[i]];
+    style = opt.element.parentNode.style;
+    style.visibility = isAdd || opt.saved ? "" : "visible";
+    style.display = !isAdd && opt.saved ? "none" : "";
+  }
+};
+
 (function() {
   var advancedMode, element, onUpdated, func, _i, _ref, status = 0;
 
