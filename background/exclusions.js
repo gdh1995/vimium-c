@@ -62,14 +62,17 @@ var Exclusions = {
     return matchedKeys || null;
   },
   getOnURLChange: function() {
-    return chrome.webNavigation && (this.onURLChange || g_requestHandlers.checkIfEnabled);
-  },
-  onURLChange: Settings.CONST.ChromeVersion < 41 && function(details) {
-    var ref = Settings.indexPorts(details.tabId), i, msg = { name: "checkIfEnabled" };
-    // force the tab's ports to reconnect and refresh their pass keys
-    for (i = ref && ref.length; 0 < --i; ) {
-      ref[i].postMessage(msg);
-    }
+    var onURLChange = !chrome.webNavigation ? null
+      : Settings.CONST.ChromeVersion >= 41 ? g_requestHandlers.checkIfEnabled
+      : function(details) {
+        var ref = Settings.indexPorts(details.tabId), i, msg = { name: "checkIfEnabled" };
+        // force the tab's ports to reconnect and refresh their pass keys
+        for (i = ref && ref.length; 0 < --i; ) {
+          ref[i].postMessage(msg);
+        }
+      };
+    this.getOnURLChange = function() { return onURLChange; }
+    return onURLChange;
   },
   format: function(rules) {
     var _i, _len, rule, out = [];
