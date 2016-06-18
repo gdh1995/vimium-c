@@ -15,6 +15,8 @@ var Exclusions = {
     return url.startsWith(this);
   },
   _listening: false,
+  _listeningHash: false,
+  onlyFirstMatch: false,
   rules: [],
   setRules: function(rules) {
     var onURLChange;
@@ -23,20 +25,28 @@ var Exclusions = {
       this.getPattern = function() { return null; };
       if (this._listening && (onURLChange = this.getOnURLChange())) {
         chrome.webNavigation.onHistoryStateUpdated.removeListener(onURLChange);
-        chrome.webNavigation.onReferenceFragmentUpdated.removeListener(onURLChange);
+        if (this._listeningHash) {
+          this._listeningHash = false;
+          chrome.webNavigation.onReferenceFragmentUpdated.removeListener(onURLChange);
+        }
       }
       this._listening = false;
       return;
     }
     this.testers || (this.testers = Object.create(null));
     this.rules = this.format(rules);
+    this.onlyFirstMatch = Settings.get("exclusionOnlyFirstMatch");
     this.testers = null;
-    if (!this._listening && (onURLChange = this.getOnURLChange())) {
-      chrome.webNavigation.onHistoryStateUpdated.addListener(onURLChange);
+    this.getPattern = this._getPattern;
+    if (this._listening) { return; }
+    this._listening = true;
+    onURLChange = this.getOnURLChange();
+    if (!onURLChange) { return; }
+    chrome.webNavigation.onHistoryStateUpdated.addListener(onURLChange);
+    if (Settings.get("exclusionListenHash") && !this._listeningHash) {
+      this._listeningHash = true;
       chrome.webNavigation.onReferenceFragmentUpdated.addListener(onURLChange);
     }
-    this._listening = true;
-    this.getPattern = this._getPattern;
   },
   getPattern: null,
   _getPattern: function(url) {
@@ -46,6 +56,7 @@ var Exclusions = {
         str = rules[_i + 1];
         if (!str) { return ""; }
         matchedKeys += str;
+        if (this.onlyFirstMatch) { break; }
       }
     }
     return matchedKeys || null;
@@ -122,10 +133,26 @@ var Exclusions = {
 };
 
 Settings.updateHooks.exclusionRules = function(rules) {
-  var is_empty = Exclusions.rules.length <= 0;
-  Exclusions.setRules(rules);
   g_requestHandlers.esc();
-  setTimeout(Exclusions.RefreshStatus, 17, is_empty);
+  setTimeout(function() {
+    var is_empty = Exclusions.rules.length <= 0;
+    Exclusions.setRules(rules);
+    setTimeout(Exclusions.RefreshStatus, 17, is_empty);
+  }, 17);
+};
+
+Settings.updateHooks.exclusionOnlyFirstMatch = function(value) {
+  Exclusions.onlyFirstMatch = value;
+};
+
+Settings.updateHooks.exclusionListenHash = function(value) {
+  var _this = Exclusions, onURLChange;
+  if (!_this._listening) { return; }
+  onURLChange = _this.getOnURLChange();
+  if (!onURLChange) { return; }
+  _this._listeningHash = value;
+  chrome.webNavigation.onReferenceFragmentUpdated[
+      value ? "addListener" : "removeListener"](onURLChange);
 };
 
 Exclusions.setRules(Settings.get("exclusionRules"));
