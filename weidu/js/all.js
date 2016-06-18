@@ -3598,7 +3598,7 @@ var skin = PDI.get('privateSetup', 'skin');
 if (skin && PDI.getSkin(skin, 'style')) {
 var wallpaperUrl = "", dtime = parseInt(Date.now() / 1000) - PDI.get("privateSetup", "BgChangeTime"),
 	unit = parseInt(PDI.get("privateSetup", "BgAutoTime") * 60), _wallpaper;
-if (!(skin == "skin_cloud" && unit > 0 && PDI.get('usedWallpaper').length > 0 && dtime >= unit)) {
+if (!(skin == "skin_cloud" && unit > 0 && PDI.get('usedWallpaper').length > 0 && dtime >= unit || unit === 1)) {
 } else if (!(_wallpaper = PDI.get("wallpaper"))) {
 	$.getJSON(urlImg + 'cloudWallpaper/index.json', function (data) {
 		if (data) {

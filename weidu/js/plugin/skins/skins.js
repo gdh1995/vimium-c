@@ -78,7 +78,7 @@ var skins = {
 		template.find(".bgAutoTime[automin]").bind("click", function () {
 			template.find(".bgAutoTime[automin]").removeClass("selected");
 			$(this).addClass("selected");
-			if (parseInt($(this).attr("automin")) > 0) {
+			if (parseFloat($(this).attr("automin")) > 0) {
 				var _usedWallpaper = PDI.get('usedWallpaper');
 				if (_usedWallpaper.length > 0) {
 					var _wallpaperId = _usedWallpaper[getRand(0, _usedWallpaper.length)];
@@ -113,7 +113,7 @@ var skins = {
 					}
 				}
 			}
-			PDI.set("privateSetup", "BgAutoTime", parseInt($(this).attr("automin")));
+			PDI.set("privateSetup", "BgAutoTime", parseFloat($(this).attr("automin")));
 			PDI.set("privateSetup", "BgChangeTime", parseInt(Date.now() / 1000))
 		});
 		template.find('.bgImport').bind('click', function () {
@@ -159,7 +159,8 @@ var skins = {
 		getI18nMsg('skinsAppSupported') + ' <a href="http://www.like5.com" target="_blank" style="font-size:18px;color:#454545;text-shadow:none;">LIKE5.COM</a></div><div class="skinsBody"><div class="wallpaperCategorysContainer"><div class="cloudWallpaperCategorys"></div><div class="moreSettings">' +
 		getI18nMsg('moreSettings') + '</div></div><div class="cloudWallpaperContainer"></div><div class="autoCloudWallpaperContainer"><div class="bgAutoChange">' +
 		getI18nMsg('bgAutoChange') + ':</div><div class="bgAutoTimeContainer"><div class="bgAutoTime" automin="0">' +
-			getI18nMsg('never') + '</div><div class="bgAutoTime" automin="5">5' +
+			getI18nMsg('never') + '</div><div class="bgAutoTime" automin="0.02">' +
+			getI18nMsg('everyRefresh') + '</div><div class="bgAutoTime" automin="5">5' +
 			getI18nMsg('minUnit') + '</div><div class="bgAutoTime" automin="10">10' +
 			getI18nMsg('minUnit') + '</div><div class="bgAutoTime" automin="30">30' +
 			getI18nMsg('minUnit') + '</div><div class="bgAutoTime" automin="60">1' +

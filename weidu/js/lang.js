@@ -89,6 +89,7 @@ Lang["zh_CN"] = {
 	"dialBoxWidth" : "宽度",
 	"dialBoxWidthUnit" : "px",
 	"editDialbox" : "单击编辑拨号框",
+	"everyRefresh" : "每次刷新",
 	"export" : "导出",
 	"exportError" : "您的数据导出失败，请重试！",
 	"extensionsAppTitle" : "扩展程序",
