@@ -92,6 +92,10 @@ function ExclusionRulesOption() {
     var el = $("exclusionSortButton");
     if (el) {
       el.onclick = function() { _this.sortRules(this); };
+      _this.list.childElementCount > 1 &&
+      ($("exclusionToolbar").style.visibility = "");
+    } else {
+      _this.onRowChange = function() {};
     }
     _this.onInit && _this.onInit();
   });
@@ -99,6 +103,12 @@ function ExclusionRulesOption() {
 __extends(ExclusionRulesOption, Option);
 
 ExclusionRulesOption.prototype.fetch = function() {};
+
+ExclusionRulesOption.prototype.onRowChange = function(isAdd) {
+  var count = this.list.childElementCount;
+  if (count - isAdd !== 1) { return true; }
+  $("exclusionToolbar").style.visibility = count > 1 ? "" : "hidden";
+};
 
 ExclusionRulesOption.prototype.addRule = function(pattern) {
   var element, exclusionScrollBox;
@@ -111,6 +121,7 @@ ExclusionRulesOption.prototype.addRule = function(pattern) {
   if (pattern) {
     this.onUpdated();
   }
+  this.onRowChange(1);
   return element;
 };
 
@@ -140,6 +151,7 @@ ExclusionRulesOption.prototype.onRemoveRow = function(event) {
   if (row1.classList.contains("exclusionRuleInstance")) {
     row1.remove();
     this.onUpdated();
+    this.onRowChange(0);
   }
 };
 
@@ -195,6 +207,7 @@ ExclusionRulesOption.prototype.getPassKeys = function(element) {
 };
 
 ExclusionRulesOption.prototype.sortRules = function(element) {
+  if (element && element.timer) { return; }
   var rules = this.readValueFromElement(), _i, rule, key, arr
     , hostRe = /^(?:[:^]?[a-z?*]+:\/\/)?(?:www\.)?(.*)/;
   for (_i = 0; _i < rules.length; _i++) {
@@ -206,7 +219,7 @@ ExclusionRulesOption.prototype.sortRules = function(element) {
   }
   rules.sort(function(a, b) { return a.key < b.key ? -1 : a.key === b.key ? 0 : 1; });
   this.populateElement(rules);
-  if (!element || element.timer) { return; }
+  if (!element) { return; }
   element.timer = setTimeout(function(el, text) {
     el.textContent = text, el.timer = 0;
   }, 1000, element, element.textContent);

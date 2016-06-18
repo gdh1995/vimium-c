@@ -217,6 +217,9 @@ td.booleanOption { font-size: 12px; }
 .exclusionRemoveButton:hover {
   color: #444;
 }
+.exclusionRemoveButton:focus {
+	color: #4d90fe;
+}
 .pattern, .passKeys, .exclusionHeaderText {
   width: 100%;
   font-family: Consolas, "Liberation Mono", Courier, monospace;
@@ -232,11 +235,15 @@ td.booleanOption { font-size: 12px; }
   visibility: hidden;
 }
 #exclusionToolbar {
-  -webkit-user-select: none;
   margin-top: 5px;
-  text-align: right;
+}
+#exclusionAddButton {
+  float: right;
+  visibility: visible;
+  margin-left: 4px;
 }
 #exclusionSortButton {
+  float: right;
   width: 80px;
 }
 #footer {
