@@ -148,7 +148,7 @@ var cloudWallpaper = {
 									$(".bgButton[layout='autowidth']").addClass("selected")
 								}
 							}
-							$(".wallpaper").css(PDI.getStyle('background'));
+							// $(".wallpaper").css(PDI.getStyle('background'));
 							var _skin = PDI.get('privateSetup', 'skin');
 							var _style = PDI.getSkin(_skin, 'style');
 							var tmp_color = _style && _style['background'] && _style['background']['backgroundColor'] || "";
@@ -172,6 +172,7 @@ var cloudWallpaper = {
 							oauth.updateMsgId();
 							oauth.synchronize();
 							$('.wallpaper').css(style.background);
+							installWall('skin_cloud', url);
 							self.loading = false;
 							thisSelf.find('.wallpaperLoading').remove()
 						});

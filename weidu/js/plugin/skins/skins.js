@@ -109,7 +109,7 @@ var skins = {
 						storage.remove('skins');
 						PDI.setSkin('skin_cloud', 'style', style);
 						PDI.set('privateSetup', 'skin', 'skin_cloud');
-						$('.wallpaper').css({backgroundImage: style.background.backgroundImage})
+						installWall('skin_cloud', _wallpaperUrl);
 					}
 				}
 			}
@@ -149,7 +149,7 @@ var skins = {
 				}
 				PDI.set('usedWallpaper', '', cloudWallpaper.cacheData['Used']);
 			}
-			$('.wallpaper').css({backgroundImage: bg.background.backgroundImage});
+			installWall('skin_cloud', this.value);
 		});
 		self.content = template;
 		return template
