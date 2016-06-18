@@ -176,7 +176,10 @@ var importSettings = function(time, new_data) {
   console.log("IMPORT settings: finished");
 };
 
-$("settingsFile").onchange = function() {
+window._el = null;
+_el = $("settingsFile");
+_el.onclick = null;
+_el.onchange = function() {
   var file = this.files[0], reader, lastModified;
   this.value = "";
   if (!file) { return; }
@@ -192,7 +195,9 @@ $("settingsFile").onchange = function() {
   reader.readAsText(file);
 };
 
-$("importOptions").onchange = function() {
+_el = $("importOptions");
+_el.onclick = null;
+_el.onchange = function() {
   if (this.value === "Exported File") {
     $("settingsFile").click();
     return;
@@ -211,3 +216,4 @@ if (window._delayed) {
   window._delayed.onclick && window._delayed.onclick();
   delete window._delayed;
 }
+delete window._el;
