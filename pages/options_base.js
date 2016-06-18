@@ -227,7 +227,7 @@ ExclusionRulesOption.prototype.sortRules = function(element) {
 
 if (location.pathname.indexOf("/popup.html", location.pathname.length - 11) !== -1)
 chrome.tabs.query({currentWindow: true, active: true}, function(tab) {
-  var exclusions, onUpdated, saveOptions, updateState, status = 0, ref, link
+  var exclusions, onUpdated, saveOptions, updateState, status = 0, ref
     , bgExclusions = BG.Exclusions, tabId, passKeys;
 
 exclusions = {
@@ -345,12 +345,8 @@ exclusions = {
   ref = bgSettings.indexPorts(tabId);
   exclusions.init(ref ? ref[0].sender.url : tab.url, $("exclusionRules"), onUpdated, updateState);
   ref = null;
-  link = $("optionsLink");
-  link.href = bgSettings.CONST.OptionsPage;
-  link.onclick = function(event) {
-    BG.g_requestHandlers.focusOrLaunch({ url: this.href });
-    event.preventDefault();
-    event.stopImmediatePropagation();
+  $("optionsLink").onclick = function() {
+    BG.g_requestHandlers.focusOrLaunch({ url: bgSettings.CONST.OptionsPage });
     window.close();
   };
   window.exclusions = exclusions;
