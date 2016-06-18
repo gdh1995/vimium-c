@@ -19,7 +19,6 @@ header {
   font-weight: normal;
   border-bottom: 1px solid #ddd;
   padding: 20px 0 15px 0;
-  width: 570px;
 }
 button, select {
   -webkit-user-select: none;
@@ -79,11 +78,11 @@ pre {
   border-left: 1px solid #ccc;
   padding-left: 5px;
 }
-#options {
+#wrapper {
   border-spacing: 0 23px;
-  font-size: 14px;
-  position: relative;
-  width: 100%;
+}
+#top {
+  margin-top: -23px;
 }
 .info {
   margin-left: 4px;

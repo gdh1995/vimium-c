@@ -205,7 +205,8 @@ ExclusionRulesOption.prototype.onRowChange = function(isAdd) {
       advancedMode = !advancedMode;
       bgSettings.set("showAdvancedOptions", advancedMode);
     }
-    $("advancedOptions").style.display = advancedMode ? "" : "none";
+    var el = $("advancedOptions");
+    el.previousElementSibling.style.display = el.style.display = advancedMode ? "" : "none";
     this.textContent = (advancedMode ? "Hide" : "Show") + " Advanced Options";
   };
   element.onclick(null, true);
