@@ -83,7 +83,7 @@ function ExclusionRulesOption() {
   bgSettings.fetchFile("exclusionTemplate", function() {
     _this.element.innerHTML = bgSettings.cache.exclusionTemplate;
     _this.template = $('exclusionRuleTemplate').content.children[0];
-    _this.list = _this.element.querySelector("tr").parentNode;
+    _this.list = _this.element.getElementsByTagName('tbody')[0];
     _this.fetch = ExclusionRulesOption.__super__.fetch;
     _this.fetch();
     _this.list.addEventListener("input", _this.onUpdated);
@@ -106,8 +106,8 @@ ExclusionRulesOption.prototype.fetch = function() {};
 
 ExclusionRulesOption.prototype.onRowChange = function(isAdd) {
   var count = this.list.childElementCount;
-  if (count - isAdd !== 1) { return true; }
-  $("exclusionToolbar").style.visibility = count > 1 ? "" : "hidden";
+  if (count - isAdd !== 0) { return true; }
+  $("exclusionToolbar").style.visibility = count > 0 ? "" : "hidden";
 };
 
 ExclusionRulesOption.prototype.addRule = function(pattern) {
@@ -126,10 +126,8 @@ ExclusionRulesOption.prototype.addRule = function(pattern) {
 };
 
 ExclusionRulesOption.prototype.populateElement = function(rules) {
-  var frag = document.createDocumentFragment(), head;
-  head = this.list.firstElementChild;
-  frag.appendChild(head);
   this.list.textContent = "";
+  var frag = document.createDocumentFragment();
   rules.forEach(this.appendRule.bind(this, frag));
   this.list.appendChild(frag);
 };
