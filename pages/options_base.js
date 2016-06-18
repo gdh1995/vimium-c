@@ -80,19 +80,19 @@ Option.areJSONEqual = function(a, b) {
 function ExclusionRulesOption() {
   var _this = this;
   ExclusionRulesOption.__super__.constructor.apply(this, arguments);
-  $("exclusionAddButton").onclick = function() { _this.addRule(null); };
-  this.element.addEventListener("input", this.onUpdated);
-  this.element.addEventListener("click", function(e) { _this.onRemoveRow(e); });
   bgSettings.fetchFile("exclusionTemplate", function() {
-    var sortBtn = $("exclusionSortButton");
-    if (sortBtn) {
-      sortBtn.onclick = function() { _this.sortRules(this); };
-    }
     _this.element.innerHTML = bgSettings.cache.exclusionTemplate;
     _this.template = $('exclusionRuleTemplate').content.children[0];
     _this.list = _this.element.querySelector("tr").parentNode;
     _this.fetch = ExclusionRulesOption.__super__.fetch;
     _this.fetch();
+    _this.list.addEventListener("input", _this.onUpdated);
+    _this.list.addEventListener("click", function(e) { _this.onRemoveRow(e); });
+    $("exclusionAddButton").onclick = function() { _this.addRule(null); };
+    var el = $("exclusionSortButton");
+    if (el) {
+      el.onclick = function() { _this.sortRules(this); };
+    }
     _this.onInit && _this.onInit();
   });
 }
