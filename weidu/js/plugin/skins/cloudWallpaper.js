@@ -209,7 +209,6 @@ var cloudWallpaper = {
 		}
 	}
 };
-cloudWallpaper.__init__();
 cloudWallpaper.container = $('.cloudWallpaperContainer');
 cloudWallpaper.contpp = cloudWallpaper.container.parent().parent();
 cloudWallpaper.init();
