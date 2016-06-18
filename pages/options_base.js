@@ -353,6 +353,7 @@ exclusions = {
     event.stopImmediatePropagation();
     window.close();
   };
+  window.exclusions = exclusions;
   window.onunload = function() {
     bgExclusions.testers = null;
   };
