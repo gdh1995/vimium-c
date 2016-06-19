@@ -261,7 +261,7 @@ setTimeout(function() { if (!chrome.omnibox) { return; }
     if (firstUrl && text === last) { text = firstUrl; }
     var sessionId = sessionIds && sessionIds[text];
     clean();
-    if (sessionId == null) {
+    if (sessionId != null) {
       g_requestHandlers.gotoSession({ sessionId: sessionId });
       return;
     }
