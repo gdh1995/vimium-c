@@ -3,7 +3,6 @@ var VFindMode = {
   isActive: false,
   query: "",
   parsedQuery: "",
-  partialQuery: "",
   historyIndex: 0,
   isRegex: false,
   ignoreCase: false,
@@ -34,7 +33,7 @@ body{cursor:text;display:inline-block;padding:0 3px 0 1px;min-width:7px;}body *{
       }
       this.box.contentWindow.focus();
       this.input.focus();
-      this.box.contentWindow.getSelection().selectAllChildren(this.input);
+      this.box.contentDocument.execCommand("selectAll", false);
       return;
     }
 
@@ -110,7 +109,7 @@ body{cursor:text;display:inline-block;padding:0 3px 0 1px;min-width:7px;}body *{
     this.box.remove();
     this.box = this.input = this.countEl = this.options = null;
     this.styleIn.remove();
-    this.partialQuery = this.parsedQuery = this.query = "";
+    this.parsedQuery = this.query = "";
     this.initialRange = this.regexMatches = null;
     this.historyIndex = this.matchCount = this.scrollY = this.scrollX = 0;
     this.isActive = false;
@@ -160,21 +159,22 @@ body{cursor:text;display:inline-block;padding:0 3px 0 1px;min-width:7px;}body *{
     }
   },
   nextQuery: function(dir) {
-    var ind = this.historyIndex + dir, query;
-    if (ind === 1 && dir > 0) { this.partialQuery = this.query; }
-    else if (ind < 1) { query = ind < 0 ? (ind = 0, this.query) : this.partialQuery; }
+    var ind = this.historyIndex + dir;
+    if (ind < 0) { return; }
     this.historyIndex = ind;
-    if (ind < 1) { this.SetQuery(query); return; }
+    if (dir < 0) {
+      this.box.contentDocument.execCommand("undo", false);
+      this.box.contentWindow.getSelection().collapseToEnd();
+      return;
+    }
     MainPort.sendMessage({ handler: "findQuery", index: ind }, this.SetQuery);
   },
   SetQuery: function(query) {
-    var _this = VFindMode, sel;
+    var _this = VFindMode, doc;
     if (query === _this.query) { return; }
     if (!query && _this.historyIndex > 0) { --_this.historyIndex; return; }
-    _this.input.textContent = query.replace(/^ /, '\xa0');
-    sel = _this.box.contentWindow.getSelection();
-    sel.selectAllChildren(_this.input);
-    sel.collapseToEnd();
+    (doc = _this.box.contentDocument).execCommand("selectAll", false);
+    doc.execCommand("insertText", false, query.replace(/^ /, '\xa0'));
     _this.onInput();
   },
   saveQuery: function() {
