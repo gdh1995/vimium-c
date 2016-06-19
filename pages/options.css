@@ -7,9 +7,14 @@ body {
 a, a:visited {
   color: #15c;
   cursor: pointer;
+}
+a[href], a:hover {
   text-decoration: underline;
 }
-a:active { color: #052577; }
+a:active {
+  color: #052577;
+  outline: none;
+}
 header {
   font-size: 18px;
   font-weight: normal;
