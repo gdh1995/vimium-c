@@ -126,6 +126,7 @@ body{cursor:text;display:inline-block;padding:0 3px 0 1px;min-width:7px;}body *{
       if (!KeyboardUtils.isPlain(event)) {
         if (event.shiftKey || !(event.ctrlKey || event.metaKey)) { return; }
         else if (n >= 74 && n <= 75) { this.execute(null, {dir: 74 - n }); }
+        else { return; }
       }
       else if (n === KeyCodes.f1) { this.box.contentDocument.execCommand("delete"); }
       else if (n === KeyCodes.f1 + 1) { window.focus(); }
