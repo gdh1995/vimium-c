@@ -5,7 +5,7 @@ All information handled by Vimium++, including history, bookmarks and page title
 
 There will be no syncing activity to your Chrome account, unless you enable the hidden setting item "vimSync" manually.
 
-Your search history on `Vomnibar` and `Link Hints` modes will be cleaned immediately after it's used.
+Your search history in `Vomnibar` and `Link Hints` modes will be cleaned immediately after it's used.
 
 While Vimium++ supports both settings syncing (uploading) and exporting,
     your search keywords on `Find` mode won't be included,
@@ -35,11 +35,11 @@ Note: the "browsing activity" listed above actually includes many permissions:
 
 
 Other Explanations
-=================
-
-Vimium++ also registers a search key "v" for Chrome omni bar, which makes the bar work just like Vomnibar.
+==================
 
 Vimium++ overrides the "newtab" chrome url in order to provide better user experience on chrome://newtab pages.
+
+Vimium++ also registers a search key "v" for Chrome omni box, which makes the box work just like Vomnibar.
 
 Such permissions can be removed safely and won't break Vimium:
 * "notifications", "storage" and "webNavigation"

@@ -1,11 +1,11 @@
 Vimium++
 ========
 [![license](https://img.shields.io/badge/license-MIT-blue.svg)](MIT-LICENSE.txt)
-![version](https://img.shields.io/badge/release-v1.53-orange.svg)
+![version](https://img.shields.io/badge/release-1.53.1-orange.svg)
 
 A custom [Vimium](https://github.com/philc/vimium)
-  by [gdh1995](https://github.com/gdh1995).
-  Support Chrome with the session functionalities only (ver >= 37).
+  by [gdh1995](https://github.com/gdh1995),
+  supporting Chrome with the session functionalities only (ver >= 37).
   For older version, it would try to work ^_^
 
 In the *weidu* directory is 微度新标签页.
@@ -40,11 +40,11 @@ Release Notes
 1.53.1:
 
 * Link hints: filter out those only having one single clickable child
-* use a better and more compatible way to get a bookmark\'s full path
+* use a better and more compatible way to get a bookmark's full path
 * replace setting item `UILanguage` with simpler `localeEncoding`
 * auto load bookmarks if `tinyMemory` is disabled, so Vomnibar's first complement is faster
 * bug fixes:
-  * fail to get a bookmark\'s full path
+  * fail to get a bookmark's full path
   * fail to decode urls by given character encoding
   * a potential crash in history completer
 
