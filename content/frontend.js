@@ -988,7 +988,8 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
     box.onclick = hide;
     box.addEventListener("mousewheel", hide, {passive: true});
 
-    hide = function() {
+    hide = function(event) {
+      event && event.preventDefault && event.preventDefault();
       box.contains(DomUtils.lastHovered) && (DomUtils.lastHovered = null);
       box.contains(Scroller.current) && (Scroller.current = null);
       handlerStack.remove(box);
@@ -1002,7 +1003,8 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
     };
 
     oldShowHelp = Commands.showHelp;
-    box.querySelector("#AdvancedCommands").onclick = function() {
+    box.querySelector("#AdvancedCommands").onclick = function(event) {
+      event.preventDefault();
       shouldShowAdvanced = !shouldShowAdvanced;
       toggleAdvanced();
       mainPort.port.postMessage({
