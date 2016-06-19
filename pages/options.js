@@ -243,9 +243,10 @@ ExclusionRulesOption.prototype.onRowChange = function(isAdd) {
     element.textContent = "Scale to fit";
   }
 
-  func = function() {
+  func = function(event) {
     window._delayed = this.id;
     loadJS("options_ext.js");
+    event.preventDefault();
   };
   _ref = document.querySelectorAll("[data-delay]");
   for (_i = _ref.length; 0 <= --_i; ) {

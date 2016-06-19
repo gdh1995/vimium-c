@@ -345,8 +345,9 @@ exclusions = {
   ref = bgSettings.indexPorts(tabId);
   exclusions.init(ref ? ref[0].sender.url : tab.url, $("exclusionRules"), onUpdated, updateState);
   ref = null;
-  $("optionsLink").onclick = function() {
-    BG.g_requestHandlers.focusOrLaunch({ url: bgSettings.CONST.OptionsPage });
+  $("optionsLink").onclick = function(event) {
+    event.preventDefault();
+    BG.g_requestHandlers.focusOrLaunch({ url: this.href });
     window.close();
   };
   window.exclusions = exclusions;
