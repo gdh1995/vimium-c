@@ -199,6 +199,7 @@ td.booleanOption { font-size: 12px; }
   box-sizing: border-box;
 }
 #exclusionRulesTable {
+  font-family: Consolas, "Liberation Mono", Courier, monospace;
   width: 100%;
 }
 .exclusionRulePassKeys {
@@ -221,11 +222,6 @@ td.booleanOption { font-size: 12px; }
 }
 .exclusionRemoveButton:focus {
 	color: #4d90fe;
-}
-.pattern, .passKeys, .exclusionHeaderText {
-  width: 100%;
-  font-family: Consolas, "Liberation Mono", Courier, monospace;
-  font-size: 14px;
 }
 .exclusionHeaderText {
   padding-left: 3px;
