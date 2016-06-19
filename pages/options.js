@@ -212,8 +212,15 @@ ExclusionRulesOption.prototype.onRowChange = function(isAdd) {
   element.onclick(null, true);
 
   document.addEventListener("keyup", function(event) {
-    if ((event.ctrlKey || event.metaKey) && event.keyCode === 13) {
-      document.activeElement.blur();
+    if (event.keyCode !== 13) { return; }
+    var el = event.target;
+    if (el instanceof HTMLAnchorElement) {
+      setTimeout(function(el) {
+        el.click();
+        el.blur();
+      }, 0, el);
+    } else if (event.ctrlKey || event.metaKey) {
+      el.blur();
       if (status != 0) {
         $("saveOptions").onclick();
       }
