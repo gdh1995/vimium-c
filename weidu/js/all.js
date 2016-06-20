@@ -785,6 +785,8 @@ var PDI = {
 			data2 = (data.style = {})[part] = {}
 		} else if (!data2[part]) {
 			data2 = data2[part] = {}
+		} else {
+			data2 = data2[part];
 		}
 		data2[key] = value;
 		storage.set('privateSetup', data, true)
