@@ -125,7 +125,7 @@ button:focus, input:focus, select:focus, textarea:focus {
 }
 #wrapper {
   border-spacing: 0 23px;
-  margin-bottom: 30px;
+  margin-bottom: 37px;
   margin-top: -23px;
 }
 .info {
@@ -155,7 +155,7 @@ button:focus, input:focus, select:focus, textarea:focus {
   line-height: 18px;
 }
 #keyboard, #localeEncoding {
-  width: 120px;
+  width: 165px;
   text-align: center;
 }
 /* Make the caption in the settings table as small as possible, to pull the other fields to the right. */
@@ -180,6 +180,9 @@ button:focus, input:focus, select:focus, textarea:focus {
   position: relative;
   top: -2px;
   width: 300px;
+}
+.help-inner.line-1x {
+  top: 5px;
 }
 .help-inner.line-2x {
   top: 4px;
