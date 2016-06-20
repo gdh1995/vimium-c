@@ -81,8 +81,9 @@ function JSONOption() {
 __extends(JSONOption, TextOption);
 
 JSONOption.prototype.populateElement = function(obj, enableUndo) {
+  var oneline = this.element instanceof HTMLInputElement, str = JSON.stringify(obj, null, oneline ? 1 : 2);
   JSONOption.__super__.populateElement.call(this
-    , JSON.stringify(obj, null, this.element instanceof HTMLInputElement ? 1 : 2)
+    , oneline ? str.replace(/(,?)\n\s*/g, function(_, s) { return s ? ", " : ""; }) : str
     , enableUndo);
 };
 
