@@ -118,6 +118,15 @@ button:focus, input:focus, select:focus, textarea:focus {
   -webkit-transition: border-color 200ms;
   border-color: #4d90fe;
 }
+label {
+  padding-top: 1px;
+}
+label.align-top {
+  padding-top: 3px;
+}
+label:active {
+  outline: none;
+}
 
 #wrapper, #footerWrapper {
   width: 890px;

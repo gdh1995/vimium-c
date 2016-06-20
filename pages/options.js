@@ -213,6 +213,15 @@ ExclusionRulesOption.prototype.onRowChange = function(isAdd) {
   };
   element.onclick(null, true);
 
+  document.addEventListener("keydown", function(event) {
+    if (event.keyCode !== 32) { return; }
+    var el = event.target;
+    if (el instanceof HTMLLabelElement) {
+      el.control.click();
+      event.preventDefault();
+    }
+  });
+
   document.addEventListener("keyup", function(event) {
     if (event.keyCode !== 13) { return; }
     var el = event.target;
@@ -261,6 +270,15 @@ ExclusionRulesOption.prototype.onRowChange = function(isAdd) {
   _ref = $$("[data-delay]");
   for (_i = _ref.length; 0 <= --_i; ) {
     _ref[_i].onclick = func;
+  }
+
+  _ref = $$("input[type=checkbox]");
+  for (_i = _ref.length; 0 <= --_i; ) {
+    element = _ref[_i];
+    element.tabIndex = -1;
+    element.setAttribute("aria-hidden", "true");
+    element.nextElementSibling.tabIndex = 0;
+    element.nextElementSibling.setAttribute("for", element.id);
   }
 
   function onBeforeUnload() {
