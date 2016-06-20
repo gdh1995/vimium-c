@@ -55,6 +55,10 @@ var skins = {
 			}
 			oauth.updateMsgId();
 			oauth.synchronize();
+			if (layout == "autoheight") {
+				installWall('skin_cloud');
+				return;
+			}
 			$(".wallpaper").css(PDI.getStyle('background'))
 		});
 		template.find(".bgColor").find("button").bind("click", function () {

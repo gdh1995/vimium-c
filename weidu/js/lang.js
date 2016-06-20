@@ -20,7 +20,7 @@ Lang["zh_CN"] = {
 	"bgColor" : "背景色",
 	"bgImportFile" : "选择图片地址",
 	"bgLayout" : "壁纸布局",
-	"bgLayoutAutoHeight" : "适高",
+	"bgLayoutAutoHeight" : "智能填充",
 	"bgLayoutAutoWidth" : "适宽",
 	"bgLayoutCenter" : "中",
 	"bgLayoutLeft" : "左",
