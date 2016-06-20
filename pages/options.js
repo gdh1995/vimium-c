@@ -1,4 +1,5 @@
 "use strict";
+var $$ = document.querySelectorAll.bind(document);
 
 Option.saveOptions = function() {
   var arr = Option.all, i;
@@ -185,7 +186,7 @@ ExclusionRulesOption.prototype.onRowChange = function(isAdd) {
     }, 100);
   };
 
-  _ref = document.querySelectorAll("[data-model]");
+  _ref = $$("[data-model]");
   for (_i = _ref.length; 0 <= --_i; ) {
     element = _ref[_i];
     func = window[element.getAttribute("data-model") + "Option"];
@@ -193,7 +194,7 @@ ExclusionRulesOption.prototype.onRowChange = function(isAdd) {
   }
 
   func = loadChecker;
-  _ref = document.querySelectorAll("[data-check]");
+  _ref = $$("[data-check]");
   for (_i = _ref.length; 0 <= --_i; ) {
     element = _ref[_i];
     element.addEventListener(element.getAttribute("data-check") || "input", func);
@@ -244,10 +245,11 @@ ExclusionRulesOption.prototype.onRowChange = function(isAdd) {
       (target.offsetWidth - target.clientWidth) + "px";
     target.style.height = target.scrollHeight + 20 + delta + "px";
   };
-  _ref = document.querySelectorAll("[data-auto-scale]");
+  _ref = $$("[data-auto-scale]");
   for (_i = _ref.length; 0 <= --_i; ) {
     element = _ref[_i];
     element.onclick = func;
+    element.tabIndex = 0;
     element.textContent = "Scale to fit";
   }
 
@@ -256,7 +258,7 @@ ExclusionRulesOption.prototype.onRowChange = function(isAdd) {
     loadJS("options_ext.js");
     event.preventDefault();
   };
-  _ref = document.querySelectorAll("[data-delay]");
+  _ref = $$("[data-delay]");
   for (_i = _ref.length; 0 <= --_i; ) {
     _ref[_i].onclick = func;
   }
