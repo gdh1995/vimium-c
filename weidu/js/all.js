@@ -3628,9 +3628,10 @@ if (!(skin == "skin_cloud" && unit > 0 && PDI.get('usedWallpaper').length > 0 &&
 	if (wallpaperUrl) {
 		var _style = PDI.getSkin(skin, 'style');
 		_style.background.backgroundImage = "url(" + wallpaperUrl + ")";
-		PDI.setSkin(skin, 'style', _style);
-		unit === 1 ||
-		PDI.set("privateSetup", "BgChangeTime", parseInt(Date.now() / 1000) - dtime + parseInt(dtime / unit) * unit);
+		if (unit > 1) {
+			PDI.setSkin(skin, 'style', _style);
+			PDI.set("privateSetup", "BgChangeTime", parseInt(Date.now() / 1000) - dtime + parseInt(dtime / unit) * unit);
+    }
 	}
 }
 installWall(skin, wallpaperUrl);
