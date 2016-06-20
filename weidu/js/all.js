@@ -2165,7 +2165,9 @@ DBOX = {
 			self.totalPage = ((self.totalnum % self.num) == 0) ? (self.totalnum / self.num) : parseInt(self.totalnum / self.num) + 1;
 			self.page = self.page > self.totalPage ? self.totalPage : self.page
 		}
-		PDI.set('dialBoxPage', null, self.page);
+		if (PDI.get('dialBoxPage', null) !== self.page) {
+			PDI.set('dialBoxPage', null, self.page);
+		}
 		self.pageIndex();
 		return _boxes
 	},
@@ -3627,6 +3629,7 @@ if (!(skin == "skin_cloud" && unit > 0 && PDI.get('usedWallpaper').length > 0 &&
 		var _style = PDI.getSkin(skin, 'style');
 		_style.background.backgroundImage = "url(" + wallpaperUrl + ")";
 		PDI.setSkin(skin, 'style', _style);
+		unit === 1 ||
 		PDI.set("privateSetup", "BgChangeTime", parseInt(Date.now() / 1000) - dtime + parseInt(dtime / unit) * unit);
 	}
 }
