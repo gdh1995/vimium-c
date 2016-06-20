@@ -222,7 +222,7 @@ var LinkHints = {
       break;
     case "div": case "ul": case "pre": case "ol":
       type = element.clientHeight < element.scrollHeight ? 9
-        : element.clientWidth < element.scrollWidth ? 8 : 0
+        : element.clientWidth < element.scrollWidth ? 8 : 0;
       break;
     }
     if (isClickable === null) {
