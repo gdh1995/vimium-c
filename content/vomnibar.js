@@ -72,6 +72,10 @@ activate: function(_0, options, forceCurrent) {
   timer: 0,
   wheelTimer: 0,
   show: function() {
+    var width = document.documentElement.clientWidth * 0.8;
+    if (width !== (width | 0)) {
+      this.box.style.width = (width | 0) / (width / 0.8) * 100 + "%";
+    }
     this.box.style.display = "";
     this.input.value = this.inputText;
     DomUtils.UI.addElement(this.box);
@@ -84,6 +88,7 @@ activate: function(_0, options, forceCurrent) {
     clearTimeout(this.timer);
     this.timer = 0;
     this.box.style.display = "none";
+    this.box.style.width = "";
     this.box.onmousewheel = null;
     this.list.textContent = "";
     this.input.value = "";
