@@ -61,7 +61,7 @@
       "content/marks.js",
       "content/frontend.js",
       "content/mode_find.js",
-      "front/extend_click.js"
+      "lib/extend_click.js"
     ],
     "matches": [ "<all_urls>" ],
     "run_at": "document_start"
