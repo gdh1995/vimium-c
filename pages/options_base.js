@@ -1,6 +1,6 @@
 "use strict";
 
-var $, ExclusionRulesOption, bgSettings, BG,
+var $, bgSettings, BG,
 KeyRe = /<(?:(?:a-(?:c-)?(?:m-)?|c-(?:m-)?|m-)(?:[A-Z][0-9A-Z]+|[a-z][0-9a-z]+|[^\s])|[A-Z][0-9A-Z]+|[a-z][0-9a-z]+)>|[^\s]/g,
 __extends = function(child, parent) {
   Object.setPrototypeOf(child.prototype, parent.prototype);
