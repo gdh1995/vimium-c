@@ -1467,6 +1467,9 @@ HelpDialog = {
       ref2[ref[i]].useTab = -1;
     }
 
+    Settings.updateHooks.tinyMemory = function(value) {
+      tinyMemory = value;
+    };
     setTimeout(ContentSettings.clear, 100, "images");
   }, 34);
 

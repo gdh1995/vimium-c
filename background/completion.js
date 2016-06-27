@@ -926,11 +926,10 @@ searchEngines: {
       _this.Work(this);
     },
     _dataUrl: "",
-    SetDataUrl: function(charset) {
-      Decoder._dataUrl = "data:text/plain;charset=" + charset + ",";
-    },
     init: function() {
-      Settings.updateHooks.localeEncoding = this.SetDataUrl;
+      Settings.updateHooks.localeEncoding = function(charset) {
+        Decoder._dataUrl = "data:text/plain;charset=" + charset + ",";
+      };
       Settings.postUpdate("localeEncoding");
       this.init = null;
     }
