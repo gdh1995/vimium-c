@@ -874,7 +874,7 @@ searchEngines: {
         try {
           while (++i < l) {
             j = a[i], s = j.url;
-            if (s.length >= 256) { j.text = s; continue; }
+            if (s.length >= 200) { j.text = s; continue; }
             t = f(s);
             j.text = t !== s ? t : s;
           }
@@ -889,13 +889,12 @@ searchEngines: {
     todos: [], // each item is either {url: ...} or "url"
     _ind: -1,
     continueToWork: function() {
-      if (this.todos.length > 0 && this._ind === -1) {
-        var xhr = new XMLHttpRequest();
-        xhr.onload = this.OnXHR;
-        this._ind = 0;
-        this.init && this.init();
-        setTimeout(this.Work, 17, xhr);
-      }
+      if (this.todos.length === 0 || this._ind !== -1) { return; }
+      var xhr = new XMLHttpRequest();
+      xhr.onload = this.OnXHR;
+      this._ind = 0;
+      this.init && this.init();
+      setTimeout(this.Work, 17, xhr);
     },
     Work: function(xhr) {
       var _this = Decoder, url, str, text;
@@ -939,7 +938,7 @@ searchEngines: {
   (function() {
     var d = Decoder.dict, f = Decoder._f, t = Decoder.todos;
     Decoder.decodeURL = function(a) {
-      if (a.length >= 256) { return a; }
+      if (a.length >= 200) { return a; }
       try {
         return f(a);
       } catch (e) {
