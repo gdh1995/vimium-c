@@ -938,7 +938,7 @@ searchEngines: {
   (function() {
     var d = Decoder.dict, f = Decoder._f, t = Decoder.todos;
     Decoder.decodeURL = function(a) {
-      if (a.length < 256) { return a; }
+      if (a.length >= 256) { return a; }
       try {
         return f(a);
       } catch (e) {
