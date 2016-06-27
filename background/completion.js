@@ -887,26 +887,27 @@ searchEngines: {
     },
     dict: Object.create(null),
     todos: [], // each item is either {url: ...} or "url"
-    _timer: 0,
+    _ind: -1,
     continueToWork: function() {
-      if (this.todos.length > 0 && this._timer === 0) {
+      if (this.todos.length > 0 && this._ind === -1) {
         var xhr = new XMLHttpRequest();
         xhr.onload = this.OnXHR;
-        this._timer = setTimeout(this.Work, 17, xhr);
+        this._ind = 0;
+        this.init && this.init();
+        setTimeout(this.Work, 17, xhr);
       }
     },
     Work: function(xhr) {
       var _this = Decoder, url, str, text;
-      _this.init && _this.init();
-      if (! _this.todos.length) {
-        _this._timer = 0;
+      if (_this.todos.length <= _this._ind) {
+        _this._ind = -1;
         return;
       }
-      while (url = _this.todos[0]) {
+      while (url = _this.todos[_this._ind]) {
         str = url.url || url;
         if (text = _this.dict[str]) {
           url.url && (url.text = text);
-          _this.todos.shift();
+          _this._ind++;
           continue;
         }
         xhr.open("GET", _this._dataUrl + str, true);
@@ -916,7 +917,7 @@ searchEngines: {
     },
     OnXHR: function() {
       var _this = Decoder, url, str, text = this.responseText;
-      url = _this.todos.shift();
+      url = _this.todos[_this._ind++];
       if (str = url.url) {
         _this.dict[str] = url.text = text;
       } else {
