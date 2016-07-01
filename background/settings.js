@@ -164,7 +164,7 @@ var Settings = {
     keyboard: [500, 33],
     keyMappings: "",
     linkHintCharacters: "sadjklewcmpgh",
-    localeEncoding: "GBK",
+    localeEncoding: "gbk",
     newTabUrl: "",
     newTabUrl_f: "",
     nextPatterns: "\u4e0b\u9875,\u4e0b\u4e00\u9875,\u4e0b\u4e00\u7ae0,\u540e\u4e00\u9875"
