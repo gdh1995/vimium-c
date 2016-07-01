@@ -1,14 +1,14 @@
 "use strict";
 var Clipboard = {
-  _getTextArea: function() {
+  getTextArea: function() {
     var el = document.createElement("textarea");
     el.style.position = "absolute";
     el.style.left = "-100%";
-    this._getTextArea = function() { return el; }
+    this.getTextArea = function() { return el; }
     return el;
   },
   copy: function(data) {
-    var textArea = this._getTextArea();
+    var textArea = this.getTextArea();
     textArea.value = data;
     document.documentElement.appendChild(textArea);
     textArea.select();
@@ -17,7 +17,7 @@ var Clipboard = {
     textArea.value = "";
   },
   paste: function() {
-    var textArea = this._getTextArea(), value;
+    var textArea = this.getTextArea(), value;
     document.documentElement.appendChild(textArea);
     textArea.focus();
     document.execCommand("paste");
