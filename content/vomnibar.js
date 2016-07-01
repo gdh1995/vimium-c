@@ -370,12 +370,12 @@ activate: function(_0, options, forceCurrent) {
     _i = [].indexOf.call(list.children, el.parentElement.parentElement);
     el.href = Vomnibar.completions[_i].url;
   },
-  OnSelected: function() {
+  OnSelect: function() {
     var el = this, left, end;
     if (el.selectionStart !== 0 || el.selectionDirection !== "backward") { return; }
     left = el.value;
     end = el.selectionEnd - 1;
-    if (left.charCodeAt(end) !== 32) { return; }
+    if (left.charCodeAt(end) !== 32 || end === left.length - 1) { return; }
     left = left.substring(0, end).trimRight();
     if (left.indexOf(" ") === -1) {
       el.setSelectionRange(0, left.length, 'backward');
@@ -461,7 +461,7 @@ activate: function(_0, options, forceCurrent) {
       DomUtils.UI.addElement(this.box);
     }
     this.input.oninput = this.onInput.bind(this);
-    this.input.onselect = this.OnSelected;
+    this.input.onselect = this.OnSelect;
     this.input.onfocus = this.input.onblur = VEventMode.on("UI");
     this.box.querySelector("#OClose").onclick = function() { Vomnibar.hide(); };
     this.list.oncontextmenu = this.OnMenu;
