@@ -776,7 +776,7 @@ searchEngines: {
     history: null,
     _callbacks: [],
     use: function(callback) {
-      if (!this._callbacks.length) {
+      if (this._use) {
         chrome.history.search({
           text: "",
           maxResults: this.size,
@@ -792,8 +792,8 @@ searchEngines: {
       _this.history = history;
       _this.use = function(callback) { callback(this.history); };
       ref = _this._callbacks;
-      while (ref.length > ++i) { (0, ref[i])(history); }
       _this._callbacks = null;
+      while (ref.length > ++i) { (0, ref[i])(history); }
       setTimeout(_this.Clean, 200);
     },
     Clean: function() {
