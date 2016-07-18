@@ -29,16 +29,16 @@
         "default": "Alt+T"
       }
     },
-    "nextTab": {
-      "description": "Go one tab right",
-      "suggested_key": {
-        "default": "Alt+V"
-      }
-    },
     "previousTab": {
       "description": "Go one tab left",
       "suggested_key": {
         "default": "Alt+C"
+      }
+    },
+    "nextTab": {
+      "description": "Go one tab right",
+      "suggested_key": {
+        "default": "Alt+V"
       }
     },
     "reloadTab": {
