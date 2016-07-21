@@ -29,7 +29,7 @@ body.close {
 
 #textTip::after {
   color: gray;
-  content: attr(data-tip);
+  content: attr(data-text);
   display: inline-block;
   font-style: italic;
   width: 55px;

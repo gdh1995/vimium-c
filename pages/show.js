@@ -199,7 +199,7 @@ function clickShownNode(event) {
 }
 
 function showText(tip, body) {
-  $("textTip").setAttribute("data-tip", tip);
+  $("textTip").setAttribute("data-text", tip);
   if (body) {
     $("textBody").textContent = body;
     shownNode.onclick = copyThing;
