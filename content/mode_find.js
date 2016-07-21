@@ -19,6 +19,7 @@ var VFindMode = {
   styleIn: null,
   options: null,
   cssSel: "::selection{background:#ff9632;}",
+  cssOut: ".vimiumFindMode body{-webkit-user-select:auto !important;}\n.vimiumFindMode ",
   cssIFrame: '*{font:normal normal normal 12px "Helvetica Neue",Helvetica,Arial,sans-serif !important;\
 height:14px;line-height:12px;margin:0;overflow-y:hidden;vertical-align:top;white-space:nowrap;cursor:default;}\
 body{cursor:text;display:inline-block;padding:0 3px 0 1px;min-width:7px;}body *{cursor:text;display:inline;}body br{display:none;}',
@@ -78,7 +79,7 @@ body{cursor:text;display:inline-block;padding:0 3px 0 1px;min-width:7px;}body *{
     ref.exit = ref.exit.bind(ref);
     this.styleIn = UI.createStyle(this.cssSel);
     UI.init && UI.init();
-    UI.box.appendChild(UI.createStyle(".vimiumFindMode " + this.cssSel));
+    UI.box.appendChild(UI.createStyle(this.cssOut + this.cssSel));
     this.init = null;
   },
   findAndFocus: function(query, options) {
