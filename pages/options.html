@@ -10,294 +10,294 @@
   </head>
 
   <body>
-      <table id="wrapper">
-				<thead><tr><td colspan="2">
-					<header>Vimium++ Options</header>
-				</td></tr></thead>
-        <tr>
-          <td class="caption">Excluded URLs<br/>and keys</td>
-          <td>
-            <div id="exclusionRules" data-model="ExclusionRules">
-              <!-- Populated from exclusions.html by options_base.js. -->
+    <table id="wrapper">
+      <thead><tr><td colspan="2">
+        <header>Vimium++ Options</header>
+      </td></tr></thead>
+      <tr>
+        <td class="caption">Excluded URLs<br/>and keys</td>
+        <td>
+          <div id="exclusionRules" data-model="ExclusionRules">
+            <!-- Populated from exclusions.html by options_base.js. -->
+          </div>
+          <div id="exclusionToolbar" style="visibility: hidden;">
+            <input id="exclusionOnlyFirstMatch" type="checkbox" data-model="CheckBox" />
+            <label class="booleanOption">
+              At most one match
+            </label>
+            <input id="exclusionListenHash" type="checkbox" data-model="CheckBox"
+              data-permission="webNavigation" />
+            <label class="booleanOption">
+              Listen hash changes
+            </label>
+            <div id="exclusionButtons">
+              <button id="exclusionSortButton">Sort Rules</button>
+              <button id="exclusionAddButton">Add Rule</button>
             </div>
-            <div id="exclusionToolbar" style="visibility: hidden;">
-                <input id="exclusionOnlyFirstMatch" type="checkbox" data-model="CheckBox" />
-              <label class="booleanOption">
-                At most one match
-              </label>
-                <input id="exclusionListenHash" type="checkbox" data-model="CheckBox"
-                  data-permission="webNavigation" />
-              <label class="booleanOption">
-                Listen hash changes
-              </label>
-              <div id="exclusionButtons">
-                <button id="exclusionSortButton">Sort Rules</button>
-                <button id="exclusionAddButton">Add Rule</button>
-              </div>
-            </div>
-          </td>
-          <td class="help"><div class="help-inner">
-            Wholly or partially disable Vimium++.  A "<var>Pattern</var>"
-            is a regular expression if it starts with "<kbd> ^ </kbd>",
-            or "<kbd> : </kbd>" + the header of a URL.
-            Otherwise it will be converted.
-            <br/><br/>
-            If "<var>Keys</var>" is left empty, then Vimium++ will be wholly disabled.
-            Otherwise, just the listed keys are disabled (they are passed through).
-          </div></td>
-        </tr>
-        <tr>
-          <td class="caption">Custom key<br/>mappings</td>
-          <td id="mappingsHelp">
-            <textarea id="keyMappings" class="code" data-model="Text" data-check=""
-              placeholder="# Insert your preferred key mappings here."></textarea>
-          </td>
-          <td class="help"><div class="help-inner">
-            Enter commands to remap your keys. Available commands:<br/>
-            <pre>
+          </div>
+        </td>
+        <td class="help"><div class="help-inner">
+          Wholly or partially disable Vimium++.  A "<var>Pattern</var>"
+          is a regular expression if it starts with "<kbd> ^ </kbd>",
+          or "<kbd> : </kbd>" + the header of a URL.
+          Otherwise it will be converted.
+          <br/><br/>
+          If "<var>Keys</var>" is left empty, then Vimium++ will be wholly disabled.
+          Otherwise, just the listed keys are disabled (they are passed through).
+        </div></td>
+      </tr>
+      <tr>
+        <td class="caption">Custom key<br/>mappings</td>
+        <td id="mappingsHelp">
+          <textarea id="keyMappings" class="code" data-model="Text" data-check=""
+            placeholder="# Insert your preferred key mappings here."></textarea>
+        </td>
+        <td class="help"><div class="help-inner">
+          Enter commands to remap your keys. Available commands:<br/>
+          <pre>
 map f LinkHints.activate
 unmap &lt;f2&gt;
 unmapAll
 # this is a comment
 " this is also a comment</pre>
-            <a id="showCommands" href="#commands" data-hash="commands" data-delay="">Show available commands</a>.
-            &nbsp;<a data-auto-scale="keyMappings"></a>.
-          </div></td>
-        </tr>
-        <tr>
-          <td class="caption">Custom search<br/>engines</td>
-          <td>
-              <textarea id="searchEngines" data-model="NonEmptyText"></textarea>
-              <div class="nonEmptyTextOption"></div>
-          </td>
-          <td class="help"><div class="help-inner">
-            Add search engine shortcuts to the Vomnibar. Format:<br/>
-            <pre>
+          <a id="showCommands" href="#commands" data-hash="commands" data-delay="">Show available commands</a>.
+          &nbsp;<a data-auto-scale="keyMappings"></a>.
+        </div></td>
+      </tr>
+      <tr>
+        <td class="caption">Custom search<br/>engines</td>
+        <td>
+          <textarea id="searchEngines" data-model="NonEmptyText"></textarea>
+          <div class="nonEmptyTextOption"></div>
+        </td>
+        <td class="help"><div class="help-inner">
+          Add search engine shortcuts to the Vomnibar. Format:<br/>
+          <pre>
 a: http://a.com/?q=$s
 js\:|JS: javascript:$S; Run JavaScript
 MainKey|c|c\:|MainName: \
-    http://c.com/?q=%s&amp;space=\s\ space_end
+  http://c.com/?q=%s&amp;space=\s\ space_end
 # this is a comment</pre>
-            <var>$s</var> will be replaced with your search terms.
-            <a data-auto-scale="searchEngines"></a>.
+          <var>$s</var> will be replaced with your search terms.
+          <a data-auto-scale="searchEngines"></a>.
+        </div></td>
+      </tr>
+      <tr>
+        <td class="caption">Default search<br/>engine</td>
+        <td>
+          <input id="searchUrl" type="text" data-model="NonEmptyText" />
+          <div class="nonEmptyTextOption"></div>
+        </td>
+        <td class="help"><div class="help-inner">
+          The default search engine ("~" to use it on Vomnibar)<br/>
+          (e.g. "<kbd>http://www.baidu.com/s?ie=utf-8&wd=$s Baidu</kbd>").
+        </div></td>
+      </tr>
+      <tr>
+        <td class="caption">New tab URL</td>
+        <td>
+          <input id="newTabUrl" type="text" data-model="NonEmptyText" />
+          <div class="nonEmptyTextOption"></div>
+        </td>
+        <td class="help"><div class="help-inner">
+          "<kbd>pages/blank.html</kbd>" for a blank page. Chrome inner:<br/>
+          "<kbd>chrome-search://local-ntp/local-ntp.html</kbd>".
+        </div></td>
+      </tr>
+      <thead><tr><td colspan="2">
+        <header id="advanced">Advanced Options</header>
+      </td></tr></thead>
+      <tbody id="advancedOptions" style="display: none;">
+        <tr>
+          <td class="caption">Scroll step size</td>
+          <td>
+            <input id="scrollStepSize" type="number" min="30" max="300" step="10"
+              data-model="Number" />px
+          </td>
+          <td class="help"><div class="help-inner line-1x">
+            The size for basic long movements (short = * 0.6).
           </div></td>
         </tr>
         <tr>
-          <td class="caption">Default search<br/>engine</td>
+          <td class="caption">Characters used<br/> for link hints</td>
           <td>
-              <input id="searchUrl" type="text" data-model="NonEmptyText" />
-              <div class="nonEmptyTextOption"></div>
+            <input id="linkHintCharacters" type="text" data-model="NonEmptyText" class="code" />
+            <div class="nonEmptyTextOption"></div>
           </td>
           <td class="help"><div class="help-inner">
-            The default search engine ("~" to use it on Vomnibar)<br/>
-            (e.g. "<kbd>http://www.baidu.com/s?ie=utf-8&wd=$s Baidu</kbd>").
+            The characters placed next to each link after typing "f" to enter link-hint mode.
           </div></td>
         </tr>
         <tr>
-          <td class="caption">New tab URL</td>
-          <td>
-              <input id="newTabUrl" type="text" data-model="NonEmptyText" />
-              <div class="nonEmptyTextOption"></div>
+          <td class="caption" rowspan="8">Miscellaneous<br/>options</td>
+          <td class="booleanOption">
+            <input id="smoothScroll" type="checkbox" data-model="CheckBox" />
+            <label>
+              Use smooth scrolling
+            </label>
+          </td>
+        </tr>
+        <tr>
+          <td class="booleanOption">
+            <input id="deepHints" type="checkbox" data-model="CheckBox" />
+            <label>
+              Match links even in shadow DOMs by default
+            </label>
           </td>
           <td class="help"><div class="help-inner">
-            "<kbd>pages/blank.html</kbd>" for a blank page. Chrome inner:<br/>
-            "<kbd>chrome-search://local-ntp/local-ntp.html</kbd>".
+            Note: Link-hint mode will work slowly if selected.<br/>
+            Press <kbd>&lt;F2&gt;</kbd> to toggle it temporarily.
           </div></td>
         </tr>
-				<thead><tr><td colspan="2">
-					<header id="advanced">Advanced Options</header>
-				</td></tr></thead>
-        <tbody id="advancedOptions" style="display: none;">
-          <tr>
-            <td class="caption">Scroll step size</td>
-            <td>
-              <input id="scrollStepSize" type="number" min="30" max="300" step="10"
-                data-model="Number" />px
-            </td>
-            <td class="help"><div class="help-inner line-1x">
-              The size for basic long movements (short = * 0.6).
-            </div></td>
-          </tr>
-          <tr>
-            <td class="caption">Characters used<br/> for link hints</td>
-            <td>
-              <input id="linkHintCharacters" type="text" data-model="NonEmptyText" class="code" />
-              <div class="nonEmptyTextOption"></div>
-            </td>
-            <td class="help"><div class="help-inner">
-              The characters placed next to each link after typing "f" to enter link-hint mode.
-            </div></td>
-          </tr>
-          <tr>
-            <td class="caption" rowspan="8">Miscellaneous<br/>options</td>
-            <td class="booleanOption">
-                <input id="smoothScroll" type="checkbox" data-model="CheckBox" />
-              <label>
-                Use smooth scrolling
-              </label>
-            </td>
-          </tr>
-          <tr>
-            <td class="booleanOption">
-                <input id="deepHints" type="checkbox" data-model="CheckBox" />
-              <label>
-                Match links even in shadow DOMs by default
-              </label>
-            </td>
-            <td class="help"><div class="help-inner">
-              Note: Link-hint mode will work slowly if selected.<br/>
-              Press <kbd>&lt;F2&gt;</kbd> to toggle it temporarily.
-            </div></td>
-          </tr>
-          <tr>
-            <td class="booleanOption">
-                <input id="grabBackFocus" type="checkbox" data-model="CheckBox" />
-              <label>
-                Don't let pages steal the focus on load
-              </label>
-            </td>
-            <td class="help"><div class="help-inner">
-              Prevent pages from focusing an input on load (e.g. Google, Bing, etc.).
-            </div></td>
-          </tr>
-          <tr>
-            <td class="booleanOption">
-                <input id="hideHud" type="checkbox" data-model="CheckBox" />
-              <label>
-                Hide the Heads Up Display (HUD) in insert mode
-              </label>
-            </td>
-            <td class="help"><div class="help-inner">
-              When enabled, the HUD will not be displayed in insert mode.
-            </div></td>
-          </tr>
-          <tr>
-            <td class="booleanOption">
-                <input id="regexFindMode" type="checkbox" data-model="CheckBox" />
-              <label>
-                Treat find queries as regular expressions
-              </label>
-            </td>
-            <td class="help"><div class="help-inner">
-              Switch back to plain find mode by the "<kbd>\R</kbd>" escape sequence.
-            </div></td>
-          </tr>
-          <tr>
-            <td class="booleanOption">
-              <input id="showActionIcon" type="checkbox" data-model="CheckBox" data-permission="browser_action" />
-              <label>
-                Use the browser action icon on the top right
-              </label>
-            </td>
-            <td class="help"><div class="help-inner">
-              Make the browser icon show current page status.<br/>
-              If disabled, Vimium will be faster.
-            </div></td>
-          </tr>
-          <tr>
-            <td class="booleanOption">
-                <input id="tinyMemory" type="checkbox" data-model="CheckBox" />
-              <label>
-                Try to reduce Vimium++'s memory cost as much as possible.
-              </label>
-            </td>
-            <td class="help"><div class="help-inner line-2x">
-              Suggest reloading Vimium++ manually for best effects.
-            </div></td>
-          </tr>
-          <tr>
-            <td class="booleanOption">
-              <input id="vimSync" type="checkbox" data-model="CheckBox" data-permission="storage" />
-              <label>
-                Sync settings with your current Google account
-              </label>
-            </td>
-            <td class="help"><div class="help-inner line-2x">
-              Need to reload Vimium++ manually.
-            </div></td>
-          </tr>
-          <tr>
-            <td class="caption">Previous patterns</td>
-            <td>
-              <input id="previousPatterns" type="text" data-model="NonEmptyText" />
-              <div class="nonEmptyTextOption"></div>
-            </td>
-            <td class="help"><div class="help-inner">
-              The "navigate to previous page" command uses these patterns to find the link to follow.
-            </div></td>
-          </tr>
-          <tr>
-            <td class="caption">Next patterns</td>
-            <td>
-              <input id="nextPatterns" type="text" data-model="NonEmptyText" />
-              <div class="nonEmptyTextOption"></div>
-            </td>
-            <td class="help"><div class="help-inner">
-              The "navigate to next page" command uses these patterns to find the link to follow.
-            </div></td>
-          </tr>
-          <tr>
-            <td class="caption">Custom CSS</td>
-            <td>
-              <textarea id="userDefinedCss" class="code min-height-4" data-model="Text"></textarea>
-            </td>
-            <td class="help"><div class="help-inner">
-              To style Vimium++ nodes, use selectors such as "<kbd>.S</kbd>" and "<kbd>.LH &gt; .MC</kbd>".<br/>
-              <br/>
-              These styles work in addition to and take precedence over Vimium++'s
-              default styles.
-              &nbsp;<a data-auto-scale="userDefinedCss"></a>.
-            </div></td>
-          </tr>
-          <tr>
-            <td class="caption">Custom outer CSS</td>
-            <td>
-              <textarea id="userDefinedOuterCss" class="code min-height-4" data-model="Text"></textarea>
-            </td>
-            <td class="help"><div class="help-inner">
-              To style global nodes, use selectors such as "<kbd>a</kbd>" and "<kbd>img</kbd>".<br/>
-              <br/>
-              These styles are used in addition to and take precedence over all pages' style.
-              &nbsp;<a data-auto-scale="userDefinedOuterCss"></a>.
-            </div></td>
-          </tr>
-          <tr>
-            <td class="caption">White list of <br/>other extension ids</td>
-            <td>
-              <textarea id="extWhiteList" class="code min-height-4" data-model="NonEmptyText"
-                data-permission="web_accessible_resources"></textarea>
-              <div class="nonEmptyTextOption"></div>
-            </td>
-            <td class="help"><div class="help-inner">
-              Only Chrome extensions on this list are allowed to request Vimium++'s support.<br/>
-              One extension id per line.<br/>
-              Any line whose length is not 32 (the length of a valid extension id) will be ignored.
-              &nbsp;<a data-auto-scale="extWhiteList"></a>.
-            </div></td>
-          </tr>
-          <tr>
-            <td class="caption">Keyboard settings</td>
-            <td>
-              <input id="keyboard" type="text" data-model="JSON" />
-              <div class="nonEmptyTextOption"></div>
-            </td>
-            <td class="help"><div class="help-inner">
-              Your keyboard delay settings on this computer. Format:<br/>
-              <kbd>[ &lt;delay (ms)&gt;, &lt;repeat period&gt; ]</kbd> (e.g. <kbd>[ 500, 33 ]</kbd>)
-            </div></td>
-          </tr>
-          <tr>
-            <td class="caption">Locale character<br/> encoding</td>
-            <td>
-              <input id="localeEncoding" type="text" data-model="NonEmptyText" />
-              <div class="nonEmptyTextOption"></div>
-            </td>
-            <td class="help"><div class="help-inner">
-              In order to recognize urls whose encoding is not UTF-8. The default <kbd>gbk</kbd> is for Chinese.<br/>
-            </div></td>
-          </tr>
-        </tbody>
-      </table>
+        <tr>
+          <td class="booleanOption">
+            <input id="grabBackFocus" type="checkbox" data-model="CheckBox" />
+            <label>
+              Don't let pages steal the focus on load
+            </label>
+          </td>
+          <td class="help"><div class="help-inner">
+            Prevent pages from focusing an input on load (e.g. Google, Bing, etc.).
+          </div></td>
+        </tr>
+        <tr>
+          <td class="booleanOption">
+            <input id="hideHud" type="checkbox" data-model="CheckBox" />
+            <label>
+              Hide the Heads Up Display (HUD) in insert mode
+            </label>
+          </td>
+          <td class="help"><div class="help-inner">
+            When enabled, the HUD will not be displayed in insert mode.
+          </div></td>
+        </tr>
+        <tr>
+          <td class="booleanOption">
+            <input id="regexFindMode" type="checkbox" data-model="CheckBox" />
+            <label>
+              Treat find queries as regular expressions
+            </label>
+          </td>
+          <td class="help"><div class="help-inner">
+            Switch back to plain find mode by the "<kbd>\R</kbd>" escape sequence.
+          </div></td>
+        </tr>
+        <tr>
+          <td class="booleanOption">
+            <input id="showActionIcon" type="checkbox" data-model="CheckBox" data-permission="browser_action" />
+            <label>
+              Use the browser action icon on the top right
+            </label>
+          </td>
+          <td class="help"><div class="help-inner">
+            Make the browser icon show current page status.<br/>
+            If disabled, Vimium will be faster.
+          </div></td>
+        </tr>
+        <tr>
+          <td class="booleanOption">
+            <input id="tinyMemory" type="checkbox" data-model="CheckBox" />
+            <label>
+              Try to reduce Vimium++'s memory cost as much as possible.
+            </label>
+          </td>
+          <td class="help"><div class="help-inner line-2x">
+            Suggest reloading Vimium++ manually for best effects.
+          </div></td>
+        </tr>
+        <tr>
+          <td class="booleanOption">
+            <input id="vimSync" type="checkbox" data-model="CheckBox" data-permission="storage" />
+            <label>
+              Sync settings with your current Google account
+            </label>
+          </td>
+          <td class="help"><div class="help-inner line-2x">
+            Need to reload Vimium++ manually.
+          </div></td>
+        </tr>
+        <tr>
+          <td class="caption">Previous patterns</td>
+          <td>
+            <input id="previousPatterns" type="text" data-model="NonEmptyText" />
+            <div class="nonEmptyTextOption"></div>
+          </td>
+          <td class="help"><div class="help-inner">
+            The "navigate to previous page" command uses these patterns to find the link to follow.
+          </div></td>
+        </tr>
+        <tr>
+          <td class="caption">Next patterns</td>
+          <td>
+            <input id="nextPatterns" type="text" data-model="NonEmptyText" />
+            <div class="nonEmptyTextOption"></div>
+          </td>
+          <td class="help"><div class="help-inner">
+            The "navigate to next page" command uses these patterns to find the link to follow.
+          </div></td>
+        </tr>
+        <tr>
+          <td class="caption">Custom CSS</td>
+          <td>
+            <textarea id="userDefinedCss" class="code min-height-4" data-model="Text"></textarea>
+          </td>
+          <td class="help"><div class="help-inner">
+            To style Vimium++ nodes, use selectors such as "<kbd>.S</kbd>" and "<kbd>.LH &gt; .MC</kbd>".<br/>
+            <br/>
+            These styles work in addition to and take precedence over Vimium++'s
+            default styles.
+            &nbsp;<a data-auto-scale="userDefinedCss"></a>.
+          </div></td>
+        </tr>
+        <tr>
+          <td class="caption">Custom outer CSS</td>
+          <td>
+            <textarea id="userDefinedOuterCss" class="code min-height-4" data-model="Text"></textarea>
+          </td>
+          <td class="help"><div class="help-inner">
+            To style global nodes, use selectors such as "<kbd>a</kbd>" and "<kbd>img</kbd>".<br/>
+            <br/>
+            These styles are used in addition to and take precedence over all pages' style.
+            &nbsp;<a data-auto-scale="userDefinedOuterCss"></a>.
+          </div></td>
+        </tr>
+        <tr>
+          <td class="caption">White list of <br/>other extension ids</td>
+          <td>
+            <textarea id="extWhiteList" class="code min-height-4" data-model="NonEmptyText"
+              data-permission="web_accessible_resources"></textarea>
+            <div class="nonEmptyTextOption"></div>
+          </td>
+          <td class="help"><div class="help-inner">
+            Only Chrome extensions on this list are allowed to request Vimium++'s support.<br/>
+            One extension id per line.<br/>
+            Any line whose length is not 32 (the length of a valid extension id) will be ignored.
+            &nbsp;<a data-auto-scale="extWhiteList"></a>.
+          </div></td>
+        </tr>
+        <tr>
+          <td class="caption">Keyboard settings</td>
+          <td>
+            <input id="keyboard" type="text" data-model="JSON" />
+            <div class="nonEmptyTextOption"></div>
+          </td>
+          <td class="help"><div class="help-inner">
+            Your keyboard delay settings on this computer. Format:<br/>
+            <kbd>[ &lt;delay (ms)&gt;, &lt;repeat period&gt; ]</kbd> (e.g. <kbd>[ 500, 33 ]</kbd>)
+          </div></td>
+        </tr>
+        <tr>
+          <td class="caption">Locale character<br/> encoding</td>
+          <td>
+            <input id="localeEncoding" type="text" data-model="NonEmptyText" />
+            <div class="nonEmptyTextOption"></div>
+          </td>
+          <td class="help"><div class="help-inner">
+            In order to recognize urls whose encoding is not UTF-8. The default <kbd>gbk</kbd> is for Chinese.<br/>
+          </div></td>
+        </tr>
+      </tbody>
+    </table>
 
     <div id="footer">
       <div id="footerWrapper">
