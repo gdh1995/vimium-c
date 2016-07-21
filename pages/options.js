@@ -281,6 +281,39 @@ ExclusionRulesOption.prototype.onRowChange = function(isAdd) {
     element.nextElementSibling.setAttribute("for", element.id);
   }
 
+  _ref = $$("[data-permission]");
+  if (_ref.length > 0) (function(els) {
+    var manifest = chrome.runtime.getManifest(), permissions, i, el, key;
+    permissions = manifest.permissions;
+    for (i = permissions.length; 0 <= --i; ) {
+      manifest[permissions[i]] = true;
+    }
+    for (i = els.length; 0 <= --i; ) {
+      el = els[i];
+      key = el.getAttribute("data-permission");
+      if (key in manifest) continue;
+      el.disabled = true;
+      key = el.title = "This option is disabled for lacking permission"
+        + (key ? ':\n* ' + key : "");
+      if (el instanceof HTMLInputElement && el.type === "checkbox") {
+        el.checked = false;
+        el = el.nextElementSibling;
+        el.removeAttribute("tabindex");
+        el.title = key;
+      } else {
+        el.value = "";
+        el.parentElement.onclick = onclick;
+      }
+    }
+    function onclick() {
+      var el = this.querySelector("[data-permission]");
+      this.onclick = null;
+      if (!el) { return; }
+      var key = el.getAttribute("data-permission");
+      el.placeholder = "lacking permission " + (key ? '"' + key + '"' : "");
+    }
+  })(_ref);
+
   function onBeforeUnload() {
     return "You have unsaved changes to options.";
   }

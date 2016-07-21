@@ -25,7 +25,8 @@
               <label class="booleanOption">
                 At most one match
               </label>
-                <input id="exclusionListenHash" type="checkbox" data-model="CheckBox" />
+                <input id="exclusionListenHash" type="checkbox" data-model="CheckBox"
+                  data-permission="webNavigation" />
               <label class="booleanOption">
                 Listen hash changes
               </label>
@@ -183,7 +184,7 @@ MainKey|c|c\:|MainName: \
           </tr>
           <tr>
             <td class="booleanOption">
-                <input id="showActionIcon" type="checkbox" data-model="CheckBox" />
+              <input id="showActionIcon" type="checkbox" data-model="CheckBox" data-permission="browser_action" />
               <label>
                 Use the browser action icon on the top right
               </label>
@@ -201,12 +202,12 @@ MainKey|c|c\:|MainName: \
               </label>
             </td>
             <td class="help"><div class="help-inner line-2x">
-              Please reload Vimium++ manually for best effects.
+              Suggest reloading Vimium++ manually for best effects.
             </div></td>
           </tr>
           <tr>
             <td class="booleanOption">
-                <input id="vimSync" type="checkbox" data-model="CheckBox" />
+              <input id="vimSync" type="checkbox" data-model="CheckBox" data-permission="storage" />
               <label>
                 Sync settings with your current Google account
               </label>
@@ -263,7 +264,8 @@ MainKey|c|c\:|MainName: \
           <tr>
             <td class="caption">White list of <br/>other extension ids</td>
             <td>
-              <textarea id="extWhiteList" class="code min-height-4" data-model="NonEmptyText"></textarea>
+              <textarea id="extWhiteList" class="code min-height-4" data-model="NonEmptyText"
+                data-permission="web_accessible_resources"></textarea>
               <div class="nonEmptyTextOption"></div>
             </td>
             <td class="help"><div class="help-inner">
