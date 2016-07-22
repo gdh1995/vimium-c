@@ -145,6 +145,7 @@ activate: function(_0, options, forceCurrent) {
       list.style.display = "none";
       barCls.remove("OWithList");
     }
+    this.isSelectionChanged = false;
   },
   updateInput: function() {
     var focused = this.input.focused, line, str, sel;
