@@ -394,17 +394,24 @@ activate: function(_0, options, forceCurrent) {
     this.goPage(event.deltaY > 0 ? 1 : -1);
   },
   onInput: function() {
-    var s1 = this.input.value, str;
-    if ((str = s1.trim()) !== ((this.selection === -1 || this.isSelectionOrigin)
-          ? this.mode.query : this.completions[this.selection].text)) {
-      // here's no race condition
-      if (this.input.selectionStart === s1.length && s1.endsWith(" +")) {
+    var s0 = this.mode.query, s1 = this.input.value, str, i, j, arr;
+    if ((str = s1.trim()) === (this.selection === -1 || this.isSelectionOrigin
+        ? s0 : this.completions[this.selection].text)) {
+      return;
+    }
+    if (!this.completions.length && !this.timer && s1.startsWith(s0) && s0) {
+      return;
+    }
+    i = this.input.selectionStart;
+    if (i > s1.length - 2) {
+      if (s1.endsWith(" +") && !this.timer && str.substring(0, str.length - 2).trimRight() === s0
+          && (!this.completions.length || this.completions[0].type !== "search")) {
         return;
       }
-      this.mode.query = str;
-      this.update();
     }
-    return false;
+    // here's no race condition
+    this.mode.query = str;
+    this.update();
   },
   onCompletions: function(completions) {
     if (this.initDom) {
