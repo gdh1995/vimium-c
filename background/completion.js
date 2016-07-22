@@ -3,7 +3,8 @@ var Completers;
 setTimeout(function() {
   var HistoryCache, RankingUtils, RegexpCache, Decoder,
       Completers, queryType, offset, autoSelect,
-      maxCharNum, maxResults, showFavIcon, showRelevancy, queryTerms, SuggestionUtils;
+      maxCharNum, maxResults, maxTotal,
+      showFavIcon, showRelevancy, queryTerms, SuggestionUtils;
 
   function Suggestion(type, url, text, title, computeRelevancy, extraData) {
     this.type = type;
@@ -356,6 +357,7 @@ domains: {
           ? "https://" + result : result), result, null, this.computeRelevancy);
       sug.titleSplit = "";
       sug.textSplit = SuggestionUtils.cutUrl(result, SuggestionUtils.getRanges(result), sug.url);
+      --maxResults;
     }
     queryTerms = q;
     RankingUtils.maxScoreP = p;
@@ -469,6 +471,7 @@ searchEngines: {
       keyword = q.join(" ");
       sug = this.makeUrlSuggestion(keyword, "\\" + keyword);
       autoSelect = true;
+      maxResults--;
       Completers.next([sug]);
       return;
     } else {
@@ -480,6 +483,7 @@ searchEngines: {
       }
       return true;
     }
+    maxResults--;
     autoSelect = true;
     if (failIfNull !== true) {
       if (queryType !== 0) {
@@ -626,8 +630,8 @@ searchEngines: {
     var suggestions = this.suggestions, func;
     this.suggestions = null;
     suggestions.sort(this.rsortByRelevancy);
-    if (suggestions.length > maxResults) {
-      suggestions.length = maxResults;
+    if (suggestions.length > maxTotal) {
+      suggestions.length = maxTotal;
     }
     if (queryTerms.length > 0) {
       queryTerms[0] = SuggestionUtils.shortenUrl(queryTerms[0]);
@@ -673,7 +677,7 @@ searchEngines: {
     queryTerms = query ? query.split(Utils.spacesRe) : [];
     maxCharNum = options.clientWidth > 0 ? Math.min((
         (options.clientWidth * 0.8 - 74) / 7.72) | 0, 200) : 128
-    maxResults = Math.min(Math.max(options.maxResults | 0, 3), 25);
+    maxTotal = maxResults = Math.min(Math.max(options.maxResults | 0, 3), 25);
     showFavIcon = options.showFavIcon === true;
     showRelevancy = options.showRelevancy === true;
     Completers.callback = callback;
