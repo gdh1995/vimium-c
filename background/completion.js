@@ -343,6 +343,13 @@ domains: {
     }
     var ref = this.domains, domain, p = RankingUtils.maxScoreP, q = queryTerms, word = q[0]
       , sug, wordRelevancy, score, result = "", result_score = -1000;
+    if (offset > 0) {
+      for (domain in ref) {
+        if (domain.indexOf(word) !== -1) { offset--; break; }
+      }
+      Completers.next([]);
+      return;
+    }
     queryTerms = [word];
     RankingUtils.maxScoreP = RankingUtils.maximumScore;
     for (domain in ref) {
