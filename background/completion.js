@@ -655,7 +655,7 @@ searchEngines: {
       return;
     }
     if ((i = parseInt(str, 10)) >= 0 && '+' + i === str
-        && i <= (queryTerms.length > 1 ? 50 : 99)) {
+        && i <= (queryTerms.length > 1 ? 100 : 200)) {
       offset = i;
     } else if (str !== "+") {
       return;

@@ -320,7 +320,7 @@ activate: function(_0, options, forceCurrent) {
     else if (len < (notTab ? n : 3)) { return; }
 
     sel += i;
-    sel = sel <= 0 ? 0 : sel >= 50 ? 50 : sel;
+    sel = sel < 0 ? 0 : sel > 90 ? 90 : sel;
     if (sel == i) { return; }
     if (arr) { str = str.substring(0, str.length - arr[0].length); }
     str = str.trimRight();
