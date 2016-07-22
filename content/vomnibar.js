@@ -408,6 +408,14 @@ activate: function(_0, options, forceCurrent) {
           && (!this.completions.length || this.completions[0].type !== "search")) {
         return;
       }
+    } else if ((arr = this._pageNumRe.exec(s0)) && str.endsWith(arr[0])) {
+      s1 = s1.trimRight(); j = arr[0].length;
+      s1 = s1.substring(0, s1.length - j).trimRight();
+      if (s1.trimLeft() !== s0.substring(0, s0.length - j).trimRight()) {
+        this.input.value = s1;
+        this.input.setSelectionRange(i, i);
+        str = s1.trimLeft();
+      }
     }
     // here's no race condition
     this.mode.query = str;
