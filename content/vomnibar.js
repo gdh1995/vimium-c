@@ -63,7 +63,7 @@ activate: function(_0, options, forceCurrent) {
   forceNewTab: false,
   keepAlive: false,
   input: false,
-  isSelectionChanged: false,
+  isSelectionOrigin: true,
   list: null,
   onUpdate: null,
   refreshInterval: 500,
@@ -145,18 +145,18 @@ activate: function(_0, options, forceCurrent) {
       list.style.display = "none";
       barCls.remove("OWithList");
     }
-    this.isSelectionChanged = false;
+    this.isSelectionOrigin = true;
   },
-  updateInput: function() {
-    var focused = this.input.focused, line, str, sel;
-    if (this.selection === -1) {
+  updateInput: function(sel) {
+    var focused = this.input.focused, line, str;
+    if (sel === -1) {
       this.input.focus();
       this.input.focused = focused;
       this.input.value = this.inputText;
       return;
     }
     if (!focused) this.input.blur();
-    line = this.completions[sel = this.selection];
+    line = this.completions[sel];
     str = line.text;
     if (line.type !== "history" && line.type !== "tab") {
       this.input.value = str;
@@ -188,14 +188,18 @@ activate: function(_0, options, forceCurrent) {
   },
   updateSelection: function(sel) {
     var _ref = this.list.children, old = this.selection;
-    this.selection = sel;
-    this.isSelectionChanged = true;
     if (old >= 0) {
       _ref[old].classList.remove("S");
+    }
+    if (this.isSelectionOrigin || old < 0) {
+      this.inputText = this.input.value;
     }
     if (sel >= 0) {
       _ref[sel].classList.add("S");
     }
+    this.updateInput(sel);
+    this.selection = sel;
+    this.isSelectionOrigin = false;
   },
   ctrlMap: {
     66: "pageup", 74: "down", 75: "up", 219: "dismiss", 221: "toggle"
@@ -256,7 +260,7 @@ activate: function(_0, options, forceCurrent) {
       n = (n - 48) || 10;
       if (event.shiftKey || n > this.completions.length) { return 2; }
       this.selection = n - 1;
-      this.isSelectionChanged = true;
+      this.isSelectionOrigin = false;
       action = "enter";
     }
     if (action) {
@@ -280,7 +284,6 @@ activate: function(_0, options, forceCurrent) {
       sel = this.completions.length + 1;
       sel = (sel + this.selection + (action === "up" ? 0 : 2)) % sel - 1;
       this.updateSelection(sel);
-      this.updateInput();
       break;
     case "toggle":
       this.toggleInput();
@@ -291,7 +294,7 @@ activate: function(_0, options, forceCurrent) {
     case "enter":
       sel = this.selection;
       if (this.timer) {
-        if (sel === -1 || !this.isSelectionChanged) {
+        if (sel === -1 || this.isSelectionOrigin) {
           this.update(0, this.onEnter);
         }
       } else if (sel >= 0 || this.mode.query.length > 0) {
@@ -353,7 +356,7 @@ activate: function(_0, options, forceCurrent) {
       _i = _i > 0 ? ind.call(this.list.children, event.path[_i - 1]) : -1;
       if (_i >= 0) {
         this.selection = _i;
-        this.isSelectionChanged = true;
+        this.isSelectionOrigin = false;
         this.forceNewTab = !event.shiftKey && this.forceNewTab || event.ctrlKey || event.metaKey;
         this.onAction("enter");
       }
@@ -390,9 +393,8 @@ activate: function(_0, options, forceCurrent) {
     this.goPage(event.deltaY > 0 ? 1 : -1);
   },
   onInput: function() {
-    var s1 = this.input.value, str = s1.trimLeft();
-    this.inputText = str;
-    if ((str = str.trimRight()) !== ((this.selection === -1 || !this.isSelectionChanged)
+    var s1 = this.input.value, str;
+    if ((str = s1.trim()) !== ((this.selection === -1 || this.isSelectionOrigin)
           ? this.mode.query : this.completions[this.selection].text)) {
       // here's no race condition
       if (this.input.selectionStart === s1.length && s1.endsWith(" +")) {
