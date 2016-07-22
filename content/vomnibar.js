@@ -315,12 +315,10 @@ activate: function(_0, options, forceCurrent) {
     str = this.input.value;
     arr = /(?:^|\s)(\+\d{0,2})$/.exec(str);
     i = (arr && arr[0]) | 0;
-    if (i <= 0 || sel > 0) {
-      if (i <= 0 && len <= 0 || len < (notTab ? n : 3)) { return; }
-      if (len >= n || notTab) { sel *= n; }
-    } else if (i >= n || len >= n) {
-      sel *= n;
-    }
+    if (len >= n) { sel *= n; }
+    else if (i > 0 && sel < 0) { sel *= i >= n ? n : 1; }
+    else if (len < (notTab ? n : 3)) { return; }
+
     sel += i;
     sel = sel <= 0 ? 0 : sel >= 50 ? 50 : sel;
     if (sel == i) { return; }
