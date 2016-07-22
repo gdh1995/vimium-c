@@ -310,6 +310,7 @@ activate: function(_0, options, forceCurrent) {
     sel.modify(code === 4 ? "extend" : "move", code < 4 ? "backward" : "forward", "word");
     code === 4 && document.execCommand("delete");
   },
+  _pageNumRe: /(?:^|\s)(\+\d{0,2})$/,
   goPage: function(sel) {
     var i, arr, len = this.completions.length,
     n = this.mode.maxResults,
@@ -317,7 +318,7 @@ activate: function(_0, options, forceCurrent) {
     if (str === "search") { return; }
     notTab = str !== "tab";
     str = this.input.value;
-    arr = /(?:^|\s)(\+\d{0,2})$/.exec(str);
+    arr = this._pageNumRe.exec(str);
     i = (arr && arr[0]) | 0;
     if (len >= n) { sel *= n; }
     else if (i > 0 && sel < 0) { sel *= i >= n ? n : 1; }
@@ -332,9 +333,9 @@ activate: function(_0, options, forceCurrent) {
     if (sel > 0) { str += " +" + sel; }
     sel = this.input.selectionStart;
     arr = [this.input.selectionDirection];
-    this.input.value = str;
+    this.input.value = this.mode.query = str;
     this.input.setSelectionRange(sel, i, arr[0]);
-    this.onInput();
+    this.update();
   },
   onEnter: function() {
     var sel = this.selection, item, action;
