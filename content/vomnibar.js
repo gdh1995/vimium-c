@@ -514,7 +514,7 @@ activate: function(_0, options, forceCurrent) {
   Parse: function(item) {
     var str;
     item.favIconUrl = this.showFavIcon && (str = item.favIconUrl) ?
-      ' OIIcon" style="background-image: url(chrome://favicon/size/16/' + str + ")" : "";
+      ' OIIcon" style="background-image: url(&quot;chrome://favicon/size/16/' + str + "&quot;)" : "";
     item.relevancy = this.showRelevancy ? '\n\t\t\t<span class="OIRelevancy">'
       + item.relevancy + "</span>" : "";
     item.action = item.hasOwnProperty('sessionId') ? "gotoSession" : "navigateToUrl";

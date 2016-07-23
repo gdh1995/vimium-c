@@ -22,8 +22,8 @@ SuggestionUtils = {
     sug.titleSplit = _this.highlight(sug.title, _this.getRanges(sug.title));
     var str = sug.text = _this.shortenUrl(sug.text);
     sug.textSplit = _this.cutUrl(str, _this.getRanges(str), sug.url);
-    if (showFavIcon && sug.url.indexOf("://") > 0) {
-      sug.favIconUrl = Utils.escapeCssUri(sug.url);
+    if (showFavIcon && sug.url.length <= 512 && sug.url.indexOf("://") > 0) {
+      sug.favIconUrl = Utils.escapeCssStringInAttr(sug.url);
     }
   },
   highlight: function(string, ranges) {

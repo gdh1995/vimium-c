@@ -22,16 +22,15 @@ var exports = {}, Utils = {
     };
     return this.escapeText(s);
   },
-  escapeCssUri: function(s) {
-    var escapeRe = /["&'()<]/g, map = {
-      '"': "\\&quot;", "&": "&amp;", "'": "\\'", "(": "\\(", ")": "\\)", "<": "&lt;"
-    }, escapeCallback = function(c) {
-      return map[c];
+  escapeCssStringInAttr: function(s) {
+    var escapeRe = /["&<>]/g, escapeCallback = function(c) {
+      var i = c.charCodeAt(0);
+      return i === 38 ? "&amp;" : i < 38 ? "\\&quot;" : i === 60 ? "&lt;" : "&gt;";
     };
-    this.escapeCssUri = function(s) {
+    this.escapeCssStringInAttr = function(s) {
       return s.replace(escapeRe, escapeCallback);
     };
-    return this.escapeCssUri(s);
+    return this.escapeCssStringInAttr(s);
   },
   // "javascript" should be treated specially
   _nonUrlPrefixes: { about: 1, blob: 1, data: 1, mailto: 1, "view-source": 1, __proto__: null },
