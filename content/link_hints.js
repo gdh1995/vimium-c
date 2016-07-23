@@ -439,9 +439,13 @@ var LinkHints = {
       }
     } else if (i > KeyCodes.f1 && i <= KeyCodes.f12) {
       if (i !== KeyCodes.f1 + 1) { return 0; }
-      if (event.shiftKey) {
+      i = KeyboardUtils.getKeyStat(event);
+      if (i === 8) {
         this.isClickListened = !this.isClickListened;
-      } else {
+        if (this.mode < 128) {
+          this.setMode((this.mode | 1) ^ (this.mode < 64 ? 3 : 67));
+        }
+      } else if (i === 0) {
         VSettings.cache.deepHints = !VSettings.cache.deepHints;
       }
       setTimeout(this.reinit.bind(this, null), 0);
