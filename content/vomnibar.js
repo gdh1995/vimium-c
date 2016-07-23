@@ -253,7 +253,7 @@ activate: function(_0, options, forceCurrent) {
     }
 
     if (action || n <= 32) {}
-    else if (KeyboardUtils.getKeyChar(event, event.shiftKey).length !== 1) {
+    else if (KeyboardUtils.getKeyChar(event).length !== 1) {
       if (n > KeyCodes.f1 && n <= KeyCodes.f12) { focused = false; }
     }
     else if (!focused && n >= 48 && n < 58) {

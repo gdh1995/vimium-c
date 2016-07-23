@@ -26,7 +26,7 @@ var Marks = {
     var keyCode = event.keyCode, keyChar;
     if (keyCode === KeyCodes.esc ? !KeyboardUtils.isPlain(event)
       : keyCode > KeyCodes.f1 && keyCode <= KeyCodes.f12 || keyCode <= 32
-        || !(keyChar = KeyboardUtils.getKeyChar(event, event.shiftKey))) {
+        || !(keyChar = KeyboardUtils.getKeyChar(event))) {
       return 1;
     }
     handlerStack.remove(this);

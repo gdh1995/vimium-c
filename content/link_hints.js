@@ -660,7 +660,7 @@ alphabetHints: {
       this.hintKeystroke = this.hintKeystroke.slice(0, -1);
     } else if (key === KeyCodes.space) {
       return [];
-    } else if (keyChar = KeyboardUtils.getKeyChar(event, false).toUpperCase()) {
+    } else if (keyChar = KeyboardUtils.getKeyChar(event).toUpperCase()) {
       if (this.chars.indexOf(keyChar) === -1) {
         return [];
       }

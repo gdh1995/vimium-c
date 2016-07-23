@@ -146,7 +146,7 @@ var VSettings, VHUD, MainPort, VEventMode;
         }
       }
       else if (key >= 32) {
-        if (keyChar = KeyboardUtils.getKeyChar(event, event.shiftKey)) {
+        if (keyChar = KeyboardUtils.getKeyChar(event)) {
           action = checkValidKey(event, keyChar);
           if (action === 0 && InsertMode.suppressType && keyChar.length === 1) {
             action = 2;
