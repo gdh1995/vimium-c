@@ -21,15 +21,19 @@
             <!-- Populated from exclusions.html by options_base.js. -->
           </div>
           <div id="exclusionToolbar" style="visibility: hidden;">
-            <input id="exclusionOnlyFirstMatch" type="checkbox" data-model="CheckBox" />
-            <label class="booleanOption">
-              At most one match
-            </label>
-            <input id="exclusionListenHash" type="checkbox" data-model="CheckBox"
-              data-permission="webNavigation" />
-            <label class="booleanOption">
-              Listen hash changes
-            </label>
+            <span>
+              <input id="exclusionOnlyFirstMatch" type="checkbox" data-model="CheckBox" />
+              <label class="booleanOption">
+                At most one match
+              </label>
+            </span>
+            <span>
+              <input id="exclusionListenHash" type="checkbox" data-model="CheckBox"
+                data-permission="webNavigation" />
+              <label class="booleanOption">
+                Listen hash changes
+              </label>
+            </span>
             <div id="exclusionButtons">
               <button id="exclusionSortButton">Sort Rules</button>
               <button id="exclusionAddButton">Add Rule</button>
