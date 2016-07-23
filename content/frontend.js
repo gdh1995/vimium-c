@@ -208,7 +208,7 @@ var VSettings, VHUD, MainPort, VEventMode;
       var target = event.target;
       if (target === window) {
         Scroller.keyIsDown = 0;
-        ELs.OnWndBlur && ELs.OnWndBlur(KeydownEvents);
+        ELs.OnWndBlur && ELs.OnWndBlur();
         KeydownEvents = new Uint8Array(256);
         esc();
       } else if (!isEnabledForUrl) {}

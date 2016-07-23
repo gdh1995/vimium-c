@@ -496,19 +496,10 @@ var LinkHints = {
     return 2;
   },
   OnWndBlur: function(keydowns) {
-    var mode = LinkHints.mode, stat = 0;
-    if (mode >= 256) { return; }
-    if (keydowns[KeyCodes.altKey]) {
-      stat = 1;
-      mode = mode ^ 64;
-    }
-    if (mode >= 128) {}
-    else if (stat > 0 || keydowns[KeyCodes.ctrlKey] || keydowns[KeyCodes.metaKey]
-      || keydowns[KeyCodes.shiftKey]) {
-      mode = LinkHints.lastMode;
-    }
-    if (mode !== LinkHints.mode) {
-      LinkHints.setMode(mode);
+    if (LinkHints.mode > 255 || LinkHints.lastMode === LinkHints.mode) { return; }
+    var d = VEventMode.keydownEvents();
+    if (d[KeyCodes.ctrlKey] || d[KeyCodes.metaKey] || d[KeyCodes.shiftKey] || d[KeyCodes.altKey]) {
+      LinkHints.setMode(LinkHints.lastMode);
     }
   },
   activateLink: function(hintEl) {
