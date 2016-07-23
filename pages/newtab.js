@@ -1,1 +1,1 @@
-chrome.tabs.create({url:localStorage.newTabUrl_f||"chrome-search://local-ntp/local-ntp.html"});close();
+"use strict";chrome.tabs.create({url:localStorage.newTabUrl_f||"chrome-search://local-ntp/local-ntp.html"});close();
