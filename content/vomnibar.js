@@ -96,7 +96,7 @@ activate: function(_0, options, forceCurrent) {
     this.onUpdate = null;
     this.inputText = "";
     this.mode.query = "";
-    this.completions = null;
+    this.completions = [];
   },
   reset: function(input, start, end) {
     input || (input = "");
@@ -423,13 +423,13 @@ activate: function(_0, options, forceCurrent) {
       completions.forEach(this.Parse, this.mode);
       this.completions = completions;
       this.populateUI();
-      this.CleanCompletions(completions);
       if (this.timer > 0) { return; }
       this.timer = 0;
       if (this.onUpdate) {
         this.onUpdate();
         this.onUpdate = null;
       }
+      this.CleanCompletions(this.completions);
     };
     this.onCompletions(completions);
   },
