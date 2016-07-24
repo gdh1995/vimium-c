@@ -530,7 +530,9 @@ activate: function(_0, options, forceCurrent) {
   gotoSession: function(item) {
     MainPort.port.postMessage({
       handler: "gotoSession",
+      active: this.actionType > -2,
       sessionId: item.sessionId
     });
+    this.actionType < -1 && this.update(50);
   }
 };

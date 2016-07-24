@@ -1137,11 +1137,14 @@ HelpDialog = {
         url: query
       });
     },
-    gotoSession: function(request) {
-      var id = request.sessionId;
-      typeof id === "number"
-      ? chrome.tabs.update(id, {active: true}, funcDict.selectWnd)
-      : chrome.sessions.restore(id, funcDict.onRuntimeError);
+    gotoSession: function(request, port) {
+      var id = request.sessionId, active = request.active !== false;
+      if (typeof id === "number") {
+        chrome.tabs.update(id, {active: true}, funcDict.selectWnd);
+        return;
+      }
+      chrome.sessions.restore(id, funcDict.onRuntimeError);
+      active || chrome.tabs.update(port.sender.tab.id, {active: true});
     },
     openUrl: function(request) {
       request.url_f = Utils.convertToUrl(request.url, request.keyword, 2);
