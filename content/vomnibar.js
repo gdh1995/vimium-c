@@ -60,8 +60,7 @@ activate: function(_0, options, forceCurrent) {
   box: null,
   inputText: "",
   completions: null,
-  forceNewTab: false,
-  keepAlive: false,
+  actionType: false,
   input: false,
   isSelectionOrigin: true,
   list: null,
@@ -223,9 +222,8 @@ activate: function(_0, options, forceCurrent) {
       }
     }
     if (n === KeyCodes.enter) {
-      this.forceNewTab = !event.shiftKey && this.forceNewTab || event.ctrlKey || event.metaKey;
-      this.keepAlive = event.shiftKey;
-      action = "enter";
+      this.onEnter(event);
+      return 2;
     }
     else if (event.ctrlKey || event.metaKey) {
       if (event.shiftKey) { action = n === 70 ? "pagedown" : n === 66 ? "pageup" : ""; }
@@ -249,7 +247,8 @@ activate: function(_0, options, forceCurrent) {
     else if (!focused) { action = "focus"; }
     else if ((this.selection >= 0
         || this.completions.length <= 1) && this.input.value.endsWith("  ")) {
-      action = "enter";
+      this.onEnter(event);
+      return 2;
     }
 
     if (action || n <= 32) {}
@@ -284,7 +283,7 @@ activate: function(_0, options, forceCurrent) {
       break;
     case "toggle": this.toggleInput(); break;
     case "pageup": case "pagedown": this.goPage(action === "pageup" ? -1 : 1); break;
-    case "enter": this.onEnter(); break;
+    case "enter": this.onEnter(true); break;
     default: break;
     }
   },
@@ -322,7 +321,10 @@ activate: function(_0, options, forceCurrent) {
     this.update();
   },
   onEnter: function(event) {
-    var sel = this.selection, item, action;
+    var sel = this.selection, item;
+    this.actionType = event == null ? this.actionType : event === true ? -this.forceNewTab
+      : event.ctrlKey || event.metaKey ? -1 - event.shiftKey
+      : event.shiftKey ? 0 : -this.forceNewTab;
     if (this.timer) {
       if (sel === -1 || this.isSelectionOrigin) {
         this.update(0, this.onEnter);
@@ -331,10 +333,9 @@ activate: function(_0, options, forceCurrent) {
     } else if (sel === -1 && this.mode.query.length === 0) {
       return;
     }
-    item = sel >= 0 ? this.completions[sel]
-      : { url: this.mode.query, action: "navigateToUrl" };
-    this.keepAlive ? (this.keepAlive = false) : this.hide();
-    this[item.action].call(this, item);
+    item = sel >= 0 ? this.completions[sel] : { url: this.mode.query };
+    this.actionType > -2 && this.hide();
+    item.hasOwnProperty('sessionId') ? this.gotoSession(item) : this.navigateToUrl(item);
   },
   onClick: function(event) {
     var el = event.target, _i;
@@ -350,8 +351,7 @@ activate: function(_0, options, forceCurrent) {
       if (_i >= 0) {
         this.selection = _i;
         this.isSelectionOrigin = false;
-        this.forceNewTab = !event.shiftKey && this.forceNewTab || event.ctrlKey || event.metaKey;
-        this.onAction("enter");
+        this.onEnter(event);
       }
     }
     event.preventDefault();
@@ -509,7 +509,6 @@ activate: function(_0, options, forceCurrent) {
       ' OIIcon" style="background-image: url(&quot;chrome://favicon/size/16/' + str + "&quot;)" : "";
     item.relevancy = this.showRelevancy ? '\n\t\t\t<span class="OIRelevancy">'
       + item.relevancy + "</span>" : "";
-    item.action = item.hasOwnProperty('sessionId') ? "gotoSession" : "navigateToUrl";
   },
   CleanCompletions: function(list) {
     for (var _i = list.length, item; 0 <= --_i; ) {
@@ -524,7 +523,7 @@ activate: function(_0, options, forceCurrent) {
     if (Utils.evalIfOK(item.url)) { return; }
     MainPort.port.postMessage({
       handler: "openUrl",
-      reuse: -this.forceNewTab,
+      reuse: this.actionType,
       url: item.url
     });
   },
