@@ -272,24 +272,16 @@ activate: function(_0, options, forceCurrent) {
   onAction: function(action) {
     var sel;
     switch(action) {
-    case "dismiss":
-      DomUtils.UI.removeSelection() || this.hide();
-      break;
+    case "dismiss": DomUtils.UI.removeSelection() || this.hide(); break;
     case "focus": this.input.focus(); break;
     case "backspace": case "blur":
       VEventMode.lock() !== this.input ? this.input.focus() :
       action === "blur" ? this.input.blur() : document.execCommand("delete");
       break;
     case "up": case "down":
-      sel = this.completions.length + 1;
+      var sel = this.completions.length + 1;
       sel = (sel + this.selection + (action === "up" ? 0 : 2)) % sel - 1;
       this.updateSelection(sel);
-      break;
-    case "toggle":
-      this.toggleInput();
-      break;
-    case "pageup": case "pagedown":
-      this.goPage(action === "pageup" ? -1 : 1);
       break;
     case "enter":
       sel = this.selection;
@@ -301,6 +293,8 @@ activate: function(_0, options, forceCurrent) {
         this.onEnter();
       }
       break;
+    case "toggle": this.toggleInput(); break;
+    case "pageup": case "pagedown": this.goPage(action === "pageup" ? -1 : 1); break;
     default: break;
     }
   },
