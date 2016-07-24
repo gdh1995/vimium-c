@@ -270,7 +270,6 @@ activate: function(_0, options, forceCurrent) {
     return focused && n !== KeyCodes.menuKey ? 1 : 0;
   },
   onAction: function(action) {
-    var sel;
     switch(action) {
     case "dismiss": DomUtils.UI.removeSelection() || this.hide(); break;
     case "focus": this.input.focus(); break;
@@ -283,18 +282,9 @@ activate: function(_0, options, forceCurrent) {
       sel = (sel + this.selection + (action === "up" ? 0 : 2)) % sel - 1;
       this.updateSelection(sel);
       break;
-    case "enter":
-      sel = this.selection;
-      if (this.timer) {
-        if (sel === -1 || this.isSelectionOrigin) {
-          this.update(0, this.onEnter);
-        }
-      } else if (sel >= 0 || this.mode.query.length > 0) {
-        this.onEnter();
-      }
-      break;
     case "toggle": this.toggleInput(); break;
     case "pageup": case "pagedown": this.goPage(action === "pageup" ? -1 : 1); break;
+    case "enter": this.onEnter(); break;
     default: break;
     }
   },
@@ -331,8 +321,16 @@ activate: function(_0, options, forceCurrent) {
     this.input.setSelectionRange(sel, i, arr[0]);
     this.update();
   },
-  onEnter: function() {
+  onEnter: function(event) {
     var sel = this.selection, item, action;
+    if (this.timer) {
+      if (sel === -1 || this.isSelectionOrigin) {
+        this.update(0, this.onEnter);
+        return;
+      }
+    } else if (sel === -1 && this.mode.query.length === 0) {
+      return;
+    }
     item = sel >= 0 ? this.completions[sel]
       : { url: this.mode.query, action: "navigateToUrl" };
     this.keepAlive ? (this.keepAlive = false) : this.hide();
