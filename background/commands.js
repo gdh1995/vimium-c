@@ -207,7 +207,7 @@ availableCommands: {
   __proto__: null,
   showHelp: [ "Show help", 1, false ],
   debugBackground: [ "Debug the background page", 1, true,
-    { reuse: true, url: "chrome://extensions/?id=" + chrome.runtime.id }, "openUrl" ],
+    { reuse: true, url: "chrome://extensions/?id=$id", id_marker: "$id" }, "openUrl" ],
   blank: [ "Do nothing", 1, true ],
   toggleLinkHintCharacters: [ "Toggle the other link hints (use value)", 1, false ],
   toggleSwitchTemp: [ "Toggle switch only in currnet page (use key[, value])", 1, false ],

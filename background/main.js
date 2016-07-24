@@ -780,6 +780,9 @@ HelpDialog = {
     },
     openUrl: function() {
       var url = cOptions.url_f || Utils.convertToUrl(cOptions.url || ""), reuse;
+      if (cOptions.id_marker) {
+        url = url.replace(cOptions.id_marker, chrome.runtime.id);
+      }
       reuse = cOptions.reuse;
       reuse == null && (reuse = -1);
       if (reuse > 0) {
