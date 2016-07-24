@@ -818,15 +818,15 @@ HelpDialog = {
           if (!wnd) { return chrome.runtime.lastError; }
           wnd.tabs.length > 0 && BackgroundCommands.reloadTab(wnd.tabs);
         });
+        return;
       }
-      else if (commandCount <= 1 || tabs.length == 1) {
-        chrome.tabs.reload(funcDict.selectFrom(tabs).id);
-      } else {
-        var ind = funcDict.selectFrom(tabs).index;
-        tabs.slice(ind, ind + commandCount).forEach(function(tab) {
-          chrome.tabs.reload(tab.id);
-        });
-      }
+      var reloadProperties = {
+        bypassCache: cOptions.bypassCache || false
+      }, ind = funcDict.selectFrom(tabs).index, end;
+      end = Math.min(ind + commandCount, tabs.length);
+      do {
+        chrome.tabs.reload(tabs[ind].id, reloadProperties);
+      } while (end > ++ind);
     },
     reloadGivenTab: function() {
       if (commandCount === 1) {
