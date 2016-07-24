@@ -66,7 +66,7 @@ var Commands = {
     lines[0] !== "unmapAll" ? this.loadDefaults() : (_i = 1);
     for (_len = lines.length; _i < _len; _i++) {
       line = lines[_i].trim();
-      if (!(line.charCodeAt(0) > 35)) { continue; } // mask: /[ !"#]/
+      if (!(line.charCodeAt(0) > 35)) { continue; } // mask: /[!"#]/
       splitLine = line.split(" ");
       key = splitLine[0];
       if (key === "map") {
