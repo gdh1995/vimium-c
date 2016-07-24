@@ -87,7 +87,7 @@ var LinkHints = {
     this.isActive = true;
     this.keyStatus.tab = 0;
     handlerStack.push(this.onKeydown, this);
-    VEventMode.onWndBlur(this.OnWndBlur);
+    VEventMode.onWndBlur(this.ResetMode);
   },
   setModeOpt: function(options, count) {
     if (this.options === options) { return; }
@@ -438,7 +438,7 @@ var LinkHints = {
         return 0;
       }
     } else if (i > KeyCodes.f1 && i <= KeyCodes.f12) {
-      this.OnWndBlur();
+      this.ResetMode();
       if (i !== KeyCodes.f1 + 1) { return 0; }
       i = KeyboardUtils.getKeyStat(event);
       if (i === 8) {
@@ -470,7 +470,7 @@ var LinkHints = {
       }
     } else if (i >= KeyCodes.pageup && i <= KeyCodes.down) {
       VEventMode.scroll(event);
-      this.OnWndBlur();
+      this.ResetMode();
     } else if (!(linksMatched = this.alphabetHints.matchHintsByKey(this.hintMarkers, event, this.keyStatus))){
       if (linksMatched === false) {
         setTimeout(this.reinit.bind(this, null), 0);
@@ -494,7 +494,7 @@ var LinkHints = {
     }
     return 2;
   },
-  OnWndBlur: function(keydowns) {
+  ResetMode: function(keydowns) {
     if (LinkHints.mode > 255 || LinkHints.lastMode === LinkHints.mode) { return; }
     var d = VEventMode.keydownEvents();
     if (d[KeyCodes.ctrlKey] || d[KeyCodes.metaKey] || d[KeyCodes.shiftKey] || d[KeyCodes.altKey]) {
