@@ -142,7 +142,7 @@ var VSettings, VHUD, MainPort, VEventMode;
         }
         else if (InsertMode.global) {}
         else if (key >= KeyCodes.f1 && key <= KeyCodes.f12) {
-          action = checkValidKey(event, KeyboardUtils.getKeyName(key, event.shiftKey));
+          action = checkValidKey(event, KeyboardUtils.getKeyName(event));
         }
       }
       else if (key >= 32) {
