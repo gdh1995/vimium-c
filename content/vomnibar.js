@@ -333,7 +333,7 @@ activate: function(_0, options, forceCurrent) {
     } else if (sel === -1 && this.mode.query.length === 0) {
       return;
     }
-    item = sel >= 0 ? this.completions[sel] : { url: this.mode.query };
+    item = sel >= 0 ? this.completions[sel] : { url: this.input.value.trim() };
     this.actionType > -2 && this.hide();
     item.hasOwnProperty('sessionId') ? this.gotoSession(item) : this.navigateToUrl(item);
   },
