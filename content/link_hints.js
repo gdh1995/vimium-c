@@ -214,7 +214,8 @@ var LinkHints = {
         s = s.replace(LinkHints.hashRe, "").replace(LinkHints.quoteRe, '\\"');
         DomUtils.getClientRectsForAreas(this, arr[0], document.querySelector('map[name="' + s + '"]'));
       }
-      if (LinkHints.mode >= 128 && LinkHints.mode <= LinkHints.CONST.LEAVE
+      if ((LinkHints.mode >= 128 && LinkHints.mode <= LinkHints.CONST.LEAVE
+          && !(element.parentNode instanceof HTMLAnchorElement))
         || element.style.cursor || (s = getComputedStyle(element).cursor)
           && (s.startsWith("url") || s.indexOf("zoom") >= 0)) {
         isClickable = true;
