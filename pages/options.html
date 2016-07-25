@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Vimium++ Options</title>
     <meta charset="utf-8">
+    <title>Vimium++ Options</title>
     <link rel="stylesheet" href="options.css">
     <script defer="" src="options_base.js"></script>
     <script defer="" src="options.js"></script>
@@ -13,7 +13,7 @@
     <table id="wrapper">
       <thead><tr><td colspan="2">
         <header>Vimium++ Options</header>
-      </td></tr></thead>
+      </td><td></td></tr></thead>
       <tr>
         <td class="caption">Excluded URLs<br/>and keys</td>
         <td>
@@ -108,9 +108,9 @@ MainKey|c|c\:|MainName: \
           "<kbd>chrome-search://local-ntp/local-ntp.html</kbd>".
         </div></td>
       </tr>
-      <thead><tr><td colspan="2">
+      <tbody><tr><td colspan="2">
         <header id="advanced">Advanced Options</header>
-      </td></tr></thead>
+      </td><td></td></tr></tbody>
       <tbody id="advancedOptions" style="display: none;">
         <tr>
           <td class="caption">Scroll step size</td>
@@ -134,7 +134,7 @@ MainKey|c|c\:|MainName: \
         </tr>
         <tr>
           <td class="caption" rowspan="8">Miscellaneous<br/>options</td>
-          <td class="booleanOption">
+          <td class="booleanOption" colspan="2">
             <input id="smoothScroll" type="checkbox" data-model="CheckBox" />
             <label>
               Use smooth scrolling
