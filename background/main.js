@@ -735,6 +735,11 @@ HelpDialog = {
         chrome.tabs.remove(tab.id);
       }
     },
+    removeTabsR: function(tabs) {
+      var dir = cOptions.dir | 0;
+      dir = dir > 0 ? 1 : dir < 0 ? -1 : 0;
+      funcDict.removeTabsRelative(funcDict.selectFrom(tabs), dir * commandCount, tabs);
+    },
     removeRightTab: function(tabs) {
       if (!tabs) { return; }
       var ind = funcDict.selectFrom(tabs).index + commandCount;
@@ -900,11 +905,6 @@ HelpDialog = {
         name: "focusFrame",
         frameId: 0
       });
-    },
-    closeTabs: function(tabs) {
-      var dir = cOptions.dir | 0;
-      dir = dir > 0 ? 1 : dir < 0 ? -1 : 0;
-      funcDict.removeTabsRelative(funcDict.selectFrom(tabs), dir * commandCount, tabs);
     },
     visitPreviousTab: function(tabs) {
       var tabId;
@@ -1457,7 +1457,7 @@ HelpDialog = {
     ref2 = BackgroundCommands;
     for (key in ref2) { ref2[key].useTab = 0; }
     ref = ["gotoTab", "removeTab" //
-      , "closeTabs", "removeRightTab" //
+      , "removeTabsR", "removeRightTab" //
       , "moveTab", "togglePinTab" //
       , "reloadTab", "reloadGivenTab", "visitPreviousTab" //
     ];
