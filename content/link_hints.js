@@ -165,7 +165,7 @@ var LinkHints = {
     var marker = DomUtils.createElement("div"), i;
     marker.clickableItem = link[0];
     marker.className = "LH";
-    var i = link[1][0];
+    var i = link.length < 5 ? link[1][0] : link[4][0][0] + 13 * link[4][1];
     marker.style.left = i + "px";
     if (i > this.maxLeft) {
       marker.style.maxWidth = this.maxRight - i + "px";
@@ -381,7 +381,7 @@ var LinkHints = {
   },
   getVisibleElements: function() {
     var visibleElements, visibleElement, _len, _i, _j, obj, func
-      , r, r0, r2 = null, r2s, t, isNormal, reason;
+      , r, r0, r2 = null, r2s, t, isNormal, reason, _k, _ref;
     _i = this.mode & ~64;
     visibleElements = this.traverse(
       (_i == this.CONST.DOWNLOAD_IMAGE || _i == this.CONST.OPEN_IMAGE)
@@ -417,11 +417,18 @@ var LinkHints = {
       if (!r2) { if (r0 !== r) { visibleElement[1] = r; } continue; }
       if (r2.length > 0) {
         visibleElement[1] = r2[0];
-      } else {
-        reason = visibleElement[2];
-        if (reason === 4 || (reason === 2 ? isNormal : reason === 7)
+      } else if ((reason = visibleElement[2]) === 4 || (reason === 2 ? isNormal : reason === 7)
           && visibleElement[0].contains(visibleElements[_i][0])) {
-          visibleElements.splice(_len, 1);
+        visibleElements.splice(_len, 1);
+      } else {
+        _ref = visibleElement[4] || [r0, 0];
+        r0 = _ref[0];
+        for (_k = _len; _i <= --_k; ) {
+          t = visibleElements[_k][1];
+          if (r0[0] >= t[0] && r0[1] >= t[1] && r0[0] < t[0] + 20 && r0[1] < t[1] + 15) {
+            visibleElements[_k][4] = [r0, _ref[1] + 1];
+            break;
+          }
         }
       }
       r2 = null;
