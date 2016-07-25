@@ -585,21 +585,23 @@ HelpDialog = {
       funcDict.moveTabToNextWindow[2].bind(null, options.tabId, tab2));
     }],
     removeTab: function(tab, curTabs, wnds) {
-      var url, windowId;
+      var url, windowId, wnd;
       wnds = wnds.filter(function(wnd) { return wnd.type === "normal"; });
       if (wnds.length <= 1) {
         // protect the last window
         url = Settings.cache.newTabUrl_f;
-        if (wnds.length === 1 && wnds[0].incognito && !Utils.isRefusingIncognito(url)) {
-          windowId = wnds[0].id;
+        if (!(wnd = wnds[0])) {}
+        else if (wnd.id !== tab.windowId) { url = null; } // the tab may be in a popup window
+        else if (wnd.incognito && !Utils.isRefusingIncognito(url)) {
+          windowId = wnd.id;
         }
         // other urls will be disabled if incognito else auto in current window
       }
       else if (!tab.incognito) {
         // protect the last "normal & not incognito" window which has currentTab if it exists
         wnds = wnds.filter(function(wnd) { return !wnd.incognito; });
-        if (wnds.length === 1 && wnds[0].id === tab.windowId) {
-          windowId = tab.windowId;
+        if ((wnd = wnds[0]) && wnd.id === tab.windowId) {
+          windowId = wnd.id;
           url = Settings.cache.newTabUrl_f;
         }
       }
