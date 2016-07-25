@@ -117,10 +117,10 @@ bookmarks: {
   currentSearch: null,
   path: "",
   deep: 0,
-  filter: function(query) {
+  filter: function(query, index) {
     if (queryTerms.length === 0) {
       Completers.next([]);
-      if (Settings.get("tinyMemory")) { return; }
+      if (index !== 0) { return; }
     } else {
       this.currentSearch = query;
     }
@@ -624,7 +624,7 @@ searchEngines: {
       queryTerms = queryTerms.join(" ").replace(this.protoRe, " __proto_").trimLeft().split(" ");
     }
     for (; i < l; i++) {
-      completers[i].filter(query);
+      completers[i].filter(query, i);
     }
   },
   next: function(newSugs) {
