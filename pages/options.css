@@ -194,6 +194,13 @@ label:active {
 .help-inner.line-2x {
   top: 4px;
 }
+.wrap-space {
+	padding-left: 0.3em;
+	padding-right: 0.3em;
+}
+.wrap-left-space {
+	padding-left: 0.3em;
+}
 
 /* Boolean options have a tighter form representation than text options. */
 .booleanOption { font-size: 12px; }
