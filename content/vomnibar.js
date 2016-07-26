@@ -93,8 +93,7 @@ activate: function(_0, options, forceCurrent) {
     this.input.value = "";
     handlerStack.remove(this);
     this.onUpdate = null;
-    this.inputText = "";
-    this.mode.query = "";
+    this.mode.query = this.inputText = "";
     this.completions = [];
   },
   reset: function(input, start, end) {
