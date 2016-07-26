@@ -36,6 +36,28 @@ $("showCommands").onclick = function(event) {
   }, 50);
 };
 
+ExclusionRulesOption.prototype.sortRules = function(element) {
+  if (element && element.timer) { return; }
+  var rules = this.readValueFromElement(), _i, rule, key, arr
+    , hostRe = /^(?:[:^]?[a-z?*]+:\/\/)?(?:www\.)?(.*)/;
+  for (_i = 0; _i < rules.length; _i++) {
+    rule = rules[_i];
+    if (arr = hostRe.exec(key = rule.pattern)) {
+      key = arr[1] || key;
+    }
+    rule.key = key;
+  }
+  rules.sort(function(a, b) { return a.key < b.key ? -1 : a.key === b.key ? 0 : 1; });
+  this.populateElement(rules);
+  if (!element) { return; }
+  element.timer = setTimeout(function(el, text) {
+    el.textContent = text, el.timer = 0;
+  }, 1000, element, element.textContent);
+  element.textContent = "(Sorted)";
+};
+
+$("exclusionSortButton").onclick = function() { Option.all.exclusionRules.sortRules(this); };
+
 var formatDate = function(time) {
   return new Date(time - new Date().getTimezoneOffset() * 1000 * 60
     ).toJSON().substring(0, 19).replace('T', ' ');

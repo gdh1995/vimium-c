@@ -165,7 +165,7 @@ var LinkHints = {
     var marker = DomUtils.createElement("div"), i;
     marker.clickableItem = link[0];
     marker.className = "LH";
-    var i = link.length < 5 ? link[1][0] : link[4][0][0] + 13 * link[4][1];
+    var i = link.length < 5 ? link[1][0] : link[4][0][0] + link[4][1];
     marker.style.left = i + "px";
     if (i > this.maxLeft) {
       marker.style.maxWidth = this.maxRight - i + "px";
@@ -426,7 +426,7 @@ var LinkHints = {
         for (_k = _len; _i <= --_k; ) {
           t = visibleElements[_k][1];
           if (r0[0] >= t[0] && r0[1] >= t[1] && r0[0] < t[0] + 20 && r0[1] < t[1] + 15) {
-            visibleElements[_k][4] = [r0, _ref[1] + 1];
+            visibleElements[_k][4] = [r0, _ref[1] + 13];
             break;
           }
         }

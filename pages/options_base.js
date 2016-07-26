@@ -79,37 +79,23 @@ Option.areJSONEqual = function(a, b) {
 
 function ExclusionRulesOption() {
   var _this = this;
+  this.fetch = function() {};
   ExclusionRulesOption.__super__.constructor.apply(this, arguments);
   bgSettings.fetchFile("exclusionTemplate", function() {
     _this.element.innerHTML = bgSettings.cache.exclusionTemplate;
     _this.template = $('exclusionRuleTemplate').content.children[0];
-    var el = $("exclusionSortButton");
-    if (el) {
-      el.onclick = function() { _this.sortRules(this); };
-    } else {
-      _this.onRowChange = function() {};
-    }
     _this.list = _this.element.getElementsByTagName('tbody')[0];
-    _this.fetch = ExclusionRulesOption.__super__.fetch;
+    delete _this.fetch;
     _this.fetch();
     _this.list.addEventListener("input", _this.onUpdated);
     _this.list.addEventListener("click", function(e) { _this.onRemoveRow(e); });
     $("exclusionAddButton").onclick = function() { _this.addRule(null); };
-    if (el && _this.list.childElementCount > 0) {
-      $("exclusionToolbar").style.visibility = "";
-    }
-    _this.onInit && _this.onInit();
+    _this.onInit();
   });
 }
 __extends(ExclusionRulesOption, Option);
 
-ExclusionRulesOption.prototype.fetch = function() {};
-
-ExclusionRulesOption.prototype.onRowChange = function(isAdd) {
-  var count = this.list.childElementCount;
-  if (count - isAdd !== 0) { return true; }
-  $("exclusionToolbar").style.visibility = count > 0 ? "" : "hidden";
-};
+ExclusionRulesOption.prototype.onRowChange = function() {};
 
 ExclusionRulesOption.prototype.addRule = function(pattern) {
   var element, exclusionScrollBox;
@@ -204,26 +190,6 @@ ExclusionRulesOption.prototype.getPattern = function(element) {
 ExclusionRulesOption.prototype.getPassKeys = function(element) {
   return element.getElementsByClassName("passKeys")[0];
 };
-
-ExclusionRulesOption.prototype.sortRules = function(element) {
-  if (element && element.timer) { return; }
-  var rules = this.readValueFromElement(), _i, rule, key, arr
-    , hostRe = /^(?:[:^]?[a-z?*]+:\/\/)?(?:www\.)?(.*)/;
-  for (_i = 0; _i < rules.length; _i++) {
-    rule = rules[_i];
-    if (arr = hostRe.exec(key = rule.pattern)) {
-      key = arr[1] || key;
-    }
-    rule.key = key;
-  }
-  rules.sort(function(a, b) { return a.key < b.key ? -1 : a.key === b.key ? 0 : 1; });
-  this.populateElement(rules);
-  if (!element) { return; }
-  element.timer = setTimeout(function(el, text) {
-    el.textContent = text, el.timer = 0;
-  }, 1000, element, element.textContent);
-  element.textContent = "(Sorted)";
-}
 
 if (location.pathname.indexOf("/popup.html", location.pathname.length - 11) !== -1)
 chrome.tabs.query({currentWindow: true, active: true}, function(tab) {
