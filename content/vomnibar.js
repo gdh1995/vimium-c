@@ -185,6 +185,7 @@ activate: function(_0, options, forceCurrent) {
       : str === line.text ? line.url : line.text;
   },
   updateSelection: function(sel) {
+    if (this.timer) { return; }
     var _ref = this.list.children, old = this.selection;
     if (old >= 0) {
       _ref[old].classList.remove("S");
