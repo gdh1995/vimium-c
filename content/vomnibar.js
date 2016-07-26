@@ -300,7 +300,7 @@ activate: function(_0, options, forceCurrent) {
     str = len ? this.completions[0].type : "", notTab;
     if (str === "search") { return; }
     notTab = str !== "tab";
-    str = this.input.value;
+    str = (this.isSelectionOrigin || this.selection < 0 ? this.input.value : this.inputText).trimRight();
     arr = this._pageNumRe.exec(str);
     i = (arr && arr[0]) | 0;
     if (len >= n) { sel *= n; }
