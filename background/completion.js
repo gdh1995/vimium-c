@@ -142,6 +142,7 @@ bookmarks: {
       if (queryType === 1 && offset > 0) {
         results.sort(Completers.rsortByRelevancy);
         results = results.slice(offset, offset + maxResults);
+        offset = 0;
       }
     }
     Completers.next(results);
@@ -234,6 +235,7 @@ history: {
       if (query.isOff) { return; }
       var historys = [], arr = {}, i, now = Date.now();
       i = queryType === 3 ? -offset : 0;
+      offset = 0;
       sessions.some(function(item) {
         var entry = item.tab;
         if (!entry || entry.url in arr) { return; }
@@ -274,7 +276,13 @@ history: {
     regexps = null;
     sugs = [];
     getRele = this.getRelevancy0;
-    for (i = queryType === 3 ? offset * 2 : 0; i <= maxNum; i += 2) {
+    if (queryType === 3) {
+      i = offset * 2;
+      offset = 0;
+    } else {
+      i = 0;
+    }
+    for (; i <= maxNum; i += 2) {
       score = results[i];
       if (score <= 0) { break; }
       item = history[results[i + 1]];
@@ -444,6 +452,7 @@ tabs: {
       c = this.computeRecency;
     }
     if (offset >= suggestions.length && queryType === 4) {
+      offset = 0;
       Completers.next([]);
       return;
     }
@@ -461,6 +470,7 @@ tabs: {
       } else {
         suggestions = suggestions.slice(offset).concat(suggestions.slice(0, offset));
       }
+      offset = 0;
     }
     Completers.next(suggestions);
     Decoder.continueToWork();
