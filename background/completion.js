@@ -139,7 +139,7 @@ bookmarks: {
       }).map(function(i) {
         return new Suggestion("bookm", i.jsUrl || i.url, i.jsUrl ? "javascript: ..." : i.text, isPath ? i.path : i.title, c);
       });
-      if (offset > 0 && queryType === 1) {
+      if (queryType === 1 && offset > 0) {
         results.sort(Completers.rsortByRelevancy);
         results = results.slice(offset, offset + maxResults);
       }
@@ -443,6 +443,10 @@ tabs: {
     } else {
       c = this.computeRecency;
     }
+    if (offset >= suggestions.length && queryType === 4) {
+      Completers.next([]);
+      return;
+    }
     suggestions = tabs.map(function(tab) {
       var tabId = tab.id, suggestion = new Suggestion("tab",
             tab.url, tab.text, tab.title, c, tabId);
@@ -450,7 +454,7 @@ tabs: {
       if (curTabId === tabId) { suggestion.relevancy = 0; }
       return suggestion;
     });
-    if (offset > 0 && queryType === 4 && offset < suggestions.length) {
+    if (offset > 0 && queryType === 4) {
       suggestions.sort(Completers.rsortByRelevancy);
       if (suggestions.length > maxResults) {
         suggestions = suggestions.slice(offset, offset + maxResults);
