@@ -217,9 +217,11 @@ bookmarks: {
 },
 
 history: {
-  filter: function(query) {
+  filter: function(query, index) {
     var _this = this, history = HistoryCache.history;
-    if (queryType === 1) { queryType = 3; }
+    if (queryType === 1) {
+      queryType = queryTerms.length === 0 || index === 0 ? 3 : 67;
+    }
     if (queryTerms.length > 0) {
       if (history) {
         Completers.next(this.quickSearch(history));
@@ -252,7 +254,7 @@ history: {
     }
   },
   quickSearch: function(history) {
-    var maxNum = maxResults + (queryType === 3 ? offset : 0),
+    var maxNum = maxResults + ((queryType & 63) === 3 ? offset : 0),
     results = [], sug,
     sugs, query = queryTerms, regexps, len, i, len2, j, k,
     score, item, getRele = this.computeRelevancy;
@@ -651,7 +653,10 @@ searchEngines: {
     var suggestions = this.suggestions, func;
     this.suggestions = null;
     suggestions.sort(this.rsortByRelevancy);
-    if (suggestions.length > maxTotal) {
+    if (offset > 0) {
+      suggestions = suggestions.slice(offset, offset + maxTotal);
+      offset = 0;
+    } else if (suggestions.length > maxTotal) {
       suggestions.length = maxTotal;
     }
     if (queryTerms.length > 0) {
