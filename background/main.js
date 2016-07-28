@@ -100,6 +100,13 @@ HelpDialog = {
   ContentSettings = {
     _urlHeadRe: /^[a-z]+:\/\/[^\/]+\//,
     complaint: function(url) {
+      if (!chrome.contentSettings) {
+        cPort.postMessage({
+          name: "showHUD",
+          text: "This Vimium++ has no permissions to change your content settings"
+        });
+        return true;
+      }
       if (Utils.hasOrdinaryUrlPrefix(url) && !url.startsWith("chrome")) {
         return false;
       }
@@ -117,6 +124,7 @@ HelpDialog = {
       });
     },
     clear: function(contentType, tab) {
+      if (!chrome.contentSettings) { return; }
       var cs = chrome.contentSettings[contentType];
       if (tab) {
         cs.clear({ scope: (tab.incognito ? "incognito_session_only" : "regular") });
