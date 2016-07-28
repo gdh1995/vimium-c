@@ -247,7 +247,9 @@ history: {
       }) ? _this.filterFinish(historys, query) :
       _this.filterFill(historys, query, arr, -i);
     }) : this.filterFill(null, query, {}, 0);
-    if (! history) {
+    if (history) {
+      HistoryCache.refreshInfo();
+    } else {
       setTimeout(function() {
         HistoryCache.use(function() {});
       }, 50);
@@ -803,9 +805,12 @@ searchEngines: {
 
   HistoryCache = {
     size: 20000,
+    lastRefresh: 0,
+    toRefreshCount: 0,
     history: null,
     _callbacks: [],
     use: function(callback) {
+      this._callbacks.push(callback);
       if (this._use) {
         chrome.history.search({
           text: "",
@@ -814,7 +819,6 @@ searchEngines: {
         }, this._use);
         this._use = null;
       }
-      this._callbacks.push(callback);
     },
     _use: function(history) {
       var _this = HistoryCache, i = history.length, j, ref;
@@ -841,6 +845,7 @@ searchEngines: {
       setTimeout(function() {
         var _this = HistoryCache;
         _this.history.sort(function(a, b) { return a.url < b.url ? -1 : 1; });
+        _this.lastRefresh = Date.now();
         chrome.history.onVisitRemoved.addListener(_this.OnVisitRemoved);
         chrome.history.onVisited.addListener(_this.OnPageVisited);
       }, 100);
@@ -862,6 +867,7 @@ searchEngines: {
       };
       j.text = Decoder.decodeURL(newPage.url, j);
       _this.history.splice(-1 - i, 0, j); 
+      _this.toRefreshCount++;
       Decoder.continueToWork();
     },
     OnVisitRemoved: function(toRemove) {
@@ -878,6 +884,28 @@ searchEngines: {
         }
       }
     },
+    refreshInfo: function() {
+      var i;
+      if (this.toRefreshCount <= 0 || this.lastRefresh >= (i = Date.now())) { return; }
+      chrome.history.search({
+        text: "",
+        maxResults: Math.min(2000, ((i - this.lastRefresh) / 100) | 0),
+        startTime: this.lastRefresh
+      }, this.OnInfo);
+      this.lastRefresh = i + 1000;
+      this.toRefreshCount = 0;
+    },
+    OnInfo: function(history) {
+      var arr = HistoryCache.history, bs = HistoryCache.binarySearch, i, len, info, j, item;
+      if (arr.length <= 0) { return; }
+      for (i = 0, len = history.length; i < len; i++) {
+        info = history[i];
+        j = bs(info.url, arr);
+        if (j < 0) { continue; }
+        item = arr[i];
+        item.title !== info.title && (item.title = info.title);
+      }
+    },
     binarySearch: function(u, a) {
       var e, h = a.length - 1, l = 0, m = 0;
       while (l <= h) {
@@ -892,6 +920,7 @@ searchEngines: {
       return -1 - m;
     }
   };
+  window.HistoryCache = HistoryCache;
 
   Decoder = {
     _f: decodeURIComponent, // core function
