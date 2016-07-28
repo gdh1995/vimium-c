@@ -152,6 +152,7 @@ setTimeout(function() { if (!chrome.omnibox) { return; }
   var last, firstUrl, lastSuggest, spanRe = /<(\/?)span(?: [^>]+)?>/g,
   tempRequest, timeout = 0, sessionIds, suggestions = null, outTimeout = 0, outTime,
   defaultSug = { description: "<dim>Open: </dim><url>%s</url>" },
+  defaultSuggestionType = 0,
   formatSessionId = function(sug) {
     if (sug.sessionId != null) {
       sessionIds[sug.url] = sug.sessionId;
@@ -211,12 +212,16 @@ setTimeout(function() { if (!chrome.omnibox) { return; }
       response.shift();
     }
     if (!autoSelect) {
-      chrome.omnibox.setDefaultSuggestion(defaultSug);
+      if (defaultSuggestionType !== 1) {
+        chrome.omnibox.setDefaultSuggestion(defaultSug);
+        defaultSuggestionType = 1;
+      }
     } else if (sug.type === "search") {
       var text = sug.titleSplit.replace(spanRe, "");
       text = Utils.escapeText(text.substring(0, text.indexOf(":")));
       text = "<dim>" + text + " - </dim><url>" +
         sug.textSplit.replace(spanRe, "<$1match>") + "</url>";
+      defaultSuggestionType = 2;
       chrome.omnibox.setDefaultSuggestion({ description: text });
       if (sug = response[0]) switch (sug.type) {
       case "math":
@@ -225,6 +230,7 @@ setTimeout(function() { if (!chrome.omnibox) { return; }
         break;
       }
     } else {
+      defaultSuggestionType = 3;
       chrome.omnibox.setDefaultSuggestion({ description: format(sug).description });
     }
     response = response.map(format);
