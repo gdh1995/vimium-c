@@ -7,3 +7,4 @@ test*
 ~*
 *.sh
 *.zip
+node_modules
