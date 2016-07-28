@@ -61,6 +61,7 @@ activate: function(_0, options, forceCurrent) {
   inputText: "",
   completions: null,
   isSearchOnTop: false,
+  notOnlySearch: true,
   actionType: false,
   input: false,
   isSelectionOrigin: true,
@@ -392,7 +393,11 @@ activate: function(_0, options, forceCurrent) {
         ? s0 : this.completions[this.selection].text)) {
       return;
     }
-    if (!this.completions.length && !this.timer && s1.startsWith(s0) && s0) {
+    if (this.completions.length > this.isSearchOnTop || this.timer || !(s1.startsWith(s0) && s0)) {
+      this.notOnlySearch = true;
+    } else if (this.isSearchOnTop) {
+      this.notOnlySearch = false;
+    } else {
       return;
     }
     i = this.input.selectionStart;
@@ -499,7 +504,13 @@ activate: function(_0, options, forceCurrent) {
     mode.clientWidth = document.documentElement.clientWidth,
     mode.query = str;
     this.timer = -1;
+    if (this.notOnlySearch) {
+      return MainPort.port.postMessage(mode);
+    }
+    str = mode.handler;
+    mode.type = "search";
     MainPort.port.postMessage(mode);
+    mode.type = str;
   },
 
   Parse: function(item) {
