@@ -508,8 +508,9 @@ searchEngines: {
     maxResults--;
     autoSelect = true;
     if (failIfNull !== true) {
-      if (queryType !== 0) {
-        q.push(queryTerms.more);
+      if (queryType === 1) {
+        q.push(q.more);
+        offset = 0;
       }
       q.length > 1 && (queryType = 2);
     }
