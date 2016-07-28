@@ -238,6 +238,8 @@ setTimeout(function() { if (!chrome.omnibox) { return; }
     if (timeout) {
       tempRequest = [key, suggest];
       return;
+    } else if (suggestions && suggestions.length === 0 && key.startsWith(last)) {
+      return suggest([]);
     }
     timeout = setTimeout(onTimer, 300);
     outTime = Date.now();
