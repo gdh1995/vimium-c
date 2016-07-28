@@ -316,7 +316,8 @@ activate: function(_0, options, forceCurrent) {
     if (sel > 0) { str += " +" + sel; }
     sel = this.input.selectionStart;
     arr = [this.input.selectionDirection];
-    this.input.value = this.mode.query = str;
+    this.input.value = str;
+    this.mode.query = str.trimLeft();
     this.input.setSelectionRange(sel, i, arr[0]);
     this.update();
   },
