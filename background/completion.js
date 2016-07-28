@@ -856,15 +856,13 @@ searchEngines: {
       }
       j = {
         lastVisitTime: newPage.lastVisitTime,
-        text: Decoder.decodeURL(newPage.url),
+        text: null,
         title: newPage.title,
         url: newPage.url
       };
-      _this.history.splice(-1 - i, 0, j);
-      if (Decoder.todos.length > 0) {
-        Decoder.todos.push(j);
-        Decoder.continueToWork();
-      }
+      j.text = Decoder.decodeURL(newPage.url, j);
+      _this.history.splice(-1 - i, 0, j); 
+      Decoder.continueToWork();
     },
     OnVisitRemoved: function(toRemove) {
       var _this = HistoryCache;
@@ -967,12 +965,12 @@ searchEngines: {
 
   (function() {
     var d = Decoder.dict, f = Decoder._f, t = Decoder.todos;
-    Decoder.decodeURL = function(a) {
+    Decoder.decodeURL = function(a, o) {
       if (a.length >= 200) { return a; }
       try {
         return f(a);
       } catch (e) {
-        return d[a] || (t.push(a), a);
+        return d[a] || (t.push(o || a), a);
       }
     };
   })();
