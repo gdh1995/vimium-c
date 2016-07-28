@@ -237,7 +237,6 @@ history: {
       if (query.isOff) { return; }
       var historys = [], arr = {}, i, now = Date.now();
       i = queryType === 3 ? -offset : 0;
-      offset = 0;
       sessions.some(function(item) {
         var entry = item.tab;
         if (!entry || entry.url in arr) { return; }
@@ -320,10 +319,11 @@ history: {
     }
     historys.forEach(function(e, i, arr) {
       var o = new s("history", e.url, d(e.url), e.title, c, e.lastVisitTime);
-      o.relevancy = 0.99 - i / 100;
+      o.relevancy = 0.99 - i / 256;
       e.sessionId && (o.sessionId = e.sessionId);
       arr[i] = o;
     });
+    offset = 0;
     Completers.next(historys);
     Decoder.continueToWork();
   },
@@ -903,7 +903,7 @@ searchEngines: {
         j = bs(info.url, arr);
         if (j < 0) { continue; }
         item = arr[i];
-        item.title !== info.title && (item.title = info.title);
+        item.title !== info.title && item.title && (item.title = info.title);
       }
     },
     binarySearch: function(u, a) {
@@ -920,7 +920,6 @@ searchEngines: {
       return -1 - m;
     }
   };
-  window.HistoryCache = HistoryCache;
 
   Decoder = {
     _f: decodeURIComponent, // core function
