@@ -33,13 +33,19 @@ window.onhashchange = function() {
       url = url.substring(ind);
     }
   }
-  if (url.indexOf(":") <= 0) {
+  if (url.indexOf(":") <= 0 && url.indexOf("/") < 0) {
     url = decodeURLPart(url).trim();
   }
-  if (!url && type == "image") {
-    type = "";
+  if (!url) {
+    type == "image" && (type = "");
   } else if (url.toLowerCase().startsWith("javascript:")) {
     type = url = file = "";
+  } else if (BG) {
+    str = BG.Utils.convertToUrl(url, null, -1);
+    ind = BG.Utils.lastUrlType;
+    if (ind === 1 || ind === 4) {
+      url = str;
+    }
   }
 
   switch (type) {
