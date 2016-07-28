@@ -60,6 +60,7 @@ activate: function(_0, options, forceCurrent) {
   box: null,
   inputText: "",
   completions: null,
+  isSearchOnTop: false,
   actionType: false,
   input: false,
   isSelectionOrigin: true,
@@ -143,6 +144,7 @@ activate: function(_0, options, forceCurrent) {
       list.style.display = "none";
       barCls.remove("OWithList");
     }
+    this.isSearchOnTop = this.completions.length > 0 && this.completions[0].type === "search";
     this.isSelectionOrigin = true;
   },
   updateInput: function(sel) {
@@ -297,15 +299,14 @@ activate: function(_0, options, forceCurrent) {
   goPage: function(sel) {
     var i, arr, len = this.completions.length,
     n = this.mode.maxResults,
-    str = len ? this.completions[0].type : "", notTab;
-    if (str === "search") { return; }
-    notTab = str !== "tab";
+    str = len ? this.completions[0].type : "";
+    if (this.isSearchOnTop) { return; }
     str = (this.isSelectionOrigin || this.selection < 0 ? this.input.value : this.inputText).trimRight();
     arr = this._pageNumRe.exec(str);
     i = (arr && arr[0]) | 0;
     if (len >= n) { sel *= n; }
     else if (i > 0 && sel < 0) { sel *= i >= n ? n : 1; }
-    else if (len < (notTab ? n : 3)) { return; }
+    else if (len < (len && this.completions[0].type === "tab" ? 3 : n)) { return; }
 
     sel += i;
     sel = sel < 0 ? 0 : sel > 90 ? 90 : sel;
@@ -396,9 +397,9 @@ activate: function(_0, options, forceCurrent) {
       return;
     }
     i = this.input.selectionStart;
-    if (i > s1.length - 2) {
-      if (s1.endsWith(" +") && !this.timer && str.substring(0, str.length - 2).trimRight() === s0
-          && (!this.completions.length || this.completions[0].type !== "search")) {
+    if (this.isSearchOnTop) {}
+    else if (i > s1.length - 2) {
+      if (s1.endsWith(" +") && !this.timer && str.substring(0, str.length - 2).trimRight() === s0) {
         return;
       }
     } else if ((arr = this._pageNumRe.exec(s0)) && str.endsWith(arr[0])) {
