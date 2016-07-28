@@ -318,7 +318,6 @@ activate: function(_0, options, forceCurrent) {
     sel = this.input.selectionStart;
     arr = [this.input.selectionDirection];
     this.input.value = str;
-    this.mode.query = str.trimLeft();
     this.input.setSelectionRange(sel, i, arr[0]);
     this.update();
   },
@@ -332,7 +331,7 @@ activate: function(_0, options, forceCurrent) {
         this.update(0, this.onEnter);
         return;
       }
-    } else if (sel === -1 && this.mode.query.length === 0) {
+    } else if (sel === -1 && this.input.value.length === 0) {
       return;
     }
     item = sel >= 0 ? this.completions[sel] : { url: this.input.value.trim() };
@@ -408,11 +407,8 @@ activate: function(_0, options, forceCurrent) {
       if (s1.trimLeft() !== s0.substring(0, s0.length - j).trimRight()) {
         this.input.value = s1;
         this.input.setSelectionRange(i, i);
-        str = s1.trimLeft();
       }
     }
-    // here's no race condition
-    this.mode.query = str;
     this.update();
   },
   onCompletions: function(completions) {
@@ -498,9 +494,10 @@ activate: function(_0, options, forceCurrent) {
     query: ""
   },
   filter: function(query) {
-    var mode = this.mode;
+    var mode = this.mode, str = this.input ? this.input.value.trim() : "";
+    if (str && str === mode.query) { return; }
     mode.clientWidth = document.documentElement.clientWidth,
-    mode.query = this.mode.query;
+    mode.query = str;
     this.timer = -1;
     MainPort.port.postMessage(mode);
   },
