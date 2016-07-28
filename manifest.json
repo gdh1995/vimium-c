@@ -1,5 +1,7 @@
 {
+  "author": "gdh1995@qq.com",
   "background": {
+    "persistent": true,
     "scripts": [
       "background/utils.js",
       "background/settings.js",
