@@ -327,9 +327,6 @@ history: {
     Completers.next(historys);
     Decoder.continueToWork();
   },
-  rsortByLvt: function(a, b) {
-    return b.lastVisitTime - a.lastVisitTime;
-  },
   getRelevancy0: function() { return 0; },
   computeRelevancy: function(text, title, lastVisitTime) {
     var recencyScore = RankingUtils.recencyScore(lastVisitTime),
