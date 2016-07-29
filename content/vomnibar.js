@@ -296,14 +296,13 @@ activate: function(_0, options, forceCurrent) {
     sel.modify(code === 4 ? "extend" : "move", code < 4 ? "backward" : "forward", "word");
     code === 4 && document.execCommand("delete");
   },
-  _pageNumRe: /(?:^|\s)(\+\d{0,2})$/,
   goPage: function(sel) {
     var i, arr, len = this.completions.length,
     n = this.mode.maxResults,
     str = len ? this.completions[0].type : "";
     if (this.isSearchOnTop) { return; }
     str = (this.isSelectionOrigin || this.selection < 0 ? this.input.value : this.inputText).trimRight();
-    arr = this._pageNumRe.exec(str);
+    arr = /(?:^|\s)(\+\d{0,2})$/.exec(str);
     i = (arr && arr[0]) | 0;
     if (len >= n) { sel *= n; }
     else if (i > 0 && sel < 0) { sel *= i >= n ? n : 1; }
@@ -391,7 +390,7 @@ activate: function(_0, options, forceCurrent) {
         ? s0 : this.completions[this.selection].text)) {
       return;
     }
-    if (this.completions.length > this.isSearchOnTop || this.timer || !(s1.startsWith(s0) && s0)) {
+    if (this.completions.length > this.isSearchOnTop || this.timer || !(s1.startsWith(s0) && s0) || /^:[a-z]?$/.test(s0)) {
       this.notOnlySearch = true;
     } else if (this.isSearchOnTop) {
       this.notOnlySearch = false;
