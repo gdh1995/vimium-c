@@ -347,9 +347,8 @@ activate: function(_0, options, forceCurrent) {
       return;
     } else if (el === this.list || this.timer) {}
     else if (window.getSelection().type !== "Range") {
-      var ind = [].indexOf;
-      _i = ind.call(event.path, this.list);
-      _i = _i > 0 ? ind.call(this.list.children, event.path[_i - 1]) : -1;
+      while(el && el.parentNode != this.list) { el = el.parentNode; }
+      _i = el ? [].indexOf.call(this.list.children, el) : -1;
       if (_i >= 0) {
         this.selection = _i;
         this.isSelectionOrigin = false;
@@ -359,12 +358,11 @@ activate: function(_0, options, forceCurrent) {
     event.preventDefault();
   },
   OnMenu: function (event) {
-    var path = event.path, _i, el, list = Vomnibar.list;
-    for (_i = 0; (el = path[_i]) !== list; ++_i) {
+    for (var _i, el = event.target; el; el = el.parentNode) {
       if (el.classList.contains("OIUrl")) { break; }
     }
-    if (el === list) { return; }
-    _i = [].indexOf.call(list.children, el.parentElement.parentElement);
+    if (!el) { return; }
+    _i = [].indexOf.call(Vomnibar.list.children, el.parentNode.parentNode);
     el.href = Vomnibar.completions[_i].url;
   },
   OnSelect: function() {
