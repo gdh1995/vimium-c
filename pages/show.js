@@ -46,6 +46,10 @@ window.onhashchange = function() {
     if (ind === 1 || ind === 4) {
       url = str;
     }
+  } else if (url.startsWith("//")) {
+    url = "http:" + url;
+  } else if (/^([\-\.\dA-Za-z]+|\[[\dA-Fa-f:]+\])(:\d{2,5})?\//.test(url)) {
+    url = "http://" + url;
   }
 
   switch (type) {
