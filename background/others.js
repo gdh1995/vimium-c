@@ -152,7 +152,7 @@ setTimeout(function() { if (!chrome.omnibox) { return; }
   var last, firstUrl, lastSuggest, spanRe = /<(\/?)span(?: [^>]+)?>/g,
   tempRequest, timeout = 0, sessionIds, suggestions = null, outTimeout = 0, outTime,
   defaultSug = { description: "<dim>Open: </dim><url>%s</url>" },
-  defaultSuggestionType = 0,
+  defaultSuggestionType = 0, notOnlySearch = true,
   formatSessionId = function(sug) {
     if (sug.sessionId != null) {
       sessionIds[sug.url] = sug.sessionId;
@@ -211,12 +211,14 @@ setTimeout(function() { if (!chrome.omnibox) { return; }
       firstUrl = sug.url;
       response.shift();
     }
+    notOnlySearch = true;
     if (!autoSelect) {
       if (defaultSuggestionType !== 1) {
         chrome.omnibox.setDefaultSuggestion(defaultSug);
         defaultSuggestionType = 1;
       }
     } else if (sug.type === "search") {
+      notOnlySearch = response.length > 0;
       var text = sug.titleSplit.replace(spanRe, "");
       text = Utils.escapeText(text.substring(0, text.indexOf(":")));
       text = "<dim>" + text + " - </dim><url>" +
@@ -241,11 +243,13 @@ setTimeout(function() { if (!chrome.omnibox) { return; }
     key = key.trim();
     if (key === last) { suggestions && suggest(suggestions); return; }
     lastSuggest && (lastSuggest.isOff = true);
+    var onlySearch = false;
     if (timeout) {
       tempRequest = [key, suggest];
       return;
     } else if (suggestions && suggestions.length === 0 && key.startsWith(last) && !/^:[a-z]?$/.test(last)) {
-      return suggest([]);
+      if (notOnlySearch) { return suggest([]); }
+      onlySearch = true;
     }
     timeout = setTimeout(onTimer, 300);
     outTime = Date.now();
@@ -253,7 +257,7 @@ setTimeout(function() { if (!chrome.omnibox) { return; }
     sessionIds = suggestions = null;
     last = key;
     lastSuggest = suggest;
-    Completers.omni.filter(key, {
+    (onlySearch ? Completers.search : Completers.omni).filter(key, {
       maxResults: 6
     }, onComplete.bind(null, suggest));
   },
