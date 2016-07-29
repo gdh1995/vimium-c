@@ -37,8 +37,7 @@ var exports = {}, Utils = {
   _chromePrefixes: { "chrome-extension": 1, "chrome-search": 1, __proto__: null  },
   ordinaryOriginRe: /^[a-z]{3,}:\/\//,
   hasNormalOrigin: function(url) {
-    return this.ordinaryOriginRe.test(url) || url.startsWith("chrome-")
-      ;
+    return this.ordinaryOriginRe.test(url) || url.startsWith("chrome-");
   },
   // url: only accept real tab's
   isRefusingIncognito: function(url) {

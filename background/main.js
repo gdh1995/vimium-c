@@ -1096,7 +1096,7 @@ HelpDialog = {
     parseSearchUrl: function(request) {
       var url = request.url.toLowerCase(), decoders, pattern, _i, str, arr,
           selectLast, re;
-      if (!Utils.hasOrdinaryUrlPrefix(url)) {
+      if (!Utils.hasNormalOrigin(url)) {
         return null;
       }
       decoders = Settings.cache.searchEngineRules;
