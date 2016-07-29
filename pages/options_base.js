@@ -83,7 +83,7 @@ function ExclusionRulesOption() {
   ExclusionRulesOption.__super__.constructor.apply(this, arguments);
   bgSettings.fetchFile("exclusionTemplate", function() {
     _this.element.innerHTML = bgSettings.cache.exclusionTemplate;
-    _this.template = $('exclusionRuleTemplate').content.children[0];
+    _this.template = $('exclusionRuleTemplate').content.firstChild;
     _this.list = _this.element.getElementsByTagName('tbody')[0];
     delete _this.fetch;
     _this.fetch();
