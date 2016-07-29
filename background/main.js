@@ -107,7 +107,7 @@ HelpDialog = {
         });
         return true;
       }
-      if (Utils.hasOrdinaryUrlPrefix(url) && !url.startsWith("chrome")) {
+      if (Utils.ordinaryOriginRe.test(url) && !url.startsWith("chrome")) {
         return false;
       }
       cPort.postMessage({
@@ -1096,7 +1096,7 @@ HelpDialog = {
     parseSearchUrl: function(request) {
       var url = request.url.toLowerCase(), decoders, pattern, _i, str, arr,
           selectLast, re;
-      if (!(Utils.hasOrdinaryUrlPrefix(url) || url.startsWith("chrome-"))) {
+      if (!Utils.hasOrdinaryUrlPrefix(url)) {
         return null;
       }
       decoders = Settings.cache.searchEngineRules;

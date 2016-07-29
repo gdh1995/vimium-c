@@ -35,9 +35,10 @@ var exports = {}, Utils = {
   // "javascript" should be treated specially
   _nonUrlPrefixes: { about: 1, blob: 1, data: 1, mailto: 1, "view-source": 1, __proto__: null },
   _chromePrefixes: { "chrome-extension": 1, "chrome-search": 1, __proto__: null  },
-  _urlPrefix: /^[a-z]{3,}:\/\//,
-  hasOrdinaryUrlPrefix: function(url) {
-    return this._urlPrefix.test(url);
+  ordinaryOriginRe: /^[a-z]{3,}:\/\//,
+  hasNormalOrigin: function(url) {
+    return this.ordinaryOriginRe.test(url) || url.startsWith("chrome-")
+      ;
   },
   // url: only accept real tab's
   isRefusingIncognito: function(url) {
@@ -467,7 +468,7 @@ var exports = {}, Utils = {
   alphaRe: /[a-z]/i,
   reparseSearchUrl: function (url, ind) {
     var prefix, str, str2, ind2;
-    if (!(this.hasOrdinaryUrlPrefix(url) || url.startsWith("chrome-"))) { return; }
+    if (!this.hasNormalOrigin(url)) { return; }
     prefix = url.substring(0, ind - 1);
     if (ind = Math.max(prefix.lastIndexOf("?"), prefix.lastIndexOf("#")) + 1) {
       str2 = str = prefix.substring(ind);
