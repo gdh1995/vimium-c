@@ -452,7 +452,7 @@ tabs: {
     } else {
       c = this.computeRecency;
     }
-    if (offset >= suggestions.length && queryType === 4) {
+    if (offset >= tabs.length && queryType === 4) {
       offset = 0;
       Completers.next([]);
       return;
