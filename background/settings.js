@@ -157,7 +157,7 @@ var Settings = {
     exclusionListenHash: true,
     exclusionOnlyFirstMatch: false,
     exclusionRules: [{pattern: "^https?://mail.google.com/", passKeys: ""}],
-    extWhiteList: "hdnehngglnbnehkfcidabjckinphnief",
+    extWhiteList: "# hdnehngglnbnehkfcidabjckinphnief",
     findModeRawQueryList: "",
     grabBackFocus: true,
     hideHud: false,
