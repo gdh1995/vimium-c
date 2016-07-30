@@ -74,7 +74,7 @@ Option.prototype.save = function() {
 };
 
 Option.areJSONEqual = function(a, b) {
-  return this.saved = JSON.stringify(a) === JSON.stringify(b);
+  return JSON.stringify(a) === JSON.stringify(b);
 };
 
 function ExclusionRulesOption() {

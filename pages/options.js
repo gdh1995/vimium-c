@@ -19,7 +19,7 @@ Option.needSaveOptions = function() {
 };
 
 Option.prototype.areEqual = function(a, b) {
-  return this.saved = a === b;
+  return a === b;
 };
 
 function NumberOption() {
@@ -145,7 +145,7 @@ ExclusionRulesOption.prototype.onInit = function() {
   onUpdated = function() {
     var saveBtn;
     if (this.locked) { return; }
-    if (this.areEqual(this.readValueFromElement(), this.previous)) {
+    if (this.saved = this.areEqual(this.readValueFromElement(), this.previous)) {
       if (status == 1 && !Option.needSaveOptions()) {
         saveBtn = $("saveOptions");
         saveBtn.disabled = true;
