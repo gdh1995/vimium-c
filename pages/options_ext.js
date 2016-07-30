@@ -125,7 +125,8 @@ var importSettings = function(time, new_data) {
     return;
   }
 
-  var storage = localStorage, i, key, new_value, func, all = bgSettings.defaults;
+  var storage = localStorage, i, key, new_value, func, all = bgSettings.defaults
+    , _ref = Option.all, _key, item;
   func = function(val) {
     return typeof val !== "string" || val.length <= 72 ? val
       : val.substring(0, 68).trimRight() + " ...";
@@ -144,8 +145,10 @@ var importSettings = function(time, new_data) {
   }
   delete new_data.findModeRawQueryList;
   delete new_data.newTabUrl_f;
-  Option.all.forEach(function(item) {
-    var key = item.field, new_value = new_data[key];
+  for (_key in _ref) {
+    item = _ref[_key];
+    key = item.field;
+    new_value = new_data[key];
     delete new_data[key];
     if (new_value == null) {
       // NOTE: we assume all nullable settings have the same default value: null
@@ -161,7 +164,7 @@ var importSettings = function(time, new_data) {
       }
     }
     item.fetch();
-  });
+  }
   for (key in new_data) {
     new_value = new_data[key];
     if (new_value == null) {
