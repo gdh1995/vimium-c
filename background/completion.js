@@ -244,8 +244,8 @@ history: {
         ++i > 0 && historys.push(entry);
         return historys.length >= maxResults;
       }) ? _this.filterFinish(historys, query) :
-      _this.filterFill(historys, query, arr);
-    }) : this.filterFill(null, query, {});
+      _this.filterFill(historys, query, arr, -i);
+    }) : this.filterFill(null, query, {}, 0);
     if (history) {
       HistoryCache.refreshInfo();
     } else {
@@ -295,21 +295,24 @@ history: {
     }
     return sugs;
   },
-  filterFill: function(historys, query, arr) {
-    var _this = this, cut = queryType === 3 ? offset : 0;
+  filterFill: function(historys, query, arr, cut) {
+    var _this = this;
     chrome.history.search({
       text: "",
-      maxResults: cut + maxResults
+      maxResults: (queryType === 3 ? offset : 0) + maxResults
     }, function(historys2) {
       if (query.isOff) { return; }
-      var a = arr;
+      var a = arr, len;
       historys2 = historys2.filter(function(i) {
         return !(i.url in a);
       });
-      cut = historys.length - cut;
-      historys = cut < 0 ? historys.concat(historys2)
-        : cut == 0 ? historys2 : historys2.slice(cut, cut + maxResults);
-      _this.filterFinish(historys, query);
+      if (cut < 0) {
+        historys2.length = Math.min(historys2.length, maxResults - historys.length);
+        historys2 = historys.concat(historys2)
+      } else if (cut > 0) {
+        historys2 = historys2.slice(cut, cut + maxResults);
+      }
+      _this.filterFinish(historys2, query);
     });
   },
   filterFinish: function(historys, query) {
