@@ -557,6 +557,9 @@ HelpDialog = {
         if (wnd.incognito) {
           return;
         }
+        if (Settings.CONST.ChromeVersion >= 52) {
+          return funcDict.complaint(cPort, "open this tab in incognito");
+        }
       } else if (wnd.incognito) {
         ++tab.index;
         funcDict.reopenTab(tab);
@@ -1387,6 +1390,7 @@ HelpDialog = {
   Settings.updateHooks.newTabUrl_f = function(url) {
     var f;
     BackgroundCommands.createTab = f = Utils.isRefusingIncognito(url)
+      && Settings.CONST.ChromeVersion < 52
     ? chrome.windows.getCurrent.bind(null, {populate: true}
         , funcDict.createTab[0].bind(url))
     : funcDict.getCurTab.bind(null, funcDict.createTab[5].bind(url));
