@@ -705,13 +705,15 @@ HelpDialog = {
         funcDict.duplicateTab[0].bind(null, tabId));
       }
     },
-    moveTabToNewWindow: chrome.windows.getCurrent.bind(null
-      , {populate: true}, funcDict.moveTabToNewWindow),
+    moveTabToNewWindow: function() {
+      chrome.windows.getCurrent({populate: true}, funcDict.moveTabToNewWindow);
+    },
     moveTabToNextWindow: function(tabs) {
       chrome.windows.getAll(funcDict.moveTabToNextWindow[0].bind(null, tabs[0]));
     },
-    moveTabToIncognito: chrome.windows.getCurrent.bind(null
-      , {populate: true}, funcDict.moveTabToIncognito[0]),
+    moveTabToIncognito: function() {
+      chrome.windows.getCurrent({populate: true}, funcDict.moveTabToIncognito[0]);
+    },
     enableCSTemp: function(tabs) {
       ContentSettings.ensure(cOptions.type, tabs[0]);
     },
