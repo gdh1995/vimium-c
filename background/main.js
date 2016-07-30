@@ -110,10 +110,7 @@ HelpDialog = {
       if (Utils.ordinaryOriginRe.test(url) && !url.startsWith("chrome")) {
         return false;
       }
-      cPort.postMessage({
-        name: "showHUD",
-        text: "Chrome doesn't allow Vimium++ to do on this page"
-      });
+      funcDict.complaint(cPort, "change its content settings");
       return true;
     },
     clearCS: function(contentType, tab) {
@@ -373,6 +370,12 @@ HelpDialog = {
         break;
       }
     },
+    complaint: function(port, action) {
+      port && port.postMessage({
+        name: "showHUD",
+        text: "It's not allowed to " + action
+      });
+    },
 
     getCurTab: chrome.tabs.query.bind(null, {currentWindow: true, active: true}),
     getCurTabs: chrome.tabs.query.bind(null, {currentWindow: true}),
@@ -585,8 +588,8 @@ HelpDialog = {
       tab2 = tab2[0];
       if (options.url) {
         chrome.tabs.create({url: options.url, index: tab2.index + 1, windowId: tab2.windowId});
-        chrome.tabs.remove(options.tabId);
         chrome.windows.update(tab2.windowId, {focused: true});
+        chrome.tabs.remove(options.tabId);
         return;
       }
       funcDict.makeTempWindow(options.tabId, true, //
