@@ -162,6 +162,8 @@ var importSettings = function(time, new_data) {
       if (key in bgSettings.bufferToLoad) {
         Option.syncToFrontend.push(key);
       }
+    } else if (item.saved) {
+      continue;
     }
     item.fetch();
   }
