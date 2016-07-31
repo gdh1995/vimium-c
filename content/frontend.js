@@ -1054,7 +1054,7 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
     }
     // NOTE: here, we should always postMessage, since
     //     NO other message will be sent if not isEnabledForUrl,
-    // which would make the auto-destroy logic not work.
+    // which would make the logic of auto-destroying not work.
     ELs.OnWndFocus = mainPort.safePost.bind(mainPort, { handler: "frameFocused" });
   });
 
