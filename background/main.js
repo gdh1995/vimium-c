@@ -1389,8 +1389,8 @@ HelpDialog = {
 
   Settings.updateHooks.newTabUrl_f = function(url) {
     var f;
-    BackgroundCommands.createTab = f = Utils.isRefusingIncognito(url)
-      && Settings.CONST.ChromeVersion < 52
+    BackgroundCommands.createTab = f = Settings.CONST.ChromeVersion < 52
+      && Utils.isRefusingIncognito(url)
     ? chrome.windows.getCurrent.bind(null, {populate: true}
         , funcDict.createTab[0].bind(url))
     : funcDict.getCurTab.bind(null, funcDict.createTab[5].bind(url));
