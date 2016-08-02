@@ -1,6 +1,13 @@
 "use strict";
 var $$ = document.querySelectorAll.bind(document);
 
+Option.syncToFrontend = [];
+
+Option.prototype._onUpdated = function() {
+  this.onUpdated1();
+  VSettings.cache[this.field] = this.readValueFromElement();
+};
+
 Option.saveOptions = function() {
   var arr = Option.all, i;
   for (i in arr) {

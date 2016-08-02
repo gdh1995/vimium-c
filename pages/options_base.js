@@ -26,12 +26,6 @@ function Option(element, onUpdated) {
 }
 
 Option.all = Object.create(null);
-Option.syncToFrontend = [];
-
-Option.prototype._onUpdated = function() {
-  this.onUpdated1();
-  VSettings.cache[this.field] = this.readValueFromElement();
-};
 
 Option.prototype.fetch = function() {
   this.populateElement(this.previous = bgSettings.get(this.field));
@@ -196,7 +190,7 @@ chrome.tabs.query({currentWindow: true, active: true}, function(tab) {
   var exclusions, onUpdated, saveOptions, updateState, status = 0, ref
     , bgExclusions = BG.Exclusions, tabId, passKeys;
 
-exclusions = {
+exclusions = Object.setPrototypeOf({
   url: "",
   init: function(url, element, onUpdated, onInit) {
     this.url = url;
@@ -259,8 +253,7 @@ exclusions = {
     this.generateDefaultPattern = function() { return url; };
     return url;
   }
-};
-  Object.setPrototypeOf(exclusions, ExclusionRulesOption.prototype);
+}, ExclusionRulesOption.prototype);
 
   tab = tab[0];
   tabId = tab.id;
