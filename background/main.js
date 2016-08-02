@@ -422,7 +422,10 @@ HelpDialog = {
       });
     },
 
-    createTab: [function(wnd) {
+    createTab: [function(tabs) {
+      tabs[0].id = undefined;
+      openMultiTab(this, commandCount, tabs[0]);
+    }, function(wnd) {
       var tab;
       if (!wnd) {
         chrome.tabs.create({url: this});
@@ -433,7 +436,7 @@ HelpDialog = {
         tab.windowId = undefined;
       } else if (wnd.incognito) {
         // url is disabled to be opened in a incognito window directly
-        funcDict.createTab[1](this, tab
+        funcDict.createTab[2](this, tab
           , (--commandCount > 0) ? funcDict.duplicateTab[1] : null, wnd.tabs);
         return;
       }
@@ -446,7 +449,7 @@ HelpDialog = {
         return ((end < 0) ? url : url.substring(0, end)) === urlLower;
       });
       if (allTabs.length === 0) {
-        chrome.windows.getAll(funcDict.createTab[2].bind(url, tab, repeat));
+        chrome.windows.getAll(funcDict.createTab[3].bind(url, tab, repeat));
         return;
       }
       tabs = allTabs.filter(function(tab1) { return tab1.index >= tab.index; });
@@ -458,11 +461,11 @@ HelpDialog = {
         return !wnd.incognito && wnd.type === "normal";
       });
       if (wnds.length > 0) {
-        funcDict.createTab[3](this, tab, repeat, wnds[0]);
+        funcDict.createTab[4](this, tab, repeat, wnds[0]);
         return;
       }
       funcDict.makeTempWindow("about:blank", false, //
-      funcDict.createTab[3].bind(null, this, tab, function(newTab) {
+      funcDict.createTab[4].bind(null, this, tab, function(newTab) {
         chrome.windows.remove(newTab.windowId);
         repeat && repeat(newTab.id);
       }));
@@ -473,7 +476,7 @@ HelpDialog = {
         url: url
       }, function(newTab) {
         funcDict.makeTempWindow(newTab.id, true, //
-        funcDict.createTab[4].bind(tab, callback, newTab));
+        funcDict.createTab[5].bind(tab, callback, newTab));
       });
     }, function(callback, newTab) {
       chrome.tabs.move(newTab.id, {
@@ -483,9 +486,6 @@ HelpDialog = {
         callback && callback(newTab);
         chrome.tabs.update(newTab.id, {active: true});
       });
-    }, function(tabs) {
-      tabs[0].id = undefined;
-      openMultiTab(this, commandCount, tabs[0]);
     }],
     duplicateTab: [function(tabId, wnd) {
       var tab = wnd.tabs.filter(function(tab) { return tab.id === tabId; })[0];
@@ -1387,13 +1387,16 @@ HelpDialog = {
     }
   };
 
+  if (Settings.CONST.ChromeVersion >= 52) {
+    funcDict.createTab = [funcDict.createTab[0]];
+  }
   Settings.updateHooks.newTabUrl_f = function(url) {
     var f;
     BackgroundCommands.createTab = f = Settings.CONST.ChromeVersion < 52
       && Utils.isRefusingIncognito(url)
     ? chrome.windows.getCurrent.bind(null, {populate: true}
-        , funcDict.createTab[0].bind(url))
-    : funcDict.getCurTab.bind(null, funcDict.createTab[5].bind(url));
+        , funcDict.createTab[1].bind(url))
+    : funcDict.getCurTab.bind(null, funcDict.createTab[0].bind(url));
     f.useTab = -1;
   };
 
