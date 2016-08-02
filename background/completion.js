@@ -807,6 +807,7 @@ searchEngines: {
   HistoryCache = {
     size: 20000,
     lastRefresh: 0,
+    updateCount: 0,
     toRefreshCount: 0,
     history: null,
     _callbacks: [],
@@ -854,6 +855,7 @@ searchEngines: {
     },
     OnPageVisited: function(newPage) {
       var _this = HistoryCache, i = _this.binarySearch(newPage.url, _this.history), j;
+      if (this.updateCount++ > 99) { this.refreshInfo(); }
       if (i >= 0) {
         j = _this.history[i];
         j.lastVisitTime = newPage.lastVisitTime;
@@ -887,18 +889,15 @@ searchEngines: {
     },
     refreshInfo: function() {
       var i = Date.now();
-      if (this.toRefreshCount <= 0) {
-        this.lastRefresh = i;
-        return;
-      }
-      if (this.lastRefresh + 1000 > i) { return; }
-      chrome.history.search({
+      if (this.toRefreshCount <= 0) {}
+      else if (this.lastRefresh + 1000 > i) { return; }
+      else chrome.history.search({
         text: "",
-        maxResults: Math.min(2000, ((i - this.lastRefresh) / 100) | 0),
+        maxResults: Math.min(2000, this.updateCount + 10),
         startTime: this.lastRefresh
       }, this.OnInfo);
       this.lastRefresh = i;
-      this.toRefreshCount = 0;
+      this.toRefreshCount = this.updateCount = 0;
     },
     OnInfo: function(history) {
       var arr = HistoryCache.history, bs = HistoryCache.binarySearch, i, len, info, j, item;
