@@ -380,7 +380,17 @@ HelpDialog = {
     getCurTab: chrome.tabs.query.bind(null, {currentWindow: true, active: true}),
     getCurTabs: chrome.tabs.query.bind(null, {currentWindow: true}),
     getId: function(tab) { return tab.id; },
-    
+
+    createTabs: function(rawUrl, count, active) {
+      if (!(count >= 1)) return;
+      var option = {url: rawUrl, active: active};
+      chrome.tabs.create(option);
+      if (count < 2) return;
+      option.active = false;
+      do {
+        chrome.tabs.create(option);
+      } while(--count > 1);
+    },
     openUrlInIncognito: function(request, tab, wnds) {
       wnds = wnds.filter(funcDict.isIncNor);
       if (wnds.length) {
@@ -423,8 +433,21 @@ HelpDialog = {
     },
 
     createTab: [function(tabs) {
-      tabs[0].id = undefined;
-      openMultiTab(this, commandCount, tabs[0]);
+      var tab = null;
+      if (!tabs) {}
+      else if (tabs.length > 0) { tab = tabs[0]; }
+      else if ("id" in tabs) { tab = tabs; }
+      else if (TabRecency.last() >= 0) {
+        chrome.tabs.get(TabRecency.last(),
+        funcDict.createTab[0].bind(Settings.cache.newTabUrl_f));
+        return;
+      }
+      if (!tab) {
+        funcDict.createTabs(this, commandCount, true);
+        return chrome.runtime.lastError;
+      }
+      tab.id = undefined;
+      openMultiTab(this, commandCount, tab);
     }, function(wnd) {
       var tab;
       if (!wnd) {
