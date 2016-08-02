@@ -886,14 +886,18 @@ searchEngines: {
       }
     },
     refreshInfo: function() {
-      var i;
-      if (this.toRefreshCount <= 0 || this.lastRefresh >= (i = Date.now())) { return; }
+      var i = Date.now();
+      if (this.toRefreshCount <= 0) {
+        this.lastRefresh = i;
+        return;
+      }
+      if (this.lastRefresh + 1000 > i) { return; }
       chrome.history.search({
         text: "",
         maxResults: Math.min(2000, ((i - this.lastRefresh) / 100) | 0),
         startTime: this.lastRefresh
       }, this.OnInfo);
-      this.lastRefresh = i + 1000;
+      this.lastRefresh = i;
       this.toRefreshCount = 0;
     },
     OnInfo: function(history) {
