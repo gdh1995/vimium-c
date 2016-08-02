@@ -5,7 +5,9 @@ Option.syncToFrontend = [];
 
 Option.prototype._onUpdated = function() {
   this.onUpdated1();
-  VSettings.cache[this.field] = this.readValueFromElement();
+  if (window.VSettings) {
+    VSettings.cache[this.field] = this.readValueFromElement();
+  }
 };
 
 Option.saveOptions = function() {
