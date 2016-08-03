@@ -855,7 +855,7 @@ searchEngines: {
     },
     OnPageVisited: function(newPage) {
       var _this = HistoryCache, i = _this.binarySearch(newPage.url, _this.history), j;
-      if (this.updateCount++ > 99) { this.refreshInfo(); }
+      if (_this.updateCount++ > 99) { _this.refreshInfo(); }
       if (i >= 0) {
         j = _this.history[i];
         j.lastVisitTime = newPage.lastVisitTime;
