@@ -152,6 +152,7 @@ activate: function(_0, options, forceCurrent) {
   },
   updateInput: function(sel) {
     var focused = this.input.focused, line, str;
+    this.isSelectionOrigin = false;
     if (sel === -1) {
       this.isHttps = false;
       this.input.value = this.inputText;
@@ -187,6 +188,10 @@ activate: function(_0, options, forceCurrent) {
   },
   toggleInput: function() {
     if (this.selection < 0) { return; }
+    if (this.isSelectionOrigin) {
+      this.inputText = this.input.value;
+      return this.updateInput(this.selection);
+    }
     var line = this.completions[this.selection], str = this.input.value.trim();
     this.input.value = str === line.url ? (line.parsed || line.text)
       : str === line.text ? line.url : line.text;
@@ -205,7 +210,6 @@ activate: function(_0, options, forceCurrent) {
     }
     this.updateInput(sel);
     this.selection = sel;
-    this.isSelectionOrigin = false;
   },
   ctrlMap: {
     66: "pageup", 74: "down", 75: "up", 219: "dismiss", 221: "toggle"
