@@ -21,23 +21,21 @@
             <!-- Populated from exclusions.html by options_base.js. -->
           </div>
           <div id="exclusionToolbar" style="visibility: hidden;">
+						<button class="float-right" id="exclusionAddButton">Add Rule</button>
+						<button class="float-right" id="exclusionSortButton" data-delay="">Sort Rules</button>
             <span>
               <input id="exclusionOnlyFirstMatch" type="checkbox" data-model="CheckBox" />
               <label class="booleanOption">
                 At most one match
               </label>
             </span>
-            <span>
+            <span class="checkboxWrapper">
               <input id="exclusionListenHash" type="checkbox" data-model="CheckBox"
                 data-permission="webNavigation" />
               <label class="booleanOption">
                 Listen hash changes
               </label>
             </span>
-            <div id="exclusionButtons">
-              <button id="exclusionSortButton" data-delay="">Sort Rules</button>
-              <button id="exclusionAddButton">Add Rule</button>
-            </div>
           </div>
         </td>
         <td class="help"><div class="help-inner">

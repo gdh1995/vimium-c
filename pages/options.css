@@ -147,6 +147,13 @@ label:active {
 .hide {
   display: none;
 }
+.float-right {
+  float: right;
+}
+.checkboxWrapper {
+  float: left;
+	margin-right: 5px;
+}
 #linkHintCharacters {
   margin-top: 1px;
 }
@@ -252,13 +259,11 @@ label:active {
 #exclusionToolbar {
   margin-top: 5px;
 }
-#exclusionButtons {
-  float: right;
-}
 #exclusionAddButton {
   visibility: visible;
 }
 #exclusionSortButton {
+	margin-right: 4px;
   width: 80px;
 }
 #footer {
