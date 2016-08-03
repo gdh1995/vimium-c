@@ -227,8 +227,8 @@ setTimeout(function() { if (!chrome.omnibox) { return; }
       chrome.omnibox.setDefaultSuggestion({ description: text });
       if (sug = response[0]) switch (sug.type) {
       case "math":
-        sug.description = "<dim>" + sug.textSplit + " = </dim><url><match>" +
-          sug.titleSplit + "</match></url>";
+        sug.description = "<dim>" + sug.textSplit.replace(spanRe, "")
+          + " = </dim><url><match>" + sug.title + "</match></url>";
         break;
       }
     } else {
