@@ -151,9 +151,9 @@ activate: function(_0, options, forceCurrent) {
   updateInput: function(sel) {
     var focused = this.input.focused, line, str;
     if (sel === -1) {
+      this.input.value = this.inputText;
       this.input.focus();
       this.input.focused = focused;
-      this.input.value = this.inputText;
       return;
     }
     if (!focused) this.input.blur();
