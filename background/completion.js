@@ -9,8 +9,8 @@ setTimeout(function() {
   function Suggestion(type, url, text, title, computeRelevancy, extraData) {
     this.type = type;
     this.url = url;
-    this.text = text || url;
-    this.title = title || "";
+    this.text = text;
+    this.title = title;
     this.relevancy = computeRelevancy(this, extraData);
   }
 
@@ -532,7 +532,7 @@ searchEngines: {
     }
 
     obj = Utils.createSearch(q, pattern, []);
-    sug = new Suggestion("search", obj.url, ""
+    sug = new Suggestion("search", obj.url, obj.url
       , pattern.name + ": " + q.join(" "), this.computeRelevancy);
     if (keyword === "~") {}
     else if (obj.url.startsWith("vimium://")) {
