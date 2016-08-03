@@ -42,8 +42,11 @@ Not yet released:
 * Chrome 52 doesn't allow Vimium to create an incognito window
     using a normal tab,
   so those tricks which allow Vimium++ to show normal tabs in incognito windows
-    won't work any more
+    won't work any more.
+  Also fix a bug that `createTab` may not work properly on a popup window.
 * lots of bug fixes
+* add a branch `basic-on-edge` to make Vimium++ work on Microsoft Edge,
+    although many commands become broken after the migration
 
 1.53.1:
 
