@@ -39,11 +39,14 @@ $("showCommands").onclick = function(event) {
 ExclusionRulesOption.prototype.sortRules = function(element) {
   if (element && element.timer) { return; }
   var rules = this.readValueFromElement(), _i, rule, key, arr
-    , hostRe = /^(?:[:^]?[a-z?*]+:\/\/)?(?:www\.)?(.*)/;
+    , hostRe = /^([:^]?[a-z\-?*]+:\/\/)?([^\/]+)(\/.*)?/;
   for (_i = 0; _i < rules.length; _i++) {
     rule = rules[_i];
-    if (arr = hostRe.exec(key = rule.pattern)) {
-      key = arr[1] || key;
+    if ((arr = hostRe.exec(key = rule.pattern)) && arr[1] && arr[2]) {
+      key = arr[3] || "";
+      arr = arr[2].split(".");
+      arr.reverse();
+      key = arr.join(".") + key;
     }
     rule.key = key;
   }
