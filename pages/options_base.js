@@ -111,6 +111,7 @@ ExclusionRulesOption.prototype.populateElement = function(rules) {
   var frag = document.createDocumentFragment();
   rules.forEach(this.appendRule.bind(this, frag));
   this.list.appendChild(frag);
+  this.onRowChange(rules.length);
 };
 
 ExclusionRulesOption.prototype.appendRule = function(list, rule) {
