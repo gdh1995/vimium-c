@@ -85,6 +85,7 @@ activate: function(_0, options, forceCurrent) {
     handlerStack.remove(this);
     handlerStack.push(this.onKeydown, this);
     this.box.onmousewheel = this.onWheel;
+    this.isHttps = false;
   },
   hide: function() {
     clearTimeout(this.timer);
