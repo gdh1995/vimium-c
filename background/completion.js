@@ -137,7 +137,15 @@ bookmarks: {
       results = this.bookmarks.filter(function(i) {
         return RankingUtils.Match2(i.text, isPath ? i.path : i.title);
       }).map(function(i) {
-        return new Suggestion("bookm", i.jsUrl || i.url, i.jsUrl ? "javascript: ..." : i.text, isPath ? i.path : i.title, c);
+        var title = isPath ? i.path : i.title;
+        if (!i.jsUrl) {
+          return new Suggestion("bookm", i.url, i.text, title, c);
+        }
+        var sug = new Suggestion("bookm", i.jsUrl, "", title, c);
+        sug.titleSplit = SuggestionUtils.highlight(title, SuggestionUtils.getRanges(title));
+        sug.textSplit = "javascript: ...";
+        sug.text = i.jsUrl;
+        return sug;
       });
       if (queryType === 1 && offset > 0) {
         results.sort(Completers.rsortByRelevancy);
@@ -207,7 +215,7 @@ bookmarks: {
     };
     this.bookmarks.push(bookmark);
     if (url.startsWith("javascript:")) {
-      bookmark.url = "";
+      bookmark.text = bookmark.url = "";
       bookmark.jsUrl = url;
     }
   },
