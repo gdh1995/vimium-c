@@ -143,7 +143,7 @@ DomUtils.UI = {
       };
     } else {
       func = function() { tick = Date.now(); return 2; };
-      tick = Date.now() + Settings.cache.keyboard[0];
+      tick = Date.now() + VSettings.cache.keyboard[0];
       timer = setInterval(function() {
         if (Date.now() - tick > 150) {
           clearInterval(timer);
