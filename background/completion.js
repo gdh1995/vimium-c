@@ -380,8 +380,8 @@ domains: {
       if (score > result_score) { result_score = score; result = domain; }
     }
     if (result) {
-      sug = new Suggestion("domain", (ref[result][2]
-          ? "https://" + result : result), result, null, this.computeRelevancy);
+      sug = new Suggestion("domain", (ref[result][2] ? "https://" + result : "http://" + result)
+        , result, "", this.computeRelevancy);
       sug.titleSplit = "";
       sug.textSplit = SuggestionUtils.cutUrl(result, SuggestionUtils.getRanges(result), sug.url);
       --maxResults;
