@@ -144,7 +144,7 @@ bookmarks: {
         var sug = new Suggestion("bookm", i.jsUrl, "", title, c);
         sug.titleSplit = SuggestionUtils.highlight(title, SuggestionUtils.getRanges(title));
         sug.textSplit = "javascript: ...";
-        sug.text = i.jsUrl;
+        sug.text = i.jsText;
         return sug;
       });
       if (queryType === 1 && offset > 0) {
@@ -217,6 +217,7 @@ bookmarks: {
     if (url.startsWith("javascript:")) {
       bookmark.text = bookmark.url = "";
       bookmark.jsUrl = url;
+      bookmark.jsText = Utils.DecodeURLPart(url);
     }
   },
   computeRelevancy: function(suggestion) {
