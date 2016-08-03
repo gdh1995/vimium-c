@@ -262,7 +262,7 @@ ExclusionRulesOption.prototype.onInit = function() {
   }
 
   func = function() {
-    var target = $(this.getAttribute("data-auto-scale")), delta;
+    var target = $(this.getAttribute("data-auto-resize")), delta;
     if (target.scrollHeight <= target.clientHeight) { return; }
     target.style.maxWidth = Math.min(window.innerWidth, 1024) - 120 + "px";
     delta = target.offsetHeight - target.clientHeight;
@@ -270,12 +270,12 @@ ExclusionRulesOption.prototype.onInit = function() {
       (target.offsetWidth - target.clientWidth) + "px";
     target.style.height = target.scrollHeight + 20 + delta + "px";
   };
-  _ref = $$("[data-auto-scale]");
+  _ref = $$("[data-auto-resize]");
   for (_i = _ref.length; 0 <= --_i; ) {
     element = _ref[_i];
     element.onclick = func;
     element.tabIndex = 0;
-    element.textContent = "Scale to fit";
+    element.textContent = "Auto resize";
   }
 
   func = function(event) {
