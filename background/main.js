@@ -1193,6 +1193,8 @@ HelpDialog = {
       if (Utils.lastUrlType === 5) {
         funcDict.onEvalUrl2(request.url_f);
         return;
+      } else if (request.https && (Utils.lastUrlType === 1 || Utils.lastUrlType === 4)) {
+        request.url_f = "https" + request.url_f.substring(4);
       }
       commandCount = 1;
       cOptions = request;

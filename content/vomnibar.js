@@ -60,6 +60,7 @@ activate: function(_0, options, forceCurrent) {
   box: null,
   inputText: "",
   completions: null,
+  isHttps: false,
   isSearchOnTop: false,
   notOnlySearch: true,
   actionType: false,
@@ -151,6 +152,7 @@ activate: function(_0, options, forceCurrent) {
   updateInput: function(sel) {
     var focused = this.input.focused, line, str;
     if (sel === -1) {
+      this.isHttps = false;
       this.input.value = this.inputText;
       this.input.focus();
       this.input.focused = focused;
@@ -159,6 +161,7 @@ activate: function(_0, options, forceCurrent) {
     if (!focused) this.input.blur();
     line = this.completions[sel];
     str = line.text;
+    this.isHttps = line.url.startsWith("https://");
     if (line.type !== "history" && line.type !== "tab") {
       this.input.value = str;
       if (line.type === "math") {
@@ -536,6 +539,7 @@ activate: function(_0, options, forceCurrent) {
     MainPort.port.postMessage({
       handler: "openUrl",
       reuse: this.actionType,
+      https: this.isHttps,
       url: item.url
     });
   },
