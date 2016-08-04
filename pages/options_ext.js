@@ -1,6 +1,7 @@
 "use strict";
 
 $("showCommands").onclick = function(event) {
+  if (!window.DomUtils) { return; }
   var node, root = DomUtils.UI.root;
   event && event.preventDefault();
   Vomnibar.input && Vomnibar.input.blur();
@@ -117,14 +118,14 @@ $("exportButton").onclick = function(event) {
 var importSettings = function(time, new_data) {
   time = +(new_data && new_data.time || time) || 0;
   if (!new_data || new_data.name !== "Vimium++" || (time < 10000 && time > 0)) {
-    VHUD.showForDuration("No settings data found!", 2000);
+    window.VHUD && VHUD.showForDuration("No settings data found!", 2000);
     return;
   } else if (!confirm(
     "You are loading a settings copy exported" + (time ? " at:\n        "
     + formatDate(time) : " before.")
     + "\n\nAre you sure you want to continue?"
   )) {
-    VHUD.showForDuration("You cancelled importing.", 1000);
+    window.VHUD && VHUD.showForDuration("You cancelled importing.", 1000);
     return;
   }
 
@@ -202,7 +203,7 @@ var importSettings = function(time, new_data) {
     }
   }
   $("saveOptions").onclick(false);
-  VHUD.showForDuration("Import settings data: OK!", 1000);
+  window.VHUD && VHUD.showForDuration("Import settings data: OK!", 1000);
   console.log("IMPORT settings: finished");
 };
 
