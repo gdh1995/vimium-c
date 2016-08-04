@@ -1,5 +1,5 @@
 "use strict";
-var Clipboard, Commands, Completers, Exclusions, Marks, g_requestHandlers;
+var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHandlers;
 (function() {
   var BackgroundCommands, ContentSettings, checkKeyQueue, commandCount //
     , Connections
@@ -25,7 +25,7 @@ HelpDialog = {
     }
     showUnbound = showUnbound ? true : false;
     showNames = showNames ? true : false;
-    return Settings.cache.helpDialog.replace(/\{\{(\w+)\}\}/g, function(_, group) {
+    return Settings.cache.helpDialog.replace(/\{\{(\w+)}}/g, function(_, group) {
       return (group === "version") ? Settings.CONST.CurrentVersion
         : (group === "title") ? customTitle || "Help"
         : HelpDialog.groupHtml(group, commandsToKey, Commands.availableCommands, showUnbound, showNames);
@@ -1327,7 +1327,10 @@ HelpDialog = {
       var key, id;
       if (id = request._msgId) {
         request = request.request;
-        port.postMessage({_msgId: id, response: requestHandlers[request.handler](request, port)})
+        port.postMessage({
+          _msgId: id,
+          response: requestHandlers[request.handler](request, port)
+        });
       }
       else if (key = request.handlerKey) {
         // NOTE: here is a race condition which is now ignored totally

@@ -57,7 +57,7 @@ body.close {
 }
 
 img.invert {
-  -webkit-filter: invert();
+  -webkit-filter: invert(100%);
   background: white;
 }
 

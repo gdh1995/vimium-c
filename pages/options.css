@@ -54,7 +54,7 @@ button.left {
   margin-right: 0;
 }
 select.right {
-  -webkit-padding-start: 0px;
+  -webkit-padding-start: 0;
   -webkit-padding-end: 17px;
   background-color: #eee;
   border-bottom-left-radius: 0;

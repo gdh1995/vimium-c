@@ -58,13 +58,13 @@ var exports = {}, Utils = {
     , ".engineer.software"
   ],
   domains: Object.create(null),
-  _hostRe: /^([^:]+(:[^:]+)?@)?([^:]+|\[[^\]]+\])(:\d{2,5})?$/,
+  _hostRe: /^([^:]+(:[^:]+)?@)?([^:]+|\[[^\]]+])(:\d{2,5})?$/,
   _ipRe: /^(?:\d{1,3}\.){3}\d{1,3}$/,
   lfRe: /[\r\n]+/g,
   spacesRe: /\s+/g,
   _nonENTldRe: /[^a-z]/,
   _nonProtocolRe: /[^0-9a-z\-]/,
-  _nonENDoaminRe: /[^\.0-9a-z\-]|^\-/,
+  _nonENDoaminRe: /[^.0-9a-z\-]|^-/,
   _jsNotEscapeRe: /["\[\]{}\u00ff-\uffff]|%(?![\dA-F]{2}|[\da-f]{2})/,
   filePathRe: /^['"]?((?:[A-Za-z]:[\\/]|\/(?:Users|home|root)\/)[^'"]*)['"]?$/,
   lastUrlType: 0,
@@ -315,7 +315,7 @@ var exports = {}, Utils = {
       document.documentElement.appendChild(script).remove();
     });
   },
-  searchWordRe: /\$([sS])(?:\{([^\}]*)\})?/g,
+  searchWordRe: /\$([sS])(?:\{([^}]*)})?/g,
   searchWordRe2: /([^\\]|^)%([sS])/g,
   searchVariable: /\$([+-]?\d+)/g,
   createSearchUrl: function(query, keyword, vimiumUrlWork) {
@@ -341,7 +341,7 @@ var exports = {}, Utils = {
       } else {
         arr = (q2 || (q2 = query.map(encodeURIComponent)));
         s1 = "+";
-      };
+      }
       if (arr.length === 0) { return ""; }
       if (s2 && s2.indexOf('$') !== -1) {
         s2 = s2.replace(Utils.searchVariable, function(_s, s3) {
@@ -461,7 +461,7 @@ var exports = {}, Utils = {
     }
     return rules;
   },
-  escapeAllRe: /[\$\(\)\*\+\.\?\[\\\]\^\{\|\}]/g,
+  escapeAllRe: /[$()*+.?\[\\\]\^{|}]/g,
   _spaceOrPlusRe: /\\\+|%20| /g,
   _queryRe: /[#?]/,
   alphaRe: /[a-z]/i,

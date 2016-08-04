@@ -10,12 +10,11 @@ var Commands = {
     var opt, i = 3, len = item.length, ind, str, val;
     if (len <= i) { return null; }
     opt = Object.create(null);
-    for (i, len; i < len; ) {
+    while (i < len) {
       str = item[i++];
       ind = str.indexOf("=");
       if (ind === 0) {
         console.log("missing option key:", str);
-        continue;
       } else if (ind < 0) {
         opt[str] = true;
       } else {
@@ -63,7 +62,7 @@ var Commands = {
     registry = this.keyToCommandRegistry = Object.create(null);
     available = this.availableCommands;
     lines = line.replace(/\\\n/g, "").replace(/[\t ]+/g, " ").split("\n");
-    lines[0] !== "unmapAll" ? this.loadDefaults() : (_i = 1);
+    lines[0] !== "unmapAll" ? this.loadDefaults() : ++_i;
     for (_len = lines.length; _i < _len; _i++) {
       line = lines[_i].trim();
       if (!(line.charCodeAt(0) > 35)) { continue; } // mask: /[!"#]/

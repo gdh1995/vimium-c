@@ -1,0 +1,20 @@
+{
+    "env": {
+        "webextensions": true
+    },
+    "globals": {
+        "Clipboard": false,
+        "Commands": false,
+        "Completers": false,
+        "Exclusions": false,
+        "Marks": false,
+        "Promise": false,
+        "Settings": false,
+        "TabRecency": false,
+        "Utils": false,
+        "g_requestHandlers": false
+    },
+    "rules": {
+        "no-native-reassign": ["error", { "exceptions": ["g_requestHandlers"] }]
+    }
+}

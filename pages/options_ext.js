@@ -68,13 +68,13 @@ var formatDate = function(time) {
 };
 
 $("exportButton").onclick = function(event) {
-  var exported_object, exported_data, file_name, force2, d, nodeA;
+  var exported_object, exported_data, file_name, d, nodeA;
   exported_object = Object.create(null);
   exported_object.name = "Vimium++";
   exported_object.time = 0;
   (function() {
     var storage = localStorage, i, len, key, mark_head, all = bgSettings.defaults
-      , arr1, storedVal;
+      , storedVal;
     mark_head = BG.Marks.getMarkKey("");
     for (i = 0, len = storage.length; i < len; i++) {
       key = storage.key(i);
@@ -98,7 +98,6 @@ $("exportButton").onclick = function(event) {
   exported_object.time = d.getTime();
   exported_data = JSON.stringify(exported_object, null, '\t');
   exported_object = null;
-  force2 = function(i) { return ((i <= 9) ? '0'  : '') + i; }
   file_name = 'vimium++_';
   if (event && (event.ctrlKey || event.metaKey || event.shiftKey)) {
     file_name += "settings";
@@ -207,8 +206,7 @@ var importSettings = function(time, new_data) {
   console.log("IMPORT settings: finished");
 };
 
-window._el = null;
-_el = $("settingsFile");
+var _el = $("settingsFile");
 _el.onclick = null;
 _el.onchange = function() {
   var file = this.files[0], reader, lastModified;
@@ -247,4 +245,3 @@ if (window._delayed) {
   window._delayed.onclick && window._delayed.onclick();
   delete window._delayed;
 }
-delete window._el;

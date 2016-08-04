@@ -1,5 +1,4 @@
 "use strict";
-var Completers;
 setTimeout(function() {
   var HistoryCache, RankingUtils, RegexpCache, Decoder,
       Completers, queryType, offset, autoSelect,
@@ -127,7 +126,7 @@ bookmarks: {
     this.refresh && this.refresh();
   },
   StartsWithSlash: function(str) { return str.charCodeAt(0) === 47; },
-  performSearch: function(query) {
+  performSearch: function() {
     var c, results, isPath;
     if (queryTerms.length === 0) {
       results = [];
@@ -244,7 +243,7 @@ history: {
     }
     chrome.sessions ? chrome.sessions.getRecentlyClosed(null, function(sessions) {
       if (query.isOff) { return; }
-      var historys = [], arr = {}, i, now = Date.now();
+      var historys = [], arr = {}, i;
       i = queryType === 3 ? -offset : 0;
       sessions.some(function(item) {
         var entry = item.tab;
@@ -252,7 +251,7 @@ history: {
         arr[entry.url] = 1;
         ++i > 0 && historys.push(entry);
         return historys.length >= maxResults;
-      }) ? _this.filterFinish(historys, query) :
+      }) ? _this.filterFinish(historys) :
       _this.filterFill(historys, query, arr, -i);
     }) : this.filterFill(null, query, {}, 0);
     if (history) {
@@ -266,7 +265,7 @@ history: {
   quickSearch: function(history) {
     var maxNum = maxResults + ((queryType & 63) === 3 ? offset : 0),
     results = [], sug,
-    sugs, query = queryTerms, regexps, len, i, len2, j, k,
+    sugs, query = queryTerms, regexps, len, i, len2, j,
     score, item, getRele = this.computeRelevancy;
     for (j = maxNum; j--; ) { results.push(0.0, 0); }
     maxNum = maxNum * 2 - 2;
@@ -311,20 +310,20 @@ history: {
       maxResults: (queryType === 3 ? offset : 0) + maxResults
     }, function(historys2) {
       if (query.isOff) { return; }
-      var a = arr, len;
+      var a = arr;
       historys2 = historys2.filter(function(i) {
         return !(i.url in a);
       });
       if (cut < 0) {
         historys2.length = Math.min(historys2.length, maxResults - historys.length);
-        historys2 = historys.concat(historys2)
+        historys2 = historys.concat(historys2);
       } else if (cut > 0) {
         historys2 = historys2.slice(cut, cut + maxResults);
       }
-      _this.filterFinish(historys2, query);
+      _this.filterFinish(historys2);
     });
   },
-  filterFinish: function(historys, query) {
+  filterFinish: function(historys) {
     var s = Suggestion, c = this.getRelevancy0, d = Decoder.decodeURL;
     if (historys.length > maxResults) {
       historys.length = maxResults;
@@ -357,7 +356,7 @@ domains: {
     this.refresh(HistoryCache.history);
     this.performSearch(query);
   },
-  performSearch: function(query) {
+  performSearch: function() {
     if (queryTerms.length !== 1 || queryTerms[0].indexOf("/") !== -1) {
       Completers.next([]);
       return;
@@ -427,7 +426,7 @@ domains: {
       if (item && (entry = domains[item[0]]) && (-- entry[1]) <= 0) {
         delete domains[item[0]];
       }
-    };
+    }
   },
   parseDomainAndScheme: function(url) {
     var d, i;
@@ -714,7 +713,7 @@ searchEngines: {
     autoSelect = false;
     queryTerms = query ? query.split(Utils.spacesRe) : [];
     maxCharNum = options.clientWidth > 0 ? Math.min((
-        (options.clientWidth * 0.8 - 74) / 7.72) | 0, 200) : 128
+        (options.clientWidth * 0.8 - 74) / 7.72) | 0, 200) : 128;
     maxTotal = maxResults = Math.min(Math.max(options.maxResults | 0, 3), 25);
     showFavIcon = options.showFavIcon === true;
     showRelevancy = options.showRelevancy === true;

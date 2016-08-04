@@ -4,7 +4,7 @@ var Clipboard = {
     var el = document.createElement("textarea");
     el.style.position = "absolute";
     el.style.left = "-100%";
-    this.getTextArea = function() { return el; }
+    this.getTextArea = function() { return el; };
     return el;
   },
   copy: function(data) {
@@ -110,14 +110,15 @@ TabRecency = {
 
 setTimeout(function() {
   var cache = Object.create(null), last = -1, stamp = 1, time = 0,
-  _this = TabRecency, clean = function() {
+  _this = TabRecency,
+  clean = function() {
     var ref = cache, i;
     for (i in ref) {
       if (ref[i] <= 896) { delete ref[i]; }
       else {ref[i] -= 895; }
     }
     stamp = 128;
-  }, listener;
+  },
   listener = function(activeInfo) {
     var now = Date.now(), tabId = activeInfo.tabId;
     if (now - time > 500) {
@@ -125,7 +126,7 @@ setTimeout(function() {
       if (stamp === 1023) { clean(); }
     }
     last = tabId; time = now;
-  }
+  };
   chrome.tabs.onActivated.addListener(listener);
   chrome.windows.onFocusChanged.addListener(function(windowId) {
     if (windowId === chrome.windows.WINDOW_ID_NONE) { return; }

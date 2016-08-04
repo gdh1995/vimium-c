@@ -142,7 +142,7 @@ activate: function(_0, options, forceCurrent) {
       if (this.autoSelect || this.mode.type !== "omni") {
         this.selection = 0;
         list.firstElementChild.classList.add("S");
-      };
+      }
     } else {
       list.style.display = "none";
       barCls.remove("OWithList");
@@ -453,7 +453,7 @@ activate: function(_0, options, forceCurrent) {
     MainPort.sendMessage({
       handler: "initVomnibar"
     }, function(response) { Vomnibar.initDom(response); });
-    box.onclick = function(e) { Vomnibar.onClick(e) };
+    box.onclick = function(e) { Vomnibar.onClick(e); };
     if (window.location.protocol.startsWith("chrome") && chrome.runtime.getManifest
         && (opts = chrome.runtime.getManifest())) {
       arr = opts.permissions || [];
@@ -466,7 +466,7 @@ activate: function(_0, options, forceCurrent) {
     this.init = null;
   },
   initDom: function(response) {
-    var _this = this, str;
+    var str;
     this.box.innerHTML = response;
     this.input = this.box.querySelector("#OInput");
     this.list = this.box.querySelector("#OList");
@@ -508,7 +508,7 @@ activate: function(_0, options, forceCurrent) {
     maxResults: 10,
     query: ""
   },
-  filter: function(query) {
+  filter: function() {
     var mode = this.mode, str = this.input ? this.input.value.trim() : "";
     if (str && str === mode.query) { return; }
     mode.clientWidth = document.documentElement.clientWidth,

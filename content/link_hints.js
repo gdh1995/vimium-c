@@ -165,7 +165,7 @@ var LinkHints = {
     var marker = DomUtils.createElement("div"), i;
     marker.clickableItem = link[0];
     marker.className = "LH";
-    var i = link.length < 5 ? link[1][0] : link[4][0][0] + link[4][1];
+    i = link.length < 5 ? link[1][0] : link[4][0][0] + link[4][1];
     marker.style.left = i + "px";
     if (i > this.maxLeft) {
       marker.style.maxWidth = this.maxRight - i + "px";
@@ -187,13 +187,13 @@ var LinkHints = {
     switch (element.tagName.toLowerCase()) {
     case "a": case "frame": isClickable = true; break;
     case "iframe": isClickable = element !== VFindMode.box; break;
-    case "input": if (element.type === "hidden") { return; } // no "break;"
+    case "input": if (element.type === "hidden") { return; } // no break;
     case "textarea":
       if (element.disabled && LinkHints.mode <= LinkHints.CONST.LEAVE) { return; }
       if (!element.readOnly || LinkHints.mode >= 128
         || element instanceof HTMLInputElement && (element.type in DomUtils.uneditableInputs)) {
         isClickable = true;
-      };
+      }
       break;
     case "label":
       if (element.control) {
@@ -325,7 +325,7 @@ var LinkHints = {
     return output;
   },
   deduplicate: function(list) {
-    var j = list.length - 1, i, k, el, first, s, btnRe = this.btnRe, TextCls = Text;
+    var j = list.length - 1, i, k, el, first, TextCls = Text;
     while (0 < j) {
       el = list[i = j][0];
       while (el.parentNode === list[--j][0]) {
@@ -502,7 +502,7 @@ var LinkHints = {
     }
     return 2;
   },
-  ResetMode: function(keydowns) {
+  ResetMode: function() {
     if (LinkHints.mode > 255 || LinkHints.lastMode === LinkHints.mode) { return; }
     var d = VEventMode.keydownEvents();
     if (d[KeyCodes.ctrlKey] || d[KeyCodes.metaKey] || d[KeyCodes.shiftKey] || d[KeyCodes.altKey]) {
@@ -763,6 +763,7 @@ COPY_TEXT: {
       str = str === "textarea" ? link.value
         : str === "select" ? (link.selectedIndex < 0 ? "" : link.options[link.selectedIndex].text)
         : link.innerText.trim() || (str = link.textContent.trim()) && str.replace(/\s+/g, " ")
+        ;
       str = str.trim() || link.title.trim();
     }
     if (!str) {

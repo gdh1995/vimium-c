@@ -1,0 +1,17 @@
+{
+    "env": {
+        "browser": true
+    },
+    "extends": "eslint:recommended",
+    "root": true,
+    "rules": {
+        "linebreak-style": ["error", "unix"],
+        "no-cond-assign": "off",
+        "no-console": "off",
+        "no-empty": "off",
+        "no-fallthrough": ["error", { "commentPattern": "no break;" }],
+        "no-undef-init": "error",
+        "no-unused-vars": ["error", { "vars": "local" }],
+        "semi": ["error", "always", { "omitLastInOneLineBlock": false}]
+    }
+}

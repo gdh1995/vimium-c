@@ -134,7 +134,7 @@ DomUtils.UI = {
     }, time || this.flashLastingTime);
   },
   suppressTail: function(onlyRepeated) {
-    var func, tick, timer, func;
+    var func, tick, timer;
     if (onlyRepeated) {
       func = function(event) {
         if (event.repeat) { return 2; }

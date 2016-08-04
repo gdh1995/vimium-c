@@ -48,7 +48,7 @@ window.onhashchange = function() {
     }
   } else if (url.startsWith("//")) {
     url = "http:" + url;
-  } else if (/^([\-\.\dA-Za-z]+|\[[\dA-Fa-f:]+\])(:\d{2,5})?\//.test(url)) {
+  } else if (/^([-.\dA-Za-z]+|\[[\dA-Fa-f:]+])(:\d{2,5})?\//.test(url)) {
     url = "http://" + url;
   }
 
@@ -125,9 +125,9 @@ window.onhashchange = function() {
 
   str = document.querySelector('title').getAttribute('data-title');
   str = BG ? BG.Utils.createSearch(file ? file.split(/\s+/) : [], { url: str })
-    :str.replace(/\$[sS](?:\{[^\}]*\})?/, file && (file + " | "));
+    :str.replace(/\$[sS](?:\{[^}]*})?/, file && (file + " | "));
   document.title = str;
-}
+};
 
 if (!String.prototype.startsWith) {
 String.prototype.startsWith = function(s) {
@@ -198,6 +198,7 @@ function defaultOnClick(event) {
   case "image":
     loadViewer(toggleSlide).catch(defaultOnError);
     break;
+  default: break;
   }
 }
 

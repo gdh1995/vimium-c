@@ -211,7 +211,7 @@ body{cursor:text;display:inline-block;padding:0 3px 0 1px;min-width:7px;}body *{
     }
   },
   onInput: function() {
-    var query = this.input.textContent.replace('\xa0', " "), count;
+    var query = this.input.textContent.replace('\xa0', " ");
     this.checkReturnToViewPort();
     this.updateQuery(query);
     this.restoreSelection();
@@ -228,7 +228,7 @@ body{cursor:text;display:inline-block;padding:0 3px 0 1px;min-width:7px;}body *{
     this.options.returnToViewport && window.scrollTo(this.scrollX, this.scrollY);
   },
   _ctrlRe: /(\\\\?)([rRI]?)/g,
-  escapeAllRe: /[\$\(\)\*\+\.\?\[\\\]\^\{\|\}]/g,
+  escapeAllRe: /[$()*+.?\[\\\]\^{|}]/g,
   updateQuery: function(query) {
     this.query = query;
     this.isRegex = this.options.isRegex;
@@ -256,7 +256,7 @@ body{cursor:text;display:inline-block;padding:0 3px 0 1px;min-width:7px;}body *{
     var sel = window.getSelection(), range;
     range = !isCur ? this.initialRange : sel.isCollapsed ? null : sel.getRangeAt(0);
     if (!range) { return; }
-    sel.removeAllRanges()
+    sel.removeAllRanges();
     sel.addRange(range);
   },
   getNextQueryFromRegexMatches: function(dir) {

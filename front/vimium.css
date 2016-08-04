@@ -65,11 +65,11 @@
 
 /* Input hints CSS */
 #IMC {
-	left: 0px;
+	left: 0;
 	overflow: visible;
 	pointer-events: none;
 	position: absolute;
-	top: 0px;
+	top: 0;
 	z-index: 2147483645;
 }
 .IH {

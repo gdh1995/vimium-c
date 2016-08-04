@@ -92,7 +92,7 @@ __extends(ExclusionRulesOption, Option);
 ExclusionRulesOption.prototype.onRowChange = function() {};
 
 ExclusionRulesOption.prototype.addRule = function(pattern) {
-  var element, exclusionScrollBox;
+  var element;
   element = this.appendRule(this.list, {
     pattern: pattern || "",
     passKeys: ""
@@ -134,7 +134,7 @@ ExclusionRulesOption.prototype.onRemoveRow = function(event) {
   }
 };
 
-ExclusionRulesOption.prototype.reChar = /^[\^\*]|[^\\][\$\(\)\*\+\?\[\]\{\|\}]/;
+ExclusionRulesOption.prototype.reChar = /^[\^*]|[^\\][$()*+?\[\]{|}]/;
 ExclusionRulesOption.prototype._escapeRe = /\\./g;
 ExclusionRulesOption.prototype.readValueFromElement = function(part) {
   var element, passKeys, pattern, rules, _i, _len, _ref, passArr;
@@ -171,10 +171,6 @@ ExclusionRulesOption.prototype.readValueFromElement = function(part) {
   return rules;
 };
 
-ExclusionRulesOption.prototype.flatten = function(rule) {
-  return (rule && rule.pattern) ? (rule.pattern + "\r" + rule.passKeys) : "";
-};
-
 ExclusionRulesOption.prototype.areEqual = Option.areJSONEqual;
 
 ExclusionRulesOption.prototype.getPattern = function(element) {
@@ -186,9 +182,9 @@ ExclusionRulesOption.prototype.getPassKeys = function(element) {
 };
 
 if (location.pathname.indexOf("/popup.html", location.pathname.length - 11) !== -1)
-chrome.tabs.query({currentWindow: true, active: true}, function(tab) {
+chrome.tabs.query({currentWindow: true, active: true}, function(tabs) {
   var exclusions, onUpdated, saveOptions, updateState, status = 0, ref
-    , bgExclusions = BG.Exclusions, tabId, passKeys;
+    , bgExclusions = BG.Exclusions;
 
 exclusions = Object.setPrototypeOf({
   url: "",
@@ -255,15 +251,12 @@ exclusions = Object.setPrototypeOf({
   }
 }, ExclusionRulesOption.prototype);
 
-  tab = tab[0];
-  tabId = tab.id;
   var escapeRe = /[&<>]/g, escapeCallback = function(c, n) {
     n = c.charCodeAt(0);
     return (n === 60) ? "&lt;" : (n === 62) ? "&gt;" : "&amp;";
   };
   updateState = function() {
     var pass = bgExclusions.getTemp(exclusions.url, exclusions.readValueFromElement(true));
-    passKeys = pass;
     $("state").innerHTML = "Vimium++ will " + (pass
       ? "exclude: <span class='code'>" + pass.replace(escapeRe, escapeCallback) + "</span>"
       : pass !== null ? "be disabled" : "be enabled");
@@ -281,7 +274,7 @@ exclusions = Object.setPrototypeOf({
     }
   };
   saveOptions = function() {
-    var btn = $("saveOptions"), testers, pass, ref, sender;
+    var btn = $("saveOptions"), testers;
     if (btn.disabled) {
       return;
     }
@@ -301,8 +294,8 @@ exclusions = Object.setPrototypeOf({
       setTimeout(window.close, 300);
     }
   });
-  ref = bgSettings.indexPorts(tabId);
-  exclusions.init(ref ? ref[0].sender.url : tab.url, $("exclusionRules"), onUpdated, updateState);
+  ref = bgSettings.indexPorts(tabs[0].id);
+  exclusions.init(ref ? ref[0].sender.url : tabs[0].url, $("exclusionRules"), onUpdated, updateState);
   ref = null;
   $("optionsLink").onclick = function(event) {
     event.preventDefault();

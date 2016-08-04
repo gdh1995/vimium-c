@@ -71,7 +71,7 @@ var Exclusions = {
           ref[i].postMessage(msg);
         }
       };
-    this.getOnURLChange = function() { return onURLChange; }
+    this.getOnURLChange = function() { return onURLChange; };
     return onURLChange;
   },
   format: function(rules) {

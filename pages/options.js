@@ -71,7 +71,7 @@ TextOption.prototype.readValueFromElement = function() {
   return this.element.value.trim().replace(this.whiteMaskRe, ' ');
 };
 
-function NonEmptyTextOption(element) {
+function NonEmptyTextOption() {
   NonEmptyTextOption.__super__.constructor.apply(this, arguments);
 }
 __extends(NonEmptyTextOption, TextOption);
@@ -155,7 +155,7 @@ ExclusionRulesOption.prototype.onInit = function() {
     var saveBtn;
     if (this.locked) { return; }
     if (this.saved = this.areEqual(this.readValueFromElement(), this.previous)) {
-      if (status == 1 && !Option.needSaveOptions()) {
+      if (status === 1 && !Option.needSaveOptions()) {
         saveBtn = $("saveOptions");
         saveBtn.disabled = true;
         saveBtn.textContent = "No Changes";
@@ -164,7 +164,7 @@ ExclusionRulesOption.prototype.onInit = function() {
         window.onbeforeunload = null;
       }
       return;
-    } else if (status == 1) {
+    } else if (status === 1) {
       return;
     }
     window.onbeforeunload = onBeforeUnload;
@@ -354,7 +354,7 @@ function loadChecker() {
 window.onhashchange = function() {
   var hash = window.location.hash, node;
   hash = hash.substring(hash[1] === "!" ? 2 : 1);
-  if (!hash || /[^a-z0-9_\.]/i.test(hash)) { return; }
+  if (!hash || /[^a-z0-9_.]/i.test(hash)) { return; }
   if (node = document.querySelector('[data-hash="' + hash + '"]')) {
     node.onclick && node.onclick(null, "hash");
   }

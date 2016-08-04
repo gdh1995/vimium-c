@@ -29,7 +29,7 @@ var Settings = {
         delete localStorage[key];
         this.Sync.set(key, null);
       } else {
-        localStorage[key] = typeof initial === "string" ? value : JSON.stringify(value)
+        localStorage[key] = typeof initial === "string" ? value : JSON.stringify(value);
         this.Sync.set(key, value);
       }
     }
@@ -231,7 +231,7 @@ setTimeout(function() {
     Settings.CONST.OnMac = info.os === "mac";
   });
 
-  var ref, i, origin = location.origin, prefix = origin + "/",
+  var ref, origin = location.origin, prefix = origin + "/",
   func = function(path) {
     return (path.charCodeAt(0) === 47 ? origin : prefix) + path;
   };
