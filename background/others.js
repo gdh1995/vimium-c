@@ -89,8 +89,8 @@ setTimeout(function() { if (!chrome.browserAction) { return; }
       console.error('Could not load action icon \'' + this.src + '\'.');
     },
     onload = function() {
-      var canvas = document.createElement('canvas'), w = this.width, h = this.h, ctx;
-      w = canvas.width = this.width, h = canvas.height = this.height;
+      var canvas = document.createElement('canvas'), w, h, ctx;
+      canvas.width = w = this.width, canvas.height = h = this.height;
       ctx = canvas.getContext('2d');
       ctx.clearRect(0, 0, w, h);
       ctx.drawImage(this, 0, 0, w, h);

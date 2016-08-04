@@ -188,7 +188,7 @@ var importSettings = function(time, new_data) {
       console.log("remove", key, ":=", func(new_value));
       continue;
     }
-    if (new_value.join && (key in strArr)) {
+    if (new_value.join && typeof all[key] === "string") {
       new_value = new_value.join("\n").trim();
     }
     if (key in all) {

@@ -98,7 +98,6 @@ ExclusionRulesOption.prototype.addRule = function(pattern) {
     passKeys: ""
   });
   this.getPattern(element).focus();
-  exclusionRulesTable.scrollTop = exclusionRulesTable.scrollHeight;
   if (pattern) {
     this.onUpdated();
   }
