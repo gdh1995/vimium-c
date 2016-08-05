@@ -658,8 +658,7 @@ var VSettings, VHUD, MainPort, VEventMode;
         results.push(element);
       }
     }
-    element = Vomnibar.box;
-    if (element && element.style.display !== "none") {
+    if (Vomnibar.isActive) {
       results.unshift(Vomnibar.input);
     }
     return results;
@@ -969,7 +968,7 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
       window.focus();
       Utils.execCommand(Commands, request.command, args);
     },
-    omni: function(response) { Vomnibar.autoSelect = response.autoSelect; Vomnibar.onCompletions(response.list); },
+    omni: Vomnibar.OnOmni,
     performFind: function(request) { VFindMode.activate(request); },
     createMark: Marks.CreateGlobalMark,
     scroll: Marks.Goto,

@@ -57,9 +57,10 @@ activate: function(_0, options, forceCurrent) {
     }
   },
 
+  isActive: false,
   box: null,
   inputText: "",
-  completions: null,
+  completions: [],
   isHttps: false,
   isSearchOnTop: false,
   notOnlySearch: true,
@@ -85,9 +86,9 @@ activate: function(_0, options, forceCurrent) {
     handlerStack.remove(this);
     handlerStack.push(this.onKeydown, this);
     this.box.onmousewheel = this.onWheel;
-    this.isHttps = false;
   },
   hide: function() {
+    this.isActive = this.isHttps = false;
     clearTimeout(this.timer);
     this.timer = 0;
     this.box.style.display = "none";
@@ -104,7 +105,7 @@ activate: function(_0, options, forceCurrent) {
     input || (input = "");
     this.inputText = input;
     this.mode.query = input.trimRight();
-    this.completions = [];
+    this.isActive = true;
     this.update(0, input && start <= end ? function() {
       this.show();
       this.input.setSelectionRange(start, end);
@@ -424,25 +425,25 @@ activate: function(_0, options, forceCurrent) {
     }
     this.update();
   },
-  onCompletions: function(completions) {
-    if (this.initDom) {
-      this.completions = completions;
-      return;
+  OnOmni: function(response) {
+    Vomnibar.autoSelect = response.autoSelect;
+    if (Vomnibar.isActive) {
+      Vomnibar.onCompletions(response.list);
+    } else if (Vomnibar.initDom) {
+      Vomnibar.completions = completions;
     }
-    this.onCompletions = function(completions) {
-      if (!this.completions) { return; }
-      completions.forEach(this.Parse, this.mode);
-      this.completions = completions;
-      this.populateUI();
-      if (this.timer > 0) { return; }
-      this.timer = 0;
-      if (this.onUpdate) {
-        this.onUpdate();
-        this.onUpdate = null;
-      }
-      this.CleanCompletions(this.completions);
-    };
-    this.onCompletions(completions);
+  },
+  onCompletions: function(completions) {
+    completions.forEach(this.Parse, this.mode);
+    this.completions = completions;
+    this.populateUI();
+    if (this.timer > 0) { return; }
+    this.timer = 0;
+    if (this.onUpdate) {
+      this.onUpdate();
+      this.onUpdate = null;
+    }
+    this.CleanCompletions(this.completions);
   },
   init: function() {
     var box, opts, arr;
