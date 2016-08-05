@@ -250,6 +250,24 @@ var LinkHints = {
       }
     }
   },
+  GetEditable: function(element) {
+    var arr, s;
+    switch (element.tagName.toLowerCase()) {
+    case "input":
+      if (element.type === "hidden" || element.type in DomUtils.uneditableInputs) {
+        return;
+      } // no break;
+    case "textarea":
+      if (element.disabled || element.readOnly) { return; }
+      break;
+    default:
+      if (element.contentEditable !== "true") { return; }
+      break;
+    }
+    if (arr = DomUtils.getVisibleClientRect(element)) {
+      this.push([element, arr, 1]);
+    }
+  },
   GetLinks: function(element) {
     var a, arr;
     if ((a = element.getAttribute("href")) && a !== "#"

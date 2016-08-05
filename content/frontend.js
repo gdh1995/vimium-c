@@ -5,7 +5,7 @@ var VSettings, VHUD, MainPort, VEventMode;
   var Commands, ELs, HUD, KeydownEvents, checkValidKey, currentSeconds //
     , esc, firstKeys //
     , followLink, FrameMask //
-    , getVisibleInputs, goBy //
+    , goBy //
     , InsertMode //
     , isEnabledForUrl, isInjected, mainPort //
     , onKeyup2, parsePassKeys, passKeys, requestHandlers //
@@ -455,30 +455,29 @@ var VSettings, VHUD, MainPort, VEventMode;
     },
     focusInput: function(count) {
       var box, hints, selectedInputIndex, visibleInputs;
-      visibleInputs = getVisibleInputs(DomUtils.evaluateXPath(
-        './/input[not(@disabled or @readonly) and (@type="text" or @type="search" or @type="email" or @type="url" or @type="number" or @type="password" or @type="date" or @type="tel" or not(@type))] | .//xhtml:input[not(@disabled or @readonly) and (@type="text" or @type="search" or @type="email" or @type="url" or @type="number" or @type="password" or @type="date" or @type="tel" or not(@type))] | .//textarea[not(@disabled or @readonly)] | .//xhtml:textarea[not(@disabled or @readonly)] | .//*[@contenteditable="" or translate(@contenteditable, "TRUE", "true")="true"] | .//xhtml:*[@contenteditable="" or translate(@contenteditable, "TRUE", "true")="true"]'
-        , XPathResult.ORDERED_NODE_SNAPSHOT_TYPE));
+      visibleInputs = LinkHints.traverse({"*": LinkHints.GetEditable});
       selectedInputIndex = visibleInputs.length;
       if (selectedInputIndex === 0) {
         return;
       } else if (selectedInputIndex === 1) {
-        DomUtils.UI.simulateSelect(visibleInputs[0], true, true);
+        DomUtils.UI.simulateSelect(visibleInputs[0][0], true, true);
         return;
       }
-      if (count === 1 && InsertMode.last) {
-        selectedInputIndex = Math.max(0, visibleInputs.indexOf(InsertMode.last));
-      } else {
-        selectedInputIndex = Math.min(count, selectedInputIndex) - 1;
-      }
-      DomUtils.UI.simulateSelect(visibleInputs[selectedInputIndex]);
-      hints = visibleInputs.map(function(element) {
-        var hint = DomUtils.createElement("div")
-          , rect = VRect.fromClientRect(element.getBoundingClientRect());
+      hints = visibleInputs.map(function(link) {
+        var hint = DomUtils.createElement("div"), rect = link[1];
+        rect[0]--, rect[1]--, rect[2]--, rect[3]--;
         hint.className = "IH";
-        rect[0] -= 1, rect[1] -= 1;
+        hint.clickableItem = link[0];
         VRect.setBoundary(hint.style, rect, true);
         return hint;
       });
+      if (count === 1 && InsertMode.last) {
+        selectedInputIndex = Math.max(0, visibleInputs
+          .map(function(link) { return link[0]; }).indexOf(InsertMode.last));
+      } else {
+        selectedInputIndex = Math.min(count, selectedInputIndex) - 1;
+      }
+      DomUtils.UI.simulateSelect(visibleInputs[selectedInputIndex][0]);
       hints[selectedInputIndex].classList.add("S");
       box = DomUtils.UI.addElementList(hints, {
         id: "IMC",
@@ -495,7 +494,7 @@ var VSettings, VHUD, MainPort, VEventMode;
             selectedInputIndex = 0;
           }
           hints[selectedInputIndex].classList.add("S");
-          DomUtils.UI.simulateSelect(visibleInputs[selectedInputIndex]);
+          DomUtils.UI.simulateSelect(hints[selectedInputIndex].clickableItem);
         } else if (event.keyCode === KeyCodes.f12) {
           return KeyboardUtils.isPlain(event) ? 0 : 2;
         } else if (!event.repeat && event.keyCode !== KeyCodes.shiftKey) {
@@ -648,20 +647,6 @@ var VSettings, VHUD, MainPort, VEventMode;
       if (!arr) { return KeydownEvents; }
       KeydownEvents = arr;
     }
-  };
-
-  getVisibleInputs = function(pathSet) {
-    DomUtils.prepareCrop();
-    for (var element, results = [], i = 0, _ref = pathSet.snapshotLength; i < _ref; ++i) {
-      element = pathSet.snapshotItem(i);
-      if (DomUtils.getVisibleClientRect(element)) {
-        results.push(element);
-      }
-    }
-    if (Vomnibar.isActive) {
-      results.unshift(Vomnibar.input);
-    }
-    return results;
   };
 
   followLink = function(linkElement) {
