@@ -315,7 +315,7 @@ var LinkHints = {
       this.deduplicate(output);
     }
     if (this.frameNested !== false) {}
-    else if ("*" in filters) {
+    else if (filters["*"] === this.GetClickable) {
       this.checkNestedFrame(output);
     } else if (output.length > 0) {
       this.frameNested = null;
