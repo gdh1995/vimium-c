@@ -446,35 +446,33 @@ tabs: {
   filter: function(query) {
     chrome.tabs.query({}, this.performSearch.bind(this, query));
   },
-  performSearch: function(query, tabs) {
+  performSearch: function(query, tabs0) {
     if (query.isOff) { return; }
     if (queryType === 1) { queryType = 4; }
-    var curTabId = TabRecency.last(), c, suggestions;
-    if (queryTerms.length > 0) {
-      tabs = tabs.filter(function(tab) {
-        var text = Decoder.decodeURL(tab.url);
-        if (RankingUtils.Match2(text, tab.title)) {
-          tab.text = text;
-          return true;
-        }
-        return false;
-      });
-      c = this.computeRelevancy;
-    } else {
-      c = this.computeRecency;
+    var curTabId = TabRecency.last(), c, suggestions = [], i, len, tab, text, tabId
+      , tabs = [], noFilter = queryTerms.length <= 0, suggestion;
+    for (i = 0, len = tabs0.length; i < len; i++) {
+      tab = tabs0[i];
+      text = Decoder.decodeURL(tab.url);
+      if (noFilter || RankingUtils.Match2(text, tab.title)) {
+        tabs.push(tab);
+        tab.text = text;
+      }
     }
     if (offset >= tabs.length && queryType === 4) {
       offset = 0;
       Completers.next([]);
       return;
     }
-    suggestions = tabs.map(function(tab) {
-      var tabId = tab.id, suggestion = new Suggestion("tab",
-            tab.url, tab.text, tab.title, c, tabId);
+    c = noFilter ? this.computeRecency : this.computeRelevancy;
+    for (i = 0, len = tabs.length; i < len; i++) {
+      tab = tabs[i];
+      tabId = tab.id;
+      suggestion = new Suggestion("tab", tab.url, tab.text, tab.title, c, tabId);
       suggestion.sessionId = tabId;
       if (curTabId === tabId) { suggestion.relevancy = 0; }
-      return suggestion;
-    });
+      suggestions.push(suggestion);
+    }
     if (offset > 0 && queryType === 4) {
       suggestions.sort(Completers.rsortByRelevancy);
       if (suggestions.length > maxResults) {
