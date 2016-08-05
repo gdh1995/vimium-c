@@ -125,7 +125,8 @@ function wantPermissions() {
 		chrome.permissions.request({
 			permissions: args
 		}, function(granted) {
-			granted ? resolve() : reject();
+			granted ? resolve() : reject("Fail to require permissions: " + args.join(", "));
+			return chrome.runtime.lastError;
 		});
 	});
 }
