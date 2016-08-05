@@ -449,8 +449,8 @@ var VSettings, VHUD, MainPort, VEventMode;
         handler: "searchAs",
         url: window.location.href,
         search: DomUtils.getSelectionText()
-      }, function(response) {
-        response && HUD.showForDuration(response, 1000);
+      }, function(str) {
+        str && HUD.showForDuration(str, 1000);
       });
     },
     focusInput: function(count) {
@@ -917,12 +917,12 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
         url: window.location.href
       });
     },
-    settingsUpdate: function(response) {
+    settingsUpdate: function(request) {
       var ref = settings.cache, i;
-      Object.setPrototypeOf(response, null);
-      delete response.name;
-      for (i in response) {
-        ref[i] = response[i];
+      Object.setPrototypeOf(request, null);
+      delete request.name;
+      for (i in request) {
+        ref[i] = request[i];
       }
     },
     insertCSS: function(request) {
@@ -979,11 +979,11 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
     showCopied: function(request) {
       HUD.showCopied(request.text);
     },
-  showHelpDialog: function(response) {
+  showHelpDialog: function(request) {
     var box, oldShowHelp, hide, node1, //
-    toggleAdvanced, shouldShowAdvanced = response.advanced === true;
+    toggleAdvanced, shouldShowAdvanced = request.advanced === true;
     box = DomUtils.createElement("div");
-    box.innerHTML = response.html;
+    box.innerHTML = request.html;
     box = box.firstElementChild;
     hide = function(event) { event.stopImmediatePropagation(); };
     box.onclick = hide;
@@ -1016,8 +1016,8 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
     };
     box.querySelector("#HClose").onclick = Commands.showHelp = hide;
     node1 = box.querySelector("#OptionsPage");
-    if (! window.location.href.startsWith(response.optionUrl)) {
-      node1.href = response.optionUrl;
+    if (! window.location.href.startsWith(request.optionUrl)) {
+      node1.href = request.optionUrl;
       node1.onclick = function(event) {
         event.preventDefault();
         mainPort.port.postMessage({ handler: "focusOrLaunch", url: this.href });

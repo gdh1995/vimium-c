@@ -192,7 +192,7 @@ body{cursor:text;display:inline-block;padding:0 3px 0 1px;min-width:7px;}body *{
         addEventListener("click", Exit, true);
         VEventMode.setupSuppress(Exit);
       }
-      this.exit(true);
+      Exit(true);
       this.lock = el;
       el.addEventListener("blur", Exit, true);
     },
