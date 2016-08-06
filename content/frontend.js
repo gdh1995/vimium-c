@@ -671,19 +671,25 @@ var VSettings, VHUD, MainPort, VEventMode;
       this.findAndFollowLink(pattern);
     }
   },
+  GetLinks: function(element) {
+    var isClickable, s, rect;
+    isClickable = element instanceof HTMLAnchorElement
+      || element.vimiumHasOnclick || element.getAttribute("onclick")
+      || (s = element.getAttribute("role")) ? s.toLowerCase() === "link"
+      : element.getAttribute("ng-click");
+    if (!isClickable) { return; }
+    if ((s = element.getAttribute("aria-disabled")) != null && (!s || s.toLowerCase() === "true")) { return; }
+    rect = element.getBoundingClientRect();
+    if (rect.width > 2 && rect.height > 2 && DomUtils.isStyleVisible(window.getComputedStyle(element))) {
+      this.push(element);
+    }
+  },
   findAndFollowLink: function(linkStrings) {
-    var boundingClientRect, candidateLinks, exactWordRe, link, linkString, links, linksXPath, _i, _j, _len, _len1;
-    linksXPath = './/a | .//xhtml:a | .//*[@onclick or @role="link"] | .//xhtml:*[@onclick or @role="link"]';
-    links = DomUtils.evaluateXPath(linksXPath, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE);
+    var candidateLinks, exactWordRe, link, linkString, links, _i, _j, _len, _len1;
+    links = LinkHints.traverse(this.GetLinks);
     candidateLinks = [];
-    _len = links.snapshotLength;
-    while (0 <= --_len) {
-      link = links.snapshotItem(_len);
-      boundingClientRect = link.getBoundingClientRect();
-      if (boundingClientRect.width < 0.5 || boundingClientRect.height < 0.5) {
-        continue;
-      }
-      if (!DomUtils.isStyleVisible(window.getComputedStyle(link))) { continue; }
+    for (_len = links.length; 0 <= --_len; ) {
+      link = links[_len];
       linkString = (link.innerText || link.title).toLowerCase();
       for (_j = 0, _len1 = linkStrings.length; _j < _len1; _j++) {
         if (linkString.indexOf(linkStrings[_j]) !== -1) {
