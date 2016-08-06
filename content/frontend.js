@@ -16,7 +16,7 @@ var VSettings, VHUD, VPort, VEventMode;
 
   VPort = mainPort = {
     port: null,
-    _callbacks: null,
+    _callbacks: Object.create(null),
     _id: 1,
     sendMessage: function(request, callback) {
       var id = ++this._id;
@@ -26,7 +26,7 @@ var VSettings, VHUD, VPort, VEventMode;
     safePost: function(request, ifReconnect) {
       try {
         if (!this.port) {
-          this.connect();
+          this.connect(0);
           ifReconnect && ifReconnect();
         }
         this.port.postMessage(request);
@@ -89,17 +89,17 @@ var VSettings, VHUD, VPort, VEventMode;
     ClearPort: function() {
       mainPort.port = null;
     },
-    connect: function() {
+    connect: function(isFirst) {
       var port;
       port = this.port = chrome.runtime.connect("hfjbmagddngcpeloejdejnfgbamkjaeg", {
-         name: "vimium++." + ((window.top === window) * 4 + document.hasFocus() * 2 + !this._callbacks),
+         name: "vimium++." + ((window.top === window) * 4 + document.hasFocus() * 2 + isFirst),
       });
       port.onDisconnect.addListener(this.ClearPort);
       port.onMessage.addListener(this.Listener);
-      this._callbacks = Object.create(null);
+      this._callbacks;
     }
   };
-  mainPort.connect();
+  mainPort.connect(1);
 
   VSettings = settings = {
     cache: null,
@@ -1027,8 +1027,7 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
   };
 
   settings.timer = setInterval(function() {
-    mainPort._callbacks = null;
-    mainPort.connect();
+    mainPort.connect(1);
   }, 2000);
 
   VDom.documentReady(function() {
