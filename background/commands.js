@@ -102,7 +102,7 @@ commandGroups: {
     , "LinkHints.activateModeToDownloadImage", "LinkHints.activateModeToOpenImage"
     , "LinkHints.activateModeToDownloadLink", "LinkHints.activateModeToOpenIncognito"
     , "LinkHints.activateModeToHover", "LinkHints.activateModeToLeave", "LinkHints.unhoverLast"
-    , "LinkHints.activateModeToSearchLinkText", "LinkHints.activateModeToOpenVomnibar"
+    , "LinkHints.activateModeToSearchLinkText", "LinkHints.activateModeToEdit"
     , "goPrevious", "goNext", "nextFrame", "mainFrame"
     , "enterInsertMode"
     , "Marks.activateCreateMode", "Marks.activate"
@@ -110,7 +110,8 @@ commandGroups: {
     ],
   vomnibarCommands: ["Vomnibar.activate", "Vomnibar.activateInNewTab"
     , "Vomnibar.activateBookmarks", "Vomnibar.activateBookmarksInNewTab", "Vomnibar.activateHistory"
-    , "Vomnibar.activateHistoryInNewTab", "Vomnibar.activateTabSelection"],
+    , "Vomnibar.activateHistoryInNewTab", "Vomnibar.activateTabSelection"
+    , "LinkHints.activateModeToOpenVomnibar"],
   historyNavigation: ["goBack", "goForward", "reopenTab"],
   findCommands: ["enterFindMode", "performFind", "performBackwardsFind"],
   tabManipulation: ["nextTab", "previousTab", "firstTab", "lastTab", "createTab", "duplicateTab"
@@ -243,6 +244,8 @@ availableCommands: {
     { mode: "COPY_TEXT" }, "LinkHints.activate" ],
   "LinkHints.activateModeToSearchLinkText": [ "Open or search a link text", 0, false,
     { mode: "SEARCH_TEXT" }, "LinkHints.activate" ],
+  "LinkHints.activateModeToEdit": [ "Select an editable area", 1, false,
+    { mode: "FOCUS_EDITABLE" }, "LinkHints.activate" ],
   "LinkHints.activateModeToOpenVomnibar": [ "Edit a link text on Vomnibar (use url=false)", 1, false,
     { mode: "EDIT_TEXT" }, "LinkHints.activate" ],
   openCopiedUrlInCurrentTab: [ "Open the clipboard's URL in the current tab", 1, true ],

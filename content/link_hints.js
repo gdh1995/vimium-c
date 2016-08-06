@@ -19,6 +19,7 @@ var LinkHints = {
     DOWNLOAD_LINK: 136,
     COPY_LINK_URL: 137,
     OPEN_INCOGNITO_LINK: 138,
+    FOCUS_EDITABLE: 258,
     EDIT_LINK_URL: 257,
     EDIT_TEXT: 256
   },
@@ -402,11 +403,11 @@ var LinkHints = {
       , r, r0, r2 = null, r2s, t, isNormal, reason, _k, _ref;
     _i = this.mode & ~64;
     visibleElements = this.traverse(
-      (_i == this.CONST.DOWNLOAD_IMAGE || _i == this.CONST.OPEN_IMAGE)
+      (_i === this.CONST.DOWNLOAD_IMAGE || _i === this.CONST.OPEN_IMAGE)
       ? { img: this.GetImagesInImg, a: this.GetImagesInA }
-      : _i == this.CONST.EDIT_LINK_URL
-      || (_i < 256 && _i >= 136) ? { a: this.GetLinks }
-      : { "*": this.GetClickable });
+      : _i === this.CONST.EDIT_LINK_URL || (_i < 256 && _i >= 136) ? { a: this.GetLinks }
+      : {"*": _i === this.CONST.FOCUS_EDITABLE ? this.GetEditable
+              : this.GetClickable});
     isNormal = this.mode < 128;
     visibleElements.reverse();
 
@@ -904,6 +905,13 @@ DOWNLOAD_LINK: {
     } else if (oldUrl === null) {
       link.removeAttribute("href");
     }
+  }
+},
+FOCUS_EDITABLE: {
+  258: "select an editable area",
+  activator: function(link) {
+    DomUtils.UI.simulateSelect(link, true);
+    return false;
   }
 },
 DEFAULT: {
