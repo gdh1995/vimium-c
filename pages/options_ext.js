@@ -119,7 +119,8 @@ $("exportButton").onclick = function(event) {
 var importSettings = function(time, new_data, is_recommended) {
   time = +new Date(new_data && new_data.time || time) || 0;
   if (!new_data || new_data.name !== "Vimium++" || (time < 10000 && time > 0)) {
-    window.VHUD && VHUD.showForDuration("No settings data found!", 2000);
+    key = "No settings data found!";
+    window.VHUD ? VHUD.showForDuration(key, 2000) : alert(new_data ? key : "Fail to parse the settings");
     return;
   } else if (!confirm(
     (is_recommended !== true ? "You are loading a settings copy exported"
