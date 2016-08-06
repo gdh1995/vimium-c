@@ -168,8 +168,8 @@ function clickLink(options, event) {
     a.setAttribute(i, options[i]);
   }
   a.href = url;
-  if (window.DomUtils) {
-    DomUtils.simulateClick(a, event);
+  if (window.VDom) {
+    VDom.simulateClick(a, event);
   } else {
     a.click();
   }
@@ -226,8 +226,8 @@ function copyThing(event) {
   if (type == "url") {
     str = $("textBody").textContent;
   }
-  if (!(str && window.MainPort)) { return; }
-  MainPort.sendMessage({
+  if (!(str && window.VPort)) { return; }
+  VPort.sendMessage({
     handler: "copyToClipboard",
     data: str
   }, function() {

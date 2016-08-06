@@ -38,7 +38,7 @@ body{cursor:text;display:inline-block;padding:0 3px 0 1px;min-width:7px;}body *{
       return;
     }
 
-    query !== this.query && Marks.setPreviousPosition();
+    query !== this.query && VMarks.setPreviousPosition();
     this.options = options;
     if (query != null) {
       this.findAndFocus(query, options);
@@ -53,10 +53,10 @@ body{cursor:text;display:inline-block;padding:0 3px 0 1px;min-width:7px;}body *{
     this.getCurrentRange();
 
     var el, wnd, doc;
-    el = this.box = DomUtils.createElement("iframe");
+    el = this.box = VDom.createElement("iframe");
     el.className = "R HUD";
     el.style.width = "0px";
-    VHUD.box ? DomUtils.UI.root.insertBefore(el, VHUD.box) : DomUtils.UI.addElement(el);
+    VHUD.box ? VDom.UI.root.insertBefore(el, VHUD.box) : VDom.UI.addElement(el);
     wnd = el.contentWindow;
     wnd.onmousedown = el.onmousedown = this.OnMousedown;
     wnd.onkeydown = this.onKeydown.bind(this);
@@ -67,15 +67,15 @@ body{cursor:text;display:inline-block;padding:0 3px 0 1px;min-width:7px;}body *{
     el.oninput = this.onInput.bind(this);
     doc.documentElement.appendChild(this.countEl = doc.createElement("span"));
     
-    el = DomUtils.UI.createStyle(this.cssIFrame, doc);
+    el = VDom.UI.createStyle(this.cssIFrame, doc);
     doc.head.appendChild(el);
     doc.documentElement.insertBefore(new wnd.Text("/"), doc.body);
 
-    DomUtils.UI.focus(this.input);
+    VDom.UI.focus(this.input);
     this.isActive = true;
   },
   init: function() {
-    var ref = this.postMode, UI = DomUtils.UI;
+    var ref = this.postMode, UI = VDom.UI;
     ref.exit = ref.exit.bind(ref);
     this.styleIn = UI.createStyle(this.cssSel);
     UI.init && UI.init();
@@ -105,7 +105,7 @@ body{cursor:text;display:inline-block;padding:0 3px 0 1px;min-width:7px;}body *{
   deactivate: function() { // need keep @hasResults
     this.checkReturnToViewPort();
     window.focus();
-    var el = DomUtils.getSelectionFocusElement();
+    var el = VDom.getSelectionFocusElement();
     el && el.focus();
     this.box.remove();
     this.box = this.input = this.countEl = this.options = null;
@@ -119,22 +119,22 @@ body{cursor:text;display:inline-block;padding:0 3px 0 1px;min-width:7px;}body *{
   OnMousedown: function(event) { if (event.target !== VFindMode.input) { event.preventDefault(); VFindMode.input.focus(); } },
   onKeydown: function(event) {
     var i = event.keyCode, n = i, el, el2;
-    i = event.altKey ? 0 : i === KeyCodes.enter ? (this.saveQuery(), 2)
-      : (i === KeyCodes.backspace || i === KeyCodes.deleteKey) ? +!this.query.length
+    i = event.altKey ? 0 : i === VKeyCodes.enter ? (this.saveQuery(), 2)
+      : (i === VKeyCodes.backspace || i === VKeyCodes.deleteKey) ? +!this.query.length
       : 0;
     if (!i) {
-      if (!KeyboardUtils.isPlain(event)) {
+      if (!VKeyboard.isPlain(event)) {
         if (event.shiftKey || !(event.ctrlKey || event.metaKey)) { return; }
         else if (n >= 74 && n <= 75) { this.execute(null, {dir: 74 - n }); }
         else { return; }
       }
-      else if (n === KeyCodes.f1) { this.box.contentDocument.execCommand("delete"); }
-      else if (n === KeyCodes.f1 + 1) { window.focus(); }
-      else if (n === KeyCodes.esc) { i = 3; }
-      else if (n === KeyCodes.up || n === KeyCodes.down) { this.nextQuery(n === KeyCodes.up ? 1 : -1); }
+      else if (n === VKeyCodes.f1) { this.box.contentDocument.execCommand("delete"); }
+      else if (n === VKeyCodes.f1 + 1) { window.focus(); }
+      else if (n === VKeyCodes.esc) { i = 3; }
+      else if (n === VKeyCodes.up || n === VKeyCodes.down) { this.nextQuery(n === VKeyCodes.up ? 1 : -1); }
       else { return; }
     }
-    Utils.Prevent(event);
+    VUtils.Prevent(event);
     if (!i) { return; }
     var hasStyle = !!this.styleIn.parentNode;
     el = this.deactivate();
@@ -146,7 +146,7 @@ body{cursor:text;display:inline-block;padding:0 3px 0 1px;min-width:7px;}body *{
     if (!el || el !== VEventMode.lock()) {
       el = window.getSelection().anchorNode;
       if (el && !this.focusFoundLink(el) && i === 3 && (el2 = document.activeElement)) {
-        DomUtils.getEditableType(el2) === 3 && el.contains(el2) && DomUtils.UI.simulateSelect(el2);
+        VDom.getEditableType(el2) === 3 && el.contains(el2) && VDom.UI.simulateSelect(el2);
       }
     }
     i === 2 && this.postMode.activate();
@@ -168,7 +168,7 @@ body{cursor:text;display:inline-block;padding:0 3px 0 1px;min-width:7px;}body *{
       this.box.contentWindow.getSelection().collapseToEnd();
       return;
     }
-    MainPort.sendMessage({ handler: "findQuery", index: ind }, this.SetQuery);
+    VPort.sendMessage({ handler: "findQuery", index: ind }, this.SetQuery);
   },
   SetQuery: function(query) {
     var _this = VFindMode, doc;
@@ -179,7 +179,7 @@ body{cursor:text;display:inline-block;padding:0 3px 0 1px;min-width:7px;}body *{
     _this.onInput();
   },
   saveQuery: function() {
-    this.query && MainPort.port.postMessage({ handler: "findQuery", query: this.query });
+    this.query && VPort.port.postMessage({ handler: "findQuery", query: this.query });
   },
   postMode: {
     lock: null,
@@ -197,7 +197,7 @@ body{cursor:text;display:inline-block;padding:0 3px 0 1px;min-width:7px;}body *{
       el.addEventListener("blur", Exit, true);
     },
     onKeydown: function(event) {
-      var exit = event.keyCode === KeyCodes.esc && KeyboardUtils.isPlain(event);
+      var exit = event.keyCode === VKeyCodes.esc && VKeyboard.isPlain(event);
       exit ? this.exit() : VHandler.remove(this);
       return 2 * exit;
     },
@@ -274,7 +274,7 @@ body{cursor:text;display:inline-block;padding:0 3px 0 1px;min-width:7px;}body *{
       found = window.find(q, options.caseSensitive || !this.ignoreCase, dir < 0, true, false, true, false);
     } while (0 < --count && found);
     options.noColor || setTimeout(this.hookSel.bind(this, "add"), 0);
-    (el = VEventMode.lock()) && DomUtils.getEditableType(el) > 1 && !DomUtils.isSelected(document.activeElement) && el.blur();
+    (el = VEventMode.lock()) && VDom.getEditableType(el) > 1 && !VDom.isSelected(document.activeElement) && el.blur();
     return this.hasResults = found;
   },
   RestoreHighlight: function() { VFindMode.toggleStyle('remove'); },
@@ -283,7 +283,7 @@ body{cursor:text;display:inline-block;padding:0 3px 0 1px;min-width:7px;}body *{
     this.hookSel("remove");
     document.documentElement.classList[action]("vimiumFindMode");
     action !== "add" ? this.styleIn && this.styleIn.remove() :
-    DomUtils.UI.root && DomUtils.UI.addElement(this.styleIn);
+    VDom.UI.root && VDom.UI.addElement(this.styleIn);
   },
   getCurrentRange: function() {
     var sel = window.getSelection(), range;

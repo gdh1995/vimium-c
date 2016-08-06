@@ -1,5 +1,5 @@
 "use strict";
-var Scroller = {
+var VScroller = {
 Core: {
   animate: null,
   calibrationBoundary: 150,
@@ -35,7 +35,7 @@ Core: {
     if (!amount) { return; }
     if (!VSettings.cache.smoothScroll) {
       this.performScroll(element, di, amount);
-      DomUtils.isVisibile(Scroller.current) || (Scroller.current = element);
+      VDom.isVisibile(VScroller.current) || (VScroller.current = element);
       return;
     }
     this.animate(amount, di, element);
@@ -54,7 +54,7 @@ Core: {
     viewSize: "clientHeight"
   }],
   scrollBy: function(direction, amount, factor, zoomX) {
-    if (LinkHints.tryNestedFrame("Scroller.scrollBy", arguments)) { return; }
+    if (VHints.tryNestedFrame("VScroller.scrollBy", arguments)) { return; }
     var element, di;
     di = direction === "y" ? 1 : 0;
     element = this.findScrollable(this.getActivatedElement(), di, amount, factor);
@@ -65,7 +65,7 @@ Core: {
     this.Core.scroll(element, di, amount);
   },
   scrollTo: function(direction, factor) {
-    if (LinkHints.tryNestedFrame("Scroller.scrollTo", arguments)) { return; }
+    if (VHints.tryNestedFrame("VScroller.scrollTo", arguments)) { return; }
     var amount, element, di = direction === "y" ? 1 : 0;
     if (factor >= 0) {
       amount = factor;
@@ -109,11 +109,11 @@ Core: {
     if (this.scrollDo(element, 1, 1, "") || this.scrollDo(element, 1, -1, "")) {
       return element;
     }
-    DomUtils.prepareCrop();
+    VDom.prepareCrop();
     var children = [], rect, _ref = element.children, _len = _ref.length;
     while (0 <= --_len) {
       element = _ref[_len];
-      if (rect = DomUtils.getVisibleClientRect(element)) {
+      if (rect = VDom.getVisibleClientRect(element)) {
         children.push([(rect[2] - rect[0]) * (rect[3] - rect[1]), element]);
       }
     }
@@ -129,7 +129,7 @@ Core: {
   },
   shouldScroll: function(element, di) {
     var st = window.getComputedStyle(element);
-    return DomUtils.isStyleVisible(st) && (di ? st.overflowY : st.overflowX) !== "hidden";
+    return VDom.isStyleVisible(st) && (di ? st.overflowY : st.overflowX) !== "hidden";
   },
   isScrollable: function(el, di) {
     return this.scrollDo(el, di, (di ? el.scrollTop : el.scrollLeft) > 0 ? -1 : 1, "") && this.shouldScroll(el, di);
@@ -139,7 +139,7 @@ Core: {
   }
 };
 
-Scroller.Core.animate = function () {
+VScroller.Core.animate = function () {
   var amount = 0, calibration = 1.0, di = 0, duration = 0, element = null, //
   sign = 0, timestamp = -1, totalDelta = 0, totalElapsed = 0.0, //
   animate = function(newTimestamp) {
@@ -151,10 +151,10 @@ Scroller.Core.animate = function () {
     }
     elapsed = newTimestamp - int1;
     int1 = (totalElapsed += elapsed);
-    _this = Scroller.Core;
-    if (Scroller.keyIsDown) {
+    _this = VScroller.Core;
+    if (VScroller.keyIsDown) {
       if (int1 >= 75) {
-        if (int1 > _this.minDelay) { --Scroller.keyIsDown; }
+        if (int1 > _this.minDelay) { --VScroller.keyIsDown; }
         int1 = calibration;
         if (_this.minCalibration <= int1 && int1 <= _this.maxCalibration) {
           int1 = _this.calibrationBoundary / amount / int1;
@@ -171,8 +171,8 @@ Scroller.Core.animate = function () {
       requestAnimationFrame(animate);
       return;
     }
-    if (Scroller.current !== element) {
-      DomUtils.isVisibile(Scroller.current) || (Scroller.current = element);
+    if (VScroller.current !== element) {
+      VDom.isVisibile(VScroller.current) || (VScroller.current = element);
     }
     element = null;
   };
@@ -184,7 +184,7 @@ Scroller.Core.animate = function () {
     var keyboard = VSettings.cache.keyboard;
     this.maxInterval = Math.round(keyboard[1] / 16.67) + 4;
     this.minDelay = (((keyboard[0] - keyboard[1]) / 30) | 0) * 30;
-    Scroller.keyIsDown = this.maxInterval;
+    VScroller.keyIsDown = this.maxInterval;
     requestAnimationFrame(animate);
   };
   this.animate.apply(this, arguments);

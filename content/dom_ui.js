@@ -1,5 +1,5 @@
 "use strict";
-DomUtils.UI = {
+VDom.UI = {
   box: null,
   styleIn: null,
   styleOut: null,
@@ -7,7 +7,7 @@ DomUtils.UI = {
   focusedEl: null,
   flashLastingTime: 400,
   addElement: function(element) {
-    MainPort.sendMessage({ handler: "initInnerCSS" }, this.InitInner);
+    VPort.sendMessage({ handler: "initInnerCSS" }, this.InitInner);
     this.init && this.init(false);
     this.box.style.display = "none";
     this.root = this.box.createShadowRoot();
@@ -19,7 +19,7 @@ DomUtils.UI = {
   },
   addElementList: function(els, attrs) {
     var parent, _i, _len;
-    parent = DomUtils.createElement("div");
+    parent = VDom.createElement("div");
     parent.className = attrs.className;
     parent.id = attrs.id;
     for (_i = 0, _len = els.length; _i < _len; _i++) {
@@ -32,12 +32,12 @@ DomUtils.UI = {
     (!this.InitInner && document.webkitFullscreenElement || document.documentElement).appendChild(this.box);
   },
   init: function(showing) {
-    this.box = DomUtils.createElement("vimium");
+    this.box = VDom.createElement("vimium");
     showing !== false && this.adjust();
     this.init = null;
   },
   InitInner: function(innerCss) {
-    var _this = DomUtils.UI;
+    var _this = VDom.UI;
     _this.InitInner = null;
     _this.styleIn = _this.createStyle(innerCss);
     _this.root.insertBefore(_this.styleIn, _this.root.firstElementChild);
@@ -53,7 +53,7 @@ DomUtils.UI = {
     this.box.parentNode || this.adjust();
   },
   createStyle: function(text, doc) {
-    var css = (doc || DomUtils).createElement("style");
+    var css = (doc || VDom).createElement("style");
     css.type = "text/css";
     css.textContent = text;
     return css;
@@ -88,7 +88,7 @@ DomUtils.UI = {
   },
   simulateSelect: function(element, flash, suppressRepeated) {
     element.focus();
-    DomUtils.simulateClick(element);
+    VDom.simulateClick(element);
     flash === true && this.flashVRect(this.getVRect(element));
     if (element !== VEventMode.lock()) { return; }
     var len;
@@ -111,12 +111,12 @@ DomUtils.UI = {
   },
   getVRect: function(clickEl) {
     var rect, bcr;
-    DomUtils.prepareCrop();
+    VDom.prepareCrop();
     if (clickEl.classList.contains("OIUrl") && Vomnibar.isActive
         && Vomnibar.box.contains(clickEl)) {
       rect = Vomnibar.computeHint(clickEl.parentElement.parentElement, clickEl);
     } else {
-      rect = DomUtils.getVisibleClientRect(clickEl);
+      rect = VDom.getVisibleClientRect(clickEl);
       bcr = VRect.fromClientRect(clickEl.getBoundingClientRect());
       if (!rect || VRect.isContaining(bcr, rect)) {
         rect = bcr;
@@ -125,7 +125,7 @@ DomUtils.UI = {
     return rect;
   },
   flashVRect: function(rect, time) {
-    var flashEl = DomUtils.createElement("div");
+    var flashEl = VDom.createElement("div");
     flashEl.className = "R Flash";
     VRect.setBoundary(flashEl.style, rect);
     this.addElement(flashEl);
@@ -155,9 +155,9 @@ DomUtils.UI = {
   },
   SuppressMost: function(event) {
     var key = event.keyCode;
-    if (key == KeyCodes.esc && KeyboardUtils.isPlain(event)) {
+    if (key == VKeyCodes.esc && VKeyboard.isPlain(event)) {
       VHandler.remove(this);
     }
-    return key > KeyCodes.f1 + 9 && key <= KeyCodes.f12 ? 1 : 2;
+    return key > VKeyCodes.f1 + 9 && key <= VKeyCodes.f12 ? 1 : 2;
   }
 };

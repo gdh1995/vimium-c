@@ -1,5 +1,5 @@
 "use strict";
-var Marks = {
+var VMarks = {
   onKeypress: null,
   activate: function(_0, options) {
     var isGo = options.mode !== "create";
@@ -24,9 +24,9 @@ var Marks = {
   },
   onKeydown: function(event) {
     var keyCode = event.keyCode, keyChar;
-    if (keyCode === KeyCodes.esc ? !KeyboardUtils.isPlain(event)
-      : keyCode > KeyCodes.f1 && keyCode <= KeyCodes.f12 || keyCode <= 32
-        || !(keyChar = KeyboardUtils.getKeyChar(event))) {
+    if (keyCode === VKeyCodes.esc ? !VKeyboard.isPlain(event)
+      : keyCode > VKeyCodes.f1 && keyCode <= VKeyCodes.f12 || keyCode <= 32
+        || !(keyChar = VKeyboard.getKeyChar(event))) {
       return 1;
     }
     VHandler.remove(this);
@@ -69,7 +69,7 @@ var Marks = {
   _goto: function(event, keyChar) {
     var markString, position;
     if (event.shiftKey) {
-      MainPort.sendMessage({
+      VPort.sendMessage({
         handler: "gotoMark",
         markName: keyChar
       }, function(req) {
@@ -104,14 +104,14 @@ var Marks = {
   CreateGlobalMark: function(request) {
     var keyChar = request.markName;
     if (window.top !== window) {
-      MainPort.port.postMessage({handler: "createMark", markName: keyChar});
+      VPort.port.postMessage({handler: "createMark", markName: keyChar});
       VHUD.hide();
       return;
     }
-    MainPort.port.postMessage({
+    VPort.port.postMessage({
       handler: "createMark",
       markName: keyChar,
-      url: Marks.getBaseUrl(),
+      url: VMarks.getBaseUrl(),
       scroll: [window.scrollX, window.scrollY]
     });
     VHUD.showForDuration("Created global mark : ' " + keyChar + " '.", 1000);
@@ -122,7 +122,7 @@ var Marks = {
       window.focus();
     }
     if (request.markName) {
-      Marks.setPreviousPosition();
+      VMarks.setPreviousPosition();
       window.scrollTo(scroll[0], scroll[1]);
       VHUD.showForDuration("Jumped to global mark : ' " + request.markName + " '.", 2000);
     } else {

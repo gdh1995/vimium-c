@@ -1,21 +1,21 @@
 "use strict";
 VSettings.checkIfEnabled = function() {
-  MainPort.safePost({
+  VPort.safePost({
     handler: "checkIfEnabled",
     url: window.location.href
   });
 };
 
-DomUtils.documentReady(function() {
-  if (MainPort.safePost({ handler: "reg", visible: true })) {
+VDom.documentReady(function() {
+  if (VPort.safePost({ handler: "reg", visible: true })) {
     return;
   }
   addEventListener("hashchange", VSettings.checkIfEnabled);
-  VEventMode.onWndFocus(MainPort.safePost.bind(MainPort, {
+  VEventMode.onWndFocus(VPort.safePost.bind(VPort, {
     handler: "frameFocused"
   }, function() {
     setTimeout(function() {
-      if (MainPort && !MainPort.port) {
+      if (VPort && !VPort.port) {
         VSettings.destroy();
       }
     }, 50);
@@ -33,9 +33,9 @@ if (chrome.runtime.onMessageExternal) {
 
 VSettings.onDestroy = function() {
   removeEventListener("hashchange", VSettings.checkIfEnabled);
-  if (MainPort.port) {
+  if (VPort.port) {
     try {
-      MainPort.port.disconnect();
+      VPort.port.disconnect();
     } catch (e) {}
   }
   EventTarget.removeVimiumHooks && EventTarget.removeVimiumHooks();

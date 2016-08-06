@@ -1,33 +1,33 @@
 "use strict";
 
 $("showCommands").onclick = function(event) {
-  if (!window.DomUtils) { return; }
-  var node, root = DomUtils.UI.root;
+  if (!window.VDom) { return; }
+  var node, root = VDom.UI.root;
   event && event.preventDefault();
   Vomnibar.input && Vomnibar.input.blur();
   if (!root) {}
   else if (root.querySelector('.HelpCommandName')) {
     node = root.getElementById("HelpDialog");
-    DomUtils.UI.addElement(node);
+    VDom.UI.addElement(node);
     node.click();
     return;
   } else if (node = root.getElementById("HClose")) {
     node.onclick();
   }
-  MainPort.port.postMessage({
+  VPort.port.postMessage({
     handler: "initHelp",
     unbound: true,
     names: true,
     title: "Command Listing"
   });
   setTimeout(function() {
-    var node = DomUtils.UI.root && DomUtils.UI.root.getElementById("HelpDialog");
+    var node = VDom.UI.root && VDom.UI.root.getElementById("HelpDialog");
     if (!node) { return; }
     node.onclick = function(event) {
       var target = event.target, str;
       if (target.classList.contains("HelpCommandName")) {
         str = target.innerText.slice(1, -1);
-        MainPort.port.postMessage({
+        VPort.port.postMessage({
           handler: "copyToClipboard",
           data: str
         });

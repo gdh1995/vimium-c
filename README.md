@@ -50,6 +50,8 @@ Not yet released:
 * lots of bug fixes
 * add a branch `basic-on-edge` to make Vimium++ work on Microsoft Edge,
     although many commands become broken after the migration
+* rename front-end global variables to `V***`,
+  in order to avoid potential name collisions when injected into other hosts
 
 1.53.1:
 
