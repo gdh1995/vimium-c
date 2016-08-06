@@ -723,18 +723,16 @@ var VSettings, VHUD, VPort, VEventMode;
     }
     return false;
   },
-  findAndFollowRel: function(value) {
-    var element, elements, relTags, tag, _i, _j, _len, _len1;
-    relTags = ["link", "a", "area"];
-    for (_i = 0, _len = relTags.length; _i < _len; _i++) {
-      tag = relTags[_i];
-      elements = document.getElementsByTagName(tag);
-      for (_j = 0, _len1 = elements.length; _j < _len1; _j++) {
-        element = elements[_j];
-        if (element.hasAttribute("rel") && element.rel.toLowerCase() === value) {
-          this.followLink(element);
-          return true;
-        }
+  findAndFollowRel: function(relName) {
+    var element, elements, relTags, _i, _len, s;
+    elements = document.querySelectorAll("[rel]");
+    relTags = Object.setPrototypeOf({a: 1, area: 1, link: 1}, null);
+    for (_i = 0, _len = elements.length; _i < _len; _i++) {
+      element = elements[_i];
+      if ((element.tagName.toLowerCase() in relTags)
+          && (s = element.rel) && s.toLowerCase() === relName) {
+        this.followLink(element);
+        return true;
       }
     }
     return false;
