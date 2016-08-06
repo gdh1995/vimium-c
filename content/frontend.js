@@ -508,12 +508,12 @@ var VSettings, VHUD, MainPort, VEventMode;
   };
 
   checkValidKey = function(event, key) {
-    var left = event.altKey ? "<a-" : "<";
+    var left = event.metaKey ? "<m-" : "<";
     if (event.ctrlKey) {
-      key = left + (event.metaKey ? "c-m-" : "c-") + key + ">";
-    } else if (event.metaKey) {
-      key = left + "m-" + key + ">";
-    } else if (event.altKey || key.length > 1) {
+      key = left + (event.altKey ? "c-a-" : "c-") + key + ">";
+    } else if (event.altKey) {
+      key = left + "a-" + key + ">";
+    } else if (event.metaKey || key.length > 1) {
       key = left + key + ">";
     }
     if (currentSeconds) {

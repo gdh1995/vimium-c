@@ -4,8 +4,13 @@ window.checker = $('keyMappings').model.checker = {
   normalizeKeys: null,
   init: function() {
     var keyLeftRe = /<((?:[acmACM]-){0,3})(.[^>]*)>/g, upRe = /[A-Z]/,
+    sortModifiers = function(option) {
+      return option.length < 4 ? option : option.length > 4 ? "m-c-a-"
+        : option === "a-c-" ? "c-a-" : option === "a-m-" ? "m-a-"
+        : "m-c-";
+    },
     func = function(_0, option, key) {
-      return (option ? ("<" + option.toLowerCase()) : "<")
+      return (option ? ("<" + sortModifiers(option.toLowerCase())) : "<")
         + (upRe.test(key) ? key.toUpperCase() : key)
         + ">";
     };
