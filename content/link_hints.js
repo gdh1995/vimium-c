@@ -252,7 +252,7 @@ var LinkHints = {
     }
   },
   GetEditable: function(element) {
-    var arr, s;
+    var arr;
     switch (element.tagName.toLowerCase()) {
     case "input":
       if (element.type === "hidden" || element.type in DomUtils.uneditableInputs) {
@@ -312,11 +312,11 @@ var LinkHints = {
     }
   },
   traverse: function(filters) {
-    var output = [], key, func, box;
+    var output = [], key, func, box, wantClickable = filters["*"] === this.GetClickable;
     Object.setPrototypeOf(filters, null);
     DomUtils.prepareCrop();
     box = document.webkitFullscreenElement || document;
-    if (this.ngEnabled === null && "*" in filters) {
+    if (this.ngEnabled === null && wantClickable) {
       this.ngEnabled = document.querySelector('.ng-scope') != null;
     }
     for (key in filters) {
@@ -330,11 +330,9 @@ var LinkHints = {
         output.forEach.call(DomUtils.UI.root.querySelectorAll(key), func);
       }
     }
-    if ("*" in filters) {
-      this.deduplicate(output);
-    }
+    if (wantClickable) { this.deduplicate(output); }
     if (this.frameNested !== false) {}
-    else if (filters["*"] === this.GetClickable) {
+    else if (wantClickable) {
       this.checkNestedFrame(output);
     } else if (output.length > 0) {
       this.frameNested = null;
