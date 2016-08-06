@@ -8,7 +8,7 @@ window.checker = $('keyMappings').model.checker = {
     sortModifiers = function(option) {
       return option.length < 4 ? option : option.length > 4 ? "m-c-a-"
         : option === "a-c-" ? "c-a-" : option === "a-m-" ? "m-a-"
-        : "m-c-";
+        : option === "c-m-" ? "m-c-" : option;
     },
     func = function(_0, option, key) {
       return (option ? ("<" + sortModifiers(option.toLowerCase())) : "<")
