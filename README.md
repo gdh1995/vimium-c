@@ -38,6 +38,8 @@ Release Notes
 -------------
 
 Not yet released:
+* **WARNING**: change modifier keys' order into `m-c-a-` (breaking)
+* add `LinkHints.activateModeToEdit` to select an editable area with hints
 * use `event.key` if it exists, to disable warning on Chrome 52
 * Chrome 52 doesn't allow Vimium to create an incognito window
     using a normal tab,
