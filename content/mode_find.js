@@ -186,7 +186,7 @@ body{cursor:text;display:inline-block;padding:0 3px 0 1px;min-width:7px;}body *{
     activate: function() {
       var el = VEventMode.lock(), Exit = this.exit;
       if (!el || el === Vomnibar.input) { Exit(); return; }
-      handlerStack.push(this.onKeydown, this);
+      VHandler.push(this.onKeydown, this);
       if (el === this.lock) { return; }
       if (!this.lock) {
         addEventListener("click", Exit, true);
@@ -198,7 +198,7 @@ body{cursor:text;display:inline-block;padding:0 3px 0 1px;min-width:7px;}body *{
     },
     onKeydown: function(event) {
       var exit = event.keyCode === KeyCodes.esc && KeyboardUtils.isPlain(event);
-      exit ? this.exit() : handlerStack.remove(this);
+      exit ? this.exit() : VHandler.remove(this);
       return 2 * exit;
     },
     exit: function(skip) {
@@ -206,7 +206,7 @@ body{cursor:text;display:inline-block;padding:0 3px 0 1px;min-width:7px;}body *{
       if (!this.lock || skip === true) { return; }
       this.lock = null;
       removeEventListener("click", this.exit, true);
-      handlerStack.remove(this);
+      VHandler.remove(this);
       VEventMode.exitSuppress();
     }
   },

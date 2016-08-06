@@ -46,7 +46,7 @@ var LinkHints = {
       this.initTimer = this.initTimer || setTimeout(this.activate.bind(this, count, options), 300);
       return;
     }
-    handlerStack.remove(this);
+    VHandler.remove(this);
     if (this.box) {
       this.box.remove();
     }
@@ -87,7 +87,7 @@ var LinkHints = {
 
     this.isActive = true;
     this.keyStatus.tab = 0;
-    handlerStack.push(this.onKeydown, this);
+    VHandler.push(this.onKeydown, this);
     VEventMode.onWndBlur(this.ResetMode);
   },
   setModeOpt: function(options, count) {
@@ -583,7 +583,7 @@ var LinkHints = {
     skipClean === true || this.clean();
     this.alphabetHints.hintKeystroke = "";
     this.clean2();
-    handlerStack.remove(this);
+    VHandler.remove(this);
     VEventMode.onWndBlur(null);
     this.isActive = false;
     suppressType != null && DomUtils.UI.suppressTail(suppressType);

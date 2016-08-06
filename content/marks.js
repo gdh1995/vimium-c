@@ -4,7 +4,7 @@ var Marks = {
   activate: function(_0, options) {
     var isGo = options.mode !== "create";
     this.onKeypress = isGo ? this._goto : this._create;
-    handlerStack.push(this.onKeydown, this);
+    VHandler.push(this.onKeydown, this);
     VHUD.show((isGo ? "Go" : "Create") + " mark ...");
   },
   clearLocal: function() {
@@ -29,7 +29,7 @@ var Marks = {
         || !(keyChar = KeyboardUtils.getKeyChar(event))) {
       return 1;
     }
-    handlerStack.remove(this);
+    VHandler.remove(this);
     VHUD.hide();
     keyCode > 32 && this.onKeypress(event, keyChar);
     return 2;

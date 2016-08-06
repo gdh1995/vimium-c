@@ -124,7 +124,7 @@ var VSettings, VHUD, MainPort, VEventMode;
         Scroller.keyIsDown = 0;
       }
       var keyChar, key = event.keyCode, action = 0;
-      if (action = handlerStack.bubbleEvent(event)) {
+      if (action = VHandler.bubbleEvent(event)) {
         if (action < 0) { return; }
         if (action === 2) { event.preventDefault(); }
         event.stopImmediatePropagation();
@@ -328,7 +328,7 @@ var VSettings, VHUD, MainPort, VEventMode;
     },
     passNextKey: function(count) {
       var keys = Object.create(null), keyCount = 0;
-      handlerStack.push(function(event) {
+      VHandler.push(function(event) {
         keyCount += !keys[event.keyCode];
         keys[event.keyCode] = 1;
         return -1;
@@ -343,7 +343,7 @@ var VSettings, VHUD, MainPort, VEventMode;
       };
       ELs.OnWndBlur = function() {
         onKeyup2 = null;
-        handlerStack.remove(keys);
+        VHandler.remove(keys);
         ELs.OnWndBlur = null;
         HUD.hide();
       };
@@ -483,7 +483,7 @@ var VSettings, VHUD, MainPort, VEventMode;
         id: "IMC",
         className: "R"
       });
-      handlerStack.push(function(event) {
+      VHandler.push(function(event) {
         if (event.keyCode === KeyCodes.tab) {
           hints[selectedInputIndex].classList.remove("S");
           if (event.shiftKey) {
@@ -499,7 +499,7 @@ var VSettings, VHUD, MainPort, VEventMode;
           return KeyboardUtils.isPlain(event) ? 0 : 2;
         } else if (!event.repeat && event.keyCode !== KeyCodes.shiftKey) {
           this.remove();
-          handlerStack.remove(this);
+          VHandler.remove(this);
           return 0;
         }
         return 2;
@@ -558,14 +558,14 @@ var VSettings, VHUD, MainPort, VEventMode;
     },
     setupGrab: function() {
       this.focus = this.grabBackFocus;
-      handlerStack.push(this.ExitGrab, this);
+      VHandler.push(this.ExitGrab, this);
       addEventListener("mousedown", this.ExitGrab, true);
     },
     ExitGrab: function() {
       var _this = InsertMode;
       _this.focus = _this.lockFocus;
       removeEventListener("mousedown", _this.ExitGrab, true);
-      handlerStack.remove(_this);
+      VHandler.remove(_this);
       return 0;
     },
     grabBackFocus: function(event) {
@@ -983,7 +983,7 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
       event && event.preventDefault && event.preventDefault();
       box.contains(DomUtils.lastHovered) && (DomUtils.lastHovered = null);
       box.contains(Scroller.current) && (Scroller.current = null);
-      handlerStack.remove(box);
+      VHandler.remove(box);
       box.remove();
       Commands.showHelp = oldShowHelp;
     };
@@ -1020,7 +1020,7 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
     DomUtils.UI.addElement(box);
     window.focus();
     Scroller.current = box;
-    handlerStack.push(function(event) {
+    VHandler.push(function(event) {
       if (event.keyCode === KeyCodes.esc && !InsertMode.lock
           && KeyboardUtils.isPlain(event)) {
         DomUtils.UI.removeSelection() || hide();
@@ -1061,7 +1061,7 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
     (el = DomUtils.UI.box) && el.remove();
     (f = settings.onDestroy) && f();
 
-    Utils = KeyCodes = KeyboardUtils = DomUtils = VRect = handlerStack = //
+    Utils = KeyCodes = KeyboardUtils = DomUtils = VRect = VHandler = //
     LinkHints = Vomnibar = Scroller = Marks = VFindMode = //
     VSettings = VHUD = MainPort = VEventMode = null;
 

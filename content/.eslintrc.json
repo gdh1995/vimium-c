@@ -19,6 +19,6 @@
         "VSettings": false,
         "VimiumInjector": false,
         "Vomnibar": false,
-        "handlerStack": false
+        "VHandler": false
     }
 }

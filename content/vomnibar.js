@@ -14,8 +14,8 @@ activate: function(_0, options, forceCurrent) {
   Object.setPrototypeOf(options = options || {}, null);
   this.mode.type = options.mode || "omni";
   this.forceNewTab = options.force ? true : false;
-  handlerStack.remove(this);
-  handlerStack.push(DomUtils.UI.SuppressMost, this);
+  VHandler.remove(this);
+  VHandler.push(DomUtils.UI.SuppressMost, this);
   url = options.url;
   keyword = options.keyword;
   if (url == null) {
@@ -83,8 +83,8 @@ activate: function(_0, options, forceCurrent) {
     this.input.value = this.inputText;
     DomUtils.UI.addElement(this.box);
     DomUtils.UI.focus(this.input);
-    handlerStack.remove(this);
-    handlerStack.push(this.onKeydown, this);
+    VHandler.remove(this);
+    VHandler.push(this.onKeydown, this);
     this.box.onmousewheel = this.onWheel;
   },
   hide: function() {
@@ -96,7 +96,7 @@ activate: function(_0, options, forceCurrent) {
     this.box.onmousewheel = null;
     this.list.textContent = "";
     this.input.value = "";
-    handlerStack.remove(this);
+    VHandler.remove(this);
     this.onUpdate = null;
     this.mode.query = this.inputText = "";
     this.completions = [];

@@ -138,7 +138,7 @@ DomUtils.UI = {
     if (onlyRepeated) {
       func = function(event) {
         if (event.repeat) { return 2; }
-        handlerStack.remove(this);
+        VHandler.remove(this);
         return 0;
       };
     } else {
@@ -147,16 +147,16 @@ DomUtils.UI = {
       timer = setInterval(function() {
         if (Date.now() - tick > 150) {
           clearInterval(timer);
-          handlerStack && handlerStack.remove(func);
+          VHandler && VHandler.remove(func);
         }
       }, 75);
     }
-    handlerStack.push(func, func);
+    VHandler.push(func, func);
   },
   SuppressMost: function(event) {
     var key = event.keyCode;
     if (key == KeyCodes.esc && KeyboardUtils.isPlain(event)) {
-      handlerStack.remove(this);
+      VHandler.remove(this);
     }
     return key > KeyCodes.f1 + 9 && key <= KeyCodes.f12 ? 1 : 2;
   }
