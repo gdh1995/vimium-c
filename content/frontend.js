@@ -659,12 +659,14 @@ var VSettings, VHUD, VPort, VEventMode;
     if (relName && typeof relName === "string" && this.findAndFollowRel(relName)) {
       return true;
     }
-    pattern = typeof pattern === "string" && (pattern = pattern.trim())
+    var arr = typeof pattern === "string" && (pattern = pattern.trim())
       ? pattern.toLowerCase().split(/\s*,\s*/).filter(function(s) { return s.length; })
       : (pattern instanceof Array) ? pattern : [];
-    if (pattern.length > 0) {
-      this.findAndFollowLink(pattern);
+    if (arr.length > 0 && this.findAndFollowLink(arr)) {
+      return true;
     }
+    VHUD.showForDuration('No links to go ' + (relName === "next" ? "next" : "previous"), 1500);
+    return false;
   },
   GetLinks: function(element) {
     var isClickable, s, rect;
