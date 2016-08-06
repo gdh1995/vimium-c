@@ -106,7 +106,7 @@ commandGroups: {
     , "goPrevious", "goNext", "nextFrame", "mainFrame"
     , "enterInsertMode"
     , "Marks.activateCreateMode", "Marks.activate"
-    , "Marks.clearLocal", "clearGlobalMarks", "openUrl", "focusOrLaunch"
+    , "Marks.clearLocal", "Marks.clearGlobal", "openUrl", "focusOrLaunch"
     ],
   vomnibarCommands: ["Vomnibar.activate", "Vomnibar.activateInNewTab"
     , "Vomnibar.activateBookmarks", "Vomnibar.activateBookmarksInNewTab", "Vomnibar.activateHistory"
@@ -327,7 +327,8 @@ availableCommands: {
   "Marks.activateCreateMode": [ "Create a new mark", 1, false, { mode: "create" }, "Marks.activate" ],
   "Marks.activate": [ "Go to a mark", 1, false ],
   "Marks.clearLocal": [ "Remove all local marks for this site", 1, false ],
-  clearGlobalMarks: [ "Remove all global marks", 1, true ],
+  "Marks.clearGlobal": [ "Remove all global marks", 1, true, null, "clearGlobalMarks" ],
+  clearGlobalMarks: [ "Remove all global marks (deprecated)", 1, true ],
   openUrl: [ "open url (use url, reuse=[-2..1])", 20, true ],
   focusOrLaunch: [ 'focus a tab with arg "url" or open it', 1, true, { reuse: 1 }, "openUrl" ]
 }

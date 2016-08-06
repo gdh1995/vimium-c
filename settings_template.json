@@ -100,7 +100,7 @@
 		"",
 		"map ` Marks.activate",
 		"map ~ Marks.activateCreateMode",
-		"map <a-~> clearGlobalMarks",
+		"map <a-~> Marks.clearGlobal",
 		"map <a-`> Marks.clearLocal",
 		"",
 		"map <f1> simBackspace",
