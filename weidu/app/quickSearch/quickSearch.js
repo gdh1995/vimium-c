@@ -1,6 +1,6 @@
 var quickSearch = {
 	searchSiteOptions: {
-		baidu: ["http://www.baidu.com/s", "wd", "ie=utf-8"],
+		baidu: ["https://www.baidu.com/s", "wd", "ie=utf-8"],
 		taobao: ["http://s8.taobao.com/search", "q", "ie=utf-8"],
 		google_cn: ["https://www.google.com.hk/search", "q", "ie=utf-8"],
 		bing: ["http://cn.bing.com/search", "q", "ie=utf-8"],
