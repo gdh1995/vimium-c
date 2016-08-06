@@ -2,6 +2,7 @@
 
 window.checker = $('keyMappings').model.checker = {
   normalizeKeys: null,
+  isKeyReInstalled: false,
   init: function() {
     var keyLeftRe = /<((?:[acmACM]-){0,3})(.[^>]*)>/g, upRe = /[A-Z]/,
     sortModifiers = function(option) {
@@ -17,7 +18,6 @@ window.checker = $('keyMappings').model.checker = {
     this.normalizeKeys = function(keys) { return keys.replace(keyLeftRe, func); };
     this.normalizeMap = this.normalizeMap.bind(this);
     this.normalizeOptions = this.normalizeOptions.bind(this);
-    BG.Commands.setKeyRe(KeyRe.source);
     this.init = null;
   },
   quoteRe: /"/g,
@@ -42,6 +42,10 @@ window.checker = $('keyMappings').model.checker = {
   wrapLineRe2: /\\\r/g,
   check: function(string) {
     if (!string) { return string; }
+    if (!this.isKeyReInstalled) {
+      BG.Commands.setKeyRe(KeyRe.source);
+      this.isKeyReInstalled = true;
+    }
     string = "\n" + string.replace(this.wrapLineRe, '\\\r');
     string = string.replace(this.mapKeyRe, this.normalizeMap);
     string = string.replace(this.wrapLineRe2, '\\\n').trim();
