@@ -111,30 +111,44 @@ $("exportButton").onclick = function(event) {
   nodeA.href = URL.createObjectURL(new Blob([exported_data]));
   nodeA.click();
   URL.revokeObjectURL(nodeA.href);
-  console.log("EXPORT settings to", file_name, "at", formatDate(d));
+  console.info("EXPORT settings to %c%s%c at %c%s%c."
+    , "color: darkred", file_name, "color: auto"
+    , "color: darkblue", formatDate(d), "color: auto");
 };
 
-var importSettings = function(time, new_data) {
-  time = +(new_data && new_data.time || time) || 0;
+var importSettings = function(time, new_data, is_recommended) {
+  time = +new Date(new_data && new_data.time || time) || 0;
   if (!new_data || new_data.name !== "Vimium++" || (time < 10000 && time > 0)) {
     window.VHUD && VHUD.showForDuration("No settings data found!", 2000);
     return;
   } else if (!confirm(
-    "You are loading a settings copy exported" + (time ? " at:\n        "
-    + formatDate(time) : " before.")
+    (is_recommended !== true ? "You are loading a settings copy exported"
+      + (time ? " at:\n        " + formatDate(time) : " before.")
+      : "You are loading the recommended settings.")
     + "\n\nAre you sure you want to continue?"
   )) {
     window.VHUD && VHUD.showForDuration("You cancelled importing.", 1000);
     return;
   }
 
-  var storage = localStorage, i, key, new_value, func, all = bgSettings.defaults
+  var storage = localStorage, i, key, new_value, logUpdate, all = bgSettings.defaults
     , _ref = Option.all, _key, item;
-  func = function(val) {
-    return typeof val !== "string" || val.length <= 72 ? val
+  logUpdate = function(method, key, val) {
+    var args = [].slice.call(arguments, 2);
+    val = args.pop();
+    val = typeof val !== "string" || val.length <= 72 ? val
       : val.substring(0, 68).trimRight() + " ...";
+    args.push(val);
+    args = ["%s %c%s%c", method, "color: darkred", key, "color: auto"].concat(args);
+    console.log.apply(console, args);
   };
-  console.log("IMPORT settings at", formatDate(new Date(time)));
+  if (time > 10000) {
+    console.info("IMPORT settings saved at %c%s%c"
+      , "color: darkblue", formatDate(new Date(time)), "color: auto");
+  } else {
+    console.info("IMPORT settings:", is_recommended ? "recommended" : "saved before");
+  }
+
   Object.setPrototypeOf(new_data, null);
   delete new_data.name;
   delete new_data.time;
@@ -160,7 +174,7 @@ var importSettings = function(time, new_data) {
       new_value = new_value.join("\n").trim();
     }
     if (!item.areEqual(bgSettings.get(key), new_value)) {
-      console.log("import", key, func(new_value));
+      logUpdate("import", key, new_value);
       bgSettings.set(key, new_value);
       if (key in bgSettings.bufferToLoad) {
         Option.syncToFrontend.push(key);
@@ -177,7 +191,7 @@ var importSettings = function(time, new_data) {
         new_value = all[key];
         if (bgSettings.get(key) !== new_value) {
           bgSettings.set(key, new_value);
-          console.log("reset", key, func(new_value));
+          logUpdate("reset", key, new_value);
           continue;
         }
         new_value = bgSettings.get(key);
@@ -185,7 +199,7 @@ var importSettings = function(time, new_data) {
         new_value = storage.getItem(key);
       }
       storage.removeItem(key);
-      console.log("remove", key, ":=", func(new_value));
+      logUpdate("remove", key, ":=", new_value);
       continue;
     }
     if (new_value.join && typeof all[key] === "string") {
@@ -194,16 +208,16 @@ var importSettings = function(time, new_data) {
     if (key in all) {
       if (bgSettings.get(key) !== new_value) {
         bgSettings.set(key, new_value);
-        console.log("update", key, func(new_value));
+        logUpdate("update", key, new_value);
       }
     } else {
       storage.setItem(key, new_value);
-      console.log("save", key, func(new_value));
+      logUpdate("save", key, new_value);
     }
   }
   $("saveOptions").onclick(false);
   window.VHUD && VHUD.showForDuration("Import settings data: OK!", 1000);
-  console.log("IMPORT settings: finished");
+  console.info("IMPORT settings: finished.");
 };
 
 var _el = $("settingsFile");
@@ -219,7 +233,7 @@ _el.onchange = function() {
     try {
       data = result && JSON.parse(result);
     } catch (e) {}
-    setTimeout(importSettings, 17, lastModified, data);
+    setTimeout(importSettings, 17, lastModified, data, false);
   };
   reader.readAsText(file);
 };
@@ -235,7 +249,7 @@ _el.onchange = function() {
   req.open("GET", "../settings_template.json", true);
   req.responseType = "json";
   req.onload = function() {
-    setTimeout(importSettings, 17, 0, this.response);
+    setTimeout(importSettings, 17, 0, this.response, true);
   };
   req.send();
 };
