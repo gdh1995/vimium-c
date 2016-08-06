@@ -3,13 +3,9 @@
 var VSettings, VHUD, VPort, VEventMode;
 (function() {
   var Commands, ELs, HUD, KeydownEvents, checkValidKey, currentSeconds //
-    , esc, firstKeys //
-    , followLink, FrameMask //
-    , InsertMode //
-    , Pagination //
-    , isEnabledForUrl, isInjected, mainPort //
-    , onKeyup2, parsePassKeys, passKeys, requestHandlers //
-    , secondKeys, settings //
+    , esc, firstKeys, FrameMask, InsertMode, Pagination //
+    , isEnabledForUrl, isInjected, mainPort, onKeyup2 //
+    , parsePassKeys, passKeys, requestHandlers, secondKeys, settings //
     ;
 
   isInjected = window.VimiumInjector ? true : null;
@@ -649,7 +645,8 @@ var VSettings, VHUD, VPort, VEventMode;
     }
   };
 
-  followLink = function(linkElement) {
+  Pagination = {
+  followLink: function(linkElement) {
     if (linkElement instanceof HTMLLinkElement) {
       window.location.href = linkElement.href;
       return;
@@ -657,9 +654,7 @@ var VSettings, VHUD, VPort, VEventMode;
     linkElement.scrollIntoViewIfNeeded();
     VDom.UI.flashVRect(VDom.UI.getVRect(linkElement));
     VDom.simulateClick(linkElement);
-  };
-
-  Pagination = {
+  },
   goBy: function(relName, pattern) {
     if (relName && typeof relName === "string" && this.findAndFollowRel(relName)) {
       return true;
@@ -721,7 +716,7 @@ var VSettings, VHUD, VPort, VEventMode;
       for (_j = 0, _len1 = candidateLinks.length; _j < _len1; _j++) {
         link = candidateLinks[_j];
         if (exactWordRe.test(link.innerText || link.title)) {
-          followLink(link);
+          this.followLink(link);
           return true;
         }
       }
@@ -737,7 +732,7 @@ var VSettings, VHUD, VPort, VEventMode;
       for (_j = 0, _len1 = elements.length; _j < _len1; _j++) {
         element = elements[_j];
         if (element.hasAttribute("rel") && element.rel.toLowerCase() === value) {
-          followLink(element);
+          this.followLink(element);
           return true;
         }
       }
