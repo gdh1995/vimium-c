@@ -5,8 +5,8 @@ var VSettings, VHUD, MainPort, VEventMode;
   var Commands, ELs, HUD, KeydownEvents, checkValidKey, currentSeconds //
     , esc, firstKeys //
     , followLink, FrameMask //
-    , goBy //
     , InsertMode //
+    , Pagination //
     , isEnabledForUrl, isInjected, mainPort //
     , onKeyup2, parsePassKeys, passKeys, requestHandlers //
     , secondKeys, settings //
@@ -351,7 +351,7 @@ var VSettings, VHUD, MainPort, VEventMode;
     },
     goNext: function(_0, options) {
       var dir = options.dir;
-      goBy(dir || "next", settings.cache[dir === "prev" ? "previousPatterns" : "nextPatterns"]);
+      Pagination.goBy(dir || "next", settings.cache[dir === "prev" ? "previousPatterns" : "nextPatterns"]);
     },
     reload: function() {
       setTimeout(function() { window.location.reload(); }, 17);
@@ -659,19 +659,19 @@ var VSettings, VHUD, MainPort, VEventMode;
     DomUtils.simulateClick(linkElement);
   };
 
-  goBy = function(relName, pattern) {
-    if (relName && typeof relName === "string" && goBy.findAndFollowRel(relName)) {
+  Pagination = {
+  goBy: function(relName, pattern) {
+    if (relName && typeof relName === "string" && this.findAndFollowRel(relName)) {
       return true;
     }
     pattern = typeof pattern === "string" && (pattern = pattern.trim())
       ? pattern.toLowerCase().split(/\s*,\s*/).filter(function(s) { return s.length; })
       : (pattern instanceof Array) ? pattern : [];
     if (pattern.length > 0) {
-      goBy.findAndFollowLink(pattern);
+      this.findAndFollowLink(pattern);
     }
-  };
-
-  goBy.findAndFollowLink = function(linkStrings) {
+  },
+  findAndFollowLink: function(linkStrings) {
     var boundingClientRect, candidateLinks, exactWordRe, link, linkString, links, linksXPath, _i, _j, _len, _len1;
     linksXPath = './/a | .//xhtml:a | .//*[@onclick or @role="link"] | .//xhtml:*[@onclick or @role="link"]';
     links = DomUtils.evaluateXPath(linksXPath, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE);
@@ -721,9 +721,8 @@ var VSettings, VHUD, MainPort, VEventMode;
       }
     }
     return false;
-  };
-
-  goBy.findAndFollowRel = function(value) {
+  },
+  findAndFollowRel: function(value) {
     var element, elements, relTags, tag, _i, _j, _len, _len1;
     relTags = ["link", "a", "area"];
     for (_i = 0, _len = relTags.length; _i < _len; _i++) {
@@ -738,6 +737,7 @@ var VSettings, VHUD, MainPort, VEventMode;
       }
     }
     return false;
+  }
   };
 
   FrameMask = {
