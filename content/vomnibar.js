@@ -430,7 +430,7 @@ activate: function(_0, options, forceCurrent) {
     if (Vomnibar.isActive) {
       Vomnibar.onCompletions(response.list);
     } else if (Vomnibar.initDom) {
-      Vomnibar.completions = completions;
+      Vomnibar.completions = response.list;
     }
   },
   onCompletions: function(completions) {
