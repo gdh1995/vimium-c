@@ -897,7 +897,7 @@ searchEngines: {
       var i = Date.now();
       if (this.toRefreshCount <= 0) {}
       else if (this.lastRefresh + 1000 > i) { return; }
-      else chrome.history.search({
+      else setTimeout(chrome.history.search, 50, {
         text: "",
         maxResults: Math.min(2000, this.updateCount + 10),
         startTime: this.lastRefresh
