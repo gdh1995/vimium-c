@@ -493,7 +493,8 @@ var VSettings, VHUD, VPort, VEventMode;
           VDom.UI.simulateSelect(hints[selectedInputIndex].clickableItem);
         } else if (event.keyCode === VKeyCodes.f12) {
           return VKeyboard.isPlain(event) ? 0 : 2;
-        } else if (!event.repeat && event.keyCode !== VKeyCodes.shiftKey) {
+        } else if (!event.repeat && event.keyCode !== VKeyCodes.shiftKey
+            && event.keyCode !== VKeyCodes.altKey) {
           this.remove();
           VHandler.remove(this);
           return 0;
