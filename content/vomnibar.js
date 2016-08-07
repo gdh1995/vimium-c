@@ -87,11 +87,15 @@ activate: function(_0, options, forceCurrent) {
     VHandler.remove(this);
     VHandler.push(this.onKeydown, this);
     this.box.onmousewheel = this.onWheel;
+    setTimeout(function() {
+      Vomnibar.input.onselect = Vomnibar.OnSelect;
+    }, 50);
   },
   hide: function() {
     this.isHttps = false;
     clearTimeout(this.timer);
     this.timer = 0;
+    this.input.onselect = null;
     this.box.style.display = "none";
     this.box.style.width = "";
     this.box.onmousewheel = null;
@@ -482,7 +486,6 @@ activate: function(_0, options, forceCurrent) {
       VDom.UI.addElement(this.box);
     }
     this.input.oninput = this.onInput.bind(this);
-    this.input.onselect = this.OnSelect;
     this.input.onfocus = this.input.onblur = VEventMode.on("UI");
     this.box.querySelector("#OClose").onclick = function() { Vomnibar.hide(); };
     this.list.oncontextmenu = this.OnMenu;
