@@ -471,7 +471,7 @@ activate: function(_0, options, forceCurrent) {
     this.list = this.box.querySelector("#OList");
     str = this.box.querySelector("#OITemplate").outerHTML;
     str = str.substring(str.indexOf('>') + 1, str.lastIndexOf('<'));
-    this.renderItems = VUtils.makeListRenderBySplit(str);
+    this.renderItems = VUtils.makeListRender(str);
     this.initDom = null;
     if (this.autoSelect !== null) {
       this.onCompletions(this.completions);
