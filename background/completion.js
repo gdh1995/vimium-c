@@ -861,6 +861,7 @@ searchEngines: {
     },
     OnPageVisited: function(newPage) {
       var _this = HistoryCache, i = _this.binarySearch(newPage.url, _this.history), j;
+      if (i < 0) { _this.toRefreshCount++; }
       if (_this.updateCount++ > 99) { _this.refreshInfo(); }
       if (i >= 0) {
         j = _this.history[i];
@@ -875,8 +876,7 @@ searchEngines: {
         url: newPage.url
       };
       j.text = Decoder.decodeURL(newPage.url, j);
-      _this.history.splice(-1 - i, 0, j); 
-      _this.toRefreshCount++;
+      _this.history.splice(-1 - i, 0, j);
       Decoder.continueToWork();
     },
     OnVisitRemoved: function(toRemove) {
