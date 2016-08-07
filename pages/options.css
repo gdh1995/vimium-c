@@ -52,20 +52,21 @@ button.left {
   border-bottom-right-radius: 0;
   border-top-right-radius: 0;
   margin-right: 0;
+  position: relative;
+  z-index: 1;
 }
 select.right {
   -webkit-padding-start: 0;
   -webkit-padding-end: 17px;
   background-color: #eee;
   border-bottom-left-radius: 0;
-  border-left-style: none;
   border-top-left-radius: 0;
-  margin-left: -4px;
+  margin-left: -5px;
+  position: relative;
   width: 0;
 }
 select.right:focus {
-  border-left-style: solid;
-  margin-left: -5px;
+  z-index: 1;
 }
 
 pre, code, .code {
