@@ -112,7 +112,7 @@ VDom.UI = {
   getVRect: function(clickEl) {
     var rect, bcr;
     VDom.prepareCrop();
-    if (clickEl.classList.contains("OIUrl") && Vomnibar.isActive
+    if (clickEl.classList.contains("OIUrl") && Vomnibar.completions
         && Vomnibar.box.contains(clickEl)) {
       rect = Vomnibar.computeHint(clickEl.parentElement.parentElement, clickEl);
     } else {

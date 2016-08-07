@@ -57,14 +57,14 @@ activate: function(_0, options, forceCurrent) {
     }
   },
 
-  isActive: false,
   box: null,
   inputText: "",
-  completions: [],
+  completions: null,
   isHttps: false,
   isSearchOnTop: false,
   notOnlySearch: true,
   actionType: false,
+  autoSelect: null,
   input: false,
   isSelectionOrigin: true,
   list: null,
@@ -88,7 +88,7 @@ activate: function(_0, options, forceCurrent) {
     this.box.onmousewheel = this.onWheel;
   },
   hide: function() {
-    this.isActive = this.isHttps = false;
+    this.isHttps = false;
     clearTimeout(this.timer);
     this.timer = 0;
     this.box.style.display = "none";
@@ -99,13 +99,13 @@ activate: function(_0, options, forceCurrent) {
     VHandler.remove(this);
     this.onUpdate = null;
     this.mode.query = this.inputText = "";
-    this.completions = [];
+    this.completions = null;
   },
   reset: function(input, start, end) {
     input || (input = "");
     this.inputText = input;
     this.mode.query = input.trimRight();
-    this.isActive = true;
+    this.completions = [];
     this.update(0, input && start <= end ? function() {
       this.show();
       this.input.setSelectionRange(start, end);
@@ -427,10 +427,10 @@ activate: function(_0, options, forceCurrent) {
   },
   OnOmni: function(response) {
     Vomnibar.autoSelect = response.autoSelect;
-    if (Vomnibar.isActive) {
-      Vomnibar.onCompletions(response.list);
-    } else if (Vomnibar.initDom) {
+    if (Vomnibar.initDom) {
       Vomnibar.completions = response.list;
+    } else if (Vomnibar.completions) {
+      Vomnibar.onCompletions(response.list);
     }
   },
   onCompletions: function(completions) {
@@ -474,7 +474,7 @@ activate: function(_0, options, forceCurrent) {
     str = str.substring(str.indexOf('>') + 1, str.lastIndexOf('<'));
     this.renderItems = VUtils.makeListRenderBySplit(str);
     this.initDom = null;
-    if (this.completions) {
+    if (this.autoSelect !== null) {
       this.onCompletions(this.completions);
     } else {
       // setup DOM node on initing, so that we do less when showing
