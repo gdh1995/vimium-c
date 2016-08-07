@@ -97,9 +97,8 @@ activate: function(_0, options, forceCurrent) {
     this.list.textContent = "";
     this.input.value = "";
     VHandler.remove(this);
-    this.onUpdate = null;
+    this.completions = this.onUpdate = null;
     this.mode.query = this.inputText = "";
-    this.completions = null;
   },
   reset: function(input, start, end) {
     input || (input = "");
