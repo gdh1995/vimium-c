@@ -15,7 +15,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
 
   needIcon = tinyMemory = false;
 
-HelpDialog = {
+  HelpDialog = {
   render: function(showUnbound, showNames, customTitle) {
     var command, commandsToKey, key, ref = Commands.keyToCommandRegistry;
     commandsToKey = {};
@@ -73,7 +73,7 @@ HelpDialog = {
     }
     html.push("</td>\n</tr>\n");
   }
-};
+  };
 
   openMultiTab = function(rawUrl, count, parentTab) {
     if (!(count >= 1)) return;

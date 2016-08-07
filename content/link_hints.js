@@ -906,7 +906,7 @@ DOWNLOAD_LINK: {
   }
 },
 FOCUS_EDITABLE: {
-  258: "select an editable area",
+  258: "Select an editable area",
   activator: function(link) {
     VDom.UI.simulateSelect(link, true);
     return false;

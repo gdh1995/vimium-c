@@ -401,7 +401,7 @@ var VSettings, VHUD, VPort, VEventMode;
     showHelp: function(_0, _1, forceCurrent) {
       forceCurrent |= 0;
       if (forceCurrent < 2 &&
-        mainPort.sendCommandToContainer("showHelp", [1, _1, forceCurrent])) {
+          mainPort.sendCommandToContainer("showHelp", [1, _1, forceCurrent])) {
         return;
       }
       if (!document.body) { return false; }
