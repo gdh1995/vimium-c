@@ -70,12 +70,13 @@ activate: function(_0, options, forceCurrent) {
   list: null,
   onUpdate: null,
   refreshInterval: 500,
+  width: 0,
   renderItems: null,
   selection: -1,
   timer: 0,
   wheelTimer: 0,
   show: function() {
-    var width = document.documentElement.clientWidth * 0.8;
+    var width = this.width;
     if (width !== (width | 0)) {
       this.box.style.width = (width | 0) / (width / 0.8) * 100 + "%";
     }
@@ -105,6 +106,7 @@ activate: function(_0, options, forceCurrent) {
     this.inputText = input;
     this.mode.query = input.trimRight();
     this.completions = [];
+    this.width = document.documentElement.clientWidth * 0.8;
     this.update(0, input && start <= end ? function() {
       this.show();
       this.input.setSelectionRange(start, end);
