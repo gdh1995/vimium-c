@@ -443,7 +443,6 @@ activate: function(_0, options, forceCurrent) {
       this.onUpdate();
       this.onUpdate = null;
     }
-    this.CleanCompletions(this.completions);
   },
   init: function() {
     var box, opts, arr;
@@ -530,15 +529,6 @@ activate: function(_0, options, forceCurrent) {
       ' OIIcon" style="background-image: url(&quot;chrome://favicon/size/16/' + str + "&quot;)" : "";
     item.relevancy = this.showRelevancy ? '\n\t\t\t<span class="OIRelevancy">'
       + item.relevancy + "</span>" : "";
-  },
-  CleanCompletions: function(list) {
-    for (var _i = list.length, item; 0 <= --_i; ) {
-      item = list[_i];
-      delete item.textSplit;
-      delete item.titleSplit;
-      delete item.favIconUrl;
-      delete item.relevancy;
-    }
   },
   navigateToUrl: function(item) {
     if (VUtils.evalIfOK(item.url)) { return; }
