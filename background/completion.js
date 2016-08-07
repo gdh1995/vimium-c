@@ -877,7 +877,6 @@ searchEngines: {
       };
       j.text = Decoder.decodeURL(newPage.url, j);
       _this.history.splice(-1 - i, 0, j);
-      Decoder.continueToWork();
     },
     OnVisitRemoved: function(toRemove) {
       var _this = HistoryCache;
@@ -904,6 +903,7 @@ searchEngines: {
       }, this.OnInfo);
       this.lastRefresh = i;
       this.toRefreshCount = this.updateCount = 0;
+      Decoder.continueToWork();
     },
     OnInfo: function(history) {
       var arr = HistoryCache.history, bs = HistoryCache.binarySearch, i, len, info, j, item;
