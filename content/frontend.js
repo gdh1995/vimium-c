@@ -477,7 +477,7 @@ var VSettings, VHUD, VPort, VEventMode;
       hints[selectedInputIndex].classList.add("S");
       box = VDom.UI.addElementList(hints, {
         id: "IMC",
-        className: "R"
+        className: "R LS"
       });
       VHandler.push(function(event) {
         if (event.keyCode === VKeyCodes.tab) {

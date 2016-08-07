@@ -79,7 +79,7 @@ var VHints = {
     this.setMode(this.mode);
     this.box = VDom.UI.addElementList(this.hintMarkers, {
       id: "HMC",
-      className: "R"
+      className: "R LS"
     });
     style = this.box.style;
     style.left = x + "px"; style.top = y + "px";

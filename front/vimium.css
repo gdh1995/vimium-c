@@ -89,8 +89,9 @@
 	border: 1px solid #b3b3b3;
 	border-radius: 4px 4px 0 0;
 	bottom: 0;
+	contain: content;
 	height: 14px;
-  line-height: 14px;
+	line-height: 14px;
 	max-width: 300px;
 	min-width: 150px;
 	padding: 2px 3px;
@@ -105,8 +106,13 @@
 /* Flash */
 .Flash {
 	box-shadow: 0 0 4px 2px #4183C4;
+	contain: strict;
 	padding: 1px;
 	pointer-events: none;
 	position: fixed;
 	z-index: 2147483647;
+}
+
+.LS {
+	contain: layout style;
 }

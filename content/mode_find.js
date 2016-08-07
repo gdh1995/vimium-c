@@ -54,7 +54,7 @@ body{cursor:text;display:inline-block;padding:0 3px 0 1px;min-width:7px;}body *{
 
     var el, wnd, doc;
     el = this.box = VDom.createElement("iframe");
-    el.className = "R HUD";
+    el.className = "R HUD LS";
     el.style.width = "0px";
     VHUD.box ? VDom.UI.root.insertBefore(el, VHUD.box) : VDom.UI.addElement(el);
     wnd = el.contentWindow;
