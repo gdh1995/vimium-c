@@ -349,8 +349,10 @@ var VSettings, VHUD, VPort, VEventMode;
       var dir = options.dir;
       Pagination.goBy(dir || "next", settings.cache[dir === "prev" ? "previousPatterns" : "nextPatterns"]);
     },
-    reload: function() {
-      setTimeout(function() { window.location.reload(); }, 17);
+    reload: function(url) {
+      setTimeout(function() {
+        url > 0 ? window.location.reload() : (window.location.href = url);
+      }, 17);
     },
     switchFocus: function() {
       var newEl = InsertMode.lock;
@@ -393,8 +395,7 @@ var VSettings, VHUD, VPort, VEventMode;
         upper: -count
       }, function(result) {
         if (result.path != null) {
-          window.location.href = result.url;
-          return;
+          return Commands.reload(result.url);
         }
         HUD.showForDuration(result.url, 1500);
       });
@@ -650,8 +651,7 @@ var VSettings, VHUD, VPort, VEventMode;
   Pagination = {
   followLink: function(linkElement) {
     if (linkElement instanceof HTMLLinkElement) {
-      window.location.href = linkElement.href;
-      return;
+      return Commands.reload(linkElement.href);
     }
     linkElement.scrollIntoViewIfNeeded();
     VDom.UI.flashVRect(VDom.UI.getVRect(linkElement));
