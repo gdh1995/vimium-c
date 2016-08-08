@@ -687,8 +687,10 @@ var VSettings, VHUD, VPort, VEventMode;
     var candidateLinks, exactWordRe, link, linkString, links, _i, _j, _len, _len1;
     links = VHints.traverse({"*": this.GetLinks});
     candidateLinks = [];
-    for (_len = links.length; 0 <= --_len; ) {
+    links.push(document);
+    for (_len = links.length - 1; 0 <= --_len; ) {
       link = links[_len];
+      if (link.contains(links[_len + 1])) { continue; }
       linkString = (link.innerText || link.title).toLowerCase();
       for (_j = 0, _len1 = linkStrings.length; _j < _len1; _j++) {
         if (linkString.indexOf(linkStrings[_j]) !== -1) {
@@ -701,6 +703,7 @@ var VSettings, VHUD, VPort, VEventMode;
     if (_len === 0) {
       return;
     }
+    links = null;
     while (0 <= --_len) {
       link = candidateLinks[_len];
       link.wordCount = (link.innerText || link.title).trim().split(/\s+/).length;
