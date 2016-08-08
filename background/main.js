@@ -114,7 +114,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
       return true;
     },
     clearCS: function(contentType, tab) {
-      ContentSettings.clear(contentType, tab);
+      this.clear(contentType, tab);
       cPort.postMessage({
         name: "showHUD",
         text: contentType + " content settings have been cleared."
@@ -1609,7 +1609,6 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
 
   setTimeout(function() {
     Settings.fetchFile("baseCss");
-    tinyMemory = Settings.get("tinyMemory");
     Settings.postUpdate("searchUrl", null); // will also update newTabUrl
 
     var ref, i, ref2, key;
@@ -1632,6 +1631,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
       ref2[ref[i]].useTab = -1;
     }
 
+    tinyMemory = Settings.get("tinyMemory");
     Settings.updateHooks.tinyMemory = function(value) {
       tinyMemory = value;
     };
