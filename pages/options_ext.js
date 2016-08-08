@@ -73,12 +73,10 @@ $("exportButton").onclick = function(event) {
   exported_object.name = "Vimium++";
   exported_object.time = 0;
   (function() {
-    var storage = localStorage, i, len, key, mark_head, all = bgSettings.defaults
-      , storedVal;
-    mark_head = BG.Marks.getMarkKey("");
+    var storage = localStorage, i, len, key, storedVal, all = bgSettings.defaults;
     for (i = 0, len = storage.length; i < len; i++) {
       key = storage.key(i);
-      if (key === "name" || key === "time" || key.startsWith(mark_head)) {
+      if (key.indexOf("|") >= 0 || key.endsWith("_f")) {
         continue;
       }
       storedVal = storage.getItem(key);
@@ -93,7 +91,6 @@ $("exportButton").onclick = function(event) {
     }
   })();
   delete exported_object.findModeRawQueryList;
-  delete exported_object.newTabUrl_f;
   d = new Date();
   exported_object.time = d.getTime();
   exported_data = JSON.stringify(exported_object, null, '\t');
