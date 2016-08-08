@@ -26,7 +26,7 @@ var Settings = {
     if (!(key in this.nonPersistent)) {
       initial = this.defaults[key];
       if (value === initial) {
-        delete localStorage[key];
+        localStorage.removeItem(key);
         this.Sync.set(key, null);
       } else {
         localStorage[key] = typeof initial === "string" ? value : JSON.stringify(value);
