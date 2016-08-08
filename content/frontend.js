@@ -387,16 +387,17 @@ var VSettings, VHUD, VPort, VEventMode;
       step > 0 && history.go(step * (options.dir || -1));
     },
     goUp: function(count) {
-      var url, urlsplit;
-      url = window.location.href;
-      if (url.indexOf("://") === -1) { return; }
-      if (url.endsWith("/")) { url = url.slice(0, -1); }
-      urlsplit = url.split("/");
-      if (urlsplit.length <= 3) { return; }
-      urlsplit.length = Math.max(3, urlsplit.length - count);
-      url = urlsplit.join('/');
-      if (url.endsWith("#!")) { url = url.slice(0, -2); }
-      window.location.href = url;
+      mainPort.sendMessage({
+        handler: "parseUpperUrl",
+        url: window.location.href,
+        upper: -count
+      }, function(result) {
+        if (result.path != null) {
+          window.location.href = result.url;
+          return;
+        }
+        HUD.showForDuration(result.url, 1500);
+      });
     },
     showHelp: function(_0, _1, forceCurrent) {
       forceCurrent |= 0;
