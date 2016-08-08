@@ -99,6 +99,9 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
 
   ContentSettings = {
     _urlHeadRe: /^[a-z]+:\/\/[^\/]+\//,
+    makeKey: function(contentType, url) {
+      return "vimiumContent|" + contentType + (url ? "|" + url : "");
+    },
     complaint: function(url) {
       if (!chrome.contentSettings) {
         cPort.postMessage({
@@ -129,6 +132,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
       }
       cs.clear({ scope: "regular" });
       cs.clear({ scope: "incognito_session_only" }, funcDict.onRuntimeError);
+      localStorage.removeItem(this.makeKey(contentType));
     },
     toggleCurrent: function(contentType, tab) {
       var pattern = tab.url, _this = this;
@@ -145,6 +149,9 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
           scope: tab.incognito ? "incognito_session_only" : "regular",
           setting: (opt && opt.setting === "allow") ? "block" : "allow"
         }, function() {
+          if (!tab.incognito) {
+            localStorage[this.makeKey(contentType)] = "true";
+          }
           if (tab.incognito || cOptions.action === "reopen" || !chrome.sessions) {
             ++tab.index;
             funcDict.reopenTab(tab);
@@ -1635,6 +1642,8 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
     Settings.updateHooks.tinyMemory = function(value) {
       tinyMemory = value;
     };
+
+    localStorage.getItem(ContentSettings.makeKey("images")) != null &&
     setTimeout(ContentSettings.clear, 100, "images");
   }, 34);
 
