@@ -117,7 +117,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
       return true;
     },
     clearCS: function(contentType, tab) {
-      this.clear(contentType, tab);
+      ContentSettings.clear(contentType, tab);
       cPort.postMessage({
         name: "showHUD",
         text: contentType + " content settings have been cleared."
@@ -132,7 +132,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
       }
       cs.clear({ scope: "regular" });
       cs.clear({ scope: "incognito_session_only" }, funcDict.onRuntimeError);
-      localStorage.removeItem(this.makeKey(contentType));
+      localStorage.removeItem(ContentSettings.makeKey(contentType));
     },
     toggleCurrent: function(contentType, tab) {
       var pattern = tab.url, _this = this;
@@ -150,7 +150,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
           setting: (opt && opt.setting === "allow") ? "block" : "allow"
         }, function() {
           if (!tab.incognito) {
-            localStorage[this.makeKey(contentType)] = "true";
+            localStorage[ContentSettings.makeKey(contentType)] = "true";
           }
           if (tab.incognito || cOptions.action === "reopen" || !chrome.sessions) {
             ++tab.index;
