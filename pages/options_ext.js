@@ -150,14 +150,13 @@ var importSettings = function(time, new_data, is_recommended) {
   Object.setPrototypeOf(new_data, null);
   delete new_data.name;
   delete new_data.time;
-  delete new_data.findModeRawQuery;
-  storage.removeItem("findModeRawQuery");
   for (i = storage.length; 0 <= --i; ) {
     key = storage.key(i);
     if (!(key in new_data)) {
       new_data[key] = null;
     }
   }
+  delete new_data.findModeRawQuery;
   delete new_data.findModeRawQueryList;
   delete new_data.newTabUrl_f;
   for (_key in _ref) {
