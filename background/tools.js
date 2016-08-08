@@ -65,7 +65,7 @@ Marks = { // NOTE: all members should be static
     return true;
   },
   getMarkKey: function(keyChar) {
-    return "vimiumGlobalMark|" + keyChar;
+    return "vimiumMark|" + keyChar;
   },
   gotoTab: function(markInfo, tab) {
     var tabId = tab.id, port;
