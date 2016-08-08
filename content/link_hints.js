@@ -736,7 +736,8 @@ HOVER: {
   192: "Hover over nodes continuously",
   activator: function(element) {
     var last = VDom.lastHovered;
-    last && VDom.simulateMouse(last, "mouseout", null, last === element ? null : element);
+    last && VDom.isInDocument(last) &&
+    VDom.simulateMouse(last, "mouseout", null, last === element ? null : element);
     VScroller.current = element;
     VDom.lastHovered = element;
     VDom.simulateMouse(element, "mouseover");
