@@ -152,6 +152,7 @@ var importSettings = function(time, new_data, is_recommended) {
   delete new_data.time;
   for (i = storage.length; 0 <= --i; ) {
     key = storage.key(i);
+    if (key.indexOf("|") >= 0) { continue; }
     if (!(key in new_data)) {
       new_data[key] = null;
     }
