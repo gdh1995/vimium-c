@@ -1396,6 +1396,10 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
         url = arr[1];
       } else {
         url = Utils.convertToUrl(url, request.keyword, port ? null : 2);
+        if (port && url.substring(0, 11).toLowerCase() !== "javascript:") {
+          requestHandlers.openUrl({ url: url });
+          url = null;
+        }
       }
       return url;
     },

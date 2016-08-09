@@ -433,11 +433,8 @@ var VSettings, VHUD, VPort, VEventMode;
         keyword: options.keyword
       }, function(str) {
         if (str) {
-          VUtils.evalIfOK(str) || mainPort.port.postMessage({
-            handler: "openUrl",
-            url: str
-          });
-        } else {
+          VUtils.evalIfOK(str);
+        } else if (str === "") {
           HUD.showCopied("");
         }
       });
