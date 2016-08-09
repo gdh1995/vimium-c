@@ -110,7 +110,7 @@ var VSettings, VHUD, VPort, VEventMode;
 
   ELs = { //
     onKeydown: function(event) {
-      if (!isEnabledForUrl) { return; }
+      if (!isEnabledForUrl || event.isTrusted === false) { return; }
       if (VScroller.keyIsDown) {
         if (event.repeat) {
           VScroller.keyIsDown = VScroller.Core.maxInterval;
@@ -173,7 +173,7 @@ var VSettings, VHUD, VPort, VEventMode;
       }
     },
     onKeyup: function(event) {
-      if (!isEnabledForUrl) { return; }
+      if (!isEnabledForUrl || event.isTrusted === false) { return; }
       VScroller.keyIsDown = 0;
       if (InsertMode.suppressType && window.getSelection().type !== InsertMode.suppressType) {
         InsertMode.exitSuppress();
@@ -188,6 +188,7 @@ var VSettings, VHUD, VPort, VEventMode;
       event.stopImmediatePropagation();
     },
     onFocus: function(event) {
+      if (event.isTrusted === false) { return; }
       var target = event.target;
       if (target === window) { ELs.OnWndFocus(); }
       else if (!isEnabledForUrl) {}
@@ -202,6 +203,7 @@ var VSettings, VHUD, VPort, VEventMode;
       }
     },
     onBlur: function(event) {
+      if (event.isTrusted === false) { return; }
       var target = event.target;
       if (target === window) {
         VScroller.keyIsDown = 0;
@@ -241,6 +243,7 @@ var VSettings, VHUD, VPort, VEventMode;
       }
     },
     onShadowBlur: function(event) {
+      if (event.isTrusted === false) { return; }
       if (this.vimiumBlurred) {
         this.vimiumBlurred = false;
         this.removeEventListener("blur", ELs.onShadowBlur, true);
