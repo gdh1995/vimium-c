@@ -167,11 +167,6 @@ var VSettings, VHUD, VPort, VEventMode;
       event.stopImmediatePropagation();
       KeydownEvents[key] = 1;
     },
-    onKeypress: function(event) {
-      if (isEnabledForUrl && InsertMode.lock === Vomnibar.input) {
-        event.stopImmediatePropagation();
-      }
-    },
     onKeyup: function(event) {
       if (!isEnabledForUrl || event.isTrusted === false) { return; }
       VScroller.keyIsDown = 0;
@@ -252,7 +247,6 @@ var VSettings, VHUD, VPort, VEventMode;
     },
     hook: function(f, c) {
       f("keydown", this.onKeydown, true);
-      f("keypress", this.onKeypress, true);
       f("keyup", this.onKeyup, true);
       c || f("focus", this.onFocus, true);
       f("blur", this.onBlur, true);
@@ -260,6 +254,12 @@ var VSettings, VHUD, VPort, VEventMode;
     }
   };
   ELs.hook(addEventListener);
+
+  Vomnibar.OnKeypress = function(event) {
+    if (isEnabledForUrl && InsertMode.lock === Vomnibar.input) {
+      event.stopImmediatePropagation();
+    }
+  };
 
   esc = function() { currentSeconds = null; };
 
@@ -1055,6 +1055,7 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
 
     ELs.hook(f);
     f("mousedown", InsertMode.ExitGrab, true);
+    f("keypress", Vomnibar.OnKeypress, true);
     VFindMode.postMode.exit();
     VFindMode.toggleStyle("remove");
     (el = VDom.UI.box) && el.remove();

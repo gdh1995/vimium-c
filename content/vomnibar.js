@@ -90,6 +90,7 @@ activate: function(_0, options, forceCurrent) {
     setTimeout(function() {
       Vomnibar.input.onselect = Vomnibar.OnSelect;
     }, 50);
+    addEventListener("keypress", this.OnKeypress, true);
   },
   hide: function() {
     this.isHttps = false;
@@ -104,6 +105,7 @@ activate: function(_0, options, forceCurrent) {
     VHandler.remove(this);
     this.completions = this.onUpdate = null;
     this.mode.query = this.inputText = "";
+    removeEventListener("keypress", this.OnKeypress, true);
   },
   reset: function(input, start, end) {
     input || (input = "");
@@ -390,6 +392,7 @@ activate: function(_0, options, forceCurrent) {
       el.setSelectionRange(0, left.length, 'backward');
     }
   },
+  OnKeypress: null,
   OnTimer: function() { Vomnibar && Vomnibar.filter(); },
   onWheel: function(event) {
     if (event.ctrlKey || event.metaKey) { return; }
