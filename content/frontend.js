@@ -351,7 +351,7 @@ var VSettings, VHUD, VPort, VEventMode;
     },
     reload: function(url) {
       setTimeout(function() {
-        url > 0 ? window.location.reload() : (window.location.href = url);
+        url === 1 ? window.location.reload() : (window.location.href = url);
       }, 17);
     },
     switchFocus: function() {
