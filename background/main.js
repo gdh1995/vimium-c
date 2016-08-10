@@ -6,14 +6,14 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
     , cOptions, cPort, currentCount, currentFirst, executeCommand
     , FindModeHistory, framesForTab, funcDict
     , HelpDialog, needIcon, openMultiTab //
-    , requestHandlers, resetKeys, keyMap, tinyMemory
+    , requestHandlers, resetKeys, keyMap
     ;
 
   framesForTab = Object.create(null);
 
   currentFirst = null;
 
-  needIcon = tinyMemory = false;
+  needIcon = false;
 
   HelpDialog = {
   render: function(showUnbound, showNames, customTitle) {
@@ -1638,11 +1638,6 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
     for (i = ref.length; 0 <= --i; ) {
       ref2[ref[i]].useTab = -1;
     }
-
-    tinyMemory = Settings.get("tinyMemory");
-    Settings.updateHooks.tinyMemory = function(value) {
-      tinyMemory = value;
-    };
 
     localStorage.getItem(ContentSettings.makeKey("images")) != null &&
     setTimeout(ContentSettings.clear, 100, "images");
