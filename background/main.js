@@ -1025,6 +1025,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
     var key, ref1, ref2, first, arr, keyRe = Commands.keyRe, ch, func;
     resetKeys();
     ref1 = ["1", "2", "3", "4", "5", "6", "7", "8", "9"];
+    ref1.unshift("0");
     ref2 = secondKeys = Object.create(null);
     for (key in Commands.keyToCommandRegistry) {
       ch = key.charCodeAt(0);
@@ -1052,7 +1053,6 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
     for (first in ref2) {
       ref2[first] = ref2[first].filter(func).sort().reverse();
     }
-    ref2[""] = ["0"]; // "0" is for key queues like "10n"
 
     Settings.Init && Settings.Init();
   };
