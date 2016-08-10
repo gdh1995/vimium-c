@@ -4,9 +4,9 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
   var BackgroundCommands, ContentSettings, checkKeyQueue, commandCount //
     , Connections
     , cOptions, cPort, currentCount, currentFirst, executeCommand
-    , FindModeHistory, firstKeys, framesForTab, funcDict
+    , FindModeHistory, framesForTab, funcDict
     , HelpDialog, needIcon, openMultiTab //
-    , requestHandlers, resetKeys, secondKeys, tinyMemory
+    , requestHandlers, resetKeys, keyMap, tinyMemory
     ;
 
   framesForTab = Object.create(null);
@@ -1022,37 +1022,41 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
   };
 
   Settings.updateHooks.PopulateCommandKeys = function() {
-    var key, ref1, ref2, first, arr, keyRe = Commands.keyRe, ch, func;
+    var key, ref, ref2, cloned, first, arr, keyRe = Commands.keyRe, ch;
     resetKeys();
-    ref1 = ["1", "2", "3", "4", "5", "6", "7", "8", "9"];
-    ref1.unshift("0");
-    ref2 = secondKeys = Object.create(null);
+    ref = keyMap = Object.create(null);
+    for (ch = 10; 0 <= --ch; ) { ref[ch] = 0; }
     for (key in Commands.keyToCommandRegistry) {
       ch = key.charCodeAt(0);
       if (ch >= 48 && ch < 58) {
         console.warn("invalid key command:", key, "(the first char can not be [0-9])");
       } else if ((arr = key.match(keyRe)).length === 1) {
-        ref1.push(key);
+        if (ref[key]) {
+          console.warn("inactive first key:", key, "with", ref[key]);
+        }
+        ref[key] = 0;
       } else if (arr.length !== 2) {
         console.warn("invalid key command:", key, "=>", arr);
-      } else if ((first = arr[0]) in ref2) {
-        ref2[first].push(arr[1]);
       } else {
-        ref2[first] = [arr[1]];
+        if (!(ref2 = ref[arr[0]])) {
+          if (ref2 === 0) {
+            console.warn("inactive first key:", arr[0], "with", key);
+            continue;
+          }
+          ref[arr[0]] = ref2 = Object.create(null);
+        }
+        ref2[arr[1]] = 0;
       }
     }
 
-    for (first in ref2) {
-      if (ref1.indexOf(first) !== -1) {
-        console.warn("inactive first key:", first, "with", ref2[first].sort());
-        delete ref2[first];
-      }
+    for (first in ref) {
+      ref2 = ref[first];
+      if (!ref2) { continue; }
+      cloned = Object.create(null);
+      for (key in ref2) { if (!(key in ref)) { cloned[key] = 0; } }
+      ref[first] = cloned;
     }
-    firstKeys = ref1 = ref1.concat(Object.keys(ref2)).sort().reverse();
-    func = function(key) { return ref1.indexOf(key) === -1; };
-    for (first in ref2) {
-      ref2[first] = ref2[first].filter(func).sort().reverse();
-    }
+    ref[""] = Object.create(null);
 
     Settings.Init && Settings.Init();
   };
@@ -1071,7 +1075,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
     } else if (registryEntry = Commands.keyToCommandRegistry[command]) {
       count = currentCount || 1;
       currentCount = 0;
-    } else if (command in secondKeys) {
+    } else if (keyMap[command]) {
       return command;
     } else {
       currentCount = 0;
@@ -1456,11 +1460,8 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
         // NOTE: here is a race condition which is now ignored totally
         key = checkKeyQueue(key, port);
         if (currentFirst !== key) {
+          port.postMessage({ name: "key", key: key });
           currentFirst = key;
-          port.postMessage({
-            name: "refreshKeyQueue",
-            currentFirst: key
-          });
         }
       }
       else {
@@ -1478,9 +1479,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
         load: Settings.bufferToLoad,
         passKeys: pass,
         onMac: Settings.CONST.OnMac,
-        currentFirst: currentFirst,
-        firstKeys: firstKeys,
-        secondKeys: secondKeys,
+        keyMap: keyMap,
         tabId: tabId
       } : {
         name: "reset",
@@ -1553,10 +1552,8 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
     this.postUpdate("PopulateCommandKeys", null);
     // resetKeys has been called
     this.broadcast({
-      name: "refreshKeyMappings",
-      currentFirst: null,
-      firstKeys: firstKeys,
-      secondKeys: secondKeys
+      name: "keyMap",
+      keyMap: keyMap
     });
   };
 

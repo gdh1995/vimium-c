@@ -3,16 +3,16 @@
 var VSettings, VHUD, VPort, VEventMode;
 (function() {
   var Commands, ELs, HUD, KeydownEvents, checkValidKey, currentSeconds //
-    , esc, firstKeys, FrameMask, InsertMode, Pagination //
+    , esc, FrameMask, InsertMode, Pagination //
     , isEnabledForUrl, isInjected, mainPort, onKeyup2 //
-    , parsePassKeys, passKeys, requestHandlers, secondKeys, settings //
+    , parsePassKeys, passKeys, requestHandlers, keyMap, settings //
     ;
 
   isInjected = window.VimiumInjector ? true : null;
 
   isEnabledForUrl = false;
 
-  KeydownEvents = currentSeconds = firstKeys = onKeyup2 = passKeys = null;
+  KeydownEvents = currentSeconds = onKeyup2 = passKeys = null;
 
   VPort = mainPort = {
     port: null,
@@ -516,12 +516,12 @@ var VSettings, VHUD, VPort, VEventMode;
       key = left + key + ">";
     }
     if (currentSeconds) {
-      if (!((key in firstKeys) || (key in currentSeconds))) {
+      if (!((key in keyMap) || (key in currentSeconds))) {
         mainPort.port.postMessage({ handler: "esc" });
         esc();
         return 0;
       }
-    } else if (passKeys && (key in passKeys) || !(key in firstKeys)) {
+    } else if (passKeys && (key in passKeys) || !(key in keyMap)) {
       return 0;
     }
     mainPort.port.postMessage({ handlerKey: key });
@@ -884,7 +884,7 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
       settings.cache = request.load;
       clearInterval(settings.timer);
       VKeyboard.onMac = request.onMac;
-      r.refreshKeyMappings(request);
+      r.keyMap(request);
       r.reset(request);
       InsertMode.loading = false;
       r.init = null;
@@ -920,30 +920,16 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
     },
     insertInnerCss: VDom.UI.insertInnerCSS,
     focusFrame: FrameMask.Focus,
-    refreshKeyMappings: function(request) {
-      var arr = request.firstKeys, i = arr.length, map, key, sec, sec2;
-      map = firstKeys = Object.create(null);
-      while (0 <= --i) {
-        map[arr[i]] = true;
+    keyMap: function(request) {
+      var map = keyMap = request.keyMap, key, sec, func = Object.setPrototypeOf;
+      func(map, null);
+      for (key in map) {
+        sec = map[key];
+        sec && func(sec, null);
       }
-      sec = request.secondKeys;
-      Object.setPrototypeOf(sec, null);
-      sec2 = secondKeys = Object.create(null);
-      for (key in sec) {
-        arr = sec[key];
-        map = sec2[key] = Object.create(null);
-        i = arr.length;
-        while (0 <= --i) {
-          map[arr[i]] = true;
-        }
-      }
-      requestHandlers.refreshKeyQueue(request);
     },
-    refreshKeyQueue: function(request) {
-      if (request.currentFirst === null) {
-        return esc();
-      }
-      currentSeconds = secondKeys[request.currentFirst]; // less possible
+    key: function(request) {
+      currentSeconds = request.key !== null ? keyMap[request.key] : null;
     },
     execute: function(request) {
       esc();
