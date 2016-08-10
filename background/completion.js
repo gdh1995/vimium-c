@@ -816,31 +816,24 @@ searchEngines: {
     updateCount: 0,
     toRefreshCount: 0,
     history: null,
-    _callbacks: [],
+    _callbacks: null,
     use: function(callback) {
-      this._callbacks.push(callback);
-      if (this._use) {
-        chrome.history.search({
-          text: "",
-          maxResults: this.size,
-          startTime: 0
-        }, this._use);
-        this._use = null;
+      if (this._callbacks) {
+        this._callbacks.push(callback);
+        return;
       }
+      this._callbacks = [callback];
+      chrome.history.search({
+        text: "",
+        maxResults: this.size,
+        startTime: 0
+      }, function(history) {
+        setTimeout(HistoryCache.Clean, 100, history);
+      });
     },
-    _use: function(history) {
-      var _this = HistoryCache, i = history.length, j, ref;
-      while (0 <= --i) { j = history[i]; j.text = j.url; }
-      _this.history = history;
-      _this.use = function(callback) { callback(this.history); };
-      ref = _this._callbacks;
-      _this._callbacks = null;
-      while (ref.length > ++i) { (0, ref[i])(history); }
-      setTimeout(_this.Clean, 200);
-    },
-    Clean: function() {
-      var arr = HistoryCache.history, i = arr.length, j;
-      HistoryCache.Clean = null;
+    Clean: function(arr) {
+      var _this = HistoryCache, i = arr.length, j;
+      _this.Clean = null;
       while (0 <= --i) {
         j = arr[i];
         arr[i] = {
@@ -858,6 +851,15 @@ searchEngines: {
         chrome.history.onVisited.addListener(_this.OnPageVisited);
       }, 100);
       setTimeout(Decoder.decodeList, 500, arr);
+      _this.history = arr;
+      _this.use = function(callback) { callback(this.history); };
+      setTimeout(function(ref) {
+        var i, arr = HistoryCache.history;
+        for (i = 0; i < ref.length; i++) {
+          (0, ref[i])(arr);
+        }
+      }, 17, _this._callbacks);
+      _this._callbacks = null;
     },
     OnPageVisited: function(newPage) {
       var _this = HistoryCache, i = _this.binarySearch(newPage.url, _this.history), j;
