@@ -1,7 +1,7 @@
 Vimium++
 ========
 [![license](https://img.shields.io/badge/license-MIT-blue.svg)](MIT-LICENSE.txt)
-![version](https://img.shields.io/badge/release-1.53.1-orange.svg)
+![version](https://img.shields.io/badge/release-1.54-orange.svg)
 
 A custom [Vimium](https://github.com/philc/vimium)
   by [gdh1995](https://github.com/gdh1995),
@@ -37,7 +37,7 @@ __微度新标签页 (X New Tab Page):__
 Release Notes
 -------------
 
-Not yet released:
+1.54:
 * **WARNING**: change modifier keys' order into `m-c-a-` (breaking)
 * add `LinkHints.activateModeToEdit` to select an editable area with hints
 * deprecate `clearGlobalMarks` and please use `Marks.clearGlobal` instead
