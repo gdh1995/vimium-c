@@ -1471,7 +1471,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
     OnConnect: function(port) {
       port.onMessage.addListener(Connections.OnMessage);
       port.onDisconnect.addListener(Connections.OnDisconnect);
-      tinyMemory && Connections.cleanSender(port);
+      Connections.cleanSender(port);
       var type = port.name[9] | 0, ref, tabId = port.sender.tab.id
         , pass = Exclusions.getPattern(port.sender.url);
       port.postMessage((type & 1) ? {
