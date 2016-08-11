@@ -70,13 +70,12 @@ activate: function(_0, options, forceCurrent) {
   list: null,
   onUpdate: null,
   refreshInterval: 500,
-  width: 0,
   renderItems: null,
   selection: -1,
   timer: 0,
   wheelTimer: 0,
   show: function() {
-    var width = this.width;
+    var width = this.mode.clientWidth * 0.8;
     if (width !== (width | 0)) {
       this.box.style.width = (width | 0) / (width / 0.8) * 100 + "%";
     }
@@ -113,7 +112,6 @@ activate: function(_0, options, forceCurrent) {
     this.inputText = input;
     this.mode.query = input.trimRight();
     this.completions = [];
-    this.width = document.documentElement.clientWidth * 0.8;
     this.update(0, input && start <= end ? function() {
       this.show();
       this.input.setSelectionRange(start, end);
@@ -519,7 +517,7 @@ activate: function(_0, options, forceCurrent) {
   filter: function() {
     var mode = this.mode, str = this.input ? this.input.value.trim() : "";
     if (str && str === mode.query) { return; }
-    mode.clientWidth = document.documentElement.clientWidth,
+    mode.clientWidth = document.documentElement.clientWidth;
     mode.query = str;
     this.timer = -1;
     if (this.notOnlySearch) {
