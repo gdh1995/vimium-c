@@ -348,9 +348,15 @@ history: {
 
 domains: {
   domains: null,
-  filter: function(query) {
+  filter: function(query, index) {
     if (!HistoryCache.history) {
-      Completers.next([]);
+      if (index > 0) {
+        Completers.next([]);
+      } else {
+        HistoryCache.use(function() {
+          Completers.domains.filter(query, 0);
+        });
+      }
       return;
     }
     this.refresh(HistoryCache.history);
