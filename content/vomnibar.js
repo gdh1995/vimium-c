@@ -94,6 +94,7 @@ activate: function(_0, options, forceCurrent) {
   },
   hide: function() {
     this.isHttps = false;
+    this.notOnlySearch = true;
     clearTimeout(this.timer);
     this.timer = 0;
     this.input.onselect = null;
