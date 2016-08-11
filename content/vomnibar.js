@@ -117,7 +117,7 @@ activate: function(_0, options, forceCurrent) {
     } : this.show);
   },
   update: function(updateDelay, callback) {
-    this.onUpdate = callback;
+    this.onUpdate = callback || null;
     if (typeof updateDelay === "number") {
       if (this.timer > 0) {
         clearTimeout(this.timer);
@@ -443,11 +443,14 @@ activate: function(_0, options, forceCurrent) {
     completions.forEach(this.Parse, this.mode);
     this.completions = completions;
     this.populateUI();
-    if (this.timer > 0) { return; }
+    return this.timer > 0 || this.postUpdate();
+  },
+  postUpdate: function() {
+    var func;
     this.timer = 0;
-    if (this.onUpdate) {
-      this.onUpdate();
+    if (func = this.onUpdate) {
       this.onUpdate = null;
+      func.call(this);
     }
   },
   init: function() {
@@ -516,7 +519,9 @@ activate: function(_0, options, forceCurrent) {
   },
   filter: function() {
     var mode = this.mode, str = (this.input ? this.input.value : this.inputText).trim();
-    if (str && str === mode.query) { return; }
+    if (str && str === mode.query) {
+      return this.postUpdate();
+    }
     mode.clientWidth = document.documentElement.clientWidth;
     mode.query = str;
     this.timer = -1;
