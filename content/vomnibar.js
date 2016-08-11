@@ -479,6 +479,7 @@ activate: function(_0, options, forceCurrent) {
     this.box.innerHTML = response;
     this.input = this.box.querySelector("#OInput");
     this.list = this.box.querySelector("#OList");
+    this.input.onfocus = this.input.onblur = VEventMode.on("UI");
     str = this.box.querySelector("#OITemplate").outerHTML;
     str = str.substring(str.indexOf('>') + 1, str.lastIndexOf('<'));
     this.renderItems = VUtils.makeListRender(str);
@@ -490,7 +491,6 @@ activate: function(_0, options, forceCurrent) {
       VDom.UI.addElement(this.box);
     }
     this.input.oninput = this.onInput.bind(this);
-    this.input.onfocus = this.input.onblur = VEventMode.on("UI");
     this.box.querySelector("#OClose").onclick = function() { Vomnibar.hide(); };
     this.list.oncontextmenu = this.OnMenu;
     this._pageNumRe = /(?:^|\s)(\+\d{0,2})$/;
