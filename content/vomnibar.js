@@ -80,7 +80,6 @@ activate: function(_0, options, forceCurrent) {
       this.box.style.width = (width | 0) / (width / 0.8) * 100 + "%";
     }
     this.box.style.display = "";
-    this.input.value = this.inputText;
     VDom.UI.addElement(this.box);
     VDom.UI.focus(this.input);
     VHandler.remove(this);
@@ -110,7 +109,7 @@ activate: function(_0, options, forceCurrent) {
   reset: function(input, start, end) {
     input || (input = "");
     this.inputText = input;
-    this.mode.query = input.trimRight();
+    this.input && (this.input.value = input);
     this.completions = [];
     this.update(0, input && start <= end ? function() {
       this.show();
@@ -477,6 +476,7 @@ activate: function(_0, options, forceCurrent) {
     this.box.innerHTML = response;
     this.input = this.box.querySelector("#OInput");
     this.list = this.box.querySelector("#OList");
+    this.input.value = this.inputText;
     this.input.onfocus = this.input.onblur = VEventMode.on("UI");
     str = this.box.querySelector("#OITemplate").outerHTML;
     str = str.substring(str.indexOf('>') + 1, str.lastIndexOf('<'));
@@ -515,7 +515,7 @@ activate: function(_0, options, forceCurrent) {
     query: ""
   },
   filter: function() {
-    var mode = this.mode, str = this.input ? this.input.value.trim() : "";
+    var mode = this.mode, str = (this.input ? this.input.value : this.inputText).trim();
     if (str && str === mode.query) { return; }
     mode.clientWidth = document.documentElement.clientWidth;
     mode.query = str;
