@@ -398,12 +398,9 @@ domains: {
     Completers.next(sug ? [sug] : []);
   },
   refresh: function(history) {
-    var i = history.length;
     this.refresh = null;
     Utils.domains = this.domains = Object.create(null);
-    while (0 <= --i) {
-      this.onPageVisited(history[i]);
-    }
+    history.forEach(this.onPageVisited, this);
     this.filter = this.performSearch;
     chrome.history.onVisited.addListener(this.onPageVisited.bind(this));
     chrome.history.onVisitRemoved.addListener(this.OnVisitRemoved);
@@ -436,12 +433,11 @@ domains: {
     }
   },
   parseDomainAndScheme: function(url) {
-    var d, i;
+    var d;
     if (url.startsWith("http://")) { d = 7; }
     else if (url.startsWith("https://")) { d = 8; }
     else { return null; }
-    i = url.indexOf('/', d);
-    url = url.substring(d, i > 0 ? i : undefined);
+    url = url.substring(d, url.indexOf('/', d));
     return [url !== "__proto__" ? url : ".__proto__", d - 7];
   },
   computeRelevancy: function() {
