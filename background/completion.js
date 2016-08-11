@@ -349,18 +349,19 @@ history: {
 domains: {
   domains: null,
   filter: function(query, index) {
-    if (!HistoryCache.history) {
-      if (index > 0) {
-        Completers.next([]);
-      } else {
-        HistoryCache.use(function() {
-          Completers.domains.filter(query, 0);
-        });
-      }
-      return;
+    if (HistoryCache.history) {
+      this.refresh(HistoryCache.history);
+      return this.performSearch(query);
     }
-    this.refresh(HistoryCache.history);
-    this.performSearch(query);
+    var emptyQuery = queryTerms.length <= 0;
+    if (index > 0 || emptyQuery) {
+      Completers.next([]);
+      if (index > 0) { return; }
+    }
+    HistoryCache.use(emptyQuery ? function() {} : function() {
+      if (query.isOff) { return; }
+      Completers.domains.filter(query, 0);
+    });
   },
   performSearch: function() {
     if (queryTerms.length !== 1 || queryTerms[0].indexOf("/") !== -1) {
