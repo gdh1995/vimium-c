@@ -684,7 +684,7 @@ var VSettings, VHUD, VPort, VEventMode;
     }
   },
   findAndFollowLink: function(linkStrings) {
-    var candidateLinks, exactWordRe, link, linkString, links, _i, _j, _len, _len1;
+    var candidateLinks, exactWordRe, link, linkString, links, _i, _j, _len, _len1, re1, re2;
     links = VHints.traverse({"*": this.GetLinks});
     candidateLinks = [];
     links.push(document);
@@ -703,10 +703,11 @@ var VSettings, VHUD, VPort, VEventMode;
     if (_len === 0) {
       return;
     }
+    re1 = /\s+/, re2 = /\b/;
     links = null;
     while (0 <= --_len) {
       link = candidateLinks[_len];
-      link.wordCount = (link.innerText || link.title).trim().split(/\s+/).length;
+      link.wordCount = (link.innerText || link.title).trim().split(re1).length;
       link.originalIndex = _len;
     }
     candidateLinks = candidateLinks.sort(function(a, b) {
@@ -718,7 +719,7 @@ var VSettings, VHUD, VPort, VEventMode;
     });
     for (_i = 0, _len = linkStrings.length; _i < _len; _i++) {
       linkString = linkStrings[_i];
-      exactWordRe = /\b/.test(linkString[0]) || /\b/.test(linkString.slice(-1))
+      exactWordRe = re2.test(linkString[0]) || re2.test(linkString.slice(-1))
         ? new RegExp("\\b" + linkString + "\\b", "i") : new RegExp(linkString, "i");
       for (_j = 0, _len1 = candidateLinks.length; _j < _len1; _j++) {
         link = candidateLinks[_j];
