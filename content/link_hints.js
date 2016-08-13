@@ -457,11 +457,7 @@ var VHints = {
     if (event.repeat) {
       // NOTE: should always prevent repeated keys.
     } else if ((i = event.keyCode) === VKeyCodes.esc) {
-      if (VKeyboard.isPlain(event)) {
-        this.deactivate(); // do not suppress tail
-      } else {
-        return 0;
-      }
+      return VKeyboard.isPlain(event) ? (this.deactivate(), 2) : 0;
     } else if (i > VKeyCodes.f1 && i <= VKeyCodes.f12) {
       this.ResetMode();
       if (i !== VKeyCodes.f1 + 1) { return 0; }

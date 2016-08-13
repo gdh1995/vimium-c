@@ -126,7 +126,7 @@ body{cursor:text;display:inline-block;padding:0 3px 0 1px;min-width:7px;}body *{
     if (!i) {
       if (!VKeyboard.isPlain(event)) {
         if (event.shiftKey || !(event.ctrlKey || event.metaKey)) { return; }
-        else if (n >= 74 && n <= 75) { this.execute(null, {dir: 74 - n }); }
+        else if (n >= 74 && n <= 75) { this.execute(null, { dir: 74 - n }); }
         else { return; }
       }
       else if (n === VKeyCodes.f1) { this.box.contentDocument.execCommand("delete"); }
@@ -277,7 +277,7 @@ body{cursor:text;display:inline-block;padding:0 3px 0 1px;min-width:7px;}body *{
     } while (0 < --count && found);
     options.noColor || setTimeout(this.hookSel.bind(this, "add"), 0);
     (el = VEventMode.lock()) && VDom.getEditableType(el) > 1 && !VDom.isSelected(document.activeElement) && el.blur();
-    return this.hasResults = found;
+    this.hasResults = found;
   },
   RestoreHighlight: function() { VFindMode.toggleStyle('remove'); },
   hookSel: function(action) { document[action + "EventListener"]("selectionchange", this.RestoreHighlight, true); },

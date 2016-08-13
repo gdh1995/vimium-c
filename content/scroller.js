@@ -89,11 +89,9 @@ Core: {
   },
   getActivatedElement: function() {
     var element = this.current;
-    if (element) {
-      return element;
-    }
+    if (element) { return element; }
     element = document.body;
-    return this.current = element ? (this.selectFirst(element) || element) : null;
+    return this.current = element && (this.selectFirst(element) || element);
   },
   getDimension: function(el, di, name) {
     return !name ? 1
@@ -111,15 +109,15 @@ Core: {
     }
     VDom.prepareCrop();
     var children = [], rect, _ref = element.children, _len = _ref.length;
-    while (0 <= --_len) {
+    while (0 < _len--) {
       element = _ref[_len];
       if (rect = VDom.getVisibleClientRect(element)) {
         children.push([(rect[2] - rect[0]) * (rect[3] - rect[1]), element]);
       }
     }
     if (_len = children.length) {
-      children = children.sort(this.sortBy0);
-      while (0 <= --_len) {
+      children.sort(this.sortBy0);
+      while (0 < _len--) {
         if (element = this.selectFirst(children[_len][1])) {
           return element;
         }
