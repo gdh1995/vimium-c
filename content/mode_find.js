@@ -44,13 +44,15 @@ body{cursor:text;display:inline-block;padding:0 3px 0 1px;min-width:7px;}body *{
       this.findAndFocus(query, options);
       return;
     }
-    this.init && this.init();
+    if (options.returnToViewport) {
     this.scrollX = window.scrollX;
     this.scrollY = window.scrollY;
+    }
     this.parsedQuery = this.query = "";
     this.regexMatches = null;
     this.activeRegexIndex = 0;
     this.getCurrentRange();
+    this.init && this.init();
 
     var el, wnd, doc;
     el = this.box = VDom.createElement("iframe");
@@ -78,8 +80,9 @@ body{cursor:text;display:inline-block;padding:0 3px 0 1px;min-width:7px;}body *{
     var ref = this.postMode, UI = VDom.UI;
     ref.exit = ref.exit.bind(ref);
     this.styleIn = UI.createStyle(this.cssSel);
-    UI.init && UI.init();
+    UI.init && UI.init(false);
     UI.box.appendChild(UI.createStyle(this.cssOut + this.cssSel));
+    UI.adjust();
     this.init = null;
   },
   findAndFocus: function(query, options) {
