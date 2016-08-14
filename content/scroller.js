@@ -150,7 +150,7 @@ VScroller.Core.animate = function () {
     elapsed = newTimestamp - int1;
     int1 = (totalElapsed += elapsed);
     _this = VScroller.Core;
-    if (VScroller.keyIsDown) {
+    if (VScroller.keyIsDown > 0) {
       if (int1 >= 75) {
         if (int1 > _this.minDelay) { --VScroller.keyIsDown; }
         int1 = calibration;
