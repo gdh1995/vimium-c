@@ -508,14 +508,7 @@ var VSettings, VHUD, VPort, VEventMode;
   };
 
   checkValidKey = function(event, key) {
-    var left = event.metaKey ? "<m-" : "<";
-    if (event.ctrlKey) {
-      key = left + (event.altKey ? "c-a-" : "c-") + key + ">";
-    } else if (event.altKey) {
-      key = left + "a-" + key + ">";
-    } else if (event.metaKey || key.length > 1) {
-      key = left + key + ">";
-    }
+    key = VKeyboard.getKey(event, key);
     if (currentSeconds) {
       if (!((key in keyMap) || (key in currentSeconds))) {
         mainPort.port.postMessage({ handler: "esc" });
