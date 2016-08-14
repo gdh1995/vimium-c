@@ -104,7 +104,7 @@ commandGroups: {
     , "LinkHints.activateModeToHover", "LinkHints.activateModeToLeave", "LinkHints.unhoverLast"
     , "LinkHints.activateModeToSearchLinkText", "LinkHints.activateModeToEdit"
     , "goPrevious", "goNext", "nextFrame", "mainFrame"
-    , "enterInsertMode"
+    , "enterInsertMode", "enterVisualMode", "enterVisualLineMode"
     , "Marks.activateCreateMode", "Marks.activate"
     , "Marks.clearLocal", "Marks.clearGlobal", "openUrl", "focusOrLaunch"
     ],
@@ -157,6 +157,8 @@ defaultKeyMappings: [
   ["<a-r>", "reloadGivenTab"],
   ["<a-R>", "reopenTab"],
   ["i", "enterInsertMode"],
+  ["v", "enterVisualMode"],
+  ["V", "enterVisualLineMode"],
   ["H", "goBack"],
   ["L", "goForward"],
   ["gu", "goUp"],
@@ -252,6 +254,8 @@ availableCommands: {
   openCopiedUrlInNewTab: [ "Open the clipboard's URL in N new tab(s)", 20, true ],
   enterInsertMode: [ "Enter insert mode (use code=27, stat=0)", 1, false ],
   passNextKey: [ "Pass the next key(s) to Chrome", 0, false ],
+  enterVisualMode: [ "Enter visual mode", 1, false, { userLaunchedMode: true } ],
+  enterVisualLineMode: [ "Enter visual line mode", 1, false, { userLaunchedMode: true, mode: "line" }, "enterVisualMode" ],
   focusInput: [ "Focus the first text box on the page. Cycle between them using tab", 0, false ],
   "LinkHints.activate": [ "Open a link in the current tab", 0, false, { mode: "OPEN_IN_CURRENT_TAB" }, "VHints.activate" ],
   "LinkHints.activateModeToOpenInNewTab": [ "Open a link in a new tab", 0, false,

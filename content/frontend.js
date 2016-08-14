@@ -315,6 +315,7 @@ var VSettings, VHUD, VPort, VEventMode;
         , axis !== "y" && !view);
     },
 
+    enterVisualMode: function(_0, options) { VVisualMode.activate(options); },
     enterInsertMode: function(_0, options) {
       var code = options.code || VKeyCodes.esc, stat = options.stat || 0, str;
       InsertMode.global = { code: code, stat: stat };
