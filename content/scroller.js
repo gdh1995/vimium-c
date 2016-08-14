@@ -95,12 +95,12 @@ Core: {
   },
   getDimension: function(el, di, name) {
     return !name ? 1
-      : (!el) ? document.documentElement[this.Properties[di][name]]
-      : (name !== "viewSize" || el !== document.body) ? el[this.Properties[di][name]]
+      : !el || name !== "viewSize" || el !== document.body
+        ? (el || document.documentElement)[this.Properties[di][name]]
       : di ? window.innerHeight : window.innerWidth;
   },
   scrollDo: function(element, di, amount, factor) {
-    amount = (amount * this.getDimension(element, di, factor) > 0) ? 1 : -1;
+    amount = amount > 0 ? 1 : -1;
     return this.Core.performScroll(element, di, amount) && this.Core.performScroll(element, di, -amount);
   },
   selectFirst: function(element) {
