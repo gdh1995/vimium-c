@@ -141,7 +141,7 @@ VScroller.Core.animate = function () {
   var amount = 0, calibration = 1.0, di = 0, duration = 0, element = null, //
   sign = 0, timestamp = -1, totalDelta = 0, totalElapsed = 0.0, //
   animate = function(newTimestamp) {
-    var int1 = timestamp, elapsed, _this;
+    var int1 = timestamp, elapsed, continuous, _this;
     timestamp = newTimestamp;
     if (int1 === -1) {
       requestAnimationFrame(animate);
@@ -150,7 +150,7 @@ VScroller.Core.animate = function () {
     elapsed = newTimestamp - int1;
     int1 = (totalElapsed += elapsed);
     _this = VScroller.Core;
-    if (VScroller.keyIsDown > 0) {
+    if (continuous = VScroller.keyIsDown > 0) {
       if (int1 >= 75) {
         if (int1 > _this.minDelay) { --VScroller.keyIsDown; }
         int1 = calibration;
@@ -159,11 +159,9 @@ VScroller.Core.animate = function () {
           calibration *= (int1 > 1.05) ? 1.05 : (int1 < 0.95) ? 0.95 : 1.0;
         }
       }
-      int1 = Math.ceil(amount * (elapsed / duration) * calibration);
-    } else {
-      int1 = Math.ceil(amount * (elapsed / duration) * calibration);
-      int1 = Math.max(0, Math.min(int1, amount - totalDelta));
     }
+    int1 = Math.ceil(amount * (elapsed / duration) * calibration);
+    int1 = continuous ? int1 : Math.max(0, Math.min(int1, amount - totalDelta));
     if (int1 && _this.performScroll(element, di, sign * int1)) {
       totalDelta += int1;
       requestAnimationFrame(animate);
