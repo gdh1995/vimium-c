@@ -57,33 +57,30 @@ Core: {
     if (VHints.tryNestedFrame("VScroller.scrollBy", arguments)) { return; }
     var element, di;
     di = direction === "y" ? 1 : 0;
-    element = this.findScrollable(this.getActivatedElement(), di, amount, factor);
+    element = this.findScrollable(this.getActivatedElement(), di, amount);
     amount *= this.getDimension(element, di, factor);
     if (zoomX && element && di === 0 && element.scrollWidth <= element.scrollHeight * 2) {
       amount = Math.ceil(amount * 0.6);
     }
     this.Core.scroll(element, di, amount);
   },
-  scrollTo: function(direction, factor) {
+  scrollTo: function(di, amount, fromMax) {
     if (VHints.tryNestedFrame("VScroller.scrollTo", arguments)) { return; }
-    var amount, element, di = direction === "y" ? 1 : 0;
-    if (factor >= 0) {
-      amount = factor;
-      factor = "";
-    } else {
-      amount = 1;
-    }
-    element = this.findScrollable(this.getActivatedElement(), di, amount, factor);
-    amount = amount * this.getDimension(element, di, factor) - (element
-      ? element[this.Properties[di].axisName] : di ? window.scrollY : window.scrollX);
+    var element = this.findScrollable(this.getActivatedElement(), di, fromMax ? 1 : -1);
+    amount = this.adjustAmount(di, amount, element);
+    amount = fromMax ? this.getDimension(element, di, "max") - amount : amount;
+    amount -= element ? element[this.Properties[di].axisName] : di ? window.scrollY : window.scrollX;
     this.Core.scroll(element, di, amount);
   },
-  findScrollable: function(element, di, amount, factor) {
-    while (element !== document.body && !(this.scrollDo(element, di, amount, factor)
-        && this.shouldScroll(element, di))) {
-      element = element.parentElement
-        || (element.parentNode && element.parentNode.host)
-        || document.body;
+  adjustAmount: function(di, amount, element) {
+    amount *= VSettings.cache.scrollStepSize;
+    return amount && !di && element && element.scrollWidth <= element.scrollHeight * 2
+      ? Math.ceil(amount * 0.6) : amount;
+  },
+  findScrollable: function(element, di, amount) {
+    amount = amount > 0 ? 1 : -1;
+    while (element !== document.body && !(this.scrollDo(element, di, amount) && this.shouldScroll(element, di))) {
+      element = element.parentElement || (element.parentNode && element.parentNode.host) || document.body;
     }
     return element === document.body ? this.selectFirst(element) : element;
   },
@@ -99,12 +96,11 @@ Core: {
         ? (el || document.documentElement)[this.Properties[di][name]]
       : di ? window.innerHeight : window.innerWidth;
   },
-  scrollDo: function(element, di, amount, factor) {
-    amount = amount > 0 ? 1 : -1;
+  scrollDo: function(element, di, amount) {
     return this.Core.performScroll(element, di, amount) && this.Core.performScroll(element, di, -amount);
   },
   selectFirst: function(element) {
-    if (this.scrollDo(element, 1, 1, "") || this.scrollDo(element, 1, -1, "")) {
+    if (this.scrollDo(element, 1, 1) || this.scrollDo(element, 1, -1)) {
       return element;
     }
     VDom.prepareCrop();
@@ -133,7 +129,7 @@ Core: {
     amount = rect.bottom < 0 ? rect.bottom - Math.min(rect.height, height)
       : height < rect.top ? rect.top + Math.min(rect.height, height, 0) : 0;
     if (amount) {
-      this.Core.scroll(this.findScrollable(el, 1, amount, 1), 1, amount);
+      this.Core.scroll(this.findScrollable(el, 1, amount), 1, amount);
       VScroller.keyIsDown = 0;
     }
     hasY = amount;
@@ -142,7 +138,7 @@ Core: {
     if (!amount) { return; }
     oldSmooth = VSettings.cache.smoothScroll;
     VSettings.cache.smoothScroll = !hasY;
-    el = this.findScrollable(el, 0, amount, 1);
+    el = this.findScrollable(el, 0, amount);
     this.Core.scroll(el, 0, amount);
     VSettings.cache.smoothScroll = oldSmooth;
     VScroller.keyIsDown = 0;
@@ -152,7 +148,7 @@ Core: {
     return VDom.isStyleVisible(st) && (di ? st.overflowY : st.overflowX) !== "hidden";
   },
   isScrollable: function(el, di) {
-    return this.scrollDo(el, di, (di ? el.scrollTop : el.scrollLeft) > 0 ? -1 : 1, "") && this.shouldScroll(el, di);
+    return this.scrollDo(el, di, (di ? el.scrollTop : el.scrollLeft) > 0 ? -1 : 1) && this.shouldScroll(el, di);
   },
   sortBy0: function(a, b) {
     return a[0] - b[0];

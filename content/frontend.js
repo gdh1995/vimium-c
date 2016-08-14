@@ -301,9 +301,7 @@ var VSettings, VHUD, VPort, VEventMode;
     },
     scrollTo: function(count, options) {
       VMarks.setPreviousPosition();
-      var axis = options.axis || "y", dest = options.dest ||
-          (axis === "y" ? (count - 1) * settings.cache.scrollStepSize : 0);
-      VScroller.scrollTo(axis, dest);
+      VScroller.scrollTo(options.axis === "x" ? 0 : 1, count - 1, options.dest === "max");
     },
     scrollBy: function(count, options) {
       var axis = options.axis || "y", dir = options.dir || 1,
