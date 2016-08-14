@@ -288,12 +288,12 @@ var VHints = {
       rect = element.getClientRects()[0];
       if (rect) {
         w = rect.left; h = rect.top;
-        cr = VRect.cropRectToVisible(w, h, w + 8, h + 8);
+        cr = VRect.cropRectToVisible(w, h, w + 8, h + 8, 3);
       }
     } else if (rect = element.getClientRects()[0]) {
       w = rect.right + (rect.width < 3 ? 3 : 0);
       h = rect.bottom + (rect.height < 3 ? 3 : 0);
-      if (cr = VRect.cropRectToVisible(rect.left, rect.top, w, h)) {
+      if (cr = VRect.cropRectToVisible(rect.left, rect.top, w, h, 3)) {
         if (!VDom.isStyleVisible(window.getComputedStyle(element))) {
           cr = null;
         }
