@@ -317,11 +317,11 @@ var VSettings, VHUD, VPort, VEventMode;
 
     enterVisualMode: function(_0, options) { VVisualMode.activate(options); },
     enterInsertMode: function(_0, options) {
-      var code = options.code || VKeyCodes.esc, stat = options.stat || 0, str;
+      var code = options.code || VKeyCodes.esc, stat = options.stat, str;
       InsertMode.global = { code: code, stat: stat };
-      if (settings.cache.hideHud) { return; }
+      if (options.hideHud) { return; }
       str = "Insert mode";
-      if (options.code || options.stat >= 0) {
+      if (code !== VKeyCodes.esc || stat > 0) {
         str += ": " + (VKeyboard.keyNames[code] || code) + "/" + stat;
       }
       HUD.show(str);
@@ -350,8 +350,7 @@ var VSettings, VHUD, VPort, VEventMode;
       onKeyup2({keyCode: 0});
     },
     goNext: function(_0, options) {
-      var dir = options.dir;
-      Pagination.goBy(dir || "next", settings.cache[dir === "prev" ? "previousPatterns" : "nextPatterns"]);
+      Pagination.goBy(options.dir, options.patterns);
     },
     reload: function(url) {
       setTimeout(function() {

@@ -983,6 +983,25 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
       Clipboard.copy(str);
       cPort.postMessage({name: "showCopied", text: str});
     },
+    goNext: function() {
+      var dir = cOptions.dir || "next", defaultPatterns;
+      defaultPatterns = Settings.get(dir === "prev" ? "previousPatterns" : "nextPatterns", true);
+      cPort.postMessage({ name: "execute", count: 1, command: "goNext",
+        options: {
+          dir: dir,
+          patterns: cOptions.patterns || defaultPatterns
+        }
+      });
+    },
+    enterInsertMode: function() {
+      var hideHud = cOptions.hideHud;;
+      cPort.postMessage({ name: "execute", count: 1, command: "enterInsertMode",
+        options: {
+          code: cOptions.code, stat: cOptions.stat | 0,
+          hideHud: hideHud != null ? hideHud : Settings.get("hideHud", true)
+        }
+      });
+    },
     performFind: function() {
       var query = cOptions.active ? null : FindModeHistory.query(cPort.sender.tab.incognito);
       cPort.postMessage({
@@ -1633,7 +1652,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
     ref = ["createTab", "restoreTab", "restoreGivenTab", "blank", "duplicateTab" //
       , "moveTabToNewWindow", "reloadGivenTab", "openUrl", "nextFrame", "mainFrame" //
       , "moveTabToIncognito", "openCopiedUrlInCurrentTab", "clearGlobalMarks" //
-      , "performFind" //
+      , "goNext", "enterInsertMode", "performFind" //
     ];
     for (i = ref.length; 0 <= --i; ) {
       ref2[ref[i]].useTab = -1;
