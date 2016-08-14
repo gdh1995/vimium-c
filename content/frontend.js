@@ -619,7 +619,7 @@ var VSettings, VHUD, VPort, VEventMode;
         options = { axis: (keyCode & 1) && "x", view: +ctrl, dir: -(keyCode < VKeyCodes.left + 2) };
       } else if (ctrl) { return; }
       else if (keyCode > VKeyCodes.pageup + 1) {
-        return Commands.scrollTo(1, { dest: keyCode & 1 && "max" });
+        return Commands.scrollTo(1, { dest: (keyCode & 1) && "max" });
       } else {
         options = { view: "viewSize", dir: keyCode === VKeyCodes.pageup ? -0.5 : 0.5 };
       }
@@ -648,7 +648,7 @@ var VSettings, VHUD, VPort, VEventMode;
     }
     linkElement.scrollIntoViewIfNeeded();
     VDom.UI.flashVRect(VDom.UI.getVRect(linkElement));
-    VDom.simulateClick(linkElement);
+    setTimeout(function() { VDom.simulateClick(linkElement); }, 0);
   },
   goBy: function(relName, pattern) {
     if (relName && typeof relName === "string" && this.findAndFollowRel(relName)) {

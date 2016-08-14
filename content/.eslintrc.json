@@ -14,6 +14,7 @@
         "VUtils": false,
         "VEventMode": false,
         "VFindMode": false,
+        "VVisualMode": false,
         "VHUD": false,
         "VRect": false,
         "VSettings": false,

@@ -993,7 +993,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
       });
     },
     enterInsertMode: function() {
-      var hideHud = cOptions.hideHud;;
+      var hideHud = cOptions.hideHud;
       cPort.postMessage({ name: "execute", count: 1, command: "enterInsertMode",
         options: {
           code: cOptions.code, stat: cOptions.stat | 0,
