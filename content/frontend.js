@@ -304,13 +304,7 @@ var VSettings, VHUD, VPort, VEventMode;
       VScroller.scrollTo(options.axis === "x" ? 0 : 1, count - 1, options.dest === "max");
     },
     scrollBy: function(count, options) {
-      var axis = options.axis || "y", dir = options.dir || 1,
-        view = options.view;
-      if (!view) {
-        dir *= settings.cache.scrollStepSize;
-      }
-      VScroller.scrollBy(axis, dir * count, typeof view === "string" ? view : ""
-        , axis !== "y" && !view);
+      VScroller.scrollBy(options.axis === "x" ? 0 : 1, (options.dir || 1) * count, options.view);
     },
 
     enterVisualMode: function(_0, options) { VVisualMode.activate(options); },
@@ -615,13 +609,13 @@ var VSettings, VHUD, VPort, VEventMode;
       ctrl = event.ctrlKey || event.metaKey;
       if (keyCode >= VKeyCodes.left) {
         options = { axis: (keyCode & 1) && "x", view: +ctrl, dir: -(keyCode < VKeyCodes.left + 2) };
+        VScroller.scrollBy(1 - (keyCode & 1), keyCode < VKeyCodes.left + 2 ? -1 : 1, +ctrl);
       } else if (ctrl) { return; }
       else if (keyCode > VKeyCodes.pageup + 1) {
-        return Commands.scrollTo(1, { dest: (keyCode & 1) && "max" });
+        Commands.scrollTo(1, { dest: (keyCode & 1) && "max" });
       } else {
-        options = { view: "viewSize", dir: keyCode === VKeyCodes.pageup ? -0.5 : 0.5 };
+        VScroller.scrollBy(1, keyCode === VKeyCodes.pageup ? -0.5 : 0.5, "viewSize");
       }
-      Commands.scrollBy(1, options);
     },
     setupSuppress: function(onExit) {
       InsertMode.suppressType = window.getSelection().type;

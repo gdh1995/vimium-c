@@ -53,15 +53,12 @@ Core: {
     max: "scrollHeight",
     viewSize: "clientHeight"
   }],
-  scrollBy: function(direction, amount, factor, zoomX) {
+  scrollBy: function(di, amount, factor) {
     if (VHints.tryNestedFrame("VScroller.scrollBy", arguments)) { return; }
-    var element, di;
-    di = direction === "y" ? 1 : 0;
-    element = this.findScrollable(this.getActivatedElement(), di, amount);
-    amount *= this.getDimension(element, di, factor);
-    if (zoomX && element && di === 0 && element.scrollWidth <= element.scrollHeight * 2) {
-      amount = Math.ceil(amount * 0.6);
-    }
+    var element = this.findScrollable(this.getActivatedElement(), di, amount);
+    amount = !factor ? this.adjustAmount(di, amount, element)
+      : factor === 1 ? (amount > 0 ? Math.ceil : Math.floor)(amount)
+      : amount * this.getDimension(element, di, factor);
     this.Core.scroll(element, di, amount);
   },
   scrollTo: function(di, amount, fromMax) {
@@ -91,8 +88,7 @@ Core: {
     return this.current = element && (this.selectFirst(element) || element);
   },
   getDimension: function(el, di, name) {
-    return !name ? 1
-      : !el || name !== "viewSize" || el !== document.body
+    return !el || name !== "viewSize" || el !== document.body
         ? (el || document.documentElement)[this.Properties[di][name]]
       : di ? window.innerHeight : window.innerWidth;
   },

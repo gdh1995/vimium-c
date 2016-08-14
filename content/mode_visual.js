@@ -335,8 +335,8 @@ keyMap: {
     VVisualMode.activate({ mode: "caret", extend: false });
   },
   o: function() { this.movement.reverseSelection(); },
-  "<c-e>": function(count) { VScroller.scrollBy("y", count * VSettings.cache.scrollStepSize, ""); },
-  "<c-y>": function(count) { VScroller.scrollBy("y", -count * VSettings.cache.scrollStepSize, ""); },
+  "<c-e>": function(count) { VScroller.scrollBy(1, count); },
+  "<c-y>": function(count) { VScroller.scrollBy(1, -count); },
 },
 
 init: function() {
