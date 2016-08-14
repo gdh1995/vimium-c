@@ -256,7 +256,6 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
     init: function() {
       var str = Settings.get(this.key);
       this.list = str ? str.split("\n") : [];
-      Settings.get("regexFindMode", true);
       this.init = null;
     },
     initI: function() {
@@ -1008,7 +1007,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
         name: "performFind",
         count: commandCount,
         dir: cOptions.dir,
-        isRegex: Settings.cache.regexFindMode,
+        isRegex: Settings.get("regexFindMode", true),
         query: query
       });
     },
