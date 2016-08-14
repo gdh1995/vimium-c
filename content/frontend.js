@@ -1037,6 +1037,7 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
     ELs.hook(f);
     f("mousedown", InsertMode.ExitGrab, true);
     f("keypress", Vomnibar.OnKeypress, true);
+    f("click", VVisualMode.OnClick, true);
     VFindMode.postMode.exit();
     VFindMode.toggleStyle("remove");
     (el = VDom.UI.box) && el.remove();
@@ -1044,7 +1045,7 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
 
     VUtils = VKeyCodes = VKeyboard = VDom = VRect = VHandler = //
     VHints = Vomnibar = VScroller = VMarks = VFindMode = //
-    VSettings = VHUD = VPort = VEventMode = null;
+    VSettings = VHUD = VPort = VEventMode = VVisualMode = null;
 
     console.log("%cVimium++%c in %c%s%c has destroyed at %o."
       , "color:red", "color:auto", "color:darkred"

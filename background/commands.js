@@ -202,7 +202,7 @@ defaultKeyMappings: [
   ["<F1>", "switchFocus"],
   ["<f2>", "switchFocus"],
   ["m", "Marks.activateCreateMode"],
-  ["`", "Marks.activate"],
+  ["`", "Marks.activate"]
 ],
 
 availableCommands: {
