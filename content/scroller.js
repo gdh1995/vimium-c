@@ -125,6 +125,28 @@ Core: {
     }
     return null;
   },
+  scrollIntoView: function(el) {
+    this.getActivatedElement();
+    var rect = el.getClientRects()[0], amount, height, width, hasY, oldSmooth;
+    if (!rect) { return; }
+    height = window.innerHeight, width = window.innerWidth;
+    amount = rect.bottom < 0 ? rect.bottom - Math.min(rect.height, height)
+      : height < rect.top ? rect.top + Math.min(rect.height, height, 0) : 0;
+    if (amount) {
+      this.Core.scroll(this.findScrollable(el, 1, amount, 1), 1, amount);
+      VScroller.keyIsDown = 0;
+    }
+    hasY = amount;
+    amount = rect.right < 0 ? rect.right - Math.min(rect.width, width)
+      : width < rect.left ? rect.left + Math.min(rect.width - width, 0) : 0;
+    if (!amount) { return; }
+    oldSmooth = VSettings.cache.smoothScroll;
+    VSettings.cache.smoothScroll = !hasY;
+    el = this.findScrollable(el, 0, amount, 1);
+    this.Core.scroll(el, 0, amount);
+    VSettings.cache.smoothScroll = oldSmooth;
+    VScroller.keyIsDown = 0;
+  },
   shouldScroll: function(element, di) {
     var st = window.getComputedStyle(element);
     return VDom.isStyleVisible(st) && (di ? st.overflowY : st.overflowX) !== "hidden";
