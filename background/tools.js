@@ -9,7 +9,7 @@ var Clipboard = {
   },
   copy: function(data) {
     var textArea = this.getTextArea();
-    textArea.value = data;
+    textArea.value = data.replace(Utils.A0Re, " ");;
     document.documentElement.appendChild(textArea);
     textArea.select();
     document.execCommand("copy");
@@ -24,7 +24,7 @@ var Clipboard = {
     value = textArea.value;
     textArea.remove();
     textArea.value = "";
-    return value;
+    return value.replace(Utils.A0Re, " ");
   }
 },
 Marks = { // NOTE: all members should be static

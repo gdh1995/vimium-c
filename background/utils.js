@@ -62,6 +62,7 @@ var exports = {}, Utils = {
   _ipRe: /^(?:\d{1,3}\.){3}\d{1,3}$/,
   lfRe: /[\r\n]+/g,
   spacesRe: /\s+/g,
+  A0Re: /\xa0/g,
   _nonENTldRe: /[^a-z]/,
   _nonProtocolRe: /[^0-9a-z\-]/,
   _nonENDoaminRe: /[^.0-9a-z\-]|^-/,
@@ -76,7 +77,7 @@ var exports = {}, Utils = {
         string = this.DecodeURLPart(string);
       }
       this.lastUrlType = 0;
-      return string;
+      return string.replace(this.A0Re, ' ');
     }
     var type = -1, expected = 1, index, index2, oldString, arr;
     // NOTE: here '\u3000' is changed to ' ', which may cause a 404 (for url),

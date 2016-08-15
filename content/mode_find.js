@@ -18,6 +18,7 @@ var VFindMode = {
   countEl: null,
   styleIn: null,
   options: null,
+  A0Re: /\xa0/g,
   cssSel: "::selection{background:#ff9632;}",
   cssOut: ".vimiumFindMode body{-webkit-user-select:auto !important;}\n.vimiumFindMode ",
   cssIFrame: '*{font:normal normal normal 12px Helvetica,Arial,sans-serif !important;\
@@ -216,7 +217,7 @@ body{cursor:text;display:inline-block;padding:0 3px 0 1px;min-width:7px;}body *{
     }
   },
   onInput: function() {
-    var query = this.input.textContent.replace('\xa0', " ");
+    var query = this.input.textContent.replace(this.A0Re, " ");
     this.checkReturnToViewPort();
     this.updateQuery(query);
     this.restoreSelection();
