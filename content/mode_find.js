@@ -143,10 +143,11 @@ body{cursor:text;display:inline-block;padding:0 3px 0 1px;min-width:7px;}body *{
     if (!i) { return; }
     var hasStyle = !!this.styleIn.parentNode;
     el = this.deactivate();
-    if ((i === 3 || !this.hasResults) && hasStyle) {
+    if ((i === 3 || !this.hasResults || VVisualMode.mode) && hasStyle) {
       this.toggleStyle("remove");
       this.restoreSelection(true);
     }
+    if (VVisualMode.mode) { return VVisualMode.activate(); }
     if (i < 2 || !this.hasResults) { return; }
     if (!el || el !== VEventMode.lock()) {
       el = window.getSelection().anchorNode;

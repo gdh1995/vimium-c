@@ -321,7 +321,8 @@ keyMap: {
   n: function(count) { this.find(count, 1); },
   N: function(count) { this.find(count, 0); },
   "/": function() {
-    this.hud = ""; VHUD.hide();
+    clearTimeout(this.hudTimer);
+    VHUD.hide();
     VFindMode.activate({ returnToViewport: true });
   },
   y: function() { this.yank(); },
