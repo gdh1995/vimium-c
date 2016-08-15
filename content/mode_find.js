@@ -207,7 +207,7 @@ body{cursor:text;display:inline-block;padding:0 3px 0 1px;min-width:7px;}body *{
       return 2 * exit;
     },
     exit: function(skip) {
-      if (skip instanceof Event && skip.isTrusted === false) { return; }
+      if (skip instanceof MouseEvent && skip.isTrusted === false) { return; }
       this.lock && this.lock.removeEventListener("blur", this.exit, true);
       if (!this.lock || skip === true) { return; }
       this.lock = null;
@@ -294,12 +294,12 @@ body{cursor:text;display:inline-block;padding:0 3px 0 1px;min-width:7px;}body *{
   getCurrentRange: function() {
     var sel = window.getSelection(), range;
     if (sel.type == "None") {
-      range = this.initialRange = document.createRange();
+      this.initialRange = range = document.createRange();
       range.setStart(document.body, 0);
       range.setEnd(document.body, 0);
     } else {
       sel.type == "Range" && sel.collapseToStart();
-      this.initialRange = sel.getRangeAt(0);
+      this.initialRange = sel.getRangeAt(0).cloneRange();
     }
   }
 };

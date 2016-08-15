@@ -171,7 +171,7 @@ var VSettings, VHUD, VPort, VEventMode;
       if (!isEnabledForUrl || event.isTrusted === false) { return; }
       VScroller.keyIsDown = 0;
       if (InsertMode.suppressType && window.getSelection().type !== InsertMode.suppressType) {
-        InsertMode.exitSuppress();
+        VEventMode.exitSuppress();
       }
       if (KeydownEvents[event.keyCode]) {
         KeydownEvents[event.keyCode] = 0;
@@ -1032,7 +1032,7 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
     f("mousedown", InsertMode.ExitGrab, true);
     f("keypress", Vomnibar.OnKeypress, true);
     f("click", VVisualMode.OnClick, true);
-    VFindMode.postMode.exit();
+    VEventMode.exitSuppress();
     VFindMode.toggleStyle("remove");
     (el = VDom.UI.box) && el.remove();
     (f = settings.onDestroy) && f();
