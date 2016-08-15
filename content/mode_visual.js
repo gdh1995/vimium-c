@@ -33,6 +33,7 @@ var VVisualMode = {
         mode = "caret";
       }
     }
+    this.hudTimer && clearTimeout(this.hudTimer);
     VHUD.show(this.hud = mode[0].toUpperCase() + mode.substring(1) + " mode");
     if (mode !== this.mode) {
       this.mode = mode;
@@ -155,9 +156,9 @@ var VVisualMode = {
     this.hudTimer = setTimeout(this.ResetHUD, duration);
   },
   ResetHUD: function() {
-    var s = VVisualMode.hud;
-    VVisualMode.hudTimer = 0;
-    s ? VHUD.show(s) : VHUD.hide();
+    var _this = VVisualMode;
+    _this.hudTimer = 0;
+    _this.hud ? VHUD.show(_this.hud) : _this.mode ? VHUD.hide() : "";
   },
   find: function(count, direction) {
     if (!VFindMode.query) {
