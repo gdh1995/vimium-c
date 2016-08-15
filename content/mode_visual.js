@@ -206,36 +206,29 @@ movement: {
     if (beforeText.length > 0 && !this.getDirection()) {
       return beforeText[0];
     }
-    this.selection.modify("extend", this.D[1], this.G[0]);
+    this.selection.modify("extend", "forward", this.G[0]);
     afterText = this.selection.toString();
     if (beforeText !== afterText) {
       this.selection.modify("extend", this.D[0], this.G[0]);
       return afterText[afterText.length - 1];
     }
   },
-  nextCharacterIsWordCharacter: function() {
-    return this.wordRe.test(this.getNextForwardCharacter());
-  },
   runMovement: function(direction, granularity) {
-    if (granularity === 5 && direction) {
-      while (this.nextCharacterIsWordCharacter()) {
-        if (!this.moveByChar()) { return; }
-      }
-      while (this.getNextForwardCharacter() && !this.nextCharacterIsWordCharacter()) {
-        if (!this.moveByChar()) { return; }
-      }
-    } else if (granularity === 5) {
-      this.selection.modify(this.alterMethod, "backward", "word");
-    } else if (granularity === 6 && direction) {
-      while (this.getNextForwardCharacter() && !this.nextCharacterIsWordCharacter()) {
-        if (!this.moveByChar()) { return; }
-      }
-      while (this.nextCharacterIsWordCharacter()) {
-        if (!this.moveByChar()) { return; }
-      }
-    } else {
-      this.selection.modify(this.alterMethod, this.D[direction], this.G[granularity]);
+    if (granularity === 5 || granularity === 6) {
+      if (direction) { return this.moveForwardByWord(granularity === 5); }
+      granularity = 6;
     }
+    this.selection.modify(this.alterMethod, this.D[direction], this.G[granularity]);
+  },
+  moveForwardByWord: function(vimLike) {
+    var str;
+    while ((str = this.getNextForwardCharacter()) && vimLike === this.wordRe.test(str)) {
+      if (this.moveByChar()) { return; }
+    }
+    if (!str) { return; }
+    do {
+      if (this.moveByChar()) { return; }
+    } while ((str = this.getNextForwardCharacter()) && vimLike !== this.wordRe.test(str));
   },
   hashSelection: function() {
     var range = this.selection.getRangeAt(0);
@@ -247,7 +240,7 @@ movement: {
   moveByChar: function() {
     var before = this.hashSelection();
     this.selection.modify(this.alterMethod, "forward", this.G[0]);
-    return this.hashSelection() !== before;
+    return this.hashSelection() === before;
   },
   reverseSelection: function() {
     var el = VEventMode.lock(), direction = this.getDirection(), str, length, original, range;
