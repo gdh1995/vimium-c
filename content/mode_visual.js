@@ -219,6 +219,7 @@ movement: {
       isMove && this.selection.modify("extend", this.D[0], this.G[0]);
       return afterText[afterText.length - 1];
     }
+    this.noExtend = false;
   },
   runMovement: function(direction, granularity) {
     if (granularity === 5 || granularity === 6) {
@@ -233,7 +234,6 @@ movement: {
     while ((ch = this.getNextForwardCharacter(isMove)) && vimLike === this.wordRe.test(ch)) {
       if (this.noExtend && this.moveByChar(isMove)) { return; }
     }
-    if (!ch) { return; }
     do {
       if (this.noExtend && this.moveByChar(isMove)) { return; }
     } while ((ch = this.getNextForwardCharacter(isMove)) && vimLike !== this.wordRe.test(ch));
