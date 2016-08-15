@@ -602,13 +602,12 @@ var VSettings, VHUD, VPort, VEventMode;
     onWndBlur: function(f) { ELs.OnWndBlur = f; },
     on: function(name) { return ELs["On" + name]; },
     scroll: function(event) {
-      var options, keyCode, ctrl;
+      var keyCode, ctrl;
       if (!event || event.shiftKey || event.altKey) { return; }
       keyCode = event.keyCode;
       if (!(keyCode >= VKeyCodes.pageup && keyCode <= VKeyCodes.down)) { return; }
       ctrl = event.ctrlKey || event.metaKey;
       if (keyCode >= VKeyCodes.left) {
-        options = { axis: (keyCode & 1) && "x", view: +ctrl, dir: -(keyCode < VKeyCodes.left + 2) };
         VScroller.scrollBy(1 - (keyCode & 1), keyCode < VKeyCodes.left + 2 ? -1 : 1, +ctrl);
       } else if (ctrl) { return; }
       else if (keyCode > VKeyCodes.pageup + 1) {

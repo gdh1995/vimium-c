@@ -9,7 +9,7 @@ var Clipboard = {
   },
   copy: function(data) {
     var textArea = this.getTextArea();
-    textArea.value = data.replace(Utils.A0Re, " ");;
+    textArea.value = data.replace(Utils.A0Re, " ");
     document.documentElement.appendChild(textArea);
     textArea.select();
     document.execCommand("copy");
