@@ -328,6 +328,7 @@ keyMap: {
   y: function() { this.yank(); },
   Y: function(count) { this.movement.selectLine(count); this.yank(); },
   "<c-Y>": function() { this.yank(null, false); },
+  C: function() { this.yank(null, false); },
   p: function() { this.yank(0); },
   P: function() { this.yank(-1); },
   v: function() { VVisualMode.activate(); },
