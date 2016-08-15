@@ -182,15 +182,15 @@ var VVisualMode = {
       this.activate();
     }
   },
-  yank: function(action) {
+  yank: function(action, exit) {
     var str = this.selection.toString();
-    this.deactivate();
+    exit !== false && this.deactivate();
     if (action != null) {
       VPort.port.postMessage({ handler: "openUrl", url: str, reuse: action });
       return;
     }
     VPort.port.postMessage({ handler: "copyToClipboard", data: str });
-    VHUD.showCopied(str);
+    exit !== false ? VHUD.showCopied(str) : this.prompt(VHUD.showCopied(str, "", true), 2000);
   },
 
 movement: {
@@ -325,6 +325,7 @@ keyMap: {
   },
   y: function() { this.yank(); },
   Y: function(count) { this.movement.selectLine(count); this.yank(); },
+  "<c-Y>": function() { this.yank(null, false); },
   p: function() { this.yank(0); },
   P: function() { this.yank(-1); },
   v: function() { VVisualMode.activate(); },

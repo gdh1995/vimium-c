@@ -786,8 +786,9 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
     box: null,
     opacity: 0,
     durationTimer: 0,
-    showCopied: function(text, e) {
+    showCopied: function(text, e, virtual) {
       if (!text) {
+        if (virtual) { return text; }
         this.showForDuration("No " + (e || "text") + " found!", 1000);
         return;
       }
@@ -797,7 +798,9 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
       if (text.length > 43) {
         text = text.substring(0, 40) + "...";
       }
-      this.showForDuration("copy: " + text, 2000);
+      text = "copy: " + text;
+      if (virtual) { return text; }
+      this.showForDuration(text, 2000);
     },
     showForDuration: function(text, duration) {
       this.show(text);
