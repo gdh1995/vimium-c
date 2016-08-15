@@ -69,6 +69,7 @@ var exports = {}, Utils = {
   filePathRe: /^['"]?((?:[A-Za-z]:[\\/]|\/(?:Users|home|root)\/)[^'"]*)['"]?$/,
   lastUrlType: 0,
   convertToUrl: function(string, keyword, vimiumUrlWork) {
+    string = string.trim();
     if (string.charCodeAt(10) === 58 && string.substring(0, 11).toLowerCase() === "javascript:") {
       if (Settings.CONST.ChromeVersion < 46 && string.indexOf('%', 11) > 0
           && !this._jsNotEscapeRe.test(string)) {
@@ -82,7 +83,7 @@ var exports = {}, Utils = {
     //       but usually a url should not include such a *mistake* character
     // NOTE: here a mulit-line string is be changed to single-line,
     //       which may be better
-    oldString = string.trim().replace(this.lfRe, '').replace(this.spacesRe, ' ');
+    oldString = string.replace(this.lfRe, '').replace(this.spacesRe, ' ');
     string = oldString.toLowerCase();
     if ((index = string.indexOf(' ')) > 0) {
       string = string.substring(0, index);
