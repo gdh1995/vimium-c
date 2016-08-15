@@ -115,7 +115,9 @@ var VVisualMode = {
   commandHandler: function(command, count) {
     this.mode === "caret" && this.movement.collapseSelectionTo(0);
     if (command >= 0) {
-      this.movement.runMovement(command & 1, command >>> 1);
+      while (0 < count--) {
+        this.movement.runMovement(command & 1, command >>> 1);
+      }
     } else {
       command.call(this, count);
     }
