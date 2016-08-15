@@ -93,7 +93,7 @@ var VVisualMode = {
       this.resetKeys();
     }
     if (obj != null) {}
-    else if (key.length === 1 && (i = +key[0]) < 10 && (i || this.currentSeconds)) {
+    else if (key.length === 1 && (i = +key[0]) < 10 && (i || this.currentCount)) {
       this.currentCount = this.currentCount * 10 + i;
       this.currentSeconds = null;
     } else if ((obj = this.keyMap[key]) == null) {
