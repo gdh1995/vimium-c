@@ -73,7 +73,7 @@ var VVisualMode = {
   },
   onKeydown: function(event) {
     var i = event.keyCode, count, key, obj;
-    if (i >= VKeyCodes.f1 && i <= VKeyCodes.f12) { return i === VKeyCodes.f1 ? 2 : 1; }
+    if (i >= VKeyCodes.f1 && i <= VKeyCodes.f12) { return i === VKeyCodes.f1 ? 2 : 0; }
     if (i === VKeyCodes.enter) {
       this.shouldRetainSelectionOnExit = true;
       this.deactivate();
