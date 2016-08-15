@@ -201,11 +201,13 @@ movement: {
   G: ["character", "line", "lineboundary", /*3*/ "paragraph", "sentence", "vimword", /*6*/ "word",
       "documentboundary"],
   alterMethod: "",
+  diOld: 0,
+  diNew: 0,
   selection: null,
   wordRe: null,
   getNextForwardCharacter: function() {
     var afterText, beforeText = this.selection.toString();
-    if (beforeText.length > 0 && !this.getDirection()) {
+    if (beforeText.length > 0 && !this.getDirection(true)) {
       return beforeText[0];
     }
     this.selection.modify("extend", "forward", this.G[0]);
@@ -267,12 +269,13 @@ movement: {
     this.selection.modify("extend", this.D[direction], this.G[0]);
     return this.selection.toString().length - length;
   },
-  getDirection: function() {
+  getDirection: function(cache) {
     var di = 1, change;
+    if (cache && this.diOld === this.diNew) { return this.diOld; }
     if (change = this.extendByOneCharacter(di) || this.extendByOneCharacter(di = 0)) {
       this.extendByOneCharacter(1 - di);
     }
-    return change > 0 ? di : change < 0 ? 1 - di : 1;
+    return this.diOld = change > 0 ? di : change < 0 ? 1 - di : 1;
   },
   collapseSelectionTo: function(direction) {
     this.selection.toString().length <= 0 ? 0
@@ -297,6 +300,7 @@ movement: {
     this.reverseSelection();
     while (0 < --count) { this.runMovement(1, 1); }
     this.runMovement(1, 2);
+    this.diOld = this.diNew = 1;
     this.getNextForwardCharacter() === "\n" && this.runMovement(1, this.G[0]);
   },
   scrollIntoView: function() {
