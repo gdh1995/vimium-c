@@ -203,17 +203,20 @@ movement: {
   alterMethod: "",
   diOld: 0,
   diNew: 0,
+  extendAtEnd: false,
   selection: null,
   wordRe: null,
-  getNextForwardCharacter: function() {
+  getNextForwardCharacter: function(isMove) {
     var afterText, beforeText = this.selection.toString();
     if (beforeText.length > 0 && !this.getDirection(true)) {
+      this.noExtend = true;
       return beforeText[0];
     }
     this.selection.modify("extend", "forward", this.G[0]);
     afterText = this.selection.toString();
-    if (beforeText !== afterText) {
-      this.selection.modify("extend", this.D[0], this.G[0]);
+    if (afterText.length !== beforeText.length || beforeText !== afterText) {
+      this.noExtend = isMove;
+      isMove && this.selection.modify("extend", this.D[0], this.G[0]);
       return afterText[afterText.length - 1];
     }
   },
@@ -225,14 +228,16 @@ movement: {
     this.selection.modify(this.alterMethod, this.D[direction], this.G[granularity]);
   },
   moveForwardByWord: function(vimLike) {
-    var str;
-    while ((str = this.getNextForwardCharacter()) && vimLike === this.wordRe.test(str)) {
-      if (this.moveByChar()) { return; }
+    var ch, isMove = this.alterMethod !== "extend";
+    this.diNew = 1; this.getDirection();
+    while ((ch = this.getNextForwardCharacter(isMove)) && vimLike === this.wordRe.test(ch)) {
+      if (this.noExtend && this.moveByChar(isMove)) { return; }
     }
-    if (!str) { return; }
+    if (!ch) { return; }
     do {
-      if (this.moveByChar()) { return; }
-    } while ((str = this.getNextForwardCharacter()) && vimLike !== this.wordRe.test(str));
+      if (this.noExtend && this.moveByChar(isMove)) { return; }
+    } while ((ch = this.getNextForwardCharacter(isMove)) && vimLike !== this.wordRe.test(ch));
+    ch && !this.noExtend && this.selection.modify("extend", this.D[0], this.G[0]);
   },
   hashSelection: function() {
     var range = this.selection.getRangeAt(0);
@@ -241,10 +246,10 @@ movement: {
       this.selection.extentOffset, this.selection.baseOffset
     ].join("/");
   },
-  moveByChar: function() {
-    var before = this.hashSelection();
+  moveByChar: function(isMove) {
+    var before = isMove || this.hashSelection();
     this.selection.modify(this.alterMethod, "forward", this.G[0]);
-    return this.hashSelection() === before;
+    return isMove ? false : this.hashSelection() === before;
   },
   reverseSelection: function() {
     var el = VEventMode.lock(), direction = this.getDirection(), str, length, original, range;
@@ -301,7 +306,7 @@ movement: {
     while (0 < --count) { this.runMovement(1, 1); }
     this.runMovement(1, 2);
     this.diOld = this.diNew = 1;
-    this.getNextForwardCharacter() === "\n" && this.runMovement(1, this.G[0]);
+    this.getNextForwardCharacter(false) === "\n" && this.runMovement(1, this.G[0]);
   },
   scrollIntoView: function() {
     if (this.selection.type === "None") { return; }
