@@ -134,7 +134,7 @@ var VVisualMode = {
   },
   extendToLine: function() {
     for (var di = this.movement.getDirection(), i = 2; 0 < i--; di = 1 - di) {
-      this.movement.runMovement(di, 2);
+      this.movement.modify(di, 2);
       this.movement.reverseSelection();
     }
   },
@@ -213,17 +213,23 @@ movement: {
   extendAtEnd: false,
   selection: null,
   wordRe: null,
+  extend: function(d, g) {
+    this.selection.modify("extend", this.D[d], "character");
+  },
+  modify: function(d, g) {
+    this.selection.modify(this.alterMethod, this.D[d], this.G[g]);
+  },
   getNextForwardCharacter: function(isMove) {
     var afterText, beforeText = this.selection.toString();
     if (beforeText.length > 0 && !this.getDirection(true)) {
       this.noExtend = true;
       return beforeText[0];
     }
-    this.selection.modify("extend", "forward", this.G[0]);
+    this.extend(1);
     afterText = this.selection.toString();
     if (afterText.length !== beforeText.length || beforeText !== afterText) {
       this.noExtend = isMove;
-      isMove && this.selection.modify("extend", this.D[0], this.G[0]);
+      isMove && this.extend(0);
       return afterText[afterText.length - 1];
     }
     this.noExtend = false;
@@ -233,7 +239,7 @@ movement: {
       if (direction) { return this.moveForwardByWord(granularity === 5); }
       granularity = 6;
     }
-    this.selection.modify(this.alterMethod, this.D[direction], this.G[granularity]);
+    return this.modify(direction, granularity);
   },
   moveForwardByWord: function(vimLike) {
     var ch, isMove = this.alterMethod !== "extend";
@@ -245,7 +251,7 @@ movement: {
       if (this.noExtend && this.moveByChar(isMove)) { return; }
     } while ((ch = this.getNextForwardCharacter(isMove)) && vimLike !== this.wordRe.test(ch));
     // `ch &&` is needed according to tests for command `w`
-    ch && !this.noExtend && this.selection.modify("extend", this.D[0], this.G[0]);
+    ch && !this.noExtend && this.extend(0);
   },
   hashSelection: function() {
     var range = this.selection.getRangeAt(0);
@@ -256,18 +262,15 @@ movement: {
   },
   moveByChar: function(isMove) {
     var before = isMove || this.hashSelection();
-    this.selection.modify(this.alterMethod, "forward", this.G[0]);
+    this.modify(1, 0);
     return isMove ? false : this.hashSelection() === before;
   },
   reverseSelection: function() {
     var el = VEventMode.lock(), direction = this.getDirection(), str, length, original, range;
     if (el && VDom.editableTypes[el.nodeName.toLowerCase()] > 1) {
       length = this.selection.toString().length;
-      str = this.D[1 - direction];
       this.collapseSelectionTo(1);
-      while (0 < length--) {
-        this.selection.modify(this.alterMethod, str, this.G[0]);
-      }
+      while (0 < length--) { this.modify(1 - direction, 0); }
       return;
     }
     original = this.selection.getRangeAt(0).cloneRange();
@@ -279,7 +282,7 @@ movement: {
   },
   extendByOneCharacter: function(direction) {
     var length = this.selection.toString().length;
-    this.selection.modify("extend", this.D[direction], this.G[0]);
+    this.extend(direction);
     return this.selection.toString().length - length;
   },
   getDirection: function(cache) {
@@ -301,20 +304,20 @@ movement: {
   },
   selectLexicalEntity: function(entity, count) {
     this.collapseSelectionTo(1);
-    entity === 6 && this.runMovement(1, this.G[0]);
-    this.runMovement(0, entity);
+    entity === 6 && this.modify(1, 0);
+    this.modify(0, entity);
     this.collapseSelectionTo(1);
     for (count || (count = 1); 0 < count--; ) { this.runMovement(1, entity); }
   },
   selectLine: function(count) {
     this.alterMethod = "extend";
     this.getDirection() && this.reverseSelection();
-    this.runMovement(0, 2);
+    this.modify(0, 2);
     this.reverseSelection();
-    while (0 < --count) { this.runMovement(1, 1); }
-    this.runMovement(1, 2);
+    while (0 < --count) { this.modify(1, 1); }
+    this.modify(1, 2);
     this.diOld = this.diNew = 1;
-    this.getNextForwardCharacter(false) === "\n" && this.runMovement(1, this.G[0]);
+    this.getNextForwardCharacter(false) === "\n" && this.modify(1, 0);
   },
   scrollIntoView: function() {
     if (this.selection.type === "None") { return; }
