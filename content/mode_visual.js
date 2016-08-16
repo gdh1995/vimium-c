@@ -39,7 +39,7 @@ var VVisualMode = {
       this.mode = mode;
       this.prompt("No usable selection, entering caret mode...", 1000);
     }
-    if (mode !== "caret") { return mode === "line" && this.extendToLine(); }
+    if (mode !== "caret") { return mode === "line" && this.movement.extendToLine(); }
     this.movement.alterMethod = "move";
     if (type === "Range") {
       this.movement.collapseSelectionTo(0);
@@ -129,14 +129,7 @@ var VVisualMode = {
       command.call(this, count);
     }
     return this.mode === "caret" ? this.movement.extendByOneCharacter(1)
-    : this.mode === "line" ? this.extendToLine()
-    : 0;
-  },
-  extendToLine: function() {
-    for (var di = this.movement.getDirection(), i = 2; 0 < i--; di = 1 - di) {
-      this.movement.modify(di, 2);
-      this.movement.reverseSelection();
-    }
+    : this.mode === "line" ? this.movement.extendToLine() : 0;
   },
   establishInitialSelectionAnchor: function() {
     var nodes, node, element, eTy = Node.TEXT_NODE, str, offset, range;
@@ -219,6 +212,7 @@ movement: {
   modify: function(d, g) {
     this.selection.modify(this.alterMethod, this.D[d], this.G[g]);
   },
+  setDi: function() { return this.diNew = this.getDirection(); },
   getNextForwardCharacter: function(isMove) {
     var afterText, beforeText = this.selection.toString();
     if (beforeText.length > 0 && !this.getDirection(true)) {
@@ -266,11 +260,12 @@ movement: {
     return isMove ? false : this.hashSelection() === before;
   },
   reverseSelection: function() {
-    var el = VEventMode.lock(), direction = this.getDirection(), str, length, original, range;
+    var el = VEventMode.lock(), direction = this.getDirection(true), str, length, original, range;
     if (el && VDom.editableTypes[el.nodeName.toLowerCase()] > 1) {
       length = this.selection.toString().length;
       this.collapseSelectionTo(1);
-      while (0 < length--) { this.modify(1 - direction, 0); }
+      this.diNew = this.diOld = 1 - direction;
+      while (0 < length--) { this.modify(this.diOld, 0); }
       return;
     }
     original = this.selection.getRangeAt(0).cloneRange();
@@ -278,6 +273,7 @@ movement: {
     range.collapse(!direction);
     this.setSelectionRange(range);
     str = direction ? "start" : "end";
+    this.diNew = this.diOld = 1 - direction;
     this.selection.extend(original[str + "Container"], original[str + "Offset"]);
   },
   extendByOneCharacter: function(direction) {
@@ -311,13 +307,19 @@ movement: {
   },
   selectLine: function(count) {
     this.alterMethod = "extend";
-    this.getDirection() && this.reverseSelection();
+    this.setDi() && this.reverseSelection();
     this.modify(0, 2);
     this.reverseSelection();
     while (0 < --count) { this.modify(1, 1); }
     this.modify(1, 2);
-    this.diOld = this.diNew = 1;
     this.getNextForwardCharacter(false) === "\n" && this.modify(1, 0);
+  },
+  extendToLine: function() {
+    this.setDi();
+    for (var i = 2; 0 < i--; ) {
+      this.modify(this.diOld, 2);
+      this.reverseSelection();
+    }
   },
   scrollIntoView: function() {
     if (this.selection.type === "None") { return; }
@@ -347,7 +349,7 @@ keyMap: {
   C: function() { this.yank(null, false); },
   p: function() { this.yank(0); },
   P: function() { this.yank(-1); },
-  o: function() { this.movement.reverseSelection(); },
+  o: function() { this.movement.setDi(); this.movement.reverseSelection(); },
   "<c-e>": function(count) { VScroller.scrollBy(1, count); },
   "<c-y>": function(count) { VScroller.scrollBy(1, -count); },
 },
