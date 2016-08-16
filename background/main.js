@@ -1007,7 +1007,6 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
         name: "performFind",
         count: commandCount,
         dir: cOptions.dir,
-        isRegex: Settings.get("regexFindMode", true),
         query: query
       });
     },
@@ -1147,7 +1146,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
     setSetting: function(request) {
       var key = request.key;
       Settings.set(key, request.value);
-      if (Settings.valuesToLoad.indexOf(key) >= 0) {
+      if (key in Settings.bufferToLoad) {
         Settings.bufferToLoad[key] = Settings.cache[key];
       }
     },

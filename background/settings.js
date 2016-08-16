@@ -207,7 +207,7 @@ w|wiki:\\\n  http://www.wikipedia.org/w/index.php?search=$s Wikipedia (en-US)",
     partial: { "19": "icons/partial_19.png", "38": "icons/partial_38.png" }
   },
   valuesToLoad: ["deepHints", "grabBackFocus", "keyboard", "linkHintCharacters" //
-    , "scrollStepSize", "smoothScroll" //
+    , "regexFindMode", "scrollStepSize", "smoothScroll" //
   ],
   Sync: {
     set: function() {}

@@ -238,7 +238,7 @@ body{cursor:text;display:inline-block;padding:0 3px 0 1px;min-width:7px;}body *{
   escapeAllRe: /[$()*+.?\[\\\]\^{|}]/g,
   updateQuery: function(query) {
     this.query = query;
-    this.isRegex = this.options ? this.options.isRegex : false;
+    this.isRegex = VSettings.cache.regexFindMode;
     this.hasNoIgnoreCaseFlag = false;
     query = this.parsedQuery = query.replace(this._ctrlRe, this.FormatQuery);
     this.ignoreCase = !this.hasNoIgnoreCaseFlag && !/[A-Z]/.test(query);
