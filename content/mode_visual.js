@@ -5,18 +5,18 @@ var VVisualMode = {
   hudTimer: 0,
   currentCount: 0,
   currentSeconds: null,
-  shouldRetainSelectionOnExit: false,
+  retainSelection: false,
   activate: function(options) {
     var sel, type, rect, mode;
     Object.setPrototypeOf(options = options || {}, null);
     this.init && this.init();
-    this.mode = mode = options.mode || "visual";
     this.movement.selection = this.selection = sel = window.getSelection();
     VHandler.remove(this);
     VHandler.push(this.onKeydown, this);
     addEventListener("click", this.OnClick, true);
     type = sel.type;
-    this.shouldRetainSelectionOnExit = options.userLaunchedMode === true && type === "Range";
+    if (!this.mode) { this.retainSelection = type === "Range"; }
+    this.mode = mode = options.mode || "visual";
     if (mode !== "caret") {
       this.movement.alterMethod = options.alterMethod || "extend";
       if (type === "Caret" || type === "Range") {
@@ -57,7 +57,7 @@ var VVisualMode = {
   deactivate: function(isEsc, isClick) {
     VHandler.remove(this);
     removeEventListener("click", this.OnClick, true);
-    if (!this.shouldRetainSelectionOnExit) {
+    if (!this.retainSelection) {
       this.movement.collapseSelectionTo(isEsc && this.mode !== "caret" ? 1 : 0);
     }
     if (!isClick) {
@@ -66,6 +66,7 @@ var VVisualMode = {
     }
     VHUD.hide();
     this.mode = this.hud = "";
+    this.retainSelection = false;
     this.selection = this.movement.selection = null;
   },
   OnClick: function(event) {
@@ -75,7 +76,7 @@ var VVisualMode = {
     var i = event.keyCode, count, key, obj;
     if (i >= VKeyCodes.f1 && i <= VKeyCodes.f12) { return i === VKeyCodes.f1 ? 2 : 0; }
     if (i === VKeyCodes.enter) {
-      if (this.mode !== "caret") { this.shouldRetainSelectionOnExit = true; }
+      if (this.mode !== "caret") { this.retainSelection = true; }
       this.deactivate();
       return 2;
     }
