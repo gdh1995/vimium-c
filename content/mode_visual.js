@@ -237,6 +237,7 @@ movement: {
     do {
       if (this.noExtend && this.moveByChar(isMove)) { return; }
     } while ((ch = this.getNextForwardCharacter(isMove)) && vimLike !== this.wordRe.test(ch));
+    // `ch &&` is needed according to tests for command `w`
     ch && !this.noExtend && this.selection.modify("extend", this.D[0], this.G[0]);
   },
   hashSelection: function() {
