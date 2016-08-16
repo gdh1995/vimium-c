@@ -113,6 +113,13 @@ var VVisualMode = {
     this.currentCount = 0; this.currentSeconds = null;
   },
   commandHandler: function(command, count) {
+    if (command > 50) {
+      if (command === 53) {
+        count = this.mode !== "caret" && this.selection.toString().length > 1;
+        this.movement.collapseSelectionTo(+count);
+      }
+      return this.activate({ mode: ["visual", "line", "caret"][command - 51] });
+    }
     this.mode === "caret" && this.movement.collapseSelectionTo(0);
     if (command >= 0) {
       while (0 < count--) {
@@ -319,6 +326,7 @@ movement: {
 keyMap: {
   l: 1, h: 0, j: 3, k: 2, e: 13, b: 12, w: 11, ")": 9, "(": 8, "}": 7, "{": 6,
   0: 4, $: 5, G: 15, g: { g: 14 }, B: 12, W: 11,
+  v: 51, V: 52, c: 53,
   a: {
     w: function(count) { this.movement.selectLexicalEntity(6, count); },
     s: function(count) { this.movement.selectLexicalEntity(4, count); }
@@ -336,13 +344,6 @@ keyMap: {
   C: function() { this.yank(null, false); },
   p: function() { this.yank(0); },
   P: function() { this.yank(-1); },
-  v: function() { VVisualMode.activate(); },
-  V: function() { VVisualMode.activate({ mode: "line" }); },
-  c: function() {
-    var i = this.mode !== "caret" && this.selection.toString().length > 1;
-    this.movement.collapseSelectionTo(+i);
-    VVisualMode.activate({ mode: "caret", extend: false });
-  },
   o: function() { this.movement.reverseSelection(); },
   "<c-e>": function(count) { VScroller.scrollBy(1, count); },
   "<c-y>": function(count) { VScroller.scrollBy(1, -count); },
