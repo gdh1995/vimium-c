@@ -122,9 +122,7 @@ var VVisualMode = {
     }
     this.mode === "caret" && this.movement.collapseSelectionTo(0);
     if (command >= 0) {
-      while (0 < count--) {
-        this.movement.runMovement(command & 1, command >>> 1);
-      }
+      this.movement.runMovements(command & 1, command >>> 1, count);
     } else {
       command.call(this, count);
     }
@@ -227,23 +225,27 @@ movement: {
       return afterText[afterText.length - 1];
     }
     this.noExtend = false;
+    return null;
   },
-  runMovement: function(direction, granularity) {
+  runMovements: function(direction, granularity, count) {
     if (granularity === 5 || granularity === 6) {
-      if (direction) { return this.moveForwardByWord(granularity === 5); }
+      if (direction) { return this.moveForwardByWord(granularity === 5, count); }
       granularity = 6;
     }
-    return this.modify(direction, granularity);
+    var sel = this.selection, m = this.alterMethod, d = this.D[direction], g = this.G[granularity];
+    while (0 < count--) { sel.modify(m, d, g); }
   },
-  moveForwardByWord: function(vimLike) {
+  moveForwardByWord: function(vimLike, count) {
     var ch, isMove = this.alterMethod !== "extend";
-    this.diNew = 1; this.getDirection();
-    while ((ch = this.getNextForwardCharacter(isMove)) && vimLike === this.wordRe.test(ch)) {
-      if (this.noExtend && this.moveByChar(isMove)) { return; }
+    this.getDirection(); this.diNew = 1; this.noExtend = false;
+    while (0 < count--) {
+      do {
+        if (this.noExtend && this.moveByChar(isMove)) { return; }
+      } while ((ch = this.getNextForwardCharacter(isMove)) && vimLike === this.wordRe.test(ch));
+      do {
+        if (this.noExtend && this.moveByChar(isMove)) { return; }
+      } while ((ch = this.getNextForwardCharacter(isMove)) && vimLike !== this.wordRe.test(ch));
     }
-    do {
-      if (this.noExtend && this.moveByChar(isMove)) { return; }
-    } while ((ch = this.getNextForwardCharacter(isMove)) && vimLike !== this.wordRe.test(ch));
     // `ch &&` is needed according to tests for command `w`
     ch && !this.noExtend && this.extend(0);
   },
@@ -303,7 +305,7 @@ movement: {
     entity === 6 && this.modify(1, 0);
     this.modify(0, entity);
     this.collapseSelectionTo(1);
-    for (count || (count = 1); 0 < count--; ) { this.runMovement(1, entity); }
+    this.runMovements(1, entity, count);
   },
   selectLine: function(count) {
     this.alterMethod = "extend";
