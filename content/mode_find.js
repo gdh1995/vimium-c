@@ -17,7 +17,7 @@ var VFindMode = {
   input: null,
   countEl: null,
   styleIn: null,
-  options: null,
+  returnToViewport: false,
   A0Re: /\xa0/g,
   cssSel: "::selection{background:#ff9632;}",
   cssOut: ".vimiumFindMode body{-webkit-user-select:auto !important;}\n.vimiumFindMode ",
@@ -28,27 +28,22 @@ body{cursor:text;display:inline-block;padding:0 3px 0 1px;min-width:7px;}body *{
     if (!document.body) { return false; }
     options = Object.setPrototypeOf(options || {}, null);
     var query = options.query;
+    !this.isActive && query !== this.query && VMarks.setPreviousPosition();
+    if (query != null) {
+      return this.findAndFocus(this.query || query, options);
+    }
+    if (options.returnToViewport) {
+      this.returnToViewport = true;
+      this.scrollX = window.scrollX;
+      this.scrollY = window.scrollY;
+    }
     if (this.isActive) {
-      if (query != null) {
-        this.findAndFocus(this.query || query, {dir: options.dir || 1, count: options.count || 1});
-        return;
-      }
       this.box.contentWindow.focus();
       this.input.focus();
       this.box.contentDocument.execCommand("selectAll", false);
       return;
     }
 
-    query !== this.query && VMarks.setPreviousPosition();
-    this.options = options;
-    if (query != null) {
-      this.findAndFocus(query, options);
-      return;
-    }
-    if (options.returnToViewport) {
-    this.scrollX = window.scrollX;
-    this.scrollY = window.scrollY;
-    }
     this.parsedQuery = this.query = "";
     this.regexMatches = null;
     this.activeRegexIndex = 0;
@@ -113,12 +108,12 @@ body{cursor:text;display:inline-block;padding:0 3px 0 1px;min-width:7px;}body *{
     el && el.focus();
     this.box.remove();
     if (this.box === VDom.lastHovered) { VDom.lastHovered = null; }
-    this.box = this.input = this.countEl = this.options = null;
+    this.box = this.input = this.countEl = null;
     this.styleIn.remove();
     this.parsedQuery = this.query = "";
     this.initialRange = this.regexMatches = null;
     this.historyIndex = this.matchCount = this.scrollY = this.scrollX = 0;
-    this.isActive = false;
+    this.isActive = this.returnToViewport = false;
     return el;
   },
   OnMousedown: function(event) { if (event.target !== VFindMode.input) { event.preventDefault(); VFindMode.input.focus(); } },
@@ -232,7 +227,7 @@ body{cursor:text;display:inline-block;padding:0 3px 0 1px;min-width:7px;}body *{
     this.box.style.width = (count | 0) + 4 + "px";
   },
   checkReturnToViewPort: function() {
-    this.options.returnToViewport && window.scrollTo(this.scrollX, this.scrollY);
+    this.returnToViewport && window.scrollTo(this.scrollX, this.scrollY);
   },
   _ctrlRe: /(\\\\?)([rRI]?)/g,
   escapeAllRe: /[$()*+.?\[\\\]\^{|}]/g,
@@ -273,7 +268,7 @@ body{cursor:text;display:inline-block;padding:0 3px 0 1px;min-width:7px;}body *{
     return this.regexMatches[count];
   },
   execute: function(query, options) {
-    options || (options = {});
+    Object.setPrototypeOf(options || (options = {}), null);
     var el, found, count = options.count | 0, dir = options.dir || 1, q;
     options.noColor || this.toggleStyle('add');
     do {
