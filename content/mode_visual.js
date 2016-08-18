@@ -25,13 +25,11 @@ var VVisualMode = {
         if (!VRect.cropRectToVisible(rect.left, rect.top, rect.right, rect.bottom, 0)) {
           sel.removeAllRanges();
         } else if (type === "Caret") {
-          this.movement.extendByOneCharacter(1) || this.movement.extendByOneCharacter(0);
+          this.movement.extendByOneCharacter(1) || this.movement.extend(0);
         }
         type = sel.type;
       }
-      if (type !== "Range" && mode !== "caret") {
-        mode = "caret";
-      }
+      if (type !== "Range") { mode = "caret"; }
     }
     this.hudTimer && clearTimeout(this.hudTimer);
     VHUD.show(this.hud = mode[0].toUpperCase() + mode.substring(1) + " mode");
@@ -51,7 +49,7 @@ var VVisualMode = {
         return;
       }
     }
-    options.extend === false || this.movement.extendByOneCharacter(1);
+    this.movement.extend(1);
     this.movement.scrollIntoView();
   },
   deactivate: function(isEsc, isClick) {
@@ -90,7 +88,7 @@ var VVisualMode = {
     key = VKeyboard.getKey(event, key);
     if (obj = this.currentSeconds) {
       obj = obj[key];
-      obj != null && (count = this.currentCount);
+      count = this.currentCount;
       this.resetKeys();
     }
     if (obj != null) {}
@@ -127,15 +125,15 @@ var VVisualMode = {
     } else {
       command.call(this, count);
     }
-    return this.mode === "caret" ? this.movement.extendByOneCharacter(1)
+    this.mode === "caret" ? this.movement.extend(1)
     : this.mode === "line" ? this.movement.extendToLine() : 0;
   },
   establishInitialSelectionAnchor: function() {
-    var nodes, node, element, eTy = Node.TEXT_NODE, str, offset, range;
+    var nodes, node, element, str, offset;
     VDom.prepareCrop();
     nodes = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
     while (node = nodes.nextNode()) {
-      if (node.nodeType === eTy && 50 <= (str = node.data).length && 50 < str.trim().length) {
+      if (50 <= (str = node.data).length && 50 < str.trim().length) {
         element = node.parentElement;
         if (VDom.getVisibleClientRect(element) && VDom.getEditableType(element) < 2) {
           break;
@@ -144,14 +142,10 @@ var VVisualMode = {
     }
     if (!node) { return false; }
     offset = str.match(/^\s*/)[0].length;
-    range = document.createRange();
-    range.setStart(node, offset);
-    range.setEnd(node, offset);
-    this.movement.setSelectionRange(range);
+    this.selection.collapse(node, offset);
     return true;
   },
   prompt: function(text, duration) {
-    if (!VHUD.enabled) { return; }
     VHUD.show(text);
     this.hudTimer && clearTimeout(this.hudTimer);
     this.hudTimer = setTimeout(this.ResetHUD, duration);
@@ -168,31 +162,29 @@ var VVisualMode = {
           VFindMode.updateQuery(query); 
           VVisualMode.find(count, direction);
         } else {
-          this.prompt("No history queries", 1000);
+          VVisualMode.prompt("No history queries", 1000);
         }
       });
       return;
     }
     var range = this.selection.getRangeAt(0).cloneRange();
     VFindMode.execute(null, { noColor: true, dir: direction || -1, count: count });
-    if (!VFindMode.hasResults) {
-      this.movement.setSelectionRange(range);
-      this.prompt("No matches for " + VFindMode.query, 1000);
-      return;
+    if (VFindMode.hasResults) {
+      return this.mode === "caret" && this.selection.toString().length > 0 && this.activate();
     }
-    if (this.mode === "caret" && this.selection.toString().length > 0) {
-      this.activate();
-    }
+    this.selection.removeAllRanges();
+    this.selection.addRange(range);
+    this.prompt("No matches for " + VFindMode.query, 1000);
   },
-  yank: function(action, exit) {
+  yank: function(action) {
     var str = this.selection.toString();
-    exit !== false && this.deactivate();
-    if (action != null) {
-      VPort.port.postMessage({ handler: "openUrl", url: str, reuse: action });
-      return;
+    if (action === true) {
+      return this.prompt(VHUD.showCopied(str, "", true), 2000);
     }
-    VPort.port.postMessage({ handler: "copyToClipboard", data: str });
-    exit !== false ? VHUD.showCopied(str) : this.prompt(VHUD.showCopied(str, "", true), 2000);
+    this.deactivate();
+    action != null || VHUD.showCopied(str);
+    VPort.port.postMessage(action != null ? { handler: "openUrl", url: str, reuse: action }
+        : { handler: "copyToClipboard", data: str });
   },
 
 movement: {
@@ -205,7 +197,7 @@ movement: {
   extendAtEnd: false,
   selection: null,
   wordRe: null,
-  extend: function(d, g) {
+  extend: function(d) {
     this.selection.modify("extend", this.D[d], "character");
   },
   modify: function(d, g) {
@@ -288,7 +280,7 @@ movement: {
     var di = 1, change;
     if (cache && this.diOld === this.diNew) { return this.diOld; }
     if (change = this.extendByOneCharacter(di) || this.extendByOneCharacter(di = 0)) {
-      this.extendByOneCharacter(1 - di);
+      this.extend(1 - di);
     }
     return this.diOld = change > 0 ? di : change < 0 ? 1 - di : 1;
   },
@@ -348,8 +340,8 @@ keyMap: {
   },
   y: function() { this.yank(); },
   Y: function(count) { this.movement.selectLine(count); this.yank(); },
-  "<c-Y>": function() { this.yank(null, false); },
-  C: function() { this.yank(null, false); },
+  "<c-Y>": function() { this.yank(true); },
+  C: function() { this.yank(true); },
   p: function() { this.yank(0); },
   P: function() { this.yank(-1); },
   o: function() { this.movement.setDi(); this.movement.reverseSelection(); },
