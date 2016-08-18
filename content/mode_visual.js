@@ -167,7 +167,7 @@ var VVisualMode = {
       });
       return;
     }
-    var range = this.selection.getRangeAt(0).cloneRange();
+    var range = this.selection.getRangeAt(0);
     VFindMode.execute(null, { noColor: true, dir: direction || -1, count: count });
     if (VFindMode.hasResults) {
       return this.mode === "caret" && this.selection.toString().length > 0 && this.activate();
@@ -255,7 +255,7 @@ movement: {
     return isMove ? false : this.hashSelection() === before;
   },
   reverseSelection: function() {
-    var el = VEventMode.lock(), direction = this.getDirection(true), str, length, original, range;
+    var el = VEventMode.lock(), direction = this.getDirection(true), str, length, original;
     if (el && VDom.editableTypes[el.nodeName.toLowerCase()] > 1) {
       length = this.selection.toString().length;
       this.collapseSelectionTo(1);
@@ -263,12 +263,10 @@ movement: {
       while (0 < length--) { this.modify(this.diOld, 0); }
       return;
     }
-    original = this.selection.getRangeAt(0).cloneRange();
-    range = original.cloneRange();
-    range.collapse(!direction);
-    this.setSelectionRange(range);
+    original = this.selection.getRangeAt(0);
     str = direction ? "start" : "end";
     this.diNew = this.diOld = 1 - direction;
+    this.collapse(this.diNew);
     this.selection.extend(original[str + "Container"], original[str + "Offset"]);
   },
   extendByOneCharacter: function(direction) {
@@ -285,13 +283,10 @@ movement: {
     return this.diOld = change > 0 ? di : change < 0 ? 1 - di : 1;
   },
   collapseSelectionTo: function(direction) {
-    this.selection.toString().length <= 0 ? 0
-    : this.getDirection() === direction ? this.selection.collapseToEnd()
-    : this.selection.collapseToStart();
+    this.selection.toString().length > 0 && this.collapse(this.getDirection() - direction);
   },
-  setSelectionRange: function(range) {
-    this.selection.removeAllRanges();
-    this.selection.addRange(range);
+  collapse: function(toStart) {
+    toStart ? this.selection.collapseToStart() : this.selection.collapseToEnd();
   },
   selectLexicalEntity: function(entity, count) {
     this.collapseSelectionTo(1);
