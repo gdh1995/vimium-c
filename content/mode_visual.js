@@ -41,13 +41,10 @@ var VVisualMode = {
     this.movement.alterMethod = "move";
     if (type === "Range") {
       this.movement.collapseSelectionTo(0);
-    } else if (type === "None") {
-      this.establishInitialSelectionAnchor();
-      if (sel.type === "None") {
-        this.deactivate();
-        VHUD.showForDuration("Create a selection before entering visual mode.", 1500);
-        return;
-      }
+    } else if (type === "None" && this.establishInitialSelectionAnchor()) {
+      this.deactivate();
+      VHUD.showForDuration("Create a selection before entering visual mode.", 1500);
+      return;
     }
     this.movement.extend(1);
     this.movement.scrollIntoView();
@@ -130,6 +127,7 @@ var VVisualMode = {
   },
   establishInitialSelectionAnchor: function() {
     var nodes, node, element, str, offset;
+    if (!document.body) { return true; }
     VDom.prepareCrop();
     nodes = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
     while (node = nodes.nextNode()) {
@@ -140,10 +138,10 @@ var VVisualMode = {
         }
       }
     }
-    if (!node) { return false; }
+    if (!node) { return true; }
     offset = str.match(/^\s*/)[0].length;
     this.selection.collapse(node, offset);
-    return true;
+    return sel.type === "None";
   },
   prompt: function(text, duration) {
     VHUD.show(text);
