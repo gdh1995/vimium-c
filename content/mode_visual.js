@@ -302,7 +302,8 @@ movement: {
     this.reverseSelection();
     while (0 < --count) { this.modify(1, 1); }
     this.modify(1, 2);
-    this.getNextForwardCharacter(false) === "\n" && this.modify(1, 0);
+    var ch = this.getNextForwardCharacter(false);
+    ch && !this.noExtend && ch !== "\n" && this.extend(0);
   },
   extendToLine: function() {
     this.setDi();
