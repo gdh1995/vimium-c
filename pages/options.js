@@ -262,14 +262,17 @@ ExclusionRulesOption.prototype.onInit = function() {
   }
 
   func = function() {
-    var target = $(this.getAttribute("data-auto-resize")), delta;
-    if (target.scrollHeight <= target.clientHeight) { return; }
+    var target = $(this.getAttribute("data-auto-resize")), delta, height = target.scrollHeight;
+    if (height <= target.clientHeight) { return; }
     target.style.maxWidth = Math.min(window.innerWidth, 1024) - 120 + "px";
     delta = target.offsetHeight - target.clientHeight;
     delta = target.scrollWidth > target.clientWidth ? Math.max(26, delta) : delta + 18;
-    target.style.width = target.scrollWidth +
-      (target.offsetWidth - target.clientWidth) + "px";
-    target.style.height = target.scrollHeight + delta + "px";
+    height += delta;
+    delta = target.scrollWidth - target.clientWidth;
+    if (delta > 0) {
+      target.style.width = target.offsetWidth + delta + "px";
+    }
+    target.style.height = height + "px";
   };
   _ref = $$("[data-auto-resize]");
   for (_i = _ref.length; 0 <= --_i; ) {
