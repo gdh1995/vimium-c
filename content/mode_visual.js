@@ -14,7 +14,6 @@ var VVisualMode = {
     this.movement.selection = this.selection = sel = window.getSelection();
     VHandler.remove(this);
     VHandler.push(this.onKeydown, this);
-    addEventListener("click", this.OnClick, true);
     type = sel.type;
     if (!this.mode) { this.retainSelection = type === "Range"; }
     this.mode = mode = options.mode || "visual";
@@ -50,13 +49,12 @@ var VVisualMode = {
     this.movement.extend(1);
     this.movement.scrollIntoView();
   },
-  deactivate: function(isEsc, isClick) {
+  deactivate: function(isEsc) {
     VHandler.remove(this);
-    removeEventListener("click", this.OnClick, true);
     if (!this.retainSelection) {
       this.movement.collapseSelectionTo(isEsc && this.mode !== "caret" ? 1 : 0);
     }
-    if (!isClick) {
+    if (!this.isInsert) {
       var el = VEventMode.lock();
       el && VDom.getEditableType(el) && el.blur();
     }
@@ -64,9 +62,6 @@ var VVisualMode = {
     this.mode = this.hud = "";
     this.retainSelection = false;
     this.selection = this.movement.selection = null;
-  },
-  OnClick: function(event) {
-    VDom.getEditableType(event.target) && VVisualMode.deactivate(0, 1);
   },
   onKeydown: function(event) {
     var i = event.keyCode, count, key, obj;
