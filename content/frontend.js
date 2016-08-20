@@ -649,7 +649,7 @@ var VSettings, VHUD, VPort, VEventMode;
       ? pattern.toLowerCase().split(/\s*,\s*/).filter(function(s) { return s.length; })
       : (pattern instanceof Array) ? pattern : [],
     isNext = relName === "next";
-    if (arr.length > 0 && this.findAndFollowLink(arr)) {
+    if (arr.length > 0 && this.findAndFollowLink(arr, isNext ? "<" : ">")) {
       return true;
     }
     VHUD.showForDuration('No links to go ' + (isNext ? "next" : "previous"), 1500);
@@ -668,7 +668,7 @@ var VSettings, VHUD, VPort, VEventMode;
       this.push(element);
     }
   },
-  findAndFollowLink: function(linkStrings) {
+  findAndFollowLink: function(linkStrings, refusedStr) {
     var candidateLinks, exactWordRe, link, linkString, links, _i, _j, _len, _len1, re1, re2;
     links = VHints.traverse({"*": this.GetLinks});
     candidateLinks = [];
@@ -679,6 +679,7 @@ var VSettings, VHUD, VPort, VEventMode;
       linkString = link.innerText;
       if (linkString.length > 127) { continue; }
       if (!linkString && !(linkString = link.title)) { continue; }
+      if (linkString.indexOf(refusedStr) !== -1) { continue; }
       linkString = linkString.toLowerCase();
       for (_j = 0, _len1 = linkStrings.length; _j < _len1; _j++) {
         if (linkString.indexOf(linkStrings[_j]) !== -1) {
