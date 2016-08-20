@@ -62,7 +62,7 @@ activate: function(_0, options, forceCurrent) {
   completions: null,
   isHttps: false,
   isSearchOnTop: false,
-  notOnlySearch: true,
+  onlySearch: false,
   actionType: false,
   autoSelect: null,
   forceNewTab: false,
@@ -92,8 +92,7 @@ activate: function(_0, options, forceCurrent) {
     addEventListener("keypress", this.OnKeypress, true);
   },
   hide: function() {
-    this.isHttps = false;
-    this.notOnlySearch = true;
+    this.onlySearch = this.isHttps = false;
     clearTimeout(this.timer);
     this.timer = 0;
     this.input.onselect = null;
@@ -406,9 +405,9 @@ activate: function(_0, options, forceCurrent) {
     }
     if (this.completions.length > this.isSearchOnTop || this.timer
         || !(s1.startsWith(s0) && s0) || this._modeRe.test(s0)) {
-      this.notOnlySearch = true;
+      this.onlySearch = false;
     } else if (this.isSearchOnTop) {
-      this.notOnlySearch = false;
+      this.onlySearch = true;
     } else {
       return;
     }
@@ -524,13 +523,10 @@ activate: function(_0, options, forceCurrent) {
     mode.clientWidth = document.documentElement.clientWidth;
     mode.query = str;
     this.timer = -1;
-    if (this.notOnlySearch) {
-      return VPort.port.postMessage(mode);
-    }
     str = mode.handler;
-    mode.type = "search";
+    this.onlySearch && (mode.type = "search");
     VPort.port.postMessage(mode);
-    mode.type = str;
+    this.onlySearch && (mode.type = str);
   },
 
   Parse: function(item) {
