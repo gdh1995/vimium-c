@@ -316,7 +316,7 @@ var VHints = {
     Object.setPrototypeOf(filters, null);
     VDom.prepareCrop();
     box = document.webkitFullscreenElement || document;
-    if (this.ngEnabled === null && wantClickable) {
+    if (this.ngEnabled === null && ("*" in filters)) {
       this.ngEnabled = document.querySelector('.ng-scope') != null;
     }
     for (key in filters) {

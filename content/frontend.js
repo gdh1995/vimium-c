@@ -659,7 +659,7 @@ var VSettings, VHUD, VPort, VEventMode;
     isClickable = element instanceof HTMLAnchorElement
       || element.vimiumHasOnclick || element.getAttribute("onclick")
       || (s = element.getAttribute("role")) && s.toLowerCase() === "link"
-      || element.getAttribute("ng-click");
+      || VHints.ngEnabled && element.getAttribute("ng-click");
     if (!isClickable) { return; }
     if ((s = element.getAttribute("aria-disabled")) != null && (!s || s.toLowerCase() === "true")) { return; }
     rect = element.getBoundingClientRect();
@@ -671,7 +671,7 @@ var VSettings, VHUD, VPort, VEventMode;
     var candidateLinks, exactWordRe, link, linkString, links, _i, _j, _len, _len1, re1, re2;
     links = VHints.traverse({"*": this.GetLinks});
     candidateLinks = [];
-    links.push(document);
+    links.push(null);
     for (_len = links.length - 1; 0 <= --_len; ) {
       link = links[_len];
       if (link.contains(links[_len + 1])) { continue; }
