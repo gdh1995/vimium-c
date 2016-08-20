@@ -94,6 +94,7 @@
 		"map , performBackwardsFind",
 		"map ; enterVisualMode",
 		"map : enterVisualLineMode",
+		"map <f8> enterVisualMode",
 		"map > moveTabRight",
 		"map < moveTabLeft",
 		"map m Marks.activate",

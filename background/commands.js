@@ -159,6 +159,7 @@ defaultKeyMappings: [
   ["i", "enterInsertMode"],
   ["v", "enterVisualMode"],
   ["V", "enterVisualLineMode"],
+  ["<f8>", "enterVisualMode"],
   ["H", "goBack"],
   ["L", "goForward"],
   ["gu", "goUp"],
