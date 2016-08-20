@@ -64,7 +64,7 @@ var VVisualMode = {
     this.selection = this.movement.selection = null;
   },
   onKeydown: function(event) {
-    var i = event.keyCode, count, key, obj;
+    var i = event.keyCode, count, ch, key, obj;
     if (i >= VKeyCodes.f1 && i <= VKeyCodes.f12) { return i === VKeyCodes.f1 ? 2 : 0; }
     if (i === VKeyCodes.enter) {
       if (this.mode !== "caret") { this.retainSelection = true; }
@@ -76,9 +76,9 @@ var VVisualMode = {
       this.currentCount || this.currentSeconds ? this.resetKeys() : this.deactivate(1);
       return 2;
     }
-    key = VKeyboard.getKeyChar(event);
-    if (!key) { this.resetKeys(); return 1; }
-    key = VKeyboard.getKey(event, key);
+    ch = VKeyboard.getKeyChar(event);
+    if (!ch) { this.resetKeys(); return 1; }
+    key = VKeyboard.getKey(event, ch);
     if (obj = this.currentSeconds) {
       obj = obj[key];
       count = this.currentCount;
@@ -97,7 +97,7 @@ var VVisualMode = {
       count = this.currentCount;
       this.currentCount = 0;
     }
-    if (obj == null) { return 1; }
+    if (obj == null) { return ch.length === 1 && ch === key ? 2 : 1; }
     this.commandHandler(obj, count || 1);
     return 2;
   },
