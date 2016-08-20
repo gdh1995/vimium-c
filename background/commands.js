@@ -113,7 +113,7 @@ commandGroups: {
     , "Vomnibar.activateHistoryInNewTab", "Vomnibar.activateTabSelection"
     , "LinkHints.activateModeToOpenVomnibar"],
   historyNavigation: ["goBack", "goForward", "reopenTab"],
-  findCommands: ["enterFindMode", "performFind", "performBackwardsFind"],
+  findCommands: ["enterFindMode", "performFind", "performBackwardsFind", "clearFindHistory"],
   tabManipulation: ["nextTab", "previousTab", "firstTab", "lastTab", "createTab", "duplicateTab"
     , "removeTab", "removeRightTab", "restoreTab", "restoreGivenTab", "moveTabToNextWindow"
     , "moveTabToNewWindow", "moveTabToIncognito", "togglePinTab", "visitPreviousTab"
@@ -124,7 +124,7 @@ commandGroups: {
 },
 advancedCommands: {
   __proto__: null
-  , toggleViewSource: 1
+  , toggleViewSource: 1, clearFindHistory: 1
   , scrollToLeft: 1, scrollToRight: 1, moveTabToNextWindow: 1
   , moveTabToNewWindow: 1, moveTabToIncognito: 1, reloadGivenTab: 1, focusOrLaunch: 1
   , goUp: 1, goToRoot: 1, focusInput: 1, "LinkHints.activateModeWithQueue": 1, enableCSTemp: 1
@@ -280,6 +280,7 @@ availableCommands: {
   enterFindMode: [ "Enter find mode", 1, true, {active: true}, "performFind" ],
   performFind: [ "Cycle forward to the next find match", 0, true ],
   performBackwardsFind: [ "Cycle backward to the previous find match", 0, true, { dir: -1 }, "performFind" ],
+  clearFindHistory: ["Clear find mode history", 1, true],
   switchFocus: [ "blur activeElement or refocus it", 1, false ],
   simBackspace: [ "simulate backspace for once if focused", 1, false ],
   goPrevious: [ "Follow the link labeled previous or &lt;", 1, true, { dir: "prev" }, "goNext" ],

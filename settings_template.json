@@ -99,6 +99,7 @@
 		"map m Marks.activate",
 		"map M Marks.activateCreateMode",
 		"map <c-m> mainFrame",
+		"map <a-H> clearFindHistory",
 		"",
 		"map ` Marks.activate",
 		"map ~ Marks.activateCreateMode",

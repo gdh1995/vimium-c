@@ -287,6 +287,15 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
       list.push(query);
       return result || list.join("\n");
     },
+    removeAll: function(incognito) {
+      if (incognito) {
+        this.listI && (this.listI = []);
+        return;
+      }
+      this.init = null;
+      this.list = [];
+      Settings.set(this.key, "");
+    },
     OnWndRemvoed: function() {
       if (!FindModeHistory.listI) { return; }
       FindModeHistory.timer = FindModeHistory.timer || setTimeout(FindModeHistory.TestIncognitoWnd, 34);
@@ -1010,6 +1019,14 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
         query: query
       });
     },
+    clearFindHistory: function() {
+      var incognito = cPort.sender.tab.incognito;
+      FindModeHistory.removeAll(incognito);
+      cPort.postMessage({
+        name: "showHUD",
+        text: (incognito ? "incognito " : "") + "find history has been cleared."
+      });
+    },
     toggleViewSource: function(tabs) {
       var url = tabs[0].url;
       url = url.startsWith("view-source:") ? url.substring(12) : ("view-source:" + url);
@@ -1650,7 +1667,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
     ref = ["createTab", "restoreTab", "restoreGivenTab", "blank", "duplicateTab" //
       , "moveTabToNewWindow", "reloadGivenTab", "openUrl", "nextFrame", "mainFrame" //
       , "moveTabToIncognito", "openCopiedUrlInCurrentTab", "clearGlobalMarks" //
-      , "goNext", "enterInsertMode", "performFind" //
+      , "goNext", "enterInsertMode", "performFind", "clearFindHistory" //
     ];
     for (i = ref.length; 0 <= --i; ) {
       ref2[ref[i]].useTab = -1;

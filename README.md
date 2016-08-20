@@ -37,6 +37,11 @@ __微度新标签页 (X New Tab Page):__
 Release Notes
 -------------
 
+Not yet released:
+* add **Visual Mode**, and support all commands of public/Vimium's.
+* add commend `clearFindHistory` to remove all find mode history,
+    in normal mode incognito mode.
+
 1.54:
 * **WARNING**: change modifier keys' order into `m-c-a-` (breaking)
 * add `LinkHints.activateModeToEdit` to select an editable area with hints
