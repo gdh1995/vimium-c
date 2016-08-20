@@ -105,6 +105,9 @@ var VVisualMode = {
     this.currentCount = 0; this.currentSeconds = null;
   },
   commandHandler: function(command, count) {
+    if (command > 60) {
+      return VScroller.scrollBy(1, (command === 61 ? 1 : -1) * count);
+    }
     if (command > 50) {
       if (command === 53) {
         count = this.mode !== "caret" && this.selection.toString().length > 1;
@@ -336,8 +339,7 @@ keyMap: {
   p: function() { this.yank(0); },
   P: function() { this.yank(-1); },
   o: function() { this.movement.setDi(); this.movement.reverseSelection(); },
-  "<c-e>": function(count) { VScroller.scrollBy(1, count); },
-  "<c-y>": function(count) { VScroller.scrollBy(1, -count); },
+  "<c-e>": 61, "<c-y>": 62, "<c-down>": 61, "<c-up>": 62
 },
 
 init: function() {
