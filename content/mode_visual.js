@@ -151,8 +151,9 @@ var VVisualMode = {
   },
   ResetHUD: function() {
     var _this = VVisualMode;
+    if (!_this) { return; }
     _this.hudTimer = 0;
-    _this.hud ? VHUD.show(_this.hud) : _this.mode ? VHUD.hide() : "";
+    _this.hud && VHUD.show(_this.hud);
   },
   find: function(count, direction) {
     if (!VFindMode.query) {
