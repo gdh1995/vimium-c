@@ -18,7 +18,7 @@ var VVisualMode = {
     if (!this.mode) { this.retainSelection = type === "Range"; }
     this.mode = mode = options.mode || "visual";
     if (mode !== "caret") {
-      this.movement.alterMethod = options.alterMethod || "extend";
+      this.movement.alterMethod = "extend";
       if (type === "Caret" || type === "Range") {
         rect = sel.getRangeAt(0).getBoundingClientRect();
         VDom.prepareCrop();
@@ -109,8 +109,8 @@ var VVisualMode = {
       return VScroller.scrollBy(1, (command === 61 ? 1 : -1) * count);
     }
     if (command > 50) {
-      if (command === 53) {
-        count = this.mode !== "caret" && this.selection.toString().length > 1;
+      if (command === 53 && this.mode !== "caret") {
+        count = this.selection.toString().length > 1;
         this.movement.collapseSelectionTo(+count);
       }
       return this.activate({ mode: ["visual", "line", "caret"][command - 51] });

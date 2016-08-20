@@ -150,7 +150,8 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
           setting: (opt && opt.setting === "allow") ? "block" : "allow"
         }, function() {
           if (!tab.incognito) {
-            localStorage[ContentSettings.makeKey(contentType)] = "true";
+            var key = ContentSettings.makeKey(contentType);
+            localStorage[key] !== "1" && (localStorage[key] = "1");
           }
           if (tab.incognito || cOptions.action === "reopen" || !chrome.sessions) {
             ++tab.index;
@@ -1609,7 +1610,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
   Settings.postUpdate("extWhiteList");
   chrome.runtime.onMessageExternal.addListener(function(message, sender, sendResponse) {
     var command;
-    if (!(sender.id in Settings.extWhiteList)) { sendResponse(); return; }
+    if (!(sender.id in Settings.extWhiteList)) { return; }
     if (typeof message === "string") {
       command = message;
       if (command && Commands.availableCommands[command]) {

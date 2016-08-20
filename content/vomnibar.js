@@ -246,11 +246,7 @@ activate: function(_0, options, forceCurrent) {
     else if (event.ctrlKey || event.metaKey) {
       if (event.shiftKey) { action = n === 70 ? "pagedown" : n === 66 ? "pageup" : ""; }
       else if (n === VKeyCodes.up || n === VKeyCodes.down) {
-        VPort.Listener({
-          name: "execute", count: 1,
-          command: "scrollBy",
-          options: { dir: n - 39 }
-        });
+        VScroller.scrollBy(1, n - 39);
         return 2;
       }
       else { action = this.ctrlMap[n] || ""; }
