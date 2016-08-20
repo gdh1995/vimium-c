@@ -142,7 +142,7 @@ var VVisualMode = {
     if (!node) { return true; }
     offset = str.match(/^\s*/)[0].length;
     this.selection.collapse(node, offset);
-    return sel.type === "None";
+    return this.selection.type === "None";
   },
   prompt: function(text, duration) {
     VHUD.show(text);
