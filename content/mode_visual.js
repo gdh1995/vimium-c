@@ -19,7 +19,7 @@ var VVisualMode = {
     this.mode = mode = options.mode || "visual";
     if (mode !== "caret") {
       this.movement.alterMethod = "extend";
-      if (type === "Caret" || type === "Range") {
+      if (!VEventMode.lock() && (type === "Caret" || type === "Range")) {
         rect = sel.getRangeAt(0).getBoundingClientRect();
         VDom.prepareCrop();
         if (!VRect.cropRectToVisible(rect.left, rect.top, rect.right, rect.bottom, 0)) {
