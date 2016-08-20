@@ -65,6 +65,7 @@ activate: function(_0, options, forceCurrent) {
   notOnlySearch: true,
   actionType: false,
   autoSelect: null,
+  forceNewTab: false,
   input: false,
   isSelectionOrigin: true,
   list: null,

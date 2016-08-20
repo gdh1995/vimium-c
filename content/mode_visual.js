@@ -6,6 +6,7 @@ var VVisualMode = {
   currentCount: 0,
   currentSeconds: null,
   retainSelection: false,
+  selection: null,
   activate: function(options) {
     var sel, type, rect, mode;
     Object.setPrototypeOf(options = options || {}, null);

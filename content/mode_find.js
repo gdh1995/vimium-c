@@ -6,6 +6,7 @@ var VFindMode = {
   historyIndex: 0,
   isRegex: false,
   ignoreCase: false,
+  hasNoIgnoreCaseFlag: false,
   hasResults: false,
   matchCount: 0,
   scrollX: 0,
