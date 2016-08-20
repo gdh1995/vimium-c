@@ -240,7 +240,7 @@ setTimeout(function() { if (!chrome.omnibox) { return; }
     outTimeout || setTimeout(outClean, 30000);
   },
   onInput = function(key, suggest) {
-    key = key.trim();
+    key = key.trim().replace(Utils.spacesRe, " ");
     if (key === last) { suggestions && suggest(suggestions); return; }
     lastSuggest && (lastSuggest.isOff = true);
     var onlySearch = false;

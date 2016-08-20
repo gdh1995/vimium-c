@@ -469,6 +469,7 @@ activate: function(_0, options, forceCurrent) {
     this.onWheel = this.onWheel.bind(this);
     Object.setPrototypeOf(this.ctrlMap, null);
     Object.setPrototypeOf(this.normalMap, null);
+    this._spacesRe = /\s{2,}/g;
     this.init = null;
   },
   initDom: function(response) {
@@ -514,9 +515,10 @@ activate: function(_0, options, forceCurrent) {
     maxResults: 10,
     query: ""
   },
+  _spacesRe: null,
   filter: function() {
     var mode = this.mode, str = (this.input ? this.input.value : this.inputText).trim();
-    if (str && str === mode.query) {
+    if (str && (str = str.replace(this._spacesRe, " ")) === mode.query) {
       return this.postUpdate();
     }
     mode.clientWidth = document.documentElement.clientWidth;
