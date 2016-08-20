@@ -993,11 +993,12 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
     },
     goNext: function() {
       var dir = cOptions.dir || "next", defaultPatterns;
-      defaultPatterns = Settings.get(dir === "prev" ? "previousPatterns" : "nextPatterns", true);
+      defaultPatterns = cOptions.patterns ||
+        Settings.get(dir === "prev" ? "previousPatterns" : "nextPatterns", true);
       cPort.postMessage({ name: "execute", count: 1, command: "goNext",
         options: {
           dir: dir,
-          patterns: cOptions.patterns || defaultPatterns
+          patterns: defaultPatterns.toLowerCase()
         }
       });
     },
