@@ -647,11 +647,12 @@ var VSettings, VHUD, VPort, VEventMode;
     }
     var arr = typeof pattern === "string" && (pattern = pattern.trim())
       ? pattern.toLowerCase().split(/\s*,\s*/).filter(function(s) { return s.length; })
-      : (pattern instanceof Array) ? pattern : [];
+      : (pattern instanceof Array) ? pattern : [],
+    isNext = relName === "next";
     if (arr.length > 0 && this.findAndFollowLink(arr)) {
       return true;
     }
-    VHUD.showForDuration('No links to go ' + (relName === "next" ? "next" : "previous"), 1500);
+    VHUD.showForDuration('No links to go ' + (isNext ? "next" : "previous"), 1500);
     return false;
   },
   GetLinks: function(element) {
@@ -675,7 +676,10 @@ var VSettings, VHUD, VPort, VEventMode;
     for (_len = links.length - 1; 0 <= --_len; ) {
       link = links[_len];
       if (link.contains(links[_len + 1])) { continue; }
-      linkString = (link.innerText || link.title).toLowerCase();
+      linkString = link.innerText;
+      if (linkString.length > 127) { continue; }
+      if (!linkString && !(linkString = link.title)) { continue; }
+      linkString = linkString.toLowerCase();
       for (_j = 0, _len1 = linkStrings.length; _j < _len1; _j++) {
         if (linkString.indexOf(linkStrings[_j]) !== -1) {
           candidateLinks.push(link);
