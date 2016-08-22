@@ -6,5 +6,6 @@ test*
 *~
 ~*
 *.sh
+*.swp
 *.zip
 node_modules
