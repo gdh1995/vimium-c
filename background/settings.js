@@ -138,7 +138,7 @@ var Settings = {
   indexFrame: null,
   indexPorts: null,
   fetchFile: function(file, callback) {
-    if (this.cache[file]) { return callback && callback(); }
+    if (callback && file in this.cache) { return callback(); }
     Utils.fetchHttpContents(this.files[file], function() {
       Settings.set(file, this.responseText);
       callback && callback();
