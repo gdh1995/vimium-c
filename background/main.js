@@ -1652,7 +1652,12 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
   }, 0);
 
   setTimeout(function() {
-    Settings.fetchFile("baseCss");
+    Utils.fetchHttpContents(Settings.files.baseCss, function() {
+      Settings.set("baseCss", this.responseText);
+      Utils.fetchHttpContents(Settings.files.vomnibar, function() {
+        Settings.set("vomnibar", this.responseText);
+      }, this);
+    });
     Settings.postUpdate("searchUrl", null); // will also update newTabUrl
 
     var ref, i, ref2, key;

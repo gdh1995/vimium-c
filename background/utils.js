@@ -1,7 +1,7 @@
 "use strict";
 var exports = {}, Utils = {
-  fetchHttpContents: function(url, success) {
-    var req = new XMLHttpRequest();
+  fetchHttpContents: function(url, success, req) {
+    req = req || new XMLHttpRequest();
     req.open("GET", url, true);
     req.onload = success;
     req.send();
