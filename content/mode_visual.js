@@ -11,7 +11,7 @@ var VVisualMode = {
     var sel, type, rect, mode;
     Object.setPrototypeOf(options = options || {}, null);
     this.init && this.init();
-    this.movement.selection = this.selection = sel = window.getSelection();
+    this.movement.selection = this.selection = sel = VDom.UI.getSelection();
     VHandler.remove(this);
     VHandler.push(this.onKeydown, this);
     type = sel.type;

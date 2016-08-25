@@ -72,6 +72,14 @@ VDom.UI = {
     this.init && this.init();
     this.box.appendChild(el);
   },
+  getSelection: function() {
+    var sel = window.getSelection(), el, el2;
+    if (sel.focusNode === document.documentElement && (el = VScroller.current)) {
+      for (; el2 = el.parentNode; el = el2) {}
+      if (el.getSelection) { sel = el.getSelection() || sel; }
+    }
+    return sel;
+  },
   removeSelection: function(root) {
     var sel = (root || this.root).getSelection(), el, ind;
     if (sel.type !== "Range" || !sel.anchorNode) {
