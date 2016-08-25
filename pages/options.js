@@ -303,6 +303,15 @@ ExclusionRulesOption.prototype.onInit = function() {
     element.nextElementSibling.setAttribute("for", element.id);
   }
 
+  if (window.location.hash === "#chrome-ui") {
+    _ref = $$("select");
+    for (_i = _ref.length; 0 <= --_i; ) {
+      element = _ref[_i];
+      element.classList.add("chrome-ui");
+    }
+    document.querySelector("header").remove();
+  }
+
   _ref = $$("[data-permission]");
   if (_ref.length > 0) (function(els) {
     var manifest = chrome.runtime.getManifest(), permissions, i, el, key;

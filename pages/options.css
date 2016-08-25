@@ -36,6 +36,12 @@ button, select {
   padding: 0 10px;
   text-shadow: 0 1px 0 #f0f0f0;
 }
+select.chrome-ui {
+  background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABMAAAAICAQAAACxSAwfAAAAUklEQVQY02P4z0AMRGZGMaShwCisyhITmb8huMzfEhOxKvuvsGAh208Ik+3ngoX/FbBbClcIUcSAw21QhXxfIIrwKAMpfNsEUYRXGVCEFc6CQwBqq4CCCtU4VgAAAABJRU5ErkJggg=="),
+    -webkit-linear-gradient(#ededed, #ededed 38%, #dedede);
+  background-position: right center;
+  background-repeat: no-repeat;
+}
 button:hover, select:hover {
   background-image: -webkit-linear-gradient(#f0f0f0, #f0f0f0 38%, #e0e0e0);
   border-color: rgba(0, 0, 0, 0.3);
