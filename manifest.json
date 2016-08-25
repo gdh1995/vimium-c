@@ -91,7 +91,7 @@
   "options_page": "pages/options.html",
   "options_ui": {
     "chrome_style": true,
-    "page": "pages/options.html#chrome-ui"
+    "page": "pages/chrome_ui.html"
   },
   "permissions": [
     "bookmarks",
