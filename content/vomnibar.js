@@ -230,7 +230,7 @@ activate: function(_0, options, forceCurrent) {
     if ((!focused && VEventMode.lock())) { return 0; }
     if (event.altKey || event.metaKey) {
       if (!focused || event.ctrlKey || event.shiftKey) {}
-      else if (n >= 66 && n <= 70 && n !== 67) {
+      else if (n >= 66 && n <= 70 && n !== 67 || n === VKeyCodes.backspace) {
         this.onBashAction(n - 64);
         return 2;
       }
@@ -301,10 +301,10 @@ activate: function(_0, options, forceCurrent) {
     }
   },
   onBashAction: function(code) {
-    var sel = window.getSelection();
+    var sel = window.getSelection(), isExtend = code === 4 || code < 0;
     sel.collapseToStart();
-    sel.modify(code === 4 ? "extend" : "move", code < 4 ? "backward" : "forward", "word");
-    code === 4 && document.execCommand("delete");
+    sel.modify(isExtend ? "extend" : "move", code < 4 ? "backward" : "forward", "word");
+    isExtend && sel.type === "Range" && document.execCommand("delete");
   },
   _pageNumRe: null,
   goPage: function(sel) {
