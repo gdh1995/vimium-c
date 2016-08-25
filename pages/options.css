@@ -7,6 +7,7 @@ body {
 a, a:visited {
   color: #15c;
   cursor: pointer;
+  text-decoration: none;
 }
 a[href], a:hover {
   text-decoration: underline;
@@ -28,8 +29,9 @@ button, select {
   border-radius: 2px;
   box-shadow: 0 1px 0 rgba(0, 0, 0, 0.08), inset 0 1px 2px rgba(255, 255, 255, 0.75);
   color: #444;
-  font-size: 12px;
+  font-size: 12px !important;
   height: 24px;
+  margin-right: 1px;
   outline: none;
   padding: 0 10px;
   text-shadow: 0 1px 0 #f0f0f0;
@@ -61,7 +63,9 @@ select.right {
   background-color: #eee;
   border-bottom-left-radius: 0;
   border-top-left-radius: 0;
+  line-height: 15px;
   margin-left: -5px;
+  min-width: 0;
   position: relative;
   width: 0;
 }
@@ -93,19 +97,25 @@ input, textarea {
   white-space: nowrap;
   width: 100%;
 }
+input[type=text] {
+  height: 28px;
+}
 input[type=number] {
-  width: 66px;
-  margin-right: 4px;
+  height: 28px;
   text-align: center;
   text-indent: 16px;
+  width: 66px;
 }
 input[type=number]::-webkit-inner-spin-button {
   margin-left: 1px;
 }
 input[type=checkbox] {
+  margin: 3px;
+  padding: 0;
   position: relative;
   top: 2px;
-  width: auto;
+  vertical-align: bottom;
+  width: 13px;
 }
 input[type=text]:read-only,
 input[type=number]:read-only,
@@ -153,7 +163,7 @@ label:active {
 }
 .checkboxWrapper {
   float: left;
-	margin-right: 5px;
+  margin-right: 5px;
 }
 #linkHintCharacters {
   margin-top: 1px;
@@ -203,11 +213,11 @@ label:active {
   top: 4px;
 }
 .wrap-space {
-	padding-left: 0.3em;
-	padding-right: 0.3em;
+  padding-left: 0.3em;
+  padding-right: 0.3em;
 }
 .wrap-left-space {
-	padding-left: 0.3em;
+  padding-left: 0.3em;
 }
 
 /* Boolean options have a tighter form representation than text options. */
@@ -246,7 +256,7 @@ label:active {
   color: #444;
 }
 .exclusionRemoveButton:focus {
-	color: #4d90fe;
+  color: #4d90fe;
 }
 .exclusionHeaderText {
   padding-left: 3px;
@@ -264,7 +274,7 @@ label:active {
   visibility: visible;
 }
 #exclusionSortButton {
-	margin-right: 4px;
+  margin-right: 4px;
   width: 80px;
 }
 #footer {
