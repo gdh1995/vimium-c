@@ -241,6 +241,7 @@ label:active {
   width: 33%;
 }
 .exclusionRemoveTd {
+  padding: 0px 1px;
   vertical-align: middle;
   width: 1px; /* 1px; smaller than the button itself. */
 }
@@ -249,13 +250,15 @@ label:active {
   border: none;
   background-color: #fff;
   color: #979ca0;
-  padding: 1px 6px;
+  cursor: default;
   font-size: small;
+  padding: 5px;
 }
 .exclusionRemoveButton:hover {
   color: #444;
+  text-decoration: none;
 }
-.exclusionRemoveButton:focus {
+.exclusionRemoveButton:active {
   color: #4d90fe;
 }
 .exclusionHeaderText {
@@ -264,7 +267,6 @@ label:active {
   margin-right: 1px;
 }
 .exclusionMask {
-  padding: 0 6px;
   visibility: hidden;
 }
 #exclusionToolbar {

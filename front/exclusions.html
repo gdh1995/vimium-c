@@ -3,7 +3,7 @@
 		<td><span class="exclusionHeaderText">Patterns</span></td>
 		<td><span class="exclusionHeaderText">Keys</span></td>
 		<td class="exclusionRemoveTd">
-			<input type="button" class="exclusionRemoveButton exclusionMask" value="&#x2716;" />
+			<span class="exclusionRemoveButton exclusionMask">&#x2716;</span>
 		</td>
 	</tr></thead>
 	<tbody></tbody>
@@ -11,6 +11,6 @@
 <template id="exclusionRuleTemplate"><tr class="exclusionRuleInstance">
 		<td><input type="text" class="pattern" spellcheck="false" placeholder="URL pattern" /></td>
 		<td class="exclusionRulePassKeys"><input type="text" class="passKeys" spellcheck="false" placeholder="Excluded keys" /></td>
-		<td class="exclusionRemoveTd"><input type="button" class="exclusionRemoveButton" value="&#x2716;" /></td>
+		<td class="exclusionRemoveTd"><a class="exclusionRemoveButton" tabindex="0">&#x2716;</a></td>
 	</tr>
 </template>
