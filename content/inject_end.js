@@ -42,9 +42,6 @@ VSettings.onDestroy = function() {
   var injector = VimiumInjector;
   injector.alive = 0;
   injector.destroy = null;
-  [].forEach.call(document.querySelectorAll(
-  'script[src^="chrome-extension://hfjbmagddngcpeloejdejnfgbamkjaeg/"]'
-  ), function(node) { node.remove(); });
 };
 
 VimiumInjector.destroy = VSettings.destroy;
