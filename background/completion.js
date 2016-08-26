@@ -349,16 +349,15 @@ history: {
 domains: {
   domains: null,
   filter: function(query, index) {
+    if (queryTerms.length !== 1 || queryTerms[0].indexOf("/") !== -1) {
+      return Completers.next([]);
+    }
     if (HistoryCache.history) {
       this.refresh(HistoryCache.history);
       return this.performSearch(query);
     }
-    var emptyQuery = queryTerms.length <= 0;
-    if (index > 0 || emptyQuery) {
-      Completers.next([]);
-      if (index > 0) { return; }
-    }
-    HistoryCache.use(emptyQuery ? function() {} : function() {
+    if (index > 0) { return Completers.next([]); }
+    HistoryCache.use(function() {
       if (query.isOff) { return; }
       Completers.domains.filter(query, 0);
     });
