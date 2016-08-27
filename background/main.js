@@ -1151,9 +1151,9 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
     cPort = port;
     commandCount = count;
     count = func.useTab;
-    if (count === 1) {
+    if (count === 2) {
       funcDict.getCurTabs(func);
-    } else if (count !== -1) {
+    } else if (count === 1) {
       funcDict.getCurTab(func);
     } else {
       func();
@@ -1583,7 +1583,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
     ? chrome.windows.getCurrent.bind(null, {populate: true}
         , funcDict.createTab[1].bind(url))
     : funcDict.getCurTab.bind(null, funcDict.createTab[0].bind(url));
-    f.useTab = -1;
+    f.useTab = 0;
   };
 
   Settings.updateHooks.keyMappings = function(value) {
@@ -1672,15 +1672,13 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
       , "reloadTab", "reloadGivenTab", "visitPreviousTab" //
     ];
     for (i = ref.length; 0 <= --i; ) {
-      ref2[ref[i]].useTab = 1;
+      ref2[ref[i]].useTab = 2;
     }
-    ref = ["createTab", "restoreTab", "restoreGivenTab", "blank", "duplicateTab" //
-      , "moveTabToNewWindow", "reloadGivenTab", "openUrl", "nextFrame", "mainFrame" //
-      , "moveTabToIncognito", "openCopiedUrlInCurrentTab", "clearGlobalMarks" //
-      , "goNext", "enterInsertMode", "performFind", "clearFindHistory" //
+    ref = ["clearCS", "copyTabInfo", "enableCSTemp", "goToRoot", "moveTabToNextWindow"//
+      , "openCopiedUrlInNewTab", "reopenTab", "toggleCS", "toggleViewSource" //
     ];
     for (i = ref.length; 0 <= --i; ) {
-      ref2[ref[i]].useTab = -1;
+      ref2[ref[i]].useTab = 1;
     }
 
     localStorage.getItem(ContentSettings.makeKey("images")) != null &&
