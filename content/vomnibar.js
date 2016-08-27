@@ -265,9 +265,7 @@ activate: function(_0, options, forceCurrent) {
     }
 
     if (action || n <= 32) {}
-    else if (VKeyboard.getKeyChar(event).length !== 1) {
-      if (n > VKeyCodes.f1 && n <= VKeyCodes.f12) { focused = false; }
-    }
+    else if (n > VKeyCodes.f1 && n <= VKeyCodes.f12) { focused = false; }
     else if (!focused && n >= 48 && n < 58) {
       n = (n - 48) || 10;
       if (event.shiftKey || n > this.completions.length) { return 2; }
