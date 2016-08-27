@@ -1,123 +1,17 @@
 "use strict";
 var Vomnibar = {
-  activateIframe: function(_0, options) {
-    this.iframe.activate(options);
-  },
-iframe: {
-  box: null,
-  port: null,
-  options: null,
-  width: 0,
-  activate: function(options) {
-    if (document.readyState === "loading") {
-      if (!this.width) {
-        this.width = setTimeout(this.activate.bind(this, options), 500);
-        return;
-      }
-      this.width = 0;
+  activate: function(_0, options) {
+    var url, keyword, search, start;
+    this.init && this.init();
+    Object.setPrototypeOf(options = options || {}, null);
+    this.mode.type = options.mode || "omni";
+    this.forceNewTab = options.force ? true : false;
+    url = options.url;
+    keyword = options.keyword;
+    if (url == null) {
+      return this.reset(keyword ? keyword + " " : "");
     }
-    this.options = Object.setPrototypeOf(options || (options = {}), null);
-    var secret = options.secret, url = options.page;
-    delete options.secret; delete options.page;
-    var width = this.width = document.documentElement.clientWidth * 0.8;
-    if (this.Init) {
-      setTimeout(this.Init, 0, secret, url);
-      this.Init = null;
-      return;
-    }
-    this.show();
-  },
-  show: function() {
-    if (!this.box || this.box.onload) { return; }
-    var options = this.options; this.options = null;
-    options.width = this.width | 0, options.name = "show";
-    this.port.postMessage(options);
-  },
-  hide: function() {
-    this.box.style.display = "none";
-    this.box.style.width = "";
-    this.width = 0;
-  },
-  Init: function(secret, page) {
-    var _this = Vomnibar.iframe, el;
-    el = _this.box = VDom.createElement("iframe");
-    el.style.display = "none";
-    el.className = "Omnibar";
-    el.src = page;
-    el.onload = function() {
-      var channel = new MessageChannel();
-      _this.port = channel.port1;
-      channel.port1.onmessage = _this.onMessage.bind(_this);
-      this.contentWindow.postMessage(secret, page, [channel.port2]);
-    };
-    VDom.UI.addElement(el);
-  },
-  onMessage: function(event) {
-    var data = event.data, width;
-    switch (data.name || data) {
-    case "uiComponentIsReady":
-      this.box.onload = null;
-      this.show();
-      break;
-    case "show":
-      width = this.width;
-      if (width !== (width | 0)) {
-        this.box.style.width = (width | 0) / (width / 0.8) * 100 + "%";
-      }
-      this.box.style.display = "";
-      break;
-    case "style":
-      this.box.style.height = data.height + "px";
-      break;
-    case "hide":
-      this.hide();
-      window.focus();
-      break;
-    default: break;
-    }
-  }
-},
-activate: function(_0, options, forceCurrent) {
-  var url, keyword;
-  if (this.init) {
-    forceCurrent |= 0;
-    if (forceCurrent < 2 &&
-      VPort.sendCommandToContainer("Vomnibar.activate", [1, options, forceCurrent])) {
-      return;
-    }
-    if (!(document.documentElement instanceof HTMLHtmlElement)) { return false; }
-    this.init();
-  }
-  Object.setPrototypeOf(options = options || {}, null);
-  this.mode.type = options.mode || "omni";
-  this.forceNewTab = options.force ? true : false;
-  VHandler.remove(this);
-  VHandler.push(VDom.UI.SuppressMost, this);
-  url = options.url;
-  keyword = options.keyword;
-  if (url == null) {
-    this.reset(keyword ? keyword + " " : "");
-    return;
-  }
-  if (url === true) {
-    if (url = VDom.getSelectionText()) {
-      this.forceNewTab = true;
-    } else {
-      url = window.location.href;
-    }
-  }
-  if (url.indexOf("://") === -1) {
-    this._activateText(url, keyword, "");
-    return;
-  }
-  VPort.sendMessage({
-    handler: "parseSearchUrl",
-    url: url
-  }, this._activateText.bind(this, url, keyword));
-},
-  _activateText: function(url, keyword, search) {
-    var start;
-    if (search) {
+    if (search = options.search) {
       start = search.start;
       url = search.url;
       keyword || (keyword = search.keyword);
@@ -134,7 +28,6 @@ activate: function(_0, options, forceCurrent) {
     }
   },
 
-  box: null,
   inputText: "",
   completions: null,
   isHttps: false,
@@ -143,7 +36,7 @@ activate: function(_0, options, forceCurrent) {
   actionType: false,
   autoSelect: null,
   forceNewTab: false,
-  input: false,
+  input: null,
   isSelectionOrigin: true,
   list: null,
   onUpdate: null,
@@ -153,40 +46,30 @@ activate: function(_0, options, forceCurrent) {
   timer: 0,
   wheelTimer: 0,
   show: function() {
-    var width = this.mode.clientWidth * 0.8;
-    if (width !== (width | 0)) {
-      this.box.style.width = (width | 0) / (width / 0.8) * 100 + "%";
-    }
-    this.box.style.display = "";
-    VDom.UI.addElement(this.box);
-    VDom.UI.focus(this.input);
-    VHandler.remove(this);
-    VHandler.push(this.onKeydown, this);
-    this.box.onmousewheel = this.onWheel;
+    VPort.ownerPort.postMessage("show");
+    this.input.focus();
+    document.body.onmousewheel = this.onWheel;
     setTimeout(function() {
       Vomnibar.input.onselect = Vomnibar.OnSelect;
     }, 50);
-    addEventListener("keypress", this.OnKeypress, true);
   },
   hide: function() {
     this.onlySearch = this.isHttps = false;
     clearTimeout(this.timer);
     this.timer = 0;
     this.input.onselect = null;
-    this.box.style.display = "none";
-    this.box.style.width = "";
-    this.box.onmousewheel = null;
+    this.input.blur();
+    document.body.onmousewheel = null;
     this.list.textContent = "";
     this.input.value = "";
-    VHandler.remove(this);
     this.completions = this.onUpdate = null;
     this.mode.query = this.inputText = "";
-    removeEventListener("keypress", this.OnKeypress, true);
+    VPort.ownerPort.postMessage("hide");
   },
   reset: function(input, start, end) {
     input || (input = "");
     this.inputText = input;
-    this.input && (this.input.value = input);
+    this.input.value = input;
     this.completions = [];
     this.update(0, input && start <= end ? function() {
       this.show();
@@ -214,9 +97,7 @@ activate: function(_0, options, forceCurrent) {
     // work-around: For a node in a shadowRoot, if it's in the XML DOM tree,
     // then its children won't have `.style` if created by setting `.innerHTML`
     var list = this.list, barCls = this.input.parentElement.classList;
-    list.remove();
     list.innerHTML = this.renderItems(this.completions);
-    this.box.appendChild(list);
     this.selection = -1;
     if (this.completions.length > 0) {
       list.style.display = "";
@@ -232,15 +113,16 @@ activate: function(_0, options, forceCurrent) {
     }
     this.isSearchOnTop = this.completions.length > 0 && this.completions[0].type === "search";
     this.isSelectionOrigin = true;
+    VPort.ownerPort.postMessage({ name: "style", height: document.documentElement.scrollHeight });
   },
   updateInput: function(sel) {
-    var focused = this.input.focused, line, str;
+    var focused = this.focused, line, str;
     this.isSelectionOrigin = false;
     if (sel === -1) {
       this.isHttps = false;
       this.input.value = this.inputText;
       this.input.focus();
-      this.input.focused = focused;
+      this.focused = focused;
       return;
     }
     if (!focused) this.input.blur();
@@ -303,11 +185,10 @@ activate: function(_0, options, forceCurrent) {
     , 112: "backspace", 113: "blur"
   },
   onKeydown: function(event) {
-    var action = "", n = event.keyCode, focused = VEventMode.lock() === this.input;
-    if ((!focused && VEventMode.lock())) { return 0; }
+    var action = "", n = event.keyCode, focused = this.focused;
     if (event.altKey || event.metaKey) {
       if (!focused || event.ctrlKey || event.shiftKey) {}
-      else if (n >= 66 && n <= 70 && n !== 67 || n === VKeyCodes.backspace) {
+      else if (n >= 66 && n <= 70 && n !== 67 || n === 8) {
         this.onBashAction(n - 64);
         return 2;
       }
@@ -315,25 +196,25 @@ activate: function(_0, options, forceCurrent) {
         return 0;
       }
     }
-    if (n === VKeyCodes.enter) {
+    if (n === 13) {
       this.onEnter(event);
       return 2;
     }
     else if (event.ctrlKey || event.metaKey) {
       if (event.shiftKey) { action = n === 70 ? "pagedown" : n === 66 ? "pageup" : ""; }
-      else if (n === VKeyCodes.up || n === VKeyCodes.down) {
-        VScroller.scrollBy(1, n - 39);
+      else if (n === 38 || n === 40) {
+        // TODO: source window.VScroller.scrollBy(1, n - 39);
         return 2;
       }
       else { action = this.ctrlMap[n] || ""; }
     }
     else if (event.shiftKey) {
-      action = n === VKeyCodes.up ? "pageup" : n === VKeyCodes.down ? "pagedown"
-        : n === VKeyCodes.tab ? "up" : "";
+      action = n === 38 ? "pageup" : n === 40 ? "pagedown"
+        : n === 9 ? "up" : "";
     }
     else if (action = this.normalMap[n] || "") {}
-    else if (n === VKeyCodes.backspace) { return focused ? 1 : 2; }
-    else if (n !== VKeyCodes.space) {}
+    else if (n === 8) { return focused ? 1 : 2; }
+    else if (n !== 32) {}
     else if (!focused) { action = "focus"; }
     else if ((this.selection >= 0
         || this.completions.length <= 1) && this.input.value.endsWith("  ")) {
@@ -342,7 +223,7 @@ activate: function(_0, options, forceCurrent) {
     }
 
     if (action || n <= 32) {}
-    else if (n > VKeyCodes.f1 && n <= VKeyCodes.f12) { focused = false; }
+    else if (n > 112 && n <= 123) { focused = false; }
     else if (!focused && n >= 48 && n < 58) {
       n = (n - 48) || 10;
       if (event.shiftKey || n > this.completions.length) { return 2; }
@@ -354,18 +235,28 @@ activate: function(_0, options, forceCurrent) {
       this.onAction(action);
       return 2;
     }
-    return focused && n !== VKeyCodes.menuKey ? 1 : 0;
+    return focused && n !== 93 ? 1 : 0;
   },
   onAction: function(action) {
+    var sel, selection;
     switch(action) {
-    case "dismiss": VDom.UI.removeSelection() || this.hide(); break;
+    case "dismiss":
+      selection = window.getSelection();
+      if (selection.type === "Range" && this.focused) {
+        ind = this.input.selectionDirection !== "backward" &&
+          this.input.selectionEnd < el.value.length ? el.selectionStart : el.selectionEnd;
+        this.input.setSelectionRange(ind, ind);
+      } else {
+        this.hide();
+      }
+      break;
     case "focus": this.input.focus(); break;
     case "backspace": case "blur":
-      VEventMode.lock() !== this.input ? this.input.focus() :
+      !this.focused ? this.input.focus() :
       action === "blur" ? this.input.blur() : document.execCommand("delete");
       break;
     case "up": case "down":
-      var sel = this.completions.length + 1;
+      sel = this.completions.length + 1;
       sel = (sel + this.selection + (action === "up" ? 0 : 2)) % sel - 1;
       this.updateSelection(sel);
       break;
@@ -381,7 +272,7 @@ activate: function(_0, options, forceCurrent) {
     sel.modify(isExtend ? "extend" : "move", code < 4 ? "backward" : "forward", "word");
     isExtend && sel.type === "Range" && document.execCommand("delete");
   },
-  _pageNumRe: null,
+  _pageNumRe: /(?:^|\s)(\+\d{0,2})$/,
   goPage: function(sel) {
     var i, arr, len = this.completions.length,
     n = this.mode.maxResults,
@@ -461,17 +352,18 @@ activate: function(_0, options, forceCurrent) {
       el.setSelectionRange(0, left.length, 'backward');
     }
   },
-  OnKeypress: null,
+  OnUI: function(event) { Vomnibar.focused = event.type !== "blur"; },
   OnTimer: function() { Vomnibar && Vomnibar.filter(); },
   onWheel: function(event) {
     if (event.ctrlKey || event.metaKey) { return; }
-    VUtils.Prevent(event);
-    var delta = 80 * (VKeyboard.onMac ? 2.5 : 1);
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    var delta = 80; // TODO: add onMac / use better delta
     if (event.deltaX || Date.now() - this.wheelTimer < delta) { return; }
     this.wheelTimer = Date.now();
     this.goPage(event.deltaY > 0 ? 1 : -1);
   },
-  _modeRe: null,
+  _modeRe: /^:[a-z]?$/,
   onInput: function() {
     var s0 = this.mode.query, s1 = this.input.value, str, i, j, arr;
     if ((str = s1.trim()) === (this.selection === -1 || this.isSelectionOrigin
@@ -502,7 +394,7 @@ activate: function(_0, options, forceCurrent) {
     }
     this.update();
   },
-  OnOmni: function(response) {
+  omni: function(response) {
     Vomnibar.autoSelect = response.autoSelect;
     if (Vomnibar.initDom) {
       Vomnibar.completions = response.list;
@@ -525,58 +417,31 @@ activate: function(_0, options, forceCurrent) {
     }
   },
   init: function() {
-    var box, opts, arr;
-    this.box = box = VDom.createElement("div");
-    box.className = "R Omnibar";
-    box.style.display = "none";
-    VPort.sendMessage({
-      handler: "initVomnibar"
-    }, function(response) { Vomnibar.initDom(response); });
-    box.onclick = function(e) { Vomnibar.onClick(e); };
-    if (window.location.protocol.startsWith("chrome") && chrome.runtime.getManifest
-        && (opts = chrome.runtime.getManifest())) {
-      arr = opts.permissions || [];
-      this.mode.showFavIcon = arr.join("/").indexOf("<all_urls>") >= 0 ||
-          arr.concat(opts.optional_permissions).join("/").indexOf("chrome://favicon/") >= 0;
-    }
+    document.body.onclick = function(e) { Vomnibar.onClick(e); };
     this.onWheel = this.onWheel.bind(this);
     Object.setPrototypeOf(this.ctrlMap, null);
     Object.setPrototypeOf(this.normalMap, null);
-    this._spacesRe = /\s{2,}/g;
-    this.init = null;
-  },
-  initDom: function(response) {
-    var str;
-    this.box.innerHTML = response;
-    this.input = this.box.querySelector("#OInput");
-    this.list = this.box.querySelector("#OList");
+    this.input = document.getElementById("OInput");
+    this.list = document.getElementById("OList");
     this.input.value = this.inputText;
-    this.input.onfocus = this.input.onblur = VEventMode.on("UI");
-    str = this.box.querySelector("#OITemplate").outerHTML;
-    str = str.substring(str.indexOf('>') + 1, str.lastIndexOf('<'));
-    this.renderItems = VUtils.makeListRender(str);
-    this.initDom = null;
+    this.input.onfocus = this.input.onblur = this.OnUI;
+    this.input.oninput = this.onInput.bind(this);
+    this.list.oncontextmenu = this.OnMenu;
+    document.getElementById("OClose").onclick = function() { Vomnibar.hide(); };
+    addEventListener("keydown", function(event) {
+      var action = Vomnibar.onKeydown(event);
+      if (action <= 0) { return; }
+      if (action === 2) { event.preventDefault(); }
+      event.stopImmediatePropagation();
+    }, true);
+    this.renderItems = VUtils.makeListRender(document.getElementById("OITemplate").innerHTML);
     if (this.autoSelect !== null) {
-      this.onCompletions(this.completions);
+      // this.onCompletions(this.completions);
     } else {
       // setup DOM node on initing, so that we do less when showing
-      VDom.UI.addElement(this.box);
+      // VDom.UI.addElement(this.box);
     }
-    this.input.oninput = this.onInput.bind(this);
-    this.box.querySelector("#OClose").onclick = function() { Vomnibar.hide(); };
-    this.list.oncontextmenu = this.OnMenu;
-    this._pageNumRe = /(?:^|\s)(\+\d{0,2})$/;
-    this._modeRe = /^:[a-z]?$/;
-  },
-  computeHint: function(li, a) {
-    var i = [].indexOf.call(this.list.children, li), item, rect;
-    if (i === -1) { return null; }
-    item = this.completions[i];
-    a.setAttribute("data-vim-text", item.title);
-    a.href = item.url;
-    rect = VRect.fromClientRect(li.getBoundingClientRect());
-    rect[0] += 10; rect[2] -= 12; rect[3] -= 3;
-    return rect;
+    this.init = null;
   },
 
   mode: {
@@ -588,18 +453,18 @@ activate: function(_0, options, forceCurrent) {
     maxResults: 10,
     query: ""
   },
-  _spacesRe: null,
+  _spacesRe: /\s{2,}/g,
   filter: function() {
     var mode = this.mode, str = (this.input ? this.input.value : this.inputText).trim();
     if (str && (str = str.replace(this._spacesRe, " ")) === mode.query) {
       return this.postUpdate();
     }
-    mode.clientWidth = document.documentElement.clientWidth;
+    mode.clientWidth = window.innerWidth;
     mode.query = str;
     this.timer = -1;
     str = mode.handler;
     this.onlySearch && (mode.type = "search");
-    VPort.port.postMessage(mode);
+    VPort.postMessage(mode);
     this.onlySearch && (mode.type = str);
   },
 
@@ -611,8 +476,8 @@ activate: function(_0, options, forceCurrent) {
       + item.relevancy + "</span>" : "";
   },
   navigateToUrl: function(item) {
-    if (VUtils.evalIfOK(item.url)) { return; }
-    VPort.port.postMessage({
+    // TODO: execute js url on the source frame
+    VPort.postMessage({
       handler: "openUrl",
       reuse: this.actionType,
       https: this.isHttps,
@@ -620,11 +485,107 @@ activate: function(_0, options, forceCurrent) {
     });
   },
   gotoSession: function(item) {
-    VPort.port.postMessage({
+    VPort.postMessage({
       handler: "gotoSession",
       active: this.actionType > -2,
       sessionId: item.sessionId
     });
     this.actionType < -1 && this.update(50);
+  },
+},
+VUtils = {
+  makeListRender: function(template) {
+    var o = null, a = template.split(/\{\{(\w+)}}/g)
+      , f = function(w, i) { return (i & 1) && (w = o[w]) == null ? "" : w; }
+      , m = function(i) { o = i; return a.map(f).join(""); };
+    template = null;
+    return function(objectArray) {
+      var html = objectArray.map(m).join("");
+      o = null;
+      return html;
+    };
+  },
+  decodeURL: function(url, decode) {
+    try {
+      url = (decode || decodeURI)(url);
+    } catch (e) {}
+    return url;
+  },
+},
+VPort = {
+  port: null,
+  ownerPort: null,
+  postMessage: function(request) { (this.port || this.connect()).postMessage(request); },
+  _callbacks: Object.create(null),
+  _id: 1,
+  sendMessage: function(request, callback) {
+    var id = ++this._id;
+    this.postMessage({_msgId: id, request: request});
+    this._callbacks[id] = callback;
+  },
+  listener: function(response) {
+    var id, handler;
+    if (id = response._msgId) {
+      handler = VPort._callbacks[id];
+      delete VPort._callbacks[id];
+      handler(response.response);
+      return;
+    }
+    switch (response.name) {
+    case "omni":
+      Vomnibar[response.name](response);
+      break;
+    default:
+      console.log(response.name || response);
+      break;
+    }
+  },
+  OnOwnerMessage: function(event) {
+    var data = event.data;
+    switch (data.name || data) {
+    case "show": Vomnibar.activate(data); break;
+    default: break;
+    }
+  },
+  ClearPort: function() { VPort.port = null; },
+  connect: function() {
+    var port;
+    this.port = port = chrome.runtime.connect(null, { name: "vimium++.9" });
+    port.onDisconnect.addListener(this.ClearPort);
+    port.onMessage.addListener(this.listener);
+    return port;
   }
 };
+(function() {
+  var _secr = null, step = 0, _port, timer,
+  handler = function(secret, port) {
+    if (0 === step++) {
+      _secr = secret, _port = port || null;
+      return;
+    }
+    if (_secr !== secret) { return; }
+    clearTimeout(timer);
+    window.onmessage = null;
+    var port = VPort.ownerPort = _port || port;
+    port.onmessage = VPort.OnOwnerMessage;
+    port.postMessage("uiComponentIsReady");
+  };
+  timer = setTimeout(function() {
+    VPort.ClearPort();
+    window.onmessage = _port = null;
+  }, 500);
+  VPort.sendMessage({ handler: "secret" }, handler);
+  window.onmessage = function(event) {
+    event.source === window.parent && handler(event.data, event.ports[0]);
+  };
+})();
+
+if (!String.prototype.startsWith) {
+String.prototype.startsWith = function(s) {
+  return this.length >= s.length && this.lastIndexOf(s, 0) === 0;
+};
+String.prototype.endsWith || (String.prototype.endsWith = function(s) {
+  var i = this.length - s.length;
+  return i >= 0 && this.indexOf(s, i) === i;
+});
+}

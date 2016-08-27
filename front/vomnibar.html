@@ -1,4 +1,9 @@
-
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>Vimium++ Vomnibar</title>
+	<script defer="" src="vomnibar.js"></script>
 <style type="text/css">
 .Omnibar{background:white;}
 body{background:white;font:normal normal normal 12px Helvetica,Arial,sans-serif;line-height:100%;margin:0;padding:0;}
@@ -24,10 +29,12 @@ color:black;contain:strict;font-size:20px;height:34px;outline:none;padding:4px;w
 max-width:100%;padding-left:51px;text-decoration:none;}
 .OSUrl{color:black;font-weight:bold;}
 .OIRelevancy{font-family:'Courier New',Courier,monospace;margin-left:10px;position:absolute;}
-</style>
+	</style>
+</head>
+<body>
 <div class="OWithList" id="OInputBar">
 	<input type="text" id="OInput" />
-  <span role="button" id="OClose">&#215;</span>
+	<span role="button" id="OClose">&#215;</span>
 </div>
 <div id="OList">
 	<script type="text/template" id="OITemplate">
@@ -41,3 +48,5 @@ max-width:100%;padding-left:51px;text-decoration:none;}
 		</div>
 	</div></script>
 </div>
+</body>
+</html>

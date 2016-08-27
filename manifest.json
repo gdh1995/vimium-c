@@ -108,6 +108,7 @@
   "version": "1.55",
   "web_accessible_resources": [
     "content/*",
+    "front/vomnibar.html",
     "lib/*"
   ]
 }
