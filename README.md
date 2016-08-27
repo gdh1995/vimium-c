@@ -38,7 +38,7 @@ Release Notes
 -------------
 
 1.55:
-* add **Visual Mode**, and support all commands of public/Vimium's.
+* add **Visual Mode**, and support all commands of philc/Vimium's.
   This implementation works well on `<textarea>`s and `shadowDOM`s.
 * add commend `clearFindHistory` to remove all find mode history,
     in normal mode incognito mode.
