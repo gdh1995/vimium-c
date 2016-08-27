@@ -450,8 +450,7 @@ activate: function(_0, options, forceCurrent) {
   init: function() {
     var box, opts, arr;
     this.box = box = VDom.createElement("div");
-    box.className = "R";
-    box.id = "Omnibar";
+    box.className = "R Omnibar";
     box.style.display = "none";
     VPort.sendMessage({
       handler: "initVomnibar"
