@@ -185,5 +185,6 @@
 		"v.c|copy\\:|v\\://copy|vimium\\://copy: vimium://copy\\ $S re= Copy to Clipboard",
 		"v.mc|v.math-copy: vimium://search-copy\\ vimium://math\\ $S re= Calculate and Copy",
 		""
-	]
+	],
+	"showAdvancedOptions": true
 }
