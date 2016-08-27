@@ -6,7 +6,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
     , cOptions, cPort, currentCount, currentFirst, executeCommand
     , FindModeHistory, framesForTab, funcDict
     , HelpDialog, needIcon, openMultiTab //
-    , requestHandlers, resetKeys, keyMap
+    , requestHandlers, resetKeys, keyMap, getSecret
     ;
 
   framesForTab = Object.create(null);
@@ -1021,6 +1021,19 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
         query: query
       });
     },
+    showVomnibar: function() {
+      var port = cPort;
+      if (port.sender.frameId !== 0) {
+        port = Settings.indexFrame(port.sender.tab.id, 0) || port;
+      }
+      cOptions.page = Settings.CONST.VomnibarPage;
+      cOptions.secret = getSecret();
+      port.postMessage({
+        name: "execute", count: 1,
+        command: "Vomnibar.activateIframe",
+        options: cOptions
+      });
+    },
     clearFindHistory: function() {
       var incognito = cPort.sender.tab.incognito;
       FindModeHistory.removeAll(incognito);
@@ -1040,6 +1053,19 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
   resetKeys = function() {
     currentFirst = null;
     currentCount = 0;
+  };
+
+  getSecret = function() {
+    var secret = 0, time = 0;
+    getSecret = function() {
+      var now = Date.now();
+      if (now - time > 10000) {
+        secret = 0 | (Math.random() * 0x6fffffff);
+      }
+      time = now;
+      return secret;
+    };
+    return getSecret();
   };
 
   Settings.indexFrame = function(tabId, frameId) {
@@ -1456,6 +1482,10 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
         url: request.url.split("#", 1)[0]
       }, funcDict.focusOrLaunch.bind(null, request));
     },
+    secret: function(_0, port) {
+      if (!port.sender.url.startsWith(Settings.CONST.VomnibarPage)) { return null; }
+      return getSecret();
+    },
     PostCompletions: function(list, autoSelect) {
       cPort.postMessage({ name: "omni", list: list, autoSelect: autoSelect });
     },
@@ -1508,8 +1538,13 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
       port.onMessage.addListener(Connections.OnMessage);
       port.onDisconnect.addListener(Connections.OnDisconnect);
       Connections.cleanSender(port);
-      var type = port.name[9] | 0, ref, tabId = port.sender.tab.id
-        , pass = Exclusions.getPattern(port.sender.url);
+      var type = port.name[9] | 0, ref, tabId, pass;
+      if (type === 9) {
+        port.sender.frameId *= -1;
+        return;
+      }
+      tabId = port.sender.tab.id;
+      pass = Exclusions.getPattern(port.sender.url);
       port.postMessage((type & 1) ? {
         name: "init",
         load: Settings.bufferToLoad,

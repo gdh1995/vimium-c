@@ -110,7 +110,7 @@ commandGroups: {
     ],
   vomnibarCommands: ["Vomnibar.activate", "Vomnibar.activateInNewTab"
     , "Vomnibar.activateBookmarks", "Vomnibar.activateBookmarksInNewTab", "Vomnibar.activateHistory"
-    , "Vomnibar.activateHistoryInNewTab", "Vomnibar.activateTabSelection"
+    , "Vomnibar.activateHistoryInNewTab", "Vomnibar.activateTabSelection", "Vomnibar.activateIframe"
     , "LinkHints.activateModeToOpenVomnibar"],
   historyNavigation: ["goBack", "goForward", "reopenTab"],
   findCommands: ["enterFindMode", "performFind", "performBackwardsFind", "clearFindHistory"],
@@ -328,6 +328,7 @@ availableCommands: {
     { mode: "history" }, "Vomnibar.activate" ],
   "Vomnibar.activateHistoryInNewTab": [ "Open a history in a new tab", 1, false,
     { mode: "history", force: true }, "Vomnibar.activate" ],
+  "Vomnibar.activateIframe": [ "Open Vomnibar in an iframe", 1, true, null, "showVomnibar" ],
   nextFrame: [ "Cycle forward to the next frame on the page", 0, true ],
   mainFrame: [ "Select the tab's main/top frame", 1, true ],
   "Marks.activateCreateMode": [ "Create a new mark", 1, false, { mode: "create" }, "VMarks.activate" ],
