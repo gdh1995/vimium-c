@@ -1,7 +1,7 @@
 Vimium++
 ========
 [![license](https://img.shields.io/badge/license-MIT-blue.svg)](MIT-LICENSE.txt)
-![version](https://img.shields.io/badge/release-1.54-orange.svg)
+![version](https://img.shields.io/badge/release-1.55-orange.svg)
 
 A custom [Vimium](https://github.com/philc/vimium)
   by [gdh1995](https://github.com/gdh1995),
@@ -37,10 +37,16 @@ __微度新标签页 (X New Tab Page):__
 Release Notes
 -------------
 
-Not yet released:
+1.55:
 * add **Visual Mode**, and support all commands of public/Vimium's.
+  This implementation works well on `<textarea>`s and `shadowDOM`s.
 * add commend `clearFindHistory` to remove all find mode history,
     in normal mode incognito mode.
+* use a small `options_ui.html` to jump to the options page on Chrome's settings page,
+  and this manifest item makes a warning on installation before Chrome 40,
+    though it has not any influence.
+* some bug fixes.
+* an advance notice: Vomnibar will be re-implemented using a much safer `<iframe>`.
 
 1.54:
 * **WARNING**: change modifier keys' order into `m-c-a-` (breaking)
