@@ -96,7 +96,6 @@ var VSettings, VHUD, VPort, VEventMode;
       });
       port.onDisconnect.addListener(this.ClearPort);
       port.onMessage.addListener(this.Listener);
-      this._callbacks;
     }
   };
   mainPort.connect(1);
