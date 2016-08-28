@@ -187,7 +187,7 @@ body{cursor:text;display:inline-block;padding:0 3px 0 1px;min-width:7px;}body *{
     lock: null,
     activate: function() {
       var el = VEventMode.lock(), Exit = this.exit;
-      if (!el || el === Vomnibar.input) { Exit(); return; }
+      if (!el) { Exit(); return; }
       VHandler.push(this.onKeydown, this);
       if (el === this.lock) { return; }
       if (!this.lock) {

@@ -81,17 +81,11 @@ VDom.UI = {
     return sel;
   },
   removeSelection: function(root) {
-    var sel = (root || this.root).getSelection(), el, ind;
+    var sel = (root || this.root).getSelection();
     if (sel.type !== "Range" || !sel.anchorNode) {
       return false;
     }
-    if (el = VEventMode.lock()) {
-      ind = el.selectionDirection !== "backward" && el.selectionEnd < el.value.length ?
-          el.selectionStart : el.selectionEnd;
-      el.setSelectionRange(ind, ind);
-    } else {
-      sel.removeAllRanges();
-    }
+    sel.removeAllRanges();
     return true;
   },
   simulateSelect: function(element, flash, suppressRepeated) {
@@ -120,17 +114,9 @@ VDom.UI = {
   getVRect: function(clickEl) {
     var rect, bcr;
     VDom.prepareCrop();
-    if (clickEl.classList.contains("OIUrl") && Vomnibar.completions
-        && Vomnibar.box.contains(clickEl)) {
-      rect = Vomnibar.computeHint(clickEl.parentElement.parentElement, clickEl);
-    } else {
-      rect = VDom.getVisibleClientRect(clickEl);
-      bcr = VRect.fromClientRect(clickEl.getBoundingClientRect());
-      if (!rect || VRect.isContaining(bcr, rect)) {
-        rect = bcr;
-      }
-    }
-    return rect;
+    rect = VDom.getVisibleClientRect(clickEl);
+    bcr = VRect.fromClientRect(clickEl.getBoundingClientRect());
+    return rect && !VRect.isContaining(bcr, rect) ? rect : bcr;
   },
   flashVRect: function(rect, time) {
     var flashEl = VDom.createElement("div");

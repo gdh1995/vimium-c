@@ -1043,7 +1043,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
       }, null), cOptions);
       port.postMessage({
         name: "execute", count: 1,
-        command: "Vomnibar.iframe.activate",
+        command: "Vomnibar.activate",
         options: options
       });
     },

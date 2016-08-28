@@ -135,7 +135,7 @@ var VSettings, VHUD, VPort, VEventMode;
       if (KeydownEvents[event.keyCode]) {
         KeydownEvents[event.keyCode] = 0;
         event.preventDefault();
-      } else if (InsertMode.lock !== Vomnibar.input) {
+      } else {
         onKeyup2 && onKeyup2(event);
         return;
       }
@@ -153,7 +153,8 @@ var VSettings, VHUD, VPort, VEventMode;
         target.addEventListener("focus", ELs.onFocus, true);
         target.addEventListener("blur", ELs.onShadowBlur, true);
       } else {
-        ELs.OnUI(event);
+        InsertMode.lock = null;
+        event.stopImmediatePropagation();
       }
     },
     onBlur: function(event) {
@@ -168,7 +169,7 @@ var VSettings, VHUD, VPort, VEventMode;
       else if (InsertMode.lock === target) { InsertMode.lock = null; }
       else if (!target.shadowRoot) {}
       else if (target === VDom.UI.box) {
-        ELs.OnUI(event);
+        InsertMode.lock = null;
       } else {
         target = target.shadowRoot;
         // NOTE: if destroyed, this page must have lost its focus before, so
@@ -183,19 +184,6 @@ var VSettings, VHUD, VPort, VEventMode;
     },
     OnWndFocus: function() {},
     OnWndBlur: null,
-    OnUI: function(event) {
-      event.stopImmediatePropagation();
-      var target = Vomnibar.input;
-      if (event.type !== "blur") {
-        if (VDom.UI.root.activeElement === target) {
-          InsertMode.lock = target;
-          target.focused = true;
-        }
-      } else if (InsertMode.lock === target) {
-        InsertMode.lock = null;
-        target.focused = false;
-      }
-    },
     onShadowBlur: function(event) {
       if (event.isTrusted === false) { return; }
       if (this.vimiumBlurred) {
@@ -213,12 +201,6 @@ var VSettings, VHUD, VPort, VEventMode;
     }
   };
   ELs.hook(addEventListener);
-
-  Vomnibar.OnKeypress = function(event) {
-    if (isEnabledForUrl && InsertMode.lock === Vomnibar.input) {
-      event.stopImmediatePropagation();
-    }
-  };
 
   esc = function() { currentSeconds = null; };
 
@@ -848,7 +830,7 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
       enabled === !requestHandlers.init && ELs.hook(enabled ? addEventListener : removeEventListener, 1);
       if (!enabled) {
         VScroller.current = VDom.lastHovered = InsertMode.last = InsertMode.lock = null;
-        VHints.deactivate(); Vomnibar.input && Vomnibar.hide();
+        VHints.deactivate(); Vomnibar.hide();
       }
       passKeys = newPassKeys && parsePassKeys(newPassKeys);
       VDom.UI.box && VDom.UI.toggle(enabled);
@@ -887,7 +869,6 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
       esc();
       VUtils.execCommand(Commands, request.command, [request.count, request.options, 0]);
     },
-    omni: Vomnibar.OnOmni,
     performFind: function(request) { VFindMode.activate(request); },
     createMark: VMarks.CreateGlobalMark,
     scroll: VMarks.Goto,
@@ -983,7 +964,6 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
 
     ELs.hook(f);
     f("mousedown", InsertMode.ExitGrab, true);
-    f("keypress", Vomnibar.OnKeypress, true);
     VEventMode.exitSuppress();
     VFindMode.toggleStyle("remove");
     (el = VDom.UI.box) && el.remove();

@@ -4,7 +4,6 @@ $("showCommands").onclick = function(event) {
   if (!window.VDom) { return; }
   var node, root = VDom.UI.root;
   event && event.preventDefault();
-  Vomnibar.input && Vomnibar.input.blur();
   if (!root) {}
   else if (root.querySelector('.HelpCommandName')) {
     node = root.getElementById("HelpDialog");
