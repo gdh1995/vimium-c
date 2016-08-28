@@ -713,7 +713,6 @@ highlightChild: function(child, box) {
   try {
     child.VEventMode.keydownEvents();
   } catch (e) {
-    this.mode = 0;
     child.focus();
     return;
   }
@@ -726,7 +725,6 @@ highlightChild: function(child, box) {
   lh.isActive = false;
   lh.activate(this.count, this.options);
   lh.isActive && lh.setMode(this.mode);
-  this.mode = 0;
   return false;
 },
 
@@ -920,7 +918,7 @@ DEFAULT: {
   66: "Open multiple links in new tabs",
   67: "Activate link and hold on",
   activator: function(link, hint) {
-    var mode, alterTarget, tag;
+    var mode, alterTarget, tag, ret;
     mode = VDom.getEditableType(link);
     if (mode === 3) {
       VDom.UI.simulateSelect(link, true);
@@ -935,7 +933,10 @@ DEFAULT: {
 
     tag = link.nodeName.toLowerCase();
     if (tag === "iframe" || tag === "frame") {
-      return this.highlightChild(link.contentWindow, link.getClientRects()[0]);
+      ret = link === Vomnibar.box ? (Vomnibar.focus(), false)
+        : this.highlightChild(link.contentWindow, link.getClientRects()[0]);
+      this.mode = 0;
+      return ret;
     }
     if (mode >= 2 && tag === "a") {
       alterTarget = link.getAttribute('target');

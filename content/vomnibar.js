@@ -129,10 +129,14 @@ var Vomnibar = {
     }
     i = VKeyCodes.f1;
     if (key === i || key === i + 1) {
-      this.box.contentWindow.focus();
-      this.port.postMessage(key === i ? "backspace" : "focus");
+      this.focus(key === i);
       return 2;
     }
     return 0;
+  },
+  focus: function(bs) {
+    if (this.status < 3) { return; }
+    this.box.contentWindow.focus();
+    this.port.postMessage(bs ? "backspace" : "focus");
   }
 };
