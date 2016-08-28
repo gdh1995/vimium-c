@@ -116,9 +116,15 @@ iframe: {
     VHandler.push(this.onKeydown, this);
   },
   onKeydown: function() {
-    var key = event.keyCode;
+    var key = event.keyCode, i;
     if (key == VKeyCodes.esc) {
       return VKeyboard.isPlain(event) ? (this.hide(), 2) : 0;
+    }
+    i = VKeyCodes.f1;
+    if (key === i || key === i + 1) {
+      this.box.contentWindow.focus();
+      this.port.postMessage(key === i ? "backspace" : "focus");
+      return 2;
     }
     return 0;
   }

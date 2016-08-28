@@ -191,7 +191,12 @@ var Vomnibar = {
   onKeydown: function(event) {
     var action = "", n = event.keyCode, focused = this.focused;
     if (event.altKey || event.metaKey) {
-      if (!focused || event.ctrlKey || event.shiftKey) {}
+      if (event.ctrlKey || event.shiftKey) {}
+      else if (n === 113) {
+        this.onAction(focused ? "blurInput" : "focus");
+        return 2;
+      }
+      else if (!focused) {}
       else if (n >= 66 && n <= 70 && n !== 67 || n === 8) {
         this.onBashAction(n - 64);
         return 2;
@@ -256,9 +261,11 @@ var Vomnibar = {
       }
       break;
     case "focus": this.input.focus(); break;
+    case "blurInput": this.input.blur(); break;
     case "backspace": case "blur":
-      !this.focused ? this.input.focus() :
-      action === "blur" ? this.input.blur() : document.execCommand("delete");
+      !this.focused ? this.input.focus()
+      : action === "blur" ? VPort.postMessage({ handler: "refocusCurrent" })
+      : document.execCommand("delete");
       break;
     case "up": case "down":
       sel = this.completions.length + 1;
@@ -548,6 +555,7 @@ VPort = {
     switch (name) {
     case "activate": Vomnibar.activate(data); break;
     case "hide": Vomnibar.hide(data); break;
+    case "focus": case "backspace": Vomnibar.onAction(data); break;
     default: console.log('owner port', name, name === data ? null : data); break;
     }
   },
