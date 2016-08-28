@@ -7,6 +7,7 @@ iframe: {
   options: null,
   width: 0,
   activate: function(_0, options, forceCurrent) {
+    if (!options.secret || !options.page) { return false; }
     if (document.readyState === "loading") {
       if (!this.width) {
         this.width = setTimeout(this.activate.bind(this, options), 500);

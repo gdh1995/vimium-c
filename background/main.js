@@ -1070,7 +1070,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
     getSecret = function() {
       var now = Date.now();
       if (now - time > 10000) {
-        secret = 0 | (Math.random() * 0x6fffffff);
+        secret = 1 + (0 | (Math.random() * 0x6fffffff));
       }
       time = now;
       return secret;
