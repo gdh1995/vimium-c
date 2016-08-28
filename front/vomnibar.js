@@ -8,6 +8,7 @@ var Vomnibar = {
     this.forceNewTab = options.force ? true : false;
     url = options.url;
     keyword = options.keyword;
+    this.mode.clientWidth = options.width;
     if (url == null) {
       this.reset(keyword ? keyword + " " : "");
       return;
@@ -73,14 +74,18 @@ var Vomnibar = {
     VPort.disconnect();
   },
   reset: function(input, start, end) {
-    input || (input = "");
-    this.inputText = input;
-    this.input.value = input;
+    this.input.value = input || (input = "");
     this.completions = [];
-    this.update(0, input && start <= end ? function() {
+    if (this.timer > 0) {
+      clearTimeout(this.timer);
+    }
+    this.onUpdate = input && start <= end ? function() {
       this.show();
       this.input.setSelectionRange(start, end);
-    } : this.show);
+    } : this.show;
+    this.timer = -1;
+    this.mode.query = input.trim();
+    VPort.postMessage(this.mode);
   },
   update: function(updateDelay, callback) {
     this.onUpdate = callback || null;
@@ -100,9 +105,7 @@ var Vomnibar = {
     this.timer = setTimeout(this.OnTimer, updateDelay);
   },
   populateUI: function() {
-    // work-around: For a node in a shadowRoot, if it's in the XML DOM tree,
-    // then its children won't have `.style` if created by setting `.innerHTML`
-    var list = this.list, barCls = this.input.parentElement.classList;
+    var list = this.list, barCls = this.input.parentElement.classList, height;
     list.innerHTML = this.renderItems(this.completions);
     this.selection = -1;
     if (this.completions.length > 0) {
@@ -113,13 +116,15 @@ var Vomnibar = {
         this.selection = 0;
         list.firstElementChild.classList.add("S");
       }
+      height = 45 * this.completions.length + 57;
     } else {
+      height = 54;
       list.style.display = "none";
       barCls.remove("OWithList");
     }
     this.isSearchOnTop = this.completions.length > 0 && this.completions[0].type === "search";
     this.isSelectionOrigin = true;
-    VPort.postToOwner({ name: "style", height: document.documentElement.scrollHeight });
+    VPort.postToOwner({ name: "style", height: height });
   },
   updateInput: function(sel) {
     var focused = this.focused, line, str;
@@ -446,7 +451,6 @@ var Vomnibar = {
     Object.setPrototypeOf(this.normalMap, null);
     this.input = document.getElementById("OInput");
     this.list = document.getElementById("OList");
-    this.input.value = this.inputText;
     this.input.onfocus = this.input.onblur = this.OnUI;
     this.input.oninput = this.onInput.bind(this);
     this.list.oncontextmenu = this.OnMenu;
@@ -489,10 +493,8 @@ var Vomnibar = {
   },
   _spacesRe: /\s{2,}/g,
   filter: function() {
-    var mode = this.mode, str = (this.input ? this.input.value : this.inputText).trim();
-    if (str && (str = str.replace(this._spacesRe, " ")) === mode.query) {
-      return this.postUpdate();
-    }
+    var mode = this.mode, str = this.input.value.trim().replace(this._spacesRe, " ");
+    if (str === mode.query) { return this.postUpdate(); }
     mode.clientWidth = window.innerWidth;
     mode.query = str;
     this.timer = -1;
