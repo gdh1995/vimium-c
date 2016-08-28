@@ -1458,6 +1458,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
       return Settings.cache.innerCss;
     },
     omni: function(request, port) {
+      if (funcDict.checkVomnibarPage(port)) { return; }
       cPort = port;
       Completers[request.type].filter(request.query, request);
     },
