@@ -440,6 +440,11 @@ var Vomnibar = {
     }
   },
   init: function() {
+    window.onfocus = function() {
+      if (VPort.port) { return; }
+      try { VPort.connect(); return; } catch (e) {}
+      try { VPort.postToOwner("focus"); } catch (e) {}
+    };
     window.onclick = function(e) { Vomnibar.onClick(e); };
     this.onWheel = this.onWheel.bind(this);
     Object.setPrototypeOf(this.ctrlMap, null);

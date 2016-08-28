@@ -108,6 +108,7 @@ iframe: {
       this.box.style.height = data.height + "px";
       this.status === 2 && this.onShown();
       break;
+    case "focus": window.focus(); break;
     case "hide": this.hide(true); break;
     case "scrollBy": VScroller.scrollBy(1, data.amount); break;
     case "scrollGoing": VScroller.keyIsDown = VScroller.Core.maxInterval; break;
