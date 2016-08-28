@@ -6,6 +6,7 @@ var Vomnibar = {
 iframe: {
   box: null,
   port: null,
+  status: 0,
   options: null,
   width: 0,
   activate: function(options) {
@@ -22,21 +23,29 @@ iframe: {
     var width = this.width = document.documentElement.clientWidth * 0.8;
     if (this.Init) {
       setTimeout(this.Init, 0, secret, url);
+      this.status = 1;
       this.Init = null;
-      return;
+    } else if (!this.status) {
+      this.status = 2;
+      this.show();
     }
-    this.show();
   },
   show: function() {
-    if (!this.box || this.box.onload) { return; }
-    var options = this.options; this.options = null;
-    options.width = this.width | 0, options.name = "show";
+    if (this.status < 2) { return; }
+    var width = this.width, w = width | 0, options = this.options;
+    this.options = null, this.width = 0;
+    options.width = w, options.name = "show";
+    if (width !== w) {
+      this.box.style.width = w / (width / 0.8) * 100 + "%";
+    }
     this.port.postMessage(options);
   },
   hide: function() {
-    this.box.style.display = "none";
-    this.box.style.width = "";
+    this.status = 0;
     this.width = 0;
+    if (!this.box) { return; }
+    var style = this.box.style;
+    style.display = "none", style.width = "", style.height = "";
   },
   Init: function(secret, page) {
     var _this = Vomnibar.iframe, el;
@@ -57,17 +66,17 @@ iframe: {
     switch (data.name || data) {
     case "uiComponentIsReady":
       this.box.onload = null;
+      if (this.status !== 1) { return; }
+      this.status = 2;
       this.show();
       break;
-    case "show":
-      width = this.width;
-      if (width !== (width | 0)) {
-        this.box.style.width = (width | 0) / (width / 0.8) * 100 + "%";
-      }
-      this.box.style.display = "";
-      break;
     case "style":
+      if (this.status < 2) { return; }
       this.box.style.height = data.height + "px";
+      if (this.status === 2) {
+        this.box.style.display = "";
+        this.status === 3;
+      }
       break;
     case "hide":
       this.hide();

@@ -46,9 +46,8 @@ var Vomnibar = {
   timer: 0,
   wheelTimer: 0,
   show: function() {
-    VPort.ownerPort.postMessage("show");
     this.input.focus();
-    document.body.onmousewheel = this.onWheel;
+    window.onmousewheel = this.onWheel;
     setTimeout(function() {
       Vomnibar.input.onselect = Vomnibar.OnSelect;
     }, 50);
@@ -59,12 +58,13 @@ var Vomnibar = {
     this.timer = 0;
     this.input.onselect = null;
     this.input.blur();
-    document.body.onmousewheel = null;
+    window.onmousewheel = null;
     this.list.textContent = "";
     this.input.value = "";
     this.completions = this.onUpdate = null;
     this.mode.query = this.inputText = "";
     VPort.ownerPort.postMessage("hide");
+    VPort.port.disconnect();
   },
   reset: function(input, start, end) {
     input || (input = "");
