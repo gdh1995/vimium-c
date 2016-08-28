@@ -64,7 +64,7 @@ var Vomnibar = {
     this.completions = this.onUpdate = null;
     this.mode.query = this.inputText = "";
     VPort.ownerPort.postMessage("hide");
-    VPort.port.disconnect();
+    VPort.disconnect();
   },
   reset: function(input, start, end) {
     input || (input = "");
@@ -547,10 +547,11 @@ VPort = {
     default: break;
     }
   },
+  disconnect: function() { this.port && this.port.disconnect(); this.port = null; },
   ClearPort: function() { VPort.port = null; },
   connect: function() {
     var port;
-    this.port = port = chrome.runtime.connect(null, { name: "vimium++.9" });
+    this.port = port = chrome.runtime.connect(null, { name: "vimium++.8" });
     port.onDisconnect.addListener(this.ClearPort);
     port.onMessage.addListener(this.listener);
     return port;
@@ -571,7 +572,7 @@ VPort = {
     port.postMessage("uiComponentIsReady");
   };
   timer = setTimeout(function() {
-    VPort.ClearPort();
+    VPort.disconnect();
     window.onmessage = _port = null;
   }, 500);
   VPort.sendMessage({ handler: "secret" }, handler);

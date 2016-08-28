@@ -1538,14 +1538,15 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
       }
     },
     OnConnect: function(port) {
-      port.onMessage.addListener(Connections.OnMessage);
-      port.onDisconnect.addListener(Connections.OnDisconnect);
       Connections.cleanSender(port);
-      var type = port.name[9] | 0, ref, tabId, pass;
-      if (type === 9) {
+      port.onMessage.addListener(Connections.OnMessage);
+      var type = port.name[9] | 0, ref, tabId, pass, status;
+      if (type === 8) {
         port.sender.frameId *= -1;
+        (window.ports || (window.ports = [])).push(port);
         return;
       }
+      port.onDisconnect.addListener(Connections.OnDisconnect);
       tabId = port.sender.tab.id;
       pass = Exclusions.getPattern(port.sender.url);
       port.postMessage((type & 1) ? {
@@ -1559,7 +1560,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
         name: "reset",
         passKeys: pass
       });
-      var status = pass === null ? "enabled" : pass ? "partial" : "disabled";
+      status = pass === null ? "enabled" : pass ? "partial" : "disabled";
       port.sender.status = status;
       if (ref = framesForTab[tabId]) {
         ref.push(port);
