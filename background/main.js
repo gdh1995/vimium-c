@@ -1029,7 +1029,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
       options = Utils.extendIf(Object.setPrototypeOf({
         page: Settings.CONST.VomnibarPage,
         secret: getSecret(),
-      }), cOptions);
+      }, null), cOptions);
       port.postMessage({
         name: "execute", count: 1,
         command: "Vomnibar.activateIframe",
