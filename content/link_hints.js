@@ -366,7 +366,7 @@ var VHints = {
     this.frameNested = res === false && document.readyState === "complete" ? null : res;
   },
   _getNestedFrame: function(output) {
-    var rect, element, func;
+    var rect, rect2, element, func;
     if (window.frames[0] == null) { return false; }
     if (document.webkitIsFullScreen) { return null; }
     if (output == null) {
@@ -386,9 +386,9 @@ var VHints = {
     if (
       ((element instanceof HTMLIFrameElement) || (element instanceof HTMLFrameElement))
         && (rect = element.getClientRects()[0])
-        && window.scrollY + rect.top < 20 && window.scrollX + rect.left < 20
-        && rect.right > document.documentElement.scrollWidth - 20
-        && rect.bottom > document.documentElement.scrollHeight - 20
+        && (rect2 = document.documentElement.getBoundingClientRect())
+        && rect.top - rect2.top < 20 && rect.left - rect2.left < 20
+        && rect2.right - rect.right < 20 && rect2.bottom - rect.bottom < 20
         && getComputedStyle(element).visibility === 'visible'
     ) {
       return element;
