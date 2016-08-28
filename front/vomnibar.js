@@ -36,7 +36,7 @@ var Vomnibar = {
   isSearchOnTop: false,
   onlySearch: false,
   actionType: false,
-  autoSelect: null,
+  autoSelect: true,
   forceNewTab: false,
   isScrolling: 0,
   input: null,
@@ -423,18 +423,12 @@ var Vomnibar = {
     this.update();
   },
   omni: function(response) {
-    Vomnibar.autoSelect = response.autoSelect;
-    if (Vomnibar.initDom) {
-      Vomnibar.completions = response.list;
-    } else if (Vomnibar.completions) {
-      Vomnibar.onCompletions(response.list);
-    }
-  },
-  onCompletions: function(completions) {
+    var completions = response.list;
+    this.autoSelect = response.autoSelect;
     completions.forEach(this.Parse, this.mode);
     this.completions = completions;
     this.populateUI();
-    return this.timer > 0 || this.postUpdate();
+    this.timer > 0 || this.postUpdate();
   },
   postUpdate: function() {
     var func;
@@ -457,12 +451,6 @@ var Vomnibar = {
     document.getElementById("OClose").onclick = function() { Vomnibar.hide(); };
     addEventListener("keydown", this.handleKeydown, true);
     this.renderItems = VUtils.makeListRender(document.getElementById("OITemplate").innerHTML);
-    if (this.autoSelect !== null) {
-      // this.onCompletions(this.completions);
-    } else {
-      // setup DOM node on initing, so that we do less when showing
-      // VDom.UI.addElement(this.box);
-    }
     this.init = null;
   },
   handleKeydown: function(event) {
@@ -569,21 +557,12 @@ VPort = {
       handler(response.response);
       return;
     }
-    switch (response.name) {
-    case "omni":
-      Vomnibar[response.name](response);
-      break;
-    default: console.log('main port', response.name, response); break;
-    }
+    response.name === "omni" && Vomnibar.omni(response);
   },
   OnOwnerMessage: function(event) {
     var data = event.data, name = data.name || data;
-    switch (name) {
-    case "activate": Vomnibar.activate(data); break;
-    case "hide": Vomnibar.hide(data); break;
-    case "focus": case "backspace": Vomnibar.onAction(data); break;
-    default: console.log('owner port', name, name === data ? null : data); break;
-    }
+    if (name === "focus" || name === "backspace") { name = "onAction"; }
+    Vomnibar[name](data);
   },
   disconnect: function() { this.port && this.port.disconnect(); this.port = null; },
   ClearPort: function() { VPort.port = null; },
