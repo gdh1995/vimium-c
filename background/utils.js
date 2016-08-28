@@ -12,6 +12,7 @@ var exports = {}, Utils = {
     for (i in a) {
       b[i] === u && (b[i] = a[i]);
     }
+    return b;
   },
   escapeText: function(s) {
     var escapeRe = /[&<]/g, escapeCallback = function(c) {

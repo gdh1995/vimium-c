@@ -1022,16 +1022,18 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
       });
     },
     showVomnibar: function() {
-      var port = cPort;
+      var port = cPort, options;
       if (port.sender.frameId !== 0) {
         port = Settings.indexFrame(port.sender.tab.id, 0) || port;
       }
-      cOptions.page = Settings.CONST.VomnibarPage;
-      cOptions.secret = getSecret();
+      options = Utils.extendIf(Object.setPrototypeOf({
+        page: Settings.CONST.VomnibarPage,
+        secret: getSecret(),
+      }), cOptions);
       port.postMessage({
         name: "execute", count: 1,
         command: "Vomnibar.activateIframe",
-        options: cOptions
+        options: options
       });
     },
     clearFindHistory: function() {
@@ -1370,6 +1372,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
       active || chrome.tabs.update(port.sender.tab.id, {active: true});
     },
     openUrl: function(request) {
+      Object.setPrototypeOf(request, null);
       request.url_f = Utils.convertToUrl(request.url, request.keyword, 2);
       request.keyword = "";
       if (Utils.lastUrlType === 5) {
@@ -1641,7 +1644,8 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
       count = currentFirst ? 1 : (currentCount || 1);
       resetKeys();
     }
-    options && typeof options === "object" || (options = null);
+    options && typeof options === "object" ?
+        Object.setPrototypeOf(options, null) : (options = null);
     executeCommand(command, Commands.makeCommand(command, options), count, null);
   };
 

@@ -28,10 +28,10 @@ var Commands = {
   makeCommand: function(command, options, details) {
     var opt;
     details || (details = this.availableCommands[command]);
-    opt = details[3];
+    opt = details[3] || null;
     if (options) {
       if (opt) {
-        Object.setPrototypeOf(opt, null);
+        ("hasOwnProperty" in opt) && Object.setPrototypeOf(opt, null);
         Utils.extendIf(options, opt);
       }
       if (options.count == null) {}
@@ -39,7 +39,7 @@ var Commands = {
         delete options.count;
       }
     } else {
-      options = opt || null;
+      options = opt;
     }
     return {
       alias: details[4] || null,
