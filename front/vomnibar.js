@@ -238,14 +238,15 @@ var Vomnibar = {
     return focused && n !== 93 ? 1 : 0;
   },
   onAction: function(action) {
-    var sel, selection;
+    var sel, selection, el;
     switch(action) {
     case "dismiss":
       selection = window.getSelection();
       if (selection.type === "Range" && this.focused) {
-        ind = this.input.selectionDirection !== "backward" &&
-          this.input.selectionEnd < el.value.length ? el.selectionStart : el.selectionEnd;
-        this.input.setSelectionRange(ind, ind);
+        el = this.input;
+        sel = el.selectionDirection !== "backward" &&
+          el.selectionEnd < el.value.length ? el.selectionStart : el.selectionEnd;
+        el.setSelectionRange(sel, sel);
       } else {
         this.hide();
       }
