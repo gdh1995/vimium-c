@@ -109,6 +109,7 @@ iframe: {
     case "scrollBy": VScroller.scrollBy(1, data.amount); break;
     case "scrollGoing": VScroller.keyIsDown = VScroller.Core.maxInterval; break;
     case "scrollEnd": VScroller.keyIsDown = 0; break;
+    case "evalJS": VUtils.evalIfOK(data.url); break;
     default: break;
     }
   },

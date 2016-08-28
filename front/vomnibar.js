@@ -510,7 +510,9 @@ var Vomnibar = {
       + item.relevancy + "</span>" : "";
   },
   navigateToUrl: function(item) {
-    // TODO: execute js url on the source frame
+    if (item.url.substring(0, 11).toLowerCase() === "javascript:") {
+      return VPort.postToOwner({ name: "evalJS", url: item.url });
+    }
     VPort.postMessage({
       handler: "openUrl",
       reuse: this.actionType,
