@@ -38,6 +38,7 @@ var Vomnibar = {
   actionType: false,
   autoSelect: true,
   forceNewTab: false,
+  showFavIcon: false,
   isScrolling: 0,
   input: null,
   isSelectionOrigin: true,
@@ -451,7 +452,7 @@ var Vomnibar = {
     document.getElementById("OClose").onclick = function() { Vomnibar.hide(); };
     addEventListener("keydown", this.handleKeydown, true);
     this.renderItems = VUtils.makeListRender(document.getElementById("OITemplate").innerHTML);
-    this.mode.showFavIcon = !!chrome.runtime.onMessageExternal;
+    this.showFavIcon = !!chrome.runtime.onMessageExternal;
     this.init = null;
   },
   handleKeydown: function(event) {
@@ -495,8 +496,12 @@ var Vomnibar = {
 
   Parse: function(item) {
     var str;
-    item.favIconUrl = this.showFavIcon && (str = item.favIconUrl) ?
-      ' OIIcon" style="background-image: url(&quot;chrome://favicon/size/16/' + str + "&quot;)" : "";
+    if (Vomnibar.showFavIcon && (str = item.url) && str.length <= 512 && str.indexOf("://") > 0) {
+      item.favIconUrl = ' OIIcon" style="background-image: url(&quot;chrome://favicon/size/16/' +
+        VUtils.escapeCssStringInAttr(str) + "&quot;)";
+    } else {
+      item.favIconUrl = "";
+    }
     item.relevancy = this.showRelevancy ? '\n\t\t\t<span class="OIRelevancy">'
       + item.relevancy + "</span>" : "";
   },
@@ -538,6 +543,16 @@ VUtils = {
     } catch (e) {}
     return url;
   },
+  escapeCssStringInAttr: function(s) {
+    var escapeRe = /["&<>]/g, escapeCallback = function(c) {
+      var i = c.charCodeAt(0);
+      return i === 38 ? "&amp;" : i < 38 ? "\\&quot;" : i === 60 ? "&lt;" : "&gt;";
+    };
+    this.escapeCssStringInAttr = function(s) {
+      return s.replace(escapeRe, escapeCallback);
+    };
+    return this.escapeCssStringInAttr(s);
+  }
 },
 VPort = {
   port: null,
