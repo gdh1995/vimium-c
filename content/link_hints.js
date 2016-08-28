@@ -59,7 +59,6 @@ var VHints = {
     if (this.frameNested) {
       if (this.tryNestedFrame("VHints.activate", [count, this.options])) {
         this.clean2();
-        VHUD.hide(true);
         return;
       }
       elements || (elements = this.getVisibleElements());
