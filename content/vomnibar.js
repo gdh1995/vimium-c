@@ -24,7 +24,7 @@ iframe: {
     }
     var secret = options.secret, url = options.page;
     delete options.secret; delete options.page;
-    this.width = document.documentElement.clientWidth * 0.8;
+    this.width = document.documentElement.clientWidth;
     this.options = options;
     VHandler.remove(this);
     VHandler.push(VDom.UI.SuppressMost, this);
@@ -39,9 +39,9 @@ iframe: {
   },
   show: function() {
     if (this.status < 2) { return; }
-    var width = this.width, w = width | 0, options = this.options, url;
+    var width = this.width, options = this.options, url;
+    options.width = width, options.name = "activate";
     this.options = null, this.width = 0;
-    options.width = w, options.name = "activate";
     url = options.url;
     if (url === true) {
       if (url = VDom.getSelectionText()) {
@@ -52,8 +52,9 @@ iframe: {
       delete options.topUrl;
       options.url = url;
     }
-    if (width !== w) {
-      this.box.style.width = w / (width / 0.8) * 100 + "%";
+    width *= 0.8;
+    if (width !== (width | 0)) {
+      this.box.style.width = (width | 0) / (width / 0.8) * 100 + "%";
     }
     if (!url || url.indexOf("://") === -1) {
       options.search = "";
