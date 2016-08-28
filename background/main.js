@@ -1031,7 +1031,10 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
     },
     showVomnibar: function() {
       var port = cPort, options;
-      if (port.sender.frameId !== 0) {
+      if (!port) {
+        port = Settings.indexFrame(TabRecency.last(), 0);
+        if (!port) { return; }
+      } else if (port.sender.frameId !== 0) {
         port = Settings.indexFrame(port.sender.tab.id, 0) || port;
       }
       options = Utils.extendIf(Object.setPrototypeOf({
