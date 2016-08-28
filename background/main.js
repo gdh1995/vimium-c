@@ -1385,18 +1385,6 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
       cOptions = request;
       BackgroundCommands.openUrl();
     },
-    dispatchCommand: function(request, port) {
-      var target;
-      request.name = request.handler;
-      delete request.handler;
-      if (target = Settings.indexFrame(port.sender.tab.id, request.frameId)) {
-        request.source = port.sender.frameId;
-        target.postMessage(request);
-        return;
-      }
-      request.source = -1;
-      port.postMessage(request);
-    },
     frameFocused: function(request, port) {
       var tabId = port.sender.tab.id, ref = framesForTab[tabId], status;
       currentFirst !== null && resetKeys();

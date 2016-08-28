@@ -35,46 +35,6 @@ var VSettings, VHUD, VPort, VEventMode;
         return true;
       }
     },
-    sendCommand: function(target, command, args) {
-      this.port.postMessage({
-        handler: "dispatchCommand",
-        frameId: target,
-        command: command, args: args
-      });
-    },
-    sendCommandToContainer: function(command, args) {
-      if (window.top !== window && args[2] === 0) {
-        args[2] = 1;
-        if (this.sendCommandToTop(command, args)) { return true; }
-      }
-      args[2] = 2;
-      return VHints.tryNestedFrame(command, args);
-    },
-    sendCommandToTop: function(command, args) {
-      var top = window.top, topF, top2;
-      try {
-        topF = top.VHints.frameNested;
-        if (!topF) { top.VEventMode.keydownEvents(); }
-      } catch (e) { if (e.message != "vimium-disabled") {
-        this.sendCommand(0, command, args);
-        return true;
-      } else {
-        top = null;
-        for (top2 = window.parent; top2 !== top; top2 = top2.parent) {
-          try { top2.VEventMode.keydownEvents(); top = top2; } catch (e) {}
-        }
-        if (!top) { return false; }
-      } }
-      if (topF) {
-        do { top = topF.contentWindow; } while (topF = top.VHints.frameNested);
-        if (window === top) { return false; }
-      }
-      top.VEventMode.keydownEvents(KeydownEvents);
-      top.VPort.Listener({
-        name: "dispatchCommand", command: command, args: args
-      });
-      return true;
-    },
     Listener: function(response) {
       var id, handler, arr;
       if (id = response._msgId) {
@@ -397,7 +357,7 @@ var VSettings, VHUD, VPort, VEventMode;
     showHelp: function(_0, _1, forceCurrent) {
       forceCurrent |= 0;
       if (forceCurrent < 2 &&
-          mainPort.sendCommandToContainer("showHelp", [1, _1, forceCurrent])) {
+          VHints.tryNestedFrame("showHelp", [1, _1, 2])) {
         return;
       }
       if (!document.body) { return false; }
@@ -926,16 +886,6 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
     execute: function(request) {
       esc();
       VUtils.execCommand(Commands, request.command, [request.count, request.options, 0]);
-    },
-    dispatchCommand: function(request) {
-      var args = request.args;
-      if (!isEnabledForUrl && request.source >= 0) {
-        args[2] = 2;
-        mainPort.sendCommand(request.source, request.command, args);
-        return;
-      }
-      window.focus();
-      VUtils.execCommand(Commands, request.command, args);
     },
     omni: Vomnibar.OnOmni,
     performFind: function(request) { VFindMode.activate(request); },

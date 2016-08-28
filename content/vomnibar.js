@@ -93,7 +93,7 @@ activate: function(_0, options, forceCurrent) {
   if (this.init) {
     forceCurrent |= 0;
     if (forceCurrent < 2 &&
-      VPort.sendCommandToContainer("Vomnibar.activate", [1, options, forceCurrent])) {
+      VHints.tryNestedFrame("Vomnibar.activate", [1, options, 2])) {
       return;
     }
     if (!(document.documentElement instanceof HTMLHtmlElement)) { return false; }
