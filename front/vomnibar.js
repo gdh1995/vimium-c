@@ -451,6 +451,7 @@ var Vomnibar = {
     document.getElementById("OClose").onclick = function() { Vomnibar.hide(); };
     addEventListener("keydown", this.handleKeydown, true);
     this.renderItems = VUtils.makeListRender(document.getElementById("OITemplate").innerHTML);
+    this.mode.showFavIcon = !!chrome.runtime.onMessageExternal;
     this.init = null;
   },
   handleKeydown: function(event) {
