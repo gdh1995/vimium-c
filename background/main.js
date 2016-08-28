@@ -10,6 +10,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
     ;
 
   framesForTab = Object.create(null);
+  framesForTab.omni = [];
 
   currentFirst = null;
 
@@ -391,6 +392,13 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
         name: "showHUD",
         text: "It's not allowed to " + action
       });
+    },
+    checkVomnibarPage: function(port) {
+      if (port.sender.url === Settings.CONST.VomnibarPage) { return false; }
+      console.warn("Find a request from %cunsafe source%c (should be vomnibar) :",
+        "color: red", "color: auto",
+        port.sender.url);
+      return true;
     },
 
     getCurTab: chrome.tabs.query.bind(null, {currentWindow: true, active: true}),
@@ -1538,7 +1546,8 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
       var type = port.name[9] | 0, ref, tabId, pass, status;
       if (type === 8) {
         port.sender.frameId *= -1;
-        (window.ports || (window.ports = [])).push(port);
+        framesForTab.omni.push(port);
+        port.onDisconnect.addListener(Connections.OnOmniDisconnect);
         return;
       }
       port.onDisconnect.addListener(Connections.OnDisconnect);
@@ -1589,6 +1598,10 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
       if (port === ref[0]) {
         ref[0] = ref[1];
       }
+    },
+    OnOmniDisconnect: function(port) {
+      var ref = framesForTab.omni, i = ref.lastIndexOf(port);
+      i === ref.length - 1 ? --ref.length : i >= 0 ? ref.splice(i, 1) : 0;
     },
     cleanSender: function(port) {
       var sender = port.sender, tab = sender.tab;
