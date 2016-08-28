@@ -53,7 +53,7 @@ var Vomnibar = {
       Vomnibar.input.onselect = Vomnibar.OnSelect;
     }, 50);
   },
-  hide: function() {
+  hide: function(data) {
     this.onlySearch = this.isHttps = false;
     clearTimeout(this.timer);
     this.timer = 0;
@@ -64,7 +64,9 @@ var Vomnibar = {
     this.input.value = "";
     this.completions = this.onUpdate = null;
     this.mode.query = this.inputText = "";
-    VPort.ownerPort.postMessage("hide");
+    if (data !== "hide") {
+      VPort.ownerPort.postMessage("hide");
+    }
     VPort.disconnect();
   },
   reset: function(input, start, end) {
@@ -537,16 +539,15 @@ VPort = {
     case "omni":
       Vomnibar[response.name](response);
       break;
-    default:
-      console.log(response.name || response);
-      break;
+    default: console.log('main port', response.name, response); break;
     }
   },
   OnOwnerMessage: function(event) {
-    var data = event.data;
-    switch (data.name || data) {
+    var data = event.data, name = data.name || data;
+    switch (name) {
     case "activate": Vomnibar.activate(data); break;
-    default: break;
+    case "hide": Vomnibar.hide(data); break;
+    default: console.log('owner port', name, name === data ? null : data); break;
     }
   },
   disconnect: function() { this.port && this.port.disconnect(); this.port = null; },

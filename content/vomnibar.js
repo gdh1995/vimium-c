@@ -25,6 +25,8 @@ iframe: {
     delete options.secret; delete options.page;
     var width = this.width = document.documentElement.clientWidth * 0.8;
     this.options = options;
+    VHandler.remove(this);
+    VHandler.push(VDom.UI.SuppressMost, this);
     if (this.Init) {
       setTimeout(this.Init, 0, secret, url);
       this.status = 1;
@@ -65,12 +67,15 @@ iframe: {
       Vomnibar.iframe.port.postMessage(options);
     });
   },
-  hide: function() {
+  hide: function(isMsg) {
+    if (!this.status) { return; }
+    VHandler.remove(this);
     this.status = 0;
     this.width = 0;
     if (!this.box) { return; }
     var style = this.box.style;
     style.display = "none", style.width = "", style.height = "";
+    isMsg === true || this.port.postMessage("hide");
   },
   Init: function(secret, page) {
     var _this = Vomnibar.iframe, el;
@@ -98,17 +103,24 @@ iframe: {
     case "style":
       if (this.status < 2) { return; }
       this.box.style.height = data.height + "px";
-      if (this.status === 2) {
-        this.box.style.display = "";
-        this.status === 3;
-      }
+      this.status === 2 && this.onShown();
       break;
-    case "hide":
-      this.hide();
-      window.focus();
-      break;
+    case "hide": this.hide(true); break;
     default: break;
     }
+  },
+  onShown: function() {
+    this.status === 3;
+    this.box.style.display = "";
+    VHandler.remove(this);
+    VHandler.push(this.onKeydown, this);
+  },
+  onKeydown: function() {
+    var key = event.keyCode;
+    if (key == VKeyCodes.esc) {
+      return VKeyboard.isPlain(event) ? (this.hide(), 2) : 0;
+    }
+    return 0;
   }
 },
 activate: function(_0, options, forceCurrent) {
