@@ -1,15 +1,12 @@
 "use strict";
 var Vomnibar = {
-  activateIframe: function(_0, options) {
-    this.iframe.activate(options);
-  },
 iframe: {
   box: null,
   port: null,
   status: 0,
   options: null,
   width: 0,
-  activate: function(options) {
+  activate: function(_0, options, forceCurrent) {
     if (document.readyState === "loading") {
       if (!this.width) {
         this.width = setTimeout(this.activate.bind(this, options), 500);
@@ -17,10 +14,15 @@ iframe: {
       }
       this.width = 0;
     }
-    this.options = Object.setPrototypeOf(options || (options = {}), null);
+    Object.setPrototypeOf(options || (options = {}), null);
+    if ((forceCurrent |= 0) < 2 &&
+        VHints.tryNestedFrame("Vomnibar.iframe.activate", [1, options, 2])) {
+      return;
+    }
     var secret = options.secret, url = options.page;
     delete options.secret; delete options.page;
     var width = this.width = document.documentElement.clientWidth * 0.8;
+    this.options = options;
     if (this.Init) {
       setTimeout(this.Init, 0, secret, url);
       this.status = 1;
