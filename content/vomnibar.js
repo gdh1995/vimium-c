@@ -86,9 +86,10 @@ iframe: {
     el.className = "Omnibar";
     el.src = page;
     el.onload = function() {
-      var channel = new MessageChannel();
+      var channel = new MessageChannel(), i = page.indexOf("://");
       _this.port = channel.port1;
       _this.port.onmessage = _this.onMessage.bind(_this);
+      page = page.substring(0, page.indexOf("/", i + 3));
       this.contentWindow.postMessage(secret, page, [channel.port2]);
     };
     VDom.UI.addElement(el);
