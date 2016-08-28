@@ -1,6 +1,6 @@
 "use strict";
 var Vomnibar = {
-  activate: function(_0, options) {
+  activate: function(options) {
     var url, keyword, search, start;
     this.init && this.init();
     Object.setPrototypeOf(options = options || {}, null);
@@ -9,7 +9,8 @@ var Vomnibar = {
     url = options.url;
     keyword = options.keyword;
     if (url == null) {
-      return this.reset(keyword ? keyword + " " : "");
+      this.reset(keyword ? keyword + " " : "");
+      return;
     }
     if (search = options.search) {
       start = search.start;
@@ -544,7 +545,7 @@ VPort = {
   OnOwnerMessage: function(event) {
     var data = event.data;
     switch (data.name || data) {
-    case "show": Vomnibar.activate(data); break;
+    case "activate": Vomnibar.activate(data); break;
     default: break;
     }
   },

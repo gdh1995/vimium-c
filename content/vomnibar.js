@@ -14,7 +14,9 @@ iframe: {
       }
       this.width = 0;
     }
+    if (!(document.documentElement instanceof HTMLHtmlElement)) { return false; }
     Object.setPrototypeOf(options || (options = {}), null);
+    options.url === true && !options.topUrl && (options.topUrl = window.location.href);
     if ((forceCurrent |= 0) < 2 &&
         VHints.tryNestedFrame("Vomnibar.iframe.activate", [1, options, 2])) {
       return;
@@ -34,13 +36,34 @@ iframe: {
   },
   show: function() {
     if (this.status < 2) { return; }
-    var width = this.width, w = width | 0, options = this.options;
+    var width = this.width, w = width | 0, options = this.options, url;
     this.options = null, this.width = 0;
-    options.width = w, options.name = "show";
+    options.width = w, options.name = "activate";
+    url = options.url;
+    if (url === true) {
+      if (url = VDom.getSelectionText()) {
+        options.forceNewTab = true;
+      } else {
+        url = options.topUrl;
+      }
+      delete options.topUrl;
+      options.url = url;
+    }
     if (width !== w) {
       this.box.style.width = w / (width / 0.8) * 100 + "%";
     }
-    this.port.postMessage(options);
+    if (!url || url.indexOf("://") === -1) {
+      options.search = "";
+      this.port.postMessage(options);
+      return;
+    }
+    VPort.sendMessage({
+      handler: "parseSearchUrl",
+      url: url
+    }, function(search) {
+      options.search = search;
+      Vomnibar.iframe.port.postMessage(options);
+    });
   },
   hide: function() {
     this.status = 0;
@@ -58,7 +81,7 @@ iframe: {
     el.onload = function() {
       var channel = new MessageChannel();
       _this.port = channel.port1;
-      channel.port1.onmessage = _this.onMessage.bind(_this);
+      _this.port.onmessage = _this.onMessage.bind(_this);
       this.contentWindow.postMessage(secret, page, [channel.port2]);
     };
     VDom.UI.addElement(el);
