@@ -37,6 +37,7 @@ var Vomnibar = {
   actionType: false,
   autoSelect: null,
   forceNewTab: false,
+  isScrolling: 0,
   input: null,
   isSelectionOrigin: true,
   list: null,
@@ -60,12 +61,13 @@ var Vomnibar = {
     this.input.onselect = null;
     this.input.blur();
     window.onmousewheel = null;
+    window.onkeyup = null;
     this.list.textContent = "";
     this.input.value = "";
     this.completions = this.onUpdate = null;
     this.mode.query = this.inputText = "";
     if (data !== "hide") {
-      VPort.ownerPort.postMessage("hide");
+      VPort.postToOwner("hide");
       VPort.postMessage({ handler: "refocusCurrent" });
     }
     VPort.disconnect();
@@ -117,7 +119,7 @@ var Vomnibar = {
     }
     this.isSearchOnTop = this.completions.length > 0 && this.completions[0].type === "search";
     this.isSelectionOrigin = true;
-    VPort.ownerPort.postMessage({ name: "style", height: document.documentElement.scrollHeight });
+    VPort.postToOwner({ name: "style", height: document.documentElement.scrollHeight });
   },
   updateInput: function(sel) {
     var focused = this.focused, line, str;
@@ -212,7 +214,9 @@ var Vomnibar = {
     else if (event.ctrlKey || event.metaKey) {
       if (event.shiftKey) { action = n === 70 ? "pagedown" : n === 66 ? "pageup" : ""; }
       else if (n === 38 || n === 40) {
-        // TODO: source window.VScroller.scrollBy(1, n - 39);
+        VPort.postToOwner({ name: "scrollBy", amount: n - 39 });
+        this.isScrolling = Date.now();
+        window.onkeyup = this.onScroll;
         return 2;
       }
       else { action = this.ctrlMap[n] || ""; }
@@ -283,6 +287,13 @@ var Vomnibar = {
     sel.collapseToStart();
     sel.modify(isExtend ? "extend" : "move", code < 4 ? "backward" : "forward", "word");
     isExtend && sel.type === "Range" && document.execCommand("delete");
+  },
+  onScroll: function(event) {
+    if (!event.repeat) {
+      VPort.postToOwner("scrollEnd");
+      window.onkeyup = null;
+      this.isScrolling = 0;
+    }
   },
   _pageNumRe: /(?:^|\s)(\+\d{0,2})$/,
   goPage: function(sel) {
@@ -440,12 +451,7 @@ var Vomnibar = {
     this.input.oninput = this.onInput.bind(this);
     this.list.oncontextmenu = this.OnMenu;
     document.getElementById("OClose").onclick = function() { Vomnibar.hide(); };
-    addEventListener("keydown", function(event) {
-      var action = Vomnibar.onKeydown(event);
-      if (action <= 0) { return; }
-      if (action === 2) { event.preventDefault(); }
-      event.stopImmediatePropagation();
-    }, true);
+    addEventListener("keydown", this.handleKeydown, true);
     this.renderItems = VUtils.makeListRender(document.getElementById("OITemplate").innerHTML);
     if (this.autoSelect !== null) {
       // this.onCompletions(this.completions);
@@ -454,6 +460,22 @@ var Vomnibar = {
       // VDom.UI.addElement(this.box);
     }
     this.init = null;
+  },
+  handleKeydown: function(event) {
+    var action;
+    if (event.repeat && Vomnibar.isScrolling) {
+      action = Date.now();
+      if (action - Vomnibar.isScrolling > 40) {
+        VPort.postToOwner("scrollGoing");
+        Vomnibar.isScrolling = action;
+      }
+      action = 2;
+    } else {
+      action = Vomnibar.onKeydown(event);
+    }
+    if (action <= 0) { return; }
+    if (action === 2) { event.preventDefault(); }
+    event.stopImmediatePropagation();
   },
 
   mode: {
@@ -526,7 +548,7 @@ VUtils = {
 },
 VPort = {
   port: null,
-  ownerPort: null,
+  postToOwner: null,
   postMessage: function(request) { (this.port || this.connect()).postMessage(request); },
   _callbacks: Object.create(null),
   _id: 1,
@@ -579,7 +601,8 @@ VPort = {
     if (_secr !== secret) { return; }
     clearTimeout(timer);
     window.onmessage = null;
-    var port = VPort.ownerPort = _port || port;
+    port = _port || port;
+    VPort.postToOwner = port.postMessage.bind(port);
     port.onmessage = VPort.OnOwnerMessage;
     port.postMessage("uiComponentIsReady");
   };
