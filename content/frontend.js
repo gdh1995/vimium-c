@@ -539,9 +539,9 @@ var VSettings, VHUD, VPort, VEventMode;
 
   VEventMode = {
     lock: function() { return InsertMode.lock; },
-    onWndFocus: isInjected && function(f) { ELs.OnWndFocus = f; },
+    onWndFocus: isInjected && function(f) { ELs.OnWndFocus = f; VEventMode.onWndFocus = null; },
     onWndBlur: function(f) { ELs.OnWndBlur = f; },
-    on: function(name) { return ELs["On" + name]; },
+    OnWndFocus: function(name) { return ELs.OnWndFocus; },
     scroll: function(event) {
       var keyCode, ctrl;
       if (!event || event.shiftKey || event.altKey) { return; }

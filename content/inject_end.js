@@ -20,6 +20,7 @@ VDom.documentReady(function() {
       }
     }, 50);
   }));
+  Object.freeze(VEventMode);
 });
 
 if (chrome.runtime.onMessageExternal) {
@@ -49,4 +50,4 @@ VimiumInjector.destroy = VSettings.destroy;
 [VKeyboard, VDom, VRect, VHints, Vomnibar, VScroller, VMarks,
   VFindMode, VSettings, VHUD, VPort, VVisualMode,
   VimiumInjector].forEach(Object.seal);
-[VUtils, VKeyCodes, VHandler, VEventMode].forEach(Object.freeze);
+[VUtils, VKeyCodes, VHandler].forEach(Object.freeze);
