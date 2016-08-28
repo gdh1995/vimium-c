@@ -395,7 +395,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
     },
     checkVomnibarPage: function(port) {
       if (port.sender.url === Settings.CONST.VomnibarPage) { return false; }
-      console.warn("Find a request from %cunsafe source%c (should be vomnibar) :",
+      console.warn("Receive a request from %can unsafe source page%c (should be vomnibar) :\n ",
         "color: red", "color: auto",
         port.sender.url);
       return true;
@@ -1492,7 +1492,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
       }, funcDict.focusOrLaunch.bind(null, request));
     },
     secret: function(_0, port) {
-      if (!port.sender.url.startsWith(Settings.CONST.VomnibarPage)) { return null; }
+      if (funcDict.checkVomnibarPage(port)) { return null; }
       return getSecret();
     },
     PostCompletions: function(list, autoSelect) {
