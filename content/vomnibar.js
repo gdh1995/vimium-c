@@ -23,7 +23,7 @@ iframe: {
     }
     var secret = options.secret, url = options.page;
     delete options.secret; delete options.page;
-    var width = this.width = document.documentElement.clientWidth * 0.8;
+    this.width = document.documentElement.clientWidth * 0.8;
     this.options = options;
     VHandler.remove(this);
     VHandler.push(VDom.UI.SuppressMost, this);
@@ -92,7 +92,7 @@ iframe: {
     VDom.UI.addElement(el);
   },
   onMessage: function(event) {
-    var data = event.data, width;
+    var data = event.data;
     switch (data.name || data) {
     case "uiComponentIsReady":
       this.box.onload = null;
