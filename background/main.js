@@ -1454,9 +1454,6 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
         port.postMessage(result);
       });
     },
-    initVomnibar: function() {
-      return Settings.cache.vomnibar;
-    },
     initInnerCSS: function() {
       return Settings.cache.innerCss;
     },
@@ -1706,12 +1703,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
   }, 0);
 
   setTimeout(function() {
-    Utils.fetchHttpContents(Settings.files.baseCss, function() {
-      Settings.set("baseCss", this.responseText);
-      Utils.fetchHttpContents(Settings.files.vomnibar, function() {
-        Settings.set("vomnibar", this.responseText);
-      }, this);
-    });
+    Settings.fetchFile("baseCss");
     Settings.postUpdate("searchUrl", null); // will also update newTabUrl
 
     var ref, i, ref2, key;
