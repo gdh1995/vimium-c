@@ -66,6 +66,7 @@ var Vomnibar = {
     this.mode.query = this.inputText = "";
     if (data !== "hide") {
       VPort.ownerPort.postMessage("hide");
+      VPort.postMessage({ handler: "refocusCurrent" });
     }
     VPort.disconnect();
   },

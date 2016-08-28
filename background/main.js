@@ -1417,6 +1417,13 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
       cPort = port;
       BackgroundCommands.nextFrame(1);
     },
+    refocusCurrent: function(_0, port) {
+      var ports = framesForTab[port.sender.tab.id];
+      ports && ports[0].postMessage({
+        name: "focusFrame",
+        highlight: false
+      });
+    },
     reg: function(request, port) {
       var key;
       key = Settings.cache.userDefinedOuterCss;
