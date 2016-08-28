@@ -72,8 +72,8 @@ iframe: {
   hide: function(isMsg) {
     if (!this.status) { return; }
     VHandler.remove(this);
-    this.status = 0;
-    this.width = 0;
+    this.width = this.status = 0;
+    this.options = null;
     if (!this.box) { return; }
     var style = this.box.style;
     style.display = "none", style.width = "", style.height = "";
@@ -117,7 +117,7 @@ iframe: {
     }
   },
   onShown: function() {
-    this.status === 3;
+    this.status = 3;
     this.box.style.display = "";
     VHandler.remove(this);
     VHandler.push(this.onKeydown, this);

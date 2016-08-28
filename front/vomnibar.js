@@ -440,7 +440,7 @@ var Vomnibar = {
     }
   },
   init: function() {
-    document.body.onclick = function(e) { Vomnibar.onClick(e); };
+    window.onclick = function(e) { Vomnibar.onClick(e); };
     this.onWheel = this.onWheel.bind(this);
     Object.setPrototypeOf(this.ctrlMap, null);
     Object.setPrototypeOf(this.normalMap, null);
