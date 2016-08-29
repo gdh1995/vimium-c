@@ -31,6 +31,7 @@ var Vomnibar = {
   },
 
   inputText: "",
+  lastQuery: "",
   completions: null,
   isHttps: false,
   isSearchOnTop: false,
@@ -67,7 +68,7 @@ var Vomnibar = {
     this.list.textContent = "";
     this.input.value = "";
     this.completions = this.onUpdate = null;
-    this.mode.query = this.inputText = "";
+    this.mode.query = this.lastQuery = this.inputText = "";
     if (data !== "hide") {
       VPort.postToOwner("hide");
       VPort.postMessage({ handler: "refocusCurrent" });
@@ -85,7 +86,7 @@ var Vomnibar = {
       this.input.setSelectionRange(start, end);
     } : this.show;
     this.timer = -1;
-    this.mode.query = input.trim();
+    this.mode.query = this.lastQuery = input.trim();
     VPort.postMessage(this.mode);
   },
   update: function(updateDelay, callback) {
@@ -394,7 +395,7 @@ var Vomnibar = {
   },
   _modeRe: /^:[a-z]?$/,
   onInput: function() {
-    var s0 = this.mode.query, s1 = this.input.value, str, i, j, arr;
+    var s0 = this.lastQuery, s1 = this.input.value, str, i, j, arr;
     if ((str = s1.trim()) === (this.selection === -1 || this.isSelectionOrigin
         ? s0 : this.completions[this.selection].text)) {
       return;
@@ -488,7 +489,9 @@ var Vomnibar = {
   },
   _spacesRe: /\s{2,}/g,
   filter: function() {
-    var mode = this.mode, str = this.input.value.trim().replace(this._spacesRe, " ");
+    var mode = this.mode, str;
+    this.lastQuery = str = this.input.value.trim();
+    str = str.replace(this._spacesRe, " ");
     if (str === mode.query) { return this.postUpdate(); }
     mode.clientWidth = window.innerWidth;
     mode.query = str;
