@@ -346,20 +346,13 @@ var Vomnibar = {
     item.hasOwnProperty('sessionId') ? this.gotoSession(item) : this.navigateToUrl(item);
   },
   onClick: function(event) {
-    var el = event.target, _i;
-    if (el === this.input.parentElement) {
-      this.onAction("focus");
-    } else if (el === this.input) {
-      return;
-    } else if (el === this.list || this.timer) {}
-    else if (window.getSelection().type !== "Range") {
-      while(el && el.parentNode != this.list) { el = el.parentNode; }
-      _i = el ? [].indexOf.call(this.list.children, el) : -1;
-      if (_i >= 0) {
-        this.onEnter(event, _i);
-      }
-    }
-    event.preventDefault();
+    var el = event.target;
+    if (el === this.input || window.getSelection().type === "Range") { return; }
+    else if (el === this.input.parentElement) { this.onAction("focus"); return; }
+    while(el && el.parentNode !== this.list) { el = el.parentNode; }
+    if (!el) { return; }
+    if (this.timer) { event.preventDefault(); return; }
+    this.onEnter(event, [].indexOf.call(this.list.children, el));
   },
   OnMenu: function (event) {
     for (var _i, el = event.target; el; el = el.parentNode) {
