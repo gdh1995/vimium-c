@@ -33,6 +33,7 @@ var Vomnibar = {
   isActive: false,
   inputText: "",
   lastQuery: "",
+  useInput: true,
   completions: null,
   isHttps: false,
   isSearchOnTop: false,
@@ -76,17 +77,13 @@ var Vomnibar = {
     }
   },
   reset: function(input, start, end) {
-    this.input.value = input || (input = "");
+    this.input.value = input || "";
     this.completions = [];
-    if (this.timer > 0) {
-      clearTimeout(this.timer);
-    }
-    this.onUpdate = input && start <= end ? function() {
+    this.mode.query = " ";
+    this.update(0, input && start <= end ? function() {
       this.show();
       this.input.setSelectionRange(start, end);
-    } : this.show;
-    this.timer = -1;
-    this.mode.query = this.lastQuery = input.trim();
+    } : this.show);
     this.isActive = true;
     VPort.postMessage(this.mode);
   },
@@ -106,6 +103,19 @@ var Vomnibar = {
       updateDelay = this.refreshInterval;
     }
     this.timer = setTimeout(this.OnTimer, updateDelay);
+  },
+  refresh: function() {
+    var oldSel = this.selection, origin = this.isSelectionOrigin;
+    this.useInput = false;
+    this.update(17, function() {
+      var len = this.completions.length;
+      if (!origin && oldSel >= 0 && len > 0) {
+        oldSel = Math.min(oldSel, len - 1);
+        this.selection = 0; this.isSelectionOrigin = false;
+        this.updateSelection(oldSel);
+      }
+      this.focused || this.input.focus();
+    });
   },
   populateUI: function() {
     var list = this.list, barCls = this.input.parentElement.classList, height;
@@ -439,11 +449,11 @@ var Vomnibar = {
   },
   OnWndBlur: function(event) { Vomnibar.isActive || VPort.disconnect(); },
   init: function() {
-    window.onfocus = function() {
+    addEventListener("focus", function() {
       if (VPort.port) { return; }
       try { VPort.connect(); return; } catch (e) {}
       try { VPort.postToOwner("focus"); } catch (e) {}
-    };
+    }, true);
     window.onblur = this.OnWndBlur;
     window.onclick = function(e) { Vomnibar.onClick(e); };
     this.onWheel = this.onWheel.bind(this);
@@ -489,9 +499,14 @@ var Vomnibar = {
   _spacesRe: /\s{2,}/g,
   filter: function() {
     var mode = this.mode, str;
-    this.lastQuery = str = this.input.value.trim();
-    str = str.replace(this._spacesRe, " ");
-    if (str === mode.query) { return this.postUpdate(); }
+    if (this.useInput) {
+      this.lastQuery = str = this.input.value.trim();
+      str = str.replace(this._spacesRe, " ");
+      if (str === mode.query) { return this.postUpdate(); }
+    } else {
+      str = mode.query;
+      this.useInput = true;
+    }
     mode.clientWidth = window.innerWidth;
     mode.query = str;
     this.timer = -1;
@@ -529,8 +544,17 @@ var Vomnibar = {
       active: this.actionType > -2,
       sessionId: item.sessionId
     });
-    this.actionType < -1 && this.update(50);
-  },
+    if (this.actionType > -2) { return; }
+    window.getSelection().removeAllRanges();
+    if (item.type !== "tab") {
+      this.refresh();
+      return;
+    }
+    window.onfocus = function() {
+      window.onfocus = null;
+      VPort.port && Vomnibar.refresh();
+    };
+  }
 },
 VUtils = {
   makeListRender: function(template) {
