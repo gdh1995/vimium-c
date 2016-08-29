@@ -240,21 +240,19 @@ var Vomnibar = {
     else if (!focused) { action = "focus"; }
     else if ((this.selection >= 0
         || this.completions.length <= 1) && this.input.value.endsWith("  ")) {
-      this.onEnter(event);
-      return 2;
-    }
-
-    if (action || n <= 32) {}
-    else if (n > 112 && n <= 123) { focused = false; }
-    else if (!focused && n >= 48 && n < 58) {
-      n = (n - 48) || 10;
-      if (event.shiftKey || n > this.completions.length) { return 2; }
-      this.selection = n - 1;
-      this.isSelectionOrigin = false;
       action = "enter";
     }
     if (action) {
       this.onAction(action);
+      return 2;
+    }
+
+    if (n <= 32) {}
+    else if (n > 112 && n <= 123) { focused = false; }
+    else if (!focused && n >= 48 && n < 58) {
+      n = (n - 48) || 10;
+      if (event.shiftKey || n > this.completions.length) { return 2; }
+      this.onEnter(event, n - 1);
       return 2;
     }
     return focused && n !== 93 ? 1 : 0;
@@ -330,13 +328,13 @@ var Vomnibar = {
     this.input.setSelectionRange(sel, i, arr[0]);
     this.update();
   },
-  onEnter: function(event) {
-    var sel = this.selection, item;
+  onEnter: function(event, newSel) {
+    var sel = newSel != null ? newSel : this.selection, item;
     this.actionType = event == null ? this.actionType : event === true ? -this.forceNewTab
       : event.ctrlKey || event.metaKey ? -1 - event.shiftKey
       : event.shiftKey ? 0 : -this.forceNewTab;
     if (this.timer) {
-      if (sel === -1 || this.isSelectionOrigin) {
+      if (newSel == null && (sel === -1 || this.isSelectionOrigin)) {
         this.update(0, this.onEnter);
         return;
       }
@@ -358,9 +356,7 @@ var Vomnibar = {
       while(el && el.parentNode != this.list) { el = el.parentNode; }
       _i = el ? [].indexOf.call(this.list.children, el) : -1;
       if (_i >= 0) {
-        this.selection = _i;
-        this.isSelectionOrigin = false;
-        this.onEnter(event);
+        this.onEnter(event, _i);
       }
     }
     event.preventDefault();
