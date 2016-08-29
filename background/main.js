@@ -1494,7 +1494,9 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
       return getSecret();
     },
     PostCompletions: function(list, autoSelect) {
+      try {
       cPort.postMessage({ name: "omni", list: list, autoSelect: autoSelect });
+      } catch (e) {}
     },
     SetIcon: function() {},
     SendToCurrent: function(request) {

@@ -30,6 +30,7 @@ var Vomnibar = {
     }
   },
 
+  isActive: false,
   inputText: "",
   lastQuery: "",
   completions: null,
@@ -58,7 +59,7 @@ var Vomnibar = {
     }, 50);
   },
   hide: function(data) {
-    this.onlySearch = this.isHttps = false;
+    this.isActive = this.onlySearch = this.isHttps = false;
     clearTimeout(this.timer);
     this.timer = 0;
     this.input.onselect = null;
@@ -87,6 +88,7 @@ var Vomnibar = {
     } : this.show;
     this.timer = -1;
     this.mode.query = this.lastQuery = input.trim();
+    this.isActive = true;
     VPort.postMessage(this.mode);
   },
   update: function(updateDelay, callback) {
@@ -425,6 +427,7 @@ var Vomnibar = {
     this.update();
   },
   omni: function(response) {
+    if (!this.isActive) { return; }
     var completions = response.list;
     this.autoSelect = response.autoSelect;
     completions.forEach(this.Parse, this.mode);
