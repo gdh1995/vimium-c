@@ -145,8 +145,7 @@ var Vomnibar = {
     if (sel === -1) {
       this.isHttps = false;
       this.input.value = this.inputText;
-      this.input.focus();
-      this.focused = focused;
+      if (!focused) { this.input.focus(); this.focused = false; }
       return;
     }
     if (!focused) this.input.blur();
