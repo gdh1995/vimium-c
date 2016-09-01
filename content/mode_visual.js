@@ -77,7 +77,7 @@ var VVisualMode = {
       return 2;
     }
     ch = VKeyboard.getKeyChar(event);
-    if (!ch) { this.resetKeys(); return 1; }
+    if (!ch) { this.resetKeys(); return i === 229 ? 2 : 1; }
     key = VKeyboard.getKey(event, ch);
     if (obj = this.currentSeconds) {
       obj = obj[key];
