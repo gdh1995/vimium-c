@@ -940,7 +940,7 @@ searchEngines: {
         try {
           while (++i < l) {
             j = a[i], s = j.url;
-            if (s.length >= 200) { j.text = s; continue; }
+            if (s.length >= 400) { j.text = s; continue; }
             t = f(s);
             j.text = t !== s ? t : s;
           }
@@ -1004,7 +1004,7 @@ searchEngines: {
   (function() {
     var d = Decoder.dict, f = Decoder._f, t = Decoder.todos;
     Decoder.decodeURL = function(a, o) {
-      if (a.length >= 200) { return a; }
+      if (a.length >= 400) { return a; }
       try {
         return f(a);
       } catch (e) {
