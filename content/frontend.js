@@ -743,7 +743,7 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
       if (text.length > 43) {
         text = text.substring(0, 40) + "...";
       }
-      text = "copy: " + text;
+      text = "copy: " + text + ".";
       if (virtual) { return text; }
       this.showForDuration(text, 2000);
     },
