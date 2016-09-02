@@ -152,7 +152,7 @@ setTimeout(function() { if (!chrome.omnibox) { return; }
   var last, firstUrl, lastSuggest, spanRe = /<(\/?)span(?: [^>]+)?>/g,
   tempRequest, timeout = 0, sessionIds, suggestions = null, outTimeout = 0, outTime,
   defaultSug = { description: "<dim>Open: </dim><url>%s</url>" },
-  defaultSuggestionType = 0, notOnlySearch = true,
+  defaultSuggestionType = 0, notOnlySearch = true, modeRe = /^:[a-z]?$/,
   formatSessionId = function(sug) {
     if (sug.sessionId != null) {
       sessionIds[sug.url] = sug.sessionId;
@@ -247,7 +247,7 @@ setTimeout(function() { if (!chrome.omnibox) { return; }
     if (timeout) {
       tempRequest = [key, suggest];
       return;
-    } else if (suggestions && suggestions.length === 0 && key.startsWith(last) && !/^:[a-z]?$/.test(last)) {
+    } else if (suggestions && suggestions.length === 0 && key.startsWith(last) && !modeRe.test(last)) {
       if (notOnlySearch) { return suggest([]); }
       onlySearch = true;
     }
