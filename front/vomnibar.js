@@ -110,6 +110,7 @@ var Vomnibar = {
   refresh: function() {
     var oldSel = this.selection, origin = this.isSelectionOrigin;
     this.useInput = false;
+    this.mode.clientWidth = window.innerWidth;
     this.update(17, function() {
       var len = this.completions.length;
       if (!origin && oldSel >= 0 && len > 0) {
@@ -508,12 +509,11 @@ var Vomnibar = {
       this.lastQuery = str = this.input.value.trim();
       str = str.replace(this._spacesRe, " ");
       if (str === mode.query) { return this.postUpdate(); }
+      mode.query = str;
+      mode.clientWidth = window.innerWidth;
     } else {
-      str = mode.query;
       this.useInput = true;
     }
-    mode.clientWidth = window.innerWidth;
-    mode.query = str;
     this.timer = -1;
     str = mode.handler;
     this.onlySearch && (mode.type = "search");
