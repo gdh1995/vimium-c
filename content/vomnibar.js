@@ -104,9 +104,11 @@ var Vomnibar = {
       break;
     case "style":
       if (this.status < 2) { return; }
-      this.port.postMessage("afterOmni");
+      if (this.status === 2) {
+        this.port.postMessage("afterOmni");
+        this.onShown();
+      }
       this.box.style.height = data.height + "px";
-      this.status === 2 && this.onShown();
       break;
     case "focus": window.focus(); break;
     case "hide": this.hide(true); break;

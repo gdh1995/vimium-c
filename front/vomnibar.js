@@ -432,14 +432,18 @@ var Vomnibar = {
   },
   omni: function(response) {
     if (!this.isActive) { return; }
-    var completions = response.list, height;
+    var completions = response.list, height, oldHeight;
     this.autoSelect = response.autoSelect;
     completions.forEach(this.Parse, this.mode);
     this.completions = completions;
-    height = completions.length > 0 ? 45 * completions.length + 57 : 54;
-    if (this.height === height) { return this.afterOmni(); }
-    this.height = height;
-    setTimeout(VPort.postToOwner, 0, { name: "style", height: height });
+    oldHeight = this.height;
+    this.height = height = completions.length > 0 ? 45 * completions.length + 57 : 54;
+    if (oldHeight === 0) {
+      setTimeout(VPort.postToOwner, 0, { name: "style", height: height });
+      return;
+    }
+    this.afterOmni();
+    oldHeight !== height && VPort.postToOwner({ name: "style", height: height });
   },
   afterOmni: function() {
     this.populateUI();
