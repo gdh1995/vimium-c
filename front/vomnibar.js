@@ -40,6 +40,7 @@ var Vomnibar = {
   onlySearch: false,
   actionType: false,
   autoSelect: true,
+  focused: true,
   forceNewTab: false,
   showFavIcon: false,
   isScrolling: 0,
@@ -53,7 +54,7 @@ var Vomnibar = {
   timer: 0,
   wheelTimer: 0,
   show: function() {
-    this.input.focus();
+    this.focused || this.input.focus();
     window.onmousewheel = this.onWheel;
     setTimeout(function() {
       Vomnibar.input.onselect = Vomnibar.OnSelect;
