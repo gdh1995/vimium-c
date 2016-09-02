@@ -6,7 +6,9 @@ VDom.UI = {
   root: null,
   focusedEl: null,
   flashLastingTime: 400,
-  addElement: function(element) {
+  showing: true,
+  addElement: function(element, showOnInit) {
+    this.showing = showOnInit !== false;
     VPort.sendMessage({ handler: "initInnerCSS" }, this.InitInner);
     this.init && this.init(false);
     this.box.style.display = "none";
@@ -41,7 +43,7 @@ VDom.UI = {
     _this.InitInner = null;
     _this.styleIn = _this.createStyle(innerCss);
     _this.root.insertBefore(_this.styleIn, _this.root.firstElementChild);
-    setTimeout(function() {
+    _this.showing && setTimeout(function() {
       _this.box.style.display = "";
       var el = _this.focusedEl; _this.focusedEl = null;
       el && setTimeout(function() { el.focus(); }, 17);

@@ -81,8 +81,8 @@ var Vomnibar = {
   Init: function(secret, page) {
     var _this = Vomnibar, el;
     el = _this.box = VDom.createElement("iframe");
-    el.style.display = "none";
-    el.className = "Omnibar";
+    el.style.visibility = "hidden";
+    el.className = "LS Omnibar";
     el.src = page;
     el.onload = function() {
       var channel = new MessageChannel(), i = page.indexOf("://");
@@ -91,7 +91,7 @@ var Vomnibar = {
       page = page.substring(0, page.indexOf("/", i + 3));
       this.contentWindow.postMessage(secret, page, [channel.port2]);
     };
-    VDom.UI.addElement(el);
+    VDom.UI.addElement(el, false);
   },
   onMessage: function(event) {
     var data = event.data;
@@ -118,7 +118,13 @@ var Vomnibar = {
   },
   onShown: function() {
     this.status = 3;
-    this.box.style.display = "";
+    var style = this.box.style;
+    if (style.visibility) {
+      style.visibility = "";
+      setTimeout(function() { VDom.UI.box.style.display = ""; }, 0);
+    } else {
+      style.display = "";
+    }
     VHandler.remove(this);
     VHandler.push(this.onKeydown, this);
   },
