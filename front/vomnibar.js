@@ -406,7 +406,7 @@ var Vomnibar = {
         ? s0 : this.completions[this.selection].text)) {
       return;
     }
-    if (this.completions.length > this.isSearchOnTop || this.timer
+    if (this.completions.length > this.isSearchOnTop
         || !(s1.startsWith(s0) && s0) || this._modeRe.test(s0)) {
       this.onlySearch = false;
     } else if (this.isSearchOnTop) {
@@ -515,7 +515,7 @@ var Vomnibar = {
       this.useInput = true;
     }
     this.timer = -1;
-    str = mode.handler;
+    str = mode.type;
     this.onlySearch && (mode.type = "search");
     VPort.postMessage(mode);
     this.onlySearch && (mode.type = str);
