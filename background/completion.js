@@ -714,18 +714,19 @@ searchEngines: {
     maxTotal = maxResults = Math.min(Math.max(options.maxResults | 0, 3), 25);
     showRelevancy = options.showRelevancy === true;
     Completers.callback = callback;
-    var _this = this, ref, str;
+    var _this = null, ref, str;
     if (queryTerms.length >= 1 && queryTerms[0].length === 2 && queryTerms[0][0] === ":") {
       str = queryTerms[0][1];
       ref = window.Completers;
       _this = str === "b" ? ref.bookmarks : str === "h" ? ref.history : str === "t" ? ref.tabs
-        : str === "d" ? ref.domains : str === "s" ? ref.search : this;
-      if (_this !== this) {
+        : str === "d" ? ref.domains : str === "s" ? ref.search : str === "o" ? ref.omni : null;
+      if (_this) {
         queryTerms.shift();
-        autoSelect = true;
+        autoSelect = _this !== ref.omni;
+        return Completers.filter(_this.completers);
       }
     }
-    Completers.filter(_this.completers);
+    Completers.filter(this.completers);
   };
 
   RankingUtils = {
