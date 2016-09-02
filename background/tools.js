@@ -31,11 +31,11 @@ Marks = { // NOTE: all members should be static
   createMark: function(request, port) {
     var tabId = port.sender.tab.id;
     if (request.scroll) {
-      localStorage[Marks.getMarkKey(request.markName)] = JSON.stringify({
+      localStorage.setItem(Marks.getMarkKey(request.markName), JSON.stringify({
         tabId: tabId,
         url: request.url,
         scroll: request.scroll
-      });
+      }));
       return true;
     }
     (port = Settings.indexFrame(tabId, 0)) && port.postMessage({
@@ -45,7 +45,7 @@ Marks = { // NOTE: all members should be static
   },
   gotoMark: function(request) {
     var str, markInfo;
-    str = localStorage[Marks.getMarkKey(request.markName)];
+    str = localStorage.getItem(Marks.getMarkKey(request.markName));
     if (!str) {
       return false;
     }
@@ -76,11 +76,11 @@ Marks = { // NOTE: all members should be static
         markName: markInfo.markName
       });
       if (markInfo.tabId !== tabId && markInfo.markName) {
-        localStorage[Marks.getMarkKey(markInfo.markName)] = JSON.stringify({
+        localStorage.setItem(Marks.getMarkKey(markInfo.markName), JSON.stringify({
           tabId: tabId,
           url: markInfo.url,
           scroll: markInfo.scroll
-        });
+        }));
       }
     }
     chrome.tabs.update(tabId, {active: true});

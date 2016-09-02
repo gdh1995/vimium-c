@@ -12,9 +12,9 @@ var Settings = {
     }
     var initial = this.defaults[key];
     var value = !(key in localStorage) ? initial
-        : typeof initial === "string" ? localStorage[key]
-        : initial === false || initial === true ? localStorage[key] === "true"
-        : JSON.parse(localStorage[key]);
+        : typeof initial === "string" ? localStorage.getItem(key)
+        : initial === false || initial === true ? localStorage.getItem(key) === "true"
+        : JSON.parse(localStorage.getItem(key));
     if (forCache) {
       this.cache[key] = value;
     }
@@ -29,7 +29,7 @@ var Settings = {
         localStorage.removeItem(key);
         this.Sync.set(key, null);
       } else {
-        localStorage[key] = typeof initial === "string" ? value : JSON.stringify(value);
+        localStorage.setItem(key, typeof initial === "string" ? value : JSON.stringify(value));
         this.Sync.set(key, value);
       }
     }

@@ -152,7 +152,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
         }, function() {
           if (!tab.incognito) {
             var key = ContentSettings.makeKey(contentType);
-            localStorage[key] !== "1" && (localStorage[key] = "1");
+            localStorage.getItem(key) !== "1" && (localStorage.setItem(key, "1"));
           }
           if (tab.incognito || cOptions.action === "reopen" || !chrome.sessions) {
             ++tab.index;
