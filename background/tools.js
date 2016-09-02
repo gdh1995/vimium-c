@@ -7,9 +7,10 @@ var Clipboard = {
     this.getTextArea = function() { return el; };
     return el;
   },
+  tailSpacesRe: / +\n/g,
   copy: function(data) {
     var textArea = this.getTextArea();
-    textArea.value = data.replace(Utils.A0Re, " ");
+    textArea.value = data.replace(Utils.A0Re, " ").replace(this.tailSpacesRe, "\n");
     document.documentElement.appendChild(textArea);
     textArea.select();
     document.execCommand("copy");
