@@ -346,9 +346,9 @@ var VSettings, VHUD, VPort, VEventMode;
       mainPort.port.postMessage({handler: "initHelp"});
     },
     autoCopy: function(_0, options) {
-      var str = VDom.getSelectionText() ||
-        (options.url ? window.location.href : document.title.trim());
-      str && mainPort.port.postMessage({
+      var str = window.getSelection().toString() ||
+        (options.url ? window.location.href : document.title);
+      (str.length >= 4 || str.trim()) && mainPort.port.postMessage({
         handler: "copyToClipboard",
         data: str
       });
