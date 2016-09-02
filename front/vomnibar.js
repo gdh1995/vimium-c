@@ -44,6 +44,7 @@ var Vomnibar = {
   forceNewTab: false,
   showFavIcon: false,
   isScrolling: 0,
+  height: 0,
   input: null,
   isSelectionOrigin: true,
   list: null,
@@ -56,6 +57,7 @@ var Vomnibar = {
   show: function() {
     this.focused || this.input.focus();
     window.onmousewheel = this.onWheel;
+    this.input.value = this.inputText;
     setTimeout(function() {
       Vomnibar.input.onselect = Vomnibar.OnSelect;
     }, 50);
@@ -63,11 +65,11 @@ var Vomnibar = {
   hide: function(data) {
     this.isActive = this.onlySearch = this.isHttps = false;
     clearTimeout(this.timer);
-    this.timer = 0;
+    this.timer = this.height = 0;
     this.input.onselect = null;
-    this.input.blur();
     window.onmousewheel = null;
     window.onkeyup = null;
+    this.input.blur();
     this.list.textContent = "";
     this.input.value = "";
     this.completions = this.onUpdate = null;
@@ -78,9 +80,9 @@ var Vomnibar = {
     }
   },
   reset: function(input, start, end) {
-    this.input.value = input || "";
-    this.completions = [];
-    this.mode.query = " ";
+    this.inputText = input || (input = "");
+    this.useInput = false;
+    this.mode.query = this.lastQuery = input.trim().replace(this._spacesRe, " ");
     this.update(0, input && start <= end ? function() {
       this.show();
       this.input.setSelectionRange(start, end);
@@ -119,7 +121,7 @@ var Vomnibar = {
     });
   },
   populateUI: function() {
-    var list = this.list, barCls = this.input.parentElement.classList, height;
+    var list = this.list, barCls = this.input.parentElement.classList;
     list.innerHTML = this.renderItems(this.completions);
     this.selection = -1;
     if (this.completions.length > 0) {
@@ -130,15 +132,12 @@ var Vomnibar = {
         this.selection = 0;
         list.firstElementChild.classList.add("S");
       }
-      height = 45 * this.completions.length + 57;
     } else {
-      height = 54;
       list.style.display = "none";
       barCls.remove("OWithList");
     }
     this.isSearchOnTop = this.completions.length > 0 && this.completions[0].type === "search";
     this.isSelectionOrigin = true;
-    VPort.postToOwner({ name: "style", height: height });
   },
   updateInput: function(sel) {
     var focused = this.focused, line, str;
@@ -432,10 +431,16 @@ var Vomnibar = {
   },
   omni: function(response) {
     if (!this.isActive) { return; }
-    var completions = response.list;
+    var completions = response.list, height;
     this.autoSelect = response.autoSelect;
     completions.forEach(this.Parse, this.mode);
     this.completions = completions;
+    height = completions.length > 0 ? 45 * completions.length + 57 : 54;
+    if (this.height === height) { return this.afterOmni(); }
+    this.height = height;
+    setTimeout(VPort.postToOwner, 0, { name: "style", height: height });
+  },
+  afterOmni: function() {
     this.populateUI();
     this.timer > 0 || this.postUpdate();
   },

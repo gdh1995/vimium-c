@@ -104,6 +104,7 @@ var Vomnibar = {
       break;
     case "style":
       if (this.status < 2) { return; }
+      this.port.postMessage("afterOmni");
       this.box.style.height = data.height + "px";
       this.status === 2 && this.onShown();
       break;
