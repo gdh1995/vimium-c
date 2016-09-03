@@ -474,7 +474,6 @@ var Vomnibar = {
     document.getElementById("close").onclick = function() { Vomnibar.hide(); };
     addEventListener("keydown", this.handleKeydown, true);
     this.renderItems = VUtils.makeListRender(document.getElementById("template").innerHTML);
-    this.showFavIcon = !!chrome.runtime.onMessageExternal;
     this.init = null;
   },
   handleKeydown: function(event) {
@@ -499,7 +498,6 @@ var Vomnibar = {
     type: "",
     clientWidth: 0,
     showRelevancy: false,
-    showFavIcon: false,
     maxResults: 10,
     query: ""
   },

@@ -91,6 +91,7 @@ var Vomnibar = {
         };
         _this.sameOrigin = true;
         _this.port = { postMessage: function(data) { port.onmessage({ data: data}); } };
+        this.contentWindow.Vomnibar.showFavIcon = true;
         this.contentWindow.onmessage({ source: window, data: secret, ports: [port] });
         return;
       }
