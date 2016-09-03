@@ -525,6 +525,7 @@ var VHints = {
     if (VDom.isInDocument(clickEl)) {
       // must get outline first, because clickEl may hide itself when activated
       rect = hintEl.linkRect || VDom.UI.getVRect(clickEl);
+      this.cleanMarkers();
       if (this.modeOpt.activator.call(this, clickEl, hintEl) !== false) {
         VDom.UI.flashVRect(rect);
       }
@@ -568,6 +569,10 @@ var VHints = {
       return;
     }
     _this.reinit();
+  },
+  cleanMarkers: function() {
+    var ref = this.hintMarkers, len = ref.length, i = 0;
+    while (i < len) { ref[i++].clickableItem = null; }
   },
   clean: function() {
     this.hintMarkers = [];
