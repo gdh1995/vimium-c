@@ -55,7 +55,7 @@ var Vomnibar = {
   timer: 0,
   wheelTimer: 0,
   show: function() {
-    this.focused || this.input.focus();
+    this.focused || setTimeout(function() { Vomnibar.input.focus() }, 34);
     window.onmousewheel = this.onWheel;
     this.input.value = this.inputText;
     setTimeout(function() {
