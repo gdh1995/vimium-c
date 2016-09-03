@@ -38,9 +38,9 @@ var Vomnibar = {
   },
   show: function() {
     if (this.status < 2) { return; }
-    var width = this.width, options = this.options, url;
-    options.width = width, options.name = "activate";
-    this.options = null, this.width = 0;
+    var options = this.options, url;
+    options.width = this.width, options.name = "activate";
+    this.options = null;
     url = options.url;
     if (url === true) {
       if (url = VDom.getSelectionText()) {
@@ -50,10 +50,6 @@ var Vomnibar = {
       }
       delete options.topUrl;
       options.url = url;
-    }
-    width *= 0.8;
-    if (width !== (width | 0)) {
-      this.box.style.width = (width | 0) / (width / 0.8) * 100 + "%";
     }
     if (!url || url.indexOf("://") === -1) {
       options.search = "";
@@ -127,6 +123,10 @@ var Vomnibar = {
       setTimeout(function() { VDom.UI.box.style.display = ""; }, 0);
     } else {
       style.display = "";
+    }
+    var width = this.width * 0.8;
+    if (width !== (width | 0)) {
+      this.box.style.width = (width | 0) / (width / 0.8) * 100 + "%";
     }
     VHandler.remove(this);
     VHandler.push(this.onKeydown, this);
