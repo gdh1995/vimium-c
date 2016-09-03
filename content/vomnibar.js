@@ -5,6 +5,7 @@ var Vomnibar = {
   status: 0,
   options: null,
   width: 0,
+  sameOrigin: false,
   activate: function(_0, options, forceCurrent) {
     if (!options.secret || !options.page) { return false; }
     if (document.readyState === "loading") {
@@ -81,10 +82,21 @@ var Vomnibar = {
     el.className = "LS Omnibar";
     el.src = page;
     el.onload = function() {
-      var channel = new MessageChannel(), i = page.indexOf("://");
+      var channel, port, i = page.indexOf("://");
+      page = page.substring(0, page.indexOf("/", i + 3));
+      if (location.origin === page) {
+        port = {
+          onmessage: null,
+          postMessage: function(data) { Vomnibar.onMessage({ data: data }); }
+        };
+        _this.sameOrigin = true;
+        _this.port = { postMessage: function(data) { port.onmessage({ data: data}); } };
+        this.contentWindow.onmessage({ source: window, data: secret, ports: [port] });
+        return;
+      }
+      channel = new MessageChannel()
       _this.port = channel.port1;
       _this.port.onmessage = _this.onMessage.bind(_this);
-      page = page.substring(0, page.indexOf("/", i + 3));
       this.contentWindow.postMessage(secret, page, [channel.port2]);
     };
     VDom.UI.addElement(el, false);
@@ -120,10 +132,10 @@ var Vomnibar = {
     var style = this.box.style;
     if (style.visibility) {
       style.visibility = "";
-      setTimeout(function() { VDom.UI.box.style.display = ""; }, 0);
-    } else {
-      style.display = "";
+      style = VDom.UI.box.style;
     }
+    this.sameOrigin ? (style.display = "")
+      : setTimeout(function() { style.display = ""; }, 0);
     var width = this.width * 0.8;
     if (width !== (width | 0)) {
       this.box.style.width = (width | 0) / (width / 0.8) * 100 + "%";
