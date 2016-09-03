@@ -127,15 +127,15 @@ var Vomnibar = {
     this.selection = -1;
     if (this.completions.length > 0) {
       list.style.display = "";
-      list.lastElementChild.classList.add("OBItem");
-      barCls.add("OWithList");
+      list.lastElementChild.classList.add("bItem");
+      barCls.add("withList");
       if (this.autoSelect || this.mode.type !== "omni") {
         this.selection = 0;
-        list.firstElementChild.classList.add("S");
+        list.firstElementChild.classList.add("s");
       }
     } else {
       list.style.display = "none";
-      barCls.remove("OWithList");
+      barCls.remove("withList");
     }
     this.isSearchOnTop = this.completions.length > 0 && this.completions[0].type === "search";
     this.isSelectionOrigin = true;
@@ -189,13 +189,13 @@ var Vomnibar = {
     if (this.timer) { return; }
     var _ref = this.list.children, old = this.selection;
     if (old >= 0) {
-      _ref[old].classList.remove("S");
+      _ref[old].classList.remove("s");
     }
     if (this.isSelectionOrigin || old < 0) {
       this.inputText = this.input.value;
     }
     if (sel >= 0) {
-      _ref[sel].classList.add("S");
+      _ref[sel].classList.add("s");
     }
     this.updateInput(sel);
     this.selection = sel;
@@ -371,7 +371,7 @@ var Vomnibar = {
   },
   OnMenu: function (event) {
     for (var _i, el = event.target; el; el = el.parentNode) {
-      if (el.classList.contains("OIUrl")) { break; }
+      if (el.classList.contains("url")) { break; }
     }
     if (!el) { return; }
     _i = [].indexOf.call(Vomnibar.list.children, el.parentNode.parentNode);
@@ -469,14 +469,14 @@ var Vomnibar = {
     this.onWheel = this.onWheel.bind(this);
     Object.setPrototypeOf(this.ctrlMap, null);
     Object.setPrototypeOf(this.normalMap, null);
-    this.input = document.getElementById("OInput");
-    this.list = document.getElementById("OList");
+    this.input = document.getElementById("input");
+    this.list = document.getElementById("list");
     this.input.onfocus = this.input.onblur = this.OnUI;
     this.input.oninput = this.onInput.bind(this);
     this.list.oncontextmenu = this.OnMenu;
-    document.getElementById("OClose").onclick = function() { Vomnibar.hide(); };
+    document.getElementById("close").onclick = function() { Vomnibar.hide(); };
     addEventListener("keydown", this.handleKeydown, true);
-    this.renderItems = VUtils.makeListRender(document.getElementById("OITemplate").innerHTML);
+    this.renderItems = VUtils.makeListRender(document.getElementById("template").innerHTML);
     this.showFavIcon = !!chrome.runtime.onMessageExternal;
     this.init = null;
   },
@@ -528,12 +528,12 @@ var Vomnibar = {
   Parse: function(item) {
     var str;
     if (Vomnibar.showFavIcon && (str = item.url) && str.length <= 512 && str.indexOf("://") > 0) {
-      item.favIconUrl = ' OIIcon" style="background-image: url(&quot;chrome://favicon/size/16/' +
+      item.favIconUrl = ' icon" style="background-image: url(&quot;chrome://favicon/size/16/' +
         VUtils.escapeCssStringInAttr(str) + "&quot;)";
     } else {
       item.favIconUrl = "";
     }
-    item.relevancy = this.showRelevancy ? '\n\t\t\t<span class="OIRelevancy">'
+    item.relevancy = this.showRelevancy ? '\n\t\t\t<span class="relevancy">'
       + item.relevancy + "</span>" : "";
   },
   navigateToUrl: function(item) {

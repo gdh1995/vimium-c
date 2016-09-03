@@ -29,7 +29,7 @@ SuggestionUtils = {
     for(_i = 0, end = 0; _i < ranges.length; _i += 2) {
       start = ranges[_i];
       end2 = ranges[_i + 1];
-      out.push(Utils.escapeText(string.substring(end, start)), '<span class="OSTitle">',
+      out.push(Utils.escapeText(string.substring(end, start)), '<span class="sTitle">',
         Utils.escapeText(string.substring(start, end2)), "</span>");
       end = end2;
     }
@@ -95,7 +95,7 @@ SuggestionUtils = {
         lenCut += start - temp - 19;
       }
       end = ranges[i + 1];
-      out.push('<span class="OSUrl">', Utils.escapeText(string.substring(start, end)), "</span>");
+      out.push('<span class="sUrl">', Utils.escapeText(string.substring(start, end)), "</span>");
     }
     if (string.length <= temp) {
       out.push(Utils.escapeText(string.substring(end)));
