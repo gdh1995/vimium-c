@@ -47,9 +47,6 @@ var VHints = {
       return;
     }
     VHandler.remove(this);
-    if (this.box) {
-      this.box.remove();
-    }
     this.setModeOpt(Object.setPrototypeOf(options || {}, null), count | 0);
 
     var elements, style, x, y;
@@ -64,6 +61,7 @@ var VHints = {
       elements || (elements = this.getVisibleElements());
     }
     if (elements.length <= 0) {
+      this.box && this.box.remove();
       this.clean2();
       VHUD.showForDuration("No links to select.", 1000);
       return;
@@ -71,6 +69,7 @@ var VHints = {
 
     x = window.scrollX; y = window.scrollY;
     this.initBox(x, y, elements.length);
+    this.box && this.box.remove();
     this.hintMarkers = elements.map(this.createMarkerFor, this);
     elements = null;
     this.alphabetHints.initMarkers(this.hintMarkers);
