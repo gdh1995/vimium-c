@@ -537,10 +537,13 @@ var VHints = {
       this.deactivate(true, !clickEl);
       return;
     }
-    this.reinit(clickEl, rect);
-    if (1 === --this.count && this.isActive) {
-      this.setMode(this.mode & ~64);
-    }
+    setTimeout(function() {
+      var _this = VHints;
+      _this.reinit(clickEl, rect);
+      if (1 === --_this.count && _this.isActive) {
+        _this.setMode(_this.mode & ~64);
+      }
+    }, 0);
   },
   reinit: function(lastEl, rect) {
     this.isActive = false;
