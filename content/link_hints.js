@@ -627,6 +627,7 @@ alphabetHints: {
         marker.appendChild(node);
       }
     }
+    this.countMax -= this.countLimit > 0;
     this.countLimit = 0;
   },
   buildHintIndexes: function(linkCount) {
@@ -658,7 +659,7 @@ alphabetHints: {
     return result;
   },
   matchHintsByKey: function(hintMarkers, event, keyStatus) {
-    var keyChar, key = event.keyCode, wanted;
+    var keyChar, key = event.keyCode, wanted, arr = null;
     if (key === VKeyCodes.tab) {
       if (!this.hintKeystroke) {
         return false;
@@ -682,6 +683,7 @@ alphabetHints: {
         return [];
       }
       this.hintKeystroke += keyChar;
+      arr = [];
     } else {
       return null;
     }
@@ -689,6 +691,12 @@ alphabetHints: {
     keyStatus.newHintLength = keyChar.length;
     keyStatus.known = false;
     wanted = !keyStatus.tab;
+    if (arr !== null && keyChar.length >= this.countMax) {
+      hintMarkers.some(function(linkMarker) {
+        return linkMarker.hintString === keyChar && arr.push(linkMarker);
+      });
+      if (arr.length === 1) { return arr; }
+    }
     return hintMarkers.filter(function(linkMarker) {
       var pass = linkMarker.hintString.startsWith(keyChar) === wanted;
       linkMarker.style.display = pass ? "" : "none";
