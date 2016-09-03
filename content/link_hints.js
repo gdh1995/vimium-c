@@ -581,7 +581,9 @@ var VHints = {
   },
   deactivate: function(suppressType, skipClean) {
     skipClean === true || this.clean();
-    this.alphabetHints.hintKeystroke = "";
+    var alpha = this.alphabetHints;
+    alpha.hintKeystroke = alpha.chars = "";
+    alpha.countMax = 0;
     this.clean2();
     VHandler.remove(this);
     VEventMode.onWndBlur(null);
@@ -625,7 +627,7 @@ alphabetHints: {
         marker.appendChild(node);
       }
     }
-    return hintMarkers;
+    this.countLimit = 0;
   },
   buildHintIndexes: function(linkCount) {
     var dn, hints, i, end;
