@@ -523,7 +523,6 @@ var VHints = {
   },
   activateLink: function(hintEl) {
     var rect, clickEl = hintEl.clickableItem;
-    this.clean();
     if (VDom.isInDocument(clickEl)) {
       // must get outline first, because clickEl may hide itself when activated
       rect = hintEl.linkRect || VDom.UI.getVRect(clickEl);
@@ -531,11 +530,12 @@ var VHints = {
         VDom.UI.flashVRect(rect);
       }
     } else {
+      this.clean();
       clickEl = null;
       VHUD.showForDuration("The link has been removed by the page", 2000);
     }
     if (!(this.mode & 64)) {
-      this.deactivate(true, true);
+      this.deactivate(true, !clickEl);
       return;
     }
     this.reinit(clickEl, rect);
