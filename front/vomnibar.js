@@ -58,15 +58,11 @@ var Vomnibar = {
     this.focused || setTimeout(function() { Vomnibar.input.focus() }, 34);
     window.onmousewheel = this.onWheel;
     this.input.value = this.inputText;
-    setTimeout(function() {
-      Vomnibar.input.onselect = Vomnibar.OnSelect;
-    }, 50);
   },
   hide: function(data) {
     this.isActive = this.onlySearch = this.isHttps = false;
     clearTimeout(this.timer);
     this.timer = this.height = 0;
-    this.input.onselect = null;
     window.onmousewheel = null;
     window.onkeyup = null;
     this.input.blur();
@@ -473,6 +469,7 @@ var Vomnibar = {
     this.list = document.getElementById("list");
     this.input.onfocus = this.input.onblur = this.OnUI;
     this.input.oninput = this.onInput.bind(this);
+    this.input.onselect = this.OnSelect;
     this.list.oncontextmenu = this.OnMenu;
     document.getElementById("close").onclick = function() { Vomnibar.hide(); };
     addEventListener("keydown", this.handleKeydown, true);
