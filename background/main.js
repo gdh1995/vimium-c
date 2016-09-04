@@ -1621,7 +1621,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
         incognito: false
       };
       port.sender = {
-        frameId: sender.frameId,
+        frameId: sender.frameId || 0,
         incognito: tab.incognito,
         status: null,
         tabId: tab.id,
