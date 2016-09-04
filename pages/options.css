@@ -3,6 +3,7 @@
 body {
   font: 14px "Arial", sans-serif;
   margin: 0 auto;
+  min-width: 940px;
 }
 a, a:visited {
   color: #15c;
@@ -136,7 +137,7 @@ input:disabled, textarea:disabled {
   color: #444;
 }
 button:focus, input:focus, select:focus, textarea:focus {
-  -webkit-transition: border-color 200ms;
+  transition: border-color 200ms;
   border-color: #4d90fe;
 }
 label {
@@ -226,7 +227,7 @@ label:active {
   padding-right: 0.3em;
 }
 .wrap-left-space {
-  padding-left: 0.3em;
+  margin-left: 0.25em;
 }
 
 /* Boolean options have a tighter form representation than text options. */

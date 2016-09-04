@@ -78,8 +78,9 @@ var Vomnibar = {
   Init: function(secret, page) {
     var _this = Vomnibar, el;
     el = _this.box = VDom.createElement("iframe");
-    el.style.visibility = "hidden";
     el.className = "LS Omnibar";
+    el.style.visibility = "hidden";
+    if (location.hash === "#chrome-ui") { el.style.top = "5px"; }
     el.src = page;
     el.onload = function() {
       var channel, port, i = page.indexOf("://");
@@ -130,14 +131,13 @@ var Vomnibar = {
   },
   onShown: function() {
     this.status = 3;
-    var style = this.box.style;
+    var style = this.box.style, width = this.width * 0.8;
     if (style.visibility) {
       style.visibility = "";
       style = VDom.UI.box.style;
     }
     this.sameOrigin ? (style.display = "")
       : setTimeout(function() { style.display = ""; }, 0);
-    var width = this.width * 0.8;
     if (width !== (width | 0)) {
       this.box.style.width = (width | 0) / (width / 0.8) * 100 + "%";
     }
