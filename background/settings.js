@@ -60,10 +60,10 @@ var Settings = {
       }
     },
     extWhiteList: function(val) {
-      var arr = val.split("\n"), i, map;
+      var arr = val.split("\n"), i, map, wordCharRe = /^[0-9A-Za-z]/;
       map = this.extWhiteList = Object.create(null);
       for (i = arr.length; 0 <= --i; ) {
-        if ((val = arr[i]) && (val = val.trim()).length === 32) {
+        if ((val = arr[i].trim()) && wordCharRe.test(val)) {
           map[val] = true;
         }
       }
