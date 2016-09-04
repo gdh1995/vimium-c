@@ -749,6 +749,9 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
     createTab: function() {},
     duplicateTab: function() {
       var tabId = cPort.sender.tabId;
+      if (tabId < 0) {
+        return funcDict.complaint(cPort, "duplicate such a tab");
+      }
       chrome.tabs.duplicate(tabId);
       if (--commandCount > 0) {
         chrome.windows.getCurrent({populate: true},
@@ -1034,7 +1037,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
       if (!port) {
         port = Settings.indexFrame(TabRecency.last(), 0);
         if (!port) { return; }
-      } else if (port.sender.frameId !== 0) {
+      } else if (port.sender.frameId !== 0 && port.sender.tabId >= 0) {
         port = Settings.indexFrame(port.sender.tabId, 0) || port;
       }
       options = Utils.extendIf(Object.setPrototypeOf({
@@ -1374,13 +1377,16 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
       });
     },
     gotoSession: function(request, port) {
-      var id = request.sessionId, active = request.active !== false;
+      var id = request.sessionId, active = request.active !== false, tabId;
       if (typeof id === "number") {
         chrome.tabs.update(id, {active: true}, funcDict.selectWnd);
         return;
       }
       chrome.sessions.restore(id, funcDict.onRuntimeError);
-      active || chrome.tabs.update(port.sender.tabId, {active: true});
+      if (active) { return; }
+      tabId = port.sender.tabId;
+      tabId >= 0 || (tabId = TabRecency.last());
+      tabId >= 0 && chrome.tabs.update(tabId, {active: true});
     },
     openUrl: function(request) {
       Object.setPrototypeOf(request, null);
