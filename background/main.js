@@ -1548,7 +1548,6 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
       port.onMessage.addListener(Connections.OnMessage);
       var type = port.name[9] | 0, ref, tabId, pass, status;
       if (type === 8) {
-        port.sender.frameId *= -1;
         framesForTab.omni.push(port);
         port.onDisconnect.addListener(Connections.OnOmniDisconnect);
         return;
@@ -1561,8 +1560,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
         load: Settings.bufferToLoad,
         passKeys: pass,
         onMac: Settings.CONST.OnMac,
-        keyMap: keyMap,
-        tabId: tabId
+        keyMap: keyMap
       } : {
         name: "reset",
         passKeys: pass
