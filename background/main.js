@@ -1522,6 +1522,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
 
   Connections = {
     state: 0,
+    _fakeId: -2,
     OnMessage: function(request, port) {
       var key, id;
       if (id = request._msgId) {
@@ -1607,7 +1608,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
     format: function(port) {
       var sender = port.sender, tab;
       tab = sender.tab || {
-        id: -1,
+        id: this._fakeId--,
         incognito: false
       };
       port.sender = {
