@@ -55,7 +55,7 @@ var Vomnibar = {
   timer: 0,
   wheelTimer: 0,
   show: function() {
-    this.focused || setTimeout(function() { Vomnibar.input.focus() }, 34);
+    this.focused || setTimeout(function() { Vomnibar.input.focus(); }, 34);
     window.onmousewheel = this.onWheel;
     this.input.value = this.inputText;
   },
@@ -453,7 +453,7 @@ var Vomnibar = {
       func.call(this);
     }
   },
-  OnWndBlur: function(event) { Vomnibar.isActive || VPort.disconnect(); },
+  OnWndBlur: function() { Vomnibar.isActive || VPort.disconnect(); },
   init: function() {
     addEventListener("focus", function() {
       if (VPort.port) { return; }

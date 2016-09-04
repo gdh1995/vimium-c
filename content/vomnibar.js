@@ -95,7 +95,7 @@ var Vomnibar = {
         this.contentWindow.onmessage({ source: window, data: secret, ports: [port] });
         return;
       }
-      channel = new MessageChannel()
+      channel = new MessageChannel();
       _this.port = channel.port1;
       _this.port.onmessage = _this.onMessage.bind(_this);
       this.contentWindow.postMessage(secret, page, [channel.port2]);
