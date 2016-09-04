@@ -184,17 +184,11 @@ var Vomnibar = {
   updateSelection: function(sel) {
     if (this.timer) { return; }
     var _ref = this.list.children, old = this.selection;
-    if (old >= 0) {
-      _ref[old].classList.remove("s");
-    }
-    if (this.isSelectionOrigin || old < 0) {
-      this.inputText = this.input.value;
-    }
-    if (sel >= 0) {
-      _ref[sel].classList.add("s");
-    }
+    (this.isSelectionOrigin || old < 0) && (this.inputText = this.input.value);
     this.updateInput(sel);
     this.selection = sel;
+    old >= 0 && _ref[old].classList.remove("s");
+    sel >= 0 && _ref[sel].classList.add("s");
   },
   ctrlMap: {
     66: "pageup", 74: "down", 75: "up", 219: "dismiss", 221: "toggle"

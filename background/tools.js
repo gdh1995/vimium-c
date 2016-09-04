@@ -10,9 +10,10 @@ var Clipboard = {
   tailSpacesRe: / +\n/g,
   copy: function(data) {
     var textArea = this.getTextArea();
-    textArea.value = data.replace(Utils.A0Re, " ").replace(this.tailSpacesRe, "\n");
+    data = data.replace(Utils.A0Re, " ").replace(this.tailSpacesRe, "\n");
+    textArea.value = data;
     document.documentElement.appendChild(textArea);
-    textArea.select();
+    textArea.setSelectionRange(0, data.length);
     document.execCommand("copy");
     textArea.remove();
     textArea.value = "";
