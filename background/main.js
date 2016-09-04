@@ -307,7 +307,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
       var left = false, i, port;
       for (i in framesForTab) {
         port = framesForTab[i][1];
-        if (port.sender.tab.incognito) { left = true; break; }
+        if (port.sender.incognito) { left = true; break; }
       }
       if (left) { return; }
       FindModeHistory.listI = null;
@@ -748,7 +748,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
   BackgroundCommands = {
     createTab: function() {},
     duplicateTab: function() {
-      var tabId = cPort.sender.tab.id;
+      var tabId = cPort.sender.tabId;
       chrome.tabs.duplicate(tabId);
       if (--commandCount > 0) {
         chrome.windows.getCurrent({populate: true},
@@ -814,7 +814,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
     },
     restoreTab: function() {
       var count = commandCount;
-      if (count === 1 && cPort.sender.tab.incognito) {
+      if (count === 1 && cPort.sender.incognito) {
         cPort.postMessage({
           name: "showHUD",
           text: "Can not restore a tab in incognito mode!"
@@ -950,7 +950,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
       }
     },
     nextFrame: function(count) {
-      var port = cPort, frames = framesForTab[port.sender.tab.id], ind;
+      var port = cPort, frames = framesForTab[port.sender.tabId], ind;
       if (frames && frames.length > 2) {
         count || (count = commandCount);
         ind = Math.max(0, frames.indexOf(port, 1));
@@ -1021,7 +1021,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
       });
     },
     performFind: function() {
-      var query = cOptions.active ? null : FindModeHistory.query(cPort.sender.tab.incognito);
+      var query = cOptions.active ? null : FindModeHistory.query(cPort.sender.incognito);
       cPort.postMessage({
         name: "performFind",
         count: commandCount,
@@ -1035,7 +1035,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
         port = Settings.indexFrame(TabRecency.last(), 0);
         if (!port) { return; }
       } else if (port.sender.frameId !== 0) {
-        port = Settings.indexFrame(port.sender.tab.id, 0) || port;
+        port = Settings.indexFrame(port.sender.tabId, 0) || port;
       }
       options = Utils.extendIf(Object.setPrototypeOf({
         page: Settings.CONST.VomnibarPage,
@@ -1048,7 +1048,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
       });
     },
     clearFindHistory: function() {
-      var incognito = cPort.sender.tab.incognito;
+      var incognito = cPort.sender.incognito;
       FindModeHistory.removeAll(incognito);
       cPort.postMessage({
         name: "showHUD",
@@ -1209,7 +1209,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
       }
     },
     findQuery: function(request, port) {
-      return FindModeHistory.query(port.sender.tab.incognito, request.query, request.index);
+      return FindModeHistory.query(port.sender.incognito, request.query, request.index);
     },
     parseSearchUrl: function(request) {
       var url = request.url.toLowerCase(), decoders, pattern, _i, str, arr,
@@ -1380,7 +1380,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
         return;
       }
       chrome.sessions.restore(id, funcDict.onRuntimeError);
-      active || chrome.tabs.update(port.sender.tab.id, {active: true});
+      active || chrome.tabs.update(port.sender.tabId, {active: true});
     },
     openUrl: function(request) {
       Object.setPrototypeOf(request, null);
@@ -1397,7 +1397,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
       BackgroundCommands.openUrl();
     },
     frameFocused: function(request, port) {
-      var tabId = port.sender.tab.id, ref = framesForTab[tabId], status;
+      var tabId = port.sender.tabId, ref = framesForTab[tabId], status;
       currentFirst !== null && resetKeys();
       if (!ref) {
         needIcon && requestHandlers.SetIcon(tabId, port.sender.status);
@@ -1411,7 +1411,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
     checkIfEnabled: function(request, port) {
       port && port.sender || (port = Settings.indexFrame(request.tabId, request.frameId));
       if (!port) { return; }
-      var oldUrl = port.sender.url, tabId = port.sender.tab.id
+      var oldUrl = port.sender.url, tabId = port.sender.tabId
         , pattern = Exclusions.getPattern(port.sender.url = request.url)
         , status = pattern === null ? "enabled" : pattern ? "partial" : "disabled";
       if (port.sender.status !== status) {
@@ -1429,7 +1429,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
       BackgroundCommands.nextFrame(1);
     },
     refocusCurrent: function(_0, port) {
-      var ports = framesForTab[port.sender.tab.id];
+      var ports = framesForTab[port.sender.tabId];
       ports && ports[0].postMessage({
         name: "focusFrame",
         highlight: false
@@ -1544,7 +1544,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
       }
     },
     OnConnect: function(port) {
-      Connections.cleanSender(port);
+      Connections.format(port);
       port.onMessage.addListener(Connections.OnMessage);
       var type = port.name[9] | 0, ref, tabId, pass, status;
       if (type === 8) {
@@ -1553,7 +1553,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
         return;
       }
       port.onDisconnect.addListener(Connections.OnDisconnect);
-      tabId = port.sender.tab.id;
+      tabId = port.sender.tabId;
       pass = Exclusions.getPattern(port.sender.url);
       port.postMessage((type & 1) ? {
         name: "init",
@@ -1584,7 +1584,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
       }
     },
     OnDisconnect: function(port) {
-      var i = port.sender.tab.id, ref;
+      var i = port.sender.tabId, ref;
       if (!port.sender.frameId) {
         delete framesForTab[i];
         return;
@@ -1604,18 +1604,17 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
       var ref = framesForTab.omni, i = ref.lastIndexOf(port);
       i === ref.length - 1 ? --ref.length : i >= 0 ? ref.splice(i, 1) : 0;
     },
-    cleanSender: function(port) {
-      var sender = port.sender, tab = sender.tab;
+    format: function(port) {
+      var sender = port.sender, tab;
+      tab = sender.tab || {
+        id: -1,
+        incognito: false
+      };
       port.sender = {
         frameId: sender.frameId,
+        incognito: tab.incognito,
         status: null,
-        tab: tab ? {
-          id: tab.id,
-          incognito: tab.incognito
-        } : {
-          id: -1,
-          incognito: false
-        },
+        tabId: tab.id,
         url: sender.url
       };
     }
@@ -1693,7 +1692,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
     delete ref[removedTabId];
     ref[addedTabId] = frames;
     for (i = frames.length; 0 < --i; ) {
-      frames[i].sender.tab.id = addedTabId;
+      frames[i].sender.tabId = addedTabId;
     }
   });
 

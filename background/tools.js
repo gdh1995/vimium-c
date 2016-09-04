@@ -30,7 +30,7 @@ var Clipboard = {
 },
 Marks = { // NOTE: all members should be static
   createMark: function(request, port) {
-    var tabId = port.sender.tab.id;
+    var tabId = port.sender.tabId;
     if (request.scroll) {
       localStorage.setItem(Marks.getMarkKey(request.markName), JSON.stringify({
         tabId: tabId,
