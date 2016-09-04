@@ -1435,7 +1435,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
       BackgroundCommands.nextFrame(1);
     },
     refocusCurrent: function(_0, port) {
-      var ports = framesForTab[port.sender.tabId];
+      var ports = port.sender.tabId !== -1 ? framesForTab[port.sender.tabId] : null;
       ports && ports[0].postMessage({
         name: "focusFrame",
         highlight: false
@@ -1554,13 +1554,16 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
       Connections.format(port);
       port.onMessage.addListener(Connections.OnMessage);
       var type = port.name[9] | 0, ref, tabId, pass, status;
+      tabId = port.sender.tabId;
       if (type === 8) {
         framesForTab.omni.push(port);
+        if (tabId < 0) {
+          port.sender.tabId = cPort ? cPort.sender.tabId : TabRecency.last();
+        }
         port.onDisconnect.addListener(Connections.OnOmniDisconnect);
         return;
       }
       port.onDisconnect.addListener(Connections.OnDisconnect);
-      tabId = port.sender.tabId;
       pass = Exclusions.getPattern(port.sender.url);
       port.postMessage((type & 1) ? {
         name: "init",
