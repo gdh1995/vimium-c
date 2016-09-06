@@ -149,7 +149,7 @@ setTimeout(function() { if (!chrome.browserAction) { return; }
 }, 150);
 
 setTimeout(function() { if (!chrome.omnibox) { return; }
-  var last, firstUrl, lastSuggest, spanRe = /<(\/?)span(?: [^>]+)?>/g,
+  var last, firstResult, lastSuggest, spanRe = /<(\/?)span(?: [^>]+)?>/g,
   tempRequest, timeout = 0, sessionIds, suggestions = null, outTimeout = 0, outTime,
   defaultSug = { description: "<dim>Open: </dim><url>%s</url>" },
   defaultSuggestionType = 0, notOnlySearch = true, modeRe = /^:[a-z]?$/,
@@ -173,19 +173,20 @@ setTimeout(function() { if (!chrome.omnibox) { return; }
     };
   },
   clean = function() {
-    firstUrl = "";
-    last = sessionIds = tempRequest = suggestions = null;
+    firstResult = last = sessionIds = tempRequest = suggestions = null;
     if (lastSuggest) {
       lastSuggest.isOff = true;
       lastSuggest = null;
     }
     if (outTimeout) {
       clearTimeout(outTimeout);
-      outTime = outTimeout = 0;
+      outTimeout = 0;
     }
+    outTime = matchType = 2;
   },
   outClean = function() {
     if (Date.now() - outTime > 5000) {
+      outTimeout = 0;
       clean();
     } else {
       outTimeout = setTimeout(outClean, 30000);
@@ -208,7 +209,7 @@ setTimeout(function() { if (!chrome.omnibox) { return; }
       response.forEach(formatSessionId);
     }
     if (autoSelect) {
-      firstUrl = sug.url;
+      firstResult = sug;
       response.shift();
     }
     notOnlySearch = true;
@@ -253,11 +254,11 @@ setTimeout(function() { if (!chrome.omnibox) { return; }
     }
     timeout = setTimeout(onTimer, 300);
     outTime = Date.now();
-    firstUrl = "";
     sessionIds = suggestions = null;
     last = key;
     lastSuggest = suggest;
     (onlySearch ? Completers.search : Completers.omni).filter(key, {
+    firstResult = null;
       maxResults: 6
     }, onComplete.bind(null, suggest));
   },
@@ -270,7 +271,7 @@ setTimeout(function() { if (!chrome.omnibox) { return; }
     } else if (lastSuggest) {
       return;
     }
-    if (firstUrl && text === last) { text = firstUrl; }
+    if (firstResult && text === last) { text = firstResult.url; }
     var sessionId = sessionIds && sessionIds[text];
     clean();
     if (sessionId != null) {
