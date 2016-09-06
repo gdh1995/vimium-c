@@ -173,16 +173,11 @@ setTimeout(function() { if (!chrome.omnibox) { return; }
     };
   },
   clean = function() {
-    firstResult = last = sessionIds = tempRequest = suggestions = null;
-    if (lastSuggest) {
-      lastSuggest.isOff = true;
-      lastSuggest = null;
-    }
-    if (outTimeout) {
-      clearTimeout(outTimeout);
-      outTimeout = 0;
-    }
-    outTime = matchType = 2;
+    if (lastSuggest) { lastSuggest.isOff = true; }
+    sessionIds = tempRequest = suggestions = lastSuggest =
+    firstResult = last = null;
+    if (outTimeout) { clearTimeout(outTimeout); }
+    outTime = matchType = outTimeout = 0;
   },
   outClean = function() {
     if (Date.now() - outTime > 5000) {
