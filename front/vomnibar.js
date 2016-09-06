@@ -4,7 +4,7 @@ var Vomnibar = {
     var url, keyword, search, start;
     this.init && this.init();
     Object.setPrototypeOf(options = options || {}, null);
-    this.mode.type = options.mode || "omni";
+    this.mode.type = this.modeType = options.mode || "omni";
     this.forceNewTab = options.force ? true : false;
     url = options.url;
     keyword = options.keyword;
@@ -33,13 +33,14 @@ var Vomnibar = {
   isActive: false,
   inputText: "",
   lastQuery: "",
+  modeType: "",
   useInput: true,
   completions: null,
   isHttps: false,
   isSearchOnTop: false,
-  onlySearch: false,
   actionType: false,
   autoSelect: true,
+  matchType: 0,
   focused: true,
   forceNewTab: false,
   showFavIcon: false,
@@ -60,16 +61,17 @@ var Vomnibar = {
     this.input.value = this.inputText;
   },
   hide: function(data) {
-    this.isActive = this.onlySearch = this.isHttps = false;
+    this.isActive = this.isHttps = false;
     clearTimeout(this.timer);
-    this.timer = this.height = 0;
+    this.timer = this.height = this.matchType = 0;
     window.onmousewheel = null;
     window.onkeyup = null;
     this.input.blur();
     this.list.textContent = "";
     this.input.value = "";
     this.completions = this.onUpdate = null;
-    this.mode.query = this.lastQuery = this.inputText = "";
+    this.modeType = this.mode.type = this.mode.query =
+    this.lastQuery = this.inputText = "";
     if (data !== "hide") {
       VPort.postToOwner("hide");
       VPort.postMessage({ handler: "refocusCurrent" });
@@ -125,7 +127,7 @@ var Vomnibar = {
       list.style.display = "";
       list.lastElementChild.classList.add("bItem");
       barCls.add("withList");
-      if (this.autoSelect || this.mode.type !== "omni") {
+      if (this.autoSelect || this.modeType !== "omni") {
         this.selection = 0;
         list.firstElementChild.classList.add("s");
       }
@@ -389,21 +391,13 @@ var Vomnibar = {
     this.wheelTimer = Date.now();
     this.goPage(event.deltaY > 0 ? 1 : -1);
   },
-  _modeRe: /^:[a-z]?$/,
   onInput: function() {
     var s0 = this.lastQuery, s1 = this.input.value, str, i, j, arr;
     if ((str = s1.trim()) === (this.selection === -1 || this.isSelectionOrigin
         ? s0 : this.completions[this.selection].text)) {
       return;
     }
-    if (this.completions.length > this.isSearchOnTop
-        || !(s1.startsWith(s0) && s0) || this._modeRe.test(s0)) {
-      this.onlySearch = false;
-    } else if (this.isSearchOnTop) {
-      this.onlySearch = true;
-    } else {
-      return;
-    }
+    if (this.matchType === 1 && s1.startsWith(s0)) { return; }
     i = this.input.selectionStart;
     if (this.isSearchOnTop) {}
     else if (i > s1.length - 2) {
@@ -424,6 +418,7 @@ var Vomnibar = {
     if (!this.isActive) { return; }
     var completions = response.list, height, oldHeight;
     this.autoSelect = response.autoSelect;
+    this.matchType = response.matchType;
     completions.forEach(this.Parse, this.mode);
     this.completions = completions;
     oldHeight = this.height;
@@ -502,16 +497,16 @@ var Vomnibar = {
       this.lastQuery = str = this.input.value.trim();
       str = str.replace(this._spacesRe, " ");
       if (str === mode.query) { return this.postUpdate(); }
+      mode.type = this.matchType < 3 || !str.startsWith(mode.query) ? this.modeType
+        : this.completions[0].type;
       mode.query = str;
       mode.clientWidth = window.innerWidth;
+      this.matchType = 0;
     } else {
       this.useInput = true;
     }
     this.timer = -1;
-    str = mode.type;
-    this.onlySearch && (mode.type = "search");
     VPort.postMessage(mode);
-    this.onlySearch && (mode.type = str);
   },
 
   Parse: function(item) {

@@ -1499,11 +1499,12 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
       if (funcDict.checkVomnibarPage(port)) { return null; }
       return getSecret();
     },
-    PostCompletions: function(list, autoSelect) {
+    PostCompletions: function(list, autoSelect, matchType) {
       try {
       cPort.postMessage({
         name: "omni",
         autoSelect: autoSelect,
+        matchType: matchType,
         list: list
       });
       } catch (e) {}

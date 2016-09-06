@@ -2,8 +2,11 @@
 setTimeout(function() {
   var HistoryCache, RankingUtils, RegexpCache, Decoder,
       Completers, queryType, offset, autoSelect,
-      maxCharNum, maxResults, maxTotal,
+      maxCharNum, maxResults, maxTotal, matchType,
       showRelevancy, queryTerms, SuggestionUtils;
+
+  // matchType: 0/2: use default completers; 1: empty result for non-empty query;
+  //   3: only one completer matches some items;
 
   function Suggestion(type, url, text, title, computeRelevancy, extraData) {
     this.type = type;
@@ -495,6 +498,7 @@ tabs: {
 searchEngines: {
   preFilter: function(query, failIfNull) {
     var obj, sug, q = queryTerms, keyword, pattern, promise;
+    if (matchType === 2) { matchType = 4; }
     if (q.length === 0) {}
     else if (failIfNull !== true && (keyword = q[0])[0] === "\\") {
       q[0] = keyword.substring(1);
@@ -509,6 +513,7 @@ searchEngines: {
     }
     if (!pattern) {
       if (failIfNull !== true) {
+        if (matchType === 4) { matchType = q.length > 1 ? 2 : 0; }
         Completers.next([]);
       }
       return true;
@@ -520,7 +525,8 @@ searchEngines: {
         q.push(q.more);
         offset = 0;
       }
-      q.length > 1 && (queryType = 2);
+      if (q.length > 1) { queryType = 2; }
+      else if (matchType === 4) { matchType = 0; }
     }
     if (q.length > 1) {
       q.shift();
@@ -635,6 +641,7 @@ searchEngines: {
     this.suggestions = [];
     this.counter = l = completers.length;
     this.getOffset();
+    matchType = offset > 0 ? 0 : l > 1 ? 2 : 3;
     if (completers[0].preFilter) {
       completers[0].preFilter(query);
       if (!queryTerms) { return; }
@@ -671,12 +678,17 @@ searchEngines: {
       queryTerms[0] = SuggestionUtils.shortenUrl(queryTerms[0]);
     }
     suggestions.forEach(SuggestionUtils.PrepareHtml);
+    matchType = matchType === 0 ? 2
+      : suggestions.length <= 0 ? (queryTerms.length > 0 ? 1 : 2)
+      : matchType <= 3 ? (suggestions.length === 1 ? 3 : matchType)
+      : suggestions.length <= 1 || (suggestions.length === 2
+        && suggestions[1].type === "math") ? 3 : 2;
     queryTerms = null;
     RegexpCache.reset(null);
     RankingUtils.timeAgo = 0;
     func = this.callback || g_requestHandlers.PostCompletions;
     this.mostRecentQuery = this.callback = null;
-    func(suggestions, autoSelect && suggestions.length > 0);
+    func(suggestions, autoSelect && suggestions.length > 0, matchType);
   },
   concatSugs: function(newSugs) {
     var arr = this.suggestions, i, len = newSugs.length;

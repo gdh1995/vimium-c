@@ -152,7 +152,7 @@ setTimeout(function() { if (!chrome.omnibox) { return; }
   var last, firstResult, lastSuggest, spanRe = /<(\/?)span(?: [^>]+)?>/g,
   tempRequest, timeout = 0, sessionIds, suggestions = null, outTimeout = 0, outTime,
   defaultSug = { description: "<dim>Open: </dim><url>%s</url>" },
-  defaultSuggestionType = 0, notOnlySearch = true, modeRe = /^:[a-z]?$/,
+  defaultSuggestionType = 0, matchType = 2,
   formatSessionId = function(sug) {
     if (sug.sessionId != null) {
       sessionIds[sug.url] = sug.sessionId;
@@ -200,7 +200,7 @@ setTimeout(function() { if (!chrome.omnibox) { return; }
       onInput(arr[0], arr[1]);
     }
   },
-  onComplete = function(suggest, response, autoSelect) {
+  onComplete = function(suggest, response, autoSelect, newMatchType) {
     if (!lastSuggest || suggest.isOff) { return; }
     if (suggest === lastSuggest) { lastSuggest = null; }
     var sug = response[0];
@@ -209,17 +209,15 @@ setTimeout(function() { if (!chrome.omnibox) { return; }
       response.forEach(formatSessionId);
     }
     if (autoSelect) {
-      firstResult = sug;
-      response.shift();
+      firstResult = response.shift();
     }
-    notOnlySearch = true;
+    matchType = newMatchType;
     if (!autoSelect) {
       if (defaultSuggestionType !== 1) {
         chrome.omnibox.setDefaultSuggestion(defaultSug);
         defaultSuggestionType = 1;
       }
     } else if (sug.type === "search") {
-      notOnlySearch = response.length > 0;
       var text = sug.titleSplit.replace(spanRe, "");
       text = Utils.escapeText(text.substring(0, text.indexOf(":")));
       text = "<dim>" + text + " - </dim><url>" +
@@ -244,21 +242,23 @@ setTimeout(function() { if (!chrome.omnibox) { return; }
     key = key.trim().replace(Utils.spacesRe, " ");
     if (key === last) { suggestions && suggest(suggestions); return; }
     lastSuggest && (lastSuggest.isOff = true);
-    var onlySearch = false;
     if (timeout) {
       tempRequest = [key, suggest];
       return;
-    } else if (suggestions && suggestions.length === 0 && key.startsWith(last) && !modeRe.test(last)) {
-      if (notOnlySearch) { return suggest([]); }
-      onlySearch = true;
+    } else if (matchType === 1 && key.startsWith(last)) {
+      suggest([]);
+      return;
     }
     timeout = setTimeout(onTimer, 300);
     outTime = Date.now();
     sessionIds = suggestions = null;
+    var completers = matchType < 3 || !key.startsWith(last) ?
+      Completers.omni : Completers[firstResult.type];
     last = key;
     lastSuggest = suggest;
-    (onlySearch ? Completers.search : Completers.omni).filter(key, {
     firstResult = null;
+    matchType = 0;
+    completers.filter(key, {
       maxResults: 6
     }, onComplete.bind(null, suggest));
   },
