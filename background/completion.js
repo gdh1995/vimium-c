@@ -718,15 +718,14 @@ searchEngines: {
     if (queryTerms.length >= 1 && queryTerms[0].length === 2 && queryTerms[0][0] === ":") {
       str = queryTerms[0][1];
       ref = window.Completers;
-      _this = str === "b" ? ref.bookmarks : str === "h" ? ref.history : str === "t" ? ref.tabs
-        : str === "d" ? ref.domains : str === "s" ? ref.search : str === "o" ? ref.omni : null;
+      _this = str === "b" ? ref.bookm : str === "h" ? ref.history : str === "t" ? ref.tab
+        : str === "d" ? ref.domain : str === "s" ? ref.search : str === "o" ? ref.omni : null;
       if (_this) {
         queryTerms.shift();
         autoSelect = _this !== ref.omni;
-        return Completers.filter(_this.completers);
       }
     }
-    Completers.filter(this.completers);
+    return Completers.filter((_this || this).completers);
   };
 
   RankingUtils = {
@@ -1028,13 +1027,13 @@ searchEngines: {
   }, 30000);
 
   window.Completers = {
-    bookmarks: new Completers.MultiCompleter([Completers.bookmarks]),
-    domains: new Completers.MultiCompleter([Completers.domains]),
+    bookm: new Completers.MultiCompleter([Completers.bookmarks]),
+    domain: new Completers.MultiCompleter([Completers.domains]),
     history: new Completers.MultiCompleter([Completers.history]),
     omni: new Completers.MultiCompleter([Completers.searchEngines, Completers.domains
       , Completers.history, Completers.bookmarks]),
     search: new Completers.MultiCompleter([Completers.searchEngines]),
-    tabs: new Completers.MultiCompleter([Completers.tabs])
+    tab: new Completers.MultiCompleter([Completers.tabs])
   };
 
 }, 200);

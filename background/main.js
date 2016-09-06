@@ -1501,7 +1501,11 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
     },
     PostCompletions: function(list, autoSelect) {
       try {
-      cPort.postMessage({ name: "omni", list: list, autoSelect: autoSelect });
+      cPort.postMessage({
+        name: "omni",
+        autoSelect: autoSelect,
+        list: list
+      });
       } catch (e) {}
     },
     SetIcon: function() {},
