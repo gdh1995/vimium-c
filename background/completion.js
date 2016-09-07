@@ -709,7 +709,7 @@ searchEngines: {
     }
   },
   finish: function() {
-    var suggestions = this.suggestions, func;
+    var suggestions = this.suggestions, func, newAutoSelect, newMatchType;
     this.suggestions = null;
     suggestions.sort(this.rsortByRelevancy);
     if (offset > 0) {
@@ -722,17 +722,22 @@ searchEngines: {
       queryTerms[0] = SuggestionUtils.shortenUrl(queryTerms[0]);
     }
     suggestions.forEach(SuggestionUtils.PrepareHtml);
-    var newMatchType = matchType < 0 ? (matchType === -2
+
+    newAutoSelect = autoSelect && suggestions.length > 0;
+    newMatchType = matchType < 0 ? (matchType === -2
         && suggestions.length <= 0 ? 3 : 0)
       : suggestions.length <= 0 ? queryTerms.length && 1
       : this.sugCounter === 1 ? 2 : 0;
-    this.sugCounter = matchType = 0;
-    queryTerms = null;
-    RegexpCache.reset(null);
-    RankingUtils.timeAgo = 0;
     func = this.callback || g_requestHandlers.PostCompletions;
-    this.mostRecentQuery = this.callback = null;
-    func(suggestions, autoSelect && suggestions.length > 0, newMatchType);
+    this.cleanGlobals();
+    func(suggestions, newAutoSelect, newMatchType);
+  },
+  cleanGlobals: function() {
+    this.mostRecentQuery = this.callback = queryTerms = null;
+    RegexpCache.reset(null);
+    RankingUtils.timeAgo = this.sugCounter = matchType = queryType =
+    maxResults = maxTotal = maxCharNum = 0;
+    autoSelect = showRelevancy = false;
   },
   getOffset: function() {
     var str, i;
