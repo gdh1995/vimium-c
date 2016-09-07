@@ -227,7 +227,7 @@ bookmarks: {
 
 history: {
   filter: function(query, index) {
-    var _this = this, history = HistoryCache.history;
+    var history = HistoryCache.history;
     if (queryType === 1) {
       queryType = queryTerms.length === 0 || index === 0 ? 3 : 67;
     }
@@ -252,8 +252,8 @@ history: {
         arr[entry.url] = 1;
         ++i > 0 && historys.push(entry);
         return historys.length >= maxResults;
-      }) ? _this.filterFinish(historys) :
-      _this.filterFill(historys, query, arr, -i);
+      }) ? Completers.history.filterFinish(historys) :
+      Completers.history.filterFill(historys, query, arr, -i);
     }) : this.filterFill(null, query, {}, 0);
     if (history) {
       HistoryCache.refreshInfo();
@@ -305,7 +305,6 @@ history: {
     return sugs;
   },
   filterFill: function(historys, query, arr, cut) {
-    var _this = this;
     chrome.history.search({
       text: "",
       maxResults: (queryType === 3 ? offset : 0) + maxResults
@@ -321,7 +320,7 @@ history: {
       } else if (cut > 0) {
         historys2 = historys2.slice(cut, cut + maxResults);
       }
-      _this.filterFinish(historys2);
+      Completers.history.filterFinish(historys2);
     });
   },
   filterFinish: function(historys) {
@@ -662,8 +661,12 @@ searchEngines: {
     }
   },
   next: function(newSugs) {
-    if (newSugs.length > 0) { this.sugCounter++; }
-    this.concatSugs(newSugs);
+    var arr = this.suggestions;
+    if (newSugs.length > 0) {
+      this.sugCounter++;
+      this.suggestions = arr.length === 0 ? newSugs : arr.concat(newSugs);
+    }
+    arr = null;
     if (0 === --this.counter) {
       return this.finish();
     }
@@ -693,14 +696,6 @@ searchEngines: {
     func = this.callback || g_requestHandlers.PostCompletions;
     this.mostRecentQuery = this.callback = null;
     func(suggestions, autoSelect && suggestions.length > 0, newMatchType);
-  },
-  concatSugs: function(newSugs) {
-    var arr = this.suggestions, i, len = newSugs.length;
-    if (len === 0) { return; }
-    if (arr.length === 0) { return this.suggestions = newSugs; }
-    for (i = 0; i < len; i++) {
-      arr.push(newSugs[i]);
-    }
   },
   getOffset: function() {
     var str, i;
