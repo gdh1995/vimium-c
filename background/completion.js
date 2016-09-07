@@ -128,31 +128,31 @@ bookmarks: {
   },
   StartsWithSlash: function(str) { return str.charCodeAt(0) === 47; },
   performSearch: function() {
-    var c, results, isPath;
     if (queryTerms.length === 0) {
-      results = [];
-    } else {
-      isPath = queryTerms.some(this.StartsWithSlash);
-      c = this.computeRelevancy;
-      results = this.bookmarks.filter(function(i) {
-        return RankingUtils.Match2(i.text, isPath ? i.path : i.title);
-      }).map(function(i) {
-        var title = isPath ? i.path : i.title;
-        if (!i.jsUrl) {
-          return new Suggestion("bookm", i.url, i.text, title, c);
-        }
-        var sug = new Suggestion("bookm", i.jsUrl, "", title, c);
-        sug.titleSplit = SuggestionUtils.highlight(title, SuggestionUtils.getRanges(title));
-        sug.textSplit = "javascript: ...";
-        sug.text = i.jsText;
-        return sug;
-      });
+      return Completers.next([]);
+    }
+    var c, results = [], isPath, _ref, _i, _len, i, title, sug;
+    isPath = queryTerms.some(this.StartsWithSlash);
+    c = this.computeRelevancy;
+    for (_ref = this.bookmarks, _i = _ref.length; 0 <= --_i; ) {
+      i = _ref[_i];
+      title = isPath ? i.path : i.title;
+      if (!RankingUtils.Match2(i.text, title)) { continue; }
+      if (!i.jsUrl) {
+        results.push(new Suggestion("bookm", i.url, i.text, title, c));
+        continue;
+      }
+      sug = new Suggestion("bookm", i.jsUrl, "", title, c);
+      sug.titleSplit = SuggestionUtils.highlight(title, SuggestionUtils.getRanges(title));
+      sug.textSplit = "javascript: ...";
+      sug.text = i.jsText;
+      results.push(sug);
+    }
       if (queryType === 1 && offset > 0) {
         results.sort(Completers.rsortByRelevancy);
         results = results.slice(offset, offset + maxResults);
         offset = 0;
       }
-    }
     Completers.next(results);
   },
   Listen: function() {
