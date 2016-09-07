@@ -152,7 +152,7 @@ setTimeout(function() { if (!chrome.omnibox) { return; }
   var last, firstResult, lastSuggest, spanRe = /<(\/?)span(?: [^>]+)?>/g,
   tempRequest, timeout = 0, sessionIds, suggestions = null, outTimeout = 0, outTime,
   defaultSug = { description: "<dim>Open: </dim><url>%s</url>" },
-  defaultSuggestionType = 0, matchType = 2,
+  defaultSuggestionType = 0, matchType = 0,
   formatSessionId = function(sug) {
     if (sug.sessionId != null) {
       sessionIds[sug.url] = sug.sessionId;
@@ -247,12 +247,16 @@ setTimeout(function() { if (!chrome.omnibox) { return; }
     timeout = setTimeout(onTimer, 300);
     outTime = Date.now();
     sessionIds = suggestions = null;
-    var completers = matchType < 3 || !key.startsWith(last) ?
-      Completers.omni : Completers[firstResult.type];
+    var completers = matchType < 2 || !key.startsWith(last) ? Completers.omni
+      : matchType === 3 ? Completers.search : null;
     last = key;
     lastSuggest = suggest;
+    if (completers) {
+      matchType = 0;
+    } else {
+      completers = Completers[firstResult.type];
+    }
     firstResult = null;
-    matchType = 0;
     completers.filter(key, {
       maxResults: 6
     }, onComplete.bind(null, suggest));

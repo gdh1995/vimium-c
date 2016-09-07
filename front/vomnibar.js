@@ -492,16 +492,17 @@ var Vomnibar = {
   },
   _spacesRe: /\s{2,}/g,
   filter: function() {
-    var mode = this.mode, str;
+    var mode = this.mode, str, newMatchType = 0;
     if (this.useInput) {
       this.lastQuery = str = this.input.value.trim();
       str = str.replace(this._spacesRe, " ");
       if (str === mode.query) { return this.postUpdate(); }
-      mode.type = this.matchType < 3 || !str.startsWith(mode.query) ? this.modeType
-        : this.completions[0].type;
+      mode.type = this.matchType < 2 || !str.startsWith(mode.query) ? this.modeType
+        : this.matchType === 3 ? "search"
+        : (newMatchType = this.matchType, this.completions[0].type);
       mode.query = str;
       mode.clientWidth = window.innerWidth;
-      this.matchType = 0;
+      this.matchType = newMatchType;
     } else {
       this.useInput = true;
     }

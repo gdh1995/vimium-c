@@ -5,8 +5,9 @@ setTimeout(function() {
       maxCharNum, maxResults, maxTotal, matchType,
       showRelevancy, queryTerms, SuggestionUtils;
 
-  // matchType: 0/2: use default completers; 1: empty result for non-empty query;
-  //   3: only one completer matches some items;
+  // matchType: 0: use default completers; 1: empty result for non-empty query;
+  //   2: only one completer matches some items;
+  //   -1: final matchType should be 0; -2/3: search engine wants the next query
 
   function Suggestion(type, url, text, title, computeRelevancy, extraData) {
     this.type = type;
@@ -498,7 +499,7 @@ tabs: {
 searchEngines: {
   preFilter: function(query, failIfNull) {
     var obj, sug, q = queryTerms, keyword, pattern, promise;
-    if (matchType === 2) { matchType = 4; }
+    if (matchType === 0) { matchType = 2; }
     if (q.length === 0) {}
     else if (failIfNull !== true && (keyword = q[0])[0] === "\\") {
       q[0] = keyword.substring(1);
@@ -513,7 +514,7 @@ searchEngines: {
     }
     if (!pattern) {
       if (failIfNull !== true) {
-        if (matchType === 4) { matchType = q.length > 1 ? 2 : 0; }
+        if (matchType === 2) { matchType = q.length > 1 ? 0 : q.length < 1 ? -1 : -2; }
         Completers.next([]);
       }
       return true;
@@ -526,7 +527,7 @@ searchEngines: {
         offset = 0;
       }
       if (q.length > 1) { queryType = 2; }
-      else if (matchType === 4) { matchType = 0; }
+      else if (matchType === 2) { matchType = -1; }
     }
     if (q.length > 1) {
       q.shift();
@@ -630,6 +631,7 @@ searchEngines: {
 },
 
   counter: 0,
+  sugCounter: 0,
   mostRecentQuery: null,
   callback: null,
   filter: function(completers) {
@@ -640,8 +642,9 @@ searchEngines: {
     }, i, l;
     this.suggestions = [];
     this.counter = l = completers.length;
+    this.sugCounter = 0;
     this.getOffset();
-    matchType = offset > 0 ? 0 : l > 1 ? 2 : 3;
+    matchType = offset && -1;
     if (completers[0].preFilter) {
       completers[0].preFilter(query);
       if (!queryTerms) { return; }
@@ -659,6 +662,7 @@ searchEngines: {
     }
   },
   next: function(newSugs) {
+    if (newSugs.length > 0) { this.sugCounter++; }
     this.concatSugs(newSugs);
     if (0 === --this.counter) {
       return this.finish();
@@ -678,17 +682,17 @@ searchEngines: {
       queryTerms[0] = SuggestionUtils.shortenUrl(queryTerms[0]);
     }
     suggestions.forEach(SuggestionUtils.PrepareHtml);
-    matchType = matchType === 0 ? 2
-      : suggestions.length <= 0 ? (queryTerms.length > 0 ? 1 : 2)
-      : matchType <= 3 ? (suggestions.length === 1 ? 3 : matchType)
-      : suggestions.length <= 1 || (suggestions.length === 2
-        && suggestions[1].type === "math") ? 3 : 2;
+    var newMatchType = matchType < 0 ? (matchType === -2
+        && suggestions.length <= 0 ? 3 : 0)
+      : suggestions.length <= 0 ? queryTerms.length && 1
+      : this.sugCounter === 1 ? 2 : 0;
+    this.sugCounter = matchType = 0;
     queryTerms = null;
     RegexpCache.reset(null);
     RankingUtils.timeAgo = 0;
     func = this.callback || g_requestHandlers.PostCompletions;
     this.mostRecentQuery = this.callback = null;
-    func(suggestions, autoSelect && suggestions.length > 0, matchType);
+    func(suggestions, autoSelect && suggestions.length > 0, newMatchType);
   },
   concatSugs: function(newSugs) {
     var arr = this.suggestions, i, len = newSugs.length;
