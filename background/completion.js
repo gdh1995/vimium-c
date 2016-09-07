@@ -148,12 +148,16 @@ bookmarks: {
       sug.text = i.jsText;
       results.push(sug);
     }
-      if (queryType === 1 && offset > 0) {
-        results.sort(Completers.rsortByRelevancy);
+    if (queryType === 1 || offset === 0) {
+      results.sort(Completers.rsortByRelevancy);
+      if (offset > 0) {
         results = results.slice(offset, offset + maxResults);
         offset = 0;
+      } else if (results.length > maxResults) {
+        results.length = maxResults;
       }
-    Completers.next(results);
+    }
+    return Completers.next(results);
   },
   Listen: function() {
     var bookmarks = chrome.bookmarks, listener = function() {
@@ -475,11 +479,15 @@ tabs: {
       if (curTabId === tabId) { suggestion.relevancy = 0; }
       suggestions.push(suggestion);
     }
-    if (offset > 0 && queryType === 4) {
+    if (queryType === 4 || offset === 0) {
       suggestions.sort(Completers.rsortByRelevancy);
-      if (suggestions.length > maxResults) {
-        suggestions = suggestions.slice(offset, offset + maxResults);
-      } else {
+      if (suggestions.length > offset + maxResults) {
+        if (offset > 0) {
+          suggestions = suggestions.slice(offset, offset + maxResults);
+        } else {
+          suggestions.length = maxResults;
+        }
+      } else if (offset > 0) {
         suggestions = suggestions.slice(offset).concat(suggestions.slice(0, offset));
       }
       offset = 0;
