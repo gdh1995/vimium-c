@@ -131,7 +131,7 @@ bookmarks: {
     if (queryTerms.length === 0) {
       return Completers.next([]);
     }
-    var c, results = [], isPath, _ref, _i, _len, i, title, sug;
+    var c, results = [], isPath, _ref, _i, i, title, sug;
     isPath = queryTerms.some(this.StartsWithSlash);
     c = this.computeRelevancy;
     for (_ref = this.bookmarks, _i = _ref.length; 0 <= --_i; ) {
