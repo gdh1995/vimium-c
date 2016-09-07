@@ -506,7 +506,6 @@ tabs: {
 searchEngines: {
   preFilter: function(query, failIfNull) {
     var obj, sug, q = queryTerms, keyword, pattern, promise;
-    if (matchType === 0) { matchType = 2; }
     if (q.length === 0) {}
     else if (failIfNull !== true && (keyword = q[0])[0] === "\\") {
       q[0] = keyword.substring(1);
@@ -514,33 +513,24 @@ searchEngines: {
       sug = this.makeUrlSuggestion(keyword, "\\" + keyword);
       autoSelect = true;
       maxResults--;
-      Completers.next([sug]);
-      return;
+      return Completers.next([sug]);
     } else {
       pattern = Settings.cache.searchEngineMap[keyword];
     }
-    if (!pattern) {
-      if (failIfNull !== true) {
-        if (matchType === 2) { matchType = q.length > 1 ? 0 : q.length < 1 ? -1 : this.calcNextMatchType(); }
-        Completers.next([]);
+    if (failIfNull === true) {
+      if (!pattern) { return true; }
+    } else if (!pattern) {
+      if (matchType === 0 && q.length <= 1) {
+        matchType = q.length < 1 ? -1 : this.calcNextMatchType();
       }
-      return true;
-    }
-    maxResults--;
-    autoSelect = true;
-    if (failIfNull !== true) {
-      if (queryType === 1) {
-        q.push(q.more);
-        offset = 0;
-      }
-      if (q.length > 1) { queryType = 2; }
-      else if (matchType === 2) { matchType = -1; }
-    }
-    if (q.length > 1) {
-      q.shift();
+      return Completers.next([]);
     } else {
-      q = [];
+      maxResults--;
+      autoSelect = true;
+      if (queryType === 1) { q.push(q.more); offset = 0; }
+      q.length > 1 ? (queryType = 2) : (matchType = -1);
     }
+    q.length > 1 ? q.shift() : (q = []);
 
     obj = Utils.createSearch(q, pattern, []);
     sug = new Suggestion("search", obj.url, obj.url
@@ -575,25 +565,25 @@ searchEngines: {
       sug.titleSplit = Utils.escapeText(sug.title);
     }
 
-    promise ? promise.then(function(arr) {
-      if (query.isOff) { return; }
-      if (!arr[0]) {
-        Completers.next([sug]);
-        return;
-      }
-      var output = [sug];
-      sug = new Suggestion("math", "", "", "", Completers.searchEngines.computeRelevancy);
-      output.push(sug);
-      --sug.relevancy;
-      sug.text = sug.title = arr[0];
-      if (!arr[0].startsWith("vimium://copy")) {
-        sug.url = "vimium://copy " + arr[0];
-      }
-      sug.titleSplit = "<span class=\"OSTitle\" style=\"text-decoration: none;\">" +
-        Utils.escapeText(sug.title) + "<span>";
-      sug.textSplit = Utils.escapeText(arr[2]);
-      Completers.next(output);
-    }) : Completers.next([sug]);
+    promise ? promise.then(this.onPrimose.bind(this, query, [sug]))
+    : Completers.next([sug]);
+  },
+  onPrimose: function(query, output, arr) {
+    if (query.isOff) { return; }
+    if (!arr[0]) {
+      return Completers.next(output);
+    }
+    var sug = new Suggestion("math", "", "", "", this.computeRelevancy);
+    output.push(sug);
+    --sug.relevancy;
+    sug.text = sug.title = arr[0];
+    if (!arr[0].startsWith("vimium://copy")) {
+      sug.url = "vimium://copy " + arr[0];
+    }
+    sug.titleSplit = "<span class=\"OSTitle\" style=\"text-decoration: none;\">" +
+      Utils.escapeText(sug.title) + "<span>";
+    sug.textSplit = Utils.escapeText(arr[2]);
+    return Completers.next(output);
   },
   searchKeywordMaxLength: 0,
   calcNextMatchType: function() {
@@ -703,8 +693,8 @@ searchEngines: {
       this.sugCounter++;
       this.suggestions = arr.length === 0 ? newSugs : arr.concat(newSugs);
     }
-    arr = null;
     if (0 === --this.counter) {
+      arr = null;
       return this.finish();
     }
   },
