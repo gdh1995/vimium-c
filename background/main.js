@@ -1436,10 +1436,13 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
     },
     refocusCurrent: function(_0, port) {
       var ports = port.sender.tabId !== -1 ? framesForTab[port.sender.tabId] : null;
-      ports && ports[0].postMessage({
-        name: "focusFrame",
-        highlight: false
-      });
+      if (ports) {
+        return ports[0].postMessage({
+          name: "focusFrame",
+          highlight: false
+        });
+      }
+      try { port.postMessage({ name: "returnFocus" }); } catch (e) {}
     },
     reg: function(request, port) {
       var key;

@@ -446,7 +446,7 @@ var Vomnibar = {
     addEventListener("focus", function() {
       if (VPort.port) { return; }
       try { VPort.connect(); return; } catch (e) {}
-      try { VPort.postToOwner("focus"); } catch (e) {}
+      Vomnibar.returnFocus();
     }, true);
     window.onblur = this.OnWndBlur;
     window.onclick = function(e) { Vomnibar.onClick(e); };
@@ -479,6 +479,9 @@ var Vomnibar = {
     if (action <= 0) { return; }
     if (action === 2) { event.preventDefault(); }
     event.stopImmediatePropagation();
+  },
+  returnFocus: function() {
+    try { VPort.postToOwner("focus"); } catch (e) {}
   },
 
   mode: {
@@ -597,7 +600,7 @@ VPort = {
       handler(response.response);
       return;
     }
-    response.name === "omni" && Vomnibar.omni(response);
+    Vomnibar[response.name](response);
   },
   OnOwnerMessage: function(event) {
     var data = event.data, name = data.name || data;
