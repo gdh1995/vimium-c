@@ -86,7 +86,6 @@ var Vomnibar = {
       this.input.setSelectionRange(start, end);
     } : this.show);
     this.isActive = true;
-    VPort.postMessage(this.mode);
   },
   update: function(updateDelay, callback) {
     this.onUpdate = callback || null;
