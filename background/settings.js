@@ -77,6 +77,7 @@ var Settings = {
       this.set("searchEngineMap", Object.create(null));
     },
     searchEngineMap: function(value) {
+      this.set("searchKeywords", null);
       Utils.parseSearchEngines("~:" + this.get("searchUrl"), value);
       var rules = Utils.parseSearchEngines(this.get("searchEngines"), value);
       this.set("searchEngineRules", rules);
@@ -192,7 +193,7 @@ w|wiki:\\\n  http://www.wikipedia.org/w/index.php?search=$s Wikipedia (en-US)",
   // not clean if exists (for simpler logic)
   nonPersistent: { __proto__: null,
     baseCss: 1, exclusionTemplate: 1, helpDialog: 1, innerCss: 1,
-    searchEngineMap: 1, searchEngineRules: 1, vomnibar: 1
+    searchEngineMap: 1, searchEngineRules: 1, searchKeywords: 1
   },
   files: {
     __proto__: null,

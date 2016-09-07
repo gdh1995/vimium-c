@@ -513,7 +513,7 @@ searchEngines: {
     }
     if (!pattern) {
       if (failIfNull !== true) {
-        if (matchType === 2) { matchType = q.length > 1 ? 0 : q.length < 1 ? -1 : -2; }
+        if (matchType === 2) { matchType = q.length > 1 ? 0 : q.length < 1 ? -1 : this.calcNextMatchType(); }
         Completers.next([]);
       }
       return true;
@@ -587,6 +587,14 @@ searchEngines: {
       Completers.next(output);
     }) : Completers.next([sug]);
   },
+  searchKeywordMaxLength: 0,
+  calcNextMatchType: function() {
+    var key = queryTerms[0], arr, next;
+    arr = Settings.cache.searchKeywords || this.buildSearchKeywords();
+    if (key.length >= this.searchKeywordMaxLength) { return 0; }
+    next = this.binaryInsert(key, arr);
+    return next < arr.length && arr[next].startsWith(key) ? -2 : 0;
+  },
   makeText: function(url, arr) {
     var len = arr.length, i, str, ind;
     ind = arr[0];
@@ -623,6 +631,27 @@ searchEngines: {
       sug.titleSplit = Utils.escapeText(keyword);
     }
     return sug;
+  },
+  buildSearchKeywords: function() {
+    var arr = Object.keys(Settings.cache.searchEngineMap), i, len, max, j;
+    arr.sort();
+    for (i = max = 0, len = arr.length; i < len; i++) {
+      j = arr[i].length;
+      max < j && (max = j);
+    }
+    Settings.set("searchKeywords", arr);
+    this.searchKeywordMaxLength = max;
+    return arr;
+  },
+  binaryInsert: function(u, a) {
+    var e = "", h = a.length - 1, l = 0, m = 0;
+    while (l <= h) {
+      m = Math.floor((l + h) / 2);
+      e = a[m];
+      if (e > u) { h = m - 1; }
+      else { l = m + 1; }
+    }
+    return m + (e < u);
   },
   computeRelevancy: function() {
     return 9;
