@@ -928,17 +928,15 @@ searchEngines: {
       }
     },
     binarySearch: function(u, a) {
-      var e, h = a.length - 1, l = 0, m = 0;
+      var e = "", h = a.length - 1, l = 0, m = 0;
       while (l <= h) {
         m = Math.floor((l + h) / 2);
-        e = a[m].url.localeCompare(u);
-        if (e > 0) { h = m - 1; }
-        else if (e < 0) { l = m + 1; }
+        e = a[m].url;
+        if (e > u) { h = m - 1; }
+        else if (e !== u) { l = m + 1; }
         else { return m; }
       }
-      e = a[m].url;
-      if (e < u) { return -2 - m; }
-      return -1 - m;
+      return (e < u ? -2 : -1) - m;
     }
   };
 
