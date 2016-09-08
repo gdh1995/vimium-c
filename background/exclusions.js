@@ -91,7 +91,7 @@ var Exclusions = {
   },
   RefreshStatus: function(old_is_empty) {
     var ref = Settings.indexPorts(), tabId, frames
-      , needIcon = Settings.get("showActionIcon")
+      , needIcon = !!(Settings.IconBuffer() || Settings.get("showActionIcon"))
       , i, always_enabled, pass, status = "enabled", status0, port;
     always_enabled = Exclusions.rules.length > 0 ? null : {
       name: "reset",
@@ -102,12 +102,6 @@ var Exclusions = {
         name: "checkIfEnabled"
       });
       return;
-    } else if (always_enabled && Settings.SetIconBuffer) {
-      needIcon = true;
-      Settings.SetIconBuffer(true);
-      setTimeout(function() {
-        Settings.SetIconBuffer(Settings.get("showActionIcon"));
-      }, 60);
     }
     for (tabId in ref) {
       frames = ref[tabId];
