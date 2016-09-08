@@ -1598,7 +1598,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
         }
       } else {
         framesForTab[tabId] = [port, port];
-        needIcon && status !== "enabled" && requestHandlers.SetIcon(tabId, status);
+        status !== "enabled" && needIcon && requestHandlers.SetIcon(tabId, status);
       }
       if (Settings.CONST.ChromeVersion < 41) {
         port.sender.frameId = (type & 4) ? 0 : ((Math.random() * 9999997) | 0) + 2;

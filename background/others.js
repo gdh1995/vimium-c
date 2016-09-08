@@ -136,7 +136,7 @@ setTimeout(function() { if (!chrome.browserAction) { return; }
       tabIds[type] = [tabId];
     }
   };
-  Settings.updateHooks.showActionIcon = function (value) {
+  Settings.updateHooks.showActionIcon = function(value) {
     func.call(this, value);
     Settings.IconBuffer(value);
     if (value) {
