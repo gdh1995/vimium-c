@@ -586,9 +586,14 @@ searchEngines: {
     return Completers.next(output);
   },
   searchKeywordMaxLength: 0,
+  timer: 0,
   calcNextMatchType: function() {
     var key = queryTerms[0], arr, next;
-    arr = Settings.cache.searchKeywords || this.buildSearchKeywords();
+    arr = Settings.cache.searchKeywords;
+    if (!arr) {
+      this.timer = this.timer || setTimeout(this.BuildSearchKeywords, 67);
+      return -2;
+    }
     if (key.length >= this.searchKeywordMaxLength) { return 0; }
     next = this.binaryInsert(key, arr);
     return next < arr.length && arr[next].startsWith(key) ? -2 : 0;
@@ -630,7 +635,7 @@ searchEngines: {
     }
     return sug;
   },
-  buildSearchKeywords: function() {
+  BuildSearchKeywords: function() {
     var arr = Object.keys(Settings.cache.searchEngineMap), i, len, max, j;
     arr.sort();
     for (i = max = 0, len = arr.length; i < len; i++) {
@@ -638,8 +643,8 @@ searchEngines: {
       max < j && (max = j);
     }
     Settings.set("searchKeywords", arr);
-    this.searchKeywordMaxLength = max;
-    return arr;
+    Completers.searchEngines.searchKeywordMaxLength = max;
+    Completers.searchEngines.timer = 0;
   },
   binaryInsert: function(u, a) {
     var e = "", h = a.length - 1, l = 0, m = 0;
