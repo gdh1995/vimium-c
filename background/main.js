@@ -4,13 +4,13 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
   var BackgroundCommands, ContentSettings, checkKeyQueue, commandCount //
     , Connections
     , cOptions, cPort, currentCount, currentFirst, executeCommand
-    , FindModeHistory, framesForTab, funcDict
+    , FindModeHistory, framesForOmni, framesForTab, funcDict
     , HelpDialog, needIcon, openMultiTab //
     , requestHandlers, resetKeys, keyMap, getSecret
     ;
 
   framesForTab = Object.create(null);
-  framesForTab.omni = [];
+  framesForOmni = [];
 
   currentFirst = null;
 
@@ -1567,7 +1567,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
       var type = port.name[9] | 0, ref, tabId, pass, status;
       tabId = port.sender.tabId;
       if (type === 8) {
-        framesForTab.omni.push(port);
+        framesForOmni.push(port);
         if (tabId < 0) {
           port.sender.tabId = cPort ? cPort.sender.tabId : TabRecency.last();
         }
@@ -1622,7 +1622,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
       }
     },
     OnOmniDisconnect: function(port) {
-      var ref = framesForTab.omni, i = ref.lastIndexOf(port);
+      var ref = framesForOmni, i = ref.lastIndexOf(port);
       i === ref.length - 1 ? --ref.length : i >= 0 ? ref.splice(i, 1) : 0;
     },
     format: function(port) {
@@ -1753,6 +1753,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
   window.onunload = function() {
     var ref = framesForTab, tabId, ports, i;
     framesForTab = null;
+    ref.omni = framesForTab;
     for (tabId in ref) {
       ports = ref[tabId];
       for (i = ports.length; 0 <= --i; ) {
