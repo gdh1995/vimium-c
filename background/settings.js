@@ -195,6 +195,9 @@ w|wiki:\\\n  http://www.wikipedia.org/w/index.php?search=$s Wikipedia (en-US)",
     baseCss: 1, exclusionTemplate: 1, helpDialog: 1, innerCss: 1,
     searchEngineMap: 1, searchEngineRules: 1, searchKeywords: 1
   },
+  frontUpdateAllowed: { __proto__: null,
+    showAdvancedCommands: 1
+  },
   files: {
     __proto__: null,
     baseCss: "front/vimium.min.css",

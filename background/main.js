@@ -1204,8 +1204,11 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
 
   // function (request, port);
   g_requestHandlers = requestHandlers = {
-    setSetting: function(request) {
+    setSetting: function(request, port) {
       var key = request.key;
+      if (!(key in Settings.frontUpdateAllowed)) {
+        return funcDict.complaint(port, 'modify "' + key + '" setting');
+      }
       Settings.set(key, request.value);
       if (key in Settings.bufferToLoad) {
         Settings.bufferToLoad[key] = Settings.cache[key];
