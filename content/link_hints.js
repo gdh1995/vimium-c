@@ -186,9 +186,9 @@ var VHints = {
     switch (element.tagName.toLowerCase()) {
     case "a": case "frame": isClickable = true; break;
     case "iframe": isClickable = element !== VFindMode.box; break;
-    case "input": if (element.type === "hidden") { return; } // no break;
+    case "input": if (element.type === "hidden") { return true; } // no break;
     case "textarea":
-      if (element.disabled && VHints.mode <= VHints.CONST.LEAVE) { return; }
+      if (element.disabled && VHints.mode <= VHints.CONST.LEAVE) { return true; }
       if (!element.readOnly || VHints.mode >= 128
         || element instanceof HTMLInputElement && (element.type in VDom.uneditableInputs)) {
         isClickable = true;
@@ -197,7 +197,7 @@ var VHints = {
     case "label":
       if (element.control) {
         arr = [];
-        VHints.GetClickable.call(arr, element.control);
+        if (VHints.GetClickable.call(arr, element.control)) { return; }
         isClickable = arr.length === 0;
       }
       break;
