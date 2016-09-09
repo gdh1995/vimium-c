@@ -611,7 +611,7 @@ var VSettings, VHUD, VPort, VEventMode;
   },
   findAndFollowLink: function(linkStrings, refusedStr) {
     var candidateLinks, exactWordRe, link, linkString, links, _i, _j, _len, _len1, re1, re2;
-    links = VHints.traverse({"*": this.GetLinks});
+    links = VHints.traverse({"*": this.GetLinks}, document);
     candidateLinks = [];
     links.push(null);
     for (_len = links.length - 1; 0 <= --_len; ) {

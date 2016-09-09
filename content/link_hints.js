@@ -309,11 +309,11 @@ var VHints = {
       }
     }
   },
-  traverse: function(filters) {
-    var output = [], key, func, box, wantClickable = filters["*"] === this.GetClickable;
+  traverse: function(filters, box) {
+    var output = [], key, func, wantClickable = filters["*"] === this.GetClickable;
     Object.setPrototypeOf(filters, null);
     VDom.prepareCrop();
-    box = document.webkitFullscreenElement || document;
+    box = box || document.webkitFullscreenElement || document;
     if (this.ngEnabled === null && ("*" in filters)) {
       this.ngEnabled = document.querySelector('.ng-scope') != null;
     }
