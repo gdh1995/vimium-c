@@ -342,7 +342,19 @@ var VHints = {
   deduplicate: function(list) {
     var j = list.length - 1, i, k, el, first, TextCls = Text;
     while (0 < j) {
-      el = list[i = j][0];
+      if (list[i = j][2] !== 4) {
+        el = list[j][0];
+      } else if (list[i][0].parentNode !== (el = list[--j][0])
+        || (k = list[j][2]) > 7 || el.childElementCount !== 1
+        || (k >= 2 && (first = el.firstChild) instanceof TextCls && first.textContent.trim())
+      ) {
+        continue;
+      } else if (VRect.isContaining(list[j][1], list[i][1])) {
+        list.splice(i, 1);
+        continue;
+      } else if (k < 2) {
+        continue;
+      }
       while (el.parentNode === list[--j][0]) {
         if ((k = list[j][2]) < 2 || k > 7
           || (el = list[j][0]).childElementCount !== 1
