@@ -324,15 +324,18 @@ ExclusionRulesOption.prototype.onInit = function() {
       key = el.getAttribute("data-permission");
       if (key in manifest) continue;
       el.disabled = true;
-      key = el.title = "This option is disabled for lacking permission"
+      key = "This option is disabled for lacking permission"
         + (key ? ':\n* ' + key : "");
       if (el instanceof HTMLInputElement && el.type === "checkbox") {
         el.checked = false;
+        el.removeAttribute("aria-hidden");
+        el.removeAttribute("tabindex");
+        el.parentElement.title = key;
         el = el.nextElementSibling;
         el.removeAttribute("tabindex");
-        el.title = key;
       } else {
         el.value = "";
+        el.title = key;
         el.parentElement.onclick = onclick;
       }
     }
