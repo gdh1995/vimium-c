@@ -204,7 +204,8 @@ var VHints = {
         isClickable = arr.length === 0;
       }
       break;
-    case "button": case "select": isClickable = !element.disabled; break;
+    case "button": case "select":
+      isClickable = !element.disabled || VHints.mode > VHints.CONST.LEAVE; break;
     case "object": case "embed":
       s = element.type;
       if (s && s.endsWith("x-shockwave-flash")) { isClickable = true; break; }
