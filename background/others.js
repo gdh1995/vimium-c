@@ -252,7 +252,7 @@ setTimeout(function() { if (!chrome.omnibox) { return; }
       suggest([]);
       return;
     }
-    timeout = setTimeout(onTimer, 300);
+    timeout = setTimeout(onTimer, 500);
     outTime = Date.now();
     sessionIds = suggestions = firstResult = null;
     var newMatchType = 0, completers;
