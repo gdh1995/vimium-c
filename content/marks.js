@@ -55,10 +55,10 @@ var VMarks = {
       VHUD.showForDuration("Created local mark [last].", 1000);
     } else {
       try {
-        localStorage[this.getLocationKey(keyChar)] = JSON.stringify({
+        localStorage.setItem(this.getLocationKey(keyChar), JSON.stringify({
           scrollX: window.scrollX,
           scrollY: window.scrollY
-        });
+        }));
       } catch (e) {
         VHUD.showForDuration("Failed to creat local mark (localStorage error)", 2000);
         return;
@@ -89,7 +89,7 @@ var VMarks = {
       }
     } else {
       try {
-        markString = localStorage[this.getLocationKey(keyChar)];
+        markString = localStorage.getItem(this.getLocationKey(keyChar));
       } catch (e) {}
       if (markString) {
         position = JSON.parse(markString);
