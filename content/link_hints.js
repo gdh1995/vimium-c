@@ -187,7 +187,7 @@ var VHints = {
   GetClickable: function(element) {
     var arr, isClickable = null, s, type = 0;
     switch (element.tagName.toLowerCase()) {
-    case "a": case "frame": isClickable = true; break;
+    case "a": case "frame": case "details": isClickable = true; break;
     case "iframe": isClickable = element !== VFindMode.box; break;
     case "input": if (element.type === "hidden") { return; } // no break;
     case "textarea":
@@ -970,6 +970,9 @@ DEFAULT: {
         : this.highlightChild(link.contentWindow, link.getClientRects()[0]);
       this.mode = 0;
       return ret;
+    } else if (tag === "details") {
+      link.open = !link.open;
+      return;
     }
     if (mode >= 2 && tag === "a") {
       alterTarget = link.getAttribute('target');
