@@ -358,7 +358,7 @@ var VHints = {
       } else if (k < 2) {
         continue;
       }
-      while (el.parentNode === list[--j][0]) {
+      while (0 < j-- && el.parentNode === list[j][0]) {
         if ((k = list[j][2]) < 2 || k > 7
           || (el = list[j][0]).childElementCount !== 1
           || (first = el.firstChild) instanceof TextCls && first.textContent.trim()
