@@ -126,7 +126,11 @@
 #AdvancedCommands {
 	position: absolute;
 	right: 2px;
+	text-decoration: none;
 	top: -34px;
+}
+#AdvancedCommands:hover {
+	text-decoration: underline;
 }
 
 /* Scrollbar */
@@ -192,8 +196,8 @@
 	<br clear="both" />
 	<div class="HDivider"></div>
 
-	<div style="display:block; position:relative;">
-		<a class="L" id="AdvancedCommands" href="javascript:;">Show advanced commands</a>
+	<div style="position:relative;font-size:13px;">
+		<a class="L" id="AdvancedCommands" tabindex="0">Show advanced commands</a>
 
 		<div style="float:left;">
 			Enjoying Vimium++? <a class="L" target="_blank" href="https://github.com/gdh1995/vimium-plus">Star Vimium++ on GitHub</a>.
