@@ -355,17 +355,18 @@ var VHints = {
       } else if (VRect.isContaining(list[j][1], list[i][1])) {
         list.splice(i, 1);
         continue;
-      } else if (k < 2) {
+      } else if (k < 2 || j === 0) {
         continue;
       }
-      while (0 < j-- && el.parentNode === list[j][0]) {
+      if (el.parentNode !== list[--j][0]) { continue; }
+      do {
         if ((k = list[j][2]) < 2 || k > 7
           || (el = list[j][0]).childElementCount !== 1
           || (first = el.firstChild) instanceof TextCls && first.textContent.trim()
         ) {
           break;
         }
-      }
+      } while (0 < j-- && el.parentNode === list[j][0]);
       if (j + 1 < i) {
         list.splice(j + 1, i - j - 1);
       }
