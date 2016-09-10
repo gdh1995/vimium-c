@@ -362,7 +362,7 @@ var Vomnibar = {
     this.onEnter(event, [].indexOf.call(this.list.children, el));
   },
   OnMenu: function (event) {
-    for (var _i, el = event.target; el; el = el.parentNode) {
+    for (var _i, el = event.target; el; el = el.parentElement) {
       if (el.classList.contains("url")) { break; }
     }
     if (!el) { return; }
