@@ -43,8 +43,11 @@ var VHints = {
   activate: function(count, options) {
     if (this.isActive) { return; }
     if (document.body == null) {
-      this.initTimer = this.initTimer || setTimeout(this.activate.bind(this, count, options), 300);
-      return;
+      if (!this.initTimer && document.readyState === "loading") {
+        this.initTimer = setTimeout(this.activate.bind(this, count, options), 300);
+        return;
+      }
+      if (!(document.documentElement instanceof HTMLElement)) { return; }
     }
     VHandler.remove(this);
     this.setModeOpt(Object.setPrototypeOf(options || {}, null), count | 0);
