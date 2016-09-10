@@ -2,5 +2,5 @@
  * sets -webkit-user-select: none, which disables selecting the file names and so prevents Vimium's search
  * or visual mode from working as expected. Here, we reset the value back to default. */
 .icon.file {
-  -webkit-user-select: auto !important;
+	-webkit-user-select: auto !important;
 }

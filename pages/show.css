@@ -3,13 +3,13 @@ body.close {
   margin: 0;
 }
 .close > img {
-	outline: none;
+  outline: none;
 }
 .hidden {
-	visibility: hidden;
+  visibility: hidden;
 }
 .zoom-in {
-	cursor: zoom-in;
+  cursor: zoom-in;
 }
 
 #bgLink {
@@ -66,10 +66,10 @@ img.invert::selection {
 }
 
 .viewer-title {
-	font-size: 16px;
-	height: 20px;
+  font-size: 16px;
+  height: 20px;
 }
 
 .viewer-next, .viewer-prev {
-	visibility: hidden;
+  visibility: hidden;
 }
