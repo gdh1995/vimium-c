@@ -1059,19 +1059,6 @@ searchEngines: {
     };
   })();
 
-  Settings.get("tinyMemory") || setTimeout(function() {
-    HistoryCache.history || queryTerms || HistoryCache.use(function() {
-      queryTerms || setTimeout(function() {
-        setTimeout(function() {
-          Completers.bookmarks.refresh && Completers.bookmarks.refresh();
-        }, 250);
-        var domainsCompleter = Completers.domains;
-        if (!domainsCompleter.refresh || queryTerms) { return; }
-        domainsCompleter.refresh(HistoryCache.history);
-      }, 750);
-    });
-  }, 30000);
-
   window.Completers = {
     bookm: new Completers.MultiCompleter([Completers.bookmarks]),
     domain: new Completers.MultiCompleter([Completers.domains]),

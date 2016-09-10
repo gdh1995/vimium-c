@@ -184,7 +184,6 @@ w|wiki:\\\n  http://www.wikipedia.org/w/index.php?search=$s Wikipedia (en-US)",
     showAdvancedCommands: false,
     showAdvancedOptions: false,
     smoothScroll: true,
-    tinyMemory: true,
     userDefinedCss: "",
     userDefinedOuterCss: "",
     vimSync: false
