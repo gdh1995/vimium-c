@@ -549,7 +549,7 @@ var VHints = {
       }
     } else {
       clickEl = null;
-      VHUD.showForDuration("The link has been removed by the page", 2000);
+      VHUD.showForDuration("The link has been removed from the page", 2000);
     }
     if (!(this.mode & 64)) {
       this.deactivate(true);
