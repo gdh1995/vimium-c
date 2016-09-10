@@ -37,6 +37,12 @@ __微度新标签页 (X New Tab Page):__
 Release Notes
 -------------
 
+Not yet released:
+* Vomnibar is re-implemented using `<iframe>`, which is much safer than shadowDOM.
+* Backend completer procedure is reworked and Vomnibar works faster for continuous input.
+* remove the setting item "Try to reduce Vimium++'s memory cost" (`tinyMemory`).
+* small bug fixes; try to avoid unnecessary forced reflows.
+
 1.55:
 * add **Visual Mode**, and support all commands of philc/Vimium's.
   This implementation works well on `<textarea>`s and `shadowDOM`s.
@@ -46,7 +52,6 @@ Release Notes
   and this manifest item makes a warning on installation before Chrome 40,
     though it has not any influence.
 * some bug fixes.
-* an advance notice: Vomnibar will be re-implemented using a much safer `<iframe>`.
 
 1.54:
 * **WARNING**: change modifier keys' order into `m-c-a-` (breaking)
