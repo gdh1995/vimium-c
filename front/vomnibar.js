@@ -463,7 +463,7 @@ var Vomnibar = {
     document.getElementById("close").onclick = function() { Vomnibar.hide(); };
     addEventListener("keydown", this.handleKeydown, true);
     this.renderItems = VUtils.makeListRender(document.getElementById("template").innerHTML);
-    this.init = null;
+    this.init = VUtils.makeListRender = null;
   },
   handleKeydown: function(event) {
     var action;
