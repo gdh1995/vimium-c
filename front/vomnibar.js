@@ -200,6 +200,7 @@ var Vomnibar = {
     , 112: "backspace", 113: "blur"
   },
   onKeydown: function(event) {
+    if (!this.isActive) { return 2; }
     var action = "", n = event.keyCode, focused = this.focused;
     if (event.altKey || event.metaKey) {
       if (event.ctrlKey || event.shiftKey) {}
