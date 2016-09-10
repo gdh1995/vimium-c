@@ -26,8 +26,6 @@ var Vomnibar = {
     delete options.secret; delete options.page;
     this.width = document.documentElement.clientWidth;
     this.options = options;
-    VHandler.remove(this);
-    VHandler.push(VDom.UI.SuppressMost, this);
     if (this.Init) {
       setTimeout(this.Init, 0, secret, url);
       this.status = 1;
@@ -35,7 +33,12 @@ var Vomnibar = {
     } else if (!this.status) {
       this.status = 2;
       this.show();
+    } else if (this.status >= 3) {
+      this.box.contentWindow.focus();
+      return this.show();
     }
+    VHandler.remove(this);
+    VHandler.push(VDom.UI.SuppressMost, this);
   },
   show: function() {
     if (this.status < 2) { return; }
