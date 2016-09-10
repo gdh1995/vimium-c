@@ -76,7 +76,10 @@ var Vomnibar = {
     if (!this.box) { return; }
     var style = this.box.style;
     style.display = "none", style.width = "", style.height = "";
-    isMsg === true || this.port.postMessage("hide");
+    if (isMsg !== true) {
+      this.port.postMessage("hide");
+      setTimeout(function() { window.focus(); }, 17);
+    }
   },
   Init: function(secret, page) {
     var _this = Vomnibar, el;
