@@ -158,7 +158,7 @@ setTimeout(function() { if (!chrome.omnibox) { return; }
   var last, firstResult, lastSuggest, spanRe = /<(\/?)span(?: [^>]+)?>/g,
   tempRequest, timeout = 0, sessionIds, suggestions = null, outTimeout = 0, outTime,
   defaultSug = { description: "<dim>Open: </dim><url>%s</url>" },
-  defaultSuggestionType = 0, matchType = 0,
+  defaultSuggestionType = 0, matchType = 0, firstType,
   formatSessionId = function(sug) {
     if (sug.sessionId != null) {
       sessionIds[sug.url] = sug.sessionId;
@@ -184,6 +184,7 @@ setTimeout(function() { if (!chrome.omnibox) { return; }
     firstResult = last = null;
     if (outTimeout) { clearTimeout(outTimeout); }
     outTime = matchType = outTimeout = 0;
+    firstType = "";
   },
   outClean = function() {
     if (Date.now() - outTime > 5000) {
@@ -209,10 +210,11 @@ setTimeout(function() { if (!chrome.omnibox) { return; }
       sessionIds = Object.create(null);
       response.forEach(formatSessionId);
     }
+    firstType = response.length > 0 ? response[0].type : "";
+    matchType = newMatchType;
     if (autoSelect) {
       firstResult = response.shift();
     }
-    matchType = newMatchType;
     if (!autoSelect) {
       if (defaultSuggestionType !== 1) {
         chrome.omnibox.setDefaultSuggestion(defaultSug);
@@ -252,17 +254,14 @@ setTimeout(function() { if (!chrome.omnibox) { return; }
     }
     timeout = setTimeout(onTimer, 300);
     outTime = Date.now();
-    sessionIds = suggestions = null;
-    var completers = matchType < 2 || !key.startsWith(last) ? Completers.omni
-      : matchType === 3 ? Completers.search : null;
+    sessionIds = suggestions = firstResult = null;
+    var newMatchType = 0, completers;
+    completers = matchType < 2 || !key.startsWith(last) ? Completers.omni
+      : matchType === 3 ? Completers.search
+      : (newMatchType = matchType, Completers[firstType]);
+    matchType = newMatchType;
     last = key;
     lastSuggest = suggest;
-    if (completers) {
-      matchType = 0;
-    } else {
-      completers = Completers[firstResult.type];
-    }
-    firstResult = null;
     completers.filter(key, {
       maxResults: 6
     }, onComplete.bind(null, suggest));
