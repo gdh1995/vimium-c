@@ -58,14 +58,13 @@ var VHints = {
     }
     if (this.frameNested) {
       if (this.tryNestedFrame("VHints.activate", [count, this.options])) {
-        this.clean2();
+        this.clean();
         return;
       }
       elements || (elements = this.getVisibleElements());
     }
     if (elements.length <= 0) {
-      this.box && this.box.remove();
-      this.clean2();
+      this.clean(true);
       VHUD.showForDuration("No links to select.", 1000);
       return;
     }
@@ -538,21 +537,22 @@ var VHints = {
     }
   },
   activateLink: function(hintEl) {
-    var rect, clickEl = hintEl.clickableItem;
+    var rect, clickEl = hintEl.clickableItem, ref, len, i;
+    var ref = this.hintMarkers, len = ref.length, i = 0;
+    while (i < len) { ref[i++].clickableItem = null; }
+    this.hintMarkers = ref = null;
     if (VDom.isInDocument(clickEl)) {
       // must get outline first, because clickEl may hide itself when activated
       rect = hintEl.linkRect || VDom.UI.getVRect(clickEl);
-      this.cleanMarkers();
       if (this.modeOpt.activator.call(this, clickEl, hintEl) !== false) {
         VDom.UI.flashVRect(rect);
       }
     } else {
-      this.clean();
       clickEl = null;
       VHUD.showForDuration("The link has been removed by the page", 2000);
     }
     if (!(this.mode & 64)) {
-      this.deactivate(true, !clickEl);
+      this.deactivate(true);
       return;
     }
     setTimeout(function() {
@@ -587,30 +587,23 @@ var VHints = {
     }
     _this.reinit();
   },
-  cleanMarkers: function() {
-    var ref = this.hintMarkers, len = ref.length, i = 0;
-    while (i < len) { ref[i++].clickableItem = null; }
-  },
-  clean: function() {
-    this.hintMarkers = [];
+  clean: function(keepHUD) {
+    this.options = this.modeOpt = null;
+    this.lastMode = this.mode = this.count =
+    this.maxLeft = this.maxTop = this.maxRight = this.maxBottom = 0;
     if (this.box) {
       this.box.remove();
-      this.box = null;
+      this.hintMarkers = this.box = null;
     }
-    VHUD.hide();
-  },
-  clean2: function() {
-    this.options = this.modeOpt = null;
-    this.lastMode = this.mode = this.count = 0;
-  },
-  deactivate: function(suppressType, skipClean) {
-    skipClean === true || this.clean();
+    keepHUD || VHUD.hide();
     var alpha = this.alphabetHints;
     alpha.hintKeystroke = alpha.chars = "";
     alpha.countMax = 0;
-    this.clean2();
-    VHandler.remove(this);
     VEventMode.onWndBlur(null);
+  },
+  deactivate: function(suppressType) {
+    this.clean(VHUD.box.textContent !== this.modeOpt[this.mode]);
+    VHandler.remove(this);
     this.isActive = false;
     suppressType != null && VDom.UI.suppressTail(suppressType);
   },
@@ -881,7 +874,7 @@ DOWNLOAD_IMAGE: {
     a.href = img.src;
     a.download = img.getAttribute("download") || "";
     a.click();
-    VHUD.showForDuration("download: " + text, 2000);
+    VHUD.showForDuration("Download: " + text, 2000);
   }
 },
 OPEN_IMAGE: {
