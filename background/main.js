@@ -1753,7 +1753,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
   window.onunload = function() {
     var ref = framesForTab, tabId, ports, i;
     framesForTab = null;
-    ref.omni = framesForTab;
+    ref.omni = framesForOmni;
     for (tabId in ref) {
       ports = ref[tabId];
       for (i = ports.length; 0 <= --i; ) {
