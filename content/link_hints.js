@@ -537,9 +537,8 @@ var VHints = {
     }
   },
   activateLink: function(hintEl) {
-    var rect, clickEl = hintEl.clickableItem, ref, len, i;
-    var ref = this.hintMarkers, len = ref.length, i = 0;
-    while (i < len) { ref[i++].clickableItem = null; }
+    var rect, clickEl = hintEl.clickableItem, ref = this.hintMarkers, len, i;
+    for (len = ref.length, i = 0; i < len; i++) { ref[i++].clickableItem = null; }
     this.hintMarkers = ref = null;
     if (VDom.isInDocument(clickEl)) {
       // must get outline first, because clickEl may hide itself when activated
