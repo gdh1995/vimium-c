@@ -6,4 +6,5 @@
 *.jpeg binary
 *.jpg binary
 *.png binary
+*.sh linguist-language=Text
 *.zip binary
