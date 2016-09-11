@@ -6,6 +6,25 @@ VSettings.checkIfEnabled = function() {
   });
 };
 
+Vomnibar.destroy = function(delayed) {
+  if (!delayed) {
+    setTimeout(function() { Vomnibar && Vomnibar.destroy(true); }, 100);
+    return;
+  }
+  this.box.remove();
+  VHandler.remove(this);
+  this.port.close();
+  var i, f = Object.prototype.hasOwnProperty;
+  for (var i in this) { f.call(this, i) && (this[i] = null); }
+  this.activate = function() {
+    VHUD.showForDuration("Sorry, Vimium++ reloaded and Vomnibar is broken.", 2000);
+    setTimeout(function() {
+      VHUD.showForDuration("Please refresh the page to reopen Vomnibar.", 2000);
+    }, 1900);
+  };
+  this.hide = function() {};
+};
+
 VDom.documentReady(function() {
   if (VPort.safePost({ handler: "reg", visible: true })) {
     return;

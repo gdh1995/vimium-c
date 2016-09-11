@@ -5,6 +5,7 @@ var Vomnibar = {
   status: 0,
   options: null,
   width: 0,
+  destroy: null,
   sameOrigin: false,
   activate: function(_0, options, forceCurrent) {
     if (!options.secret || !options.page) { return false; }
@@ -132,6 +133,7 @@ var Vomnibar = {
     case "scrollGoing": VScroller.keyIsDown = VScroller.Core.maxInterval; break;
     case "scrollEnd": VScroller.keyIsDown = 0; break;
     case "evalJS": VUtils.evalIfOK(data.url); break;
+    case "broken": window.focus(); Vomnibar && this.destroy && this.destroy(); break;
     default: break;
     }
   },

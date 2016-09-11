@@ -444,11 +444,7 @@ var Vomnibar = {
   },
   OnWndBlur: function() { Vomnibar.isActive || VPort.disconnect(); },
   init: function() {
-    addEventListener("focus", function() {
-      if (VPort.port) { return; }
-      try { VPort.connect(); return; } catch (e) {}
-      Vomnibar.returnFocus();
-    }, true);
+    addEventListener("focus", VPort.EnsurePort, true);
     window.onblur = this.OnWndBlur;
     window.onclick = function(e) { Vomnibar.onClick(e); };
     this.onWheel = this.onWheel.bind(this);
@@ -617,6 +613,14 @@ VPort = {
     port.onDisconnect.addListener(this.ClearPort);
     port.onMessage.addListener(this.listener);
     return port;
+  },
+  EnsurePort: function() {
+    if (VPort.port) { return; }
+    try { VPort.connect(); return; } catch (e) {}
+    removeEventListener("focus", VPort.EnsurePort, true);
+    Vomnibar.input.onblur = null;
+    Vomnibar.input.blur();
+    VPort.postToOwner("broken");
   }
 };
 (function() {
