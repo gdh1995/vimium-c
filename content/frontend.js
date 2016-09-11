@@ -50,10 +50,8 @@ var VSettings, VHUD, VPort, VEventMode;
       mainPort.port = null;
     },
     connect: function(isFirst) {
-      var port;
-      port = this.port = chrome.runtime.connect(isInjected && VimiumInjector.id, {
-         name: "vimium++." + ((window.top === window) * 4 + document.hasFocus() * 2 + isFirst),
-      });
+      var port, data = { name: "vimium++." + ((window.top === window) * 4 + document.hasFocus() * 2 + isFirst) };
+      port = this.port = isInjected ? chrome.runtime.connect(VimiumInjector.id, data) : chrome.runtime.connect(data);
       port.onDisconnect.addListener(this.ClearPort);
       port.onMessage.addListener(this.Listener);
     }

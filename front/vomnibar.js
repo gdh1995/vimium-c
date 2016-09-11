@@ -609,7 +609,7 @@ VPort = {
   connect: function() {
     var port;
     /* eslint-env webextensions */
-    this.port = port = chrome.runtime.connect(null, { name: "vimium++.8" });
+    this.port = port = chrome.runtime.connect({ name: "vimium++.8" });
     port.onDisconnect.addListener(this.ClearPort);
     port.onMessage.addListener(this.listener);
     return port;
