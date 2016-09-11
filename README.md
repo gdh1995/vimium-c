@@ -72,44 +72,6 @@ Not yet released:
 * rename front-end global variables to `V***`,
   in order to avoid potential name collisions when injected into other hosts
 
-1.53.1:
-
-* Link hints: filter out those only having one single clickable child
-* use a better and more compatible way to get a bookmark's full path
-* replace setting item `UILanguage` with simpler `localeEncoding`
-* auto load bookmarks if `tinyMemory` is disabled, so Vomnibar's first complement is faster
-* bug fixes:
-  * fail to get a bookmark's full path
-  * fail to decode urls by given character encoding
-  * a potential crash in history completer
-
-1.53 includes many improvements about memory, speed and functionalities.
-
-* now Vimium++ use as less memory as possible
-* FindMode is rewritten (merged from the origin philc/Vimium) and has lots of custom changes.
-* content scripts: fastest initing
-* the browser action icon is updated without any indirect cost
-* vimium://show now can "display" a image: rotate, zoom-in, drag and so on
-* the appearance of help dialog is updated
-* `visitPreviousTab` is added.
-
-1.52.1 fixes some serious bugs in Exclusion function, and:
-
-* add a privacy policy document
-* use new help dialog styles borrowed from philc/Vimium.
-
-1.52 fixed lots of bugs and add some UX improvements:
-
-* Fix crashes on Chrome 48-50 caused by removed APIs including `Promise.defer` and `Object.observe`
-* Fix some logic bugs
-* Vomnibar now support full mouse operations:
-  * use mousewheel to pageup/pagedown
-  * click the right corner of input area to close the vomnibar
-* LinkHints:
-  * auto-activates child frame's LinkHints mode
-  * support count like 3 to specify the max step count (merged from philc/vimium)
-* And other features merged from philc/vimium, such as using ports instead of frontend frameId.
-
 X New Tab Page: 4.8.2 (2015-03-19)
 
 * All merged.
