@@ -55,12 +55,15 @@ body{cursor:text;display:inline-block;padding:0 3px 0 1px;min-width:7px;}body *{
     el = this.box = VDom.createElement("iframe");
     el.className = "R HUD LS";
     el.style.width = "0px";
+    el.onload = function() { VFindMode.onLoad(this); }
     VHUD.box ? VDom.UI.root.insertBefore(el, VHUD.box) : VDom.UI.addElement(el);
-    wnd = el.contentWindow;
+  },
+  onLoad: function(el) {
+    var wnd = el.contentWindow, doc = wnd.document;
+    el.onload = null;
     wnd.onmousedown = el.onmousedown = this.OnMousedown;
     wnd.onkeydown = this.onKeydown.bind(this);
     wnd.onfocus = VEventMode.OnWndFocus();
-    doc = wnd.document;
     el = this.input = doc.body;
     el.contentEditable = "plaintext-only";
     el.oninput = this.onInput.bind(this);
