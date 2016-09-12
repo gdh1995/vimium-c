@@ -68,7 +68,7 @@ body{cursor:text;display:inline-block;padding:0 3px 0 1px;min-width:7px;}body *{
     
     el = VDom.UI.createStyle(this.cssIFrame, doc);
     doc.head.appendChild(el);
-    doc.documentElement.insertBefore(new wnd.Text("/"), doc.body);
+    doc.documentElement.insertBefore(doc.createTextNode("/"), doc.body);
 
     VDom.UI.focus(this.input);
     this.isActive = true;
