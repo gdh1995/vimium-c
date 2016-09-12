@@ -51,11 +51,10 @@ body{cursor:text;display:inline-block;padding:0 3px 0 1px;min-width:7px;}body *{
     this.getCurrentRange();
     this.init && this.init();
 
-    var el, wnd, doc;
-    el = this.box = VDom.createElement("iframe");
+    var el = this.box = VDom.createElement("iframe");
     el.className = "R HUD LS";
     el.style.width = "0px";
-    el.onload = function() { VFindMode.onLoad(this); }
+    el.onload = function() { VFindMode.onLoad(this); };
     VHUD.box ? VDom.UI.root.insertBefore(el, VHUD.box) : VDom.UI.addElement(el);
   },
   onLoad: function(el) {
