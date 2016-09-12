@@ -219,7 +219,8 @@ w|wiki:\\\n  http://www.wikipedia.org/w/index.php?search=$s Wikipedia (en-US)",
     ChromeInnerNewTab: "chrome-search://local-ntp/local-ntp.html", // should keep lower case
     ChromeVersion: 37, ContentScripts: null, CurrentVersion: "",
     BaseCssLength: 0,
-    OnMac: false, OptionsPage: "", VomnibarPage: ""
+    OnMac: false, OptionsPage: "", VomnibarPage: "",
+    PolyFill: "lib/polyfill.js"
   }
 };
 
@@ -242,6 +243,9 @@ setTimeout(function() {
   Settings.CONST.VomnibarPage = func(Settings.files.vomnibar);
   ref = ref.content_scripts[0].js;
   ref[ref.length - 1] = "/content/inject_end.js";
+  if (Settings.CONST.ChromeVersion < 41) {
+    ref.unshift(Settings.CONST.PolyFill);
+  }
   Settings.CONST.ContentScripts = ref.map(func);
   Settings.contentScripts = function(callback) { callback(this.CONST.ContentScripts); };
 }, 17);
