@@ -75,7 +75,7 @@ $("exportButton").onclick = function(event) {
     var storage = localStorage, i, len, key, storedVal, all = bgSettings.defaults;
     for (i = 0, len = storage.length; i < len; i++) {
       key = storage.key(i);
-      if (key.indexOf("|") >= 0 || key.endsWith("_f")) {
+      if (key.indexOf("|") >= 0 || key.substring(key.length - 2) === "_f") {
         continue;
       }
       storedVal = storage.getItem(key);
