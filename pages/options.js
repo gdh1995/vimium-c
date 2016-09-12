@@ -216,16 +216,19 @@ ExclusionRulesOption.prototype.onInit = function() {
     element.addEventListener(element.getAttribute("data-check") || "input", func);
   }
 
-  advancedMode = bgSettings.get("showAdvancedOptions");
+  advancedMode = false;
   element = $("advancedOptionsButton");
   element.onclick = function(_0, init) {
-    if (init == null || (init === "hash" && advancedMode === false)) {
+    if (init == null || (init === "hash" && bgSettings.get("showAdvancedOptions") === false)) {
       advancedMode = !advancedMode;
       bgSettings.set("showAdvancedOptions", advancedMode);
+    } else {
+      advancedMode = bgSettings.get("showAdvancedOptions");
     }
     var el = $("advancedOptions");
     el.previousElementSibling.style.display = el.style.display = advancedMode ? "" : "none";
     this.textContent = (advancedMode ? "Hide" : "Show") + " Advanced Options";
+    this.setAttribute("data-checked", "" + advancedMode);
   };
   element.onclick(null, true);
 
