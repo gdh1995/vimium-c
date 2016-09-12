@@ -3,6 +3,8 @@
 body {
   font: 14px "Arial", sans-serif;
   margin: 0 auto;
+}
+body.chrome-ui {
   min-width: 940px;
 }
 a, a:visited {
