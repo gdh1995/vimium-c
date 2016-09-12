@@ -8,9 +8,13 @@ var Clipboard = {
     return el;
   },
   tailSpacesRe: / +\n/g,
+  endSpacesRe: / +$/g,
   copy: function(data) {
     var textArea = this.getTextArea();
     data = data.replace(Utils.A0Re, " ").replace(this.tailSpacesRe, "\n");
+    if (data.endsWith(" ")) {
+      data = data.replace(this.endSpacesRe, "");
+    }
     textArea.value = data;
     document.documentElement.appendChild(textArea);
     textArea.setSelectionRange(0, data.length);
