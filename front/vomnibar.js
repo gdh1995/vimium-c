@@ -57,14 +57,14 @@ var Vomnibar = {
   wheelTimer: 0,
   show: function() {
     this.focused || setTimeout(function() { Vomnibar.input.focus(); }, 34);
-    window.onmousewheel = this.onWheel;
+    window.addEventListener("mousewheel", this.onWheel, {passive: false});
     this.input.value = this.inputText;
   },
   hide: function(data) {
     this.isActive = this.isHttps = false;
     clearTimeout(this.timer);
     this.timer = this.height = this.matchType = 0;
-    window.onmousewheel = null;
+    window.removeEventListener("mousewheel", this.onWheel, {passive: false});
     window.onkeyup = null;
     this.input.blur();
     this.list.textContent = "";
