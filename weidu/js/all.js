@@ -1821,8 +1821,6 @@ var app = {
 				classification.change(appId.replace("classification_", ""))
 			}
 		} else if ((/^o[A-Z]\w+/).test(appId)) {
-			var _chromeVer = window.navigator.userAgent.match(/chrome\/([\d.]+)/i);
-			var chromeVer = _chromeVer != null ? _chromeVer[1] : _chromeVer;
 			var oUrls = {
 				oDownloads: "chrome://downloads",
 				oBookmarks: "chrome://bookmarks",
@@ -2007,7 +2005,9 @@ DBOX = {
 		var clear = function () {
 			_wheelEvent = false;
 		};
-		window.onmousewheel = function (event) {
+		var _chromeVer = window.navigator.userAgent.match(/chrom(?:e|ium)\/([\d.]+)/i);
+		var chromeVer = _chromeVer != null ? parseFloat(_chromeVer[1]) : 0;
+		window.addEventListener("mousewheel", function (event) {
 			if (_wheelEvent) return;
 			if (_wheelFun) {
 				clearTimeout(_wheelFun)
@@ -2046,7 +2046,7 @@ DBOX = {
 			}
 			event.preventDefault()
 			_wheelFun = setTimeout(clear, self.page3DSwitcherOpen == true ? 400 : 460);
-		};
+		}, chromeVer < 51 ? false : {passive: false});
 		window.onmessage = function (e) {
 			_down = false
 		};
