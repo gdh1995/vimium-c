@@ -282,7 +282,7 @@ function loadViewer(func) {
   return loadJS("Viewer", "..//lib/viewer.min.js").then(function(Viewer) {
     Viewer.setDefaults({
       navbar: false,
-      built: function() {
+      ready: function() {
         var btns = document.querySelector('.viewer-toolbar').children, i;
         for (i = btns.length; 0 <= --i; ) {
           btns[i].vimiumHasOnclick = true;
