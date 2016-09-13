@@ -8,12 +8,14 @@ var Clipboard = {
     return el;
   },
   tailSpacesRe: / +\n/g,
-  endSpacesRe: / +$/g,
   copy: function(data) {
-    var textArea = this.getTextArea();
+    var textArea = this.getTextArea(), j;
     data = data.replace(Utils.A0Re, " ").replace(this.tailSpacesRe, "\n");
-    if (data.endsWith(" ")) {
-      data = data.replace(this.endSpacesRe, "");
+    if (!data.endsWith(" ")) {
+    } else if (j = data.lastIndexOf('\n') + 1) {
+      data = data.substring(0, j) + data.substring(j).trimRight();
+    } else if (data.charCodeAt(0) !== 32) {
+      data = data.trimRight();
     }
     textArea.value = data;
     document.documentElement.appendChild(textArea);
