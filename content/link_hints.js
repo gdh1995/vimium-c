@@ -566,7 +566,7 @@ var VHints = {
     this.isActive = false;
     this.activate(0, this.options);
     this.timer && clearTimeout(this.timer);
-    if (lastEl && this.mode < 128) {
+    if (this.isActive && lastEl && this.mode < 128) {
       this.timer = setTimeout(this.TestLastEl, 255, lastEl, rect);
     } else {
       this.timer = 0;
