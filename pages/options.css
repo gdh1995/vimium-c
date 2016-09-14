@@ -304,16 +304,13 @@ label:active {
 #footerWrapper {
   height: 30px;
   line-height: 16px;
-  padding: 3px 0;
+  padding-top: 6px;
 }
 #helpText {
   float: left;
   font-size: 12px;
-  margin-left: 2px;
-}
-#saveOptionsTableData {
-  float: right;
-  padding: 3px 0;
+  margin: -3px 0 0 2px;
+  width: 305px;
 }
 #advancedOptionsButton {
   width: 156px;
@@ -322,7 +319,6 @@ label:active {
   width: 103px;
 }
 #settingFileManager {
-  float: right;
+  position: absolute;
   margin-left: 20px;
-  width: 300px;
 }
