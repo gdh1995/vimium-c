@@ -7,16 +7,21 @@ var Clipboard = {
     this.getTextArea = function() { return el; };
     return el;
   },
-  tailSpacesRe: / +\n/g,
-  copy: function(data) {
-    var textArea = this.getTextArea(), j;
+  tailSpacesRe: /[ \t]+\n/g,
+  format: function(data) {
     data = data.replace(Utils.A0Re, " ").replace(this.tailSpacesRe, "\n");
-    if (!data.endsWith(" ")) {
-    } else if (j = data.lastIndexOf('\n') + 1) {
-      data = data.substring(0, j) + data.substring(j).trimRight();
-    } else if (data.charCodeAt(0) !== 32) {
+    var i = data.charCodeAt(data.length - 1);
+    if (i !== 32 && i !== 9) {
+    } else if (i = data.lastIndexOf('\n') + 1) {
+      data = data.substring(0, i) + data.substring(i).trimRight();
+    } else if ((i = data.charCodeAt(0)) !== 32 && i !== 9) {
       data = data.trimRight();
     }
+    return data;
+  },
+  copy: function(data) {
+    data = this.format(data);
+    var textArea = this.getTextArea();
     textArea.value = data;
     document.documentElement.appendChild(textArea);
     textArea.setSelectionRange(0, data.length);
