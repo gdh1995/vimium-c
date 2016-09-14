@@ -1,7 +1,7 @@
 /* NOTE: This stylesheet is included in both options.html and popup.html.  So changes here affect
    both of these. */
 body {
-  font: 14px "Arial", sans-serif;
+  font: 14px Arial,sans-serif;
   margin: 0 auto;
 }
 body.chrome-ui {
@@ -32,7 +32,7 @@ button, select {
   border-radius: 2px;
   box-shadow: 0 1px 0 rgba(0, 0, 0, 0.08), inset 0 1px 2px rgba(255, 255, 255, 0.75);
   color: #444;
-  font-size: 12px !important;
+  font: 12px Arial,sans-serif !important;
   height: 24px;
   outline: none;
   padding: 0 10px;
@@ -103,16 +103,13 @@ input, textarea {
   box-sizing: border-box;
   color: black;
   font: inherit;
+  height: 28px;
   outline: none;
   padding: 3px;
-  white-space: nowrap;
+  white-space: pre;
   width: 100%;
 }
-input[type=text] {
-  height: 28px;
-}
 input[type=number] {
-  height: 28px;
   text-align: center;
   text-indent: 16px;
   width: 66px;
@@ -121,6 +118,7 @@ input[type=number]::-webkit-inner-spin-button {
   margin-left: 1px;
 }
 input[type=checkbox] {
+  height: 13px;
   margin: 3px;
   padding: 0;
   position: relative;
@@ -289,6 +287,7 @@ label:active {
 #exclusionSortButton {
   margin-right: 4px;
   width: 80px;
+  padding: 0 7px;
 }
 #footer {
   background: #f3f3f3;
