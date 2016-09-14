@@ -252,9 +252,7 @@ var VSettings, VHUD, VPort, VEventMode;
       InsertMode.global = { code: code, stat: stat };
       if (options.hideHud) { return; }
       str = "Insert mode";
-      if (code !== VKeyCodes.esc || stat > 0) {
-        str += ": " + (VKeyboard.keyNames[code] || code) + "/" + stat;
-      }
+      if (code !== VKeyCodes.esc || stat > 0) { str += ": " + code + "/" + stat; }
       HUD.show(str);
     },
     passNextKey: function(count) {
