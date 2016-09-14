@@ -944,7 +944,7 @@ DEFAULT: {
   66: "Open multiple links in new tabs",
   67: "Activate link and hold on",
   activator: function(link, hint) {
-    var mode, alterTarget, tag, ret;
+    var mode, alterTarget, tag, ret, onMac = VSettings.cache.onMac;
     mode = VDom.getEditableType(link);
     if (mode === 3) {
       VDom.UI.simulateSelect(link, true);
@@ -974,8 +974,8 @@ DEFAULT: {
     // NOTE: not clear last hovered item, for that it may be a menu
     VDom.simulateClick(link, {
       altKey: false,
-      ctrlKey: mode >= 2 && !VKeyboard.onMac,
-      metaKey: mode >= 2 &&  VKeyboard.onMac,
+      ctrlKey: mode >= 2 && !onMac,
+      metaKey: mode >= 2 &&  onMac,
       shiftKey: mode === 3
     });
     if (alterTarget === undefined) {}

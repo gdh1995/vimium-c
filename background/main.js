@@ -1580,7 +1580,6 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
         name: "init",
         load: Settings.bufferToLoad,
         passKeys: pass,
-        onMac: Settings.CONST.OnMac,
         keyMap: keyMap
       } : {
         name: "reset",

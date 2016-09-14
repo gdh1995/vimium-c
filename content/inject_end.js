@@ -66,7 +66,7 @@ VSettings.onDestroy = function() {
 
 VimiumInjector.destroy = VSettings.destroy;
 
-[VKeyboard, VDom, VRect, VHints, Vomnibar, VScroller, VMarks,
+[VDom, VRect, VHints, Vomnibar, VScroller, VMarks,
   VFindMode, VSettings, VHUD, VPort, VVisualMode,
   VimiumInjector].forEach(Object.seal);
-[VUtils, VKeyCodes, VHandler].forEach(Object.freeze);
+[VUtils, VKeyboard, VKeyCodes, VHandler].forEach(Object.freeze);

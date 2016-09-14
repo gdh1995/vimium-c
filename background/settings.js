@@ -58,6 +58,7 @@ var Settings = {
         key = ref[_i];
         ref2[key] = this.get(key);
       }
+      ref2.onMac = this.CONST.OnMac;
     },
     extWhiteList: function(val) {
       var arr = val.split("\n"), i, map, wordCharRe = /^[0-9A-Za-z]/;
