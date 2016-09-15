@@ -1038,12 +1038,16 @@ searchEngines: {
       _this.Work(this);
     },
     _dataUrl: "",
+    blank: function() {},
     init: function() {
+      this.init = null;
       Settings.updateHooks.localeEncoding = function(charset) {
-        Decoder._dataUrl = "data:text/plain;charset=" + charset + ",";
+        var _this = Decoder;
+        _this._dataUrl = charset && ("data:text/plain;charset=" + charset + ",");
+        var f = charset ? Array.prototype.push : _this.blank;
+        _this.todos.push !== f && (_this.todos.push = f);
       };
       Settings.postUpdate("localeEncoding");
-      this.init = null;
     }
   };
 
