@@ -128,7 +128,7 @@ var Settings = {
       css = this.cache.innerCss.substring(0, this.CONST.BaseCssLength) + css;
       this.set("innerCss", css);
       this.broadcast({
-        name: "insertInnerCss",
+        name: "insertInnerCSS",
         css: this.cache.innerCss
       });
     },

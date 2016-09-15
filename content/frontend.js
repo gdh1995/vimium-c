@@ -844,7 +844,7 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
     insertCSS: function(request) {
       VDom.UI.insertCSS(request.css, isEnabledForUrl);
     },
-    insertInnerCss: VDom.UI.insertInnerCSS,
+    insertInnerCSS: VDom.UI.insertInnerCSS,
     focusFrame: FrameMask.Focus,
     keyMap: function(request) {
       var map = keyMap = request.keyMap, key, sec, func = Object.setPrototypeOf;
