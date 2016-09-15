@@ -19,11 +19,11 @@ VDom.UI = {
       this.adjust();
     };
   },
-  addElementList: function(els, attrs) {
+  addElementList: function(els, id) {
     var parent, _i, _len;
     parent = VDom.createElement("div");
-    parent.className = attrs.className;
-    parent.id = attrs.id;
+    parent.className = "R LS";
+    parent.id = id;
     for (_i = 0, _len = els.length; _i < _len; _i++) {
       parent.appendChild(els[_i]);
     }

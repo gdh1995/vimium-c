@@ -77,10 +77,7 @@ var VHints = {
     this.alphabetHints.initMarkers(this.hintMarkers);
 
     this.setMode(this.mode);
-    this.box = VDom.UI.addElementList(this.hintMarkers, {
-      id: "HMC",
-      className: "R LS"
-    });
+    this.box = VDom.UI.addElementList(this.hintMarkers, "HMC");
     style = this.box.style;
     style.left = x + "px"; style.top = y + "px";
     if (document.webkitIsFullScreen) { style.position = "fixed"; }
