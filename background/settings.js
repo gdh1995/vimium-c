@@ -61,9 +61,11 @@ var Settings = {
       ref2.onMac = this.CONST.OnMac;
     },
     extWhiteList: function(val) {
-      var arr = val.split("\n"), i, map, wordCharRe = /^[0-9A-Za-z]/;
+      var map, arr, i, wordCharRe;
       map = this.extWhiteList = Object.create(null);
-      for (i = arr.length; 0 <= --i; ) {
+      if (!val) { return; }
+      wordCharRe = /^[0-9A-Za-z]/;
+      for (arr = val.split("\n"), i = arr.length; 0 <= --i; ) {
         if ((val = arr[i].trim()) && wordCharRe.test(val)) {
           map[val] = true;
         }
@@ -159,7 +161,7 @@ var Settings = {
     exclusionListenHash: true,
     exclusionOnlyFirstMatch: false,
     exclusionRules: [{pattern: "^https?://mail.google.com/", passKeys: ""}],
-    extWhiteList: "# hdnehngglnbnehkfcidabjckinphnief",
+    extWhiteList: "",
     findModeRawQueryList: "",
     grabBackFocus: true,
     hideHud: false,
