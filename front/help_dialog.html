@@ -43,6 +43,9 @@
 	padding: 1px 1px 1px 3px;
 	vertical-align: top;
 }
+.TdBottom {
+	visibility: hidden;
+}
 .HDivider {
 	border-bottom: 1px solid #ddd;
 	display: block;
@@ -125,7 +128,7 @@
 
 #AdvancedCommands {
 	position: absolute;
-	right: 2px;
+	right: 0px;
 	text-decoration: none;
 	top: -34px;
 }
@@ -163,7 +166,7 @@
 		<span style="float:right;position:relative;top:7px;">
 			<a class="L TopLink" id="OptionsPage">Options</a>
 			<a class="L TopLink" target="_blank" href="https://github.com/philc/vimium/wiki">Wiki</a>
-			<a class="L TopLink" id="HClose" href="javascript:;"><span id="HCloseT">&#215;</span></a>
+			<a class="L TopLink" id="HClose" tabindex="0"><span id="HCloseT">&#215;</span></a>
 		</span>
 	</div>
 	<div class="HDivider"></div>
@@ -188,7 +191,7 @@
 {{tabManipulation}}
 			<tr class="HelpTr"><td class="HelpTd"></td><td class="HelpTd HelpSectionTitle">Miscellaneous</td></tr>
 {{misc}}
-			<tr class="HelpTr"><td class="HelpTd" colspan="2">&#160;</td></tr>
+			<tr class="HelpTr"><td class="HelpTd TdBottom">&#160;</td></tr>
 		</tbody>
 		</table>
 	</div>
