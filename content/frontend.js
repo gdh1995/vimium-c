@@ -248,9 +248,9 @@ var VSettings, VHUD, VPort, VEventMode;
 
     enterVisualMode: function(_0, options) { VVisualMode.activate(options); },
     enterInsertMode: function(_0, options) {
-      var code = options.code || VKeyCodes.esc, stat = options.stat, str;
-      InsertMode.global = { code: code, stat: stat };
-      if (options.hideHud) { return; }
+      var code = options.code || VKeyCodes.esc, stat = options.stat, hud = !options.hideHud, str;
+      InsertMode.global = { code: code, stat: stat, hud: hud };
+      if (!hud) { return; }
       str = "Insert mode";
       if (code !== VKeyCodes.esc || stat > 0) { str += ": " + code + "/" + stat; }
       HUD.show(str);
@@ -523,8 +523,8 @@ var VSettings, VHUD, VPort, VEventMode;
         VDom.getEditableType(target) && target.blur();
       }
       if (this.global) {
+        this.global.hud && HUD.hide();
         this.lock = null; this.global = null;
-        HUD.hide(true);
       }
     },
     onExitSuppress: null,
