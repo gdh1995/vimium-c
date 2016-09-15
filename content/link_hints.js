@@ -182,7 +182,7 @@ var VHints = {
   },
   hashRe: /^#/,
   quoteRe: /"/g,
-  btnRe: /\b[Bb](?:utto|t)n(?:$| )/,
+  btnRe: /\b(?:[Bb](?:utto|t)n|[Cc]lose)(?:$| )/,
   GetClickable: function(element) {
     var arr, isClickable = null, s, type = 0;
     switch (element.tagName.toLowerCase()) {
