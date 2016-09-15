@@ -89,9 +89,6 @@
     "keyword": "v"
   },
   "options_page": "pages/options.html",
-  "options_ui": {
-    "page": "pages/chrome_ui.html"
-  },
   "permissions": [
     "bookmarks",
     "clipboardRead",
