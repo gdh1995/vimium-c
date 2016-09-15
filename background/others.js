@@ -292,8 +292,9 @@ setTimeout(function() { if (!chrome.omnibox) { return; }
   chrome.omnibox.onInputEntered.addListener(onEnter);
 }, 600);
 
+var a, cb;
 // According to tests: onInstalled will be executed after 0 ~ 16 ms if needed
-chrome.runtime.onInstalled.addListener(window.b = function(details) {
+(a = chrome.runtime.onInstalled) && a.addListener(cb = function(details) {
   var reason = details.reason;
   if (reason === "install") { reason = ""; }
   else if (reason === "update") { reason = details.previousVersion; }
@@ -370,17 +371,10 @@ setTimeout(function() {
 });
 
 setTimeout(function() {
-  chrome.runtime.onInstalled.removeListener(window.b);
-  window.b = null;
+  cb && chrome.runtime.onInstalled.removeListener(cb);
+  a = null;
+  cb = function(b) { a = b; console.log(b); };
 
   document.head.remove();
   document.body.remove();
 }, 200);
-
-//* #if DEBUG
-var a, b, c, cb, log;
-cb = function(b) { a = b; console.log(b); };
-setTimeout(function() {
-  a = c = null; b = cb;
-  log = console.log.bind(console);
-}, 2000); // #endif */
