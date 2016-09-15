@@ -8,6 +8,12 @@ A custom [Vimium](https://github.com/philc/vimium)
   supporting Chrome with the session functionalities only (ver >= 37).
   For older version, it would try to work ^_^
 
+The branch [`basic-on-edge`](https://github.com/gdh1995/vimium-plus/tree/basic-on-edge)
+  is able to run on lastest Microsoft Edge,
+  though some function are broken because Edge lacks some features.
+The branch [`firefox`](https://github.com/gdh1995/vimium-plus/tree/firefox)
+  is able to run on lastest Firefox, but only tests for `LinkHints` have been done.
+
 In the *weidu* directory is 微度新标签页.
 
 __Vimium:__
