@@ -1011,7 +1011,7 @@ searchEngines: {
     Work: function(xhr) {
       var _this = Decoder, url, str, text;
       if (_this.todos.length <= _this._ind) {
-        _this.todos = [];
+        _this.todos.length = 0;
         _this._ind = -1;
         return;
       }
