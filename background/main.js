@@ -1535,6 +1535,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
     if (3 !== ++Connections.state) { return; }
     Settings.Init = null;
     chrome.runtime.onConnect.addListener(Connections.OnConnect);
+    chrome.runtime.onConnectExternal &&
     chrome.runtime.onConnectExternal.addListener(function(port) {
       if (port.sender && port.sender.id in Settings.extWhiteList
           && port.name.startsWith("vimium++")) {
@@ -1684,7 +1685,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
     executeCommand(command, Commands.makeCommand(command, options), count, null);
   };
 
-  Settings.postUpdate("extWhiteList");
+  chrome.runtime.onMessageExternal && (Settings.postUpdate("extWhiteList"),
   chrome.runtime.onMessageExternal.addListener(function(message, sender, sendResponse) {
     var command;
     if (!(sender.id in Settings.extWhiteList)) { return; }
@@ -1709,8 +1710,9 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
     case "content_scripts":
       return Settings.contentScripts(sendResponse);
     }
-  });
+  }));
 
+  chrome.tabs.onReplaced &&
   chrome.tabs.onReplaced.addListener(function(addedTabId, removedTabId) {
     var ref = framesForTab, frames, i;
     frames = ref[removedTabId];
