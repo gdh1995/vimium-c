@@ -18,17 +18,23 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
 
   HelpDialog = {
   render: function(showUnbound, showNames, customTitle) {
-    var command, commandsToKey, key, ref = Commands.keyToCommandRegistry;
+    var command, commandsToKey, key, ref = Commands.keyToCommandRegistry, result;
     commandsToKey = {};
     for (key in ref) {
       command = ref[key].command;
       (commandsToKey[command] || (commandsToKey[command] = [])).push(key);
     }
-    showUnbound = showUnbound ? true : false;
-    showNames = showNames ? true : false;
+    showUnbound = !!showUnbound;
+    showNames = !!showNames;
+    result = Object.setPrototypeOf({
+      version: Settings.CONST.CurrentVersion,
+      title: customTitle || "Help",
+      tip: showNames ? "Tip: click command names to yank them to the clipboard." : "",
+      lbPad: showNames ? '\n\t\t<tr class="HelpTr"><td class="HelpTd TdBottom">&#160;</td></tr>' : ""
+    }, null);
     return Settings.cache.helpDialog.replace(/\{\{(\w+)}}/g, function(_, group) {
-      return (group === "version") ? Settings.CONST.CurrentVersion
-        : (group === "title") ? customTitle || "Help"
+      var s = result[group];
+      return s != null ? s
         : HelpDialog.groupHtml(group, commandsToKey, Commands.availableCommands, showUnbound, showNames);
     });
   },
