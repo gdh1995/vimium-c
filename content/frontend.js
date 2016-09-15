@@ -723,7 +723,7 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
     tweenId: 0,
     box: null,
     opacity: 0,
-    durationTimer: 0,
+    timer: 0,
     showCopied: function(text, e, virtual) {
       if (!text) {
         if (virtual) { return text; }
@@ -742,7 +742,7 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
     },
     showForDuration: function(text, duration) {
       this.show(text);
-      this.durationTimer = this.enabled && setTimeout(this.hide, duration);
+      this.timer = this.enabled && setTimeout(this.hide, duration);
     },
     show: function(text) {
       if (!this.enabled) { return; }
@@ -753,9 +753,9 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
         el.style.opacity = 0;
         el.style.visibility = "hidden";
         VDom.UI.addElement(this.box = el);
-      } else if (this.durationTimer) {
-        clearTimeout(this.durationTimer);
-        this.durationTimer = 0;
+      } else if (this.timer) {
+        clearTimeout(this.timer);
+        this.timer = 0;
       }
       el.textContent = text;
       if (!this.tweenId) {
@@ -783,22 +783,11 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
       clearInterval(hud.tweenId);
       hud.tweenId = 0;
     },
-    hide: function(immediate) {
-      var hud = HUD, el;
-      if (hud.durationTimer) {
-        clearTimeout(hud.durationTimer);
-        hud.durationTimer = 0;
-      }
+    hide: function() {
+      var hud = HUD, el, i;
+      if (i = hud.timer) { clearTimeout(i); hud.timer = 0; }
       hud.opacity = 0;
-      if (!hud.box) {}
-      else if (immediate === true) {
-        clearInterval(hud.tweenId);
-        hud.tweenId = 0;
-        el = hud.box;
-        el.style.visibility = "hidden";
-        el.textContent = "";
-        el.style.opacity = 0;
-      } else if (!hud.tweenId) {
+      if (hud.box && !hud.tweenId) {
         hud.tweenId = setInterval(hud.tween, 40);
       }
     },
