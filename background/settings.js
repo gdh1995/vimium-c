@@ -229,7 +229,8 @@ w|wiki:\\\n  http://www.wikipedia.org/w/index.php?search=$s Wikipedia (en-US)",
 
 // note: if changed, ../pages/newtab.js also needs change.
 Settings.defaults.newTabUrl = Settings.CONST.ChromeInnerNewTab;
-Settings.CONST.ChromeVersion = +navigator.appVersion.match(/Chrom(?:e|ium)\/(\d+\.\d+)/)[1];
+Settings.CONST.ChromeVersion = +(navigator.appVersion.match(/Chrom(?:e|ium)\/(\d+\.\d+)/) ||
+  [0, 53])[1];
 
 setTimeout(function() {
   chrome.runtime.getPlatformInfo(function(info) {
