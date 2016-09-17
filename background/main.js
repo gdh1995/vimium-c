@@ -399,11 +399,14 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
         text: "It's not allowed to " + action
       });
     },
-    checkVomnibarPage: function(port) {
+    checkVomnibarPage: function(port, nolog) {
       if (port.sender.url === Settings.CONST.VomnibarPage) { return false; }
+      if (!nolog && !port.sender.warned) {
       console.warn("Receive a request from %can unsafe source page%c (should be vomnibar) :\n ",
         "color: red", "color: auto",
-        port.sender.url);
+        port.sender.url, '@' + port.sender.tabId);
+      port.sender.warned = true;
+      }
       return true;
     },
 
