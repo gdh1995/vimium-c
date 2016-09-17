@@ -722,6 +722,7 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
   VHUD = HUD = {
     tweenId: 0,
     box: null,
+    text: null,
     opacity: 0,
     timer: 0,
     showCopied: function(text, e, virtual) {
@@ -752,12 +753,13 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
         el.className = "R HUD";
         el.style.opacity = 0;
         el.style.visibility = "hidden";
+        el.appendChild(this.text = new Text(""));
         VDom.UI.addElement(this.box = el);
       } else if (this.timer) {
         clearTimeout(this.timer);
         this.timer = 0;
       }
-      el.textContent = text;
+      this.text.data = text;
       if (!this.tweenId) {
         this.tweenId = setInterval(this.tween, 40);
       }
@@ -778,7 +780,7 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
       }
       if (opacity === 0) {
         el.style.visibility = "hidden";
-        el.textContent = "";
+        hud.text.data = "";
       }
       clearInterval(hud.tweenId);
       hud.tweenId = 0;
@@ -878,7 +880,7 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
       Commands.showHelp = oldShowHelp;
     };
     toggleAdvanced = function() {
-      box.querySelector("#AdvancedCommands").textContent =
+      box.querySelector("#AdvancedCommands").firstChild.data =
         (shouldShowAdvanced ? "Hide" : "Show") + " advanced commands";
       box.classList.toggle("HelpAdvanced");
     };

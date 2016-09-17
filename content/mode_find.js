@@ -71,6 +71,7 @@ body{cursor:text;display:inline-block;padding:0 3px 0 1px;min-width:7px;}body *{
     el = VDom.UI.createStyle(this.cssIFrame, doc);
     doc.head.appendChild(el);
     doc.documentElement.insertBefore(doc.createTextNode("/"), doc.body);
+    this.countEl.appendChild(doc.createTextNode(""));
 
     VDom.UI.focus(this.input);
     this.isActive = true;
@@ -225,7 +226,8 @@ body{cursor:text;display:inline-block;padding:0 3px 0 1px;min-width:7px;}body *{
   },
   showCount: function() {
     var count = this.matchCount;
-    this.countEl.textContent = this.parsedQuery ? "(" + (count || (this.hasResults ? "Some" : "No")) + " match" + (count !== 1 ? "es)" : ")") : "";
+    this.countEl.firstChild.data = !this.parsedQuery ? ""
+      : "(" + (count || (this.hasResults ? "Some" : "No")) + " match" + (count !== 1 ? "es)" : ")");
     count = this.input.getBoundingClientRect().width + this.countEl.getBoundingClientRect().width;
     this.box.style.width = (count | 0) + 4 + "px";
   },

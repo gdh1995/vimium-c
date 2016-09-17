@@ -158,7 +158,7 @@ ExclusionRulesOption.prototype.onInit = function() {
       if (status === 1 && !Option.needSaveOptions()) {
         saveBtn = $("saveOptions");
         saveBtn.disabled = true;
-        saveBtn.textContent = "No Changes";
+        saveBtn.firstChild.data = "No Changes";
         $("exportButton").disabled = false;
         status = 0;
         window.onbeforeunload = null;
@@ -171,7 +171,7 @@ ExclusionRulesOption.prototype.onInit = function() {
     status = 1;
     saveBtn = $("saveOptions");
     saveBtn.disabled = false;
-    saveBtn.textContent = "Save Changes";
+    saveBtn.firstChild.data = "Save Changes";
     $("exportButton").disabled = true;
   };
 
@@ -183,7 +183,7 @@ ExclusionRulesOption.prototype.onInit = function() {
     toSync = Option.syncToFrontend;
     Option.syncToFrontend = [];
     this.disabled = true;
-    this.textContent = "No Changes";
+    this.firstChild.data = "No Changes";
     $("exportButton").disabled = false;
     status = 0;
     window.onbeforeunload = null;
@@ -227,7 +227,7 @@ ExclusionRulesOption.prototype.onInit = function() {
     }
     var el = $("advancedOptions");
     el.previousElementSibling.style.display = el.style.display = advancedMode ? "" : "none";
-    this.textContent = (advancedMode ? "Hide" : "Show") + " Advanced Options";
+    this.firstChild.data = (advancedMode ? "Hide" : "Show") + " Advanced Options";
     this.setAttribute("data-checked", "" + advancedMode);
   };
   element.onclick(null, true);

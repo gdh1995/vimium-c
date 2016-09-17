@@ -54,9 +54,9 @@ ExclusionRulesOption.prototype.sortRules = function(element) {
   this.populateElement(rules);
   if (!element) { return; }
   element.timer = setTimeout(function(el, text) {
-    el.textContent = text, el.timer = 0;
-  }, 1000, element, element.textContent);
-  element.textContent = "(Sorted)";
+    el.firstChild.data = text, el.timer = 0;
+  }, 1000, element, element.firstChild.data);
+  element.firstChild.data = "(Sorted)";
 };
 
 $("exclusionSortButton").onclick = function() { Option.all.exclusionRules.sortRules(this); };

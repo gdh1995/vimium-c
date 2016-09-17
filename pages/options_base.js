@@ -267,7 +267,7 @@ exclusions = Object.setPrototypeOf({
       var btn = $("saveOptions");
       $("helpSpan").innerHTML = "Type <strong>Ctrl-Enter</strong> to save and close.";
       btn.removeAttribute("disabled");
-      btn.textContent = "Save Changes";
+      btn.firstChild.data = "Save Changes";
     }
     if (!exclusions.init) {
       updateState();
@@ -281,7 +281,7 @@ exclusions = Object.setPrototypeOf({
     testers = bgExclusions.testers;
     exclusions.save();
     bgExclusions.testers = testers;
-    btn.textContent = "Saved";
+    btn.firstChild.data = "Saved";
     btn.disabled = true;
     status = 0;
   };

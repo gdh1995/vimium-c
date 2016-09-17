@@ -346,7 +346,7 @@ var VHints = {
         el = list[j][0];
       } else if (list[i][0].parentNode !== (el = list[--j][0])
         || (k = list[j][2]) > 7 || el.childElementCount !== 1
-        || (k >= 2 && (first = el.firstChild) instanceof TextCls && first.textContent.trim())
+        || (k >= 2 && (first = el.firstChild) instanceof TextCls && first.data.trim())
       ) {
         continue;
       } else if (VRect.isContaining(list[j][1], list[i][1])) {
@@ -359,7 +359,7 @@ var VHints = {
       do {
         if ((k = list[j][2]) < 2 || k > 7
           || (el = list[j][0]).childElementCount !== 1
-          || (first = el.firstChild) instanceof TextCls && first.textContent.trim()
+          || (first = el.firstChild) instanceof TextCls && first.data.trim()
         ) {
           break;
         }
@@ -598,7 +598,7 @@ var VHints = {
     VEventMode.onWndBlur(null);
   },
   deactivate: function(suppressType) {
-    this.clean(VHUD.box.textContent !== this.modeOpt[this.mode]);
+    this.clean(VHUD.text.data !== this.modeOpt[this.mode]);
     VHandler.remove(this);
     this.isActive = false;
     suppressType != null && VDom.UI.suppressTail(suppressType);
