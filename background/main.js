@@ -1400,10 +1400,15 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
       tabId >= 0 || (tabId = TabRecency.last());
       tabId >= 0 && chrome.tabs.update(tabId, {active: true});
     },
-    openUrl: function(request) {
+    openUrl: function(request, port) {
       Object.setPrototypeOf(request, null);
       request.url_f = Utils.convertToUrl(request.url, request.keyword, 2);
       request.keyword = "";
+      var ports;
+      if (funcDict.checkVomnibarPage(port, true)) {}
+      else if (ports = framesForTab[port.sender.tabId]) {
+        cPort = ports[0];
+      }
       if (Utils.lastUrlType === 5) {
         funcDict.onEvalUrl(request.url_f);
         return;
