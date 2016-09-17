@@ -207,11 +207,11 @@ w|wiki:\\\n  http://www.wikipedia.org/w/index.php?search=$s Wikipedia (en-US)",
     helpDialog: "front/help_dialog.html",
     vomnibar: "front/vomnibar.html"
   },
-  icons: {
-    disabled: { "19": "icons/disabled_19.png", "38": "icons/disabled_38.png" },
-    enabled: { "19": "icons/enabled_19.png", "38": "icons/enabled_38.png" },
-    partial: { "19": "icons/partial_19.png", "38": "icons/partial_38.png" }
-  },
+  icons: [
+    { "19": "icons/enabled_19.png", "38": "icons/enabled_38.png" },
+    { "19": "icons/partial_19.png", "38": "icons/partial_38.png" },
+    { "19": "icons/disabled_19.png", "38": "icons/disabled_38.png" }
+  ],
   valuesToLoad: ["deepHints", "grabBackFocus", "keyboard", "linkHintCharacters" //
     , "regexFindMode", "scrollStepSize", "smoothScroll" //
   ],

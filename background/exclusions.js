@@ -93,7 +93,7 @@ var Exclusions = {
     var ref = Settings.indexPorts(), tabId, frames
       , needIcon = !!(Settings.IconBuffer &&
           (Settings.IconBuffer() || Settings.get("showActionIcon")))
-      , i, always_enabled, pass, status = "enabled", status0, port;
+      , i, always_enabled, pass, status = 0, status0, port;
     always_enabled = Exclusions.rules.length > 0 ? null : {
       name: "reset",
       passKeys: null
@@ -110,12 +110,12 @@ var Exclusions = {
       for (i = frames.length; 0 < --i; ) {
         port = frames[i];
         if (always_enabled) {
-          if (port.sender.status === "enabled") {
+          if (port.sender.status === 0) {
             continue;
           }
         } else {
           pass = Exclusions.getPattern(port.sender.url);
-          status = pass === null ? "enabled" : pass ? "partial" : "disabled";
+          status = pass === null ? 0 : pass ? 1 : 2;
           if (!pass && port.sender.status === status) {
             continue;
           }

@@ -1436,7 +1436,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
       if (!port) { return; }
       var oldUrl = port.sender.url, tabId = port.sender.tabId
         , pattern = Exclusions.getPattern(port.sender.url = request.url)
-        , status = pattern === null ? "enabled" : pattern ? "partial" : "disabled";
+        , status = pattern === null ? 0 : pattern ? 1 : 2;
       if (port.sender.status !== status) {
         port.sender.status = status;
         if (needIcon && framesForTab[tabId][0] === port) {
@@ -1600,7 +1600,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
         name: "reset",
         passKeys: pass
       });
-      status = pass === null ? "enabled" : pass ? "partial" : "disabled";
+      status = pass === null ? 0 : pass ? 1 : 2;
       port.sender.status = status;
       if (ref = framesForTab[tabId]) {
         ref.push(port);
@@ -1612,7 +1612,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
         }
       } else {
         framesForTab[tabId] = [port, port];
-        status !== "enabled" && needIcon && requestHandlers.SetIcon(tabId, status);
+        status !== 0 && needIcon && requestHandlers.SetIcon(tabId, status);
       }
       if (Settings.CONST.ChromeVersion < 41) {
         port.sender.frameId = (type & 4) ? 0 : ((Math.random() * 9999997) | 0) + 2;
@@ -1648,7 +1648,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
       port.sender = {
         frameId: sender.frameId || 0,
         incognito: tab.incognito,
-        status: null,
+        status: 0,
         tabId: tab.id,
         url: sender.url
       };
