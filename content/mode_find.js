@@ -33,6 +33,7 @@ body{cursor:text;display:inline-block;padding:0 3px 0 1px;min-width:7px;}body *{
     if (query != null) {
       return this.findAndFocus(this.query || query, options);
     }
+    this.getCurrentRange();
     if (options.returnToViewport) {
       this.returnToViewport = true;
       this.scrollX = window.scrollX;
@@ -48,7 +49,6 @@ body{cursor:text;display:inline-block;padding:0 3px 0 1px;min-width:7px;}body *{
     this.parsedQuery = this.query = "";
     this.regexMatches = null;
     this.activeRegexIndex = 0;
-    this.getCurrentRange();
     this.init && this.init();
 
     var el = this.box = VDom.createElement("iframe");
@@ -293,12 +293,12 @@ body{cursor:text;display:inline-block;padding:0 3px 0 1px;min-width:7px;}body *{
   getCurrentRange: function() {
     var sel = window.getSelection(), range;
     if (sel.type == "None") {
-      this.initialRange = range = document.createRange();
+      range = document.createRange();
       range.setStart(document.body, 0);
-      range.setEnd(document.body, 0);
     } else {
-      sel.type == "Range" && sel.collapseToStart();
-      this.initialRange = sel.getRangeAt(0);
+      range = sel.getRangeAt(0);
     }
+    range.setEnd(range.startContainer, range.startOffset);
+    this.initialRange = range;
   }
 };
