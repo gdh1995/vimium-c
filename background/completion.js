@@ -1003,6 +1003,7 @@ searchEngines: {
     continueToWork: function() {
       if (this.todos.length === 0 || this._ind !== -1) { return; }
       var xhr = new XMLHttpRequest();
+      xhr.responseType = "text";
       xhr.onload = this.OnXHR;
       this._ind = 0;
       this.init && this.init();
