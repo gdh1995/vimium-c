@@ -114,12 +114,27 @@ ExclusionRulesOption.prototype.populateElement = function(rules) {
 };
 
 ExclusionRulesOption.prototype.appendRule = function(list, rule) {
-  var row;
+  var row, el, value;
   row = document.importNode(this.template, true);
-  row.getElementsByClassName('pattern')[0].value = rule.pattern;
-  row.getElementsByClassName('passKeys')[0].value = rule.passKeys.trimRight();
+  el = row.querySelector('.pattern');
+  el.value = value = rule.pattern;
+  if (!value) {
+    el.placeholder = ":https://mail.google.com/";
+  }
+  el = row.querySelector('.passKeys');
+  el.value = rule.passKeys.trimRight();
+  if (!value) {
+    el.placeholder = "f g j k";
+    el.addEventListener("input", ExclusionRulesOption.OnNewPassKeyInput);
+  }
   list.appendChild(row);
   return row;
+};
+
+ExclusionRulesOption.OnNewPassKeyInput = function() {
+  this.removeEventListener("input", ExclusionRulesOption.OnNewPassKeyInput);
+  this.title = "Example: " + this.placeholder;
+  this.placeholder = "";
 };
 
 ExclusionRulesOption.prototype.onRemoveRow = function(event) {
