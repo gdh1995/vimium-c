@@ -1,7 +1,7 @@
 Vimium++
 ========
 [![license](https://img.shields.io/badge/license-MIT-blue.svg)](MIT-LICENSE.txt)
-![version](https://img.shields.io/badge/release-1.56-orange.svg)
+![version](https://img.shields.io/badge/release-1.56.1-orange.svg)
 
 A custom [Vimium](https://github.com/philc/vimium)
   by [gdh1995](https://github.com/gdh1995),
@@ -47,7 +47,8 @@ Release Notes
 * Vomnibar is re-implemented using `<iframe>`, which is much safer than shadowDOM.
 * Backend completer procedure is reworked and Vomnibar works faster for continuous input.
 * remove the setting item "Try to reduce Vimium++'s memory cost" (`tinyMemory`).
-* fix a bug that Vimium++ would break on Chrome 37 to 44.
+* fix a bug that Vimium++ would break on Chrome 37 to 47.
+* version 1.56.1: fix a bug of lacking tips for vimium://copy urls in vomnibar.
 * small bug fixes; try to avoid unnecessary forced reflows.
 
 1.55:
