@@ -385,8 +385,8 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
     onRuntimeError: function() {
       return chrome.runtime.lastError;
     },
-    onEvalUrl2: function(arr) {
-      if (arr instanceof Promise) { return arr.then(funcDict.onEvalUrl2); }
+    onEvalUrl: function(arr) {
+      if (arr instanceof Promise) { return arr.then(funcDict.onEvalUrl); }
       switch(arr[1]) {
       case "copy":
         requestHandlers.SendToCurrent({name: "showCopied", text: arr[0]});
@@ -848,7 +848,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
       Utils.lastUrlType = 0;
       var url = requestHandlers.getCopiedUrl_f(cOptions);
       if (Utils.lastUrlType === 5) {
-        funcDict.onEvalUrl2(url);
+        funcDict.onEvalUrl(url);
       } else if (!url) {
         requestHandlers.SendToCurrent({
           name: "showHUD",
@@ -1405,7 +1405,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
       request.url_f = Utils.convertToUrl(request.url, request.keyword, 2);
       request.keyword = "";
       if (Utils.lastUrlType === 5) {
-        funcDict.onEvalUrl2(request.url_f);
+        funcDict.onEvalUrl(request.url_f);
         return;
       } else if (request.https && (Utils.lastUrlType === 1 || Utils.lastUrlType === 4)) {
         request.url_f = "https" + request.url_f.substring(4);
