@@ -1,23 +1,23 @@
 #!/bin/sh
 set -o noglob
 
-ver=`grep '"version"' manifest.json | awk -F '"' '{print $4}'`
 output="$1"
-if [ -n "$output" -a -f "$output" ]; then :
+if [ -n "$output" -a ! -d "$output" ]; then :
 else
   if [ -n "$output" -a -d "output" ]; then
     output="${output/\//}/"
   fi
+  ver=`grep '"version"' manifest.json | awk -F '"' '{print $4}'`
   output="${output}"vimium_plus_$ver.zip
 fi
 
 args=""
 if [ "$output" != "-" -a -f "$output" ]; then
-  args="-u $args"
+  args="-u"
 fi
 
 zip -roX -MM $args "$output" . -x ".*" "*.sh" "weidu/*" "test*" \
-  "*/.*" "*.zip" "*.crx"
+  "*/.*" "*.zip" "*.crx" $4
 echo ""
 echo "Wrote $output"
 

@@ -1,17 +1,25 @@
 #!/bin/sh
 set -o noglob
 
-if [ -z "$1" ]; then
-OUTPUT=weidu_4.83.zip
+output="$1"
+if [ -n "$output" -a ! -d "$output" ]; then :
 else
-OUTPUT="$1"
+  if [ -n "$output" -a -d "output" ]; then
+    output="${output/\//}/"
+  fi
+  ver=`grep '"version"' manifest.json | awk -F '"' '{print $4}'`
+  output="${output}"weidu_$ver.zip
 fi
+
+key="$2"
+crx="$3"
+ignored="$4"
+if [ -z "$4" ]; then
+  ignored="img/bg/*"
+fi
+
 shift
-
-if [ "$OUTPUT" != "-" -a -f "$OUTPUT" ]; then
-ARGS="-u $*"
-else
-ARGS="$*"
-fi
-
-zip -roX -MM $ARGS "$OUTPUT" . -x ".*" "*.sh" "img/bg/*" "img/tab_*" "*.zip" "*.crx"
+shift
+shift
+shift
+exec ../make.sh "$output" "$key" "$crx" "$ignored" $*
