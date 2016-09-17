@@ -47,6 +47,7 @@ Not yet released:
 * Vomnibar is re-implemented using `<iframe>`, which is much safer than shadowDOM.
 * Backend completer procedure is reworked and Vomnibar works faster for continuous input.
 * remove the setting item "Try to reduce Vimium++'s memory cost" (`tinyMemory`).
+* fix a bug that Vimium++ would break on Chrome 37 to 44.
 * small bug fixes; try to avoid unnecessary forced reflows.
 
 1.55:
