@@ -79,7 +79,7 @@ Core: {
     while (element !== document.body && !(this.scrollDo(element, di, amount) && this.shouldScroll(element, di))) {
       element = element.parentElement || (element.parentNode && element.parentNode.host) || document.body;
     }
-    return element === document.body ? this.selectFirst(element) : element;
+    return element;
   },
   getActivatedElement: function() {
     var element = this.current;
