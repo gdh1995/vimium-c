@@ -89,14 +89,11 @@ var VSettings, VHUD, VPort, VEventMode;
               && VKeyboard.getKeyStat(event) === InsertMode.global.stat
             : key === VKeyCodes.esc ? VKeyboard.isPlain(event)
             : key === 219 ? VKeyboard.getKeyStat(event) === 2
-            : false
-        ) {
+            : (key > 90 && (keyChar = VKeyboard.getKeyName(event)) &&
+                (action = checkValidKey(event, keyChar)), false)
+          ) {
           InsertMode.exit(event);
           action = 2;
-        }
-        else if (InsertMode.global) {}
-        else if (key >= VKeyCodes.f1 && key <= VKeyCodes.f12) {
-          action = checkValidKey(event, VKeyboard.getKeyName(event));
         }
       }
       else if (key >= 32 || key === 8) {
