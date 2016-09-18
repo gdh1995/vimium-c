@@ -1405,7 +1405,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
       request.url_f = Utils.convertToUrl(request.url, request.keyword, 2);
       request.keyword = "";
       var ports;
-      if (funcDict.checkVomnibarPage(port, true)) {}
+      if (!port || funcDict.checkVomnibarPage(port, true)) {}
       else if (ports = framesForTab[port.sender.tabId]) {
         cPort = ports[0];
       }
