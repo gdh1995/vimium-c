@@ -1,7 +1,7 @@
 Vimium++
 ========
 [![license](https://img.shields.io/badge/license-MIT-blue.svg)](MIT-LICENSE.txt)
-![version](https://img.shields.io/badge/release-1.56.1-orange.svg)
+![version](https://img.shields.io/badge/release-1.56-orange.svg)
 
 A custom [Vimium](https://github.com/philc/vimium)
   by [gdh1995](https://github.com/gdh1995),
@@ -49,6 +49,7 @@ Release Notes
 * remove the setting item "Try to reduce Vimium++'s memory cost" (`tinyMemory`).
 * fix a bug that Vimium++ would break on Chrome 37 to 47.
 * version 1.56.1: fix a bug of lacking tips for vimium://copy urls in vomnibar.
+* version 1.56.2: support to map `backspace`.
 * small bug fixes; try to avoid unnecessary forced reflows.
 
 1.55:
