@@ -43,6 +43,7 @@ Core: {
 },
 
   current: null,
+  top: null,
   keyIsDown: 0,
   Properties: [{
     axisName: "scrollLeft",
@@ -60,6 +61,7 @@ Core: {
       : factor === 1 ? (amount > 0 ? Math.ceil : Math.floor)(amount)
       : amount * this.getDimension(element, di, factor);
     this.Core.scroll(element, di, amount);
+    this.top = null;
   },
   scrollTo: function(di, amount, fromMax) {
     if (VHints.tryNestedFrame("VScroller.scrollTo", arguments)) { return; }
@@ -68,6 +70,7 @@ Core: {
     amount = fromMax ? this.getDimension(element, di, "max") - amount : amount;
     amount -= element ? element[this.Properties[di].axisName] : di ? window.scrollY : window.scrollX;
     this.Core.scroll(element, di, amount);
+    this.top = null;
   },
   adjustAmount: function(di, amount, element) {
     amount *= VSettings.cache.scrollStepSize;
@@ -76,20 +79,22 @@ Core: {
   },
   findScrollable: function(element, di, amount) {
     amount = amount > 0 ? 1 : -1;
-    while (element !== document.body && !(this.scrollDo(element, di, amount) && this.shouldScroll(element, di))) {
-      element = element.parentElement || (element.parentNode && element.parentNode.host) || document.body;
+    while (element !== this.top && !(this.scrollDo(element, di, amount) && this.shouldScroll(element, di))) {
+      element =
+        element.parentElement || (element.parentNode && element.parentNode.host) || this.top;
     }
     return element;
   },
   getActivatedElement: function() {
     var element = this.current;
+    this.top = document.scrollingElement || document.body || document.documentElement;
     if (element) { return element; }
-    element = document.body;
+    element = this.top;
     return this.current = element && (this.selectFirst(element) || element);
   },
   getDimension: function(el, di, name) {
-    return !el || name !== "viewSize" || el !== document.body
-        ? (el || document.documentElement)[this.Properties[di][name]]
+    return !el || name !== "viewSize" || el !== this.top
+        ? (el || this.top)[this.Properties[di][name]]
       : di ? window.innerHeight : window.innerWidth;
   },
   scrollDo: function(element, di, amount) {
@@ -131,13 +136,14 @@ Core: {
     hasY = amount;
     amount = rect.right < 0 ? rect.right - Math.min(rect.width, width)
       : width < rect.left ? rect.left + Math.min(rect.width - width, 0) : 0;
-    if (!amount) { return; }
+    if (!amount) { this.top = null; return; }
     oldSmooth = VSettings.cache.smoothScroll;
     VSettings.cache.smoothScroll = !hasY;
     el = this.findScrollable(el, 0, amount);
     this.Core.scroll(el, 0, amount);
     VSettings.cache.smoothScroll = oldSmooth;
     VScroller.keyIsDown = 0;
+    this.top = null;
   },
   shouldScroll: function(element, di) {
     var st = window.getComputedStyle(element);
