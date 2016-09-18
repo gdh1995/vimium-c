@@ -99,7 +99,7 @@ var VSettings, VHUD, VPort, VEventMode;
           action = checkValidKey(event, VKeyboard.getKeyName(event));
         }
       }
-      else if (key >= 32) {
+      else if (key >= 32 || key === 8) {
         if (keyChar = VKeyboard.getKeyChar(event)) {
           action = checkValidKey(event, keyChar);
           if (action === 0 && InsertMode.suppressType && keyChar.length === 1) {
