@@ -50,7 +50,8 @@ Release Notes
 * fix a bug that Vimium++ would break on Chrome 37 to 47.
 * version 1.56.1: fix a bug of lacking tips for vimium://copy urls in vomnibar.
 * version 1.56.2: support to map `backspace`.
-* version 1.56.3: fix broken scroller on Chrome 53.
+* version 1.56.3: fix that VScroller will break
+    if the flag `#enable-experimental-web-platform-features` is enabled.
 * small bug fixes; try to avoid unnecessary forced reflows.
 
 1.55:
