@@ -715,37 +715,43 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
         chrome.tabs.remove(tabs.map(funcDict.getId));
       }
     },
-    focusOrLaunch: function(request, tabs) {
-      if (!tabs || tabs.length === 0) {
-        funcDict.getCurTab(function(tabs) {
-          var tab = tabs[0];
-          // TODO: how to wait for tab finishing to load
-          chrome.tabs.create(tab ? {
-            index: tab.index + 1,
-            url: request.url,
-            windowId: tab.windowId
-          } : {url: request.url}, function(tab) {
-            chrome.windows.update(tab.windowId, {focused: true});
-            if (request.scroll) {
-              setTimeout(Marks.gotoTab, 1000, request);
-            }
-          });
-        });
-        return chrome.runtime.lastError;
+    focusOrLaunch: [function(tabs) {
+      if (tabs && tabs.length > 0) {
+        chrome.windows.getCurrent(funcDict.focusOrLaunch[2].bind(this, tabs));
+        return;
       }
-      chrome.windows.getCurrent(function(wnd) {
-        var wndId = wnd.id, tabs2, tab;
-        tabs2 = tabs.filter(function(tab) { return tab.windowId === wndId; });
-        if (!tabs2[0]) {
-          tabs2 = tabs.filter(function(tab) { return tab.incognito === wnd.incognito; });
+      funcDict.getCurTab(funcDict.focusOrLaunch[1].bind(this));
+      return chrome.runtime.lastError;
+    }, function(tabs) {
+      // TODO: how to wait for tab finishing to load
+      var callback = this.scroll ? setTimeout.bind(window, Marks.gotoTab, 1000, this) : null;
+      if (tabs.length <= 0) {
+        chrome.windows.create({url: this.url}, callback && function(wnd) {
+          wnd.tabs && wnd.tabs.length > 0 && callback(wnd.tabs[0]);
+        });
+        return;
+      }
+      chrome.tabs.create({
+        index: tabs[0].index + 1,
+        url: this.url,
+        windowId: tabs[0].windowId
+      }, callback);
+    }, function(tabs, wnd) {
+      var wndId = wnd.id, tabs2, tab, url = this.url;
+      tabs2 = tabs.filter(function(tab) { return tab.windowId === wndId; });
+      if (tabs2.length <= 0) {
+        tabs2 = tabs.filter(function(tab) { return tab.incognito === wnd.incognito; });
+        if (tabs2.length <= 0) {
+          funcDict.getCurTab(funcDict.focusOrLaunch[1].bind(this));
+          return;
         }
-        tab = tabs2[0] || tabs[0];
-        if (tab.url !== request.url && request.url.startsWith(tab.url)) {
-          chrome.tabs.update(tab.id, {url: request.url});
-        }
-        Marks.gotoTab(request, tab);
-      });
-    }
+      }
+      tab = tabs2[0];
+      if (tab.url !== url && url.startsWith(tab.url)) {
+        chrome.tabs.update(tab.id, {url: url});
+      }
+      Marks.gotoTab(this, tab);
+    }]
   };
 
   /*
@@ -1513,7 +1519,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
       // * do not limit windowId or windowType
       chrome.tabs.query({
         url: request.url.split("#", 1)[0]
-      }, funcDict.focusOrLaunch.bind(null, request));
+      }, funcDict.focusOrLaunch[0].bind(request));
     },
     secret: function(_0, port) {
       if (funcDict.checkVomnibarPage(port)) { return null; }
