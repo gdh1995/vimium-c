@@ -257,7 +257,7 @@ availableCommands: {
   passNextKey: [ "Pass the next key(s) to Chrome", 0, false ],
   enterVisualMode: [ "Enter visual mode", 1, false ],
   enterVisualLineMode: [ "Enter visual line mode", 1, false, { mode: "line" }, "enterVisualMode" ],
-  focusInput: [ "Focus the first text box on the page. Cycle between them using tab", 0, false ],
+  focusInput: [ "Focus the N-th visible text box on the page and cycle using tab", 0, false ],
   "LinkHints.activate": [ "Open a link in the current tab", 0, false, { mode: "OPEN_IN_CURRENT_TAB" }, "VHints.activate" ],
   "LinkHints.activateModeToOpenInNewTab": [ "Open a link in a new tab", 0, false,
     { mode: "OPEN_IN_NEW_BG_TAB" }, "VHints.activate" ],
