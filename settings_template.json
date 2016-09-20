@@ -1,6 +1,7 @@
 {
 	"name": "Vimium++",
 	"exclusionRules": [],
+	"extWhiteList": "hdnehngglnbnehkfcidabjckinphnief",
 	"keyMappings": [
 		"unmapAll",
 		"map ? showHelp",
