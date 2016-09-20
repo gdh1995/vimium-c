@@ -1768,6 +1768,8 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
 
     localStorage.getItem(ContentSettings.makeKey("images")) != null &&
     setTimeout(ContentSettings.clear, 100, "images");
+
+    document.documentElement.textContent = '';
   }, 34);
 
   // will run only on <F5>, not on runtime.reload

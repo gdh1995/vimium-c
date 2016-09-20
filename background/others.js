@@ -374,7 +374,4 @@ setTimeout(function() {
   cb && chrome.runtime.onInstalled.removeListener(cb);
   a = null;
   cb = function(b) { a = b; console.log(b); };
-
-  document.head.remove();
-  document.body.remove();
 }, 200);
