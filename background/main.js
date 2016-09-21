@@ -1670,7 +1670,8 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
       && Utils.isRefusingIncognito(url)
     ? chrome.windows.getCurrent.bind(null, {populate: true}
         , funcDict.createTab[1].bind(url))
-    : funcDict.getCurTab.bind(null, funcDict.createTab[0].bind(url));
+    : chrome.tabs.query.bind(null, {currentWindow: true, active: true}
+        , funcDict.createTab[0].bind(url));
     f.useTab = 0;
   };
 

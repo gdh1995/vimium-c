@@ -783,7 +783,7 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
       hud.tweenId = 0;
     },
     hide: function() {
-      var hud = HUD, el, i;
+      var hud = HUD, i;
       if (i = hud.timer) { clearTimeout(i); hud.timer = 0; }
       hud.opacity = 0;
       if (hud.box && !hud.tweenId) {
