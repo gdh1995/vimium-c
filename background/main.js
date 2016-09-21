@@ -1744,10 +1744,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
     Settings.Init();
   }, 0);
 
-  setTimeout(function() {
-    Settings.fetchFile("baseCss");
-    Settings.postUpdate("searchUrl", null); // will also update newTabUrl
-
+  (function() {
     var ref, i, ref2, key;
     ref2 = BackgroundCommands;
     for (key in ref2) { ref2[key].useTab = 0; }
@@ -1765,6 +1762,11 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
     for (i = ref.length; 0 <= --i; ) {
       ref2[ref[i]].useTab = 1;
     }
+  })();
+
+  setTimeout(function() {
+    Settings.fetchFile("baseCss");
+    Settings.postUpdate("searchUrl", null); // will also update newTabUrl
 
     localStorage.getItem(ContentSettings.makeKey("images")) != null &&
     setTimeout(ContentSettings.clear, 100, "images");
