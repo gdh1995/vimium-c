@@ -598,7 +598,7 @@ var VHints = {
     VEventMode.onWndBlur(null);
   },
   deactivate: function(suppressType) {
-    this.clean(VHUD.text.data !== this.modeOpt[this.mode]);
+    this.clean(VHUD.text !== null && VHUD.text.data !== this.modeOpt[this.mode]);
     VHandler.remove(this);
     this.isActive = false;
     suppressType != null && VDom.UI.suppressTail(suppressType);
