@@ -14,7 +14,7 @@ Vomnibar.destroy = function(delayed) {
   this.box.remove();
   VHandler.remove(this);
   this.port.close();
-  var i, f = Object.prototype.hasOwnProperty;
+  var i, f = Object.prototype.hasOwnProperty, oldStatus = this.status;
   for (i in this) { f.call(this, i) && (this[i] = null); }
   this.activate = function() {
     VHUD.showForDuration("Sorry, Vimium++ reloaded and Vomnibar is broken.", 2000);
@@ -23,6 +23,7 @@ Vomnibar.destroy = function(delayed) {
     }, 1900);
   };
   this.hide = function() {};
+  if (oldStatus === 2) { this.activate(); }
 };
 
 VDom.documentReady(function() {

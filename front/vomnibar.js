@@ -2,7 +2,8 @@
 var Vomnibar = {
   activate: function(options) {
     var url, keyword, search, start;
-    this.init && this.init();
+    if (this.init) { this.init(); }
+    else if (VPort.EnsurePort()) { return; }
     Object.setPrototypeOf(options = options || {}, null);
     this.mode.type = this.modeType = options.mode || "omni";
     this.forceNewTab = options.force ? true : false;
@@ -621,6 +622,7 @@ VPort = {
     Vomnibar.input.onblur = null;
     Vomnibar.input.blur();
     VPort.postToOwner("broken");
+    return true;
   }
 };
 (function() {
