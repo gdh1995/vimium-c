@@ -52,6 +52,9 @@ Release Notes
 * version 1.56.2: support to map `backspace`.
 * version 1.56.3: fix that VScroller will break
     if the flag `#enable-experimental-web-platform-features` is enabled.
+* version 1.56.4: fix that `Vomnibar` breaks on other extensions' page
+    if Vimium++ is forced to reload.
+  fix a edge case that `LinkHints` may break on page loading.
 * small bug fixes; try to avoid unnecessary forced reflows.
 
 1.55:
