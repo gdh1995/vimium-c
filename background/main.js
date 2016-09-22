@@ -1489,6 +1489,10 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
     initInnerCSS: function() {
       return Settings.cache.innerCss;
     },
+    reactivateVomnibar: function(request, port) {
+      cPort = port, cOptions = Object.create(null);
+      BackgroundCommands.showVomnibar();
+    },
     omni: function(request, port) {
       if (funcDict.checkVomnibarPage(port)) { return; }
       cPort = port;

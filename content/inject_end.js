@@ -6,24 +6,17 @@ VSettings.checkIfEnabled = function() {
   });
 };
 
-Vomnibar.destroy = function(delayed) {
-  if (!delayed) {
-    setTimeout(function() { Vomnibar && Vomnibar.destroy(true); }, 100);
-    return;
-  }
+Vomnibar._init = Vomnibar.Init;
+Vomnibar.destroy = function() {
+  var oldStatus = this.status;
   this.box.remove();
-  VHandler.remove(this);
   this.port.close();
-  var i, f = Object.prototype.hasOwnProperty, oldStatus = this.status;
-  for (i in this) { f.call(this, i) && (this[i] = null); }
-  this.activate = function() {
-    VHUD.showForDuration("Sorry, Vimium++ reloaded and Vomnibar is broken.", 2000);
-    setTimeout(function() {
-      VHUD.showForDuration("Please refresh the page to reopen Vomnibar.", 2000);
-    }, 1900);
-  };
-  this.hide = function() {};
-  if (oldStatus === 2) { this.activate(); }
+  this.port = this.box = null;
+  VHandler.remove(this);
+  this.Init = this._init;
+  this.status = 0;
+  if (oldStatus !== 2) { return; }
+  VPort.port.postMessage({ handler: "reactivateVomnibar" });
 };
 
 VDom.documentReady(function() {
