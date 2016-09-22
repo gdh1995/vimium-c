@@ -17,7 +17,7 @@ if [ "$output" != "-" -a -f "$output" ]; then
 fi
 
 zip -roX -MM $args "$output" . -x ".*" "*.sh" "weidu/*" "test*" \
-  "*/.*" "*.zip" "*.crx" $4
+  "*/.*" "*.coffee" "*.crx" "*.ts" "*.zip" $4
 echo ""
 echo "Wrote $output"
 
