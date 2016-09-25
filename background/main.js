@@ -1550,8 +1550,9 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
     focusOrLaunch: function(request) {
       // * request.url is guaranteed to be well formatted by frontend
       // * do not limit windowId or windowType
+      var url = request.url.split("#", 1)[0];
       chrome.tabs.query({
-        url: request.url.split("#", 1)[0]
+        url: request.prefix ? url + "*" : url
       }, funcDict.focusOrLaunch[0].bind(request));
     },
     secret: function(_0, port) {

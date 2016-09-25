@@ -65,7 +65,7 @@ Marks = { // NOTE: all members should be static
     markInfo = JSON.parse(str);
     markInfo.markName = request.markName;
     if (!Settings.indexPorts(markInfo.tabId)) {
-      g_requestHandlers.focusOrLaunch(markInfo);
+      Marks.findTab(markInfo);
       return null;
     }
     chrome.tabs.get(markInfo.tabId, Marks.checkTab.bind(markInfo));
@@ -75,8 +75,14 @@ Marks = { // NOTE: all members should be static
     if (tab.url.split("#", 1)[0] === this.url) {
       Marks.gotoTab(this, tab);
     } else {
-      g_requestHandlers.focusOrLaunch(this);
+      Marks.findTab(this);
     }
+  },
+  findTab: function(markInfo) {
+    if (markInfo.prefix == null) {
+      markInfo.prefix = markInfo.scroll[0] === 0 && markInfo.scroll[1] === 0;
+    }
+    g_requestHandlers.focusOrLaunch(markInfo);
   },
   getLocationKey: function(keyChar) {
     return "vimiumGlobalMark|" + keyChar;
