@@ -92,6 +92,7 @@
 		"map P togglePinTab",
 		"map p visitPreviousTab",
 		"map <a-p> passNextKey",
+		"map <a-m> toggleMuteTab",
 		"",
 		"map / enterFindMode",
 		"map . performFind",

@@ -751,6 +751,28 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
         chrome.tabs.update(tab.id, {url: url});
       }
       Marks.gotoTab(this, tab);
+    }],
+    toggleMuteTab: [function(tabs) {
+      var tab = tabs[0];
+      chrome.tabs.update(tab.id, { muted: !tab.mutedInfo.muted });
+    }, function(tabs) {
+      var curId = cOptions.other ? cPort.sender.tabId : -1, i, j,tab
+        , muted = false, action = { muted: true };
+      for (i = tabs.length; 0 <= --i; ) {
+        tab = tabs[i];
+        if (tab.id === curId) { continue; }
+        if (!tab.mutedInfo.muted) {
+          muted = true;
+          chrome.tabs.update(tab.id, action);
+        }
+      }
+      if (muted) { return; }
+      action = { muted: false };
+      for (i = tabs.length; 0 <= --i; ) {
+        j = tabs[i].id;
+        if (j === curId) { continue; }
+        chrome.tabs.update(j, action);
+      }
     }]
   };
 
@@ -902,6 +924,13 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
           chrome.tabs.update(tabs[i].id, action);
         } while (len > ++i);
       }
+    },
+    toggleMuteTab: function() {
+      if (cOptions.all || cOptions.other) {
+        chrome.tabs.query({audible: true}, funcDict.toggleMuteTab[1]);
+        return;
+      }
+      funcDict.getCurTab(funcDict.toggleMuteTab[0]);
     },
     reloadTab: function(tabs) {
       if (tabs.length <= 0) {

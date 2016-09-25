@@ -116,7 +116,7 @@ commandGroups: {
   findCommands: ["enterFindMode", "performFind", "performBackwardsFind", "clearFindHistory"],
   tabManipulation: ["nextTab", "previousTab", "firstTab", "lastTab", "createTab", "duplicateTab"
     , "removeTab", "removeRightTab", "restoreTab", "restoreGivenTab", "moveTabToNextWindow"
-    , "moveTabToNewWindow", "moveTabToIncognito", "togglePinTab", "visitPreviousTab"
+    , "moveTabToNewWindow", "moveTabToIncognito", "togglePinTab", "toggleMuteTab", "visitPreviousTab"
     , "closeTabsOnLeft", "closeTabsOnRight", "closeOtherTabs", "moveTabLeft", "moveTabRight"
     , "enableCSTemp", "toggleCS", "clearCS"],
   misc: ["showHelp", "autoCopy", "autoOpen", "searchAs", "toggleLinkHintCharacters"
@@ -192,6 +192,7 @@ defaultKeyMappings: [
   ["x", "removeTab"],
   ["X", "restoreTab"],
   ["<a-p>", "togglePinTab"],
+  ["<a-m>", "toggleMuteTab"],
   ["o", "Vomnibar.activate"],
   ["O", "Vomnibar.activateInNewTab"],
   ["T", "Vomnibar.activateTabSelection"],
@@ -304,7 +305,8 @@ availableCommands: {
   moveTabToNewWindow: [ "Move N tab(s) to new window", 20, true ],
   moveTabToNextWindow: [ "Move tab to next window", 1, true ],
   moveTabToIncognito: [ "Make tab in a incognito window", 1, true ],
-  togglePinTab: [ "Pin/unpin current tab", 20, true ],
+  togglePinTab: [ "Pin or unpin N tab(s)", 50, true ],
+  toggleMuteTab: [ "Mute or unmute current tab", 1, true ],
   closeTabsOnLeft: [ "Close tabs on the left", 0, true, { dir: -1 }, "removeTabsR" ],
   closeTabsOnRight: [ "Close tabs on the right", 0, true, { dir: 1 }, "removeTabsR" ],
   closeOtherTabs: [ "Close all other tabs", 1, true, null, "removeTabsR" ],

@@ -43,6 +43,9 @@ __微度新标签页 (X New Tab Page):__
 Release Notes
 -------------
 
+Not released yet:
+* add `toggleMuteTab`.
+
 1.56:
 * Vomnibar is re-implemented using `<iframe>`, which is much safer than shadowDOM.
 * Backend completer procedure is reworked and Vomnibar works faster for continuous input.
