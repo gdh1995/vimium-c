@@ -25,7 +25,8 @@ window.checker = $('keyMappings').model.checker = {
     try {
       value = JSON.parse(value);
     } catch (e) {}
-    return typeof value !== "string" || str[1] === '"' ? str
+    return str[1] === '"' ? str
+      : typeof value !== "string" ? value === true ? "" : str
       : '="' + value.replace(this.quoteRe, '\\"') + '"';
   },
   optionValueRe: /=([^\s]+)/g,
