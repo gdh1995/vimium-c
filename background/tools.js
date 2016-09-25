@@ -72,7 +72,7 @@ Marks = { // NOTE: all members should be static
     return true;
   },
   checkTab: function(tab) {
-    if (tab.url.startsWith(this.url)) {
+    if (tab.url.split("#", 1)[0] === this.url) {
       Marks.gotoTab(this, tab);
     } else {
       g_requestHandlers.focusOrLaunch(this);
