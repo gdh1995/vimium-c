@@ -239,7 +239,7 @@ availableCommands: {
   toggleViewSource: [ "View page source (deprecated)", 1, true ],
   copyCurrentTitle: [ "Copy current tab's title", 1, true, { type: "title" }, "copyTabInfo" ],
   copyCurrentUrl: [ "Copy page's info (use type=url/frame/title)", 1, true, null, "copyTabInfo" ],
-  autoCopy: [ "Copy selected text or current frame's title or url (use url=false)", 1, false ],
+  autoCopy: [ "Copy selected text or current frame's title or url (use url)", 1, false ],
   autoOpen: [ "Open selected or copied text in a new tab", 1, false ],
   searchAs: [ "Search selected or copied text using current search engine", 1, false ],
   "LinkHints.activateModeToCopyLinkUrl": [ "Copy a link URL to the clipboard", 0, false,
@@ -250,7 +250,7 @@ availableCommands: {
     { mode: "SEARCH_TEXT" }, "VHints.activate" ],
   "LinkHints.activateModeToEdit": [ "Select an editable area", 1, false,
     { mode: "FOCUS_EDITABLE" }, "VHints.activate" ],
-  "LinkHints.activateModeToOpenVomnibar": [ "Edit a link text on Vomnibar (use url=false)", 1, false,
+  "LinkHints.activateModeToOpenVomnibar": [ "Edit a link text on Vomnibar (use url)", 1, false,
     { mode: "EDIT_TEXT" }, "VHints.activate" ],
   openCopiedUrlInCurrentTab: [ "Open the clipboard's URL in the current tab", 1, true ],
   openCopiedUrlInNewTab: [ "Open the clipboard's URL in N new tab(s)", 20, true ],
@@ -306,7 +306,7 @@ availableCommands: {
   moveTabToNextWindow: [ "Move tab to next window", 1, true ],
   moveTabToIncognito: [ "Make tab in a incognito window", 1, true ],
   togglePinTab: [ "Pin or unpin N tab(s)", 50, true ],
-  toggleMuteTab: [ "Mute or unmute current tab", 1, true ],
+  toggleMuteTab: [ "Mute or unmute current tab (use all, other)", 1, true ],
   closeTabsOnLeft: [ "Close tabs on the left", 0, true, { dir: -1 }, "removeTabsR" ],
   closeTabsOnRight: [ "Close tabs on the right", 0, true, { dir: 1 }, "removeTabsR" ],
   closeOtherTabs: [ "Close all other tabs", 1, true, null, "removeTabsR" ],
@@ -339,7 +339,7 @@ availableCommands: {
   "Marks.clearGlobal": [ "Remove all global marks", 1, true, null, "clearGlobalMarks" ],
   clearGlobalMarks: [ "Remove all global marks (deprecated)", 1, true ],
   openUrl: [ "open url (use url, reuse=[-2..1])", 20, true ],
-  focusOrLaunch: [ 'focus a tab with arg "url" or open it', 1, true, { reuse: 1 }, "openUrl" ]
+  focusOrLaunch: [ 'focus a tab with given url or open it (use url="", prefix)', 1, true, { reuse: 1 }, "openUrl" ]
 }
 };
 
