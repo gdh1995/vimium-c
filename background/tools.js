@@ -44,21 +44,21 @@ Marks = { // NOTE: all members should be static
   createMark: function(request, port) {
     var tabId = port.sender.tabId;
     if (request.scroll) {
-      localStorage.setItem(Marks.getMarkKey(request.markName), JSON.stringify({
+      localStorage.setItem(Marks.getLocationKey(request.markName), JSON.stringify({
         tabId: tabId,
         url: request.url,
         scroll: request.scroll
       }));
       return true;
     }
-    (port = Settings.indexFrame(tabId, 0)) && port.postMessage({
+    (port = Settings.indexFrame(tabId, 0) || port) && port.postMessage({
       name: "createMark",
       markName: request.markName,
     });
   },
   gotoMark: function(request) {
     var str, markInfo;
-    str = localStorage.getItem(Marks.getMarkKey(request.markName));
+    str = localStorage.getItem(Marks.getLocationKey(request.markName));
     if (!str) {
       return false;
     }
@@ -68,16 +68,17 @@ Marks = { // NOTE: all members should be static
       g_requestHandlers.focusOrLaunch(markInfo);
       return null;
     }
-    chrome.tabs.get(markInfo.tabId, function(tab) {
-      if (!chrome.runtime.lastError && tab.url.startsWith(markInfo.url)) {
-        Marks.gotoTab(markInfo, tab);
-      } else {
-        g_requestHandlers.focusOrLaunch(markInfo);
-      }
-    });
+    chrome.tabs.get(markInfo.tabId, Marks.checkTab.bind(markInfo));
     return true;
   },
-  getMarkKey: function(keyChar) {
+  checkTab: function(tab) {
+    if (tab.url.startsWith(this.url)) {
+      Marks.gotoTab(this, tab);
+    } else {
+      g_requestHandlers.focusOrLaunch(this);
+    }
+  },
+  getLocationKey: function(keyChar) {
     return "vimiumGlobalMark|" + keyChar;
   },
   gotoTab: function(markInfo, tab) {
@@ -89,7 +90,7 @@ Marks = { // NOTE: all members should be static
         markName: markInfo.markName
       });
       if (markInfo.tabId !== tabId && markInfo.markName) {
-        localStorage.setItem(Marks.getMarkKey(markInfo.markName), JSON.stringify({
+        localStorage.setItem(Marks.getLocationKey(markInfo.markName), JSON.stringify({
           tabId: tabId,
           url: markInfo.url,
           scroll: markInfo.scroll
@@ -101,7 +102,7 @@ Marks = { // NOTE: all members should be static
   },
   clearGlobal: function() {
     var key_start, storage, i, key;
-    key_start = Marks.getMarkKey("");
+    key_start = Marks.getLocationKey("");
     storage = localStorage;
     for (i = storage.length; 0 <= --i; ) {
       key = storage.key(i);

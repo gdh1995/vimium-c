@@ -49,7 +49,12 @@ var VMarks = {
   },
   _create: function(event, keyChar) {
     if (event.shiftKey) {
-      this.CreateGlobalMark({markName: keyChar});
+      if (window.top === window) {
+        this.CreateGlobalMark({markName: keyChar});
+      } else {
+        VPort.port.postMessage({handler: "createMark", markName: keyChar});
+        VHUD.hide();
+      }
     } else if (keyChar === "`" || keyChar === "'") {
       this.setPreviousPosition();
       VHUD.showForDuration("Created local mark [last].", 1000);
@@ -83,10 +88,9 @@ var VMarks = {
       this.setPreviousPosition();
       if (position) {
         window.scrollTo(position.scrollX, position.scrollY);
-        VHUD.showForDuration("Jumped to local mark [last]", 1000);
-      } else {
-        VHUD.showForDuration("Created local mark [last]", 1000);
       }
+      markString = position ? "Jumped to" : "Created";
+      VHUD.showForDuration(markString + " local mark [last]", 1000);
     } else {
       try {
         markString = localStorage.getItem(this.getLocationKey(keyChar));
@@ -102,19 +106,13 @@ var VMarks = {
     }
   },
   CreateGlobalMark: function(request) {
-    var keyChar = request.markName;
-    if (window.top !== window) {
-      VPort.port.postMessage({handler: "createMark", markName: keyChar});
-      VHUD.hide();
-      return;
-    }
     VPort.port.postMessage({
       handler: "createMark",
-      markName: keyChar,
+      markName: request.markName,
       url: VMarks.getBaseUrl(),
       scroll: [window.scrollX, window.scrollY]
     });
-    VHUD.showForDuration("Created global mark : ' " + keyChar + " '.", 1000);
+    VHUD.showForDuration("Created global mark : ' " + request.markName + " '.", 1000);
   },
   Goto: function(request) {
     var scroll = request.scroll;
