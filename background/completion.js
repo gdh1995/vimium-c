@@ -794,8 +794,8 @@ searchEngines: {
     _emptyScores: [0, 0],
     scoreTerm: function(term, string) {
       var count = 0, score = 0;
-      count = string.split(RegexpCache.item(term)).length - 1;
-      if (count < 0) { return this._emptyScores; }
+      count = string.split(RegexpCache.item(term)).length;
+      if (count < 1) { return this._emptyScores; }
       score = this.anywhere;
       if (RegexpCache.get(term, 1).test(string)) {
         score += this.startOfWord;
@@ -803,7 +803,7 @@ searchEngines: {
           score += this.wholeWord;
         }
       }
-      return [score, count * term.length];
+      return [score, (count - 1) * term.length];
     },
     wordRelevancy: function(url, title) {
       var a, term, titleCount, titleScore, urlCount, urlScore, _i = queryTerms.length;
