@@ -64,6 +64,7 @@ Marks = { // NOTE: all members should be static
     }
     markInfo = JSON.parse(str);
     markInfo.markName = request.markName;
+    markInfo.prefix = request.prefix !== false && null;
     if (!Settings.indexPorts(markInfo.tabId)) {
       Marks.findTab(markInfo);
       return null;

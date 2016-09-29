@@ -1,9 +1,11 @@
 "use strict";
 var VMarks = {
   onKeypress: null,
+  prefix: true,
   activate: function(_0, options) {
     var isGo = options.mode !== "create";
     this.onKeypress = isGo ? this._goto : this._create;
+    this.prefix = options.prefix !== false;
     VHandler.push(this.onKeydown, this);
     VHUD.show((isGo ? "Go" : "Create") + " mark ...");
   },
@@ -76,6 +78,7 @@ var VMarks = {
     if (event.shiftKey) {
       VPort.sendMessage({
         handler: "gotoMark",
+        prefix: this.prefix,
         markName: keyChar
       }, function(req) {
         if (req === false) {

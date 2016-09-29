@@ -45,6 +45,8 @@ Release Notes
 
 Not released yet:
 * add `toggleMuteTab`.
+* `Marks`: global marks search other tabs by url prefix by default,
+  and you may turn off this feature by `map Marks.activate prefix=false`.
 
 1.56:
 * Vomnibar is re-implemented using `<iframe>`, which is much safer than shadowDOM.

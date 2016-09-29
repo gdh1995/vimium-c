@@ -334,7 +334,7 @@ availableCommands: {
   nextFrame: [ "Cycle forward to the next frame on the page", 0, true ],
   mainFrame: [ "Select the tab's main/top frame", 1, true ],
   "Marks.activateCreateMode": [ "Create a new mark", 1, false, { mode: "create" }, "VMarks.activate" ],
-  "Marks.activate": [ "Go to a mark", 1, false, null, "VMarks.activate" ],
+  "Marks.activate": [ "Go to a mark (use prefix=true)", 1, false, null, "VMarks.activate" ],
   "Marks.clearLocal": [ "Remove all local marks for this site", 1, false, null, "VMarks.clearLocal" ],
   "Marks.clearGlobal": [ "Remove all global marks", 1, true, null, "clearGlobalMarks" ],
   clearGlobalMarks: [ "Remove all global marks (deprecated)", 1, true ],
