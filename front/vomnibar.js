@@ -37,6 +37,7 @@ var Vomnibar = {
   modeType: "",
   useInput: true,
   completions: null,
+  isEditing: false,
   isHttps: false,
   isSearchOnTop: false,
   actionType: false,
@@ -62,7 +63,7 @@ var Vomnibar = {
     this.input.value = this.inputText;
   },
   hide: function(data) {
-    this.isActive = this.isHttps = false;
+    this.isActive = this.isHttps = this.isEditing = false;
     clearTimeout(this.timer);
     this.timer = this.height = this.matchType = 0;
     window.removeEventListener("mousewheel", this.onWheel, {passive: false});
@@ -142,7 +143,7 @@ var Vomnibar = {
     var focused = this.focused, line, str;
     this.isSelectionOrigin = false;
     if (sel === -1) {
-      this.isHttps = false;
+      this.isHttps = this.isEditing = false;
       this.input.value = this.inputText;
       if (!focused) { this.input.focus(); this.focused = false; }
       return;
@@ -150,7 +151,8 @@ var Vomnibar = {
     if (!focused) this.input.blur();
     line = this.completions[sel];
     str = line.text;
-    line.https == null || (line.https = line.url.startsWith("https://"));
+    line.https == null && (line.https = line.url.startsWith("https://"));
+    this.isEditing = line.type !== "search";
     if (line.type !== "history" && line.type !== "tab") {
       this.input.value = str;
       this.isHttps = line.https;
@@ -188,6 +190,7 @@ var Vomnibar = {
     this.input.value = str = str === line.url ? (line.parsed || line.text)
       : str === line.text ? line.url : line.text;
     this.isHttps = line.https && str === line.text;
+    this.isEditing = str !== line.parsed || line.parsed === line.text;
   },
   updateSelection: function(sel) {
     if (this.timer) { return; }
@@ -341,12 +344,12 @@ var Vomnibar = {
     this.actionType = event == null ? this.actionType : event === true ? -this.forceNewTab
       : event.ctrlKey || event.metaKey ? -1 - event.shiftKey
       : event.shiftKey ? 0 : -this.forceNewTab;
-    if (this.timer) {
-      if (newSel == null && (sel === -1 || this.isSelectionOrigin)) {
-        this.update(0, this.onEnter);
-        return;
-      }
-    } else if (sel === -1 && this.input.value.length === 0) {
+    if (newSel != null) {}
+    else if (sel === -1 && this.input.value.length === 0) { return; }
+    else if (!this.timer) {}
+    else if (this.isEditing) { sel = -1; console.log(this.isHttps); }
+    else if (sel === -1 || this.isSelectionOrigin) {
+      this.update(0, this.onEnter);
       return;
     }
     item = sel >= 0 ? this.completions[sel] : { url: this.input.value.trim() };
@@ -444,6 +447,7 @@ var Vomnibar = {
   postUpdate: function() {
     var func;
     this.timer = 0;
+    this.isEditing = false;
     if (func = this.onUpdate) {
       this.onUpdate = null;
       func.call(this);
