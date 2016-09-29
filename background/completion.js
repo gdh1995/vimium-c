@@ -797,9 +797,9 @@ searchEngines: {
       count = string.split(RegexpCache.item(term)).length - 1;
       if (count < 0) { return this._emptyScores; }
       score = this.anywhere;
-      if (RegexpCache.get(term, "\\b", "").test(string)) {
+      if (RegexpCache.get(term, 1).test(string)) {
         score += this.startOfWord;
-        if (RegexpCache.get(term, "\\b", "\\b").test(string)) {
+        if (RegexpCache.get(term, 0).test(string)) {
           score += this.wholeWord;
         }
       }
@@ -837,18 +837,25 @@ searchEngines: {
   };
 
   RegexpCache = {
-    _cache: null,
+    cache: null,
+    _d: null,
     reset: function(obj) {
-      this._cache = obj !== undefined ? obj : Object.create(null);
+      if (obj === null) {
+        this.cache = this._d = null;
+        return;
+      }
+      this.cache = Object.create(null);
+      this._d = [Object.create(null), Object.create(null), this.cache];
     },
     escapeRe: Utils.escapeAllRe,
-    get: function(s, p, n) {
-      var r = p + s.replace(this.escapeRe, "\\$&") + n, v;
-      return (v = this._cache)[r] || (v[r] = new RegExp(r, Utils.upperRe.test(s) ? "" : "i"));
+    get: function(s, i) {
+      var d = this._d[i];
+      return d[s] || (d[s] = new RegExp((i < 2 ? "\\b" : "")
+        + s.replace(this.escapeRe, "\\$&")
+        + (i ? "" : "\\b"), Utils.upperRe.test(s) ? "" : "i"));
     },
     item: function(s) {
-      return this._cache[s] || (this._cache[s] = new RegExp(
-        s.replace(this.escapeRe, "\\$&"), Utils.upperRe.test(s) ? "" : "i"));
+      return this.cache[s] || this.get(s, 2);
     }
   };
 
