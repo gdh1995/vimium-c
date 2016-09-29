@@ -960,9 +960,12 @@ searchEngines: {
       for (i = 0, len = history.length; i < len; i++) {
         info = history[i];
         j = bs(info.url, arr);
-        if (j < 0) { continue; }
-        item = arr[i];
-        item.title !== info.title && item.title && (item.title = info.title);
+        if (j < 0) {
+          HistoryCache.OnPageVisited(info);
+          continue;
+        }
+        item = arr[j];
+        item.title !== info.title && info.title && (item.title = info.title);
       }
     },
     binarySearch: function(u, a) {
