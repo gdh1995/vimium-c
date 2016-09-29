@@ -46,10 +46,10 @@ SuggestionUtils = {
   },
   pushMatchingRanges: function(string, term, ranges) {
     var index = 0, textPosition = 0, matchedEnd,
-      splits = string.split(RegexpCache.get(term, "(", ")")),
-      _ref = splits.length - 2;
-    for (; index <= _ref; index += 2) {
-      matchedEnd = (textPosition += splits[index].length) + splits[index + 1].length;
+      splits = string.split(RegexpCache.item(term)),
+      _len = splits.length, tl = term.length;
+    for (; index < _len; index++) {
+      matchedEnd = (textPosition += splits[index].length) + tl;
       ranges.push([textPosition, matchedEnd]);
       textPosition = matchedEnd;
     }
