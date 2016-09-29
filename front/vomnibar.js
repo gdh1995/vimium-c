@@ -150,9 +150,10 @@ var Vomnibar = {
     if (!focused) this.input.blur();
     line = this.completions[sel];
     str = line.text;
-    this.isHttps = line.url.startsWith("https://");
+    line.https == null || (line.https = line.url.startsWith("https://"));
     if (line.type !== "history" && line.type !== "tab") {
       this.input.value = str;
+      this.isHttps = line.https;
       if (line.type === "math") {
         this.input.select();
       }
@@ -160,6 +161,7 @@ var Vomnibar = {
     }
     if (line.parsed) {
       this.input.value = line.parsed;
+      this.isHttps = line.https && line.parsed === line.text;
       return;
     }
     if (line.url.toLowerCase().startsWith("http") && str.lastIndexOf("://", 5) < 0) {
@@ -170,7 +172,10 @@ var Vomnibar = {
       url: str
     }, function(search) {
       line.parsed = search ? search.keyword + " " + search.url : line.text;
-      sel === Vomnibar.selection && (Vomnibar.input.value = line.parsed);
+      if (sel === Vomnibar.selection) {
+        Vomnibar.input.value = line.parsed;
+        Vomnibar.isHttps = line.https && !search;
+      }
     });
   },
   toggleInput: function() {
@@ -180,8 +185,9 @@ var Vomnibar = {
       return this.updateInput(this.selection);
     }
     var line = this.completions[this.selection], str = this.input.value.trim();
-    this.input.value = str === line.url ? (line.parsed || line.text)
+    this.input.value = str = str === line.url ? (line.parsed || line.text)
       : str === line.text ? line.url : line.text;
+    this.isHttps = line.https && str === line.text;
   },
   updateSelection: function(sel) {
     if (this.timer) { return; }
