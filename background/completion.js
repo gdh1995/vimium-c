@@ -928,6 +928,7 @@ searchEngines: {
     },
     OnVisitRemoved: function(toRemove) {
       var _this = HistoryCache;
+      Decoder.continueToWork();
       if (toRemove.allHistory) {
         _this.history = [];
         return;
