@@ -791,23 +791,19 @@ searchEngines: {
     maximumScore: 3,
     maxScoreP: 3,
     recCalibrator: 2.0 / 3.0,
-    _reduceLength: function(p, c) {
-      return p - c.length;
-    },
+    _emptyScores: [0, 0],
     scoreTerm: function(term, string) {
-      var count = 0, nonMatching, score = 0;
-      nonMatching = string.split(RegexpCache.item(term));
-      if (nonMatching.length > 1) {
-        score = this.anywhere;
-        count = nonMatching.reduce(this._reduceLength, string.length);
-        if (RegexpCache.get(term, "\\b", "").test(string)) {
-          score += this.startOfWord;
-          if (RegexpCache.get(term, "\\b", "\\b").test(string)) {
-            score += this.wholeWord;
-          }
+      var count = 0, score = 0;
+      count = string.split(RegexpCache.item(term)).length - 1;
+      if (count < 0) { return this._emptyScores; }
+      score = this.anywhere;
+      if (RegexpCache.get(term, "\\b", "").test(string)) {
+        score += this.startOfWord;
+        if (RegexpCache.get(term, "\\b", "\\b").test(string)) {
+          score += this.wholeWord;
         }
       }
-      return [score, count < string.length ? count : string.length];
+      return [score, count * term.length];
     },
     wordRelevancy: function(url, title) {
       var a, term, titleCount, titleScore, urlCount, urlScore, _i = queryTerms.length;
@@ -822,8 +818,8 @@ searchEngines: {
         }
       }
       urlScore = urlScore / this.maxScoreP * this.normalizeDifference(urlCount, url.length);
-      if (!title) {
-        return urlScore;
+      if (titleCount === 0) {
+        return title ? urlScore / 2 : urlScore;
       }
       titleScore = titleScore / this.maxScoreP * this.normalizeDifference(titleCount, title.length);
       return (urlScore < titleScore) ? titleScore : ((urlScore + titleScore) / 2);
