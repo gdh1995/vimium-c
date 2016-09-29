@@ -63,7 +63,7 @@ var Vomnibar = {
     this.input.value = this.inputText;
   },
   hide: function(data) {
-    this.isActive = this.isHttps = this.isEditing = false;
+    this.isActive = this.isEditing = false;
     clearTimeout(this.timer);
     this.timer = this.height = this.matchType = 0;
     window.removeEventListener("mousewheel", this.onWheel, {passive: false});
