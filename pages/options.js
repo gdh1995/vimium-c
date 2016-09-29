@@ -265,9 +265,11 @@ ExclusionRulesOption.prototype.onInit = function() {
   }
 
   func = function() {
-    var target = $(this.getAttribute("data-auto-resize")), delta, height = target.scrollHeight;
-    if (height <= target.clientHeight) { return; }
+    var target = $(this.getAttribute("data-auto-resize")), delta, height;
+    if (target.scrollHeight <= target.clientHeight && target.scrollWidth <= target.clientWidth) { return; }
+    target.style.height = target.style.width = "";
     target.style.maxWidth = Math.min(window.innerWidth, 1024) - 120 + "px";
+    height = target.scrollHeight;
     delta = target.offsetHeight - target.clientHeight;
     delta = target.scrollWidth > target.clientWidth ? Math.max(26, delta) : delta + 18;
     height += delta;
