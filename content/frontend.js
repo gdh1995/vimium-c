@@ -682,7 +682,6 @@ var VSettings, VHUD, VPort, VEventMode;
       }
       window.focus();
       esc();
-      document.documentElement.scrollIntoViewIfNeeded();
       if (request.highlight === false || !document.body) { return; }
       var _this = FrameMask, dom1;
       if (dom1 = _this.node) {
