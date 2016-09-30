@@ -731,10 +731,7 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
       if (text.startsWith("chrome-")) {
         text = text.substring(text.indexOf('/', text.indexOf('/') + 2));
       }
-      if (text.length > 43) {
-        text = text.substring(0, 40) + "...";
-      }
-      text = "copy: " + text + ".";
+      text = "copy: " + (text.length > 43 ? text.substring(0, 40) + "..." : text + ".");
       if (virtual) { return text; }
       this.showForDuration(text, 2000);
     },
