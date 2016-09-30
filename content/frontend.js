@@ -674,7 +674,6 @@ var VSettings, VHUD, VPort, VEventMode;
     Focus: function(request) {
       if (request.frameId < 0) {}
       else if (window.innerWidth < 3 || window.innerHeight < 3
-        || window.top !== window && document.readyState !== "complete"
         || document.body instanceof HTMLFrameSetElement) {
         mainPort.port.postMessage({
           handler: "nextFrame"
