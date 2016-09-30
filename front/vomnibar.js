@@ -453,7 +453,7 @@ var Vomnibar = {
       func.call(this);
     }
   },
-  OnWndBlur: function() { Vomnibar.isActive || VPort.disconnect(); },
+  OnWndBlur: function() { Vomnibar.isActive || setTimeout(VPort.Disconnect, 50); },
   init: function() {
     addEventListener("focus", VPort.EnsurePort, true);
     window.onblur = this.OnWndBlur;
@@ -615,7 +615,7 @@ VPort = {
     if (name === "focus" || name === "backspace") { name = "onAction"; }
     Vomnibar[name](data);
   },
-  disconnect: function() { this.port && this.port.disconnect(); this.port = null; },
+  Disconnect: function() { var p = VPort.port; p && (VPort.port = null, p.disconnect()); },
   ClearPort: function() { VPort.port = null; },
   connect: function() {
     var port;
@@ -651,7 +651,7 @@ VPort = {
     port.postMessage("uiComponentIsReady");
   };
   timer = setTimeout(function() {
-    VPort.disconnect();
+    VPort.Disconnect();
     window.onmessage = _port = null;
   }, 500);
   VPort.sendMessage({ handler: "secret" }, handler);
