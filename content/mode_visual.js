@@ -177,10 +177,12 @@ var VVisualMode = {
   yank: function(action) {
     var str = this.selection.toString();
     if (action === true) {
-      return this.prompt(VHUD.showCopied(str, "", true), 2000);
+      this.prompt(VHUD.showCopied(str, "", true), 2000);
+      action = null;
+    } else {
+      this.deactivate();
+      action != null || VHUD.showCopied(str);
     }
-    this.deactivate();
-    action != null || VHUD.showCopied(str);
     VPort.port.postMessage(action != null ? { handler: "openUrl", url: str, reuse: action }
         : { handler: "copyToClipboard", data: str });
   },
