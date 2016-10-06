@@ -328,22 +328,7 @@ setTimeout(function() {
 
   if (!reason) { return; }
 
-  function compareVersion(versionA, versionB) {
-    var a, b, i, _ref;
-    versionA = versionA.split('.');
-    versionB = versionB.split('.');
-    for (i = 0, _ref = Math.max(versionA.length, versionB.length); i < _ref; ++i) {
-      a = parseInt(versionA[i] || 0, 10);
-      b = parseInt(versionB[i] || 0, 10);
-      if (a < b) {
-        return -1;
-      } else if (a > b) {
-        return 1;
-      }
-    }
-    return 0;
-  }
-  if (compareVersion(Settings.CONST.CurrentVersion, reason) <= 0) { return; }
+  if (parseFloat(Settings.CONST.CurrentVersion) <= parseFloat(reason)) { return; }
 
   reason = "vimium++_upgradeNotification";
   chrome.notifications && chrome.notifications.create(reason, {
