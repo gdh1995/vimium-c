@@ -52,7 +52,7 @@ var VHints = {
     VHandler.remove(this);
     this.setModeOpt(Object.setPrototypeOf(options || {}, null), count | 0);
 
-    var elements, style, x, y;
+    var elements, style, arr;
     if (!this.frameNested) {
       elements = this.getVisibleElements();
     }
@@ -69,8 +69,7 @@ var VHints = {
       return;
     }
 
-    x = window.scrollX; y = window.scrollY;
-    this.initBox(x, y, elements.length);
+    arr = this.initBox(elements.length);
     this.box && this.box.remove();
     this.hintMarkers = elements.map(this.createMarkerFor, this);
     elements = null;
@@ -79,7 +78,7 @@ var VHints = {
     this.setMode(this.mode);
     this.box = VDom.UI.addElementList(this.hintMarkers, "HMC");
     style = this.box.style;
-    style.left = x + "px"; style.top = y + "px";
+    style.left = arr[0] + "px"; style.top = arr[1] + "px";
     if (document.webkitIsFullScreen) { style.position = "fixed"; }
 
     this.isActive = true;
@@ -141,23 +140,26 @@ var VHints = {
   maxTop: 0,
   maxRight: 0,
   maxBottom: 0,
-  initBox: function(x, y, count) {
+  initBox: function(count) {
+    var iw = window.innerWidth, ih = window.innerHeight, box, rect, width, height, x, y;
     if (document.webkitIsFullScreen) {
-      this.maxLeft = window.innerWidth; this.maxTop = window.innerHeight;
+      this.maxLeft = iw; this.maxTop = ih;
       return;
     }
-    var box = document.documentElement, rect, width, height;
+    box = document.documentElement;
+    x = window.scrollX; y = window.scrollY;
     // NOTE: if zoom > 1, although document.documentElement.scrollHeight is integer,
     //   its real rect may has a float width, such as 471.333 / 472
     rect = box.getBoundingClientRect();
     width = rect.width; height = rect.height;
     width  = box.scrollWidth  - x - (width !== (width | 0));
     height = box.scrollHeight - y - (height !== (height | 0));
-    this.maxRight  = Math.min(Math.max(width,  box.clientWidth ), window.innerWidth  + 64);
-    this.maxBottom = Math.min(Math.max(height, box.clientHeight), window.innerHeight + 20);
+    this.maxRight  = Math.min(Math.max(width,  box.clientWidth,  iw - 24), iw + 64);
+    this.maxBottom = Math.min(Math.max(height, box.clientHeight, ih - 24), ih + 20);
     count = Math.ceil(Math.log(count) / Math.log(VSettings.cache.linkHintCharacters.length));
     this.maxLeft = this.maxRight - (11 * count) - 8;
     this.maxTop = this.maxBottom - 15;
+    return [-rect.left, -rect.top];
   },
   createMarkerFor: function(link) {
     var marker = VDom.createElement("div"), i;

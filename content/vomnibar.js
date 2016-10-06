@@ -25,7 +25,7 @@ var Vomnibar = {
     }
     var secret = options.secret, url = options.page;
     delete options.secret; delete options.page;
-    this.width = document.documentElement.clientWidth;
+    this.width = Math.max(window.innerWidth - 24, document.documentElement.clientWidth);
     this.options = options;
     if (this.Init) {
       setTimeout(this.Init, 0, secret, url);
