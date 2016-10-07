@@ -159,7 +159,7 @@ var VHints = {
     count = Math.ceil(Math.log(count) / Math.log(VSettings.cache.linkHintCharacters.length));
     this.maxLeft = this.maxRight - (11 * count) - 8;
     this.maxTop = this.maxBottom - 15;
-    return [-rect.left, -rect.top];
+    return getComputedStyle(box).position === "static" ? [x, y] : [-rect.left, -rect.top];
   },
   createMarkerFor: function(link) {
     var marker = VDom.createElement("div"), i;
