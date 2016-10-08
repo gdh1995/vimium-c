@@ -1491,6 +1491,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
       if (ports) {
         return ports[0].postMessage({
           name: "focusFrame",
+          frameId: -1,
           highlight: false
         });
       }
