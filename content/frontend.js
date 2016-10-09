@@ -924,7 +924,7 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
   VDom.documentReady(function() {
     HUD.enabled = !!document.body;
     if (window.innerHeight > 9 && window.innerWidth > 9) {
-      mainPort.safePost({ handler: "reg", visible: true});
+      mainPort.safePost({ handler: "outerCss"});
     }
     ELs.OnWndFocus = mainPort.safePost.bind(mainPort, { handler: "frameFocused" });
   });
