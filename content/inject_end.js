@@ -20,20 +20,8 @@ Vomnibar.destroy = function() {
 };
 
 VDom.documentReady(function() {
-  if (VPort.safePost({ handler: "reg", visible: true })) {
-    return;
-  }
+  if (!VSettings) { return; }
   addEventListener("hashchange", VSettings.checkIfEnabled);
-  VEventMode.onWndFocus(VPort.safePost.bind(VPort, {
-    handler: "frameFocused"
-  }, function() {
-    setTimeout(function() {
-      if (VPort && !VPort.port) {
-        VSettings.destroy();
-      }
-    }, 50);
-  }));
-  Object.freeze(VEventMode);
 });
 
 if (chrome.runtime.onMessageExternal) {
@@ -63,4 +51,4 @@ VimiumInjector.destroy = VSettings.destroy;
 [VDom, VRect, VHints, Vomnibar, VScroller, VMarks,
   VFindMode, VSettings, VHUD, VPort, VVisualMode,
   VimiumInjector].forEach(Object.seal);
-[VUtils, VKeyboard, VKeyCodes, VHandler].forEach(Object.freeze);
+[VUtils, VKeyboard, VKeyCodes, VHandler, VEventMode].forEach(Object.freeze);

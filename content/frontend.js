@@ -23,16 +23,15 @@ var VSettings, VHUD, VPort, VEventMode;
       this.port.postMessage({_msgId: id, request: request});
       this._callbacks[id] = callback;
     },
-    safePost: function(request, ifReconnect) {
+    safePost: function(request) {
       try {
         if (!this.port) {
           this.connect(0);
-          ifReconnect && ifReconnect();
+          isInjected && setTimeout(function() { VPort && !VPort.port && settings.destroy(); }, 50);
         }
         this.port.postMessage(request);
       } catch (e) { // this extension is reloaded or disabled
         settings.destroy();
-        return true;
       }
     },
     Listener: function(response) {
@@ -529,7 +528,6 @@ var VSettings, VHUD, VPort, VEventMode;
 
   VEventMode = {
     lock: function() { return InsertMode.lock; },
-    onWndFocus: isInjected && function(f) { ELs.OnWndFocus = f; VEventMode.onWndFocus = null; },
     onWndBlur: function(f) { ELs.OnWndBlur = f; },
     OnWndFocus: function() { return ELs.OnWndFocus; },
     scroll: function(event) {
@@ -925,14 +923,9 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
 
   VDom.documentReady(function() {
     HUD.enabled = !!document.body;
-    if (isInjected || mainPort.safePost({ handler: "reg",
-      visible: window.innerHeight > 9 && window.innerWidth > 9
-    })) {
-      return;
+    if (window.innerHeight > 9 && window.innerWidth > 9) {
+      mainPort.safePost({ handler: "reg", visible: true});
     }
-    // NOTE: here, we should always postMessage, since
-    //     NO other message will be sent if not isEnabledForUrl,
-    // which would make the logic of auto-destroying not work.
     ELs.OnWndFocus = mainPort.safePost.bind(mainPort, { handler: "frameFocused" });
   });
 
