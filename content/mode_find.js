@@ -128,7 +128,7 @@ body{cursor:text;display:inline-block;padding:0 3px 0 1px;min-width:7px;}body *{
       : 0;
     if (!i) {
       if (!VKeyboard.isPlain(event)) {
-        if (event.shiftKey || !(event.ctrlKey || event.metaKey)) { return; }
+        if (event.altKey || event.shiftKey || !(event.ctrlKey || event.metaKey)) { return; }
         else if (n >= 74 && n <= 75) { this.execute(null, { dir: 74 - n }); }
         else { return; }
       }
