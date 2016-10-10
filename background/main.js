@@ -1730,7 +1730,10 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
   chrome.runtime.onMessageExternal && (
   chrome.runtime.onMessageExternal.addListener(function(message, sender, sendResponse) {
     var command;
-    if (!(sender.id in Settings.extWhiteList)) { return; }
+    if (!(sender.id in Settings.extWhiteList)) {
+      sendResponse(false);
+      return;
+    }
     if (typeof message === "string") {
       command = message;
       if (command && Commands.availableCommands[command]) {
