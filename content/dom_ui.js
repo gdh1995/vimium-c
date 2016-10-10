@@ -63,14 +63,10 @@ VDom.UI = {
   insertInnerCSS: function(inner) {
     this.styleIn && (this.styleIn.textContent = inner.css);
   },
-  insertCSS: function(outer, showing) {
-    var el;
-    if (el = this.styleOut) {
-      el.textContent = outer;
-    } else {
-      el = this.styleOut = this.createStyle(outer);
-    }
-    if (!showing) { el.remove(); return; }
+  insertCSS: function(outer) {
+    var el = this.styleOut;
+    if (!outer) { el && el.remove(); return; }
+    el ? (el = this.styleOut = this.createStyle(outer)) : (el.textContent = outer);
     this.init && this.init();
     this.box.appendChild(el);
   },

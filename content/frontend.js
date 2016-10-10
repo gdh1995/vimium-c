@@ -186,6 +186,13 @@ var VSettings, VHUD, VPort, VEventMode;
       }
       ELs.onBlur(event);
     },
+    OnReady: function(event) {
+      var visible = isEnabledForUrl && window.innerHeight > 9 && window.innerWidth > 9;
+      VDom.UI.insertCSS(visible && settings.cache.userDefinedOuterCss);
+      if (event) { return; }
+      HUD.enabled = !!document.body;
+      ELs.OnWndFocus = mainPort.safePost.bind(mainPort, { handler: "frameFocused" });
+    },
     hook: function(f, c) {
       f("keydown", this.onKeydown, true);
       f("keyup", this.onKeyup, true);
@@ -795,6 +802,7 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
       r.reset(request);
       InsertMode.loading = false;
       r.init = null;
+      VDom.documentReady(ELs.OnReady);
     },
     reset: function(request) {
       var newPassKeys = request.passKeys, enabled;
@@ -821,9 +829,7 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
       for (i in request) {
         ref[i] = request[i];
       }
-    },
-    insertCSS: function(request) {
-      VDom.UI.insertCSS(request.css, isEnabledForUrl);
+      if ("userDefinedOuterCss" in request) { ELs.OnReady(true); }
     },
     insertInnerCSS: VDom.UI.insertInnerCSS,
     focusFrame: FrameMask.Focus,
@@ -920,14 +926,6 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
   settings.timer = setInterval(function() {
     mainPort.connect(1);
   }, 2000);
-
-  VDom.documentReady(function() {
-    HUD.enabled = !!document.body;
-    if (window.innerHeight > 9 && window.innerWidth > 9) {
-      mainPort.safePost({ handler: "outerCss"});
-    }
-    ELs.OnWndFocus = mainPort.safePost.bind(mainPort, { handler: "frameFocused" });
-  });
 
   settings.destroy = function() {
     var f = removeEventListener, el;

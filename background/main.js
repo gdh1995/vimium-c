@@ -1497,10 +1497,6 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
       }
       try { port.postMessage({ name: "returnFocus" }); } catch (e) {}
     },
-    outerCss: function(request, port) {
-      var key = Settings.cache.userDefinedOuterCss;
-      key && port.postMessage({ name: "insertCSS", css: key });
-    },
     initHelp: function(request, port) {
       Settings.fetchFile("helpDialog", function() {
         var result = {

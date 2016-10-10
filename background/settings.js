@@ -131,12 +131,6 @@ var Settings = {
         name: "insertInnerCSS",
         css: this.cache.innerCss
       });
-    },
-    userDefinedOuterCss: function(css) {
-      this.broadcast({
-        name: "insertCSS",
-        css: css
-      });
     }
   },
   indexFrame: null,
@@ -213,7 +207,7 @@ w|wiki:\\\n  http://www.wikipedia.org/w/index.php?search=$s Wikipedia (en-US)",
     { "19": "icons/disabled_19.png", "38": "icons/disabled_38.png" }
   ],
   valuesToLoad: ["deepHints", "grabBackFocus", "keyboard", "linkHintCharacters" //
-    , "regexFindMode", "scrollStepSize", "smoothScroll" //
+    , "regexFindMode", "scrollStepSize", "smoothScroll", "userDefinedOuterCss" //
   ],
   Sync: {
     set: function() {}
