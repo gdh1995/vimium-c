@@ -143,10 +143,6 @@ var Settings = {
       return;
     });
   },
-  contentScripts: function(callback) {
-    setTimeout(function() { callback(Settings.CONST.ContentScripts); }, 18);
-    return true;
-  },
   // clear localStorage & sync, if value === @defaults[key]
   // the default of any dict field must be set to null for compatibility with @Sync.set
   defaults: {
@@ -244,5 +240,4 @@ setTimeout(function() {
     ref.unshift(Settings.CONST.PolyFill);
   }
   Settings.CONST.ContentScripts = ref.map(func);
-  Settings.contentScripts = function(callback) { callback(this.CONST.ContentScripts); };
 }, 17);

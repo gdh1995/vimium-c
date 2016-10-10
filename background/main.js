@@ -1727,7 +1727,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
     executeCommand(command, Commands.makeCommand(command, options), count, null);
   };
 
-  chrome.runtime.onMessageExternal && (Settings.postUpdate("extWhiteList"),
+  chrome.runtime.onMessageExternal && (
   chrome.runtime.onMessageExternal.addListener(function(message, sender, sendResponse) {
     var command;
     if (!(sender.id in Settings.extWhiteList)) { return; }
@@ -1750,9 +1750,10 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
       Settings.globalCommand(command, message.options);
       break;
     case "content_scripts":
-      return Settings.contentScripts(sendResponse);
+      sendResponse(Settings.CONST.ContentScripts);
+      return;
     }
-  }));
+  }), Settings.postUpdate("extWhiteList"));
 
   chrome.tabs.onReplaced &&
   chrome.tabs.onReplaced.addListener(function(addedTabId, removedTabId) {
