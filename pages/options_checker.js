@@ -33,7 +33,7 @@ window.checker = $('keyMappings').model.checker = {
   normalizeMap: function(_0, cmd, keys, options) {
     var keys2 = this.normalizeKeys(keys);
     if (keys2 !== keys) {
-      console.log("ValueError:", keys, "is corrected into", keys2);
+      console.log("KeyMappings Checker:", keys, "is corrected into", keys2);
     }
     options = options.replace(this.optionValueRe, this.normalizeOptions);
     return cmd + keys2 + options;

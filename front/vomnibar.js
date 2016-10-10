@@ -347,7 +347,7 @@ var Vomnibar = {
     if (newSel != null) {}
     else if (sel === -1 && this.input.value.length === 0) { return; }
     else if (!this.timer) {}
-    else if (this.isEditing) { sel = -1; console.log(this.isHttps); }
+    else if (this.isEditing) { sel = -1; }
     else if (sel === -1 || this.isSelectionOrigin) {
       this.update(0, this.onEnter);
       return;
