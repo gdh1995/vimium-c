@@ -6,9 +6,9 @@ window.checker = $('keyMappings').model.checker = {
   init: function() {
     var keyLeftRe = /<((?:[acmACM]-){0,3})(.[^>]*)>/g, lowerRe = /[a-z]/,
     sortModifiers = function(option) {
-      return option.length < 4 ? option : option.length > 4 ? "m-c-a-"
-        : option === "a-c-" ? "c-a-" : option === "a-m-" ? "m-a-"
-        : option === "c-m-" ? "m-c-" : option;
+      return option.length < 4 ? option : option.length > 4 ? "a-c-m-"
+        : option === "c-a-" ? "a-c-" : option === "m-a-" ? "a-m-"
+        : option === "m-c-" ? "c-m-" : option;
     },
     func = function(_0, option, key) {
       return (option ? ("<" + sortModifiers(option.toLowerCase())) : "<")

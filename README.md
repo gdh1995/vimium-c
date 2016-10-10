@@ -44,6 +44,7 @@ Release Notes
 -------------
 
 Not released yet:
+* **WARNING**: revert modifier keys' orders into `a-c-m-`
 * add `toggleMuteTab`.
 * `Marks`: global marks search other tabs by url prefix by default,
   and you may turn off this feature by `map Marks.activate prefix=false`.
