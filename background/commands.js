@@ -1,7 +1,7 @@
 "use strict";
 var Commands = {
   // NOTE: [^\s] is for spliting passed keys
-  keyRe: /<(?:.-){0,3}.[^>]*>|./g,
+  keyRe: /<(?!<)(?:.-){0,3}.[^>]*>|./g,
   keyToCommandRegistry: null,
   setKeyRe: function(keyReSource) {
     this.keyRe = new RegExp(keyReSource, "g");

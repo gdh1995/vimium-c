@@ -4,7 +4,7 @@ window.checker = $('keyMappings').model.checker = {
   normalizeKeys: null,
   isKeyReInstalled: false,
   init: function() {
-    var keyLeftRe = /<((?:[acmACM]-){0,3})(.[^>]*)>/g, lowerRe = /[a-z]/,
+    var keyLeftRe = /<(?!<)((?:[acmACM]-){0,3})(.[^>]*)>/g, lowerRe = /[a-z]/,
     sortModifiers = function(option) {
       return option.length < 4 ? option : option.length > 4 ? "a-c-m-"
         : option === "c-a-" ? "a-c-" : option === "m-a-" ? "a-m-"
