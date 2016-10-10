@@ -29,7 +29,7 @@ window.checker = $('keyMappings').model.checker = {
       : typeof value !== "string" ? value === true ? "" : str
       : '="' + value.replace(this.quoteRe, '\\"') + '"';
   },
-  optionValueRe: /=([^\s]+)/g,
+  optionValueRe: /=(\S+)/g,
   normalizeMap: function(_0, cmd, keys, options) {
     var keys2 = this.normalizeKeys(keys);
     if (keys2 !== keys) {
@@ -38,7 +38,7 @@ window.checker = $('keyMappings').model.checker = {
     options = options.replace(this.optionValueRe, this.normalizeOptions);
     return cmd + keys2 + options;
   },
-  mapKeyRe: /(\n[ \t]*(?:un)?map\s+)([^\s]+)([^#\n]*)/g,
+  mapKeyRe: /(\n[ \t]*(?:un)?map\s+)(\S+)([^#\n]*)/g,
   wrapLineRe: /\\\n/g,
   wrapLineRe2: /\\\r/g,
   check: function(string) {
