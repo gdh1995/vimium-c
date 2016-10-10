@@ -38,7 +38,7 @@ window.checker = $('keyMappings').model.checker = {
     options = options.replace(this.optionValueRe, this.normalizeOptions);
     return cmd + keys2 + options;
   },
-  mapKeyRe: /(\n[ \t]*(?:un)?map\s+)(\S+)([^#\n]*)/g,
+  mapKeyRe: /(\n[ \t]*(?:un)?map\s+)(\S+)([^\n]*)/g,
   wrapLineRe: /\\\n/g,
   wrapLineRe2: /\\\r/g,
   check: function(string) {
