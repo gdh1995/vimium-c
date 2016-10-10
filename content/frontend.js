@@ -84,8 +84,8 @@ var VSettings, VHUD, VPort, VEventMode;
         return;
       }
       if (InsertMode.isActive()) {
-        if (InsertMode.global ? key === InsertMode.global.code
-              && VKeyboard.getKeyStat(event) === InsertMode.global.stat
+        if (InsertMode.global ? !InsertMode.global.code ? VKeyboard.isEscape(event)
+              : key === InsertMode.global.code && VKeyboard.getKeyStat(event) === InsertMode.global.stat
             : VKeyboard.isEscape(event)
               || (key > 90 && (keyChar = VKeyboard.getKeyName(event)) &&
                 (action = checkValidKey(event, keyChar)), false)
@@ -251,10 +251,11 @@ var VSettings, VHUD, VPort, VEventMode;
     enterVisualMode: function(_0, options) { VVisualMode.activate(options); },
     enterInsertMode: function(_0, options) {
       var code = options.code || VKeyCodes.esc, stat = options.stat, hud = !options.hideHud, str;
+      code === VKeyCodes.esc && stat === 0 && (code = 0);
       InsertMode.global = { code: code, stat: stat, hud: hud };
       if (!hud) { return; }
       str = "Insert mode";
-      if (code !== VKeyCodes.esc || stat > 0) { str += ": " + code + "/" + stat; }
+      if (code) { str += ": " + code + "/" + stat; }
       HUD.show(str);
     },
     passNextKey: function(count) {
