@@ -25,15 +25,14 @@ var VMarks = {
     VHUD.showForDuration("Local marks have been cleared.", 1000);
   },
   onKeydown: function(event) {
-    var keyCode = event.keyCode, keyChar;
-    if (keyCode === VKeyCodes.esc ? !VKeyboard.isPlain(event)
-      : keyCode > VKeyCodes.f1 && keyCode <= VKeyCodes.f12 || keyCode <= 32
-        || !(keyChar = VKeyboard.getKeyChar(event))) {
+    var keyCode = event.keyCode, keyChar, cont = !VKeyboard.isEscape(event);
+    if (cont && (keyCode > VKeyCodes.f1 && keyCode <= VKeyCodes.f12 || keyCode <= 32
+        || !(keyChar = VKeyboard.getKeyChar(event)))) {
       return 1;
     }
     VHandler.remove(this);
     VHUD.hide();
-    keyCode > 32 && this.onKeypress(event, keyChar);
+    cont && keyCode > 32 && this.onKeypress(event, keyChar);
     return 2;
   },
   getBaseUrl: function() {

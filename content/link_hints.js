@@ -469,8 +469,9 @@ var VHints = {
     var linksMatched, i, j, ref, limit;
     if (event.repeat) {
       // NOTE: should always prevent repeated keys.
-    } else if ((i = event.keyCode) === VKeyCodes.esc) {
-      return VKeyboard.isPlain(event) ? (this.deactivate(), 2) : 0;
+    } else if (VKeyboard.isEscape(event)) {
+      this.deactivate();
+      return 2;
     } else if (i > VKeyCodes.f1 && i <= VKeyCodes.f12) {
       this.ResetMode();
       if (i !== VKeyCodes.f1 + 1) { return 0; }

@@ -86,9 +86,8 @@ var VSettings, VHUD, VPort, VEventMode;
       if (InsertMode.isActive()) {
         if (InsertMode.global ? key === InsertMode.global.code
               && VKeyboard.getKeyStat(event) === InsertMode.global.stat
-            : key === VKeyCodes.esc ? VKeyboard.isPlain(event)
-            : key === 219 ? VKeyboard.getKeyStat(event) === 2
-            : (key > 90 && (keyChar = VKeyboard.getKeyName(event)) &&
+            : VKeyboard.isEscape(event)
+              || (key > 90 && (keyChar = VKeyboard.getKeyName(event)) &&
                 (action = checkValidKey(event, keyChar)), false)
           ) {
           InsertMode.exit(event);
@@ -915,8 +914,7 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
     window.focus();
     VScroller.current = box;
     VHandler.push(function(event) {
-      if (event.keyCode === VKeyCodes.esc && !InsertMode.lock
-          && VKeyboard.isPlain(event)) {
+      if (!InsertMode.lock && VKeyboard.isEscape(event)) {
         VDom.UI.removeSelection() || hide();
         return 2;
       }

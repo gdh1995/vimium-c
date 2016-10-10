@@ -127,7 +127,8 @@ body{cursor:text;display:inline-block;padding:0 3px 0 1px;min-width:7px;}body *{
       : (i === VKeyCodes.backspace || i === VKeyCodes.deleteKey) ? +!this.query.length
       : 0;
     if (!i) {
-      if (!VKeyboard.isPlain(event)) {
+      if (VKeyboard.isEscape(event)) { i = 3; }
+      else if (!VKeyboard.isPlain(event)) {
         if (event.altKey || event.shiftKey || !(event.ctrlKey || event.metaKey)) { return; }
         else if (n >= 74 && n <= 75) { this.execute(null, { dir: 74 - n }); }
         else { return; }
@@ -203,7 +204,7 @@ body{cursor:text;display:inline-block;padding:0 3px 0 1px;min-width:7px;}body *{
       el.addEventListener("blur", Exit, true);
     },
     onKeydown: function(event) {
-      var exit = event.keyCode === VKeyCodes.esc && VKeyboard.isPlain(event);
+      var exit = VKeyboard.isEscape(event);
       exit ? this.exit() : VHandler.remove(this);
       return 2 * exit;
     },

@@ -147,7 +147,7 @@ VDom.UI = {
   },
   SuppressMost: function(event) {
     var key = event.keyCode;
-    if (key == VKeyCodes.esc && VKeyboard.isPlain(event)) {
+    if (VKeyboard.isEscape(event)) {
       VHandler.remove(this);
     }
     return key > VKeyCodes.f1 + 9 && key <= VKeyCodes.f12 ? 1 : 2;

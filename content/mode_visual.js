@@ -72,8 +72,7 @@ var VVisualMode = {
       (i & 6) ? this.deactivate() : this.yank(i === 1 || null);
       return 2;
     }
-    if (i === VKeyCodes.esc) {
-      if (!VKeyboard.isPlain(event)) { return 0; }
+    if (VKeyboard.isEscape(event)) {
       this.currentCount || this.currentSeconds ? this.resetKeys() : this.deactivate(1);
       return 2;
     }

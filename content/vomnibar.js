@@ -153,20 +153,17 @@ var Vomnibar = {
     VHandler.push(this.onKeydown, this);
   },
   onKeydown: function() {
-    var key = event.keyCode, i;
-    if (key == VKeyCodes.esc) {
-      return VKeyboard.isPlain(event) ? (this.hide(), 2) : 0;
-    }
-    i = VKeyCodes.f1;
-    if (key === i || key === i + 1) {
-      this.focus(key === i);
+    if (VKeyboard.isEscape(event)) { this.hide(); return 2; }
+    var key = event.keyCode - VKeyCodes.f1;
+    if (key === 0 || key === 1) {
+      this.focus(key);
       return 2;
     }
     return 0;
   },
-  focus: function(bs) {
+  focus: function(f2) {
     if (this.status < 3) { return; }
     this.box.contentWindow.focus();
-    this.port.postMessage(bs ? "backspace" : "focus");
+    this.port.postMessage(f2 ? "focus" : "backspace");
   }
 };
