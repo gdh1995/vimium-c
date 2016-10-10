@@ -133,7 +133,7 @@ body{cursor:text;display:inline-block;padding:0 3px 0 1px;min-width:7px;}body *{
         else { return; }
       }
       else if (n === VKeyCodes.f1) { this.box.contentDocument.execCommand("delete"); }
-      else if (n === VKeyCodes.f1 + 1) { window.focus(); }
+      else if (n === VKeyCodes.f1 + 1) { window.focus(); VEventMode.suppress(n); }
       else if (n === VKeyCodes.esc) { i = 3; }
       else if (n === VKeyCodes.up || n === VKeyCodes.down) { this.nextQuery(n === VKeyCodes.up ? 1 : -1); }
       else { return; }
@@ -142,6 +142,7 @@ body{cursor:text;display:inline-block;padding:0 3px 0 1px;min-width:7px;}body *{
     if (!i) { return; }
     var hasStyle = !!this.styleIn.parentNode;
     el = this.deactivate();
+    VEventMode.suppress(n);
     if ((i === 3 || !this.hasResults || VVisualMode.mode) && hasStyle) {
       this.toggleStyle("remove");
       this.restoreSelection(true);
