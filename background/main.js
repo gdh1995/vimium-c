@@ -1486,16 +1486,17 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
       cPort = port;
       BackgroundCommands.nextFrame(1);
     },
-    refocusCurrent: function(_0, port) {
+    refocusCurrent: function(request, port) {
       var ports = port.sender.tabId !== -1 ? framesForTab[port.sender.tabId] : null;
       if (ports) {
         return ports[0].postMessage({
           name: "focusFrame",
           frameId: -1,
+          lastKey: request.lastKey,
           highlight: false
         });
       }
-      try { port.postMessage({ name: "returnFocus" }); } catch (e) {}
+      try { port.postMessage({ name: "returnFocus", lastKey: request.lastKey }); } catch (e) {}
     },
     initHelp: function(request, port) {
       Settings.fetchFile("helpDialog", function() {

@@ -50,6 +50,7 @@ var Vomnibar = {
   height: 0,
   input: null,
   isSelectionOrigin: true,
+  lastKey: 0,
   list: null,
   onUpdate: null,
   refreshInterval: 500,
@@ -76,8 +77,9 @@ var Vomnibar = {
     this.lastQuery = this.inputText = "";
     if (data !== "hide") {
       VPort.postToOwner("hide");
-      VPort.postMessage({ handler: "refocusCurrent" });
+      VPort.postMessage({ handler: "refocusCurrent", lastKey: this.lastKey });
     }
+    this.lastKey = 0;
   },
   reset: function(input, start, end) {
     this.inputText = input || (input = "");
@@ -212,6 +214,7 @@ var Vomnibar = {
   onKeydown: function(event) {
     if (!this.isActive) { return 2; }
     var action = "", n = event.keyCode, focused = this.focused;
+    this.lastKey = n;
     if (event.altKey || event.metaKey) {
       if (event.ctrlKey || event.shiftKey) {}
       else if (n === 113) {
@@ -286,7 +289,7 @@ var Vomnibar = {
     case "blurInput": this.input.blur(); break;
     case "backspace": case "blur":
       !this.focused ? this.input.focus()
-      : action === "blur" ? VPort.postMessage({ handler: "refocusCurrent" })
+      : action === "blur" ? VPort.postMessage({ handler: "refocusCurrent", lastKey: this.lastKey })
       : document.execCommand("delete");
       break;
     case "up": case "down":
@@ -369,6 +372,7 @@ var Vomnibar = {
     while(el && el.parentNode !== this.list) { el = el.parentNode; }
     if (!el) { return; }
     if (this.timer) { event.preventDefault(); return; }
+    this.lastKey = 0;
     this.onEnter(event, [].indexOf.call(this.list.children, el));
   },
   OnMenu: function (event) {
@@ -488,8 +492,8 @@ var Vomnibar = {
     if (action === 2) { event.preventDefault(); }
     event.stopImmediatePropagation();
   },
-  returnFocus: function() {
-    try { VPort.postToOwner("focus"); } catch (e) {}
+  returnFocus: function(request) {
+    try { VPort.postToOwner({ name: "focus", lastKey: request.lastKey }); } catch (e) {}
   },
 
   mode: {

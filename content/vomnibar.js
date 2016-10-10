@@ -127,7 +127,7 @@ var Vomnibar = {
       }
       this.box.style.height = data.height + "px";
       break;
-    case "focus": window.focus(); break;
+    case "focus": window.focus(); VEventMode.suppress(data.lastKey); break;
     case "hide": this.hide(true); break;
     case "scrollBy": VScroller.scrollBy(1, data.amount); break;
     case "scrollGoing": VScroller.keyIsDown = VScroller.Core.maxInterval; break;

@@ -561,6 +561,7 @@ var VSettings, VHUD, VPort, VEventMode;
       InsertMode.onExitSuppress = InsertMode.suppressType = null;
       f && f();
     },
+    suppress: function(key) { key && (KeydownEvents[key] = 1); },
     keydownEvents: function(arr) {
       if (!isEnabledForUrl) { throw Error("vimium-disabled"); }
       if (!arr) { return KeydownEvents; }
@@ -687,6 +688,7 @@ var VSettings, VHUD, VPort, VEventMode;
       }
       window.focus();
       esc();
+      VEventMode.suppress(request.lastKey);
       if (request.highlight === false || !document.body) { return; }
       var _this = FrameMask, dom1;
       if (dom1 = _this.node) {
