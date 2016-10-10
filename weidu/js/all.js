@@ -3661,26 +3661,9 @@ mset = null;
 };
 
 window.onload = function () {
-	var activate = function(delay) {
-		setTimeout(function() {
-			$('#normal')[0].click();
-		}, delay >= 0 ? delay : 300);
-	};
-	window.onload = null; // only retry for once
+	window.onload = null;
 	if (window.VimiumInjector) {
-		activate();
-		return;
+		setTimeout(function() { $('#normal')[0].click(); }, 300);
 	}
-	setTimeout(function() {
-		if (window.VimiumInjector) {
-			activate();
-			return;
-		}
-		var node = document.createElement("script");
-		node.src = "chrome-extension://hfjbmagddngcpeloejdejnfgbamkjaeg/lib/injector.js";
-		document.head.appendChild(node);
-		console.log("Weidu: failed to load Vimium++ -> retrying");
-		activate(1000);
-	}, 2000);
 };
 var a, cb = function(b) { a=b; console.log(b); }, b=cb, log=console.log.bind(console);
