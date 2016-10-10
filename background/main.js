@@ -1512,7 +1512,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
       return Settings.cache.innerCss;
     },
     reactivateVomnibar: function(request, port) {
-      cPort = port, cOptions = Object.create(null);
+      cPort = port;
       BackgroundCommands.showVomnibar();
     },
     omni: function(request, port) {
