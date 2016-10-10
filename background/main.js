@@ -1486,6 +1486,13 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
       cPort = port;
       BackgroundCommands.nextFrame(1);
     },
+    exitGrab: function(_0, port) {
+      var ports = Settings.indexPorts(port.sender.tabId), i, msg;
+      if (!ports || ports.length < 3) { return; }
+      for (msg = { name: "exitGrab" }, i = ports.length; 1 <= --i; ) {
+        ports[i] !== port && ports[i].postMessage(msg);
+      }
+    },
     refocusCurrent: function(request, port) {
       var ports = port.sender.tabId !== -1 ? framesForTab[port.sender.tabId] : null;
       if (ports) {

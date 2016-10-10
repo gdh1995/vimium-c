@@ -482,11 +482,12 @@ var VSettings, VHUD, VPort, VEventMode;
       VHandler.push(this.ExitGrab, this);
       addEventListener("mousedown", this.ExitGrab, true);
     },
-    ExitGrab: function() {
+    ExitGrab: function(event) {
       var _this = InsertMode;
       _this.focus = _this.lockFocus;
       removeEventListener("mousedown", _this.ExitGrab, true);
       VHandler.remove(_this);
+      event === "other" || mainPort.port.postMessage({ handler: "exitGrab" });
       return 0;
     },
     grabBackFocus: function(event) {
@@ -835,6 +836,9 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
     },
     insertInnerCSS: VDom.UI.insertInnerCSS,
     focusFrame: FrameMask.Focus,
+    exitGrab: function() {
+      InsertMode.ExitGrab("other");
+      },
     keyMap: function(request) {
       var map = keyMap = request.keyMap, key, sec, func = Object.setPrototypeOf;
       func(map, null);
