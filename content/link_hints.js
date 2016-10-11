@@ -471,6 +471,8 @@ var VHints = {
       // NOTE: should always prevent repeated keys.
     } else if (VKeyboard.isEscape(event)) {
       this.deactivate();
+    } else if ((i = event.keyCode) === VKeyCodes.esc) {
+      return 1;
     } else if (i > VKeyCodes.f1 && i <= VKeyCodes.f12) {
       this.ResetMode();
       if (i !== VKeyCodes.f1 + 1) { return 0; }
