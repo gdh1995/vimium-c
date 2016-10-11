@@ -138,7 +138,7 @@ window.onhashchange();
 
 document.addEventListener("keydown", function(event) {
   var str;
-  if (!(event.ctrlKey || event.metaKey) || event.altKey
+  if (!(event.ctrlKey) || event.altKey || event.metaKey
     || event.shiftKey || event.repeat) { return; }
   str = String.fromCharCode(event.keyCode);
   if (str === 'S') {
@@ -190,7 +190,7 @@ function importBody(id) {
 }
 
 function defaultOnClick(event) {
-  if (event.altKey) {
+  if (event.altKey || event.metaKey) {
     event.stopImmediatePropagation();
     clickLink({ download: file }, event);
   } else switch (type) {

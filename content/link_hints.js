@@ -490,14 +490,14 @@ var VHints = {
         }
         this.setMode((this.mode | 1) ^ (this.mode < 64 ? 3 : 67));
       }
-    } else if (i === VKeyCodes.ctrlKey || i === VKeyCodes.metaKey && VKeyboard.onMac) {
+    } else if (i === VKeyCodes.ctrlKey) {
       if (this.mode < 128) {
-        if (!(event.shiftKey || event.altKey)) {
+        if (VKeyboard.getKeyStat(event) === 2) {
           this.lastMode = this.mode;
         }
         this.setMode((this.mode | 2) ^ 1);
       }
-    } else if (i === VKeyCodes.altKey) {
+    } else if (i === VKeyCodes.altKey || i === VKeyCodes.metaKey && VKeyboard.onMac) {
       if (this.mode < 256) {
         if (VKeyboard.getKeyStat(event) === 1) {
           this.lastMode = this.mode;

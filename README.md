@@ -45,6 +45,7 @@ Release Notes
 
 Not released yet:
 * **WARNING**: revert modifier keys' orders into `a-c-m-`
+* **WARNING**: change semantics of `metaKey`: just the same as `altKey`
 * add `toggleMuteTab`.
 * `Marks`: global marks search other tabs by url prefix by default,
   and you may turn off this feature by `map Marks.activate prefix=false`.

@@ -425,7 +425,7 @@ var VSettings, VHUD, VPort, VEventMode;
         } else if (event.keyCode === VKeyCodes.f12) {
           return VKeyboard.isPlain(event) ? 0 : 2;
         } else if (!event.repeat && event.keyCode !== VKeyCodes.shiftKey
-            && event.keyCode !== VKeyCodes.altKey) {
+            && event.keyCode !== VKeyCodes.altKey && event.keyCode !== VKeyCodes.metaKey) {
           this.remove();
           VHandler.remove(this);
           return 0;
@@ -539,14 +539,13 @@ var VSettings, VHUD, VPort, VEventMode;
     onWndBlur: function(f) { ELs.OnWndBlur = f; },
     OnWndFocus: function() { return ELs.OnWndFocus; },
     scroll: function(event) {
-      var keyCode, ctrl;
-      if (!event || event.shiftKey || event.altKey) { return; }
+      var keyCode;
+      if (!event || event.shiftKey || event.altKey || event.metaKey) { return; }
       keyCode = event.keyCode;
       if (!(keyCode >= VKeyCodes.pageup && keyCode <= VKeyCodes.down)) { return; }
-      ctrl = event.ctrlKey || event.metaKey;
       if (keyCode >= VKeyCodes.left) {
-        VScroller.scrollBy(1 - (keyCode & 1), keyCode < VKeyCodes.left + 2 ? -1 : 1, +ctrl);
-      } else if (ctrl) { return; }
+        VScroller.scrollBy(1 - (keyCode & 1), keyCode < VKeyCodes.left + 2 ? -1 : 1, +event.ctrlKey);
+      } else if (event.ctrlKey) { return; }
       else if (keyCode > VKeyCodes.pageup + 1) {
         Commands.scrollTo(1, { dest: (keyCode & 1) && "max" });
       } else {

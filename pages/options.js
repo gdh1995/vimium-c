@@ -249,7 +249,7 @@ ExclusionRulesOption.prototype.onInit = function() {
         el.click();
         el.blur();
       }, 0, el);
-    } else if (event.ctrlKey || event.metaKey) {
+    } else if (event.ctrlKey) {
       el.blur();
       if (status != 0) {
         $("saveOptions").onclick();

@@ -123,15 +123,15 @@ body{cursor:text;display:inline-block;padding:0 3px 0 1px;min-width:7px;}body *{
   OnMousedown: function(event) { if (event.target !== VFindMode.input) { event.preventDefault(); VFindMode.input.focus(); } },
   onKeydown: function(event) {
     var i = event.keyCode, n = i, el, el2;
-    i = event.altKey ? 0 : i === VKeyCodes.enter ? (this.saveQuery(), 2)
+    i = event.altKey || event.metaKey ? 0 : i === VKeyCodes.enter ? (this.saveQuery(), 2)
       : (i === VKeyCodes.backspace || i === VKeyCodes.deleteKey) ? +!this.query.length
       : 0;
     if (!i) {
       if (VKeyboard.isEscape(event)) { i = 3; }
-      else if (!VKeyboard.isPlain(event)) {
-        if (event.altKey || event.shiftKey || !(event.ctrlKey || event.metaKey)) { return; }
-        else if (n >= 74 && n <= 75) { this.execute(null, { dir: 74 - n }); }
-        else { return; }
+      else if (i = VKeyboard.getKeyStat(event)) {
+        if (i !== 2 || n < 74 || n > 75) { return; }
+        this.execute(null, { dir: 74 - n });
+        i = 0;
       }
       else if (n === 229) { event.preventDefault(); return; }
       else if (n === VKeyCodes.f1) { this.box.contentDocument.execCommand("delete"); }

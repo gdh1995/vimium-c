@@ -95,7 +95,7 @@ $("exportButton").onclick = function(event) {
   exported_data = JSON.stringify(exported_object, null, '\t');
   exported_object = null;
   file_name = 'vimium++_';
-  if (event && (event.ctrlKey || event.metaKey || event.shiftKey)) {
+  if (event && (event.ctrlKey || event.shiftKey)) {
     file_name += "settings";
   } else {
     file_name += formatDate(d).replace(/[\-:]/g, "").replace(" ", "_");

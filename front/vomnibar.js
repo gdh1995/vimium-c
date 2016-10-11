@@ -226,15 +226,13 @@ var Vomnibar = {
         this.onBashAction(n - 64);
         return 2;
       }
-      if (event.altKey) {
-        return 0;
-      }
+      return 0;
     }
     if (n === 13) {
       this.onEnter(event);
       return 2;
     }
-    else if (event.ctrlKey || event.metaKey) {
+    else if (event.ctrlKey) {
       if (event.shiftKey) { action = n === 70 ? "pagedown" : n === 66 ? "pageup" : ""; }
       else if (n === 38 || n === 40) {
         VPort.postToOwner({ name: "scrollBy", amount: n - 39 });
@@ -346,7 +344,7 @@ var Vomnibar = {
   onEnter: function(event, newSel) {
     var sel = newSel != null ? newSel : this.selection, item, func;
     this.actionType = event == null ? this.actionType : event === true ? -this.forceNewTab
-      : event.ctrlKey || event.metaKey ? -1 - event.shiftKey
+      : event.ctrlKey ? -1 - event.shiftKey
       : event.shiftKey ? 0 : -this.forceNewTab;
     if (newSel != null) {}
     else if (sel === -1 && this.input.value.length === 0) { return; }
@@ -398,7 +396,7 @@ var Vomnibar = {
   OnUI: function(event) { Vomnibar.focused = event.type !== "blur"; },
   OnTimer: function() { Vomnibar && Vomnibar.filter(); },
   onWheel: function(event) {
-    if (event.ctrlKey || event.metaKey) { return; }
+    if (event.ctrlKey) { return; }
     event.preventDefault();
     event.stopImmediatePropagation();
     var delta = 80; // TODO: add onMac / use better delta

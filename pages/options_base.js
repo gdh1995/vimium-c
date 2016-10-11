@@ -302,7 +302,7 @@ exclusions = Object.setPrototypeOf({
   };
   $("saveOptions").onclick = saveOptions;
   document.addEventListener("keyup", function(event) {
-    if ((event.ctrlKey || event.metaKey) && event.keyCode === 13) {
+    if (event.ctrlKey && event.keyCode === 13) {
       if (status === 1) {
         saveOptions();
       }
