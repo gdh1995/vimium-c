@@ -8,6 +8,5 @@
 *.png binary
 *.sh linguist-language=Text
 *.zip binary
-lib/viewer.* linguist-vendored
 lib/math_parser.js linguist-vendored
-weidu/ linguist-vendored
+weidu/* linguist-vendored
