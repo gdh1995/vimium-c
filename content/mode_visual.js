@@ -67,7 +67,7 @@ var VVisualMode = {
     var i = event.keyCode, count, ch, key, obj;
     if (i >= VKeyCodes.f1 && i <= VKeyCodes.f12) { return i === VKeyCodes.f1 ? 2 : 0; }
     if (i === VKeyCodes.enter) {
-      i = VKeyboard.getKeyStat();
+      i = VKeyboard.getKeyStat(event);
       if ((i & 8) && this.mode !== "caret") { this.retainSelection = true; }
       (i & 6) ? this.deactivate() : this.yank(i === 1 || null);
       return 2;
