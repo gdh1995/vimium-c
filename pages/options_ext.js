@@ -256,8 +256,11 @@ _el.onchange = function() {
   req.send();
 };
 
-if (window._delayed) {
-  window._delayed = $(window._delayed);
-  window._delayed.onclick && window._delayed.onclick();
+window._delayed && (function() {
+  var arr = window._delayed, node, event;
   delete window._delayed;
-}
+  console.log(arr);
+  node = $(arr[0]);
+  event = arr[1];
+  node.onclick && node.onclick(event);
+})();

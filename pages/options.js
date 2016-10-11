@@ -288,11 +288,13 @@ ExclusionRulesOption.prototype.onInit = function() {
   }
 
   func = function(event) {
-    window._delayed = this.id;
-    loadJS("options_ext.js");
-    if (this.getAttribute("data-delay") !== "continue") {
+    var str = this.getAttribute("data-delay"), e = null;
+    if (str !== "continue") {
       event.preventDefault();
     }
+    if (str === "event") { e = event; }
+    window._delayed = [this.id, e];
+    loadJS("options_ext.js");
   };
   _ref = $$("[data-delay]");
   for (_i = _ref.length; 0 <= --_i; ) {
