@@ -38,10 +38,10 @@ VDom.UI = {
     showing !== false && this.adjust();
     this.init = null;
   },
-  InitInner: function(innerCss) {
+  InitInner: function(innerCSS) {
     var _this = VDom.UI;
     _this.InitInner = null;
-    _this.styleIn = _this.createStyle(innerCss);
+    _this.styleIn = _this.createStyle(innerCSS);
     _this.root.insertBefore(_this.styleIn, _this.root.firstElementChild);
     _this.showing && setTimeout(function() {
       _this.box.style.display = "";

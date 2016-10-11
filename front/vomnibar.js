@@ -527,7 +527,7 @@ var Vomnibar = {
     var str;
     if (Vomnibar.showFavIcon && (str = item.url) && str.length <= 512 && str.indexOf("://") > 0) {
       item.favIconUrl = ' icon" style="background-image: url(&quot;chrome://favicon/size/16/' +
-        VUtils.escapeCssStringInAttr(str) + "&quot;)";
+        VUtils.escapeCSSStringInAttr(str) + "&quot;)";
     } else {
       item.favIconUrl = "";
     }
@@ -581,15 +581,15 @@ VUtils = {
     } catch (e) {}
     return url;
   },
-  escapeCssStringInAttr: function(s) {
+  escapeCSSStringInAttr: function(s) {
     var escapeRe = /["&<>]/g, escapeCallback = function(c) {
       var i = c.charCodeAt(0);
       return i === 38 ? "&amp;" : i < 38 ? "\\&quot;" : i === 60 ? "&lt;" : "&gt;";
     };
-    this.escapeCssStringInAttr = function(s) {
+    this.escapeCSSStringInAttr = function(s) {
       return s.replace(escapeRe, escapeCallback);
     };
-    return this.escapeCssStringInAttr(s);
+    return this.escapeCSSStringInAttr(s);
   }
 },
 VPort = {

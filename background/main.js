@@ -1517,7 +1517,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
       });
     },
     initInnerCSS: function() {
-      return Settings.cache.innerCss;
+      return Settings.cache.innerCSS;
     },
     reactivateVomnibar: function(request, port) {
       cPort = port;
@@ -1805,7 +1805,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
   })();
 
   setTimeout(function() {
-    Settings.fetchFile("baseCss");
+    Settings.fetchFile("baseCSS");
     Settings.postUpdate("searchUrl", null); // will also update newTabUrl
 
     localStorage.getItem(ContentSettings.makeKey("images")) != null &&
