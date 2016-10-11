@@ -12,3 +12,15 @@
 *.zip
 node_modules*
 test*
+*.ts
+
+# github-linguist
+bin/
+samples/
+vendor/
+lib/linguist*
+script/
+Gemfile*
+Rakefile
+*.gemspec
+grammars.yml
