@@ -833,7 +833,7 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
       }
       if ("userDefinedOuterCss" in request) { ELs.OnReady(true); }
     },
-    insertInnerCSS: VDom.UI.insertInnerCSS,
+    insertInnerCSS: VDom.UI.InsertInnerCSS,
     focusFrame: FrameMask.Focus,
     exitGrab: function() { InsertMode.ExitGrab("other"); },
     keyMap: function(request) {

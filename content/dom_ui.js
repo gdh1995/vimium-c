@@ -60,13 +60,13 @@ VDom.UI = {
     css.textContent = text;
     return css;
   },
-  insertInnerCSS: function(inner) {
-    this.styleIn && (this.styleIn.textContent = inner.css);
+  InsertInnerCSS: function(inner) {
+    VDom.UI.styleIn && (VDom.UI.styleIn.textContent = inner.css);
   },
   insertCSS: function(outer) {
     var el = this.styleOut;
     if (!outer) { el && el.remove(); return; }
-    el ? (el = this.styleOut = this.createStyle(outer)) : (el.textContent = outer);
+    el ? (el.textContent = outer) : (el = this.styleOut = this.createStyle(outer));
     this.init && this.init();
     this.box.appendChild(el);
   },
