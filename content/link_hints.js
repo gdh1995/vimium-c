@@ -497,7 +497,7 @@ var VHints = {
         }
         this.setMode((this.mode | 2) ^ 1);
       }
-    } else if (i === VKeyCodes.altKey || i === VKeyCodes.metaKey && VKeyboard.onMac) {
+    } else if (i === VKeyCodes.altKey || i === VKeyCodes.metaKey && VSettings.cache.onMac) {
       if (this.mode < 256) {
         if (VKeyboard.getKeyStat(event) === 1) {
           this.lastMode = this.mode;
