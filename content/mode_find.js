@@ -133,6 +133,7 @@ body{cursor:text;display:inline-block;padding:0 3px 0 1px;min-width:7px;}body *{
         else if (n >= 74 && n <= 75) { this.execute(null, { dir: 74 - n }); }
         else { return; }
       }
+      else if (n === 229) { event.preventDefault(); return; }
       else if (n === VKeyCodes.f1) { this.box.contentDocument.execCommand("delete"); }
       else if (n === VKeyCodes.f1 + 1) { window.focus(); VEventMode.suppress(n); }
       else if (n === VKeyCodes.esc) { i = 3; }
