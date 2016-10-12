@@ -247,7 +247,7 @@ var Vomnibar = {
         : n === 9 ? "up" : "";
     }
     else if (action = this.normalMap[n] || "") {}
-    else if (n === 229) { return 2; }
+    else if (n === 229) { return 0; }
     else if (n === 8) { return focused ? 1 : 2; }
     else if (n !== 32) {}
     else if (!focused) { action = "focus"; }
