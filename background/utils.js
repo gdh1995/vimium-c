@@ -56,7 +56,7 @@ var exports = {}, Utils = {
   spacesRe: /\s+/g,
   A0Re: /\xa0/g,
   _nonENTldRe: /[^a-z]/,
-  _nonProtocolRe: /[^0-9a-z\-]/,
+  protocolRe: /^[a-z][\+\-\.0-9a-z]+$/,
   _nonENDoaminRe: /[^.0-9a-z\-]|^-/,
   _jsNotEscapeRe: /["\[\]{}\u00ff-\uffff]|%(?![\dA-F]{2}|[\da-f]{2})/,
   filePathRe: /^['"]?((?:[A-Za-z]:[\\/]|\/(?:Users|home|root)\/)[^'"]*)['"]?$/,
@@ -122,7 +122,7 @@ var exports = {}, Utils = {
       type = 2;
     }
     else if (this._nonENTldRe.test(string.substring(0, index))) {
-      type = !this._nonProtocolRe.test(string.substring(0, index)) &&
+      type = this.protocolRe.test(string.substring(0, index)) &&
         (index = string.charCodeAt(index + 3)) > 32 && index !== 47 ? 0 : 2;
     }
     else if (string.startsWith("file:")) {
@@ -146,7 +146,7 @@ var exports = {}, Utils = {
     } else if ((string = arr[3]).indexOf(':') !== -1 || string.endsWith("localhost")) {
       type = expected;
     } else if ((index = string.lastIndexOf('.')) <= 0) {
-      string !== "__proto__" || (string = ".__proto__");
+      string === "__proto__" && (string = ".__proto__");
       type = expected !== 1 || (string in this.domains) ? expected : 2;
     } else if (this._ipRe.test(string)) {
       type = expected;
