@@ -162,18 +162,19 @@ var VHints = {
     return getComputedStyle(box).position === "static" ? [x, y] : [-rect.left, -rect.top];
   },
   createMarkerFor: function(link) {
-    var marker = VDom.createElement("div"), i;
+    var marker = VDom.createElement("div"), i, st;
     marker.clickableItem = link[0];
     marker.className = "LH";
     i = link.length < 5 ? link[1][0] : link[4][0][0] + link[4][1];
-    marker.style.left = i + "px";
+    st = marker.style;
+    st.left = i + "px";
     if (i > this.maxLeft) {
-      marker.style.maxWidth = this.maxRight - i + "px";
+      st.maxWidth = this.maxRight - i + "px";
     }
     i = link[1][1];
-    marker.style.top = i + "px";
+    st.top = i + "px";
     if (i > this.maxTop) {
-      marker.style.maxHeight = this.maxBottom - i + "px";
+      st.maxHeight = this.maxBottom - i + "px";
     }
     link[3] && (marker.linkRect = link[3]);
     link[2] > 7 && (marker.wantScroll = true);
