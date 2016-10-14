@@ -447,7 +447,7 @@ var VHints = {
         obj[0] = r2s = [];
       }
       if (!r2) { if (r0 !== r) { visibleElement[1] = r; } continue; }
-      if (r2.length > 0) {
+      if (r2.length > 0 && (r2.length > 1 || VRect.testCrop(r2[0]))) {
         visibleElement[1] = r2[0];
       } else if ((reason = visibleElement[2]) === 4 || (reason === 2 ? isNormal : reason === 7)
           && visibleElement[0].contains(visibleElements[_i][0])) {
