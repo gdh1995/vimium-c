@@ -344,14 +344,11 @@ var VHints = {
     return output;
   },
   deduplicate: function(list) {
-    var j = list.length - 1, i, k, el, first, TextCls = Text;
+    var j = list.length - 1, i, k, el;
     while (0 < j) {
       if (list[i = j][2] !== 4) {
         el = list[j][0];
-      } else if (list[i][0].parentNode !== (el = list[--j][0])
-        || (k = list[j][2]) > 7 || el.childElementCount !== 1
-        || (k >= 2 && (first = el.firstChild) instanceof TextCls && first.data.trim())
-      ) {
+      } else if (!this.isDescendant(list[i][0], el = list[--j][0]) || list[j][2] >= 2) {
         continue;
       } else if (VRect.isContaining(list[j][1], list[i][1])) {
         list.splice(i, 1);
@@ -359,15 +356,7 @@ var VHints = {
       } else if (k < 2 || j === 0) {
         continue;
       }
-      if (el.parentNode !== list[--j][0]) { continue; }
-      do {
-        if ((k = list[j][2]) < 2 || k > 7
-          || (el = list[j][0]).childElementCount !== 1
-          || (first = el.firstChild) instanceof TextCls && first.data.trim()
-        ) {
-          break;
-        }
-      } while (0 < j-- && el.parentNode === list[j][0]);
+      while (0 <= --j && (k = list[j][2]) >= 2 && k <= 7 && this.isDescendant(el, list[j][0])) {}
       if (j + 1 < i) {
         list.splice(j + 1, i - j - 1);
       }
@@ -375,6 +364,16 @@ var VHints = {
     i = list[0] ? +(list[0][0] === document.documentElement) : 0;
     if (list[i] && list[i][0] === document.body) { ++i; }
     if (i > 0) { i === 1 ? list.shift() : list.splice(0, i); }
+  },
+  isDescendant: function(d, p) {
+    for (var i = 3, c, f; 0 < i-- && (c = d.parentNode) !== p && c; d = c) {}
+    if (c !== p) { return false; }
+    for (; ; ) {
+      if (c.childElementCount !== 1 || ((f = c.firstChild) instanceof Text && f.data.trim())) { return false; }
+      if (i === 2) { break; }
+      c = c.firstElementChild; i++;
+    }
+    return true;
   },
   frameNested: false,
   checkNestedFrame: function(output) {
