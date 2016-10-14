@@ -243,10 +243,12 @@ var VHints = {
           || VHints.mode >= 128)
     ) { this.push([element, arr, type]); }
   },
+  noneActionRe: /\._\b(?![\$\.])/,
   checkJSAction: function(s) {
-    for (var arr = s.split(";"), _i = arr.length; 0 <= --_i; ) {
-      s = arr[_i].trim();
-      if (s.startsWith("click:") || (s !== "none" && s && s.indexOf(":") === -1)) {
+    for (var arr = s.split(";"), i = arr.length, t; 0 <= --i; ) {
+      s = arr[i].trim();
+      t = s.startsWith("click:") ? (s = s.substring(6)) : s && s.indexOf(":") === -1 ? s : null;
+      if (t && t !== "none" && !this.noneActionRe.test(t)) {
         return true;
       }
     }
