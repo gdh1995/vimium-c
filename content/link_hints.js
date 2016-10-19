@@ -621,7 +621,7 @@ var VHints = {
       if (stacks.length <= 0 && this.keyStatus.newHintLength <= 0) {
         this.zIndexes = false; return;
       }
-      this.zIndexes = stacks;
+      this.zIndexes = stacks.length > 0 ? stacks : null;
     }
     for (i = stacks.length; 0 <= --i; ) {
       stack = stacks[i];
@@ -637,11 +637,11 @@ var VHints = {
     }
   },
   MakeStacks: function(marker, i) {
-    if (marker.style.display === "none") { return; }
-    var rects = this[0], stacks = this[1], m, j, len2, stack, stackForThisMarker, k, len3, t;
+    var rects = this[0], stacks, m, j, len2, stack, stackForThisMarker, k, len3, t;
+    if (marker.style.display === "none") { rects.push(null); return; }
     rects.push(m = marker.getClientRects()[0]);
     stackForThisMarker = null;
-    for (j = 0, len2 = stacks.length; j < len2; ) {
+    for (stacks = this[1], j = 0, len2 = stacks.length; j < len2; ) {
       stack = stacks[j];
       for (k = 0, len3 = stack.length; k < len3; k++) {
         t = rects[stack[k]];
