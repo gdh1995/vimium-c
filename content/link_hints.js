@@ -139,6 +139,7 @@ var VHints = {
   maxTop: 0,
   maxRight: 0,
   maxBottom: 0,
+  zIndexes: null,
   initBox: function(count) {
     var iw = window.innerWidth, ih = window.innerHeight, box, rect, width, height, x, y;
     if (document.webkitIsFullScreen) {
@@ -506,6 +507,9 @@ var VHints = {
     } else if (i >= VKeyCodes.pageup && i <= VKeyCodes.down) {
       VEventMode.scroll(event);
       this.ResetMode();
+    } else if (i === VKeyCodes.space) {
+      this.zIndexes === false || this.rotateHints(event.shiftKey);
+      event.shiftKey && this.ResetMode();
     } else if (!(linksMatched = this.alphabetHints.matchHintsByKey(this.hintMarkers, event, this.keyStatus))){
       if (linksMatched === false) {
         setTimeout(this.reinit.bind(this, null), 0);
@@ -565,6 +569,7 @@ var VHints = {
   reinit: function(lastEl, rect) {
     this.isActive = false;
     this.keyStatus.tab = 0;
+    this.zIndexes = null;
     this.activate(0, this.options);
     this.timer && clearTimeout(this.timer);
     if (this.isActive && lastEl && this.mode < 128) {
@@ -588,7 +593,7 @@ var VHints = {
     _this.reinit();
   },
   clean: function(keepHUD) {
-    this.options = this.modeOpt = null;
+    this.options = this.modeOpt = this.zIndexes = null;
     this.lastMode = this.mode = this.count =
     this.maxLeft = this.maxTop = this.maxRight = this.maxBottom = 0;
     if (this.box) {
@@ -607,6 +612,55 @@ var VHints = {
     VHandler.remove(this);
     this.isActive = false;
     suppressType != null && VDom.UI.suppressTail(suppressType);
+  },
+  rotateHints: function(reverse) {
+    var ref = this.hintMarkers, stacks = this.zIndexes, i, stack, len, j, style, oldI, newI;
+    if (!stacks) {
+      ref.forEach(this.MakeStacks, [[], stacks = []]);
+      stacks = stacks.filter(function(stack) { return stack.length > 1; });
+      if (stacks.length <= 0 && this.keyStatus.newHintLength <= 0) {
+        this.zIndexes = false; return;
+      }
+      this.zIndexes = stacks;
+    }
+    for (i = stacks.length; 0 <= --i; ) {
+      stack = stacks[i];
+      reverse && stack.reverse();
+      j = (len = stack.length) - 1;
+      oldI = ref[stack[j]].style.zIndex || stack[j];
+      for (j = 0; j < len; j++, oldI = newI) {
+        style = ref[stack[j]].style;
+        newI = style.zIndex || stack[j];
+        style.zIndex = oldI;
+      }
+      reverse && stack.reverse();
+    }
+  },
+  MakeStacks: function(marker, i) {
+    if (marker.style.display === "none") { return; }
+    var rects = this[0], stacks = this[1], m, j, len2, stack, stackForThisMarker, k, len3, t;
+    rects.push(m = marker.getClientRects()[0]);
+    stackForThisMarker = null;
+    for (j = 0, len2 = stacks.length; j < len2; ) {
+      stack = stacks[j];
+      for (k = 0, len3 = stack.length; k < len3; k++) {
+        t = rects[stack[k]];
+        if (m.bottom > t.top && m.top < t.bottom && m.right > t.left && m.left < t.right) {
+          break;
+        }
+      }
+      if (k >= len3) {}
+      else if (stackForThisMarker) {
+        stackForThisMarker.push.apply(stackForThisMarker, stack);
+        stacks.splice(j, 1); len2--;
+        continue;
+      } else {
+        stack.push(i);
+        stackForThisMarker = stack;
+      }
+      j++;
+    }
+    stackForThisMarker || stacks.push([i]);
   },
 
 alphabetHints: {
@@ -708,6 +762,7 @@ alphabetHints: {
     keyChar = this.hintKeystroke;
     keyStatus.newHintLength = keyChar.length;
     keyStatus.known = false;
+    VHints.zIndexes && (VHints.zIndexes = null);
     wanted = !keyStatus.tab;
     if (arr !== null && keyChar.length >= this.countMax) {
       hintMarkers.some(function(linkMarker) {
