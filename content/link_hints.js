@@ -32,7 +32,7 @@ var VHints = {
   isClickListened: true,
   ngEnabled: null,
   keyStatus: {
-    known: 1,
+    known: false,
     newHintLength: 0,
     tab: 0
   },
@@ -82,7 +82,6 @@ var VHints = {
     if (document.webkitIsFullScreen) { style.position = "fixed"; }
 
     this.isActive = true;
-    this.keyStatus.tab = 0;
     VHandler.push(this.onKeydown, this);
     VEventMode.onWndBlur(this.ResetMode);
   },
@@ -565,6 +564,7 @@ var VHints = {
   },
   reinit: function(lastEl, rect) {
     this.isActive = false;
+    this.keyStatus.tab = 0;
     this.activate(0, this.options);
     this.timer && clearTimeout(this.timer);
     if (this.isActive && lastEl && this.mode < 128) {
@@ -603,6 +603,7 @@ var VHints = {
   },
   deactivate: function(suppressType) {
     this.clean(VHUD.text !== null && VHUD.text.data !== this.modeOpt[this.mode]);
+    this.keyStatus.tab = this.keyStatus.newHintLength = 0;
     VHandler.remove(this);
     this.isActive = false;
     suppressType != null && VDom.UI.suppressTail(suppressType);
