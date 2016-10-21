@@ -24,7 +24,7 @@ var Clipboard = {
     var textArea = this.getTextArea();
     textArea.value = data;
     document.documentElement.appendChild(textArea);
-    textArea.setSelectionRange(0, data.length);
+    textArea.select();
     document.execCommand("copy");
     textArea.remove();
     textArea.value = "";
