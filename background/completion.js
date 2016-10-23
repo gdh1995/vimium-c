@@ -831,8 +831,7 @@ searchEngines: {
       return score * score * this.recCalibrator;
     },
     normalizeDifference: function(a, b) {
-      var max = Math.max(a, b);
-      return (max - Math.abs(a - b)) / max;
+      return a < b ? a / b : b / a;
     }
   };
 

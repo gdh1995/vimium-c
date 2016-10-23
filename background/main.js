@@ -747,10 +747,11 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
         }
       }
       tab = tabs2[0];
-      if (tab.url !== url && url.startsWith(tab.url)) {
-        chrome.tabs.update(tab.id, {url: url});
+      if (tab.url === url || !url.startsWith(tab.url)) {
+        Marks.gotoTab(this, tab);
+        return;
       }
-      Marks.gotoTab(this, tab);
+      chrome.tabs.update(tab.id, {url: url}, Marks.gotoTab.bind(Marks, this, tab));
     }],
     toggleMuteTab: [function(tabs) {
       var tab = tabs[0];
@@ -767,7 +768,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
         }
       }
       if (muted) { return; }
-      action = { muted: false };
+      action.muted = false;;
       for (i = tabs.length; 0 <= --i; ) {
         j = tabs[i].id;
         if (j === curId) { continue; }
