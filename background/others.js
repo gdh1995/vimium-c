@@ -339,18 +339,16 @@ setTimeout(function() {
       + ". Click here for more information.",
     isClickable: true
   }, function(notificationId) {
-    if (chrome.runtime.lastError) {
-      chrome.notifications = null;
-      return chrome.runtime.lastError;
-    }
+    var popup = chrome.notifications, e;
+    chrome.notifications = null;
+    if (e = chrome.runtime.lastError) { return e; }
     reason = notificationId || reason;
-    chrome.notifications.onClicked.addListener(function(id) {
+    popup.onClicked.addListener(function(id) {
       if (id !== reason) { return; }
       g_requestHandlers.focusOrLaunch({
         url: "https://github.com/gdh1995/vimium-plus#release-notes"
       });
     });
-    chrome.notifications = null;
   });
 }, 500);
 });
