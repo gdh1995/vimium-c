@@ -315,7 +315,13 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
         port = framesForTab[i][1];
         if (port.sender.incognito) { left = true; break; }
       }
-      if (left) { return; }
+      if (!left) { this.cleanI(); return; }
+      if (Settings.CONST.ChromeVersion >= 52) { return; }
+      chrome.windows.getAll(function(wnds) {
+        wnds.some(function(wnd) { return wnd.incognito; }) || FindModeHistory.cleanI();
+      });
+    },
+    cleanI: function() {
       FindModeHistory.listI = null;
       chrome.windows.onRemoved.removeListener(FindModeHistory.OnWndRemvoed);
     }
