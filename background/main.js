@@ -467,6 +467,11 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
 
     createTab: [function(tabs) {
       var tab = null;
+      var tab = null, url = this;
+      if (cOptions.url) {
+        BackgroundCommands.openUrl(tabs);
+        return chrome.runtime.lastError;
+      }
       if (!tabs) {}
       else if (tabs.length > 0) { tab = tabs[0]; }
       else if ("id" in tabs) { tab = tabs; }
@@ -483,6 +488,10 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
       openMultiTab(this, commandCount, tab);
     }, function(wnd) {
       var tab;
+      if (cOptions.url) {
+        BackgroundCommands.openUrl([funcDict.selectFrom(wnd.tabs)]);
+        return chrome.runtime.lastError;
+      }
       if (!wnd) {
         chrome.tabs.create({url: this});
         return chrome.runtime.lastError;
