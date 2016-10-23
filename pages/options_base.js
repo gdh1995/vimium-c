@@ -168,7 +168,8 @@ ExclusionRulesOption.prototype.readValueFromElement = function(part) {
     if (pattern[0] === ":" || element.style.display === "none") {}
     else if (this.reChar.test(pattern)) {
       pattern = pattern[0] === "^" ? pattern
-        : (pattern.indexOf("://") === -1 ? "^http://" : "^") + pattern;
+        : (pattern.indexOf("://") === -1 ? "^http://" : "^") +
+          (pattern[0] === "*" ? "." + pattern : pattern);
     } else {
       pattern = pattern.replace(this._escapeRe, "$1");
       pattern = (pattern.indexOf("://") === -1 ? ":http://" : ":") + pattern;
