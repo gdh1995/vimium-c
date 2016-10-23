@@ -465,8 +465,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
       });
     },
 
-    createTab: [function(tabs) {
-      var tab = null;
+    createTab: [function(onlyNormal, tabs) {
       var tab = null, url = this;
       if (cOptions.url) {
         BackgroundCommands.openUrl(tabs);
@@ -476,16 +475,16 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
       else if (tabs.length > 0) { tab = tabs[0]; }
       else if ("id" in tabs) { tab = tabs; }
       else if (TabRecency.last() >= 0) {
-        chrome.tabs.get(TabRecency.last(),
-        funcDict.createTab[0].bind(Settings.cache.newTabUrl_f));
+        chrome.tabs.get(TabRecency.last(), funcDict.createTab[0].bind(url, onlyNormal));
         return;
       }
       if (!tab) {
-        funcDict.createTabs(this, commandCount, true);
+        funcDict.createTabs(url, commandCount, true);
         return chrome.runtime.lastError;
       }
+      if (tab.incognito && onlyNormal) { url = "chrome://newtab"; }
       tab.id = undefined;
-      openMultiTab(this, commandCount, tab);
+      openMultiTab(url, commandCount, tab);
     }, function(wnd) {
       var tab;
       if (cOptions.url) {
@@ -1726,13 +1725,12 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
     funcDict.createTab = [funcDict.createTab[0]];
   }
   Settings.updateHooks.newTabUrl_f = function(url) {
-    var f;
-    BackgroundCommands.createTab = f = Settings.CONST.ChromeVersion < 52
-      && Utils.isRefusingIncognito(url)
+    var f, onlyNormal = Utils.isRefusingIncognito(url);
+    BackgroundCommands.createTab = f = Settings.CONST.ChromeVersion < 52 && onlyNormal
     ? chrome.windows.getCurrent.bind(null, {populate: true}
         , funcDict.createTab[1].bind(url))
     : chrome.tabs.query.bind(null, {currentWindow: true, active: true}
-        , funcDict.createTab[0].bind(url));
+        , funcDict.createTab[0].bind(url, onlyNormal));
     f.useTab = 0;
   };
 
