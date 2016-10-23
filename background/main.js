@@ -779,7 +779,9 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
           return;
         }
       }
+      this.prefix && tabs2.sort(function(a, b) { return a.url.length - b.url.length; });
       tab = tabs2[0];
+      tab.active && (tab = tabs2[1] || tab);
       if (tab.url === url || !url.startsWith(tab.url)) {
         Marks.gotoTab(this, tab);
         return;
@@ -801,7 +803,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
         }
       }
       if (muted) { return; }
-      action.muted = false;;
+      action.muted = false;
       for (i = tabs.length; 0 <= --i; ) {
         j = tabs[i].id;
         if (j === curId) { continue; }
