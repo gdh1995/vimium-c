@@ -861,7 +861,7 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
       HUD.showCopied(request.text);
     },
   showHelpDialog: function(request) {
-    var box, oldShowHelp, hide, node1, //
+    var box, oldShowHelp, hide, node1, optionUrl, //
     toggleAdvanced, shouldShowAdvanced = request.advanced === true;
     box = VDom.createElement("div");
     box.innerHTML = request.html;
@@ -898,10 +898,10 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
     box.querySelector("#HClose").onclick = Commands.showHelp = hide;
     node1 = box.querySelector("#OptionsPage");
     if (! window.location.href.startsWith(request.optionUrl)) {
-      node1.href = request.optionUrl;
+      node1.href = optionUrl = request.optionUrl;
       node1.onclick = function(event) {
         event.preventDefault();
-        mainPort.port.postMessage({ handler: "focusOrLaunch", url: this.href });
+        mainPort.port.postMessage({ handler: "focusOrLaunch", url: optionUrl });
         hide();
       };
     } else {
