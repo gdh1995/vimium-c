@@ -1212,8 +1212,8 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
   };
 
   executeCommand = function(command, registryEntry, count, port) {
-    var func, options = registryEntry.options;
-    count *= options && options.count || 1;
+    var func, options = registryEntry.options, scale;
+    if (options && (scale = +options.count)) { count = ((count * scale) | 0) || 1; }
     if (registryEntry.repeat === 1) {
       count = 1;
     } else if (registryEntry.repeat > 0 && count > registryEntry.repeat && !
