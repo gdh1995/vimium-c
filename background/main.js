@@ -567,7 +567,15 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
         tabId: tab.id,
         incognito: tab.incognito
       }, wnd.type === "normal" && wnd.state, commandCount > 1 && function(wnd2) {
-        var tabIds = wnd.tabs.slice(tab.index + 1, tab.index + commandCount).map(funcDict.getId);
+        var tabs = wnd.tabs, i = tab.index, startTabIndex, tabIds;
+        startTabIndex = Math.max(0, tabs.length - commandCount);
+        if (startTabIndex >= i) {
+          tabs = tabs.slice(i + 1, i + commandCount);
+        } else {
+          tabs[i].id = tabs[startTabIndex].id;
+          tabs = tabs.slice(startTabIndex + 1);
+        }
+        tabIds = tabs.map(funcDict.getId);
         chrome.tabs.move(tabIds, {index: 1, windowId: wnd2.id}, funcDict.onRuntimeError);
       });
     },
