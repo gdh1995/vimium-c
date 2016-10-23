@@ -558,6 +558,17 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
         chrome.tabs.duplicate(id);
       }
     }],
+    openUrl: function(reuse, tabs) {
+      if (cOptions.incognito) {
+        cOptions.url = this;
+        chrome.windows.getAll(function(wnd) {
+          funcDict.openUrlInIncognito(cOptions, tabs[0], wnd);
+        });
+        return;
+      }
+      if (reuse === -2) { tabs[0].active = false; }
+      openMultiTab(this, commandCount, tabs[0]);
+    },
     moveTabToNewWindow: function(wnd) {
       var tab;
       if (wnd.tabs.length <= 1) { return; }
@@ -901,7 +912,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
         chrome.tabs.update(null, { url: url }, funcDict.onRuntimeError);
       }
     },
-    openUrl: function() {
+    openUrl: function(tabs) {
       var url = cOptions.url_f || Utils.convertToUrl(cOptions.url || ""), reuse;
       if (cOptions.id_marker) {
         url = url.replace(cOptions.id_marker, chrome.runtime.id);
@@ -912,17 +923,10 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
         requestHandlers.focusOrLaunch({url: url});
       } else if (reuse === 0) {
         chrome.tabs.update(null, { url: url }, funcDict.onRuntimeError);
-      } else funcDict.getCurTab(function(tabs) {
-        if (cOptions.incognito) {
-          cOptions.url = url;
-          chrome.windows.getAll(function(wnd) {
-            funcDict.openUrlInIncognito(cOptions, tabs[0], wnd);
-          });
-          return;
-        }
-        if (reuse === -2) { tabs[0].active = false; }
-        openMultiTab(url, commandCount, tabs[0]);
-      });
+      } else {
+        tabs ? funcDict.openUrl.call(url, reuse, tabs)
+        : funcDict.getCurTab(funcDict.openUrl.bind(url, reuse));
+      }
     },
     togglePinTab: function(tabs) {
       var tab = funcDict.selectFrom(tabs), i = tab.index
