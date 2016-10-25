@@ -472,8 +472,8 @@ var Vomnibar = {
     this.list.oncontextmenu = this.OnMenu;
     document.getElementById("close").onclick = function() { Vomnibar.hide(); };
     addEventListener("keydown", this.handleKeydown, true);
-    this.renderItems = VUtils.makeListRender(document.getElementById("template").innerHTML);
-    this.init = VUtils.makeListRender = null;
+    this.renderItems = VUtils.makeListRenderer(document.getElementById("template").innerHTML);
+    this.init = VUtils.makeListRenderer = null;
   },
   handleKeydown: function(event) {
     var action;
@@ -564,7 +564,7 @@ var Vomnibar = {
   }
 },
 VUtils = {
-  makeListRender: function(template) {
+  makeListRenderer: function(template) {
     var o = null, a = template.split(/\{\{(\w+)}}/g)
       , f = function(w, i) { return (i & 1) && (w = o[w]) == null ? "" : w; }
       , m = function(i) { o = i; return a.map(f).join(""); };
