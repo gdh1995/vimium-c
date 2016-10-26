@@ -1050,7 +1050,7 @@ searchEngines: {
       this.init = null;
       Settings.updateHooks.localeEncoding = function(charset) {
         var _this = Decoder;
-        _this._dataUrl = charset && ("data:text/plain;charset=" + charset + ",");
+        _this._dataUrl = charset && ("data:text/plain;charset=" + charset.toLowerCase() + ",");
         var f = charset ? Array.prototype.push : _this.blank;
         _this.todos.push !== f && (_this.todos.push = f);
       };
