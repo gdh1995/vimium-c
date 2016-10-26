@@ -1840,8 +1840,11 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
     Settings.fetchFile("baseCSS");
     Settings.postUpdate("searchUrl", null); // will also update newTabUrl
 
-    localStorage.getItem(ContentSettings.makeKey("images")) != null &&
-    setTimeout(ContentSettings.clear, 100, "images");
+    var arr = ["images", "plugins", "javascript", "cookies"], i;
+    for (i = arr.length; 0 < i--; ) {
+      localStorage.getItem(ContentSettings.makeKey(arr[i]) != null &&
+      setTimeout(ContentSettings.clear, 100, arr[i]);
+    }
 
     document.documentElement.textContent = '';
   }, 34);
