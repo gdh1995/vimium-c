@@ -145,6 +145,10 @@ label {
 label:active {
   outline: none;
 }
+.sel-all {
+  -webkit-user-select: all;
+  user-select: all;
+}
 
 #wrapper, #footerWrapper {
   width: 890px;
