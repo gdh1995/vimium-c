@@ -259,7 +259,6 @@ _el.onchange = function() {
 window._delayed && (function() {
   var arr = window._delayed, node, event;
   delete window._delayed;
-  console.log(arr);
   node = $(arr[0]);
   event = arr[1];
   node.onclick && node.onclick(event);
