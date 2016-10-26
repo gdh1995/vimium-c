@@ -102,7 +102,7 @@ commandGroups: {
     , "LinkHints.activateModeToDownloadLink", "LinkHints.activateModeToOpenIncognito"
     , "LinkHints.activateModeToHover", "LinkHints.activateModeToLeave", "LinkHints.unhoverLast"
     , "LinkHints.activateModeToSearchLinkText", "LinkHints.activateModeToEdit"
-    , "goPrevious", "goNext", "nextFrame", "mainFrame"
+    , "goPrevious", "goNext", "nextFrame", "mainFrame", "parentFrame"
     , "enterInsertMode", "enterVisualMode", "enterVisualLineMode"
     , "Marks.activateCreateMode", "Marks.activate"
     , "Marks.clearLocal", "Marks.clearGlobal", "openUrl", "focusOrLaunch"
@@ -332,6 +332,7 @@ availableCommands: {
     { mode: "history", force: true }, "showVomnibar" ],
   nextFrame: [ "Cycle forward to the next frame on the page", 0, true ],
   mainFrame: [ "Select the tab's main/top frame", 1, true ],
+  parentFrame: [ "Focus parent frame of the current", 1, true ],
   "Marks.activateCreateMode": [ "Create a new mark", 1, false, { mode: "create" }, "VMarks.activate" ],
   "Marks.activate": [ "Go to a mark (use prefix=true)", 1, false, null, "VMarks.activate" ],
   "Marks.clearLocal": [ "Remove all local marks for this site", 1, false, null, "VMarks.clearLocal" ],

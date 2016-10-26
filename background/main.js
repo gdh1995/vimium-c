@@ -1052,6 +1052,30 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
         frameId: 0
       });
     },
+    parentFrame: function() {
+      var frames, sender, msg;
+      msg = Settings.CONST.ChromeVersion < 41 ? "Vimium++ can not know current frame on this old Chrome"
+        : !chrome.webNavigation ? "Vimium++ is not permitted to access frames"
+        : !((frames = framesForTab[cPort.sender.tabId]) && (sender = frames[0].sender) && sender.tabId > 0)
+          ? "Vimium++ can not access frames in current tab"
+        : !sender.frameId ? "This page is just the top frame"
+        : null;
+      if (msg) {
+        cPort.postMessage({ name: "showHUD", text: msg });
+        return;
+      }
+      chrome.webNavigation.getAllFrames({tabId: sender.tabId}, function(frames) {
+        for (var i = 0, port, curId = sender.frameId; i < frames.length; i++) {
+          if (frames[i].frameId !== curId) { continue; }
+          curId = frames[i].parentFrameId;
+          port = Settings.indexFrame(sender.tabId, curId);
+          port ? port.postMessage({ name: "focusFrame", frameId: 0 })
+            : cPort.postMessage({ name: "showHUD", text: "Fail to find its parent frame" });
+          return;
+        }
+      });
+      var port = Settings.indexFrame(TabRecency.last(), 0);
+    },
     visitPreviousTab: function(tabs) {
       var tabId;
       if (tabs.length < 2) { return; }

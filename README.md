@@ -47,6 +47,7 @@ Not released yet:
 * **WARNING**: revert modifier keys' orders into `a-c-m-`
 * **WARNING**: change semantics of `metaKey`: just the same as `altKey`
 * add `toggleMuteTab`.
+* add `parentFrame` which only works on Chrome 41+.
 * `Marks`: global marks search other tabs by url prefix by default,
   and you may turn off this feature by `map Marks.activate prefix=false`.
 * fix a bug history titles may be wrong.
