@@ -748,6 +748,16 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
         chrome.tabs.remove(tabs.map(funcDict.getId));
       }
     },
+    focusParentFrame: function(frames) {
+      for (var i = 0, port, curId = this.frameId; i < frames.length; i++) {
+        if (frames[i].frameId !== curId) { continue; }
+        curId = frames[i].parentFrameId;
+        port = Settings.indexFrame(this.tabId, curId);
+        port ? port.postMessage({ name: "focusFrame", frameId: 0 })
+          : cPort.postMessage({ name: "showHUD", text: "Fail to find its parent frame" });
+        return;
+      }
+    },
     focusOrLaunch: [function(tabs) {
       if (tabs && tabs.length > 0) {
         chrome.windows.getCurrent(funcDict.focusOrLaunch[2].bind(this, tabs));
@@ -1064,17 +1074,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
         cPort.postMessage({ name: "showHUD", text: msg });
         return;
       }
-      chrome.webNavigation.getAllFrames({tabId: sender.tabId}, function(frames) {
-        for (var i = 0, port, curId = sender.frameId; i < frames.length; i++) {
-          if (frames[i].frameId !== curId) { continue; }
-          curId = frames[i].parentFrameId;
-          port = Settings.indexFrame(sender.tabId, curId);
-          port ? port.postMessage({ name: "focusFrame", frameId: 0 })
-            : cPort.postMessage({ name: "showHUD", text: "Fail to find its parent frame" });
-          return;
-        }
-      });
-      var port = Settings.indexFrame(TabRecency.last(), 0);
+      chrome.webNavigation.getAllFrames({tabId: sender.tabId}, funcDict.focusParentFrame.bind(sender));
     },
     visitPreviousTab: function(tabs) {
       var tabId;
