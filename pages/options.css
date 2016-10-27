@@ -27,6 +27,7 @@ header {
 }
 button, select {
   -webkit-user-select: none;
+  user-select: none;
   background-image: -webkit-linear-gradient(#ededed, #ededed 38%, #dedede);
   border: 1px solid rgba(0, 0, 0, 0.25);
   border-radius: 2px;
@@ -260,6 +261,7 @@ label:active {
 }
 .exclusionRemoveButton {
   -webkit-user-select: none;
+  user-select: none;
   border: none;
   background-color: #fff;
   color: #979ca0;
