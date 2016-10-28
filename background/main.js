@@ -925,6 +925,10 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
       }
     },
     restoreGivenTab: function() {
+      if (commandCount > chrome.sessions.MAX_SESSION_RESULTS) {
+        funcDict.restoreGivenTab([]);
+        return;
+      }
       chrome.sessions.getRecentlyClosed(funcDict.restoreGivenTab);
     },
     blank: function() {},
