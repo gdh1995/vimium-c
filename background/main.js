@@ -724,7 +724,12 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
     restoreGivenTab: function(list) {
       if (commandCount <= list.length) {
         chrome.sessions.restore(list[commandCount - 1].tab.sessionId);
+        return;
       }
+      cPort.postMessage({
+        name: "showHUD",
+        text: "The session index provided is out of range!"
+      });
     },
     selectWnd: function(tab) {
       tab && chrome.windows.update(tab.windowId, { focused: true });
