@@ -728,7 +728,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
       }
       cPort.postMessage({
         name: "showHUD",
-        text: "The session index provided is out of range!"
+        text: "The session index provided is out of range."
       });
     },
     selectWnd: function(tab) {
