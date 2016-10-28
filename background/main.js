@@ -585,7 +585,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
     },
     moveTabToNewWindow: function(wnd) {
       var tab;
-      if (wnd.tabs.length <= 1) { return; }
+      if (wnd.tabs.length <= 1 || wnd.tabs.length === commandCount) { return; }
       tab = funcDict.selectFrom(wnd.tabs);
       funcDict.makeWindow({
         type: "normal",
@@ -593,8 +593,8 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
         incognito: tab.incognito
       }, wnd.type === "normal" && wnd.state, commandCount > 1 && function(wnd2) {
         var tabs = wnd.tabs, i = tab.index, startTabIndex, tabIds;
-        startTabIndex = Math.max(0, tabs.length - commandCount);
-        if (startTabIndex >= i) {
+        startTabIndex = tabs.length - commandCount;
+        if (startTabIndex >= i || startTabIndex <= 0) {
           tabs = tabs.slice(i + 1, i + commandCount);
         } else {
           tabs[i].id = tabs[startTabIndex].id;
@@ -872,20 +872,21 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
     },
     removeTab: function(tabs) {
       if (!tabs || tabs.length <= 0) { return chrome.runtime.lastError; }
-      var tab = tabs[0], i, startTabIndex;
+      var tab = tabs[0], i, startTabIndex = tabs.length - commandCount;
+      if (tab.active && startTabIndex <= 0 || startTabIndex === 0) {
+        chrome.windows.getAll(funcDict.removeTab.bind(null, tab, tabs));
+        return;
+      }
       if (!tab.active) {
         tab = funcDict.selectFrom(tabs);
       }
-      if (commandCount >= tabs.length) {
-        chrome.windows.getAll(funcDict.removeTab.bind(null, tab, tabs));
-        return;
-      } else if (commandCount <= 1) {
+      if (commandCount <= 1) {
         chrome.tabs.remove(tab.id);
         return;
       }
       i = tab.index--;
-      startTabIndex = tabs.length - commandCount;
       funcDict.removeTabsRelative(tab, commandCount, tabs);
+      if (startTabIndex < 0) { return; }
       if (startTabIndex >= i || i > 0 && tabs[i - 1].pinned && !tab.pinned) { return; }
       ++tab.index;
       funcDict.removeTabsRelative(tab, startTabIndex - i, tabs);
