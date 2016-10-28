@@ -905,7 +905,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
       }
     },
     restoreTab: function() {
-      var count = commandCount;
+      var count = commandCount, limit;
       if (count === 1 && cPort.sender.incognito) {
         cPort.postMessage({
           name: "showHUD",
@@ -913,8 +913,10 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
         });
         return;
       }
+      limit = chrome.sessions.MAX_SESSION_RESULTS; 
+      limit > 0 && limit < count && (count = limit);
       while (--count >= 0) {
-        chrome.sessions.restore();
+        chrome.sessions.restore(null, funcDict.onRuntimeError);
       }
     },
     restoreGivenTab: function() {
