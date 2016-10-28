@@ -583,7 +583,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
       if (reuse === -2) { tabs[0].active = false; }
       openMultiTab(this, commandCount, tabs[0]);
     },
-    moveTabToNewWindow: function(wnd) {
+    moveTabToNewWindow: [function(wnd) {
       var tab;
       if (wnd.tabs.length <= 1 || wnd.tabs.length === commandCount) { return; }
       tab = funcDict.selectFrom(wnd.tabs);
@@ -591,8 +591,10 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
         type: "normal",
         tabId: tab.id,
         incognito: tab.incognito
-      }, wnd.type === "normal" && wnd.state, commandCount > 1 && function(wnd2) {
-        var tabs = wnd.tabs, i = tab.index, startTabIndex, tabIds;
+      }, wnd.type === "normal" && wnd.state,
+      commandCount > 1 && funcDict.moveTabToNewWindow[1].bind(wnd, tab.index));
+    }, function(i, wnd2) {
+        var tabs = this.tabs, startTabIndex, tabIds;
         startTabIndex = tabs.length - commandCount;
         if (startTabIndex >= i || startTabIndex <= 0) {
           tabs = tabs.slice(i + 1, i + commandCount);
@@ -602,8 +604,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
         }
         tabIds = tabs.map(funcDict.getId);
         chrome.tabs.move(tabIds, {index: 1, windowId: wnd2.id}, funcDict.onRuntimeError);
-      });
-    },
+    }],
     moveTabToNextWindow: [function(tab, wnds0) {
       var wnds, ids, index;
       wnds = wnds0.filter(function(wnd) { return wnd.incognito === tab.incognito && wnd.type === "normal"; });
@@ -842,7 +843,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
       }
     },
     moveTabToNewWindow: function() {
-      chrome.windows.getCurrent({populate: true}, funcDict.moveTabToNewWindow);
+      chrome.windows.getCurrent({populate: true}, funcDict.moveTabToNewWindow[0]);
     },
     moveTabToNextWindow: function(tabs) {
       chrome.windows.getAll(funcDict.moveTabToNextWindow[0].bind(null, tabs[0]));
