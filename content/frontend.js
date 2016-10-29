@@ -395,7 +395,8 @@ var VSettings, VHUD, VPort, VEventMode;
         return;
       }
       hints = visibleInputs.map(function(link) {
-        var hint = VDom.createElement("div"), rect = link[1];
+        var hint = VDom.createElement("div"), rect;
+        rect = link[2] ? VRect.fromClientRect(link[0].getBoundingClientRect()) : link[1];
         rect[0]--, rect[1]--, rect[2]--, rect[3]--;
         hint.className = "IH";
         hint.clickableItem = link[0];

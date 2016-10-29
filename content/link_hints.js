@@ -255,7 +255,7 @@ var VHints = {
     }
   },
   GetEditable: function(element) {
-    var arr;
+    var arr, type = 0;
     switch (element.tagName.toLowerCase()) {
     case "input":
       if (element.type === "hidden" || element.type in VDom.uneditableInputs) {
@@ -266,10 +266,11 @@ var VHints = {
       break;
     default:
       if (element.contentEditable !== "true") { return; }
+      type = 1;
       break;
     }
     if (arr = VDom.getVisibleClientRect(element)) {
-      this.push([element, arr, 1]);
+      this.push([element, arr, type]);
     }
   },
   GetLinks: function(element) {
