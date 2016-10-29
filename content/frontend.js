@@ -388,6 +388,7 @@ var VSettings, VHUD, VPort, VEventMode;
       visibleInputs = VHints.traverse({"*": VHints.GetEditable});
       selectedInputIndex = visibleInputs.length;
       if (selectedInputIndex === 0) {
+        HUD.showForDuration("There are no inputs to focus.", 1000);
         return;
       } else if (selectedInputIndex === 1) {
         VDom.UI.simulateSelect(visibleInputs[0][0], true, true);
