@@ -109,7 +109,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
     makeKey: function(contentType, url) {
       return "vimiumContent|" + contentType + (url ? "|" + url : "");
     },
-    complaint: function(url) {
+    complain: function(url) {
       if (!chrome.contentSettings) {
         cPort.postMessage({
           name: "showHUD",
@@ -120,7 +120,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
       if (Utils.ordinaryOriginRe.test(url) && !url.startsWith("chrome")) {
         return false;
       }
-      funcDict.complaint(cPort, "change its content settings");
+      funcDict.complain(cPort, "change its content settings");
       return true;
     },
     clearCS: function(contentType, tab) {
@@ -143,7 +143,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
     },
     toggleCurrent: function(contentType, tab) {
       var pattern = tab.url, _this = this;
-      if (this.complaint(pattern)) { return; }
+      if (this.complain(pattern)) { return; }
       chrome.contentSettings[contentType].get({
         primaryUrl: pattern,
         incognito: tab.incognito
@@ -179,7 +179,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
     },
     ensure: function (contentType, tab) {
       var pattern = tab.url, _this = this;
-      if (this.complaint(pattern)) { return; }
+      if (this.complain(pattern)) { return; }
       chrome.contentSettings[contentType].get({primaryUrl: pattern, incognito: true }, function(opt) {
         if (!pattern.startsWith("file:")) {
           pattern = _this._urlHeadRe.exec(pattern)[0] + "*";
@@ -399,7 +399,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
         break;
       }
     },
-    complaint: function(port, action) {
+    complain: function(port, action) {
       port && port.postMessage({
         name: "showHUD",
         text: "It's not allowed to " + action
@@ -648,7 +648,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
           return;
         }
         if (Settings.CONST.ChromeVersion >= 52) {
-          return funcDict.complaint(cPort, "open this tab in incognito");
+          return funcDict.complain(cPort, "open this tab in incognito");
         }
       } else if (wnd.incognito) {
         ++tab.index;
@@ -839,7 +839,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
     duplicateTab: function() {
       var tabId = cPort.sender.tabId;
       if (tabId < 0) {
-        return funcDict.complaint(cPort, "duplicate such a tab");
+        return funcDict.complain(cPort, "duplicate such a tab");
       }
       chrome.tabs.duplicate(tabId);
       if (--commandCount > 0) {
@@ -1175,7 +1175,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
     toggleViewSource: function(tabs) {
       var url = tabs[0].url;
       if (url.startsWith("chrome-")) {
-        funcDict.complaint(cPort, "visit HTML of an extension's page");
+        funcDict.complain(cPort, "visit HTML of an extension's page");
         return;
       }
       url = url.startsWith("view-source:") ? url.substring(12) : ("view-source:" + url);
@@ -1325,7 +1325,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
     setSetting: function(request, port) {
       var key = request.key;
       if (!(key in Settings.frontUpdateAllowed)) {
-        return funcDict.complaint(port, 'modify "' + key + '" setting');
+        return funcDict.complain(port, 'modify "' + key + '" setting');
       }
       Settings.set(key, request.value);
       if (key in Settings.bufferToLoad) {
