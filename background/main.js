@@ -1174,6 +1174,10 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
     },
     toggleViewSource: function(tabs) {
       var url = tabs[0].url;
+      if (url.startsWith("chrome-")) {
+        funcDict.complaint(cPort, "visit HTML of an extension's page");
+        return;
+      }
       url = url.startsWith("view-source:") ? url.substring(12) : ("view-source:" + url);
       openMultiTab(url, 1, tabs[0]);
     },
