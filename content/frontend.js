@@ -384,13 +384,13 @@ var VSettings, VHUD, VPort, VEventMode;
       });
     },
     focusInput: function(count) {
-      var box, hints, selectedInputIndex, visibleInputs;
+      var box, hints, sel, visibleInputs;
       visibleInputs = VHints.traverse({"*": VHints.GetEditable});
-      selectedInputIndex = visibleInputs.length;
-      if (selectedInputIndex === 0) {
+      sel = visibleInputs.length;
+      if (sel === 0) {
         HUD.showForDuration("There are no inputs to focus.", 1000);
         return;
-      } else if (selectedInputIndex === 1) {
+      } else if (sel === 1) {
         VDom.UI.simulateSelect(visibleInputs[0][0], true, true);
         return;
       }
@@ -404,26 +404,23 @@ var VSettings, VHUD, VPort, VEventMode;
         return hint;
       });
       if (count === 1 && InsertMode.last) {
-        selectedInputIndex = Math.max(0, visibleInputs
+        sel = Math.max(0, visibleInputs
           .map(function(link) { return link[0]; }).indexOf(InsertMode.last));
       } else {
-        selectedInputIndex = Math.min(count, selectedInputIndex) - 1;
+        sel = Math.min(count, sel) - 1;
       }
-      VDom.UI.simulateSelect(visibleInputs[selectedInputIndex][0]);
-      hints[selectedInputIndex].classList.add("S");
+      VDom.UI.simulateSelect(visibleInputs[sel][0]);
+      hints[sel].classList.add("S");
       box = VDom.UI.addElementList(hints, "IMC");
       VHandler.push(function(event) {
         if (event.keyCode === VKeyCodes.tab) {
-          hints[selectedInputIndex].classList.remove("S");
+          hints[sel].classList.remove("S");
           if (event.shiftKey) {
-            if (--selectedInputIndex === -1) {
-              selectedInputIndex = hints.length - 1;
-            }
-          } else if (++selectedInputIndex === hints.length) {
-            selectedInputIndex = 0;
+            if (--sel === -1) { sel = hints.length - 1; }
           }
-          hints[selectedInputIndex].classList.add("S");
-          VDom.UI.simulateSelect(hints[selectedInputIndex].clickableItem);
+          else if (++sel === hints.length) { sel = 0; }
+          hints[sel].classList.add("S");
+          VDom.UI.simulateSelect(hints[sel].clickableItem);
         } else if (event.keyCode === VKeyCodes.f12) {
           return VKeyboard.isPlain(event) ? 0 : 2;
         } else if (!event.repeat && event.keyCode !== VKeyCodes.shiftKey
