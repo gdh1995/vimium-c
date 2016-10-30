@@ -571,11 +571,13 @@ var VSettings, VHUD, VPort, VEventMode;
   Pagination = {
   followLink: function(linkElement) {
     if (linkElement instanceof HTMLLinkElement) {
-      return Commands.reload(linkElement.href);
+      Commands.reload(linkElement.href);
+      return true;
     }
     linkElement.scrollIntoViewIfNeeded();
     VDom.UI.flashVRect(VDom.UI.getVRect(linkElement));
     setTimeout(function() { VDom.simulateClick(linkElement); }, 0);
+    return true;
   },
   goBy: function(relName, pattern) {
     if (relName && typeof relName === "string" && this.findAndFollowRel(relName)) {
@@ -605,52 +607,38 @@ var VSettings, VHUD, VPort, VEventMode;
     }
   },
   findAndFollowLink: function(linkStrings, refusedStr) {
-    var candidateLinks, exactWordRe, link, linkString, links, _i, _j, _len, _len1, re1, re2;
+    var links, candidates, link, s, _i, _j, _len, _len1, re1, re2, re3;
     links = VHints.traverse({"*": this.GetLinks}, document);
-    candidateLinks = [];
+    candidates = [];
     links.push(null);
+    re1 = /\s+/, re2 = /\b/;
     for (_len = links.length - 1; 0 <= --_len; ) {
       link = links[_len];
       if (link.contains(links[_len + 1])) { continue; }
-      linkString = link.innerText;
-      if (linkString.length > 127) { continue; }
-      if (!linkString && !(linkString = link.title)) { continue; }
-      if (linkString.indexOf(refusedStr) !== -1) { continue; }
-      linkString = linkString.toLowerCase();
+      s = link.innerText;
+      if (s.length > 99) { continue; }
+      if (!s && !(s = link.value && link.value.toLowerCase && link.value || link.title)) { continue; }
+      s = s.toLowerCase();
       for (_j = 0, _len1 = linkStrings.length; _j < _len1; _j++) {
-        if (linkString.indexOf(linkStrings[_j]) !== -1) {
-          candidateLinks.push(link);
+        if (s.indexOf(linkStrings[_j]) !== -1) {
+          if (s.indexOf(refusedStr) === -1) {
+            candidates.push([link, s.trim().split(re1).length, candidates.length, s]);
+          }
           break;
         }
       }
     }
-    _len = candidateLinks.length;
-    if (_len === 0) {
-      return;
-    }
-    re1 = /\s+/, re2 = /\b/;
-    links = null;
-    while (0 <= --_len) {
-      link = candidateLinks[_len];
-      link.wordCount = (link.innerText || link.title).trim().split(re1).length;
-      link.originalIndex = _len;
-    }
-    candidateLinks = candidateLinks.sort(function(a, b) {
-      return (a.wordCount - b.wordCount) || (a.originalIndex - b.originalIndex);
-    });
-    _len = candidateLinks[0].wordCount + 1;
-    candidateLinks = candidateLinks.filter(function(a) {
-      return a.wordCount <= _len;
-    });
+    if (candidates.length <= 0) { return; }
+    candidates = candidates.sort(function(a, b) { return (a[1] - b[1]) || (a[2] - b[2]); });
+    _len = candidates[0][1] + 1;
+    candidates = candidates.filter(function(a) { return a[1] <= _len; });
     for (_i = 0, _len = linkStrings.length; _i < _len; _i++) {
-      linkString = linkStrings[_i];
-      exactWordRe = re2.test(linkString[0]) || re2.test(linkString.slice(-1))
-        ? new RegExp("\\b" + linkString + "\\b", "i") : new RegExp(linkString, "i");
-      for (_j = 0, _len1 = candidateLinks.length; _j < _len1; _j++) {
-        link = candidateLinks[_j];
-        if (exactWordRe.test(link.innerText || link.title)) {
-          this.followLink(link);
-          return true;
+      s = linkStrings[_i];
+      re3 = re2.test(s[0]) || re2.test(s.slice(-1))
+        ? new RegExp("\\b" + s + "\\b", "i") : new RegExp(s, "i");
+      for (_j = 0, _len1 = candidates.length; _j < _len1; _j++) {
+        if (re3.test(candidates[_j][3])) {
+          return this.followLink(candidates[_j][0]);
         }
       }
     }
@@ -664,8 +652,7 @@ var VSettings, VHUD, VPort, VEventMode;
       element = elements[_i];
       if ((element.tagName.toLowerCase() in relTags)
           && (s = element.rel) && s.toLowerCase() === relName) {
-        this.followLink(element);
-        return true;
+        return this.followLink(element);
       }
     }
     return false;
