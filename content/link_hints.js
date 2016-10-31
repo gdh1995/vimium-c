@@ -749,8 +749,6 @@ alphabetHints: {
         return [];
       }
       this.hintKeystroke = this.hintKeystroke.slice(0, -1);
-    } else if (key === VKeyCodes.space) {
-      return [];
     } else if (keyChar = VKeyboard.getKeyChar(event).toUpperCase()) {
       if (this.chars.indexOf(keyChar) === -1) {
         return [];
