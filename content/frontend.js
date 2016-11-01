@@ -60,7 +60,7 @@ var VSettings, VHUD, VPort, VEventMode;
   VSettings = settings = {
     cache: null,
     destroy: null,
-    timer: 0,
+    timer: setInterval(function() { mainPort.connect(1); }, 2000),
     onDestroy: null
   };
 
@@ -910,10 +910,6 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
     }, box);
   }
   };
-
-  settings.timer = setInterval(function() {
-    mainPort.connect(1);
-  }, 2000);
 
   settings.destroy = function() {
     var f = removeEventListener, el;
