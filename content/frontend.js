@@ -123,7 +123,7 @@ var VSettings, VHUD, VPort, VEventMode;
       if (!isEnabledForUrl || event.isTrusted === false) { return; }
       VScroller.keyIsDown = 0;
       if (InsertMode.suppressType && window.getSelection().type !== InsertMode.suppressType) {
-        VEventMode.exitSuppress();
+        VEventMode.setupSuppress();
       }
       if (KeydownEvents[event.keyCode]) {
         KeydownEvents[event.keyCode] = 0;
@@ -552,12 +552,12 @@ var VSettings, VHUD, VPort, VEventMode;
       }
     },
     setupSuppress: function(onExit) {
-      InsertMode.suppressType = window.getSelection().type;
-      InsertMode.onExitSuppress = onExit;
-    },
-    exitSuppress: function() {
-      var f = InsertMode.onExitSuppress;
-      InsertMode.onExitSuppress = InsertMode.suppressType = null;
+      var mode = InsertMode, f = mode.onExitSuppress;
+      mode.onExitSuppress = mode.suppressType = null;
+      if (onExit) {
+        mode.suppressType = window.getSelection().type;
+        mode.onExitSuppress = onExit;
+      }
       f && f();
     },
     suppress: function(key) { key && (KeydownEvents[key] = 1); },
@@ -922,7 +922,7 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
 
     ELs.hook(f);
     f("mousedown", InsertMode.ExitGrab, true);
-    VEventMode.exitSuppress();
+    VEventMode.setupSuppress();
     VFindMode.toggleStyle("remove");
     (el = VDom.UI.box) && el.remove();
     (f = settings.onDestroy) && f();

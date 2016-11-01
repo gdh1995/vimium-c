@@ -215,7 +215,7 @@ body{cursor:text;display:inline-block;padding:0 3px 0 1px;min-width:7px;}body *{
       this.lock = null;
       removeEventListener("click", this.exit, true);
       VHandler.remove(this);
-      VEventMode.exitSuppress();
+      VEventMode.setupSuppress();
     }
   },
   onInput: function() {
