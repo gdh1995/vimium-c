@@ -229,7 +229,7 @@ var Vomnibar = {
       return 0;
     }
     if (n === 13) {
-      this.onEnter(event);
+      window.onkeyup = this.onEnterUp;
       return 2;
     }
     else if (event.ctrlKey) {
@@ -243,8 +243,7 @@ var Vomnibar = {
       else { action = this.ctrlMap[n] || ""; }
     }
     else if (event.shiftKey) {
-      action = n === 38 ? "pageup" : n === 40 ? "pagedown"
-        : n === 9 ? "up" : "";
+      action = n === 38 ? "pageup" : n === 40 ? "pagedown" : n === 9 ? "up" : "";
     }
     else if (action = this.normalMap[n] || "") {}
     else if (n === 229) { return 0; }
@@ -356,6 +355,13 @@ var Vomnibar = {
     if (this.actionType < -1) { func(); return; }
     window.onblur = func;
     this.hide();
+  },
+  onEnterUp: function(event) {
+    if (event.keyCode === 13) {
+      Vomnibar.lastKey = 0;
+      window.onkeyup = null;
+      Vomnibar.onEnter(event);
+    }
   },
   onClick: function(event) {
     var el = event.target;
@@ -476,6 +482,10 @@ var Vomnibar = {
         VPort.postToOwner(stop ? "scrollEnd" : "scrollGoing");
         Vomnibar.isScrolling = stop ? 0 : action;
         if (stop) { window.onkeyup = null; }
+      }
+    } else if (window.onkeyup) {
+      if (event.keyCode > 17 || event.keyCode < 16) {
+        window.onkeyup = null;
       }
     } else {
       action = Vomnibar.onKeydown(event);
