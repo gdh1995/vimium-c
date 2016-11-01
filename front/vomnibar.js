@@ -237,7 +237,7 @@ var Vomnibar = {
       else if (n === 38 || n === 40) {
         VPort.postToOwner({ name: "scrollBy", amount: n - 39 });
         this.isScrolling = Date.now();
-        window.onkeyup = this.onScroll;
+        window.onkeyup = Vomnibar.handleKeydown;
         return 2;
       }
       else { action = this.ctrlMap[n] || ""; }
@@ -307,13 +307,6 @@ var Vomnibar = {
     sel.collapseToStart();
     sel.modify(isExtend ? "extend" : "move", code < 4 ? "backward" : "forward", "word");
     isExtend && sel.type === "Range" && document.execCommand("delete");
-  },
-  onScroll: function(event) {
-    if (!event.repeat) {
-      VPort.postToOwner("scrollEnd");
-      window.onkeyup = null;
-      this.isScrolling = 0;
-    }
   },
   _pageNumRe: /(?:^|\s)(\+\d{0,2})$/,
   goPage: function(sel) {
@@ -476,14 +469,14 @@ var Vomnibar = {
     this.init = VUtils.makeListRenderer = null;
   },
   handleKeydown: function(event) {
-    var action;
-    if (event.repeat && Vomnibar.isScrolling) {
-      action = Date.now();
-      if (action - Vomnibar.isScrolling > 40) {
-        VPort.postToOwner("scrollGoing");
-        Vomnibar.isScrolling = action;
+    var action = 2, stop;
+    if (Vomnibar.isScrolling) {
+      stop = !event.repeat;
+      if (stop || (action = Date.now()) - Vomnibar.isScrolling > 40) {
+        VPort.postToOwner(stop ? "scrollEnd" : "scrollGoing");
+        Vomnibar.isScrolling = stop ? 0 : action;
+        if (stop) { window.onkeyup = null; }
       }
-      action = 2;
     } else {
       action = Vomnibar.onKeydown(event);
     }
