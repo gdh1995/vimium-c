@@ -476,17 +476,15 @@ var Vomnibar = {
   },
   handleKeydown: function(event) {
     var action = 2, stop;
-    if (Vomnibar.isScrolling) {
-      stop = !event.repeat;
-      if (stop || (action = Date.now()) - Vomnibar.isScrolling > 40) {
+    if (window.onkeyup) {
+      if (!Vomnibar.isScrolling) {
+        stop = event.keyCode > 17 || event.keyCode < 16;
+      } else if ((stop = !event.repeat) ||
+          (action = Date.now()) - Vomnibar.isScrolling > 40) {
         VPort.postToOwner(stop ? "scrollEnd" : "scrollGoing");
         Vomnibar.isScrolling = stop ? 0 : action;
-        if (stop) { window.onkeyup = null; }
       }
-    } else if (window.onkeyup) {
-      if (event.keyCode > 17 || event.keyCode < 16) {
-        window.onkeyup = null;
-      }
+      if (stop) { window.onkeyup = null; }
     } else {
       action = Vomnibar.onKeydown(event);
     }
