@@ -26,6 +26,7 @@ var VHints = {
   box: null,
   hintMarkers: null,
   mode: 0,
+  mode1: 0,
   modeOpt: null,
   count: 0,
   lastMode: 0,
@@ -106,11 +107,13 @@ var VHints = {
     }
     this.modeOpt = modeOpt;
     this.mode = mode;
+    this.mode1 = mode & ~64;
     this.options = options;
     this.count = count;
   },
   setMode: function(mode) {
     this.mode = mode;
+    this.mode1 = mode & ~64;
     VHUD.show(this.modeOpt[mode]);
   },
   tryNestedFrame: function(command, args) {
@@ -190,7 +193,7 @@ var VHints = {
     case "iframe": isClickable = element !== VFindMode.box; break;
     case "input": if (element.type === "hidden") { return; } // no break;
     case "textarea":
-      if (element.disabled && VHints.mode <= VHints.CONST.LEAVE) { return; }
+      if (element.disabled && VHints.mode1 <= VHints.CONST.LEAVE) { return; }
       if (!element.readOnly || VHints.mode >= 128
         || element instanceof HTMLInputElement && (element.type in VDom.uneditableInputs)) {
         isClickable = true;
@@ -204,7 +207,7 @@ var VHints = {
       }
       break;
     case "button": case "select":
-      isClickable = !element.disabled || VHints.mode > VHints.CONST.LEAVE; break;
+      isClickable = !element.disabled || VHints.mode1 > VHints.CONST.LEAVE; break;
     case "object": case "embed":
       s = element.type;
       if (s && s.endsWith("x-shockwave-flash")) { isClickable = true; break; }
@@ -216,7 +219,7 @@ var VHints = {
         s = s.replace(VHints.hashRe, "").replace(VHints.quoteRe, '\\"');
         VDom.getClientRectsForAreas(this, arr[0], document.querySelector('map[name="' + s + '"]'));
       }
-      if ((VHints.mode >= 128 && VHints.mode <= VHints.CONST.LEAVE
+      if ((VHints.mode >= 128 && VHints.mode1 <= VHints.CONST.LEAVE
           && !(element.parentNode instanceof HTMLAnchorElement))
         || element.style.cursor || (s = getComputedStyle(element).cursor)
           && (s.startsWith("url") || s.indexOf("zoom") >= 0)) {
@@ -415,14 +418,14 @@ var VHints = {
   getVisibleElements: function() {
     var visibleElements, visibleElement, _len, _i, _j, obj, func
       , r, r0, r2 = null, r2s, t, isNormal, reason, _k, _ref;
-    _i = this.mode & ~64;
+    _i = this.mode1;
     visibleElements = this.traverse(
       (_i === this.CONST.DOWNLOAD_IMAGE || _i === this.CONST.OPEN_IMAGE)
       ? { img: this.GetImagesInImg, a: this.GetImagesInA }
       : _i === this.CONST.EDIT_LINK_URL || (_i < 256 && _i >= 136) ? { a: this.GetLinks }
       : {"*": _i === this.CONST.FOCUS_EDITABLE ? this.GetEditable
               : this.GetClickable});
-    isNormal = this.mode < 128;
+    isNormal = _i < 128;
     visibleElements.reverse();
 
     obj = [r2s = [], null];
@@ -563,7 +566,7 @@ var VHints = {
       var _this = VHints;
       _this.reinit(clickEl, rect);
       if (1 === --_this.count && _this.isActive) {
-        _this.setMode(_this.mode & ~64);
+        _this.setMode(_this.mode1);
       }
     }, 0);
   },
@@ -595,7 +598,7 @@ var VHints = {
   },
   clean: function(keepHUD) {
     this.options = this.modeOpt = this.zIndexes = null;
-    this.lastMode = this.mode = this.count =
+    this.lastMode = this.mode = this.mode1 = this.count =
     this.maxLeft = this.maxTop = this.maxRight = this.maxBottom = 0;
     if (this.box) {
       this.box.remove();
@@ -875,7 +878,7 @@ COPY_TEXT: {
         keyword: this.options.keyword
       });
       return;
-    } else if ((this.mode & ~64) === this.CONST.SEARCH_TEXT) {
+    } else if (this.mode1 === this.CONST.SEARCH_TEXT) {
       VPort.port.postMessage({
         handler: "openUrl",
         reuse: -2 + !(this.mode & 64),
@@ -947,7 +950,7 @@ OPEN_IMAGE: {
     }
     VPort.port.postMessage({
       handler: "openUrl",
-      reuse: this.mode & 64 ? -2 : -1,
+      reuse: (this.mode & 64) ? -2 : -1,
       url: url + text
     });
   }
