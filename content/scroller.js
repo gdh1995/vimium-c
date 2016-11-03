@@ -45,6 +45,7 @@ Core: {
   current: null,
   top: null,
   keyIsDown: 0,
+  scale: 1,
   Properties: [{
     axisName: "scrollLeft",
     max: "scrollWidth",
@@ -78,7 +79,7 @@ Core: {
       ? Math.ceil(amount * 0.6) : amount;
   },
   findScrollable: function(element, di, amount) {
-    amount = amount > 0 ? 1 : -1;
+    amount = (amount > 0 ? 1 : -1) * this.scale;
     while (element !== this.top && !(this.scrollDo(element, di, amount) && this.shouldScroll(element, di))) {
       element = element.getDestinationInsertionPoints && element.getDestinationInsertionPoints()[0] ||
         element.parentElement || (element.parentNode && element.parentNode.host) || this.top;
@@ -88,6 +89,7 @@ Core: {
   getActivatedElement: function() {
     var element = this.current;
     this.top = document.scrollingElement || document.body || document.documentElement;
+    this.scale = Math.max(1, 1 / window.devicePixelRatio);
     if (element) { return element; }
     element = this.top;
     return this.current = element && (this.selectFirst(element) || element);
@@ -101,7 +103,7 @@ Core: {
     return this.Core.performScroll(element, di, amount) && this.Core.performScroll(element, di, -amount);
   },
   selectFirst: function(element) {
-    if (this.scrollDo(element, 1, 1) || this.scrollDo(element, 1, -1)) {
+    if (this.scrollDo(element, 1, this.scale) || this.scrollDo(element, 1, -this.scale)) {
       return element;
     }
     VDom.prepareCrop();
