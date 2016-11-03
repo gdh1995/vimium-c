@@ -198,5 +198,6 @@
 		"v.mc|v.math-copy: vimium://search-copy\\ vimium://math\\ $S re= Calculate and Copy",
 		""
 	],
+	"showActionIcon": false,
 	"showAdvancedOptions": true
 }
