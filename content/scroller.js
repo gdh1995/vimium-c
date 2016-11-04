@@ -79,7 +79,6 @@ Core: {
       ? Math.ceil(amount * 0.6) : amount;
   },
   findScrollable: function(element, di, amount) {
-    amount = (amount > 0 ? 1 : -1) * this.scale;
     while (element !== this.top && !(this.scrollDo(element, di, amount) && this.shouldScroll(element, di))) {
       element = element.getDestinationInsertionPoints && element.getDestinationInsertionPoints()[0] ||
         element.parentElement || (element.parentNode && element.parentNode.host) || this.top;
@@ -100,10 +99,11 @@ Core: {
       : di ? window.innerHeight : window.innerWidth;
   },
   scrollDo: function(element, di, amount) {
+    amount = (amount > 0 ? 1 : -1) * this.scale;
     return this.Core.performScroll(element, di, amount) && this.Core.performScroll(element, di, -amount);
   },
   selectFirst: function(element) {
-    if (this.scrollDo(element, 1, this.scale) || this.scrollDo(element, 1, -this.scale)) {
+    if (this.scrollDo(element, 1, 1) || this.scrollDo(element, 1, 0)) {
       return element;
     }
     VDom.prepareCrop();
@@ -148,7 +148,7 @@ Core: {
     return VDom.isStyleVisible(st) && (di ? st.overflowY : st.overflowX) !== "hidden";
   },
   isScrollable: function(el, di) {
-    return this.scrollDo(el, di, (di ? el.scrollTop : el.scrollLeft) > 0 ? -1 : 1) && this.shouldScroll(el, di);
+    return this.scrollDo(el, di, +!(di ? el.scrollTop : el.scrollLeft)) && this.shouldScroll(el, di);
   },
   sortBy0: function(a, b) {
     return a[0] - b[0];
