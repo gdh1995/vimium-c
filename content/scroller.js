@@ -114,13 +114,9 @@ Core: {
         children.push([(rect[2] - rect[0]) * (rect[3] - rect[1]), element]);
       }
     }
-    if (_len = children.length) {
-      children.sort(this.sortBy0);
-      while (0 < _len--) {
-        if (element = this.selectFirst(children[_len][1])) {
-          return element;
-        }
-      }
+    children.sort(this.sortBy0);
+    for (_len = children.length; 0 < _len--; ) {
+      if (element = this.selectFirst(children[_len][1])) { return element; }
     }
     return null;
   },
