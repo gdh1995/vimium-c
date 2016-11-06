@@ -168,10 +168,23 @@ var Settings = {
     regexFindMode: false,
     scrollStepSize: 100,
     searchUrl: "https://www.baidu.com/s?ie=UTF-8&wd=$s Baidu",
-    searchEngines: "b|ba|baidu|Baidu: https://www.baidu.com/s?ie=UTF-8&wd=$s \u767e\u5ea6\n\
+    searchEngines: "b|ba|baidu: https://www.baidu.com/s?ie=UTF-8&wd=$s Baidu\n\
+bi|bing: https://www.bing.com/search?q=%s Bing\n\
 g|go|gg|google: https://www.google.com/search?q=$s Google\n\
 js\\:|Js: javascript:\\ $S; Javascript\n\
-w|wiki:\\\n  http://www.wikipedia.org/w/index.php?search=$s Wikipedia (en-US)",
+w|wiki:\\\n  https://www.wikipedia.org/w/index.php?search=$s Wikipedia\n\
+\n\
+# More examples.\n\
+#\n\
+# (Vimium++ supports search completion Google, Wikipedia,\n\
+# and so on, as above, and for these.)\n\
+#\n\
+# l: https://www.google.com/search?q=%s&btnI I'm feeling lucky\n\
+# y: https://www.youtube.com/results?search_query=%s Youtube\n\
+# gm: https://www.google.com/maps?q=%s Google maps\n\
+# d: https://duckduckgo.com/?q=%s DuckDuckGo\n\
+# az: https://www.amazon.com/s/?field-keywords=%s Amazon\n\
+# qw: https://www.qwant.com/?q=%s Qwant",
     searchEngineMap: {}, // may be modified, but this action is safe
     showActionIcon: true,
     showAdvancedCommands: false,
