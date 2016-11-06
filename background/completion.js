@@ -1011,6 +1011,7 @@ searchEngines: {
       var xhr = new XMLHttpRequest();
       xhr.responseType = "text";
       xhr.onload = this.OnXHR;
+      xhr.onerror = this.OnXHR;
       this._ind = 0;
       this.init && this.init();
       setTimeout(this.Work, 17, xhr);
