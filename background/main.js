@@ -117,7 +117,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
         });
         return true;
       }
-      if (Utils.ordinaryOriginRe.test(url) && !url.startsWith("chrome")) {
+      if (Utils.protocolRe.test(url) && !url.startsWith("chrome")) {
         return false;
       }
       funcDict.complain(cPort, "change its content settings");
@@ -1338,7 +1338,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
     parseSearchUrl: function(request) {
       var url = request.url.toLowerCase(), decoders, pattern, _i, str, arr,
           selectLast, re;
-      if (!Utils.hasNormalOrigin(url)) {
+      if (!Utils.protocolRe.test(url)) {
         return null;
       }
       decoders = Settings.cache.searchEngineRules;

@@ -27,10 +27,6 @@ var exports = {}, Utils = {
   // "javascript" should be treated specially
   _nonUrlPrefixes: { about: 1, blob: 1, data: 1, mailto: 1, "view-source": 1, __proto__: null },
   _chromePrefixes: { "chrome-extension": 1, "chrome-search": 1, __proto__: null  },
-  ordinaryOriginRe: /^[a-z]{3,}:\/\//,
-  hasNormalOrigin: function(url) {
-    return this.ordinaryOriginRe.test(url) || url.startsWith("chrome-");
-  },
   // url: only accept real tab's
   isRefusingIncognito: function(url) {
     url = url.toLowerCase();
@@ -56,7 +52,7 @@ var exports = {}, Utils = {
   spacesRe: /\s+/g,
   A0Re: /\xa0/g,
   _nonENTldRe: /[^a-z]/,
-  protocolRe: /^[a-z][\+\-\.0-9a-z]+$/,
+  protocolRe: /^[a-z][\+\-\.0-9a-z]+:\/\//,
   _nonENDoaminRe: /[^.0-9a-z\-]|^-/,
   _jsNotEscapeRe: /["\[\]{}\u00ff-\uffff]|%(?![\dA-F]{2}|[\da-f]{2})/,
   filePathRe: /^['"]?((?:[A-Za-z]:[\\/]|\/(?:Users|home|root)\/)[^'"]*)['"]?$/,
@@ -122,7 +118,7 @@ var exports = {}, Utils = {
       type = 2;
     }
     else if (this._nonENTldRe.test(string.substring(0, index))) {
-      type = this.protocolRe.test(string.substring(0, index)) &&
+      type = this.protocolRe.test(string) &&
         (index = string.charCodeAt(index + 3)) > 32 && index !== 47 ? 0 : 2;
     }
     else if (string.startsWith("file:")) {
@@ -461,7 +457,7 @@ var exports = {}, Utils = {
   alphaRe: /[a-z]/i,
   reparseSearchUrl: function (url, ind) {
     var prefix, str, str2, ind2;
-    if (!this.hasNormalOrigin(url)) { return; }
+    if (!this.protocolRe.test(url)) { return; }
     prefix = url.substring(0, ind - 1);
     if (ind = Math.max(prefix.lastIndexOf("?"), prefix.lastIndexOf("#")) + 1) {
       str2 = str = prefix.substring(ind);
