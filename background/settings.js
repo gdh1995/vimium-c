@@ -144,7 +144,7 @@ var Settings = {
     });
   },
   // clear localStorage & sync, if value === @defaults[key]
-  // the default of any dict field must be set to null for compatibility with @Sync.set
+  // the default of any nullable field must be set to null for compatibility with @Sync.set
   defaults: {
     __proto__: null,
     deepHints: false,
