@@ -3,7 +3,8 @@ var Clipboard = {
   getTextArea: function() {
     var el = document.createElement("textarea");
     el.style.position = "absolute";
-    el.style.left = "-100%";
+    el.style.left = "-99px";
+    el.style.width = "0";
     this.getTextArea = function() { return el; };
     return el;
   },
