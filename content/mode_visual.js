@@ -22,7 +22,7 @@ var VVisualMode = {
       if (!VEventMode.lock() && (type === "Caret" || type === "Range")) {
         rect = sel.getRangeAt(0).getBoundingClientRect();
         VDom.prepareCrop();
-        if (!VRect.cropRectToVisible(rect.left, rect.top, rect.right, rect.bottom, 0)) {
+        if (!VRect.cropRectToVisible(rect.left, rect.top, rect.right + 3, rect.bottom + 3)) {
           sel.removeAllRanges();
         } else if (type === "Caret") {
           this.movement.extendByOneCharacter(1) || this.movement.extend(0);
