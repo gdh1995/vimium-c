@@ -851,7 +851,7 @@ searchEngines: {
       var d = this._d[i];
       return d[s] || (d[s] = new RegExp((i < 2 ? "\\b" : "")
         + s.replace(this.escapeRe, "\\$&")
-        + (i ? "" : "\\b"), Utils.upperRe.test(s) ? "" : "i"));
+        + (i ? "" : "\\b"), Utils.hasUpperCase(s) ? "" : "i"));
     },
     item: function(s) {
       return this.cache[s] || this.get(s, 2);

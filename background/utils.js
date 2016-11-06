@@ -503,7 +503,7 @@ var exports = {}, Utils = {
     }
     return null;
   },
-  upperRe: /[A-Z]/
+  hasUpperCase: function(s) { return s.toLowerCase() !== s; }
 };
 
 if (!String.prototype.startsWith) {

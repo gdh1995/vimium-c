@@ -243,7 +243,7 @@ body{cursor:text;display:inline-block;padding:0 3px 0 1px;min-width:7px;}body *{
     this.isRegex = VSettings.cache.regexFindMode;
     this.hasNoIgnoreCaseFlag = false;
     query = this.parsedQuery = query.replace(this._ctrlRe, this.FormatQuery);
-    this.ignoreCase = !this.hasNoIgnoreCaseFlag && !/[A-Z]/.test(query);
+    this.ignoreCase = !this.hasNoIgnoreCaseFlag && !VUtils.hasUpperCase(query);
     this.isRegex || (query = this.isActive && query.replace(this.escapeAllRe, "\\$&"));
 
     var re, matches;
