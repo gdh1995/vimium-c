@@ -183,8 +183,6 @@ var VHints = {
     link[2] > 7 && (marker.wantScroll = true);
     return marker;
   },
-  hashRe: /^#/,
-  quoteRe: /"/g,
   btnRe: /\b(?:[Bb](?:utto|t)n|[Cc]lose)(?:$| )/,
   GetClickable: function(element) {
     var arr, isClickable = null, s, type = 0;
@@ -213,12 +211,7 @@ var VHints = {
       if (s && s.endsWith("x-shockwave-flash")) { isClickable = true; break; }
       return;
     case "img":
-      if ((s = element.useMap) && (arr = element.getClientRects()).length > 0
-          && arr[0].height >= 3 && arr[0].width >= 3) {
-        // replace is necessary: chrome allows "&quot;", and also allows no "#"
-        s = s.replace(VHints.hashRe, "").replace(VHints.quoteRe, '\\"');
-        VDom.getClientRectsForAreas(this, arr[0], document.querySelector('map[name="' + s + '"]'));
-      }
+      if (element.useMap && VDom.getClientRectsForAreas(element, this)) { return; }
       if ((VHints.mode >= 128 && VHints.mode1 <= VHints.CONST.LEAVE
           && !(element.parentNode instanceof HTMLAnchorElement))
         || element.style.cursor || (s = getComputedStyle(element).cursor)
