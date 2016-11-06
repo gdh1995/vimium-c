@@ -7,8 +7,9 @@ if (Settings.get("vimSync") === true) setTimeout(function() { if (!chrome.storag
     doNotSync: Object.setPrototypeOf({
       findModeRawQueryList: 1, keyboard: 1
     }, null),
-    HandleStorageUpdate: function(changes) {
+    HandleStorageUpdate: function(changes, area) {
       var change, key;
+      if (area !== "sync") { return; }
       Object.setPrototypeOf(changes, null);
       for (key in changes) {
         change = changes[key];
