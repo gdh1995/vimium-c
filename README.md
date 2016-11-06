@@ -86,7 +86,7 @@ Not released yet:
 * use `event.key` if it exists, to disable warning on Chrome 52
 * the default `tinyMemory` is set `true`,
   and the history completer loads slower but has a smaller memory peak
-* Chrome 52 doesn't allow Vimium to create an incognito window
+* Chrome 52 doesn't allow Vimium++ to create an incognito window
     using a normal tab,
   so those tricks which allow Vimium++ to show normal tabs in incognito windows
     won't work any more.

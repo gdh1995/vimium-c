@@ -128,7 +128,7 @@ var VHints = {
       }
       child.VEventMode.keydownEvents(VEventMode.keydownEvents());
     } catch (e) {
-      // It's cross-site, or Vimium on the child is wholly disabled
+      // It's cross-site, or Vimium++ on the child is wholly disabled
       // * Cross-site: it's in an abnormal situation, so we needn't focus the child;
       this.frameNested = null;
       return false;
