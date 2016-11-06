@@ -105,7 +105,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
   };
 
   ContentSettings = {
-    _urlHeadRe: /^[a-z]+:\/\/[^\/]+\//,
+    _urlHeadRe: /^[^:]+:\/\/[^\/]+\//,
     makeKey: function(contentType, url) {
       return "vimiumContent|" + contentType + (url ? "|" + url : "");
     },

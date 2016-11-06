@@ -259,7 +259,7 @@ exclusions = Object.setPrototypeOf({
   generateDefaultPattern: function() {
     var url = this.url.lastIndexOf("https:", 0) === 0
       ? "^https?://" + this.url.split("/", 3)[2].replace(/\./g, "\\.") + "/"
-      : /^[a-z]{3,}:\/\/./.test(this.url)
+      : /^[^:]+:\/\/./.test(this.url)
       ? ":" + (this.url.split("/", 3).join("/") + "/")
       : ":" + this.url;
     this.generateDefaultPattern = function() { return url; };
