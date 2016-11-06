@@ -153,7 +153,7 @@ var Settings = {
     exclusionRules: [{pattern: "^https?://mail.google.com/", passKeys: ""}],
     extWhiteList: "",
     findModeRawQueryList: "",
-    grabBackFocus: true,
+    grabBackFocus: false,
     hideHud: false,
     keyboard: [500, 33],
     keyMappings: "",

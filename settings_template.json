@@ -2,6 +2,7 @@
 	"name": "Vimium++",
 	"exclusionRules": [],
 	"extWhiteList": "hdnehngglnbnehkfcidabjckinphnief",
+	"grabBackFocus": true,
 	"keyMappings": [
 		"unmapAll",
 		"map ? showHelp",

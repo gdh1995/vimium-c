@@ -46,6 +46,8 @@ Release Notes
 Not released yet:
 * **WARNING**: revert modifier keys' orders into `a-c-m-`
 * **WARNING**: change semantics of `metaKey`: just the same as `altKey`
+* **WARNING**: The default of `grabBackFocus` becomes `false`,
+  although its recommended value is still `true`.
 * add `toggleMuteTab`.
 * add `parentFrame` which only works on Chrome 41+.
 * `Marks`: global marks search other tabs by url prefix by default,
