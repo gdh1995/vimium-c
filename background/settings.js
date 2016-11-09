@@ -64,7 +64,7 @@ var Settings = {
       var map, arr, i, wordCharRe;
       map = this.extWhiteList = Object.create(null);
       if (!val) { return; }
-      wordCharRe = /^[0-9A-Za-z]/;
+      wordCharRe = /^[\dA-Za-z]/;
       for (arr = val.split("\n"), i = arr.length; 0 <= --i; ) {
         if ((val = arr[i].trim()) && wordCharRe.test(val)) {
           map[val] = true;

@@ -50,8 +50,8 @@ var exports = {}, Utils = {
   spacesRe: /\s+/g,
   A0Re: /\xa0/g,
   _nonENTldRe: /[^a-z]/,
-  protocolRe: /^[a-z][\+\-\.0-9a-z]+:\/\//,
-  _nonENDoaminRe: /[^.0-9a-z\-]|^-/,
+  protocolRe: /^[a-z][\+\-\.\da-z]+:\/\//,
+  _nonENDoaminRe: /[^.\da-z\-]|^-/,
   _jsNotEscapeRe: /["\[\]{}\u00ff-\uffff]|%(?![\dA-F]{2}|[\da-f]{2})/,
   filePathRe: /^['"]?((?:[A-Za-z]:[\\/]|\/(?:Users|home|root)\/)[^'"]*)['"]?$/,
   lastUrlType: 0,
@@ -229,7 +229,7 @@ var exports = {}, Utils = {
     __proto__: null
   },
   vimiumKnownPages: ["blank", "newtab", "options", "show", "popup"],
-  _vimiumCmdRe: /^[a-z][0-9a-z\-]*(?:\.[a-z][0-9a-z\-]*)*$/i,
+  _vimiumCmdRe: /^[a-z][\da-z\-]*(?:\.[a-z][\da-z\-]*)*$/i,
   evalVimiumUrl: function(path, workType) {
     var ind, cmd;
     path = path.trim();

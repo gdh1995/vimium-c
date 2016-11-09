@@ -378,7 +378,7 @@ function loadChecker() {
 window.onhashchange = function() {
   var hash = window.location.hash, node;
   hash = hash.substring(hash[1] === "!" ? 2 : 1);
-  if (!hash || /[^a-z0-9_.]/i.test(hash)) { return; }
+  if (!hash || /[^a-z\d_.]/i.test(hash)) { return; }
   if (node = document.querySelector('[data-hash="' + hash + '"]')) {
     node.onclick && node.onclick(null, "hash");
   }

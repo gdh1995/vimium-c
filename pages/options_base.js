@@ -1,7 +1,7 @@
 "use strict";
 
 var $, bgSettings, BG,
-KeyRe = /<(?!<)(?:a-)?(?:c-)?(?:m-)?(?:[A-Z][0-9A-Z]+|[a-z][0-9a-z]+|\S)>|\S/g,
+KeyRe = /<(?!<)(?:a-)?(?:c-)?(?:m-)?(?:[A-Z][\dA-Z]+|[a-z][\da-z]+|\S)>|\S/g,
 __extends = function(child, parent) {
   Object.setPrototypeOf(child.prototype, parent.prototype);
   child.__super__ = parent.prototype;
