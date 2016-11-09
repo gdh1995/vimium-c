@@ -105,7 +105,6 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
   };
 
   ContentSettings = {
-    _urlHeadRe: /^[^:]+:\/\/[^\/]+\//,
     makeKey: function(contentType, url) {
       return "vimiumContent|" + contentType + (url ? "|" + url : "");
     },
@@ -122,6 +121,31 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
       }
       funcDict.complain(cPort, "change its content settings");
       return true;
+    },
+    parsePattern: function(pattern, level) {
+      var arr, s, i;
+      if (pattern.startsWith("file:")) {
+        if (level > 1) {
+          arr = pattern.split("/");
+          arr.length = Math.max(arr.length - level + 1, 3);
+          pattern = arr.join("/");
+        }
+        return pattern;
+      }
+      arr = pattern.match(/^([^:]+:\/\/)([^\/]+)\//);
+      if (level < 2) {
+        return arr[0] + "*";
+      }
+      pattern = arr[1]; arr = arr[2].split("."); i = arr.length;
+      i -= i < 3 ? i : arr[i - 1].length === 2 && Utils.isTld(arr[i - 2]) === 1 ? 3 : 2;
+      if (i > 0) {
+        i = Math.min(level - 2, i - 1);
+        i > 0 && arr.splice(0, i);
+        arr[0] = '*';
+      } else {
+        arr.unshift('*');
+      }
+      return pattern + arr.join(".") + "/*";
     },
     clearCS: function(contentType, tab) {
       ContentSettings.clear(contentType, tab);
@@ -148,9 +172,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
         primaryUrl: pattern,
         incognito: tab.incognito
       }, function (opt) {
-        if (!pattern.startsWith("file:")) {
-          pattern = _this._urlHeadRe.exec(pattern)[0] + "*";
-        }
+        pattern = _this.parsePattern(pattern, commandCount);
         chrome.contentSettings[contentType].set({
           primaryPattern: pattern,
           scope: tab.incognito ? "incognito_session_only" : "regular",
@@ -181,9 +203,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
       var pattern = tab.url, _this = this;
       if (this.complain(pattern)) { return; }
       chrome.contentSettings[contentType].get({primaryUrl: pattern, incognito: true }, function(opt) {
-        if (!pattern.startsWith("file:")) {
-          pattern = _this._urlHeadRe.exec(pattern)[0] + "*";
-        }
+        pattern = _this.parsePattern(pattern, commandCount);
         if (chrome.runtime.lastError) {
           chrome.contentSettings[contentType].get({primaryUrl: tab.url}, function (opt) {
             if (opt && opt.setting === "allow") { return; }
