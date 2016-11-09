@@ -176,12 +176,9 @@ var exports = {}, Utils = {
       : oldString;
   },
   isTld: function(tld) {
-    if (this._nonENTldRe.test(tld)) {
-      return this._nonENTlds.indexOf("." + tld + ".") !== -1 ? 2 : 0;
-    } else if (tld.length < this._tlds.length) {
-      return this._tlds[tld.length].indexOf(tld) > 0 ? 1 : 0;
-    }
-    return 0;
+    return this._nonENTldRe.test(tld) ? (this._nonENTlds.indexOf("." + tld + ".") !== -1 ? 2 : 0)
+      : tld.length < this._tlds.length && this._tlds[tld.length].indexOf(tld) > 0 ? 1
+      : 0;
   },
   _fileExtRe: /\.\w+$/,
   formatVimiumUrl: function(path, partly, vimiumUrlWork) {
