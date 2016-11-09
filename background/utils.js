@@ -24,8 +24,6 @@ var exports = {}, Utils = {
     };
     return this.escapeText(s);
   },
-  // "javascript" should be treated specially
-  _nonUrlPrefixes: { about: 1, blob: 1, data: 1, mailto: 1, "view-source": 1, __proto__: null },
   _chromePrefixes: { "chrome-extension": 1, "chrome-search": 1, __proto__: null  },
   // url: only accept real tab's
   isRefusingIncognito: function(url) {
@@ -79,17 +77,13 @@ var exports = {}, Utils = {
     }
     if ((index = string.indexOf(':')) === 0) { type = 2; }
     else if (index === -1 || !this.protocolRe.test(string)) {
-      if (index !== -1 && string.substring(0, index) in this._nonUrlPrefixes) {
-        index2 = string.length;
-        type = index2 < oldString.length || index2 <= index
-          || string.charCodeAt(index + 1) === 47 ? 2 : 0;
-      } else if (string.startsWith("//")) {
+      if (index !== -1 && (index2 = string.lastIndexOf('/', index)) < 0) {
+        type = this.checkSpecialSchemes(oldString, index, string.length % oldString.length);
+      }
+      index2 = 0;
+      if (type === -1 && string.startsWith("//")) {
         string = string.substring(2);
         expected = 4; index2 = 2;
-      } else if (string.startsWith("magnet:?xt=urn:")) {
-        type = 0;
-      } else {
-        index2 = 0;
       }
       if (type !== -1) {}
       else if ((index = string.indexOf('/')) <= 0) {
@@ -174,6 +168,21 @@ var exports = {}, Utils = {
       : type === 2 ? this.createSearchUrl(oldString.split(' '), keyword || "~")
       : type === 4 ? ("http:" + oldString)
       : oldString;
+  },
+  checkSpecialSchemes: function(string, i, spacePos) {
+    var isSlash = string[i + 1] === "/";
+    switch (string.substring(0, i)) {
+    case "about": return isSlash ? 2 : -(spacePos > 0 || string.indexOf('@', i) > 0);
+    case "blob": case "view-source":
+      string = string.substring(i + 1);
+      if (string.startsWith("blob:") || string.startsWith("view-source:")) { return 2; }
+      this.convertToUrl(string);
+      return this.lastUrlType <= 1 || this.lastUrlType === 4 ? 0 : 2;
+    case "data": return isSlash ? 2 : -((i = string.indexOf(',', i)) < 0 || (spacePos > 0 && spacePos < i));
+    case "magnet": return -(string[i + 1] !== '?');
+    case "mailto": return isSlash ? 2 : -((i = string.indexOf('/', i)) > 0 && string.lastIndexOf('?', i) < 0);
+    default: return isSlash ? 2 : -1;
+    }
   },
   isTld: function(tld) {
     return this._nonENTldRe.test(tld) ? (this._nonENTlds.indexOf("." + tld + ".") !== -1 ? 2 : 0)
