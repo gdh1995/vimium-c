@@ -242,14 +242,15 @@ var exports = {}, Utils = {
     path = path.substring(ind + 1).trimLeft();
     if (!path) { return null; }
     if (workType <= 1) switch (cmd) {
-    case "e": case "exec": case "eval": case "expr": case "calc": case "math":
+    case "e": case "exec": case "eval": case "expr": case "calc": case "m": case "math":
       cmd = this.require("MathParser", "lib/math_parser.js");
       if (workType === 0) { return this.tryEvalMath(path); }
       return cmd.catch(function() { return null; }).then(function(MathParser) {
         var result = Utils.tryEvalMath(path, MathParser) || "";
         return [result, "math", path];
       });
-    } else if (workType === 2) switch (cmd) {
+    }
+    else if (workType === 2) switch (cmd) {
     case "url-copy": case "search-copy": case "search.copy": case "copy-url":
       path = this.convertToUrl(path, null, arguments[1] === 2 ? 1 : 1.5);
       if (this.lastUrlType !== 5) {}
@@ -263,7 +264,7 @@ var exports = {}, Utils = {
         });
       }
       // no break;
-    case "c": case "copy":
+    case "c": case "cp": case "copy":
       Clipboard.copy(path);
       return [path, "copy"];
     }
