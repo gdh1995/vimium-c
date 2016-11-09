@@ -78,7 +78,7 @@ var exports = {}, Utils = {
       string = string.substring(0, index);
     }
     if ((index = string.indexOf(':')) === 0) { type = 2; }
-    else if (index === -1 || string.substring(index, index + 3) !== "://") {
+    else if (index === -1 || !this.protocolRe.test(string)) {
       if (index !== -1 && string.substring(0, index) in this._nonUrlPrefixes) {
         index2 = string.length;
         type = index2 < oldString.length || index2 <= index
