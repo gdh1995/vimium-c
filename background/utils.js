@@ -231,7 +231,7 @@ var exports = {}, Utils = {
   vimiumKnownPages: ["blank", "newtab", "options", "show", "popup"],
   _vimiumCmdRe: /^[a-z][\da-z\-]*(?:\.[a-z][\da-z\-]*)*$/i,
   evalVimiumUrl: function(path, workType) {
-    var ind, cmd;
+    var ind, cmd, arr, obj;
     path = path.trim();
     workType |= 0;
     if (!path || !(workType >= 0) || (ind = path.indexOf(" ")) <= 0 ||
@@ -269,16 +269,35 @@ var exports = {}, Utils = {
       return [path, "copy"];
     }
     switch (cmd) {
-    case "u": case "url": case "search":
-      var arr = path.split(this.spacesRe);
-      if (workType === 1) {
-        return [arr, "search"];
+    case "p": case "parse": case "decode":
+      cmd = path.split(' ', 1)[0];
+      if (cmd.indexOf("/") < 0) {
+        path = path.substring(cmd.length + 1).trimLeft();
+      } else {
+        cmd = "~";
       }
-      return this.createSearchUrl(arr, "", arguments[1]);
+      arr = [path];
+      path = this.convertToUrl(path);
+      if (this.lastUrlType !== 2 && typeof path === "string") {
+        if (obj = g_requestHandlers.parseSearchUrl({ url: path })) {
+          arr = obj.url.split(" ");
+          arr.unshift(cmd);
+          break;
+        }
+      }
+      path = arr[0];
+    case "u": case "url": case "search":
+      arr = path.split(this.spacesRe);
+      break;
     case "newtab":
       return Settings.cache.newTabUrl_f;
+    default:
+      return null;
     }
-    return null;
+    if (workType === 1) {
+      return [arr, "search"];
+    }
+    return this.createSearchUrl(arr, "", arguments[1]);
   },
   tryEvalMath: function(expr, mathParser) {
     var result = null;
