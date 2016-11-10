@@ -1533,11 +1533,9 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
       Object.setPrototypeOf(request, null);
       request.url_f = Utils.convertToUrl(request.url, request.keyword, 2);
       request.keyword = "";
-      var ports;
-      if (!port || funcDict.checkVomnibarPage(port, true)) {}
-      else if (ports = framesForTab[port.sender.tabId]) {
-        cPort = ports[0];
-      }
+      var ports; 
+      cPort = !port ? cPort : funcDict.checkVomnibarPage(port, true) ? port
+        : (ports = framesForTab[port.sender.tabId]) ? ports[0] : cPort;
       if (Utils.lastUrlType === 5) {
         funcDict.onEvalUrl(request.url_f);
         return;
