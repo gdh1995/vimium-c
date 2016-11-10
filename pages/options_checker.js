@@ -21,21 +21,33 @@ window.checker = $('keyMappings').model.checker = {
     this.init = null;
   },
   quoteRe: /"/g,
-  normalizeOptions: function(str, value) {
+  normalizeOptions: function(str, value, s2, tail) {
+    if (s2) {
+	  value = s2 = value.replace(BG.Commands.hexCharRe, BG.Commands.onHex);
+    }
     try {
       value = JSON.parse(value);
-    } catch (e) {}
-    return str[1] === '"' ? str
-      : typeof value !== "string" ? value === true ? "" : str
-      : '="' + value.replace(this.quoteRe, '\\"') + '"';
+      if (typeof value !== "string") {
+        return value !== true ? str : "";
+      }
+    } catch (e) {
+      s2 && (value = s2);
+    }
+    value = value.replace(this.toHexCharRe, this.onToHex);
+    return '="' + value + '"' + tail;
   },
-  optionValueRe: /=(\S+)/g,
+  optionValueRe: /=("(\S*(?:\s[^=]*)?)"|\S+)(\s|$)/g,
+  toHexCharRe: /[\s"\\]/g,
+  onToHex: function(s) {
+    var hex = s.charCodeAt(0);
+    return (hex < 256 ? '\\x' : '\\u') + hex.toString(16);
+  },
   normalizeMap: function(_0, cmd, keys, options) {
     var keys2 = this.normalizeKeys(keys);
     if (keys2 !== keys) {
       console.log("KeyMappings Checker:", keys, "is corrected into", keys2);
     }
-    options = options.replace(this.optionValueRe, this.normalizeOptions);
+    options = options ? options.replace(this.optionValueRe, this.normalizeOptions) : "";
     return cmd + keys2 + options;
   },
   mapKeyRe: /(\n[ \t]*(?:un)?map\s+)(\S+)([^\n]*)/g,
