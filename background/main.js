@@ -970,7 +970,17 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
       }
     },
     openUrl: function(tabs) {
-      var url = cOptions.url_f || Utils.convertToUrl(cOptions.url || ""), reuse;
+      var url, reuse;
+      if (cOptions.url_mask) {
+        if (tabs && tabs.length > 0) {
+          url = cOptions.url_f || cOptions.url;
+          url = url.replace(cOptions.url_mask, tabs[0].url);
+          cOptions.url_f ? (cOptions.url_f = url) : (cOptions.url = url);
+        } else if (!tabs) {
+          return funcDict.getCurTab(BackgroundCommands.openUrl);
+        }
+      }
+      url = cOptions.url_f || Utils.convertToUrl(cOptions.url || "");
       if (cOptions.id_marker) {
         url = url.replace(cOptions.id_marker, chrome.runtime.id);
       }
