@@ -595,9 +595,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
     openUrl: function(reuse, tabs) {
       if (cOptions.incognito) {
         cOptions.url = this;
-        chrome.windows.getAll(function(wnd) {
-          funcDict.openUrlInIncognito(cOptions, tabs[0], wnd);
-        });
+        chrome.windows.getAll(funcDict.openUrlInIncognito.bind(null, cOptions, tabs[0]));
         return;
       }
       if (reuse === -2) { tabs[0].active = false; }
@@ -1628,8 +1626,9 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
       } else {
         url = Utils.convertToUrl(url, request.keyword, port ? null : 2);
         if (port && url.substring(0, 11).toLowerCase() !== "javascript:") {
-          requestHandlers.openUrl({ url: url });
-          url = null;
+          cOptions = Object.setPrototypeOf({ url_f: url }, null);
+          commandCount = 1; url = null;
+          BackgroundCommands.openUrl();
         }
       }
       return url;
