@@ -506,8 +506,9 @@ tabs: {
 searchEngines: {
   preFilter: function(query, failIfNull) {
     var obj, sug, q = queryTerms, keyword, pattern, promise;
+    keyword = q.length > 0 ? q[0] : "";
     if (q.length === 0) {}
-    else if (failIfNull !== true && (keyword = q[0])[0] === "\\") {
+    else if (failIfNull !== true && keyword[0] === "\\") {
       q[0] = keyword.substring(1);
       keyword = q.join(" ");
       sug = this.makeUrlSuggestion(keyword, "\\" + keyword);
