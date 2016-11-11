@@ -4,8 +4,8 @@ set -o noglob
 output="$1"
 if [ -n "$output" -a ! -d "$output" ]; then :
 else
-  if [ -n "$output" -a -d "output" ]; then
-    output="${output/\//}/"
+  if [ -n "$output" -a -d "$output" ]; then
+    output="${output/%\//}/"
   fi
   ver=`grep '"version"' manifest.json | awk -F '"' '{print $4}'`
   output="${output}"vimium_plus_$ver.zip
@@ -18,6 +18,11 @@ fi
 
 zip -roX -MM $args "$output" . -x ".*" "*.sh" "weidu/*" "test*" \
   "*/.*" "*.coffee" "*.crx" "*.ts" "*.zip" $4
+err=$?
+if [ $err -ne 0 ] ; then
+  echo "$0: exit because of an error during zipping" 1>&2
+  exit $err
+fi
 echo ""
 echo "Wrote $output"
 
@@ -28,6 +33,7 @@ if [ -z "$key" ]; then
 fi
 if ! which xxd >/dev/null 2>&1 ; then
   echo 'No "xxd" program. Exit.' 1>&2
+  exit 1
 fi
 crx="$3"
 if [ -z "$crx" ]; then
