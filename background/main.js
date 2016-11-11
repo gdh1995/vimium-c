@@ -977,6 +977,21 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
         : funcDict.getCurTab(funcDict.openUrl.bind(url, reuse));
       }
     },
+    searchInAnother: function(tabs) {
+      var keyword = cOptions.keyword, query;
+      query = requestHandlers.parseSearchUrl(tabs[0]);
+      if (!query || !keyword) {
+        requestHandlers.ShowHUD(keyword ? "No search engine found!"
+          : 'This key mapping lacks an arg "keyword"');
+        return;
+      }
+      keyword = Utils.createSearchUrl(query.url.split(" "), keyword);
+      cOptions = Object.setPrototypeOf({
+        reuse: cOptions.reuse | 0,
+        url_f: keyword
+      }, null);
+      BackgroundCommands.openUrl(tabs);
+    },
     togglePinTab: function(tabs) {
       var tab = funcDict.selectFrom(tabs), i = tab.index
         , len = Math.min(tabs.length, i + commandCount), action = {pinned: true};
@@ -1874,6 +1889,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
     }
     ref = ["clearCS", "copyTabInfo", "enableCSTemp", "goToRoot", "moveTabToNextWindow"//
       , "openCopiedUrlInNewTab", "reopenTab", "toggleCS", "toggleViewSource" //
+      , "searchInAnother" //
     ];
     for (i = ref.length; 0 <= --i; ) {
       ref2[ref[i]].useTab = 1;

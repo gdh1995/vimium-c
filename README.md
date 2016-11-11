@@ -48,6 +48,7 @@ Not released yet:
 * **WARNING**: change semantics of `metaKey`: just the same as `altKey`
 * **WARNING**: The default of `grabBackFocus` becomes `false`,
   although its recommended value is still `true`.
+* add `searchInAnother` to search current content using another search engine.
 * add `toggleMuteTab`.
 * add `parentFrame` which only works on Chrome 41+.
 * `Marks`: global marks search other tabs by url prefix by default,

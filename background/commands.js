@@ -138,7 +138,7 @@ commandGroups: {
     , "moveTabToNewWindow", "moveTabToIncognito", "togglePinTab", "toggleMuteTab", "visitPreviousTab"
     , "closeTabsOnLeft", "closeTabsOnRight", "closeOtherTabs", "moveTabLeft", "moveTabRight"
     , "enableCSTemp", "toggleCS", "clearCS"],
-  misc: ["showHelp", "autoCopy", "autoOpen", "searchAs", "toggleLinkHintCharacters"
+  misc: ["showHelp", "autoCopy", "autoOpen", "searchAs", "searchInAnother", "toggleLinkHintCharacters"
     , "toggleSwitchTemp", "passNextKey", "debugBackground", "blank"]
 },
 advancedCommands: {
@@ -148,7 +148,7 @@ advancedCommands: {
   , moveTabToNewWindow: 1, moveTabToIncognito: 1, reloadGivenTab: 1, focusOrLaunch: 1
   , goUp: 1, goToRoot: 1, focusInput: 1, "LinkHints.activateModeWithQueue": 1, enableCSTemp: 1
   , toggleCS: 1, clearCS: 1, "LinkHints.activateModeToDownloadImage": 1, reopenTab: 1
-  , "LinkHints.activateModeToOpenImage": 1, searchAs: 1, removeRightTab: 1
+  , "LinkHints.activateModeToOpenImage": 1, removeRightTab: 1
   , "LinkHints.activateModeToDownloadLink": 1, restoreGivenTab: 1
   , "LinkHints.activateModeToOpenIncognito": 1, passNextKey: 1
   , goNext: 1, goPrevious: 1, "Marks.clearLocal": 1, "Marks.clearGlobal": 1
@@ -261,6 +261,7 @@ availableCommands: {
   autoCopy: [ "Copy selected text or current frame's title or url (use url)", 1, false ],
   autoOpen: [ "Open selected or copied text in a new tab", 1, false ],
   searchAs: [ "Search selected or copied text using current search engine", 1, false ],
+  searchInAnother: [ "Redo search in another search engine (use keyword, reuse=0)", 1, true ],
   "LinkHints.activateModeToCopyLinkUrl": [ "Copy a link URL to the clipboard", 0, false,
     { mode: "COPY_LINK_URL" }, "VHints.activate" ],
   "LinkHints.activateModeToCopyLinkText": [ "Copy a link text to the clipboard", 0, false,
