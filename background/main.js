@@ -110,16 +110,13 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
     },
     complain: function(url) {
       if (!chrome.contentSettings) {
-        cPort.postMessage({
-          name: "showHUD",
-          text: "This Vimium++ has no permissions to change your content settings"
-        });
+        requestHandlers.ShowHUD("This Vimium++ has no permissions to change your content settings");
         return true;
       }
       if (Utils.protocolRe.test(url) && !url.startsWith("chrome")) {
         return false;
       }
-      funcDict.complain(cPort, "change its content settings");
+      funcDict.complain("change its content settings");
       return true;
     },
     parsePattern: function(pattern, level) {
@@ -149,10 +146,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
     },
     clearCS: function(contentType, tab) {
       ContentSettings.clear(contentType, tab);
-      cPort.postMessage({
-        name: "showHUD",
-        text: contentType + " content settings have been cleared."
-      });
+      requestHandlers.ShowHUD(contentType + " content settings have been cleared.");
     },
     clear: function(contentType, tab) {
       if (!chrome.contentSettings) { return; }
@@ -415,15 +409,12 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
       if (arr instanceof Promise) { return arr.then(funcDict.onEvalUrl); }
       switch(arr[1]) {
       case "copy":
-        requestHandlers.SendToCurrent({name: "showCopied", text: arr[0]});
+        requestHandlers.ShowHUD(arr[0], "showCopied");
         break;
       }
     },
-    complain: function(port, action) {
-      port && port.postMessage({
-        name: "showHUD",
-        text: "It's not allowed to " + action
-      });
+    complain: function(action) {
+      requestHandlers.ShowHUD("It's not allowed to " + action);
     },
     checkVomnibarPage: function(port, nolog) {
       if (port.sender.url === Settings.CONST.VomnibarPage) { return false; }
@@ -666,7 +657,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
           return;
         }
         if (Settings.CONST.ChromeVersion >= 52) {
-          return funcDict.complain(cPort, "open this tab in incognito");
+          return funcDict.complain("open this tab in incognito");
         }
       } else if (wnd.incognito) {
         ++tab.index;
@@ -744,10 +735,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
         chrome.sessions.restore(list[commandCount - 1].tab.sessionId);
         return;
       }
-      cPort.postMessage({
-        name: "showHUD",
-        text: "The session index provided is out of range."
-      });
+      requestHandlers.ShowHUD("The session index provided is out of range.");
     },
     selectWnd: function(tab) {
       tab && chrome.windows.update(tab.windowId, { focused: true });
@@ -778,7 +766,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
         curId = frames[i].parentFrameId;
         port = Settings.indexFrame(this.tabId, curId);
         port ? port.postMessage({ name: "focusFrame", frameId: 0 })
-          : cPort.postMessage({ name: "showHUD", text: "Fail to find its parent frame" });
+          : requestHandlers.ShowHUD("Fail to find its parent frame");
         return;
       }
     },
@@ -857,7 +845,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
     duplicateTab: function() {
       var tabId = cPort.sender.tabId;
       if (tabId < 0) {
-        return funcDict.complain(cPort, "duplicate such a tab");
+        return funcDict.complain("duplicate such a tab");
       }
       chrome.tabs.duplicate(tabId);
       if (--commandCount > 0) {
@@ -930,10 +918,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
     restoreTab: function() {
       var count = commandCount, limit;
       if (count === 1 && cPort.sender.incognito) {
-        cPort.postMessage({
-          name: "showHUD",
-          text: "Can not restore a tab in incognito mode!"
-        });
+        requestHandlers.ShowHUD("Can not restore a tab in incognito mode!");
         return;
       }
       limit = chrome.sessions.MAX_SESSION_RESULTS; 
@@ -959,10 +944,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
       if (Utils.lastUrlType === 5) {
         funcDict.onEvalUrl(url);
       } else if (!url) {
-        requestHandlers.SendToCurrent({
-          name: "showHUD",
-          text: "No text copied!"
-        });
+        requestHandlers.ShowHUD("No text copied!");
       } else if (tabs.length > 0) {
         openMultiTab(url, commandCount, tabs[0]);
       } else {
@@ -1065,10 +1047,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
         chrome.tabs.update(null, {url: result.url});
         return;
       }
-      requestHandlers.SendToCurrent({
-        name: "showHUD",
-        text: result.url
-      });
+      requestHandlers.ShowHUD(result.url); // TODO: fill message
     },
     moveTab: function(tabs) {
       var tab = funcDict.selectFrom(tabs), index, dir, pinned;
@@ -1112,8 +1091,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
         : !sender.frameId ? "This page is just the top frame"
         : null;
       if (msg) {
-        cPort.postMessage({ name: "showHUD", text: msg });
-        return;
+        return requestHandlers.ShowHUD(msg);
       }
       chrome.webNavigation.getAllFrames({tabId: sender.tabId}, funcDict.focusParentFrame.bind(sender));
     },
@@ -1195,15 +1173,12 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
     clearFindHistory: function() {
       var incognito = cPort.sender.incognito;
       FindModeHistory.removeAll(incognito);
-      cPort.postMessage({
-        name: "showHUD",
-        text: (incognito ? "incognito " : "") + "find history has been cleared."
-      });
+      requestHandlers.ShowHUD((incognito ? "incognito " : "") + "find history has been cleared.");
     },
     toggleViewSource: function(tabs) {
       var url = tabs[0].url;
       if (url.startsWith("chrome-")) {
-        funcDict.complain(cPort, "visit HTML of an extension's page");
+        funcDict.complain("visit HTML of an extension's page");
         return;
       }
       url = url.startsWith("view-source:") ? url.substring(12) : ("view-source:" + url);
@@ -1353,7 +1328,8 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
     setSetting: function(request, port) {
       var key = request.key;
       if (!(key in Settings.frontUpdateAllowed)) {
-        return funcDict.complain(port, 'modify "' + key + '" setting');
+        cPort = port;
+        return funcDict.complain('modify "' + key + '" setting');
       }
       Settings.set(key, request.value);
       if (key in Settings.bufferToLoad) {
@@ -1672,9 +1648,9 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
       } catch (e) {}
     },
     SetIcon: function() {},
-    SendToCurrent: function(request) {
+    ShowHUD: function(message, name) {
       try {
-        cPort && cPort.postMessage(request);
+        cPort && cPort.postMessage({ name: name || "showHUD", text: message });
       } catch (e) {
         cPort = null;
       }

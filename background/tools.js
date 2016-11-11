@@ -118,10 +118,7 @@ Marks = { // NOTE: all members should be static
         storage.removeItem(key);
       }
     }
-    g_requestHandlers.SendToCurrent({
-      name: "showHUD",
-      text: "Global marks have been cleared."
-    });
+    g_requestHandlers.ShowHUD("Global marks have been cleared.");
   }
 },
 TabRecency = {
