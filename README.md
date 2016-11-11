@@ -3,6 +3,8 @@ Vimium++
 [![license](https://img.shields.io/badge/license-MIT-blue.svg)](MIT-LICENSE.txt)
 ![version](https://img.shields.io/badge/release-1.57-orange.svg)
 
+**[Visit Vimium++ in Chrome Web Store](https://chrome.google.com/webstore/detail/vimium%2B%2B/hfjbmagddngcpeloejdejnfgbamkjaeg)**.
+
 A custom [Vimium](https://github.com/philc/vimium)
   by [gdh1995](https://github.com/gdh1995),
   supporting Chrome with the session functionalities only (ver >= 37).
