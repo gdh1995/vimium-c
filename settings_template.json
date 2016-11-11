@@ -128,6 +128,12 @@
 		"map <a-S> toggleSwitchTemp key=\"smoothScroll\"",
 		"map <a-F12> debugBackground",
 		"map <F12> focusOrLaunch url=\"vimium://options\"",
+		"",
+		"map Gg searchInAnother keyword=\"g\"",
+		"map Gt searchInAnother keyword=\"t\"",
+		"map Gd searchInAnother keyword=\"d\"",
+		"map Gb searchInAnother keyword=\"b\"",
+		"map Gs searchInAnother keyword=\"g.s\"",
 		""
 	],
 	"linkHintCharacters": "asdqwerzxcv",
@@ -200,5 +206,6 @@
 		""
 	],
 	"showActionIcon": false,
+	"showAdvancedCommands": true,
 	"showAdvancedOptions": true
 }
