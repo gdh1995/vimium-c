@@ -1,7 +1,7 @@
 Vimium++
 ========
 [![license](https://img.shields.io/badge/license-MIT-blue.svg)](MIT-LICENSE.txt)
-![version](https://img.shields.io/badge/release-1.56-orange.svg)
+![version](https://img.shields.io/badge/release-1.57-orange.svg)
 
 A custom [Vimium](https://github.com/philc/vimium)
   by [gdh1995](https://github.com/gdh1995),
@@ -43,7 +43,7 @@ __微度新标签页 (X New Tab Page):__
 Release Notes
 -------------
 
-Not released yet:
+1.57:
 * **WARNING**: revert modifier keys' orders into `a-c-m-`
 * **WARNING**: change semantics of `metaKey`: just the same as `altKey`
 * **WARNING**: The default of `grabBackFocus` becomes `false`,
@@ -54,6 +54,7 @@ Not released yet:
 * `Marks`: global marks search other tabs by url prefix by default,
   and you may turn off this feature by `map Marks.activate prefix=false`.
 * fix a bug history titles may be wrong.
+* other bug fixes.
 
 1.56:
 * Vomnibar is re-implemented using `<iframe>`, which is much safer than shadowDOM.
