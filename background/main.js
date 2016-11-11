@@ -1364,7 +1364,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
       return FindModeHistory.query(port.sender.incognito, request.query, request.index);
     },
     parseSearchUrl: function(request) {
-      var url = request.url.toLowerCase(), decoders, pattern, _i, str, arr,
+      var s0 = request.url, url = s0.toLowerCase(), decoders, pattern, _i, str, arr,
           selectLast, re;
       if (!Utils.protocolRe.test(url)) {
         return null;
@@ -1373,12 +1373,12 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
       if (url.startsWith("http")) {
         _i = url.charAt(4) === 's' ? 8 : 7;
         url = url.substring(_i);
-        request.url = request.url.substring(_i);
+        s0 = s0.substring(_i);
       }
       for (_i = decoders.length; 0 <= --_i; ) {
         pattern = decoders[_i];
         if (!url.startsWith(pattern[0])) { continue; }
-        arr = request.url.substring(pattern[0].length).match(pattern[1]);
+        arr = s0.substring(pattern[0].length).match(pattern[1]);
         if (arr) { break; }
       }
       if (!arr) { return null; }
