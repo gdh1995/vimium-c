@@ -8,7 +8,10 @@ else
     output="${output/%\//}/"
   fi
   ver=`grep '"version"' manifest.json | awk -F '"' '{print $4}'`
-  output="${output}"vimium_plus_$ver.zip
+  pkg_name=`basename "$PWD"`
+  pkg_name="${pkg_name/++/_plus}"
+  pkg_name="${pkg_name/+/_}"
+  output="${output}"${pkg_name}_$ver.zip
 fi
 
 args=""
