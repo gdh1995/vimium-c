@@ -885,6 +885,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
     removeTab: function(tabs) {
       if (!tabs || tabs.length <= 0) { return chrome.runtime.lastError; }
       var tab = tabs[0], i, startTabIndex = tabs.length - commandCount;
+      if (cOptions.allow_close === true) {} else
       if (tab.active && startTabIndex <= 0 || startTabIndex === 0) {
         chrome.windows.getAll(funcDict.removeTab.bind(null, tab, tabs));
         return;

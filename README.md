@@ -45,6 +45,10 @@ __微度新标签页 (X New Tab Page):__
 Release Notes
 -------------
 
+Not released yet:
+* `removeTab` accepts an boolean option `allow_close` (default to `false`),
+  and Vimium++ will not retain the last tab if getting `allow_close=false`.
+
 1.57:
 * **WARNING**: revert modifier keys' orders into `a-c-m-`
 * **WARNING**: change semantics of `metaKey`: just the same as `altKey`

@@ -318,7 +318,7 @@ availableCommands: {
   lastTab: [ "Go to the last N-th tab", 0, true, { dir: -1, absolute: true }, "gotoTab" ],
   createTab: [ "Create new tab(s)", 20, true ],
   duplicateTab: [ "Duplicate current tab for N times", 20, true ],
-  removeTab: [ "Close N tab(s)", 25, true ],
+  removeTab: [ "Close N tab(s) (use allow_close)", 25, true ],
   removeRightTab: [ "Close N-th tab on the right", 0, true ],
   restoreTab: [ "Restore closed tab(s)", 25, true ],
   restoreGivenTab: [ "Restore the last N-th tab", 0, true ],
