@@ -45,7 +45,6 @@
 		"map Fi LinkHints.activateModeToOpenImage",
 		"map FI LinkHints.activateModeToOpenIncognito",
 		"map F<a-e> LinkHints.activateModeToEdit",
-		"map G LinkHints.activateModeToOpenInNewTab",
 		"map o Vomnibar.activate",
 		"map g Vomnibar.activateInNewTab",
 		"map t Vomnibar.activateTabSelection",
