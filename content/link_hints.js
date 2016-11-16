@@ -214,8 +214,9 @@ var VHints = {
       if (element.useMap && VDom.getClientRectsForAreas(element, this)) { return; }
       if ((VHints.mode >= 128 && VHints.mode1 <= VHints.CONST.LEAVE
           && !(element.parentNode instanceof HTMLAnchorElement))
-        || element.style.cursor || (s = getComputedStyle(element).cursor)
-          && (s.startsWith("url") || s.indexOf("zoom") >= 0)) {
+        || ((s = element.style.cursor) ? s !== "default"
+          : (s = getComputedStyle(element).cursor) && (s.startsWith("url") || s.indexOf("zoom") >= 0)
+        )) {
         isClickable = true;
       }
       break;
