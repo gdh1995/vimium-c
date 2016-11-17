@@ -34,6 +34,7 @@ Option.prototype.areEqual = function(a, b) {
 function NumberOption() {
   NumberOption.__super__.constructor.apply(this, arguments);
   this.element.oninput = this.onUpdated;
+  this.element.onfocus = this.addWheelListener.bind(this);
 }
 __extends(NumberOption, Option);
 
@@ -43,6 +44,39 @@ NumberOption.prototype.populateElement = function(value) {
 
 NumberOption.prototype.readValueFromElement = function() {
   return parseFloat(this.element.value);
+};
+
+NumberOption.prototype.addWheelListener = function() {
+  var func = this.OnWheel, onBlur;
+  this.element.addEventListener("mousewheel", func, {passive: false});
+  this.element.addEventListener("blur", onBlur = function() {
+    this.removeEventListener("mousewheel", func, {passive: false});
+    this.removeEventListener("blur", onBlur);
+    this.hadWheelEvents = false;
+  });
+};
+
+NumberOption.prototype.OnWheel = function(event) {
+  event.preventDefault();
+  var inc = event.wheelDelta > 0, step, i, val0 = this.value, val, func;
+  func = inc ? this.stepUp : this.stepDown;
+  if (typeof func === "function") {
+    func.call(this);
+    val = this.value;
+    this.value = val0;
+  } else {
+    func = parseFloat;
+    step = func(this.step) || 1;
+    i = (+this.value || 0) + (inc ? step : -step);
+    isNaN(step = func(this.max)) || (i = Math.min(i, step));
+    isNaN(step = func(this.min)) || (i = Math.max(i, step));
+    val = "" + i;
+  }
+  inc = this.hadWheelEvents;
+  this.hadWheelEvents = true;
+  inc && document.execCommand("undo");
+  this.select();
+  document.execCommand("insertText", false, val);
 };
 
 function TextOption() {
