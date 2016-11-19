@@ -85,8 +85,9 @@ select.right:focus {
   z-index: 1;
 }
 
+#exclusionRulesTable,
 pre, code, .code {
-  font-family: Consolas, "Liberation Mono", Courier, monospace;
+  font-family: Consolas, "Liberation Mono", "Courier New", monospace;
 }
 pre {
   margin: 5px;
@@ -248,7 +249,6 @@ label:active {
   box-sizing: border-box;
 }
 #exclusionRulesTable {
-  font-family: Consolas, "Liberation Mono", Courier, monospace;
   width: 100%;
 }
 .exclusionRulePassKeys {

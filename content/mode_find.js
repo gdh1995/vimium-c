@@ -22,8 +22,8 @@ var VFindMode = {
   A0Re: /\xa0/g,
   cssSel: "::selection{background:#ff9632;}",
   cssOut: ".vimiumFindMode body{-webkit-user-select:auto !important;user-select:auto !important;}\n.vimiumFindMode ",
-  cssIFrame: '*{font:normal normal normal 12px Helvetica,Arial,sans-serif !important;\
-height:14px;line-height:12px;margin:0;overflow-y:hidden;vertical-align:top;white-space:nowrap;cursor:default;}\
+  cssIFrame: '*{font:12px/1 "Helvetica Neue",Helvetica,Arial,sans-serif !important;\
+height:14px;margin:0;overflow:hidden;vertical-align:top;white-space:nowrap;cursor:default;}\
 body{cursor:text;display:inline-block;padding:0 3px 0 1px;min-width:7px;}body *{cursor:text;display:inline;}body br{display:none;}',
   activate: function(options) {
     if (!document.body) { return false; }
