@@ -434,7 +434,11 @@ var Vomnibar = {
     completions.forEach(this.Parse, this.mode);
     this.completions = completions;
     oldHeight = this.height;
-    this.height = height = completions.length > 0 ? 45 * completions.length + 57 : 54;
+    height = completions.length;
+    if (height > 0) {
+      height = (44 + (1 / (window.devicePixelRatio || 1))) * height + 3;
+    }
+    this.height = height = (height | 0) + 54;
     if (oldHeight === 0) {
       setTimeout(VPort.postToOwner, 0, { name: "style", height: height });
       return;

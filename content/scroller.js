@@ -88,7 +88,7 @@ Core: {
   getActivatedElement: function() {
     var element = this.current;
     this.top = document.scrollingElement || document.body || document.documentElement;
-    this.scale = Math.max(1, 1 / window.devicePixelRatio);
+    this.scale = Math.max(1, 1 / (window.devicePixelRatio || 1));
     if (element) { return element; }
     element = this.top;
     return this.current = element && (this.selectFirst(element) || element);
