@@ -1,7 +1,7 @@
 /* NOTE: This stylesheet is included in both options.html and popup.html.  So changes here affect
    both of these. */
 body {
-  font: 14px Arial,sans-serif;
+  font: 14px "Helvetica Neue",Helvetica,Arial,"PingFang SC","Hiragino Sans GB","Microsoft YaHei","Heiti SC","WenQuanYi Micro Hei",sans-serif;
   margin: 0 auto;
 }
 body.chrome-ui {
@@ -86,8 +86,8 @@ select.right:focus {
 }
 
 #exclusionRulesTable,
-pre, code, .code {
-  font-family: Consolas, "Liberation Mono", "Courier New", monospace;
+pre, code, kbd, .code {
+  font-family: Consolas, "Liberation Mono", "Courier New", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Heiti SC", "WenQuanYi Micro Hei", monospace;
 }
 pre {
   margin: 5px;
