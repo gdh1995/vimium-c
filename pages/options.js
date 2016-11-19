@@ -269,15 +269,23 @@ ExclusionRulesOption.prototype.onInit = function() {
   document.addEventListener("keydown", function(event) {
     if (event.keyCode !== 32) { return; }
     var el = event.target;
-    if (el instanceof HTMLLabelElement) {
-      el.control.click();
+    if ((el instanceof HTMLLabelElement) && !el.isContentEditable) {
       event.preventDefault();
     }
   });
 
   document.addEventListener("keyup", function(event) {
-    if (event.keyCode !== 13) { return; }
-    var el = event.target;
+    var el, i = event.keyCode;
+    if (i !== 13) {
+      if (i !== 32) { return; }
+      el = event.target;
+      if ((el instanceof HTMLLabelElement) && !el.isContentEditable) {
+        el.control.click();
+        event.preventDefault();
+      }
+      return;
+    }
+    el = event.target;
     if (el instanceof HTMLAnchorElement) {
       setTimeout(function(el) {
         el.click();
