@@ -33,25 +33,22 @@ Option.prototype.fetch = function() {
 };
 
 Option.prototype.save = function() {
-  var value = this.readValueFromElement(), previous = this.previous, notJSON = true;
+  var value = this.readValueFromElement(), notJSON = typeof value !== "object"
+    , previous = notJSON ? JSON.stringify(this.previous) : this.previous, str;
   if (typeof value === "object") {
-    value = JSON.stringify(value);
-    previous = JSON.stringify(this.previous);
-    if (value === previous) { return; }
-    previous = value;
-    notJSON = false;
-    if (value === JSON.stringify(bgSettings.defaults[this.field])) {
+    str = JSON.stringify(value);
+    if (str === previous) { return; }
+    previous = str;
+    if (str === JSON.stringify(bgSettings.defaults[this.field])) {
       value = bgSettings.defaults[this.field];
     } else {
-      value = BG.JSON.parse(value);
-      if (this.checker) {
-        value = this.checker.check(value);
-      }
+      this.checker && (str = JSON.stringify(this.checker.check(value)));
+      value = BG.JSON.parse(str);
+      str = "";
     }
   } else if (value === previous) {
     return;
   } else {
-    previous = value;
     if (this.checker) {
       value = this.checker.check(value);
     }
