@@ -71,7 +71,7 @@ var VHints = {
     }
 
     arr = this.initBox(elements.length);
-    this.box && this.box.remove();
+    if (this.box) { this.box.remove(); this.box = null; }
     this.hintMarkers = elements.map(this.createMarkerFor, this);
     elements = null;
     this.alphabetHints.initMarkers(this.hintMarkers);
@@ -538,10 +538,14 @@ var VHints = {
       VHints.setMode(VHints.lastMode);
     }
   },
+  _resetMarkers: function() {
+    var ref = this.hintMarkers, i = 0, len = ref ? ref.length : 0;
+    this.hintMarkers = null;
+    while (i < len) { ref[i++].clickableItem = null; }
+  },
   activateLink: function(hintEl) {
-    var rect, clickEl = hintEl.clickableItem, ref = this.hintMarkers, len, i;
-    for (len = ref.length, i = 0; i < len; i++) { ref[i++].clickableItem = null; }
-    this.hintMarkers = ref = null;
+    var rect, clickEl = hintEl.clickableItem;
+    this._resetMarkers();
     if (VDom.isInDocument(clickEl)) {
       // must get outline first, because clickEl may hide itself when activated
       rect = hintEl.linkRect || VDom.UI.getVRect(clickEl);
@@ -568,6 +572,7 @@ var VHints = {
     this.isActive = false;
     this.keyStatus.tab = 0;
     this.zIndexes = null;
+    this._resetMarkers();
     this.activate(0, this.options);
     this.timer && clearTimeout(this.timer);
     if (this.isActive && lastEl && this.mode < 128) {
