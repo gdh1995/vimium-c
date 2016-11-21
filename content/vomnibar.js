@@ -7,7 +7,7 @@ var Vomnibar = {
   width: 0,
   destroy: null,
   sameOrigin: false,
-  activate: function(_0, options, forceCurrent) {
+  activate: function(count, options, forceCurrent) {
     if (!options.secret || !options.vomnibar) { return false; }
     if (document.readyState === "loading") {
       if (!this.width) {
@@ -18,7 +18,10 @@ var Vomnibar = {
     }
     if (!(document.documentElement instanceof HTMLElement)) { return false; }
     Object.setPrototypeOf(options || (options = {}), null);
-    options.url === true && !options.topUrl && (options.topUrl = window.location.href);
+    if (options.url === true && !options.topUrl) {
+      options.topUrl = window.location.href;
+      options.count = +count || 1;
+    };
     if ((forceCurrent |= 0) < 2 &&
         VHints.tryNestedFrame("Vomnibar.activate", [1, options, 2])) {
       return;
@@ -43,7 +46,7 @@ var Vomnibar = {
   },
   show: function() {
     if (this.status < 2) { return; }
-    var options = this.options, url;
+    var options = this.options, url, upper = 0;
     options.width = this.width, options.name = "activate";
     this.options = null;
     url = options.url;
@@ -54,6 +57,7 @@ var Vomnibar = {
         url = options.topUrl;
       }
       delete options.topUrl;
+      upper = 1 - options.count;
       options.url = url;
     }
     if (!url || url.indexOf("://") === -1) {
@@ -63,6 +67,7 @@ var Vomnibar = {
     }
     VPort.sendMessage({
       handler: "parseSearchUrl",
+      upper: upper,
       url: url
     }, function(search) {
       options.search = search;

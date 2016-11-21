@@ -1181,7 +1181,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
         secret: getSecret(),
       }, null), cOptions);
       port.postMessage({
-        name: "execute", count: 1,
+        name: "execute", count: commandCount,
         command: "Vomnibar.activate",
         options: options
       });
@@ -1357,9 +1357,16 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
     },
     parseSearchUrl: function(request) {
       var s0 = request.url, url = s0.toLowerCase(), decoders, pattern, _i, str, arr,
-          selectLast, re;
+          selectLast, re, obj;
       if (!Utils.protocolRe.test(url)) {
         return null;
+      }
+      if (_i = +request.upper) {
+        obj = requestHandlers.parseUpperUrl({ url: s0, upper: _i });
+        if (obj.path != null) {
+          s0 = obj.url;
+        }
+        return { keyword: '', start: 0, url: s0 };
       }
       decoders = Settings.cache.searchEngineRules;
       if (url.startsWith("http")) {

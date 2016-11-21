@@ -340,10 +340,10 @@ availableCommands: {
   toggleCS: [ "turn on/off the site's CS (use type=images)", 0, true, { type: "images" } ],
   clearCS: [ "clear extension's content settings (use type=images)", 1, true, { type: "images" } ],
   "Vomnibar.activate": [
-    "Open URL, bookmark, or history entry<br/> (use keyword='', url=false/&lt;string>)", 1, true,
+    "Open URL, bookmark, or history entry<br/> (use keyword='', url=false/&lt;string>)", 0, true,
     null, "showVomnibar" ],
   "Vomnibar.activateInNewTab": [
-    "Open URL, history, etc,<br/> in a new tab (use keyword, url)", 1, true,
+    "Open URL, history, etc,<br/> in a new tab (use keyword, url)", 0, true,
     { force: true }, "showVomnibar" ],
   "Vomnibar.activateTabSelection": [ "Search through your open tabs", 1, true,
     { mode: "tab", force: true }, "showVomnibar" ],
