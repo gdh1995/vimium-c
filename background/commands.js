@@ -130,6 +130,7 @@ commandGroups: {
   vomnibarCommands: ["Vomnibar.activate", "Vomnibar.activateInNewTab"
     , "Vomnibar.activateBookmarks", "Vomnibar.activateBookmarksInNewTab", "Vomnibar.activateHistory"
     , "Vomnibar.activateHistoryInNewTab", "Vomnibar.activateTabSelection"
+    , "Vomnibar.activateEditUrl", "Vomnibar.activateEditUrlInNewTab"
     , "LinkHints.activateModeToOpenVomnibar"],
   historyNavigation: ["goBack", "goForward", "reopenTab"],
   findCommands: ["enterFindMode", "performFind", "performBackwardsFind", "clearFindHistory"],
@@ -156,6 +157,7 @@ advancedCommands: {
   , scrollPxDown: 1, scrollPxUp: 1, scrollPxLeft: 1, scrollPxRight: 1, debugBackground: 1, blank: 1
   , "LinkHints.activateModeToHover": 1, "LinkHints.unhoverLast": 1
   , toggleLinkHintCharacters: 1, toggleSwitchTemp: 1, "LinkHints.activateModeToLeave": 1
+  , "Vomnibar.activateEditUrl": 1, "Vomnibar.activateEditUrlInNewTab": 1
 },
 defaultKeyMappings: [
   ["?", "showHelp"],
@@ -217,6 +219,8 @@ defaultKeyMappings: [
   ["T", "Vomnibar.activateTabSelection"],
   ["b", "Vomnibar.activateBookmarks"],
   ["B", "Vomnibar.activateBookmarksInNewTab"],
+  ["ge", "Vomnibar.activateEditUrl"],
+  ["gE", "Vomnibar.activateEditUrlInNewTab"],
   ["gf", "nextFrame"],
   ["gF", "mainFrame"],
   ["<f1>", "simBackspace"],
@@ -351,6 +355,10 @@ availableCommands: {
     { mode: "history" }, "showVomnibar" ],
   "Vomnibar.activateHistoryInNewTab": [ "Open a history in a new tab", 1, true,
     { mode: "history", force: true }, "showVomnibar" ],
+  "Vomnibar.activateEditUrl": [ "Edit the current URL", 0, true,
+    { url: true }, "showVomnibar" ],
+  "Vomnibar.activateEditUrlInNewTab": [ "Edit the current URL and open in a new tab", 0, true,
+    { url: true, force: true }, "showVomnibar" ],
   nextFrame: [ "Cycle forward to the next frame on the page", 0, true ],
   mainFrame: [ "Select the tab's main/top frame", 1, true ],
   parentFrame: [ "Focus parent frame of the current", 1, true ],

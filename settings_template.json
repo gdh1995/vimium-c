@@ -53,7 +53,7 @@
 		"map t Vomnibar.activateTabSelection",
 		"map h Vomnibar.activateHistoryInNewTab",
 		"map b Vomnibar.activateInNewTab keyword=\"bing\"",
-		"map Fe Vomnibar.activate url",
+		"map Fe Vomnibar.activateEditUrl",
 		"map B Vomnibar.activateBookmarksInNewTab",
 		"map <a-g> Vomnibar.activateInNewTab",
 		"map <c-D> duplicateTab",
