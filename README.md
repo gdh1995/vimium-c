@@ -45,9 +45,15 @@ __微度新标签页 (X New Tab Page):__
 Release Notes
 -------------
 
-Not released yet:
+1.57.1:
+* fix broken `LinkHints.activateModeToOpenVomnibar`
+* change fonts in UI for better presentation: `Helvetica Neue` is prefered,
+  and for Chinese characters, now try to use `PingFang` and `YaHei`.
 * `removeTab` accepts an boolean option `allow_close` (default to `false`),
   and Vimium++ will not retain the last tab if getting `allow_close=false`.
+* add back `Vomnibar.activateEditUrl` and `Vomnibar.activateEditUrlInNewTab`
+* `Vomnibar.activateEditUrl` now supports `count` to get an upper url
+* suggest using `Gg` to `openInNewTab` and `GG` to `searchInGoogle`
 
 1.57:
 * **WARNING**: revert modifier keys' orders into `a-c-m-`
