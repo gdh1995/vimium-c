@@ -54,6 +54,7 @@ var Vomnibar = {
   list: null,
   onUpdate: null,
   refreshInterval: 500,
+  wheelInterval: 100,
   renderItems: null,
   selection: -1,
   timer: 0,
@@ -398,8 +399,7 @@ var Vomnibar = {
     if (event.ctrlKey) { return; }
     event.preventDefault();
     event.stopImmediatePropagation();
-    var delta = 80; // TODO: add onMac / use better delta
-    if (event.deltaX || Date.now() - this.wheelTimer < delta) { return; }
+    if (event.deltaX || Date.now() - this.wheelTimer < this.wheelInterval) { return; }
     this.wheelTimer = Date.now();
     this.goPage(event.deltaY > 0 ? 1 : -1);
   },
