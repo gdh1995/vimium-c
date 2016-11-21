@@ -8,7 +8,7 @@ var Vomnibar = {
   destroy: null,
   sameOrigin: false,
   activate: function(_0, options, forceCurrent) {
-    if (!options.secret || !options.page) { return false; }
+    if (!options.secret || !options.vomnibar) { return false; }
     if (document.readyState === "loading") {
       if (!this.width) {
         this.width = setTimeout(this.activate.bind(this, options), 500);
@@ -23,8 +23,8 @@ var Vomnibar = {
         VHints.tryNestedFrame("Vomnibar.activate", [1, options, 2])) {
       return;
     }
-    var secret = options.secret, url = options.page;
-    delete options.secret; delete options.page;
+    var secret = options.secret, url = options.vomnibar;
+    delete options.secret; delete options.vomnibar;
     this.width = Math.max(window.innerWidth - 24, document.documentElement.clientWidth);
     this.options = options;
     if (this.Init) {

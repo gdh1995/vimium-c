@@ -1177,7 +1177,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
         port = Settings.indexFrame(port.sender.tabId, 0) || port;
       }
       options = Utils.extendIf(Object.setPrototypeOf({
-        page: Settings.CONST.VomnibarPage,
+        vomnibar: Settings.CONST.VomnibarPage,
         secret: getSecret(),
       }, null), cOptions);
       port.postMessage({
