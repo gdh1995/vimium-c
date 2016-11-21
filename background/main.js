@@ -1400,7 +1400,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
     parseUpperUrl: function(request) {
       var url = request.url, hash, str, arr, startSlash = false, endSlash = false
         , path = null, i, start = 0, end = 0, decoded = false, argRe, arr2;
-      if (url.indexOf("://") === -1) {
+      if (!Utils.protocolRe.test(url.toLowerCase())) {
         return { url: "This url has no upper paths", path: null };
       }
       if (i = url.lastIndexOf("#") + 1) {

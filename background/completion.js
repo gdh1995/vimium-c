@@ -82,7 +82,7 @@ SuggestionUtils = {
   cutUrl: function(string, ranges, strCoded) {
     var out = [], cutStart = -1, temp, lenCut, i, end, start;
     if (string.length <= maxCharNum || (cutStart = strCoded.indexOf(":")) < 0) {}
-    else if (string.substring(cutStart, cutStart + 3) !== "://") { ++cutStart; }
+    else if (!Utils.protocolRe.test(string.substring(0, cutStart).toLowerCase())) { ++cutStart; }
     else if ((cutStart = strCoded.indexOf("/", cutStart + 4)) >= 0) {
       temp = string.indexOf("://");
       cutStart = string.indexOf("/", (temp < 0 || temp > cutStart) ? 0 : (temp + 4));
