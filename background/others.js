@@ -355,10 +355,9 @@ setTimeout(function() {
 });
 
 setTimeout(function() {
-  if (cb) {
-    chrome.runtime.onInstalled.removeListener(cb);
-    chrome.runtime.onInstalled = null;
+  if (a) {
+    a.removeListener(cb);
+    chrome.runtime.onInstalled = a = null;
   }
-  // a = null;
   cb = function(b) { a = b; console.log(b); };
 }, 1200);
