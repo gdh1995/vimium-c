@@ -56,8 +56,8 @@ var Vomnibar = {
       } else {
         url = options.topUrl;
       }
-      delete options.topUrl;
       upper = 1 - options.count;
+      delete options.topUrl; delete options.count;
       options.url = url;
     }
     if (!url || url.indexOf("://") === -1) {
@@ -71,6 +71,7 @@ var Vomnibar = {
       url: url
     }, function(search) {
       options.search = search;
+      if (search != null) { options.url = ""; }
       Vomnibar.port.postMessage(options);
     });
   },
