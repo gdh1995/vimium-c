@@ -47,18 +47,23 @@ NumberOption.prototype.readValueFromElement = function() {
 };
 
 NumberOption.prototype.addWheelListener = function() {
-  var func = this.OnWheel, onBlur;
-  this.element.addEventListener("mousewheel", func, {passive: false});
-  this.element.addEventListener("blur", onBlur = function() {
+  var el = this.element, func = this.OnWheel, onBlur;
+  el.wheelTime = 0;
+  el.addEventListener("mousewheel", func, {passive: false});
+  el.addEventListener("blur", onBlur = function() {
     this.removeEventListener("mousewheel", func, {passive: false});
     this.removeEventListener("blur", onBlur);
-    this.hadWheelEvents = false;
+    this.wheelTime = 0;
   });
 };
 
 NumberOption.prototype.OnWheel = function(event) {
   event.preventDefault();
-  var inc = event.wheelDelta > 0, step, i, val0 = this.value, val, func;
+  var oldTime, inc, step, i, val0, val, func;
+  oldTime = this.wheelTime; i = Date.now();
+  if (i - oldTime < 100 && oldTime > 0) { return; }
+  this.wheelTime = i;
+  inc = event.wheelDelta > 0; val0 = this.value;
   func = inc ? this.stepUp : this.stepDown;
   if (typeof func === "function") {
     func.call(this);
@@ -72,9 +77,7 @@ NumberOption.prototype.OnWheel = function(event) {
     isNaN(step = func(this.min)) || (i = Math.max(i, step));
     val = "" + i;
   }
-  inc = this.hadWheelEvents;
-  this.hadWheelEvents = true;
-  inc && document.execCommand("undo");
+  oldTime > 0 && document.execCommand("undo");
   this.select();
   document.execCommand("insertText", false, val);
 };
