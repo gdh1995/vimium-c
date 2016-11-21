@@ -871,7 +871,9 @@ COPY_TEXT: {
       return;
     }
     if (this.mode >= this.CONST.EDIT_TEXT && this.mode <= this.CONST.EDIT_LINK_URL) {
-      Vomnibar.activate(1, {
+      VPort.port.postMessage({
+        handler: "reactivateVomnibar",
+        count: 1,
         force: !isUrl,
         url: str,
         keyword: this.options.keyword

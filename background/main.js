@@ -1620,6 +1620,11 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
     },
     reactivateVomnibar: function(request, port) {
       cPort = port;
+      if (request.count > 0) {
+        cOptions = Object.setPrototypeOf(request, null);
+        commandCount = request.count;
+        delete cOptions.handler; delete cOptions.count;
+      }
       BackgroundCommands.showVomnibar();
     },
     omni: function(request, port) {
