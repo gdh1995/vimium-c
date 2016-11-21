@@ -40,8 +40,7 @@ function Option(element, onUpdated) {
   this.previous = this.onUpdated = null;
   this.saved = true;
   if (this.field in bgSettings.bufferToLoad) {
-    this.onUpdated1 = onUpdated;
-    onUpdated = this._onUpdated;
+    onUpdated = this._onCacheUpdated.bind(this, onUpdated);
   }
   this.fetch();
   Option.all[this.field] = this;

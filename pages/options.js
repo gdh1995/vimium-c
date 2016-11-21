@@ -3,8 +3,8 @@ var $$ = document.querySelectorAll.bind(document);
 
 Option.syncToFrontend = [];
 
-Option.prototype._onUpdated = function() {
-  this.onUpdated1();
+Option.prototype._onCacheUpdated = function(func) {
+  func.call(this);
   if (window.VSettings) {
     VSettings.cache[this.field] = this.readValueFromElement();
   }
