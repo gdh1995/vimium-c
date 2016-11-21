@@ -5,6 +5,29 @@ KeyRe = /<(?!<)(?:a-)?(?:c-)?(?:m-)?(?:[A-Z][\dA-Z]+|[a-z][\da-z]+|\S)>|\S/g,
 __extends = function(child, parent) {
   Object.setPrototypeOf(child.prototype, parent.prototype);
   child.__super__ = parent.prototype;
+},
+debounce = function(func, wait, bound_context, also_immediate) {
+  var timeout, timestamp, later = function() {
+    var last = Date.now() - timestamp;
+    if (last < wait && last >= 0) {
+      timeout = setTimeout(later, wait - last);
+      return;
+    }
+    timeout = 0;
+    if (timestamp !== also_immediate) {
+      func.call(bound_context);
+    }
+  };
+  also_immediate = also_immediate ? 1 : 0;
+  return function() {
+    timestamp = Date.now();
+    if (timeout) { return; }
+    timeout = setTimeout(later, wait);
+    if (also_immediate) {
+      also_immediate = timestamp;
+      func.call(bound_context);
+    }
+  };
 };
 
 $ = document.getElementById.bind(document);
@@ -14,15 +37,15 @@ bgSettings = BG.Settings;
 function Option(element, onUpdated) {
   this.element = element;
   this.field = element.id;
+  this.previous = this.onUpdated = null;
+  this.saved = true;
   if (this.field in bgSettings.bufferToLoad) {
     this.onUpdated1 = onUpdated;
     onUpdated = this._onUpdated;
   }
-  this.onUpdated = onUpdated.bind(this);
-  this.previous = null;
-  this.saved = true;
   this.fetch();
   Option.all[this.field] = this;
+  this.onUpdated = debounce(onUpdated, 330, this, 1);
 }
 
 Option.all = Object.create(null);
