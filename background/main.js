@@ -1063,7 +1063,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
         chrome.tabs.update(null, {url: result.url});
         return;
       }
-      requestHandlers.ShowHUD(result.url); // TODO: fill message
+      requestHandlers.ShowHUD(result.url);
     },
     moveTab: function(tabs) {
       var tab = funcDict.selectFrom(tabs), index, dir, pinned;
