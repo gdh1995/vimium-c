@@ -165,7 +165,7 @@ var VHints = {
     return getComputedStyle(box).position === "static" ? [x, y] : [-rect.left, -rect.top];
   },
   createMarkerFor: function(link) {
-    var marker = VDom.createElement("div"), i, st;
+    var marker = VDom.createElement("span"), i, st;
     marker.clickableItem = link[0];
     marker.className = "LH";
     i = link.length < 5 ? link[1][0] : link[4][0][0] + link[4][1];
