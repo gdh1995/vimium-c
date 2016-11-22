@@ -60,7 +60,7 @@ Core: {
     var element = this.findScrollable(this.getActivatedElement(), di, amount);
     amount = !factor ? this.adjustAmount(di, amount, element)
       : factor === 1 ? (amount > 0 ? Math.ceil : Math.floor)(amount)
-      : amount * this.getDimension(element, di, factor);
+      : amount * this.getDimension(element, di, "viewSize");
     this.Core.scroll(element, di, amount);
     this.top = null;
   },
@@ -94,7 +94,7 @@ Core: {
     return this.current = element && (this.selectFirst(element) || element);
   },
   getDimension: function(el, di, name) {
-    return !el || name !== "viewSize" || el !== this.top
+    return el !== this.top || (name !== "viewSize" && el)
         ? (el || this.top)[this.Properties[di][name]]
       : di ? window.innerHeight : window.innerWidth;
   },
