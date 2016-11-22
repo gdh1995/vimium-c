@@ -263,7 +263,7 @@ history: {
       HistoryCache.refreshInfo();
     } else {
       setTimeout(function() {
-        HistoryCache.use(function() {});
+        HistoryCache.use(null);
       }, 50);
     }
   },
@@ -868,22 +868,22 @@ searchEngines: {
     _callbacks: null,
     use: function(callback) {
       if (this._callbacks) {
-        this._callbacks.push(callback);
+        callback && this._callbacks.push(callback);
         return;
       }
-      this._callbacks = [callback];
+      this._callbacks = callback ? [callback] : [];
       chrome.history.search({
         text: "",
         maxResults: this.size,
         startTime: 0
       }, function(history) {
-        setTimeout(HistoryCache.Clean, 100, history);
+        setTimeout(HistoryCache.Clean, 17, history);
       });
     },
     Clean: function(arr) {
-      var _this = HistoryCache, i = arr.length, j;
+      var _this = HistoryCache, len, i, j;
       _this.Clean = null;
-      while (0 <= --i) {
+      for (i = 0, len = arr.length; i < len; i++) {
         j = arr[i];
         arr[i] = {
           lastVisitTime: j.lastVisitTime,
@@ -892,22 +892,24 @@ searchEngines: {
           url: j.url
         };
       }
+      j = null;
       setTimeout(function() {
         var _this = HistoryCache;
+        setTimeout(function() { Decoder.decodeList(HistoryCache.history); }, 400);
         _this.history.sort(function(a, b) { return a.url < b.url ? -1 : 1; });
         _this.lastRefresh = Date.now();
         chrome.history.onVisitRemoved.addListener(_this.OnVisitRemoved);
         chrome.history.onVisited.addListener(_this.OnPageVisited);
       }, 100);
-      setTimeout(Decoder.decodeList, 500, arr);
       _this.history = arr;
-      _this.use = function(callback) { callback(this.history); };
-      setTimeout(function(ref) {
-        var i, arr = HistoryCache.history;
-        for (i = 0; i < ref.length; i++) {
-          (0, ref[i])(arr);
+      _this.use = function(callback) { callback && callback(this.history); };
+      _this._callbacks && _this._callbacks.length > 0 && setTimeout(function(ref) {
+        for (var f, i = 0; i < ref.length; i++) {
+          f = ref[i];
+          ref[i] = null;
+          f(HistoryCache.history);
         }
-      }, 17, _this._callbacks);
+      }, 34, _this._callbacks);
       _this._callbacks = null;
     },
     OnPageVisited: function(newPage) {
