@@ -46,21 +46,13 @@ Core: {
   top: null,
   keyIsDown: 0,
   scale: 1,
-  Properties: [{
-    axisName: "scrollLeft",
-    max: "scrollWidth",
-    viewSize: "clientWidth"
-  }, {
-    axisName: "scrollTop",
-    max: "scrollHeight",
-    viewSize: "clientHeight"
-  }],
+  Properties: ["clientWidth", "clientHeight", "scrollWidth", "scrollHeight", "scrollLeft", "scrollTop"],
   scrollBy: function(di, amount, factor) {
     if (VHints.tryNestedFrame("VScroller.scrollBy", arguments)) { return; }
     var element = this.findScrollable(this.getActivatedElement(), di, amount);
     amount = !factor ? this.adjustAmount(di, amount, element)
       : factor === 1 ? (amount > 0 ? Math.ceil : Math.floor)(amount)
-      : amount * this.getDimension(element, di, "viewSize");
+      : amount * this.getDimension(element, di, factor === "max" ? 2 : 0);
     this.Core.scroll(element, di, amount);
     this.top = null;
   },
@@ -68,8 +60,8 @@ Core: {
     if (VHints.tryNestedFrame("VScroller.scrollTo", arguments)) { return; }
     var element = this.findScrollable(this.getActivatedElement(), di, fromMax ? 1 : -1);
     amount = this.adjustAmount(di, amount, element);
-    amount = fromMax ? this.getDimension(element, di, "max") - amount : amount;
-    amount -= element ? element[this.Properties[di].axisName] : di ? window.scrollY : window.scrollX;
+    amount = fromMax ? this.getDimension(element, di, 2) - amount : amount;
+    amount -= element ? element[this.Properties[4 + di]] : di ? window.scrollY : window.scrollX;
     this.Core.scroll(element, di, amount);
     this.top = null;
   },
@@ -93,9 +85,8 @@ Core: {
     element = this.top;
     return this.current = element && (this.selectFirst(element) || element);
   },
-  getDimension: function(el, di, name) {
-    return el !== this.top || (name !== "viewSize" && el)
-        ? (el || this.top)[this.Properties[di][name]]
+  getDimension: function(el, di, index) {
+    return el !== this.top || (index && el) ? (el || this.top)[this.Properties[index + di]]
       : di ? window.innerHeight : window.innerWidth;
   },
   scrollDo: function(element, di, amount) {
