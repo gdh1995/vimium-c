@@ -757,7 +757,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
         tabs = tabs.filter(function(tab) { return !tab.pinned; });
       }
       if (tabs.length > 0) {
-        chrome.tabs.remove(tabs.map(funcDict.getId));
+        chrome.tabs.remove(tabs.map(funcDict.getId), funcDict.onRuntimeError);
       }
     },
     focusParentFrame: function(frames) {
@@ -894,7 +894,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
         tab = funcDict.selectFrom(tabs);
       }
       if (commandCount <= 1) {
-        chrome.tabs.remove(tab.id);
+        chrome.tabs.remove(tab.id, funcDict.onRuntimeError);
         return;
       }
       i = tab.index--;
