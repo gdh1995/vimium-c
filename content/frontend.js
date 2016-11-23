@@ -1,5 +1,5 @@
 "use strict";
-/* eslint no-native-reassign: "off" */
+/* eslint no-global-assign: "off" */
 var VSettings, VHUD, VPort, VEventMode;
 (function() {
   var Commands, ELs, HUD, KeydownEvents, checkValidKey, currentSeconds //

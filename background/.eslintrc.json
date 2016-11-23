@@ -13,8 +13,5 @@
         "TabRecency": false,
         "Utils": false,
         "g_requestHandlers": false
-    },
-    "rules": {
-        "no-native-reassign": ["error", { "exceptions": ["g_requestHandlers"] }]
     }
 }

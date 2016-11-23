@@ -1340,6 +1340,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
   };
 
   // function (request, port);
+  /* globals g_requestHandlers: true */
   g_requestHandlers = requestHandlers = {
     setSetting: function(request, port) {
       var key = request.key;
