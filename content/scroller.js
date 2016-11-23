@@ -136,7 +136,7 @@ Core: {
   },
   shouldScroll: function(element, di) {
     var st = window.getComputedStyle(element);
-    return VDom.isStyleVisible(st) && (di ? st.overflowY : st.overflowX) !== "hidden";
+    return (di ? st.overflowY : st.overflowX) !== "hidden" && VDom.isStyleVisible(st);
   },
   isScrollable: function(el, di) {
     return this.scrollDo(el, di, +!(di ? el.scrollTop : el.scrollLeft)) && this.shouldScroll(el, di);
