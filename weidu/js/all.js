@@ -120,7 +120,7 @@ function openTab(targetSwitch, url, event) {
 	}
 }
 function wantPermissions() {
-  var args = [].slice.call(arguments);
+	var args = [].slice.call(arguments);
 	return new Promise(function(resolve, reject) {
 		chrome.permissions.request({
 			permissions: args
@@ -3632,7 +3632,7 @@ if (!(skin == "skin_cloud" && unit > 0 && PDI.get('usedWallpaper').length > 0 &&
 		if (unit > 1) {
 			PDI.setSkin(skin, 'style', _style);
 			PDI.set("privateSetup", "BgChangeTime", parseInt(Date.now() / 1000) - dtime + parseInt(dtime / unit) * unit);
-    }
+		}
 	}
 }
 installWall(skin, wallpaperUrl);

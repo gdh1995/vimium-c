@@ -267,10 +267,10 @@ function loadCSS(src) {
   if (document.querySelector('link[href="' + src + '"]')) {
     return;
   }
-	var obj = document.createElement('link');
-	obj.rel = 'stylesheet';
-	obj.href = src;
-	document.head.insertBefore(obj, document.querySelector('link[href$="show.css"]'));
+  var obj = document.createElement('link');
+  obj.rel = 'stylesheet';
+  obj.href = src;
+  document.head.insertBefore(obj, document.querySelector('link[href$="show.css"]'));
 }
 
 function defaultOnError(err) {

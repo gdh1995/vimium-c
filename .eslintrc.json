@@ -10,7 +10,7 @@
         "no-console": "off",
         "no-empty": "off",
         "no-fallthrough": ["error", { "commentPattern": "no break;" }],
-		"no-restricted-globals": ["error", "event"],
+        "no-restricted-globals": ["error", "event"],
         "no-undef-init": "error",
         "no-unused-vars": ["error", { "vars": "local" }],
         "semi": ["error", "always", { "omitLastInOneLineBlock": false}]

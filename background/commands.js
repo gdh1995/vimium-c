@@ -33,16 +33,16 @@ var Commands = {
     try {
       val = JSON.parse(val);
     } catch(e) {}
-	return val;
+    return val;
   },
   onHex: function(s, hex) {
     hex = hex.length < 1 ? '\\'
       : String.fromCharCode(parseInt(hex.substring(1), 16));
     switch (hex) {
-	case '\\': case '\n': case '\"':
+    case '\\': case '\n': case '\"':
       return '\\' + hex;
-	}
-	return hex;
+    }
+    return hex;
   },
   makeCommand: function(command, options, details) {
     var opt;
