@@ -73,7 +73,7 @@ Core: {
   findScrollable: function(element, di, amount) {
     while (element !== this.top && !(this.scrollDo(element, di, amount) && this.shouldScroll(element, di))) {
       element = element.getDestinationInsertionPoints && element.getDestinationInsertionPoints()[0] ||
-        element.parentElement || (element.parentNode && element.parentNode.host) || this.top;
+        element.parentElement || (element.parentNode instanceof ShadowRoot && element.parentNode.host) || this.top;
     }
     return element;
   },
