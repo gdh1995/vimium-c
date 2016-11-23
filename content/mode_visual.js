@@ -157,7 +157,7 @@ var VVisualMode = {
     if (!VFindMode.query) {
       VPort.sendMessage({ handler: "findQuery" }, function(query) {
         if (query) {
-          VFindMode.updateQuery(query); 
+          VFindMode.updateQuery(query);
           VVisualMode.find(count, direction);
         } else {
           VVisualMode.prompt("No history queries", 1000);

@@ -23,7 +23,7 @@ window.checker = $('keyMappings').model.checker = {
   quoteRe: /"/g,
   normalizeOptions: function(str, value, s2, tail) {
     if (s2) {
-	  value = s2 = value.replace(BG.Commands.hexCharRe, BG.Commands.onHex);
+      value = s2 = value.replace(BG.Commands.hexCharRe, BG.Commands.onHex);
     }
     try {
       value = JSON.parse(value);

@@ -286,6 +286,7 @@ var exports = {}, Utils = {
         }
       }
       path = arr[0];
+      // no break;
     case "u": case "url": case "search":
       arr = path.split(this.spacesRe);
       break;

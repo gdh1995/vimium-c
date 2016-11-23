@@ -120,7 +120,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
       return true;
     },
     parsePattern: function(pattern, level) {
-      var arr, s, i;
+      var arr, i;
       if (pattern.startsWith("file:")) {
         if (level > 1) {
           arr = pattern.split("/");
@@ -185,7 +185,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
             return;
           }
           chrome.windows.getCurrent({populate: true}, function(wnd) {
-            !wnd || wnd.type !== "normal" ? chrome.tabs.reload() 
+            !wnd || wnd.type !== "normal" ? chrome.tabs.reload()
             : wnd.tabs.length > 1 ? funcDict.refreshTab[0](tab.id)
             : funcDict.reopenTab(tab);
             return chrome.runtime.lastError;
@@ -922,7 +922,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
         requestHandlers.ShowHUD("Can not restore a tab in incognito mode!");
         return;
       }
-      limit = chrome.sessions.MAX_SESSION_RESULTS; 
+      limit = chrome.sessions.MAX_SESSION_RESULTS;
       limit > 0 && limit < count && (count = limit);
       while (--count >= 0) {
         chrome.sessions.restore(null, funcDict.onRuntimeError);
@@ -1540,7 +1540,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
       Object.setPrototypeOf(request, null);
       request.url_f = Utils.convertToUrl(request.url, request.keyword, 2);
       request.keyword = "";
-      var ports; 
+      var ports;
       cPort = !port ? cPort : funcDict.checkVomnibarPage(port, true) ? port
         : (ports = framesForTab[port.sender.tabId]) ? ports[0] : cPort;
       if (Utils.lastUrlType === 5) {

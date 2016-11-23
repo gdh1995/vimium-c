@@ -288,7 +288,7 @@ function loadViewer(func) {
           btns[i].vimiumHasOnclick = true;
         }
       },
-      shown: function() { 
+      shown: function() {
         bgLink.style.display = "none";
       },
       hide: function() {

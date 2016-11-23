@@ -21,7 +21,7 @@ var Vomnibar = {
     if (options.url === true && !options.topUrl) {
       options.topUrl = window.location.href;
       options.count = +count || 1;
-    };
+    }
     if ((forceCurrent |= 0) < 2 &&
         VHints.tryNestedFrame("Vomnibar.activate", [1, options, 2])) {
       return;

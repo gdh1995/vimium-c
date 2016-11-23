@@ -28,7 +28,7 @@ var Commands = {
   parseVal: function(val) {
     if (val.startsWith('"')) {
       val = val.replace(this.hexCharRe, this.onHex);
-	  return JSON.parse(val);
+      return JSON.parse(val);
     }
     try {
       val = JSON.parse(val);
