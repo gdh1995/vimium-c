@@ -149,6 +149,7 @@ var importSettings = function(time, new_data, is_recommended) {
   Object.setPrototypeOf(new_data, null);
   delete new_data.name;
   delete new_data.time;
+  delete new_data.extension_version;
   delete new_data.author;
   delete new_data.description;
   for (i = storage.length; 0 <= --i; ) {
