@@ -58,7 +58,7 @@ var Settings = {
         key = ref[_i];
         ref2[key] = this.get(key);
       }
-      ref2.onMac = this.CONST.OnMac;
+      ref2.onMac = this.CONST.Platform === "mac";
     },
     extWhiteList: function(val) {
       var map, arr, i, wordCharRe;
@@ -222,11 +222,11 @@ w|wiki:\\\n  https://www.wikipedia.org/w/index.php?search=$s Wikipedia\n\
     set: function() {}
   },
   CONST: {
+    BaseCSSLength: 0,
     ChromeInnerNewTab: "chrome-search://local-ntp/local-ntp.html", // should keep lower case
     ChromeVersion: 37, ContentScripts: null, CurrentVersion: "",
-    BaseCSSLength: 0,
-    OnMac: false, OptionsPage: "", VomnibarPage: "",
-    PolyFill: "lib/polyfill.js"
+    OptionsPage: "", Platform: "", PolyFill: "lib/polyfill.js",
+    VomnibarPage: ""
   }
 };
 
@@ -236,7 +236,7 @@ Settings.CONST.ChromeVersion = 0 | (navigator.appVersion.match(/\bChrom(?:e|ium)
 
 setTimeout(function() {
   chrome.runtime.getPlatformInfo(function(info) {
-    Settings.CONST.OnMac = info.os === "mac";
+    Settings.CONST.Platform = info.os;
   });
 
   var ref, origin = location.origin, prefix = origin + "/",
