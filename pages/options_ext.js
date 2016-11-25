@@ -67,10 +67,13 @@ var formatDate = function(time) {
 };
 
 $("exportButton").onclick = function(event) {
-  var exported_object, exported_data, file_name, d, nodeA;
+  var exported_object, exported_data, file_name, d, nodeA, all_static;
+  all_static = event ? event.ctrlKey || event.shiftKey : false;
   exported_object = Object.create(null);
   exported_object.name = "Vimium++";
-  exported_object.time = 0;
+  if (!all_static) {
+    exported_object.time = 0;
+  }
   exported_object.environment = {
     chrome: bgSettings.CONST.ChromeVersion,
     extension: parseFloat(bgSettings.CONST.CurrentVersion),
@@ -96,11 +99,13 @@ $("exportButton").onclick = function(event) {
   })();
   delete exported_object.findModeRawQueryList;
   d = new Date();
-  exported_object.time = d.getTime();
+  if (!all_static) {
+    exported_object.time = d.getTime();
+  }
   exported_data = JSON.stringify(exported_object, null, '\t');
   exported_object = null;
   file_name = 'vimium++_';
-  if (event && (event.ctrlKey || event.shiftKey)) {
+  if (all_static) {
     file_name += "settings";
   } else {
     file_name += formatDate(d).replace(/[\-:]/g, "").replace(" ", "_");
