@@ -28,7 +28,6 @@ This extension Vimium++ requires such types of information and permissions:
 * sessions: allow you to restore closed tabs (supported from Chrome 37)
 * storage: not in use by default; if you enable "vimSync" manually,
     Vimium++ needs it to sync settings to your Chrome account
-* your bookmarks and navigating history to provide
 
 Note: the "browsing activity" listed above actually includes many permissions:
     "tabs", "\<all_urls\>" and "webNavigation".
