@@ -45,6 +45,13 @@ __微度新标签页 (X New Tab Page):__
 Release Notes
 -------------
 
+1.57.2:
+* fix a serious performance regression which was imported in 1.57 and made
+  `LinkHints` slow down significantly if a page had some overlapped links.
+* rework logic of `toggleCS` and `enableCSTemp` about `commandCount`,
+  so when content on a base domain is enabled, the current sub-domain
+    will be ensured to enable the content, too.
+
 1.57.1:
 * fix broken `LinkHints.activateModeToOpenVomnibar`
 * change fonts in UI for better presentation: `Helvetica Neue` is prefered,
