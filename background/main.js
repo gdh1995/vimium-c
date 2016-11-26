@@ -166,12 +166,11 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
         primaryUrl: pattern,
         incognito: tab.incognito
       }, function (opt) {
-        pattern = _this.parsePattern(pattern, commandCount);
-        chrome.contentSettings[contentType].set({
-          primaryPattern: pattern,
+        _this.setAllLevels(contentType, pattern, commandCount, {
           scope: tab.incognito ? "incognito_session_only" : "regular",
           setting: (opt && opt.setting === "allow") ? "block" : "allow"
-        }, function() {
+        }, function(err) {
+          if (err) { return; }
           if (!tab.incognito) {
             var key = ContentSettings.makeKey(contentType);
             localStorage.getItem(key) !== "1" && (localStorage.setItem(key, "1"));
@@ -197,7 +196,6 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
       var pattern = tab.url, _this = this;
       if (this.complain(pattern)) { return; }
       chrome.contentSettings[contentType].get({primaryUrl: pattern, incognito: true }, function(opt) {
-        pattern = _this.parsePattern(pattern, commandCount);
         if (chrome.runtime.lastError) {
           chrome.contentSettings[contentType].get({primaryUrl: tab.url}, function (opt) {
             if (opt && opt.setting === "allow") { return; }
@@ -232,20 +230,31 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
     },
     setAndUpdate: function(contentType, tab, pattern, wndId, doSyncWnd, callback) {
       callback = this.updateTabAndWindow.bind(this, tab, wndId, callback);
-      this.setAllowInIncognito(contentType, pattern, doSyncWnd && wndId !== tab.windowId
+      this.setAllLevels(contentType, pattern, commandCount
+        , { scope: "incognito_session_only", setting: "allow" }
+        , doSyncWnd && wndId !== tab.windowId
         ? chrome.windows.get.bind(null, tab.windowId, callback) : callback);
     },
-    setAllowInIncognito: function(contentType, pattern, callback) {
-      chrome.contentSettings[contentType].set({
-        primaryPattern: pattern,
-        scope: "incognito_session_only",
-        setting: "allow"
-      }, function() {
-        if (callback) {
-          callback();
+    setAllLevels: function(contentType, url, count, settings, callback) {
+      var ref, i, info, todo, has_err = false, func;
+      func = function() {
+        var err = chrome.runtime.lastError, f;
+        if (has_err) { return err; }
+        --todo; has_err = !!err;
+        if ((has_err || todo === 0) && callback) {
+          f = callback; callback = null;
+          f(has_err);
         }
-        return chrome.runtime.lastError;
-      });
+        return err;
+      };
+      ref = chrome.contentSettings[contentType];
+      Object.setPrototypeOf(settings, null);
+      count = count | 0;
+      for (todo = i = count; i > 0; i--) {
+        info = Utils.extendIf(Object.create(null), settings);
+        info.primaryPattern = this.parsePattern(url, i);
+        ref.set(info, func);
+      }
     },
     updateTabAndWindow: function(tab, wndId, callback, oldWnd) {
       this.updateTab(tab, wndId, callback);
