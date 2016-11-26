@@ -36,7 +36,7 @@
 .oathSettingsContainer .dataContainer .dataAction.import{width:auto;}
 .oathSettingsContainer .dataContainer .dataAction:hover{opacity:0.7;}
 .oathSettingsContainer .dataContainer .dataAction div{float:left;}
-.oathSettingsContainer .dataContainer .dataAction div.icon{width:25px;height:30px;margin-right:2px;}
+.oathSettingsContainer .dataContainer .dataAction div.icon{width:24px;height:30px;margin-right:2px;}
 .oathSettingsContainer .dataContainer .dataAction div.icon.export{background:url(../../../../img/skin_0/wedo.png) 5px -419px;}
 .oathSettingsContainer .dataContainer .dataAction div.icon.import{background:url(../../../../img/skin_0/wedo.png) -16px -419px;}
 .oathSettingsContainer .loginContainer .loginButton{float:left;margin-left:13px;}
