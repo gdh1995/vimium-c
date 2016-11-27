@@ -79,7 +79,8 @@ Core: {
   },
   getActivatedElement: function() {
     var element;
-    this.top = document.scrollingElement || document.body || document.documentElement;
+    this.top = document.scrollingElement || document.body ||
+      ((element = document.documentElement, element instanceof HTMLElement) ? element : null);
     this.scale = Math.max(1, 1 / (window.devicePixelRatio || 1));
     if (element = this.current) { return element; }
     element = this.top;
@@ -120,7 +121,7 @@ Core: {
     if (!rect) { return; }
     height = window.innerHeight, width = window.innerWidth;
     amount = rect.bottom < 0 ? rect.bottom - Math.min(rect.height, height)
-      : height < rect.top ? rect.top + Math.min(rect.height, height, 0) : 0;
+      : height < rect.top ? rect.top + Math.min(rect.height - height, 0) : 0;
     if (hasY = amount) {
       this.Core.scroll(this.findScrollable(el, 1, amount), 1, amount);
       VScroller.keyIsDown = 0;
@@ -130,7 +131,7 @@ Core: {
     if (amount) {
       ref = VSettings.cache;
       oldSmooth = ref.smoothScroll;
-      ref.smoothScroll = !hasY;
+      ref.smoothScroll = !hasY && oldSmooth;
       this.Core.scroll(this.findScrollable(el, 0, amount), 0, amount);
       ref.smoothScroll = oldSmooth;
       VScroller.keyIsDown = 0;
