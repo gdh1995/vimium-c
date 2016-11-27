@@ -33,12 +33,12 @@ Core: {
   },
   scroll: function(element, di, amount) {
     if (!amount) { return; }
-    if (!VSettings.cache.smoothScroll) {
-      this.performScroll(element, di, amount);
-      VDom.isVisibile(VScroller.current) || (VScroller.current = element);
+    if (VSettings.cache.smoothScroll) {
+      this.animate(amount, di, element);
       return;
     }
-    this.animate(amount, di, element);
+    this.performScroll(element, di, amount);
+    VScroller.checkCurrent(element);
   }
 },
 
@@ -60,14 +60,14 @@ Core: {
     if (VHints.tryNestedFrame("VScroller.scrollTo", arguments)) { return; }
     var element = this.findScrollable(this.getActivatedElement(), di, fromMax ? 1 : -1);
     amount = this.adjustAmount(di, amount, element);
-    amount = fromMax ? this.getDimension(element, di, 2) - amount : amount;
+    fromMax && (amount = this.getDimension(element, di, 2) - amount);
     amount -= element ? element[this.Properties[4 + di]] : di ? window.scrollY : window.scrollX;
     this.Core.scroll(element, di, amount);
     this.top = null;
   },
   adjustAmount: function(di, amount, element) {
     amount *= VSettings.cache.scrollStepSize;
-    return amount && !di && element && element.scrollWidth <= element.scrollHeight * 2
+    return !di && amount && element && element.scrollWidth <= element.scrollHeight * 2
       ? Math.ceil(amount * 0.6) : amount;
   },
   findScrollable: function(element, di, amount) {
@@ -78,12 +78,15 @@ Core: {
     return element;
   },
   getActivatedElement: function() {
-    var element = this.current;
+    var element;
     this.top = document.scrollingElement || document.body || document.documentElement;
     this.scale = Math.max(1, 1 / (window.devicePixelRatio || 1));
-    if (element) { return element; }
+    if (element = this.current) { return element; }
     element = this.top;
     return this.current = element && (this.selectFirst(element) || element);
+  },
+  checkCurrent: function(el) {
+    this.current === el || VDom.isVisibile(this.current) || (this.current = el);
   },
   getDimension: function(el, di, index) {
     return el !== this.top || (index && el) ? (el || this.top)[this.Properties[index + di]]
@@ -113,25 +116,25 @@ Core: {
   },
   scrollIntoView: function(el) {
     this.getActivatedElement();
-    var rect = el.getClientRects()[0], amount, height, width, hasY, oldSmooth;
+    var rect = el.getClientRects()[0], amount, height, width, hasY, ref, oldSmooth;
     if (!rect) { return; }
     height = window.innerHeight, width = window.innerWidth;
     amount = rect.bottom < 0 ? rect.bottom - Math.min(rect.height, height)
       : height < rect.top ? rect.top + Math.min(rect.height, height, 0) : 0;
-    if (amount) {
+    if (hasY = amount) {
       this.Core.scroll(this.findScrollable(el, 1, amount), 1, amount);
       VScroller.keyIsDown = 0;
     }
-    hasY = amount;
     amount = rect.right < 0 ? rect.right - Math.min(rect.width, width)
       : width < rect.left ? rect.left + Math.min(rect.width - width, 0) : 0;
-    if (!amount) { this.top = null; return; }
-    oldSmooth = VSettings.cache.smoothScroll;
-    VSettings.cache.smoothScroll = !hasY;
-    el = this.findScrollable(el, 0, amount);
-    this.Core.scroll(el, 0, amount);
-    VSettings.cache.smoothScroll = oldSmooth;
-    VScroller.keyIsDown = 0;
+    if (amount) {
+      ref = VSettings.cache;
+      oldSmooth = ref.smoothScroll;
+      ref.smoothScroll = !hasY;
+      this.Core.scroll(this.findScrollable(el, 0, amount), 0, amount);
+      ref.smoothScroll = oldSmooth;
+      VScroller.keyIsDown = 0;
+    }
     this.top = null;
   },
   shouldScroll: function(element, di) {
@@ -148,7 +151,7 @@ Core: {
 
 VScroller.Core.animate = function () {
   var amount = 0, calibration = 1.0, di = 0, duration = 0, element = null, //
-  sign = 0, timestamp = -1, totalDelta = 0, totalElapsed = 0.0, //
+  sign = 0, timestamp = -1.0, totalDelta = 0.0, totalElapsed = 0.0, //
   animate = function(newTimestamp) {
     var int1 = timestamp, elapsed, continuous, _this;
     timestamp = newTimestamp;
@@ -170,22 +173,20 @@ VScroller.Core.animate = function () {
       }
     }
     int1 = Math.ceil(amount * (elapsed / duration) * calibration);
-    int1 = continuous ? int1 : Math.max(0, Math.min(int1, amount - totalDelta));
-    if (int1 && _this.performScroll(element, di, sign * int1)) {
+    continuous || (int1 = Math.min(int1, amount - totalDelta));
+    if (int1 > 0 && _this.performScroll(element, di, sign * int1)) {
       totalDelta += int1;
       requestAnimationFrame(animate);
       return;
     }
-    if (VScroller.current !== element) {
-      VDom.isVisibile(VScroller.current) || (VScroller.current = element);
-    }
+    VScroller.checkCurrent(element);
     element = null;
   };
   this.animate = function(newAmount, newDi, newEl) {
     amount = Math.abs(newAmount); calibration = 1.0; di = newDi;
     duration = Math.max(100, 20 * Math.log(amount)); element = newEl;
-    sign = newAmount === 0 ? 0 : newAmount < 0 ? -1 : 1;
-    timestamp = -1; totalDelta = 0; totalElapsed = 0.0;
+    sign = newAmount < 0 ? -1 : 1;
+    timestamp = -1.0; totalDelta = totalElapsed = 0.0;
     var keyboard = VSettings.cache.keyboard;
     this.maxInterval = Math.round(keyboard[1] / 16.67) + 4;
     this.minDelay = (((keyboard[0] - keyboard[1]) / 30) | 0) * 30;
