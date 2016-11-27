@@ -7,7 +7,7 @@ var VMarks = {
     this.onKeypress = isGo ? this._goto : this._create;
     this.prefix = options.prefix !== false;
     VHandler.push(this.onKeydown, this);
-    VHUD.show((isGo ? "Go" : "Create") + " mark ...");
+    VHUD.show((isGo ? "Go to" : "Create") + " mark...");
   },
   clearLocal: function() {
     var keyStart, storage, i, key;
@@ -31,8 +31,7 @@ var VMarks = {
       return 1;
     }
     VHandler.remove(this);
-    VHUD.hide();
-    cont && keyCode > 32 && this.onKeypress(event, keyChar);
+    cont && keyCode > 32 ? this.onKeypress(event, keyChar) : VHUD.hide();
     return 2;
   },
   getBaseUrl: function() {
@@ -43,10 +42,7 @@ var VMarks = {
   },
   _previous: null,
   setPreviousPosition: function() {
-    this._previous = {
-      scrollX: window.scrollX,
-      scrollY: window.scrollY
-    };
+    this._previous = { scrollX: window.scrollX, scrollY: window.scrollY };
   },
   _create: function(event, keyChar) {
     if (event.shiftKey) {
@@ -61,10 +57,8 @@ var VMarks = {
       VHUD.showForDuration("Created local mark [last].", 1000);
     } else {
       try {
-        localStorage.setItem(this.getLocationKey(keyChar), JSON.stringify({
-          scrollX: window.scrollX,
-          scrollY: window.scrollY
-        }));
+        localStorage.setItem(this.getLocationKey(keyChar),
+          JSON.stringify({ scrollX: window.scrollX, scrollY: window.scrollY }));
       } catch (e) {
         VHUD.showForDuration("Failed to creat local mark (localStorage error)", 2000);
         return;
@@ -73,7 +67,7 @@ var VMarks = {
     }
   },
   _goto: function(event, keyChar) {
-    var markString, position;
+    var markString, position = null;
     if (event.shiftKey) {
       VPort.sendMessage({
         handler: "gotoMark",
@@ -117,16 +111,10 @@ var VMarks = {
     VHUD.showForDuration("Created global mark : ' " + request.markName + " '.", 1000);
   },
   Goto: function(request) {
-    var scroll = request.scroll;
-    if (!document.body || !(document.body instanceof HTMLFrameSetElement)) {
-      window.focus();
-    }
-    if (request.markName) {
-      VMarks.setPreviousPosition();
-      window.scrollTo(scroll[0], scroll[1]);
-      VHUD.showForDuration("Jumped to global mark : ' " + request.markName + " '.", 2000);
-    } else {
-      window.scrollTo(scroll[0], scroll[1]);
-    }
+    var scroll = request.scroll, a = request.markName || "";
+    (document.body instanceof HTMLFrameSetElement) || window.focus();
+    a && VMarks.setPreviousPosition();
+    window.scrollTo(scroll[0], scroll[1]);
+    a && VHUD.showForDuration("Jumped to global mark : ' " + a + " '.", 2000);
   }
 };
