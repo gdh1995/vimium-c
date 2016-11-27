@@ -90,14 +90,17 @@ var VMarks = {
     } else {
       try {
         markString = localStorage.getItem(this.getLocationKey(keyChar));
+        markString && (position = JSON.parse(markString));
+        position = !position || typeof position !== "object" ? null
+          : Object.setPrototypeOf(position, null);
       } catch (e) {}
-      if (markString) {
-        position = JSON.parse(markString);
+      if (position && position.scrollX >= 0 && position.scrollY >= 0) {
         this.setPreviousPosition();
         window.scrollTo(position.scrollX, position.scrollY);
         VHUD.showForDuration("Jumped to local mark : ' " + keyChar + " '.", 1000);
       } else {
-        VHUD.showForDuration("Local mark not set : ' " + keyChar + " '.", 2000);
+        VHUD.showForDuration(markString ? "unrecognized mark data in localStorage"
+          : "Local mark not set : ' " + keyChar + " '.", 2000);
       }
     }
   },
