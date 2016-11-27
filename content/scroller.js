@@ -116,9 +116,9 @@ Core: {
     return null;
   },
   scrollIntoView: function(el) {
-    this.getActivatedElement();
     var rect = el.getClientRects()[0], amount, height, width, hasY, ref, oldSmooth;
     if (!rect) { return; }
+    this.getActivatedElement();
     height = window.innerHeight, width = window.innerWidth;
     amount = rect.bottom < 0 ? rect.bottom - Math.min(rect.height, height)
       : height < rect.top ? rect.top + Math.min(rect.height - height, 0) : 0;
