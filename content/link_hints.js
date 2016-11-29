@@ -54,6 +54,7 @@ var VHints = {
     this.setModeOpt(Object.setPrototypeOf(options || {}, null), count | 0);
 
     var elements, style, arr;
+    arr = this.initBox();
     if (!this.frameNested) {
       elements = this.getVisibleElements();
     }
@@ -69,8 +70,9 @@ var VHints = {
       VHUD.showForDuration("No links to select.", 1000);
       return;
     }
+    count = Math.ceil(Math.log(elements.length) / Math.log(VSettings.cache.linkHintCharacters.length));
+    this.maxLeft = this.maxRight - (11 * count) - 8;
 
-    arr = this.initBox(elements.length);
     if (this.box) { this.box.remove(); this.box = null; }
     this.hintMarkers = elements.map(this.createMarkerFor, this);
     elements = null;
@@ -143,7 +145,7 @@ var VHints = {
   maxRight: 0,
   maxBottom: 0,
   zIndexes: null,
-  initBox: function(count) {
+  initBox: function() {
     var iw = window.innerWidth, ih = window.innerHeight, box, rect, width, height, x, y;
     if (document.webkitIsFullScreen) {
       this.maxLeft = iw; this.maxTop = ih;
@@ -159,8 +161,6 @@ var VHints = {
     height = box.scrollHeight - y - (height !== (height | 0));
     this.maxRight  = Math.min(Math.max(width,  box.clientWidth,  iw - 24), iw + 64);
     this.maxBottom = Math.min(Math.max(height, box.clientHeight, ih - 24), ih + 20);
-    count = Math.ceil(Math.log(count) / Math.log(VSettings.cache.linkHintCharacters.length));
-    this.maxLeft = this.maxRight - (11 * count) - 8;
     this.maxTop = this.maxBottom - 15;
     return getComputedStyle(box).position === "static" ? [x, y] : [-rect.left, -rect.top];
   },
