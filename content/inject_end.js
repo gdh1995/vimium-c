@@ -40,10 +40,12 @@ VSettings.onDestroy = function() {
       VPort.port.disconnect();
     } catch (e) {}
   }
-  EventTarget.vimiumRemoveHooks && EventTarget.vimiumRemoveHooks();
   var injector = VimiumInjector;
   injector.alive = 0;
   injector.destroy = null;
+  try {
+    typeof EventTarget.vimiumRemoveHooks === "function" && EventTarget.vimiumRemoveHooks();
+  } catch (e) {}
 };
 
 VimiumInjector.destroy = VSettings.destroy;

@@ -932,8 +932,6 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
       , window.location.pathname.replace(/^.*\/([^\/]+)\/?$/, "$1")
       , "color:auto", Date.now());
 
-    if (!isInjected && !location.protocol.startsWith("chrome")) {
-      chrome = null;
-    }
+    isInjected || location.protocol.startsWith("chrome") || (chrome = null);
   };
 })();
