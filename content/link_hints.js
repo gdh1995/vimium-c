@@ -641,7 +641,7 @@ var VHints = {
   },
   MakeStacks: function(marker, i) {
     var rects = this[0], stacks, m, j, len2, stack, stackForThisMarker, k, len3, t;
-    if (marker.style.display === "none") { rects.push(null); return; }
+    if (marker.style.visibility === "hidden") { rects.push(null); return; }
     rects.push(m = marker.getClientRects()[0]);
     stackForThisMarker = null;
     for (stacks = this[1], j = 0, len2 = stacks.length; j < len2; ) {
@@ -773,7 +773,7 @@ alphabetHints: {
     }
     return hintMarkers.filter(function(linkMarker) {
       var pass = linkMarker.hintString.startsWith(keyChar) === wanted;
-      linkMarker.style.display = pass ? "" : "none";
+      linkMarker.style.visibility = pass ? "" : "hidden";
       return pass;
     });
   },
