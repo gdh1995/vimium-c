@@ -757,10 +757,14 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
           el.style.visibility = "";
           VDom.UI.adjust();
         }
-        opacity += opacity < hud.opacity ? 0.25 : -0.25;
-        el.style.opacity = opacity;
-        if (opacity !== hud.opacity) {
-          return;
+        if (document.hasFocus()) {
+          opacity += opacity < hud.opacity ? 0.25 : -0.25;
+          el.style.opacity = opacity;
+          if (opacity !== hud.opacity) {
+            return;
+          }
+        } else {
+          el.style.opacity = opacity = hud.opacity;
         }
       }
       if (opacity === 0) {
