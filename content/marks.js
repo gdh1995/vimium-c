@@ -33,6 +33,7 @@ var VMarks = {
     VHandler.remove(this);
     cont && keyCode > 32 ? this.onKeypress(event, keyChar) : VHUD.hide();
     this.prefix = true;
+    this.onKeypress = null;
     return 2;
   },
   getBaseUrl: function() {
