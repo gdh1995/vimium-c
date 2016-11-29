@@ -31,6 +31,18 @@ Option.prototype.areEqual = function(a, b) {
   return a === b;
 };
 
+Option.prototype.atomicUpdate = function(value, undo, locked) {
+  if (undo) {
+    this.locked = true;
+    document.activeElement !== this.element && this.element.focus();
+    document.execCommand("undo");
+  }
+  this.locked = locked;
+  this.element.select();
+  document.execCommand("insertText", false, value);
+  this.locked = false;
+};
+
 function NumberOption() {
   NumberOption.__super__.constructor.apply(this, arguments);
   this.element.oninput = this.onUpdated;
@@ -47,7 +59,7 @@ NumberOption.prototype.readValueFromElement = function() {
 };
 
 NumberOption.prototype.addWheelListener = function() {
-  var el = this.element, func = this.OnWheel, onBlur;
+  var el = this.element, func = this.OnWheel.bind(this.element, this), onBlur;
   el.wheelTime = 0;
   el.addEventListener("mousewheel", func, {passive: false});
   el.addEventListener("blur", onBlur = function() {
@@ -57,7 +69,7 @@ NumberOption.prototype.addWheelListener = function() {
   });
 };
 
-NumberOption.prototype.OnWheel = function(event) {
+NumberOption.prototype.OnWheel = function(option, event) {
   event.preventDefault();
   var oldTime, inc, step, i, val0, val, func;
   oldTime = this.wheelTime; i = Date.now();
@@ -77,9 +89,7 @@ NumberOption.prototype.OnWheel = function(event) {
     isNaN(step = func(this.min)) || (i = Math.max(i, step));
     val = "" + i;
   }
-  oldTime > 0 && document.execCommand("undo");
-  this.select();
-  document.execCommand("insertText", false, val);
+  option.atomicUpdate(val, oldTime > 0, false);
 };
 
 function TextOption() {
@@ -96,12 +106,7 @@ TextOption.prototype.populateElement = function(value, enableUndo) {
     this.element.value = value;
     return;
   }
-  this.locked = true;
-  this.element.focus();
-  document.execCommand("undo");
-  this.element.select();
-  document.execCommand("insertText", false, value);
-  this.locked = false;
+  this.atomicUpdate(value, true, true);
 };
 
 TextOption.prototype.readValueFromElement = function() {
