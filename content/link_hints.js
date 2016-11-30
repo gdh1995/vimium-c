@@ -276,7 +276,7 @@ var VHints = {
         && (a.charCodeAt(10) !== 58 || a.substring(0, 11).toLowerCase() !== "javascript:")
         || element.hasAttribute("data-vim-url")) {
       if (arr = VDom.getVisibleClientRect(element)) {
-        this.push([element, arr]);
+        this.push([element, arr, 0]);
       }
     }
   },
@@ -301,14 +301,14 @@ var VHints = {
       }
     }
     if (cr) {
-      this.push([element, cr]);
+      this.push([element, cr, 0]);
     }
   },
   GetImagesInA: function(element) {
     var str = element.getAttribute("href"), cr;
     if (str && str.length > 4 && VHints.imageUrlRe.test(str)) {
       if (cr = VDom.getVisibleClientRect(element)) {
-        this.push([element, cr]);
+        this.push([element, cr, 0]);
       }
     }
   },
