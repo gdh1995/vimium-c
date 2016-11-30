@@ -479,16 +479,19 @@ tabs: {
       if (curTabId === tabId) { suggestion.relevancy = 0; }
       suggestions.push(suggestion);
     }
-    if (queryType === 4 || offset === 0) {
-      suggestions.sort(Completers.rsortByRelevancy);
-      if (suggestions.length > offset + maxResults) {
-        if (offset > 0) {
-          suggestions = suggestions.slice(offset, offset + maxResults);
-        } else {
-          suggestions.length = maxResults;
-        }
-      } else if (offset > 0) {
-        suggestions = suggestions.slice(offset).concat(suggestions.slice(0, offset));
+    if (queryType !== 4 && offset !== 0) {}
+    else if (suggestions.sort(Completers.rsortByRelevancy).length > offset + maxResults || !noFilter) {
+      if (offset > 0) {
+        suggestions = suggestions.slice(offset, offset + maxResults);
+        offset = 0;
+      } else {
+        suggestions.length = maxResults;
+      }
+    } else if (offset > 0) {
+      i = maxResults + offset - suggestions.length;
+      suggestions = suggestions.slice(offset).concat(suggestions.slice(0, i));
+      for (i = 0, len = tabId = suggestions.length; i < len; i++) {
+        suggestions[i].relevancy = tabId--;
       }
       offset = 0;
     }
