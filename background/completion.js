@@ -465,8 +465,12 @@ tabs: {
         tab.text = text;
       }
     }
-    if (offset >= tabs.length && queryType === 4) {
-      offset = 0;
+    if (offset >= tabs.length) {
+      if (queryType === 4) {
+        offset = 0;
+      } else {
+        offset -= tabs.length;
+      }
       Completers.next([]);
       return;
     }
