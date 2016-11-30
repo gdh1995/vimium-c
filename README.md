@@ -45,6 +45,11 @@ __微度新标签页 (X New Tab Page):__
 Release Notes
 -------------
 
+1.57.3:
+* fix a bug that tab completer does not accept commands like "+10"
+* use different color to hint containers like iframes and scrollable boxes
+* fix some other small bugs
+
 1.57.2:
 * fix a serious performance regression which was imported in 1.57 and made
   `LinkHints` slow down significantly if a page had some overlapped links.
