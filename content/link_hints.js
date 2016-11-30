@@ -167,8 +167,8 @@ var VHints = {
   createMarkerFor: function(link) {
     var marker = VDom.createElement("span"), i, st;
     marker.clickableItem = link[0];
-    marker.className = "LH";
     i = link.length < 5 ? link[1][0] : link[4][0][0] + link[4][1];
+    marker.className = link[2] < 7 ? "LH" : "LH BH";
     st = marker.style;
     st.left = i + "px";
     if (i > this.maxLeft) {
@@ -180,15 +180,17 @@ var VHints = {
       st.maxHeight = this.maxBottom - i + "px";
     }
     link[3] && (marker.linkRect = link[3]);
-    link[2] > 7 && (marker.wantScroll = true);
     return marker;
   },
   btnRe: /\b(?:[Bb](?:utto|t)n|[Cc]lose)(?:$| )/,
   GetClickable: function(element) {
     var arr, isClickable = null, s, type = 0;
     switch (element.tagName.toLowerCase()) {
-    case "a": case "frame": case "details": isClickable = true; break;
-    case "iframe": isClickable = element !== VFindMode.box; break;
+    case "a": case "details": isClickable = true; break;
+    case "frame": case "iframe":
+      isClickable = element !== VFindMode.box;
+      type = isClickable ? 7 : 0;
+      break;
     case "input": if (element.type === "hidden") { return; } // no break;
     case "textarea":
       if (element.disabled && VHints.mode1 <= VHints.CONST.LEAVE) { return; }
@@ -1014,7 +1016,7 @@ DEFAULT: {
     } else if (tag === "details") {
       link.open = !link.open;
       return;
-    } else if (hint.wantScroll) {
+    } else if (hint.classList.contains("BH")) {
       this.Modes.HOVER.activator.call(this, link);
       return;
     } else if ((mode = VDom.getEditableType(link)) === 3) {

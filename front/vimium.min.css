@@ -6,7 +6,7 @@ text-decoration:none;text-indent:0;text-shadow:none;text-transform:none;vertical
 .LH{background:-webkit-gradient(linear,left top,left bottom,color-stop(0,#FFF785),color-stop(100%,#FFC542));
 border:1px solid #E3BE23;border-radius:3px;box-shadow:0 3px 7px 0 rgba(0,0,0,.3);box-sizing:border-box;
 display:block;padding:1px 3px 0 3px;overflow:hidden;position:absolute}
-.MC{color:#D4AC3A}
+.BH{color:#902809}.MC{color:#D4AC3A}
 #IMC{left:0px;overflow:visible;pointer-events:none;position:absolute;top:0px;z-index:2147483645}
 .IH{background-color:rgba(255,247,133,.3);border:1px solid #C38A22;display:block;position:absolute}
 .IH.S{background-color:rgba(255,102,102,.3);border:1px solid #933}
