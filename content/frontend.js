@@ -750,7 +750,9 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
       this.text.data = text;
     },
     tween: function() {
-      var hud = HUD, el = hud.box, opacity = +el.style.opacity;
+      var hud = HUD, el, opacity;
+      if (!VHUD) { return; }
+      el = hud.box, opacity = +el.style.opacity;
       if (opacity === hud.opacity) {}
       else if (opacity === 0) {
         el.style.opacity = 0.25;
@@ -775,7 +777,7 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
       var hud = HUD, i;
       if (i = hud.timer) { clearTimeout(i); hud.timer = 0; }
       hud.opacity = 0;
-      if (hud.box && !hud.tweenId) {
+      if (hud.box && !hud.tweenId && VHUD) {
         hud.tweenId = setInterval(hud.tween, 40);
       }
     },
