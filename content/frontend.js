@@ -728,43 +728,41 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
     },
     showForDuration: function(text, duration) {
       this.show(text);
-      this.timer = this.enabled && setTimeout(this.hide, duration);
+      this.timer = this.enabled ? setTimeout(this.hide, duration) : 0;
     },
     show: function(text) {
       if (!this.enabled && !document.body) { return; }
       var el = this.box;
+      this.tweenId || (this.tweenId = setInterval(this.tween, 40));
+      this.opacity = 1;
       if (!el) {
         el = VDom.createElement("div");
         el.className = "R HUD";
         el.style.opacity = 0;
-        el.appendChild(this.text = new Text(""));
+        el.appendChild(this.text = new Text(text));
         VDom.UI.addElement(this.box = el);
-      } else if (this.timer) {
+        return;
+      }
+      if (this.timer) {
         clearTimeout(this.timer);
         this.timer = 0;
       }
       this.text.data = text;
-      if (!this.tweenId) {
-        this.tweenId = setInterval(this.tween, 40);
-      }
-      this.opacity = 1;
     },
     tween: function() {
       var hud = HUD, el = hud.box, opacity = +el.style.opacity;
-      if (opacity !== hud.opacity) {
-        if (opacity === 0) {
-          el.style.visibility = "";
-          VDom.UI.adjust();
-        }
-        if (document.hasFocus()) {
-          opacity += opacity < hud.opacity ? 0.25 : -0.25;
-          el.style.opacity = opacity;
-          if (opacity !== hud.opacity) {
-            return;
-          }
-        } else {
-          el.style.opacity = opacity = hud.opacity;
-        }
+      if (opacity === hud.opacity) {}
+      else if (opacity === 0) {
+        el.style.opacity = 0.25;
+        el.style.visibility = "";
+        VDom.UI.adjust();
+        return;
+      } else if (document.hasFocus()) {
+        opacity += opacity < hud.opacity ? 0.25 : -0.25;
+        el.style.opacity = opacity;
+        if (opacity !== hud.opacity) { return; }
+      } else {
+        el.style.opacity = opacity = hud.opacity;
       }
       if (opacity === 0) {
         el.style.visibility = "hidden";
