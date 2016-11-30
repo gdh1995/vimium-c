@@ -231,8 +231,8 @@ var VHints = {
         : (element.vimiumHasOnclick && VHints.isClickListened) || element.getAttribute("onclick")
           || VHints.ngEnabled && element.getAttribute("ng-click")
           || (s = element.getAttribute("jsaction")) && VHints.checkJSAction(s) ? 2
-        : (s = element.getAttribute("tabindex")) != null && (s === "" || parseInt(s, 10) >= 0) ? 7
-        : type > 7 ? type : (s = element.className) && VHints.btnRe.test(s) ? 4 : 0;
+        : (s = element.getAttribute("tabindex")) != null && (s === "" || parseInt(s, 10) >= 0) ? 5
+        : type > 5 ? type : (s = element.className) && VHints.btnRe.test(s) ? 4 : 0;
     }
     if ((isClickable || type) && (arr = VDom.getVisibleClientRect(element))
         && (type < 8 || VScroller.isScrollable(element, type - 8))
@@ -355,7 +355,7 @@ var VHints = {
       } else if (k < 2 || j === 0) {
         continue;
       }
-      while (0 <= --j && (k = list[j][2]) >= 2 && k <= 7 && this.isDescendant(el, list[j][0])) {}
+      while (0 <= --j && (k = list[j][2]) >= 2 && k <= 5 && this.isDescendant(el, list[j][0])) {}
       if (j + 1 < i) {
         list.splice(j + 1, i - j - 1);
       }
@@ -445,7 +445,7 @@ var VHints = {
       if (!r2) { if (r0 !== r) { visibleElement[1] = r; } continue; }
       if (r2.length > 0 && (r2.length > 1 || VRect.testCrop(r2[0]))) {
         visibleElement[1] = r2[0];
-      } else if ((reason = visibleElement[2]) === 4 || (reason === 2 ? isNormal : reason === 7)
+      } else if ((reason = visibleElement[2]) === 4 || (reason === 2 ? isNormal : reason === 5)
           && visibleElement[0].contains(visibleElements[_i][0])) {
         visibleElements.splice(_len, 1);
       } else {
@@ -1005,18 +1005,6 @@ DEFAULT: {
   67: "Activate link and hold on",
   activator: function(link, hint) {
     var mode, alterTarget, tag, ret, onMac = VSettings.cache.onMac;
-    mode = VDom.getEditableType(link);
-    if (mode === 3) {
-      VDom.UI.simulateSelect(link, true);
-      return false;
-    } else if (hint.wantScroll) {
-      this.Modes.HOVER.activator.call(this, link);
-      return;
-    } else if (mode > 0) {
-      link.focus();
-    }
-    mode = this.mode & 3;
-
     tag = link.nodeName.toLowerCase();
     if (tag === "iframe" || tag === "frame") {
       ret = link === Vomnibar.box ? (Vomnibar.focus(), false)
@@ -1026,7 +1014,15 @@ DEFAULT: {
     } else if (tag === "details") {
       link.open = !link.open;
       return;
+    } else if (hint.wantScroll) {
+      this.Modes.HOVER.activator.call(this, link);
+      return;
+    } else if ((mode = VDom.getEditableType(link)) === 3) {
+      VDom.UI.simulateSelect(link, true);
+      return false;
     }
+    if (mode > 0) { link.focus(); }
+    mode = this.mode & 3;
     if (mode >= 2 && tag === "a") {
       alterTarget = link.getAttribute('target');
       link.target = "_top";
