@@ -141,9 +141,6 @@ button:focus, input:focus, select:focus, textarea:focus {
   transition: border-color 200ms;
   border-color: #4d90fe;
 }
-label {
-  padding-top: 1px;
-}
 label:active {
   outline: none;
 }
@@ -236,7 +233,12 @@ label:active {
 }
 
 /* Boolean options have a tighter form representation than text options. */
-.booleanOption { font-size: 12px; }
+.booleanOption.innerLine > .checkboxHint,
+.booleanOption:not(.innerLine) {
+  font-size: 12px;
+  padding-top: 1px;
+}
+.checkboxHint:active { outline: none; }
 /* Ids and classes for rendering exclusionRules */
 #exclusionRules {
   overflow-x: hidden;

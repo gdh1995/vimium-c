@@ -191,7 +191,7 @@ ExclusionRulesOption.prototype.onInit = function() {
 };
 
 (function() {
-  var advancedMode, element, onUpdated, func, _i, _ref, status = 0;
+  var advancedMode, element, el2, onUpdated, func, _i, _ref, status = 0;
 
   onUpdated = function() {
     var saveBtn;
@@ -351,13 +351,17 @@ ExclusionRulesOption.prototype.onInit = function() {
     _ref[_i].onclick = func;
   }
 
-  _ref = $$("input[type=checkbox]");
+  _ref = $$(".booleanOption");
   for (_i = _ref.length; 0 <= --_i; ) {
     element = _ref[_i];
     element.tabIndex = -1;
     element.setAttribute("aria-hidden", "true");
-    element.nextElementSibling.tabIndex = 0;
-    element.nextElementSibling.setAttribute("for", element.id);
+    el2 = element.lastElementChild;
+    el2.classList.add("checkboxHint");
+    el2.tabIndex = 0;
+    element = element.firstElementChild;
+    element.setAttribute("aria-hidden", "true");
+    element.tabIndex = -1;
   }
 
   if (window.location.hash === "#chrome-ui") {
