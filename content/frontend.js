@@ -323,10 +323,11 @@ var VSettings, VHUD, VPort, VEventMode;
       var step = Math.min(count, history.length - 1);
       step > 0 && history.go(step * (options.dir || -1));
     },
-    goUp: function(count) {
+    goUp: function(count, options) {
       mainPort.sendMessage({
         handler: "parseUpperUrl",
         url: window.location.href,
+        trailing_slash: options.trailing_slash,
         upper: -count
       }, function(result) {
         if (result.path != null) {

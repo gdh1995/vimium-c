@@ -1067,7 +1067,10 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
     },
     goToRoot: function(tabs) {
       var url = tabs[0].url, result;
-      result = requestHandlers.parseUpperUrl({ url: url, upper: commandCount - 1 });
+      result = requestHandlers.parseUpperUrl({
+        trailing_slash: cOptions.trailing_slash,
+        url: url, upper: commandCount - 1
+      });
       if (result.path != null) {
         chrome.tabs.update(null, {url: result.url});
         return;
@@ -1372,7 +1375,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
         return null;
       }
       if (_i = +request.upper) {
-        obj = requestHandlers.parseUpperUrl({ url: s0, upper: _i });
+        obj = requestHandlers.parseUpperUrl({ url: s0, upper: _i, trailing_slash: request.trailing_slash });
         if (obj.path != null) {
           s0 = obj.url;
         }
@@ -1499,13 +1502,12 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
         }
         endSlash = true;
         i || (i = -1);
-      } else if (path.length <= 1) {
-        endSlash = false;
       } else {
-        endSlash = path.endsWith("/") || url.startsWith("ftp:");
+        endSlash = request.trailing_slash != null ? !!request.trailing_slash
+          : path.length > 1 && (path.endsWith("/") || url.startsWith("ftp:"));
       }
       if (i) {
-        arr = path.substring(+startSlash, path.length - endSlash).split("/");
+        arr = path.substring(+startSlash, path.length - path.endsWith("/")).split("/");
         i < 0 && (i += arr.length);
       }
       if (i <= 0) {
