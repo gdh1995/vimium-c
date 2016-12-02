@@ -1485,6 +1485,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
         if (url.startsWith("chrome-extension:")) {
           return { url: "An extension has no folder pages", path: null };
         }
+        hash = "";
         start = url.indexOf("/", url.indexOf("://") + 3);
         i = url.indexOf("?", start);
         end = url.indexOf("#", start);
@@ -1496,15 +1497,17 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
       }
       i = request.upper | 0;
       startSlash = path.startsWith("/");
-      if (url.startsWith("file:")) {
+      if (!hash && url.startsWith("file:")) {
         if (path.length <= 1 || url.length === 11 && url.endsWith(":/")) {
           return { url: "This has been the root path", path: null };
         }
         endSlash = true;
         i || (i = -1);
+      } else if (!hash && url.startsWith("ftp:")) {
+        endSlash = true;
       } else {
         endSlash = request.trailing_slash != null ? !!request.trailing_slash
-          : path.length > 1 && (path.endsWith("/") || url.startsWith("ftp:"));
+          : path.length > 1 && path.endsWith("/");
       }
       if (i) {
         arr = path.substring(+startSlash, path.length - path.endsWith("/")).split("/");
