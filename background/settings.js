@@ -239,18 +239,17 @@ setTimeout(function() {
     Settings.CONST.Platform = info.os;
   });
 
-  var ref, origin = location.origin, prefix = origin + "/",
+  var ref, origin = location.origin, prefix = origin + "/", obj
   func = function(path) {
     return (path.charCodeAt(0) === 47 ? origin : prefix) + path;
   };
   ref = chrome.runtime.getManifest();
-  Settings.CONST.CurrentVersion = ref.version;
-  Settings.CONST.OptionsPage = func(ref.options_page);
-  Settings.CONST.VomnibarPage = func(Settings.files.vomnibar);
+  obj = Settings.CONST;
+  obj.CurrentVersion = ref.version;
+  obj.OptionsPage = func(ref.options_page);
+  obj.VomnibarPage = func(Settings.files.vomnibar);
   ref = ref.content_scripts[0].js;
   ref[ref.length - 1] = "/content/inject_end.js";
-  if (Settings.CONST.ChromeVersion < 41) {
-    ref.unshift(Settings.CONST.PolyFill);
-  }
-  Settings.CONST.ContentScripts = ref.map(func);
+  if (obj.ChromeVersion < 41) { ref.unshift(obj.PolyFill); }
+  obj.ContentScripts = ref.map(func);
 }, 17);
