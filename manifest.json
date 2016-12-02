@@ -74,7 +74,7 @@
     "matches": [ "file:///*" ],
     "run_at": "document_idle"
   } ],
-  "content_security_policy": "script-src 'self'; object-src 'self';",
+  "content_security_policy": "script-src 'self'; style-src 'self' 'unsafe-inline'; media-src 'none'; font-src 'none'; object-src 'none'; child-src 'none'; connect-src 'self' data:; manifest-src none",
   "description": "optimized Vimium supporting global commands and other extensions",
   "homepage_url": "https://github.com/gdh1995/vimium-plus",
   "icons": {
