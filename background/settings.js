@@ -239,7 +239,7 @@ setTimeout(function() {
     Settings.CONST.Platform = info.os;
   });
 
-  var ref, origin = location.origin, prefix = origin + "/", obj
+  var ref, origin = location.origin, prefix = origin + "/", obj,
   func = function(path) {
     return (path.charCodeAt(0) === 47 ? origin : prefix) + path;
   };
