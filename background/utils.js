@@ -201,9 +201,9 @@ var exports = {}, Utils = {
     }
     if (!(this._fileExtRe.test(path) || this._queryRe.test(path))) {
       path = path.toLowerCase();
-      if (tempStr = this.vimiumRedirectedUrls[path]) {
+      if (tempStr = Settings.CONST.RedirectedUrls[path]) {
         path = tempStr;
-      } else if (this.vimiumKnownPages.indexOf(path) >= 0 || path.charCodeAt(0) === 47) {
+      } else if (Settings.CONST.KnownPages.indexOf(path) >= 0 || path.charCodeAt(0) === 47) {
         path += ".html";
       } else if (vimiumUrlWork > 0 && vimiumUrlWork != (vimiumUrlWork | 0)) {
         return "vimium://" + arguments[0].trim();
@@ -216,19 +216,6 @@ var exports = {}, Utils = {
     }
     return path + (!query ? "" : (path.indexOf("#") > 0 ? " " : "#!") + query);
   },
-  vimiumRedirectedUrls: {
-    about: "https://github.com/gdh1995/vimium-plus",
-    help: "https://github.com/philc/vimium/wiki",
-    license: "https://raw.githubusercontent.com/gdh1995/vimium-plus/master/MIT-LICENSE.txt",
-    permissions: "https://github.com/gdh1995/vimium-plus/blob/master/PRIVACY-POLICY.md#permissions-required",
-    policy: "https://github.com/gdh1995/vimium-plus/blob/master/PRIVACY-POLICY.md",
-    popup: "options.html",
-    privacy: "https://github.com/gdh1995/vimium-plus/blob/master/PRIVACY-POLICY.md#privacy-policy",
-    readme: "https://github.com/gdh1995/vimium-plus/blob/master/README.md",
-    settings: "options.html",
-    __proto__: null
-  },
-  vimiumKnownPages: ["blank", "newtab", "options", "show", "popup"],
   _vimiumCmdRe: /^[a-z][\da-z\-]*(?:\.[a-z][\da-z\-]*)*$/i,
   evalVimiumUrl: function(path, workType) {
     var ind, cmd, arr, obj;

@@ -225,7 +225,20 @@ w|wiki:\\\n  https://www.wikipedia.org/w/index.php?search=$s Wikipedia\n\
     BaseCSSLength: 0,
     ChromeInnerNewTab: "chrome-search://local-ntp/local-ntp.html", // should keep lower case
     ChromeVersion: 37, ContentScripts: null, CurrentVersion: "",
+    KnownPages: ["blank", "newtab", "options", "show"],
     OptionsPage: "", Platform: "", PolyFill: "lib/polyfill.js",
+    RedirectedUrls: {
+      about: "https://github.com/gdh1995/vimium-plus",
+      help: "https://github.com/philc/vimium/wiki",
+      license: "https://raw.githubusercontent.com/gdh1995/vimium-plus/master/LICENSE.txt",
+      permissions: "https://github.com/gdh1995/vimium-plus/blob/master/PRIVACY-POLICY.txt#permissions-required",
+      policy: "https://github.com/gdh1995/vimium-plus/blob/master/PRIVACY-POLICY.txt",
+      popup: "options.html",
+      privacy: "https://github.com/gdh1995/vimium-plus/blob/master/PRIVACY-POLICY.txt#privacy-policy",
+      readme: "https://github.com/gdh1995/vimium-plus/blob/master/README.md",
+      settings: "options.html",
+      __proto__: null
+    },
     VomnibarPage: ""
   }
 };
