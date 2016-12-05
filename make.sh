@@ -1,46 +1,58 @@
-#!/bin/sh
+#!/usr/bin/env bash
+set +o noglob
+input=$(echo *)
 set -o noglob
 
-output="$1"
-if [ -n "$output" -a ! -d "$output" ]; then :
-else
-  if [ -n "$output" -a -d "$output" ]; then
-    output="${output/%\//}/"
-  fi
-  ver=`grep '"version"' manifest.json | awk -F '"' '{print $4}'`
-  pkg_name=`basename "$PWD"`
-  pkg_name="${pkg_name/++/_plus}"
-  pkg_name="${pkg_name/+/_}"
-  output="${output}"${pkg_name}_$ver.zip
+output=$1
+if [ -z "$output" -o -d "$output" ]; then
+  output=${output%/}/
+  ver=$(grep -m1 '"version"' manifest.json | awk -F '"' '{print "_"$4}')
+  pkg_name=$(basename "$PWD")
+  pkg_name=${pkg_name//++/_plus}
+  pkg_name=${pkg_name//+/_}
+  pkg_name=${pkg_name%_}
+  output=$output${pkg_name:-vimium_plus}$ver.zip
+elif [ "${output/./}" == "$output" ]; then
+  output=$output.zip
+  echo "the zip file will be \"$output\""
 fi
 
-args=""
-if [ "$output" != "-" -a -f "$output" ]; then
-  args="-u"
+args=$5
+if [ -z "$args" -a "$output" != "-" -a -f "$output" ]; then
+  args="-FS"
 fi
 
-zip -roX -MM $args "$output" . -x ".*" "*.sh" "weidu/*" "test*" \
-  "*/.*" "*.coffee" "*.crx" "*.ts" "*.zip" $4
+zip -roX -MM $args "$output" $input -x '.*' '*.sh' 'weidu*' 'test*' 'git*' \
+  '*/.*' '*.coffee' '*.crx' '*.ts' '*.zip' $4
 err=$?
-if [ $err -ne 0 ] ; then
+if [ $err -ne 0 ]; then
   echo "$0: exit because of an error during zipping" 1>&2
   exit $err
+fi
+if [ -f "$output" ]; then :
+elif [ -f "$output.zip" ]; then
+  output=$output.zip
+else
+  echo "$0: exit because the zip file \"$output\" is not found" 1>&2
+  exit 1
 fi
 echo ""
 echo "Wrote $output"
 
 key="$2"
 if [ -z "$key" ]; then
-  echo "No crx key info. Exit."
+  echo "No crx key info. Exit"
   exit
 fi
-if ! which xxd >/dev/null 2>&1 ; then
-  echo 'No "xxd" program. Exit.' 1>&2
-  exit 1
-fi
-crx="$3"
+for i in openssl xxd; do
+  if ! which $i >/dev/null 2>&1 ; then
+    echo "No \"$i\" program. Exit" 1>&2
+    exit 1
+  fi
+done
+crx=$3
 if [ -z "$crx" ]; then
-  crx="${output/%.zip/}.crx"
+  crx=${output%.zip}.crx
 fi
 
 openssl sha1 -sha1 -binary -sign "$key" < "$output" > "$crx.sig"
