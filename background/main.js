@@ -233,7 +233,10 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
       this.setAllLevels(contentType, pattern, commandCount
         , { scope: "incognito_session_only", setting: "allow" }
         , doSyncWnd && wndId !== tab.windowId
-        ? chrome.windows.get.bind(null, tab.windowId, callback) : callback);
+        ? function(err) {
+          if (err) { return; }
+          chrome.windows.get(tab.windowId, callback);
+        } : callback);
     },
     setAllLevels: function(contentType, url, count, settings, callback) {
       var ref, i, info, todo, has_err = false, func;
