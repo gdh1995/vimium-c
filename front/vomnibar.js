@@ -53,6 +53,7 @@ var Vomnibar = {
   lastKey: 0,
   list: null,
   onUpdate: null,
+  doEnter: null,
   refreshInterval: 500,
   wheelInterval: 100,
   renderItems: null,
@@ -66,21 +67,28 @@ var Vomnibar = {
   },
   hide: function(data) {
     this.isActive = this.isEditing = false;
-    clearTimeout(this.timer);
+    this.timer > 0 && clearTimeout(this.timer);
     this.timer = this.height = this.matchType = 0;
     window.removeEventListener("mousewheel", this.onWheel, {passive: false});
     window.onkeyup = null;
-    this.input.blur();
-    this.list.textContent = "";
-    this.input.value = "";
     this.completions = this.onUpdate = null;
     this.modeType = this.mode.type = this.mode.query =
     this.lastQuery = this.inputText = "";
     if (data !== "hide") {
+      setTimeout(this.onHidden.bind(this), 17);
       VPort.postToOwner("hide");
-      VPort.postMessage({ handler: "refocusCurrent", lastKey: this.lastKey });
+    } else {
+      this.onHidden();
     }
+  },
+  onHidden: function() {
+    this.doEnter && this.doEnter();
+    VPort.postMessage({ handler: "refocusCurrent", lastKey: this.lastKey });
+    this.input.blur();
+    this.input.value = "";
+    this.list.textContent = "";
     this.lastKey = 0;
+    setTimeout(VPort.Disconnect, 17);
   },
   reset: function(input, start, end) {
     this.inputText = input || (input = "");
@@ -349,12 +357,11 @@ var Vomnibar = {
     }
     item = sel >= 0 ? this.completions[sel] : { url: this.input.value.trim() };
     func = function() {
-      window.onblur = Vomnibar.OnWndBlur;
+      Vomnibar.doEnter = null;
       item.hasOwnProperty('sessionId') ? Vomnibar.gotoSession(item) : Vomnibar.navigateToUrl(item);
-      Vomnibar.OnWndBlur();
     };
     if (this.actionType < -1) { func(); return; }
-    window.onblur = func;
+    this.doEnter = func;
     this.hide();
   },
   onEnterUp: function(event) {
@@ -459,10 +466,8 @@ var Vomnibar = {
       func.call(this);
     }
   },
-  OnWndBlur: function() { Vomnibar.isActive || setTimeout(VPort.Disconnect, 50); },
   init: function() {
     addEventListener("focus", VPort.EnsurePort, true);
-    window.onblur = this.OnWndBlur;
     window.onclick = function(e) { Vomnibar.onClick(e); };
     this.onWheel = this.onWheel.bind(this);
     Object.setPrototypeOf(this.ctrlMap, null);
