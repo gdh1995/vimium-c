@@ -97,23 +97,23 @@ var Vomnibar = {
     if (location.hash === "#chrome-ui") { el.style.top = "5px"; }
     el.src = page;
     el.onload = function() {
-      var channel, port, i = page.indexOf("://");
+      var channel, port, i = page.indexOf("://"), wnd = this.contentWindow;
       page = page.substring(0, page.indexOf("/", i + 3));
-      if (location.origin === page) {
-        port = {
-          onmessage: null,
-          postMessage: function(data) { Vomnibar.onMessage({ data: data }); }
-        };
-        _this.sameOrigin = true;
-        _this.port = { postMessage: function(data) { port.onmessage({ data: data}); } };
-        this.contentWindow.Vomnibar.showFavIcon = true;
-        this.contentWindow.onmessage({ source: window, data: secret, ports: [port] });
+      if (location.origin !== page) {
+        channel = new MessageChannel();
+        _this.port = channel.port1;
+        _this.port.onmessage = _this.onMessage.bind(_this);
+        wnd.postMessage(secret, page, [channel.port2]);
         return;
       }
-      channel = new MessageChannel();
-      _this.port = channel.port1;
-      _this.port.onmessage = _this.onMessage.bind(_this);
-      this.contentWindow.postMessage(secret, page, [channel.port2]);
+      port = {
+        onmessage: null,
+        postMessage: function(data) { Vomnibar.onMessage({ data: data }); }
+      };
+      _this.sameOrigin = true;
+      _this.port = { postMessage: function(data) { port.onmessage({ data: data}); } };
+      wnd.Vomnibar.showFavIcon = true;
+      wnd.onmessage({ source: window, data: secret, ports: [port] });
     };
     VDom.UI.addElement(el, false);
   },
