@@ -87,6 +87,7 @@ var Vomnibar = {
     this.input.blur();
     this.input.value = "";
     this.list.textContent = "";
+    this.list.classList.remove("withList");
     this.lastKey = 0;
     setTimeout(VPort.Disconnect, 17);
   },

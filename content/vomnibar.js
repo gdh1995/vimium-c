@@ -94,7 +94,6 @@ var Vomnibar = {
     el = _this.box = VDom.createElement("iframe");
     el.className = "LS Omnibar";
     el.style.visibility = "hidden";
-    if (location.hash === "#chrome-ui") { el.style.top = "5px"; }
     el.src = page;
     el.onload = function() {
       var channel, port, i = page.indexOf("://"), wnd = this.contentWindow;
@@ -112,6 +111,7 @@ var Vomnibar = {
       };
       _this.sameOrigin = true;
       _this.port = { postMessage: function(data) { port.onmessage({ data: data}); } };
+      if (location.hash === "#chrome-ui") { this.style.top = "5px"; }
       wnd.Vomnibar.showFavIcon = true;
       wnd.onmessage({ source: window, data: secret, ports: [port] });
     };
