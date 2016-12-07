@@ -97,6 +97,7 @@ var Vomnibar = {
     el.src = page;
     el.onload = function() {
       var channel, port, i = page.indexOf("://"), wnd = this.contentWindow;
+      this.onload = null;
       page = page.substring(0, page.indexOf("/", i + 3));
       if (location.origin !== page) {
         channel = new MessageChannel();
@@ -121,7 +122,6 @@ var Vomnibar = {
     var data = event.data;
     switch (data.name || data) {
     case "uiComponentIsReady":
-      this.box.onload = null;
       if (this.status !== 1) { return; }
       this.status = 2;
       this.show();
@@ -152,7 +152,7 @@ var Vomnibar = {
       style = VDom.UI.box.style;
     }
     this.sameOrigin ? (style.display = "")
-      : setTimeout(function() { style.display = ""; }, 0);
+      : setTimeout(function() { style.display = ""; }, 17);
     if (width !== (width | 0)) {
       this.box.style.width = (width | 0) / (width / 0.8) * 100 + "%";
     }
