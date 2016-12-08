@@ -503,7 +503,7 @@ var Vomnibar = {
     event.stopImmediatePropagation();
   },
   returnFocus: function(request) {
-    try { VPort.postToOwner({ name: "focus", lastKey: request.lastKey }); } catch (e) {}
+    setTimeout(VPort.postToOwner, 0, { name: "focus", lastKey: request.lastKey });
   },
 
   mode: {

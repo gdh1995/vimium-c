@@ -673,7 +673,7 @@ var VSettings, VHUD, VPort, VEventMode;
         });
         return;
       }
-      window.focus();
+      setTimeout(function() { window.focus(); }, 0);
       esc();
       VEventMode.suppress(request.lastKey);
       if (request.highlight === false || !document.body) { return; }
