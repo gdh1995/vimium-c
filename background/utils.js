@@ -71,7 +71,7 @@ var exports = {}, Utils = {
     if ((index = string.indexOf(' ')) > 0) {
       string = string.substring(0, index);
     }
-    if ((index = string.indexOf(':')) === 0) { type = 2; }
+    if ((index = string.indexOf(':')) === 0) { type = 4; }
     else if (index === -1 || !this.protocolRe.test(string)) {
       if (index !== -1 && (index2 = string.lastIndexOf('/', index)) < 0) {
         type = this.checkSpecialSchemes(oldString, index, string.length % oldString.length);
@@ -79,16 +79,16 @@ var exports = {}, Utils = {
       index2 = 0;
       if (type === -1 && string.startsWith("//")) {
         string = string.substring(2);
-        expected = 4; index2 = 2;
+        expected = 2; index2 = 2;
       }
       if (type !== -1) {}
       else if ((index = string.indexOf('/')) <= 0) {
-        if (index === 0 || string.length < oldString.length - index2) { type = 2; }
+        if (index === 0 || string.length < oldString.length - index2) { type = 4; }
       } else if (string.length >= oldString.length - index2 ||
           ((index2 = string.charCodeAt(index + 1)) > 32 && index2 !== 47)) {
         string = string.substring(0, index);
       } else {
-        type = 2;
+        type = 4;
       }
     }
     else if (string.startsWith("vimium:")) {
@@ -105,22 +105,22 @@ var exports = {}, Utils = {
         ? string.length < oldString.length
         : (expected = string.charCodeAt(index2 + 1), expected <= 32 || expected === 47)
     ) {
-      type = 2;
+      type = 4;
     }
     else if (this._nonENTldRe.test(string.substring(0, index))) {
       type = this.protocolRe.test(string) &&
-        (index = string.charCodeAt(index + 3)) > 32 && index !== 47 ? 0 : 2;
+        (index = string.charCodeAt(index + 3)) > 32 && index !== 47 ? 0 : 4;
     }
     else if (string.startsWith("file:")) {
       if (string.charCodeAt(7) !== 47) {
-        type = 2;
+        type = 4;
       } else {
         index = string.charCodeAt(8);
-        type = (index > 32 && index !== 47) ? 0 : 2; // `>32`: in case of NaN
+        type = (index > 32 && index !== 47) ? 0 : 4; // `>32`: in case of NaN
       }
     }
     else if (string.startsWith("chrome:")) {
-      type = string.length < oldString.length && string.indexOf('/', 9) === -1 ? 2 : 0;
+      type = string.length < oldString.length && string.indexOf('/', 9) === -1 ? 4 : 0;
     } else {
       string = string.substring(index + 3, index2 !== -1 ? index2 : undefined);
       expected = 0;
@@ -128,19 +128,19 @@ var exports = {}, Utils = {
 
     if (type !== -1) {
     } else if (!(arr = this._hostRe.exec(string))) {
-      type = 2;
+      type = 4;
     } else if ((string = arr[3]).indexOf(':') !== -1 || string.endsWith("localhost")) {
       type = expected;
     } else if ((index = string.lastIndexOf('.')) <= 0) {
       string === "__proto__" && (string = ".__proto__");
-      type = expected !== 1 || (string in this.domains) ? expected : 2;
+      type = expected !== 1 || (string in this.domains) ? expected : 4;
     } else if (this._ipRe.test(string)) {
       type = expected;
-    } else if ((type = this.isTld(string.substring(index + 1))) == 0) {
-      type = (string in this.domains) ? expected : 2;
+    } else if ((type = this.isTld(string.substring(index + 1))) === 0) {
+      type = (string in this.domains) ? expected : 4;
     } else if (string.length !== index + 3 && type === 1 && this._nonENDoaminRe.test(string)) {
       // `non-english.non-ccTld` AND NOT `non-english.non-english-tld`
-      type = 2;
+      type = 4;
     } else if (expected !== 1 || arr[0].length < oldString.length) {
       type = expected;
     } else if (arr[2] || arr[4] || !arr[1] || string.startsWith("ftp")) {
@@ -148,36 +148,36 @@ var exports = {}, Utils = {
     // the below means string is like "(?<=abc@)(uvw.)*xyz.tld"
     } else if (string.startsWith("mail") || string.indexOf(".mail") > 0
         || (index2 = string.indexOf(".")) === index) {
-      type = 2;
+      type = 4;
     } else if (string.indexOf(".", ++index2) !== index) {
       type = 1;
     } else if (string.length === index + 3 && type == 1) { // treat as a ccTLD
       string = string.substring(index2, index);
       type = string.length < this._tlds.length &&
-          this._tlds[string.length].indexOf(string) > 0 ? 2 : 1;
+          this._tlds[string.length].indexOf(string) > 0 ? 4 : 1;
     } else {
       type = 1;
     }
     this.lastUrlType = type;
     return type === 0 ? oldString
+      : type === 4 ? this.createSearchUrl(oldString.split(' '), keyword || "~")
       : type === 1 ? ("http://" + oldString)
-      : type === 2 ? this.createSearchUrl(oldString.split(' '), keyword || "~")
-      : type === 4 ? ("http:" + oldString)
+      : type === 2 ? ("http:" + oldString)
       : oldString;
   },
   checkSpecialSchemes: function(string, i, spacePos) {
     var isSlash = string[i + 1] === "/";
     switch (string.substring(0, i)) {
-    case "about": return isSlash ? 2 : -(spacePos > 0 || string.indexOf('@', i) > 0);
+    case "about": return isSlash ? 4 : -(spacePos > 0 || string.indexOf('@', i) > 0);
     case "blob": case "view-source":
       string = string.substring(i + 1);
-      if (string.startsWith("blob:") || string.startsWith("view-source:")) { return 2; }
+      if (string.startsWith("blob:") || string.startsWith("view-source:")) { return 4; }
       this.convertToUrl(string);
-      return this.lastUrlType <= 1 || this.lastUrlType === 4 ? 0 : 2;
-    case "data": return isSlash ? 2 : -((i = string.indexOf(',', i)) < 0 || (spacePos > 0 && spacePos < i));
+      return this.lastUrlType <= 2 ? 0 : 4;
+    case "data": return isSlash ? 4 : -((i = string.indexOf(',', i)) < 0 || (spacePos > 0 && spacePos < i));
     case "magnet": return -(string[i + 1] !== '?');
-    case "mailto": return isSlash ? 2 : -((i = string.indexOf('/', i)) > 0 && string.lastIndexOf('?', i) < 0);
-    default: return isSlash ? 2 : -1;
+    case "mailto": return isSlash ? 4 : -((i = string.indexOf('/', i)) > 0 && string.lastIndexOf('?', i) < 0);
+    default: return isSlash ? 4 : -1;
     }
   },
   isTld: function(tld) {
@@ -261,7 +261,7 @@ var exports = {}, Utils = {
       }
       arr = [path];
       path = this.convertToUrl(path);
-      if (this.lastUrlType !== 2 && typeof path === "string") {
+      if (this.lastUrlType !== 4 && typeof path === "string") {
         if (obj = g_requestHandlers.parseSearchUrl({ url: path })) {
           arr = obj.url.split(" ");
           arr.unshift(cmd);
@@ -424,7 +424,7 @@ var exports = {}, Utils = {
             key = pair[1] === "s" ? "+" : " ";
           }
           val = this.convertToUrl(val, null, 0.5);
-          if (this.lastUrlType === 2 || this.lastUrlType === 3) {
+          if (this.lastUrlType >= 3) {
             val = val.replace(encodedSearchWordRe, "$$$1");
             ind = val.search(re) + 1;
           } else if (this.lastUrlType > 0) {

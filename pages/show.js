@@ -42,8 +42,7 @@ window.onhashchange = function() {
     type = url = file = "";
   } else if (BG) {
     str = BG.Utils.convertToUrl(url, null, -1);
-    ind = BG.Utils.lastUrlType;
-    if (ind === 1 || ind === 4) {
+    if (BG.Utils.lastUrlType <= 2) {
       url = str;
     }
   } else if (url.startsWith("//")) {

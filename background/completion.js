@@ -635,7 +635,7 @@ searchEngines: {
     sug.text = Utils.DecodeURLPart(SuggestionUtils.shortenUrl(sug.url));
     sug.textSplit = Utils.escapeText(sug.text);
     text && (sug.text = text);
-    if (Utils.lastUrlType === 2) {
+    if (Utils.lastUrlType === 4) {
       sug.title = "~: " + keyword;
       sug.titleSplit = SuggestionUtils.highlight(sug.title, [3, 3 + keyword.length]);
     } else {
