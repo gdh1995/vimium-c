@@ -72,16 +72,16 @@ var Vomnibar = {
     window.removeEventListener("mousewheel", this.onWheel, {passive: false});
     window.onkeyup = null;
     this.completions = this.onUpdate = null;
-    this.modeType = this.mode.type = this.mode.query =
-    this.lastQuery = this.inputText = "";
+    this.modeType = this.mode.type = this.mode.query = this.lastQuery = this.inputText = "";
     if (data !== "hide") {
-      setTimeout(this.onHidden.bind(this), 17);
+      this.timer = setTimeout(this.onHidden.bind(this), 100);
       VPort.postToOwner("hide");
     } else {
       this.onHidden();
     }
   },
   onHidden: function() {
+    this.timer > 0 && clearTimeout(this.timer);
     this.doEnter && setTimeout(this.doEnter, 0);
     VPort.postMessage({ handler: "refocusCurrent", lastKey: this.lastKey });
     this.input.blur();

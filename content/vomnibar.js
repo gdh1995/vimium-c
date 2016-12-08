@@ -82,12 +82,17 @@ var Vomnibar = {
     this.width = this.status = 0;
     this.options = null;
     if (!this.box) { return; }
-    var style = this.box.style;
-    style.display = "none", style.width = "", style.height = "";
+    var style = this.box.style, next = requestAnimationFrame;
+    style.display = "none";
+    style.width = "", style.height = "";
     if (isMsg !== true) {
       this.port.postMessage("hide");
       setTimeout(function() { window.focus(); }, 17);
+      return;
     }
+    next(function() { next(function() {
+      Vomnibar.port.postMessage("onHidden");
+    }); });
   },
   Init: function(secret, page) {
     var _this = Vomnibar, el;
