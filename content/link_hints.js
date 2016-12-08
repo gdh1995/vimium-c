@@ -429,10 +429,12 @@ var VHints = {
     for (_len = visibleElements.length, _j = Math.max(0, _len - 16); 0 < --_len; ) {
       _j > 0 && --_j;
       visibleElement = visibleElements[_len];
+      if (visibleElement[2] >= 7) { continue; }
       r0 = r = visibleElement[1];
       for (_i = _len; _j <= --_i; ) {
         t = visibleElements[_i][1];
         if (r[3] <= t[1] || r[2] <= t[0] || r[0] >= t[2] || r[1] >= t[3]) { continue; }
+        if (visibleElements[_i][2] >= 7) { continue; }
         obj[1] = t;
         r2 ? r2.forEach(func) : func(r);
         if (r2s.length === 1) {
