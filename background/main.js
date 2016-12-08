@@ -890,7 +890,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
     clearCS: function(tabs) {
       ContentSettings.clearCS(cOptions.type, tabs[0]);
     },
-    gotoTab: function(tabs) {
+    goTab: function(tabs) {
       if (tabs.length < 2) { return; }
       var count = (cOptions.dir || 1) * commandCount,
         len = tabs.length, toSelect;
@@ -1903,7 +1903,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
     var ref, i, ref2, key;
     ref2 = BackgroundCommands;
     for (key in ref2) { ref2[key].useTab = 0; }
-    ref = ["gotoTab", "removeTab" //
+    ref = ["goTab", "removeTab" //
       , "removeTabsR", "removeRightTab" //
       , "moveTab", "togglePinTab" //
       , "reloadTab", "reloadGivenTab", "visitPreviousTab" //
