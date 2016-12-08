@@ -93,7 +93,7 @@ var exports = {}, Utils = {
     }
     else if (string.startsWith("vimium:")) {
       type = 3;
-      vimiumUrlWork == null && (vimiumUrlWork = 0);
+      vimiumUrlWork = vimiumUrlWork || 0;
       if (vimiumUrlWork < 0 || !(string = oldString.substring(9))) {}
       else if (!(oldString = this.evalVimiumUrl(string, vimiumUrlWork))) {
         oldString = this.formatVimiumUrl(string, null, vimiumUrlWork);
@@ -201,7 +201,7 @@ var exports = {}, Utils = {
         path = tempStr;
       } else if (Settings.CONST.KnownPages.indexOf(path) >= 0 || path.charCodeAt(0) === 47) {
         path += ".html";
-      } else if (vimiumUrlWork > 0 && vimiumUrlWork != (vimiumUrlWork | 0)) {
+      } else if (vimiumUrlWork > 0 && vimiumUrlWork !== (vimiumUrlWork | 0)) {
         return "vimium://" + arguments[0].trim();
       } else {
         path = "show.html#!url vimium://" + path;
@@ -217,7 +217,7 @@ var exports = {}, Utils = {
     var ind, cmd, arr, obj;
     path = path.trim();
     workType |= 0;
-    if (!path || !(workType >= 0) || (ind = path.indexOf(" ")) <= 0 ||
+    if (!path || workType < 0 || (ind = path.indexOf(" ")) <= 0 ||
         !this._vimiumCmdRe.test(cmd = path.substring(0, ind).toLowerCase()) ||
         cmd.endsWith(".html") || cmd.endsWith(".js") || cmd.endsWith(".css")) {
       return null;
@@ -321,7 +321,7 @@ var exports = {}, Utils = {
   createSearchUrl: function(query, keyword, vimiumUrlWork) {
     var url, pattern = Settings.cache.searchEngineMap[keyword || query[0]];
     if (pattern) {
-      if (!keyword) { query.shift(); }
+      if (!keyword) { keyword = query.shift(); }
       url = this.createSearch(query, pattern.url);
     } else {
       url = query.join(" ");
