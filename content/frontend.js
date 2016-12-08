@@ -729,7 +729,7 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
     },
     showForDuration: function(text, duration) {
       this.show(text);
-      this.timer = this.enabled ? setTimeout(this.hide, duration) : 0;
+      this.timer = this.enabled ? setTimeout(this.hide, duration || 1500) : 0;
     },
     show: function(text) {
       if (!this.enabled && !document.body) { return; }
@@ -846,10 +846,7 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
     createMark: VMarks.CreateGlobalMark,
     scroll: VMarks.Goto,
     showHUD: function(request) {
-      HUD.showForDuration(request.text, 1500);
-    },
-    showCopied: function(request) {
-      HUD.showCopied(request.text);
+      HUD[request.isCopy ? "showForDuration" : "showCopied"](request.text);
     },
   showHelpDialog: function(request) {
     var box, oldShowHelp, hide, node1, optionUrl, //
