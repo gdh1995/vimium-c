@@ -65,48 +65,40 @@ Marks = { // NOTE: all members should be static
     }
     markInfo = JSON.parse(str);
     markInfo.markName = request.markName;
-    markInfo.prefix = request.prefix !== false && null;
-    if (!Settings.indexPorts(markInfo.tabId)) {
-      Marks.findTab(markInfo);
-      return null;
+    markInfo.prefix = request.prefix !== false && request.scroll[0] === 0 && request.scroll[1] === 0;
+    if (Settings.indexPorts(markInfo.tabId)) {
+      chrome.tabs.get(markInfo.tabId, Marks.checkTab.bind(markInfo));
+    } else {
+      g_requestHandlers.focusOrLaunch(markInfo);
     }
-    chrome.tabs.get(markInfo.tabId, Marks.checkTab.bind(markInfo));
     return true;
   },
   checkTab: function(tab) {
-    if (tab.url.split("#", 1)[0] === this.url) {
-      Marks.gotoTab(this, tab);
+    var url = tab.url.split("#", 1)[0];
+    if (url === this.url || this.prefix && this.url.startsWith(url)) {
+      g_requestHandlers.gotoSession({ sessionId: tab.id });
+      Marks.scrollTab(this, tab);
     } else {
-      Marks.findTab(this);
+      g_requestHandlers.focusOrLaunch(this);
     }
-  },
-  findTab: function(markInfo) {
-    if (markInfo.prefix == null) {
-      markInfo.prefix = markInfo.scroll[0] === 0 && markInfo.scroll[1] === 0;
-    }
-    g_requestHandlers.focusOrLaunch(markInfo);
   },
   getLocationKey: function(keyChar) {
     return "vimiumGlobalMark|" + keyChar;
   },
-  gotoTab: function(markInfo, tab) {
+  scrollTab: function(markInfo, tab) {
     var tabId = tab.id, port;
-    if (markInfo.scroll) {
-      (port = Settings.indexFrame(tabId, 0)) && port.postMessage({
-        name: "scroll",
-        scroll: markInfo.scroll,
-        markName: markInfo.markName
-      });
-      if (markInfo.tabId !== tabId && markInfo.markName) {
-        localStorage.setItem(Marks.getLocationKey(markInfo.markName), JSON.stringify({
-          tabId: tabId,
-          url: markInfo.url,
-          scroll: markInfo.scroll
-        }));
-      }
+    (port = Settings.indexFrame(tabId, 0)) && port.postMessage({
+      name: "scroll",
+      scroll: markInfo.scroll,
+      markName: markInfo.markName
+    });
+    if (markInfo.tabId !== tabId && markInfo.markName) {
+      localStorage.setItem(Marks.getLocationKey(markInfo.markName), JSON.stringify({
+        tabId: tabId,
+        url: markInfo.url,
+        scroll: markInfo.scroll
+      }));
     }
-    chrome.tabs.update(tabId, {active: true});
-    chrome.windows.update(tab.windowId, {focused: true});
   },
   clearGlobal: function() {
     var key_start, storage, i, key;

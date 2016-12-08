@@ -488,10 +488,10 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
           url: request.url,
           incognito: true
         };
-        if (Settings.CONST.ChromeVersion >= 44) { option.state = state; }
+        if (Settings.CONST.ChromeVersion >= 44) { option.state = state; state = null; }
         chrome.windows.create(option, function(newWnd) {
           request.active || funcDict.selectWnd(tab);
-          if (state && Settings.CONST.ChromeVersion < 44) {
+          if (state) {
             chrome.windows.update(newWnd.id, {state: state});
           }
         });
@@ -798,7 +798,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
       return chrome.runtime.lastError;
     }, function(tabs) {
       // TODO: how to wait for tab finishing to load
-      var callback = this.scroll ? setTimeout.bind(window, Marks.gotoTab, 1000, this) : null;
+      var callback = this.scroll ? setTimeout.bind(window, Marks.scrollTab, 1000, this) : null;
       if (tabs.length <= 0) {
         chrome.windows.create({url: this.url}, callback && function(wnd) {
           wnd.tabs && wnd.tabs.length > 0 && callback(wnd.tabs[0]);
@@ -823,11 +823,11 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
       this.prefix && tabs2.sort(function(a, b) { return a.url.length - b.url.length; });
       tab = tabs2[0];
       tab.active && (tab = tabs2[1] || tab);
-      if (tab.url === url || !url.startsWith(tab.url)) {
-        Marks.gotoTab(this, tab);
-        return;
-      }
-      chrome.tabs.update(tab.id, {url: url}, Marks.gotoTab.bind(Marks, this, tab));
+      chrome.tabs.update(tab.id, {
+        url: tab.url === url || tab.url.startsWith(url) ? undefined : url,
+        active: true
+      }, this.scroll ? setTimeout.bind(window, Marks.scrollTab, 800, this) : null);
+      tab.windowId !== wndId && funcDict.selectWnd(tab);
     }],
     toggleMuteTab: [function(tabs) {
       var tab = tabs[0];
