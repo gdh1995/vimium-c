@@ -1659,7 +1659,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
       else if (arr = url.match(Utils.filePathRe)) {
         url = arr[1];
       } else {
-        url = Utils.convertToUrl(url, request.keyword, port ? null : 2);
+        url = Utils.convertToUrl(url, request.keyword, port ? 0 : 2);
         if (port && url.substring(0, 11).toLowerCase() !== "javascript:") {
           cOptions = Object.setPrototypeOf({ url_f: url }, null);
           commandCount = 1; url = null;

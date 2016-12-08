@@ -41,7 +41,7 @@ window.onhashchange = function() {
   } else if (url.toLowerCase().startsWith("javascript:")) {
     type = url = file = "";
   } else if (BG) {
-    str = BG.Utils.convertToUrl(url, null, -1);
+    str = BG.Utils.convertToUrl(url, null, -2);
     if (BG.Utils.lastUrlType <= 2) {
       url = str;
     }
@@ -88,8 +88,7 @@ window.onhashchange = function() {
   case "url":
     shownNode = importBody("shownText");
     if (url && BG) {
-      ind = url.startsWith("vimium://") ? 1 : 0;
-      str = BG.Utils.convertToUrl(url, null, ind + 0.5);
+      str = BG.Utils.convertToUrl(url, null, 1);
       if (BG.Utils.lastUrlType !== 5) {}
       else if (str instanceof BG.Promise) {
         str.then(function(arr) {

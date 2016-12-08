@@ -93,9 +93,10 @@ var exports = {}, Utils = {
     }
     else if (string.startsWith("vimium:")) {
       type = 3;
-      vimiumUrlWork = vimiumUrlWork || 0;
-      if (vimiumUrlWork < 0 || !(string = oldString.substring(9))) {}
-      else if (!(oldString = this.evalVimiumUrl(string, vimiumUrlWork))) {
+      vimiumUrlWork = vimiumUrlWork | 0;
+      if (vimiumUrlWork < -1 || !(string = oldString.substring(9))) {}
+      else if (vimiumUrlWork === -1
+          || !(oldString = this.evalVimiumUrl(string, vimiumUrlWork))) {
         oldString = this.formatVimiumUrl(string, null, vimiumUrlWork);
       } else if (typeof oldString !== "string") {
         type = 5;
@@ -160,7 +161,8 @@ var exports = {}, Utils = {
     }
     this.lastUrlType = type;
     return type === 0 ? oldString
-      : type === 4 ? this.createSearchUrl(oldString.split(' '), keyword || "~")
+      : type === 4 ? this.createSearchUrl(oldString.split(' '), keyword || "~"
+        , vimiumUrlWork >= 2 ? vimiumUrlWork : 0)
       : type === 1 ? ("http://" + oldString)
       : type === 2 ? ("http:" + oldString)
       : oldString;
@@ -201,7 +203,7 @@ var exports = {}, Utils = {
         path = tempStr;
       } else if (Settings.CONST.KnownPages.indexOf(path) >= 0 || path.charCodeAt(0) === 47) {
         path += ".html";
-      } else if (vimiumUrlWork > 0 && vimiumUrlWork !== (vimiumUrlWork | 0)) {
+      } else if (vimiumUrlWork === 1 || vimiumUrlWork === -1) {
         return "vimium://" + arguments[0].trim();
       } else {
         path = "show.html#!url vimium://" + path;
@@ -224,7 +226,7 @@ var exports = {}, Utils = {
     }
     path = path.substring(ind + 1).trimLeft();
     if (!path) { return null; }
-    if (workType <= 1) switch (cmd) {
+    if (workType === 1) switch (cmd) {
     case "e": case "exec": case "eval": case "expr": case "calc": case "m": case "math":
       return this.require("MathParser").catch(function() { return null;
       }).then(function(MathParser) {
@@ -234,7 +236,7 @@ var exports = {}, Utils = {
     }
     else if (workType === 2) switch (cmd) {
     case "url-copy": case "search-copy": case "search.copy": case "copy-url":
-      path = this.convertToUrl(path, null, arguments[1] === 2 ? 1 : 1.5);
+      path = this.convertToUrl(path, null, 1);
       if (this.lastUrlType !== 5) {}
       else if (path instanceof Array) {
         path = path[0];
@@ -280,7 +282,7 @@ var exports = {}, Utils = {
     if (workType === 1) {
       return [arr, "search"];
     }
-    return this.createSearchUrl(arr, "", arguments[1]);
+    return this.createSearchUrl(arr, "", workType);
   },
   tryEvalMath: function(expr, mathParser) {
     var result = null;
@@ -326,7 +328,7 @@ var exports = {}, Utils = {
       url = query.join(" ");
     }
     if (keyword !== "~") {
-      url = this.convertToUrl(url, null, vimiumUrlWork);
+      return this.convertToUrl(url, null, vimiumUrlWork);
     }
     return url;
   },
@@ -422,7 +424,7 @@ var exports = {}, Utils = {
           } else {
             key = pair[1] === "s" ? "+" : " ";
           }
-          val = this.convertToUrl(val, null, 0.5);
+          val = this.convertToUrl(val, null, -1);
           if (this.lastUrlType >= 3) {
             val = val.replace(encodedSearchWordRe, "$$$1");
             ind = val.search(re) + 1;
@@ -499,7 +501,7 @@ var exports = {}, Utils = {
     if (prefix.startsWith("http://") || prefix.startsWith("https://")) {
       prefix = prefix.substring(prefix[4] === 's' ? 8 : 7);
     } else if (prefix.startsWith("vimium://")) {
-      prefix = this.formatVimiumUrl(prefix.substring(9), null, 0.5);
+      prefix = this.formatVimiumUrl(prefix.substring(9), null, -1);
     }
     return prefix;
   },
