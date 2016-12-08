@@ -82,7 +82,7 @@ var Vomnibar = {
     }
   },
   onHidden: function() {
-    this.doEnter && this.doEnter();
+    this.doEnter && setTimeout(this.doEnter, 0);
     VPort.postMessage({ handler: "refocusCurrent", lastKey: this.lastKey });
     this.input.blur();
     this.input.value = "";
