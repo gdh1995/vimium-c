@@ -124,7 +124,7 @@ window.onhashchange = function() {
   bgLink.onclick = shownNode ? clickShownNode : defaultOnClick;
 
   str = document.querySelector('title').getAttribute('data-title');
-  str = BG ? BG.Utils.createSearch(file ? file.split(/\s+/) : [], { url: str })
+  str = BG ? BG.Utils.createSearch(file ? file.split(/\s+/) : [], str)
     :str.replace(/\$[sS](?:\{[^}]*})?/, file && (file + " | "));
   document.title = str;
 };

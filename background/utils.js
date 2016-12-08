@@ -66,10 +66,6 @@ var exports = {}, Utils = {
       return string.replace(this.A0Re, ' ');
     }
     var type = -1, expected = 1, index, index2, oldString, arr;
-    // NOTE: here '\u3000' is changed to ' ', which may cause a 404 (for url),
-    //       but usually a url should not include such a *mistake* character
-    // NOTE: here a mulit-line string is be changed to single-line,
-    //       which may be better
     oldString = string.replace(this.lfRe, '').replace(this.spacesRe, ' ');
     string = oldString.toLowerCase();
     if ((index = string.indexOf(' ')) > 0) {
@@ -230,7 +226,7 @@ var exports = {}, Utils = {
     if (!path) { return null; }
     if (workType <= 1) switch (cmd) {
     case "e": case "exec": case "eval": case "expr": case "calc": case "m": case "math":
-      cmd = this.require("MathParser", "lib/math_parser.js");
+      cmd = this.require("MathParser");
       if (workType === 0) { return this.tryEvalMath(path); }
       return cmd.catch(function() { return null; }).then(function(MathParser) {
         var result = Utils.tryEvalMath(path, MathParser) || "";
@@ -298,14 +294,14 @@ var exports = {}, Utils = {
     return result;
   },
   jsLoadingTimeout: 300,
-  require: function(name, url) {
+  require: function(name) {
     var defer = exports[name];
     if (defer) {
       return defer instanceof Promise ? defer : Promise.resolve(defer);
     }
     return exports[name] = new Promise(function(resolve, reject) {
       var script = document.createElement("script");
-      script.src = url;
+      script.src = Settings.CONST[name];
       script.onerror = function() {
         reject("ImportError: " + name);
       };
@@ -326,7 +322,7 @@ var exports = {}, Utils = {
     var url, pattern = Settings.cache.searchEngineMap[keyword || query[0]];
     if (pattern) {
       if (!keyword) { query.shift(); }
-      url = this.createSearch(query, pattern);
+      url = this.createSearch(query, pattern.url);
     } else {
       url = query.join(" ");
     }
@@ -335,9 +331,9 @@ var exports = {}, Utils = {
     }
     return url;
   },
-  createSearch: function(query, pattern, indexes) {
-    var q2, url, delta = 0;
-    url = pattern.url.replace(this.searchWordRe, function(_s, s1, s2, ind) {
+  createSearch: function(query, url, indexes) {
+    var q2, delta = 0;
+    url = url.replace(this.searchWordRe, function(_s, s1, s2, ind) {
       var arr;
       if (s1 === "S") {
         arr = query;

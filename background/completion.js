@@ -540,7 +540,7 @@ searchEngines: {
     }
     q.length > 1 ? q.shift() : (q = []);
 
-    obj = Utils.createSearch(q, pattern, []);
+    obj = Utils.createSearch(q, pattern.url, []);
     sug = new Suggestion("search", obj.url, obj.url
       , pattern.name + ": " + q.join(" "), this.computeRelevancy);
     if (keyword === "~") {}
