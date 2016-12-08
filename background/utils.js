@@ -226,9 +226,8 @@ var exports = {}, Utils = {
     if (!path) { return null; }
     if (workType <= 1) switch (cmd) {
     case "e": case "exec": case "eval": case "expr": case "calc": case "m": case "math":
-      cmd = this.require("MathParser");
-      if (workType === 0) { return this.tryEvalMath(path); }
-      return cmd.catch(function() { return null; }).then(function(MathParser) {
+      return this.require("MathParser").catch(function() { return null;
+      }).then(function(MathParser) {
         var result = Utils.tryEvalMath(path, MathParser) || "";
         return [result, "math", path];
       });
@@ -285,7 +284,7 @@ var exports = {}, Utils = {
   },
   tryEvalMath: function(expr, mathParser) {
     var result = null;
-    if (mathParser ? mathParser.evaluate : (mathParser = exports.MathParser)) {
+    if ((mathParser = mathParser || exports.MathParser).evaluate) {
       try {
         result = "" + mathParser.evaluate(expr);
       } catch (e) {}
@@ -295,9 +294,9 @@ var exports = {}, Utils = {
   },
   jsLoadingTimeout: 300,
   require: function(name) {
-    var defer = exports[name];
-    if (defer) {
-      return defer instanceof Promise ? defer : Promise.resolve(defer);
+    var p = exports[name];
+    if (p) {
+      return p instanceof Promise ? p : Promise.resolve(p);
     }
     return exports[name] = new Promise(function(resolve, reject) {
       var script = document.createElement("script");
