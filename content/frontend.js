@@ -846,7 +846,7 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
     createMark: VMarks.CreateGlobalMark,
     scroll: VMarks.Goto,
     showHUD: function(request) {
-      HUD[request.isCopy ? "showForDuration" : "showCopied"](request.text);
+      HUD[request.isCopy ? "showCopied" : "showForDuration"](request.text);
     },
   showHelpDialog: function(request) {
     var box, oldShowHelp, hide, node1, optionUrl, //
