@@ -89,7 +89,7 @@ var Vomnibar = {
     this.list.textContent = "";
     this.list.classList.remove("withList");
     this.lastKey = 0;
-    setTimeout(VPort.Disconnect, 17);
+    setTimeout(VPort.Disconnect, 5000);
   },
   reset: function(input, start, end) {
     this.inputText = input || (input = "");
@@ -629,7 +629,10 @@ VPort = {
     if (name === "focus" || name === "backspace") { name = "onAction"; }
     Vomnibar[name](data);
   },
-  Disconnect: function() { var p = VPort.port; p && (VPort.port = null, p.disconnect()); },
+  Disconnect: function() {
+    var p = VPort.port;
+    if (!Vomnibar.isActive && p) { VPort.port = null; p.disconnect(); }
+  },
   ClearPort: function() { VPort.port = null; },
   connect: function() {
     var port;
