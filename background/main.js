@@ -239,12 +239,12 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
         } : callback);
     },
     setAllLevels: function(contentType, url, count, settings, callback) {
-      var ref, i, info, todo, has_err = false, func;
+      var ref, i, info, left, has_err = false, func;
       func = function() {
         var err = chrome.runtime.lastError, f;
         if (has_err) { return err; }
-        --todo; has_err = !!err;
-        if ((has_err || todo === 0) && callback) {
+        --left; has_err = !!err;
+        if ((has_err || left === 0) && callback) {
           f = callback; callback = null;
           f(has_err);
         }
@@ -253,7 +253,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
       ref = chrome.contentSettings[contentType];
       Object.setPrototypeOf(settings, null);
       count = count | 0;
-      for (todo = i = count; i > 0; i--) {
+      for (left = i = count; i > 0; i--) {
         info = Utils.extendIf(Object.create(null), settings);
         info.primaryPattern = this.parsePattern(url, i);
         ref.set(info, func);
