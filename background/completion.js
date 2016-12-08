@@ -731,7 +731,7 @@ searchEngines: {
         && suggestions.length <= 0 ? 3 : 0)
       : suggestions.length <= 0 ? queryTerms.length && 1
       : this.sugCounter === 1 ? 2 : 0;
-    func = this.callback || g_requestHandlers.PostCompletions;
+    func = this.callback;
     this.cleanGlobals();
     func(suggestions, newAutoSelect, newMatchType);
   },

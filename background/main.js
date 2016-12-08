@@ -438,6 +438,16 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
       }
       return true;
     },
+    PostCompletions: function(list, autoSelect, matchType) {
+      try {
+      this.postMessage({
+        name: "omni",
+        autoSelect: autoSelect,
+        matchType: matchType,
+        list: list
+      });
+      } catch (e) {}
+    },
 
     getCurTab: chrome.tabs.query.bind(null, {currentWindow: true, active: true}),
     getCurTabs: chrome.tabs.query.bind(null, {currentWindow: true}),
@@ -1647,8 +1657,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
     },
     omni: function(request, port) {
       if (funcDict.checkVomnibarPage(port)) { return; }
-      cPort = port;
-      Completers[request.type].filter(request.query, request);
+      Completers[request.type].filter(request.query, request, funcDict.PostCompletions.bind(port));
     },
     getCopiedUrl_f: function(request, port) {
       var url = Clipboard.paste().trim(), arr;
@@ -1682,16 +1691,6 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
     secret: function(_0, port) {
       if (funcDict.checkVomnibarPage(port)) { return null; }
       return getSecret();
-    },
-    PostCompletions: function(list, autoSelect, matchType) {
-      try {
-      cPort.postMessage({
-        name: "omni",
-        autoSelect: autoSelect,
-        matchType: matchType,
-        list: list
-      });
-      } catch (e) {}
     },
     SetIcon: function() {},
     ShowHUD: function(message, isCopy) {
