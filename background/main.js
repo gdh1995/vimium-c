@@ -92,9 +92,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
       active: parentTab.active
     };
     chrome.tabs.create(option, option.active ? function(tab) {
-      if (tab.windowId !== wndId) {
-        chrome.windows.update(tab.windowId, {focused: true});
-      }
+      tab.windowId !== wndId && funcDict.selectWnd(tab);
     } : null);
     if (count < 2) return;
     option.active = false;
@@ -477,9 +475,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
           options.openerTabId = tab.id;
         }
         chrome.tabs.create(options);
-        if (request.active && !inCurWnd) {
-          chrome.windows.update(options.windowId, {focused: true});
-        }
+        request.active && !inCurWnd && funcDict.selectWnd(options);
         return;
       }
       chrome.windows.get(tab.windowId, function(oldWnd) {
@@ -494,9 +490,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
         };
         if (Settings.CONST.ChromeVersion >= 44) { option.state = state; }
         chrome.windows.create(option, function(newWnd) {
-          if (!request.active) {
-            chrome.windows.update(tab.windowId, {focused: true});
-          }
+          request.active || funcDict.selectWnd(tab);
           if (state && Settings.CONST.ChromeVersion < 44) {
             chrome.windows.update(newWnd.id, {state: state});
           }
@@ -587,7 +581,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
         windowId: this.windowId
       }, function() {
         callback && callback(newTab);
-        chrome.tabs.update(newTab.id, {active: true});
+        funcDict.selectTab(newTab.id);
       });
     }],
     duplicateTab: [function(tabId, wnd) {
@@ -665,9 +659,9 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
       funcDict.makeTempWindow(tab.id, tab.incognito, //
       funcDict.moveTabToNextWindow[2].bind(null, tab.id, tab2));
     }, function(tabId, tab2) {
-      chrome.tabs.move(tabId, {index: tab2.index + 1, windowId: tab2.windowId});
-      chrome.tabs.update(tabId, {active: true});
-      chrome.windows.update(tab2.windowId, {focused: true});
+      chrome.tabs.move(tabId, {index: tab2.index + 1, windowId: tab2.windowId}, function() {
+        funcDict.selectTab(tabId, true);
+      });
     }],
     moveTabToIncognito: [function(wnd) {
       var tab = funcDict.selectFrom(wnd.tabs);
@@ -712,7 +706,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
       tab2 = tab2[0];
       if (options.url) {
         chrome.tabs.create({url: options.url, index: tab2.index + 1, windowId: tab2.windowId});
-        chrome.windows.update(tab2.windowId, {focused: true});
+        funcDict.selectWnd(tab2);
         chrome.tabs.remove(options.tabId);
         return;
       }
@@ -759,6 +753,9 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
       }
       requestHandlers.ShowHUD("The session index provided is out of range.");
     },
+    selectTab: function(tabId, alsoWnd) {
+      chrome.tabs.update(tabId, {active: true}, alsoWnd ? funcDict.selectWnd : null);
+    }
     selectWnd: function(tab) {
       tab && chrome.windows.update(tab.windowId, { focused: true });
       return chrome.runtime.lastError;
@@ -902,7 +899,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
         : commandCount > tabs.length * 2 ? (count > 0 ? -1 : 0)
         : funcDict.selectFrom(tabs).index + count;
       toSelect = tabs[(count >= 0 ? 0 : len) + (count % len)];
-      toSelect.active || chrome.tabs.update(toSelect.id, { active: true });
+      toSelect.active || funcDict.selectTab(toSelect.id);
     },
     removeTab: function(tabs) {
       if (!tabs || tabs.length <= 0) { return chrome.runtime.lastError; }
@@ -1142,9 +1139,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
       tabs.splice(funcDict.selectFrom(tabs).index, 1);
       tabs.sort(TabRecency.rCompare);
       tabId = tabs[Math.min(commandCount, tabs.length) - 1].id;
-      if (tabId != TabRecency.last()) {
-        chrome.tabs.update(tabId, { active: true });
-      }
+      tabId != TabRecency.last() && funcDict.selectTab(tabId);
     },
     copyTabInfo: function(tabs) {
       var str;
@@ -1555,14 +1550,13 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
     gotoSession: function(request, port) {
       var id = request.sessionId, active = request.active !== false, tabId;
       if (typeof id === "number") {
-        chrome.tabs.update(id, {active: true}, funcDict.selectWnd);
-        return;
+        return funcDict.selectTab(id, true);
       }
       chrome.sessions.restore(id, funcDict.onRuntimeError);
       if (active) { return; }
       tabId = port.sender.tabId;
       tabId >= 0 || (tabId = TabRecency.last());
-      tabId >= 0 && chrome.tabs.update(tabId, {active: true});
+      tabId >= 0 && funcDict.selectTab(tabId);
     },
     openUrl: function(request, port) {
       Object.setPrototypeOf(request, null);
