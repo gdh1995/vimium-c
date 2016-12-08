@@ -755,7 +755,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
     },
     selectTab: function(tabId, alsoWnd) {
       chrome.tabs.update(tabId, {active: true}, alsoWnd ? funcDict.selectWnd : null);
-    }
+    },
     selectWnd: function(tab) {
       tab && chrome.windows.update(tab.windowId, { focused: true });
       return chrome.runtime.lastError;
