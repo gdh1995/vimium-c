@@ -184,7 +184,7 @@ var exports = {}, Utils = {
     }
   },
   removeComposedScheme: function(url) {
-    var i = url.startsWith("filesystem:") ? 11 : 'view-source:' ? 12 : 0;
+    var i = url.startsWith("filesystem:") ? 11 : url.startsWith("view-source:") ? 12 : 0;
     return i ? url.substring(i) : url;
   },
   isTld: function(tld) {
