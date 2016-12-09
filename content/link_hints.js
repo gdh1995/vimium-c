@@ -146,7 +146,7 @@ var VHints = {
     var iw = window.innerWidth, ih = window.innerHeight, box, rect, width, height, x, y;
     if (document.webkitIsFullScreen) {
       this.maxLeft = iw; this.maxTop = ih; this.maxRight = 0;
-      return;
+      return [0, 0];
     }
     box = document.documentElement;
     x = window.scrollX; y = window.scrollY;
