@@ -162,7 +162,7 @@ var exports = {}, Utils = {
     this.lastUrlType = type;
     return type === 0 ? oldString
       : type === 4 ? this.createSearchUrl(oldString.split(' '), keyword || "~"
-        , vimiumUrlWork >= 2 ? vimiumUrlWork : 0)
+        , vimiumUrlWork === 1 ? 0 : vimiumUrlWork)
       : type === 1 ? ("http://" + oldString)
       : type === 2 ? ("http:" + oldString)
       : oldString;
