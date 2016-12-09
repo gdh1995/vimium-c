@@ -143,23 +143,29 @@ var VHints = {
   maxRight: 0,
   zIndexes: null,
   initBox: function() {
-    var iw = window.innerWidth, ih = window.innerHeight, box, rect, width, height, x, y;
+    var iw = window.innerWidth, ih = window.innerHeight, box, rect
+      , width, height, x, y, box2, st, st2;
     if (document.webkitIsFullScreen) {
       this.maxLeft = iw; this.maxTop = ih; this.maxRight = 0;
       return [0, 0];
     }
     box = document.documentElement;
-    x = window.scrollX; y = window.scrollY;
+    st = getComputedStyle(box);
+    box2 = document.body;
+    st2 = box2 && box2 !== box ? getComputedStyle(box2) : null;
+    x = Math.ceil(window.scrollX); y = Math.ceil(window.scrollY);
     // NOTE: if zoom > 1, although document.documentElement.scrollHeight is integer,
     //   its real rect may has a float width, such as 471.333 / 472
     rect = box.getBoundingClientRect();
-    width = rect.width; height = rect.height;
-    width  = box.scrollWidth  - x - (width !== (width | 0));
-    height = box.scrollHeight - y - (height !== (height | 0));
+    width  = st.overflowX === "hidden" || st2 && st2.overflowX === "hidden" ? 0
+      : box.scrollWidth  - x - (rect.width  !== (rect.width  | 0));
+    height = st.overflowY === "hidden" || st2 && st2.overflowY === "hidden" ? 0
+      : box.scrollHeight - y - (rect.height !== (rect.height | 0));
     iw = Math.min(Math.max(width,  box.clientWidth,  iw - 24), iw + 64);
     ih = Math.min(Math.max(height, box.clientHeight, ih - 24), ih + 20);
     this.maxLeft = this.maxRight = iw; this.maxTop = ih - 15;
-    return getComputedStyle(box).position === "static" ? [x, y] : [-rect.left, -rect.top];
+    return getComputedStyle(box).position === "static" ? [x, y]
+      : [Math.ceil(-rect.left), Math.ceil(-rect.top)];
   },
   createMarkerFor: function(link) {
     var marker = VDom.createElement("span"), i, st;
