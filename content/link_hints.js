@@ -413,7 +413,7 @@ var VHints = {
   },
   getVisibleElements: function() {
     var visibleElements, visibleElement, _len, _i, _j, obj, func
-      , r, r0, r2 = null, r2s, t, isNormal, reason, _k, _ref;
+      , r, r2 = null, t, isNormal, reason, _k, _ref;
     _i = this.mode1;
     visibleElements = this.traverse(
       (_i === this.CONST.DOWNLOAD_IMAGE || _i === this.CONST.OPEN_IMAGE)
@@ -424,41 +424,36 @@ var VHints = {
     isNormal = _i < 128;
     visibleElements.reverse();
 
-    obj = [r2s = [], null];
+    obj = [null, null];
     func = VRect.SubtractSequence.bind(obj);
     for (_len = visibleElements.length, _j = Math.max(0, _len - 16); 0 < --_len; ) {
       _j > 0 && --_j;
       visibleElement = visibleElements[_len];
       if (visibleElement[2] >= 7) { continue; }
-      r0 = r = visibleElement[1];
+      r = visibleElement[1];
       for (_i = _len; _j <= --_i; ) {
         t = visibleElements[_i][1];
         if (r[3] <= t[1] || r[2] <= t[0] || r[0] >= t[2] || r[1] >= t[3]) { continue; }
         if (visibleElements[_i][2] >= 7) { continue; }
-        obj[1] = t;
-        r2 ? r2.forEach(func) : func(r);
-        if (r2s.length === 1) {
-          r = r2s[0]; r2 = null;
-          r2s.length = 0;
-          continue;
-        }
-        r2 = r2s;
-        if (r2s.length === 0) { break; }
-        obj[0] = r2s = [];
+        obj[0] = []; obj[1] = t;
+        r2 !== null ? r2.forEach(func) : func(r);
+        if ((r2 = obj[0]).length === 0) { break; }
       }
-      if (!r2) { if (r0 !== r) { visibleElement[1] = r; } continue; }
-      if (r2.length > 0 && (r2.length > 1 || VRect.testCrop(r2[0]))) {
-        visibleElement[1] = r2[0];
+      if (r2 === null) { continue; }
+      if (r2.length > 0) {
+        if (r2.length > 1 || VRect.testCrop(r2[0])) {
+          visibleElement[1] = r2[0];
+        }
       } else if ((reason = visibleElement[2]) === 4 || (reason === 2 ? isNormal : reason === 5)
           && visibleElement[0].contains(visibleElements[_i][0])) {
         visibleElements.splice(_len, 1);
       } else {
-        _ref = visibleElement[4] || [r0, 0];
-        r0 = _ref[0];
+        _ref = visibleElement[4] || [r, 0];
+        r = _ref[0];
         for (_k = _len; _i <= --_k; ) {
           t = visibleElements[_k][1];
-          if (r0[0] >= t[0] && r0[1] >= t[1] && r0[0] < t[0] + 20 && r0[1] < t[1] + 15) {
-            visibleElements[_k][4] = [r0, _ref[1] + 13];
+          if (r[0] >= t[0] && r[1] >= t[1] && r[0] < t[0] + 20 && r[1] < t[1] + 15) {
+            visibleElements[_k][4] = [r, _ref[1] + 13];
             break;
           }
         }
