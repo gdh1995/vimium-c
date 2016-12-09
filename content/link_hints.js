@@ -70,8 +70,6 @@ var VHints = {
       VHUD.showForDuration("No links to select.", 1000);
       return;
     }
-    count = Math.ceil(Math.log(elements.length) / Math.log(VSettings.cache.linkHintCharacters.length));
-    this.maxLeft = this.maxRight - (11 * count) - 8;
 
     if (this.box) { this.box.remove(); this.box = null; }
     this.hintMarkers = elements.map(this.createMarkerFor, this);
@@ -143,12 +141,11 @@ var VHints = {
   maxLeft: 0,
   maxTop: 0,
   maxRight: 0,
-  maxBottom: 0,
   zIndexes: null,
   initBox: function() {
     var iw = window.innerWidth, ih = window.innerHeight, box, rect, width, height, x, y;
     if (document.webkitIsFullScreen) {
-      this.maxLeft = iw; this.maxTop = ih;
+      this.maxLeft = iw; this.maxTop = ih; this.maxRight = 0;
       return;
     }
     box = document.documentElement;
@@ -159,9 +156,9 @@ var VHints = {
     width = rect.width; height = rect.height;
     width  = box.scrollWidth  - x - (width !== (width | 0));
     height = box.scrollHeight - y - (height !== (height | 0));
-    this.maxRight  = Math.min(Math.max(width,  box.clientWidth,  iw - 24), iw + 64);
-    this.maxBottom = Math.min(Math.max(height, box.clientHeight, ih - 24), ih + 20);
-    this.maxTop = this.maxBottom - 15;
+    iw = Math.min(Math.max(width,  box.clientWidth,  iw - 24), iw + 64);
+    ih = Math.min(Math.max(height, box.clientHeight, ih - 24), ih + 20);
+    this.maxLeft = this.maxRight = iw; this.maxTop = ih - 15;
     return getComputedStyle(box).position === "static" ? [x, y] : [-rect.left, -rect.top];
   },
   createMarkerFor: function(link) {
@@ -177,7 +174,7 @@ var VHints = {
     i = link[1][1];
     st.top = i + "px";
     if (i > this.maxTop) {
-      st.maxHeight = this.maxBottom - i + "px";
+      st.maxHeight = this.maxTop - i + 15 + "px";
     }
     link[3] && (marker.linkRect = link[3]);
     return marker;
@@ -422,6 +419,10 @@ var VHints = {
       : {"*": _i === this.CONST.FOCUS_EDITABLE ? this.GetEditable
               : this.GetClickable});
     isNormal = _i < 128;
+    if (this.maxRight > 0) {
+      _i = Math.ceil(Math.log(visibleElements.length) / Math.log(VSettings.cache.linkHintCharacters.length));
+      this.maxLeft -= 11 * _i + 8;
+    }
     visibleElements.reverse();
 
     obj = [null, null];
@@ -597,7 +598,7 @@ var VHints = {
   clean: function(keepHUD) {
     this.options = this.modeOpt = this.zIndexes = null;
     this.lastMode = this.mode = this.mode1 = this.count =
-    this.maxLeft = this.maxTop = this.maxRight = this.maxBottom = 0;
+    this.maxLeft = this.maxTop = this.maxRight = 0;
     if (this.box) {
       this.box.remove();
       this.hintMarkers = this.box = null;
