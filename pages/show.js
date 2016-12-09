@@ -96,7 +96,7 @@ window.onhashchange = function() {
         });
         break;
       } else if (str instanceof BG.Array) {
-        showText(str[1], str[0]);
+        showText(str[1], str[0] instanceof BG.Array ? str[0].join(" ") : str[0]);
         break;
       }
       url = str;
