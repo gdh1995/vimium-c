@@ -227,7 +227,7 @@ w|wiki:\\\n  https://www.wikipedia.org/w/index.php?search=$s Wikipedia\n\
     ChromeVersion: 37, ContentScripts: null, CurrentVersion: "",
     KnownPages: ["blank", "newtab", "options", "show"],
     MathParser: "lib/math_parser.js",
-    OptionsPage: "", Platform: "", PolyFill: "lib/polyfill.js",
+    OptionsPage: "pages/options.html", Platform: "", PolyFill: "lib/polyfill.js",
     RedirectedUrls: {
       about: "https://github.com/gdh1995/vimium-plus",
       help: "https://github.com/philc/vimium/wiki",
@@ -260,7 +260,7 @@ setTimeout(function() {
   ref = chrome.runtime.getManifest();
   obj = Settings.CONST;
   obj.CurrentVersion = ref.version;
-  obj.OptionsPage = func(ref.options_page);
+  obj.OptionsPage = func(ref.options_page || obj.OptionsPage);
   obj.VomnibarPage = func(Settings.files.vomnibar);
   ref = ref.content_scripts[0].js;
   ref[ref.length - 1] = "/content/inject_end.js";
