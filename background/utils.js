@@ -214,6 +214,7 @@ var exports = {}, Utils = {
     }
     return path + (!query ? "" : (path.indexOf("#") > 0 ? " " : "#!") + query);
   },
+  _nestedEvalCounter: 0,
   _vimiumCmdRe: /^[a-z][\da-z\-]*(?:\.[a-z][\da-z\-]*)*$/i,
   evalVimiumUrl: function(path, workType) {
     var ind, cmd, arr, obj;
@@ -282,7 +283,13 @@ var exports = {}, Utils = {
     if (workType === 1) {
       return [arr, "search"];
     }
-    return this.createSearchUrl(arr, "", workType);
+    ind = this._nestedEvalCounter++, obj;
+    if (ind > 12) { return null; }
+    if (ind === 12) { return this.createSearchUrl(arr, "", 0); }
+    if (ind > 0) { return this.createSearchUrl(arr, "", workType); }
+    obj = this.createSearchUrl(arr, "", workType);
+    this._nestedEvalCounter = 0;
+    return obj;
   },
   tryEvalMath: function(expr, mathParser) {
     var result = null;

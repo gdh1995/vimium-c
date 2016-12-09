@@ -511,6 +511,7 @@ tabs: {
 },
 
 searchEngines: {
+  _nestedEvalCounter: 0,
   preFilter: function(query, failIfNull) {
     var obj, sug, q = queryTerms, keyword, pattern, promise;
     keyword = q.length > 0 ? q[0] : "";
@@ -552,7 +553,11 @@ searchEngines: {
         switch (keyword[1]) {
         case "search":
           queryTerms = keyword[0];
-          if (this.preFilter(query, true) !== true) {
+          var counter = this._nestedEvalCounter++, subVal;
+          if (counter > 12) { break; }
+          subVal = this.preFilter(query, true);
+          if (counter <= 0) { this._nestedEvalCounter = 0; }
+          if (subVal !== true) {
             return;
           }
           break;
