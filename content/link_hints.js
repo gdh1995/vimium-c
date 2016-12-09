@@ -442,9 +442,9 @@ var VHints = {
       }
       if (r2 === null) { continue; }
       if (r2.length > 0) {
-        if (r2.length > 1 || VRect.testCrop(r2[0])) {
-          visibleElement[1] = r2[0];
-        }
+        t = r2[0];
+        t[1] > this.maxTop && t[1] > r[1] || t[0] > this.maxLeft && t[0] > r[0] ||
+          r2.length === 1 && !VRect.testCrop(t) || (visibleElement[1] = t);
       } else if ((reason = visibleElement[2]) === 4 || (reason === 2 ? isNormal : reason === 5)
           && visibleElement[0].contains(visibleElements[_i][0])) {
         visibleElements.splice(_len, 1);
