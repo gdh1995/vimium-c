@@ -159,7 +159,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
       localStorage.removeItem(ContentSettings.makeKey(contentType));
     },
     toggleCurrent: function(contentType, tab) {
-      var pattern = tab.url, _this = this;
+      var pattern = Utils.removeComposedScheme(tab.url), _this = this;
       if (this.complain(pattern)) { return; }
       chrome.contentSettings[contentType].get({
         primaryUrl: pattern,
@@ -192,7 +192,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
       });
     },
     ensure: function (contentType, tab) {
-      var pattern = tab.url, _this = this;
+      var pattern = Utils.removeComposedScheme(tab.url), _this = this;
       if (this.complain(pattern)) { return; }
       chrome.contentSettings[contentType].get({primaryUrl: pattern, incognito: true }, function(opt) {
         if (chrome.runtime.lastError) {
@@ -1380,7 +1380,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
     parseSearchUrl: function(request) {
       var s0 = request.url, url = s0.toLowerCase(), decoders, pattern, _i, str, arr,
           selectLast, re, obj;
-      if (!Utils.protocolRe.test(url)) {
+      if (!Utils.protocolRe.test(Utils.removeComposedScheme(url))) {
         return null;
       }
       if (_i = +request.upper) {
@@ -1429,7 +1429,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
     parseUpperUrl: function(request) {
       var url = request.url, hash, str, arr, startSlash = false, endSlash = false
         , path = null, i, start = 0, end = 0, decoded = false, argRe, arr2;
-      if (!Utils.protocolRe.test(url.toLowerCase())) {
+      if (!Utils.protocolRe.test(Utils.removeComposedScheme(url.toLowerCase()))) {
         return { url: "This url has no upper paths", path: null };
       }
       if (i = url.lastIndexOf("#") + 1) {
@@ -1496,6 +1496,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
         }
         hash = "";
         start = url.indexOf("/", url.indexOf("://") + 3);
+        if (url.startsWith("filesystem:")) { start = url.indexOf("/", start + 1); }
         i = url.indexOf("?", start);
         end = url.indexOf("#", start);
         i = end < 0 ? i : i < 0 ? end : i < end ? i : end;

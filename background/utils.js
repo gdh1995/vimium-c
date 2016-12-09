@@ -170,13 +170,22 @@ var exports = {}, Utils = {
     case "blob": case "view-source":
       string = string.substring(i + 1);
       if (string.startsWith("blob:") || string.startsWith("view-source:")) { return 4; }
-      this.convertToUrl(string);
+      this.convertToUrl(string, null, -2);
       return this.lastUrlType <= 2 ? 0 : 4;
     case "data": return isSlash ? 4 : -((i = string.indexOf(',', i)) < 0 || (spacePos > 0 && spacePos < i));
+    case "filesystem":
+      string = string.substring(i + 1);
+      if (!this.protocolRe.test(string)) { return 4; }
+      this.convertToUrl(string, null, -2);
+      return this.lastUrlType === 0 && /[^/]\/(?:persistent|temporary)(?:\/|$)/.test(string) ? 0 : 4;
     case "magnet": return -(string[i + 1] !== '?');
     case "mailto": return isSlash ? 4 : -((i = string.indexOf('/', i)) > 0 && string.lastIndexOf('?', i) < 0);
     default: return isSlash ? 4 : -1;
     }
+  },
+  removeComposedScheme: function(url) {
+    var i = url.startsWith("filesystem:") ? 11 : 'view-source:' ? 12 : 0;
+    return i ? url.substring(i) : url;
   },
   isTld: function(tld) {
     return this._nonENTldRe.test(tld) ? (this._nonENTlds.indexOf("." + tld + ".") !== -1 ? 2 : 0)
