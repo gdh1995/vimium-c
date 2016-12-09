@@ -113,12 +113,8 @@ var exports = {}, Utils = {
         (index = string.charCodeAt(index + 3)) > 32 && index !== 47 ? 0 : 4;
     }
     else if (string.startsWith("file:")) {
-      if (string.charCodeAt(7) !== 47) {
-        type = 4;
-      } else {
-        index = string.charCodeAt(8);
-        type = (index > 32 && index !== 47) ? 0 : 4; // `>32`: in case of NaN
-      }
+      type = 0;
+      oldString.length === 7 && (oldString += '/');
     }
     else if (string.startsWith("chrome:")) {
       type = string.length < oldString.length && string.indexOf('/', 9) === -1 ? 4 : 0;

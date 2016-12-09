@@ -71,7 +71,7 @@
   }, {
     "all_frames": true,
     "css": [ "front/file_urls.css" ],
-    "matches": [ "file:///*" ],
+    "matches": [ "file://*" ],
     "run_at": "document_idle"
   } ],
   "content_security_policy": "script-src 'self'; style-src 'self' 'unsafe-inline'; media-src 'none'; font-src 'none'; object-src 'none'; child-src 'none'; connect-src 'self' data:; manifest-src none",

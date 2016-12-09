@@ -123,6 +123,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
         if (level > 1) {
           arr = pattern.split("/");
           arr.length = Math.max(arr.length - level + 1, 3);
+          arr.length === 3 && arr.push("");
           pattern = arr.join("/");
         }
         return pattern;
