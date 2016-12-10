@@ -13,7 +13,7 @@ $("showCommands").onclick = function(event) {
   } else if (node = root.getElementById("HClose")) {
     node.onclick();
   }
-  VPort.port.postMessage({
+  VPort.post({
     handler: "initHelp",
     unbound: true,
     names: true,
@@ -26,7 +26,7 @@ $("showCommands").onclick = function(event) {
       var target = event.target, str;
       if (target.classList.contains("HelpCommandName")) {
         str = target.innerText.slice(1, -1);
-        VPort.port.postMessage({
+        VPort.post({
           handler: "copyToClipboard",
           data: str
         });

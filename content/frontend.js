@@ -4,7 +4,7 @@ var VSettings, VHUD, VPort, VEventMode;
 (function() {
   var Commands, ELs, HUD, KeydownEvents, checkValidKey, currentSeconds //
     , esc, FrameMask, InsertMode, Pagination //
-    , isEnabledForUrl, isInjected, mainPort, onKeyup2 //
+    , isEnabledForUrl, isInjected, vPort, onKeyup2 //
     , parsePassKeys, passKeys, requestHandlers, keyMap //
     ;
 
@@ -14,20 +14,21 @@ var VSettings, VHUD, VPort, VEventMode;
 
   KeydownEvents = currentSeconds = onKeyup2 = passKeys = null;
 
-  VPort = mainPort = {
+  VPort = vPort = {
     port: null,
     _callbacks: Object.create(null),
     _id: 1,
-    sendMessage: function(request, callback) {
-      var id = ++this._id;
-      this.port.postMessage({_msgId: id, request: request});
-      this._callbacks[id] = callback;
+    post: function(request) { vPort.port.postMessage(request); },
+    send: function(request, callback) {
+      var id = ++vPort._id;
+      vPort.post({_msgId: id, request: request});
+      vPort._callbacks[id] = callback;
     },
     safePost: function(request) {
       try {
         if (!this.port) {
           this.connect(0);
-          isInjected && setTimeout(function() { VPort && !VPort.port && VSettings.destroy(); }, 50);
+          isInjected && setTimeout(function() { VPort && !vPort.port && VSettings.destroy(); }, 50);
         }
         this.port.postMessage(request);
       } catch (e) { // this extension is reloaded or disabled
@@ -37,7 +38,7 @@ var VSettings, VHUD, VPort, VEventMode;
     Listener: function(response) {
       var id, handler, arr;
       if (id = response._msgId) {
-        arr = mainPort._callbacks;
+        arr = vPort._callbacks;
         handler = arr[id];
         delete arr[id];
         handler(response.response, id);
@@ -46,7 +47,7 @@ var VSettings, VHUD, VPort, VEventMode;
       }
     },
     ClearPort: function() {
-      mainPort.port = null;
+      vPort.port = null;
     },
     connect: function(isFirst) {
       var port, data = { name: "vimium++." + ((window.top === window) * 4 + document.hasFocus() * 2 + isFirst) };
@@ -55,12 +56,12 @@ var VSettings, VHUD, VPort, VEventMode;
       port.onMessage.addListener(this.Listener);
     }
   };
-  mainPort.connect(1);
+  vPort.connect(1);
 
   VSettings = {
     cache: null,
     destroy: null,
-    timer: setInterval(function() { mainPort.connect(1); }, 2000),
+    timer: setInterval(function() { vPort.connect(1); }, 2000),
     onDestroy: null
   };
 
@@ -104,7 +105,7 @@ var VSettings, VHUD, VPort, VEventMode;
       }
       else if (key !== VKeyCodes.esc || !VKeyboard.isPlain(event)) {}
       else if (currentSeconds) {
-        mainPort.port.postMessage({ handler: "esc" });
+        vPort.post({ handler: "esc" });
         esc();
         action = 2;
       } else if (VDom.UI.removeSelection(window)) {
@@ -190,7 +191,7 @@ var VSettings, VHUD, VPort, VEventMode;
       VDom.UI.insertCSS(visible && VSettings.cache.userDefinedOuterCss);
       if (event) { return; }
       HUD.enabled = !!document.body;
-      ELs.OnWndFocus = mainPort.safePost.bind(mainPort, { handler: "frameFocused" });
+      ELs.OnWndFocus = vPort.safePost.bind(vPort, { handler: "frameFocused" });
     },
     hook: function(f, c) {
       f("keydown", this.onKeydown, true);
@@ -324,7 +325,7 @@ var VSettings, VHUD, VPort, VEventMode;
       step > 0 && history.go(step * (options.dir || -1));
     },
     goUp: function(count, options) {
-      mainPort.sendMessage({
+      vPort.send({
         handler: "parseUpperUrl",
         url: window.location.href,
         trailing_slash: options.trailing_slash,
@@ -343,12 +344,12 @@ var VSettings, VHUD, VPort, VEventMode;
         return;
       }
       if (!document.body) { return false; }
-      mainPort.port.postMessage({handler: "initHelp"});
+      vPort.post({handler: "initHelp"});
     },
     autoCopy: function(_0, options) {
       var str = window.getSelection().toString() ||
         (options.url ? window.location.href : document.title);
-      (str.length >= 4 || str.trim()) && mainPort.port.postMessage({
+      (str.length >= 4 || str.trim()) && vPort.post({
         handler: "copyToClipboard",
         data: str
       });
@@ -357,14 +358,14 @@ var VSettings, VHUD, VPort, VEventMode;
     autoOpen: function(_0, options) {
       var str;
       if (str = VDom.getSelectionText()) {
-        VUtils.evalIfOK(str) || mainPort.port.postMessage({
+        VUtils.evalIfOK(str) || vPort.post({
           handler: "openUrl",
           keyword: options.keyword,
           url: str
         });
         return;
       }
-      mainPort.sendMessage({
+      vPort.send({
         handler: "getCopiedUrl_f",
         keyword: options.keyword
       }, function(str) {
@@ -376,7 +377,7 @@ var VSettings, VHUD, VPort, VEventMode;
       });
     },
     searchAs: function() {
-      mainPort.sendMessage({
+      vPort.send({
         handler: "searchAs",
         url: window.location.href,
         search: VDom.getSelectionText()
@@ -439,14 +440,14 @@ var VSettings, VHUD, VPort, VEventMode;
     key = VKeyboard.getKey(event, key);
     if (currentSeconds) {
       if (!((key in keyMap) || (key in currentSeconds))) {
-        mainPort.port.postMessage({ handler: "esc" });
+        vPort.post({ handler: "esc" });
         esc();
         return 0;
       }
     } else if (passKeys && (key in passKeys) || !(key in keyMap)) {
       return 0;
     }
-    mainPort.port.postMessage({ handlerKey: key });
+    vPort.post({ handlerKey: key });
     return 2;
   };
 
@@ -487,7 +488,7 @@ var VSettings, VHUD, VPort, VEventMode;
       _this.focus = _this.lockFocus;
       removeEventListener("mousedown", _this.ExitGrab, true);
       VHandler.remove(_this);
-      event === "other" || mainPort.port.postMessage({ handler: "exitGrab" });
+      event === "other" || vPort.post({ handler: "exitGrab" });
       return 0;
     },
     grabBackFocus: function(event) {
@@ -668,7 +669,7 @@ var VSettings, VHUD, VPort, VEventMode;
       if (request.frameId < 0) {}
       else if (window.innerWidth < 3 || window.innerHeight < 3
         || document.body instanceof HTMLFrameSetElement) {
-        mainPort.port.postMessage({
+        vPort.post({
           handler: "nextFrame"
         });
         return;
@@ -806,7 +807,7 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
       VDom.UI.box && VDom.UI.toggle(enabled);
     },
     checkIfEnabled: function() {
-      mainPort.port.postMessage({
+      vPort.post({
         handler: "checkIfEnabled",
         url: window.location.href
       });
@@ -873,7 +874,7 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
       event.preventDefault();
       shouldShowAdvanced = !shouldShowAdvanced;
       toggleAdvanced();
-      mainPort.port.postMessage({
+      vPort.post({
         handler: "setSetting",
         key: "showAdvancedCommands",
         value: shouldShowAdvanced
@@ -885,7 +886,7 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
       node1.href = optionUrl = request.optionUrl;
       node1.onclick = function(event) {
         event.preventDefault();
-        mainPort.port.postMessage({ handler: "focusOrLaunch", url: optionUrl });
+        vPort.post({ handler: "focusOrLaunch", url: optionUrl });
         hide();
       };
     } else {

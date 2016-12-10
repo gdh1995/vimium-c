@@ -175,7 +175,7 @@ body{cursor:text;display:inline-block;padding:0 3px 0 1px;min-width:7px;}body *{
       this.box.contentWindow.getSelection().collapseToEnd();
       return;
     }
-    VPort.sendMessage({ handler: "findQuery", index: ind }, this.SetQuery);
+    VPort.send({ handler: "findQuery", index: ind }, this.SetQuery);
   },
   SetQuery: function(query) {
     var _this = VFindMode, doc;
@@ -186,7 +186,7 @@ body{cursor:text;display:inline-block;padding:0 3px 0 1px;min-width:7px;}body *{
     _this.onInput();
   },
   saveQuery: function() {
-    this.query && VPort.port.postMessage({ handler: "findQuery", query: this.query });
+    this.query && VPort.post({ handler: "findQuery", query: this.query });
   },
   postMode: {
     lock: null,

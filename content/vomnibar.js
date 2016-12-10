@@ -65,7 +65,7 @@ var Vomnibar = {
       this.port.postMessage(options);
       return;
     }
-    VPort.sendMessage({
+    VPort.send({
       handler: "parseSearchUrl",
       upper: upper,
       trailing_slash: options.trailing_slash,

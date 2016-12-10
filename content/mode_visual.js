@@ -155,7 +155,7 @@ var VVisualMode = {
   },
   find: function(count, direction) {
     if (!VFindMode.query) {
-      VPort.sendMessage({ handler: "findQuery" }, function(query) {
+      VPort.send({ handler: "findQuery" }, function(query) {
         if (query) {
           VFindMode.updateQuery(query);
           VVisualMode.find(count, direction);
@@ -183,7 +183,7 @@ var VVisualMode = {
       this.deactivate();
       action != null || VHUD.showCopied(str);
     }
-    VPort.port.postMessage(action != null ? { handler: "openUrl", url: str, reuse: action }
+    VPort.post(action != null ? { handler: "openUrl", url: str, reuse: action }
         : { handler: "copyToClipboard", data: str });
   },
 

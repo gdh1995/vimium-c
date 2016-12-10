@@ -51,7 +51,7 @@ var VMarks = {
       if (window.top === window) {
         this.CreateGlobalMark({markName: keyChar});
       } else {
-        VPort.port.postMessage({handler: "createMark", markName: keyChar});
+        VPort.post({handler: "createMark", markName: keyChar});
         VHUD.hide();
       }
     } else if (keyChar === "`" || keyChar === "'") {
@@ -71,7 +71,7 @@ var VMarks = {
   _goto: function(event, keyChar) {
     var markString, position = null;
     if (event.shiftKey) {
-      VPort.sendMessage({
+      VPort.send({
         handler: "gotoMark",
         prefix: this.prefix,
         markName: keyChar
@@ -107,7 +107,7 @@ var VMarks = {
     }
   },
   CreateGlobalMark: function(request) {
-    VPort.port.postMessage({
+    VPort.post({
       handler: "createMark",
       markName: request.markName,
       url: VMarks.getBaseUrl(),

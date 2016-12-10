@@ -872,7 +872,7 @@ COPY_TEXT: {
       return;
     }
     if (this.mode >= this.CONST.EDIT_TEXT && this.mode <= this.CONST.EDIT_LINK_URL) {
-      VPort.port.postMessage({
+      VPort.post({
         handler: "reactivateVomnibar",
         count: 1,
         force: !isUrl,
@@ -881,7 +881,7 @@ COPY_TEXT: {
       });
       return;
     } else if (this.mode1 === this.CONST.SEARCH_TEXT) {
-      VPort.port.postMessage({
+      VPort.post({
         handler: "openUrl",
         reuse: -2 + !(this.mode & 64),
         keyword: this.options.keyword,
@@ -892,7 +892,7 @@ COPY_TEXT: {
     // NOTE: url should not be modified
     // although BackendUtils.convertToUrl does replace '\u3000' with ' '
     str = isUrl ? VUtils.decodeURL(str) : str;
-    VPort.port.postMessage({
+    VPort.post({
       handler: "copyToClipboard",
       data: str
     });
@@ -905,7 +905,7 @@ OPEN_INCOGNITO_LINK: {
   activator: function(link) {
     var url = this.getUrlData(link);
     if (VUtils.evalIfOK(url)) { return; }
-    VPort.port.postMessage({
+    VPort.post({
       handler: "openUrl",
       incognito: true,
       active: !(this.mode & 64),
@@ -950,7 +950,7 @@ OPEN_IMAGE: {
     if (str = img.getAttribute("download")) {
       url += "download=" + encodeURIComponent(str) + "&";
     }
-    VPort.port.postMessage({
+    VPort.post({
       handler: "openUrl",
       reuse: (this.mode & 64) ? -2 : -1,
       url: url + text

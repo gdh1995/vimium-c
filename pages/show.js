@@ -225,7 +225,7 @@ function copyThing(event) {
     str = $("textBody").textContent;
   }
   if (!(str && window.VPort)) { return; }
-  VPort.sendMessage({
+  VPort.send({
     handler: "copyToClipboard",
     data: str
   }, function() {

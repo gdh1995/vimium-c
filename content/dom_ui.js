@@ -9,7 +9,7 @@ VDom.UI = {
   showing: true,
   addElement: function(element, showOnInit) {
     this.showing = showOnInit !== false;
-    VPort.sendMessage({ handler: "initInnerCSS" }, this.InitInner);
+    VPort.send({ handler: "initInnerCSS" }, this.InitInner);
     this.init && this.init(false);
     this.box.style.display = "none";
     this.root = this.box.createShadowRoot();
