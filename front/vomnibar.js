@@ -68,7 +68,7 @@ var Vomnibar = {
   hide: function(data) {
     this.isActive = this.isEditing = false;
     this.timer > 0 && clearTimeout(this.timer);
-    this.timer = this.height = this.matchType = 0;
+    this.height = this.matchType = 0;
     window.removeEventListener("mousewheel", this.onWheel, {passive: false});
     window.onkeyup = null;
     this.completions = this.onUpdate = null;
@@ -89,12 +89,13 @@ var Vomnibar = {
     this.list.textContent = "";
     this.list.classList.remove("withList");
     this.lastKey = 0;
-    setTimeout(VPort.Disconnect, 5000);
+    this.timer = setTimeout(VPort.Disconnect, 5000);
   },
   reset: function(input, start, end) {
     this.inputText = input || (input = "");
     this.useInput = false;
     this.mode.query = this.lastQuery = input.trim().replace(this._spacesRe, " ");
+    // also clear @timer
     this.update(0, input && start <= end ? function() {
       this.show();
       this.input.setSelectionRange(start, end);
@@ -630,8 +631,8 @@ VPort = {
     Vomnibar[name](data);
   },
   Disconnect: function() {
-    var p = VPort.port;
-    if (!Vomnibar.isActive && p) { VPort.port = null; p.disconnect(); }
+    var p = VPort.port; Vomnibar.timer = 0;
+    if (p) { VPort.port = null; p.disconnect(); }
   },
   ClearPort: function() { VPort.port = null; },
   connect: function() {
