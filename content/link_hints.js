@@ -1008,7 +1008,7 @@ DEFAULT: {
     var mode, alterTarget, tag, ret, onMac = VSettings.cache.onMac;
     tag = link.nodeName.toLowerCase();
     if (tag === "iframe" || tag === "frame") {
-      ret = link === Vomnibar.box ? (Vomnibar.focus(), false)
+      ret = link === Vomnibar.box ? (Vomnibar.focus(1), false)
         : this.highlightChild(link.contentWindow);
       this.mode = 0;
       return ret;
