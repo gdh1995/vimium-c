@@ -676,7 +676,7 @@ var VSettings, VHUD, VPort, VEventMode;
       setTimeout(function() { window.focus(); }, 0);
       esc();
       VEventMode.suppress(request.lastKey);
-      if (request.highlight === false || !document.body) { return; }
+      if (request.frameId < -1 || !document.body) { return; }
       var _this = FrameMask, dom1;
       if (dom1 = _this.node) {
         _this.more = true;
