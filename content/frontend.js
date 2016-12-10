@@ -14,7 +14,7 @@ var VSettings, VHUD, VPort, VEventMode;
 
   KeydownEvents = currentSeconds = onKeyup2 = passKeys = null;
 
-  VPort = vPort = {
+  vPort = {
     port: null,
     _callbacks: Object.create(null),
     _id: 1,
@@ -57,11 +57,15 @@ var VSettings, VHUD, VPort, VEventMode;
     }
   };
   vPort.connect(1);
+  VPort = { post: vPort.post, send: vPort.send };
 
   VSettings = {
     cache: null,
     destroy: null,
     timer: setInterval(function() { vPort.connect(1); }, 2000),
+    checkIfEnabled: function() {
+      vPort.safePost({ handler: "checkIfEnabled", url: window.location.href });
+    },
     onDestroy: null
   };
 
@@ -806,12 +810,7 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
       passKeys = newPassKeys && parsePassKeys(newPassKeys);
       VDom.UI.box && VDom.UI.toggle(enabled);
     },
-    checkIfEnabled: function() {
-      vPort.post({
-        handler: "checkIfEnabled",
-        url: window.location.href
-      });
-    },
+    checkIfEnabled: VSettings.checkIfEnabled,
     settingsUpdate: function(request) {
       var ref = VSettings.cache, i;
       Object.setPrototypeOf(request, null);
@@ -931,6 +930,7 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
       , window.location.pathname.replace(/^.*\/([^\/]+)\/?$/, "$1")
       , "color:auto", Date.now());
 
+    if (vPort.port) { try { vPort.port.disconnect(); } catch (e) {} }
     isInjected || location.protocol.startsWith("chrome") || (chrome = null);
   };
 })();

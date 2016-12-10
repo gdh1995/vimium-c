@@ -1,10 +1,4 @@
 "use strict";
-VSettings.checkIfEnabled = function() {
-  VPort.safePost({
-    handler: "checkIfEnabled",
-    url: window.location.href
-  });
-};
 
 Vomnibar._init = Vomnibar.Init;
 Vomnibar.destroy = function() {
@@ -35,11 +29,6 @@ if (chrome.runtime.onMessageExternal) {
 
 VSettings.onDestroy = function() {
   removeEventListener("hashchange", VSettings.checkIfEnabled);
-  if (VPort.port) {
-    try {
-      VPort.port.disconnect();
-    } catch (e) {}
-  }
   var injector = VimiumInjector;
   injector.alive = 0;
   injector.destroy = null;
