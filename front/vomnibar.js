@@ -75,15 +75,15 @@ var Vomnibar = {
     this.modeType = this.mode.type = this.mode.query = this.lastQuery = this.inputText = "";
     if (data !== "hide") {
       this.timer = setTimeout(this.onHidden.bind(this), 100);
-      VPort.postToOwner("hide");
+      VPort.postToOwner({name: "hide", waitFrame: this.doEnter ? 1 : 0});
     } else {
       this.onHidden();
     }
   },
   onHidden: function() {
     this.timer > 0 && clearTimeout(this.timer);
-    this.doEnter && setTimeout(this.doEnter, 0);
     VPort.postMessage({ handler: "refocusCurrent", lastKey: this.lastKey });
+    this.doEnter && setTimeout(this.doEnter, 0);
     this.input.blur();
     this.input.value = "";
     this.list.textContent = "";

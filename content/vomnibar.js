@@ -76,23 +76,22 @@ var Vomnibar = {
       Vomnibar.port.postMessage(options);
     });
   },
-  hide: function(isMsg) {
+  hide: function(action) {
     if (!this.status) { return; }
     VHandler.remove(this);
     this.width = this.status = 0;
     this.options = null;
     if (!this.box) { return; }
-    var style = this.box.style, next = requestAnimationFrame;
+    var style = this.box.style, next, act;
     style.display = "none";
     style.width = "", style.height = "";
-    if (isMsg !== true) {
+    if (action < 0) {
       this.port.postMessage("hide");
-      setTimeout(function() { window.focus(); }, 17);
+      action === -1 && setTimeout(function() { window.focus(); }, 17);
       return;
     }
-    next(function() { next(function() {
-      Vomnibar.port.postMessage("onHidden");
-    }); });
+    act = function() { Vomnibar.port.postMessage("onHidden"); };
+    action ? (next = requestAnimationFrame)(function() { next(act); }) : act();
   },
   Init: function(secret, page) {
     var _this = Vomnibar, el;
@@ -140,7 +139,7 @@ var Vomnibar = {
       this.box.style.height = data.height + "px";
       break;
     case "focus": window.focus(); VEventMode.suppress(data.lastKey); break;
-    case "hide": this.hide(true); break;
+    case "hide": this.hide(data.waitFrame); break;
     case "scrollBy": VScroller.scrollBy(1, data.amount); break;
     case "scrollGoing": VScroller.keyIsDown = VScroller.Core.maxInterval; break;
     case "scrollEnd": VScroller.keyIsDown = 0; break;
@@ -166,7 +165,7 @@ var Vomnibar = {
   },
   onKeydown: function(event) {
     if (VEventMode.lock()) { return 0; }
-    if (VKeyboard.isEscape(event)) { this.hide(); return 2; }
+    if (VKeyboard.isEscape(event)) { this.hide(-1); return 2; }
     var key = event.keyCode - VKeyCodes.f1;
     if (key === 0 || key === 1) {
       this.focus(key);
