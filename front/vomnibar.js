@@ -644,12 +644,10 @@ VPort = {
     return port;
   },
   EnsurePort: function() {
-    if (VPort.port) { return; }
+    if (!VPort || VPort.port) { return; }
     try { VPort.connect(); return; } catch (e) {}
-    removeEventListener("focus", VPort.EnsurePort, true);
-    Vomnibar.input.onblur = null;
-    Vomnibar.input.blur();
     VPort.postToOwner("broken");
+    VPort = null;
     return true;
   }
 };
