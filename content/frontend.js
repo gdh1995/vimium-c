@@ -690,10 +690,6 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
       }
       VDom.UI.root && isEnabledForUrl ? VDom.UI.addElement(dom1) :
       (document.webkitFullscreenElement || document.documentElement).appendChild(dom1);
-      if (request.box) {
-        dom1.style.maxWidth = request.box[0] + "px";
-        dom1.style.maxHeight = request.box[1] + "px";
-      }
       dom1.style.borderColor = request.frameId === -1 ? "lightsalmon" : "yellow";
     },
     Remove: function() {

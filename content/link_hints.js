@@ -799,18 +799,13 @@ getUrlData: function(link) {
   return link.href;
 },
 
-highlightChild: function(child, box) {
+highlightChild: function(child) {
   try {
     child.VEventMode.keydownEvents();
   } catch (e) {
     child.focus();
     return;
   }
-  child.VPort.Listener({
-    name: "focusFrame",
-    box: box && [box.width, box.height],
-    frameId: -2
-  });
   var lh = child.VHints;
   lh.isActive = false;
   lh.activate(this.count, this.options);
@@ -1014,7 +1009,7 @@ DEFAULT: {
     tag = link.nodeName.toLowerCase();
     if (tag === "iframe" || tag === "frame") {
       ret = link === Vomnibar.box ? (Vomnibar.focus(), false)
-        : this.highlightChild(link.contentWindow, link.getClientRects()[0]);
+        : this.highlightChild(link.contentWindow);
       this.mode = 0;
       return ret;
     } else if (tag === "details") {
