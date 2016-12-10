@@ -1641,12 +1641,14 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
     initInnerCSS: function() {
       return Settings.cache.innerCSS;
     },
-    reactivateVomnibar: function(request, port) {
+    activateVomnibar: function(request, port) {
       cPort = port;
       if (request.count > 0) {
         cOptions = Object.setPrototypeOf(request, null);
         commandCount = request.count;
         delete cOptions.handler; delete cOptions.count;
+      } else if (request.redo !== true || !port.sender.url.startsWith("chrome")) {
+        return;
       }
       BackgroundCommands.showVomnibar();
     },

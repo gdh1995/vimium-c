@@ -10,7 +10,7 @@ Vomnibar.destroy = function() {
   this.Init = this._init;
   this.status = 0;
   if (oldStatus !== 2) { return; }
-  VPort.post({ handler: "reactivateVomnibar" });
+  VPort.post({ handler: "activateVomnibar", redo: true });
 };
 
 VDom.documentReady(function() {

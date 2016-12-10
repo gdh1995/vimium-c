@@ -873,7 +873,7 @@ COPY_TEXT: {
     }
     if (this.mode >= this.CONST.EDIT_TEXT && this.mode <= this.CONST.EDIT_LINK_URL) {
       VPort.post({
-        handler: "reactivateVomnibar",
+        handler: "activateVomnibar",
         count: 1,
         force: !isUrl,
         url: str,
