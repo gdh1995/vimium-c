@@ -1491,8 +1491,8 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
         }
       }
       if (!path) {
-        if (url.startsWith("chrome-extension:")) {
-          return { url: "An extension has no folder pages", path: null };
+        if (url.startsWith("chrome")) {
+          return { url: "An extension has no upper-level pages", path: null };
         }
         hash = "";
         start = url.indexOf("/", url.indexOf("://") + 3);
