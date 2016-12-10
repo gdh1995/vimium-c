@@ -5,7 +5,7 @@ var VSettings, VHUD, VPort, VEventMode;
   var Commands, ELs, HUD, KeydownEvents, checkValidKey, currentSeconds //
     , esc, FrameMask, InsertMode, Pagination //
     , isEnabledForUrl, isInjected, mainPort, onKeyup2 //
-    , parsePassKeys, passKeys, requestHandlers, keyMap, settings //
+    , parsePassKeys, passKeys, requestHandlers, keyMap //
     ;
 
   isInjected = window.VimiumInjector ? true : null;
@@ -27,11 +27,11 @@ var VSettings, VHUD, VPort, VEventMode;
       try {
         if (!this.port) {
           this.connect(0);
-          isInjected && setTimeout(function() { VPort && !VPort.port && settings.destroy(); }, 50);
+          isInjected && setTimeout(function() { VPort && !VPort.port && VSettings.destroy(); }, 50);
         }
         this.port.postMessage(request);
       } catch (e) { // this extension is reloaded or disabled
-        settings.destroy();
+        VSettings.destroy();
       }
     },
     Listener: function(response) {
@@ -57,7 +57,7 @@ var VSettings, VHUD, VPort, VEventMode;
   };
   mainPort.connect(1);
 
-  VSettings = settings = {
+  VSettings = {
     cache: null,
     destroy: null,
     timer: setInterval(function() { mainPort.connect(1); }, 2000),
@@ -187,7 +187,7 @@ var VSettings, VHUD, VPort, VEventMode;
     },
     OnReady: function(event) {
       var visible = isEnabledForUrl && window.innerHeight > 9 && window.innerWidth > 9;
-      VDom.UI.insertCSS(visible && settings.cache.userDefinedOuterCss);
+      VDom.UI.insertCSS(visible && VSettings.cache.userDefinedOuterCss);
       if (event) { return; }
       HUD.enabled = !!document.body;
       ELs.OnWndFocus = mainPort.safePost.bind(mainPort, { handler: "frameFocused" });
@@ -219,7 +219,7 @@ var VSettings, VHUD, VPort, VEventMode;
     VMarks: VMarks,
 
     toggleSwitchTemp: function(_0, options) {
-      var key = options.key, values = settings.cache;
+      var key = options.key, values = VSettings.cache;
       if (typeof values[key] !== "boolean") {
         HUD.showForDuration("`" + key + "` is not a boolean switch", 2000);
       } else if (values[key] = typeof options.value === "boolean"
@@ -230,7 +230,7 @@ var VSettings, VHUD, VPort, VEventMode;
       }
     },
     toggleLinkHintCharacters: function(_0, options) {
-      var values = settings.cache, val = options.value || "sadjklewcmpgh";
+      var values = VSettings.cache, val = options.value || "sadjklewcmpgh";
       if (values.linkHintCharacters === val) {
         val = values.linkHintCharacters = values.oldLinkHintCharacters;
         values.oldLinkHintCharacters = "";
@@ -463,7 +463,7 @@ var VSettings, VHUD, VPort, VEventMode;
       this.focus = this.lockFocus;
       this.init = null;
       KeydownEvents = new Uint8Array(256);
-      if (settings.cache.grabBackFocus && this.loading) {
+      if (VSettings.cache.grabBackFocus && this.loading) {
         if (notBody) {
           activeEl.blur();
           notBody = (activeEl = document.activeElement) !== document.body;
@@ -785,8 +785,8 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
   requestHandlers = {
     init: function(request) {
       var r = requestHandlers;
-      settings.cache = request.load;
-      clearInterval(settings.timer);
+      VSettings.cache = request.load;
+      clearInterval(VSettings.timer);
       r.keyMap(request);
       r.reset(request);
       InsertMode.loading = false;
@@ -812,7 +812,7 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
       });
     },
     settingsUpdate: function(request) {
-      var ref = settings.cache, i;
+      var ref = VSettings.cache, i;
       Object.setPrototypeOf(request, null);
       delete request.name;
       for (i in request) {
@@ -909,17 +909,17 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
   }
   };
 
-  settings.destroy = function() {
+  VSettings.destroy = function() {
     var f = removeEventListener, el;
     isEnabledForUrl = false;
-    clearInterval(settings.timer);
+    clearInterval(VSettings.timer);
 
     ELs.hook(f);
     f("mousedown", InsertMode.ExitGrab, true);
     VEventMode.setupSuppress();
     VFindMode.toggleStyle("remove");
     (el = VDom.UI.box) && el.remove();
-    (f = settings.onDestroy) && f();
+    (f = VSettings.onDestroy) && f();
 
     VUtils = VKeyCodes = VKeyboard = VDom = VRect = VHandler = //
     VHints = Vomnibar = VScroller = VMarks = VFindMode = //
