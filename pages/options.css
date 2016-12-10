@@ -1,8 +1,6 @@
-/* NOTE: This stylesheet is included in both options.html and popup.html.  So changes here affect
-   both of these. */
 body {
   font: 14px "Helvetica Neue",Helvetica,Arial,"PingFang SC","Hiragino Sans GB","Microsoft YaHei","Heiti SC","WenQuanYi Micro Hei",sans-serif;
-  margin: 0 auto;
+  margin: 0;
 }
 body.chrome-ui {
   margin-right: 15px;

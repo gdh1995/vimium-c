@@ -148,6 +148,7 @@ var Settings = {
   defaults: {
     __proto__: null,
     deepHints: false,
+    dialogMode: false,
     exclusionListenHash: true,
     exclusionOnlyFirstMatch: false,
     exclusionRules: [{pattern: "^https?://mail.google.com/", passKeys: ""}],
