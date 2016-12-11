@@ -149,11 +149,8 @@ var Vomnibar = {
       style.visibility = "";
       style = VDom.UI.box.style;
     }
-    this.sameOrigin ? (style.display = "")
-      : setTimeout(function() { style.display = ""; }, 17);
-    if (width !== (width | 0)) {
-      this.box.style.width = (width | 0) / (width / 0.8) * 100 + "%";
-    }
+    this.box.style.width = width !== (width | 0) ? (width | 0) / (width / 0.8) * 100 + "%" : "";
+    this.sameOrigin ? (style.display = "") : setTimeout(function() { style.display = ""; }, 17);
     VHandler.remove(this);
     VHandler.push(this.onKeydown, this);
   },
