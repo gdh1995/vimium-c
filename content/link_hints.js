@@ -144,7 +144,7 @@ var VHints = {
   zIndexes: null,
   initBox: function() {
     var iw = window.innerWidth, ih = window.innerHeight, box, rect
-      , width, height, x, y, box2, st, st2;
+      , width, height, x, y, box2, st, st2, zoom;
     if (document.webkitIsFullScreen) {
       this.maxLeft = iw; this.maxTop = ih; this.maxRight = 0;
       return [0, 0];
@@ -163,6 +163,9 @@ var VHints = {
       : box.scrollHeight - Math.ceil(y) - (rect.height !== (rect.height | 0));
     if (st.position !== "static") {
       x = -rect.left, y = -rect.top;
+    } else {
+      zoom = +st.zoom || 1;
+      x /= zoom, y /= zoom;
     }
     iw = Math.min(Math.max(width,  box.clientWidth,  iw - 24), iw + 64);
     ih = Math.min(Math.max(height, box.clientHeight, ih - 24), ih + 20);

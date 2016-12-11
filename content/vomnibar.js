@@ -5,6 +5,8 @@ var Vomnibar = {
   status: 0,
   options: null,
   width: 0,
+  zoom: 0,
+  defaultTop: "",
   destroy: null,
   sameOrigin: false,
   activate: function(count, options, forceCurrent) {
@@ -27,6 +29,7 @@ var Vomnibar = {
       return;
     }
     this.width = Math.max(window.innerWidth - 24, document.documentElement.clientWidth);
+    this.zoom = +getComputedStyle(document.documentElement).zoom || 1;
     this.status || VHandler.push(VDom.UI.SuppressMost, this);
     if (this.Init) {
       setTimeout(this.Init, 0, options.secret, options.vomnibar);
@@ -36,6 +39,7 @@ var Vomnibar = {
       this.status = 3;
     } else if (this.status > 3) {
       this.box.contentWindow.focus();
+      this.onShown();
     }
     delete options.secret; delete options.vomnibar;
     var url, upper = 0;
@@ -73,11 +77,11 @@ var Vomnibar = {
   hide: function(action) {
     if (!this.status) { return; }
     VHandler.remove(this);
-    this.width = this.status = 0;
+    this.width = this.zoom = this.status = 0;
     if (!this.box) { return; }
     var style = this.box.style, next, act;
     style.display = "none";
-    style.width = "", style.height = "";
+    style.width = "", style.top = "", style.height = "";
     if (action < 0) {
       this.port.postMessage("hide");
       action === -1 && setTimeout(function() { window.focus(); }, 17);
@@ -111,7 +115,7 @@ var Vomnibar = {
       };
       _this.sameOrigin = true;
       _this.port = { postMessage: function(data) { port.onmessage({ data: data}); } };
-      if (location.hash === "#chrome-ui") { this.style.top = "5px"; }
+      if (location.hash === "#chrome-ui") { _this.defaultTop = "5px"; }
       wnd.Vomnibar.showFavIcon = true;
       wnd.onmessage({ source: window, data: secret, ports: [port] });
     };
@@ -130,7 +134,7 @@ var Vomnibar = {
         this.port.postMessage("afterOmni");
         this.onShown();
       }
-      this.box.style.height = data.height + "px";
+      this.box.style.height = data.height / this.zoom + "px";
       break;
     case "focus": window.focus(); VEventMode.suppress(data.lastKey); break;
     case "hide": this.hide(data.waitFrame); break;
@@ -150,6 +154,7 @@ var Vomnibar = {
       style = VDom.UI.box.style;
     }
     this.box.style.width = width !== (width | 0) ? (width | 0) / (width / 0.8) * 100 + "%" : "";
+    this.box.style.top = this.zoom !== 1 ? ((70 / this.zoom) | 0) + "px" : this.defaultTop;
     this.sameOrigin ? (style.display = "") : setTimeout(function() { style.display = ""; }, 17);
     VHandler.remove(this);
     VHandler.push(this.onKeydown, this);

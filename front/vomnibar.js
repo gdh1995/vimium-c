@@ -100,6 +100,7 @@ var Vomnibar = {
       this.show();
       this.input.setSelectionRange(start, end);
     } : this.show);
+    this.isActive && (this.height = -1);
     this.isActive = true;
   },
   update: function(updateDelay, callback) {
