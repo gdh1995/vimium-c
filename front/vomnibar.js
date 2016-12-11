@@ -652,19 +652,21 @@ VPort = {
   }
 };
 (function() {
-  var _secr = null, step = 0, _port, timer,
-  handler = function(secret, port) {
+  var _secr = null, step = 0, _port, _options, timer,
+  handler = function(secret, port, options) {
     if (0 === step++) {
-      _secr = secret, _port = port || null;
+      _secr = secret, _port = port, _options = options;
       return;
     }
     if (_secr !== secret) { return; }
     clearTimeout(timer);
     window.onmessage = null;
-    port = _port || port;
+    port || (port = _port);
+    options || (options = _options);
     VPort.postToOwner = port.postMessage.bind(port);
     port.onmessage = VPort.OnOwnerMessage;
     port.postMessage("uiComponentIsReady");
+    options && Vomnibar.activate(options);
   };
   timer = setTimeout(function() {
     VPort.Disconnect();
@@ -672,7 +674,7 @@ VPort = {
   }, 500);
   VPort.sendMessage({ handler: "secret" }, handler);
   window.onmessage = function(event) {
-    event.source === window.parent && handler(event.data, event.ports[0]);
+    event.source === window.parent && handler(event.data[0], event.ports[0], event.data[1]);
   };
 })();
 

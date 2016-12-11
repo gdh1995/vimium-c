@@ -3,8 +3,8 @@
 Vomnibar._init = Vomnibar.Init;
 Vomnibar.destroy = function() {
   var oldStatus = this.status;
-  this.box.remove();
   this.port.close();
+  this.box.remove();
   this.port = this.box = null;
   VHandler.remove(this);
   this.Init = this._init;

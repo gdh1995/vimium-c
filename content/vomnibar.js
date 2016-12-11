@@ -26,27 +26,19 @@ var Vomnibar = {
         VHints.tryNestedFrame("Vomnibar.activate", [1, options, 2])) {
       return;
     }
-    var secret = options.secret, url = options.vomnibar;
-    delete options.secret; delete options.vomnibar;
     this.width = Math.max(window.innerWidth - 24, document.documentElement.clientWidth);
-    this.options = options;
+    this.status || VHandler.push(VDom.UI.SuppressMost, this);
     if (this.Init) {
-      setTimeout(this.Init, 0, secret, url);
+      setTimeout(this.Init, 0, options.secret, options.vomnibar);
       this.status = 1;
       this.Init = null;
     } else if (!this.status) {
-      this.status = 2;
-      this.show();
-    } else if (this.status >= 3) {
+      this.status = 3;
+    } else if (this.status > 3) {
       this.box.contentWindow.focus();
-      return this.show();
     }
-    VHandler.remove(this);
-    VHandler.push(VDom.UI.SuppressMost, this);
-  },
-  show: function() {
-    if (this.status < 2) { return; }
-    var options = this.options, url, upper = 0;
+    delete options.secret; delete options.vomnibar;
+    var url, upper = 0;
     options.width = this.width, options.name = "activate";
     this.options = null;
     url = options.url;
@@ -62,8 +54,7 @@ var Vomnibar = {
     }
     if (!url || url.indexOf("://") === -1) {
       options.search = "";
-      this.port.postMessage(options);
-      return;
+      return this.setOptions(options);
     }
     VPort.send({
       handler: "parseSearchUrl",
@@ -73,14 +64,16 @@ var Vomnibar = {
     }, function(search) {
       options.search = search;
       if (search != null) { options.url = ""; }
-      Vomnibar.port.postMessage(options);
+      Vomnibar.setOptions(options);
     });
+  },
+  setOptions: function(options) {
+    return this.status > 2 ? this.port.postMessage(options) : (this.options = options);
   },
   hide: function(action) {
     if (!this.status) { return; }
     VHandler.remove(this);
     this.width = this.status = 0;
-    this.options = null;
     if (!this.box) { return; }
     var style = this.box.style, next, act;
     style.display = "none";
@@ -94,14 +87,16 @@ var Vomnibar = {
     action ? (next = requestAnimationFrame)(function() { next(act); }) : act();
   },
   Init: function(secret, page) {
-    var _this = Vomnibar, el;
-    el = _this.box = VDom.createElement("iframe");
+    var el = VDom.createElement("iframe");
     el.className = "LS Omnibar";
     el.style.visibility = "hidden";
     el.src = page;
     el.onload = function() {
-      var channel, port, i = page.indexOf("://"), wnd = this.contentWindow;
+      var _this = Vomnibar, channel, port, i = page.indexOf("://"), wnd = this.contentWindow;
       this.onload = null;
+      _this.status = 2;
+      secret = [secret, _this.options];
+      _this.options = null;
       page = page.substring(0, page.indexOf("/", i + 3));
       if (location.origin !== page) {
         channel = new MessageChannel();
@@ -120,19 +115,18 @@ var Vomnibar = {
       wnd.Vomnibar.showFavIcon = true;
       wnd.onmessage({ source: window, data: secret, ports: [port] });
     };
-    VDom.UI.addElement(el, false);
+    VDom.UI.addElement(Vomnibar.box = el, false);
   },
   onMessage: function(event) {
     var data = event.data;
     switch (data.name || data) {
     case "uiComponentIsReady":
-      if (this.status !== 1) { return; }
-      this.status = 2;
-      this.show();
+      if (this.status !== 2) { return; }
+      this.status = 3;
+      if (data = this.options) { this.options = null; this.port.postMessage(data); }
       break;
     case "style":
-      if (this.status < 2) { return; }
-      if (this.status === 2) {
+      if (this.status === 3) {
         this.port.postMessage("afterOmni");
         this.onShown();
       }
@@ -149,7 +143,7 @@ var Vomnibar = {
     }
   },
   onShown: function() {
-    this.status = 3;
+    this.status = 4;
     var style = this.box.style, width = this.width * 0.8;
     if (style.visibility) {
       style.visibility = "";
@@ -174,7 +168,7 @@ var Vomnibar = {
     return 0;
   },
   focus: function(f2) {
-    if (this.status < 3) { return; }
+    if (this.status < 4) { return; }
     this.box.contentWindow.focus();
     this.port.postMessage(f2 ? "focus" : "backspace");
   }
