@@ -492,7 +492,8 @@ var VSettings, VHUD, VPort, VEventMode;
       _this.focus = _this.lockFocus;
       removeEventListener("mousedown", _this.ExitGrab, true);
       VHandler.remove(_this);
-      event === "other" || vPort.post({ handler: "exitGrab" });
+      event === "other" || !window.frames.length && window === window.top ||
+      vPort.post({ handler: "exitGrab" });
       return 0;
     },
     grabBackFocus: function(event) {
