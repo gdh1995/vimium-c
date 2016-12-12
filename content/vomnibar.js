@@ -79,15 +79,13 @@ var Vomnibar = {
     VHandler.remove(this);
     this.width = this.zoom = this.status = 0;
     if (!this.box) { return; }
-    var style = this.box.style, next, act;
-    style.display = "none";
-    style.width = "", style.top = "", style.height = "";
+    this.box.style = "display: none";
     if (action < 0) {
       this.port.postMessage("hide");
       action === -1 && setTimeout(function() { window.focus(); }, 17);
       return;
     }
-    act = function() { Vomnibar.port.postMessage("onHidden"); };
+    var next, act = function() { Vomnibar.port.postMessage("onHidden"); };
     action ? (next = requestAnimationFrame)(function() { next(act); }) : act();
   },
   Init: function(secret, page) {
@@ -149,12 +147,12 @@ var Vomnibar = {
   onShown: function() {
     this.status = 4;
     var style = this.box.style, width = this.width * 0.8;
+    style.width = width !== (width | 0) ? (width | 0) / (width / 0.8) * 100 + "%" : "";
+    style.top = this.zoom !== 1 ? ((70 / this.zoom) | 0) + "px" : this.defaultTop;
     if (style.visibility) {
       style.visibility = "";
       style = VDom.UI.box.style;
     }
-    this.box.style.width = width !== (width | 0) ? (width | 0) / (width / 0.8) * 100 + "%" : "";
-    this.box.style.top = this.zoom !== 1 ? ((70 / this.zoom) | 0) + "px" : this.defaultTop;
     this.sameOrigin ? (style.display = "") : setTimeout(function() { style.display = ""; }, 17);
     VHandler.remove(this);
     VHandler.push(this.onKeydown, this);

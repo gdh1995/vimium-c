@@ -365,12 +365,12 @@ ExclusionRulesOption.prototype.onInit = function() {
   }
 
   if (window.location.hash === "#chrome-ui") {
-    _ref = $$("body,button,select");
+    document.getElementById("mainHeader").remove();
+    _ref = $$("body,button,select,header");
     for (_i = _ref.length; 0 <= --_i; ) {
       element = _ref[_i];
       element.classList.add("chrome-ui");
     }
-    document.querySelector("header").remove();
   }
 
   _ref = $$("[data-permission]");

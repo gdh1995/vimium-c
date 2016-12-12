@@ -438,7 +438,7 @@ var Vomnibar = {
   },
   omni: function(response) {
     if (!this.isActive) { return; }
-    var completions = response.list, height, oldHeight;
+    var completions = response.list, height, oldHeight, obj;
     this.autoSelect = response.autoSelect;
     this.matchType = response.matchType;
     completions.forEach(this.Parse, this.mode);
@@ -449,12 +449,13 @@ var Vomnibar = {
       height = (44 + (1 / (window.devicePixelRatio || 1))) * height + 3;
     }
     this.height = height = (height | 0) + 54;
+    obj = { name: "style", height: height };
     if (oldHeight === 0) {
-      setTimeout(VPort.postToOwner, 0, { name: "style", height: height });
+      setTimeout(VPort.postToOwner, 0, obj);
       return;
     }
     this.afterOmni();
-    oldHeight !== height && VPort.postToOwner({ name: "style", height: height });
+    oldHeight !== height && VPort.postToOwner(obj);
   },
   afterOmni: function() {
     this.populateUI();

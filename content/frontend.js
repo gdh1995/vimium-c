@@ -765,11 +765,11 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
         return;
       } else if (document.hasFocus()) {
         opacity += opacity < hud.opacity ? 0.25 : -0.25;
-        el.style.opacity = opacity;
-        if (opacity !== hud.opacity) { return; }
       } else {
-        el.style.opacity = opacity = hud.opacity;
+        opacity = hud.opacity;
       }
+      el.style.opacity = opacity < 1 ? opacity : "";
+      if (opacity !== hud.opacity) { return; }
       if (opacity === 0) {
         el.style.visibility = "hidden";
         hud.text.data = "";

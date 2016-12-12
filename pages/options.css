@@ -3,7 +3,7 @@ body {
   margin: 0;
 }
 body.chrome-ui {
-  margin-right: 15px;
+  margin-right: 25px;
 }
 a, a:visited {
   color: #15c;
@@ -22,6 +22,9 @@ header {
   font-weight: normal;
   border-bottom: 1px solid #ddd;
   padding: 20px 0 15px 0;
+}
+header.chrome-ui {
+  padding: 0 0 5px 0;
 }
 button, select {
   -webkit-user-select: none;
