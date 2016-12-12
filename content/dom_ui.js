@@ -110,8 +110,9 @@ VDom.UI = {
     }
   },
   getVRect: function(clickEl) {
-    var rect, bcr;
+    var rect, bcr, b = document.body;
     VDom.prepareCrop();
+    VDom.bodyZoom = b && VDom.isInDOM(clickEl, b) && +getComputedStyle(b).zoom || 1;
     rect = VDom.getVisibleClientRect(clickEl);
     bcr = VRect.fromClientRect(clickEl.getBoundingClientRect());
     return rect && !VRect.isContaining(bcr, rect) ? rect
@@ -123,6 +124,7 @@ VDom.UI = {
     var flashEl = VDom.createElement("div");
     flashEl.className = "R Flash";
     VRect.setBoundary(flashEl.style, rect);
+    VDom.bodyZoom !== 1 && (flashEl.style.zoom = VDom.bodyZoom);
     this.addElement(flashEl);
     return setTimeout(function() {
       flashEl.remove();

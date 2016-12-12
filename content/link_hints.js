@@ -80,6 +80,7 @@ var VHints = {
     this.box = VDom.UI.addElementList(this.hintMarkers, "HMC");
     style = this.box.style;
     style.left = arr[0] + "px"; style.top = arr[1] + "px";
+    arr[2] !== 1 && (style.zoom = arr[2]);
     if (document.webkitIsFullScreen) { style.position = "fixed"; }
 
     this.isActive = true;
@@ -147,7 +148,7 @@ var VHints = {
       , width, height, x, y, box2, st, st2, zoom;
     if (document.webkitIsFullScreen) {
       this.maxLeft = iw; this.maxTop = ih; this.maxRight = 0;
-      return [0, 0];
+      return [0, 0, 1];
     }
     box = document.documentElement;
     st = getComputedStyle(box);
@@ -167,10 +168,12 @@ var VHints = {
       zoom = +st.zoom || 1;
       x /= zoom, y /= zoom;
     }
+    VDom.bodyZoom = zoom = st2 !== st && +st2.zoom || 1;
+    x /= zoom, y /= zoom;
     iw = Math.min(Math.max(width,  box.clientWidth,  iw - 24), iw + 64);
     ih = Math.min(Math.max(height, box.clientHeight, ih - 24), ih + 20);
     this.maxLeft = this.maxRight = iw; this.maxTop = ih - 15;
-    return [Math.ceil(x), Math.ceil(y)];
+    return [Math.ceil(x), Math.ceil(y), zoom];
   },
   createMarkerFor: function(link) {
     var marker = VDom.createElement("span"), i, st;
