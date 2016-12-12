@@ -117,6 +117,7 @@ VDom.UI = {
     return rect && !VRect.isContaining(bcr, rect) ? rect : bcr;
   },
   flashVRect: function(rect, time) {
+    if (!rect) { return; }
     var flashEl = VDom.createElement("div");
     flashEl.className = "R Flash";
     VRect.setBoundary(flashEl.style, rect);
