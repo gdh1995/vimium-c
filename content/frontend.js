@@ -582,7 +582,7 @@ var VSettings, VHUD, VPort, VEventMode;
       return true;
     }
     linkElement.scrollIntoViewIfNeeded();
-    VDom.UI.flashVRect(VDom.UI.getVRect(linkElement));
+    VDom.UI.flash(linkElement);
     setTimeout(function() { VDom.simulateClick(linkElement); }, 0);
     return true;
   },

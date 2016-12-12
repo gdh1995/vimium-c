@@ -89,7 +89,7 @@ VDom.UI = {
   simulateSelect: function(element, flash, suppressRepeated) {
     element.focus();
     VDom.simulateClick(element);
-    flash === true && this.flashVRect(this.getVRect(element));
+    flash === true && this.flash(element);
     if (element !== VEventMode.lock()) { return; }
     var len;
     if ((len = element.value ? element.value.length : -1) && element.setSelectionRange) {
@@ -114,9 +114,11 @@ VDom.UI = {
     VDom.prepareCrop();
     rect = VDom.getVisibleClientRect(clickEl);
     bcr = VRect.fromClientRect(clickEl.getBoundingClientRect());
-    return rect && !VRect.isContaining(bcr, rect) ? rect : bcr;
+    return rect && !VRect.isContaining(bcr, rect) ? rect
+      : VDom.isVisibile(clickEl) ? bcr : null;
   },
-  flashVRect: function(rect, time) {
+  flash: function(el, rect) {
+    rect || (rect = this.getVRect(el));
     if (!rect) { return; }
     var flashEl = VDom.createElement("div");
     flashEl.className = "R Flash";
@@ -124,7 +126,7 @@ VDom.UI = {
     this.addElement(flashEl);
     return setTimeout(function() {
       flashEl.remove();
-    }, time || this.flashLastingTime);
+    }, this.flashLastingTime);
   },
   suppressTail: function(onlyRepeated) {
     var func, tick, timer;
