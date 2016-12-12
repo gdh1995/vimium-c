@@ -557,7 +557,7 @@ var VHints = {
   activateLink: function(hintEl) {
     var rect, clickEl = hintEl.clickableItem;
     this._resetMarkers();
-    if (VDom.isInDocument(clickEl)) {
+    if (VDom.isInDOM(clickEl)) {
       // must get outline first, because clickEl may hide itself when activated
       rect = hintEl.linkRect || VDom.UI.getVRect(clickEl);
       if (this.modeOpt.activator.call(this, clickEl, hintEl) !== false) {
@@ -824,7 +824,7 @@ HOVER: {
   192: "Hover over nodes continuously",
   activator: function(element) {
     var last = VDom.lastHovered;
-    last && VDom.isInDocument(last) &&
+    last && VDom.isInDOM(last) &&
     VDom.simulateMouse(last, "mouseout", null, last === element ? null : element);
     VScroller.current = element;
     VDom.lastHovered = element;
