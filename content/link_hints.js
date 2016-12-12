@@ -73,6 +73,7 @@ var VHints = {
 
     if (this.box) { this.box.remove(); this.box = null; }
     this.hintMarkers = elements.map(this.createMarkerFor, this);
+    this.adjustMarkers(elements);
     elements = null;
     this.alphabetHints.initMarkers(this.hintMarkers);
 
@@ -192,6 +193,14 @@ var VHints = {
     }
     link[3] && (marker.linkRect = link[3]);
     return marker;
+  },
+  adjustMarkers: function(elements) {
+    var arr, i, root = VDom.UI.root, z = 1 / VDom.bodyZoom + "";
+    if (!root || z === "1") { return; }
+    arr = this.hintMarkers, i = elements.length - 1;
+    if (elements[i][0] === Vomnibar.box) { arr[i--].style.zoom = z; }
+    if (i < 0 || !root.getElementById('HelpDialog')) { return; }
+    while (0 <= i && root.contains(elements[i][0])) { arr[i--].style.zoom = z; }
   },
   btnRe: /\b(?:[Bb](?:utto|t)n|[Cc]lose)(?:$| )/,
   GetClickable: function(element) {
