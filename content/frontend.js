@@ -403,7 +403,7 @@ var VSettings, VHUD, VPort, VEventMode;
       arr = VDom.getViewBox();
       hints = visibleInputs.map(function(link) {
         var hint = VDom.createElement("span"), rect;
-        rect = link[2] ? VRect.fromClientRect(link[0].getBoundingClientRect()) : link[1];
+        rect = VRect.fromClientRect(link[0].getBoundingClientRect());
         rect[0]--, rect[1]--, rect[2]--, rect[3]--;
         hint.className = "IH";
         hint.clickableItem = link[0];
