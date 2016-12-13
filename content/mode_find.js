@@ -22,9 +22,10 @@ var VFindMode = {
   A0Re: /\xa0/g,
   cssSel: "::selection{background:#ff9632;}",
   cssOut: ".vimiumFindMode body{-webkit-user-select:auto !important;user-select:auto !important;}\n.vimiumFindMode ",
-  cssIFrame: '*{font:12px/1 "Helvetica Neue",Helvetica,Arial,sans-serif !important;\
+  cssIFrame: '*{font:12px/14px "Helvetica Neue",Helvetica,Arial,sans-serif !important;\
 height:14px;margin:0;overflow:hidden;vertical-align:top;white-space:nowrap;cursor:default;}\
-body{cursor:text;display:inline-block;padding:0 3px 0 1px;min-width:7px;}body *{cursor:text;display:inline;}body br{display:none;}',
+body{cursor:text;display:inline-block;padding:0 3px 0 1px;min-width:7px;}body *{cursor:text;display:inline;}body br{display:none;}\
+html > span{float:right;}',
   activate: function(options) {
     if (!document.body) { return false; }
     options = Object.setPrototypeOf(options || {}, null);
@@ -63,16 +64,15 @@ body{cursor:text;display:inline-block;padding:0 3px 0 1px;min-width:7px;}body *{
     wnd.onmousedown = el.onmousedown = this.OnMousedown;
     wnd.onkeydown = this.onKeydown.bind(this);
     wnd.onfocus = VEventMode.OnWndFocus();
-    el = this.input = doc.body;
-    el.contentEditable = "plaintext-only";
-    el.oninput = this.onInput.bind(this);
-    doc.documentElement.appendChild(this.countEl = doc.createElement("span"));
-    
     el = VDom.UI.createStyle(this.cssIFrame, doc);
     doc.head.appendChild(el);
-    doc.documentElement.insertBefore(doc.createTextNode("/"), doc.body);
-    this.countEl.appendChild(doc.createTextNode(""));
-
+    el = this.input = doc.body;
+    doc.documentElement.insertBefore(doc.createTextNode("/"), el);
+    el.contentEditable = "plaintext-only";
+    el.oninput = this.onInput.bind(this);
+    el = this.countEl = doc.createElement("span");
+    el.appendChild(doc.createTextNode(""));
+    doc.documentElement.appendChild(el);
     VDom.UI.focus(this.input);
     this.isActive = true;
   },
@@ -117,7 +117,7 @@ body{cursor:text;display:inline-block;padding:0 3px 0 1px;min-width:7px;}body *{
     this.parsedQuery = this.query = "";
     this.initialRange = this.regexMatches = null;
     this.historyIndex = this.matchCount = this.scrollY = this.scrollX = 0;
-    this.isActive = this.returnToViewport = false;
+    this.isActive = this.returnToViewport = this._small = false;
     return el;
   },
   OnMousedown: function(event) { if (event.target !== VFindMode.input) { event.preventDefault(); VFindMode.input.focus(); } },
@@ -226,12 +226,14 @@ body{cursor:text;display:inline-block;padding:0 3px 0 1px;min-width:7px;}body *{
     this.execute(!this.isRegex ? this.parsedQuery : this.regexMatches ? this.regexMatches[0] : "");
     this.showCount();
   },
+  _small: false,
   showCount: function() {
     var count = this.matchCount;
     this.countEl.firstChild.data = !this.parsedQuery ? ""
       : "(" + (count || (this.hasResults ? "Some" : "No")) + " match" + (count !== 1 ? "es)" : ")");
-    count = this.input.getBoundingClientRect().width + this.countEl.getBoundingClientRect().width;
-    this.box.style.width = (count | 0) + 4 + "px";
+    count = Math.round(this.input.scrollWidth + this.countEl.scrollWidth) + 4;
+    if (this._small && count < 150) { return; }
+    this.box.style.width = ((this._small = count < 150) ? 0 : count) + "px";
   },
   checkReturnToViewPort: function() {
     this.returnToViewport && window.scrollTo(this.scrollX, this.scrollY);
