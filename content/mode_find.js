@@ -233,7 +233,8 @@ html > span{float:right;}',
     var count = this.matchCount;
     this.countEl.firstChild.data = !this.parsedQuery ? ""
       : "(" + (count || (this.hasResults ? "Some" : "No")) + " match" + (count !== 1 ? "es)" : ")");
-    count = Math.round(this.input.scrollWidth + this.countEl.scrollWidth) + 4;
+    count = this.input.getBoundingClientRect().width + this.countEl.getBoundingClientRect().width;
+    count = Math.round(count) + 4;
     if (this._small && count < 150) { return; }
     this.box.style.width = ((this._small = count < 150) ? 0 : count) + "px";
   },
