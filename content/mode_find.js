@@ -29,7 +29,7 @@ html > span{float:right;}',
   activate: function(options) {
     if (!document.body) { return false; }
     options = Object.setPrototypeOf(options || {}, null);
-    var query = options.query;
+    var query = options.query, zoom;
     !this.isActive && query !== this.query && VMarks.setPreviousPosition();
     if (query != null) {
       return this.findAndFocus(this.query || query, options);
@@ -47,6 +47,7 @@ html > span{float:right;}',
       return;
     }
 
+    zoom = VDom.UI.getZoom();
     this.parsedQuery = this.query = "";
     this.regexMatches = null;
     this.activeRegexIndex = 0;
@@ -55,6 +56,7 @@ html > span{float:right;}',
     var el = this.box = VDom.createElement("iframe");
     el.className = "R HUD Find LS";
     el.style.width = "0px";
+    zoom !== 1 && (el.style.zoom = 1 / zoom);
     el.onload = function() { VFindMode.onLoad(this); };
     VHUD.box ? VDom.UI.root.insertBefore(el, VHUD.box) : VDom.UI.addElement(el);
   },

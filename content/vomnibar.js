@@ -29,7 +29,7 @@ var Vomnibar = {
       return;
     }
     this.width = Math.max(window.innerWidth - 24, document.documentElement.clientWidth);
-    this.zoom = +getComputedStyle(document.documentElement).zoom || 1;
+    this.zoom = VDom.UI.getZoom();
     this.status || VHandler.push(VDom.UI.SuppressMost, this);
     if (this.Init) {
       setTimeout(this.Init, 0, options.secret, options.vomnibar);

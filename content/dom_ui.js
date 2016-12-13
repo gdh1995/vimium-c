@@ -114,6 +114,14 @@ VDom.UI = {
       el.focus();
     }
   },
+  getZoom: function() {
+    var docEl = document.documentElement, el, zoom = 1;
+    el = document.webkitFullscreenElement || docEl;
+    do {
+      zoom *= +getComputedStyle(el).zoom || 1;
+    } while (el = VDom.getParent(el));
+    return Math.round(zoom * 20) / 20;
+  },
   getVRect: function(clickEl) {
     var rect, bcr, b = document.body;
     VDom.prepareCrop();
