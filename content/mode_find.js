@@ -53,7 +53,7 @@ html > span{float:right;}',
     this.init && this.init();
 
     var el = this.box = VDom.createElement("iframe");
-    el.className = "R HUD LS";
+    el.className = "R HUD Find LS";
     el.style.width = "0px";
     el.onload = function() { VFindMode.onLoad(this); };
     VHUD.box ? VDom.UI.root.insertBefore(el, VHUD.box) : VDom.UI.addElement(el);

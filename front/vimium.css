@@ -37,7 +37,7 @@
 	white-space: normal;
 }
 
-/* Linkhints CSS */
+/* Link hints CSS */
 #HMC {
 	font-weight: bold;
 	overflow: visible;
@@ -97,6 +97,7 @@
 	max-width: 300px;
 	min-width: 150px;
 	padding: 2px 3px;
+	pointer-events: none;
 	position: fixed;
 	right: 150px;
 	text-overflow: ellipsis;
@@ -105,7 +106,7 @@
 	z-index: 2147483646;
 }
 
-/* Flash */
+/* Flash CSS */
 .Flash {
 	box-shadow: 0 0 4px 2px #4183C4;
 	contain: strict;
@@ -115,12 +116,18 @@
 	z-index: 2147483647;
 }
 
+/* Find mode CSS */
+.Find {
+	zoom: reset;
+	pointer-events: all;
+}
+
 /* Contain qualifier */
 .LS {
 	contain: layout style;
 }
 
-/* Vomnibar */
+/* Vomnibar CSS */
 .Omnibar {
 	background: white;
 	border: 1px solid #aaa;
