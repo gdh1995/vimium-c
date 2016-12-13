@@ -757,7 +757,7 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
     tween: function() {
       var hud = HUD, el, opacity;
       if (!VHUD) { return; }
-      el = hud.box, opacity = +(el.style.opacity || 1);
+      el = hud.box, opacity = +el.style.opacity;
       if (opacity === hud.opacity) {}
       else if (opacity === 0) {
         el.style.opacity = 0.25;
@@ -769,7 +769,7 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
       } else {
         opacity = hud.opacity;
       }
-      el.style.opacity = opacity < 1 ? opacity : "";
+      el.style.opacity = opacity;
       if (opacity !== hud.opacity) { return; }
       if (opacity === 0) {
         el.style.visibility = "hidden";
