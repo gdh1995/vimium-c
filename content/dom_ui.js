@@ -35,7 +35,8 @@ VDom.UI = {
     return parent;
   },
   adjust: function() {
-    (!this.InitInner && document.webkitFullscreenElement || document.documentElement).appendChild(this.box);
+    var el = this.InitInner ? null : document.webkitFullscreenElement;
+    (el && !this.root.contains(el) ? el : document.documentElement).appendChild(this.box);
   },
   init: function(showing) {
     this.box = VDom.createElement("vimium");
