@@ -125,10 +125,10 @@ VDom.UI = {
   flash: function(el, rect) {
     rect || (rect = this.getVRect(el));
     if (!rect) { return; }
-    var flashEl = VDom.createElement("div");
+    var flashEl = VDom.createElement("div"), nfs = !document.webkitIsFullScreen;
     flashEl.className = "R Flash";
-    VRect.setBoundary(flashEl.style, rect);
-    VDom.bodyZoom !== 1 && (flashEl.style.zoom = VDom.bodyZoom);
+    VRect.setBoundary(flashEl.style, rect, nfs);
+    VDom.bodyZoom !== 1 && nfs && (flashEl.style.zoom = VDom.bodyZoom);
     this.addElement(flashEl);
     return setTimeout(function() {
       flashEl.remove();
