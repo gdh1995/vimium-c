@@ -537,7 +537,9 @@ var VHints = {
       // must get outline first, because clickEl may hide itself when activated
       rect = hintEl.linkRect || VDom.UI.getVRect(clickEl);
       if (this.modeOpt.activator.call(this, clickEl, hintEl) !== false) {
-          VDom.UI.flash(null, rect);
+        setTimeout(function(force) {
+          (force || document.hasFocus()) && VDom.UI.flash(null, rect);
+        }, 17, clickEl instanceof HTMLIFrameElement || clickEl instanceof HTMLFrameElement);
       }
     } else {
       clickEl = null;
