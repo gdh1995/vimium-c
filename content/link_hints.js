@@ -163,7 +163,7 @@ var VHints = {
     if (!root || z === "1") { return; }
     arr = this.hintMarkers, i = elements.length - 1;
     if (elements[i][0] === Vomnibar.box) { arr[i--].style.zoom = z; }
-    if (i < 0 || !root.getElementById('HelpDialog')) { return; }
+    if (!root.querySelector('#HelpDialog') || i < 0) { return; }
     while (0 <= i && root.contains(elements[i][0])) { arr[i--].style.zoom = z; }
   },
   btnRe: /\b(?:[Bb](?:utto|t)n|[Cc]lose)(?:$| )/,
