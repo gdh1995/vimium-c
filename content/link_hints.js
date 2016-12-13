@@ -53,7 +53,7 @@ var VHints = {
     VHandler.remove(this);
     this.setModeOpt(Object.setPrototypeOf(options || {}, null), count | 0);
 
-    var elements, style, arr;
+    var elements, arr;
     arr = this.initBox();
     if (!this.frameNested) {
       elements = this.getVisibleElements();
@@ -78,11 +78,7 @@ var VHints = {
     this.alphabetHints.initMarkers(this.hintMarkers);
 
     this.setMode(this.mode);
-    this.box = VDom.UI.addElementList(this.hintMarkers, "HMC");
-    style = this.box.style;
-    style.left = arr[0] + "px"; style.top = arr[1] + "px";
-    arr[2] !== 1 && (style.zoom = arr[2]);
-    if (document.webkitIsFullScreen) { style.position = "fixed"; }
+    this.box = VDom.UI.addElementList(this.hintMarkers, "HMC", arr);
 
     this.isActive = true;
     VHandler.push(this.onKeydown, this);
@@ -149,7 +145,8 @@ var VHints = {
       , width, height, x, y, box2, st, st2, zoom;
     if (document.webkitIsFullScreen) {
       this.maxLeft = iw; this.maxTop = ih; this.maxRight = 0;
-      return [0, 0, 1];
+      VDom.bodyZoom = 1;
+      return [0, 0];
     }
     box = document.documentElement;
     st = getComputedStyle(box);
@@ -174,7 +171,7 @@ var VHints = {
     iw = Math.min(Math.max(width,  box.clientWidth,  iw - 24), iw + 64);
     ih = Math.min(Math.max(height, box.clientHeight, ih - 24), ih + 20);
     this.maxLeft = this.maxRight = iw; this.maxTop = ih - 15;
-    return [Math.ceil(x), Math.ceil(y), zoom];
+    return [Math.ceil(x), Math.ceil(y)];
   },
   createMarkerFor: function(link) {
     var marker = VDom.createElement("span"), i, st;

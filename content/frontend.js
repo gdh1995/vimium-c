@@ -390,7 +390,7 @@ var VSettings, VHUD, VPort, VEventMode;
       });
     },
     focusInput: function(count) {
-      var box, hints, sel, visibleInputs;
+      var box, hints, sel, visibleInputs, arr;
       visibleInputs = VHints.traverse({"*": VHints.GetEditable});
       sel = visibleInputs.length;
       if (sel === 0) {
@@ -400,13 +400,14 @@ var VSettings, VHUD, VPort, VEventMode;
         VDom.UI.simulateSelect(visibleInputs[0][0], true, true);
         return;
       }
+      arr = VHints.initBox();
       hints = visibleInputs.map(function(link) {
         var hint = VDom.createElement("span"), rect;
         rect = link[2] ? VRect.fromClientRect(link[0].getBoundingClientRect()) : link[1];
         rect[0]--, rect[1]--, rect[2]--, rect[3]--;
         hint.className = "IH";
         hint.clickableItem = link[0];
-        VRect.setBoundary(hint.style, rect, true);
+        VRect.setBoundary(hint.style, rect);
         return hint;
       });
       if (count === 1 && InsertMode.last) {
@@ -417,7 +418,7 @@ var VSettings, VHUD, VPort, VEventMode;
       }
       VDom.UI.simulateSelect(visibleInputs[sel][0]);
       hints[sel].classList.add("S");
-      box = VDom.UI.addElementList(hints, "IMC");
+      box = VDom.UI.addElementList(hints, "IMC", arr);
       VHandler.push(function(event) {
         if (event.keyCode === VKeyCodes.tab) {
           hints[sel].classList.remove("S");
@@ -756,7 +757,7 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
     tween: function() {
       var hud = HUD, el, opacity;
       if (!VHUD) { return; }
-      el = hud.box, opacity = +el.style.opacity;
+      el = hud.box, opacity = +(el.style.opacity || 1);
       if (opacity === hud.opacity) {}
       else if (opacity === 0) {
         el.style.opacity = 0.25;

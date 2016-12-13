@@ -19,14 +19,18 @@ VDom.UI = {
       this.adjust();
     };
   },
-  addElementList: function(els, id) {
-    var parent, _i, _len;
+  addElementList: function(els, id, offset) {
+    var parent, _i, _len, style;
     parent = VDom.createElement("div");
     parent.className = "R LS";
     parent.id = id;
     for (_i = 0, _len = els.length; _i < _len; _i++) {
       parent.appendChild(els[_i]);
     }
+    style = parent.style;
+    style.left = offset[0] + "px"; style.top = offset[1] + "px";
+    (_i = VDom.bodyZoom) !== 1 && (style.zoom = _i);
+    document.webkitIsFullScreen && (style.position = "fixed");
     this.addElement(parent);
     return parent;
   },
