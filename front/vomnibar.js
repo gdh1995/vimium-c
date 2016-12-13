@@ -61,6 +61,8 @@ var Vomnibar = {
   timer: 0,
   wheelTimer: 0,
   show: function() {
+    var zoom = 1 / window.devicePixelRatio;
+    document.body.style.zoom = zoom > 1 ? zoom : "";
     this.focused || setTimeout(function() { Vomnibar.input.focus(); }, 34);
     window.addEventListener("mousewheel", this.onWheel, {passive: false});
     this.input.value = this.inputText;
@@ -446,7 +448,7 @@ var Vomnibar = {
     oldHeight = this.height;
     height = completions.length;
     if (height > 0) {
-      height = (44 + (1 / (window.devicePixelRatio || 1))) * height + 3;
+      height = (44 + (1 / (Math.max(1, window.devicePixelRatio)))) * height + 3;
     }
     this.height = height = (height | 0) + 54;
     obj = { name: "style", height: height };

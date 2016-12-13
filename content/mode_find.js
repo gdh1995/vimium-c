@@ -61,11 +61,13 @@ html > span{float:right;}',
     VHUD.box ? VDom.UI.root.insertBefore(el, VHUD.box) : VDom.UI.addElement(el);
   },
   onLoad: function(el) {
-    var wnd = el.contentWindow, doc = wnd.document;
+    var wnd = el.contentWindow, doc = wnd.document, zoom;
     el.onload = null;
     wnd.onmousedown = el.onmousedown = this.OnMousedown;
     wnd.onkeydown = this.onKeydown.bind(this);
     wnd.onfocus = VEventMode.OnWndFocus();
+    zoom = wnd.devicePixelRatio;
+    zoom < 1 && (doc.documentElement.style.zoom = 1 / zoom);
     el = VDom.UI.createStyle(this.cssIFrame, doc);
     doc.head.appendChild(el);
     el = this.input = doc.body;

@@ -120,7 +120,7 @@ VDom.UI = {
     do {
       zoom *= +getComputedStyle(el).zoom || 1;
     } while (el = VDom.getParent(el));
-    return Math.round(zoom * 20) / 20;
+    return Math.round(zoom * 200) / 200 * Math.min(1, window.devicePixelRatio);
   },
   getVRect: function(clickEl) {
     var rect, bcr, b = document.body;
