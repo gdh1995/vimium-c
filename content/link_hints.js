@@ -53,8 +53,8 @@ var VHints = {
     VHandler.remove(this);
     this.setModeOpt(Object.setPrototypeOf(options || {}, null), count | 0);
 
-    var elements, arr;
-    arr = this.initBox();
+    var elements, arr = VDom.getViewBox();
+    this.maxLeft = arr[2], this.maxTop = arr[3], this.maxRight = arr[4];
     if (!this.frameNested) {
       elements = this.getVisibleElements();
     }
@@ -140,39 +140,6 @@ var VHints = {
   maxTop: 0,
   maxRight: 0,
   zIndexes: null,
-  initBox: function() {
-    var iw = window.innerWidth, ih = window.innerHeight, box, rect
-      , width, height, x, y, box2, st, st2, zoom;
-    if (document.webkitIsFullScreen) {
-      this.maxLeft = iw; this.maxTop = ih; this.maxRight = 0;
-      VDom.bodyZoom = 1;
-      return [0, 0];
-    }
-    box = document.documentElement;
-    st = getComputedStyle(box);
-    box2 = document.body;
-    st2 = box2 && box2 !== box ? getComputedStyle(box2) : st;
-    x = window.scrollX, y = window.scrollY;
-    // NOTE: if zoom > 1, although document.documentElement.scrollHeight is integer,
-    //   its real rect may has a float width, such as 471.333 / 472
-    rect = box.getBoundingClientRect();
-    width  = st.overflowX === "hidden" || st2.overflowX === "hidden" ? 0
-      : box.scrollWidth  - Math.ceil(x) - (rect.width  !== (rect.width  | 0));
-    height = st.overflowY === "hidden" || st2.overflowY === "hidden" ? 0
-      : box.scrollHeight - Math.ceil(y) - (rect.height !== (rect.height | 0));
-    if (st.position !== "static") {
-      x = -rect.left, y = -rect.top;
-    } else {
-      zoom = +st.zoom || 1;
-      x /= zoom, y /= zoom;
-    }
-    VDom.bodyZoom = zoom = st2 !== st && +st2.zoom || 1;
-    x /= zoom, y /= zoom;
-    iw = Math.min(Math.max(width,  box.clientWidth,  iw - 24), iw + 64);
-    ih = Math.min(Math.max(height, box.clientHeight, ih - 24), ih + 20);
-    this.maxLeft = this.maxRight = iw; this.maxTop = ih - 15;
-    return [Math.ceil(x), Math.ceil(y)];
-  },
   createMarkerFor: function(link) {
     var marker = VDom.createElement("span"), i, st;
     marker.clickableItem = link[0];

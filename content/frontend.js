@@ -400,7 +400,7 @@ var VSettings, VHUD, VPort, VEventMode;
         VDom.UI.simulateSelect(visibleInputs[0][0], true, true);
         return;
       }
-      arr = VHints.initBox();
+      arr = VDom.getViewBox();
       hints = visibleInputs.map(function(link) {
         var hint = VDom.createElement("span"), rect;
         rect = link[2] ? VRect.fromClientRect(link[0].getBoundingClientRect()) : link[1];
