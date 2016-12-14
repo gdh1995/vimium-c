@@ -58,6 +58,7 @@ html > span{float:right;}',
     el.style.width = "0px";
     zoom !== 1 && (el.style.zoom = 1 / zoom);
     el.onload = function() { VFindMode.onLoad(this); };
+    VDom.UI.adjust();
     VHUD.box ? VDom.UI.root.insertBefore(el, VHUD.box) : VDom.UI.addElement(el);
   },
   onLoad: function(el) {
@@ -86,7 +87,6 @@ html > span{float:right;}',
     this.styleIn = UI.createStyle(this.cssSel);
     UI.init && UI.init(false);
     UI.box.appendChild(UI.createStyle(this.cssOut + this.cssSel));
-    UI.adjust();
     this.init = null;
   },
   findAndFocus: function(query, options) {
