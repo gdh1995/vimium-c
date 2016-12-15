@@ -920,12 +920,13 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
     f("mousedown", InsertMode.ExitGrab, true);
     VEventMode.setupSuppress();
     VFindMode.toggleStyle("remove");
-    (el = VDom.UI.box) && el.remove();
+    el = VDom.UI.box;
     (f = VSettings.onDestroy) && f();
 
     VUtils = VKeyCodes = VKeyboard = VDom = VRect = VHandler = //
     VHints = Vomnibar = VScroller = VMarks = VFindMode = //
     VSettings = VHUD = VPort = VEventMode = VVisualMode = null;
+    el && el.remove();
 
     console.log("%cVimium++%c in %c%s%c has destroyed at %o."
       , "color:red", "color:auto", "color:darkred"
