@@ -35,9 +35,10 @@ VDom.UI = {
     this.addElement(parent);
     return parent;
   },
-  adjust: function() {
-    var el = this.InitInner ? null : document.webkitFullscreenElement;
-    (el && !this.root.contains(el) ? el : document.documentElement).appendChild(this.box);
+  adjust: function(event) {
+    var ui = VDom.UI, el = ui.InitInner ? null : document.webkitFullscreenElement;
+    (el && !ui.root.contains(el) ? el : document.documentElement).appendChild(ui.box);
+    (el || event) && (el ? addEventListener : removeEventListener)("webkitfullscreenchange", ui.adjust, true);
   },
   init: function(showing) {
     this.box = VDom.createElement("vimium");
