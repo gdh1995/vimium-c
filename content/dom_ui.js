@@ -10,6 +10,7 @@ VDom.UI = {
   addElement: function(element, showOnInit) {
     this.showing = showOnInit !== false;
     VPort.send({ handler: "initInnerCSS" }, this.InitInner);
+    this.InitInner = null;
     this.init && this.init(false);
     this.box.style.display = "none";
     this.root = this.box.createShadowRoot();
@@ -45,7 +46,6 @@ VDom.UI = {
   },
   InitInner: function(innerCSS) {
     var _this = VDom.UI;
-    _this.InitInner = null;
     _this.styleIn = _this.createStyle(innerCSS);
     _this.root.insertBefore(_this.styleIn, _this.root.firstElementChild);
     _this.showing && setTimeout(function() {

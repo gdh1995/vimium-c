@@ -58,6 +58,7 @@ html > span{float:right;}',
     el.style.width = "0px";
     zoom !== 1 && (el.style.zoom = 1 / zoom);
     el.onload = function() { VFindMode.onLoad(this); };
+    if (VDom.UI.InitInner && document.webkitIsFullScreen) { VHUD.show(""); VHUD.hide(); }
     VDom.UI.adjust();
     VHUD.box ? VDom.UI.root.insertBefore(el, VHUD.box) : VDom.UI.addElement(el);
   },
