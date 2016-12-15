@@ -68,6 +68,7 @@ html > span{float:right;}',
     wnd.onmousedown = el.onmousedown = this.OnMousedown;
     wnd.onkeydown = this.onKeydown.bind(this);
     wnd.onfocus = VEventMode.OnWndFocus();
+    wnd.onunload = this.OnUnload;
     zoom = wnd.devicePixelRatio;
     zoom < 1 && (doc.documentElement.style.zoom = 1 / zoom);
     el = VDom.UI.createStyle(this.cssIFrame, doc);
@@ -110,11 +111,16 @@ html > span{float:right;}',
     this.focusFoundLink(window.getSelection().anchorNode);
     this.postMode.activate();
   },
-  deactivate: function() { // need keep @hasResults
+  deactivate: function(unexpectly) { // need keep @hasResults
     this.checkReturnToViewPort();
-    window.focus();
-    var el = VDom.getSelectionFocusElement();
-    el && el.focus();
+    this.isActive = this.returnToViewport = this._small = false;
+    if (unexpectly) {
+      console.log("Vimium++: the find box was unloaded unexpectly.");
+    } else {
+      window.focus();
+      var el = VDom.getSelectionFocusElement();
+      el && el.focus();
+    }
     this.box.remove();
     if (this.box === VDom.lastHovered) { VDom.lastHovered = null; }
     this.box = this.input = this.countEl = null;
@@ -122,9 +128,9 @@ html > span{float:right;}',
     this.parsedQuery = this.query = "";
     this.initialRange = this.regexMatches = null;
     this.historyIndex = this.matchCount = this.scrollY = this.scrollX = 0;
-    this.isActive = this.returnToViewport = this._small = false;
     return el;
   },
+  OnUnload: function(e) { var f = VFindMode; f && f.isActive && f.deactivate(true); },
   OnMousedown: function(event) { if (event.target !== VFindMode.input) { event.preventDefault(); VFindMode.input.focus(); } },
   onKeydown: function(event) {
     var i = event.keyCode, n = i, el, el2;
