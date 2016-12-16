@@ -24,25 +24,25 @@ var Commands = {
     }
     return str ? opt : null;
   },
-  hexCharRe: /\\(x[\da-z]{2}|u[\da-z]{4}|)/gi,
+  hexCharRe: /\\(?:x([\da-z]{2})|\\)/gi,
   parseVal: function(val) {
-    if (val.startsWith('"')) {
-      val = val.replace(this.hexCharRe, this.onHex);
-      return JSON.parse(val);
-    }
     try {
-      val = JSON.parse(val);
+      return JSON.parse(val);
+    } catch(e) {}
+    if (!val.startsWith('"')) { return val; }
+    val = val.replace(this.hexCharRe, this.onHex);
+    try {
+      return JSON.parse(val);
     } catch(e) {}
     return val;
   },
   onHex: function(s, hex) {
-    hex = hex.length < 1 ? '\\'
-      : String.fromCharCode(parseInt(hex.substring(1), 16));
+    hex = hex ? String.fromCharCode(parseInt(hex, 16)) : '\\\\';
     switch (hex) {
-    case '\\': case '\n': case '\"':
-      return '\\' + hex;
+    case '\\': case '"': return '\\' + hex;
+    case '\r': case '\n': return '\\n';
+    default: return hex;
     }
-    return hex;
   },
   makeCommand: function(command, options, details) {
     var opt;
