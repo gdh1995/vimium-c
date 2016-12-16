@@ -18,10 +18,11 @@ var VFindMode = {
   input: null,
   countEl: null,
   styleIn: null,
+  styleOut: null,
   returnToViewport: false,
   A0Re: /\xa0/g,
   cssSel: "::selection{background:#ff9632;}",
-  cssOut: ".vimiumFindMode body{-webkit-user-select:auto !important;user-select:auto !important;}\n.vimiumFindMode ",
+  cssOut: "body{-webkit-user-select:auto !important;user-select:auto !important}\n",
   cssIFrame: '*{font:12px/14px "Helvetica Neue",Helvetica,Arial,sans-serif !important;\
 height:14px;margin:0;overflow:hidden;vertical-align:top;white-space:nowrap;cursor:default;}\
 body{cursor:text;display:inline-block;padding:0 3px 0 1px;min-width:7px;}body *{cursor:text;display:inline;}body br{display:none;}\
@@ -52,14 +53,14 @@ html > span{float:right;}',
     this.regexMatches = null;
     this.activeRegexIndex = 0;
     this.init && this.init();
+    VDom.UI.adjust();
+    this.styleIn.disabled = this.styleOut.disabled = true;
 
     var el = this.box = VDom.createElement("iframe");
     el.className = "R HUD Find LS";
     el.style.width = "0px";
     zoom !== 1 && (el.style.zoom = 1 / zoom);
     el.onload = function() { VFindMode.onLoad(this); };
-    if (VDom.UI.InitInner && document.webkitIsFullScreen) { VHUD.show(""); VHUD.hide(); }
-    VDom.UI.adjust();
     VHUD.box ? VDom.UI.root.insertBefore(el, VHUD.box) : VDom.UI.addElement(el);
   },
   onLoad: function(el) {
@@ -86,9 +87,8 @@ html > span{float:right;}',
   init: function() {
     var ref = this.postMode, UI = VDom.UI;
     ref.exit = ref.exit.bind(ref);
-    this.styleIn = UI.createStyle(this.cssSel);
-    UI.init && UI.init(false);
-    UI.box.appendChild(UI.createStyle(this.cssOut + this.cssSel));
+    UI.addElement(this.styleIn = UI.createStyle(this.cssSel));
+    UI.box.appendChild(this.styleOut = UI.createStyle(this.cssOut + this.cssSel));
     this.init = null;
   },
   findAndFocus: function(query, options) {
@@ -124,7 +124,7 @@ html > span{float:right;}',
     this.box.remove();
     if (this.box === VDom.lastHovered) { VDom.lastHovered = null; }
     this.box = this.input = this.countEl = null;
-    this.styleIn.remove();
+    this.styleIn.disabled = true;
     this.parsedQuery = this.query = "";
     this.initialRange = this.regexMatches = null;
     this.historyIndex = this.matchCount = this.scrollY = this.scrollX = 0;
@@ -152,11 +152,11 @@ html > span{float:right;}',
     }
     VUtils.Prevent(event);
     if (!i) { return; }
-    var hasStyle = !!this.styleIn.parentNode;
+    var hasStyle = !this.styleIn.disabled;
     el = this.deactivate();
     VEventMode.suppress(n);
     if ((i === 3 || !this.hasResults || VVisualMode.mode) && hasStyle) {
-      this.toggleStyle("remove");
+      this.toggleStyle(0);
       this.restoreSelection(true);
     }
     if (VVisualMode.mode) { return VVisualMode.activate(); }
@@ -291,7 +291,7 @@ html > span{float:right;}',
   execute: function(query, options) {
     Object.setPrototypeOf(options || (options = {}), null);
     var el, found, count = options.count | 0, dir = options.dir || 1, q;
-    options.noColor || this.toggleStyle('add');
+    options.noColor || this.toggleStyle(1);
     do {
       q = query != null ? query : this.isRegex ? this.getNextQueryFromRegexMatches(dir) : this.parsedQuery;
       found = window.find(q, options.caseSensitive || !this.ignoreCase, dir < 0, true, false, true, false);
@@ -300,13 +300,11 @@ html > span{float:right;}',
     (el = VEventMode.lock()) && VDom.getEditableType(el) > 1 && !VDom.isSelected(document.activeElement) && el.blur();
     this.hasResults = found;
   },
-  RestoreHighlight: function() { VFindMode.toggleStyle('remove'); },
+  RestoreHighlight: function() { VFindMode.toggleStyle(0); },
   hookSel: function(action) { document[action + "EventListener"]("selectionchange", this.RestoreHighlight, true); },
-  toggleStyle: function(action) {
+  toggleStyle: function(enabled) {
     this.hookSel("remove");
-    document.documentElement.classList[action]("vimiumFindMode");
-    action !== "add" ? this.styleIn && this.styleIn.remove() :
-    VDom.UI.root && VDom.UI.addElement(this.styleIn);
+    this.styleOut.disabled = this.styleIn.disabled = !enabled;
   },
   getCurrentRange: function() {
     var sel = window.getSelection(), range;

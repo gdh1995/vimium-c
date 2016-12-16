@@ -920,7 +920,7 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
     f("mousedown", InsertMode.ExitGrab, true);
     f("webkitfullscreenchange", VDom.UI.adjust, true);
     VEventMode.setupSuppress();
-    VFindMode.toggleStyle("remove");
+    VFindMode.init || VFindMode.toggleStyle(0);
     el = VDom.UI.box;
     (f = VSettings.onDestroy) && f();
 
