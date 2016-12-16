@@ -2,7 +2,7 @@
 var Vomnibar = {
   box: null,
   port: null,
-  status: 0,
+  status: -1,
   options: null,
   width: 0,
   zoom: 0,
@@ -28,13 +28,13 @@ var Vomnibar = {
         VHints.tryNestedFrame("Vomnibar.activate", [1, options, 2])) {
       return;
     }
+    this.options = null;
     this.width = Math.max(window.innerWidth - 24, document.documentElement.clientWidth);
     this.zoom = VDom.UI.getZoom();
-    this.status || VHandler.push(VDom.UI.SuppressMost, this);
-    if (this.Init) {
+    this.status > 0 || VHandler.push(VDom.UI.SuppressMost, this);
+    if (this.status < 0) {
       setTimeout(this.Init, 0, options.secret, options.vomnibar);
       this.status = 1;
-      this.Init = null;
     } else if (!this.status) {
       this.status = 3;
     } else if (this.status > 3) {
@@ -44,7 +44,6 @@ var Vomnibar = {
     delete options.secret; delete options.vomnibar;
     var url, upper = 0;
     options.width = this.width, options.name = "activate";
-    this.options = null;
     url = options.url;
     if (url === true) {
       if (url = VDom.getSelectionText()) {

@@ -1,14 +1,12 @@
 "use strict";
 
-Vomnibar._init = Vomnibar.Init;
 Vomnibar.destroy = function() {
   var oldStatus = this.status;
   this.port.close();
   this.box.remove();
   this.port = this.box = null;
   VHandler.remove(this);
-  this.Init = this._init;
-  this.status = 0;
+  this.status = -1;
   if (oldStatus !== 2) { return; }
   VPort.post({ handler: "activateVomnibar", redo: true });
 };
