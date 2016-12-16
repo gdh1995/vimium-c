@@ -23,24 +23,26 @@ window.checker = $('keyMappings').model.checker = {
   quoteRe: /"/g,
   normalizeOptions: function(str, value, s2, tail) {
     if (s2) {
-      value = s2 = value.replace(BG.Commands.hexCharRe, BG.Commands.onHex);
+      s2 = s2.replace(BG.Commands.hexCharRe, BG.Commands.onHex);
+      value = '"' + s2 + '"';
     }
     try {
-      value = JSON.parse(value);
-      if (typeof value !== "string") {
-        return value !== true ? str : "";
+      var obj = JSON.parse(value);
+      if (typeof obj !== "string") {
+        return obj !== true ? str : "";
       }
+      value = obj;
     } catch (e) {
       s2 && (value = s2);
     }
-    value = value.replace(this.toHexCharRe, this.onToHex);
-    return '="' + value + '"' + tail;
+    value = value && JSON.stringify(value).replace(this.toHexCharRe, this.onToHex);
+    return '=' + value + tail;
   },
   optionValueRe: /=("(\S*(?:\s[^=]*)?)"|\S+)(\s|$)/g,
-  toHexCharRe: /[\s"\\]/g,
+  toHexCharRe: /\s/g,
   onToHex: function(s) {
-    var hex = s.charCodeAt(0);
-    return (hex < 256 ? '\\x' : '\\u') + hex.toString(16);
+    var hex = s.charCodeAt(0) + 0x100000;
+    return "\\u" + hex.toString(16).substring(2);
   },
   normalizeMap: function(_0, cmd, keys, options) {
     var keys2 = this.normalizeKeys(keys);
