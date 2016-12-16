@@ -156,7 +156,7 @@ setTimeout(function() { if (!chrome.browserAction) { return; }
 }, 150);
 
 setTimeout(function() { if (!chrome.omnibox) { return; }
-  var last, firstResult, lastSuggest, spanRe = /<(\/?)span(?: [^>]+)?>/g,
+  var last, firstResult, lastSuggest,
   tempRequest, timeout = 0, sessionIds, suggestions = null, outTimeout = 0, outTime,
   defaultSug = { description: "<dim>Open: </dim><url>%s</url>" },
   defaultSuggestionType = 0, matchType = 0, firstType,
@@ -170,7 +170,7 @@ setTimeout(function() { if (!chrome.omnibox) { return; }
     if (sug.description) {
       str = sug.description;
     } else {
-      str = "<url>" + sug.textSplit.replace(spanRe, "<$1match>");
+      str = "<url>" + sug.textSplit;
       str += sug.title ? "</url><dim> - " + Utils.escapeText(sug.title) + "</dim>"
         : "</url>";
     }
@@ -222,15 +222,13 @@ setTimeout(function() { if (!chrome.omnibox) { return; }
         defaultSuggestionType = 1;
       }
     } else if (sug.type === "search") {
-      var text = sug.titleSplit.replace(spanRe, "");
-      text = Utils.escapeText(text.substring(0, text.indexOf(":")));
-      text = "<dim>" + text + " - </dim><url>" +
-        sug.textSplit.replace(spanRe, "<$1match>") + "</url>";
+      var text = sug.titleSplit.split(": <")[0];
+      text = "<dim>" + text + " - </dim><url>" + sug.textSplit + "</url>";
       defaultSuggestionType = 2;
       chrome.omnibox.setDefaultSuggestion({ description: text });
       if (sug = response[0]) switch (sug.type) {
       case "math":
-        sug.description = "<dim>" + sug.textSplit.replace(spanRe, "")
+        sug.description = "<dim>" + sug.textSplit
           + " = </dim><url><match>" + sug.title + "</match></url>";
         break;
       }

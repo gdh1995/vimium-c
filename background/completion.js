@@ -33,8 +33,8 @@ SuggestionUtils = {
     for(_i = 0, end = 0; _i < ranges.length; _i += 2) {
       start = ranges[_i];
       end2 = ranges[_i + 1];
-      out.push(Utils.escapeText(string.substring(end, start)), '<span class="sTitle">',
-        Utils.escapeText(string.substring(start, end2)), "</span>");
+      out.push(Utils.escapeText(string.substring(end, start)), '<match>',
+        Utils.escapeText(string.substring(start, end2)), "</match>");
       end = end2;
     }
     out.push(Utils.escapeText(string.substring(end)));
@@ -99,7 +99,7 @@ SuggestionUtils = {
         lenCut += start - temp - 19;
       }
       end = ranges[i + 1];
-      out.push('<span class="sUrl">', Utils.escapeText(string.substring(start, end)), "</span>");
+      out.push('<match>', Utils.escapeText(string.substring(start, end)), "</match>");
     }
     if (string.length <= temp) {
       out.push(Utils.escapeText(string.substring(end)));
@@ -593,8 +593,8 @@ searchEngines: {
     if (!arr[0].startsWith("vimium://copy")) {
       sug.url = "vimium://copy " + arr[0];
     }
-    sug.titleSplit = "<span class=\"OSTitle\" style=\"text-decoration: none;\">" +
-      Utils.escapeText(sug.title) + "<span>";
+    sug.titleSplit = "<match style=\"text-decoration: none;\">" +
+      Utils.escapeText(sug.title) + "<match>";
     sug.textSplit = Utils.escapeText(arr[2]);
     return Completers.next(output);
   },

@@ -16,19 +16,19 @@ font:bold 21px/1 "Courier New",monospace;height:20px;opacity:0;position:absolute
 color:black;contain:strict;font-size:20px;height:34px;outline:none;padding:4px;width:100%;}
 #list{contain:content;white-space:nowrap;}
 .item{border-bottom:1px solid #ddd;contain:strict;height:36px;padding:5px 10px 3px 10px;}
-.bItem{border-bottom-style:none;padding-bottom:6px;}
+.b{border-bottom-style:none;padding-bottom:6px;}
 .item:hover{background-color:#CFDDEF;}
 .item.s{background-color:#BBCEE9;}
 .top{font-size:16px;height:18px;line-height:18px;overflow:hidden;}
 .source{color:#777;cursor:text;float:left;width:51px;}
-.title{box-sizing:border-box;max-width:100%;}
-.sTitle{color:#333;font-weight:bold;text-decoration:underline;}
+.dim{box-sizing:border-box;max-width:100%;}
 .bottom{font:14px/17px Consolas,"Liberation Mono","Courier New",monospace;
 height:16px;margin:2px 6px 0 0;overflow:hidden;padding-left:51px;}
 .icon{background:no-repeat 30px 50%;background-size:16px;}
 .url{box-sizing:border-box;color:#224684;cursor:text;display:inline-block;max-width:100%;text-decoration:none;}
-.sUrl{color:black;font-weight:bold;}
 .relevancy{margin-left:10px;position:absolute;}
+match{color:black;font-weight:bold;}
+.dim > match{text-decoration:underline;}
 	</style>
 </head>
 <body>
@@ -41,7 +41,7 @@ height:16px;margin:2px 6px 0 0;overflow:hidden;padding-left:51px;}
 	<div class="item">
 		<div class="top">
 			<span class="source">{{type}}</span>
-			<span class="title">{{titleSplit}}</span>
+			<span class="dim">{{titleSplit}}</span>
 		</div>
 		<div class="bottom{{favIconUrl}}">
 			<a class="url">{{textSplit}}</a>{{relevancy}}

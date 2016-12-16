@@ -142,7 +142,7 @@ var Vomnibar = {
     this.selection = -1;
     if (this.completions.length > 0) {
       list.style.display = "";
-      list.lastElementChild.classList.add("bItem");
+      list.lastElementChild.classList.add("b");
       barCls.add("withList");
       if (this.autoSelect || this.modeType !== "omni") {
         this.selection = 0;
