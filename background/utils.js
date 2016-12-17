@@ -112,10 +112,7 @@ var exports = {}, Utils = {
       type = this.protocolRe.test(string) &&
         (index = string.charCodeAt(index + 3)) > 32 && index !== 47 ? 0 : 4;
     }
-    else if (string.startsWith("file:")) {
-      type = 0;
-      oldString.length === 7 && (oldString += '/');
-    }
+    else if (string.startsWith("file:")) { type = 0; }
     else if (string.startsWith("chrome:")) {
       type = string.length < oldString.length && string.indexOf('/', 9) === -1 ? 4 : 0;
     } else {
@@ -173,6 +170,7 @@ var exports = {}, Utils = {
       this.convertToUrl(string, null, -2);
       return this.lastUrlType <= 2 ? 0 : 4;
     case "data": return isSlash ? 4 : -((i = string.indexOf(',', i)) < 0 || (spacePos > 0 && spacePos < i));
+    case "file": return 0;
     case "filesystem":
       string = string.substring(i + 1);
       if (!this.protocolRe.test(string)) { return 4; }
