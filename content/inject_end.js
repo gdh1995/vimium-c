@@ -1,16 +1,5 @@
 "use strict";
 
-Vomnibar.destroy = function() {
-  var oldStatus = this.status;
-  this.port.close();
-  this.box.remove();
-  this.port = this.box = null;
-  VHandler.remove(this);
-  this.status = -1;
-  if (oldStatus !== 2) { return; }
-  VPort.post({ handler: "activateVomnibar", redo: true });
-};
-
 VDom.documentReady(function() {
   if (!VSettings) { return; }
   addEventListener("hashchange", VSettings.checkIfEnabled);

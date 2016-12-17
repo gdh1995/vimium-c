@@ -7,7 +7,6 @@ var Vomnibar = {
   width: 0,
   zoom: 0,
   defaultTop: "",
-  destroy: null,
   sameOrigin: false,
   activate: function(count, options, forceCurrent) {
     if (!options.secret || !options.vomnibar) { return false; }
@@ -32,9 +31,12 @@ var Vomnibar = {
     this.width = Math.max(window.innerWidth - 24, document.documentElement.clientWidth);
     this.zoom = VDom.UI.getZoom();
     this.status > 0 || VHandler.push(VDom.UI.SuppressMost, this);
+    VDom.UI.root && VDom.UI.adjust();
     if (this.status < 0) {
       setTimeout(this.Init, 0, options.secret, options.vomnibar);
       this.status = 1;
+    } else if (this.CheckAlive()) {
+      return;
     } else if (!this.status) {
       this.status = 3;
     } else if (this.status > 3) {
@@ -74,7 +76,7 @@ var Vomnibar = {
     return this.status > 2 ? this.port.postMessage(options) : (this.options = options);
   },
   hide: function(action) {
-    if (!this.status) { return; }
+    if (this.status <= 0) { return; }
     VHandler.remove(this);
     this.width = this.zoom = this.status = 0;
     if (!this.box) { return; }
@@ -111,12 +113,30 @@ var Vomnibar = {
         postMessage: function(data) { Vomnibar.onMessage({ data: data }); }
       };
       _this.sameOrigin = true;
-      _this.port = { postMessage: function(data) { port.onmessage({ data: data}); } };
+      _this.port = { close: function() {}, postMessage: function(data) { port.onmessage({ data: data}); } };
       if (location.hash === "#chrome-ui") { _this.defaultTop = "5px"; }
       wnd.Vomnibar.showFavIcon = true;
       wnd.onmessage({ source: window, data: secret, ports: [port] });
     };
     VDom.UI.addElement(Vomnibar.box = el, false);
+  },
+  _forceRedo: false,
+  reset: function(redo) {
+    var oldStatus = this.status;
+    this.port.close();
+    this.box.remove();
+    this.port = this.box = null;
+    VHandler.remove(this);
+    this.status = -1;
+    if (this._forceRedo) { this._forceRedo = false; }
+    else if (!redo || oldStatus < 2 || oldStatus > 3) { return; }
+    VPort.post({ handler: "activateVomnibar", redo: true });
+  },
+  CheckAlive: function() {
+    try {
+      Vomnibar.box && Vomnibar.box.contentDocument;
+    } catch (e) { return false; }
+    return Vomnibar._forceRedo = true;
   },
   onMessage: function(event) {
     var data = event.data;
@@ -139,7 +159,8 @@ var Vomnibar = {
     case "scrollGoing": VScroller.keyIsDown = VScroller.Core.maxInterval; break;
     case "scrollEnd": VScroller.keyIsDown = 0; break;
     case "evalJS": VUtils.evalIfOK(data.url); break;
-    case "broken": window.focus(); Vomnibar && this.destroy && this.destroy(); break;
+    case "broken": data.active && window.focus(); // no break;
+    case "unload": Vomnibar && this.reset(data !== "unload"); break;
     default: break;
     }
   },

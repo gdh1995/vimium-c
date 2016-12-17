@@ -647,9 +647,16 @@ VPort = {
   EnsurePort: function() {
     if (!VPort || VPort.port) { return; }
     try { VPort.connect(); return; } catch (e) {}
-    VPort.postToOwner("broken");
+    VPort.postToOwner({ name: "broken", active: Vomnibar.isActive });
     VPort = null;
     return true;
+  },
+  OnUnload: function() {
+    var obj = Vomnibar;
+    if (!(VPort && obj)) { return; }
+    obj.isActive = false;
+    obj.timer > 0 && clearTimeout(obj.timer);
+    VPort.postToOwner("unload");
   }
 };
 (function() {
@@ -668,6 +675,7 @@ VPort = {
     port.onmessage = VPort.OnOwnerMessage;
     port.postMessage("uiComponentIsReady");
     options && Vomnibar.activate(options);
+    window.onunload = VPort.OnUnload;
   };
   timer = setTimeout(function() {
     VPort.Disconnect();
