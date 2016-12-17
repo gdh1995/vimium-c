@@ -1182,12 +1182,11 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
     },
     performFind: function() {
       var query = cOptions.active ? null : FindModeHistory.query(cPort.sender.incognito);
-      cPort.postMessage({
-        name: "performFind",
+      cPort.postMessage({ name: "execute", count: 1, command: "performFind", options: {
         count: commandCount,
         dir: cOptions.dir,
         query: query
-      });
+      }});
     },
     showVomnibar: function() {
       var port = cPort, options;

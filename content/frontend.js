@@ -263,6 +263,7 @@ var VSettings, VHUD, VPort, VEventMode;
       if (code) { str += ": " + code + "/" + stat; }
       HUD.show(str);
     },
+    performFind: function(_0, options) { VFindMode.activate(options); },
     passNextKey: function(count) {
       var keys = Object.create(null), keyCount = 0;
       VHandler.push(function(event) {
@@ -840,7 +841,6 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
       esc();
       VUtils.execCommand(Commands, request.command, [request.count, request.options, 0]);
     },
-    performFind: function(request) { VFindMode.activate(request); },
     createMark: VMarks.CreateGlobalMark,
     scroll: VMarks.Goto,
     showHUD: function(request) {
