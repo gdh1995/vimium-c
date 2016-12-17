@@ -1318,9 +1318,6 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
       currentCount = 0;
       return null;
     }
-    if (!registryEntry.background) {
-      currentFirst = null;
-    }
     executeCommand(registryEntry.command, registryEntry, count, port);
     return null;
   };
@@ -1339,6 +1336,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
     }
     command = registryEntry.alias || command;
     if (!registryEntry.background) {
+      currentFirst = null;
       port.postMessage({
         name: "execute",
         command: command,
@@ -1356,8 +1354,12 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
       funcDict.getCurTabs(func);
     } else if (count === 1) {
       funcDict.getCurTab(func);
-    } else {
-      func();
+    } else if (func() === true) {
+      currentFirst = null;
+      return;
+    }
+    if (func.executed) {
+      currentFirst = null;
     }
   };
 
@@ -1909,23 +1911,23 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
   }, 0);
 
   (function() {
-    var ref, i, ref2, key;
-    ref2 = BackgroundCommands;
-    for (key in ref2) { ref2[key].useTab = 0; }
+    var ref, i, ref2 = BackgroundCommands, key, f;
+    for (key in ref2) { (f = ref2[key]).useTab = 0; f.executed = false; }
+
     ref = ["goTab", "moveTab", "reloadGivenTab", "reloadTab", "removeRightTab" //
       , "removeTab", "removeTabsR", "togglePinTab", "visitPreviousTab" //
     ];
-    for (i = ref.length; 0 <= --i; ) {
-      ref2[ref[i]].useTab = 2;
-    }
+    for (i = ref.length; 0 <= --i; ) { ref2[ref[i]].useTab = 2; }
     ref = ["clearCS", "copyTabInfo", "enableCSTemp", "goToRoot", "moveTabToNextWindow"//
       , "openCopiedUrlInNewTab", "reopenTab", "toggleCS", "toggleViewSource" //
       , "searchInAnother" //
     ];
-    for (i = ref.length; 0 <= --i; ) {
-      ref2[ref[i]].useTab = 1;
-    }
+    for (i = ref.length; 0 <= --i; ) { ref2[ref[i]].useTab = 1; }
+
+    ref = [];
+    for (i = ref.length; 0 <= --i; ) { ref2[ref[i]].executed = true; }
   })();
+  window.bgC = BackgroundCommands;
 
   setTimeout(function() {
     Settings.fetchFile("baseCSS");
