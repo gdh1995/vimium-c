@@ -41,6 +41,7 @@ html > span{float:right;}',
       this.scrollX = window.scrollX;
       this.scrollY = window.scrollY;
     }
+    this.isActive && VDom.UI.adjust();
     if (this.isActive) {
       this.box.contentWindow.focus();
       this.input.focus();
