@@ -1206,6 +1206,8 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
         command: "Vomnibar.activate",
         options: options
       });
+      options.secret = -1;
+      cOptions = options;
     },
     clearFindHistory: function() {
       var incognito = cPort.sender.incognito;
@@ -1644,10 +1646,10 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
     activateVomnibar: function(request, port) {
       cPort = port;
       if (request.count > 0) {
-        cOptions = Object.setPrototypeOf(request, null);
         commandCount = request.count;
+        cOptions = Object.setPrototypeOf(request, null);
         delete cOptions.handler; delete cOptions.count;
-      } else if (request.redo !== true || !port.sender.url.startsWith("chrome")) {
+      } else if (request.redo !== true || cOptions == null || cOptions.secret !== -1) {
         return;
       }
       BackgroundCommands.showVomnibar();
