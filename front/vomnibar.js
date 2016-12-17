@@ -69,21 +69,18 @@ var Vomnibar = {
   },
   hide: function(data) {
     this.isActive = this.isEditing = false;
-    this.timer > 0 && clearTimeout(this.timer);
     this.height = this.matchType = 0;
     window.removeEventListener("mousewheel", this.onWheel, {passive: false});
     window.onkeyup = null;
     this.completions = this.onUpdate = null;
     this.modeType = this.mode.type = this.mode.query = this.lastQuery = this.inputText = "";
-    if (data !== "hide") {
-      this.timer = setTimeout(this.onHidden.bind(this), 100);
-      VPort.postToOwner({name: "hide", waitFrame: this.doEnter ? 1 : 0});
-    } else {
-      this.onHidden();
-    }
+    if (data === "hide") { return this.onHidden(); }
+    this.timer > 0 && clearTimeout(this.timer);
+    this.timer = setTimeout(this.onHidden.bind(this), 100);
+    VPort.postToOwner({name: "hide", waitFrame: this.doEnter ? 1 : 0});
   },
   onHidden: function() {
-    this.timer > 0 && clearTimeout(this.timer);
+    clearTimeout(this.timer);
     VPort.postMessage({ handler: "refocusCurrent", lastKey: this.lastKey });
     this.doEnter && setTimeout(this.doEnter, 0);
     this.input.blur();
