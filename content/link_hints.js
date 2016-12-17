@@ -48,7 +48,7 @@ var VHints = {
         this.initTimer = setTimeout(this.activate.bind(this, count, options), 300);
         return;
       }
-      if (!(document.documentElement instanceof HTMLElement)) { return; }
+      if (!VDom.isHTML()) { return; }
     }
     VHandler.remove(this);
     this.setModeOpt(Object.setPrototypeOf(options || {}, null), count | 0);

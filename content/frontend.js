@@ -194,7 +194,7 @@ var VSettings, VHUD, VPort, VEventMode;
       var visible = isEnabledForUrl && window.innerHeight > 9 && window.innerWidth > 9;
       VDom.UI.insertCSS(visible && VSettings.cache.userDefinedOuterCss);
       if (event) { return; }
-      HUD.enabled = !!document.body;
+      HUD.enabled = true;
       ELs.OnWndFocus = vPort.safePost.bind(vPort, { handler: "frameFocused" });
     },
     hook: function(f, c) {
@@ -735,7 +735,7 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
       this.timer = this.enabled ? setTimeout(this.hide, duration || 1500) : 0;
     },
     show: function(text) {
-      if (!this.enabled && !document.body) { return; }
+      if (!this.enabled || !VDom.isHTML()) { return; }
       var el = this.box;
       this.tweenId || (this.tweenId = setInterval(this.tween, 40));
       this.opacity = 1;

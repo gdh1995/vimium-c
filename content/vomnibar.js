@@ -17,7 +17,7 @@ var Vomnibar = {
       }
       this.width = 0;
     }
-    if (!(document.documentElement instanceof HTMLElement)) { return false; }
+    if (!VDom.isHTML()) { return false; }
     Object.setPrototypeOf(options || (options = {}), null);
     if (options.url === true && !options.topUrl) {
       options.topUrl = window.location.href;
