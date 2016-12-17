@@ -1908,10 +1908,8 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
     var ref, i, ref2, key;
     ref2 = BackgroundCommands;
     for (key in ref2) { ref2[key].useTab = 0; }
-    ref = ["goTab", "removeTab" //
-      , "removeTabsR", "removeRightTab" //
-      , "moveTab", "togglePinTab" //
-      , "reloadTab", "reloadGivenTab", "visitPreviousTab" //
+    ref = ["goTab", "moveTab", "reloadGivenTab", "reloadTab", "removeRightTab" //
+      , "removeTab", "removeTabsR", "togglePinTab", "visitPreviousTab" //
     ];
     for (i = ref.length; 0 <= --i; ) {
       ref2[ref[i]].useTab = 2;
