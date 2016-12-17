@@ -114,9 +114,7 @@ html > span{float:right;}',
   deactivate: function(unexpectly) { // need keep @hasResults
     this.checkReturnToViewPort();
     this.isActive = this.returnToViewport = this._small = false;
-    if (unexpectly) {
-      console.log("Vimium++: the find box was unloaded unexpectly.");
-    } else {
+    if (unexpectly !== true) {
       window.focus();
       var el = VDom.getSelectionFocusElement();
       el && el.focus();
