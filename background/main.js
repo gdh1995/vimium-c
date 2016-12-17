@@ -420,7 +420,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
       if (arr instanceof Promise) { return arr.then(funcDict.onEvalUrl); }
       switch(arr[1]) {
       case "copy":
-        requestHandlers.ShowHUD(arr[0], true);
+        requestHandlers.ShowHUD(arr[0], 0, true);
         break;
       }
     },
@@ -1158,7 +1158,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
       default: str = tabs[0].url; break;
       }
       Clipboard.copy(str);
-      requestHandlers.ShowHUD(str, true);
+      requestHandlers.ShowHUD(str, 0, true);
     },
     goNext: function() {
       var dir = cOptions.dir || "next", defaultPatterns;
@@ -1692,9 +1692,14 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
       return getSecret();
     },
     SetIcon: function() {},
-    ShowHUD: function(message, isCopy) {
+    ShowHUD: function(message, alsoEsc, isCopy) {
       try {
-        cPort && cPort.postMessage({ name: "showHUD", text: message, isCopy: isCopy === true });
+        cPort && cPort.postMessage({
+          name: "showHUD",
+          text: message,
+          esc: !!alsoEsc,
+          isCopy: isCopy === true
+        });
       } catch (e) {
         cPort = null;
       }
