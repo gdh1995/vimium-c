@@ -675,6 +675,7 @@ VPort = {
   timer = setTimeout(function() {
     VPort.Disconnect();
     window.onmessage = _port = null;
+    window.location = "about:blank";
   }, 500);
   VPort.sendMessage({ handler: "secret" }, handler);
   window.onmessage = function(event) {
