@@ -133,10 +133,12 @@ var Vomnibar = {
     VPort.post({ handler: "activateVomnibar", redo: true });
   },
   CheckAlive: function() {
+    var a = Vomnibar;
     try {
-      Vomnibar.box && Vomnibar.box.contentDocument;
+      if (a.sameOrigin && a.box.contentWindow.VPort) { return false; }
+      a.box && a.box.contentDocument;
     } catch (e) { return false; }
-    return Vomnibar._forceRedo = true;
+    return a._forceRedo = true;
   },
   onMessage: function(event) {
     var data = event.data;
