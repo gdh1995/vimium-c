@@ -68,7 +68,7 @@ var formatDate = function(time) {
 
 $("exportButton").onclick = function(event) {
   var exported_object, exported_data, file_name, d, nodeA, all_static;
-  all_static = event ? event.ctrlKey || event.shiftKey : false;
+  all_static = event ? event.ctrlKey || event.metaKey || event.shiftKey : false;
   exported_object = Object.create(null);
   exported_object.name = "Vimium++";
   if (!all_static) {

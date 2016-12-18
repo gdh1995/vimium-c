@@ -133,13 +133,13 @@ html > span{float:right;}',
   OnMousedown: function(event) { if (event.target !== VFindMode.input) { event.preventDefault(); VFindMode.input.focus(); } },
   onKeydown: function(event) {
     var i = event.keyCode, n = i, el, el2;
-    i = event.altKey || event.metaKey ? 0 : i === VKeyCodes.enter ? (this.saveQuery(), 2)
+    i = event.altKey ? 0 : i === VKeyCodes.enter ? (this.saveQuery(), 2)
       : (i === VKeyCodes.backspace || i === VKeyCodes.deleteKey) ? +!this.query.length
       : 0;
     if (!i) {
       if (VKeyboard.isEscape(event)) { i = 3; }
       else if (i = VKeyboard.getKeyStat(event)) {
-        if (i !== 2 || n < 74 || n > 75) { return; }
+        if ((i & ~6) !== 0 || n < 74 || n > 75) { return; }
         this.execute(null, { dir: 74 - n });
         i = 0;
       }
