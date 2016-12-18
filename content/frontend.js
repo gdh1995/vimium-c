@@ -2,17 +2,17 @@
 /* eslint no-global-assign: "off" */
 var VSettings, VHUD, VPort, VEventMode;
 (function() {
-  var Commands, ELs, HUD, KeydownEvents, checkValidKey, currentSeconds //
-    , esc, FrameMask, InsertMode, Pagination //
-    , isEnabledForUrl, isInjected, vPort, onKeyup2 //
-    , parsePassKeys, passKeys, requestHandlers, keyMap //
-    ;
+  var Commands, ELs, FrameMask, HUD, InsertMode, KeydownEvents, Pagination
+    , checkValidKey, currentKeys, esc, isEnabledForUrl, isInjected, keyMap
+    , nextKeys, onKeyup2, parsePassKeys, passKeys, requestHandlers, vPort;
 
   isInjected = window.VimiumInjector ? true : null;
 
   isEnabledForUrl = false;
 
-  KeydownEvents = currentSeconds = onKeyup2 = passKeys = null;
+  KeydownEvents = nextKeys = onKeyup2 = passKeys = null;
+
+  currentKeys = "";
 
   vPort = {
     port: null,
@@ -108,8 +108,7 @@ var VSettings, VHUD, VPort, VEventMode;
         }
       }
       else if (key !== VKeyCodes.esc || VKeyboard.getKeyStat(event)) {}
-      else if (currentSeconds) {
-        vPort.post({ handler: "esc" });
+      else if (nextKeys !== null) {
         esc();
         action = 2;
       } else if (VDom.UI.removeSelection(window)) {
@@ -207,7 +206,7 @@ var VSettings, VHUD, VPort, VEventMode;
   };
   ELs.hook(addEventListener);
 
-  esc = function() { currentSeconds = null; };
+  esc = function() { currentKeys = ""; nextKeys = null; };
 
   parsePassKeys = function(newPassKeys) {
     var pass = Object.create(null), arr = newPassKeys.split(' ')
@@ -444,16 +443,20 @@ var VSettings, VHUD, VPort, VEventMode;
 
   checkValidKey = function(event, key) {
     key = VKeyboard.getKey(event, key);
-    if (currentSeconds) {
-      if (!((key in keyMap) || (key in currentSeconds))) {
-        vPort.post({ handler: "esc" });
-        esc();
-        return 0;
-      }
-    } else if (passKeys && (key in passKeys) || !(key in keyMap)) {
-      return 0;
+    var j = (nextKeys || keyMap)[key];
+    if (nextKeys === null) {
+      if (j == null || passKeys !== null && key in passKeys) { return 0; }
+    } else if (j == null) {
+      j = keyMap[key];
+      if (j == null) { esc(); return 0; }
+      if (j !== 0) { currentKeys = ""; }
     }
-    vPort.post({ handlerKey: key });
+    if (j === 0) {
+      vPort.post({ handler: "key", key: currentKeys + key });
+      esc();
+    } else {
+      currentKeys += key; nextKeys = j !== 1 ? j : keyMap;
+    }
     return 2;
   };
 
@@ -828,18 +831,22 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
     focusFrame: FrameMask.Focus,
     exitGrab: function() { InsertMode.ExitGrab("other"); },
     keyMap: function(request) {
-      var map = keyMap = request.keyMap, key, sec, func = Object.setPrototypeOf;
+      var map = keyMap = request.keyMap, key, sec
+        , func = Object.setPrototypeOf, iter;
       func(map, null);
+      iter = function(obj) {
+        func(obj, null);
+        for (var key in obj) { if (obj[key] !== 0) {
+          iter(obj[key]);
+        } }
+      };
       for (key in map) {
         sec = map[key];
-        sec && func(sec, null);
+        if (sec === 0 || sec === 1) { continue; }
+        iter(sec);
       }
     },
-    key: function(request) {
-      currentSeconds = request.key !== null ? keyMap[request.key] : null;
-    },
     execute: function(request) {
-      esc();
       VUtils.execCommand(Commands, request.command, [request.count, request.options, 0]);
     },
     createMark: VMarks.CreateGlobalMark,

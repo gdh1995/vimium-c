@@ -1,18 +1,13 @@
 "use strict";
 var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHandlers;
 (function() {
-  var BackgroundCommands, ContentSettings, checkKeyQueue, commandCount //
-    , Connections
-    , cOptions, cPort, currentCount, currentFirst, executeCommand
-    , FindModeHistory, framesForOmni, framesForTab, funcDict
-    , HelpDialog, needIcon, openMultiTab //
-    , requestHandlers, resetKeys, keyMap, getSecret
-    ;
+  var BackgroundCommands, Connections, ContentSettings, FindModeHistory, HelpDialog
+    , cOptions, cPort, checkKeyQueue, commandCount, executeCommand
+    , framesForOmni, framesForTab
+    , funcDict, keyQueueRe, needIcon, openMultiTab, requestHandlers, keyMap, getSecret;
 
   framesForTab = Object.create(null);
   framesForOmni = [];
-
-  currentFirst = null;
 
   needIcon = false;
 
@@ -1234,11 +1229,6 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
     clearGlobalMarks: function() { return Marks.clearGlobal(); }
   };
 
-  resetKeys = function() {
-    currentFirst = null;
-    currentCount = 0;
-  };
-
   getSecret = function() {
     var secret = 0, time = 0;
     getSecret = function() {
@@ -1268,72 +1258,77 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
   };
 
   Settings.updateHooks.PopulateCommandKeys = function() {
-    var key, ref, ref2, cloned, first, arr, keyRe = Commands.keyRe, ch;
-    resetKeys();
+    var key, ref, ref2, arr, keyRe = Commands.keyRe, ch, j, last, tmp, func;
     ref = keyMap = Object.create(null);
-    for (ch = 10; 0 <= --ch; ) { ref[ch] = 0; }
+    for (ch = 10; 0 <= --ch; ) { ref[ch] = 1; }
     for (key in Commands.keyToCommandRegistry) {
       ch = key.charCodeAt(0);
       if (ch >= 48 && ch < 58) {
         console.warn("invalid key command:", key, "(the first char can not be [0-9])");
-      } else if ((arr = key.match(keyRe)).length === 1) {
-        if (ref[key]) {
-          console.warn("inactive first key:", key, "with", ref[key]);
-        }
-        ref[key] = 0;
-      } else if (arr.length !== 2) {
-        console.warn("invalid key command:", key, "=>", arr);
-      } else {
-        if (!(ref2 = ref[arr[0]])) {
-          if (ref2 === 0) {
-            console.warn("inactive first key:", arr[0], "with", key);
-            continue;
-          }
-          ref[arr[0]] = ref2 = Object.create(null);
-        }
-        ref2[arr[1]] = 0;
+        continue;
       }
+      arr = key.match(keyRe);
+      if (arr.length === 1) {
+        if (key in ref) {
+          console.log("inactive keys:", ref[key], "with", key);
+        } else {
+          ref[key] = 0;
+        }
+        continue;
+      }
+      for (ref2 = tmp = ref, j = 0, last = arr.length - 1; j <= last; j++, ref2 = tmp) {
+        tmp = ref2[arr[j]];
+        if (!tmp || j === last) {
+          tmp === 0 && console.warn("inactive key:", key, "with"
+              , arr.slice(0, j + 1).join(""));
+          break;
+        }
+      }
+      if (tmp === 0) { continue; }
+      tmp != null && console.warn("inactive keys:", tmp, "with", key);
+      while (j < last) { ref2 = ref2[arr[j++]] = Object.create(null); }
+      ref2[arr[last]] = 0;
     }
 
-    for (first in ref) {
-      ref2 = ref[first];
-      if (!ref2) { continue; }
-      cloned = Object.create(null);
-      for (key in ref2) { if (!(key in ref)) { cloned[key] = 0; } }
-      ref[first] = cloned;
+    func = function(obj) {
+      var key, val;
+      for (key in obj) {
+        val = obj[key];
+        if (val !== 0) { func(val); }
+        else if (ref[key] === 0) { delete obj[key]; }
+      }
+    };
+    for (key in ref) {
+      ref2 = ref[key];
+      if (ref2 !== 0 && ref2 !== 1) {
+        func(ref2);
+      }
     }
-    ref[""] = Object.create(null);
 
     Settings.Init && Settings.Init();
   };
 
-  checkKeyQueue = function(command, port) {
-    var count, registryEntry;
-    if (currentFirst) {
-      if (registryEntry = Commands.keyToCommandRegistry[currentFirst + command]) {
-        count = currentCount || 1;
-      }
-      currentCount = 0;
+  keyQueueRe = /^\d+/;
+  checkKeyQueue = function(request, port) {
+    var key = request.key, arr, count = 1, ref, registryEntry;
+    arr = keyQueueRe.exec(key);
+    if (arr != null) {
+      key = key.substring(arr[0].length);
+      count = parseInt(arr[0], 10) || 1;
     }
-    if (registryEntry) {
-    } else if ((count = command.charCodeAt(0) - 48) >= 0 && count <= 9) {
-      return (currentCount = currentCount * 10 + count) ? "" : null;
-    } else if (registryEntry = Commands.keyToCommandRegistry[command]) {
-      count = currentCount || 1;
-      currentCount = 0;
-    } else if (keyMap[command]) {
-      return command;
-    } else {
-      currentCount = 0;
-      return null;
+    ref = Commands.keyToCommandRegistry;
+    if (!(key in ref)) {
+      arr = key.match(Commands.keyRe);
+      key = arr[arr.length - 1];
+      count = 1;
     }
-    executeCommand(registryEntry.command, registryEntry, count, port);
-    return null;
+    registryEntry = ref[key];
+    return executeCommand(registryEntry.command, registryEntry, count, port);
   };
 
   executeCommand = function(command, registryEntry, count, port) {
     var func, options = registryEntry.options, scale;
-    if (options && (scale = +options.count)) { count = ((count * scale) | 0) || 1; }
+    if (options && (scale = +options.count)) { count = Math.max(1, (count * scale) | 0); }
     if (registryEntry.repeat === 1) {
       count = 1;
     } else if (registryEntry.repeat > 0 && count > registryEntry.repeat && !
@@ -1345,31 +1340,19 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
     }
     command = registryEntry.alias || command;
     if (!registryEntry.background) {
-      currentFirst = null;
-      port.postMessage({
+      return port.postMessage({
         name: "execute",
         command: command,
         count: count,
         options: options
       });
-      return;
     }
     func = BackgroundCommands[command];
     cOptions = options || Object.create(null);
     cPort = port;
     commandCount = count;
     count = func.useTab;
-    if (count === 2) {
-      funcDict.getCurTabs(func);
-    } else if (count === 1) {
-      funcDict.getCurTab(func);
-    } else if (func() === true) {
-      currentFirst = null;
-      return;
-    }
-    if (func.executed) {
-      currentFirst = null;
-    }
+    return count === 2 ? funcDict.getCurTabs(func) : count === 1 ? funcDict.getCurTab(func) : func();
   };
 
   // function (request, port);
@@ -1591,7 +1574,6 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
     },
     frameFocused: function(request, port) {
       var tabId = port.sender.tabId, ref = framesForTab[tabId], status;
-      currentFirst !== null && resetKeys();
       if (!ref) {
         needIcon && requestHandlers.SetIcon(tabId, port.sender.status);
         return;
@@ -1686,7 +1668,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
     copyToClipboard: function(request) {
       Clipboard.copy(request.data);
     },
-    esc: resetKeys,
+    key: checkKeyQueue,
     createMark: function(request, port) { return Marks.createMark(request, port); },
     gotoMark: function(request) { return Marks.gotoMark(request); },
     focusOrLaunch: function(request) {
@@ -1734,23 +1716,14 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
     state: 0,
     _fakeId: -2,
     OnMessage: function(request, port) {
-      var key, id;
+      var id;
       if (id = request._msgId) {
         request = request.request;
         port.postMessage({
           _msgId: id,
           response: requestHandlers[request.handler](request, port)
         });
-      }
-      else if (key = request.handlerKey) {
-        // NOTE: here is a race condition which is now ignored totally
-        key = checkKeyQueue(key, port);
-        if (currentFirst !== key) {
-          port.postMessage({ name: "key", key: key });
-          currentFirst = key;
-        }
-      }
-      else {
+      } else {
         requestHandlers[request.handler](request, port);
       }
     },
@@ -1850,7 +1823,6 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
   Settings.updateHooks.keyMappings = function(value) {
     Commands.parseKeyMappings(value);
     this.postUpdate("PopulateCommandKeys", null);
-    // resetKeys has been called
     this.broadcast({
       name: "keyMap",
       keyMap: keyMap
@@ -1861,12 +1833,8 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
     needIcon = value && chrome.browserAction ? true : false;
   };
 
-  Settings.globalCommand = function(command, options) {
-    var count = 1;
-    if (currentFirst !== null) {
-      count = currentFirst ? 1 : (currentCount || 1);
-      resetKeys();
-    }
+  Settings.globalCommand = function(command, options, count) {
+    count = Math.max(1, count | 0);
     options && typeof options === "object" ?
         Object.setPrototypeOf(options, null) : (options = null);
     executeCommand(command, Commands.makeCommand(command, options), count, null);
@@ -1891,11 +1859,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
     case "command":
       command = message.command;
       if (!(command && Commands.availableCommands[command])) { return; }
-      if (message.count) {
-        currentFirst = "";
-        currentCount = message.count;
-      }
-      Settings.globalCommand(command, message.options);
+      Settings.globalCommand(command, message.options, message.count);
       break;
     case "content_scripts":
       sendResponse(Settings.CONST.ContentScripts);

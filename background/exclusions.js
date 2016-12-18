@@ -131,7 +131,6 @@ var Exclusions = {
 };
 
 Settings.updateHooks.exclusionRules = function(rules) {
-  g_requestHandlers.esc();
   setTimeout(function() {
     var is_empty = Exclusions.rules.length <= 0;
     Exclusions.setRules(rules);
