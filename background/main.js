@@ -411,14 +411,13 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
       if (arr instanceof Promise) { return arr.then(funcDict.onEvalUrl); }
       switch(arr[1]) {
       case "copy":
-        requestHandlers.ShowHUD(arr[0], 0, true);
+        requestHandlers.ShowHUD(arr[0], true);
         break;
       }
     },
-    complain: function(action, alsoEsc) {
-      return requestHandlers.ShowHUD("It's not allowed to " + action, alsoEsc);
+    complain: function(action) {
+      return requestHandlers.ShowHUD("It's not allowed to " + action);
     },
-    sendEsc: function() { cPort.postMessage({ name: "key", key: null }); },
     checkVomnibarPage: function(port, nolog) {
       if (port.sender.url === Settings.CONST.VomnibarPage) { return false; }
       if (!nolog && !port.sender.warned) {
@@ -746,7 +745,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
         chrome.sessions.restore(list[commandCount - 1].tab.sessionId);
         return;
       }
-      requestHandlers.ShowHUD("The session index provided is out of range.", 1);
+      requestHandlers.ShowHUD("The session index provided is out of range.");
     },
     selectTab: function(tabId, alsoWnd) {
       chrome.tabs.update(tabId, {active: true}, alsoWnd ? funcDict.selectWnd : null);
@@ -859,7 +858,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
     duplicateTab: function() {
       var tabId = cPort.sender.tabId;
       if (tabId < 0) {
-        return funcDict.complain("duplicate such a tab", 1);
+        return funcDict.complain("duplicate such a tab");
       }
       chrome.tabs.duplicate(tabId);
       if (1 > --commandCount) {}
@@ -869,7 +868,6 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
         chrome.windows.getCurrent({populate: true},
         funcDict.duplicateTab[0].bind(null, tabId));
       }
-      return true;
     },
     moveTabToNewWindow: function() {
       chrome.windows.getCurrent({populate: true}, funcDict.moveTabToNewWindow[0]);
@@ -887,11 +885,11 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
       ContentSettings.toggleCurrent(cOptions.type, tabs[0]);
     },
     clearCS: function(tabs) {
-      requestHandlers.ShowHUD(cOptions.type + " content settings have been cleared.", 1);
+      requestHandlers.ShowHUD(cOptions.type + " content settings have been cleared.");
       ContentSettings.clear(cOptions.type, tabs[0]);
     },
     goTab: function(tabs) {
-      if (tabs.length < 2) { cPort && funcDict.sendEsc(); return; }
+      if (tabs.length < 2) { return; }
       var count = (cOptions.dir || 1) * commandCount,
         len = tabs.length, toSelect;
       count = cOptions.absolute
@@ -899,7 +897,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
         : commandCount > tabs.length * 2 ? (count > 0 ? -1 : 0)
         : funcDict.selectFrom(tabs).index + count;
       toSelect = tabs[(count >= 0 ? 0 : len) + (count % len)];
-      toSelect.active ? cPort && funcDict.sendEsc() : funcDict.selectTab(toSelect.id);
+      toSelect.active || funcDict.selectTab(toSelect.id);
     },
     removeTab: function(tabs) {
       if (!tabs || tabs.length <= 0) { return chrome.runtime.lastError; }
@@ -936,22 +934,20 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
     restoreTab: function() {
       var count = commandCount, limit;
       if (count === 1 && cPort.sender.incognito) {
-        return requestHandlers.ShowHUD("Can not restore a tab in incognito mode!", 1);
+        return requestHandlers.ShowHUD("Can not restore a tab in incognito mode!");
       }
       limit = chrome.sessions.MAX_SESSION_RESULTS;
       limit > 0 && limit < count && (count = limit);
       while (--count >= 0) {
         chrome.sessions.restore(null, funcDict.onRuntimeError);
       }
-      return true;
     },
     restoreGivenTab: function() {
       if (commandCount > chrome.sessions.MAX_SESSION_RESULTS) {
         funcDict.restoreGivenTab([]);
-      } else {
-        chrome.sessions.getRecentlyClosed(funcDict.restoreGivenTab);
+        return;
       }
-      return true;
+      chrome.sessions.getRecentlyClosed(funcDict.restoreGivenTab);
     },
     blank: function() {},
     openCopiedUrlInCurrentTab: function() {
@@ -961,10 +957,9 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
       Utils.lastUrlType = 0;
       var url = requestHandlers.getCopiedUrl_f(cOptions);
       if (Utils.lastUrlType === 5) {
-        funcDict.sendEsc();
         funcDict.onEvalUrl(url);
       } else if (!url) {
-        requestHandlers.ShowHUD("No text copied!", 1);
+        requestHandlers.ShowHUD("No text copied!");
       } else if (tabs.length > 0) {
         openMultiTab(url, commandCount, tabs[0]);
       } else {
@@ -1072,7 +1067,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
         return;
       }
       chrome.windows.get(tab.windowId, function(wnd) {
-        wnd.incognito ? funcDict.sendEsc() : funcDict.reopenTab(tab);
+        wnd.incognito || funcDict.reopenTab(tab);
       });
     },
     goToRoot: function(tabs) {
@@ -1129,14 +1124,13 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
         : !sender.frameId ? "This page is just the top frame"
         : null;
       if (msg) {
-        return requestHandlers.ShowHUD(msg, 1);
+        return requestHandlers.ShowHUD(msg);
       }
       chrome.webNavigation.getAllFrames({tabId: sender.tabId}, funcDict.focusParentFrame.bind(sender));
-      return true;
     },
     visitPreviousTab: function(tabs) {
       var tabId;
-      if (tabs.length < 2) { return funcDict.sendEsc(); }
+      if (tabs.length < 2) { return; }
       tabs.splice(funcDict.selectFrom(tabs).index, 1);
       tabs.sort(TabRecency.rCompare);
       tabId = tabs[Math.min(commandCount, tabs.length) - 1].id;
@@ -1157,8 +1151,8 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
         return;
       default: str = tabs[0].url; break;
       }
-      requestHandlers.ShowHUD(str, 1, true);
       Clipboard.copy(str);
+      return requestHandlers.ShowHUD(str, true);
     },
     goNext: function() {
       var dir = cOptions.dir || "next", defaultPatterns;
@@ -1170,7 +1164,6 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
           patterns: defaultPatterns.toLowerCase()
         }
       });
-      return true;
     },
     enterInsertMode: function() {
       var hideHud = cOptions.hideHud;
@@ -1180,7 +1173,6 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
           hideHud: hideHud != null ? hideHud : Settings.get("hideHud", true)
         }
       });
-      return true;
     },
     performFind: function() {
       var query = cOptions.active ? null : FindModeHistory.query(cPort.sender.incognito);
@@ -1189,7 +1181,6 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
         dir: cOptions.dir,
         query: query
       }});
-      return true;
     },
     showVomnibar: function() {
       var port = cPort, options;
@@ -1210,18 +1201,16 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
       });
       options.secret = -1;
       cOptions = options;
-      return true;
     },
     clearFindHistory: function() {
       var incognito = cPort.sender.incognito;
       FindModeHistory.removeAll(incognito);
-      return requestHandlers.ShowHUD((incognito ? "incognito " : "") + "find history has been cleared.", 1);
+      return requestHandlers.ShowHUD((incognito ? "incognito " : "") + "find history has been cleared.");
     },
     toggleViewSource: function(tabs) {
       var url = tabs[0].url;
       if (url.startsWith("chrome-")) {
-        funcDict.complain("visit HTML of an extension's page", 1);
-        return;
+        return funcDict.complain("visit HTML of an extension's page");
       }
       url = url.startsWith("view-source:") ? url.substring(12) : ("view-source:" + url);
       openMultiTab(url, 1, tabs[0]);
@@ -1684,18 +1673,16 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
       return getSecret();
     },
     SetIcon: function() {},
-    ShowHUD: function(message, alsoEsc, isCopy) {
+    ShowHUD: function(message, isCopy) {
       try {
         cPort && cPort.postMessage({
           name: "showHUD",
           text: message,
-          esc: !!alsoEsc,
           isCopy: isCopy === true
         });
       } catch (e) {
         cPort = null;
       }
-      return alsoEsc ? true : undefined;
     }
   };
 
@@ -1817,7 +1804,6 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
     : chrome.tabs.query.bind(null, {currentWindow: true, active: true}
         , funcDict.createTab[0].bind(url, onlyNormal));
     f.useTab = 0;
-    f.executed = true;
   };
 
   Settings.updateHooks.keyMappings = function(value) {
@@ -1886,8 +1872,8 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
   }, 0);
 
   (function() {
-    var ref, i, ref2 = BackgroundCommands, key, f;
-    for (key in ref2) { (f = ref2[key]).useTab = 0; f.executed = false; }
+    var ref, i, ref2 = BackgroundCommands, key;
+    for (key in ref2) { ref2[key].useTab = 0; }
 
     ref = ["goTab", "moveTab", "reloadGivenTab", "reloadTab", "removeRightTab" //
       , "removeTab", "removeTabsR", "togglePinTab", "visitPreviousTab" //
@@ -1898,10 +1884,6 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
       , "searchInAnother" //
     ];
     for (i = ref.length; 0 <= --i; ) { ref2[ref[i]].useTab = 1; }
-
-    ref = ["clearCS", "copyTabInfo", "goTab", "openCopiedUrlInNewTab"
-      , "removeTab", "reopenTab", "toggleViewSource", "visitPreviousTab"];
-    for (i = ref.length; 0 <= --i; ) { ref2[ref[i]].executed = true; }
   })();
 
   setTimeout(function() {
