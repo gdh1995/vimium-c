@@ -934,11 +934,9 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
       funcDict.removeTabsRelative(funcDict.selectFrom(tabs), dir * commandCount, tabs);
     },
     removeRightTab: function(tabs) {
-      if (!tabs) { return; }
+      if (!tabs || commandCount > tabs.length - 1) { return; }
       var ind = funcDict.selectFrom(tabs).index + commandCount;
-      if (ind < tabs.length) {
-        chrome.tabs.remove(tabs[ind].id);
-      }
+      chrome.tabs.remove(tabs[ind >= tabs.length ? tabs.length - 1 - commandCount : ind].id);
     },
     restoreTab: function() {
       var count = commandCount, limit;
