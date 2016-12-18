@@ -371,6 +371,7 @@ ExclusionRulesOption.prototype.onInit = function() {
       element = _ref[_i];
       element.classList.add("chrome-ui");
     }
+    devicePixelRatio !== 1 && (document.body.style.width = 940 / devicePixelRatio + "px");
   }
 
   _ref = $$("[data-permission]");
