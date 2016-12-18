@@ -216,7 +216,7 @@ var Vomnibar = {
   },
   ctrlMap: {
     66: "pageup", 74: "down", 75: "up", 219: "dismiss", 221: "toggle"
-    , 78: "down", 80: "up" // TODO: check <c-p>, <c-n>
+    , 78: "down", 80: "up"
   },
   normalMap: {
     9: "down", 27: "dismiss", 33: "pageup", 34: "pagedown", 38: "up", 40: "down"
