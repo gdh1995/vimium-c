@@ -1047,10 +1047,16 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
         });
         return;
       }
-      var reloadProperties = {
-        bypassCache: cOptions.bypassCache || false
-      }, ind = funcDict.selectFrom(tabs).index, end;
-      end = Math.min(ind + commandCount, tabs.length);
+      var reloadProperties = { bypassCache: cOptions.bypassCache === true }
+        , ind = funcDict.selectFrom(tabs).index, len = tabs.length
+        , end = ind + commandCount;
+      if (cOptions.single) {
+        ind = end <= len ? end - 1 : len >= commandCount ? len - commandCount : len - 1;
+        end = 0;
+      } else if (end > len) {
+        end = len;
+        len >= commandCount && (ind = len - commandCount);
+      }
       do {
         chrome.tabs.reload(tabs[ind].id, reloadProperties);
       } while (end > ++ind);
@@ -1060,12 +1066,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
         chrome.tabs.reload();
         return;
       }
-      funcDict.getCurTabs(function(tabs) {
-        var tab = tabs[funcDict.selectFrom(tabs).index + commandCount - 1];
-        if (tab) {
-          chrome.tabs.reload(tab.id);
-        }
-      });
+      funcDict.getCurTabs(BackgroundCommands.reloadTab);
     },
     reopenTab: function(tabs) {
       var tab = tabs[0];

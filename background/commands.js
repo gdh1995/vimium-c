@@ -257,7 +257,7 @@ availableCommands: {
   scrollFullPageUp: [ "Scroll a full page up", 0, false, { dir: -1, view: "viewSize" }, "scrollBy" ],
   reload: [ "Reload current frame", 1, false ],
   reloadTab: [ "Reload N tab(s) (use bypassCache)", 20, true ],
-  reloadGivenTab: [ "Reload N-th tab", 0, true ],
+  reloadGivenTab: [ "Reload N-th tab", 0, true, { single: true } ],
   reopenTab: [ "Reopen current page", 1, true ],
   toggleViewSource: [ "View page source", 1, true ],
   copyCurrentTitle: [ "Copy current tab's title", 1, true, { type: "title" }, "copyTabInfo" ],
