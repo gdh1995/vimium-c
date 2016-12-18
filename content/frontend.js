@@ -107,7 +107,7 @@ var VSettings, VHUD, VPort, VEventMode;
           }
         }
       }
-      else if (key !== VKeyCodes.esc || !VKeyboard.isPlain(event)) {}
+      else if (key !== VKeyCodes.esc || VKeyboard.getKeyStat(event)) {}
       else if (currentSeconds) {
         vPort.post({ handler: "esc" });
         esc();
@@ -430,7 +430,7 @@ var VSettings, VHUD, VPort, VEventMode;
           hints[sel].classList.add("S");
           VDom.UI.simulateSelect(hints[sel].clickableItem);
         } else if (event.keyCode === VKeyCodes.f12) {
-          return VKeyboard.isPlain(event) ? 0 : 2;
+          return VKeyboard.getKeyStat(event) ? 2 : 0;
         } else if (!event.repeat && event.keyCode !== VKeyCodes.shiftKey
             && event.keyCode !== VKeyCodes.altKey && event.keyCode !== VKeyCodes.metaKey) {
           this.remove();
