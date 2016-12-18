@@ -1939,7 +1939,6 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
       , "removeTab", "reopenTab", "toggleViewSource", "visitPreviousTab"];
     for (i = ref.length; 0 <= --i; ) { ref2[ref[i]].executed = true; }
   })();
-  window.bgC = BackgroundCommands;
 
   setTimeout(function() {
     Settings.fetchFile("baseCSS");

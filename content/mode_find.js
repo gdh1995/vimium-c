@@ -129,7 +129,7 @@ html > span{float:right;}',
     this.historyIndex = this.matchCount = this.scrollY = this.scrollX = 0;
     return el;
   },
-  OnUnload: function(e) { var f = VFindMode; f && f.isActive && f.deactivate(true); },
+  OnUnload: function() { var f = VFindMode; f && f.isActive && f.deactivate(true); },
   OnMousedown: function(event) { if (event.target !== VFindMode.input) { event.preventDefault(); VFindMode.input.focus(); } },
   onKeydown: function(event) {
     var i = event.keyCode, n = i, el, el2;
