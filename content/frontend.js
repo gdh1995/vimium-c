@@ -348,7 +348,7 @@ var VSettings, VHUD, VPort, VEventMode;
           VHints.tryNestedFrame("showHelp", [1, _1, 2])) {
         return;
       }
-      if (!document.body) { return false; }
+      if (!VDom.isHTML()) { return false; }
       vPort.post({handler: "initHelp"});
     },
     autoCopy: function(_0, options) {
@@ -684,7 +684,7 @@ var VSettings, VHUD, VPort, VEventMode;
       setTimeout(function() { window.focus(); }, 0);
       esc();
       VEventMode.suppress(request.lastKey);
-      if (request.frameId < -1 || !document.body) { return; }
+      if (request.frameId < -1 || !VDom.isHTML()) { return; }
       var _this = FrameMask, dom1;
       if (dom1 = _this.node) {
         _this.more = true;

@@ -126,9 +126,9 @@ var VVisualMode = {
   },
   establishInitialSelectionAnchor: function() {
     var nodes, node, element, str, offset;
-    if (!document.body) { return true; }
+    if (!VDom.isHTML()) { return true; }
     VDom.prepareCrop();
-    nodes = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+    nodes = document.createTreeWalker(document.body || document.documentElement, NodeFilter.SHOW_TEXT);
     while (node = nodes.nextNode()) {
       if (50 <= (str = node.data).length && 50 < str.trim().length) {
         element = node.parentElement;

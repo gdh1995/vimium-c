@@ -78,8 +78,7 @@ Core: {
   },
   getActivatedElement: function() {
     var element;
-    this.top = document.scrollingElement || document.body ||
-      ((element = document.documentElement, element instanceof HTMLElement) ? element : null);
+    this.top = document.scrollingElement || document.body || (VDom.isHTML() ? document.documentElement : null);
     this.scale = Math.max(1, 1 / (window.devicePixelRatio || 1));
     if (element = this.current) { return element; }
     element = this.top;

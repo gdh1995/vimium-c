@@ -1953,6 +1953,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
     }
 
     document.documentElement.textContent = '';
+    document.firstChild.remove();
   }, 34);
 
   // will run only on <F5>, not on runtime.reload

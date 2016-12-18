@@ -28,7 +28,7 @@ height:14px;margin:0;overflow:hidden;vertical-align:top;white-space:nowrap;curso
 body{cursor:text;display:inline-block;padding:0 3px 0 1px;min-width:7px;}body *{cursor:text;display:inline;}body br{display:none;}\
 html > span{float:right;}',
   activate: function(options) {
-    if (!document.body) { return false; }
+    if (!VDom.isHTML()) { return false; }
     options = Object.setPrototypeOf(options || {}, null);
     var query = options.query, zoom;
     !this.isActive && query !== this.query && VMarks.setPreviousPosition();
@@ -308,7 +308,7 @@ html > span{float:right;}',
     var sel = window.getSelection(), range;
     if (sel.type == "None") {
       range = document.createRange();
-      range.setStart(document.body, 0);
+      range.setStart(document.body || document.documentElement, 0);
     } else {
       range = sel.getRangeAt(0);
     }

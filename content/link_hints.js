@@ -370,7 +370,7 @@ var VHints = {
     if (window.frames[0] == null) { return false; }
     if (document.webkitIsFullScreen) { return null; }
     if (output == null) {
-      if (document.body === null) { return false; }
+      if (!VDom.isHTML()) { return false; }
       output = [];
       func = this.GetClickable.bind(output);
       VDom.prepareCrop();
