@@ -66,7 +66,7 @@ var exports = {}, Utils = {
       this.lastUrlType = 0;
       return string.replace(this.A0Re, ' ');
     }
-    var type = -1, expected = 1, index, index2, oldString, arr;
+    var type = -1, expected = 1, hasPath = false, index, index2, oldString, arr;
     oldString = string.replace(this.lfRe, '').replace(this.spacesRe, ' ');
     string = oldString.toLowerCase();
     if ((index = string.indexOf(' ')) > 0) {
@@ -87,6 +87,7 @@ var exports = {}, Utils = {
         if (index === 0 || string.length < oldString.length - index2) { type = 4; }
       } else if (string.length >= oldString.length - index2 ||
           ((index2 = string.charCodeAt(index + 1)) > 32 && index2 !== 47)) {
+        hasPath = string.length > index + 1;
         string = string.substring(0, index);
       } else {
         type = 4;
@@ -133,7 +134,7 @@ var exports = {}, Utils = {
       type = this._ipv6Re.test(string) ? expected : 4;
     } else if (string.endsWith("localhost")) {
       type = expected;
-    } else if ((index = string.lastIndexOf('.')) <= 0) {
+    } else if ((index = string.lastIndexOf('.')) < 0) {
       string === "__proto__" && (string = ".__proto__");
       type = expected !== 1 || (string in this.domains) ? expected : 4;
     } else if (this._ipRe.test(string)) {
@@ -143,7 +144,7 @@ var exports = {}, Utils = {
     } else if (string.length !== index + 3 && type === 1 && this._nonENDoaminRe.test(string)) {
       // `non-english.non-ccTld` AND NOT `non-english.non-english-tld`
       type = 4;
-    } else if (expected !== 1 || arr[0].length < oldString.length) {
+    } else if (expected !== 1 || hasPath) {
       type = expected;
     } else if (arr[2] || arr[4] || !arr[1] || string.startsWith("ftp")) {
       type = 1;
