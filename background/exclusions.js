@@ -54,9 +54,8 @@ var Exclusions = {
     for (_i = 0, _len = rules.length; _i < _len; _i += 2) {
       if (rules[_i](url)) {
         str = rules[_i + 1];
-        if (!str) { return ""; }
+        if (str.length === 0 || this.onlyFirstMatch) { return str; }
         matchedKeys += str;
-        if (this.onlyFirstMatch) { break; }
       }
     }
     return matchedKeys || null;
