@@ -136,7 +136,7 @@ var exports = {}, Utils = {
       type = expected;
     } else if ((index = string.lastIndexOf('.')) < 0) {
       string === "__proto__" && (string = ".__proto__");
-      type = expected !== 1 || (string in this.domains) ? expected : 4;
+      type = expected !== 1 || arr[4] && hasPath || (string in this.domains) ? expected : 4;
     } else if (this._ipRe.test(string)) {
       type = expected;
     } else if ((type = this.isTld(string.substring(index + 1))) === 0) {
