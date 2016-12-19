@@ -130,6 +130,10 @@ var exports = {}, Utils = {
     if (type !== -1) {
     } else if (!(arr = this._hostRe.exec(string))) {
       type = 4;
+      if (string.length === oldString.length && this._ipv6Re.test(string = "[" + string + "]")) {
+        oldString = string;
+        type = 1;
+      }
     } else if ((string = arr[3]).endsWith(']')) {
       type = this._ipv6Re.test(string) ? expected : 4;
     } else if (string.endsWith("localhost")) {
