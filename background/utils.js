@@ -121,6 +121,11 @@ var exports = {}, Utils = {
       expected = 0;
     }
 
+    if (type === -1 && string.indexOf("%") >= 0) {
+      string = Utils.DecodeURLPart(string);
+      if (string.indexOf('/') >= 0) { type = 4; }
+    }
+    if (type === -1 && string.startsWith(".")) { string = string.substring(1); }
     if (type !== -1) {
     } else if (!(arr = this._hostRe.exec(string))) {
       type = 4;
