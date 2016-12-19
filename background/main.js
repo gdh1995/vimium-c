@@ -328,7 +328,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
       FindModeHistory.timer = 0;
       var left = false, i, port;
       for (i in framesForTab) {
-        port = framesForTab[i][1];
+        port = framesForTab[i][0];
         if (port.sender.incognito) { left = true; break; }
       }
       if (!left) { this.cleanI(); return; }
