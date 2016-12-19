@@ -46,6 +46,7 @@ var exports = {}, Utils = {
   domains: Object.create(null),
   _hostRe: /^([^:]+(:[^:]+)?@)?([^:]+|\[[^\]]+])(:\d{2,5})?$/,
   _ipRe: /^(?:\d{1,3}\.){3}\d{1,3}$/,
+  _ipv6Re: /^\[[\da-f]{0,4}(?::[\da-f]{0,4}){1,5}(?:(?::[\da-f]{0,4}){1,2}|:\d{0,3}(?:\.\d{0,3}){3})]$/,
   lfRe: /[\r\n]+/g,
   spacesRe: /\s+/g,
   A0Re: /\xa0/g,
@@ -123,7 +124,9 @@ var exports = {}, Utils = {
     if (type !== -1) {
     } else if (!(arr = this._hostRe.exec(string))) {
       type = 4;
-    } else if ((string = arr[3]).indexOf(':') !== -1 || string.endsWith("localhost")) {
+    } else if ((string = arr[3]).endsWith(']')) {
+      type = this._ipv6Re.test(string) ? expected : 4;
+    } else if (string.endsWith("localhost")) {
       type = expected;
     } else if ((index = string.lastIndexOf('.')) <= 0) {
       string === "__proto__" && (string = ".__proto__");
