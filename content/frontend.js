@@ -798,6 +798,7 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
     init: function(request) {
       var r = requestHandlers;
       VSettings.cache = request.load;
+      request.load.onMac && (VKeyboard.correctionMap = Object.create(null));
       clearInterval(VSettings.timer);
       r.keyMap(request);
       r.reset(request);
