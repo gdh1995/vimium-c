@@ -380,6 +380,12 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
       }, 17);
     }],
     makeWindow: function(option, state, callback) {
+      if (!state) { state = ""; }
+      else if (option.focused === false) {
+        state !== "minimized" && (state = "normal");
+      } else if (state === "minimized") {
+        state = "normal";
+      }
       if (state && Settings.CONST.ChromeVersion >= 44) {
         option.state = state;
         state = null;
@@ -681,7 +687,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
         options.tabId = undefined;
       }
       funcDict.makeWindow(options, wnd.type === "normal" && wnd.state);
-      if (options.url) {
+      if (tabId != null) {
         chrome.tabs.remove(tabId);
       }
     }, function(options, tab2) {
