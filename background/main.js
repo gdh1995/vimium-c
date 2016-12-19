@@ -454,40 +454,28 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
       } while(--count > 1);
     },
     openUrlInIncognito: function(request, tab, wnds) {
-      wnds = wnds.filter(funcDict.isIncNor);
-      if (wnds.length) {
-        var inCurWnd = wnds.filter(function(wnd) {
-          return wnd.id === tab.windowId;
-        }).length > 0, options = {
+      var oldWnd, inCurWnd, options, active = !(request.reuse < -1);
+      oldWnd = wnds.filter(function(wnd) { return wnd.id === tab.windowId; })[0];
+      inCurWnd = oldWnd != null && oldWnd.incognito;
+      inCurWnd || (wnds = wnds.filter(funcDict.isIncNor));
+      if (inCurWnd || wnds.length > 0) {
+        options = {
           url: request.url,
           windowId: inCurWnd ? tab.windowId : wnds[wnds.length - 1].id
         };
         if (inCurWnd) {
           options.index = tab.index + 1;
           options.openerTabId = tab.id;
+          options.active = active;
         }
         chrome.tabs.create(options);
-        request.active && !inCurWnd && funcDict.selectWnd(options);
+        !inCurWnd && active && funcDict.selectWnd(options);
         return;
       }
-      chrome.windows.get(tab.windowId, function(oldWnd) {
-        var state, option;
-        if (oldWnd.type === "normal") {
-          state = oldWnd.state;
-        }
-        option = {
-          type: "normal",
-          url: request.url,
-          incognito: true
-        };
-        if (Settings.CONST.ChromeVersion >= 44) { option.state = state; state = null; }
-        chrome.windows.create(option, function(newWnd) {
-          request.active || funcDict.selectWnd(tab);
-          if (state) {
-            chrome.windows.update(newWnd.id, {state: state});
-          }
-        });
-      });
+      funcDict.makeWindow({
+        type: "normal", url: request.url,
+        incognito: true, focused: active
+      }, oldWnd && oldWnd.type === "normal" && oldWnd.state);
     },
 
     createTab: [function(onlyNormal, tabs) {

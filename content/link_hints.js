@@ -891,7 +891,7 @@ OPEN_INCOGNITO_LINK: {
     VPort.post({
       handler: "openUrl",
       incognito: true,
-      active: !(this.mode & 64),
+      reuse: !(this.mode & 64) - 2,
       keyword: this.options.keyword,
       url: url
     });
