@@ -847,12 +847,6 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
     }]
   };
 
-  /*
-    function (null <% if .useTab is -1 else %>
-      Tab [] tabs <% if .useTab is 1 else %>
-      Tab [1] tabs = [selected] <% if not .useTab else ERROR %>
-    );
-    */
   BackgroundCommands = {
     createTab: function() {},
     duplicateTab: function() {
@@ -1344,7 +1338,6 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
     return count === 2 ? funcDict.getCurTabs(func) : count === 1 ? funcDict.getCurTab(func) : func();
   };
 
-  // function (request, port);
   /* globals g_requestHandlers: true */
   g_requestHandlers = requestHandlers = {
     setSetting: function(request, port) {
