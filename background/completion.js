@@ -246,7 +246,7 @@ history: {
       }
       return;
     }
-    0 ? null
+    index === 0 ? chrome.tabs.query({}, this.loadTabs.bind(this, query))
       : chrome.sessions ? chrome.sessions.getRecentlyClosed(null, this.loadSessions.bind(this, query))
       : this.filterFill([], query, {}, 0);
     if (history) {
@@ -296,6 +296,16 @@ history: {
       sugs.push(sug);
     }
     return sugs;
+  },
+  loadTabs: function(query, tabs) {
+    if (query.isOff) { return; }
+    var arr = {}, i, url, count = 0;
+    for (i = tabs.length; 0 <= --i; ) {
+      url = tabs[i].url;
+      if (url in arr) { continue; }
+      arr[url] = 1; count++;
+    }
+    this.filterFill([], query, arr, offset, count);
   },
   loadSessions: function(query, sessions) {
     if (query.isOff) { return; }
