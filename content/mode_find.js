@@ -25,7 +25,8 @@ var VFindMode = {
   cssOut: "body{-webkit-user-select:auto !important;user-select:auto !important}\n",
   cssIFrame: '*{font:12px/14px "Helvetica Neue",Helvetica,Arial,sans-serif !important;\
 height:14px;margin:0;overflow:hidden;vertical-align:top;white-space:nowrap;cursor:default;}\
-body{cursor:text;display:inline-block;padding:0 3px 0 1px;min-width:7px;}body *{cursor:text;display:inline;}body br{display:none;}\
+body{cursor:text;display:inline-block;padding:0 3px 0 1px;max-width:215px;min-width:7px;}\
+body *{cursor:text;display:inline;}body br{display:none;}\
 html > span{float:right;}',
   activate: function(options) {
     if (!VDom.isHTML()) { return false; }
