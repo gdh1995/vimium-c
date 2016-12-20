@@ -783,10 +783,10 @@ getUrlData: function(link) {
 },
 
 highlightChild: function(child) {
+  setTimeout(function() { child.focus(); }, 0);
   try {
-    child.VEventMode.keydownEvents();
+    child.VEventMode.keydownEvents(VEventMode.keydownEvents());
   } catch (e) {
-    child.focus();
     return;
   }
   var lh = child.VHints;
