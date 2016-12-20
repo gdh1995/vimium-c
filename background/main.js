@@ -1010,6 +1010,9 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
       }
     },
     toggleMuteTab: function() {
+      if (Settings.CONST.ChromeVersion < 45) {
+        return requestHandlers.ShowHUD("Vimium++ can not control mute state before Chrome 45");
+      }
       if (cOptions.all || cOptions.other) {
         chrome.tabs.query({audible: true}, funcDict.toggleMuteTab[1]);
         return;
@@ -1104,7 +1107,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
     },
     parentFrame: function() {
       var frames, sender, msg;
-      msg = Settings.CONST.ChromeVersion < 41 ? "Vimium++ can not know current frame on this old Chrome"
+      msg = Settings.CONST.ChromeVersion < 41 ? "Vimium++ can not know parent frame before Chrome 41"
         : !chrome.webNavigation ? "Vimium++ is not permitted to access frames"
         : !((frames = framesForTab[cPort.sender.tabId]) && (sender = frames[0].sender) && sender.tabId > 0)
           ? "Vimium++ can not access frames in current tab"
