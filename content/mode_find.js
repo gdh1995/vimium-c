@@ -66,23 +66,22 @@ html > span{float:right;}',
     VHUD.box ? VDom.UI.root.insertBefore(el, VHUD.box) : VDom.UI.addElement(el);
   },
   onLoad: function(el) {
-    var wnd = el.contentWindow, doc = wnd.document, zoom;
+    var wnd = el.contentWindow, doc = wnd.document, docEl = doc.documentElement, zoom;
     el.onload = null;
     wnd.onmousedown = el.onmousedown = this.OnMousedown;
     wnd.onkeydown = this.onKeydown.bind(this);
     wnd.onfocus = VEventMode.OnWndFocus();
     wnd.onunload = this.OnUnload;
     zoom = wnd.devicePixelRatio;
-    zoom < 1 && (doc.documentElement.style.zoom = 1 / zoom);
-    el = VDom.UI.createStyle(this.cssIFrame, doc);
-    doc.head.appendChild(el);
+    zoom < 1 && (docEl.style.zoom = 1 / zoom);
+    doc.head.appendChild(VDom.UI.createStyle(VFindMode.cssIFrame, doc));
     el = this.input = doc.body;
-    doc.documentElement.insertBefore(doc.createTextNode("/"), el);
+    docEl.insertBefore(doc.createTextNode("/"), el);
     el.contentEditable = "plaintext-only";
     el.oninput = this.onInput.bind(this);
     el = this.countEl = doc.createElement("span");
     el.appendChild(doc.createTextNode(""));
-    doc.documentElement.appendChild(el);
+    setTimeout(function() { docEl.appendChild(el); }, 0, el);
     VDom.UI.focus(this.input);
     this.isActive = true;
   },
