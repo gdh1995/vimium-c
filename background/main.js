@@ -486,7 +486,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
 
     createTab: [function(onlyNormal, tabs) {
       var tab = null, url = this;
-      if (cOptions.url) {
+      if (cOptions.url || cOptions.urls) {
         BackgroundCommands.openUrl(tabs);
         return chrome.runtime.lastError;
       }
@@ -595,6 +595,17 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
       }
       if (reuse === -2) { tabs[0].active = false; }
       openMultiTab(this, commandCount, tabs[0]);
+    },
+    openUrls: function(tabs) {
+      var urls = cOptions.urls, i, tab = tabs[0], repeat = commandCount;
+      if (cOptions.reuse === -2) { tab.active = false; }
+      do {
+        for (i = 0; i < urls.length; i++) {
+          openMultiTab(urls[i], 1, tab);
+          tab.active = false;
+          tab.index++;
+        }
+      } while (0 < --repeat);
     },
     moveTabToNewWindow: [function(wnd) {
       var tab;
@@ -956,6 +967,9 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
     },
     openUrl: function(tabs) {
       var url, reuse;
+      if (cOptions.urls) {
+        return tabs ? funcDict.openUrls(tabs) : funcDict.getCurTab(funcDict.openUrls);
+      }
       if (cOptions.url_mask) {
         if (tabs == null) {
           return chrome.runtime.lastError || funcDict.getCurTab(BackgroundCommands.openUrl);
