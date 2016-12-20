@@ -587,7 +587,7 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
       tab.active = false;
       openMultiTab(tab.url, commandCount, tab);
     }],
-    openUrl: function(reuse, tabs) {
+    openUrlInNewTab: function(reuse, tabs) {
       if (cOptions.incognito) {
         cOptions.url = this;
         chrome.windows.getAll(funcDict.openUrlInIncognito.bind(null, cOptions, tabs[0]));
@@ -976,8 +976,8 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
       } else if (reuse === 0) {
         chrome.tabs.update(null, { url: url }, funcDict.onRuntimeError);
       } else {
-        tabs ? funcDict.openUrl.call(url, reuse, tabs)
-        : funcDict.getCurTab(funcDict.openUrl.bind(url, reuse));
+        tabs ? funcDict.openUrlInNewTab.call(url, reuse, tabs)
+        : funcDict.getCurTab(funcDict.openUrlInNewTab.bind(url, reuse));
       }
     },
     searchInAnother: function(tabs) {
