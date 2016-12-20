@@ -246,19 +246,9 @@ history: {
       }
       return;
     }
-    chrome.sessions ? chrome.sessions.getRecentlyClosed(null, function(sessions) {
-      if (query.isOff) { return; }
-      var historys = [], arr = {}, i;
-      i = queryType === 3 ? -offset : 0;
-      sessions.some(function(item) {
-        var entry = item.tab;
-        if (!entry || entry.url in arr) { return; }
-        arr[entry.url] = 1;
-        ++i > 0 && historys.push(entry);
-        return historys.length >= maxResults;
-      }) ? Completers.history.filterFinish(historys) :
-      Completers.history.filterFill(historys, query, arr, -i);
-    }) : this.filterFill(null, query, {}, 0);
+    0 ? null
+      : chrome.sessions ? chrome.sessions.getRecentlyClosed(null, this.loadSessions.bind(this, query))
+      : this.filterFill([], query, {}, 0);
     if (history) {
       HistoryCache.refreshInfo();
     } else {
@@ -291,7 +281,7 @@ history: {
     }
     regexps = null;
     sugs = [];
-    getRele = this.getRelevancy0;
+    getRele = this.getExtra;
     if (queryType === 3) {
       i = offset * 2;
       offset = 0;
@@ -302,22 +292,32 @@ history: {
       score = results[i];
       if (score <= 0) { break; }
       item = history[results[i + 1]];
-      sug = new Suggestion("history", item.url, item.text, item.title, getRele);
-      sug.relevancy = score;
+      sug = new Suggestion("history", item.url, item.text, item.title, getRele, score);
       sugs.push(sug);
     }
     return sugs;
   },
-  filterFill: function(historys, query, arr, cut) {
+  loadSessions: function(query, sessions) {
+    if (query.isOff) { return; }
+    var historys = [], arr = {}, i;
+    i = queryType === 3 ? -offset : 0;
+    sessions.some(function(item) {
+      var entry = item.tab;
+      if (!entry || entry.url in arr) { return false; }
+      arr[entry.url] = 1;
+      ++i > 0 && historys.push(entry);
+      return historys.length >= maxResults;
+    }) ? this.filterFinish(historys) :
+    this.filterFill(historys, query, arr, -i);
+  },
+  filterFill: function(historys, query, arr, cut, neededMore) {
     chrome.history.search({
       text: "",
-      maxResults: (queryType === 3 ? offset : 0) + maxResults
+      maxResults: offset + maxResults + (neededMore | 0)
     }, function(historys2) {
       if (query.isOff) { return; }
       var a = arr;
-      historys2 = historys2.filter(function(i) {
-        return !(i.url in a);
-      });
+      historys2 = historys2.filter(Completers.history.urlNotIn, arr);
       if (cut < 0) {
         historys2.length = Math.min(historys2.length, maxResults - historys.length);
         historys2 = historys.concat(historys2);
@@ -328,21 +328,19 @@ history: {
     });
   },
   filterFinish: function(historys) {
-    var s = Suggestion, c = this.getRelevancy0, d = Decoder.decodeURL;
-    if (historys.length > maxResults) {
-      historys.length = maxResults;
-    }
-    historys.forEach(function(e, i, arr) {
-      var o = new s("history", e.url, d(e.url), e.title, c, e.lastVisitTime);
-      o.relevancy = 0.99 - i / 256;
-      e.sessionId && (o.sessionId = e.sessionId);
-      arr[i] = o;
-    });
+    historys.forEach(this.MakeSuggestion);
     offset = 0;
     Completers.next(historys);
     Decoder.continueToWork();
   },
-  getRelevancy0: function() { return 0; },
+  MakeSuggestion: function(e, i, arr) {
+    var o = new Suggestion("history", e.url, Decoder.decodeURL(e.url), e.title,
+      Completers.history.getExtra, 0.99 - i / 25);
+    e.sessionId && (o.sessionId = e.sessionId);
+    arr[i] = o;
+  },
+  getExtra: function(sug, score) { return score; },
+  urlNotIn: function(i) { return !(i.url in this); },
   computeRelevancy: function(text, title, lastVisitTime) {
     var recencyScore = RankingUtils.recencyScore(lastVisitTime),
       wordRelevancy = RankingUtils.wordRelevancy(text, title);
