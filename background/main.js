@@ -393,14 +393,14 @@ var Clipboard, Commands, Completers, Exclusions, HelpDialog, Marks, TabRecency, 
         chrome.tabs.create(option);
       } while(--count > 1);
     },
-    openUrlInIncognito: function(request, tab, wnds) {
-      var oldWnd, inCurWnd, options, active = !(request.reuse < -1);
+    openUrlInIncognito: function(tab, wnds) {
+      var oldWnd, inCurWnd, options, active = !(cOptions.reuse < -1);
       oldWnd = wnds.filter(function(wnd) { return wnd.id === tab.windowId; })[0];
       inCurWnd = oldWnd != null && oldWnd.incognito;
       inCurWnd || (wnds = wnds.filter(funcDict.isIncNor));
       if (inCurWnd || wnds.length > 0) {
         options = {
-          url: request.url,
+          url: this,
           windowId: inCurWnd ? tab.windowId : wnds[wnds.length - 1].id
         };
         if (inCurWnd) {
@@ -413,7 +413,7 @@ var Clipboard, Commands, Completers, Exclusions, HelpDialog, Marks, TabRecency, 
         return;
       }
       funcDict.makeWindow({
-        type: "normal", url: request.url,
+        type: "normal", url: this,
         incognito: true, focused: active
       }, oldWnd && oldWnd.type === "normal" && oldWnd.state);
     },
@@ -523,8 +523,7 @@ var Clipboard, Commands, Completers, Exclusions, HelpDialog, Marks, TabRecency, 
     }],
     openUrlInNewTab: function(reuse, tabs) {
       if (cOptions.incognito) {
-        cOptions.url = this;
-        chrome.windows.getAll(funcDict.openUrlInIncognito.bind(null, cOptions, tabs[0]));
+        chrome.windows.getAll(funcDict.openUrlInIncognito.bind(this, tabs[0]));
         return;
       }
       if (reuse === -2) { tabs[0].active = false; }
@@ -911,7 +910,7 @@ var Clipboard, Commands, Completers, Exclusions, HelpDialog, Marks, TabRecency, 
         if (tabs.length > 0) {
           url = cOptions.url_f || cOptions.url;
           url = url.replace(cOptions.url_mask, tabs[0].url);
-        } 
+        }
       }
       url = cOptions.url_f ? url || cOptions.url_f : Utils.convertToUrl(url || cOptions.url || "");
       if (cOptions.id_marker) {

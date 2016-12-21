@@ -326,7 +326,6 @@ history: {
       maxResults: offset + maxResults + (neededMore | 0)
     }, function(historys2) {
       if (query.isOff) { return; }
-      var a = arr;
       historys2 = historys2.filter(Completers.history.urlNotIn, arr);
       if (cut < 0) {
         historys2.length = Math.min(historys2.length, maxResults - historys.length);

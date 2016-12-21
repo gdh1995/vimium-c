@@ -58,7 +58,7 @@ var Settings = {
         key = ref[_i];
         ref2[key] = this.get(key);
       }
-      ref2.onMac = this.CONST.Platform === "mac";
+      ref2.onMac = this.CONST.Platform === (chrome.runtime.PlatformOs.MAC || "mac");
     },
     extWhiteList: function(val) {
       var map, arr, i, wordCharRe;
@@ -208,8 +208,7 @@ w|wiki:\\\n  https://www.wikipedia.org/w/index.php?search=$s Wikipedia\n\
     __proto__: null,
     baseCSS: "front/vimium.min.css",
     exclusionTemplate: "front/exclusions.html",
-    helpDialog: "front/help_dialog.html",
-    vomnibar: "front/vomnibar.html"
+    helpDialog: "/front/help_dialog.html"
   },
   icons: [
     { "19": "icons/enabled_19.png", "38": "icons/enabled_38.png" },
@@ -241,7 +240,7 @@ w|wiki:\\\n  https://www.wikipedia.org/w/index.php?search=$s Wikipedia\n\
       settings: "options.html",
       __proto__: null
     },
-    VomnibarPage: ""
+    VomnibarPage: "front/vomnibar.html"
   }
 };
 
@@ -262,7 +261,7 @@ setTimeout(function() {
   obj = Settings.CONST;
   obj.CurrentVersion = ref.version;
   obj.OptionsPage = func(ref.options_page || obj.OptionsPage);
-  obj.VomnibarPage = func(Settings.files.vomnibar);
+  obj.VomnibarPage = func(obj.VomnibarPage);
   ref = ref.content_scripts[0].js;
   ref[ref.length - 1] = "/content/inject_end.js";
   if (obj.ChromeVersion < 41) { ref.unshift(obj.PolyFill); }

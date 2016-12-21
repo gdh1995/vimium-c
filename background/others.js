@@ -148,7 +148,7 @@ setTimeout(function() { if (!chrome.browserAction) { return; }
     } else {
       chrome.browserAction.disable();
       chrome.browserAction.setTitle({
-        title: "Vimium++\nThis icon is not in use"
+        title: "Vimium++\n\nThis icon is disabled by your settings."
       });
     }
   };
