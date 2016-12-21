@@ -206,14 +206,14 @@ w|wiki:\\\n  https://www.wikipedia.org/w/index.php?search=$s Wikipedia\n\
   },
   files: {
     __proto__: null,
-    baseCSS: "front/vimium.min.css",
-    exclusionTemplate: "front/exclusions.html",
+    baseCSS: "/front/vimium.min.css",
+    exclusionTemplate: "/front/exclusions.html",
     helpDialog: "/front/help_dialog.html"
   },
   icons: [
-    { "19": "icons/enabled_19.png", "38": "icons/enabled_38.png" },
-    { "19": "icons/partial_19.png", "38": "icons/partial_38.png" },
-    { "19": "icons/disabled_19.png", "38": "icons/disabled_38.png" }
+    { "19": "/icons/enabled_19.png", "38": "/icons/enabled_38.png" },
+    { "19": "/icons/partial_19.png", "38": "/icons/partial_38.png" },
+    { "19": "/icons/disabled_19.png", "38": "/icons/disabled_38.png" }
   ],
   valuesToLoad: ["deepHints", "grabBackFocus", "keyboard", "linkHintCharacters" //
     , "regexFindMode", "scrollStepSize", "smoothScroll", "userDefinedOuterCss" //
@@ -226,7 +226,7 @@ w|wiki:\\\n  https://www.wikipedia.org/w/index.php?search=$s Wikipedia\n\
     ChromeInnerNewTab: "chrome-search://local-ntp/local-ntp.html", // should keep lower case
     ChromeVersion: 37, ContentScripts: null, CurrentVersion: "",
     KnownPages: ["blank", "newtab", "options", "show"],
-    MathParser: "lib/math_parser.js",
+    MathParser: "/lib/math_parser.js",
     OptionsPage: "pages/options.html", Platform: "", PolyFill: "lib/polyfill.js",
     RedirectedUrls: {
       about: "https://github.com/gdh1995/vimium-plus",
