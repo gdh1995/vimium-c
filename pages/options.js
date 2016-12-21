@@ -191,7 +191,7 @@ ExclusionRulesOption.prototype.onInit = function() {
 };
 
 (function() {
-  var advancedMode, element, el2, onUpdated, func, _i, _ref, status = 0;
+  var advancedMode, element, onUpdated, func, _i, _ref, status = 0;
 
   onUpdated = function() {
     var saveBtn;
@@ -351,19 +351,6 @@ ExclusionRulesOption.prototype.onInit = function() {
     _ref[_i].onclick = func;
   }
 
-  _ref = $$(".booleanOption");
-  for (_i = _ref.length; 0 <= --_i; ) {
-    element = _ref[_i];
-    element.tabIndex = -1;
-    element.setAttribute("aria-hidden", "true");
-    el2 = element.lastElementChild;
-    el2.classList.add("checkboxHint");
-    el2.tabIndex = 0;
-    element = element.firstElementChild;
-    element.setAttribute("aria-hidden", "true");
-    element.tabIndex = -1;
-  }
-
   if (window.location.hash === "#chrome-ui") {
     document.getElementById("mainHeader").remove();
     _ref = $$("body,button,select,header");
@@ -390,11 +377,8 @@ ExclusionRulesOption.prototype.onInit = function() {
         + (key ? ':\n* ' + key : "");
       if (el instanceof HTMLInputElement && el.type === "checkbox") {
         el.checked = false;
-        el.removeAttribute("aria-hidden");
-        el.removeAttribute("tabindex");
-        el.parentElement.title = key;
-        el = el.nextElementSibling;
-        el.removeAttribute("tabindex");
+        el = el.parentElement;
+        el.title = key;
       } else {
         el.value = "";
         el.title = key;
@@ -409,6 +393,24 @@ ExclusionRulesOption.prototype.onInit = function() {
       el.placeholder = "lacking permission " + (key ? '"' + key + '"' : "");
     }
   })(_ref);
+
+  function toggleHide(element) {
+    element.tabIndex = -1;
+    element.setAttribute("aria-hidden", "true");
+  }
+
+  _ref = $$('[data-model="CheckBox"]');
+  for (_i = _ref.length; 0 <= --_i; ) {
+    element = _ref[_i];
+    if (element.disabled) { continue; }
+    toggleHide(element);
+    toggleHide(element.parentElement);
+    element = element.nextElementSibling;
+    element.classList.add("checkboxHint");
+    element.setAttribute("role", "button");
+    element.tabIndex = 0;
+    element.setAttribute("aria-hidden", "false");
+  }
 
   function onBeforeUnload() {
     return "You have unsaved changes to options.";
