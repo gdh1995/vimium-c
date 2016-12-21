@@ -1,7 +1,7 @@
 "use strict";
-var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHandlers;
+var Clipboard, Commands, Completers, Exclusions, HelpDialog, Marks, TabRecency, g_requestHandlers;
 (function() {
-  var BackgroundCommands, Connections, ContentSettings, FindModeHistory, HelpDialog
+  var BackgroundCommands, Connections, ContentSettings, FindModeHistory
     , cOptions, cPort, checkKeyQueue, commandCount, executeCommand
     , framesForOmni, framesForTab
     , funcDict, keyQueueRe, needIcon, openMultiTab, requestHandlers, keyMap, getSecret;
@@ -10,72 +10,6 @@ var Clipboard, Commands, Completers, Exclusions, Marks, TabRecency, g_requestHan
   framesForOmni = [];
 
   needIcon = false;
-
-  HelpDialog = {
-  render: function(showUnbound, showNames, customTitle) {
-    var command, commandsToKey, key, ref = Commands.keyToCommandRegistry, result;
-    commandsToKey = {};
-    for (key in ref) {
-      command = ref[key].command;
-      (commandsToKey[command] || (commandsToKey[command] = [])).push(key);
-    }
-    showUnbound = !!showUnbound;
-    showNames = !!showNames;
-    result = Object.setPrototypeOf({
-      version: Settings.CONST.CurrentVersion,
-      title: customTitle || "Help",
-      tip: showNames ? "Tip: click command names to yank them to the clipboard." : "",
-      lbPad: showNames ? '\n\t\t<tr class="HelpTr"><td class="HelpTd TdBottom">&#160;</td></tr>' : ""
-    }, null);
-    return Settings.cache.helpDialog.replace(/\{\{(\w+)}}/g, function(_, group) {
-      var s = result[group];
-      return s != null ? s
-        : HelpDialog.groupHtml(group, commandsToKey, Commands.availableCommands, showUnbound, showNames);
-    });
-  },
-  groupHtml: function(group, commandsToKey, availableCommands, showUnbound, showNames) {
-    var bindings, command, html, isAdvanced, _i, _len, _ref, keys, description, push;
-    html = [];
-    _ref = Commands.commandGroups[group];
-    showNames = showNames || "";
-    Utils.escapeText("");
-    push = HelpDialog.commandHtml;
-    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-      command = _ref[_i];
-      if (!(keys = commandsToKey[command]) && !showUnbound) { continue; }
-      if (keys && keys.length > 0) {
-        bindings = '\n\t\t<span class="HelpKey">' + keys.map(Utils.escapeText).join('</span>, <span class="HelpKey">') + "</span>\n\t";
-      } else {
-        bindings = "";
-      }
-      isAdvanced = command in Commands.advancedCommands;
-      description = availableCommands[command][0];
-      if (!bindings || keys.join(", ").length <= 12) {
-        push(html, isAdvanced, bindings, description, showNames && command);
-      } else {
-        push(html, isAdvanced, bindings, "", "");
-        push(html, isAdvanced, "", description, showNames && command);
-      }
-    }
-    return html.join("");
-  },
-  commandHtml: function(html, isAdvanced, bindings, description, command) {
-    html.push('<tr class="HelpTr', isAdvanced ? " HelpAdv" : "", '">\n\t');
-    if (description) {
-      html.push('<td class="HelpTd HelpKeys">'
-        , bindings, '</td>\n\t<td class="HelpTd HelpCommandInfo">'
-        , description);
-      if (command) {
-        html.push('\n\t\t<span class="HelpCommandName" role="button">('
-          , command, ")</span>\n\t");
-      }
-    } else {
-      html.push('<td class="HelpTd HelpKeys HelpLongKeys" colspan="2">'
-        , bindings);
-    }
-    html.push("</td>\n</tr>\n");
-  }
-  };
 
   openMultiTab = function(rawUrl, count, parentTab) {
     if (!(count >= 1)) return;
