@@ -240,6 +240,7 @@ w|wiki:\\\n  https://www.wikipedia.org/w/index.php?search=$s Wikipedia\n\
       settings: "options.html",
       __proto__: null
     },
+    ShowHelper: "pages/show_helper.js", ShowPage: "show.html",
     VomnibarPage: "front/vomnibar.html"
   }
 };
@@ -261,6 +262,7 @@ setTimeout(function() {
   obj = Settings.CONST;
   obj.CurrentVersion = ref.version;
   obj.OptionsPage = func(ref.options_page || obj.OptionsPage);
+  obj.ShowPage = Utils.formatVimiumUrl(obj.ShowPage);
   obj.VomnibarPage = func(obj.VomnibarPage);
   ref = ref.content_scripts[0].js;
   ref[ref.length - 1] = "/content/inject_end.js";

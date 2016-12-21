@@ -527,8 +527,27 @@ var Clipboard, Commands, Completers, Exclusions, HelpDialog, Marks, TabRecency, 
         return;
       }
       if (reuse === -2) { tabs[0].active = false; }
+      if (funcDict.openShowPage[0](this, reuse, tabs[0])) { return; }
       openMultiTab(this, commandCount, tabs[0]);
     },
+    openShowPage: [function(url, reuse, tab) {
+      var prefix = Settings.CONST.ShowPage;
+      if (!url.startsWith(prefix) || url.length < prefix.length + 3) { return false; }
+      url = url.substring(prefix.length);
+      chrome.tabs.create({
+        active: reuse !== -2,
+        index: tab.incognito ? undefined : tab.index + 1,
+        windowId: tab.incognito ? undefined : tab.windowId,
+        url: prefix
+      });
+      exports.shownHash = function() { this.shownHash = null; return url; };
+      setTimeout(funcDict.openShowPage[1], 1500, exports.shownHash);
+      return true;
+    }, function(func) {
+      if (exports.shownHash === func) {
+        exports.shownHash = null;
+      }
+    }],
     openUrls: function(tabs) {
       var urls = cOptions.urls, i, tab = tabs[0], repeat = commandCount;
       if (cOptions.reuse === -2) { tab.active = false; }
@@ -921,6 +940,7 @@ var Clipboard, Commands, Completers, Exclusions, HelpDialog, Marks, TabRecency, 
       if (reuse > 0) {
         requestHandlers.focusOrLaunch({url: url});
       } else if (reuse === 0) {
+        if (funcDict.openShowPage[0](url, reuse)) { return; }
         chrome.tabs.update(null, { url: url }, funcDict.onRuntimeError);
       } else {
         tabs ? funcDict.openUrlInNewTab.call(url, reuse, tabs)

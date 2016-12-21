@@ -18,7 +18,11 @@ window.onhashchange = function() {
   }
   type = file = "";
 
-  url = location.hash;
+  url = location.hash || window.name;
+  if (!url && BG && BG.exports && BG.exports.shownHash) {
+    url = BG.exports.shownHash() || "";
+    window.name = url;
+  }
   if (url.length < 3) {}
   else if (url.startsWith("#!image")) {
     url = url.substring(8);
