@@ -531,7 +531,7 @@ var Clipboard, Commands, Completers, Exclusions, HelpDialog, Marks, TabRecency, 
       openMultiTab(this, commandCount, tabs[0]);
     },
     openShowPage: [function(url, reuse, tab) {
-      var prefix = Settings.CONST.ShowPage;
+      var prefix = Settings.CONST.ShowPage, arr;
       if (!url.startsWith(prefix) || url.length < prefix.length + 3) { return false; }
       url = url.substring(prefix.length);
       chrome.tabs.create({
@@ -540,13 +540,23 @@ var Clipboard, Commands, Completers, Exclusions, HelpDialog, Marks, TabRecency, 
         windowId: tab.incognito ? undefined : tab.windowId,
         url: prefix
       });
-      exports.shownHash = function() { this.shownHash = null; return url; };
-      setTimeout(funcDict.openShowPage[1], 1500, exports.shownHash);
+      arr = [url, null, 0];
+      exports.shownHash = arr[1] = function() {
+        clearTimeout(arr[2]);
+        this.shownHash = null; return arr[0];
+      };
+      arr[2] = setTimeout(funcDict.openShowPage[1], 1200, arr);
       return true;
-    }, function(func) {
-      if (exports.shownHash === func) {
-        exports.shownHash = null;
-      }
+    }, function(arr) {
+      arr[0] = "#!url vimium://error (vimium://show: sorry, the info has expired.)";
+      arr[1] = setTimeout(function() {
+        if (exports.shownHash === arr[1]) { exports.shownHash = null; }
+        arr[0] = "", arr[1] = null;
+      }, 2000);
+      // chrome.tabs.executeScript(tab.id, {
+        // file: Settings.CONST.ShowHelper,// + this,
+        // runAt: "document_start"
+      // }, null && funcDict.onRuntimeError);
     }],
     openUrls: function(tabs) {
       var urls = cOptions.urls, i, tab = tabs[0], repeat = commandCount;

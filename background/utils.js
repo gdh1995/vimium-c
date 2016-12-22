@@ -293,6 +293,8 @@ var exports = {}, Utils = {
       break;
     case "newtab":
       return Settings.cache.newTabUrl_f;
+    case "error":
+      return [path, "ERROR"];
     default:
       return null;
     }
