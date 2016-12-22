@@ -731,7 +731,7 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
       if (text.startsWith("chrome-")) {
         text = text.substring(text.indexOf('/', text.indexOf('/') + 2));
       }
-      text = "Yanked: " + (text.length > 41 ? text.substring(0, 39) + "..." : text + ".");
+      text = "Copied: " + (text.length > 41 ? text.substring(0, 39) + "..." : text + ".");
       if (virtual) { return text; }
       this.showForDuration(text, 2000);
     },

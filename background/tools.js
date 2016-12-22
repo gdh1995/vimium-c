@@ -126,7 +126,7 @@ HelpDialog = {
     result = Object.setPrototypeOf({
       version: Settings.CONST.CurrentVersion,
       title: customTitle || "Help",
-      tip: showNames ? "Tip: click command names to yank them to the clipboard." : "",
+      tip: showNames ? "Tip: click command names to copy them to the clipboard." : "",
       lbPad: showNames ? '\n\t\t<tr class="HelpTr"><td class="HelpTd TdBottom">&#160;</td></tr>' : ""
     }, null);
     return Settings.cache.helpDialog.replace(/\{\{(\w+)}}/g, function(_, group) {
