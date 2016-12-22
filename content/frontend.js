@@ -189,10 +189,10 @@ var VSettings, VHUD, VPort, VEventMode;
       }
       ELs.onBlur(event);
     },
-    OnReady: function(event) {
-      var visible = isEnabledForUrl && window.innerHeight > 9 && window.innerWidth > 9;
+    OnReady: function(inited) {
+      var visible = isEnabledForUrl && location.href !== "about:blank" && innerHeight > 9 && innerWidth > 9;
       VDom.UI.insertCSS(visible && VSettings.cache.userDefinedOuterCss);
-      if (event) { return; }
+      if (inited) { return; }
       HUD.enabled = true;
       ELs.OnWndFocus = vPort.safePost.bind(vPort, { handler: "frameFocused" });
     },
