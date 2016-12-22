@@ -234,7 +234,7 @@ var VSettings, VHUD, VPort, VEventMode;
       }
     },
     toggleLinkHintCharacters: function(_0, options) {
-      var values = VSettings.cache, val = options.value || "sadjklewcmpgh";
+      var values = VSettings.cache, val = (options.value || "sadjklewcmpgh").toLowerCase();
       if (values.linkHintCharacters === val) {
         val = values.linkHintCharacters = values.oldLinkHintCharacters;
         values.oldLinkHintCharacters = "";

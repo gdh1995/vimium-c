@@ -119,7 +119,12 @@ function NonEmptyTextOption() {
 __extends(NonEmptyTextOption, TextOption);
 
 NonEmptyTextOption.prototype.readValueFromElement = function() {
-  var value = NonEmptyTextOption.__super__.readValueFromElement.call(this);
+  var value = NonEmptyTextOption.__super__.readValueFromElement.call(this), converter;
+  if (converter = this.element.getAttribute("data-converter")) {
+    value = converter === "lower" ? value.toLowerCase()
+      : converter === "upper" ? value.toUpperCase()
+      : value;
+  }
   if (!value) {
     value = bgSettings.defaults[this.field];
     this.populateElement(value, true);
