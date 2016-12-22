@@ -58,7 +58,7 @@ var Settings = {
         key = ref[_i];
         ref2[key] = this.get(key);
       }
-      ref2.onMac = this.CONST.Platform === (chrome.runtime.PlatformOs.MAC || "mac");
+      ref2.onMac = this.CONST.Platform === (chrome.runtime.PlatformOs ? chrome.runtime.PlatformOs.MAC : "mac");
     },
     extWhiteList: function(val) {
       var map, arr, i, wordCharRe;
