@@ -66,6 +66,7 @@
       "content/mode_visual.js",
       "lib/extend_click.js"
     ],
+    "match_about_blank": true,
     "matches": [ "<all_urls>" ],
     "run_at": "document_start"
   }, {
