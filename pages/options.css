@@ -88,7 +88,8 @@ select.right:focus {
 
 #exclusionRulesTable,
 pre, code, kbd, .code {
-  font-family: Consolas, "Liberation Mono", "Courier New", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Heiti SC", "WenQuanYi Micro Hei", monospace;
+  font-family: Consolas, "Liberation Mono", "Courier New", "PingFang SC", "Hiragino Sans GB",
+    "Microsoft YaHei", "Heiti SC", "WenQuanYi Micro Hei", monospace;
 }
 pre {
   margin: 5px;
@@ -270,6 +271,7 @@ label:active {
   color: #979ca0;
   cursor: default;
   font-size: small;
+  font-family: "Segoe UI Symbol", monospace;
   padding: 5px;
 }
 .exclusionRemoveButton:hover {
