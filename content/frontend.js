@@ -56,7 +56,13 @@ var VSettings, VHUD, VPort, VEventMode;
       port.onMessage.addListener(this.Listener);
     }
   };
-  vPort.connect(1);
+  location.href !== "about:blank" ? vPort.connect(1)
+  : (window.onload = function() { setTimeout(function() {
+    window.onload = null;
+    var a = document.body, exit;
+    exit = !!a && (a.isContentEditable || a.childElementCount === 1 && a.firstElementChild.isContentEditable);
+    exit ? VSettings.destroy(true) : vPort.connect(1);
+  }, 18); });
   VPort = { post: vPort.post, send: vPort.send };
 
   VSettings = {
