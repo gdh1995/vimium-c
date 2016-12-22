@@ -213,7 +213,7 @@ var VHints = {
     }
     if (isClickable === null) {
       type = (s = element.getAttribute("role")) && (s = s.toLowerCase(), s === "button" || s === "link")
-          || element.contentEditable === "true" ? 1
+          || (s = element.contentEditable) !== "inherit" && s !== "false" ? 1
         : (element.vimiumHasOnclick && VHints.isClickListened) || element.getAttribute("onclick")
           || VHints.ngEnabled && element.getAttribute("ng-click")
           || (s = element.getAttribute("jsaction")) && VHints.checkJSAction(s) ? 2
@@ -248,7 +248,7 @@ var VHints = {
       if (element.disabled || element.readOnly) { return; }
       break;
     default:
-      if (element.contentEditable !== "true") { return; }
+      if (element.contentEditable === "inherit" || element.contentEditable === "false") { return; }
       type = 1;
       break;
     }
