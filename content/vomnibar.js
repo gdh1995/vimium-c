@@ -31,20 +31,21 @@ var Vomnibar = {
     this.width = Math.max(window.innerWidth - 24, document.documentElement.clientWidth);
     this.zoom = VDom.UI.getZoom();
     this.status > 0 || VHandler.push(VDom.UI.SuppressMost, this);
-    VDom.UI.root && VDom.UI.adjust();
+    var url, upper = 0, first = !VDom.UI.root;
+    first || VDom.UI.adjust();
     if (this.status < 0) {
-      setTimeout(this.Init, 0, options.secret, options.vomnibar);
+      this.init(options.secret, options.vomnibar);
+      first && VDom.UI.adjust();
       this.status = 1;
     } else if (this.CheckAlive()) {
       return;
     } else if (!this.status) {
-      this.status = 3;
-    } else if (this.status > 3) {
+      this.status = 2;
+    } else if (this.status > 2) {
       this.box.contentWindow.focus();
       this.onShown();
     }
     delete options.secret; delete options.vomnibar;
-    var url, upper = 0;
     options.width = this.width, options.name = "activate";
     url = options.url;
     if (url === true) {
@@ -73,7 +74,7 @@ var Vomnibar = {
     });
   },
   setOptions: function(options) {
-    return this.status > 2 ? this.port.postMessage(options) : (this.options = options);
+    return this.status > 1 ? this.port.postMessage(options) : (this.options = options);
   },
   hide: function(action) {
     if (this.status <= 0) { return; }
@@ -89,15 +90,14 @@ var Vomnibar = {
     var next, act = function() { Vomnibar.port.postMessage("onHidden"); };
     action ? (next = requestAnimationFrame)(function() { next(act); }) : act();
   },
-  Init: function(secret, page) {
-    var el = VDom.createElement("iframe");
+  init: function(secret, page) {
+    var el = VDom.createElement("iframe"), reinit;
     el.src = page;
     el.className = "LS Omnibar";
     el.style.visibility = "hidden";
     el.onload = function() {
       var _this = Vomnibar, channel, port, i = page.indexOf("://"), wnd = this.contentWindow;
       this.onload = null;
-      _this.status = 2;
       secret = [secret, _this.options];
       _this.options = null;
       page = page.substring(0, page.indexOf("/", i + 3));
@@ -118,7 +118,7 @@ var Vomnibar = {
       wnd.Vomnibar.showFavIcon = true;
       wnd.onmessage({ source: window, data: secret, ports: [port] });
     };
-    VDom.UI.addElement(Vomnibar.box = el, false);
+    return VDom.UI.addElement(this.box = el, false);
   },
   _forceRedo: false,
   reset: function(redo) {
@@ -144,17 +144,12 @@ var Vomnibar = {
     var data = event.data;
     switch (data.name || data) {
     case "uiComponentIsReady":
-      if (this.status !== 2) { return; }
-      this.status = 3;
+      this.status = 2;
       if (data = this.options) { this.options = null; this.port.postMessage(data); }
       break;
     case "style":
-      if (this.status === 3) {
-        this.port.postMessage("afterOmni");
-        this.onShown();
-      }
       this.box.style.height = data.height / this.zoom + "px";
-      break;
+      return this.status !== 1 && this.status !== 2 || this.onShown();
     case "focus": window.focus(); VEventMode.suppress(data.lastKey); break;
     case "hide": this.hide(data.waitFrame); break;
     case "scrollBy": VScroller.scrollBy(1, data.amount); break;
@@ -167,7 +162,7 @@ var Vomnibar = {
     }
   },
   onShown: function() {
-    this.status = 4;
+    this.status = 3;
     var style = this.box.style, width = this.width * 0.8;
     style.width = width !== (width | 0) ? (width | 0) / (width / 0.8) * 100 + "%" : "";
     style.top = this.zoom !== 1 ? ((70 / this.zoom) | 0) + "px" : this.defaultTop;
@@ -175,7 +170,7 @@ var Vomnibar = {
       style.visibility = "";
       style = VDom.UI.box.style;
     }
-    this.sameOrigin ? (style.display = "") : setTimeout(function() { style.display = ""; }, 17);
+    style.display = "";
     VHandler.remove(this);
     VHandler.push(this.onKeydown, this);
   },
@@ -190,7 +185,7 @@ var Vomnibar = {
     return 0;
   },
   focus: function(f2) {
-    if (this.status < 4) { return; }
+    if (this.status < 3) { return; }
     this.box.contentWindow.focus();
     this.port.postMessage(f2 ? "focus" : "backspace");
   }

@@ -2,8 +2,7 @@
 var Vomnibar = {
   activate: function(options) {
     var url, keyword, search, start;
-    if (this.init) { this.init(); }
-    else if (VPort.EnsurePort()) { return; }
+    if (!this.init && VPort.EnsurePort()) { return; }
     Object.setPrototypeOf(options = options || {}, null);
     this.mode.type = this.modeType = options.mode || "omni";
     this.forceNewTab = options.force ? true : false;
@@ -11,8 +10,7 @@ var Vomnibar = {
     keyword = options.keyword;
     this.mode.clientWidth = options.width;
     if (url == null) {
-      this.reset(keyword ? keyword + " " : "");
-      return;
+      return this.reset(keyword ? keyword + " " : "");
     }
     if (search = options.search) {
       start = search.start;
@@ -25,9 +23,9 @@ var Vomnibar = {
     }
     if (keyword) {
       start = (start || 0) + keyword.length + 1;
-      this.reset(keyword + " " + url, start, start + url.length);
+      return this.reset(keyword + " " + url, start, start + url.length);
     } else {
-      this.reset(url);
+      return this.reset(url);
     }
   },
 
@@ -63,15 +61,17 @@ var Vomnibar = {
   show: function() {
     var zoom = 1 / window.devicePixelRatio;
     document.body.style.zoom = zoom > 1 ? zoom : "";
-    this.focused || setTimeout(function() { Vomnibar.input.focus(); }, 34);
+    this.focused || setTimeout(function() { Vomnibar.input.focus(); }, 50);
     window.addEventListener("mousewheel", this.onWheel, {passive: false});
     this.input.value = this.inputText;
+    setTimeout(function() { Vomnibar.input.onselect = Vomnibar.OnSelect; }, 120);
   },
   hide: function(data) {
     this.isActive = this.isEditing = false;
     this.height = this.matchType = 0;
     window.removeEventListener("mousewheel", this.onWheel, {passive: false});
     window.onkeyup = null;
+    this.input.onselect = null;
     this.completions = this.onUpdate = null;
     this.modeType = this.mode.type = this.mode.query = this.lastQuery = this.inputText = "";
     if (data === "hide") { return this.onHidden(); }
@@ -87,8 +87,7 @@ var Vomnibar = {
     this.input.value = "";
     this.list.textContent = "";
     this.list.classList.remove("withList");
-    this.lastKey = 0;
-    this.timer = setTimeout(VPort.Disconnect, 5000);
+    this.timer = this.lastKey = 0;
   },
   reset: function(input, start, end) {
     this.inputText = input || (input = "");
@@ -101,6 +100,7 @@ var Vomnibar = {
     } : this.show);
     this.isActive && (this.height = -1);
     this.isActive = true;
+    return this.init && this.init();
   },
   update: function(updateDelay, callback) {
     this.onUpdate = callback || null;
@@ -109,8 +109,7 @@ var Vomnibar = {
         clearTimeout(this.timer);
       }
       if (updateDelay <= 0) {
-        this.filter();
-        return;
+        return this.filter();
       }
     } else if (this.timer > 0) {
       return;
@@ -437,7 +436,7 @@ var Vomnibar = {
   },
   omni: function(response) {
     if (!this.isActive) { return; }
-    var completions = response.list, height, oldHeight, obj;
+    var completions = response.list, height, oldHeight;
     this.autoSelect = response.autoSelect;
     this.matchType = response.matchType;
     completions.forEach(this.Parse, this.mode);
@@ -448,17 +447,11 @@ var Vomnibar = {
       height = (44 + (1 / (Math.max(1, window.devicePixelRatio)))) * height + 3;
     }
     this.height = height = (height | 0) + 54;
-    obj = { name: "style", height: height };
-    if (oldHeight === 0) {
-      setTimeout(VPort.postToOwner, 0, obj);
-      return;
+    if (oldHeight !== height) {
+      VPort.postToOwner({ name: "style", height: height });
     }
-    this.afterOmni();
-    oldHeight !== height && VPort.postToOwner(obj);
-  },
-  afterOmni: function() {
     this.populateUI();
-    this.timer > 0 || this.postUpdate();
+    return this.timer > 0 || this.postUpdate();
   },
   postUpdate: function() {
     var func;
@@ -466,7 +459,7 @@ var Vomnibar = {
     this.isEditing = false;
     if (func = this.onUpdate) {
       this.onUpdate = null;
-      func.call(this);
+      return func.call(this);
     }
   },
   init: function() {
@@ -479,7 +472,6 @@ var Vomnibar = {
     this.list = document.getElementById("list");
     this.input.onfocus = this.input.onblur = this.OnUI;
     this.input.oninput = this.onInput.bind(this);
-    this.input.onselect = this.OnSelect;
     this.list.oncontextmenu = this.OnMenu;
     document.getElementById("close").onclick = function() { Vomnibar.hide(); };
     addEventListener("keydown", this.handleKeydown, true);
@@ -631,10 +623,6 @@ VPort = {
     if (name === "focus" || name === "backspace") { name = "onAction"; }
     Vomnibar[name](data);
   },
-  Disconnect: function() {
-    var p = VPort.port; Vomnibar.timer = 0;
-    if (p) { VPort.port = null; p.disconnect(); }
-  },
   ClearPort: function() { VPort.port = null; },
   connect: function() {
     var port;
@@ -673,15 +661,10 @@ VPort = {
     options || (options = _options);
     VPort.postToOwner = port.postMessage.bind(port);
     port.onmessage = VPort.OnOwnerMessage;
-    port.postMessage("uiComponentIsReady");
-    options && Vomnibar.activate(options);
     window.onunload = VPort.OnUnload;
+    return options ? Vomnibar.activate(options) : port.postMessage("uiComponentIsReady");
   };
-  timer = setTimeout(function() {
-    VPort.Disconnect();
-    window.onmessage = _port = null;
-    window.location = "about:blank";
-  }, 500);
+  timer = setTimeout(function() { window.location = "about:blank"; }, 700);
   VPort.sendMessage({ handler: "secret" }, handler);
   window.onmessage = function(event) {
     event.source === window.parent && handler(event.data[0], event.ports[0], event.data[1]);

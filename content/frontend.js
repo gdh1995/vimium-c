@@ -909,7 +909,7 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
       node1.remove();
     }
     shouldShowAdvanced && toggleAdvanced();
-    if (Vomnibar.box && !Vomnibar.status) {
+    if (!Vomnibar.status) {
       VDom.UI.root.insertBefore(box, Vomnibar.box);
     } else {
       VDom.UI.addElement(box);
