@@ -91,7 +91,7 @@ var Vomnibar = {
     action ? (next = requestAnimationFrame)(function() { next(act); }) : act();
   },
   init: function(secret, page) {
-    var el = VDom.createElement("iframe"), reinit;
+    var el = VDom.createElement("iframe");
     el.src = page;
     el.className = "LS Omnibar";
     el.style.visibility = "hidden";

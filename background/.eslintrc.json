@@ -12,6 +12,7 @@
         "Settings": false,
         "TabRecency": false,
         "Utils": false,
+        "exports": false,
         "g_requestHandlers": false
     }
 }
