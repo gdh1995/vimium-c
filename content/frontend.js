@@ -95,6 +95,7 @@ var VSettings, VHUD, VPort, VEventMode;
         return;
       }
       if (InsertMode.isActive()) {
+        if (InsertMode.lock === document.body && InsertMode.lock) { return; }
         if (InsertMode.global ? !InsertMode.global.code ? VKeyboard.isEscape(event)
               : key === InsertMode.global.code && VKeyboard.getKeyStat(event) === InsertMode.global.stat
             : VKeyboard.isEscape(event)
