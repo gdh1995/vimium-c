@@ -118,7 +118,7 @@ html > span{float:right;}',
     if (unexpectly !== true) {
       window.focus();
       var el = VDom.getSelectionFocusElement();
-      el && el.focus();
+      el && el.focus && el.focus();
     }
     this.box.remove();
     if (this.box === VDom.lastHovered) { VDom.lastHovered = null; }
