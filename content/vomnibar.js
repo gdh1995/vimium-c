@@ -91,9 +91,9 @@ var Vomnibar = {
   },
   Init: function(secret, page) {
     var el = VDom.createElement("iframe");
+    el.src = page;
     el.className = "LS Omnibar";
     el.style.visibility = "hidden";
-    el.src = page;
     el.onload = function() {
       var _this = Vomnibar, channel, port, i = page.indexOf("://"), wnd = this.contentWindow;
       this.onload = null;

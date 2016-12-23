@@ -145,7 +145,6 @@ html > span{float:right;}',
       }
       else if (n === VKeyCodes.f1) { this.box.contentDocument.execCommand("delete"); }
       else if (n === VKeyCodes.f1 + 1) { window.focus(); VEventMode.suppress(n); }
-      else if (n === VKeyCodes.esc) { i = 3; }
       else if (n === VKeyCodes.up || n === VKeyCodes.down) { this.nextQuery(n === VKeyCodes.up ? 1 : -1); }
       else { return; }
     }
