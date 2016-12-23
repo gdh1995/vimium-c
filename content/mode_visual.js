@@ -132,7 +132,7 @@ var VVisualMode = {
     while (node = nodes.nextNode()) {
       if (50 <= (str = node.data).length && 50 < str.trim().length) {
         element = node.parentElement;
-        if (VDom.getVisibleClientRect(element) && VDom.getEditableType(element) < 2) {
+        if (VDom.getVisibleClientRect(element) && !VDom.getEditableType(element)) {
           break;
         }
       }

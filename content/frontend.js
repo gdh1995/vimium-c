@@ -539,9 +539,8 @@ var VSettings, VHUD, VPort, VEventMode;
           this.lock = null;
           target.blur();
         }
-      } else {
-        if (target === this.lock) { this.lock = null; }
-        VDom.getEditableType(target) && target.blur();
+      } else if (target === this.lock ? (this.lock = null, 1) : VDom.getEditableType(target)) {
+        target.blur();
       }
       if (this.global) {
         this.global.hud && HUD.hide();

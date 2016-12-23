@@ -294,7 +294,7 @@ html > span{float:right;}',
       found = window.find(q, options.caseSensitive || !this.ignoreCase, dir < 0, true, false, true, false);
     } while (0 < --count && found);
     options.noColor || setTimeout(this.hookSel.bind(this, "add"), 0);
-    (el = VEventMode.lock()) && VDom.getEditableType(el) > 1 && !VDom.isSelected(document.activeElement) && el.blur();
+    (el = VEventMode.lock()) && !VDom.isSelected(document.activeElement) && el.blur();
     this.hasResults = found;
   },
   RestoreHighlight: function() { VFindMode.toggleStyle(0); },
