@@ -263,7 +263,6 @@ label:active {
 }
 .exclusionRemoveButton {
   -webkit-user-select: none;
-  user-select: none;
   border: none;
   background-color: #fff;
   color: #979ca0;
@@ -271,6 +270,7 @@ label:active {
   font-size: small;
   font-family: "Segoe UI Symbol", monospace;
   padding: 5px;
+  user-select: none;
 }
 .exclusionRemoveButton:hover {
   color: #444;

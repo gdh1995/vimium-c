@@ -1,5 +1,5 @@
 html{font-family:'Segoe UI', Arial, 'Microsoft Yahei', Simsun, sans-serif;height:100%;overflow:hidden;}
-body{margin:0 auto;height:100%;font-size:13px;-webkit-user-select:none;}
+body{margin:0 auto;height:100%;font-size:13px;-webkit-user-select:none;user-select:none;}
 ul,li,dl,dd{margin:0;padding:0;list-style:none;}
 a{color:#FFF;text-decoration:none;text-shadow:1px 1px 3px #000;}
 ::-webkit-scrollbar{width:6px;}
