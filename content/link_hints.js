@@ -1005,7 +1005,7 @@ DEFAULT: {
       VDom.UI.simulateSelect(link, true);
       return false;
     }
-    if (mode > 0) { link.focus(); }
+    if (mode > 0 || tag === "input" || link.tabIndex >= 0) { link.focus(); }
     mode = this.mode & 3;
     if (mode >= 2 && tag === "a") {
       alterTarget = link.getAttribute('target');
