@@ -213,7 +213,7 @@ var VHints = {
     }
     if (isClickable === null) {
       type = (s = element.getAttribute("role")) && (s = s.toLowerCase(), s === "button" || s === "link")
-          || (s = element.contentEditable) !== "inherit" && s !== "false" ? 1
+          || (s = element.contentEditable) !== "inherit" && s && s !== "false" ? 1
         : (element.vimiumHasOnclick && VHints.isClickListened) || element.getAttribute("onclick")
           || VHints.ngEnabled && element.getAttribute("ng-click")
           || (s = element.getAttribute("jsaction")) && VHints.checkJSAction(s) ? 2
@@ -238,17 +238,17 @@ var VHints = {
     }
   },
   GetEditable: function(element) {
-    var arr, type = 0;
+    var arr, type = 0, s;
     switch (element.tagName.toLowerCase()) {
     case "input":
-      if (element.type === "hidden" || element.type in VDom.uneditableInputs) {
+      if (element.type in VDom.uneditableInputs) {
         return;
       } // no break;
     case "textarea":
       if (element.disabled || element.readOnly) { return; }
       break;
     default:
-      if (element.contentEditable === "inherit" || element.contentEditable === "false") { return; }
+      if ((s = element.contentEditable) === "inherit" || !s || s === "false") { return; }
       type = 1;
       break;
     }
