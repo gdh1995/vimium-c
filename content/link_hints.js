@@ -217,7 +217,7 @@ var VHints = {
         : (element.vimiumHasOnclick && VHints.isClickListened) || element.getAttribute("onclick")
           || VHints.ngEnabled && element.getAttribute("ng-click")
           || (s = element.getAttribute("jsaction")) && VHints.checkJSAction(s) ? 2
-        : element.tabIndex >= 0 ? 5
+        : (s = element.getAttribute("tabindex")) && parseInt(s, 10) >= 0 ? 5
         : type > 5 ? type : (s = element.className) && VHints.btnRe.test(s) ? 4 : 0;
     }
     if ((isClickable || type) && (arr = VDom.getVisibleClientRect(element))
