@@ -38,7 +38,7 @@ var Vomnibar = {
   isEditing: false,
   isHttps: false,
   isSearchOnTop: false,
-  actionType: false,
+  actionType: 0,
   autoSelect: true,
   matchType: 0,
   focused: true,
@@ -164,19 +164,15 @@ var Vomnibar = {
     line = this.completions[sel];
     str = line.text;
     line.https == null && (line.https = line.url.startsWith("https://"));
-    this.isEditing = line.type !== "search";
     if (line.type !== "history" && line.type !== "tab") {
-      this.input.value = str;
-      this.isHttps = line.https;
+      this._updateInput(line, str);
       if (line.type === "math") {
         this.input.select();
       }
       return;
     }
     if (line.parsed) {
-      this.input.value = line.parsed;
-      this.isHttps = line.https && line.parsed === line.text;
-      return;
+      return this._updateInput(line, line.parsed);
     }
     if (line.url.toLowerCase().startsWith("http") && str.lastIndexOf("://", 5) < 0) {
       str = (line.url[5] === ':' ? "http://" : "https://") + str;
@@ -187,8 +183,7 @@ var Vomnibar = {
     }, function(search) {
       line.parsed = search ? search.keyword + " " + search.url : line.text;
       if (sel === Vomnibar.selection) {
-        Vomnibar.input.value = line.parsed;
-        Vomnibar.isHttps = line.https && !search;
+        return Vomnibar._updateInput(line, line.parsed);
       }
     });
   },
@@ -199,8 +194,12 @@ var Vomnibar = {
       return this.updateInput(this.selection);
     }
     var line = this.completions[this.selection], str = this.input.value.trim();
-    this.input.value = str = str === line.url ? (line.parsed || line.text)
+    str = str === line.url ? (line.parsed || line.text)
       : str === line.text ? line.url : line.text;
+    return this._updateInput(line, str);
+  },
+  _updateInput: function(line, str) {
+    this.input.value = str;
     this.isHttps = line.https && str === line.text;
     this.isEditing = str !== line.parsed || line.parsed === line.text;
   },
