@@ -213,7 +213,7 @@ var VSettings, VHUD, VPort, VEventMode;
   };
   ELs.hook(addEventListener);
 
-  esc = function() { currentKeys = ""; nextKeys = null; };
+  esc = function(i) { currentKeys = ""; nextKeys = null; return i; };
 
   parsePassKeys = function(newPassKeys) {
     var pass = Object.create(null), arr = newPassKeys.split(' ')
@@ -452,12 +452,12 @@ var VSettings, VHUD, VPort, VEventMode;
       if (j == null || passKeys !== null && key in passKeys) { return 0; }
     } else if (j == null) {
       j = keyMap[key];
-      if (j == null) { esc(); return 0; }
+      if (j == null) { return esc(0); }
       if (j !== 0) { currentKeys = ""; }
     }
     if (j === 0) {
       vPort.post({ handler: "key", key: currentKeys + key });
-      esc();
+      return esc(2);
     } else {
       currentKeys += key; nextKeys = j !== 1 ? j : keyMap;
     }
