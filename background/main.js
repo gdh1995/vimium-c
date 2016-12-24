@@ -324,14 +324,18 @@ var Clipboard, Commands, Completers, Exclusions, HelpDialog, Marks, TabRecency, 
         option.state = state;
         state = null;
       }
-      chrome.windows.create(option, state ? function(wnd) {
+      var focused = option.focused !== false;
+      option.focused = true;
+      chrome.windows.create(option, state || !focused ? function(wnd) {
         callback && callback(wnd);
-        chrome.windows.update(wnd.id, {state: state});
+        var opt = { focused: focused && undefined };
+        state && (opt.state = state);
+        chrome.windows.update(wnd.id, opt);
       } : callback || null);
     },
     makeTempWindow: function(tabIdUrl, incognito, callback) {
       var option = {
-        type: "normal", // not popup, because popup windows are always on top
+        type: "normal",
         focused: false,
         incognito: incognito,
         state: "minimized",
