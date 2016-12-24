@@ -261,13 +261,10 @@ var VSettings, VHUD, VPort, VEventMode;
 
     enterVisualMode: function(_0, options) { VVisualMode.activate(options); },
     enterInsertMode: function(_0, options) {
-      var code = options.code || VKeyCodes.esc, stat = options.stat, hud = !options.hideHud, str;
-      code === VKeyCodes.esc && stat === 0 && (code = 0);
+      var code = options.code || VKeyCodes.esc, stat = options.stat, hud = !options.hideHud;
+      stat === 0 && code === VKeyCodes.esc && (code = 0);
       InsertMode.global = { code: code, stat: stat, hud: hud };
-      if (!hud) { return; }
-      str = "Insert mode";
-      if (code) { str += ": " + code + "/" + stat; }
-      HUD.show(str);
+      return hud && HUD.show("Insert mode" + (code ? ": " + code + "/" + stat : ""));
     },
     performFind: function(_0, options) { VFindMode.activate(options); },
     passNextKey: function(count) {

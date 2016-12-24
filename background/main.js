@@ -1145,7 +1145,7 @@ var Clipboard, Commands, Completers, Exclusions, HelpDialog, Marks, TabRecency, 
       var hideHud = cOptions.hideHud;
       cPort.postMessage({ name: "execute", count: 1, command: "enterInsertMode",
         options: {
-          code: cOptions.code, stat: cOptions.stat | 0,
+          code: cOptions.code | 0, stat: cOptions.stat | 0,
           hideHud: hideHud != null ? hideHud : Settings.get("hideHud", true)
         }
       });
