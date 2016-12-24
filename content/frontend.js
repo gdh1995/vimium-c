@@ -116,7 +116,7 @@ var VSettings, VHUD, VPort, VEventMode;
       }
       else if (key !== VKeyCodes.esc || VKeyboard.getKeyStat(event)) {}
       else if (nextKeys !== null) {
-        esc();
+        esc(1);
         action = 2;
       } else if (VDom.UI.removeSelection(window)) {
         action = 2;
@@ -267,8 +267,17 @@ var VSettings, VHUD, VPort, VEventMode;
       return hud && HUD.show("Insert mode" + (code ? ": " + code + "/" + stat : ""));
     },
     performFind: function(_0, options) { VFindMode.activate(options); },
-    passNextKey: function(count) {
-      var keys = Object.create(null), keyCount = 0;
+    passNextKey: function(count, options) {
+      var keys = Object.create(null), keyCount = 0, func;
+      if (options.normal) {
+        func = esc;
+        esc = function(i) {
+          if (i === 2 && 0 >= --count || i === 1) { return (esc = func)(); }
+          currentKeys = ""; nextKeys = keyMap;
+          return i;
+        };
+        return esc();
+      }
       VHandler.push(function(event) {
         keyCount += !keys[event.keyCode];
         keys[event.keyCode] = 1;

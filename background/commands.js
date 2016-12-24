@@ -279,7 +279,7 @@ availableCommands: {
   openCopiedUrlInCurrentTab: [ "Open the clipboard's URL in the current tab", 1, true ],
   openCopiedUrlInNewTab: [ "Open the clipboard's URL in N new tab(s)", 20, true ],
   enterInsertMode: [ "Enter insert mode (use code=27, stat=0)", 1, true ],
-  passNextKey: [ "Pass the next key(s) to the page", 0, false ],
+  passNextKey: [ "Pass the next key(s) to the page (use normal)", 0, false ],
   enterVisualMode: [ "Enter visual mode", 1, false ],
   enterVisualLineMode: [ "Enter visual line mode", 1, false, { mode: "line" }, "enterVisualMode" ],
   focusInput: [ "Focus the N-th visible text box on the page and cycle using tab", 0, false ],
