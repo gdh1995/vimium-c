@@ -626,12 +626,12 @@ var Clipboard, Commands, Completers, Exclusions, HelpDialog, Marks, TabRecency, 
     }],
     moveTabToIncognito: [function(wnd) {
       var tab = funcDict.selectFrom(wnd.tabs);
-      if (wnd.incognito && tab.incognito) { return; }
+      if (wnd.incognito && tab.incognito) { return funcDict.moveTabToIncognito[3](); }
       var options = {type: "normal", tabId: tab.id, incognito: true}, url = tab.url;
       if (tab.incognito) {
       } else if (Utils.isRefusingIncognito(url)) {
         if (wnd.incognito) {
-          return;
+          return funcDict.moveTabToIncognito[3]();
         }
         if (Settings.CONST.ChromeVersion >= 52) {
           return funcDict.complain("open this tab in incognito");
@@ -673,6 +673,8 @@ var Clipboard, Commands, Completers, Exclusions, HelpDialog, Marks, TabRecency, 
       }
       funcDict.makeTempWindow(options.tabId, true, //
       funcDict.moveTabToNextWindow[2].bind(null, options.tabId, tab2));
+    }, function() {
+      requestHandlers.ShowHUD("This tab has been in incognito window");
     }],
     removeTab: function(tab, curTabs, wnds) {
       var url, windowId, wnd;
@@ -837,6 +839,9 @@ var Clipboard, Commands, Completers, Exclusions, HelpDialog, Marks, TabRecency, 
       chrome.windows.getAll(funcDict.moveTabToNextWindow[0].bind(null, tabs[0]));
     },
     moveTabToIncognito: function() {
+      if (cPort && Settings.CONST.ChromeVersion >= 52 && cPort.sender.incognito) {
+        return funcDict.moveTabToIncognito[3]();
+      }
       chrome.windows.getCurrent({populate: true}, funcDict.moveTabToIncognito[0]);
     },
     enableCSTemp: function(tabs) {
