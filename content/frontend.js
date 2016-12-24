@@ -725,7 +725,7 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
   VHUD = HUD = {
     tweenId: 0,
     box: null,
-    text: null,
+    text: "",
     opacity: 0,
     timer: 0,
     showCopied: function(text, e, virtual) {
@@ -747,44 +747,42 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
     },
     show: function(text) {
       if (!this.enabled || !VDom.isHTML()) { return; }
-      var el = this.box;
+      this.opacity = 1; this.text = text;
+      if (this.timer) { clearTimeout(this.timer); this.timer = 0; }
+      var el = this.box, i = el ? +(el.style.opacity || 1) : 0;
+      if (i > 0) {
+        el.firstChild.data = text;
+        if (i === 1) { return; }
+      }
       this.tweenId || (this.tweenId = setInterval(this.tween, 40));
-      this.opacity = 1;
-      if (!el) {
-        el = VDom.createElement("div");
-        el.className = "R HUD";
-        el.style.opacity = 0;
-        el.style.visibility = "hidden";
-        el.appendChild(this.text = new Text(text));
-        VDom.UI.addElement(this.box = el);
-        return;
-      }
-      if (this.timer) {
-        clearTimeout(this.timer);
-        this.timer = 0;
-      }
-      this.text.data = text;
+      if (el) { return; }
+      el = VDom.createElement("div");
+      el.className = "R HUD";
+      el.style.opacity = 0;
+      el.style.visibility = "hidden";
+      el.appendChild(document.createTextNode(text));
+      VDom.UI.addElement(this.box = el, {adjust: false});
     },
     tween: function() {
-      var hud = HUD, el, opacity;
+      var hud = HUD, el, st, opacity;
       if (!VHUD) { return; }
-      el = hud.box, opacity = +(el.style.opacity || 1);
+      el = hud.box; st = el.style; opacity = +(st.opacity || 1);
       if (opacity === hud.opacity) {}
       else if (opacity === 0) {
-        el.style.opacity = 0.25;
-        el.style.visibility = "";
-        VDom.UI.adjust();
-        return;
+        st.opacity = 0.25;
+        st.visibility = "";
+        el.firstChild.data = hud.text;
+        return VDom.UI.adjust();
       } else if (document.hasFocus()) {
         opacity += opacity < hud.opacity ? 0.25 : -0.25;
       } else {
         opacity = hud.opacity;
       }
-      el.style.opacity = opacity < 1 ? opacity : "";
+      st.opacity = opacity < 1 ? opacity : "";
       if (opacity !== hud.opacity) { return; }
       if (opacity === 0) {
-        el.style.visibility = "hidden";
-        hud.text.data = "";
+        st.visibility = "hidden";
+        el.firstChild.data = "";
       }
       clearInterval(hud.tweenId);
       hud.tweenId = 0;
@@ -792,7 +790,7 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
     hide: function() {
       var hud = HUD, i;
       if (i = hud.timer) { clearTimeout(i); hud.timer = 0; }
-      hud.opacity = 0;
+      hud.opacity = 0; hud.text = "";
       if (hud.box && !hud.tweenId && VHUD) {
         hud.tweenId = setInterval(hud.tween, 40);
       }
@@ -909,11 +907,7 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
       node1.remove();
     }
     shouldShowAdvanced && toggleAdvanced();
-    if (!Vomnibar.status) {
-      VDom.UI.root.insertBefore(box, Vomnibar.box);
-    } else {
-      VDom.UI.addElement(box);
-    }
+    VDom.UI.addElement(box, {before: Vomnibar.status ? null : Vomnibar.box});
     window.focus();
     VScroller.current = box;
     VHandler.push(function(event) {

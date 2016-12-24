@@ -7,18 +7,21 @@ VDom.UI = {
   focusedEl: null,
   flashLastingTime: 400,
   showing: true,
-  addElement: function(element, showOnInit) {
-    this.showing = showOnInit !== false;
+  addElement: function(element, options) {
+    options = Object.setPrototypeOf(options || {}, null);
+    this.showing = options.showing !== false;
     VPort.send({ handler: "initInnerCSS" }, this.InitInner);
     this.InitInner = null;
     this.init && this.init(false);
     this.box.style.display = "none";
     this.root = this.box.createShadowRoot();
-    this.root.appendChild(element);
-    this.addElement = function(element) {
-      this.root.appendChild(element);
-      this.adjust();
+    this.addElement = function(element, options) {
+      options = Object.setPrototypeOf(options || {}, null);
+      options.adjust === false || this.adjust();
+      return options.before ? this.root.insertBefore(element, options.before) : this.root.appendChild(element);
     };
+    options.adjust = options.adjust === true;
+    return this.addElement(element, options);
   },
   addElementList: function(els, id, offset) {
     var parent, _i, _len, style;
@@ -32,24 +35,24 @@ VDom.UI = {
     style.left = offset[0] + "px"; style.top = offset[1] + "px";
     (_i = VDom.bodyZoom) !== 1 && (style.zoom = _i);
     document.webkitIsFullScreen && (style.position = "fixed");
-    this.addElement(parent);
-    return parent;
+    return this.addElement(parent);
   },
   adjust: function(event) {
-    var ui = VDom.UI, el = ui.InitInner ? null : document.webkitFullscreenElement;
+    var ui = VDom.UI, el = ui.root ? document.webkitFullscreenElement : null;
     (el && !ui.root.contains(el) ? el : document.documentElement).appendChild(ui.box);
     (el || event) && (el ? addEventListener : removeEventListener)("webkitfullscreenchange", ui.adjust, true);
   },
   init: function(showing) {
+    this.init = null;
     this.box = VDom.createElement("vimium");
     showing !== false && this.adjust();
-    this.init = null;
   },
   InitInner: function(innerCSS) {
     var _this = VDom.UI;
     _this.styleIn = _this.createStyle(innerCSS);
     _this.root.insertBefore(_this.styleIn, _this.root.firstElementChild);
-    _this.showing && setTimeout(function() {
+    if (!_this.showing) { _this.showing = true; return; }
+    setTimeout(function() {
       _this.box.style.display = "";
       var el = _this.focusedEl; _this.focusedEl = null;
       el && setTimeout(function() { el.focus(); }, 17);

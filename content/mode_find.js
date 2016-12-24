@@ -32,7 +32,7 @@ html > span{float:right;}',
     if (!VDom.isHTML()) { return false; }
     options = Object.setPrototypeOf(options || {}, null);
     var query = options.query, zoom;
-    !this.isActive && query !== this.query && VMarks.setPreviousPosition();
+    this.isActive || query === this.query || VMarks.setPreviousPosition();
     if (query != null) {
       return this.findAndFocus(this.query || query, options);
     }
@@ -42,7 +42,7 @@ html > span{float:right;}',
       this.scrollX = window.scrollX;
       this.scrollY = window.scrollY;
     }
-    this.isActive && VDom.UI.adjust();
+    this.box && VDom.UI.adjust();
     if (this.isActive) {
       this.box.contentWindow.focus();
       this.input.focus();
@@ -55,7 +55,6 @@ html > span{float:right;}',
     this.regexMatches = null;
     this.activeRegexIndex = 0;
     this.init && this.init();
-    VDom.UI.adjust();
     this.styleIn.disabled = this.styleOut.disabled = true;
 
     var el = this.box = VDom.createElement("iframe");
@@ -63,7 +62,7 @@ html > span{float:right;}',
     el.style.width = "0px";
     zoom !== 1 && (el.style.zoom = 1 / zoom);
     el.onload = function() { VFindMode.onLoad(this); };
-    VHUD.box ? VDom.UI.root.insertBefore(el, VHUD.box) : VDom.UI.addElement(el);
+    VDom.UI.addElement(el, {adjust: true, before: VHUD.box});
   },
   onLoad: function(el) {
     var wnd = el.contentWindow, doc = wnd.document, docEl = doc.documentElement, zoom;

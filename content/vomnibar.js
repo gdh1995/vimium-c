@@ -31,11 +31,10 @@ var Vomnibar = {
     this.width = Math.max(window.innerWidth - 24, document.documentElement.clientWidth);
     this.zoom = VDom.UI.getZoom();
     this.status > 0 || VHandler.push(VDom.UI.SuppressMost, this);
-    var url, upper = 0, first = !VDom.UI.root;
-    first || VDom.UI.adjust();
+    var url, upper = 0;
+    this.box && VDom.UI.adjust();
     if (this.status < 0) {
       this.init(options.secret, options.vomnibar);
-      first && VDom.UI.adjust();
       this.status = 1;
     } else if (this.CheckAlive()) {
       return;
@@ -118,7 +117,7 @@ var Vomnibar = {
       wnd.Vomnibar.showFavIcon = true;
       wnd.onmessage({ source: window, data: secret, ports: [port] });
     };
-    return VDom.UI.addElement(this.box = el, false);
+    return VDom.UI.addElement(this.box = el, {adjust: true, showing: false});
   },
   _forceRedo: false,
   reset: function(redo) {

@@ -599,7 +599,7 @@ var VHints = {
     VEventMode.onWndBlur(null);
   },
   deactivate: function(suppressType) {
-    this.clean(VHUD.text !== null && VHUD.text.data !== this.modeOpt[this.mode]);
+    this.clean(VHUD.text !== this.modeOpt[this.mode]);
     this.keyStatus.tab = this.keyStatus.newHintLength = 0;
     VHandler.remove(this);
     this.isActive = false;
