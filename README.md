@@ -46,6 +46,7 @@ Release Notes
 -------------
 
 Not released yet:
+* **WARNING**: The feature "Custom outer CSS" will be surely removed in future.
 * **WARNING**: revert semantics of `metaKey`: now the same as `ctrlKey`
 
 1.57.3:
