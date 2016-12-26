@@ -5,7 +5,10 @@ set -o noglob
 
 output=$1
 if [ -z "$output" -o -d "$output" ]; then
-  output=${output%/}/
+  output=${output%/}
+  if [ -n "$output" ]; then
+    output=${output}/
+  fi
   ver=$(grep -m1 '"version"' manifest.json | awk -F '"' '{print "_"$4}')
   pkg_name=$(basename "$PWD")
   pkg_name=${pkg_name//++/_plus}
