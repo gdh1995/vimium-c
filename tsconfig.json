@@ -1,0 +1,31 @@
+{
+  "compilerOptions": {
+    "allowJs": true,
+    "alwaysStrict": true,
+    "forceConsistentCasingInFileNames": true,
+    "listEmittedFiles": true,
+    "module": "system",
+    "newLine": "LF",
+    "noEmitHelpers": true,
+    "noFallthroughCasesInSwitch": false,
+    "noImplicitAny": true,
+    "noImplicitThis": false,
+    "noImplicitUseStrict": false,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "outDir": "./dist",
+    "preserveConstEnums": false,
+    "removeComments": true,
+    "rootDir": ".",
+    "strictNullChecks": true,
+    "target": "es5"
+  },
+  "exclude": [
+    ".*",
+    "*.min.*",
+    "dist",
+    "node_modules",
+    "test*",
+    "weidu"
+  ]
+}

@@ -1,4 +1,5 @@
 /weidu/
+/dist/
 *.idea/
 /.*/
 /lib/viewer.*

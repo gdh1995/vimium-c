@@ -1,6 +1,12 @@
 #!/usr/bin/env bash
 set +o noglob
-input=$(echo *)
+in_dist=false
+if [ -d "dist" -a -f "dist/manifest.json" ]; then
+  in_dist=true
+  cd dist; input=$(echo *); cd ..
+else
+  input=$(echo *)
+fi
 set -o noglob
 
 output=$1
@@ -8,6 +14,8 @@ if [ -z "$output" -o -d "$output" ]; then
   output=${output%/}
   if [ -n "$output" ]; then
     output=${output}/
+  elif [ $in_dist == true ]; then
+    output=dist/
   fi
   ver=$(grep -m1 '"version"' manifest.json | awk -F '"' '{print "_"$4}')
   pkg_name=$(basename "$PWD")
@@ -25,9 +33,19 @@ if [ -z "$args" -a "$output" != "-" -a -f "$output" ]; then
   args="-FS"
 fi
 
-zip -roX -MM $args "$output" $input -x '.*' '*.sh' 'weidu*' 'test*' 'git*' \
-  '*/.*' '*.coffee' '*.crx' '*.ts' '*.zip' $4
+output_for_zip=${output}
+if [ $in_dist == true ]; then
+  cd dist
+  if [ "$output_for_zip" == "${output_for_zip#/}" ]; then
+    output_for_zip=../${output_for_zip}
+  fi
+fi
+zip -roX -MM $args "$output_for_zip" $input -x '.*' 'weidu*' 'test*' 'git*' \
+  'lib/vimium.css' 'tsconfig.json' \
+  '*/.*' '*.coffee' '*.crx' '*.sh' '*.ts' '*.zip' $4
 err=$?
+[ $in_dist == true ] && cd ..
+
 if [ $err -ne 0 ]; then
   echo "$0: exit because of an error during zipping" 1>&2
   exit $err
