@@ -301,17 +301,17 @@ var Clipboard, Commands, Completers, Exclusions, HelpDialog, Marks, TabRecency, 
       chrome.tabs.remove(tab.id);
     },
     refreshTab: [function(tabId) {
-      chrome.tabs.remove(tabId, function() {
-        chrome.tabs.get(tabId, funcDict.refreshTab[1]);
-      });
-    }, function(tab) {
+      chrome.tabs.remove(tabId, funcDict.onRuntimeError);
+      chrome.tabs.get(tabId, funcDict.refreshTab[1]);
+    }, function(tab, action) {
       if (chrome.runtime.lastError) {
         chrome.sessions.restore();
         return chrome.runtime.lastError;
       }
-      tab && setTimeout(function() {
-        chrome.tabs.reload(tab.id, funcDict.refreshTab[1].bind(null, null));
-      }, 17);
+      if (action === "reload") { return; }
+      setTimeout(funcDict.refreshTab[2], 17, tab ? "get" : "reload", tab ? tab.id : this);
+    }, function(action, tabId) {
+      chrome.tabs[action](tabId, funcDict.refreshTab[1].bind(tabId, null, action));
     }],
     makeWindow: function(option, state, callback) {
       if (!state) { state = ""; }
