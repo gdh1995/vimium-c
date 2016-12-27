@@ -39,7 +39,6 @@ var Vomnibar = {
   isHttps: false,
   isSearchOnTop: false,
   actionType: 0,
-  autoSelect: true,
   matchType: 0,
   focused: true,
   forceNewTab: false,
@@ -131,25 +130,6 @@ var Vomnibar = {
       }
       this.focused || this.input.focus();
     });
-  },
-  populateUI: function() {
-    var list = this.list, barCls = this.input.parentElement.classList;
-    list.innerHTML = this.renderItems(this.completions);
-    this.selection = -1;
-    if (this.completions.length > 0) {
-      list.style.display = "";
-      list.lastElementChild.classList.add("b");
-      barCls.add("withList");
-      if (this.autoSelect || this.modeType !== "omni") {
-        this.selection = 0;
-        list.firstElementChild.classList.add("s");
-      }
-    } else {
-      list.style.display = "none";
-      barCls.remove("withList");
-    }
-    this.isSearchOnTop = this.completions.length > 0 && this.completions[0].type === "search";
-    this.isSelectionOrigin = true;
   },
   updateInput: function(sel) {
     var focused = this.focused, line, str;
@@ -435,13 +415,12 @@ var Vomnibar = {
   },
   omni: function(response) {
     if (!this.isActive) { return; }
-    var completions = response.list, height, oldHeight;
-    this.autoSelect = response.autoSelect;
+    var list = response.list, height = list.length, oldHeight = this.height;
     this.matchType = response.matchType;
-    completions.forEach(this.Parse, this.mode);
-    this.completions = completions;
-    oldHeight = this.height;
-    height = completions.length;
+    this.completions = list;
+    this.selection = response.autoSelect || this.modeType !== "omni" ? 0 : -1;
+    this.isSelectionOrigin = true;
+    this.isSearchOnTop = height > 0 && list[0].type === "search";
     if (height > 0) {
       height = (44 + (1 / (Math.max(1, window.devicePixelRatio)))) * height + 3;
     }
@@ -449,7 +428,18 @@ var Vomnibar = {
     if (oldHeight !== height) {
       VPort.postToOwner({ name: "style", height: height });
     }
-    this.populateUI();
+    list.forEach(this.Parse, this.mode);
+    return this.populateUI();
+  },
+  populateUI: function() {
+    var list = this.list, noEmpty = this.completions.length > 0;
+    this.input.parentElement.classList[noEmpty ? "add" : "remove"]("withList");
+    list.style.display = noEmpty ? "" : "none";
+    list.innerHTML = this.renderItems(this.completions);
+    if (noEmpty) {
+      this.selection === 0 && list.firstElementChild.classList.add("s");
+      list.lastElementChild.classList.add("b");
+    }
     return this.timer > 0 || this.postUpdate();
   },
   postUpdate: function() {
