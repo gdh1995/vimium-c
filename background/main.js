@@ -873,7 +873,7 @@ var Clipboard, Commands, Completers, Exclusions, HelpDialog, Marks, TabRecency, 
       if (!tabs || tabs.length <= 0) { return chrome.runtime.lastError; }
       var tab = tabs[0], i, startTabIndex = tabs.length - commandCount;
       if (cOptions.allow_close === true) {} else
-      if (tab.active && startTabIndex <= 0 || startTabIndex === 0) {
+      if (startTabIndex <= 0 && (startTabIndex === 0 || tab.active)) {
         chrome.windows.getAll(funcDict.removeTab.bind(null, tab, tabs));
         return;
       }
