@@ -66,7 +66,7 @@ var exports = {}, Utils = {
       this.lastUrlType = 0;
       return string.replace(this.A0Re, ' ');
     }
-    var type = -1, expected = 1, hasPath = false, index, index2, oldString, arr;
+    var type = -1, expected = 0, hasPath = false, index, index2, oldString, arr;
     oldString = string.replace(this.lfRe, '').replace(this.spacesRe, ' ');
     string = oldString.toLowerCase();
     if ((index = string.indexOf(' ')) > 0) {
@@ -74,10 +74,10 @@ var exports = {}, Utils = {
     }
     if ((index = string.indexOf(':')) === 0) { type = 4; }
     else if (index === -1 || !this.protocolRe.test(string)) {
-      if (index !== -1 && (index2 = string.lastIndexOf('/', index)) < 0) {
+      if (index !== -1 && string.lastIndexOf('/', index) < 0) {
         type = this.checkSpecialSchemes(oldString, index, string.length % oldString.length);
       }
-      index2 = 0;
+      expected = 1; index2 = 0;
       if (type === -1 && string.startsWith("//")) {
         string = string.substring(2);
         expected = 2; index2 = 2;
@@ -85,8 +85,7 @@ var exports = {}, Utils = {
       if (type !== -1) {}
       else if ((index = string.indexOf('/')) <= 0) {
         if (index === 0 || string.length < oldString.length - index2) { type = 4; }
-      } else if (string.length >= oldString.length - index2 ||
-          ((index2 = string.charCodeAt(index + 1)) > 32 && index2 !== 47)) {
+      } else if (string.length >= oldString.length - index2 || string.charCodeAt(index + 1) > 32) {
         hasPath = string.length > index + 1;
         string = string.substring(0, index);
       } else {
@@ -105,21 +104,18 @@ var exports = {}, Utils = {
       }
     }
     else if ((index2 = string.indexOf('/', index + 3)) === -1
-        ? string.length < oldString.length
-        : (expected = string.charCodeAt(index2 + 1), expected <= 32 || expected === 47)
+        ? string.length < oldString.length : string.charCodeAt(index2 + 1) <= 32
     ) {
       type = 4;
     }
     else if (this._nonENTldRe.test(string.substring(0, index))) {
-      type = this.protocolRe.test(string) &&
-        (index = string.charCodeAt(index + 3)) > 32 && index !== 47 ? 0 : 4;
+      type = (index = string.charCodeAt(index + 3)) > 32 && index !== 47 ? 0 : 4;
     }
     else if (string.startsWith("file:")) { type = 0; }
     else if (string.startsWith("chrome:")) {
       type = string.length < oldString.length && string.indexOf('/', 9) === -1 ? 4 : 0;
     } else {
       string = string.substring(index + 3, index2 !== -1 ? index2 : undefined);
-      expected = 0;
     }
 
     if (type === -1 && string.indexOf("%") >= 0) {
