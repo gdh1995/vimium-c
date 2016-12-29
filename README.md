@@ -18,15 +18,18 @@ The branch [`firefox`](https://github.com/gdh1995/vimium-plus/tree/firefox)
 
 In the *weidu* directory is 微度新标签页.
 
-__Vimium:__
+
+# Project Introduction
+
+__Vimium++:__
 
 * a Chrome extension that provides keyboard-based navigation and control
     of the web in the spirit of the Vim editor.
-* from [philc/vimium:master](https://github.com/philc/vimium).
+* forked from [philc/vimium:master](https://github.com/philc/vimium).
 * optimized after translating it from CoffeeScript into JavaScript.
 * more functions, more powerful, and more convenient (for me, at least).
 
-__微度新标签页 (X New Tab Page):__
+__微度新标签页修改版 (Modified X New Tab Page):__
 
 * in folder [*weidu*](https://github.com/gdh1995/vimium-plus/tree/master/weidu)
 * 一款基于Html5的Chrome浏览器扩展程序。
@@ -42,8 +45,8 @@ __微度新标签页 (X New Tab Page):__
 * some is customized.
 * the official settings file is OK for it, but not the other way around.
 
-Release Notes
--------------
+
+# Release Notes
 
 Not released yet:
 * **WARNING**: The feature "Custom outer CSS" will be definitely removed in future.
@@ -127,16 +130,16 @@ Not released yet:
 * rename front-end global variables to `V***`,
   in order to avoid potential name collisions when injected into other hosts
 
-X New Tab Page: 4.8.2 (2015-03-19)
 
-* All merged.
+# Thanks & license
 
-Thanks & License
--------
-* Vimium: Copyright (c) Phil Crosby, Ilya Sukhar.
-* 微度新标签页: ©2012 杭州佐拉网络有限公司. 保留所有权利.
-* [JavaScript Expression Evaluator
-    ](https://github.com/silentmatt/js-expression-eval):
-    Copyright (c) 2015 Matthew Crumley
+* [Vimium](https://github.com/philc/vimium):
+  Copyright (c) 2010 Phil Crosby, Ilya Sukhar.
+* [微度新标签页](http://www.weidunewtab.com/):
+  ©2012 杭州佐拉网络有限公司 保留所有权利.
+* [JavaScript Expression Evaluator](https://github.com/silentmatt/expr-eval):
+  Copyright (c) 2015 Matthew Crumley.
+  [license](https://github.com/silentmatt/expr-eval/blob/master/LICENSE.txt).
 * [Viewer.js](https://github.com/fengyuanchen/viewerjs):
-    Copyright (c) 2015-2016 Fengyuan Chen
+  Copyright (c) 2015-2016 Fengyuan Chen.
+  [license](https://github.com/fengyuanchen/viewerjs/blob/master/LICENSE).
