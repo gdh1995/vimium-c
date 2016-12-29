@@ -1479,7 +1479,7 @@ var Clipboard, Commands, Completers, Exclusions, HelpDialog, Marks, TabRecency, 
           : path.length > 1 && path.endsWith("/");
       }
       if (i) {
-        arr = path.substring(+startSlash, path.length - path.endsWith("/")).split("/");
+        arr = path.substring(+startSlash, (path.length - path.endsWith("/")) || +startSlash).split("/");
         i < 0 && (i += arr.length);
       }
       if (i <= 0) {
