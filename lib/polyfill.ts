@@ -1,11 +1,21 @@
-type ObjectCoercible = Object;
-type anyNotSymbol = any;
+type primitiveObject = boolean | number | string;
+type primitive = primitiveObject | null | undefined;
+type ObjectCoercible = primitiveObject | {
+  toString: () => primitive,
+} | {
+    valueOf: () => primitive,
+  };
+type anyNotSymbol = ObjectCoercible | null | undefined;
 interface String {
   endsWith(searchString: string, position?: number | undefined): boolean;
   endsWith(this: ObjectCoercible, searchString?: anyNotSymbol, position?: anyNotSymbol): boolean;
   startsWith(searchString: string, position?: number | undefined): boolean;
   startsWith(this: ObjectCoercible, searchString?: anyNotSymbol, position?: anyNotSymbol): boolean;
 }
+declare var Symbol: {
+  (description?: anyNotSymbol): symbol;
+  readonly match: symbol;
+};
 
 (function (): void {
   if (String.prototype.startsWith) { return; }
