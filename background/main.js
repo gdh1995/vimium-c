@@ -1733,7 +1733,7 @@ var Clipboard, Commands, Completers, Exclusions, HelpDialog, Marks, TabRecency,
     count = Math.max(1, count | 0);
     options && typeof options === "object" ?
         Object.setPrototypeOf(options, null) : (options = null);
-    executeCommand(command, Commands.makeCommand(command, options), count, null);
+    executeCommand(command, Utils.makeCommand(command, options), count, null);
   };
 
   chrome.runtime.onMessageExternal && (

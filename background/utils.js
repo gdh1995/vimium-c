@@ -543,6 +543,30 @@ var Utils = {
     }
     return null;
   },
+  makeCommand: function(command, options, details) {
+    var opt;
+    details || (details = Commands.availableCommands[command]);
+    opt = details[3] || null;
+    if (options) {
+      if (opt) {
+        opt instanceof Object && Object.setPrototypeOf(opt, null);
+        Utils.extendIf(options, opt);
+      }
+      if (options.count == null) {}
+      else if (details[1] === 1 || (options.count |= 0) <= 0) {
+        delete options.count;
+      }
+    } else {
+      options = opt;
+    }
+    return {
+      alias: details[4] || null,
+      background: details[2],
+      command: command,
+      options: options,
+      repeat: details[1]
+    };
+  },
   hasUpperCase: function(s) { return s.toLowerCase() !== s; }
 };
 

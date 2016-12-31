@@ -44,36 +44,12 @@ var Commands = {
     default: return hex;
     }
   },
-  makeCommand: function(command, options, details) {
-    var opt;
-    details || (details = this.availableCommands[command]);
-    opt = details[3] || null;
-    if (options) {
-      if (opt) {
-        ("hasOwnProperty" in opt) && Object.setPrototypeOf(opt, null);
-        Utils.extendIf(options, opt);
-      }
-      if (options.count == null) {}
-      else if (details[1] === 1 || (options.count |= 0) <= 0) {
-        delete options.count;
-      }
-    } else {
-      options = opt;
-    }
-    return {
-      alias: details[4] || null,
-      background: details[2],
-      command: command,
-      options: options,
-      repeat: details[1]
-    };
-  },
   loadDefaults: function() {
     var defaultMap = this.defaultKeyMappings, registry = this.keyToCommandRegistry
       , pair, i = defaultMap.length;
     while (0 <= --i) {
       pair = defaultMap[i];
-      registry[pair[0]] = this.makeCommand(pair[1]);
+      registry[pair[0]] = Utils.makeCommand(pair[1]);
     }
   },
   parseKeyMappings: function(line) {
@@ -97,7 +73,7 @@ var Commands = {
              "has been mapped to", registry[splitLine[1]].command);
         } else {
           registry[splitLine[1]] =
-            this.makeCommand(key, this.getOptions(splitLine), details);
+            Utils.makeCommand(key, this.getOptions(splitLine), details);
         }
       } else if (key === "unmapAll") {
         registry = this.keyToCommandRegistry = Object.create(null);
