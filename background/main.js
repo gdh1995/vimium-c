@@ -557,10 +557,6 @@ var Clipboard, Commands, Completers, Exclusions, HelpDialog, Marks, TabRecency, 
         if (exports.shownHash === arr[1]) { exports.shownHash = null; }
         arr[0] = "", arr[1] = null;
       }, 2000);
-      // chrome.tabs.executeScript(tab.id, {
-        // file: Settings.CONST.ShowHelper,// + this,
-        // runAt: "document_start"
-      // }, null && funcDict.onRuntimeError);
     }],
     openUrls: function(tabs) {
       var urls = cOptions.urls, i, tab = tabs[0], repeat = commandCount;
