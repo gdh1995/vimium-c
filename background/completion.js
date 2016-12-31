@@ -861,7 +861,7 @@ searchEngines: {
     reset: function(obj) {
       if (obj === null) {
         this.cache = this._d = null;
-        return;
+        return Utils.resetRe();
       }
       this.cache = Object.create(null);
       this._d = [Object.create(null), Object.create(null), this.cache];

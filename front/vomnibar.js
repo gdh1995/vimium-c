@@ -87,6 +87,7 @@ var Vomnibar = {
     this.list.textContent = "";
     this.list.classList.remove("withList");
     this.timer = this.lastKey = 0;
+    /a?/.test("");
   },
   reset: function(input, start, end) {
     this.inputText = input || (input = "");
@@ -562,7 +563,7 @@ VUtils = {
     var o = null, a = template.split(/\{\{(\w+)}}/g)
       , f = function(w, i) { return (i & 1) && (w = o[w]) == null ? "" : w; }
       , m = function(i) { o = i; return a.map(f).join(""); };
-    template = null;
+    /a?/.test("");
     return function(objectArray) {
       var html = objectArray.map(m).join("");
       o = null;

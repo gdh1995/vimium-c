@@ -169,6 +169,7 @@ var VSettings, VHUD, VPort, VEventMode;
         ELs.OnWndBlur && ELs.OnWndBlur();
         KeydownEvents = new Uint8Array(256);
         esc();
+        /a?/.test("");
       } else if (!isEnabledForUrl) {}
       else if (InsertMode.lock === target) { InsertMode.lock = null; }
       else if (!target.shadowRoot) {}

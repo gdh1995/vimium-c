@@ -29,6 +29,7 @@ var Clipboard = {
     document.execCommand("copy");
     textArea.remove();
     textArea.value = "";
+    Utils.resetRe();
   },
   paste: function() {
     var textArea = this.getTextArea(), value;
@@ -38,7 +39,9 @@ var Clipboard = {
     value = textArea.value;
     textArea.remove();
     textArea.value = "";
-    return value.replace(Utils.A0Re, " ");
+    value = value.replace(Utils.A0Re, " ");
+    Utils.resetRe();
+    return value;
   }
 },
 Marks = { // NOTE: all members should be static

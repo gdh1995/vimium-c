@@ -15,6 +15,10 @@ var exports = {}, Utils = {
     }
     return b;
   },
+  _reToReset: /a?/,
+  resetRe: function() {
+    return this._reToReset.test("");
+  },
   escapeText: function(s) {
     var escapeRe = /[&<]/g, escapeCallback = function(c) {
       return c.charCodeAt(0) === 38 ? "&amp;" : "&lt;";
@@ -63,8 +67,10 @@ var exports = {}, Utils = {
           && !this._jsNotEscapeRe.test(string)) {
         string = this.DecodeURLPart(string);
       }
+      string = string.replace(this.A0Re, ' ');
+      this.resetRe();
       this.lastUrlType = 0;
-      return string.replace(this.A0Re, ' ');
+      return string;
     }
     var type = -1, expected = 0, hasPath = false, index, index2, oldString, arr;
     oldString = string.replace(this.lfRe, '').replace(this.spacesRe, ' ');
@@ -161,6 +167,7 @@ var exports = {}, Utils = {
     } else {
       type = 1;
     }
+    this.resetRe();
     this.lastUrlType = type;
     return type === 0 ? oldString
       : type === 4 ? this.createSearchUrl(oldString.split(' '), keyword || "~"
@@ -387,6 +394,7 @@ var exports = {}, Utils = {
       }
       return s2;
     });
+    this.resetRe();
     return indexes == null ? url : {
       url: url,
       indexes: indexes

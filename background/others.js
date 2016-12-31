@@ -186,6 +186,7 @@ setTimeout(function() { if (!chrome.omnibox) { return; }
     if (outTimeout) { clearTimeout(outTimeout); }
     outTime = matchType = outTimeout = 0;
     firstType = "";
+    Utils.resetRe();
   },
   outClean = function() {
     if (Date.now() - outTime > 5000) {
@@ -238,6 +239,7 @@ setTimeout(function() { if (!chrome.omnibox) { return; }
     }
     response = response.map(format);
     suggest(suggestions = response);
+    Utils.resetRe();
     outTimeout || setTimeout(outClean, 30000);
   },
   onInput = function(key, suggest) {
@@ -358,4 +360,5 @@ setTimeout(function() {
     chrome.runtime.onInstalled = a = null;
   }
   cb = function(b) { a = b; console.log(b); };
+  Utils.resetRe();
 }, 1200);

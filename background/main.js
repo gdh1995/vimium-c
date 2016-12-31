@@ -1288,6 +1288,7 @@ var Clipboard, Commands, Completers, Exclusions, HelpDialog, Marks, TabRecency, 
       count = 1;
     }
     registryEntry = ref[key];
+    Utils.resetRe();
     return executeCommand(registryEntry.command, registryEntry, count, port);
   };
 
@@ -1664,6 +1665,7 @@ var Clipboard, Commands, Completers, Exclusions, HelpDialog, Marks, TabRecency, 
   Settings.Init = function() {
     if (3 !== ++Connections.state) { return; }
     Settings.Init = null;
+    Utils.resetRe();
     chrome.runtime.onConnect.addListener(Connections.OnConnect);
     chrome.runtime.onConnectExternal &&
     chrome.runtime.onConnectExternal.addListener(function(port) {
@@ -1873,6 +1875,7 @@ var Clipboard, Commands, Completers, Exclusions, HelpDialog, Marks, TabRecency, 
 
     document.documentElement.textContent = '';
     document.firstChild.remove();
+    Utils.resetRe();
   }, 34);
 
   // will run only on <F5>, not on runtime.reload
