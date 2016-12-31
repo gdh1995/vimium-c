@@ -111,58 +111,6 @@ var Commands = {
     }
   },
 
-commandGroups: {
-  pageNavigation: ["scrollDown", "scrollUp", "scrollLeft", "scrollRight", "scrollToTop"
-    , "scrollToBottom", "scrollToLeft", "scrollToRight", "scrollPageDown", "scrollPageUp"
-    , "scrollPxDown", "scrollPxUp", "scrollPxLeft", "scrollPxRight"
-    , "scrollFullPageDown", "scrollFullPageUp", "reload", "reloadTab", "reloadGivenTab"
-    , "toggleViewSource"
-    , "copyCurrentUrl", "copyCurrentTitle", "switchFocus", "simBackspace"
-    , "LinkHints.activateModeToCopyLinkUrl", "LinkHints.activateModeToCopyLinkText"
-    , "openCopiedUrlInCurrentTab", "openCopiedUrlInNewTab", "goUp", "goToRoot"
-    , "focusInput", "LinkHints.activate", "LinkHints.activateModeToOpenInNewTab"
-    , "LinkHints.activateModeToOpenInNewForegroundTab", "LinkHints.activateModeWithQueue"
-    , "LinkHints.activateModeToDownloadImage", "LinkHints.activateModeToOpenImage"
-    , "LinkHints.activateModeToDownloadLink", "LinkHints.activateModeToOpenIncognito"
-    , "LinkHints.activateModeToHover", "LinkHints.activateModeToLeave", "LinkHints.unhoverLast"
-    , "LinkHints.activateModeToSearchLinkText", "LinkHints.activateModeToEdit"
-    , "goPrevious", "goNext", "nextFrame", "mainFrame", "parentFrame"
-    , "enterInsertMode", "enterVisualMode", "enterVisualLineMode"
-    , "Marks.activateCreateMode", "Marks.activate"
-    , "Marks.clearLocal", "Marks.clearGlobal", "openUrl", "focusOrLaunch"
-    ],
-  vomnibarCommands: ["Vomnibar.activate", "Vomnibar.activateInNewTab"
-    , "Vomnibar.activateBookmarks", "Vomnibar.activateBookmarksInNewTab", "Vomnibar.activateHistory"
-    , "Vomnibar.activateHistoryInNewTab", "Vomnibar.activateTabSelection"
-    , "Vomnibar.activateEditUrl", "Vomnibar.activateEditUrlInNewTab"
-    , "LinkHints.activateModeToOpenVomnibar"],
-  historyNavigation: ["goBack", "goForward", "reopenTab"],
-  findCommands: ["enterFindMode", "performFind", "performBackwardsFind", "clearFindHistory"],
-  tabManipulation: ["nextTab", "previousTab", "firstTab", "lastTab", "createTab", "duplicateTab"
-    , "removeTab", "removeRightTab", "restoreTab", "restoreGivenTab", "moveTabToNextWindow"
-    , "moveTabToNewWindow", "moveTabToIncognito", "togglePinTab", "toggleMuteTab", "visitPreviousTab"
-    , "closeTabsOnLeft", "closeTabsOnRight", "closeOtherTabs", "moveTabLeft", "moveTabRight"
-    , "enableCSTemp", "toggleCS", "clearCS"],
-  misc: ["showHelp", "autoCopy", "autoOpen", "searchAs", "searchInAnother", "toggleLinkHintCharacters"
-    , "toggleSwitchTemp", "passNextKey", "debugBackground", "blank"]
-},
-advancedCommands: {
-  __proto__: null
-  , toggleViewSource: 1, clearFindHistory: 1
-  , scrollToLeft: 1, scrollToRight: 1, moveTabToNextWindow: 1
-  , moveTabToNewWindow: 1, moveTabToIncognito: 1, reloadGivenTab: 1, focusOrLaunch: 1
-  , goUp: 1, goToRoot: 1, focusInput: 1, "LinkHints.activateModeWithQueue": 1, enableCSTemp: 1
-  , toggleCS: 1, clearCS: 1, "LinkHints.activateModeToDownloadImage": 1, reopenTab: 1
-  , "LinkHints.activateModeToOpenImage": 1, removeRightTab: 1
-  , "LinkHints.activateModeToDownloadLink": 1, restoreGivenTab: 1
-  , "LinkHints.activateModeToOpenIncognito": 1, passNextKey: 1
-  , goNext: 1, goPrevious: 1, "Marks.clearLocal": 1, "Marks.clearGlobal": 1
-  , moveTabLeft: 1, moveTabRight: 1, closeTabsOnLeft: 1, closeTabsOnRight: 1, closeOtherTabs: 1
-  , scrollPxDown: 1, scrollPxUp: 1, scrollPxLeft: 1, scrollPxRight: 1, debugBackground: 1, blank: 1
-  , "LinkHints.activateModeToHover": 1, "LinkHints.unhoverLast": 1
-  , toggleLinkHintCharacters: 1, toggleSwitchTemp: 1, "LinkHints.activateModeToLeave": 1
-  , "Vomnibar.activateEditUrl": 1, "Vomnibar.activateEditUrlInNewTab": 1
-},
 defaultKeyMappings: [
   ["?", "showHelp"],
   ["j", "scrollDown"],

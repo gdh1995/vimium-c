@@ -140,7 +140,7 @@ var Settings = {
   indexPorts: null,
   fetchFile: function(file, callback) {
     if (callback && file in this.cache) { return callback(); }
-    Utils.fetchHttpContents(this.files[file], function() {
+    return Utils.fetchHttpContents(this.files[file], function() {
       Settings.set(file, this.responseText);
       callback && callback();
       return;
@@ -230,6 +230,7 @@ w|wiki:\\\n  https://www.wikipedia.org/w/index.php?search=$s Wikipedia\n\
     ChromeVersion: 37, ContentScripts: null, CurrentVersion: "",
     KnownPages: ["blank", "newtab", "options", "show"],
     MathParser: "/lib/math_parser.js",
+    HelpDialog: "/background/help_dialog.js",
     OptionsPage: "pages/options.html", Platform: "", PolyFill: "lib/polyfill.js",
     RedirectedUrls: {
       about: "https://github.com/gdh1995/vimium-plus",

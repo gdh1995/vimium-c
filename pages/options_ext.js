@@ -33,7 +33,7 @@ $("showCommands").onclick = function(event) {
         VHUD.showCopied(str);
       }
     };
-  }, 50);
+  }, 100);
 };
 
 ExclusionRulesOption.prototype.sortRules = function(element) {

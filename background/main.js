@@ -1583,14 +1583,22 @@ var Clipboard, Commands, Completers, Exclusions, HelpDialog, Marks, TabRecency, 
       try { port.postMessage({ name: "returnFocus", lastKey: request.lastKey }); } catch (e) {}
     },
     initHelp: function(request, port) {
-      Settings.fetchFile("helpDialog", function() {
-        var result = {
+      Promise.all([
+        Utils.require('HelpDialog'),
+        request, port,
+        new Promise(function(resolve, reject) {
+          var xhr = Settings.fetchFile("helpDialog", resolve);
+          xhr instanceof XMLHttpRequest && (xhr.onerror = reject);
+        })
+      ]).then(function(args) {
+        args[2].postMessage({
           name: "showHelpDialog",
-          html: HelpDialog.render(request.unbound, request.names, request.title),
+          html: args[0].render(args[1]),
           optionUrl: Settings.CONST.OptionsPage,
           advanced: Settings.get("showAdvancedCommands", true)
-        };
-        port.postMessage(result);
+        });
+      }, function(args) {
+        console.error("Promises for initHelp failed:", args[0], ';', args[3]);
       });
     },
     initInnerCSS: function() {
