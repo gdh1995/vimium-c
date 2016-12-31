@@ -89,11 +89,15 @@ var Commands = {
       key = splitLine[0];
       if (key === "map") {
         if (splitLine.length < 3) {
-        } else if (details = available[key = splitLine[2]]) {
+          console.log("Lacking command when mapping %c" + key + "", "color:red;");
+        } else if (!(details = available[key = splitLine[2]])) {
+          console.log("Command %c" + key, "color:red;", "doesn't exist!");
+        } else if (splitLine[1] in registry) {
+          console.log("Key %c" + splitLine[1], "color:red;",
+             "has been mapped to", registry[splitLine[1]].command);
+        } else {
           registry[splitLine[1]] =
             this.makeCommand(key, this.getOptions(splitLine), details);
-        } else {
-          console.log("Command %c" + key, "color:red;", "doesn't exist!");
         }
       } else if (key === "unmapAll") {
         registry = this.keyToCommandRegistry = Object.create(null);
@@ -102,7 +106,7 @@ var Commands = {
       } else if ((key = splitLine[1]) in registry) {
         delete registry[key];
       } else {
-        console.log("Unmapping:", key, "has not been mapped.");
+        console.log("Unmapping: %c" + key, "color:red;", "has not been mapped.");
       }
     }
   },
