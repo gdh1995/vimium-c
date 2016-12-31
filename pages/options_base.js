@@ -157,12 +157,14 @@ ExclusionRulesOption.OnNewPassKeyInput = function() {
 };
 
 ExclusionRulesOption.prototype.onRemoveRow = function(event) {
-  if (!event.target.classList.contains("exclusionRemoveButton")) {
-    return;
+  var i, element = event.target;
+  for (i = 0; i < 2; i++) {
+    if (element.classList.contains("exclusionRemoveButton")) { break; }
+    element = element.parentElement;
   }
-  var row1 = event.target.parentNode.parentNode;
-  if (row1.classList.contains("exclusionRuleInstance")) {
-    row1.remove();
+  element = element.parentNode.parentNode;
+  if (element.classList.contains("exclusionRuleInstance")) {
+    element.remove();
     this.onUpdated();
     this.onRowChange(0);
   }

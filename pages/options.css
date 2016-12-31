@@ -81,7 +81,6 @@ select.right:focus {
   z-index: 1;
 }
 
-#exclusionRulesTable,
 pre, code, kbd, .code {
   font-family: Consolas, "Liberation Mono", "Courier New", "PingFang SC", "Hiragino Sans GB",
     "Microsoft YaHei", "Heiti SC", "WenQuanYi Micro Hei", monospace;
@@ -144,6 +143,19 @@ label:active {
 .sel-all {
   -webkit-user-select: all;
   user-select: all;
+}
+
+.close-x {
+  stroke: #979ca0;
+  stroke-linecap: round;
+  stroke-width: 2;
+}
+.close-x:hover {
+  stroke: #444;
+}
+.close-x:active {
+  stroke: #4d90fe;
+  outline: none;
 }
 
 #wrapper, #footerWrapper {
@@ -238,54 +250,33 @@ label:active {
 .checkboxHint:active { outline: none; }
 /* Ids and classes for rendering exclusionRules */
 #exclusionRules {
+  box-sizing: border-box;
+  color: #444;
+  margin: -2px 0 4px 0;
+  max-height: 141px;
+  min-height: 80px;
   overflow-x: hidden;
   overflow-y: auto;
-  max-height: 130px;
-  min-height: 77px;
-  border-radius: 2px;
-  color: #444;
   width: 100%;
-  box-sizing: border-box;
 }
 #exclusionRulesTable {
+  border-spacing: 2px;
   width: 100%;
 }
 .exclusionRulePassKeys {
   width: 33%;
 }
 .exclusionRemoveTd {
-  padding: 0px 1px;
   vertical-align: middle;
-  width: 1px; /* 1px; smaller than the button itself. */
+  width: 22px;
 }
 .exclusionRemoveButton {
-  -webkit-user-select: none;
-  border: none;
-  background-color: #fff;
-  color: #979ca0;
-  cursor: default;
-  font-size: small;
-  font-family: "Segoe UI Symbol", monospace;
-  padding: 5px;
-  user-select: none;
-}
-.exclusionRemoveButton:hover {
-  color: #444;
-  text-decoration: none;
-}
-.exclusionRemoveButton:active {
-  color: #4d90fe;
+  margin: 0 3px;
+  vertical-align: middle;
 }
 .exclusionHeaderText {
   padding-left: 3px;
   color: #798086;
-  margin-right: 1px;
-}
-.exclusionMask {
-  visibility: hidden;
-}
-#exclusionToolbar {
-  margin-top: 5px;
 }
 #exclusionAddButton {
   visibility: visible;
