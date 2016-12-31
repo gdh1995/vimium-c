@@ -1,6 +1,9 @@
 "use strict";
 var Settings = {
   cache: Object.create(null),
+  temp: {
+    shownHash: null
+  },
   bufferToLoad: null,
   extWhiteList: null,
   globalCommand: null,

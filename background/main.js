@@ -545,7 +545,7 @@ var Clipboard, Commands, Completers, Exclusions, HelpDialog, Marks, TabRecency, 
         url: prefix
       });
       arr = [url, null, 0];
-      exports.shownHash = arr[1] = function() {
+      Settings.temp.shownHash = arr[1] = function() {
         clearTimeout(arr[2]);
         this.shownHash = null; return arr[0];
       };
@@ -554,7 +554,7 @@ var Clipboard, Commands, Completers, Exclusions, HelpDialog, Marks, TabRecency, 
     }, function(arr) {
       arr[0] = "#!url vimium://error (vimium://show: sorry, the info has expired.)";
       arr[1] = setTimeout(function() {
-        if (exports.shownHash === arr[1]) { exports.shownHash = null; }
+        if (Settings.temp.shownHash === arr[1]) { Settings.temp.shownHash = null; }
         arr[0] = "", arr[1] = null;
       }, 2000);
     }],

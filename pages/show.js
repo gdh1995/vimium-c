@@ -19,8 +19,8 @@ window.onhashchange = function() {
   type = file = "";
 
   url = location.hash || window.name;
-  if (!url && BG && BG.exports && BG.exports.shownHash) {
-    url = BG.exports.shownHash() || "";
+  if (!url && BG && BG.Settings && BG.Settings.temp.shownHash) {
+    url = BG.Settings.temp.shownHash() || "";
     window.name = url;
   }
   if (url.length < 3) {}
