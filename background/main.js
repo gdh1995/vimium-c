@@ -1,7 +1,8 @@
 "use strict";
-var Clipboard, Commands, Completers, Exclusions, HelpDialog, Marks, TabRecency, g_requestHandlers;
+var Clipboard, Commands, Completers, Exclusions, HelpDialog, Marks, TabRecency,
+  FindModeHistory, g_requestHandlers;
 (function() {
-  var BackgroundCommands, Connections, ContentSettings, FindModeHistory
+  var BackgroundCommands, Connections, ContentSettings
     , cOptions, cPort, checkKeyQueue, commandCount, executeCommand
     , framesForOmni, framesForTab
     , funcDict, keyQueueRe, needIcon, openMultiTab, requestHandlers, keyMap, getSecret;
@@ -202,78 +203,6 @@ var Clipboard, Commands, Completers, Exclusions, HelpDialog, Marks, TabRecency, 
       if (callback) {
         callback();
       }
-    }
-  };
-
-  FindModeHistory = {
-    key: "findModeRawQueryList",
-    max: 50,
-    list: null,
-    listI: null,
-    timer: 0,
-    init: function() {
-      var str = Settings.get(this.key);
-      this.list = str ? str.split("\n") : [];
-      this.init = null;
-    },
-    initI: function() {
-      var list = this.listI = this.list.slice(0);
-      chrome.windows.onRemoved.addListener(this.OnWndRemvoed);
-      return list;
-    },
-    query: function(incognito, query, index) {
-      this.init && this.init();
-      var list = incognito ? this.listI || this.initI() : this.list, str;
-      if (!query) {
-        return list[list.length - (index || 1)] || "";
-      }
-      if (incognito) {
-        this.refreshIn(query, list, true);
-        return;
-      }
-      str = this.refreshIn(query, list);
-      str && Settings.set(this.key, str);
-      this.listI && this.refreshIn(query, this.listI, true);
-    },
-    refreshIn: function(query, list, result) {
-      var ind = list.lastIndexOf(query);
-      if (ind >= 0) {
-        if (ind === list.length - 1) { return; }
-        list.splice(ind, 1);
-      }
-      else if (list.length >= this.max) { list.shift(); }
-      list.push(query);
-      return result || list.join("\n");
-    },
-    removeAll: function(incognito) {
-      if (incognito) {
-        this.listI && (this.listI = []);
-        return;
-      }
-      this.init = null;
-      this.list = [];
-      Settings.set(this.key, "");
-    },
-    OnWndRemvoed: function() {
-      if (!FindModeHistory.listI) { return; }
-      FindModeHistory.timer = FindModeHistory.timer || setTimeout(FindModeHistory.TestIncognitoWnd, 34);
-    },
-    TestIncognitoWnd: function() {
-      FindModeHistory.timer = 0;
-      var left = false, i, port;
-      for (i in framesForTab) {
-        port = framesForTab[i][0];
-        if (port.sender.incognito) { left = true; break; }
-      }
-      if (!left) { this.cleanI(); return; }
-      if (Settings.CONST.ChromeVersion >= 52) { return; }
-      chrome.windows.getAll(function(wnds) {
-        wnds.some(function(wnd) { return wnd.incognito; }) || FindModeHistory.cleanI();
-      });
-    },
-    cleanI: function() {
-      FindModeHistory.listI = null;
-      chrome.windows.onRemoved.removeListener(FindModeHistory.OnWndRemvoed);
     }
   };
 
