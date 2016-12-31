@@ -1,5 +1,5 @@
 "use strict";
-var exports = {}, Utils = {
+var Utils = {
   fetchHttpContents: function(url, success, req) {
     req = req || new XMLHttpRequest();
     req.open("GET", url, true);
@@ -314,7 +314,7 @@ var exports = {}, Utils = {
   },
   tryEvalMath: function(expr, mathParser) {
     var result = null;
-    if ((mathParser = mathParser || exports.MathParser).evaluate) {
+    if ((mathParser = mathParser || window.MathParser || {}).evaluate) {
       try {
         result = "" + mathParser.evaluate(expr);
       } catch (e) {}
@@ -324,21 +324,21 @@ var exports = {}, Utils = {
   },
   jsLoadingTimeout: 300,
   require: function(name) {
-    var p = exports[name];
+    var p = window[name];
     if (p) {
       return p instanceof Promise ? p : Promise.resolve(p);
     }
-    return exports[name] = new Promise(function(resolve, reject) {
+    return window[name] = new Promise(function(resolve, reject) {
       var script = document.createElement("script");
       script.src = Settings.CONST[name];
       script.onerror = function() {
         reject("ImportError: " + name);
       };
       script.onload = function() {
-        if (exports[name] instanceof Promise) {
+        if (window[name] instanceof Promise) {
           reject("ImportError: " + name);
         } else {
-          resolve(exports[name]);
+          resolve(window[name]);
         }
       };
       document.documentElement.appendChild(script).remove();
