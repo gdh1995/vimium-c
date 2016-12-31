@@ -41,13 +41,6 @@ button, select {
 button.chrome-ui {
   margin-right: 0;
 }
-select.chrome-ui {
-  background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABMAAAAICAQAAACxSAwfAAAAUklEQVQY02P4z0AMRGZGMaShwCisyhITmb8huMzfEhOxKvuvsGAh208Ik+3ngoX/FbBbClcIUcSAw21QhXxfIIrwKAMpfNsEUYRXGVCEFc6CQwBqq4CCCtU4VgAAAABJRU5ErkJggg=="),
-    -webkit-linear-gradient(#ededed, #ededed 38%, #dedede);
-  background-position: right center;
-  background-repeat: no-repeat;
-  margin-right: 0;
-}
 button:hover, select:hover {
   background-image: -webkit-linear-gradient(#f0f0f0, #f0f0f0 38%, #e0e0e0);
   border-color: rgba(0, 0, 0, 0.3);
@@ -71,14 +64,18 @@ button.left {
 select.right {
   -webkit-padding-start: 0;
   -webkit-padding-end: 17px;
+  -webkit-appearance: none;
   background-color: #eee;
+  background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABMAAAAICAQAAACxSAwfAAAAUklEQVQY02P4z0AMRGZGMaShwCisyhITmb8huMzfEhOxKvuvsGAh208Ik+3ngoX/FbBbClcIUcSAw21QhXxfIIrwKAMpfNsEUYRXGVCEFc6CQwBqq4CCCtU4VgAAAABJRU5ErkJggg=="),
+    -webkit-linear-gradient(#ededed, #ededed 38%, #dedede);
+  background-position: right center;
+  background-repeat: no-repeat;
   border-bottom-left-radius: 0;
   border-top-left-radius: 0;
-  line-height: 15px;
   margin-left: -5px;
-  min-width: 0;
+  margin-right: 0;
   position: relative;
-  width: 0;
+  width: 19px;
 }
 select.right:focus {
   z-index: 1;

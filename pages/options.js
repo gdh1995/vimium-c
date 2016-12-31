@@ -358,7 +358,7 @@ ExclusionRulesOption.prototype.onInit = function() {
 
   if (window.location.hash === "#chrome-ui") {
     document.getElementById("mainHeader").remove();
-    _ref = $$("body,button,select,header");
+    _ref = $$("body,button,header");
     for (_i = _ref.length; 0 <= --_i; ) {
       element = _ref[_i];
       element.classList.add("chrome-ui");
