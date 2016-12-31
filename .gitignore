@@ -6,6 +6,8 @@
 *.coffee
 *.crx
 *.gz
+*.js
+*.json
 *.old
 *.sh
 *.swp
