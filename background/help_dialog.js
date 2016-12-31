@@ -8,10 +8,10 @@ var HelpDialog = {
       command = ref[key].command;
       (commandsToKey[command] || (commandsToKey[command] = [])).push(key);
     }
-    var showUnbound = !!request.showUnbound, showNames = !!request.showNames;
+    var showUnbound = !!request.unbound, showNames = !!request.names;
     result = Object.setPrototypeOf({
       version: Settings.CONST.CurrentVersion,
-      title: request.customTitle || "Help",
+      title: request.title || "Help",
       tip: showNames ? "Tip: click command names to copy them to the clipboard." : "",
       lbPad: showNames ? '\n\t\t<tr class="HelpTr"><td class="HelpTd TdBottom">&#160;</td></tr>' : ""
     }, null);
