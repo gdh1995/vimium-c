@@ -168,6 +168,7 @@ var VHints = {
   },
   btnRe: /\b(?:[Bb](?:utto|t)n|[Cc]lose)(?:$| )/,
   GetClickable: function(element) {
+    if (element instanceof HTMLFormElement) { return; }
     var arr, isClickable = null, s, type = 0;
     switch (element.tagName.toLowerCase()) {
     case "a": case "details": isClickable = true; break;
@@ -238,6 +239,7 @@ var VHints = {
     }
   },
   GetEditable: function(element) {
+    if (element instanceof HTMLFormElement) { return; }
     var arr, type = 0, s;
     switch (element.tagName.toLowerCase()) {
     case "input":

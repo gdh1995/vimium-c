@@ -679,7 +679,7 @@ var VSettings, VHUD, VPort, VEventMode;
     relTags = Object.setPrototypeOf({a: 1, area: 1, link: 1}, null);
     for (_i = 0, _len = elements.length; _i < _len; _i++) {
       element = elements[_i];
-      if ((element.tagName.toLowerCase() in relTags)
+      if (!(element instanceof HTMLFormElement) && (element.tagName.toLowerCase() in relTags)
           && (s = element.rel) && s.toLowerCase() === relName) {
         return this.followLink(element);
       }

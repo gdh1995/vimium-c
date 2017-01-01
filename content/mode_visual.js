@@ -257,7 +257,7 @@ movement: {
   },
   reverseSelection: function() {
     var el = VEventMode.lock(), direction = this.getDirection(true), str, length, original;
-    if (el && VDom.editableTypes[el.nodeName.toLowerCase()] > 1) {
+    if (el && !(el instanceof HTMLFormElement) && VDom.editableTypes[el.nodeName.toLowerCase()] > 1) {
       length = this.selection.toString().length;
       this.collapseSelectionTo(1);
       this.diNew = this.diOld = 1 - direction;
