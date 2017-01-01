@@ -367,14 +367,13 @@ availableCommands: {
 }
 };
 
-document.readyState !== "complete" ? setTimeout(function() {
+if (document.readyState !== "complete") {
   Commands.parseKeyMappings(Settings.get("keyMappings"));
   Commands.defaultKeyMappings = null;
-  setTimeout(function() {
-    Settings.postUpdate("PopulateCommandKeys", null);
-    Commands = null;
-  }, 0);
-}, 0) : (Settings.updateHooks.keyMappings = function(value) {
+  Settings.postUpdate("PopulateCommandKeys", null);
+  Commands = null;
+} else
+(Settings.updateHooks.keyMappings = function(value) {
   Commands.parseKeyMappings(value);
   this.broadcast({
     name: "keyMap",
