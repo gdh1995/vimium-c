@@ -51,8 +51,9 @@ var Commands = {
     }
   },
   parseKeyMappings: function(line) {
-    var key, lines, splitLine, _i = 0, _len, registry, details, available;
+    var key, lines, splitLine, mk = 1, _i = 0, _len, mkReg, registry, details, available;
     registry = CommandsData.keyToCommandRegistry = Object.create(null);
+    mkReg = Object.create(null);
     available = CommandsData.availableCommands;
     lines = line.replace(/\\\n/g, "").replace(/[\t ]+/g, " ").split("\n");
     lines[0] !== "unmapAll" ? this.loadDefaults() : ++_i;
@@ -75,6 +76,20 @@ var Commands = {
         }
       } else if (key === "unmapAll") {
         registry = CommandsData.keyToCommandRegistry = Object.create(null);
+        mkReg = Object.create(null);
+      } else if (key === "mapKey") {
+        if (splitLine.length !== 3) {
+          console.log("MapKey needs both source and target keys:", line);
+        } else if ((key = splitLine[1]).length > 1 && key.match(Utils.keyRe).length > 1
+          || splitLine[2].length > 1 && splitLine[2].match(Utils.keyRe).length > 1) {
+          console.log("MapKey: a source / target key should be a single key:", line);
+        } else if (key in mkReg) {
+          console.log("This key %c" + key, "color:red;",
+             "has been mapped to another key:", mkReg[key]);
+        } else {
+          mkReg[key] = splitLine[2];
+          mk++;
+        }
       } else if (key !== "unmap") {
         console.log("Unknown mapping command: '" + key + "' in", line);
       } else if (splitLine.length !== 2) {
@@ -85,6 +100,7 @@ var Commands = {
         console.log("Unmapping: %c" + key, "color:red;", "has not been mapped.");
       }
     }
+    CommandsData.mapKeyRegistry = mk > 0 ? mkReg : null;
   },
   populateCommandKeys: function() {
     var key, ref, ref2, arr, keyRe = Utils.keyRe, ch, j, last, tmp, func;
@@ -208,6 +224,7 @@ defaultKeyMappings: [
 },
 CommandsData = CommandsData || {
   keyToCommandRegistry: null,
+  mapKeyRegistry: null,
 availableCommands: {
   __proto__: null,
   showHelp: [ "Show help", 1, false ],
@@ -361,6 +378,7 @@ document.readyState !== "complete" ? setTimeout(function() {
   Commands.parseKeyMappings(value);
   this.broadcast({
     name: "keyMap",
+    mapKeys: CommandsData.mapKeyRegistry,
     keyMap: this.postUpdate("PopulateCommandKeys", null)
   });
 });

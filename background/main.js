@@ -1596,6 +1596,7 @@ var Clipboard, CommandsData, CommandsData, Completers, Exclusions,
         name: "init",
         load: Settings.bufferToLoad,
         passKeys: pass,
+        mapKeys: CommandsData.mapKeyRegistry,
         keyMap: keyMap
       } : {
         name: "reset",

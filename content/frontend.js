@@ -4,13 +4,14 @@ var VSettings, VHUD, VPort, VEventMode;
 (function() {
   var Commands, ELs, FrameMask, HUD, InsertMode, KeydownEvents, Pagination
     , checkValidKey, currentKeys, esc, isEnabledForUrl, isInjected, keyMap
+    , mapKeys
     , nextKeys, onKeyup2, parsePassKeys, passKeys, requestHandlers, vPort;
 
   isInjected = window.VimiumInjector ? true : null;
 
   isEnabledForUrl = false;
 
-  KeydownEvents = nextKeys = onKeyup2 = passKeys = null;
+  KeydownEvents = mapKeys = nextKeys = onKeyup2 = passKeys = null;
 
   currentKeys = "";
 
@@ -457,6 +458,7 @@ var VSettings, VHUD, VPort, VEventMode;
 
   checkValidKey = function(event, key) {
     key = VKeyboard.getKey(event, key);
+    mapKeys !== null && (key = mapKeys[key] || key);
     var j = (nextKeys || keyMap)[key];
     if (nextKeys === null) {
       if (j == null || passKeys !== null && key in passKeys) { return 0; }
@@ -562,6 +564,7 @@ var VSettings, VHUD, VPort, VEventMode;
     lock: function() { return InsertMode.lock; },
     onWndBlur: function(f) { ELs.OnWndBlur = f; },
     OnWndFocus: function() { return ELs.OnWndFocus; },
+    mapKey: function(key) { return mapKeys[key] || key; },
     scroll: function(event) {
       var keyCode, ctrl;
       if (!event || event.shiftKey || event.altKey) { return; }
@@ -857,6 +860,7 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
         if (sec === 0 || sec === 1) { continue; }
         iter(sec);
       }
+      (mapKeys = request.mapKeys) && func(mapKeys, null);
     },
     execute: function(request) {
       VUtils.execCommand(Commands, request.command, [request.count, request.options, 0]);
