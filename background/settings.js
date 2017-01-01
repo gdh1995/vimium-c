@@ -140,7 +140,7 @@ var Settings = {
   indexPorts: null,
   fetchFile: function(file, callback) {
     if (callback && file in this.cache) { return callback(); }
-    return Utils.fetchHttpContents(this.files[file], function() {
+    return Utils.fetchHttpContents(this.CONST.XHRFiles[file], function() {
       Settings.set(file, this.responseText);
       callback && callback();
       return;
@@ -207,12 +207,6 @@ w|wiki:\\\n  https://www.wikipedia.org/w/index.php?search=$s Wikipedia\n\
   frontUpdateAllowed: { __proto__: null,
     showAdvancedCommands: 1
   },
-  files: {
-    __proto__: null,
-    baseCSS: "/front/vimium.min.css",
-    exclusionTemplate: "/front/exclusions.html",
-    helpDialog: "/front/help_dialog.html"
-  },
   icons: [
     { "19": "/icons/enabled_19.png", "38": "/icons/enabled_38.png" },
     { "19": "/icons/partial_19.png", "38": "/icons/partial_38.png" },
@@ -231,6 +225,11 @@ w|wiki:\\\n  https://www.wikipedia.org/w/index.php?search=$s Wikipedia\n\
     KnownPages: ["blank", "newtab", "options", "show"],
     MathParser: "/lib/math_parser.js",
     HelpDialog: "/background/help_dialog.js",
+    XHRFiles: {
+      baseCSS: "/front/vimium.min.css",
+      exclusionTemplate: "/front/exclusions.html",
+      helpDialog: "/front/help_dialog.html"
+    },
     OptionsPage: "pages/options.html", Platform: "", PolyFill: "lib/polyfill.js",
     RedirectedUrls: {
       about: "https://github.com/gdh1995/vimium-plus",
