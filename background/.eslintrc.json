@@ -4,9 +4,10 @@
     },
     "globals": {
         "Clipboard": false,
-        "Commands": false,
+        "Commands": true,
+        "CommandsData": false,
         "Completers": false,
-        "Exclusions": false,
+        "Exclusions": true,
         "Marks": false,
         "Promise": false,
         "Settings": false,

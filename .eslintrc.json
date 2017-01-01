@@ -3,6 +3,9 @@
         "browser": true
     },
     "extends": "eslint:recommended",
+    "globals": {
+        "Symbol": false
+    },
     "root": true,
     "rules": {
         "linebreak-style": ["error", "unix"],
