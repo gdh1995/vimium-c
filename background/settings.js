@@ -8,6 +8,7 @@ var Settings = {
   extWhiteList: null,
   Init: null,
   IconBuffer: null,
+  globalCommand: null,
   getExcluded: null,
   get: function(key, forCache) {
     if (key in this.cache) {

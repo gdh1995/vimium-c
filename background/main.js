@@ -350,7 +350,6 @@ var Clipboard, Commands, CommandsData, Completers, Exclusions,
         incognito: true, focused: active
       }, oldWnd && oldWnd.type === "normal" && oldWnd.state);
     },
-    globalCommand: null,
 
     createTab: [function(onlyNormal, tabs) {
       var tab = null, url = this;
@@ -1675,14 +1674,12 @@ var Clipboard, Commands, CommandsData, Completers, Exclusions,
     needIcon = value && chrome.browserAction ? true : false;
   };
 
-  funcDict.globalCommand = function(command, options, count) {
-    if (!CommandsData) { return; }
+  Settings.globalCommand = function(command, options, count) {
     count = Math.max(1, count | 0);
     options && typeof options === "object" ?
         Object.setPrototypeOf(options, null) : (options = null);
     executeCommand(command, Utils.makeCommand(command, options), count, null);
   };
-  chrome.commands && chrome.commands.onCommand.addListener(funcDict.globalCommand);
 
   chrome.runtime.onMessageExternal && (
   chrome.runtime.onMessageExternal.addListener(function(message, sender, sendResponse) {
@@ -1694,7 +1691,7 @@ var Clipboard, Commands, CommandsData, Completers, Exclusions,
     if (typeof message === "string") {
       command = message;
       if (command && CommandsData.availableCommands[command]) {
-        funcDict.globalCommand(command);
+        Settings.globalCommand(command);
       }
       return;
     }
@@ -1703,7 +1700,7 @@ var Clipboard, Commands, CommandsData, Completers, Exclusions,
     case "command":
       command = message.command;
       if (!(command && CommandsData.availableCommands[command])) { return; }
-      funcDict.globalCommand(command, message.options, message.count);
+      Settings.globalCommand(command, message.options, message.count);
       break;
     case "content_scripts":
       sendResponse(Settings.CONST.ContentScripts);

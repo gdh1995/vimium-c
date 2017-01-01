@@ -1,5 +1,7 @@
 "use strict";
 
+chrome.commands && chrome.commands.onCommand.addListener(Settings.globalCommand);
+
 if (Settings.get("vimSync") === true) setTimeout(function() { if (!chrome.storage) { return; }
   var Sync = Settings.Sync = {
     storage: chrome.storage.sync,
