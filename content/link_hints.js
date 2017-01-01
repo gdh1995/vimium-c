@@ -806,8 +806,10 @@ HOVER: {
   128: "Hover over node",
   192: "Hover over nodes continuously",
   activator: function(element) {
+    var type = VDom.getEditableType(element);
     VDom.unhoverLast(element);
     VScroller.current = element;
+    if (type === 0 && element.tabIndex >= 0) { element.focus(); }
     this.mode < 128 && VHUD.showForDuration("Hover for scrolling", 1000);
   }
 },
@@ -816,6 +818,7 @@ LEAVE: {
   193: "Simulate mouse leaving continuously",
   activator: function(element) {
     VDom.simulateMouse(element, "mouseout");
+    if (document.activeElement === element) { element.blur(); }
   }
 },
 COPY_TEXT: {
@@ -1006,7 +1009,7 @@ DEFAULT: {
       VDom.UI.simulateSelect(link, true);
       return false;
     }
-    if (mode > 0 || tag === "input" || link.tabIndex >= 0) { link.focus(); }
+    if (mode > 0 || link.tabIndex >= 0) { link.focus(); }
     mode = this.mode & 3;
     if (mode >= 2 && tag === "a") {
       alterTarget = link.getAttribute('target');
