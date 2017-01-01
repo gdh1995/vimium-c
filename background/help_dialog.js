@@ -1,7 +1,7 @@
 "use strict";
 var HelpDialog = {
   render: function(request) {
-    var command, commandsToKey, key, ref = Commands.keyToCommandRegistry, result;
+    var command, commandsToKey, key, ref = CommandsData.keyToCommandRegistry, result;
     Object.setPrototypeOf(request, null);
     commandsToKey = Object.create(null);
     for (key in ref) {
@@ -18,7 +18,7 @@ var HelpDialog = {
     return Settings.cache.helpDialog.replace(/\{\{(\w+)}}/g, function(_, group) {
       var s = result[group];
       return s != null ? s
-        : HelpDialog.groupHtml(group, commandsToKey, Commands.availableCommands, showUnbound, showNames);
+        : HelpDialog.groupHtml(group, commandsToKey, CommandsData.availableCommands, showUnbound, showNames);
     });
   },
   groupHtml: function(group, commandsToKey, availableCommands, showUnbound, showNames) {
