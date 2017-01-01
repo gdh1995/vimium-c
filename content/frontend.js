@@ -564,7 +564,7 @@ var VSettings, VHUD, VPort, VEventMode;
     lock: function() { return InsertMode.lock; },
     onWndBlur: function(f) { ELs.OnWndBlur = f; },
     OnWndFocus: function() { return ELs.OnWndFocus; },
-    mapKey: function(key) { return mapKeys[key] || key; },
+    mapKey: function(key) { return mapKeys !== null && mapKeys[key] || key; },
     scroll: function(event) {
       var keyCode, ctrl;
       if (!event || event.shiftKey || event.altKey) { return; }

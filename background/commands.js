@@ -51,7 +51,7 @@ var Commands = {
     }
   },
   parseKeyMappings: function(line) {
-    var key, lines, splitLine, mk = 1, _i = 0, _len, mkReg, registry, details, available;
+    var key, lines, splitLine, mk = 0, _i = 0, _len, mkReg, registry, details, available;
     registry = CommandsData.keyToCommandRegistry = Object.create(null);
     mkReg = Object.create(null);
     available = CommandsData.availableCommands;
@@ -76,7 +76,7 @@ var Commands = {
         }
       } else if (key === "unmapAll") {
         registry = CommandsData.keyToCommandRegistry = Object.create(null);
-        mkReg = Object.create(null);
+        mkReg = Object.create(null), mk = 0;
       } else if (key === "mapKey") {
         if (splitLine.length !== 3) {
           console.log("MapKey needs both source and target keys:", line);
