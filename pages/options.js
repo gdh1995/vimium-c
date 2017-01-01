@@ -359,10 +359,17 @@ ExclusionRulesOption.prototype.onInit = function() {
 
   if (window.location.hash === "#chrome-ui") {
     document.getElementById("mainHeader").remove();
+    element = document.getElementById("openInTab");
+    element.style.display = "";
+    element.onclick = function() {
+      this.href = bgSettings.CONST.OptionsPage;
+      this.target = "_blank";
+      window.close();
+    };
+    element.previousElementSibling.remove();
     _ref = $$("body,button,header");
     for (_i = _ref.length; 0 <= --_i; ) {
-      element = _ref[_i];
-      element.classList.add("chrome-ui");
+      _ref[_i].classList.add("chrome-ui");
     }
     devicePixelRatio !== 1 && (document.body.style.width = 940 / devicePixelRatio + "px");
   }
