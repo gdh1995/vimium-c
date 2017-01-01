@@ -122,7 +122,7 @@ $("exportButton").onclick = function(event) {
     , "color: darkblue", formatDate(d), "color: auto");
 };
 
-var importSettings = function(time, new_data, is_recommended) {
+var _importSettings = function(time, new_data, is_recommended) {
   time = +new Date(new_data && new_data.time || time) || 0;
   if (!new_data || new_data.name !== "Vimium++" || (time < 10000 && time > 0)) {
     key = "No settings data found!";
@@ -233,6 +233,12 @@ var importSettings = function(time, new_data, is_recommended) {
   console.info("IMPORT settings: finished.");
 };
 
+var importSettings = function(time, new_data, is_recommended) {
+  Promise.all([BG.Utils.require("Exclusions"), BG.Utils.require("Commands")]).then(function() {
+    setTimeout(_importSettings, 17, time, new_data, is_recommended);
+  });
+};
+
 var _el = $("settingsFile");
 _el.onclick = null;
 _el.onchange = function() {
@@ -246,7 +252,7 @@ _el.onchange = function() {
     try {
       data = result && JSON.parse(result);
     } catch (e) {}
-    setTimeout(importSettings, 17, lastModified, data, false);
+    importSettings(lastModified, data, false);
   };
   reader.readAsText(file);
 };
@@ -262,7 +268,7 @@ _el.onchange = function() {
   req.open("GET", "../settings_template.json", true);
   req.responseType = "json";
   req.onload = function() {
-    setTimeout(importSettings, 17, 0, this.response, true);
+    importSettings(0, this.response, true);
   };
   req.send();
 };
