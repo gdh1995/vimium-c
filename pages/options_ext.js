@@ -260,7 +260,7 @@ _el.onchange = function() {
 _el = $("importOptions");
 _el.onclick = null;
 _el.onchange = function() {
-  if (this.value === "Exported File") {
+  if (this.value === "exported") {
     $("settingsFile").click();
     return;
   }

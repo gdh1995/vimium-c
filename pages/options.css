@@ -66,7 +66,7 @@ select.right {
   -webkit-padding-end: 17px;
   -webkit-appearance: none;
   background-color: #eee;
-  background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABMAAAAICAQAAACxSAwfAAAAUklEQVQY02P4z0AMRGZGMaShwCisyhITmb8huMzfEhOxKvuvsGAh208Ik+3ngoX/FbBbClcIUcSAw21QhXxfIIrwKAMpfNsEUYRXGVCEFc6CQwBqq4CCCtU4VgAAAABJRU5ErkJggg=="),
+  background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="12px" height="6px"><polyline points="0,0 6,0 3,6"/></svg>'),
     -webkit-linear-gradient(#ededed, #ededed 38%, #dedede);
   background-position: right center;
   background-repeat: no-repeat;
