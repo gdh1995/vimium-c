@@ -8,6 +8,7 @@ var Settings = {
   extWhiteList: null,
   Init: null,
   IconBuffer: null,
+  getExcluded: null,
   get: function(key, forCache) {
     if (key in this.cache) {
       return this.cache[key];
@@ -225,6 +226,7 @@ w|wiki:\\\n  https://www.wikipedia.org/w/index.php?search=$s Wikipedia\n\
     MathParser: "/lib/math_parser.js",
     HelpDialog: "/background/help_dialog.js",
     Commands: "/background/commands.js",
+    Exclusions: "/background/exclusions.js",
     XHRFiles: {
       baseCSS: "/front/vimium.min.css",
       exclusionTemplate: "/front/exclusions.html",

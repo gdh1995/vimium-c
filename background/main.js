@@ -1430,14 +1430,14 @@ var Clipboard, CommandsData, CommandsData, Completers, Exclusions,
       port && port.sender || (port = Settings.indexFrame(request.tabId, request.frameId));
       if (!port) { return; }
       var oldUrl = port.sender.url, tabId = port.sender.tabId
-        , pattern = Exclusions.getPattern(port.sender.url = request.url)
+        , pattern = Settings.getExcluded(port.sender.url = request.url)
         , status = pattern === null ? 0 : pattern ? 1 : 2;
       if (port.sender.status !== status) {
         port.sender.status = status;
         if (needIcon && framesForTab[tabId][0] === port) {
           requestHandlers.SetIcon(tabId, status);
         }
-      } else if (!pattern || pattern === Exclusions.getPattern(oldUrl)) {
+      } else if (!pattern || pattern === Settings.getExcluded(oldUrl)) {
         return;
       }
       port.postMessage({ name: "reset", passKeys: pattern });
@@ -1591,7 +1591,7 @@ var Clipboard, CommandsData, CommandsData, Completers, Exclusions,
         return;
       }
       port.onDisconnect.addListener(Connections.OnDisconnect);
-      pass = Exclusions.getPattern(port.sender.url);
+      pass = Settings.getExcluded(port.sender.url);
       port.postMessage((type & 1) ? {
         name: "init",
         load: Settings.bufferToLoad,

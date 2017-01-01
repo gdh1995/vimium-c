@@ -568,6 +568,7 @@ var Utils = {
       repeat: details[1]
     };
   },
+  getNull: function() { return null; },
   hasUpperCase: function(s) { return s.toLowerCase() !== s; }
 };
 

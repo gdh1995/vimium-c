@@ -178,6 +178,7 @@ CheckBoxOption.prototype.readValueFromElement = function() {
 ExclusionRulesOption.prototype.onRowChange = function(isAdd) {
   var count = this.list.childElementCount;
   if (count - isAdd !== 0) { return; }
+  BG.Utils.require("Exclusions");
   var el = $("exclusionToolbar"), options, i, opt, style;
   el.style.visibility = count > 0 ? "" : "hidden";
   options = el.querySelectorAll('[data-model]');

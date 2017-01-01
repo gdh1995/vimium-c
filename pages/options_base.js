@@ -220,7 +220,11 @@ ExclusionRulesOption.prototype.getPassKeys = function(element) {
 };
 
 if (location.pathname.indexOf("/popup.html") !== -1)
-chrome.tabs.query({currentWindow: true, active: true}, function(tabs) {
+BG.Utils.require("Exclusions").then((function(func, arg1, arg2) {
+  return function() {
+    func(arg1, arg2);
+  };
+})(chrome.tabs.query, {currentWindow: true, active: true}, function(tabs) {
   var exclusions, onUpdated, saveOptions, updateState, status = 0, ref
     , bgExclusions = BG.Exclusions;
 
@@ -344,4 +348,4 @@ exclusions = Object.setPrototypeOf({
   window.onunload = function() {
     bgExclusions.testers = null;
   };
-});
+}));

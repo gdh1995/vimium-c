@@ -1,5 +1,5 @@
 "use strict";
-var Exclusions = {
+var Exclusions = Exclusions && !(Exclusions instanceof Promise) ? Exclusions : {
   testers: null,
   getRe: function(pattern) {
     var func = this.testers[pattern], re;
@@ -22,7 +22,7 @@ var Exclusions = {
     var onURLChange;
     if (rules.length === 0) {
       this.rules = [];
-      this.getPattern = function() { return null; };
+      Settings.getExcluded = Utils.getNull;
       if (this._listening && (onURLChange = this.getOnURLChange())) {
         chrome.webNavigation.onHistoryStateUpdated.removeListener(onURLChange);
         if (this._listeningHash) {
@@ -37,7 +37,7 @@ var Exclusions = {
     this.rules = this.format(rules);
     this.onlyFirstMatch = Settings.get("exclusionOnlyFirstMatch");
     this.testers = null;
-    this.getPattern = this._getPattern;
+    Settings.getExcluded = this.GetPattern;
     if (this._listening) { return; }
     this._listening = true;
     onURLChange = this.getOnURLChange();
@@ -48,13 +48,12 @@ var Exclusions = {
       chrome.webNavigation.onReferenceFragmentUpdated.addListener(onURLChange);
     }
   },
-  getPattern: null,
-  _getPattern: function(url) {
-    var rules = this.rules, _i, _len, matchedKeys = "", str;
+  GetPattern: function(url) {
+    var rules = Exclusions.rules, _i, _len, matchedKeys = "", str;
     for (_i = 0, _len = rules.length; _i < _len; _i += 2) {
       if (rules[_i](url)) {
         str = rules[_i + 1];
-        if (str.length === 0 || this.onlyFirstMatch) { return str; }
+        if (str.length === 0 || Exclusions.onlyFirstMatch) { return str; }
         matchedKeys += str;
       }
     }
@@ -84,7 +83,7 @@ var Exclusions = {
   getTemp: function(url, rules) {
     var old = this.rules;
     this.rules = this.format(rules);
-    url = this._getPattern(url);
+    url = this.GetPattern(url);
     this.rules = old;
     return url;
   },
@@ -113,7 +112,7 @@ var Exclusions = {
             continue;
           }
         } else {
-          pass = Exclusions.getPattern(port.sender.url);
+          pass = Settings.getExcluded(port.sender.url);
           status = pass === null ? 0 : pass ? 1 : 2;
           if (!pass && port.sender.status === status) {
             continue;
@@ -129,6 +128,11 @@ var Exclusions = {
   }
 };
 
+Exclusions.setRules(Settings.get("exclusionRules"));
+
+if (!Exclusions._listening && document.readyState !== "complete") {
+  Exclusions = null;
+} else if (!Settings.updateHooks.exclusionRules) {
 Settings.updateHooks.exclusionRules = function(rules) {
   setTimeout(function() {
     var is_empty = Exclusions.rules.length <= 0;
@@ -150,6 +154,5 @@ Settings.updateHooks.exclusionListenHash = function(value) {
   chrome.webNavigation.onReferenceFragmentUpdated[
       value ? "addListener" : "removeListener"](onURLChange);
 };
-
-Exclusions.setRules(Settings.get("exclusionRules"));
-Settings.Init();
+}
+Settings.Init && Settings.Init();
