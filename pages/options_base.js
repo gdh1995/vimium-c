@@ -137,13 +137,14 @@ ExclusionRulesOption.prototype.appendRule = function(list, rule) {
   row = document.importNode(this.template, true);
   el = row.querySelector('.pattern');
   el.value = value = rule.pattern;
-  if (!value) {
-    el.placeholder = ":https://mail.google.com/";
+  if (value) {
+    el.placeholder = "";
   }
   el = row.querySelector('.passKeys');
-  el.value = rule.passKeys.trimRight();
-  if (!value) {
-    el.placeholder = "f g j k";
+  el.value = value = rule.passKeys.trimRight();
+  if (value) {
+    el.placeholder = "";
+  } else {
     el.addEventListener("input", ExclusionRulesOption.OnNewPassKeyInput);
   }
   list.appendChild(row);
@@ -218,7 +219,7 @@ ExclusionRulesOption.prototype.getPassKeys = function(element) {
   return element.getElementsByClassName("passKeys")[0];
 };
 
-if (location.pathname.indexOf("/popup.html", location.pathname.length - 11) !== -1)
+if (location.pathname.indexOf("/popup.html") !== -1)
 chrome.tabs.query({currentWindow: true, active: true}, function(tabs) {
   var exclusions, onUpdated, saveOptions, updateState, status = 0, ref
     , bgExclusions = BG.Exclusions;
