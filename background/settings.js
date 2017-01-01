@@ -6,7 +6,6 @@ var Settings = {
   },
   bufferToLoad: null,
   extWhiteList: null,
-  globalCommand: null,
   Init: null,
   IconBuffer: null,
   get: function(key, forCache) {
@@ -41,7 +40,7 @@ var Settings = {
     }
   },
   postUpdate: function(key, value) {
-    this.updateHooks[key].call(this, value !== undefined ? value : this.get(key), key);
+    return this.updateHooks[key].call(this, value !== undefined ? value : this.get(key), key);
   },
   broadcast: function (request) {
     var ref = this.indexPorts(), tabId, frames, i;
@@ -225,6 +224,7 @@ w|wiki:\\\n  https://www.wikipedia.org/w/index.php?search=$s Wikipedia\n\
     KnownPages: ["blank", "newtab", "options", "show"],
     MathParser: "/lib/math_parser.js",
     HelpDialog: "/background/help_dialog.js",
+    Commands: "/background/commands.js",
     XHRFiles: {
       baseCSS: "/front/vimium.min.css",
       exclusionTemplate: "/front/exclusions.html",

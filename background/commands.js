@@ -1,9 +1,7 @@
 "use strict";
 var Commands = {
-  keyRe: /<(?!<)(?:.-){0,3}..*?>|./g,
-  keyToCommandRegistry: null,
   setKeyRe: function(keyReSource) {
-    this.keyRe = new RegExp(keyReSource, "g");
+    Utils.keyRe = new RegExp(keyReSource, "g");
   },
   getOptions: function(item) {
     var opt, i = 3, len = item.length, ind, str, val;
@@ -45,7 +43,7 @@ var Commands = {
     }
   },
   loadDefaults: function() {
-    var defaultMap = this.defaultKeyMappings, registry = this.keyToCommandRegistry
+    var defaultMap = this.defaultKeyMappings, registry = CommandsData.keyToCommandRegistry
       , pair, i = defaultMap.length;
     while (0 <= --i) {
       pair = defaultMap[i];
@@ -54,8 +52,8 @@ var Commands = {
   },
   parseKeyMappings: function(line) {
     var key, lines, splitLine, _i = 0, _len, registry, details, available;
-    registry = this.keyToCommandRegistry = Object.create(null);
-    available = this.availableCommands;
+    registry = CommandsData.keyToCommandRegistry = Object.create(null);
+    available = CommandsData.availableCommands;
     lines = line.replace(/\\\n/g, "").replace(/[\t ]+/g, " ").split("\n");
     lines[0] !== "unmapAll" ? this.loadDefaults() : ++_i;
     for (_len = lines.length; _i < _len; _i++) {
@@ -76,15 +74,65 @@ var Commands = {
             Utils.makeCommand(key, this.getOptions(splitLine), details);
         }
       } else if (key === "unmapAll") {
-        registry = this.keyToCommandRegistry = Object.create(null);
-      } else if (key !== "unmap" || splitLine.length !== 2) {
+        registry = CommandsData.keyToCommandRegistry = Object.create(null);
+      } else if (key !== "unmap") {
         console.log("Unknown mapping command: '" + key + "' in", line);
+      } else if (splitLine.length !== 2) {
+        console.log("Unmap needs one mapped key:", line);
       } else if ((key = splitLine[1]) in registry) {
         delete registry[key];
       } else {
         console.log("Unmapping: %c" + key, "color:red;", "has not been mapped.");
       }
     }
+  },
+  populateCommandKeys: function() {
+    var key, ref, ref2, arr, keyRe = Utils.keyRe, ch, j, last, tmp, func;
+    ref = Object.create(null);
+    for (ch = 10; 0 <= --ch; ) { ref[ch] = 1; }
+    for (key in CommandsData.keyToCommandRegistry) {
+      ch = key.charCodeAt(0);
+      if (ch >= 48 && ch < 58) {
+        console.warn("invalid key command:", key, "(the first char can not be [0-9])");
+        continue;
+      }
+      arr = key.match(keyRe);
+      if (arr.length === 1) {
+        if (key in ref) {
+          console.log("inactive keys:", ref[key], "with", key);
+        } else {
+          ref[key] = 0;
+        }
+        continue;
+      }
+      for (ref2 = tmp = ref, j = 0, last = arr.length - 1; j <= last; j++, ref2 = tmp) {
+        tmp = ref2[arr[j]];
+        if (!tmp || j === last) {
+          tmp === 0 && console.warn("inactive key:", key, "with"
+              , arr.slice(0, j + 1).join(""));
+          break;
+        }
+      }
+      if (tmp === 0) { continue; }
+      tmp != null && console.warn("inactive keys:", tmp, "with", key);
+      while (j < last) { ref2 = ref2[arr[j++]] = Object.create(null); }
+      ref2[arr[last]] = 0;
+    }
+
+    func = function(obj) {
+      var key, val;
+      for (key in obj) {
+        val = obj[key];
+        if (val !== 0) { func(val); }
+        else if (ref[key] === 0) { delete obj[key]; }
+      }
+    };
+    for (key in ref) {
+      ref2 = ref[key];
+      if (ref2 !== 0 && ref2 !== 1) { func(ref2); }
+    }
+    Settings.Init && Settings.Init();
+    return ref;
   },
 
 defaultKeyMappings: [
@@ -156,8 +204,10 @@ defaultKeyMappings: [
   ["<f2>", "switchFocus"],
   ["m", "Marks.activateCreateMode"],
   ["`", "Marks.activate"]
-],
-
+]
+},
+CommandsData = CommandsData || {
+  keyToCommandRegistry: null,
 availableCommands: {
   __proto__: null,
   showHelp: [ "Show help", 1, false ],
@@ -300,9 +350,17 @@ availableCommands: {
 }
 };
 
-chrome.commands && chrome.commands.onCommand.addListener(Settings.globalCommand);
-
-setTimeout(function() {
+document.readyState !== "complete" ? setTimeout(function() {
   Commands.parseKeyMappings(Settings.get("keyMappings"));
-  setTimeout(Settings.updateHooks.PopulateCommandKeys, 0);
-}, 0);
+  Commands.defaultKeyMappings = null;
+  setTimeout(function() {
+    Settings.postUpdate("PopulateCommandKeys", null);
+    Commands = null;
+  }, 0);
+}, 0) : (Settings.updateHooks.keyMappings = function(value) {
+  Commands.parseKeyMappings(value);
+  this.broadcast({
+    name: "keyMap",
+    keyMap: this.postUpdate("PopulateCommandKeys", null)
+  });
+});

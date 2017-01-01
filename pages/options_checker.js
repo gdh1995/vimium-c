@@ -19,6 +19,7 @@ window.checker = $('keyMappings').model.checker = {
     this.normalizeMap = this.normalizeMap.bind(this);
     this.normalizeOptions = this.normalizeOptions.bind(this);
     this.init = null;
+    return BG.Utils.require("Commands");
   },
   quoteRe: /"/g,
   normalizeOptions: function(str, value, s2, tail) {

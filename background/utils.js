@@ -543,9 +543,10 @@ var Utils = {
     }
     return null;
   },
+  keyRe: /<(?!<)(?:.-){0,3}..*?>|./g,
   makeCommand: function(command, options, details) {
     var opt;
-    details || (details = Commands.availableCommands[command]);
+    details || (details = CommandsData.availableCommands[command]);
     opt = details[3] || null;
     if (options) {
       if (opt) {

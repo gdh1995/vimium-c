@@ -1,6 +1,6 @@
 "use strict";
-var Clipboard, Commands, Completers, Exclusions, HelpDialog, Marks, TabRecency,
-  FindModeHistory, g_requestHandlers;
+var Clipboard, CommandsData, CommandsData, Completers, Exclusions,
+  HelpDialog, Marks, TabRecency, FindModeHistory, g_requestHandlers;
 (function() {
   var BackgroundCommands, Connections, ContentSettings
     , cOptions, cPort, checkKeyQueue, commandCount, executeCommand
@@ -1148,54 +1148,7 @@ var Clipboard, Commands, Completers, Exclusions, HelpDialog, Marks, TabRecency,
   };
 
   Settings.updateHooks.PopulateCommandKeys = function() {
-    var key, ref, ref2, arr, keyRe = Commands.keyRe, ch, j, last, tmp, func;
-    ref = keyMap = Object.create(null);
-    for (ch = 10; 0 <= --ch; ) { ref[ch] = 1; }
-    for (key in Commands.keyToCommandRegistry) {
-      ch = key.charCodeAt(0);
-      if (ch >= 48 && ch < 58) {
-        console.warn("invalid key command:", key, "(the first char can not be [0-9])");
-        continue;
-      }
-      arr = key.match(keyRe);
-      if (arr.length === 1) {
-        if (key in ref) {
-          console.log("inactive keys:", ref[key], "with", key);
-        } else {
-          ref[key] = 0;
-        }
-        continue;
-      }
-      for (ref2 = tmp = ref, j = 0, last = arr.length - 1; j <= last; j++, ref2 = tmp) {
-        tmp = ref2[arr[j]];
-        if (!tmp || j === last) {
-          tmp === 0 && console.warn("inactive key:", key, "with"
-              , arr.slice(0, j + 1).join(""));
-          break;
-        }
-      }
-      if (tmp === 0) { continue; }
-      tmp != null && console.warn("inactive keys:", tmp, "with", key);
-      while (j < last) { ref2 = ref2[arr[j++]] = Object.create(null); }
-      ref2[arr[last]] = 0;
-    }
-
-    func = function(obj) {
-      var key, val;
-      for (key in obj) {
-        val = obj[key];
-        if (val !== 0) { func(val); }
-        else if (ref[key] === 0) { delete obj[key]; }
-      }
-    };
-    for (key in ref) {
-      ref2 = ref[key];
-      if (ref2 !== 0 && ref2 !== 1) {
-        func(ref2);
-      }
-    }
-
-    Settings.Init && Settings.Init();
+    return keyMap = Commands.populateCommandKeys();
   };
 
   keyQueueRe = /^\d+/;
@@ -1206,9 +1159,9 @@ var Clipboard, Commands, Completers, Exclusions, HelpDialog, Marks, TabRecency,
       key = key.substring(arr[0].length);
       count = parseInt(arr[0], 10) || 1;
     }
-    ref = Commands.keyToCommandRegistry;
+    ref = CommandsData.keyToCommandRegistry;
     if (!(key in ref)) {
-      arr = key.match(Commands.keyRe);
+      arr = key.match(Utils.keyRe);
       key = arr[arr.length - 1];
       count = 1;
     }
@@ -1224,7 +1177,7 @@ var Clipboard, Commands, Completers, Exclusions, HelpDialog, Marks, TabRecency,
       count = 1;
     } else if (registryEntry.repeat > 0 && count > registryEntry.repeat && !
       confirm("You have asked Vimium++ to perform " + count + " repeats of the command:\n        "
-        + Commands.availableCommands[command][0]
+        + CommandsData.availableCommands[command][0]
         + "\n\nAre you sure you want to continue?")
     ) {
       return;
@@ -1716,25 +1669,17 @@ var Clipboard, Commands, Completers, Exclusions, HelpDialog, Marks, TabRecency,
     f.useTab = 0;
   };
 
-  Settings.updateHooks.keyMappings = function(value) {
-    Commands.parseKeyMappings(value);
-    this.postUpdate("PopulateCommandKeys", null);
-    this.broadcast({
-      name: "keyMap",
-      keyMap: keyMap
-    });
-  };
-
   Settings.updateHooks.showActionIcon = function (value) {
     needIcon = value && chrome.browserAction ? true : false;
   };
 
-  Settings.globalCommand = function(command, options, count) {
+  chrome.commands && chrome.commands.onCommand.addListener(function(command, options, count) {
+    if (!CommandsData) { return; }
     count = Math.max(1, count | 0);
     options && typeof options === "object" ?
         Object.setPrototypeOf(options, null) : (options = null);
     executeCommand(command, Utils.makeCommand(command, options), count, null);
-  };
+  });
 
   chrome.runtime.onMessageExternal && (
   chrome.runtime.onMessageExternal.addListener(function(message, sender, sendResponse) {
@@ -1745,7 +1690,7 @@ var Clipboard, Commands, Completers, Exclusions, HelpDialog, Marks, TabRecency,
     }
     if (typeof message === "string") {
       command = message;
-      if (command && Commands.availableCommands[command]) {
+      if (command && CommandsData.availableCommands[command]) {
         Settings.globalCommand(command);
       }
       return;
@@ -1754,7 +1699,7 @@ var Clipboard, Commands, Completers, Exclusions, HelpDialog, Marks, TabRecency,
     switch (message.handler) {
     case "command":
       command = message.command;
-      if (!(command && Commands.availableCommands[command])) { return; }
+      if (!(command && CommandsData.availableCommands[command])) { return; }
       Settings.globalCommand(command, message.options, message.count);
       break;
     case "content_scripts":
