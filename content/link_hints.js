@@ -656,6 +656,9 @@ var VHints = {
     }
     stackForThisMarker || stacks.push([i]);
   },
+  unhoverLast: function() {
+    VDom.unhoverLast(null);
+  },
 
 alphabetHints: {
   chars: "",
@@ -803,12 +806,8 @@ HOVER: {
   128: "Hover over node",
   192: "Hover over nodes continuously",
   activator: function(element) {
-    var last = VDom.lastHovered;
-    last && VDom.isInDOM(last) &&
-    VDom.simulateMouse(last, "mouseout", null, last === element ? null : element);
+    VDom.unhoverLast(element);
     VScroller.current = element;
-    VDom.lastHovered = element;
-    VDom.simulateMouse(element, "mouseover");
     this.mode < 128 && VHUD.showForDuration("Hover for scrolling", 1000);
   }
 },
