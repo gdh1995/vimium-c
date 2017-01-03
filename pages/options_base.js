@@ -98,7 +98,7 @@ function ExclusionRulesOption() {
     _this.element.innerHTML = bgSettings.cache.exclusionTemplate;
     _this.template = $('exclusionRuleTemplate').content.firstChild;
     _this.list = _this.element.getElementsByTagName('tbody')[0];
-    delete _this.fetch;
+    _this.fetch = ExclusionRulesOption.__super__.fetch;
     _this.fetch();
     _this.list.addEventListener("input", _this.onUpdated);
     _this.list.addEventListener("click", function(e) { _this.onRemoveRow(e); });

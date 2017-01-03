@@ -555,7 +555,7 @@ var Utils = {
       }
       if (options.count == null) {}
       else if (details[1] === 1 || (options.count |= 0) <= 0) {
-        delete options.count;
+        options.count = 1;
       }
     } else {
       options = opt;

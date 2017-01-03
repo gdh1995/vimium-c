@@ -44,7 +44,7 @@ var Vomnibar = {
       this.box.contentWindow.focus();
       this.onShown();
     }
-    delete options.secret; delete options.vomnibar;
+    options.secret = 0; options.vomnibar = "";
     options.width = this.width, options.name = "activate";
     url = options.url;
     if (url === true) {
@@ -54,7 +54,7 @@ var Vomnibar = {
         url = options.topUrl;
       }
       upper = 1 - options.count;
-      delete options.topUrl; delete options.count;
+      options.topUrl = null; options.count = 1;
       options.url = url;
     }
     if (!url || url.indexOf("://") === -1) {

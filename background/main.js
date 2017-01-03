@@ -196,7 +196,7 @@ var Clipboard, Commands, CommandsData, Completers, Marks, TabRecency, FindModeHi
       if (!newWindowId || tab.windowId === newWindowId) {
         ++tab.index;
       } else {
-        delete tab.index;
+        tab.index = undefined;
       }
       funcDict.reopenTab(tab);
       if (callback) {
@@ -1490,7 +1490,7 @@ var Clipboard, Commands, CommandsData, Completers, Marks, TabRecency, FindModeHi
       if (request.count > 0) {
         commandCount = request.count;
         cOptions = Object.setPrototypeOf(request, null);
-        delete cOptions.handler; delete cOptions.count;
+        cOptions.handler = "";
       } else if (request.redo !== true || cOptions == null || cOptions.secret !== -1) {
         return;
       }
