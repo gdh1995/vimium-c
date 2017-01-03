@@ -1,4 +1,5 @@
 "use strict";
+if (!(Settings.get("exclusionRules", true).length <= 0 && document.readyState !== "complete" || Settings.updateHooks.exclusionRules)) {
 var Exclusions = Exclusions && !(Exclusions instanceof Promise) ? Exclusions : {
   testers: null,
   getRe: function(pattern) {
@@ -17,7 +18,7 @@ var Exclusions = Exclusions && !(Exclusions instanceof Promise) ? Exclusions : {
   _listening: false,
   _listeningHash: false,
   onlyFirstMatch: false,
-  rules: [],
+  rules: null,
   setRules: function(rules) {
     var onURLChange;
     if (rules.length === 0) {
@@ -130,9 +131,6 @@ var Exclusions = Exclusions && !(Exclusions instanceof Promise) ? Exclusions : {
 
 Exclusions.setRules(Settings.get("exclusionRules"));
 
-if (!Exclusions._listening && document.readyState !== "complete") {
-  Exclusions = null;
-} else if (!Settings.updateHooks.exclusionRules) {
 Settings.updateHooks.exclusionRules = function(rules) {
   setTimeout(function() {
     var is_empty = Exclusions.rules.length <= 0;

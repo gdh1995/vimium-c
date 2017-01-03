@@ -1,6 +1,5 @@
 "use strict";
-var Clipboard, Commands, CommandsData, Completers, Exclusions,
-  HelpDialog, Marks, TabRecency, FindModeHistory, g_requestHandlers;
+var Clipboard, Commands, CommandsData, Completers, Marks, TabRecency, FindModeHistory, g_requestHandlers;
 (function() {
   var BackgroundCommands, Connections, ContentSettings
     , cOptions, cPort, checkKeyQueue, commandCount, executeCommand

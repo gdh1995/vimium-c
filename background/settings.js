@@ -9,7 +9,7 @@ var Settings = {
   Init: null,
   IconBuffer: null,
   globalCommand: null,
-  getExcluded: null,
+  getExcluded: Utils.getNull,
   get: function(key, forCache) {
     if (key in this.cache) {
       return this.cache[key];
