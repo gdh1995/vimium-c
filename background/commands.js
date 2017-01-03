@@ -72,7 +72,7 @@ var Commands = {
       } else if (key === "unmapAll") {
         registry = CommandsData.keyToCommandRegistry = Object.create(null);
         mkReg = Object.create(null), mk = 0;
-      } else if (key === "mapKey") {
+      } else if (key === "mapkey" || key === "mapKey") {
         if (splitLine.length !== 3) {
           console.log("MapKey needs both source and target keys:", line);
         } else if ((key = splitLine[1]).length > 1 && key.match(Utils.keyRe).length > 1
