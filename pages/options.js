@@ -95,6 +95,7 @@ NumberOption.prototype.OnWheel = function(option, event) {
 function TextOption() {
   TextOption.__super__.constructor.apply(this, arguments);
   this.element.oninput = this.onUpdated;
+  this.converter = this.element.getAttribute("data-converter") || "";
 }
 __extends(TextOption, Option);
 
@@ -110,7 +111,13 @@ TextOption.prototype.populateElement = function(value, enableUndo) {
 };
 
 TextOption.prototype.readValueFromElement = function() {
-  return this.element.value.trim().replace(this.whiteMaskRe, ' ');
+  var value = this.element.value.trim().replace(this.whiteMaskRe, ' ');
+  if (value && this.converter) {
+    value = this.converter === "lower" ? value.toLowerCase()
+      : this.converter === "upper" ? value.toUpperCase()
+      : value;
+  }
+  return value;
 };
 
 function NonEmptyTextOption() {
@@ -119,12 +126,7 @@ function NonEmptyTextOption() {
 __extends(NonEmptyTextOption, TextOption);
 
 NonEmptyTextOption.prototype.readValueFromElement = function() {
-  var value = NonEmptyTextOption.__super__.readValueFromElement.call(this), converter;
-  if (converter = this.element.getAttribute("data-converter")) {
-    value = converter === "lower" ? value.toLowerCase()
-      : converter === "upper" ? value.toUpperCase()
-      : value;
-  }
+  var value = NonEmptyTextOption.__super__.readValueFromElement.call(this);
   if (!value) {
     value = bgSettings.defaults[this.field];
     this.populateElement(value, true);
