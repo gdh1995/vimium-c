@@ -3,7 +3,7 @@ setTimeout(function() {
   var HistoryCache, RankingUtils, RegexpCache, Decoder,
       Completers, queryType, offset, autoSelect,
       maxCharNum, maxResults, maxTotal, matchType,
-      showRelevancy, queryTerms, SuggestionUtils;
+      queryTerms, SuggestionUtils;
 
   // matchType: 0: use default completers; 1: empty result for non-empty query;
   //   2: only one completer matches some items;
@@ -19,7 +19,6 @@ setTimeout(function() {
 
 SuggestionUtils = {
   PrepareHtml: function(sug) {
-    showRelevancy || (delete sug.relevancy);
     if (sug.textSplit) { return; }
     var _this = SuggestionUtils;
     sug.titleSplit = _this.highlight(sug.title, _this.getRanges(sug.title));
@@ -344,7 +343,7 @@ history: {
   },
   MakeSuggestion: function(e, i, arr) {
     var o = new Suggestion("history", e.url, Decoder.decodeURL(e.url), e.title,
-      Completers.history.getExtra, 0.99 - i / 25);
+      Completers.history.getExtra, (99 - i) / 100);
     e.sessionId && (o.sessionId = e.sessionId);
     arr[i] = o;
   },
@@ -752,7 +751,7 @@ searchEngines: {
     RegexpCache.reset(null);
     RankingUtils.timeAgo = this.sugCounter = matchType = queryType =
     maxResults = maxTotal = maxCharNum = 0;
-    autoSelect = showRelevancy = false;
+    autoSelect = false;
   },
   getOffset: function() {
     var str, i;
@@ -780,7 +779,6 @@ searchEngines: {
     maxCharNum = options.clientWidth > 0 ? Math.max(50, Math.min((
         (options.clientWidth * 0.8 - 74) / 7.72) | 0, 200)) : 128;
     maxTotal = maxResults = Math.min(Math.max(options.maxResults | 0, 3), 25);
-    showRelevancy = options.showRelevancy === true;
     Completers.callback = callback;
     var _this = null, ref, str;
     if (queryTerms.length >= 1 && queryTerms[0].length === 2 && queryTerms[0][0] === ":") {

@@ -43,6 +43,7 @@ var Vomnibar = {
   focused: true,
   forceNewTab: false,
   showFavIcon: false,
+  showRelevancy: false,
   isScrolling: 0,
   height: 0,
   input: null,
@@ -429,7 +430,7 @@ var Vomnibar = {
     if (oldHeight !== height) {
       VPort.postToOwner({ name: "style", height: height });
     }
-    list.forEach(this.Parse, this.mode);
+    list.forEach(this.parse, this);
     return this.populateUI();
   },
   populateUI: function() {
@@ -494,7 +495,6 @@ var Vomnibar = {
     handler: "omni",
     type: "",
     clientWidth: 0,
-    showRelevancy: false,
     maxResults: 10,
     query: ""
   },
@@ -518,9 +518,9 @@ var Vomnibar = {
     VPort.postMessage(mode);
   },
 
-  Parse: function(item) {
+  parse: function(item) {
     var str;
-    if (Vomnibar.showFavIcon && (str = item.url) && str.length <= 512 && str.indexOf("://") > 0) {
+    if (this.showFavIcon && (str = item.url) && str.length <= 512 && str.indexOf("://") > 0) {
       item.favIconUrl = ' icon" style="background-image: url(&quot;chrome://favicon/size/16/' +
         VUtils.escapeCSSStringInAttr(str) + "&quot;)";
     } else {
