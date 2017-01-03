@@ -12,7 +12,7 @@ window.checker = $('keyMappings').model.checker = {
     },
     func = function(_0, option, key) {
       return (option ? ("<" + sortModifiers(option.toLowerCase())) : "<")
-        + (lowerRe.test(key) ? key.toLowerCase() : key)
+        + (key.length > 1 && lowerRe.test(key) ? key.toLowerCase() : key)
         + ">";
     };
     this.normalizeKeys = function(keys) { return keys.replace(keyLeftRe, func); };
