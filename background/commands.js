@@ -35,12 +35,7 @@ var Commands = {
     return val;
   },
   onHex: function(s, hex) {
-    hex = hex ? String.fromCharCode(parseInt(hex, 16)) : '\\\\';
-    switch (hex) {
-    case '\\': case '"': return '\\' + hex;
-    case '\r': case '\n': return '\\n';
-    default: return hex;
-    }
+    return hex ? "\\u00" + hex : '\\\\';
   },
   loadDefaults: function() {
     var defaultMap = this.defaultKeyMappings, registry = CommandsData.keyToCommandRegistry
