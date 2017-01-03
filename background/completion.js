@@ -1007,14 +1007,12 @@ searchEngines: {
     _f: decodeURIComponent, // core function
     decodeURL: null,
     decodeList: function(a) {
-      var i = -1, j, l = a.length, d = Decoder, f = d._f, s, t, m = d.dict, w = d.todos;
+      var i = -1, j, l = a.length, d = Decoder, f = d._f, s, m = d.dict, w = d.todos;
       for (; ; ) {
         try {
           while (++i < l) {
-            j = a[i], s = j.url;
-            if (s.length >= 400) { j.text = s; continue; }
-            t = f(s);
-            j.text = t !== s ? t : s;
+            j = a[i]; s = j.url;
+            j.text = s.length >= 400 || s.indexOf('%') < 0 ? s : f(s);
           }
           break;
         } catch (e) {
@@ -1082,7 +1080,7 @@ searchEngines: {
   (function() {
     var d = Decoder.dict, f = Decoder._f, t = Decoder.todos;
     Decoder.decodeURL = function(a, o) {
-      if (a.length >= 400) { return a; }
+      if (a.length >= 400 || a.indexOf('%') < 0) { return a; }
       try {
         return f(a);
       } catch (e) {
