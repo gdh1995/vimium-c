@@ -219,7 +219,7 @@ MainKey|c|c\:|MainName: \
         <tr>
           <td class="caption">Previous patterns</td>
           <td>
-            <input id="previousPatterns" type="text" data-model="NonEmptyText" />
+            <input id="previousPatterns" type="text" data-model="NonEmptyText" data-converter="lower" />
             <div class="nonEmptyTextOption"></div>
           </td>
           <td class="help"><div class="help-inner">
@@ -229,7 +229,7 @@ MainKey|c|c\:|MainName: \
         <tr>
           <td class="caption">Next patterns</td>
           <td>
-            <input id="nextPatterns" type="text" data-model="NonEmptyText" />
+            <input id="nextPatterns" type="text" data-model="NonEmptyText" data-converter="lower" />
             <div class="nonEmptyTextOption"></div>
           </td>
           <td class="help"><div class="help-inner">
@@ -289,7 +289,7 @@ MainKey|c|c\:|MainName: \
         <tr>
           <td class="caption">Locale encoding</td>
           <td>
-            <input id="localeEncoding" type="text" data-model="Text" />
+            <input id="localeEncoding" type="text" data-model="Text" data-converter="lower" />
           </td>
           <td class="help"><div class="help-inner">
             In order to recognize urls whose encoding is not UTF-8. The default <kbd>gbk</kbd> is for Chinese.<br/>
