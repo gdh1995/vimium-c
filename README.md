@@ -51,6 +51,10 @@ __微度新标签页修改版 (Modified X New Tab Page):__
 Not released yet:
 * **WARNING**: The feature "Custom outer CSS" will be definitely removed in future.
 * **WARNING**: revert semantics of `metaKey`: now the same as `ctrlKey`
+* support zoomed pages better and handle malformed pages safely
+* the background process has smaller memory cost
+* allow showing options page as a dialogue in Chrome's options page,
+  but Chrome 55 has bugs in option dialogue if `#enable-md-extensions` is enabled.
 
 1.57.3:
 * fix a bug that tab completer does not accept commands like "+10"
