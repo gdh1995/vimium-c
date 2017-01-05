@@ -1,6 +1,6 @@
 "use strict";
 
-window.checker = $('keyMappings').model.checker = {
+window.checker = Option.all.keyMappings.checker = {
   normalizeKeys: null,
   isKeyReInstalled: false,
   init: function() {

@@ -256,7 +256,7 @@ ExclusionRulesOption.prototype.onInit = function() {
   for (_i = _ref.length; 0 <= --_i; ) {
     element = _ref[_i];
     func = window[element.getAttribute("data-model") + "Option"];
-    element.model = new func(element, onUpdated);
+    new func(element, onUpdated);
   }
 
   func = loadChecker;
