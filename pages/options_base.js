@@ -54,6 +54,15 @@ Option.prototype.fetch = function() {
   this.saved = true;
 };
 
+Option.prototype.normalize = function(value, isJSON, str) {
+  var checker = this.checker;
+  if (isJSON) {
+    str = checker || !str ? JSON.stringify(checker ? checker.check(value) : value) : str;
+    return BG.JSON.parse(str);
+  }
+  return checker ? checker.check(value) : value;
+};
+
 Option.prototype.save = function() {
   var value = this.readValueFromElement(), notJSON = typeof value !== "object"
     , previous = notJSON ? JSON.stringify(this.previous) : this.previous, str;
@@ -64,16 +73,13 @@ Option.prototype.save = function() {
     if (str === JSON.stringify(bgSettings.defaults[this.field])) {
       value = bgSettings.defaults[this.field];
     } else {
-      this.checker && (str = JSON.stringify(this.checker.check(value)));
-      value = BG.JSON.parse(str);
+      value = this.normalize(value, true, str);
       str = "";
     }
   } else if (value === previous) {
     return;
   } else {
-    if (this.checker) {
-      value = this.checker.check(value);
-    }
+    value = this.normalize(value, false);
   }
   bgSettings.set(this.field, value);
   this.previous = value = bgSettings.get(this.field);
