@@ -180,8 +180,10 @@ var _importSettings = function(time, new_data, is_recommended) {
     if (new_value == null) {
       // NOTE: we assume all nullable settings have the same default value: null
       new_value = all[key];
-    } else if (new_value.join && typeof all[key] === "string") {
-      new_value = new_value.join("\n").trim();
+    } else {
+      if (new_value instanceof Array && typeof all[key] === "string") {
+        new_value = new_value.join("\n").trim();
+      }
     }
     if (!item.areEqual(bgSettings.get(key), new_value)) {
       logUpdate("import", key, new_value);
@@ -194,6 +196,7 @@ var _importSettings = function(time, new_data, is_recommended) {
     }
     item.fetch();
   }
+  item = null;
   for (key in new_data) {
     new_value = new_data[key];
     if (new_value == null) {
@@ -212,7 +215,7 @@ var _importSettings = function(time, new_data, is_recommended) {
       logUpdate("remove", key, ":=", new_value);
       continue;
     }
-    if (new_value.join && typeof all[key] === "string") {
+    if (new_value instanceof Array && typeof all[key] === "string") {
       new_value = new_value.join("\n").trim();
     }
     if (key in all) {

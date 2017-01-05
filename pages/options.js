@@ -438,7 +438,9 @@ $("importButton").onclick = function() {
 };
 
 function loadJS(file) {
-  document.head.appendChild(document.createElement("script")).src = file;
+  var script = document.createElement("script");
+  script.src = file;
+  return document.head.appendChild(script);
 }
 
 function loadChecker() {
