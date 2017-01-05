@@ -2,4 +2,5 @@
 /dist/
 *.idea/
 /.*/
+/node_modules/
 /lib/viewer.*

@@ -41,7 +41,7 @@ if [ $in_dist == true ]; then
   fi
 fi
 zip -roX -MM $args "$output_for_zip" $input -x '.*' 'weidu*' 'test*' 'git*' \
-  'lib/vimium.css' 'tsconfig.json' \
+  'lib/vimium.css' 'node_modules*' 'tsconfig.json' \
   '*/.*' '*.coffee' '*.crx' '*.sh' '*.ts' '*.zip' $4
 err=$?
 [ $in_dist == true ] && cd ..
