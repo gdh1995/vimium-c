@@ -184,6 +184,7 @@ var _importSettings = function(time, new_data, is_recommended) {
       if (new_value instanceof Array && typeof all[key] === "string") {
         new_value = new_value.join("\n").trim();
       }
+      new_value = item.normalize(new_value, typeof all[key] === "object");
     }
     if (!item.areEqual(bgSettings.get(key), new_value)) {
       logUpdate("import", key, new_value);
@@ -237,7 +238,11 @@ var _importSettings = function(time, new_data, is_recommended) {
 };
 
 var importSettings = function(time, new_data, is_recommended) {
-  Promise.all([BG.Utils.require("Exclusions"), BG.Utils.require("Commands")]).then(function() {
+  var promisedChecker = Option.all.keyMappings.checker ? 1 : new Promise(function(resolve) {
+    var element = loadJS("options_checker.js");
+    element.onload = resolve;
+  });
+  Promise.all([BG.Utils.require("Commands"), BG.Utils.require("Exclusions"), promisedChecker]).then(function() {
     setTimeout(_importSettings, 17, time, new_data, is_recommended);
   });
 };
