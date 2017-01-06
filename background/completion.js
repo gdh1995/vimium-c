@@ -44,13 +44,11 @@ SuggestionUtils = {
       url.length - +(url.charCodeAt(url.length - 1) === 47 && !url.endsWith("://")));
   },
   pushMatchingRanges: function(string, term, ranges) {
-    var index = 0, textPosition = 0, matchedEnd,
-      splits = string.split(RegexpCache.item(term)),
-      _len = splits.length, tl = term.length;
-    for (; index < _len; index++) {
+    var index = 0, textPosition = 0, matchedEnd = 0, tl = term.length,
+      splits = string.split(RegexpCache.item(term)), last = splits.length - 1;
+    for (; index < last; index++, textPosition = matchedEnd) {
       matchedEnd = (textPosition += splits[index].length) + tl;
       ranges.push([textPosition, matchedEnd]);
-      textPosition = matchedEnd;
     }
   },
   getRanges: function(string) {
