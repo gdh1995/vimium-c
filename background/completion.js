@@ -109,6 +109,9 @@ SuggestionUtils = {
   ComputeWordRelevancy: function(suggestion) {
     return RankingUtils.wordRelevancy(suggestion.text, suggestion.title);
   },
+  ComputeTimeRelevancy: function(_0, _1, lastVisitTime) {
+    return RankingUtils.recencyScore(lastVisitTime);
+  },
   ComputeRelevancy: function(text, title, lastVisitTime) {
     var recencyScore = RankingUtils.recencyScore(lastVisitTime),
       wordRelevancy = RankingUtils.wordRelevancy(text, title);
@@ -261,8 +264,13 @@ history: {
     var maxNum = maxResults + ((queryType & 63) === 3 ? offset : 0),
     results = [0.0, 0], sug,
     sugs, query = queryTerms, regexps, len, i, len2, j,
-    score, item,
-    getRele = SuggestionUtils.ComputeRelevancy;
+    score, item, getRele = SuggestionUtils.ComputeRelevancy;
+    if (queryTerms.length === 1) {
+      Utils.convertToUrl(queryTerms[0], null, -2);
+      if (Utils.lastUrlType <= 2) {
+        getRele = SuggestionUtils.ComputeTimeRelevancy;
+      }
+    }
     for (j = maxNum; --j; ) { results.push(0.0, 0); }
     maxNum = maxNum * 2 - 2;
     regexps = query.map(RegexpCache.item, RegexpCache);
