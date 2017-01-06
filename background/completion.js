@@ -105,6 +105,14 @@ SuggestionUtils = {
         (temp - 3 > end) ? (temp - 3) : (end + 10))), "...");
     }
     return out.join("");
+  },
+  ComputeWordRelevancy: function(suggestion) {
+    return RankingUtils.wordRelevancy(suggestion.text, suggestion.title);
+  },
+  ComputeRelevancy: function(text, title, lastVisitTime) {
+    var recencyScore = RankingUtils.recencyScore(lastVisitTime),
+      wordRelevancy = RankingUtils.wordRelevancy(text, title);
+    return recencyScore <= wordRelevancy ? wordRelevancy : (wordRelevancy + recencyScore) / 2;
   }
 };
 
@@ -130,7 +138,7 @@ bookmarks: {
     }
     var c, results = [], isPath, _ref, _i, i, title, sug;
     isPath = queryTerms.some(this.StartsWithSlash);
-    c = this.computeRelevancy;
+    c = SuggestionUtils.ComputeWordRelevancy;
     for (_ref = this.bookmarks, _i = _ref.length; 0 <= --_i; ) {
       i = _ref[_i];
       title = isPath ? i.path : i.title;
@@ -220,9 +228,6 @@ bookmarks: {
       bookmark.jsUrl = url;
       bookmark.jsText = Utils.DecodeURLPart(url);
     }
-  },
-  computeRelevancy: function(suggestion) {
-    return RankingUtils.wordRelevancy(suggestion.text, suggestion.title);
   }
 },
 
@@ -256,7 +261,8 @@ history: {
     var maxNum = maxResults + ((queryType & 63) === 3 ? offset : 0),
     results = [0.0, 0], sug,
     sugs, query = queryTerms, regexps, len, i, len2, j,
-    score, item, getRele = this.computeRelevancy;
+    score, item,
+    getRele = SuggestionUtils.ComputeRelevancy;
     for (j = maxNum; --j; ) { results.push(0.0, 0); }
     maxNum = maxNum * 2 - 2;
     regexps = query.map(RegexpCache.item, RegexpCache);
@@ -344,12 +350,7 @@ history: {
     arr[i] = o;
   },
   getExtra: function(sug, score) { return score; },
-  urlNotIn: function(i) { return !(i.url in this); },
-  computeRelevancy: function(text, title, lastVisitTime) {
-    var recencyScore = RankingUtils.recencyScore(lastVisitTime),
-      wordRelevancy = RankingUtils.wordRelevancy(text, title);
-    return recencyScore <= wordRelevancy ? wordRelevancy : (wordRelevancy + recencyScore) / 2;
-  }
+  urlNotIn: function(i) { return !(i.url in this); }
 },
 
 domains: {
@@ -373,7 +374,7 @@ domains: {
       return;
     }
     var ref = this.domains, domain, p = RankingUtils.maxScoreP, q = queryTerms, word = q[0]
-      , sug, wordRelevancy, score, result = "", result_score = -1000;
+      , sug, score, result = "", result_score = -1000;
     if (offset > 0) {
       for (domain in ref) {
         if (domain.indexOf(word) !== -1) { offset--; break; }
@@ -384,14 +385,12 @@ domains: {
     RankingUtils.maxScoreP = RankingUtils.maximumScore;
     for (domain in ref) {
       if (domain.indexOf(word) === -1) { continue; }
-      score = RankingUtils.recencyScore(ref[domain][0]);
-      wordRelevancy = RankingUtils.wordRelevancy(domain, null);
-      score = score <= wordRelevancy ? wordRelevancy : (wordRelevancy + score) / 2;
+      score = SuggestionUtils.ComputeRelevancy(domain, "", ref[domain][0]);
       if (score > result_score) { result_score = score; result = domain; }
     }
     if (result) {
       sug = new Suggestion("domain", (ref[result][2] ? "https://" + result : "http://" + result)
-        , result, "", this.computeRelevancy);
+        , result, "", this.compute2);
       sug.titleSplit = "";
       sug.textSplit = SuggestionUtils.cutUrl(result, SuggestionUtils.getRanges(result), sug.url);
       --maxResults;
@@ -443,9 +442,7 @@ domains: {
     url = url.substring(d, url.indexOf('/', d));
     return [url !== "__proto__" ? url : ".__proto__", d - 7];
   },
-  computeRelevancy: function() {
-    return 2;
-  }
+  compute2: function() { return 2; }
 },
 
 tabs: {
@@ -474,7 +471,7 @@ tabs: {
       Completers.next([]);
       return;
     }
-    c = noFilter ? this.computeRecency : this.computeRelevancy;
+    c = noFilter ? this.computeRecency : SuggestionUtils.ComputeWordRelevancy;
     for (i = 0, len = tabs.length; i < len; i++) {
       tab = tabs[i];
       tabId = tab.id;
@@ -504,9 +501,6 @@ tabs: {
   },
   computeRecency: function(_0, tabId) {
     return TabRecency.tabs[tabId] || (1 - 1 / tabId);
-  },
-  computeRelevancy: function(suggestion) {
-    return RankingUtils.wordRelevancy(suggestion.text, suggestion.title);
   }
 },
 
@@ -543,7 +537,7 @@ searchEngines: {
 
     obj = Utils.createSearch(q, pattern.url, []);
     sug = new Suggestion("search", obj.url, obj.url
-      , pattern.name + ": " + q.join(" "), this.computeRelevancy);
+      , pattern.name + ": " + q.join(" "), this.compute9);
     if (keyword === "~") {}
     else if (obj.url.startsWith("vimium://")) {
       keyword = Utils.evalVimiumUrl(obj.url.substring(9), 1);
@@ -586,7 +580,7 @@ searchEngines: {
     if (!arr[0]) {
       return Completers.next(output);
     }
-    var sug = new Suggestion("math", "", "", "", this.computeRelevancy);
+    var sug = new Suggestion("math", "", "", "", this.compute9);
     output.push(sug);
     --sug.relevancy;
     sug.text = sug.title = arr[0];
@@ -636,7 +630,7 @@ searchEngines: {
   },
   makeUrlSuggestion: function(keyword, text) {
     var sug = new Suggestion("search", Utils.convertToUrl(keyword, null, -2),
-      "", keyword, this.computeRelevancy);
+      "", keyword, this.compute9);
     sug.text = Utils.DecodeURLPart(SuggestionUtils.shortenUrl(sug.url));
     sug.textSplit = Utils.escapeText(sug.text);
     text && (sug.text = text);
@@ -669,9 +663,7 @@ searchEngines: {
     }
     return m + (e < u);
   },
-  computeRelevancy: function() {
-    return 9;
-  }
+  compute9: function() { return 9; }
 },
 
   counter: 0,
