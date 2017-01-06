@@ -110,7 +110,7 @@ SuggestionUtils = {
 
 Completers = {
 bookmarks: {
-  bookmarks: null,
+  bookmarks: [],
   currentSearch: null,
   path: "",
   deep: 0,
@@ -950,6 +950,8 @@ searchEngines: {
       Decoder.continueToWork();
       if (toRemove.allHistory) {
         _this.history = [];
+        Decoder.dict = Object.create(null);
+        setTimeout(Decoder.DecodeList, 17, Completers.bookmarks.bookmarks);
         return;
       }
       var bs = _this.binarySearch, h = _this.history, arr = toRemove.urls, j, i;
@@ -957,6 +959,7 @@ searchEngines: {
         i = bs(arr[j], h);
         if (i >= 0) {
           h.splice(i, 1);
+          delete Decoder.dict[arr[j]];
         }
       }
     },
@@ -1002,7 +1005,13 @@ searchEngines: {
 
   Decoder = {
     _f: decodeURIComponent, // core function
-    decodeURL: null,
+    decodeURL: function(a, o) {
+      if (a.length >= 400 || a.indexOf('%') < 0) { return a; }
+      try {
+        return this._f(a);
+      } catch (e) {}
+      return this.dict[a] || (this.todos.push(o || a), a);
+    },
     DecodeList: function(a) {
       var i = -1, j, l = a.length, d = Decoder, f = d._f, s, m = d.dict, w = d.todos;
       for (; ; ) {
@@ -1077,17 +1086,6 @@ searchEngines: {
       return this.xhr();
     }
   };
-
-  (function() {
-    var d = Decoder.dict, f = Decoder._f, t = Decoder.todos;
-    Decoder.decodeURL = function(a, o) {
-      if (a.length >= 400 || a.indexOf('%') < 0) { return a; }
-      try {
-        return f(a);
-      } catch (e) {}
-      return d[a] || (t.push(o || a), a);
-    };
-  })();
 
   window.Completers = {
     bookm: new Completers.MultiCompleter([Completers.bookmarks]),
