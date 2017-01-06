@@ -238,9 +238,9 @@ setTimeout(function() { if (!chrome.omnibox) { return; }
       chrome.omnibox.setDefaultSuggestion({ description: format(sug).description });
     }
     response = response.map(format);
-    suggest(suggestions = response);
-    Utils.resetRe();
     outTimeout || setTimeout(outClean, 30000);
+    Utils.resetRe();
+    return suggest(suggestions = response);
   },
   onInput = function(key, suggest) {
     key = key.trim().replace(Utils.spacesRe, " ");

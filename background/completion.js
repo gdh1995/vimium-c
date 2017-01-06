@@ -234,18 +234,13 @@ history: {
     }
     if (queryTerms.length > 0) {
       if (history) {
-        Completers.next(this.quickSearch(history));
-      } else {
-        HistoryCache.use(function(history) {
-          if (query.isOff) { return; }
-          Completers.next(Completers.history.quickSearch(history));
-        });
+        return Completers.next(this.quickSearch(history));
       }
-      return;
+      return HistoryCache.use(function(history) {
+        if (query.isOff) { return; }
+        return Completers.next(Completers.history.quickSearch(history));
+      });
     }
-    index === 0 ? chrome.tabs.query({}, this.loadTabs.bind(this, query))
-      : chrome.sessions ? chrome.sessions.getRecentlyClosed(null, this.loadSessions.bind(this, query))
-      : this.filterFill([], query, {}, 0);
     if (history) {
       HistoryCache.refreshInfo();
     } else {
@@ -253,6 +248,9 @@ history: {
         HistoryCache.use(null);
       }, 50);
     }
+    return index === 0 ? chrome.tabs.query({}, this.loadTabs.bind(this, query))
+      : chrome.sessions ? chrome.sessions.getRecentlyClosed(null, this.loadSessions.bind(this, query))
+      : this.filterFill([], query, {}, 0);
   },
   quickSearch: function(history) {
     var maxNum = maxResults + ((queryType & 63) === 3 ? offset : 0),
@@ -336,8 +334,8 @@ history: {
   filterFinish: function(historys) {
     historys.forEach(this.MakeSuggestion);
     offset = 0;
-    Completers.next(historys);
     Decoder.continueToWork();
+    return Completers.next(historys);
   },
   MakeSuggestion: function(e, i, arr) {
     var o = new Suggestion("history", e.url, Decoder.decodeURL(e.url), e.title,
@@ -364,10 +362,9 @@ domains: {
       this.refresh(HistoryCache.history);
       return this.performSearch(query);
     }
-    if (index > 0) { return Completers.next([]); }
-    HistoryCache.use(function() {
+    return index > 0 ? Completers.next([]) : HistoryCache.use(function() {
       if (query.isOff) { return; }
-      Completers.domains.filter(query, 0);
+      return Completers.domains.filter(query, 0);
     });
   },
   performSearch: function() {
@@ -381,8 +378,7 @@ domains: {
       for (domain in ref) {
         if (domain.indexOf(word) !== -1) { offset--; break; }
       }
-      Completers.next([]);
-      return;
+      return Completers.next([]);
     }
     queryTerms = [word];
     RankingUtils.maxScoreP = RankingUtils.maximumScore;
@@ -402,7 +398,7 @@ domains: {
     }
     queryTerms = q;
     RankingUtils.maxScoreP = p;
-    Completers.next(sug ? [sug] : []);
+    return Completers.next(sug ? [sug] : []);
   },
   refresh: function(history) {
     this.refresh = null;
@@ -454,7 +450,7 @@ domains: {
 
 tabs: {
   filter: function(query) {
-    chrome.tabs.query({}, this.performSearch.bind(this, query));
+    return chrome.tabs.query({}, this.performSearch.bind(this, query));
   },
   performSearch: function(query, tabs0) {
     if (query.isOff) { return; }
@@ -503,8 +499,8 @@ tabs: {
       }
       offset = 0;
     }
-    Completers.next(suggestions);
     Decoder.continueToWork();
+    return Completers.next(suggestions);
   },
   computeRecency: function(_0, tabId) {
     return TabRecency.tabs[tabId] || (1 - 1 / tabId);
@@ -582,7 +578,7 @@ searchEngines: {
       sug.titleSplit = Utils.escapeText(sug.title);
     }
 
-    promise ? promise.then(this.onPrimose.bind(this, query, [sug]))
+    return promise ? promise.then(this.onPrimose.bind(this, query, [sug]))
     : Completers.next([sug]);
   },
   onPrimose: function(query, output, arr) {
@@ -694,8 +690,10 @@ searchEngines: {
     this.getOffset();
     matchType = offset && -1;
     if (completers[0].preFilter) {
+      if (i === l) {
+        return completers[0].preFilter(query);
+      }
       completers[0].preFilter(query);
-      if (!queryTerms) { return; }
       i = 1;
     } else {
       i = 0;
@@ -705,9 +703,10 @@ searchEngines: {
     if (queryTerms.indexOf("__proto__") >= 0) {
       queryTerms = queryTerms.join(" ").replace(this.protoRe, " __proto_").trimLeft().split(" ");
     }
-    for (; i < l; i++) {
+    for (l--; i < l; i++) {
       completers[i].filter(query, i);
     }
+    return i === l && completers[i].filter(query, i);
   },
   next: function(newSugs) {
     var arr = this.suggestions;
@@ -742,7 +741,7 @@ searchEngines: {
       : this.sugCounter === 1 ? 2 : 0;
     func = this.callback;
     this.cleanGlobals();
-    func(suggestions, newAutoSelect, newMatchType);
+    return func(suggestions, newAutoSelect, newMatchType);
   },
   cleanGlobals: function() {
     this.mostRecentQuery = this.callback = queryTerms = null;
@@ -972,7 +971,7 @@ searchEngines: {
       }, this.OnInfo);
       this.lastRefresh = i;
       this.toRefreshCount = this.updateCount = 0;
-      Decoder.continueToWork();
+      return Decoder.continueToWork();
     },
     OnInfo: function(history) {
       var arr = HistoryCache.history, bs = HistoryCache.binarySearch, i, len, info, j, item;
