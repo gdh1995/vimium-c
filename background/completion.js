@@ -775,7 +775,7 @@ searchEngines: {
     autoSelect = false;
     queryTerms = query ? query.split(Utils.spacesRe) : [];
     maxCharNum = options.clientWidth > 0 ? Math.max(50, Math.min((
-        (options.clientWidth * 0.8 - 74) / 7.72) | 0, 200)) : 128;
+        (options.clientWidth - 74) / 7.72) | 0, 200)) : 128;
     maxTotal = maxResults = Math.min(Math.max(options.maxResults | 0, 3), 25);
     Completers.callback = callback;
     var _this = null, ref, str;
