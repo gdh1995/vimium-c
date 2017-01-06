@@ -964,6 +964,7 @@ searchEngines: {
       }
     },
     refreshInfo: function() {
+      if (this.toRefreshCount <= 0 && this.updateCount < 10) { return; }
       var i = Date.now();
       if (this.toRefreshCount <= 0) {}
       else if (this.lastRefresh + 1000 > i) { return; }

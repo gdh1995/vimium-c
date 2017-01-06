@@ -140,7 +140,7 @@ var Settings = {
   indexFrame: null,
   indexPorts: null,
   fetchFile: function(file, callback) {
-    if (callback && file in this.cache) { return callback(); }
+    if (callback && file in this.cache) { callback(); return null; }
     return Utils.fetchHttpContents(this.CONST.XHRFiles[file], function() {
       Settings.set(file, this.responseText);
       callback && callback();

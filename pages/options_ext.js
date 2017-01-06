@@ -239,6 +239,7 @@ var _importSettings = function(time, new_data, is_recommended) {
 
 var importSettings = function(time, new_data, is_recommended) {
   var promisedChecker = Option.all.keyMappings.checker ? 1 : new Promise(function(resolve) {
+    /* globals loadJS: false */
     var element = loadJS("options_checker.js");
     element.onload = resolve;
     element.remove();
