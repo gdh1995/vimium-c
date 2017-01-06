@@ -192,7 +192,7 @@ bookmarks: {
   readTree: function(bookmarks) {
     this.bookmarks = [];
     bookmarks.forEach(this.traverseBookmark, this);
-    setTimeout(Decoder.decodeList, 50, this.bookmarks);
+    setTimeout(Decoder.DecodeList, 50, this.bookmarks);
   },
   traverseBookmark: function(bookmark) {
     var path, oldPath, title = bookmark.title, url;
@@ -909,7 +909,7 @@ searchEngines: {
       j = null;
       setTimeout(function() {
         var _this = HistoryCache;
-        setTimeout(function() { Decoder.decodeList(HistoryCache.history); }, 400);
+        setTimeout(function() { Decoder.DecodeList(HistoryCache.history); }, 400);
         _this.history.sort(function(a, b) { return a.url < b.url ? -1 : 1; });
         _this.lastRefresh = Date.now();
         chrome.history.onVisitRemoved.addListener(_this.OnVisitRemoved);
@@ -1003,7 +1003,7 @@ searchEngines: {
   Decoder = {
     _f: decodeURIComponent, // core function
     decodeURL: null,
-    decodeList: function(a) {
+    DecodeList: function(a) {
       var i = -1, j, l = a.length, d = Decoder, f = d._f, s, m = d.dict, w = d.todos;
       for (; ; ) {
         try {
@@ -1023,16 +1023,12 @@ searchEngines: {
     _ind: -1,
     continueToWork: function() {
       if (this.todos.length === 0 || this._ind !== -1) { return; }
-      var xhr = new XMLHttpRequest();
-      xhr.responseType = "text";
-      xhr.onload = this.OnXHR;
-      xhr.onerror = this.OnXHR;
       this._ind = 0;
-      this.init && this.init();
-      setTimeout(this.Work, 17, xhr);
+      setTimeout(this.Work, 17, null);
     },
     Work: function(xhr) {
       var _this = Decoder, url, str, text;
+      xhr || (xhr = _this.init());
       if (_this.todos.length <= _this._ind) {
         _this.todos.length = 0;
         _this._ind = -1;
@@ -1047,7 +1043,7 @@ searchEngines: {
         }
         xhr.open("GET", _this._dataUrl + str, true);
         xhr.send();
-        break;
+        return;
       }
     },
     OnXHR: function() {
@@ -1062,8 +1058,15 @@ searchEngines: {
     },
     _dataUrl: "",
     blank: function() {},
+    xhr: function() {
+      var xhr = new XMLHttpRequest();
+      xhr.responseType = "text";
+      xhr.onload = this.OnXHR;
+      xhr.onerror = this.OnXHR;
+      return xhr;
+    },
     init: function() {
-      this.init = null;
+      this.init = this.xhr;
       Settings.updateHooks.localeEncoding = function(charset) {
         var _this = Decoder;
         _this._dataUrl = charset && ("data:text/plain;charset=" + charset.toLowerCase() + ",");
@@ -1071,6 +1074,7 @@ searchEngines: {
         _this.todos.push !== f && (_this.todos.push = f);
       };
       Settings.postUpdate("localeEncoding");
+      return this.xhr();
     }
   };
 
@@ -1080,9 +1084,8 @@ searchEngines: {
       if (a.length >= 400 || a.indexOf('%') < 0) { return a; }
       try {
         return f(a);
-      } catch (e) {
-        return d[a] || (t.push(o || a), a);
-      }
+      } catch (e) {}
+      return d[a] || (t.push(o || a), a);
     };
   })();
 
