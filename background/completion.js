@@ -485,7 +485,7 @@ tabs: {
       if (offset > 0) {
         suggestions = suggestions.slice(offset, offset + maxResults);
         offset = 0;
-      } else {
+      } else if (suggestions.length > maxResults) {
         suggestions.length = maxResults;
       }
     } else if (offset > 0) {
