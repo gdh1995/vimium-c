@@ -761,7 +761,7 @@ var Clipboard, Commands, CommandsData, Completers, Marks, TabRecency, FindModeHi
       }
     },
     moveTabToNewWindow: function() {
-      chrome.windows.getCurrent({populate: true}, funcDict.moveTabToNewWindow[0]);
+      return chrome.windows.getCurrent({populate: true}, funcDict.moveTabToNewWindow[0]);
     },
     moveTabToNextWindow: function(tabs) {
       chrome.windows.getAll(funcDict.moveTabToNextWindow[0].bind(null, tabs[0]));
@@ -838,10 +838,9 @@ var Clipboard, Commands, CommandsData, Completers, Marks, TabRecency, FindModeHi
     },
     restoreGivenTab: function() {
       if (commandCount > chrome.sessions.MAX_SESSION_RESULTS) {
-        funcDict.restoreGivenTab([]);
-        return;
+        return funcDict.restoreGivenTab([]);
       }
-      chrome.sessions.getRecentlyClosed(funcDict.restoreGivenTab);
+      return chrome.sessions.getRecentlyClosed(funcDict.restoreGivenTab);
     },
     blank: function() {},
     openCopiedUrlInCurrentTab: function() {
@@ -924,10 +923,9 @@ var Clipboard, Commands, CommandsData, Completers, Marks, TabRecency, FindModeHi
         return requestHandlers.ShowHUD("Vimium++ can not control mute state before Chrome 45");
       }
       if (cOptions.all || cOptions.other) {
-        chrome.tabs.query({audible: true}, funcDict.toggleMuteTab[1]);
-        return;
+        return chrome.tabs.query({audible: true}, funcDict.toggleMuteTab[1]);
       }
-      funcDict.getCurTab(funcDict.toggleMuteTab[0]);
+      return funcDict.getCurTab(funcDict.toggleMuteTab[0]);
     },
     reloadTab: function(tabs) {
       if (tabs.length <= 0) {
@@ -953,10 +951,9 @@ var Clipboard, Commands, CommandsData, Completers, Marks, TabRecency, FindModeHi
     },
     reloadGivenTab: function() {
       if (commandCount === 1) {
-        chrome.tabs.reload();
-        return;
+        return chrome.tabs.reload();
       }
-      funcDict.getCurTabs(BackgroundCommands.reloadTab);
+      return funcDict.getCurTabs(BackgroundCommands.reloadTab);
     },
     reopenTab: function(tabs) {
       var tab = tabs[0];
@@ -1003,14 +1000,14 @@ var Clipboard, Commands, CommandsData, Completers, Marks, TabRecency, FindModeHi
         }
         port = frames[ind];
       }
-      port.postMessage({
+      return port.postMessage({
         name: "focusFrame",
         frameId: ind >= 0 ? port.sender.frameId : -1
       });
     },
     mainFrame: function() {
       var port = Settings.indexFrame(TabRecency.last(), 0);
-      port && port.postMessage({
+      return port && port.postMessage({
         name: "focusFrame",
         frameId: 0
       });
@@ -1058,7 +1055,7 @@ var Clipboard, Commands, CommandsData, Completers, Marks, TabRecency, FindModeHi
       var dir = cOptions.dir || "next", defaultPatterns;
       defaultPatterns = cOptions.patterns ||
         Settings.get(dir === "prev" ? "previousPatterns" : "nextPatterns", true);
-      cPort.postMessage({ name: "execute", count: 1, command: "goNext",
+      return cPort.postMessage({ name: "execute", count: 1, command: "goNext",
         options: {
           dir: dir,
           patterns: defaultPatterns.toLowerCase()
@@ -1067,7 +1064,7 @@ var Clipboard, Commands, CommandsData, Completers, Marks, TabRecency, FindModeHi
     },
     enterInsertMode: function() {
       var hideHud = cOptions.hideHud;
-      cPort.postMessage({ name: "execute", count: 1, command: "enterInsertMode",
+      return cPort.postMessage({ name: "execute", count: 1, command: "enterInsertMode",
         options: {
           code: cOptions.code | 0, stat: cOptions.stat | 0,
           hideHud: hideHud != null ? hideHud : Settings.get("hideHud", true)
@@ -1076,7 +1073,7 @@ var Clipboard, Commands, CommandsData, Completers, Marks, TabRecency, FindModeHi
     },
     performFind: function() {
       var query = cOptions.active ? null : FindModeHistory.query(cPort.sender.incognito);
-      cPort.postMessage({ name: "execute", count: 1, command: "performFind", options: {
+      return cPort.postMessage({ name: "execute", count: 1, command: "performFind", options: {
         count: commandCount,
         dir: cOptions.dir,
         query: query
@@ -1443,7 +1440,7 @@ var Clipboard, Commands, CommandsData, Completers, Marks, TabRecency, FindModeHi
     },
     nextFrame: function(request, port) {
       cPort = port;
-      BackgroundCommands.nextFrame(1);
+      return BackgroundCommands.nextFrame(1);
     },
     exitGrab: function(_0, port) {
       var ports = Settings.indexPorts(port.sender.tabId), i, msg;
@@ -1498,7 +1495,7 @@ var Clipboard, Commands, CommandsData, Completers, Marks, TabRecency, FindModeHi
     },
     omni: function(request, port) {
       if (funcDict.checkVomnibarPage(port)) { return; }
-      Completers[request.type].filter(request.query, request, funcDict.PostCompletions.bind(port));
+      return Completers[request.type].filter(request.query, request, funcDict.PostCompletions.bind(port));
     },
     getCopiedUrl_f: function(request, port) {
       var url = Clipboard.paste().trim(), arr;

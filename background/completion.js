@@ -256,10 +256,10 @@ history: {
   },
   quickSearch: function(history) {
     var maxNum = maxResults + ((queryType & 63) === 3 ? offset : 0),
-    results = [], sug,
+    results = [0.0, 0], sug,
     sugs, query = queryTerms, regexps, len, i, len2, j,
     score, item, getRele = this.computeRelevancy;
-    for (j = maxNum; j--; ) { results.push(0.0, 0); }
+    for (j = maxNum; --j; ) { results.push(0.0, 0); }
     maxNum = maxNum * 2 - 2;
     regexps = query.map(RegexpCache.item, RegexpCache);
     for (i = 0, len = history.length, len2 = regexps.length; i < len; i++) {
