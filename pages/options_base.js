@@ -7,7 +7,7 @@ __extends = function(child, parent) {
   child.__super__ = parent.prototype;
 },
 debounce = function(func, wait, bound_context, also_immediate) {
-  var timeout, timestamp, later = function() {
+  var timeout = 0, timestamp, later = function() {
     var last = Date.now() - timestamp;
     if (last < wait && last >= 0) {
       timeout = setTimeout(later, wait - last);
