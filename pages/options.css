@@ -309,6 +309,30 @@ label:active {
   line-height: 16px;
   padding-top: 6px;
 }
+@media (max-width: 879.9px) and (min-width: 550px) {
+  #footerWrapper {
+    float: right;
+    margin-right: -60px;
+  }
+}
+@media (max-width: 549.9px) and (min-width: 300px) {
+  #footerWrapper {
+    float: left;
+    margin-left: -295px;
+  }
+}
+@media (max-width: 299.9px) {
+  #wrapper {
+    margin-bottom: 0;
+  }
+  #footer {
+    position: relative;
+    width: 925px;
+  }
+  #footerWrapper {
+    float: none;
+  }
+}
 #helpText {
   float: left;
   font-size: 12px;
