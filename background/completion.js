@@ -249,9 +249,20 @@ bookmarks: {
     var _this = Completers.bookmarks;
     _this._stamp = Date.now();
     if (_this.status < 2) { return; }
+    _this.clean();
     _this.bookmarks = [];
     _this._timer = setTimeout(_this.Later, _this._wait * 2);
     _this.status = 0;
+  },
+  clean: function() {
+    var arr, i, len, url, dict = Decoder.dict, ref, bs;
+    ref = HistoryCache.history || []; bs = HistoryCache.binarySearch;
+    for (arr = this.bookmarks, i = 0, len = arr.length; i < len; i++) {
+      url = arr[i].url;
+      if ((url in dict) && bs(url, ref) < 0) {
+        delete dict[url];
+      }
+    }
   }
 },
 
