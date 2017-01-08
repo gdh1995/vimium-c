@@ -125,20 +125,20 @@ bookmarks: {
   currentSearch: null,
   path: "",
   deep: 0,
+  status: 0,
   filter: function(query, index) {
     if (queryTerms.length === 0) {
       Completers.next([]);
       if (index !== 0) { return; }
+    } else if (this.status === 2) {
+      return this.performSearch();
     } else {
       this.currentSearch = query;
     }
-    this.refresh && this.refresh();
+    return this.status === 0 && this.refresh();
   },
   StartsWithSlash: function(str) { return str.charCodeAt(0) === 47; },
   performSearch: function() {
-    if (queryTerms.length === 0) {
-      return Completers.next([]);
-    }
     var c, results = [], isPath, _ref, _i, i, title, sug;
     isPath = queryTerms.some(this.StartsWithSlash);
     c = SuggestionUtils.ComputeWordRelevancy;
@@ -168,42 +168,42 @@ bookmarks: {
     return Completers.next(results);
   },
   Listen: function() {
-    var bookmarks = chrome.bookmarks, listener = function() {
-      chrome.bookmarks.getTree(function(tree) { Completers.bookmarks.readTree(tree); });
-    };
-    Completers.bookmarks.Listen = null;
+    var bookmarks = chrome.bookmarks, listener = Completers.bookmarks.Delay;
     bookmarks.onCreated.addListener(listener);
     bookmarks.onRemoved.addListener(listener);
     bookmarks.onChanged.addListener(listener);
     bookmarks.onMoved.addListener(listener);
     bookmarks.onImportBegan.addListener(function() {
-      chrome.bookmarks.onCreated.removeListener(listener);
+      chrome.bookmarks.onCreated.removeListener(Completers.bookmarks.Debounce);
     });
     bookmarks.onImportEnded.addListener(function() {
-      chrome.bookmarks.getTree(function(tree) {
-        chrome.bookmarks.onCreated.addListener(listener);
-        Completers.bookmarks.readTree(tree);
-      });
+      var f = Completers.bookmarks.Debounce;
+      chrome.bookmarks.onCreated.addListener(f);
+      f();
     });
   },
   refresh: function() {
-    chrome.bookmarks.getTree(this._refresh.bind(this));
-    this.refresh = this._refresh = null;
+    this.status = 1;
+    if (this._timer) {
+      clearTimeout(this._timer);
+      this._timer = 0;
+    }
+    return chrome.bookmarks.getTree(this.readTree.bind(this));
   },
-  _refresh: function(tree) {
-    this.readTree(tree);
-    this.filter = this.performSearch;
+  readTree: function(tree) {
+    this.status = 2;
+    this.bookmarks = [];
+    tree.forEach(this.traverseBookmark, this);
     var query = this.currentSearch;
     this.currentSearch = null;
     if (query && !query.isOff) {
-      this.filter(query);
+      this.performSearch();
     }
-    setTimeout(this.Listen, 0);
-  },
-  readTree: function(bookmarks) {
-    this.bookmarks = [];
-    bookmarks.forEach(this.traverseBookmark, this);
     setTimeout(Decoder.DecodeList, 50, this.bookmarks);
+    if (this.Listen) {
+      setTimeout(this.Listen, 0);
+      this.Listen = null;
+    }
   },
   traverseBookmark: function(bookmark) {
     var path, oldPath, title = bookmark.title, url;
@@ -231,6 +231,27 @@ bookmarks: {
       bookmark.jsUrl = url;
       bookmark.jsText = Utils.DecodeURLPart(url);
     }
+  },
+  _timer: 0,
+  _stamp: 0,
+  _wait: 60000,
+  Later: function() {
+    var _this = Completers.bookmarks, last = Date.now() - _this._stamp;
+    if (last >= _this._wait || last < 0) {
+      this._timer = 0;
+      _this.refresh();
+      console.log("re-refresh");
+    } else {
+      _this._timer = setTimeout(_this.Later, _this._wait);
+    }
+  },
+  Delay: function() {
+    var _this = Completers.bookmarks;
+    _this._stamp = Date.now();
+    if (_this.status < 2) { return; }
+    _this.bookmarks = [];
+    _this._timer = setTimeout(_this.Later, _this._wait * 2);
+    _this.status = 0;
   }
 },
 
