@@ -159,6 +159,7 @@ VScroller.Core.animate = function () {
       return;
     }
     elapsed = newTimestamp - int1;
+    elapsed = elapsed > 0 ? elapsed : 17;
     int1 = (totalElapsed += elapsed);
     _this = VScroller.Core;
     if (continuous = VScroller.keyIsDown > 0) {
