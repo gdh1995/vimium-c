@@ -183,6 +183,9 @@ label:active {
   min-width: 130px;
   padding-top: 3px;
   vertical-align: top;
+  /* Make the caption in the settings table as small as possible, to pull the other fields to the right. */
+  white-space: nowrap;
+  width: 1px;
 }
 .hide {
   display: none;
@@ -211,11 +214,6 @@ label:active {
 #keyboard, #localeEncoding {
   width: 165px;
   text-align: center;
-}
-/* Make the caption in the settings table as small as possible, to pull the other fields to the right. */
-.caption {
-  width: 1px;
-  white-space: nowrap;
 }
 .example {
   font-size: 12px;
