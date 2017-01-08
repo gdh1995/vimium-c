@@ -66,7 +66,7 @@ select.right {
   -webkit-padding-end: 17px;
   -webkit-appearance: none;
   background-color: #eee;
-  background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="12px" height="6px"><polyline points="0,0 6,0 3,6"/></svg>'),
+  background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="12px" height="6px"><polygon points="0,0 6,0 3,6" fill="#444"/></svg>'),
     -webkit-linear-gradient(#ededed, #ededed 38%, #dedede);
   background-position: right center;
   background-repeat: no-repeat;
@@ -76,6 +76,14 @@ select.right {
   margin-right: 0;
   position: relative;
   width: 19px;
+}
+select.right:hover {
+  background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="12px" height="6px"><polygon points="0,0 6,0 3,6"/></svg>'),
+    -webkit-linear-gradient(#f0f0f0, #f0f0f0 38%, #e0e0e0);
+}
+select.right:active {
+  background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="12px" height="6px"><polygon points="0,0 6,0 3,6"/></svg>'),
+    -webkit-linear-gradient(#e7e7e7, #e7e7e7 38%, #d7d7d7);
 }
 select.right:focus {
   z-index: 1;
