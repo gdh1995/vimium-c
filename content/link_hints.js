@@ -1003,8 +1003,7 @@ DEFAULT: {
       link.open = !link.open;
       return;
     } else if (hint.classList.contains("BH")) {
-      this.Modes.HOVER.activator.call(this, link);
-      return;
+      return this.Modes.HOVER.activator.call(this, link);
     } else if ((mode = VDom.getEditableType(link)) === 3) {
       VDom.UI.simulateSelect(link, true);
       return false;
