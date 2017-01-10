@@ -587,12 +587,12 @@ var VHints = {
     _this.reinit();
   },
   clean: function(keepHUD) {
-    this.options = this.modeOpt = this.zIndexes = null;
+    this.options = this.modeOpt = this.zIndexes = this.hintMarkers = null;
     this.lastMode = this.mode = this.mode1 = this.count =
     this.maxLeft = this.maxTop = this.maxRight = 0;
     if (this.box) {
       this.box.remove();
-      this.hintMarkers = this.box = null;
+      this.box = null;
     }
     keepHUD || VHUD.hide();
     var alpha = this.alphabetHints;
