@@ -331,11 +331,10 @@ var VHints = {
     return output;
   },
   deduplicate: function(list) {
-    var j = list.length - 1, i, k, el;
-    while (0 < j) {
+    var j = list.length, i, k;
+    while (0 < --j) {
       if (list[i = j][2] !== 4) {
-        el = list[j][0];
-      } else if (!this.isDescendant(list[i][0], el = list[--j][0]) || list[j][2] >= 2) {
+      } else if ((k = list[--j][2]) > 7 || !this.isDescendant(list[i][0], list[j][0])) {
         continue;
       } else if (VRect.isContaining(list[j][1], list[i][1])) {
         list.splice(i, 1);
@@ -343,9 +342,12 @@ var VHints = {
       } else if (k < 2 || j === 0) {
         continue;
       }
-      while (0 <= --j && (k = list[j][2]) >= 2 && k <= 5 && this.isDescendant(el, list[j][0])) {}
-      if (j + 1 < i) {
-        list.splice(j + 1, i - j - 1);
+      while (0 < j && (k = list[j - 1][2]) >= 2 && k <= 5 && this.isDescendant(list[j][0], list[j - 1][0])) {
+        j--;
+        if (j === i - 3) { break; }
+      }
+      if (j < i) {
+        list.splice(j, i - j);
       }
     }
     i = list[0] ? +(list[0][0] === document.documentElement) : 0;
