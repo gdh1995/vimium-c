@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "allowJs": true,
+    "allowJs": false,
     "alwaysStrict": true,
     "forceConsistentCasingInFileNames": true,
     "listEmittedFiles": true,
@@ -13,7 +13,7 @@
     "noImplicitUseStrict": false,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
-    "outDir": "./dist",
+    "outDir": ".",
     "preserveConstEnums": false,
     "removeComments": true,
     "rootDir": ".",

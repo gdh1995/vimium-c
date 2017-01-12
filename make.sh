@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 set +o noglob
 in_dist=false
-if [ -d "dist" -a -f "dist/manifest.json" ]; then
+if [ -n "$IN_PLACE" ] && [ "${IN_PLACE:-0}" -gt 0 \
+      -o "$IN_PLACE" == TRUE -o "$IN_PLACE" == true ] \
+    && [ -d "dist" -a -f "dist/manifest.json" ]; then
   in_dist=true
   cd dist; input=$(echo *); cd ..
 else

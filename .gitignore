@@ -7,7 +7,6 @@
 *.crx
 *.gz
 *.js
-*.json
 *.old
 *.sh
 *.swp
@@ -17,3 +16,4 @@
 dist/
 node_modules*
 test*
+tsconfig*
