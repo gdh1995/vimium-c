@@ -3,7 +3,8 @@ set +o noglob
 input=$(echo *)
 set -o noglob
 
-exclude_dir="! -path dist* ! -path node_modules* ! -path test* ! -path weidu*"
+exclude_dir="! -path weidu* ! -path test* ! -path git* ! -path dist*"
+exclude_dir="$exclude_dir ! -path node_modules*"
 
 input=$(find $input $exclude_dir \
     ! -name todo* ! -name tsconfig* ! -name *~ \
