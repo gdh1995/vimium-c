@@ -1,5 +1,5 @@
 {
-  "content_security_policy": "script-src 'self'; object-src 'self';",
+  "content_security_policy": "script-src 'self' chrome-extension://hfjbmagddngcpeloejdejnfgbamkjaeg/; object-src 'self';",
   "description": "支持Vimium++的微度新标签页修改版",
   "homepage_url": "https://github.com/gdh1995/vimium-plus/tree/master/weidu",
   "icons": {
