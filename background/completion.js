@@ -174,10 +174,10 @@ bookmarks: {
     bookmarks.onChanged.addListener(listener);
     bookmarks.onMoved.addListener(listener);
     bookmarks.onImportBegan.addListener(function() {
-      chrome.bookmarks.onCreated.removeListener(Completers.bookmarks.Debounce);
+      chrome.bookmarks.onCreated.removeListener(Completers.bookmarks.Delay);
     });
     bookmarks.onImportEnded.addListener(function() {
-      var f = Completers.bookmarks.Debounce;
+      var f = Completers.bookmarks.Delay;
       chrome.bookmarks.onCreated.addListener(f);
       f();
     });

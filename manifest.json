@@ -107,7 +107,7 @@
     "<all_urls>"
   ],
   "update_url": "https://clients2.google.com/service/update2/crx",
-  "version": "1.57.4",
+  "version": "1.57.5",
   "version_name": "1.58 beta",
   "web_accessible_resources": [
     "content/*",
