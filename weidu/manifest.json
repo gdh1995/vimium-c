@@ -19,5 +19,6 @@
     "management"
   ],
   "update_url": "https://clients2.google.com/service/update2/crx",
-  "version": "4.83.3"
+  "version": "4.83.3",
+  "version_name": "4.8.2 mod"
 }
