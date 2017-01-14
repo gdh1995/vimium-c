@@ -31,6 +31,7 @@ button, select {
   border: 1px solid rgba(0, 0, 0, 0.25);
   border-radius: 2px;
   box-shadow: 0 1px 0 rgba(0, 0, 0, 0.08), inset 0 1px 2px rgba(255, 255, 255, 0.75);
+  box-sizing: border-box;
   color: #444;
   font: 12px Arial,sans-serif !important;
   height: 24px;
@@ -64,11 +65,11 @@ button.left {
 select.right {
   -webkit-padding-start: 0;
   -webkit-padding-end: 17px;
-  -webkit-appearance: none;
-  background-color: #eee;
-  background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="12px" height="6px"><polygon points="0,0 6,0 3,6" fill="#444"/></svg>'),
+  -webkit-appearance: button;
+  background-color: #ddd;
+  background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="6px" height="6px"><polygon points="0,0 6,0 3,6" fill="#444"/></svg>'),
     -webkit-linear-gradient(#ededed, #ededed 38%, #dedede);
-  background-position: right center;
+  background-position: 45% center;
   background-repeat: no-repeat;
   border-bottom-left-radius: 0;
   border-top-left-radius: 0;
@@ -78,11 +79,11 @@ select.right {
   width: 19px;
 }
 select.right:hover {
-  background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="12px" height="6px"><polygon points="0,0 6,0 3,6"/></svg>'),
+  background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="6px" height="6px"><polygon points="0,0 6,0 3,6"/></svg>'),
     -webkit-linear-gradient(#f0f0f0, #f0f0f0 38%, #e0e0e0);
 }
 select.right:active {
-  background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="12px" height="6px"><polygon points="0,0 6,0 3,6"/></svg>'),
+  background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="6px" height="6px"><polygon points="0,0 6,0 3,6"/></svg>'),
     -webkit-linear-gradient(#e7e7e7, #e7e7e7 38%, #d7d7d7);
 }
 select.right:focus {
