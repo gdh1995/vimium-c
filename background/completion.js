@@ -44,7 +44,7 @@ SuggestionUtils = {
       url.length - +(url.charCodeAt(url.length - 1) === 47 && !url.endsWith("://")));
   },
   pushMatchingRanges: function(string, term, ranges) {
-    var index = 0, textPosition = 0, matchedEnd = 0, tl = term.length,
+    var index = 0, textPosition = 0, matchedEnd, tl = term.length,
       splits = string.split(RegexpCache.item(term)), last = splits.length - 1;
     for (; index < last; index++, textPosition = matchedEnd) {
       matchedEnd = (textPosition += splits[index].length) + tl;
@@ -240,7 +240,6 @@ bookmarks: {
     if (last >= _this._wait || last < 0) {
       this._timer = 0;
       _this.refresh();
-      console.log("re-refresh");
     } else {
       _this._timer = setTimeout(_this.Later, _this._wait);
     }
@@ -410,8 +409,7 @@ domains: {
   },
   performSearch: function() {
     if (queryTerms.length !== 1 || queryTerms[0].indexOf("/") !== -1) {
-      Completers.next([]);
-      return;
+      return Completers.next([]);
     }
     var ref = this.domains, domain, p = RankingUtils.maxScoreP, q = queryTerms, word = q[0]
       , sug, score, result = "", result_score = -1000;
@@ -537,7 +535,8 @@ tabs: {
       offset = 0;
     }
     Decoder.continueToWork();
-    return Completers.next(suggestions);
+    Completers.next(suggestions);
+    return;
   },
   computeRecency: function(_0, tabId) {
     return TabRecency.tabs[tabId] || (1 - 1 / tabId);
