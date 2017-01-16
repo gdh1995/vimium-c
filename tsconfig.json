@@ -3,6 +3,9 @@
     "allowJs": false,
     "alwaysStrict": true,
     "forceConsistentCasingInFileNames": true,
+    "lib": [
+      "dom", "es6"
+    ],
     "listEmittedFiles": true,
     "module": "system",
     "newLine": "LF",
@@ -11,14 +14,18 @@
     "noImplicitAny": true,
     "noImplicitThis": false,
     "noImplicitUseStrict": false,
+    "noLib": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "outDir": ".",
     "preserveConstEnums": false,
     "removeComments": true,
     "rootDir": ".",
+    "skipDefaultLibCheck": false,
     "strictNullChecks": true,
-    "target": "es5"
+    "target": "es5",
+    "typeRoots": ["."],
+    "types": ["types"]
   },
   "exclude": [
     ".*",
