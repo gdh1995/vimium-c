@@ -9,5 +9,5 @@
 *.sh linguist-language=Text
 lib/math_parser.js linguist-vendored
 types/* linguist-vendored
-types/vimiumplus linguist-vendored=false
+types/vimiumplus* linguist-vendored=false
 weidu/* linguist-vendored

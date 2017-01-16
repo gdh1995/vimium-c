@@ -137,7 +137,9 @@ __微度新标签页修改版 (Modified X New Tab Page):__
   in order to avoid potential name collisions when injected into other hosts
 
 
-# Thanks & license
+# License
+
+## Thanks & License
 
 * [Vimium](https://github.com/philc/vimium):
   Copyright (c) 2010 Phil Crosby, Ilya Sukhar.
@@ -149,3 +151,6 @@ __微度新标签页修改版 (Modified X New Tab Page):__
 * [Viewer.js](https://github.com/fengyuanchen/viewerjs):
   Copyright (c) 2015-2016 Fengyuan Chen.
   [license](https://github.com/fengyuanchen/viewerjs/blob/master/LICENSE).
+* [ESLint](http://eslint.org/):
+  Copyright JS Foundation and other contributors, https://js.foundation .
+  [license](https://github.com/eslint/eslint/blob/master/LICENSE)
