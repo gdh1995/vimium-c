@@ -154,3 +154,11 @@ __微度新标签页修改版 (Modified X New Tab Page):__
 * [ESLint](http://eslint.org/):
   Copyright JS Foundation and other contributors, https://js.foundation .
   [license](https://github.com/eslint/eslint/blob/master/LICENSE)
+
+## License only
+
+* [TypeScript](https://github.com/Microsoft/TypeScript)
+    and modified `es.d.ts`, `es/*`, `dom.d.ts` in `types/`:
+  Copyright (c) Microsoft Corporation (All rights reserved).
+  Licensed under the Apache License, Version 2.0.
+  See more in [www.typescriptlang.org](http://www.typescriptlang.org/).
