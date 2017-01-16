@@ -534,9 +534,8 @@ tabs: {
       }
       offset = 0;
     }
-    Decoder.continueToWork();
     Completers.next(suggestions);
-    return;
+    return Decoder.continueToWork();
   },
   computeRecency: function(_0, tabId) {
     return TabRecency.tabs[tabId] || (1 - 1 / tabId);

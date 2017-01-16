@@ -1,8 +1,8 @@
 type primitiveObject = boolean | number | string;
 type primitive = primitiveObject | null | undefined;
 type ObjectCoercible = primitiveObject | {
-  toString: () => primitive,
-} | {
+    toString: () => primitive,
+  } | {
     valueOf: () => primitive,
   };
 type anyNotSymbol = ObjectCoercible | null | undefined;
