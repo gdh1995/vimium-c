@@ -3,9 +3,7 @@
     "allowJs": false,
     "alwaysStrict": true,
     "forceConsistentCasingInFileNames": true,
-    "lib": [
-      "dom", "es6"
-    ],
+    // "lib": [ "dom", "es6" ],
     "listEmittedFiles": true,
     "module": "system",
     "newLine": "LF",
