@@ -713,20 +713,16 @@ searchEngines: {
     if (this.mostRecentQuery) { this.mostRecentQuery.isOff = true; }
     var query = this.mostRecentQuery = {
       isOff: false
-    }, i, l;
+    }, i = this.sugCounter = 0, l = this.counter = completers.length;
     this.suggestions = [];
-    this.counter = l = completers.length;
-    this.sugCounter = 0;
     this.getOffset();
     matchType = offset && -1;
     if (completers[0].preFilter) {
-      if (i === l) {
+      if (l < 2) {
         return completers[0].preFilter(query);
       }
       completers[0].preFilter(query);
       i = 1;
-    } else {
-      i = 0;
     }
     RankingUtils.timeAgo = Date.now() - RankingUtils.timeCalibrator;
     RankingUtils.maxScoreP = RankingUtils.maximumScore * queryTerms.length || 0.01;
