@@ -796,6 +796,7 @@ highlightChild: function(child) {
   } catch (e) {
     return;
   }
+  child.VEventMode.exitGrab();
   var lh = child.VHints;
   lh.isActive = false;
   lh.activate(this.count, this.options);

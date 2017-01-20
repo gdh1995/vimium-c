@@ -564,6 +564,7 @@ var VSettings, VHUD, VPort, VEventMode;
     onWndBlur: function(f) { ELs.OnWndBlur = f; },
     OnWndFocus: function() { return ELs.OnWndFocus; },
     mapKey: function(key) { return mapKeys !== null && mapKeys[key] || key; },
+    exitGrab: function() { InsertMode.ExitGrab("other"); },
     scroll: function(event) {
       var keyCode, ctrl;
       if (!event || event.shiftKey || event.altKey) { return; }
@@ -843,7 +844,7 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
     },
     insertInnerCSS: VDom.UI.InsertInnerCSS,
     focusFrame: FrameMask.Focus,
-    exitGrab: function() { InsertMode.ExitGrab("other"); },
+    exitGrab: VEventMode.exitGrab,
     keyMap: function(request) {
       var map = keyMap = request.keyMap, key, sec
         , func = Object.setPrototypeOf, iter;
