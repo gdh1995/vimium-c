@@ -465,6 +465,13 @@ var Clipboard, Commands, CommandsData, Completers, Marks, TabRecency, FindModeHi
     openShowPage: [function(url, reuse, tab) {
       var prefix = Settings.CONST.ShowPage, arr;
       if (!url.startsWith(prefix) || url.length < prefix.length + 3) { return false; }
+      if (!tab) {
+        funcDict.getCurTab(function(tabs) {
+          if (!tabs || tabs.length <= 0) { return chrome.runtime.lastError; }
+          funcDict.openShowPage[0](url, reuse, tabs[0]);
+        });
+        return true;
+      }
       url = url.substring(prefix.length);
       chrome.tabs.create({
         active: reuse !== -2,
