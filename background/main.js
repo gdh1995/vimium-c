@@ -473,6 +473,9 @@ var Clipboard, Commands, CommandsData, Completers, Marks, TabRecency, FindModeHi
         return true;
       }
       url = url.substring(prefix.length);
+      if (reuse === 0) {
+        chrome.tabs.update(null, { url: prefix });
+      } else
       chrome.tabs.create({
         active: reuse !== -2,
         index: tab.incognito ? undefined : tab.index + 1,
