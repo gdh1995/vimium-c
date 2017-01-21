@@ -1,7 +1,7 @@
 Vimium++
 ========
 [![license](https://img.shields.io/badge/license-MIT-blue.svg)](MIT-LICENSE.txt)
-![version](https://img.shields.io/badge/release-1.57-orange.svg)
+![version](https://img.shields.io/badge/release-1.58b-orange.svg)
 
 **[Visit Vimium++ in Chrome Web Store](https://chrome.google.com/webstore/detail/vimium%2B%2B/hfjbmagddngcpeloejdejnfgbamkjaeg)**.
 
@@ -48,8 +48,11 @@ __微度新标签页修改版 (Modified X New Tab Page):__
 
 # Release Notes
 
+1.57.6:
+* fix bugs like single-completer searching and opening showPage in place
+
 1.57.5:
-* **WARNING**: "Custom outer CSS" will be definitely removed in the future.
+* **WARNING**: "Custom outer CSS" will be definitely removed in the future
 * **WARNING**: revert semantics of `metaKey`: now the same as `ctrlKey`
 * support `mapKey` which works on both normal and insert modes
 * support zoomed pages better and handle malformed pages safely
