@@ -171,7 +171,7 @@ function clickLink(options, event) {
   }
   a.href = url;
   if (window.VDom) {
-    VDom.simulateClick(a, event);
+    VDom.UI.click(a, event);
   } else {
     a.click();
   }

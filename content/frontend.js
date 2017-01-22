@@ -605,7 +605,7 @@ var VSettings, VHUD, VPort, VEventMode;
     }
     linkElement.scrollIntoViewIfNeeded();
     VDom.UI.flash(linkElement);
-    setTimeout(function() { VDom.simulateClick(linkElement); }, 0);
+    setTimeout(function() { VDom.UI.click(linkElement); }, 0);
     return true;
   },
   goBy: function(relName, pattern) {

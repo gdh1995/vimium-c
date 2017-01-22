@@ -95,9 +95,15 @@ VDom.UI = {
     sel.removeAllRanges();
     return true;
   },
+  click: function(element, modifiers, addFocus) {
+    element === VDom.lastHovered || VDom.unhoverLast(element, modifiers);
+    VDom.mouse(element, "mousedown", modifiers);
+    addFocus && element !== VEventMode.lock() && element.focus();
+    VDom.mouse(element, "mouseup", modifiers);
+    VDom.mouse(element, "click", modifiers);
+  },
   simulateSelect: function(element, flash, suppressRepeated) {
-    element.focus();
-    VDom.simulateClick(element);
+    this.click(element, null, true);
     flash === true && this.flash(element);
     if (element !== VEventMode.lock()) { return; }
     var len;
