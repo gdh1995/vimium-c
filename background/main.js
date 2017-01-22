@@ -1505,7 +1505,7 @@ var Clipboard, Commands, CommandsData, Completers, Marks, TabRecency, FindModeHi
     },
     omni: function(request, port) {
       if (funcDict.checkVomnibarPage(port)) { return; }
-      return Completers[request.type].filter(request.query, request, funcDict.PostCompletions.bind(port));
+      return Completers.filter(request.query, request, funcDict.PostCompletions.bind(port));
     },
     getCopiedUrl_f: function(request, port) {
       var url = Clipboard.paste().trim(), arr;

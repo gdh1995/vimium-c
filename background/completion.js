@@ -792,29 +792,36 @@ searchEngines: {
     queryType = 1;
   },
   protoRe: /(?:^|\s)__proto__(?=$|\s)/g,
-  MultiCompleter: function(completers) { this.completers = completers; },
   rsortByRelevancy: function(a, b) { return b.relevancy - a.relevancy; }
 };
 
-  Completers.MultiCompleter.prototype.filter = function(query, options, callback) {
+  window.Completers = {
+    bookm: [Completers.bookmarks],
+    domain: [Completers.domains],
+    history: [Completers.history],
+    omni: [Completers.searchEngines, Completers.domains, Completers.history, Completers.bookmarks],
+    search: [Completers.searchEngines],
+    tab: [Completers.tabs],
+  filter: function(query, options, callback) {
     autoSelect = false;
     queryTerms = query ? query.split(Utils.spacesRe) : [];
     maxCharNum = options.clientWidth > 0 ? Math.max(50, Math.min((
         (options.clientWidth - 74) / 7.72) | 0, 200)) : 128;
     maxTotal = maxResults = Math.min(Math.max(options.maxResults | 0, 3), 25);
     Completers.callback = callback;
-    var _this = null, ref, str;
+    var arr = null, ref, str;
     if (queryTerms.length >= 1 && queryTerms[0].length === 2 && queryTerms[0][0] === ":") {
       str = queryTerms[0][1];
       ref = window.Completers;
-      _this = str === "b" ? ref.bookm : str === "h" ? ref.history : str === "t" ? ref.tab
+      arr = str === "b" ? ref.bookm : str === "h" ? ref.history : str === "t" ? ref.tab
         : str === "d" ? ref.domain : str === "s" ? ref.search : str === "o" ? ref.omni : null;
-      if (_this) {
+      if (arr) {
         queryTerms.shift();
-        autoSelect = _this !== ref.omni;
+        autoSelect = arr !== ref.omni;
       }
     }
-    return Completers.filter((_this || this).completers);
+    return Completers.filter(arr || this[options.type]);
+  }
   };
 
   RankingUtils = {
@@ -1112,16 +1119,6 @@ searchEngines: {
       Settings.postUpdate("localeEncoding");
       return this.xhr();
     }
-  };
-
-  window.Completers = {
-    bookm: new Completers.MultiCompleter([Completers.bookmarks]),
-    domain: new Completers.MultiCompleter([Completers.domains]),
-    history: new Completers.MultiCompleter([Completers.history]),
-    omni: new Completers.MultiCompleter([Completers.searchEngines, Completers.domains
-      , Completers.history, Completers.bookmarks]),
-    search: new Completers.MultiCompleter([Completers.searchEngines]),
-    tab: new Completers.MultiCompleter([Completers.tabs])
   };
 
 }, 200);

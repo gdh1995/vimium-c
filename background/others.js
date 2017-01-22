@@ -256,14 +256,14 @@ setTimeout(function() { if (!chrome.omnibox) { return; }
     timeout = setTimeout(onTimer, 500);
     outTime = Date.now();
     sessionIds = suggestions = firstResult = null;
-    var newMatchType = 0, completers;
-    completers = matchType < 2 || !key.startsWith(last) ? Completers.omni
-      : matchType === 3 ? Completers.search
-      : (newMatchType = matchType, Completers[firstType]);
+    var newMatchType = 0, type;
+    type = matchType < 2 || !key.startsWith(last) ? "omni"
+      : matchType === 3 ? "search" : (newMatchType = matchType, firstType);
     matchType = newMatchType;
     last = key;
     lastSuggest = suggest;
-    completers.filter(key, {
+    Completers.filter(key, {
+      type: type,
       maxResults: 6
     }, onComplete.bind(null, suggest));
   },
