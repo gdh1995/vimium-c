@@ -450,11 +450,14 @@ function loadChecker() {
 }
 
 window.onhashchange = function() {
-  var hash = window.location.hash, node;
+  var hash = window.location.hash, node, event;
   hash = hash.substring(hash[1] === "!" ? 2 : 1);
   if (!hash || /[^a-z\d_.]/i.test(hash)) { return; }
   if (node = document.querySelector('[data-hash="' + hash + '"]')) {
-    node.onclick && node.onclick(null, "hash");
+    event = document.createEvent("MouseEvents");
+    event.initMouseEvent("click", true, true, window, 1, 0, 0, 0, 0
+      , false, false, false, false, 0, null);
+    node.onclick && node.onclick(event, "hash");
   }
 };
 window.location.hash.length > 4 && setTimeout(window.onhashchange, 50);

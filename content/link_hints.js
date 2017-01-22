@@ -820,7 +820,7 @@ LEAVE: {
   129: "Simulate mouse leaving link",
   193: "Simulate mouse leaving continuously",
   activator: function(element) {
-    VDom.simulateMouse(element, "mouseout");
+    VDom.mouse(element, "mouseout");
     if (document.activeElement === element) { element.blur(); }
   }
 },
@@ -963,7 +963,7 @@ DOWNLOAD_LINK: {
     if (oldDownload == null) {
       link.download = "";
     }
-    VDom.simulateClick(link, {
+    VDom.UI.click(link, {
       altKey: true,
       ctrlKey: false,
       metaKey: false,
@@ -1011,19 +1011,18 @@ DEFAULT: {
       VDom.UI.simulateSelect(link, true);
       return false;
     }
-    if (mode > 0 || link.tabIndex >= 0) { link.focus(); }
     mode = this.mode & 3;
     if (mode >= 2 && tag === "a") {
       alterTarget = link.getAttribute('target');
       link.target = "_top";
     }
     // NOTE: not clear last hovered item, for that it may be a menu
-    VDom.simulateClick(link, {
+    VDom.UI.click(link, {
       altKey: false,
       ctrlKey: mode >= 2 && !onMac,
       metaKey: mode >= 2 &&  onMac,
       shiftKey: mode === 3
-    });
+    }, mode > 0 || link.tabIndex >= 0);
     if (alterTarget === undefined) {}
     else if (alterTarget === null) {
       link.removeAttribute("target");
