@@ -148,7 +148,7 @@ Core: {
   }
 };
 
-VScroller.Core.animate = function () {
+VScroller.Core.animate = function (a, d, e) {
   var amount = 0, calibration = 1.0, di = 0, duration = 0, element = null, //
   sign = 0, timestamp = -1.0, totalDelta = 0.0, totalElapsed = 0.0, //
   animate = function(newTimestamp) {
@@ -193,5 +193,5 @@ VScroller.Core.animate = function () {
     VScroller.keyIsDown = this.maxInterval;
     requestAnimationFrame(animate);
   };
-  this.animate.apply(this, arguments);
+  return this.animate(a, d, e);
 };

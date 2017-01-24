@@ -90,14 +90,14 @@ var Settings = {
       this.set("searchEngineRules", rules);
     },
     searchUrl: function(str) {
-      var map, obj, ind;
+      var map, obj, ind, str2;
       if (str) {
         Utils.parseSearchEngines("~:" + str, map = this.cache.searchEngineMap);
         obj = map["~"];
-        str = obj.url.replace(Utils.spacesRe, "%20");
-        if (obj.name) { str += " " + obj.name; }
-        if (str !== arguments[0]) {
-          this.set("searchUrl", str);
+        str2 = obj.url.replace(Utils.spacesRe, "%20");
+        if (obj.name) { str2 += " " + obj.name; }
+        if (str2 !== str) {
+          this.set("searchUrl", str2);
           return;
         }
       } else if (str = this.get("newTabUrl_f", true)) {

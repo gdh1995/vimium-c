@@ -207,9 +207,8 @@ var Utils = {
       : 0;
   },
   _fileExtRe: /\.\w+$/,
-  formatVimiumUrl: function(path, partly, vimiumUrlWork) {
-    var ind, query, tempStr;
-    path = path.trim();
+  formatVimiumUrl: function(fullpath, partly, vimiumUrlWork) {
+    var ind, query, tempStr, path = fullpath.trim();
     if (!path) { return partly ? "" : location.origin + "/pages/"; }
     ind = path.indexOf(" ");
     if (ind > 0) {
@@ -223,7 +222,7 @@ var Utils = {
       } else if (Settings.CONST.KnownPages.indexOf(path) >= 0 || path.charCodeAt(0) === 47) {
         path += ".html";
       } else if (vimiumUrlWork === 1 || vimiumUrlWork === -1) {
-        return "vimium://" + arguments[0].trim();
+        return "vimium://" + fullpath.trim();
       } else {
         path = "show.html#!url vimium://" + path;
       }
