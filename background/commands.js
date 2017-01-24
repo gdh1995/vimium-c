@@ -45,7 +45,7 @@ var Commands = {
       registry[pair[0]] = Utils.makeCommand(pair[1]);
     }
   },
-  parseKeyMappings: function(line) {
+  parseKeyMappings: (function(line) {
     var key, lines, splitLine, mk = 0, _i = 0, _len, mkReg, registry, details, available;
     registry = CommandsData.keyToCommandRegistry = Object.create(null);
     mkReg = Object.create(null);
@@ -96,8 +96,8 @@ var Commands = {
       }
     }
     CommandsData.mapKeyRegistry = mk > 0 ? mkReg : null;
-  },
-  populateCommandKeys: function() {
+  }),
+  populateCommandKeys: (function() {
     var key, ref, ref2, arr, keyRe = Utils.keyRe, ch, j, last, tmp, func;
     ref = Object.create(null);
     for (ch = 10; 0 <= --ch; ) { ref[ch] = 1; }
@@ -144,7 +144,7 @@ var Commands = {
     }
     Settings.Init && Settings.Init();
     return ref;
-  },
+  }),
 
 defaultKeyMappings: [
   ["?", "showHelp"],

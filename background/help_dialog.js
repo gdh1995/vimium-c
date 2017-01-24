@@ -1,6 +1,6 @@
 "use strict";
 var HelpDialog = {
-  render: function(request) {
+  render: (function(request) {
     var command, commandsToKey, key, ref = CommandsData.keyToCommandRegistry, result;
     Object.setPrototypeOf(request, null);
     commandsToKey = Object.create(null);
@@ -20,8 +20,8 @@ var HelpDialog = {
       return s != null ? s
         : HelpDialog.groupHtml(group, commandsToKey, CommandsData.availableCommands, showUnbound, showNames);
     });
-  },
-  groupHtml: function(group, commandsToKey, availableCommands, showUnbound, showNames) {
+  }),
+  groupHtml: (function(group, commandsToKey, availableCommands, showUnbound, showNames) {
     var bindings, command, html, isAdvanced, _i, _len, _ref, keys, description, push;
     html = [];
     _ref = this.commandGroups[group];
@@ -46,8 +46,8 @@ var HelpDialog = {
       }
     }
     return html.join("");
-  },
-  commandHtml: function(html, isAdvanced, bindings, description, command) {
+  }),
+  commandHtml: (function(html, isAdvanced, bindings, description, command) {
     html.push('<tr class="HelpTr', isAdvanced ? " HelpAdv" : "", '">\n\t');
     if (description) {
       html.push('<td class="HelpTd HelpKeys">'
@@ -62,7 +62,7 @@ var HelpDialog = {
         , bindings);
     }
     html.push("</td>\n</tr>\n");
-  },
+  }),
   commandGroups: {
     pageNavigation: ["scrollDown", "scrollUp", "scrollLeft", "scrollRight", "scrollToTop"
       , "scrollToBottom", "scrollToLeft", "scrollToRight", "scrollPageDown", "scrollPageUp"
@@ -98,9 +98,8 @@ var HelpDialog = {
     misc: ["showHelp", "autoCopy", "autoOpen", "searchAs", "searchInAnother", "toggleLinkHintCharacters"
       , "toggleSwitchTemp", "passNextKey", "debugBackground", "blank"]
   },
-  advancedCommands: {
-    __proto__: null
-    , toggleViewSource: 1, clearFindHistory: 1
+  advancedCommands: Object.setPrototypeOf({
+    toggleViewSource: 1, clearFindHistory: 1
     , scrollToLeft: 1, scrollToRight: 1, moveTabToNextWindow: 1
     , moveTabToNewWindow: 1, moveTabToIncognito: 1, reloadGivenTab: 1, focusOrLaunch: 1
     , goUp: 1, goToRoot: 1, focusInput: 1, "LinkHints.activateModeWithQueue": 1, enableCSTemp: 1
@@ -114,5 +113,5 @@ var HelpDialog = {
     , "LinkHints.activateModeToHover": 1, "LinkHints.unhoverLast": 1
     , toggleLinkHintCharacters: 1, toggleSwitchTemp: 1, "LinkHints.activateModeToLeave": 1
     , "Vomnibar.activateEditUrl": 1, "Vomnibar.activateEditUrlInNewTab": 1
-  }
+  }, null)
 };

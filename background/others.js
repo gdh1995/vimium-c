@@ -82,7 +82,7 @@ if (Settings.get("vimSync") === true) setTimeout(function() { if (!chrome.storag
   });
 }, 400);
 
-setTimeout(function() { if (!chrome.browserAction) { return; }
+setTimeout((function() { if (!chrome.browserAction) { return; }
   var func = Settings.updateHooks.showActionIcon, imageData, tabIds;
   function loadImageAndSetIcon(type, path) {
     var img, i, cache = Object.create(null), count = 0,
@@ -153,9 +153,9 @@ setTimeout(function() { if (!chrome.browserAction) { return; }
     }
   };
   Settings.postUpdate("showActionIcon");
-}, 150);
+}), 150);
 
-setTimeout(function() { if (!chrome.omnibox) { return; }
+setTimeout((function() { if (!chrome.omnibox) { return; }
   var last, firstResult, lastSuggest,
   tempRequest, timeout = 0, sessionIds, suggestions = null, outTimeout = 0, outTime,
   defaultSug = { description: "<dim>Open: </dim><url>%s</url>" },
@@ -291,7 +291,7 @@ setTimeout(function() { if (!chrome.omnibox) { return; }
   };
   chrome.omnibox.onInputChanged.addListener(onInput);
   chrome.omnibox.onInputEntered.addListener(onEnter);
-}, 600);
+}), 600);
 
 var a, cb;
 // According to tests: onInstalled will be executed after 0 ~ 16 ms if needed
@@ -354,11 +354,11 @@ setTimeout(function() {
 }, 500);
 });
 
-setTimeout(function() {
+setTimeout((function() {
   if (a) {
     a.removeListener(cb);
     chrome.runtime.onInstalled = a = null;
   }
   cb = function(b) { a = b; console.log(b); };
   Utils.resetRe();
-}, 1200);
+}), 1200);

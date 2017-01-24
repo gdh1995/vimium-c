@@ -60,7 +60,7 @@ var Utils = {
   _jsNotEscapeRe: /["\[\]{}\u00ff-\uffff]|%(?![\dA-F]{2}|[\da-f]{2})/,
   filePathRe: /^['"]?((?:[A-Za-z]:[\\/]|\/(?:Users|home|root)\/)[^'"]*)['"]?$/,
   lastUrlType: 0,
-  convertToUrl: function(string, keyword, vimiumUrlWork) {
+  convertToUrl: (function(string, keyword, vimiumUrlWork) {
     string = string.trim();
     if (string.charCodeAt(10) === 58 && string.substring(0, 11).toLowerCase() === "javascript:") {
       if (Settings.CONST.ChromeVersion < 46 && string.indexOf('%', 11) > 0
@@ -175,7 +175,7 @@ var Utils = {
       : type === 1 ? ("http://" + oldString)
       : type === 2 ? ("http:" + oldString)
       : oldString;
-  },
+  }),
   checkSpecialSchemes: function(string, i, spacePos) {
     var isSlash = string[i + 1] === "/";
     switch (string.substring(0, i)) {
@@ -406,7 +406,7 @@ var Utils = {
     } catch (e) {}
     return url;
   },
-  parseSearchEngines: function(str, map) {
+  parseSearchEngines: (function(str, map) {
     var ids, pair, key, val, obj, _i, _len, ind, rSlash = /[^\\]\//, rules = [],
     rEscapeSpace = /\\\s/g, rSpace = /\s/, rEscapeS = /\\s/g, rColon = /\\:/g,
     rPercent = /\\%/g, rRe = /\sre=/i, a = str.replace(/\\\n/g, '').split('\n'),
@@ -489,12 +489,12 @@ var Utils = {
       obj.name = str ? this.DecodeURLPart(str) : ids[ids.length - 1].trimLeft();
     }
     return rules;
-  },
+  }),
   escapeAllRe: /[$()*+.?\[\\\]\^{|}]/g,
   _spaceOrPlusRe: /\\\+|%20| /g,
   _queryRe: /[#?]/,
   alphaRe: /[a-z]/i,
-  reparseSearchUrl: function (url, ind) {
+  reparseSearchUrl: (function (url, ind) {
     var prefix, str, str2, ind2;
     if (!this.protocolRe.test(url)) { return; }
     prefix = url.substring(0, ind - 1);
@@ -524,7 +524,7 @@ var Utils = {
       ).replace(this._spaceOrPlusRe, "(?:\\+|%20| )");
     prefix = this.prepareReparsingPrefix(prefix);
     return [prefix, new RegExp(str + str2 + url, this.alphaRe.test(str2) ? "i" : "")];
-  },
+  }),
   prepareReparsingPrefix: function(prefix) {
     if (prefix.startsWith("http://") || prefix.startsWith("https://")) {
       prefix = prefix.substring(prefix[4] === 's' ? 8 : 7);
@@ -572,11 +572,11 @@ var Utils = {
 };
 
 if (!String.prototype.startsWith) {
-String.prototype.startsWith = function(s) {
+String.prototype.startsWith = (function(s) {
   return this.length >= s.length && this.lastIndexOf(s, 0) === 0;
-};
-String.prototype.endsWith || (String.prototype.endsWith = function(s) {
+});
+String.prototype.endsWith || (String.prototype.endsWith = (function(s) {
   var i = this.length - s.length;
   return i >= 0 && this.indexOf(s, i) === i;
-});
+}));
 }

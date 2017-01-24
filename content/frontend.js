@@ -50,12 +50,12 @@ var VSettings, VHUD, VPort, VEventMode;
     ClearPort: function() {
       vPort.port = null;
     },
-    connect: function(isFirst) {
+    connect: (function(isFirst) {
       var port, data = { name: "vimium++." + ((window.top === window) * 4 + document.hasFocus() * 2 + isFirst) };
       port = this.port = isInjected ? chrome.runtime.connect(VimiumInjector.id, data) : chrome.runtime.connect(data);
       port.onDisconnect.addListener(this.ClearPort);
       port.onMessage.addListener(this.Listener);
-    }
+    })
   };
   location.href !== "about:blank" || isInjected ? vPort.connect(1) :
   (window.onload = function() { window.onload = null; setTimeout(function() {
@@ -204,13 +204,13 @@ var VSettings, VHUD, VPort, VEventMode;
       HUD.enabled = true;
       ELs.OnWndFocus = vPort.safePost.bind(vPort, { handler: "frameFocused" });
     },
-    hook: function(f, c) {
+    hook: (function(f, c) {
       f("keydown", this.onKeydown, true);
       f("keyup", this.onKeyup, true);
       c || f("focus", this.onFocus, true);
       f("blur", this.onBlur, true);
       f.call(document, "DOMActivate", ELs.onActivate, true);
-    }
+    })
   };
   ELs.hook(addEventListener);
 
