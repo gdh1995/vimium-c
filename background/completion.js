@@ -1,5 +1,5 @@
 "use strict";
-setTimeout(function() {
+setTimeout((function() {
   var HistoryCache, RankingUtils, RegexpCache, Decoder,
       Completers, queryType, offset, autoSelect,
       maxCharNum, maxResults, maxTotal, matchType,
@@ -1121,8 +1121,15 @@ searchEngines: {
     }
   };
 
-}, 200);
+}), 200);
 
 setTimeout(function() {
   Settings.postUpdate("searchEngines", null);
 }, 300);
+
+var Completers = { filter: function() {
+  var args = [].slice.call(arguments, 0);
+  setTimeout(function() {
+    Completers.filter.apply(Completers, args);
+  }, 210);
+} };
