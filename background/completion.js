@@ -1127,9 +1127,9 @@ setTimeout(function() {
   Settings.postUpdate("searchEngines", null);
 }, 300);
 
-var Completers = { filter: function() {
+var Completers = { filter: function(a, b, c) {
   var args = [].slice.call(arguments, 0);
   setTimeout(function() {
-    Completers.filter.apply(Completers, args);
+    Completers.filter(a, b, c);
   }, 210);
 } };
