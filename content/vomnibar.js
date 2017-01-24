@@ -8,7 +8,7 @@ var Vomnibar = {
   zoom: 0,
   defaultTop: "",
   sameOrigin: false,
-  activate: function(count, options, forceCurrent) {
+  activate: function(count, options) {
     if (!options.secret || !options.vomnibar) { return false; }
     if (document.readyState === "loading") {
       if (!this.width) {
@@ -23,10 +23,7 @@ var Vomnibar = {
       options.topUrl = window.location.href;
       options.count = +count || 1;
     }
-    if ((forceCurrent |= 0) < 2 &&
-        VHints.tryNestedFrame("Vomnibar.activate", [1, options, 2])) {
-      return;
-    }
+    if (VHints.tryNestedFrame("Vomnibar.activate", 1, options)) { return; }
     this.options = null;
     this.width = Math.max(window.innerWidth - 24, document.documentElement.clientWidth);
     this.zoom = VDom.UI.getZoom();

@@ -252,13 +252,8 @@ var VSettings, VHUD, VPort, VEventMode;
       }
       HUD.showForDuration('Now link hints use "' + val + '".', 1500);
     },
-    scrollTo: function(count, options) {
-      VMarks.setPreviousPosition();
-      VScroller.scrollTo(options.axis === "x" ? 0 : 1, count - 1, options.dest === "max");
-    },
-    scrollBy: function(count, options) {
-      VScroller.scrollBy(options.axis === "x" ? 0 : 1, (options.dir || 1) * count, options.view);
-    },
+    scrollTo: VScroller.ScTo,
+    scrollBy: VScroller.ScBy,
 
     enterVisualMode: function(_0, options) { VVisualMode.activate(options); },
     enterInsertMode: function(_0, options) {
@@ -355,12 +350,8 @@ var VSettings, VHUD, VPort, VEventMode;
         HUD.showForDuration(result.url, 1500);
       });
     },
-    showHelp: function(_0, _1, forceCurrent) {
-      forceCurrent |= 0;
-      if (forceCurrent < 2 &&
-          VHints.tryNestedFrame("showHelp", [1, _1, 2])) {
-        return;
-      }
+    showHelp: function() {
+      if (VHints.tryNestedFrame("showHelp")) { return; }
       if (!VDom.isHTML()) { return false; }
       vPort.post({handler: "initHelp"});
     },
@@ -575,7 +566,7 @@ var VSettings, VHUD, VPort, VEventMode;
         VScroller.scrollBy(1 - (keyCode & 1), keyCode < VKeyCodes.left + 2 ? -1 : 1, +ctrl);
       } else if (ctrl) { return; }
       else if (keyCode > VKeyCodes.pageup + 1) {
-        Commands.scrollTo(1, { dest: (keyCode & 1) && "max" });
+        VScroller.scrollTo(1, 0, keyCode & 1);
       } else {
         VScroller.scrollBy(1, keyCode === VKeyCodes.pageup ? -0.5 : 0.5, "viewSize");
       }
@@ -863,7 +854,7 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
       (mapKeys = request.mapKeys) && func(mapKeys, null);
     },
     execute: function(request) {
-      VUtils.execCommand(Commands, request.command, [request.count, request.options, 0]);
+      return VUtils.execCommand(Commands, request.command, request.count, request.options);
     },
     createMark: VMarks.CreateGlobalMark,
     scroll: VMarks.Goto,

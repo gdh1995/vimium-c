@@ -59,7 +59,7 @@ var VHints = {
       elements = this.getVisibleElements();
     }
     if (this.frameNested) {
-      if (this.tryNestedFrame("VHints.activate", [count, this.options])) {
+      if (this.tryNestedFrame("VHints.activate", count, this.options)) {
         this.clean();
         return;
       }
@@ -114,7 +114,7 @@ var VHints = {
     this.mode1 = mode & ~64;
     VHUD.show(this.modeOpt[mode]);
   },
-  tryNestedFrame: function(command, args) {
+  tryNestedFrame: function(command, a, b) {
     this.frameNested === false && this.checkNestedFrame();
     if (!this.frameNested) { return false; }
     var child, done = false;
@@ -134,7 +134,7 @@ var VHints = {
     child.focus();
     if (done) { return true; }
     if (document.readyState !== "complete") { this.frameNested = false; }
-    return VUtils.execCommand(child, command, args) !== false;
+    return VUtils.execCommand(child, command, a, b) !== false;
   },
   maxLeft: 0,
   maxTop: 0,

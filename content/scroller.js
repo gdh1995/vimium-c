@@ -47,8 +47,12 @@ Core: {
   keyIsDown: 0,
   scale: 1,
   Properties: ["clientWidth", "clientHeight", "scrollWidth", "scrollHeight", "scrollLeft", "scrollTop"],
+  ScBy: function(count, options) {
+    if (VHints.tryNestedFrame("VScroller.ScBy", count, options)) { return; }
+    return VScroller.scrollBy(options.axis === "x" ? 0 : 1, (options.dir || 1) * count, options.view);
+  },
   scrollBy: function(di, amount, factor) {
-    if (VHints.tryNestedFrame("VScroller.scrollBy", arguments)) { return; }
+    VMarks.setPreviousPosition();
     var element = this.findScrollable(this.getActivatedElement(), di, amount);
     amount = !factor ? this.adjustAmount(di, amount, element)
       : factor === 1 ? (amount > 0 ? Math.ceil : Math.floor)(amount)
@@ -56,8 +60,11 @@ Core: {
     this.Core.scroll(element, di, amount);
     this.top = null;
   },
+  ScTo: function(count, options) {
+    if (VHints.tryNestedFrame("VScroller.ScTo", count, options)) { return; }
+    return VScroller.scrollTo(options.axis === "x" ? 0 : 1, count - 1, +(options.dest === "max"));
+  },
   scrollTo: function(di, amount, fromMax) {
-    if (VHints.tryNestedFrame("VScroller.scrollTo", arguments)) { return; }
     var element = this.findScrollable(this.getActivatedElement(), di, fromMax ? 1 : -1);
     amount = this.adjustAmount(di, amount, element);
     fromMax && (amount = this.getDimension(element, di, 2) - amount);
