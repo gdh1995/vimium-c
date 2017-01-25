@@ -76,7 +76,7 @@ $("exportButton").onclick = function(event) {
   }
   exported_object.environment = {
     chrome: bgSettings.CONST.ChromeVersion,
-    extension: parseFloat(bgSettings.CONST.CurrentVersion),
+    extension: bgSettings.CONST.CurrentVersion,
     platform: bgSettings.CONST.Platform
   };
   (function() {

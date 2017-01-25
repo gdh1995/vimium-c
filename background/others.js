@@ -336,7 +336,7 @@ setTimeout(function() {
     type: "basic",
     iconUrl: location.origin + "/icons/icon128.png",
     title: "Vimium++ Upgrade",
-    message: "Vimium++ has been upgraded to version " + Settings.CONST.CurrentVersion
+    message: "Vimium++ has been upgraded to version " + Settings.CONST.CurrentVersionName
       + ". Click here for more information.",
     isClickable: true
   }, function(notificationId) {

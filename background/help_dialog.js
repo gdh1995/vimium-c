@@ -10,7 +10,7 @@ var HelpDialog = {
     }
     var showUnbound = !!request.unbound, showNames = !!request.names;
     result = Object.setPrototypeOf({
-      version: Settings.CONST.CurrentVersion,
+      version: Settings.CONST.CurrentVersionName,
       title: request.title || "Help",
       tip: showNames ? "Tip: click command names to copy them to the clipboard." : "",
       lbPad: showNames ? '\n\t\t<tr class="HelpTr"><td class="HelpTd TdBottom">&#160;</td></tr>' : ""

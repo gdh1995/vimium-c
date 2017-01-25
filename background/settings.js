@@ -222,7 +222,7 @@ w|wiki:\\\n  https://www.wikipedia.org/w/index.php?search=$s Wikipedia\n\
   CONST: {
     BaseCSSLength: 0,
     ChromeInnerNewTab: "chrome-search://local-ntp/local-ntp.html", // should keep lower case
-    ChromeVersion: 37, ContentScripts: null, CurrentVersion: "",
+    ChromeVersion: 37, ContentScripts: null, CurrentVersion: "", CurrentVersionName: "",
     KnownPages: ["blank", "newtab", "options", "show"],
     MathParser: "/lib/math_parser.js",
     HelpDialog: "/background/help_dialog.js",
@@ -267,6 +267,7 @@ setTimeout(function() {
   ref = chrome.runtime.getManifest();
   obj = Settings.CONST;
   obj.CurrentVersion = ref.version;
+  obj.CurrentVersionName = ref.version_name || ref.version;
   obj.OptionsPage = func(ref.options_page || obj.OptionsPage);
   obj.ShowPage = Utils.formatVimiumUrl(obj.ShowPage);
   obj.VomnibarPage = func(obj.VomnibarPage);
