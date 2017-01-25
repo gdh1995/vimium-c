@@ -212,7 +212,6 @@ var VSettings, VHUD, VPort, VEventMode;
       f.call(document, "DOMActivate", ELs.onActivate, true);
     })
   };
-  ELs.hook(addEventListener);
 
   esc = function(i) { currentKeys = ""; nextKeys = null; return i; };
 
@@ -921,6 +920,8 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
     }, box);
   }
   };
+
+  ELs.hook(addEventListener);
 
   VSettings.destroy = function(silent) {
     var f = removeEventListener, el;
