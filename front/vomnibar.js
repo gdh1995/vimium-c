@@ -62,7 +62,7 @@ var Vomnibar = {
     var zoom = 1 / window.devicePixelRatio;
     document.body.style.zoom = zoom > 1 ? zoom : "";
     this.focused || setTimeout(function() { Vomnibar.input.focus(); }, 50);
-    window.addEventListener("mousewheel", this.onWheel, {passive: false});
+    addEventListener("mousewheel", this.onWheel, {passive: false});
     this.input.value = this.inputText;
     setTimeout(function() { Vomnibar.input.onselect = Vomnibar.OnSelect; }, 120);
   },
