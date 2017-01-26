@@ -400,7 +400,7 @@ domains: {
     }
     if (HistoryCache.history) {
       this.refresh(HistoryCache.history);
-      return this.performSearch(query);
+      return this.performSearch();
     }
     return index > 0 ? Completers.next([]) : HistoryCache.use(function() {
       if (query.isOff) { return; }
@@ -706,6 +706,7 @@ searchEngines: {
 
   counter: 0,
   sugCounter: 0,
+  suggestions: null,
   mostRecentQuery: null,
   callback: null,
   filter: function(completers) {
@@ -770,7 +771,8 @@ searchEngines: {
     return func(suggestions, newAutoSelect, newMatchType);
   },
   cleanGlobals: function() {
-    this.mostRecentQuery = this.callback = queryTerms = null;
+    this.mostRecentQuery = this.callback = null;
+    queryTerms = [];
     RegexpCache.reset(null);
     RankingUtils.timeAgo = this.sugCounter = matchType = queryType =
     maxResults = maxTotal = maxCharNum = 0;
