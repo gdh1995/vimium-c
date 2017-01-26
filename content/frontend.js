@@ -908,7 +908,7 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
       node1.remove();
     }
     shouldShowAdvanced && toggleAdvanced();
-    VDom.UI.addElement(box, {before: Vomnibar.status ? null : Vomnibar.box});
+    VDom.UI.addElement(box, Vomnibar.status ? null : {before: Vomnibar.box});
     window.focus();
     VScroller.current = box;
     VHandler.push(function(event) {

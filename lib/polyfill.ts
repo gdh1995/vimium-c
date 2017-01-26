@@ -12,7 +12,7 @@ interface String {
   startsWith(searchString: string, position?: number | undefined): boolean;
   startsWith(this: ObjectCoercible, searchString?: anyNotSymbol, position?: anyNotSymbol): boolean;
 }
-declare var Symbol: {
+declare const Symbol: {
   (description?: anyNotSymbol): symbol;
   readonly match: symbol;
 };
