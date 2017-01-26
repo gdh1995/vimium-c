@@ -78,7 +78,7 @@ var VHints = {
     this.alphabetHints.initMarkers(this.hintMarkers);
 
     this.setMode(this.mode);
-    this.box = VDom.UI.addElementList(this.hintMarkers, "HMC", arr);
+    this.box = VDom.UI.addElementList(this.hintMarkers, arr);
 
     this.isActive = true;
     VHandler.push(this.onKeydown, this);

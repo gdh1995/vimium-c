@@ -422,7 +422,7 @@ var VSettings, VHUD, VPort, VEventMode;
       }
       VDom.UI.simulateSelect(visibleInputs[sel][0]);
       hints[sel].classList.add("S");
-      box = VDom.UI.addElementList(hints, "IMC", arr);
+      box = VDom.UI.addElementList(hints, arr);
       VHandler.push(function(event) {
         if (event.keyCode === VKeyCodes.tab) {
           hints[sel].classList.remove("S");

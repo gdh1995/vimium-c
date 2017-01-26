@@ -1,4 +1,4 @@
-<div class="R Scroll" id="HelpDialog">
+<div class="R Scroll UI" id="HelpDialog">
 <style type="text/css">
 #HelpDialog {
 	background-color: white;
@@ -6,13 +6,13 @@
 	border-radius: 8px;
 	box-shadow: rgba(0, 0, 0, 0.4) 0 0 6px;
 	contain: content;
+	direction: ltr;
 	left: calc(50% - 422px);
 	line-height: 130%;
 	max-height: calc(100% - 116px);
 	min-height: 25px;
 	overflow-y: auto;
 	padding: 8px 12px;
-	position: fixed;
 	top: 50px;
 	width: 816px;
 	z-index: 2147483645;
@@ -167,7 +167,7 @@
 	</div>
 	<div class="HDivider"></div>
 	<div class="ColumnBox">
-		<table class="R HelpTable">
+		<table class="HelpTable">
 		<tbody class="Column">
 			<tr class="HelpTr"><td class="HelpTd"></td><td class="HelpTd HelpSectionTitle">Navigating the page</td></tr>
 {{pageNavigation}}{{lbPad}}
@@ -175,7 +175,7 @@
 		</table>
 	</div>
 	<div class="ColumnBox">
-		<table class="R HelpTable">
+		<table class="HelpTable">
 		<tbody class="Column">
 			<tr class="HelpTr"><td class="HelpTd"></td><td class="HelpTd HelpSectionTitle">Using the Vomnibar</td></tr>
 {{vomnibarCommands}}

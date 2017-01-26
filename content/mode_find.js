@@ -58,7 +58,7 @@ html > span{float:right;}',
     this.styleIn.disabled = this.styleOut.disabled = true;
 
     var el = this.box = VDom.createElement("iframe");
-    el.className = "R HUD Find LS";
+    el.className = "R HUD UI";
     el.style.width = "0px";
     zoom !== 1 && (el.style.zoom = 1 / zoom);
     el.onload = function() { VFindMode.onLoad(this); };

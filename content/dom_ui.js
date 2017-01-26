@@ -23,11 +23,10 @@ VDom.UI = {
     options.adjust = options.adjust === true;
     return this.addElement(element, options);
   },
-  addElementList: function(els, id, offset) {
+  addElementList: function(els, offset) {
     var parent, _i, _len, style;
     parent = VDom.createElement("div");
-    parent.className = "R LS";
-    parent.id = id;
+    parent.className = "R HM";
     for (_i = 0, _len = els.length; _i < _len; _i++) {
       parent.appendChild(els[_i]);
     }
