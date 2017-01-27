@@ -645,17 +645,16 @@ searchEngines: {
   },
   makeText: function(url, arr) {
     var len = arr.length, i, str, ind;
-    ind = arr[0];
-    str = Utils.DecodeURLPart(url.substring(0, ind));
+    str = Utils.DecodeURLPart(arr.length > 0 ? url.substring(0, arr[0]) : url);
     if (i = (str.startsWith("http://")) ? 7 : (str.startsWith("https://")) ? 8 : 0) {
       str = str.substring(i);
       i = 0;
     }
-    arr[0] = str.length;
-    while (len > ++i) {
+    if (arr.length <= 0) { return str; }
+    ind = arr[0];
+    while (arr[i] = str.length, len > ++i) {
       str += Utils.DecodeURLPart(url.substring(ind, arr[i]));
       ind = arr[i];
-      arr[i] = str.length;
     }
     if (ind < url.length) {
       url = Utils.DecodeURLPart(url.substring(ind));
