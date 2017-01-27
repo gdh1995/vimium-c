@@ -3,6 +3,7 @@
     "allowJs": false,
     "alwaysStrict": true,
     "forceConsistentCasingInFileNames": true,
+    "inferThisForObjectLiterals": true,
     // "lib": [ "dom", "es6" ],
     "listEmittedFiles": true,
     "module": "system",

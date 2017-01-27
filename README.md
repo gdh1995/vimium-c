@@ -5,7 +5,7 @@ Vimium++
 
 **[Visit Vimium++ in Chrome Web Store](https://chrome.google.com/webstore/detail/vimium%2B%2B/hfjbmagddngcpeloejdejnfgbamkjaeg)**.
 
-A custom [Vimium](https://github.com/philc/vimium)
+A customized [Vimium](https://github.com/philc/vimium)
   by [gdh1995](https://github.com/gdh1995),
   supporting Chrome with the session functionalities only (ver >= 37).
   For older version, it would try to work ^_^
@@ -139,6 +139,12 @@ __微度新标签页修改版 (Modified X New Tab Page):__
 * rename front-end global variables to `V***`,
   in order to avoid potential name collisions when injected into other hosts
 
+# Building
+
+Install a customized version of [TypeScript](https://github.com/gdh1995/TypeScript):
+* Download https://github.com/gdh1995/TypeScript/archive/master.zip
+* Unzip it and use `bin/tsc` to compile the Vimium++ project.
+* In VS Code, please set `typescript.tsdk` to absoulte path of the folder `lib`.
 
 # License
 
