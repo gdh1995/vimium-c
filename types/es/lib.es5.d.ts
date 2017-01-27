@@ -163,6 +163,7 @@ interface ObjectConstructor {
       * @param o Object to use as a prototype. May be null
       */
     create(o: null): any;
+    create<T>(o: null): SafeDict<T>;
 
     /**
       * Creates an object that has the specified prototype, and that optionally contains specified properties.

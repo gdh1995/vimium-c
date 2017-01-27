@@ -24,30 +24,40 @@ interface Window {
  */
 declare namespace chrome.bookmarks {
     /** A node (either a bookmark or a folder) in the bookmark tree. Child nodes are ordered within their parent folder. */
-    interface BookmarkTreeNode {
+    interface BookmarkTreeNodeBase {
         /** Optional. The 0-based position of this node within its parent folder.  */
         index?: number;
         /** Optional. When this node was created, in milliseconds since the epoch (new Date(dateAdded)).  */
         dateAdded?: number;
         /** The text displayed for the node. */
         title: string;
-        /** Optional. The URL navigated to when a user clicks the bookmark. Omitted for folders.   */
-        url?: string;
         /** Optional. When the contents of this folder last changed, in milliseconds since the epoch.   */
         dateGroupModified?: number;
         /** The unique identifier for the node. IDs are unique within the current profile, and they remain valid even after the browser is restarted.  */
         id: string;
         /** Optional. The id of the parent folder. Omitted for the root node.   */
-        parentId?: string;
-        /** Optional. An ordered list of children of this node.  */
-        children?: BookmarkTreeNode[];
+        parentId: string;
         /**
          * Optional.
           * Since Chrome 37.
          * Indicates the reason why this node is unmodifiable. The managed value indicates that this node was configured by the system administrator or by the custodian of a supervised user. Omitted if the node can be modified by the user and the extension (default).
          */
         unmodifiable?: any;
+
+        children?: void | BookmarkTreeNode[];
+        url?: void | string;
     }
+    interface BookmarkFolderNode extends BookmarkTreeNodeBase {
+        /** Optional. An ordered list of children of this node.  */
+        children: BookmarkTreeNode[];
+        url?: void;
+    }
+    interface BookmarkEndNode extends BookmarkTreeNodeBase {
+        /** Optional. The URL navigated to when a user clicks the bookmark. Omitted for folders.   */
+        children?: void;
+        url: string;
+    }
+    type BookmarkTreeNode = BookmarkEndNode | BookmarkFolderNode;
 
     interface BookmarkRemoveInfo {
         index: number;
@@ -811,11 +821,11 @@ declare namespace chrome.history {
         /** Optional. The number of times the user has navigated to this page by typing in the address. */
         typedCount?: number;
         /** Optional. The title of the page when it was last loaded. */
-        title?: string;
+        title: string;
         /** Optional. The URL navigated to by a user. */
-        url?: string;
+        url: string;
         /** Optional. When this page was last loaded, represented in milliseconds since the epoch. */
-        lastVisitTime?: number;
+        lastVisitTime: number;
         /** Optional. The number of times the user has navigated to this page. */
         visitCount?: number;
         /** The unique identifier for the item. */
@@ -845,12 +855,21 @@ declare namespace chrome.history {
         startTime: number;
     }
 
-    interface RemovedResult {
-        /** True if all history was removed. If true, then urls will be empty. */
-        allHistory: boolean;
-        /** Optional. */
-        urls?: string[];
+    interface RemovedBaseResult {
+        allHistory?: boolean;
+        urls: string[];
     }
+    interface RemovedUrlsResult extends RemovedBaseResult {
+        allHistory?: false;
+        urls: string[];
+    }
+    interface AllRemovedResult extends RemovedBaseResult {
+        /** True if all history was removed. If true, then urls will be empty. */
+        allHistory: true;
+        urls: EmptyArray<string>;
+    }
+
+    type RemovedResult = RemovedUrlsResult | AllRemovedResult;
 
     interface HistoryVisitedEvent extends chrome.events.Event<(result: HistoryItem) => void> {}
 

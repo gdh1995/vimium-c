@@ -8299,11 +8299,9 @@ interface XMLHttpRequest extends EventTarget, XMLHttpRequestEventTarget {
     getAllResponseHeaders(): string;
     getResponseHeader(header: string): string | null;
     msCachingEnabled(): boolean;
-    open(method: string, url: string, async?: boolean, user?: string, password?: string): void;
+    open(method: "GET", url: string, async: true, user?: string, password?: string): void;
     overrideMimeType(mime: string): void;
-    send(data?: Document): void;
-    send(data?: string): void;
-    send(data?: any): void;
+    send(): void;
     setRequestHeader(header: string, value: string): void;
     readonly DONE: number;
     readonly HEADERS_RECEIVED: number;
