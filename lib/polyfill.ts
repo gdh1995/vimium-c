@@ -1,3 +1,5 @@
+/// <reference no-default-lib="true"/>
+
 type primitiveObject = boolean | number | string;
 type primitive = primitiveObject | null | undefined;
 type ObjectCoercible = primitiveObject | {

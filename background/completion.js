@@ -544,6 +544,7 @@ tabs: {
 
 searchEngines: {
   _nestedEvalCounter: 0,
+  filter: function() {},
   preFilter: function(query, failIfNull) {
     var obj, sug, q = queryTerms, keyword, pattern, promise;
     keyword = q.length > 0 ? q[0] : "";
@@ -810,15 +811,14 @@ searchEngines: {
         (options.clientWidth - 74) / 7.72) | 0, 200)) : 128;
     maxTotal = maxResults = Math.min(Math.max(options.maxResults | 0, 3), 25);
     Completers.callback = callback;
-    var arr = null, ref, str;
+    var arr = null, str;
     if (queryTerms.length >= 1 && queryTerms[0].length === 2 && queryTerms[0][0] === ":") {
       str = queryTerms[0][1];
-      ref = window.Completers;
-      arr = str === "b" ? ref.bookm : str === "h" ? ref.history : str === "t" ? ref.tab
-        : str === "d" ? ref.domain : str === "s" ? ref.search : str === "o" ? ref.omni : null;
+      arr = str === "b" ? this.bookm : str === "h" ? this.history : str === "t" ? this.tab
+        : str === "d" ? this.domain : str === "s" ? this.search : str === "o" ? this.omni : null;
       if (arr) {
         queryTerms.shift();
-        autoSelect = arr !== ref.omni;
+        autoSelect = arr !== this.omni;
       }
     }
     return Completers.filter(arr || this[options.type]);
@@ -1060,7 +1060,7 @@ searchEngines: {
           j.text = m[s] || (w.push(j), s);
         }
       }
-      d.continueToWork();
+      return d.continueToWork();
     },
     dict: Object.create(null),
     todos: [], // each item is either {url: ...} or "url"
@@ -1086,8 +1086,7 @@ searchEngines: {
           continue;
         }
         xhr.open("GET", _this._dataUrl + str, true);
-        xhr.send();
-        return;
+        return xhr.send();
       }
     },
     OnXHR: function() {
@@ -1098,7 +1097,7 @@ searchEngines: {
       } else {
         _this.dict[url] = text;
       }
-      _this.Work(this);
+      return _this.Work(this);
     },
     _dataUrl: "",
     blank: function() {},
@@ -1129,7 +1128,6 @@ setTimeout(function() {
 }, 300);
 
 var Completers = { filter: function(a, b, c) {
-  var args = [].slice.call(arguments, 0);
   setTimeout(function() {
     Completers.filter(a, b, c);
   }, 210);
