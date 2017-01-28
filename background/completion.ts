@@ -1,37 +1,35 @@
-"use strict";
-setTimeout((function() {
-  var HistoryCache, RankingUtils, RegexpCache, Decoder,
-      Completers, queryType, offset, autoSelect,
-      maxCharNum, maxResults, maxTotal, matchType,
-      queryTerms, SuggestionUtils;
+/// <reference path="../types/bg.completion.d.ts" />
 
-  // matchType: 0: use default completers; 1: empty result for non-empty query;
-  //   2: only one completer matches some items;
-  //   -1: final matchType should be 0; -2/3: search engine wants the next query
+setTimeout((function (): void {
 
-  function Suggestion(type, url, text, title, computeRelevancy, extraData) {
-    this.type = type;
-    this.url = url;
-    this.text = text;
-    this.title = title;
-    this.relevancy = computeRelevancy(this, extraData);
-  }
+let queryType: FirstQuery, offset: number, autoSelect: boolean,
+    maxCharNum: number, maxResults: number, maxTotal: number, matchType: MatchType,
+    queryTerms: QueryTerms;
 
-SuggestionUtils = {
-  prepareHtml: function(sug) {
+const Suggestion: SuggestionConstructor = function (this: WritableCoreSuggestion,
+    type: string, url: string, text: string, title: string,
+    computeRelevancy: (this: void, sug: CoreSuggestion, data?: number) => number, extraData?: number
+    ) {
+  this.type = type;
+  this.url = url;
+  this.text = text;
+  this.title = title;
+  (this as Suggestion).relevancy = computeRelevancy(this, extraData);
+} as any;
+
+const SuggestionUtils = {
+  prepareHtml (sug: Suggestion): void {
     if (sug.textSplit) { return; }
-    var _this = SuggestionUtils;
-    sug.titleSplit = _this.highlight(sug.title, _this.getRanges(sug.title));
-    var str = sug.text = _this.shortenUrl(sug.text);
-    sug.textSplit = _this.cutUrl(str, _this.getRanges(str), sug.url);
+    sug.titleSplit = this.highlight(sug.title, this.getRanges(sug.title));
+    const str = sug.text = this.shortenUrl(sug.text);
+    sug.textSplit = this.cutUrl(str, this.getRanges(str), sug.url);
   },
-  highlight: function(string, ranges) {
-    var _i, out, start, end, end2;
+  highlight (this: void, string: string, ranges: number[]): string {
+    let out: string[], end: number;
     if (ranges.length === 0) { return Utils.escapeText(string); }
-    out = [];
-    for(_i = 0, end = 0; _i < ranges.length; _i += 2) {
-      start = ranges[_i];
-      end2 = ranges[_i + 1];
+    out = []; end = 0;
+    for(let _i = 0; _i < ranges.length; _i += 2) {
+      const start = ranges[_i], end2 = ranges[_i + 1];
       out.push(Utils.escapeText(string.substring(end, start)), '<match>',
         Utils.escapeText(string.substring(start, end2)), "</match>");
       end = end2;
@@ -39,32 +37,32 @@ SuggestionUtils = {
     out.push(Utils.escapeText(string.substring(end)));
     return out.join("");
   },
-  shortenUrl: function(url) {
+  shortenUrl (this: void, url: string): string {
     return url.substring((url.startsWith("http://")) ? 7 : (url.startsWith("https://")) ? 8 : 0,
       url.length - +(url.charCodeAt(url.length - 1) === 47 && !url.endsWith("://")));
   },
-  pushMatchingRanges: function(string, term, ranges) {
-    var index = 0, textPosition = 0, matchedEnd, tl = term.length,
-      splits = string.split(RegexpCache.item(term)), last = splits.length - 1;
+  pushMatchingRanges (this: void, string: string, term: string, ranges: MatchRange[]): void {
+    let index = 0, textPosition = 0, matchedEnd: number;
+    const splits = string.split(RegexpCache.item(term)), last = splits.length - 1, tl = term.length;
     for (; index < last; index++, textPosition = matchedEnd) {
       matchedEnd = (textPosition += splits[index].length) + tl;
       ranges.push([textPosition, matchedEnd]);
     }
   },
-  getRanges: function(string) {
-    var ranges = [], _i, _len, _ref = queryTerms;
-    for (_i = 0, _len = _ref.length; _i < _len; ++_i) {
-      this.pushMatchingRanges(string, _ref[_i], ranges);
+  getRanges (string: string): number[] {
+    const ranges: MatchRange[] = [];
+    for (let ref = queryTerms, i = 0, len = ref.length; i < len; ++i) {
+      this.pushMatchingRanges(string, ref[i], ranges);
     }
-    if (ranges.length === 0) { return ranges; }
+    if (ranges.length === 0) { return ranges as any; }
     ranges.sort(this.rsortBy0);
     return this.mergeRanges(ranges);
   },
-  rsortBy0: function(a, b) { return b[0] - a[0]; },
-  mergeRanges: function(ranges) {
-    var mergedRanges = ranges.pop(), i = 1, range, ind = ranges.length;
-    while (0 <= --ind) {
-      range = ranges[ind];
+  rsortBy0 (this: void, a: MatchRange, b: MatchRange): number { return b[0] - a[0]; },
+  mergeRanges (this: void, ranges: MatchRange[]): number[] {
+    const mergedRanges: number[] = ranges.pop() as number[];
+    for (let i = 1, ind = ranges.length; 0 <= --ind; ) {
+      const range = ranges[ind];
       if (mergedRanges[i] >= range[0]) {
         if (mergedRanges[i] < range[1]) {
           mergedRanges[i] = range[1];
@@ -76,8 +74,9 @@ SuggestionUtils = {
     }
     return mergedRanges;
   },
-  cutUrl: function(string, ranges, strCoded) {
-    var out = [], cutStart = -1, temp, lenCut, i, end, start;
+  cutUrl (this: void, string: string, ranges: number[], strCoded: string): string {
+    const out: string[] = [];
+    let cutStart = -1, temp: number, end: number = 0;
     if (string.length <= maxCharNum || (cutStart = strCoded.indexOf(":")) < 0) {}
     else if (!Utils.protocolRe.test(string.substring(0, cutStart).toLowerCase())) { ++cutStart; }
     else if ((cutStart = strCoded.indexOf("/", cutStart + 4)) >= 0) {
@@ -85,8 +84,8 @@ SuggestionUtils = {
       cutStart = string.indexOf("/", (temp < 0 || temp > cutStart) ? 0 : (temp + 4));
     }
     cutStart = (cutStart < 0) ? string.length : (cutStart + 1);
-    for(i = 0, lenCut = 0, end = 0; end < (temp = maxCharNum + lenCut) && i < ranges.length; i += 2) {
-      start = ranges[i];
+    for(let i = 0, lenCut = 0; end < (temp = maxCharNum + lenCut) && i < ranges.length; i += 2) {
+      let start = ranges[i];
       temp = (end >= cutStart) ? end : cutStart;
       if (temp + 20 > start) {
         out.push(Utils.escapeText(string.substring(end, start)));
@@ -106,27 +105,28 @@ SuggestionUtils = {
     }
     return out.join("");
   },
-  ComputeWordRelevancy: function(suggestion) {
+  ComputeWordRelevancy (this: void, suggestion: CoreSuggestion): number {
     return RankingUtils.wordRelevancy(suggestion.text, suggestion.title);
   },
-  ComputeTimeRelevancy: function(_0, _1, lastVisitTime) {
+  ComputeTimeRelevancy (this: void, _0: string, _1: string, lastVisitTime: number): number {
     return RankingUtils.recencyScore(lastVisitTime);
   },
-  ComputeRelevancy: function(text, title, lastVisitTime) {
-    var recencyScore = RankingUtils.recencyScore(lastVisitTime),
+  ComputeRelevancy (this: void, text: string, title: string, lastVisitTime: number): number {
+    const recencyScore = RankingUtils.recencyScore(lastVisitTime),
       wordRelevancy = RankingUtils.wordRelevancy(text, title);
     return recencyScore <= wordRelevancy ? wordRelevancy : (wordRelevancy + recencyScore) / 2;
   }
 };
 
-Completers = {
+
+let Completers = {
 bookmarks: {
-  bookmarks: [],
-  currentSearch: null,
+  bookmarks: [] as Bookmark[],
+  currentSearch: null as QueryStatus | null,
   path: "",
   deep: 0,
   status: 0,
-  filter: function(query, index) {
+  filter (query: QueryStatus, index: number): void {
     if (queryTerms.length === 0) {
       Completers.next([]);
       if (index !== 0) { return; }
@@ -135,28 +135,27 @@ bookmarks: {
     } else {
       this.currentSearch = query;
     }
-    return this.status === 0 && this.refresh();
+    if (this.status === 0) { return this.refresh(); }
   },
-  StartsWithSlash: function(str) { return str.charCodeAt(0) === 47; },
-  performSearch: function() {
-    var c, results = [], isPath, _ref, _i, i, title, sug;
-    isPath = queryTerms.some(this.StartsWithSlash);
-    c = SuggestionUtils.ComputeWordRelevancy;
-    for (_ref = this.bookmarks, _i = _ref.length; 0 <= --_i; ) {
-      i = _ref[_i];
-      title = isPath ? i.path : i.title;
+  StartsWithSlash (str: string): boolean { return str.charCodeAt(0) === 47; },
+  performSearch (): void {
+    const c = SuggestionUtils.ComputeWordRelevancy, isPath = queryTerms.some(this.StartsWithSlash);
+    let results: Suggestion[] = [];
+    for (let ref = this.bookmarks, _i = ref.length; 0 <= --_i; ) {
+      const i: Bookmark = ref[_i];
+      const title = isPath ? i.path : i.title;
       if (!RankingUtils.Match2(i.text, title)) { continue; }
-      if (!i.jsUrl) {
+      if (!(i as JSBookmark).jsUrl) {
         results.push(new Suggestion("bookm", i.url, i.text, title, c));
         continue;
       }
-      sug = new Suggestion("bookm", i.jsUrl, "", title, c);
+      const sug = new Suggestion("bookm", (i as JSBookmark).jsUrl, "", title, c);
       sug.titleSplit = SuggestionUtils.highlight(title, SuggestionUtils.getRanges(title));
       sug.textSplit = "javascript: ...";
-      sug.text = i.jsText;
+      sug.text = (i as JSBookmark).jsText;
       results.push(sug);
     }
-    if (queryType === 1 || offset === 0) {
+    if (queryType === FirstQuery.waitFirst || offset === 0) {
       results.sort(Completers.rsortByRelevancy);
       if (offset > 0) {
         results = results.slice(offset, offset + maxResults);
@@ -167,22 +166,22 @@ bookmarks: {
     }
     return Completers.next(results);
   },
-  Listen: function() {
-    var bookmarks = chrome.bookmarks, listener = Completers.bookmarks.Delay;
+  Listen: function (): void {
+    const bookmarks = chrome.bookmarks, listener = Completers.bookmarks.Delay;
     bookmarks.onCreated.addListener(listener);
     bookmarks.onRemoved.addListener(listener);
     bookmarks.onChanged.addListener(listener);
     bookmarks.onMoved.addListener(listener);
-    bookmarks.onImportBegan.addListener(function() {
+    bookmarks.onImportBegan.addListener(function(): void {
       chrome.bookmarks.onCreated.removeListener(Completers.bookmarks.Delay);
     });
-    bookmarks.onImportEnded.addListener(function() {
-      var f = Completers.bookmarks.Delay;
+    bookmarks.onImportEnded.addListener(function(): void {
+      const f = Completers.bookmarks.Delay;
       chrome.bookmarks.onCreated.addListener(f);
       f();
     });
-  },
-  refresh: function() {
+  } as voidFuncNoEnv | null,
+  refresh (): void {
     this.status = 1;
     if (this._timer) {
       clearTimeout(this._timer);
@@ -190,11 +189,11 @@ bookmarks: {
     }
     return chrome.bookmarks.getTree(this.readTree.bind(this));
   },
-  readTree: function(tree) {
+  readTree (tree: chrome.bookmarks.BookmarkTreeNode[]): void {
     this.status = 2;
     this.bookmarks = [];
     tree.forEach(this.traverseBookmark, this);
-    var query = this.currentSearch;
+    const query = this.currentSearch;
     this.currentSearch = null;
     if (query && !query.isOff) {
       this.performSearch();
@@ -205,11 +204,10 @@ bookmarks: {
       this.Listen = null;
     }
   },
-  traverseBookmark: function(bookmark) {
-    var path, oldPath, title = bookmark.title, url;
-    path = this.path + '/' + (title || bookmark.id);
+  traverseBookmark (bookmark: chrome.bookmarks.BookmarkTreeNode): void {
+    const title = bookmark.title,  path = this.path + '/' + (title || bookmark.id);
     if (bookmark.children) {
-      oldPath = this.path;
+      const oldPath = this.path;
       if (2 < ++this.deep) {
         this.path = path;
       }
@@ -218,25 +216,20 @@ bookmarks: {
       this.path = oldPath;
       return;
     }
-    url = bookmark.url;
-    bookmark = {
-      url: url,
-      text: url,
-      path: path,
-      title: title
+    const url = bookmark.url as string;
+    const bookm: Bookmark = url.startsWith("javascript:") ? {
+      url: "", text: "", path: path, title: title,
+      jsUrl: url, jsText: Utils.DecodeURLPart(url)
+    } as JSBookmark : {
+      url: url, text: url, path: path, title: title
     };
-    this.bookmarks.push(bookmark);
-    if (url.startsWith("javascript:")) {
-      bookmark.text = bookmark.url = "";
-      bookmark.jsUrl = url;
-      bookmark.jsText = Utils.DecodeURLPart(url);
-    }
+    this.bookmarks.push(bookm);
   },
   _timer: 0,
   _stamp: 0,
   _wait: 60000,
-  Later: function() {
-    var _this = Completers.bookmarks, last = Date.now() - _this._stamp;
+  Later (): void {
+    const _this = Completers.bookmarks, last = Date.now() - _this._stamp;
     if (last >= _this._wait || last < 0) {
       this._timer = 0;
       _this.refresh();
@@ -244,8 +237,8 @@ bookmarks: {
       _this._timer = setTimeout(_this.Later, _this._wait);
     }
   },
-  Delay: function() {
-    var _this = Completers.bookmarks;
+  Delay (): void {
+    const _this = Completers.bookmarks;
     _this._stamp = Date.now();
     if (_this.status < 2) { return; }
     _this.clean();
@@ -253,11 +246,10 @@ bookmarks: {
     _this._timer = setTimeout(_this.Later, _this._wait * 2);
     _this.status = 0;
   },
-  clean: function() {
-    var arr, i, len, url, dict = Decoder.dict, ref, bs;
-    ref = HistoryCache.history || []; bs = HistoryCache.binarySearch;
-    for (arr = this.bookmarks, i = 0, len = arr.length; i < len; i++) {
-      url = arr[i].url;
+  clean (): void {
+    const dict = Decoder.dict, ref = HistoryCache.history || [], bs = HistoryCache.binarySearch;
+    for (let arr = this.bookmarks, i = 0, len = arr.length; i < len; i++) {
+      const url = arr[i].url;
       if ((url in dict) && bs(url, ref) < 0) {
         delete dict[url];
       }
@@ -266,16 +258,16 @@ bookmarks: {
 },
 
 history: {
-  filter: function(query, index) {
-    var history = HistoryCache.history;
-    if (queryType === 1) {
-      queryType = queryTerms.length === 0 || index === 0 ? 3 : 67;
+  filter (query: QueryStatus, index: number): void {
+    const history: HistoryItem[] | null = HistoryCache.history;
+    if (queryType === FirstQuery.waitFirst) {
+      queryType = queryTerms.length === 0 || index === 0 ? FirstQuery.history : FirstQuery.historyIncluded;
     }
     if (queryTerms.length > 0) {
       if (history) {
         return Completers.next(this.quickSearch(history));
       }
-      return HistoryCache.use(function(history) {
+      return HistoryCache.use(function(history: HistoryItem[]) {
         if (query.isOff) { return; }
         return Completers.next(Completers.history.quickSearch(history));
       });
@@ -288,13 +280,16 @@ history: {
       }, 50);
     }
     return index === 0 ? chrome.tabs.query({}, this.loadTabs.bind(this, query))
-      : chrome.sessions ? chrome.sessions.getRecentlyClosed(this.loadSessions.bind(this, query))
+      : chrome.sessions ? chrome.sessions.getRecentlyClosed(
+         this.loadSessions.bind(this, query) as (sessions: chrome.sessions.Session[]) => void)
       : this.filterFill([], query, {}, 0);
   },
-  quickSearch: function(history) {
-    var maxNum = maxResults + ((queryType & 63) === 3 ? offset : 0),
-    results = [0.0, 0], sugs, regexps, len, i, len2, j,
-    score, item, getRele = SuggestionUtils.ComputeRelevancy;
+  quickSearch (history: HistoryItem[]): Suggestion[] {
+    let maxNum = maxResults + ((queryType & FirstQuery.QueryTypeMask) === FirstQuery.history ? offset : 0);
+    const results = [0.0, 0], sugs: Suggestion[] = [];
+    let getRele: ((text: string, title: string, lastVisitTime: number) => number)
+      | ((sug: Suggestion, score: number) => number), i = 0, j: number;
+    getRele = SuggestionUtils.ComputeRelevancy;
     if (queryTerms.length === 1) {
       Utils.convertToUrl(queryTerms[0], null, -2);
       if (Utils.lastUrlType <= 2) {
@@ -303,14 +298,14 @@ history: {
     }
     for (j = maxNum; --j; ) { results.push(0.0, 0); }
     maxNum = maxNum * 2 - 2;
-    regexps = queryTerms.map(RegexpCache.item, RegexpCache);
-    for (i = 0, len = history.length, len2 = regexps.length; i < len; i++) {
-      item = history[i];
+    let regexps: RegExp[] | null = queryTerms.map(RegexpCache.item, RegexpCache);
+    for (const len = history.length, len2 = regexps.length; i < len; i++) {
+      const item = history[i];
       for (j = 0; j < len2; j++) {
         if (!(regexps[j].test(item.text) || regexps[j].test(item.title))) { break; }
       }
       if (j !== len2) { continue; }
-      score = getRele(item.text, item.title, item.lastVisitTime);
+      const score = getRele(item.text, item.title, item.lastVisitTime);
       if (results[maxNum] >= score) { continue; }
       for (j = maxNum - 2; 0 <= j && results[j] < score; j -= 2) {
         results[j + 2] = results[j], results[j + 3] = results[j + 1];
@@ -319,79 +314,80 @@ history: {
       results[j + 3] = i;
     }
     regexps = null;
-    sugs = [];
     getRele = this.getExtra;
-    if (queryType === 3) {
+    if (queryType === FirstQuery.history) {
       i = offset * 2;
       offset = 0;
     } else {
       i = 0;
     }
     for (; i <= maxNum; i += 2) {
-      score = results[i];
+      const score = results[i];
       if (score <= 0) { break; }
-      item = history[results[i + 1]];
+      const item = history[results[i + 1]];
       sugs.push(new Suggestion("history", item.url, item.text, item.title, getRele, score));
     }
     return sugs;
   },
-  loadTabs: function(query, tabs) {
+  loadTabs (query: QueryStatus, tabs: chrome.tabs.Tab[]): void {
     if (query.isOff) { return; }
-    var arr = {}, i, url, count = 0;
-    for (i = tabs.length; 0 <= --i; ) {
-      url = tabs[i].url;
+    const arr: Dict<number> = {};
+    let count = 0;
+    for (let i = tabs.length; 0 <= --i; ) {
+      const url = tabs[i].url;
       if (url in arr) { continue; }
       arr[url] = 1; count++;
     }
     return this.filterFill([], query, arr, offset, count);
   },
-  loadSessions: function(query, sessions) {
+  loadSessions (query: QueryStatus, sessions: chrome.sessions.Session[]): void {
     if (query.isOff) { return; }
-    var historys = [], arr = {}, i;
-    i = queryType === 3 ? -offset : 0;
-    return sessions.some(function(item) {
+    const historys: chrome.tabs.Tab[] = [], arr: Dict<number> = {};
+    let i = queryType === FirstQuery.history ? -offset : 0;
+    return sessions.some(function(item): boolean {
       var entry = item.tab;
       if (!entry || entry.url in arr) { return false; }
       arr[entry.url] = 1;
       ++i > 0 && historys.push(entry);
       return historys.length >= maxResults;
-    }) ? this.filterFinish(historys) : this.filterFill(historys, query, arr, -i);
+    }) ? this.filterFinish(historys) : this.filterFill(historys as UrlItem[], query, arr, -i);
   },
-  filterFill: function(historys, query, arr, cut, neededMore) {
+  filterFill (historys: UrlItem[], query: QueryStatus, arr: Dict<number>,
+      cut: number, neededMore?: number): void {
     return chrome.history.search({
       text: "",
-      maxResults: offset + maxResults + (neededMore | 0)
-    }, function(historys2) {
+      maxResults: offset + maxResults + ((neededMore as number) | 0)
+    }, function(historys2: chrome.history.HistoryItem[] | UrlItem[]): void {
       if (query.isOff) { return; }
-      historys2 = historys2.filter(Completers.history.urlNotIn, arr);
+      historys2 = (historys2 as UrlItem[]).filter(Completers.history.urlNotIn, arr);
       if (cut < 0) {
         historys2.length = Math.min(historys2.length, maxResults - historys.length);
-        historys2 = historys.concat(historys2);
+        historys2 = (historys as UrlItem[]).concat(historys2);
       } else if (cut > 0) {
         historys2 = historys2.slice(cut, cut + maxResults);
       }
       Completers.history.filterFinish(historys2);
     });
   },
-  filterFinish: function(historys) {
+  filterFinish (historys: UrlItem[]): void {
     historys.forEach(this.MakeSuggestion);
     offset = 0;
     Decoder.continueToWork();
-    return Completers.next(historys);
+    return Completers.next(historys as Suggestion[]);
   },
-  MakeSuggestion: function(e, i, arr) {
-    var o = new Suggestion("history", e.url, Decoder.decodeURL(e.url), e.title,
+  MakeSuggestion (e: UrlItem, i: number, arr: UrlItem[]): void {
+    const o = new Suggestion("history", e.url, Decoder.decodeURL(e.url), e.title,
       Completers.history.getExtra, (99 - i) / 100);
     e.sessionId && (o.sessionId = e.sessionId);
-    arr[i] = o;
+    arr[i] = o as any;
   },
-  getExtra: function(_s, score) { return score; },
-  urlNotIn: function(i) { return !(i.url in this); }
+  getExtra (_s: Suggestion, score: number): number { return score; },
+  urlNotIn (this: Dict<number>, i: UrlItem): boolean { return !(i.url in this); }
 },
 
 domains: {
-  domains: null,
-  filter: function(query, index) {
+  domains: null as SafeDict<Domain> | null,
+  filter (query: QueryStatus, index: number): void {
     if (queryTerms.length !== 1 || queryTerms[0].indexOf("/") !== -1) {
       return Completers.next([]);
     }
@@ -403,24 +399,24 @@ domains: {
       if (query.isOff) { return; }
       return Completers.domains.filter(query, 0);
     });
-  },
-  performSearch: function() {
+  } ,
+  performSearch (): void {
     if (queryTerms.length !== 1 || queryTerms[0].indexOf("/") !== -1) {
       return Completers.next([]);
     }
-    var ref = this.domains, domain, p = RankingUtils.maxScoreP, q = queryTerms, word = q[0]
-      , sug, score, result = "", result_score = -1000;
+    const ref = this.domains as SafeDict<Domain>, p = RankingUtils.maxScoreP, q = queryTerms, word = q[0];
+    let sug: Suggestion | undefined, result = "", result_score = -1000;
     if (offset > 0) {
-      for (domain in ref) {
+      for (let domain in ref) {
         if (domain.indexOf(word) !== -1) { offset--; break; }
       }
       return Completers.next([]);
     }
     queryTerms = [word];
     RankingUtils.maxScoreP = RankingUtils.maximumScore;
-    for (domain in ref) {
+    for (let domain in ref) {
       if (domain.indexOf(word) === -1) { continue; }
-      score = SuggestionUtils.ComputeRelevancy(domain, "", ref[domain][0]);
+      const score = SuggestionUtils.ComputeRelevancy(domain, "", ref[domain][0]);
       if (score > result_score) { result_score = score; result = domain; }
     }
     if (result) {
@@ -434,87 +430,87 @@ domains: {
     RankingUtils.maxScoreP = p;
     return Completers.next(sug ? [sug] : []);
   },
-  refresh: function(history) {
-    this.refresh = null;
-    Utils.domains = this.domains = Object.create(null);
+  refresh (history: PureHistoryItem[]): void {
+    (this as any).refresh = null;
+    Utils.domains = this.domains = Object.create<Domain>(null);
     history.forEach(this.onPageVisited, this);
     this.filter = this.performSearch;
     chrome.history.onVisited.addListener(this.onPageVisited.bind(this));
     chrome.history.onVisitRemoved.addListener(this.OnVisitRemoved);
   },
-  onPageVisited: function(newPage) {
-    var item, slot, time;
-    if (item = this.parseDomainAndScheme(newPage.url)) {
-      time = newPage.lastVisitTime;
-      if (slot = this.domains[item[0]]) {
+  onPageVisited (newPage: PureHistoryItem): void {
+    const item: [string, BOOL] | null = this.parseDomainAndScheme(newPage.url);
+    if (item) {
+      const time = newPage.lastVisitTime as number, slot = (this.domains as SafeDict<Domain>)[item[0]];
+      if (slot) {
         if (slot[0] < time) { slot[0] = time; }
         ++slot[1]; slot[2] = item[1];
       } else {
-        this.domains[item[0]] = [time, 1, item[1]];
+        (this.domains as SafeDict<Domain>)[item[0]] = [time, 1, item[1]];
       }
     }
   },
-  OnVisitRemoved: function(toRemove) {
-    var _this = Completers.domains;
+  OnVisitRemoved (toRemove: chrome.history.RemovedResult): void {
+    const _this = Completers.domains;
     if (toRemove.allHistory) {
-      Utils.domains = _this.domains = Object.create(null);
+      Utils.domains = _this.domains = Object.create<Domain>(null);
       return;
     }
-    var domains = _this.domains, parse = _this.parseDomainAndScheme,
-    arr = toRemove.urls, j = arr.length, item, entry;
+    const domains = _this.domains as SafeDict<Domain>, parse = _this.parseDomainAndScheme, arr = toRemove.urls;
+    let j = arr.length, entry: Domain;
     while (0 <= --j) {
-      item = parse(arr[j]);
+      const item = parse(arr[j]);
       if (item && (entry = domains[item[0]]) && (-- entry[1]) <= 0) {
         delete domains[item[0]];
       }
     }
   },
-  parseDomainAndScheme: function(url) {
-    var d;
+  parseDomainAndScheme (url: string): [string, BOOL] | null {
+    let d: number;
     if (url.startsWith("http://")) { d = 7; }
     else if (url.startsWith("https://")) { d = 8; }
     else { return null; }
     url = url.substring(d, url.indexOf('/', d));
-    return [url !== "__proto__" ? url : ".__proto__", d - 7];
+    return [url !== "__proto__" ? url : ".__proto__", d - 7 as BOOL];
   },
-  compute2: function() { return 2; }
+  compute2 (): number { return 2; }
 },
 
 tabs: {
-  filter: function(query) {
+  filter (query: QueryStatus): void {
     return chrome.tabs.query({}, this.performSearch.bind(this, query));
   },
-  performSearch: function(query, tabs0) {
+  performSearch (query: QueryStatus, tabs0: chrome.tabs.Tab[]): void {
     if (query.isOff) { return; }
-    if (queryType === 1) { queryType = 4; }
-    var curTabId = TabRecency.last(), c, suggestions = [], i, len, tab, text, tabId
-      , tabs = [], noFilter = queryTerms.length <= 0, suggestion;
+    if (queryType === FirstQuery.waitFirst) { queryType = FirstQuery.tabs; }
+    const curTabId = TabRecency.last(), noFilter = queryTerms.length <= 0;
+    let suggestions = [] as Suggestion[], tabs = [] as TextTab[];
+    let i: number, len: number, tabId: number;
     for (i = 0, len = tabs0.length; i < len; i++) {
-      tab = tabs0[i];
-      text = Decoder.decodeURL(tab.url);
+      const tab = tabs0[i], text = Decoder.decodeURL(tab.url);
       if (noFilter || RankingUtils.Match2(text, tab.title)) {
-        tab.text = text;
-        tabs.push(tab);
+        (tab as TextTab).text = text;
+        tabs.push(tab as TextTab);
       }
     }
     if (offset >= tabs.length) {
-      if (queryType === 4) {
+      if (queryType === FirstQuery.tabs) {
         offset = 0;
       } else {
         offset -= tabs.length;
       }
       return Completers.next(suggestions);
     }
-    c = noFilter ? this.computeRecency : SuggestionUtils.ComputeWordRelevancy;
+    const c = noFilter ? this.computeRecency : SuggestionUtils.ComputeWordRelevancy;
     for (i = 0, len = tabs.length; i < len; i++) {
-      tab = tabs[i];
+      const tab = tabs[i];
       tabId = tab.id;
-      suggestion = new Suggestion("tab", tab.url, tab.text, tab.title, c, tabId);
+      const suggestion = new Suggestion("tab", tab.url, tab.text, tab.title, c, tabId);
       suggestion.sessionId = tabId;
       if (curTabId === tabId) { suggestion.relevancy = 0; }
       suggestions.push(suggestion);
     }
-    if (queryType !== 4 && offset !== 0) {}
+    if (queryType !== FirstQuery.tabs && offset !== 0) {}
     else if (suggestions.sort(Completers.rsortByRelevancy).length > offset + maxResults || !noFilter) {
       if (offset > 0) {
         suggestions = suggestions.slice(offset, offset + maxResults);
@@ -533,17 +529,18 @@ tabs: {
     Decoder.continueToWork();
     return Completers.next(suggestions);
   },
-  computeRecency: function(_0, tabId) {
+  computeRecency (_0: Suggestion, tabId: number): number {
     return TabRecency.tabs[tabId] || (1 - 1 / tabId);
   }
 },
 
 searchEngines: {
   _nestedEvalCounter: 0,
-  filter: function() {},
-  preFilter: function(query, failIfNull) {
-    var obj, sug, q = queryTerms, keyword, pattern, promise;
-    keyword = q.length > 0 ? q[0] : "";
+  filter (): void {},
+  preFilter (query: QueryStatus, failIfNull?: true): void | true {
+    let obj: Search.Result, sug: Suggestion, q = queryTerms, keyword = q.length > 0 ? q[0] : "",
+       pattern: Search.Engine | undefined, promise: Promise<Urls.EvalArrayResult> | undefined,
+       url: string, text: string;
     if (q.length === 0) {}
     else if (failIfNull !== true && keyword[0] === "\\") {
       q[0] = keyword.substring(1);
@@ -558,33 +555,32 @@ searchEngines: {
     if (failIfNull === true) {
       if (!pattern) { return true; }
     } else if (!pattern) {
-      if (matchType === 0 && q.length <= 1) {
-        matchType = q.length < 1 ? -1 : this.calcNextMatchType();
+      if (matchType === MatchType.plain && q.length <= 1) {
+        matchType = q.length < 1 ? MatchType.reset : this.calcNextMatchType();
       }
       return Completers.next([]);
     } else {
       maxResults--;
       autoSelect = true;
-      if (queryType === 1) { q.push(q.more); offset = 0; }
-      q.length > 1 ? (queryType = 2) : (matchType = -1);
+      if (queryType === FirstQuery.waitFirst) { q.push(q.more as string); offset = 0; }
+      q.length > 1 ? (queryType = FirstQuery.searchEngines) : (matchType = MatchType.reset);
     }
     q.length > 1 ? q.shift() : (q = []);
 
     obj = Utils.createSearch(q, pattern.url, []);
-    sug = new Suggestion("search", obj.url, obj.url
-      , pattern.name + ": " + q.join(" "), this.compute9);
+    url = text = obj.url;
     if (keyword === "~") {}
-    else if (obj.url.startsWith("vimium://")) {
-      keyword = Utils.evalVimiumUrl(obj.url.substring(9), 1);
-      if (keyword instanceof Promise) {
-        promise = keyword;
-      } else if (keyword instanceof Array) {
-        switch (keyword[1]) {
+    else if (url.startsWith("vimium://")) {
+      const ret: Urls.EvalResult = Utils.evalVimiumUrl(url.substring(9), 1);
+      if (ret instanceof Promise) {
+        promise = ret;
+      } else if (ret instanceof Array) {
+        switch (ret[1]) {
         case "search":
-          queryTerms = keyword[0];
-          var counter = this._nestedEvalCounter++, subVal;
+          queryTerms = ret[0] as string[];
+          const counter = this._nestedEvalCounter++;
           if (counter > 12) { break; }
-          subVal = this.preFilter(query, true);
+          const subVal = this.preFilter(query, true);
           if (counter <= 0) { this._nestedEvalCounter = 0; }
           if (subVal !== true) {
             return;
@@ -593,24 +589,28 @@ searchEngines: {
         }
       }
     } else {
-      sug.url = Utils.convertToUrl(obj.url, null, -2);
+      url = Utils.convertToUrl(url, null, -2);
     }
+    sug = new Suggestion("search", url, text
+      , pattern.name + ": " + q.join(" "), this.compute9);
 
     if (q.length > 0) {
-      sug.text = this.makeText(obj.url, obj.indexes);
+      sug.text = this.makeText(text, obj.indexes);
       sug.textSplit = SuggestionUtils.highlight(sug.text, obj.indexes);
       sug.titleSplit = SuggestionUtils.highlight(sug.title
         , [pattern.name.length + 2, sug.title.length]);
     } else {
-      sug.text = Utils.DecodeURLPart(SuggestionUtils.shortenUrl(obj.url));
+      sug.text = Utils.DecodeURLPart(SuggestionUtils.shortenUrl(text));
       sug.textSplit = Utils.escapeText(sug.text);
       sug.titleSplit = Utils.escapeText(sug.title);
     }
 
-    return promise ? promise.then(this.onPrimose.bind(this, query, [sug]))
-    : Completers.next([sug]);
+    if (!promise) {
+      return Completers.next([sug]);
+    }
+    promise.then(this.onPrimose.bind(this, query, [sug]))
   },
-  onPrimose: function(query, output, arr) {
+  onPrimose (query: QueryStatus, output: Suggestion[], arr: Urls.MathEvalResult): void {
     if (query.isOff) { return; }
     if (!arr[0]) {
       return Completers.next(output);
@@ -618,9 +618,9 @@ searchEngines: {
     var sug = new Suggestion("math", "", "", "", this.compute9);
     output.push(sug);
     --sug.relevancy;
-    sug.text = sug.title = arr[0];
+    sug.text = (sug as WritableCoreSuggestion).title = arr[0];
     if (!arr[0].startsWith("vimium://copy")) {
-      sug.url = "vimium://copy " + arr[0];
+      (sug as WritableCoreSuggestion).url = "vimium://copy " + arr[0];
     }
     sug.titleSplit = "<match style=\"text-decoration: none;\">" +
       Utils.escapeText(sug.title) + "<match>";
@@ -629,19 +629,19 @@ searchEngines: {
   },
   searchKeywordMaxLength: 0,
   timer: 0,
-  calcNextMatchType: function() {
-    var key = queryTerms[0], arr, next;
-    arr = Settings.cache.searchKeywords;
+  calcNextMatchType (): MatchType {
+    const key = queryTerms[0], arr = Settings.cache.searchKeywords;
     if (!arr) {
       this.timer = this.timer || setTimeout(this.BuildSearchKeywords, 67);
-      return -2;
+      return MatchType._searching;
     }
-    if (key.length >= this.searchKeywordMaxLength) { return 0; }
-    next = this.binaryInsert(key, arr);
-    return next < arr.length && arr[next].startsWith(key) ? -2 : 0;
+    if (key.length >= this.searchKeywordMaxLength) { return MatchType.plain; }
+    const next = this.binaryInsert(key, arr);
+    return next < arr.length && arr[next].startsWith(key) ? MatchType._searching
+      : MatchType.plain;
   },
-  makeText: function(url, arr) {
-    var len = arr.length, i, str, ind;
+  makeText (url: string, arr: number[]): string {
+    let len = arr.length, i: number, str: string, ind: number;
     str = Utils.DecodeURLPart(arr.length > 0 ? url.substring(0, arr[0]) : url);
     if (i = (str.startsWith("http://")) ? 7 : (str.startsWith("https://")) ? 8 : 0) {
       str = str.substring(i);
@@ -662,22 +662,22 @@ searchEngines: {
     }
     return str;
   },
-  makeUrlSuggestion: function(keyword, text) {
-    var sug = new Suggestion("search", Utils.convertToUrl(keyword, null, -2),
+  makeUrlSuggestion (keyword: string, text: string): Suggestion {
+    const sug = new Suggestion("search", Utils.convertToUrl(keyword, null, -2),
       "", keyword, this.compute9);
     sug.text = Utils.DecodeURLPart(SuggestionUtils.shortenUrl(sug.url));
     sug.textSplit = Utils.escapeText(sug.text);
     text && (sug.text = text);
     if (Utils.lastUrlType === 4) {
-      sug.title = "~: " + keyword;
+      (sug as WritableCoreSuggestion).title = "~: " + keyword;
       sug.titleSplit = SuggestionUtils.highlight(sug.title, [3, 3 + keyword.length]);
     } else {
       sug.titleSplit = Utils.escapeText(keyword);
     }
     return sug;
   },
-  BuildSearchKeywords: function() {
-    var arr = Object.keys(Settings.cache.searchEngineMap), i, len, max, j;
+  BuildSearchKeywords (): void {
+    let arr = Object.keys(Settings.cache.searchEngineMap), i, len, max, j;
     arr.sort();
     for (i = max = 0, len = arr.length; i < len; i++) {
       j = arr[i].length;
@@ -687,8 +687,8 @@ searchEngines: {
     Completers.searchEngines.searchKeywordMaxLength = max;
     Completers.searchEngines.timer = 0;
   },
-  binaryInsert: function(u, a) {
-    var e = "", h = a.length - 1, l = 0, m = 0;
+  binaryInsert (u: string, a: string[]): number {
+    let e = "", h = a.length - 1, l = 0, m = 0;
     while (l <= h) {
       m = Math.floor((l + h) / 2);
       e = a[m];
@@ -697,28 +697,29 @@ searchEngines: {
     }
     return m + (e < u ? 1 : 0);
   },
-  compute9: function() { return 9; }
+  compute9 (this: void): number { return 9; }
 },
 
   counter: 0,
   sugCounter: 0,
-  suggestions: null,
-  mostRecentQuery: null,
-  callback: null,
-  filter: function(completers) {
+  suggestions: null as Suggestion[] | null,
+  mostRecentQuery: null as QueryStatus | null,
+  callback: null as Callback | null,
+  filter (completers: Completer[]): void {
     RegexpCache.reset();
     if (this.mostRecentQuery) { this.mostRecentQuery.isOff = true; }
-    var query = this.mostRecentQuery = {
+    const query = this.mostRecentQuery = {
       isOff: false
-    }, i = this.sugCounter = 0, l = this.counter = completers.length;
+    };
+    let i = this.sugCounter = 0, l = this.counter = completers.length;
     this.suggestions = [];
     this.getOffset();
-    matchType = offset && -1;
-    if (completers[0].preFilter) {
+    matchType = offset && MatchType.reset;
+    if ((completers[0] as PreCompleter).preFilter) {
       if (l < 2) {
-        return completers[0].preFilter(query);
+        return (completers[0] as PreCompleter).preFilter(query);
       }
-      completers[0].preFilter(query);
+      (completers[0] as PreCompleter).preFilter(query);
       i = 1;
     }
     RankingUtils.timeAgo = Date.now() - RankingUtils.timeCalibrator;
@@ -729,21 +730,23 @@ searchEngines: {
     for (l--; i < l; i++) {
       completers[i].filter(query, i);
     }
-    return i === l && completers[i].filter(query, i);
+    if (i === l) {
+      return completers[i].filter(query, i);
+    }
   },
-  next: function(newSugs) {
-    var arr = this.suggestions;
+  next (newSugs: Suggestion[]): void {
+    let arr = this.suggestions;
     if (newSugs.length > 0) {
       this.sugCounter++;
-      this.suggestions = arr.length === 0 ? newSugs : arr.concat(newSugs);
+      this.suggestions = (arr as Suggestion[]).length === 0 ? newSugs : (arr as Suggestion[]).concat(newSugs);
     }
     if (0 === --this.counter) {
       arr = null;
       return this.finish();
     }
   },
-  finish: function() {
-    var suggestions = this.suggestions, func, newAutoSelect, newMatchType;
+  finish (): void {
+    let suggestions = this.suggestions as Suggestion[], func, newAutoSelect, newMatchType;
     this.suggestions = null;
     suggestions.sort(this.rsortByRelevancy);
     if (offset > 0) {
@@ -762,21 +765,22 @@ searchEngines: {
         && suggestions.length <= 0 ? 3 : 0)
       : suggestions.length <= 0 ? queryTerms.length && 1
       : this.sugCounter === 1 ? 2 : 0;
-    func = this.callback;
+    func = this.callback as Callback;
     this.cleanGlobals();
     return func(suggestions, newAutoSelect, newMatchType);
   },
-  cleanGlobals: function() {
+  cleanGlobals (): void {
     this.mostRecentQuery = this.callback = null;
     queryTerms = [];
     RegexpCache.reset(null);
-    RankingUtils.timeAgo = this.sugCounter = matchType = queryType =
+    RankingUtils.timeAgo = this.sugCounter = matchType =
     maxResults = maxTotal = maxCharNum = 0;
+    queryType = FirstQuery.nothing;
     autoSelect = false;
   },
-  getOffset: function() {
-    var str, i;
-    offset = queryType = 0;
+  getOffset (): void {
+    let str: string, i: number;
+    offset = 0; queryType = FirstQuery.nothing;
     if ((i = queryTerms.length) === 0 || (str = queryTerms[i - 1])[0] !== "+") {
       return;
     }
@@ -786,28 +790,28 @@ searchEngines: {
     } else if (str !== "+") {
       return;
     }
-    queryTerms.more = queryTerms.pop();
-    queryType = 1;
+    queryTerms.more = queryTerms.pop() as string;
+    queryType = FirstQuery.waitFirst;
   },
   protoRe: /(?:^|\s)__proto__(?=$|\s)/g,
-  rsortByRelevancy: function(a, b) { return b.relevancy - a.relevancy; }
+  rsortByRelevancy (a: Suggestion, b: Suggestion): number { return b.relevancy - a.relevancy; }
 };
 
-  window.Completers = {
-    bookm: [Completers.bookmarks],
-    domain: [Completers.domains],
-    history: [Completers.history],
-    omni: [Completers.searchEngines, Completers.domains, Completers.history, Completers.bookmarks],
-    search: [Completers.searchEngines],
-    tab: [Completers.tabs],
-  filter: function(query, options, callback) {
+window.Completers = {
+  bookm: [Completers.bookmarks],
+  domain: [Completers.domains],
+  history: [Completers.history],
+  omni: [Completers.searchEngines, Completers.domains, Completers.history, Completers.bookmarks],
+  search: [Completers.searchEngines],
+  tab: [Completers.tabs],
+  filter(this: typeof window.Completers, query: string, options: CompletersNS.Options, callback: Callback): void {
     autoSelect = false;
     queryTerms = query ? query.split(Utils.spacesRe) : [];
-    maxCharNum = options.clientWidth > 0 ? Math.max(50, Math.min((
-        (options.clientWidth - 74) / 7.72) | 0, 200)) : 128;
-    maxTotal = maxResults = Math.min(Math.max(options.maxResults | 0, 3), 25);
+    maxCharNum = (options.clientWidth as number) > 0 ? Math.max(50, Math.min((
+        ((options.clientWidth as number) - 74) / 7.72) | 0, 200)) : 128;
+    maxTotal = maxResults = Math.min(Math.max((options.maxResults as number) | 0, 3), 25);
     Completers.callback = callback;
-    var arr = null, str;
+    let arr: Completer[] | null = null, str: string;
     if (queryTerms.length >= 1 && queryTerms[0].length === 2 && queryTerms[0][0] === ":") {
       str = queryTerms[0][1];
       arr = str === "b" ? this.bookm : str === "h" ? this.history : str === "t" ? this.tab
@@ -819,10 +823,10 @@ searchEngines: {
     }
     return Completers.filter(arr || this[options.type]);
   }
-  };
+};
 
-  RankingUtils = {
-    Match2: function(s1, s2) {
+  const RankingUtils = {
+    Match2 (s1: string, s2: string): boolean {
       var i = queryTerms.length, cache = RegexpCache, regexp;
       while (0 <= --i) {
         regexp = cache.item(queryTerms[i]);
@@ -836,8 +840,8 @@ searchEngines: {
     maximumScore: 3,
     maxScoreP: 3,
     recCalibrator: 2.0 / 3.0,
-    _emptyScores: [0, 0],
-    scoreTerm: function(term, string) {
+    _emptyScores: [0, 0] as [number, number],
+    scoreTerm (term: string, string: string): [number, number] {
       var count = 0, score = 0;
       count = string.split(RegexpCache.item(term)).length;
       if (count < 1) { return this._emptyScores; }
@@ -850,7 +854,7 @@ searchEngines: {
       }
       return [score, (count - 1) * term.length];
     },
-    wordRelevancy: function(url, title) {
+    wordRelevancy (url: string, title: string): number {
       var a, term, titleCount, titleScore, urlCount, urlScore, _i = queryTerms.length;
       urlScore = titleScore = urlCount = titleCount = 0;
       while (0 <= --_i) {
@@ -871,46 +875,46 @@ searchEngines: {
     },
     timeCalibrator: 1814400000, // 21 days
     timeAgo: 0,
-    recencyScore: function(lastAccessedTime) {
+    recencyScore (lastAccessedTime: number): number {
       var score = Math.max(0, lastAccessedTime - this.timeAgo) / this.timeCalibrator;
       return score * score * this.recCalibrator;
     },
-    normalizeDifference: function(a, b) {
+    normalizeDifference (a: number, b: number): number {
       return a < b ? a / b : b / a;
     }
   };
 
-  RegexpCache = {
-    cache: null,
-    _d: null,
-    reset: function(obj) {
+  const RegexpCache = {
+    cache: null as SafeDict<RegExp> | null,
+    _d: null as RegexpCacheDict | null,
+    reset (obj?: null): void {
       if (obj === null) {
         this.cache = this._d = null;
         return Utils.resetRe();
       }
-      this.cache = Object.create(null);
-      this._d = [Object.create(null), Object.create(null), this.cache];
+      this.cache = Object.create<RegExp>(null);
+      this._d = [Object.create<RegExp>(null), Object.create<RegExp>(null), this.cache];
     },
-    escapeRe: Utils.escapeAllRe,
-    get: function(s, i) {
-      var d = this._d[i];
+    escapeRe: Utils.escapeAllRe as RegExp,
+    get (s: string, i: RegexpCacheIndex): RegExp {
+      var d = (this._d as RegexpCacheDict)[i];
       return d[s] || (d[s] = new RegExp((i < 2 ? "\\b" : "")
         + s.replace(this.escapeRe, "\\$&")
         + (i ? "" : "\\b"), Utils.hasUpperCase(s) ? "" : "i"));
     },
-    item: function(s) {
-      return this.cache[s] || this.get(s, 2);
+    item (s: string): RegExp {
+      return (this.cache as SafeDict<RegExp>)[s] || this.get(s, 2);
     }
   };
 
-  HistoryCache = {
+  const HistoryCache = {
     size: 20000,
     lastRefresh: 0,
     updateCount: 0,
     toRefreshCount: 0,
-    history: null,
-    _callbacks: null,
-    use: function(callback) {
+    history: null as HistoryItem[] | null,
+    _callbacks: null as HistoryCallback[] | null,
+    use (callback: HistoryCallback | null): void {
       if (this._callbacks) {
         callback && this._callbacks.push(callback);
         return;
@@ -920,16 +924,16 @@ searchEngines: {
         text: "",
         maxResults: this.size,
         startTime: 0
-      }, function(history) {
-        setTimeout(HistoryCache.Clean, 17, history);
+      }, function(history: chrome.history.HistoryItem[]): void {
+        setTimeout(HistoryCache.Clean as (arr: chrome.history.HistoryItem[]) => void, 17, history);
       });
     },
-    Clean: function(arr) {
-      var _this = HistoryCache, len, i, j;
+    Clean: function(this: void, arr: chrome.history.HistoryItem[]): void {
+      let _this = HistoryCache, len: number, i: number, j: chrome.history.HistoryItem | null;
       _this.Clean = null;
       for (i = 0, len = arr.length; i < len; i++) {
         j = arr[i];
-        arr[i] = {
+        (arr as any[] as HistoryItem[])[i] = {
           lastVisitTime: j.lastVisitTime,
           text: j.url,
           title: j.title,
@@ -938,30 +942,34 @@ searchEngines: {
       }
       j = null;
       setTimeout(function() {
-        var _this = HistoryCache;
-        setTimeout(function() { Decoder.DecodeList(HistoryCache.history); }, 400);
-        _this.history.sort(function(a, b) { return a.url < b.url ? -1 : 1; });
+        const _this = HistoryCache;
+        setTimeout(function() { Decoder.DecodeList(HistoryCache.history as HistoryItem[]); }, 400);
+        (_this.history as HistoryItem[]).sort(function(a, b) { return a.url < b.url ? -1 : 1; });
         _this.lastRefresh = Date.now();
         chrome.history.onVisitRemoved.addListener(_this.OnVisitRemoved);
         chrome.history.onVisited.addListener(_this.OnPageVisited);
       }, 100);
-      _this.history = arr;
-      _this.use = function(callback) { callback && callback(this.history); };
-      _this._callbacks && _this._callbacks.length > 0 && setTimeout(function(ref) {
-        for (var f, i = 0; i < ref.length; i++) {
-          f = ref[i];
+      _this.history = arr as any[] as HistoryItem[];
+      _this.use = function(this: typeof HistoryCache, callback: HistoryCallback) {
+        callback && callback(this.history as HistoryItem[]);
+      };
+      _this._callbacks && _this._callbacks.length > 0 && setTimeout(function(ref: Array<HistoryCallback|null>): void {
+        let f: HistoryCallback, i = 0;
+        for (; i < ref.length; i++) {
+          f = ref[i] as HistoryCallback;
           ref[i] = null;
-          f(HistoryCache.history);
+          f(HistoryCache.history as HistoryItem[]);
         }
       }, 34, _this._callbacks);
       _this._callbacks = null;
-    },
-    OnPageVisited: function(newPage) {
-      var _this = HistoryCache, i = _this.binarySearch(newPage.url, _this.history), j;
+    } as ((arr: chrome.history.HistoryItem[]) => void) | null,
+    OnPageVisited (this: void, newPage: chrome.history.HistoryItem): void {
+      const _this = HistoryCache, i = _this.binarySearch(newPage.url, _this.history as HistoryItem[]);
+      let j: HistoryItem;
       if (i < 0) { _this.toRefreshCount++; }
       if (_this.updateCount++ > 99) { _this.refreshInfo(); }
       if (i >= 0) {
-        j = _this.history[i];
+        j = (_this.history as HistoryItem[])[i];
         j.lastVisitTime = newPage.lastVisitTime;
         newPage.title && (j.title = newPage.title);
         return;
@@ -973,18 +981,18 @@ searchEngines: {
         url: newPage.url
       };
       j.text = Decoder.decodeURL(newPage.url, j);
-      _this.history.splice(-1 - i, 0, j);
+      (_this.history as HistoryItem[]).splice(-1 - i, 0, j);
     },
-    OnVisitRemoved: function(toRemove) {
-      var _this = HistoryCache;
+    OnVisitRemoved (this: void, toRemove: chrome.history.RemovedResult): void {
+      const _this = HistoryCache;
       Decoder.continueToWork();
       if (toRemove.allHistory) {
         _this.history = [];
-        Decoder.dict = Object.create(null);
+        Decoder.dict = Object.create<string>(null);
         setTimeout(Decoder.DecodeList, 17, Completers.bookmarks.bookmarks);
         return;
       }
-      var bs = _this.binarySearch, h = _this.history, arr = toRemove.urls, j, i;
+      let bs = _this.binarySearch, h = _this.history as HistoryItem[], arr = toRemove.urls, j: number, i: number;
       for (j = arr.length; 0 <= --j; ) {
         i = bs(arr[j], h);
         if (i >= 0) {
@@ -993,9 +1001,9 @@ searchEngines: {
         }
       }
     },
-    refreshInfo: function() {
+    refreshInfo (): void {
       if (this.toRefreshCount <= 0 && this.updateCount < 10) { return; }
-      var i = Date.now();
+      const i = Date.now();
       if (this.toRefreshCount <= 0) {}
       else if (this.lastRefresh + 1000 > i) { return; }
       else setTimeout(chrome.history.search, 50, {
@@ -1007,8 +1015,9 @@ searchEngines: {
       this.toRefreshCount = this.updateCount = 0;
       return Decoder.continueToWork();
     },
-    OnInfo: function(history) {
-      var arr = HistoryCache.history, bs = HistoryCache.binarySearch, i, len, info, j, item;
+    OnInfo (history: chrome.history.HistoryItem[]): void {
+      const arr = HistoryCache.history as HistoryItem[], bs = HistoryCache.binarySearch;
+      let i: number, len: number, info: chrome.history.HistoryItem, j: number, item: HistoryItem;
       if (arr.length <= 0) { return; }
       for (i = 0, len = history.length; i < len; i++) {
         info = history[i];
@@ -1021,8 +1030,8 @@ searchEngines: {
         item.title !== info.title && info.title && (item.title = info.title);
       }
     },
-    binarySearch: function(u, a) {
-      var e = "", h = a.length - 1, l = 0, m = 0;
+    binarySearch (this: void, u: string, a: HistoryItem[]): number {
+      let e = "", h = a.length - 1, l = 0, m = 0;
       while (l <= h) {
         m = Math.floor((l + h) / 2);
         e = a[m].url;
@@ -1034,17 +1043,18 @@ searchEngines: {
     }
   };
 
-  Decoder = {
+  const Decoder = {
     _f: decodeURIComponent, // core function
-    decodeURL: function(a, o) {
+    decodeURL (a: string, o?: DecodedItem): string {
       if (a.length >= 400 || a.indexOf('%') < 0) { return a; }
       try {
         return this._f(a);
       } catch (e) {}
       return this.dict[a] || (this.todos.push(o || a), a);
     },
-    DecodeList: function(a) {
-      var i = -1, j, l = a.length, d = Decoder, f = d._f, s, m = d.dict, w = d.todos;
+    DecodeList (this: void, a: DecodedItem[]): void {
+      let i = -1, j: DecodedItem | undefined, l = a.length, d = Decoder, f = d._f,
+        s: string | undefined, m = d.dict, w = d.todos;
       for (; ; ) {
         try {
           while (++i < l) {
@@ -1053,21 +1063,21 @@ searchEngines: {
           }
           break;
         } catch (e) {
-          j.text = m[s] || (w.push(j), s);
+          (j as DecodedItem).text = m[s as string] || (w.push(j as DecodedItem), s as string);
         }
       }
       return d.continueToWork();
     },
-    dict: Object.create(null),
-    todos: [], // each item is either {url: ...} or "url"
+    dict: Object.create<string>(null),
+    todos: [] as ItemToDecode[], // each item is {url: ..., text?: ...}
     _ind: -1,
-    continueToWork: function() {
+    continueToWork (): void {
       if (this.todos.length === 0 || this._ind !== -1) { return; }
       this._ind = 0;
       setTimeout(this.Work, 17, null);
     },
-    Work: function(xhr) {
-      var _this = Decoder, url, str, text;
+    Work (xhr: XMLHttpRequest | null): void {
+      let _this = Decoder, url: ItemToDecode, str: string, text: string;
       xhr || (xhr = _this.init());
       if (_this.todos.length <= _this._ind) {
         _this.todos.length = 0;
@@ -1075,40 +1085,40 @@ searchEngines: {
         return;
       }
       for (; url = _this.todos[_this._ind]; _this._ind++) {
-        str = url.url || url;
+        str = url.url || (url as string);
         if (text = _this.dict[str]) {
-          url.url && (url.text = text);
+          url.url && ((url as DecodedItem).text = text);
           continue;
         }
         xhr.open("GET", _this._dataUrl + str, true);
         return xhr.send();
       }
     },
-    OnXHR: function() {
-      var _this = Decoder, url, str, text = this.responseText;
+    OnXHR (this: XMLHttpRequest): void {
+      let _this = Decoder, url: ItemToDecode, str: string, text = this.responseText;
       url = _this.todos[_this._ind++];
-      if (str = url.url) {
-        _this.dict[str] = url.text = text;
+      if (str = url.url as string) {
+        _this.dict[str] = (url as DecodedItem).text = text;
       } else {
-        _this.dict[url] = text;
+        _this.dict[url as string] = text;
       }
       return _this.Work(this);
     },
     _dataUrl: "",
-    blank: function() {},
-    xhr: function() {
-      var xhr = new XMLHttpRequest();
+    blank (this: void): void {},
+    xhr (): XMLHttpRequest {
+      const xhr = new XMLHttpRequest();
       xhr.responseType = "text";
       xhr.onload = this.OnXHR;
       xhr.onerror = this.OnXHR;
       return xhr;
     },
-    init: function() {
+    init (): XMLHttpRequest {
       this.init = this.xhr;
-      Settings.updateHooks.localeEncoding = function(charset) {
-        var _this = Decoder;
+      Settings.updateHooks.localeEncoding = function(charset: string): void {
+        let _this = Decoder, f: () => any;
         _this._dataUrl = charset && ("data:text/plain;charset=" + charset.toLowerCase() + ",");
-        var f = charset ? Array.prototype.push : _this.blank;
+        f = charset ? Array.prototype.push : _this.blank;
         _this.todos.push !== f && (_this.todos.push = f);
       };
       Settings.postUpdate("localeEncoding");
@@ -1122,7 +1132,7 @@ setTimeout(function() {
   Settings.postUpdate("searchEngines", null);
 }, 300);
 
-var Completers = { filter: function(a, b, c) {
+var Completers = { filter: function(a: string, b: CompletersNS.Options, c: Callback): void {
   setTimeout(function() {
     Completers.filter(a, b, c);
   }, 210);

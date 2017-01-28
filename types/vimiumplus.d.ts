@@ -29,3 +29,19 @@ interface String {
   trimRight(): string;
 }
 
+declare namespace CompletersNS {
+  const enum MatchType {
+    plain = 0,
+    emptyResult = 1, // require query is not empty
+    singleMatch = 2,
+    reset = -1,
+    _searching = -2, searchWanted = 3 // are same
+  }
+  interface ValidTypes { bookm: never, domain: never, history: never, omni: never, search: never, tab: never }
+  interface Options {
+    clientWidth?: number;
+    maxResults?: number;
+    type: keyof ValidTypes;
+  }
+}
+
