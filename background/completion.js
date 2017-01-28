@@ -18,7 +18,7 @@ setTimeout((function() {
   }
 
 SuggestionUtils = {
-  PrepareHtml: function(sug) {
+  prepareHtml: function(sug) {
     if (sug.textSplit) { return; }
     var _this = SuggestionUtils;
     sug.titleSplit = _this.highlight(sug.title, _this.getRanges(sug.title));
@@ -288,13 +288,12 @@ history: {
       }, 50);
     }
     return index === 0 ? chrome.tabs.query({}, this.loadTabs.bind(this, query))
-      : chrome.sessions ? chrome.sessions.getRecentlyClosed(null, this.loadSessions.bind(this, query))
+      : chrome.sessions ? chrome.sessions.getRecentlyClosed(this.loadSessions.bind(this, query))
       : this.filterFill([], query, {}, 0);
   },
   quickSearch: function(history) {
     var maxNum = maxResults + ((queryType & 63) === 3 ? offset : 0),
-    results = [0.0, 0], sug,
-    sugs, query = queryTerms, regexps, len, i, len2, j,
+    results = [0.0, 0], sugs, regexps, len, i, len2, j,
     score, item, getRele = SuggestionUtils.ComputeRelevancy;
     if (queryTerms.length === 1) {
       Utils.convertToUrl(queryTerms[0], null, -2);
@@ -304,7 +303,7 @@ history: {
     }
     for (j = maxNum; --j; ) { results.push(0.0, 0); }
     maxNum = maxNum * 2 - 2;
-    regexps = query.map(RegexpCache.item, RegexpCache);
+    regexps = queryTerms.map(RegexpCache.item, RegexpCache);
     for (i = 0, len = history.length, len2 = regexps.length; i < len; i++) {
       item = history[i];
       for (j = 0; j < len2; j++) {
@@ -332,8 +331,7 @@ history: {
       score = results[i];
       if (score <= 0) { break; }
       item = history[results[i + 1]];
-      sug = new Suggestion("history", item.url, item.text, item.title, getRele, score);
-      sugs.push(sug);
+      sugs.push(new Suggestion("history", item.url, item.text, item.title, getRele, score));
     }
     return sugs;
   },
@@ -345,23 +343,22 @@ history: {
       if (url in arr) { continue; }
       arr[url] = 1; count++;
     }
-    this.filterFill([], query, arr, offset, count);
+    return this.filterFill([], query, arr, offset, count);
   },
   loadSessions: function(query, sessions) {
     if (query.isOff) { return; }
     var historys = [], arr = {}, i;
     i = queryType === 3 ? -offset : 0;
-    sessions.some(function(item) {
+    return sessions.some(function(item) {
       var entry = item.tab;
       if (!entry || entry.url in arr) { return false; }
       arr[entry.url] = 1;
       ++i > 0 && historys.push(entry);
       return historys.length >= maxResults;
-    }) ? this.filterFinish(historys) :
-    this.filterFill(historys, query, arr, -i);
+    }) ? this.filterFinish(historys) : this.filterFill(historys, query, arr, -i);
   },
   filterFill: function(historys, query, arr, cut, neededMore) {
-    chrome.history.search({
+    return chrome.history.search({
       text: "",
       maxResults: offset + maxResults + (neededMore | 0)
     }, function(historys2) {
@@ -388,7 +385,7 @@ history: {
     e.sessionId && (o.sessionId = e.sessionId);
     arr[i] = o;
   },
-  getExtra: function(sug, score) { return score; },
+  getExtra: function(_s, score) { return score; },
   urlNotIn: function(i) { return !(i.url in this); }
 },
 
@@ -496,8 +493,8 @@ tabs: {
       tab = tabs0[i];
       text = Decoder.decodeURL(tab.url);
       if (noFilter || RankingUtils.Match2(text, tab.title)) {
-        tabs.push(tab);
         tab.text = text;
+        tabs.push(tab);
       }
     }
     if (offset >= tabs.length) {
@@ -506,8 +503,7 @@ tabs: {
       } else {
         offset -= tabs.length;
       }
-      Completers.next([]);
-      return;
+      return Completers.next(suggestions);
     }
     c = noFilter ? this.computeRecency : SuggestionUtils.ComputeWordRelevancy;
     for (i = 0, len = tabs.length; i < len; i++) {
@@ -534,8 +530,8 @@ tabs: {
       }
       offset = 0;
     }
-    Completers.next(suggestions);
-    return Decoder.continueToWork();
+    Decoder.continueToWork();
+    return Completers.next(suggestions);
   },
   computeRecency: function(_0, tabId) {
     return TabRecency.tabs[tabId] || (1 - 1 / tabId);
@@ -699,7 +695,7 @@ searchEngines: {
       if (e > u) { h = m - 1; }
       else { l = m + 1; }
     }
-    return m + (e < u);
+    return m + (e < u ? 1 : 0);
   },
   compute9: function() { return 9; }
 },
@@ -759,7 +755,7 @@ searchEngines: {
     if (queryTerms.length > 0) {
       queryTerms[0] = SuggestionUtils.shortenUrl(queryTerms[0]);
     }
-    suggestions.forEach(SuggestionUtils.PrepareHtml);
+    suggestions.forEach(SuggestionUtils.prepareHtml, SuggestionUtils);
 
     newAutoSelect = autoSelect && suggestions.length > 0;
     newMatchType = matchType < 0 ? (matchType === -2
@@ -920,7 +916,7 @@ searchEngines: {
         return;
       }
       this._callbacks = callback ? [callback] : [];
-      chrome.history.search({
+      return chrome.history.search({
         text: "",
         maxResults: this.size,
         startTime: 0
@@ -972,7 +968,7 @@ searchEngines: {
       }
       j = {
         lastVisitTime: newPage.lastVisitTime,
-        text: null,
+        text: "",
         title: newPage.title,
         url: newPage.url
       };
@@ -1078,11 +1074,10 @@ searchEngines: {
         _this._ind = -1;
         return;
       }
-      while (url = _this.todos[_this._ind]) {
+      for (; url = _this.todos[_this._ind]; _this._ind++) {
         str = url.url || url;
         if (text = _this.dict[str]) {
           url.url && (url.text = text);
-          _this._ind++;
           continue;
         }
         xhr.open("GET", _this._dataUrl + str, true);
