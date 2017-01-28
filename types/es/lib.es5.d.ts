@@ -262,14 +262,21 @@ interface Function {
       * @param thisArg The object to be used as the this object.
       * @param argArray A set of arguments to be passed to the function.
       */
-    apply(this: Function, thisArg: any, argArray?: any): any;
+    apply<R, T, A, B, C, D>(this: (this: T, a: A, b: B, c: C, d: D) => R, thisArg: T, arr: [A, B, C, D]): R;
+    apply<R, T, A, B, C>(this: (this: T, a: A, b: B, c: C) => R, thisArg: T, arr: [A, B, C]): R;
+    apply<R, T, A, B>(this: (this: T, a: A, b: B) => R, thisArg: T, arr: [A, B]): R;
+    apply<R, T, A>(this: (this: T, a: A) => R, thisArg: T, arr: [A]): R;
+    apply<R, T>(this: (this: T) => R, thisArg: T): R;
 
     /**
       * Calls a method of an object, substituting another object for the current object.
       * @param thisArg The object to be used as the current object.
       * @param argArray A list of arguments to be passed to the method.
       */
-    call(this: Function, thisArg: any, ...argArray: any[]): any;
+    call<R, T, A, B, C, D>(this: (this: T, a: A, b: B, c: C, d: D) => R, thisArg: T, a: A, b: B, c: C, d: D): R;
+    call<R, T, A, B, C>(this: (this: T, a: A, b: B, c: C) => R, thisArg: T, a: A, b: B, c: C): R;
+    call<R, T, A, B>(this: (this: T, a: A, b: B) => R, thisArg: T, a: A, b: B): R;
+    call<R, T, A>(this: (this: T, a: A) => R, thisArg: T, a: A): R;
 
     /**
       * For a given function, creates a bound function that has the same body as the original function.
@@ -277,17 +284,34 @@ interface Function {
       * @param thisArg An object to which the this keyword can refer inside the new function.
       * @param argArray A list of arguments to be passed to the new function.
       */
-    bind(this: Function, thisArg: any, ...argArray: any[]): any;
+    bind<R, T>(this: (this: T) => R, thisArg: T): (this: void) => R;
+
+    bind<R, T, A>(this: (this: T, a: A) => R, thisArg: T, a: A): (this: void) => R;
+    bind<R, T, A>(this: (this: T, a: A) => R, thisArg: T): (this: void, a: A) => R;
+
+    bind<R, T, A, B>(this: (this: T, a: A, b: B) => R, thisArg: T, a: A, b: B): (this: void) => R;
+    bind<R, T, A, B>(this: (this: T, a: A, b: B) => R, thisArg: T, a: A): (this: void, b: B) => R;
+    bind<R, T, A, B>(this: (this: T, a: A, b: B) => R, thisArg: T): (this: void, a: A, b: B) => R;
+
+    bind<R, T, A, B, C>(this: (this: T, a: A, b: B, c: C) => R, thisArg: T, a: A, b: B, c: C): (this: void) => R;
+    bind<R, T, A, B, C>(this: (this: T, a: A, b: B, c: C) => R, thisArg: T, a: A, b: B): (this: void, c: C) => R;
+    bind<R, T, A, B, C>(this: (this: T, a: A, b: B, c: C) => R, thisArg: T, a: A): (this: void, b: B, c: C) => R;
+    bind<R, T, A, B, C>(this: (this: T, a: A, b: B, c: C) => R, thisArg: T): (this: void, a: A, b: B, c: C) => R;
+
+    bind<R, T, A, B, C, D>(this: (this: T, a: A, b: B, c: C, d: D) => R, thisArg: T
+      , a: A, b: B, c: C): (this: void, d: D) => R;
+    bind<R, T, A, B, C, D, E>(this: (this: T, a: A, b: B, c: C, d: D, e: E) => R, thisArg: T
+      , a: A, b: B, c: C, d: D): (this: void, e: E) => R;
 
     /** Returns a string representation of a function. */
-    toString(): string;
+    // toString(): string;
 
     prototype: any;
-    readonly length: number;
+    // readonly length: number;
 
     // Non-standard extensions
-    arguments: any;
-    caller: Function;
+    // arguments: any;
+    // caller: Function;
 }
 
 interface FunctionConstructor {
@@ -1079,61 +1103,66 @@ interface ReadonlyArray<T> {
       * @param callbackfn A function that accepts up to three arguments. The every method calls the callbackfn function for each element in array1 until the callbackfn returns false, or until the end of the array.
       * @param thisArg An object to which the this keyword can refer in the callbackfn function. If thisArg is omitted, undefined is used as the this value.
       */
-    every(callbackfn: (value: T, index: number, array: ReadonlyArray<T>) => boolean, thisArg?: any): boolean;
+    // revery(callbackfn: (value: T, index: number, array: ReadonlyArray<T>) => boolean, thisArg?: any): boolean;
     /**
       * Determines whether the specified callback function returns true for any element of an array.
       * @param callbackfn A function that accepts up to three arguments. The some method calls the callbackfn function for each element in array1 until the callbackfn returns true, or until the end of the array.
       * @param thisArg An object to which the this keyword can refer in the callbackfn function. If thisArg is omitted, undefined is used as the this value.
       */
-    some(callbackfn: (value: T, index: number, array: ReadonlyArray<T>) => boolean, thisArg?: any): boolean;
+    some<S>(callbackfn: (this: S, value: T, index: number, array: ReadonlyArray<T>) => boolean, thisArg: S): boolean;
+    some(callbackfn: (this: void, value: T, index: number, array: ReadonlyArray<T>) => boolean): boolean;
     /**
       * Performs the specified action for each element in an array.
       * @param callbackfn  A function that accepts up to three arguments. forEach calls the callbackfn function one time for each element in the array.
       * @param thisArg  An object to which the this keyword can refer in the callbackfn function. If thisArg is omitted, undefined is used as the this value.
       */
-    forEach(callbackfn: (value: T, index: number, array: ReadonlyArray<T>) => void, thisArg?: any): void;
-    /**
+    forEach<S>(callbackfn: (this: S, value: T, index: number, array: ReadonlyArray<T>) => void, thisArg: S): void;
+    forEach(callbackfn: (this: void, value: T, index: number, array: ReadonlyArray<T>) => void): void;
+   /**
       * Calls a defined callback function on each element of an array, and returns an array that contains the results.
       * @param callbackfn A function that accepts up to three arguments. The map method calls the callbackfn function one time for each element in the array.
       * @param thisArg An object to which the this keyword can refer in the callbackfn function. If thisArg is omitted, undefined is used as the this value.
       */
-    map<U>(callbackfn: (value: T, index: number, array: ReadonlyArray<T>) => U, thisArg?: any): U[];
+    map<U, S>(callbackfn: (this: S, value: T, index: number, array: ReadonlyArray<T>) => U, thisArg: S): U[];
+    map<U>(callbackfn: (this: void, value: T, index: number, array: ReadonlyArray<T>) => U): U[];
     /**
      * Returns the elements of an array that meet the condition specified in a callback function.
      * @param callbackfn A function that accepts up to three arguments. The filter method calls the callbackfn function one time for each element in the array.
      * @param thisArg An object to which the this keyword can refer in the callbackfn function. If thisArg is omitted, undefined is used as the this value.
      */
-    filter<S extends T>(callbackfn: (value: T, index: number, array: ReadonlyArray<T>) => value is S, thisArg?: any): S[];
+    filter<S extends T, THIS>(callbackfn: (this: THIS, value: T, index: number, array: ReadonlyArray<T>) => value is S, thisArg: THIS): S[];
+    filter<S extends T>(callbackfn: (this: void, value: T, index: number, array: ReadonlyArray<T>) => value is S): S[];
     /**
       * Returns the elements of an array that meet the condition specified in a callback function.
       * @param callbackfn A function that accepts up to three arguments. The filter method calls the callbackfn function one time for each element in the array.
       * @param thisArg An object to which the this keyword can refer in the callbackfn function. If thisArg is omitted, undefined is used as the this value.
       */
-    filter(callbackfn: (value: T, index: number, array: ReadonlyArray<T>) => any, thisArg?: any): T[];
+    filter<THIS>(callbackfn: (this: THIS, value: T, index: number, array: ReadonlyArray<T>) => boolean, thisArg: THIS): T[];
+    filter(callbackfn: (this: void, value: T, index: number, array: ReadonlyArray<T>) => boolean): T[];
     /**
       * Calls the specified callback function for all the elements in an array. The return value of the callback function is the accumulated result, and is provided as an argument in the next call to the callback function.
       * @param callbackfn A function that accepts up to four arguments. The reduce method calls the callbackfn function one time for each element in the array.
       * @param initialValue If initialValue is specified, it is used as the initial value to start the accumulation. The first call to the callbackfn function provides this value as an argument instead of an array value.
       */
-    reduce(callbackfn: (previousValue: T, currentValue: T, currentIndex: number, array: ReadonlyArray<T>) => T, initialValue?: T): T;
+    // reduce(callbackfn: (previousValue: T, currentValue: T, currentIndex: number, array: ReadonlyArray<T>) => T, initialValue?: T): T;
     /**
       * Calls the specified callback function for all the elements in an array. The return value of the callback function is the accumulated result, and is provided as an argument in the next call to the callback function.
       * @param callbackfn A function that accepts up to four arguments. The reduce method calls the callbackfn function one time for each element in the array.
       * @param initialValue If initialValue is specified, it is used as the initial value to start the accumulation. The first call to the callbackfn function provides this value as an argument instead of an array value.
       */
-    reduce<U>(callbackfn: (previousValue: U, currentValue: T, currentIndex: number, array: ReadonlyArray<T>) => U, initialValue: U): U;
+    // reduce<U>(callbackfn: (previousValue: U, currentValue: T, currentIndex: number, array: ReadonlyArray<T>) => U, initialValue: U): U;
     /**
       * Calls the specified callback function for all the elements in an array, in descending order. The return value of the callback function is the accumulated result, and is provided as an argument in the next call to the callback function.
       * @param callbackfn A function that accepts up to four arguments. The reduceRight method calls the callbackfn function one time for each element in the array.
       * @param initialValue If initialValue is specified, it is used as the initial value to start the accumulation. The first call to the callbackfn function provides this value as an argument instead of an array value.
       */
-    reduceRight(callbackfn: (previousValue: T, currentValue: T, currentIndex: number, array: ReadonlyArray<T>) => T, initialValue?: T): T;
+    // reduceRight(callbackfn: (previousValue: T, currentValue: T, currentIndex: number, array: ReadonlyArray<T>) => T, initialValue?: T): T;
     /**
       * Calls the specified callback function for all the elements in an array, in descending order. The return value of the callback function is the accumulated result, and is provided as an argument in the next call to the callback function.
       * @param callbackfn A function that accepts up to four arguments. The reduceRight method calls the callbackfn function one time for each element in the array.
       * @param initialValue If initialValue is specified, it is used as the initial value to start the accumulation. The first call to the callbackfn function provides this value as an argument instead of an array value.
       */
-    reduceRight<U>(callbackfn: (previousValue: U, currentValue: T, currentIndex: number, array: ReadonlyArray<T>) => U, initialValue: U): U;
+    // reduceRight<U>(callbackfn: (previousValue: U, currentValue: T, currentIndex: number, array: ReadonlyArray<T>) => U, initialValue: U): U;
 
     readonly [n: number]: T;
 }
@@ -1225,79 +1254,94 @@ interface Array<T> {
       * @param callbackfn A function that accepts up to three arguments. The every method calls the callbackfn function for each element in array1 until the callbackfn returns false, or until the end of the array.
       * @param thisArg An object to which the this keyword can refer in the callbackfn function. If thisArg is omitted, undefined is used as the this value.
       */
-    every(callbackfn: (value: T, index: number, array: T[]) => boolean, thisArg?: any): boolean;
+    // every(callbackfn: (value: T, index: number, array: T[]) => boolean, thisArg?: any): boolean;
     /**
       * Determines whether the specified callback function returns true for any element of an array.
       * @param callbackfn A function that accepts up to three arguments. The some method calls the callbackfn function for each element in array1 until the callbackfn returns true, or until the end of the array.
       * @param thisArg An object to which the this keyword can refer in the callbackfn function. If thisArg is omitted, undefined is used as the this value.
       */
-    some(callbackfn: (value: T, index: number, array: T[]) => boolean, thisArg?: any): boolean;
+    some<S>(callbackfn: (this: S, value: T, index: number, array: T[]) => boolean, thisArg: S): boolean;
+    some(callbackfn: (this: void, value: T, index: number, array: T[]) => boolean): boolean;
     /**
       * Performs the specified action for each element in an array.
       * @param callbackfn  A function that accepts up to three arguments. forEach calls the callbackfn function one time for each element in the array.
       * @param thisArg  An object to which the this keyword can refer in the callbackfn function. If thisArg is omitted, undefined is used as the this value.
       */
-    forEach(callbackfn: (value: T, index: number, array: T[]) => void, thisArg?: any): void;
+    forEach<S>(callbackfn: (this: S, value: T, index: number, array: T[]) => void, thisArg: S): void;
+    forEach(callbackfn: (this: void, value: T, index: number, array: T[]) => void): void;
     /**
       * Calls a defined callback function on each element of an array, and returns an array that contains the results.
       * @param callbackfn A function that accepts up to three arguments. The map method calls the callbackfn function one time for each element in the array.
       * @param thisArg An object to which the this keyword can refer in the callbackfn function. If thisArg is omitted, undefined is used as the this value.
       */
-    map<U>(this: [T, T, T, T, T], callbackfn: (value: T, index: number, array: T[]) => U, thisArg?: any): [U, U, U, U, U];
+    map<U, S>(this: [T, T, T, T, T], callbackfn: (this: S, value: T, index: number, array: T[]) => U, thisArg: S): [U, U, U, U, U];
+    map<U>(this: [T, T, T, T, T], callbackfn: (this: void, value: T, index: number, array: T[]) => U): [U, U, U, U, U];
     /**
       * Calls a defined callback function on each element of an array, and returns an array that contains the results.
       * @param callbackfn A function that accepts up to three arguments. The map method calls the callbackfn function one time for each element in the array.
       * @param thisArg An object to which the this keyword can refer in the callbackfn function. If thisArg is omitted, undefined is used as the this value.
       */
-    map<U>(this: [T, T, T, T], callbackfn: (value: T, index: number, array: T[]) => U, thisArg?: any): [U, U, U, U];
+    map<U, S>(this: [T, T, T, T], callbackfn: (this: S, value: T, index: number, array: T[]) => U, thisArg: S): [U, U, U, U];
+    map<U>(this: [T, T, T, T], callbackfn: (this: void, value: T, index: number, array: T[]) => U): [U, U, U, U];
     /**
       * Calls a defined callback function on each element of an array, and returns an array that contains the results.
       * @param callbackfn A function that accepts up to three arguments. The map method calls the callbackfn function one time for each element in the array.
       * @param thisArg An object to which the this keyword can refer in the callbackfn function. If thisArg is omitted, undefined is used as the this value.
       */
-    map<U>(this: [T, T, T], callbackfn: (value: T, index: number, array: T[]) => U, thisArg?: any): [U, U, U];
+    map<U, S>(this: [T, T, T], callbackfn: (this: S, value: T, index: number, array: T[]) => U, thisArg: S): [U, U, U];
+    map<U>(this: [T, T, T], callbackfn: (this: void, value: T, index: number, array: T[]) => U): [U, U, U];
     /**
       * Calls a defined callback function on each element of an array, and returns an array that contains the results.
       * @param callbackfn A function that accepts up to three arguments. The map method calls the callbackfn function one time for each element in the array.
       * @param thisArg An object to which the this keyword can refer in the callbackfn function. If thisArg is omitted, undefined is used as the this value.
       */
-    map<U>(this: [T, T], callbackfn: (value: T, index: number, array: T[]) => U, thisArg?: any): [U, U];
+    map<U, S>(this: [T, T], callbackfn: (this: S, value: T, index: number, array: T[]) => U, thisArg: S): [U, U];
+    map<U>(this: [T, T], callbackfn: (this: void, value: T, index: number, array: T[]) => U): [U, U];
     /**
       * Calls a defined callback function on each element of an array, and returns an array that contains the results.
       * @param callbackfn A function that accepts up to three arguments. The map method calls the callbackfn function one time for each element in the array.
       * @param thisArg An object to which the this keyword can refer in the callbackfn function. If thisArg is omitted, undefined is used as the this value.
       */
-    map<U>(callbackfn: (value: T, index: number, array: T[]) => U, thisArg?: any): U[];
+    map<U, S>(callbackfn: (this: S, value: T, index: number, array: T[]) => U, thisArg: S): U[];
+    map<U>(callbackfn: (this: void, value: T, index: number, array: T[]) => U): U[];
+    /**
+     * Returns the elements of an array that meet the condition specified in a callback function.
+     * @param callbackfn A function that accepts up to three arguments. The filter method calls the callbackfn function one time for each element in the array.
+     * @param thisArg An object to which the this keyword can refer in the callbackfn function. If thisArg is omitted, undefined is used as the this value.
+     */
+    filter<S extends T, THIS>(callbackfn: (this: THIS, value: T, index: number, array: T[]) => value is S, thisArg: THIS): S[];
+    filter<S extends T>(callbackfn: (this: void, value: T, index: number, array: T[]) => value is S): S[];
     /**
       * Returns the elements of an array that meet the condition specified in a callback function.
       * @param callbackfn A function that accepts up to three arguments. The filter method calls the callbackfn function one time for each element in the array.
       * @param thisArg An object to which the this keyword can refer in the callbackfn function. If thisArg is omitted, undefined is used as the this value.
       */
-    filter(callbackfn: (value: T, index: number, array: T[]) => any, thisArg?: any): T[];
+    filter<S>(callbackfn: (this: S, value: T, index: number, array: T[]) => boolean, thisArg: S): T[];
+    filter(callbackfn: (this: void, value: T, index: number, array: T[]) => boolean): T[];
     /**
       * Calls the specified callback function for all the elements in an array. The return value of the callback function is the accumulated result, and is provided as an argument in the next call to the callback function.
       * @param callbackfn A function that accepts up to four arguments. The reduce method calls the callbackfn function one time for each element in the array.
       * @param initialValue If initialValue is specified, it is used as the initial value to start the accumulation. The first call to the callbackfn function provides this value as an argument instead of an array value.
       */
-    reduce(callbackfn: (previousValue: T, currentValue: T, currentIndex: number, array: T[]) => T, initialValue?: T): T;
+    // reduce(callbackfn: (previousValue: T, currentValue: T, currentIndex: number, array: T[]) => T, initialValue?: T): T;
     /**
       * Calls the specified callback function for all the elements in an array. The return value of the callback function is the accumulated result, and is provided as an argument in the next call to the callback function.
       * @param callbackfn A function that accepts up to four arguments. The reduce method calls the callbackfn function one time for each element in the array.
       * @param initialValue If initialValue is specified, it is used as the initial value to start the accumulation. The first call to the callbackfn function provides this value as an argument instead of an array value.
       */
-    reduce<U>(callbackfn: (previousValue: U, currentValue: T, currentIndex: number, array: T[]) => U, initialValue: U): U;
+    // reduce<U>(callbackfn: (previousValue: U, currentValue: T, currentIndex: number, array: T[]) => U, initialValue: U): U;
     /**
       * Calls the specified callback function for all the elements in an array, in descending order. The return value of the callback function is the accumulated result, and is provided as an argument in the next call to the callback function.
       * @param callbackfn A function that accepts up to four arguments. The reduceRight method calls the callbackfn function one time for each element in the array.
       * @param initialValue If initialValue is specified, it is used as the initial value to start the accumulation. The first call to the callbackfn function provides this value as an argument instead of an array value.
       */
-    reduceRight(callbackfn: (previousValue: T, currentValue: T, currentIndex: number, array: T[]) => T, initialValue?: T): T;
+    // reduceRight(callbackfn: (previousValue: T, currentValue: T, currentIndex: number, array: T[]) => T, initialValue?: T): T;
     /**
       * Calls the specified callback function for all the elements in an array, in descending order. The return value of the callback function is the accumulated result, and is provided as an argument in the next call to the callback function.
       * @param callbackfn A function that accepts up to four arguments. The reduceRight method calls the callbackfn function one time for each element in the array.
       * @param initialValue If initialValue is specified, it is used as the initial value to start the accumulation. The first call to the callbackfn function provides this value as an argument instead of an array value.
       */
-    reduceRight<U>(callbackfn: (previousValue: U, currentValue: T, currentIndex: number, array: T[]) => U, initialValue: U): U;
+    // reduceRight<U>(callbackfn: (previousValue: U, currentValue: T, currentIndex: number, array: T[]) => U, initialValue: U): U;
 
     [n: number]: T;
 }
