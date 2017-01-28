@@ -7,6 +7,7 @@
     // "lib": [ "dom", "es6" ],
     "listEmittedFiles": true,
     "module": "system",
+    "narrowFormat": true,
     "newLine": "LF",
     "noEmitHelpers": true,
     "noFallthroughCasesInSwitch": false,
