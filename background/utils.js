@@ -9,9 +9,8 @@ var Utils = {
     return req;
   },
   extendIf: function(b, a) {
-    var i, u;
-    for (i in a) {
-      b[i] === u && (b[i] = a[i]);
+    for (var i in a) {
+      (i in b) || (b[i] = a[i]);
     }
     return b;
   },
