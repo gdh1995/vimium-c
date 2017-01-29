@@ -701,10 +701,10 @@ searchEngines: {
 
   counter: 0,
   sugCounter: 0,
-  suggestions: null as Suggestion[] | null,
+  suggestions: null as ReadonlyArray<Suggestion> | null,
   mostRecentQuery: null as QueryStatus | null,
   callback: null as Callback | null,
-  filter (completers: Completer[]): void {
+  filter (completers: ReadonlyArray<Completer>): void {
     RegexpCache.reset();
     if (this.mostRecentQuery) { this.mostRecentQuery.isOff = true; }
     const query = this.mostRecentQuery = {
@@ -810,7 +810,7 @@ window.Completers = {
         ((options.clientWidth as number) - 74) / 7.72) | 0, 200)) : 128;
     maxTotal = maxResults = Math.min(Math.max((options.maxResults as number) | 0, 3), 25);
     Completers.callback = callback;
-    let arr: Completer[] | null = null, str: string;
+    let arr: ReadonlyArray<Completer> | null = null, str: string;
     if (queryTerms.length >= 1 && queryTerms[0].length === 2 && queryTerms[0][0] === ":") {
       str = queryTerms[0][1];
       arr = str === "b" ? this.bookm : str === "h" ? this.history : str === "t" ? this.tab

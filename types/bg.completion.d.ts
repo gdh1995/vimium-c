@@ -93,7 +93,7 @@ declare enum RegexpCacheIndex {
 }
 type RegexpCacheDict = [SafeDict<RegExp>, SafeDict<RegExp>, SafeDict<RegExp>];
 
-type HistoryCallback = (history: HistoryItem[]) => any;
+type HistoryCallback = (history: ReadonlyArray<HistoryItem>) => any;
 
 interface UrlToDecode extends String {
   url?: void;
@@ -101,7 +101,7 @@ interface UrlToDecode extends String {
 type ItemToDecode = UrlToDecode | DecodedItem;
 
 type CompletersMap<T> = {
-    [P in keyof T]: Completer[];
+    [P in keyof T]: ReadonlyArray<Completer>;
 }
 
 interface Window {
