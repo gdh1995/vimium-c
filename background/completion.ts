@@ -890,7 +890,8 @@ window.Completers = {
     reset (obj?: null): void {
       if (obj === null) {
         this.cache = this._d = null;
-        return Utils.resetRe();
+        Utils.resetRe();
+        return;
       }
       this.cache = Object.create<RegExp>(null);
       this._d = [Object.create<RegExp>(null), Object.create<RegExp>(null), this.cache];
