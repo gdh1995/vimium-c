@@ -88,10 +88,11 @@ interface SuggestionConstructor {
         extraData?: number): Suggestion;
 }
 
-declare enum RegexpCacheIndex {
+declare const enum RegExpCacheIndex {
   word = 0, start = 1, part = 2
 }
-type RegexpCacheDict = [SafeDict<RegExp>, SafeDict<RegExp>, SafeDict<RegExp>];
+type CachedRegExp = RegExpOne | RegExpI;
+type RegExpCacheDict = [SafeDict<CachedRegExp>, SafeDict<CachedRegExp>, SafeDict<CachedRegExp>];
 
 type HistoryCallback = (history: ReadonlyArray<HistoryItem>) => any;
 

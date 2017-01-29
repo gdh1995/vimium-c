@@ -43,7 +43,7 @@ const SuggestionUtils = {
   },
   pushMatchingRanges (this: void, string: string, term: string, ranges: MatchRange[]): void {
     let index = 0, textPosition = 0, matchedEnd: number;
-    const splits = string.split(RegexpCache.item(term)), last = splits.length - 1, tl = term.length;
+    const splits = string.split(RegExpCache.item(term)), last = splits.length - 1, tl = term.length;
     for (; index < last; index++, textPosition = matchedEnd) {
       matchedEnd = (textPosition += splits[index].length) + tl;
       ranges.push([textPosition, matchedEnd]);
@@ -298,7 +298,7 @@ history: {
     }
     for (j = maxNum; --j; ) { results.push(0.0, 0); }
     maxNum = maxNum * 2 - 2;
-    let regexps: RegExp[] | null = queryTerms.map(RegexpCache.item, RegexpCache);
+    let regexps: RegExp[] | null = queryTerms.map(RegExpCache.item, RegExpCache);
     for (const len = history.length, len2 = regexps.length; i < len; i++) {
       const item = history[i];
       for (j = 0; j < len2; j++) {
@@ -705,7 +705,7 @@ searchEngines: {
   mostRecentQuery: null as QueryStatus | null,
   callback: null as Callback | null,
   filter (completers: ReadonlyArray<Completer>): void {
-    RegexpCache.reset();
+    RegExpCache.reset();
     if (this.mostRecentQuery) { this.mostRecentQuery.isOff = true; }
     const query = this.mostRecentQuery = {
       isOff: false
@@ -771,7 +771,7 @@ searchEngines: {
   cleanGlobals (): void {
     this.mostRecentQuery = this.callback = null;
     queryTerms = [];
-    RegexpCache.reset(null);
+    RegExpCache.reset();
     RankingUtils.timeAgo = this.sugCounter = matchType =
     maxResults = maxTotal = maxCharNum = 0;
     queryType = FirstQuery.nothing;
@@ -792,7 +792,7 @@ searchEngines: {
     queryTerms.more = queryTerms.pop() as string;
     queryType = FirstQuery.waitFirst;
   },
-  protoRe: /(?:^|\s)__proto__(?=$|\s)/g,
+  protoRe: /(?:^|\s)__proto__(?=$|\s)/g as RegExpG,
   rsortByRelevancy (a: Suggestion, b: Suggestion): number { return b.relevancy - a.relevancy; }
 };
 
@@ -826,7 +826,7 @@ window.Completers = {
 
   const RankingUtils = {
     Match2 (s1: string, s2: string): boolean {
-      var i = queryTerms.length, cache = RegexpCache, regexp;
+      var i = queryTerms.length, cache = RegExpCache, regexp;
       while (0 <= --i) {
         regexp = cache.item(queryTerms[i]);
         if (!(regexp.test(s1) || regexp.test(s2))) { return false; }
@@ -842,12 +842,12 @@ window.Completers = {
     _emptyScores: [0, 0] as [number, number],
     scoreTerm (term: string, string: string): [number, number] {
       var count = 0, score = 0;
-      count = string.split(RegexpCache.item(term)).length;
+      count = string.split(RegExpCache.item(term)).length;
       if (count < 1) { return this._emptyScores; }
       score = this.anywhere;
-      if (RegexpCache.get(term, 1).test(string)) {
+      if (RegExpCache.get(term, RegExpCacheIndex.start).test(string)) {
         score += this.startOfWord;
-        if (RegexpCache.get(term, 0).test(string)) {
+        if (RegExpCache.get(term, RegExpCacheIndex.word).test(string)) {
           score += this.wholeWord;
         }
       }
@@ -883,27 +883,28 @@ window.Completers = {
     }
   };
 
-  const RegexpCache = {
-    cache: null as SafeDict<RegExp> | null,
-    _d: null as RegexpCacheDict | null,
+  const RegExpCache = {
+    cache: null as SafeDict<CachedRegExp> | null,
+    _d: null as RegExpCacheDict | null,
     reset (obj?: null): void {
       if (obj === null) {
         this.cache = this._d = null;
         Utils.resetRe();
         return;
       }
-      this.cache = Object.create<RegExp>(null);
-      this._d = [Object.create<RegExp>(null), Object.create<RegExp>(null), this.cache];
+      this.cache = Object.create<CachedRegExp>(null);
+      this._d = [Object.create<CachedRegExp>(null), Object.create<CachedRegExp>(null), this.cache];
     },
-    escapeRe: Utils.escapeAllRe as RegExp,
-    get (s: string, i: RegexpCacheIndex): RegExp {
-      var d = (this._d as RegexpCacheDict)[i];
-      return d[s] || (d[s] = new RegExp((i < 2 ? "\\b" : "")
+    escapeRe: Utils.escapeAllRe as CachedRegExp,
+    get (s: string, i: RegExpCacheIndex): CachedRegExp {
+      var d = (this._d as RegExpCacheDict)[i];
+      return d[s] || (d[s] = new RegExp((i < RegExpCacheIndex.part ? "\\b" : "")
         + s.replace(this.escapeRe, "\\$&")
-        + (i ? "" : "\\b"), Utils.hasUpperCase(s) ? "" : "i"));
+        + (i === RegExpCacheIndex.start ? "\\b" : ""),
+        Utils.hasUpperCase(s) ? "" : "i" as ""));
     },
-    item (s: string): RegExp {
-      return (this.cache as SafeDict<RegExp>)[s] || this.get(s, 2);
+    item (s: string): CachedRegExp {
+      return (this.cache as SafeDict<CachedRegExp>)[s] || this.get(s, RegExpCacheIndex.part);
     }
   };
 

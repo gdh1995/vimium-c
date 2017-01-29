@@ -415,9 +415,8 @@ interface RegExp {
     readonly unicode: boolean;
 }
 
-interface RegExpConstructor {
-    new (pattern: RegExp, flags?: string): RegExp;
-    (pattern: RegExp, flags?: string): RegExp;
+interface KnownRegExp<T extends string> extends RegExp {
+  readonly flags: T;
 }
 
 interface String {

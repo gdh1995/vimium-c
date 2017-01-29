@@ -412,7 +412,7 @@ interface String {
       * @param searchValue A Regular Expression object containing the regular expression pattern and applicable flags
       * @param replacer A function that returns the replacement text.
       */
-    replace(searchValue: RegExp, replacer: (substring: string, ...args: any[]) => string): string;
+    replace(searchValue: RegExp, replacer: (substring: string, ...args: Array<string | undefined>) => string): string;
 
     /**
       * Finds the first substring match in a regular expression search.
@@ -907,17 +907,38 @@ interface RegExp {
     /** Returns a Boolean value indicating the state of the multiline flag (m) used with a regular expression. Default is false. Read-only. */
     readonly multiline: boolean;
 
-    lastIndex: number;
+    // lastIndex: number;
 
     // Non-standard extensions
-    compile(): this;
+    // compile(): this;
+}
+
+interface KnownRegExp<T extends string> extends RegExp {
+}
+
+interface RegExpOne extends KnownRegExp<""> {
+  readonly lastIndex: never;
+  readonly global: true;
+}
+interface RegExpI extends KnownRegExp<"i"> {
+  readonly lastIndex: never;
+  readonly ignoreCase: true;
+}
+interface RegExpG extends KnownRegExp<"g"> {
+  lastIndex: number;
+  readonly global: true;
+}
+interface RegExpGI extends KnownRegExp<"gi"> {
+  lastIndex: number;
+  readonly global: true;
+  readonly ignoreCase: true;
 }
 
 interface RegExpConstructor {
-    new (pattern: RegExp): RegExp;
-    new (pattern: string, flags?: string): RegExp;
-    (pattern: RegExp): RegExp;
-    (pattern: string, flags?: string): RegExp;
+    new (pattern: string, flags: "i"): RegExpI;
+    new (pattern: string, flags: "g"): RegExpG;
+    new (pattern: string, flags: "gi" | "ig"): RegExpGI;
+    new (pattern: string, flags?: ""): RegExpOne;
     readonly prototype: RegExp;
 
     // Non-standard extensions
