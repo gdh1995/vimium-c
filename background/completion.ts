@@ -386,7 +386,7 @@ history: {
 },
 
 domains: {
-  domains: null as SafeDict<Domain> | null,
+  domains: Utils.domains,
   filter (query: QueryStatus, index: number): void {
     if (queryTerms.length !== 1 || queryTerms[0].indexOf("/") !== -1) {
       return Completers.next([]);
@@ -404,7 +404,7 @@ domains: {
     if (queryTerms.length !== 1 || queryTerms[0].indexOf("/") !== -1) {
       return Completers.next([]);
     }
-    const ref = this.domains as SafeDict<Domain>, p = RankingUtils.maxScoreP, q = queryTerms, word = q[0];
+    const ref = this.domains, p = RankingUtils.maxScoreP, q = queryTerms, word = q[0];
     let sug: Suggestion | undefined, result = "", result_score = -1000;
     if (offset > 0) {
       for (let domain in ref) {
@@ -432,7 +432,6 @@ domains: {
   },
   refresh (history: PureHistoryItem[]): void {
     (this as any).refresh = null;
-    Utils.domains = this.domains = Object.create<Domain>(null);
     history.forEach(this.onPageVisited, this);
     this.filter = this.performSearch;
     chrome.history.onVisited.addListener(this.onPageVisited.bind(this));
@@ -441,12 +440,12 @@ domains: {
   onPageVisited (newPage: PureHistoryItem): void {
     const item: [string, BOOL] | null = this.parseDomainAndScheme(newPage.url);
     if (item) {
-      const time = newPage.lastVisitTime as number, slot = (this.domains as SafeDict<Domain>)[item[0]];
+      const time = newPage.lastVisitTime, slot = this.domains[item[0]];
       if (slot) {
         if (slot[0] < time) { slot[0] = time; }
         ++slot[1]; slot[2] = item[1];
       } else {
-        (this.domains as SafeDict<Domain>)[item[0]] = [time, 1, item[1]];
+        this.domains[item[0]] = [time, 1, item[1]];
       }
     }
   },

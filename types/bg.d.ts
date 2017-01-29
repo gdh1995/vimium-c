@@ -23,6 +23,12 @@ declare var Completers: GlobalCompletersConstructor;
 interface QueryStatus { isOff: boolean }
 
 declare namespace CompletersNS {
+  interface Domain {
+    [0]: number;
+    [1]: number;
+    [2]: BOOL;
+  }
+
   type Callback = (this: void, sugs: Suggestion[],
     newAutoSelect: boolean, newMatchType: MatchType) => void;
 }

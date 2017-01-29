@@ -1,5 +1,6 @@
 /// <reference path="bg.d.ts" />
 
+import Domain = CompletersNS.Domain;
 import Callback = CompletersNS.Callback;
 import MatchType = CompletersNS.MatchType;
 
@@ -32,7 +33,6 @@ interface UrlItem {
   title: string;
   sessionId?: string | number;
 }
-type Domain = [number, number, BOOL];
 
 interface TextTab extends chrome.tabs.Tab {
   text: string;  
