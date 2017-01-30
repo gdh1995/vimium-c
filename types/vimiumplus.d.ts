@@ -7,6 +7,7 @@ interface Dict<T> {
 interface SafeDict<T> extends Dict<T> {
   __proto__: never;
 }
+interface SafeEnum extends SafeDict<1> {}
 
 interface EmptyArray<T> extends Array<T> {
   [index: number]: never;
@@ -45,3 +46,6 @@ declare namespace CompletersNS {
   }
 }
 
+declare const enum KnownKey {
+  space = 32
+}

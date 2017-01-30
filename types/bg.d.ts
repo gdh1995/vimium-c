@@ -12,6 +12,23 @@ declare namespace Urls {
   type MathEvalResult = [string, "math", string];
   type EvalArrayResult = [string, "copy" | "ERROR"] | [string[], "search"] | MathEvalResult;
   type EvalResult = EvalArrayResult | Promise<EvalArrayResult> | string | null;
+
+  const enum Type {
+    Full = 0,
+    NoSchema = 1,
+    NoProtocolName = 2,
+    PlainVimium = 3,
+    Search = 4,
+    Functional = 5
+  }
+  const enum TempType {
+    Unspecified = -1
+  }
+    NonENTld = 2,
+    ENTld = 1,
+    NotTld = 0
+  }
+
 }
 declare var Utils: any, Settings: any, TabRecency: any;
 
