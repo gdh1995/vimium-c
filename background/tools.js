@@ -10,6 +10,9 @@ var Clipboard = {
   },
   tailSpacesRe: /[ \t]+\n/g,
   format: function(data) {
+    if (typeof data !== "string") {
+      return JSON.stringify(data);
+    }
     data = data.replace(Utils.A0Re, " ").replace(this.tailSpacesRe, "\n");
     var i = data.charCodeAt(data.length - 1);
     if (i !== 32 && i !== 9) {
