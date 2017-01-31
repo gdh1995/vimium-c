@@ -169,14 +169,14 @@ interface ObjectConstructor {
       * Creates an object that has the specified prototype, and that optionally contains specified properties.
       * @param o Object to use as a prototype. May be null
       */
-    create<T>(o: T): T;
+    create<T extends object>(o: T): T;
 
     /**
       * Creates an object that has the specified prototype, and that optionally contains specified properties.
       * @param o Object to use as a prototype. May be null
       * @param properties JavaScript object that contains one or more property descriptors.
       */
-    create(o: any, properties: PropertyDescriptorMap): any;
+    create(o: object | null, properties: PropertyDescriptorMap): any;
 
     /**
       * Adds a property to an object, or modifies attributes of an existing property.
@@ -398,21 +398,32 @@ interface String {
       * @param searchValue A string that represents the regular expression.
       * @param replacer A function that returns the replacement text.
       */
-    replace(searchValue: string, replacer: (substring: string, ...args: any[]) => string): string;
+    replace(searchValue: string, replacer: (substring: string, position: number, source: string) => string): string;
 
     /**
       * Replaces text in a string, using a regular expression or search string.
       * @param searchValue A Regular Expression object containing the regular expression pattern and applicable flags.
       * @param replaceValue A string containing the text to replace for every successful match of searchValue in this string.
       */
-    replace(searchValue: RegExp, replaceValue: string): string;
+    replace(searchValue: RegExpSearchable<0>, replaceValue: string): string;
 
     /**
       * Replaces text in a string, using a regular expression or search string.
       * @param searchValue A Regular Expression object containing the regular expression pattern and applicable flags
       * @param replacer A function that returns the replacement text.
       */
-    replace(searchValue: RegExp, replacer: (substring: string, ...args: Array<string | undefined>) => string): string;
+    replace(searchValue: RegExpSearchable<0>, replacer: (substring: string, index: number, source: string) => string): string;
+    replace(searchValue: RegExpSearchable<1>, replacer: (substring: string,
+        a: string | undefined, index: number, source: string) => string): string;
+    replace(searchValue: RegExpSearchable<2>, replacer: (substring: string,
+        a: string | undefined, b: string | undefined,
+        index: number, source: string) => string): string;
+    replace(searchValue: RegExpSearchable<3>, replacer: (substring: string,
+        a: string | undefined, b: string | undefined, c: string | undefined,
+        index: number, source: string) => string): string;
+    replace(searchValue: RegExpSearchable<4>, replacer: (substring: string,
+        a: string | undefined, b: string | undefined, c: string | undefined, d: string | undefined,
+        index: number, source: string) => string): string;
 
     /**
       * Finds the first substring match in a regular expression search.
@@ -424,7 +435,7 @@ interface String {
       * Finds the first substring match in a regular expression search.
       * @param regexp The regular expression pattern and applicable flags.
       */
-    search(regexp: RegExp): number;
+    search(regexp: RegExpOne | RegExpI): number;
 
     /**
       * Returns a section of a string.
@@ -887,13 +898,15 @@ interface RegExp {
       * Executes a search on a string using a regular expression pattern, and returns an array containing the results of that search.
       * @param string The String object or string literal on which to perform the search.
       */
-    exec(string: string): RegExpExecArray | null;
+    exec(this: RegExpG | RegExpGI, string: void): never;
+    exec(this: RegExpOne | RegExpI, string: string): RegExpExecArray | null;
 
     /**
       * Returns a Boolean value that indicates whether or not a pattern exists in a searched string.
       * @param string String on which to perform the search.
       */
-    test(string: string): boolean;
+    test(this: RegExpG | RegExpGI, string: void): never;
+    test(this: RegExpOne | RegExpI, string: string): boolean;
 
     /** Returns a copy of the text of the regular expression pattern. Read-only. The regExp argument is a Regular expression object. It can be a variable name or a literal. */
     readonly source: string;
@@ -913,22 +926,25 @@ interface RegExp {
     // compile(): this;
 }
 
-interface KnownRegExp<T extends string> extends RegExp {
+interface RegExpExt<T extends string> extends RegExp {
+}
+interface RegExpSearchable<T extends number> extends RegExp {
+  readonly __groupCount: T;
 }
 
-interface RegExpOne extends KnownRegExp<""> {
+interface RegExpOne extends RegExpExt<""> {
   readonly lastIndex: never;
   readonly global: true;
 }
-interface RegExpI extends KnownRegExp<"i"> {
+interface RegExpI extends RegExpExt<"i"> {
   readonly lastIndex: never;
   readonly ignoreCase: true;
 }
-interface RegExpG extends KnownRegExp<"g"> {
+interface RegExpG extends RegExpExt<"g"> {
   lastIndex: number;
   readonly global: true;
 }
-interface RegExpGI extends KnownRegExp<"gi"> {
+interface RegExpGI extends RegExpExt<"gi"> {
   lastIndex: number;
   readonly global: true;
   readonly ignoreCase: true;
@@ -942,16 +958,16 @@ interface RegExpConstructor {
     readonly prototype: RegExp;
 
     // Non-standard extensions
-    $1: string;
-    $2: string;
-    $3: string;
-    $4: string;
-    $5: string;
-    $6: string;
-    $7: string;
-    $8: string;
-    $9: string;
-    lastMatch: string;
+    // $1: string;
+    // $2: string;
+    // $3: string;
+    // $4: string;
+    // $5: string;
+    // $6: string;
+    // $7: string;
+    // $8: string;
+    // $9: string;
+    // lastMatch: string;
 }
 
 declare const RegExp: RegExpConstructor;
@@ -1124,7 +1140,7 @@ interface ReadonlyArray<T> {
       * @param callbackfn A function that accepts up to three arguments. The every method calls the callbackfn function for each element in array1 until the callbackfn returns false, or until the end of the array.
       * @param thisArg An object to which the this keyword can refer in the callbackfn function. If thisArg is omitted, undefined is used as the this value.
       */
-    // revery(callbackfn: (value: T, index: number, array: ReadonlyArray<T>) => boolean, thisArg?: any): boolean;
+    // every(callbackfn: (value: T, index: number, array: ReadonlyArray<T>) => boolean, thisArg?: any): boolean;
     /**
       * Determines whether the specified callback function returns true for any element of an array.
       * @param callbackfn A function that accepts up to three arguments. The some method calls the callbackfn function for each element in array1 until the callbackfn returns true, or until the end of the array.

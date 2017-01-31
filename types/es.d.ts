@@ -21,5 +21,4 @@ Modified by gdh1995 (github).
 
 /// <reference path="es/lib.es5.d.ts" />
 /// <reference path="es/lib.es2015.core.d.ts" />
-// /// <reference path="es/lib.es2015.iterable.d.ts" />
 /// <reference path="es/lib.es2015.promise.d.ts" />

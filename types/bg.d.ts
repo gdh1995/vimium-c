@@ -30,7 +30,6 @@ declare namespace Urls {
   }
 
 }
-declare var Utils: any, Settings: any, TabRecency: any;
 
 interface GlobalCompletersConstructor {
   filter (this: GlobalCompletersConstructor, query: string, options: CompletersNS.Options, callback: CompletersNS.Callback): void;
@@ -48,4 +47,13 @@ declare namespace CompletersNS {
 
   type Callback = (this: void, sugs: Suggestion[],
     newAutoSelect: boolean, newMatchType: MatchType) => void;
+}
+
+declare var Clipboard: any, TabRecency: any,
+  g_requestHandlers: any,
+  CommandsData: any,
+  Settings: any;
+
+interface Window {
+  readonly MathParser?: any;
 }

@@ -298,7 +298,7 @@ history: {
     }
     for (j = maxNum; --j; ) { results.push(0.0, 0); }
     maxNum = maxNum * 2 - 2;
-    let regexps: RegExp[] | null = queryTerms.map(RegExpCache.item, RegExpCache);
+    let regexps: CachedRegExp[] | null = queryTerms.map(RegExpCache.item, RegExpCache);
     for (const len = history.length, len2 = regexps.length; i < len; i++) {
       const item = history[i];
       for (j = 0; j < len2; j++) {
@@ -538,7 +538,7 @@ searchEngines: {
   filter (): void {},
   preFilter (query: QueryStatus, failIfNull?: true): void | true {
     let obj: Search.Result, sug: Suggestion, q = queryTerms, keyword = q.length > 0 ? q[0] : "",
-       pattern: Search.Engine | undefined, promise: Promise<Urls.EvalArrayResult> | undefined,
+       pattern: Search.Engine | undefined, promise: Promise<Urls.BaseEvalResult> | undefined,
        url: string, text: string;
     if (q.length === 0) {}
     else if (failIfNull !== true && keyword[0] === "\\") {
@@ -570,7 +570,7 @@ searchEngines: {
     url = text = obj.url;
     if (keyword === "~") {}
     else if (url.startsWith("vimium://")) {
-      const ret: Urls.EvalResult = Utils.evalVimiumUrl(url.substring(9), 1);
+      const ret = Utils.evalVimiumUrl(url.substring(9), Urls.WorkType.ActIfNoSideEffects);
       if (ret instanceof Promise) {
         promise = ret;
       } else if (ret instanceof Array) {
@@ -792,7 +792,7 @@ searchEngines: {
     queryTerms.more = queryTerms.pop() as string;
     queryType = FirstQuery.waitFirst;
   },
-  protoRe: /(?:^|\s)__proto__(?=$|\s)/g as RegExpG,
+  protoRe: <RegExpG & RegExpSearchable<0>> /(?:^|\s)__proto__(?=$|\s)/g,
   rsortByRelevancy (a: Suggestion, b: Suggestion): number { return b.relevancy - a.relevancy; }
 };
 
@@ -895,13 +895,13 @@ window.Completers = {
       this.cache = Object.create<CachedRegExp>(null);
       this._d = [Object.create<CachedRegExp>(null), Object.create<CachedRegExp>(null), this.cache];
     },
-    escapeRe: Utils.escapeAllRe as CachedRegExp,
+    escapeRe: Utils.escapeAllRe,
     get (s: string, i: RegExpCacheIndex): CachedRegExp {
       var d = (this._d as RegExpCacheDict)[i];
       return d[s] || (d[s] = new RegExp((i < RegExpCacheIndex.part ? "\\b" : "")
         + s.replace(this.escapeRe, "\\$&")
         + (i === RegExpCacheIndex.start ? "\\b" : ""),
-        Utils.hasUpperCase(s) ? "" : "i" as ""));
+        Utils.hasUpperCase(s) ? "" : "i" as "") as CachedRegExp);
     },
     item (s: string): CachedRegExp {
       return (this.cache as SafeDict<CachedRegExp>)[s] || this.get(s, RegExpCacheIndex.part);

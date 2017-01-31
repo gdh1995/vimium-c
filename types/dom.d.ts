@@ -1810,7 +1810,7 @@ interface Document extends Node, GlobalEventHandlers, NodeSelector, DocumentEven
       * Retrieves a collection of all script objects in the document.
       */
     scripts: HTMLCollectionOf<HTMLScriptElement>;
-    readonly scrollingElement: Element;
+    readonly scrollingElement?: Element;
     /**
       * Retrieves a collection of styleSheet objects representing the style sheets that correspond to each instance of a link or style object in the document.
       */
@@ -5406,7 +5406,7 @@ interface Node extends EventTarget {
     readonly parentNode: Node | null;
     readonly previousSibling: Node | null;
     textContent: string | null;
-    appendChild(newChild: Node): Node;
+    appendChild<T extends Node>(newChild: T): T;
     cloneNode(deep?: boolean): Node;
     compareDocumentPosition(other: Node): number;
     contains(child: Node): boolean;

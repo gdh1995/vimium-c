@@ -5,7 +5,10 @@ interface Dict<T> {
   [key: string]: T;
 }
 interface SafeDict<T> extends Dict<T> {
-  __proto__: never;
+  readonly __proto__: never;
+}
+interface ReadonlySafeDict<T> extends SafeDict<T> {
+  readonly [key: string]: T;
 }
 interface SafeEnum extends SafeDict<1> {}
 
@@ -38,14 +41,15 @@ declare namespace CompletersNS {
     reset = -1,
     _searching = -2, searchWanted = 3 // are same
   }
-  interface ValidTypes { bookm: never, domain: never, history: never, omni: never, search: never, tab: never }
+  type ValidTypes = "bookm" | "domain" | "history" | "omni" | "search" | "tab";
   interface Options {
     clientWidth?: number;
     maxResults?: number;
-    type: keyof ValidTypes;
+    type: ValidTypes;
   }
 }
 
 declare const enum KnownKey {
-  space = 32
+  space = 32, bang = 33, quote2 = 34, hash = 35,
+  maxCommentHead = hash,
 }

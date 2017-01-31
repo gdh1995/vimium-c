@@ -341,7 +341,7 @@ interface ObjectConstructor {
       * @param o The object to change its prototype.
       * @param proto The value of the new prototype or null.
       */
-    setPrototypeOf(o: any, proto: any): any;
+    setPrototypeOf(o: any, proto: object | null): any;
 
     /**
       * Gets the own property descriptor of the specified object.
@@ -436,7 +436,7 @@ interface String {
       * @param searchString search string
       * @param position If position is undefined, 0 is assumed, so as to search all of the String.
       */
-    includes(searchString: string): boolean;
+    includes(searchString: string, position?: number): boolean;
 
     /**
       * Returns the String value result of normalizing the string into the normalization form

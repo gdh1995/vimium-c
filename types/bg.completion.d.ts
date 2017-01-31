@@ -91,7 +91,7 @@ interface SuggestionConstructor {
 declare const enum RegExpCacheIndex {
   word = 0, start = 1, part = 2
 }
-type CachedRegExp = RegExpOne | RegExpI;
+type CachedRegExp = (RegExpOne | RegExpI) & RegExpSearchable<0>;
 type RegExpCacheDict = [SafeDict<CachedRegExp>, SafeDict<CachedRegExp>, SafeDict<CachedRegExp>];
 
 type HistoryCallback = (history: ReadonlyArray<HistoryItem>) => any;
@@ -101,10 +101,10 @@ interface UrlToDecode extends String {
 }
 type ItemToDecode = UrlToDecode | DecodedItem;
 
-type CompletersMap<T> = {
-    [P in keyof T]: ReadonlyArray<Completer>;
+type CompletersMap = {
+    [P in CompletersNS.ValidTypes]: ReadonlyArray<Completer>;
 }
 
 interface Window {
-  Completers: CompletersMap<CompletersNS.ValidTypes> & GlobalCompletersConstructor;
+  Completers: CompletersMap & GlobalCompletersConstructor;
 }
