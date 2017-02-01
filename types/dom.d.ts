@@ -2182,6 +2182,10 @@ interface Event {
     readonly CAPTURING_PHASE: number;
 }
 
+interface TypedEvent<T extends string> extends Event {
+    readonly type: T;
+}
+
 declare var Event: {
     prototype: Event;
     new(type: string, eventInitDict?: EventInit): Event;
@@ -8308,8 +8312,24 @@ interface XMLHttpRequest extends EventTarget, XMLHttpRequestEventTarget {
     readonly LOADING: number;
     readonly OPENED: number;
     readonly UNSENT: number;
-    addEventListener<K extends keyof XMLHttpRequestEventMap>(type: K, listener: (this: XMLHttpRequest, ev: XMLHttpRequestEventMap[K]) => any, useCapture?: boolean): void;
+    addEventListener<K extends keyof XMLHttpRequestEventMap>(type: K, listener: (this: XMLHttpRequest, ev: XMLHttpRequestEventMap[K]) => void, useCapture?: boolean): void;
     addEventListener(type: string, listener: EventListenerOrEventListenerObject, useCapture?: boolean): void;
+}
+
+interface TextXHR extends XMLHttpRequest {
+    readonly response: string;
+    readonly responseText: string;
+    readonly responseXML: never;
+    responseType: "text";
+    onload: (this: TextXHR, ev: Event & TypedEvent<"load">) => void;
+}
+
+interface JSONXHR extends XMLHttpRequest {
+    readonly response: null | boolean | number | object | string;
+    readonly responseText: never;
+    readonly responseXML: never;
+    responseType: "json";
+    onload: (this: JSONXHR, ev: Event & TypedEvent<"load">) => void;
 }
 
 declare var XMLHttpRequest: {
