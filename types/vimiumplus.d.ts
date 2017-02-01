@@ -17,14 +17,18 @@ interface EmptyArray<T> extends Array<T> {
   length: 0;
 }
 
-declare function setInterval<T1, T2, T3>(handler: (a1: T1, a2: T2, a3: T3) => void, timeout: number, a1: T1, a2: T2, a3: T3): number;
-declare function setInterval<T1, T2>(handler: (a1: T1, a2: T2) => void, timeout: number, a1: T1, a2: T2): number;
-declare function setInterval<T1>(handler: (a1: T1) => void, timeout: number, a1: T1): number;
-declare function setInterval(handler: () => void, timeout: number): number;
-declare function setTimeout <T1, T2, T3>(handler: (a1: T1, a2: T2, a3: T3) => void, timeout: number, a1: T1, a2: T2, a3: T3): number;
-declare function setTimeout <T1, T2>(handler: (a1: T1, a2: T2) => void, timeout: number, a1: T1, a2: T2): number;
-declare function setTimeout <T1>(handler: (a1: T1) => void, timeout: number, a1: T1): number;
-declare function setTimeout (handler: () => void, timeout: number): number;
+declare function setInterval<T1, T2, T3>(handler: (this: void, a1: T1, a2: T2, a3: T3) => void,
+  timeout: number, a1: T1, a2: T2, a3: T3): number;
+declare function setInterval<T1, T2>(handler: (this: void, a1: T1, a2: T2) => void,
+  timeout: number, a1: T1, a2: T2): number;
+declare function setInterval<T1>(handler: (this: void, a1: T1) => void, timeout: number, a1: T1): number;
+declare function setInterval(handler: (this: void, ) => void, timeout: number): number;
+declare function setTimeout <T1, T2, T3>(handler: (this: void, a1: T1, a2: T2, a3: T3) => void,
+  timeout: number, a1: T1, a2: T2, a3: T3): number;
+declare function setTimeout <T1, T2>(handler: (this: void, a1: T1, a2: T2) => void,
+  timeout: number, a1: T1, a2: T2): number;
+declare function setTimeout <T1>(handler: (this: void, a1: T1) => void, timeout: number, a1: T1): number;
+declare function setTimeout (handler: (this: void) => void, timeout: number): number;
 
 interface String {
   endsWith(searchString: string): boolean;
@@ -52,4 +56,18 @@ declare namespace CompletersNS {
 declare const enum KnownKey {
   space = 32, bang = 33, quote2 = 34, hash = 35,
   maxCommentHead = hash,
+}
+
+declare namespace BgReq {
+  interface Base {
+    name: string;
+  }
+
+  interface Scroll extends Base {
+    markName?: string | undefined;
+    scroll: [number, number];
+  }
+  interface Reset extends Base {
+    passKeys: string | null;
+  }
 }

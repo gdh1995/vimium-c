@@ -1,20 +1,21 @@
-"use strict";
-var Clipboard = {
-  getTextArea: function() {
-    var el = document.createElement("textarea");
+/// <reference path="../types/bg.d.ts" />
+
+const Clipboard = {
+  getTextArea (): HTMLTextAreaElement {
+    const el = document.createElement("textarea");
     el.style.position = "absolute";
     el.style.left = "-99px";
     el.style.width = "0";
     this.getTextArea = function() { return el; };
     return el;
   },
-  tailSpacesRe: /[ \t]+\n/g,
-  format: function(data) {
-    if (typeof data !== "string") {
+  tailSpacesRe: <RegExpG & RegExpSearchable<0>> /[ \t]+\n/g,
+  format (data: any): string {
+    if (typeof data !== "string" && !(data instanceof String)) {
       return JSON.stringify(data);
     }
     data = data.replace(Utils.A0Re, " ").replace(this.tailSpacesRe, "\n");
-    var i = data.charCodeAt(data.length - 1);
+    let i = data.charCodeAt(data.length - 1);
     if (i !== 32 && i !== 9) {
     } else if (i = data.lastIndexOf('\n') + 1) {
       data = data.substring(0, i) + data.substring(i).trimRight();
@@ -23,9 +24,9 @@ var Clipboard = {
     }
     return data;
   },
-  copy: function(data) {
+  copy (data: any): void {
     data = this.format(data);
-    var textArea = this.getTextArea();
+    const textArea = this.getTextArea();
     textArea.value = data;
     document.documentElement.appendChild(textArea);
     textArea.select();
@@ -34,12 +35,12 @@ var Clipboard = {
     textArea.value = "";
     Utils.resetRe();
   },
-  paste: function() {
-    var textArea = this.getTextArea(), value;
+  paste (): string {
+    const textArea = this.getTextArea();
     document.documentElement.appendChild(textArea);
     textArea.focus();
     document.execCommand("paste");
-    value = textArea.value;
+    let value = textArea.value;
     textArea.remove();
     textArea.value = "";
     value = value.replace(Utils.A0Re, " ");
@@ -48,14 +49,14 @@ var Clipboard = {
   }
 },
 Marks = { // NOTE: all members should be static
-  createMark: function(request, port) {
-    var tabId = port.sender.tabId;
-    if (request.scroll) {
-      localStorage.setItem(Marks.getLocationKey(request.markName), JSON.stringify({
+  createMark (request: MarksNS.BaseMark, port: Port): true | void {
+    let tabId = port.sender.tabId;
+    if ((request as MarksNS.Mark).scroll) {
+      localStorage.setItem(Marks.getLocationKey((request as MarksNS.Mark).markName), JSON.stringify({
         tabId: tabId,
-        url: request.url,
-        scroll: request.scroll
-      }));
+        url: (request as MarksNS.Mark).url,
+        scroll: (request as MarksNS.Mark).scroll
+      } as MarksNS.StoredMark));
       return true;
     }
     (port = Settings.indexFrame(tabId, 0) || port) && port.postMessage({
@@ -63,13 +64,12 @@ Marks = { // NOTE: all members should be static
       markName: request.markName,
     });
   },
-  gotoMark: function(request) {
-    var str, markInfo;
-    str = localStorage.getItem(Marks.getLocationKey(request.markName));
+  gotoMark (request: MarksNS.MarkQuery): boolean {
+    const str = localStorage.getItem(Marks.getLocationKey(request.markName));
     if (!str) {
       return false;
     }
-    markInfo = JSON.parse(str);
+    const markInfo: MarksNS.MarkToGo = JSON.parse(str) as MarksNS.StoredMark;
     markInfo.markName = request.markName;
     markInfo.prefix = request.prefix !== false && request.scroll[0] === 0 && request.scroll[1] === 0;
     if (Settings.indexPorts(markInfo.tabId)) {
@@ -79,21 +79,21 @@ Marks = { // NOTE: all members should be static
     }
     return true;
   },
-  checkTab: function(tab) {
-    var url = tab.url.split("#", 1)[0];
+  checkTab (this: MarksNS.MarkToGo, tab: chrome.tabs.Tab): void {
+    const url = tab.url.split("#", 1)[0];
     if (url === this.url || this.prefix && this.url.startsWith(url)) {
       g_requestHandlers.gotoSession({ sessionId: tab.id });
-      Marks.scrollTab(this, tab);
+      return Marks.scrollTab(this, tab);
     } else {
       g_requestHandlers.focusOrLaunch(this);
     }
   },
-  getLocationKey: function(keyChar) {
+  getLocationKey (keyChar: string): string {
     return "vimiumGlobalMark|" + keyChar;
   },
-  scrollTab: function(markInfo, tab) {
-    var tabId = tab.id, port;
-    (port = Settings.indexFrame(tabId, 0)) && port.postMessage({
+  scrollTab (markInfo: MarksNS.MarkToGo, tab: chrome.tabs.Tab): void {
+    const tabId = tab.id, port = Settings.indexFrame(tabId, 0);
+    port && port.postMessage(<BgReq.Scroll> {
       name: "scroll",
       scroll: markInfo.scroll,
       markName: markInfo.markName
@@ -103,15 +103,13 @@ Marks = { // NOTE: all members should be static
         tabId: tabId,
         url: markInfo.url,
         scroll: markInfo.scroll
-      }));
+      } as MarksNS.StoredMark));
     }
   },
-  clearGlobal: function() {
-    var key_start, storage, i, key;
-    key_start = Marks.getLocationKey("");
-    storage = localStorage;
-    for (i = storage.length; 0 <= --i; ) {
-      key = storage.key(i);
+  clearGlobal (): void {
+    const key_start = Marks.getLocationKey(""), storage = localStorage;
+    for (let key: string, i = storage.length; 0 <= --i; ) {
+      key = storage.key(i) as string;
       if (key.startsWith(key_start)) {
         storage.removeItem(key);
       }
@@ -122,22 +120,22 @@ Marks = { // NOTE: all members should be static
 FindModeHistory = {
   key: "findModeRawQueryList",
   max: 50,
-  list: null,
-  listI: null,
+  list: null as string[] | null,
+  listI: null as string[] | null,
   timer: 0,
-  init: function() {
-    var str = Settings.get(this.key);
+  init (): void {
+    const str: string = Settings.get(this.key);
     this.list = str ? str.split("\n") : [];
-    this.init = null;
+    this.init = null as any;
   },
-  initI: function() {
-    var list = this.listI = this.list.slice(0);
+  initI (): string[] {
+    var list = this.listI = (this.list as string[]).slice(0);
     chrome.windows.onRemoved.addListener(this.OnWndRemvoed);
     return list;
   },
-  query: function(incognito, query, index) {
+  query (incognito: boolean, query?: string, index?: number): string | void {
     this.init && this.init();
-    var list = incognito ? this.listI || this.initI() : this.list, str;
+    const list = incognito ? this.listI || this.initI() : (this.list as string[]);
     if (!query) {
       return list[list.length - (index || 1)] || "";
     }
@@ -145,70 +143,72 @@ FindModeHistory = {
       this.refreshIn(query, list, true);
       return;
     }
-    str = this.refreshIn(query, list);
+    const str = this.refreshIn(query, list) as string;
     str && Settings.set(this.key, str);
     this.listI && this.refreshIn(query, this.listI, true);
   },
-  refreshIn: function(query, list, result) {
-    var ind = list.lastIndexOf(query);
+  refreshIn (query: string, list: string[], result?: boolean): string | void {
+    const ind = list.lastIndexOf(query);
     if (ind >= 0) {
       if (ind === list.length - 1) { return; }
       list.splice(ind, 1);
     }
     else if (list.length >= this.max) { list.shift(); }
     list.push(query);
-    return result || list.join("\n");
+    if (!result) {
+      return list.join("\n");
+    }
   },
-  removeAll: function(incognito) {
+  removeAll (incognito: boolean): void {
     if (incognito) {
       this.listI && (this.listI = []);
       return;
     }
-    this.init = null;
+    this.init = null as any;
     this.list = [];
     Settings.set(this.key, "");
   },
-  OnWndRemvoed: function() {
-    var _this = FindModeHistory;
+  OnWndRemvoed (this: void): void {
+    const _this = FindModeHistory;
     if (!_this.listI) { return; }
     _this.timer = _this.timer || setTimeout(_this.TestIncognitoWnd, 34);
   },
-  TestIncognitoWnd: function() {
+  TestIncognitoWnd (this: void): void {
     FindModeHistory.timer = 0;
-    var left = false, i, port, arr = Settings.indexPorts();
-    for (i in arr) {
-      port = arr[i][0];
+    let left = false, arr: Frames.FramesMap = Settings.indexPorts();
+    for (let i in arr) {
+      let port = arr[i][0];
       if (port.sender.incognito) { left = true; break; }
     }
-    if (!left) { FindModeHistory.cleanI(); return; }
+    if (!left) { return FindModeHistory.cleanI(); }
     if (Settings.CONST.ChromeVersion >= 52) { return; }
-    chrome.windows.getAll(function(wnds) {
+    chrome.windows.getAll(function(wnds): void {
       wnds.some(function(wnd) { return wnd.incognito; }) || FindModeHistory.cleanI();
     });
   },
-  cleanI: function() {
+  cleanI (): void {
     this.listI = null;
     chrome.windows.onRemoved.removeListener(this.OnWndRemvoed);
   }
 },
 TabRecency = {
-  tabs: null,
-  last: function() { return -1; },
-  rCompare: null,
+  tabs: null as any as SafeDict<number>,
+  last (this: void): number { return -1; },
+  rCompare: null as any as (a: {id: number}, b: {id: number}) => boolean,
 };
 
 setTimeout(function() {
-  var cache = Object.create(null), last = -1, stamp = 1, time = 0,
-  _this = TabRecency,
-  clean = function() {
-    var ref = cache, i;
-    for (i in ref) {
+  const cache = Object.create<number>(null);
+  let last = -1, stamp = 1, time = 0,
+  clean = function(): void {
+    const ref = cache;
+    for (let i in ref) {
       if (ref[i] <= 896) { delete ref[i]; }
       else {ref[i] -= 895; }
     }
     stamp = 128;
   },
-  listener = function(activeInfo) {
+  listener = function(activeInfo: { tabId: number }): void {
     var now = Date.now(), tabId = activeInfo.tabId;
     if (now - time > 500) {
       cache[last] = ++stamp;
@@ -217,20 +217,21 @@ setTimeout(function() {
     last = tabId; time = now;
   };
   chrome.tabs.onActivated.addListener(listener);
-  chrome.windows.onFocusChanged.addListener(function(windowId) {
+  chrome.windows.onFocusChanged.addListener(function(windowId): void {
     if (windowId === chrome.windows.WINDOW_ID_NONE) { return; }
     chrome.tabs.query({windowId: windowId, active: true}, function(tabs) {
       tabs[0] && listener({tabId: tabs[0].id});
     });
   });
-  chrome.tabs.query({currentWindow: true, active: true}, function(tabs) {
+  chrome.tabs.query({currentWindow: true, active: true}, function(tabs: CurrentTabs): void {
     time = Date.now();
     if (chrome.runtime.lastError) { return chrome.runtime.lastError; }
     last = tabs[0] ? tabs[0].id : (chrome.tabs.TAB_ID_NONE || -1);
   });
+  const _this = TabRecency;
   _this.tabs = cache;
   _this.last = function() { return last; };
-  _this.rCompare = function(a, b) {
+  _this.rCompare = function(a: {id: number}, b: {id: number}): boolean {
     return cache[a.id] < cache[b.id];
   };
 }, 120);

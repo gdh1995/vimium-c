@@ -1158,7 +1158,7 @@ declare namespace chrome.omnibox {
  */
 declare namespace chrome.runtime {
     /** This will be defined during an API method callback if there was an error */
-    var lastError: LastError;
+    var lastError: void;
     /** The ID of the extension/app. */
     var id: string;
 
@@ -1254,7 +1254,7 @@ declare namespace chrome.runtime {
          * Optional.
          * This property will only be present on ports passed to onConnect/onConnectExternal listeners.
          */
-        sender?: MessageSender;
+        sender: MessageSender;
         /** An object which allows the addition and removal of listeners for a Chrome event. */
         onDisconnect: PortDisconnectEvent;
         /** An object which allows the addition and removal of listeners for a Chrome event. */
@@ -1747,6 +1747,7 @@ declare namespace chrome.sessions {
  * @since Chrome 5.
  */
 declare namespace chrome.tabs {
+    var TAB_ID_NONE: -1;
     /**
      * Tab muted state and the reason for the last state change.
      * @since Chrome 46. Warning: this is the current Beta channel.

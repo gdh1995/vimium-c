@@ -83,6 +83,73 @@ declare namespace Urls {
   }
 }
 
+declare namespace Frames {
+  const enum Status {
+    enabled = 0, partial = 1, disabled = 2
+  }
+
+  interface Sender {
+    readonly frameId: number;
+    readonly incognito: boolean;
+    tabId: number;
+    url: string;
+    status: Status;
+  }
+
+  interface Port extends chrome.runtime.Port {
+    sender: Sender;
+  }
+
+  interface Frames extends Array<Port> {
+    [0]: Port;
+    [1]: Port;
+  }
+
+  interface FramesMap extends SafeDict<Frames.Frames> {}
+}
+interface Sender extends Readonly<Frames.Sender> {}
+interface Port extends Readonly<Frames.Port> {}
+
+type CurrentTabs = [chrome.tabs.Tab];
+
+declare namespace MarksNS {
+  interface BaseMark {
+    markName: string;
+  }
+
+  interface Mark extends BaseMark {
+    scroll: [number, number];
+    url: string;
+  }
+
+  interface StoredMark extends Mark {
+    tabId: number;
+  }
+
+  interface MarkQuery extends BaseMark {
+    prefix?: boolean;
+    scroll: [number, number];
+  } 
+
+  interface MarkToGo {
+    markName?: string;
+    tabId: number;
+    scroll: [number, number];
+    url: string;
+    prefix?: boolean;
+  }
+}
+
+declare namespace ExclusionsNS {
+  interface StoredRule {
+    pattern: string;
+    passKeys: string;
+  }
+  interface Listener {
+    (details: chrome.webNavigation.WebNavigationCallbackDetails): void;
+  }
+}
+
 declare namespace CommandsNS {
   interface Options extends ReadonlySafeDict<any> {}
   interface Description extends Array<any> {
@@ -120,7 +187,7 @@ declare namespace CompletersNS {
     newAutoSelect: boolean, newMatchType: MatchType) => void;
 }
 
-declare var Clipboard: any, TabRecency: any,
+declare var 
   g_requestHandlers: any,
   CommandsData: any,
   Settings: any;
