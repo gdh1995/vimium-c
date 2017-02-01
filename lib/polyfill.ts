@@ -22,7 +22,7 @@ declare const Symbol: {
 (function (): void {
   if (String.prototype.startsWith) { return; }
   String.prototype.startsWith = function startsWith(this: ObjectCoercible, searchString: anyNotSymbol): boolean {
-    let err = check(this, searchString, "startsWith");
+    const err = check(this, searchString, "startsWith");
     if (err !== null) { throw new TypeError(err); }
     let a = "" + this, b = "" + searchString, c = +arguments[1];
     a = String(this), b = String(searchString);
@@ -32,7 +32,7 @@ declare const Symbol: {
 
   if (String.prototype.endsWith) { return; }
   String.prototype.endsWith = function endsWith(this: ObjectCoercible, searchString: anyNotSymbol): boolean {
-    let err = check(this, searchString, "endsWith");
+    const err = check(this, searchString, "endsWith");
     if (err !== null) { throw new TypeError(err); }
     let a = "" + this, b = "" + searchString, p: any = arguments[1], c = +p, u: undefined;
     a = String(this), b = String(searchString);

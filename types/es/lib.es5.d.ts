@@ -405,7 +405,7 @@ interface String {
       * @param searchValue A Regular Expression object containing the regular expression pattern and applicable flags.
       * @param replaceValue A string containing the text to replace for every successful match of searchValue in this string.
       */
-    replace(searchValue: RegExpSearchable<0>, replaceValue: string): string;
+    replace(searchValue: RegExpG | RegExpGI | RegExpSearchable<0>, replaceValue: string): string;
 
     /**
       * Replaces text in a string, using a regular expression or search string.

@@ -103,7 +103,7 @@ var Utils = {
       if (vimiumUrlWork < -1 || !(string = oldString.substring(9))) {}
       else if (vimiumUrlWork === -1
           || !(oldString = this.evalVimiumUrl(string, vimiumUrlWork))) {
-        oldString = this.formatVimiumUrl(string, null, vimiumUrlWork);
+        oldString = this.formatVimiumUrl(string, false, vimiumUrlWork);
       } else if (typeof oldString !== "string") {
         type = 5;
       }
@@ -159,7 +159,7 @@ var Utils = {
       type = 4;
     } else if (string.indexOf(".", ++index2) !== index) {
       type = 1;
-    } else if (string.length === index + 3 && type == 1) { // treat as a ccTLD
+    } else if (string.length === index + 3 && type === 1) { // treat as a ccTLD
       string = string.substring(index2, index);
       type = string.length < this._tlds.length &&
           this._tlds[string.length].indexOf(string) > 0 ? 4 : 1;
@@ -207,7 +207,7 @@ var Utils = {
   },
   _fileExtRe: /\.\w+$/,
   formatVimiumUrl: function(fullpath, partly, vimiumUrlWork) {
-    var ind, query, tempStr, path = fullpath.trim();
+    var ind, query = "", tempStr, path = fullpath.trim();
     if (!path) { return partly ? "" : location.origin + "/pages/"; }
     ind = path.indexOf(" ");
     if (ind > 0) {
@@ -229,7 +229,7 @@ var Utils = {
     if (!partly && (!tempStr || tempStr.indexOf("://") < 0)) {
       path = location.origin + (path.charCodeAt(0) === 47 ? "" : "/pages/") + path;
     }
-    return path + (!query ? "" : (path.indexOf("#") > 0 ? " " : "#!") + query);
+    return path + (query && (path.indexOf("#") > 0 ? " " : "#!") + query);
   },
   _nestedEvalCounter: 0,
   _vimiumCmdRe: /^[a-z][\da-z\-]*(?:\.[a-z][\da-z\-]*)*$/i,
@@ -302,7 +302,7 @@ var Utils = {
     if (workType === 1) {
       return [arr, "search"];
     }
-    ind = this._nestedEvalCounter++, obj;
+    ind = this._nestedEvalCounter++;
     if (ind > 12) { return null; }
     if (ind === 12) { return this.createSearchUrl(arr, "", 0); }
     if (ind > 0) { return this.createSearchUrl(arr, "", workType); }
@@ -436,7 +436,7 @@ var Utils = {
       val = val.replace(rEscapeS, " ").trim().replace(this.searchWordRe2, "$1$$$2"
         ).replace(rPercent, "%");
       obj = {
-        name: null,
+        name: "",
         url: val
       };
       ids = ids.filter(func);
@@ -528,7 +528,7 @@ var Utils = {
     if (prefix.startsWith("http://") || prefix.startsWith("https://")) {
       prefix = prefix.substring(prefix[4] === 's' ? 8 : 7);
     } else if (prefix.startsWith("vimium://")) {
-      prefix = this.formatVimiumUrl(prefix.substring(9), null, -1);
+      prefix = this.formatVimiumUrl(prefix.substring(9), false, -1);
     }
     return prefix;
   },

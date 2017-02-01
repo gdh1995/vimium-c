@@ -12,6 +12,7 @@
     "noEmitHelpers": true,
     "noFallthroughCasesInSwitch": false,
     "noImplicitAny": true,
+    "noImplicitReturns": true,
     "noImplicitThis": true,
     "noImplicitUseStrict": false,
     "noLib": true,
