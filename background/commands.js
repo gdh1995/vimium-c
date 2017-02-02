@@ -142,8 +142,8 @@ var Commands = {
       ref2 = ref[key];
       if (ref2 !== 0 && ref2 !== 1) { func(ref2); }
     }
-    Settings.Init && Settings.Init();
-    return ref;
+    CommandsData.keyMap = ref;
+    if (Settings.Init) { return Settings.Init(); }
   }),
 
 defaultKeyMappings: [
@@ -219,6 +219,7 @@ defaultKeyMappings: [
 },
 CommandsData = CommandsData || {
   keyToCommandRegistry: null,
+  keyMap: null,
   mapKeyRegistry: null,
 availableCommands: {
   __proto__: null,
@@ -365,15 +366,16 @@ availableCommands: {
 if (document.readyState !== "complete") {
   Commands.parseKeyMappings(Settings.get("keyMappings"));
   Commands.defaultKeyMappings = null;
-  Settings.postUpdate("PopulateCommandKeys", null);
+  Commands.populateCommandKeys();
   Commands = null;
   chrome.commands && chrome.commands.onCommand.addListener(Settings.globalCommand);
 } else
 (Settings.updateHooks.keyMappings = function(value) {
   Commands.parseKeyMappings(value);
+  Commands.populateCommandKeys();
   this.broadcast({
     name: "keyMap",
     mapKeys: CommandsData.mapKeyRegistry,
-    keyMap: this.postUpdate("PopulateCommandKeys", null)
+    keyMap: CommandsData.keyMap
   });
 });

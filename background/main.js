@@ -4,7 +4,7 @@ var Clipboard, Commands, CommandsData, Completers, Marks, TabRecency, FindModeHi
   var BackgroundCommands, Connections, ContentSettings
     , cOptions, cPort, checkKeyQueue, commandCount, executeCommand
     , framesForOmni, framesForTab
-    , funcDict, keyQueueRe, needIcon, openMultiTab, requestHandlers, keyMap, getSecret;
+    , funcDict, keyQueueRe, needIcon, openMultiTab, requestHandlers, getSecret;
 
   framesForTab = Object.create(null);
   framesForOmni = [];
@@ -1153,10 +1153,6 @@ var Clipboard, Commands, CommandsData, Completers, Marks, TabRecency, FindModeHi
     return tabId ? framesForTab[tabId] : framesForTab;
   };
 
-  Settings.updateHooks.PopulateCommandKeys = function() {
-    return keyMap = Commands.populateCommandKeys();
-  };
-
   keyQueueRe = /^\d+/;
   checkKeyQueue = function(request, port) {
     var key = request.key, arr, count = 1, ref, registryEntry;
@@ -1603,7 +1599,7 @@ var Clipboard, Commands, CommandsData, Completers, Marks, TabRecency, FindModeHi
         load: Settings.bufferToLoad,
         passKeys: pass,
         mapKeys: CommandsData.mapKeyRegistry,
-        keyMap: keyMap
+        keyMap: CommandsData.keyMap
       } : {
         name: "reset",
         passKeys: pass
