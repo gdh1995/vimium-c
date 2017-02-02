@@ -62,7 +62,7 @@ Marks = { // NOTE: all members should be static
     (port = Settings.indexFrame(tabId, 0) || port) && port.postMessage({
       name: "createMark",
       markName: request.markName,
-    });
+    } as BgReq.createMark);
   },
   gotoMark (request: MarksNS.MarkQuery): boolean {
     const str = localStorage.getItem(Marks.getLocationKey(request.markName));
@@ -93,7 +93,7 @@ Marks = { // NOTE: all members should be static
   },
   scrollTab (markInfo: MarksNS.MarkToGo, tab: chrome.tabs.Tab): void {
     const tabId = tab.id, port = Settings.indexFrame(tabId, 0);
-    port && port.postMessage(<BgReq.Scroll> {
+    port && port.postMessage(<BgReq.scroll> {
       name: "scroll",
       scroll: markInfo.scroll,
       markName: markInfo.markName
@@ -118,7 +118,7 @@ Marks = { // NOTE: all members should be static
   }
 },
 FindModeHistory = {
-  key: "findModeRawQueryList",
+  key: "findModeRawQueryList" as "findModeRawQueryList",
   max: 50,
   list: null as string[] | null,
   listI: null as string[] | null,

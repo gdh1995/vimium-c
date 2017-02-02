@@ -4,13 +4,21 @@ type BOOL = 0 | 1;
 interface Dict<T> {
   [key: string]: T;
 }
-interface SafeDict<T> extends Dict<T> {
+type SafeObject = {
   readonly __proto__: never;
-}
+};
+interface SafeDict<T> extends Dict<T>, SafeObject {}
 interface ReadonlySafeDict<T> extends SafeDict<T> {
   readonly [key: string]: T;
 }
-interface SafeEnum extends SafeDict<1> {}
+interface SafeEnum extends ReadonlySafeDict<1> {}
+
+type TypedSafeEnum<Type> = {
+  readonly [key in keyof Type]: 1;
+} & SafeObject;
+type MappedType<Type, NewValue> = {
+  [key in keyof Type]: NewValue;
+};
 
 interface EmptyArray<T> extends Array<T> {
   [index: number]: never;
@@ -59,15 +67,20 @@ declare const enum KnownKey {
 }
 
 declare namespace BgReq {
-  interface Base {
+  interface base {
     name: string;
   }
-
-  interface Scroll extends Base {
+  interface scroll extends base {
     markName?: string | undefined;
     scroll: [number, number];
   }
-  interface Reset extends Base {
+  interface reset extends base {
     passKeys: string | null;
+  }
+  interface insertInnerCSS extends base {
+    css: string;
+  }
+  interface createMark extends base {
+    markName: string,
   }
 }

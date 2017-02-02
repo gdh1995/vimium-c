@@ -12,33 +12,37 @@ declare namespace Search {
     (query: string[], url: string): string;
   }
   type TmpRule = [string, RegExpOne | RegExpI];
-  type Rule = [string, RegExpOne | RegExpI, string, RegExpOne | RegExpI | string];
+  interface Rule {
+    readonly [0]: string;
+    readonly [1]: RegExpOne | RegExpI;
+    readonly [2]: string;
+    readonly [3]: RegExpOne | RegExpI | string;
+  }
   interface EngineMap extends SafeDict<Engine> {}
 }
 declare namespace Urls {
   type ValidEvalTag = "math" | "copy" | "search" | "ERROR";
 
-  interface BaseEvalResult extends Array<string | string[]> {
+  interface BaseEvalResult {
     readonly [0]: string | string[];
     readonly [1]: ValidEvalTag;
-    readonly length: 2 | 3;
+    readonly [2]?: undefined | string;
   }
   interface BasePlainEvalResult<T extends ValidEvalTag> extends BaseEvalResult {
     readonly [1]: T;
-    readonly length: 2;
+    readonly [2]?: undefined;
   }
   interface MathEvalResult extends BaseEvalResult {
     readonly [0]: string;
     readonly [1]: "math";
     readonly [2]: string;
-    readonly length: 3;
   }
   interface SearchEvalResult extends BasePlainEvalResult<"search"> {}
   interface CopyEvalResult extends BasePlainEvalResult<"copy"> {}
   interface ErrorEvalResult extends BaseEvalResult {
     readonly [0]: string;
     readonly [1]: "ERROR";
-    readonly length: 2;
+    readonly [2]?: undefined;
   }
 
   type EvalArrayResultWithSideEffects = CopyEvalResult;
@@ -64,13 +68,13 @@ declare namespace Urls {
   }
 
   const enum WorkType {
+    Default = 0,
     KeepAll = -2,
     ConvertKnown = -1,
-    ValidNormal = 0,
     ActIfNoSideEffects = 1,
     ActAnyway = 2,
+    ValidNormal = Default
     // EnsureString = KeepAll | ConvertKnown | ValidNormal,
-    Default = ValidNormal
   }
 
   interface Converter {
@@ -98,6 +102,7 @@ declare namespace Frames {
 
   interface Port extends chrome.runtime.Port {
     sender: Sender;
+    postMessage(request: BgReq.base): void;
   }
 
   interface Frames extends Array<Port> {
@@ -105,7 +110,10 @@ declare namespace Frames {
     [1]: Port;
   }
 
-  interface FramesMap extends SafeDict<Frames.Frames> {}
+  interface FramesMap {
+    [tabId: number]: Frames.Frames;
+    readonly __proto__: never;
+  }
 }
 interface Sender extends Readonly<Frames.Sender> {}
 interface Port extends Readonly<Frames.Port> {}
@@ -152,13 +160,12 @@ declare namespace ExclusionsNS {
 
 declare namespace CommandsNS {
   interface Options extends ReadonlySafeDict<any> {}
-  interface Description extends Array<any> {
+  interface Description {
     readonly [0]: string; // description
     readonly [1]: number; // count limit
     readonly [2]: boolean; // is background
     readonly [3]?: Options | null; // default options
     readonly [4]?: string; // alias
-    readonly length: 3 | 4 | 5;
   }
   interface Item {
     readonly alias: string | null;
@@ -166,6 +173,10 @@ declare namespace CommandsNS {
     readonly command: string;
     readonly options: Options | null;
     readonly repeat: number;
+  }
+
+  interface CallGlobalCommand {
+    (this: void): void;
   }
 }
 
@@ -185,6 +196,15 @@ declare namespace CompletersNS {
 
   type Callback = (this: void, sugs: Suggestion[],
     newAutoSelect: boolean, newMatchType: MatchType) => void;
+}
+
+declare namespace IconNS {
+  interface IconBuffer {
+    [size: string]: ImageData;
+  }
+  interface IconBufferGetter {
+    (this: void, enabled?: boolean): IconBuffer | null;
+  }
 }
 
 declare var 

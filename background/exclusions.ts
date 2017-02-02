@@ -1,5 +1,5 @@
 /// <reference path="../types/bg.exclusions.d.ts" />
-import ExcCls = ExclusionsNS.ExclusionsCls;
+declare class ExcCls extends ExclusionsNS.ExclusionsCls {}
 declare var Exclusions: ExcCls;
 
 if (!(Settings.get("exclusionRules", true).length <= 0 && document.readyState !== "complete" || Settings.updateHooks.exclusionRules)) {
@@ -95,7 +95,7 @@ var Exclusions: ExcCls = Exclusions && !(Exclusions instanceof Promise) ? Exclus
     const always_enabled = Exclusions.rules.length > 0 ? null : {
       name: "reset",
       passKeys: null
-    } as BgReq.Reset;
+    } as BgReq.reset;
     if (old_is_empty) {
       always_enabled || Settings.broadcast({
         name: "checkIfEnabled"
@@ -132,7 +132,7 @@ var Exclusions: ExcCls = Exclusions && !(Exclusions instanceof Promise) ? Exclus
 
 Exclusions.setRules(Settings.get("exclusionRules"));
 
-Settings.updateHooks.exclusionRules = function(rules: ExclusionsNS.StoredRule[]): void {
+Settings.updateHooks.exclusionRules = function(this: void, rules: ExclusionsNS.StoredRule[]): void {
   setTimeout(function() {
     const is_empty = Exclusions.rules.length <= 0;
     Exclusions.setRules(rules);
@@ -140,11 +140,11 @@ Settings.updateHooks.exclusionRules = function(rules: ExclusionsNS.StoredRule[])
   }, 17);
 };
 
-Settings.updateHooks.exclusionOnlyFirstMatch = function(value: boolean): void {
+Settings.updateHooks.exclusionOnlyFirstMatch = function(this: void, value: boolean): void {
   Exclusions.onlyFirstMatch = value;
 };
 
-Settings.updateHooks.exclusionListenHash = function(value: boolean): void {
+Settings.updateHooks.exclusionListenHash = function(this: void, value: boolean): void {
   const _this = Exclusions;
   if (!_this._listening) { return; }
   const onURLChange = _this.getOnURLChange();

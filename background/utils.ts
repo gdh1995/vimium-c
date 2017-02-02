@@ -2,7 +2,7 @@
 
 const Utils = {
   fetchHttpContents (url: string, success: (this: TextXHR, event: Event & TypedEvent<"load">) => void,
-      req: XMLHttpRequest | null): TextXHR {
+      req?: XMLHttpRequest | null): TextXHR {
     req = req || (new XMLHttpRequest() as TextXHR);
     (req as TextXHR).open("GET", url, true);
     (req as TextXHR).responseType = "text";
@@ -29,7 +29,7 @@ const Utils = {
     };
     return this.escapeText(s);
   },
-  _chromePrefixes: { "chrome-extension": 1, "chrome-search": 1, __proto__: null } as any as SafeEnum,
+  _chromePrefixes: { "chrome-extension": 1, "chrome-search": 1, __proto__: null as never } as SafeEnum,
   // url: only accept real tab's
   isRefusingIncognito (url: string): boolean {
     url = url.toLowerCase();

@@ -1157,6 +1157,9 @@ declare namespace chrome.omnibox {
  * @since Chrome 22
  */
 declare namespace chrome.runtime {
+    var PlatformOs: {
+        MAC: "mac"
+    } | undefined;
     /** This will be defined during an API method callback if there was an error */
     var lastError: void;
     /** The ID of the extension/app. */
@@ -1334,7 +1337,7 @@ declare namespace chrome.runtime {
         // Optional
         author?: any;
         automation?: any;
-        background?: {
+        background: {
             scripts?: string[];
             page?: string;
             persistent?: boolean;
@@ -1373,11 +1376,11 @@ declare namespace chrome.runtime {
             matches?: string[];
             permissions?: string[];
         };
-        content_scripts?: {
-            matches?: string[];
+        content_scripts: {
+            matches: string[];
             exclude_matches?: string[];
             css?: string[];
-            js?: string[];
+            js: string[];
             run_at?: string;
             all_frames?: boolean;
             include_globs?: string[];
@@ -1736,6 +1739,124 @@ declare namespace chrome.sessions {
 
     /** Fired when recently closed tabs and/or windows are changed. This event does not monitor synced sessions changes. */
     export var onChanged: SessionChangedEvent;
+}
+
+////////////////////
+// Storage
+////////////////////
+/**
+ * Use the chrome.storage API to store, retrieve, and track changes to user data.
+ * Permissions:  "storage"
+ * @since Chrome 20.
+ */
+declare namespace chrome.storage {
+    interface StorageArea {
+        /**
+         * Gets the amount of space (in bytes) being used by one or more items.
+         * @param callback Callback with the amount of space being used by storage, or on failure (in which case runtime.lastError will be set).
+         * Parameter bytesInUse: Amount of space being used in storage, in bytes.
+         */
+        getBytesInUse(callback: (bytesInUse: number) => void): void;
+        /**
+         * Gets the amount of space (in bytes) being used by one or more items.
+         * @param keys A single key or list of keys to get the total usage for. An empty list will return 0. Pass in null to get the total usage of all of storage.
+         * @param callback Callback with the amount of space being used by storage, or on failure (in which case runtime.lastError will be set).
+         * Parameter bytesInUse: Amount of space being used in storage, in bytes.
+         */
+        getBytesInUse(keys: string | string[] | null, callback: (bytesInUse: number) => void): void;
+        /**
+         * Removes all items from storage.
+         * @param callback Optional.
+         * Callback on success, or on failure (in which case runtime.lastError will be set).
+         */
+        clear(callback?: () => void): void;
+        /**
+         * Sets multiple items.
+         * @param items An object which gives each key/value pair to update storage with. Any other key/value pairs in storage will not be affected.
+         * Primitive values such as numbers will serialize as expected. Values with a typeof "object" and "function" will typically serialize to {}, with the exception of Array (serializes as expected), Date, and Regex (serialize using their String representation).
+         * @param callback Optional.
+         * Callback on success, or on failure (in which case runtime.lastError will be set).
+         */
+        set(items: Object, callback?: () => void): void;
+        /**
+         * Removes one item from storage.
+         * @param key A single key for items to remove.
+         * @param callback Optional.
+         * Callback on success, or on failure (in which case runtime.lastError will be set).
+         */
+        remove(key: string, callback?: () => void): void;
+        /**
+         * Removes items from storage.
+         * @param keys A list of keys for items to remove.
+         * @param callback Optional.
+         * Callback on success, or on failure (in which case runtime.lastError will be set).
+         */
+        remove(keys: string[], callback?: () => void): void;
+        /**
+         * Gets one or more items from storage.
+         * @param callback Callback with storage items, or on failure (in which case runtime.lastError will be set).
+         * Parameter items: Object with items in their key-value mappings.
+         */
+        get(callback: (items: { [key: string]: any }) => void): void;
+        /**
+         * Gets one or more items from storage.
+         * @param keys A single key to get, list of keys to get, or a dictionary specifying default values.
+         * An empty list or object will return an empty result object. Pass in null to get the entire contents of storage.
+         * @param callback Callback with storage items, or on failure (in which case runtime.lastError will be set).
+         * Parameter items: Object with items in their key-value mappings.
+         */
+        get(keys: string | string[] | Object | null, callback: (items: { [key: string]: any }) => void): void;
+    }
+
+    interface StorageChange {
+        /** Optional. The new value of the item, if there is a new value. */
+        newValue?: any;
+        /** Optional. The old value of the item, if there was an old value. */
+        oldValue?: any;
+    }
+
+    interface LocalStorageArea extends StorageArea {
+        /** The maximum amount (in bytes) of data that can be stored in local storage, as measured by the JSON stringification of every value plus every key's length. This value will be ignored if the extension has the unlimitedStorage permission. Updates that would cause this limit to be exceeded fail immediately and set runtime.lastError. */
+        QUOTA_BYTES: number;
+    }
+
+    interface SyncStorageArea extends StorageArea {
+        /** @deprecated since Chrome 40. The storage.sync API no longer has a sustained write operation quota. */
+        MAX_SUSTAINED_WRITE_OPERATIONS_PER_MINUTE: number;
+        /** The maximum total amount (in bytes) of data that can be stored in sync storage, as measured by the JSON stringification of every value plus every key's length. Updates that would cause this limit to be exceeded fail immediately and set runtime.lastError. */
+        QUOTA_BYTES: number;
+        /** The maximum size (in bytes) of each individual item in sync storage, as measured by the JSON stringification of its value plus its key length. Updates containing items larger than this limit will fail immediately and set runtime.lastError. */
+        QUOTA_BYTES_PER_ITEM: number;
+        /** The maximum number of items that can be stored in sync storage. Updates that would cause this limit to be exceeded will fail immediately and set runtime.lastError. */
+        MAX_ITEMS: number;
+        /**
+         * The maximum number of set, remove, or clear operations that can be performed each hour. This is 1 every 2 seconds, a lower ceiling than the short term higher writes-per-minute limit.
+         * Updates that would cause this limit to be exceeded fail immediately and set runtime.lastError.
+         */
+        MAX_WRITE_OPERATIONS_PER_HOUR: number;
+        /**
+         * The maximum number of set, remove, or clear operations that can be performed each minute. This is 2 per second, providing higher throughput than writes-per-hour over a shorter period of time.
+         * Updates that would cause this limit to be exceeded fail immediately and set runtime.lastError.
+         * @since Chrome 40.
+         */
+        MAX_WRITE_OPERATIONS_PER_MINUTE: number;
+    }
+
+    interface StorageChangedEvent extends chrome.events.Event<(changes: { [key: string]: StorageChange }, areaName: string) => void> {}
+
+    /** Items in the local storage area are local to each machine. */
+    var local: LocalStorageArea;
+    /** Items in the sync storage area are synced using Chrome Sync. */
+    var sync: SyncStorageArea;
+
+    /**
+     * Items in the managed storage area are set by the domain administrator, and are read-only for the extension; trying to modify this namespace results in an error.
+     * @since Chrome 33.
+     */
+    var managed: StorageArea;
+
+    /** Fired when one or more items change. */
+    var onChanged: StorageChangedEvent;
 }
 
 ////////////////////

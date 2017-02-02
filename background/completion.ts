@@ -1116,8 +1116,8 @@ window.Completers = {
     },
     init (): XMLHttpRequest {
       this.init = this.xhr;
-      Settings.updateHooks.localeEncoding = function(charset: string): void {
-        let _this = Decoder, f: () => any;
+      Settings.updateHooks.localeEncoding = function(this: void, charset: string): void {
+        let _this = Decoder, f: (item: ItemToDecode) => any;
         _this._dataUrl = charset && ("data:text/plain;charset=" + charset.toLowerCase() + ",");
         f = charset ? Array.prototype.push : _this.blank;
         _this.todos.push !== f && (_this.todos.push = f);
@@ -1135,6 +1135,6 @@ setTimeout(function() {
 
 var Completers = { filter: function(a: string, b: CompletersNS.Options, c: Callback): void {
   setTimeout(function() {
-    Completers.filter(a, b, c);
+    return Completers.filter(a, b, c);
   }, 210);
 } };
