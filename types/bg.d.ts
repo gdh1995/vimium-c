@@ -201,11 +201,23 @@ declare namespace CompletersNS {
 import Suggestion = CompletersNS.Suggestion;
 
 declare namespace IconNS {
-  interface IconBuffer {
-    [size: string]: ImageData;
+  type ValidStatus = 0 | 1 | 2;
+  type ValidSizes = "19" | "38";
+
+  interface StatusMap<T> {
+    [0]: T;
+    [1]: T;
+    [2]: T;
+  }
+  type IconBuffer = {
+    [size in ValidSizes]: ImageData;
+  }
+  type PathBuffer = {
+    [size in ValidSizes]: string;
   }
   interface AccessIconBuffer {
     (this: void, enabled: boolean): void;
+    (this: void): IconNS.StatusMap<IconNS.IconBuffer> | null;
   }
 }
 
@@ -272,6 +284,7 @@ declare namespace SettingsNS {
     userDefinedCss (this: any, css: string): void;
   }
   interface UpdateHookMap extends DeclaredUpdateHookMap {
+    showActionIcon (this: void, value: boolean): void;
     newTabUrl_f: (this: void, url_f: string) => void;
     exclusionRules?: (this: void, rules: ExclusionsNS.StoredRule[]) => void;
     exclusionOnlyFirstMatch?: (this: void, value: boolean) => void;
@@ -296,9 +309,12 @@ declare namespace SettingsNS {
     (this: any): Frames.FramesMap;
   }
 
+  interface OnSyncUpdate {
+    (this: void, changes: { [key: string]: chrome.storage.StorageChange }, area: string): void;
+  }
   interface Sync {
     set<K extends keyof PersistentSettings> (key: K, value: PersistentSettings[K] | null): void;
-    HandleStorageUpdate?: (this: void, changes: any, area: any) => void;
+    HandleStorageUpdate?: OnSyncUpdate;
   }
 
   // type NameList = Array<SettingNames>;

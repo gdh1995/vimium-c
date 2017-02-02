@@ -123,6 +123,13 @@ declare namespace BgReq {
   }
 }
 
+declare const enum ReuseType {
+  Default = 0,
+  current = Default,
+  newFg = -1,
+  newBg = -2
+}
+
 declare namespace FgReq {
   interface base {
     handler: string;
@@ -132,6 +139,12 @@ declare namespace FgReq {
     unbound?: boolean;
     names?: boolean;
     title?: string;
+  }
+  interface openUrl {
+    handler?: string;
+    url: string;
+    urls?: string[];
+    reuse?: ReuseType;
   }
 }
 

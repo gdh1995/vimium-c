@@ -1,55 +1,59 @@
-"use strict";
+/// <reference path="../types/bg.d.ts" />
+import SettingsToSync = SettingsNS.PersistentSettings;
 
 if (Settings.get("vimSync") === true) setTimeout(function() { if (!chrome.storage) { return; }
-  var Sync = Settings.Sync = {
+  type SettingsToUpdate = {
+    [key in keyof SettingsToSync]?: SettingsToSync[key] | null
+  }
+  var Sync = {
     storage: chrome.storage.sync,
-    to_update: null,
+    to_update: null as SettingsToUpdate | null,
     doNotSync: Object.setPrototypeOf({
       findModeRawQueryList: 1, keyboard: 1
-    }, null),
+    }, null) as TypedSafeEnum<SettingsToSync>,
     HandleStorageUpdate: function(changes, area) {
-      var change, key;
       if (area !== "sync") { return; }
       Object.setPrototypeOf(changes, null);
-      for (key in changes) {
-        change = changes[key];
+      for (let key in changes) {
+        let change = changes[key];
         Sync.storeAndPropagate(key, change != null ? change.newValue : null);
       }
-    },
-    storeAndPropagate: function(key, value) {
-      var curVal, jsonVal, defaultVal = Settings.defaults[key], notJSON;
+    } as SettingsNS.OnSyncUpdate,
+    storeAndPropagate (key: string, value: any) {
       if (!this.shouldSyncKey(key)) { return; }
+      const defaultVal = Settings.defaults[key];
       if (value == null) {
         if (key in localStorage) {
-          Settings.set(key, defaultVal);
+          Settings.set(key as any, defaultVal as any);
         }
         return;
       }
-      curVal = Settings.get(key);
+      let curVal = Settings.get(key), curJSON: string, jsonVal: string, notJSON: boolean;
       if (notJSON = typeof defaultVal === "string") {
-        jsonVal = value;
+        jsonVal = value as string;
+        curJSON = curVal as string;
       } else {
         jsonVal = JSON.stringify(value);
-        curVal = JSON.stringify(curVal);
+        curJSON = JSON.stringify(curVal);
       }
-      if (jsonVal === curVal) { return; }
+      if (jsonVal === curJSON) { return; }
       curVal = notJSON ? defaultVal : JSON.stringify(defaultVal);
       if (jsonVal === curVal) {
         value = defaultVal;
       }
       Settings.set(key, value);
     },
-    set: function(key, value) {
+    set<K extends keyof SettingsToSync> (key: K, value: SettingsToSync[K] | null): void {
       if (!this.shouldSyncKey(key)) { return; }
-      var items = this.to_update;
+      let items = this.to_update;
       if (!items) {
         setTimeout(this.DoUpdate, 60000);
-        items = this.to_update = Object.create(null);
+        items = this.to_update = Object.create(null) as SettingsToUpdate;
       }
       items[key] = value;
     },
-    DoUpdate: function() {
-      var items = Sync.to_update, removed = [], key, left = 0;
+    DoUpdate (this: void): void {
+      let items = Sync.to_update, removed = [] as string[], key: keyof SettingsToUpdate, left = 0;
       Sync.to_update = null;
       if (!items) { return; }
       for (key in items) {
@@ -67,13 +71,14 @@ if (Settings.get("vimSync") === true) setTimeout(function() { if (!chrome.storag
         Sync.storage.set(items);
       }
     },
-    shouldSyncKey: function(key) {
-      return (key in Settings.defaults) && !(key in this.doNotSync);
+    shouldSyncKey (key: string): key is keyof SettingsToSync {
+      return !(key in this.doNotSync);
     }
   };
+  Settings.Sync = Sync as SettingsNS.Sync;
   chrome.storage.onChanged.addListener(Sync.HandleStorageUpdate);
-  Sync.storage.get(null, function(items) {
-    var key, value;
+  Sync.storage.get(null, function(items): void {
+    let key, value: void;
     if (value = chrome.runtime.lastError) { return value; }
     Object.setPrototypeOf(items, null);
     for (key in items) {
@@ -83,23 +88,25 @@ if (Settings.get("vimSync") === true) setTimeout(function() { if (!chrome.storag
 }, 400);
 
 setTimeout((function() { if (!chrome.browserAction) { return; }
-  var func = Settings.updateHooks.showActionIcon, imageData, tabIds;
-  function loadImageAndSetIcon(type, path) {
-    var img, i, cache = Object.create(null), count = 0,
-    onerror = function() {
+  var func = Settings.updateHooks.showActionIcon, imageData: IconNS.StatusMap<IconNS.IconBuffer> | null
+    , tabIds: IconNS.StatusMap<number[]> | null;
+  function loadImageAndSetIcon(type: IconNS.ValidStatus, path: IconNS.PathBuffer) {
+    let img: HTMLImageElement, i: IconNS.ValidSizes, cache = Object.create(null) as IconNS.IconBuffer, count = 0,
+    onerror = function(this: HTMLImageElement): void {
       console.error('Could not load action icon \'' + this.src + '\'.');
     },
-    onload = function() {
-      var canvas = document.createElement('canvas'), w, h, ctx;
+    onload = function(this: HTMLImageElement): void {
+      let canvas: HTMLCanvasElement | null = document.createElement('canvas')
+        , w: number, h: number, ctx: CanvasRenderingContext2D | null;
       canvas.width = w = this.width, canvas.height = h = this.height;
-      ctx = canvas.getContext('2d');
+      ctx = canvas.getContext('2d') as CanvasRenderingContext2D;
       ctx.clearRect(0, 0, w, h);
       ctx.drawImage(this, 0, 0, w, h);
-      cache[w] = ctx.getImageData(0, 0, w, h);
+      cache[w as 19 | 38] = ctx.getImageData(0, 0, w, h);
       if (count++) { return; }
-      imageData[type] = cache;
-      var arr = tabIds[type];
-      delete tabIds[type];
+      (imageData as IconNS.StatusMap<IconNS.IconBuffer>)[type] = cache;
+      var arr = (tabIds as IconNS.StatusMap<number[]>)[type];
+      delete (tabIds as IconNS.StatusMap<number[]>)[type];
       for (w = 0, h = arr.length; w < h; w++) {
         g_requestHandlers.SetIcon(arr[w], type);
       }
@@ -111,62 +118,70 @@ setTimeout((function() { if (!chrome.browserAction) { return; }
       img.src = path[i];
     }
   }
-  Settings.IconBuffer = function(enabled) {
+  Settings.IconBuffer = function(this: void, enabled?: boolean): IconNS.StatusMap<IconNS.IconBuffer> | null | void {
     if (enabled === undefined) { return imageData; }
     if (!enabled) {
-      return imageData && setTimeout(function() {
+      imageData && setTimeout(function() {
         if (Settings.get("showActionIcon")) { return; }
         imageData = tabIds = null;
       }, 200);
+      return;
     }
     if (imageData) { return; }
     imageData = Object.create(null);
     tabIds = Object.create(null);
-  };
-  g_requestHandlers.SetIcon = function(tabId, type) {
+  } as IconNS.AccessIconBuffer;
+  g_requestHandlers.SetIcon = function(tabId: number, type: IconNS.ValidStatus): void {
     var data, path;
-    if (data = imageData[type]) {
+    if (data = (imageData as IconNS.StatusMap<IconNS.IconBuffer>)[type]) {
       chrome.browserAction.setIcon({
         tabId: tabId,
         imageData: data
       });
-    } else if (tabIds[type]) {
-      tabIds[type].push(tabId);
+    } else if ((tabIds as IconNS.StatusMap<number[]>)[type]) {
+      (tabIds as IconNS.StatusMap<number[]>)[type].push(tabId);
     } else if (path = Settings.icons[type]) {
       setTimeout(loadImageAndSetIcon, 0, type, path);
-      tabIds[type] = [tabId];
+      (tabIds as IconNS.StatusMap<number[]>)[type] = [tabId];
     }
   };
   Settings.updateHooks.showActionIcon = function(value) {
-    func.call(this, value);
-    Settings.IconBuffer(value);
+    func(value);
+    (Settings.IconBuffer as IconNS.AccessIconBuffer)(value);
+    let title = "Vimium++";
     if (value) {
-      chrome.browserAction.setTitle({
-        title: "Vimium++"
-      });
       chrome.browserAction.enable();
     } else {
       chrome.browserAction.disable();
-      chrome.browserAction.setTitle({
-        title: "Vimium++\n\nThis icon is disabled by your settings."
-      });
+      title += "\n\nThis icon is disabled by your settings."
     }
+    return chrome.browserAction.setTitle({ title });
   };
   Settings.postUpdate("showActionIcon");
 }), 150);
 
 setTimeout((function() { if (!chrome.omnibox) { return; }
-  var last, firstResult, lastSuggest,
-  tempRequest, timeout = 0, sessionIds, suggestions = null, outTimeout = 0, outTime,
+  interface SuggestionEx extends Suggestion {
+    description?: string;
+  }
+  interface OmniboxCallback extends Partial<CompletersNS.QueryStatus> {
+    (this: void, suggestResults: chrome.omnibox.SuggestResult[]): true;
+    (this: void): void;
+  }
+  var last: string = "", firstResult: Suggestion | null, lastSuggest: OmniboxCallback | null
+    , tempRequest: [string, OmniboxCallback] | null
+    , timeout = 0, sessionIds: SafeDict<string | number> | null
+    , suggestions = null as chrome.omnibox.SuggestResult[] | null, outTimeout = 0, outTime: number
+    , defaultSuggestionType: 0 | 1 | 2 | 3 = 0, matchType: CompletersNS.MatchType = 0
+    , firstType: CompletersNS.ValidTypes | "",
   defaultSug = { description: "<dim>Open: </dim><url>%s</url>" },
-  defaultSuggestionType = 0, matchType = 0, firstType,
-  formatSessionId = function(sug) {
+  formatSessionId = function(sug: Suggestion) {
     if (sug.sessionId != null) {
-      sessionIds[sug.url] = sug.sessionId;
+      (sessionIds as SafeDict<string | number>)[sug.url] = sug.sessionId;
     }
   },
-  format = function(sug) {
-    var str;
+  format = function(this: void, sug: SuggestionEx): chrome.omnibox.SuggestResult {
+    let str: string;
     if (sug.description) {
       str = sug.description;
     } else {
@@ -179,14 +194,13 @@ setTimeout((function() { if (!chrome.omnibox) { return; }
       description: str
     };
   },
-  clean = function() {
+  clean = function(): true {
     if (lastSuggest) { lastSuggest.isOff = true; }
-    sessionIds = tempRequest = suggestions = lastSuggest =
-    firstResult = last = null;
+    sessionIds = tempRequest = suggestions = lastSuggest = firstResult = null;
     if (outTimeout) { clearTimeout(outTimeout); }
     outTime = matchType = outTimeout = 0;
-    firstType = "";
-    Utils.resetRe();
+    firstType = last = "";
+    return Utils.resetRe();
   },
   outClean = function() {
     if (Date.now() - outTime > 5000) {
@@ -201,10 +215,11 @@ setTimeout((function() { if (!chrome.omnibox) { return; }
     var arr;
     if (arr = tempRequest) {
       tempRequest = null;
-      onInput(arr[0], arr[1]);
+      return onInput(arr[0], arr[1]);
     }
   },
-  onComplete = function(suggest, response, autoSelect, newMatchType) {
+  onComplete = function(this: null, suggest: OmniboxCallback, response: Suggestion[]
+      , autoSelect: boolean, newMatchType: CompletersNS.MatchType): void {
     if (!lastSuggest || suggest.isOff) { return; }
     if (suggest === lastSuggest) { lastSuggest = null; }
     var sug = response[0];
@@ -212,10 +227,10 @@ setTimeout((function() { if (!chrome.omnibox) { return; }
       sessionIds = Object.create(null);
       response.forEach(formatSessionId);
     }
-    firstType = response.length > 0 ? response[0].type : "";
+    firstType = response.length > 0 ? response[0].type as CompletersNS.ValidTypes : "";
     matchType = newMatchType;
     if (autoSelect) {
-      firstResult = response.shift();
+      firstResult = response.shift() as Suggestion;
     }
     if (!autoSelect) {
       if (defaultSuggestionType !== 1) {
@@ -223,28 +238,28 @@ setTimeout((function() { if (!chrome.omnibox) { return; }
         defaultSuggestionType = 1;
       }
     } else if (sug.type === "search") {
-      var text = sug.titleSplit.split(": <")[0];
-      text = "<dim>" + text + " - </dim><url>" + sug.textSplit + "</url>";
+      let text = (sug.titleSplit as string).split(": <")[0];
+      text = `<dim>${text} - </dim><url>${sug.textSplit}</url>`;
       defaultSuggestionType = 2;
       chrome.omnibox.setDefaultSuggestion({ description: text });
       if (sug = response[0]) switch (sug.type) {
       case "math":
-        sug.description = "<dim>" + sug.textSplit
-          + " = </dim><url><match>" + sug.title + "</match></url>";
+        (sug as SuggestionEx).description = `<dim>${sug.textSplit} = </dim><url><match>${sug.title}</match></url>`;
         break;
       }
     } else {
       defaultSuggestionType = 3;
       chrome.omnibox.setDefaultSuggestion({ description: format(sug).description });
     }
-    response = response.map(format);
+    suggestions = response.map(format);
     outTimeout || setTimeout(outClean, 30000);
     Utils.resetRe();
-    return suggest(suggestions = response);
+    suggest(suggestions);
+    return;
   },
-  onInput = function(key, suggest) {
+  onInput = function(this: void, key: string, suggest: OmniboxCallback): void {
     key = key.trim().replace(Utils.spacesRe, " ");
-    if (key === last) { suggestions && suggest(suggestions); return; }
+    if (key === last) { suggestions && suggest(suggestions as chrome.omnibox.SuggestResult[]); return; }
     lastSuggest && (lastSuggest.isOff = true);
     if (timeout) {
       tempRequest = [key, suggest];
@@ -256,28 +271,27 @@ setTimeout((function() { if (!chrome.omnibox) { return; }
     timeout = setTimeout(onTimer, 500);
     outTime = Date.now();
     sessionIds = suggestions = firstResult = null;
-    var newMatchType = 0, type;
-    type = matchType < 2 || !key.startsWith(last) ? "omni"
-      : matchType === 3 ? "search" : (newMatchType = matchType, firstType);
+    let newMatchType: CompletersNS.MatchType = CompletersNS.MatchType.Default;
+    const type: CompletersNS.ValidTypes = matchType < 2 || !key.startsWith(last) ? "omni"
+      : matchType === 3 ? "search" : (newMatchType = matchType, firstType || "omni");
     matchType = newMatchType;
     last = key;
     lastSuggest = suggest;
-    Completers.filter(key, {
+    return Completers.filter(key, {
       type: type,
       maxResults: 6
     }, onComplete.bind(null, suggest));
   },
-  onEnter = function(text, disposition) {
+  onEnter = function(this: void | null, text: string, disposition?: string): void {
     text = text.trim();
     if (tempRequest && tempRequest[0] === text) {
-      tempRequest = [text, onEnter.bind(null, text, disposition)];
-      onTimer();
-      return;
+      tempRequest = [text, onEnter.bind(null, text, disposition) as OmniboxCallback];
+      return onTimer();
     } else if (lastSuggest) {
       return;
     }
     if (firstResult && text === last) { text = firstResult.url; }
-    var sessionId = sessionIds && sessionIds[text];
+    const sessionId = sessionIds && sessionIds[text];
     clean();
     if (sessionId != null) {
       g_requestHandlers.gotoSession({ sessionId: sessionId });
@@ -285,36 +299,36 @@ setTimeout((function() { if (!chrome.omnibox) { return; }
     }
     g_requestHandlers.openUrl({
       url: text,
-      reuse: (disposition === "currentTab" ? 0
-        : disposition === "newForegroundTab" ? -1 : -2)
-    });
+      reuse: (disposition === "currentTab" ? ReuseType.current
+        : disposition === "newForegroundTab" ? ReuseType.newFg : ReuseType.newBg)
+    } as FgReq.openUrl);
   };
   chrome.omnibox.onInputChanged.addListener(onInput);
   chrome.omnibox.onInputEntered.addListener(onEnter);
 }), 600);
 
-var a, cb;
+var a: any, cb: (i: any) => void;
 // According to tests: onInstalled will be executed after 0 ~ 16 ms if needed
-(a = chrome.runtime.onInstalled) && a.addListener(cb = function(details) {
-  var reason = details.reason;
+(a = chrome.runtime.onInstalled) && (a as typeof chrome.runtime.onInstalled).addListener(cb =
+function(details: chrome.runtime.InstalledDetails) {
+  let reason = details.reason;
   if (reason === "install") { reason = ""; }
-  else if (reason === "update") { reason = details.previousVersion; }
+  else if (reason === "update") { reason = details.previousVersion as string; }
   else { return; }
 
 setTimeout(function() {
   chrome.tabs.query({
     status: "complete"
   }, function(tabs) {
-    var _i = tabs.length, tabId, _j, _len, callback, url, t = chrome.tabs, ref, contentScripts, js;
-    callback = function() { return chrome.runtime.lastError; };
-    contentScripts = chrome.runtime.getManifest().content_scripts[0];
-    ref = {file: "", allFrames: contentScripts.all_frames};
-    js = contentScripts.js;
-    for (_len = js.length - 1; 0 <= --_i; ) {
-      url = tabs[_i].url;
-      if (url.startsWith("chrome") || url.indexOf("://") === -1) continue;
-      tabId = tabs[_i].id;
-      for (_j = 0; _j < _len; ++_j) {
+    const t = chrome.tabs, callback = function() { return chrome.runtime.lastError; },
+      contentScripts = chrome.runtime.getManifest().content_scripts[0],
+      ref = {file: "", allFrames: contentScripts.all_frames},
+      js = contentScripts.js;
+    for (let _i = tabs.length, _len = js.length - 1; 0 <= --_i; ) {
+      let url = tabs[_i].url;
+      if (url.startsWith("chrome") || url.indexOf("://") === -1) { continue; }
+      let tabId = tabs[_i].id;
+      for (let _j = 0; _j < _len; ++_j) {
         ref.file = js[_j];
         t.executeScript(tabId, ref, callback);
       }
@@ -339,10 +353,10 @@ setTimeout(function() {
     message: "Vimium++ has been upgraded to version " + Settings.CONST.CurrentVersionName
       + ". Click here for more information.",
     isClickable: true
-  }, function(notificationId) {
-    var popup = chrome.notifications, e;
-    chrome.notifications = null;
-    if (e = chrome.runtime.lastError) { return e; }
+  }, function(notificationId): void {
+    const popup = chrome.notifications, e: void = chrome.runtime.lastError;
+    (chrome as any).notifications = null;
+    if (e) { return e; }
     reason = notificationId || reason;
     popup.onClicked.addListener(function(id) {
       if (id !== reason) { return; }
@@ -357,7 +371,7 @@ setTimeout(function() {
 setTimeout((function() {
   if (a) {
     a.removeListener(cb);
-    chrome.runtime.onInstalled = a = null;
+    (chrome.runtime as any).onInstalled = a = null;
   }
   cb = function(b) { a = b; console.log(b); };
   Utils.resetRe();
