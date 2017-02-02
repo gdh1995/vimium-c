@@ -100,6 +100,18 @@ declare namespace BgReq {
   }
 }
 
+declare namespace FgReq {
+  interface base {
+    handler: string;
+  }
+  interface initHelp {
+    handler: "initHelp";
+    unbound?: boolean;
+    names?: boolean;
+    title?: string;
+  }
+}
+
 interface FrontendSettings {
   deepHints: boolean;
   grabBackFocus: boolean;
