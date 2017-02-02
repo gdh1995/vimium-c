@@ -66,6 +66,17 @@ declare const enum KnownKey {
   maxCommentHead = hash,
 }
 
+interface ChildKeyMap {
+  [index: string]: 0 | ChildKeyMap;
+  readonly __proto__: never;
+}
+interface ReadonlyChildKeyMap {
+  readonly [index: string]: 0 | ReadonlyChildKeyMap;
+}
+interface KeyMap {
+  readonly [index: string]: 0 | 1 | ReadonlyChildKeyMap;
+}
+
 declare namespace BgReq {
   interface base {
     name: string;
@@ -82,6 +93,10 @@ declare namespace BgReq {
   }
   interface createMark extends base {
     markName: string;
+  }
+  interface keyMap extends base {
+    mapKeys: SafeDict<string>;
+    keyMap: KeyMap;
   }
 }
 

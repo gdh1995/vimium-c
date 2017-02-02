@@ -159,6 +159,7 @@ declare namespace ExclusionsNS {
 }
 
 declare namespace CommandsNS {
+  interface RawOptions extends SafeDict<any> {}
   interface Options extends ReadonlySafeDict<any> {}
   interface Description {
     readonly [0]: string; // description
@@ -275,6 +276,7 @@ declare namespace SettingsNS {
     exclusionOnlyFirstMatch?: (this: void, value: boolean) => void;
     exclusionListenHash?: (this: void, value: boolean) => void;
     localeEncoding?: (this: void, value: string) => void;
+    keyMappings?: (this: any, value: string) => void;
   }
 
   interface FullCache extends Partial<FullSettings> {
@@ -303,9 +305,9 @@ declare namespace SettingsNS {
 import FullSettings = SettingsNS.FullSettings;
 
 declare var 
-  g_requestHandlers: any,
-  CommandsData: any;
+  g_requestHandlers: any;
 
 interface Window {
   readonly MathParser?: any;
+  readonly CommandsData?: undefined;
 }

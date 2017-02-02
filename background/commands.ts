@@ -1,12 +1,13 @@
-"use strict";
+/// <reference path="../types/bg.d.ts" />
+
 var Commands = {
-  setKeyRe: function(keyReSource) {
-    Utils.keyRe = new RegExp(keyReSource, "g");
+  setKeyRe (keyReSource: string): void {
+    Utils.keyRe = new RegExp(keyReSource, "g") as RegExpG & RegExpSearchable<0>;
   },
-  getOptions: function(item) {
-    var opt, i = 3, len = item.length, ind, str, val;
+  getOptions (item: string[]): CommandsNS.Options | null {
+    let opt: CommandsNS.RawOptions, i = 3, len = item.length, ind: number, str: string | undefined, val: string;
     if (len <= i) { return null; }
-    opt = Object.create(null);
+    opt = Object.create<any>(null) as CommandsNS.RawOptions;
     while (i < len) {
       str = item[i++];
       ind = str.indexOf("=");
@@ -22,8 +23,8 @@ var Commands = {
     }
     return str ? opt : null;
   },
-  hexCharRe: /\\(?:x([\da-z]{2})|\\)/gi,
-  parseVal: function(val) {
+  hexCharRe: <RegExpGI & RegExpSearchable<1>> /\\(?:x([\da-z]{2})|\\)/gi,
+  parseVal (val: string): any {
     try {
       return JSON.parse(val);
     } catch(e) {}
@@ -34,27 +35,27 @@ var Commands = {
     } catch(e) {}
     return val;
   },
-  onHex: function(s, hex) {
+  onHex (_s: string, hex: string): string {
     return hex ? "\\u00" + hex : '\\\\';
   },
-  loadDefaults: function() {
-    var defaultMap = this.defaultKeyMappings, registry = CommandsData.keyToCommandRegistry
-      , pair, i = defaultMap.length;
-    while (0 <= --i) {
-      pair = defaultMap[i];
+  loadDefaults (): void {
+    const defaultMap = this.defaultKeyMappings, registry = CommandsData.keyToCommandRegistry;
+    for (let i = defaultMap.length; 0 <= --i; ) {
+      const pair = defaultMap[i];
       registry[pair[0]] = Utils.makeCommand(pair[1]);
     }
   },
-  parseKeyMappings: (function(line) {
-    var key, lines, splitLine, mk = 0, _i = 0, _len, mkReg, registry, details, available;
-    registry = CommandsData.keyToCommandRegistry = Object.create(null);
-    mkReg = Object.create(null);
-    available = CommandsData.availableCommands;
-    lines = line.replace(/\\\n/g, "").replace(/[\t ]+/g, " ").split("\n");
-    lines[0] !== "unmapAll" ? this.loadDefaults() : ++_i;
+  parseKeyMappings: (function(this: any, line: string): void {
+    let key: string, lines: string[], splitLine: string[], mk = 0, _i = 0
+      , _len: number, details: CommandsNS.Description;
+    let registry = CommandsData.keyToCommandRegistry = Object.create<CommandsNS.Item>(null)
+      , mkReg = Object.create<string>(null);
+    const available = CommandsData.availableCommands;
+    lines = line.replace(<RegExpG> /\\\n/g, "").replace(<RegExpG> /[\t ]+/g, " ").split("\n");
+    lines[0] !== "unmapAll" ? (this as typeof Commands).loadDefaults() : ++_i;
     for (_len = lines.length; _i < _len; _i++) {
       line = lines[_i].trim();
-      if (!(line.charCodeAt(0) > 35)) { continue; } // mask: /[!"#]/
+      if (!(line.charCodeAt(0) > KnownKey.maxCommentHead)) { continue; } // mask: /[!"#]/
       splitLine = line.split(" ");
       key = splitLine[0];
       if (key === "map") {
@@ -67,16 +68,16 @@ var Commands = {
              "has been mapped to", registry[splitLine[1]].command);
         } else {
           registry[splitLine[1]] =
-            Utils.makeCommand(key, this.getOptions(splitLine), details);
+            Utils.makeCommand(key, (this as typeof Commands).getOptions(splitLine), details);
         }
       } else if (key === "unmapAll") {
         registry = CommandsData.keyToCommandRegistry = Object.create(null);
-        mkReg = Object.create(null), mk = 0;
+        mkReg = Object.create<string>(null), mk = 0;
       } else if (key === "mapkey" || key === "mapKey") {
         if (splitLine.length !== 3) {
           console.log("MapKey needs both source and target keys:", line);
-        } else if ((key = splitLine[1]).length > 1 && key.match(Utils.keyRe).length > 1
-          || splitLine[2].length > 1 && splitLine[2].match(Utils.keyRe).length > 1) {
+        } else if ((key = splitLine[1]).length > 1 && (key.match(Utils.keyRe) as RegExpMatchArray).length > 1
+          || splitLine[2].length > 1 && (splitLine[2].match(Utils.keyRe) as RegExpMatchArray).length > 1) {
           console.log("MapKey: a source / target key should be a single key:", line);
         } else if (key in mkReg) {
           console.log("This key %c" + key, "color:red;",
@@ -97,17 +98,20 @@ var Commands = {
     }
     CommandsData.mapKeyRegistry = mk > 0 ? mkReg : null;
   }),
-  populateCommandKeys: (function() {
-    var key, ref, ref2, arr, keyRe = Utils.keyRe, ch, j, last, tmp, func;
-    ref = Object.create(null);
-    for (ch = 10; 0 <= --ch; ) { ref[ch] = 1; }
+  populateCommandKeys: (function(this: void): void {
+    const ref = CommandsData.keyMap = Object.create(null) as {
+      [key: string]: 0 | 1 | ChildKeyMap
+    } & SafeObject;
+    let key: string, ref2: ChildKeyMap, arr: RegExpExecArray
+      , keyRe = Utils.keyRe, ch: number, j: number, last: number, tmp: ChildKeyMap | 0 | 1;
+    for (ch = 10; 0 <= --ch; ) { ref[ch] = 1 as 0; }
     for (key in CommandsData.keyToCommandRegistry) {
       ch = key.charCodeAt(0);
       if (ch >= 48 && ch < 58) {
         console.warn("invalid key command:", key, "(the first char can not be [0-9])");
         continue;
       }
-      arr = key.match(keyRe);
+      arr = key.match(keyRe) as RegExpExecArray;
       if (arr.length === 1) {
         if (key in ref) {
           console.log("inactive keys:", ref[key], "with", key);
@@ -116,7 +120,7 @@ var Commands = {
         }
         continue;
       }
-      for (ref2 = tmp = ref, j = 0, last = arr.length - 1; j <= last; j++, ref2 = tmp) {
+      for (ref2 = tmp = ref as any as ChildKeyMap, j = 0, last = arr.length - 1; j <= last; j++, ref2 = tmp) {
         tmp = ref2[arr[j]];
         if (!tmp || j === last) {
           tmp === 0 && console.warn("inactive key:", key, "with"
@@ -126,12 +130,12 @@ var Commands = {
       }
       if (tmp === 0) { continue; }
       tmp != null && console.warn("inactive keys:", tmp, "with", key);
-      while (j < last) { ref2 = ref2[arr[j++]] = Object.create(null); }
+      while (j < last) { ref2 = ref2[arr[j++]] = Object.create(null) as ChildKeyMap; }
       ref2[arr[last]] = 0;
     }
 
-    func = function(obj) {
-      var key, val;
+    const func = function(obj: ChildKeyMap): void {
+      let key, val: 0 | ChildKeyMap;
       for (key in obj) {
         val = obj[key];
         if (val !== 0) { func(val); }
@@ -139,10 +143,9 @@ var Commands = {
       }
     };
     for (key in ref) {
-      ref2 = ref[key];
-      if (ref2 !== 0 && ref2 !== 1) { func(ref2); }
+      tmp = ref[key];
+      if (tmp !== 0 && tmp !== 1) { func(tmp); }
     }
-    CommandsData.keyMap = ref;
     if (Settings.Init) { return Settings.Init(); }
   }),
 
@@ -215,14 +218,14 @@ defaultKeyMappings: [
   ["<f2>", "switchFocus"],
   ["m", "Marks.activateCreateMode"],
   ["`", "Marks.activate"]
-]
+] as [string, string][]
 },
-CommandsData = CommandsData || {
-  keyToCommandRegistry: null,
-  keyMap: null,
-  mapKeyRegistry: null,
+CommandsData = window.CommandsData || {
+  keyToCommandRegistry: null as any as SafeDict<CommandsNS.Item>,
+  keyMap: null as any as KeyMap,
+  mapKeyRegistry: null as SafeDict<string> | null,
 availableCommands: {
-  __proto__: null,
+  __proto__: null as never,
   showHelp: [ "Show help", 1, false ],
   debugBackground: [ "Debug the background page", 1, true,
     { reuse: 1, url: "chrome://extensions/?id=$id", id_marker: "$id" }, "openUrl" ],
@@ -360,22 +363,22 @@ availableCommands: {
   clearGlobalMarks: [ "Remove all global marks (deprecated)", 1, true ],
   openUrl: [ "open url (use url, reuse=[-2..1])", 20, true ],
   focusOrLaunch: [ 'focus a tab with given url or open it (use url="", prefix)', 1, true, { reuse: 1 }, "openUrl" ]
-}
+} as SafeDict<CommandsNS.Description>
 };
 
 if (document.readyState !== "complete") {
   Commands.parseKeyMappings(Settings.get("keyMappings"));
-  Commands.defaultKeyMappings = null;
+  Commands.defaultKeyMappings = null as any as typeof Commands.defaultKeyMappings;
   Commands.populateCommandKeys();
-  Commands = null;
-  chrome.commands && chrome.commands.onCommand.addListener(Settings.globalCommand);
+  Commands = null as any;
+  chrome.commands && chrome.commands.onCommand.addListener(Settings.globalCommand as CommandsNS.CallGlobalCommand);
 } else
-(Settings.updateHooks.keyMappings = function(value) {
+Settings.updateHooks.keyMappings = function(value: string): void {
   Commands.parseKeyMappings(value);
   Commands.populateCommandKeys();
-  this.broadcast({
+  return (this as typeof Settings).broadcast({
     name: "keyMap",
     mapKeys: CommandsData.mapKeyRegistry,
     keyMap: CommandsData.keyMap
-  });
-});
+  } as BgReq.keyMap);
+};
