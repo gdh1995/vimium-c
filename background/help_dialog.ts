@@ -15,7 +15,7 @@ const HelpDialog = {
       title: request.title || "Help",
       tip: showNames ? "Tip: click command names to copy them to the clipboard." : "",
       lbPad: showNames ? '\n\t\t<tr class="HelpTr"><td class="HelpTd TdBottom">&#160;</td></tr>' : ""
-    }, null);
+    }, null) as SafeDict<string>;
     return (<string>Settings.cache.helpDialog).replace(<RegExpSearchable<1>>/\{\{(\w+)}}/g, function(_, group: string) {
       let s = result[group];
       return s != null ? s

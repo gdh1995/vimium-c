@@ -47,17 +47,40 @@ interface String {
 
 declare namespace CompletersNS {
   const enum MatchType {
-    plain = 0,
+    Default = 0,
+    plain = Default,
     emptyResult = 1, // require query is not empty
     singleMatch = 2,
     reset = -1,
     _searching = -2, searchWanted = 3 // are same
   }
   type ValidTypes = "bookm" | "domain" | "history" | "omni" | "search" | "tab";
+  /**
+   * "math" can not be the first suggestion, which is limited by omnibox handlers
+   */
+  type ValidSugTypes = ValidTypes | "math";
   interface Options {
     clientWidth?: number;
     maxResults?: number;
     type: ValidTypes;
+  }
+
+  interface WritableCoreSuggestion {
+    type: ValidSugTypes;
+    url: string;
+    title: string;
+    text: string;
+  }
+
+  type CoreSuggestion = Readonly<WritableCoreSuggestion>;
+
+  interface Suggestion extends CoreSuggestion {
+    text: string;
+    relevancy: number;
+
+    textSplit?: string;
+    titleSplit?: string;
+    sessionId?: string | number;
   }
 }
 

@@ -9,7 +9,7 @@ const Settings = {
   bufferToLoad: null as FrontendSettingCache | null,
   extWhiteList: null as SafeDict<true> | null,
   Init: null as ((this: void) => void) | null,
-  IconBuffer: null as IconNS.IconBufferGetter | null,
+  IconBuffer: null as IconNS.AccessIconBuffer | null,
   globalCommand: null as CommandsNS.CallGlobalCommand | null,
   getExcluded: Utils.getNull as (this: void, url: string) => string | null,
   get<K extends keyof SettingsWithDefaults> (key: K, forCache?: boolean): SettingsWithDefaults[K] {
@@ -124,7 +124,7 @@ const Settings = {
       }
       if (value || !(this as typeof Settings).Sync.HandleStorageUpdate) { return; }
       setTimeout(function() {
-        (chrome as any).storage.onChanged.removeListener(Settings.Sync.HandleStorageUpdate);
+        chrome.storage.onChanged.removeListener(Settings.Sync.HandleStorageUpdate as SettingsNS.OnSyncUpdate);
         Settings.Sync = { set: function() {} };
       }, 100);
     },

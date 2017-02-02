@@ -284,24 +284,26 @@ interface Function {
       * @param thisArg An object to which the this keyword can refer inside the new function.
       * @param argArray A list of arguments to be passed to the new function.
       */
-    bind<R, T>(this: (this: T) => R, thisArg: T): (this: void) => R;
-
-    bind<R, T, A>(this: (this: T, a: A) => R, thisArg: T, a: A): (this: void) => R;
-    bind<R, T, A>(this: (this: T, a: A) => R, thisArg: T): (this: void, a: A) => R;
-
-    bind<R, T, A, B>(this: (this: T, a: A, b: B) => R, thisArg: T, a: A, b: B): (this: void) => R;
-    bind<R, T, A, B>(this: (this: T, a: A, b: B) => R, thisArg: T, a: A): (this: void, b: B) => R;
-    bind<R, T, A, B>(this: (this: T, a: A, b: B) => R, thisArg: T): (this: void, a: A, b: B) => R;
-
-    bind<R, T, A, B, C>(this: (this: T, a: A, b: B, c: C) => R, thisArg: T, a: A, b: B, c: C): (this: void) => R;
-    bind<R, T, A, B, C>(this: (this: T, a: A, b: B, c: C) => R, thisArg: T, a: A, b: B): (this: void, c: C) => R;
-    bind<R, T, A, B, C>(this: (this: T, a: A, b: B, c: C) => R, thisArg: T, a: A): (this: void, b: B, c: C) => R;
-    bind<R, T, A, B, C>(this: (this: T, a: A, b: B, c: C) => R, thisArg: T): (this: void, a: A, b: B, c: C) => R;
-
-    bind<R, T, A, B, C, D>(this: (this: T, a: A, b: B, c: C, d: D) => R, thisArg: T
-      , a: A, b: B, c: C): (this: void, d: D) => R;
     bind<R, T, A, B, C, D, E>(this: (this: T, a: A, b: B, c: C, d: D, e: E) => R, thisArg: T
       , a: A, b: B, c: C, d: D): (this: void, e: E) => R;
+    bind<R, T, A, B, C>(this: (this: T, a: A, b: B, c: C) => R, thisArg: T, a: A, b: B, c: C): (this: void) => R;
+    bind<R, T, A, B, C, D>(this: (this: T, a: A, b: B, c: C, d: D) => R, thisArg: T
+      , a: A, b: B, c: C): (this: void, d: D) => R;
+    bind<R, T, A, B>(this: (this: T, a: A, b: B) => R, thisArg: T, a: A, b: B): (this: void) => R;
+    bind<R, T, A, B, C>(this: (this: T, a: A, b: B, c: C) => R, thisArg: T, a: A, b: B): (this: void, c: C) => R;
+    bind<R, T, A, B, C, D>(this: (this: T, a: A, b: B, c: C, d: D) => R, thisArg: T
+      , a: A, b: B): (this: void, c: C, d: D) => R;
+    bind<R, T, A>(this: (this: T, a: A) => R, thisArg: T, a: A): (this: void) => R;
+    bind<R, T, A, B>(this: (this: T, a: A, b: B) => R, thisArg: T, a: A): (this: void, b: B) => R;
+    bind<R, T, A, B, C>(this: (this: T, a: A, b: B, c: C) => R, thisArg: T, a: A): (this: void, b: B, c: C) => R;
+    bind<R, T, A, B, C, D>(this: (this: T, a: A, b: B, c: C, d: D) => R, thisArg: T
+      , a: A): (this: void, b: B, c: C, d: D) => R;
+    bind<R, T>(this: (this: T) => R, thisArg: T): (this: void) => R;
+    bind<R, T, A>(this: (this: T, a: A) => R, thisArg: T): (this: void, a: A) => R;
+    bind<R, T, A, B>(this: (this: T, a: A, b: B) => R, thisArg: T): (this: void, a: A, b: B) => R;
+    bind<R, T, A, B, C>(this: (this: T, a: A, b: B, c: C) => R, thisArg: T): (this: void, a: A, b: B, c: C) => R;
+
+
 
     /** Returns a string representation of a function. */
     // toString(): string;

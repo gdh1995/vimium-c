@@ -6,9 +6,9 @@ let queryType: FirstQuery, offset: number, autoSelect: boolean,
     maxCharNum: number, maxResults: number, maxTotal: number, matchType: MatchType,
     queryTerms: QueryTerms;
 
-const Suggestion: SuggestionConstructor = function (this: WritableCoreSuggestion,
-    type: string, url: string, text: string, title: string,
-    computeRelevancy: (this: void, sug: CoreSuggestion, data?: number) => number, extraData?: number
+const Suggestion: SuggestionConstructor = function (this: CompletersNS.WritableCoreSuggestion,
+    type: CompletersNS.ValidSugTypes, url: string, text: string, title: string,
+    computeRelevancy: (this: void, sug: CompletersNS.CoreSuggestion, data?: number) => number, extraData?: number
     ) {
   this.type = type;
   this.url = url;
@@ -105,7 +105,7 @@ const SuggestionUtils = {
     }
     return out.join("");
   },
-  ComputeWordRelevancy (this: void, suggestion: CoreSuggestion): number {
+  ComputeWordRelevancy (this: void, suggestion: CompletersNS.CoreSuggestion): number {
     return RankingUtils.wordRelevancy(suggestion.text, suggestion.title);
   },
   ComputeTimeRelevancy (this: void, _0: string, _1: string, lastVisitTime: number): number {
@@ -122,11 +122,11 @@ const SuggestionUtils = {
 let Completers = {
 bookmarks: {
   bookmarks: [] as Bookmark[],
-  currentSearch: null as QueryStatus | null,
+  currentSearch: null as CompletersNS.QueryStatus | null,
   path: "",
   deep: 0,
   status: 0,
-  filter (query: QueryStatus, index: number): void {
+  filter (query: CompletersNS.QueryStatus, index: number): void {
     if (queryTerms.length === 0) {
       Completers.next([]);
       if (index !== 0) { return; }
@@ -258,7 +258,7 @@ bookmarks: {
 },
 
 history: {
-  filter (query: QueryStatus, index: number): void {
+  filter (query: CompletersNS.QueryStatus, index: number): void {
     const history: HistoryItem[] | null = HistoryCache.history;
     if (queryType === FirstQuery.waitFirst) {
       queryType = queryTerms.length === 0 || index === 0 ? FirstQuery.history : FirstQuery.historyIncluded;
@@ -329,7 +329,7 @@ history: {
     }
     return sugs;
   },
-  loadTabs (query: QueryStatus, tabs: chrome.tabs.Tab[]): void {
+  loadTabs (query: CompletersNS.QueryStatus, tabs: chrome.tabs.Tab[]): void {
     if (query.isOff) { return; }
     const arr: Dict<number> = {};
     let count = 0;
@@ -340,7 +340,7 @@ history: {
     }
     return this.filterFill([], query, arr, offset, count);
   },
-  loadSessions (query: QueryStatus, sessions: chrome.sessions.Session[]): void {
+  loadSessions (query: CompletersNS.QueryStatus, sessions: chrome.sessions.Session[]): void {
     if (query.isOff) { return; }
     const historys: chrome.tabs.Tab[] = [], arr: Dict<number> = {};
     let i = queryType === FirstQuery.history ? -offset : 0;
@@ -352,7 +352,7 @@ history: {
       return historys.length >= maxResults;
     }) ? this.filterFinish(historys) : this.filterFill(historys as UrlItem[], query, arr, -i);
   },
-  filterFill (historys: UrlItem[], query: QueryStatus, arr: Dict<number>,
+  filterFill (historys: UrlItem[], query: CompletersNS.QueryStatus, arr: Dict<number>,
       cut: number, neededMore?: number): void {
     return chrome.history.search({
       text: "",
@@ -387,7 +387,7 @@ history: {
 
 domains: {
   domains: Utils.domains,
-  filter (query: QueryStatus, index: number): void {
+  filter (query: CompletersNS.QueryStatus, index: number): void {
     if (queryTerms.length !== 1 || queryTerms[0].indexOf("/") !== -1) {
       return Completers.next([]);
     }
@@ -476,10 +476,10 @@ domains: {
 },
 
 tabs: {
-  filter (query: QueryStatus): void {
+  filter (query: CompletersNS.QueryStatus): void {
     return chrome.tabs.query({}, this.performSearch.bind(this, query));
   },
-  performSearch (query: QueryStatus, tabs0: chrome.tabs.Tab[]): void {
+  performSearch (query: CompletersNS.QueryStatus, tabs0: chrome.tabs.Tab[]): void {
     if (query.isOff) { return; }
     if (queryType === FirstQuery.waitFirst) { queryType = FirstQuery.tabs; }
     const curTabId = TabRecency.last(), noFilter = queryTerms.length <= 0;
@@ -536,7 +536,7 @@ tabs: {
 searchEngines: {
   _nestedEvalCounter: 0,
   filter (): void {},
-  preFilter (query: QueryStatus, failIfNull?: true): void | true {
+  preFilter (query: CompletersNS.QueryStatus, failIfNull?: true): void | true {
     let obj: Search.Result, sug: Suggestion, q = queryTerms, keyword = q.length > 0 ? q[0] : "",
        pattern: Search.Engine | undefined, promise: Promise<Urls.BaseEvalResult> | undefined,
        url: string, text: string;
@@ -609,7 +609,7 @@ searchEngines: {
     }
     promise.then(this.onPrimose.bind(this, query, [sug]))
   },
-  onPrimose (query: QueryStatus, output: Suggestion[], arr: Urls.MathEvalResult): void {
+  onPrimose (query: CompletersNS.QueryStatus, output: Suggestion[], arr: Urls.MathEvalResult): void {
     if (query.isOff) { return; }
     if (!arr[0]) {
       return Completers.next(output);
@@ -617,9 +617,9 @@ searchEngines: {
     var sug = new Suggestion("math", "", "", "", this.compute9);
     output.push(sug);
     --sug.relevancy;
-    sug.text = (sug as WritableCoreSuggestion).title = arr[0];
+    sug.text = (sug as CompletersNS.WritableCoreSuggestion).title = arr[0];
     if (!arr[0].startsWith("vimium://copy")) {
-      (sug as WritableCoreSuggestion).url = "vimium://copy " + arr[0];
+      (sug as CompletersNS.WritableCoreSuggestion).url = "vimium://copy " + arr[0];
     }
     sug.titleSplit = "<match style=\"text-decoration: none;\">" +
       Utils.escapeText(sug.title) + "<match>";
@@ -668,7 +668,7 @@ searchEngines: {
     sug.textSplit = Utils.escapeText(sug.text);
     text && (sug.text = text);
     if (Utils.lastUrlType === 4) {
-      (sug as WritableCoreSuggestion).title = "~: " + keyword;
+      (sug as CompletersNS.WritableCoreSuggestion).title = "~: " + keyword;
       sug.titleSplit = SuggestionUtils.highlight(sug.title, [3, 3 + keyword.length]);
     } else {
       sug.titleSplit = Utils.escapeText(keyword);
@@ -702,8 +702,8 @@ searchEngines: {
   counter: 0,
   sugCounter: 0,
   suggestions: null as ReadonlyArray<Suggestion> | null,
-  mostRecentQuery: null as QueryStatus | null,
-  callback: null as Callback | null,
+  mostRecentQuery: null as CompletersNS.QueryStatus | null,
+  callback: null as CompletersNS.Callback | null,
   filter (completers: ReadonlyArray<Completer>): void {
     RegExpCache.reset();
     if (this.mostRecentQuery) { this.mostRecentQuery.isOff = true; }
@@ -764,7 +764,7 @@ searchEngines: {
         && suggestions.length <= 0 ? 3 : 0)
       : suggestions.length <= 0 ? queryTerms.length && 1
       : this.sugCounter === 1 ? 2 : 0;
-    func = this.callback as Callback;
+    func = this.callback as CompletersNS.Callback;
     this.cleanGlobals();
     return func(suggestions, newAutoSelect, newMatchType);
   },
@@ -803,7 +803,8 @@ window.Completers = {
   omni: [Completers.searchEngines, Completers.domains, Completers.history, Completers.bookmarks],
   search: [Completers.searchEngines],
   tab: [Completers.tabs],
-  filter(this: typeof window.Completers, query: string, options: CompletersNS.Options, callback: Callback): void {
+  filter(this: typeof window.Completers, query: string, options: CompletersNS.Options
+      , callback: CompletersNS.Callback): void {
     autoSelect = false;
     queryTerms = query ? query.split(Utils.spacesRe) : [];
     maxCharNum = (options.clientWidth as number) > 0 ? Math.max(50, Math.min((
@@ -1133,7 +1134,7 @@ setTimeout(function() {
   Settings.postUpdate("searchEngines", null);
 }, 300);
 
-var Completers = { filter: function(a: string, b: CompletersNS.Options, c: Callback): void {
+var Completers = { filter: function(a: string, b: CompletersNS.Options, c: CompletersNS.Callback): void {
   setTimeout(function() {
     return Completers.filter(a, b, c);
   }, 210);

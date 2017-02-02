@@ -186,9 +186,9 @@ interface GlobalCompletersConstructor {
 }
 declare var Completers: GlobalCompletersConstructor;
 
-interface QueryStatus { isOff: boolean }
-
 declare namespace CompletersNS {
+  interface QueryStatus { isOff: boolean }
+
   interface Domain {
     [0]: number;
     [1]: number;
@@ -198,13 +198,14 @@ declare namespace CompletersNS {
   type Callback = (this: void, sugs: Suggestion[],
     newAutoSelect: boolean, newMatchType: MatchType) => void;
 }
+import Suggestion = CompletersNS.Suggestion;
 
 declare namespace IconNS {
   interface IconBuffer {
     [size: string]: ImageData;
   }
-  interface IconBufferGetter {
-    (this: void, enabled?: boolean): IconBuffer | null;
+  interface AccessIconBuffer {
+    (this: void, enabled: boolean): void;
   }
 }
 

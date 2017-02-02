@@ -1,7 +1,6 @@
 /// <reference path="bg.d.ts" />
 
 import Domain = CompletersNS.Domain;
-import Callback = CompletersNS.Callback;
 import MatchType = CompletersNS.MatchType;
 
 type MatchRange = [number, number];
@@ -39,11 +38,11 @@ interface TextTab extends chrome.tabs.Tab {
 }
 
 interface Completer {
-  filter(query: QueryStatus, index: number): void;
+  filter(query: CompletersNS.QueryStatus, index: number): void;
 }
 interface PreCompleter extends Completer {
-  preFilter(query: QueryStatus, failIfNull: true): void | true;
-  preFilter(query: QueryStatus): void;
+  preFilter(query: CompletersNS.QueryStatus, failIfNull: true): void | true;
+  preFilter(query: CompletersNS.QueryStatus): void;
 }
 interface QueryTerms extends Array<string> {
   more?: string;
@@ -61,30 +60,9 @@ declare const enum FirstQuery {
 
 }
 
-
-declare interface WritableCoreSuggestion {
-  type: string;
-  url: string;
-  title: string;
-  text: string;
-}
-
-declare type CoreSuggestion = Readonly<WritableCoreSuggestion>;
-
-declare class Suggestion implements CoreSuggestion {
-  readonly type: string;
-  readonly url: string;
-  text: string;
-  readonly title: string;
-  relevancy: number;
-
-  textSplit?: string;
-  titleSplit?: string;
-  sessionId?: string | number;
-}
 interface SuggestionConstructor {
   new (type: string, url: string, text: string, title: string,
-        computeRelevancy: (this: void, sug: CoreSuggestion, data?: number) => number,
+        computeRelevancy: (this: void, sug: CompletersNS.CoreSuggestion, data?: number) => number,
         extraData?: number): Suggestion;
 }
 
