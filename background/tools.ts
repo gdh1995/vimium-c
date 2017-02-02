@@ -108,7 +108,8 @@ Marks = { // NOTE: all members should be static
   },
   clearGlobal (): void {
     const key_start = Marks.getLocationKey(""), storage = localStorage;
-    for (let key: string, i = storage.length; 0 <= --i; ) {
+    let key: string, i: number;
+    for (i = storage.length; 0 <= --i; ) {
       key = storage.key(i) as string;
       if (key.startsWith(key_start)) {
         storage.removeItem(key);

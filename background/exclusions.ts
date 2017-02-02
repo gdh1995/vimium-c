@@ -1,5 +1,5 @@
 /// <reference path="../types/bg.exclusions.d.ts" />
-declare class ExcCls extends ExclusionsNS.ExclusionsCls {}
+interface ExcCls extends ExclusionsNS.ExclusionsCls {}
 declare var Exclusions: ExcCls;
 
 if (!(Settings.get("exclusionRules", true).length <= 0 && document.readyState !== "complete" || Settings.updateHooks.exclusionRules)) {

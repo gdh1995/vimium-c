@@ -260,7 +260,7 @@ const Utils = {
     if (!path) { return null; }
     if (workType === Urls.WorkType.ActIfNoSideEffects) switch (cmd) {
     case "e": case "exec": case "eval": case "expr": case "calc": case "m": case "math":
-      return this.require("MathParser").catch(function() { return null;
+      return this.require<any>("MathParser").catch(function() { return null;
       }).then(function(MathParser: any): Urls.MathEvalResult {
         let result = Utils.tryEvalMath(path, MathParser) || "";
         return [result, "math", path] as Urls.MathEvalResult;
@@ -334,7 +334,7 @@ const Utils = {
     return result;
   },
   jsLoadingTimeout: 300,
-  require<T> (name: SettingsNS.DynamicFiles): Promise<T> {
+  require<T extends object> (name: SettingsNS.DynamicFiles): Promise<T> {
     const p: Promise<T> | T | undefined = (window as any)[name];
     if (p) {
       return p instanceof Promise ? p : Promise.resolve(p);
@@ -432,7 +432,7 @@ const Utils = {
     };
     for (let _i = 0, _len = a.length; _i < _len; _i++) {
       val = a[_i].trim();
-      if (!(val.charCodeAt(0) > KnownKey.maxCommentHead)) { continue; } // mask: /[ !"#]/
+      if (!(val.charCodeAt(0) > KnownKey.maxCommentHead)) { continue; } // mask: /[!"#]/
       ind = 0;
       do {
         ind = val.indexOf(":", ind + 1);
@@ -563,7 +563,7 @@ const Utils = {
   makeCommand: function(command: string, options?: CommandsNS.Options | null, details?: CommandsNS.Description) : CommandsNS.Item {
     let opt: CommandsNS.Options | null;
     if (!details) { details = CommandsData.availableCommands[command] as CommandsNS.Description };
-    opt = details[3] || null;
+    opt = (details[3] as CommandsNS.Options | null) || null;
     if (options) {
       if (opt) {
         opt instanceof Object && Object.setPrototypeOf(opt, null);

@@ -164,7 +164,7 @@ declare namespace CommandsNS {
     readonly [0]: string; // description
     readonly [1]: number; // count limit
     readonly [2]: boolean; // is background
-    readonly [3]?: Options | null; // default options
+    readonly [3]?: object | null; // default options
     readonly [4]?: string; // alias
   }
   interface Item {

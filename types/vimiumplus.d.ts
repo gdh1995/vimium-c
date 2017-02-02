@@ -81,7 +81,7 @@ declare namespace BgReq {
     css: string;
   }
   interface createMark extends base {
-    markName: string,
+    markName: string;
   }
 }
 
