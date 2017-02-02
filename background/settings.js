@@ -107,14 +107,14 @@ var Settings = {
         str = this.get("searchUrl");
         ind = str.indexOf(" ");
         if (ind > 0) { str = str.substring(0, ind); }
-        this.get("searchEngineMap", true)["~"] = { url: str };
+        this.get("searchEngineMap", true)["~"] = { name: "~", url: str };
       }
       this.postUpdate("newTabUrl");
     },
     baseCSS: function(css) {
       this.CONST.BaseCSSLength = css.length;
       css += this.get("userDefinedCss");
-      this.cache.baseCSS = null;
+      this.cache.baseCSS = "";
       this.set("innerCSS", css);
     },
     vimSync: function(value) {
@@ -269,7 +269,7 @@ setTimeout(function() {
   obj.CurrentVersion = ref.version;
   obj.CurrentVersionName = ref.version_name || ref.version;
   obj.OptionsPage = func(ref.options_page || obj.OptionsPage);
-  obj.ShowPage = Utils.formatVimiumUrl(obj.ShowPage);
+  obj.ShowPage = Utils.formatVimiumUrl(obj.ShowPage, false, 0);
   obj.VomnibarPage = func(obj.VomnibarPage);
   ref = ref.content_scripts[0].js;
   ref[ref.length - 1] = "/content/inject_end.js";
