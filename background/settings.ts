@@ -1,51 +1,54 @@
-"use strict";
-var Settings = {
-  cache: Object.create(null),
+/// <reference path="../types/bg.d.ts" />
+import SettingsWithDefaults = SettingsNS.SettingsWithDefaults;
+
+const Settings = {
+  cache: Object.create(null) as SettingsNS.FullCache & SafeObject,
   temp: {
-    shownHash: null
+    shownHash: null as null | string
   },
-  bufferToLoad: null,
-  extWhiteList: null,
-  Init: null,
-  IconBuffer: null,
-  globalCommand: null,
-  getExcluded: Utils.getNull,
-  get: function(key, forCache) {
+  bufferToLoad: null as FrontendSettingCache | null,
+  extWhiteList: null as SafeDict<true> | null,
+  Init: null as ((this: void) => void) | null,
+  IconBuffer: null as IconNS.IconBufferGetter | null,
+  globalCommand: null as CommandsNS.CallGlobalCommand | null,
+  getExcluded: Utils.getNull as (this: void, url: string) => string | null,
+  get<K extends keyof SettingsWithDefaults> (key: K, forCache?: boolean): SettingsWithDefaults[K] {
     if (key in this.cache) {
-      return this.cache[key];
+      return (this.cache as SettingsWithDefaults)[key];
     }
-    var initial = this.defaults[key];
-    var value = !(key in localStorage) ? initial
-        : typeof initial === "string" ? localStorage.getItem(key)
+    const initial = this.defaults[key];
+    const value = !(key in localStorage) ? initial
+        : typeof initial === "string" ? localStorage.getItem(key) as string
         : initial === false || initial === true ? localStorage.getItem(key) === "true"
-        : JSON.parse(localStorage.getItem(key));
+        : JSON.parse<typeof initial>(localStorage.getItem(key) as string);
     if (forCache) {
       this.cache[key] = value;
     }
     return value;
   },
-  set: function(key, value) {
-    var ref, initial;
+  set<K extends keyof FullSettings> (key: K, value: FullSettings[K]): void {
     this.cache[key] = value;
     if (!(key in this.nonPersistent)) {
-      initial = this.defaults[key];
+      const initial = this.defaults[key as keyof SettingsNS.PersistentSettings];
       if (value === initial) {
         localStorage.removeItem(key);
-        this.Sync.set(key, null);
+        this.Sync.set(key as keyof SettingsNS.PersistentSettings, null);
       } else {
-        localStorage.setItem(key, typeof initial === "string" ? value : JSON.stringify(value));
-        this.Sync.set(key, value);
+        localStorage.setItem(key, typeof initial === "string" ? value as string : JSON.stringify(value));
+        this.Sync.set(key as keyof SettingsNS.PersistentSettings, value as any);
       }
     }
-    if (ref = this.updateHooks[key]) {
-      ref.call(this, value, key);
+    let ref: SettingsNS.UpdateHook<K> | undefined;
+    if (ref = this.updateHooks[key] as (SettingsNS.UpdateHook<K> | undefined)) {
+      return ref.call(this, value, key);
     }
   },
-  postUpdate: function(key, value) {
-    return this.updateHooks[key].call(this, value !== undefined ? value : this.get(key), key);
+  postUpdate<K extends keyof FullSettings> (key: K, value?: FullSettings[K] | null | undefined): void {
+    return (this.updateHooks[key] as SettingsNS.UpdateHook<K>).call(this,
+      value !== undefined ? value : this.get(key as keyof SettingsWithDefaults), key);
   },
-  broadcast: function (request) {
-    var ref = this.indexPorts(), tabId, frames, i;
+  broadcast (request: BgReq.base): void {
+    let ref = this.indexPorts(), tabId: string, frames: Frames.Frames, i: number;
     for (tabId in ref) {
       frames = ref[tabId];
       for (i = frames.length; 0 < --i; ) {
@@ -54,92 +57,89 @@ var Settings = {
     }
   },
   updateHooks: {
-    __proto__: null,
+    __proto__: null as never,
     bufferToLoad: function() {
-      var _i, key, ref = this.valuesToLoad, ref2;
-      ref2 = this.bufferToLoad = Object.create(null);
-      for (_i = ref.length; 0 <= --_i;) {
-        key = ref[_i];
-        ref2[key] = this.get(key);
+      const ref = (this as typeof Settings).valuesToLoad,
+      ref2 = (this as typeof Settings).bufferToLoad = Object.create(null) as FrontendSettingCache;
+      for (let _i = ref.length; 0 <= --_i;) {
+        let key = ref[_i];
+        ref2[key] = (this as typeof Settings).get(key);
       }
-      ref2.onMac = this.CONST.Platform === (chrome.runtime.PlatformOs ? chrome.runtime.PlatformOs.MAC : "mac");
+      ref2.onMac = (this as typeof Settings).CONST.Platform ===
+        (chrome.runtime.PlatformOs ? chrome.runtime.PlatformOs.MAC : "mac");
     },
     extWhiteList: function(val) {
-      var map, arr, i, wordCharRe;
-      map = this.extWhiteList = Object.create(null);
+      const map = (this as typeof Settings).extWhiteList = Object.create<true>(null);
       if (!val) { return; }
-      wordCharRe = /^[\dA-Za-z]/;
-      for (arr = val.split("\n"), i = arr.length; 0 <= --i; ) {
+      for (let arr = val.split("\n"), i = arr.length, wordCharRe = /^[\dA-Za-z]/ as RegExpOne; 0 <= --i; ) {
         if ((val = arr[i].trim()) && wordCharRe.test(val)) {
           map[val] = true;
         }
       }
     },
-    newTabUrl: function(url) {
-      url = /^\/?pages\/[a-z]+.html\b/i.test(url)
+    newTabUrl: function(url): void {
+      url = (<RegExpI>/^\/?pages\/[a-z]+.html\b/i).test(url)
         ? chrome.runtime.getURL(url) : Utils.convertToUrl(url);
-      this.set('newTabUrl_f', url);
+      return (this as typeof Settings).set('newTabUrl_f', url);
     },
-    searchEngines: function() {
-      this.set("searchEngineMap", Object.create(null));
+    searchEngines: function(): void {
+      return (this as typeof Settings).set("searchEngineMap", Object.create<Search.Engine>(null));
     },
-    searchEngineMap: function(value) {
-      this.set("searchKeywords", null);
-      Utils.parseSearchEngines("~:" + this.get("searchUrl"), value);
-      var rules = Utils.parseSearchEngines(this.get("searchEngines"), value);
-      this.set("searchEngineRules", rules);
+    searchEngineMap: function(value): void {
+      (this as typeof Settings).set("searchKeywords", null);
+      Utils.parseSearchEngines("~:" + (this as typeof Settings).get("searchUrl"), value);
+      const rules = Utils.parseSearchEngines((this as typeof Settings).get("searchEngines"), value);
+      return (this as typeof Settings).set("searchEngineRules", rules);
     },
-    searchUrl: function(str) {
+    searchUrl: function(str): void {
       var map, obj, ind, str2;
       if (str) {
-        Utils.parseSearchEngines("~:" + str, map = this.cache.searchEngineMap);
+        Utils.parseSearchEngines("~:" + str, map = (this as typeof Settings).cache.searchEngineMap);
         obj = map["~"];
         str2 = obj.url.replace(Utils.spacesRe, "%20");
         if (obj.name) { str2 += " " + obj.name; }
         if (str2 !== str) {
-          this.set("searchUrl", str2);
-          return;
+          return (this as typeof Settings).set("searchUrl", str2);
         }
-      } else if (str = this.get("newTabUrl_f", true)) {
-        this.updateHooks.newTabUrl_f(str);
-        return;
+      } else if (str = (this as typeof Settings).get("newTabUrl_f", true)) {
+        return ((this as typeof Settings).updateHooks.newTabUrl_f as (this: void, url_f: string) => void)(str);
       } else {
-        str = this.get("searchUrl");
+        str = (this as typeof Settings).get("searchUrl");
         ind = str.indexOf(" ");
         if (ind > 0) { str = str.substring(0, ind); }
-        this.get("searchEngineMap", true)["~"] = { name: "~", url: str };
+        (this as typeof Settings).get("searchEngineMap", true)["~"] = { name: "~", url: str };
       }
-      this.postUpdate("newTabUrl");
+      return (this as typeof Settings).postUpdate("newTabUrl");
     },
-    baseCSS: function(css) {
-      this.CONST.BaseCSSLength = css.length;
-      css += this.get("userDefinedCss");
-      this.cache.baseCSS = "";
-      this.set("innerCSS", css);
+    baseCSS: function(css): void {
+      (this as typeof Settings).CONST.BaseCSSLength = css.length;
+      css += (this as typeof Settings).get("userDefinedCss");
+      (this as typeof Settings).cache.baseCSS = "";
+      return (this as typeof Settings).set("innerCSS", css);
     },
     vimSync: function(value) {
       if (value) {
         setTimeout(alert, 17, "Warning: the current settings will be OVERRIDDEN the next time Vimium++ starts!\n"
           + 'Please back up your settings using the "Export Settings" button RIGHT NOW!');
       }
-      if (value || !this.Sync.HandleStorageUpdate) { return; }
+      if (value || !(this as typeof Settings).Sync.HandleStorageUpdate) { return; }
       setTimeout(function() {
-        chrome.storage.onChanged.removeListener(Settings.Sync.HandleStorageUpdate);
+        (chrome as any).storage.onChanged.removeListener(Settings.Sync.HandleStorageUpdate);
         Settings.Sync = { set: function() {} };
       }, 100);
     },
-    userDefinedCss: function(css) {
-      css = this.cache.innerCSS.substring(0, this.CONST.BaseCSSLength) + css;
-      this.set("innerCSS", css);
-      this.broadcast({
+    userDefinedCss: function(css): void {
+      css = (this as typeof Settings).cache.innerCSS.substring(0, (this as typeof Settings).CONST.BaseCSSLength) + css;
+      (this as typeof Settings).set("innerCSS", css);
+      return (this as typeof Settings).broadcast({
         name: "insertInnerCSS",
-        css: this.cache.innerCSS
-      });
+        css: (this as typeof Settings).cache.innerCSS
+      } as BgReq.insertInnerCSS);
     }
-  },
-  indexFrame: null,
-  indexPorts: null,
-  fetchFile: function(file, callback) {
+  } as SettingsNS.DeclaredUpdateHookMap as SettingsNS.UpdateHookMap,
+  indexFrame: null as any as (this: any, tabId: number, frameId: number) => Port | null,
+  indexPorts: null as any as SettingsNS.IndexPorts,
+  fetchFile (file: keyof SettingsNS.CachedFiles, callback?: (this: void) => any): TextXHR | null {
     if (callback && file in this.cache) { callback(); return null; }
     return Utils.fetchHttpContents(this.CONST.XHRFiles[file], function() {
       Settings.set(file, this.responseText);
@@ -150,12 +150,12 @@ var Settings = {
   // clear localStorage & sync, if value === @defaults[key]
   // the default of any nullable field must be set to null for compatibility with @Sync.set
   defaults: {
-    __proto__: null,
+    __proto__: null as never,
     deepHints: false,
     dialogMode: false,
     exclusionListenHash: true,
     exclusionOnlyFirstMatch: false,
-    exclusionRules: [{pattern: "^https?://mail.google.com/", passKeys: ""}],
+    exclusionRules: [{pattern: "^https?://mail.google.com/", passKeys: ""}] as ExclusionsNS.StoredRule[],
     extWhiteList: "",
     findModeRawQueryList: "",
     grabBackFocus: false,
@@ -198,16 +198,16 @@ w|wiki:\\\n  https://www.wikipedia.org/w/index.php?search=$s Wikipedia\n\
     userDefinedCss: "",
     userDefinedOuterCss: "",
     vimSync: false
-  },
+  } as SettingsWithDefaults & SafeObject,
   // not set localStorage, neither sync, if key in @nonPersistent
   // not clean if exists (for simpler logic)
-  nonPersistent: { __proto__: null,
+  nonPersistent: { __proto__: null as never,
     baseCSS: 1, exclusionTemplate: 1, helpDialog: 1, innerCSS: 1,
     searchEngineMap: 1, searchEngineRules: 1, searchKeywords: 1
-  },
-  frontUpdateAllowed: { __proto__: null,
+  } as TypedSafeEnum<SettingsNS.NonPersistentSettings>,
+  frontUpdateAllowed: { __proto__: null as never,
     showAdvancedCommands: 1
-  },
+  } as TypedSafeEnum<SettingsNS.FrontUpdateAllowedSettings>,
   icons: [
     { "19": "/icons/enabled_19.png", "38": "/icons/enabled_38.png" },
     { "19": "/icons/partial_19.png", "38": "/icons/partial_38.png" },
@@ -215,14 +215,14 @@ w|wiki:\\\n  https://www.wikipedia.org/w/index.php?search=$s Wikipedia\n\
   ],
   valuesToLoad: ["deepHints", "grabBackFocus", "keyboard", "linkHintCharacters" //
     , "regexFindMode", "scrollStepSize", "smoothScroll", "userDefinedOuterCss" //
-  ],
+  ] as Array<keyof FrontendSettings>,
   Sync: {
     set: function() {}
-  },
+  } as SettingsNS.Sync,
   CONST: {
     BaseCSSLength: 0,
     ChromeInnerNewTab: "chrome-search://local-ntp/local-ntp.html", // should keep lower case
-    ChromeVersion: 37, ContentScripts: null, CurrentVersion: "", CurrentVersionName: "",
+    ChromeVersion: 37, ContentScripts: null as any as string[], CurrentVersion: "", CurrentVersionName: "",
     KnownPages: ["blank", "newtab", "options", "show"],
     MathParser: "/lib/math_parser.js",
     HelpDialog: "/background/help_dialog.js",
@@ -244,8 +244,8 @@ w|wiki:\\\n  https://www.wikipedia.org/w/index.php?search=$s Wikipedia\n\
       privacy: "https://github.com/gdh1995/vimium-plus/blob/master/PRIVACY-POLICY.txt#privacy-policy",
       readme: "https://github.com/gdh1995/vimium-plus/blob/master/README.md",
       settings: "options.html",
-      __proto__: null
-    },
+      __proto__: null as never
+    } as SafeDict<string>,
     ShowHelper: "pages/show_helper.js", ShowPage: "show.html",
     VomnibarPage: "front/vomnibar.html"
   }
@@ -253,15 +253,15 @@ w|wiki:\\\n  https://www.wikipedia.org/w/index.php?search=$s Wikipedia\n\
 
 // note: if changed, ../pages/newtab.js also needs change.
 Settings.defaults.newTabUrl = Settings.CONST.ChromeInnerNewTab;
-Settings.CONST.ChromeVersion = 0 | (navigator.appVersion.match(/\bChrom(?:e|ium)\/(\d+)/) || [0, 53])[1];
+Settings.CONST.ChromeVersion = 0 | (navigator.appVersion.match(/\bChrom(?:e|ium)\/(\d+)/) || [0, 53])[1] as number;
 
 setTimeout(function() {
-  chrome.runtime.getPlatformInfo(function(info) {
+  chrome.runtime.getPlatformInfo(function(info): void {
     Settings.CONST.Platform = info.os;
   });
 
-  var ref, origin = location.origin, prefix = origin + "/", obj,
-  func = function(path) {
+  let ref, origin = location.origin, prefix = origin + "/", obj: typeof Settings.CONST,
+  func = function(path: string): string {
     return (path.charCodeAt(0) === 47 ? origin : prefix) + path;
   };
   ref = chrome.runtime.getManifest();
@@ -269,7 +269,7 @@ setTimeout(function() {
   obj.CurrentVersion = ref.version;
   obj.CurrentVersionName = ref.version_name || ref.version;
   obj.OptionsPage = func(ref.options_page || obj.OptionsPage);
-  obj.ShowPage = Utils.formatVimiumUrl(obj.ShowPage, false, 0);
+  obj.ShowPage = Utils.formatVimiumUrl(obj.ShowPage, false, Urls.WorkType.Default);
   obj.VomnibarPage = func(obj.VomnibarPage);
   ref = ref.content_scripts[0].js;
   ref[ref.length - 1] = "/content/inject_end.js";

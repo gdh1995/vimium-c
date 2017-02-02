@@ -334,7 +334,7 @@ const Utils = {
     return result;
   },
   jsLoadingTimeout: 300,
-  require<T> (name: string): Promise<T> {
+  require<T> (name: SettingsNS.DynamicFiles): Promise<T> {
     const p: Promise<T> | T | undefined = (window as any)[name];
     if (p) {
       return p instanceof Promise ? p : Promise.resolve(p);

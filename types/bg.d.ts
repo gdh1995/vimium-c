@@ -207,10 +207,104 @@ declare namespace IconNS {
   }
 }
 
+declare namespace SettingsNS {
+  interface BackendSettings {
+    dialogMode: boolean;
+    exclusionListenHash: boolean;
+    exclusionOnlyFirstMatch: boolean;
+    exclusionRules: ExclusionsNS.StoredRule[];
+    extWhiteList: string;
+    findModeRawQueryList: string;
+    hideHud: boolean;
+    keyMappings: string;
+    localeEncoding: string;
+    newTabUrl: string;
+    newTabUrl_f: string;
+    nextPatterns: string;
+    previousPatterns: string;
+    searchUrl: string;
+    searchEngines: string;
+    showActionIcon: boolean;
+    showAdvancedCommands: boolean;
+    showAdvancedOptions: boolean;
+    userDefinedCss: string;
+    vimSync: boolean;
+  }
+  interface CachedFiles {
+    baseCSS: string;
+    exclusionTemplate: string;
+    helpDialog: string;
+  }
+  interface OtherSettingsWithDefaults {
+    searchEngineMap: SafeDict<Search.Engine>;
+  }
+  interface BaseNonPersistentSettings {
+    innerCSS: string;
+    searchEngineRules: Search.Rule[];
+    searchKeywords: string[] | null;
+  }
+  interface FrontUpdateAllowedSettings {
+    showAdvancedCommands: 1;
+  }
+  interface NonPersistentSettings extends BaseNonPersistentSettings, OtherSettingsWithDefaults, CachedFiles {}
+  interface PersistentSettings extends FrontendSettings, BackendSettings {}
+
+  interface SettingsWithDefaults extends PersistentSettings, OtherSettingsWithDefaults {}
+  interface FullSettings extends PersistentSettings, NonPersistentSettings {}
+
+  type SettingNamesWithHook = keyof FullSettings | "bufferToLoad";
+  interface UpdateHook<K extends keyof FullSettings> {
+    (this: any, value: FullSettings[K] | null, key: K): void;
+  }
+  type BaseUpdateHookMap = {
+    [key in keyof FullSettings]?: UpdateHook<key>;
+  }
+  interface DeclaredUpdateHookMap extends BaseUpdateHookMap, SafeObject {
+    bufferToLoad (this: any): void;
+    extWhiteList (this: any, value: FullSettings["extWhiteList"]): void;
+    newTabUrl (this: any, value: FullSettings["newTabUrl"]): void;
+    searchEngines (this: any): void;
+    searchEngineMap (this: any, value: FullSettings["searchEngineMap"]): void;
+    baseCSS (this: any, value: FullSettings["baseCSS"]): void;
+    vimSync (this: any, value: FullSettings["vimSync"]): void;
+    userDefinedCss (this: any, css: string): void;
+  }
+  interface UpdateHookMap extends DeclaredUpdateHookMap {
+    newTabUrl_f: (this: void, url_f: string) => void;
+    exclusionRules?: (this: void, rules: ExclusionsNS.StoredRule[]) => void;
+    exclusionOnlyFirstMatch?: (this: void, value: boolean) => void;
+    exclusionListenHash?: (this: void, value: boolean) => void;
+    localeEncoding?: (this: void, value: string) => void;
+  }
+
+  interface FullCache extends Partial<FullSettings> {
+    innerCSS: FullSettings["innerCSS"];
+    newTabUrl_f: FullSettings["newTabUrl_f"];
+    searchKeywords: FullSettings["searchKeywords"];
+    searchEngineMap: FullSettings["searchEngineMap"];
+    searchEngineRules: FullSettings["searchEngineRules"];
+  }
+
+  type DynamicFiles = "HelpDialog" | "Commands" | "Exclusions" |
+    "MathParser";
+
+  interface IndexPorts {
+    (this: any, tabId: number): Frames.Frames;
+    (this: any): Frames.FramesMap;
+  }
+
+  interface Sync {
+    set<K extends keyof PersistentSettings> (key: K, value: PersistentSettings[K] | null): void;
+    HandleStorageUpdate?: (this: void, changes: any, area: any) => void;
+  }
+
+  // type NameList = Array<SettingNames>;
+}
+import FullSettings = SettingsNS.FullSettings;
+
 declare var 
   g_requestHandlers: any,
-  CommandsData: any,
-  Settings: any;
+  CommandsData: any;
 
 interface Window {
   readonly MathParser?: any;

@@ -84,3 +84,17 @@ declare namespace BgReq {
     markName: string,
   }
 }
+
+interface FrontendSettings {
+  deepHints: boolean;
+  grabBackFocus: boolean;
+  keyboard: [number, number];
+  linkHintCharacters: string;
+  regexFindMode: boolean;
+  scrollStepSize: number;
+  smoothScroll: boolean;
+  userDefinedOuterCss: string;
+}
+interface FrontendSettingCache extends FrontendSettings {
+  onMac: boolean;
+}
