@@ -10,10 +10,7 @@ const Clipboard = {
     return el;
   },
   tailSpacesRe: <RegExpG & RegExpSearchable<0>> /[ \t]+\n/g,
-  format (data: any): string {
-    if (typeof data !== "string" && !(data instanceof String)) {
-      return JSON.stringify(data);
-    }
+  format (data: string): string {
     data = data.replace(Utils.A0Re, " ").replace(this.tailSpacesRe, "\n");
     let i = data.charCodeAt(data.length - 1);
     if (i !== 32 && i !== 9) {
@@ -24,7 +21,7 @@ const Clipboard = {
     }
     return data;
   },
-  copy (data: any): void {
+  copy (data: string): void {
     data = this.format(data);
     const textArea = this.getTextArea();
     textArea.value = data;

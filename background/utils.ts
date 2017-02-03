@@ -248,7 +248,7 @@ const Utils = {
   _nestedEvalCounter: 0,
   _vimiumCmdRe: <RegExpI> /^[a-z][\da-z\-]*(?:\.[a-z][\da-z\-]*)*$/i,
   evalVimiumUrl (path: string, workType?: Urls.WorkType): Urls.Url | null {
-    let ind: number, cmd: string, arr: string[], obj: { url: string } | null, res: Urls.Url;
+    let ind: number, cmd: string, arr: string[], obj: { url: string } | null, res: Urls.Url | string[];
     path = path.trim();
     workType |= 0;
     if (!path || workType < Urls.WorkType.ValidNormal || (ind = path.indexOf(" ")) <= 0 ||
@@ -272,14 +272,16 @@ const Utils = {
       if (res instanceof Promise) {
         return res.then(function(arr): Urls.CopyEvalResult {
           let path = arr[0] || (arr[2] || "");
+          path = path instanceof Array ? path.join(" ") : path;
           Clipboard.copy(path);
           return [path, "copy"] as Urls.CopyEvalResult;
         });
       } else {
-        path = (this.lastUrlType === 5 && res instanceof Array ? res[0] : res) as string;
+        res = (this.lastUrlType === 5 && res instanceof Array ? (res as Urls.BaseEvalResult)[0] : res as string);
+        path = res instanceof Array ? res.join(" ") : res;
       }
       // no break;
-    case "c": case "cp": case "copy": // here `typeof path` is `string | string[]`
+    case "c": case "cp": case "copy": // here `typeof path` must be `string`
       Clipboard.copy(path);
       return [path, "copy"] as Urls.CopyEvalResult;
     }

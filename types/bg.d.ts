@@ -29,6 +29,7 @@ declare namespace Urls {
     readonly [2]?: undefined | string;
   }
   interface BasePlainEvalResult<T extends ValidEvalTag> extends BaseEvalResult {
+    readonly [0]: string;
     readonly [1]: T;
     readonly [2]?: undefined;
   }
@@ -37,13 +38,12 @@ declare namespace Urls {
     readonly [1]: "math";
     readonly [2]: string;
   }
-  interface SearchEvalResult extends BasePlainEvalResult<"search"> {}
-  interface CopyEvalResult extends BasePlainEvalResult<"copy"> {}
-  interface ErrorEvalResult extends BaseEvalResult {
-    readonly [0]: string;
-    readonly [1]: "ERROR";
+  interface SearchEvalResult extends BaseEvalResult {
+    readonly [1]: "search";
     readonly [2]?: undefined;
   }
+  interface CopyEvalResult extends BasePlainEvalResult<"copy"> {}
+  interface ErrorEvalResult extends BasePlainEvalResult<"ERROR"> {}
 
   type EvalArrayResultWithSideEffects = CopyEvalResult;
 
