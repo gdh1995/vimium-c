@@ -414,9 +414,9 @@ var Clipboard, Commands, CommandsData, Completers, Marks, TabRecency, FindModeHi
         return;
       }
       funcDict.makeTempWindow("about:blank", false, //
-      funcDict.createTab[4].bind(null, this, tab, function(newTab) {
-        chrome.windows.remove(newTab.windowId);
-        repeat && repeat(newTab.id);
+      funcDict.createTab[4].bind(null, this, tab, function(newTabId, newWndId) {
+        chrome.windows.remove(newWndId);
+        if (repeat) { return repeat(newTabId); }
       }));
     }, function(url, tab, callback, wnd) {
       chrome.tabs.create({
@@ -432,7 +432,7 @@ var Clipboard, Commands, CommandsData, Completers, Marks, TabRecency, FindModeHi
         index: this.index + 1,
         windowId: this.windowId
       }, function() {
-        callback && callback(newTab);
+        callback && callback(newTab.id, newTab.windowId);
         funcDict.selectTab(newTab.id);
       });
     }],
@@ -491,7 +491,7 @@ var Clipboard, Commands, CommandsData, Completers, Marks, TabRecency, FindModeHi
       return true;
     }, function(arr) {
       arr[0] = "#!url vimium://error (vimium://show: sorry, the info has expired.)";
-      arr[1] = setTimeout(function() {
+      arr[2] = setTimeout(function() {
         if (Settings.temp.shownHash === arr[1]) { Settings.temp.shownHash = null; }
         arr[0] = "", arr[1] = null;
       }, 2000);
