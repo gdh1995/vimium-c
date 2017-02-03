@@ -129,71 +129,71 @@ declare namespace chrome.bookmarks {
      * @param callback The callback parameter should be a function that looks like this:
      * function(array of BookmarkTreeNode results) {...};
      */
-    export function search(query: string, callback: (results: BookmarkTreeNode[]) => void): void;
+    export function search(query: string, callback: (results: BookmarkTreeNode[]) => void): 1;
     /**
      * Searches for BookmarkTreeNodes matching the given query. Queries specified with an object produce BookmarkTreeNodes matching all specified properties.
      * @param query An object with one or more of the properties query, url, and title specified. Bookmarks matching all specified properties will be produced.
      * @param callback The callback parameter should be a function that looks like this:
      * function(array of BookmarkTreeNode results) {...};
      */
-    export function search(query: BookmarkSearchQuery, callback: (results: BookmarkTreeNode[]) => void): void;
+    export function search(query: BookmarkSearchQuery, callback: (results: BookmarkTreeNode[]) => void): 1;
     /**
      * Retrieves the entire Bookmarks hierarchy.
      * @param callback The callback parameter should be a function that looks like this:
      * function(array of BookmarkTreeNode results) {...};
      */
-    export function getTree(callback: (results: BookmarkTreeNode[]) => void): void;
+    export function getTree(callback: (results: BookmarkTreeNode[]) => void): 1;
     /**
      * Retrieves the recently added bookmarks.
      * @param numberOfItems The maximum number of items to return.
      * @param callback The callback parameter should be a function that looks like this:
      * function(array of BookmarkTreeNode results) {...};
      */
-    export function getRecent(numberOfItems: number, callback: (results: BookmarkTreeNode[]) => void): void;
+    export function getRecent(numberOfItems: number, callback: (results: BookmarkTreeNode[]) => void): 1;
     /**
      * Retrieves the specified BookmarkTreeNode.
      * @param id A single string-valued id
      * @param callback The callback parameter should be a function that looks like this:
      * function(array of BookmarkTreeNode results) {...};
      */
-    export function get(id: string, callback: (results: BookmarkTreeNode[]) => void): void;
+    export function get(id: string, callback: (results: BookmarkTreeNode[]) => void): 1;
     /**
      * Retrieves the specified BookmarkTreeNode.
      * @param idList An array of string-valued ids
      * @param callback The callback parameter should be a function that looks like this:
      * function(array of BookmarkTreeNode results) {...};
      */
-    export function get(idList: string[], callback: (results: BookmarkTreeNode[]) => void): void;
+    export function get(idList: string[], callback: (results: BookmarkTreeNode[]) => void): 1;
     /**
      * Creates a bookmark or folder under the specified parentId. If url is NULL or missing, it will be a folder.
      * @param callback If you specify the callback parameter, it should be a function that looks like this:
      * function( BookmarkTreeNode result) {...};
      */
-    export function create(bookmark: BookmarkCreateArg, callback?: (result: BookmarkTreeNode) => void): void;
+    export function create(bookmark: BookmarkCreateArg, callback?: (result: BookmarkTreeNode) => void): 1;
     /**
      * Moves the specified BookmarkTreeNode to the provided location.
      * @param callback If you specify the callback parameter, it should be a function that looks like this:
      * function( BookmarkTreeNode result) {...};
      */
-    export function move(id: string, destination: BookmarkDestinationArg, callback?: (result: BookmarkTreeNode) => void): void;
+    export function move(id: string, destination: BookmarkDestinationArg, callback?: (result: BookmarkTreeNode) => void): 1;
     /**
      * Updates the properties of a bookmark or folder. Specify only the properties that you want to change; unspecified properties will be left unchanged. Note: Currently, only 'title' and 'url' are supported.
      * @param callback If you specify the callback parameter, it should be a function that looks like this:
      * function( BookmarkTreeNode result) {...};
      */
-    export function update(id: string, changes: BookmarkChangesArg, callback?: (result: BookmarkTreeNode) => void): void;
+    export function update(id: string, changes: BookmarkChangesArg, callback?: (result: BookmarkTreeNode) => void): 1;
     /**
      * Removes a bookmark or an empty bookmark folder.
      * @param callback If you specify the callback parameter, it should be a function that looks like this:
      * function() {...};
      */
-    export function remove(id: string, callback?: Function): void;
+    export function remove(id: string, callback?: Function): 1;
     /**
      * Retrieves the children of the specified BookmarkTreeNode id.
      * @param callback The callback parameter should be a function that looks like this:
      * function(array of BookmarkTreeNode results) {...};
      */
-    export function getChildren(id: string, callback: (results: BookmarkTreeNode[]) => void): void;
+    export function getChildren(id: string, callback: (results: BookmarkTreeNode[]) => void): 1;
     /**
      * Since Chrome 14.
      * Retrieves part of the Bookmarks hierarchy, starting at the specified node.
@@ -201,13 +201,13 @@ declare namespace chrome.bookmarks {
      * @param callback The callback parameter should be a function that looks like this:
      * function(array of BookmarkTreeNode results) {...};
      */
-    export function getSubTree(id: string, callback: (results: BookmarkTreeNode[]) => void): void;
+    export function getSubTree(id: string, callback: (results: BookmarkTreeNode[]) => void): 1;
     /**
      * Recursively removes a bookmark folder.
      * @param callback If you specify the callback parameter, it should be a function that looks like this:
      * function() {...};
      */
-    export function removeTree(id: string, callback?: Function): void;
+    export function removeTree(id: string, callback?: Function): 1;
 
     /** Fired when a bookmark or folder is removed. When a folder is removed recursively, a single notification is fired for the folder, and none for its contents. */
     var onRemoved: BookmarkRemovedEvent;
@@ -285,55 +285,55 @@ declare namespace chrome.browserAction {
      * Enables the browser action for a tab. By default, browser actions are enabled.
      * @param tabId The id of the tab for which you want to modify the browser action.
      */
-    export function enable(tabId?: number): void;
+    export function enable(tabId?: number): 1;
     /** Sets the background color for the badge. */
-    export function setBadgeBackgroundColor(details: BadgeBackgroundColorDetails): void;
+    export function setBadgeBackgroundColor(details: BadgeBackgroundColorDetails): 1;
     /** Sets the badge text for the browser action. The badge is displayed on top of the icon. */
-    export function setBadgeText(details: BadgeTextDetails): void;
+    export function setBadgeText(details: BadgeTextDetails): 1;
     /** Sets the title of the browser action. This shows up in the tooltip. */
-    export function setTitle(details: TitleDetails): void;
+    export function setTitle(details: TitleDetails): 1;
     /**
      * Since Chrome 19.
      * Gets the badge text of the browser action. If no tab is specified, the non-tab-specific badge text is returned.
      * @param callback The callback parameter should be a function that looks like this:
      * function(string result) {...};
      */
-    export function getBadgeText(details: TabDetails, callback: (result: string) => void): void;
+    export function getBadgeText(details: TabDetails, callback: (result: string) => void): 1;
     /** Sets the html document to be opened as a popup when the user clicks on the browser action's icon. */
-    export function setPopup(details: PopupDetails): void;
+    export function setPopup(details: PopupDetails): 1;
     /**
      * Since Chrome 22.
      * Disables the browser action for a tab.
      * @param tabId The id of the tab for which you want to modify the browser action.
      */
-    export function disable(tabId?: number): void;
+    export function disable(tabId?: number): 1;
     /**
      * Since Chrome 19.
      * Gets the title of the browser action.
      * @param callback The callback parameter should be a function that looks like this:
      * function(string result) {...};
      */
-    export function getTitle(details: TabDetails, callback: (result: string) => void): void;
+    export function getTitle(details: TabDetails, callback: (result: string) => void): 1;
     /**
      * Since Chrome 19.
      * Gets the background color of the browser action.
      * @param callback The callback parameter should be a function that looks like this:
      * function( ColorArray result) {...};
      */
-    export function getBadgeBackgroundColor(details: TabDetails, callback: (result: number[]) => void): void;
+    export function getBadgeBackgroundColor(details: TabDetails, callback: (result: number[]) => void): 1;
     /**
      * Since Chrome 19.
      * Gets the html document set as the popup for this browser action.
      * @param callback The callback parameter should be a function that looks like this:
      * function(string result) {...};
      */
-    export function getPopup(details: TabDetails, callback: (result: string) => void): void;
+    export function getPopup(details: TabDetails, callback: (result: string) => void): 1;
     /**
      * Sets the icon for the browser action. The icon can be specified either as the path to an image file or as the pixel data from a canvas element, or as dictionary of either one of those. Either the path or the imageData property must be specified.
      * @param callback If you specify the callback parameter, it should be a function that looks like this:
      * function() {...};
      */
-    export function setIcon(details: TabIconDetails, callback?: Function): void;
+    export function setIcon(details: TabIconDetails, callback?: Function): 1;
 
     /** Fired when a browser action icon is clicked. This event will not fire if the browser action has a popup. */
     var onClicked: BrowserClickedEvent;
@@ -365,7 +365,7 @@ declare namespace chrome.commands {
      * If you specify the callback parameter, it should be a function that looks like this:
      * function(array of Command commands) {...};
      */
-    export function getAll(callback: (commands: Command[]) => void): void;
+    export function getAll(callback: (commands: Command[]) => void): 1;
 
     /** Fired when a registered command is activated using a keyboard shortcut. */
     var onCommand: CommandEvent;
@@ -426,25 +426,25 @@ declare namespace chrome.contentSettings {
          * @param callback If you specify the callback parameter, it should be a function that looks like this:
          * function() {...};
          */
-        clear(details: ClearDetails, callback?: () => void): void;
+        clear(details: ClearDetails, callback?: () => void): 1;
         /**
          * Applies a new content setting rule.
          * @param callback If you specify the callback parameter, it should be a function that looks like this:
          * function() {...};
          */
-        set(details: SetDetails, callback?: () => void): void;
+        set(details: SetDetails, callback?: () => void): 1;
         /**
          * @param callback The callback parameter should be a function that looks like this:
          * function(array of ResourceIdentifier resourceIdentifiers) {...};
          * Parameter resourceIdentifiers: A list of resource identifiers for this content type, or undefined if this content type does not use resource identifiers.
          */
-        getResourceIdentifiers(callback: (resourceIdentifiers?: ResourceIdentifier[]) => void): void;
+        getResourceIdentifiers(callback: (resourceIdentifiers?: ResourceIdentifier[]) => void): 1;
         /**
          * Gets the current content setting for a given pair of URLs.
          * @param callback The callback parameter should be a function that looks like this:
          * function(object details) {...};
          */
-        get(details: GetDetails, callback: (details: ReturnedDetails) => void): void;
+        get(details: GetDetails, callback: (details: ReturnedDetails) => void): 1;
     }
 
     /** The only content type using resource identifiers is contentSettings.plugins. For more information, see Resource Identifiers. */
@@ -625,7 +625,7 @@ declare namespace chrome.events {
          * The callback parameter should be a function that looks like this:
          * function() {...};
          */
-        addListener(callback: T): void;
+        addListener(callback: T): 1;
         /**
          * Returns currently registered rules.
          * @param callback Called with registered rules.
@@ -633,7 +633,7 @@ declare namespace chrome.events {
          * function(array of Rule rules) {...};
          * Parameter rules: Rules that were registered, the optional parameters are filled with values.
          */
-        getRules(callback: (rules: Rule[]) => void): void;
+        getRules(callback: (rules: Rule[]) => void): 1;
         /**
          * Returns currently registered rules.
          * @param ruleIdentifiers If an array is passed, only rules with identifiers contained in this array are returned.
@@ -642,7 +642,7 @@ declare namespace chrome.events {
          * function(array of Rule rules) {...};
          * Parameter rules: Rules that were registered, the optional parameters are filled with values.
          */
-        getRules(ruleIdentifiers: string[], callback: (rules: Rule[]) => void): void;
+        getRules(ruleIdentifiers: string[], callback: (rules: Rule[]) => void): 1;
         /**
          * @param callback Listener whose registration status shall be tested.
          */
@@ -654,14 +654,14 @@ declare namespace chrome.events {
          * If you specify the callback parameter, it should be a function that looks like this:
          * function() {...};
          */
-        removeRules(ruleIdentifiers?: string[], callback?: () => void): void;
+        removeRules(ruleIdentifiers?: string[], callback?: () => void): 1;
         /**
          * Unregisters currently registered rules.
          * @param callback Called when rules were unregistered.
          * If you specify the callback parameter, it should be a function that looks like this:
          * function() {...};
          */
-        removeRules(callback?: () => void): void;
+        removeRules(callback?: () => void): 1;
         /**
          * Registers rules to handle events.
          * @param rules Rules to be registered. These do not replace previously registered rules.
@@ -670,14 +670,14 @@ declare namespace chrome.events {
          * function(array of Rule rules) {...};
          * Parameter rules: Rules that were registered, the optional parameters are filled with values.
          */
-        addRules(rules: Rule[], callback?: (rules: Rule[]) => void): void;
+        addRules(rules: Rule[], callback?: (rules: Rule[]) => void): 1;
         /**
          * Deregisters an event listener callback from an event.
          * @param callback Listener that shall be unregistered.
          * The callback parameter should be a function that looks like this:
          * function() {...};
          */
-        removeListener(callback: T): void;
+        removeListener(callback: T): 1;
         hasListeners(): boolean;
     }
 
@@ -741,7 +741,7 @@ declare namespace chrome.extension {
      * Sets the value of the ap CGI parameter used in the extension's update URL. This value is ignored for extensions that are hosted in the Chrome Extension Gallery.
      * Since Chrome 9.
      */
-    export function setUpdateUrlData(data: string): void;
+    export function setUpdateUrlData(data: string): 1;
     /** Returns an array of the JavaScript 'window' objects for each of the pages running inside the current extension. */
     export function getViews(fetchProperties?: FetchProperties): Window[];
     /**
@@ -751,7 +751,7 @@ declare namespace chrome.extension {
      * function(boolean isAllowedAccess) {...};
      * Parameter isAllowedAccess: True if the extension can access the 'file://' scheme, false otherwise.
      */
-    export function isAllowedFileSchemeAccess(callback: (isAllowedAccess: boolean) => void): void;
+    export function isAllowedFileSchemeAccess(callback: (isAllowedAccess: boolean) => void): 1;
     /**
      * Retrieves the state of the extension's access to Incognito-mode (as determined by the user-controlled 'Allowed in Incognito' checkbox.
      * Since Chrome 12.
@@ -759,7 +759,7 @@ declare namespace chrome.extension {
      * function(boolean isAllowedAccess) {...};
      * Parameter isAllowedAccess: True if the extension has access to Incognito mode, false otherwise.
      */
-    export function isAllowedIncognitoAccess(callback: (isAllowedAccess: boolean) => void): void;
+    export function isAllowedIncognitoAccess(callback: (isAllowedAccess: boolean) => void): 1;
     /**
      * Sends a single request to other listeners within the extension. Similar to runtime.connect, but only sends a single request with an optional response. The extension.onRequest event is fired in each page of the extension.
      * @deprecated Deprecated since Chrome 33. Please use runtime.sendMessage.
@@ -768,7 +768,7 @@ declare namespace chrome.extension {
      * function(any response) {...};
      * Parameter response: The JSON response object sent by the handler of the request. If an error occurs while connecting to the extension, the callback will be called with no arguments and runtime.lastError will be set to the error message.
      */
-    export function sendRequest(extensionId: string, request: any, responseCallback?: (response: any) => void): void;
+    export function sendRequest(extensionId: string, request: any, responseCallback?: (response: any) => void): 1;
     /**
      * Sends a single request to other listeners within the extension. Similar to runtime.connect, but only sends a single request with an optional response. The extension.onRequest event is fired in each page of the extension.
      * @deprecated Deprecated since Chrome 33. Please use runtime.sendMessage.
@@ -776,7 +776,7 @@ declare namespace chrome.extension {
      * function(any response) {...};
      * Parameter response: The JSON response object sent by the handler of the request. If an error occurs while connecting to the extension, the callback will be called with no arguments and runtime.lastError will be set to the error message.
      */
-    export function sendRequest(request: any, responseCallback?: (response: any) => void): void;
+    export function sendRequest(request: any, responseCallback?: (response: any) => void): 1;
     /**
      * Returns an array of the JavaScript 'window' objects for each of the tabs running inside the current extension. If windowId is specified, returns only the 'window' objects of tabs attached to the specified window.
      * @deprecated Deprecated since Chrome 33. Please use extension.getViews {type: "tab"}.
@@ -882,37 +882,37 @@ declare namespace chrome.history {
      * @param callback The callback parameter should be a function that looks like this:
      * function(array of HistoryItem results) {...};
      */
-    export function search(query: HistoryQuery, callback: (results: HistoryItem[]) => void): void;
+    export function search(query: HistoryQuery, callback: (results: HistoryItem[]) => void): 1;
     /**
      * Adds a URL to the history at the current time with a transition type of "link".
      * @param callback If you specify the callback parameter, it should be a function that looks like this:
      * function() {...};
      */
-    export function addUrl(details: Url, callback?: () => void): void;
+    export function addUrl(details: Url, callback?: () => void): 1;
     /**
      * Removes all items within the specified date range from the history. Pages will not be removed from the history unless all visits fall within the range.
      * @param callback The callback parameter should be a function that looks like this:
      * function() {...};
      */
-    export function deleteRange(range: Range, callback: () => void): void;
+    export function deleteRange(range: Range, callback: () => void): 1;
     /**
      * Deletes all items from the history.
      * @param callback The callback parameter should be a function that looks like this:
      * function() {...};
      */
-    export function deleteAll(callback: () => void): void;
+    export function deleteAll(callback: () => void): 1;
     /**
      * Retrieves information about visits to a URL.
      * @param callback The callback parameter should be a function that looks like this:
      * function(array of VisitItem results) {...};
      */
-    export function getVisits(details: Url, callback: (results: VisitItem[]) => void): void;
+    export function getVisits(details: Url, callback: (results: VisitItem[]) => void): 1;
     /**
      * Removes all occurrences of the given URL from the history.
      * @param callback If you specify the callback parameter, it should be a function that looks like this:
      * function() {...};
      */
-    export function deleteUrl(details: Url, callback?: () => void): void;
+    export function deleteUrl(details: Url, callback?: () => void): 1;
 
     /** Fired when a URL is visited, providing the HistoryItem data for that URL. This event fires before the page has loaded. */
     var onVisited: HistoryVisitedEvent;
@@ -934,7 +934,7 @@ declare namespace chrome.i18n {
      * function(array of string languages) {...};
      * Parameter languages: Array of the accept languages of the browser, such as en-US,en,zh-CN
      */
-    export function getAcceptLanguages(callback: (languages: string[]) => void): void;
+    export function getAcceptLanguages(callback: (languages: string[]) => void): 1;
     /**
      * Gets the localized string for the specified message. If the message is missing, this method returns an empty string (''). If the format of the getMessage() call is wrong — for example, messageName is not a string or the substitutions array has more than 9 elements — this method returns undefined.
      * @param messageName The name of the message, as specified in the messages.json file.
@@ -1056,7 +1056,7 @@ declare namespace chrome.notifications {
      * If you specify the callback parameter, it should be a function that looks like this:
      * function(string notificationId) {...};
      */
-    export function create(notificationId: string, options: NotificationOptions, callback?: (notificationId: string) => void): void;
+    export function create(notificationId: string, options: NotificationOptions, callback?: (notificationId: string) => void): 1;
     /**
      * Creates and displays a notification.
      * @param notificationId Identifier of the notification. If not set or empty, an ID will automatically be generated. If it matches an existing notification, this method first clears that notification before proceeding with the create operation.
@@ -1067,7 +1067,7 @@ declare namespace chrome.notifications {
      * If you specify the callback parameter, it should be a function that looks like this:
      * function(string notificationId) {...};
      */
-    export function create(options: NotificationOptions, callback?: (notificationId: string) => void): void;
+    export function create(options: NotificationOptions, callback?: (notificationId: string) => void): 1;
     /**
      * Updates an existing notification.
      * @param notificationId The id of the notification to be updated. This is returned by notifications.create method.
@@ -1077,7 +1077,7 @@ declare namespace chrome.notifications {
      * If you specify the callback parameter, it should be a function that looks like this:
      * function(boolean wasUpdated) {...};
      */
-    export function update(notificationId: string, options: NotificationOptions, callback?: (wasUpdated: boolean) => void): void;
+    export function update(notificationId: string, options: NotificationOptions, callback?: (wasUpdated: boolean) => void): 1;
     /**
      * Clears the specified notification.
      * @param notificationId The id of the notification to be cleared. This is returned by notifications.create method.
@@ -1086,7 +1086,7 @@ declare namespace chrome.notifications {
      * If you specify the callback parameter, it should be a function that looks like this:
      * function(boolean wasCleared) {...};
      */
-    export function clear(notificationId: string, callback?: (wasCleared: boolean) => void): void;
+    export function clear(notificationId: string, callback?: (wasCleared: boolean) => void): 1;
     /**
      * Retrieves all the notifications.
      * @since Chrome 29.
@@ -1094,7 +1094,7 @@ declare namespace chrome.notifications {
      * The callback parameter should be a function that looks like this:
      * function(object notifications) {...};
      */
-    export function getAll(callback: (notifications: Object) => void): void;
+    export function getAll(callback: (notifications: Object) => void): 1;
     /**
      * Retrieves whether the user has enabled notifications from this app or extension.
      * @since Chrome 32.
@@ -1102,7 +1102,7 @@ declare namespace chrome.notifications {
      * The callback parameter should be a function that looks like this:
      * function( PermissionLevel level) {...};
      */
-    export function getPermissionLevel(callback: (level: string) => void): void;
+    export function getPermissionLevel(callback: (level: string) => void): 1;
 }
 
 ////////////////////
@@ -1139,7 +1139,7 @@ declare namespace chrome.omnibox {
      * Sets the description and styling for the default suggestion. The default suggestion is the text that is displayed in the first suggestion row underneath the URL bar.
      * @param suggestion A partial SuggestResult object, without the 'content' parameter.
      */
-    export function setDefaultSuggestion(suggestion: Suggestion): void;
+    export function setDefaultSuggestion(suggestion: Suggestion): 1;
 
     /** User has accepted what is typed into the omnibox. */
     var onInputEntered: OmniboxInputEnteredEvent;
@@ -1519,7 +1519,7 @@ declare namespace chrome.runtime {
      */
     export function connectNative(application: string): Port;
     /** Retrieves the JavaScript 'window' object for the background page running inside the current extension/app. If the background page is an event page, the system will ensure it is loaded before calling the callback. If there is no background page, an error is set. */
-    export function getBackgroundPage(callback: (backgroundPage?: Window) => void): void;
+    export function getBackgroundPage(callback: (backgroundPage?: Window) => void): 1;
     /**
      * Returns details about the app or extension from the manifest. The object returned is a serialization of the full manifest file.
      * @returns The manifest details.
@@ -1529,13 +1529,13 @@ declare namespace chrome.runtime {
      * Returns a DirectoryEntry for the package directory.
      * @since Chrome 29.
      */
-    export function getPackageDirectoryEntry(callback: (directoryEntry: any) => void): void;
+    export function getPackageDirectoryEntry(callback: (directoryEntry: any) => void): 1;
     /**
      * Returns information about the current platform.
      * @since Chrome 29.
      * @param callback Called with results
      */
-    export function getPlatformInfo(callback: (platformInfo: PlatformInfo) => void): void;
+    export function getPlatformInfo(callback: (platformInfo: PlatformInfo) => void): 1;
     /**
      * Converts a relative path within an app/extension install directory to a fully-qualified URL.
      * @param path A path to a resource within an app/extension expressed relative to its install directory.
@@ -1545,7 +1545,7 @@ declare namespace chrome.runtime {
      * Reloads the app or extension.
      * @since Chrome 25.
      */
-    export function reload(): void;
+    export function reload(): 1;
     /**
      * Requests an update check for this app/extension.
      * @since Chrome 25.
@@ -1553,26 +1553,26 @@ declare namespace chrome.runtime {
      * Parameter status: Result of the update check. One of: "throttled", "no_update", or "update_available"
      * Optional parameter details: If an update is available, this contains more information about the available update.
      */
-    export function requestUpdateCheck(callback: (status: string, details?: UpdateCheckDetails) => void): void;
+    export function requestUpdateCheck(callback: (status: string, details?: UpdateCheckDetails) => void): 1;
     /**
      * Restart the ChromeOS device when the app runs in kiosk mode. Otherwise, it's no-op.
      * @since Chrome 32.
      */
-    export function restart(): void;
+    export function restart(): 1;
     /**
      * Sends a single message to event listeners within your extension/app or a different extension/app. Similar to runtime.connect but only sends a single message, with an optional response. If sending to your extension, the runtime.onMessage event will be fired in each page, or runtime.onMessageExternal, if a different extension. Note that extensions cannot send messages to content scripts using this method. To send messages to content scripts, use tabs.sendMessage.
      * @since Chrome 26.
      * @param responseCallback Optional
      * Parameter response: The JSON response object sent by the handler of the message. If an error occurs while connecting to the extension, the callback will be called with no arguments and runtime.lastError will be set to the error message.
      */
-    export function sendMessage(message: any, responseCallback?: (response: any) => void): void;
+    export function sendMessage(message: any, responseCallback?: (response: any) => void): 1;
     /**
      * Sends a single message to event listeners within your extension/app or a different extension/app. Similar to runtime.connect but only sends a single message, with an optional response. If sending to your extension, the runtime.onMessage event will be fired in each page, or runtime.onMessageExternal, if a different extension. Note that extensions cannot send messages to content scripts using this method. To send messages to content scripts, use tabs.sendMessage.
      * @since Chrome 32.
      * @param responseCallback Optional
      * Parameter response: The JSON response object sent by the handler of the message. If an error occurs while connecting to the extension, the callback will be called with no arguments and runtime.lastError will be set to the error message.
      */
-    export function sendMessage(message: any, options: MessageOptions, responseCallback?: (response: any) => void): void;
+    export function sendMessage(message: any, options: MessageOptions, responseCallback?: (response: any) => void): 1;
     /**
      * Sends a single message to event listeners within your extension/app or a different extension/app. Similar to runtime.connect but only sends a single message, with an optional response. If sending to your extension, the runtime.onMessage event will be fired in each page, or runtime.onMessageExternal, if a different extension. Note that extensions cannot send messages to content scripts using this method. To send messages to content scripts, use tabs.sendMessage.
      * @since Chrome 26.
@@ -1580,7 +1580,7 @@ declare namespace chrome.runtime {
      * @param responseCallback Optional
      * Parameter response: The JSON response object sent by the handler of the message. If an error occurs while connecting to the extension, the callback will be called with no arguments and runtime.lastError will be set to the error message.
      */
-    export function sendMessage(extensionId: string, message: any, responseCallback?: (response: any) => void): void;
+    export function sendMessage(extensionId: string, message: any, responseCallback?: (response: any) => void): 1;
     /**
      * Sends a single message to event listeners within your extension/app or a different extension/app. Similar to runtime.connect but only sends a single message, with an optional response. If sending to your extension, the runtime.onMessage event will be fired in each page, or runtime.onMessageExternal, if a different extension. Note that extensions cannot send messages to content scripts using this method. To send messages to content scripts, use tabs.sendMessage.
      * @since Chrome 32.
@@ -1588,7 +1588,7 @@ declare namespace chrome.runtime {
      * @param responseCallback Optional
      * Parameter response: The JSON response object sent by the handler of the message. If an error occurs while connecting to the extension, the callback will be called with no arguments and runtime.lastError will be set to the error message.
      */
-    export function sendMessage(extensionId: string, message: any, options: MessageOptions, responseCallback?: (response: any) => void): void;
+    export function sendMessage(extensionId: string, message: any, options: MessageOptions, responseCallback?: (response: any) => void): 1;
     /**
      * Send a single message to a native application.
      * @since Chrome 28.
@@ -1597,7 +1597,7 @@ declare namespace chrome.runtime {
      * @param responseCallback Optional.
      * Parameter response: The response message sent by the native messaging host. If an error occurs while connecting to the native messaging host, the callback will be called with no arguments and runtime.lastError will be set to the error message.
      */
-    export function sendNativeMessage(application: string, message: Object, responseCallback?: (response: any) => void): void;
+    export function sendNativeMessage(application: string, message: Object, responseCallback?: (response: any) => void): 1;
     /**
      * Sets the URL to be visited upon uninstallation. This may be used to clean up server-side data, do analytics, and implement surveys. Maximum 255 characters.
      * @since Chrome 41.
@@ -1605,14 +1605,14 @@ declare namespace chrome.runtime {
      * URL to be opened after the extension is uninstalled. This URL must have an http: or https: scheme. Set an empty string to not open a new tab upon uninstallation.
      * @param callback Called when the uninstall URL is set. If the given URL is invalid, runtime.lastError will be set.
      */
-    export function setUninstallURL(url: string, callback?: () => void): void;
+    export function setUninstallURL(url: string, callback?: () => void): 1;
     /**
      * Open your Extension's options page, if possible.
      * The precise behavior may depend on your manifest's options_ui or options_page key, or what Chrome happens to support at the time. For example, the page may be opened in a new tab, within chrome://extensions, within an App, or it may just focus an open options page. It will never cause the caller page to reload.
      * If your Extension does not declare an options page, or Chrome failed to create one for some other reason, the callback will set lastError.
      * @since Chrome 42.
      */
-    export function openOptionsPage(callback?: () => void): void;
+    export function openOptionsPage(callback?: () => void): 1;
 
     /**
      * Fired when a connection is made from either an extension process or a content script.
@@ -1711,25 +1711,25 @@ declare namespace chrome.sessions {
      * @param callback
      * Parameter sessions: The list of closed entries in reverse order that they were closed (the most recently closed tab or window will be at index 0). The entries may contain either tabs or windows.
      */
-    export function getRecentlyClosed(filter: Filter, callback: (sessions: Session[]) => void): void;
+    export function getRecentlyClosed(filter: Filter, callback: (sessions: Session[]) => void): 1;
     /**
      * Gets the list of recently closed tabs and/or windows.
      * @param callback
      * Parameter sessions: The list of closed entries in reverse order that they were closed (the most recently closed tab or window will be at index 0). The entries may contain either tabs or windows.
      */
-    export function getRecentlyClosed(callback: (sessions: Session[]) => void): void;
+    export function getRecentlyClosed(callback: (sessions: Session[]) => void): 1;
     /**
      * Retrieves all devices with synced sessions.
      * @param callback
      * Parameter devices: The list of sessions.Device objects for each synced session, sorted in order from device with most recently modified session to device with least recently modified session. tabs.Tab objects are sorted by recency in the windows.Window of the sessions.Session objects.
      */
-    export function getDevices(filter: Filter, callback: (devices: Device[]) => void): void;
+    export function getDevices(filter: Filter, callback: (devices: Device[]) => void): 1;
     /**
      * Retrieves all devices with synced sessions.
      * @param callback
      * Parameter devices: The list of sessions.Device objects for each synced session, sorted in order from device with most recently modified session to device with least recently modified session. tabs.Tab objects are sorted by recency in the windows.Window of the sessions.Session objects.
      */
-    export function getDevices(callback: (devices: Device[]) => void): void;
+    export function getDevices(callback: (devices: Device[]) => void): 1;
     /**
      * Reopens a windows.Window or tabs.Tab, with an optional callback to run when the entry has been restored.
      * @param sessionId Optional.
@@ -1737,7 +1737,7 @@ declare namespace chrome.sessions {
      * @param callback Optional.
      * Parameter restoredSession: A sessions.Session containing the restored windows.Window or tabs.Tab object.
      */
-    export function restore(sessionId?: string, callback?: (restoredSession: Session) => void): void;
+    export function restore(sessionId?: string, callback?: (restoredSession: Session) => void): 1;
 
     /** Fired when recently closed tabs and/or windows are changed. This event does not monitor synced sessions changes. */
     export var onChanged: SessionChangedEvent;
@@ -1758,20 +1758,20 @@ declare namespace chrome.storage {
          * @param callback Callback with the amount of space being used by storage, or on failure (in which case runtime.lastError will be set).
          * Parameter bytesInUse: Amount of space being used in storage, in bytes.
          */
-        getBytesInUse(callback: (bytesInUse: number) => void): void;
+        getBytesInUse(callback: (bytesInUse: number) => void): 1;
         /**
          * Gets the amount of space (in bytes) being used by one or more items.
          * @param keys A single key or list of keys to get the total usage for. An empty list will return 0. Pass in null to get the total usage of all of storage.
          * @param callback Callback with the amount of space being used by storage, or on failure (in which case runtime.lastError will be set).
          * Parameter bytesInUse: Amount of space being used in storage, in bytes.
          */
-        getBytesInUse(keys: string | string[] | null, callback: (bytesInUse: number) => void): void;
+        getBytesInUse(keys: string | string[] | null, callback: (bytesInUse: number) => void): 1;
         /**
          * Removes all items from storage.
          * @param callback Optional.
          * Callback on success, or on failure (in which case runtime.lastError will be set).
          */
-        clear(callback?: () => void): void;
+        clear(callback?: () => void): 1;
         /**
          * Sets multiple items.
          * @param items An object which gives each key/value pair to update storage with. Any other key/value pairs in storage will not be affected.
@@ -1779,27 +1779,27 @@ declare namespace chrome.storage {
          * @param callback Optional.
          * Callback on success, or on failure (in which case runtime.lastError will be set).
          */
-        set(items: Object, callback?: () => void): void;
+        set(items: Object, callback?: () => void): 1;
         /**
          * Removes one item from storage.
          * @param key A single key for items to remove.
          * @param callback Optional.
          * Callback on success, or on failure (in which case runtime.lastError will be set).
          */
-        remove(key: string, callback?: () => void): void;
+        remove(key: string, callback?: () => void): 1;
         /**
          * Removes items from storage.
          * @param keys A list of keys for items to remove.
          * @param callback Optional.
          * Callback on success, or on failure (in which case runtime.lastError will be set).
          */
-        remove(keys: string[], callback?: () => void): void;
+        remove(keys: string[], callback?: () => void): 1;
         /**
          * Gets one or more items from storage.
          * @param callback Callback with storage items, or on failure (in which case runtime.lastError will be set).
          * Parameter items: Object with items in their key-value mappings.
          */
-        get(callback: (items: { [key: string]: any }) => void): void;
+        get(callback: (items: { [key: string]: any }) => void): 1;
         /**
          * Gets one or more items from storage.
          * @param keys A single key to get, list of keys to get, or a dictionary specifying default values.
@@ -1807,7 +1807,7 @@ declare namespace chrome.storage {
          * @param callback Callback with storage items, or on failure (in which case runtime.lastError will be set).
          * Parameter items: Object with items in their key-value mappings.
          */
-        get(keys: string | string[] | Object | null, callback: (items: { [key: string]: any }) => void): void;
+        get(keys: string | string[] | Object | null, callback: (items: { [key: string]: any }) => void): 1;
     }
 
     interface StorageChange {
@@ -2305,7 +2305,7 @@ declare namespace chrome.tabs {
      * @param callback Optional. Called after all the JavaScript has been executed.
      * Parameter result: The result of the script in every injected frame.
      */
-    export function executeScript(details: InjectDetails, callback?: (result: any[]) => void): void;
+    export function executeScript(details: InjectDetails, callback?: (result: any[]) => void): 1;
     /**
      * Injects JavaScript code into a page. For details, see the programmatic injection section of the content scripts doc.
      * @param tabId Optional. The ID of the tab in which to run the script; defaults to the active tab of the current window.
@@ -2313,96 +2313,96 @@ declare namespace chrome.tabs {
      * @param callback Optional. Called after all the JavaScript has been executed.
      * Parameter result: The result of the script in every injected frame.
      */
-    export function executeScript(tabId: number, details: InjectDetails, callback?: (result: any[]) => void): void;
+    export function executeScript(tabId: number, details: InjectDetails, callback?: (result: any[]) => void): 1;
     /** Retrieves details about the specified tab. */
-    export function get(tabId: number, callback: (tab: Tab) => void): void;
+    export function get(tabId: number, callback: (tab: Tab) => void): 1;
     /**
      * Gets details about all tabs in the specified window.
      * @deprecated since Chrome 33. Please use tabs.query {windowId: windowId}.
      */
-    export function getAllInWindow(callback: (tab: Tab) => void): void;
+    export function getAllInWindow(callback: (tab: Tab) => void): 1;
     /**
      * Gets details about all tabs in the specified window.
      * @deprecated since Chrome 33. Please use tabs.query {windowId: windowId}.
      * @param windowId Optional. Defaults to the current window.
      */
-    export function getAllInWindow(windowId: number, callback: (tab: Tab) => void): void;
+    export function getAllInWindow(windowId: number, callback: (tab: Tab) => void): 1;
     /** Gets the tab that this script call is being made from. May be undefined if called from a non-tab context (for example: a background page or popup view). */
-    export function getCurrent(callback: (tab?: Tab) => void): void;
+    export function getCurrent(callback: (tab?: Tab) => void): 1;
     /**
      * Gets the tab that is selected in the specified window.
      * @deprecated since Chrome 33. Please use tabs.query {active: true}.
      */
-    export function getSelected(callback: (tab: Tab) => void): void;
+    export function getSelected(callback: (tab: Tab) => void): 1;
     /**
      * Gets the tab that is selected in the specified window.
      * @deprecated since Chrome 33. Please use tabs.query {active: true}.
      * @param windowId Optional. Defaults to the current window.
      */
-    export function getSelected(windowId: number, callback: (tab: Tab) => void): void;
+    export function getSelected(windowId: number, callback: (tab: Tab) => void): 1;
     /**
      * Creates a new tab.
      * @param callback Optional.
      * Parameter tab: Details about the created tab. Will contain the ID of the new tab.
      */
-    export function create(createProperties: CreateProperties, callback?: (tab: Tab) => void): void;
+    export function create(createProperties: CreateProperties, callback?: (tab: Tab) => void): 1;
     /**
      * Moves one or more tabs to a new position within its window, or to a new window. Note that tabs can only be moved to and from normal (window.type === "normal") windows.
      * @param tabId The tab to move.
      * @param callback Optional.
      * Parameter tab: Details about the moved tab.
      */
-    export function move(tabId: number, moveProperties: MoveProperties, callback?: (tab: Tab) => void): void;
+    export function move(tabId: number, moveProperties: MoveProperties, callback?: (tab: Tab) => void): 1;
     /**
      * Moves one or more tabs to a new position within its window, or to a new window. Note that tabs can only be moved to and from normal (window.type === "normal") windows.
      * @param tabIds The tabs to move.
      * @param callback Optional.
      * Parameter tabs: Details about the moved tabs.
      */
-    export function move(tabIds: number[], moveProperties: MoveProperties, callback?: (tabs: Tab[]) => void): void;
+    export function move(tabIds: number[], moveProperties: MoveProperties, callback?: (tabs: Tab[]) => void): 1;
     /**
      * Modifies the properties of a tab. Properties that are not specified in updateProperties are not modified.
      * @param callback Optional.
      * Optional parameter tab: Details about the updated tab. The tabs.Tab object doesn't contain url, title and favIconUrl if the "tabs" permission has not been requested.
      */
-    export function update(updateProperties: UpdateProperties, callback?: (tab?: Tab) => void): void;
+    export function update(updateProperties: UpdateProperties, callback?: (tab?: Tab) => void): 1;
     /**
      * Modifies the properties of a tab. Properties that are not specified in updateProperties are not modified.
      * @param tabId Defaults to the selected tab of the current window.
      * @param callback Optional.
      * Optional parameter tab: Details about the updated tab. The tabs.Tab object doesn't contain url, title and favIconUrl if the "tabs" permission has not been requested.
      */
-    export function update(tabId: number, updateProperties: UpdateProperties, callback?: (tab?: Tab) => void): void;
+    export function update(tabId: number, updateProperties: UpdateProperties, callback?: (tab?: Tab) => void): 1;
     /**
      * Closes a tab.
      * @param tabId The tab to close.
      */
-    export function remove(tabId: number, callback?: Function): void;
+    export function remove(tabId: number, callback?: Function): 1;
     /**
      * Closes several tabs.
      * @param tabIds The list of tabs to close.
      */
-    export function remove(tabIds: number[], callback?: Function): void;
+    export function remove(tabIds: number[], callback?: Function): 1;
     /**
      * Captures the visible area of the currently active tab in the specified window. You must have <all_urls> permission to use this method.
      * @param callback
      * Parameter dataUrl: A data URL which encodes an image of the visible area of the captured tab. May be assigned to the 'src' property of an HTML Image element for display.
      */
-    export function captureVisibleTab(callback: (dataUrl: string) => void): void;
+    export function captureVisibleTab(callback: (dataUrl: string) => void): 1;
     /**
      * Captures the visible area of the currently active tab in the specified window. You must have <all_urls> permission to use this method.
      * @param windowId Optional. The target window. Defaults to the current window.
      * @param callback
      * Parameter dataUrl: A data URL which encodes an image of the visible area of the captured tab. May be assigned to the 'src' property of an HTML Image element for display.
      */
-    export function captureVisibleTab(windowId: number, callback: (dataUrl: string) => void): void;
+    export function captureVisibleTab(windowId: number, callback: (dataUrl: string) => void): 1;
     /**
      * Captures the visible area of the currently active tab in the specified window. You must have <all_urls> permission to use this method.
      * @param options Optional. Details about the format and quality of an image.
      * @param callback
      * Parameter dataUrl: A data URL which encodes an image of the visible area of the captured tab. May be assigned to the 'src' property of an HTML Image element for display.
      */
-    export function captureVisibleTab(options: CaptureVisibleTabOptions, callback: (dataUrl: string) => void): void;
+    export function captureVisibleTab(options: CaptureVisibleTabOptions, callback: (dataUrl: string) => void): 1;
     /**
      * Captures the visible area of the currently active tab in the specified window. You must have <all_urls> permission to use this method.
      * @param windowId Optional. The target window. Defaults to the current window.
@@ -2410,23 +2410,23 @@ declare namespace chrome.tabs {
      * @param callback
      * Parameter dataUrl: A data URL which encodes an image of the visible area of the captured tab. May be assigned to the 'src' property of an HTML Image element for display.
      */
-    export function captureVisibleTab(windowId: number, options: CaptureVisibleTabOptions, callback: (dataUrl: string) => void): void;
+    export function captureVisibleTab(windowId: number, options: CaptureVisibleTabOptions, callback: (dataUrl: string) => void): 1;
     /**
      * Reload a tab.
      * @since Chrome 16.
      * @param tabId The ID of the tab to reload; defaults to the selected tab of the current window.
      */
-    export function reload(tabId: number, reloadProperties?: ReloadProperties, callback?: () => void): void;
+    export function reload(tabId: number, reloadProperties?: ReloadProperties, callback?: () => void): 1;
     /**
      * Reload the selected tab of the current window.
      * @since Chrome 16.
      */
-    export function reload(reloadProperties: ReloadProperties, callback?: () => void): void;
+    export function reload(reloadProperties: ReloadProperties, callback?: () => void): 1;
     /**
      * Reload the selected tab of the current window.
       * @since Chrome 16.
      */
-    export function reload(callback?: () => void): void;
+    export function reload(callback?: () => void): 1;
     /**
      * Duplicates a tab.
      * @since Chrome 23.
@@ -2434,26 +2434,26 @@ declare namespace chrome.tabs {
      * @param callback Optional.
      * Optional parameter tab: Details about the duplicated tab. The tabs.Tab object doesn't contain url, title and favIconUrl if the "tabs" permission has not been requested.
      */
-    export function duplicate(tabId: number, callback?: (tab?: Tab) => void): void;
+    export function duplicate(tabId: number, callback?: (tab?: Tab) => void): 1;
     /**
      * Sends a single message to the content script(s) in the specified tab, with an optional callback to run when a response is sent back. The runtime.onMessage event is fired in each content script running in the specified tab for the current extension.
      * @since Chrome 20.
      */
-    export function sendMessage(tabId: number, message: any, responseCallback?: (response: any) => void): void;
+    export function sendMessage(tabId: number, message: any, responseCallback?: (response: any) => void): 1;
     /**
      * Sends a single message to the content script(s) in the specified tab, with an optional callback to run when a response is sent back. The runtime.onMessage event is fired in each content script running in the specified tab for the current extension.
      * @since Chrome 41.
      * @param responseCallback Optional.
      * Parameter response: The JSON response object sent by the handler of the message. If an error occurs while connecting to the specified tab, the callback will be called with no arguments and runtime.lastError will be set to the error message.
      */
-    export function sendMessage(tabId: number, message: any, options: MessageSendOptions, responseCallback?: (response: any) => void): void;
+    export function sendMessage(tabId: number, message: any, options: MessageSendOptions, responseCallback?: (response: any) => void): 1;
     /**
      * Sends a single request to the content script(s) in the specified tab, with an optional callback to run when a response is sent back. The extension.onRequest event is fired in each content script running in the specified tab for the current extension.
      * @deprecated since Chrome 33. Please use runtime.sendMessage.
      * @param responseCallback Optional.
      * Parameter response: The JSON response object sent by the handler of the request. If an error occurs while connecting to the specified tab, the callback will be called with no arguments and runtime.lastError will be set to the error message.
      */
-    export function sendRequest(tabId: number, request: any, responseCallback?: (response: any) => void): void;
+    export function sendRequest(tabId: number, request: any, responseCallback?: (response: any) => void): 1;
     /** Connects to the content script(s) in the specified tab. The runtime.onConnect event is fired in each content script running in the specified tab for the current extension. */
     export function connect(tabId: number, connectInfo?: ConnectInfo): runtime.Port;
     /**
@@ -2461,46 +2461,46 @@ declare namespace chrome.tabs {
      * @param details Details of the script or CSS to inject. Either the code or the file property must be set, but both may not be set at the same time.
      * @param callback Optional. Called when all the CSS has been inserted.
      */
-    export function insertCSS(details: InjectDetails, callback?: Function): void;
+    export function insertCSS(details: InjectDetails, callback?: Function): 1;
     /**
      * Injects CSS into a page. For details, see the programmatic injection section of the content scripts doc.
      * @param tabId Optional. The ID of the tab in which to insert the CSS; defaults to the active tab of the current window.
      * @param details Details of the script or CSS to inject. Either the code or the file property must be set, but both may not be set at the same time.
      * @param callback Optional. Called when all the CSS has been inserted.
      */
-    export function insertCSS(tabId: number, details: InjectDetails, callback?: Function): void;
+    export function insertCSS(tabId: number, details: InjectDetails, callback?: Function): 1;
     /**
      * Highlights the given tabs.
      * @since Chrome 16.
      * @param callback Optional.
      * Parameter window: Contains details about the window whose tabs were highlighted.
      */
-    export function highlight(highlightInfo: HighlightInfo, callback: (window: chrome.windows.Window) => void): void;
+    export function highlight(highlightInfo: HighlightInfo, callback: (window: chrome.windows.Window) => void): 1;
     /**
      * Gets all tabs that have the specified properties, or all tabs if no properties are specified.
      * @since Chrome 16.
      */
-    export function query(queryInfo: QueryInfo, callback: (result: Tab[]) => void): void;
+    export function query(queryInfo: QueryInfo, callback: (result: Tab[]) => void): 1;
     /**
      * Detects the primary language of the content in a tab.
      * @param callback
      * Parameter language: An ISO language code such as en or fr. For a complete list of languages supported by this method, see kLanguageInfoTable. The 2nd to 4th columns will be checked and the first non-NULL value will be returned except for Simplified Chinese for which zh-CN will be returned. For an unknown language, und will be returned.
      */
-    export function detectLanguage(callback: (language: string) => void): void;
+    export function detectLanguage(callback: (language: string) => void): 1;
     /**
      * Detects the primary language of the content in a tab.
      * @param tabId Optional. Defaults to the active tab of the current window.
      * @param callback
      * Parameter language: An ISO language code such as en or fr. For a complete list of languages supported by this method, see kLanguageInfoTable. The 2nd to 4th columns will be checked and the first non-NULL value will be returned except for Simplified Chinese for which zh-CN will be returned. For an unknown language, und will be returned.
      */
-    export function detectLanguage(tabId: number, callback: (language: string) => void): void;
+    export function detectLanguage(tabId: number, callback: (language: string) => void): 1;
     /**
      * Zooms a specified tab.
      * @since Chrome 42.
      * @param zoomFactor The new zoom factor. Use a value of 0 here to set the tab to its current default zoom factor. Values greater than zero specify a (possibly non-default) zoom factor for the tab.
      * @param callback Optional. Called after the zoom factor has been changed.
      */
-    export function setZoom(zoomFactor: number, callback?: () => void): void;
+    export function setZoom(zoomFactor: number, callback?: () => void): 1;
     /**
      * Zooms a specified tab.
      * @since Chrome 42.
@@ -2508,14 +2508,14 @@ declare namespace chrome.tabs {
      * @param zoomFactor The new zoom factor. Use a value of 0 here to set the tab to its current default zoom factor. Values greater than zero specify a (possibly non-default) zoom factor for the tab.
      * @param callback Optional. Called after the zoom factor has been changed.
      */
-    export function setZoom(tabId: number, zoomFactor: number, callback?: () => void): void;
+    export function setZoom(tabId: number, zoomFactor: number, callback?: () => void): 1;
     /**
      * Gets the current zoom factor of a specified tab.
      * @since Chrome 42.
      * @param callback Called with the tab's current zoom factor after it has been fetched.
      * Parameter zoomFactor: The tab's current zoom factor.
      */
-    export function getZoom(callback: (zoomFactor: number) => void): void;
+    export function getZoom(callback: (zoomFactor: number) => void): 1;
     /**
      * Gets the current zoom factor of a specified tab.
      * @since Chrome 42.
@@ -2523,14 +2523,14 @@ declare namespace chrome.tabs {
      * @param callback Called with the tab's current zoom factor after it has been fetched.
      * Parameter zoomFactor: The tab's current zoom factor.
      */
-    export function getZoom(tabId: number, callback: (zoomFactor: number) => void): void;
+    export function getZoom(tabId: number, callback: (zoomFactor: number) => void): 1;
     /**
      * Sets the zoom settings for a specified tab, which define how zoom changes are handled. These settings are reset to defaults upon navigating the tab.
      * @since Chrome 42.
      * @param zoomSettings Defines how zoom changes are handled and at what scope.
      * @param callback Optional. Called after the zoom settings have been changed.
      */
-    export function setZoomSettings(zoomSettings: ZoomSettings, callback?: () => void): void;
+    export function setZoomSettings(zoomSettings: ZoomSettings, callback?: () => void): 1;
     /**
      * Sets the zoom settings for a specified tab, which define how zoom changes are handled. These settings are reset to defaults upon navigating the tab.
      * @since Chrome 42.
@@ -2538,14 +2538,14 @@ declare namespace chrome.tabs {
      * @param zoomSettings Defines how zoom changes are handled and at what scope.
      * @param callback Optional. Called after the zoom settings have been changed.
      */
-    export function setZoomSettings(tabId: number, zoomSettings: ZoomSettings, callback?: () => void): void;
+    export function setZoomSettings(tabId: number, zoomSettings: ZoomSettings, callback?: () => void): 1;
     /**
      * Gets the current zoom settings of a specified tab.
      * @since Chrome 42.
      * @param callback Called with the tab's current zoom settings.
      * Paramater zoomSettings: The tab's current zoom settings.
      */
-    export function getZoomSettings(callback: (zoomSettings: ZoomSettings) => void): void;
+    export function getZoomSettings(callback: (zoomSettings: ZoomSettings) => void): 1;
     /**
      * Gets the current zoom settings of a specified tab.
      * @since Chrome 42.
@@ -2553,7 +2553,7 @@ declare namespace chrome.tabs {
      * @param callback Called with the tab's current zoom settings.
      * Paramater zoomSettings: The tab's current zoom settings.
      */
-    export function getZoomSettings(tabId: number, callback: (zoomSettings: ZoomSettings) => void): void;
+    export function getZoomSettings(tabId: number, callback: (zoomSettings: ZoomSettings) => void): 1;
 
     /**
      * Fired when the highlighted or selected tabs in a window changes.
@@ -2718,7 +2718,7 @@ declare namespace chrome.webNavigation {
     }
 
     interface WebNavigationEvent<T extends WebNavigationCallbackDetails> extends chrome.events.Event<(details: T) => void> {
-        addListener(callback: (details: T) => void, filters?: WebNavigationEventFilter): void;
+        addListener(callback: (details: T) => void, filters?: WebNavigationEventFilter): 1;
     }
 
     interface WebNavigationFramedEvent extends WebNavigationEvent<WebNavigationFramedCallbackDetails> {}
@@ -2739,14 +2739,14 @@ declare namespace chrome.webNavigation {
      * @param callback
      * Optional parameter details: Information about the requested frame, null if the specified frame ID and/or tab ID are invalid.
      */
-    export function getFrame(details: GetFrameDetails, callback: (details: GetFrameResultDetails | null) => void): void;
+    export function getFrame(details: GetFrameDetails, callback: (details: GetFrameResultDetails | null) => void): 1;
     /**
      * Retrieves information about all frames of a given tab.
      * @param details Information about the tab to retrieve all frames from.
      * @param callback
      * Optional parameter details: A list of frames in the given tab, null if the specified tab ID is invalid.
      */
-    export function getAllFrames(details: GetAllFrameDetails, callback: (details: GetAllFrameResultDetails[] | null) => void): void;
+    export function getAllFrames(details: GetAllFrameDetails, callback: (details: GetAllFrameResultDetails[] | null) => void): 1;
 
     /** Fired when the reference fragment of a frame was updated. All future events for that frame will use the updated URL. */
     var onReferenceFragmentUpdated: WebNavigationTransitionalEvent;
@@ -2939,55 +2939,55 @@ declare namespace chrome.windows {
     var WINDOW_ID_NONE: number;
 
     /** Gets details about a window. */
-    export function get(windowId: number, callback: (window: chrome.windows.Window) => void): void;
+    export function get(windowId: number, callback: (window: chrome.windows.Window) => void): 1;
     /**
      * Gets details about a window.
      * @since Chrome 18.
      */
-    export function get(windowId: number, getInfo: GetInfo, callback: (window: chrome.windows.Window) => void): void;
+    export function get(windowId: number, getInfo: GetInfo, callback: (window: chrome.windows.Window) => void): 1;
     /**
      * Gets the current window.
      */
-    export function getCurrent(callback: (window: chrome.windows.Window) => void): void;
+    export function getCurrent(callback: (window: chrome.windows.Window) => void): 1;
     /**
      * Gets the current window.
      * @since Chrome 18.
      */
-    export function getCurrent(getInfo: GetInfo, callback: (window: chrome.windows.Window) => void): void;
+    export function getCurrent(getInfo: GetInfo, callback: (window: chrome.windows.Window) => void): 1;
     /**
      * Creates (opens) a new browser with any optional sizing, position or default URL provided.
      * @param callback
      * Optional parameter window: Contains details about the created window.
      */
-    export function create(callback?: (window?: chrome.windows.Window) => void): void;
+    export function create(callback?: (window?: chrome.windows.Window) => void): 1;
     /**
      * Creates (opens) a new browser with any optional sizing, position or default URL provided.
      * @param callback
      * Optional parameter window: Contains details about the created window.
      */
-    export function create(createData: CreateData, callback?: (window?: chrome.windows.Window) => void): void;
+    export function create(createData: CreateData, callback?: (window?: chrome.windows.Window) => void): 1;
     /**
      * Gets all windows.
      */
-    export function getAll(callback: (windows: chrome.windows.Window[]) => void): void;
+    export function getAll(callback: (windows: chrome.windows.Window[]) => void): 1;
     /**
      * Gets all windows.
      * @since Chrome 18.
      */
-    export function getAll(getInfo: GetInfo, callback: (windows: chrome.windows.Window[]) => void): void;
+    export function getAll(getInfo: GetInfo, callback: (windows: chrome.windows.Window[]) => void): 1;
     /** Updates the properties of a window. Specify only the properties that you want to change; unspecified properties will be left unchanged. */
-    export function update(windowId: number, updateInfo: UpdateInfo, callback?: (window: chrome.windows.Window) => void): void;
+    export function update(windowId: number, updateInfo: UpdateInfo, callback?: (window: chrome.windows.Window) => void): 1;
     /** Removes (closes) a window, and all the tabs inside it. */
-    export function remove(windowId: number, callback?: Function): void;
+    export function remove(windowId: number, callback?: Function): 1;
     /**
      * Gets the window that was most recently focused — typically the window 'on top'.
      */
-    export function getLastFocused(callback: (window: chrome.windows.Window) => void): void;
+    export function getLastFocused(callback: (window: chrome.windows.Window) => void): 1;
     /**
      * Gets the window that was most recently focused — typically the window 'on top'.
      * @since Chrome 18.
      */
-    export function getLastFocused(getInfo: GetInfo, callback: (window: chrome.windows.Window) => void): void;
+    export function getLastFocused(getInfo: GetInfo, callback: (window: chrome.windows.Window) => void): 1;
 
     /** Fired when a window is removed (closed). */
     var onRemoved: WindowIdEvent;

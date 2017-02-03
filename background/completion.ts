@@ -187,7 +187,7 @@ bookmarks: {
       clearTimeout(this._timer);
       this._timer = 0;
     }
-    return chrome.bookmarks.getTree(this.readTree.bind(this));
+    chrome.bookmarks.getTree(this.readTree.bind(this));
   },
   readTree (tree: chrome.bookmarks.BookmarkTreeNode[]): void {
     this.status = 2;
@@ -279,10 +279,13 @@ history: {
         HistoryCache.use(null);
       }, 50);
     }
-    return index === 0 ? chrome.tabs.query({}, this.loadTabs.bind(this, query))
-      : chrome.sessions ? chrome.sessions.getRecentlyClosed(
-         this.loadSessions.bind(this, query) as (sessions: chrome.sessions.Session[]) => void)
-      : this.filterFill([], query, {}, 0);
+    if (index === 0) {
+      chrome.tabs.query({}, this.loadTabs.bind(this, query));
+    } else if (chrome.sessions) {
+      chrome.sessions.getRecentlyClosed(this.loadSessions.bind(this, query));
+    } else {
+      return this.filterFill([], query, {}, 0);
+    }
   },
   quickSearch (history: HistoryItem[]): Suggestion[] {
     let maxNum = maxResults + ((queryType & FirstQuery.QueryTypeMask) === FirstQuery.history ? offset : 0);
@@ -354,7 +357,7 @@ history: {
   },
   filterFill (historys: UrlItem[], query: CompletersNS.QueryStatus, arr: Dict<number>,
       cut: number, neededMore?: number): void {
-    return chrome.history.search({
+    chrome.history.search({
       text: "",
       maxResults: offset + maxResults + ((neededMore as number) | 0)
     }, function(historys2: chrome.history.HistoryItem[] | UrlItem[]): void {
@@ -477,7 +480,7 @@ domains: {
 
 tabs: {
   filter (query: CompletersNS.QueryStatus): void {
-    return chrome.tabs.query({}, this.performSearch.bind(this, query));
+    chrome.tabs.query({}, this.performSearch.bind(this, query));
   },
   performSearch (query: CompletersNS.QueryStatus, tabs0: chrome.tabs.Tab[]): void {
     if (query.isOff) { return; }
@@ -922,7 +925,7 @@ window.Completers = {
         return;
       }
       this._callbacks = callback ? [callback] : [];
-      return chrome.history.search({
+      chrome.history.search({
         text: "",
         maxResults: this.size,
         startTime: 0
