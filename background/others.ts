@@ -90,7 +90,7 @@ if (Settings.get("vimSync") === true) setTimeout(function() { if (!chrome.storag
 setTimeout((function() { if (!chrome.browserAction) { return; }
   var func = Settings.updateHooks.showActionIcon, imageData: IconNS.StatusMap<IconNS.IconBuffer> | null
     , tabIds: IconNS.StatusMap<number[]> | null;
-  function loadImageAndSetIcon(type: IconNS.ValidStatus, path: IconNS.PathBuffer) {
+  function loadImageAndSetIcon(type: Frames.ValidStatus, path: IconNS.PathBuffer) {
     let img: HTMLImageElement, i: IconNS.ValidSizes, cache = Object.create(null) as IconNS.IconBuffer, count = 0,
     onerror = function(this: HTMLImageElement): void {
       console.error('Could not load action icon \'' + this.src + '\'.');
@@ -131,7 +131,7 @@ setTimeout((function() { if (!chrome.browserAction) { return; }
     imageData = Object.create(null);
     tabIds = Object.create(null);
   } as IconNS.AccessIconBuffer;
-  g_requestHandlers.SetIcon = function(tabId: number, type: IconNS.ValidStatus): void {
+  g_requestHandlers.SetIcon = function(tabId: number, type: Frames.ValidStatus): void {
     var data, path;
     if (data = (imageData as IconNS.StatusMap<IconNS.IconBuffer>)[type]) {
       chrome.browserAction.setIcon({
@@ -161,7 +161,7 @@ setTimeout((function() { if (!chrome.browserAction) { return; }
 }), 150);
 
 setTimeout((function() { if (!chrome.omnibox) { return; }
-  interface SuggestionEx extends Suggestion {
+  interface SuggestionEx extends Readonly<Suggestion> {
     description?: string;
   }
   interface OmniboxCallback extends Partial<CompletersNS.QueryStatus> {
@@ -282,7 +282,7 @@ setTimeout((function() { if (!chrome.omnibox) { return; }
       maxResults: 6
     }, onComplete.bind(null, suggest));
   },
-  onEnter = function(this: void | null, text: string, disposition?: string): void {
+  onEnter = function(this: void, text: string, disposition?: string): void {
     text = text.trim();
     if (tempRequest && tempRequest[0] === text) {
       tempRequest = [text, onEnter.bind(null, text, disposition) as OmniboxCallback];
@@ -301,7 +301,7 @@ setTimeout((function() { if (!chrome.omnibox) { return; }
       url: text,
       reuse: (disposition === "currentTab" ? ReuseType.current
         : disposition === "newForegroundTab" ? ReuseType.newFg : ReuseType.newBg)
-    } as FgReq.openUrl);
+    });
   };
   chrome.omnibox.onInputChanged.addListener(onInput);
   chrome.omnibox.onInputEntered.addListener(onEnter);
@@ -358,7 +358,7 @@ setTimeout(function() {
     (chrome as any).notifications = null;
     if (e) { return e; }
     reason = notificationId || reason;
-    popup.onClicked.addListener(function(id) {
+    popup.onClicked.addListener(function(id): void {
       if (id !== reason) { return; }
       g_requestHandlers.focusOrLaunch({
         url: "https://github.com/gdh1995/vimium-plus#release-notes"

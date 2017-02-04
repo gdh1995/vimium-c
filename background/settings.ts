@@ -2,15 +2,15 @@
 import SettingsWithDefaults = SettingsNS.SettingsWithDefaults;
 
 const Settings = {
-  cache: Object.create(null) as SettingsNS.FullCache & SafeObject,
+  cache: Object.create(null) as SettingsNS.FullCache,
   temp: {
-    shownHash: null as null | string
+    shownHash: null as null | ((this: void) => string)
   },
-  bufferToLoad: null as FrontendSettingCache | null,
+  bufferToLoad: null as any as SettingsNS.FrontendSettingCache & SafeObject,
   extWhiteList: null as SafeDict<true> | null,
   Init: null as ((this: void) => void) | null,
   IconBuffer: null as IconNS.AccessIconBuffer | null,
-  globalCommand: null as CommandsNS.CallGlobalCommand | null,
+  globalCommand: null as any as (command: string, options?: CommandsNS.RawOptions | null, count?: number) => void,
   getExcluded: Utils.getNull as (this: void, url: string) => string | null,
   get<K extends keyof SettingsWithDefaults> (key: K, forCache?: boolean): SettingsWithDefaults[K] {
     if (key in this.cache) {
@@ -47,10 +47,10 @@ const Settings = {
     return (this.updateHooks[key] as SettingsNS.UpdateHook<K>).call(this,
       value !== undefined ? value : this.get(key as keyof SettingsWithDefaults), key);
   },
-  broadcast (request: BgReq.base): void {
+  broadcast<K extends keyof BgReq>  (request: Req.bg<K>): void {
     let ref = this.indexPorts(), tabId: string, frames: Frames.Frames, i: number;
     for (tabId in ref) {
-      frames = ref[tabId];
+      frames = ref[tabId] as Frames.Frames;
       for (i = frames.length; 0 < --i; ) {
         frames[i].postMessage(request);
       }
@@ -60,7 +60,8 @@ const Settings = {
     __proto__: null as never,
     bufferToLoad: function() {
       const ref = (this as typeof Settings).valuesToLoad,
-      ref2 = (this as typeof Settings).bufferToLoad = Object.create(null) as FrontendSettingCache;
+      ref2 = (this as typeof Settings).bufferToLoad = Object.create(null) as
+        SettingsNS.FrontendSettingCache & SafeObject;
       for (let _i = ref.length; 0 <= --_i;) {
         let key = ref[_i];
         ref2[key] = (this as typeof Settings).get(key);
@@ -134,11 +135,14 @@ const Settings = {
       return (this as typeof Settings).broadcast({
         name: "insertInnerCSS",
         css: (this as typeof Settings).cache.innerCSS
-      } as BgReq.insertInnerCSS);
+      });
     }
   } as SettingsNS.DeclaredUpdateHookMap as SettingsNS.UpdateHookMap,
-  indexFrame: null as any as (this: any, tabId: number, frameId: number) => Port | null,
-  indexPorts: null as any as SettingsNS.IndexPorts,
+  indexFrame: null as any as (this: void, tabId: number, frameId: number) => Port | null,
+  indexPorts: null as any as {
+    (this: void, tabId: number): Frames.Frames | undefined;
+    (this: void): Frames.FramesMap;
+  },
   fetchFile (file: keyof SettingsNS.CachedFiles, callback?: (this: void) => any): TextXHR | null {
     if (callback && file in this.cache) { callback(); return null; }
     return Utils.fetchHttpContents(this.CONST.XHRFiles[file], function() {
@@ -215,7 +219,7 @@ w|wiki:\\\n  https://www.wikipedia.org/w/index.php?search=$s Wikipedia\n\
   ],
   valuesToLoad: ["deepHints", "grabBackFocus", "keyboard", "linkHintCharacters" //
     , "regexFindMode", "scrollStepSize", "smoothScroll", "userDefinedOuterCss" //
-  ] as Array<keyof FrontendSettings>,
+  ] as Array<keyof SettingsNS.FrontendSettings>,
   Sync: {
     set: function() {}
   } as SettingsNS.Sync,

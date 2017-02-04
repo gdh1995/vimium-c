@@ -19,24 +19,24 @@ type TypedSafeEnum<Type> = {
 type MappedType<Type, NewValue> = {
   [key in keyof Type]: NewValue;
 };
-
-interface EmptyArray<T> extends Array<T> {
-  [index: number]: never;
-  length: 0;
+type PartialUndefined<Type> = {
+  [key in keyof Type]?: Type[key] | undefined;
 }
 
-declare function setInterval<T1, T2, T3>(handler: (this: void, a1: T1, a2: T2, a3: T3) => void,
+type EmptyArray = never[];
+
+declare function setInterval<T1, T2, T3>(this: void, handler: (this: void, a1: T1, a2: T2, a3: T3) => void,
   timeout: number, a1: T1, a2: T2, a3: T3): number;
-declare function setInterval<T1, T2>(handler: (this: void, a1: T1, a2: T2) => void,
+declare function setInterval<T1, T2>(this: void, handler: (this: void, a1: T1, a2: T2) => void,
   timeout: number, a1: T1, a2: T2): number;
-declare function setInterval<T1>(handler: (this: void, a1: T1) => void, timeout: number, a1: T1): number;
-declare function setInterval(handler: (this: void, ) => void, timeout: number): number;
-declare function setTimeout <T1, T2, T3>(handler: (this: void, a1: T1, a2: T2, a3: T3) => void,
+declare function setInterval<T1>(this: void, handler: (this: void, a1: T1) => void, timeout: number, a1: T1): number;
+declare function setInterval(this: void, handler: (this: void, ) => void, timeout: number): number;
+declare function setTimeout <T1, T2, T3>(this: void, handler: (this: void, a1: T1, a2: T2, a3: T3) => void,
   timeout: number, a1: T1, a2: T2, a3: T3): number;
-declare function setTimeout <T1, T2>(handler: (this: void, a1: T1, a2: T2) => void,
+declare function setTimeout <T1, T2>(this: void, handler: (this: void, a1: T1, a2: T2) => void,
   timeout: number, a1: T1, a2: T2): number;
-declare function setTimeout <T1>(handler: (this: void, a1: T1) => void, timeout: number, a1: T1): number;
-declare function setTimeout (handler: (this: void) => void, timeout: number): number;
+declare function setTimeout <T1>(this: void, handler: (this: void, a1: T1) => void, timeout: number, a1: T1): number;
+declare function setTimeout (this: void, handler: (this: void) => void, timeout: number): number;
 
 interface String {
   endsWith(searchString: string): boolean;
@@ -84,6 +84,28 @@ declare namespace CompletersNS {
   }
 }
 
+declare namespace MarksNS {
+  interface BaseMark {
+    markName: string;
+  }
+
+  interface Mark extends BaseMark {
+    scroll: [number, number];
+    url: string;
+  }
+
+  interface MarkQuery extends BaseMark {
+    prefix?: boolean;
+    scroll: [number, number];
+  }
+
+  interface FocusOrLaunch {
+    scroll?: [number, number];
+    url: string;
+    prefix?: boolean;
+  }
+}
+
 declare const enum KnownKey {
   space = 32, bang = 33, quote2 = 34, hash = 35,
   maxCommentHead = hash,
@@ -100,29 +122,6 @@ interface KeyMap {
   readonly [index: string]: 0 | 1 | ReadonlyChildKeyMap;
 }
 
-declare namespace BgReq {
-  interface base {
-    name: string;
-  }
-  interface scroll extends base {
-    markName?: string | undefined;
-    scroll: [number, number];
-  }
-  interface reset extends base {
-    passKeys: string | null;
-  }
-  interface insertInnerCSS extends base {
-    css: string;
-  }
-  interface createMark extends base {
-    markName: string;
-  }
-  interface keyMap extends base {
-    mapKeys: SafeDict<string>;
-    keyMap: KeyMap;
-  }
-}
-
 declare const enum ReuseType {
   Default = 0,
   current = Default,
@@ -130,34 +129,28 @@ declare const enum ReuseType {
   newBg = -2
 }
 
-declare namespace FgReq {
-  interface base {
-    handler: string;
-  }
-  interface initHelp {
-    handler: "initHelp";
-    unbound?: boolean;
-    names?: boolean;
-    title?: string;
-  }
-  interface openUrl {
-    handler?: string;
-    url: string;
-    urls?: string[];
-    reuse?: ReuseType;
-  }
+declare const enum PortType {
+  initing = 1,
+  hasFocus = 2,
+  isTop = 4,
+  omnibar = 8
 }
 
-interface FrontendSettings {
-  deepHints: boolean;
-  grabBackFocus: boolean;
-  keyboard: [number, number];
-  linkHintCharacters: string;
-  regexFindMode: boolean;
-  scrollStepSize: number;
-  smoothScroll: boolean;
-  userDefinedOuterCss: string;
-}
-interface FrontendSettingCache extends FrontendSettings {
-  onMac: boolean;
+declare namespace SettingsNS {
+  interface FrontUpdateAllowedSettings {
+    showAdvancedCommands: boolean;
+  }
+  interface FrontendSettings {
+    deepHints: boolean;
+    grabBackFocus: boolean;
+    keyboard: [number, number];
+    linkHintCharacters: string;
+    regexFindMode: boolean;
+    scrollStepSize: number;
+    smoothScroll: boolean;
+    userDefinedOuterCss: string;
+  }
+  interface FrontendSettingCache extends FrontendSettings {
+    onMac: boolean;
+  }
 }

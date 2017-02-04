@@ -262,21 +262,21 @@ interface Function {
       * @param thisArg The object to be used as the this object.
       * @param argArray A set of arguments to be passed to the function.
       */
-    apply<R, T, A, B, C, D>(this: (this: T, a: A, b: B, c: C, d: D) => R, thisArg: T, arr: [A, B, C, D]): R;
-    apply<R, T, A, B, C>(this: (this: T, a: A, b: B, c: C) => R, thisArg: T, arr: [A, B, C]): R;
-    apply<R, T, A, B>(this: (this: T, a: A, b: B) => R, thisArg: T, arr: [A, B]): R;
-    apply<R, T, A>(this: (this: T, a: A) => R, thisArg: T, arr: [A]): R;
-    apply<R, T>(this: (this: T) => R, thisArg: T): R;
+    apply<T, A, B, C, D, R>(this: (this: T, a: A, b: B, c: C, d: D) => R, thisArg: T, arr: [A, B, C, D]): R;
+    apply<T, A, B, C, R>(this: (this: T, a: A, b: B, c: C) => R, thisArg: T, arr: [A, B, C]): R;
+    apply<T, A, B, R>(this: (this: T, a: A, b: B) => R, thisArg: T, arr: [A, B]): R;
+    apply<T, A, R>(this: (this: T, a: A) => R, thisArg: T, arr: [A]): R;
+    apply<T, R>(this: (this: T) => R, thisArg: T): R;
 
     /**
       * Calls a method of an object, substituting another object for the current object.
       * @param thisArg The object to be used as the current object.
       * @param argArray A list of arguments to be passed to the method.
       */
-    call<R, T, A, B, C, D>(this: (this: T, a: A, b: B, c: C, d: D) => R, thisArg: T, a: A, b: B, c: C, d: D): R;
-    call<R, T, A, B, C>(this: (this: T, a: A, b: B, c: C) => R, thisArg: T, a: A, b: B, c: C): R;
-    call<R, T, A, B>(this: (this: T, a: A, b: B) => R, thisArg: T, a: A, b: B): R;
-    call<R, T, A>(this: (this: T, a: A) => R, thisArg: T, a: A): R;
+    call<T, A, B, C, D, R>(this: (this: T, a: A, b: B, c: C, d: D) => R, thisArg: T, a: A, b: B, c: C, d: D): R;
+    call<T, A, B, C, R>(this: (this: T, a: A, b: B, c: C) => R, thisArg: T, a: A, b: B, c: C): R;
+    call<T, A, B, R>(this: (this: T, a: A, b: B) => R, thisArg: T, a: A, b: B): R;
+    call<T, A, R>(this: (this: T, a: A) => R, thisArg: T, a: A): R;
 
     /**
       * For a given function, creates a bound function that has the same body as the original function.
@@ -284,24 +284,24 @@ interface Function {
       * @param thisArg An object to which the this keyword can refer inside the new function.
       * @param argArray A list of arguments to be passed to the new function.
       */
-    bind<R, T, A, B, C, D, E>(this: (this: T, a: A, b: B, c: C, d: D, e: E) => R, thisArg: T
+    bind<T, A, B, C, D, E, R>(this: (this: T, a: A, b: B, c: C, d: D, e: E) => R, thisArg: T
       , a: A, b: B, c: C, d: D): (this: void, e: E) => R;
-    bind<R, T, A, B, C>(this: (this: T, a: A, b: B, c: C) => R, thisArg: T, a: A, b: B, c: C): (this: void) => R;
-    bind<R, T, A, B, C, D>(this: (this: T, a: A, b: B, c: C, d: D) => R, thisArg: T
+    bind<T, A, B, C, R>(this: (this: T, a: A, b: B, c: C) => R, thisArg: T, a: A, b: B, c: C): (this: void) => R;
+    bind<T, A, B, C, D, R>(this: (this: T, a: A, b: B, c: C, d: D) => R, thisArg: T
       , a: A, b: B, c: C): (this: void, d: D) => R;
-    bind<R, T, A, B>(this: (this: T, a: A, b: B) => R, thisArg: T, a: A, b: B): (this: void) => R;
-    bind<R, T, A, B, C>(this: (this: T, a: A, b: B, c: C) => R, thisArg: T, a: A, b: B): (this: void, c: C) => R;
-    bind<R, T, A, B, C, D>(this: (this: T, a: A, b: B, c: C, d: D) => R, thisArg: T
+    bind<T, A, B, R>(this: (this: T, a: A, b: B) => R, thisArg: T, a: A, b: B): (this: void) => R;
+    bind<T, A, B, C, R>(this: (this: T, a: A, b: B, c: C) => R, thisArg: T, a: A, b: B): (this: void, c: C) => R;
+    bind<T, A, B, C, D, R>(this: (this: T, a: A, b: B, c: C, d: D) => R, thisArg: T
       , a: A, b: B): (this: void, c: C, d: D) => R;
-    bind<R, T, A>(this: (this: T, a: A) => R, thisArg: T, a: A): (this: void) => R;
-    bind<R, T, A, B>(this: (this: T, a: A, b: B) => R, thisArg: T, a: A): (this: void, b: B) => R;
-    bind<R, T, A, B, C>(this: (this: T, a: A, b: B, c: C) => R, thisArg: T, a: A): (this: void, b: B, c: C) => R;
-    bind<R, T, A, B, C, D>(this: (this: T, a: A, b: B, c: C, d: D) => R, thisArg: T
+    bind<T, A, R>(this: (this: T, a: A) => R, thisArg: T, a: A): (this: void) => R;
+    bind<T, A, B, R>(this: (this: T, a: A, b: B) => R, thisArg: T, a: A): (this: void, b: B) => R;
+    bind<T, A, B, C, R>(this: (this: T, a: A, b: B, c: C) => R, thisArg: T, a: A): (this: void, b: B, c: C) => R;
+    bind<T, A, B, C, D, R>(this: (this: T, a: A, b: B, c: C, d: D) => R, thisArg: T
       , a: A): (this: void, b: B, c: C, d: D) => R;
-    bind<R, T>(this: (this: T) => R, thisArg: T): (this: void) => R;
-    bind<R, T, A>(this: (this: T, a: A) => R, thisArg: T): (this: void, a: A) => R;
-    bind<R, T, A, B>(this: (this: T, a: A, b: B) => R, thisArg: T): (this: void, a: A, b: B) => R;
-    bind<R, T, A, B, C>(this: (this: T, a: A, b: B, c: C) => R, thisArg: T): (this: void, a: A, b: B, c: C) => R;
+    bind<T, R>(this: (this: T) => R, thisArg: T): (this: void) => R;
+    bind<T, A, R>(this: (this: T, a: A) => R, thisArg: T): (this: void, a: A) => R;
+    bind<T, A, B, R>(this: (this: T, a: A, b: B) => R, thisArg: T): (this: void, a: A, b: B) => R;
+    bind<T, A, B, C, R>(this: (this: T, a: A, b: B, c: C) => R, thisArg: T): (this: void, a: A, b: B, c: C) => R;
 
 
 

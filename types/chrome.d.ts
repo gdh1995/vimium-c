@@ -388,7 +388,7 @@ declare namespace chrome.contentSettings {
          * * regular: setting for regular profile (which is inherited by the incognito profile if not overridden elsewhere),
          * * incognito_session_only: setting for incognito profile that can only be set during an incognito session and is deleted when the incognito session ends (overrides regular settings).
          */
-        scope?: string;
+        scope?: ValidScopes;
     }
 
     interface SetDetails {
@@ -417,7 +417,7 @@ declare namespace chrome.contentSettings {
 
     interface ReturnedDetails {
         /** The content setting. See the description of the individual ContentSetting objects for the possible values. */
-        setting: any;
+        setting: "allow" | "block" | "ask" | "session_only" | "detect_important_content";
     }
 
     interface ContentSetting {
@@ -454,6 +454,11 @@ declare namespace chrome.contentSettings {
         /** Optional. A human readable description of the resource.  */
         description?: string;
     }
+
+    type ValidScopes = "incognito_session_only" | "regular";
+
+    type ValidTypes = "cookies" | "popups" | "javascript" | "notifications" | "plugins" | "images"
+        | "location" | "fullscreen" | "mouselock" | "unsandboxedPlugins" | "automaticDownloads";
 
     /**
      * Whether to allow cookies and other local data to be set by websites. One of
@@ -868,7 +873,7 @@ declare namespace chrome.history {
     interface AllRemovedResult extends RemovedBaseResult {
         /** True if all history was removed. If true, then urls will be empty. */
         allHistory: true;
-        urls: EmptyArray<string>;
+        urls: never[];
     }
 
     type RemovedResult = RemovedUrlsResult | AllRemovedResult;
@@ -1218,7 +1223,7 @@ declare namespace chrome.runtime {
          * The URL of the page or frame that opened the connection. If the sender is in an iframe, it will be iframe's URL not the URL of the page which hosts it.
          * @since Chrome 28.
          */
-        url?: string;
+        url: string;
         /**
          * The TLS channel ID of the page or frame that opened the connection, if requested by the extension or app, and if available.
          * @since Chrome 32.
@@ -1253,7 +1258,7 @@ declare namespace chrome.runtime {
      * @since Chrome 26.
      */
     interface Port {
-        postMessage: (message: Object) => void;
+        // postMessage: (message: Object) => void;
         disconnect: () => void;
         /**
          * Optional.
@@ -1686,7 +1691,13 @@ declare namespace chrome.sessions {
          * Optional.
          * The tabs.Tab, if this entry describes a tab. Either this or sessions.Session.window will be set.
          */
-        tab?: tabs.Tab;
+        tab?: tabs.Tab & {
+            /**
+             * Optional. The session ID used to uniquely identify a Tab obtained from the sessions API.
+             * @since Chrome 31.
+             */
+            sessionId?: string;
+        };
         /**
          * Optional.
          * The windows.Window, if this entry describes a window. Either this or sessions.Session.tab will be set.
@@ -1704,7 +1715,7 @@ declare namespace chrome.sessions {
     interface SessionChangedEvent extends chrome.events.Event<() => void> {}
 
     /** The maximum number of sessions.Session that will be included in a requested list. */
-    export var MAX_SESSION_RESULTS: number;
+    export var MAX_SESSION_RESULTS: number | undefined;
 
     /**
      * Gets the list of recently closed tabs and/or windows.
@@ -1737,7 +1748,7 @@ declare namespace chrome.sessions {
      * @param callback Optional.
      * Parameter restoredSession: A sessions.Session containing the restored windows.Window or tabs.Tab object.
      */
-    export function restore(sessionId?: string, callback?: (restoredSession: Session) => void): 1;
+    export function restore(sessionId?: string | null, callback?: (restoredSession: Session) => void): 1;
 
     /** Fired when recently closed tabs and/or windows are changed. This event does not monitor synced sessions changes. */
     export var onChanged: SessionChangedEvent;
@@ -1967,11 +1978,6 @@ declare namespace chrome.tabs {
          * @since Chrome 31.
          */
         height?: number;
-        /**
-         * Optional. The session ID used to uniquely identify a Tab obtained from the sessions API.
-         * @since Chrome 31.
-         */
-        sessionId?: string;
     }
 
     /**
@@ -2345,13 +2351,14 @@ declare namespace chrome.tabs {
      * @param callback Optional.
      * Parameter tab: Details about the created tab. Will contain the ID of the new tab.
      */
-    export function create(createProperties: CreateProperties, callback?: (tab: Tab) => void): 1;
+    export function create(createProperties: CreateProperties, callback?: ((tab: Tab) => void) | null): 1;
     /**
      * Moves one or more tabs to a new position within its window, or to a new window. Note that tabs can only be moved to and from normal (window.type === "normal") windows.
      * @param tabId The tab to move.
      * @param callback Optional.
      * Parameter tab: Details about the moved tab.
      */
+    export function move(tabIds: number[], moveProperties: MoveProperties, callback?: (tabs: Tab[]) => void): 1;
     export function move(tabId: number, moveProperties: MoveProperties, callback?: (tab: Tab) => void): 1;
     /**
      * Moves one or more tabs to a new position within its window, or to a new window. Note that tabs can only be moved to and from normal (window.type === "normal") windows.
@@ -2372,7 +2379,8 @@ declare namespace chrome.tabs {
      * @param callback Optional.
      * Optional parameter tab: Details about the updated tab. The tabs.Tab object doesn't contain url, title and favIconUrl if the "tabs" permission has not been requested.
      */
-    export function update(tabId: number, updateProperties: UpdateProperties, callback?: (tab?: Tab) => void): 1;
+    export function update(tabId: number, updateProperties: UpdateProperties
+        , callback?: ((tab?: Tab) => void) | null): 1;
     /**
      * Closes a tab.
      * @param tabId The tab to close.
@@ -2422,6 +2430,11 @@ declare namespace chrome.tabs {
      * @since Chrome 16.
      */
     export function reload(reloadProperties: ReloadProperties, callback?: () => void): 1;
+    /**
+     * Reload the selected tab of the current window.
+     * @since Chrome 16.
+     */
+    export function reload(tabId: number, callback?: () => void): 1;
     /**
      * Reload the selected tab of the current window.
       * @since Chrome 16.
@@ -2476,6 +2489,10 @@ declare namespace chrome.tabs {
      * Parameter window: Contains details about the window whose tabs were highlighted.
      */
     export function highlight(highlightInfo: HighlightInfo, callback: (window: chrome.windows.Window) => void): 1;
+    export function query(queryInfo: QueryInfo & { active: true, windowId: number }
+        , callback: (result: [Tab] | never[]) => void): 1;
+    export function query(queryInfo: QueryInfo & { active: true, currentWindow: true }
+        , callback: (result: [Tab] | never[]) => void): 1;
     /**
      * Gets all tabs that have the specified properties, or all tabs if no properties are specified.
      * @since Chrome 16.
@@ -2797,7 +2814,7 @@ declare namespace chrome.windows {
          * One of: "normal", "minimized", "maximized", "fullscreen", or "docked"
          * @since Chrome 17.
          */
-        state: string;
+        state: ValidStates;
         /** Whether the window is currently the focused window. */
         focused: boolean;
         /**
@@ -2847,7 +2864,7 @@ declare namespace chrome.windows {
          * Optional.
          * A URL or array of URLs to open as tabs in the window. Fully-qualified URLs must include a scheme (i.e. 'http://www.google.com', not 'www.google.com'). Relative URLs will be relative to the current page within the extension. Defaults to the New Tab Page.
          */
-        url?: string | string[];
+        url?: string;
         /**
          * Optional.
          * The number of pixels to position the new window from the top edge of the screen. If not specified, the new window is offset naturally from the last focused window. This value is ignored for panels.
@@ -2887,6 +2904,7 @@ declare namespace chrome.windows {
          */
         state?: string;
     }
+    type ValidStates = "normal" | "minimized" | "maximized" | "fullscreen" | "docked";
 
     interface UpdateInfo {
         /** Optional. The offset from the top edge of the screen to move the window to in pixels. This value is ignored for panels. */
@@ -2953,7 +2971,9 @@ declare namespace chrome.windows {
      * Gets the current window.
      * @since Chrome 18.
      */
-    export function getCurrent(getInfo: GetInfo, callback: (window: chrome.windows.Window) => void): 1;
+    export function getCurrent(getInfo: GetInfo & { populate: true }
+        , callback: (window?: (chrome.windows.Window & { tabs: chrome.tabs.Tab[] }) | null) => void): 1;
+    export function getCurrent(getInfo: GetInfo, callback: (window?: chrome.windows.Window | null) => void): 1;
     /**
      * Creates (opens) a new browser with any optional sizing, position or default URL provided.
      * @param callback
@@ -2965,7 +2985,7 @@ declare namespace chrome.windows {
      * @param callback
      * Optional parameter window: Contains details about the created window.
      */
-    export function create(createData: CreateData, callback?: (window?: chrome.windows.Window) => void): 1;
+    export function create(createData: CreateData, callback?: ((window?: chrome.windows.Window) => void) | null): 1;
     /**
      * Gets all windows.
      */

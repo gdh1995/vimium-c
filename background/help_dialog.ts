@@ -1,7 +1,7 @@
 /// <reference path="../types/bg.d.ts" />
 
 const HelpDialog = {
-  render: (function(this: void, request: FgReq.initHelp) {
+  render: (function(this: void, request: FgReq["initHelp"]): string {
     Object.setPrototypeOf(request, null);
     const commandsToKey = Object.create<string[]>(null), ref = CommandsData.keyToCommandRegistry,
           showUnbound = !!request.unbound, showNames = !!request.names;

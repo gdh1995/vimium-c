@@ -371,7 +371,7 @@ if (document.readyState !== "complete") {
   Commands.defaultKeyMappings = null as any as typeof Commands.defaultKeyMappings;
   Commands.populateCommandKeys();
   Commands = null as any;
-  chrome.commands && chrome.commands.onCommand.addListener(Settings.globalCommand as CommandsNS.CallGlobalCommand);
+  chrome.commands && chrome.commands.onCommand.addListener(Settings.globalCommand);
 } else
 Settings.updateHooks.keyMappings = function(value: string): void {
   Commands.parseKeyMappings(value);
@@ -380,5 +380,5 @@ Settings.updateHooks.keyMappings = function(value: string): void {
     name: "keyMap",
     mapKeys: CommandsData.mapKeyRegistry,
     keyMap: CommandsData.keyMap
-  } as BgReq.keyMap);
+  });
 };

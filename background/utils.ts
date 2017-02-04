@@ -10,7 +10,10 @@ const Utils = {
     (req as TextXHR).send();
     return req as TextXHR;
   },
-  extendIf<T, S extends T, TArray extends SafeDict<T>> (b: TArray, a: ReadonlySafeDict<S>): TArray {
+  /**
+   * both b and a must extend SafeObject
+   */
+  extendIf<T extends object, K extends keyof T> (b: T, a: Readonly<Pick<T, K>>): T {
     for (let i in a) {
       (i in b) || (b[i] = a[i]);
     }
@@ -60,7 +63,7 @@ const Utils = {
   _nonENDoaminRe: <RegExpOne> /[^.\da-z\-]|^-/,
   _jsNotEscapeRe: <RegExpOne> /["\[\]{}\u00ff-\uffff]|%(?![\dA-F]{2}|[\da-f]{2})/,
   filePathRe: <RegExpOne> /^['"]?((?:[A-Za-z]:[\\/]|\/(?:Users|home|root)\/)[^'"]*)['"]?$/,
-  lastUrlType: Urls.Type.Full,
+  lastUrlType: Urls.Type.Default,
   convertToUrl: function(this: any, string: string, keyword?: string | null, vimiumUrlWork?: Urls.WorkType): Urls.Url {
     string = string.trim();
     if (string.charCodeAt(10) === 58 && string.substring(0, 11).toLowerCase() === "javascript:") {
@@ -360,7 +363,8 @@ const Utils = {
   searchWordRe: <RegExpG & RegExpSearchable<2>> /\$([sS])(?:\{([^}]*)})?/g,
   searchWordRe2: <RegExpG & RegExpSearchable<2>> /([^\\]|^)%([sS])/g,
   searchVariable: <RegExpG & RegExpSearchable<1>> /\$([+-]?\d+)/g,
-  createSearchUrl (query: string[], keyword?: string | null, vimiumUrlWork?: Urls.WorkType): Urls.Url {
+  createSearchUrl: function (this: any, query: string[], keyword?: string | null
+      , vimiumUrlWork?: Urls.WorkType): Urls.Url {
     let url: string, pattern: Search.Engine | undefined = Settings.cache.searchEngineMap[keyword || query[0]];
     if (pattern) {
       if (!keyword) { keyword = query.shift() as string; }
@@ -372,6 +376,10 @@ const Utils = {
       return this.convertToUrl(url, null, vimiumUrlWork);
     }
     return url;
+  } as {
+    (query: string[], keyword: "~", vimiumUrlWork?: Urls.WorkType): string;
+    (query: string[], keyword: string | null | undefined, vimiumUrlWork: Urls.WorkAllowEval): Urls.Url;
+    (query: string[], keyword?: string | null, vimiumUrlWork?: Urls.WorkType): string;
   },
   createSearch: function(this: any, query: string[], url: string, indexes?: number[]): string | Search.Result {
     let q2: string[] | undefined, delta = 0;
@@ -421,7 +429,7 @@ const Utils = {
     return url;
   },
   parseSearchEngines: function(str: string, map: Search.EngineMap): Search.Rule[] {
-    let ids: string[], pair: RegExpExecArray | null, tmpRule: Search.TmpRule | null, tmpKey: Search.Rule[3],
+    let ids: string[], tmpRule: Search.TmpRule | null, tmpKey: Search.Rule[3],
     key: string, val: string, obj: Search.Engine,
     ind: number, rSlash = <RegExpOne> /[^\\]\//, rules = [] as Search.Rule[],
     rEscapeSpace = <RegExpG & RegExpSearchable<0>> /\\\s/g, rSpace = <RegExpOne> /\s/,
@@ -463,7 +471,7 @@ const Utils = {
       if (ids.length === 0) continue;
       if (ind === -1) {
         re.lastIndex = 0;
-        pair = (re as RegExp as RegExpOne).exec(val);
+        const pair = (re as RegExp as RegExpOne).exec(val);
         if (pair && (ind = pair.index + 1)) {
           key = pair[2];
           if (key) {
@@ -481,7 +489,7 @@ const Utils = {
           if (tmpRule = this.reparseSearchUrl(val.toLowerCase(), ind)) {
             if (key.indexOf("$") >= 0) {
               key = key.replace(this.searchVariable, "(.*)");
-              tmpKey = new RegExp("^" + key, this.alphaRe.test(key) ? "i" as "" : "");
+              tmpKey = new RegExp("^" + key, this.alphaRe.test(key) ? "i" as "" : "") as RegExpI | RegExpOne;
             } else {
               tmpKey = key.trim() || " ";
             }
@@ -495,10 +503,10 @@ const Utils = {
         val = str.substring(0, ind);
         str = str.substring(ind + 1);
         ind = str.search(rSpace);
-        tmpKey = this.makeRegexp(val, ind >= 0 ? str.substring(0, ind) : str) as RegExpOne;
-        if (tmpKey) {
+        const tmpKey2 = this.makeRegexp(val, ind >= 0 ? str.substring(0, ind) : str);
+        if (tmpKey2) {
           key = this.prepareReparsingPrefix(key);
-          rules.push([key, tmpKey, ids[0].trimRight(), obj.url.lastIndexOf("$S") >= 0 ? " " : "+"]);
+          rules.push([key, tmpKey2, ids[0].trimRight(), obj.url.lastIndexOf("$S") >= 0 ? " " : "+"]);
         }
         str = ind >= 0 ? str.substring(ind + 1) : "";
       } else {
@@ -542,7 +550,7 @@ const Utils = {
     str2 = str2 && str2.replace(this.escapeAllRe, "\\$&"
       ).replace(this._spaceOrPlusRe, "(?:\\+|%20| )");
     prefix = this.prepareReparsingPrefix(prefix);
-    return [prefix, new RegExp(str + str2 + url, this.alphaRe.test(str2) ? "i" as "" : "")];
+    return [prefix, new RegExp(str + str2 + url, this.alphaRe.test(str2) ? "i" as "" : "") as RegExpI | RegExpOne];
   },
   prepareReparsingPrefix (prefix: string): string {
     if (prefix.startsWith("http://") || prefix.startsWith("https://")) {

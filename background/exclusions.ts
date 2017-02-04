@@ -67,10 +67,10 @@ var Exclusions: ExcCls = Exclusions && !(Exclusions instanceof Promise) ? Exclus
     const onURLChange: null | ExclusionsNS.Listener = !chrome.webNavigation ? null
       : Settings.CONST.ChromeVersion >= 41 ? g_requestHandlers.checkIfEnabled
       : function(details: chrome.webNavigation.WebNavigationCallbackDetails) {
-        var ref = Settings.indexPorts(details.tabId), i, msg = { name: "checkIfEnabled" };
+        const ref = Settings.indexPorts(details.tabId), msg = { name: "checkIfEnabled" as "checkIfEnabled" };
         // force the tab's ports to reconnect and refresh their pass keys
-        for (i = ref && ref.length; 0 < --i; ) {
-          ref[i].postMessage(msg);
+        for (let i = ref ? ref.length : 0; 0 < --i; ) {
+          (ref as Frames.Frames)[i].postMessage(msg);
         }
       };
     this.getOnURLChange = function(this: void) { return onURLChange; };
@@ -93,9 +93,9 @@ var Exclusions: ExcCls = Exclusions && !(Exclusions instanceof Promise) ? Exclus
   },
   RefreshStatus (old_is_empty: boolean): void {
     const always_enabled = Exclusions.rules.length > 0 ? null : {
-      name: "reset",
+      name: "reset" as "reset",
       passKeys: null
-    } as BgReq.reset;
+    };
     if (old_is_empty) {
       always_enabled || Settings.broadcast({
         name: "checkIfEnabled"
@@ -104,9 +104,9 @@ var Exclusions: ExcCls = Exclusions && !(Exclusions instanceof Promise) ? Exclus
     }
     const ref: Frames.FramesMap = Settings.indexPorts(),
     needIcon = !!(Settings.IconBuffer && (Settings.IconBuffer() || Settings.get("showActionIcon")));
-    let pass: string | null = null, status: Frames.Status = Frames.Status.enabled;
+    let pass: string | null = null, status: Frames.ValidStatus = Frames.BaseStatus.enabled;
     for (let tabId in ref) {
-      const frames = ref[tabId], status0 = frames[0].sender.status;
+      const frames = ref[tabId] as Frames.Frames, status0 = frames[0].sender.status;
       for (let i = frames.length; 0 < --i; ) {
         const port = frames[i];
         if (always_enabled) {
@@ -115,7 +115,8 @@ var Exclusions: ExcCls = Exclusions && !(Exclusions instanceof Promise) ? Exclus
           }
         } else {
           pass = Settings.getExcluded(port.sender.url);
-          status = pass === null ? Frames.Status.enabled : pass ? Frames.Status.partial : Frames.Status.disabled;
+          status = pass === null ? Frames.BaseStatus.enabled : pass
+            ? Frames.BaseStatus.partial : Frames.BaseStatus.disabled;
           if (!pass && port.sender.status === status) {
             continue;
           }

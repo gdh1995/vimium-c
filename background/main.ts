@@ -1,19 +1,45 @@
-"use strict";
-var Clipboard, Commands, CommandsData, Completers, Marks, TabRecency, FindModeHistory, g_requestHandlers;
+/// <reference path="../types/bg.d.ts" />
+
+var g_requestHandlers: any;
 (function() {
-  var BackgroundCommands, Connections, ContentSettings
-    , cOptions, cPort, checkKeyQueue, commandCount, executeCommand
-    , framesForOmni, framesForTab
-    , funcDict, keyQueueRe, needIcon, openMultiTab, requestHandlers, getSecret;
+  type Tab = chrome.tabs.Tab;
+  type Window = chrome.windows.Window;
+  type CSTypes = chrome.contentSettings.ValidTypes;
+  interface IncNormalWnd extends Window {
+    incognito: true;
+    type: "normal";
+  }
+  interface ActiveTab extends Tab {
+    active: true;
+  }
+  interface PopWindow extends Window {
+    tabs: Tab[];
+  }
+  interface InfoToCreateMultiTab extends chrome.tabs.CreateProperties {
+    id?: number;
+    index: number;
+  }
+  const enum UseTab { NoTab = 0, ActiveTab = 1, CurWndTabs = 2 }
+  interface BgCmdNoTab {
+    useTab?: UseTab.NoTab;
+    (this: void): void;
+  }
+  interface BgCmdActiveTab {
+    useTab?: UseTab.ActiveTab;
+    (this: void, tabs1: [Tab] | never[]): void;
+  }
+  interface BgCmdCurWndTabs {
+    useTab?: UseTab.CurWndTabs;
+    (this: void, tabs1: Tab[]): void;
+  };
+  type BgCmd = BgCmdNoTab | BgCmdActiveTab | BgCmdCurWndTabs;
 
-  framesForTab = Object.create(null);
-  framesForOmni = [];
-
-  needIcon = false;
-
-  openMultiTab = function(rawUrl, count, parentTab) {
+  const framesForTab: Frames.FramesMap = Object.create<Frames.Frames>(null), framesForOmni: Frames.Port[] = [],
+  NoFrameId = Settings.CONST.ChromeVersion < 41,
+  openMultiTab = function(this: void, rawUrl: string, count: number
+      , parentTab: InfoToCreateMultiTab): void {
     if (!(count >= 1)) return;
-    var wndId = parentTab.windowId, option = {
+    const wndId = parentTab.windowId, option = {
       url: rawUrl,
       windowId: wndId,
       index: parentTab.index + 1,
@@ -29,15 +55,17 @@ var Clipboard, Commands, CommandsData, Completers, Marks, TabRecency, FindModeHi
       ++option.index;
       chrome.tabs.create(option);
     } while(--count > 1);
-  };
-
+  },
   ContentSettings = {
-    makeKey: function(contentType, url) {
+    makeKey (this: void, contentType: CSTypes, url?: string): string {
       return "vimiumContent|" + contentType + (url ? "|" + url : "");
     },
-    complain: function(url) {
+    complain (this: void, contentType: CSTypes, url: string): boolean {
       if (!chrome.contentSettings) {
         requestHandlers.ShowHUD("This Vimium++ has no permissions to change your content settings");
+        return true;
+      }
+      if (!chrome.contentSettings[contentType] || (<RegExpOne>/^[A-Z]/).test(contentType)) {
         return true;
       }
       if (Utils.protocolRe.test(url) && !url.startsWith("chrome")) {
@@ -46,8 +74,8 @@ var Clipboard, Commands, CommandsData, Completers, Marks, TabRecency, FindModeHi
       funcDict.complain("change its content settings");
       return true;
     },
-    parsePattern: function(pattern, level) {
-      var arr, i;
+    parsePattern (this: void, pattern: string, level: number): string {
+      let arr: string[];
       if (pattern.startsWith("file:")) {
         if (level > 1) {
           arr = pattern.split("/");
@@ -57,11 +85,12 @@ var Clipboard, Commands, CommandsData, Completers, Marks, TabRecency, FindModeHi
         }
         return pattern;
       }
-      arr = pattern.match(/^([^:]+:\/\/)([^\/]+)\//);
+      arr = pattern.match(/^([^:]+:\/\/)([^\/]+)\//) as RegExpMatchArray;
       if (level < 2) {
         return arr[0] + "*";
       }
-      pattern = arr[1]; arr = arr[2].split("."); i = arr.length;
+      pattern = arr[1]; arr = arr[2].split(".");
+      let i = arr.length;
       i -= i < 3 ? i : arr[i - 1].length === 2 && Utils.isTld(arr[i - 2]) === 1 ? 3 : 2;
       if (i > 0) {
         i = Math.min(level - 2, i - 1);
@@ -72,9 +101,9 @@ var Clipboard, Commands, CommandsData, Completers, Marks, TabRecency, FindModeHi
       }
       return pattern + arr.join(".") + "/*";
     },
-    clear: function(contentType, tab) {
+    clear (this: void, contentType: CSTypes, tab?: Tab): void {
       if (!chrome.contentSettings) { return; }
-      var cs = chrome.contentSettings[contentType];
+      const cs = chrome.contentSettings[contentType];
       if (tab) {
         cs.clear({ scope: (tab.incognito ? "incognito_session_only" : "regular") });
         return;
@@ -83,9 +112,9 @@ var Clipboard, Commands, CommandsData, Completers, Marks, TabRecency, FindModeHi
       cs.clear({ scope: "incognito_session_only" }, funcDict.onRuntimeError);
       localStorage.removeItem(ContentSettings.makeKey(contentType));
     },
-    toggleCurrent: function(contentType, tab) {
-      var pattern = Utils.removeComposedScheme(tab.url), _this = this;
-      if (this.complain(pattern)) { return; }
+    toggleCurrent (contentType: CSTypes, tab: Tab): void {
+      const pattern = Utils.removeComposedScheme(tab.url), _this = this;
+      if (this.complain(contentType, pattern)) { return; }
       chrome.contentSettings[contentType].get({
         primaryUrl: pattern,
         incognito: tab.incognito
@@ -96,16 +125,14 @@ var Clipboard, Commands, CommandsData, Completers, Marks, TabRecency, FindModeHi
         }, function(err) {
           if (err) { return; }
           if (!tab.incognito) {
-            var key = ContentSettings.makeKey(contentType);
+            const key = ContentSettings.makeKey(contentType);
             localStorage.getItem(key) !== "1" && (localStorage.setItem(key, "1"));
           }
           if (tab.incognito || cOptions.action === "reopen" || !chrome.sessions) {
             ++tab.index;
-            funcDict.reopenTab(tab);
-            return;
+            return funcDict.reopenTab(tab);
           } else if (tab.index > 0) {
-            funcDict.refreshTab[0](tab.id);
-            return;
+            return funcDict.refreshTab[0](tab.id);
           }
           chrome.windows.getCurrent({populate: true}, function(wnd) {
             !wnd || wnd.type !== "normal" ? chrome.tabs.reload()
@@ -116,17 +143,17 @@ var Clipboard, Commands, CommandsData, Completers, Marks, TabRecency, FindModeHi
         });
       });
     },
-    ensure: function (contentType, tab) {
-      var pattern = Utils.removeComposedScheme(tab.url), _this = this;
-      if (this.complain(pattern)) { return; }
+    ensure (contentType: CSTypes, tab: Tab): void {
+      const pattern = Utils.removeComposedScheme(tab.url), _this = this;
+      if (this.complain(contentType, pattern)) { return; }
       chrome.contentSettings[contentType].get({primaryUrl: pattern, incognito: true }, function(opt) {
         if (chrome.runtime.lastError) {
           chrome.contentSettings[contentType].get({primaryUrl: tab.url}, function (opt) {
             if (opt && opt.setting === "allow") { return; }
-            opt = {type: "normal", incognito: true, focused: false, url: "about:blank"};
-            chrome.windows.create(opt, function (wnd) {
-              var leftTabId = wnd.tabs[0].id;
-              _this.setAndUpdate(contentType, tab, pattern, wnd.id, true, function() {
+            const tabOpt = {type: "normal", incognito: true, focused: false, url: "about:blank"};
+            chrome.windows.create(tabOpt, function (wnd: Window): void {
+              const leftTabId = (wnd.tabs as Tab[])[0].id;
+              return _this.setAndUpdate(contentType, tab, pattern, wnd.id, true, function() {
                 chrome.tabs.remove(leftTabId);
               });
             });
@@ -134,91 +161,89 @@ var Clipboard, Commands, CommandsData, Completers, Marks, TabRecency, FindModeHi
           return chrome.runtime.lastError;
         }
         if (opt && opt.setting === "allow" && tab.incognito) {
-          _this.updateTab(tab);
-          return;
+          return _this.updateTab(tab);
         }
         chrome.windows.getAll(function(wnds) {
           wnds = wnds.filter(funcDict.isIncNor);
           if (!wnds.length) {
             console.log("%cContentSettings.ensure%c", "color:red;", "color:auto;"
-              , "get incognito content settings", opt, " but can not find a incognito window.");
+              , "get incognito content settings", opt, " but can not find an incognito window.");
           } else if (opt && opt.setting === "allow") {
-            _this.updateTab(tab, wnds[wnds.length - 1].id);
+            return _this.updateTab(tab, wnds[wnds.length - 1].id);
           } else if (tab.incognito && wnds.filter(function(wnd) { return wnd.id === tab.windowId; }).length === 1) {
-            _this.setAndUpdate(contentType, tab, pattern);
+            return _this.setAndUpdate(contentType, tab, pattern);
           } else {
-            _this.setAndUpdate(contentType, tab, pattern, wnds[wnds.length - 1].id);
+            return _this.setAndUpdate(contentType, tab, pattern, wnds[wnds.length - 1].id);
           }
         });
       });
     },
-    setAndUpdate: function(contentType, tab, pattern, wndId, doSyncWnd, callback) {
+    setAndUpdate (contentType: CSTypes, tab: Tab, pattern: string
+        , wndId?: number, doSyncWnd?: boolean, callback?: (this: void, window: Window | boolean) => void): void {
       callback = this.updateTabAndWindow.bind(this, tab, wndId, callback);
-      this.setAllLevels(contentType, pattern, commandCount
+      return this.setAllLevels(contentType, pattern, commandCount
         , { scope: "incognito_session_only", setting: "allow" }
         , doSyncWnd && wndId !== tab.windowId
         ? function(err) {
           if (err) { return; }
-          chrome.windows.get(tab.windowId, callback);
+          chrome.windows.get(tab.windowId, callback as (this: void, window: Window | boolean) => void);
         } : callback);
     },
-    setAllLevels: function(contentType, url, count, settings, callback) {
-      var ref, i, info, left, has_err = false, func;
-      func = function() {
-        var err = chrome.runtime.lastError, f;
+    setAllLevels (contentType: CSTypes, url: string, count: number
+        , settings: Readonly<Pick<chrome.contentSettings.SetDetails, "scope" | "setting">>
+        , callback: (this: void, has_err: boolean) => void): void {
+      let info: chrome.contentSettings.SetDetails, i: number, left: number, has_err = false;
+      const ref = chrome.contentSettings[contentType], func = function() {
+        const err = chrome.runtime.lastError;
         if (has_err) { return err; }
         --left; has_err = !!err;
-        if ((has_err || left === 0) && callback) {
-          f = callback; callback = null;
-          f(has_err);
+        if ((has_err || left === 0)) {
+          setTimeout(callback, 0, has_err);
         }
         return err;
       };
-      ref = chrome.contentSettings[contentType];
       Object.setPrototypeOf(settings, null);
       count = count | 0;
       for (left = i = count; i > 0; i--) {
-        info = Utils.extendIf(Object.create(null), settings);
+        info = Utils.extendIf(Object.create(null) as typeof info, settings);
         info.primaryPattern = this.parsePattern(url, i);
         ref.set(info, func);
       }
     },
-    updateTabAndWindow: function(tab, wndId, callback, oldWnd) {
+    updateTabAndWindow (tab: Tab, wndId?: number, callback?: (this: void) => void, oldWnd?: Window): void {
       this.updateTab(tab, wndId, callback);
       wndId && chrome.windows.update(wndId, {
         focused: true,
         state: oldWnd ? oldWnd.state : undefined
       });
     },
-    updateTab: function(tab, newWindowId, callback) {
+    updateTab (this: void, tab: Tab, newWindowId?: number, callback?: (this: void) => void): void {
       tab.windowId = newWindowId ? newWindowId : tab.windowId;
       tab.active = true;
       if (!newWindowId || tab.windowId === newWindowId) {
         ++tab.index;
       } else {
-        tab.index = undefined;
+        (tab as chrome.tabs.CreateProperties).index = undefined;
       }
       funcDict.reopenTab(tab);
       if (callback) {
-        callback();
+        return callback();
       }
     }
-  };
-
+  },
   funcDict = {
-    isIncNor: function(wnd) {
+    isIncNor (this: void, wnd: Window): wnd is IncNormalWnd {
       return wnd.incognito && wnd.type === "normal";
     },
-    selectFrom: function(tabs) {
-      var i = tabs.length;
-      while (0 < --i) {
+    selectFrom (this: void, tabs: Tab[]): ActiveTab {
+      for (let i = tabs.length; 0 < --i; ) {
         if (tabs[i].active) {
-          return tabs[i];
+          return tabs[i] as ActiveTab;
         }
       }
-      return tabs[0];
+      return tabs[0] as ActiveTab;
     },
-    reopenTab: function(tab) {
+    reopenTab (this: void, tab: Tab): void {
       chrome.tabs.create({
         windowId: tab.windowId,
         url: tab.url,
@@ -237,11 +262,17 @@ var Clipboard, Commands, CommandsData, Completers, Marks, TabRecency, FindModeHi
         return chrome.runtime.lastError;
       }
       if (action === "reload") { return; }
-      setTimeout(funcDict.refreshTab[2], 17, tab ? "get" : "reload", tab ? tab.id : this);
+      setTimeout(funcDict.refreshTab[2], 17, tab ? "get" : "reload", tab ? tab.id : this as number);
     }, function(action, tabId) {
-      chrome.tabs[action](tabId, funcDict.refreshTab[1].bind(tabId, null, action));
-    }],
-    makeWindow: function(option, state, callback) {
+      (chrome.tabs[action] as (tabId: number, callback?: (tab?: Tab) => void) => 1)(tabId
+        , funcDict.refreshTab[1].bind(tabId, null, action));
+    }] as [
+      (this: void, tabId: number) => void,
+      (this: void | number, tab?: Tab | null, action?: "get" | "reload") => void,
+      (this: void, action: "get" | "reload", tabId: number) => void
+    ],
+    makeWindow (this: void, option: chrome.windows.CreateData, state?: chrome.windows.ValidStates | ""
+        , callback?: (wnd: Window) => void): void {
       if (!state) { state = ""; }
       else if (option.focused === false) {
         state !== "minimized" && (state = "normal");
@@ -250,25 +281,25 @@ var Clipboard, Commands, CommandsData, Completers, Marks, TabRecency, FindModeHi
       }
       if (state && Settings.CONST.ChromeVersion >= 44) {
         option.state = state;
-        state = null;
+        state = "";
       }
-      var focused = option.focused !== false;
+      const focused = option.focused !== false;
       option.focused = true;
-      chrome.windows.create(option, state || !focused ? function(wnd) {
+      chrome.windows.create(option, state || !focused ? function(wnd: Window) {
         callback && callback(wnd);
-        var opt = { focused: focused && undefined };
+        const opt = { focused: focused && undefined } as chrome.windows.CreateData;
         state && (opt.state = state);
         chrome.windows.update(wnd.id, opt);
       } : callback || null);
     },
-    makeTempWindow: function(tabIdUrl, incognito, callback) {
-      var option = {
+    makeTempWindow (this: void, tabIdUrl: number | string, incognito: boolean, callback: (wnd?: Window) => void): void {
+      const isId = typeof tabIdUrl === "number", option: chrome.windows.CreateData = {
         type: "normal",
         focused: false,
         incognito: incognito,
         state: "minimized",
-        tabId: tabIdUrl > 0 ? tabIdUrl : undefined,
-        url: tabIdUrl > 0 ? undefined : tabIdUrl
+        tabId: isId ? tabIdUrl as number : undefined,
+        url: isId ? undefined : tabIdUrl as string
       };
       if (Settings.CONST.ChromeVersion < 44) {
         option.state = undefined;
@@ -276,31 +307,34 @@ var Clipboard, Commands, CommandsData, Completers, Marks, TabRecency, FindModeHi
       }
       chrome.windows.create(option, callback);
     },
-    onRuntimeError: function() {
+    onRuntimeError (this: void): void {
       return chrome.runtime.lastError;
     },
-    onEvalUrl: function(arr) {
-      if (arr instanceof Promise) { return arr.then(funcDict.onEvalUrl); }
+    onEvalUrl (this: void, arr: Urls.SpecialUrl): void {
+      if (arr instanceof Promise) { arr.then(funcDict.onEvalUrl); return; }
       switch(arr[1]) {
       case "copy":
-        requestHandlers.ShowHUD(arr[0], true);
-        break;
+        return requestHandlers.ShowHUD((arr as Urls.CopyEvalResult)[0], true);
       }
     },
-    complain: function(action) {
+    complain (this: void, action: string): void {
       return requestHandlers.ShowHUD("It's not allowed to " + action);
     },
-    checkVomnibarPage: function(port, nolog) {
+    checkVomnibarPage: function (this: void, port: Frames.Port, nolog?: boolean): boolean {
       if (port.sender.url === Settings.CONST.VomnibarPage) { return false; }
-      if (!nolog && !port.sender.warned) {
+      if (!nolog && !(port.sender as Frames.ExSender).warned) {
       console.warn("Receive a request from %can unsafe source page%c (should be vomnibar) :\n ",
         "color: red", "color: auto",
         port.sender.url, '@' + port.sender.tabId);
-      port.sender.warned = true;
+      (port.sender as Frames.ExSender).warned = true;
       }
       return true;
+    } as {
+      (this: void, port: Port, nolog: true): boolean
+      (this: void, port: Frames.Port, nolog?: false): boolean
     },
-    PostCompletions: function(list, autoSelect, matchType) {
+    PostCompletions (this: Port, list: Readonly<Suggestion>[]
+        , autoSelect: boolean, matchType: CompletersNS.MatchType): void {
       try {
       this.postMessage({
         name: "omni",
@@ -311,13 +345,14 @@ var Clipboard, Commands, CommandsData, Completers, Marks, TabRecency, FindModeHi
       } catch (e) {}
     },
 
-    getCurTab: chrome.tabs.query.bind(null, {currentWindow: true, active: true}),
+    getCurTab: chrome.tabs.query.bind<null, { active: true, currentWindow: true }
+        , (result: [Tab] | never[]) => void, 1>(null, { active: true, currentWindow: true }),
     getCurTabs: chrome.tabs.query.bind(null, {currentWindow: true}),
-    getId: function(tab) { return tab.id; },
+    getId (this: void, tab: { readonly id: number }): number { return tab.id; },
 
-    createTabs: function(rawUrl, count, active) {
+    createTabs (this: void, rawUrl: string, count: number, active: boolean): void {
       if (!(count >= 1)) return;
-      var option = {url: rawUrl, active: active};
+      const option: chrome.tabs.CreateProperties = {url: rawUrl, active: active};
       chrome.tabs.create(option);
       if (count < 2) return;
       option.active = false;
@@ -325,40 +360,40 @@ var Clipboard, Commands, CommandsData, Completers, Marks, TabRecency, FindModeHi
         chrome.tabs.create(option);
       } while(--count > 1);
     },
-    openUrlInIncognito: function(tab, wnds) {
-      var oldWnd, inCurWnd, options, active = !(cOptions.reuse < -1);
+    openUrlInIncognito (this: string, tab: Tab, wnds: Window[]): void {
+      let oldWnd: Window | undefined, inCurWnd: boolean
+        , active = !(<ReuseType>cOptions.reuse < ReuseType.newFg);
       oldWnd = wnds.filter(function(wnd) { return wnd.id === tab.windowId; })[0];
       inCurWnd = oldWnd != null && oldWnd.incognito;
       inCurWnd || (wnds = wnds.filter(funcDict.isIncNor));
       if (inCurWnd || wnds.length > 0) {
-        options = {
+        const options = {
           url: this,
           windowId: inCurWnd ? tab.windowId : wnds[wnds.length - 1].id
-        };
+        } as chrome.tabs.CreateProperties & { windowId: number };
         if (inCurWnd) {
           options.index = tab.index + 1;
           options.openerTabId = tab.id;
           options.active = active;
         }
         chrome.tabs.create(options);
-        !inCurWnd && active && funcDict.selectWnd(options);
-        return;
+        return !inCurWnd && active ? funcDict.selectWnd(options) : undefined;
       }
-      funcDict.makeWindow({
+      return funcDict.makeWindow({
         type: "normal", url: this,
         incognito: true, focused: active
-      }, oldWnd && oldWnd.type === "normal" && oldWnd.state);
+      }, oldWnd && oldWnd.type === "normal" ? oldWnd.state : "");
     },
 
     createTab: [function(onlyNormal, tabs) {
-      var tab = null, url = this;
+      let tab: Tab | null = null, url = this;
       if (cOptions.url || cOptions.urls) {
-        BackgroundCommands.openUrl(tabs);
+        BackgroundCommands.openUrl(tabs as [Tab] | undefined);
         return chrome.runtime.lastError;
       }
       if (!tabs) {}
-      else if (tabs.length > 0) { tab = tabs[0]; }
-      else if ("id" in tabs) { tab = tabs; }
+      else if ((tabs as Tab[]).length > 0) { tab = (tabs as Tab[])[0]; }
+      else if ("id" in tabs) { tab = tabs as Tab; }
       else if (TabRecency.last() >= 0) {
         chrome.tabs.get(TabRecency.last(), funcDict.createTab[0].bind(url, onlyNormal));
         return;
@@ -368,53 +403,49 @@ var Clipboard, Commands, CommandsData, Completers, Marks, TabRecency, FindModeHi
         return chrome.runtime.lastError;
       }
       if (tab.incognito && onlyNormal) { url = "chrome://newtab"; }
-      tab.id = undefined;
-      openMultiTab(url, commandCount, tab);
-    }, function(wnd) {
-      var tab;
-      if (cOptions.url) {
-        BackgroundCommands.openUrl([funcDict.selectFrom(wnd.tabs)]);
-        return chrome.runtime.lastError;
-      }
+      tab.id = undefined as any as number;
+      return openMultiTab(url, commandCount, tab);
+    }, function(wnd): void {
       if (!wnd) {
         chrome.tabs.create({url: this});
         return chrome.runtime.lastError;
       }
-      tab = funcDict.selectFrom(wnd.tabs);
+      if (cOptions.url) {
+        return BackgroundCommands.openUrl([funcDict.selectFrom(wnd.tabs)]);
+      }
+      const tab = funcDict.selectFrom(wnd.tabs);
       if (wnd.type !== "normal") {
-        tab.windowId = undefined;
+        (tab as InfoToCreateMultiTab).windowId = undefined;
       } else if (wnd.incognito) {
         // url is disabled to be opened in a incognito window directly
-        funcDict.createTab[2](this, tab
+        return funcDict.createTab[2](this, tab
           , (--commandCount > 0) ? funcDict.duplicateTab[1] : null, wnd.tabs);
-        return;
       }
-      tab.id = undefined;
-      openMultiTab(this, commandCount, tab);
-    }, function(url, tab, repeat, allTabs) {
-      var urlLower = url.toLowerCase().split('#', 1)[0], tabs;
+      (tab as InfoToCreateMultiTab).id = undefined;
+      return openMultiTab(this, commandCount, tab);
+    }, function(url, tab, repeat, allTabs): void {
+      const urlLower = url.toLowerCase().split('#', 1)[0];
       allTabs = allTabs.filter(function(tab1) {
-        var url = tab1.url.toLowerCase(), end = url.indexOf("#");
+        const url = tab1.url.toLowerCase(), end = url.indexOf("#");
         return ((end < 0) ? url : url.substring(0, end)) === urlLower;
       });
       if (allTabs.length === 0) {
         chrome.windows.getAll(funcDict.createTab[3].bind(url, tab, repeat));
         return;
       }
-      tabs = allTabs.filter(function(tab1) { return tab1.index >= tab.index; });
+      const tabs = allTabs.filter(function(tab1) { return tab1.index >= tab.index; });
       tab = tabs.length > 0 ? tabs[0] : allTabs[allTabs.length - 1];
       chrome.tabs.duplicate(tab.id);
-      repeat && repeat(tab.id);
-    }, function(tab, repeat, wnds) {
+      if (repeat) { return repeat(tab.id); }
+    }, function(tab, repeat, wnds): void {
       wnds = wnds.filter(function(wnd) {
         return !wnd.incognito && wnd.type === "normal";
       });
       if (wnds.length > 0) {
-        funcDict.createTab[4](this, tab, repeat, wnds[0]);
-        return;
+        return funcDict.createTab[4](this, tab, repeat, wnds[0]);
       }
-      funcDict.makeTempWindow("about:blank", false, //
-      funcDict.createTab[4].bind(null, this, tab, function(newTabId, newWndId) {
+      return funcDict.makeTempWindow("about:blank", false, //
+      funcDict.createTab[4].bind(null, this, tab, function(newTabId: number, newWndId: number): void {
         chrome.windows.remove(newWndId);
         if (repeat) { return repeat(newTabId); }
       }));
@@ -424,49 +455,55 @@ var Clipboard, Commands, CommandsData, Completers, Marks, TabRecency, FindModeHi
         windowId: wnd.id,
         url: url
       }, function(newTab) {
-        funcDict.makeTempWindow(newTab.id, true, //
-        funcDict.createTab[5].bind(tab, callback, newTab));
+        return funcDict.makeTempWindow(newTab.id, true, funcDict.createTab[5].bind(tab, callback, newTab));
       });
     }, function(callback, newTab) {
       chrome.tabs.move(newTab.id, {
         index: this.index + 1,
         windowId: this.windowId
-      }, function() {
+      }, function(): void {
         callback && callback(newTab.id, newTab.windowId);
-        funcDict.selectTab(newTab.id);
+        return funcDict.selectTab(newTab.id);
       });
-    }],
-    duplicateTab: [function(tabId, wnd) {
-      var tab = wnd.tabs.filter(function(tab) { return tab.id === tabId; })[0];
-      if (wnd.incognito && !tab.incognito) {
-        funcDict.duplicateTab[1](tabId);
-      } else {
-        funcDict.duplicateTab[2](tab);
-      }
+    }] as [
+      (this: string, onlyNormal?: boolean, tabs?: Tab[] | Tab) => void,
+      (this: string, wnd?: PopWindow) => void,
+      (this: void, url: string, tab: Tab, repeat: ((this: void, tabId: number) => void) | null, allTabs: Tab[]) => void,
+      (this: string, tab: Tab, repeat: ((this: void, tabId: number) => void) | null, wnds: Window[]) => void,
+      (this: void, url: string, tab: Tab
+        , callback: ((this: void, tabId: number, wndId: number) => void) | null, wnd: Window) => void,
+      (this: Tab, callback: ((this: void, tabId: number, wndId: number) => void) | null, newTab: Tab) => void
+    ],
+    duplicateTab: [function(tabId, wnd): void {
+      const tab = wnd.tabs.filter(function(tab) { return tab.id === tabId; })[0];
+      return wnd.incognito && !tab.incognito ? funcDict.duplicateTab[1](tabId) : funcDict.duplicateTab[2](tab);
     }, function(id) {
-      var count = commandCount;
-      while (--count >= 0) {
+      for (let count = commandCount; --count >= 0; ) {
         chrome.tabs.duplicate(id);
       }
     }, function(tab) {
       ++tab.index;
       tab.active = false;
-      openMultiTab(tab.url, commandCount, tab);
-    }],
-    openUrlInNewTab: function(reuse, tabs) {
+      return openMultiTab(tab.url, commandCount, tab);
+    }] as [
+      (tabId: number, wnd: PopWindow) => void,
+      (tabId: number) => void,
+      (tab: Tab) => void
+    ],
+    openUrlInNewTab: function(this: string, reuse: ReuseType, tabs: [Tab]): void {
       if (cOptions.incognito) {
         chrome.windows.getAll(funcDict.openUrlInIncognito.bind(this, tabs[0]));
         return;
       }
       if (reuse === -2) { tabs[0].active = false; }
       if (funcDict.openShowPage[0](this, reuse, tabs[0])) { return; }
-      openMultiTab(this, commandCount, tabs[0]);
+      return openMultiTab(this, commandCount, tabs[0]);
     },
-    openShowPage: [function(url, reuse, tab) {
-      var prefix = Settings.CONST.ShowPage, arr;
+    openShowPage: [function(url, reuse, tab): boolean {
+      const prefix = Settings.CONST.ShowPage;
       if (!url.startsWith(prefix) || url.length < prefix.length + 3) { return false; }
       if (!tab) {
-        funcDict.getCurTab(function(tabs) {
+        funcDict.getCurTab(function(tabs): void {
           if (!tabs || tabs.length <= 0) { return chrome.runtime.lastError; }
           funcDict.openShowPage[0](url, reuse, tabs[0]);
         });
@@ -474,7 +511,7 @@ var Clipboard, Commands, CommandsData, Completers, Marks, TabRecency, FindModeHi
       }
       url = url.substring(prefix.length);
       if (reuse === 0) {
-        chrome.tabs.update(null, { url: prefix });
+        chrome.tabs.update({ url: prefix });
       } else
       chrome.tabs.create({
         active: reuse !== -2,
@@ -482,10 +519,10 @@ var Clipboard, Commands, CommandsData, Completers, Marks, TabRecency, FindModeHi
         windowId: tab.incognito ? undefined : tab.windowId,
         url: prefix
       });
-      arr = [url, null, 0];
-      Settings.temp.shownHash = arr[1] = function() {
+      const arr: [string, (() => void) | null, number] = [url, null, 0];
+      Settings.temp.shownHash = arr[1] = function(this: void): string {
         clearTimeout(arr[2]);
-        this.shownHash = null; return arr[0];
+        Settings.temp.shownHash = null; return arr[0];
       };
       arr[2] = setTimeout(funcDict.openShowPage[1], 1200, arr);
       return true;
@@ -495,9 +532,12 @@ var Clipboard, Commands, CommandsData, Completers, Marks, TabRecency, FindModeHi
         if (Settings.temp.shownHash === arr[1]) { Settings.temp.shownHash = null; }
         arr[0] = "", arr[1] = null;
       }, 2000);
-    }],
-    openUrls: function(tabs) {
-      var urls = cOptions.urls, i, tab = tabs[0], repeat = commandCount;
+    }] as [
+      (url: string, reuse: ReuseType, tab?: Tab) => boolean,
+      (arr: [string, (() => void) | null, number]) => void
+    ],
+    openUrls: function(tabs: [Tab]): void {
+      let urls = cOptions.urls, i, tab = tabs[0], repeat = commandCount;
       if (cOptions.reuse === -2) { tab.active = false; }
       do {
         for (i = 0; i < urls.length; i++) {
@@ -507,30 +547,31 @@ var Clipboard, Commands, CommandsData, Completers, Marks, TabRecency, FindModeHi
         }
       } while (0 < --repeat);
     },
-    moveTabToNewWindow: [function(wnd) {
-      var tab;
+    moveTabToNewWindow: [function(wnd): void {
       if (wnd.tabs.length <= 1 || wnd.tabs.length === commandCount) { return; }
-      tab = funcDict.selectFrom(wnd.tabs);
-      funcDict.makeWindow({
+      const tab = funcDict.selectFrom(wnd.tabs);
+      return funcDict.makeWindow({
         type: "normal",
         tabId: tab.id,
         incognito: tab.incognito
-      }, wnd.type === "normal" && wnd.state,
-      commandCount > 1 && funcDict.moveTabToNewWindow[1].bind(wnd, tab.index));
-    }, function(i, wnd2) {
-        var tabs = this.tabs, startTabIndex, tabIds;
-        startTabIndex = tabs.length - commandCount;
+      }, wnd.type === "normal" ? wnd.state : "",
+      commandCount > 1 ? funcDict.moveTabToNewWindow[1].bind(wnd, tab.index) : undefined);
+    }, function(i, wnd2): void {
+        let tabs = this.tabs, startTabIndex = tabs.length - commandCount;
         if (startTabIndex >= i || startTabIndex <= 0) {
           tabs = tabs.slice(i + 1, i + commandCount);
         } else {
           tabs[i].id = tabs[startTabIndex].id;
           tabs = tabs.slice(startTabIndex + 1);
         }
-        tabIds = tabs.map(funcDict.getId);
+        const tabIds = tabs.map(funcDict.getId);
         chrome.tabs.move(tabIds, {index: 1, windowId: wnd2.id}, funcDict.onRuntimeError);
-    }],
-    moveTabToNextWindow: [function(tab, wnds0) {
-      var wnds, ids, index;
+    }] as [
+      (this: void, wnd: PopWindow) => void,
+      (this: PopWindow, i: number, wnd2: Window) => void
+    ],
+    moveTabToNextWindow: [function(tab, wnds0): void {
+      let wnds: Window[], ids: number[], index: number;
       wnds = wnds0.filter(function(wnd) { return wnd.incognito === tab.incognito && wnd.type === "normal"; });
       if (wnds.length > 0) {
         ids = wnds.map(funcDict.getId);
@@ -544,28 +585,31 @@ var Clipboard, Commands, CommandsData, Completers, Marks, TabRecency, FindModeHi
         index = tab.windowId;
         wnds = wnds0.filter(function(wnd) { return wnd.id === index; });
       }
-      funcDict.makeWindow({
+      return funcDict.makeWindow({
         type: "normal",
         tabId: tab.id,
         incognito: tab.incognito
-      }, wnds.length === 1 && wnds[0].type === "normal" && wnds[0].state);
-    }, function(tab, oldIndex, tab2) {
-      tab2 = tab2[0];
+      }, wnds.length === 1 && wnds[0].type === "normal" ? wnds[0].state : "");
+    }, function(tab, oldIndex, tabs2): void {
+      const tab2 = tabs2[0];
       if (oldIndex >= 0) {
         funcDict.moveTabToNextWindow[2](tab.id, tab2);
         return;
       }
-      funcDict.makeTempWindow(tab.id, tab.incognito, //
-      funcDict.moveTabToNextWindow[2].bind(null, tab.id, tab2));
+      return funcDict.makeTempWindow(tab.id, tab.incognito, funcDict.moveTabToNextWindow[2].bind(null, tab.id, tab2));
     }, function(tabId, tab2) {
-      chrome.tabs.move(tabId, {index: tab2.index + 1, windowId: tab2.windowId}, function() {
-        funcDict.selectTab(tabId, true);
+      chrome.tabs.move(tabId, {index: tab2.index + 1, windowId: tab2.windowId}, function(): void {
+        return funcDict.selectTab(tabId, true);
       });
-    }],
-    moveTabToIncognito: [function(wnd) {
-      var tab = funcDict.selectFrom(wnd.tabs);
+    }] as [
+      (this: void, tab: Tab, wnds0: Window[]) => void,
+      (tab: Tab, oldIndex: number, tabs2: [Tab]) => void,
+      (tabId: number, tab2: Tab) => void
+    ],
+    moveTabToIncognito: [function(wnd): void {
+      const tab = funcDict.selectFrom(wnd.tabs);
       if (wnd.incognito && tab.incognito) { return funcDict.moveTabToIncognito[3](); }
-      var options = {type: "normal", tabId: tab.id, incognito: true}, url = tab.url;
+      const options: chrome.windows.CreateData = {type: "normal", tabId: tab.id, incognito: true}, url = tab.url;
       if (tab.incognito) {
       } else if (Utils.isRefusingIncognito(url)) {
         if (wnd.incognito) {
@@ -576,15 +620,14 @@ var Clipboard, Commands, CommandsData, Completers, Marks, TabRecency, FindModeHi
         }
       } else if (wnd.incognito) {
         ++tab.index;
-        funcDict.reopenTab(tab);
-        return;
+        return funcDict.reopenTab(tab);
       } else {
         options.url = url;
       }
-      wnd.tabs = null;
+      wnd.tabs = null as any;
       chrome.windows.getAll(funcDict.moveTabToIncognito[1].bind(null, options, wnd));
-    }, function(options, wnd, wnds) {
-      var tabId;
+    }, function(options, wnd, wnds): void {
+      let tabId = null;
       wnds = wnds.filter(funcDict.isIncNor);
       if (wnds.length) {
         chrome.tabs.query({
@@ -597,24 +640,29 @@ var Clipboard, Commands, CommandsData, Completers, Marks, TabRecency, FindModeHi
         tabId = options.tabId;
         options.tabId = undefined;
       }
-      funcDict.makeWindow(options, wnd.type === "normal" && wnd.state);
+      funcDict.makeWindow(options, wnd.type === "normal" ? wnd.state : "");
       if (tabId != null) {
         chrome.tabs.remove(tabId);
       }
-    }, function(options, tab2) {
-      tab2 = tab2[0];
+    }, function(options, tabs2): void {
+      const tab2 = tabs2[0];
       if (options.url) {
         chrome.tabs.create({url: options.url, index: tab2.index + 1, windowId: tab2.windowId});
         funcDict.selectWnd(tab2);
-        chrome.tabs.remove(options.tabId);
+        chrome.tabs.remove(options.tabId as number);
         return;
       }
-      funcDict.makeTempWindow(options.tabId, true, //
+      return funcDict.makeTempWindow(options.tabId as number, true, //
       funcDict.moveTabToNextWindow[2].bind(null, options.tabId, tab2));
-    }, function() {
-      requestHandlers.ShowHUD("This tab has been in incognito window");
-    }],
-    removeTab: function(tab, curTabs, wnds) {
+    }, function(): void {
+      return requestHandlers.ShowHUD("This tab has been in incognito window");
+    }] as [
+      (this: void, wnd: PopWindow) => void,
+      (this: void, options: chrome.windows.CreateData, wnd: Window, wnds: Window[]) => void,
+      (this: void, options: chrome.windows.CreateData, tabs2: [Tab]) => void,
+      (this: void, ) => void
+    ],
+    removeTab (this: void, tab: Tab, curTabs: Tab[], wnds: Window[]): void {
       var url, windowId, wnd;
       wnds = wnds.filter(function(wnd) { return wnd.type === "normal"; });
       if (wnds.length <= 1) {
@@ -636,32 +684,36 @@ var Clipboard, Commands, CommandsData, Completers, Marks, TabRecency, FindModeHi
         }
       }
       if (url != null) {
-        curTabs = (curTabs.length > 1) ? curTabs.map(funcDict.getId) : [tab.id];
+        const tabIds = (curTabs.length > 1) ? curTabs.map(funcDict.getId) : [tab.id];
         chrome.tabs.create({
-          index: curTabs.length,
+          index: tabIds.length,
           url: url,
           windowId: windowId
         });
-        chrome.tabs.remove(curTabs);
+        chrome.tabs.remove(tabIds);
       } else {
         chrome.windows.remove(tab.windowId);
       }
     },
-    restoreGivenTab: function(list) {
+    restoreGivenTab (this: void, list: chrome.sessions.Session[]): void {
       if (commandCount <= list.length) {
-        chrome.sessions.restore(list[commandCount - 1].tab.sessionId);
+        const session = list[commandCount - 1];
+        if (session.tab) {
+          chrome.sessions.restore(session.tab.sessionId);
+        }
+        // TODO: what to do if session.window
         return;
       }
-      requestHandlers.ShowHUD("The session index provided is out of range.");
+      return requestHandlers.ShowHUD("The session index provided is out of range.");
     },
-    selectTab: function(tabId, alsoWnd) {
+    selectTab (this: void, tabId: number, alsoWnd?: boolean): void {
       chrome.tabs.update(tabId, {active: true}, alsoWnd ? funcDict.selectWnd : null);
     },
-    selectWnd: function(tab) {
+    selectWnd (this: void, tab?: { windowId: number }): void {
       tab && chrome.windows.update(tab.windowId, { focused: true });
       return chrome.runtime.lastError;
     },
-    removeTabsRelative: function(activeTab, direction, tabs) {
+    removeTabsRelative (this: void, activeTab: Tab, direction: number, tabs: Tab[]): void {
       var i = activeTab.index, noPinned = false;
       if (direction > 0) {
         ++i;
@@ -680,7 +732,7 @@ var Clipboard, Commands, CommandsData, Completers, Marks, TabRecency, FindModeHi
         chrome.tabs.remove(tabs.map(funcDict.getId), funcDict.onRuntimeError);
       }
     },
-    focusParentFrame: function(frames) {
+    focusParentFrame: function(this: Frames.Sender, frames: chrome.webNavigation.GetAllFrameResultDetails[]): void {
       for (var i = 0, port, curId = this.frameId; i < frames.length; i++) {
         if (frames[i].frameId !== curId) { continue; }
         curId = frames[i].parentFrameId;
@@ -690,7 +742,7 @@ var Clipboard, Commands, CommandsData, Completers, Marks, TabRecency, FindModeHi
         return;
       }
     },
-    focusOrLaunch: [function(tabs) {
+    focusOrLaunch: [function(tabs): void {
       if (tabs && tabs.length > 0) {
         chrome.windows.getCurrent(funcDict.focusOrLaunch[2].bind(this, tabs));
         return;
@@ -699,9 +751,13 @@ var Clipboard, Commands, CommandsData, Completers, Marks, TabRecency, FindModeHi
       return chrome.runtime.lastError;
     }, function(tabs) {
       // TODO: how to wait for tab finishing to load
-      var callback = this.scroll ? setTimeout.bind(window, Marks.scrollTab, 1000, this) : null;
+      const callback = this.scroll ? /* this is MarksNS.MarkToGo */
+        setTimeout.bind<void
+          , typeof Marks.scrollTab, number, MarksNS.MarkToGo, Tab
+          , void>(null as any as void, Marks.scrollTab, 1000, this as MarksNS.MarkToGo)
+        : null;
       if (tabs.length <= 0) {
-        chrome.windows.create({url: this.url}, callback && function(wnd) {
+        chrome.windows.create({url: this.url}, callback && function(wnd: Window): void {
           wnd.tabs && wnd.tabs.length > 0 && callback(wnd.tabs[0]);
         });
         return;
@@ -711,7 +767,7 @@ var Clipboard, Commands, CommandsData, Completers, Marks, TabRecency, FindModeHi
         url: this.url,
         windowId: tabs[0].windowId
       }, callback);
-    }, function(tabs, wnd) {
+    }, function(tabs, wnd): void {
       var wndId = wnd.id, tabs2, tab, url = this.url;
       tabs2 = tabs.filter(function(tab) { return tab.windowId === wndId; });
       if (tabs2.length <= 0) {
@@ -728,8 +784,12 @@ var Clipboard, Commands, CommandsData, Completers, Marks, TabRecency, FindModeHi
         url: tab.url === url || tab.url.startsWith(url) ? undefined : url,
         active: true
       }, this.scroll ? setTimeout.bind(window, Marks.scrollTab, 800, this) : null);
-      tab.windowId !== wndId && funcDict.selectWnd(tab);
-    }],
+      if (tab.windowId !== wndId) { return funcDict.selectWnd(tab); }
+    }] as [
+      (this: MarksNS.FocusOrLaunch, tabs: Tab[]) => void,
+      (this: MarksNS.FocusOrLaunch, tabs: [Tab] | never[]) => void,
+      (this: MarksNS.FocusOrLaunch, tabs: Tab[], wnd: Window) => void
+    ],
     toggleMuteTab: [function(tabs) {
       var tab = tabs[0];
       chrome.tabs.update(tab.id, { muted: !tab.mutedInfo.muted });
@@ -751,13 +811,15 @@ var Clipboard, Commands, CommandsData, Completers, Marks, TabRecency, FindModeHi
         if (j === curId) { continue; }
         chrome.tabs.update(j, action);
       }
-    }]
-  };
-
+    }] as [
+      (this: void, tabs: [Tab]) => void,
+      (this: void, tabs: Tab[]) => void
+    ]
+  },
   BackgroundCommands = {
-    createTab: function() {},
-    duplicateTab: function() {
-      var tabId = cPort.sender.tabId;
+    createTab (this: void): void {},
+    duplicateTab (): void {
+      const tabId = cPort.sender.tabId;
       if (tabId < 0) {
         return funcDict.complain("duplicate such a tab");
       }
@@ -766,46 +828,45 @@ var Clipboard, Commands, CommandsData, Completers, Marks, TabRecency, FindModeHi
       else if (Settings.CONST.ChromeVersion >= 52) {
         chrome.tabs.get(tabId, funcDict.duplicateTab[2]);
       } else {
-        chrome.windows.getCurrent({populate: true},
-        funcDict.duplicateTab[0].bind(null, tabId));
+        chrome.windows.getCurrent({populate: true}, funcDict.duplicateTab[0].bind(null, tabId));
       }
     },
-    moveTabToNewWindow: function() {
-      return chrome.windows.getCurrent({populate: true}, funcDict.moveTabToNewWindow[0]);
+    moveTabToNewWindow (): void {
+      chrome.windows.getCurrent({populate: true}, funcDict.moveTabToNewWindow[0]);
     },
-    moveTabToNextWindow: function(tabs) {
+    moveTabToNextWindow (this: void, tabs: [Tab]): void {
       chrome.windows.getAll(funcDict.moveTabToNextWindow[0].bind(null, tabs[0]));
     },
-    moveTabToIncognito: function() {
+    moveTabToIncognito (): void {
       if (cPort && Settings.CONST.ChromeVersion >= 52 && cPort.sender.incognito) {
         return funcDict.moveTabToIncognito[3]();
       }
       chrome.windows.getCurrent({populate: true}, funcDict.moveTabToIncognito[0]);
     },
-    enableCSTemp: function(tabs) {
-      ContentSettings.ensure(cOptions.type, tabs[0]);
+    enableCSTemp (this: void, tabs: [Tab]): void {
+      return ContentSettings.ensure(cOptions.type, tabs[0]);
     },
-    toggleCS: function(tabs) {
-      ContentSettings.toggleCurrent(cOptions.type, tabs[0]);
+    toggleCS (this: void, tabs: [Tab]): void {
+      return ContentSettings.toggleCurrent(cOptions.type, tabs[0]);
     },
-    clearCS: function(tabs) {
+    clearCS (this: void, tabs: [Tab]): void {
       requestHandlers.ShowHUD(cOptions.type + " content settings have been cleared.");
-      ContentSettings.clear(cOptions.type, tabs[0]);
+      return ContentSettings.clear(cOptions.type, tabs[0]);
     },
-    goTab: function(tabs) {
+    goTab (this: void, tabs: Tab[]): void {
       if (tabs.length < 2) { return; }
-      var count = (cOptions.dir || 1) * commandCount,
-        len = tabs.length, toSelect;
+      let count = (cOptions.dir || 1) * commandCount, len = tabs.length, toSelect: Tab;
       count = cOptions.absolute
         ? count > 0 ? Math.min(len, count) - 1 : Math.max(0, len + count)
         : commandCount > tabs.length * 2 ? (count > 0 ? -1 : 0)
         : funcDict.selectFrom(tabs).index + count;
       toSelect = tabs[(count >= 0 ? 0 : len) + (count % len)];
-      toSelect.active || funcDict.selectTab(toSelect.id);
+      if (!toSelect.active) { return funcDict.selectTab(toSelect.id); }
     },
-    removeTab: function(tabs) {
+    removeTab (this: void, tabs: Tab[]): void {
       if (!tabs || tabs.length <= 0) { return chrome.runtime.lastError; }
-      var tab = tabs[0], i, startTabIndex = tabs.length - commandCount;
+      const startTabIndex = tabs.length - commandCount;
+      let tab = tabs[0];
       if (cOptions.allow_close === true) {} else
       if (startTabIndex <= 0 && (startTabIndex === 0 || tab.active)) {
         chrome.windows.getAll(funcDict.removeTab.bind(null, tab, tabs));
@@ -818,90 +879,91 @@ var Clipboard, Commands, CommandsData, Completers, Marks, TabRecency, FindModeHi
         chrome.tabs.remove(tab.id, funcDict.onRuntimeError);
         return;
       }
-      i = tab.index--;
+      const i = tab.index--;
       funcDict.removeTabsRelative(tab, commandCount, tabs);
       if (startTabIndex < 0) { return; }
       if (startTabIndex >= i || i > 0 && tabs[i - 1].pinned && !tab.pinned) { return; }
       ++tab.index;
-      funcDict.removeTabsRelative(tab, startTabIndex - i, tabs);
+      return funcDict.removeTabsRelative(tab, startTabIndex - i, tabs);
     },
-    removeTabsR: function(tabs) {
-      var dir = cOptions.dir | 0;
+    removeTabsR (this: void, tabs: Tab[]): void {
+      let dir = cOptions.dir | 0;
       dir = dir > 0 ? 1 : dir < 0 ? -1 : 0;
-      funcDict.removeTabsRelative(funcDict.selectFrom(tabs), dir * commandCount, tabs);
+      return funcDict.removeTabsRelative(funcDict.selectFrom(tabs), dir * commandCount, tabs);
     },
-    removeRightTab: function(tabs) {
+    removeRightTab (this: void, tabs: Tab[]): void {
       if (!tabs || commandCount > tabs.length - 1) { return; }
-      var ind = funcDict.selectFrom(tabs).index + commandCount;
+      const ind = funcDict.selectFrom(tabs).index + commandCount;
       chrome.tabs.remove(tabs[ind >= tabs.length ? tabs.length - 1 - commandCount : ind].id);
     },
-    restoreTab: function() {
-      var count = commandCount, limit;
+    restoreTab (this: void): void {
+      let count = commandCount;
       if (count === 1 && cPort.sender.incognito) {
         return requestHandlers.ShowHUD("Can not restore a tab in incognito mode!");
       }
-      limit = chrome.sessions.MAX_SESSION_RESULTS | 0;
+      const limit = chrome.sessions.MAX_SESSION_RESULTS | 0;
       limit > 0 && limit < count && (count = limit);
       while (--count >= 0) {
         chrome.sessions.restore(null, funcDict.onRuntimeError);
       }
     },
-    restoreGivenTab: function() {
+    restoreGivenTab (): void {
       if (commandCount > (chrome.sessions.MAX_SESSION_RESULTS || 25)) {
         return funcDict.restoreGivenTab([]);
       }
-      return chrome.sessions.getRecentlyClosed(funcDict.restoreGivenTab);
+      chrome.sessions.getRecentlyClosed(funcDict.restoreGivenTab);
     },
-    blank: function() {},
-    openCopiedUrlInCurrentTab: function() {
+    blank (this: void): void {},
+    openCopiedUrlInCurrentTab (this: void): void {
       return BackgroundCommands.openCopiedUrlInNewTab([]);
     },
-    openCopiedUrlInNewTab: function(tabs) {
-      Utils.lastUrlType = 0;
-      var url = requestHandlers.getCopiedUrl_f(cOptions);
-      if (Utils.lastUrlType === 5) {
-        funcDict.onEvalUrl(url);
+    openCopiedUrlInNewTab (this: void, tabs: [Tab] | never[]): void {
+      Utils.lastUrlType = Urls.Type.Default;
+      let url = requestHandlers.getCopiedUrl_f(cOptions);
+      if (Utils.lastUrlType as Urls.Type === Urls.Type.Functional) {
+        return funcDict.onEvalUrl(url as Urls.SpecialUrl);
       } else if (!url) {
-        requestHandlers.ShowHUD("No text copied!");
+        return requestHandlers.ShowHUD("No text copied!");
       } else if (tabs.length > 0) {
-        openMultiTab(url, commandCount, tabs[0]);
+        return openMultiTab(url as string, commandCount, tabs[0]);
       } else {
-        chrome.tabs.update(null, { url: url }, funcDict.onRuntimeError);
+        chrome.tabs.update({ url: url as string }, funcDict.onRuntimeError);
       }
     },
-    openUrl: function(tabs) {
-      var url, reuse;
+    openUrl (this: void, tabs?: [Tab] | never[] | null): void {
+      let url: string | undefined;
       if (cOptions.urls) {
-        return tabs ? funcDict.openUrls(tabs) : funcDict.getCurTab(funcDict.openUrls);
+        return tabs && tabs.length > 0 ? funcDict.openUrls(tabs as [Tab]) : void funcDict.getCurTab(funcDict.openUrls);
       }
       if (cOptions.url_mask) {
         if (tabs == null) {
-          return chrome.runtime.lastError || funcDict.getCurTab(BackgroundCommands.openUrl);
+          return chrome.runtime.lastError || void funcDict.getCurTab(BackgroundCommands.openUrl);
         }
         if (tabs.length > 0) {
-          url = cOptions.url_f || cOptions.url;
+          url = (cOptions.url_f as string | undefined || cOptions.url as string) || "";
           url = url.replace(cOptions.url_mask, tabs[0].url);
         }
       }
-      url = cOptions.url_f ? url || cOptions.url_f : Utils.convertToUrl(url || cOptions.url || "");
+      url = cOptions.url_f ? url || cOptions.url_f as string : Utils.convertToUrl(url || cOptions.url || "");
       if (cOptions.id_marker) {
         url = url.replace(cOptions.id_marker, chrome.runtime.id);
       }
-      reuse = cOptions.reuse;
-      reuse == null && (reuse = -1);
+      const reuse: ReuseType = cOptions.reuse == null ? ReuseType.newFg : (cOptions.reuse | 0);
       if (reuse > 0) {
         requestHandlers.focusOrLaunch({url: url});
+        return;
       } else if (reuse === 0) {
         if (funcDict.openShowPage[0](url, reuse)) { return; }
-        chrome.tabs.update(null, { url: url }, funcDict.onRuntimeError);
+        chrome.tabs.update({ url: url }, funcDict.onRuntimeError);
+      } else if (tabs) {
+        return funcDict.openUrlInNewTab.call(url, reuse, tabs);
       } else {
-        tabs ? funcDict.openUrlInNewTab.call(url, reuse, tabs)
-        : funcDict.getCurTab(funcDict.openUrlInNewTab.bind(url, reuse));
+        funcDict.getCurTab(funcDict.openUrlInNewTab.bind(url, reuse));
       }
     },
-    searchInAnother: function(tabs) {
-      var keyword = cOptions.keyword, query;
-      query = requestHandlers.parseSearchUrl(tabs[0]);
+    searchInAnother (this: void, tabs: [Tab]): void {
+      let keyword = cOptions.keyword as string || "";
+      const query = requestHandlers.parseSearchUrl(tabs[0]);
       if (!query || !keyword) {
         requestHandlers.ShowHUD(keyword ? "No search engine found!"
           : 'This key mapping lacks an arg "keyword"');
@@ -914,9 +976,10 @@ var Clipboard, Commands, CommandsData, Completers, Marks, TabRecency, FindModeHi
       }, null);
       BackgroundCommands.openUrl(tabs);
     },
-    togglePinTab: function(tabs) {
-      var tab = funcDict.selectFrom(tabs), i = tab.index
-        , len = Math.min(tabs.length, i + commandCount), action = {pinned: true};
+    togglePinTab (this: void, tabs: Tab[]): void {
+      const tab = funcDict.selectFrom(tabs);
+      let i = tab.index;
+      const len = Math.min(tabs.length, i + commandCount), action = {pinned: true};
       if (tab.pinned) {
         action.pinned = false;
         do {
@@ -928,16 +991,17 @@ var Clipboard, Commands, CommandsData, Completers, Marks, TabRecency, FindModeHi
         } while (len > ++i);
       }
     },
-    toggleMuteTab: function() {
+    toggleMuteTab (): void {
       if (Settings.CONST.ChromeVersion < 45) {
         return requestHandlers.ShowHUD("Vimium++ can not control mute state before Chrome 45");
       }
       if (cOptions.all || cOptions.other) {
-        return chrome.tabs.query({audible: true}, funcDict.toggleMuteTab[1]);
+        chrome.tabs.query({audible: true}, funcDict.toggleMuteTab[1]);
+        return;
       }
-      return funcDict.getCurTab(funcDict.toggleMuteTab[0]);
+      funcDict.getCurTab(funcDict.toggleMuteTab[0]);
     },
-    reloadTab: function(tabs) {
+    reloadTab (this: void, tabs: Tab[] | never[]): void {
       if (tabs.length <= 0) {
         chrome.windows.getCurrent({populate: true}, function(wnd) {
           if (!wnd) { return chrome.runtime.lastError; }
@@ -945,7 +1009,7 @@ var Clipboard, Commands, CommandsData, Completers, Marks, TabRecency, FindModeHi
         });
         return;
       }
-      var reloadProperties = { bypassCache: cOptions.bypassCache === true }
+      let reloadProperties = { bypassCache: cOptions.bypassCache === true }
         , ind = funcDict.selectFrom(tabs).index, len = tabs.length
         , end = ind + commandCount;
       if (cOptions.single) {
@@ -959,48 +1023,46 @@ var Clipboard, Commands, CommandsData, Completers, Marks, TabRecency, FindModeHi
         chrome.tabs.reload(tabs[ind].id, reloadProperties);
       } while (end > ++ind);
     },
-    reloadGivenTab: function() {
+    reloadGivenTab (): void {
       if (commandCount === 1) {
-        return chrome.tabs.reload();
-      }
-      return funcDict.getCurTabs(BackgroundCommands.reloadTab);
-    },
-    reopenTab: function(tabs) {
-      var tab = tabs[0];
-      if (!tab) { return; }
-      ++tab.index;
-      if (Settings.CONST.ChromeVersion >= 52 || !Utils.isRefusingIncognito(tab.url)) {
-        funcDict.reopenTab(tab);
+        chrome.tabs.reload();
         return;
       }
-      chrome.windows.get(tab.windowId, function(wnd) {
-        wnd.incognito || funcDict.reopenTab(tab);
+      funcDict.getCurTabs(BackgroundCommands.reloadTab);
+    },
+    reopenTab (this: void, tabs: [Tab] | never[]): void {
+      if (tabs.length <= 0) { return; }
+      const tab = tabs[0];
+      ++tab.index;
+      if (Settings.CONST.ChromeVersion >= 52 || !Utils.isRefusingIncognito(tab.url)) {
+        return funcDict.reopenTab(tab);
+      }
+      chrome.windows.get(tab.windowId, function(wnd): void {
+        if (!wnd.incognito) { return funcDict.reopenTab(tab); }
       });
     },
-    goToRoot: function(tabs) {
-      var url = tabs[0].url, result;
-      result = requestHandlers.parseUpperUrl({
+    goToRoot (this: void, tabs: [Tab]): void {
+      const url = tabs[0].url, result = requestHandlers.parseUpperUrl({
         trailing_slash: cOptions.trailing_slash,
         url: url, upper: commandCount - 1
       });
       if (result.path != null) {
-        chrome.tabs.update(null, {url: result.url});
+        chrome.tabs.update({url: result.url});
         return;
       }
-      requestHandlers.ShowHUD(result.url);
+      return requestHandlers.ShowHUD(result.url);
     },
-    moveTab: function(tabs) {
-      var tab = funcDict.selectFrom(tabs), index, dir, pinned;
-      dir = cOptions.dir > 0 ? 1 : -1;
-      index = Math.max(0, Math.min(tabs.length - 1, tab.index + dir * commandCount));
-      pinned = tab.pinned;
+    moveTab (this: void, tabs: Tab[]): void {
+      const tab = funcDict.selectFrom(tabs), dir = cOptions.dir > 0 ? 1 : -1, pinned = tab.pinned;
+      let index = Math.max(0, Math.min(tabs.length - 1, tab.index + dir * commandCount));
       while (pinned !== tabs[index].pinned) { index -= dir; }
       if (index != tab.index) {
         chrome.tabs.move(tab.id, {index: index});
       }
     },
-    nextFrame: function(count) {
-      var port = cPort, frames = framesForTab[port.sender.tabId], ind;
+    nextFrame: function (this: void, count?: number): void {
+      let port = cPort, ind = -1;
+      const frames = framesForTab[port.sender.tabId];
       if (frames && frames.length > 2) {
         count || (count = commandCount);
         ind = Math.max(0, frames.indexOf(port, 1));
@@ -1010,21 +1072,22 @@ var Clipboard, Commands, CommandsData, Completers, Marks, TabRecency, FindModeHi
         }
         port = frames[ind];
       }
-      return port.postMessage({
+      port.postMessage({
         name: "focusFrame",
         frameId: ind >= 0 ? port.sender.frameId : -1
       });
     },
-    mainFrame: function() {
-      var port = Settings.indexFrame(TabRecency.last(), 0);
-      return port && port.postMessage({
+    mainFrame (): void {
+      const port = Settings.indexFrame(TabRecency.last(), 0);
+      if (!port) { return; }
+      port.postMessage({
         name: "focusFrame",
         frameId: 0
       });
     },
-    parentFrame: function() {
-      var frames, sender, msg;
-      msg = Settings.CONST.ChromeVersion < 41 ? "Vimium++ can not know parent frame before Chrome 41"
+    parentFrame (): void {
+      let frames: Frames.Frames | undefined, sender: Frames.Sender | undefined, msg: string | null;
+      msg = NoFrameId ? "Vimium++ can not know parent frame before Chrome 41"
         : !chrome.webNavigation ? "Vimium++ is not permitted to access frames"
         : !((frames = framesForTab[cPort.sender.tabId]) && (sender = frames[0].sender) && sender.tabId > 0)
           ? "Vimium++ can not access frames in current tab"
@@ -1033,18 +1096,19 @@ var Clipboard, Commands, CommandsData, Completers, Marks, TabRecency, FindModeHi
       if (msg) {
         return requestHandlers.ShowHUD(msg);
       }
-      chrome.webNavigation.getAllFrames({tabId: sender.tabId}, funcDict.focusParentFrame.bind(sender));
+      chrome.webNavigation.getAllFrames({
+        tabId: (sender as Frames.Sender).tabId
+      }, funcDict.focusParentFrame.bind(sender as Frames.Sender));
     },
-    visitPreviousTab: function(tabs) {
-      var tabId;
+    visitPreviousTab (this: void, tabs: Tab[]): void {
       if (tabs.length < 2) { return; }
       tabs.splice(funcDict.selectFrom(tabs).index, 1);
       tabs.sort(TabRecency.rCompare);
-      tabId = tabs[Math.min(commandCount, tabs.length) - 1].id;
-      funcDict.selectTab(tabId);
+      const tabId = tabs[Math.min(commandCount, tabs.length) - 1].id;
+      return funcDict.selectTab(tabId);
     },
-    copyTabInfo: function(tabs) {
-      var str;
+    copyTabInfo (this: void, tabs: [Tab]): void {
+      let str: string;
       switch (cOptions.type) {
       case "title": str = tabs[0].title; break;
       case "frame":
@@ -1061,46 +1125,45 @@ var Clipboard, Commands, CommandsData, Completers, Marks, TabRecency, FindModeHi
       Clipboard.copy(str);
       return requestHandlers.ShowHUD(str, true);
     },
-    goNext: function() {
-      var dir = cOptions.dir || "next", defaultPatterns;
-      defaultPatterns = cOptions.patterns ||
+    goNext (): void {
+      const dir: string = cOptions.dir || "next", defaultPatterns: string = cOptions.patterns ||
         Settings.get(dir === "prev" ? "previousPatterns" : "nextPatterns", true);
-      return cPort.postMessage({ name: "execute", count: 1, command: "goNext",
+      cPort.postMessage({ name: "execute", count: 1, command: "goNext",
         options: {
           dir: dir,
           patterns: defaultPatterns.toLowerCase()
         }
       });
     },
-    enterInsertMode: function() {
-      var hideHud = cOptions.hideHud;
-      return cPort.postMessage({ name: "execute", count: 1, command: "enterInsertMode",
+    enterInsertMode (): void {
+      const hideHud = cOptions.hideHud;
+      cPort.postMessage({ name: "execute", count: 1, command: "enterInsertMode",
         options: {
           code: cOptions.code | 0, stat: cOptions.stat | 0,
           hideHud: hideHud != null ? hideHud : Settings.get("hideHud", true)
         }
       });
     },
-    performFind: function() {
-      var query = cOptions.active ? null : FindModeHistory.query(cPort.sender.incognito);
-      return cPort.postMessage({ name: "execute", count: 1, command: "performFind", options: {
+    performFind (): void {
+      const query = cOptions.active ? null : (FindModeHistory.query as FindModeQuery)(cPort.sender.incognito);
+      cPort.postMessage({ name: "execute", count: 1, command: "performFind", options: {
         count: commandCount,
         dir: cOptions.dir,
         query: query
       }});
     },
-    showVomnibar: function() {
-      var port = cPort, options;
+    showVomnibar (this: void): void {
+      let port = cPort as Port | null;
       if (!port) {
         port = Settings.indexFrame(TabRecency.last(), 0);
         if (!port) { return; }
       } else if (port.sender.frameId !== 0 && port.sender.tabId >= 0) {
         port = Settings.indexFrame(port.sender.tabId, 0) || port;
       }
-      options = Utils.extendIf(Object.setPrototypeOf({
+      const options = Utils.extendIf(Object.setPrototypeOf({
         vomnibar: Settings.CONST.VomnibarPage,
         secret: getSecret(),
-      }, null), cOptions);
+      }, null), cOptions as any);
       port.postMessage({
         name: "execute", count: commandCount,
         command: "Vomnibar.activate",
@@ -1109,83 +1172,96 @@ var Clipboard, Commands, CommandsData, Completers, Marks, TabRecency, FindModeHi
       options.secret = -1;
       cOptions = options;
     },
-    clearFindHistory: function() {
-      var incognito = cPort.sender.incognito;
+    clearFindHistory (this: void): void {
+      const incognito = cPort.sender.incognito;
       FindModeHistory.removeAll(incognito);
       return requestHandlers.ShowHUD((incognito ? "incognito " : "") + "find history has been cleared.");
     },
-    toggleViewSource: function(tabs) {
-      var url = tabs[0].url;
+    toggleViewSource (this: void, tabs: [Tab]): void {
+      let url = tabs[0].url;
       if (url.startsWith("chrome-")) {
         return funcDict.complain("visit HTML of an extension's page");
       }
       url = url.startsWith("view-source:") ? url.substring(12) : ("view-source:" + url);
-      openMultiTab(url, 1, tabs[0]);
+      return openMultiTab(url, 1, tabs[0]);
     },
-    clearGlobalMarks: function() { return Marks.clearGlobal(); }
-  };
-
-  keyQueueRe = /^\d+/;
-
-  executeCommand = function(command, registryEntry, count, port) {
-    var func, options = registryEntry.options, scale;
+    clearGlobalMarks (this: void): void { return Marks.clearGlobal(); }
+  },
+  numHeadRe = <RegExpOne>/^\d+/,
+  executeCommand = function(command: string, registryEntry: CommandsNS.Item
+      , count: number, port: Port): void {
+    const options = registryEntry.options;
+    let scale: number;
     if (options && (scale = +options.count)) { count = Math.max(1, (count * scale) | 0); }
-    if (registryEntry.repeat === 1) {
+    if (count === 1) {}
+    else if (registryEntry.repeat === 1) {
       count = 1;
     } else if (registryEntry.repeat > 0 && count > registryEntry.repeat && !
-      confirm("You have asked Vimium++ to perform " + count + " repeats of the command:\n        "
-        + CommandsData.availableCommands[command][0]
-        + "\n\nAre you sure you want to continue?")
+      confirm(`You have asked Vimium++ to perform ${count} repeats of the command:
+        ${CommandsData.availableCommands[command][0]}\n\nAre you sure you want to continue?`)
     ) {
       return;
     }
     command = registryEntry.alias || command;
     if (!registryEntry.background) {
-      return port.postMessage({
+      port.postMessage({
         name: "execute",
         command: command,
         count: count,
         options: options
       });
+      return;
     }
-    func = BackgroundCommands[command];
-    cOptions = options || Object.create(null);
+    const func: BgCmd = BackgroundCommands[command as keyof typeof BackgroundCommands];
+    cOptions = options || Object.create<any>(null);
     cPort = port;
     commandCount = count;
-    count = func.useTab;
-    return count === 2 ? funcDict.getCurTabs(func) : count === 1 ? funcDict.getCurTab(func) : func();
-  };
-
-  /* globals g_requestHandlers: true */
-  g_requestHandlers = requestHandlers = {
-    setSetting: function(request, port) {
-      var key = request.key;
+    count = <UseTab>func.useTab;
+    if (count < UseTab.ActiveTab) {
+      return (func as BgCmdNoTab)();
+    } else if (count === UseTab.ActiveTab) {
+      funcDict.getCurTab(func as BgCmdActiveTab);
+    } else {
+      funcDict.getCurTabs(func as BgCmdNoTab);
+    }
+  },
+  /**
+   * type: {
+   *  <K in keyof FgRes>(this: void, request: FgReq[K], port: Port): FgRes[K];
+   *  <K in keyof FgReq>(this: void, request: FgReq[K], port: Port): void;
+   *  [ /^A-Z/ ]: (this: void, ...args: any[]) => any;
+   * }
+   */
+  requestHandlers = g_requestHandlers = {
+    setSetting<K extends keyof SettingsNS.FrontUpdateAllowedSettings>
+        (this: void, request: SetSettingReq<K>, port: Port): void {
+      const key = request.key;
       if (!(key in Settings.frontUpdateAllowed)) {
         cPort = port;
-        return funcDict.complain('modify "' + key + '" setting');
+        return funcDict.complain(`modify ${key} setting`);
       }
       Settings.set(key, request.value);
       if (key in Settings.bufferToLoad) {
-        Settings.bufferToLoad[key] = Settings.cache[key];
+        (Settings.bufferToLoad as SafeDict<any>)[key] = Settings.cache[key];
       }
     },
-    findQuery: function(request, port) {
+    findQuery (this: void, request: FgReq["findQuery"], port: Port): FgRes["findQuery"] | void {
       return FindModeHistory.query(port.sender.incognito, request.query, request.index);
     },
-    parseSearchUrl: function(request) {
-      var s0 = request.url, url = s0.toLowerCase(), decoders, pattern, _i, str, arr,
-          selectLast, re, obj;
+    parseSearchUrl (this: void, request: FgReq["parseSearchUrl"]): FgRes["parseSearchUrl"] {
+      let s0 = request.url, url = s0.toLowerCase(), pattern: Search.Rule | undefined
+        , arr: string[] | null = null, _i: number, str: string, selectLast = false;
       if (!Utils.protocolRe.test(Utils.removeComposedScheme(url))) {
         return null;
       }
-      if (_i = +request.upper) {
-        obj = requestHandlers.parseUpperUrl({ url: s0, upper: _i, trailing_slash: request.trailing_slash });
+      if (_i = (request.upper | 0)) {
+        const obj = requestHandlers.parseUpperUrl({ url: s0, upper: _i, trailing_slash: request.trailing_slash });
         if (obj.path != null) {
           s0 = obj.url;
         }
         return { keyword: '', start: 0, url: s0 };
       }
-      decoders = Settings.cache.searchEngineRules;
+      const decoders = Settings.cache.searchEngineRules;
       if (url.startsWith("http")) {
         _i = url.charAt(4) === 's' ? 8 : 7;
         url = url.substring(_i);
@@ -1199,7 +1275,7 @@ var Clipboard, Commands, CommandsData, Completers, Marks, TabRecency, FindModeHi
       }
       if (!arr || !pattern) { return null; }
       if (arr.length > 1 && !pattern[1].global) { arr.shift(); }
-      re = pattern[3];
+      const re = pattern[3];
       if (arr.length > 1) {
         selectLast = true;
       } else if (re instanceof RegExp) {
@@ -1221,20 +1297,21 @@ var Clipboard, Commands, CommandsData, Completers, Marks, TabRecency, FindModeHi
         start: selectLast ? url.lastIndexOf(" ") + 1 : 0
       };
     },
-    parseUpperUrl: function(request) {
-      var url = request.url, hash, str, arr, startSlash = false, endSlash = false
-        , path = null, i, start = 0, end = 0, decoded = false, argRe, arr2;
+    parseUpperUrl (this: void, request: FgReq["parseUpperUrl"]): FgRes["parseUpperUrl"] {
+      let url = request.url;
       if (!Utils.protocolRe.test(Utils.removeComposedScheme(url.toLowerCase()))) {
         return { url: "This url has no upper paths", path: null };
       }
+      let hash = "", str: string, arr: RegExpExecArray | null, startSlash = false, endSlash = false
+        , path: string | null = null, i: number, start = 0, end = 0, decoded = false, arr2: RegExpExecArray | null;
       if (i = url.lastIndexOf("#") + 1) {
-        hash = url.substring(i + (url[i] === "!"));
+        hash = url.substring(i + +(url[i] === "!"));
         str = Utils.DecodeURLPart(hash);
         i = str.lastIndexOf("/");
         if (i > 0 || (i === 0 && str.length > 1)) {
           decoded = str !== hash;
-          argRe = /([^&=]+=)([^&\/=]*\/[^&]*)/;
-          arr = argRe.exec(str) || /(^|&)([^&\/=]*\/[^&=]*)(?:&|$)/.exec(str);
+          const argRe = <RegExpOne> /([^&=]+=)([^&\/=]*\/[^&]*)/;
+          arr = argRe.exec(str) || (<RegExpOne> /(^|&)([^&\/=]*\/[^&=]*)(?:&|$)/).exec(str);
           path = arr ? arr[2] : str;
           if (path === "/" || path.indexOf("://") >= 0) { path = null; }
           else if (!arr) { start = 0; }
@@ -1314,16 +1391,18 @@ var Clipboard, Commands, CommandsData, Completers, Marks, TabRecency, FindModeHi
         endSlash = request.trailing_slash != null ? !!request.trailing_slash
           : path.length > 1 && path.endsWith("/");
       }
-      if (i) {
-        arr = path.substring(+startSlash, (path.length - path.endsWith("/")) || +startSlash).split("/");
-        i < 0 && (i += arr.length);
-      }
-      if (i <= 0) {
+      if (!i) {
         path = "/";
-      } else if (i > 0 && i < arr.length) {
-        arr.length = i;
-        path = arr.join("/");
-        path = (startSlash ? "/" : "") + path + (endSlash ? "/" : "");
+      } else {
+        const arr3 = path.substring(+startSlash, (path.length - +path.endsWith("/")) || +startSlash).split("/");
+        i < 0 && (i += arr3.length);
+        if (i <= 0) {
+          path = "/";
+        } else if (i > 0 && i < arr3.length) {
+          arr3.length = i;
+          path = arr3.join("/");
+          path = (startSlash ? "/" : "") + path + (endSlash ? "/" : "");
+        }
       }
       str = decoded ? encodeURIComponent(path) : path;
       url = url.substring(0, start) + (end ? str + url.substring(end) : str);
@@ -1332,121 +1411,131 @@ var Clipboard, Commands, CommandsData, Completers, Marks, TabRecency, FindModeHi
         path: path
       };
     },
-    searchAs: function(request) {
-      var search = requestHandlers.parseSearchUrl(request), query;
-      if (!search) { return "No search engine found!"; }
+    searchAs (this: void, request: FgReq["searchAs"]): string {
+      let search = requestHandlers.parseSearchUrl(request), query;
+      if (!search || !search.keyword) { return "No search engine found!"; }
       if (!(query = request.search)) {
         query = Clipboard.paste().replace(Utils.spacesRe, ' ').trim();
         if (!query) { return "No selected or copied text found!"; }
       }
       query = Utils.createSearchUrl(query.split(" "), search.keyword);
-      chrome.tabs.update(null, {
+      chrome.tabs.update({
         url: query
       });
+      return "";
     },
-    gotoSession: function(request, port) {
-      var id = request.sessionId, active = request.active !== false, tabId;
+    gotoSession (this: void, request: FgReq["gotoSession"], port: Port): void {
+      const id = request.sessionId, active = request.active !== false;
       if (typeof id === "number") {
         return funcDict.selectTab(id, true);
       }
       chrome.sessions.restore(id, funcDict.onRuntimeError);
       if (active) { return; }
-      tabId = port.sender.tabId;
+      let tabId = port.sender.tabId;
       tabId >= 0 || (tabId = TabRecency.last());
-      tabId >= 0 && funcDict.selectTab(tabId);
+      if (tabId >= 0) { return funcDict.selectTab(tabId); }
     },
-    openUrl: function(request, port) {
+    openUrl (this: void, request: FgReq["openUrl"] & { url_f?: Urls.Url}, port?: Port): void {
       Object.setPrototypeOf(request, null);
-      request.url_f = Utils.convertToUrl(request.url, request.keyword, 2);
+      request.url_f = Utils.convertToUrl(request.url, request.keyword || null, Urls.WorkType.ActAnyway);
       request.keyword = "";
-      var ports;
+      let ports;
       cPort = !port ? cPort : funcDict.checkVomnibarPage(port, true) ? port
         : (ports = framesForTab[port.sender.tabId]) ? ports[0] : cPort;
-      if (Utils.lastUrlType === 5) {
-        funcDict.onEvalUrl(request.url_f);
-        return;
-      } else if (request.https && Utils.lastUrlType >= 1 && Utils.lastUrlType <= 2) {
-        request.url_f = "https" + request.url_f.substring(4);
+      if (Utils.lastUrlType === Urls.Type.Functional) {
+        return funcDict.onEvalUrl(request.url_f as Urls.SpecialUrl);
+      } else if (request.https && (Utils.lastUrlType === Urls.Type.NoSchema
+          || Utils.lastUrlType === Urls.Type.NoProtocolName)) {
+        request.url_f = "https" + (request.url_f as string).substring(4);
       }
       commandCount = 1;
-      cOptions = request;
-      BackgroundCommands.openUrl();
+      cOptions = request as FgReq["openUrl"] & { url_f: string, keyword: ""} & SafeObject;
+      return BackgroundCommands.openUrl();
     },
-    frameFocused: function(request, port) {
-      var tabId = port.sender.tabId, ref = framesForTab[tabId], status;
+    frameFocused (this: void, _0: FgReq["frameFocused"], port: Port): void {
+      let tabId = port.sender.tabId, ref = framesForTab[tabId], status: Frames.ValidStatus;
       if (!ref) {
-        needIcon && requestHandlers.SetIcon(tabId, port.sender.status);
-        return;
+        return needIcon ? requestHandlers.SetIcon(tabId, port.sender.status) : undefined;
       }
+      if (port === ref[0]) { return; }
       if (needIcon && (status = port.sender.status) !== ref[0].sender.status) {
-        requestHandlers.SetIcon(tabId, status);
+        ref[0] = port;
+        return requestHandlers.SetIcon(tabId, status);
       }
       ref[0] = port;
     },
-    checkIfEnabled: function(request, port) {
-      port && port.sender || (port = Settings.indexFrame(request.tabId, request.frameId));
+    checkIfEnabled: function (this: void, request: ExclusionsNS.Details | FgReq["checkIfEnabled"]
+        , port?: Frames.Port | null): void {
+      if (!(port && port.sender)) {
+        port = Settings.indexFrame((request as ExclusionsNS.Details).tabId, (request as ExclusionsNS.Details).frameId);
+      }
       if (!port) { return; }
-      var oldUrl = port.sender.url, tabId = port.sender.tabId
+      const oldUrl = port.sender.url, tabId = port.sender.tabId
         , pattern = Settings.getExcluded(port.sender.url = request.url)
-        , status = pattern === null ? 0 : pattern ? 1 : 2;
+        , status = pattern === null ? Frames.BaseStatus.enabled : pattern
+            ? Frames.BaseStatus.partial : Frames.BaseStatus.disabled;
       if (port.sender.status !== status) {
         port.sender.status = status;
-        if (needIcon && framesForTab[tabId] && framesForTab[tabId][0] === port) {
+        if (needIcon && framesForTab[tabId] && (framesForTab[tabId] as Frames.Frames)[0] === port) {
           requestHandlers.SetIcon(tabId, status);
         }
       } else if (!pattern || pattern === Settings.getExcluded(oldUrl)) {
         return;
       }
       port.postMessage({ name: "reset", passKeys: pattern });
+    } as {
+      (this: void, request: FgReq["checkIfEnabled"], port: Frames.Port): void;
+      (this: void, request: ExclusionsNS.Details): void;
     },
-    nextFrame: function(request, port) {
+    nextFrame (this: void, _0: FgReq["nextFrame"], port: Port): void {
       cPort = port;
       return BackgroundCommands.nextFrame(1);
     },
-    exitGrab: function(_0, port) {
-      var ports = Settings.indexPorts(port.sender.tabId), i, msg;
+    exitGrab (this: void, _0: FgReq["exitGrab"], port: Port): void {
+      const ports = Settings.indexPorts(port.sender.tabId);
       if (!ports || ports.length < 3) { return; }
-      for (msg = { name: "exitGrab" }, i = ports.length; 1 <= --i; ) {
+      for (let msg = { name: "exitGrab" as "exitGrab" }, i = ports.length; 1 <= --i; ) {
         ports[i] !== port && ports[i].postMessage(msg);
       }
     },
-    refocusCurrent: function(request, port) {
-      var ports = port.sender.tabId !== -1 ? framesForTab[port.sender.tabId] : null;
+    refocusCurrent (this: void, request: FgReq["refocusCurrent"], port: Port): void {
+      const ports = port.sender.tabId !== -1 ? framesForTab[port.sender.tabId] : undefined;
       if (ports) {
-        return ports[0].postMessage({
+        ports[0].postMessage({
           name: "focusFrame",
           lastKey: request.lastKey,
           frameId: -2
         });
+        return;
       }
       try { port.postMessage({ name: "returnFocus", lastKey: request.lastKey }); } catch (e) {}
     },
-    initHelp: function(request, port) {
-      Promise.all([
-        Utils.require('HelpDialog'),
+    initHelp (this: void, request: FgReq["initHelp"], port: Port): Promise<void> {
+      return Promise.all([
+        Utils.require<typeof HelpDialog>('HelpDialog'),
         request, port,
-        new Promise(function(resolve, reject) {
+        new Promise<void>(function(resolve, reject) {
           var xhr = Settings.fetchFile("helpDialog", resolve);
           xhr instanceof XMLHttpRequest && (xhr.onerror = reject);
         })
-      ]).then(function(args) {
+      ]).then(function(args): void {
         args[2].postMessage({
           name: "showHelpDialog",
           html: args[0].render(args[1]),
           optionUrl: Settings.CONST.OptionsPage,
           advanced: Settings.get("showAdvancedCommands", true)
         });
-      }, function(args) {
+      }, function(args): void {
         console.error("Promises for initHelp failed:", args[0], ';', args[3]);
       });
     },
-    initInnerCSS: function() {
+    initInnerCSS (this: void): string {
       return Settings.cache.innerCSS;
     },
-    activateVomnibar: function(request, port) {
+    activateVomnibar (this: void, request: FgReq["activateVomnibar"], port: Port): void {
       cPort = port;
-      if (request.count > 0) {
-        commandCount = request.count;
+      if ((request.count as number) > 0) {
+        commandCount = request.count as number;
         cOptions = Object.setPrototypeOf(request, null);
         cOptions.handler = "";
       } else if (request.redo !== true || cOptions == null || cOptions.secret !== -1) {
@@ -1454,61 +1543,67 @@ var Clipboard, Commands, CommandsData, Completers, Marks, TabRecency, FindModeHi
       }
       return BackgroundCommands.showVomnibar();
     },
-    omni: function(request, port) {
+    omni (this: void, request: FgReq["omni"], port: Port): void {
       if (funcDict.checkVomnibarPage(port)) { return; }
       return Completers.filter(request.query, request, funcDict.PostCompletions.bind(port));
     },
-    getCopiedUrl_f: function(request, port) {
-      var url = Clipboard.paste().trim(), arr;
+    getCopiedUrl_f: function (this: void, request: FgReq["getCopiedUrl_f"], port?: Port): Urls.Url {
+      let url: Urls.Url = Clipboard.paste().trim(), arr: RegExpMatchArray | null;
       if (!url) {}
       else if (arr = url.match(Utils.filePathRe)) {
         url = arr[1];
-      } else {
-        url = Utils.convertToUrl(url, request.keyword, port ? 0 : 2);
-        if (port && url.substring(0, 11).toLowerCase() !== "javascript:") {
+      } else if (port) {
+        url = Utils.convertToUrl(url, request.keyword || null, Urls.WorkType.Default);
+        if (url.substring(0, 11).toLowerCase() !== "javascript:") {
           cOptions = Object.setPrototypeOf({ url_f: url }, null);
-          commandCount = 1; url = null;
+          commandCount = 1; url = "";
           BackgroundCommands.openUrl();
         }
+      } else {
+        url = Utils.convertToUrl(url, request.keyword || null, Urls.WorkType.ActAnyway);
       }
       return url;
+    } as {
+      (this: void, request: FgReq["getCopiedUrl_f"], port: Port): string;
+      (this: void, request: FgReq["getCopiedUrl_f"]): Urls.Url;
     },
-    copyToClipboard: function(request) {
-      Clipboard.copy(request.data);
+    copyToClipboard (this: void, request: FgReq["copyToClipboard"]): void {
+      return Clipboard.copy(request.data);
     },
-    key: function(request, port) {
-      var key = request.key, arr, count = 1, ref, registryEntry;
-      arr = keyQueueRe.exec(key);
+    key (this: void, request: FgReq["key"], port: Port): void {
+      let key: string = request.key, count = 1;
+      let arr: null | string[] = numHeadRe.exec(key);
       if (arr != null) {
         key = key.substring(arr[0].length);
         count = parseInt(arr[0], 10) || 1;
       }
-      ref = CommandsData.keyToCommandRegistry;
+      const ref = CommandsData.keyToCommandRegistry;
       if (!(key in ref)) {
-        arr = key.match(Utils.keyRe);
+        arr = key.match(Utils.keyRe) as string[];
         key = arr[arr.length - 1];
         count = 1;
       }
-      registryEntry = ref[key];
+      const registryEntry = ref[key];
       Utils.resetRe();
-      return executeCommand(registryEntry.command, registryEntry, count, port);
+      executeCommand(registryEntry.command, registryEntry, count, port);
     },
-    createMark: function(request, port) { return Marks.createMark(request, port); },
-    gotoMark: function(request) { return Marks.gotoMark(request); },
-    focusOrLaunch: function(request) {
-      // * request.url is guaranteed to be well formatted by frontend
+    createMark (this: void, request: FgReq["createMark"], port: Port): void {
+       return Marks.createMark(request, port);
+    },
+    gotoMark (this: void, request: FgReq["gotoMark"]): FgRes["gotoMark"] { return Marks.gotoMark(request); },
+    focusOrLaunch (this: void, request: MarksNS.FocusOrLaunch): 1 {
       // * do not limit windowId or windowType
-      var url = request.url.split("#", 1)[0];
-      chrome.tabs.query({
+      const url = request.url.split("#", 1)[0];
+      return chrome.tabs.query({
         url: request.prefix ? url + "*" : url
       }, funcDict.focusOrLaunch[0].bind(request));
     },
-    secret: function(_0, port) {
+    secret (this: void, _0: FgReq["secret"], port: Frames.Port): FgRes["secret"] {
       if (funcDict.checkVomnibarPage(port)) { return null; }
       return getSecret();
     },
-    SetIcon: function() {},
-    ShowHUD: function(message, isCopy) {
+    SetIcon: function(): void {} as (tabId: number, type: Frames.ValidStatus) => void,
+    ShowHUD (message: string, isCopy?: boolean): void {
       try {
         cPort && cPort.postMessage({
           name: "showHUD",
@@ -1516,32 +1611,31 @@ var Clipboard, Commands, CommandsData, Completers, Marks, TabRecency, FindModeHi
           isCopy: isCopy === true
         });
       } catch (e) {
-        cPort = null;
+        cPort = null as any;
       }
     }
-  };
-
+  },
   Connections = {
     state: 0,
     _fakeId: -2,
-    OnMessage: function(request, port) {
-      var id;
-      if (id = request._msgId) {
-        request = request.request;
-        port.postMessage({
+    OnMessage (this: void, request: FgBase<string> | Req.fgWithRes<string>, port: Frames.Port): void {
+      let id;
+      if (id = (request as Req.fgWithRes<string>)._msgId) {
+        request = (request as Req.fgWithRes<string>).request;
+        port.postMessage<"findQuery">({
           _msgId: id,
-          response: requestHandlers[request.handler](request, port)
+          response: requestHandlers[(request as FgBase<string>).handler as
+            "findQuery"](request as any, port) as FgRes["findQuery"]
         });
       } else {
-        requestHandlers[request.handler](request, port);
+        return requestHandlers[(request as FgBase<string>).handler as "key"](request as any, port);
       }
     },
-    OnConnect: function(port) {
+    OnConnect (this: void, port: Frames.Port): void {
       Connections.format(port);
       port.onMessage.addListener(Connections.OnMessage);
-      var type = port.name[9] | 0, ref, tabId, pass, status;
-      tabId = port.sender.tabId;
-      if (type === 8) {
+      let type = (port.name[9] as any as number) | 0, ref: Frames.Frames | undefined, tabId = port.sender.tabId;
+      if (type === PortType.omnibar) {
         framesForOmni.push(port);
         if (tabId < 0) {
           port.sender.tabId = cPort ? cPort.sender.tabId : TabRecency.last();
@@ -1550,8 +1644,9 @@ var Clipboard, Commands, CommandsData, Completers, Marks, TabRecency, FindModeHi
         return;
       }
       port.onDisconnect.addListener(Connections.OnDisconnect);
-      pass = Settings.getExcluded(port.sender.url);
-      port.postMessage((type & 1) ? {
+      const pass = Settings.getExcluded(port.sender.url), status = pass === null
+          ? Frames.BaseStatus.enabled : pass ? Frames.BaseStatus.partial : Frames.BaseStatus.disabled;
+      port.postMessage((type & PortType.initing) ? {
         name: "init",
         load: Settings.bufferToLoad,
         passKeys: pass,
@@ -1561,11 +1656,10 @@ var Clipboard, Commands, CommandsData, Completers, Marks, TabRecency, FindModeHi
         name: "reset",
         passKeys: pass
       });
-      status = pass === null ? 0 : pass ? 1 : 2;
       port.sender.status = status;
       if (ref = framesForTab[tabId]) {
         ref.push(port);
-        if (type & 2) {
+        if (type & PortType.hasFocus) {
           if (needIcon && ref[0].sender.status !== status) {
             requestHandlers.SetIcon(tabId, status);
           }
@@ -1575,12 +1669,12 @@ var Clipboard, Commands, CommandsData, Completers, Marks, TabRecency, FindModeHi
         framesForTab[tabId] = [port, port];
         status !== 0 && needIcon && requestHandlers.SetIcon(tabId, status);
       }
-      if (Settings.CONST.ChromeVersion < 41) {
-        port.sender.frameId = (type & 4) ? 0 : ((Math.random() * 9999997) | 0) + 2;
+      if (NoFrameId) {
+        (port.sender as any).frameId = (type & PortType.isTop) ? 0 : ((Math.random() * 9999997) | 0) + 2;
       }
     },
-    OnDisconnect: function(port) {
-      var i = port.sender.tabId, ref;
+    OnDisconnect (this: void, port: Port): void {
+      let i = port.sender.tabId, ref: Frames.Frames | undefined;
       if (!port.sender.frameId) {
         delete framesForTab[i];
         return;
@@ -1596,13 +1690,16 @@ var Clipboard, Commands, CommandsData, Completers, Marks, TabRecency, FindModeHi
         ref[0] = ref[1];
       }
     },
-    OnOmniDisconnect: function(port) {
-      var ref = framesForOmni, i = ref.lastIndexOf(port);
-      i === ref.length - 1 ? --ref.length : i >= 0 ? ref.splice(i, 1) : 0;
+    OnOmniDisconnect (this: void, port: Port): void {
+      const ref = framesForOmni, i = ref.lastIndexOf(port);
+      if (i === ref.length - 1) {
+        --ref.length;
+      } else if (i >= 0) {
+        ref.splice(i, 1);
+      }
     },
-    format: function(port) {
-      var sender = port.sender, tab;
-      tab = sender.tab || {
+    format (port: Frames.RawPort): void {
+      const sender = port.sender, tab = sender.tab || {
         id: this._fakeId--,
         incognito: false
       };
@@ -1616,9 +1713,10 @@ var Clipboard, Commands, CommandsData, Completers, Marks, TabRecency, FindModeHi
     }
   };
 
-  getSecret = function() {
-    var secret = 0, time = 0;
-    getSecret = function() {
+  let cOptions: CommandsNS.Options, cPort: Frames.Port, commandCount: number, needIcon = false,
+  getSecret = function(this: void): number {
+    let secret = 0, time = 0;
+    getSecret = function(this: void): number {
       var now = Date.now();
       if (now - time > 10000) {
         secret = 1 + (0 | (Math.random() * 0x6fffffff));
@@ -1629,55 +1727,55 @@ var Clipboard, Commands, CommandsData, Completers, Marks, TabRecency, FindModeHi
     return getSecret();
   };
 
-  Settings.Init = function() {
+  Settings.Init = function(): void {
     if (3 !== ++Connections.state) { return; }
     Settings.Init = null;
     Utils.resetRe();
     chrome.runtime.onConnect.addListener(Connections.OnConnect);
     chrome.runtime.onConnectExternal &&
-    chrome.runtime.onConnectExternal.addListener(function(port) {
-      if (port.sender && port.sender.id in Settings.extWhiteList
+    chrome.runtime.onConnectExternal.addListener(function(port): void {
+      if (port.sender && (port.sender.id as string) in (Settings.extWhiteList as SafeDict<true>)
           && port.name.startsWith("vimium++")) {
-        Connections.OnConnect(port);
+        return Connections.OnConnect(port as Frames.RawPort as Frames.Port);
       }
     });
   };
 
   if (Settings.CONST.ChromeVersion >= 52) {
-    funcDict.createTab = [funcDict.createTab[0]];
+    funcDict.createTab = [funcDict.createTab[0]] as any;
   }
   Settings.updateHooks.newTabUrl_f = function(url) {
-    var f, onlyNormal = Utils.isRefusingIncognito(url);
+    let f: BgCmdNoTab, onlyNormal = Utils.isRefusingIncognito(url);
     BackgroundCommands.createTab = f = Settings.CONST.ChromeVersion < 52 && onlyNormal
     ? chrome.windows.getCurrent.bind(null, {populate: true}
         , funcDict.createTab[1].bind(url))
     : chrome.tabs.query.bind(null, {currentWindow: true, active: true}
         , funcDict.createTab[0].bind(url, onlyNormal));
-    f.useTab = 0;
+    f.useTab = UseTab.NoTab;
   };
 
   Settings.updateHooks.showActionIcon = function (value) {
     needIcon = value && chrome.browserAction ? true : false;
   };
 
-  Settings.globalCommand = function(command, options, count) {
+  Settings.globalCommand = function(this: void, command, options, count): void {
     count = Math.max(1, count | 0);
     options && typeof options === "object" ?
         Object.setPrototypeOf(options, null) : (options = null);
-    executeCommand(command, Utils.makeCommand(command, options), count, null);
+    return executeCommand(command, Utils.makeCommand(command, options), count, null as any as Port);
   };
 
   chrome.runtime.onMessageExternal && (
-  chrome.runtime.onMessageExternal.addListener(function(message, sender, sendResponse) {
-    var command;
-    if (!(sender.id in Settings.extWhiteList)) {
+  chrome.runtime.onMessageExternal.addListener(function(this: void, message: any, sender, sendResponse): void {
+    let command: string | undefined;
+    if (!((sender.id as string) in (Settings.extWhiteList as SafeDict<true>))) {
       sendResponse(false);
       return;
     }
     if (typeof message === "string") {
       command = message;
       if (command && CommandsData.availableCommands[command]) {
-        Settings.globalCommand(command);
+        return Settings.globalCommand(command);
       }
       return;
     }
@@ -1686,8 +1784,7 @@ var Clipboard, Commands, CommandsData, Completers, Marks, TabRecency, FindModeHi
     case "command":
       command = message.command;
       if (!(command && CommandsData.availableCommands[command])) { return; }
-      Settings.globalCommand(command, message.options, message.count);
-      break;
+      return Settings.globalCommand(command, message.options, message.count);
     case "content_scripts":
       sendResponse(Settings.CONST.ContentScripts);
       return;
@@ -1696,20 +1793,19 @@ var Clipboard, Commands, CommandsData, Completers, Marks, TabRecency, FindModeHi
 
   chrome.tabs.onReplaced &&
   chrome.tabs.onReplaced.addListener(function(addedTabId, removedTabId) {
-    var ref = framesForTab, frames, i;
-    frames = ref[removedTabId];
+    const ref = framesForTab, frames = ref[removedTabId];
     if (!frames) { return; }
     delete ref[removedTabId];
     ref[addedTabId] = frames;
-    for (i = frames.length; 0 < --i; ) {
+    for (let i = frames.length; 0 < --i; ) {
       frames[i].sender.tabId = addedTabId;
     }
   });
 
-  Settings.indexFrame = function(tabId, frameId) {
-    var ref = framesForTab[tabId], i;
+  Settings.indexFrame = function(tabId, frameId): Port | null {
+    const ref = framesForTab[tabId];
     if (!ref) { return null; }
-    for (i = 0; ref.length > ++i; ) {
+    for (let i = 1, len = ref.length; i < len; i++) {
       if (ref[i].sender.frameId === frameId) {
         return ref[i];
       }
@@ -1717,53 +1813,53 @@ var Clipboard, Commands, CommandsData, Completers, Marks, TabRecency, FindModeHi
     return null;
   };
 
-  Settings.indexPorts = function(tabId) {
+  Settings.indexPorts = function(tabId?: number): Frames.Frames | Frames.FramesMap | undefined {
     return tabId ? framesForTab[tabId] : framesForTab;
-  };
+  } as typeof Settings.indexPorts;
 
-  setTimeout(function() {
-    Settings.postUpdate("bufferToLoad", null);
+  setTimeout(function(): void {
+    Settings.postUpdate("bufferToLoad" as string as "searchEngines", null);
     Settings.get("userDefinedOuterCss", true);
-    Settings.Init();
+    return (Settings.Init as (this: void) => void)();
   }, 0);
 
-  (function() {
-    var ref, i, ref2 = BackgroundCommands, key;
-    for (key in ref2) { ref2[key].useTab = 0; }
+  (function(): void {
+    type Keys = keyof typeof BackgroundCommands;
+    let ref: Keys[], i: number, ref2 = BackgroundCommands, key: Keys;
+    for (key in ref2) { (ref2[key] as BgCmd).useTab = UseTab.NoTab; }
 
     ref = ["goTab", "moveTab", "reloadGivenTab", "reloadTab", "removeRightTab" //
       , "removeTab", "removeTabsR", "togglePinTab", "visitPreviousTab" //
     ];
-    for (i = ref.length; 0 <= --i; ) { ref2[ref[i]].useTab = 2; }
+    for (i = ref.length; 0 <= --i; ) { (ref2[ref[i]] as BgCmdCurWndTabs).useTab = UseTab.CurWndTabs; }
     ref = ["clearCS", "copyTabInfo", "enableCSTemp", "goToRoot", "moveTabToNextWindow"//
       , "openCopiedUrlInNewTab", "reopenTab", "toggleCS", "toggleViewSource" //
       , "searchInAnother" //
     ];
-    for (i = ref.length; 0 <= --i; ) { ref2[ref[i]].useTab = 1; }
+    for (i = ref.length; 0 <= --i; ) { (ref2[ref[i]] as BgCmdActiveTab).useTab = UseTab.ActiveTab; }
   })();
 
-  setTimeout(function() {
+  setTimeout(function(): void {
     Settings.fetchFile("baseCSS");
     Settings.postUpdate("searchUrl", null); // will also update newTabUrl
 
-    var arr = ["images", "plugins", "javascript", "cookies"], i;
+    let arr: CSTypes[] = ["images", "plugins", "javascript", "cookies"], i: number;
     for (i = arr.length; 0 < i--; ) {
       localStorage.getItem(ContentSettings.makeKey(arr[i])) != null &&
       setTimeout(ContentSettings.clear, 100, arr[i]);
     }
 
     document.documentElement.textContent = '';
-    document.firstChild.remove();
+    (document.firstChild as DocumentType).remove();
     Utils.resetRe();
   }, 34);
 
   // will run only on <F5>, not on runtime.reload
   window.onunload = function() {
-    var ref = framesForTab, tabId, ports, i;
-    framesForTab = null;
+    let ref = framesForTab, tabId: string, ports: Frames.Port[], i: number;
     ref.omni = framesForOmni;
     for (tabId in ref) {
-      ports = ref[tabId];
+      ports = ref[tabId] as Frames.Port[];
       for (i = ports.length; 0 <= --i; ) {
         ports[i].disconnect();
       }

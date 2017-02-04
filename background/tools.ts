@@ -46,27 +46,27 @@ const Clipboard = {
   }
 },
 Marks = { // NOTE: all members should be static
-  createMark (request: MarksNS.BaseMark, port: Port): true | void {
+  createMark (this: void, request: MarksNS.BaseMark | MarksNS.Mark, port: Port): void {
     let tabId = port.sender.tabId;
     if ((request as MarksNS.Mark).scroll) {
-      localStorage.setItem(Marks.getLocationKey((request as MarksNS.Mark).markName), JSON.stringify({
+      localStorage.setItem(Marks.getLocationKey(request.markName), JSON.stringify({
         tabId: tabId,
         url: (request as MarksNS.Mark).url,
         scroll: (request as MarksNS.Mark).scroll
       } as MarksNS.StoredMark));
-      return true;
+      return;
     }
     (port = Settings.indexFrame(tabId, 0) || port) && port.postMessage({
       name: "createMark",
       markName: request.markName,
-    } as BgReq.createMark);
+    });
   },
-  gotoMark (request: MarksNS.MarkQuery): boolean {
+  gotoMark (this: void, request: MarksNS.MarkQuery): boolean {
     const str = localStorage.getItem(Marks.getLocationKey(request.markName));
     if (!str) {
       return false;
     }
-    const markInfo: MarksNS.MarkToGo = JSON.parse(str) as MarksNS.StoredMark;
+    const markInfo: MarksNS.MarkToGo & MarksNS.StoredMark = JSON.parse(str) as MarksNS.StoredMark;
     markInfo.markName = request.markName;
     markInfo.prefix = request.prefix !== false && request.scroll[0] === 0 && request.scroll[1] === 0;
     if (Settings.indexPorts(markInfo.tabId)) {
@@ -85,12 +85,12 @@ Marks = { // NOTE: all members should be static
       g_requestHandlers.focusOrLaunch(this);
     }
   },
-  getLocationKey (keyChar: string): string {
+  getLocationKey (this: void, keyChar: string): string {
     return "vimiumGlobalMark|" + keyChar;
   },
-  scrollTab (markInfo: MarksNS.MarkToGo, tab: chrome.tabs.Tab): void {
+  scrollTab (this: void, markInfo: MarksNS.MarkToGo & { scroll: [number, number] }, tab: chrome.tabs.Tab): void {
     const tabId = tab.id, port = Settings.indexFrame(tabId, 0);
-    port && port.postMessage(<BgReq.scroll> {
+    port && port.postMessage({
       name: "scroll",
       scroll: markInfo.scroll,
       markName: markInfo.markName
@@ -103,7 +103,7 @@ Marks = { // NOTE: all members should be static
       } as MarksNS.StoredMark));
     }
   },
-  clearGlobal (): void {
+  clearGlobal (this: void): void {
     const key_start = Marks.getLocationKey(""), storage = localStorage;
     let key: string, i: number;
     for (i = storage.length; 0 <= --i; ) {
@@ -138,24 +138,26 @@ FindModeHistory = {
       return list[list.length - (index || 1)] || "";
     }
     if (incognito) {
-      this.refreshIn(query, list, true);
-      return;
+      return this.refreshIn(query, list, true);
     }
-    const str = this.refreshIn(query, list) as string;
+    const str = this.refreshIn(query, list);
     str && Settings.set(this.key, str);
-    this.listI && this.refreshIn(query, this.listI, true);
+    if (this.listI) { return this.refreshIn(query, this.listI, true); }
   },
-  refreshIn (query: string, list: string[], result?: boolean): string | void {
+  refreshIn: function (this: any, query: string, list: string[], skipResult?: boolean): string | void {
     const ind = list.lastIndexOf(query);
     if (ind >= 0) {
       if (ind === list.length - 1) { return; }
       list.splice(ind, 1);
     }
-    else if (list.length >= this.max) { list.shift(); }
+    else if (list.length >= (this as typeof FindModeHistory).max) { list.shift(); }
     list.push(query);
-    if (!result) {
+    if (!skipResult) {
       return list.join("\n");
     }
+  } as {
+    (query: string, list: string[], skipResult?: false): string | void;
+    (query: string, list: string[], skipResult: true): void;
   },
   removeAll (incognito: boolean): void {
     if (incognito) {
@@ -175,7 +177,7 @@ FindModeHistory = {
     FindModeHistory.timer = 0;
     let left = false, arr: Frames.FramesMap = Settings.indexPorts();
     for (let i in arr) {
-      let port = arr[i][0];
+      let port = (arr[i] as Frames.Frames)[0];
       if (port.sender.incognito) { left = true; break; }
     }
     if (!left) { return FindModeHistory.cleanI(); }

@@ -14,7 +14,7 @@ declare namespace Search {
   type TmpRule = [string, RegExpOne | RegExpI];
   interface Rule {
     readonly [0]: string;
-    readonly [1]: RegExpOne | RegExpI;
+    readonly [1]: RegExp;
     readonly [2]: string;
     readonly [3]: RegExpOne | RegExpI | string;
   }
@@ -47,10 +47,12 @@ declare namespace Urls {
 
   type EvalArrayResultWithSideEffects = CopyEvalResult;
 
-  type Url = BaseEvalResult | Promise<BaseEvalResult> | string;
+  type SpecialUrl = BaseEvalResult | Promise<BaseEvalResult>;
+  type Url = string | SpecialUrl;
 
   const enum Type {
-    Full = 0,
+    Default = 0,
+    Full = Default,
     NoSchema = 1,
     NoProtocolName = 2,
     PlainVimium = 3,
@@ -73,9 +75,10 @@ declare namespace Urls {
     ConvertKnown = -1,
     ActIfNoSideEffects = 1,
     ActAnyway = 2,
-    ValidNormal = Default
-    // EnsureString = KeepAll | ConvertKnown | ValidNormal,
+    ValidNormal = Default,
   }
+  type WorkEnsureString = WorkType.KeepAll | WorkType.ConvertKnown | WorkType.ValidNormal;
+  type WorkAllowEval = WorkType.ActIfNoSideEffects | WorkType.ActAnyway;
 
   interface Converter {
     (string: string, keyword: string | null,
@@ -83,26 +86,40 @@ declare namespace Urls {
       ): string;
     (string: string, keyword: string | null, vimiumUrlWork: undefined): string;
     (string: string, keyword: string | null, vimiumUrlWork: Urls.WorkType | undefined): Url;
-    (string: string, keyword?: string): string;
+    (string: string, keyword: string): string;
+    (string: string): string;
   }
 }
 
 declare namespace Frames {
-  const enum Status {
-    enabled = 0, partial = 1, disabled = 2
+  const enum BaseStatus {
+    enabled = 0, partial = 1, disabled = 2,
+    __fake = -1
   }
+  type ValidStatus = BaseStatus.enabled | BaseStatus.partial | BaseStatus.disabled;
 
   interface Sender {
     readonly frameId: number;
     readonly incognito: boolean;
     tabId: number;
     url: string;
-    status: Status;
+    status: ValidStatus;
+  }
+  interface ExSender extends Sender {
+    warned?: boolean;
   }
 
+  interface RawPort extends chrome.runtime.Port {
+    sender: PartialUndefined<Sender> & chrome.runtime.MessageSender;
+  }
   interface Port extends chrome.runtime.Port {
     sender: Sender;
-    postMessage(request: BgReq.base): void;
+    postMessage<K extends 1, O extends keyof CmdOptions>(request: Req.FgCmd<O>): K;
+    postMessage<K extends keyof BgReq>(request: Req.bg<K>): 1;
+    postMessage<K extends keyof FgRes>(request: {
+      _msgId: number;
+      response: FgRes[K];
+    }): 1;
   }
 
   interface Frames extends Array<Port> {
@@ -111,41 +128,35 @@ declare namespace Frames {
   }
 
   interface FramesMap {
-    [tabId: number]: Frames.Frames;
+    [tabId: number]: Frames | undefined;
+    omni?: Port[];
     readonly __proto__: never;
   }
 }
-interface Sender extends Readonly<Frames.Sender> {}
-interface Port extends Readonly<Frames.Port> {}
+interface Port extends Frames.Port {
+  readonly sender: Readonly<Frames.Sender>;
+}
 
 type CurrentTabs = [chrome.tabs.Tab];
 
 declare namespace MarksNS {
-  interface BaseMark {
-    markName: string;
-  }
-
-  interface Mark extends BaseMark {
-    scroll: [number, number];
-    url: string;
-  }
-
   interface StoredMark extends Mark {
     tabId: number;
   }
 
-  interface MarkQuery extends BaseMark {
-    prefix?: boolean;
-    scroll: [number, number];
-  } 
-
-  interface MarkToGo {
-    markName?: string;
-    tabId: number;
-    scroll: [number, number];
+  interface MarkToGo extends FocusOrLaunch {
     url: string;
+    scroll: [number, number];
+    markName?: string;
+    tabId?: number;
     prefix?: boolean;
   }
+
+}
+
+interface FindModeQuery {
+  (incognito: boolean, query?: undefined | "", index?: number): string;
+  (incognito: boolean, query: string, index?: number): void;
 }
 
 declare namespace ExclusionsNS {
@@ -153,8 +164,9 @@ declare namespace ExclusionsNS {
     pattern: string;
     passKeys: string;
   }
+  type Details = chrome.webNavigation.WebNavigationFramedCallbackDetails;
   interface Listener {
-    (details: chrome.webNavigation.WebNavigationCallbackDetails): void;
+    (details: Details): void;
   }
 }
 
@@ -176,9 +188,6 @@ declare namespace CommandsNS {
     readonly repeat: number;
   }
 
-  interface CallGlobalCommand {
-    (this: void): void;
-  }
 }
 
 interface GlobalCompletersConstructor {
@@ -195,13 +204,12 @@ declare namespace CompletersNS {
     [2]: BOOL;
   }
 
-  type Callback = (this: void, sugs: Suggestion[],
+  type Callback = (this: void, sugs: Readonly<Suggestion>[],
     newAutoSelect: boolean, newMatchType: MatchType) => void;
 }
 import Suggestion = CompletersNS.Suggestion;
 
 declare namespace IconNS {
-  type ValidStatus = 0 | 1 | 2;
   type ValidSizes = "19" | "38";
 
   interface StatusMap<T> {
@@ -257,14 +265,11 @@ declare namespace SettingsNS {
     searchEngineRules: Search.Rule[];
     searchKeywords: string[] | null;
   }
-  interface FrontUpdateAllowedSettings {
-    showAdvancedCommands: 1;
-  }
   interface NonPersistentSettings extends BaseNonPersistentSettings, OtherSettingsWithDefaults, CachedFiles {}
   interface PersistentSettings extends FrontendSettings, BackendSettings {}
 
   interface SettingsWithDefaults extends PersistentSettings, OtherSettingsWithDefaults {}
-  interface FullSettings extends PersistentSettings, NonPersistentSettings {}
+  interface FullSettings extends PersistentSettings, NonPersistentSettings, FrontUpdateAllowedSettings {}
 
   type SettingNamesWithHook = keyof FullSettings | "bufferToLoad";
   interface UpdateHook<K extends keyof FullSettings> {
@@ -293,7 +298,7 @@ declare namespace SettingsNS {
     keyMappings?: (this: any, value: string) => void;
   }
 
-  interface FullCache extends Partial<FullSettings> {
+  interface FullCache extends Partial<FullSettings>, SafeObject {
     innerCSS: FullSettings["innerCSS"];
     newTabUrl_f: FullSettings["newTabUrl_f"];
     searchKeywords: FullSettings["searchKeywords"];
@@ -320,9 +325,6 @@ declare namespace SettingsNS {
   // type NameList = Array<SettingNames>;
 }
 import FullSettings = SettingsNS.FullSettings;
-
-declare var 
-  g_requestHandlers: any;
 
 interface Window {
   readonly MathParser?: any;
