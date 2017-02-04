@@ -1125,52 +1125,7 @@ var Clipboard, Commands, CommandsData, Completers, Marks, TabRecency, FindModeHi
     clearGlobalMarks: function() { return Marks.clearGlobal(); }
   };
 
-  getSecret = function() {
-    var secret = 0, time = 0;
-    getSecret = function() {
-      var now = Date.now();
-      if (now - time > 10000) {
-        secret = 1 + (0 | (Math.random() * 0x6fffffff));
-      }
-      time = now;
-      return secret;
-    };
-    return getSecret();
-  };
-
-  Settings.indexFrame = function(tabId, frameId) {
-    var ref = framesForTab[tabId], i;
-    if (!ref) { return null; }
-    for (i = 0; ref.length > ++i; ) {
-      if (ref[i].sender.frameId === frameId) {
-        return ref[i];
-      }
-    }
-    return null;
-  };
-
-  Settings.indexPorts = function(tabId) {
-    return tabId ? framesForTab[tabId] : framesForTab;
-  };
-
   keyQueueRe = /^\d+/;
-  checkKeyQueue = function(request, port) {
-    var key = request.key, arr, count = 1, ref, registryEntry;
-    arr = keyQueueRe.exec(key);
-    if (arr != null) {
-      key = key.substring(arr[0].length);
-      count = parseInt(arr[0], 10) || 1;
-    }
-    ref = CommandsData.keyToCommandRegistry;
-    if (!(key in ref)) {
-      arr = key.match(Utils.keyRe);
-      key = arr[arr.length - 1];
-      count = 1;
-    }
-    registryEntry = ref[key];
-    Utils.resetRe();
-    return executeCommand(registryEntry.command, registryEntry, count, port);
-  };
 
   executeCommand = function(command, registryEntry, count, port) {
     var func, options = registryEntry.options, scale;
@@ -1521,7 +1476,23 @@ var Clipboard, Commands, CommandsData, Completers, Marks, TabRecency, FindModeHi
     copyToClipboard: function(request) {
       Clipboard.copy(request.data);
     },
-    key: checkKeyQueue,
+    key: function(request, port) {
+      var key = request.key, arr, count = 1, ref, registryEntry;
+      arr = keyQueueRe.exec(key);
+      if (arr != null) {
+        key = key.substring(arr[0].length);
+        count = parseInt(arr[0], 10) || 1;
+      }
+      ref = CommandsData.keyToCommandRegistry;
+      if (!(key in ref)) {
+        arr = key.match(Utils.keyRe);
+        key = arr[arr.length - 1];
+        count = 1;
+      }
+      registryEntry = ref[key];
+      Utils.resetRe();
+      return executeCommand(registryEntry.command, registryEntry, count, port);
+    },
     createMark: function(request, port) { return Marks.createMark(request, port); },
     gotoMark: function(request) { return Marks.gotoMark(request); },
     focusOrLaunch: function(request) {
@@ -1548,20 +1519,6 @@ var Clipboard, Commands, CommandsData, Completers, Marks, TabRecency, FindModeHi
         cPort = null;
       }
     }
-  };
-
-  Settings.Init = function() {
-    if (3 !== ++Connections.state) { return; }
-    Settings.Init = null;
-    Utils.resetRe();
-    chrome.runtime.onConnect.addListener(Connections.OnConnect);
-    chrome.runtime.onConnectExternal &&
-    chrome.runtime.onConnectExternal.addListener(function(port) {
-      if (port.sender && port.sender.id in Settings.extWhiteList
-          && port.name.startsWith("vimium++")) {
-        Connections.OnConnect(port);
-      }
-    });
   };
 
   Connections = {
@@ -1659,6 +1616,33 @@ var Clipboard, Commands, CommandsData, Completers, Marks, TabRecency, FindModeHi
     }
   };
 
+  getSecret = function() {
+    var secret = 0, time = 0;
+    getSecret = function() {
+      var now = Date.now();
+      if (now - time > 10000) {
+        secret = 1 + (0 | (Math.random() * 0x6fffffff));
+      }
+      time = now;
+      return secret;
+    };
+    return getSecret();
+  };
+
+  Settings.Init = function() {
+    if (3 !== ++Connections.state) { return; }
+    Settings.Init = null;
+    Utils.resetRe();
+    chrome.runtime.onConnect.addListener(Connections.OnConnect);
+    chrome.runtime.onConnectExternal &&
+    chrome.runtime.onConnectExternal.addListener(function(port) {
+      if (port.sender && port.sender.id in Settings.extWhiteList
+          && port.name.startsWith("vimium++")) {
+        Connections.OnConnect(port);
+      }
+    });
+  };
+
   if (Settings.CONST.ChromeVersion >= 52) {
     funcDict.createTab = [funcDict.createTab[0]];
   }
@@ -1721,6 +1705,21 @@ var Clipboard, Commands, CommandsData, Completers, Marks, TabRecency, FindModeHi
       frames[i].sender.tabId = addedTabId;
     }
   });
+
+  Settings.indexFrame = function(tabId, frameId) {
+    var ref = framesForTab[tabId], i;
+    if (!ref) { return null; }
+    for (i = 0; ref.length > ++i; ) {
+      if (ref[i].sender.frameId === frameId) {
+        return ref[i];
+      }
+    }
+    return null;
+  };
+
+  Settings.indexPorts = function(tabId) {
+    return tabId ? framesForTab[tabId] : framesForTab;
+  };
 
   setTimeout(function() {
     Settings.postUpdate("bufferToLoad", null);
