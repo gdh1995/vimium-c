@@ -192,7 +192,7 @@ FindModeHistory = {
 TabRecency = {
   tabs: null as any as SafeDict<number>,
   last (this: void): number { return -1; },
-  rCompare: null as any as (a: {id: number}, b: {id: number}) => boolean,
+  rCompare: null as any as (a: {id: number}, b: {id: number}) => number,
 };
 
 setTimeout(function() {
@@ -229,7 +229,7 @@ setTimeout(function() {
   const _this = TabRecency;
   _this.tabs = cache;
   _this.last = function() { return last; };
-  _this.rCompare = function(a: {id: number}, b: {id: number}): boolean {
-    return cache[a.id] < cache[b.id];
+  _this.rCompare = function(a: {id: number}, b: {id: number}): number {
+    return cache[b.id] - cache[a.id];
   };
 }, 120);

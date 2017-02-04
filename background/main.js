@@ -840,14 +840,14 @@ var Clipboard, Commands, CommandsData, Completers, Marks, TabRecency, FindModeHi
       if (count === 1 && cPort.sender.incognito) {
         return requestHandlers.ShowHUD("Can not restore a tab in incognito mode!");
       }
-      limit = chrome.sessions.MAX_SESSION_RESULTS;
+      limit = chrome.sessions.MAX_SESSION_RESULTS | 0;
       limit > 0 && limit < count && (count = limit);
       while (--count >= 0) {
         chrome.sessions.restore(null, funcDict.onRuntimeError);
       }
     },
     restoreGivenTab: function() {
-      if (commandCount > chrome.sessions.MAX_SESSION_RESULTS) {
+      if (commandCount > (chrome.sessions.MAX_SESSION_RESULTS || 25)) {
         return funcDict.restoreGivenTab([]);
       }
       return chrome.sessions.getRecentlyClosed(funcDict.restoreGivenTab);
@@ -1242,7 +1242,7 @@ var Clipboard, Commands, CommandsData, Completers, Marks, TabRecency, FindModeHi
         arr = s0.substring(pattern[0].length).match(pattern[1]);
         if (arr) { break; }
       }
-      if (!arr) { return null; }
+      if (!arr || !pattern) { return null; }
       if (arr.length > 1 && !pattern[1].global) { arr.shift(); }
       re = pattern[3];
       if (arr.length > 1) {
@@ -1436,7 +1436,7 @@ var Clipboard, Commands, CommandsData, Completers, Marks, TabRecency, FindModeHi
         , status = pattern === null ? 0 : pattern ? 1 : 2;
       if (port.sender.status !== status) {
         port.sender.status = status;
-        if (needIcon && framesForTab[tabId][0] === port) {
+        if (needIcon && framesForTab[tabId] && framesForTab[tabId][0] === port) {
           requestHandlers.SetIcon(tabId, status);
         }
       } else if (!pattern || pattern === Settings.getExcluded(oldUrl)) {

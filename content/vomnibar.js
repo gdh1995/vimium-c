@@ -77,7 +77,7 @@ var Vomnibar = {
     VHandler.remove(this);
     this.width = this.zoom = this.status = 0;
     if (!this.box) { return; }
-    this.box.style = "display: none";
+    this.box.style.cssText = "display: none";
     if (action < 0) {
       this.port.postMessage("hide");
       action === -1 && setTimeout(function() { window.focus(); }, 17);

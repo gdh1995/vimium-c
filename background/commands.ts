@@ -102,7 +102,7 @@ var Commands = {
     const ref = CommandsData.keyMap = Object.create(null) as {
       [key: string]: 0 | 1 | ChildKeyMap
     } & SafeObject;
-    let key: string, ref2: ChildKeyMap, arr: RegExpExecArray
+    let key: string, ref2: ChildKeyMap, arr: string[]
       , keyRe = Utils.keyRe, ch: number, j: number, last: number, tmp: ChildKeyMap | 0 | 1;
     for (ch = 10; 0 <= --ch; ) { ref[ch] = 1 as 0; }
     for (key in CommandsData.keyToCommandRegistry) {
@@ -111,7 +111,7 @@ var Commands = {
         console.warn("invalid key command:", key, "(the first char can not be [0-9])");
         continue;
       }
-      arr = key.match(keyRe) as RegExpExecArray;
+      arr = key.match(keyRe) as RegExpMatchArray;
       if (arr.length === 1) {
         if (key in ref) {
           console.log("inactive keys:", ref[key], "with", key);
