@@ -406,12 +406,12 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
       tab.id = undefined as any as number;
       return openMultiTab(url, commandCount, tab);
     }, function(wnd): void {
+      if (cOptions.url || cOptions.urls) {
+        return BackgroundCommands.openUrl([funcDict.selectFrom((wnd as PopWindow).tabs)]);
+      }
       if (!wnd) {
         chrome.tabs.create({url: this});
         return chrome.runtime.lastError;
-      }
-      if (cOptions.url) {
-        return BackgroundCommands.openUrl([funcDict.selectFrom(wnd.tabs)]);
       }
       const tab = funcDict.selectFrom(wnd.tabs);
       if (wnd.type !== "normal") {
