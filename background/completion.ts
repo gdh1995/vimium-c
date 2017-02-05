@@ -830,9 +830,8 @@ window.Completers = {
 
   const RankingUtils = {
     Match2 (s1: string, s2: string): boolean {
-      var i = queryTerms.length, cache = RegExpCache, regexp;
-      while (0 <= --i) {
-        regexp = cache.item(queryTerms[i]);
+      for (let i = 0, len = queryTerms.length, cache = RegExpCache; i < len; i++) {
+        const regexp = cache.item(queryTerms[i]);
         if (!(regexp.test(s1) || regexp.test(s2))) { return false; }
       }
       return true;

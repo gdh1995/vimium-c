@@ -11,8 +11,8 @@ var Commands = {
     while (i < len) {
       str = item[i++];
       ind = str.indexOf("=");
-      if (ind === 0) {
-        console.log("missing option key:", str);
+      if (ind === 0 || str === "__proto__") {
+        console.log(ind === 0 ? "Missing option key:" : "Unsupported option key:", str);
       } else if (ind < 0) {
         opt[str] = true;
       } else {
@@ -59,16 +59,17 @@ var Commands = {
       splitLine = line.split(" ");
       key = splitLine[0];
       if (key === "map") {
-        if (splitLine.length < 3) {
-          console.log("Lacking command when mapping %c" + key + "", "color:red;");
-        } else if (!(details = available[key = splitLine[2]])) {
-          console.log("Command %c" + key, "color:red;", "doesn't exist!");
-        } else if (splitLine[1] in registry) {
-          console.log("Key %c" + splitLine[1], "color:red;",
-             "has been mapped to", (registry[splitLine[1]] as CommandsNS.Item).command);
+        key = splitLine[1];
+        if (!key || key === "__proto__") {
+          console.log("Unsupported key sequence %c" + key, "color:red;", `for "${splitLine[2]}"`);
+        } else if (key in registry) {
+          console.log("Key %c" + key, "color:red;", "has been mapped to", (registry[key] as CommandsNS.Item).command);
+        } else if (splitLine.length < 3) {
+          console.log("Lacking command when mapping %c" + key, "color:red;");
+        } else if (!(details = available[splitLine[2]])) {
+          console.log("Command %c" + splitLine[2], "color:red;", "doesn't exist!");
         } else {
-          registry[splitLine[1]] =
-            Utils.makeCommand(key, (this as typeof Commands).getOptions(splitLine), details);
+          registry[key] = Utils.makeCommand(splitLine[2], (this as typeof Commands).getOptions(splitLine), details);
         }
       } else if (key === "unmapAll") {
         registry = CommandsData.keyToCommandRegistry = Object.create(null);
@@ -80,8 +81,7 @@ var Commands = {
           || splitLine[2].length > 1 && (splitLine[2].match(Utils.keyRe) as RegExpMatchArray).length > 1) {
           console.log("MapKey: a source / target key should be a single key:", line);
         } else if (key in mkReg) {
-          console.log("This key %c" + key, "color:red;",
-             "has been mapped to another key:", mkReg[key]);
+          console.log("This key %c" + key, "color:red;", "has been mapped to another key:", mkReg[key]);
         } else {
           mkReg[key] = splitLine[2];
           mk++;
