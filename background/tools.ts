@@ -50,7 +50,7 @@ Marks = { // NOTE: all members should be static
     let tabId = port.sender.tabId;
     if ((request as MarksNS.Mark).scroll) {
       localStorage.setItem(Marks.getLocationKey(request.markName), JSON.stringify({
-        tabId: tabId,
+        tabId,
         url: (request as MarksNS.Mark).url,
         scroll: (request as MarksNS.Mark).scroll
       } as MarksNS.StoredMark));
@@ -97,7 +97,7 @@ Marks = { // NOTE: all members should be static
     });
     if (markInfo.tabId !== tabId && markInfo.markName) {
       localStorage.setItem(Marks.getLocationKey(markInfo.markName), JSON.stringify({
-        tabId: tabId,
+        tabId,
         url: markInfo.url,
         scroll: markInfo.scroll
       } as MarksNS.StoredMark));
@@ -127,7 +127,7 @@ FindModeHistory = {
     this.init = null as never;
   },
   initI (): string[] {
-    var list = this.listI = (this.list as string[]).slice(0);
+    const list = this.listI = (this.list as string[]).slice(0);
     chrome.windows.onRemoved.addListener(this.OnWndRemvoed);
     return list;
   },
@@ -203,13 +203,13 @@ setTimeout(function() {
   clean = function(): void {
     const ref = cache;
     for (let i in ref) {
-      if (ref[i] <= 896) { delete ref[i]; }
-      else {ref[i] -= 895; }
+      if (ref[i] as number <= 896) { delete ref[i]; }
+      else { (ref as EnsuredSafeDict<number>)[i] -= 895; }
     }
     stamp = 128;
   },
   listener = function(activeInfo: { tabId: number }): void {
-    var now = Date.now(), tabId = activeInfo.tabId;
+    const  now = Date.now(), tabId = activeInfo.tabId;
     if (now - time > 500) {
       cache[last] = ++stamp;
       if (stamp === 1023) { clean(); }
@@ -219,7 +219,7 @@ setTimeout(function() {
   chrome.tabs.onActivated.addListener(listener);
   chrome.windows.onFocusChanged.addListener(function(windowId): void {
     if (windowId === chrome.windows.WINDOW_ID_NONE) { return; }
-    chrome.tabs.query({windowId: windowId, active: true}, function(tabs) {
+    chrome.tabs.query({windowId, active: true}, function(tabs) {
       tabs[0] && listener({tabId: tabs[0].id});
     });
   });
@@ -232,6 +232,6 @@ setTimeout(function() {
   _this.tabs = cache;
   _this.last = function() { return last; };
   _this.rCompare = function(a: {id: number}, b: {id: number}): number {
-    return cache[b.id] - cache[a.id];
+    return (cache[b.id] as number) - (cache[a.id] as number);
   };
 }, 120);

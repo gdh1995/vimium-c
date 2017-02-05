@@ -47,7 +47,7 @@ var Commands = {
   },
   parseKeyMappings: (function(this: any, line: string): void {
     let key: string, lines: string[], splitLine: string[], mk = 0, _i = 0
-      , _len: number, details: CommandsNS.Description;
+      , _len: number, details: CommandsNS.Description | undefined;
     let registry = CommandsData.keyToCommandRegistry = Object.create<CommandsNS.Item>(null)
       , mkReg = Object.create<string>(null);
     const available = CommandsData.availableCommands;
@@ -65,7 +65,7 @@ var Commands = {
           console.log("Command %c" + key, "color:red;", "doesn't exist!");
         } else if (splitLine[1] in registry) {
           console.log("Key %c" + splitLine[1], "color:red;",
-             "has been mapped to", registry[splitLine[1]].command);
+             "has been mapped to", (registry[splitLine[1]] as CommandsNS.Item).command);
         } else {
           registry[splitLine[1]] =
             Utils.makeCommand(key, (this as typeof Commands).getOptions(splitLine), details);
@@ -220,7 +220,7 @@ defaultKeyMappings: [
   ["`", "Marks.activate"]
 ] as [string, string][]
 },
-CommandsData = window.CommandsData || {
+CommandsData = CommandsData || {
   keyToCommandRegistry: null as never as SafeDict<CommandsNS.Item>,
   keyMap: null as never as KeyMap,
   mapKeyRegistry: null as SafeDict<string> | null,

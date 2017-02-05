@@ -111,7 +111,7 @@ declare namespace Frames {
   }
 
   interface RawPort extends chrome.runtime.Port {
-    sender: PartialUndefined<Sender> & chrome.runtime.MessageSender;
+    sender: Partial<Sender> & chrome.runtime.MessageSender;
   }
   interface Port extends chrome.runtime.Port {
     sender: Sender;
@@ -214,12 +214,12 @@ declare namespace IconNS {
   type ValidSizes = "19" | "38";
 
   interface StatusMap<T> {
-    [0]: T;
-    [1]: T;
-    [2]: T;
+    [0]: T | undefined;
+    [1]: T | undefined;
+    [2]: T | undefined;
   }
   type IconBuffer = {
-    [size in ValidSizes]: ImageData;
+    [size in ValidSizes]?: ImageData;
   }
   type PathBuffer = {
     [size in ValidSizes]: string;
@@ -331,11 +331,6 @@ declare namespace BgReqHandlerNS {
   interface checkIfEnabled extends ExclusionsNS.Listener {
     (this: void, request: FgReq["checkIfEnabled"], port: Frames.Port): void;
   }
-  interface gotoSession {
-    (this: void, request: { sessionId: string | number, active: true }, port: Port): void;
-    (this: void, request: { sessionId: string | number, active?: false }): void;
-    (this: void, request: { sessionId: string | number }): void;
-  }
 
   interface BgReqHandlers {
     parseSearchUrl(this: void, request: {
@@ -347,34 +342,28 @@ declare namespace BgReqHandlerNS {
         start: number;
         url: string;
     } | null;
-    parseUpperUrl(this: void, request: {
-        url: string;
-        upper: number;
-        trailing_slash?: boolean | undefined;
-    }): {
-        url: string;
-        path: string | null;
+    gotoSession: {
+      (this: void, request: { sessionId: string | number, active: true }, port: Port): void;
+      (this: void, request: { sessionId: string | number, active?: false }): void;
+      (this: void, request: { sessionId: string | number }): void;
     };
-    gotoSession: gotoSession;
     openUrl(this: void, request: FgReq["openUrl"], port?: Port | undefined): void;
     checkIfEnabled: checkIfEnabled;
-    getCopiedUrl_f: {
-        (this: void, request: {
-            keyword?: string | undefined;
-        }, port: Port): string;
-        (this: void, request: {
-            keyword?: string | undefined;
-        }): Urls.Url;
-    };
     focusOrLaunch(this: void, request: MarksNS.FocusOrLaunch): 1;
     SetIcon(tabId: number, type: Frames.ValidStatus): void;
     ShowHUD(message: string, isCopy?: boolean | undefined): void;
   }
 }
 
+declare var CommandsData: {
+  keyToCommandRegistry: SafeDict<CommandsNS.Item>;
+  keyMap: KeyMap;
+  mapKeyRegistry: SafeDict<string> | null;
+  availableCommands: SafeDict<CommandsNS.Description>;
+};
+
 interface Window {
   readonly MathParser?: any;
-  readonly CommandsData?: undefined;
   readonly Commands?: any;
   readonly Exclusions?: any;
   readonly HelpDialog?: any;

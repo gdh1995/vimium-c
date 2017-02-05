@@ -213,7 +213,7 @@ const Utils = {
     }
   },
   removeComposedScheme (url: string): string {
-    var i = url.startsWith("filesystem:") ? 11 : url.startsWith("view-source:") ? 12 : 0;
+    const i = url.startsWith("filesystem:") ? 11 : url.startsWith("view-source:") ? 12 : 0;
     return i ? url.substring(i) : url;
   },
   isTld (tld: string): Urls.TldType {
@@ -263,7 +263,7 @@ const Utils = {
     if (!path) { return null; }
     if (workType === Urls.WorkType.ActIfNoSideEffects) switch (cmd) {
     case "e": case "exec": case "eval": case "expr": case "calc": case "m": case "math":
-      return this.require<any>("MathParser").catch(function() { return null;
+      return this.require<object>("MathParser").catch(function() { return null;
       }).then<Urls.MathEvalResult>(function(MathParser): Urls.MathEvalResult {
         let result = Utils.tryEvalMath(path, MathParser) || "";
         return [result, "math", path] as Urls.MathEvalResult;
@@ -395,7 +395,7 @@ const Utils = {
       if (arr.length === 0) { return ""; }
       if (s2 && s2.indexOf('$') !== -1) {
         s2 = s2.replace(Utils.searchVariable, function(_s: string, s3: string): string {
-          var i = parseInt(s3, 10);
+          let i = parseInt(s3, 10);
           if (i == 0) {
             return arr.join(s1);
           } else if (i < 0) {
@@ -416,10 +416,7 @@ const Utils = {
       return s2;
     });
     this.resetRe();
-    return indexes == null ? url : {
-      url: url,
-      indexes: indexes
-    };
+    return indexes == null ? url : { url, indexes };
   } as Search.Executor,
   DecodeURLPart (this: void, url: string | undefined): string {
     if (!url) { url = ""; }
@@ -522,8 +519,8 @@ const Utils = {
   _queryRe: <RegExpOne> /[#?]/,
   alphaRe: <RegExpI> /[a-z]/i,
   reparseSearchUrl: (function (this: any, url: string, ind: number): Search.TmpRule | null {
-    var prefix, str, str2, ind2;
     if (!this.protocolRe.test(url)) { return null; }
+    let prefix: string, str: string, str2: string, ind2: number;
     prefix = url.substring(0, ind - 1);
     if (ind = Math.max(prefix.lastIndexOf("?"), prefix.lastIndexOf("#")) + 1) {
       str2 = str = prefix.substring(ind);
@@ -547,8 +544,7 @@ const Utils = {
       }
       url = "";
     }
-    str2 = str2 && str2.replace(this.escapeAllRe, "\\$&"
-      ).replace(this._spaceOrPlusRe, "(?:\\+|%20| )");
+    str2 = str2 && str2.replace(this.escapeAllRe, "\\$&").replace(this._spaceOrPlusRe, "(?:\\+|%20| )");
     prefix = this.prepareReparsingPrefix(prefix);
     return [prefix, new RegExp(str + str2 + url, this.alphaRe.test(str2) ? "i" as "" : "") as RegExpI | RegExpOne];
   }),
@@ -572,7 +568,7 @@ const Utils = {
   keyRe: <RegExpG & RegExpSearchable<0>> /<(?!<)(?:.-){0,3}..*?>|./g,
   makeCommand: (function(command: string, options?: CommandsNS.Options | null, details?: CommandsNS.Description) : CommandsNS.Item {
     let opt: CommandsNS.Options | null;
-    if (!details) { details = CommandsData.availableCommands[command] as CommandsNS.Description };
+    if (!details) { details = CommandsData.availableCommands[command] as CommandsNS.Description }
     opt = (details[3] as CommandsNS.Options | null) || null;
     if (options) {
       if (opt) {
@@ -589,8 +585,8 @@ const Utils = {
     return {
       alias: details[4] || null,
       background: details[2],
-      command: command,
-      options: options,
+      command,
+      options,
       repeat: details[1]
     };
   }),
@@ -603,7 +599,7 @@ String.prototype.startsWith = (function(this: string, s: string): boolean {
   return this.length >= s.length && this.lastIndexOf(s, 0) === 0;
 });
 String.prototype.endsWith || (String.prototype.endsWith = (function(this: string, s: string): boolean {
-  var i = this.length - s.length;
+  const i = this.length - s.length;
   return i >= 0 && this.indexOf(s, i) === i;
 }));
 }

@@ -7,7 +7,7 @@ const HelpDialog = {
           showUnbound = !!request.unbound, showNames = !!request.names;
     let command: string, key: string;
     for (key in ref) {
-      command = ref[key].command;
+      command = (ref[key] as CommandsNS.Item).command;
       (commandsToKey[command] || (commandsToKey[command] = [])).push(key);
     }
     const result = Object.setPrototypeOf({
@@ -19,12 +19,13 @@ const HelpDialog = {
     return (<string>Settings.cache.helpDialog).replace(<RegExpSearchable<1>>/\{\{(\w+)}}/g, function(_, group: string) {
       let s = result[group];
       return s != null ? s
-        : HelpDialog.groupHtml(group, commandsToKey, CommandsData.availableCommands, showUnbound, showNames);
+        : HelpDialog.groupHtml(group, commandsToKey, showUnbound, showNames);
     });
   }),
   groupHtml: (function(this: any, group: string, commandsToKey: SafeDict<string[]>
-      , availableCommands: SafeDict<CommandsNS.Description>, showUnbound: boolean, showNames: boolean): string {
+      , showUnbound: boolean, showNames: boolean): string {
     const _ref = (this as typeof HelpDialog).commandGroups[group], push = (this as typeof HelpDialog).commandHtml
+      , availableCommands = CommandsData.availableCommands as EnsuredSafeDict<CommandsNS.Description>
       , html = [] as string[];
     Utils.escapeText("");
     let bindings: string, keys: string[] | undefined;
@@ -32,12 +33,14 @@ const HelpDialog = {
       const command = _ref[_i];
       if (!(keys = commandsToKey[command]) && !showUnbound) { continue; }
       if (keys && keys.length > 0) {
-        bindings = `\n\t\t<span class="HelpKey">${keys.map(Utils.escapeText).join('</span>, <span class="HelpKey">')}</span>\n\t`;
+        bindings = `\n\t\t<span class="HelpKey">${keys.map(Utils.escapeText
+          ).join('</span>, <span class="HelpKey">')}</span>\n\t`;
       } else {
         bindings = "";
       }
-      const isAdvanced = command in this.advancedCommands, description = availableCommands[command][0];
-      if (!bindings || keys.join(", ").length <= 12) {
+      const isAdvanced = command in (this as typeof HelpDialog).advancedCommands
+        , description = availableCommands[command][0];
+      if (!bindings || (keys as string[]).join(", ").length <= 12) {
         push(html, isAdvanced, bindings, description, showNames ? command: "");
       } else {
         push(html, isAdvanced, bindings, "", "");
@@ -63,7 +66,7 @@ const HelpDialog = {
     }
     return html.push("</td>\n</tr>\n");
   }),
-  commandGroups: {
+  commandGroups: { __proto__: null as never,
     pageNavigation: ["scrollDown", "scrollUp", "scrollLeft", "scrollRight", "scrollToTop"
       , "scrollToBottom", "scrollToLeft", "scrollToRight", "scrollPageDown", "scrollPageUp"
       , "scrollPxDown", "scrollPxUp", "scrollPxLeft", "scrollPxRight"
@@ -97,7 +100,7 @@ const HelpDialog = {
       , "enableCSTemp", "toggleCS", "clearCS"],
     misc: ["showHelp", "autoCopy", "autoOpen", "searchAs", "searchInAnother", "toggleLinkHintCharacters"
       , "toggleSwitchTemp", "passNextKey", "debugBackground", "blank"]
-  } as Dict<string[]>,
+  } as EnsuredSafeDict<string[]>,
   advancedCommands: { __proto__: null as never,
     toggleViewSource: 1, clearFindHistory: 1
     , scrollToLeft: 1, scrollToRight: 1, moveTabToNextWindow: 1

@@ -1,15 +1,18 @@
 type BOOL = 0 | 1;
 interface Dict<T> {
-  [key: string]: T;
+  [key: string]: T | undefined;
 }
 type SafeObject = {
   readonly __proto__: never;
 };
 interface SafeDict<T> extends Dict<T>, SafeObject {}
 interface ReadonlySafeDict<T> extends SafeDict<T> {
-  readonly [key: string]: T;
+  readonly [key: string]: T | undefined;
 }
 interface SafeEnum extends ReadonlySafeDict<1> {}
+interface EnsuredSafeDict<T> extends SafeDict<T> {
+  [key: string]: T;
+}
 
 type TypedSafeEnum<Type> = {
   readonly [key in keyof Type]: 1;
@@ -17,11 +20,8 @@ type TypedSafeEnum<Type> = {
 type MappedType<Type, NewValue> = {
   [key in keyof Type]: NewValue;
 };
-type PartialUndefined<Type> = {
-  [key in keyof Type]?: Type[key] | undefined;
-}
 
-type EmptyArray = never[];
+// type EmptyArray = never[];
 
 declare function setInterval<T1, T2, T3>(this: void, handler: (this: void, a1: T1, a2: T2, a3: T3) => void,
   timeout: number, a1: T1, a2: T2, a3: T3): number;

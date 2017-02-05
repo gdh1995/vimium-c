@@ -218,10 +218,10 @@ bookmarks: {
     }
     const url = bookmark.url as string;
     const bookm: Bookmark = url.startsWith("javascript:") ? {
-      url: "", text: "", path: path, title: title,
+      url: "", text: "", path, title,
       jsUrl: url, jsText: Utils.DecodeURLPart(url)
     } as JSBookmark : {
-      url: url, text: url, path: path, title: title
+      url, text: url, path, title
     };
     this.bookmarks.push(bookm);
   },
@@ -348,7 +348,7 @@ history: {
     const historys: chrome.tabs.Tab[] = [], arr: Dict<number> = {};
     let i = queryType === FirstQuery.history ? -offset : 0;
     return sessions.some(function(item): boolean {
-      var entry = item.tab;
+      const entry = item.tab;
       if (!entry || entry.url in arr) { return false; }
       arr[entry.url] = 1;
       ++i > 0 && historys.push(entry);
@@ -407,7 +407,7 @@ domains: {
     if (queryTerms.length !== 1 || queryTerms[0].indexOf("/") !== -1) {
       return Completers.next([]);
     }
-    const ref = this.domains, p = RankingUtils.maxScoreP, q = queryTerms, word = q[0];
+    const ref = this.domains as EnsuredSafeDict<Domain>, p = RankingUtils.maxScoreP, q = queryTerms, word = q[0];
     let sug: Suggestion | undefined, result = "", result_score = -1000;
     if (offset > 0) {
       for (let domain in ref) {
@@ -458,8 +458,8 @@ domains: {
       Utils.domains = _this.domains = Object.create<Domain>(null);
       return;
     }
-    const domains = _this.domains as SafeDict<Domain>, parse = _this.parseDomainAndScheme, arr = toRemove.urls;
-    let j = arr.length, entry: Domain;
+    const domains = _this.domains, parse = _this.parseDomainAndScheme, arr = toRemove.urls;
+    let j = arr.length, entry: Domain | undefined;
     while (0 <= --j) {
       const item = parse(arr[j]);
       if (item && (entry = domains[item[0]]) && (-- entry[1]) <= 0) {
@@ -617,7 +617,7 @@ searchEngines: {
     if (!arr[0]) {
       return Completers.next(output);
     }
-    var sug = new Suggestion("math", "", "", "", this.compute9);
+    const sug = new Suggestion("math", "", "", "", this.compute9);
     output.push(sug);
     --sug.relevancy;
     sug.text = (sug as CompletersNS.WritableCoreSuggestion).title = arr[0];
@@ -845,7 +845,7 @@ window.Completers = {
     recCalibrator: 2.0 / 3.0,
     _emptyScores: [0, 0] as [number, number],
     scoreTerm (term: string, string: string): [number, number] {
-      var count = 0, score = 0;
+      let count = 0, score = 0;
       count = string.split(RegExpCache.item(term)).length;
       if (count < 1) { return this._emptyScores; }
       score = this.anywhere;
@@ -858,11 +858,10 @@ window.Completers = {
       return [score, (count - 1) * term.length];
     },
     wordRelevancy (url: string, title: string): number {
-      var a, term, titleCount, titleScore, urlCount, urlScore, _i = queryTerms.length;
-      urlScore = titleScore = urlCount = titleCount = 0;
+      let titleCount = 0, titleScore = 0, urlCount = 0, urlScore = 0, _i = queryTerms.length;
       while (0 <= --_i) {
-        term = queryTerms[_i];
-        a = this.scoreTerm(term, url);
+        let term = queryTerms[_i];
+        let a = this.scoreTerm(term, url);
         urlScore += a[0]; urlCount += a[1];
         if (title) {
           a = this.scoreTerm(term, title);
@@ -879,7 +878,7 @@ window.Completers = {
     timeCalibrator: 1814400000, // 21 days
     timeAgo: 0,
     recencyScore (lastAccessedTime: number): number {
-      var score = Math.max(0, lastAccessedTime - this.timeAgo) / this.timeCalibrator;
+      const score = Math.max(0, lastAccessedTime - this.timeAgo) / this.timeCalibrator;
       return score * score * this.recCalibrator;
     },
     normalizeDifference (a: number, b: number): number {
@@ -901,7 +900,7 @@ window.Completers = {
     },
     escapeRe: Utils.escapeAllRe,
     get (s: string, i: RegExpCacheIndex): CachedRegExp {
-      var d = (this._d as RegExpCacheDict)[i];
+      const d = (this._d as RegExpCacheDict)[i];
       return d[s] || (d[s] = new RegExp((i < RegExpCacheIndex.part ? "\\b" : "")
         + s.replace(this.escapeRe, "\\$&")
         + (i === RegExpCacheIndex.start ? "\\b" : ""),
@@ -1082,7 +1081,7 @@ window.Completers = {
       setTimeout(this.Work, 17, null);
     },
     Work (xhr: XMLHttpRequest | null): void {
-      let _this = Decoder, url: ItemToDecode, str: string, text: string;
+      let _this = Decoder, url: ItemToDecode, str: string, text: string | undefined;
       xhr || (xhr = _this.init());
       if (_this.todos.length <= _this._ind) {
         _this.todos.length = 0;

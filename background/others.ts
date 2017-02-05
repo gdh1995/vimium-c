@@ -4,7 +4,7 @@ import SettingsToSync = SettingsNS.PersistentSettings;
 if (Settings.get("vimSync") === true) setTimeout(function() { if (!chrome.storage) { return; }
   type SettingsToUpdate = {
     [key in keyof SettingsToSync]?: SettingsToSync[key] | null
-  }
+  };
   var Sync = {
     storage: chrome.storage.sync,
     to_update: null as SettingsToUpdate | null,
@@ -104,8 +104,9 @@ setTimeout((function() { if (!chrome.browserAction) { return; }
       ctx.drawImage(this, 0, 0, w, h);
       cache[w as 19 | 38] = ctx.getImageData(0, 0, w, h);
       if (count++) { return; }
+      canvas = ctx = null;
       (imageData as IconNS.StatusMap<IconNS.IconBuffer>)[type] = cache;
-      var arr = (tabIds as IconNS.StatusMap<number[]>)[type];
+      const arr = (tabIds as IconNS.StatusMap<number[]>)[type] as number[];
       delete (tabIds as IconNS.StatusMap<number[]>)[type];
       for (w = 0, h = arr.length; w < h; w++) {
         g_requestHandlers.SetIcon(arr[w], type);
@@ -132,14 +133,14 @@ setTimeout((function() { if (!chrome.browserAction) { return; }
     tabIds = Object.create(null);
   } as IconNS.AccessIconBuffer;
   g_requestHandlers.SetIcon = function(this: void, tabId: number, type: Frames.ValidStatus): void {
-    var data, path;
+    let data: IconNS.IconBuffer | undefined, path: IconNS.PathBuffer;
     if (data = (imageData as IconNS.StatusMap<IconNS.IconBuffer>)[type]) {
       chrome.browserAction.setIcon({
-        tabId: tabId,
+        tabId,
         imageData: data
       });
     } else if ((tabIds as IconNS.StatusMap<number[]>)[type]) {
-      (tabIds as IconNS.StatusMap<number[]>)[type].push(tabId);
+      ((tabIds as IconNS.StatusMap<number[]>)[type] as number[]).push(tabId);
     } else if (path = Settings.icons[type]) {
       setTimeout(loadImageAndSetIcon, 0, type, path);
       (tabIds as IconNS.StatusMap<number[]>)[type] = [tabId];
@@ -174,7 +175,7 @@ setTimeout((function() { if (!chrome.omnibox) { return; }
     , suggestions = null as chrome.omnibox.SuggestResult[] | null, outTimeout = 0, outTime: number
     , defaultSuggestionType: 0 | 1 | 2 | 3 = 0, matchType: CompletersNS.MatchType = 0
     , firstType: CompletersNS.ValidTypes | "",
-  defaultSug = { description: "<dim>Open: </dim><url>%s</url>" },
+  defaultSug: chrome.omnibox.Suggestion = { description: "<dim>Open: </dim><url>%s</url>" },
   formatSessionId = function(sug: Suggestion) {
     if (sug.sessionId != null) {
       (sessionIds as SafeDict<string | number>)[sug.url] = sug.sessionId;
@@ -212,7 +213,7 @@ setTimeout((function() { if (!chrome.omnibox) { return; }
   },
   onTimer = function() {
     timeout = 0;
-    var arr;
+    let arr;
     if (arr = tempRequest) {
       tempRequest = null;
       return onInput(arr[0], arr[1]);
@@ -222,7 +223,7 @@ setTimeout((function() { if (!chrome.omnibox) { return; }
       , autoSelect: boolean, newMatchType: CompletersNS.MatchType): void {
     if (!lastSuggest || suggest.isOff) { return; }
     if (suggest === lastSuggest) { lastSuggest = null; }
-    var sug = response[0];
+    let sug: Suggestion | undefined = response[0];
     if (sug && "sessionId" in sug) {
       sessionIds = Object.create(null);
       response.forEach(formatSessionId);
@@ -277,10 +278,7 @@ setTimeout((function() { if (!chrome.omnibox) { return; }
     matchType = newMatchType;
     last = key;
     lastSuggest = suggest;
-    return Completers.filter(key, {
-      type: type,
-      maxResults: 6
-    }, onComplete.bind(null, suggest));
+    return Completers.filter(key, { type, maxResults: 6 }, onComplete.bind(null, suggest));
   },
   onEnter = function(this: void, text: string, disposition?: string): void {
     text = text.trim();

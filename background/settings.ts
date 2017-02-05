@@ -94,10 +94,10 @@ const Settings = {
       return (this as typeof Settings).set("searchEngineRules", rules);
     },
     searchUrl: function(str): void {
-      var map, obj, ind, str2;
+      let map: FullSettings["searchEngineMap"], str2: string;
       if (str) {
         Utils.parseSearchEngines("~:" + str, map = (this as typeof Settings).cache.searchEngineMap);
-        obj = map["~"];
+        const obj = map["~"] as Search.Engine;
         str2 = obj.url.replace(Utils.spacesRe, "%20");
         if (obj.name) { str2 += " " + obj.name; }
         if (str2 !== str) {
@@ -107,7 +107,7 @@ const Settings = {
         return ((this as typeof Settings).updateHooks.newTabUrl_f as (this: void, url_f: string) => void)(str);
       } else {
         str = (this as typeof Settings).get("searchUrl");
-        ind = str.indexOf(" ");
+        const ind = str.indexOf(" ");
         if (ind > 0) { str = str.substring(0, ind); }
         (this as typeof Settings).get("searchEngineMap", true)["~"] = { name: "~", url: str };
       }
@@ -217,7 +217,7 @@ w|wiki:\\\n  https://www.wikipedia.org/w/index.php?search=$s Wikipedia\n\
     { "19": "/icons/enabled_19.png", "38": "/icons/enabled_38.png" },
     { "19": "/icons/partial_19.png", "38": "/icons/partial_38.png" },
     { "19": "/icons/disabled_19.png", "38": "/icons/disabled_38.png" }
-  ],
+  ] as [IconNS.PathBuffer, IconNS.PathBuffer, IconNS.PathBuffer],
   valuesToLoad: ["deepHints", "grabBackFocus", "keyboard", "linkHintCharacters" //
     , "regexFindMode", "scrollStepSize", "smoothScroll", "userDefinedOuterCss" //
   ] as Array<keyof SettingsNS.FrontendSettings>,

@@ -17,11 +17,11 @@ var HelpDialog = {
     return Settings.cache.helpDialog.replace(/\{\{(\w+)}}/g, function(_, group) {
       var s = result[group];
       return s != null ? s
-        : HelpDialog.groupHtml(group, commandsToKey, CommandsData.availableCommands, showUnbound, showNames);
+        : HelpDialog.groupHtml(group, commandsToKey, showUnbound, showNames);
     });
   }),
-  groupHtml: (function(group, commandsToKey, availableCommands, showUnbound, showNames) {
-    var _ref = this.commandGroups[group], push = this.commandHtml, html = [];
+  groupHtml: (function(group, commandsToKey, showUnbound, showNames) {
+    var _ref = this.commandGroups[group], push = this.commandHtml, availableCommands = CommandsData.availableCommands, html = [];
     Utils.escapeText("");
     var bindings, keys;
     for (var _i = 0, _len = _ref.length; _i < _len; _i++) {
@@ -56,7 +56,7 @@ var HelpDialog = {
     }
     return html.push("</td>\n</tr>\n");
   }),
-  commandGroups: {
+  commandGroups: { __proto__: null,
     pageNavigation: ["scrollDown", "scrollUp", "scrollLeft", "scrollRight", "scrollToTop",
       "scrollToBottom", "scrollToLeft", "scrollToRight", "scrollPageDown", "scrollPageUp",
       "scrollPxDown", "scrollPxUp", "scrollPxLeft", "scrollPxRight",

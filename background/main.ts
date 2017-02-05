@@ -31,7 +31,7 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
   interface BgCmdCurWndTabs {
     useTab?: UseTab.CurWndTabs;
     (this: void, tabs1: Tab[]): void;
-  };
+  }
   type BgCmd = BgCmdNoTab | BgCmdActiveTab | BgCmdCurWndTabs;
 
   const framesForTab: Frames.FramesMap = Object.create<Frames.Frames>(null), framesForOmni: Frames.Port[] = [],
@@ -296,7 +296,7 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
       const isId = typeof tabIdUrl === "number", option: chrome.windows.CreateData = {
         type: "normal",
         focused: false,
-        incognito: incognito,
+        incognito,
         state: "minimized",
         tabId: isId ? tabIdUrl as number : undefined,
         url: isId ? undefined : tabIdUrl as string
@@ -336,12 +336,7 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
     PostCompletions (this: Port, list: Readonly<Suggestion>[]
         , autoSelect: boolean, matchType: CompletersNS.MatchType): void {
       try {
-      this.postMessage({
-        name: "omni",
-        autoSelect: autoSelect,
-        matchType: matchType,
-        list: list
-      });
+      this.postMessage({ name: "omni", autoSelect, matchType, list });
       } catch (e) {}
     },
 
@@ -352,7 +347,7 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
 
     createTabs (this: void, rawUrl: string, count: number, active: boolean): void {
       if (!(count >= 1)) return;
-      const option: chrome.tabs.CreateProperties = {url: rawUrl, active: active};
+      const option: chrome.tabs.CreateProperties = {url: rawUrl, active};
       chrome.tabs.create(option);
       if (count < 2) return;
       option.active = false;
@@ -453,7 +448,7 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
       chrome.tabs.create({
         active: false,
         windowId: wnd.id,
-        url: url
+        url
       }, function(newTab) {
         return funcDict.makeTempWindow(newTab.id, true, funcDict.createTab[5].bind(tab, callback, newTab));
       });
@@ -627,7 +622,7 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
       (wnd as Window).tabs = undefined;
       chrome.windows.getAll(funcDict.moveTabToIncognito[1].bind(null, options, wnd));
     }, function(options, wnd, wnds): void {
-      let tabId = null;
+      let tabId: number | undefined;
       wnds = wnds.filter(funcDict.isIncNor);
       if (wnds.length) {
         chrome.tabs.query({
@@ -663,7 +658,7 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
       (this: void, ) => void
     ],
     removeTab (this: void, tab: Tab, curTabs: Tab[], wnds: Window[]): void {
-      var url, windowId, wnd;
+      let url: string | null = null, windowId: number | undefined, wnd: Window;
       wnds = wnds.filter(function(wnd) { return wnd.type === "normal"; });
       if (wnds.length <= 1) {
         // protect the last window
@@ -683,13 +678,9 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
           url = Settings.cache.newTabUrl_f;
         }
       }
-      if (url != null) {
+      if (url !== null) {
         const tabIds = (curTabs.length > 1) ? curTabs.map(funcDict.getId) : [tab.id];
-        chrome.tabs.create({
-          index: tabIds.length,
-          url: url,
-          windowId: windowId
-        });
+        chrome.tabs.create({ index: tabIds.length, url, windowId });
         chrome.tabs.remove(tabIds);
       } else {
         chrome.windows.remove(tab.windowId);
@@ -714,7 +705,7 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
       return chrome.runtime.lastError;
     },
     removeTabsRelative (this: void, activeTab: Tab, direction: number, tabs: Tab[]): void {
-      var i = activeTab.index, noPinned = false;
+      let i = activeTab.index, noPinned = false;
       if (direction > 0) {
         ++i;
         tabs = tabs.slice(i, i + direction);
@@ -733,10 +724,10 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
       }
     },
     focusParentFrame: function(this: Frames.Sender, frames: chrome.webNavigation.GetAllFrameResultDetails[]): void {
-      for (var i = 0, port, curId = this.frameId; i < frames.length; i++) {
+      for (let i = 0, curId = this.frameId; i < frames.length; i++) {
         if (frames[i].frameId !== curId) { continue; }
         curId = frames[i].parentFrameId;
-        port = Settings.indexFrame(this.tabId, curId);
+        const port = Settings.indexFrame(this.tabId, curId);
         port ? port.postMessage({ name: "focusFrame", frameId: 0 })
           : requestHandlers.ShowHUD("Fail to find its parent frame");
         return;
@@ -768,8 +759,8 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
         windowId: tabs[0].windowId
       }, callback);
     }, function(tabs, wnd): void {
-      var wndId = wnd.id, tabs2, tab, url = this.url;
-      tabs2 = tabs.filter(function(tab) { return tab.windowId === wndId; });
+      const wndId = wnd.id, url = this.url;
+      let tabs2 = tabs.filter(function(tab) { return tab.windowId === wndId; });
       if (tabs2.length <= 0) {
         tabs2 = tabs.filter(function(tab) { return tab.incognito === wnd.incognito; });
         if (tabs2.length <= 0) {
@@ -778,7 +769,7 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
         }
       }
       this.prefix && tabs2.sort(function(a, b) { return a.url.length - b.url.length; });
-      tab = tabs2[0];
+      let tab = tabs2[0];
       tab.active && (tab = tabs2[1] || tab);
       chrome.tabs.update(tab.id, {
         url: tab.url === url || tab.url.startsWith(url) ? undefined : url,
@@ -791,13 +782,13 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
       (this: MarksNS.FocusOrLaunch, tabs: Tab[], wnd: Window) => void
     ],
     toggleMuteTab: [function(tabs) {
-      var tab = tabs[0];
+      const tab = tabs[0];
       chrome.tabs.update(tab.id, { muted: !tab.mutedInfo.muted });
     }, function(tabs) {
-      var curId = cOptions.other ? cPort.sender.tabId : -1, i, j,tab
+      let curId = cOptions.other ? cPort.sender.tabId : -1
         , muted = false, action = { muted: true };
-      for (i = tabs.length; 0 <= --i; ) {
-        tab = tabs[i];
+      for (let i = tabs.length; 0 <= --i; ) {
+        const tab = tabs[i];
         if (tab.id === curId) { continue; }
         if (!tab.mutedInfo.muted) {
           muted = true;
@@ -806,8 +797,8 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
       }
       if (muted) { return; }
       action.muted = false;
-      for (i = tabs.length; 0 <= --i; ) {
-        j = tabs[i].id;
+      for (let i = tabs.length; 0 <= --i; ) {
+        const j = tabs[i].id;
         if (j === curId) { continue; }
         chrome.tabs.update(j, action);
       }
@@ -950,11 +941,11 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
       }
       const reuse: ReuseType = cOptions.reuse == null ? ReuseType.newFg : (cOptions.reuse | 0);
       if (reuse > 0) {
-        requestHandlers.focusOrLaunch({url: url});
+        requestHandlers.focusOrLaunch({ url });
         return;
       } else if (reuse === 0) {
         if (funcDict.openShowPage[0](url, reuse)) { return; }
-        chrome.tabs.update({ url: url }, funcDict.onRuntimeError);
+        chrome.tabs.update({ url }, funcDict.onRuntimeError);
       } else if (tabs) {
         return funcDict.openUrlInNewTab.call(url, reuse, tabs);
       } else {
@@ -1044,7 +1035,7 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
     goToRoot (this: void, tabs: [Tab]): void {
       const url = tabs[0].url, result = requestHandlers.parseUpperUrl({
         trailing_slash: cOptions.trailing_slash,
-        url: url, upper: commandCount - 1
+        url, upper: commandCount - 1
       });
       if (result.path != null) {
         chrome.tabs.update({url: result.url});
@@ -1057,7 +1048,7 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
       let index = Math.max(0, Math.min(tabs.length - 1, tab.index + dir * commandCount));
       while (pinned !== tabs[index].pinned) { index -= dir; }
       if (index != tab.index) {
-        chrome.tabs.move(tab.id, {index: index});
+        chrome.tabs.move(tab.id, { index });
       }
     },
     nextFrame: function (this: void, count?: number): void {
@@ -1130,7 +1121,7 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
         Settings.get(dir === "prev" ? "previousPatterns" : "nextPatterns", true);
       cPort.postMessage({ name: "execute", count: 1, command: "goNext",
         options: {
-          dir: dir,
+          dir,
           patterns: defaultPatterns.toLowerCase()
         }
       });
@@ -1149,7 +1140,7 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
       cPort.postMessage({ name: "execute", count: 1, command: "performFind", options: {
         count: commandCount,
         dir: cOptions.dir,
-        query: query
+        query
       }});
     },
     showVomnibar (this: void): void {
@@ -1167,7 +1158,7 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
       port.postMessage({
         name: "execute", count: commandCount,
         command: "Vomnibar.activate",
-        options: options
+        options
       });
       options.secret = -1;
       cOptions = options;
@@ -1198,18 +1189,14 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
       count = 1;
     } else if (registryEntry.repeat > 0 && count > registryEntry.repeat && !
       confirm(`You have asked Vimium++ to perform ${count} repeats of the command:
-        ${CommandsData.availableCommands[command][0]}\n\nAre you sure you want to continue?`)
+        ${(CommandsData.availableCommands[command] as
+           CommandsNS.Description)[0]}\n\nAre you sure you want to continue?`)
     ) {
       return;
     }
     command = registryEntry.alias || command;
     if (!registryEntry.background) {
-      port.postMessage({
-        name: "execute",
-        command: command,
-        count: count,
-        options: options
-      });
+      port.postMessage({ name: "execute", command, count, options });
       return;
     }
     const func: BgCmd = BackgroundCommands[command as keyof typeof BackgroundCommands];
@@ -1293,7 +1280,7 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
       url = str.replace(Utils.spacesRe, " ").trim();
       return {
         keyword: pattern[2],
-        url: url,
+        url,
         start: selectLast ? url.lastIndexOf(" ") + 1 : 0
       };
     },
@@ -1406,10 +1393,7 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
       }
       str = decoded ? encodeURIComponent(path) : path;
       url = url.substring(0, start) + (end ? str + url.substring(end) : str);
-      return {
-        url: url,
-        path: path
-      };
+      return { url, path };
     },
     searchAs (this: void, request: FgReq["searchAs"]): string {
       let search = requestHandlers.parseSearchUrl(request), query;
@@ -1434,7 +1418,7 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
       let tabId = (port as Port).sender.tabId;
       tabId >= 0 || (tabId = TabRecency.last());
       if (tabId >= 0) { return funcDict.selectTab(tabId); }
-    } as BgReqHandlerNS.gotoSession,
+    } as BgReqHandlerNS.BgReqHandlers["gotoSession"],
     openUrl: function (this: void, request: FgReq["openUrl"] & { url_f?: Urls.Url}, port?: Port): void {
       Object.setPrototypeOf(request, null);
       request.url_f = Utils.convertToUrl(request.url, request.keyword || null, Urls.WorkType.ActAnyway);
@@ -1512,7 +1496,7 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
         Utils.require<typeof HelpDialog>('HelpDialog'),
         request, port,
         new Promise<void>(function(resolve, reject) {
-          var xhr = Settings.fetchFile("helpDialog", resolve);
+          const xhr = Settings.fetchFile("helpDialog", resolve);
           xhr instanceof XMLHttpRequest && (xhr.onerror = reject);
         })
       ]).then(function(args): void {
@@ -1580,7 +1564,7 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
         key = arr[arr.length - 1];
         count = 1;
       }
-      const registryEntry = ref[key];
+      const registryEntry = ref[key] as CommandsNS.Item;
       Utils.resetRe();
       executeCommand(registryEntry.command, registryEntry, count, port);
     },
@@ -1715,7 +1699,7 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
   getSecret = function(this: void): number {
     let secret = 0, time = 0;
     getSecret = function(this: void): number {
-      var now = Date.now();
+      const now = Date.now();
       if (now - time > 10000) {
         secret = 1 + (0 | (Math.random() * 0x6fffffff));
       }
