@@ -166,7 +166,7 @@ declare namespace ExclusionsNS {
   }
   type Details = chrome.webNavigation.WebNavigationFramedCallbackDetails;
   interface Listener {
-    (details: Details): void;
+    (this: void, details: Details): void;
   }
 }
 
@@ -325,6 +325,51 @@ declare namespace SettingsNS {
   // type NameList = Array<SettingNames>;
 }
 import FullSettings = SettingsNS.FullSettings;
+
+declare namespace BgReqHandlerNS {
+  interface checkIfEnabled extends ExclusionsNS.Listener {
+    (this: void, request: FgReq["checkIfEnabled"], port: Frames.Port): void;
+  }
+  interface gotoSession {
+    (this: void, request: { sessionId: string | number, active: true }, port: Port): void;
+    (this: void, request: { sessionId: string | number, active?: false }): void;
+    (this: void, request: { sessionId: string | number }): void;
+  }
+
+  interface BgReqHandlers {
+    parseSearchUrl(this: void, request: {
+        url: string;
+        upper?: number | undefined;
+        trailing_slash?: boolean | undefined;
+    }): {
+        keyword: string;
+        start: number;
+        url: string;
+    } | null;
+    parseUpperUrl(this: void, request: {
+        url: string;
+        upper: number;
+        trailing_slash?: boolean | undefined;
+    }): {
+        url: string;
+        path: string | null;
+    };
+    gotoSession: gotoSession;
+    openUrl(this: void, request: FgReq["openUrl"], port?: Port | undefined): void;
+    checkIfEnabled: checkIfEnabled;
+    getCopiedUrl_f: {
+        (this: void, request: {
+            keyword?: string | undefined;
+        }, port: Port): string;
+        (this: void, request: {
+            keyword?: string | undefined;
+        }): Urls.Url;
+    };
+    focusOrLaunch(this: void, request: MarksNS.FocusOrLaunch): 1;
+    SetIcon(tabId: number, type: Frames.ValidStatus): void;
+    ShowHUD(message: string, isCopy?: boolean | undefined): void;
+  }
+}
 
 interface Window {
   readonly MathParser?: any;

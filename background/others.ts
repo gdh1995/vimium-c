@@ -131,7 +131,7 @@ setTimeout((function() { if (!chrome.browserAction) { return; }
     imageData = Object.create(null);
     tabIds = Object.create(null);
   } as IconNS.AccessIconBuffer;
-  g_requestHandlers.SetIcon = function(tabId: number, type: Frames.ValidStatus): void {
+  g_requestHandlers.SetIcon = function(this: void, tabId: number, type: Frames.ValidStatus): void {
     var data, path;
     if (data = (imageData as IconNS.StatusMap<IconNS.IconBuffer>)[type]) {
       chrome.browserAction.setIcon({
@@ -293,11 +293,7 @@ setTimeout((function() { if (!chrome.omnibox) { return; }
     if (firstResult && text === last) { text = firstResult.url; }
     const sessionId = sessionIds && sessionIds[text];
     clean();
-    if (sessionId != null) {
-      g_requestHandlers.gotoSession({ sessionId: sessionId });
-      return;
-    }
-    g_requestHandlers.openUrl({
+    return sessionId != null ? g_requestHandlers.gotoSession({ sessionId }) : g_requestHandlers.openUrl({
       url: text,
       reuse: (disposition === "currentTab" ? ReuseType.current
         : disposition === "newForegroundTab" ? ReuseType.newFg : ReuseType.newBg)

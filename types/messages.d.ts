@@ -104,6 +104,7 @@ interface FgReq {
     url: string;
     keyword?: string | null;
     https?: boolean;
+    reuse?: ReuseType;
   };
   frameFocused: FgBase<"frameFocused">;
   checkIfEnabled: {

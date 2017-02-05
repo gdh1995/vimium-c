@@ -1,6 +1,6 @@
 /// <reference path="../types/bg.d.ts" />
 
-var g_requestHandlers: any;
+var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
 (function() {
   type Tab = chrome.tabs.Tab;
   type Window = chrome.windows.Window;
@@ -1232,9 +1232,8 @@ var g_requestHandlers: any;
    *  [ /^A-Z/ ]: (this: void, ...args: any[]) => any;
    * }
    */
-  requestHandlers = g_requestHandlers = {
-    setSetting<K extends keyof SettingsNS.FrontUpdateAllowedSettings>
-        (this: void, request: SetSettingReq<K>, port: Port): void {
+  requestHandlers = {
+    setSetting (this: void, request: SetSettingReq<keyof SettingsNS.FrontUpdateAllowedSettings>, port: Port): void {
       const key = request.key;
       if (!(key in Settings.frontUpdateAllowed)) {
         cPort = port;
@@ -1424,18 +1423,18 @@ var g_requestHandlers: any;
       });
       return "";
     },
-    gotoSession (this: void, request: FgReq["gotoSession"], port: Port): void {
+    gotoSession: function (this: void, request: FgReq["gotoSession"], port?: Port): void {
       const id = request.sessionId, active = request.active !== false;
       if (typeof id === "number") {
         return funcDict.selectTab(id, true);
       }
       chrome.sessions.restore(id, funcDict.onRuntimeError);
       if (active) { return; }
-      let tabId = port.sender.tabId;
+      let tabId = (port as Port).sender.tabId;
       tabId >= 0 || (tabId = TabRecency.last());
       if (tabId >= 0) { return funcDict.selectTab(tabId); }
-    },
-    openUrl (this: void, request: FgReq["openUrl"] & { url_f?: Urls.Url}, port?: Port): void {
+    } as BgReqHandlerNS.gotoSession,
+    openUrl: function (this: void, request: FgReq["openUrl"] & { url_f?: Urls.Url}, port?: Port): void {
       Object.setPrototypeOf(request, null);
       request.url_f = Utils.convertToUrl(request.url, request.keyword || null, Urls.WorkType.ActAnyway);
       request.keyword = "";
@@ -1451,7 +1450,7 @@ var g_requestHandlers: any;
       commandCount = 1;
       cOptions = request as FgReq["openUrl"] & { url_f: string, keyword: ""} & SafeObject;
       return BackgroundCommands.openUrl();
-    },
+    } as BgReqHandlerNS.BgReqHandlers["openUrl"],
     frameFocused (this: void, _0: FgReq["frameFocused"], port: Port): void {
       let tabId = port.sender.tabId, ref = framesForTab[tabId], status: Frames.ValidStatus;
       if (!ref) {
@@ -1483,10 +1482,7 @@ var g_requestHandlers: any;
         return;
       }
       port.postMessage({ name: "reset", passKeys: pattern });
-    } as {
-      (this: void, request: FgReq["checkIfEnabled"], port: Frames.Port): void;
-      (this: void, request: ExclusionsNS.Details): void;
-    },
+    } as BgReqHandlerNS.checkIfEnabled,
     nextFrame (this: void, _0: FgReq["nextFrame"], port: Port): void {
       cPort = port;
       return BackgroundCommands.nextFrame(1);
@@ -1726,6 +1722,8 @@ var g_requestHandlers: any;
     };
     return getSecret();
   };
+
+  g_requestHandlers = requestHandlers;
 
   Settings.Init = function(): void {
     if (3 !== ++Connections.state) { return; }
