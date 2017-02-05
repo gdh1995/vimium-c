@@ -47,7 +47,7 @@ const HelpDialog = {
     return html.join("");
   }),
   commandHtml: (function(this: void, html: string[], isAdvanced: boolean, bindings: string
-      , description: string, command: string): any {
+      , description: string, command: string): number {
     html.push('<tr class="HelpTr', isAdvanced ? " HelpAdv" : "", '">\n\t');
     if (description) {
       html.push('<td class="HelpTd HelpKeys">'

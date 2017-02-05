@@ -124,7 +124,7 @@ FindModeHistory = {
   init (): void {
     const str: string = Settings.get(this.key);
     this.list = str ? str.split("\n") : [];
-    this.init = null as any;
+    this.init = null as never;
   },
   initI (): string[] {
     var list = this.listI = (this.list as string[]).slice(0);
@@ -164,7 +164,7 @@ FindModeHistory = {
       this.listI && (this.listI = []);
       return;
     }
-    this.init = null as any;
+    this.init = null as never;
     this.list = [];
     Settings.set(this.key, "");
   },
@@ -192,9 +192,9 @@ FindModeHistory = {
   }
 },
 TabRecency = {
-  tabs: null as any as SafeDict<number>,
+  tabs: null as never as SafeDict<number>,
   last (this: void): number { return -1; },
-  rCompare: null as any as (a: {id: number}, b: {id: number}) => number,
+  rCompare: null as never as (a: {id: number}, b: {id: number}) => number,
 };
 
 setTimeout(function() {

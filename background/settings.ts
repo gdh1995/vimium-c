@@ -6,11 +6,11 @@ const Settings = {
   temp: {
     shownHash: null as null | ((this: void) => string)
   },
-  bufferToLoad: null as any as SettingsNS.FrontendSettingCache & SafeObject,
+  bufferToLoad: null as never as SettingsNS.FrontendSettingCache & SafeObject,
   extWhiteList: null as SafeDict<true> | null,
   Init: null as ((this: void) => void) | null,
   IconBuffer: null as IconNS.AccessIconBuffer | null,
-  globalCommand: null as any as (command: string, options?: CommandsNS.RawOptions | null, count?: number) => void,
+  globalCommand: null as never as (command: string, options?: CommandsNS.RawOptions | null, count?: number) => void,
   getExcluded: Utils.getNull as (this: void, url: string) => string | null,
   get<K extends keyof SettingsWithDefaults> (key: K, forCache?: boolean): SettingsWithDefaults[K] {
     if (key in this.cache) {
@@ -35,7 +35,8 @@ const Settings = {
         this.Sync.set(key as keyof SettingsNS.PersistentSettings, null);
       } else {
         localStorage.setItem(key, typeof initial === "string" ? value as string : JSON.stringify(value));
-        this.Sync.set(key as keyof SettingsNS.PersistentSettings, value as any);
+        this.Sync.set(key as keyof SettingsNS.PersistentSettings, value as
+          FullSettings[keyof SettingsNS.PersistentSettings]);
       }
     }
     let ref: SettingsNS.UpdateHook<K> | undefined;
@@ -138,8 +139,8 @@ const Settings = {
       });
     }
   } as SettingsNS.DeclaredUpdateHookMap as SettingsNS.UpdateHookMap,
-  indexFrame: null as any as (this: void, tabId: number, frameId: number) => Port | null,
-  indexPorts: null as any as {
+  indexFrame: null as never as (this: void, tabId: number, frameId: number) => Port | null,
+  indexPorts: null as never as {
     (this: void, tabId: number): Frames.Frames | undefined;
     (this: void): Frames.FramesMap;
   },
@@ -152,7 +153,7 @@ const Settings = {
     });
   },
   // clear localStorage & sync, if value === @defaults[key]
-  // the default of any nullable field must be set to null for compatibility with @Sync.set
+  // the default of all nullable fields must be set to null for compatibility with @Sync.set
   defaults: {
     __proto__: null as never,
     deepHints: false,
@@ -226,7 +227,7 @@ w|wiki:\\\n  https://www.wikipedia.org/w/index.php?search=$s Wikipedia\n\
   CONST: {
     BaseCSSLength: 0,
     ChromeInnerNewTab: "chrome-search://local-ntp/local-ntp.html", // should keep lower case
-    ChromeVersion: 37, ContentScripts: null as any as string[], CurrentVersion: "", CurrentVersionName: "",
+    ChromeVersion: 37, ContentScripts: null as never as string[], CurrentVersion: "", CurrentVersionName: "",
     KnownPages: ["blank", "newtab", "options", "show"],
     MathParser: "/lib/math_parser.js",
     HelpDialog: "/background/help_dialog.js",

@@ -125,7 +125,7 @@ var Exclusions: ExcCls = Exclusions && !(Exclusions instanceof Promise) ? Exclus
         port.sender.status = status;
       }
       if (needIcon && status0 !== (status = frames[0].sender.status)) {
-        g_requestHandlers.SetIcon((tabId as any) | 0, status);
+        g_requestHandlers.SetIcon((tabId as (string | number) as number) | 0, status);
       }
     }
   }

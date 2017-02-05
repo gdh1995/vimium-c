@@ -24,7 +24,7 @@ if (Settings.get("vimSync") === true) setTimeout(function() { if (!chrome.storag
       const defaultVal = Settings.defaults[key];
       if (value == null) {
         if (key in localStorage) {
-          Settings.set(key as any, defaultVal as any);
+          Settings.set(key, defaultVal);
         }
         return;
       }
@@ -351,7 +351,7 @@ setTimeout(function() {
     isClickable: true
   }, function(notificationId): void {
     const popup = chrome.notifications, e: void = chrome.runtime.lastError;
-    (chrome as any).notifications = null;
+    chrome.notifications = null as never;
     if (e) { return e; }
     reason = notificationId || reason;
     popup.onClicked.addListener(function(id): void {
@@ -367,7 +367,7 @@ setTimeout(function() {
 setTimeout((function() {
   if (a) {
     a.removeListener(cb);
-    (chrome.runtime as any).onInstalled = a = null;
+    chrome.runtime.onInstalled = a = null as never;
   }
   cb = function(b) { a = b; console.log(b); };
   Utils.resetRe();

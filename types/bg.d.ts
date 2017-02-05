@@ -1,8 +1,9 @@
 declare namespace Search {
-  interface Engine {
-    readonly url: string;
-    readonly name: string;
+  interface RawEngine {
+    url: string;
+    name: string;
   }
+  interface Engine extends Readonly<RawEngine> {}
   interface Result {
     readonly url: string;
     readonly indexes: number[];
@@ -374,4 +375,7 @@ declare namespace BgReqHandlerNS {
 interface Window {
   readonly MathParser?: any;
   readonly CommandsData?: undefined;
+  readonly Commands?: any;
+  readonly Exclusions?: any;
+  readonly HelpDialog?: any;
 }

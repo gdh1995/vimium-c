@@ -54,7 +54,7 @@ const SuggestionUtils = {
     for (let ref = queryTerms, i = 0, len = ref.length; i < len; ++i) {
       this.pushMatchingRanges(string, ref[i], ranges);
     }
-    if (ranges.length === 0) { return ranges as any; }
+    if (ranges.length === 0) { return ranges as never[]; }
     ranges.sort(this.rsortBy0);
     return this.mergeRanges(ranges);
   },
@@ -180,7 +180,7 @@ bookmarks: {
       chrome.bookmarks.onCreated.addListener(f);
       f();
     });
-  } as voidFuncNoEnv | null,
+  } as ((this: void) => void) | null,
   refresh (): void {
     this.status = 1;
     if (this._timer) {
@@ -372,17 +372,17 @@ history: {
       Completers.history.filterFinish(historys2);
     });
   },
-  filterFinish (historys: UrlItem[]): void {
-    historys.forEach(this.MakeSuggestion);
+  filterFinish: function (this: any, historys: Array<UrlItem | Suggestion>): void {
+    historys.forEach((this as typeof Completers.history).MakeSuggestion);
     offset = 0;
     Decoder.continueToWork();
     return Completers.next(historys as Suggestion[]);
-  },
-  MakeSuggestion (e: UrlItem, i: number, arr: UrlItem[]): void {
+  } as (historys: UrlItem[]) => void,
+  MakeSuggestion (e: UrlItem, i: number, arr: Array<UrlItem | Suggestion>): void {
     const o = new Suggestion("history", e.url, Decoder.decodeURL(e.url), e.title,
       Completers.history.getExtra, (99 - i) / 100);
     e.sessionId && (o.sessionId = e.sessionId);
-    arr[i] = o as any;
+    arr[i] = o;
   },
   getExtra (_s: Suggestion, score: number): number { return score; },
   urlNotIn (this: Dict<number>, i: UrlItem): boolean { return !(i.url in this); }
@@ -434,7 +434,7 @@ domains: {
     return Completers.next(sug ? [sug] : []);
   },
   refresh (history: PureHistoryItem[]): void {
-    (this as any).refresh = null;
+    this.refresh = null as never;
     history.forEach(this.onPageVisited, this);
     this.filter = this.performSearch;
     chrome.history.onVisited.addListener(this.onPageVisited.bind(this));
@@ -933,12 +933,12 @@ window.Completers = {
         setTimeout(HistoryCache.Clean as (arr: chrome.history.HistoryItem[]) => void, 17, history);
       });
     },
-    Clean: function(this: void, arr: chrome.history.HistoryItem[]): void {
+    Clean: function(this: void, arr: Array<chrome.history.HistoryItem | HistoryItem>): void {
       let _this = HistoryCache, len: number, i: number, j: chrome.history.HistoryItem | null;
       _this.Clean = null;
       for (i = 0, len = arr.length; i < len; i++) {
-        j = arr[i];
-        (arr as any[] as HistoryItem[])[i] = {
+        j = arr[i] as chrome.history.HistoryItem;
+        arr[i] = <HistoryItem> {
           lastVisitTime: j.lastVisitTime,
           text: j.url,
           title: j.title,
@@ -954,7 +954,7 @@ window.Completers = {
         chrome.history.onVisitRemoved.addListener(_this.OnVisitRemoved);
         chrome.history.onVisited.addListener(_this.OnPageVisited);
       }, 100);
-      _this.history = arr as any[] as HistoryItem[];
+      _this.history = arr as HistoryItem[];
       _this.use = function(this: typeof HistoryCache, callback: HistoryCallback) {
         callback && callback(this.history as HistoryItem[]);
       };
@@ -1121,10 +1121,10 @@ window.Completers = {
     init (): XMLHttpRequest {
       this.init = this.xhr;
       Settings.updateHooks.localeEncoding = function(this: void, charset: string): void {
-        let _this = Decoder, f: (item: ItemToDecode) => any;
+        let _this = Decoder, f: (item: ItemToDecode) => number | void;
         _this._dataUrl = charset && ("data:text/plain;charset=" + charset.toLowerCase() + ",");
         f = charset ? Array.prototype.push : _this.blank;
-        _this.todos.push !== f && (_this.todos.push = f);
+        _this.todos.push !== f && (_this.todos.push = f as (item: ItemToDecode) => number);
       };
       Settings.postUpdate("localeEncoding");
       return this.xhr();

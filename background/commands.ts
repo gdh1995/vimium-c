@@ -7,7 +7,7 @@ var Commands = {
   getOptions (item: string[]): CommandsNS.Options | null {
     let opt: CommandsNS.RawOptions, i = 3, len = item.length, ind: number, str: string | undefined, val: string;
     if (len <= i) { return null; }
-    opt = Object.create<any>(null) as CommandsNS.RawOptions;
+    opt = Object.create(null) as CommandsNS.RawOptions;
     while (i < len) {
       str = item[i++];
       ind = str.indexOf("=");
@@ -120,7 +120,7 @@ var Commands = {
         }
         continue;
       }
-      for (ref2 = tmp = ref as any as ChildKeyMap, j = 0, last = arr.length - 1; j <= last; j++, ref2 = tmp) {
+      for (ref2 = tmp = ref as ChildKeyMap, j = 0, last = arr.length - 1; j <= last; j++, ref2 = tmp) {
         tmp = ref2[arr[j]];
         if (!tmp || j === last) {
           tmp === 0 && console.warn("inactive key:", key, "with"
@@ -221,8 +221,8 @@ defaultKeyMappings: [
 ] as [string, string][]
 },
 CommandsData = window.CommandsData || {
-  keyToCommandRegistry: null as any as SafeDict<CommandsNS.Item>,
-  keyMap: null as any as KeyMap,
+  keyToCommandRegistry: null as never as SafeDict<CommandsNS.Item>,
+  keyMap: null as never as KeyMap,
   mapKeyRegistry: null as SafeDict<string> | null,
 availableCommands: {
   __proto__: null as never,
@@ -368,9 +368,9 @@ availableCommands: {
 
 if (document.readyState !== "complete") {
   Commands.parseKeyMappings(Settings.get("keyMappings"));
-  Commands.defaultKeyMappings = null as any as typeof Commands.defaultKeyMappings;
+  Commands.defaultKeyMappings = null as never;
   Commands.populateCommandKeys();
-  Commands = null as any;
+  Commands = null as never;
   chrome.commands && chrome.commands.onCommand.addListener(Settings.globalCommand);
 } else
 Settings.updateHooks.keyMappings = function(value: string): void {

@@ -386,11 +386,11 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
     },
 
     createTab: [function(onlyNormal, tabs) {
-      let tab: Tab | null = null, url = this;
       if (cOptions.url || cOptions.urls) {
         BackgroundCommands.openUrl(tabs as [Tab] | undefined);
         return chrome.runtime.lastError;
       }
+      let tab: (Partial<Tab> & InfoToCreateMultiTab) | null = null, url = this;
       if (!tabs) {}
       else if ((tabs as Tab[]).length > 0) { tab = (tabs as Tab[])[0]; }
       else if ("id" in tabs) { tab = tabs as Tab; }
@@ -403,7 +403,7 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
         return chrome.runtime.lastError;
       }
       if (tab.incognito && onlyNormal) { url = "chrome://newtab"; }
-      tab.id = undefined as any as number;
+      tab.id = undefined;
       return openMultiTab(url, commandCount, tab);
     }, function(wnd): void {
       if (cOptions.url || cOptions.urls) {
@@ -624,7 +624,7 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
       } else {
         options.url = url;
       }
-      wnd.tabs = null as any;
+      (wnd as Window).tabs = undefined;
       chrome.windows.getAll(funcDict.moveTabToIncognito[1].bind(null, options, wnd));
     }, function(options, wnd, wnds): void {
       let tabId = null;
@@ -752,9 +752,9 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
     }, function(tabs) {
       // TODO: how to wait for tab finishing to load
       const callback = this.scroll ? /* this is MarksNS.MarkToGo */
-        setTimeout.bind<void
+        setTimeout.bind<null
           , typeof Marks.scrollTab, number, MarksNS.MarkToGo, Tab
-          , void>(null as any as void, Marks.scrollTab, 1000, this as MarksNS.MarkToGo)
+          , void>(null, Marks.scrollTab, 1000, this as MarksNS.MarkToGo)
         : null;
       if (tabs.length <= 0) {
         chrome.windows.create({url: this.url}, callback && function(wnd: Window): void {
@@ -1163,7 +1163,7 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
       const options = Utils.extendIf(Object.setPrototypeOf({
         vomnibar: Settings.CONST.VomnibarPage,
         secret: getSecret(),
-      }, null), cOptions as any);
+      } as Dict<any>, null), cOptions);
       port.postMessage({
         name: "execute", count: commandCount,
         command: "Vomnibar.activate",
@@ -1213,7 +1213,7 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
       return;
     }
     const func: BgCmd = BackgroundCommands[command as keyof typeof BackgroundCommands];
-    cOptions = options || Object.create<any>(null);
+    cOptions = options || Object.create(null);
     cPort = port;
     commandCount = count;
     count = <UseTab>func.useTab;
@@ -1229,7 +1229,7 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
    * type: {
    *  <K in keyof FgRes>(this: void, request: FgReq[K], port: Port): FgRes[K];
    *  <K in keyof FgReq>(this: void, request: FgReq[K], port: Port): void;
-   *  [ /^A-Z/ ]: (this: void, ...args: any[]) => any;
+   *  [ /^A-Z/ ]: (this: void, ...args: any[]) => void;
    * }
    */
   requestHandlers = {
@@ -1241,7 +1241,8 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
       }
       Settings.set(key, request.value);
       if (key in Settings.bufferToLoad) {
-        (Settings.bufferToLoad as SafeDict<any>)[key] = Settings.cache[key];
+        type CacheValue = SettingsNS.FullCache[keyof SettingsNS.FrontUpdateAllowedSettings];
+        (Settings.bufferToLoad as SafeDict<CacheValue>)[key] = Settings.cache[key];
       }
     },
     findQuery (this: void, request: FgReq["findQuery"], port: Port): FgRes["findQuery"] | void {
@@ -1607,7 +1608,7 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
           isCopy: isCopy === true
         });
       } catch (e) {
-        cPort = null as any;
+        cPort = null as never;
       }
     }
   },
@@ -1621,16 +1622,17 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
         port.postMessage<"findQuery">({
           _msgId: id,
           response: requestHandlers[(request as FgBase<string>).handler as
-            "findQuery"](request as any, port) as FgRes["findQuery"]
+            "findQuery"](request as Req.fg<"findQuery">, port) as FgRes["findQuery"]
         });
       } else {
-        return requestHandlers[(request as FgBase<string>).handler as "key"](request as any, port);
+        return requestHandlers[(request as FgBase<string>).handler as "key"](request as Req.fg<"key">, port);
       }
     },
     OnConnect (this: void, port: Frames.Port): void {
       Connections.format(port);
       port.onMessage.addListener(Connections.OnMessage);
-      let type = (port.name[9] as any as number) | 0, ref: Frames.Frames | undefined, tabId = port.sender.tabId;
+      let type = (port.name[9] as (string | number) as number) | 0, ref: Frames.Frames | undefined
+        , tabId = port.sender.tabId;
       if (type === PortType.omnibar) {
         framesForOmni.push(port);
         if (tabId < 0) {
@@ -1740,7 +1742,7 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
   };
 
   if (Settings.CONST.ChromeVersion >= 52) {
-    funcDict.createTab = [funcDict.createTab[0]] as any;
+    funcDict.createTab = [funcDict.createTab[0]] as typeof funcDict.createTab;
   }
   Settings.updateHooks.newTabUrl_f = function(url) {
     let f: BgCmdNoTab, onlyNormal = Utils.isRefusingIncognito(url);
@@ -1760,7 +1762,7 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
     count = Math.max(1, count | 0);
     options && typeof options === "object" ?
         Object.setPrototypeOf(options, null) : (options = null);
-    return executeCommand(command, Utils.makeCommand(command, options), count, null as any as Port);
+    return executeCommand(command, Utils.makeCommand(command, options), count, null as never as Port);
   };
 
   chrome.runtime.onMessageExternal && (

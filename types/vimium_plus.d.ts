@@ -1,5 +1,3 @@
-type voidFunc = (...args: any[]) => void;
-type voidFuncNoEnv = (this: void) => void;
 type BOOL = 0 | 1;
 interface Dict<T> {
   [key: string]: T;

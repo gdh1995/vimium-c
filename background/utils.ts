@@ -64,7 +64,7 @@ const Utils = {
   _jsNotEscapeRe: <RegExpOne> /["\[\]{}\u00ff-\uffff]|%(?![\dA-F]{2}|[\da-f]{2})/,
   filePathRe: <RegExpOne> /^['"]?((?:[A-Za-z]:[\\/]|\/(?:Users|home|root)\/)[^'"]*)['"]?$/,
   lastUrlType: Urls.Type.Default,
-  convertToUrl: function(this: any, string: string, keyword?: string | null, vimiumUrlWork?: Urls.WorkType): Urls.Url {
+  convertToUrl: (function(this: any, string: string, keyword?: string | null, vimiumUrlWork?: Urls.WorkType): Urls.Url {
     string = string.trim();
     if (string.charCodeAt(10) === 58 && string.substring(0, 11).toLowerCase() === "javascript:") {
       if (Settings.CONST.ChromeVersion < 46 && string.indexOf('%', 11) > 0
@@ -137,7 +137,7 @@ const Utils = {
     }
     if (type === Urls.TempType.Unspecified && string.startsWith(".")) { string = string.substring(1); }
     if (type !== Urls.TempType.Unspecified) {
-    } else if (!(arr = this._hostRe.exec(string) as any)) {
+    } else if (!(arr = this._hostRe.exec(string) as typeof arr)) {
       type = Urls.Type.Search;
       if (string.length === oldString.length && this._ipv6Re.test(string = "[" + string + "]")) {
         oldString = string;
@@ -183,7 +183,7 @@ const Utils = {
       : type === Urls.Type.NoSchema ? ("http://" + oldString)
       : type === Urls.Type.NoProtocolName ? ("http:" + oldString)
       : oldString;
-  } as Urls.Converter,
+  }) as Urls.Converter,
   checkSpecialSchemes (string: string, i: number, spacePos: number): Urls.Type | Urls.TempType.Unspecified {
     const isSlash = string[i + 1] === "/";
     switch (string.substring(0, i)) {
@@ -264,7 +264,7 @@ const Utils = {
     if (workType === Urls.WorkType.ActIfNoSideEffects) switch (cmd) {
     case "e": case "exec": case "eval": case "expr": case "calc": case "m": case "math":
       return this.require<any>("MathParser").catch(function() { return null;
-      }).then(function(MathParser: any): Urls.MathEvalResult {
+      }).then<Urls.MathEvalResult>(function(MathParser): Urls.MathEvalResult {
         let result = Utils.tryEvalMath(path, MathParser) || "";
         return [result, "math", path] as Urls.MathEvalResult;
       });
@@ -340,7 +340,7 @@ const Utils = {
   },
   jsLoadingTimeout: 300,
   require<T extends object> (name: SettingsNS.DynamicFiles): Promise<T> {
-    const p: Promise<T> | T | undefined = (window as any)[name];
+    const p: Promise<T> | T | undefined = window[name];
     if (p) {
       return p instanceof Promise ? p : Promise.resolve(p);
     }
@@ -351,10 +351,10 @@ const Utils = {
         reject("ImportError: " + name);
       };
       script.onload = function(): void {
-        if ((window as any)[name] instanceof Promise) {
+        if (window[name] instanceof Promise) {
           reject("ImportError: " + name);
         } else {
-          resolve((window as any)[name]);
+          resolve(window[name]);
         }
       };
       document.documentElement.appendChild(script).remove();
@@ -428,18 +428,18 @@ const Utils = {
     } catch (e) {}
     return url;
   },
-  parseSearchEngines: function(str: string, map: Search.EngineMap): Search.Rule[] {
+  parseSearchEngines: (function(this: any, str: string, map: Search.EngineMap): Search.Rule[] {
     let ids: string[], tmpRule: Search.TmpRule | null, tmpKey: Search.Rule[3],
-    key: string, val: string, obj: Search.Engine,
+    key: string, val: string, obj: Search.RawEngine,
     ind: number, rSlash = <RegExpOne> /[^\\]\//, rules = [] as Search.Rule[],
     rEscapeSpace = <RegExpG & RegExpSearchable<0>> /\\\s/g, rSpace = <RegExpOne> /\s/,
     rEscapeS = <RegExpG & RegExpSearchable<0>> /\\s/g, rColon = <RegExpG & RegExpSearchable<0>> /\\:/g,
     rPercent = <RegExpG & RegExpSearchable<0>> /\\%/g, rRe = <RegExpI> /\sre=/i,
     a = str.replace(<RegExpSearchable<0>> /\\\n/g, '').split('\n'),
     encodedSearchWordRe = <RegExpG & RegExpSearchable<1>> /%24([sS])/g, re = this.searchWordRe,
-    func = function(key: string): any {
-      return (key = key.trim()) && key !== "__proto__" && (map[key] = obj);
-    };
+    func = (function(key: string): boolean {
+      return (key = key.trim()) && key !== "__proto__" ? (map[key] = obj, true) : false;
+    });
     for (let _i = 0, _len = a.length; _i < _len; _i++) {
       val = a[_i].trim();
       if (!(val.charCodeAt(0) > KnownKey.maxCommentHead)) { continue; } // mask: /[!"#]/
@@ -513,15 +513,15 @@ const Utils = {
         str = str.substring(ind + 4);
       }
       str = str.trimLeft();
-      (obj as any).name = str ? this.DecodeURLPart(str) : ids[ids.length - 1].trimLeft();
+      obj.name = str ? this.DecodeURLPart(str) : ids[ids.length - 1].trimLeft();
     }
     return rules;
-  },
+  }),
   escapeAllRe: <RegExpG & RegExpSearchable<0>> /[$()*+.?\[\\\]\^{|}]/g,
   _spaceOrPlusRe: <RegExpG> /\\\+|%20| /g,
   _queryRe: <RegExpOne> /[#?]/,
   alphaRe: <RegExpI> /[a-z]/i,
-  reparseSearchUrl: function (url: string, ind: number): Search.TmpRule | null {
+  reparseSearchUrl: (function (this: any, url: string, ind: number): Search.TmpRule | null {
     var prefix, str, str2, ind2;
     if (!this.protocolRe.test(url)) { return null; }
     prefix = url.substring(0, ind - 1);
@@ -551,7 +551,7 @@ const Utils = {
       ).replace(this._spaceOrPlusRe, "(?:\\+|%20| )");
     prefix = this.prepareReparsingPrefix(prefix);
     return [prefix, new RegExp(str + str2 + url, this.alphaRe.test(str2) ? "i" as "" : "") as RegExpI | RegExpOne];
-  },
+  }),
   prepareReparsingPrefix (prefix: string): string {
     if (prefix.startsWith("http://") || prefix.startsWith("https://")) {
       prefix = prefix.substring(prefix[4] === 's' ? 8 : 7);
@@ -570,7 +570,7 @@ const Utils = {
     return null;
   },
   keyRe: <RegExpG & RegExpSearchable<0>> /<(?!<)(?:.-){0,3}..*?>|./g,
-  makeCommand: function(command: string, options?: CommandsNS.Options | null, details?: CommandsNS.Description) : CommandsNS.Item {
+  makeCommand: (function(command: string, options?: CommandsNS.Options | null, details?: CommandsNS.Description) : CommandsNS.Item {
     let opt: CommandsNS.Options | null;
     if (!details) { details = CommandsData.availableCommands[command] as CommandsNS.Description };
     opt = (details[3] as CommandsNS.Options | null) || null;
@@ -593,7 +593,7 @@ const Utils = {
       options: options,
       repeat: details[1]
     };
-  },
+  }),
   getNull (this: void): null { return null; },
   hasUpperCase (this: void, s: string): boolean { return s.toLowerCase() !== s; }
 };
