@@ -216,7 +216,8 @@ var VHints = {
       type = (s = element.contentEditable) !== "inherit" && s && s !== "false" ? 1
         : (element.vimiumHasOnclick && VHints.isClickListened) || element.getAttribute("onclick")
           || VHints.ngEnabled && element.getAttribute("ng-click")
-          || (s = element.getAttribute("role")) && (s = s.toLowerCase(), s === "button" || s === "link")
+          || (s = element.getAttribute("role")) && (s = s.toLowerCase()
+            , s === "button" || s === "link" || s === "checkbox" || s === "radio" || s.startsWith("menuitem"))
           || (s = element.getAttribute("jsaction")) && VHints.checkJSAction(s) ? 2
         : (s = element.getAttribute("tabindex")) && parseInt(s, 10) >= 0 ? 5
         : type > 5 ? type : (s = element.className) && VHints.btnRe.test(s) ? 4 : 0;
