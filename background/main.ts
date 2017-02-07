@@ -490,7 +490,7 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
         chrome.windows.getAll(funcDict.openUrlInIncognito.bind(this, tabs[0]));
         return;
       }
-      if (reuse === -2) { tabs[0].active = false; }
+      if (reuse === ReuseType.newBg) { tabs[0].active = false; }
       if (funcDict.openShowPage[0](this, reuse, tabs[0])) { return; }
       return openMultiTab(this, commandCount, tabs[0]);
     },
@@ -505,11 +505,11 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
         return true;
       }
       url = url.substring(prefix.length);
-      if (reuse === 0) {
+      if (reuse === ReuseType.current) {
         chrome.tabs.update({ url: prefix });
       } else
       chrome.tabs.create({
-        active: reuse !== -2,
+        active: reuse !== ReuseType.newBg,
         index: tab.incognito ? undefined : tab.index + 1,
         windowId: tab.incognito ? undefined : tab.windowId,
         url: prefix
@@ -533,7 +533,7 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
     ],
     openUrls: function(tabs: [Tab]): void {
       let urls = cOptions.urls, i, tab = tabs[0], repeat = commandCount;
-      if (cOptions.reuse === -2) { tab.active = false; }
+      if (cOptions.reuse === ReuseType.newBg) { tab.active = false; }
       do {
         for (i = 0; i < urls.length; i++) {
           openMultiTab(urls[i], 1, tab);
@@ -940,10 +940,10 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
         url = url.replace(cOptions.id_marker, chrome.runtime.id);
       }
       const reuse: ReuseType = cOptions.reuse == null ? ReuseType.newFg : (cOptions.reuse | 0);
-      if (reuse > 0) {
+      if (reuse === ReuseType.reuse) {
         requestHandlers.focusOrLaunch({ url });
         return;
-      } else if (reuse === 0) {
+      } else if (reuse === ReuseType.current) {
         if (funcDict.openShowPage[0](url, reuse)) { return; }
         chrome.tabs.update({ url }, funcDict.onRuntimeError);
       } else if (tabs) {

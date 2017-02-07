@@ -101,6 +101,7 @@ declare namespace MarksNS {
     scroll?: [number, number];
     url: string;
     prefix?: boolean;
+    reuse?: ReuseType;
   }
 }
 
@@ -123,6 +124,7 @@ interface KeyMap {
 declare const enum ReuseType {
   Default = 0,
   current = Default,
+  reuse = 1,
   newFg = -1,
   newBg = -2
 }
