@@ -367,4 +367,6 @@ interface Window {
   readonly Commands?: any;
   readonly Exclusions?: any;
   readonly HelpDialog?: any;
+
+  readonly g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
 }
