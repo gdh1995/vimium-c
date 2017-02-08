@@ -56,6 +56,7 @@ declare namespace Urls {
     Full = Default,
     NoSchema = 1,
     NoProtocolName = 2,
+    MaxOfInputIsPlainUrl = NoProtocolName,
     PlainVimium = 3,
     Search = 4,
     Functional = 5
@@ -130,8 +131,12 @@ declare namespace Frames {
 
   interface FramesMap {
     [tabId: number]: Frames | undefined;
-    omni?: Port[];
     readonly __proto__: never;
+  }
+
+  interface FramesMapToDestroy extends FramesMap {
+    [tabId: number]: Frames;
+    omni?: Port[];
   }
 }
 interface Port extends Frames.Port {
@@ -369,4 +374,14 @@ interface Window {
   readonly HelpDialog?: any;
 
   readonly g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
+  readonly Utils: {
+    convertToUrl: Urls.Converter;
+    lastUrlType: Urls.Type;
+    createSearch: Search.Executor;
+  };
+  readonly Settings: {
+    temp: {
+        shownHash: ((this: void) => string) | null;
+    };
+  }
 }

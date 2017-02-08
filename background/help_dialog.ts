@@ -1,5 +1,3 @@
-/// <reference path="../types/bg.d.ts" />
-
 const HelpDialog = {
   render: (function(this: void, request: FgReq["initHelp"]): string {
     Object.setPrototypeOf(request, null);

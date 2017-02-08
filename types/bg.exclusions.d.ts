@@ -1,4 +1,4 @@
-/// <reference path="bg.d.ts" />
+/// <reference path="../background/bg.d.ts" />
 
 declare namespace ExclusionsNS {
   interface Tester {

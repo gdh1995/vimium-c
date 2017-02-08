@@ -25,8 +25,8 @@
     "skipDefaultLibCheck": false,
     "strictNullChecks": true,
     "target": "es5",
-    "typeRoots": ["."],
-    "types": ["types"]
+    "typeRoots": ["./types"],
+    "types": ["lib", "base"]
   },
   "exclude": [
     ".*",

@@ -1,4 +1,3 @@
-/// <reference path="../types/bg.d.ts" />
 import SettingsToSync = SettingsNS.PersistentSettings;
 
 if (Settings.get("vimSync") === true) setTimeout(function() { if (!chrome.storage) { return; }

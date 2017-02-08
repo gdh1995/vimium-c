@@ -1,4 +1,4 @@
-/// <reference path="bg.d.ts" />
+/// <reference path="../background/bg.d.ts" />
 
 import Domain = CompletersNS.Domain;
 import MatchType = CompletersNS.MatchType;

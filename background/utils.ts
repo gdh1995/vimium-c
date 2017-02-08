@@ -1,5 +1,3 @@
-/// <reference path="../types/bg.d.ts" />
-
 const Utils = {
   fetchHttpContents (url: string, success: (this: TextXHR, event: Event & TypedEvent<"load">) => void,
       req?: XMLHttpRequest | null): TextXHR {

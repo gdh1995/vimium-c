@@ -1,4 +1,4 @@
-/// <reference path="../types/bg.d.ts" />
+/// <reference path="../background/bg.d.ts" />
 
 (function(): void {
 const BG: any | null = chrome.extension.getBackgroundPage();

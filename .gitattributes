@@ -8,10 +8,6 @@
 *.png binary
 *.sh linguist-language=Text
 lib/math_parser.js linguist-vendored
-types/* linguist-vendored
-types/vimiumplus* linguist-vendored=false
-types/bg* linguist-vendored=false
-types/fg* linguist-vendored=false
-types/pages* linguist-vendored=false
-types/messages* linguist-vendored=false
+types/base/* linguist-vendored
+types/base/base.d.ts linguist-vendored=false
 weidu/* linguist-vendored

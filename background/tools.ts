@@ -1,5 +1,3 @@
-/// <reference path="../types/bg.d.ts" />
-
 const Clipboard = {
   getTextArea (): HTMLTextAreaElement {
     const el = document.createElement("textarea");

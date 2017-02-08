@@ -1,5 +1,3 @@
-/// <reference path="../types/bg.d.ts" />
-
 var Commands = {
   setKeyRe (keyReSource: string): void {
     Utils.keyRe = new RegExp(keyReSource, "g") as RegExpG & RegExpSearchable<0>;

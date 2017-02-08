@@ -1,5 +1,3 @@
-/// <reference path="../types/bg.d.ts" />
-
 var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
 (function() {
   type Tab = chrome.tabs.Tab;
@@ -1840,12 +1838,11 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
 
   // will run only on <F5>, not on runtime.reload
   window.onunload = function() {
-    let ref = framesForTab, tabId: string, ports: Frames.Port[], i: number;
+    let ref = framesForTab as Frames.FramesMapToDestroy, tabId: string;
     ref.omni = framesForOmni;
     for (tabId in ref) {
-      ports = ref[tabId] as Frames.Port[];
-      for (i = ports.length; 0 <= --i; ) {
-        ports[i].disconnect();
+      for (const port of ref[tabId]) {
+        port.disconnect();
       }
     }
   };

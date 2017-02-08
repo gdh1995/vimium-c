@@ -1,4 +1,3 @@
-/// <reference path="../types/bg.d.ts" />
 import SettingsWithDefaults = SettingsNS.SettingsWithDefaults;
 
 const Settings = {
