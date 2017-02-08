@@ -1546,7 +1546,7 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
       (this: void, request: FgReq["getCopiedUrl_f"], port: Port): string;
       (this: void, request: FgReq["getCopiedUrl_f"]): Urls.Url;
     },
-    copyToClipboard (this: void, request: FgReq["copyToClipboard"]): void {
+    copyToClipboard (this: void, request: FgReq["copyToClipboard"]): FgRes["copyToClipboard"] {
       return Clipboard.copy(request.data);
     },
     key (this: void, request: FgReq["key"], port: Port): void {

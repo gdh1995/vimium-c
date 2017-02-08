@@ -162,6 +162,7 @@ interface FgRes {
   initInnerCSS: string;
   gotoMark: boolean;
   secret: number | null;
+  copyToClipboard: void;
 }
 
 declare namespace Req {

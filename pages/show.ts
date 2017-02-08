@@ -1,20 +1,25 @@
-"use strict";
-var $ = document.getElementById.bind(document),
-    shownNode, bgLink = $('bgLink'), BG,
-    url, type, file;
+/// <reference path="../background/bg.d.ts" />
+interface ImportBody {
+  (id: "shownImage"): HTMLImageElement
+  (id: "shownText"): HTMLDivElement
+}
 
-BG = window.chrome && chrome.extension && chrome.extension.getBackgroundPage();
+const $ = document.getElementById.bind(document);
+let shownNode: HTMLImageElement | HTMLDivElement, bgLink = $('bgLink') as HTMLAnchorElement,
+    url: string, type: string, file: string;
+
+let BG = window.chrome && chrome.extension && chrome.extension.getBackgroundPage();
 if (!(BG && BG.Utils && BG.Utils.convertToUrl)) {
   BG = null;
 }
 
-window.onhashchange = function() {
-  var str, ind;
+window.onhashchange = function(this: void): void {
+  let str: Urls.Url, ind: number;
   if (shownNode) {
     clean();
     bgLink.style.display = "none";
     shownNode.remove();
-    shownNode = null;
+    shownNode = null as never;
   }
   type = file = "";
 
@@ -45,32 +50,32 @@ window.onhashchange = function() {
   } else if (url.toLowerCase().startsWith("javascript:")) {
     type = url = file = "";
   } else if (BG) {
-    str = BG.Utils.convertToUrl(url, null, -2);
-    if (BG.Utils.lastUrlType <= 2) {
+    str = BG.Utils.convertToUrl(url, null, Urls.WorkType.KeepAll);
+    if (BG.Utils.lastUrlType <= Urls.Type.MaxOfInputIsPlainUrl) {
       url = str;
     }
   } else if (url.startsWith("//")) {
     url = "http:" + url;
-  } else if (/^([-.\dA-Za-z]+|\[[\dA-Fa-f:]+])(:\d{2,5})?\//.test(url)) {
+  } else if ((<RegExpOne>/^([-.\dA-Za-z]+|\[[\dA-Fa-f:]+])(:\d{2,5})?\//).test(url)) {
     url = "http://" + url;
   }
 
   switch (type) {
   case "image":
-    shownNode = importBody("shownImage");
+    shownNode = (importBody as ImportBody)("shownImage");
     shownNode.classList.add("hidden");
-    shownNode.onerror = function() {
-      shownNode.alt = "\xa0fail to load\xa0";
+    shownNode.onerror = function(this: void): void {
+      (shownNode as HTMLImageElement).alt = "\xa0fail to load\xa0";
       shownNode.classList.remove("hidden");
       setTimeout(showBgLink, 34);
       shownNode.onclick = chrome.tabs && chrome.tabs.update ? function() {
-        chrome.tabs.update(null, {url: url});
+        chrome.tabs.update({url: url});
       } : clickLink.bind(null, { target: "_top" });
     };
     if (url.indexOf(":") > 0 || url.lastIndexOf(".") > 0) {
       shownNode.src = url;
       shownNode.onclick = defaultOnClick;
-      shownNode.onload = function() {
+      shownNode.onload = function(this: HTMLImageElement): void {
         showBgLink();
         shownNode.classList.remove("hidden");
         shownNode.classList.add("zoom-in");
@@ -80,7 +85,7 @@ window.onhashchange = function() {
       };
     } else {
       url = "";
-      shownNode.onerror();
+      (shownNode.onerror as () => void)();
       shownNode.setAttribute("alt", "\xa0(null)\xa0");
     }
     if (file) {
@@ -90,9 +95,9 @@ window.onhashchange = function() {
     }
     break;
   case "url":
-    shownNode = importBody("shownText");
+    shownNode = (importBody as ImportBody)("shownText");
     if (url && BG) {
-      str = BG.Utils.convertToUrl(url, null, 1);
+      str = BG.Utils.convertToUrl(url, null, Urls.WorkType.ActIfNoSideEffects);
       if (BG.Utils.lastUrlType !== 5) {}
       else if (str instanceof BG.Promise) {
         str.then(function(arr) {
@@ -100,16 +105,16 @@ window.onhashchange = function() {
         });
         break;
       } else if (str instanceof BG.Array) {
-        showText(str[1], str[0] instanceof BG.Array ? str[0].join(" ") : str[0]);
+        showText(str[1], str[0]);
         break;
       }
-      url = str;
+      url = str as string;
     }
     showText(type, url);
     break;
   default:
     url = "";
-    shownNode = importBody("shownImage");
+    shownNode = (importBody as ImportBody)("shownImage");
     shownNode.src = "../icons/vimium.png";
     bgLink.style.display = "none";
     break;
@@ -125,76 +130,75 @@ window.onhashchange = function() {
   }
   bgLink.onclick = shownNode ? clickShownNode : defaultOnClick;
 
-  str = document.querySelector('title').getAttribute('data-title');
+  str = (document.querySelector('title') as HTMLTitleElement).getAttribute('data-title') as string;
   str = BG ? BG.Utils.createSearch(file ? file.split(/\s+/) : [], str)
-    :str.replace(/\$[sS](?:\{[^}]*})?/, file && (file + " | "));
+    : str.replace(<RegExpOne>/\$[sS](?:\{[^}]*})?/, file && (file + " | "));
   document.title = str;
 };
 
 if (!String.prototype.startsWith) {
-String.prototype.startsWith = function(s) {
+String.prototype.startsWith = function(this: string, s: string): boolean {
   return this.lastIndexOf(s, 0) === 0;
 };
 }
-window.onhashchange();
+(window.onhashchange as () => void)();
 
-document.addEventListener("keydown", function(event) {
-  var str;
+document.addEventListener("keydown", function(this: void, event): void {
   if (!(event.ctrlKey || event.metaKey) || event.altKey
     || event.shiftKey || event.repeat) { return; }
-  str = String.fromCharCode(event.keyCode);
+  const str = String.fromCharCode(event.keyCode);
   if (str === 'S') {
-    clickLink({
+    return clickLink({
       download: file
     }, event);
   } else if (str === "C") {
-    window.getSelection().toString() || copyThing(event);
+    return window.getSelection().toString() ? copyThing(event) : undefined;
   } else if (str === "A") {
-    toggleInvert(event);
+    return toggleInvert(event);
   }
 });
 
-function showBgLink() {
-  var height = shownNode.scrollHeight, width = shownNode.scrollWidth;
+function showBgLink(this: void): void {
+  const height = shownNode.scrollHeight, width = shownNode.scrollWidth;
   bgLink.style.height = height + "px";
   bgLink.style.width = width + "px";
   bgLink.style.display = "";
 }
 
-function clickLink(options, event) {
+function clickLink(this: void, options: { [key: string]: string; }, event: MouseEvent | KeyboardEvent): void {
   event.preventDefault();
   if (!url) { return; }
-  var a = document.createElement('a'), i;
+  const a = document.createElement('a');
   Object.setPrototypeOf(options, null);
-  for (i in options) {
+  for (let i in options) {
     a.setAttribute(i, options[i]);
   }
   a.href = url;
   if (window.VDom) {
-    VDom.UI.click(a, event);
+    window.VDom.mouse(a, "click", event);
   } else {
     a.click();
   }
 }
 
-function decodeURLPart(url) {
+function decodeURLPart(url: string): string {
   try {
     url = decodeURIComponent(url);
   } catch (e) {}
   return url;
 }
 
-function importBody(id) {
-  var templates = $('bodyTemplate'), node;
-  node = document.importNode(templates.content.getElementById(id), true);
+function importBody(id: string): HTMLElement {
+  const templates = $('bodyTemplate') as HTMLTemplateElement,
+  node = document.importNode(templates.content.getElementById(id), true) as HTMLElement;
   document.body.insertBefore(node, templates);
   return node;
 }
 
-function defaultOnClick(event) {
+function defaultOnClick(event: MouseEvent): void {
   if (event.altKey) {
     event.stopImmediatePropagation();
-    clickLink({ download: file }, event);
+    return clickLink({ download: file }, event);
   } else switch (type) {
   case "url": clickLink({ target: "_blank" }, event); break;
   case "image":
@@ -204,40 +208,41 @@ function defaultOnClick(event) {
   }
 }
 
-function clickShownNode(event) {
+function clickShownNode(event: MouseEvent): void {
   event.preventDefault();
   if (shownNode.onclick) {
     shownNode.onclick(event);
   }
 }
 
-function showText(tip, body) {
-  $("textTip").setAttribute("data-text", tip);
+function showText(tip: string, body: string | string[]): void {
+  ($("textTip") as HTMLElement).setAttribute("data-text", tip);
+  const textBody = $("textBody") as HTMLElement;
   if (body) {
-    $("textBody").textContent = body;
+    textBody.textContent = typeof body !== "string" ? body.join(" ") : body;
     shownNode.onclick = copyThing;
   } else {
-    $("textBody").classList.add("null");
+    textBody.classList.add("null");
   }
-  showBgLink();
+  return showBgLink();
 }
 
-function copyThing(event) {
+function copyThing(event: Event): void {
   event.preventDefault();
-  var str = url;
+  let str = url;
   if (type == "url") {
-    str = $("textBody").textContent;
+    str = ($("textBody") as HTMLElement).textContent;
   }
   if (!(str && window.VPort)) { return; }
-  VPort.send({
+  return window.VPort.send({
     handler: "copyToClipboard",
     data: str
-  }, function() {
-    VHUD.showCopied(str);
+  } as FgReq["copyToClipboard"], function() {
+    return window.VHUD.showCopied(str);
   });
 }
 
-function toggleInvert(event) {
+function toggleInvert(event: Event): void {
   if (type === "image") {
     if (document.documentElement.innerText) {
       event.preventDefault();
@@ -247,53 +252,53 @@ function toggleInvert(event) {
   }
 }
 
-function loadJS(name, src) {
-  if (window[name]) {
-    return Promise.resolve(window[name]);
+function loadJS(name: string, src: string): Promise<any> {
+  if ((window as any)[name]) {
+    return Promise.resolve((window as any)[name]);
   }
   return new Promise(function(resolve, reject) {
-    var script = document.createElement("script");
+    const script = document.createElement("script");
     script.src = src;
     script.onerror = function() {
       reject("ImportError: " + name);
     };
     script.onload = function() {
-      var obj = window[name];
-      obj ? resolve(obj) : reject("ImportError: " + name);
+      const obj = (window as any)[name];
+      obj ? resolve(obj) : (this.onerror as () => void)();
     };
     document.head.appendChild(script).remove();
   });
 }
 
-function loadCSS(src) {
+function loadCSS(src: string): void {
   if (document.querySelector('link[href="' + src + '"]')) {
     return;
   }
-  var obj = document.createElement('link');
-  obj.rel = 'stylesheet';
+  const obj = document.createElement("link");
+  obj.rel = "stylesheet";
   obj.href = src;
   document.head.insertBefore(obj, document.querySelector('link[href$="show.css"]'));
 }
 
-function defaultOnError(err) {
+function defaultOnError(err: any): void {
   err && console.log(err);
 }
 
-function loadViewer(func) {
+function loadViewer(func: (viewer: any) => void): Promise<void> {
   loadCSS("../lib/viewer.min.css");
-  return loadJS("Viewer", "..//lib/viewer.min.js").then(function(Viewer) {
+  return loadJS("Viewer", "../lib/viewer.min.js").then<void>(function(Viewer): void {
     Viewer.setDefaults({
       navbar: false,
-      ready: function() {
-        var btns = document.querySelector('.viewer-toolbar').children, i;
-        for (i = btns.length; 0 <= --i; ) {
+      ready: function(this: void) {
+        const btns = (document.querySelector('.viewer-toolbar') as HTMLElement).children;
+        for (let i = btns.length; 0 <= --i; ) {
           btns[i].vimiumHasOnclick = true;
         }
       },
-      shown: function() {
+      shown: function(this: void) {
         bgLink.style.display = "none";
       },
-      hide: function() {
+      hide: function(this: void) {
         bgLink.style.display = "";
       }
     });
@@ -301,11 +306,11 @@ function loadViewer(func) {
   });
 }
 
-function toggleSlide(Viewer) {
-  var sel = window.getSelection();
+function toggleSlide(Viewer: any): void {
+  const sel = window.getSelection();
   sel.type == "Range" && sel.collapseToStart();
   window.viewer = window.viewer || new Viewer(shownNode);
-  window.viewer.show();
+  (window.viewer as any).show();
 }
 
 function clean() {
