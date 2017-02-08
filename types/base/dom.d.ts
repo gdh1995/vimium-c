@@ -1396,6 +1396,31 @@ interface DocumentEventMap extends GlobalEventHandlersEventMap {
     "webkitfullscreenerror": Event;
 }
 
+interface DocumentAttrsDefault {
+    /**
+      * Specifies the beginning and end of the document body.
+      */
+    readonly body: HTMLBodyElement | HTMLFrameSetElement;
+    /**
+      * Gets a reference to the root node of the document. 
+      */
+    readonly documentElement: HTMLHtmlElement; // | SVGSVGElement; // | Element | null;
+    readonly head: HTMLHeadElement;
+    readonly currentScript: HTMLScriptElement | null;
+}
+interface DocumentAttrsToBeDetected {
+    /**
+      * Specifies the beginning and end of the document body.
+      */
+    readonly body: HTMLBodyElement | HTMLFrameSetElement | null;
+    /**
+      * Gets a reference to the root node of the document. 
+      */
+    readonly documentElement: HTMLElement | SVGSVGElement | null; // | Element | null;
+    readonly head: HTMLHeadElement | null;
+    readonly currentScript: HTMLScriptElement | SVGScriptElement | null;
+}
+
 interface Document extends Node, GlobalEventHandlers, NodeSelector, DocumentEvent, ParentNode, DocumentOrShadowRoot {
     /**
       * Sets or gets the URL for the current document. 
@@ -1429,10 +1454,6 @@ interface Document extends Node, GlobalEventHandlers, NodeSelector, DocumentEven
       * Deprecated. Sets or retrieves a value that indicates the background color behind the object. 
       */
     bgColor: string;
-    /**
-      * Specifies the beginning and end of the document body.
-      */
-    body: HTMLBodyElement | HTMLFrameSetElement | null;
     readonly characterSet: string;
     /**
       * Gets or sets the character set used to encode the object.
@@ -1443,7 +1464,6 @@ interface Document extends Node, GlobalEventHandlers, NodeSelector, DocumentEven
       */
     readonly compatMode: string;
     cookie: string;
-    readonly currentScript: HTMLScriptElement | SVGScriptElement | null;
     /**
       * Gets the default character set from the current regional language settings.
       */
@@ -1462,10 +1482,6 @@ interface Document extends Node, GlobalEventHandlers, NodeSelector, DocumentEven
       */
     readonly doctype: DocumentType;
     /**
-      * Gets a reference to the root node of the document. 
-      */
-    documentElement: HTMLElement | SVGSVGElement; // | Element | null;
-    /**
       * Sets or gets the security domain of the document. 
       */
     domain: string;
@@ -1483,7 +1499,6 @@ interface Document extends Node, GlobalEventHandlers, NodeSelector, DocumentEven
     forms: HTMLCollectionOf<HTMLFormElement>;
     readonly fullscreenElement: Element | null;
     readonly fullscreenEnabled: boolean;
-    readonly head: HTMLHeadElement | null;
     readonly hidden: boolean;
     /**
       * Retrieves a collection, in source order, of img objects in the document.
@@ -2986,6 +3001,7 @@ interface HTMLElement extends Element {
     spellcheck: boolean;
     readonly style: CSSStyleDeclaration;
     tabIndex: number;
+    textContent: string;
     title: string;
     blur(): void;
     click(): void;

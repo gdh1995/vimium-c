@@ -1,3 +1,5 @@
+interface Document extends DocumentAttrsDefault {}
+
 const Clipboard = {
   getTextArea (): HTMLTextAreaElement {
     const el = document.createElement("textarea");

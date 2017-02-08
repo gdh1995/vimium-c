@@ -42,3 +42,8 @@ interface String {
   trimLeft(): string;
   trimRight(): string;
 }
+
+interface Window {
+  readonly Promise: PromiseConstructor;
+  readonly Array: ArrayConstructor;
+}
