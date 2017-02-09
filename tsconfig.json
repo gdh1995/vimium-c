@@ -30,9 +30,10 @@
   },
   "exclude": [
     ".*",
-    "*.min.*",
     "dist",
     "node_modules",
+    "front/*.ts",
+    "pages/options*.ts",
     "test*",
     "weidu"
   ]
