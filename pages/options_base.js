@@ -3,7 +3,9 @@
 var $, bgSettings, BG,
 KeyRe = /<(?!<)(?:a-)?(?:c-)?(?:m-)?(?:[A-Z][\dA-Z]+|[a-z][\da-z]+|\S)>|\S/g,
 __extends = function(child, parent) {
-  Object.setPrototypeOf(child.prototype, parent.prototype);
+  function __() { this.constructor = parent; }
+  __.prototype = parent.prototype;
+  child.prototype = new __();
   child.__super__ = parent.prototype;
 },
 debounce = function(func, wait, bound_context, also_immediate) {
