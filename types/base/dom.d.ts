@@ -2135,6 +2135,7 @@ interface Element extends Node, GlobalEventHandlers, ElementTraversal, NodeSelec
     webkitMatchesSelector(selectors: string): boolean;
     webkitRequestFullScreen(): void;
     webkitRequestFullscreen(): void;
+    getElementsByClassName<T extends Element>(classNames: string): NodeListOf<T>;
     getElementsByClassName(classNames: string): NodeListOf<Element>;
     matches(selector: string): boolean;
     closest(selector: string): Element | null;
@@ -9360,7 +9361,7 @@ declare var scrollX: number;
 declare var scrollY: number;
 declare var scrollbars: BarProp;
 declare var self: Window;
-declare var status: string;
+// declare var status: string;
 declare var statusbar: BarProp;
 declare var styleMedia: StyleMedia;
 declare var toolbar: BarProp;
