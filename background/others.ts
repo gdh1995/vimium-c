@@ -353,7 +353,7 @@ setTimeout(function() {
     reason = notificationId || reason;
     popup.onClicked.addListener(function(id): void {
       if (id !== reason) { return; }
-      g_requestHandlers.focusOrLaunch({
+      return g_requestHandlers.focusOrLaunch({
         url: "https://github.com/gdh1995/vimium-plus#release-notes"
       });
     });

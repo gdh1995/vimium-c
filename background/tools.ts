@@ -82,7 +82,7 @@ Marks = { // NOTE: all members should be static
       g_requestHandlers.gotoSession({ sessionId: tab.id });
       return Marks.scrollTab(this, tab);
     } else {
-      g_requestHandlers.focusOrLaunch(this);
+      return g_requestHandlers.focusOrLaunch(this);
     }
   },
   getLocationKey (this: void, keyChar: string): string {

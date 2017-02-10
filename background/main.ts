@@ -1393,7 +1393,7 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
       url = url.substring(0, start) + (end ? str + url.substring(end) : str);
       return { url, path };
     },
-    searchAs (this: void, request: FgReq["searchAs"]): string {
+    searchAs (this: void, request: FgReq["searchAs"]): FgRes["searchAs"] {
       let search = requestHandlers.parseSearchUrl(request), query;
       if (!search || !search.keyword) { return "No search engine found!"; }
       if (!(query = request.search)) {
@@ -1489,8 +1489,8 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
       }
       try { port.postMessage({ name: "returnFocus", lastKey: request.lastKey }); } catch (e) {}
     },
-    initHelp (this: void, request: FgReq["initHelp"], port: Port): Promise<void> {
-      return Promise.all([
+    initHelp (this: void, request: FgReq["initHelp"], port: Port): void {
+      Promise.all([
         Utils.require<typeof HelpDialog>('HelpDialog'),
         request, port,
         new Promise<void>(function(resolve, reject) {
@@ -1508,7 +1508,7 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
         console.error("Promises for initHelp failed:", args[0], ';', args[3]);
       });
     },
-    initInnerCSS (this: void): string {
+    initInnerCSS (this: void): FgRes["initInnerCSS"] {
       return Settings.cache.innerCSS;
     },
     activateVomnibar (this: void, request: FgReq["activateVomnibar"], port: Port): void {
@@ -1543,7 +1543,7 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
       }
       return url;
     } as {
-      (this: void, request: FgReq["getCopiedUrl_f"], port: Port): string;
+      (this: void, request: FgReq["getCopiedUrl_f"], port: Port): FgRes["getCopiedUrl_f"];
       (this: void, request: FgReq["getCopiedUrl_f"]): Urls.Url;
     },
     copyToClipboard (this: void, request: FgReq["copyToClipboard"]): FgRes["copyToClipboard"] {
@@ -1570,10 +1570,10 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
        return Marks.createMark(request, port);
     },
     gotoMark (this: void, request: FgReq["gotoMark"]): FgRes["gotoMark"] { return Marks.gotoMark(request); },
-    focusOrLaunch (this: void, request: MarksNS.FocusOrLaunch): 1 {
+    focusOrLaunch (this: void, request: MarksNS.FocusOrLaunch): void {
       // * do not limit windowId or windowType
       const url = request.url.split("#", 1)[0];
-      return chrome.tabs.query({
+      chrome.tabs.query({
         url: request.prefix ? url + "*" : url
       }, funcDict.focusOrLaunch[0].bind(request));
     },

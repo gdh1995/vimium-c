@@ -338,15 +338,7 @@ declare namespace BgReqHandlerNS {
   }
 
   interface BgReqHandlers {
-    parseSearchUrl(this: void, request: {
-        url: string;
-        upper?: number | undefined;
-        trailing_slash?: boolean | undefined;
-    }): {
-        keyword: string;
-        start: number;
-        url: string;
-    } | null;
+    parseSearchUrl(this: void, request: FgReq["parseSearchUrl"]): FgRes["parseSearchUrl"];
     gotoSession: {
       (this: void, request: { sessionId: string | number, active: true }, port: Port): void;
       (this: void, request: { sessionId: string | number, active?: false }): void;
@@ -354,7 +346,7 @@ declare namespace BgReqHandlerNS {
     };
     openUrl(this: void, request: FgReq["openUrl"], port?: Port | undefined): void;
     checkIfEnabled: checkIfEnabled;
-    focusOrLaunch(this: void, request: MarksNS.FocusOrLaunch): 1;
+    focusOrLaunch(this: void, request: MarksNS.FocusOrLaunch): void;
     SetIcon(tabId: number, type: Frames.ValidStatus): void;
     ShowHUD(message: string, isCopy?: boolean | undefined): void;
   }

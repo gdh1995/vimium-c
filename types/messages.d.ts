@@ -159,7 +159,9 @@ interface FgRes {
     url: string;
     path: string | null;
   };
+  searchAs: string;
   initInnerCSS: string;
+  getCopiedUrl_f: string;
   gotoMark: boolean;
   secret: number | null;
   copyToClipboard: void;
