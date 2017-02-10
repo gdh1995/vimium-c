@@ -1,16 +1,19 @@
+/// <reference path="../types/base/index.d.ts" />
+/// <reference path="../types/lib/index.d.ts" />
 /// <reference path="../background/bg.d.ts" />
+/// <reference path="base.d.ts" />
 interface ImportBody {
   (id: "shownImage"): HTMLImageElement
   (id: "shownText"): HTMLDivElement
 }
 
-const $ = document.getElementById.bind(document);
+var $ = document.getElementById.bind(document) as (id: string) => HTMLElement;
 let shownNode: HTMLImageElement | HTMLDivElement, bgLink = $('bgLink') as HTMLAnchorElement,
     url: string, type: string, file: string;
 
-let BG = window.chrome && chrome.extension && chrome.extension.getBackgroundPage();
+var BG = window.chrome && chrome.extension && chrome.extension.getBackgroundPage() as Window;
 if (!(BG && BG.Utils && BG.Utils.convertToUrl)) {
-  BG = null;
+  BG = null as never;
 }
 
 window.onhashchange = function(this: void): void {
@@ -190,7 +193,7 @@ function decodeURLPart(url: string): string {
 
 function importBody(id: string): HTMLElement {
   const templates = $('bodyTemplate') as HTMLTemplateElement,
-  node = document.importNode(templates.content.getElementById(id), true) as HTMLElement;
+  node = document.importNode(templates.content.getElementById(id) as HTMLElement, true);
   document.body.insertBefore(node, templates);
   return node;
 }
@@ -216,8 +219,8 @@ function clickShownNode(event: MouseEvent): void {
 }
 
 function showText(tip: string, body: string | string[]): void {
-  ($("textTip") as HTMLElement).setAttribute("data-text", tip);
-  const textBody = $("textBody") as HTMLElement;
+  $("textTip").setAttribute("data-text", tip);
+  const textBody = $("textBody");
   if (body) {
     textBody.textContent = typeof body !== "string" ? body.join(" ") : body;
     shownNode.onclick = copyThing;
@@ -231,7 +234,7 @@ function copyThing(event: Event): void {
   event.preventDefault();
   let str = url;
   if (type == "url") {
-    str = ($("textBody") as HTMLElement).textContent;
+    str = $("textBody").textContent;
   }
   if (!(str && window.VPort)) { return; }
   return window.VPort.send({

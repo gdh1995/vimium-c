@@ -2,7 +2,7 @@
   "compilerOptions": {
     "allowJs": false,
     "alwaysStrict": true,
-    "forceConsistentCasingInFileNames": true,
+    "forceConsistentCasingInFileNames": false,
     "inferThisForObjectLiterals": true,
     // "lib": [ "dom", "es6" ],
     "listEmittedFiles": true,

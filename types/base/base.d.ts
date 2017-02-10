@@ -46,4 +46,5 @@ interface String {
 interface Window {
   readonly Promise: PromiseConstructor;
   readonly Array: ArrayConstructor;
+  readonly JSON: JSON;
 }

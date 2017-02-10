@@ -1962,9 +1962,7 @@ interface Document extends Node, GlobalEventHandlers, NodeSelector, DocumentEven
       * Gets a value indicating whether the object currently has focus.
       */
     hasFocus(): boolean;
-    importNode(importedNode: Node, deep: boolean): Node;
-    msElementsFromPoint(x: number, y: number): NodeListOf<Element>;
-    msElementsFromRect(left: number, top: number, width: number, height: number): NodeListOf<Element>;
+    importNode<T extends Node>(importedNode: T, deep: true): T;
     /**
       * Opens a new window and loads a document specified by a given URL. Also, opens a new window that uses the url parameter and the name parameter to collect the output of the write method and the writeln method.
       * @param url Specifies a MIME type for the document.
@@ -2030,7 +2028,7 @@ declare var Document: {
 }
 
 interface DocumentFragment extends Node, NodeSelector, ParentNode {
-    getElementById(elementId: string): Element;
+    getElementById(elementId: string): Element | null;
 }
 
 declare var DocumentFragment: {

@@ -375,13 +375,28 @@ interface Window {
 
   readonly g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
   readonly Utils: {
-    convertToUrl: Urls.Converter;
+    readonly convertToUrl: Urls.Converter;
     lastUrlType: Urls.Type;
-    createSearch: Search.Executor;
+    readonly createSearch: Search.Executor;
+    require<T extends object> (name: SettingsNS.DynamicFiles): Promise<T>;
   };
   readonly Settings: {
-    temp: {
-        shownHash: ((this: void) => string) | null;
+    readonly cache: SettingsNS.FullCache;
+    readonly temp: {
+        readonly shownHash: ((this: void) => string) | null;
+    };
+    readonly bufferToLoad: SettingsNS.FrontendSettingCache & SafeObject;
+    get<K extends keyof SettingsNS.SettingsWithDefaults> (key: K, forCache?: boolean
+      ): SettingsNS.SettingsWithDefaults[K];
+    set<K extends keyof FullSettings> (key: K, value: FullSettings[K]): void;
+    indexPorts: {
+      (this: void, tabId: number): Frames.Frames | undefined;
+      (this: void): Frames.FramesMap;
+    };
+    fetchFile (file: keyof SettingsNS.CachedFiles, callback?: (this: void) => any): TextXHR | null;
+    readonly defaults: SettingsNS.SettingsWithDefaults & SafeObject;
+    readonly CONST: {
+      readonly OptionsPage: string;
     };
   }
 }

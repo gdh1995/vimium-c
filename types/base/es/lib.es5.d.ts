@@ -277,6 +277,7 @@ interface Function {
     call<T, A, B, C, R>(this: (this: T, a: A, b: B, c: C) => R, thisArg: T, a: A, b: B, c: C): R;
     call<T, A, B, R>(this: (this: T, a: A, b: B) => R, thisArg: T, a: A, b: B): R;
     call<T, A, R>(this: (this: T, a: A) => R, thisArg: T, a: A): R;
+    call<T, R>(this: (this: T) => R, thisArg: T): R;
 
     /**
       * For a given function, creates a bound function that has the same body as the original function.

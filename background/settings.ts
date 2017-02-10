@@ -139,10 +139,7 @@ const Settings = {
     }
   } as SettingsNS.DeclaredUpdateHookMap as SettingsNS.UpdateHookMap,
   indexFrame: null as never as (this: void, tabId: number, frameId: number) => Port | null,
-  indexPorts: null as never as {
-    (this: void, tabId: number): Frames.Frames | undefined;
-    (this: void): Frames.FramesMap;
-  },
+  indexPorts: null as never as Window["Settings"]["indexPorts"],
   fetchFile (file: keyof SettingsNS.CachedFiles, callback?: (this: void) => any): TextXHR | null {
     if (callback && file in this.cache) { callback(); return null; }
     return Utils.fetchHttpContents(this.CONST.XHRFiles[file], function() {
