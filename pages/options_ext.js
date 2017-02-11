@@ -230,7 +230,7 @@ var _importSettings = function(time, new_data, is_recommended) {
     }
   }
   $("saveOptions").onclick(false);
-  if ($("advancedOptionsButton").getAttribute("data-checked") != '' + bgSettings.get("showAdvancedOptions")) {
+  if ($("advancedOptionsButton").getAttribute("aria-checked") != '' + bgSettings.get("showAdvancedOptions")) {
     $("advancedOptionsButton").onclick(null, true);
   }
   window.VHUD && VHUD.showForDuration("Import settings data: OK!", 1000);

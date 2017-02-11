@@ -278,7 +278,7 @@ ExclusionRulesOption.prototype.onInit = function() {
     var el = $("advancedOptions");
     el.previousElementSibling.style.display = el.style.display = advancedMode ? "" : "none";
     this.firstChild.data = (advancedMode ? "Hide" : "Show") + " Advanced Options";
-    this.setAttribute("data-checked", "" + advancedMode);
+    this.setAttribute("aria-checked", "" + advancedMode);
   };
   element.onclick(null, true);
 
