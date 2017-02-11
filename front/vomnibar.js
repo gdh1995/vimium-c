@@ -8,7 +8,7 @@ var Vomnibar = {
     this.forceNewTab = options.force ? true : false;
     url = options.url;
     keyword = options.keyword;
-    this.mode.clientWidth = options.width;
+    this.mode.clientWidth = options.width | 0;
     if (url == null) {
       return this.reset(keyword ? keyword + " " : "");
     }

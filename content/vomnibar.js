@@ -25,7 +25,7 @@ var Vomnibar = {
     }
     if (VHints.tryNestedFrame("Vomnibar.activate", 1, options)) { return; }
     this.options = null;
-    this.width = Math.max(window.innerWidth - 24, document.documentElement.clientWidth);
+    this.width = Math.max(window.innerWidth - 24, document.documentElement.getBoundingClientRect().width);
     this.zoom = VDom.UI.getZoom();
     this.status > 0 || VHandler.push(VDom.UI.SuppressMost, this);
     var url, upper = 0;
