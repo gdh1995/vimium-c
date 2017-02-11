@@ -1664,7 +1664,7 @@ declare namespace chrome.runtime {
      * @deprecated since Chrome 33. Please use chrome.runtime.onRestartRequired.
      * Fired when a Chrome update is available, but isn't installed immediately because a browser restart is required.
      */
-    var onBrowserUpdateAvailable: RuntimeEvent;
+    //var onBrowserUpdateAvailable: RuntimeEvent;
 }
 
 ////////////////////
@@ -1835,7 +1835,7 @@ declare namespace chrome.storage {
 
     interface SyncStorageArea extends StorageArea {
         /** @deprecated since Chrome 40. The storage.sync API no longer has a sustained write operation quota. */
-        MAX_SUSTAINED_WRITE_OPERATIONS_PER_MINUTE: number;
+        //MAX_SUSTAINED_WRITE_OPERATIONS_PER_MINUTE: number;
         /** The maximum total amount (in bytes) of data that can be stored in sync storage, as measured by the JSON stringification of every value plus every key's length. Updates that would cause this limit to be exceeded fail immediately and set runtime.lastError. */
         QUOTA_BYTES: number;
         /** The maximum size (in bytes) of each individual item in sync storage, as measured by the JSON stringification of its value plus its key length. Updates containing items larger than this limit will fail immediately and set runtime.lastError. */
@@ -1957,7 +1957,7 @@ declare namespace chrome.tabs {
          * Whether the tab is selected.
          * @deprecated since Chrome 33. Please use tabs.Tab.highlighted.
          */
-        selected: boolean;
+        // selected: boolean;
         /**
          * Whether the tab has produced sound over the past couple of seconds (but it might not be heard if also muted). Equivalent to whether the speaker audio indicator is showing.
          * @since Chrome 45.
@@ -2066,7 +2066,7 @@ declare namespace chrome.tabs {
          * Optional. Whether the tab should become the selected tab in the window. Defaults to true
          * @deprecated since Chrome 33. Please use active.
          */
-        selected?: boolean;
+        // selected?: boolean;
     }
 
     interface MoveProperties {
@@ -2103,7 +2103,7 @@ declare namespace chrome.tabs {
          * Optional. Whether the tab should be selected.
          * @deprecated since Chrome 33. Please use highlighted.
          */
-        selected?: boolean;
+        // selected?: boolean;
         /**
          * Optional. Whether the tab should be muted.
          * @since Chrome 45.
@@ -2326,26 +2326,26 @@ declare namespace chrome.tabs {
      * Gets details about all tabs in the specified window.
      * @deprecated since Chrome 33. Please use tabs.query {windowId: windowId}.
      */
-    export function getAllInWindow(callback: (tab: Tab) => void): 1;
+    // export function getAllInWindow(callback: (tab: Tab) => void): 1;
     /**
      * Gets details about all tabs in the specified window.
      * @deprecated since Chrome 33. Please use tabs.query {windowId: windowId}.
      * @param windowId Optional. Defaults to the current window.
      */
-    export function getAllInWindow(windowId: number, callback: (tab: Tab) => void): 1;
+    // export function getAllInWindow(windowId: number, callback: (tab: Tab) => void): 1;
     /** Gets the tab that this script call is being made from. May be undefined if called from a non-tab context (for example: a background page or popup view). */
     export function getCurrent(callback: (tab?: Tab) => void): 1;
     /**
      * Gets the tab that is selected in the specified window.
      * @deprecated since Chrome 33. Please use tabs.query {active: true}.
      */
-    export function getSelected(callback: (tab: Tab) => void): 1;
+    // export function getSelected(callback: (tab: Tab) => void): 1;
     /**
      * Gets the tab that is selected in the specified window.
      * @deprecated since Chrome 33. Please use tabs.query {active: true}.
      * @param windowId Optional. Defaults to the current window.
      */
-    export function getSelected(windowId: number, callback: (tab: Tab) => void): 1;
+    // export function getSelected(windowId: number, callback: (tab: Tab) => void): 1;
     /**
      * Creates a new tab.
      * @param callback Optional.
@@ -2466,9 +2466,9 @@ declare namespace chrome.tabs {
      * @param responseCallback Optional.
      * Parameter response: The JSON response object sent by the handler of the request. If an error occurs while connecting to the specified tab, the callback will be called with no arguments and runtime.lastError will be set to the error message.
      */
-    export function sendRequest(tabId: number, request: any, responseCallback?: (response: any) => void): 1;
+    // export function sendRequest(tabId: number, request: any, responseCallback?: (response: any) => void): 1;
     /** Connects to the content script(s) in the specified tab. The runtime.onConnect event is fired in each content script running in the specified tab for the current extension. */
-    export function connect(tabId: number, connectInfo?: ConnectInfo): runtime.Port;
+    // export function connect(tabId: number, connectInfo?: ConnectInfo): runtime.Port;
     /**
      * Injects CSS into a page. For details, see the programmatic injection section of the content scripts doc.
      * @param details Details of the script or CSS to inject. Either the code or the file property must be set, but both may not be set at the same time.
@@ -2605,17 +2605,17 @@ declare namespace chrome.tabs {
      * @deprecated since Chrome 33. Please use tabs.onActivated.
      * Fires when the selected tab in a window changes.
      */
-    var onSelectionChanged: TabSelectedEvent;
+    // var onSelectionChanged: TabSelectedEvent;
     /**
      * @deprecated since Chrome 33. Please use tabs.onActivated.
      * Fires when the selected tab in a window changes. Note that the tab's URL may not be set at the time this event fired, but you can listen to tabs.onUpdated events to be notified when a URL is set.
      */
-    var onActiveChanged: TabSelectedEvent;
+    // var onActiveChanged: TabSelectedEvent;
     /**
      * @deprecated since Chrome 33. Please use tabs.onHighlighted.
      * Fired when the highlighted or selected tabs in a window changes.
      */
-    var onHighlightChanged: TabHighlightedEvent;
+    // var onHighlightChanged: TabHighlightedEvent;
     /**
      * Fired when a tab is zoomed.
      * @since Chrome 38.

@@ -2081,8 +2081,8 @@ interface Element extends Node, GlobalEventHandlers, ElementTraversal, NodeSelec
     readonly clientLeft: number;
     readonly clientTop: number;
     readonly clientWidth: number;
+    getDestinationInsertionPoints?(): Element[];
     id: string;
-    msContentZoomFactor: number;
     readonly msRegionOverflow: string;
     onariarequest: (this: Element, ev: AriaRequestEvent) => any;
     oncommand: (this: Element, ev: CommandEvent) => any;
@@ -2181,8 +2181,8 @@ interface Event {
     readonly defaultPrevented: boolean;
     readonly eventPhase: number;
     readonly isTrusted: boolean;
-    returnValue: boolean;
-    readonly srcElement: Element | null;
+    // returnValue: boolean;
+    // readonly srcElement: Element | null;
     readonly target: EventTarget;
     readonly timeStamp: number;
     readonly type: string;
