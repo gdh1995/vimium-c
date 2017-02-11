@@ -460,4 +460,4 @@ window.onhashchange = function() {
     node.onclick && node.onclick(event, "hash");
   }
 };
-window.location.hash.length > 4 && setTimeout(window.onhashchange, 50);
+window.location.hash.length > 4 && setTimeout(window.onhashchange, 100);

@@ -19,9 +19,15 @@ $("showCommands").onclick = function(event) {
     names: true,
     title: "Command Listing"
   });
+  var isIniting = !event;
   setTimeout(function() {
     var node = VDom.UI.root && VDom.UI.root.getElementById("HelpDialog");
     if (!node) { return; }
+    if (isIniting) {
+      node.querySelector("#HClose").addEventListener("click", function() {
+        window.location.hash = "";
+      });
+    }
     node.onclick = function(event) {
       var target = event.target, str;
       if (target.classList.contains("HelpCommandName")) {
