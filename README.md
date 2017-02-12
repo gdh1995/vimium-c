@@ -49,7 +49,8 @@ __微度新标签页修改版 (Modified X New Tab Page):__
 # Release Notes
 
 1.58 beta:
-* disable the experimental feature of options_ui dialog
+* temporarily disable the experimental feature of options_ui dialog
+* use `closed` shadowDOM to show UI more safely
 
 1.57.6:
 * fix bugs like single-completer searching and opening showPage in place

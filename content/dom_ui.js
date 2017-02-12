@@ -14,7 +14,7 @@ VDom.UI = {
     this.InitInner = null;
     this.init && this.init(false);
     this.box.style.display = "none";
-    this.root = this.box.createShadowRoot();
+    this.root = this.box.attachShadow ? this.box.attachShadow({mode: "closed"}) : this.box.createShadowRoot();
     this.addElement = function(element, options) {
       options = Object.setPrototypeOf(options || {}, null);
       options.adjust === false || this.adjust();

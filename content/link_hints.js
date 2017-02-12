@@ -313,9 +313,12 @@ var VHints = {
       func = filters[key].bind(output);
       if (VSettings.cache.deepHints) {
         output.forEach.call(box.querySelectorAll("* /deep/ " + key), func);
-        continue;
+        if (typeof Element.prototype.attachShadow !== "function") {
+          continue;
+        }
+      } else {
+        output.forEach.call(box.getElementsByTagName(key), func);
       }
-      output.forEach.call(box.getElementsByTagName(key), func);
       if (VDom.UI.root) {
         output.forEach.call(VDom.UI.root.querySelectorAll(key), func);
       }
