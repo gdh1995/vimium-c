@@ -43,7 +43,7 @@ VDom.UI = {
   },
   init: function(showing) {
     this.init = null;
-    this.box = VDom.createElement("vimium");
+    this.box = VDom.createElement("vimium-ui");
     showing !== false && this.adjust();
   },
   InitInner: function(innerCSS) {
