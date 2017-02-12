@@ -338,8 +338,6 @@ declare var BeforeUnloadEvent: {
 interface Blob {
     readonly size: number;
     readonly type: string;
-    msClose(): void;
-    msDetachStream(): any;
     slice(start?: number, end?: number, contentType?: string): Blob;
 }
 
@@ -647,53 +645,6 @@ interface CSSStyleDeclaration {
     maxWidth: string | null;
     minHeight: string | null;
     minWidth: string | null;
-    msContentZoomChaining: string | null;
-    msContentZoomLimit: string | null;
-    msContentZoomLimitMax: any;
-    msContentZoomLimitMin: any;
-    msContentZoomSnap: string | null;
-    msContentZoomSnapPoints: string | null;
-    msContentZoomSnapType: string | null;
-    msContentZooming: string | null;
-    msFlowFrom: string | null;
-    msFlowInto: string | null;
-    msFontFeatureSettings: string | null;
-    msGridColumn: any;
-    msGridColumnAlign: string | null;
-    msGridColumnSpan: any;
-    msGridColumns: string | null;
-    msGridRow: any;
-    msGridRowAlign: string | null;
-    msGridRowSpan: any;
-    msGridRows: string | null;
-    msHighContrastAdjust: string | null;
-    msHyphenateLimitChars: string | null;
-    msHyphenateLimitLines: any;
-    msHyphenateLimitZone: any;
-    msHyphens: string | null;
-    msImeAlign: string | null;
-    msOverflowStyle: string | null;
-    msScrollChaining: string | null;
-    msScrollLimit: string | null;
-    msScrollLimitXMax: any;
-    msScrollLimitXMin: any;
-    msScrollLimitYMax: any;
-    msScrollLimitYMin: any;
-    msScrollRails: string | null;
-    msScrollSnapPointsX: string | null;
-    msScrollSnapPointsY: string | null;
-    msScrollSnapType: string | null;
-    msScrollSnapX: string | null;
-    msScrollSnapY: string | null;
-    msScrollTranslation: string | null;
-    msTextCombineHorizontal: string | null;
-    msTextSizeAdjust: any;
-    msTouchAction: string | null;
-    msTouchSelect: string | null;
-    msUserSelect: string | null;
-    msWrapFlow: string;
-    msWrapMargin: any;
-    msWrapThrough: string;
     opacity: string | null;
     order: string | null;
     orphans: string | null;
@@ -924,8 +875,6 @@ interface CanvasRenderingContext2D extends Object, CanvasPathMethods {
     lineJoin: string;
     lineWidth: number;
     miterLimit: number;
-    msFillRule: string;
-    msImageSmoothingEnabled: boolean;
     shadowBlur: number;
     shadowColor: string;
     shadowOffsetX: number;
@@ -1075,7 +1024,6 @@ interface Console {
     groupEnd(): void;
     info(message?: any, ...optionalParams: any[]): void;
     log(message?: any, ...optionalParams: any[]): void;
-    msIsIndependentlyComposed(element: Element): boolean;
     profile(reportName?: string): void;
     profileEnd(): void;
     select(element: Element): void;
@@ -1528,8 +1476,6 @@ interface Document extends Node, GlobalEventHandlers, NodeSelector, DocumentEven
       * Contains information about the current URL. 
       */
     readonly location: Location;
-    msCSSOMElementFloatMetrics: boolean;
-    msCapsLockWarningOff: boolean;
     /**
       * Fires when the user aborts the download.
       * @param ev The event.
@@ -1856,7 +1802,7 @@ interface Document extends Node, GlobalEventHandlers, NodeSelector, DocumentEven
     /**
       * Closes an output stream and forces the sent data to display.
       */
-    close(): void;
+    // close(): void;
     /**
       * Creates an attribute object with a specified name.
       * @param name String that sets the attribute object's name.
@@ -1970,7 +1916,7 @@ interface Document extends Node, GlobalEventHandlers, NodeSelector, DocumentEven
       * @param features Contains a list of items separated by commas. Each item consists of an option and a value, separated by an equals sign (for example, "fullscreen=yes, toolbar=yes"). The following values are supported.
       * @param replace Specifies whether the existing entry for the document is replaced in the history list.
       */
-    open(url?: string, name?: string, features?: string, replace?: boolean): Document;
+    // open(url?: string, name?: string, features?: string, replace?: boolean): Document;
     /** 
       * Returns a Boolean value that indicates whether a specified command can be successfully executed using execCommand, given the current state of the document.
       * @param commandId Specifies a command identifier.
@@ -2012,12 +1958,12 @@ interface Document extends Node, GlobalEventHandlers, NodeSelector, DocumentEven
       * Writes one or more HTML expressions to a document in the specified window. 
       * @param content Specifies the text and HTML tags to write.
       */
-    write(...content: string[]): void;
+    // write(...content: string[]): void;
     /**
       * Writes one or more HTML expressions, followed by a carriage return, to a document in the specified window. 
       * @param content The text and HTML tags to write.
       */
-    writeln(...content: string[]): void;
+    // writeln(...content: string[]): void;
     addEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, useCapture?: boolean): void;
     addEventListener(type: string, listener: EventListenerOrEventListenerObject, useCapture?: boolean): void;
 }
@@ -2053,7 +1999,6 @@ declare var DocumentType: {
 interface DragEvent extends MouseEvent {
     readonly dataTransfer: DataTransfer;
     initDragEvent(typeArg: string, canBubbleArg: boolean, cancelableArg: boolean, viewArg: Window, detailArg: number, screenXArg: number, screenYArg: number, clientXArg: number, clientYArg: number, ctrlKeyArg: boolean, altKeyArg: boolean, shiftKeyArg: boolean, metaKeyArg: boolean, buttonArg: number, relatedTargetArg: EventTarget, dataTransferArg: DataTransfer): void;
-    msConvertURL(file: File, targetType: string, targetURL?: string): void;
 }
 
 declare var DragEvent: {
@@ -2083,7 +2028,6 @@ interface Element extends Node, GlobalEventHandlers, ElementTraversal, NodeSelec
     readonly clientWidth: number;
     getDestinationInsertionPoints?(): Element[];
     id: string;
-    readonly msRegionOverflow: string;
     onariarequest: (this: Element, ev: AriaRequestEvent) => any;
     oncommand: (this: Element, ev: CommandEvent) => any;
     ongotpointercapture: (this: Element, ev: PointerEvent) => any;
@@ -2117,10 +2061,6 @@ interface Element extends Node, GlobalEventHandlers, ElementTraversal, NodeSelec
     getElementsByTagNameNS(namespaceURI: string, localName: string): HTMLCollectionOf<Element>;
     hasAttribute(name: string): boolean;
     hasAttributeNS(namespaceURI: string, localName: string): boolean;
-    msGetUntransformedBounds(): ClientRect;
-    msMatchesSelector(selectors: string): boolean;
-    msReleasePointerCapture(pointerId: number): void;
-    msSetPointerCapture(pointerId: number): void;
     releasePointerCapture(pointerId: number): void;
     removeAttribute(name?: string): void;
     removeAttributeNS(namespaceURI: string, localName: string): void;
@@ -2139,12 +2079,10 @@ interface Element extends Node, GlobalEventHandlers, ElementTraversal, NodeSelec
     getElementsByClassName(classNames: string): NodeListOf<Element>;
     matches(selector: string): boolean;
     closest(selector: string): Element | null;
-    scrollIntoView(arg?: boolean | ScrollIntoViewOptions): void;
-    scroll(options?: ScrollToOptions): void;
+    scrollIntoView(arg?: boolean): void;
+    // scrollIntoView(arg?: ScrollIntoViewOptions): void;
     scroll(x: number, y: number): void;
-    scrollTo(options?: ScrollToOptions): void;
     scrollTo(x: number, y: number): void;
-    scrollBy(options?: ScrollToOptions): void;
     scrollBy(x: number, y: number): void;
     insertAdjacentElement(position: string, insertedElement: Element): Element | null;
     insertAdjacentHTML(where: string, html: string): void;
@@ -2745,10 +2683,6 @@ interface HTMLCanvasElement extends HTMLElement {
     getContext(contextId: "2d", contextAttributes?: Canvas2DContextAttributes): CanvasRenderingContext2D | null;
     getContext(contextId: string, contextAttributes?: {}): CanvasRenderingContext2D | null;
     /**
-      * Returns a blob object encoded as a Portable Network Graphics (PNG) format from a canvas image or drawing.
-      */
-    msToBlob(): Blob;
-    /**
       * Returns the content of the current canvas as an image that you can use as a source for another canvas or an HTML element.
       * @param type The standard MIME type for the image format to return. If you do not specify this parameter, the default value is a PNG format image.
       */
@@ -3022,22 +2956,6 @@ interface HTMLEmbedElement extends HTMLElement, GetSVGDocument {
       */
     height: string;
     hidden: any;
-    /**
-      * Gets or sets whether the DLNA PlayTo device is available.
-      */
-    msPlayToDisabled: boolean;
-    /**
-      * Gets or sets the path to the preferred media source. This enables the Play To target device to stream the media content, which can be DRM protected, from a different location, such as a cloud media server.
-      */
-    msPlayToPreferredSourceUri: string;
-    /**
-      * Gets or sets the primary DLNA PlayTo device.
-      */
-    msPlayToPrimary: boolean;
-    /**
-      * Gets the source associated with the media element for use by the PlayToManager.
-      */
-    readonly msPlayToSource: any;
     /**
       * Sets or retrieves the name of the object.
       */
@@ -3541,19 +3459,6 @@ interface HTMLImageElement extends HTMLElement {
     longDesc: string;
     lowsrc: string;
     /**
-      * Gets or sets whether the DLNA PlayTo device is available.
-      */
-    msPlayToDisabled: boolean;
-    msPlayToPreferredSourceUri: string;
-    /**
-      * Gets or sets the primary DLNA PlayTo device.
-      */
-    msPlayToPrimary: boolean;
-    /**
-      * Gets the source associated with the media element for use by the PlayToManager.
-      */
-    readonly msPlayToSource: any;
-    /**
       * Sets or retrieves the name of the object.
       */
     name: string;
@@ -3585,7 +3490,6 @@ interface HTMLImageElement extends HTMLElement {
     width: number;
     readonly x: number;
     readonly y: number;
-    msGetAsCastingSource(): any;
     addEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, useCapture?: boolean): void;
     addEventListener(type: string, listener: EventListenerOrEventListenerObject, useCapture?: boolean): void;
 }
@@ -4120,22 +4024,6 @@ interface HTMLObjectElement extends HTMLElement, GetSVGDocument {
     height: string;
     hspace: number;
     /**
-      * Gets or sets whether the DLNA PlayTo device is available.
-      */
-    msPlayToDisabled: boolean;
-    /**
-      * Gets or sets the path to the preferred media source. This enables the Play To target device to stream the media content, which can be DRM protected, from a different location, such as a cloud media server.
-      */
-    msPlayToPreferredSourceUri: string;
-    /**
-      * Gets or sets the primary DLNA PlayTo device.
-      */
-    msPlayToPrimary: boolean;
-    /**
-      * Gets the source associated with the media element for use by the PlayToManager.
-      */
-    readonly msPlayToSource: any;
-    /**
       * Sets or retrieves the name of the object.
       */
     name: string;
@@ -4529,7 +4417,6 @@ interface HTMLSourceElement extends HTMLElement {
       * Gets or sets the intended media type of the media source.
      */
     media: string;
-    msKeySystem: string;
     sizes: string;
     /**
       * The address or URL of the a media resource that is to be considered.
@@ -5059,12 +4946,6 @@ interface HTMLVideoElement extends HTMLMediaElement {
       * Gets or sets the height of the video element.
       */
     height: number;
-    msHorizontalMirror: boolean;
-    readonly msIsLayoutOptimalForPlayback: boolean;
-    readonly msIsStereo3D: boolean;
-    msStereo3DPackingMode: string;
-    msStereo3DRenderMode: string;
-    msZoom: boolean;
     onMSVideoFormatChanged: (this: HTMLVideoElement, ev: Event) => any;
     onMSVideoFrameStepCompleted: (this: HTMLVideoElement, ev: Event) => any;
     onMSVideoOptimalLayoutChanged: (this: HTMLVideoElement, ev: Event) => any;
@@ -5087,9 +4968,6 @@ interface HTMLVideoElement extends HTMLMediaElement {
       */
     width: number;
     getVideoPlaybackQuality(): VideoPlaybackQuality;
-    msFrameStep(forward: boolean): void;
-    msInsertVideoEffect(activatableClassId: string, effectRequired: boolean, config?: any): void;
-    msSetVideoRectangle(left: number, top: number, right: number, bottom: number): void;
     webkitEnterFullScreen(): void;
     webkitEnterFullscreen(): void;
     webkitExitFullScreen(): void;
@@ -5393,9 +5271,6 @@ interface Navigator extends Object, NavigatorID, NavigatorOnLine, NavigatorConte
     readonly language: string;
     readonly maxTouchPoints: number;
     readonly mimeTypes: MimeTypeArray;
-    readonly msManipulationViewsEnabled: boolean;
-    readonly msMaxTouchPoints: number;
-    readonly msPointerEnabled: boolean;
     readonly plugins: PluginArray;
     readonly pointerEnabled: boolean;
     readonly webdriver: boolean;
@@ -7495,14 +7370,11 @@ interface Screen extends EventTarget {
     readonly height: number;
     readonly logicalXDPI: number;
     readonly logicalYDPI: number;
-    readonly msOrientation: string;
     onmsorientationchange: (this: Screen, ev: Event) => any;
     readonly pixelDepth: number;
     readonly systemXDPI: number;
     readonly systemYDPI: number;
     readonly width: number;
-    msLockOrientation(orientations: string | string[]): boolean;
-    msUnlockOrientation(): void;
     addEventListener<K extends keyof ScreenEventMap>(type: K, listener: (this: Screen, ev: ScreenEventMap[K]) => any, useCapture?: boolean): void;
     addEventListener(type: string, listener: EventListenerOrEventListenerObject, useCapture?: boolean): void;
 }
@@ -8259,7 +8131,6 @@ interface Window extends EventTarget, WindowTimers, WindowSessionStorage, Window
     getSelection(): Selection;
     moveBy(x?: number, y?: number): void;
     moveTo(x?: number, y?: number): void;
-    msWriteProfilerMark(profilerMarkName: string): void;
     open(url?: string, target?: string, features?: string, replace?: boolean): Window;
     postMessage(message: any, targetOrigin: string, transfer?: any[]): void;
     print(): void;
@@ -8275,9 +8146,6 @@ interface Window extends EventTarget, WindowTimers, WindowSessionStorage, Window
     webkitConvertPointFromNodeToPage(node: Node, pt: WebKitPoint): WebKitPoint;
     webkitConvertPointFromPageToNode(node: Node, pt: WebKitPoint): WebKitPoint;
     webkitRequestAnimationFrame(callback: FrameRequestCallback): number;
-    scroll(options?: ScrollToOptions): void;
-    scrollTo(options?: ScrollToOptions): void;
-    scrollBy(options?: ScrollToOptions): void;
     addEventListener<K extends keyof WindowEventMap>(type: K, listener: (this: Window, ev: WindowEventMap[K]) => any, useCapture?: boolean): void;
     addEventListener(type: string, listener: EventListenerOrEventListenerObject, useCapture?: boolean): void;
 }
@@ -8313,12 +8181,10 @@ interface XMLHttpRequest extends EventTarget, XMLHttpRequestEventTarget {
     timeout: number;
     readonly upload: XMLHttpRequestUpload;
     withCredentials: boolean;
-    msCaching?: string;
     readonly responseURL: string;
     abort(): void;
     getAllResponseHeaders(): string;
     getResponseHeader(header: string): string | null;
-    msCachingEnabled(): boolean;
     open(method: "GET", url: string, async: true, user?: string, password?: string): void;
     overrideMimeType(mime: string): void;
     send(): void;
@@ -8685,10 +8551,6 @@ interface FilePropertyBag {
     lastModified?: number;
 }
 
-interface EventListenerObject {
-    handleEvent(evt: Event): void;
-}
-
 interface MessageEventInit extends EventInit {
     data?: any;
     origin?: string;
@@ -8706,11 +8568,6 @@ interface ProgressEventInit extends EventInit {
 
 interface ScrollOptions {
     behavior?: ScrollBehavior;
-}
-
-interface ScrollToOptions extends ScrollOptions {
-    left?: number;
-    top?: number;
 }
 
 interface ScrollIntoViewOptions extends ScrollOptions {
@@ -9253,23 +9110,25 @@ declare var Audio: {new(src?: string): HTMLAudioElement; };
 declare var Image: {new(width?: number, height?: number): HTMLImageElement; };
 declare var applicationCache: ApplicationCache;
 declare var clientInformation: Navigator;
-declare var closed: boolean;
+// declare var closed: boolean;
 declare var defaultStatus: string;
 declare var devicePixelRatio: number;
 declare var doNotTrack: string;
 declare var document: Document;
+/*
 declare var event: Event | undefined;
 declare var external: External;
 declare var frameElement: Element;
 declare var frames: Window;
+*/
 declare var history: History;
 declare var innerHeight: number;
 declare var innerWidth: number;
-declare var length: number;
+// declare var length: number;
 declare var location: Location;
 declare var locationbar: BarProp;
 declare var menubar: BarProp;
-declare const name: never;
+// declare const name: never;
 declare var navigator: Navigator;
 declare var offscreenBuffering: string | boolean;
 declare var onabort: (this: Window, ev: UIEvent) => any;
@@ -9344,6 +9203,7 @@ declare var ontouchstart: (ev: TouchEvent) => any;
 declare var onunload: (this: Window, ev: Event) => any;
 declare var onvolumechange: (this: Window, ev: Event) => any;
 declare var onwaiting: (this: Window, ev: Event) => any;
+/*
 declare var opener: any;
 declare var orientation: string | number;
 declare var outerHeight: number;
@@ -9366,24 +9226,24 @@ declare var statusbar: BarProp;
 declare var styleMedia: StyleMedia;
 declare var toolbar: BarProp;
 declare var top: Window;
+*/
 declare var window: Window;
 declare function alert(message?: any): void;
-declare function blur(): void;
+// declare function blur(): void;
 declare function cancelAnimationFrame(handle: number): void;
 declare function captureEvents(): void;
-declare function close(): void;
+// declare function close(): void;
 declare function confirm(message?: string): boolean;
-declare function focus(): void;
+// declare function focus(): void;
 declare function getComputedStyle(elt: Element, pseudoElt?: string): CSSStyleDeclaration;
 declare function getMatchedCSSRules(elt: Element, pseudoElt?: string): CSSRuleList;
 declare function getSelection(): Selection;
 declare function matchMedia(mediaQuery: string): MediaQueryList;
 declare function moveBy(x?: number, y?: number): void;
 declare function moveTo(x?: number, y?: number): void;
-declare function msWriteProfilerMark(profilerMarkName: string): void;
 declare function open(url?: string, target?: string, features?: string, replace?: boolean): Window;
 declare function postMessage(message: any, targetOrigin: string, transfer?: any[]): void;
-declare function print(): void;
+// declare function print(): void;
 declare function prompt(message?: string, _default?: string): string | null;
 declare function releaseEvents(): void;
 declare function requestAnimationFrame(callback: FrameRequestCallback): number;
@@ -9396,10 +9256,7 @@ declare function webkitCancelAnimationFrame(handle: number): void;
 declare function webkitConvertPointFromNodeToPage(node: Node, pt: WebKitPoint): WebKitPoint;
 declare function webkitConvertPointFromPageToNode(node: Node, pt: WebKitPoint): WebKitPoint;
 declare function webkitRequestAnimationFrame(callback: FrameRequestCallback): number;
-declare function scroll(options?: ScrollToOptions): void;
-declare function scrollTo(options?: ScrollToOptions): void;
-declare function scrollBy(options?: ScrollToOptions): void;
-declare function toString(): string;
+// declare function toString(): string;
 declare function dispatchEvent(evt: Event): boolean;
 declare function removeEventListener(type: string, listener?: EventListenerOrEventListenerObject, useCapture?: boolean): void;
 declare var sessionStorage: Storage;
