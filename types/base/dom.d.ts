@@ -2087,7 +2087,7 @@ interface Element extends Node, GlobalEventHandlers, ElementTraversal, NodeSelec
     insertAdjacentElement(position: string, insertedElement: Element): Element | null;
     insertAdjacentHTML(where: string, html: string): void;
     insertAdjacentText(where: string, text: string): void;
-    attachShadow(shadowRootInitDict: ShadowRootInit): ShadowRoot;
+    attachShadow?(shadowRootInitDict: ShadowRootInit): ShadowRoot;
     addEventListener<K extends keyof ElementEventMap>(type: K, listener: (this: Element, ev: ElementEventMap[K]) => void, useCapture?: boolean): void;
     addEventListener(type: string, listener: EventListenerOrEventListenerObject, useCapture?: boolean): void;
 }
@@ -5305,6 +5305,7 @@ interface Node extends EventTarget {
     cloneNode(deep?: boolean): Node;
     compareDocumentPosition(other: Node): number;
     contains(child: Node): boolean;
+    getRootNode?(options?: { composed?: boolean }): Node;
     hasAttributes(): boolean;
     hasChildNodes(): boolean;
     insertBefore(newChild: Node, refChild: Node | null): Node;
