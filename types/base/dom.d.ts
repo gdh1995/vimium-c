@@ -1364,7 +1364,7 @@ interface DocumentAttrsToBeDetected {
     /**
       * Gets a reference to the root node of the document. 
       */
-    readonly documentElement: HTMLElement | SVGSVGElement | null; // | Element | null;
+    readonly documentElement: HTMLElement | SVGElement | null; // | Element | null;
     readonly head: HTMLHeadElement | null;
     readonly currentScript: HTMLScriptElement | SVGScriptElement | null;
 }
@@ -5308,7 +5308,7 @@ interface Node extends EventTarget {
     getRootNode?(options?: { composed?: boolean }): Node;
     hasAttributes(): boolean;
     hasChildNodes(): boolean;
-    insertBefore(newChild: Node, refChild: Node | null): Node;
+    insertBefore<T extends Node>(newChild: T, refChild: Node | null): T;
     isDefaultNamespace(namespaceURI: string | null): boolean;
     isEqualNode(arg: Node): boolean;
     isSameNode(other: Node): boolean;
