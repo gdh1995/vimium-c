@@ -2148,9 +2148,9 @@ declare var Event: {
 }
 
 interface EventTarget {
-    addEventListener(type: string, listener?: EventListenerOrEventListenerObject, useCapture?: boolean): void;
+    addEventListener(type: string, listener: EventListenerOrEventListenerObject, useCapture?: boolean): void;
     dispatchEvent(evt: Event): boolean;
-    removeEventListener(type: string, listener?: EventListenerOrEventListenerObject, useCapture?: boolean): void;
+    removeEventListener(type: string, listener: EventListenerOrEventListenerObject, useCapture?: boolean): void;
 }
 
 declare var EventTarget: {
@@ -8643,7 +8643,7 @@ interface AssignedNodesOptions {
     flatten?: boolean;
 }
 
-declare type EventListenerOrEventListenerObject = EventListener; // | EventListenerObject;
+declare type EventListenerOrEventListenerObject = EventListener | null; // | EventListenerObject;
 
 interface ErrorEventHandler {
     (message: string, filename?: string, lineno?: number, colno?: number, error?:Error): void;
@@ -9259,7 +9259,7 @@ declare function webkitConvertPointFromPageToNode(node: Node, pt: WebKitPoint): 
 declare function webkitRequestAnimationFrame(callback: FrameRequestCallback): number;
 // declare function toString(): string;
 declare function dispatchEvent(evt: Event): boolean;
-declare function removeEventListener(type: string, listener?: EventListenerOrEventListenerObject, useCapture?: boolean): void;
+declare function removeEventListener(type: string, listener: EventListenerOrEventListenerObject, useCapture?: boolean): void;
 declare var sessionStorage: Storage;
 declare var localStorage: Storage;
 declare var console: Console;
