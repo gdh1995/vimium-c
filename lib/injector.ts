@@ -1,20 +1,26 @@
-"use strict";
-/* eslint-env webextensions */
+type _EventTargetEx = typeof EventTarget;
+interface EventTargetEx extends _EventTargetEx {
+  vimiumRemoveHooks: (this: void) => void;
+}
+
 (function() {
-  var curEl = document.currentScript, scriptSrc = curEl.src, i = scriptSrc.indexOf("://") + 3,
-  tick = 1, extId = scriptSrc.substring(i, scriptSrc.indexOf("/", i)), handler;
-chrome.runtime.sendMessage(extId, { handler: "content_scripts" }, handler = function(content_scripts) {
+  const curEl = document.currentScript as HTMLScriptElement, scriptSrc = curEl.src, i = scriptSrc.indexOf("://") + 3,
+  extId = scriptSrc.substring(i, scriptSrc.indexOf("/", i));
+  let tick = 1, handler: (this: void, res: ExternalMsgs["content_scripts"]["res"] | null | undefined | false) => void;
+chrome.runtime.sendMessage(extId, { handler: "content_scripts" } as ExternalMsgs["content_scripts"]["req"],
+handler = function(content_scripts) {
   if (!content_scripts) {
-    var msg, str, host, noBackend;
-    msg = chrome.runtime.lastError && chrome.runtime.lastError.message;
+    type LastError = chrome.runtime.LastError;
+    const msg: string | undefined = (chrome.runtime.lastError as undefined | LastError) &&
+      (chrome.runtime.lastError as undefined | LastError as LastError).message,
     host = chrome.runtime.id || location.host || location.protocol;
-    noBackend = !!(msg && msg.lastIndexOf("not exist") >= 0 && chrome.runtime.id);
+    let str: string | undefined, noBackend = !!(msg && msg.lastIndexOf("not exist") >= 0 && chrome.runtime.id);
     if (content_scripts === false) { // disabled
       str = ": not in the white list.";
     } else if (!noBackend && chrome.runtime.lastError) {
-      str = msg ? ":\n\t" + msg : ": no backend found.";
+      str = msg ? `:\n\t${msg}` : ": no backend found.";
     } else if (tick > 3) {
-      str = msg ? ":\n\t" + msg : ": retried but failed (" + content_scripts + ").";
+      str = msg ? `:\n\t${msg}` : `: retried but failed (${content_scripts}).`;
       noBackend = false;
     } else {
       setTimeout(function() {
@@ -24,15 +30,14 @@ chrome.runtime.sendMessage(extId, { handler: "content_scripts" }, handler = func
       noBackend = true;
     }
     if (!noBackend) {
-      EventTarget.vimiumRemoveHooks && EventTarget.vimiumRemoveHooks();
+      (EventTarget as EventTargetEx).vimiumRemoveHooks && (EventTarget as EventTargetEx).vimiumRemoveHooks();
       console.log("%cVimium++%c: %cfail%c to inject into %c%s%c %s"
         , "color: red;", "color: auto;", "color: red;", "color: auto;", "color: blue;"
-        , host, "color: auto", str ? str : " (" + tick + " retries).");
+        , host, "color: auto", str ? str : ` (${tick} retries).`);
     }
   }
-  /* globals VimiumInjector: false */
-  if (window.VimiumInjector && typeof VimiumInjector.destroy === "function") {
-    VimiumInjector.destroy(true);
+  if (window.VimiumInjector && typeof window.VimiumInjector.destroy === "function") {
+    window.VimiumInjector.destroy(true);
   }
 
   window.VimiumInjector = {
@@ -43,32 +48,35 @@ chrome.runtime.sendMessage(extId, { handler: "content_scripts" }, handler = func
   if (!content_scripts) {
     return chrome.runtime.lastError;
   }
-  var insertLocation = document.contains(curEl) ? curEl : document.documentElement.firstChild
-    , i = 0, len = content_scripts.length, scriptElement
-    , parentElement = insertLocation.parentElement;
-  while (i < len) {
-    scriptElement = document.createElement("script");
+  const insertLocation = document.contains(curEl) ? curEl : document.documentElement.firstChild as Node
+    , parentElement = insertLocation.parentElement as Element;
+  for (const i of content_scripts) {
+    const scriptElement = document.createElement("script");
     scriptElement.async = false;
     scriptElement.defer = true;
-    scriptElement.src = content_scripts[i++];
+    scriptElement.src = i;
     parentElement.insertBefore(scriptElement, insertLocation).remove();
   }
 });
 })();
 
-(function(obj) {
-var cls = obj.prototype, _listen = cls.addEventListener, newListen;
+(function(obj): void {
+type _ListenerEx = typeof obj.prototype.addEventListener;
+interface ListenerEx extends _ListenerEx {
+  vimiumHooked?: boolean;
+}
+const cls = obj.prototype, _listen = cls.addEventListener as ListenerEx;
 if (_listen.vimiumHooked === true) { return; }
 
-cls.addEventListener = newListen = function(type, listener, useCapture) {
+const newListen = cls.addEventListener = function(this: EventTarget, type, listener, useCapture) {
   if (type === "click" && this instanceof Element) {
-    this.vimiumHasOnclick = true;
+    (this as Element).vimiumHasOnclick = true;
   }
   return _listen.call(this, type, listener, useCapture);
 };
-cls.addEventListener.vimiumHooked = true;
+(cls.addEventListener as ListenerEx).vimiumHooked = true;
 obj.vimiumRemoveHooks = function() {
   delete obj.vimiumRemoveHooks;
   cls.addEventListener === newListen && (cls.addEventListener = _listen);
 };
-})(EventTarget);
+})(EventTarget as EventTargetEx);

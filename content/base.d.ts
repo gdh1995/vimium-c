@@ -12,5 +12,10 @@ interface Window {
   };
   readonly VHUD: {
     showCopied(text: string): void;
-  }
+  };
+  VimiumInjector?: {
+    id: string;
+    alive: 0 | 0.5 | 1;
+    destroy: ((silent?: boolean) => void) | null;
+  };
 }

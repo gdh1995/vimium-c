@@ -188,3 +188,21 @@ interface SetSettingReq<T extends keyof SettingsNS.FrontUpdateAllowedSettings> {
   key: T;
   value: SettingsNS.FrontUpdateAllowedSettings[T];
 }
+
+interface ExternalMsgs {
+  content_scripts: {
+    req: {
+      handler: "content_scripts";
+    };
+    res: string[];
+  };
+  command: {
+    req: {
+      handler: "command";
+      command: string;
+      options?: object | null;
+      count?: number;
+    };
+    res: void;
+  };
+}
