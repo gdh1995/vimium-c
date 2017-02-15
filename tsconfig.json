@@ -34,6 +34,7 @@
     "node_modules",
     "front/*.ts",
     "pages/options*.ts",
+    "pages/show.ts",
     "test*",
     "weidu"
   ]

@@ -1,5 +1,4 @@
 /// <reference path="../types/base/index.d.ts" />
-/// <reference path="base.d.ts" />
 chrome.runtime.getManifest && (function() {
   let loader = document.currentScript as HTMLScriptElement;
   const head = loader.parentElement as HTMLElement

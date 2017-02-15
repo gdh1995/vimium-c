@@ -1,5 +1,3 @@
-interface Document extends DocumentAttrsDefault {}
-
 const Clipboard = {
   getTextArea (): HTMLTextAreaElement {
     const el = document.createElement("textarea");
@@ -25,7 +23,7 @@ const Clipboard = {
     data = this.format(data);
     const textArea = this.getTextArea();
     textArea.value = data;
-    document.documentElement.appendChild(textArea);
+    (document.documentElement as HTMLHtmlElement).appendChild(textArea);
     textArea.select();
     document.execCommand("copy");
     textArea.remove();
@@ -34,7 +32,7 @@ const Clipboard = {
   },
   paste (): string {
     const textArea = this.getTextArea();
-    document.documentElement.appendChild(textArea);
+    (document.documentElement as HTMLHtmlElement).appendChild(textArea);
     textArea.focus();
     document.execCommand("paste");
     let value = textArea.value;

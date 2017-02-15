@@ -1,12 +1,22 @@
 
 declare namespace CompletersNS {
+  /**
+   * only those >= .Default can be used in content
+   */
   const enum MatchType {
     Default = 0,
     plain = Default,
     emptyResult = 1, // require query is not empty
     singleMatch = 2,
+    /**
+     * must >= singleMatch
+     */
+    searchWanted = 3,
     reset = -1,
-    _searching = -2, searchWanted = 3 // are same
+    /**
+     * is the same as searchWanted
+     */
+    _searching = -2,
   }
   type ValidTypes = "bookm" | "domain" | "history" | "omni" | "search" | "tab";
   /**
@@ -110,3 +120,5 @@ declare namespace SettingsNS {
     onMac: boolean;
   }
 }
+
+interface Document extends DocumentAttrsToBeDetected {}

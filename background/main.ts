@@ -1831,7 +1831,7 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
       setTimeout(ContentSettings.clear, 100, arr[i]);
     }
 
-    document.documentElement.textContent = '';
+    (document.documentElement as HTMLHtmlElement).textContent = '';
     (document.firstChild as DocumentType).remove();
     Utils.resetRe();
   }, 34);

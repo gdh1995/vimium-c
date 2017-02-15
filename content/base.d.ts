@@ -1,8 +1,6 @@
 interface Element {
   vimiumHasOnclick?: boolean;
 }
-interface Document extends DocumentAttrsToBeDetected {
-}
 
 interface Window {
   readonly VDom: any;

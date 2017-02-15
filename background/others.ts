@@ -4,7 +4,7 @@ if (Settings.get("vimSync") === true) setTimeout(function() { if (!chrome.storag
   type SettingsToUpdate = {
     [key in keyof SettingsToSync]?: SettingsToSync[key] | null
   };
-  var Sync = {
+  const Sync = {
     storage: chrome.storage.sync,
     to_update: null as SettingsToUpdate | null,
     doNotSync: Object.setPrototypeOf({
@@ -87,8 +87,8 @@ if (Settings.get("vimSync") === true) setTimeout(function() { if (!chrome.storag
 }, 400);
 
 setTimeout((function() { if (!chrome.browserAction) { return; }
-  var func = Settings.updateHooks.showActionIcon, imageData: IconNS.StatusMap<IconNS.IconBuffer> | null
-    , tabIds: IconNS.StatusMap<number[]> | null;
+  const func = Settings.updateHooks.showActionIcon;
+  let imageData: IconNS.StatusMap<IconNS.IconBuffer> | null, tabIds: IconNS.StatusMap<number[]> | null;
   function loadImageAndSetIcon(type: Frames.ValidStatus, path: IconNS.PathBuffer) {
     let img: HTMLImageElement, i: IconNS.ValidSizes, cache = Object.create(null) as IconNS.IconBuffer, count = 0,
     onerror = function(this: HTMLImageElement): void {
@@ -168,13 +168,13 @@ setTimeout((function() { if (!chrome.omnibox) { return; }
     (this: void, suggestResults: chrome.omnibox.SuggestResult[]): true;
     (this: void): void;
   }
-  var last: string = "", firstResult: Suggestion | null, lastSuggest: OmniboxCallback | null
+  let last: string = "", firstResult: Suggestion | null, lastSuggest: OmniboxCallback | null
     , tempRequest: [string, OmniboxCallback] | null
     , timeout = 0, sessionIds: SafeDict<string | number> | null
     , suggestions = null as chrome.omnibox.SuggestResult[] | null, outTimeout = 0, outTime: number
-    , defaultSuggestionType: 0 | 1 | 2 | 3 = 0, matchType: CompletersNS.MatchType = 0
-    , firstType: CompletersNS.ValidTypes | "",
-  defaultSug: chrome.omnibox.Suggestion = { description: "<dim>Open: </dim><url>%s</url>" },
+    , defaultSuggestionType: 0 | 1 | 2 | 3 = 0, matchType: CompletersNS.MatchType = CompletersNS.MatchType.Default
+    , firstType: CompletersNS.ValidTypes | "";
+  const defaultSug: chrome.omnibox.Suggestion = { description: "<dim>Open: </dim><url>%s</url>" },
   formatSessionId = function(sug: Suggestion) {
     if (sug.sessionId != null) {
       (sessionIds as SafeDict<string | number>)[sug.url] = sug.sessionId;
@@ -264,7 +264,7 @@ setTimeout((function() { if (!chrome.omnibox) { return; }
     if (timeout) {
       tempRequest = [key, suggest];
       return;
-    } else if (matchType === 1 && key.startsWith(last)) {
+    } else if (matchType === CompletersNS.MatchType.emptyResult && key.startsWith(last)) {
       suggest([]);
       return;
     }
@@ -272,8 +272,10 @@ setTimeout((function() { if (!chrome.omnibox) { return; }
     outTime = Date.now();
     sessionIds = suggestions = firstResult = null;
     let newMatchType: CompletersNS.MatchType = CompletersNS.MatchType.Default;
-    const type: CompletersNS.ValidTypes = matchType < 2 || !key.startsWith(last) ? "omni"
-      : matchType === 3 ? "search" : (newMatchType = matchType, firstType || "omni");
+    const type: CompletersNS.ValidTypes = matchType < CompletersNS.MatchType.singleMatch
+        || !key.startsWith(last) ? "omni"
+      : matchType === CompletersNS.MatchType.searchWanted ? "search"
+      : (newMatchType = matchType, firstType || "omni");
     matchType = newMatchType;
     last = key;
     lastSuggest = suggest;

@@ -1,10 +1,16 @@
 /// <reference path="../types/base/index.d.ts" />
 /// <reference path="../types/lib/index.d.ts" />
+/// <reference path="../content/base.d.ts" />
 /// <reference path="../background/bg.d.ts" />
-/// <reference path="base.d.ts" />
 interface ImportBody {
   (id: "shownImage"): HTMLImageElement
   (id: "shownText"): HTMLDivElement
+}
+interface Window {
+  viewer: null | {
+    destroy(): any;
+    show(): any;
+  };
 }
 
 var $ = document.getElementById.bind(document) as (id: string) => HTMLElement;
@@ -83,7 +89,7 @@ window.onhashchange = function(this: void): void {
         shownNode.classList.remove("hidden");
         shownNode.classList.add("zoom-in");
         if (this.width >= window.innerWidth * 0.9) {
-          document.body.classList.add("close");
+          (document.body as HTMLBodyElement).classList.add("close");
         }
       };
     } else {
@@ -194,7 +200,7 @@ function decodeURLPart(url: string): string {
 function importBody(id: string): HTMLElement {
   const templates = $('bodyTemplate') as HTMLTemplateElement,
   node = document.importNode(templates.content.getElementById(id) as HTMLElement, true);
-  document.body.insertBefore(node, templates);
+  (document.body as HTMLBodyElement).insertBefore(node, templates);
   return node;
 }
 
@@ -247,7 +253,7 @@ function copyThing(event: Event): void {
 
 function toggleInvert(event: Event): void {
   if (type === "image") {
-    if (document.documentElement.innerText) {
+    if ((document.documentElement as HTMLHtmlElement).innerText) {
       event.preventDefault();
     } else {
       shownNode.classList.toggle("invert");
@@ -269,7 +275,7 @@ function loadJS(name: string, src: string): Promise<any> {
       const obj = (window as any)[name];
       obj ? resolve(obj) : (this.onerror as () => void)();
     };
-    document.head.appendChild(script).remove();
+    (document.head as HTMLHeadElement).appendChild(script).remove();
   });
 }
 
@@ -280,7 +286,7 @@ function loadCSS(src: string): void {
   const obj = document.createElement("link");
   obj.rel = "stylesheet";
   obj.href = src;
-  document.head.insertBefore(obj, document.querySelector('link[href$="show.css"]'));
+  (document.head as HTMLHeadElement).insertBefore(obj, document.querySelector('link[href$="show.css"]'));
 }
 
 function defaultOnError(err: any): void {
@@ -318,7 +324,7 @@ function toggleSlide(Viewer: any): void {
 
 function clean() {
   if (type === "image") {
-    document.body.classList.remove("close");
+    (document.body as HTMLBodyElement).classList.remove("close");
     if (window.viewer) {
       window.viewer.destroy();
       window.viewer = null;

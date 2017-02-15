@@ -294,8 +294,8 @@ history: {
       | ((sug: Suggestion, score: number) => number), i = 0, j: number;
     getRele = SuggestionUtils.ComputeRelevancy;
     if (queryTerms.length === 1) {
-      Utils.convertToUrl(queryTerms[0], null, -2);
-      if (Utils.lastUrlType <= 2) {
+      Utils.convertToUrl(queryTerms[0], null, Urls.WorkType.KeepAll);
+      if (Utils.lastUrlType <= Urls.Type.MaxOfInputIsPlainUrl) {
         getRele = SuggestionUtils.ComputeTimeRelevancy;
       }
     }
@@ -591,7 +591,7 @@ searchEngines: {
         }
       }
     } else {
-      url = Utils.convertToUrl(url, null, -2);
+      url = Utils.convertToUrl(url, null, Urls.WorkType.KeepAll);
     }
     sug = new Suggestion("search", url, text
       , pattern.name + ": " + q.join(" "), this.compute9);
@@ -665,12 +665,13 @@ searchEngines: {
     return str;
   },
   makeUrlSuggestion (keyword: string, text: string): Suggestion {
-    const sug = new Suggestion("search", Utils.convertToUrl(keyword, null, -2),
-      "", keyword, this.compute9);
+    const url = Utils.convertToUrl(keyword, null, Urls.WorkType.KeepAll),
+    isSearch = Utils.lastUrlType === Urls.Type.Search,
+    sug = new Suggestion("search", url, "", keyword, this.compute9);
     sug.text = Utils.DecodeURLPart(SuggestionUtils.shortenUrl(sug.url));
     sug.textSplit = Utils.escapeText(sug.text);
     text && (sug.text = text);
-    if (Utils.lastUrlType === 4) {
+    if (isSearch) {
       (sug as CompletersNS.WritableCoreSuggestion).title = "~: " + keyword;
       sug.titleSplit = SuggestionUtils.highlight(sug.title, [3, 3 + keyword.length]);
     } else {
@@ -763,10 +764,10 @@ searchEngines: {
     suggestions.forEach(SuggestionUtils.prepareHtml, SuggestionUtils);
 
     newAutoSelect = autoSelect && suggestions.length > 0;
-    newMatchType = matchType < 0 ? (matchType === -2
-        && suggestions.length <= 0 ? 3 : 0)
-      : suggestions.length <= 0 ? queryTerms.length && 1
-      : this.sugCounter === 1 ? 2 : 0;
+    newMatchType = matchType < MatchType.Default ? (matchType === MatchType._searching
+        && suggestions.length <= 0 ? MatchType.searchWanted : MatchType.Default)
+      : suggestions.length <= 0 ? queryTerms.length && MatchType.emptyResult
+      : this.sugCounter === 1 ? MatchType.singleMatch : MatchType.Default;
     func = this.callback as CompletersNS.Callback;
     this.cleanGlobals();
     return func(suggestions, newAutoSelect, newMatchType);

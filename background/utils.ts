@@ -191,8 +191,8 @@ const Utils = {
     case "blob": case "view-source":
       string = string.substring(i + 1);
       if (string.startsWith("blob:") || string.startsWith("view-source:")) { return Urls.Type.Search; }
-      this.convertToUrl(string, null, -2);
-      return this.lastUrlType <= Urls.Type.NoProtocolName ? Urls.Type.Full : Urls.Type.Search;
+      this.convertToUrl(string, null, Urls.WorkType.KeepAll);
+      return this.lastUrlType <= Urls.Type.MaxOfInputIsPlainUrl ? Urls.Type.Full : Urls.Type.Search;
     case "data":
       return isSlash ? Urls.Type.Search : (i = string.indexOf(',', i)) < 0 || (spacePos > 0 && spacePos < i)
         ? Urls.TempType.Unspecified : Urls.Type.Full;
@@ -200,8 +200,9 @@ const Utils = {
     case "filesystem":
       string = string.substring(i + 1);
       if (!this.protocolRe.test(string)) { return Urls.Type.Search; }
-      this.convertToUrl(string, null, -2);
-      return this.lastUrlType === 0 && (<RegExpOne>/[^/]\/(?:persistent|temporary)(?:\/|$)/).test(string)
+      this.convertToUrl(string, null, Urls.WorkType.KeepAll);
+      return this.lastUrlType === Urls.Type.Full &&
+          (<RegExpOne>/[^/]\/(?:persistent|temporary)(?:\/|$)/).test(string)
         ? Urls.Type.Full : Urls.Type.Search;
     case "magnet": return string[i + 1] !== '?' ? Urls.TempType.Unspecified : Urls.Type.Full;
     case "mailto": return isSlash ? Urls.Type.Search
@@ -278,7 +279,8 @@ const Utils = {
           return [path, "copy"] as Urls.CopyEvalResult;
         });
       } else {
-        res = (this.lastUrlType === 5 && res instanceof Array ? (res as Urls.BaseEvalResult)[0] : res as string);
+        res = (this.lastUrlType === Urls.Type.Functional &&
+          res instanceof Array ? (res as Urls.BaseEvalResult)[0] : res as string);
         path = res instanceof Array ? res.join(" ") : res;
       }
       // no break;
@@ -296,7 +298,7 @@ const Utils = {
       }
       arr = [path];
       path = this.convertToUrl(path);
-      if (this.lastUrlType !== 4 && typeof path === "string") {
+      if (this.lastUrlType !== Urls.Type.Search && typeof path === "string") {
         if (obj = g_requestHandlers.parseSearchUrl({ url: path })) {
           arr = obj.url.split(" ");
           arr.unshift(cmd);
@@ -315,7 +317,7 @@ const Utils = {
     default:
       return null;
     }
-    if (workType === 1) {
+    if (workType === Urls.WorkType.ActIfNoSideEffects) {
       return [arr, "search"] as Urls.SearchEvalResult;
     }
     ind = this._nestedEvalCounter++;
@@ -355,7 +357,7 @@ const Utils = {
           resolve(window[name]);
         }
       };
-      document.documentElement.appendChild(script).remove();
+      (document.documentElement as HTMLHtmlElement).appendChild(script).remove();
     });
   },
   searchWordRe: <RegExpG & RegExpSearchable<2>> /\$([sS])(?:\{([^}]*)})?/g,
@@ -474,12 +476,12 @@ const Utils = {
           } else {
             key = pair[1] === "s" ? "+" : " ";
           }
-          val = this.convertToUrl(val, null, -1);
-          if (this.lastUrlType >= 3) {
+          val = this.convertToUrl(val, null, Urls.WorkType.ConvertKnown);
+          if (this.lastUrlType > Urls.Type.MaxOfInputIsPlainUrl) {
             val = val.replace(encodedSearchWordRe, "$$$1");
             ind = val.search(re as RegExp as RegExpOne) + 1;
-          } else if (this.lastUrlType > 0) {
-            ind += this.lastUrlType === 1 ? 7 : 5;
+          } else if (this.lastUrlType !== Urls.Type.Full) {
+            ind += this.lastUrlType === Urls.Type.NoSchema ? 7 : 5;
           }
           if (tmpRule = this.reparseSearchUrl(val.toLowerCase(), ind)) {
             if (key.indexOf("$") >= 0) {

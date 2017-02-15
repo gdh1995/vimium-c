@@ -1,6 +1,7 @@
 {
   "extends": "../tsconfig",
   "files": [
+    "show.ts",
     "options_base.ts",
     "options.ts",
     "options_ext.ts",

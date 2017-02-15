@@ -48,7 +48,8 @@ handler = function(content_scripts) {
   if (!content_scripts) {
     return chrome.runtime.lastError;
   }
-  const insertLocation = document.contains(curEl) ? curEl : document.documentElement.firstChild as Node
+  const insertLocation = document.contains(curEl) ? curEl
+      : (document.documentElement as HTMLHtmlElement).firstChild as Node
     , parentElement = insertLocation.parentElement as Element;
   for (const i of content_scripts) {
     const scriptElement = document.createElement("script");
