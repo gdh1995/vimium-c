@@ -308,6 +308,16 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
     onRuntimeError (this: void): void {
       return chrome.runtime.lastError;
     },
+    safeUpdate (this: void | boolean | object, url: string, tabs1?: [Tab]): 1 {
+      if (!tabs1) {
+        if (Utils.isRefusingIncognito(url) && this !== true) {
+          return funcDict.getCurTab(funcDict.safeUpdate.bind(true, url));
+        }
+      } else if (tabs1.length > 0 && tabs1[0].incognito && Utils.isRefusingIncognito(url)) {
+        return chrome.tabs.create({ url });
+      }
+      return chrome.tabs.update({ url }, funcDict.onRuntimeError);
+    },
     onEvalUrl (this: void, arr: Urls.SpecialUrl): void {
       if (arr instanceof Promise) { arr.then(funcDict.onEvalUrl); return; }
       switch(arr[1]) {
@@ -484,13 +494,14 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
       (tab: Tab) => void
     ],
     openUrlInNewTab: function(this: string, reuse: ReuseType, tabs: [Tab]): void {
+      const tab = tabs[0];
       if (cOptions.incognito) {
-        chrome.windows.getAll(funcDict.openUrlInIncognito.bind(this, tabs[0]));
+        chrome.windows.getAll(funcDict.openUrlInIncognito.bind(this, tab));
         return;
       }
-      if (reuse === ReuseType.newBg) { tabs[0].active = false; }
-      if (funcDict.openShowPage[0](this, reuse, tabs[0])) { return; }
-      return openMultiTab(this, commandCount, tabs[0]);
+      if (reuse === ReuseType.newBg) { tab.active = false; }
+      if (funcDict.openShowPage[0](this, reuse, tab)) { return; }
+      return openMultiTab(this, commandCount, tab);
     },
     openShowPage: [function(url, reuse, tab): boolean {
       const prefix = Settings.CONST.ShowPage;
@@ -907,16 +918,16 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
       return BackgroundCommands.openCopiedUrlInNewTab([]);
     },
     openCopiedUrlInNewTab (this: void, tabs: [Tab] | never[]): void {
-      Utils.lastUrlType = Urls.Type.Default;
+      Utils.lastUrlType = Urls.Type.Default as Urls.Type;
       let url = requestHandlers.getCopiedUrl_f(cOptions);
-      if (Utils.lastUrlType as Urls.Type === Urls.Type.Functional) {
+      if (Utils.lastUrlType === Urls.Type.Functional) {
         return funcDict.onEvalUrl(url as Urls.SpecialUrl);
       } else if (!url) {
         return requestHandlers.ShowHUD("No text copied!");
       } else if (tabs.length > 0) {
         return openMultiTab(url as string, commandCount, tabs[0]);
       } else {
-        chrome.tabs.update({ url: url as string }, funcDict.onRuntimeError);
+        funcDict.safeUpdate(url as string);
       }
     },
     openUrl (this: void, tabs?: [Tab] | never[] | null): void {
@@ -943,7 +954,7 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
         return;
       } else if (reuse === ReuseType.current) {
         if (funcDict.openShowPage[0](url, reuse)) { return; }
-        chrome.tabs.update({ url }, funcDict.onRuntimeError);
+        funcDict.safeUpdate(url);
       } else if (tabs) {
         return funcDict.openUrlInNewTab.call(url, reuse, tabs);
       } else {
@@ -1401,9 +1412,7 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
         if (!query) { return "No selected or copied text found!"; }
       }
       query = Utils.createSearchUrl(query.split(" "), search.keyword);
-      chrome.tabs.update({
-        url: query
-      });
+      funcDict.safeUpdate(query);
       return "";
     },
     gotoSession: function (this: void, request: FgReq["gotoSession"], port?: Port): void {
