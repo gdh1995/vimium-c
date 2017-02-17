@@ -108,7 +108,7 @@ const Utils = {
       vimiumUrlWork = (vimiumUrlWork as number) | 0;
       if (vimiumUrlWork < -1 || !(string = oldString.substring(9))) {}
       else if (vimiumUrlWork === -1
-          || !(oldString = this.evalVimiumUrl(string, vimiumUrlWork))) {
+          || !(oldString = this.evalVimiumUrl(string, vimiumUrlWork) as string)) {
         oldString = this.formatVimiumUrl(string, false, vimiumUrlWork);
       } else if (typeof oldString !== "string") {
         type = Urls.Type.Functional;

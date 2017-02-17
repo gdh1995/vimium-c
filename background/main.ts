@@ -503,7 +503,7 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
         return true;
       }
       url = url.substring(prefix.length);
-      if (reuse === ReuseType.current) {
+      if (reuse === ReuseType.current && !tab.incognito) {
         chrome.tabs.update({ url: prefix });
       } else
       chrome.tabs.create({
