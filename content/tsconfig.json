@@ -1,6 +1,7 @@
 {
   "extends": "../tsconfig",
   "include": [
-    "../lib"
+    "*.ts",
+    "../lib/*.ts"
   ]
 }
