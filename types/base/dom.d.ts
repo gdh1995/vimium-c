@@ -5041,6 +5041,10 @@ interface KeyboardEvent extends UIEvent {
     readonly DOM_KEY_LOCATION_RIGHT: number;
     readonly DOM_KEY_LOCATION_STANDARD: number;
 }
+interface OldKeyboardEvent extends KeyboardEvent {
+    readonly keyIdentifier: string;
+    readonly key: never;
+}
 
 declare var KeyboardEvent: {
     prototype: KeyboardEvent;
