@@ -97,7 +97,7 @@ VDom.UI = {
   click: function(element, modifiers, addFocus) {
     element === VDom.lastHovered || VDom.unhoverLast(element, modifiers);
     VDom.mouse(element, "mousedown", modifiers);
-    addFocus && element !== VEventMode.lock() && element.focus();
+    addFocus && element !== VEventMode.lock() && element.focus && element.focus();
     VDom.mouse(element, "mouseup", modifiers);
     VDom.mouse(element, "click", modifiers);
   },
@@ -116,7 +116,8 @@ VDom.UI = {
     suppressRepeated === true && this.suppressTail(true);
   },
   focus: function(el) {
-    if (this.box.style.display) {
+    if (typeof el.focus !== "function") {}
+    else if (this.box.style.display) {
       this.focusedEl = el;
     } else {
       el.focus();
