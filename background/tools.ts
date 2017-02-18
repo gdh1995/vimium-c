@@ -59,14 +59,14 @@ Marks = { // NOTE: all members should be static
       markName: request.markName,
     });
   },
-  gotoMark (this: void, request: MarksNS.MarkQuery): boolean {
+  gotoMark (this: void, request: MarksNS.FgQuery): boolean {
     const str = localStorage.getItem(Marks.getLocationKey(request.markName));
     if (!str) {
       return false;
     }
     const markInfo: MarksNS.MarkToGo & MarksNS.StoredMark = JSON.parse(str) as MarksNS.StoredMark;
     markInfo.markName = request.markName;
-    markInfo.prefix = request.prefix !== false && request.scroll[0] === 0 && request.scroll[1] === 0;
+    markInfo.prefix = request.prefix !== false && markInfo.scroll[0] === 0 && markInfo.scroll[1] === 0;
     if (Settings.indexPorts(markInfo.tabId)) {
       chrome.tabs.get(markInfo.tabId, Marks.checkTab.bind(markInfo));
     } else {
@@ -86,7 +86,7 @@ Marks = { // NOTE: all members should be static
   getLocationKey (this: void, keyChar: string): string {
     return "vimiumGlobalMark|" + keyChar;
   },
-  scrollTab (this: void, markInfo: MarksNS.MarkToGo & { scroll: [number, number] }, tab: chrome.tabs.Tab): void {
+  scrollTab (this: void, markInfo: MarksNS.MarkToGo, tab: chrome.tabs.Tab): void {
     const tabId = tab.id, port = Settings.indexFrame(tabId, 0);
     port && port.postMessage({
       name: "scroll",

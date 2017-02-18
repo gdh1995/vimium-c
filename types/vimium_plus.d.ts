@@ -49,22 +49,25 @@ declare namespace CompletersNS {
 }
 
 declare namespace MarksNS {
+  type ScrollInfo = [number, number];
+  interface ScrollableMark {
+    scroll: ScrollInfo;
+  }
   interface BaseMark {
     markName: string;
   }
 
   interface Mark extends BaseMark {
-    scroll: [number, number];
+    scroll: ScrollInfo;
     url: string;
   }
 
-  interface MarkQuery extends BaseMark {
+  interface FgQuery extends BaseMark {
     prefix?: boolean;
-    scroll: [number, number];
   }
 
   interface FocusOrLaunch {
-    scroll?: [number, number];
+    scroll?: ScrollInfo;
     url: string;
     prefix?: boolean;
     reuse?: ReuseType;

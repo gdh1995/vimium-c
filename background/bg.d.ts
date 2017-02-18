@@ -151,11 +151,9 @@ declare namespace MarksNS {
   }
 
   interface MarkToGo extends FocusOrLaunch {
-    url: string;
-    scroll: [number, number];
+    scroll: ScrollInfo;
     markName?: string;
     tabId?: number;
-    prefix?: boolean;
   }
 
 }

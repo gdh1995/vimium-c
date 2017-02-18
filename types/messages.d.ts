@@ -9,7 +9,7 @@ interface BgReq {
   scroll: {
     name: "scroll";
     markName?: string | undefined;
-    scroll: [number, number];
+    scroll: MarksNS.ScrollInfo;
   };
   reset: {
     passKeys: string | null;
@@ -140,7 +140,7 @@ interface FgReq {
     key: string;
   };
   createMark: MarksNS.BaseMark | MarksNS.Mark;
-  gotoMark: MarksNS.MarkQuery;
+  gotoMark: MarksNS.FgQuery;
   /** 
    * .url is guaranteed to be well formatted by frontend
    */
