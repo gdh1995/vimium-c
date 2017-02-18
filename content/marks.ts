@@ -1,75 +1,74 @@
-"use strict";
 var VMarks = {
-  onKeypress: null,
+  onKeypress: null as never as (event: HandlerNS.Event, keyChar: string) => void,
   prefix: true,
-  activate: function(_0, options) {
-    var isGo = options.mode !== "create";
+  activate (_0: number, options: FgOptions): void {
+    const isGo = options.mode !== "create";
     this.onKeypress = isGo ? this._goto : this._create;
     this.prefix = options.prefix !== false;
     VHandler.push(this.onKeydown, this);
-    VHUD.show((isGo ? "Go to" : "Create") + " mark...");
+    VHUD.show(isGo ? "Go to mark..." : "Create mark...");
   },
-  clearLocal: function() {
-    var keyStart, storage, i, key;
+  clearLocal (): void {
+    let keyStart, storage: Storage, i: number, key: string;
     this._previous = null;
     keyStart = this.getLocationKey("");
     try {
     storage = localStorage;
     for (i = storage.length; 0 <= --i; ) {
-      key = storage.key(i);
+      key = storage.key(i) as string;
       if (key.startsWith(keyStart)) {
         storage.removeItem(key);
       }
     }
     } catch (e) {}
-    VHUD.showForDuration("Local marks have been cleared.", 1000);
+    return VHUD.showForDuration("Local marks have been cleared.", 1000);
   },
-  onKeydown: function(event) {
-    var keyCode = event.keyCode, keyChar, cont = !VKeyboard.isEscape(event);
+  onKeydown (event: HandlerNS.Event): HandlerNS.ReturnedEnum {
+    const keyCode = event.keyCode, cont = !VKeyboard.isEscape(event);
+    let keyChar: string | undefined;
     if (cont && (keyCode > VKeyCodes.f1 && keyCode <= VKeyCodes.f12 || keyCode <= 32
         || !(keyChar = VKeyboard.getKeyChar(event)))) {
       return 1;
     }
     VHandler.remove(this);
-    cont && keyCode > 32 ? this.onKeypress(event, keyChar) : VHUD.hide();
+    cont && keyCode > 32 ? this.onKeypress(event, keyChar as string) : VHUD.hide();
     this.prefix = true;
-    this.onKeypress = null;
+    this.onKeypress = null as never;
     return 2;
   },
-  getBaseUrl: function() {
+  getBaseUrl (this: void): string {
     return window.location.href.split('#', 1)[0];
   },
-  getLocationKey: function(keyChar) {
-    return "vimiumMark|" + this.getBaseUrl() + "|" + keyChar;
+  getLocationKey (keyChar: string): string {
+    return `vimiumMark|${this.getBaseUrl()}|${keyChar}`;
   },
-  _previous: null,
-  setPreviousPosition: function() {
+  _previous: null as MarksNS.FgMark | null,
+  setPreviousPosition (): void {
     this._previous = { scrollX: window.scrollX, scrollY: window.scrollY };
   },
-  _create: function(event, keyChar) {
+  _create (event: HandlerNS.Event, keyChar: string): void {
     if (event.shiftKey) {
       if (window.top === window) {
-        this.CreateGlobalMark({markName: keyChar});
+        return this.CreateGlobalMark({markName: keyChar});
       } else {
         VPort.post({handler: "createMark", markName: keyChar});
-        VHUD.hide();
+        return VHUD.hide();
       }
     } else if (keyChar === "`" || keyChar === "'") {
       this.setPreviousPosition();
-      VHUD.showForDuration("Created local mark [last].", 1000);
+      return VHUD.showForDuration("Created local mark [last].", 1000);
     } else {
       try {
         localStorage.setItem(this.getLocationKey(keyChar),
-          JSON.stringify({ scrollX: window.scrollX, scrollY: window.scrollY }));
+          JSON.stringify({ scrollX: window.scrollX, scrollY: window.scrollY } as MarksNS.FgMark));
       } catch (e) {
-        VHUD.showForDuration("Failed to creat local mark (localStorage error)", 2000);
-        return;
+        return VHUD.showForDuration("Failed to creat local mark (localStorage error)", 2000);
       }
-      VHUD.showForDuration("Created local mark : ' " + keyChar + " '.", 1000);
+      return VHUD.showForDuration(`Created local mark : ' ${keyChar} '.`, 1000);
     }
   },
-  _goto: function(event, keyChar) {
-    var markString, position = null;
+  _goto (event: HandlerNS.Event, keyChar: string): void {
+    let markString: string | undefined | null, position = null as MarksNS.FgMark | null;
     if (event.shiftKey) {
       VPort.send({
         handler: "gotoMark",
@@ -80,15 +79,14 @@ var VMarks = {
           VHUD.showForDuration("Global mark not set : ' " + keyChar + " '.", 1500);
         }
       });
-      VHUD.hide();
+      return VHUD.hide();
     } else if (keyChar === "`" || keyChar === "'") {
       position = this._previous;
       this.setPreviousPosition();
       if (position) {
         window.scrollTo(position.scrollX, position.scrollY);
       }
-      markString = position ? "Jumped to" : "Created";
-      VHUD.showForDuration(markString + " local mark [last]", 1000);
+      return VHUD.showForDuration((position ? "Jumped to" : "Created") + " local mark [last]", 1000);
     } else {
       try {
         markString = localStorage.getItem(this.getLocationKey(keyChar));
@@ -99,27 +97,27 @@ var VMarks = {
       if (position && position.scrollX >= 0 && position.scrollY >= 0) {
         this.setPreviousPosition();
         window.scrollTo(position.scrollX, position.scrollY);
-        VHUD.showForDuration("Jumped to local mark : ' " + keyChar + " '.", 1000);
+        return VHUD.showForDuration(`Jumped to local mark : ' ${keyChar} '.`, 1000);
       } else {
-        VHUD.showForDuration(markString ? "unrecognized mark data in localStorage"
-          : "Local mark not set : ' " + keyChar + " '.", 2000);
+        return VHUD.showForDuration(markString ? "unrecognized mark data in localStorage"
+          : `Local mark not set : ' ${keyChar} '.`, 2000);
       }
     }
   },
-  CreateGlobalMark: function(request) {
+  CreateGlobalMark (this: void, request: { markName: string }): void {
     VPort.post({
       handler: "createMark",
       markName: request.markName,
       url: VMarks.getBaseUrl(),
       scroll: [window.scrollX, window.scrollY]
     });
-    VHUD.showForDuration("Created global mark : ' " + request.markName + " '.", 1000);
+    return VHUD.showForDuration(`Created global mark : ' ${request.markName} '.`, 1000);
   },
-  Goto: function(request) {
-    var scroll = request.scroll, a = request.markName || "";
+  Goto (this: void, request: BgReq["scroll"]): void {
+    const scroll = request.scroll, a = request.markName || "";
     (document.body instanceof HTMLFrameSetElement) || window.focus();
     a && VMarks.setPreviousPosition();
     window.scrollTo(scroll[0], scroll[1]);
-    a && VHUD.showForDuration("Jumped to global mark : ' " + a + " '.", 2000);
+    if (a) { return VHUD.showForDuration(`Jumped to global mark : ' ${a} '.`, 2000); }
   }
 };

@@ -2,6 +2,8 @@ interface Element {
   vimiumHasOnclick?: boolean;
 }
 
+interface FgOptions extends SafeDict<any> {}
+
 interface Window {
   readonly VDom: any;
   readonly VPort: {
@@ -118,6 +120,9 @@ VEventMode: {
 },
 VHints: any, Vomnibar: any, VFindMode: any, VVisualMode: any,
 VHUD: {
+  show (text: string): void | Element;
+  showForDuration (text: string, duration: number): void;
+  hide (): void;
 },
 VSettings: {
   cache: SettingsNS.FrontendSettingCache;

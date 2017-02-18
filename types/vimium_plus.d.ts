@@ -66,6 +66,11 @@ declare namespace MarksNS {
     prefix?: boolean;
   }
 
+  interface FgMark {
+    scrollX: number;
+    scrollY: number;
+  }
+
   interface FocusOrLaunch {
     scroll?: ScrollInfo;
     url: string;
