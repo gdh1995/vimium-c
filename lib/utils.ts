@@ -1,51 +1,49 @@
-"use strict";
 var VUtils = {
-  evalIfOK: function(url) {
+  evalIfOK (this: void, url: string): boolean {
     if (url.substring(0, 11).toLowerCase() !== "javascript:") {
       return false;
     }
     setTimeout(function() {
-      var script = document.createElementNS("http://www.w3.org/1999/xhtml", "script");
+      const script = document.createElementNS("http://www.w3.org/1999/xhtml", "script") as HTMLScriptElement;
       script.type = "text/javascript";
       script.textContent = VUtils.decodeURL(url).substring(11).trim();
-      document.documentElement.appendChild(script).remove();
+      (document.documentElement as HTMLElement).appendChild(script).remove();
     }, 0);
     return true;
   },
-  execCommand: function(parent, command, a, b) {
-    var keys = command.split('.'), i, len;
+  execCommand (this: void, parent: object, command: string, a: number, b: object | null): any {
+    let keys = command.split('.'), i: number, len: number;
     for (i = 0, len = keys.length - 1; i < len; i++) {
-      parent = parent[keys[i]];
+      parent = (parent as any)[keys[i]];
     }
-    return parent[keys[i]](a, Object.setPrototypeOf(b || {}, null));
+    return (parent as any)[keys[i]](a, Object.setPrototypeOf(b || {}, null));
   },
-  decodeURL: function(url) {
+  decodeURL (this: void, url: string): string {
     try { url = decodeURI(url); } catch (e) {}
     return url;
   },
-  hasUpperCase: function(s) { return s.toLowerCase() !== s; },
-  Prevent: function(event) {
+  hasUpperCase (this: void, s: string) { return s.toLowerCase() !== s; },
+  Prevent (this: void, event: Event): void {
     event.preventDefault();
     event.stopImmediatePropagation();
   }
 }, VHandler = {
-  stack: [],
-  push: function(func, env) {
-    this.stack.push([func, env]);
+  stack: [] as Array<[(event: HandlerNS.Event) => HandlerNS.ReturnedEnum, any]>,
+  push<T> (func: (this: T, event: HandlerNS.Event) => HandlerNS.ReturnedEnum, env: T): number {
+    return this.stack.push([func, env]);
   },
-  bubbleEvent: function(event) {
-    var ref = this.stack, i = ref.length, item, result;
-    while (0 <= --i) {
-      item = ref[i];
+  bubbleEvent (event: HandlerNS.Event): HandlerNS.ReturnedEnum {
+    for (let ref = this.stack, i = ref.length; 0 <= --i; ) {
+      const item = ref[i],
       result = item[0].call(item[1], event);
-      if (result !== 0) {
+      if (result !== HandlerNS.ReturnedEnum.Nothing) {
         return result;
       }
     }
-    return 0;
+    return HandlerNS.ReturnedEnum.Default;
   },
-  remove: function(env) {
-    var ref = this.stack, i = ref.length;
+  remove (env: any): void {
+    let ref = this.stack, i = ref.length;
     while (0 <= --i) {
       if (ref[i][1] === env) {
         ref.splice(i, 1);
@@ -56,11 +54,11 @@ var VUtils = {
 };
 
 if (!String.prototype.startsWith) {
-String.prototype.startsWith = function(s) {
+String.prototype.startsWith = function(this: string, s: string): boolean {
   return this.length >= s.length && this.lastIndexOf(s, 0) === 0;
 };
-String.prototype.endsWith || (String.prototype.endsWith = function(s) {
-  var i = this.length - s.length;
+String.prototype.endsWith || (String.prototype.endsWith = function(this: string, s: string): boolean {
+  const i = this.length - s.length;
   return i >= 0 && this.indexOf(s, i) === i;
 });
 }

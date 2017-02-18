@@ -17,3 +17,13 @@ interface Window {
     destroy: ((silent?: boolean) => void) | null;
   };
 }
+
+declare namespace HandlerNS {
+  type Event = KeyboardEvent;
+
+  const enum ReturnedEnum {
+    Default = 0,
+    Nothing = Default,
+
+  }
+}
