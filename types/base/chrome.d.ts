@@ -1628,7 +1628,7 @@ declare namespace chrome.runtime {
      * Fired when a connection is made from another extension.
      * @since Chrome 26.
      */
-    var onConnectExternal: ExtensionConnectEvent;
+    var onConnectExternal: ExtensionConnectEvent | undefined;
     /** Sent to the event page just before it is unloaded. This gives the extension opportunity to do some clean up. Note that since the page is unloading, any asynchronous operations started while handling this event are not guaranteed to complete. If more activity for the event page occurs before it gets unloaded the onSuspendCanceled event will be sent and the page won't be unloaded. */
     var onSuspend: RuntimeEvent;
     /**
@@ -1649,7 +1649,7 @@ declare namespace chrome.runtime {
      * Fired when a message is sent from another extension/app. Cannot be used in a content script.
      * @since Chrome 26.
      */
-    var onMessageExternal: ExtensionMessageEvent;
+    var onMessageExternal: ExtensionMessageEvent | undefined;
     /**
      * Fired when an app or the device that it runs on needs to be restarted. The app should close all its windows at its earliest convenient time to let the restart to happen. If the app does nothing, a restart will be enforced after a 24-hour grace period has passed. Currently, this event is only fired for Chrome OS kiosk apps.
      * @since Chrome 29.
@@ -2600,7 +2600,7 @@ declare namespace chrome.tabs {
      * Fired when a tab is replaced with another tab due to prerendering or instant.
      * @since Chrome 26.
      */
-    var onReplaced: TabReplacedEvent;
+    var onReplaced: TabReplacedEvent | undefined;
     /**
      * @deprecated since Chrome 33. Please use tabs.onActivated.
      * Fires when the selected tab in a window changes.
