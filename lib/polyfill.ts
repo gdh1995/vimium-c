@@ -20,7 +20,7 @@ declare const Symbol: {
 };
 
 (function (): void {
-  if (String.prototype.startsWith) { return; }
+  String.prototype.startsWith || (
   String.prototype.startsWith = function startsWith(this: ObjectCoercible, searchString: anyNotSymbol): boolean {
     const err = check(this, searchString, "startsWith");
     if (err !== null) { throw new TypeError(err); }
@@ -28,9 +28,9 @@ declare const Symbol: {
     a = String(this), b = String(searchString);
     c = c > 0 ? Math.min(c | 0, a.length) : 0;
     return a.lastIndexOf(b, c) === c;
-  };
+  });
 
-  if (String.prototype.endsWith) { return; }
+  String.prototype.endsWith || (
   String.prototype.endsWith = function endsWith(this: ObjectCoercible, searchString: anyNotSymbol): boolean {
     const err = check(this, searchString, "endsWith");
     if (err !== null) { throw new TypeError(err); }
@@ -38,7 +38,7 @@ declare const Symbol: {
     a = String(this), b = String(searchString);
     c = (p === u ? a.length : c > 0 ? Math.min(c | 0, a.length) : 0) - b.length;
     return c >= 0 && a.indexOf(b, c) === c;
-  };
+  });
 
   function check(a: any, b: any, func: string): null | string {
     if (a == null) { return `String.prototype.${func} called on null or undefined`; }
