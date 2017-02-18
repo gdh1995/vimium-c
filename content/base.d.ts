@@ -24,7 +24,12 @@ declare namespace HandlerNS {
   const enum ReturnedEnum {
     Default = 0,
     Nothing = Default,
+    Suppress = 1,
+    Prevent = 2,
+  }
 
+  interface Handler<T extends object> {
+    (this: T, event: HandlerNS.Event): HandlerNS.ReturnedEnum;
   }
 }
 
@@ -65,3 +70,52 @@ interface Hint {
   [2]: number; // priority (smaller is prior)
   [3]?: VRect; // bottom
 }
+
+interface UIElementOptions {
+  adjust?: boolean;
+  showing?: boolean;
+  before?: Element | null;
+}
+
+interface DomUI {
+  box: HTMLElement | null;
+  styleIn: HTMLStyleElement | null;
+  styleOut: HTMLStyleElement | null;
+  root: ShadowRoot | null;
+  focusedEl: (Element & { focus(): void; }) | null;
+  flashLastingTime: number;
+  showing: boolean;
+  addElement<T extends HTMLElement>(this: DomUI, element: T, options?: UIElementOptions): T;
+  addElementList(this: DomUI, els: Element[], offset: [number, number]): HTMLDivElement;
+  adjust (this: void, event?: Event): void;
+  init (this: DomUI, showing: boolean): void;
+  InitInner (this: void, innerCSS: string): void;
+  toggle (this: DomUI, enabled: boolean): void;
+  createStyle (this: DomUI, text: string, doc?: { createElement: Document["createElement"] }): HTMLStyleElement;
+  InsertInnerCSS (this: void, inner: BgReq["insertInnerCSS"]): void;
+  insertCSS (this: DomUI, outer: string): void;
+  getSelection (this: DomUI): Selection;
+  removeSelection (this: DomUI, root?: Window | ShadowRoot): boolean;
+  click (this: DomUI, element: Element, modifiers?: EventControlKeys | null, addFocus?: boolean): boolean;
+  simulateSelect (this: DomUI, element: Element, flash?: boolean, suppressRepeated?: boolean): void;
+  focus (this: DomUI, el: Element): void;
+  getZoom (this: void): number;
+  getVRect (this: void, clickEl: Element): VRect | null;
+  flash (this: DomUI, el: Element, rect?: VRect | null): number | undefined;
+  suppressTail (this: void, onlyRepeated: boolean): void;
+  SuppressMost: HandlerNS.Handler<object>;
+}
+
+declare var VScroller: any;
+
+declare var VPort: {
+  post<K extends keyof FgReq>(req: FgReq[K] & FgBase<K>): void;
+  send<K extends keyof FgRes>(req: FgReq[K] & FgBase<K>, callback: (this: void, res: FgRes[K]) => any): void;
+},
+VEventMode: {
+  lock(): Element | null;
+},
+VSettings: {
+  cache: SettingsNS.FrontendSettingCache;
+}
+;

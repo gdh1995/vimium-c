@@ -1,4 +1,3 @@
-"use strict";
 VDom.UI = {
   box: null,
   styleIn: null,
@@ -7,161 +6,164 @@ VDom.UI = {
   focusedEl: null,
   flashLastingTime: 400,
   showing: true,
-  addElement: function(element, options) {
+  addElement<T extends HTMLElement> (this: DomUI, element: T, options?: UIElementOptions): T {
     options = Object.setPrototypeOf(options || {}, null);
     this.showing = options.showing !== false;
     VPort.send({ handler: "initInnerCSS" }, this.InitInner);
-    this.InitInner = null;
+    this.InitInner = null as never;
     this.init && this.init(false);
-    this.box.style.display = "none";
-    this.root = this.box.attachShadow ? this.box.attachShadow({mode: "closed"}) : this.box.createShadowRoot();
-    this.addElement = function(element, options) {
+    (this.box as HTMLElement).style.display = "none";
+    this.root = (this.box as HTMLElement).attachShadow ?
+        (this.box as HTMLElement & AttachShadow).attachShadow({mode: "closed"})
+      : (this.box as HTMLElement).createShadowRoot();
+    this.addElement = function<T extends HTMLElement>(this: DomUI, element: T, options?: UIElementOptions): T {
       options = Object.setPrototypeOf(options || {}, null);
       options.adjust === false || this.adjust();
-      return options.before ? this.root.insertBefore(element, options.before) : this.root.appendChild(element);
-    };
+      return options.before ? (this.root as ShadowRoot).insertBefore(element, options.before)
+        : (this.root as ShadowRoot).appendChild(element);
+    } as DomUI["addElement"];
     options.adjust = options.adjust === true;
     return this.addElement(element, options);
   },
-  addElementList: function(els, offset) {
-    var parent, _i, _len, style;
-    parent = VDom.createElement("div");
+  addElementList (els: ReadonlyArray<Element>, offset: [number, number]): HTMLDivElement {
+    const parent = VDom.createElement("div");
     parent.className = "R HM";
-    for (_i = 0, _len = els.length; _i < _len; _i++) {
-      parent.appendChild(els[_i]);
+    for (const el of els) {
+      parent.appendChild(el);
     }
-    style = parent.style;
+    const style = parent.style;
     style.left = offset[0] + "px"; style.top = offset[1] + "px";
-    (_i = VDom.bodyZoom) !== 1 && (style.zoom = _i);
+    const z = VDom.bodyZoom;
+    z !== 1 && (style.zoom = "" + z);
     document.webkitIsFullScreen && (style.position = "fixed");
     return this.addElement(parent);
   },
-  adjust: function(event) {
-    var ui = VDom.UI, el = ui.root ? document.webkitFullscreenElement : null;
-    (el && !ui.root.contains(el) ? el : document.documentElement).appendChild(ui.box);
+  adjust (event): void {
+    const ui = VDom.UI, el = ui.root ? document.webkitFullscreenElement : null;
+    (el && !(ui.root as Node).contains(el) ? el : document.documentElement as Element).appendChild(ui.box as Element);
     (el || event) && (el ? addEventListener : removeEventListener)("webkitfullscreenchange", ui.adjust, true);
   },
-  init: function(showing) {
-    this.init = null;
+  init (showing): void {
+    this.init = null as never;
     this.box = VDom.createElement("vimium-ui");
-    showing !== false && this.adjust();
+    if (showing !== false) { return this.adjust(); }
   },
-  InitInner: function(innerCSS) {
-    var _this = VDom.UI;
+  InitInner (innerCSS): void {
+    const _this = VDom.UI;
     _this.styleIn = _this.createStyle(innerCSS);
-    _this.root.insertBefore(_this.styleIn, _this.root.firstElementChild);
+    (_this.root as ShadowRoot).insertBefore(_this.styleIn, (_this.root as ShadowRoot).firstElementChild);
     if (!_this.showing) { _this.showing = true; return; }
     setTimeout(function() {
-      _this.box.style.display = "";
-      var el = _this.focusedEl; _this.focusedEl = null;
+      (_this.box as HTMLElement).style.display = "";
+      const el = _this.focusedEl; _this.focusedEl = null;
       el && setTimeout(function() { el.focus(); }, 17);
     }, 17);
-    _this.adjust();
+    return _this.adjust();
   },
-  toggle: function(enabled) {
-    if (!enabled) { this.box.remove(); return; }
-    this.box.parentNode || this.adjust();
+  toggle (enabled): void {
+    if (!enabled) { (this.box as HTMLElement).remove(); return; }
+    if (!(this.box as HTMLElement).parentNode) { return this.adjust(); }
   },
-  createStyle: function(text, doc) {
-    var css = (doc || VDom).createElement("style");
+  createStyle (text, doc): HTMLStyleElement {
+    const css = (doc || VDom).createElement("style");
     css.type = "text/css";
     css.textContent = text;
     return css;
   },
-  InsertInnerCSS: function(inner) {
+  InsertInnerCSS (inner): void {
     VDom.UI.styleIn && (VDom.UI.styleIn.textContent = inner.css);
   },
-  insertCSS: function(outer) {
-    var el = this.styleOut;
+  insertCSS (outer): void {
+    let el = this.styleOut;
     if (!outer) { el && el.remove(); return; }
     el ? (el.textContent = outer) : (el = this.styleOut = this.createStyle(outer));
-    this.init && this.init();
-    this.box.appendChild(el);
+    this.init && this.init(true);
+    (this.box as HTMLElement).appendChild(el);
   },
-  getSelection: function() {
-    var sel = window.getSelection(), el, el2;
+  getSelection (): Selection {
+    let sel = window.getSelection(), el: Node | null, el2: Node | null;
     if (sel.focusNode === document.documentElement && (el = VScroller.current)) {
       for (; el2 = el.parentNode; el = el2) {}
-      if (el.getSelection) { sel = el.getSelection() || sel; }
+      if ((el as ShadowRoot).getSelection) { sel = (el as ShadowRoot).getSelection() || sel; }
     }
     return sel;
   },
-  removeSelection: function(root) {
-    var sel = (root || this.root).getSelection();
-    if (sel.type !== "Range" || !sel.anchorNode) {
+  removeSelection (root): boolean {
+    const sel = (root || this.root as ShadowRoot).getSelection();
+    if (!sel || sel.type !== "Range" || !sel.anchorNode) {
       return false;
     }
     sel.removeAllRanges();
     return true;
   },
-  click: function(element, modifiers, addFocus) {
+  click (element, modifiers, addFocus): boolean {
     element === VDom.lastHovered || VDom.unhoverLast(element, modifiers);
     VDom.mouse(element, "mousedown", modifiers);
     addFocus && element !== VEventMode.lock() && element.focus && element.focus();
     VDom.mouse(element, "mouseup", modifiers);
-    VDom.mouse(element, "click", modifiers);
+    return VDom.mouse(element, "click", modifiers);
   },
-  simulateSelect: function(element, flash, suppressRepeated) {
+  simulateSelect (element, flash, suppressRepeated): void {
     this.click(element, null, true);
     flash === true && this.flash(element);
     if (element !== VEventMode.lock()) { return; }
-    var moveSel = element instanceof HTMLTextAreaElement ? element.clientHeight + 12 >= element.scrollHeight
-      : element instanceof HTMLInputElement, len, val;
-    if (moveSel && 0 == element.selectionEnd && element.setSelectionRange
-        && (len = (val = element.value) ? val.length : 0) > 0) {
+    type Moveable = HTMLInputElement | HTMLTextAreaElement;
+    let moveSel = element instanceof HTMLTextAreaElement ? element.clientHeight + 12 >= element.scrollHeight
+      : element instanceof HTMLInputElement, len: number, val: string | undefined;
+    if (moveSel && 0 == (element as Moveable).selectionEnd && (element as Moveable).setSelectionRange
+        && (len = (val = (element as Moveable).value) ? val.length : 0) > 0) {
       try {
-        element.setSelectionRange(len, len);
+        (element as Moveable).setSelectionRange(len, len);
       } catch (e) {}
     }
     suppressRepeated === true && this.suppressTail(true);
   },
-  focus: function(el) {
+  focus (el): void {
     if (typeof el.focus !== "function") {}
-    else if (this.box.style.display) {
-      this.focusedEl = el;
+    else if ((this.box as HTMLElement).style.display) {
+      this.focusedEl = el as Element & { focus(): void; };
     } else {
       el.focus();
     }
   },
-  getZoom: function() {
-    var docEl = document.documentElement, el, zoom = 1;
+  getZoom (this: void): number {
+    let docEl = document.documentElement as Element, el: Element | null, zoom = 1;
     el = document.webkitFullscreenElement || docEl;
     do {
       zoom *= +getComputedStyle(el).zoom || 1;
     } while (el = VDom.getParent(el));
     return Math.round(zoom * 200) / 200 * Math.min(1, window.devicePixelRatio);
   },
-  getVRect: function(clickEl) {
-    var rect, bcr, b = document.body;
+  getVRect (this: void, clickEl: Element): VRect | null {
+    const b = document.body;
     VDom.prepareCrop();
     VDom.bodyZoom = b && VDom.isInDOM(clickEl, b) && +getComputedStyle(b).zoom || 1;
-    rect = VDom.getVisibleClientRect(clickEl);
+    const rect = VDom.getVisibleClientRect(clickEl),
     bcr = VRect.fromClientRect(clickEl.getBoundingClientRect());
-    return rect && !VRect.isContaining(bcr, rect) ? rect
-      : VDom.isVisibile(clickEl) ? bcr : null;
+    return rect && !VRect.isContaining(bcr, rect) ? rect : VDom.isVisibile(clickEl) ? bcr : null;
   },
-  flash: function(el, rect) {
+  flash (el, rect): number | undefined {
     rect || (rect = this.getVRect(el));
     if (!rect) { return; }
-    var flashEl = VDom.createElement("div"), nfs = !document.webkitIsFullScreen;
+    const flashEl = VDom.createElement("div"), nfs = !document.webkitIsFullScreen;
     flashEl.className = "R Flash";
     VRect.setBoundary(flashEl.style, rect, nfs);
-    VDom.bodyZoom !== 1 && nfs && (flashEl.style.zoom = VDom.bodyZoom);
+    VDom.bodyZoom !== 1 && nfs && (flashEl.style.zoom = "" + VDom.bodyZoom);
     this.addElement(flashEl);
     return setTimeout(function() {
       flashEl.remove();
     }, this.flashLastingTime);
   },
-  suppressTail: function(onlyRepeated) {
-    var func, tick, timer;
+  suppressTail (this: void, onlyRepeated: boolean): void {
+    let func: HandlerNS.Handler<Function>, tick: number, timer: number;
     if (onlyRepeated) {
       func = function(event) {
-        if (event.repeat) { return 2; }
+        if (event.repeat) { return HandlerNS.ReturnedEnum.Prevent; }
         VHandler.remove(this);
-        return 0;
+        return HandlerNS.ReturnedEnum.Nothing;
       };
     } else {
-      func = function() { tick = Date.now(); return 2; };
+      func = function() { tick = Date.now(); return HandlerNS.ReturnedEnum.Prevent; };
       tick = Date.now() + VSettings.cache.keyboard[0];
       timer = setInterval(function() {
         if (Date.now() - tick > 150) {
@@ -172,11 +174,12 @@ VDom.UI = {
     }
     VHandler.push(func, func);
   },
-  SuppressMost: function(event) {
-    var key = event.keyCode;
+  SuppressMost (event) {
+    const key = event.keyCode;
     if (VKeyboard.isEscape(event)) {
       VHandler.remove(this);
     }
-    return key > VKeyCodes.f1 + 9 && key <= VKeyCodes.f12 ? 1 : 2;
+    return key > VKeyCodes.f1 + 9 && key <= VKeyCodes.f12 ?
+      HandlerNS.ReturnedEnum.Suppress : HandlerNS.ReturnedEnum.Prevent;
   }
 };

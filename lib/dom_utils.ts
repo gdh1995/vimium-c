@@ -1,5 +1,5 @@
 var VDom = {
-  UI: null,
+  UI: null as never as DomUI,
   isHTML (this: void): boolean { return document.documentElement instanceof HTMLElement; },
   createElement: function (this: any, tagName: string): HTMLElement {
     const node = document.createElement(tagName), valid = node instanceof HTMLElement;
@@ -208,7 +208,7 @@ var VDom = {
     return (o as Element | null) || (el && el.parentElement);
   },
   mouse (element: Element, type: "mouseover" | "mousedown" | "mouseup" | "click" | "mouseout"
-      , modifiers?: EventControlKeys, related?: Element | null): boolean {
+      , modifiers?: EventControlKeys | null, related?: Element | null): boolean {
     const mouseEvent = document.createEvent("MouseEvents");
     modifiers || (modifiers = this.defaultMouseKeys);
     mouseEvent.initMouseEvent(type, true, true, window, 1, 0, 0, 0, 0
@@ -218,7 +218,7 @@ var VDom = {
   },
   defaultMouseKeys: { altKey: false, ctrlKey: false, metaKey: false, shiftKey: false } as EventControlKeys,
   lastHovered: null as Element | null,
-  unhoverLast (newEl: Element | null, modifiers?: EventControlKeys) {
+  unhoverLast (newEl: Element | null, modifiers?: EventControlKeys | null) {
     let last = this.lastHovered;
     if (last && this.isInDOM(last)) {
       this.mouse(last, "mouseout", modifiers, newEl !== last ? newEl : null);

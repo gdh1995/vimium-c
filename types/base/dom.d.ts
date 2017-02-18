@@ -2021,7 +2021,11 @@ interface ElementEventMap extends GlobalEventHandlersEventMap {
     "webkitfullscreenerror": Event;
 }
 
-interface Element extends Node, GlobalEventHandlers, ElementTraversal, NodeSelector, ChildNode, ParentNode {
+interface AttachShadow {
+    attachShadow(shadowRootInitDict: ShadowRootInit): ShadowRoot;
+}
+interface Element extends Node, GlobalEventHandlers, ElementTraversal, NodeSelector, ChildNode, ParentNode
+        , Partial<AttachShadow> {
     readonly classList: DOMTokenList;
     className: string;
     readonly clientHeight: number;
@@ -2050,6 +2054,7 @@ interface Element extends Node, GlobalEventHandlers, ElementTraversal, NodeSelec
     readonly assignedSlot: HTMLSlotElement | null;
     slot: string;
     readonly shadowRoot: ShadowRoot | null;
+    focus?(): void;
     getAttribute(name: string): string | null;
     getAttributeNS(namespaceURI: string, localName: string): string;
     getAttributeNode(name: string): Attr;
@@ -2090,6 +2095,7 @@ interface Element extends Node, GlobalEventHandlers, ElementTraversal, NodeSelec
     insertAdjacentHTML(where: string, html: string): void;
     insertAdjacentText(where: string, text: string): void;
     attachShadow?(shadowRootInitDict: ShadowRootInit): ShadowRoot;
+    createShadowRoot(): ShadowRoot;
     addEventListener<K extends keyof ElementEventMap>(type: K, listener: (this: Element, ev: ElementEventMap[K]) => void, useCapture?: boolean): void;
     addEventListener(type: string, listener: EventListenerOrEventListenerObject, useCapture?: boolean): void;
 }
@@ -3694,7 +3700,7 @@ interface HTMLInputElement extends HTMLElement {
       * @param start The offset into the text field for the start of the selection.
       * @param end The offset into the text field for the end of the selection.
       */
-    setSelectionRange(start?: number, end?: number, direction?: string): void;
+    setSelectionRange(start: number, end: number, direction?: string): void;
     /**
       * Decrements a range input control's value by the value given by the Step attribute. If the optional parameter is used, it will decrement the input control's step value multiplied by the parameter's value.
       * @param n Value to decrement the value by.
@@ -5856,6 +5862,7 @@ interface SVGElementEventMap extends ElementEventMap {
 }
 
 interface SVGElement extends Element {
+    focus(): void;
     onclick: (this: SVGElement, ev: MouseEvent) => any;
     ondblclick: (this: SVGElement, ev: MouseEvent) => any;
     onfocusin: (this: SVGElement, ev: FocusEvent) => any;

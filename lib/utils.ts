@@ -29,7 +29,7 @@ var VUtils = {
   }
 }, VHandler = {
   stack: [] as Array<[(event: HandlerNS.Event) => HandlerNS.ReturnedEnum, any]>,
-  push<T> (func: (this: T, event: HandlerNS.Event) => HandlerNS.ReturnedEnum, env: T): number {
+  push<T extends object> (func: HandlerNS.Handler<T>, env: T): number {
     return this.stack.push([func, env]);
   },
   bubbleEvent (event: HandlerNS.Event): HandlerNS.ReturnedEnum {
@@ -42,7 +42,7 @@ var VUtils = {
     }
     return HandlerNS.ReturnedEnum.Default;
   },
-  remove (env: any): void {
+  remove (env: object): void {
     let ref = this.stack, i = ref.length;
     while (0 <= --i) {
       if (ref[i][1] === env) {
