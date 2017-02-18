@@ -27,3 +27,41 @@ declare namespace HandlerNS {
 
   }
 }
+
+interface EventControlKeys {
+  altKey: boolean;
+  ctrlKey: boolean;
+  metaKey: boolean;
+  shiftKey: boolean;
+}
+
+interface VRect {
+  [0]: number; // left
+  [1]: number; // top
+  [2]: number; // right
+  [3]: number; // bottom
+}
+
+interface ViewBox {
+  [0]: number; // left
+  [1]: number; // top
+  [2]: number; // width
+  [3]: number; // height
+  [4]: number; // max-left or 0
+}
+
+declare const enum EditableType {
+  Default = 0,
+  NotEditable = Default,
+  Embed = 1,
+  Select = 2,
+  Editbox = 3,
+  _input = 4,
+}
+
+interface Hint {
+  [0]: Element; // element
+  [1]: VRect; // bounding rect
+  [2]: number; // priority (smaller is prior)
+  [3]?: VRect; // bottom
+}

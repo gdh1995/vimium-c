@@ -583,6 +583,7 @@ interface CSSStyleDeclaration {
     columnSpan: string | null;
     columnWidth: any;
     columns: string | null;
+    contain?: string;
     content: string | null;
     counterIncrement: string | null;
     counterReset: string | null;
@@ -590,7 +591,7 @@ interface CSSStyleDeclaration {
     cssText: string;
     cursor: string | null;
     direction: string | null;
-    display: string | null;
+    display: string;
     dominantBaseline: string | null;
     emptyCells: string | null;
     enableBackground: string | null;
@@ -605,6 +606,7 @@ interface CSSStyleDeclaration {
     flexGrow: string | null;
     flexShrink: string | null;
     flexWrap: string | null;
+    float: string
     floodColor: string | null;
     floodOpacity: string | null;
     font: string | null;
@@ -618,7 +620,7 @@ interface CSSStyleDeclaration {
     fontWeight: string | null;
     glyphOrientationHorizontal: string | null;
     glyphOrientationVertical: string | null;
-    height: string | null;
+    height: string;
     imeMode: string | null;
     justifyContent: string | null;
     kerning: string | null;
@@ -667,7 +669,7 @@ interface CSSStyleDeclaration {
     perspective: string | null;
     perspectiveOrigin: string | null;
     pointerEvents: string | null;
-    position: string | null;
+    position: string;
     quotes: string | null;
     right: string | null;
     rubyAlign: string | null;
@@ -779,13 +781,13 @@ interface CSSStyleDeclaration {
     webkitWritingMode: string | null;
     whiteSpace: string | null;
     widows: string | null;
-    width: string | null;
+    width: string;
     wordBreak: string | null;
     wordSpacing: string | null;
     wordWrap: string | null;
     writingMode: string | null;
     zIndex: string | null;
-    zoom: string | null;
+    zoom: string;
     resize: string | null;
     getPropertyPriority(propertyName: string): string;
     getPropertyValue(propertyName: string): string;
@@ -7400,9 +7402,9 @@ declare var ScriptNotifyEvent: {
 }
 
 interface Selection {
-    readonly anchorNode: Node;
+    readonly anchorNode: Node | null;
     readonly anchorOffset: number;
-    readonly focusNode: Node;
+    readonly focusNode: Node | null;
     readonly focusOffset: number;
     readonly isCollapsed: boolean;
     readonly rangeCount: number;
@@ -8631,6 +8633,10 @@ interface DocumentOrShadowRoot {
 interface ShadowRoot extends DocumentOrShadowRoot, DocumentFragment {
     readonly host: Element;
     innerHTML: string;
+}
+declare var ShadowRoot: {
+    prototype: ShadowRoot;
+    new(): never;
 }
 
 interface ShadowRootInit {
