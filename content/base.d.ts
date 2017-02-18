@@ -11,11 +11,12 @@ interface Window {
   readonly VHUD: {
     showCopied(text: string): void;
   };
-  VimiumInjector?: {
-    id: string;
-    alive: 0 | 0.5 | 1;
-    destroy: ((silent?: boolean) => void) | null;
-  };
+  VimiumInjector?: VimiumInjector;
+}
+interface VimiumInjector {
+  id: string;
+  alive: 0 | 0.5 | 1;
+  destroy: ((this: void, silent?: boolean) => void) | null;
 }
 
 declare namespace HandlerNS {
@@ -115,7 +116,14 @@ declare var VPort: {
 VEventMode: {
   lock(): Element | null;
 },
+VHints: any, Vomnibar: any, VFindMode: any, VVisualMode: any,
+VHUD: {
+},
 VSettings: {
   cache: SettingsNS.FrontendSettingCache;
-}
+  checkIfEnabled (): void;
+  onDestroy: ((this: void) => any) | null;
+  destroy (this: void): void;
+},
+VimiumInjector: VimiumInjector
 ;

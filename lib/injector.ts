@@ -36,8 +36,8 @@ handler = function(content_scripts) {
         , host, "color: auto", str ? str : ` (${tick} retries).`);
     }
   }
-  if (window.VimiumInjector && typeof window.VimiumInjector.destroy === "function") {
-    window.VimiumInjector.destroy(true);
+  if (window.VimiumInjector && typeof VimiumInjector.destroy === "function") {
+    VimiumInjector.destroy(true);
   }
 
   window.VimiumInjector = {

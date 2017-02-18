@@ -15,7 +15,7 @@
     (event.target as Element).vimiumHasOnclick = true;
     event.stopPropagation();
   }, true);
-  (window as any).VSettings.onDestroy = function() {
+  VSettings.onDestroy = function() {
     removeEventListener("VimiumReg", installer, true);
     removeEventListener("VimiumOnclick", onclick, true);
     box && box.removeEventListener("VimiumOnclick", onclick, true);
@@ -29,7 +29,7 @@ const _listen = EventTarget.prototype.addEventListener;
 let box: HTMLDivElement, toRegister: Element[] = [],
 register = toRegister.push.bind<Element[], Element, number>(toRegister);
 EventTarget.prototype.addEventListener = function(this: EventTarget, type: string
-    , listener: EventListenerOrEventListenerObject, useCapture?: any) {
+    , listener: EventListenerOrEventListenerObject, useCapture?: boolean) {
   if (type === "click" && this instanceof Element) {
     register(this as Element);
   }

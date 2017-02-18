@@ -1,5 +1,3 @@
-"use strict";
-
 VDom.documentReady(function() {
   if (!VSettings) { return; }
   addEventListener("hashchange", VSettings.checkIfEnabled);
@@ -19,8 +17,9 @@ VSettings.onDestroy = function() {
   var injector = VimiumInjector;
   injector.alive = 0;
   injector.destroy = null;
+  type ET2 = EventTargetEx;
   try {
-    typeof EventTarget.vimiumRemoveHooks === "function" && EventTarget.vimiumRemoveHooks();
+    typeof (EventTarget as ET2).vimiumRemoveHooks === "function" && (EventTarget as ET2).vimiumRemoveHooks();
   } catch (e) {}
 };
 
