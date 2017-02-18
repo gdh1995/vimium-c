@@ -105,13 +105,12 @@ VDom.UI = {
     this.click(element, null, true);
     flash === true && this.flash(element);
     if (element !== VEventMode.lock()) { return; }
-    var len;
-    if ((len = element.value ? element.value.length : -1) && element.setSelectionRange) {
-      if (element instanceof HTMLInputElement || element.clientHeight + 12 >= element.scrollHeight)
+    var moveSel = element instanceof HTMLTextAreaElement ? element.clientHeight + 12 >= element.scrollHeight
+      : element instanceof HTMLInputElement, len, val;
+    if (moveSel && 0 == element.selectionEnd && element.setSelectionRange
+        && (len = (val = element.value) ? val.length : 0) > 0) {
       try {
-        if (0 == element.selectionEnd) {
-          element.setSelectionRange(len, len);
-        }
+        element.setSelectionRange(len, len);
       } catch (e) {}
     }
     suppressRepeated === true && this.suppressTail(true);
