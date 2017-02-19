@@ -48,10 +48,11 @@ __微度新标签页修改版 (Modified X New Tab Page):__
 
 # Release Notes
 
-1.58 beta:
+Not released yet:
 * temporarily disable the experimental feature of options_ui dialog
 * fix broken `Vomnibar` caused by the Chrome flag `#enable-site-per-process`
 * use `closed` shadowDOM to show UI more safely
+* fix many small code bugs
 
 1.57.6:
 * fix bugs like single-completer searching and opening showPage in place
