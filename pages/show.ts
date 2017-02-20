@@ -7,7 +7,12 @@ interface ImportBody {
   (id: "shownText"): HTMLDivElement
 }
 interface Window {
-  viewer: null | {
+  readonly VDom: any;
+  readonly VPort: typeof VPort;
+  readonly VHUD: {
+    showCopied(text: string): void;
+  };
+  viewer?: null | {
     destroy(): any;
     show(): any;
   };
@@ -246,7 +251,7 @@ function copyThing(event: Event): void {
   return window.VPort.send({
     handler: "copyToClipboard",
     data: str
-  } as FgReq["copyToClipboard"], function() {
+  }, function() {
     return window.VHUD.showCopied(str);
   });
 }

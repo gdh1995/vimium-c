@@ -5,14 +5,6 @@ interface Element {
 interface FgOptions extends SafeDict<any> {}
 
 interface Window {
-  readonly VDom: any;
-  readonly VPort: {
-    post<K extends keyof FgReq>(msg: FgReq[K]): 1;
-    send<K extends keyof FgRes>(msg: FgReq[K], callback: (msg: FgRes[K]) => void): void;
-  };
-  readonly VHUD: {
-    showCopied(text: string): void;
-  };
   VimiumInjector?: VimiumInjector;
 }
 interface VimiumInjector {
@@ -20,19 +12,17 @@ interface VimiumInjector {
   alive: 0 | 0.5 | 1;
   destroy: ((this: void, silent?: boolean) => void) | null;
 }
-
+declare const enum HandlerResult {
+  Default = 0,
+  Nothing = Default,
+  Suppress = 1,
+  Prevent = 2,
+}
 declare namespace HandlerNS {
   type Event = KeyboardEvent;
 
-  const enum ReturnedEnum {
-    Default = 0,
-    Nothing = Default,
-    Suppress = 1,
-    Prevent = 2,
-  }
-
   interface Handler<T extends object> {
-    (this: T, event: HandlerNS.Event): HandlerNS.ReturnedEnum;
+    (this: T, event: HandlerNS.Event): HandlerResult;
   }
 }
 
@@ -112,7 +102,7 @@ interface DomUI {
 declare var VScroller: any;
 
 declare var VPort: {
-  post<K extends keyof FgReq>(req: FgReq[K] & FgBase<K>): void;
+  post<K extends keyof FgReq>(req: FgReq[K] & FgBase<K>): void | 1;
   send<K extends keyof FgRes>(req: FgReq[K] & FgBase<K>, callback: (this: void, res: FgRes[K]) => any): void;
 },
 VEventMode: {

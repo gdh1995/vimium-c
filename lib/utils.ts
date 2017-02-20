@@ -28,19 +28,19 @@ var VUtils = {
     event.stopImmediatePropagation();
   }
 }, VHandler = {
-  stack: [] as Array<[(event: HandlerNS.Event) => HandlerNS.ReturnedEnum, any]>,
+  stack: [] as Array<[(event: HandlerNS.Event) => HandlerResult, any]>,
   push<T extends object> (func: HandlerNS.Handler<T>, env: T): number {
     return this.stack.push([func, env]);
   },
-  bubbleEvent (event: HandlerNS.Event): HandlerNS.ReturnedEnum {
+  bubbleEvent (event: HandlerNS.Event): HandlerResult {
     for (let ref = this.stack, i = ref.length; 0 <= --i; ) {
       const item = ref[i],
       result = item[0].call(item[1], event);
-      if (result !== HandlerNS.ReturnedEnum.Nothing) {
+      if (result !== HandlerResult.Nothing) {
         return result;
       }
     }
-    return HandlerNS.ReturnedEnum.Default;
+    return HandlerResult.Default;
   },
   remove (env: object): void {
     let ref = this.stack, i = ref.length;

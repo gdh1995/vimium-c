@@ -1522,11 +1522,11 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
     },
     activateVomnibar (this: void, request: FgReq["activateVomnibar"], port: Port): void {
       cPort = port;
-      if ((request.count as number) > 0) {
-        commandCount = request.count as number;
+      if (((request as { count?: number }).count as number) > 0) {
+        commandCount = (request as { count: number }).count;
         cOptions = Object.setPrototypeOf(request, null);
         cOptions.handler = "";
-      } else if (request.redo !== true || cOptions == null || cOptions.secret !== -1) {
+      } else if ((request as { redo?: boolean }).redo !== true || cOptions == null || cOptions.secret !== -1) {
         return;
       }
       return BackgroundCommands.showVomnibar();

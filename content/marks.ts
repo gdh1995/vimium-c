@@ -23,15 +23,15 @@ var VMarks = {
     } catch (e) {}
     return VHUD.showForDuration("Local marks have been cleared.", 1000);
   },
-  onKeydown (event: HandlerNS.Event): HandlerNS.ReturnedEnum {
+  onKeydown (event: HandlerNS.Event): HandlerResult {
     const keyCode = event.keyCode, cont = !VKeyboard.isEscape(event);
     let keyChar: string | undefined;
-    if (cont && (keyCode > VKeyCodes.f1 && keyCode <= VKeyCodes.f12 || keyCode <= 32
+    if (cont && (keyCode > VKeyCodes.f1 && keyCode <= VKeyCodes.f12 || keyCode <= VKeyCodes.space
         || !(keyChar = VKeyboard.getKeyChar(event)))) {
       return 1;
     }
     VHandler.remove(this);
-    cont && keyCode > 32 ? this.onKeypress(event, keyChar as string) : VHUD.hide();
+    cont && keyCode > VKeyCodes.space ? this.onKeypress(event, keyChar as string) : VHUD.hide();
     this.prefix = true;
     this.onKeypress = null as never;
     return 2;

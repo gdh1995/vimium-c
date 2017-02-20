@@ -158,12 +158,12 @@ VDom.UI = {
     let func: HandlerNS.Handler<Function>, tick: number, timer: number;
     if (onlyRepeated) {
       func = function(event) {
-        if (event.repeat) { return HandlerNS.ReturnedEnum.Prevent; }
+        if (event.repeat) { return HandlerResult.Prevent; }
         VHandler.remove(this);
-        return HandlerNS.ReturnedEnum.Nothing;
+        return HandlerResult.Nothing;
       };
     } else {
-      func = function() { tick = Date.now(); return HandlerNS.ReturnedEnum.Prevent; };
+      func = function() { tick = Date.now(); return HandlerResult.Prevent; };
       tick = Date.now() + VSettings.cache.keyboard[0];
       timer = setInterval(function() {
         if (Date.now() - tick > 150) {
@@ -180,6 +180,6 @@ VDom.UI = {
       VHandler.remove(this);
     }
     return key > VKeyCodes.f1 + 9 && key <= VKeyCodes.f12 ?
-      HandlerNS.ReturnedEnum.Suppress : HandlerNS.ReturnedEnum.Prevent;
+      HandlerResult.Suppress : HandlerResult.Prevent;
   }
 };

@@ -123,8 +123,9 @@ interface FgReq {
   };
   initInnerCSS: FgBase<"initInnerCSS">;
   activateVomnibar: {
-    count?: number;
-    redo?: boolean;
+    count: number;
+  } | {
+    redo: boolean;
   };
   omni: {
     query: string;
@@ -180,7 +181,8 @@ declare namespace Req {
     readonly request: FgBase<K>;
   };
 
-  interface FgCmd<O extends keyof CmdOptions> extends BaseExecute<CmdOptions[O]> {}
+  interface FgCmd<O extends keyof CmdOptions> extends BaseExecute<Partial<CmdOptions[O]>> {
+  }
 }
 
 interface SetSettingReq<T extends keyof SettingsNS.FrontUpdateAllowedSettings> {

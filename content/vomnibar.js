@@ -32,7 +32,7 @@ var Vomnibar = {
     if (this.status < 0) {
       this.init(options.secret, options.vomnibar);
       this.status = 1;
-    } else if (this.CheckAlive()) {
+    } else if (this.checkAlive()) {
       return;
     } else if (!this.status) {
       this.status = 2;
@@ -127,12 +127,12 @@ var Vomnibar = {
     else if (!redo || oldStatus < 2 || oldStatus > 3) { return; }
     VPort.post({ handler: "activateVomnibar", redo: true });
   },
-  CheckAlive: function() {
-    var a = Vomnibar, wnd = a.box.contentWindow;
+  checkAlive: function() {
+    var wnd = this.box.contentWindow;
     try {
-      if (wnd && wnd.VPort && a.sameOrigin) { return false; }
+      if (wnd && wnd.VPort && this.sameOrigin) { return false; }
     } catch (e) { return false; }
-    return a._forceRedo = true;
+    return this._forceRedo = true;
   },
   onMessage: function(event) {
     var data = event.data;
