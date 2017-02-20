@@ -57,6 +57,42 @@ declare const enum EditableType {
   _input = 4,
 }
 
+declare namespace VomnibarNS {
+  const enum Status {
+    Default = -1,
+    NotInited = Default,
+    Inactive = 0,
+    Initing = 1,
+    ToShow = 2,
+    Showing = 3,
+  }
+  const enum HideType {
+    // 0 | 1 | -1 | -2;
+    Default = 0,
+    ActDirectly = Default,
+    WaitAndAct = 1,
+    OnlyFocus = -1,
+    DoNothing = -2,
+    MinAct = ActDirectly,
+  }
+  interface FgOptions {
+    topUrl?: "";
+    count?: 1;
+    url?: string;
+    width: number;
+    forceNewTab?: boolean;
+    search: "" | FgRes["parseSearchUrl"];
+    secret: 0;
+    vomnibar: "";
+    name: "activate";
+  }
+  type Msg = string | { name: string };
+  interface IframePort {
+    postMessage (this: IframePort, msg: Msg): void | 1;
+    onmessage (this: void, msg: { data: Msg }): void | 1;
+  }
+}
+
 interface Hint {
   [0]: Element; // element
   [1]: VRect; // bounding rect
@@ -107,8 +143,9 @@ declare var VPort: {
 },
 VEventMode: {
   lock(): Element | null;
+  suppress(keyCode?: number): void;
 },
-VHints: any, Vomnibar: any, VFindMode: any, VVisualMode: any,
+VHints: any, VFindMode: any, VVisualMode: any,
 VHUD: {
   show (text: string): void | Element;
   showForDuration (text: string, duration: number): void;
