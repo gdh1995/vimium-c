@@ -12,13 +12,12 @@ var Vomnibar = {
     if (!options.secret || !options.vomnibar) { return false; }
     if (document.readyState === "loading") {
       if (!this.width) {
-        this.width = setTimeout(this.activate.bind(this, options), 500);
+        this.width = setTimeout(this.activate.bind(this, count, options), 500);
         return;
       }
       this.width = 0;
     }
     if (!VDom.isHTML()) { return false; }
-    Object.setPrototypeOf(options || (options = {}), null);
     if (options.url === true && !options.topUrl) {
       options.topUrl = window.location.href;
       options.count = +count || 1;
