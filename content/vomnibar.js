@@ -18,8 +18,10 @@ var Vomnibar = {
       this.width = 0;
     }
     if (!VDom.isHTML()) { return false; }
-    if (options.url === true && !options.topUrl) {
-      options.topUrl = window.location.href;
+    if (options.url === true) {
+      if (window.top === window || !options.topUrl) {
+        options.topUrl = window.location.href;
+      }
       options.count = +count || 1;
     }
     if (VHints.tryNestedFrame("Vomnibar.activate", 1, options)) { return; }
