@@ -28,4 +28,4 @@ VimiumInjector.destroy = VSettings.destroy;
 [VDom, VRect, VHints, VKeyboard, Vomnibar, VScroller, VMarks,
   VFindMode, VSettings, VHUD, VVisualMode,
   VimiumInjector].forEach(Object.seal);
-[VUtils, VKeyCodes, VHandler, VEventMode, VPort].forEach(Object.freeze);
+[VUtils, VHandler, VEventMode, VPort].forEach(Object.freeze);
