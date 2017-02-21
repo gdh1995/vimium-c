@@ -93,6 +93,8 @@ declare namespace VomnibarNS {
   }
 }
 
+declare type ScrollByY = BOOL;
+
 interface Hint {
   [0]: Element; // element
   [1]: VRect; // bounding rect
@@ -134,8 +136,6 @@ interface DomUI {
   suppressTail (this: void, onlyRepeated: boolean): void;
   SuppressMost: HandlerNS.Handler<object>;
 }
-
-declare var VScroller: any;
 
 declare var VPort: {
   post<K extends keyof FgReq>(req: FgReq[K] & FgBase<K>): void | 1;
