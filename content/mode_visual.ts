@@ -1,15 +1,27 @@
-"use strict";
+declare namespace VisualModeNS {
+  const enum Action {
+
+  }
+  type ValidActions = VisualModeNS.Action | ((this: any, count: number) => any);
+  type ForwardDir = 0 | 1;
+  const enum G {
+    character = 0, line = 1, lineboundary = 2, paragraph = 3, sentence = 4, word = 6, documentboundary = 7,
+  }
+  const enum VimG {
+    vimword = 5,
+  }
+}
 var VVisualMode = {
-  mode: "",
+  mode: "" as "visual" | "caret" | "line",
   hud: "",
   hudTimer: 0,
   currentCount: 0,
-  currentSeconds: null,
+  currentSeconds: null as SafeDict<VisualModeNS.ValidActions> | null,
   retainSelection: false,
-  selection: null,
-  activate: function(options) {
-    var sel, type, rect, mode;
-    Object.setPrototypeOf(options = options || {}, null);
+  selection: null as never as Selection,
+  activate (options?: FgOptions): void {
+    let sel: Selection, type: string, mode: typeof VVisualMode.mode;
+    Object.setPrototypeOf(options = options || {} as FgOptions, null);
     this.init && this.init();
     this.movement.selection = this.selection = sel = VDom.UI.getSelection();
     VHandler.remove(this);
@@ -20,7 +32,7 @@ var VVisualMode = {
     if (mode !== "caret") {
       this.movement.alterMethod = "extend";
       if (!VEventMode.lock() && (type === "Caret" || type === "Range")) {
-        rect = sel.getRangeAt(0).getBoundingClientRect();
+        const rect = sel.getRangeAt(0).getBoundingClientRect();
         VDom.prepareCrop();
         if (!VRect.cropRectToVisible(rect.left, rect.top, rect.right + 3, rect.bottom + 3)) {
           sel.removeAllRanges();
@@ -37,46 +49,45 @@ var VVisualMode = {
       this.mode = mode;
       this.prompt("No usable selection, entering caret mode...", 1000);
     }
-    if (mode !== "caret") { return mode === "line" && this.movement.extendToLine(); }
+    if (mode !== "caret") { return mode === "line" ? this.movement.extendToLine() : undefined; }
     this.movement.alterMethod = "move";
     if (type === "Range") {
       this.movement.collapseSelectionTo(0);
     } else if (type === "None" && this.establishInitialSelectionAnchor()) {
       this.deactivate();
-      VHUD.showForDuration("Create a selection before entering visual mode.", 1500);
-      return;
+      return VHUD.showForDuration("Create a selection before entering visual mode.", 1500);
     }
     this.movement.extend(1);
-    this.movement.scrollIntoView();
+    return this.movement.scrollIntoView();
   },
-  deactivate: function(isEsc) {
+  deactivate (isEsc?: 1): void {
     VHandler.remove(this);
     if (!this.retainSelection) {
       this.movement.collapseSelectionTo(isEsc && this.mode !== "caret" ? 1 : 0);
     }
-      var el = VEventMode.lock();
-      el && VDom.getEditableType(el) && el.blur();
-    VHUD.hide();
-    this.mode = this.hud = "";
+    const el = VEventMode.lock();
+    el && VDom.getEditableType(el) && el.blur && el.blur();
+    this.mode = "" as never; this.hud = "";
     this.retainSelection = false;
-    this.selection = this.movement.selection = null;
+    this.selection = this.movement.selection = null as never;
+    return VHUD.hide();
   },
-  onKeydown: function(event) {
-    var i = event.keyCode, count, ch, key, obj;
-    if (i >= VKeyCodes.f1 && i <= VKeyCodes.f12) { return i === VKeyCodes.f1 ? 2 : 0; }
+  onKeydown (event: KeyboardEvent): HandlerResult {
+    let i = event.keyCode, count = 0;
+    if (i >= VKeyCodes.f1 && i <= VKeyCodes.f12) { return i === VKeyCodes.f1 ? HandlerResult.Prevent : HandlerResult.Nothing; }
     if (i === VKeyCodes.enter) {
       i = VKeyboard.getKeyStat(event);
-      if ((i & 8) && this.mode !== "caret") { this.retainSelection = true; }
-      (i & 6) ? this.deactivate() : this.yank(i === 1 || null);
-      return 2;
+      if ((i & KeyStat.shiftKey) && this.mode !== "caret") { this.retainSelection = true; }
+      (i & KeyStat.PrimaryModifier) ? this.deactivate() : this.yank(i === KeyStat.altKey || null);
+      return HandlerResult.Prevent;
     }
     if (VKeyboard.isEscape(event)) {
       this.currentCount || this.currentSeconds ? this.resetKeys() : this.deactivate(1);
-      return 2;
+      return HandlerResult.Prevent;
     }
-    ch = VKeyboard.getKeyChar(event);
-    if (!ch) { this.resetKeys(); return i === 229 || i === 93 ? 0 : 1; }
-    key = VKeyboard.getKey(event, ch);
+    const ch = VKeyboard.getKeyChar(event);
+    if (!ch) { this.resetKeys(); return i === VKeyCodes.ime || i === VKeyCodes.menuKey ? HandlerResult.Nothing : HandlerResult.Suppress; }
+    let key = VKeyboard.getKey(event, ch), obj: SafeDict<VisualModeNS.ValidActions> | null | VisualModeNS.ValidActions | undefined;
     key = VEventMode.mapKey(key);
     if (obj = this.currentSeconds) {
       obj = obj[key];
@@ -96,85 +107,85 @@ var VVisualMode = {
       count = this.currentCount;
       this.currentCount = 0;
     }
-    if (obj == null) { return ch.length === 1 && ch === key ? 2 : 1; }
+    if (obj == null) { return ch.length === 1 && ch === key ? HandlerResult.Prevent : HandlerResult.Suppress; }
     this.commandHandler(obj, count || 1);
-    return 2;
+    return HandlerResult.Prevent;
   },
-  resetKeys: function() {
+  resetKeys (): void {
     this.currentCount = 0; this.currentSeconds = null;
   },
-  commandHandler: function(command, count) {
-    if (command > 60) {
-      return VScroller.scrollBy(1, (command === 61 ? 1 : -1) * count);
-    }
+  commandHandler (command: VisualModeNS.ValidActions, count: number): any {
     if (command > 50) {
-      if (command === 53 && this.mode !== "caret") {
-        count = this.selection.toString().length > 1;
-        this.movement.collapseSelectionTo(+count);
+      if (command > 60) {
+        return VScroller.scrollBy(1, (command === 61 ? 1 : -1) * count, 0);
       }
-      return this.activate({ mode: ["visual", "line", "caret"][command - 51] });
+      if (command === 53 && this.mode !== "caret") {
+        const flag = this.selection.toString().length > 1;
+        this.movement.collapseSelectionTo(+flag as 0 | 1);
+      }
+      return this.activate({ mode: ["visual", "line", "caret"][(command as number - 51) as 0 | 1 | 2] } as object as FgOptions);
     }
     this.mode === "caret" && this.movement.collapseSelectionTo(0);
     if (command >= 0) {
-      this.movement.runMovements(command & 1, command >>> 1, count);
+      this.movement.runMovements(((command as number) & 1) as 0 | 1, (command as number) >>> 1, count);
     } else {
-      command.call(this, count);
+      (command as (count: number) => any).call(this, count);
     }
-    this.mode === "caret" ? this.movement.extend(1)
+    return this.mode === "caret" ? this.movement.extend(1)
     : this.mode === "line" ? this.movement.extendToLine() : 0;
   },
-  establishInitialSelectionAnchor: function() {
-    var nodes, node, element, str, offset;
+  establishInitialSelectionAnchor (): boolean {
+    let node: Text | null, element: Element, str: string | undefined, offset: number;
     if (!VDom.isHTML()) { return true; }
     VDom.prepareCrop();
-    nodes = document.createTreeWalker(document.body || document.documentElement, NodeFilter.SHOW_TEXT);
-    while (node = nodes.nextNode()) {
+    const nodes = document.createTreeWalker(document.body || document.documentElement as HTMLElement, NodeFilter.SHOW_TEXT);
+    while (node = nodes.nextNode() as Text | null) {
       if (50 <= (str = node.data).length && 50 < str.trim().length) {
-        element = node.parentElement;
+        element = node.parentElement as Element;
         if (VDom.getVisibleClientRect(element) && !VDom.getEditableType(element)) {
           break;
         }
       }
     }
     if (!node) { return true; }
-    offset = str.match(/^\s*/)[0].length;
+    offset = ((str as string).match(<RegExpOne>/^\s*/) as RegExpMatchArray)[0].length;
     this.selection.collapse(node, offset);
     return this.selection.type === "None";
   },
-  prompt: function(text, duration) {
+  prompt (text: string, duration: number): void {
     VHUD.show(text);
     this.hudTimer && clearTimeout(this.hudTimer);
     this.hudTimer = setTimeout(this.ResetHUD, duration);
   },
-  ResetHUD: function() {
-    var _this = VVisualMode;
+  ResetHUD (): void {
+    const _this = VVisualMode;
     if (!_this) { return; }
     _this.hudTimer = 0;
     _this.hud && VHUD.show(_this.hud);
   },
-  find: function(count, direction) {
+  find (count: number, direction?: VisualModeNS.ForwardDir): void {
     if (!VFindMode.query) {
       VPort.send({ handler: "findQuery" }, function(query) {
         if (query) {
           VFindMode.updateQuery(query);
-          VVisualMode.find(count, direction);
+          return VVisualMode.find(count, direction);
         } else {
-          VVisualMode.prompt("No history queries", 1000);
+          return VVisualMode.prompt("No history queries", 1000);
         }
       });
       return;
     }
-    var range = this.selection.getRangeAt(0);
-    VFindMode.execute(null, { noColor: true, dir: direction || -1, count: count });
+    const range = this.selection.getRangeAt(0);
+    VFindMode.execute(null, { noColor: true, dir: direction || -1, count: count } as object as FgOptions);
     if (VFindMode.hasResults) {
-      return this.mode === "caret" && this.selection.toString().length > 0 && this.activate();
+      return this.mode === "caret" && this.selection.toString().length > 0 ? this.activate() : undefined;
     }
     this.selection.removeAllRanges();
     this.selection.addRange(range);
-    this.prompt("No matches for " + VFindMode.query, 1000);
+    return this.prompt("No matches for " + VFindMode.query, 1000);
   },
-  yank: function(action) {
-    var str = this.selection.toString();
+  yank (action?: true | ReuseType.current | ReuseType.newFg | null): void {
+    const str = this.selection.toString();
     if (action === true) {
       this.prompt(VHUD.showCopied(str, "", true), 2000);
       action = null;
@@ -187,30 +198,32 @@ var VVisualMode = {
   },
 
 movement: {
-  D: ["backward", "forward"],
+  D: ["backward", "forward"] as ["backward", "forward"],
   G: ["character", "line", "lineboundary", /*3*/ "paragraph", "sentence", "vimword", /*6*/ "word",
+      "documentboundary"] as
+     ["character", "line", "lineboundary", /*3*/ "paragraph", "sentence", "vimword", /*6*/ "word",
       "documentboundary"],
-  alterMethod: "",
-  diOld: 0,
-  diNew: 0,
-  extendAtEnd: false,
-  selection: null,
-  wordRe: null,
-  extend: function(d) {
-    this.selection.modify("extend", this.D[d], "character");
+  alterMethod: "" as "move" | "extend",
+  diOld: 0 as VisualModeNS.ForwardDir,
+  diNew: 0 as VisualModeNS.ForwardDir,
+  noExtend: false,
+  selection: null as never as Selection,
+  wordRe: null as never as RegExpOne,
+  extend (d: VisualModeNS.ForwardDir): void | 1 {
+    return this.selection.modify("extend", this.D[d], "character");
   },
-  modify: function(d, g) {
-    this.selection.modify(this.alterMethod, this.D[d], this.G[g]);
+  modify (d: VisualModeNS.ForwardDir, g: VisualModeNS.G): void | 1 {
+    return this.selection.modify(this.alterMethod, this.D[d], this.G[g as 0 | 1 | 2]);
   },
-  setDi: function() { return this.diNew = this.getDirection(); },
-  getNextForwardCharacter: function(isMove) {
-    var afterText, beforeText = this.selection.toString();
+  setDi (): VisualModeNS.ForwardDir { return this.diNew = this.getDirection(); },
+  getNextForwardCharacter (isMove: boolean): string | null {
+    const beforeText = this.selection.toString();
     if (beforeText.length > 0 && !this.getDirection(true)) {
       this.noExtend = true;
       return beforeText[0];
     }
     this.extend(1);
-    afterText = this.selection.toString();
+    const afterText = this.selection.toString();
     if (afterText.length !== beforeText.length || beforeText !== afterText) {
       this.noExtend = isMove;
       isMove && this.extend(0);
@@ -219,16 +232,16 @@ movement: {
     this.noExtend = false;
     return null;
   },
-  runMovements: function(direction, granularity, count) {
-    if (granularity === 5 || granularity === 6) {
-      if (direction) { return this.moveForwardByWord(granularity === 5, count); }
-      granularity = 6;
+  runMovements (direction: VisualModeNS.ForwardDir, granularity: VisualModeNS.G | VisualModeNS.VimG, count: number): void {
+    if (granularity === VisualModeNS.VimG.vimword || granularity === VisualModeNS.G.word) {
+      if (direction) { return this.moveForwardByWord(granularity === VisualModeNS.VimG.vimword, count); }
+      granularity = VisualModeNS.G.word;
     }
-    var sel = this.selection, m = this.alterMethod, d = this.D[direction], g = this.G[granularity];
+    let sel = this.selection, m = this.alterMethod, d = this.D[direction], g = this.G[granularity as 0 | 1 | 2];
     while (0 < count--) { sel.modify(m, d, g); }
   },
-  moveForwardByWord: function(vimLike, count) {
-    var ch, isMove = this.alterMethod !== "extend";
+  moveForwardByWord (vimLike: boolean, count: number): void {
+    let ch: string | null = null, isMove = this.alterMethod !== "extend";
     this.getDirection(); this.diNew = 1; this.noExtend = false;
     while (0 < count--) {
       do {
@@ -241,80 +254,83 @@ movement: {
     // `ch &&` is needed according to tests for command `w`
     ch && !this.noExtend && this.extend(0);
   },
-  hashSelection: function() {
-    var range = this.selection.getRangeAt(0);
+  hashSelection (): string {
+    const range = this.selection.getRangeAt(0);
     return [this.selection.toString().length,
       range.anchorOffset, range.focusOffset,
       this.selection.extentOffset, this.selection.baseOffset
     ].join("/");
   },
-  moveByChar: function(isMove) {
-    var before = isMove || this.hashSelection();
-    this.modify(1, 0);
+  moveByChar (isMove: boolean): boolean {
+    const before = isMove || this.hashSelection();
+    this.modify(1, VisualModeNS.G.character);
     return isMove ? false : this.hashSelection() === before;
   },
-  reverseSelection: function() {
-    var el = VEventMode.lock(), direction = this.getDirection(true), str, length, original;
-    if (el && !(el instanceof HTMLFormElement) && VDom.editableTypes[el.nodeName.toLowerCase()] > 1) {
-      length = this.selection.toString().length;
+  reverseSelection (): void {
+    const el = VEventMode.lock(), direction = this.getDirection(true);
+    if (el && !(el instanceof HTMLFormElement)
+        && (VDom.editableTypes[el.nodeName.toLowerCase()] as EditableType) > EditableType.Embed) {
+      let length = this.selection.toString().length;
       this.collapseSelectionTo(1);
-      this.diNew = this.diOld = 1 - direction;
+      this.diNew = this.diOld = (1 - direction) as VisualModeNS.ForwardDir;
       while (0 < length--) { this.modify(this.diOld, 0); }
       return;
     }
-    original = this.selection.getRangeAt(0);
+    const original = this.selection.getRangeAt(0),
     str = direction ? "start" : "end";
-    this.diNew = this.diOld = 1 - direction;
+    this.diNew = this.diOld = (1 - direction) as VisualModeNS.ForwardDir;
     this.collapse(this.diNew);
-    this.selection.extend(original[str + "Container"], original[str + "Offset"]);
+    this.selection.extend(original[(str + "Container") as "endContainer"], original[(str + "Offset") as "endOffset"]);
   },
-  extendByOneCharacter: function(direction) {
-    var length = this.selection.toString().length;
+  extendByOneCharacter (direction: VisualModeNS.ForwardDir): number {
+    const length = this.selection.toString().length;
     this.extend(direction);
     return this.selection.toString().length - length;
   },
-  getDirection: function(cache) {
-    var di = 1, change;
+  getDirection (cache?: boolean): VisualModeNS.ForwardDir {
+    let di: VisualModeNS.ForwardDir = 1, change: number;
     if (cache && this.diOld === this.diNew) { return this.diOld; }
     if (change = this.extendByOneCharacter(di) || this.extendByOneCharacter(di = 0)) {
-      this.extend(1 - di);
+      this.extend((1 - di) as VisualModeNS.ForwardDir);
     }
-    return this.diOld = change > 0 ? di : change < 0 ? 1 - di : 1;
+    return this.diOld = change > 0 ? di : change < 0 ? (1 - di) as VisualModeNS.ForwardDir : 1;
   },
-  collapseSelectionTo: function(direction) {
+  collapseSelectionTo (direction: VisualModeNS.ForwardDir) {
     this.selection.toString().length > 0 && this.collapse(this.getDirection() - direction);
   },
-  collapse: function(toStart) {
-    toStart ? this.selection.collapseToStart() : this.selection.collapseToEnd();
+  collapse (toStart: number): void | 1 {
+    return toStart ? this.selection.collapseToStart() : this.selection.collapseToEnd();
   },
-  selectLexicalEntity: function(entity, count) {
+  selectLexicalEntity (entity: VisualModeNS.G, count: number): void {
     this.collapseSelectionTo(1);
-    entity === 6 && this.modify(1, 0);
+    entity === VisualModeNS.G.word && this.modify(1, VisualModeNS.G.character);
     this.modify(0, entity);
     this.collapseSelectionTo(1);
-    this.runMovements(1, entity, count);
+    return this.runMovements(1, entity, count);
   },
-  selectLine: function(count) {
+  selectLine (count: number): void | 1 {
     this.alterMethod = "extend";
     this.setDi() && this.reverseSelection();
-    this.modify(0, 2);
+    this.modify(0, VisualModeNS.G.lineboundary);
     this.reverseSelection();
-    while (0 < --count) { this.modify(1, 1); }
-    this.modify(1, 2);
-    var ch = this.getNextForwardCharacter(false);
-    ch && !this.noExtend && ch !== "\n" && this.extend(0);
+    while (0 < --count) { this.modify(1, VisualModeNS.G.line); }
+    this.modify(1, VisualModeNS.G.lineboundary);
+    const ch = this.getNextForwardCharacter(false);
+    if (ch && !this.noExtend && ch !== "\n") {
+      return this.extend(0);
+    }
   },
-  extendToLine: function() {
+  extendToLine (): void {
     this.setDi();
-    for (var i = 2; 0 < i--; ) {
-      this.modify(this.diOld, 2);
+    for (let i = 2; 0 < i--; ) {
+      this.modify(this.diOld, VisualModeNS.G.lineboundary);
       this.reverseSelection();
     }
   },
-  scrollIntoView: function() {
+  scrollIntoView (): void {
     if (this.selection.type === "None") { return; }
-    var focused = VDom.getElementWithFocus(this.selection, this.getDirection());
-    focused && VScroller.scrollIntoView(focused);
+    const focused = VDom.getElementWithFocus(this.selection, this.getDirection());
+    if (focused) { return VScroller.scrollIntoView(focused); }
   },
 },
 
@@ -323,27 +339,38 @@ keyMap: {
   0: 4, $: 5, G: 15, g: { g: 14 }, B: 12, W: 11,
   v: 51, V: 52, c: 53,
   a: {
-    w: function(count) { this.movement.selectLexicalEntity(6, count); },
-    s: function(count) { this.movement.selectLexicalEntity(4, count); }
+    w (count): void {
+      return (this as typeof VVisualMode).movement.selectLexicalEntity(VisualModeNS.G.word, count);
+    },
+    s (count): void {
+      return (this as typeof VVisualMode).movement.selectLexicalEntity(VisualModeNS.G.sentence, count);
+    }
   },
-  n: function(count) { this.find(count, 1); },
-  N: function(count) { this.find(count, 0); },
-  "/": function() {
-    clearTimeout(this.hudTimer);
+  n (count): void { return (this as typeof VVisualMode).find(count, 1); },
+  N (count): void { return (this as typeof VVisualMode).find(count, 0); },
+  "/": function(): void | boolean {
+    clearTimeout((this as typeof VVisualMode).hudTimer);
     VHUD.hide();
-    VFindMode.activate({ returnToViewport: true });
+    return VFindMode.activate({ returnToViewport: true } as object as FgOptions);
   },
-  y: function() { this.yank(); },
-  Y: function(count) { this.movement.selectLine(count); this.yank(); },
-  C: function() { this.yank(true); },
-  p: function() { this.yank(0); },
-  P: function() { this.yank(-1); },
-  o: function() { this.movement.setDi(); this.movement.reverseSelection(); },
+  y (): void { return (this as typeof VVisualMode).yank(); },
+  Y (count): void { (this as typeof VVisualMode).movement.selectLine(count); return (this as typeof VVisualMode).yank(); },
+  C (): void { return (this as typeof VVisualMode).yank(true); },
+  p (): void { return (this as typeof VVisualMode).yank(0); },
+  P (): void { return (this as typeof VVisualMode).yank(-1); },
+  o (): void {
+    (this as typeof VVisualMode).movement.setDi();
+    return (this as typeof VVisualMode).movement.reverseSelection();
+  },
   "<c-e>": 61, "<c-y>": 62, "<c-down>": 61, "<c-up>": 62
-},
+} as {
+  [key: string]: VisualModeNS.ValidActions | {
+    [key: string]: VisualModeNS.ValidActions;
+  };
+} as SafeDict<VisualModeNS.ValidActions | SafeDict<VisualModeNS.ValidActions>>,
 
 init: function() {
-  this.init = null;
+  this.init = null as never;
   var map = this.keyMap, func = Object.setPrototypeOf, str =
 "[_0-9\\x41-\\x5A\\x61-\\x7A\\xAA\\xB5\\xBA\\xC0-\\xD6\\xD8-\\xF6\\xF8-\\u02C1\\u02C6-\\u02D1\\u02E0-\\u02E4\\u02EC\
 \\u02EE\\u0370-\\u0374\\u0376\\u0377\\u037A-\\u037D\\u0386\\u0388-\\u038A\\u038C\\u038E-\\u03A1\\u03A3-\\u03F5\\u0\

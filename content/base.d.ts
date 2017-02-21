@@ -146,13 +146,16 @@ VEventMode: {
   suppress(keyCode?: number): void;
   OnWndFocus (): (this: void) => void;
   setupSuppress (onExit?: (this: void) => void): void;
+  mapKey (key: string): string;
 },
-VHints: any, VVisualMode: any,
+VHints: any,
 VHUD: {
   box: HTMLDivElement | null;
   opacity: 0 | 0.25 | 0.5 | 0.75 | 1;
   show (text: string): void | Element;
   showForDuration (text: string, duration: number): void;
+  showCopied (text: string, type?: string, virtual?: true): string;
+  showCopied (): void;
   hide (): void;
 },
 VSettings: {
