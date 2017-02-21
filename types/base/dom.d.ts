@@ -2055,6 +2055,7 @@ interface Element extends Node, GlobalEventHandlers, ElementTraversal, NodeSelec
     slot: string;
     readonly shadowRoot: ShadowRoot | null;
     focus?(): void;
+    blur?(): void;
     getAttribute(name: string): string | null;
     getAttributeNS(namespaceURI: string, localName: string): string;
     getAttributeNode(name: string): Attr;
@@ -2857,7 +2858,7 @@ interface HTMLElementEventMap extends ElementEventMap {
 interface HTMLElement extends Element {
     accessKey: string;
     readonly children: HTMLCollection;
-    contentEditable: string;
+    contentEditable: "true" | "false" | "inherit" | "plaintext-only";
     readonly dataset: DOMStringMap;
     dir: string;
     draggable: boolean;
@@ -8139,6 +8140,8 @@ interface Window extends EventTarget, WindowTimers, WindowSessionStorage, Window
     captureEvents(): void;
     close(): void;
     confirm(message?: string): boolean;
+    find(string: string, caseSensitive: boolean, backwards: boolean, wrapAround: boolean, wholeWord: boolean,
+         searchInFrames: boolean, showDialog: boolean): boolean;
     focus(): void;
     getComputedStyle(elt: Element, pseudoElt?: string): CSSStyleDeclaration;
     getMatchedCSSRules(elt: Element, pseudoElt?: string): CSSRuleList;

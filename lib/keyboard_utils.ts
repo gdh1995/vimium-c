@@ -1,6 +1,6 @@
 enum VKeyCodes {
   altKey = 18, backspace = 8, ctrlKey = 17, deleteKey = 46, down = 40,
-  enter = 13, esc = 27, f1 = 112, f12 = 123, left = 37, metaKey = 91,
+  enter = 13, esc = 27, f1 = 112, f2 = 113, f12 = 123, left = 37, metaKey = 91,
   pageup = 33, shiftKey = 16, space = 32, tab = 9, up = 38,
 }
 var VKeyboard = {

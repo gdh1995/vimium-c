@@ -80,9 +80,9 @@ type FgBase<K extends string> = {
 interface FgReq {
   findQuery: {
     query: string;
-    index?: number;
+    index?: undefined;
   } | {
-    query?: undefined | "";
+    query?: undefined;
     index: number;
   };
   parseSearchUrl: {
