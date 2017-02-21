@@ -557,6 +557,7 @@ var VHints = {
       this.deactivate(true);
       return;
     }
+    this.isActive = false;
     setTimeout(function() {
       var _this = VHints;
       _this.reinit(clickEl, rect);
