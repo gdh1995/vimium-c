@@ -54,10 +54,8 @@ var VVisualMode = {
     if (!this.retainSelection) {
       this.movement.collapseSelectionTo(isEsc && this.mode !== "caret" ? 1 : 0);
     }
-    if (!this.isInsert) {
       var el = VEventMode.lock();
       el && VDom.getEditableType(el) && el.blur();
-    }
     VHUD.hide();
     this.mode = this.hud = "";
     this.retainSelection = false;
