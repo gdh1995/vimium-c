@@ -172,7 +172,7 @@ var Vomnibar = {
       break;
     case "focus": window.focus(); VEventMode.suppress((data as Msg).lastKey); break;
     case "hide": this.hide((data as Msg).waitFrame); break;
-    case "scrollBy": VScroller.scrollBy(1, (data as Msg).amount); break;
+    case "scrollBy": VScroller.scrollBy(1, (data as Msg).amount, 0); break;
     case "scrollGoing": VScroller.keyIsDown = VScroller.Core.maxInterval; break;
     case "scrollEnd": VScroller.keyIsDown = 0; break;
     case "evalJS": VUtils.evalIfOK((data as Msg).url); break;

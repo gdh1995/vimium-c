@@ -148,7 +148,7 @@ html > span{float:right;}',
     if (!i) {
       if (VKeyboard.isEscape(event)) { i = Result.ExitAndReFocus; }
       else if (i = VKeyboard.getKeyStat(event)) {
-        if ((i & ~6) !== 0 || n < 74 || n > 75) { return; }
+        if ((i & ~KeyStat.PrimaryModifier) !== 0 || n < 74 || n > 75) { return; }
         this.execute(null, { dir: 74 - n } as Dict<any> as FgOptions);
         i = Result.DoNothing;
       }

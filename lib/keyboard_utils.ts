@@ -2,6 +2,12 @@ enum VKeyCodes {
   altKey = 18, backspace = 8, ctrlKey = 17, deleteKey = 46, down = 40,
   enter = 13, esc = 27, f1 = 112, f2 = 113, f12 = 123, left = 37, metaKey = 91,
   pageup = 33, shiftKey = 16, space = 32, tab = 9, up = 38,
+  ime = 229, menuKey = 93,
+}
+const enum KeyStat {
+  Default = 0, plain = Default,
+  altKey = 1, ctrlKey = 2, metaKey = 4, shiftKey = 8,
+  PrimaryModifier = ctrlKey | metaKey,
 }
 var VKeyboard = {
   keyNames: ["space", "pageup", "pagedown", "end", "home", "left", "up", "right", "down"],
@@ -55,6 +61,6 @@ var VKeyboard = {
     const k = event.keyCode;
     if (k !== 27 && !event.ctrlKey) { return false; }
     const i = this.getKeyStat(event);
-    return i === 0 || i === 2 && this.getKeyChar(event) === '[';
+    return i === KeyStat.plain || i === KeyStat.ctrlKey && this.getKeyChar(event) === '[';
   }
 };

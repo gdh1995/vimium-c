@@ -84,6 +84,9 @@ interface FgReq {
   } | {
     query?: undefined;
     index: number;
+  } | {
+    query?: undefined;
+    index?: undefined;
   };
   parseSearchUrl: {
     url: string;

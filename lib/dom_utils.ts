@@ -199,7 +199,7 @@ var VDom = {
     node && node === sel.anchorNode && i === sel.anchorOffset && (node = node.childNodes[i]);
     return (node && node.nodeType !== Node.ELEMENT_NODE ? node.parentElement : node as Element) || null;
   },
-  getElementWithFocus: function(sel: Selection, di: boolean | BOOL): Element | null {
+  getElementWithFocus: function(sel: Selection, di: BOOL): Element | null {
     let r = sel.getRangeAt(0);
     (sel.type === "Range") && (r = r.cloneRange()).collapse(!di);
     let el: Node | null = r.startContainer, o: Node | null, eTy = Node.ELEMENT_NODE;
