@@ -69,7 +69,6 @@ interface CmdOptions {
   "Vomnibar.activate": {
     vomnibar: string;
     secret: number;
-    url: true | string;
   };
 }
 

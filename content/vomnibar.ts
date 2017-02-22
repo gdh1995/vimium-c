@@ -1,12 +1,9 @@
 declare namespace VomnibarNS {
-  interface BgOptions extends Partial<CmdOptions["Vomnibar.activate"]> {
-    topUrl?: string;
-    count?: number;
-    width?: number;
-    forceNewTab?: boolean;
-    search?: "" | FgRes["parseSearchUrl"];
+  interface BgOptions {
     trailing_slash?: boolean;
-    name: string;
+    forceNewTab?: boolean;
+    keyword?: string;
+    url?: true | string;
   }
   interface Port {
     postMessage (this: Port, msg: Msg): void | 1;
@@ -16,6 +13,12 @@ declare namespace VomnibarNS {
     Vomnibar: { showFavIcon: boolean };
     VPort?: object;
     onmessage: (this: void, ev: { source: Window, data: [number, FgOptions | null], ports: IframePort[] }) => void | 1;
+  }
+  type BaseFullOptions = CmdOptions["Vomnibar.activate"] & VomnibarNS.BaseFgOptions & VomnibarNS.BgOptions & SafeObject;
+  interface FullOptions extends BaseFullOptions {
+    topUrl?: string;
+    count?: number;
+    name: string;
   }
 }
 
@@ -28,7 +31,7 @@ var Vomnibar = {
   zoom: 0,
   defaultTop: "",
   sameOrigin: false,
-  activate (count: number, options: VomnibarNS.BgOptions): void | false {
+  activate (count: number, options: VomnibarNS.FullOptions): void | false {
     if (!options.secret || !options.vomnibar) { return false; }
     if (document.readyState === "loading") {
       if (!this.width) {
@@ -77,7 +80,7 @@ var Vomnibar = {
     }
     if (!url || url.indexOf("://") === -1) {
       options.search = "";
-      return this.setOptions(options as VomnibarNS.FgOptions);
+      return this.setOptions(options as VomnibarNS.FgOptions & { name: string });
     }
     return VPort.send({
       handler: "parseSearchUrl",
@@ -86,10 +89,10 @@ var Vomnibar = {
     }, function(search) {
       options.search = search;
       if (search != null) { options.url = ""; }
-      return Vomnibar.setOptions(options as VomnibarNS.FgOptions);
+      return Vomnibar.setOptions(options as VomnibarNS.FgOptions & { name: string });
     });
   },
-  setOptions (options: VomnibarNS.FgOptions): void {
+  setOptions (options: VomnibarNS.FgOptions & { name: string }): void {
     this.status > VomnibarNS.Status.Initing ? this.port.postMessage(options) : (this.options = options);
   },
   hide (action: VomnibarNS.HideType): void | number {

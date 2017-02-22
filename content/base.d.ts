@@ -75,16 +75,12 @@ declare namespace VomnibarNS {
     DoNothing = -2,
     MinAct = ActDirectly,
   }
-  interface FgOptions {
-    topUrl?: "";
-    count?: 1;
-    url?: string;
+  interface BaseFgOptions {
     width: number;
-    forceNewTab?: boolean;
     search: "" | FgRes["parseSearchUrl"];
-    secret: 0;
-    vomnibar: "";
-    name: "activate";
+  }
+  interface FgOptions extends BaseFgOptions {
+    url?: string;
   }
   type Msg = string | { name: string };
   interface IframePort {
