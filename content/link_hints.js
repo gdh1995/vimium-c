@@ -168,7 +168,7 @@ var VHints = {
   },
   btnRe: /\b(?:[Bb](?:utto|t)n|[Cc]lose)(?:$| )/,
   GetClickable: function(element) {
-    if (element instanceof HTMLFormElement) { return; }
+    if (!(element instanceof HTMLElement) || element instanceof HTMLFormElement) { return; }
     var arr, isClickable = null, s, type = 0;
     switch (element.tagName.toLowerCase()) {
     case "a": case "details": isClickable = true; break;
@@ -240,7 +240,7 @@ var VHints = {
     }
   },
   GetEditable: function(element) {
-    if (element instanceof HTMLFormElement) { return; }
+    if (!(element instanceof HTMLElement) || element instanceof HTMLFormElement) { return; }
     var arr, type = 0, s;
     switch (element.tagName.toLowerCase()) {
     case "input":
@@ -261,9 +261,9 @@ var VHints = {
   },
   GetLinks: function(element) {
     var a, arr;
-    if ((a = element.getAttribute("href")) && a !== "#"
+    if (element instanceof HTMLAnchorElement && ((a = element.getAttribute("href")) && a !== "#"
         && (a.charCodeAt(10) !== 58 || a.substring(0, 11).toLowerCase() !== "javascript:")
-        || element.hasAttribute("data-vim-url")) {
+        || element.hasAttribute("data-vim-url"))) {
       if (arr = VDom.getVisibleClientRect(element)) {
         this.push([element, arr, 0]);
       }
@@ -272,7 +272,7 @@ var VHints = {
   imageUrlRe: /\.(?:bmp|gif|ico|jpe?g|png|svg|webp)\b/i,
   GetImagesInImg: function(element) {
     var rect, cr, w, h;
-    if (!element.src) { return; }
+    if (!(element instanceof HTMLImageElement && element.src)) { return; }
     else if ((w = element.width) < 8 && (h = element.height) < 8) {
       if (w !== h || (w !== 0 && w !== 3)) { return; }
       rect = element.getClientRects()[0];
@@ -294,6 +294,7 @@ var VHints = {
     }
   },
   GetImagesInA: function(element) {
+    if (!(element instanceof HTMLAnchorElement)) { return; }
     var str = element.getAttribute("href"), cr;
     if (str && str.length > 4 && VHints.imageUrlRe.test(str)) {
       if (cr = VDom.getVisibleClientRect(element)) {

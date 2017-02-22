@@ -614,6 +614,7 @@ var VSettings, VHUD, VPort, VEventMode;
   },
   GetLinks: function(element) {
     var isClickable, s, rect;
+    if (!(element instanceof HTMLElement) || element instanceof HTMLFormElement) { return; }
     isClickable = element instanceof HTMLAnchorElement
       || element.vimiumHasOnclick || element.getAttribute("onclick")
       || (s = element.getAttribute("role")) && s.toLowerCase() === "link"
