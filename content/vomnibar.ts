@@ -1,7 +1,7 @@
 declare namespace VomnibarNS {
   interface BgOptions {
     trailing_slash?: boolean;
-    forceNewTab?: boolean;
+    force?: boolean;
     keyword?: string;
     url?: true | string;
   }
@@ -70,7 +70,7 @@ var Vomnibar = {
     let url = options.url, upper = 0;
     if (url === true) {
       if (url = VDom.getSelectionText()) {
-        options.forceNewTab = true;
+        options.force = true;
       } else {
         url = options.topUrl;
       }

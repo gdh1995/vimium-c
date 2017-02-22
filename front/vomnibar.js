@@ -5,7 +5,7 @@ var Vomnibar = {
     if (!this.init && VPort.EnsurePort()) { return; }
     Object.setPrototypeOf(options = options || {}, null);
     this.mode.type = this.modeType = options.mode || "omni";
-    this.forceNewTab = options.force ? true : false;
+    this.forceNewTab = !!options.force;
     url = options.url;
     keyword = options.keyword;
     this.mode.clientWidth = options.width | 0;
