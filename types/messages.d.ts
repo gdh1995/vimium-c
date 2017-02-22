@@ -109,6 +109,7 @@ interface FgReq {
   openUrl: {
     url: string;
     keyword?: string | null;
+    incognito?: boolean;
     https?: boolean;
     reuse?: ReuseType;
   };

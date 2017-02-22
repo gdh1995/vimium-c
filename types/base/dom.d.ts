@@ -2749,6 +2749,15 @@ declare var HTMLDataListElement: {
     new(): HTMLDataListElement;
 }
 
+interface HTMLDetailsElement extends HTMLElement {
+    open: boolean;
+}
+
+declare var HTMLDetailsElement: {
+    prototype: HTMLDetailsElement;
+    new(): HTMLDetailsElement;
+}
+
 interface HTMLDirectoryElement extends HTMLElement {
     compact: boolean;
     addEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, useCapture?: boolean): void;

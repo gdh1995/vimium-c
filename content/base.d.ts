@@ -25,6 +25,8 @@ declare namespace HandlerNS {
     (this: T, event: HandlerNS.Event): HandlerResult;
   }
 }
+interface KeydownCacheArray extends Uint8Array {
+}
 
 interface EventControlKeys {
   altKey: boolean;
@@ -96,6 +98,8 @@ interface Hint {
   [1]: VRect; // bounding rect
   [2]: number; // priority (smaller is prior)
   [3]?: VRect; // bottom
+  [4]?: [VRect, number]; // [rect of the hint below this marker, offset-x]
+  length: number;
 }
 
 interface UIElementOptions {
@@ -142,14 +146,19 @@ VEventMode: {
   lock(): Element | null;
   suppress(keyCode?: number): void;
   OnWndFocus (): (this: void) => void;
+  onWndBlur (onWndBlur: ((this: void) => void) | null): void;
   setupSuppress (onExit?: (this: void) => void): void;
   mapKey (key: string): string;
+  scroll (event: KeyboardEvent): void;
+  exitGrab (): void;
+  keydownEvents (newArr: KeydownCacheArray): void | never;
+  keydownEvents (): KeydownCacheArray | never;
 },
-VHints: any,
 VHUD: {
   box: HTMLDivElement | null;
+  text: string;
   opacity: 0 | 0.25 | 0.5 | 0.75 | 1;
-  show (text: string): void | Element;
+  show (text: string): void | HTMLDivElement;
   showForDuration (text: string, duration: number): void;
   showCopied (text: string, type: string, virtual: true): string;
   showCopied (text: string, type?: string): void;

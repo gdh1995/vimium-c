@@ -1,47 +1,115 @@
-"use strict";
+/**
+ * focused: 1; new tab: 2; queue: 64; job: 128
+ * >=128: "&4" means "must be links" and [data-vim-url] is used firstly
+ *   &~64 >= 136 means only `<a>`
+ * >= 256: queue not allowed
+ */
+const enum HintMode {
+  empty = 0, focused = 1, newTab = 2, queue = 64,
+  mask_focus_new = focused | newTab, mask_queue_focus_new = mask_focus_new | queue,
+  min_job = 128, min_link_job = 136, min_disable_queue = 256,
+  DEFAULT = empty,
+  OPEN_IN_CURRENT_TAB = DEFAULT, // also 1
+  OPEN_IN_NEW_BG_TAB = newTab,
+  OPEN_IN_NEW_FG_TAB = newTab | focused,
+  OPEN_WITH_QUEUE = queue | newTab,
+  OPEN_FG_WITH_QUEUE = queue | newTab | focused,
+  HOVER = min_job,
+  LEAVE,
+  COPY_TEXT,
+  SEARCH_TEXT,
+  DOWNLOAD_IMAGE,
+  OPEN_IMAGE,
+  DOWNLOAD_LINK = min_link_job,
+  COPY_LINK_URL,
+  OPEN_INCOGNITO_LINK,
+  EDIT_TEXT = min_disable_queue,
+  EDIT_LINK_URL,
+  FOCUS_EDITABLE,
+}
+const enum ClickType {
+  Default = 0,
+  click = Default, edit, listener,
+  classname = 4, tabindex,
+  maxNotBox = 6, frame = maxNotBox + 1, scrollX, scrollY,
+}
+declare namespace HintsNS {
+  interface ModeOpt {
+    [mode: number]: string | undefined;
+    activator (this: any, linkEl: HTMLElement, hintEl: HTMLSpanElement): void | false;
+  }
+  interface Options extends SafeObject {
+    mode?: string;
+    url?: boolean;
+  }
+  interface Marker extends HTMLSpanElement {
+    clickableItem: HTMLElement;
+    hintString: string;
+    linkRect?: VRect;
+  }
+  type NestedFrame = false | 0 | null | HTMLIFrameElement | HTMLFrameElement;
+  interface ElementIterator {
+    (this: { [index: number]: Element, length: number}, fn: (this: Hint[], value: Element) => void, self: Hint[]): void;
+  }
+  interface Filter {
+    (this: Hint[], element: Element): void;
+  }
+  type Filters = {
+    [key in "*" | keyof HTMLElementTagNameMap]?: Filter;
+  }
+  type LinksMatched = false | null | Marker[];
+  type Stack = number[];
+  type Stacks = Stack[];
+  interface KeyStatus {
+    known: boolean;
+    newHintLength: number;
+    tab: 0 | 1;
+  }
+  interface VWindow extends Window {
+    VHints: typeof VHints,
+    VEventMode: typeof VEventMode,
+  }
+}
+
 var VHints = {
   CONST: {
-    // focused: 1; new tab: 2; queue: 64; job: 128
-    // >=128: "&4" means "must be links" and [data-vim-url] is used firstly
-    //   &~64 >= 136 means only `<a>`
-    // >= 256: queue not allowed
-    OPEN_IN_CURRENT_TAB: 0, // also 1
-    OPEN_IN_NEW_BG_TAB: 2,
-    OPEN_IN_NEW_FG_TAB: 3,
-    OPEN_WITH_QUEUE: 66,
-    OPEN_FG_WITH_QUEUE: 67,
-    HOVER: 128,
-    LEAVE: 129,
-    COPY_TEXT: 130,
-    SEARCH_TEXT: 131,
-    DOWNLOAD_IMAGE: 132,
-    OPEN_IMAGE: 133,
-    DOWNLOAD_LINK: 136,
-    COPY_LINK_URL: 137,
-    OPEN_INCOGNITO_LINK: 138,
-    FOCUS_EDITABLE: 258,
-    EDIT_LINK_URL: 257,
-    EDIT_TEXT: 256
-  },
-  box: null,
-  hintMarkers: null,
-  mode: 0,
-  mode1: 0,
-  modeOpt: null,
+    OPEN_IN_CURRENT_TAB: HintMode.OPEN_IN_CURRENT_TAB,
+    OPEN_IN_NEW_BG_TAB: HintMode.OPEN_IN_NEW_BG_TAB,
+    OPEN_IN_NEW_FG_TAB: HintMode.OPEN_IN_NEW_FG_TAB,
+    OPEN_WITH_QUEUE: HintMode.OPEN_WITH_QUEUE,
+    OPEN_FG_WITH_QUEUE: HintMode.OPEN_FG_WITH_QUEUE,
+    HOVER: HintMode.HOVER,
+    LEAVE: HintMode.LEAVE,
+    COPY_TEXT: HintMode.COPY_TEXT,
+    SEARCH_TEXT: HintMode.SEARCH_TEXT,
+    DOWNLOAD_IMAGE: HintMode.DOWNLOAD_IMAGE,
+    OPEN_IMAGE: HintMode.OPEN_IMAGE,
+    DOWNLOAD_LINK: HintMode.DOWNLOAD_LINK,
+    COPY_LINK_URL: HintMode.COPY_LINK_URL,
+    OPEN_INCOGNITO_LINK: HintMode.OPEN_INCOGNITO_LINK,
+    FOCUS_EDITABLE: HintMode.FOCUS_EDITABLE,
+    EDIT_LINK_URL: HintMode.EDIT_LINK_URL,
+    EDIT_TEXT: HintMode.EDIT_TEXT
+  } as Dict<HintMode>,
+  box: null as HTMLDivElement | null,
+  hintMarkers: null as HintsNS.Marker[] | null,
+  mode: 0 as HintMode,
+  mode1: 0 as HintMode,
+  modeOpt: null as HintsNS.ModeOpt | null,
   count: 0,
-  lastMode: 0,
+  lastMode: 0 as HintMode,
   isClickListened: true,
-  ngEnabled: null,
+  ngEnabled: null as boolean | null,
   keyStatus: {
     known: false,
     newHintLength: 0,
     tab: 0
-  },
+  } as HintsNS.KeyStatus,
   initTimer: 0,
   isActive: false,
-  options: null,
+  options: null as FgOptions | null,
   timer: 0,
-  activate: function(count, options) {
+  activate (count?: number, options?: FgOptions | null): void {
     if (this.isActive) { return; }
     if (document.body == null) {
       if (!this.initTimer && document.readyState === "loading") {
@@ -51,30 +119,29 @@ var VHints = {
       if (!VDom.isHTML()) { return; }
     }
     VHandler.remove(this);
-    this.setModeOpt(Object.setPrototypeOf(options || {}, null), count | 0);
+    this.setModeOpt(count | 0, Object.setPrototypeOf(options || {}, null));
 
-    var elements, arr = VDom.getViewBox();
+    let elements: Hint[] | undefined;
+    const arr = VDom.getViewBox();
     this.maxLeft = arr[2], this.maxTop = arr[3], this.maxRight = arr[4];
     if (!this.frameNested) {
       elements = this.getVisibleElements();
     }
     if (this.frameNested) {
-      if (this.tryNestedFrame("VHints.activate", count, this.options)) {
-        this.clean();
-        return;
+      if (this.tryNestedFrame("VHints.activate", count | 0, this.options as FgOptions)) {
+        return this.clean();
       }
       elements || (elements = this.getVisibleElements());
     }
-    if (elements.length <= 0) {
+    if ((elements as Hint[]).length <= 0) {
       this.clean(true);
-      VHUD.showForDuration("No links to select.", 1000);
-      return;
+      return VHUD.showForDuration("No links to select.", 1000);
     }
 
     if (this.box) { this.box.remove(); this.box = null; }
-    this.hintMarkers = elements.map(this.createMarkerFor, this);
-    this.adjustMarkers(elements);
-    elements = null;
+    this.hintMarkers = (elements as Hint[]).map(this.createMarkerFor, this);
+    this.adjustMarkers(elements as Hint[]);
+    elements = undefined;
     this.alphabetHints.initMarkers(this.hintMarkers);
 
     this.setMode(this.mode);
@@ -82,44 +149,44 @@ var VHints = {
 
     this.isActive = true;
     VHandler.push(this.onKeydown, this);
-    VEventMode.onWndBlur(this.ResetMode);
+    return VEventMode.onWndBlur(this.ResetMode);
   },
-  setModeOpt: function(options, count) {
+  setModeOpt (count: number, options: HintsNS.Options): void {
     if (this.options === options) { return; }
-    var ref = this.Modes, i, ref2 = this.CONST, mode = ref2[options.mode] | 0, modeOpt;
-    if (mode == ref2.EDIT_TEXT && options.url) {
-      mode = ref2.EDIT_LINK_URL;
-    } else if (mode == ref2.EDIT_LINK_URL || (mode & ~64) == ref2.COPY_LINK_URL) {
+    let ref = this.Modes, mode = this.CONST[options.mode as string] | 0, modeOpt: HintsNS.ModeOpt | undefined;
+    if (mode == HintMode.EDIT_TEXT && options.url) {
+      mode = HintMode.EDIT_LINK_URL;
+    } else if (mode == HintMode.EDIT_LINK_URL || (mode & ~HintMode.queue) == HintMode.COPY_LINK_URL) {
       options.url = true;
     }
-    if (count > 1) { mode <= 256 ? (mode |= 64) : (count = 1); }
-    for (i in ref) {
-      if (ref.hasOwnProperty(i) && ref[i].hasOwnProperty(mode)) {
-        modeOpt = ref[i];
+    if (count > 1) { mode <= HintMode.min_disable_queue ? (mode |= HintMode.queue) : (count = 1); }
+    for (let i in ref) {
+      if (ref.hasOwnProperty(i) && ((ref as Dict<HintsNS.ModeOpt>)[i] as HintsNS.ModeOpt).hasOwnProperty(mode)) {
+        modeOpt = (ref as Dict<HintsNS.ModeOpt>)[i] as HintsNS.ModeOpt;
         break;
       }
     }
     if (!modeOpt) {
       modeOpt = ref.DEFAULT;
-      mode = count > 1 ? this.CONST.OPEN_WITH_QUEUE : this.CONST.OPEN_IN_CURRENT_TAB;
+      mode = count > 1 ? HintMode.OPEN_WITH_QUEUE : HintMode.OPEN_IN_CURRENT_TAB;
     }
     this.modeOpt = modeOpt;
     this.mode = mode;
-    this.mode1 = mode & ~64;
+    this.mode1 = mode & ~HintMode.queue;
     this.options = options;
     this.count = count;
   },
-  setMode: function(mode) {
+  setMode (mode: HintMode): void | HTMLDivElement {
     this.mode = mode;
-    this.mode1 = mode & ~64;
-    VHUD.show(this.modeOpt[mode]);
+    this.mode1 = mode & ~HintMode.queue;
+    return VHUD.show((this.modeOpt as HintsNS.ModeOpt)[mode] as string);
   },
-  tryNestedFrame: function(command, a, b) {
+  tryNestedFrame (command: string, a: number, b: FgOptions): boolean {
     this.frameNested === false && this.checkNestedFrame();
     if (!this.frameNested) { return false; }
-    var child, done = false;
+    let child: HintsNS.VWindow, done = false;
     try {
-      child = this.frameNested.contentWindow;
+      child = this.frameNested.contentWindow as HintsNS.VWindow;
       if (command.startsWith("VHints.activate")) {
         if (!child.document.head) { throw Error("vimium-disabled"); }
         (done = child.VHints.isActive) && child.VHints.deactivate(true);
@@ -139,13 +206,13 @@ var VHints = {
   maxLeft: 0,
   maxTop: 0,
   maxRight: 0,
-  zIndexes: null,
-  createMarkerFor: function(link) {
-    var marker = VDom.createElement("span"), i, st;
+  zIndexes: null as null | false | HintsNS.Stacks,
+  createMarkerFor (link: Hint) {
+    let marker = VDom.createElement("span") as HintsNS.Marker, i: number;
     marker.clickableItem = link[0];
-    i = link.length < 5 ? link[1][0] : link[4][0][0] + link[4][1];
+    i = link.length < 5 ? link[1][0] : (link[4] as [VRect, number])[0][0] + (link[4] as [VRect, number])[1];
     marker.className = link[2] < 7 ? "LH" : "LH BH";
-    st = marker.style;
+    const st = marker.style;
     st.left = i + "px";
     if (i > this.maxLeft) {
       st.maxWidth = this.maxRight - i + "px";
@@ -158,97 +225,101 @@ var VHints = {
     link[3] && (marker.linkRect = link[3]);
     return marker;
   },
-  adjustMarkers: function(elements) {
-    var arr, i, root = VDom.UI.root, z = 1 / VDom.bodyZoom + "";
+  adjustMarkers (elements: Hint[]): void {
+    const root = VDom.UI.root, z = "" + 1 / VDom.bodyZoom;
     if (!root || z === "1") { return; }
-    arr = this.hintMarkers, i = elements.length - 1;
+    let arr = this.hintMarkers as HintsNS.Marker[], i = elements.length - 1;
     if (elements[i][0] === Vomnibar.box) { arr[i--].style.zoom = z; }
     if (!root.querySelector('#HelpDialog') || i < 0) { return; }
     while (0 <= i && root.contains(elements[i][0])) { arr[i--].style.zoom = z; }
   },
-  btnRe: /\b(?:[Bb](?:utto|t)n|[Cc]lose)(?:$| )/,
-  GetClickable: function(element) {
+  btnRe: <RegExpOne> /\b(?:[Bb](?:utto|t)n|[Cc]lose)(?:$| )/,
+  GetClickable (this: Hint[], element: Element): void {
     if (!(element instanceof HTMLElement) || element instanceof HTMLFormElement) { return; }
-    var arr, isClickable = null, s, type = 0;
+    let arr: VRect | null, isClickable = null as boolean | null, s: string | null, type = ClickType.Default;
     switch (element.tagName.toLowerCase()) {
     case "a": case "details": isClickable = true; break;
     case "frame": case "iframe":
       isClickable = element !== VFindMode.box;
-      type = isClickable ? 7 : 0;
+      type = isClickable ? ClickType.frame : ClickType.Default;
       break;
-    case "input": if (element.type === "hidden") { return; } // no break;
+    case "input": if ((element as HTMLInputElement).type === "hidden") { return; } // no break;
     case "textarea":
-      if (element.disabled && VHints.mode1 <= VHints.CONST.LEAVE) { return; }
-      if (!element.readOnly || VHints.mode >= 128
+      if ((element as HTMLTextAreaElement | HTMLInputElement).disabled && VHints.mode1 <= HintMode.LEAVE) { return; }
+      if (!(element as HTMLTextAreaElement | HTMLInputElement).readOnly || VHints.mode >= HintMode.min_job
         || element instanceof HTMLInputElement && (element.type in VDom.uneditableInputs)) {
         isClickable = true;
       }
       break;
     case "label":
-      if (element.control) {
-        if (element.control.getAttribute("disabled")) { return; }
-        VHints.GetClickable.call(arr = [], element.control);
-        isClickable = arr.length === 0;
+      if ((element as HTMLLabelElement).control) {
+        let el2 = (element as HTMLLabelElement).control as HTMLElement, arr2: Hint[] = [];
+        if (el2.getAttribute("disabled")) { return; }
+        VHints.GetClickable.call(arr2, el2);
+        isClickable = arr2.length === 0;
       }
       break;
     case "button": case "select":
-      isClickable = !element.disabled || VHints.mode1 > VHints.CONST.LEAVE; break;
+      isClickable = !(element as HTMLButtonElement | HTMLSelectElement).disabled || VHints.mode1 > HintMode.LEAVE; break;
     case "object": case "embed":
-      s = element.type;
+      s = (element as HTMLObjectElement | HTMLEmbedElement).type;
       if (s && s.endsWith("x-shockwave-flash")) { isClickable = true; break; }
       return;
     case "img":
-      if (element.useMap && VDom.getClientRectsForAreas(element, this)) { return; }
-      if ((VHints.mode >= 128 && VHints.mode1 <= VHints.CONST.LEAVE
+      if ((element as HTMLImageElement).useMap && VDom.getClientRectsForAreas(element as HTMLImageElement, this)) { return; }
+      if ((VHints.mode >= HintMode.HOVER && VHints.mode1 <= HintMode.LEAVE
           && !(element.parentNode instanceof HTMLAnchorElement))
-        || ((s = element.style.cursor) ? s !== "default"
-          : (s = getComputedStyle(element).cursor) && (s.startsWith("url") || s.indexOf("zoom") >= 0)
+        || ((s = element.style.cursor as string) ? s !== "default"
+          : (s = getComputedStyle(element).cursor as string) && (s.indexOf("zoom") >= 0 || s.startsWith("url"))
         )) {
         isClickable = true;
       }
       break;
     case "div": case "ul": case "pre": case "ol":
-      type = (type = element.clientHeight) && type + 5 < element.scrollHeight ? 9
-        : (type = element.clientWidth) && type + 5 < element.scrollWidth ? 8 : 0;
+      type = (type = element.clientHeight) && type + 5 < element.scrollHeight ? ClickType.scrollY
+        : (type = element.clientWidth) && type + 5 < element.scrollWidth ? ClickType.scrollX : ClickType.Default;
       break;
     }
     if (isClickable === null) {
-      type = (s = element.contentEditable) !== "inherit" && s && s !== "false" ? 1
+      type = (s = element.contentEditable) !== "inherit" && s && s !== "false" ? ClickType.edit
         : (element.vimiumHasOnclick && VHints.isClickListened) || element.getAttribute("onclick")
           || VHints.ngEnabled && element.getAttribute("ng-click")
           || (s = element.getAttribute("role")) && (s = s.toLowerCase()
             , s === "button" || s === "link" || s === "checkbox" || s === "radio" || s.startsWith("menuitem"))
-          || (s = element.getAttribute("jsaction")) && VHints.checkJSAction(s) ? 2
-        : (s = element.getAttribute("tabindex")) && parseInt(s, 10) >= 0 ? 5
-        : type > 5 ? type : (s = element.className) && VHints.btnRe.test(s) ? 4 : 0;
+          || (s = element.getAttribute("jsaction")) && VHints.checkJSAction(s) ? ClickType.listener
+        : (s = element.getAttribute("tabindex")) && parseInt(s, 10) >= 0 ? ClickType.tabindex
+        : type > ClickType.tabindex ? type : (s = element.className) && VHints.btnRe.test(s) ? ClickType.classname
+        : ClickType.Default;
     }
-    if ((isClickable || type) && (arr = VDom.getVisibleClientRect(element))
-        && (type < 8 || VScroller.isScrollable(element, type - 8))
+    if ((isClickable || type > ClickType.Default) && (arr = VDom.getVisibleClientRect(element))
+        && (type < ClickType.scrollX || VScroller.isScrollable(element, type - 8 as 0 | 1))
         && ((s = element.getAttribute("aria-hidden")) == null || s && s.toLowerCase() !== "true")
         && ((s = element.getAttribute("aria-disabled")) == null || (s && s.toLowerCase() !== "true")
-          || VHints.mode >= 128)
+          || VHints.mode >= HintMode.min_job)
     ) { this.push([element, arr, type]); }
   },
-  noneActionRe: /\._\b(?![\$\.])/,
-  checkJSAction: function(s) {
-    for (var arr = s.split(";"), i = arr.length, t; 0 <= --i; ) {
-      s = arr[i].trim();
-      t = s.startsWith("click:") ? (s = s.substring(6)) : s && s.indexOf(":") === -1 ? s : null;
+  noneActionRe: <RegExpOne> /\._\b(?![\$\.])/,
+  checkJSAction (str: string): boolean {
+    for (let s of str.split(";")) {
+      s = s.trim();
+      const t = s.startsWith("click:") ? (s = s.substring(6)) : s && s.indexOf(":") === -1 ? s : null;
       if (t && t !== "none" && !this.noneActionRe.test(t)) {
         return true;
       }
     }
+    return false;
   },
-  GetEditable: function(element) {
+  GetEditable (this: Hint[], element: Element): void {
     if (!(element instanceof HTMLElement) || element instanceof HTMLFormElement) { return; }
-    var arr, type = 0, s;
+    let arr: VRect | null, type = ClickType.Default, s: string;
     switch (element.tagName.toLowerCase()) {
     case "input":
-      if (element.type in VDom.uneditableInputs) {
+      if ((element as HTMLInputElement).type in VDom.uneditableInputs) {
         return;
       } // no break;
     case "textarea":
-      if (element.disabled || element.readOnly) { return; }
+      if ((element as HTMLInputElement | HTMLTextAreaElement).disabled ||
+          (element as HTMLInputElement | HTMLTextAreaElement).readOnly) { return; }
       break;
     default:
       if ((s = element.contentEditable) === "inherit" || !s || s === "false") { return; }
@@ -259,21 +330,21 @@ var VHints = {
       this.push([element, arr, type]);
     }
   },
-  GetLinks: function(element) {
-    var a, arr;
+  GetLinks (this: Hint[], element: Element): void {
+    let a: string | null, arr: VRect | null;
     if (element instanceof HTMLAnchorElement && ((a = element.getAttribute("href")) && a !== "#"
         && (a.charCodeAt(10) !== 58 || a.substring(0, 11).toLowerCase() !== "javascript:")
         || element.hasAttribute("data-vim-url"))) {
       if (arr = VDom.getVisibleClientRect(element)) {
-        this.push([element, arr, 0]);
+        this.push([element, arr, ClickType.click]);
       }
     }
   },
-  imageUrlRe: /\.(?:bmp|gif|ico|jpe?g|png|svg|webp)\b/i,
-  GetImagesInImg: function(element) {
-    var rect, cr, w, h;
+  imageUrlRe: <RegExpI> /\.(?:bmp|gif|ico|jpe?g|png|svg|webp)\b/i,
+  GetImagesInImg (this: Hint[], element: Element): void {
+    let rect: ClientRect | undefined, cr: VRect | null = null, w: number, h: number;
     if (!(element instanceof HTMLImageElement && element.src)) { return; }
-    else if ((w = element.width) < 8 && (h = element.height) < 8) {
+    if ((w = element.width) < 8 && (h = element.height) < 8) {
       if (w !== h || (w !== 0 && w !== 3)) { return; }
       rect = element.getClientRects()[0];
       if (rect) {
@@ -290,38 +361,39 @@ var VHints = {
       }
     }
     if (cr) {
-      this.push([element, cr, 0]);
+      this.push([element, cr, ClickType.Default]);
     }
   },
-  GetImagesInA: function(element) {
+  GetImagesInA (this: Hint[], element: Element): void {
     if (!(element instanceof HTMLAnchorElement)) { return; }
-    var str = element.getAttribute("href"), cr;
+    let str = element.getAttribute("href"), cr: VRect | null;
     if (str && str.length > 4 && VHints.imageUrlRe.test(str)) {
       if (cr = VDom.getVisibleClientRect(element)) {
-        this.push([element, cr, 0]);
+        this.push([element, cr, ClickType.Default]);
       }
     }
   },
-  traverse: function(filters, box) {
-    var output = [], key, func, wantClickable = filters["*"] === this.GetClickable;
+  traverse (filters: HintsNS.Filters, box?: Document | Element | null): Hint[] {
+    let output: Hint[] = [], func: HintsNS.Filter, wantClickable = filters["*"] === this.GetClickable;
     Object.setPrototypeOf(filters, null);
     VDom.prepareCrop();
     box = box || document.webkitFullscreenElement || document;
     if (this.ngEnabled === null && ("*" in filters)) {
       this.ngEnabled = document.querySelector('.ng-scope') != null;
     }
-    for (key in filters) {
-      func = filters[key].bind(output);
+    type iter = HintsNS.ElementIterator;
+    for (let key in filters) {
+      func = (filters as Dict<HintsNS.Filter>)[key] as HintsNS.Filter;
       if (VSettings.cache.deepHints) {
-        output.forEach.call(box.querySelectorAll("* /deep/ " + key), func);
+        ((output as Array<any>).forEach as iter).call(box.querySelectorAll("* /deep/ " + key), func, output);
         if (typeof Element.prototype.attachShadow !== "function") {
           continue;
         }
       } else {
-        output.forEach.call(box.getElementsByTagName(key), func);
+        ((output as Array<any>).forEach as iter).call(box.getElementsByTagName(key), func, output);
       }
       if (VDom.UI.root) {
-        output.forEach.call(VDom.UI.root.querySelectorAll(key), func);
+        ((output as Array<any>).forEach as iter).call(VDom.UI.root.querySelectorAll(key), func, output);
       }
     }
     if (wantClickable) { this.deduplicate(output); }
@@ -335,19 +407,20 @@ var VHints = {
     }
     return output;
   },
-  deduplicate: function(list) {
-    var j = list.length, i, k;
+  deduplicate (list: Hint[]): void {
+    let j = list.length, i: number, k: ClickType;
     while (0 < --j) {
-      if (list[i = j][2] !== 4) {
-      } else if ((k = list[--j][2]) > 7 || !this.isDescendant(list[i][0], list[j][0])) {
+      if (list[i = j][2] !== ClickType.classname) {
+      } else if ((k = list[--j][2]) > ClickType.frame || !this.isDescendant(list[i][0], list[j][0])) {
         continue;
       } else if (VRect.isContaining(list[j][1], list[i][1])) {
         list.splice(i, 1);
         continue;
-      } else if (k < 2 || j === 0) {
+      } else if (k < ClickType.listener || j === 0) {
         continue;
       }
-      while (0 < j && (k = list[j - 1][2]) >= 2 && k <= 5 && this.isDescendant(list[j][0], list[j - 1][0])) {
+      while (0 < j && (k = list[j - 1][2]) >= ClickType.listener && k <= ClickType.tabindex
+          && this.isDescendant(list[j][0], list[j - 1][0])) {
         j--;
         if (j === i - 3) { break; }
       }
@@ -359,8 +432,9 @@ var VHints = {
     if (list[i] && list[i][0] === document.body) { ++i; }
     if (i > 0) { i === 1 ? list.shift() : list.splice(0, i); }
   },
-  isDescendant: function(d, p) {
-    for (var i = 3, c, f; 0 < i-- && (c = d.parentNode) !== p && c; d = c) {}
+  isDescendant (d: Node, p: Element): boolean {
+    let i = 3, c: Element | null | undefined, f: Node | null;
+    for (; 0 < i-- && (c = d.parentNode as Element | null) !== p && c; d = c) {}
     if (c !== p) { return false; }
     for (; ; ) {
       if (c.childElementCount !== 1 || ((f = c.firstChild) instanceof Text && f.data.trim())) { return false; }
@@ -369,33 +443,32 @@ var VHints = {
     }
     return true;
   },
-  frameNested: false,
-  checkNestedFrame: function(output) {
-    var res = this._getNestedFrame(output);
+  frameNested: false as HintsNS.NestedFrame,
+  checkNestedFrame: function(output?: Hint[]): void {
+    const res = this._getNestedFrame(output);
     this.frameNested = res === false && document.readyState === "complete" ? null : res;
   },
-  _getNestedFrame: function(output) {
-    var rect, rect2, element, func;
+  _getNestedFrame (output?: Hint[]): HintsNS.NestedFrame {
     if (window.frames[0] == null) { return false; }
-    if (document.webkitIsFullScreen) { return null; }
+    if (document.webkitIsFullScreen) { return 0; }
     if (output == null) {
       if (!VDom.isHTML()) { return false; }
       output = [];
-      func = this.GetClickable.bind(output);
       VDom.prepareCrop();
-      output.forEach.call(document.getElementsByTagName("iframe"), func);
+      type iter = HintsNS.ElementIterator;
+      ((output as any[]).forEach as iter).call(document.getElementsByTagName("iframe"), this.GetClickable, output);
       if (output.length === 0 && document.body instanceof HTMLFrameSetElement) {
-        output.forEach.call(document.body.getElementsByTagName("frame"), func);
+        ((output as any[]).forEach as iter).call(document.body.getElementsByTagName("frame"), this.GetClickable, output);
       }
     }
     if (output.length !== 1) {
       return output.length !== 0 && null;
     }
-    element = output[0][0];
+    let rect: ClientRect | undefined, rect2: ClientRect, element = output[0][0];
     if (
       ((element instanceof HTMLIFrameElement) || (element instanceof HTMLFrameElement))
         && (rect = element.getClientRects()[0])
-        && (rect2 = document.documentElement.getBoundingClientRect())
+        && (rect2 = (document.documentElement as HTMLHtmlElement).getBoundingClientRect())
         && rect.top - rect2.top < 20 && rect.left - rect2.left < 20
         && rect2.right - rect.right < 20 && rect2.bottom - rect.bottom < 20
         && getComputedStyle(element).visibility === 'visible'
@@ -404,34 +477,32 @@ var VHints = {
     }
     return null;
   },
-  getVisibleElements: function() {
-    var visibleElements, visibleElement, _len, _i, _j, obj, func
-      , r, r2 = null, t, isNormal, reason, _k, _ref;
-    _i = this.mode1;
-    visibleElements = this.traverse(
-      (_i === this.CONST.DOWNLOAD_IMAGE || _i === this.CONST.OPEN_IMAGE)
+  getVisibleElements (): Hint[] {
+    let _i: number = this.mode1;
+    const visibleElements = this.traverse(
+      (_i === HintMode.DOWNLOAD_IMAGE || _i === HintMode.OPEN_IMAGE)
       ? { img: this.GetImagesInImg, a: this.GetImagesInA }
-      : _i === this.CONST.EDIT_LINK_URL || (_i < 256 && _i >= 136) ? { a: this.GetLinks }
-      : {"*": _i === this.CONST.FOCUS_EDITABLE ? this.GetEditable
-              : this.GetClickable});
-    isNormal = _i < 128;
+      : _i === HintMode.EDIT_LINK_URL ||
+        (_i >= HintMode.min_link_job && _i < HintMode.min_disable_queue) ? { a: this.GetLinks }
+      : {"*": _i === HintMode.FOCUS_EDITABLE ? this.GetEditable : this.GetClickable});
+    const isNormal = _i < HintMode.min_job;
     if (this.maxRight > 0) {
       _i = Math.ceil(Math.log(visibleElements.length) / Math.log(VSettings.cache.linkHintCharacters.length));
       this.maxLeft -= 11 * _i + 8;
     }
     visibleElements.reverse();
 
-    obj = [null, null];
-    func = VRect.SubtractSequence.bind(obj);
-    for (_len = visibleElements.length, _j = Math.max(0, _len - 16); 0 < --_len; ) {
+    const obj = [null as never, null as never] as [VRect[], VRect], func = VRect.SubtractSequence.bind(obj);
+    let r2 = null as VRect[] | null, t: VRect, reason: ClickType, visibleElement: Hint;
+    for (let _len = visibleElements.length, _j = Math.max(0, _len - 16); 0 < --_len; ) {
       _j > 0 && --_j;
       visibleElement = visibleElements[_len];
-      if (visibleElement[2] >= 7) { continue; }
-      r = visibleElement[1];
+      if (visibleElement[2] > ClickType.maxNotBox) { continue; }
+      let r = visibleElement[1];
       for (_i = _len; _j <= --_i; ) {
         t = visibleElements[_i][1];
         if (r[3] <= t[1] || r[2] <= t[0] || r[0] >= t[2] || r[1] >= t[3]) { continue; }
-        if (visibleElements[_i][2] >= 7) { continue; }
+        if (visibleElements[_i][2] > ClickType.maxNotBox) { continue; }
         obj[0] = []; obj[1] = t;
         r2 !== null ? r2.forEach(func) : func(r);
         if ((r2 = obj[0]).length === 0) { break; }
@@ -441,13 +512,14 @@ var VHints = {
         t = r2[0];
         t[1] > this.maxTop && t[1] > r[1] || t[0] > this.maxLeft && t[0] > r[0] ||
           r2.length === 1 && !VRect.testCrop(t) || (visibleElement[1] = t);
-      } else if ((reason = visibleElement[2]) === 4 || (reason === 2 ? isNormal : reason === 5)
+      } else if ((reason = visibleElement[2]) === ClickType.classname
+            || (reason === ClickType.listener ? isNormal : reason === ClickType.tabindex)
           && visibleElement[0].contains(visibleElements[_i][0])) {
         visibleElements.splice(_len, 1);
       } else {
-        _ref = visibleElement[4] || [r, 0];
+        const _ref = visibleElement[4] || [r, 0];
         r = _ref[0];
-        for (_k = _len; _i <= --_k; ) {
+        for (let _k = _len; _i <= --_k; ) {
           t = visibleElements[_k][1];
           if (r[0] >= t[0] && r[1] >= t[1] && r[0] < t[0] + 20 && r[1] < t[1] + 15) {
             visibleElements[_k][4] = [r, _ref[1] + 13];
@@ -459,44 +531,45 @@ var VHints = {
     }
     return visibleElements.reverse();
   },
-  onKeydown: function(event) {
-    var linksMatched, i, j, ref, limit;
+  onKeydown (event: KeyboardEvent): HandlerResult {
+    let linksMatched: HintsNS.LinksMatched, i: number;
     if (event.repeat) {
       // NOTE: should always prevent repeated keys.
     } else if (VKeyboard.isEscape(event)) {
       this.deactivate();
     } else if ((i = event.keyCode) === VKeyCodes.esc) {
-      return 1;
+      return HandlerResult.Suppress;
     } else if (i > VKeyCodes.f1 && i <= VKeyCodes.f12) {
       this.ResetMode();
-      if (i !== VKeyCodes.f1 + 1) { return 0; }
+      if (i !== VKeyCodes.f2) { return HandlerResult.Nothing; }
       i = VKeyboard.getKeyStat(event);
-      if (i === 8) {
+      if (i === KeyStat.shiftKey) {
         this.isClickListened = !this.isClickListened;
-      } else if (i === 0) {
+      } else if (i === KeyStat.plain) {
         VSettings.cache.deepHints = !VSettings.cache.deepHints;
       }
       setTimeout(this.reinit.bind(this, null), 0);
     } else if (i === VKeyCodes.shiftKey) {
-      if (this.mode < 128) {
-        if (VKeyboard.getKeyStat(event) === 8) {
+      if (this.mode < HintMode.min_job) {
+        if (VKeyboard.getKeyStat(event) === KeyStat.shiftKey) {
           this.lastMode = this.mode;
         }
-        this.setMode((this.mode | 1) ^ (this.mode < 64 ? 3 : 67));
+        this.setMode((this.mode | HintMode.focused) ^ (this.mode < HintMode.queue ?
+          HintMode.mask_focus_new : HintMode.mask_queue_focus_new));
       }
     } else if (i === VKeyCodes.ctrlKey || i === VKeyCodes.metaKey) {
-      if (this.mode < 128) {
+      if (this.mode < HintMode.min_job) {
         if (!(event.shiftKey || event.altKey)) {
           this.lastMode = this.mode;
         }
-        this.setMode((this.mode | 2) ^ 1);
+        this.setMode((this.mode | HintMode.newTab) ^ HintMode.focused);
       }
     } else if (i === VKeyCodes.altKey) {
-      if (this.mode < 256) {
-        if (VKeyboard.getKeyStat(event) === 1) {
+      if (this.mode < HintMode.min_disable_queue) {
+        if (VKeyboard.getKeyStat(event) === KeyStat.altKey) {
           this.lastMode = this.mode;
         }
-        this.setMode(((this.mode >= 128 ? 0 : 2) | this.mode) ^ 64);
+        this.setMode(((this.mode >= HintMode.min_job ? HintMode.empty : HintMode.newTab) | this.mode) ^ HintMode.queue);
       }
     } else if (i >= VKeyCodes.pageup && i <= VKeyCodes.down) {
       VEventMode.scroll(event);
@@ -504,7 +577,7 @@ var VHints = {
     } else if (i === VKeyCodes.space) {
       this.zIndexes === false || this.rotateHints(event.shiftKey);
       event.shiftKey && this.ResetMode();
-    } else if (!(linksMatched = this.alphabetHints.matchHintsByKey(this.hintMarkers, event, this.keyStatus))){
+    } else if (!(linksMatched = this.alphabetHints.matchHintsByKey(this.hintMarkers as HintsNS.Marker[], event, this.keyStatus))){
       if (linksMatched === false) {
         setTimeout(this.reinit.bind(this, null), 0);
       }
@@ -514,10 +587,10 @@ var VHints = {
       VUtils.Prevent(event);
       this.activateLink(linksMatched[0]);
     } else {
-      limit = this.keyStatus.tab ? 0 : this.keyStatus.newHintLength;
+      const limit = this.keyStatus.tab ? 0 : this.keyStatus.newHintLength;
       for (i = linksMatched.length; 0 <= --i; ) {
-        ref = linksMatched[i].childNodes;
-        for (j = ref.length; limit <= --j; ) {
+        let ref = linksMatched[i].childNodes as NodeListOf<HTMLSpanElement>, j = ref.length;
+        while (limit <= --j) {
           ref[j].classList.remove("MC");
         }
         for (; 0 <= j; --j) {
@@ -525,76 +598,75 @@ var VHints = {
         }
       }
     }
-    return 2;
+    return HandlerResult.Prevent;
   },
-  ResetMode: function() {
-    if (VHints.mode > 255 || VHints.lastMode === VHints.mode) { return; }
-    var d = VEventMode.keydownEvents();
+  ResetMode (): void | HTMLDivElement {
+    if (VHints.mode >= HintMode.min_disable_queue || VHints.lastMode === VHints.mode) { return; }
+    const d = VEventMode.keydownEvents();
     if (d[VKeyCodes.ctrlKey] || d[VKeyCodes.metaKey] || d[VKeyCodes.shiftKey] || d[VKeyCodes.altKey]) {
-      VHints.setMode(VHints.lastMode);
+      return VHints.setMode(VHints.lastMode);
     }
   },
-  _resetMarkers: function() {
-    var ref = this.hintMarkers, i = 0, len = ref ? ref.length : 0;
+  _resetMarkers (): void {
+    let ref = this.hintMarkers, i = 0, len = ref ? ref.length : 0;
     this.hintMarkers = this.zIndexes = null;
-    while (i < len) { ref[i++].clickableItem = null; }
+    while (i < len) { (ref as HintsNS.Marker[])[i++].clickableItem = null as never; }
   },
-  activateLink: function(hintEl) {
-    var rect, clickEl = hintEl.clickableItem;
+  activateLink (hintEl: HintsNS.Marker): void {
+    let rect: VRect | null | undefined, clickEl: HTMLElement | null = hintEl.clickableItem;
     this._resetMarkers();
     if (VDom.isInDOM(clickEl)) {
       // must get outline first, because clickEl may hide itself when activated
       rect = hintEl.linkRect || VDom.UI.getVRect(clickEl);
-      if (this.modeOpt.activator.call(this, clickEl, hintEl) !== false) {
+      if ((this.modeOpt as HintsNS.ModeOpt).activator.call(this, clickEl, hintEl) !== false && rect) {
         setTimeout(function(force) {
-          (force || document.hasFocus()) && VDom.UI.flash(null, rect);
+          (force || document.hasFocus()) && VDom.UI.flash(null, rect as VRect);
         }, 17, clickEl instanceof HTMLIFrameElement || clickEl instanceof HTMLFrameElement);
       }
     } else {
       clickEl = null;
       VHUD.showForDuration("The link has been removed from the page", 2000);
     }
-    if (!(this.mode & 64)) {
-      this.deactivate(true);
-      return;
+    if (!(this.mode & HintMode.queue)) {
+      return this.deactivate(true);
     }
     this.isActive = false;
     setTimeout(function() {
-      var _this = VHints;
+      const _this = VHints;
       _this.reinit(clickEl, rect);
       if (1 === --_this.count && _this.isActive) {
         _this.setMode(_this.mode1);
       }
     }, 0);
   },
-  reinit: function(lastEl, rect) {
+  reinit (lastEl?: HTMLElement | null, rect?: VRect | null): void {
     this.isActive = false;
     this.keyStatus.tab = 0;
     this.zIndexes = null;
     this._resetMarkers();
     this.activate(0, this.options);
     this.timer && clearTimeout(this.timer);
-    if (this.isActive && lastEl && this.mode < 128) {
+    if (this.isActive && lastEl && this.mode < HintMode.min_job && rect) {
       this.timer = setTimeout(this.TestLastEl, 255, lastEl, rect);
     } else {
       this.timer = 0;
     }
   },
-  TestLastEl: function(el, r) {
-    var r2, _this = VHints;
+  TestLastEl (this: void, el: HTMLElement, r: VRect) {
+    const _this = VHints;
     if (!_this) { return; }
     _this.timer = 0;
-    if (!_this.isActive || _this.hintMarkers.length > 128 || _this.alphabetHints.hintKeystroke) {
+    if (!_this.isActive || (_this.hintMarkers as HintsNS.Marker[]).length > 128 || _this.alphabetHints.hintKeystroke) {
       return;
     }
     VDom.prepareCrop();
-    r2 = VDom.getVisibleClientRect(el);
+    const r2 = VDom.getVisibleClientRect(el);
     if (r2 && r && Math.abs(r2[0] - r[0]) < 100 && Math.abs(r2[1] - r[1]) < 60) {
       return;
     }
     _this.reinit();
   },
-  clean: function(keepHUD) {
+  clean (keepHUD?: boolean): void {
     this.options = this.modeOpt = this.zIndexes = this.hintMarkers = null;
     this.lastMode = this.mode = this.mode1 = this.count =
     this.maxLeft = this.maxTop = this.maxRight = 0;
@@ -603,50 +675,52 @@ var VHints = {
       this.box = null;
     }
     keepHUD || VHUD.hide();
-    var alpha = this.alphabetHints;
+    const alpha = this.alphabetHints;
     alpha.hintKeystroke = alpha.chars = "";
     alpha.countMax = 0;
-    VEventMode.onWndBlur(null);
+    return VEventMode.onWndBlur(null);
   },
-  deactivate: function(suppressType) {
-    this.clean(VHUD.text !== this.modeOpt[this.mode]);
+  deactivate (suppressType?: boolean): void {
+    this.clean(VHUD.text !== (this.modeOpt as HintsNS.ModeOpt)[this.mode] as string);
     this.keyStatus.tab = this.keyStatus.newHintLength = 0;
     VHandler.remove(this);
     this.isActive = false;
-    suppressType != null && VDom.UI.suppressTail(suppressType);
+    if (suppressType != null) { return VDom.UI.suppressTail(suppressType); }
   },
-  rotateHints: function(reverse) {
-    var ref = this.hintMarkers, stacks = this.zIndexes, i, stack, len, j, style, oldI, newI;
+  rotateHints (reverse?: boolean): void {
+    let ref = this.hintMarkers as HintsNS.Marker[], stacks = this.zIndexes;
     if (!stacks) {
-      ref.forEach(this.MakeStacks, [[], stacks = []]);
+      stacks = [] as HintsNS.Stacks;
+      ref.forEach(this.MakeStacks, [[], stacks] as [Array<ClientRect | null>, HintsNS.Stacks]);
       stacks = stacks.filter(function(stack) { return stack.length > 1; });
-      if (stacks.length <= 0 && this.keyStatus.newHintLength <= 0) {
-        this.zIndexes = false; return;
+      if (stacks.length <= 0) {
+        this.zIndexes = this.keyStatus.newHintLength <= 0 ? false : null;
+        return;
       }
-      this.zIndexes = stacks.length > 0 ? stacks : null;
+      this.zIndexes = stacks;
     }
-    for (i = stacks.length; 0 <= --i; ) {
-      stack = stacks[i];
+    for (const stack of stacks) {
       reverse && stack.reverse();
-      j = (len = stack.length) - 1;
-      oldI = ref[stack[j]].style.zIndex || stack[j];
-      for (j = 0; j < len; j++, oldI = newI) {
-        style = ref[stack[j]].style;
-        newI = style.zIndex || stack[j];
-        style.zIndex = oldI;
+      const i = stack[stack.length - 1];
+      let oldI = ref[i].style.zIndex || i;
+      for (const j of stack) {
+        const style = ref[j].style, newI = style.zIndex || j;
+        style.zIndex = oldI as string;
+        oldI = newI;
       }
       reverse && stack.reverse();
     }
   },
-  MakeStacks: function(marker, i) {
-    var rects = this[0], stacks, m, j, len2, stack, stackForThisMarker, k, len3, t;
+  MakeStacks (this: [Array<ClientRect | null>, HintsNS.Stacks], marker: HintsNS.Marker, i: number) {
+    let rects = this[0];
     if (marker.style.visibility === "hidden") { rects.push(null); return; }
-    rects.push(m = marker.getClientRects()[0]);
-    stackForThisMarker = null;
-    for (stacks = this[1], j = 0, len2 = stacks.length; j < len2; ) {
-      stack = stacks[j];
-      for (k = 0, len3 = stack.length; k < len3; k++) {
-        t = rects[stack[k]];
+    const stacks = this[1], m = marker.getClientRects()[0];
+    rects.push(m);
+    let stackForThisMarker = null as HintsNS.Stack | null;
+    for (let j = 0, len2 = stacks.length; j < len2; ) {
+      let stack = stacks[j], k = 0, len3 = stack.length;
+      for (; k < len3; k++) {
+        const t = rects[stack[k]] as ClientRect;
         if (m.bottom > t.top && m.top < t.bottom && m.right > t.left && m.left < t.right) {
           break;
         }
@@ -664,8 +738,8 @@ var VHints = {
     }
     stackForThisMarker || stacks.push([i]);
   },
-  unhoverLast: function() {
-    VDom.unhoverLast(null);
+  unhoverLast (): void {
+    return VDom.unhoverLast(null);
   },
 
 alphabetHints: {
@@ -673,44 +747,39 @@ alphabetHints: {
   hintKeystroke: "",
   countMax: 0,
   countLimit: 0,
-  numberToHintString: function(number) {
-    var base, hintString, remainder, characterSet = this.chars;
-    base = characterSet.length;
-    hintString = "";
+  numberToHintString (number: number): string {
+    const characterSet = this.chars, base = characterSet.length;
+    let hintString = "";
     do {
-      remainder = number % base;
+      let remainder = number % base;
       number = (number / base) | 0;
       hintString = characterSet[remainder] + hintString;
     } while (number > 0);
-    number = this.countMax - hintString.length - (number < this.countLimit);
+    number = this.countMax - hintString.length - +(number < this.countLimit);
     if (number > 0) {
       hintString = this.repeat(characterSet[0], number) + hintString;
     }
     return hintString;
   },
-  initMarkers: function(hintMarkers) {
-    var hints, hintString, marker, end, i, len, node;
+  initMarkers (hintMarkers: HintsNS.Marker[]): void {
     this.chars = VSettings.cache.linkHintCharacters.toUpperCase();
     this.hintKeystroke = "";
-    end = hintMarkers.length;
-    hints = this.buildHintIndexes(end);
-    while (0 <= --end) {
-      marker = hintMarkers[end];
+    for (let end = hintMarkers.length, hints = this.buildHintIndexes(end); 0 <= --end; ) {
+      const marker = hintMarkers[end],
       hintString = this.numberToHintString(hints[end]);
       marker.hintString = hintString;
-      for (i = 0, len = hintString.length; i < len; i++) {
-        node = document.createElement('span');
+      for (let i = 0, len = hintString.length; i < len; i++) {
+        const node = document.createElement('span');
         node.textContent = hintString[i];
         marker.appendChild(node);
       }
     }
-    this.countMax -= this.countLimit > 0;
+    this.countMax -= (this.countLimit > 0) as boolean | number as number;
     this.countLimit = 0;
   },
-  buildHintIndexes: function(linkCount) {
-    var dn, hints, i, end;
-    end = this.chars.length;
-    dn = Math.ceil(Math.log(linkCount) / Math.log(end));
+  buildHintIndexes (linkCount: number): number[] {
+    let hints: number[], i: number, end = this.chars.length;
+    const dn = Math.ceil(Math.log(linkCount) / Math.log(end));
     end = ((Math.pow(end, dn) - linkCount) / (end - 1)) | 0;
     this.countMax = dn; this.countLimit = end;
     for (hints = [], i = 0; i < end; i++) {
@@ -721,22 +790,18 @@ alphabetHints: {
     }
     return this.shuffleHints(hints);
   },
-  shuffleHints: function(hints) {
-    var result, count, len, start, i, j, max, j0;
-    count = hints.length; len = this.chars.length;
-    start = (count % len);
-    max = count - start + len;
-    result = [];
-    for (j0 = i = 0; i < len; i++, j0++) {
+  shuffleHints (hints: number[]): number[] {
+    const result: number[] = [], count = hints.length, len = this.chars.length, start = (count % len);
+    for (let max = count - start + len, i = 0; i < len; i++) {
       if (i === start) { max -= len; }
-      for (j = j0; j < max; j += len) {
+      for (let j = i; j < max; j += len) {
         result.push(hints[j]);
       }
     }
     return result;
   },
-  matchHintsByKey: function(hintMarkers, event, keyStatus) {
-    var keyChar, key = event.keyCode, wanted, arr = null;
+  matchHintsByKey (hintMarkers: HintsNS.Marker[], event: KeyboardEvent, keyStatus: HintsNS.KeyStatus): HintsNS.LinksMatched {
+    let keyChar: string, key = event.keyCode, arr = null as HintsNS.Marker[] | null;
     if (key === VKeyCodes.tab) {
       if (!this.hintKeystroke) {
         return false;
@@ -766,28 +831,28 @@ alphabetHints: {
     keyStatus.newHintLength = keyChar.length;
     keyStatus.known = false;
     VHints.zIndexes && (VHints.zIndexes = null);
-    wanted = !keyStatus.tab;
+    const wanted = !keyStatus.tab;
     if (arr !== null && keyChar.length >= this.countMax) {
-      hintMarkers.some(function(linkMarker) {
-        return linkMarker.hintString === keyChar && arr.push(linkMarker);
+      hintMarkers.some(function(linkMarker): boolean {
+        return linkMarker.hintString === keyChar && ((arr as HintsNS.Marker[]).push(linkMarker), true);
       });
       if (arr.length === 1) { return arr; }
     }
     return hintMarkers.filter(function(linkMarker) {
-      var pass = linkMarker.hintString.startsWith(keyChar) === wanted;
+      const pass = linkMarker.hintString.startsWith(keyChar) === wanted;
       linkMarker.style.visibility = pass ? "" : "hidden";
       return pass;
     });
   },
-  repeat: function(s, n) {
+  repeat (this: void, s: string, n: number): string {
     if (s.repeat) { return s.repeat(n); }
     for (var s2 = s; --n; ) { s2 += s; }
     return s2;
   }
 },
 
-getUrlData: function(link) {
-  var str = link.getAttribute("data-vim-url");
+getUrlData (link: HTMLAnchorElement): string {
+  const str = link.getAttribute("data-vim-url");
   if (str) {
     link = VDom.createElement("a");
     link.href = str.trim();
@@ -795,7 +860,7 @@ getUrlData: function(link) {
   return link.href;
 },
 
-highlightChild: function(child) {
+highlightChild (child: HintsNS.VWindow): false | void {
   setTimeout(function() { child.focus(); }, 0);
   try {
     child.VEventMode.keydownEvents(VEventMode.keydownEvents());
@@ -803,7 +868,7 @@ highlightChild: function(child) {
     return;
   }
   child.VEventMode.exitGrab();
-  var lh = child.VHints;
+  const lh = child.VHints;
   lh.isActive = false;
   lh.activate(this.count, this.options);
   lh.isActive && lh.setMode(this.mode);
@@ -812,35 +877,37 @@ highlightChild: function(child) {
 
 Modes: {
 HOVER: {
-  128: "Hover over node",
-  192: "Hover over nodes continuously",
-  activator: function(element) {
-    var type = VDom.getEditableType(element);
+  "128": "Hover over node",
+  "192": "Hover over nodes continuously",
+  activator (element): void {
+    const type = VDom.getEditableType(element);
     VDom.unhoverLast(element);
     VScroller.current = element;
-    if (type === 0 && element.tabIndex >= 0) { element.focus(); }
-    this.mode < 128 && VHUD.showForDuration("Hover for scrolling", 1000);
+    if (type === EditableType.NotEditable && element.tabIndex >= 0) { element.focus(); }
+    if ((this as typeof VHints).mode < HintMode.min_job) {
+      return VHUD.showForDuration("Hover for scrolling", 1000);
+    }
   }
-},
+} as HintsNS.ModeOpt,
 LEAVE: {
-  129: "Simulate mouse leaving link",
-  193: "Simulate mouse leaving continuously",
-  activator: function(element) {
+  "129": "Simulate mouse leaving link",
+  "193": "Simulate mouse leaving continuously",
+  activator (this: void, element: HTMLElement): void {
     VDom.mouse(element, "mouseout");
     if (document.activeElement === element) { element.blur(); }
   }
-},
+} as HintsNS.ModeOpt,
 COPY_TEXT: {
-  130: "Copy link text to Clipboard",
-  131: "Search selected text",
-  137: "Copy link URL to Clipboard",
-  194: "Copy link text one by one",
-  195: "Search link text one by one",
-  201: "Copy link URL one by one",
-  256: "Edit link text on Vomnibar",
-  257: "Edit link url on Vomnibar",
-  activator: function(link) {
-    var isUrl = !!this.options.url, str;
+  "130": "Copy link text to Clipboard",
+  "131": "Search selected text",
+  "137": "Copy link URL to Clipboard",
+  "194": "Copy link text one by one",
+  "195": "Search link text one by one",
+  "201": "Copy link URL one by one",
+  "256": "Edit link text on Vomnibar",
+  "257": "Edit link url on Vomnibar",
+  activator (link): void {
+    let isUrl = !!this.options.url, str: string | null;
     if (isUrl) { str = this.getUrlData(link); }
     else if ((str = link.getAttribute("data-vim-text")) && (str = str.trim())) {}
     else if (link instanceof HTMLInputElement) {
@@ -859,26 +926,26 @@ COPY_TEXT: {
     } else {
       str = link instanceof HTMLTextAreaElement ? link.value
         : link instanceof HTMLSelectElement ? (link.selectedIndex < 0 ? "" : link.options[link.selectedIndex].text)
-        : link.innerText.trim() || (str = link.textContent.trim()) && str.replace(/\s+/g, " ")
+        : link.innerText.trim() || (str = link.textContent.trim()) && str.replace(<RegExpG> /\s+/g, " ")
         ;
       str = str.trim() || link.title.trim();
     }
     if (!str) {
       return VHUD.showCopied("", isUrl ? "url" : "");
     }
-    if (this.mode >= this.CONST.EDIT_TEXT && this.mode <= this.CONST.EDIT_LINK_URL) {
+    if (this.mode >= HintMode.EDIT_TEXT && this.mode <= HintMode.EDIT_LINK_URL) {
       VPort.post({
         handler: "activateVomnibar",
         count: 1,
-        force: !isUrl,
+        forceNewTab: !isUrl,
         url: str,
         keyword: "" + this.options.keyword
-      });
+      } as FgBase<"activateVomnibar"> & FgReq["activateVomnibar"] & VomnibarNS.BgOptions);
       return;
-    } else if (this.mode1 === this.CONST.SEARCH_TEXT) {
+    } else if (this.mode1 === HintMode.SEARCH_TEXT) {
       VPort.post({
         handler: "openUrl",
-        reuse: -2 + !(this.mode & 64),
+        reuse: this.mode & HintMode.queue ? ReuseType.newBg : ReuseType.newFg,
         keyword: "" + this.options.keyword,
         url: str
       });
@@ -893,53 +960,51 @@ COPY_TEXT: {
     });
     VHUD.showCopied(str);
   }
-},
+} as HintsNS.ModeOpt,
 OPEN_INCOGNITO_LINK: {
-  138: "Open link in incognito",
-  202: "Open multi incognito tabs",
-  activator: function(link) {
-    var url = this.getUrlData(link);
+  "138": "Open link in incognito",
+  "202": "Open multi incognito tabs",
+  activator (link): void {
+    const url = this.getUrlData(link);
     if (VUtils.evalIfOK(url)) { return; }
     VPort.post({
       handler: "openUrl",
       incognito: true,
-      reuse: !(this.mode & 64) - 2,
-      keyword: this.options.keyword,
-      url: url
+      reuse: this.mode & HintMode.queue ? ReuseType.newBg : ReuseType.newFg,
+      keyword: "" + this.options.keyword,
+      url
     });
   }
-},
+} as HintsNS.ModeOpt,
 DOWNLOAD_IMAGE: {
-  132: "Download image",
-  196: "Download multiple images",
-  activator: function(img) {
-    var text = img instanceof HTMLAnchorElement ? img.href : img.src, i, a;
+  "132": "Download image",
+  "196": "Download multiple images",
+  activator (this: void, img: HTMLAnchorElement | HTMLImageElement): void {
+    let text = img instanceof HTMLAnchorElement ? img.href : img.src;
     if (!text) {
       VHUD.showForDuration("Not an image", 1000);
       return;
     }
-    i = text.indexOf("://");
+    const i = text.indexOf("://"), a = VDom.createElement("a");
     if (i > 0) {
       text = text.substring(text.indexOf('/', i + 4) + 1);
     }
     if (text.length > 39) {
       text = text.substring(0, 36) + "...";
     }
-    a = VDom.createElement("a");
-    a.href = img.src;
+    a.href = (img as HTMLImageElement).src;
     a.download = img.getAttribute("download") || "";
     a.click();
-    VHUD.showForDuration("Download: " + text, 2000);
+    return VHUD.showForDuration("Download: " + text, 2000);
   }
-},
+} as HintsNS.ModeOpt,
 OPEN_IMAGE: {
-  133: "Open image",
-  197: "Open multiple image",
-  activator: function(img) {
-    var text = img instanceof HTMLAnchorElement ? img.href : img.src, url, str;
+  "133": "Open image",
+  "197": "Open multiple image",
+  activator (img: HTMLAnchorElement | HTMLImageElement): void {
+    let text = img instanceof HTMLAnchorElement ? img.href : img.src, url: string, str: string | null;
     if (!text) {
-      VHUD.showForDuration("Not an image", 1000);
-      return;
+      return VHUD.showForDuration("Not an image", 1000);
     }
     url = "vimium://show image ";
     if (str = img.getAttribute("download")) {
@@ -947,16 +1012,16 @@ OPEN_IMAGE: {
     }
     VPort.post({
       handler: "openUrl",
-      reuse: (this.mode & 64) ? -2 : -1,
+      reuse: this.mode & HintMode.queue ? ReuseType.newBg : ReuseType.newFg,
       url: url + text
     });
   }
-},
+} as HintsNS.ModeOpt,
 DOWNLOAD_LINK: {
-  136: "Download link",
-  200: "Download multiple links",
-  activator: function(link) {
-    var oldDownload, oldUrl, changed;
+  "136": "Download link",
+  "200": "Download multiple links",
+  activator (this: void, link: HTMLAnchorElement): void {
+    let oldDownload: string | null, oldUrl: string | null, changed = false;
     oldUrl = link.getAttribute("href");
     if (!oldUrl || oldUrl === "#") {
       oldDownload = link.getAttribute("data-vim-url");
@@ -985,49 +1050,52 @@ DOWNLOAD_LINK: {
       link.removeAttribute("href");
     }
   }
-},
+} as HintsNS.ModeOpt,
 FOCUS_EDITABLE: {
-  258: "Select an editable area",
-  activator: function(link) {
+  "258": "Select an editable area",
+  activator (link): false {
     VDom.UI.simulateSelect(link, true);
     return false;
   }
-},
+} as HintsNS.ModeOpt,
 DEFAULT: {
-  0: "Open link in current tab",
-  2: "Open link in new tab",
-  3: "Open link in new active tab",
-  66: "Open multiple links in new tabs",
-  67: "Activate link and hold on",
-  activator: function(link, hint) {
-    var mode, alterTarget, tag, ret, onMac = VSettings.cache.onMac;
-    tag = link.nodeName.toLowerCase();
-    if (tag === "iframe" || tag === "frame") {
-      ret = link === Vomnibar.box ? (Vomnibar.focus(1), false)
-        : this.highlightChild(link.contentWindow);
-      this.mode = 0;
+  "0": "Open link in current tab",
+  "2": "Open link in new tab",
+  "3": "Open link in new active tab",
+  "66": "Open multiple links in new tabs",
+  "67": "Activate link and hold on",
+  activator (link, hint): void | false {
+    if (link instanceof HTMLIFrameElement || link instanceof HTMLFrameElement) {
+      const ret = link === Vomnibar.box ? (Vomnibar.focus(1), false)
+        : (this as typeof VHints).highlightChild(link.contentWindow as HintsNS.VWindow);
+      (this as typeof VHints).mode = HintMode.DEFAULT;
       return ret;
-    } else if (tag === "details") {
+    } else if (link instanceof HTMLDetailsElement) {
       link.open = !link.open;
       return;
     } else if (hint.classList.contains("BH")) {
-      return this.Modes.HOVER.activator.call(this, link);
-    } else if ((mode = VDom.getEditableType(link)) === 3) {
+      return (this as typeof VHints).Modes.HOVER.activator.call(this, link, hint);
+    } else if (VDom.getEditableType(link) === EditableType.Editbox) {
       VDom.UI.simulateSelect(link, true);
       return false;
     }
-    mode = this.mode & 3;
-    if (mode >= 2 && tag === "a") {
+    const mode = this.mode & HintMode.mask_focus_new, onMac = VSettings.cache.onMac;
+    let alterTarget: string | null | undefined;
+    if (mode >= HintMode.newTab && link instanceof HTMLAnchorElement) {
       alterTarget = link.getAttribute('target');
-      link.target = "_top";
+      if (alterTarget !== "_top") {
+        link.target = "_top";
+      } else {
+        alterTarget = undefined;
+      }
     }
     // NOTE: not clear last hovered item, for that it may be a menu
     VDom.UI.click(link, {
       altKey: false,
-      ctrlKey: mode >= 2 && !onMac,
-      metaKey: mode >= 2 &&  onMac,
-      shiftKey: mode === 3
-    }, mode > 0 || link.tabIndex >= 0);
+      ctrlKey: mode >= HintMode.newTab && !onMac,
+      metaKey: mode >= HintMode.newTab &&  onMac,
+      shiftKey: mode === HintMode.OPEN_IN_NEW_FG_TAB
+    }, mode !== HintMode.empty || link.tabIndex >= 0);
     if (alterTarget === undefined) {}
     else if (alterTarget === null) {
       link.removeAttribute("target");
@@ -1035,6 +1103,6 @@ DEFAULT: {
       link.setAttribute("target", alterTarget);
     }
   }
-}
+} as HintsNS.ModeOpt
 }
 };
