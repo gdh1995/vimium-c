@@ -166,7 +166,7 @@ var VSettings, VHUD, VPort, VEventMode;
       var target = event.target;
       if (target === window) {
         VScroller.keyIsDown = 0;
-        ELs.OnWndBlur && ELs.OnWndBlur();
+        ELs.OnWndBlur && ELs.OnWndBlur.call(null);
         KeydownEvents = new Uint8Array(256);
         esc();
         /a?/.test("");
@@ -349,8 +349,8 @@ var VSettings, VHUD, VPort, VEventMode;
         HUD.showForDuration(result.url, 1500);
       });
     },
-    showHelp: function() {
-      if (VHints.tryNestedFrame("showHelp")) { return; }
+    showHelp: function(a, b) {
+      if (VHints.tryNestedFrame("showHelp", a, b)) { return; }
       if (!VDom.isHTML()) { return false; }
       vPort.post({handler: "initHelp"});
     },

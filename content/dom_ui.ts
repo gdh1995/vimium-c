@@ -25,7 +25,7 @@ VDom.UI = {
     options.adjust = options.adjust === true;
     return this.addElement(element, options);
   },
-  addElementList (els: ReadonlyArray<Element>, offset: [number, number]): HTMLDivElement {
+  addElementList (els, offset): HTMLDivElement {
     const parent = VDom.createElement("div");
     parent.className = "R HM";
     for (const el of els) {
@@ -142,8 +142,8 @@ VDom.UI = {
     bcr = VRect.fromClientRect(clickEl.getBoundingClientRect());
     return rect && !VRect.isContaining(bcr, rect) ? rect : VDom.isVisibile(clickEl) ? bcr : null;
   },
-  flash (el, rect): number | undefined {
-    rect || (rect = this.getVRect(el));
+  flash: function (this: DomUI, el: Element | null, rect?: VRect | null): number | void {
+    rect || (rect = this.getVRect(el as Element));
     if (!rect) { return; }
     const flashEl = VDom.createElement("div"), nfs = !document.webkitIsFullScreen;
     flashEl.className = "R Flash";
@@ -153,7 +153,7 @@ VDom.UI = {
     return setTimeout(function() {
       flashEl.remove();
     }, this.flashLastingTime);
-  },
+  } as DomUI["flash"],
   suppressTail (this: void, onlyRepeated: boolean): void {
     let func: HandlerNS.Handler<Function>, tick: number, timer: number;
     if (onlyRepeated) {

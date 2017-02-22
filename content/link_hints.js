@@ -186,7 +186,7 @@ var VHints = {
       break;
     case "label":
       if (element.control) {
-        if (element.control.disabled) { return; }
+        if (element.control.getAttribute("disabled")) { return; }
         VHints.GetClickable.call(arr = [], element.control);
         isClickable = arr.length === 0;
       }
@@ -536,7 +536,7 @@ var VHints = {
   },
   _resetMarkers: function() {
     var ref = this.hintMarkers, i = 0, len = ref ? ref.length : 0;
-    this.hintMarkers = null;
+    this.hintMarkers = this.zIndexes = null;
     while (i < len) { ref[i++].clickableItem = null; }
   },
   activateLink: function(hintEl) {
@@ -843,29 +843,28 @@ COPY_TEXT: {
     var isUrl = !!this.options.url, str;
     if (isUrl) { str = this.getUrlData(link); }
     else if ((str = link.getAttribute("data-vim-text")) && (str = str.trim())) {}
-    else if ((str = link.nodeName.toLowerCase()) === "input") {
+    else if (link instanceof HTMLInputElement) {
       str = link.type;
       if (str === "password") {
         str = "";
       } else if (!(str in VDom.uneditableInputs)) {
         str = (link.value || link.placeholder).trim();
       } else if (str === "file") {
-        str = link.files.length > 0 ? link.files[0].name : "";
+        str = link.files && link.files.length > 0 ? link.files[0].name : "";
       } else if (["button", "submit", "reset"].indexOf(str) >= 0) {
         str = link.value.trim() || link.title.trim();
       } else {
         str = link.title.trim(); // including `[type="image"]`
       }
     } else {
-      str = str === "textarea" ? link.value
-        : str === "select" ? (link.selectedIndex < 0 ? "" : link.options[link.selectedIndex].text)
+      str = link instanceof HTMLTextAreaElement ? link.value
+        : link instanceof HTMLSelectElement ? (link.selectedIndex < 0 ? "" : link.options[link.selectedIndex].text)
         : link.innerText.trim() || (str = link.textContent.trim()) && str.replace(/\s+/g, " ")
         ;
       str = str.trim() || link.title.trim();
     }
     if (!str) {
-      VHUD.showCopied("", isUrl && "url");
-      return;
+      return VHUD.showCopied("", isUrl ? "url" : "");
     }
     if (this.mode >= this.CONST.EDIT_TEXT && this.mode <= this.CONST.EDIT_LINK_URL) {
       VPort.post({

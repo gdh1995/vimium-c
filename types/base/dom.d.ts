@@ -2982,6 +2982,7 @@ interface HTMLEmbedElement extends HTMLElement, GetSVGDocument {
       * Sets or retrieves a URL to be loaded by the object.
       */
     src: string;
+    type: string;
     /**
       * Sets or retrieves the height and width units of the embed object.
       */
@@ -3740,7 +3741,8 @@ interface HTMLLabelElement extends HTMLElement {
     /**
       * Retrieves a reference to the form that the object is embedded in.
       */
-    readonly form: HTMLFormElement;
+    readonly form: HTMLFormElement | null;
+    readonly control: HTMLElement | null;
     /**
       * Sets or retrieves the object to which the given label object is assigned.
       */
@@ -8026,7 +8028,7 @@ interface Window extends EventTarget, WindowTimers, WindowSessionStorage, Window
     event: Event | undefined;
     readonly external: External;
     readonly frameElement: Element;
-    readonly frames: Window;
+    readonly frames: Window & Window[];
     readonly history: History;
     readonly innerHeight: number;
     readonly innerWidth: number;

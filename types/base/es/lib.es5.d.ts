@@ -266,7 +266,7 @@ interface Function {
     apply<T, A, B, C, R>(this: (this: T, a: A, b: B, c: C) => R, thisArg: T, arr: [A, B, C]): R;
     apply<T, A, B, R>(this: (this: T, a: A, b: B) => R, thisArg: T, arr: [A, B]): R;
     apply<T, A, R>(this: (this: T, a: A) => R, thisArg: T, arr: [A]): R;
-    apply<T, R>(this: (this: T) => R, thisArg: T): R;
+    apply<T, A, R>(this: (this: T, ...args: A[]) => R, thisArg: T, arr: A[]): R;
 
     /**
       * Calls a method of an object, substituting another object for the current object.

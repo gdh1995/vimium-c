@@ -93,10 +93,10 @@ declare namespace VomnibarNS {
   }
 }
 
-declare type ScrollByY = BOOL;
+declare type ScrollByY = 0 | 1;
 
 interface Hint {
-  [0]: Element; // element
+  [0]: HTMLElement; // element
   [1]: VRect; // bounding rect
   [2]: number; // priority (smaller is prior)
   [3]?: VRect; // bottom
@@ -117,7 +117,7 @@ interface DomUI {
   flashLastingTime: number;
   showing: boolean;
   addElement<T extends HTMLElement>(this: DomUI, element: T, options?: UIElementOptions): T;
-  addElementList(this: DomUI, els: Element[], offset: [number, number]): HTMLDivElement;
+  addElementList(this: DomUI, els: ReadonlyArray<Element>, offset: { [0]: number; [1]: number }): HTMLDivElement;
   adjust (this: void, event?: Event): void;
   init (this: DomUI, showing: boolean): void;
   InitInner (this: void, innerCSS: string): void;
@@ -132,7 +132,8 @@ interface DomUI {
   focus (this: DomUI, el: Element): void;
   getZoom (this: void): number;
   getVRect (this: void, clickEl: Element): VRect | null;
-  flash (this: DomUI, el: Element, rect?: VRect | null): number | undefined;
+  flash (this: DomUI, el: null, rect: VRect): number;
+  flash (this: DomUI, el: Element): number | void;
   suppressTail (this: void, onlyRepeated: boolean): void;
   SuppressMost: HandlerNS.Handler<object>;
 }
@@ -154,8 +155,8 @@ VHUD: {
   opacity: 0 | 0.25 | 0.5 | 0.75 | 1;
   show (text: string): void | Element;
   showForDuration (text: string, duration: number): void;
-  showCopied (text: string, type?: string, virtual?: true): string;
-  showCopied (): void;
+  showCopied (text: string, type: string, virtual: true): string;
+  showCopied (text: string, type?: string): void;
   hide (): void;
 },
 VSettings: {
