@@ -872,14 +872,14 @@ COPY_TEXT: {
         count: 1,
         force: !isUrl,
         url: str,
-        keyword: this.options.keyword
+        keyword: "" + this.options.keyword
       });
       return;
     } else if (this.mode1 === this.CONST.SEARCH_TEXT) {
       VPort.post({
         handler: "openUrl",
         reuse: -2 + !(this.mode & 64),
-        keyword: this.options.keyword,
+        keyword: "" + this.options.keyword,
         url: str
       });
       return;
@@ -956,12 +956,13 @@ DOWNLOAD_LINK: {
   136: "Download link",
   200: "Download multiple links",
   activator: function(link) {
-    var oldDownload, oldUrl;
+    var oldDownload, oldUrl, changed;
     oldUrl = link.getAttribute("href");
     if (!oldUrl || oldUrl === "#") {
       oldDownload = link.getAttribute("data-vim-url");
       if (oldDownload && (oldDownload = oldDownload.trim())) {
         link.href = oldDownload;
+        changed = true;
       }
     }
     oldDownload = link.getAttribute("download");
@@ -974,12 +975,11 @@ DOWNLOAD_LINK: {
       metaKey: false,
       shiftKey: false
     });
-    if (typeof oldDownload === "string") {
-      link.setAttribute("download", oldDownload);
-    } else if (oldDownload === null) {
+    if (oldDownload === null) {
       link.removeAttribute("download");
     }
-    if (typeof oldUrl === "string") {
+    if (!changed) {}
+    else if (typeof oldUrl === "string") {
       link.setAttribute("href", oldUrl);
     } else if (oldUrl === null) {
       link.removeAttribute("href");
