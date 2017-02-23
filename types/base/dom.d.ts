@@ -2127,7 +2127,7 @@ interface Event {
     readonly currentTarget: EventTarget;
     readonly defaultPrevented: boolean;
     readonly eventPhase: number;
-    readonly isTrusted: boolean;
+    readonly isTrusted?: boolean;
     // returnValue: boolean;
     // readonly srcElement: Element | null;
     readonly target: EventTarget;
@@ -2959,7 +2959,9 @@ interface HTMLElement extends Element {
     dragDrop(): boolean;
     focus(): void;
     setActive(): void;
-    addEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, useCapture?: boolean): void;
+    addEventListener<K extends keyof HTMLElementEventMap>(type: K
+        , listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any
+        , useCapture?: boolean | {passive?: boolean, useCapture?: true}): void;
     addEventListener(type: string, listener: EventListenerOrEventListenerObject, useCapture?: boolean): void;
 }
 
@@ -9290,6 +9292,10 @@ declare function webkitConvertPointFromPageToNode(node: Node, pt: WebKitPoint): 
 declare function webkitRequestAnimationFrame(callback: FrameRequestCallback): number;
 // declare function toString(): string;
 declare function dispatchEvent(evt: Event): boolean;
+declare function removeEventListener<K extends keyof WindowEventMap>(type: K,
+  listener: (this: Window, ev: WindowEventMap[K]) => void,
+  useCapture?: boolean // | {passive?: boolean, useCapture?: true}
+  ): void;
 declare function removeEventListener(type: string, listener: EventListenerOrEventListenerObject, useCapture?: boolean): void;
 declare var sessionStorage: Storage;
 declare var localStorage: Storage;

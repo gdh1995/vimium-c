@@ -126,6 +126,7 @@ declare namespace SettingsNS {
   }
   interface FrontendSettingCache extends FrontendSettings {
     onMac: boolean;
+    oldLinkHintCharacters?: FrontendSettings["linkHintCharacters"];
   }
 }
 

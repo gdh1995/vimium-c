@@ -9,12 +9,13 @@ interface EventTargetEx extends _EventTargetEx {
   let tick = 1, handler: (this: void, res: ExternalMsgs["content_scripts"]["res"] | null | undefined | false) => void;
 chrome.runtime.sendMessage(extId, { handler: "content_scripts" } as ExternalMsgs["content_scripts"]["req"],
 handler = function(content_scripts) {
+  let str: string | undefined, noBackend: boolean;
   if (!content_scripts) {
     type LastError = chrome.runtime.LastError;
     const msg: string | undefined = (chrome.runtime.lastError as undefined | LastError) &&
       (chrome.runtime.lastError as undefined | LastError as LastError).message,
     host = chrome.runtime.id || location.host || location.protocol;
-    let str: string | undefined, noBackend = !!(msg && msg.lastIndexOf("not exist") >= 0 && chrome.runtime.id);
+    noBackend = !!(msg && msg.lastIndexOf("not exist") >= 0 && chrome.runtime.id);
     if (content_scripts === false) { // disabled
       str = ": not in the white list.";
     } else if (!noBackend && chrome.runtime.lastError) {

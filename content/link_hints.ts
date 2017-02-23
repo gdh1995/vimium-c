@@ -42,11 +42,6 @@ declare namespace HintsNS {
     mode?: string;
     url?: boolean;
   }
-  interface Marker extends HTMLSpanElement {
-    clickableItem: HTMLElement;
-    hintString: string;
-    linkRect?: VRect;
-  }
   type NestedFrame = false | 0 | null | HTMLIFrameElement | HTMLFrameElement;
   interface ElementIterator {
     (this: { [index: number]: Element, length: number}, fn: (this: Hint[], value: Element) => void, self: Hint[]): void;
@@ -176,7 +171,7 @@ var VHints = {
     this.options = options;
     this.count = count;
   },
-  setMode (mode: HintMode): void | HTMLDivElement {
+  setMode (mode: HintMode): void {
     this.mode = mode;
     this.mode1 = mode & ~HintMode.queue;
     return VHUD.show((this.modeOpt as HintsNS.ModeOpt)[mode] as string);
@@ -187,7 +182,7 @@ var VHints = {
     let child: HintsNS.VWindow, done = false;
     try {
       child = this.frameNested.contentWindow as HintsNS.VWindow;
-      if (command.startsWith("VHints.activate")) {
+      if (command === "VHints.activate") {
         if (!child.document.head) { throw Error("vimium-disabled"); }
         (done = child.VHints.isActive) && child.VHints.deactivate(true);
       }
@@ -373,6 +368,7 @@ var VHints = {
       }
     }
   },
+  /** if `filters` has only "*" and is not `@GetClickable`, then the result may be `Hint | Element` */
   traverse (filters: HintsNS.Filters, box?: Document | Element | null): Hint[] {
     let output: Hint[] = [], func: HintsNS.Filter, wantClickable = filters["*"] === this.GetClickable;
     Object.setPrototypeOf(filters, null);
@@ -600,7 +596,7 @@ var VHints = {
     }
     return HandlerResult.Prevent;
   },
-  ResetMode (): void | HTMLDivElement {
+  ResetMode (): void {
     if (VHints.mode >= HintMode.min_disable_queue || VHints.lastMode === VHints.mode) { return; }
     const d = VEventMode.keydownEvents();
     if (d[VKeyCodes.ctrlKey] || d[VKeyCodes.metaKey] || d[VKeyCodes.shiftKey] || d[VKeyCodes.altKey]) {
@@ -631,11 +627,11 @@ var VHints = {
       return this.deactivate(true);
     }
     this.isActive = false;
-    setTimeout(function() {
+    setTimeout(function(): void {
       const _this = VHints;
       _this.reinit(clickEl, rect);
       if (1 === --_this.count && _this.isActive) {
-        _this.setMode(_this.mode1);
+        return _this.setMode(_this.mode1);
       }
     }, 0);
   },
@@ -940,7 +936,7 @@ COPY_TEXT: {
         forceNewTab: !isUrl,
         url: str,
         keyword: "" + this.options.keyword
-      } as FgBase<"activateVomnibar"> & FgReq["activateVomnibar"] & VomnibarNS.BgOptions);
+      } as Req.fg<"activateVomnibar"> & VomnibarNS.BgOptions);
       return;
     } else if (this.mode1 === HintMode.SEARCH_TEXT) {
       VPort.post({

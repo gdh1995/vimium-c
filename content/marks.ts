@@ -6,7 +6,7 @@ var VMarks = {
     this.onKeypress = isGo ? this._goto : this._create;
     this.prefix = options.prefix !== false;
     VHandler.push(this.onKeydown, this);
-    VHUD.show(isGo ? "Go to mark..." : "Create mark...");
+    return VHUD.show(isGo ? "Go to mark..." : "Create mark...");
   },
   clearLocal (): void {
     let keyStart, storage: Storage, i: number, key: string;
@@ -76,7 +76,7 @@ var VMarks = {
         markName: keyChar
       }, function(req) {
         if (req === false) {
-          VHUD.showForDuration("Global mark not set : ' " + keyChar + " '.", 1500);
+          VHUD.showForDuration("Global mark not set : ' " + keyChar + " '.");
         }
       });
       return VHUD.hide();

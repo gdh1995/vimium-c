@@ -1126,12 +1126,15 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
       return requestHandlers.ShowHUD(str, true);
     },
     goNext (): void {
-      const dir: string = cOptions.dir || "next", defaultPatterns: string = cOptions.patterns ||
-        Settings.get(dir === "prev" ? "previousPatterns" : "nextPatterns", true);
-      cPort.postMessage({ name: "execute", count: 1, command: "goNext",
+      let dir: string = cOptions.dir + "" || "next", patterns: CmdOptions["goNext"]["patterns"] = cOptions.patterns;
+      if (typeof patterns === "string") {
+        patterns = patterns.trim() || Settings.get(dir === "prev" ? "previousPatterns" : "nextPatterns", true).trim();
+        patterns = patterns.toLowerCase();
+      }
+      cPort.postMessage<1, "goNext">({ name: "execute", count: 1, command: "goNext",
         options: {
           dir,
-          patterns: defaultPatterns.toLowerCase()
+          patterns
         }
       });
     },
@@ -1606,17 +1609,17 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
   Connections = {
     state: 0,
     _fakeId: -2,
-    OnMessage (this: void, request: FgBase<string> | Req.fgWithRes<string>, port: Frames.Port): void {
+    OnMessage (this: void, request: Req.baseFg<string> | Req.baseFgWithRes<string>, port: Frames.Port): void {
       let id;
-      if (id = (request as Req.fgWithRes<string>)._msgId) {
-        request = (request as Req.fgWithRes<string>).request;
+      if (id = (request as Req.baseFgWithRes<string>)._msgId) {
+        request = (request as Req.baseFgWithRes<string>).request;
         port.postMessage<"findQuery">({
           _msgId: id,
-          response: requestHandlers[(request as FgBase<string>).handler as
+          response: requestHandlers[(request as Req.baseFg<string>).handler as
             "findQuery"](request as Req.fg<"findQuery">, port) as FgRes["findQuery"]
         });
       } else {
-        return requestHandlers[(request as FgBase<string>).handler as "key"](request as Req.fg<"key">, port);
+        return requestHandlers[(request as Req.baseFg<string>).handler as "key"](request as Req.fg<"key">, port);
       }
     },
     OnConnect (this: void, port: Frames.Port): void {

@@ -55,7 +55,7 @@ var VVisualMode = {
       this.movement.collapseSelectionTo(0);
     } else if (type === "None" && this.establishInitialSelectionAnchor()) {
       this.deactivate();
-      return VHUD.showForDuration("Create a selection before entering visual mode.", 1500);
+      return VHUD.showForDuration("Create a selection before entering visual mode.");
     }
     this.movement.extend(1);
     return this.movement.scrollIntoView();
@@ -153,15 +153,15 @@ var VVisualMode = {
     return this.selection.type === "None";
   },
   prompt (text: string, duration: number): void {
-    VHUD.show(text);
     this.hudTimer && clearTimeout(this.hudTimer);
     this.hudTimer = setTimeout(this.ResetHUD, duration);
+    return VHUD.show(text);
   },
   ResetHUD (): void {
     const _this = VVisualMode;
     if (!_this) { return; }
     _this.hudTimer = 0;
-    _this.hud && VHUD.show(_this.hud);
+    if (_this.hud) { return VHUD.show(_this.hud); }
   },
   find (count: number, direction?: VisualModeNS.ForwardDir): void {
     if (!VFindMode.query) {

@@ -168,7 +168,8 @@ var VDom = {
     root || (root = document);
     if (root.contains(element)) { return true; }
     if (element instanceof HTMLFormElement) { return false; }
-    for (let parent: Node | null; element !== root && (parent = element.parentNode); ) {
+    let parent: Node | null;
+    while (element !== root && (parent = element.parentNode)) {
       element = parent instanceof ShadowRoot ? parent.host : parent;
     }
     return element === root;

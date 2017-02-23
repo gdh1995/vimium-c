@@ -31,16 +31,10 @@ interface BgReq {
     text: string;
     isCopy?: boolean;
   };
-  omni: {
-    name: "omni";
-    list: CompletersNS.Suggestion[];
-    autoSelect: boolean;
-    matchType: CompletersNS.MatchType;
-  };
   focusFrame: {
     name: "focusFrame";
     frameId: number;
-    lastKey?: string;
+    lastKey?: number;
   };
   execute: BaseExecute<object>;
   checkIfEnabled: {
@@ -48,9 +42,6 @@ interface BgReq {
   };
   exitGrab: {
     name: "exitGrab";
-  };
-  returnFocus: {
-    lastKey: string;
   };
   showHelpDialog: {
     html: string;
@@ -63,6 +54,23 @@ interface BgReq {
     mapKeys: SafeDict<string> | null,
     keyMap: KeyMap
   } & BgReq["reset"];
+  settingsUpdate: {
+    name: "settingsUpdate",
+  } & {
+    [key in keyof SettingsNS.FrontendSettings]?: SettingsNS.FrontendSettings[key];
+  }
+}
+
+interface FullBgReq extends BgReq {
+  omni: {
+    name: "omni";
+    list: CompletersNS.Suggestion[];
+    autoSelect: boolean;
+    matchType: CompletersNS.MatchType;
+  };
+  returnFocus: {
+    lastKey: number;
+  };
 }
 
 interface CmdOptions {
@@ -70,11 +78,12 @@ interface CmdOptions {
     vomnibar: string;
     secret: number;
   };
+  goNext: {
+    dir: string,
+    patterns: string | string[]
+  }
 }
-
-type FgBase<K extends string> = {
-  readonly handler: K;
-}
+type FgCmdOptions<O extends keyof CmdOptions> = NotReadonly<CmdOptions[O]> & SafeObject;
 
 interface FgReq {
   findQuery: {
@@ -113,14 +122,14 @@ interface FgReq {
     https?: boolean;
     reuse?: ReuseType;
   };
-  frameFocused: FgBase<"frameFocused">;
+  frameFocused: Req.baseFg<"frameFocused">;
   checkIfEnabled: {
     url: string;
   };
-  nextFrame: FgBase<"nextFrame">;
-  exitGrab: FgBase<"exitGrab">;
+  nextFrame: Req.baseFg<"nextFrame">;
+  exitGrab: Req.baseFg<"exitGrab">;
   refocusCurrent: {
-    lastKey: string;
+    lastKey: number;
   };
   initHelp: {
     handler: "initHelp";
@@ -128,7 +137,7 @@ interface FgReq {
     names?: boolean;
     title?: string;
   };
-  initInnerCSS: FgBase<"initInnerCSS">;
+  initInnerCSS: Req.baseFg<"initInnerCSS">;
   activateVomnibar: {
     count: number;
   } | {
@@ -153,7 +162,7 @@ interface FgReq {
    * .url is guaranteed to be well formatted by frontend
    */
   focusOrLaunch: MarksNS.FocusOrLaunch;
-  secret: FgBase<"secret">;
+  secret: Req.baseFg<"secret">;
 }
 
 interface FgRes {
@@ -176,19 +185,29 @@ interface FgRes {
 }
 
 declare namespace Req {
-  type bg<K extends keyof BgReq> = Readonly<BgReq[K]> & {
-    readonly name: K;
+  type bg<K extends keyof FullBgReq> = FullBgReq[K] & {
+    name: K;
   };
-  type fg<K extends keyof FgReq> = Readonly<FgReq[K]> & {
-    readonly handler: K;
-  };
+  type baseFg<K extends string> = {
+    handler: K;
+  }
+  type fg<K extends keyof FgReq> = FgReq[K] & baseFg<K>;
 
-  type fgWithRes<K extends string> = {
+  type baseFgWithRes<K extends string> = {
     readonly _msgId: number;
-    readonly request: FgBase<K>;
-  };
+    readonly request: baseFg<K>;
+  }
 
-  interface FgCmd<O extends keyof CmdOptions> extends BaseExecute<Partial<CmdOptions[O]>> {
+  interface fgWithRes<K extends keyof FgRes> extends baseFgWithRes<K> {
+    readonly _msgId: number;
+    readonly request: fg<K>;
+  }
+  interface res<K extends keyof FgRes> {
+    readonly _msgId: number;
+    readonly response: FgRes[K];
+  }
+
+  interface FgCmd<O extends keyof CmdOptions> extends BaseExecute<CmdOptions[O]> {
   }
 }
 

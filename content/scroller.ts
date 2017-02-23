@@ -55,7 +55,7 @@ Core: {
     if (VHints.tryNestedFrame("VScroller.ScBy", count, options)) { return; }
     return VScroller.scrollBy(options.axis === "x" ? 0 : 1, (options.dir || 1) * count, options.view);
   },
-  scrollBy (di: ScrollByY, amount: number, factor: 0 | 1 | "max") {
+  scrollBy (di: ScrollByY, amount: number, factor: 0 | 1 | "max" | "viewSize") {
     VMarks.setPreviousPosition();
     const element = this.findScrollable(this.getActivatedElement(), di, amount);
     amount = !factor ? this.adjustAmount(di, amount, element)

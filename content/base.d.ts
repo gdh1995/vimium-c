@@ -13,10 +13,12 @@ interface VimiumInjector {
   destroy: ((this: void, silent?: boolean) => void) | null;
 }
 declare const enum HandlerResult {
-  Default = 0,
-  Nothing = Default,
+  Nothing = 0,
+  Default = Nothing,
   Suppress = 1,
   Prevent = 2,
+  MinMayNotPassKey = 0,
+  PassKey = -1,
 }
 declare namespace HandlerNS {
   type Event = KeyboardEvent;
@@ -57,6 +59,14 @@ declare const enum EditableType {
   Select = 2,
   Editbox = 3,
   _input = 4,
+}
+
+declare namespace HintsNS {
+  interface Marker extends HTMLSpanElement {
+    clickableItem: HTMLElement;
+    hintString: string;
+    linkRect?: VRect;
+  }
 }
 
 declare namespace VomnibarNS {
@@ -124,7 +134,7 @@ interface DomUI {
   toggle (this: DomUI, enabled: boolean): void;
   createStyle (this: DomUI, text: string, doc?: { createElement: Document["createElement"] }): HTMLStyleElement;
   InsertInnerCSS (this: void, inner: BgReq["insertInnerCSS"]): void;
-  insertCSS (this: DomUI, outer: string): void;
+  insertCSS (this: DomUI, outer: string | false): void;
   getSelection (this: DomUI): Selection;
   removeSelection (this: DomUI, root?: Window | ShadowRoot): boolean;
   click (this: DomUI, element: Element, modifiers?: EventControlKeys | null, addFocus?: boolean): boolean;
@@ -138,37 +148,39 @@ interface DomUI {
   SuppressMost: HandlerNS.Handler<object>;
 }
 
-declare var VPort: {
-  post<K extends keyof FgReq>(req: FgReq[K] & FgBase<K>): void | 1;
-  send<K extends keyof FgRes>(req: FgReq[K] & FgBase<K>, callback: (this: void, res: FgRes[K]) => any): void;
-},
-VEventMode: {
-  lock(): Element | null;
+interface VPort {
+  post<K extends keyof FgReq>(this: void, req: Req.fg<K>): void | 1;
+  post<K extends keyof SettingsNS.FrontUpdateAllowedSettings>(this: void, req: SetSettingReq<K>): void | 1;
+  send<K extends keyof FgRes>(this: void, req: Req.fg<K>, callback: (this: void, res: FgRes[K]) => any): void;
+}
+interface VEventMode {
+  lock(this: void): Element | null;
   suppress(keyCode?: number): void;
-  OnWndFocus (): (this: void) => void;
-  onWndBlur (onWndBlur: ((this: void) => void) | null): void;
-  setupSuppress (onExit?: (this: void) => void): void;
-  mapKey (key: string): string;
-  scroll (event: KeyboardEvent): void;
-  exitGrab (): void;
-  keydownEvents (newArr: KeydownCacheArray): void | never;
-  keydownEvents (): KeydownCacheArray | never;
-},
-VHUD: {
+  OnWndFocus (this: void): (this: void) => void;
+  onWndBlur (this: void, onWndBlur: ((this: void) => void) | null): void;
+  setupSuppress (this: void, onExit?: (this: void) => void): void;
+  mapKey (this: void, key: string): string;
+  scroll (this: void, event: KeyboardEvent): void;
+  exitGrab (this: void): HandlerResult.Nothing;
+  keydownEvents (this: void, newArr: KeydownCacheArray): void | never;
+  keydownEvents (this: void): KeydownCacheArray | never;
+}
+interface VHUD {
   box: HTMLDivElement | null;
   text: string;
   opacity: 0 | 0.25 | 0.5 | 0.75 | 1;
-  show (text: string): void | HTMLDivElement;
-  showForDuration (text: string, duration: number): void;
+  show (text: string): void;
+  /** duration is default to 1500 */
+  showForDuration (text: string, duration?: number): void;
   showCopied (text: string, type: string, virtual: true): string;
   showCopied (text: string, type?: string): void;
-  hide (): void;
-},
-VSettings: {
+  hide (this: void): void;
+}
+interface VSettings {
   cache: SettingsNS.FrontendSettingCache;
-  checkIfEnabled (): void;
+  timer: number;
+  checkIfEnabled (this: void): void;
   onDestroy: ((this: void) => any) | null;
-  destroy (this: void): void;
-},
-VimiumInjector: VimiumInjector
-;
+  destroy (this: void, silent?: boolean): void;
+}
+declare var VimiumInjector: VimiumInjector;

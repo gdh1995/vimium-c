@@ -117,7 +117,7 @@ declare namespace Frames {
   interface Port extends chrome.runtime.Port {
     sender: Sender;
     postMessage<K extends 1, O extends keyof CmdOptions>(request: Req.FgCmd<O>): K;
-    postMessage<K extends keyof BgReq>(request: Req.bg<K>): 1;
+    postMessage<K extends keyof FullBgReq>(request: Req.bg<K>): 1;
     postMessage<K extends keyof FgRes>(request: {
       _msgId: number;
       response: FgRes[K];
