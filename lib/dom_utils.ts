@@ -182,11 +182,14 @@ var VDom = {
     keygen: EditableType.Select, select: EditableType.Select,
     embed: EditableType.Embed, object: EditableType.Embed
   },
+  /**
+   * if true, then `element` is `HTMLElement`
+   */
   getEditableType (element: Element): EditableType {
-    if (element instanceof HTMLFormElement) { return EditableType.NotEditable; }
+    if (!(element instanceof HTMLElement) || element instanceof HTMLFormElement) { return EditableType.NotEditable; }
     const ty = this.editableTypes[element.nodeName.toLowerCase()];
     return ty !== EditableType._input ? (ty
-        || ((element as HTMLElement).isContentEditable ? EditableType.Editbox : EditableType.NotEditable))
+        || (element.isContentEditable ? EditableType.Editbox : EditableType.NotEditable))
       : ((element as HTMLInputElement).type in this.uneditableInputs) ? EditableType.NotEditable : EditableType.Editbox;
   },
   isSelected (element: Element): boolean {
