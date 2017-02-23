@@ -241,12 +241,15 @@ var VSettings, VHUD, VPort, VEventMode;
       }
     },
     toggleLinkHintCharacters: function(_0, options) {
-      var values = VSettings.cache, val = (options.value || "sadjklewcmpgh").toLowerCase();
+      var values = VSettings.cache, K = "oldLinkHintCharacters",
+      val = (options.value || "sadjklewcmpgh").toLowerCase();
       if (values.linkHintCharacters === val) {
-        val = values.linkHintCharacters = values.oldLinkHintCharacters;
-        values.oldLinkHintCharacters = "";
+        if (values[K]) {
+          val = values.linkHintCharacters = values[K];
+          values[K] = "";
+        }
       } else {
-        values.oldLinkHintCharacters = values.linkHintCharacters;
+        values[K] = values.linkHintCharacters;
         values.linkHintCharacters = val;
       }
       HUD.showForDuration('Now link hints use "' + val + '".', 1500);
@@ -350,8 +353,7 @@ var VSettings, VHUD, VPort, VEventMode;
       });
     },
     showHelp: function(a, b) {
-      if (VHints.tryNestedFrame("showHelp", a, b)) { return; }
-      if (!VDom.isHTML()) { return false; }
+      if (!VDom.isHTML()) { return; }
       vPort.post({handler: "initHelp"});
     },
     autoCopy: function(_0, options) {
@@ -379,7 +381,7 @@ var VSettings, VHUD, VPort, VEventMode;
       }, function(str) {
         if (str) {
           VUtils.evalIfOK(str);
-        } else if (str === "") {
+        } else {
           HUD.showCopied("");
         }
       });
