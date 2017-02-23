@@ -319,7 +319,7 @@ var VSettings, VHUD, VPort, VEventMode;
         return;
       }
       else if (!VDom.isVisibile(newEl)) {
-        newEl.scrollIntoViewIfNeeded();
+        newEl.scrollIntoView();
         if (!VDom.isVisibile(newEl)) {
           HUD.showForDuration("The last focused is hidden", 2000);
           return;
@@ -333,7 +333,7 @@ var VSettings, VHUD, VPort, VEventMode;
       var el = InsertMode.lock;
       if (!el) { Commands.switchFocus(); }
       else if (VDom.isVisibile(el)) { document.execCommand("delete"); }
-      else { el.scrollIntoViewIfNeeded(); }
+      else { el.scrollIntoView(); }
     },
     goBack: function(count, options) {
       var step = Math.min(count, history.length - 1);
@@ -595,7 +595,7 @@ var VSettings, VHUD, VPort, VEventMode;
       Commands.reload(linkElement.href);
       return true;
     }
-    linkElement.scrollIntoViewIfNeeded();
+    VDom.isVisibile(linkElement) || linkElement.scrollIntoView();
     VDom.UI.flash(linkElement);
     setTimeout(function() { VDom.UI.click(linkElement); }, 0);
     return true;
