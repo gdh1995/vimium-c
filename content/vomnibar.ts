@@ -4,7 +4,7 @@ declare namespace VomnibarNS {
     url: true | string;
   }
   interface Port {
-    postMessage (this: Port, msg: Msg): void | 1;
+    postMessage<K extends keyof CReq> (this: Port, msg: CReq[K]): void | 1;
     close (this: Port): void | 1;
   }
   interface IFrameWindow extends Window {
@@ -24,7 +24,7 @@ var Vomnibar = {
   box: null as never as HTMLIFrameElement & { contentWindow: VomnibarNS.IFrameWindow },
   port: null as never as VomnibarNS.Port,
   status: VomnibarNS.Status.NotInited,
-  options: null as VomnibarNS.FgOptions | null,
+  options: null as VomnibarNS.FgOptionsToFront | null,
   width: 0,
   zoom: 0,
   defaultTop: "",
@@ -78,7 +78,7 @@ var Vomnibar = {
     }
     if (!url || url.indexOf("://") === -1) {
       options.search = "";
-      return this.setOptions(options as VomnibarNS.FgOptions & { name: string });
+      return this.setOptions(options as VomnibarNS.FgOptions as VomnibarNS.FgOptionsToFront);
     }
     return VPort.send({
       handler: "parseSearchUrl",
@@ -87,10 +87,10 @@ var Vomnibar = {
     }, function(search) {
       options.search = search;
       if (search != null) { options.url = ""; }
-      return Vomnibar.setOptions(options as VomnibarNS.FgOptions & { name: string });
+      return Vomnibar.setOptions(options as VomnibarNS.FgOptions as VomnibarNS.FgOptionsToFront);
     });
   },
-  setOptions (options: VomnibarNS.FgOptions & { name: string }): void {
+  setOptions (options: VomnibarNS.FgOptionsToFront): void {
     this.status > VomnibarNS.Status.Initing ? this.port.postMessage(options) : (this.options = options);
   },
   hide (action: VomnibarNS.HideType): void | number {
@@ -100,12 +100,12 @@ var Vomnibar = {
     if (!this.box) { return; }
     this.box.style.cssText = "display: none";
     if (action < VomnibarNS.HideType.MinAct) {
-      this.port.postMessage("hide");
+      this.port.postMessage<"hide">("hide");
       action === VomnibarNS.HideType.OnlyFocus && setTimeout(function() { window.focus(); }, 17);
       return;
     }
     let f: typeof requestAnimationFrame, act = function(): void | 1 {
-      return Vomnibar.port.postMessage("onHidden");
+      return Vomnibar.port.postMessage<"onHidden">("onHidden");
     };
     return action === VomnibarNS.HideType.WaitAndAct ? (f = requestAnimationFrame)(function() { f(act); }) : act();
   },
@@ -116,7 +116,7 @@ var Vomnibar = {
     el.style.visibility = "hidden";
     el.onload = function(this: typeof el): void {
       const _this = Vomnibar, i = page.indexOf("://"), wnd = this.contentWindow,
-      sec = [secret, _this.options] as [number, VomnibarNS.FgOptions | null];
+      sec: VomnibarNS.MessageData = [secret, _this.options];
       this.onload = null as never;
       _this.options = null;
       page = page.substring(0, page.indexOf("/", i + 3));
@@ -127,12 +127,17 @@ var Vomnibar = {
         wnd.postMessage(sec, page, [channel.port2]);
         return;
       }
+      type FReq = VomnibarNS.FReq;
+      type CReq = VomnibarNS.CReq;
       const port: VomnibarNS.IframePort = {
         onmessage: null as never as VomnibarNS.IframePort["onmessage"],
-        postMessage (data: string | { name: string }): void { return Vomnibar.onMessage({ data: data }); }
+        postMessage<K extends keyof FReq> (data: FReq[K]): void | 1 { return Vomnibar.onMessage<K>({ data: data }); }
       };
       _this.sameOrigin = true;
-      _this.port = { close (): void {}, postMessage (data): void | 1 { return port.onmessage({ data: data }); } };
+      _this.port = {
+        close (): void {},
+        postMessage<K extends keyof CReq> (data: CReq[K]): void | 1 { return port.onmessage<K>({ data: data }); }
+      };
       if (location.hash === "#chrome-ui") { _this.defaultTop = "5px"; }
       wnd.Vomnibar.showFavIcon = true;
       wnd.onmessage({ source: window, data: sec, ports: [port] });
@@ -158,28 +163,26 @@ var Vomnibar = {
     } catch (e) { return false; }
     return this._forceRedo = true;
   },
-  onMessage (event: { data: VomnibarNS.Msg}): void {
-    let data = event.data;
-    type Msg = SafeDict<any> & { name: string };
-    switch ((data as Msg).name || (data as string)) {
+  onMessage<K extends keyof VomnibarNS.FReq> ({ data: data }: { data: VomnibarNS.FReq[K] }): void | 1 {
+    type Req = VomnibarNS.FReq;
+    switch ((data as VomnibarNS.Msg<string>).name as K || (data as K)) {
     case "uiComponentIsReady":
       this.status = VomnibarNS.Status.ToShow;
       let opt = this.options;
-      if (opt) { this.options = null; this.port.postMessage(opt as any); }
+      if (opt) { this.options = null; return this.port.postMessage<"activate">(opt); }
       break;
     case "style":
-      this.box.style.height = (data as Msg).height / this.zoom + "px";
+      this.box.style.height = (data as Req["style"]).height / this.zoom + "px";
       if (this.status === VomnibarNS.Status.Initing || this.status === VomnibarNS.Status.ToShow) { this.onShown(); }
       break;
-    case "focus": window.focus(); VEventMode.suppress((data as Msg).lastKey); break;
-    case "hide": this.hide((data as Msg).waitFrame); break;
-    case "scrollBy": VScroller.scrollBy(1, (data as Msg).amount, 0); break;
+    case "focus": window.focus(); return VEventMode.suppress((data as Req["focus"]).lastKey);
+    case "hide": this.hide((data as Req["hide"]).waitFrame); break;
+    case "scrollBy": return VScroller.scrollBy(1, (data as Req["scrollBy"]).amount, 0);
     case "scrollGoing": VScroller.keyIsDown = VScroller.Core.maxInterval; break;
     case "scrollEnd": VScroller.keyIsDown = 0; break;
-    case "evalJS": VUtils.evalIfOK((data as Msg).url); break;
-    case "broken": (data as Msg).active && window.focus(); // no break;
-    case "unload": Vomnibar && this.reset(data !== "unload"); break;
-    default: break;
+    case "evalJS": VUtils.evalIfOK((data as Req["evalJS"]).url); break;
+    case "broken": (data as Req["broken"]).active && window.focus(); // no break;
+    case "unload": return Vomnibar ? this.reset(data !== "unload") : undefined;
     }
   },
   onShown (): number {
@@ -208,6 +211,6 @@ var Vomnibar = {
   focus (f2: BOOL): void | 1 {
     if (this.status < VomnibarNS.Status.Showing) { return; }
     this.box.contentWindow.focus();
-    return this.port.postMessage(f2 ? "focus" : "backspace");
+    return this.port.postMessage<"focus" | "backspace">(f2 ? "focus" : "backspace");
   }
 };

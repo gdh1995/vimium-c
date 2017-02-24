@@ -96,14 +96,48 @@ declare namespace VomnibarNS {
     width: number;
     search: "" | FgRes["parseSearchUrl"];
   }
-  interface FgOptions extends BaseFgOptions {
+  interface FgOptions extends BaseFgOptions, Partial<GlobalOptions> {
     url?: string;
   }
-  type Msg = string | { name: string };
-  interface IframePort {
-    postMessage (this: IframePort, msg: Msg): void | 1;
-    onmessage (this: void, msg: { data: Msg }): void | 1;
+  type MessageData = [number, FgOptions | null];
+  type Msg<T extends string> = { name: T };
+
+  interface CReq {
+    activate: FgOptions & Msg<"activate">;
+    hide: "hide";
+    onHidden: "onHidden";
+    focus: "focus";
+    backspace: "backspace";
   }
+  interface FReq {
+    hide: Msg<"hide"> & {
+      waitFrame: BOOL;
+    };
+    scrollBy: Msg<"scrollBy"> & {
+      amount: 1 | -1;
+    };
+    style: Msg<"style"> & {
+      height: number;
+    };
+    scrollEnd: "scrollEnd";
+    scrollGoing: "scrollGoing";
+    focus: Msg<"focus"> & {
+      lastKey: number;
+    };
+    evalJS: Msg<"evalJS"> & {
+      url: string;
+    };
+    broken: Msg<"broken"> & {
+      active: boolean;
+    };
+    unload: "unload";
+    uiComponentIsReady: "uiComponentIsReady";
+  }
+  interface IframePort {
+    postMessage<K extends keyof FReq> (this: IframePort, msg: FReq[K]): void | 1;
+    onmessage<K extends keyof CReq> (this: void, msg: { data: CReq[K] }): void | 1;
+  }
+  type FgOptionsToFront = CReq["activate"];
 }
 
 declare type ScrollByY = 0 | 1;
