@@ -933,10 +933,10 @@ COPY_TEXT: {
       VPort.post({
         handler: "activateVomnibar",
         count: 1,
-        forceNewTab: !isUrl,
+        force: !isUrl,
         url: str,
         keyword: "" + this.options.keyword
-      } as Req.fg<"activateVomnibar"> & VomnibarNS.BgOptions);
+      } as Req.fg<"activateVomnibar"> & Pick<VomnibarNS.ContentOptions, "url" | "force" | "keyword">);
       return;
     } else if (this.mode1 === HintMode.SEARCH_TEXT) {
       VPort.post({
