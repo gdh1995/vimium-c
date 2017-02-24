@@ -33,8 +33,7 @@ VDom.UI = {
     }
     const style = parent.style;
     style.left = offset[0] + "px"; style.top = offset[1] + "px";
-    const z = VDom.bodyZoom;
-    z !== 1 && (style.zoom = "" + z);
+    VDom.bodyZoom !== 1 && (style.zoom = "" + VDom.bodyZoom);
     document.webkitIsFullScreen && (style.position = "fixed");
     return this.addElement(parent);
   },

@@ -221,8 +221,8 @@ var VHints = {
     return marker;
   },
   adjustMarkers (elements: Hint[]): void {
+    if (VDom.bodyZoom === 1 || !VDom.UI.root) { return; }
     const root = VDom.UI.root, z = "" + 1 / VDom.bodyZoom;
-    if (!root || z === "1") { return; }
     let arr = this.hintMarkers as HintsNS.Marker[], i = elements.length - 1;
     if (elements[i][0] === Vomnibar.box) { arr[i--].style.zoom = z; }
     if (!root.querySelector('#HelpDialog') || i < 0) { return; }
@@ -935,15 +935,15 @@ COPY_TEXT: {
         count: 1,
         force: !isUrl,
         url: str,
-        keyword: "" + this.options.keyword
+        keyword: (this.options.keyword || "") + ""
       } as Req.fg<"activateVomnibar"> & Pick<VomnibarNS.ContentOptions, "url" | "force" | "keyword">);
       return;
     } else if (this.mode1 === HintMode.SEARCH_TEXT) {
       VPort.post({
         handler: "openUrl",
         reuse: this.mode & HintMode.queue ? ReuseType.newBg : ReuseType.newFg,
-        keyword: "" + this.options.keyword,
-        url: str
+        url: str,
+        keyword: (this.options.keyword || "") + ""
       });
       return;
     }
@@ -967,7 +967,7 @@ OPEN_INCOGNITO_LINK: {
       handler: "openUrl",
       incognito: true,
       reuse: this.mode & HintMode.queue ? ReuseType.newBg : ReuseType.newFg,
-      keyword: "" + this.options.keyword,
+      keyword: (this.options.keyword || "") + "",
       url
     });
   }

@@ -1126,9 +1126,11 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
       return requestHandlers.ShowHUD(str, true);
     },
     goNext (): void {
-      let dir: string = cOptions.dir + "" || "next", patterns: CmdOptions["goNext"]["patterns"] = cOptions.patterns;
-      if (typeof patterns === "string") {
-        patterns = patterns.trim() || Settings.get(dir === "prev" ? "previousPatterns" : "nextPatterns", true).trim();
+      let dir: string = (cOptions.dir ? cOptions.dir + "" : "") || "next"
+        , patterns: CmdOptions["goNext"]["patterns"] = cOptions.patterns;
+      if (!(patterns instanceof Array)) {
+        typeof patterns === "string" || (patterns = "");
+        patterns = patterns || Settings.get(dir === "prev" ? "previousPatterns" : "nextPatterns", true).trim();
         patterns = patterns.toLowerCase();
       }
       cPort.postMessage<1, "goNext">({ name: "execute", count: 1, command: "goNext",

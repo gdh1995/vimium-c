@@ -251,10 +251,10 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
     },
     toggleLinkHintCharacters (_0: number, options: FgOptions): void {
       let values = VSettings.cache, K = "oldLinkHintCharacters" as "oldLinkHintCharacters",
-      val = (options.value || "sadjklewcmpgh").toLowerCase();
+      val = options.value ? (options.value + "").toLowerCase() : "sadjklewcmpgh";
       if (values.linkHintCharacters === val) {
         if (values[K]) {
-          val = values.linkHintCharacters = values[K] + "";
+          val = values.linkHintCharacters = values[K];
           values[K] = "";
         }
       } else {
@@ -373,18 +373,18 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
       return HUD.showCopied(str);
     },
     autoOpen (_0: number, options: FgOptions): void {
-      let str: string;
+      let str: string, keyword = (options.keyword || "") + "";
       if (str = VDom.getSelectionText()) {
         VUtils.evalIfOK(str) || vPort.post({
           handler: "openUrl",
-          keyword: "" + options.keyword,
+          keyword,
           url: str
         });
         return;
       }
       return vPort.send({
         handler: "getCopiedUrl_f",
-        keyword: "" + options.keyword
+        keyword
       }, function(str) {
         if (str) {
           VUtils.evalIfOK(str);
@@ -639,7 +639,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
     const links = VHints.traverse({"*": this.GetLinks}, document) as Hint[] | HTMLElement[] as HTMLElement[];
     const names: string[] = [];
     let candidates: Candidate[] = [], ch: string, _len: number, s: string;
-    for (s of linkStrings) { if (s = s + "") { names.push(s); } }
+    for (s of linkStrings) { if (s = s ? s + "" : "") { names.push(s); } }
     links.push(document.documentElement as HTMLElement);
     const re1 = <RegExpOne> /\s+/, re2 = <RegExpOne> /\b/;
     for (_len = links.length - 1; 0 <= --_len; ) {

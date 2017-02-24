@@ -22,7 +22,7 @@ var Vomnibar = {
   activate (options: Options): void {
     if (!this.init && VPort.EnsurePort()) { return; }
     Object.setPrototypeOf(options, null);
-    this.mode.type = this.modeType = (options.mode + "") as CompletersNS.ValidTypes || "omni";
+    this.mode.type = this.modeType = ((options.mode || "") + "") as CompletersNS.ValidTypes || "omni";
     this.forceNewTab = !!options.force;
     let { url, keyword, search } = options, start: number | undefined;
     this.mode.clientWidth = options.width | 0;
