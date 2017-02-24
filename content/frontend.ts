@@ -258,7 +258,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
           values[K] = "";
         }
       } else {
-        values[K] = values.linkHintCharacters;
+        values[K] = values[K] || values.linkHintCharacters;
         values.linkHintCharacters = val;
       }
       return HUD.showForDuration(`Now link hints use "${val}"`);
