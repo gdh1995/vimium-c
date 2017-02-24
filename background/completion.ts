@@ -1,6 +1,90 @@
-/// <reference path="../types/bg.completion.d.ts" />
+import Domain = CompletersNS.Domain;
+import MatchType = CompletersNS.MatchType;
 
 setTimeout((function (): void {
+
+type MatchRange = [number, number];
+
+interface DecodedItem {
+  readonly url: string;
+  text: string;
+}
+
+interface Bookmark extends DecodedItem {
+  readonly url: string;
+  readonly text: string;
+  readonly path: string;
+  readonly title: string;
+}
+interface JSBookmark extends Bookmark {
+  readonly jsUrl: string;
+  readonly jsText: string;
+}
+interface PureHistoryItem {
+  lastVisitTime: number;
+  title: string;
+  readonly url: string;
+}
+interface HistoryItem extends DecodedItem, PureHistoryItem {
+}
+interface UrlItem {
+  url: string;
+  title: string;
+  sessionId?: string | number;
+}
+
+interface TextTab extends chrome.tabs.Tab {
+  text: string;  
+}
+
+interface Completer {
+  filter(query: CompletersNS.QueryStatus, index: number): void;
+}
+interface PreCompleter extends Completer {
+  preFilter(query: CompletersNS.QueryStatus, failIfNull: true): void | true;
+  preFilter(query: CompletersNS.QueryStatus): void;
+}
+interface QueryTerms extends Array<string> {
+  more?: string;
+}
+
+const enum FirstQuery {
+  nothing = 0,
+  waitFirst = 1,
+  searchEngines = 2,
+  history = 3,
+  tabs = 4,
+
+  QueryTypeMask = 63,
+  historyIncluded = 67,
+}
+
+interface SuggestionConstructor {
+  new (type: string, url: string, text: string, title: string,
+        computeRelevancy: (this: void, sug: CompletersNS.CoreSuggestion, data?: number) => number,
+        extraData?: number): Suggestion;
+}
+
+const enum RegExpCacheIndex {
+  word = 0, start = 1, part = 2
+}
+type CachedRegExp = (RegExpOne | RegExpI) & RegExpSearchable<0>;
+type RegExpCacheDict = [SafeDict<CachedRegExp>, SafeDict<CachedRegExp>, SafeDict<CachedRegExp>];
+
+type HistoryCallback = (history: ReadonlyArray<HistoryItem>) => any;
+
+interface UrlToDecode extends String {
+  url?: void;
+}
+type ItemToDecode = UrlToDecode | DecodedItem;
+
+type CompletersMap = {
+    [P in CompletersNS.ValidTypes]: ReadonlyArray<Completer>;
+};
+interface WindowEx extends Window {
+  Completers: CompletersMap & GlobalCompletersConstructor;
+}
+
 
 let queryType: FirstQuery, offset: number, autoSelect: boolean,
     maxCharNum: number, maxResults: number, maxTotal: number, matchType: MatchType,
@@ -800,14 +884,14 @@ searchEngines: {
   rsortByRelevancy (a: Suggestion, b: Suggestion): number { return b.relevancy - a.relevancy; }
 };
 
-window.Completers = {
+(window as WindowEx).Completers = {
   bookm: [Completers.bookmarks],
   domain: [Completers.domains],
   history: [Completers.history],
   omni: [Completers.searchEngines, Completers.domains, Completers.history, Completers.bookmarks],
   search: [Completers.searchEngines],
   tab: [Completers.tabs],
-  filter(this: typeof window.Completers, query: string, options: CompletersNS.Options
+  filter(this: WindowEx["Completers"], query: string, options: CompletersNS.Options
       , callback: CompletersNS.Callback): void {
     autoSelect = false;
     queryTerms = query ? query.split(Utils.spacesRe) : [];

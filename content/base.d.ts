@@ -184,3 +184,11 @@ interface VSettings {
   destroy (this: void, silent?: boolean): void;
 }
 declare var VimiumInjector: VimiumInjector;
+
+declare const enum VKeyCodes {
+  backspace = 8, tab = 9, enter = 13, shiftKey = 16, ctrlKey = 17, altKey = 18, esc = 27,
+  space = 32, pageup = 33, left = 37, up, right, down, deleteKey = 46,
+  N0 = 48, N1, N9 = 57, minNotNumber = 58,
+  maxNotAlphabet = 65 - 1, A, B, C, D, E, F,
+  metaKey = 91, menuKey = 93, f1 = 112, f2 = 113, f12 = 123, ime = 229,
+}
