@@ -61,7 +61,7 @@ interface BgReq {
   }
 }
 
-interface FullBgReq extends BgReq {
+interface BgVomnibarReq {
   omni: {
     name: "omni";
     list: CompletersNS.Suggestion[];
@@ -71,6 +71,8 @@ interface FullBgReq extends BgReq {
   returnFocus: {
     lastKey: number;
   };
+}
+interface FullBgReq extends BgReq, BgVomnibarReq {
 }
 
 interface CmdOptions {

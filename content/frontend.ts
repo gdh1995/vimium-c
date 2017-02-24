@@ -48,10 +48,9 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
     },
     Listener<K extends keyof FgRes, T extends keyof BgReq> (this: void
         , response: Req.res<K> | (Req.bg<T> & { _msgId?: undefined; })): void {
-      let id: number | undefined, handler: <K extends keyof FgRes>(this: void, res: FgRes[K]) => any;
+      let id: number | undefined;
       if (id = response._msgId) {
-        const arr = vPort._callbacks;
-        handler = arr[id];
+        const arr = vPort._callbacks, handler = arr[id];
         delete arr[id];
         handler((response as Req.res<K>).response);
       } else {
@@ -132,7 +131,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
       } else if (VDom.UI.removeSelection(window)) {
         action = HandlerResult.Prevent;
       } else if (event.repeat) {
-        let a = document.activeElement; a && a.blur && a.blur();
+        let c = document.activeElement; c && c.blur && c.blur();
       }
       if (action === HandlerResult.Nothing) { return; }
       if (action === HandlerResult.Prevent) {

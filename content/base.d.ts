@@ -87,6 +87,11 @@ declare namespace VomnibarNS {
     DoNothing = -2,
     MinAct = ActDirectly,
   }
+  interface GlobalOptions {
+    mode: string;
+    force: boolean;
+    keyword: string;
+  }
   interface BaseFgOptions {
     width: number;
     search: "" | FgRes["parseSearchUrl"];

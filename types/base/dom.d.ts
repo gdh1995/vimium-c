@@ -9294,7 +9294,7 @@ declare function webkitRequestAnimationFrame(callback: FrameRequestCallback): nu
 declare function dispatchEvent(evt: Event): boolean;
 declare function removeEventListener<K extends keyof WindowEventMap>(type: K,
   listener: (this: Window, ev: WindowEventMap[K]) => void,
-  useCapture?: boolean // | {passive?: boolean, useCapture?: true}
+  useCapture?: boolean | {passive?: boolean, useCapture?: true}
   ): void;
 declare function removeEventListener(type: string, listener: EventListenerOrEventListenerObject, useCapture?: boolean): void;
 declare var sessionStorage: Storage;

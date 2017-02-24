@@ -38,13 +38,14 @@ declare namespace CompletersNS {
 
   type CoreSuggestion = Readonly<WritableCoreSuggestion>;
 
-  interface Suggestion extends CoreSuggestion {
+  interface BaseSuggestion extends CoreSuggestion {
     text: string;
-    relevancy: number;
-
     textSplit?: string;
     titleSplit?: string;
     sessionId?: string | number;
+  }
+  interface Suggestion extends BaseSuggestion {
+    relevancy: number;
   }
 }
 

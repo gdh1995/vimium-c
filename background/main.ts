@@ -1166,8 +1166,8 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
       const options = Utils.extendIf(Object.setPrototypeOf({
         vomnibar: Settings.CONST.VomnibarPage,
         secret: getSecret(),
-      } as Dict<any>, null), cOptions);
-      port.postMessage({
+      } as CmdOptions["Vomnibar.activate"], null), cOptions as any);
+      port.postMessage<1, "Vomnibar.activate">({
         name: "execute", count: commandCount,
         command: "Vomnibar.activate",
         options

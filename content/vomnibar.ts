@@ -1,9 +1,7 @@
 declare namespace VomnibarNS {
-  interface BgOptions {
-    trailing_slash?: boolean;
-    force?: boolean;
-    keyword?: string;
-    url?: true | string;
+  interface ContentOptions extends GlobalOptions {
+    trailing_slash: boolean;
+    url: true | string;
   }
   interface Port {
     postMessage (this: Port, msg: Msg): void | 1;
@@ -14,7 +12,7 @@ declare namespace VomnibarNS {
     VPort?: object;
     onmessage: (this: void, ev: { source: Window, data: [number, FgOptions | null], ports: IframePort[] }) => void | 1;
   }
-  type BaseFullOptions = CmdOptions["Vomnibar.activate"] & VomnibarNS.BaseFgOptions & VomnibarNS.BgOptions & SafeObject;
+  type BaseFullOptions = CmdOptions["Vomnibar.activate"] & VomnibarNS.BaseFgOptions & Partial<ContentOptions> & SafeObject;
   interface FullOptions extends BaseFullOptions {
     topUrl?: string;
     count?: number;
