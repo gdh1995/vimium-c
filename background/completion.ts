@@ -825,7 +825,7 @@ window.Completers = {
         autoSelect = arr !== this.omni;
       }
     }
-    return Completers.filter(arr || this[options.type]);
+    return Completers.filter(arr || this[options.type] || this.omni);
   }
 };
 
