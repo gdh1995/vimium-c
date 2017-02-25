@@ -9,9 +9,9 @@ type ObjectCoercible = primitiveObject | {
   };
 type anyNotSymbol = ObjectCoercible | null | undefined;
 interface String {
-  endsWith(searchString: string, position?: number | undefined): boolean;
+  endsWith(this: string, searchString: string, position?: number | undefined): boolean;
   endsWith(this: ObjectCoercible, searchString?: anyNotSymbol, position?: anyNotSymbol): boolean;
-  startsWith(searchString: string, position?: number | undefined): boolean;
+  startsWith(this: string, searchString: string, position?: number | undefined): boolean;
   startsWith(this: ObjectCoercible, searchString?: anyNotSymbol, position?: anyNotSymbol): boolean;
 }
 declare const Symbol: {

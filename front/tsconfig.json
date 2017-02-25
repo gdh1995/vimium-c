@@ -1,5 +1,9 @@
 {
   "extends": "../tsconfig",
+  "include": [
+    "*.ts",
+    "../lib/polyfill.ts"
+  ],
   "exclude": [
   ]
 }
