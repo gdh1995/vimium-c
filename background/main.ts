@@ -1712,7 +1712,7 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
     let secret = 0, time = 0;
     getSecret = function(this: void): number {
       const now = Date.now();
-      if (now - time > 10000) {
+      if (now - time > 2000) {
         secret = 1 + (0 | (Math.random() * 0x6fffffff));
       }
       time = now;
