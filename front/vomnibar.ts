@@ -509,6 +509,7 @@ var Vomnibar = {
   returnFocus (this: void, request: BgVomnibarReq["returnFocus"]): void {
     setTimeout(VPort.postToOwner, 0, { name: "focus", lastKey: request.lastKey });
   },
+  secret: null as never as (this: void, request: BgVomnibarReq["secret"]) => void,
 
   mode: {
     handler: "omni" as "omni",
@@ -679,7 +680,10 @@ VPort = {
     }
   },
   timer = setTimeout(function() { window.location.href = "about:blank"; }, 700);
-  VPort.sendMessage({ handler: "secret" }, handler);
+  Vomnibar.secret = function(request): void {
+    Vomnibar.secret = null as never;
+    return handler(request.secret);
+  };
   window.onmessage = function(event: MessageEvent): void {
     if (event.source === window.parent) {
       let data: VomnibarNS.MessageData = event.data;
@@ -687,6 +691,7 @@ VPort = {
     }
   };
 })();
+VPort.connect();
 
 if (!String.prototype.startsWith) {
 String.prototype.startsWith = function(this: string, s: string): boolean {

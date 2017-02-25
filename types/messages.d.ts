@@ -63,7 +63,6 @@ interface BgReq {
 
 interface BgVomnibarReq {
   omni: {
-    name: "omni";
     list: CompletersNS.Suggestion[];
     autoSelect: boolean;
     matchType: CompletersNS.MatchType;
@@ -71,6 +70,9 @@ interface BgVomnibarReq {
   returnFocus: {
     lastKey: number;
   };
+  secret: {
+    secret: number;
+  }
 }
 interface FullBgReq extends BgReq, BgVomnibarReq {
 }
@@ -164,7 +166,6 @@ interface FgReq {
    * .url is guaranteed to be well formatted by frontend
    */
   focusOrLaunch: MarksNS.FocusOrLaunch;
-  secret: Req.baseFg<"secret">;
 }
 
 interface FgRes {
@@ -182,7 +183,6 @@ interface FgRes {
   initInnerCSS: string;
   getCopiedUrl_f: string;
   gotoMark: boolean;
-  secret: number | null;
   copyToClipboard: void;
 }
 

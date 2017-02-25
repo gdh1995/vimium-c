@@ -1591,10 +1591,6 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
         url: request.prefix ? url + "*" : url
       }, funcDict.focusOrLaunch[0].bind(request));
     },
-    secret (this: void, _0: FgReq["secret"], port: Frames.Port): FgRes["secret"] {
-      if (funcDict.checkVomnibarPage(port)) { return null; }
-      return getSecret();
-    },
     SetIcon: function(): void {} as (tabId: number, type: Frames.ValidStatus) => void,
     ShowHUD (message: string, isCopy?: boolean): void {
       try {
@@ -1626,17 +1622,12 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
     },
     OnConnect (this: void, port: Frames.Port): void {
       Connections.format(port);
-      port.onMessage.addListener(Connections.OnMessage);
-      let type = (port.name[9] as (string | number) as number) | 0, ref: Frames.Frames | undefined
+      let type = (port.name[9] as string | number as number) | 0, ref: Frames.Frames | undefined
         , tabId = port.sender.tabId;
       if (type === PortType.omnibar) {
-        framesForOmni.push(port);
-        if (tabId < 0) {
-          port.sender.tabId = cPort ? cPort.sender.tabId : TabRecency.last();
-        }
-        port.onDisconnect.addListener(Connections.OnOmniDisconnect);
-        return;
+        return Connections.onOmniConnect(port, tabId);
       }
+      port.onMessage.addListener(Connections.OnMessage);
       port.onDisconnect.addListener(Connections.OnDisconnect);
       const pass = Settings.getExcluded(port.sender.url), status = pass === null
           ? Frames.BaseStatus.enabled : pass ? Frames.BaseStatus.partial : Frames.BaseStatus.disabled;
@@ -1683,6 +1674,22 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
       if (port === ref[0]) {
         ref[0] = ref[1];
       }
+    },
+    onOmniConnect (port: Frames.Port, tabId: number): void {
+      if (funcDict.checkVomnibarPage(port)) {
+        port.disconnect();
+        return;
+      }
+      framesForOmni.push(port);
+      if (tabId < 0) {
+        port.sender.tabId = cPort ? cPort.sender.tabId : TabRecency.last();
+      }
+      port.onMessage.addListener(Connections.OnMessage);
+      port.onDisconnect.addListener(Connections.OnOmniDisconnect);
+      port.postMessage({
+        name: "secret",
+        secret: getSecret()
+      });
     },
     OnOmniDisconnect (this: void, port: Port): void {
       const ref = framesForOmni, i = ref.lastIndexOf(port);
