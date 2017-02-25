@@ -265,7 +265,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
       InsertMode.global = { code: code, stat: stat, hud: hud };
       if (hud) { return HUD.show(`Insert mode${code ? `: ${code}/${stat}` : ""}`); }
     },
-    performFind (_0: number, options: FgOptions): void | false { return VFindMode.activate(options); },
+    performFind (_0: number, options: FgOptions): void { return VFindMode.activate(options); },
     passNextKey (count: number, options: FgOptions): void {
       const keys = Object.create<BOOL>(null);
       let keyCount = 0;
@@ -858,7 +858,7 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
       (mapKeys = request.mapKeys) && func(mapKeys, null);
     },
     execute (request): void {
-      VUtils.execCommand(Commands, request.command, request.count, request.options);
+      return VUtils.execCommand(Commands, request.command, request.count, request.options);
     },
     createMark: VMarks.CreateGlobalMark,
     scroll: VMarks.Goto,

@@ -64,6 +64,9 @@ declare namespace HintsNS {
   interface VWindow extends Window {
     VHints: typeof VHints,
     VEventMode: typeof VEventMode,
+    VDom: {
+      isHTML (): boolean;
+    };
   }
 }
 
@@ -183,8 +186,8 @@ var VHints = {
     let child: HintsNS.VWindow, done = false;
     try {
       child = this.frameNested.contentWindow as HintsNS.VWindow;
+      if (!child.VDom.isHTML()) { throw Error("vimium-disabled"); }
       if (command === "VHints.activate") {
-        if (!child.document.head) { throw Error("vimium-disabled"); }
         (done = child.VHints.isActive) && child.VHints.deactivate(true);
       }
       child.VEventMode.keydownEvents(VEventMode.keydownEvents());
@@ -197,7 +200,8 @@ var VHints = {
     child.focus();
     if (done) { return true; }
     if (document.readyState !== "complete") { this.frameNested = false; }
-    return VUtils.execCommand(child, command, a, b) !== false;
+    VUtils.execCommand(child, command, a, b);
+    return true;
   },
   maxLeft: 0,
   maxTop: 0,

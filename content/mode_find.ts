@@ -27,8 +27,8 @@ height:14px;margin:0;overflow:hidden;vertical-align:top;white-space:nowrap;curso
 body{cursor:text;display:inline-block;padding:0 3px 0 1px;max-width:215px;min-width:7px;}\
 body *{cursor:text;display:inline;}body br{display:none;}\
 html > span{float:right;}',
-  activate (options?: FgOptions): void | false {
-    if (!VDom.isHTML()) { return false; }
+  activate (options?: FgOptions): void {
+    if (!VDom.isHTML()) { return; }
     options = Object.setPrototypeOf(options || {}, null);
     const query: string | undefined = options.query;
     this.isActive || query === this.query || VMarks.setPreviousPosition();

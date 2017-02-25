@@ -29,8 +29,8 @@ var Vomnibar = {
   zoom: 0,
   defaultTop: "",
   sameOrigin: false,
-  activate (count: number, options: VomnibarNS.FullOptions): void | false {
-    if (!options.secret || !options.vomnibar) { return false; }
+  activate (count: number, options: VomnibarNS.FullOptions): void {
+    if (!options.secret || !options.vomnibar) { return; }
     if (document.readyState === "loading") {
       if (!this.width) {
         this.width = setTimeout(this.activate.bind(this, count, options), 500);
@@ -38,7 +38,7 @@ var Vomnibar = {
       }
       this.width = 0;
     }
-    if (!VDom.isHTML()) { return false; }
+    if (!VDom.isHTML()) { return; }
     if (options.url === true) {
       if (window.top === window || !options.topUrl) {
         options.topUrl = window.location.href;

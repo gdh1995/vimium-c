@@ -11,7 +11,7 @@ var VUtils = {
     }, 0);
     return true;
   },
-  execCommand (this: void, parent: object, command: string, a: number, b: object | null): void | false {
+  execCommand (this: void, parent: object, command: string, a: number, b: object | null): void {
     let keys = command.split('.'), i: number, len: number;
     for (i = 0, len = keys.length - 1; i < len; i++) {
       parent = (parent as any)[keys[i]];
