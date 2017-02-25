@@ -15,11 +15,11 @@
     (event.target as Element).vimiumHasOnclick = true;
     event.stopPropagation();
   }, true);
-  VSettings.onDestroy = function() {
+  window.VSettings && (window.VSettings.onDestroy = function() {
     removeEventListener("VimiumReg", installer, true);
     removeEventListener("VimiumOnclick", onclick, true);
     box && box.removeEventListener("VimiumOnclick", onclick, true);
-  };
+  });
   script.type = "text/javascript";
   script.textContent = '"use strict";(' + func.toString() + ')();';
   d = (d as Document).documentElement || d;
