@@ -64,7 +64,7 @@ declare const enum EditableType {
 
 declare namespace HintsNS {
   interface Marker extends HTMLSpanElement {
-    clickableItem: HTMLElement;
+    clickableItem: Hint[0];
     hintString: string;
     linkRect?: VRect;
   }
@@ -144,7 +144,7 @@ declare namespace VomnibarNS {
 declare type ScrollByY = 0 | 1;
 
 interface Hint {
-  [0]: HTMLElement; // element
+  [0]: HTMLElement | SVGElement; // element
   [1]: VRect; // bounding rect
   [2]: number; // priority (smaller is prior)
   [3]?: VRect; // bottom

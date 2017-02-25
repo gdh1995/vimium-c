@@ -34,9 +34,10 @@ const enum ClickType {
   maxNotBox = 6, frame = maxNotBox + 1, scrollX, scrollY,
 }
 declare namespace HintsNS {
+  type LinkEl = Hint[0];
   interface ModeOpt {
     [mode: number]: string | undefined;
-    activator (this: any, linkEl: HTMLElement, hintEl: HTMLSpanElement): void | false;
+    activator (this: any, linkEl: LinkEl, hintEl: HTMLSpanElement): void | false;
   }
   interface Options extends SafeObject {
     mode?: string;
@@ -230,8 +231,20 @@ var VHints = {
   },
   btnRe: <RegExpOne> /\b(?:[Bb](?:utto|t)n|[Cc]lose)(?:$| )/,
   GetClickable (this: Hint[], element: Element): void {
-    if (!(element instanceof HTMLElement) || element instanceof HTMLFormElement) { return; }
     let arr: VRect | null, isClickable = null as boolean | null, s: string | null, type = ClickType.Default;
+    if (!(element instanceof HTMLElement) || element instanceof HTMLFormElement) {
+      if (element instanceof SVGElement) {
+        type = element.vimiumHasOnclick || element.getAttribute("onclick")
+            || VHints.ngEnabled && element.getAttribute("ng-click")
+            || (s = element.getAttribute("jsaction")) && VHints.checkJSAction(s) ? ClickType.listener
+          : (s = element.getAttribute("tabindex")) && parseInt(s, 10) >= 0 ? ClickType.tabindex
+          : type;
+        if (type > ClickType.Default && (arr = VDom.getVisibleClientRect(element))) {
+          this.push([element, arr, type]);
+        }
+      }
+      return;
+    }
     switch (element.tagName.toLowerCase()) {
     case "a": case "details": isClickable = true; break;
     case "frame": case "iframe":
@@ -609,7 +622,7 @@ var VHints = {
     while (i < len) { (ref as HintsNS.Marker[])[i++].clickableItem = null as never; }
   },
   activateLink (hintEl: HintsNS.Marker): void {
-    let rect: VRect | null | undefined, clickEl: HTMLElement | null = hintEl.clickableItem;
+    let rect: VRect | null | undefined, clickEl: HintsNS.LinkEl | null = hintEl.clickableItem;
     this._resetMarkers();
     if (VDom.isInDOM(clickEl)) {
       // must get outline first, because clickEl may hide itself when activated
@@ -635,7 +648,7 @@ var VHints = {
       }
     }, 0);
   },
-  reinit (lastEl?: HTMLElement | null, rect?: VRect | null): void {
+  reinit (lastEl?: HintsNS.LinkEl | null, rect?: VRect | null): void {
     this.isActive = false;
     this.keyStatus.tab = 0;
     this.zIndexes = null;
@@ -648,7 +661,7 @@ var VHints = {
       this.timer = 0;
     }
   },
-  TestLastEl (this: void, el: HTMLElement, r: VRect) {
+  TestLastEl (this: void, el: HintsNS.LinkEl, r: VRect) {
     const _this = VHints;
     if (!_this) { return; }
     _this.timer = 0;
@@ -888,7 +901,7 @@ HOVER: {
 LEAVE: {
   "129": "Simulate mouse leaving link",
   "193": "Simulate mouse leaving continuously",
-  activator (this: void, element: HTMLElement): void {
+  activator (this: void, element: HintsNS.LinkEl): void {
     VDom.mouse(element, "mouseout");
     if (document.activeElement === element) { element.blur(); }
   }
@@ -922,9 +935,10 @@ COPY_TEXT: {
     } else {
       str = link instanceof HTMLTextAreaElement ? link.value
         : link instanceof HTMLSelectElement ? (link.selectedIndex < 0 ? "" : link.options[link.selectedIndex].text)
-        : link.innerText.trim() || (str = link.textContent.trim()) && str.replace(<RegExpG> /\s+/g, " ")
+        : link instanceof HTMLElement && link.innerText.trim()
+          || (str = link.textContent.trim()) && str.replace(<RegExpG> /\s+/g, " ")
         ;
-      str = str.trim() || link.title.trim();
+      str = str.trim() || (link instanceof HTMLElement ? link.title.trim() : "");
     }
     if (!str) {
       return VHUD.showCopied("", isUrl ? "url" : "");

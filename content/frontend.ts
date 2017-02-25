@@ -599,7 +599,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
     return true;
   },
   goBy (relName: string, pattern: CmdOptions["goNext"]["patterns"]): void {
-    if (this.findAndFollowRel(relName)) {
+    if (!VDom.isHTML() || this.findAndFollowRel(relName)) {
       return;
     }
     const arr = typeof pattern === "string" && pattern

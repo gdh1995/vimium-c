@@ -2054,6 +2054,7 @@ interface Element extends Node, GlobalEventHandlers, ElementTraversal, NodeSelec
     readonly assignedSlot: HTMLSlotElement | null;
     slot: string;
     readonly shadowRoot: ShadowRoot | null;
+    textContent: string;
     focus?(): void;
     blur?(): void;
     getAttribute(name: string): string | null;
@@ -2952,7 +2953,6 @@ interface HTMLElement extends Element {
     spellcheck: boolean;
     readonly style: CSSStyleDeclaration;
     tabIndex: number;
-    textContent: string;
     title: string;
     blur(): void;
     click(): void;
@@ -5877,6 +5877,7 @@ interface SVGElementEventMap extends ElementEventMap {
 
 interface SVGElement extends Element {
     focus(): void;
+    blur(): void;
     onclick: (this: SVGElement, ev: MouseEvent) => any;
     ondblclick: (this: SVGElement, ev: MouseEvent) => any;
     onfocusin: (this: SVGElement, ev: FocusEvent) => any;
@@ -5891,6 +5892,8 @@ interface SVGElement extends Element {
     readonly viewportElement: SVGElement;
     xmlbase: string;
     className: any;
+    /** on Chrome, it exists */
+    tabIndex: number;
     addEventListener<K extends keyof SVGElementEventMap>(type: K, listener: (this: SVGElement, ev: SVGElementEventMap[K]) => any, useCapture?: boolean): void;
     addEventListener(type: string, listener: EventListenerOrEventListenerObject, useCapture?: boolean): void;
 }
