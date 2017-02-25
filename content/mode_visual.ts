@@ -165,7 +165,7 @@ var VVisualMode = {
   },
   find (count: number, direction?: VisualModeNS.ForwardDir): void {
     if (!VFindMode.query) {
-      VPort.send({ handler: "findQuery" }, function(query) {
+      VPort.send({ handler: "findQuery" }, function(query): void {
         if (query) {
           VFindMode.updateQuery(query);
           return VVisualMode.find(count, direction);

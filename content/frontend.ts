@@ -24,13 +24,13 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
 
   const vPort = {
     port: null as Port | null,
-    _callbacks: Object.create(null) as { [msgId: number]: <K extends keyof FgRes>(this: void, res: FgRes[K]) => any },
+    _callbacks: Object.create(null) as { [msgId: number]: <K extends keyof FgRes>(this: void, res: FgRes[K]) => void },
     _id: 1,
     post: function<K extends keyof FgReq> (this: void, request: Req.fg<K>): 1 {
       return (vPort.port as Port).postMessage(request);
     } as VPort["post"],
     send: function<K extends keyof FgRes> (this: void, request: Req.fg<K>
-        , callback: (this: void, res: FgRes[K]) => any): void {
+        , callback: (this: void, res: FgRes[K]) => void): void {
       let id = ++vPort._id;
       (vPort.port as Port).postMessage({_msgId: id, request: request});
       vPort._callbacks[id] = callback;
@@ -52,9 +52,9 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
       if (id = response._msgId) {
         const arr = vPort._callbacks, handler = arr[id];
         delete arr[id];
-        handler((response as Req.res<K>).response);
+        return handler((response as Req.res<K>).response);
       } else {
-        requestHandlers[(response as Req.bg<T>).name](response as Req.bg<T>);
+        return requestHandlers[(response as Req.bg<T>).name as T](response as Req.bg<T>);
       }
     },
     ClearPort (this: void): void {
@@ -263,7 +263,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
       let code = +options.code || VKeyCodes.esc, stat = +options.stat, hud = !options.hideHud;
       stat === KeyStat.plain && code === VKeyCodes.esc && (code = 0);
       InsertMode.global = { code: code, stat: stat, hud: hud };
-      hud && HUD.show(`Insert mode${code ? `: ${code}/${stat}` : ""}`);
+      if (hud) { return HUD.show(`Insert mode${code ? `: ${code}/${stat}` : ""}`); }
     },
     performFind (_0: number, options: FgOptions): void | false { return VFindMode.activate(options); },
     passNextKey (count: number, options: FgOptions): void {
@@ -348,7 +348,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
         url: window.location.href,
         trailing_slash: options.trailing_slash,
         upper: -count
-      }, function(result) {
+      }, function(result): void {
         if (result.path != null) {
           return Commands.reload(result.url);
         }
@@ -381,7 +381,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
       return vPort.send({
         handler: "getCopiedUrl_f",
         keyword
-      }, function(str) {
+      }, function(str): void {
         if (str) {
           VUtils.evalIfOK(str);
         } else {
@@ -394,7 +394,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
         handler: "searchAs",
         url: window.location.href,
         search: VDom.getSelectionText()
-      }, function(str) {
+      }, function(str): void {
         if (str) { return HUD.showForDuration(str, 1000); }
       });
     },
@@ -499,14 +499,17 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
       VHandler.push(this.ExitGrab, this);
       addEventListener("mousedown", this.ExitGrab, true);
     },
-    ExitGrab (this: void, event: MouseEvent | KeyboardEvent | "other"): HandlerResult.Nothing {
+    ExitGrab: function (this: void, event: MouseEvent | KeyboardEvent | "other"): HandlerResult.Nothing | void {
       const _this = InsertMode;
       _this.focus = _this.lockFocus;
       removeEventListener("mousedown", _this.ExitGrab, true);
       VHandler.remove(_this);
       event === "other" || !window.frames.length && window === window.top ||
       vPort.post({ handler: "exitGrab" });
-      return HandlerResult.Nothing;
+      if (event instanceof KeyboardEvent) { return HandlerResult.Nothing; }
+    } as {
+      (this: void, event: MouseEvent | "other"): void;
+      (this: void, event: KeyboardEvent): HandlerResult.Nothing;
     },
     grabBackFocus (event: LockableFocusEvent): void {
       event.stopImmediatePropagation();
@@ -555,7 +558,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
     onWndBlur (this: void, f): void { ELs.OnWndBlur = f; },
     OnWndFocus (this: void): (this: void) => void { return ELs.OnWndFocus; },
     mapKey (this: void, key): string { return mapKeys !== null && mapKeys[key] || key; },
-    exitGrab (this: void): HandlerResult.Nothing { return InsertMode.ExitGrab("other"); },
+    exitGrab (this: void): void { return InsertMode.ExitGrab("other"); },
     scroll (this: void, event): void {
       if (!event || event.shiftKey || event.altKey) { return; }
       const keyCode = event.keyCode;
@@ -587,7 +590,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
     } as VEventMode["keydownEvents"]
   };
 
-  const Pagination = {
+const Pagination = {
   followLink (linkElement: Element): boolean {
     if (linkElement instanceof HTMLLinkElement) {
       Commands.reload(linkElement.href);
@@ -683,9 +686,8 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
     }
     return false;
   }
-  };
-
-  const FrameMask = {
+},
+  FrameMask = {
     more: false,
     node: null as HTMLDivElement | null,
     timer: 0,
@@ -726,9 +728,8 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
       if (_this.node) { _this.node.remove(); _this.node = null; }
       clearInterval(_this.timer);
     }
-  };
-
-  const HUD = {
+  },
+  HUD = {
     tweenId: 0,
     box: null as HTMLDivElement | null,
     text: "",
@@ -801,10 +802,8 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
         hud.tweenId = setInterval(hud.tween, 40);
       }
     }
-  };
-  VHUD = HUD;
-
-  const requestHandlers: { [K in keyof BgReq]: (this: void, request: BgReq[K]) => any } = {
+  },
+  requestHandlers: { [K in keyof BgReq]: (this: void, request: BgReq[K]) => void } = {
     init (request): void {
       const r = requestHandlers;
       VSettings.cache = request.load;
@@ -858,8 +857,8 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
       }
       (mapKeys = request.mapKeys) && func(mapKeys, null);
     },
-    execute (request): void | false {
-      return VUtils.execCommand(Commands, request.command, request.count, request.options);
+    execute (request): void {
+      VUtils.execCommand(Commands, request.command, request.count, request.options);
     },
     createMark: VMarks.CreateGlobalMark,
     scroll: VMarks.Goto,
@@ -927,6 +926,7 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
   };
 
   ELs.hook(addEventListener);
+  VHUD = HUD;
 
   VSettings.destroy = function(silent) {
     let f: typeof removeEventListener | typeof VSettings.onDestroy = removeEventListener, el: HTMLElement | null;

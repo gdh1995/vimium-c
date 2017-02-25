@@ -74,9 +74,9 @@ var VMarks = {
         handler: "gotoMark",
         prefix: this.prefix,
         markName: keyChar
-      }, function(req) {
+      }, function(req): void {
         if (req === false) {
-          VHUD.showForDuration("Global mark not set : ' " + keyChar + " '.");
+          return VHUD.showForDuration("Global mark not set : ' " + keyChar + " '.");
         }
       });
       return VHUD.hide();

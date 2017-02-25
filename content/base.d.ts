@@ -191,7 +191,7 @@ interface DomUI {
 interface VPort {
   post<K extends keyof FgReq>(this: void, req: Req.fg<K>): void | 1;
   post<K extends keyof SettingsNS.FrontUpdateAllowedSettings>(this: void, req: SetSettingReq<K>): void | 1;
-  send<K extends keyof FgRes>(this: void, req: Req.fg<K>, callback: (this: void, res: FgRes[K]) => any): void;
+  send<K extends keyof FgRes>(this: void, req: Req.fg<K>, callback: (this: void, res: FgRes[K]) => void): void;
 }
 interface VEventMode {
   lock(this: void): Element | null;
@@ -201,7 +201,7 @@ interface VEventMode {
   setupSuppress (this: void, onExit?: (this: void) => void): void;
   mapKey (this: void, key: string): string;
   scroll (this: void, event: KeyboardEvent): void;
-  exitGrab (this: void): HandlerResult.Nothing;
+  exitGrab (this: void): void;
   keydownEvents (this: void, newArr: KeydownCacheArray): void | never;
   keydownEvents (this: void): KeydownCacheArray | never;
 }

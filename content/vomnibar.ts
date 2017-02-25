@@ -84,7 +84,7 @@ var Vomnibar = {
       handler: "parseSearchUrl",
       trailing_slash: options.trailing_slash,
       upper, url
-    }, function(search) {
+    }, function(search): void {
       options.search = search;
       if (search != null) { options.url = ""; }
       return Vomnibar.setOptions(options as VomnibarNS.FgOptions as VomnibarNS.FgOptionsToFront);

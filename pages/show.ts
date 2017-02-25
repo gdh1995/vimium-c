@@ -251,7 +251,7 @@ function copyThing(event: Event): void {
   return window.VPort.send({
     handler: "copyToClipboard",
     data: str
-  }, function() {
+  }, function(): void {
     return window.VHUD.showCopied(str);
   });
 }
