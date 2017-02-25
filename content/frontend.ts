@@ -161,14 +161,11 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
       if (target === window) { ELs.OnWndFocus(); }
       else if (!isEnabledForUrl) {}
       else if (VDom.getEditableType(target as Element)) { InsertMode.focus(event as LockableFocusEvent); }
-      else if (!(target as Element).shadowRoot) {}
-      else if (target !== VDom.UI.box) {
+      else if (target === VDom.UI.box) { event.stopImmediatePropagation(); }
+      else if ((target as Element).shadowRoot) {
         target = (target as Element).shadowRoot as ShadowRoot;
         target.addEventListener("focus", ELs.onFocus, true);
         target.addEventListener("blur", ELs.onShadowBlur, true);
-      } else {
-        InsertMode.lock = null;
-        event.stopImmediatePropagation();
       }
     },
     onBlur (event: FocusEvent): void {
@@ -178,14 +175,11 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
         VScroller.keyIsDown = 0;
         ELs.OnWndBlur && ELs.OnWndBlur.call(null);
         KeydownEvents = new Uint8Array(256);
-        esc();
         (<RegExpOne> /a?/).test("");
+        return esc();
       } else if (!isEnabledForUrl) {}
       else if (InsertMode.lock === target) { InsertMode.lock = null; }
-      else if (!(target as Element).shadowRoot) {}
-      else if (target === VDom.UI.box) {
-        InsertMode.lock = null;
-      } else {
+      else if ((target as Element).shadowRoot && target !== VDom.UI.box) {
         target = (target as Element).shadowRoot as ShadowRoot;
         // NOTE: if destroyed, this page must have lost its focus before, so
         // a blur event must have been bubbled from shadowRoot to a real lock.
@@ -254,7 +248,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
       val = options.value ? (options.value + "").toLowerCase() : "sadjklewcmpgh";
       if (values.linkHintCharacters === val) {
         if (values[K]) {
-          val = values.linkHintCharacters = values[K];
+          val = values.linkHintCharacters = values[K] as string;
           values[K] = "";
         }
       } else {
