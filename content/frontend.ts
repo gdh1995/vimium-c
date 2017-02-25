@@ -274,12 +274,13 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
         // TODO: if always return i or not
         esc = function(i?: HandlerResult): HandlerResult | void {
           if (i === HandlerResult.Prevent && 0 >= --count || i === HandlerResult.Suppress) {
+            HUD.hide();
             return (esc = func)(HandlerResult.Prevent);
           }
           currentKeys = ""; nextKeys = keyMap;
           return i;
         };
-        return esc();
+        return HUD.show("Normal mode (pass keys disabled)" + (count > 1 ? `: ${count} times` : ""));
       }
       VHandler.push(function(event) {
         keyCount += +!keys[event.keyCode];
