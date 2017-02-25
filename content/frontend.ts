@@ -20,7 +20,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
   var KeydownEvents: KeydownCacheArray, esc: EscFunc, keyMap: KeyMap
     , currentKeys = "", isEnabledForUrl = false
     , mapKeys = null as SafeDict<string> | null, nextKeys = null as KeyMap | ReadonlyChildKeyMap | null
-    , onKeyup2 = null as ((this: void, event: KeyboardEvent) => any) | null, passKeys = null as SafeDict<true> | null;
+    , onKeyup2 = null as ((this: void, event: KeyboardEvent) => void) | null, passKeys = null as SafeDict<true> | null;
 
   const vPort = {
     port: null as Port | null,
@@ -149,11 +149,10 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
       if (KeydownEvents[event.keyCode]) {
         KeydownEvents[event.keyCode] = 0;
         event.preventDefault();
-      } else {
-        if (onKeyup2) { onKeyup2(event); }
-        return;
+        event.stopImmediatePropagation();
+      } else if (onKeyup2) {
+        return onKeyup2(event);
       }
-      event.stopImmediatePropagation();
     },
     onFocus (event: FocusEvent): void {
       if (event.isTrusted === false) { return; }
@@ -274,7 +273,9 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
         const func = esc;
         // TODO: if always return i or not
         esc = function(i?: HandlerResult): HandlerResult | void {
-          if (i === HandlerResult.Prevent && 0 >= --count || i === HandlerResult.Suppress) { return (esc = func)(); }
+          if (i === HandlerResult.Prevent && 0 >= --count || i === HandlerResult.Suppress) {
+            return (esc = func)(HandlerResult.Prevent);
+          }
           currentKeys = ""; nextKeys = keyMap;
           return i;
         };
