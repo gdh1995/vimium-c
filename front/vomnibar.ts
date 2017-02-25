@@ -66,6 +66,7 @@ var Vomnibar = {
   input: null as never as HTMLInputElement,
   isSelectionOrigin: true,
   lastKey: 0,
+  keyResult: HandlerResult.Nothing,
   list: null as never as HTMLDivElement,
   onUpdate: null as (() => void) | null,
   doEnter: null as (() => void) | null,
@@ -220,34 +221,31 @@ var Vomnibar = {
     "9": "down", "27": "dismiss", "33": "pageup", "34": "pagedown", "38": "up", "40": "down"
     , "112": "backspace", "113": "blur"
   } as Dict<AllowedActions>,
-  onKeydown (event: KeyboardEvent): HandlerResult {
-    if (!this.isActive) { return HandlerResult.Prevent; }
+  onKeydown (event: KeyboardEvent): any {
+    if (!this.isActive) { return; }
     let action: AllowedActions = "", n = event.keyCode, focused = this.focused;
     this.lastKey = n;
     if (event.altKey || event.metaKey) {
       if (event.ctrlKey || event.shiftKey) {}
       else if (n === VKeyCodes.f2) {
-        this.onAction(focused ? "blurInput" : "focus");
-        return HandlerResult.Prevent;
+        return this.onAction(focused ? "blurInput" : "focus");
       }
       else if (!focused) {}
       else if (n >= VKeyCodes.B && n <= VKeyCodes.F && n !== VKeyCodes.C || n === VKeyCodes.backspace) {
-        this.onBashAction(n - VKeyCodes.maxNotAlphabet);
-        return HandlerResult.Prevent;
+        return this.onBashAction(n - VKeyCodes.maxNotAlphabet);
       }
-      if (event.altKey) { return HandlerResult.Nothing; }
+      if (event.altKey) { this.keyResult = HandlerResult.Nothing; return; }
     }
     if (n === VKeyCodes.enter) {
       window.onkeyup = this.OnEnterUp;
-      return HandlerResult.Prevent;
+      return;
     }
     else if (event.ctrlKey || event.metaKey) {
       if (event.shiftKey) { action = n === VKeyCodes.F ? "pagedown" : n === VKeyCodes.B ? "pageup" : ""; }
       else if (n === VKeyCodes.up || n === VKeyCodes.down) {
-        VPort.postToOwner({ name: "scrollBy", amount: (n - VKeyCodes.right as -1 | 1) });
         this.lastScrolling = Date.now();
         window.onkeyup = Vomnibar.HandleKeydown;
-        return HandlerResult.Prevent;
+        return VPort.postToOwner<"scrollBy">({ name: "scrollBy", amount: n - VKeyCodes.right as -1 | 1 });
       }
       else { action = this.ctrlMap[n] || ""; }
     }
@@ -255,8 +253,11 @@ var Vomnibar = {
       action = n === VKeyCodes.up ? "pageup" : n === VKeyCodes.down ? "pagedown" : n === VKeyCodes.tab ? "up" : "";
     }
     else if (action = this.normalMap[n] || "") {}
-    else if (n === VKeyCodes.ime) { return HandlerResult.Nothing; }
-    else if (n === VKeyCodes.backspace) { return focused ? HandlerResult.Suppress : HandlerResult.Prevent; }
+    else if (n === VKeyCodes.ime) { this.keyResult = HandlerResult.Nothing; return; }
+    else if (n === VKeyCodes.backspace) {
+      if (focused) { this.keyResult = HandlerResult.Suppress; }
+      return;
+    }
     else if (n !== VKeyCodes.space) {}
     else if (!focused) { action = "focus"; }
     else if ((this.selection >= 0
@@ -264,20 +265,16 @@ var Vomnibar = {
       action = "enter";
     }
     if (action) {
-      this.onAction(action);
-      return HandlerResult.Prevent;
+      return this.onAction(action);
     }
 
     if (n <= VKeyCodes.space) {}
     else if (n > VKeyCodes.f1 && n <= VKeyCodes.f12) { focused = false; }
     else if (!focused && n >= VKeyCodes.N0 && n < VKeyCodes.minNotNumber) {
       n = (n - VKeyCodes.N0) || 10;
-      if (!event.shiftKey && n <= this.completions.length) {
-        this.onEnter(event, n - 1);
-      }
-      return HandlerResult.Prevent;
+      return !event.shiftKey && n <= this.completions.length ? this.onEnter(event, n - 1) : undefined;
     }
-    return focused && n !== VKeyCodes.menuKey ? HandlerResult.Suppress : HandlerResult.Nothing;
+    this.keyResult = focused && n !== VKeyCodes.menuKey ? HandlerResult.Suppress : HandlerResult.Nothing;
   },
   onAction (action: AllowedActions): void {
     let sel: number;
@@ -309,11 +306,11 @@ var Vomnibar = {
     case "enter": return this.onEnter(true);
     }
   },
-  onBashAction (code: number): void {
+  onBashAction (code: number): void | boolean {
     const sel = window.getSelection(), isExtend = code === 4 || code < 0;
     sel.collapseToStart();
     sel.modify(isExtend ? "extend" : "move", code < 4 ? "backward" : "forward", "word");
-    isExtend && sel.type === "Range" && document.execCommand("delete");
+    if (isExtend && sel.type === "Range") { return document.execCommand("delete"); }
   },
   _pageNumRe: <RegExpOne> /(?:^|\s)(\+\d{0,2})$/,
   goPage (dir: boolean | number): void {
@@ -488,7 +485,7 @@ var Vomnibar = {
     this.init = VUtils.makeListRenderer = null as never;
   },
   HandleKeydown (this: void, event: KeyboardEvent): void {
-    let action = HandlerResult.Prevent;
+    Vomnibar.keyResult = HandlerResult.Prevent as HandlerResult;
     if (window.onkeyup) {
       let stop: boolean, now: number = 0;
       if (!Vomnibar.lastScrolling) {
@@ -500,10 +497,10 @@ var Vomnibar = {
       }
       if (stop) { window.onkeyup = null as never; }
     } else {
-      action = Vomnibar.onKeydown(event);
+      Vomnibar.onKeydown(event);
     }
-    if (action <= 0) { return; }
-    if (action === 2) { event.preventDefault(); }
+    if (Vomnibar.keyResult === HandlerResult.Nothing) { return; }
+    if (Vomnibar.keyResult === HandlerResult.Prevent) { event.preventDefault(); }
     event.stopImmediatePropagation();
   },
   returnFocus (this: void, request: BgVomnibarReq["returnFocus"]): void {
