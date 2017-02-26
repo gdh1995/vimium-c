@@ -303,6 +303,8 @@ interface Function {
     bind<T, A, R>(this: (this: T, a: A) => R, thisArg: T): (this: void, a: A) => R;
     bind<T, A, B, R>(this: (this: T, a: A, b: B) => R, thisArg: T): (this: void, a: A, b: B) => R;
     bind<T, A, B, C, R>(this: (this: T, a: A, b: B, c: C) => R, thisArg: T): (this: void, a: A, b: B, c: C) => R;
+    bind<T, A, B, C, D, R>(this: (this: T, a: A, b: B, c: C, d: D) => R, thisArg: T
+      ): (this: void, a: A, b: B, c: C, d: D) => R;
 
 
 

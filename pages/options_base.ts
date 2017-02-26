@@ -2,6 +2,10 @@
 /// <reference path="../background/bg.d.ts" />
 /// <reference path="../types/bg.exclusions.d.ts" />
 type AllowedOptions = SettingsNS.PersistentSettings;
+interface Checker<T extends keyof AllowedOptions> {
+  init (): void;
+  check (value: AllowedOptions[T]): AllowedOptions[T];
+}
 
 const KeyRe = <RegExpG> /<(?!<)(?:a-)?(?:c-)?(?:m-)?(?:[A-Z][\dA-Z]+|[a-z][\da-z]+|\S)>|\S/g,
 __extends = function(child: Function, parent: Function): void {
@@ -15,7 +19,7 @@ debounce = function<T> (this: void, func: (this: T) => void
     ): (this: void) => void {
   let timeout = 0, timestamp: number;
   const later = function() {
-    var last = Date.now() - timestamp;
+    const last = Date.now() - timestamp;
     if (last < wait && last >= 0) {
       timeout = setTimeout(later, wait - last);
       return;
@@ -49,9 +53,7 @@ abstract class Option<T extends keyof AllowedOptions> {
   saved: boolean;
   locked?: boolean;
   readonly onUpdated: (this: void) => void;
-  checker?: {
-    check(value: AllowedOptions[T]): AllowedOptions[T];
-  };
+  checker?: Checker<T>;
 
   static all = Object.create(null) as {
     [T in keyof AllowedOptions]: Option<T>;
@@ -76,7 +78,7 @@ fetch (): void {
   return this.populateElement(this.previous = bgSettings.get(this.field));
 }
 normalize (value: AllowedOptions[T], isJSON: boolean, str?: string): AllowedOptions[T] {
-  var checker = this.checker;
+  const checker = this.checker;
   if (isJSON) {
     str = checker || !str ? JSON.stringify(checker ? checker.check(value) : value) : str;
     return BG.JSON.parse(str);
@@ -84,8 +86,8 @@ normalize (value: AllowedOptions[T], isJSON: boolean, str?: string): AllowedOpti
   return checker ? checker.check(value) : value;
 }
 save (): void {
-  var value = this.readValueFromElement(), notJSON = typeof value !== "object"
-    , previous = notJSON ? JSON.stringify(this.previous) : this.previous, str;
+  let value = this.readValueFromElement(), notJSON = typeof value !== "object"
+    , previous = notJSON ? JSON.stringify(this.previous) : this.previous, str: string;
   if (typeof value === "object") {
     str = JSON.stringify(value);
     if (str === previous) { return; }
