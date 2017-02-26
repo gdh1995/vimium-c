@@ -253,8 +253,6 @@ interface AdvancedOptBtn extends HTMLButtonElement {
     setTimeout(doSyncToFrontend, 100, toSync);
   };
   function doSyncToFrontend (toSync: typeof Option.syncToFrontend): void {
-    const event = new FocusEvent("focus");
-    window.dispatchEvent(event);
     if (toSync.length === 0) { return; }
     const ref = bgSettings.bufferToLoad, obj: BgReq["settingsUpdate"] = {name: "settingsUpdate"};
     let key: keyof SettingsNS.FrontendSettings;
