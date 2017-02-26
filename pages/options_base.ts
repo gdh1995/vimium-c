@@ -247,6 +247,7 @@ getPassKeys (element: HTMLTableRowElement): HTMLInputElement {
   return element.getElementsByClassName<HTMLInputElement>("passKeys")[0];
 }
 onInit (): void {}
+sortRules: (el?: HTMLElement) => void;
 }
 ExclusionRulesOption.prototype.reChar = <RegExpOne> /^[\^*]|[^\\][$()*+?\[\]{|}]/;
 ExclusionRulesOption.prototype._escapeRe = <RegExpG> /\\(.)/g;

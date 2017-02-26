@@ -7,11 +7,6 @@ interface ImportBody {
   (id: "shownText"): HTMLDivElement
 }
 interface Window {
-  readonly VDom: {
-    readonly mouse: VDomMouse;
-  };
-  readonly VPort: Readonly<VPort>;
-  readonly VHUD: Readonly<VHUD>;
   viewer?: null | {
     destroy(): any;
     show(): any;
@@ -189,7 +184,7 @@ function clickLink(this: void, options: { [key: string]: string; }, event: Mouse
   }
   a.href = url;
   if (window.VDom) {
-    window.VDom.mouse(a, "click", event);
+    VDom.mouse(a, "click", event);
   } else {
     a.click();
   }
@@ -248,11 +243,11 @@ function copyThing(event: Event): void {
     str = $("textBody").textContent;
   }
   if (!(str && window.VPort)) { return; }
-  return window.VPort.send({
+  return VPort.send({
     handler: "copyToClipboard",
     data: str
   }, function(): void {
-    return window.VHUD.showCopied(str);
+    return VHUD.showCopied(str);
   });
 }
 

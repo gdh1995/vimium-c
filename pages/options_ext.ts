@@ -1,17 +1,24 @@
-"use strict";
-
-$("showCommands").onclick = function(event) {
+interface Window {
+  readonly VDom?: typeof VDom;
+  readonly VPort?: Readonly<VPort>;
+  readonly VHUD?: Readonly<VHUD>;
+}
+declare var VDom: {
+  readonly UI: Readonly<DomUI>;
+  readonly mouse: VDomMouse;
+}, VPort: Readonly<VPort>, VHUD: Readonly<VHUD>;
+$<ElementWithDelay>("showCommands").onclick = function(event): void {
   if (!window.VDom) { return; }
-  var node, root = VDom.UI.root;
+  let node: HTMLElement, root = VDom.UI.root;
   event && event.preventDefault();
   if (!root) {}
   else if (root.querySelector('.HelpCommandName')) {
-    node = root.getElementById("HelpDialog");
+    node = root.getElementById("HelpDialog") as HTMLElement;
     VDom.UI.addElement(node);
     node.click();
     return;
-  } else if (node = root.getElementById("HClose")) {
-    node.onclick();
+  } else if (node = root.getElementById("HClose") as HTMLElement) {
+    (node as { onclick (e?: MouseEvent): void; }).onclick();
   }
   VPort.post({
     handler: "initHelp",
@@ -19,35 +26,38 @@ $("showCommands").onclick = function(event) {
     names: true,
     title: "Command Listing"
   });
-  var isIniting = !event;
-  setTimeout(function() {
-    var node = VDom.UI.root && VDom.UI.root.getElementById("HelpDialog");
+  const isIniting = !event;
+  setTimeout(function(): void {
+    const node = VDom.UI.root && VDom.UI.root.getElementById("HelpDialog") as HTMLElement;
     if (!node) { return; }
     if (isIniting) {
-      node.querySelector("#HClose").addEventListener("click", function() {
+      (node.querySelector("#HClose") as HTMLElement).addEventListener("click", function(): void {
         window.location.hash = "";
       });
     }
-    node.onclick = function(event) {
-      var target = event.target, str;
+    node.onclick = function(event: MouseEvent): void {
+      let target = event.target as HTMLElement, str: string;
       if (target.classList.contains("HelpCommandName")) {
         str = target.innerText.slice(1, -1);
         VPort.post({
           handler: "copyToClipboard",
           data: str
         });
-        VHUD.showCopied(str);
+        return VHUD.showCopied(str);
       }
     };
   }, 100);
 };
 
-ExclusionRulesOption.prototype.sortRules = function(element) {
+ExclusionRulesOption.prototype.sortRules = function(this: ExclusionRulesOption
+    , element?: HTMLElement & { timer?: number }): void {
+  interface Rule extends ExclusionsNS.StoredRule {
+    key: string;
+  }
   if (element && element.timer) { return; }
-  var rules = this.readValueFromElement(), _i, rule, key, arr
-    , hostRe = /^([:^]?[a-z\-?*]+:\/\/)?([^\/]+)(\/.*)?/;
-  for (_i = 0; _i < rules.length; _i++) {
-    rule = rules[_i];
+  const rules = this.readValueFromElement() as Rule[], hostRe = <RegExpOne> /^([:^]?[a-z\-?*]+:\/\/)?([^\/]+)(\/.*)?/;
+  let rule: Rule, key, arr;
+  for (rule of rules) {
     if ((arr = hostRe.exec(key = rule.pattern)) && arr[1] && arr[2]) {
       key = arr[3] || "";
       arr = arr[2].split(".");
@@ -60,22 +70,38 @@ ExclusionRulesOption.prototype.sortRules = function(element) {
   this.populateElement(rules);
   if (!element) { return; }
   element.timer = setTimeout(function(el, text) {
-    el.firstChild.data = text, el.timer = 0;
-  }, 1000, element, element.firstChild.data);
-  element.firstChild.data = "(Sorted)";
+    (el.firstChild as Text).data = text, el.timer = 0;
+  }, 1000, element, (element.firstChild as Text).data);
+  (element.firstChild as Text).data = "(Sorted)";
 };
 
-$("exclusionSortButton").onclick = function() { Option.all.exclusionRules.sortRules(this); };
+$("exclusionSortButton").onclick = function(): void {
+  return (Option.all.exclusionRules as ExclusionRulesOption).sortRules(this);
+};
 
-var formatDate = function(time) {
-  return new Date(time - new Date().getTimezoneOffset() * 1000 * 60
+function formatDate(time: number | Date): string {
+  return new Date(+time - new Date().getTimezoneOffset() * 1000 * 60
     ).toJSON().substring(0, 19).replace('T', ' ');
 };
 
-$("exportButton").onclick = function(event) {
-  var exported_object, exported_data, file_name, d, nodeA, all_static;
-  all_static = event ? event.ctrlKey || event.metaKey || event.shiftKey : false;
-  exported_object = Object.create(null);
+interface ExportedSettings {
+  name: "Vimium++";
+  author?: string;
+  description?: string;
+  time?: number;
+  environment?: {
+    chrome: number;
+    extension: string;
+    platform: string;
+  };
+  findModeRawQueryList?: never;
+  [key: string]: any;
+}
+
+$<ElementWithDelay>("exportButton").onclick = function(event): void {
+  let exported_object: ExportedSettings | null;
+  const all_static = event ? event.ctrlKey || event.metaKey || event.shiftKey : false;
+  exported_object = Object.create(null) as ExportedSettings & SafeObject;
   exported_object.name = "Vimium++";
   if (!all_static) {
     exported_object.time = 0;
@@ -86,53 +112,52 @@ $("exportButton").onclick = function(event) {
     platform: bgSettings.CONST.Platform
   };
   (function() {
-    var storage = localStorage, i, len, key, storedVal, all = bgSettings.defaults;
-    for (i = 0, len = storage.length; i < len; i++) {
-      key = storage.key(i);
-      if (key.indexOf("|") >= 0 || key.substring(key.length - 2) === "_f") {
+    const storage = localStorage, all = bgSettings.defaults;
+    for (let i = 0, len = storage.length; i < len; i++) {
+      const key = storage.key(i) as string as keyof SettingsNS.PersistentSettings;
+      if (key.indexOf("|") >= 0 || key.substring(key.length - 2) === "_f" || key === "findModeRawQueryList") {
         continue;
       }
-      storedVal = storage.getItem(key);
+      const storedVal = storage.getItem(key) as string;
       if (typeof all[key] !== "string") {
         exported_object[key] = (key in all) ? bgSettings.get(key) : storedVal;
-      } else if (storage.getItem(key).indexOf("\n") > 0) {
+      } else if (storedVal.indexOf("\n") > 0) {
         exported_object[key] = storedVal.split("\n");
-        exported_object[key].push("");
+        (exported_object[key] as string[]).push("");
       } else {
         exported_object[key] = storedVal;
       }
     }
   })();
-  delete exported_object.findModeRawQueryList;
-  d = new Date();
+  const d = new Date();
   if (!all_static) {
     exported_object.time = d.getTime();
   }
-  exported_data = JSON.stringify(exported_object, null, '\t');
+  const exported_data = JSON.stringify(exported_object, null, '\t'), d_s = formatDate(d);
   exported_object = null;
-  file_name = 'vimium++_';
+  let file_name = 'vimium++_';
   if (all_static) {
     file_name += "settings";
   } else {
-    file_name += formatDate(d).replace(/[\-:]/g, "").replace(" ", "_");
+    file_name += d_s.replace(<RegExpG> /[\-:]/g, "").replace(" ", "_");
   }
   file_name += '.json';
 
-  nodeA = document.createElement("a");
+  const nodeA = document.createElement("a");
   nodeA.download = file_name;
   nodeA.href = URL.createObjectURL(new Blob([exported_data]));
   nodeA.click();
   URL.revokeObjectURL(nodeA.href);
   console.info("EXPORT settings to %c%s%c at %c%s%c."
     , "color: darkred", file_name, "color: auto"
-    , "color: darkblue", formatDate(d), "color: auto");
+    , "color: darkblue", d_s, "color: auto");
 };
 
-var _importSettings = function(time, new_data, is_recommended) {
-  time = +new Date(new_data && new_data.time || time) || 0;
+function _importSettings(time: number | string | Date, new_data: ExportedSettings | null, is_recommended?: boolean): void {
+  time = +new Date(new_data && new_data.time || time as number) || 0;
   if (!new_data || new_data.name !== "Vimium++" || (time < 10000 && time > 0)) {
-    key = "No settings data found!";
-    window.VHUD ? VHUD.showForDuration(key, 2000) : alert(new_data ? key : "Fail to parse the settings");
+    const err_msg = new_data ? "No settings data found!" : "Fail to parse the settings";
+    window.VHUD ? VHUD.showForDuration(err_msg, 2000) : alert(err_msg);
     return;
   } else if (!confirm(
     (is_recommended !== true ? "You are loading a settings copy exported"
@@ -144,20 +169,21 @@ var _importSettings = function(time, new_data, is_recommended) {
     return;
   }
 
-  var storage = localStorage, i, key, new_value, logUpdate, all = bgSettings.defaults
-    , _ref = Option.all, _key, item;
-  logUpdate = function(method, key, val) {
-    var args = [].slice.call(arguments, 2);
+  const logUpdate = function(method: string, key: string, _actionName: any, val?: any): any {
+    var args: any[] = [].slice.call(arguments, 2);
     val = args.pop();
     val = typeof val !== "string" || val.length <= 72 ? val
       : val.substring(0, 68).trimRight() + " ...";
     args.push(val);
     args = ["%s %c%s%c", method, "color: darkred", key, "color: auto"].concat(args);
-    console.log.apply(console, args);
+    return console.log.apply(console, args);
+  } as {
+    (method: string, key: string, val: any): any;
+    (method: string, key: string, actionName: string, val: any): any;
   };
   if (time > 10000) {
     console.info("IMPORT settings saved at %c%s%c"
-      , "color: darkblue", formatDate(new Date(time)), "color: auto");
+      , "color: darkblue", formatDate(time), "color: auto");
   } else {
     console.info("IMPORT settings:", is_recommended ? "recommended" : "saved before");
   }
@@ -168,8 +194,10 @@ var _importSettings = function(time, new_data, is_recommended) {
   delete new_data.environment;
   delete new_data.author;
   delete new_data.description;
-  for (i = storage.length; 0 <= --i; ) {
-    key = storage.key(i);
+
+  const storage = localStorage, all = bgSettings.defaults, _ref = Option.all;
+  for (let i = storage.length; 0 <= --i; ) {
+    const key = storage.key(i) as string;
     if (key.indexOf("|") >= 0) { continue; }
     if (!(key in new_data)) {
       new_data[key] = null;
@@ -178,10 +206,9 @@ var _importSettings = function(time, new_data, is_recommended) {
   delete new_data.findModeRawQuery;
   delete new_data.findModeRawQueryList;
   delete new_data.newTabUrl_f;
-  for (_key in _ref) {
-    item = _ref[_key];
-    key = item.field;
-    new_value = new_data[key];
+  for (let _key in _ref) {
+    const item: Option<any> = _ref[_key as keyof AllowedOptions];
+    let key: keyof AllowedOptions = item.field, new_value: any = new_data[key];
     delete new_data[key];
     if (new_value == null) {
       // NOTE: we assume all nullable settings have the same default value: null
@@ -196,38 +223,38 @@ var _importSettings = function(time, new_data, is_recommended) {
       logUpdate("import", key, new_value);
       bgSettings.set(key, new_value);
       if (key in bgSettings.bufferToLoad) {
-        Option.syncToFrontend.push(key);
+        Option.syncToFrontend.push(key as keyof SettingsNS.FrontendSettings);
       }
     } else if (item.saved) {
       continue;
     }
     item.fetch();
   }
-  item = null;
-  for (key in new_data) {
-    new_value = new_data[key];
+  for (let key in new_data) {
+    let new_value = new_data[key];
+    type SettingKeys = keyof SettingsNS.SettingsWithDefaults;
     if (new_value == null) {
       if (key in all) {
-        new_value = all[key];
-        if (bgSettings.get(key) !== new_value) {
-          bgSettings.set(key, new_value);
+        new_value = all[key as SettingKeys];
+        if (bgSettings.get(key as SettingKeys) !== new_value) {
+          bgSettings.set(key as SettingKeys, new_value);
           logUpdate("reset", key, new_value);
           continue;
         }
-        new_value = bgSettings.get(key);
+        new_value = bgSettings.get(key as SettingKeys);
       } else {
-        new_value = storage.getItem(key);
+        new_value = storage.getItem(key as SettingKeys);
       }
-      storage.removeItem(key);
+      storage.removeItem(key as SettingKeys);
       logUpdate("remove", key, ":=", new_value);
       continue;
     }
-    if (new_value instanceof Array && typeof all[key] === "string") {
+    if (new_value instanceof Array && typeof all[key as SettingKeys] === "string") {
       new_value = new_value.join("\n").trim();
     }
     if (key in all) {
-      if (bgSettings.get(key) !== new_value) {
-        bgSettings.set(key, new_value);
+      if (bgSettings.get(key as SettingKeys) !== new_value) {
+        bgSettings.set(key as SettingKeys, new_value);
         logUpdate("update", key, new_value);
       }
     } else {
@@ -235,19 +262,19 @@ var _importSettings = function(time, new_data, is_recommended) {
       logUpdate("save", key, new_value);
     }
   }
-  $("saveOptions").onclick(false);
+  $<SaveBtn>("saveOptions").onclick(false);
   if ($("advancedOptionsButton").getAttribute("aria-checked") != '' + bgSettings.get("showAdvancedOptions")) {
-    $("advancedOptionsButton").onclick(null, true);
+    $<AdvancedOptBtn>("advancedOptionsButton").onclick(null, true);
   }
-  window.VHUD && VHUD.showForDuration("Import settings data: OK!", 1000);
   console.info("IMPORT settings: finished.");
+  if (window.VHUD) { return VHUD.showForDuration("Import settings data: OK!", 1000); }
 };
 
-var importSettings = function(time, new_data, is_recommended) {
-  var promisedChecker = Option.all.keyMappings.checker ? 1 : new Promise(function(resolve) {
-    /* globals loadJS: false */
-    var element = loadJS("options_checker.js");
-    element.onload = resolve;
+function importSettings(time: number | string | Date
+    , new_data: ExportedSettings | null, is_recommended?: boolean): void {
+  const promisedChecker = Option.all.keyMappings.checker ? 1 : new Promise<1>(function(resolve): void {
+    const element = loadJS("options_checker.js");
+    element.onload = function(): void { resolve(1); };
     element.remove();
   });
   Promise.all([BG.Utils.require("Commands"), BG.Utils.require("Exclusions"), promisedChecker]).then(function() {
@@ -255,44 +282,43 @@ var importSettings = function(time, new_data, is_recommended) {
   });
 };
 
-var _el = $("settingsFile");
-_el.onclick = null;
-_el.onchange = function() {
-  var file = this.files[0], reader, lastModified;
+let _el: HTMLInputElement | HTMLSelectElement | null = $<HTMLInputElement>("settingsFile");
+_el.onclick = null as never;
+_el.onchange = function(this: HTMLInputElement): void {
+  const file = (this.files as FileList)[0];
   this.value = "";
   if (!file) { return; }
-  reader = new FileReader();
-  lastModified = file.lastModified;
-  reader.onload = function() {
-    var result = this.result, data;
+  const reader = new FileReader(), { lastModified } = file;
+  reader.onload = function(this: FileReader) {
+    let result: string = this.result, data: ExportedSettings | null = null;
     try {
-      data = result && JSON.parse(result);
+      data = result ? JSON.parse<ExportedSettings>(result) : null;
     } catch (e) {}
-    importSettings(lastModified, data, false);
+    return importSettings(lastModified, data, false);
   };
   reader.readAsText(file);
 };
 
-_el = $("importOptions");
-_el.onclick = null;
-_el.onchange = function() {
+_el = $<HTMLSelectElement>("importOptions");
+_el.onclick = null as never;
+_el.onchange = function(this: HTMLSelectElement): void {
   if (this.value === "exported") {
     $("settingsFile").click();
     return;
   }
-  var req = new XMLHttpRequest();
+  const req = new XMLHttpRequest();
   req.open("GET", "../settings_template.json", true);
   req.responseType = "json";
-  req.onload = function() {
-    importSettings(0, this.response, true);
+  req.onload = function(this: XMLHttpRequest): void {
+    return importSettings(0, this.response as ExportedSettings | null, true);
   };
   req.send();
 };
+_el = null;
 
-window._delayed && (function() {
-  var arr = window._delayed, node, event;
-  delete window._delayed;
-  node = $(arr[0]);
-  event = arr[1];
+(window as OptionWindow)._delayed && (function() {
+  const arr = (window as OptionWindow)._delayed;
+  delete (window as OptionWindow)._delayed;
+  const node = $<ElementWithDelay>(arr[0]), event = arr[1];
   node.onclick && node.onclick(event);
 })();

@@ -1,9 +1,12 @@
 type TextElement = HTMLInputElement | HTMLTextAreaElement;
 interface ElementWithHash extends HTMLElement {
-  onclick (this: ElementWithHash, event: MouseEvent, hash?: "hash"): void;
+  onclick (this: ElementWithHash, event: MouseEvent | null, hash?: "hash"): void;
+}
+interface ElementWithDelay extends HTMLElement {
+  onclick (this: ElementWithDelay, event?: MouseEvent | null): void;
 }
 interface OptionWindow extends Window {
-  _delayed?: [string, MouseEvent | null];
+  _delayed: [string, MouseEvent | null];
 }
 
 const $$ = document.querySelectorAll.bind(document) as <T extends HTMLElement>(selector: string) => NodeListOf<T>;
@@ -205,10 +208,13 @@ ExclusionRulesOption.prototype.onInit = function(this: ExclusionRulesOption): vo
   }
 };
 
+interface SaveBtn extends HTMLButtonElement {
+  onclick (this: SaveBtn, virtually?: MouseEvent | false): void;
+}
+interface AdvancedOptBtn extends HTMLButtonElement {
+  onclick (_0: MouseEvent | null, init?: "hash" | true): void;
+}
 (function() {
-  interface SaveBtn extends HTMLButtonElement {
-    onclick (this: SaveBtn, virtually?: MouseEvent | false): void;
-  }
   const saveBtn = $<SaveBtn>("saveOptions"), exportBtn = $<HTMLButtonElement>("exportButton");
   let status = false;
 
@@ -272,8 +278,8 @@ ExclusionRulesOption.prototype.onInit = function(this: ExclusionRulesOption): vo
   }
 
   let advancedMode = false;
-  element = $<HTMLButtonElement>("advancedOptionsButton");
-  element.onclick = function(_0: MouseEvent | null, init?: "hash" | true): void {
+  element = $<AdvancedOptBtn>("advancedOptionsButton");
+  (element as AdvancedOptBtn).onclick = function(this: AdvancedOptBtn, _0, init): void {
     if (init == null || (init === "hash" && bgSettings.get("showAdvancedOptions") === false)) {
       advancedMode = !advancedMode;
       bgSettings.set("showAdvancedOptions", advancedMode);
@@ -285,7 +291,7 @@ ExclusionRulesOption.prototype.onInit = function(this: ExclusionRulesOption): vo
     (this.firstChild as Text).data = (advancedMode ? "Hide" : "Show") + " Advanced Options";
     this.setAttribute("aria-checked", "" + advancedMode);
   };
-  (element as any).onclick(null, true);
+  (element as AdvancedOptBtn).onclick(null, true);
 
   document.addEventListener("keydown", function(this: void, event): void {
     if (event.keyCode !== VKeyCodes.space) { return; }
@@ -348,15 +354,15 @@ ExclusionRulesOption.prototype.onInit = function(this: ExclusionRulesOption): vo
     element.textContent = "Auto resize";
   }
 
-  func = function(event) {
+  func = function(event): void {
     let str = this.getAttribute("data-delay") as string, e = null as MouseEvent | null;
     if (str !== "continue") {
-      event.preventDefault();
+      event && event.preventDefault();
     }
-    if (str === "event") { e = event; }
+    if (str === "event") { e = event || null; }
     (window as OptionWindow)._delayed = [this.id, e];
     loadJS("options_ext.js");
-  };
+  } as ElementWithDelay["onclick"];
   _ref = $$("[data-delay]");
   for (let _i = _ref.length; 0 <= --_i; ) {
     _ref[_i].onclick = func;
@@ -460,10 +466,9 @@ window.onhashchange = function(this: void): void {
   hash = hash.substring(hash[1] === "!" ? 2 : 1);
   if (!hash || (<RegExpI> /[^a-z\d_\.]/i).test(hash)) { return; }
   if (node = document.querySelector(`[data-hash="${hash}"]`) as HTMLElement | null) {
-    const event = document.createEvent("MouseEvents");
-    event.initMouseEvent("click", true, true, window, 1, 0, 0, 0, 0
-      , false, false, false, false, 0, null);
-    if (node.onclick) { return node.onclick(event, "hash"); }
+    if (node.onclick) {
+      return node.onclick(null, "hash");
+    }
   }
 };
 window.location.hash.length > 4 && setTimeout(window.onhashchange as (this: void) => void, 100);

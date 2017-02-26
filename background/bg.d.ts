@@ -388,6 +388,9 @@ interface Window {
     readonly defaults: SettingsNS.SettingsWithDefaults & SafeObject;
     readonly CONST: {
       readonly OptionsPage: string;
+      readonly CurrentVersion: string;
+      readonly ChromeVersion: number;
+      readonly Platform: string;
     };
   }
 }

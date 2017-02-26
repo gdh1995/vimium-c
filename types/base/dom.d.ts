@@ -2177,7 +2177,8 @@ declare var External: {
 }
 
 interface File extends Blob {
-    readonly lastModifiedDate: any;
+    // readonly lastModifiedDate: any;
+    readonly lastModified: number;
     readonly name: string;
     readonly webkitRelativePath: string;
 }
@@ -2200,6 +2201,8 @@ declare var FileList: {
 
 interface FileReader extends EventTarget {
     readonly error: DOMError;
+    readonly result: any;
+    onload (): void;
     readAsArrayBuffer(blob: Blob): void;
     readAsBinaryString(blob: Blob): void;
     readAsDataURL(blob: Blob): void;
