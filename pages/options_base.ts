@@ -47,15 +47,16 @@ abstract class Option<T extends keyof AllowedOptions> {
   readonly field: T;
   previous: AllowedOptions[T];
   saved: boolean;
+  locked?: boolean;
   readonly onUpdated: (this: void) => void;
   checker?: {
     check(value: AllowedOptions[T]): AllowedOptions[T];
-  }
+  };
 
-  private static all = Object.create(null) as {
+  static all = Object.create(null) as {
     [T in keyof AllowedOptions]: Option<T>;
   } & SafeObject;
-  private static syncToFrontend: Array<keyof AllowedOptions>;
+  static syncToFrontend: Array<keyof SettingsNS.FrontendSettings>;
 
 constructor (element: HTMLElement, onUpdated: (this: Option<T>) => void) {
   this.element = element;
@@ -107,16 +108,21 @@ save (): void {
     this.populateElement(value);
   }
   if (this.field in bgSettings.bufferToLoad) {
-    Option.syncToFrontend.push(this.field);
+    Option.syncToFrontend.push(this.field as keyof SettingsNS.FrontendSettings);
   }
 }
 abstract readValueFromElement (): AllowedOptions[T];
 abstract populateElement (value: AllowedOptions[T]): void;
-_onCacheUpdated: () => void;
+_onCacheUpdated: <T extends keyof SettingsNS.FrontendSettings>(this: Option<T>
+  , onUpdated: (this: Option<T>) => void) => void;
+areEqual: (this: Option<T>, a: AllowedOptions[T], b: AllowedOptions[T]) => boolean;
+atomicUpdate: (this: Option<T> & {element: TextElement}, value: string, undo: boolean, locked: boolean) => void;
 
-static areJSONEqual (a: object, b: object): boolean {
+static areJSONEqual (this: void, a: object, b: object): boolean {
   return JSON.stringify(a) === JSON.stringify(b);
 }
+static saveOptions: (this: void) => void;
+static needSaveOptions: (this: void) => boolean;
 }
 
 
@@ -194,8 +200,8 @@ onRemoveRow (event: Event): void {
   }
 }
 
-readonly reChar = <RegExpOne> /^[\^*]|[^\\][$()*+?\[\]{|}]/;
-readonly _escapeRe = <RegExpG> /\\(.)/g;
+reChar: RegExpOne;
+_escapeRe: RegExpG;
 readValueFromElement (part?: boolean): AllowedOptions["exclusionRules"] {
   const rules: ExclusionsNS.StoredRule[] = [],
   _ref = this.element.getElementsByClassName<HTMLTableRowElement>("exclusionRuleInstance");
@@ -240,6 +246,8 @@ getPassKeys (element: HTMLTableRowElement): HTMLInputElement {
 }
 onInit (): void {}
 }
+ExclusionRulesOption.prototype.reChar = <RegExpOne> /^[\^*]|[^\\][$()*+?\[\]{|}]/;
+ExclusionRulesOption.prototype._escapeRe = <RegExpG> /\\(.)/g;
 
 if (location.pathname.indexOf("/popup.html") !== -1)
 BG.Utils.require("Exclusions").then((function(func, arg1, arg2: (result: [chrome.tabs.Tab] | never[]) => void) {

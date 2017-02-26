@@ -1,37 +1,48 @@
-"use strict";
-var $$ = document.querySelectorAll.bind(document);
+type TextElement = HTMLInputElement | HTMLTextAreaElement;
+interface ElementWithHash extends HTMLElement {
+  onclick (this: ElementWithHash, event: MouseEvent, hash?: "hash"): void;
+}
+interface OptionWindow extends Window {
+  _delayed?: [string, MouseEvent | null];
+}
+
+const $$ = document.querySelectorAll.bind(document) as <T extends HTMLElement>(selector: string) => NodeListOf<T>;
 
 Option.syncToFrontend = [];
 
-Option.prototype._onCacheUpdated = function(func) {
+Option.prototype._onCacheUpdated = function<T extends keyof SettingsNS.FrontendSettings
+    > (this: Option<T>, func: (this: Option<T>) => void): void {
   func.call(this);
   if (window.VSettings) {
-    VSettings.cache[this.field] = this.readValueFromElement();
+    window.VSettings.cache[this.field] = this.readValueFromElement();
   }
 };
 
-Option.saveOptions = function() {
-  var arr = Option.all, i;
-  for (i in arr) {
-    arr[i].saved || arr[i].save();
+Option.saveOptions = function(): void {
+  const arr = Option.all;
+  for (let i in arr) {
+    arr[i as keyof AllowedOptions].saved || arr[i as keyof AllowedOptions].save();
   }
 };
 
-Option.needSaveOptions = function() {
-  var arr = Option.all, i;
-  for (i in arr) {
-    if (!arr[i].saved) {
+Option.needSaveOptions = function(): boolean {
+  const arr = Option.all;
+  for (let i in arr) {
+    if (!arr[i as keyof AllowedOptions].saved) {
       return true;
     }
   }
   return false;
 };
 
-Option.prototype.areEqual = function(a, b) {
+Option.prototype.areEqual = function<T extends keyof AllowedOptions
+    >(a: AllowedOptions[T], b: AllowedOptions[T]): boolean {
   return a === b;
 };
 
-Option.prototype.atomicUpdate = function(value, undo, locked) {
+Option.prototype.atomicUpdate = function<T extends keyof AllowedOptions
+    >(this: Option<T> & {element: TextElement}, value: string
+      , undo: boolean, locked: boolean): void {
   if (undo) {
     this.locked = true;
     document.activeElement !== this.element && this.element.focus();
@@ -43,265 +54,257 @@ Option.prototype.atomicUpdate = function(value, undo, locked) {
   this.locked = false;
 };
 
-function NumberOption() {
-  NumberOption.__super__.constructor.apply(this, arguments);
+class NumberOption<T extends keyof AllowedOptions> extends Option<T> {
+readonly element: HTMLInputElement;
+previous: number;
+wheelTime: number;
+constructor (element: HTMLInputElement, onUpdated: (this: NumberOption<T>) => void) {
+  super(element, onUpdated);
   this.element.oninput = this.onUpdated;
   this.element.onfocus = this.addWheelListener.bind(this);
 }
-__extends(NumberOption, Option);
-
-NumberOption.prototype.populateElement = function(value) {
-  this.element.value = value;
-};
-
-NumberOption.prototype.readValueFromElement = function() {
+populateElement (value: number): void {
+  this.element.value = "" + value;
+}
+readValueFromElement (): number {
   return parseFloat(this.element.value);
-};
-
-NumberOption.prototype.addWheelListener = function() {
-  var el = this.element, func = this.OnWheel.bind(this.element, this), onBlur;
-  el.wheelTime = 0;
-  el.addEventListener("mousewheel", func, {passive: false});
-  el.addEventListener("blur", onBlur = function() {
-    this.removeEventListener("mousewheel", func, {passive: false});
-    this.removeEventListener("blur", onBlur);
+}
+addWheelListener (): void {
+  const el = this.element, func = (e: WheelEvent): void => this.onWheel(e), onBlur = (): void => {
+    el.removeEventListener("mousewheel", func, {passive: false});
+    el.removeEventListener("blur", onBlur);
     this.wheelTime = 0;
-  });
-};
-
-NumberOption.prototype.OnWheel = function(option, event) {
+  };
+  this.wheelTime = 0;
+  el.addEventListener("mousewheel", func, {passive: false});
+  el.addEventListener("blur", onBlur);
+}
+onWheel (event: WheelEvent): void {
   event.preventDefault();
-  var oldTime, inc, step, i, val0, val, func;
-  oldTime = this.wheelTime; i = Date.now();
+  const oldTime = this.wheelTime;
+  let i = Date.now();
   if (i - oldTime < 100 && oldTime > 0) { return; }
   this.wheelTime = i;
-  inc = event.wheelDelta > 0; val0 = this.value;
-  func = inc ? this.stepUp : this.stepDown;
+  const el = this.element, inc = event.wheelDelta > 0, val0 = el.value;
+  let val: string, func: undefined | ((n: string) => number) | (
+        (this: HTMLInputElement, n?: number) => void) = inc ? el.stepUp : el.stepDown;
   if (typeof func === "function") {
-    func.call(this);
-    val = this.value;
-    this.value = val0;
+    (func as (this: HTMLInputElement, n?: number) => void).call(el);
+    val = el.value;
+    el.value = val0;
   } else {
     func = parseFloat;
-    step = func(this.step) || 1;
-    i = (+this.value || 0) + (inc ? step : -step);
-    isNaN(step = func(this.max)) || (i = Math.min(i, step));
-    isNaN(step = func(this.min)) || (i = Math.max(i, step));
+    let step = func(el.step) || 1;
+    i = (+el.value || 0) + (inc ? step : -step);
+    isNaN(step = func(el.max)) || (i = Math.min(i, step));
+    isNaN(step = func(el.min)) || (i = Math.max(i, step));
     val = "" + i;
   }
-  option.atomicUpdate(val, oldTime > 0, false);
-};
+  return this.atomicUpdate(val, oldTime > 0, false);
+}
+}
 
-function TextOption() {
-  TextOption.__super__.constructor.apply(this, arguments);
+class TextOption<T extends keyof AllowedOptions> extends Option<T> {
+readonly element: TextElement;
+readonly converter: string;
+previous: string;
+constructor (element: TextElement, onUpdated: (this: TextOption<T>) => void) {
+  super(element, onUpdated);
   this.element.oninput = this.onUpdated;
   this.converter = this.element.getAttribute("data-converter") || "";
 }
-__extends(TextOption, Option);
-
-TextOption.prototype.whiteRe = / /g;
-TextOption.prototype.whiteMaskRe = /\xa0/g;
-TextOption.prototype.populateElement = function(value, enableUndo) {
-  value = value.replace(this.whiteRe, '\xa0');
+whiteRe: RegExpG;
+whiteMaskRe: RegExpG;
+populateElement (value: AllowedOptions[T], enableUndo?: boolean): void {
+  value = (value as string).replace(this.whiteRe, '\xa0');
   if (enableUndo !== true) {
-    this.element.value = value;
+    this.element.value = value as string;
     return;
   }
-  this.atomicUpdate(value, true, true);
-};
-
-TextOption.prototype.readValueFromElement = function() {
-  var value = this.element.value.trim().replace(this.whiteMaskRe, ' ');
+  return this.atomicUpdate(value as string, true, true);
+}
+readValueFromElement (): AllowedOptions[T] {
+  let value = this.element.value.trim().replace(this.whiteMaskRe, ' ');
   if (value && this.converter) {
     value = this.converter === "lower" ? value.toLowerCase()
       : this.converter === "upper" ? value.toUpperCase()
       : value;
   }
   return value;
-};
-
-function NonEmptyTextOption() {
-  NonEmptyTextOption.__super__.constructor.apply(this, arguments);
 }
-__extends(NonEmptyTextOption, TextOption);
+}
+TextOption.prototype.whiteRe = <RegExpG> / /g;
+TextOption.prototype.whiteMaskRe = <RegExpG> /\xa0/g;
 
-NonEmptyTextOption.prototype.readValueFromElement = function() {
-  var value = NonEmptyTextOption.__super__.readValueFromElement.call(this);
+class NonEmptyTextOption<T extends keyof AllowedOptions> extends TextOption<T> {
+readValueFromElement (): string {
+  let value = super.readValueFromElement() as string;
   if (!value) {
-    value = bgSettings.defaults[this.field];
+    value = bgSettings.defaults[this.field] as string;
     this.populateElement(value, true);
   }
   return value;
-};
-
-function JSONOption() {
-  JSONOption.__super__.constructor.apply(this, arguments);
 }
-__extends(JSONOption, TextOption);
+}
 
-JSONOption.prototype.populateElement = function(obj, enableUndo) {
-  var oneline = this.element instanceof HTMLInputElement, str = JSON.stringify(obj, null, oneline ? 1 : 2);
-  JSONOption.__super__.populateElement.call(this
-    , oneline ? str.replace(/(,?)\n\s*/g, function(_, s) { return s ? ", " : ""; }) : str
-    , enableUndo);
-};
-
-JSONOption.prototype.readValueFromElement = function() {
-  var value = JSONOption.__super__.readValueFromElement.call(this), obj;
+class JSONOption<T extends keyof AllowedOptions> extends TextOption<T> {
+populateElement (obj: AllowedOptions[T], enableUndo?: boolean): void {
+  const one = this.element instanceof HTMLInputElement, s0 = JSON.stringify(obj, null, one ? 1 : 2),
+  s1 = one ? s0.replace(<RegExpG & RegExpSearchable<1>> /(,?)\n\s*/g, function(_, s) { return s ? ", " : ""; }) : s0;
+  super.populateElement(s1, enableUndo);
+}
+readValueFromElement (): AllowedOptions[T] {
+  let value = super.readValueFromElement(), obj: AllowedOptions[T] = null as never;
   if (value) {
     try {
-      obj = JSON.parse(value);
+      obj = JSON.parse<AllowedOptions[T]>(value as string);
     } catch (e) {
-      obj = null;
     }
   } else {
     obj = bgSettings.defaults[this.field];
     this.populateElement(obj, true);
   }
   return obj;
-};
+}
+}
 
 JSONOption.prototype.areEqual = Option.areJSONEqual;
 
-function CheckBoxOption() {
-  CheckBoxOption.__super__.constructor.apply(this, arguments);
+class CheckBoxOption<T extends keyof AllowedOptions> extends Option<T> {
+readonly element: HTMLInputElement;
+previous: boolean;
+constructor (element: HTMLInputElement, onUpdated: (this: CheckBoxOption<T>) => void) {
+  super(element, onUpdated);
   this.element.onchange = this.onUpdated;
 }
-__extends(CheckBoxOption, Option);
-
-CheckBoxOption.prototype.populateElement = function(value) {
+populateElement (value: boolean): void {
   this.element.checked = value;
-};
-
-CheckBoxOption.prototype.readValueFromElement = function() {
+}
+readValueFromElement (): boolean {
   return this.element.checked;
-};
+}
+}
 
-ExclusionRulesOption.prototype.onRowChange = function(isAdd) {
-  var count = this.list.childElementCount;
+ExclusionRulesOption.prototype.onRowChange = function(this: ExclusionRulesOption, isAdd: number): void {
+  const count = this.list.childElementCount;
   if (count - isAdd !== 0) { return; }
   BG.Utils.require("Exclusions");
-  var el = $("exclusionToolbar"), options, i, opt, style;
+  const el = $("exclusionToolbar"), options = el.querySelectorAll('[data-model]');
   el.style.visibility = count > 0 ? "" : "hidden";
-  options = el.querySelectorAll('[data-model]');
-  for (i = 0; i < options.length; i++) {
-    opt = Option.all[options[i].id];
-    style = opt.element.parentNode.style;
+  for (let i = 0, len = options.length; i < len; i++) {
+    const opt = Option.all[options[i].id as keyof AllowedOptions],
+    style = (opt.element.parentNode as HTMLElement).style;
     style.visibility = isAdd || opt.saved ? "" : "visible";
     style.display = !isAdd && opt.saved ? "none" : "";
   }
 };
 
-ExclusionRulesOption.prototype.onInit = function() {
+ExclusionRulesOption.prototype.onInit = function(this: ExclusionRulesOption): void {
   if (this.previous.length > 0) {
     $("exclusionToolbar").style.visibility = "";
   }
 };
 
 (function() {
-  var advancedMode, element, onUpdated, func, _i, _ref, status = 0;
+  interface SaveBtn extends HTMLButtonElement {
+    onclick (this: SaveBtn, virtually?: MouseEvent | false): void;
+  }
+  const saveBtn = $<SaveBtn>("saveOptions"), exportBtn = $<HTMLButtonElement>("exportButton");
+  let status = false;
 
-  onUpdated = function() {
-    var saveBtn;
+  function onUpdated<T extends keyof AllowedOptions> (this: Option<T>): void {
     if (this.locked) { return; }
     if (this.saved = this.areEqual(this.readValueFromElement(), this.previous)) {
-      if (status === 1 && !Option.needSaveOptions()) {
-        saveBtn = $("saveOptions");
+      if (status && !Option.needSaveOptions()) {
         saveBtn.disabled = true;
-        saveBtn.firstChild.data = "No Changes";
-        $("exportButton").disabled = false;
-        status = 0;
-        window.onbeforeunload = null;
+        (saveBtn.firstChild as Text).data = "No Changes";
+        exportBtn.disabled = false;
+        status = false;
+        window.onbeforeunload = null as never;
       }
       return;
-    } else if (status === 1) {
+    } else if (status) {
       return;
     }
     window.onbeforeunload = onBeforeUnload;
-    status = 1;
-    saveBtn = $("saveOptions");
+    status = true;
     saveBtn.disabled = false;
-    saveBtn.firstChild.data = "Save Changes";
-    $("exportButton").disabled = true;
+    (saveBtn.firstChild as Text).data = "Save Changes";
+    exportBtn.disabled = true;
   };
 
-  $("saveOptions").onclick = function(virtually) {
-    var toSync;
+  saveBtn.onclick = function(virtually): void {
     if (virtually !== false) {
       Option.saveOptions();
     }
-    toSync = Option.syncToFrontend;
+    const toSync = Option.syncToFrontend;
     Option.syncToFrontend = [];
     this.disabled = true;
-    this.firstChild.data = "No Changes";
-    $("exportButton").disabled = false;
-    status = 0;
-    window.onbeforeunload = null;
-    setTimeout(function () {
-      var event = new FocusEvent("focus"), i, key, ref, obj;
-      window.dispatchEvent(event);
-      i = toSync.length;
-      if (i === 0) { return; }
-      ref = bgSettings.bufferToLoad;
-      obj = {name: "settingsUpdate"};
-      while (0 <= --i) {
-        key = toSync[i];
-        obj[key] = ref[key] = bgSettings.get(key);
-      }
-      bgSettings.broadcast(obj);
-    }, 100);
+    (this.firstChild as Text).data = "No Changes";
+    exportBtn.disabled = false;
+    status = false;
+    window.onbeforeunload = null as never;
+    setTimeout(doSyncToFrontend, 100, toSync);
   };
-
-  _ref = $$("[data-model]");
-  for (_i = _ref.length; 0 <= --_i; ) {
-    element = _ref[_i];
-    func = window[element.getAttribute("data-model") + "Option"];
-    new func(element, onUpdated);
+  function doSyncToFrontend (toSync: typeof Option.syncToFrontend): void {
+    const event = new FocusEvent("focus");
+    window.dispatchEvent(event);
+    if (toSync.length === 0) { return; }
+    const ref = bgSettings.bufferToLoad, obj: BgReq["settingsUpdate"] = {name: "settingsUpdate"};
+    let key: keyof SettingsNS.FrontendSettings;
+    for (key of toSync) {
+      obj[key] = ref[key] = bgSettings.get(key);
+    }
+    bgSettings.broadcast(obj);
   }
 
-  func = loadChecker;
+  let _ref: NodeListOf<HTMLElement> = $$("[data-model]"), element: HTMLElement;
+  for (let _i = _ref.length; 0 <= --_i; ) {
+    element = _ref[_i];
+    const cls = (window as any)[(element.getAttribute("data-model") as string) + "Option"];
+    new (cls as any)(element, onUpdated);
+  }
+
   _ref = $$("[data-check]");
-  for (_i = _ref.length; 0 <= --_i; ) {
+  for (let _i = _ref.length; 0 <= --_i; ) {
     element = _ref[_i];
-    element.addEventListener(element.getAttribute("data-check") || "input", func);
+    element.addEventListener(element.getAttribute("data-check") || "input", loadChecker);
   }
 
-  advancedMode = false;
-  element = $("advancedOptionsButton");
-  element.onclick = function(_0, init) {
+  let advancedMode = false;
+  element = $<HTMLButtonElement>("advancedOptionsButton");
+  element.onclick = function(_0: MouseEvent | null, init?: "hash" | true): void {
     if (init == null || (init === "hash" && bgSettings.get("showAdvancedOptions") === false)) {
       advancedMode = !advancedMode;
       bgSettings.set("showAdvancedOptions", advancedMode);
     } else {
       advancedMode = bgSettings.get("showAdvancedOptions");
     }
-    var el = $("advancedOptions");
-    el.previousElementSibling.style.display = el.style.display = advancedMode ? "" : "none";
-    this.firstChild.data = (advancedMode ? "Hide" : "Show") + " Advanced Options";
+    const el = $("advancedOptions");
+    (el.previousElementSibling as HTMLElement).style.display = el.style.display = advancedMode ? "" : "none";
+    (this.firstChild as Text).data = (advancedMode ? "Hide" : "Show") + " Advanced Options";
     this.setAttribute("aria-checked", "" + advancedMode);
   };
-  element.onclick(null, true);
+  (element as any).onclick(null, true);
 
-  document.addEventListener("keydown", function(event) {
-    if (event.keyCode !== 32) { return; }
-    var el = event.target;
+  document.addEventListener("keydown", function(this: void, event): void {
+    if (event.keyCode !== VKeyCodes.space) { return; }
+    const el = event.target;
     if ((el instanceof HTMLLabelElement) && !el.isContentEditable) {
       event.preventDefault();
     }
   });
 
-  document.addEventListener("keyup", function(event) {
-    var el, i = event.keyCode;
-    if (i !== 13) {
-      if (i !== 32) { return; }
-      el = event.target;
+  document.addEventListener("keyup", function(this: void, event): void {
+    const el = event.target as HTMLElement, i = event.keyCode;
+    if (i !== VKeyCodes.enter) {
+      if (i !== VKeyCodes.space) { return; }
       if ((el instanceof HTMLLabelElement) && !el.isContentEditable) {
-        el.control.click();
+        (el.control as HTMLElement).click();
         event.preventDefault();
       }
       return;
     }
-    el = event.target;
     if (el instanceof HTMLAnchorElement) {
       setTimeout(function(el) {
         el.click();
@@ -309,25 +312,25 @@ ExclusionRulesOption.prototype.onInit = function() {
       }, 0, el);
     } else if (event.ctrlKey || event.metaKey) {
       el.blur();
-      if (status != 0) {
-        $("saveOptions").onclick();
+      if (status) {
+        return saveBtn.onclick();
       }
     }
   });
 
-  _ref = document.getElementsByClassName("nonEmptyTextOption");
-  for (_i = _ref.length; 0 <= --_i; ) {
+  _ref = document.getElementsByClassName("nonEmptyTextOption") as HTMLCollectionOf<HTMLElement>;
+  for (let _i = _ref.length; 0 <= --_i; ) {
     element = _ref[_i];
     element.className += " example info";
     element.textContent = "Delete all to reset this option.";
   }
 
-  func = function() {
-    var target = $(this.getAttribute("data-auto-resize")), delta, height;
+  let func: (this: HTMLElement, event: MouseEvent) => void = function(this: HTMLElement): void {
+    const target = $(this.getAttribute("data-auto-resize") as string);
     if (target.scrollHeight <= target.clientHeight && target.scrollWidth <= target.clientWidth) { return; }
     target.style.height = target.style.width = "";
     target.style.maxWidth = Math.min(window.innerWidth, 1024) - 120 + "px";
-    height = target.scrollHeight;
+    let height = target.scrollHeight,
     delta = target.offsetHeight - target.clientHeight;
     delta = target.scrollWidth > target.clientWidth ? Math.max(26, delta) : delta + 18;
     height += delta;
@@ -338,7 +341,7 @@ ExclusionRulesOption.prototype.onInit = function() {
     target.style.height = height + "px";
   };
   _ref = $$("[data-auto-resize]");
-  for (_i = _ref.length; 0 <= --_i; ) {
+  for (let _i = _ref.length; 0 <= --_i; ) {
     element = _ref[_i];
     element.onclick = func;
     element.tabIndex = 0;
@@ -346,118 +349,121 @@ ExclusionRulesOption.prototype.onInit = function() {
   }
 
   func = function(event) {
-    var str = this.getAttribute("data-delay"), e = null;
+    let str = this.getAttribute("data-delay") as string, e = null as MouseEvent | null;
     if (str !== "continue") {
       event.preventDefault();
     }
     if (str === "event") { e = event; }
-    window._delayed = [this.id, e];
+    (window as OptionWindow)._delayed = [this.id, e];
     loadJS("options_ext.js");
   };
   _ref = $$("[data-delay]");
-  for (_i = _ref.length; 0 <= --_i; ) {
+  for (let _i = _ref.length; 0 <= --_i; ) {
     _ref[_i].onclick = func;
   }
 
   if (window.location.hash === "#chrome-ui") {
-    document.getElementById("mainHeader").remove();
-    element = document.getElementById("openInTab");
+    (document.getElementById("mainHeader") as HTMLElement).remove();
+    element = document.getElementById("openInTab") as HTMLAnchorElement;
     element.style.display = "";
-    element.onclick = function() {
+    element.onclick = function(this: HTMLAnchorElement): void {
       this.href = bgSettings.CONST.OptionsPage;
       this.target = "_blank";
       window.close();
     };
     element.previousElementSibling.remove();
     _ref = $$("body,button,header");
-    for (_i = _ref.length; 0 <= --_i; ) {
+    for (let _i = _ref.length; 0 <= --_i; ) {
       _ref[_i].classList.add("chrome-ui");
     }
-    devicePixelRatio !== 1 && (document.body.style.width = 940 / devicePixelRatio + "px");
+    devicePixelRatio !== 1 && ((document.body as HTMLBodyElement).style.width = 940 / devicePixelRatio + "px");
   }
 
   _ref = $$("[data-permission]");
-  if (_ref.length > 0) (function(els) {
-    var manifest = chrome.runtime.getManifest(), permissions, i, el, key;
-    permissions = manifest.permissions;
-    for (i = permissions.length; 0 <= --i; ) {
-      manifest[permissions[i]] = true;
+  _ref.length > 0 && (function(this: void, els: NodeListOf<HTMLElement>): void {
+    const manifest = chrome.runtime.getManifest(), permissions = manifest.permissions;
+    let key: string;
+    for (key of permissions) {
+      manifest[key] = true;
     }
-    for (i = els.length; 0 <= --i; ) {
-      el = els[i];
-      key = el.getAttribute("data-permission");
+    for (let i = els.length; 0 <= --i; ) {
+      let el: HTMLElement = els[i];
+      key = el.getAttribute("data-permission") as string;
       if (key in manifest) continue;
-      el.disabled = true;
-      key = "This option is disabled for lacking permission"
-        + (key ? ':\n* ' + key : "");
+      (el as HTMLInputElement | HTMLTextAreaElement).disabled = true;
+      key = `This option is disabled for lacking permission${key ? ":\n* " + key : ""}`;
       if (el instanceof HTMLInputElement && el.type === "checkbox") {
         el.checked = false;
-        el = el.parentElement;
+        el = el.parentElement as HTMLElement;
         el.title = key;
       } else {
-        el.value = "";
+        (el as HTMLInputElement | HTMLTextAreaElement).value = "";
         el.title = key;
-        el.parentElement.onclick = onclick;
+        (el.parentElement as HTMLElement).onclick = onclick;
       }
     }
-    function onclick() {
-      var el = this.querySelector("[data-permission]");
-      this.onclick = null;
+    function onclick(this: HTMLElement): void {
+      const el = this.querySelector("[data-permission]") as HTMLInputElement | HTMLTextAreaElement | null;
+      this.onclick = null as never;
       if (!el) { return; }
-      var key = el.getAttribute("data-permission");
-      el.placeholder = "lacking permission " + (key ? '"' + key + '"' : "");
+      const key = el.getAttribute("data-permission");
+      el.placeholder = `lacking permission${key ? ` "${key}"` : ""}`;
     }
   })(_ref);
 
-  function toggleHide(element) {
+  function toggleHide(element: HTMLElement): void | 1 {
     element.tabIndex = -1;
-    element.setAttribute("aria-hidden", "true");
+    return element.setAttribute("aria-hidden", "true");
   }
 
   _ref = $$('[data-model="CheckBox"]');
-  for (_i = _ref.length; 0 <= --_i; ) {
-    element = _ref[_i];
-    if (element.disabled) { continue; }
+  for (let _i = _ref.length; 0 <= --_i; ) {
+    element = _ref[_i] as HTMLInputElement;
+    if ((element as HTMLInputElement).disabled) { continue; }
     toggleHide(element);
-    toggleHide(element.parentElement);
-    element = element.nextElementSibling;
+    toggleHide(element.parentElement as HTMLElement);
+    element = element.nextElementSibling as HTMLInputElement;
     element.classList.add("checkboxHint");
     element.setAttribute("role", "button");
     element.tabIndex = 0;
     element.setAttribute("aria-hidden", "false");
   }
 
-  function onBeforeUnload() {
+  function onBeforeUnload(): string {
     return "You have unsaved changes to options.";
   }
 })();
 
-$("importButton").onclick = function() {
-  var opt = $("importOptions");
-  opt.onchange ? opt.onchange() : $("settingsFile").click();
+$("importButton").onclick = function(): void {
+  const opt = $<HTMLSelectElement>("importOptions");
+  opt.onchange ? (opt as any).onchange() : $("settingsFile").click();
 };
 
-function loadJS(file) {
-  var script = document.createElement("script");
+function loadJS(file: string): HTMLScriptElement {
+  const script = document.createElement("script");
   script.src = file;
-  return document.head.appendChild(script);
+  return (document.head as HTMLHeadElement).appendChild(script);
 }
 
-function loadChecker() {
-  if (loadChecker.loaded) { return; }
-  loadChecker.loaded = true;
+function loadChecker(this: void): void {
+  interface Loader {
+    (this: void): void;
+    loaded?: boolean;
+  }
+  if ((loadChecker as Loader).loaded) { return; }
+  (loadChecker as Loader).loaded = true;
   loadJS("options_checker.js");
 }
 
-window.onhashchange = function() {
-  var hash = window.location.hash, node, event;
+window.onhashchange = function(this: void): void {
+  let hash = window.location.hash, node: ElementWithHash | null;
   hash = hash.substring(hash[1] === "!" ? 2 : 1);
-  if (!hash || /[^a-z\d_.]/i.test(hash)) { return; }
-  if (node = document.querySelector('[data-hash="' + hash + '"]')) {
-    event = document.createEvent("MouseEvents");
+  if (!hash || (<RegExpI> /[^a-z\d_\.]/i).test(hash)) { return; }
+  if (node = document.querySelector(`[data-hash="${hash}"]`) as HTMLElement | null) {
+    const event = document.createEvent("MouseEvents");
     event.initMouseEvent("click", true, true, window, 1, 0, 0, 0, 0
       , false, false, false, false, 0, null);
-    node.onclick && node.onclick(event, "hash");
+    if (node.onclick) { return node.onclick(event, "hash"); }
   }
 };
-window.location.hash.length > 4 && setTimeout(window.onhashchange, 100);
+window.location.hash.length > 4 && setTimeout(window.onhashchange as (this: void) => void, 100);
