@@ -10,8 +10,8 @@ Option.all.keyMappings.checker = {
         : option === "m-c-" ? "c-m-" : option;
     }
     function func(_0: string, option: string, key: string): string {
-      return `${option ? `<${sortModifiers(option.toLowerCase())}` : "<"}
-        ${key.length > 1 && lowerRe.test(key) ? key.toLowerCase() : key}>`;
+      return (option ? "<" + sortModifiers(option.toLowerCase()) : "<") +
+        (key.length > 1 && lowerRe.test(key) ? key.toLowerCase() : key) + ">";
     }
     this.normalizeKeys = function(keys) { return keys.replace(keyLeftRe, func); };
     this.normalizeMap = this.normalizeMap.bind(this);
