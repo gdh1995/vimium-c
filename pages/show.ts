@@ -266,7 +266,7 @@ function toggleInvert(event: Event): void {
   }
 }
 
-function loadJS(name: string, src: string): Promise<any> {
+function requireJS(name: string, src: string): Promise<any> {
   if ((window as any)[name]) {
     return Promise.resolve((window as any)[name]);
   }
@@ -300,7 +300,7 @@ function defaultOnError(err: any): void {
 
 function loadViewer(func: (viewer: any) => void): Promise<void> {
   loadCSS("../lib/viewer.min.css");
-  return loadJS("Viewer", "../lib/viewer.min.js").then<void>(function(Viewer): void {
+  return requireJS("Viewer", "../lib/viewer.min.js").then<void>(function(Viewer): void {
     Viewer.setDefaults({
       navbar: false,
       ready: function(this: void) {
