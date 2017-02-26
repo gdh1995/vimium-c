@@ -42,13 +42,13 @@ var VKeyboard = {
     }
     return key.length !== 1 ? this.getKeyName(event) : key === " " ? "space" : key;
   },
-  getKey (event: KeyboardEvent, ch: string): string {
+  getKey (event: EventControlKeys, ch: string): string {
     const left = event.metaKey ? "<m-" : "<";
     return event.ctrlKey ? left + (event.altKey ? "c-a-" : "c-") + ch + ">"
       : event.altKey ? left + "a-" + ch + ">"
       : event.metaKey || ch.length > 1 ? left + ch + ">" : ch;
   },
-  getKeyStat (event: KeyboardEvent): number {
+  getKeyStat (event: EventControlKeys): number {
     return <any>event.altKey | (<any>event.ctrlKey << 1) | (<any>event.metaKey << 2) | (<any>event.shiftKey << 3);
   },
   isEscape (event: KeyboardEvent): boolean {

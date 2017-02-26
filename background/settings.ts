@@ -47,7 +47,7 @@ const Settings = {
     return (this.updateHooks[key] as SettingsNS.UpdateHook<K>).call(this,
       value !== undefined ? value : this.get(key as keyof SettingsWithDefaults), key);
   },
-  broadcast<K extends keyof BgReq>  (request: Req.bg<K>): void {
+  broadcast<K extends keyof BgReq> (request: Req.bg<K>): void {
     let ref = this.indexPorts(), tabId: string, frames: Frames.Frames, i: number;
     for (tabId in ref) {
       frames = ref[tabId] as Frames.Frames;

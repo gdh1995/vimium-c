@@ -375,6 +375,7 @@ interface Window {
     readonly temp: {
         readonly shownHash: ((this: void) => string) | null;
     };
+    broadcast<K extends keyof BgReq> (request: Req.bg<K>): void;
     readonly bufferToLoad: SettingsNS.FrontendSettingCache & SafeObject;
     get<K extends keyof SettingsNS.SettingsWithDefaults> (key: K, forCache?: boolean
       ): SettingsNS.SettingsWithDefaults[K];

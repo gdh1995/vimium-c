@@ -7,18 +7,18 @@ interface ImportBody {
   (id: "shownText"): HTMLDivElement
 }
 interface Window {
-  readonly VDom: any;
-  readonly VPort: typeof VPort;
-  readonly VHUD: {
-    showCopied(text: string): void;
+  readonly VDom: {
+    readonly mouse: VDomMouse;
   };
+  readonly VPort: Readonly<VPort>;
+  readonly VHUD: Readonly<VHUD>;
   viewer?: null | {
     destroy(): any;
     show(): any;
   };
 }
 
-var $ = document.getElementById.bind(document) as (id: string) => HTMLElement;
+var $ = document.getElementById.bind(document) as <T extends HTMLElement>(id: string) => T
 let shownNode: HTMLImageElement | HTMLDivElement, bgLink = $('bgLink') as HTMLAnchorElement,
     url: string, type: string, file: string;
 
@@ -203,7 +203,7 @@ function decodeURLPart(url: string): string {
 }
 
 function importBody(id: string): HTMLElement {
-  const templates = $('bodyTemplate') as HTMLTemplateElement,
+  const templates = $<HTMLTemplateElement>('bodyTemplate'),
   node = document.importNode(templates.content.getElementById(id) as HTMLElement, true);
   (document.body as HTMLBodyElement).insertBefore(node, templates);
   return node;

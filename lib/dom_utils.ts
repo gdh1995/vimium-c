@@ -211,18 +211,17 @@ var VDom = {
     for (o = el; o && o.nodeType !== eTy; o = o.previousSibling) {}
     return (o as Element | null) || (el && el.parentElement);
   },
-  mouse (element: Element, type: "mouseover" | "mousedown" | "mouseup" | "click" | "mouseout"
-      , modifiers?: EventControlKeys | null, related?: Element | null): boolean {
+  mouse: function (this: any, element, type, modifiers, related): boolean {
     const mouseEvent = document.createEvent("MouseEvents");
-    modifiers || (modifiers = this.defaultMouseKeys);
+    modifiers || (modifiers = (this as typeof VDom).defaultMouseKeys);
     mouseEvent.initMouseEvent(type, true, true, window, 1, 0, 0, 0, 0
       , modifiers.ctrlKey, modifiers.altKey, modifiers.shiftKey, modifiers.metaKey
       , 0, related || null);
     return element.dispatchEvent(mouseEvent);
-  },
+  } as VDomMouse,
   defaultMouseKeys: { altKey: false, ctrlKey: false, metaKey: false, shiftKey: false } as EventControlKeys,
   lastHovered: null as Element | null,
-  unhoverLast (newEl: Element | null, modifiers?: EventControlKeys | null) {
+  unhoverLast (newEl: Element | null, modifiers?: EventControlKeys | null): void {
     let last = this.lastHovered;
     if (last && this.isInDOM(last)) {
       this.mouse(last, "mouseout", modifiers, newEl !== last ? newEl : null);

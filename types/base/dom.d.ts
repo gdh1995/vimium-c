@@ -2960,9 +2960,15 @@ interface HTMLElement extends Element {
     focus(): void;
     setActive(): void;
     addEventListener<K extends keyof HTMLElementEventMap>(type: K
-        , listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any
-        , useCapture?: boolean | {passive?: boolean, useCapture?: true}): void;
-    addEventListener(type: string, listener: EventListenerOrEventListenerObject, useCapture?: boolean): void;
+        , listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => void
+        , useCapture?: EventListenerOptions): void;
+    removeEventListener<K extends keyof HTMLElementEventMap>(type: K
+        , listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => void
+        , useCapture?: EventListenerOptions): void;
+    addEventListener(type: string, listener: EventListenerOrEventListenerObject
+        , useCapture?: EventListenerOptions): void;
+    removeEventListener(type: string, listener: EventListenerOrEventListenerObject
+        , useCapture?: EventListenerOptions): void;
 }
 
 declare var HTMLElement: {
@@ -3724,8 +3730,12 @@ interface HTMLInputElement extends HTMLElement {
       * @param n Value to increment the value by.
       */
     stepUp(n?: number): void;
-    addEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, useCapture?: boolean): void;
-    addEventListener(type: string, listener: EventListenerOrEventListenerObject, useCapture?: boolean): void;
+    addEventListener<K extends keyof HTMLElementEventMap>(type: K
+        , listener: (this: HTMLInputElement, ev: HTMLElementEventMap[K]) => void
+        , useCapture?: EventListenerOptions): void;
+    addEventListener<K extends keyof HTMLElementEventMap>(type: K
+        , listener: ((this: HTMLInputElement, ev: HTMLElementEventMap[K]) => void) | null
+        , useCapture?: EventListenerOptions): void;
 }
 
 declare var HTMLInputElement: {
@@ -8680,6 +8690,10 @@ interface AssignedNodesOptions {
 }
 
 declare type EventListenerOrEventListenerObject = EventListener | null; // | EventListenerObject;
+declare type EventListenerOptions = boolean | {
+    passive?: boolean;
+    useCapture?: true;
+};
 
 interface ErrorEventHandler {
     (message: string, filename?: string, lineno?: number, colno?: number, error?:Error): void;
@@ -9297,7 +9311,7 @@ declare function webkitRequestAnimationFrame(callback: FrameRequestCallback): nu
 declare function dispatchEvent(evt: Event): boolean;
 declare function removeEventListener<K extends keyof WindowEventMap>(type: K,
   listener: (this: Window, ev: WindowEventMap[K]) => void,
-  useCapture?: boolean | {passive?: boolean, useCapture?: true}
+  useCapture?: EventListenerOptions
   ): void;
 declare function removeEventListener(type: string, listener: EventListenerOrEventListenerObject, useCapture?: boolean): void;
 declare var sessionStorage: Storage;
@@ -9318,7 +9332,7 @@ declare function atob(encodedString: string): string;
 declare function btoa(rawString: string): string;
 declare function addEventListener<K extends keyof WindowEventMap>(type: K,
   listener: (this: Window, ev: WindowEventMap[K]) => void,
-  useCapture?: boolean | {passive?: boolean, useCapture?: true}
+  useCapture?: EventListenerOptions
   ): void;
 declare function addEventListener(type: string, listener: EventListenerOrEventListenerObject, useCapture?: boolean): void;
 type AAGUID = string;

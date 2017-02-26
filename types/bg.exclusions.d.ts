@@ -19,7 +19,7 @@ declare namespace ExclusionsNS {
     GetPattern (this: void, url: string): string | null;
     getOnURLChange (): null | Listener;
     format (rules: StoredRule[]): Rules;
-    getTemp (this: ExcCls, url: string, rules: StoredRule[]): string | null;
+    getTemp (this: ExclusionsNS.ExclusionsCls, url: string, rules: StoredRule[]): string | null;
     RefreshStatus (this: void, old_is_empty: boolean): void;
   }
 }

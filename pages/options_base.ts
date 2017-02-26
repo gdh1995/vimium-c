@@ -2,9 +2,6 @@
 /// <reference path="../background/bg.d.ts" />
 /// <reference path="../types/bg.exclusions.d.ts" />
 type AllowedOptions = SettingsNS.PersistentSettings;
-interface Window {
-  exclusions?: any;
-}
 
 const KeyRe = <RegExpG> /<(?!<)(?:a-)?(?:c-)?(?:m-)?(?:[A-Z][\dA-Z]+|[a-z][\da-z]+|\S)>|\S/g,
 __extends = function(child: Function, parent: Function): void {
@@ -42,7 +39,7 @@ debounce = function<T> (this: void, func: (this: T) => void
           , wait: number, bound_context: T, also_immediate: BOOL
           ) => (this: void) => void;
 
-var $ = document.getElementById.bind(document) as (id: string) => HTMLElement
+var $ = document.getElementById.bind(document) as <T extends HTMLElement>(id: string) => T
   , BG = chrome.extension.getBackgroundPage() as Window, bgSettings = BG.Settings;
 
 abstract class Option<T extends keyof AllowedOptions> {
@@ -130,7 +127,7 @@ constructor (element: HTMLElement, onUpdated: (this: ExclusionRulesOption) => vo
   super(element, onUpdated);
   bgSettings.fetchFile("exclusionTemplate", (): void => {
     this.element.innerHTML = bgSettings.cache.exclusionTemplate as string;
-    this.template = ($('exclusionRuleTemplate') as HTMLTemplateElement).content.firstChild as HTMLTableRowElement;
+    this.template = $<HTMLTemplateElement>('exclusionRuleTemplate').content.firstChild as HTMLTableRowElement;
     this.list = this.element.getElementsByTagName('tbody')[0] as HTMLTableSectionElement;
     this.fetch = super.fetch;
     this.fetch();
@@ -353,7 +350,7 @@ const exclusions: PopExclusionRulesOption = Object.setPrototypeOf({
     }
   },
   saveOptions = function(this: void): void {
-    const btn = $("saveOptions") as HTMLButtonElement;
+    const btn = $<HTMLButtonElement>("saveOptions");
     if (btn.disabled) {
       return;
     }
@@ -381,7 +378,8 @@ const exclusions: PopExclusionRulesOption = Object.setPrototypeOf({
     BG.g_requestHandlers.focusOrLaunch({ url: this.href });
     window.close();
   };
-  window.exclusions = exclusions;
+  interface WindowEx extends Window { exclusions?: PopExclusionRulesOption; }
+  (window as WindowEx).exclusions = exclusions;
   window.onunload = function(): void {
     bgExclusions.testers = null;
   };

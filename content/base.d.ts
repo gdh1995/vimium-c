@@ -188,6 +188,10 @@ interface DomUI {
   SuppressMost: HandlerNS.Handler<object>;
 }
 
+interface VDomMouse {
+  (element: Element, type: "mouseover" | "mousedown" | "mouseup" | "click" | "mouseout"
+    , modifiers?: EventControlKeys | null, related?: Element | null): boolean;
+}
 interface VPort {
   post<K extends keyof FgReq>(this: void, req: Req.fg<K>): void | 1;
   post<K extends keyof SettingsNS.FrontUpdateAllowedSettings>(this: void, req: SetSettingReq<K>): void | 1;
@@ -217,7 +221,9 @@ interface VHUD {
   hide (this: void): void;
 }
 interface VSettings {
-  cache: SettingsNS.FrontendSettingCache;
+  cache: SettingsNS.FrontendSettingCache & {
+    oldLinkHintCharacters?: SettingsNS.FrontendSettings["linkHintCharacters"];
+  };
   timer: number;
   checkIfEnabled (this: void): void;
   onDestroy: ((this: void) => any) | null;
