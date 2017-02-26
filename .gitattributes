@@ -8,6 +8,7 @@
 *.png binary
 *.sh linguist-language=Text
 lib/math_parser.js linguist-vendored
+pages/newtab.js linguist-language=TypeScript
 types/* linguist-vendored
 types/*.d.ts linguist-vendored=false
 types/base/* linguist-vendored
