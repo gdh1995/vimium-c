@@ -48,7 +48,7 @@ __微度新标签页修改版 (Modified X New Tab Page):__
 
 # Release Notes
 
-Not released yet:
+Not released yet (1.58b):
 * temporarily disable the experimental feature of options_ui dialog
 * fix broken `Vomnibar` caused by the Chrome flag `#enable-site-per-process`
 * use `closed` shadowDOM to show UI more safely
