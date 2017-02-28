@@ -72,10 +72,9 @@
   }, {
     "all_frames": true,
     "css": [ "front/file_urls.css" ],
-    "matches": [ "file://*" ],
-    "run_at": "document_idle"
+    "matches": [ "file:///*" ]
   } ],
-  "content_security_policy": "script-src 'self'; style-src 'self' 'unsafe-inline'; media-src 'none'; font-src 'none'; object-src 'none'; child-src 'none'; connect-src 'self' data:; manifest-src none",
+  "content_security_policy": "script-src 'self'; style-src 'self' 'unsafe-inline'; media-src 'none'; font-src 'none'; object-src 'none'; child-src 'none'; connect-src 'self' data:; manifest-src 'none'",
   "description": "optimized Vimium supporting global commands and other extensions",
   "homepage_url": "https://github.com/gdh1995/vimium-plus",
   "icons": {
@@ -90,11 +89,6 @@
     "keyword": "v"
   },
   "options_page": "pages/options.html",
-  /*
-  "options_ui": {
-    "chrome_style": true,
-    "page": "pages/chrome_ui.html"
-  }, //*/
   "permissions": [
     "bookmarks",
     "clipboardRead",
