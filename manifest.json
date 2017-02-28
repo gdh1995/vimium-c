@@ -1,4 +1,11 @@
 {
+  "applications": {
+    "gecko": {
+      "id": "vimium-plus@gdh1995.github.com",
+      "strict_min_version": "52.0",
+      "strict_max_version": "*"
+    }
+  },
   "author": "gdh1995@qq.com",
   "background": {
     "persistent": true,
