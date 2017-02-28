@@ -302,7 +302,7 @@ var Vomnibar = {
       sel = (sel + this.selection + (action === "up" ? 0 : 2)) % sel - 1;
       return this.updateSelection(sel);
     case "toggle": return this.toggleInput();
-    case "pageup": case "pagedown": return this.goPage(action === "pageup");
+    case "pageup": case "pagedown": return this.goPage(action !== "pageup");
     case "enter": return this.onEnter(true);
     }
   },
