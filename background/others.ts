@@ -333,7 +333,7 @@ setTimeout(function() {
         ).toJSON().substring(0, 19).replace('T', ' ');
     }
     console.log("%cVimium++%c has %cinstalled%c with %O at %c%s%c .", "color:red", "color:auto"
-      , "color:blue", "color:auto;", details, "color:#1c00cf", now(), "color:auto");
+      , "color:#2196f3", "color:auto", details, "color:#2196f3", now(), "color:auto");
   });
 
   if (!reason) { return; }

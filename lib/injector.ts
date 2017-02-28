@@ -33,8 +33,8 @@ handler = function(content_scripts) {
     if (!noBackend) {
       (EventTarget as EventTargetEx).vimiumRemoveHooks && (EventTarget as EventTargetEx).vimiumRemoveHooks();
       console.log("%cVimium++%c: %cfail%c to inject into %c%s%c %s"
-        , "color: red;", "color: auto;", "color: red;", "color: auto;", "color: blue;"
-        , host, "color: auto", str ? str : ` (${tick} retries).`);
+        , "color:red", "color:auto", "color:red", "color:auto", "color:#2196f3"
+        , host, "color:auto", str ? str : ` (${tick} retries).`);
     }
   }
   if (window.VimiumInjector && typeof VimiumInjector.destroy === "function") {

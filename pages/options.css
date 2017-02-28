@@ -111,7 +111,6 @@ input, textarea {
   border: 1px solid #bfbfbf;
   border-radius: 2px;
   box-sizing: border-box;
-  color: black;
   font: inherit;
   height: 28px;
   outline: none;
@@ -222,14 +221,12 @@ label:active {
 .example {
   font-size: 12px;
   line-height: 16px;
-  color: black;
 }
 .help {
   padding-left: 20px;
   width: 300px;
 }
 .help-inner {
-  color: black;
   font-size: 12px;
   height: 0;
   line-height: 16px;
