@@ -88,7 +88,7 @@ VDom.UI = {
     return sel;
   },
   removeSelection (root): boolean {
-    const sel = (root || this.root as ShadowRoot).getSelection();
+    const sel = (root && root.getSelection ? root : window).getSelection();
     if (!sel || sel.type !== "Range" || !sel.anchorNode) {
       return false;
     }

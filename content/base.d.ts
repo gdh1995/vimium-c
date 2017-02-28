@@ -176,7 +176,7 @@ interface DomUI {
   InsertInnerCSS (this: void, inner: BgReq["insertInnerCSS"]): void;
   insertCSS (this: DomUI, outer: string | false): void;
   getSelection (this: DomUI): Selection;
-  removeSelection (this: DomUI, root?: Window | ShadowRoot): boolean;
+  removeSelection (this: DomUI, root?: DocumentOrShadowRoot,): boolean;
   click (this: DomUI, element: Element, modifiers?: EventControlKeys | null, addFocus?: boolean): boolean;
   simulateSelect (this: DomUI, element: Element, flash?: boolean, suppressRepeated?: boolean): void;
   focus (this: DomUI, el: Element): void;

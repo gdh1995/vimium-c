@@ -128,7 +128,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
       else if (nextKeys !== null) {
         esc(HandlerResult.Suppress);
         action = HandlerResult.Prevent;
-      } else if (VDom.UI.removeSelection(window)) {
+      } else if (VDom.UI.removeSelection()) {
         action = HandlerResult.Prevent;
       } else if (event.repeat) {
         let c = document.activeElement; c && c.blur && c.blur();
@@ -917,7 +917,7 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
     VScroller.current = box;
     VHandler.push(function(event) {
       if (!InsertMode.lock && VKeyboard.isEscape(event)) {
-        VDom.UI.removeSelection() || hide();
+        VDom.UI.removeSelection(VDom.UI.root as ShadowRoot) || hide();
         return 2;
       }
       return 0;
