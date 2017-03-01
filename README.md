@@ -1,7 +1,7 @@
 Vimium++
 ========
-[![license](https://img.shields.io/badge/license-MIT-blue.svg)](MIT-LICENSE.txt)
-![version](https://img.shields.io/badge/release-1.58b-orange.svg)
+[![MIT license](https://img.shields.io/badge/license-MIT-blue.svg)](MIT-LICENSE.txt)
+![Version 1.58](https://img.shields.io/badge/release-1.58.0-orange.svg)
 
 **[Visit Vimium++ in Chrome Web Store](https://chrome.google.com/webstore/detail/vimium%2B%2B/hfjbmagddngcpeloejdejnfgbamkjaeg)**.
 
@@ -48,9 +48,10 @@ __微度新标签页修改版 (Modified X New Tab Page):__
 
 # Release Notes
 
-Not released yet (1.58b):
+1.58.0:
 * temporarily disable the experimental feature of options_ui dialog
 * fix broken `Vomnibar` caused by the Chrome flag `#enable-site-per-process`
+  * this problem may occur since Chrome 56 even if this flag is off
 * use `closed` shadowDOM to show UI more safely
 * fix many small code bugs
 

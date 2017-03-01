@@ -102,8 +102,8 @@
     "<all_urls>"
   ],
   "update_url": "https://clients2.google.com/service/update2/crx",
-  "version": "1.57.6",
-  "version_name": "1.58 beta",
+  "version": "1.58.0",
+  "version_name": "1.58",
   "web_accessible_resources": [
     "content/*",
     "front/vomnibar.html",
