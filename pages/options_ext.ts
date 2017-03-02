@@ -82,7 +82,7 @@ $("exclusionSortButton").onclick = function(): void {
 function formatDate(time: number | Date): string {
   return new Date(+time - new Date().getTimezoneOffset() * 1000 * 60
     ).toJSON().substring(0, 19).replace('T', ' ');
-};
+}
 
 interface ExportedSettings {
   name: "Vimium++";
@@ -268,7 +268,7 @@ function _importSettings(time: number | string | Date, new_data: ExportedSetting
   }
   console.info("IMPORT settings: finished.");
   if (window.VHUD) { return VHUD.showForDuration("Import settings data: OK!", 1000); }
-};
+}
 
 function importSettings(time: number | string | Date
     , new_data: ExportedSettings | null, is_recommended?: boolean): void {
@@ -280,7 +280,7 @@ function importSettings(time: number | string | Date
   Promise.all([BG.Utils.require("Commands"), BG.Utils.require("Exclusions"), promisedChecker]).then(function() {
     setTimeout(_importSettings, 17, time, new_data, is_recommended);
   });
-};
+}
 
 let _el: HTMLInputElement | HTMLSelectElement | null = $<HTMLInputElement>("settingsFile");
 _el.onclick = null as never;

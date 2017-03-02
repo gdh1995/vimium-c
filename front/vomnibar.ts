@@ -349,7 +349,7 @@ var Vomnibar = {
     else if (sel === -1 || this.isSelectionOrigin) {
       return this.update(0, this.onEnter);
     }
-    interface UrlInfo { url: string; sessionId?: undefined };
+    interface UrlInfo { url: string; sessionId?: undefined }
     const item: SuggestionE | UrlInfo = sel >= 0 ? this.completions[sel] : { url: this.input.value.trim() },
     func = function(this: void): void {
       Vomnibar.doEnter = null;
@@ -487,11 +487,10 @@ var Vomnibar = {
   HandleKeydown (this: void, event: KeyboardEvent): void {
     Vomnibar.keyResult = HandlerResult.Prevent as HandlerResult;
     if (window.onkeyup) {
-      let stop: boolean, now: number = 0;
+      let stop = !event.repeat, now: number = 0;
       if (!Vomnibar.lastScrolling) {
-        stop = event.keyCode > 17 || event.keyCode < 16;
-      } else if ((stop = !event.repeat) ||
-          (now = Date.now()) - Vomnibar.lastScrolling > 40) {
+        stop = event.keyCode > VKeyCodes.ctrlKey || event.keyCode < VKeyCodes.shiftKey;
+      } else if (stop || (now = Date.now()) - Vomnibar.lastScrolling > 40) {
         VPort.postToOwner<"scrollEnd" | "scrollGoing">(stop ? "scrollEnd" : "scrollGoing");
         Vomnibar.lastScrolling = now;
       }
@@ -579,7 +578,7 @@ VUtils = {
     const a = template.split(/\{\{(\w+)}}/g);
     let o: Dict<any> | null = null;
     function f(w: string, i: number): any { return (i & 1) && (w = (o as Dict<any>)[w]) == null ? "" : w; }
-    function m(i: Dict<any>) { o = i; return a.map(f).join(""); };
+    function m(i: Dict<any>) { o = i; return a.map(f).join(""); }
     (<RegExpOne> /a?/).test("");
     return function(objectArray) {
       const html = objectArray.map(m).join("");
@@ -598,7 +597,7 @@ VUtils = {
     function escapeCallback(c: string): string {
       const i = c.charCodeAt(0);
       return i === 38 ? "&amp;" : i < 38 ? "\\&quot;" : i === 60 ? "&lt;" : "&gt;";
-    };
+    }
     this.escapeCSSStringInAttr = function(s): string {
       return s.replace(escapeRe, escapeCallback);
     };

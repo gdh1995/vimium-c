@@ -237,7 +237,7 @@ interface AdvancedOptBtn extends HTMLButtonElement {
     saveBtn.disabled = false;
     (saveBtn.firstChild as Text).data = "Save Changes";
     exportBtn.disabled = true;
-  };
+  }
 
   saveBtn.onclick = function(virtually): void {
     if (virtually !== false) {

@@ -224,7 +224,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
       pass[ch] = true;
     }
     return pass;
-  };
+  }
 
   const Commands = {
     Vomnibar: Vomnibar,
@@ -465,7 +465,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
       currentKeys += key; nextKeys = j !== 1 ? j : keyMap;
       return HandlerResult.Prevent;
     }
-  };
+  }
 
   const InsertMode = {
     focus: null as never as (event: LockableFocusEvent) => void,
@@ -849,7 +849,7 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
         for (let key in obj) { if (obj[key] !== 0) {
           iter(obj[key] as ReadonlyChildKeyMap);
         } }
-      };
+      }
       for (let key in map) {
         let sec = map[key];
         if (sec === 0 || sec === 1) { continue; }
@@ -898,7 +898,7 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
     function toggleAdvanced(this: void): void {
       (node1.firstChild as Text).data = (shouldShowAdvanced ? "Hide" : "Show") + " advanced commands";
       box.classList.toggle("HelpAdvanced");
-    };
+    }
     oldShowHelp = Commands.showHelp;
     node1.onclick = function(event) {
       event.preventDefault();
