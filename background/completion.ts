@@ -466,7 +466,7 @@ history: {
     return Completers.next(historys as Suggestion[]);
   } as (historys: UrlItem[]) => void,
   MakeSuggestion (e: UrlItem, i: number, arr: Array<UrlItem | Suggestion>): void {
-    const u = e.url, o = new Suggestion("history", u, Decoder.decodeURL(u, u), e.title,
+    const u = e.url, o = new Suggestion("history", u, Decoder.decodeURL(u, u), e.title || "",
       Completers.history.getExtra, (99 - i) / 100);
     e.sessionId && (o.sessionId = e.sessionId);
     arr[i] = o;
@@ -1033,7 +1033,7 @@ searchEngines: {
         arr[i] = <HistoryItem> {
           lastVisitTime: j.lastVisitTime,
           text: j.url,
-          title: j.title,
+          title: j.title || "",
           url: j.url
         };
       }
@@ -1070,7 +1070,7 @@ searchEngines: {
       j = {
         lastVisitTime: newPage.lastVisitTime,
         text: "",
-        title: newPage.title,
+        title: newPage.title || "",
         url: newPage.url
       };
       j.text = Decoder.decodeURL(newPage.url, j);
