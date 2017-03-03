@@ -453,7 +453,7 @@ history: {
       } else if (cut > 0) {
         historys2 = historys2.slice(cut, cut + maxResults);
       }
-      Completers.history.filterFinish(historys2);
+      return Completers.history.filterFinish(historys2);
     });
   },
   filterFinish: function (this: any, historys: Array<UrlItem | Suggestion>): void {

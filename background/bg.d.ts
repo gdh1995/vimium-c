@@ -357,11 +357,15 @@ declare var CommandsData: {
   availableCommands: SafeDict<CommandsNS.Description>;
 };
 
+interface BaseHelpDialog {
+  render (this: void, request: FgReq["initHelp"]): string;
+}
+
 interface Window {
   readonly MathParser?: any;
   readonly Commands?: any;
   readonly Exclusions?: any;
-  readonly HelpDialog?: any;
+  readonly HelpDialog?: BaseHelpDialog;
 
   readonly g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
   readonly Utils: {

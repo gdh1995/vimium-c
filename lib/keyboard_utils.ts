@@ -1,8 +1,3 @@
-const enum KeyStat {
-  Default = 0, plain = Default,
-  altKey = 1, ctrlKey = 2, metaKey = 4, shiftKey = 8,
-  PrimaryModifier = ctrlKey | metaKey,
-}
 var VKeyboard = {
   keyNames: ["space", "pageup", "pagedown", "end", "home", "left", "up", "right", "down"],
   correctionMap: {

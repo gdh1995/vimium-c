@@ -1505,7 +1505,7 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
     },
     initHelp (this: void, request: FgReq["initHelp"], port: Port): void {
       Promise.all([
-        Utils.require<typeof HelpDialog>('HelpDialog'),
+        Utils.require<BaseHelpDialog>('HelpDialog'),
         request, port,
         new Promise<void>(function(resolve, reject) {
           const xhr = Settings.fetchFile("helpDialog", resolve);

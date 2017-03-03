@@ -19,7 +19,7 @@ const HelpDialog = {
       return s != null ? s
         : HelpDialog.groupHtml(group, commandsToKey, showUnbound, showNames);
     });
-  }),
+  } as BaseHelpDialog["render"]),
   groupHtml: (function(this: any, group: string, commandsToKey: SafeDict<string[]>
       , showUnbound: boolean, showNames: boolean): string {
     const _ref = (this as typeof HelpDialog).commandGroups[group], push = (this as typeof HelpDialog).commandHtml

@@ -238,3 +238,8 @@ declare const enum VKeyCodes {
   maxNotAlphabet = 65 - 1, A, B, C, D, E, F,
   metaKey = 91, menuKey = 93, f1 = 112, f2 = 113, f12 = 123, ime = 229,
 }
+declare const enum KeyStat {
+  Default = 0, plain = Default,
+  altKey = 1, ctrlKey = 2, metaKey = 4, shiftKey = 8,
+  PrimaryModifier = ctrlKey | metaKey,
+}

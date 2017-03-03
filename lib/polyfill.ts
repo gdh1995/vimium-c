@@ -1,4 +1,5 @@
 /// <reference no-default-lib="true"/>
+/// <reference path="../types/base/index.d.ts" />
 
 type primitiveObject = boolean | number | string;
 type primitive = primitiveObject | null | undefined;

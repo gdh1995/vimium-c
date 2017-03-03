@@ -12,8 +12,8 @@ handler = function(content_scripts) {
   let str: string | undefined, noBackend: boolean;
   if (!content_scripts) {
     type LastError = chrome.runtime.LastError;
-    const msg: string | undefined = (chrome.runtime.lastError as undefined | LastError) &&
-      (chrome.runtime.lastError as undefined | LastError as LastError).message,
+    const msg: string | void = (chrome.runtime.lastError as void | LastError) &&
+      (chrome.runtime.lastError as void | LastError as LastError).message,
     host = chrome.runtime.id || location.host || location.protocol;
     noBackend = !!(msg && msg.lastIndexOf("not exist") >= 0 && chrome.runtime.id);
     if (content_scripts === false) { // disabled
