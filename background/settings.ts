@@ -66,8 +66,9 @@ const Settings = {
         let key = ref[_i];
         ref2[key] = (this as typeof Settings).get(key);
       }
-      ref2.onMac = (this as typeof Settings).CONST.Platform ===
-        (chrome.runtime.PlatformOs ? chrome.runtime.PlatformOs.MAC : "mac");
+      if (navigator.userAgent.indexOf("Mac") != -1){
+        ref2.onMac = true
+      }
     },
     extWhiteList: function(val) {
       const map = (this as typeof Settings).extWhiteList = Object.create<true>(null);
