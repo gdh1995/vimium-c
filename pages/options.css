@@ -67,7 +67,7 @@ select.right {
   -webkit-padding-end: 17px;
   -webkit-appearance: button; 
   background-color: #ddd;
-  background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="6px" height="6px"><polygon points="0,0 6,0 3,6" fill="#444"/></svg>'),
+  background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="6px" height="6px"><polygon points="0,0 6,0 3,6" fill="%23444"/></svg>'),
     -webkit-linear-gradient(#ededed, #ededed 38%, #dedede);
   background-position: 45% center;
   background-repeat: no-repeat;
@@ -259,9 +259,9 @@ label:active {
 #exclusionRules {
   box-sizing: border-box;
   color: #444;
-  margin: -2px 0 4px 0;
+  margin: -2px 0 3px 0;
   max-height: 141px;
-  min-height: 80px;
+  min-height: 81px;
   overflow-x: hidden;
   overflow-y: auto;
   width: 100%;

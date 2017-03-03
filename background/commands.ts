@@ -10,7 +10,7 @@ var Commands = {
       str = item[i++];
       ind = str.indexOf("=");
       if (ind === 0 || str === "__proto__") {
-        console.log(ind === 0 ? "Missing option key:" : "Unsupported option key:", str);
+        console.log(ind === 0 ? "Missing" : "Unsupported", "option key:", str);
       } else if (ind < 0) {
         opt[str] = true;
       } else {
