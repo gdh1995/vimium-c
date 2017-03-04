@@ -5,7 +5,7 @@ const Settings = {
   temp: {
     shownHash: null as null | ((this: void) => string)
   },
-  bufferToLoad: null as never as SettingsNS.FrontendSettingCache & SafeObject,
+  bufferToLoad: Object.create(null) as SettingsNS.FrontendSettingCache & SafeObject,
   extWhiteList: null as SafeDict<true> | null,
   Init: null as ((this: void) => void) | null,
   IconBuffer: null as IconNS.AccessIconBuffer | null,
@@ -59,15 +59,11 @@ const Settings = {
   updateHooks: {
     __proto__: null as never,
     bufferToLoad: function() {
-      const ref = (this as typeof Settings).valuesToLoad,
-      ref2 = (this as typeof Settings).bufferToLoad = Object.create(null) as
-        SettingsNS.FrontendSettingCache & SafeObject;
+      const ref = (this as typeof Settings).valuesToLoad, ref2 = (this as typeof Settings).bufferToLoad;
       for (let _i = ref.length; 0 <= --_i;) {
         let key = ref[_i];
         ref2[key] = (this as typeof Settings).get(key);
       }
-      ref2.onMac = (this as typeof Settings).CONST.Platform ===
-        (chrome.runtime.PlatformOs ? chrome.runtime.PlatformOs.MAC : "mac");
     },
     extWhiteList: function(val) {
       const map = (this as typeof Settings).extWhiteList = Object.create<true>(null);
@@ -255,12 +251,12 @@ w|wiki:\\\n  https://www.wikipedia.org/w/index.php?search=$s Wikipedia\n\
 // note: if changed, ../pages/newtab.js also needs change.
 Settings.defaults.newTabUrl = Settings.CONST.ChromeInnerNewTab;
 Settings.CONST.ChromeVersion = 0 | (navigator.appVersion.match(/\bChrom(?:e|ium)\/(\d+)/) || [0, 53])[1] as number;
+chrome.runtime.getPlatformInfo(function(info): void {
+  Settings.CONST.Platform = info.os;
+  Settings.bufferToLoad.onMac = info.os === (chrome.runtime.PlatformOs ? chrome.runtime.PlatformOs.MAC : "mac");
+});
 
 setTimeout(function() {
-  chrome.runtime.getPlatformInfo(function(info): void {
-    Settings.CONST.Platform = info.os;
-  });
-
   let ref, origin = location.origin, prefix = origin + "/", obj: typeof Settings.CONST,
   func = function(path: string): string {
     return (path.charCodeAt(0) === 47 ? origin : prefix) + path;
