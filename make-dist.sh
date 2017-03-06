@@ -9,7 +9,7 @@ exclude_dir="$exclude_dir ! -path node_modules*"
 input=$(find $input $exclude_dir \
     ! -name .* ! -name todo* ! -name tsconfig* ! -name vimium.css ! -name *~ \
     ! -name *.coffee ! -name *.crx ! -name *.js ! -name *.sh ! -name *.ts \
-    ! -name *.zip)
+    ! -iname *.zip ! -iname Gulp* -name package* )
 input2=$(find $input -name *.min.js $exclude_dir)
 input2="$input2 pages/newtab.js"
 
