@@ -7,11 +7,18 @@ interface ImportBody {
   (id: "shownText"): HTMLDivElement
 }
 interface Window {
+  readonly VDom?: typeof VDom;
+  readonly VPort?: Readonly<VPort>;
+  readonly VHUD?: Readonly<VHUD>;
   viewer?: null | {
     destroy(): any;
     show(): any;
   };
 }
+declare var VDom: {
+  readonly UI: Readonly<DomUI>;
+  readonly mouse: VDomMouse;
+}, VPort: Readonly<VPort>, VHUD: Readonly<VHUD>;
 
 var $ = document.getElementById.bind(document) as <T extends HTMLElement>(id: string) => T
 let shownNode: HTMLImageElement | HTMLDivElement, bgLink = $('bgLink') as HTMLAnchorElement,

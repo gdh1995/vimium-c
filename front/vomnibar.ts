@@ -318,7 +318,7 @@ var Vomnibar = {
     let str = len ? this.completions[0].type : "", sel = +dir || -1;
     if (this.isSearchOnTop) { return; }
     str = (this.isSelectionOrigin || this.selection < 0 ? this.input.value : this.inputText).trimRight();
-    let arr = this._pageNumRe.exec(str), i = (arr && arr[0] as string | undefined | number as number) | 0;
+    let arr = this._pageNumRe.exec(str), i = ((arr && arr[0]) as string | undefined | number as number) | 0;
     if (len >= n) { sel *= n; }
     else if (i > 0 && sel < 0) { sel *= i >= n ? n : 1; }
     else if (len < (len && this.completions[0].type === "tab" ? 3 : n)) { return; }

@@ -1,4 +1,4 @@
-Option.all.keyMappings.checker = {
+let _a = {
   normalizeKeys: null as never as (this: void, s: string) => string,
   isKeyReInstalled: false,
   init (): void {
@@ -65,7 +65,9 @@ Option.all.keyMappings.checker = {
     string = string.replace(this.wrapLineRe2, '\\\n').trim();
     return string;
   },
-} as Checker<"keyMappings">;
+};
+Option.all.keyMappings.checker = _a;
+_a = null as never;
 
 BG.Utils.require("Commands");
 
@@ -95,7 +97,10 @@ Option.all.newTabUrl.checker = {
     }
     return value;
   }
-} as Checker<"newTabUrl">;
+} as Checker<"newTabUrl"> & {
+  overriddenNewTab: string;
+  customNewTab: string;
+};
 
 (function() {
   var func = loadChecker, _ref, _i, element;

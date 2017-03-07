@@ -118,7 +118,7 @@ var VHints = {
       if (!VDom.isHTML()) { return; }
     }
     VHandler.remove(this);
-    this.setModeOpt(count | 0, Object.setPrototypeOf(options || {}, null));
+    this.setModeOpt((count as number) | 0, Object.setPrototypeOf(options || {}, null));
 
     let elements: Hint[] | undefined;
     const arr = VDom.getViewBox();
@@ -127,7 +127,7 @@ var VHints = {
       elements = this.getVisibleElements();
     }
     if (this.frameNested) {
-      if (this.tryNestedFrame("VHints.activate", count | 0, this.options as FgOptions)) {
+      if (this.tryNestedFrame("VHints.activate", (count as number) | 0, this.options as FgOptions)) {
         return this.clean();
       }
       elements || (elements = this.getVisibleElements());
@@ -152,7 +152,7 @@ var VHints = {
   },
   setModeOpt (count: number, options: HintsNS.Options): void {
     if (this.options === options) { return; }
-    let ref = this.Modes, mode = this.CONST[options.mode as string] | 0, modeOpt: HintsNS.ModeOpt | undefined;
+    let ref = this.Modes, mode = (this.CONST[options.mode as string] as number) | 0, modeOpt: HintsNS.ModeOpt | undefined;
     if (mode == HintMode.EDIT_TEXT && options.url) {
       mode = HintMode.EDIT_LINK_URL;
     } else if (mode == HintMode.EDIT_LINK_URL || (mode & ~HintMode.queue) == HintMode.COPY_LINK_URL) {

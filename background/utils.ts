@@ -252,7 +252,7 @@ const Utils = {
   evalVimiumUrl (path: string, workType?: Urls.WorkType): Urls.Url | null {
     let ind: number, cmd: string, arr: string[], obj: { url: string } | null, res: Urls.Url | string[];
     path = path.trim();
-    workType |= 0;
+    workType = (workType as Urls.WorkType) | 0;
     if (!path || workType < Urls.WorkType.ValidNormal || (ind = path.indexOf(" ")) <= 0 ||
         !this._vimiumCmdRe.test(cmd = path.substring(0, ind).toLowerCase()) ||
         cmd.endsWith(".html") || cmd.endsWith(".js") || cmd.endsWith(".css")) {

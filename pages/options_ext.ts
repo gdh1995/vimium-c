@@ -7,6 +7,7 @@ declare var VDom: {
   readonly UI: Readonly<DomUI>;
   readonly mouse: VDomMouse;
 }, VPort: Readonly<VPort>, VHUD: Readonly<VHUD>;
+
 $<ElementWithDelay>("showCommands").onclick = function(event): void {
   if (!window.VDom) { return; }
   let node: HTMLElement, root = VDom.UI.root;

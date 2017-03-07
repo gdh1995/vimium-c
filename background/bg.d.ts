@@ -350,12 +350,12 @@ declare namespace BgReqHandlerNS {
   }
 }
 
-declare var CommandsData: {
+interface CommandsData {
   keyToCommandRegistry: SafeDict<CommandsNS.Item>;
   keyMap: KeyMap;
   mapKeyRegistry: SafeDict<string> | null;
   availableCommands: SafeDict<CommandsNS.Description>;
-};
+}
 
 interface BaseHelpDialog {
   render (this: void, request: FgReq["initHelp"]): string;

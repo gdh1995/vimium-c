@@ -901,7 +901,7 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
       if (count === 1 && cPort.sender.incognito) {
         return requestHandlers.ShowHUD("Can not restore a tab in incognito mode!");
       }
-      const limit = chrome.sessions.MAX_SESSION_RESULTS | 0;
+      const limit = (chrome.sessions.MAX_SESSION_RESULTS as number) | 0;
       limit > 0 && limit < count && (count = limit);
       while (--count >= 0) {
         chrome.sessions.restore(null, funcDict.onRuntimeError);
@@ -1255,7 +1255,7 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
       if (!Utils.protocolRe.test(Utils.removeComposedScheme(url))) {
         return null;
       }
-      if (_i = (request.upper | 0)) {
+      if (_i = ((request.upper as number) | 0)) {
         const obj = requestHandlers.parseUpperUrl({ url: s0, upper: _i, trailing_slash: request.trailing_slash });
         if (obj.path != null) {
           s0 = obj.url;
@@ -1762,7 +1762,7 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
   };
 
   Settings.globalCommand = function(this: void, command, options, count): void {
-    count = Math.max(1, count | 0);
+    count = Math.max(1, (count as number) | 0);
     options && typeof options === "object" ?
         Object.setPrototypeOf(options, null) : (options = null);
     return executeCommand(command, Utils.makeCommand(command, options), count, null as never as Port);

@@ -1,3 +1,4 @@
+declare var CommandsData: CommandsData;
 var Commands = {
   setKeyRe (keyReSource: string): void {
     Utils.keyRe = new RegExp(keyReSource, "g") as RegExpG & RegExpSearchable<0>;
@@ -218,7 +219,7 @@ defaultKeyMappings: [
   ["`", "Marks.activate"]
 ] as [string, string][]
 },
-CommandsData = CommandsData || {
+CommandsData = (CommandsData as CommandsData) || {
   keyToCommandRegistry: null as never as SafeDict<CommandsNS.Item>,
   keyMap: null as never as KeyMap,
   mapKeyRegistry: null as SafeDict<string> | null,
