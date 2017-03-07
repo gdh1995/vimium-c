@@ -415,6 +415,8 @@ interface AdvancedOptBtn extends HTMLButtonElement {
     }
   })(_ref);
 
+  $("innerNewTab").textContent = bgSettings.CONST.ChromeInnerNewTab;
+
   function toggleHide(element: HTMLElement): void | 1 {
     element.tabIndex = -1;
     return element.setAttribute("aria-hidden", "true");

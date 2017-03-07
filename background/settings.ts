@@ -218,7 +218,9 @@ w|wiki:\\\n  https://www.wikipedia.org/w/index.php?search=$s Wikipedia\n\
   } as SettingsNS.Sync,
   CONST: {
     BaseCSSLength: 0,
+    ChromeNewTab: "chrome://newtab",
     ChromeInnerNewTab: "chrome-search://local-ntp/local-ntp.html", // should keep lower case
+    DefaultNewTabPage: "pages/newtab.html",
     ChromeVersion: 37, ContentScripts: null as never as string[], CurrentVersion: "", CurrentVersionName: "",
     KnownPages: ["blank", "newtab", "options", "show"],
     MathParser: "/lib/math_parser.js",
@@ -262,6 +264,7 @@ setTimeout(function() {
     return (path.charCodeAt(0) === 47 ? origin : prefix) + path;
   };
   ref = chrome.runtime.getManifest();
+   ref.chrome_url_overrides && ref.chrome_url_overrides.newtab;
   obj = Settings.CONST;
   obj.CurrentVersion = ref.version;
   obj.CurrentVersionName = ref.version_name || ref.version;

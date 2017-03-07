@@ -405,7 +405,7 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
         funcDict.createTabs(url, commandCount, true);
         return chrome.runtime.lastError;
       }
-      if (tab.incognito && onlyNormal) { url = "chrome://newtab"; }
+      if (tab.incognito && onlyNormal) { url = Settings.CONST.ChromeNewTab; }
       tab.id = undefined;
       return openMultiTab(url, commandCount, tab);
     }, function(wnd): void {

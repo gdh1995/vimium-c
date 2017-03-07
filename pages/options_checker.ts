@@ -17,7 +17,6 @@ Option.all.keyMappings.checker = {
     this.normalizeMap = this.normalizeMap.bind(this);
     this.normalizeOptions = this.normalizeOptions.bind(this);
     this.init = null as never;
-    BG.Utils.require("Commands");
   },
   quoteRe: <RegExpG & RegExpSearchable<0>> /"/g,
   normalizeOptions (str: string, value: string, s2: string | undefined, tail: string): string {
@@ -56,6 +55,7 @@ Option.all.keyMappings.checker = {
   wrapLineRe2: <RegExpG & RegExpSearchable<0>> /\\\r/g,
   check (string: string): string {
     if (!string) { return string; }
+    this.init && this.init();
     if (!this.isKeyReInstalled) {
       BG.Commands.setKeyRe(KeyRe.source);
       this.isKeyReInstalled = true;
@@ -66,7 +66,36 @@ Option.all.keyMappings.checker = {
     return string;
   },
 } as Checker<"keyMappings">;
-(Option.all.keyMappings.checker as Checker<"keyMappings">).init();
+
+BG.Utils.require("Commands");
+
+Option.all.newTabUrl.checker = {
+  overriddenNewTab: "",
+  customNewTab: "",
+  init (): void {
+    const manifest = chrome.runtime.getManifest(),
+    url = manifest.chrome_url_overrides && manifest.chrome_url_overrides.newtab || "";
+    if (url) {
+      this.overriddenNewTab = chrome.runtime.getURL(url);
+    } else {
+      this.customNewTab = chrome.runtime.getURL(bgSettings.CONST.DefaultNewTabPage);
+    }
+    this.init = null as never;
+  },
+  check (value: string): string {
+    const url = (<RegExpI>/^\/?pages\/[a-z]+.html\b/i).test(value)
+        ? chrome.runtime.getURL(value) : BG.Utils.convertToUrl(value);
+    if (url.lastIndexOf("chrome", 0) !== 0) { return value; }
+    this.init && this.init();
+    if (!this.overriddenNewTab) {
+      return value === this.customNewTab ? bgSettings.CONST.ChromeNewTab : value;
+    }
+    if (url === this.overriddenNewTab || url === bgSettings.CONST.ChromeNewTab) {
+      bgSettings.CONST.ChromeInnerNewTab;
+    }
+    return value;
+  }
+} as Checker<"newTabUrl">;
 
 (function() {
   var func = loadChecker, _ref, _i, element;

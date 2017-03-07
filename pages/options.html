@@ -93,12 +93,12 @@ MainKey|c|c\:|MainName: \
       <tr>
         <td class="caption">New tab URL</td>
         <td>
-          <input id="newTabUrl" type="text" data-model="NonEmptyText" />
+          <input id="newTabUrl" type="text" data-model="NonEmptyText" data-check="" />
           <div class="nonEmptyTextOption"></div>
         </td>
         <td class="help"><div class="help-inner">
           "<kbd class="sel-all">pages/blank.html</kbd>" for a blank page. Chrome inner:<br/>
-          "<kbd class="sel-all">chrome-search://local-ntp/local-ntp.html</kbd>".
+          "<kbd class="sel-all" id="innerNewTab">chrome-search://local-ntp/local-ntp.html</kbd>".
         </div></td>
       </tr>
       <tbody><tr><td colspan="2">

@@ -3,7 +3,7 @@
 /// <reference path="../types/bg.exclusions.d.ts" />
 type AllowedOptions = SettingsNS.PersistentSettings;
 interface Checker<T extends keyof AllowedOptions> {
-  init (): void;
+  init? (): any;
   check (value: AllowedOptions[T]): AllowedOptions[T];
 }
 
