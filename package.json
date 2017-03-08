@@ -1,0 +1,42 @@
+{
+  "name": "vimium-plus",
+  "version": "1.58.1",
+  "description": "optimized Vimium supporting Chinese, global commands and injection into other extensions",
+  "dependencies": {
+    "typescript": "next"
+  },
+  "devDependencies": {
+    "gulp": "*",
+    "gulp-clean": "*",
+    "gulp-concat": "*",
+    "gulp-newer": "*",
+    "gulp-print": "*",
+    "gulp-rename": "*",
+    "gulp-sourcemaps": "*",
+    "gulp-typescript": "*",
+    "gulp-uglify": "*"
+  },
+  "scripts": {
+    "tsc": "node ./node_modules/typescript/lib/tsc.js",
+    "build": "gulp build",
+    "rebuild": "gulp rebuild",
+    "clean": "gulp clean",
+    "local": "gulp local",
+    "test": "gulp test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/gdh1995/vimium-plus.git"
+  },
+  "keywords": [
+    "Vimium",
+    "WebExtension",
+    "chrome-extension"
+  ],
+  "author": "gdh1995@qq.com",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/gdh1995/vimium-plus/issues"
+  },
+  "homepage": "https://github.com/gdh1995/vimium-plus#readme"
+}

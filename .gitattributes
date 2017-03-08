@@ -7,6 +7,7 @@
 *.jpg binary
 *.png binary
 *.sh linguist-language=Text
+Gulpfile.js linguist-language=TypeScript
 lib/math_parser.js linguist-vendored
 pages/newtab.js linguist-language=TypeScript
 types/* linguist-vendored
