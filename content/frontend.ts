@@ -38,7 +38,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
     safePost<K extends keyof FgReq> (request: Req.fg<K>): void {
       try {
         if (!this.port) {
-          this.connect(0);
+          this.connect(PortType.nothing);
           isInjected && setTimeout(function() { VPort && !vPort.port && VSettings.destroy(); }, 50);
         }
         (this.port as Port).postMessage(request);
@@ -60,26 +60,26 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
     ClearPort (this: void): void {
       vPort.port = null;
     },
-    connect (isFirst: BOOL): void {
-      const data = { name: "vimium++." + (4 * +(window.top === window) + 2 * +document.hasFocus() + isFirst) };
+    connect (isFirst: PortType.nothing | PortType.initing): void {
+      const data = { name: "vimium++." + (PortType.isTop * +(window.top === window) + PortType.hasFocus * +document.hasFocus() + isFirst) };
       const port = this.port = isInjected ? chrome.runtime.connect(VimiumInjector.id, data) as Port
         : chrome.runtime.connect(data) as Port;
       port.onDisconnect.addListener(this.ClearPort);
       port.onMessage.addListener(this.Listener);
     }
   };
-  location.href !== "about:blank" || isInjected ? vPort.connect(1) :
+  location.href !== "about:blank" || isInjected ? vPort.connect(PortType.initing) :
   (window.onload = function() { window.onload = null as never; setTimeout(function() {
     const a = document.body,
     exit = !!a && (a.isContentEditable || a.childElementCount === 1 && (a.firstElementChild as HTMLElement).isContentEditable);
-    exit ? VSettings.destroy(true) : vPort.port || vPort.connect(1);
+    exit ? VSettings.destroy(true) : vPort.port || vPort.connect(PortType.initing);
   }, 18); });
   VPort = { post: vPort.post, send: vPort.send };
 
   VSettings = {
     cache: null as never as VSettings["cache"],
     destroy: null as never as VSettings["destroy"],
-    timer: setInterval(function() { vPort.connect(1); }, 2000),
+    timer: setInterval(function() { vPort.connect(PortType.initing); }, 2000),
     checkIfEnabled (this: void): void {
       return vPort.safePost({ handler: "checkIfEnabled", url: window.location.href });
     },

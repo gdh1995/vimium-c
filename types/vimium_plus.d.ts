@@ -105,6 +105,7 @@ declare const enum ReuseType {
 }
 
 declare const enum PortType {
+  nothing = 0,
   initing = 1,
   hasFocus = 2,
   isTop = 4,
