@@ -93,7 +93,7 @@ Option.all.newTabUrl.checker = {
       return value === this.customNewTab ? bgSettings.CONST.ChromeNewTab : value;
     }
     if (url === this.overriddenNewTab || url === bgSettings.CONST.ChromeNewTab) {
-      bgSettings.CONST.ChromeInnerNewTab;
+      return bgSettings.CONST.ChromeInnerNewTab;
     }
     return value;
   }
