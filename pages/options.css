@@ -247,6 +247,9 @@ label:active {
 .wrap-left-space {
   margin-left: 0.25em;
 }
+.deprecated {
+  color: darkgray;
+}
 
 /* Boolean options have a tighter form representation than text options. */
 .booleanOption.innerLine > .checkboxHint,
