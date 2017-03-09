@@ -32,7 +32,7 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
   }
   type BgCmd = BgCmdNoTab | BgCmdActiveTab | BgCmdCurWndTabs;
 
-  const framesForTab: Frames.FramesMap = Object.create<Frames.Frames>(null), framesForOmni: Frames.Port[] = [],
+  const framesForTab: Frames.FramesMap = Object.create<Frames.Frames>(null),
   NoFrameId = Settings.CONST.ChromeVersion < 41,
   openMultiTab = function(this: void, rawUrl: string, count: number
       , parentTab: InfoToCreateMultiTab): void {
@@ -1607,6 +1607,7 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
   Connections = {
     state: 0,
     _fakeId: -2,
+    framesForOmni: [] as Frames.Port[],
     OnMessage (this: void, request: Req.baseFg<string> | Req.baseFgWithRes<string>, port: Frames.Port): void {
       let id;
       if (id = (request as Req.baseFgWithRes<string>)._msgId) {
@@ -1680,7 +1681,7 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
         port.disconnect();
         return;
       }
-      framesForOmni.push(port);
+      this.framesForOmni.push(port);
       if (tabId < 0) {
         port.sender.tabId = cPort ? cPort.sender.tabId : TabRecency.last();
       }
@@ -1692,7 +1693,7 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
       });
     },
     OnOmniDisconnect (this: void, port: Port): void {
-      const ref = framesForOmni, i = ref.lastIndexOf(port);
+      const ref = Connections.framesForOmni, i = ref.lastIndexOf(port);
       if (i === ref.length - 1) {
         --ref.length;
       } else if (i >= 0) {
@@ -1860,7 +1861,7 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
   // will run only on <F5>, not on runtime.reload
   window.onunload = function() {
     let ref = framesForTab as Frames.FramesMapToDestroy, tabId: string;
-    ref.omni = framesForOmni;
+    ref.omni = Connections.framesForOmni;
     for (tabId in ref) {
       for (const port of ref[tabId]) {
         port.disconnect();

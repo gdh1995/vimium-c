@@ -250,10 +250,10 @@ interface AdvancedOptBtn extends HTMLButtonElement {
     exportBtn.disabled = false;
     status = false;
     window.onbeforeunload = null as never;
+    if (toSync.length === 0) { return; }
     setTimeout(doSyncToFrontend, 100, toSync);
   };
   function doSyncToFrontend (toSync: typeof Option.syncToFrontend): void {
-    if (toSync.length === 0) { return; }
     const ref = bgSettings.bufferToLoad, obj: BgReq["settingsUpdate"] = {name: "settingsUpdate"};
     let key: keyof SettingsNS.FrontendSettings;
     for (key of toSync) {

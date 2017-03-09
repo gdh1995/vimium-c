@@ -379,7 +379,7 @@ interface Window {
   readonly Settings: {
     readonly cache: SettingsNS.FullCache;
     readonly temp: {
-        readonly shownHash: ((this: void) => string) | null;
+      readonly shownHash: ((this: void) => string) | null;
     };
     broadcast<K extends keyof BgReq> (request: Req.bg<K>): void;
     readonly bufferToLoad: SettingsNS.FrontendSettingCache & SafeObject;
