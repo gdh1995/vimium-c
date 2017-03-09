@@ -369,9 +369,11 @@ interface Window {
 
   readonly g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
   readonly Utils: {
+    readonly spacesRe: RegExpG;
     readonly convertToUrl: Urls.Converter;
     lastUrlType: Urls.Type;
     readonly createSearch: Search.Executor;
+    parseSearchEngines (this: any, str: string, map: Search.EngineMap): Search.Rule[];
     require<T extends object> (name: SettingsNS.DynamicFiles): Promise<T>;
   };
   readonly Settings: {

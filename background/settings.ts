@@ -89,15 +89,8 @@ const Settings = {
       return (this as typeof Settings).set("searchEngineRules", rules);
     },
     searchUrl: function(str): void {
-      let map: FullSettings["searchEngineMap"], str2: string;
       if (str) {
-        Utils.parseSearchEngines("~:" + str, map = (this as typeof Settings).cache.searchEngineMap);
-        const obj = map["~"] as Search.Engine;
-        str2 = obj.url.replace(Utils.spacesRe, "%20");
-        if (obj.name) { str2 += " " + obj.name; }
-        if (str2 !== str) {
-          return (this as typeof Settings).set("searchUrl", str2);
-        }
+        Utils.parseSearchEngines("~:" + str, (this as typeof Settings).cache.searchEngineMap);
       } else if (str = (this as typeof Settings).get("newTabUrl_f", true)) {
         return ((this as typeof Settings).updateHooks.newTabUrl_f as (this: void, url_f: string) => void)(str);
       } else {

@@ -102,6 +102,20 @@ Option.all.newTabUrl.checker = {
   customNewTab: string;
 };
 
+Option.all.searchUrl.checker = {
+  check (str: string): string {
+    const map = Object.create<Search.Engine>(null);
+    BG.Utils.parseSearchEngines("k:" + str, map);
+    const obj = map.k;
+    if (obj == null) {
+      return bgSettings.get("searchUrl", true);
+    }
+    let str2 = obj.url.replace(BG.Utils.spacesRe, "%20");
+    if (obj.name) { str2 += " " + obj.name; }
+    return str2;
+  }
+};
+
 (function() {
   var func = loadChecker, _ref, _i, element;
   _ref = document.querySelectorAll("[data-check]");
