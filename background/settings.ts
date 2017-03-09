@@ -108,10 +108,6 @@ const Settings = {
       return (this as typeof Settings).set("innerCSS", css);
     },
     vimSync: function(value) {
-      if (value) {
-        setTimeout(alert, 17, "Warning: the current settings will be OVERRIDDEN the next time Vimium++ starts!\n"
-          + 'Please back up your settings using the "Export Settings" button RIGHT NOW!');
-      }
       if (value || !(this as typeof Settings).Sync.HandleStorageUpdate) { return; }
       setTimeout(function() {
         chrome.storage.onChanged.removeListener(Settings.Sync.HandleStorageUpdate as SettingsNS.OnSyncUpdate);

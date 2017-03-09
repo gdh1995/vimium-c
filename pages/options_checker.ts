@@ -116,6 +116,16 @@ Option.all.searchUrl.checker = {
   }
 };
 
+Option.all.vimSync.checker = {
+  check (willSync: boolean): boolean {
+    if (willSync) {
+      setTimeout(alert, 100, "Warning: the current settings will be OVERRIDDEN the next time Vimium++ starts!\n"
+        + 'Please back up your settings using the "Export Settings" button RIGHT NOW!');
+    }
+    return willSync;
+  }
+};
+
 (function() {
   var func = loadChecker, _ref, _i, element;
   _ref = document.querySelectorAll("[data-check]");
