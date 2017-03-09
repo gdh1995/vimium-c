@@ -54,7 +54,7 @@ if (Settings.get("vimSync") === true) setTimeout(function() { if (!chrome.storag
     DoUpdate (this: void): void {
       let items = Sync.to_update, removed = [] as string[], key: keyof SettingsToUpdate, left = 0;
       Sync.to_update = null;
-      if (!items) { return; }
+      if (!items || Settings.Sync !== Sync) { return; }
       for (key in items) {
         if (items[key] != null) {
           ++left;
@@ -74,7 +74,7 @@ if (Settings.get("vimSync") === true) setTimeout(function() { if (!chrome.storag
       return !(key in this.doNotSync);
     }
   };
-  Settings.Sync = Sync as SettingsNS.Sync;
+  Settings.Sync = Sync;
   chrome.storage.onChanged.addListener(Sync.HandleStorageUpdate);
   Sync.storage.get(null, function(items): void {
     let key, value: void;

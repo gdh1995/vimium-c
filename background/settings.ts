@@ -109,10 +109,8 @@ const Settings = {
     },
     vimSync: function(value) {
       if (value || !(this as typeof Settings).Sync.HandleStorageUpdate) { return; }
-      setTimeout(function() {
-        chrome.storage.onChanged.removeListener(Settings.Sync.HandleStorageUpdate as SettingsNS.OnSyncUpdate);
-        Settings.Sync = { set: function() {} };
-      }, 100);
+      chrome.storage.onChanged.removeListener(Settings.Sync.HandleStorageUpdate as SettingsNS.OnSyncUpdate);
+      Settings.Sync = { set () {} };
     },
     userDefinedCss: function(css): void {
       css = (this as typeof Settings).cache.innerCSS.substring(0, (this as typeof Settings).CONST.BaseCSSLength) + css;
