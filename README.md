@@ -48,6 +48,11 @@ __微度新标签页修改版 (Modified X New Tab Page):__
 
 # Release Notes
 
+Not released yet:
+* global keyboard shortcuts: remove suggested keys, so that Vimium++ is cleaner
+  * those suggested mappings are added into the default list and the recommended settings
+* add a checker to ensure `New tab URL` won't cause a dead loop
+
 1.58.1:
 * fix detection for Mac system: fix `LinkHints.activateModeToOpenInNewTab`
 
