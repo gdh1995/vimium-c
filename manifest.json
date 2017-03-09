@@ -26,28 +26,16 @@
   },
   "commands": {
     "createTab": {
-      "description": "Create new tab(s)",
-      "suggested_key": {
-        "default": "Alt+T"
-      }
+      "description": "Create new tab(s)"
     },
     "previousTab": {
-      "description": "Go one tab left",
-      "suggested_key": {
-        "default": "Alt+C"
-      }
+      "description": "Go one tab left"
     },
     "nextTab": {
-      "description": "Go one tab right",
-      "suggested_key": {
-        "default": "Alt+V"
-      }
+      "description": "Go one tab right"
     },
     "reloadTab": {
-      "description": "Reload tab(s)",
-      "suggested_key": {
-        "default": "Alt+R"
-      }
+      "description": "Reload tab(s)"
     }
   },
   "content_scripts": [ {
