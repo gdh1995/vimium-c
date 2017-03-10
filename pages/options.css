@@ -93,7 +93,7 @@ select.right > option {
   background-color: #eee;
 }
 
-pre, code, kbd, .code {
+pre, kbd, .code {
   font-family: Consolas, "Liberation Mono", "Courier New", "PingFang SC", "Hiragino Sans GB",
     "Microsoft YaHei", "Heiti SC", "WenQuanYi Micro Hei", monospace;
 }

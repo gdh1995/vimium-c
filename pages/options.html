@@ -50,13 +50,15 @@
             placeholder="# Insert your preferred key mappings here."></textarea>
         </td>
         <td class="help"><div class="help-inner">
-          Enter commands to remap your keys. Available commands:<br/>
-          <pre translate="no">
+          Enter commands to remap your keys. Available commands:
+          <code>
+          <pre>
 map f LinkHints.activate
 unmap &lt;f2&gt;
 unmapAll
 # this is a comment
 " this is also a comment</pre>
+          </code>
           <a id="showCommands" href="#commands" data-hash="commands" data-delay="">Show available commands</a>.
           <a class="wrap-left-space" data-auto-resize="keyMappings"></a>.
         </div></td>
@@ -68,13 +70,15 @@ unmapAll
           <div class="nonEmptyTextOption"></div>
         </td>
         <td class="help"><div class="help-inner">
-          Add search engine shortcuts to the Vomnibar. Format:<br/>
-          <pre translate="no">
+          Add search engine shortcuts to the Vomnibar. Format:
+          <code>
+          <pre>
 a: http://a.com/?q=$s
 js\:|JS: javascript:$S; Run JavaScript
 MainKey|c|c\:|MainName: \
   http://c.com/?q=%s&amp;space=\s\ space_end
 # this is a comment</pre>
+          </code>
           <var>$s</var> will be replaced with your search terms.
           <a data-auto-resize="searchEngines"></a>.
         </div></td>
@@ -286,7 +290,7 @@ Warning: Chrome has a bug of mistaken dialogue width if you has changed screen t
           </td>
           <td class="help"><div class="help-inner">
             Your keyboard delay settings on this computer. Format:<br/>
-            <kbd>[&lt;delay(ms)&gt;, &lt;repeat period&gt;]</kbd> (e.g. <kbd>[500, 33]</kbd>)
+            <kbd>[ &lt;delay&gt;, &lt;repeat period&gt; ] (unit: ms)</kbd>
           </div></td>
         </tr>
         <tr>
