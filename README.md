@@ -175,9 +175,6 @@ Install a customized version of [TypeScript](https://github.com/gdh1995/TypeScri
 * [Viewer.js](https://github.com/fengyuanchen/viewerjs):
   Copyright (c) 2015-2016 Fengyuan Chen.
   [license](https://github.com/fengyuanchen/viewerjs/blob/master/LICENSE).
-* [ESLint](http://eslint.org/):
-  Copyright JS Foundation and other contributors, https://js.foundation .
-  [license](https://github.com/eslint/eslint/blob/master/LICENSE)
 * [TypeScript](https://github.com/Microsoft/TypeScript)
     and modified `es.d.ts`, `es/*`, `dom.d.ts` and `chrome.d.ts` in `types/`:
   Copyright (c) Microsoft Corporation (All rights reserved).
