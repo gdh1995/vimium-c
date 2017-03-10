@@ -156,12 +156,20 @@ Not released yet:
 
 # Building
 
-Install a customized version of [TypeScript](https://github.com/gdh1995/TypeScript):
-* Download https://github.com/gdh1995/TypeScript/archive/master.zip
-* Unzip it and use `bin/tsc` to compile the Vimium++ project.
-  * Or compile the lastest source by `gulp local` and use `built/local/tsc`.
-* On the project root, execute `tsc` and then `./make.sh output-file.zip`.
-* In VS Code, please set `typescript.tsdk` to absoulte path of the folder `lib`.
+If you want to compile this project manually, please run:
+
+``` bash
+npm install typescript@next
+# remove options "inferThisForObjectLiterals" and "narrowFormat" in `tsconfig.json`
+node tsc.js
+node tsc.js front
+node tsc.js pages
+#./make.sh output-file.zip
+```
+
+The two options are for another version of [TypeScript](https://github.com/gdh1995/TypeScript).
+
+`gulp local` can also compile files in place, while `gulp dist` compiles and minimizes files into `dist/`.
 
 # Thanks & License
 

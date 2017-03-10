@@ -17,7 +17,7 @@
     "gulp-uglify": "*"
   },
   "scripts": {
-    "tsc": "node ./node_modules/typescript/lib/tsc.js",
+    "tsc": "node ./tsc.js",
     "build": "gulp build",
     "rebuild": "gulp rebuild",
     "clean": "gulp clean",
