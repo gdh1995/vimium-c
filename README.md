@@ -1,13 +1,14 @@
 Vimium++
 ========
-[![MIT license](https://img.shields.io/badge/license-MIT-blue.svg)](MIT-LICENSE.txt)
+[![MIT license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE.txt)
 ![Version 1.58](https://img.shields.io/badge/release-1.58.1-orange.svg)
 
 **[Visit Vimium++ in Chrome Web Store](https://chrome.google.com/webstore/detail/vimium%2B%2B/hfjbmagddngcpeloejdejnfgbamkjaeg)**.
 
 A customized [Vimium](https://github.com/philc/vimium)
+  licensed under the [MIT license](LICENSE.txt)
   by [gdh1995](https://github.com/gdh1995),
-  supporting Chrome with the session functionalities only (ver >= 37).
+  supporting Chrome with the session functionalities (ver >= 37).
   For older version, it would try to work ^_^
 
 The branch [`basic-on-edge`](https://github.com/gdh1995/vimium-plus/tree/basic-on-edge)
