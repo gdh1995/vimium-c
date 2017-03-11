@@ -245,7 +245,7 @@ var Vomnibar = {
       else if (n === VKeyCodes.up || n === VKeyCodes.down) {
         this.lastScrolling = Date.now();
         window.onkeyup = Vomnibar.HandleKeydown;
-        return VPort.postToOwner<"scrollBy">({ name: "scrollBy", amount: n - VKeyCodes.right as -1 | 1 });
+        return VPort.postToOwner({ name: "scrollBy", amount: n - VKeyCodes.right as -1 | 1 });
       }
       else { action = this.ctrlMap[n] || ""; }
     }
@@ -491,7 +491,7 @@ var Vomnibar = {
       if (!Vomnibar.lastScrolling) {
         stop = event.keyCode > VKeyCodes.ctrlKey || event.keyCode < VKeyCodes.shiftKey;
       } else if (stop || (now = Date.now()) - Vomnibar.lastScrolling > 40) {
-        VPort.postToOwner<"scrollEnd" | "scrollGoing">(stop ? "scrollEnd" : "scrollGoing");
+        VPort.postToOwner({ name: stop ? "scrollEnd" : "scrollGoing" });
         Vomnibar.lastScrolling = now;
       }
       if (stop) { window.onkeyup = null as never; }
@@ -503,7 +503,8 @@ var Vomnibar = {
     event.stopImmediatePropagation();
   },
   returnFocus (this: void, request: BgVomnibarReq["returnFocus"]): void {
-    setTimeout(VPort.postToOwner, 0, { name: "focus", lastKey: request.lastKey });
+    setTimeout<VomnibarNS.FReq["focus"] & VomnibarNS.Msg<"focus">>(VPort.postToOwner
+      , 0, { name: "focus", lastKey: request.lastKey });
   },
   secret: null as never as (this: void, request: BgVomnibarReq["secret"]) => void,
 
@@ -606,7 +607,7 @@ VUtils = {
 },
 VPort = {
   port: null as Port | null,
-  postToOwner: null as never as <K extends keyof VomnibarNS.FReq>(this: void, request: VomnibarNS.FReq[K]) => void | 1,
+  postToOwner: null as never as VomnibarNS.IframePort["postMessage"],
   postMessage<K extends keyof FgReq> (request: FgReq[K] & Req.baseFg<K>): 1 {
     return (this.port || this.connect()).postMessage<K>(request);
   },
@@ -651,7 +652,7 @@ VPort = {
     if (!(VPort && obj)) { return; }
     obj.isActive = false;
     obj.timer > 0 && clearTimeout(obj.timer);
-    VPort.postToOwner("unload");
+    VPort.postToOwner({ name: "unload" });
   }
 };
 (function() {
@@ -672,7 +673,7 @@ VPort = {
     if (options) {
       return Vomnibar.activate(options);
     } else {
-      port.postMessage("uiComponentIsReady");
+      port.postMessage({ name: "uiComponentIsReady" });
     }
   },
   timer = setTimeout(function() { window.location.href = "about:blank"; }, 700);

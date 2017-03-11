@@ -111,31 +111,32 @@ declare namespace VomnibarNS {
     backspace: "backspace";
   }
   interface FReq {
-    hide: Msg<"hide"> & {
+    hide: {
       waitFrame: BOOL;
     };
-    scrollBy: Msg<"scrollBy"> & {
+    scrollBy: {
       amount: 1 | -1;
     };
-    style: Msg<"style"> & {
+    style: {
       height: number;
     };
-    scrollEnd: "scrollEnd";
-    scrollGoing: "scrollGoing";
-    focus: Msg<"focus"> & {
+    focus: {
       lastKey: number;
     };
-    evalJS: Msg<"evalJS"> & {
+    evalJS: {
       url: string;
     };
-    broken: Msg<"broken"> & {
+    broken: {
       active: boolean;
     };
-    unload: "unload";
-    uiComponentIsReady: "uiComponentIsReady";
+    scrollEnd: {},
+    scrollGoing: {},
+    unload: {},
+    uiComponentIsReady: {};
   }
+  type FgMsg<K extends keyof FReq> = FReq[K] & Msg<K>;
   interface IframePort {
-    postMessage<K extends keyof FReq> (this: IframePort, msg: FReq[K]): void | 1;
+    postMessage<K extends keyof FReq> (this: void, msg: FReq[K] & Msg<K>): void | 1;
     onmessage<K extends keyof CReq> (this: void, msg: { data: CReq[K] }): void | 1;
   }
   type FgOptionsToFront = CReq["activate"];

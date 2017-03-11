@@ -131,12 +131,14 @@ var Vomnibar = {
       type CReq = VomnibarNS.CReq;
       const port: VomnibarNS.IframePort = {
         onmessage: null as never as VomnibarNS.IframePort["onmessage"],
-        postMessage<K extends keyof FReq> (data: FReq[K]): void | 1 { return Vomnibar.onMessage<K>({ data: data }); }
+        postMessage<K extends keyof FReq> (data: FReq[K] & VomnibarNS.Msg<K>): void | 1 {
+          return Vomnibar.onMessage<K>({ data });
+        }
       };
       _this.sameOrigin = true;
       _this.port = {
         close (): void {},
-        postMessage<K extends keyof CReq> (data: CReq[K]): void | 1 { return port.onmessage<K>({ data: data }); }
+        postMessage<K extends keyof CReq> (data: CReq[K]): void | 1 { return port.onmessage<K>({ data }); }
       };
       if (location.hash === "#chrome-ui") { _this.defaultTop = "5px"; }
       wnd.Vomnibar.showFavIcon = true;
@@ -163,9 +165,9 @@ var Vomnibar = {
     } catch (e) { return false; }
     return this._forceRedo = true;
   },
-  onMessage<K extends keyof VomnibarNS.FReq> ({ data: data }: { data: VomnibarNS.FReq[K] }): void | 1 {
+  onMessage<K extends keyof VomnibarNS.FReq> ({ data }: { data: VomnibarNS.FReq[K] & VomnibarNS.Msg<K> }): void | 1 {
     type Req = VomnibarNS.FReq;
-    switch ((data as VomnibarNS.Msg<string>).name as K || (data as K)) {
+    switch (data.name) {
     case "uiComponentIsReady":
       this.status = VomnibarNS.Status.ToShow;
       let opt = this.options;
@@ -182,7 +184,7 @@ var Vomnibar = {
     case "scrollEnd": VScroller.keyIsDown = 0; break;
     case "evalJS": VUtils.evalIfOK((data as Req["evalJS"]).url); break;
     case "broken": (data as Req["broken"]).active && window.focus(); // no break;
-    case "unload": return Vomnibar ? this.reset(data !== "unload") : undefined;
+    case "unload": return Vomnibar ? this.reset(data.name !== "unload") : undefined;
     }
   },
   onShown (): number {
