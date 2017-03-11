@@ -226,18 +226,15 @@ bookmarks: {
     const c = SuggestionUtils.ComputeWordRelevancy, isPath = queryTerms.some(this.StartsWithSlash);
     let results: Suggestion[] = [];
     for (let ref = this.bookmarks, _i = ref.length; 0 <= --_i; ) {
-      const i: Bookmark = ref[_i];
-      const title = isPath ? i.path : i.title;
+      const i: Bookmark = ref[_i], title = isPath ? i.path : i.title;
       if (!RankingUtils.Match2(i.text, title)) { continue; }
-      if (!(i as JSBookmark).jsUrl) {
-        results.push(new Suggestion("bookm", i.url, i.text, title, c));
-        continue;
-      }
-      const sug = new Suggestion("bookm", (i as JSBookmark).jsUrl, "", title, c);
+      const jsUrl = (i as JSBookmark).jsUrl,
+      sug = new Suggestion("bookm", jsUrl || i.url, i.text, title, c);
+      results.push(sug);
+      if (!jsUrl) { continue; }
       sug.titleSplit = SuggestionUtils.highlight(title, SuggestionUtils.getRanges(title));
       sug.textSplit = "javascript: ...";
       sug.text = (i as JSBookmark).jsText;
-      results.push(sug);
     }
     if (queryType === FirstQuery.waitFirst || offset === 0) {
       results.sort(Completers.rsortByRelevancy);
@@ -302,7 +299,7 @@ bookmarks: {
     }
     const url = bookmark.url as string;
     const bookm: Bookmark = url.startsWith("javascript:") ? {
-      url: "", text: "", path, title,
+      url: "", text: "javascript:", path, title,
       jsUrl: url, jsText: Utils.DecodeURLPart(url)
     } as JSBookmark : {
       url, text: url, path, title
