@@ -16,7 +16,10 @@ typescript = require("typescript/lib/typescript");
 var locally = false;
 var compilerOptions = loadValidCompilerOptions("tsconfig.gulp.json");
 var manifest = readJSON("manifest.json", true);
-var DEST = compilerOptions.outDir || "dist";
+var DEST = compilerOptions.outDir;
+if (!DEST || DEST === ".") {
+  DEST = compilerOptions.outDir = "dist";
+}
 var enableSourceMap = !!compilerOptions.sourceMap;
 var willListFiles   = !!compilerOptions.listFiles;
 var removeComments  = !!compilerOptions.removeComments;
