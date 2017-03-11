@@ -162,7 +162,7 @@ const SuggestionUtils = {
     const out: string[] = [];
     let cutStart = -1, temp: number, end: number = 0;
     if (string.length <= maxCharNum || (cutStart = strCoded.indexOf(":")) < 0) {}
-    else if (!Utils.protocolRe.test(string.substring(0, cutStart).toLowerCase())) { ++cutStart; }
+    else if (!Utils.protocolRe.test(string.substring(0, cutStart + 3).toLowerCase())) { ++cutStart; }
     else if ((cutStart = strCoded.indexOf("/", cutStart + 4)) >= 0) {
       temp = string.indexOf("://");
       cutStart = string.indexOf("/", (temp < 0 || temp > cutStart) ? 0 : (temp + 4));
@@ -626,7 +626,11 @@ searchEngines: {
        url: string, text: string;
     if (q.length === 0) {}
     else if (failIfNull !== true && keyword[0] === "\\") {
-      q[0] = keyword.substring(1);
+      if (keyword.length > 1) {
+        q[0] = keyword.substring(1);
+      } else {
+        q.shift();
+      }
       keyword = q.join(" ");
       sug = this.makeUrlSuggestion(keyword, "\\" + keyword);
       autoSelect = true;
