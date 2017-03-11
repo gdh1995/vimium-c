@@ -51,9 +51,10 @@ interface BgReq {
   init: {
     name: "init",
     load: SettingsNS.FrontendSettingCache,
+    passKeys: string | null;
     mapKeys: SafeDict<string> | null,
     keyMap: KeyMap
-  } & BgReq["reset"];
+  };
   settingsUpdate: {
     name: "settingsUpdate",
   } & {

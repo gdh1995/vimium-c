@@ -6,7 +6,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
     (this: void): void;
   }
   interface Port extends chrome.runtime.Port {
-    postMessage<K extends keyof FgReq>(request: FgReq[K]): 1;
+    postMessage<K extends keyof FgReq>(request: Req.fg<K>): 1;
     postMessage<K extends keyof FgRes>(request: Req.fgWithRes<K>): 1;
   }
   interface ShadowRootEx extends ShadowRoot {
@@ -26,16 +26,16 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
     port: null as Port | null,
     _callbacks: Object.create(null) as { [msgId: number]: <K extends keyof FgRes>(this: void, res: FgRes[K]) => void },
     _id: 1,
-    post: function<K extends keyof FgReq> (this: void, request: Req.fg<K>): 1 {
+    post: function<K extends keyof FgReq> (this: void, request: FgReq[K] & Req.baseFg<K>): 1 {
       return (vPort.port as Port).postMessage(request);
     } as VPort["post"],
-    send: function<K extends keyof FgRes> (this: void, request: Req.fg<K>
+    send: function<K extends keyof FgRes> (this: void, request: FgReq[K] & Req.baseFg<K>
         , callback: (this: void, res: FgRes[K]) => void): void {
       let id = ++vPort._id;
       (vPort.port as Port).postMessage({_msgId: id, request: request});
       vPort._callbacks[id] = callback;
     } as VPort["send"],
-    safePost<K extends keyof FgReq> (request: Req.fg<K>): void {
+    safePost<K extends keyof FgReq> (request: FgReq[K] & Req.baseFg<K>): void {
       try {
         if (!this.port) {
           this.connect(PortType.nothing);

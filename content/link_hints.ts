@@ -948,13 +948,13 @@ COPY_TEXT: {
       return VHUD.showCopied("", isUrl ? "url" : "");
     }
     if (this.mode >= HintMode.EDIT_TEXT && this.mode <= HintMode.EDIT_LINK_URL) {
-      VPort.post({
+      VPort.post<"activateVomnibar", { count: number } & Partial<VomnibarNS.ContentOptions>>({
         handler: "activateVomnibar",
         count: 1,
         force: !isUrl,
         url: str,
         keyword: (this.options.keyword || "") + ""
-      } as Req.fg<"activateVomnibar"> & Pick<VomnibarNS.ContentOptions, "url" | "force" | "keyword">);
+      });
       return;
     } else if (this.mode1 === HintMode.SEARCH_TEXT) {
       VPort.post({

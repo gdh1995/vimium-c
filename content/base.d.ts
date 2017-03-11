@@ -193,9 +193,10 @@ interface VDomMouse {
     , modifiers?: EventControlKeys | null, related?: Element | null): boolean;
 }
 interface VPort {
-  post<K extends keyof FgReq>(this: void, req: Req.fg<K>): void | 1;
   post<K extends keyof SettingsNS.FrontUpdateAllowedSettings>(this: void, req: SetSettingReq<K>): void | 1;
-  send<K extends keyof FgRes>(this: void, req: Req.fg<K>, callback: (this: void, res: FgRes[K]) => void): void;
+  post<K extends keyof FgReq, T extends FgReq[K]>(this: void, req: T & Req.baseFg<K>): void | 1;
+  send<K extends keyof FgRes>(this: void, req: FgReq[K] & Req.baseFg<K>
+    , callback: (this: void, res: FgRes[K]) => void): void;
 }
 interface VEventMode {
   lock(this: void): Element | null;

@@ -559,10 +559,10 @@ var Vomnibar = {
   gotoSession (item: SuggestionE & { sessionId: string | number }): void {
     VPort.postMessage({
       handler: "gotoSession",
-      active: this.actionType > -2,
+      active: this.actionType > ReuseType.newBg,
       sessionId: item.sessionId
     });
-    if (this.actionType > -2) { return; }
+    if (this.actionType > ReuseType.newBg) { return; }
     window.getSelection().removeAllRanges();
     if (item.type !== "tab") {
       return this.refresh();
@@ -607,12 +607,12 @@ VUtils = {
 VPort = {
   port: null as Port | null,
   postToOwner: null as never as <K extends keyof VomnibarNS.FReq>(this: void, request: VomnibarNS.FReq[K]) => void | 1,
-  postMessage<K extends keyof FgReq> (request: Req.fg<K>): 1 {
-    return ((this as typeof VPort).port || (this as typeof VPort).connect()).postMessage(request);
+  postMessage<K extends keyof FgReq> (request: FgReq[K] & Req.baseFg<K>): 1 {
+    return (this.port || this.connect()).postMessage<K>(request);
   },
   _callbacks: Object.create(null) as { [msgId: number]: <K extends keyof FgRes>(this: void, res: FgRes[K]) => void },
   _id: 1,
-  sendMessage<K extends keyof FgRes> (request: Req.fg<K> , callback: (this: void, res: FgRes[K]) => void): void {
+  sendMessage<K extends keyof FgRes> (request: FgReq[K] & Req.baseFg<K> , callback: (this: void, res: FgRes[K]) => void): void {
     const id = ++this._id;
     ((this as typeof VPort).port || (this as typeof VPort).connect()).postMessage({_msgId: id, request: request});
     this._callbacks[id] = callback;

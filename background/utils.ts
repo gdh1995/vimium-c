@@ -419,7 +419,7 @@ const Utils = {
     return indexes == null ? url : { url, indexes };
   } as Search.Executor,
   DecodeURLPart (this: void, url: string | undefined): string {
-    if (!url) { url = ""; }
+    if (!url) { return ""; }
     try {
       url = decodeURIComponent(url);
     } catch (e) {}
