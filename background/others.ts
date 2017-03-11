@@ -161,18 +161,19 @@ setTimeout((function() { if (!chrome.browserAction) { return; }
 }), 150);
 
 setTimeout((function() { if (!chrome.omnibox) { return; }
-  interface SuggestionEx extends Readonly<Suggestion> {
-    description?: string;
-  }
   interface OmniboxCallback extends Partial<CompletersNS.QueryStatus> {
     (this: void, suggestResults: chrome.omnibox.SuggestResult[]): true;
     (this: void): void;
+  }
+  const enum FirstSugType {
+    Default = 0,
+    defaultOpen = 1, search, plainOthers
   }
   let last: string = "", firstResult: Suggestion | null, lastSuggest: OmniboxCallback | null
     , tempRequest: [string, OmniboxCallback] | null
     , timeout = 0, sessionIds: SafeDict<string | number> | null
     , suggestions = null as chrome.omnibox.SuggestResult[] | null, outTimeout = 0, outTime: number
-    , defaultSuggestionType: 0 | 1 | 2 | 3 = 0, matchType: CompletersNS.MatchType = CompletersNS.MatchType.Default
+    , defaultSuggestionType = FirstSugType.Default, matchType: CompletersNS.MatchType = CompletersNS.MatchType.Default
     , firstType: CompletersNS.ValidTypes | "";
   const defaultSug: chrome.omnibox.Suggestion = { description: "<dim>Open: </dim><url>%s</url>" },
   formatSessionId = function(sug: Suggestion) {
@@ -180,15 +181,9 @@ setTimeout((function() { if (!chrome.omnibox) { return; }
       (sessionIds as SafeDict<string | number>)[sug.url] = sug.sessionId;
     }
   },
-  format = function(this: void, sug: SuggestionEx): chrome.omnibox.SuggestResult {
-    let str: string;
-    if (sug.description) {
-      str = sug.description;
-    } else {
-      str = "<url>" + sug.textSplit;
-      str += sug.title ? "</url><dim> - " + Utils.escapeText(sug.title) + "</dim>"
-        : "</url>";
-    }
+  format = function(this: void, sug: Readonly<Suggestion>): chrome.omnibox.SuggestResult {
+    let str = "<url>" + sug.textSplit;
+    str += sug.title ? "</url><dim> - " + Utils.escapeText(sug.title) + "</dim>" : "</url>";
     return {
       content: sug.url,
       description: str
@@ -232,26 +227,26 @@ setTimeout((function() { if (!chrome.omnibox) { return; }
     if (autoSelect) {
       firstResult = response.shift() as Suggestion;
     }
+    suggestions = response.map(format);
     if (!autoSelect) {
-      if (defaultSuggestionType !== 1) {
+      if (defaultSuggestionType !== FirstSugType.defaultOpen) {
         chrome.omnibox.setDefaultSuggestion(defaultSug);
-        defaultSuggestionType = 1;
+        defaultSuggestionType = FirstSugType.defaultOpen;
       }
     } else if (sug.type === "search") {
       let text = (sug.titleSplit as string).split(": <")[0];
       text = `<dim>${text} - </dim><url>${sug.textSplit}</url>`;
-      defaultSuggestionType = 2;
+      defaultSuggestionType = FirstSugType.search;
       chrome.omnibox.setDefaultSuggestion({ description: text });
       if (sug = response[0]) switch (sug.type) {
       case "math":
-        (sug as SuggestionEx).description = `<dim>${sug.textSplit} = </dim><url><match>${sug.title}</match></url>`;
+        suggestions[0].description = `<dim>${sug.textSplit} = </dim><url><match>${sug.title}</match></url>`;
         break;
       }
     } else {
-      defaultSuggestionType = 3;
+      defaultSuggestionType = FirstSugType.plainOthers;
       chrome.omnibox.setDefaultSuggestion({ description: format(sug).description });
     }
-    suggestions = response.map(format);
     outTimeout || setTimeout(outClean, 30000);
     Utils.resetRe();
     suggest(suggestions);
