@@ -38,7 +38,7 @@ var Tasks = {
   options: "pages/options*.ts",
   pages: ["pages/others", "show", "options"],
   "static/special": function() {
-    return copyByPath("pages/newtab.js");
+    return copyByPath(["pages/newtab.js", "lib/math_parser*", "lib/*.min.js"]);
   },
   static: ["static/special", function() {
     return copyByPath(["front/*", "pages/*", "icons/*", "lib/*.css"
@@ -368,7 +368,7 @@ function readCompilerOptions(tsConfigFile, throwError) {
     tsConfigFile += ".json";
   }
   var config = readJSON(tsConfigFile);
-  var compilerOptions = config.compilerOptions;
+  var compilerOptions = config ? config.compilerOptions || {} : null;
   if (compilerOptions && config.extends) {
     var baseFile = osPath.join(osPath.dirname(tsConfigFile), config.extends);
     var baseOptions = readCompilerOptions(baseFile, throwError);

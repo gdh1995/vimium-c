@@ -1,9 +1,13 @@
 #!/usr/bin/env bash
 set +o noglob
+function bool() {
+  [ "$1" == TRUE -o "$1" == true ] || (
+    [ "$1" != FALSE -a "$1" != false ] && [ "${1:-0}" -gt 0 ]
+  )
+}
+
 in_dist=false
-if [ -n "$IN_PLACE" ] && [ "${IN_PLACE:-0}" -gt 0 \
-      -o "$IN_PLACE" == TRUE -o "$IN_PLACE" == true ] \
-    && [ -d "dist" -a -f "dist/manifest.json" ]; then
+if bool "$IN_DIST" && [ -d "dist" -a -f "dist/manifest.json" ]; then
   in_dist=true
   cd dist; input=$(echo *); cd ..
 else
@@ -38,7 +42,7 @@ fi
 output_for_zip=${output}
 if [ $in_dist == true ]; then
   cd dist
-  if [ "$output_for_zip" == "${output_for_zip#/}" ]; then
+  if [ "${output_for_zip#/}" == "${output_for_zip#[a-zA-Z]:/}" ]; then
     output_for_zip=../${output_for_zip}
   fi
 fi
