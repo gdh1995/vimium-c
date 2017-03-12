@@ -104,10 +104,13 @@ const Suggestion: SuggestionConstructor = function (this: CompletersNS.WritableC
 
 const SuggestionUtils = {
   prepareHtml (sug: Suggestion): void {
-    if (sug.text === sug.url) { sug.text = ""; }
-    if (sug.textSplit != null) { return; }
+    if (sug.textSplit != null) {
+      if (sug.text === sug.url) { sug.text = ""; }
+      return;
+    }
     sug.titleSplit = this.highlight(sug.title, this.getRanges(sug.title));
-    const str = sug.text = this.shortenUrl(sug.text);
+    const text = sug.text, str = this.shortenUrl(text);
+    sug.text = text !== sug.url ? str : "";
     sug.textSplit = this.cutUrl(str, this.getRanges(str), sug.url);
   },
   highlight (this: void, string: string, ranges: number[]): string {
