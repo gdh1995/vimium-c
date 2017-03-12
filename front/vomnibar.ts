@@ -679,7 +679,7 @@ VPort = {
   },
   timer = setTimeout(function() { window.location.href = "about:blank"; }, 700);
   Vomnibar.secret = function(request): void {
-    Vomnibar.secret = null as never;
+    Vomnibar.secret = function() {};
     return handler(request.secret);
   };
   window.onmessage = function(event: MessageEvent): void {
