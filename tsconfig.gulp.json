@@ -1,0 +1,9 @@
+{
+  "compilerOptions": {
+    "listFiles": true,
+    "outDir": "./dist",
+    "skipDefaultLibCheck": true,
+    "sourceMap": true
+  },
+  "extends": "tsconfig"
+}
