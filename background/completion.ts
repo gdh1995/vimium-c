@@ -108,7 +108,7 @@ const SuggestionUtils = {
       if (sug.text === sug.url) { sug.text = ""; }
       return;
     }
-    sug.titleSplit = this.highlight(sug.title, this.getRanges(sug.title));
+    sug.title = this.highlight(sug.title, this.getRanges(sug.title));
     const text = sug.text, str = this.shortenUrl(text);
     sug.text = text !== sug.url ? str : "";
     sug.textSplit = this.cutUrl(str, this.getRanges(str), sug.url);
@@ -237,7 +237,7 @@ bookmarks: {
       sug = new Suggestion("bookm", jsUrl || i.url, i.text, title, c);
       results.push(sug);
       if (jsUrl == null) { continue; }
-      sug.titleSplit = SuggestionUtils.highlight(title, SuggestionUtils.getRanges(title));
+      sug.title = SuggestionUtils.highlight(sug.title, SuggestionUtils.getRanges(sug.title));
       sug.textSplit = "javascript: ...";
       sug.text = (i as JSBookmark).jsText;
     }
@@ -510,7 +510,6 @@ domains: {
     }
     if (result) {
       sug = new Suggestion("domain", (ref[result][2] ? "https://" : "http://") + result, "", "", this.compute2);
-      sug.titleSplit = "";
       sug.textSplit = SuggestionUtils.cutUrl(result, SuggestionUtils.getRanges(result), sug.url);
       --maxResults;
     }
@@ -688,12 +687,12 @@ searchEngines: {
     if (q.length > 0) {
       sug.text = this.makeText(text, obj.indexes);
       sug.textSplit = SuggestionUtils.highlight(sug.text, obj.indexes);
-      sug.titleSplit = SuggestionUtils.highlight(sug.title
+      sug.title = SuggestionUtils.highlight(sug.title
         , [pattern.name.length + 2, sug.title.length]);
     } else {
       sug.text = Utils.DecodeURLPart(SuggestionUtils.shortenUrl(text));
       sug.textSplit = Utils.escapeText(sug.text);
-      sug.titleSplit = Utils.escapeText(sug.title);
+      sug.title = Utils.escapeText(sug.title);
     }
     sug.pattern = pattern.name;
 
@@ -711,8 +710,7 @@ searchEngines: {
     const sug = new Suggestion("math", "vimium://copy " + result, result, result, this.compute9);
     output.push(sug);
     --sug.relevancy;
-    sug.titleSplit = "<match style=\"text-decoration: none;\">" +
-      Utils.escapeText(sug.title) + "<match>";
+    sug.title = "<match style=\"text-decoration: none;\">" + Utils.escapeText(sug.title) + "<match>";
     sug.textSplit = Utils.escapeText(arr[2]);
     return Completers.next(output);
   },
@@ -755,14 +753,9 @@ searchEngines: {
     const url = Utils.convertToUrl(keyword, null, Urls.WorkType.KeepAll),
     isSearch = Utils.lastUrlType === Urls.Type.Search,
     sug = new Suggestion("search", url, text || Utils.DecodeURLPart(SuggestionUtils.shortenUrl(url))
-      , keyword, this.compute9) as SearchSuggestion;
+      , "", this.compute9) as SearchSuggestion;
     sug.textSplit = Utils.escapeText(sug.text);
-    if (isSearch) {
-      (sug as CompletersNS.WritableCoreSuggestion).title = "~: " + keyword;
-      sug.titleSplit = SuggestionUtils.highlight(sug.title, [3, 3 + keyword.length]);
-    } else {
-      sug.titleSplit = Utils.escapeText(keyword);
-    }
+    sug.title = isSearch ? "~: " + SuggestionUtils.highlight(keyword, [0, keyword.length]) : Utils.escapeText(keyword);
     sug.pattern = isSearch ? "~" : "";
     return sug;
   },

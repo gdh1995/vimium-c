@@ -41,7 +41,7 @@ declare namespace CompletersNS {
   interface BaseSuggestion extends CoreSuggestion {
     text: string;
     textSplit?: string;
-    titleSplit?: string;
+    title: string;
     sessionId?: string | number;
   }
   interface Suggestion extends BaseSuggestion {
