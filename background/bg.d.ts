@@ -83,13 +83,8 @@ declare namespace Urls {
   type WorkAllowEval = WorkType.ActIfNoSideEffects | WorkType.ActAnyway;
 
   interface Converter {
-    (string: string, keyword: string | null,
-      vimiumUrlWork: Urls.WorkType.KeepAll | Urls.WorkType.ConvertKnown | Urls.WorkType.ValidNormal
-      ): string;
-    (string: string, keyword: string | null, vimiumUrlWork: undefined): string;
-    (string: string, keyword: string | null, vimiumUrlWork: Urls.WorkType | undefined): Url;
-    (string: string, keyword: string): string;
-    (string: string): string;
+    (string: string, keyword: string | null | undefined, vimiumUrlWork: WorkAllowEval): Url;
+    (string: string, keyword?: string | null, vimiumUrlWork?: Urls.WorkType): string;
   }
 }
 

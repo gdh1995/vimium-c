@@ -114,7 +114,7 @@ window.onhashchange = function(this: void): void {
     shownNode = (importBody as ImportBody)("shownText");
     if (url && BG) {
       str = BG.Utils.convertToUrl(url, null, Urls.WorkType.ActIfNoSideEffects);
-      if (BG.Utils.lastUrlType !== 5) {}
+      if (BG.Utils.lastUrlType !== Urls.Type.Functional) {}
       else if (str instanceof BG.Promise) {
         str.then(function(arr) {
           showText(arr[1], arr[0] || (arr[2] || ""));

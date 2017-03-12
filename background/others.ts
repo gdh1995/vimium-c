@@ -240,7 +240,7 @@ setTimeout((function() { if (!chrome.omnibox) { return; }
       chrome.omnibox.setDefaultSuggestion({ description: text });
       if (sug = response[0]) switch (sug.type) {
       case "math":
-        suggestions[0].description = `<dim>${sug.textSplit} = </dim><url><match>${sug.title}</match></url>`;
+        suggestions[0].description = `<dim>${sug.textSplit} = </dim><url><match>${sug.text}</match></url>`;
         break;
       }
     } else {

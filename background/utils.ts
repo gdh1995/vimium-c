@@ -106,8 +106,8 @@ const Utils = {
     else if (string.startsWith("vimium:")) {
       type = Urls.Type.PlainVimium;
       vimiumUrlWork = (vimiumUrlWork as number) | 0;
-      if (vimiumUrlWork < -1 || !(string = oldString.substring(9))) {}
-      else if (vimiumUrlWork === -1
+      if (vimiumUrlWork < Urls.WorkType.ConvertKnown || !(string = oldString.substring(9))) {}
+      else if (vimiumUrlWork === Urls.WorkType.ConvertKnown
           || !(oldString = this.evalVimiumUrl(string, vimiumUrlWork) as string)) {
         oldString = this.formatVimiumUrl(string, false, vimiumUrlWork);
       } else if (typeof oldString !== "string") {
@@ -265,7 +265,7 @@ const Utils = {
       return this.require<object>("MathParser").catch(function() { return null;
       }).then<Urls.MathEvalResult>(function(MathParser): Urls.MathEvalResult {
         let result = Utils.tryEvalMath(path, MathParser) || "";
-        return [result, "math", path] as Urls.MathEvalResult;
+        return [result, "math", path];
       });
     }
     else if (workType === Urls.WorkType.ActAnyway) switch (cmd) {
@@ -276,7 +276,7 @@ const Utils = {
           let path = arr[0] || (arr[2] || "");
           path = path instanceof Array ? path.join(" ") : path;
           Clipboard.copy(path);
-          return [path, "copy"] as Urls.CopyEvalResult;
+          return [path, "copy"];
         });
       } else {
         res = (this.lastUrlType === Urls.Type.Functional &&
@@ -286,7 +286,7 @@ const Utils = {
       // no break;
     case "c": case "cp": case "copy": // here `typeof path` must be `string`
       Clipboard.copy(path);
-      return [path, "copy"] as Urls.CopyEvalResult;
+      return [path, "copy"];
     }
     switch (cmd) {
     case "p": case "parse": case "decode":
@@ -318,11 +318,11 @@ const Utils = {
       return null;
     }
     if (workType === Urls.WorkType.ActIfNoSideEffects) {
-      return [arr, "search"] as Urls.SearchEvalResult;
+      return [arr, "search"];
     }
     ind = this._nestedEvalCounter++;
     if (ind > 12) { return null; }
-    if (ind === 12) { return this.createSearchUrl(arr, "", 0); }
+    if (ind === 12) { return this.createSearchUrl(arr); }
     if (ind > 0) { return this.createSearchUrl(arr, "", workType); }
     res = this.createSearchUrl(arr, "", workType);
     this._nestedEvalCounter = 0;
@@ -372,10 +372,7 @@ const Utils = {
     } else {
       url = query.join(" ");
     }
-    if (keyword !== "~") {
-      return this.convertToUrl(url, null, vimiumUrlWork);
-    }
-    return url;
+    return keyword !== "~" ? this.convertToUrl(url, null, vimiumUrlWork) : url;
   } as {
     (query: string[], keyword: "~", vimiumUrlWork?: Urls.WorkType): string;
     (query: string[], keyword: string | null | undefined, vimiumUrlWork: Urls.WorkAllowEval): Urls.Url;

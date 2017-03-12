@@ -105,7 +105,7 @@ const Suggestion: SuggestionConstructor = function (this: CompletersNS.WritableC
 const SuggestionUtils = {
   prepareHtml (sug: Suggestion): void {
     if (sug.text === sug.url) { sug.text = ""; }
-    if (sug.textSplit) { return; }
+    if (sug.textSplit != null) { return; }
     sug.titleSplit = this.highlight(sug.title, this.getRanges(sug.title));
     const str = sug.text = this.shortenUrl(sug.text);
     sug.textSplit = this.cutUrl(str, this.getRanges(str), sug.url);
@@ -233,7 +233,7 @@ bookmarks: {
       const jsUrl = (i as JSBookmark).jsUrl,
       sug = new Suggestion("bookm", jsUrl || i.url, i.text, title, c);
       results.push(sug);
-      if (!jsUrl) { continue; }
+      if (jsUrl == null) { continue; }
       sug.titleSplit = SuggestionUtils.highlight(title, SuggestionUtils.getRanges(title));
       sug.textSplit = "javascript: ...";
       sug.text = (i as JSBookmark).jsText;
@@ -701,16 +701,13 @@ searchEngines: {
   },
   onPrimose (query: CompletersNS.QueryStatus, output: Suggestion[], arr: Urls.MathEvalResult): void {
     if (query.isOff) { return; }
-    if (!arr[0]) {
+    const result = arr[0];
+    if (!result) {
       return Completers.next(output);
     }
-    const sug = new Suggestion("math", "", "", "", this.compute9);
+    const sug = new Suggestion("math", "vimium://copy " + result, result, result, this.compute9);
     output.push(sug);
     --sug.relevancy;
-    sug.text = (sug as CompletersNS.WritableCoreSuggestion).title = arr[0];
-    if (!arr[0].startsWith("vimium://copy")) {
-      (sug as CompletersNS.WritableCoreSuggestion).url = "vimium://copy " + arr[0];
-    }
     sug.titleSplit = "<match style=\"text-decoration: none;\">" +
       Utils.escapeText(sug.title) + "<match>";
     sug.textSplit = Utils.escapeText(arr[2]);
