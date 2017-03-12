@@ -103,6 +103,7 @@ const Suggestion: SuggestionConstructor = function (this: CompletersNS.WritableC
 
 const SuggestionUtils = {
   prepareHtml (sug: Suggestion): void {
+    if (sug.text === sug.url) { sug.text = ""; }
     if (sug.textSplit) { return; }
     sug.titleSplit = this.highlight(sug.title, this.getRanges(sug.title));
     const str = sug.text = this.shortenUrl(sug.text);
@@ -504,8 +505,7 @@ domains: {
       if (score > result_score) { result_score = score; result = domain; }
     }
     if (result) {
-      sug = new Suggestion("domain", (ref[result][2] ? "https://" + result : "http://" + result)
-        , result, "", this.compute2);
+      sug = new Suggestion("domain", (ref[result][2] ? "https://" : "http://") + result, "", "", this.compute2);
       sug.titleSplit = "";
       sug.textSplit = SuggestionUtils.cutUrl(result, SuggestionUtils.getRanges(result), sug.url);
       --maxResults;

@@ -537,6 +537,7 @@ var Vomnibar = {
 
   parse: function(item: SuggestionE) {
     let str: string;
+    item.text || ((item as CompletersNS.WritableCoreSuggestion).text = item.url);
     if ((this as typeof Vomnibar).showFavIcon && (str = item.url) && str.length <= 512 && str.indexOf("://") > 0) {
       item.favIconUrl = ' icon" style="background-image: url(&quot;chrome://favicon/size/16/' +
         VUtils.escapeCSSStringInAttr(str) + "&quot;)";
