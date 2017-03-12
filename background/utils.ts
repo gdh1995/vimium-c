@@ -233,6 +233,8 @@ const Utils = {
       path = path.toLowerCase();
       if (tempStr = Settings.CONST.RedirectedUrls[path]) {
         path = tempStr;
+      } else if (path === "newtab") {
+        return Settings.cache.newTabUrl_f;
       } else if (path.charCodeAt(0) === 47 || Settings.CONST.KnownPages.indexOf(path) >= 0) {
         path += ".html";
       } else if (vimiumUrlWork === Urls.WorkType.ActIfNoSideEffects  || vimiumUrlWork === Urls.WorkType.ConvertKnown) {
@@ -253,17 +255,10 @@ const Utils = {
       , onlyOnce?: boolean): Urls.Url | null {
     let ind: number, cmd: string, arr: string[], obj: { url: string } | null, res: Urls.Url | string[];
     workType = (workType as Urls.WorkType) | 0;
-    if (workType < Urls.WorkType.ValidNormal || !(cmd = path = path.trim())) {
-      return null;
-    }
-    if ((ind = path.indexOf(" ")) <= 0 ||
+    if (workType < Urls.WorkType.ValidNormal || !(cmd = path = path.trim()) || (ind = path.indexOf(" ")) <= 0 ||
         !(this as typeof Utils)._vimiumCmdRe.test(cmd = path.substring(0, ind).toLowerCase()) ||
         (this as typeof Utils)._vimiumFileExtRe.test(cmd)) {
-      switch (cmd) {
-      case "newtab":
-        break;
-      default: return null;
-      }
+      return null;
     }
     path = path.substring(ind + 1).trimLeft();
     if (!path) { return null; }
@@ -321,8 +316,6 @@ const Utils = {
     case "u": case "url": case "search":
       arr = path.split(this.spacesRe);
       break;
-    case "newtab":
-      return Settings.cache.newTabUrl_f;
     default:
       return null;
     }
