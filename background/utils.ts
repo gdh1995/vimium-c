@@ -22,9 +22,11 @@ const Utils = {
     return this._reToReset.test("") as true;
   },
   escapeText (s: string): string {
-    const escapeRe = <RegExpG & RegExpSearchable<0>> /[&<]/g, escapeCallback = function(c: string): string {
-      return c.charCodeAt(0) === 38 ? "&amp;" : "&lt;";
-    };
+    const escapeRe = <RegExpG & RegExpSearchable<0>> /["&'<>]/g;
+    function escapeCallback(c: string): string {
+      const i = c.charCodeAt(0);
+      return i === 38 ? "&amp;" : i === 39 ? "&apos" : i < 39 ? "&quot;" : i === 60 ? "&lt;" : "&gt;";
+    }
     this.escapeText = function(s: string): string {
       return s.replace(escapeRe, escapeCallback);
     };

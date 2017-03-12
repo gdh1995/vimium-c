@@ -595,10 +595,10 @@ VUtils = {
     return url;
   },
   escapeCSSStringInAttr (s: string): string {
-    const escapeRe = <RegExpG & RegExpSearchable<0>> /["&<>]/g;
+    const escapeRe = <RegExpG & RegExpSearchable<0>> /["&'<>]/g;
     function escapeCallback(c: string): string {
       const i = c.charCodeAt(0);
-      return i === 38 ? "&amp;" : i < 38 ? "\\&quot;" : i === 60 ? "&lt;" : "&gt;";
+      return i === 38 ? "&amp;" : i === 39 ? "&apos" : i < 39 ? "\\&quot;" : i === 60 ? "&lt;" : "&gt;";
     }
     this.escapeCSSStringInAttr = function(s): string {
       return s.replace(escapeRe, escapeCallback);
