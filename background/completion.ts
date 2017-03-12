@@ -108,10 +108,14 @@ const SuggestionUtils = {
       if (sug.text === sug.url) { sug.text = ""; }
       return;
     }
-    sug.title = this.highlight(sug.title, this.getRanges(sug.title));
+    sug.title = this.cutTitle(sug.title);
     const text = sug.text, str = this.shortenUrl(text);
     sug.text = text !== sug.url ? str : "";
     sug.textSplit = this.cutUrl(str, this.getRanges(str), sug.url);
+  },
+  cutTitle (title: string): string {
+    title = title.length > 128 ? title.substring(0, 125) + "..." : title;
+    return this.highlight(title, this.getRanges(title));
   },
   highlight (this: void, string: string, ranges: number[]): string {
     let out: string[], end: number;
