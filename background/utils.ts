@@ -307,12 +307,14 @@ const Utils = {
       }
       arr = [path];
       path = this.convertToUrl(path);
-      if (this.lastUrlType !== Urls.Type.Search && typeof path === "string") {
-        if (obj = g_requestHandlers.parseSearchUrl({ url: path })) {
+      if (this.lastUrlType !== Urls.Type.Search && (obj = g_requestHandlers.parseSearchUrl({ url: path }))) {
+        if (obj.url === "") {
+          arr = [cmd];
+        } else {
           arr = obj.url.split(" ");
           arr.unshift(cmd);
-          break;
         }
+        break;
       }
       path = arr[0];
       // no break;
