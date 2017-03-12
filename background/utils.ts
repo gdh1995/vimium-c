@@ -233,7 +233,7 @@ const Utils = {
       path = path.toLowerCase();
       if (tempStr = Settings.CONST.RedirectedUrls[path]) {
         path = tempStr;
-      } else if (Settings.CONST.KnownPages.indexOf(path) >= 0 || path.charCodeAt(0) === 47) {
+      } else if (path.charCodeAt(0) === 47 || Settings.CONST.KnownPages.indexOf(path) >= 0) {
         path += ".html";
       } else if (vimiumUrlWork === Urls.WorkType.ActIfNoSideEffects  || vimiumUrlWork === Urls.WorkType.ConvertKnown) {
         return "vimium://" + fullpath.trim();
@@ -248,14 +248,22 @@ const Utils = {
   },
   _nestedEvalCounter: 0,
   _vimiumCmdRe: <RegExpI> /^[a-z][\da-z\-]*(?:\.[a-z][\da-z\-]*)*$/i,
+  _vimiumFileExtRe: <RegExpI> /\.(?:css|html|js)$/i,
   evalVimiumUrl (path: string, workType?: Urls.WorkType): Urls.Url | null {
     let ind: number, cmd: string, arr: string[], obj: { url: string } | null, res: Urls.Url | string[];
-    path = path.trim();
+    cmd = path = path.trim();
     workType = (workType as Urls.WorkType) | 0;
-    if (!path || workType < Urls.WorkType.ValidNormal || (ind = path.indexOf(" ")) <= 0 ||
-        !this._vimiumCmdRe.test(cmd = path.substring(0, ind).toLowerCase()) ||
-        cmd.endsWith(".html") || cmd.endsWith(".js") || cmd.endsWith(".css")) {
+    if (!path || workType < Urls.WorkType.ValidNormal) {
       return null;
+    }
+    if ((ind = path.indexOf(" ")) <= 0 ||
+        !this._vimiumCmdRe.test(cmd = path.substring(0, ind).toLowerCase()) ||
+        this._vimiumFileExtRe.test(cmd)) {
+      switch (cmd) {
+      case "newtab":
+        break;
+      default: return null;
+      }
     }
     path = path.substring(ind + 1).trimLeft();
     if (!path) { return null; }
