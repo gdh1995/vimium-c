@@ -267,6 +267,8 @@ const Utils = {
         let result = Utils.tryEvalMath(path, MathParser) || "";
         return [result, "math", path];
       });
+    case "error":
+      return [path, "ERROR"];
     }
     else if (workType === Urls.WorkType.ActAnyway) switch (cmd) {
     case "url-copy": case "search-copy": case "search.copy": case "copy-url":
@@ -312,8 +314,6 @@ const Utils = {
       break;
     case "newtab":
       return Settings.cache.newTabUrl_f;
-    case "error":
-      return [path, "ERROR"] as Urls.ErrorEvalResult;
     default:
       return null;
     }
