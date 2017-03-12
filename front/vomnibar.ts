@@ -25,6 +25,7 @@ var Vomnibar = {
     Object.setPrototypeOf(options, null);
     this.mode.type = this.modeType = ((options.mode || "") + "") as CompletersNS.ValidTypes || "omni";
     this.forceNewTab = !!options.force;
+    this.isHttps = null;
     let { url, keyword, search } = options, start: number | undefined;
     this.mode.clientWidth = options.width | 0;
     if (url == null) {
@@ -54,7 +55,7 @@ var Vomnibar = {
   useInput: true,
   completions: null as never as SuggestionE[],
   isEditing: false,
-  isHttps: false,
+  isHttps: null as boolean | null,
   isSearchOnTop: false,
   actionType: ReuseType.Default,
   matchType: CompletersNS.MatchType.Default,
@@ -91,7 +92,7 @@ var Vomnibar = {
     removeEventListener("mousewheel", this.onWheel, {passive: false});
     window.onkeyup = null as never;
     this.input.onselect = null as never;
-    this.completions = this.onUpdate = null as never;
+    this.completions = this.onUpdate = this.isHttps = null as never;
     this.mode.query = this.lastQuery = this.inputText = "";
     this.modeType = this.mode.type = "omni";
     if (data === "hide") { return this.onHidden(); }
@@ -157,7 +158,7 @@ var Vomnibar = {
     const focused = this.focused;
     this.isSelectionOrigin = false;
     if (sel === -1) {
-      this.isHttps = this.isEditing = false;
+      this.isHttps = null; this.isEditing = false;
       this.input.value = this.inputText;
       if (!focused) { this.input.focus(); this.focused = false; }
       return;

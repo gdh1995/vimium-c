@@ -1440,9 +1440,9 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
         : (ports = framesForTab[port.sender.tabId]) ? ports[0] : cPort;
       if (Utils.lastUrlType === Urls.Type.Functional) {
         return funcDict.onEvalUrl(request.url_f as Urls.SpecialUrl);
-      } else if (request.https && (Utils.lastUrlType === Urls.Type.NoSchema
+      } else if (request.https != null && (Utils.lastUrlType === Urls.Type.NoSchema
           || Utils.lastUrlType === Urls.Type.NoProtocolName)) {
-        request.url_f = "https" + (request.url_f as string).substring(4);
+        request.url_f = (request.https ? "https" : "http") + (request.url_f as string).substring(4);
       }
       commandCount = 1;
       cOptions = request as FgReq["openUrl"] & { url_f: string, keyword: ""} & SafeObject;

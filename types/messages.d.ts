@@ -124,7 +124,7 @@ interface FgReq {
     url: string;
     keyword?: string | null;
     incognito?: boolean;
-    https?: boolean;
+    https?: boolean | null;
     reuse?: ReuseType;
   };
   frameFocused: Req.baseFg<"frameFocused">;
