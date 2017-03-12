@@ -7,6 +7,7 @@ interface SuggestionE extends Readonly<CompletersNS.BaseSuggestion> {
 interface SuggestionEx extends SuggestionE {
   https: boolean;
   parsed?: string;
+  text: string;
 }
 interface Render {
   (this: void, list: SuggestionE[]): string;
@@ -164,6 +165,7 @@ var Vomnibar = {
     focused || this.input.blur();
     const line: SuggestionEx = this.completions[sel] as SuggestionEx;
     let str = line.text;
+    !str && (str = line.text = VUtils.shortenUrl(line.url));
     (line as Partial<SuggestionEx>).https == null && (line.https = line.url.startsWith("https://"));
     if (line.type !== "history" && line.type !== "tab") {
       this._updateInput(line, str);
@@ -454,7 +456,11 @@ var Vomnibar = {
     list.style.display = noEmpty ? "" : "none";
     list.innerHTML = this.renderItems(this.completions);
     if (noEmpty) {
-      this.selection === 0 && list.firstElementChild.classList.add("s");
+      if (this.selection === 0) {
+        const line = this.completions[0] as SuggestionEx;
+        line.text || (line.text = VUtils.shortenUrl(line.url));
+        list.firstElementChild.classList.add("s");
+      }
       list.lastElementChild.classList.add("b");
     }
     if (this.timer <= 0) { return this.postUpdate(); }
@@ -537,7 +543,6 @@ var Vomnibar = {
 
   parse: function(item: SuggestionE) {
     let str: string;
-    item.text || ((item as CompletersNS.WritableCoreSuggestion).text = item.url);
     if ((this as typeof Vomnibar).showFavIcon && (str = item.url) && str.length <= 512 && str.indexOf("://") > 0) {
       item.favIconUrl = ' icon" style="background-image: url(&quot;chrome://favicon/size/16/' +
         VUtils.escapeCSSStringInAttr(str) + "&quot;)";
@@ -593,6 +598,10 @@ VUtils = {
       url = (decode || decodeURI)(url);
     } catch (e) {}
     return url;
+  },
+  shortenUrl (this: void, url: string): string {
+    return url.substring((url.startsWith("http://")) ? 7 : (url.startsWith("https://")) ? 8 : 0,
+      url.length - +(url.charCodeAt(url.length - 1) === 47 && !url.endsWith("://")));
   },
   escapeCSSStringInAttr (s: string): string {
     const escapeRe = <RegExpG & RegExpSearchable<0>> /["&'<>]/g;
