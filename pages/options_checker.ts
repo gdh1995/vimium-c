@@ -104,13 +104,18 @@ Option.all.newTabUrl.checker = {
 
 Option.all.searchUrl.checker = {
   check (str: string): string {
-    const map = Object.create<Search.Engine>(null);
+    const map = Object.create<Search.RawEngine>(null);
     BG.Utils.parseSearchEngines("k:" + str, map);
     const obj = map.k;
     if (obj == null) {
       return bgSettings.get("searchUrl", true);
     }
-    let str2 = obj.url.replace(BG.Utils.spacesRe, "%20");
+    let str2 = BG.Utils.convertToUrl(obj.url, null, Urls.WorkType.KeepAll);
+    if (BG.Utils.lastUrlType > Urls.Type.MaxOfInputIsPlainUrl) {
+      console.log(`searchUrl checker: "${obj.url}" is not a valid plain url.`);
+      return bgSettings.get("searchUrl", true);
+    }
+    str2 = str2.replace(BG.Utils.spacesRe, "%20");
     if (obj.name) { str2 += " " + obj.name; }
     return str2;
   }
