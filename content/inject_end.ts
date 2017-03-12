@@ -8,7 +8,7 @@ if (chrome.runtime.onMessageExternal) {
 } else {
   VimiumInjector.alive = 0.5;
   console.log("%cVimium++%c: injected %cpartly%c into %c" + chrome.runtime.id
-    , "color:red", "color:auto", "color:red", "color:auto", "color:#2196f3");
+    , "color:red", "color:auto", "color:red", "color:auto", "color:#0c85e9");
 }
 
 VSettings.onDestroy = function() {
