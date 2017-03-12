@@ -176,8 +176,7 @@ const Utils = {
     this.resetRe();
     this.lastUrlType = type as Urls.Type;
     return type === Urls.Type.Full ? oldString
-      : type === Urls.Type.Search ? this.createSearchUrl(oldString.split(' '), keyword || "~"
-        , vimiumUrlWork === 1 ? 0 : vimiumUrlWork)
+      : type === Urls.Type.Search ? this.createSearchUrl(oldString.split(' '), keyword || "~", vimiumUrlWork)
       : type === Urls.Type.NoSchema ? ("http://" + oldString)
       : type === Urls.Type.NoProtocolName ? ("http:" + oldString)
       : oldString;
