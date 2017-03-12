@@ -47,6 +47,10 @@ declare namespace CompletersNS {
   interface Suggestion extends BaseSuggestion {
     relevancy: number;
   }
+  interface SearchSuggestion extends Suggestion {
+    type: "search";
+    pattern: string;
+  }
 }
 
 declare namespace MarksNS {

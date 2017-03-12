@@ -84,6 +84,7 @@ type CompletersMap = {
 interface WindowEx extends Window {
   Completers: CompletersMap & GlobalCompletersConstructor;
 }
+type SearchSuggestion = CompletersNS.SearchSuggestion;
 
 
 let queryType: FirstQuery, offset: number, autoSelect: boolean,
@@ -621,7 +622,7 @@ searchEngines: {
   _nestedEvalCounter: 0,
   filter (): void {},
   preFilter (query: CompletersNS.QueryStatus, failIfNull?: true): void | true {
-    let obj: Search.Result, sug: Suggestion, q = queryTerms, keyword = q.length > 0 ? q[0] : "",
+    let obj: Search.Result, sug: SearchSuggestion, q = queryTerms, keyword = q.length > 0 ? q[0] : "",
        pattern: Search.Engine | undefined, promise: Promise<Urls.BaseEvalResult> | undefined,
        url: string, text: string;
     if (q.length === 0) {}
@@ -679,7 +680,7 @@ searchEngines: {
       url = Utils.convertToUrl(url, null, Urls.WorkType.KeepAll);
     }
     sug = new Suggestion("search", url, text
-      , pattern.name + ": " + q.join(" "), this.compute9);
+      , pattern.name + ": " + q.join(" "), this.compute9) as SearchSuggestion;
 
     if (q.length > 0) {
       sug.text = this.makeText(text, obj.indexes);
@@ -691,6 +692,7 @@ searchEngines: {
       sug.textSplit = Utils.escapeText(sug.text);
       sug.titleSplit = Utils.escapeText(sug.title);
     }
+    sug.pattern = pattern.name;
 
     if (!promise) {
       return Completers.next([sug]);
@@ -749,19 +751,19 @@ searchEngines: {
     }
     return str;
   },
-  makeUrlSuggestion (keyword: string, text: string): Suggestion {
+  makeUrlSuggestion (keyword: string, text?: string): SearchSuggestion {
     const url = Utils.convertToUrl(keyword, null, Urls.WorkType.KeepAll),
     isSearch = Utils.lastUrlType === Urls.Type.Search,
-    sug = new Suggestion("search", url, "", keyword, this.compute9);
-    sug.text = Utils.DecodeURLPart(SuggestionUtils.shortenUrl(sug.url));
+    sug = new Suggestion("search", url, text || Utils.DecodeURLPart(SuggestionUtils.shortenUrl(url))
+      , keyword, this.compute9) as SearchSuggestion;
     sug.textSplit = Utils.escapeText(sug.text);
-    text && (sug.text = text);
     if (isSearch) {
       (sug as CompletersNS.WritableCoreSuggestion).title = "~: " + keyword;
       sug.titleSplit = SuggestionUtils.highlight(sug.title, [3, 3 + keyword.length]);
     } else {
       sug.titleSplit = Utils.escapeText(keyword);
     }
+    sug.pattern = isSearch ? "~" : "";
     return sug;
   },
   BuildSearchKeywords (): void {

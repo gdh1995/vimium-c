@@ -234,8 +234,8 @@ setTimeout((function() { if (!chrome.omnibox) { return; }
         defaultSuggestionType = FirstSugType.defaultOpen;
       }
     } else if (sug.type === "search") {
-      let text = (sug.titleSplit as string).split(": <")[0];
-      text = `<dim>${text} - </dim><url>${sug.textSplit}</url>`;
+      let text = (sug as CompletersNS.SearchSuggestion).pattern;
+      text = (text && `<dim>${Utils.escapeText(text)} - </dim>`) + `<url>${sug.textSplit}</url>`;
       defaultSuggestionType = FirstSugType.search;
       chrome.omnibox.setDefaultSuggestion({ description: text });
       if (sug = response[0]) switch (sug.type) {
