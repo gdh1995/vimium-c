@@ -150,11 +150,11 @@ const Utils = {
     } else if ((index = string.lastIndexOf('.')) < 0) {
       string === "__proto__" && (string = ".__proto__");
       type = expected !== Urls.Type.NoSchema || arr[4] && hasPath ||
-        (string in this.domains) ? expected : Urls.Type.Search;
+        this.checkInDomain(string, arr[4]) > 0 ? expected : Urls.Type.Search;
     } else if (this._ipRe.test(string)) {
       type = expected;
     } else if ((type = this.isTld(string.substring(index + 1))) === Urls.TldType.NotTld) {
-      type = (string in this.domains) ? expected : Urls.Type.Search;
+      type = this.checkInDomain(string, arr[4]) > 0 ? expected : Urls.Type.Search;
     } else if (string.length !== index + 3 && type === Urls.TldType.ENTld && this._nonENDoaminRe.test(string)) {
       // `non-english.non-ccTld` AND NOT `non-english.non-english-tld`
       type = Urls.Type.Search;
@@ -183,6 +183,10 @@ const Utils = {
       : type === Urls.Type.NoProtocolName ? ("http:" + oldString)
       : oldString;
   }) as Urls.Converter,
+  checkInDomain (host: string, port?: string | null): 0 | 1 | 2 {
+    var domain = port && this.domains[host + port] || this.domains[host];
+    return domain ? (domain[2] + 1 as 1 | 2) : 0;
+  },
   checkSpecialSchemes (string: string, i: number, spacePos: number): Urls.Type | Urls.TempType.Unspecified {
     const isSlash = string[i + 1] === "/";
     switch (string.substring(0, i)) {
