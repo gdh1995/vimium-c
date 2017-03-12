@@ -79,7 +79,7 @@ const Utils = {
     let type: Urls.Type | Urls.TempType | Urls.TldType = Urls.TempType.Unspecified
       , expected: Urls.Type = Urls.Type.Full
       , hasPath = false, index: number, index2: number, oldString: string
-      , arr: [never, string | undefined, string | undefined, string, string | undefined] | null;
+      , arr: [never, string | undefined, string | undefined, string, string | undefined] | null | undefined;
     oldString = string.replace(this.lfRe, '').replace(this.spacesRe, ' ');
     string = oldString.toLowerCase();
     if ((index = string.indexOf(' ')) > 0) {
@@ -131,6 +131,8 @@ const Utils = {
       string = string.substring(index + 3, index2 !== -1 ? index2 : undefined);
     }
 
+    // Note: here `string` should be just a host, and can only become a hostname.
+    //       Otherwise `type` must not be `NoSchema | NoProtocolName`
     if (type === Urls.TempType.Unspecified && string.indexOf("%") >= 0) {
       string = Utils.DecodeURLPart(string);
       if (string.indexOf('/') >= 0) { type = Urls.Type.Search; }
@@ -169,9 +171,7 @@ const Utils = {
     } else if (string.indexOf(".", ++index2) !== index) {
       type = Urls.Type.NoSchema;
     } else if (string.length === index + 3 && type === Urls.TldType.ENTld) { // treat as a ccTLD
-      string = string.substring(index2, index);
-      type = string.length < this._tlds.length &&
-          this._tlds[string.length].indexOf(string) > 0 ? Urls.Type.Search : Urls.Type.NoSchema;
+      type = this.isTld(string.substring(index2, index), true) ? Urls.Type.Search : Urls.Type.NoSchema;
     } else {
       type = Urls.Type.NoSchema;
     }
@@ -179,8 +179,8 @@ const Utils = {
     this.lastUrlType = type as Urls.Type;
     return type === Urls.Type.Full ? oldString
       : type === Urls.Type.Search ? this.createSearchUrl(oldString.split(' '), keyword || "~", vimiumUrlWork)
-      : type === Urls.Type.NoSchema ? ("http://" + oldString)
-      : type === Urls.Type.NoProtocolName ? ("http:" + oldString)
+      : type <= Urls.Type.MaxOfInputIsPlainUrl ? (this.checkInDomain(string, arr && arr[4]) === 2 ? "https:" : "http:")
+        + (type === Urls.Type.NoSchema ? "//" : "") + oldString
       : oldString;
   }) as Urls.Converter,
   checkInDomain (host: string, port?: string | null): 0 | 1 | 2 {
@@ -220,8 +220,8 @@ const Utils = {
     const i = url.startsWith("filesystem:") ? 11 : url.startsWith("view-source:") ? 12 : 0;
     return i ? url.substring(i) : url;
   },
-  isTld (tld: string): Urls.TldType {
-    return this._nonENTldRe.test(tld) ? (this._nonENTlds.indexOf("." + tld + ".") !== -1
+  isTld (tld: string, onlyEN?: boolean): Urls.TldType {
+    return !onlyEN && this._nonENTldRe.test(tld) ? (this._nonENTlds.indexOf("." + tld + ".") !== -1
         ? Urls.TldType.NonENTld : Urls.TldType.NotTld)
       : tld.length < this._tlds.length && this._tlds[tld.length].indexOf(tld) > 0 ? Urls.TldType.ENTld
       : Urls.TldType.NotTld;
