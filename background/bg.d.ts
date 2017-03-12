@@ -24,7 +24,7 @@ declare namespace Search {
 declare namespace Urls {
   type ValidEvalTag = "math" | "copy" | "search" | "ERROR";
 
-  interface BaseEvalResult {
+  interface BaseEvalResult extends Array<any> {
     readonly [0]: string | string[];
     readonly [1]: ValidEvalTag;
     readonly [2]?: undefined | string;
@@ -368,6 +368,7 @@ interface Window {
     readonly convertToUrl: Urls.Converter;
     lastUrlType: Urls.Type;
     readonly createSearch: Search.Executor;
+    evalVimiumUrl (path: string, workType?: Urls.WorkType, onlyOnce?: boolean): Urls.Url | null;
     parseSearchEngines (this: any, str: string, map: Search.EngineMap): Search.Rule[];
     require<T extends object> (name: SettingsNS.DynamicFiles): Promise<T>;
   };

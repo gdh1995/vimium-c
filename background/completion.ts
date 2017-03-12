@@ -659,7 +659,7 @@ searchEngines: {
     url = text = obj.url;
     if (keyword === "~") {}
     else if (url.startsWith("vimium://")) {
-      const ret = Utils.evalVimiumUrl(url.substring(9), Urls.WorkType.ActIfNoSideEffects);
+      const ret = Utils.evalVimiumUrl(url.substring(9), Urls.WorkType.ActIfNoSideEffects, true);
       if (ret instanceof Promise) {
         promise = ret;
       } else if (ret instanceof Array) {

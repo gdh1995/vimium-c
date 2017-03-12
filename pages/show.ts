@@ -30,7 +30,7 @@ if (!(BG && BG.Utils && BG.Utils.convertToUrl)) {
 }
 
 window.onhashchange = function(this: void): void {
-  let str: Urls.Url, ind: number;
+  let str: Urls.Url | null, ind: number;
   if (shownNode) {
     clean();
     bgLink.style.display = "none";
@@ -113,8 +113,12 @@ window.onhashchange = function(this: void): void {
   case "url":
     shownNode = (importBody as ImportBody)("shownText");
     if (url && BG) {
-      str = BG.Utils.convertToUrl(url, null, Urls.WorkType.ActIfNoSideEffects);
-      if (BG.Utils.lastUrlType !== Urls.Type.Functional) {}
+      str = null;
+      if (url.startsWith("vimium://")) {
+        str = BG.Utils.evalVimiumUrl(url.substring(9), Urls.WorkType.ActIfNoSideEffects, true);
+      }
+      str = str !== null ? str : BG.Utils.convertToUrl(url, null, Urls.WorkType.ConvertKnown);
+      if (typeof str === "string") {}
       else if (str instanceof BG.Promise) {
         str.then(function(arr) {
           showText(arr[1], arr[0] || (arr[2] || ""));
@@ -124,7 +128,7 @@ window.onhashchange = function(this: void): void {
         showText(str[1], str[0]);
         break;
       }
-      url = str as string;
+      url = str;
     }
     showText(type, url);
     break;

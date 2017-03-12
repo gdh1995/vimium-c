@@ -249,7 +249,7 @@ const Utils = {
   _nestedEvalCounter: 0,
   _vimiumCmdRe: <RegExpI> /^[a-z][\da-z\-]*(?:\.[a-z][\da-z\-]*)*$/i,
   _vimiumFileExtRe: <RegExpI> /\.(?:css|html|js)$/i,
-  evalVimiumUrl (path: string, workType?: Urls.WorkType): Urls.Url | null {
+  evalVimiumUrl (path: string, workType?: Urls.WorkType, onlyOnce?: boolean): Urls.Url | null {
     let ind: number, cmd: string, arr: string[], obj: { url: string } | null, res: Urls.Url | string[];
     cmd = path = path.trim();
     workType = (workType as Urls.WorkType) | 0;
@@ -324,7 +324,7 @@ const Utils = {
     default:
       return null;
     }
-    if (workType === Urls.WorkType.ActIfNoSideEffects) {
+    if (onlyOnce) {
       return [arr, "search"];
     }
     ind = this._nestedEvalCounter++;
