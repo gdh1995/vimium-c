@@ -110,7 +110,7 @@ const SuggestionUtils = {
     }
     sug.title = this.cutTitle(sug.title);
     const text = sug.text, str = this.shortenUrl(text);
-    sug.text = text !== sug.url ? str : "";
+    sug.text = text.length !== sug.url.length ? str : "";
     sug.textSplit = this.cutUrl(str, this.getRanges(str), sug.url);
   },
   cutTitle (title: string): string {
