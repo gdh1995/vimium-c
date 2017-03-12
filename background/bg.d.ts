@@ -84,7 +84,20 @@ declare namespace Urls {
 
   interface Converter {
     (string: string, keyword: string | null | undefined, vimiumUrlWork: WorkAllowEval): Url;
-    (string: string, keyword?: string | null, vimiumUrlWork?: Urls.WorkType): string;
+    (string: string, keyword?: string | null, vimiumUrlWork?: WorkEnsureString): string;
+    (string: string, keyword?: string | null, vimiumUrlWork?: WorkType): Url;
+  }
+  interface Executor {
+    (path: string, workType?: WorkType.ValidNormal): string | null;
+    (path: string, workType: WorkType.KeepAll | WorkType.ConvertKnown): null;
+    (path: string, workType: WorkAllowEval, onlyOnce?: boolean): Url | null;
+    (path: string, workType: WorkType, onlyOnce?: boolean): Url | null;
+  }
+  interface Searcher {
+    (query: string[], keyword: "~", vimiumUrlWork?: WorkType): string;
+    (query: string[], keyword: string | null | undefined, vimiumUrlWork: WorkAllowEval): Url;
+    (query: string[], keyword?: string | null, vimiumUrlWork?: WorkEnsureString): string;
+    (query: string[], keyword?: string | null, vimiumUrlWork?: WorkType): Url;
   }
 }
 
@@ -368,7 +381,8 @@ interface Window {
     readonly convertToUrl: Urls.Converter;
     lastUrlType: Urls.Type;
     readonly createSearch: Search.Executor;
-    evalVimiumUrl (path: string, workType?: Urls.WorkType, onlyOnce?: boolean): Urls.Url | null;
+    readonly createSearchUrl: Urls.Searcher;
+    readonly evalVimiumUrl: Urls.Executor;
     parseSearchEngines (this: any, str: string, map: Search.EngineMap): Search.Rule[];
     require<T extends object> (name: SettingsNS.DynamicFiles): Promise<T>;
   };

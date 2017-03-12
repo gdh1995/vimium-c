@@ -108,8 +108,8 @@ const Utils = {
       vimiumUrlWork = (vimiumUrlWork as number) | 0;
       if (vimiumUrlWork < Urls.WorkType.ConvertKnown || !(string = oldString.substring(9))) {}
       else if (vimiumUrlWork === Urls.WorkType.ConvertKnown
-          || !(oldString = this.evalVimiumUrl(string, vimiumUrlWork) as string)) {
-        oldString = this.formatVimiumUrl(string, false, vimiumUrlWork);
+          || !(oldString = (this as typeof Utils).evalVimiumUrl(string, vimiumUrlWork) as string)) {
+        oldString = (this as typeof Utils).formatVimiumUrl(string, false, vimiumUrlWork);
       } else if (typeof oldString !== "string") {
         type = Urls.Type.Functional;
       }
@@ -249,16 +249,16 @@ const Utils = {
   _nestedEvalCounter: 0,
   _vimiumCmdRe: <RegExpI> /^[a-z][\da-z\-]*(?:\.[a-z][\da-z\-]*)*$/i,
   _vimiumFileExtRe: <RegExpI> /\.(?:css|html|js)$/i,
-  evalVimiumUrl (path: string, workType?: Urls.WorkType, onlyOnce?: boolean): Urls.Url | null {
+  evalVimiumUrl: function(this: Window["Utils"], path: string, workType?: Urls.WorkType
+      , onlyOnce?: boolean): Urls.Url | null {
     let ind: number, cmd: string, arr: string[], obj: { url: string } | null, res: Urls.Url | string[];
-    cmd = path = path.trim();
     workType = (workType as Urls.WorkType) | 0;
-    if (!path || workType < Urls.WorkType.ValidNormal) {
+    if (workType < Urls.WorkType.ValidNormal || !(cmd = path = path.trim())) {
       return null;
     }
     if ((ind = path.indexOf(" ")) <= 0 ||
-        !this._vimiumCmdRe.test(cmd = path.substring(0, ind).toLowerCase()) ||
-        this._vimiumFileExtRe.test(cmd)) {
+        !(this as typeof Utils)._vimiumCmdRe.test(cmd = path.substring(0, ind).toLowerCase()) ||
+        (this as typeof Utils)._vimiumFileExtRe.test(cmd)) {
       switch (cmd) {
       case "newtab":
         break;
@@ -279,7 +279,7 @@ const Utils = {
     }
     else if (workType === Urls.WorkType.ActAnyway) switch (cmd) {
     case "url-copy": case "search-copy": case "search.copy": case "copy-url":
-      res = this.convertToUrl(path, null, Urls.WorkType.ActIfNoSideEffects);
+      res = (this as typeof Utils).convertToUrl(path, null, Urls.WorkType.ActIfNoSideEffects);
       if (res instanceof Promise) {
         return res.then(function(arr): Urls.CopyEvalResult {
           let path = arr[0] || (arr[2] || "");
@@ -329,14 +329,14 @@ const Utils = {
     if (onlyOnce) {
       return [arr, "search"];
     }
-    ind = this._nestedEvalCounter++;
+    ind = (this as typeof Utils)._nestedEvalCounter++;
     if (ind > 12) { return null; }
     if (ind === 12) { return this.createSearchUrl(arr); }
     if (ind > 0) { return this.createSearchUrl(arr, "", workType); }
     res = this.createSearchUrl(arr, "", workType);
-    this._nestedEvalCounter = 0;
-    return res;
-  },
+    (this as typeof Utils)._nestedEvalCounter = 0;
+    return <Urls.Url>res;
+  } as Urls.Executor,
   tryEvalMath (expr: string, mathParser: any): string | null {
     let result: string | null = null;
     if ((mathParser = mathParser || window.MathParser || {}).evaluate) {
@@ -372,7 +372,7 @@ const Utils = {
   searchWordRe: <RegExpG & RegExpSearchable<2>> /\$([sS])(?:\{([^}]*)})?/g,
   searchWordRe2: <RegExpG & RegExpSearchable<2>> /([^\\]|^)%([sS])/g,
   searchVariable: <RegExpG & RegExpSearchable<1>> /\$([+-]?\d+)/g,
-  createSearchUrl: function (this: any, query: string[], keyword?: string | null
+  createSearchUrl: function (this: Window["Utils"], query: string[], keyword?: string | null
       , vimiumUrlWork?: Urls.WorkType): Urls.Url {
     let url: string, pattern: Search.Engine | undefined = Settings.cache.searchEngineMap[keyword || query[0]];
     if (pattern) {
@@ -382,11 +382,7 @@ const Utils = {
       url = query.join(" ");
     }
     return keyword !== "~" ? this.convertToUrl(url, null, vimiumUrlWork) : url;
-  } as {
-    (query: string[], keyword: "~", vimiumUrlWork?: Urls.WorkType): string;
-    (query: string[], keyword: string | null | undefined, vimiumUrlWork: Urls.WorkAllowEval): Urls.Url;
-    (query: string[], keyword?: string | null, vimiumUrlWork?: Urls.WorkType): string;
-  },
+  } as Urls.Searcher,
   createSearch: function(this: any, query: string[], url: string, indexes?: number[]): string | Search.Result {
     let q2: string[] | undefined, delta = 0;
     url = url.replace(this.searchWordRe, function(_s: string, s1: string | undefined, s2: string, ind: number): string {
