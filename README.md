@@ -53,6 +53,10 @@ Not released yet:
 * global keyboard shortcuts: remove suggested keys, so that Vimium++ is cleaner
   * those suggested mappings are added into the default list and the recommended settings
 * add a checker to ensure `New tab URL` won't cause a dead loop
+* fix a performance issue of Vomnibar UI on an edge case
+* auto complete a domain in Vomnibar using
+    the protocol of the last opened page of the same domain
+  * open `https://www.baidu.com`, then complete it using `https`
 
 1.58.1:
 * fix detection for Mac system: fix `LinkHints.activateModeToOpenInNewTab`
