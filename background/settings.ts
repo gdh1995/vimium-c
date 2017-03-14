@@ -88,16 +88,14 @@ const Settings = {
       const rules = Utils.parseSearchEngines((this as typeof Settings).get("searchEngines"), value);
       return (this as typeof Settings).set("searchEngineRules", rules);
     },
-    searchUrl: function(str): void {
+    searchUrl: function(this: Window["Settings"], str): void {
       if (str) {
-        Utils.parseSearchEngines("~:" + str, (this as typeof Settings).cache.searchEngineMap);
-      } else if (str = (this as typeof Settings).get("newTabUrl_f", true)) {
+        Utils.parseSearchEngines("~:" + str, this.cache.searchEngineMap);
+      } else if (str = this.get("newTabUrl_f", true)) {
         return ((this as typeof Settings).updateHooks.newTabUrl_f as (this: void, url_f: string) => void)(str);
       } else {
-        str = (this as typeof Settings).get("searchUrl");
-        const ind = str.indexOf(" ");
-        if (ind > 0) { str = str.substring(0, ind); }
-        (this as typeof Settings).get("searchEngineMap", true)["~"] = { name: "~", url: str };
+        str = this.get("searchUrl").split(" ", 1)[0];
+        this.get("searchEngineMap", true)["~"] = { name: "~", url: str };
       }
       return (this as typeof Settings).postUpdate("newTabUrl");
     },
