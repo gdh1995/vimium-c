@@ -75,12 +75,13 @@ Option.all.newTabUrl.checker = {
   overriddenNewTab: "",
   customNewTab: "",
   init (): void {
-    const manifest = chrome.runtime.getManifest(),
-    url = manifest.chrome_url_overrides && manifest.chrome_url_overrides.newtab || "";
+    const manifest = chrome.runtime.getManifest();
+    let url = manifest.chrome_url_overrides && manifest.chrome_url_overrides.newtab || "";
     if (url) {
       this.overriddenNewTab = chrome.runtime.getURL(url);
-    } else {
-      this.customNewTab = chrome.runtime.getURL(bgSettings.CONST.DefaultNewTabPage);
+    }
+    if (url = bgSettings.CONST.DefaultNewTabPage) {
+      this.customNewTab = chrome.runtime.getURL(url);
     }
     this.init = null as never;
   },
@@ -92,7 +93,8 @@ Option.all.newTabUrl.checker = {
     if (!this.overriddenNewTab) {
       return url === this.customNewTab ? bgSettings.CONST.ChromeNewTab : value;
     }
-    if (url === this.overriddenNewTab || url === bgSettings.CONST.ChromeNewTab) {
+    if (url === this.overriddenNewTab || url === bgSettings.CONST.ChromeNewTab ||
+        url === this.customNewTab) {
       return bgSettings.CONST.ChromeInnerNewTab;
     }
     return value;
