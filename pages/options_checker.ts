@@ -90,7 +90,7 @@ Option.all.newTabUrl.checker = {
     if (url.lastIndexOf("chrome", 0) !== 0) { return value; }
     this.init && this.init();
     if (!this.overriddenNewTab) {
-      return value === this.customNewTab ? bgSettings.CONST.ChromeNewTab : value;
+      return url === this.customNewTab ? bgSettings.CONST.ChromeNewTab : value;
     }
     if (url === this.overriddenNewTab || url === bgSettings.CONST.ChromeNewTab) {
       return bgSettings.CONST.ChromeInnerNewTab;
