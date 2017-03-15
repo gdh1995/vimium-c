@@ -107,12 +107,14 @@ VDom.UI = {
     flash === true && this.flash(element);
     if (element !== VEventMode.lock()) { return; }
     type Moveable = HTMLInputElement | HTMLTextAreaElement;
-    let moveSel = element instanceof HTMLTextAreaElement ? element.clientHeight + 12 >= element.scrollHeight
-      : element instanceof HTMLInputElement, len: number, val: string | undefined;
-    if (moveSel && 0 == (element as Moveable).selectionEnd && (element as Moveable).setSelectionRange
-        && (len = (val = (element as Moveable).value) ? val.length : 0) > 0) {
+    let len: number, val: string | undefined;
+    if (element instanceof HTMLTextAreaElement ? element.clientHeight + 12 >= element.scrollHeight
+        : element instanceof HTMLInputElement) {
       try {
-        (element as Moveable).setSelectionRange(len, len);
+        if (0 == (element as Moveable).selectionEnd && typeof (element as Moveable).setSelectionRange === "function"
+          && (len = (val = (element as Moveable).value) ? val.length : 0) > 0) {
+          (element as Moveable).setSelectionRange(len, len);
+        }
       } catch (e) {}
     }
     suppressRepeated === true && this.suppressTail(true);
