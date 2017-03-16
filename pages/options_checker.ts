@@ -2,7 +2,7 @@ let _a = {
   normalizeKeys: null as never as (this: void, s: string) => string,
   isKeyReInstalled: false,
   init (): void {
-    const keyLeftRe = <RegExpG & RegExpSearchable<2>> /<(?!<)((?:[acmACM]-){0,3})(.[^>]*)>/g,
+    const keyLeftRe = <RegExpG & RegExpSearchable<2>> /<(?!<)((?:[ACMSacms]-){0,4})(.[^>]*)>/g,
     lowerRe = <RegExpOne> /[a-z]/;
     function sortModifiers(option: string) {
       return option.length < 4 ? option : option.length > 4 ? "a-c-m-"
@@ -10,8 +10,13 @@ let _a = {
         : option === "m-c-" ? "c-m-" : option;
     }
     function func(_0: string, option: string, key: string): string {
-      return (option ? "<" + sortModifiers(option.toLowerCase()) : "<") +
-        (key.length > 1 && lowerRe.test(key) ? key.toLowerCase() : key) + ">";
+      option = option.toLowerCase();
+      const forceUpper = option.indexOf("s-") >= 0;
+      if (forceUpper && option.length === 2 && key.length === 1) {
+        return key.toUpperCase();
+      }
+      return (option ? "<" + sortModifiers(forceUpper ? option.replace("s-", "") : option) : "<") +
+        (forceUpper ? key.toUpperCase() : key.length > 1 && lowerRe.test(key) ? key.toLowerCase() : key) + ">";
     }
     this.normalizeKeys = function(keys) { return keys.replace(keyLeftRe, func); };
     this.normalizeMap = this.normalizeMap.bind(this);

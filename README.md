@@ -52,6 +52,8 @@ __微度新标签页修改版 (Modified X New Tab Page):__
 Not released yet:
 * global keyboard shortcuts: remove suggested keys, so that Vimium++ is cleaner
   * those suggested mappings are added into the default list and the recommended settings
+* auto convert mapped keys containing `<s-`: e.g. `<s-a>` to `A`, `<c-s-a>` to `<c-A>`
+  * `<s-*>` is a grammar Vimium will support
 * add a checker to ensure `New tab URL` won't cause a dead loop
 * fix a performance issue of Vomnibar UI on an edge case
 * auto complete a domain in Vomnibar using
