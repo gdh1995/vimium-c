@@ -100,9 +100,9 @@ const Suggestion: SuggestionConstructor = function (this: CompletersNS.WritableC
   this.text = text;
   this.title = title;
   (this as Suggestion).relevancy = computeRelevancy(this, extraData);
-} as any;
+} as any,
 
-const SuggestionUtils = {
+SuggestionUtils = {
   prepareHtml (sug: Suggestion): void {
     if (sug.textSplit != null) {
       if (sug.text === sug.url) { sug.text = ""; }
@@ -209,10 +209,10 @@ const SuggestionUtils = {
       wordRelevancy = RankingUtils.wordRelevancy(text, title);
     return recencyScore <= wordRelevancy ? wordRelevancy : (wordRelevancy + recencyScore) / 2;
   }
-};
+},
 
 
-let Completers = {
+Completers = {
 bookmarks: {
   bookmarks: [] as Bookmark[],
   currentSearch: null as CompletersNS.QueryStatus | null,
