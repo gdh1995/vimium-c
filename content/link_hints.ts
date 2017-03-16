@@ -153,9 +153,9 @@ var VHints = {
   setModeOpt (count: number, options: HintsNS.Options): void {
     if (this.options === options) { return; }
     let ref = this.Modes, mode = (this.CONST[options.mode as string] as number) | 0, modeOpt: HintsNS.ModeOpt | undefined;
-    if (mode == HintMode.EDIT_TEXT && options.url) {
+    if (mode === HintMode.EDIT_TEXT && options.url) {
       mode = HintMode.EDIT_LINK_URL;
-    } else if (mode == HintMode.EDIT_LINK_URL || (mode & ~HintMode.queue) == HintMode.COPY_LINK_URL) {
+    } else if (mode === HintMode.EDIT_LINK_URL || (mode & ~HintMode.queue) === HintMode.COPY_LINK_URL) {
       options.url = true;
     }
     if (count > 1) { mode <= HintMode.min_disable_queue ? (mode |= HintMode.queue) : (count = 1); }
