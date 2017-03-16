@@ -237,11 +237,11 @@ bookmarks: {
     for (let ref = this.bookmarks, _i = ref.length; 0 <= --_i; ) {
       const i: Bookmark = ref[_i], title = isPath ? i.path : i.title;
       if (!RankingUtils.Match2(i.text, title)) { continue; }
-      const jsUrl = (i as JSBookmark).jsUrl,
-      sug = new Suggestion("bookm", jsUrl || i.url, i.text, title, c);
+      const sug = new Suggestion("bookm", i.url, i.text, title, c);
       results.push(sug);
-      if (jsUrl == null) { continue; }
-      sug.title = SuggestionUtils.highlight(sug.title, SuggestionUtils.getRanges(sug.title));
+      if ((i as JSBookmark).jsUrl == null) { continue; }
+      (sug as CompletersNS.WritableCoreSuggestion).url = (i as JSBookmark).jsUrl;
+      sug.title = SuggestionUtils.cutTitle(sug.title);
       sug.textSplit = "javascript: ...";
       sug.text = (i as JSBookmark).jsText;
     }
