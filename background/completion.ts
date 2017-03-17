@@ -906,13 +906,10 @@ searchEngines: {
         : str === "d" ? this.domain : str === "s" ? this.search : str === "o" ? this.omni : null;
       if (arr) {
         queryTerms.shift();
+        autoSelect = arr !== this.omni;
       }
     }
-    if (!arr) {
-      arr = this[options.type] || this.omni;
-    }
-    autoSelect = arr !== this.omni;
-    return Completers.filter(arr);
+    return Completers.filter(arr || this[options.type] || this.omni);
   }
 };
 
