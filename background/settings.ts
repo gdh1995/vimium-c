@@ -217,6 +217,7 @@ w|wiki:\\\n  https://www.wikipedia.org/w/index.php?search=$s Wikipedia\n\
       exclusionTemplate: "/front/exclusions.html",
       helpDialog: "/front/help_dialog.html"
     },
+    InjectEnd: "content/inject_end.js",
     OptionsPage: "pages/options.html", Platform: "", PolyFill: "lib/polyfill.js",
     RedirectedUrls: {
       about: "https://github.com/gdh1995/vimium-plus",
@@ -230,7 +231,7 @@ w|wiki:\\\n  https://www.wikipedia.org/w/index.php?search=$s Wikipedia\n\
       settings: "options.html",
       __proto__: null as never
     } as SafeDict<string>,
-    ShowHelper: "pages/show_helper.js", ShowPage: "show.html",
+    ShowPage: "pages/show.html",
     VomnibarPage: "front/vomnibar.html"
   }
 };
@@ -249,15 +250,14 @@ setTimeout(function() {
     return (path.charCodeAt(0) === 47 ? origin : prefix) + path;
   };
   ref = chrome.runtime.getManifest();
-   ref.chrome_url_overrides && ref.chrome_url_overrides.newtab;
   obj = Settings.CONST;
   obj.CurrentVersion = ref.version;
   obj.CurrentVersionName = ref.version_name || ref.version;
   obj.OptionsPage = func(ref.options_page || obj.OptionsPage);
-  obj.ShowPage = Utils.formatVimiumUrl(obj.ShowPage, false, Urls.WorkType.Default);
+  obj.ShowPage = func(obj.ShowPage);
   obj.VomnibarPage = func(obj.VomnibarPage);
   ref = ref.content_scripts[0].js;
-  ref[ref.length - 1] = "/content/inject_end.js";
+  ref[ref.length - 1] = obj.InjectEnd;
   if (obj.ChromeVersion < 41) { ref.unshift(obj.PolyFill); }
   obj.ContentScripts = ref.map(func);
 }, 17);
