@@ -20,7 +20,7 @@ var VKeyboard = {
     if (!s.startsWith("U+")) { return ""; }
     const keyId = parseInt(s.substring(2), 16);
     if (keyId < VKeyCodes.A) {
-      return keyId < VKeyCodes.minNotInKeyNames ? keyId !== VKeyCodes.space ? "" : event.shiftKey ? "SPACE" : "space"
+      return keyId < VKeyCodes.minNotInKeyNames ? ""
       : (event.shiftKey && keyId > VKeyCodes.maxNotNum
           && keyId < VKeyCodes.minNotNum) ? ")!@#$%^&*("[keyId - VKeyCodes.N0]
       : String.fromCharCode(keyId);
@@ -37,7 +37,7 @@ var VKeyboard = {
     if (key == null) {
       return event.keyCode && this.getKeyName(event) || this.getKeyCharUsingKeyIdentifier(event as OldKeyboardEvent);
     }
-    return key.length !== 1 ? this.getKeyName(event) : key === " " ? "space" : key;
+    return key.length !== 1 || event.keyCode === VKeyCodes.space ? this.getKeyName(event) : key;
   },
   getKey (event: EventControlKeys, ch: string): string {
     const left = event.metaKey ? "<m-" : "<";
