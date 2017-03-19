@@ -451,13 +451,10 @@ function loadJS(file: string): HTMLScriptElement {
   return (document.head as HTMLHeadElement).appendChild(script);
 }
 
-function loadChecker(this: void): void {
-  interface Loader {
-    (this: void): void;
-    loaded?: boolean;
-  }
-  if ((loadChecker as Loader).loaded) { return; }
-  (loadChecker as Loader).loaded = true;
+interface CheckerLoader { info?: string; }
+function loadChecker(this: HTMLElement): void {
+  if ((loadChecker as CheckerLoader).info != null) { return; }
+  (loadChecker as CheckerLoader).info = this.id;
   loadJS("options_checker.js");
 }
 

@@ -74,8 +74,6 @@ let _a = {
 Option.all.keyMappings.checker = _a;
 _a = null as never;
 
-BG.Utils.require("Commands");
-
 Option.all.newTabUrl.checker = {
   overriddenNewTab: "",
   customNewTab: "",
@@ -139,10 +137,19 @@ Option.all.vimSync.checker = {
 };
 
 (function() {
-  const func = loadChecker;
+  const func = loadChecker, info = (loadChecker as CheckerLoader).info;
+  (loadChecker as CheckerLoader).info = "";
   let _ref = document.querySelectorAll("[data-check]"), _i: number;
   for (_i = _ref.length; 0 <= --_i; ) {
     const element = _ref[_i];
     element.removeEventListener(element.getAttribute("data-check") || "input", func);
+  }
+
+  if (info === "keyMappings") { return ReloadCommands(); }
+  Option.all.keyMappings.element.addEventListener("input", ReloadCommands);
+  function ReloadCommands(this: HTMLElement | void, event?: Event): void {
+    BG.Utils.require("Commands");
+    if (!event) { return; }
+    (this as HTMLElement).removeEventListener("input", ReloadCommands);
   }
 })();
