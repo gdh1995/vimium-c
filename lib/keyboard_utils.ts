@@ -9,22 +9,24 @@ var VKeyboard = {
   getKeyName (event: KeyboardEvent): string {
     const {keyCode: i, shiftKey: c} = event;
     let s: string | undefined;
-    return i < 41 ? (s = i > 31 ? this.keyNames[i - 32] : i === 8 ? "backspace" : ""
+    return i < VKeyCodes.minNotInKeyNames ? (s = i > VKeyCodes.maxNotPrintable
+          ? this.keyNames[i - VKeyCodes.space] : i === VKeyCodes.backspace ? "backspace" : ""
         , c ? s && s.toUpperCase() : s)
       : (s = event.key) ? this.funcKeyRe.test(s) ? c ? s : s.toLowerCase() : ""
-      : i > 111 && i < 124 ? "fF"[+c] + (i - 111) : "";
+      : i > VKeyCodes.maxNotFn && i < VKeyCodes.minNotFn ? "fF"[+c] + (i - VKeyCodes.maxNotFn) : "";
   },
   getKeyCharUsingKeyIdentifier (event: OldKeyboardEvent): string {
-    let {keyIdentifier: s, keyCode: keyId} = event;
+    let {keyIdentifier: s} = event;
     if (!s.startsWith("U+")) { return ""; }
-    keyId = parseInt(s.substring(2), 16);
-    if (keyId < 65) {
-      return keyId <= 32 ? (keyId !== 32 ? "" : event.shiftKey ? "SPACE" : "space")
-      : (event.shiftKey && keyId >= 48 && keyId < 58) ? ")!@#$%^&*("[keyId - 48]
+    const keyId = parseInt(s.substring(2), 16);
+    if (keyId < VKeyCodes.A) {
+      return keyId < VKeyCodes.minNotInKeyNames ? keyId !== VKeyCodes.space ? "" : event.shiftKey ? "SPACE" : "space"
+      : (event.shiftKey && keyId > VKeyCodes.maxNotNum
+          && keyId < VKeyCodes.minNotNum) ? ")!@#$%^&*("[keyId - VKeyCodes.N0]
       : String.fromCharCode(keyId);
-    } else if (keyId <= 90) {
-      return String.fromCharCode(keyId + (event.shiftKey ? 0 : 32));
-    } else if (keyId <= 125) {
+    } else if (keyId < VKeyCodes.minNotAlphabet) {
+      return String.fromCharCode(keyId + (event.shiftKey ? 0 : VKeyCodes.CASE_DELTA));
+    } else if (keyId < 186) {
       return "";
     } else {
       return (s = this.correctionMap[keyId - 186] || "") && s[+event.shiftKey];
@@ -48,7 +50,7 @@ var VKeyboard = {
   },
   isEscape (event: KeyboardEvent): boolean {
     const k = event.keyCode;
-    if (k !== 27 && !event.ctrlKey) { return false; }
+    if (k !== VKeyCodes.esc && !event.ctrlKey) { return false; }
     const i = this.getKeyStat(event);
     return i === KeyStat.plain || i === KeyStat.ctrlKey && this.getKeyChar(event) === '[';
   }

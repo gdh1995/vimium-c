@@ -271,9 +271,8 @@ var Vomnibar = {
       return this.onAction(action);
     }
 
-    if (n <= VKeyCodes.space) {}
-    else if (n > VKeyCodes.f1 && n <= VKeyCodes.f12) { focused = false; }
-    else if (!focused && n >= VKeyCodes.N0 && n < VKeyCodes.minNotNumber) {
+    if (n > VKeyCodes.f1 && n < VKeyCodes.minNotFn) { focused = false; }
+    else if (!focused && n < VKeyCodes.minNotNum && n > VKeyCodes.maxNotNum) {
       n = (n - VKeyCodes.N0) || 10;
       return !event.shiftKey && n <= this.completions.length ? this.onEnter(event, n - 1) : undefined;
     }
