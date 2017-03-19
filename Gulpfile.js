@@ -48,7 +48,7 @@ var Tasks = {
         , "settings_template.json", "*.txt", "*.md"
         , "!**/manifest.json"
         , '!**/*.ts', "!**/*.js", "!**/tsconfig*.json"
-        , "!front/vimium.css"
+        , "!front/vimium.css", "!todo*"
       ]);
   }],
 

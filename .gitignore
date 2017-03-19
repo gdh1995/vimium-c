@@ -16,5 +16,6 @@
 dist/
 node_modules*
 test*
+todo*
 tsconfig*
 !tsconfig.json
