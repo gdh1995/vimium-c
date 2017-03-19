@@ -139,10 +139,10 @@ Option.all.vimSync.checker = {
 };
 
 (function() {
-  var func = loadChecker, _ref, _i, element;
-  _ref = document.querySelectorAll("[data-check]");
+  const func = loadChecker;
+  let _ref = document.querySelectorAll("[data-check]"), _i: number;
   for (_i = _ref.length; 0 <= --_i; ) {
-    element = _ref[_i];
+    const element = _ref[_i];
     element.removeEventListener(element.getAttribute("data-check") || "input", func);
   }
 })();
