@@ -49,9 +49,9 @@
       "content/vomnibar.js",
       "content/scroller.js",
       "content/marks.js",
-      "content/frontend.js",
       "content/mode_find.js",
       "content/mode_visual.js",
+      "content/frontend.js",
       "lib/extend_click.js"
     ],
     "match_about_blank": true,

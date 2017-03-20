@@ -19,7 +19,7 @@ var VVisualMode = {
   currentSeconds: null as SafeDict<VisualModeNS.ValidActions> | null,
   retainSelection: false,
   selection: null as never as Selection,
-  activate (options?: FgOptions): void {
+  activate (_0?: number, options?: FgOptions): void {
     let sel: Selection, type: string, mode: typeof VVisualMode.mode;
     Object.setPrototypeOf(options = options || {} as FgOptions, null);
     this.init && this.init();
@@ -123,7 +123,7 @@ var VVisualMode = {
         const flag = this.selection.toString().length > 1;
         this.movement.collapseSelectionTo(+flag as 0 | 1);
       }
-      return this.activate({ mode: ["visual", "line", "caret"][(command as number - 51) as 0 | 1 | 2] } as object as FgOptions);
+      return this.activate(1, { mode: ["visual", "line", "caret"][(command as number - 51) as 0 | 1 | 2] } as object as FgOptions);
     }
     this.mode === "caret" && this.movement.collapseSelectionTo(0);
     if (command >= 0) {
@@ -351,7 +351,7 @@ keyMap: {
   "/": function(): void | boolean {
     clearTimeout((this as typeof VVisualMode).hudTimer);
     VHUD.hide();
-    return VFindMode.activate({ returnToViewport: true } as object as FgOptions);
+    return VFindMode.activate(1, { returnToViewport: true } as object as FgOptions);
   },
   y (): void { return (this as typeof VVisualMode).yank(); },
   Y (count): void { (this as typeof VVisualMode).movement.selectLine(count); return (this as typeof VVisualMode).yank(); },

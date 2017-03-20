@@ -227,9 +227,12 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
   }
 
   const Commands = {
-    Vomnibar: Vomnibar,
-    VHints: VHints,
-    VMarks: VMarks,
+    Find: VFindMode,
+    Hints: VHints,
+    Marks: VMarks,
+    Scroller: VScroller,
+    Visual: VVisualMode,
+    Vomnibar,
 
     toggleSwitchTemp (_0: number, options: FgOptions): void {
       const key = options.key as keyof SettingsNS.FrontendSettingCache, values = VSettings.cache;
@@ -256,16 +259,12 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
       }
       return HUD.showForDuration(`Now link hints use "${val}"`);
     },
-    scrollTo: VScroller.ScTo,
-    scrollBy: VScroller.ScBy,
-    enterVisualMode (_0: number, options: FgOptions): void { return VVisualMode.activate(options); },
     enterInsertMode (_0: number, options: FgOptions): void {
       let code = +options.code || VKeyCodes.esc, stat = +options.stat, hud = !options.hideHud;
       stat === KeyStat.plain && code === VKeyCodes.esc && (code = 0);
       InsertMode.global = { code: code, stat: stat, hud: hud };
       if (hud) { return HUD.show(`Insert mode${code ? `: ${code}/${stat}` : ""}`); }
     },
-    performFind (_0: number, options: FgOptions): void { return VFindMode.activate(options); },
     passNextKey (count: number, options: FgOptions): void {
       const keys = Object.create<BOOL>(null);
       let keyCount = 0;

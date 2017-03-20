@@ -1150,8 +1150,8 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
       });
     },
     performFind (): void {
-      const query = cOptions.active ? null : (FindModeHistory.query as FindModeQuery)(cPort.sender.incognito);
-      cPort.postMessage({ name: "execute", count: 1, command: "performFind", options: {
+      const query = cOptions.active ? null : (FindModeHistory as {query: FindModeQuery}).query(cPort.sender.incognito);
+      cPort.postMessage({ name: "execute", count: 1, command: "Find.activate", options: {
         count: commandCount,
         dir: cOptions.dir,
         query
