@@ -968,9 +968,9 @@ searchEngines: {
     normalizeDifference (a: number, b: number): number {
       return a < b ? a / b : b / a;
     }
-  };
+  },
 
-  const RegExpCache = {
+  RegExpCache = {
     cache: null as SafeDict<CachedRegExp> | null,
     _d: null as RegExpCacheDict | null,
     reset (obj?: null): void {
@@ -993,9 +993,9 @@ searchEngines: {
     item (s: string): CachedRegExp {
       return (this.cache as SafeDict<CachedRegExp>)[s] || this.get(s, RegExpCacheIndex.part);
     }
-  };
+  },
 
-  const HistoryCache = {
+  HistoryCache = {
     size: 20000,
     lastRefresh: 0,
     updateCount: 0,
@@ -1129,9 +1129,9 @@ searchEngines: {
       }
       return (e < u ? -2 : -1) - m;
     }
-  };
+  },
 
-  const Decoder = {
+  Decoder = {
     _f: decodeURIComponent, // core function
     decodeURL (a: string, o?: DecodedItem): string {
       if (a.length >= 400 || a.indexOf('%') < 0) { return a; }
