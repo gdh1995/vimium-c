@@ -59,6 +59,8 @@ Not released yet:
 * auto complete a domain in Vomnibar using
     the protocol of the last opened page of the same domain
   * open `https://www.baidu.com`, then complete it using `https`
+* fix broken `<SPACE>` mapping since Chrome 51
+* move the PRIVACY-POLICY document to `PRIVACY-POLICY.md`
 
 1.58.1:
 * fix detection for Mac system: fix `LinkHints.activateModeToOpenInNewTab`
