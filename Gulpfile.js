@@ -10,11 +10,10 @@ var rename = require('gulp-rename');
 var clean = require('gulp-clean');
 var gulpPrint = require('gulp-print');
 var osPath = require('path');
-var typescript = null;
-typescript = require("typescript/lib/typescript");
 
 var locally = false;
 var compilerOptions = loadValidCompilerOptions("tsconfig.gulp.json");
+var typescript = null;
 var manifest = readJSON("manifest.json", true);
 var DEST = compilerOptions.outDir;
 if (!DEST || DEST === ".") {
@@ -145,6 +144,7 @@ var Tasks = {
 }
 
 
+typescript = compilerOptions.typescript = loadTypeScriptCompiler();
 makeTasks();
 
 function makeCompileTask(src) {
@@ -388,7 +388,7 @@ function readCompilerOptions(tsConfigFile, throwError) {
 
 function loadValidCompilerOptions(tsConfigFile, keepCustomOptions) {
   var compilerOptions = readCompilerOptions(tsConfigFile, true);
-  if (!keepCustomOptions) {
+  if (!keepCustomOptions && (keepCustomOptions === false || !compilerOptions.typescript)) {
     delete compilerOptions.inferThisForObjectLiterals;
     delete compilerOptions.narrowFormat;
   }
@@ -396,6 +396,26 @@ function loadValidCompilerOptions(tsConfigFile, keepCustomOptions) {
     compilerOptions.typescript = typescript;
   }
   return compilerOptions;
+}
+
+function loadTypeScriptCompiler(path) {
+  var typescript;
+  path = path || compilerOptions.typescript || null;
+  if (typeof path === "string") {
+    if (fs.existsSync(path)) {
+      if (fs.statSync(path).isDirectory()) {
+        path = osPath.join(path, "typescript");
+      }
+      try {
+        typescript = require(path);
+      } catch (e) {}
+    }
+    console.log('Load customized TypeScript compiler:', typescript != null);
+  }
+  if (typescript == null) {
+    typescript = require("typescript/lib/typescript");
+  }
+  return typescript;
 }
 
 function print() {
