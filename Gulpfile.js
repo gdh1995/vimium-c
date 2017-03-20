@@ -391,7 +391,7 @@ function loadValidCompilerOptions(tsConfigFile, keepCustomOptions) {
     delete compilerOptions.inferThisForObjectLiterals;
     delete compilerOptions.narrowFormat;
   }
-  if (typescript) {
+  if (typescript && !compilerOptions.typescript) {
     compilerOptions.typescript = typescript;
   }
   return compilerOptions;
