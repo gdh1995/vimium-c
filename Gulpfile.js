@@ -31,14 +31,14 @@ if (compilerOptions.noImplicitUseStrict) {
 }
 
 var Tasks = {
-  background: "background/*.ts",
-  content: ["./content/*.ts", "./lib/*.ts"],
-  front: "front/*.ts",
-  lib: "lib/*.ts",
-  "pages/others": ["pages/loader.ts", "pages/chrome_ui.ts"],
-  show: "pages/show.ts",
-  options: "pages/options*.ts",
-  pages: ["pages/others", "show", "options"],
+  "build/background": "background/*.ts",
+  "build/content": ["./content/*.ts", "./lib/*.ts"],
+  "build/front": "front/*.ts",
+  "build/lib": "lib/*.ts",
+  "build/others": ["pages/loader.ts", "pages/chrome_ui.ts"],
+  "build/show": "pages/show.ts",
+  "build/options": "pages/options*.ts",
+  "build/pages": ["build/others", "build/show", "build/options"],
   "static/special": function() {
     return copyByPath(["pages/newtab.js", "lib/math_parser*", "lib/*.min.js"]);
   },
@@ -51,9 +51,8 @@ var Tasks = {
       ]);
   }],
 
-  scripts: ["background", "content", "front"],
-  ts: ["scripts", "pages"],
-  js: ["ts"],
+  "build/scripts": ["build/background", "build/content", "build/front"],
+  "build/ts": ["build/scripts", "build/pages"],
 
   "min/bg": function() {
     var sources = manifest.background.scripts;
@@ -101,10 +100,9 @@ var Tasks = {
     fs.writeFileSync(file, data);
   }],
   minjs: ["min/bg", "min/content", "min/others"],
-  dist: [["static", "js"], willStart("manifest", "min/others")],
+  dist: [["static", "build/ts"], willStart("manifest", "min/others")],
 
   build: ["dist"],
-  default: ["dist"],
   rebuild: ["clean", willStart("dist")],
   all: ["rebuild"],
   "clean/temp": function() {
@@ -127,19 +125,20 @@ var Tasks = {
     compilerOptions = loadValidCompilerOptions("tsconfig.json", true);
     locally = true;
   },
-  "local/scripts": ["locally", function() {
-    return compile(["background/*.ts", "content/*.ts", "lib/*.ts"
-        , "!lib/polyfill.ts"]);
-  }],
-  "local/others": ["locally", function() {
+  "background": ["locally", makeCompileTask("background/*.ts")],
+  "content": ["locally", makeCompileTask(["content/*.ts", "lib/*.ts", "!lib/polyfill.ts"])],
+  "lib": ["locally", makeCompileTask("lib/*.ts")],
+  "front": ["locally", makeCompileTask("front/*.ts")],
+  "scripts": ["background", "content"],
+  "others": ["locally", function() {
     return compile(["front/*.ts", "lib/polyfill.ts"
-        , "pages/chrome_ui.ts", "pages/loader.ts"]);
+        , "pages/*.ts", "!pages/options*.ts", "!pages/show.ts"]);
   }],
-  "local/pages": ["locally", function() {
-    compile(["pages/*.ts", "pages/show.ts"]);
+  "pages": ["locally", function() {
     return compile(["pages/options*.ts", "pages/show.ts"]);
   }],
-  local: ["local/scripts", "local/others", "local/others"],
+  local: ["scripts", "others", "pages"],
+  default: ["local"],
   test: ["local"]
 }
 
@@ -170,7 +169,7 @@ function makeTasks() {
     } else {
       gulp.task(key, Tasks[key] = makeCompileTask(task));
     }
-    if (key.slice(-1) !== "/" && fs.existsSync(key) && fs.statSync(key).isDirectory()) {
+    if (key.indexOf("/") === -1 && fs.existsSync(key) && fs.statSync(key).isDirectory()) {
       gulp.task(key + "/", [key]);
     }
   }
