@@ -43,7 +43,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
         }
         (this.port as Port).postMessage(request);
       } catch (e) { // this extension is reloaded or disabled
-        return VSettings.destroy();
+        VSettings.destroy();
       }
     },
     Listener<K extends keyof FgRes, T extends keyof BgReq> (this: void
@@ -79,7 +79,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
   VSettings = {
     cache: null as never as VSettings["cache"],
     destroy: null as never as VSettings["destroy"],
-    timer: setInterval(function() { vPort.connect(PortType.initing); }, 2000),
+    timer: setInterval(function() { try { vPort.connect(PortType.initing); } catch(e) { VSettings.destroy(); } }, 2000),
     checkIfEnabled (this: void): void {
       return vPort.safePost({ handler: "checkIfEnabled", url: window.location.href });
     },
