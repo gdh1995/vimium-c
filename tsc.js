@@ -1,4 +1,4 @@
-#!/usr/bin/env node
+"use strict";
 var fs = require('fs');
 var argv = process.argv, argi = 0;
 if (/\bnode\b/i.test(argv[argi])) {
