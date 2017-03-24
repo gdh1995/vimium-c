@@ -120,7 +120,7 @@ var Vomnibar = {
       this.onload = null as never;
       _this.options = null;
       page = page.substring(0, page.indexOf("/", i + 3));
-      if (location.origin !== page) {
+      if (location.origin !== page || !page.startsWith("chrome")) {
         const channel = new MessageChannel();
         _this.port = channel.port1;
         channel.port1.onmessage = _this.onMessage.bind(_this);
