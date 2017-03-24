@@ -247,6 +247,11 @@ label:active {
 .wrap-left-space {
   margin-left: 0.25em;
 }
+.break-all {
+  white-space: normal;
+  word-break: break-all;
+  word-wrap: break-word;
+}
 .deprecated {
   color: darkgray;
 }
