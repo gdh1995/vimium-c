@@ -2033,6 +2033,11 @@ declare namespace chrome.tabs {
          * @since Chrome 39.
          */
         matchAboutBlank?: boolean;
+        /**
+         * Optional.
+         * @since Chrome 39.
+         */
+        frameId?: number;
     }
 
     interface CreateProperties {

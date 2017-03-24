@@ -229,7 +229,7 @@ interface VSettings {
   timer: number;
   checkIfEnabled (this: void): void;
   onDestroy: ((this: void) => any) | null;
-  destroy (this: void, silent?: boolean): void;
+  destroy (this: void, silent?: boolean, keepChrome?: boolean): void;
 }
 declare var VimiumInjector: VimiumInjector;
 

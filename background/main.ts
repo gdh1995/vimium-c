@@ -329,11 +329,12 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
       return requestHandlers.ShowHUD("It's not allowed to " + action);
     },
     checkVomnibarPage: function (this: void, port: Frames.Port, nolog?: boolean): boolean {
-      if (port.sender.url === Settings.CONST.VomnibarPage) { return false; }
+      const { url } = port.sender;
+      if (url === Settings.cache.vomnibarPage_f || url === Settings.CONST.VomnibarPage) { return false; }
       if (!nolog && !(port.sender as Frames.ExSender).warned) {
       console.warn("Receive a request from %can unsafe source page%c (should be vomnibar) :\n ",
         "color: red", "color: auto",
-        port.sender.url, '@' + port.sender.tabId);
+        url, '@' + port.sender.tabId);
       (port.sender as Frames.ExSender).warned = true;
       }
       return true;
@@ -1166,7 +1167,8 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
         port = Settings.indexFrame(port.sender.tabId, 0) || port;
       }
       const options = Utils.extendIf(Object.setPrototypeOf({
-        vomnibar: Settings.CONST.VomnibarPage,
+        vomnibar: port.sender.url.startsWith(location.origin) ? Settings.CONST.VomnibarPage
+          : Settings.cache.vomnibarPage_f,
         secret: getSecret(),
       } as CmdOptions["Vomnibar.activate"], null), cOptions as any);
       port.postMessage<1, "Vomnibar.activate">({
@@ -1623,14 +1625,15 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
     },
     OnConnect (this: void, port: Frames.Port): void {
       Connections.format(port);
-      let type = (port.name[9] as string | number as number) | 0, ref: Frames.Frames | undefined
-        , tabId = port.sender.tabId;
-      if (type === PortType.omnibar) {
-        return Connections.onOmniConnect(port, tabId);
+      let type = (port.name[9] as string | number as number) | 0, ref: Frames.Frames | undefined;
+      const { tabId, url } = port.sender;
+      if (type === PortType.omnibar || (url === Settings.cache.vomnibarPage_f
+          && Settings.CONST.ChromeVersion >= GlobalConsts.MinChromeVersionOfVomnibarLeak)) {
+        return Connections.onOmniConnect(port, tabId, type);
       }
       port.onMessage.addListener(Connections.OnMessage);
       port.onDisconnect.addListener(Connections.OnDisconnect);
-      const pass = Settings.getExcluded(port.sender.url), status = pass === null
+      const pass = Settings.getExcluded(url), status = pass === null
           ? Frames.BaseStatus.enabled : pass ? Frames.BaseStatus.partial : Frames.BaseStatus.disabled;
       port.postMessage((type & PortType.initing) ? {
         name: "init",
@@ -1676,8 +1679,22 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
         ref[0] = ref[1];
       }
     },
-    onOmniConnect (port: Frames.Port, tabId: number): void {
-      if (funcDict.checkVomnibarPage(port)) {
+    onOmniConnect (port: Frames.Port, tabId: number, type: PortType): void {
+      if (type !== PortType.omnibar) {
+        if (tabId >= 0) {
+          chrome.tabs.executeScript(tabId, {
+            file: Settings.CONST.VomnibarScript,
+            frameId: port.sender.frameId,
+            runAt: "document_start"
+          });
+        } else {
+          port.postMessage({
+            name: "init", load: {} as SettingsNS.FrontendSettingCache,
+            passKeys: "", mapKeys: null, keyMap: {}
+          });
+        }
+        return;
+      } else if (funcDict.checkVomnibarPage(port)) {
         port.disconnect();
         return;
       }

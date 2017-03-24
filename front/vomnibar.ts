@@ -19,6 +19,13 @@ interface Port extends chrome.runtime.Port {
 type Options = VomnibarNS.FgOptions;
 type AllowedActions = "dismiss"|"focus"|"blurInput"|"backspace"|"blur"|"up"|"down"|"toggle"|"pageup"|"pagedown"|"enter" | "";
 
+declare var VSettings: undefined | {
+  destroy(silent: true, keepChrome: true): void;
+};
+if (typeof VSettings === "object") {
+  VSettings.destroy(true, true);
+}
+
 var Vomnibar = {
   activate (options: Options): void {
     if (!this.init && VPort.EnsurePort()) { return; }

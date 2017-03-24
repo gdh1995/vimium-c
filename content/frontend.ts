@@ -927,7 +927,7 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
   ELs.hook(addEventListener);
   VHUD = HUD;
 
-  VSettings.destroy = function(silent) {
+  VSettings.destroy = function(silent, keepChrome) {
     let f: typeof removeEventListener | typeof VSettings.onDestroy = removeEventListener, el: HTMLElement | null;
     isEnabledForUrl = false;
     clearInterval(VSettings.timer);
@@ -951,6 +951,6 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
       , "color:auto", Date.now());
 
     if (vPort.port) { try { vPort.port.disconnect(); } catch (e) {} }
-    isInjected || location.protocol.startsWith("chrome") || (window.chrome = null as never);
+    isInjected || location.protocol.startsWith("chrome") || keepChrome || (window.chrome = null as never);
   };
 })();

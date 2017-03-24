@@ -249,7 +249,8 @@ w|wiki:\\\n  https://www.wikipedia.org/w/index.php?search=$s Wikipedia\n\
       __proto__: null as never
     } as SafeDict<string>,
     ShowPage: "pages/show.html",
-    VomnibarPage: "front/vomnibar.html"
+    VomnibarPage: "front/vomnibar.html",
+    VomnibarScript: "front/vomnibar.js",
   }
 };
 
