@@ -33,7 +33,7 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
   type BgCmd = BgCmdNoTab | BgCmdActiveTab | BgCmdCurWndTabs;
 
   const framesForTab: Frames.FramesMap = Object.create<Frames.Frames>(null),
-  NoFrameId = Settings.CONST.ChromeVersion < 41,
+  NoFrameId = Settings.CONST.ChromeVersion < GlobalConsts.MinChromeVersionOfFrameId,
   openMultiTab = function(this: void, rawUrl: string, count: number
       , parentTab: InfoToCreateMultiTab): void {
     if (!(count >= 1)) return;
@@ -1087,7 +1087,7 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
     },
     parentFrame (): void {
       let frames: Frames.Frames | undefined, sender: Frames.Sender | undefined, msg: string | null;
-      msg = NoFrameId ? "Vimium++ can not know parent frame before Chrome 41"
+      msg = NoFrameId ? `Vimium++ can not know parent frame before Chrome ${GlobalConsts.MinChromeVersionOfFrameId}`
         : !chrome.webNavigation ? "Vimium++ is not permitted to access frames"
         : !((frames = framesForTab[cPort.sender.tabId]) && (sender = frames[0].sender) && sender.tabId > 0)
           ? "Vimium++ can not access frames in current tab"
@@ -1846,6 +1846,7 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
   setTimeout(function(): void {
     Settings.fetchFile("baseCSS");
     Settings.postUpdate("searchUrl", null); // will also update newTabUrl
+    Settings.postUpdate("vomnibarPage");
 
     let arr: CSTypes[] = ["images", "plugins", "javascript", "cookies"], i: number;
     for (i = arr.length; 0 < i--; ) {

@@ -366,6 +366,10 @@ interface AdvancedOptBtn extends HTMLButtonElement {
     _ref[_i].onclick = func;
   }
 
+  if (bgSettings.CONST.ChromeVersion < GlobalConsts.MinChromeVersionOfVomnibarLeak) {
+    $("VomnibarPageBox").style.display = "none";
+  }
+
   if (window.location.hash === "#chrome-ui") {
     (document.getElementById("mainHeader") as HTMLElement).remove();
     element = document.getElementById("openInTab") as HTMLAnchorElement;

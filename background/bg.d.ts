@@ -263,6 +263,7 @@ declare namespace SettingsNS {
     showAdvancedOptions: boolean;
     userDefinedCss: string;
     vimSync: boolean;
+    vomnibarPage: string;
   }
   interface CachedFiles {
     baseCSS: string;
@@ -306,7 +307,7 @@ declare namespace SettingsNS {
   }
   type DeclaredUpdateHookMap = NullableUpdateHookMap
       & Pick<BaseUpdateHookMap, "extWhiteList" | "newTabUrl" | "baseCSS" | "vimSync"
-        | "userDefinedCss">;
+        | "userDefinedCss" | "vomnibarPage">;
   type EnsuredUpdateHookMaps = DeclaredUpdateHookMap
       & Pick<BaseUpdateHookMap, "showActionIcon" | "newTabUrl_f">;
   type BaseUpdateHookMap2 = {

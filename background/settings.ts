@@ -122,6 +122,17 @@ const Settings = {
         name: "insertInnerCSS",
         css: this.cache.innerCSS
       });
+    },
+    vomnibarPage (url): void {
+      if (this.CONST.ChromeVersion < GlobalConsts.MinChromeVersionOfVomnibarLeak) {
+        url = (this as typeof Settings).CONST.VomnibarPage;
+      } else if (url === this.defaults.vomnibarPage) {
+        url = chrome.runtime.getURL(url);
+      } else {
+        url = Utils.convertToUrl(url);
+        url = url.replace(":version", (this as typeof Settings).CONST.CurrentVersion);
+      }
+      this.set("vomnibarPage_f", url);
     }
   } as SettingsNS.DeclaredUpdateHookMap & SettingsNS.SpecialUpdateHookMap as SettingsNS.UpdateHookMap,
   indexFrame: null as never as (this: void, tabId: number, frameId: number) => Port | null,
@@ -184,13 +195,14 @@ w|wiki:\\\n  https://www.wikipedia.org/w/index.php?search=$s Wikipedia\n\
     smoothScroll: true,
     userDefinedCss: "",
     userDefinedOuterCss: "",
-    vimSync: false
+    vimSync: false,
+    vomnibarPage: ""
   } as SettingsWithDefaults & SafeObject,
   // not set localStorage, neither sync, if key in @nonPersistent
   // not clean if exists (for simpler logic)
   nonPersistent: { __proto__: null as never,
     baseCSS: 1, exclusionTemplate: 1, helpDialog: 1, innerCSS: 1,
-    searchEngineMap: 1, searchEngineRules: 1, searchKeywords: 1
+    searchEngineMap: 1, searchEngineRules: 1, searchKeywords: 1, vomnibarPage_f: 1
   } as TypedSafeEnum<SettingsNS.NonPersistentSettings>,
   frontUpdateAllowed: { __proto__: null as never,
     showAdvancedCommands: 1
@@ -243,6 +255,7 @@ w|wiki:\\\n  https://www.wikipedia.org/w/index.php?search=$s Wikipedia\n\
 
 // note: if changed, ../pages/newtab.js also needs change.
 Settings.defaults.newTabUrl = Settings.CONST.ChromeInnerNewTab;
+Settings.defaults.vomnibarPage = Settings.CONST.VomnibarPage;
 Settings.CONST.ChromeVersion = 0 | (navigator.appVersion.match(/\bChrom(?:e|ium)\/(\d+)/) || [0, 53])[1] as number;
 chrome.runtime.getPlatformInfo(function(info): void {
   Settings.CONST.Platform = info.os;
