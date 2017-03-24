@@ -8,7 +8,7 @@ if (Settings.get("vimSync") === true) setTimeout(function() { if (!chrome.storag
     storage: chrome.storage.sync,
     to_update: null as SettingsToUpdate | null,
     doNotSync: Object.setPrototypeOf({
-      findModeRawQueryList: 1, keyboard: 1
+      findModeRawQueryList: 1, keyboard: 1, newTabUrl_f: 1
     }, null) as TypedSafeEnum<SettingsToSync>,
     HandleStorageUpdate: function(changes, area) {
       if (area !== "sync") { return; }
