@@ -1822,7 +1822,7 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
   } as typeof Settings.indexPorts;
 
   setTimeout(function(): void {
-    Settings.postUpdate("bufferToLoad" as string as keyof FullSettings, null);
+    Settings.postUpdate("bufferToLoad", null);
     Settings.get("userDefinedOuterCss", true);
     return (Settings.Init as (this: void) => void)();
   }, 0);

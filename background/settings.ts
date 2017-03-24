@@ -39,13 +39,18 @@ const Settings = {
       }
     }
     let ref: SettingsNS.UpdateHook<K> | undefined;
-    if (ref = this.updateHooks[key] as (SettingsNS.UpdateHook<K> | undefined)) {
+    if (ref = this.updateHooks[key as keyof SettingsWithDefaults] as (SettingsNS.UpdateHook<K> | undefined)) {
       return ref.call(this, value, key);
     }
   },
-  postUpdate<K extends keyof FullSettings> (key: K, value?: FullSettings[K] | null | undefined): void {
-    return (this.updateHooks[key] as SettingsNS.UpdateHook<K>).call(this,
-      value !== undefined ? value : this.get(key as keyof SettingsWithDefaults), key);
+  postUpdate: function<K extends keyof SettingsWithDefaults> (this: Window["Settings"], key: K, value?: FullSettings[K]): void {
+    return ((this as typeof Settings).updateHooks[key] as SettingsNS.UpdateHook<K>).call(this,
+      value !== undefined ? value : this.get(key), key);
+  } as {
+    <K extends keyof SettingsNS.NullableUpdateHookMap>(key: K, value?: FullSettings[K] | null): void;
+    <K extends keyof SettingsNS.SpecialUpdateHookMap>(key: K, value: null): void;
+    <K extends keyof SettingsNS.EnsuredUpdateHookMaps>(key: K, value?: FullSettings[K]): void;
+    <K extends keyof SettingsWithDefaults>(key: K, value?: FullSettings[K]): void;
   },
   broadcast<K extends keyof BgReq> (request: Req.bg<K>): void {
     let ref = this.indexPorts(), tabId: string, frames: Frames.Frames, i: number;
@@ -58,14 +63,14 @@ const Settings = {
   },
   updateHooks: {
     __proto__: null as never,
-    bufferToLoad: function() {
-      const ref = (this as typeof Settings).valuesToLoad, ref2 = (this as typeof Settings).bufferToLoad;
+    bufferToLoad (): void {
+      const ref = (this as typeof Settings).valuesToLoad, ref2 = this.bufferToLoad;
       for (let _i = ref.length; 0 <= --_i;) {
         let key = ref[_i];
-        ref2[key] = (this as typeof Settings).get(key);
+        ref2[key] = this.get(key);
       }
     },
-    extWhiteList: function(val) {
+    extWhiteList (val): void {
       const map = (this as typeof Settings).extWhiteList = Object.create<true>(null);
       if (!val) { return; }
       for (let arr = val.split("\n"), i = arr.length, wordCharRe = /^[\dA-Za-z]/ as RegExpOne; 0 <= --i; ) {
@@ -74,21 +79,21 @@ const Settings = {
         }
       }
     },
-    newTabUrl: function(url): void {
+    newTabUrl (url): void {
       url = (<RegExpI>/^\/?pages\/[a-z]+.html\b/i).test(url)
         ? chrome.runtime.getURL(url) : Utils.convertToUrl(url);
-      return (this as typeof Settings).set('newTabUrl_f', url);
+      return this.set('newTabUrl_f', url);
     },
-    searchEngines: function(): void {
-      return (this as typeof Settings).set("searchEngineMap", Object.create<Search.Engine>(null));
+    searchEngines (): void {
+      return this.set("searchEngineMap", Object.create<Search.Engine>(null));
     },
-    searchEngineMap: function(value): void {
-      (this as typeof Settings).set("searchKeywords", null);
-      Utils.parseSearchEngines("~:" + (this as typeof Settings).get("searchUrl"), value);
-      const rules = Utils.parseSearchEngines((this as typeof Settings).get("searchEngines"), value);
-      return (this as typeof Settings).set("searchEngineRules", rules);
+    searchEngineMap (value: FullSettings["searchEngineMap"]): void {
+      this.set("searchKeywords", null);
+      Utils.parseSearchEngines("~:" + this.get("searchUrl"), value);
+      const rules = Utils.parseSearchEngines(this.get("searchEngines"), value);
+      return this.set("searchEngineRules", rules);
     },
-    searchUrl: function(this: Window["Settings"], str): void {
+    searchUrl (str): void {
       if (str) {
         Utils.parseSearchEngines("~:" + str, this.cache.searchEngineMap);
       } else if (str = this.get("newTabUrl_f", true)) {
@@ -99,26 +104,26 @@ const Settings = {
       }
       return (this as typeof Settings).postUpdate("newTabUrl");
     },
-    baseCSS: function(css): void {
-      (this as typeof Settings).CONST.BaseCSSLength = css.length;
-      css += (this as typeof Settings).get("userDefinedCss");
-      (this as typeof Settings).cache.baseCSS = "";
-      return (this as typeof Settings).set("innerCSS", css);
+    baseCSS (css): void {
+      this.CONST.BaseCSSLength = css.length;
+      css += this.get("userDefinedCss");
+      this.cache.baseCSS = "";
+      return this.set("innerCSS", css);
     },
-    vimSync: function(value) {
+    vimSync (value): void {
       if (value || !(this as typeof Settings).Sync.HandleStorageUpdate) { return; }
       chrome.storage.onChanged.removeListener(Settings.Sync.HandleStorageUpdate as SettingsNS.OnSyncUpdate);
       Settings.Sync = { set () {} };
     },
-    userDefinedCss: function(css): void {
-      css = (this as typeof Settings).cache.innerCSS.substring(0, (this as typeof Settings).CONST.BaseCSSLength) + css;
-      (this as typeof Settings).set("innerCSS", css);
-      return (this as typeof Settings).broadcast({
+    userDefinedCss (css): void {
+      css = this.cache.innerCSS.substring(0, this.CONST.BaseCSSLength) + css;
+      this.set("innerCSS", css);
+      return this.broadcast({
         name: "insertInnerCSS",
-        css: (this as typeof Settings).cache.innerCSS
+        css: this.cache.innerCSS
       });
     }
-  } as SettingsNS.DeclaredUpdateHookMap as SettingsNS.UpdateHookMap,
+  } as SettingsNS.DeclaredUpdateHookMap & SettingsNS.SpecialUpdateHookMap as SettingsNS.UpdateHookMap,
   indexFrame: null as never as (this: void, tabId: number, frameId: number) => Port | null,
   indexPorts: null as never as Window["Settings"]["indexPorts"],
   fetchFile (file: keyof SettingsNS.CachedFiles, callback?: (this: void) => any): TextXHR | null {

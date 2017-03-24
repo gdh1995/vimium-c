@@ -276,6 +276,7 @@ declare namespace SettingsNS {
     innerCSS: string;
     searchEngineRules: Search.Rule[];
     searchKeywords: string[] | null;
+    vomnibarPage_f: string;
   }
   interface NonPersistentSettings extends BaseNonPersistentSettings, OtherSettingsWithDefaults, CachedFiles {}
   interface PersistentSettings extends FrontendSettings, BackendSettings {}
@@ -283,31 +284,36 @@ declare namespace SettingsNS {
   interface SettingsWithDefaults extends PersistentSettings, OtherSettingsWithDefaults {}
   interface FullSettings extends PersistentSettings, NonPersistentSettings, FrontUpdateAllowedSettings {}
 
-  type SettingNamesWithHook = keyof FullSettings | "bufferToLoad";
   interface UpdateHook<K extends keyof FullSettings> {
-    (this: any, value: FullSettings[K] | null, key: K): void;
+    (this: Window["Settings"], value: FullSettings[K], key: K): void;
+  }
+  interface NullableUpdateHook<K extends keyof FullSettings> {
+    (this: Window["Settings"], value: FullSettings[K] | null, key: K): void;
+  }
+  interface UpdateHookWoThis<K extends keyof FullSettings> {
+    (this: void, value: FullSettings[K]): void;
   }
   type BaseUpdateHookMap = {
-    [key in keyof FullSettings]?: UpdateHook<key>;
+    [key in keyof FullSettings]: UpdateHook<key>;
   }
-  interface DeclaredUpdateHookMap extends BaseUpdateHookMap, SafeObject {
-    bufferToLoad (this: any): void;
-    extWhiteList (this: any, value: FullSettings["extWhiteList"]): void;
-    newTabUrl (this: any, value: FullSettings["newTabUrl"]): void;
-    searchEngines (this: any): void;
-    searchEngineMap (this: any, value: FullSettings["searchEngineMap"]): void;
-    baseCSS (this: any, value: FullSettings["baseCSS"]): void;
-    vimSync (this: any, value: FullSettings["vimSync"]): void;
-    userDefinedCss (this: any, css: string): void;
+  interface NullableUpdateHookMap {
+    searchEngines: NullableUpdateHook<"searchEngines">;
+    searchEngineMap: NullableUpdateHook<"searchEngineMap">;
+    searchUrl: NullableUpdateHook<"searchUrl">;
   }
-  interface UpdateHookMap extends DeclaredUpdateHookMap {
-    showActionIcon (this: void, value: boolean): void;
-    newTabUrl_f: (this: void, url_f: string) => void;
-    exclusionRules?: (this: void, rules: ExclusionsNS.StoredRule[]) => void;
-    exclusionOnlyFirstMatch?: (this: void, value: boolean) => void;
-    exclusionListenHash?: (this: void, value: boolean) => void;
-    localeEncoding?: (this: void, value: string) => void;
-    keyMappings?: (this: any, value: string) => void;
+  interface SpecialUpdateHookMap {
+    bufferToLoad (this: Window["Settings"], value: null): void;
+  }
+  type DeclaredUpdateHookMap = NullableUpdateHookMap
+      & Pick<BaseUpdateHookMap, "extWhiteList" | "newTabUrl" | "baseCSS" | "vimSync"
+        | "userDefinedCss">;
+  type EnsuredUpdateHookMaps = DeclaredUpdateHookMap
+      & Pick<BaseUpdateHookMap, "showActionIcon" | "newTabUrl_f">;
+  type BaseUpdateHookMap2 = {
+    [key in keyof SettingsWithDefaults]: UpdateHook<key>;
+  } & EnsuredUpdateHookMaps & SpecialUpdateHookMap;
+  interface UpdateHookMap extends BaseUpdateHookMap2 {
+    showActionIcon: UpdateHookWoThis<"showActionIcon">;
   }
 
   interface FullCache extends Partial<FullSettings>, SafeObject {
@@ -316,6 +322,7 @@ declare namespace SettingsNS {
     searchKeywords: FullSettings["searchKeywords"];
     searchEngineMap: FullSettings["searchEngineMap"];
     searchEngineRules: FullSettings["searchEngineRules"];
+    vomnibarPage_f: FullSettings["vomnibarPage_f"];
   }
 
   type DynamicFiles = "HelpDialog" | "Commands" | "Exclusions" |
@@ -410,6 +417,7 @@ interface Window {
       readonly ChromeInnerNewTab: string;
       readonly DefaultNewTabPage: string;
       readonly Platform: string;
+      BaseCSSLength: number;
     };
   }
 }
