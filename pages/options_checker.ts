@@ -30,7 +30,7 @@ let _a = {
       value = `"${s2}"`;
     }
     try {
-      let obj = JSON.parse(value);
+      const obj = JSON.parse(value);
       if (typeof obj !== "string") {
         return obj !== true ? str : "";
       }
@@ -136,7 +136,7 @@ Option.all.vimSync.checker = {
   }
 };
 
-(function() {
+(function(): void {
   const func = loadChecker, info = (loadChecker as CheckerLoader).info;
   (loadChecker as CheckerLoader).info = "";
   let _ref = document.querySelectorAll("[data-check]"), _i: number;
