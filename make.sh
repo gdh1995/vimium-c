@@ -54,7 +54,7 @@ else
   WITH_MAP='*.min'
 fi
 zip -rX -MM $args "$output_for_zip" $input -x '.*' 'weidu*' 'test*' 'git*' \
-  'dist*' 'front/manifest*' 'front/vimium.css' 'node_modules*' '*tsconfig*' 'types*' \
+  'dist*' 'front/*.png' 'front/manifest*' 'front/vimium.css' 'node_modules*' '*tsconfig*' 'types*' \
   'pages/chrome_ui*' 'Gulp*' 'gulp*' 'package*' 'todo*' 'tsc.*' \
   '*/.*' '*.coffee' '*.crx' '*.sh' '*.ts' '*.zip' $WITH_MAP $4
 err=$?
