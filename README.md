@@ -57,6 +57,8 @@ Not released yet:
   * those suggested mappings are added into the default list and the recommended settings
 * auto convert mapped keys containing `<s-`: e.g. `<s-a>` to `A`, `<c-s-a>` to `<c-A>`
   * `<s-*>` is a grammar Vimium will support (https://github.com/philc/vimium/pull/2388)
+* add my 3 Chrome extensions into the extension white list by default
+  * Vomnibar Page for Vimium++, Modified X New Tab Page, PDF Viewer for Vimium++
 * add a checker to ensure `New tab URL` won't cause a dead loop
 * fix a performance issue of Vomnibar UI on an edge case
 * auto complete a domain in Vomnibar using
