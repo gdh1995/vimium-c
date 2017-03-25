@@ -10,6 +10,8 @@ in_dist=false
 if bool "$IN_DIST" && [ -d "dist" -a -f "dist/manifest.json" ]; then
   in_dist=true
   cd dist; input=$(echo *); cd ..
+elif [ -n "$ZIP_INPUT" ]; then
+  input=$ZIP_INPUT
 else
   input=$(echo *)
 fi
@@ -52,7 +54,7 @@ else
   WITH_MAP='*.min'
 fi
 zip -rX -MM $args "$output_for_zip" $input -x '.*' 'weidu*' 'test*' 'git*' \
-  'dist*' 'front/vimium.css' 'node_modules*' '*tsconfig*' 'types*' \
+  'dist*' 'front/manifest*' 'front/vimium.css' 'node_modules*' '*tsconfig*' 'types*' \
   'pages/chrome_ui*' 'Gulp*' 'gulp*' 'package*' 'todo*' 'tsc.*' \
   '*/.*' '*.coffee' '*.crx' '*.sh' '*.ts' '*.zip' $WITH_MAP $4
 err=$?

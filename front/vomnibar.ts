@@ -698,21 +698,18 @@ VPort = {
     Vomnibar.secret = function() {};
     return handler(request.secret);
   };
-  window.onmessage = function(event: MessageEvent): void {
+  window.onmessage = function(event): void {
     if (event.source === window.parent) {
-      let data: VomnibarNS.MessageData = event.data;
+      const data: VomnibarNS.MessageData = event.data;
       return handler(data[0], event.ports[0], data[1]);
     }
   };
-})();
 VPort.connect();
-
-if (!String.prototype.startsWith) {
-String.prototype.startsWith = function(this: string, s: string): boolean {
+String.prototype.startsWith || (String.prototype.startsWith = function(this: string, s: string): boolean {
   return this.length >= s.length && this.lastIndexOf(s, 0) === 0;
-};
+});
 String.prototype.endsWith || (String.prototype.endsWith = function(this: string, s: string): boolean {
   const i = this.length - s.length;
   return i >= 0 && this.indexOf(s, i) === i;
 });
-}
+})();

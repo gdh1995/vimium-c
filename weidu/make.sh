@@ -9,5 +9,5 @@ shift && shift && shift && shift
 
 [ -d weidu ] && cd weidu
 
-IN_DIST= WITH_MAP= \
+IN_DIST= WITH_MAP= ZIP_INPUT= \
 exec ../make.sh "$output" "$key" "$crx" "$ignored" "$@"

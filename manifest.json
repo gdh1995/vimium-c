@@ -95,7 +95,7 @@
   "version_name": "1.58",
   "web_accessible_resources": [
     "content/*",
-    "front/vomnibar.html",
+    "front/vomnibar.*",
     "lib/*"
   ]
 }
