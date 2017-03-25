@@ -1759,6 +1759,8 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
       if (port.sender && (port.sender.id as string) in (Settings.extWhiteList as SafeDict<true>)
           && port.name.startsWith("vimium++")) {
         return Connections.OnConnect(port as Frames.RawPort as Frames.Port);
+      } else {
+        port.disconnect();
       }
     });
   };
