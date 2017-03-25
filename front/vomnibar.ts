@@ -678,8 +678,10 @@ VPort = {
   }
 };
 (function(): void {
-  if (location.pathname === "/vomnibar.html" && location.protocol === "chrome-extension:"
-      && document.currentScript && (document.currentScript as HTMLScriptElement).src.lastIndexOf("/front/") === -1) {
+  if (location.pathname !== "/vomnibar.html" || location.protocol !== "chrome-extension:" || !document.currentScript) {}
+  else if ((document.currentScript as HTMLScriptElement).src.lastIndexOf("/front/") !== -1) {
+    window.ExtId = new URL((document.currentScript as HTMLScriptElement).src).hostname;
+  } else {
     document.currentScript.remove();
     window.onmessage = function(event): void {
       if (event.source !== window.parent) { return; }
