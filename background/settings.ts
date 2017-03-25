@@ -167,30 +167,30 @@ nacjakoppgmdcpemlfnfegmlhipddanj`,
     localeEncoding: "gbk",
     newTabUrl: "",
     newTabUrl_f: "",
-    nextPatterns: "\u4e0b\u9875,\u4e0b\u4e00\u9875,\u4e0b\u4e00\u7ae0,\u540e\u4e00\u9875"
-      + ",next,more,newer,>,\u203a,\u2192,\xbb,\u226b,>>",
-    previousPatterns: "\u4e0a\u9875,\u4e0a\u4e00\u9875,\u4e0a\u4e00\u7ae0,\u524d\u4e00\u9875"
-      + ",prev,previous,back,older,<,\u2039,\u2190,\xab,\u226a,<<",
+    nextPatterns: "\u4e0b\u9875,\u4e0b\u4e00\u9875,\u4e0b\u4e00\u7ae0,\u540e\u4e00\u9875\
+,next,more,newer,>,\u203a,\u2192,\xbb,\u226b,>>",
+    previousPatterns: "\u4e0a\u9875,\u4e0a\u4e00\u9875,\u4e0a\u4e00\u7ae0,\u524d\u4e00\u9875\
+,prev,previous,back,older,<,\u2039,\u2190,\xab,\u226a,<<",
     regexFindMode: false,
     scrollStepSize: 100,
     searchUrl: "https://www.baidu.com/s?ie=UTF-8&wd=$s Baidu",
-    searchEngines: "b|ba|baidu: https://www.baidu.com/s?ie=UTF-8&wd=$s Baidu\n\
-bi|bing: https://www.bing.com/search?q=%s Bing\n\
-g|go|gg|google: https://www.google.com/search?q=$s Google\n\
-js\\:|Js: javascript:\\ $S; Javascript\n\
-w|wiki:\\\n  https://www.wikipedia.org/w/index.php?search=$s Wikipedia\n\
-\n\
-# More examples.\n\
-#\n\
-# (Vimium++ supports search completion Google, Wikipedia,\n\
-# and so on, as above, and for these.)\n\
-#\n\
-# l: https://www.google.com/search?q=%s&btnI I'm feeling lucky\n\
-# y: https://www.youtube.com/results?search_query=%s Youtube\n\
-# gm: https://www.google.com/maps?q=%s Google maps\n\
-# d: https://duckduckgo.com/?q=%s DuckDuckGo\n\
-# az: https://www.amazon.com/s/?field-keywords=%s Amazon\n\
-# qw: https://www.qwant.com/?q=%s Qwant",
+    searchEngines: `b|ba|baidu: https://www.baidu.com/s?ie=UTF-8&wd=$s Baidu
+bi|bing: https://www.bing.com/search?q=%s Bing
+g|go|gg|google: https://www.google.com/search?q=$s Google
+js\\:|Js: javascript:\\ $S; Javascript
+w|wiki:\\\n  https://www.wikipedia.org/w/index.php?search=$s Wikipedia
+
+# More examples.
+#
+# (Vimium++ supports search completion Google, Wikipedia,
+# and so on, as above, and for these.)
+#
+# l: https://www.google.com/search?q=%s&btnI I'm feeling lucky
+# y: https://www.youtube.com/results?search_query=%s Youtube
+# gm: https://www.google.com/maps?q=%s Google maps
+# d: https://duckduckgo.com/?q=%s DuckDuckGo
+# az: https://www.amazon.com/s/?field-keywords=%s Amazon
+# qw: https://www.qwant.com/?q=%s Qwant`,
     searchEngineMap: {}, // may be modified, but this action is safe
     showActionIcon: true,
     showAdvancedCommands: false,
