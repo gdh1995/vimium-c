@@ -1167,7 +1167,7 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
         port = Settings.indexFrame(port.sender.tabId, 0) || port;
       }
       const options = Utils.extendIf(Object.setPrototypeOf({
-        vomnibar: port.sender.url.startsWith(location.protocol) ? Settings.CONST.VomnibarPage
+        vomnibar: port.sender.url.startsWith("chrome") ? Settings.CONST.VomnibarPage
           : Settings.cache.vomnibarPage_f,
         script: Settings.CONST.VomnibarScript,
         secret: getSecret(),
@@ -1187,7 +1187,7 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
     },
     toggleViewSource (this: void, tabs: [Tab]): void {
       let url = tabs[0].url;
-      if (url.startsWith("chrome-")) {
+      if (url.startsWith("chrome")) {
         return funcDict.complain("visit HTML of an extension's page");
       }
       url = url.startsWith("view-source:") ? url.substring(12) : ("view-source:" + url);
