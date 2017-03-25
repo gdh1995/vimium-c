@@ -1,7 +1,7 @@
 Vimium++
 ========
 [![MIT license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE.txt)
-![Version 1.58](https://img.shields.io/badge/release-1.58.1-orange.svg)
+![Version 1.59](https://img.shields.io/badge/release-1.59-orange.svg)
 
 **[Visit Vimium++ in Chrome Web Store](https://chrome.google.com/webstore/detail/vimium%2B%2B/hfjbmagddngcpeloejdejnfgbamkjaeg)**.
 
@@ -49,7 +49,7 @@ __微度新标签页修改版 (Modified X New Tab Page):__
 
 # Release Notes
 
-Not released yet:
+1.59:
 * **add an option "Vomnibar Page" to show user's preferred Vomnibar page**
   * recommended: use `chrome-extension://ekohaelnhhdhbccgefjmjpdjoijhojgd/vomnibar.html`
   * If set, Vimium will be away from a Chrome bug of extension memory leak.
