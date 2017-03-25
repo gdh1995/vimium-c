@@ -19,6 +19,10 @@ interface Port extends chrome.runtime.Port {
 type Options = VomnibarNS.FgOptions;
 type AllowedActions = "dismiss"|"focus"|"blurInput"|"backspace"|"blur"|"up"|"down"|"toggle"|"pageup"|"pagedown"|"enter" | "";
 
+interface Window {
+  ExtId?: string;
+}
+
 declare var VSettings: undefined | {
   destroy(silent: true, keepChrome: true): void;
 };
@@ -652,7 +656,8 @@ VPort = {
   },
   ClearPort (this: void): void { VPort.port = null; },
   connect (): Port {
-    const port = this.port = chrome.runtime.connect({ name: "vimium++.8" }) as Port;
+    const data = { name: "vimium++.8" }, port = this.port = (window.ExtId ?
+      chrome.runtime.connect(window.ExtId, data) : chrome.runtime.connect(data)) as Port;
     port.onDisconnect.addListener(this.ClearPort);
     port.onMessage.addListener(this.Listener);
     return port;
@@ -672,7 +677,24 @@ VPort = {
     VPort.postToOwner({ name: "unload" });
   }
 };
-(function() {
+(function(): void {
+  if (location.pathname === "/vomnibar.html" && location.protocol === "chrome-extension:"
+      && document.currentScript && (document.currentScript as HTMLScriptElement).src.lastIndexOf("/front/") === -1) {
+    document.currentScript.remove();
+    window.onmessage = function(event): void {
+      if (event.source !== window.parent) { return; }
+      const data: VomnibarNS.MessageData = event.data, script = document.createElement("script");
+      script.src = (data[1] as VomnibarNS.FgOptions).script;
+      window.ExtId = new URL(script.src).hostname;
+      script.onload = function(): void {
+        return window.onmessage(event);
+      };
+      (document.head || document.documentElement as HTMLElement).appendChild(script);
+      script.remove();
+    };
+    return;
+  }
+
   let _secr = null as number | null, step = 0, _port: VomnibarNS.IframePort | undefined, _options: Options | null | undefined,
   handler = function(this: void, secret: number, port?: VomnibarNS.IframePort, options?: Options | null): void {
     if (0 === step++) {

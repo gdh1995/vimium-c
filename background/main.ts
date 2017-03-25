@@ -1169,6 +1169,7 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
       const options = Utils.extendIf(Object.setPrototypeOf({
         vomnibar: port.sender.url.startsWith(location.origin) ? Settings.CONST.VomnibarPage
           : Settings.cache.vomnibarPage_f,
+        script: Settings.CONST.VomnibarScript,
         secret: getSecret(),
       } as CmdOptions["Vomnibar.activate"], null), cOptions as any);
       port.postMessage<1, "Vomnibar.activate">({
@@ -1626,7 +1627,7 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
     OnConnect (this: void, port: Frames.Port): void {
       Connections.format(port);
       let type = (port.name[9] as string | number as number) | 0, ref: Frames.Frames | undefined;
-      const { tabId, url } = port.sender;
+      const tabId = port.sender.tabId, url = port.sender.url;
       if (type === PortType.omnibar || (url === Settings.cache.vomnibarPage_f
           && Settings.CONST.ChromeVersion >= GlobalConsts.MinChromeVersionOfVomnibarLeak)) {
         return Connections.onOmniConnect(port, tabId, type);

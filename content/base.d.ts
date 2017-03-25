@@ -99,6 +99,7 @@ declare namespace VomnibarNS {
   }
   interface FgOptions extends BaseFgOptions, Partial<GlobalOptions> {
     url?: string;
+    script: string;
   }
   type MessageData = [number, FgOptions | null];
   type Msg<T extends string> = { name: T };
