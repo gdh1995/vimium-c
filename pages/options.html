@@ -131,15 +131,23 @@ MainKey|c|c\:|MainName: \
             The characters placed next to each link after typing "f" to enter link-hint mode.
           </div></td>
         </tr>
-        <tr id="VomnibarPageBox">
-          <td class="caption">Vomnibar Page</td>
+        <tr id="VomnibarPageBox" title="
+Warning: Chrome (since version 56) has a bug making
+Vimium++'s memory cost always increasing if only a new vomnibar gets created
+						">
+          <td class="caption">Preferred<br/> Vomnibar Page</td>
           <td>
             <input id="vomnibarPage" type="text" data-model="NonEmptyText" />
             <div class="nonEmptyTextOption"></div>
           </td>
           <td class="help"><div class="help-inner">
-            Your prefered Vomnibar (Chrome has a memory leak bug with the built-in page). Recommended:
+            Recommended:
             <kbd class="sel-all break-all">https://gdh1995.github.io/vimium-plus/vomnibar.html</kbd>
+            , or
+            <kbd class="sel-all break-all">chrome-extension://<a
+              title="Vomnibar Page for Vimium++ - Chrome WebStore"
+              href="https://chrome.google.com/webstore/detail/vomnibar-page-for-vimium%20/ekohaelnhhdhbccgefjmjpdjoijhojgd"
+            >ekohaelnhhdhbccgefjmjpdjoijhojgd</a>/vomnibar.html</kbd>
           </div></td>
         </tr>
         <tr>

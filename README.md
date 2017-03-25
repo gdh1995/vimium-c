@@ -50,6 +50,9 @@ __微度新标签页修改版 (Modified X New Tab Page):__
 # Release Notes
 
 Not released yet:
+* **add an option "Vomnibar Page" to show user's preferred Vomnibar page**
+  * recommended: use `chrome-extension://ekohaelnhhdhbccgefjmjpdjoijhojgd/vomnibar.html`
+  * If set, Vimium will be away from a Chrome bug of extension memory leak.
 * **global keyboard shortcuts: remove suggested keys**, so that Vimium++ is cleaner
   * those suggested mappings are added into the default list and the recommended settings
 * auto convert mapped keys containing `<s-`: e.g. `<s-a>` to `A`, `<c-s-a>` to `<c-A>`
