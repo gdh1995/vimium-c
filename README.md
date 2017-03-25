@@ -104,7 +104,7 @@ __微度新标签页修改版 (Modified X New Tab Page):__
 
 1.57.1:
 * fix broken `LinkHints.activateModeToOpenVomnibar`
-* change fonts in UI for better presentation: `Helvetica Neue` is prefered,
+* change fonts in UI for better presentation: `Helvetica Neue` is preferred,
   and for Chinese characters, now try to use `PingFang` and `YaHei`.
 * `removeTab` accepts an boolean option `allow_close` (default to `false`),
   and Vimium++ will not retain the last tab if getting `allow_close=false`.

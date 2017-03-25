@@ -154,7 +154,7 @@ const Settings = {
     exclusionListenHash: true,
     exclusionOnlyFirstMatch: false,
     exclusionRules: [{pattern: "^https?://mail.google.com/", passKeys: ""}] as ExclusionsNS.StoredRule[],
-    extWhiteList: `# { Vomnibar Page, X New Tab, PDF Viewer } for Vimium++
+    extWhiteList: `# modified { Vomnibar Page, X New Tab, PDF Viewer }
 ekohaelnhhdhbccgefjmjpdjoijhojgd
 hdnehngglnbnehkfcidabjckinphnief
 nacjakoppgmdcpemlfnfegmlhipddanj`,
