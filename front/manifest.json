@@ -11,7 +11,9 @@
   "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAqw2YPTy6i5puDXQU0RuQbtzgKBxWnn8XjfY94sy+sHDZDCJ+pnNEhq11eefqmoyJV1U5ySyizjI9Uu/N/oRt+FZjnsU/wMsiBpcgKsnPOLzBHDpMBDudP6ICaPIaH/tWwex85+KcvtCOQ/fVt94r7AE/RA+sAERFL3rBAWnbpbQ5iAb6N86qQL0fnU3s9X23U+Ws9Oxzc+VtY0lEDE0ZMQCssZoNNCIkhAM5tvXFEs/kzw27LwlJdmGaNe7EJEPcBQeiZtLTvEyfRORuYeTMmDsSk/g7FGK40TwYZvawcEV+90dtW8nItEUW/1wGkMeJ8Hj6aAoa9U9/tQq60KZDxwIDAQAB",
   "manifest_version": 2,
   "name": "Vomnibar Page for Vimium++",
+  "short_name": "Vomnibar",
   "update_url": "https://clients2.google.com/service/update2/crx",
-  "version": "1.59",
+  "version": "1.59.1",
+  "version_name": "1.59",
   "web_accessible_resources": [ "vomnibar.html" ]
 }
