@@ -30,9 +30,17 @@ __Vimium++:__
 * optimized after translating it from CoffeeScript into JavaScript.
 * more functions, more powerful, and more convenient (for me, at least).
 
+__Vomnibar Page:__
+
+* [visit it on Chrome Web Store](https://chrome.google.com/webstore/detail/vomnibar-page-for-vimium%20/ekohaelnhhdhbccgefjmjpdjoijhojgd)
+* is an extension to replace Vimium++'s inner Vomnibar page.
+* With this, Vimium++'s memory cost will be smaller since Chrome 56.
+
 __微度新标签页修改版 (Modified X New Tab Page):__
 
+* [visit it on Chrome Web Store](https://chrome.google.com/webstore/detail/微度新标签页修改版/hdnehngglnbnehkfcidabjckinphnief)
 * in folder [*weidu*](https://github.com/gdh1995/vimium-plus/tree/master/weidu)
+* support Vimium++
 * 一款基于Html5的Chrome浏览器扩展程序。
   它提供了网站快速拨号、网站云添加、数据云备份等功能来增强 Chrome
     原生新标签页（New Tab）；
@@ -46,8 +54,17 @@ __微度新标签页修改版 (Modified X New Tab Page):__
 * some is customized.
 * the official settings file is OK for it, but not the other way around.
 
+__Other extensions supporting Vimium++:__
+
+* [PDF Viewer for Vimium++](https://chrome.google.com/webstore/detail/pdf-viewer-for-vimium%20%20/nacjakoppgmdcpemlfnfegmlhipddanj)
+    : a modified version of [PDF Viewer](https://chrome.google.com/webstore/detail/pdf-viewer/oemmndcbldboiebfnladdacbdfmadadm)
+    from [PDF.js](https://github.com/mozilla/pdf.js/)
 
 # Release Notes
+
+Known issues (Up to the master branch):
+1. Chrome before version 49 has bugs in `Window.postMessage` if the flag `#enable-site-per-process` is on,
+which breaks `Vomnibar`. Then `Vomnibar` would only work well on Vimium++ Options pages.
 
 1.59:
 * **add an option "Vomnibar Page" to show user's preferred Vomnibar page**
@@ -202,3 +219,6 @@ The two options are for another version of [TypeScript](https://github.com/gdh19
   Copyright (c) Microsoft Corporation (All rights reserved).
   Licensed under the Apache License, Version 2.0.
   See more in [www.typescriptlang.org](http://www.typescriptlang.org/).
+* [PDF Viewer](https://github.com/mozilla/pdf.js/)
+  Copyright (c) Mozilla and individual contributors.
+  Licensed under the Apache License, Version 2.0.
