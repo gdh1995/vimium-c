@@ -70,7 +70,7 @@ which breaks `Vomnibar`. Then `Vomnibar` would only work well on Vimium++ Option
 Not released yet:
 * fix bugs about the option `Preferred Vomnibar Page`
 
-1.59:
+1.59.1:
 * **add an option "Vomnibar Page" to show user's preferred Vomnibar page**
   * recommended: use `chrome-extension://ekohaelnhhdhbccgefjmjpdjoijhojgd/vomnibar.html`
   * If set, Vimium will be away from a Chrome bug of extension memory leak.
