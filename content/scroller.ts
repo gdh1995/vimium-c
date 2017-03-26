@@ -195,7 +195,7 @@ VScroller.Core.animate = function (this: typeof VScroller.Core, a, d, e) {
     VScroller.checkCurrent(element);
     element = null;
   };
-  this.animate = function(this: typeof VScroller.Core, newAmount: number, newDi: ScrollByY, newEl: Element): number {
+  this.animate = function(this: typeof VScroller.Core, newAmount: number, newDi: ScrollByY, newEl: Element | null): number {
     amount = Math.abs(newAmount); calibration = 1.0; di = newDi;
     duration = Math.max(100, 20 * Math.log(amount)); element = newEl;
     sign = newAmount < 0 ? -1 : 1;
