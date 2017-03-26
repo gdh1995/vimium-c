@@ -28,6 +28,7 @@ declare var VSettings: undefined | {
 };
 if (typeof VSettings === "object") {
   VSettings.destroy(true, true);
+  window.dispatchEvent(new Event("unload"));
 }
 
 var Vomnibar = {
