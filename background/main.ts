@@ -1169,7 +1169,7 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
       const options = Utils.extendIf(Object.setPrototypeOf({
         vomnibar: port.sender.url.startsWith(location.origin) ? Settings.CONST.VomnibarPage
           : Settings.cache.vomnibarPage_f,
-        script: Settings.CONST.VomnibarScript,
+        script: Settings.CONST.VomnibarScript_f,
         secret: getSecret(),
       } as CmdOptions["Vomnibar.activate"], null), cOptions as any);
       port.postMessage<1, "Vomnibar.activate">({

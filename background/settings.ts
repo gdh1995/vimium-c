@@ -252,8 +252,7 @@ w|wiki:\\\n  https://www.wikipedia.org/w/index.php?search=$s Wikipedia
       __proto__: null as never
     } as SafeDict<string>,
     ShowPage: "pages/show.html",
-    VomnibarPage: "front/vomnibar.html",
-    VomnibarScript: "front/vomnibar.js",
+    VomnibarPage: "front/vomnibar.html", VomnibarScript: "front/vomnibar.js", VomnibarScript_f: ""
   }
 };
 
@@ -278,7 +277,7 @@ setTimeout(function() {
   obj.OptionsPage = func(ref.options_page || obj.OptionsPage);
   obj.ShowPage = func(obj.ShowPage);
   obj.VomnibarPage = func(obj.VomnibarPage);
-  obj.VomnibarScript = func(obj.VomnibarScript);
+  obj.VomnibarScript_f = func(obj.VomnibarScript);
   ref = ref.content_scripts[0].js;
   ref[ref.length - 1] = obj.InjectEnd;
   if (obj.ChromeVersion < 41) { ref.unshift(obj.PolyFill); }
