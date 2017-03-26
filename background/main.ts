@@ -1167,7 +1167,7 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
         port = Settings.indexFrame(port.sender.tabId, 0) || port;
       }
       const options = Utils.extendIf(Object.setPrototypeOf({
-        vomnibar: port.sender.url.startsWith("chrome") ? Settings.CONST.VomnibarPage
+        vomnibar: port.sender.url.startsWith(location.origin) ? Settings.CONST.VomnibarPage
           : Settings.cache.vomnibarPage_f,
         script: Settings.CONST.VomnibarScript,
         secret: getSecret(),
