@@ -1,6 +1,6 @@
 {
   "author": "gdh1995@qq.com",
-  "content_security_policy": "script-src 'self' chrome-extension://hfjbmagddngcpeloejdejnfgbamkjaeg/; style-src 'self' 'unsafe-inline'; media-src 'none'; font-src 'none'; object-src 'none'; child-src 'none'; connect-src 'none'; manifest-src 'none'",
+  "content_security_policy": "script-src 'self' chrome-extension://hfjbmagddngcpeloejdejnfgbamkjaeg/; style-src 'self' 'unsafe-inline'; media-src 'none'; object-src 'none'; connect-src 'none'",
   "description": "A copy of Vimium++'s Vomnibar page, making Vimium++ away from a Chrome bug of extension memory leak (since version 56)",
   "homepage_url": "https://github.com/gdh1995/vimium-plus",
   "icons": {

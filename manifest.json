@@ -62,7 +62,7 @@
     "css": [ "front/file_urls.css" ],
     "matches": [ "file:///*" ]
   } ],
-  "content_security_policy": "script-src 'self'; style-src 'self' 'unsafe-inline'; media-src 'none'; font-src 'none'; object-src 'none'; child-src 'none'; connect-src 'self' data:; manifest-src 'none'",
+  "content_security_policy": "script-src 'self'; style-src 'self' 'unsafe-inline'; media-src 'none'; font-src 'none'; object-src 'none'; connect-src 'self' data:",
   "description": "optimized Vimium supporting Chinese, global commands and injection into other extensions",
   "homepage_url": "https://github.com/gdh1995/vimium-plus",
   "icons": {
