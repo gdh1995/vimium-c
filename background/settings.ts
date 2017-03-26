@@ -125,7 +125,7 @@ const Settings = {
     },
     vomnibarPage (url): void {
       if (this.CONST.ChromeVersion < GlobalConsts.MinChromeVersionOfVomnibarLeak) {
-        url = (this as typeof Settings).CONST.VomnibarPage;
+        url = (this as typeof Settings).CONST.VomnibarPageInner;
       } else if (url === this.defaults.vomnibarPage) {
         url = chrome.runtime.getURL(url);
       } else {
@@ -252,13 +252,13 @@ w|wiki:\\\n  https://www.wikipedia.org/w/index.php?search=$s Wikipedia
       __proto__: null as never
     } as SafeDict<string>,
     ShowPage: "pages/show.html",
-    VomnibarPage: "front/vomnibar.html", VomnibarScript: "front/vomnibar.js", VomnibarScript_f: ""
+    VomnibarPageInner: "front/vomnibar.html", VomnibarScript: "front/vomnibar.js", VomnibarScript_f: ""
   }
 };
 
 // note: if changed, ../pages/newtab.js also needs change.
 Settings.defaults.newTabUrl = Settings.CONST.ChromeInnerNewTab;
-Settings.defaults.vomnibarPage = Settings.CONST.VomnibarPage;
+Settings.defaults.vomnibarPage = Settings.CONST.VomnibarPageInner;
 Settings.CONST.ChromeVersion = 0 | (navigator.appVersion.match(/\bChrom(?:e|ium)\/(\d+)/) || [0, 53])[1] as number;
 chrome.runtime.getPlatformInfo(function(info): void {
   Settings.CONST.Platform = info.os;
@@ -276,7 +276,7 @@ setTimeout(function() {
   obj.CurrentVersionName = ref.version_name || ref.version;
   obj.OptionsPage = func(ref.options_page || obj.OptionsPage);
   obj.ShowPage = func(obj.ShowPage);
-  obj.VomnibarPage = func(obj.VomnibarPage);
+  obj.VomnibarPageInner = func(obj.VomnibarPageInner);
   obj.VomnibarScript_f = func(obj.VomnibarScript);
   ref = ref.content_scripts[0].js;
   ref[ref.length - 1] = obj.InjectEnd;
