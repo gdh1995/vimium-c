@@ -1693,6 +1693,7 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
             name: "init", load: {} as SettingsNS.FrontendSettingCache,
             passKeys: "", mapKeys: null, keyMap: {}
           });
+          port.disconnect();
         }
         return;
       } else if (funcDict.checkVomnibarPage(port)) {
