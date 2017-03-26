@@ -329,8 +329,11 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
       return requestHandlers.ShowHUD("It's not allowed to " + action);
     },
     checkVomnibarPage: function (this: void, port: Frames.Port, nolog?: boolean): boolean {
-      const { url } = port.sender;
-      if (url === Settings.cache.vomnibarPage_f || url === Settings.CONST.VomnibarPage) { return false; }
+      interface SenderEx extends Frames.Sender { isVomnibar?: boolean; }
+      if ((port.sender as SenderEx).isVomnibar != null) { return false; }
+      const { url } = port.sender, succeed = url === Settings.cache.vomnibarPage_f || url === Settings.CONST.VomnibarPageInner;
+      (port.sender as SenderEx).isVomnibar = succeed;
+      if (succeed) { return false; }
       if (!nolog && !(port.sender as Frames.ExSender).warned) {
       console.warn("Receive a request from %can unsafe source page%c (should be vomnibar) :\n ",
         "color: red", "color: auto",
