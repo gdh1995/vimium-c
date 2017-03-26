@@ -124,13 +124,15 @@ const Settings = {
       });
     },
     vomnibarPage (url): void {
-      if (this.CONST.ChromeVersion < GlobalConsts.MinChromeVersionOfVomnibarLeak) {
+      if (url === this.defaults.vomnibarPage) {
         url = (this as typeof Settings).CONST.VomnibarPageInner;
-      } else if (url === this.defaults.vomnibarPage) {
-        url = chrome.runtime.getURL(url);
       } else {
         url = Utils.convertToUrl(url);
-        url = url.replace(":version", (this as typeof Settings).CONST.CurrentVersion);
+        if (!url.startsWith("chrome") && this.CONST.ChromeVersion < GlobalConsts.MinChromeVersionOfFrameId) {
+          url = (this as typeof Settings).CONST.VomnibarPageInner;
+        } else {
+          url = url.replace(":version", (this as typeof Settings).CONST.CurrentVersion);
+        }
       }
       this.set("vomnibarPage_f", url);
     }

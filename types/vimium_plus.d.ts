@@ -139,6 +139,5 @@ interface Document extends DocumentAttrsToBeDetected {}
 
 declare const enum GlobalConsts {
   VomnibarSecretTimeout = 3000,
-  MinChromeVersionOfVomnibarLeak = 56,
   MinChromeVersionOfFrameId = 41,
 }

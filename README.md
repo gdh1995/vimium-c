@@ -65,6 +65,10 @@ __Other extensions supporting Vimium++:__
 Known issues (Up to the master branch):
 1. Chrome before version 49 has bugs in `Window.postMessage` if the flag `#enable-site-per-process` is on,
 which breaks `Vomnibar`. Then `Vomnibar` would only work well on Vimium++ Options pages.
+2. `Preferred Vomnibar Page` can not support Http/File URLs before Chrome 41.
+
+Not released yet:
+* fix bugs about the option `Preferred Vomnibar Page`
 
 1.59:
 * **add an option "Vomnibar Page" to show user's preferred Vomnibar page**

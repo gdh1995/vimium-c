@@ -1632,8 +1632,7 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
       Connections.format(port);
       let type = (port.name[9] as string | number as number) | 0, ref: Frames.Frames | undefined;
       const tabId = port.sender.tabId, url = port.sender.url;
-      if (type === PortType.omnibar || (url === Settings.cache.vomnibarPage_f
-          && Settings.CONST.ChromeVersion >= GlobalConsts.MinChromeVersionOfVomnibarLeak)) {
+      if (type === PortType.omnibar || (url === Settings.cache.vomnibarPage_f)) {
         return Connections.onOmniConnect(port, tabId, type);
       }
       port.onDisconnect.addListener(Connections.OnDisconnect);
