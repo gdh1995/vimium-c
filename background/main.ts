@@ -1636,8 +1636,8 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
           && Settings.CONST.ChromeVersion >= GlobalConsts.MinChromeVersionOfVomnibarLeak)) {
         return Connections.onOmniConnect(port, tabId, type);
       }
-      port.onMessage.addListener(Connections.OnMessage);
       port.onDisconnect.addListener(Connections.OnDisconnect);
+      port.onMessage.addListener(Connections.OnMessage);
       const pass = Settings.getExcluded(url), status = pass === null
           ? Frames.BaseStatus.enabled : pass ? Frames.BaseStatus.partial : Frames.BaseStatus.disabled;
       port.postMessage((type & PortType.initing) ? {
@@ -1685,35 +1685,33 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
       }
     },
     onOmniConnect (port: Frames.Port, tabId: number, type: PortType): void {
-      if (type !== PortType.omnibar) {
-        if (tabId >= 0) {
-          chrome.tabs.executeScript(tabId, {
-            file: Settings.CONST.VomnibarScript,
-            frameId: port.sender.frameId,
-            runAt: "document_start"
-          });
-        } else {
+      if (type === PortType.omnibar) {
+        if (!funcDict.checkVomnibarPage(port)) {
+          this.framesForOmni.push(port);
+          if (tabId < 0) {
+            port.sender.tabId = cPort ? cPort.sender.tabId : TabRecency.last();
+          }
+          port.onDisconnect.addListener(Connections.OnOmniDisconnect);
+          port.onMessage.addListener(Connections.OnMessage);
           port.postMessage({
-            name: "init", load: {} as SettingsNS.FrontendSettingCache,
-            passKeys: "", mapKeys: null, keyMap: {}
+            name: "secret",
+            secret: getSecret()
           });
-          port.disconnect();
+          return;
         }
-        return;
-      } else if (funcDict.checkVomnibarPage(port)) {
-        port.disconnect();
-        return;
+      } else if (tabId < 0) { // should not be true; just in case of misusing
+        port.postMessage({
+          name: "init", load: {} as SettingsNS.FrontendSettingCache,
+          passKeys: "", mapKeys: null, keyMap: {}
+        });
+      } else {
+        chrome.tabs.executeScript(tabId, {
+          file: Settings.CONST.VomnibarScript,
+          frameId: port.sender.frameId,
+          runAt: "document_start"
+        });
       }
-      this.framesForOmni.push(port);
-      if (tabId < 0) {
-        port.sender.tabId = cPort ? cPort.sender.tabId : TabRecency.last();
-      }
-      port.onMessage.addListener(Connections.OnMessage);
-      port.onDisconnect.addListener(Connections.OnOmniDisconnect);
-      port.postMessage({
-        name: "secret",
-        secret: getSecret()
-      });
+      port.disconnect();
     },
     OnOmniDisconnect (this: void, port: Port): void {
       const ref = Connections.framesForOmni, i = ref.lastIndexOf(port);
