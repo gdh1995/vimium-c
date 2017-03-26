@@ -499,6 +499,14 @@ var Vomnibar = {
     (document.getElementById("close") as HTMLElement).onclick = function() { Vomnibar.hide(); };
     addEventListener("keydown", this.HandleKeydown, true);
     this.renderItems = VUtils.makeListRenderer((document.getElementById("template") as HTMLElement).innerHTML);
+    let manifest: chrome.runtime.Manifest;
+    if (this.showFavIcon && location.protocol.startsWith("chrome") && chrome.runtime.getManifest
+        && (manifest = chrome.runtime.getManifest())) {
+      const arr = manifest.permissions || [];
+      this.showFavIcon = arr.indexOf("<all_urls>") >= 0 || arr.indexOf("chrome://favicon/") >= 0;
+    } else {
+      this.showFavIcon = false;
+    }
     this.init = VUtils.makeListRenderer = null as never;
   },
   HandleKeydown (this: void, event: KeyboardEvent): void {
