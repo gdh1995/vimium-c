@@ -120,6 +120,14 @@ var Vomnibar = {
       this.onload = null as never;
       _this.options = null;
       page = page.substring(0, page.indexOf("/", i + 3));
+      setTimeout(function() {
+        const a = Vomnibar;
+        if (!a || a.status >= VomnibarNS.Status.ToShow || a.status < VomnibarNS.Status.Initing) { return; }
+        VHUD.showForDuration("Sorry, Vomnibar page seems to fail to load.", 2000);
+        VHandler.remove(a);
+        (VDom.UI.box as HTMLElement).style.display = "";
+        window.focus();
+      }, 1000);
       if (location.origin !== page || !page.startsWith("chrome")) {
         const channel = new MessageChannel();
         _this.port = channel.port1;
