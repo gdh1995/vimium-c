@@ -40,6 +40,7 @@ args=$5
 if [ -z "$args" -a "$output" != "-" -a -f "$output" ]; then
   args="-FS"
 fi
+args="$ZIP_FLAGS $args"
 
 output_for_zip=${output}
 if [ $in_dist == true ]; then
@@ -48,15 +49,20 @@ if [ $in_dist == true ]; then
     output_for_zip=../${output_for_zip}
   fi
 fi
-if bool "$WITH_MAP"; then
-  WITH_MAP=
-else
-  WITH_MAP='*.min'
+EX_IGNORE=
+if ! bool "$INCLUDE_DOT_FILES"; then
+  EX_IGNORE='.* */.*'
 fi
-zip -rX -MM $args "$output_for_zip" $input -x '.*' 'weidu*' 'test*' 'git*' \
-  'dist*' 'front/*.png' 'front/manifest*' 'front/vimium.css' 'node_modules*' '*tsconfig*' 'types*' \
+if ! bool "$WITH_MAP"; then
+  EX_IGNORE=$EX_IGNORE' *.map'
+fi
+if ! bool "$NOT_IGNORE_FRONT"; then
+  EX_IGNORE=$EX_IGNORE' front/manifest* front/*.png'
+fi
+zip -rX -MM $args "$output_for_zip" $input -x 'weidu*' 'test*' 'git*' \
+  'dist*' 'front/vimium.css' 'node_modules*' '*tsconfig*' 'types*' \
   'pages/chrome_ui*' 'Gulp*' 'gulp*' 'package*' 'todo*' 'tsc.*' \
-  '*/.*' '*.coffee' '*.crx' '*.sh' '*.ts' '*.zip' $WITH_MAP $4
+  '*.coffee' '*.crx' '*.sh' '*.ts' '*.zip' $EX_IGNORE $4
 err=$?
 [ $in_dist == true ] && cd ..
 
