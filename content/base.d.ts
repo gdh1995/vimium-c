@@ -72,6 +72,7 @@ declare namespace HintsNS {
 
 declare namespace VomnibarNS {
   const enum Status {
+    KeepBroken = -2,
     Default = -1,
     NotInited = Default,
     Inactive = 0,

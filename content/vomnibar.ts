@@ -62,6 +62,9 @@ var Vomnibar = {
     } else if (this.status > VomnibarNS.Status.ToShow) {
       this.box.contentWindow.focus();
       this.onShown();
+    } else if (this.status === VomnibarNS.Status.KeepBroken) {
+      VHandler.remove(this);
+      return VHUD.showForDuration("Sorry, Vomnibar page seems to fail to load.", 2000);
     }
     options.secret = 0; options.vomnibar = "";
     options.width = this.width, options.name = "activate";
@@ -123,10 +126,11 @@ var Vomnibar = {
       setTimeout(function() {
         const a = Vomnibar;
         if (!a || a.status >= VomnibarNS.Status.ToShow || a.status < VomnibarNS.Status.Initing) { return; }
-        VHUD.showForDuration("Sorry, Vomnibar page seems to fail to load.", 2000);
         VHandler.remove(a);
         (VDom.UI.box as HTMLElement).style.display = "";
         window.focus();
+        a.status = VomnibarNS.Status.KeepBroken;
+        a.activate(1, { secret: 1, vomnibar: "v"} as VomnibarNS.FullOptions);
       }, 1000);
       if (location.origin !== page || !page.startsWith("chrome")) {
         const channel = new MessageChannel();
