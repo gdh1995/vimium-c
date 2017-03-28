@@ -106,6 +106,7 @@ var VHints = {
   } as HintsNS.KeyStatus,
   initTimer: 0,
   isActive: false,
+  noHUD: false,
   options: null as FgOptions | null,
   timer: 0,
   activate (count?: number, options?: FgOptions | null): void {
@@ -143,6 +144,7 @@ var VHints = {
     elements = undefined;
     this.alphabetHints.initMarkers(this.hintMarkers);
 
+    this.noHUD = arr[3] <= 20 || arr[2] <= 320;
     this.setMode(this.mode);
     this.box = VDom.UI.addElementList(this.hintMarkers, arr);
 
@@ -178,6 +180,7 @@ var VHints = {
   setMode (mode: HintMode): void {
     this.mode = mode;
     this.mode1 = mode & ~HintMode.queue;
+    if (this.noHUD) { return; }
     return VHUD.show((this.modeOpt as HintsNS.ModeOpt)[mode] as string);
   },
   tryNestedFrame (command: string, a: number, b: FgOptions): boolean {
@@ -697,7 +700,7 @@ var VHints = {
     this.clean(VHUD.text !== (this.modeOpt as HintsNS.ModeOpt)[this.mode] as string);
     this.keyStatus.tab = this.keyStatus.newHintLength = 0;
     VHandler.remove(this);
-    this.isActive = false;
+    this.isActive = this.noHUD = false;
     if (suppressType != null) { return VDom.UI.suppressTail(suppressType); }
   },
   rotateHints (reverse?: boolean): void {
