@@ -1492,7 +1492,7 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
       return BackgroundCommands.nextFrame(1);
     },
     exitGrab (this: void, _0: FgReq["exitGrab"], port: Port): void {
-      const ports = Settings.indexPorts(port.sender.tabId);
+      const ports = framesForTab[port.sender.tabId];
       if (!ports || ports.length < 3) { return; }
       for (let msg = { name: "exitGrab" as "exitGrab" }, i = ports.length; 1 <= --i; ) {
         ports[i] !== port && ports[i].postMessage(msg);
@@ -1519,7 +1519,8 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
           xhr instanceof XMLHttpRequest && (xhr.onerror = reject);
         })
       ]).then(function(args): void {
-        args[2].postMessage({
+        const port = args[1].wantTop && Settings.indexFrame(args[2].sender.tabId, 0) || args[2];
+        port.postMessage({
           name: "showHelpDialog",
           html: args[0].render(args[1]),
           optionUrl: Settings.CONST.OptionsPage,

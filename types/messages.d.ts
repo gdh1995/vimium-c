@@ -140,6 +140,7 @@ interface FgReq {
   initHelp: {
     handler: "initHelp";
     unbound?: boolean;
+    wantTop?: boolean;
     names?: boolean;
     title?: string;
   };

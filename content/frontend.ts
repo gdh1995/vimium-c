@@ -355,8 +355,12 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
       });
     },
     showHelp (): void {
-      if (!VDom.isHTML()) { return; }
-      vPort.post({handler: "initHelp"});
+      let wantTop = window.innerWidth < 400 || window.innerHeight < 320;
+      if (!VDom.isHTML()) {
+        if (window === window.top) { return; }
+        wantTop = true;
+      }
+      vPort.post({ handler: "initHelp", wantTop });
     },
     autoCopy (_0: number, options: FgOptions): void {
       const str = window.getSelection().toString() ||
@@ -867,6 +871,7 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
   showHelpDialog (request): void {
     let box: HTMLElement, oldShowHelp: typeof Commands.showHelp, hide: (this: void, e?: Event) => void
       , node1: HTMLElement, shouldShowAdvanced = request.advanced === true;
+    if (!VDom.isHTML()) { return; }
     box = VDom.createElement("div");
     box.innerHTML = request.html;
     box = box.firstElementChild as HTMLElement;
