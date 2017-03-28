@@ -1,4 +1,3 @@
-<div class="R Scroll UI" id="HelpDialog">
 <style type="text/css">
 #HelpDialog {
 	background-color: white;
@@ -16,6 +15,14 @@
 	top: 50px;
 	width: 816px;
 	z-index: 2147483645;
+}
+@media (max-width: 600px) {
+	#HelpDialog {
+		left: 0;
+		right: 0;
+		width: initial;
+		overflow-x: scroll;
+	}
 }
 
 .ColumnBox {
@@ -48,6 +55,7 @@
 }
 .HDivider {
 	border-bottom: 1px solid #ddd;
+	clear: both;
 	display: block;
 	margin: 10px 1px;
 }
@@ -154,6 +162,7 @@
 }
 </style>
 
+<div style="min-width:600px;">
 	<div style="height:26px;padding:3px;">
 		<span style="font-size:20px;line-height:130%;"><span style="color:#2f508e">Vim</span>ium++ {{title}}</span>
 		<span style="float:right;position:relative;top:7px;font-size:0">
@@ -193,7 +202,6 @@
 		</table>
 	</div>
 
-	<br clear="both" />
 	<div class="HDivider"></div>
 
 	<div style="position:relative;font-size:13px;">

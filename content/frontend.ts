@@ -873,8 +873,9 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
       , node1: HTMLElement, shouldShowAdvanced = request.advanced === true;
     if (!VDom.isHTML()) { return; }
     box = VDom.createElement("div");
+    box.className = "R Scroll UI";
+    box.id = "HelpDialog";
     box.innerHTML = request.html;
-    box = box.firstElementChild as HTMLElement;
     hide = function(event: Event): void { event.stopImmediatePropagation(); };
     box.onclick = hide;
     box.addEventListener("mousewheel", hide, {passive: true});
