@@ -16,12 +16,18 @@
 	width: 816px;
 	z-index: 2147483645;
 }
+#HelpContent {
+	min-width: 600px;
+}
 @media (max-width: 600px) {
 	#HelpDialog {
 		left: 0;
 		right: 0;
 		width: initial;
 		overflow-x: scroll;
+	}
+	#HelpContent {
+		padding-right: 6px;
 	}
 }
 
@@ -162,7 +168,7 @@
 }
 </style>
 
-<div style="min-width:600px;">
+<div id="HelpContent">
 	<div style="height:26px;padding:3px;">
 		<span style="font-size:20px;line-height:130%;"><span style="color:#2f508e">Vim</span>ium++ {{title}}</span>
 		<span style="float:right;position:relative;top:7px;font-size:0">
