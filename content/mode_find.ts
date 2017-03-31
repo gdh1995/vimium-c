@@ -70,6 +70,7 @@ html > span{float:right;}',
     wnd.onmousedown = box.onmousedown = this.OnMousedown;
     wnd.onkeydown = this.onKeydown.bind(this);
     wnd.onfocus = VEventMode.OnWndFocus();
+    wnd.dispatchEvent(new Event("unload"));
     wnd.onunload = this.OnUnload;
     zoom < 1 && (docEl.style.zoom = "" + 1 / zoom);
     (doc.head as HTMLHeadElement).appendChild(VDom.UI.createStyle(VFindMode.cssIFrame, doc));
