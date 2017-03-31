@@ -67,6 +67,7 @@ html > span{float:right;}',
     const wnd = box.contentWindow, doc = wnd.document, docEl = doc.documentElement as HTMLHtmlElement,
     zoom = wnd.devicePixelRatio;
     box.onload = null as never;
+    wnd.dispatchEvent(new Event("unload"));
     wnd.onmousedown = box.onmousedown = this.OnMousedown;
     wnd.onkeydown = this.onKeydown.bind(this);
     wnd.onfocus = VEventMode.OnWndFocus();
