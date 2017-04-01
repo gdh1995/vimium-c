@@ -23,10 +23,10 @@ interface Window {
   ExtId?: string;
 }
 
-declare var VSettings: undefined | {
+declare var VSettings: undefined | null | {
   destroy(silent: true, keepChrome: true): void;
 };
-if (typeof VSettings === "object") {
+if (typeof VSettings === "object" && VSettings) {
   VSettings.destroy(true, true);
   window.dispatchEvent(new Event("unload"));
 }
@@ -678,7 +678,8 @@ VPort = {
     VPort = null as never;
     return true;
   },
-  OnUnload (): void {
+  OnUnload (e: Event): void {
+    if (e.isTrusted === false) { return; }
     const obj = Vomnibar;
     if (!(VPort && obj)) { return; }
     obj.isActive = false;

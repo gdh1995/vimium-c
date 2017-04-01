@@ -129,7 +129,10 @@ html > span{float:right;}',
     this.historyIndex = this.matchCount = this.scrollY = this.scrollX = 0;
     return el;
   },
-  OnUnload (this: void): void { const f = VFindMode; f && f.isActive && f.deactivate(true); },
+  OnUnload (this: void, e: Event): void {
+    if (e.isTrusted === false) { return; }
+    const f = VFindMode; f && f.isActive && f.deactivate(true);
+  },
   OnMousedown (this: void, event: MouseEvent): void {
     if (event.target !== VFindMode.input) {
       event.preventDefault();
