@@ -12,9 +12,11 @@ interface SuggestionEx extends SuggestionE {
 interface Render {
   (this: void, list: SuggestionE[]): string;
 }
-interface Port extends chrome.runtime.Port {
-  postMessage<K extends keyof FgReq>(request: FgReq[K]): 1;
-  postMessage<K extends keyof FgRes>(request: Req.fgWithRes<K>): 1;
+interface Post<R extends void | 1> {
+  postMessage<K extends keyof FgReq>(request: Req.fg<K>): R;
+  postMessage<K extends keyof FgRes>(request: Req.fgWithRes<K>): R;
+}
+interface FgPort extends chrome.runtime.Port, Post<1> {
 }
 type Options = VomnibarNS.FgOptions;
 type AllowedActions = "dismiss"|"focus"|"blurInput"|"backspace"|"blur"|"up"|"down"|"toggle"|"pageup"|"pagedown"|"enter" | "";
@@ -636,17 +638,20 @@ VUtils = {
   }
 },
 VPort = {
-  port: null as Port | null,
+  port: null as FgPort | null,
   postToOwner: null as never as VomnibarNS.IframePort["postMessage"],
-  postMessage<K extends keyof FgReq> (request: FgReq[K] & Req.baseFg<K>): 1 {
-    return (this.port || this.connect()).postMessage<K>(request);
+  postMessage<K extends keyof FgReq> (request: FgReq[K] & Req.baseFg<K>): void {
+    try {
+      (this.port || this.connect()).postMessage<K>(request);
+    } catch (e) {
+    }
   },
   _callbacks: Object.create(null) as { [msgId: number]: <K extends keyof FgRes>(this: void, res: FgRes[K]) => void },
   _id: 1,
   sendMessage<K extends keyof FgRes> (request: FgReq[K] & Req.baseFg<K> , callback: (this: void, res: FgRes[K]) => void): void {
     const id = ++this._id;
-    ((this as typeof VPort).port || (this as typeof VPort).connect()).postMessage({_msgId: id, request: request});
     this._callbacks[id] = callback;
+    return (this as Post<void>).postMessage({ _msgId: id, request });
   },
   Listener<K extends keyof FgRes, T extends keyof BgVomnibarReq> (this: void
         , response: Req.res<K> | (BgVomnibarReq[T] & { name: T, _msgId?: undefined; })): void {
@@ -664,9 +669,9 @@ VPort = {
     return (Vomnibar as any)[name](data);
   },
   ClearPort (this: void): void { VPort.port = null; },
-  connect (): Port {
+  connect (): FgPort {
     const data = { name: "vimium++.8" }, port = this.port = (window.ExtId ?
-      chrome.runtime.connect(window.ExtId, data) : chrome.runtime.connect(data)) as Port;
+      chrome.runtime.connect(window.ExtId, data) : chrome.runtime.connect(data)) as FgPort;
     port.onDisconnect.addListener(this.ClearPort);
     port.onMessage.addListener(this.Listener);
     return port;
