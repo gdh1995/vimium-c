@@ -1581,14 +1581,8 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
         key = key.substring(arr[0].length);
         count = parseInt(arr[0], 10) || 1;
       }
-      const ref = CommandsData.keyToCommandRegistry;
-      if (!(key in ref)) {
-        arr = key.match(Utils.keyRe) as string[];
-        key = arr[arr.length - 1];
-        count = 1;
-      }
-      const registryEntry = ref[key] as CommandsNS.Item;
       Utils.resetRe();
+      const registryEntry = CommandsData.keyToCommandRegistry[key] as CommandsNS.Item;
       return executeCommand(registryEntry.command, registryEntry, count, port);
     },
     createMark (this: void, request: FgReq["createMark"], port: Port): void {
