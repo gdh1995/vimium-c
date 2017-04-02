@@ -1241,6 +1241,7 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
    * }
    */
   requestHandlers = {
+    blank (this: void): void {},
     setSetting (this: void, request: SetSettingReq<keyof SettingsNS.FrontUpdateAllowedSettings>, port: Port): void {
       const key = request.key;
       if (!(key in Settings.frontUpdateAllowed)) {

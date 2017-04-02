@@ -35,7 +35,6 @@ if (typeof VSettings === "object" && VSettings) {
 
 var Vomnibar = {
   activate (options: Options): void {
-    if (!this.init && VPort.EnsurePort()) { return; }
     Object.setPrototypeOf(options, null);
     this.mode.type = this.modeType = ((options.mode || "") + "") as CompletersNS.ValidTypes || "omni";
     this.forceNewTab = !!options.force;
@@ -644,6 +643,8 @@ VPort = {
     try {
       (this.port || this.connect()).postMessage<K>(request);
     } catch (e) {
+      this.postToOwner({ name: "broken", active: Vomnibar.isActive });
+      VPort = null as never;
     }
   },
   _callbacks: Object.create(null) as { [msgId: number]: <K extends keyof FgRes>(this: void, res: FgRes[K]) => void },
@@ -676,13 +677,7 @@ VPort = {
     port.onMessage.addListener(this.Listener);
     return port;
   },
-  EnsurePort (this: void): void | true {
-    if (!VPort || VPort.port) { return; }
-    try { VPort.connect(); return; } catch (e) {}
-    VPort.postToOwner({ name: "broken", active: Vomnibar.isActive });
-    VPort = null as never;
-    return true;
-  },
+  EnsurePort (this: void): void { if (VPort) { return VPort.postMessage({ handler: "blank" }); } },
   OnUnload (e: Event): void {
     if (e.isTrusted === false) { return; }
     const obj = Vomnibar;

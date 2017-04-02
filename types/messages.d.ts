@@ -163,6 +163,7 @@ interface FgReq {
     handler: "key";
     key: string;
   };
+  blank: {},
   createMark: MarksNS.BaseMark | MarksNS.Mark;
   gotoMark: MarksNS.FgQuery;
   /** 
