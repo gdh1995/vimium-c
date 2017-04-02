@@ -1540,8 +1540,10 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
         commandCount = (request as { count: number }).count;
         cOptions = Object.setPrototypeOf(request, null);
         cOptions.handler = "";
-      } else if ((request as { redo?: boolean }).redo !== true || cOptions == null || cOptions.secret !== -1) {
+      } else if ((request as { redo?: boolean }).redo !== true) {
         return;
+      } else if (cOptions == null || cOptions.secret !== -1) {
+        cOptions = Object.create(null);
       }
       return BackgroundCommands.showVomnibar();
     },
