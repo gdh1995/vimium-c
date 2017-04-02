@@ -13,7 +13,7 @@ if [ ! -d "$TMP_VOMNIBAR" ]; then
 elif [ "$VOMNIBAR" -ot "$TMP_VOMNIBAR/$VOMNIBAR" ]; then
   newer=0
 fi
-if [ newer == 1 ]; then
+if [ $newer == 1 ]; then
   MSYS2_ARG_CONV_EXCL='s|' \
   sed 's|vomnibar\.js|chrome-extension://hfjbmagddngcpeloejdejnfgbamkjaeg/front/\0|' \
       "$VOMNIBAR" > "$TMP_VOMNIBAR/$VOMNIBAR"
@@ -29,4 +29,4 @@ IN_DIST= WITH_MAP= \
 NOT_IGNORE_FRONT=true \
 ZIP_FLAGS='-FS -j' \
 ZIP_INPUT=$input \
-exec ../make.sh "$a" "$b" "$c" "$d" " $e" "$@"
+exec ../make.sh "$@"
