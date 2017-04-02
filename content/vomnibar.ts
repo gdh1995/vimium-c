@@ -160,12 +160,13 @@ var Vomnibar = {
   },
   _forceRedo: false,
   reset (redo?: boolean): void | 1 {
+    if (this.status === VomnibarNS.Status.NotInited) { return; }
     const oldStatus = this.status;
+    this.status = VomnibarNS.Status.NotInited;
     this.port.close();
     this.box.remove();
     this.port = this.box = null as never;
     VHandler.remove(this);
-    this.status = VomnibarNS.Status.NotInited;
     if (this._forceRedo) { this._forceRedo = false; }
     else if (!redo || oldStatus < VomnibarNS.Status.ToShow) { return; }
     return VPort.post({ handler: "activateVomnibar", redo: true });
