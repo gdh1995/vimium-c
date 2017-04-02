@@ -1,13 +1,11 @@
 #!/usr/bin/env bash
 set -o noglob
 
-output=$1
-key=$2
-crx=$3
-ignored=${4:-img/bg* img/tab*}
-shift && shift && shift && shift
-
 [ -d weidu ] && cd weidu
 
-IN_DIST= WITH_MAP= ZIP_INPUT= \
-exec ../make.sh "$output" "$key" "$crx" "$ignored" "$@"
+INCLUDE_DOT_FILES=
+IN_DIST=
+WITH_MAP=
+ZIP_INPUT=
+ZIP_IGNORE='img/bg* img/tab*'
+. ../make.sh

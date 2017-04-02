@@ -24,9 +24,11 @@ for i in $(grep -o 'icon.*\.png' manifest.json); do
   input="$input ../icons/$i"
 done
 
-INCLUDE_DOT_FILES=true \
-IN_DIST= WITH_MAP= \
-NOT_IGNORE_FRONT=true \
-ZIP_FLAGS='-FS -j' \
-ZIP_INPUT=$input \
-exec ../make.sh "$@"
+INCLUDE_DOT_FILES=true
+IN_DIST=
+NOT_IGNORE_FRONT=true
+WITH_MAP=
+ZIP_FLAGS='-FS -j'
+ZIP_IGNORE=
+ZIP_INPUT=$input
+. ../make.sh

@@ -49,20 +49,19 @@ if [ $in_dist == true ]; then
     output_for_zip=../${output_for_zip}
   fi
 fi
-EX_IGNORE=
 if ! bool "$INCLUDE_DOT_FILES"; then
-  EX_IGNORE='.* */.*'
+  ZIP_IGNORE=$ZIP_IGNORE' .* */.*'
 fi
 if ! bool "$WITH_MAP"; then
-  EX_IGNORE=$EX_IGNORE' *.map'
+  ZIP_IGNORE=$ZIP_IGNORE' *.map'
 fi
 if ! bool "$NOT_IGNORE_FRONT"; then
-  EX_IGNORE=$EX_IGNORE' front/manifest* front/*.png'
+  ZIP_IGNORE=$ZIP_IGNORE' front/manifest* front/*.png'
 fi
 zip -rX -MM $args "$output_for_zip" $input -x 'weidu*' 'test*' 'git*' \
   'dist*' 'front/vimium.css' 'node_modules*' '*tsconfig*' 'types*' \
   'pages/chrome_ui*' 'Gulp*' 'gulp*' 'package*' 'todo*' 'tsc.*' \
-  '*.coffee' '*.crx' '*.sh' '*.ts' '*.zip' $EX_IGNORE $4
+  '*.coffee' '*.crx' '*.sh' '*.ts' '*.zip' $ZIP_IGNORE $4
 err=$?
 [ $in_dist == true ] && cd ..
 
