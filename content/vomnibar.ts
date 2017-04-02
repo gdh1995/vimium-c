@@ -167,7 +167,7 @@ var Vomnibar = {
     VHandler.remove(this);
     this.status = VomnibarNS.Status.NotInited;
     if (this._forceRedo) { this._forceRedo = false; }
-    else if (!redo || oldStatus < VomnibarNS.Status.ToShow || oldStatus > VomnibarNS.Status.Showing) { return; }
+    else if (!redo || oldStatus < VomnibarNS.Status.ToShow) { return; }
     return VPort.post({ handler: "activateVomnibar", redo: true });
   },
   checkAlive (): boolean {

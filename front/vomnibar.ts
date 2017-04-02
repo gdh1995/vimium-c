@@ -560,10 +560,10 @@ var Vomnibar = {
       this.useInput = true;
     }
     this.timer = -1;
-    VPort.postMessage(mode);
+    return VPort.postMessage(mode);
   },
 
-  parse: function(item: SuggestionE) {
+  parse (item: SuggestionE): void {
     let str: string;
     if ((this as typeof Vomnibar).showFavIcon && (str = item.url) && str.length <= 512 && str.indexOf("://") > 0) {
       item.favIconUrl = ' icon" style="background-image: url(&quot;chrome://favicon/size/16/' +
@@ -578,7 +578,7 @@ var Vomnibar = {
       VPort.postToOwner({ name: "evalJS", url: item.url });
       return;
     }
-    VPort.postMessage({
+    return VPort.postMessage({
       handler: "openUrl",
       reuse: this.actionType,
       https: this.isHttps,

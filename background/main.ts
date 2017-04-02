@@ -1064,7 +1064,7 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
         chrome.tabs.move(tab.id, { index });
       }
     },
-    nextFrame: function (this: void, count?: number): void {
+    nextFrame (this: void, count?: number): void {
       let port = cPort, ind = -1;
       const frames = framesForTab[port.sender.tabId];
       if (frames && frames.length > 2) {
@@ -1586,7 +1586,7 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
       }
       const registryEntry = ref[key] as CommandsNS.Item;
       Utils.resetRe();
-      executeCommand(registryEntry.command, registryEntry, count, port);
+      return executeCommand(registryEntry.command, registryEntry, count, port);
     },
     createMark (this: void, request: FgReq["createMark"], port: Port): void {
        return Marks.createMark(request, port);
@@ -1617,7 +1617,7 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
     _fakeId: -2,
     framesForOmni: [] as Frames.Port[],
     OnMessage (this: void, request: Req.baseFg<string> | Req.baseFgWithRes<string>, port: Frames.Port): void {
-      let id;
+      let id: number | undefined;
       if (id = (request as Req.baseFgWithRes<string>)._msgId) {
         request = (request as Req.baseFgWithRes<string>).request;
         port.postMessage<"findQuery">({
