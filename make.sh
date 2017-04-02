@@ -24,6 +24,8 @@ if [ -z "$output" -o -d "$output" ]; then
     output=${output}/
   elif [ $in_dist == true ]; then
     output=dist/
+  elif [ -d '/wo' ]; then
+    output=/wo/
   fi
   ver=$(grep -m1 '"version"' manifest.json | awk -F '"' '{print "_"$4}')
   pkg_name=$(basename "$PWD")
