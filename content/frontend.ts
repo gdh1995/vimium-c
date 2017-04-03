@@ -459,7 +459,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
     } else if (j == null) {
       j = keyMap[key];
       if (j == null) { return esc(HandlerResult.Nothing); }
-      currentKeys = "";
+      if (j !== 0) { currentKeys = ""; }
     }
     if (j === 0) {
       vPort.post({ handler: "key", key: currentKeys + key });
