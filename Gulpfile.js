@@ -138,7 +138,8 @@ var Tasks = {
     return compile(["pages/options*.ts", "pages/show.ts"]);
   }],
   local: ["scripts", "others", "pages"],
-  default: ["local"],
+  tsc: ["local"],
+  default: ["tsc"],
   test: ["local"]
 }
 

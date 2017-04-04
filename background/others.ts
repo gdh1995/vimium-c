@@ -175,45 +175,45 @@ setTimeout((function() { if (!chrome.omnibox) { return; }
     , suggestions = null as chrome.omnibox.SuggestResult[] | null, outTimeout = 0, outTime: number
     , defaultSuggestionType = FirstSugType.Default, matchType: CompletersNS.MatchType = CompletersNS.MatchType.Default
     , firstType: CompletersNS.ValidTypes | "";
-  const defaultSug: chrome.omnibox.Suggestion = { description: "<dim>Open: </dim><url>%s</url>" },
-  formatSessionId = function(sug: Suggestion) {
+  const defaultSug: chrome.omnibox.Suggestion = { description: "<dim>Open: </dim><url>%s</url>" };
+  function formatSessionId(sug: Suggestion) {
     if (sug.sessionId != null) {
       (sessionIds as SafeDict<string | number>)[sug.url] = sug.sessionId;
     }
-  },
-  format = function(this: void, sug: Readonly<Suggestion>): chrome.omnibox.SuggestResult {
+  }
+  function format(this: void, sug: Readonly<Suggestion>): chrome.omnibox.SuggestResult {
     let str = "<url>" + sug.textSplit;
     str += sug.title ? "</url><dim> - " + Utils.escapeText(sug.title) + "</dim>" : "</url>";
     return {
       content: sug.url,
       description: str
     };
-  },
-  clean = function(): true {
+  }
+  function clean(): void {
     if (lastSuggest) { lastSuggest.isOff = true; }
     sessionIds = tempRequest = suggestions = lastSuggest = firstResult = null;
     if (outTimeout) { clearTimeout(outTimeout); }
     outTime = matchType = outTimeout = 0;
     firstType = last = "";
-    return Utils.resetRe();
-  },
-  outClean = function() {
+    Utils.resetRe();
+  }
+  function outClean(): void {
     if (Date.now() - outTime > 5000) {
       outTimeout = 0;
-      clean();
+      return clean();
     } else {
       outTimeout = setTimeout(outClean, 30000);
     }
-  },
-  onTimer = function() {
+  }
+  function onTimer(): void {
     timeout = 0;
     let arr;
     if (arr = tempRequest) {
       tempRequest = null;
       return onInput(arr[0], arr[1]);
     }
-  },
-  onComplete = function(this: null, suggest: OmniboxCallback, response: Suggestion[]
+  }
+  function onComplete(this: null, suggest: OmniboxCallback, response: Suggestion[]
       , autoSelect: boolean, newMatchType: CompletersNS.MatchType): void {
     if (!lastSuggest || suggest.isOff) { return; }
     if (suggest === lastSuggest) { lastSuggest = null; }
@@ -251,8 +251,8 @@ setTimeout((function() { if (!chrome.omnibox) { return; }
     Utils.resetRe();
     suggest(suggestions);
     return;
-  },
-  onInput = function(this: void, key: string, suggest: OmniboxCallback): void {
+  }
+  function onInput(this: void, key: string, suggest: OmniboxCallback): void {
     key = key.trim().replace(Utils.spacesRe, " ");
     if (key === last) { suggestions && suggest(suggestions as chrome.omnibox.SuggestResult[]); return; }
     lastSuggest && (lastSuggest.isOff = true);
@@ -275,8 +275,8 @@ setTimeout((function() { if (!chrome.omnibox) { return; }
     last = key;
     lastSuggest = suggest;
     return Completers.filter(key, { type, maxResults: 6 }, onComplete.bind(null, suggest));
-  },
-  onEnter = function(this: void, text: string, disposition?: string): void {
+  }
+  function onEnter(this: void, text: string, disposition?: string): void {
     text = text.trim();
     if (tempRequest && tempRequest[0] === text) {
       tempRequest = [text, onEnter.bind(null, text, disposition) as OmniboxCallback];
@@ -292,7 +292,7 @@ setTimeout((function() { if (!chrome.omnibox) { return; }
       reuse: (disposition === "currentTab" ? ReuseType.current
         : disposition === "newForegroundTab" ? ReuseType.newFg : ReuseType.newBg)
     });
-  };
+  }
   chrome.omnibox.onInputChanged.addListener(onInput);
   chrome.omnibox.onInputEntered.addListener(onEnter);
 }), 600);

@@ -33,7 +33,7 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
   type BgCmd = BgCmdNoTab | BgCmdActiveTab | BgCmdCurWndTabs;
 
   const framesForTab: Frames.FramesMap = Object.create<Frames.Frames>(null),
-  NoFrameId = Settings.CONST.ChromeVersion < GlobalConsts.MinChromeVersionOfFrameId,
+  NoFrameId = Settings.CONST.ChromeVersion < BrowserVer.MinWithFrameId,
   openMultiTab = function(this: void, rawUrl: string, count: number
       , parentTab: InfoToCreateMultiTab): void {
     if (!(count >= 1)) return;
@@ -277,7 +277,7 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
       } else if (state === "minimized") {
         state = "normal";
       }
-      if (state && Settings.CONST.ChromeVersion >= 44) {
+      if (state && Settings.CONST.ChromeVersion >= BrowserVer.MinCreateWndWithState) {
         option.state = state;
         state = "";
       }
@@ -299,7 +299,7 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
         tabId: isId ? tabIdUrl as number : undefined,
         url: isId ? undefined : tabIdUrl as string
       };
-      if (Settings.CONST.ChromeVersion < 44) {
+      if (Settings.CONST.ChromeVersion < BrowserVer.MinCreateWndWithState) {
         option.state = undefined;
         option.left = option.top = 0; option.width = option.height = 50;
       }
@@ -329,16 +329,16 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
       return requestHandlers.ShowHUD("It's not allowed to " + action);
     },
     checkVomnibarPage: function (this: void, port: Frames.Port, nolog?: boolean): boolean {
-      interface SenderEx extends Frames.Sender { isVomnibar?: boolean; }
-      if ((port.sender as SenderEx).isVomnibar != null) { return false; }
-      const { url } = port.sender, succeed = url === Settings.cache.vomnibarPage_f || url === Settings.CONST.VomnibarPageInner;
-      (port.sender as SenderEx).isVomnibar = succeed;
+      interface SenderEx extends Frames.Sender { isVomnibar?: boolean; warned?: boolean; }
+      const info = port.sender as SenderEx;
+      if (info.isVomnibar != null) { return false; }
+      const { url } = info, succeed = url === Settings.cache.vomnibarPage_f || url === Settings.CONST.VomnibarPageInner;
+      info.isVomnibar = succeed;
       if (succeed) { return false; }
-      if (!nolog && !(port.sender as Frames.ExSender).warned) {
-      console.warn("Receive a request from %can unsafe source page%c (should be vomnibar) :\n ",
-        "color: red", "color: auto",
-        url, '@' + port.sender.tabId);
-      (port.sender as Frames.ExSender).warned = true;
+      if (!nolog && !info.warned) {
+        console.warn("Receive a request from %can unsafe source page%c (should be vomnibar) :\n ",
+          "color: red", "color: auto", url, '@' + info.tabId);
+        info.warned = true;
       }
       return true;
     } as {
@@ -623,7 +623,7 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
         if (wnd.incognito) {
           return funcDict.moveTabToIncognito[3]();
         }
-        if (Settings.CONST.ChromeVersion >= 52) {
+        if (Settings.CONST.ChromeVersion >= BrowserVer.MinNoUnmatchedIncognito) {
           return funcDict.complain("open this tab in incognito");
         }
       } else if (wnd.incognito) {
@@ -798,7 +798,7 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
       const tab = tabs[0];
       chrome.tabs.update(tab.id, { muted: !tab.mutedInfo.muted });
     }, function(tabs) {
-      let curId = cOptions.other ? cPort.sender.tabId : -1
+      let curId = cOptions.other ? cPort.sender.tabId : GlobalConsts.TabIdNone
         , muted = false, action = { muted: true };
       for (let i = tabs.length; 0 <= --i; ) {
         const tab = tabs[i];
@@ -829,7 +829,7 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
       }
       chrome.tabs.duplicate(tabId);
       if (1 > --commandCount) {}
-      else if (Settings.CONST.ChromeVersion >= 52) {
+      else if (Settings.CONST.ChromeVersion >= BrowserVer.MinNoUnmatchedIncognito) {
         chrome.tabs.get(tabId, funcDict.duplicateTab[2]);
       } else {
         chrome.windows.getCurrent({populate: true}, funcDict.duplicateTab[0].bind(null, tabId));
@@ -842,7 +842,7 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
       chrome.windows.getAll(funcDict.moveTabToNextWindow[0].bind(null, tabs[0]));
     },
     moveTabToIncognito (): void {
-      if (cPort && Settings.CONST.ChromeVersion >= 52 && cPort.sender.incognito) {
+      if (cPort && Settings.CONST.ChromeVersion >= BrowserVer.MinNoUnmatchedIncognito && cPort.sender.incognito) {
         return funcDict.moveTabToIncognito[3]();
       }
       chrome.windows.getCurrent({populate: true}, funcDict.moveTabToIncognito[0]);
@@ -996,8 +996,8 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
       }
     },
     toggleMuteTab (): void {
-      if (Settings.CONST.ChromeVersion < 45) {
-        return requestHandlers.ShowHUD("Vimium++ can not control mute state before Chrome 45");
+      if (Settings.CONST.ChromeVersion < BrowserVer.MinMutedInfo) {
+        return requestHandlers.ShowHUD(`Vimium++ can not control mute state before Chrome ${BrowserVer.MinMutedInfo}`);
       }
       if (cOptions.all || cOptions.other) {
         chrome.tabs.query({audible: true}, funcDict.toggleMuteTab[1]);
@@ -1038,7 +1038,7 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
       if (tabs.length <= 0) { return; }
       const tab = tabs[0];
       ++tab.index;
-      if (Settings.CONST.ChromeVersion >= 52 || !Utils.isRefusingIncognito(tab.url)) {
+      if (Settings.CONST.ChromeVersion >= BrowserVer.MinNoUnmatchedIncognito || !Utils.isRefusingIncognito(tab.url)) {
         return funcDict.reopenTab(tab);
       }
       chrome.windows.get(tab.windowId, function(wnd): void {
@@ -1091,7 +1091,7 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
     },
     parentFrame (): void {
       let frames: Frames.Frames | undefined, sender: Frames.Sender | undefined, msg: string | null;
-      msg = NoFrameId ? `Vimium++ can not know parent frame before Chrome ${GlobalConsts.MinChromeVersionOfFrameId}`
+      msg = NoFrameId ? `Vimium++ can not know parent frame before Chrome ${BrowserVer.MinWithFrameId}`
         : !chrome.webNavigation ? "Vimium++ is not permitted to access frames"
         : !((frames = framesForTab[cPort.sender.tabId]) && (sender = frames[0].sender) && sender.tabId > 0)
           ? "Vimium++ can not access frames in current tab"
@@ -1500,7 +1500,7 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
       }
     },
     refocusCurrent (this: void, request: FgReq["refocusCurrent"], port: Port): void {
-      const ports = port.sender.tabId !== -1 ? framesForTab[port.sender.tabId] : undefined;
+      const ports = port.sender.tabId !== GlobalConsts.TabIdNone ? framesForTab[port.sender.tabId] : undefined;
       if (ports) {
         ports[0].postMessage({
           name: "focusFrame",
@@ -1634,8 +1634,7 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
     },
     OnConnect (this: void, port: Frames.Port): void {
       Connections.format(port);
-      let type = (port.name[9] as string | number as number) | 0, ref: Frames.Frames | undefined;
-      const tabId = port.sender.tabId, url = port.sender.url;
+      const type = (port.name[9] as string | number as number) | 0, tabId = port.sender.tabId, url = port.sender.url;
       if (type === PortType.omnibar || (url === Settings.cache.vomnibarPage_f)) {
         return Connections.onOmniConnect(port, tabId, type);
       }
@@ -1654,6 +1653,7 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
         passKeys: pass
       });
       port.sender.status = status;
+      let ref: Frames.Frames | undefined;
       if (ref = framesForTab[tabId]) {
         ref.push(port);
         if (type & PortType.hasFocus) {
@@ -1664,7 +1664,7 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
         }
       } else {
         framesForTab[tabId] = [port, port];
-        status !== 0 && needIcon && requestHandlers.SetIcon(tabId, status);
+        status !== Frames.BaseStatus.enabled && needIcon && requestHandlers.SetIcon(tabId, status);
       }
       if (NoFrameId) {
         (port.sender as any).frameId = (type & PortType.isTop) ? 0 : ((Math.random() * 9999997) | 0) + 2;
@@ -1692,10 +1692,10 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
         if (!funcDict.checkVomnibarPage(port)) {
           this.framesForOmni.push(port);
           if (tabId < 0) {
-            port.sender.tabId = cPort ? cPort.sender.tabId : TabRecency.last();
+            (port.sender as Frames.RawSender).tabId = cPort ? cPort.sender.tabId : TabRecency.last();
           }
-          port.onDisconnect.addListener(Connections.OnOmniDisconnect);
-          port.onMessage.addListener(Connections.OnMessage);
+          port.onDisconnect.addListener(this.OnOmniDisconnect);
+          port.onMessage.addListener(this.OnMessage);
           port.postMessage({
             name: "secret",
             secret: getSecret()
@@ -1771,12 +1771,12 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
     });
   };
 
-  if (Settings.CONST.ChromeVersion >= 52) {
+  if (Settings.CONST.ChromeVersion >= BrowserVer.MinNoUnmatchedIncognito) {
     funcDict.createTab = [funcDict.createTab[0]] as typeof funcDict.createTab;
   }
   Settings.updateHooks.newTabUrl_f = function(url) {
     let f: BgCmdNoTab, onlyNormal = Utils.isRefusingIncognito(url);
-    BackgroundCommands.createTab = f = Settings.CONST.ChromeVersion < 52 && onlyNormal
+    BackgroundCommands.createTab = f = Settings.CONST.ChromeVersion < BrowserVer.MinNoUnmatchedIncognito && onlyNormal
     ? chrome.windows.getCurrent.bind(null, {populate: true}
         , funcDict.createTab[1].bind(url))
     : chrome.tabs.query.bind(null, {currentWindow: true, active: true}
@@ -1828,7 +1828,7 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
     delete ref[removedTabId];
     ref[addedTabId] = frames;
     for (let i = frames.length; 0 < --i; ) {
-      frames[i].sender.tabId = addedTabId;
+      (frames[i].sender as Frames.RawSender).tabId = addedTabId;
     }
   });
 

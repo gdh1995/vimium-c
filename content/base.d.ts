@@ -157,7 +157,7 @@ interface Hint {
 
 interface UIElementOptions {
   adjust?: boolean;
-  showing?: boolean;
+  showing?: false;
   before?: Element | null;
 }
 

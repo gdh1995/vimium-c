@@ -108,15 +108,15 @@ declare namespace Frames {
   }
   type ValidStatus = BaseStatus.enabled | BaseStatus.partial | BaseStatus.disabled;
 
-  interface Sender {
+  interface RawSender {
     readonly frameId: number;
     readonly incognito: boolean;
     tabId: number;
     url: string;
     status: ValidStatus;
   }
-  interface ExSender extends Sender {
-    warned?: boolean;
+  interface Sender extends RawSender {
+    readonly tabId: number;
   }
 
   interface RawPort extends chrome.runtime.Port {
@@ -421,4 +421,14 @@ interface Window {
       BaseCSSLength: number;
     };
   }
+}
+declare const enum BrowserVer {
+  MinSupported = 37,
+  MinWithFrameId = 41,
+  MinEnsured$String$$EndsWith = 41,
+  MinCreateWndWithState = 44,
+  MinMutedInfo = 45,
+  MinAutoDecodeJSUrl = 46,
+  MinNoUnmatchedIncognito = 52,
+  AssumesVer = 53,
 }

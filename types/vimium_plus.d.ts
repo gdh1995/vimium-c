@@ -138,6 +138,6 @@ declare namespace SettingsNS {
 interface Document extends DocumentAttrsToBeDetected {}
 
 declare const enum GlobalConsts {
+  TabIdNone = -1,
   VomnibarSecretTimeout = 3000,
-  MinChromeVersionOfFrameId = 41,
 }

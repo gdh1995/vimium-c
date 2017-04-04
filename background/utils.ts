@@ -67,7 +67,7 @@ const Utils = {
   convertToUrl: (function(this: any, string: string, keyword?: string | null, vimiumUrlWork?: Urls.WorkType): Urls.Url {
     string = string.trim();
     if (string.charCodeAt(10) === 58 && string.substring(0, 11).toLowerCase() === "javascript:") {
-      if (Settings.CONST.ChromeVersion < 46 && string.indexOf('%', 11) > 0
+      if (Settings.CONST.ChromeVersion < BrowserVer.MinAutoDecodeJSUrl && string.indexOf('%', 11) > 0
           && !this._jsNotEscapeRe.test(string)) {
         string = this.DecodeURLPart(string);
       }

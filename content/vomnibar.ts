@@ -197,7 +197,7 @@ var Vomnibar = {
     case "scrollEnd": VScroller.keyIsDown = 0; break;
     case "evalJS": VUtils.evalIfOK((data as Req["evalJS"]).url); break;
     case "broken": (data as Req["broken"]).active && window.focus(); // no break;
-    case "unload": return Vomnibar ? this.reset(data.name !== "unload") : undefined;
+    case "unload": return Vomnibar ? this.reset(data.name === "broken") : undefined;
     }
   },
   onShown (): number {
