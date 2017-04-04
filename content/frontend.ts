@@ -856,7 +856,7 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
       for (let key in map) {
         let sec = map[key];
         if (sec === 0 || sec === 1) { continue; }
-        iter(sec);
+        iter(sec as ReadonlyChildKeyMap);
       }
       (mapKeys = request.mapKeys) && func(mapKeys, null);
     },

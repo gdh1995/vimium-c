@@ -12,9 +12,11 @@ interface SuggestionEx extends SuggestionE {
 interface Render {
   (this: void, list: SuggestionE[]): string;
 }
-interface Port extends chrome.runtime.Port {
-  postMessage<K extends keyof FgReq>(request: FgReq[K]): 1;
-  postMessage<K extends keyof FgRes>(request: Req.fgWithRes<K>): 1;
+interface Post<R extends void | 1> {
+  postMessage<K extends keyof FgReq>(request: Req.fg<K>): R;
+  postMessage<K extends keyof FgRes>(request: Req.fgWithRes<K>): R;
+}
+interface FgPort extends chrome.runtime.Port, Post<1> {
 }
 type Options = VomnibarNS.FgOptions;
 type AllowedActions = "dismiss"|"focus"|"blurInput"|"backspace"|"blur"|"up"|"down"|"toggle"|"pageup"|"pagedown"|"enter" | "";
@@ -23,17 +25,16 @@ interface Window {
   ExtId?: string;
 }
 
-declare var VSettings: undefined | {
+declare var VSettings: undefined | null | {
   destroy(silent: true, keepChrome: true): void;
 };
-if (typeof VSettings === "object") {
+if (typeof VSettings === "object" && VSettings) {
   VSettings.destroy(true, true);
   window.dispatchEvent(new Event("unload"));
 }
 
 var Vomnibar = {
   activate (options: Options): void {
-    if (!this.init && VPort.EnsurePort()) { return; }
     Object.setPrototypeOf(options, null);
     this.mode.type = this.modeType = ((options.mode || "") + "") as CompletersNS.ValidTypes || "omni";
     this.forceNewTab = !!options.force;
@@ -558,10 +559,10 @@ var Vomnibar = {
       this.useInput = true;
     }
     this.timer = -1;
-    VPort.postMessage(mode);
+    return VPort.postMessage(mode);
   },
 
-  parse: function(item: SuggestionE) {
+  parse (item: SuggestionE): void {
     let str: string;
     if ((this as typeof Vomnibar).showFavIcon && (str = item.url) && str.length <= 512 && str.indexOf("://") > 0) {
       item.favIconUrl = ' icon" style="background-image: url(&quot;chrome://favicon/size/16/' +
@@ -576,7 +577,7 @@ var Vomnibar = {
       VPort.postToOwner({ name: "evalJS", url: item.url });
       return;
     }
-    VPort.postMessage({
+    return VPort.postMessage({
       handler: "openUrl",
       reuse: this.actionType,
       https: this.isHttps,
@@ -636,17 +637,22 @@ VUtils = {
   }
 },
 VPort = {
-  port: null as Port | null,
+  port: null as FgPort | null,
   postToOwner: null as never as VomnibarNS.IframePort["postMessage"],
-  postMessage<K extends keyof FgReq> (request: FgReq[K] & Req.baseFg<K>): 1 {
-    return (this.port || this.connect()).postMessage<K>(request);
+  postMessage<K extends keyof FgReq> (request: FgReq[K] & Req.baseFg<K>): void {
+    try {
+      (this.port || this.connect(PortType.omnibarRe)).postMessage<K>(request);
+    } catch (e) {
+      VPort = null as never;
+      this.postToOwner({ name: "broken", active: Vomnibar.isActive });
+    }
   },
   _callbacks: Object.create(null) as { [msgId: number]: <K extends keyof FgRes>(this: void, res: FgRes[K]) => void },
   _id: 1,
   sendMessage<K extends keyof FgRes> (request: FgReq[K] & Req.baseFg<K> , callback: (this: void, res: FgRes[K]) => void): void {
     const id = ++this._id;
-    ((this as typeof VPort).port || (this as typeof VPort).connect()).postMessage({_msgId: id, request: request});
     this._callbacks[id] = callback;
+    return (this as Post<void>).postMessage({ _msgId: id, request });
   },
   Listener<K extends keyof FgRes, T extends keyof BgVomnibarReq> (this: void
         , response: Req.res<K> | (BgVomnibarReq[T] & { name: T, _msgId?: undefined; })): void {
@@ -664,25 +670,18 @@ VPort = {
     return (Vomnibar as any)[name](data);
   },
   ClearPort (this: void): void { VPort.port = null; },
-  connect (): Port {
-    const data = { name: "vimium++.8" }, port = this.port = (window.ExtId ?
-      chrome.runtime.connect(window.ExtId, data) : chrome.runtime.connect(data)) as Port;
+  connect (type: PortType): FgPort {
+    const data = { name: "vimium++." + type }, port = this.port = (window.ExtId ?
+      chrome.runtime.connect(window.ExtId, data) : chrome.runtime.connect(data)) as FgPort;
     port.onDisconnect.addListener(this.ClearPort);
     port.onMessage.addListener(this.Listener);
     return port;
   },
-  EnsurePort (this: void): void | true {
-    if (!VPort || VPort.port) { return; }
-    try { VPort.connect(); return; } catch (e) {}
-    VPort.postToOwner({ name: "broken", active: Vomnibar.isActive });
-    VPort = null as never;
-    return true;
-  },
-  OnUnload (): void {
-    const obj = Vomnibar;
-    if (!(VPort && obj)) { return; }
-    obj.isActive = false;
-    obj.timer > 0 && clearTimeout(obj.timer);
+  EnsurePort (this: void): void { if (VPort) { return VPort.postMessage({ handler: "blank" }); } },
+  OnUnload (e: Event): void {
+    if (!VPort || e.isTrusted === false) { return; }
+    Vomnibar.isActive = false;
+    Vomnibar.timer > 0 && clearTimeout(Vomnibar.timer);
     VPort.postToOwner({ name: "unload" });
   }
 };
@@ -737,7 +736,7 @@ VPort = {
       return handler(data[0], event.ports[0], data[1]);
     }
   };
-VPort.connect();
+VPort.connect(PortType.omnibar);
 String.prototype.startsWith || (String.prototype.startsWith = function(this: string, s: string): boolean {
   return this.length >= s.length && this.lastIndexOf(s, 0) === 0;
 });

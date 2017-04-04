@@ -67,6 +67,7 @@ html > span{float:right;}',
     const wnd = box.contentWindow, doc = wnd.document, docEl = doc.documentElement as HTMLHtmlElement,
     zoom = wnd.devicePixelRatio;
     box.onload = null as never;
+    wnd.dispatchEvent(new Event("unload"));
     wnd.onmousedown = box.onmousedown = this.OnMousedown;
     wnd.onkeydown = this.onKeydown.bind(this);
     wnd.onfocus = VEventMode.OnWndFocus();
@@ -129,7 +130,10 @@ html > span{float:right;}',
     this.historyIndex = this.matchCount = this.scrollY = this.scrollX = 0;
     return el;
   },
-  OnUnload (this: void): void { const f = VFindMode; f && f.isActive && f.deactivate(true); },
+  OnUnload (this: void, e: Event): void {
+    if (e.isTrusted === false) { return; }
+    const f = VFindMode; f && f.isActive && f.deactivate(true);
+  },
   OnMousedown (this: void, event: MouseEvent): void {
     if (event.target !== VFindMode.input) {
       event.preventDefault();

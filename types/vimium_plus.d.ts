@@ -94,10 +94,10 @@ interface ChildKeyMap {
   readonly __proto__: never;
 }
 interface ReadonlyChildKeyMap {
-  readonly [index: string]: 0 | ReadonlyChildKeyMap;
+  readonly [index: string]: 0 | ReadonlyChildKeyMap | undefined;
 }
 interface KeyMap {
-  readonly [index: string]: 0 | 1 | ReadonlyChildKeyMap;
+  readonly [index: string]: 0 | 1 | ReadonlyChildKeyMap | undefined;
 }
 
 declare const enum ReuseType {
@@ -113,7 +113,7 @@ declare const enum PortType {
   initing = 1,
   hasFocus = 2,
   isTop = 4,
-  omnibar = 8
+  omnibar = 8, omnibarRe = 9
 }
 
 declare namespace SettingsNS {
@@ -138,6 +138,6 @@ declare namespace SettingsNS {
 interface Document extends DocumentAttrsToBeDetected {}
 
 declare const enum GlobalConsts {
+  TabIdNone = -1,
   VomnibarSecretTimeout = 3000,
-  MinChromeVersionOfFrameId = 41,
 }

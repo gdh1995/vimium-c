@@ -65,7 +65,7 @@ var Exclusions: ExcCls = Exclusions && !(Exclusions instanceof Promise) ? Exclus
   },
   getOnURLChange (this: ExcCls): null | ExclusionsNS.Listener {
     const onURLChange: null | ExclusionsNS.Listener = !chrome.webNavigation ? null
-      : Settings.CONST.ChromeVersion >= 41 ? g_requestHandlers.checkIfEnabled
+      : Settings.CONST.ChromeVersion >= BrowserVer.MinWithFrameId ? g_requestHandlers.checkIfEnabled
       : function(details: chrome.webNavigation.WebNavigationCallbackDetails) {
         const ref = Settings.indexPorts(details.tabId), msg = { name: "checkIfEnabled" as "checkIfEnabled" };
         // force the tab's ports to reconnect and refresh their pass keys

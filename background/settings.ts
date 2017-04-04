@@ -128,7 +128,7 @@ const Settings = {
         url = (this as typeof Settings).CONST.VomnibarPageInner;
       } else {
         url = Utils.convertToUrl(url);
-        if (!url.startsWith("chrome") && this.CONST.ChromeVersion < GlobalConsts.MinChromeVersionOfFrameId) {
+        if (!url.startsWith("chrome") && this.CONST.ChromeVersion < BrowserVer.MinWithFrameId) {
           url = (this as typeof Settings).CONST.VomnibarPageInner;
         } else {
           url = url.replace(":version", (this as typeof Settings).CONST.CurrentVersion);
@@ -228,7 +228,9 @@ w|wiki:\\\n  https://www.wikipedia.org/w/index.php?search=$s Wikipedia
     ChromeNewTab: "chrome://newtab",
     ChromeInnerNewTab: "chrome-search://local-ntp/local-ntp.html", // should keep lower case
     DefaultNewTabPage: "pages/newtab.html",
-    ChromeVersion: 37, ContentScripts: null as never as string[], CurrentVersion: "", CurrentVersionName: "",
+    ChromeVersion: BrowserVer.MinSupported,
+    ContentScripts: null as never as string[],
+    CurrentVersion: "", CurrentVersionName: "",
     KnownPages: ["blank", "newtab", "options", "show"],
     MathParser: "/lib/math_parser.js",
     HelpDialog: "/background/help_dialog.js",
@@ -261,7 +263,7 @@ w|wiki:\\\n  https://www.wikipedia.org/w/index.php?search=$s Wikipedia
 // note: if changed, ../pages/newtab.js also needs change.
 Settings.defaults.newTabUrl = Settings.CONST.ChromeInnerNewTab;
 Settings.defaults.vomnibarPage = Settings.CONST.VomnibarPageInner;
-Settings.CONST.ChromeVersion = 0 | (navigator.appVersion.match(/\bChrom(?:e|ium)\/(\d+)/) || [0, 53])[1] as number;
+Settings.CONST.ChromeVersion = 0 | (navigator.appVersion.match(/\bChrom(?:e|ium)\/(\d+)/) || [0, BrowserVer.AssumesVer])[1] as number;
 chrome.runtime.getPlatformInfo(function(info): void {
   Settings.CONST.Platform = info.os;
   Settings.bufferToLoad.onMac = info.os === (chrome.runtime.PlatformOs ? chrome.runtime.PlatformOs.MAC : "mac");
@@ -282,6 +284,6 @@ setTimeout(function() {
   obj.VomnibarScript_f = func(obj.VomnibarScript);
   ref = ref.content_scripts[0].js;
   ref[ref.length - 1] = obj.InjectEnd;
-  if (obj.ChromeVersion < 41) { ref.unshift(obj.PolyFill); }
+  if (obj.ChromeVersion < BrowserVer.MinEnsured$String$$EndsWith) { ref.unshift(obj.PolyFill); }
   obj.ContentScripts = ref.map(func);
 }, 17);

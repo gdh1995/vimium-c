@@ -160,14 +160,15 @@ var Vomnibar = {
   },
   _forceRedo: false,
   reset (redo?: boolean): void | 1 {
+    if (this.status === VomnibarNS.Status.NotInited) { return; }
     const oldStatus = this.status;
+    this.status = VomnibarNS.Status.NotInited;
     this.port.close();
     this.box.remove();
     this.port = this.box = null as never;
     VHandler.remove(this);
-    this.status = VomnibarNS.Status.NotInited;
     if (this._forceRedo) { this._forceRedo = false; }
-    else if (!redo || oldStatus < VomnibarNS.Status.ToShow || oldStatus > VomnibarNS.Status.Showing) { return; }
+    else if (!redo || oldStatus < VomnibarNS.Status.ToShow) { return; }
     return VPort.post({ handler: "activateVomnibar", redo: true });
   },
   checkAlive (): boolean {
@@ -196,7 +197,7 @@ var Vomnibar = {
     case "scrollEnd": VScroller.keyIsDown = 0; break;
     case "evalJS": VUtils.evalIfOK((data as Req["evalJS"]).url); break;
     case "broken": (data as Req["broken"]).active && window.focus(); // no break;
-    case "unload": return Vomnibar ? this.reset(data.name !== "unload") : undefined;
+    case "unload": return Vomnibar ? this.reset(data.name === "broken") : undefined;
     }
   },
   onShown (): number {
