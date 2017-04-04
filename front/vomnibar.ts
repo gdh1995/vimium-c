@@ -643,8 +643,8 @@ VPort = {
     try {
       (this.port || this.connect()).postMessage<K>(request);
     } catch (e) {
-      this.postToOwner({ name: "broken", active: Vomnibar.isActive });
       VPort = null as never;
+      this.postToOwner({ name: "broken", active: Vomnibar.isActive });
     }
   },
   _callbacks: Object.create(null) as { [msgId: number]: <K extends keyof FgRes>(this: void, res: FgRes[K]) => void },
