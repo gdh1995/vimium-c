@@ -1635,7 +1635,7 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
     OnConnect (this: void, port: Frames.Port): void {
       Connections.format(port);
       const type = (port.name[9] as string | number as number) | 0, tabId = port.sender.tabId, url = port.sender.url;
-      if (type === PortType.omnibar || (url === Settings.cache.vomnibarPage_f)) {
+      if (type >= PortType.omnibar || (url === Settings.cache.vomnibarPage_f)) {
         return Connections.onOmniConnect(port, tabId, type);
       }
       port.onDisconnect.addListener(Connections.OnDisconnect);
@@ -1688,11 +1688,12 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
       }
     },
     onOmniConnect (port: Frames.Port, tabId: number, type: PortType): void {
-      if (type === PortType.omnibar) {
+      if (type >= PortType.omnibar) {
         if (!funcDict.checkVomnibarPage(port)) {
           this.framesForOmni.push(port);
           if (tabId < 0) {
-            (port.sender as Frames.RawSender).tabId = cPort ? cPort.sender.tabId : TabRecency.last();
+            (port.sender as Frames.RawSender).tabId = type !== PortType.omnibar ? this._fakeId--
+               : cPort ? cPort.sender.tabId : TabRecency.last();
           }
           port.onDisconnect.addListener(this.OnOmniDisconnect);
           port.onMessage.addListener(this.OnMessage);

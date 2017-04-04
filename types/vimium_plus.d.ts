@@ -113,7 +113,7 @@ declare const enum PortType {
   initing = 1,
   hasFocus = 2,
   isTop = 4,
-  omnibar = 8
+  omnibar = 8, omnibarRe = 9
 }
 
 declare namespace SettingsNS {

@@ -641,7 +641,7 @@ VPort = {
   postToOwner: null as never as VomnibarNS.IframePort["postMessage"],
   postMessage<K extends keyof FgReq> (request: FgReq[K] & Req.baseFg<K>): void {
     try {
-      (this.port || this.connect()).postMessage<K>(request);
+      (this.port || this.connect(PortType.omnibarRe)).postMessage<K>(request);
     } catch (e) {
       VPort = null as never;
       this.postToOwner({ name: "broken", active: Vomnibar.isActive });
@@ -670,8 +670,8 @@ VPort = {
     return (Vomnibar as any)[name](data);
   },
   ClearPort (this: void): void { VPort.port = null; },
-  connect (): FgPort {
-    const data = { name: "vimium++.8" }, port = this.port = (window.ExtId ?
+  connect (type: PortType): FgPort {
+    const data = { name: "vimium++." + type }, port = this.port = (window.ExtId ?
       chrome.runtime.connect(window.ExtId, data) : chrome.runtime.connect(data)) as FgPort;
     port.onDisconnect.addListener(this.ClearPort);
     port.onMessage.addListener(this.Listener);
@@ -736,7 +736,7 @@ VPort = {
       return handler(data[0], event.ports[0], data[1]);
     }
   };
-VPort.connect();
+VPort.connect(PortType.omnibar);
 String.prototype.startsWith || (String.prototype.startsWith = function(this: string, s: string): boolean {
   return this.length >= s.length && this.lastIndexOf(s, 0) === 0;
 });
