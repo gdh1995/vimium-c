@@ -425,7 +425,10 @@ interface Window {
 declare const enum BrowserVer {
   MinSupported = 37,
   MinWithFrameId = 41,
-  MinEnsured$String$$EndsWith = 41,
+  // just enabled by default
+  Min$String$$EndsWith = 41,
+  // even if chrome://flags/#disable-javascript-harmony-shipping
+  MinEnsured$String$$EndsWith = 43,
   MinCreateWndWithState = 44,
   MinMutedInfo = 45,
   MinAutoDecodeJSUrl = 46,
