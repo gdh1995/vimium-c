@@ -679,11 +679,9 @@ VPort = {
   },
   EnsurePort (this: void): void { if (VPort) { return VPort.postMessage({ handler: "blank" }); } },
   OnUnload (e: Event): void {
-    if (e.isTrusted === false) { return; }
-    const obj = Vomnibar;
-    if (!(VPort && obj)) { return; }
-    obj.isActive = false;
-    obj.timer > 0 && clearTimeout(obj.timer);
+    if (!VPort || e.isTrusted === false) { return; }
+    Vomnibar.isActive = false;
+    Vomnibar.timer > 0 && clearTimeout(Vomnibar.timer);
     VPort.postToOwner({ name: "unload" });
   }
 };
