@@ -433,5 +433,7 @@ declare const enum BrowserVer {
   MinMutedInfo = 45,
   MinAutoDecodeJSUrl = 46,
   MinNoUnmatchedIncognito = 52,
+  MinClosedShadowRoot = 53,
   AssumesVer = 53,
+  MinExtIframesInSharedProcess = 56,
 }
