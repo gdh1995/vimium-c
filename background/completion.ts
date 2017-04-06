@@ -169,32 +169,30 @@ SuggestionUtils = {
   },
   cutUrl (this: void, string: string, ranges: number[], strCoded: string): string {
     const out: string[] = [];
-    let cutStart = -1, temp: number, end: number = 0;
-    if (string.length <= maxCharNum || (cutStart = strCoded.indexOf(":")) < 0) {}
+    let cutStart = -1, end: number = 0, maxLen = maxCharNum;
+    if (string.length <= maxLen || (cutStart = strCoded.indexOf(":")) < 0) {}
     else if (!Utils.protocolRe.test(string.substring(0, cutStart + 3).toLowerCase())) { ++cutStart; }
     else if ((cutStart = strCoded.indexOf("/", cutStart + 4)) >= 0) {
-      temp = string.indexOf("://");
+      const temp = string.indexOf("://");
       cutStart = string.indexOf("/", (temp < 0 || temp > cutStart) ? 0 : (temp + 4));
     }
-    cutStart = (cutStart < 0) ? string.length : (cutStart + 1);
-    for(let i = 0, lenCut = 0; end < (temp = maxCharNum + lenCut) && i < ranges.length; i += 2) {
-      let start = ranges[i];
-      temp = (end >= cutStart) ? end : cutStart;
+    cutStart = cutStart < 0 ? string.length : cutStart + 1;
+    for (let i = 0; end < maxLen && i < ranges.length; i += 2) {
+      const start = ranges[i], temp = (end >= cutStart) ? end : cutStart;
       if (temp + 20 > start) {
         out.push(Utils.escapeText(string.substring(end, start)));
       } else {
         out.push(Utils.escapeText(string.substring(end, temp + 10)), "...",
           Utils.escapeText(string.substring(start - 6, start)));
-        lenCut += start - temp - 19;
+        maxLen += start - temp - 19;
       }
       end = ranges[i + 1];
       out.push('<match>', Utils.escapeText(string.substring(start, end)), "</match>");
     }
-    if (string.length <= temp) {
+    if (string.length <= maxLen) {
       out.push(Utils.escapeText(string.substring(end)));
     } else {
-      out.push(Utils.escapeText(string.substring(end,
-        (temp - 3 > end) ? (temp - 3) : (end + 10))), "...");
+      out.push(Utils.escapeText(string.substring(end, maxLen - 3 > end ? maxLen - 3 : end + 10)), "...");
     }
     return out.join("");
   },
