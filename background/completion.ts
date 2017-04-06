@@ -171,7 +171,7 @@ SuggestionUtils = {
     const out: string[] = [];
     let cutStart = -1, end: number = 0, maxLen = maxCharNum;
     if (string.length <= maxLen || (cutStart = strCoded.indexOf(":")) < 0) {}
-    else if (!Utils.protocolRe.test(string.substring(0, cutStart + 3).toLowerCase())) { ++cutStart; }
+    else if (!Utils.protocolRe.test(string.substring(0, cutStart + 3).toLowerCase())) { cutStart += 8; }
     else if ((cutStart = strCoded.indexOf("/", cutStart + 4)) >= 0) {
       const temp = string.indexOf("://");
       cutStart = string.indexOf("/", (temp < 0 || temp > cutStart) ? 0 : (temp + 4));
