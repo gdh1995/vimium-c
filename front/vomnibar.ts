@@ -40,11 +40,11 @@ var Vomnibar = {
     this.forceNewTab = !!options.force;
     this.isHttps = null;
     let { url, keyword, search } = options, start: number | undefined;
-    this.mode.clientWidth = options.width | 0;
+    this.mode.clientWidth = options.width * 0.8;
     if (url == null) {
       return this.reset(keyword ? keyword + " " : "");
     }
-    if (search = options.search) {
+    if (search) {
       start = search.start;
       url = search.url;
       keyword || (keyword = search.keyword);
