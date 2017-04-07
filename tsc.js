@@ -7,21 +7,20 @@ if (/\bnode\b/i.test(argv[argi])) {
 if (/\btsc\.\b/i.test(argv[argi])) {
   argi++;
 }
-var cwd = popProcessArg(argi) || ".";
-if (fs.existsSync(cwd)) {
-  process.chdir(cwd);
-  cwd = process.cwd();
-}
+var cwd = popProcessArg(argi);
 
 if (!fs.existsSync("package.json")) {
   process.chdir("..");
 }
-if (cwd) {
-  process.chdir(cwd);
+switch (cwd) {
+default:
+  if (cwd && fs.existsSync(cwd) && fs.statSync(cwd).isDirectory()) {
+    process.chdir(cwd);
+    cwd = null;
+  }
+  tsc = require("typescript/lib/tsc");
+  break;
 }
-
-tsc = require("typescript/lib/tsc");
-
 
 function popProcessArg(index, defaultValue) {
   var arg = process.argv[index] || null;
