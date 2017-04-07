@@ -1307,8 +1307,8 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
       };
     },
     parseUpperUrl (this: void, request: FgReq["parseUpperUrl"]): FgRes["parseUpperUrl"] {
-      let url = request.url;
-      if (!Utils.protocolRe.test(Utils.removeComposedScheme(url.toLowerCase()))) {
+      let { url } = request, url_l = url.toLowerCase();
+      if (!Utils.protocolRe.test(Utils.removeComposedScheme(url_l))) {
         return { url: "This url has no upper paths", path: null };
       }
       let hash = "", str: string, arr: RegExpExecArray | null, startSlash = false, endSlash = false
@@ -1372,12 +1372,12 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
         }
       }
       if (!path) {
-        if (url.startsWith("chrome")) {
+        if (url_l.startsWith("chrome")) {
           return { url: "An extension has no upper-level pages", path: null };
         }
         hash = "";
         start = url.indexOf("/", url.indexOf("://") + 3);
-        if (url.startsWith("filesystem:")) { start = url.indexOf("/", start + 1); }
+        if (url_l.startsWith("filesystem:")) { start = url.indexOf("/", start + 1); }
         i = url.indexOf("?", start);
         end = url.indexOf("#", start);
         i = end < 0 ? i : i < 0 ? end : i < end ? i : end;
@@ -1388,13 +1388,13 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
       }
       i = request.upper | 0;
       startSlash = path.startsWith("/");
-      if (!hash && url.startsWith("file:")) {
+      if (!hash && url_l.startsWith("file:")) {
         if (path.length <= 1 || url.length === 11 && url.endsWith(":/")) {
           return { url: "This has been the root path", path: null };
         }
         endSlash = true;
         i || (i = -1);
-      } else if (!hash && url.startsWith("ftp:")) {
+      } else if (!hash && url_l.startsWith("ftp:")) {
         endSlash = true;
       } else {
         endSlash = request.trailing_slash != null ? !!request.trailing_slash
