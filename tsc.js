@@ -13,6 +13,20 @@ if (!fs.existsSync("package.json")) {
   process.chdir("..");
 }
 switch (cwd) {
+case "all": case "local":
+  var child_process = require('child_process');
+  var cmd = argv[0];
+  var tasks = ["content", "background", "pages", "front"];
+  argv = argv.slice(1);
+  argv.push("");
+  var options = {
+    stdio: ["ignore", process.stdout, process.stderr]
+  };
+  for (var i = 0; i < tasks.length; i++) {
+    argv[argv.length - 1] = tasks[i];
+    child_process.spawn(cmd, argv, options);
+  }
+  break;
 default:
   if (cwd && fs.existsSync(cwd) && fs.statSync(cwd).isDirectory()) {
     process.chdir(cwd);
