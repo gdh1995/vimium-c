@@ -402,8 +402,14 @@ function loadTypeScriptCompiler(path) {
   var typescript;
   path = path || compilerOptions.typescript || null;
   if (typeof path === "string") {
-    if (fs.existsSync(path)) {
-      if (fs.statSync(path).isDirectory()) {
+    var exists1 = fs.existsSync(path), exists = exists1 || fs.existsSync(path + ".js");
+    if (!exists) {
+      var dir = "./node_modules/" + path;
+      exists1 = fs.existsSync(dir);
+      if (exists1 || fs.existsSync(dir + ".js")) { path = dir; exists = true; }
+    }
+    if (exists) {
+      if (exists1 && fs.statSync(path).isDirectory()) {
         path = osPath.join(path, "typescript");
       }
       try {

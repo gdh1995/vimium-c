@@ -3,7 +3,8 @@
     "listFiles": true,
     "outDir": "./dist",
     "skipDefaultLibCheck": true,
-    "sourceMap": true
+    "sourceMap": true,
+    "typescript": "typescript/lib/typescript"
   },
   "extends": "tsconfig"
 }
