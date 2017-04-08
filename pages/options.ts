@@ -367,7 +367,7 @@ interface AdvancedOptBtn extends HTMLButtonElement {
   }
 
   if (bgSettings.CONST.ChromeVersion < BrowserVer.MinWithFrameId) {
-    element = $("VomnibarPage");
+    element = $("vomnibarPage");
     element.title = `Vimium++ can not use a HTTP pages as Vomnibar before Chrome ${BrowserVer.MinWithFrameId}`;
     if ("chrome /front/".indexOf(Option.all.vomnibarPage.previous.substring(0, 6)) === -1) {
       element.style.textDecoration = "line-through";
