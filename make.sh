@@ -27,7 +27,7 @@ if [ -z "$output" -o -d "$output" ]; then
   elif [ -d '/wo' ]; then
     output=/wo/
   fi
-  ver=$(grep -m1 '"version"' manifest.json | awk -F '"' '{print "_"$4}')
+  ver=$(grep -m1 -o '"version":\s*"[0-9\.]*"' manifest.json | awk -F '"' '{print "_"$4}')
   pkg_name=$(basename "$PWD")
   pkg_name=${pkg_name//++/_plus}
   pkg_name=${pkg_name//+/_}
