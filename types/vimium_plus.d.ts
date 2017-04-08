@@ -24,7 +24,7 @@ declare namespace CompletersNS {
    */
   type ValidSugTypes = ValidTypes | "math";
   interface Options {
-    clientWidth?: number;
+    maxChars?: number;
     maxResults?: number;
     type: ValidTypes;
   }

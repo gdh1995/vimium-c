@@ -88,7 +88,7 @@ type SearchSuggestion = CompletersNS.SearchSuggestion;
 
 
 let queryType: FirstQuery, offset: number, autoSelect: boolean,
-    maxCharNum: number, maxResults: number, maxTotal: number, matchType: MatchType,
+    maxChars: number, maxResults: number, maxTotal: number, matchType: MatchType,
     queryTerms: QueryTerms;
 
 const Suggestion: SuggestionConstructor = function (this: CompletersNS.WritableCoreSuggestion,
@@ -169,7 +169,7 @@ SuggestionUtils = {
   },
   cutUrl (this: void, string: string, ranges: number[], strCoded: string): string {
     const out: string[] = [];
-    let cutStart = -1, end: number = 0, maxLen = maxCharNum;
+    let cutStart = -1, end: number = 0, maxLen = maxChars;
     if (string.length <= maxLen || (cutStart = strCoded.indexOf(":")) < 0) {}
     else if (!Utils.protocolRe.test(string.substring(0, cutStart + 3).toLowerCase())) { cutStart += 8; }
     else if ((cutStart = strCoded.indexOf("/", cutStart + 4)) >= 0) {
@@ -859,7 +859,7 @@ searchEngines: {
     queryTerms = [];
     RegExpCache.reset();
     RankingUtils.timeAgo = this.sugCounter = matchType =
-    maxResults = maxTotal = maxCharNum = 0;
+    maxResults = maxTotal = maxChars = 0;
     queryType = FirstQuery.nothing;
     autoSelect = false;
   },
@@ -893,8 +893,7 @@ searchEngines: {
       , callback: CompletersNS.Callback): void {
     autoSelect = false;
     queryTerms = query ? query.split(Utils.spacesRe) : [];
-    maxCharNum = (options.clientWidth as number) > 0 ? Math.max(50, Math.min((
-        ((options.clientWidth as number) - 74) / 7.72) | 0, 200)) : 128;
+    maxChars = Math.max(50, Math.min((<number>options.maxChars | 0) || 128, 200));
     maxTotal = maxResults = Math.min(Math.max((options.maxResults as number) | 0, 3), 25);
     Completers.callback = callback;
     let arr: ReadonlyArray<Completer> | null = null, str: string;

@@ -40,7 +40,7 @@ var Vomnibar = {
     this.forceNewTab = !!options.force;
     this.isHttps = null;
     let { url, keyword, search } = options, start: number | undefined;
-    this.mode.clientWidth = options.width * 0.8;
+    this.width(options.width * 0.8);
     if (url == null) {
       return this.reset(keyword ? keyword + " " : "");
     }
@@ -156,7 +156,7 @@ var Vomnibar = {
   refresh (): void {
     let oldSel = this.selection, origin = this.isSelectionOrigin;
     this.useInput = false;
-    this.mode.clientWidth = window.innerWidth;
+    this.width();
     return this.update(17, function(this: typeof Vomnibar): void {
       const len = this.completions.length;
       if (!origin && oldSel >= 0 && len > 0) {
@@ -533,12 +533,13 @@ var Vomnibar = {
     setTimeout<VomnibarNS.FReq["focus"] & VomnibarNS.Msg<"focus">>(VPort.postToOwner
       , 0, { name: "focus", lastKey: request.lastKey });
   },
+  width (w?: number): void { this.mode.maxChars = Math.ceil(((w || window.innerWidth) - 74) / 7.72); },
   secret: null as never as (this: void, request: BgVomnibarReq["secret"]) => void,
 
   mode: {
     handler: "omni" as "omni",
     type: "omni" as CompletersNS.ValidTypes,
-    clientWidth: 0,
+    maxChars: 0,
     maxResults: 10,
     query: ""
   },
@@ -553,7 +554,7 @@ var Vomnibar = {
         : this.matchType === CompletersNS.MatchType.searchWanted ? "search"
         : (newMatchType = this.matchType, this.completions[0].type as CompletersNS.ValidTypes);
       mode.query = str;
-      mode.clientWidth = window.innerWidth;
+      this.width();
       this.matchType = newMatchType;
     } else {
       this.useInput = true;
