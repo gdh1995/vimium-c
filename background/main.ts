@@ -74,6 +74,10 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
     },
     parsePattern (this: void, pattern: string, level: number): string[] {
       if (pattern.startsWith("file:")) {
+        if (level > 1) {
+          funcDict.complain("set content settings of file folders");
+          return [];
+        }
         return [pattern];
       }
       let info: string[] = pattern.match(/^([^:]+:\/\/)([^\/]+)/) as RegExpMatchArray
@@ -193,6 +197,7 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
         return err;
       }, arr = this.parsePattern(url, count | 0);
       left = arr.length;
+      if (left <= 0) { return callback(true); }
       Object.setPrototypeOf(settings, null);
       for (pattern of arr) {
         const info = Utils.extendIf(Object.create(null) as chrome.contentSettings.SetDetails, settings);
