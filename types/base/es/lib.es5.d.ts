@@ -287,9 +287,9 @@ interface Function {
       */
     bind<T, A, B, C, D, E, R>(this: (this: T, a: A, b: B, c: C, d: D, e: E) => R, thisArg: T
       , a: A, b: B, c: C, d: D): (this: void, e: E) => R;
-    bind<T, A, B, C, R>(this: (this: T, a: A, b: B, c: C) => R, thisArg: T, a: A, b: B, c: C): (this: void) => R;
     bind<T, A, B, C, D, R>(this: (this: T, a: A, b: B, c: C, d: D) => R, thisArg: T
       , a: A, b: B, c: C): (this: void, d: D) => R;
+    bind<T, A, B, C, R>(this: (this: T, a: A, b: B, c: C) => R, thisArg: T, a: A, b: B, c: C): (this: void) => R;
     bind<T, A, B, R>(this: (this: T, a: A, b: B) => R, thisArg: T, a: A, b: B): (this: void) => R;
     bind<T, A, B, C, R>(this: (this: T, a: A, b: B, c: C) => R, thisArg: T, a: A, b: B): (this: void, c: C) => R;
     bind<T, A, B, C, D, R>(this: (this: T, a: A, b: B, c: C, d: D) => R, thisArg: T
