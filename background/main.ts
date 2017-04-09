@@ -72,32 +72,23 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
       funcDict.complain("change its content settings");
       return true;
     },
-    parsePattern (this: void, pattern: string, level: number): string {
-      let arr: string[];
+    parsePattern (this: void, pattern: string, level: number): string[] {
       if (pattern.startsWith("file:")) {
-        if (level > 1) {
-          arr = pattern.split("/");
-          arr.length = Math.max(arr.length - level + 1, 3);
-          arr.length === 3 && arr.push("");
-          pattern = arr.join("/");
-        }
-        return pattern;
+        return [pattern];
       }
-      arr = pattern.match(/^([^:]+:\/\/)([^\/]+)\//) as RegExpMatchArray;
-      if (level < 2) {
-        return arr[0] + "*";
+      let info: string[] = pattern.match(/^([^:]+:\/\/)([^\/]+)/) as RegExpMatchArray
+        , result = [info[0] + "/*"], host = info[2];
+      if (level < 2 || Utils.isIPHost(host)) { return result; }
+      pattern = info[1];
+      const arr = host.split("."), i = arr.length
+        , minLen = i < 3 ? i : arr[i - 1].length === 2 && Utils.isTld(arr[i - 2]) === Urls.TldType.ENTld ? 3 : 2
+        , end = Math.min(arr.length - minLen, level - 1);
+      for (let j = 0; j < end; j++) {
+        host = host.substring(arr[j].length + 1);
+        result.push(pattern + host + "/*");
       }
-      pattern = arr[1]; arr = arr[2].split(".");
-      let i = arr.length;
-      i -= i < 3 ? i : arr[i - 1].length === 2 && Utils.isTld(arr[i - 2]) === 1 ? 3 : 2;
-      if (i > 0) {
-        i = Math.min(level - 2, i - 1);
-        i > 0 && arr.splice(0, i);
-        arr[0] = '*';
-      } else {
-        arr.unshift('*');
-      }
-      return pattern + arr.join(".") + "/*";
+      result.push(pattern + "*." + host + "/*");
+      return result;
     },
     clear (this: void, contentType: CSTypes, tab?: Tab): void {
       if (!chrome.contentSettings) { return; }
@@ -190,7 +181,7 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
     setAllLevels (contentType: CSTypes, url: string, count: number
         , settings: Readonly<Pick<chrome.contentSettings.SetDetails, "scope" | "setting">>
         , callback: (this: void, has_err: boolean) => void): void {
-      let info: chrome.contentSettings.SetDetails, i: number, left: number, has_err = false;
+      let pattern: string, left: number, has_err = false;
       const ref = chrome.contentSettings[contentType], func = function() {
         const err = chrome.runtime.lastError;
         if (has_err) { return err; }
@@ -199,12 +190,12 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
           setTimeout(callback, 0, has_err);
         }
         return err;
-      };
+      }, arr = this.parsePattern(url, count | 0);
+      left = arr.length;
       Object.setPrototypeOf(settings, null);
-      count = count | 0;
-      for (left = i = count; i > 0; i--) {
-        info = Utils.extendIf(Object.create(null) as typeof info, settings);
-        info.primaryPattern = this.parsePattern(url, i);
+      for (pattern of arr) {
+        const info = Utils.extendIf(Object.create(null) as chrome.contentSettings.SetDetails, settings);
+        info.primaryPattern = pattern;
         ref.set(info, func);
       }
     },

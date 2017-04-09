@@ -184,7 +184,7 @@ const Utils = {
       : oldString;
   }) as Urls.Converter,
   checkInDomain (host: string, port?: string | null): 0 | 1 | 2 {
-    var domain = port && this.domains[host + port] || this.domains[host];
+    const domain = port && this.domains[host + port] || this.domains[host];
     return domain ? (domain[2] + 1 as 1 | 2) : 0;
   },
   checkSpecialSchemes (string: string, i: number, spacePos: number): Urls.Type | Urls.TempType.Unspecified {
@@ -226,6 +226,7 @@ const Utils = {
       : tld.length < this._tlds.length && this._tlds[tld.length].indexOf(tld) > 0 ? Urls.TldType.ENTld
       : Urls.TldType.NotTld;
   },
+  isIPHost (host: string): boolean { return this._ipRe.test(host) || this._ipv6Re.test(host); },
   _fileExtRe: <RegExpOne> /\.\w+$/,
   formatVimiumUrl (fullpath: string, partly: boolean, vimiumUrlWork: Urls.WorkType): string {
     let ind: number, query = "", tempStr: string | undefined, path = fullpath.trim();
