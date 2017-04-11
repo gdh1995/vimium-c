@@ -1159,8 +1159,8 @@ interface ReadonlyArray<T> {
       * @param callbackfn  A function that accepts up to three arguments. forEach calls the callbackfn function one time for each element in the array.
       * @param thisArg  An object to which the this keyword can refer in the callbackfn function. If thisArg is omitted, undefined is used as the this value.
       */
-    forEach<S>(callbackfn: (this: S, value: T, index: number, array: ReadonlyArray<T>) => void, thisArg: S): void;
-    forEach(callbackfn: (this: void, value: T, index: number, array: ReadonlyArray<T>) => void): void;
+    forEach<S>(callbackfn: (this: S, value: T, index: number, array: ReadonlyArray<T>) => any, thisArg: S): void;
+    forEach(callbackfn: (this: void, value: T, index: number, array: ReadonlyArray<T>) => any): void;
    /**
       * Calls a defined callback function on each element of an array, and returns an array that contains the results.
       * @param callbackfn A function that accepts up to three arguments. The map method calls the callbackfn function one time for each element in the array.
@@ -1310,8 +1310,8 @@ interface Array<T> {
       * @param callbackfn  A function that accepts up to three arguments. forEach calls the callbackfn function one time for each element in the array.
       * @param thisArg  An object to which the this keyword can refer in the callbackfn function. If thisArg is omitted, undefined is used as the this value.
       */
-    forEach<S>(callbackfn: (this: S, value: T, index: number, array: T[]) => void, thisArg: S): void;
-    forEach(callbackfn: (this: void, value: T, index: number, array: T[]) => void): void;
+    forEach<S>(callbackfn: (this: S, value: T, index: number, array: T[]) => any, thisArg: S): void;
+    forEach(callbackfn: (this: void, value: T, index: number, array: T[]) => any): void;
     /**
       * Calls a defined callback function on each element of an array, and returns an array that contains the results.
       * @param callbackfn A function that accepts up to three arguments. The map method calls the callbackfn function one time for each element in the array.

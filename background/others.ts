@@ -145,7 +145,7 @@ setTimeout((function() { if (!chrome.browserAction) { return; }
       (tabIds as IconNS.StatusMap<number[]>)[type] = [tabId];
     }
   };
-  Settings.updateHooks.showActionIcon = function(value) {
+  Settings.updateHooks.showActionIcon = function(value): void {
     func(value);
     (Settings.IconBuffer as IconNS.AccessIconBuffer)(value);
     let title = "Vimium++";
@@ -155,7 +155,7 @@ setTimeout((function() { if (!chrome.browserAction) { return; }
       chrome.browserAction.disable();
       title += "\n\nThis icon is disabled by your settings."
     }
-    return chrome.browserAction.setTitle({ title });
+    chrome.browserAction.setTitle({ title });
   };
   Settings.postUpdate("showActionIcon");
 }), 150);

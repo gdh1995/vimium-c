@@ -1087,11 +1087,13 @@ searchEngines: {
       }
     },
     refreshInfo (): void {
+      type Q = chrome.history.HistoryQuery;
+      type C = (results: chrome.history.HistoryItem[]) => void;
       if (this.toRefreshCount <= 0 && this.updateCount < 10) { return; }
       const i = Date.now();
       if (this.toRefreshCount <= 0) {}
       else if (this.lastRefresh + 1000 > i) { return; }
-      else setTimeout(chrome.history.search, 50, {
+      else setTimeout(chrome.history.search as ((q: Q, c: C) => void | 1) as (q: Q, c: C) => void, 50, {
         text: "",
         maxResults: Math.min(2000, this.updateCount + 10),
         startTime: this.lastRefresh

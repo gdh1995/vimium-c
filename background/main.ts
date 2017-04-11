@@ -20,7 +20,7 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
   const enum UseTab { NoTab = 0, ActiveTab = 1, CurWndTabs = 2 }
   interface BgCmdNoTab {
     useTab?: UseTab.NoTab;
-    (this: void): void;
+    (this: void): void | 1;
   }
   interface BgCmdActiveTab {
     useTab?: UseTab.ActiveTab;
@@ -305,10 +305,12 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
     onRuntimeError (this: void): void {
       return chrome.runtime.lastError;
     },
-    safeUpdate (this: void | boolean | object, url: string, tabs1?: [Tab]): 1 {
+    safeUpdate (url: string, secondTimes?: true, tabs1?: [Tab]): 1 {
       if (!tabs1) {
-        if (Utils.isRefusingIncognito(url) && this !== true) {
-          return funcDict.getCurTab(funcDict.safeUpdate.bind(true, url));
+        if (Utils.isRefusingIncognito(url) && secondTimes !== true) {
+          return funcDict.getCurTab(function(tabs1: [Tab]): void {
+            funcDict.safeUpdate(url, true, tabs1);
+          });
         }
       } else if (tabs1.length > 0 && tabs1[0].incognito && Utils.isRefusingIncognito(url)) {
         return chrome.tabs.create({ url });
@@ -524,7 +526,7 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
         windowId: tab.incognito ? undefined : tab.windowId,
         url: prefix
       });
-      const arr: [string, (() => void) | null, number] = [url, null, 0];
+      const arr: [string, ((this: void) => string) | null, number] = [url, null, 0];
       Settings.temp.shownHash = arr[1] = function(this: void): string {
         clearTimeout(arr[2]);
         Settings.temp.shownHash = null; return arr[0];
@@ -539,7 +541,7 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
       }, 2000);
     }] as [
       (url: string, reuse: ReuseType, tab?: Tab) => boolean,
-      (arr: [string, (() => void) | null, number]) => void
+      (arr: [string, ((this: void) => string) | null, number]) => void
     ],
     openUrls: function(tabs: [Tab]): void {
       let urls = cOptions.urls, i, tab = tabs[0], repeat = commandCount;
@@ -752,14 +754,11 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
       return chrome.runtime.lastError;
     }, function(tabs) {
       // TODO: how to wait for tab finishing to load
-      const callback = this.scroll ? /* this is MarksNS.MarkToGo */
-        setTimeout.bind<null
-          , typeof Marks.scrollTab, number, MarksNS.MarkToGo, Tab
-          , void>(null, Marks.scrollTab, 1000, this as MarksNS.MarkToGo)
-        : null;
+      // if `@scroll`, then `typeof @` is `MarksNS.MarkToGo`
+      const callback = this.scroll ? (tab: Tab): void => { setTimeout(Marks.scrollTab, 1000, this, tab); } : null;
       if (tabs.length <= 0) {
         chrome.windows.create({url: this.url}, callback && function(wnd: Window): void {
-          wnd.tabs && wnd.tabs.length > 0 && callback(wnd.tabs[0]);
+          if (wnd.tabs && wnd.tabs.length > 0) { return callback(wnd.tabs[0]); }
         });
         return;
       }
@@ -818,7 +817,7 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
     ]
   },
   BackgroundCommands = {
-    createTab (this: void): void {},
+    createTab (this: void): void | 1 {},
     duplicateTab (): void {
       const tabId = cPort.sender.tabId;
       if (tabId < 0) {
@@ -1223,11 +1222,11 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
     commandCount = count;
     count = <UseTab>func.useTab;
     if (count < UseTab.ActiveTab) {
-      return (func as BgCmdNoTab)();
+      (func as BgCmdNoTab)();
     } else if (count === UseTab.ActiveTab) {
       funcDict.getCurTab(func as BgCmdActiveTab);
     } else {
-      funcDict.getCurTabs(func as BgCmdNoTab);
+      funcDict.getCurTabs(func as BgCmdCurWndTabs);
     }
   },
   /**

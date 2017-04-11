@@ -107,9 +107,7 @@ var Vomnibar = {
       action === VomnibarNS.HideType.OnlyFocus && setTimeout(function() { window.focus(); }, 17);
       return;
     }
-    let f: typeof requestAnimationFrame, act = function(): void | 1 {
-      return Vomnibar.port.postMessage<"onHidden">("onHidden");
-    };
+    let f: typeof requestAnimationFrame, act = function(): void { Vomnibar.port.postMessage<"onHidden">("onHidden"); };
     return action === VomnibarNS.HideType.WaitAndAct ? (f = requestAnimationFrame)(function() { f(act); }) : act();
   },
   init (secret: number, page: string): HTMLIFrameElement {

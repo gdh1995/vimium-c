@@ -216,7 +216,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
     }
   };
 
-  esc = function(i?: HandlerResult): HandlerResult | void { currentKeys = ""; nextKeys = null; return i; };
+  esc = function(i?: HandlerResult): HandlerResult | void { currentKeys = ""; nextKeys = null; return i; } as EscFunc;
 
   function parsePassKeys(newPassKeys: string): SafeDict<true> {
     const pass = Object.create<true>(null);
@@ -278,7 +278,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
           }
           currentKeys = ""; nextKeys = keyMap;
           return i;
-        };
+        } as EscFunc;
         return HUD.show("Normal mode (pass keys disabled)" + (count > 1 ? `: ${count} times` : ""));
       }
       VHandler.push(function(event) {

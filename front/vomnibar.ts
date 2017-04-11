@@ -530,8 +530,8 @@ var Vomnibar = {
     event.stopImmediatePropagation();
   },
   returnFocus (this: void, request: BgVomnibarReq["returnFocus"]): void {
-    setTimeout<VomnibarNS.FReq["focus"] & VomnibarNS.Msg<"focus">>(VPort.postToOwner
-      , 0, { name: "focus", lastKey: request.lastKey });
+    setTimeout<VomnibarNS.FReq["focus"] & VomnibarNS.Msg<"focus">>(VPort.postToOwner as
+        any, 0, { name: "focus", lastKey: request.lastKey });
   },
   width (w?: number): void { this.mode.maxChars = Math.ceil(((w || window.innerWidth) - 74) / 7.72); },
   secret: null as never as (this: void, request: BgVomnibarReq["secret"]) => void,
