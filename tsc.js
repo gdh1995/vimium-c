@@ -4,7 +4,7 @@ var argv = process.argv, argi = 0;
 if (/\bnode\b/i.test(argv[argi])) {
   argi++;
 }
-if (/\btsc\.\b/i.test(argv[argi])) {
+if (/\btsc(\.\b|$)/i.test(argv[argi])) {
   argi++;
 }
 var cwd = popProcessArg(argi);
