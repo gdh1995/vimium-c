@@ -80,7 +80,8 @@ window.onhashchange = function(this: void): void {
   case "image":
     shownNode = (importBody as ImportBody)("shownImage");
     shownNode.classList.add("hidden");
-    shownNode.onerror = function(this: void): void {
+    shownNode.onerror = function(): void {
+      this.onerror = this.onload = null as never;
       (shownNode as HTMLImageElement).alt = "\xa0fail to load\xa0";
       shownNode.classList.remove("hidden");
       setTimeout(showBgLink, 34);
@@ -92,6 +93,7 @@ window.onhashchange = function(this: void): void {
       shownNode.src = url;
       shownNode.onclick = defaultOnClick;
       shownNode.onload = function(this: HTMLImageElement): void {
+        this.onerror = this.onload = null as never;
         showBgLink();
         shownNode.classList.remove("hidden");
         shownNode.classList.add("zoom-in");
@@ -101,7 +103,7 @@ window.onhashchange = function(this: void): void {
       };
     } else {
       url = "";
-      (shownNode.onerror as () => void)();
+      (shownNode as any).onerror();
       shownNode.setAttribute("alt", "\xa0(null)\xa0");
     }
     if (file) {
