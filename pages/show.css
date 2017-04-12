@@ -1,8 +1,8 @@
 
-body.close {
+body.filled {
   margin: 0;
 }
-.close > img {
+.filled > img {
   outline: none;
 }
 .hidden {

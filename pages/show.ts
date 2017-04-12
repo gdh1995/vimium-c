@@ -96,7 +96,7 @@ window.onhashchange = function(this: void): void {
         shownNode.classList.remove("hidden");
         shownNode.classList.add("zoom-in");
         if (this.width >= window.innerWidth * 0.9) {
-          (document.body as HTMLBodyElement).classList.add("close");
+          (document.body as HTMLBodyElement).classList.add("filled");
         }
       };
     } else {
@@ -335,7 +335,7 @@ function toggleSlide(Viewer: any): void {
 
 function clean() {
   if (type === "image") {
-    (document.body as HTMLBodyElement).classList.remove("close");
+    (document.body as HTMLBodyElement).classList.remove("filled");
     if (window.viewer) {
       window.viewer.destroy();
       window.viewer = null;
