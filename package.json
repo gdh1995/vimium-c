@@ -29,9 +29,13 @@
     "url": "https://github.com/gdh1995/vimium-plus.git"
   },
   "keywords": [
-    "Vimium",
-    "WebExtension",
-    "chrome-extension"
+    "vimium-plus",
+    "vimium",
+    "webextension",
+    "chrome-extension",
+    "chrome",
+    "firefox",
+    "utility"
   ],
   "author": "gdh1995@qq.com",
   "license": "MIT",
