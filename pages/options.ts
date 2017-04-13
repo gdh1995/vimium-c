@@ -383,7 +383,7 @@ interface AdvancedOptBtn extends HTMLButtonElement {
       this.target = "_blank";
       window.close();
     };
-    element.previousElementSibling.remove();
+    (element.previousElementSibling as Element).remove();
     _ref = $$("body,button,header");
     for (let _i = _ref.length; 0 <= --_i; ) {
       _ref[_i].classList.add("chrome-ui");

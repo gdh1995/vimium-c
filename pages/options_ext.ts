@@ -155,7 +155,7 @@ $<ElementWithDelay>("exportButton").onclick = function(event): void {
 };
 
 function _importSettings(time: number | string | Date, new_data: ExportedSettings | null, is_recommended?: boolean): void {
-  time = +new Date(new_data && new_data.time || time as number) || 0;
+  time = +new Date(new_data && new_data.time || time) || 0;
   if (!new_data || new_data.name !== "Vimium++" || (time < 10000 && time > 0)) {
     const err_msg = new_data ? "No settings data found!" : "Fail to parse the settings";
     window.VHUD ? VHUD.showForDuration(err_msg, 2000) : alert(err_msg);
@@ -289,7 +289,7 @@ _el.onchange = function(this: HTMLInputElement): void {
   const file = (this.files as FileList)[0];
   this.value = "";
   if (!file) { return; }
-  const reader = new FileReader(), { lastModified } = file;
+  const reader = new FileReader(), lastModified = file.lastModified || file.lastModifiedDate || 0;
   reader.onload = function(this: FileReader) {
     let result: string = this.result, data: ExportedSettings | null = null;
     try {

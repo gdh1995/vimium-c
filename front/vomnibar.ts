@@ -472,9 +472,9 @@ var Vomnibar = {
       if (this.selection === 0) {
         const line = this.completions[0] as SuggestionEx;
         line.text || (line.text = VUtils.shortenUrl(line.url));
-        list.firstElementChild.classList.add("s");
+        (list.firstElementChild as HTMLElement).classList.add("s");
       }
-      list.lastElementChild.classList.add("b");
+      (list.firstElementChild as HTMLElement).classList.add("b");
     }
     if (this.timer <= 0) { return this.postUpdate(); }
   },
