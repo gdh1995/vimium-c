@@ -65,3 +65,9 @@ interface Range {
   anchorOffset: number;
   focusOffset: number;
 }
+
+interface EnsuredMountedElement extends Element {
+    readonly firstElementChild: EnsuredMountedElement;
+    readonly lastElementChild: EnsuredMountedElement;
+    readonly parentNode: EnsuredMountedElement;
+}

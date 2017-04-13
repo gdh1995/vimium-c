@@ -19,6 +19,6 @@ Modified by gdh1995 (github).
 /// <reference no-default-lib="true"/>
 
 
-/// <reference path="es/lib.es5.d.ts" />
-/// <reference path="es/lib.es2015.core.d.ts" />
-/// <reference path="es/lib.es2015.promise.d.ts" />
+/// <reference path="lib.es5.d.ts" />
+/// <reference path="lib.es2015.core.d.ts" />
+/// <reference path="lib.es2015.promise.d.ts" />
