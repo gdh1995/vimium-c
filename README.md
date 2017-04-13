@@ -195,7 +195,7 @@ If you want to compile this project manually, please run:
 
 ``` bash
 npm install typescript@next
-# remove options "inferThisForObjectLiterals" and "narrowFormat" in `tsconfig.json`
+# remove options "narrowFormat" in `tsconfig.json`
 node tsc.js
 node tsc.js front
 node tsc.js pages

@@ -119,7 +119,6 @@ var Tasks = {
     if (locally) { return; }
     enableSourceMap = false;
     willListFiles = true;
-    globalForceUpdate = false;
     disableErrors = !globalForceUpdate;
     JSDEST = ".";
     compilerOptions = loadValidCompilerOptions("tsconfig.json", true);

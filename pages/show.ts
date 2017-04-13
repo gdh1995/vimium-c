@@ -311,12 +311,6 @@ function loadViewer(func: (viewer: any) => void): Promise<void> {
   return requireJS("Viewer", "../lib/viewer.min.js").then<void>(function(Viewer): void {
     Viewer.setDefaults({
       navbar: false,
-      ready: function(this: void) {
-        const btns = (document.querySelector('.viewer-toolbar') as HTMLElement).children;
-        for (let i = btns.length; 0 <= --i; ) {
-          btns[i].vimiumHasOnclick = true;
-        }
-      },
       shown: function(this: void) {
         bgLink.style.display = "none";
       },
