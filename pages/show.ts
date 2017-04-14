@@ -19,10 +19,11 @@ declare var VDom: {
   readonly UI: Readonly<DomUI>;
   readonly mouse: VDomMouse;
 }, VPort: Readonly<VPort>, VHUD: Readonly<VHUD>;
+type ValidShowTypes = "image" | "url" | "";
+type ValidNodeTypes = HTMLImageElement | HTMLDivElement;
 
-var $ = document.getElementById.bind(document) as <T extends HTMLElement>(id: string) => T
-let shownNode: HTMLImageElement | HTMLDivElement, bgLink = $('bgLink') as HTMLAnchorElement,
-    url: string, type: string, file: string;
+var $ = document.getElementById.bind(document) as <T extends HTMLElement>(id: string) => T;
+let shownNode: ValidNodeTypes, bgLink = $<HTMLAnchorElement>('bgLink'), url: string, type: ValidShowTypes, file: string;
 
 var BG = window.chrome && chrome.extension && chrome.extension.getBackgroundPage() as Window;
 if (!(BG && BG.Utils && BG.Utils.convertToUrl)) {
