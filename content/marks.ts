@@ -2,6 +2,7 @@ var VMarks = {
   onKeypress: null as never as (event: HandlerNS.Event, keyChar: string) => void,
   prefix: true,
   activate (_0: number, options: FgOptions): void {
+    Object.setPrototypeOf(options = options || {} as FgOptions, null);
     const isGo = options.mode !== "create";
     this.onKeypress = isGo ? this._goto : this._create;
     this.prefix = options.prefix !== false;

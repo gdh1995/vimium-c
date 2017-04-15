@@ -30,7 +30,7 @@ var Vomnibar = {
   defaultTop: "",
   sameOrigin: false,
   activate (count: number, options: VomnibarNS.FullOptions): void {
-    if (!options.secret || !options.vomnibar) { return; }
+    if (!options || !options.secret || !options.vomnibar) { return; }
     if (document.readyState === "loading") {
       if (!this.width) {
         this.width = setTimeout(this.activate.bind(this, count, options), 500);
