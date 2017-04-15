@@ -431,6 +431,7 @@ var Vomnibar = {
       return;
     }
     if (this.matchType === CompletersNS.MatchType.emptyResult && s1.startsWith(s0)) { return; }
+    if (!str) { this.isHttps = null; }
     const i = this.input.selectionStart;
     if (this.isSearchOnTop) {}
     else if (i > s1.length - 2) {
