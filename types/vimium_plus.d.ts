@@ -87,6 +87,7 @@ declare namespace MarksNS {
 declare const enum KnownKey {
   space = 32, bang = 33, quote2 = 34, hash = 35,
   maxCommentHead = hash,
+  s = 115,
 }
 
 interface ChildKeyMap {

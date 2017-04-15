@@ -50,6 +50,10 @@ var Vomnibar = {
       keyword || (keyword = search.keyword);
     } else if (search === null) {
       url = VUtils.decodeURL(url).replace(<RegExpG> /\s$/g, "%20");
+      if (!keyword && (<RegExpI>/^https?:\/\//i).test(url)) {
+        this.isHttps = (url.charCodeAt(4) | 32) === KnownKey.s;
+        url = url.substring(this.isHttps ? 8 : 7, url.indexOf("/", 8) === url.length - 1 ? url.length - 1 : undefined);
+      }
     } else {
       url = VUtils.decodeURL(url, decodeURIComponent).trim().replace(<RegExpG> /\s+/g, " ");
     }
