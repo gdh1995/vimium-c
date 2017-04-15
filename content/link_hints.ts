@@ -951,10 +951,11 @@ COPY_TEXT: {
       return VHUD.showCopied("", isUrl ? "url" : "");
     }
     if (this.mode >= HintMode.EDIT_TEXT && this.mode <= HintMode.EDIT_LINK_URL) {
+      const force = this.options.force;
       VPort.post<"activateVomnibar", { count: number } & Partial<VomnibarNS.ContentOptions>>({
         handler: "activateVomnibar",
         count: 1,
-        force: !isUrl,
+        force: force === false || force === true ? force : !isUrl,
         url: str,
         keyword: (this.options.keyword || "") + ""
       });

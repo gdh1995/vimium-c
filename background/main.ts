@@ -564,8 +564,9 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
       }, wnd.type === "normal" ? wnd.state : "",
       commandCount > 1 ? funcDict.moveTabToNewWindow[1].bind(wnd, tab.index) : undefined);
     }, function(i, wnd2): void {
-        let tabs = this.tabs, startTabIndex = tabs.length - commandCount;
-        if (startTabIndex >= i || startTabIndex <= 0) {
+        let tabs = this.tabs;
+        const startTabIndex = tabs.length - commandCount, limited = cOptions.limited === true;
+        if (startTabIndex >= i || startTabIndex <= 0 || limited) {
           tabs = tabs.slice(i + 1, i + commandCount);
         } else {
           tabs[i].id = tabs[startTabIndex].id;
@@ -716,7 +717,7 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
       tab && chrome.windows.update(tab.windowId, { focused: true });
       return chrome.runtime.lastError;
     },
-    removeTabsRelative (this: void, activeTab: Tab, direction: number, tabs: Tab[]): void {
+    removeTabsRelative (this: void, activeTab: {index: number, pinned: boolean}, direction: number, tabs: Tab[]): void {
       let i = activeTab.index, noPinned = false;
       if (direction > 0) {
         ++i;
@@ -865,10 +866,10 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
     },
     removeTab (this: void, tabs: Tab[]): void {
       if (!tabs || tabs.length <= 0) { return chrome.runtime.lastError; }
-      const startTabIndex = tabs.length - commandCount;
+      const startTabIndex = tabs.length - commandCount, limited = cOptions.limited === true;
       let tab = tabs[0];
       if (cOptions.allow_close === true) {} else
-      if (startTabIndex <= 0 && (startTabIndex === 0 || tab.active)) {
+      if (startTabIndex <= 0 && (startTabIndex === 0 && !limited || tab.active)) {
         chrome.windows.getAll(funcDict.removeTab.bind(null, tab, tabs));
         return;
       }
@@ -882,7 +883,7 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
       const i = tab.index--;
       funcDict.removeTabsRelative(tab, commandCount, tabs);
       if (startTabIndex < 0) { return; }
-      if (startTabIndex >= i || i > 0 && tabs[i - 1].pinned && !tab.pinned) { return; }
+      if (startTabIndex >= i || limited || i > 0 && tabs[i - 1].pinned && !tab.pinned) { return; }
       ++tab.index;
       return funcDict.removeTabsRelative(tab, startTabIndex - i, tabs);
     },
