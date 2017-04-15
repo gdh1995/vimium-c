@@ -1531,7 +1531,6 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
       return Settings.cache.innerCSS;
     },
     activateVomnibar (this: void, request: FgReq["activateVomnibar"], port: Port): void {
-      cPort = port;
       if (((request as { count?: number }).count as number) > 0) {
         commandCount = (request as { count: number }).count;
         cOptions = Object.setPrototypeOf(request, null);
@@ -1540,7 +1539,9 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
         return;
       } else if (cOptions == null || cOptions.secret !== -1) {
         cOptions = Object.create(null);
+        commandCount = 1;
       }
+      cPort = port;
       return BackgroundCommands.showVomnibar();
     },
     omni (this: void, request: FgReq["omni"], port: Port): void {
