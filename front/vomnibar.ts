@@ -479,7 +479,7 @@ var Vomnibar = {
         line.text || (line.text = VUtils.shortenUrl(line.url));
         (list.firstElementChild as HTMLElement).classList.add("s");
       }
-      (list.firstElementChild as HTMLElement).classList.add("b");
+      (list.lastElementChild as HTMLElement).classList.add("b");
     }
     if (this.timer <= 0) { return this.postUpdate(); }
   },
