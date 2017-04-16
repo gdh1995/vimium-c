@@ -19,12 +19,11 @@ color:black;contain:strict;font-size:20px;height:34px;outline:none;padding:4px;w
 .item:hover{background-color:#cddbef;}
 .item.s{background-color:#bbcee9;}
 .top{font-size:16px;height:18px;line-height:18px;overflow:hidden;}
-.type{color:#777;cursor:text;float:left;width:51px;}
+.type{color:#777;cursor:text;display:inline-block;width:51px;}
 .dim{box-sizing:border-box;max-width:100%;}
-.bottom{font:14px/17px Consolas,"Liberation Mono","Courier New",monospace;
-height:16px;margin:2px 6px 0 0;overflow:hidden;padding-left:51px;}
+.bottom{font:14px/17px Consolas,"Liberation Mono","Courier New",monospace;height:16px;margin:2px 6px 0 0;overflow:hidden;}
 .icon{background:no-repeat 30px 50%;background-size:16px;}
-.url{box-sizing:border-box;color:#248;cursor:text;display:inline-block;max-width:100%;text-decoration:none;}
+.url{box-sizing:border-box;color:#248;cursor:text;display:inline-block;margin-left:51px;max-width:100%;text-decoration:none;}
 .relevancy{margin-left:10px;position:absolute;}
 match{color:black;font-weight:bold;}
 .dim > match{text-decoration:underline;}
@@ -32,15 +31,14 @@ match{color:black;font-weight:bold;}
 </head>
 <body>
 <div class="withList" id="bar">
-	<input type="text" autofocus="" id="input" />
+	<input type="text" autofocus id="input" />
 	<span role="button" id="close">&#215;</span>
 </div>
 <div id="list">
 	<script type="text/x-template" id="template">
 	<div class="item">
 		<div class="top">
-			<span class="type">{{type}}</span>
-			<span class="dim">{{title}}</span>
+			<span class="type">{{type}}</span><span class="dim">{{title}}</span>
 		</div>
 		<div class="bottom{{favIconUrl}}">
 			<a class="url">{{textSplit}}</a>{{relevancy}}
