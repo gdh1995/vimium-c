@@ -570,9 +570,9 @@ var Vomnibar = {
 
   parse (item: SuggestionE): void {
     let str: string;
-    if ((this as typeof Vomnibar).showFavIcon && (str = item.url) && str.length <= 512 && str.indexOf("://") > 0) {
+    if ((this as typeof Vomnibar).showFavIcon && (str = item.url) && !str.startsWith("vimium://")) {
       item.favIconUrl = ' icon" style="background-image: url(&quot;chrome://favicon/size/16/' +
-        VUtils.escapeCSSStringInAttr(str) + "&quot;)";
+        (str.length > 512 || str.startsWith("data:") ? "about:blank" : VUtils.escapeCSSStringInAttr(str)) + "&quot;)";
     } else {
       item.favIconUrl = "";
     }
