@@ -120,17 +120,20 @@
 	margin-right: 14px;
 }
 #HClose {
+	-webkit-user-select: none;
+	color: #555;
 	margin: 0 1px;
+	text-decoration: none;
+	user-select: none;
+}
+#HClose:hover {
+	color: black;
 }
 #HCloseT {
+	display: inline-block;
+	font: bold 24px/15px "Courier New", monospace;
 	width: 14px;
-	vertical-align: top;
-  stroke: #555;
-  stroke-linecap: round;
-  stroke-width: 3px;
-}
-#HCloseT:hover {
-	stroke: black;
+	vertical-align: text-bottom;
 }
 
 #AdvancedCommands {
@@ -174,11 +177,7 @@
 		<span style="float:right;position:relative;top:7px;font-size:0">
 			<a class="L TopLink" id="OptionsPage">Options</a>
 			<a class="L TopLink" target="_blank" href="https://github.com/philc/vimium/wiki">Wiki</a>
-			<a class="L TopLink" id="HClose" tabindex="0">
-				<svg viewBox="0 0 16 16" id="HCloseT">
-        <path d="M 4,4 L 12,12 M 12,4 L 4,12"></path>
-      	</svg>
-			</a>
+			<a class="L TopLink" id="HClose" tabindex="0"><span id="HCloseT">&#215;</span></a>
 		</span>
 	</div>
 	<div class="HDivider"></div>
