@@ -16,6 +16,10 @@ __微度新标签页 (X New Tab Page):__
 __修改__
 * 删除了多国语言和多浏览器支持，只保留中文、Chrome支持
 * 完美支持在此扩展程序的页面中使用Vimium++的快捷键
+* 提供了
+    [chrome-extension://hdnehngglnbnehkfcidabjckinphnief/vomnibar.html](chrome-extension://hdnehngglnbnehkfcidabjckinphnief/vomnibar.html)
+    来供Vimium++使用，
+  设置为`Preferred Vomnibar Page`即可让Vimium++的Vomnibar显示网页图标
 * 尽量减少访问网络的次数，不登录且不开天气模块的话，加载页面时不会发ajax
 * 修复在不同Chrome版本下的兼容性问题，比如最新的chrome默认滚动事件是passive的，不改的话会报错，而且影响使用
 * 删除了一些个人觉得没什么用的功能模块
@@ -28,6 +32,11 @@ __已知问题__
 * 此版本导出的设置文件不能直接用到原版上，但原版的配置文件可以导入此修改版（应该吧）
 
 __更新日志__
+修改版: 4.8.3 mod
+* 像`Vomnibar Page for Vimium++`一样，提供了可供Vimium++使用的Vomnibar页面，
+
+修改版: 4.8.2 mod
+* 无功能性改动，只是将版本号里的`4.83`修复成`4.8.2`
 
 修改版: 4.83.3 (2017-01-13)
 * 在Chrome 56下仍能和Vimium++配合使用

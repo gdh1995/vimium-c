@@ -40,7 +40,7 @@ __微度新标签页修改版 (Modified X New Tab Page):__
 
 * [visit it on Chrome Web Store](https://chrome.google.com/webstore/detail/微度新标签页修改版/hdnehngglnbnehkfcidabjckinphnief)
 * in folder [*weidu*](https://github.com/gdh1995/vimium-plus/tree/master/weidu)
-* support Vimium++
+* support Vimium++ and provide a vomnibar page: chrome-extension://hdnehngglnbnehkfcidabjckinphnief/vomnibar.html
 * 一款基于Html5的Chrome浏览器扩展程序。
   它提供了网站快速拨号、网站云添加、数据云备份等功能来增强 Chrome
     原生新标签页（New Tab）；
