@@ -312,6 +312,7 @@ availableCommands: {
   goUp: [ "Go up the URL hierarchy (use trailing_slash=null/&lt;boolean>)", 0, false ],
   goToRoot: [ "Go to root of current URL hierarchy", 0, true ],
   nextTab: [ "Go one tab right", 0, true, null, "goTab" ],
+  quickNext: [ "Go one tab right", 0, true, null, "goTab" ],
   previousTab: [ "Go one tab left", 0, true, { dir: -1 }, "goTab" ],
   visitPreviousTab: [ "Go to previously-visited tab on current window", 0, true ],
   firstTab: [ "Go to the first N-th tab", 0, true, { absolute: true }, "goTab" ],

@@ -68,6 +68,7 @@ which breaks `Vomnibar`. Then `Vomnibar` would only work well on Vimium++ Option
 2. `Preferred Vomnibar Page` can not support Http/File URLs before Chrome 41.
 
 Not released yet:
+* **WARNING**: the global shortcut for "Go one tab right" needs to be re-installed
 * fix bugs about the option `Preferred Vomnibar Page`
 
 1.59.1:
