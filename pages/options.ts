@@ -293,8 +293,8 @@ interface AdvancedOptBtn extends HTMLButtonElement {
 
   document.addEventListener("keydown", function(this: void, event): void {
     if (event.keyCode !== VKeyCodes.space) { return; }
-    const el = event.target;
-    if ((el instanceof HTMLLabelElement) && !el.isContentEditable) {
+    const el = event.target as Element;
+    if (el.parentElement instanceof HTMLLabelElement) {
       event.preventDefault();
     }
   });
@@ -303,9 +303,9 @@ interface AdvancedOptBtn extends HTMLButtonElement {
     const el = event.target as Element, i = event.keyCode;
     if (i !== VKeyCodes.enter) {
       if (i !== VKeyCodes.space) { return; }
-      if ((el instanceof HTMLLabelElement) && !el.isContentEditable) {
-        (el.control as HTMLElement).click();
+      if (el.parentElement instanceof HTMLLabelElement) {
         event.preventDefault();
+        (el.parentElement.control as HTMLElement).click();
       }
       return;
     }
