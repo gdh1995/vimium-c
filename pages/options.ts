@@ -300,7 +300,7 @@ interface AdvancedOptBtn extends HTMLButtonElement {
   });
 
   document.addEventListener("keyup", function(this: void, event): void {
-    const el = event.target as HTMLElement, i = event.keyCode;
+    const el = event.target as Element, i = event.keyCode;
     if (i !== VKeyCodes.enter) {
       if (i !== VKeyCodes.space) { return; }
       if ((el instanceof HTMLLabelElement) && !el.isContentEditable) {
@@ -310,12 +310,12 @@ interface AdvancedOptBtn extends HTMLButtonElement {
       return;
     }
     if (el instanceof HTMLAnchorElement) {
-      setTimeout(function(el) {
+      el.hasAttribute('href') || setTimeout(function(el) {
         el.click();
         el.blur();
       }, 0, el);
     } else if (event.ctrlKey || event.metaKey) {
-      el.blur();
+      el.blur && el.blur();
       if (status) {
         return saveBtn.onclick();
       }
