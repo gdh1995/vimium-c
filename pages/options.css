@@ -113,12 +113,19 @@ input, textarea {
   box-sizing: border-box;
   font: inherit;
   height: 28px;
-  outline: none;
   padding: 3px;
   white-space: pre;
   width: 100%;
 }
+input[type=text], textarea {
+  outline: none;
+}
+input[type=button] {
+  border: none;
+  background: none;
+}
 input[type=number] {
+  outline: none;
   text-align: center;
   text-indent: 16px;
   width: 66px;
@@ -154,19 +161,6 @@ label:active {
 .sel-all {
   -webkit-user-select: all;
   user-select: all;
-}
-
-.close-x {
-  stroke: #979ca0;
-  stroke-linecap: round;
-  stroke-width: 2;
-}
-.close-x:hover {
-  stroke: #444;
-}
-.close-x:active {
-  stroke: #4d90fe;
-  outline: none;
 }
 
 #wrapper, #footerWrapper {
@@ -286,8 +280,22 @@ label:active {
   width: 22px;
 }
 .exclusionRemoveButton {
-  margin: 0 3px;
-  vertical-align: middle;
+  -webkit-user-select: none;
+  border: none;
+  background-color: #fff;
+  color: #979ca0;
+  cursor: default;
+  font-size: small;
+  font-family: "Segoe UI Symbol", monospace;
+  padding: 5px;
+  user-select: none;
+}
+.exclusionRemoveButton:hover {
+  color: #444;
+  text-decoration: none;
+}
+.exclusionRemoveButton:active {
+  color: #4d90fe;
 }
 .exclusionHeaderText {
   padding-left: 3px;
