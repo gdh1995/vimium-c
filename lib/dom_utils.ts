@@ -156,10 +156,13 @@ var VDom = {
     ih = Math.min(Math.max(height, box.clientHeight, ih - 24), ih + 20);
     return [Math.ceil(x), Math.ceil(y), iw, ih - 15, iw];
   },
-  isVisibile (element: Element): boolean {
-    const rect = element.getBoundingClientRect();
+  isVisibile: function (element: Element | null, rect?: ClientRect): boolean {
+    if (!rect) { rect = (element as Element).getBoundingClientRect(); }
     return !(rect.bottom <= 0 || rect.top >= window.innerHeight || rect.right <= 0
       || rect.left >= window.innerWidth || rect.height < 0.5 || rect.width < 0.5);
+  } as {
+    (element: Element): boolean;
+    (element: null, rect: ClientRect): boolean;
   },
   isInDOM (element: Node, root?: Node): boolean {
     if (!root && typeof Node.prototype.getRootNode === "function") {
