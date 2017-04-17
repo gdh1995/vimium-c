@@ -644,6 +644,7 @@ var VHints = {
       VHUD.showForDuration("The link has been removed from the page", 2000);
     }
     if (!(this.mode & HintMode.queue)) {
+      this.setupCheck(clickEl, null);
       return this.deactivate(true);
     }
     this.isActive = false;
@@ -660,27 +661,30 @@ var VHints = {
     this.keyStatus.tab = 0;
     this.zIndexes = null;
     this._resetMarkers();
+    const isClick = this.mode < HintMode.min_job;
     this.activate(0, this.options);
-    this.timer && clearTimeout(this.timer);
-    if (this.isActive && lastEl && this.mode < HintMode.min_job && rect) {
-      this.timer = setTimeout(this.TestLastEl, 255, lastEl, rect);
-    } else {
-      this.timer = 0;
+    return this.setupCheck(lastEl, rect, isClick);
+  },
+  setupCheck (el?: HintsNS.LinkEl | null, r?: VRect | null, isClick?: boolean): void {
+    if (this.timer) { clearTimeout(this.timer); this.timer = 0; }
+    if (el && (isClick === true || this.mode < HintMode.min_job)) {
+      this.timer = setTimeout(this.CheckLast, 255, el, r);
     }
   },
-  TestLastEl (this: void, el: HintsNS.LinkEl, r: VRect) {
+  CheckLast (this: void, el: HintsNS.LinkEl, r?: VRect | null): void {
     const _this = VHints;
     if (!_this) { return; }
     _this.timer = 0;
-    if (!_this.isActive || (_this.hintMarkers as HintsNS.Marker[]).length > 128 || _this.alphabetHints.hintKeystroke) {
-      return;
-    }
     VDom.prepareCrop();
     const r2 = VDom.getVisibleClientRect(el);
-    if (r2 && r && Math.abs(r2[0] - r[0]) < 100 && Math.abs(r2[1] - r[1]) < 60) {
-      return;
+    if (!r2 && VDom.lastHovered === el) {
+      VDom.lastHovered = null;
     }
-    _this.reinit();
+    if (r && _this.isActive && (_this.hintMarkers as HintsNS.Marker[]).length < 64
+        && !_this.alphabetHints.hintKeystroke
+        && (!r2 || Math.abs(r2[0] - r[0]) > 100 || Math.abs(r2[1] - r[1]) > 60)) {
+      return _this.reinit();
+    }
   },
   clean (keepHUD?: boolean): void {
     this.options = this.modeOpt = this.zIndexes = this.hintMarkers = null;
