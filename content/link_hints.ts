@@ -1,8 +1,5 @@
 /**
  * focused: 1; new tab: 2; queue: 64; job: 128
- * >=128: "&4" means "must be links" and [data-vim-url] is used firstly
- *   &~64 >= 136 means only `<a>`
- * >= 256: queue not allowed
  */
 const enum HintMode {
   empty = 0, focused = 1, newTab = 2, queue = 64,
@@ -23,8 +20,11 @@ const enum HintMode {
   DOWNLOAD_LINK = min_link_job,
   COPY_LINK_URL,
   OPEN_INCOGNITO_LINK,
-  EDIT_TEXT = min_disable_queue,
-  EDIT_LINK_URL,
+  EDIT_LINK_URL = min_disable_queue,
+    max_link_job = EDIT_LINK_URL,
+    min_edit = EDIT_LINK_URL,
+  EDIT_TEXT,
+    max_edit = EDIT_TEXT,
   FOCUS_EDITABLE,
 }
 const enum ClickType {
@@ -157,8 +157,6 @@ var VHints = {
     let ref = this.Modes, mode = (this.CONST[options.mode as string] as number) | 0, modeOpt: HintsNS.ModeOpt | undefined;
     if (mode === HintMode.EDIT_TEXT && options.url) {
       mode = HintMode.EDIT_LINK_URL;
-    } else if (mode === HintMode.EDIT_LINK_URL || (mode & ~HintMode.queue) === HintMode.COPY_LINK_URL) {
-      options.url = true;
     }
     if (count > 1) { mode <= HintMode.min_disable_queue ? (mode |= HintMode.queue) : (count = 1); }
     for (let i in ref) {
@@ -498,8 +496,7 @@ var VHints = {
     const visibleElements = this.traverse(
       (_i === HintMode.DOWNLOAD_IMAGE || _i === HintMode.OPEN_IMAGE)
       ? { img: this.GetImagesInImg, a: this.GetImagesInA }
-      : _i === HintMode.EDIT_LINK_URL ||
-        (_i >= HintMode.min_link_job && _i < HintMode.min_disable_queue) ? { a: this.GetLinks }
+      : _i >= HintMode.min_link_job && _i <= HintMode.max_link_job ? { a: this.GetLinks }
       : {"*": _i === HintMode.FOCUS_EDITABLE ? this.GetEditable : this.GetClickable});
     const isNormal = _i < HintMode.min_job;
     if (this.maxRight > 0) {
@@ -924,10 +921,10 @@ COPY_TEXT: {
   "194": "Copy link text one by one",
   "195": "Search link text one by one",
   "201": "Copy link URL one by one",
-  "256": "Edit link text on Vomnibar",
-  "257": "Edit link url on Vomnibar",
+  "256": "Edit link url on Vomnibar",
+  "257": "Edit link text on Vomnibar",
   activator (link): void {
-    let isUrl = !!this.options.url, str: string | null;
+    let isUrl = this.mode1 >= HintMode.min_link_job && this.mode1 <= HintMode.max_link_job, str: string | null;
     if (isUrl) { str = this.getUrlData(link); }
     else if ((str = link.getAttribute("data-vim-text")) && (str = str.trim())) {}
     else if (link instanceof HTMLInputElement) {
@@ -954,7 +951,7 @@ COPY_TEXT: {
     if (!str) {
       return VHUD.showCopied("", isUrl ? "url" : "");
     }
-    if (this.mode >= HintMode.EDIT_TEXT && this.mode <= HintMode.EDIT_LINK_URL) {
+    if (this.mode >= HintMode.min_edit && this.mode <= HintMode.max_edit) {
       const force = this.options.force;
       VPort.post<"activateVomnibar", { count: number } & Partial<VomnibarNS.ContentOptions>>({
         handler: "activateVomnibar",
