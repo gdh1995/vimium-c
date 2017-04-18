@@ -226,6 +226,7 @@ w|wiki:\\\n  https://www.wikipedia.org/w/index.php?search=$s Wikipedia
   CONST: {
     BaseCSSLength: 0,
     BrowserNewTab: "about:newtab",
+    // note: if changed, ../pages/newtab.js also needs change.
     ChromeInnerNewTab: "chrome-search://local-ntp/local-ntp.html", // should keep lower case
     VimiumNewTab: "pages/newtab.html",
     ChromeVersion: BrowserVer.MinSupported,
@@ -260,8 +261,6 @@ w|wiki:\\\n  https://www.wikipedia.org/w/index.php?search=$s Wikipedia
   }
 };
 
-// note: if changed, ../pages/newtab.js also needs change.
-Settings.defaults.newTabUrl = Settings.CONST.ChromeInnerNewTab;
 Settings.defaults.vomnibarPage = Settings.CONST.VomnibarPageInner;
 Settings.CONST.ChromeVersion = 0 | (navigator.appVersion.match(/\bChrom(?:e|ium)\/(\d+)/) || [0, BrowserVer.AssumesVer])[1] as number;
 chrome.runtime.getPlatformInfo(function(info): void {
@@ -271,10 +270,11 @@ chrome.runtime.getPlatformInfo(function(info): void {
 
 (function() {
   const ref = chrome.runtime.getManifest(), origin = location.origin, prefix = origin + "/", obj = Settings.CONST,
-  ref2 = ref.content_scripts[0].js;
+  urls = ref.chrome_url_overrides, ref2 = ref.content_scripts[0].js;
   function func(path: string): string {
     return (path.charCodeAt(0) === 47 ? origin : prefix) + path;
   };
+  Settings.defaults.newTabUrl = urls && urls.newtab ? obj.ChromeInnerNewTab : "about:newtab";
   obj.CurrentVersion = ref.version;
   obj.CurrentVersionName = ref.version_name || ref.version;
   obj.OptionsPage = func(ref.options_page || obj.OptionsPage);
