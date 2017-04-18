@@ -951,7 +951,7 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
     VSettings = VHUD = VPort = VEventMode = VVisualMode = null as never;
     el && el.remove();
 
-    silent || console.log("%cVimium++%c in %c%s%c has destroyed at %o."
+    silent || console.log("%cVimium++%c in %c%s%c has been destroyed at %o."
       , "color:red", "color:auto", "color:darkred"
       , window.location.pathname.replace(<RegExpOne> /^.*\/([^\/]+)\/?$/, "$1")
       , "color:auto", Date.now());

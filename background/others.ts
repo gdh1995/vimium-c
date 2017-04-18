@@ -327,7 +327,7 @@ setTimeout(function() {
       return new Date(Date.now() - new Date().getTimezoneOffset() * 1000 * 60
         ).toJSON().substring(0, 19).replace('T', ' ');
     }
-    console.log("%cVimium++%c has %cinstalled%c with %O at %c%s%c .", "color:red", "color:auto"
+    console.log("%cVimium++%c has been %cinstalled%c with %O at %c%s%c .", "color:red", "color:auto"
       , "color:#0c85e9", "color:auto", details, "color:#0c85e9", now(), "color:auto");
   });
 
