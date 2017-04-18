@@ -76,7 +76,11 @@ html > span{float:right;}',
     (doc.head as HTMLHeadElement).appendChild(VDom.UI.createStyle(VFindMode.cssIFrame, doc));
     let el: HTMLElement = this.input = doc.body as HTMLBodyElement;
     docEl.insertBefore(doc.createTextNode("/"), el);
-    el.contentEditable = "plaintext-only";
+    try {
+      el.contentEditable = "plaintext-only";
+    } catch (e) {
+      el.contentEditable = "true";
+    }
     el.oninput = this.onInput.bind(this);
     el = this.countEl = doc.createElement("span");
     el.appendChild(doc.createTextNode(""));
