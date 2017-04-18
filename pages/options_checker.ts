@@ -90,8 +90,8 @@ Option.all.newTabUrl.checker = {
   },
   check (value: string): string {
     const url = (<RegExpI>/^\/?pages\/[a-z]+.html\b/i).test(value)
-        ? chrome.runtime.getURL(value) : BG.Utils.convertToUrl(value);
-    if (url.lastIndexOf("chrome", 0) !== 0) { return value; }
+        ? chrome.runtime.getURL(value) : BG.Utils.convertToUrl(value.toLowerCase());
+    if (url.lastIndexOf("http", 0) === 0) { return value; }
     this.init && this.init();
     if (!this.overriddenNewTab) {
       return url === this.customNewTab ? bgSettings.CONST.ChromeNewTab : value;
