@@ -34,6 +34,7 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
 
   const framesForTab: Frames.FramesMap = Object.create<Frames.Frames>(null),
   NoFrameId = Settings.CONST.ChromeVersion < BrowserVer.MinWithFrameId,
+  // in fact, `rawUrl` accept `string | undefined`
   openMultiTab = function(this: void, rawUrl: string, count: number
       , parentTab: InfoToCreateMultiTab): void {
     if (!(count >= 1)) return;
@@ -396,7 +397,7 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
         BackgroundCommands.openUrl(tabs as [Tab] | undefined);
         return chrome.runtime.lastError;
       }
-      let tab: (Partial<Tab> & InfoToCreateMultiTab) | null = null, url = this;
+      let tab: (Partial<Tab> & InfoToCreateMultiTab) | null = null, url: string | undefined = this;
       if (!tabs) {}
       else if ((tabs as Tab[]).length > 0) { tab = (tabs as Tab[])[0]; }
       else if ("id" in tabs) { tab = tabs as Tab; }
@@ -408,9 +409,9 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
         funcDict.createTabs(url, commandCount, true);
         return chrome.runtime.lastError;
       }
-      if (tab.incognito && onlyNormal) { url = Settings.CONST.ChromeNewTab; }
+      if (tab.incognito && onlyNormal) { url = undefined; }
       tab.id = undefined;
-      return openMultiTab(url, commandCount, tab);
+      return openMultiTab(url as string, commandCount, tab);
     }, function(wnd): void {
       if (cOptions.url || cOptions.urls) {
         return BackgroundCommands.openUrl([funcDict.selectFrom((wnd as PopWindow).tabs)]);

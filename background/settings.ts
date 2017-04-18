@@ -225,9 +225,9 @@ w|wiki:\\\n  https://www.wikipedia.org/w/index.php?search=$s Wikipedia
   } as SettingsNS.Sync,
   CONST: {
     BaseCSSLength: 0,
-    ChromeNewTab: "chrome://newtab",
+    BrowserNewTab: "about:newtab",
     ChromeInnerNewTab: "chrome-search://local-ntp/local-ntp.html", // should keep lower case
-    DefaultNewTabPage: "pages/newtab.html",
+    VimiumNewTab: "pages/newtab.html",
     ChromeVersion: BrowserVer.MinSupported,
     ContentScripts: null as never as string[],
     CurrentVersion: "", CurrentVersionName: "",

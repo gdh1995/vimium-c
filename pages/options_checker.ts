@@ -83,7 +83,7 @@ Option.all.newTabUrl.checker = {
     if (url) {
       this.overriddenNewTab = chrome.runtime.getURL(url);
     }
-    if (url = bgSettings.CONST.DefaultNewTabPage) {
+    if (url = bgSettings.CONST.VimiumNewTab) {
       this.customNewTab = chrome.runtime.getURL(url);
     }
     this.init = null as never;
@@ -94,10 +94,10 @@ Option.all.newTabUrl.checker = {
     if (url.lastIndexOf("http", 0) === 0) { return value; }
     this.init && this.init();
     if (!this.overriddenNewTab) {
-      return url === this.customNewTab ? bgSettings.CONST.ChromeNewTab : value;
+      return url === this.customNewTab ? bgSettings.CONST.BrowserNewTab : value;
     }
-    if (url === this.overriddenNewTab || url === bgSettings.CONST.ChromeNewTab ||
-        url === this.customNewTab) {
+    if (url === this.overriddenNewTab || url === bgSettings.CONST.BrowserNewTab ||
+        url === this.customNewTab || url === "chrome://newtab") {
       return bgSettings.CONST.ChromeInnerNewTab;
     }
     return value;

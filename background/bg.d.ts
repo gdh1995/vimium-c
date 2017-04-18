@@ -414,9 +414,9 @@ interface Window {
       readonly OptionsPage: string;
       readonly CurrentVersion: string;
       readonly ChromeVersion: number;
-      readonly ChromeNewTab: string;
+      readonly BrowserNewTab: string;
       readonly ChromeInnerNewTab: string;
-      readonly DefaultNewTabPage: string;
+      readonly VimiumNewTab: string;
       readonly Platform: string;
       BaseCSSLength: number;
     };
