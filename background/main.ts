@@ -20,7 +20,7 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
   const enum UseTab { NoTab = 0, ActiveTab = 1, CurWndTabs = 2 }
   interface BgCmdNoTab {
     useTab?: UseTab.NoTab;
-    (this: void): void | 1;
+    (this: void): void;
   }
   interface BgCmdActiveTab {
     useTab?: UseTab.ActiveTab;
@@ -818,7 +818,7 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
     ]
   },
   BackgroundCommands = {
-    createTab (this: void): void | 1 {},
+    createTab: (function (): void {}) as BgCmd,
     duplicateTab (): void {
       const tabId = cPort.sender.tabId;
       if (tabId < 0) {
@@ -1223,7 +1223,7 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
     commandCount = count;
     count = <UseTab>func.useTab;
     if (count < UseTab.ActiveTab) {
-      (func as BgCmdNoTab)();
+      return (func as BgCmdNoTab)();
     } else if (count === UseTab.ActiveTab) {
       funcDict.getCurTab(func as BgCmdActiveTab);
     } else {
@@ -1774,13 +1774,11 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
     funcDict.createTab = [funcDict.createTab[0]] as typeof funcDict.createTab;
   }
   Settings.updateHooks.newTabUrl_f = function(url) {
-    let f: BgCmdNoTab, onlyNormal = Utils.isRefusingIncognito(url);
-    BackgroundCommands.createTab = f = Settings.CONST.ChromeVersion < BrowserVer.MinNoUnmatchedIncognito && onlyNormal
-    ? chrome.windows.getCurrent.bind(null, {populate: true}
-        , funcDict.createTab[1].bind(url))
-    : chrome.tabs.query.bind(null, {currentWindow: true, active: true}
-        , funcDict.createTab[0].bind(url, onlyNormal));
-    f.useTab = UseTab.NoTab;
+    const onlyNormal = Utils.isRefusingIncognito(url), mayForceIncognito = funcDict.createTab.length > 1 && onlyNormal;
+    BackgroundCommands.createTab = mayForceIncognito ? function(): void {
+      chrome.windows.getCurrent({populate: true}, funcDict.createTab[1].bind(url));
+    } : funcDict.createTab[0].bind(url, onlyNormal);
+    BackgroundCommands.createTab.useTab = mayForceIncognito ? UseTab.NoTab : UseTab.ActiveTab;
   };
 
   Settings.updateHooks.showActionIcon = function (value) {
