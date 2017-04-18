@@ -269,21 +269,19 @@ chrome.runtime.getPlatformInfo(function(info): void {
   Settings.bufferToLoad.onMac = info.os === (chrome.runtime.PlatformOs ? chrome.runtime.PlatformOs.MAC : "mac");
 });
 
-setTimeout(function() {
-  let ref, origin = location.origin, prefix = origin + "/", obj: typeof Settings.CONST,
-  func = function(path: string): string {
+(function() {
+  const ref = chrome.runtime.getManifest(), origin = location.origin, prefix = origin + "/", obj = Settings.CONST,
+  ref2 = ref.content_scripts[0].js;
+  function func(path: string): string {
     return (path.charCodeAt(0) === 47 ? origin : prefix) + path;
   };
-  ref = chrome.runtime.getManifest();
-  obj = Settings.CONST;
   obj.CurrentVersion = ref.version;
   obj.CurrentVersionName = ref.version_name || ref.version;
   obj.OptionsPage = func(ref.options_page || obj.OptionsPage);
   obj.ShowPage = func(obj.ShowPage);
   obj.VomnibarPageInner = func(obj.VomnibarPageInner);
   obj.VomnibarScript_f = func(obj.VomnibarScript);
-  ref = ref.content_scripts[0].js;
-  ref[ref.length - 1] = obj.InjectEnd;
-  if (obj.ChromeVersion < BrowserVer.MinEnsured$String$$EndsWith) { ref.unshift(obj.PolyFill); }
-  obj.ContentScripts = ref.map(func);
-}, 17);
+  ref2[ref2.length - 1] = obj.InjectEnd;
+  if (obj.ChromeVersion < BrowserVer.MinEnsured$String$$EndsWith) { ref2.unshift(obj.PolyFill); }
+  obj.ContentScripts = ref2.map(func);
+})();
