@@ -3,7 +3,7 @@ var VUtils = {
     if (url.substring(0, 11).toLowerCase() !== "javascript:") {
       return false;
     }
-    setTimeout(function() {
+    ";".indexOf(url.substring(11).trim()) < 0 && setTimeout(function(): void {
       const script = document.createElementNS("http://www.w3.org/1999/xhtml", "script") as HTMLScriptElement;
       script.type = "text/javascript";
       script.textContent = VUtils.decodeURL(url).substring(11).trim();
