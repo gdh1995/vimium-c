@@ -350,6 +350,7 @@ interface AdvancedOptBtn extends HTMLButtonElement {
     element.onclick = func;
     element.tabIndex = 0;
     element.textContent = "Auto resize";
+    element.setAttribute("role", "button");
   }
 
   func = function(event): void {

@@ -273,7 +273,7 @@ chrome.runtime.getPlatformInfo(function(info): void {
   urls = ref.chrome_url_overrides, ref2 = ref.content_scripts[0].js;
   function func(path: string): string {
     return (path.charCodeAt(0) === 47 ? origin : prefix) + path;
-  };
+  }
   Settings.defaults.newTabUrl = urls && urls.newtab ? obj.ChromeInnerNewTab : "about:newtab";
   obj.CurrentVersion = ref.version;
   obj.CurrentVersionName = ref.version_name || ref.version;
