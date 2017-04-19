@@ -77,10 +77,12 @@ if (Settings.get("vimSync") === true) setTimeout(function() { if (!chrome.storag
   Settings.Sync = Sync;
   chrome.storage.onChanged.addListener(Sync.HandleStorageUpdate);
   Sync.storage.get(null, function(items): void {
-    let key, value: void;
-    if (value = chrome.runtime.lastError) { return value; }
+    if (chrome.runtime.lastError) {
+      Settings.postUpdate("vimSync", false);
+      return chrome.runtime.lastError;
+    }
     Object.setPrototypeOf(items, null);
-    for (key in items) {
+    for (let key in items) {
       Sync.storeAndPropagate(key, items[key]);
     }
   });
