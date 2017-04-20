@@ -1,6 +1,15 @@
 declare namespace ScrollerNS {
   const enum Consts {
-    calibrationBoundary = 150, maxCalibration = 1.6, minCalibration = 0.5
+    calibrationBoundary = 150, maxCalibration = 1.6, minCalibration = 0.5,
+    invalidTime = -1.0, minDuration = 100, durationScaleForAmount = 20,
+    maxS = 1.05, minS = 0.95, delayToChangeSpeed = 75, tickForUnexpectedTime = 17,
+
+    DelayUnitMs = 30, FrameIntervalMs = 16.67, MaxSkippedF = 4,
+    //            delay         interval  # delay - interval (not so useful)
+    // high:  60f / 1000ms :  400ms / 24f # 600 / 28
+    // low:   15f /  250ms :   33ms /  2f # 200 / 6
+    HighDelayMs = 1000, LowDelayMs = 250, DefaultMinDelayMs = 600,
+    HighIntervalF = 24, LowIntervalF = 2, DefaultMaxIntervalF = HighIntervalF + MaxSkippedF,
   }
   interface Animate {
     (newAmount: number, newDi: ScrollByY, newEl: Element | null): number;
@@ -9,10 +18,8 @@ declare namespace ScrollerNS {
 var VScroller = {
 Core: {
   animate: null as never as ScrollerNS.Animate,
-  // high:  60f / 1000ms :  400ms / 24f # 600 / 28
-  // low:   15f /  250ms :   33ms /  2f # 200 / 6
-  maxInterval: 28,
-  minDelay: 600,
+  maxInterval: ScrollerNS.Consts.DefaultMaxIntervalF,
+  minDelay: ScrollerNS.Consts.DefaultMinDelayMs,
   performScroll (el: Element | null, di: ScrollByY, amount: number): boolean {
     let before: number;
     if (di) {
@@ -163,25 +170,26 @@ Core: {
 
 VScroller.Core.animate = function (this: typeof VScroller.Core, a, d, e) {
   let amount = 0, calibration = 1.0, di: ScrollByY = 0, duration = 0, element: Element | null = null, //
-  sign = 0, timestamp = -1.0, totalDelta = 0.0, totalElapsed = 0.0, //
+  sign = 0, timestamp = ScrollerNS.Consts.invalidTime, totalDelta = 0.0, totalElapsed = 0.0, //
   animate = function(newTimestamp: number): void {
     let int1 = timestamp, elapsed: number, continuous: boolean;
     timestamp = newTimestamp;
-    if (int1 === -1) {
+    if (int1 === ScrollerNS.Consts.invalidTime) {
       requestAnimationFrame(animate);
       return;
     }
     elapsed = newTimestamp - int1;
-    elapsed = elapsed > 0 ? elapsed : 17;
+    elapsed = elapsed > 0 ? elapsed : ScrollerNS.Consts.tickForUnexpectedTime;
     int1 = (totalElapsed += elapsed);
     const _this = VScroller.Core;
     if (continuous = VScroller.keyIsDown > 0) {
-      if (int1 >= 75) {
+      if (int1 >= ScrollerNS.Consts.delayToChangeSpeed) {
         if (int1 > _this.minDelay) { --VScroller.keyIsDown; }
         int1 = calibration;
         if (ScrollerNS.Consts.minCalibration <= int1 && int1 <= ScrollerNS.Consts.maxCalibration) {
           int1 = ScrollerNS.Consts.calibrationBoundary / amount / int1;
-          calibration *= (int1 > 1.05) ? 1.05 : (int1 < 0.95) ? 0.95 : 1.0;
+          calibration *= (int1 > ScrollerNS.Consts.maxS) ? ScrollerNS.Consts.maxS
+            : (int1 < ScrollerNS.Consts.minS) ? ScrollerNS.Consts.minS : 1.0;
         }
       }
     }
@@ -195,14 +203,15 @@ VScroller.Core.animate = function (this: typeof VScroller.Core, a, d, e) {
     VScroller.checkCurrent(element);
     element = null;
   };
-  this.animate = function(this: typeof VScroller.Core, newAmount: number, newDi: ScrollByY, newEl: Element | null): number {
+  this.animate = function(this: typeof VScroller.Core, newAmount, newDi, newEl): number {
     amount = Math.abs(newAmount); calibration = 1.0; di = newDi;
-    duration = Math.max(100, 20 * Math.log(amount)); element = newEl;
+    duration = Math.max(ScrollerNS.Consts.minDuration, ScrollerNS.Consts.durationScaleForAmount * Math.log(amount));
+    element = newEl;
     sign = newAmount < 0 ? -1 : 1;
-    timestamp = -1.0; totalDelta = totalElapsed = 0.0;
+    timestamp = ScrollerNS.Consts.invalidTime; totalDelta = totalElapsed = 0.0;
     const keyboard = VSettings.cache.keyboard;
-    this.maxInterval = Math.round(keyboard[1] / 16.67) + 4;
-    this.minDelay = (((keyboard[0] - keyboard[1]) / 30) | 0) * 30;
+    this.maxInterval = Math.round(keyboard[1] / ScrollerNS.Consts.FrameIntervalMs) + ScrollerNS.Consts.MaxSkippedF;
+    this.minDelay = (((keyboard[0] - keyboard[1]) / ScrollerNS.Consts.DelayUnitMs) | 0) * ScrollerNS.Consts.DelayUnitMs;
     VScroller.keyIsDown = this.maxInterval;
     return requestAnimationFrame(animate);
   };
