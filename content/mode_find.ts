@@ -30,7 +30,7 @@ html > span{float:right;}',
   activate (_0?: number, options?: FgOptions): void {
     if (!VDom.isHTML()) { return; }
     options = Object.setPrototypeOf(options || {}, null);
-    const query: string | undefined = options.query;
+    const query: string | undefined | null = options.query ? (options.query + "") : null;
     this.isActive || query === this.query || VMarks.setPreviousPosition();
     if (query != null) {
       return this.findAndFocus(this.query || query, options);
@@ -145,7 +145,7 @@ html > span{float:right;}',
   },
   onKeydown (event: KeyboardEvent): void {
     const enum Result {
-      Default = 0, DoNothing = Default,
+      DoNothing = 0,
       Exit = 1, ExitToPostMode = 2, ExitAndReFocus = 3,
       MinComplicatedExit = ExitToPostMode,
     }
@@ -156,8 +156,8 @@ html > span{float:right;}',
     if (!i) {
       if (VKeyboard.isEscape(event)) { i = Result.ExitAndReFocus; }
       else if (i = VKeyboard.getKeyStat(event)) {
-        if ((i & ~KeyStat.PrimaryModifier) !== 0 || n < 74 || n > 75) { return; }
-        this.execute(null, { dir: 74 - n } as Dict<any> as FgOptions);
+        if ((i & ~KeyStat.PrimaryModifier) !== 0 || n < VKeyCodes.J || n > VKeyCodes.K) { return; }
+        this.execute(null, { dir: (VKeyCodes.K - n) as BOOL });
         i = Result.DoNothing;
       }
       else if (n === VKeyCodes.f1) { this.box.contentDocument.execCommand("delete"); }
@@ -166,7 +166,7 @@ html > span{float:right;}',
       else { return; }
     }
     VUtils.Prevent(event);
-    if (i === Result.DoNothing) { return; }
+    if (!i) { return; }
     let hasStyle = !this.styleIn.disabled, el = this.deactivate(), el2: Element | null;
     VEventMode.suppress(n);
     if ((i === Result.ExitAndReFocus || !this.hasResults || VVisualMode.mode) && hasStyle) {
@@ -281,8 +281,9 @@ html > span{float:right;}',
     if (re) {
       query = ((document.webkitFullscreenElement || document.documentElement) as HTMLElement).innerText;
       matches = query.match(re);
+      query = "";
     }
-    this.regexMatches = this.isRegex && matches || null;
+    this.regexMatches = this.isRegex ? matches : null;
     this.activeRegexIndex = 0;
     this.matchCount = matches ? matches.length : 0;
   },
@@ -305,13 +306,14 @@ html > span{float:right;}',
     this.activeRegexIndex = count = (this.activeRegexIndex + dir + count) % count;
     return this.regexMatches[count];
   },
-  execute (query?: string | null, options?: FgOptions): void {
-    Object.setPrototypeOf(options || (options = {} as FgOptions), null);
-    let el: Element | null, found: boolean, count = options.count | 0, dir: 1 | -1 = options.dir || 1, q: string;
+  execute (query?: string | null, options?: FindNS.ExecuteOptions): void {
+    Object.setPrototypeOf(options || (options = {}), null);
+    let el: Element | null, found: boolean, count = (options.count as number) | 0, back = (options.dir as number) <= 0
+      , q: string, notSens = this.ignoreCase && !options.caseSensitive;
     options.noColor || this.toggleStyle(1);
     do {
-      q = query != null ? query : this.isRegex ? this.getNextQueryFromRegexMatches(dir) : this.parsedQuery;
-      found = window.find(q, options.caseSensitive || !this.ignoreCase, dir < 0, true, false, true, false);
+      q = query != null ? query : this.isRegex ? this.getNextQueryFromRegexMatches(back ? -1 : 1) : this.parsedQuery;
+      found = window.find(q, !notSens, back, true, false, true, false);
     } while (0 < --count && found);
     options.noColor || setTimeout(this.hookSel.bind(this, "add"), 0);
     (el = VEventMode.lock()) && !VDom.isSelected(document.activeElement as Element) && el.blur && el.blur();

@@ -262,7 +262,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
     enterInsertMode (_0: number, options: FgOptions): void {
       let code = +options.code || VKeyCodes.esc, stat = +options.stat, hud = !options.hideHud;
       stat === KeyStat.plain && code === VKeyCodes.esc && (code = 0);
-      InsertMode.global = { code: code, stat: stat, hud: hud };
+      InsertMode.global = { code, stat, hud };
       if (hud) { return HUD.show(`Insert mode${code ? `: ${code}/${stat}` : ""}`); }
     },
     passNextKey (count: number, options: FgOptions): void {
@@ -342,10 +342,11 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
       step > 0 && history.go(step * (+options.dir || -1));
     },
     goUp (count: number, options: FgOptions): void {
+      const trail = options.trailing_slash;
       return vPort.send({
         handler: "parseUpperUrl",
         url: window.location.href,
-        trailing_slash: options.trailing_slash,
+        trailing_slash: trail != null ? !!trail : null,
         upper: -count
       }, function(result): void {
         if (result.path != null) {
@@ -568,10 +569,10 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
       if (!(keyCode >= VKeyCodes.pageup && keyCode <= VKeyCodes.down)) { return; }
       const ctrl = event.ctrlKey || event.metaKey;
       if (keyCode >= VKeyCodes.left) {
-        VScroller.scrollBy((1 - (keyCode & 1)) as 0 | 1, keyCode < VKeyCodes.left + 2 ? -1 : 1, <0 | 1> +ctrl);
+        VScroller.scrollBy((1 - (keyCode & 1)) as BOOL, keyCode < VKeyCodes.left + 2 ? -1 : 1, <BOOL> +ctrl);
       } else if (ctrl) { return; }
       else if (keyCode > VKeyCodes.pageup + 1) {
-        VScroller.scrollTo(1, 0, (keyCode & 1) as 0 | 1);
+        VScroller.scrollTo(1, 0, (keyCode & 1) as BOOL);
       } else {
         VScroller.scrollBy(1, keyCode === VKeyCodes.pageup ? -0.5 : 0.5, "viewSize");
       }

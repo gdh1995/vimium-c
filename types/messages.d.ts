@@ -102,16 +102,15 @@ interface FgReq {
     query?: undefined;
     index?: undefined;
   };
-  parseSearchUrl: {
-    url: string;
-    upper?: number;
-    trailing_slash?: boolean;
-  };
   parseUpperUrl: {
     url: string;
     upper: number;
-    trailing_slash?: boolean;
+    trailing_slash?: boolean | null;
   };
+  parseSearchUrl: {
+    url: string;
+    upper?: undefined;
+  } | FgReq["parseUpperUrl"];
   searchAs: {
     url: string;
     search?: string;

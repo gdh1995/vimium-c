@@ -40,9 +40,10 @@ var Vomnibar = {
     this.forceNewTab = !!options.force;
     this.isHttps = null;
     let { url, keyword, search } = options, start: number | undefined;
+    keyword = keyword ? keyword + " " : "";
     this.width(options.width * 0.8);
     if (url == null) {
-      return this.reset(keyword ? keyword + " " : "");
+      return this.reset(keyword);
     }
     if (search) {
       start = search.start;
@@ -58,8 +59,8 @@ var Vomnibar = {
       url = VUtils.decodeURL(url, decodeURIComponent).trim().replace(<RegExpG> /\s+/g, " ");
     }
     if (keyword) {
-      start = (start || 0) + keyword.length + 1;
-      return this.reset(keyword + " " + url, start, start + url.length);
+      start = (start || 0) + keyword.length;
+      return this.reset(keyword + url, start, start + url.length);
     } else {
       return this.reset(url);
     }

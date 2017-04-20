@@ -1,7 +1,7 @@
 declare namespace VomnibarNS {
   interface ContentOptions extends GlobalOptions {
     trailing_slash: boolean;
-    url: true | string;
+    url: boolean | string | null;
   }
   interface Port {
     postMessage<K extends keyof CReq> (this: Port, msg: CReq[K]): void | 1;
@@ -15,7 +15,6 @@ declare namespace VomnibarNS {
   type BaseFullOptions = CmdOptions["Vomnibar.activate"] & VomnibarNS.BaseFgOptions & Partial<ContentOptions> & SafeObject;
   interface FullOptions extends BaseFullOptions {
     topUrl?: string;
-    count?: number;
     name: string;
   }
 }
@@ -39,13 +38,10 @@ var Vomnibar = {
       this.width = 0;
     }
     if (!VDom.isHTML()) { return; }
-    if (options.url === true) {
-      if (window.top === window || !options.topUrl) {
-        options.topUrl = window.location.href;
-      }
-      options.count = count;
+    if (options.url === true && (window.top === window || !options.topUrl || typeof options.topUrl !== "string")) {
+      options.topUrl = window.location.href;
     }
-    if (VHints.tryNestedFrame("Vomnibar.activate", 1, options)) { return; }
+    if (VHints.tryNestedFrame("Vomnibar.activate", count, options)) { return; }
     this.options = null;
     this.width = Math.max(window.innerWidth - 24, (document.documentElement as
       HTMLElement).getBoundingClientRect().width);
@@ -73,19 +69,22 @@ var Vomnibar = {
       if (url = VDom.getSelectionText()) {
         options.force = true;
       } else {
-        url = options.topUrl;
+        url = options.topUrl as string;
       }
-      upper = 1 - (options.count as number);
-      options.topUrl = ""; options.count = 1;
+      upper = 1 - count;
+      delete options.topUrl;
       options.url = url;
+    } else if (url != null) {
+      url = options.url = typeof url === "string" ? url : null;
     }
     if (!url || url.indexOf("://") === -1) {
       options.search = "";
       return this.setOptions(options as VomnibarNS.FgOptions as VomnibarNS.FgOptionsToFront);
     }
+    const trail = options.trailing_slash;
     return VPort.send({
       handler: "parseSearchUrl",
-      trailing_slash: options.trailing_slash,
+      trailing_slash: trail != null ? !!trail : null,
       upper, url
     }, function(search): void {
       options.search = search;

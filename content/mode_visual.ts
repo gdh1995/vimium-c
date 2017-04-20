@@ -163,12 +163,12 @@ var VVisualMode = {
     _this.hudTimer = 0;
     if (_this.hud) { return VHUD.show(_this.hud); }
   },
-  find (count: number, direction?: VisualModeNS.ForwardDir): void {
+  find (count: number, dir?: VisualModeNS.ForwardDir): void {
     if (!VFindMode.query) {
       VPort.send({ handler: "findQuery" }, function(query): void {
         if (query) {
           VFindMode.updateQuery(query);
-          return VVisualMode.find(count, direction);
+          return VVisualMode.find(count, dir);
         } else {
           return VVisualMode.prompt("No history queries", 1000);
         }
@@ -176,7 +176,7 @@ var VVisualMode = {
       return;
     }
     const range = this.selection.getRangeAt(0);
-    VFindMode.execute(null, { noColor: true, dir: direction || -1, count: count } as object as FgOptions);
+    VFindMode.execute(null, { noColor: true, dir, count });
     if (VFindMode.hasResults) {
       return this.mode === "caret" && this.selection.toString().length > 0 ? this.activate() : undefined;
     }

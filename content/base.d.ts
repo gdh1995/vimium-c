@@ -70,6 +70,15 @@ declare namespace HintsNS {
   }
 }
 
+declare namespace FindNS {
+  interface ExecuteOptions {
+    count?: number;
+    dir?: BOOL;
+    noColor?: boolean;
+    caseSensitive?: boolean;
+  }
+}
+
 declare namespace VomnibarNS {
   const enum Status {
     KeepBroken = -2,
@@ -99,7 +108,7 @@ declare namespace VomnibarNS {
     search: "" | FgRes["parseSearchUrl"];
   }
   interface FgOptions extends BaseFgOptions, Partial<GlobalOptions> {
-    url?: string;
+    url?: string | null;
     script: string;
   }
   type MessageData = [number, FgOptions | null];
@@ -240,7 +249,7 @@ declare const enum VKeyCodes {
   maxNotPrintable = 32 - 1,
   space, pageup, left = 37, up, right, down, minNotInKeyNames, deleteKey = 46,
   maxNotNum = 48 - 1, N0, N1, N9 = 57, minNotNum = 58,
-  maxNotAlphabet = 65 - 1, A, B, C, D, E, F, minNotAlphabet = 65 + 26, CASE_DELTA = 32,
+  maxNotAlphabet = 65 - 1, A, B, C, D, E, F, G, H, I, J, K, minNotAlphabet = 65 + 26, CASE_DELTA = 32,
   metaKey = 91, menuKey = 93, maxNotFn = 112 - 1, f1, f2, f12 = 123, minNotFn, ime = 229,
 }
 declare const enum KeyStat {

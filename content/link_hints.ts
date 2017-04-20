@@ -956,7 +956,7 @@ COPY_TEXT: {
       VPort.post<"activateVomnibar", { count: number } & Partial<VomnibarNS.ContentOptions>>({
         handler: "activateVomnibar",
         count: 1,
-        force: force === false || force === true ? force : !isUrl,
+        force: force != null ? !!force : !isUrl,
         url: str,
         keyword: (this.options.keyword || "") + ""
       });
