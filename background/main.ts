@@ -546,7 +546,7 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
     ],
     openUrls: function(tabs: [Tab]): void {
       let urls = cOptions.urls, i, tab = tabs[0], repeat = commandCount;
-      if (cOptions.reuse === ReuseType.newBg) { tab.active = false; }
+      if (cOptions.reuse <= ReuseType.newBg) { tab.active = false; }
       do {
         for (i = 0; i < urls.length; i++) {
           openMultiTab(urls[i], 1, tab);
@@ -857,7 +857,7 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
     },
     goTab (this: void, tabs: Tab[]): void {
       if (tabs.length < 2) { return; }
-      let count = (cOptions.dir || 1) * commandCount, len = tabs.length, toSelect: Tab;
+      let count = ((cOptions.dir | 0) || 1) * commandCount, len = tabs.length, toSelect: Tab;
       count = cOptions.absolute
         ? count > 0 ? Math.min(len, count) - 1 : Math.max(0, len + count)
         : commandCount > tabs.length * 2 ? (count > 0 ? -1 : 0)
@@ -921,7 +921,7 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
     },
     openCopiedUrlInNewTab (this: void, tabs: [Tab] | never[]): void {
       Utils.lastUrlType = Urls.Type.Default as Urls.Type;
-      let url = requestHandlers.getCopiedUrl_f(cOptions);
+      const url = requestHandlers.getCopiedUrl_f({ keyword: (cOptions.keyword || "") + "" });
       if (Utils.lastUrlType === Urls.Type.Functional) {
         return funcDict.onEvalUrl(url as Urls.SpecialUrl);
       } else if (!url) {
@@ -942,8 +942,8 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
           return chrome.runtime.lastError || void funcDict.getCurTab(BackgroundCommands.openUrl);
         }
         if (tabs.length > 0) {
-          url = (cOptions.url_f as string | undefined || cOptions.url as string) || "";
-          url = url.replace(cOptions.url_mask, tabs[0].url);
+          url = (<string | undefined>cOptions.url_f || <string>cOptions.url) || "";
+          url = (url + "").replace(cOptions.url_mask + "", tabs[0].url);
         }
       }
       url = cOptions.url_f ? url || cOptions.url_f as string : Utils.convertToUrl(url || cOptions.url || "");
@@ -964,7 +964,7 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
       }
     },
     searchInAnother (this: void, tabs: [Tab]): void {
-      let keyword = cOptions.keyword as string || "";
+      let keyword = (cOptions.keyword || "") + "";
       const query = requestHandlers.parseSearchUrl(tabs[0]);
       if (!query || !keyword) {
         requestHandlers.ShowHUD(keyword ? "No search engine found!"
@@ -1044,8 +1044,9 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
       });
     },
     goToRoot (this: void, tabs: [Tab]): void {
-      const url = tabs[0].url, result = requestHandlers.parseUpperUrl({
-        trailing_slash: cOptions.trailing_slash,
+      const url = tabs[0].url, trail = cOptions.trailing_slash,
+      result = requestHandlers.parseUpperUrl({
+        trailing_slash: trail != null ? !!trail : null,
         url, upper: commandCount - 1
       });
       if (result.path != null) {
@@ -1130,7 +1131,9 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
     goNext (): void {
       let dir: string = (cOptions.dir ? cOptions.dir + "" : "") || "next"
         , patterns: CmdOptions["goNext"]["patterns"] = cOptions.patterns;
-      if (!(patterns instanceof Array)) {
+      if (patterns instanceof Array) {
+        patterns = patterns.join(",").split(",");
+      } else {
         typeof patterns === "string" || (patterns = "");
         patterns = patterns || Settings.get(dir !== "next" ? "previousPatterns" : "nextPatterns", true).trim();
         patterns = patterns.toLowerCase();
@@ -1154,7 +1157,7 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
       const query = cOptions.active ? null : (FindModeHistory as {query: FindModeQuery}).query(cPort.sender.incognito);
       cPort.postMessage({ name: "execute", count: 1, command: "Find.activate", options: {
         count: commandCount,
-        dir: cOptions.dir,
+        dir: cOptions.dir <= 0 ? -1 : 1,
         query
       }});
     },
@@ -1559,14 +1562,14 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
       else if (arr = url.match(Utils.filePathRe)) {
         url = arr[1];
       } else if (port) {
-        url = Utils.convertToUrl(url, request.keyword || null, Urls.WorkType.Default);
+        url = Utils.convertToUrl(url, request.keyword, Urls.WorkType.Default);
         if (url.substring(0, 11).toLowerCase() !== "javascript:") {
           cOptions = Object.setPrototypeOf({ url_f: url }, null);
           commandCount = 1; url = "";
           BackgroundCommands.openUrl();
         }
       } else {
-        url = Utils.convertToUrl(url, request.keyword || null, Urls.WorkType.ActAnyway);
+        url = Utils.convertToUrl(url, request.keyword, Urls.WorkType.ActAnyway);
       }
       return url;
     } as {

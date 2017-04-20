@@ -110,7 +110,7 @@ interface FgReq {
   parseUpperUrl: {
     url: string;
     upper: number;
-    trailing_slash?: boolean | null;
+    trailing_slash: boolean | null;
   };
   parseSearchUrl: {
     url: string;
@@ -158,7 +158,7 @@ interface FgReq {
     query: string;
   } & CompletersNS.Options;
   getCopiedUrl_f: {
-    keyword?: string;
+    keyword: string | null;
   };
   copyToClipboard: {
     data: string;
