@@ -57,12 +57,27 @@ Option.prototype.atomicUpdate = function<T extends keyof AllowedOptions
   this.locked = false;
 };
 
+interface NumberChecker {
+  min: number | null;
+  max: number | null;
+  default: number;
+  check (value: number): number;
+}
+
 class NumberOption<T extends keyof AllowedOptions> extends Option<T> {
 readonly element: HTMLInputElement;
 previous: number;
 wheelTime: number;
+checker: NumberChecker;
 constructor (element: HTMLInputElement, onUpdated: (this: NumberOption<T>) => void) {
   super(element, onUpdated);
+  let s: string, i: number;
+  this.checker = {
+    min: (s = element.min) && !isNaN(i = parseFloat(s)) ? i : null,
+    max: (s = element.max) && !isNaN(i = parseFloat(s)) ? i : null,
+    default: bgSettings.defaults[this.field] as number,
+    check: NumberOption.Check
+  };
   this.element.oninput = this.onUpdated;
   this.element.onfocus = this.addWheelListener.bind(this);
 }
@@ -104,6 +119,11 @@ onWheel (event: WheelEvent): void {
     val = "" + i;
   }
   return this.atomicUpdate(val, oldTime > 0, false);
+}
+static Check (this: NumberChecker, value: number): number {
+  if (isNaN(value)) { value = this.default; }
+  value = this.min != null ? Math.max(this.min, value) : value;
+  return this.max != null ? Math.min(this.max, value) : value;
 }
 }
 
