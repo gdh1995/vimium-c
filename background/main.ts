@@ -1261,8 +1261,8 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
       if (!Utils.protocolRe.test(Utils.removeComposedScheme(url))) {
         return null;
       }
-      if (_i = ((request.upper as number) | 0)) {
-        const obj = requestHandlers.parseUpperUrl({ url: s0, upper: _i, trailing_slash: request.trailing_slash });
+      if (request.upper) {
+        const obj = requestHandlers.parseUpperUrl(request as FgReq["parseUpperUrl"]);
         if (obj.path != null) {
           s0 = obj.url;
         }
@@ -1533,8 +1533,10 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
       return Settings.cache.innerCSS;
     },
     activateVomnibar (this: void, request: FgReq["activateVomnibar"], port: Port): void {
-      if (((request as { count?: number }).count as number) > 0) {
-        commandCount = (request as { count: number }).count;
+      const { count } = request as { count?: number };
+      if (count != null) {
+        delete (request as { count: number }).count;
+        commandCount = Math.max(count | 0, 1);
         cOptions = Object.setPrototypeOf(request, null);
         cOptions.handler = "";
       } else if ((request as { redo?: boolean }).redo !== true) {
@@ -1542,6 +1544,8 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
       } else if (cOptions == null || cOptions.secret !== -1) {
         cOptions = Object.create(null);
         commandCount = 1;
+      } else {
+        delete (request as { redo?: boolean }).redo;
       }
       cPort = port;
       return BackgroundCommands.showVomnibar();
