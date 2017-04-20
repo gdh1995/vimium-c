@@ -1143,11 +1143,10 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
       });
     },
     enterInsertMode (): void {
-      const hideHud = cOptions.hideHud;
-      cPort.postMessage({ name: "execute", count: 1, command: "enterInsertMode",
+      cPort.postMessage<1, "enterInsertMode">({ name: "execute", count: 1, command: "enterInsertMode",
         options: {
           code: cOptions.code | 0, stat: cOptions.stat | 0,
-          hideHud: hideHud != null ? hideHud : Settings.get("hideHud", true)
+          hud: cOptions.hideHud != null ? !cOptions.hideHud : !Settings.get("hideHud", true)
         }
       });
     },

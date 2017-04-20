@@ -87,7 +87,12 @@ interface CmdOptions {
   goNext: {
     dir: string,
     patterns: string | string[]
-  }
+  };
+  enterInsertMode: {
+    code: number;
+    stat: number;
+    hud: boolean;
+  };
 }
 type FgCmdOptions<O extends keyof CmdOptions> = NotReadonly<CmdOptions[O]> & SafeObject;
 

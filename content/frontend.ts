@@ -259,11 +259,11 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
       }
       return HUD.showForDuration(`Now link hints use "${val}"`);
     },
-    enterInsertMode (_0: number, options: FgOptions): void {
-      let code = +options.code || VKeyCodes.esc, stat = +options.stat, hud = !options.hideHud;
+    enterInsertMode (_0: number, options: CmdOptions["enterInsertMode"]): void {
+      let code = options.code || VKeyCodes.esc, stat = options.stat;
       stat === KeyStat.plain && code === VKeyCodes.esc && (code = 0);
-      InsertMode.global = { code, stat, hud };
-      if (hud) { return HUD.show(`Insert mode${code ? `: ${code}/${stat}` : ""}`); }
+      InsertMode.global = { code, stat };
+      if (options.hud) { return HUD.show(`Insert mode${code ? `: ${code}/${stat}` : ""}`); }
     },
     passNextKey (count: number, options: FgOptions): void {
       const keys = Object.create<BOOL>(null);
@@ -473,7 +473,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
 
   const InsertMode = {
     focus: null as never as (event: LockableFocusEvent) => void,
-    global: null as { code: number, stat: number, hud: boolean } | null,
+    global: null as { code: number, stat: number } | null,
     suppressType: null as string | null,
     last: null as HTMLElement | null,
     loading: (document.readyState !== "complete"),
@@ -550,7 +550,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
         (target as HTMLElement).blur();
       }
       if (this.global) {
-        this.global.hud && HUD.hide();
+        HUD.hide();
         this.lock = null; this.global = null;
       }
     },
