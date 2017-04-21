@@ -226,6 +226,7 @@ w|wiki:\\\n  https://www.wikipedia.org/w/index.php?search=$s Wikipedia
   CONST: {
     BaseCSSLength: 0,
     BrowserNewTab: "about:newtab",
+    BrowserNewTab2: "chrome://newtab",
     // note: if changed, ../pages/newtab.js also needs change.
     ChromeInnerNewTab: "chrome-search://local-ntp/local-ntp.html", // should keep lower case
     VimiumNewTab: "pages/newtab.html",
@@ -274,7 +275,7 @@ chrome.runtime.getPlatformInfo(function(info): void {
   function func(path: string): string {
     return (path.charCodeAt(0) === 47 ? origin : prefix) + path;
   }
-  Settings.defaults.newTabUrl = urls && urls.newtab ? obj.ChromeInnerNewTab : "about:newtab";
+  Settings.defaults.newTabUrl = urls && urls.newtab ? obj.ChromeInnerNewTab : obj.BrowserNewTab2;
   obj.CurrentVersion = ref.version;
   obj.CurrentVersionName = ref.version_name || ref.version;
   obj.OptionsPage = func(ref.options_page || obj.OptionsPage);

@@ -415,6 +415,7 @@ interface Window {
       readonly CurrentVersion: string;
       readonly ChromeVersion: number;
       readonly BrowserNewTab: string;
+      readonly BrowserNewTab2: string;
       readonly ChromeInnerNewTab: string;
       readonly VimiumNewTab: string;
       readonly Platform: string;
