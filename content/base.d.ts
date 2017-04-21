@@ -234,9 +234,7 @@ interface VHUD {
   hide (this: void): void;
 }
 interface VSettings {
-  cache: SettingsNS.FrontendSettingCache & {
-    oldLinkHintCharacters?: SettingsNS.FrontendSettings["linkHintCharacters"];
-  };
+  cache: SettingsNS.FrontendSettingCache;
   timer: number;
   checkIfEnabled (this: void): void;
   onDestroy: ((this: void) => any) | null;

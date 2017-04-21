@@ -235,29 +235,27 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
     Vomnibar,
 
     toggleSwitchTemp (_0: number, options: FgOptions): void {
-      const key = options.key as keyof SettingsNS.FrontendSettingCache, values = VSettings.cache;
-      if (typeof values[key] !== "boolean") {
-        return HUD.showForDuration(`'${key}' is not a boolean switch`, 2000);
-      } else if (values[key] = typeof options.value === "boolean"
-          ? options.value : !values[key]) {
-        return HUD.showForDuration(`Now '${key}' is on`, 1000);
-      } else {
-        return HUD.showForDuration(`'${key}' has been turned off`, 1000);
+      const key = (options.key || "") + "" as keyof SettingsNS.FrontendSettingCache,
+      cache = VSettings.cache, old = cache[key], Key = '"' + key + '"', last = "old" + key;
+      let val = options.value, isBool = typeof val === "boolean", msg: string | undefined;
+      if (!(key in cache)) {
+        msg = 'unknown setting' + key;
+      } else if (typeof old === "boolean") {
+        isBool || (val = !old);
+      } else if (isBool) {
+        msg = Key + 'is not a boolean switch';
+      } else if (!(last in cache)) {
+        (cache as Dict<any>)[last] = old;
+      } else if (old === val) {
+        val = (cache as Dict<any>)[last];
+        delete (cache as Dict<any>)[last];
       }
-    },
-    toggleLinkHintCharacters (_0: number, options: FgOptions): void {
-      let values = VSettings.cache, K = "oldLinkHintCharacters" as "oldLinkHintCharacters",
-      val = options.value ? (options.value + "").toLowerCase() : "sadjklewcmpgh";
-      if (values.linkHintCharacters === val) {
-        if (values[K]) {
-          val = values.linkHintCharacters = values[K] as string;
-          values[K] = "";
-        }
-      } else {
-        values[K] = values[K] || values.linkHintCharacters;
-        values.linkHintCharacters = val;
+      if (!msg) {
+        cache[key] = val;
+        msg = val === false ? Key + " has been turned off"
+          : "Now " + Key + (val === true ? " is on" : " use " + JSON.stringify(val));
       }
-      return HUD.showForDuration(`Now link hints use "${val}"`);
+      return VHUD.showForDuration(msg, 1000);
     },
     enterInsertMode (_0: number, options: CmdOptions["enterInsertMode"]): void {
       let code = options.code || VKeyCodes.esc, stat = options.stat;
