@@ -51,6 +51,7 @@ interface Window {
   readonly Promise: PromiseConstructor;
   readonly Array: ArrayConstructor;
   readonly JSON: JSON;
+  readonly Object: ObjectConstructor;
 }
 
 interface Selection {

@@ -284,7 +284,7 @@ exclusions: PopExclusionRulesOption = Object.setPrototypeOf({
   },
   rebuildTesters (this: PopExclusionRulesOption): void {
     const rules = bgSettings.get("exclusionRules")
-      , ref = bgExclusions.testers = Object.create(null)
+      , ref = bgExclusions.testers = BG.Object.create(null)
       , ref2 = bgExclusions.rules;
     for (let _i = 0, _len = rules.length; _i < _len; _i++) {
       ref[rules[_i].pattern] = ref2[_i * 2];
@@ -385,7 +385,9 @@ exclusions: PopExclusionRulesOption = Object.setPrototypeOf({
   exclusions.init(ref ? ref[0].sender.url : tabs[0].url, $("exclusionRules"), onUpdated, updateState);
   $("optionsLink").onclick = function(this: HTMLAnchorElement, event: Event): void {
     event.preventDefault();
-    BG.g_requestHandlers.focusOrLaunch({ url: this.href });
+    const a: MarksNS.FocusOrLaunch = BG.Object.create(null);
+    a.url = bgSettings.CONST.OptionsPage;
+    BG.g_requestHandlers.focusOrLaunch(a);
     window.close();
   };
   interface WindowEx extends Window { exclusions?: PopExclusionRulesOption; }
