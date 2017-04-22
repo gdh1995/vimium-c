@@ -133,6 +133,7 @@ html > count{float:right;}`,
     this.coords && window.scrollTo(this.coords[0], this.coords[1]);
     this.isActive = this._small = false;
     if (unexpectly !== true) {
+      this.box.contentWindow.blur();
       window.focus();
       el = VDom.getSelectionFocusElement();
       el && el.focus && el.focus();
@@ -179,6 +180,7 @@ html > count{float:right;}`,
         }
         else if (n === VKeyCodes.J || n === VKeyCodes.K) {
           this.execute(null, { dir: (VKeyCodes.K - n) as BOOL });
+          this.box.contentWindow.focus();
         }
         else { return; }
         i = Result.DoNothing;
@@ -277,6 +279,7 @@ html > count{float:right;}`,
     this.updateQuery(query);
     this.restoreSelection();
     this.execute(!this.isRegex ? this.parsedQuery : this.regexMatches ? this.regexMatches[0] : "");
+    this.box.contentWindow.focus();
     return this.showCount();
   },
   _small: false,

@@ -624,7 +624,11 @@ Pagination = {
         });
         return;
       }
-      setTimeout(function() { window.focus(); }, 0);
+      setTimeout(function() {
+        const el = InsertMode.lock;
+        el && (el instanceof HTMLIFrameElement || el instanceof HTMLFrameElement) && el.blur();
+        window.focus();
+      }, 0);
       esc();
       VEventMode.suppress(request.lastKey);
       if (request.mask < FrameMaskType.minWillMask || !VDom.isHTML()) { return; }
