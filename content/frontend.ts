@@ -1,7 +1,7 @@
 var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
 
 (function() {
-  interface EscFunc {
+  interface EscF {
     <T extends HandlerResult>(this: void, i: T): T;
     (this: void): void;
   }
@@ -16,13 +16,14 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
     target: HTMLElement;
   }
 
-  const isInjected = window.VimiumInjector ? true : null;
-  var KeydownEvents: KeydownCacheArray, esc: EscFunc, keyMap: KeyMap
+  var KeydownEvents: KeydownCacheArray, keyMap: KeyMap
     , currentKeys = "", isEnabledForUrl = false
     , mapKeys = null as SafeDict<string> | null, nextKeys = null as KeyMap | ReadonlyChildKeyMap | null
+    , esc = function(i?: HandlerResult): HandlerResult | void { currentKeys = ""; nextKeys = null; return i; } as EscF
     , onKeyup2 = null as ((this: void, event: KeyboardEvent) => void) | null, passKeys = null as SafeDict<true> | null;
 
-  const vPort = {
+  const isInjected = window.VimiumInjector ? true : null,
+  vPort = {
     port: null as Port | null,
     _callbacks: Object.create(null) as { [msgId: number]: <K extends keyof FgRes>(this: void, res: FgRes[K]) => void },
     _id: 1,
@@ -67,26 +68,9 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
       port.onDisconnect.addListener(this.ClearPort);
       port.onMessage.addListener(this.Listener);
     }
-  };
-  location.href !== "about:blank" || isInjected ? vPort.connect(PortType.initing) :
-  (window.onload = function() { window.onload = null as never; setTimeout(function() {
-    const a = document.body,
-    exit = !!a && (a.isContentEditable || a.childElementCount === 1 && (a.firstElementChild as HTMLElement).isContentEditable);
-    exit ? VSettings.destroy(true) : vPort.port || vPort.connect(PortType.initing);
-  }, 18); });
-  VPort = { post: vPort.post, send: vPort.send };
+  },
 
-  VSettings = {
-    cache: null as never as VSettings["cache"],
-    destroy: null as never as VSettings["destroy"],
-    timer: setInterval(function() { try { vPort.connect(PortType.initing); } catch(e) { VSettings.destroy(); } }, 2000),
-    checkIfEnabled (this: void): void {
-      return vPort.safePost({ handler: "checkIfEnabled", url: window.location.href });
-    },
-    onDestroy: null
-  };
-
-  const ELs = { //
+  ELs = { //
     onKeydown (event: KeyboardEvent): void {
       if (!isEnabledForUrl || event.isTrusted === false) { return; }
       if (VScroller.keyIsDown) {
@@ -214,19 +198,9 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
       f("blur", this.onBlur, true);
       f.call(document, "DOMActivate", ELs.onActivate, true);
     }
-  };
+  },
 
-  esc = function(i?: HandlerResult): HandlerResult | void { currentKeys = ""; nextKeys = null; return i; } as EscFunc;
-
-  function parsePassKeys(newPassKeys: string): SafeDict<true> {
-    const pass = Object.create<true>(null);
-    for (const ch of newPassKeys.split(' ')) {
-      pass[ch] = true;
-    }
-    return pass;
-  }
-
-  const Commands = {
+  Commands = {
     Find: VFindMode,
     Hints: VHints,
     Marks: VMarks,
@@ -276,7 +250,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
           }
           currentKeys = ""; nextKeys = keyMap;
           return i;
-        } as EscFunc;
+        } as EscF;
         return HUD.show("Normal mode (pass keys disabled)" + (count > 1 ? `: ${count} times` : ""));
       }
       VHandler.push(function(event) {
@@ -447,29 +421,9 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
         return HandlerResult.Prevent;
       }, box);
     }
-  };
+  },
 
-  function checkValidKey(event: KeyboardEvent, key: string): HandlerResult.Nothing | HandlerResult.Prevent {
-    key = VKeyboard.getKey(event, key);
-    mapKeys !== null && (key = mapKeys[key] || key);
-    let j = (nextKeys || keyMap)[key];
-    if (nextKeys === null) {
-      if (j == null || passKeys !== null && key in passKeys) { return HandlerResult.Nothing; }
-    } else if (j == null) {
-      j = keyMap[key];
-      if (j == null) { return esc(HandlerResult.Nothing); }
-      if (j !== 0) { currentKeys = ""; }
-    }
-    if (j === 0) {
-      vPort.post({ handler: "key", key: currentKeys + key });
-      return esc(HandlerResult.Prevent);
-    } else {
-      currentKeys += key; nextKeys = j !== 1 ? j : keyMap;
-      return HandlerResult.Prevent;
-    }
-  }
-
-  const InsertMode = {
+  InsertMode = {
     focus: null as never as (event: LockableFocusEvent) => void,
     global: null as { code: number, stat: number } | null,
     suppressType: null as string | null,
@@ -552,47 +506,10 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
         this.lock = null; this.global = null;
       }
     },
-    onExitSuppress: null as ((this: void) => void) | null,
-  };
+    onExitSuppress: null as ((this: void) => void) | null
+  },
 
-  VEventMode = {
-    lock (this: void): Element | null { return InsertMode.lock; },
-    onWndBlur (this: void, f): void { ELs.OnWndBlur = f; },
-    OnWndFocus (this: void): (this: void) => void { return ELs.OnWndFocus; },
-    mapKey (this: void, key): string { return mapKeys !== null && mapKeys[key] || key; },
-    exitGrab (this: void): void { return InsertMode.ExitGrab("other"); },
-    scroll (this: void, event): void {
-      if (!event || event.shiftKey || event.altKey) { return; }
-      const keyCode = event.keyCode;
-      if (!(keyCode >= VKeyCodes.pageup && keyCode <= VKeyCodes.down)) { return; }
-      const ctrl = event.ctrlKey || event.metaKey;
-      if (keyCode >= VKeyCodes.left) {
-        VScroller.scrollBy((1 - (keyCode & 1)) as BOOL, keyCode < VKeyCodes.left + 2 ? -1 : 1, <BOOL> +ctrl);
-      } else if (ctrl) { return; }
-      else if (keyCode > VKeyCodes.pageup + 1) {
-        VScroller.scrollTo(1, 0, (keyCode & 1) as BOOL);
-      } else {
-        VScroller.scrollBy(1, keyCode === VKeyCodes.pageup ? -0.5 : 0.5, "viewSize");
-      }
-    },
-    setupSuppress (this: void, onExit): void {
-      const mode = InsertMode, f = mode.onExitSuppress;
-      mode.onExitSuppress = mode.suppressType = null;
-      if (onExit) {
-        mode.suppressType = window.getSelection().type;
-        mode.onExitSuppress = onExit;
-      }
-      if (f) { return f(); }
-    },
-    suppress (this: void, key?: number): void { key && (KeydownEvents[key] = 1); },
-    keydownEvents: function (this: void, arr?: KeydownCacheArray): KeydownCacheArray | void {
-      if (!isEnabledForUrl) { throw Error("vimium-disabled"); }
-      if (!arr) { return KeydownEvents; }
-      KeydownEvents = arr;
-    } as VEventMode["keydownEvents"]
-  };
-
-const Pagination = {
+Pagination = {
   followLink (linkElement: Element): boolean {
     if (linkElement instanceof HTMLLinkElement) {
       Commands.reload(linkElement.href);
@@ -829,20 +746,21 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
       passKeys = (newPassKeys && parsePassKeys(newPassKeys)) as SafeDict<true> | null;
       if (VDom.UI.box) { return VDom.UI.toggle(enabled); }
     },
-    checkIfEnabled: VSettings.checkIfEnabled,
+    checkIfEnabled: function (this: void): void {
+      return vPort.safePost({ handler: "checkIfEnabled", url: window.location.href });
+    } as VSettings["checkIfEnabled"],
     settingsUpdate (request): void {
-      let ref = VSettings.cache, i: string;
       type Keys = keyof SettingsNS.FrontendSettings;
       Object.setPrototypeOf(request, null);
       delete request.name;
-      for (i in request) {
-        ref[i as Keys] = request[i as Keys] as SettingsNS.FrontendSettings[Keys];
+      for (let i in request) {
+        VSettings.cache[i as Keys] = request[i as Keys] as SettingsNS.FrontendSettings[Keys];
       }
       if ("userDefinedOuterCss" in request) { return ELs.OnReady(true); }
     },
     insertInnerCSS: VDom.UI.InsertInnerCSS,
     focusFrame: FrameMask.Focus,
-    exitGrab: VEventMode.exitGrab,
+    exitGrab: function (this: void): void { return InsertMode.ExitGrab("other"); } as VEventMode["exitGrab"],
     keyMap (request): void {
       const map = keyMap = request.keyMap, func = Object.setPrototypeOf;
       func(map, null);
@@ -929,10 +847,80 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
   }
   };
 
-  ELs.hook(addEventListener);
+  function parsePassKeys(newPassKeys: string): SafeDict<true> {
+    const pass = Object.create<true>(null);
+    for (const ch of newPassKeys.split(' ')) {
+      pass[ch] = true;
+    }
+    return pass;
+  }
+
+  function checkValidKey(event: KeyboardEvent, key: string): HandlerResult.Nothing | HandlerResult.Prevent {
+    key = VKeyboard.getKey(event, key);
+    mapKeys !== null && (key = mapKeys[key] || key);
+    let j = (nextKeys || keyMap)[key];
+    if (nextKeys === null) {
+      if (j == null || passKeys !== null && key in passKeys) { return HandlerResult.Nothing; }
+    } else if (j == null) {
+      j = keyMap[key];
+      if (j == null) { return esc(HandlerResult.Nothing); }
+      if (j !== 0) { currentKeys = ""; }
+    }
+    if (j === 0) {
+      vPort.post({ handler: "key", key: currentKeys + key });
+      return esc(HandlerResult.Prevent);
+    } else {
+      currentKeys += key; nextKeys = j !== 1 ? j : keyMap;
+      return HandlerResult.Prevent;
+    }
+  }
+
+  VPort = { post: vPort.post, send: vPort.send };
   VHUD = HUD;
 
-  VSettings.destroy = function(silent, keepChrome) {
+  VEventMode = {
+    lock (this: void): Element | null { return InsertMode.lock; },
+    onWndBlur (this: void, f): void { ELs.OnWndBlur = f; },
+    OnWndFocus (this: void): (this: void) => void { return ELs.OnWndFocus; },
+    mapKey (this: void, key): string { return mapKeys !== null && mapKeys[key] || key; },
+    exitGrab: requestHandlers.exitGrab as VEventMode["exitGrab"],
+    scroll (this: void, event): void {
+      if (!event || event.shiftKey || event.altKey) { return; }
+      const keyCode = event.keyCode;
+      if (!(keyCode >= VKeyCodes.pageup && keyCode <= VKeyCodes.down)) { return; }
+      const ctrl = event.ctrlKey || event.metaKey;
+      if (keyCode >= VKeyCodes.left) {
+        VScroller.scrollBy((1 - (keyCode & 1)) as BOOL, keyCode < VKeyCodes.left + 2 ? -1 : 1, <BOOL> +ctrl);
+      } else if (ctrl) { return; }
+      else if (keyCode > VKeyCodes.pageup + 1) {
+        VScroller.scrollTo(1, 0, (keyCode & 1) as BOOL);
+      } else {
+        VScroller.scrollBy(1, keyCode === VKeyCodes.pageup ? -0.5 : 0.5, "viewSize");
+      }
+    },
+    setupSuppress (this: void, onExit): void {
+      const mode = InsertMode, f = mode.onExitSuppress;
+      mode.onExitSuppress = mode.suppressType = null;
+      if (onExit) {
+        mode.suppressType = window.getSelection().type;
+        mode.onExitSuppress = onExit;
+      }
+      if (f) { return f(); }
+    },
+    suppress (this: void, key?: number): void { key && (KeydownEvents[key] = 1); },
+    keydownEvents: function (this: void, arr?: KeydownCacheArray): KeydownCacheArray | void {
+      if (!isEnabledForUrl) { throw Error("vimium-disabled"); }
+      if (!arr) { return KeydownEvents; }
+      KeydownEvents = arr;
+    } as VEventMode["keydownEvents"]
+  };
+
+  VSettings = {
+    cache: null as never as VSettings["cache"],
+    timer: setInterval(function() { try { vPort.connect(PortType.initing); } catch(e) { VSettings.destroy(); } }, 2000),
+    checkIfEnabled: requestHandlers.checkIfEnabled as VSettings["checkIfEnabled"],
+    onDestroy: null,
+  destroy: function(silent, keepChrome): void {
     let f: typeof removeEventListener | typeof VSettings.onDestroy = removeEventListener, el: HTMLElement | null;
     isEnabledForUrl = false;
     clearInterval(VSettings.timer);
@@ -957,5 +945,14 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
 
     if (vPort.port) { try { vPort.port.disconnect(); } catch (e) {} }
     isInjected || location.protocol.startsWith("chrome") || keepChrome || (window.chrome = null as never);
+  }
   };
+
+  location.href !== "about:blank" || isInjected ? vPort.connect(PortType.initing) :
+  (window.onload = function() { window.onload = null as never; setTimeout(function() {
+    const a = document.body,
+    exit = !!a && (a.isContentEditable || a.childElementCount === 1 && (a.firstElementChild as HTMLElement).isContentEditable);
+    exit ? VSettings.destroy(true) : vPort.port || vPort.connect(PortType.initing);
+  }, 18); });
+  return ELs.hook(addEventListener);
 })();
