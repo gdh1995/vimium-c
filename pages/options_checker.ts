@@ -148,7 +148,7 @@ Option.all.vimSync.checker = {
   if (info === "keyMappings") { return ReloadCommands(); }
   Option.all.keyMappings.element.addEventListener("input", ReloadCommands);
   function ReloadCommands(this: HTMLElement | void, event?: Event): void {
-    BG.Utils.require("Commands");
+    BG.Commands || BG.Utils.require("Commands");
     if (!event) { return; }
     (this as HTMLElement).removeEventListener("input", ReloadCommands);
   }

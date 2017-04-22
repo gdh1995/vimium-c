@@ -211,7 +211,7 @@ readValueFromElement (): boolean {
 ExclusionRulesOption.prototype.onRowChange = function(this: ExclusionRulesOption, isAdd: number): void {
   const count = this.list.childElementCount;
   if (count - isAdd !== 0) { return; }
-  BG.Utils.require("Exclusions");
+  BG.Exclusions || BG.Utils.require("Exclusions");
   const el = $("exclusionToolbar"), options = el.querySelectorAll('[data-model]');
   el.style.visibility = count > 0 ? "" : "hidden";
   for (let i = 0, len = options.length; i < len; i++) {

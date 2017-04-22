@@ -252,13 +252,11 @@ sortRules: (el?: HTMLElement) => void;
 ExclusionRulesOption.prototype.reChar = <RegExpOne> /^[\^*]|[^\\][$()*+?\[\]{|}]/;
 ExclusionRulesOption.prototype._escapeRe = <RegExpG> /\\(.)/g;
 
-if (location.pathname.indexOf("/popup.html") !== -1)
-BG.Utils.require("Exclusions").then((function(func, arg1, arg2: (result: [chrome.tabs.Tab] | never[]) => void) {
+location.pathname.indexOf("/popup.html") !== -1 && BG.Utils.require("Exclusions").then((function(callback) {
   return function() {
-    func(arg1, arg2);
+    chrome.tabs.query({currentWindow: true as true, active: true as true}, callback);
   };
-})(chrome.tabs.query, {currentWindow: true as true, active: true as true}, (function(tabs): void {
-  const bgExclusions: ExclusionsNS.ExclusionsCls = BG.Exclusions;
+})((function(tabs: [chrome.tabs.Tab] | never[]): void {
 interface PopExclusionRulesOption extends ExclusionRulesOption {
   url: string;
   init(this: PopExclusionRulesOption, url: string, element: HTMLElement
@@ -271,7 +269,8 @@ interface PopExclusionRulesOption extends ExclusionRulesOption {
   generateDefaultPattern (this: PopExclusionRulesOption): string;
 }
 
-const exclusions: PopExclusionRulesOption = Object.setPrototypeOf({
+const bgExclusions: ExclusionsNS.ExclusionsCls = BG.Exclusions, escapeRe = <RegExpG & RegExpSearchable<0>> /[&<>]/g,
+exclusions: PopExclusionRulesOption = Object.setPrototypeOf({
   url: "",
   init (this: PopExclusionRulesOption, url: string, element: HTMLElement
       , onUpdated: (this: ExclusionRulesOption) => void, onInit: (this: ExclusionRulesOption) => void
@@ -313,6 +312,7 @@ const exclusions: PopExclusionRulesOption = Object.setPrototypeOf({
     } else {
       this.addRule();
     }
+    this.populateElement = null as never;
   },
   OnInput (this: void, event: Event): void {
     const patternElement = event.target as HTMLInputElement;
@@ -338,17 +338,17 @@ const exclusions: PopExclusionRulesOption = Object.setPrototypeOf({
 }, ExclusionRulesOption.prototype);
 
   let saved = true;
-  const escapeRe = <RegExpG & RegExpSearchable<0>> /[&<>]/g, escapeCallback = function(c: string): string {
+  function escapeCallback(c: string): string {
     const n = c.charCodeAt(0);
     return (n === 60) ? "&lt;" : (n === 62) ? "&gt;" : "&amp;";
-  },
-  updateState = function(): void {
+  }
+  function updateState(): void {
     const pass = bgExclusions.getTemp(exclusions.url, exclusions.readValueFromElement(true));
     $("state").innerHTML = "Vimium++ will " + (pass
       ? "exclude: <span class='code'>" + pass.replace(escapeRe, escapeCallback) + "</span>"
       : pass !== null ? "be disabled" : "be enabled");
-  },
-  onUpdated = function(this: void): void {
+  }
+  function onUpdated(this: void): void {
     if (saved) {
       saved = false;
       const btn = $("saveOptions");
@@ -359,8 +359,8 @@ const exclusions: PopExclusionRulesOption = Object.setPrototypeOf({
     if (!exclusions.init) {
       updateState();
     }
-  },
-  saveOptions = function(this: void): void {
+  }
+  function saveOptions(this: void): void {
     const btn = $<HTMLButtonElement>("saveOptions");
     if (btn.disabled) {
       return;
@@ -371,7 +371,7 @@ const exclusions: PopExclusionRulesOption = Object.setPrototypeOf({
     (btn.firstChild as Text).data = "Saved";
     btn.disabled = true;
     saved = true;
-  };
+  }
   $("saveOptions").onclick = saveOptions;
   document.addEventListener("keyup", function(event): void {
     if ((event.ctrlKey || event.metaKey) && event.keyCode === 13) {
@@ -381,9 +381,8 @@ const exclusions: PopExclusionRulesOption = Object.setPrototypeOf({
       setTimeout(window.close, 300);
     }
   });
-  let ref = bgSettings.indexPorts(tabs[0].id);
+  const ref = bgSettings.indexPorts(tabs[0].id);
   exclusions.init(ref ? ref[0].sender.url : tabs[0].url, $("exclusionRules"), onUpdated, updateState);
-  ref = undefined;
   $("optionsLink").onclick = function(this: HTMLAnchorElement, event: Event): void {
     event.preventDefault();
     BG.g_requestHandlers.focusOrLaunch({ url: this.href });
