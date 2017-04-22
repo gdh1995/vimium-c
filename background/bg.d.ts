@@ -386,6 +386,7 @@ interface Window {
   readonly Commands?: any;
   readonly Exclusions?: any;
   readonly HelpDialog?: BaseHelpDialog;
+  readonly NotChrome: boolean;
 
   readonly g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
   readonly Utils: {

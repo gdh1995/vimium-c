@@ -45,6 +45,7 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
     } else if (type === Urls.NewTabType.vimium) {
       args.url = Settings.cache.newTabUrl_f;
     }
+    NotChrome && (delete args.openerTabId);
     return chrome.tabs.create(args, callback);
   }
   function openMultiTab(this: void, rawUrl: string, count: number, parentTab: InfoToCreateMultiTab): void {

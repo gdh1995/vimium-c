@@ -280,6 +280,7 @@ chrome.runtime.getPlatformInfo(function(info): void {
     return (path.charCodeAt(0) === 47 ? origin : path.startsWith(prefix) ? "" : prefix) + path;
   }
   Settings.defaults.vomnibarPage = obj.VomnibarPageInner;
+  NotChrome && (obj.BrowserNewTab2 = obj.BrowserNewTab);
   Settings.defaults.newTabUrl = newtab ? obj.ChromeInnerNewTab : obj.BrowserNewTab;
   ref3[obj.BrowserNewTab] = ref3[obj.BrowserNewTab2] = Urls.NewTabType.browser;
   newtab && (ref3[func(obj.VimiumNewTab = newtab)] = Urls.NewTabType.vimium);

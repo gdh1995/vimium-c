@@ -637,6 +637,7 @@ var Utils = {
   getNull (this: void): null { return null; },
   hasUpperCase (this: void, s: string): boolean { return s.toLowerCase() !== s; }
 };
+const NotChrome = !!(window as any).browser;
 
 if (!String.prototype.startsWith) {
 String.prototype.startsWith = (function(this: string, s: string): boolean {

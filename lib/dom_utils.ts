@@ -208,7 +208,8 @@ var VDom = {
   },
   selType (sel?: Selection): SelectionType {
     sel || (sel = window.getSelection());
-    return sel.type as SelectionType;
+    return sel.type as SelectionType || (sel.rangeCount <= 0 ? "None" : sel.isCollapsed ? "Caret" : "Range");
+;
   },
   isSelected (element: Element): boolean {
     const sel = window.getSelection(), node = sel.anchorNode;
