@@ -129,16 +129,15 @@ var Vomnibar = {
     (<RegExpOne> /a?/).test("");
   },
   reset (input: string, start?: number, end?: number): void {
-    this.inputText = input || (input = "");
+    this.inputText = input;
     this.useInput = false;
     this.mode.query = this.lastQuery = input.trim().replace(this._spacesRe, " ");
     // also clear @timer
-    this.update(0, input && (start as number) <= (end as number) ? function(this: typeof Vomnibar): void {
+    this.update(0, (start as number) <= (end as number) ? function(this: typeof Vomnibar): void {
       this.show();
       this.input.setSelectionRange(start as number, end as number);
     } : this.show);
-    this.isActive && (this.height = -1);
-    this.isActive = true;
+    this.isActive ? (this.height = -1) : (this.isActive = true);
     if (this.init) { return this.init(); }
   },
   update (updateDelay?: number, callback?: () => void): void {
