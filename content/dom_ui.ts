@@ -38,8 +38,9 @@ VDom.UI = {
     return this.addElement(parent);
   },
   adjust (event): void {
-    const ui = VDom.UI, el = ui.root ? document.webkitFullscreenElement : null;
-    (el && !(ui.root as Node).contains(el) ? el : document.documentElement as Element).appendChild(ui.box as Element);
+    const ui = VDom.UI, el = ui.root ? document.webkitFullscreenElement : null,
+    el2 = el && !(ui.root as Node).contains(el) ? el : document.documentElement as HTMLElement;
+    el2 !== (ui.box as HTMLElement).parentElement && el2.appendChild(ui.box as Element);
     (el || event) && (el ? addEventListener : removeEventListener)("webkitfullscreenchange", ui.adjust, true);
   },
   init (showing): void {
