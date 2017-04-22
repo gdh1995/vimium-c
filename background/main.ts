@@ -32,23 +32,35 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
   }
   type BgCmd = BgCmdNoTab | BgCmdActiveTab | BgCmdCurWndTabs;
 
+  function tabsCreate(args: chrome.tabs.CreateProperties, callback?: ((this: void, tab: Tab) => void) | null): 1 {
+    let { url } = args, type: Urls.NewTabType | undefined;
+    if (!url) {
+      delete args.url;
+    } else if (!(type = Settings.newTabs[url])) {}
+    else if (type === Urls.NewTabType.browser) {
+      delete args.url;
+    } else if (type === Urls.NewTabType.vimium) {
+      args.url = Settings.cache.newTabUrl_f;
+    }
+    return chrome.tabs.create(args, callback);
+  }
   function openMultiTab(this: void, rawUrl: string, count: number, parentTab: InfoToCreateMultiTab): void {
     if (!(count >= 1)) return;
     const wndId = parentTab.windowId, option = {
-      url: rawUrl || undefined,
+      url: rawUrl,
       windowId: wndId,
       index: parentTab.index + 1,
       openerTabId: parentTab.id,
       active: parentTab.active
     };
-    chrome.tabs.create(option, option.active ? function(tab) {
+    tabsCreate(option, option.active ? function(tab) {
       tab.windowId !== wndId && funcDict.selectWnd(tab);
     } : null);
     if (count < 2) return;
     option.active = false;
     do {
       ++option.index;
-      chrome.tabs.create(option);
+      tabsCreate(option);
     } while(--count > 1);
   }
 
@@ -239,7 +251,7 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
       return tabs[0] as ActiveTab;
     },
     reopenTab (this: void, tab: Tab): void {
-      chrome.tabs.create({
+      tabsCreate({
         windowId: tab.windowId,
         url: tab.url,
         openerTabId: tab.openerTabId,
@@ -313,7 +325,7 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
           });
         }
       } else if (tabs1.length > 0 && tabs1[0].incognito && Utils.isRefusingIncognito(url)) {
-        return chrome.tabs.create({ url });
+        return tabsCreate({ url });
       }
       return chrome.tabs.update({ url }, funcDict.onRuntimeError);
     },
@@ -359,11 +371,11 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
     createTabs (this: void, rawUrl: string, count: number, active: boolean): void {
       if (!(count >= 1)) return;
       const option: chrome.tabs.CreateProperties = {url: rawUrl, active};
-      chrome.tabs.create(option);
+      tabsCreate(option);
       if (count < 2) return;
       option.active = false;
       do {
-        chrome.tabs.create(option);
+        tabsCreate(option);
       } while(--count > 1);
     },
     openUrlInIncognito (this: string, tab: Tab, wnds: Window[]): void {
@@ -382,7 +394,7 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
           options.openerTabId = tab.id;
           options.active = active;
         }
-        chrome.tabs.create(options);
+        tabsCreate(options);
         return !inCurWnd && active ? funcDict.selectWnd(options) : undefined;
       }
       return funcDict.makeWindow({
@@ -416,7 +428,7 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
         return BackgroundCommands.openUrl([funcDict.selectFrom((wnd as PopWindow).tabs)]);
       }
       if (!wnd) {
-        chrome.tabs.create({url: this});
+        tabsCreate({url: this});
         return chrome.runtime.lastError;
       }
       const tab = funcDict.selectFrom(wnd.tabs);
@@ -456,7 +468,7 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
         if (repeat) { return repeat(newTabId); }
       }));
     }, function(url, tab, callback, wnd) {
-      chrome.tabs.create({
+      tabsCreate({
         active: false,
         windowId: wnd.id,
         url
@@ -520,7 +532,7 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
       if (reuse === ReuseType.current && !tab.incognito) {
         chrome.tabs.update({ url: prefix });
       } else
-      chrome.tabs.create({
+      tabsCreate({
         active: reuse !== ReuseType.newBg,
         index: tab.incognito ? undefined : tab.index + 1,
         windowId: tab.incognito ? undefined : tab.windowId,
@@ -655,7 +667,7 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
     }, function(options, tabs2): void {
       const tab2 = tabs2[0];
       if (options.url) {
-        chrome.tabs.create({url: options.url, index: tab2.index + 1, windowId: tab2.windowId});
+        tabsCreate({url: options.url, index: tab2.index + 1, windowId: tab2.windowId});
         funcDict.selectWnd(tab2);
         chrome.tabs.remove(options.tabId as number);
         return;
@@ -693,7 +705,7 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
       }
       if (url !== null) {
         const tabIds = (curTabs.length > 1) ? curTabs.map(funcDict.getId) : [tab.id];
-        chrome.tabs.create({ index: tabIds.length, url, windowId });
+        tabsCreate({ index: tabIds.length, url, windowId });
         chrome.tabs.remove(tabIds);
       } else {
         chrome.windows.remove(tab.windowId);
@@ -763,7 +775,7 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
         });
         return;
       }
-      chrome.tabs.create({
+      tabsCreate({
         index: tabs[0].index + 1,
         url: this.url,
         windowId: tabs[0].windowId
