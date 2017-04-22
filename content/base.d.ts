@@ -235,7 +235,6 @@ interface VHUD {
 }
 interface VSettings {
   cache: SettingsNS.FrontendSettingCache;
-  timer: number;
   checkIfEnabled (this: void): void;
   onDestroy: ((this: void) => any) | null;
   destroy (this: void, silent?: boolean, keepChrome?: boolean): void;

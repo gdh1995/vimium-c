@@ -60,6 +60,9 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
     },
     ClearPort (this: void): void {
       vPort.port = null;
+      requestHandlers.init && setTimeout(function(): void {
+        try { VPort && vPort.connect(PortType.initing); } catch(e) { VSettings.destroy(); }
+      }, 2000);
     },
     connect (isFirst: PortType.nothing | PortType.initing): void {
       const data = { name: "vimium++." + (PortType.isTop * +(window.top === window) + PortType.hasFocus * +document.hasFocus() + isFirst) };
@@ -727,7 +730,6 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
       const r = requestHandlers;
       VSettings.cache = request.load;
       request.load.onMac && (VKeyboard.correctionMap = Object.create<string>(null));
-      clearInterval(VSettings.timer);
       r.keyMap(request);
       r.reset(request);
       InsertMode.loading = false;
@@ -917,13 +919,11 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
 
   VSettings = {
     cache: null as never as VSettings["cache"],
-    timer: setInterval(function() { try { vPort.connect(PortType.initing); } catch(e) { VSettings.destroy(); } }, 2000),
     checkIfEnabled: requestHandlers.checkIfEnabled as VSettings["checkIfEnabled"],
     onDestroy: null,
   destroy: function(silent, keepChrome): void {
     let f: typeof removeEventListener | typeof VSettings.onDestroy = removeEventListener, el: HTMLElement | null;
     isEnabledForUrl = false;
-    clearInterval(VSettings.timer);
 
     ELs.hook(f);
     f("mousedown", InsertMode.ExitGrab, true);
@@ -948,11 +948,12 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
   }
   };
 
+  // here we call it before vPort.connect, so that the code works well even if runtime.connect is sync
+  ELs.hook(addEventListener);
   location.href !== "about:blank" || isInjected ? vPort.connect(PortType.initing) :
-  (window.onload = function() { window.onload = null as never; setTimeout(function() {
+  (window.onload = function() { window.onload = null as never; setTimeout(function(): void {
     const a = document.body,
     exit = !!a && (a.isContentEditable || a.childElementCount === 1 && (a.firstElementChild as HTMLElement).isContentEditable);
     exit ? VSettings.destroy(true) : vPort.port || vPort.connect(PortType.initing);
   }, 18); });
-  return ELs.hook(addEventListener);
 })();
