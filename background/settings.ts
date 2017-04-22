@@ -6,6 +6,7 @@ const Settings = {
     shownHash: null as null | ((this: void) => string)
   },
   bufferToLoad: Object.create(null) as SettingsNS.FrontendSettingCache & SafeObject,
+  newTabs: Object.create(null) as SafeDict<Urls.NewTabType>,
   extWhiteList: null as SafeDict<true> | null,
   Init: null as ((this: void) => void) | null,
   IconBuffer: null as IconNS.AccessIconBuffer | null,
@@ -229,7 +230,7 @@ w|wiki:\\\n  https://www.wikipedia.org/w/index.php?search=$s Wikipedia
     BrowserNewTab2: "chrome://newtab",
     // note: if changed, ../pages/newtab.js also needs change.
     ChromeInnerNewTab: "chrome-search://local-ntp/local-ntp.html", // should keep lower case
-    VimiumNewTab: "pages/newtab.html",
+    VimiumNewTab: "",
     ChromeVersion: BrowserVer.MinSupported,
     ContentScripts: null as never as string[],
     CurrentVersion: "", CurrentVersionName: "",
@@ -270,12 +271,16 @@ chrome.runtime.getPlatformInfo(function(info): void {
 });
 
 (function() {
-  const ref = chrome.runtime.getManifest(), origin = location.origin, prefix = origin + "/", obj = Settings.CONST,
-  urls = ref.chrome_url_overrides, ref2 = ref.content_scripts[0].js;
+  const ref = chrome.runtime.getManifest(), { origin } = location, prefix = origin + "/",
+  urls = ref.chrome_url_overrides, ref2 = ref.content_scripts[0].js,
+  { CONST: obj } = Settings, ref3 = Settings.newTabs as SafeDict<Urls.NewTabType>;
+  let newtab = urls && urls.newtab;
   function func(path: string): string {
     return (path.charCodeAt(0) === 47 ? origin : prefix) + path;
   }
-  Settings.defaults.newTabUrl = urls && urls.newtab ? obj.ChromeInnerNewTab : obj.BrowserNewTab2;
+  Settings.defaults.newTabUrl = newtab ? obj.ChromeInnerNewTab : obj.BrowserNewTab;
+  ref3[obj.BrowserNewTab] = ref3[obj.BrowserNewTab2] = Urls.NewTabType.browser;
+  newtab && (ref3[func(obj.VimiumNewTab = newtab)] = Urls.NewTabType.vimium);
   obj.CurrentVersion = ref.version;
   obj.CurrentVersionName = ref.version_name || ref.version;
   obj.OptionsPage = func(ref.options_page || obj.OptionsPage);

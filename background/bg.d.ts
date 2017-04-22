@@ -99,6 +99,10 @@ declare namespace Urls {
     (query: string[], keyword?: string | null, vimiumUrlWork?: WorkEnsureString): string;
     (query: string[], keyword?: string | null, vimiumUrlWork?: WorkType): Url;
   }
+
+  const enum NewTabType {
+    browser = 1, vimium = 2,
+  }
 }
 
 declare namespace Frames {
@@ -399,6 +403,7 @@ interface Window {
     readonly temp: {
       readonly shownHash: ((this: void) => string) | null;
     };
+    readonly newTabs: SafeDict<Urls.NewTabType>,
     broadcast<K extends keyof BgReq> (request: Req.bg<K>): void;
     readonly bufferToLoad: SettingsNS.FrontendSettingCache & SafeObject;
     get<K extends keyof SettingsNS.SettingsWithDefaults> (key: K, forCache?: boolean

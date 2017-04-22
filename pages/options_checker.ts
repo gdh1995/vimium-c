@@ -74,38 +74,13 @@ let _a = {
 Option.all.keyMappings.checker = _a;
 _a = null as never;
 
-Option.all.newTabUrl.checker = {
-  overriddenNewTab: "",
-  customNewTab: "",
-  init (): void {
-    const manifest = chrome.runtime.getManifest();
-    let url = manifest.chrome_url_overrides && manifest.chrome_url_overrides.newtab || "";
-    if (url) {
-      this.overriddenNewTab = chrome.runtime.getURL(url);
-    }
-    if (url = bgSettings.CONST.VimiumNewTab) {
-      this.customNewTab = chrome.runtime.getURL(url);
-    }
-    this.init = null as never;
-  },
+bgSettings.CONST.VimiumNewTab && (Option.all.newTabUrl.checker = {
   check (value: string): string {
     const url = (<RegExpI>/^\/?pages\/[a-z]+.html\b/i).test(value)
         ? chrome.runtime.getURL(value) : BG.Utils.convertToUrl(value.toLowerCase());
-    if (url.lastIndexOf("http", 0) === 0) { return value; }
-    this.init && this.init();
-    if (!this.overriddenNewTab) {
-      return value;
-    }
-    if (url === this.overriddenNewTab || url === bgSettings.CONST.BrowserNewTab ||
-        url === this.customNewTab || url === bgSettings.CONST.BrowserNewTab2) {
-      return bgSettings.CONST.ChromeInnerNewTab;
-    }
-    return value;
+    return url.lastIndexOf("http", 0) < 0 && (url in bgSettings.newTabs) ? bgSettings.CONST.ChromeInnerNewTab : value;
   }
-} as Checker<"newTabUrl"> & {
-  overriddenNewTab: string;
-  customNewTab: string;
-};
+});
 
 Option.all.searchUrl.checker = {
   check (str: string): string {
