@@ -32,14 +32,10 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
   }
   type BgCmd = BgCmdNoTab | BgCmdActiveTab | BgCmdCurWndTabs;
 
-  const framesForTab: Frames.FramesMap = Object.create<Frames.Frames>(null),
-  NoFrameId = Settings.CONST.ChromeVersion < BrowserVer.MinWithFrameId,
-  // in fact, `rawUrl` accept `string | undefined`
-  openMultiTab = function(this: void, rawUrl: string, count: number
-      , parentTab: InfoToCreateMultiTab): void {
+  function openMultiTab(this: void, rawUrl: string, count: number, parentTab: InfoToCreateMultiTab): void {
     if (!(count >= 1)) return;
     const wndId = parentTab.windowId, option = {
-      url: rawUrl,
+      url: rawUrl || undefined,
       windowId: wndId,
       index: parentTab.index + 1,
       openerTabId: parentTab.id,
@@ -54,7 +50,10 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
       ++option.index;
       chrome.tabs.create(option);
     } while(--count > 1);
-  },
+  }
+
+  const framesForTab: Frames.FramesMap = Object.create<Frames.Frames>(null),
+  NoFrameId = Settings.CONST.ChromeVersion < BrowserVer.MinWithFrameId,
   ContentSettings = {
     makeKey (this: void, contentType: CSTypes, url?: string): string {
       return "vimiumContent|" + contentType + (url ? "|" + url : "");
@@ -397,7 +396,7 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
         BackgroundCommands.openUrl(tabs as [Tab] | undefined);
         return chrome.runtime.lastError;
       }
-      let tab: (Partial<Tab> & InfoToCreateMultiTab) | null = null, url: string | undefined = this;
+      let tab: (Partial<Tab> & InfoToCreateMultiTab) | null = null, url = this;
       if (!tabs) {}
       else if ((tabs as Tab[]).length > 0) { tab = (tabs as Tab[])[0]; }
       else if ("id" in tabs) { tab = tabs as Tab; }
@@ -409,9 +408,9 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
         funcDict.createTabs(url, commandCount, true);
         return chrome.runtime.lastError;
       }
-      if (tab.incognito && onlyNormal) { url = undefined; }
+      if (tab.incognito && onlyNormal) { url = ""; }
       tab.id = undefined;
-      return openMultiTab(url as string, commandCount, tab);
+      return openMultiTab(url, commandCount, tab);
     }, function(wnd): void {
       if (cOptions.url || cOptions.urls) {
         return BackgroundCommands.openUrl([funcDict.selectFrom((wnd as PopWindow).tabs)]);
@@ -1799,8 +1798,7 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
     return executeCommand(command, Utils.makeCommand(command, options), count, null as never as Port);
   };
 
-  chrome.runtime.onMessageExternal && (
-  chrome.runtime.onMessageExternal.addListener(function(this: void, message: any, sender, sendResponse): void {
+  chrome.runtime.onMessageExternal && (chrome.runtime.onMessageExternal.addListener(function(this: void, message, sender, sendResponse): void {
     let command: string | undefined;
     if (!((sender.id as string) in (Settings.extWhiteList as SafeDict<true>))) {
       sendResponse(false);
@@ -1825,8 +1823,7 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
     }
   }), Settings.postUpdate("extWhiteList"));
 
-  chrome.tabs.onReplaced &&
-  chrome.tabs.onReplaced.addListener(function(addedTabId, removedTabId) {
+  chrome.tabs.onReplaced && chrome.tabs.onReplaced.addListener(function(addedTabId, removedTabId) {
     const ref = framesForTab, frames = ref[removedTabId];
     if (!frames) { return; }
     delete ref[removedTabId];
