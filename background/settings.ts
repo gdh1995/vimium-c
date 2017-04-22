@@ -106,7 +106,7 @@ const Settings = {
       return (this as typeof Settings).postUpdate("newTabUrl");
     },
     baseCSS (css): void {
-      this.CONST.BaseCSSLength = css.length;
+      (this as typeof Settings).CONST.BaseCSSLength = css.length;
       css += this.get("userDefinedCss");
       this.cache.baseCSS = "";
       return this.set("innerCSS", css);
@@ -117,7 +117,7 @@ const Settings = {
       Settings.Sync = { set () {} };
     },
     userDefinedCss (css): void {
-      css = this.cache.innerCSS.substring(0, this.CONST.BaseCSSLength) + css;
+      css = this.cache.innerCSS.substring(0, (this as typeof Settings).CONST.BaseCSSLength) + css;
       this.set("innerCSS", css);
       return this.broadcast({
         name: "insertInnerCSS",
@@ -263,8 +263,8 @@ w|wiki:\\\n  https://www.wikipedia.org/w/index.php?search=$s Wikipedia
   }
 };
 
-Settings.defaults.vomnibarPage = Settings.CONST.VomnibarPageInner;
 Settings.CONST.ChromeVersion = 0 | (navigator.appVersion.match(/\bChrom(?:e|ium)\/(\d+)/) || [0, BrowserVer.AssumesVer])[1] as number;
+Settings.bufferToLoad.onMac = false;
 chrome.runtime.getPlatformInfo(function(info): void {
   Settings.CONST.Platform = info.os;
   Settings.bufferToLoad.onMac = info.os === (chrome.runtime.PlatformOs ? chrome.runtime.PlatformOs.MAC : "mac");
@@ -278,6 +278,7 @@ chrome.runtime.getPlatformInfo(function(info): void {
   function func(path: string): string {
     return (path.charCodeAt(0) === 47 ? origin : prefix) + path;
   }
+  Settings.defaults.vomnibarPage = obj.VomnibarPageInner;
   Settings.defaults.newTabUrl = newtab ? obj.ChromeInnerNewTab : obj.BrowserNewTab;
   ref3[obj.BrowserNewTab] = ref3[obj.BrowserNewTab2] = Urls.NewTabType.browser;
   newtab && (ref3[func(obj.VimiumNewTab = newtab)] = Urls.NewTabType.vimium);
