@@ -16,15 +16,16 @@ switch (cwd) {
 case "all": case "local":
   var child_process = require('child_process');
   var cmd = argv[0];
-  var tasks = ["content", "background", "pages", "front"];
+  var tasks = ["", "pages", "front"];
   argv = argv.slice(1);
   argv.push("");
   var options = {
     stdio: ["ignore", process.stdout, process.stderr]
   };
   for (var i = 0; i < tasks.length; i++) {
+    var name = tasks[i];
     argv[argv.length - 1] = tasks[i];
-    child_process.spawn(cmd, argv, options);
+    child_process.spawn(cmd, argv.slice(0, name ? undefined : argv.length - 1), options);
   }
   break;
 default:

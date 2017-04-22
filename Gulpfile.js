@@ -127,16 +127,16 @@ var Tasks = {
   "background": ["locally", makeCompileTask("background/*.ts")],
   "content": ["locally", makeCompileTask(["content/*.ts", "lib/*.ts", "!lib/polyfill.ts"])],
   "lib": ["locally", makeCompileTask("lib/*.ts")],
-  "front": ["locally", makeCompileTask("front/*.ts")],
+  "others": ["front"],
   "scripts": ["background", "content"],
-  "others": ["locally", function() {
+  "front": ["locally", function() {
     return compile(["front/*.ts", "lib/polyfill.ts"
         , "pages/*.ts", "!pages/options*.ts", "!pages/show.ts"]);
   }],
   "pages": ["locally", function() {
     return compile(["pages/options*.ts", "pages/show.ts"]);
   }],
-  local: ["scripts", "others", "pages"],
+  local: ["scripts", "front", "pages"],
   tsc: ["local"],
   default: ["tsc"],
   test: ["local"]

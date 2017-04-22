@@ -2,8 +2,11 @@
   "extends": "../tsconfig",
   "include": [
     "*.ts",
+    "../pages/*.ts",
     "../lib/polyfill.ts"
   ],
   "exclude": [
+    "../pages/options*.ts",
+    "../pages/show.ts"
   ]
 }
