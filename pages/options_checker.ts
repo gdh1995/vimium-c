@@ -94,7 +94,7 @@ Option.all.newTabUrl.checker = {
     if (url.lastIndexOf("http", 0) === 0) { return value; }
     this.init && this.init();
     if (!this.overriddenNewTab) {
-      return url === this.customNewTab ? bgSettings.CONST.BrowserNewTab : value;
+      return value;
     }
     if (url === this.overriddenNewTab || url === bgSettings.CONST.BrowserNewTab ||
         url === this.customNewTab || url === bgSettings.CONST.BrowserNewTab2) {
