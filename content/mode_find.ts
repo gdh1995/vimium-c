@@ -22,11 +22,11 @@ var VFindMode = {
   A0Re: <RegExpG> /\xa0/g,
   cssSel: "::selection{background:#ff9632;}",
   cssOut: "body{-webkit-user-select:auto !important;user-select:auto !important}\n",
-  cssIFrame: '*{font:12px/14px "Helvetica Neue",Helvetica,Arial,sans-serif !important;\
-height:14px;margin:0;overflow:hidden;vertical-align:top;white-space:nowrap;cursor:default;}\
-body{cursor:text;display:inline-block;padding:0 3px 0 1px;max-width:215px;min-width:7px;}\
-body *{cursor:text;display:inline;}body br{display:none;}\
-html > span{float:right;}',
+  cssIFrame: `*{font:12px/14px "Helvetica Neue",Helvetica,Arial,sans-serif !important;
+height:14px;margin:0;overflow:hidden;vertical-align:top;white-space:nowrap;cursor:default;}
+body{cursor:text;display:inline-block;padding:0 3px 0 1px;max-width:215px;min-width:7px;}
+body *{all:inherit !important;display:inline !important;}body br{display:none !important;}
+html > count{float:right;}`,
   activate (_0?: number, options?: FgOptions): void {
     if (!VDom.isHTML()) { return; }
     options = Object.setPrototypeOf(options || {}, null);
@@ -82,7 +82,7 @@ html > span{float:right;}',
       el.contentEditable = "true";
     }
     el.oninput = this.onInput.bind(this);
-    el = this.countEl = doc.createElement("span");
+    el = this.countEl = doc.createElement("count");
     el.appendChild(doc.createTextNode(""));
     setTimeout(function(): void { docEl.appendChild(el); }, 0);
     this.isActive = true;
