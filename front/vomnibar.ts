@@ -570,8 +570,8 @@ var Vomnibar = {
   parse (item: SuggestionE): void {
     let str: string;
     if ((this as typeof Vomnibar).showFavIcon && (str = item.url) && !str.startsWith("vimium://")) {
-      item.favIconUrl = ' icon" style="background-image: url(&quot;chrome://favicon/size/16/' +
-        (str.length > 512 || str.startsWith("data:") ? "about:blank" : VUtils.escapeCSSStringInAttr(str)) + "&quot;)";
+      item.favIconUrl = '">\n\t\t\t<img src="chrome://favicon/size/16/' +
+        (str.length > 512 || str.startsWith("data:") ? "about:blank" : VUtils.escapeHTML(str));
     } else {
       item.favIconUrl = "";
     }
@@ -629,16 +629,16 @@ VUtils = {
     return url.substring((url.startsWith("http://")) ? 7 : (url.startsWith("https://")) ? 8 : 0,
       url.length - +(url.charCodeAt(url.length - 1) === 47 && !url.endsWith("://")));
   },
-  escapeCSSStringInAttr (s: string): string {
+  escapeHTML (s: string): string {
     const escapeRe = <RegExpG & RegExpSearchable<0>> /["&'<>]/g;
     function escapeCallback(c: string): string {
       const i = c.charCodeAt(0);
-      return i === 38 ? "&amp;" : i === 39 ? "&apos;" : i < 39 ? "\\&quot;" : i === 60 ? "&lt;" : "&gt;";
+      return i === 38 ? "&amp;" : i === 39 ? "&apos;" : i < 39 ? "&quot;" : i === 60 ? "&lt;" : "&gt;";
     }
-    this.escapeCSSStringInAttr = function(s): string {
+    this.escapeHTML = function(s): string {
       return s.replace(escapeRe, escapeCallback);
     };
-    return this.escapeCSSStringInAttr(s);
+    return this.escapeHTML(s);
   }
 },
 VPort = {
