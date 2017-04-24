@@ -80,6 +80,11 @@ html > count{float:right;}`,
       el.contentEditable = "plaintext-only";
     } catch (e) {
       el.contentEditable = "true";
+      el.onpaste = function (this: HTMLElement, event: ClipboardEvent): void {
+        const text = event.clipboardData.getData("text/plain");
+        event.preventDefault();
+        (event.target as HTMLElement).ownerDocument.execCommand("insertText", false, text);
+      };
     }
     el.oninput = this.onInput.bind(this);
     el = this.countEl = doc.createElement("count");
