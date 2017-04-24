@@ -70,6 +70,7 @@ which breaks `Vomnibar`. Then `Vomnibar` would only work well on Vimium++ Option
 Not released yet:
 * **WARNING**: the global shortcut for "Go one tab right" needs to be re-installed
 * fix bugs about the option `Preferred Vomnibar Page`
+* `FindMode` supports `Shift+Enter` to input a line break and search it
 
 1.59.1:
 * **add an option "Vomnibar Page" to show user's preferred Vomnibar page**
