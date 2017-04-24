@@ -153,11 +153,12 @@ html > count{float:right;}`,
       DoNothing = 0,
       Exit = 1, ExitToPostMode = 2, ExitAndReFocus = 3,
       MinComplicatedExit = ExitToPostMode,
+      PassDirectly = -1,
     }
     const n = event.keyCode;
     let i = event.altKey ? Result.DoNothing : n === VKeyCodes.enter ? (this.saveQuery(), Result.ExitToPostMode)
-      : (n === VKeyCodes.backspace || n === VKeyCodes.deleteKey) ? this.query.length ? Result.DoNothing : Result.Exit
-      : Result.DoNothing;
+      : (n !== VKeyCodes.backspace && n !== VKeyCodes.deleteKey) ? Result.DoNothing
+      : this.query || (n === VKeyCodes.deleteKey && !VSettings.cache.onMac) ? Result.PassDirectly : Result.Exit;
     if (!i) {
       if (VKeyboard.isEscape(event)) { i = Result.ExitAndReFocus; }
       else if (i = VKeyboard.getKeyStat(event)) {
@@ -169,6 +170,8 @@ html > count{float:right;}`,
       else if (n === VKeyCodes.f2) { window.focus(); VEventMode.suppress(n); }
       else if (n === VKeyCodes.up || n === VKeyCodes.down) { this.nextQuery(n === VKeyCodes.up ? 1 : -1); }
       else { return; }
+    } else if (i === Result.PassDirectly) {
+      return;
     }
     VUtils.Prevent(event);
     if (!i) { return; }
