@@ -1172,7 +1172,7 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
         query
       }});
     },
-    showVomnibar (this: void): void {
+    showVomnibar (this: void, forceInner?: boolean): void {
       let port = cPort as Port | null;
       if (!port) {
         port = Settings.indexFrame(TabRecency.last(), 0);
@@ -1181,7 +1181,7 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
         port = Settings.indexFrame(port.sender.tabId, 0) || port;
       }
       const page = Settings.cache.vomnibarPage_f, { url } = port.sender,
-      usable = (page.startsWith("chrome") || !url.startsWith("chrome")) && !url.startsWith(location.origin),
+      usable = !forceInner && (page.startsWith("chrome") || !url.startsWith("chrome")) && !url.startsWith(location.origin),
       options = Utils.extendIf(Object.setPrototypeOf({
         vomnibar: usable ? page : Settings.CONST.VomnibarPageInner,
         script: Settings.CONST.VomnibarScript_f,
@@ -1545,23 +1545,23 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
     initInnerCSS (this: void): FgRes["initInnerCSS"] {
       return Settings.cache.innerCSS;
     },
-    activateVomnibar (this: void, request: FgReq["activateVomnibar"], port: Port): void {
-      const { count } = request as { count?: number };
+    activateVomnibar (this: void, request: FgReq["activateVomnibar"] & Req.baseFg<string>, port: Port): void {
+      const { count, inner } = request;
       if (count != null) {
-        delete (request as { count: number }).count;
+        delete request.count, delete request.handler, delete request.inner;
         commandCount = Math.max(count | 0, 1);
         cOptions = Object.setPrototypeOf(request, null);
-        cOptions.handler = "";
-      } else if ((request as { redo?: boolean }).redo !== true) {
+      } else if (request.redo !== true) {
         return;
       } else if (cOptions == null || cOptions.secret !== -1) {
+        if (inner) { return; }
         cOptions = Object.create(null);
         commandCount = 1;
-      } else {
-        delete (request as { redo?: boolean }).redo;
+      } else if (inner && (cOptions as any as CmdOptions["Vomnibar.activate"]).script === Settings.CONST.VomnibarPageInner) {
+        return;
       }
       cPort = port;
-      return BackgroundCommands.showVomnibar();
+      return BackgroundCommands.showVomnibar(inner);
     },
     omni (this: void, request: FgReq["omni"], port: Port): void {
       if (funcDict.checkVomnibarPage(port)) { return; }

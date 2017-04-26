@@ -149,10 +149,14 @@ interface FgReq {
     title?: string;
   };
   initInnerCSS: Req.baseFg<"initInnerCSS">;
-  activateVomnibar: {
+  activateVomnibar: ({
     count: number;
+    redo?: undefined;
   } | {
+    count?: never;
     redo: boolean;
+  }) & {
+    inner?: boolean;
   };
   omni: {
     query: string;
