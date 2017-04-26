@@ -953,7 +953,7 @@ COPY_TEXT: {
     }
     if (this.mode >= HintMode.min_edit && this.mode <= HintMode.max_edit) {
       const force = this.options.force;
-      VPort.post<"activateVomnibar", { count: number } & Partial<VomnibarNS.ContentOptions>>({
+      VPort.post<"activateVomnibar", 1, { count: number } & Partial<VomnibarNS.ContentOptions>>({
         handler: "activateVomnibar",
         count: 1,
         force: force != null ? !!force : !isUrl,
