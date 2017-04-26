@@ -29,6 +29,9 @@ var Vomnibar = {
   defaultTop: "",
   sameOrigin: false,
   activate (count: number, options: VomnibarNS.FullOptions): void {
+    if (this.status === VomnibarNS.Status.KeepBroken) {
+      return VHUD.showForDuration("Sorry, Vomnibar page seems to fail to load.", 2000);
+    }
     if (!options || !options.secret || !options.vomnibar) { return; }
     if (document.readyState === "loading") {
       if (!this.width) {
@@ -49,8 +52,8 @@ var Vomnibar = {
     this.status > VomnibarNS.Status.Inactive || VHandler.push(VDom.UI.SuppressMost, this);
     this.box && VDom.UI.adjust();
     if (this.status === VomnibarNS.Status.NotInited) {
-      this.init(options.secret, options.vomnibar);
       this.status = VomnibarNS.Status.Initing;
+      this.init(options.secret, options.vomnibar);
     } else if (this.checkAlive()) {
       return;
     } else if (this.status === VomnibarNS.Status.Inactive) {
@@ -58,9 +61,6 @@ var Vomnibar = {
     } else if (this.status > VomnibarNS.Status.ToShow) {
       this.box.contentWindow.focus();
       this.onShown();
-    } else if (this.status === VomnibarNS.Status.KeepBroken) {
-      VHandler.remove(this);
-      return VHUD.showForDuration("Sorry, Vomnibar page seems to fail to load.", 2000);
     }
     options.secret = 0; options.vomnibar = "";
     options.width = this.width, options.name = "activate";
@@ -120,14 +120,14 @@ var Vomnibar = {
       this.onload = null as never;
       _this.options = null;
       page = page.substring(0, page.indexOf("/", i + 3));
-      setTimeout(function() {
+      setTimeout(function(): void {
         const a = Vomnibar;
-        if (!a || a.status >= VomnibarNS.Status.ToShow || a.status < VomnibarNS.Status.Initing) { return; }
-        VHandler.remove(a);
+        if (!a || a.status !== VomnibarNS.Status.Initing) { return; }
+        a.reset();
         (VDom.UI.box as HTMLElement).style.display = "";
         window.focus();
         a.status = VomnibarNS.Status.KeepBroken;
-        a.activate(1, { secret: 1, vomnibar: "v"} as VomnibarNS.FullOptions);
+        return (a as any).activate();
       }, 1000);
       if (location.origin !== page || !page.startsWith("chrome")) {
         const channel = new MessageChannel();
