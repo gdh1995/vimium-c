@@ -290,7 +290,7 @@ html > count{float:right;}`,
     let matches: RegExpMatchArray | null = null;
     if (re) {
       query = ((document.webkitFullscreenElement || document.documentElement) as HTMLElement).innerText;
-      matches = query.match(re);
+      matches = query.match(re) || query.replace(this.A0Re, " ").match(re);
       query = "";
     }
     this.regexMatches = this.isRegex ? matches : null;
