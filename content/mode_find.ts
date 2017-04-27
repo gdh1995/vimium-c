@@ -58,6 +58,7 @@ html > count{float:right;}`,
     el.style.width = "0px";
     if (zoom !== 1) { el.style.zoom = "" + 1 / zoom; }
     el.onload = function(this: HTMLIFrameElement): void { return VFindMode.onLoad(this); };
+    VHandler.push(VDom.UI.SuppressMost, this);
     VDom.UI.addElement(el, {adjust: true, before: VHUD.box});
   },
   onLoad (box: HTMLIFrameElement): void {
@@ -67,7 +68,6 @@ html > count{float:right;}`,
     wnd.dispatchEvent(new Event("unload"));
     wnd.onmousedown = box.onmousedown = this.OnMousedown;
     wnd.onkeydown = this.onKeydown.bind(this);
-    wnd.onfocus = VEventMode.OnWndFocus();
     wnd.onunload = this.OnUnload;
     zoom < 1 && (docEl.style.zoom = "" + 1 / zoom);
     (doc.head as HTMLHeadElement).appendChild(VDom.UI.createStyle(VFindMode.cssIFrame, doc));
@@ -88,8 +88,10 @@ html > count{float:right;}`,
     el2.appendChild(doc.createTextNode(""));
     this.isActive = true;
     function cb(): void {
+      VHandler.remove(VFindMode);
       docEl.appendChild(el2);
       el.focus();
+      wnd.onfocus = VEventMode.OnWndFocus();
     }
     if ((VDom.UI.box as HTMLElement).style.display) {
       VDom.UI.callback = cb;
