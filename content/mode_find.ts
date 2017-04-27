@@ -254,7 +254,7 @@ html > count{float:right;}`,
     }
   },
   onInput (): void {
-    const query = this.input.textContent.replace(this.A0Re, " ").replace(this.tailRe, "");
+    const query = this.input.innerText.replace(this.A0Re, " ").replace(this.tailRe, "");
     this.checkReturnToViewPort();
     this.updateQuery(query);
     this.restoreSelection();
