@@ -53,11 +53,12 @@ VDom.UI = {
     _this.styleIn = _this.createStyle(innerCSS);
     (_this.root as ShadowRoot).insertBefore(_this.styleIn, (_this.root as ShadowRoot).firstElementChild);
     if (!_this.showing) { _this.showing = true; return; }
-    setTimeout(function() {
+    _this.styleIn.onload = function (): void {
+      this.onload = null as never;
       (_this.box as HTMLElement).style.display = "";
       const el = _this.focusedEl; _this.focusedEl = null;
       el && setTimeout(function() { el.focus(); }, 17);
-    }, 17);
+    };
     return _this.adjust();
   },
   toggle (enabled): void {
