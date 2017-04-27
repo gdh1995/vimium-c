@@ -8,8 +8,7 @@ var VFindMode = {
   hasNoIgnoreCaseFlag: false,
   hasResults: false,
   matchCount: 0,
-  scrollX: 0,
-  scrollY: 0,
+  coords: null as null | [number, number],
   initialRange: null as Range | null,
   activeRegexIndex: 0,
   regexMatches: null as RegExpMatchArray | null,
@@ -18,7 +17,6 @@ var VFindMode = {
   countEl: null as never as HTMLSpanElement,
   styleIn: null as never as HTMLStyleElement,
   styleOut: null as never as HTMLStyleElement,
-  returnToViewport: false,
   A0Re: <RegExpG> /\xa0/g,
   tailRe: <RegExpOne> /\n$/,
   cssSel: "::selection{background:#ff9632;}",
@@ -38,9 +36,7 @@ html > count{float:right;}`,
     }
     this.getCurrentRange();
     if (options.returnToViewport) {
-      this.returnToViewport = true;
-      this.scrollX = window.scrollX;
-      this.scrollY = window.scrollY;
+      this.coords = [window.scrollX, window.scrollY];
     }
     this.box && VDom.UI.adjust();
     if (this.isActive) {
@@ -123,8 +119,8 @@ html > count{float:right;}`,
   },
   deactivate (unexpectly?: boolean): Element | null { // need keep @hasResults
     let el = null;
-    this.checkReturnToViewPort();
-    this.isActive = this.returnToViewport = this._small = false;
+    this.coords && window.scrollTo(this.coords[0], this.coords[1]);
+    this.isActive = this._small = false;
     if (unexpectly !== true) {
       window.focus();
       el = VDom.getSelectionFocusElement();
@@ -135,8 +131,8 @@ html > count{float:right;}`,
     this.box = this.input = this.countEl = null as never;
     this.styleIn.disabled = true;
     this.parsedQuery = this.query = "";
-    this.initialRange = this.regexMatches = null;
-    this.historyIndex = this.matchCount = this.scrollY = this.scrollX = 0;
+    this.initialRange = this.regexMatches = this.coords = null;
+    this.historyIndex = this.matchCount = 0;
     return el;
   },
   OnUnload (this: void, e: Event): void {
@@ -255,7 +251,7 @@ html > count{float:right;}`,
   },
   onInput (): void {
     const query = this.input.innerText.replace(this.A0Re, " ").replace(this.tailRe, "");
-    this.checkReturnToViewPort();
+    this.coords && window.scrollTo(this.coords[0], this.coords[1]);
     this.updateQuery(query);
     this.restoreSelection();
     this.execute(!this.isRegex ? this.parsedQuery : this.regexMatches ? this.regexMatches[0] : "");
@@ -269,9 +265,6 @@ html > count{float:right;}`,
     count = this.input.offsetWidth + this.countEl.offsetWidth + 4;
     if (this._small && count < 150) { return; }
     this.box.style.width = ((this._small = count < 150) ? 0 : count) + "px";
-  },
-  checkReturnToViewPort: function() {
-    this.returnToViewport && window.scrollTo(this.scrollX, this.scrollY);
   },
   _ctrlRe: <RegExpG & RegExpSearchable<2>> /(\\\\?)([rRI]?)/g,
   escapeAllRe: <RegExpG> /[$()*+.?\[\\\]\^{|}]/g,
