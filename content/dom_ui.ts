@@ -3,7 +3,7 @@ VDom.UI = {
   styleIn: null,
   styleOut: null,
   root: null,
-  focusedEl: null,
+  callback: null,
   flashLastingTime: 400,
   showing: true,
   addElement<T extends HTMLElement> (this: DomUI, element: T, options?: UIElementOptions): T {
@@ -56,8 +56,7 @@ VDom.UI = {
     _this.styleIn.onload = function (): void {
       this.onload = null as never;
       (_this.box as HTMLElement).style.display = "";
-      const el = _this.focusedEl; _this.focusedEl = null;
-      el && setTimeout(function() { el.focus(); }, 17);
+      _this.callback && _this.callback();
     };
     return _this.adjust();
   },
@@ -120,14 +119,6 @@ VDom.UI = {
       } catch (e) {}
     }
     suppressRepeated === true && this.suppressTail(true);
-  },
-  focus (el): void {
-    if (typeof el.focus !== "function") {}
-    else if ((this.box as HTMLElement).style.display) {
-      this.focusedEl = el as Element & { focus(): void; };
-    } else {
-      el.focus();
-    }
   },
   getZoom (this: void): number {
     let docEl = document.documentElement as Element, el: Element | null, zoom = 1;

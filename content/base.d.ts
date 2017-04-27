@@ -175,7 +175,7 @@ interface DomUI {
   styleIn: HTMLStyleElement | null;
   styleOut: HTMLStyleElement | null;
   root: ShadowRoot | null;
-  focusedEl: (Element & { focus(): void; }) | null;
+  callback: null | ((this: void) => void);
   flashLastingTime: number;
   showing: boolean;
   addElement<T extends HTMLElement>(this: DomUI, element: T, options?: UIElementOptions): T;
@@ -191,7 +191,6 @@ interface DomUI {
   removeSelection (this: DomUI, root?: DocumentOrShadowRoot,): boolean;
   click (this: DomUI, element: Element, modifiers?: EventControlKeys | null, addFocus?: boolean): boolean;
   simulateSelect (this: DomUI, element: Element, flash?: boolean, suppressRepeated?: boolean): void;
-  focus (this: DomUI, el: Element): void;
   getZoom (this: void): number;
   getVRect (this: void, clickEl: Element): VRect | null;
   flash (this: DomUI, el: null, rect: VRect): number;

@@ -71,7 +71,7 @@ html > count{float:right;}`,
     wnd.onunload = this.OnUnload;
     zoom < 1 && (docEl.style.zoom = "" + 1 / zoom);
     (doc.head as HTMLHeadElement).appendChild(VDom.UI.createStyle(VFindMode.cssIFrame, doc));
-    let el: HTMLElement = this.input = doc.body as HTMLBodyElement;
+    const el: HTMLElement = this.input = doc.body as HTMLBodyElement;
     docEl.insertBefore(doc.createTextNode("/"), el);
     try {
       el.contentEditable = "plaintext-only";
@@ -84,11 +84,18 @@ html > count{float:right;}`,
       };
     }
     el.oninput = this.onInput.bind(this);
-    el = this.countEl = doc.createElement("count");
-    el.appendChild(doc.createTextNode(""));
-    setTimeout(function(): void { docEl.appendChild(el); }, 0);
+    const el2 = this.countEl = doc.createElement("count");
+    el2.appendChild(doc.createTextNode(""));
     this.isActive = true;
-    return VDom.UI.focus(this.input);
+    function cb(): void {
+      docEl.appendChild(el2);
+      el.focus();
+    }
+    if ((VDom.UI.box as HTMLElement).style.display) {
+      VDom.UI.callback = cb;
+    } else {
+      setTimeout(cb, 0);
+    }
   },
   init (): HTMLStyleElement {
     const ref = this.postMode, UI = VDom.UI;
