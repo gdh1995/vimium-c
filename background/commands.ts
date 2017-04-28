@@ -252,7 +252,7 @@ availableCommands: {
   scrollPageUp: [ "Scroll a page up", 0, false, { dir: -0.5, view: "viewSize" }, "Scroller.ScBy" ],
   scrollFullPageDown: [ "Scroll a full page down", 0, false, { view: "viewSize" }, "Scroller.ScBy" ],
   scrollFullPageUp: [ "Scroll a full page up", 0, false, { dir: -1, view: "viewSize" }, "Scroller.ScBy" ],
-  reload: [ "Reload current frame", 1, false ],
+  reload: [ "Reload current frame (use force)", 1, false ],
   reloadTab: [ "Reload N tab(s) (use bypassCache)", 20, true ],
   reloadGivenTab: [ "Reload N-th tab", 0, true, { single: true } ],
   reopenTab: [ "Reopen current page", 1, true ],

@@ -279,9 +279,10 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
     goNext (_0: number, options: CmdOptions["goNext"]): void {
       return Pagination.goBy(options.dir, options.patterns);
     },
-    reload (url: number | string): void {
+    reload (url: number | string, options?: FgOptions): void {
+      const force = !!(options && options.force);
       setTimeout(function() {
-        typeof url !== "string" ? window.location.reload() : (window.location.href = url);
+        typeof url !== "string" ? window.location.reload(force) : (window.location.href = url);
       }, 17);
     },
     switchFocus (): void {
