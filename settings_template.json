@@ -1,7 +1,7 @@
 {
 	"name": "Vimium++",
 	"environment": {
-		"extension": "1.57.6",
+		"extension": "1.59.1",
 		"platform": "win"
 	},
 	"exclusionRules": [],
@@ -198,6 +198,7 @@
 		"mdn.e: https://developer.mozilla.org/en-US/docs/Web/HTML/Element/$S{$1} MDN Element",
 		"mdn.g: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/\\",
 		"Global_Objects/$S{$1/$2} MDN JavaScript",
+		"ciu|caniuse|CanIUse: http://caniuse.com/#search=$S Can I Use",
 		"",
 		"v\\:|v\\://: vimium://$S vimium:// re=/^([^#?]*)\\.html(?:\\#\\!?(.*))?/i Vimium++ Pages",
 		"v.d: vimium://show\\ $S Vimium++ Display",
@@ -216,5 +217,6 @@
 	],
 	"showActionIcon": false,
 	"showAdvancedCommands": true,
-	"showAdvancedOptions": true
+	"showAdvancedOptions": true,
+	"vomnibarPage": "chrome-extension://hdnehngglnbnehkfcidabjckinphnief/vomnibar.html"
 }
