@@ -1,4 +1,4 @@
-const HelpDialog = {
+var HelpDialog = {
   render: (function(this: void, request: FgReq["initHelp"]): string {
     Object.setPrototypeOf(request, null);
     const commandsToKey = Object.create<string[]>(null), ref = CommandsData.keyToCommandRegistry,

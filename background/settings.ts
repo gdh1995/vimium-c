@@ -1,6 +1,6 @@
 import SettingsWithDefaults = SettingsNS.SettingsWithDefaults;
 
-const Settings = {
+var Settings = {
   cache: Object.create(null) as SettingsNS.FullCache,
   temp: {
     shownHash: null as null | ((this: void) => string)

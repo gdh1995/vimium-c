@@ -1,4 +1,4 @@
-const Utils = {
+var Utils = {
   fetchHttpContents (url: string, success: (this: TextXHR, event: Event & TypedEvent<"load">) => void,
       req?: XMLHttpRequest | null): TextXHR {
     req = req || (new XMLHttpRequest() as TextXHR);

@@ -283,9 +283,17 @@ interface AdvancedOptBtn extends HTMLButtonElement {
   }
 
   let _ref: NodeListOf<HTMLElement> = $$("[data-model]"), element: HTMLElement;
+  const types = {
+    Number: NumberOption,
+    Text: TextOption,
+    NonEmptyText: NonEmptyTextOption,
+    JSON: JSONOption,
+    Boolean: BooleanOption,
+    ExclusionRules: ExclusionRulesOption,
+  };
   for (let _i = _ref.length; 0 <= --_i; ) {
     element = _ref[_i];
-    const cls = (window as any)[(element.getAttribute("data-model") as string) + "Option"];
+    const cls = types[element.getAttribute("data-model") as "Text"];
     new (cls as any)(element, onUpdated);
   }
 
