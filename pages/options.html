@@ -24,11 +24,11 @@
             <button class="float-right" id="exclusionAddButton">Add Rule</button>
             <button class="float-right" id="exclusionSortButton" data-delay="">Sort Rules</button>
             <label class="booleanOption innerLine">
-              <input id="exclusionOnlyFirstMatch" type="checkbox" data-model="CheckBox" />
+              <input id="exclusionOnlyFirstMatch" type="checkbox" data-model="Boolean" />
               <span>At most one match</span>
             </label>
             <label class="booleanOption innerLine checkboxWrapper">
-              <input id="exclusionListenHash" type="checkbox" data-model="CheckBox" data-permission="webNavigation" />
+              <input id="exclusionListenHash" type="checkbox" data-model="Boolean" data-permission="webNavigation" />
               <span>Listen hash changes</span>
             </label>
           </div>
@@ -154,7 +154,7 @@ so only the default inner version will be used on them
           <td class="caption" rowspan="7">Miscellaneous<br/>options</td>
           <td colspan="2">
             <label class="booleanOption">
-              <input id="smoothScroll" type="checkbox" data-model="CheckBox" />
+              <input id="smoothScroll" type="checkbox" data-model="Boolean" />
               <span>Use smooth scrolling</span>
             </label>
           </td>
@@ -162,7 +162,7 @@ so only the default inner version will be used on them
         <tr>
           <td>
             <label class="booleanOption">
-              <input id="deepHints" type="checkbox" data-model="CheckBox" />
+              <input id="deepHints" type="checkbox" data-model="Boolean" />
               <span>Match links even in shadow DOMs by default</span>
             </label>
           </td>
@@ -174,7 +174,7 @@ so only the default inner version will be used on them
         <tr>
           <td>
             <label class="booleanOption">
-              <input id="grabBackFocus" type="checkbox" data-model="CheckBox" />
+              <input id="grabBackFocus" type="checkbox" data-model="Boolean" />
               <span>Don't let pages steal the focus in loading</span>
             </label>
           </td>
@@ -185,7 +185,7 @@ so only the default inner version will be used on them
         <tr>
           <td>
             <label class="booleanOption">
-              <input id="hideHud" type="checkbox" data-model="CheckBox" />
+              <input id="hideHud" type="checkbox" data-model="Boolean" />
               <span>Hide the Heads Up Display (HUD) in insert mode</span>
             </label>
           </td>
@@ -196,7 +196,7 @@ so only the default inner version will be used on them
         <tr>
           <td>
             <label class="booleanOption">
-              <input id="regexFindMode" type="checkbox" data-model="CheckBox" />
+              <input id="regexFindMode" type="checkbox" data-model="Boolean" />
               <span>Treat find queries as regular expressions</span>
             </label>
           </td>
@@ -207,7 +207,7 @@ so only the default inner version will be used on them
         <tr>
           <td>
             <label class="booleanOption">
-              <input id="showActionIcon" type="checkbox" data-model="CheckBox" data-permission="browser_action" />
+              <input id="showActionIcon" type="checkbox" data-model="Boolean" data-permission="browser_action" />
               <span>Use the browser action icon on the top right</span>
             </label>
           </td>
@@ -222,7 +222,7 @@ Warning: Chrome has a bug of mistaken dialogue width if you has changed screen t
             ">
           <td>
             <label class="booleanOption">
-              <input id="dialogMode" type="checkbox" data-model="CheckBox" data-permission="options_ui" />
+              <input id="dialogMode" type="checkbox" data-model="Boolean" data-permission="options_ui" />
               <span>Show the dialogue mode of this options page</span>
             </label>
           </td>
@@ -234,7 +234,7 @@ Warning: Chrome has a bug of mistaken dialogue width if you has changed screen t
         <tr>
           <td>
             <label class="booleanOption">
-              <input id="vimSync" type="checkbox" data-model="CheckBox" data-permission="storage" data-check="change" />
+              <input id="vimSync" type="checkbox" data-model="Boolean" data-permission="storage" data-check="change" />
               <span>Sync settings with your current Google account</span>
             </label>
           </td>

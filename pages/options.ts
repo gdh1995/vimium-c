@@ -193,10 +193,10 @@ readValueFromElement (): AllowedOptions[T] {
 
 JSONOption.prototype.areEqual = Option.areJSONEqual;
 
-class CheckBoxOption<T extends keyof AllowedOptions> extends Option<T> {
+class BooleanOption<T extends keyof AllowedOptions> extends Option<T> {
 readonly element: HTMLInputElement;
 previous: boolean;
-constructor (element: HTMLInputElement, onUpdated: (this: CheckBoxOption<T>) => void) {
+constructor (element: HTMLInputElement, onUpdated: (this: BooleanOption<T>) => void) {
   super(element, onUpdated);
   this.element.onchange = this.onUpdated;
 }
@@ -451,7 +451,7 @@ interface AdvancedOptBtn extends HTMLButtonElement {
     return element.setAttribute("aria-hidden", "true");
   }
 
-  _ref = $$('[data-model="CheckBox"]');
+  _ref = $$('[data-model="Boolean"]');
   for (let _i = _ref.length; 0 <= --_i; ) {
     element = _ref[_i] as HTMLInputElement;
     if ((element as HTMLInputElement).disabled) { continue; }
