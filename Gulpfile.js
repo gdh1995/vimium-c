@@ -23,7 +23,7 @@ var enableSourceMap = !!compilerOptions.sourceMap;
 var willListFiles   = !!compilerOptions.listFiles;
 var removeComments  = !!compilerOptions.removeComments;
 var JSDEST = osPath.join(DEST, ".build");
-var globalForceUpdate = false;
+var globalForceUpdate = !!process.env.FORCE_UPDATE;
 var disableErrors = !globalForceUpdate;
 
 if (compilerOptions.noImplicitUseStrict) {
@@ -226,7 +226,9 @@ function outputJSResult(stream, concatedFile) {
     stream = stream.pipe(concat(concatedFile));
   }
   if (enableSourceMap) {
-    stream = stream.pipe(sourcemaps.write("."));
+    stream = stream.pipe(sourcemaps.write(".", {
+      sourceRoot: ""
+    }));
   }
   return stream.pipe(gulp.dest(JSDEST));
 }
@@ -261,13 +263,22 @@ function uglifyJSFiles(path, output, new_suffix, forceUpdate) {
      stream = stream.pipe(concat(output));
   }
   stream = stream.pipe(uglify({
-    preserveComments: removeComments ? undefined : "all"
+    output: {
+      comments: removeComments ? false : "all"
+    },
+    compress: {
+      booleans: false,
+      negate_iife: false,
+      sequences: false
+    }
   }));
   if (!is_file && new_suffix !== "") {
      stream = stream.pipe(rename({ suffix: new_suffix }));
   }
   if (enableSourceMap) {
-    stream = stream.pipe(sourcemaps.write("."));
+    stream = stream.pipe(sourcemaps.write(".", {
+      sourceRoot: "/"
+    }));
   }
   return stream.pipe(gulp.dest(DEST));
 }
