@@ -59,7 +59,7 @@ interface BgReq {
     name: "settingsUpdate",
   } & {
     [key in keyof SettingsNS.FrontendSettingCache]?: SettingsNS.FrontendSettingCache[key];
-  }
+  };
 }
 
 interface BgVomnibarReq {
@@ -73,7 +73,7 @@ interface BgVomnibarReq {
   };
   secret: {
     secret: number;
-  }
+  };
 }
 interface FullBgReq extends BgReq, BgVomnibarReq {
 }

@@ -234,11 +234,9 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
       }
       return VHUD.showForDuration(msg, 1000);
     },
-    enterInsertMode (_0: number, options: CmdOptions["enterInsertMode"]): void {
-      let code = options.code || VKeyCodes.esc, stat = options.stat;
-      stat === KeyStat.plain && code === VKeyCodes.esc && (code = 0);
+    enterInsertMode (_0: number, { code, stat, hud }: CmdOptions["enterInsertMode"]): void {
       InsertMode.global = { code, stat };
-      if (options.hud) { return HUD.show(`Insert mode${code ? `: ${code}/${stat}` : ""}`); }
+      if (hud) { return HUD.show(`Insert mode${code ? `: ${code}/${stat}` : ""}`); }
     },
     passNextKey (count: number, options: FgOptions): void {
       const keys = Object.create<BOOL>(null);

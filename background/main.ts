@@ -863,8 +863,8 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
       return ContentSettings.toggleCurrent(cOptions.type, tabs[0]);
     },
     clearCS (this: void, tabs: [Tab]): void {
-      requestHandlers.ShowHUD(cOptions.type + " content settings have been cleared.");
-      return ContentSettings.clear(cOptions.type, tabs[0]);
+      ContentSettings.clear(cOptions.type, tabs[0]);
+      return requestHandlers.ShowHUD(cOptions.type + " content settings have been cleared.");
     },
     goTab (this: void, tabs: Tab[]): void {
       if (tabs.length < 2) { return; }
@@ -1157,9 +1157,11 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
       });
     },
     enterInsertMode (): void {
+      let code = cOptions.code | 0, stat: KeyStat = cOptions.stat | 0;
+      code === VKeyCodes.esc && stat === KeyStat.plain && (code = 0);
       cPort.postMessage<1, "enterInsertMode">({ name: "execute", count: 1, command: "enterInsertMode",
         options: {
-          code: cOptions.code | 0, stat: cOptions.stat | 0,
+          code, stat,
           hud: cOptions.hideHud != null ? !cOptions.hideHud : !Settings.get("hideHud", true)
         }
       });
