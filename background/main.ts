@@ -76,6 +76,7 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
         return true;
       }
       if (!chrome.contentSettings[contentType] || (<RegExpOne>/^[A-Z]/).test(contentType)) {
+        requestHandlers.ShowHUD("Unknown content settings type: " + contentType);
         return true;
       }
       if (Utils.protocolRe.test(url) && !url.startsWith("chrome")) {
@@ -109,6 +110,7 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
     clear (this: void, contentType: CSTypes, tab?: Tab): void {
       if (!chrome.contentSettings) { return; }
       const cs = chrome.contentSettings[contentType];
+      if (!cs || !cs.clear) { return; }
       if (tab) {
         cs.clear({ scope: (tab.incognito ? "incognito_session_only" : "regular") });
         return;
@@ -556,13 +558,15 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
       (arr: [string, ((this: void) => string) | null, number]) => void
     ],
     openUrls: function(tabs: [Tab]): void {
-      let urls = cOptions.urls, i, tab = tabs[0], repeat = commandCount;
+      const tab = tabs[0], { windowId, id: openerTabId } = tab;
+      let urls: string[] = cOptions.urls, repeat = commandCount;
+      for (let i = 0; i < urls.length; i++) {
+        urls[i] = Utils.convertToUrl(urls[i] + "");
+      }
       if (cOptions.reuse <= ReuseType.newBg) { tab.active = false; }
       do {
-        for (i = 0; i < urls.length; i++) {
-          openMultiTab(urls[i], 1, tab);
-          tab.active = false;
-          tab.index++;
+        for (let i = 0, index = tab.index + 1, { active } = tab; i < urls.length; i++, active = false, index++) {
+          tabsCreate({ url: urls[i], index, windowId, openerTabId, active });
         }
       } while (0 < --repeat);
     },
@@ -857,13 +861,13 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
       chrome.windows.getCurrent({populate: true}, funcDict.moveTabToIncognito[0]);
     },
     enableCSTemp (this: void, tabs: [Tab]): void {
-      return ContentSettings.ensure(cOptions.type, tabs[0]);
+      return ContentSettings.ensure("" + cOptions.type as CSTypes, tabs[0]);
     },
     toggleCS (this: void, tabs: [Tab]): void {
-      return ContentSettings.toggleCurrent(cOptions.type, tabs[0]);
+      return ContentSettings.toggleCurrent("" + cOptions.type as CSTypes, tabs[0]);
     },
     clearCS (this: void, tabs: [Tab]): void {
-      ContentSettings.clear(cOptions.type, tabs[0]);
+      ContentSettings.clear("" + cOptions.type as CSTypes, tabs[0]);
       return requestHandlers.ShowHUD(cOptions.type + " content settings have been cleared.");
     },
     goTab (this: void, tabs: Tab[]): void {
@@ -946,6 +950,7 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
     openUrl (this: void, tabs?: [Tab] | never[] | null): void {
       let url: string | undefined;
       if (cOptions.urls) {
+        if (!(cOptions.urls instanceof Array)) { return; }
         return tabs && tabs.length > 0 ? funcDict.openUrls(tabs as [Tab]) : void funcDict.getCurTab(funcDict.openUrls);
       }
       if (cOptions.url_mask) {
@@ -953,13 +958,13 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
           return chrome.runtime.lastError || void funcDict.getCurTab(BackgroundCommands.openUrl);
         }
         if (tabs.length > 0) {
-          url = (<string | undefined>cOptions.url_f || <string>cOptions.url) || "";
-          url = (url + "").replace(cOptions.url_mask + "", tabs[0].url);
+          url = (<string | undefined>cOptions.url_f || <string>cOptions.url || "") + "";
+          url = url && url.replace(cOptions.url_mask + "", tabs[0].url);
         }
       }
-      url = cOptions.url_f ? url || cOptions.url_f as string : Utils.convertToUrl(url || cOptions.url || "");
+      url = cOptions.url_f ? url || (cOptions.url_f + "") : Utils.convertToUrl(url || (cOptions.url || "") + "");
       if (cOptions.id_marker) {
-        url = url.replace(cOptions.id_marker, chrome.runtime.id);
+        url = url.replace(cOptions.id_marker + "", chrome.runtime.id);
       }
       const reuse: ReuseType = cOptions.reuse == null ? ReuseType.newFg : (cOptions.reuse | 0);
       if (reuse === ReuseType.reuse) {
