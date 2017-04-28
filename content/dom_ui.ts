@@ -40,6 +40,9 @@ VDom.UI = {
   adjust (event): void {
     const ui = VDom.UI, el = ui.root ? document.webkitFullscreenElement : null,
     el2 = el && !(ui.root as Node).contains(el) ? el : document.documentElement as HTMLElement;
+    // Chrome also always remove node from its parent since 58 (just like Firefox), which meets the specification
+    // doc: https://dom.spec.whatwg.org/#dom-node-appendchild
+    //  -> #concept-node-append -> #concept-node-pre-insert -> #concept-node-adopt -> step 2
     el2 !== (ui.box as HTMLElement).parentElement && el2.appendChild(ui.box as Element);
     (el || event) && (el ? addEventListener : removeEventListener)("webkitfullscreenchange", ui.adjust, true);
   },
