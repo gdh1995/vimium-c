@@ -67,10 +67,14 @@ Known issues (Up to the master branch):
 which breaks `Vomnibar`. Then `Vomnibar` would only work well on Vimium++ Options pages.
 2. `Preferred Vomnibar Page` can not support Http/File URLs before Chrome 41.
 
-Not released yet:
+1.59.2:
 * **WARNING**: the global shortcut for "Go one tab right" needs to be re-installed
-* fix bugs about the option `Preferred Vomnibar Page`
+* fix bugs about customized Vomnibar page
+* fix unexpected destroying of Vomnibar / find HUD on Chrome 58
 * `FindMode` supports `Shift+Enter` to input a line break and search it
+* `LinkHints`: auto hide HUD if the frame is too small
+* change usage of count in command `toggleCS` and `enableCSTemp` for better experiences
+* ensure command options are always used safely and fix many edge cases
 
 1.59.1:
 * **add an option "Vomnibar Page" to show user's preferred Vomnibar page**
