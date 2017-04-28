@@ -1,3 +1,12 @@
+if (!String.prototype.startsWith) {
+String.prototype.startsWith = function(this: string, s: string): boolean {
+  return this.length >= s.length && this.lastIndexOf(s, 0) === 0;
+};
+String.prototype.endsWith || (String.prototype.endsWith = function(this: string, s: string): boolean {
+  const i = this.length - s.length;
+  return i >= 0 && this.indexOf(s, i) === i;
+});
+}
 var VUtils = {
   evalIfOK (this: void, url: string): boolean {
     if (url.substring(0, 11).toLowerCase() !== "javascript:") {
@@ -52,13 +61,3 @@ var VUtils = {
     }
   }
 };
-
-if (!String.prototype.startsWith) {
-String.prototype.startsWith = function(this: string, s: string): boolean {
-  return this.length >= s.length && this.lastIndexOf(s, 0) === 0;
-};
-String.prototype.endsWith || (String.prototype.endsWith = function(this: string, s: string): boolean {
-  const i = this.length - s.length;
-  return i >= 0 && this.indexOf(s, i) === i;
-});
-}
