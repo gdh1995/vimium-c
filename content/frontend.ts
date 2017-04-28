@@ -276,7 +276,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
       };
       return onKeyup2({keyCode: 0} as KeyboardEvent);
     },
-    goNext (_0: number, options: FgCmdOptions<"goNext">): void {
+    goNext (_0: number, options: CmdOptions["goNext"]): void {
       return Pagination.goBy(options.dir, options.patterns);
     },
     reload (url: number | string): void {

@@ -85,8 +85,8 @@ interface CmdOptions {
     secret: number;
   };
   goNext: {
-    dir: string,
-    patterns: string | string[]
+    dir: string;
+    patterns: string | string[];
   };
   enterInsertMode: {
     code: number;
@@ -94,7 +94,6 @@ interface CmdOptions {
     hud: boolean;
   };
 }
-type FgCmdOptions<O extends keyof CmdOptions> = NotReadonly<CmdOptions[O]> & SafeObject;
 
 interface FgReq {
   findQuery: {
