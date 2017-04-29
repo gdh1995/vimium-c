@@ -152,49 +152,6 @@ which breaks `Vomnibar`. Then `Vomnibar` would only work well on Vimium++ Option
 * fix a bug history titles may be wrong.
 * other bug fixes.
 
-1.56:
-* Vomnibar is re-implemented using `<iframe>`, which is much safer than shadowDOM.
-* Backend completer procedure is reworked and Vomnibar works faster for continuous input.
-* remove the setting item "Try to reduce Vimium++'s memory cost" (`tinyMemory`).
-* fix a bug that Vimium++ would break on Chrome 37 to 47.
-* version 1.56.1: fix a bug of lacking tips for vimium://copy urls in vomnibar.
-* version 1.56.2: support to map `backspace`.
-* version 1.56.3: fix that VScroller will break
-    if the flag `#enable-experimental-web-platform-features` is enabled.
-* version 1.56.4: fix that `Vomnibar` breaks on other extensions' page
-    if Vimium++ is forced to reload.
-  fix an edge case that `LinkHints` may break on page loading.
-* small bug fixes; try to avoid unnecessary forced reflows.
-
-1.55:
-* add **Visual Mode**, and support all commands of philc/Vimium's.
-  This implementation works well on `<textarea>`s and `shadowDOM`s.
-* add commend `clearFindHistory` to remove all find mode history,
-    in normal mode incognito mode.
-* use a small `options_ui.html` to jump to the options page on Chrome's settings page,
-  and this manifest item makes a warning on installation before Chrome 40,
-    though it has not any influence.
-* some bug fixes.
-
-1.54:
-* **WARNING**: change modifier keys' order into `m-c-a-` (breaking)
-* add `LinkHints.activateModeToEdit` to select an editable area with hints
-* deprecate `clearGlobalMarks` and please use `Marks.clearGlobal` instead
-* rework `goUp` and `goToRoot`: try to support different forms of hash bangs
-* use `event.key` if it exists, to disable warning on Chrome 52
-* the default `tinyMemory` is set `true`,
-  and the history completer loads slower but has a smaller memory peak
-* Chrome 52 doesn't allow Vimium++ to create an incognito window
-    using a normal tab,
-  so those tricks which allow Vimium++ to show normal tabs in incognito windows
-    won't work any more.
-  Also fix a bug that `createTab` may not work properly on a popup window.
-* lots of bug fixes
-* add a branch `basic-on-edge` to make Vimium++ work on Microsoft Edge,
-    although many commands become broken after the migration
-* rename front-end global variables to `V***`,
-  in order to avoid potential name collisions when injected into other hosts
-
 # Building
 
 If you want to compile this project manually, please run:

@@ -2545,7 +2545,7 @@ declare namespace chrome.tabs {
      * @param callback Called with the tab's current zoom factor after it has been fetched.
      * Parameter zoomFactor: The tab's current zoom factor.
      */
-    export function getZoom(tabId: number, callback: (zoomFactor: number) => void): 1;
+    export function getZoom(tabId: number | null, callback: (zoomFactor: number) => void): 1;
     /**
      * Sets the zoom settings for a specified tab, which define how zoom changes are handled. These settings are reset to defaults upon navigating the tab.
      * @since Chrome 42.

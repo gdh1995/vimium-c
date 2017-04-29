@@ -375,10 +375,8 @@ exclusions: PopExclusionRulesOption = Object.setPrototypeOf({
   $("saveOptions").onclick = saveOptions;
   document.addEventListener("keyup", function(event): void {
     if ((event.ctrlKey || event.metaKey) && event.keyCode === 13) {
-      if (saved === false) {
-        saveOptions();
-      }
       setTimeout(window.close, 300);
+      if (!saved) { return saveOptions(); }
     }
   });
   const ref = bgSettings.indexPorts(tabs[0].id);
