@@ -6,7 +6,7 @@ interface FgOptions extends SafeDict<any> {}
 
 interface Window {
   VimiumInjector?: VimiumInjector;
-  VSettings?: VSettings;
+  VSettings: VSettings | null;
 }
 interface VimiumInjector {
   id: string;

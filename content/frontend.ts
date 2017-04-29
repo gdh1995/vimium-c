@@ -40,7 +40,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
       try {
         if (!this.port) {
           this.connect(PortType.nothing);
-          isInjected && setTimeout(function() { VPort && !vPort.port && VSettings.destroy(); }, 50);
+          isInjected && setTimeout(function() { VSettings && !vPort.port && VSettings.destroy(); }, 50);
         }
         (this.port as Port).postMessage(request);
       } catch (e) { // this extension is reloaded or disabled
@@ -61,7 +61,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
     ClearPort (this: void): void {
       vPort.port = null;
       requestHandlers.init && setTimeout(function(): void {
-        try { VPort && vPort.connect(PortType.initing); } catch(e) { VSettings.destroy(); }
+        try { VSettings && vPort.connect(PortType.initing); } catch(e) { VSettings.destroy(); }
       }, 2000);
     },
     connect (isFirst: PortType.nothing | PortType.initing): void {
