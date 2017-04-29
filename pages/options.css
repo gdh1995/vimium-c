@@ -23,7 +23,7 @@ header {
   border-bottom: 1px solid #ddd;
   padding: 20px 0 15px 0;
 }
-header.chrome-ui {
+.chrome-ui header {
   padding: 0 0 5px 0;
 }
 button, select {
@@ -39,7 +39,7 @@ button, select {
   padding: 0 10px;
   text-shadow: 0 1px 0 #f0f0f0;
 }
-button.chrome-ui {
+.chrome-ui button {
   margin-right: 0;
 }
 button:hover, select:hover {

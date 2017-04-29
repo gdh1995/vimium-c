@@ -67,6 +67,10 @@ Known issues (Up to the master branch):
 which breaks `Vomnibar`. Then `Vomnibar` would only work well on Vimium++ Options pages.
 2. `Preferred Vomnibar Page` can not support Http/File URLs before Chrome 41.
 
+Not released yet:
+* work around for a Chrome bug caused by the flag `#enable-embedded-extension-options` on high-DPI screen.
+  This flag occurs since Chrome 38, but the fix only works since Chrome 42 with API `chrome.tabs.getZoom`
+
 1.59.2:
 * **WARNING**: the global shortcut for "Go one tab right" needs to be re-installed
 * fix bugs about customized Vomnibar page

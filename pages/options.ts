@@ -403,22 +403,29 @@ interface AdvancedOptBtn extends HTMLButtonElement {
     }
   }
 
-  if (window.location.hash === "#chrome-ui") {
+  function setUI(curTabId: number | null): void {
+    const ratio = BG.devicePixelRatio, element = document.getElementById("openInTab") as HTMLAnchorElement;
+    (document.body as HTMLBodyElement).classList.add("chrome-ui");
     (document.getElementById("mainHeader") as HTMLElement).remove();
-    element = document.getElementById("openInTab") as HTMLAnchorElement;
-    element.style.display = "";
     element.onclick = function(this: HTMLAnchorElement): void {
-      this.href = bgSettings.CONST.OptionsPage;
-      this.target = "_blank";
-      window.close();
+      setTimeout(window.close, 17);
     };
-    (element.previousElementSibling as Element).remove();
-    _ref = $$("body,button,header");
-    for (let _i = _ref.length; 0 <= --_i; ) {
-      _ref[_i].classList.add("chrome-ui");
-    }
-    devicePixelRatio !== 1 && ((document.body as HTMLBodyElement).style.width = 940 / devicePixelRatio + "px");
+    element.style.display = "";
+    (element.nextElementSibling as Element).remove();
+    ratio > 1 && ((document.body as HTMLBodyElement).style.width = 925 / ratio + "px");
+    chrome.tabs.getZoom && chrome.tabs.getZoom(curTabId, function(zoom): void {
+      if (!zoom) { return chrome.runtime.lastError; }
+      const ratio = Math.round(devicePixelRatio / zoom * 1024) / 1024;
+      (document.body as HTMLBodyElement).style.width = ratio !== 1 ? 925 / ratio + "px" : "";
+    });
   }
+  chrome.tabs.query({ active: true, currentWindow: true }, function(tabs): void {
+    if (window.location.hash === "#chrome-ui" || tabs[0] && tabs[0].url.lastIndexOf("chrome-extension:") < 0) {
+      // if tabs is empty, then we are debugging, and then this page should be a standalone tab
+      setUI(tabs[0] ? tabs[0].id : null);
+    }
+    return chrome.runtime.lastError;
+  })
 
   _ref = $$("[data-permission]");
   _ref.length > 0 && (function(this: void, els: NodeListOf<HTMLElement>): void {
