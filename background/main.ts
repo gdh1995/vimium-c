@@ -1187,10 +1187,11 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
       } else if (port.sender.frameId !== 0 && port.sender.tabId >= 0) {
         port = Settings.indexFrame(port.sender.tabId, 0) || port;
       }
-      const page = Settings.cache.vomnibarPage_f, { url } = port.sender,
-      usable = !forceInner && (page.startsWith("chrome") || !url.startsWith("chrome")) && !url.startsWith(location.origin),
+      const page = Settings.cache.vomnibarPage_f, { url } = port.sender, web = !page.startsWith("chrome"),
+      usable = !forceInner && (web || !url.startsWith("chrome")) && !url.startsWith(location.origin),
       options = Utils.extendIf(Object.setPrototypeOf({
         vomnibar: usable ? page : Settings.CONST.VomnibarPageInner,
+        web: usable && web,
         script: Settings.CONST.VomnibarScript_f,
         secret: getSecret(),
       } as CmdOptions["Vomnibar.activate"], null), cOptions as any);
