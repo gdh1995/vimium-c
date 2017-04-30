@@ -64,10 +64,17 @@ __Other extensions supporting Vimium++:__
 
 Known issues (Up to the master branch):
 1. Chrome before version 49 has bugs in `Window.postMessage` if the flag `#enable-site-per-process` is on,
-which breaks `Vomnibar`. Then `Vomnibar` would only work well on Vimium++ Options pages.
+  which breaks `Vomnibar`. Then `Vomnibar` would only work well on Vimium++ Options pages.
 2. `Preferred Vomnibar Page` can not support Http/File URLs before Chrome 41.
+3. the Chrome flag `#enable-embedded-extension-options` has bug about dialog width on high-DPI screen,
+  which can not be worked-around before Chrome 42.
+4. If an extension page is the preferred Vomnibar page, and the extension is disabled in incognito,
+  Vomnibar might break in such a situation, and there's no way to detect it.
+  So Vimium++ has disabled other extension pages in incognito since v1.59.3 .
 
-Not released yet:
+1.59.3:
+* fix a dead loop and breaking Vomnibar when using http page
+* only use inner Vomnibar page in incognito if the preferred belongs to other extensions
 * work around for a Chrome bug caused by the flag `#enable-embedded-extension-options` on high-DPI screen.
   This flag occurs since Chrome 38, but the fix only works since Chrome 42 with API `chrome.tabs.getZoom`
 

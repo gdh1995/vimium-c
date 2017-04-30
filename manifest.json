@@ -91,7 +91,7 @@
     "<all_urls>"
   ],
   "update_url": "https://clients2.google.com/service/update2/crx",
-  "version": "1.59.2",
+  "version": "1.59.3",
   "web_accessible_resources": [
     "content/*",
     "front/vomnibar.*",
