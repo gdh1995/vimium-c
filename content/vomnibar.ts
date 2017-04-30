@@ -111,8 +111,8 @@ var Vomnibar = {
   },
   init (secret: number, page: string, web: boolean): HTMLIFrameElement {
     const el = VDom.createElement("iframe") as typeof Vomnibar.box;
-    web && (el.referrerPolicy = "no-referrer");
     el.className = "R UI Omnibar";
+    web && (el.referrerPolicy = "no-referrer");
     el.src = page;
     el.style.visibility = "hidden";
     el.onload = function(this: typeof el): void {
