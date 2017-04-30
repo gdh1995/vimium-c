@@ -900,7 +900,7 @@ HOVER: {
     const type = VDom.getEditableType(element);
     VDom.unhoverLast(element);
     VScroller.current = element;
-    if (type === EditableType.NotEditable && element.tabIndex >= 0) { element.focus(); }
+    if (!type && element.tabIndex >= 0) { element.focus(); }
     if ((this as typeof VHints).mode < HintMode.min_job) {
       return VHUD.showForDuration("Hover for scrolling", 1000);
     }
@@ -1094,7 +1094,7 @@ DEFAULT: {
       return;
     } else if (hint.classList.contains("BH")) {
       return (this as typeof VHints).Modes.HOVER.activator.call(this, link, hint);
-    } else if (VDom.getEditableType(link) === EditableType.Editbox) {
+    } else if (VDom.getEditableType(link) >= EditableType.Editbox) {
       VDom.UI.simulateSelect(link, true);
       return false;
     }

@@ -193,7 +193,7 @@ html > count{float:right;}`,
     if (!el || el !== VEventMode.lock()) {
       el = window.getSelection().anchorNode as Element | null;
       if (el && !this.focusFoundLink(el) && i === Result.ExitAndReFocus && (el2 = document.activeElement)) {
-        VDom.getEditableType(el2) === 3 && el.contains(el2) && VDom.UI.simulateSelect(el2);
+        VDom.getEditableType(el2) >= EditableType.Editbox && el.contains(el2) && VDom.UI.simulateSelect(el2);
       }
     }
     if (i === Result.ExitToPostMode) { return this.postMode.activate(); }
