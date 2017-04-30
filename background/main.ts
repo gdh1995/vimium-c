@@ -1188,7 +1188,7 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
         port = Settings.indexFrame(port.sender.tabId, 0) || port;
       }
       const page = Settings.cache.vomnibarPage_f, { url } = port.sender, web = !page.startsWith("chrome"),
-      usable = !forceInner && (web || !url.startsWith("chrome")) && !url.startsWith(location.origin),
+      usable = !(forceInner || web && url.startsWith("chrome") || url.startsWith(location.origin)),
       options = Utils.extendIf(Object.setPrototypeOf({
         vomnibar: usable ? page : Settings.CONST.VomnibarPageInner,
         web: usable && web,
