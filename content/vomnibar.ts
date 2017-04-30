@@ -134,12 +134,7 @@ var Vomnibar = {
         const channel = new MessageChannel();
         _this.port = channel.port1;
         channel.port1.onmessage = _this.onMessage.bind(_this);
-        try {
-          wnd.postMessage(sec, page, [channel.port2]);
-        } catch (e) {
-          _this._forceRedo = true;
-          _this.reset(true, true);
-        }
+        wnd.postMessage(sec, page, [channel.port2]);
         return;
       }
       type FReq = VomnibarNS.FReq;
@@ -162,7 +157,7 @@ var Vomnibar = {
     return VDom.UI.addElement(this.box = el, {adjust: true, showing: false});
   },
   _forceRedo: false,
-  reset (redo?: boolean, inner?: boolean): void | 1 {
+  reset (redo?: boolean): void | 1 {
     if (this.status === VomnibarNS.Status.NotInited) { return; }
     const oldStatus = this.status;
     this.status = VomnibarNS.Status.NotInited;
@@ -172,7 +167,7 @@ var Vomnibar = {
     VHandler.remove(this);
     if (this._forceRedo) { this._forceRedo = false; }
     else if (!redo || oldStatus < VomnibarNS.Status.ToShow) { return; }
-    return VPort.post({ handler: "activateVomnibar", redo: true, inner });
+    return VPort.post({ handler: "activateVomnibar", redo: true });
   },
   checkAlive (): boolean {
     const wnd = this.box.contentWindow;
