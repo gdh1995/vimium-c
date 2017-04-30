@@ -259,7 +259,7 @@ availableCommands: {
   toggleViewSource: [ "View page source", 1, true ],
   copyCurrentTitle: [ "Copy current tab's title", 1, true, { type: "title" }, "copyTabInfo" ],
   copyCurrentUrl: [ "Copy page's info (use type=url/frame/title)", 1, true, null, "copyTabInfo" ],
-  autoCopy: [ "Copy selected text or current frame's title or url (use url)", 1, false ],
+  autoCopy: [ "Copy selected text or current frame's title or URL (use url)", 1, false ],
   autoOpen: [ "Open selected or copied text in a new tab", 1, false ],
   searchAs: [ "Search selected or copied text using current search engine", 1, false ],
   searchInAnother: [ "Redo search in another search engine (use keyword, reuse=0)", 1, true ],
@@ -293,7 +293,7 @@ availableCommands: {
     { mode: "DOWNLOAD_IMAGE" }, "Hints.activate" ],
   "LinkHints.activateModeToOpenImage": [ "Show &lt;img> image in new extension's tab", 0, false,
     { mode: "OPEN_IMAGE" }, "Hints.activate" ],
-  "LinkHints.activateModeToDownloadLink": [ "Download link url", 0, false,
+  "LinkHints.activateModeToDownloadLink": [ "Download link URL", 0, false,
     { mode: "DOWNLOAD_LINK" }, "Hints.activate" ],
   "LinkHints.activateModeToHover": [ "select an element and hover", 0, false,
     { mode: "HOVER" }, "Hints.activate" ],
@@ -365,8 +365,8 @@ availableCommands: {
   "Marks.clearLocal": [ "Remove all local marks for this site", 1, false, null, "Marks.clearLocal" ],
   "Marks.clearGlobal": [ "Remove all global marks", 1, true, null, "clearGlobalMarks" ],
   clearGlobalMarks: [ "Remove all global marks (deprecated)", 1, true ],
-  openUrl: [ "open url (use url, reuse=[-2..1])", 20, true ],
-  focusOrLaunch: [ 'focus a tab with given url or open it (use url="", prefix)', 1, true, { reuse: 1 }, "openUrl" ]
+  openUrl: [ "open URL (use url, urls:string[], reuse=[-2..1])", 20, true ],
+  focusOrLaunch: [ 'focus a tab with given URL or open it (use url="", prefix)', 1, true, { reuse: 1 }, "openUrl" ]
 } as SafeDict<CommandsNS.Description>
 };
 
