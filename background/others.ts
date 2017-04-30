@@ -22,7 +22,7 @@ if (Settings.get("vimSync") === true) setTimeout(function() { if (!chrome.storag
       if (!(key in Settings.defaults) || key in Settings.nonPersistent || !this.shouldSyncKey(key)) { return; }
       const defaultVal = Settings.defaults[key];
       if (value == null) {
-        if (key in localStorage) {
+        if (localStorage.getItem(key) != null) {
           Settings.set(key, defaultVal);
         }
         return;

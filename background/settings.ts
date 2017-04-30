@@ -17,7 +17,7 @@ var Settings = {
       return (this.cache as SettingsWithDefaults)[key];
     }
     const initial = this.defaults[key];
-    const value = !(key in localStorage) ? initial
+    const value = localStorage.getItem(key) == null ? initial
         : typeof initial === "string" ? localStorage.getItem(key) as string
         : initial === false || initial === true ? localStorage.getItem(key) === "true"
         : JSON.parse<typeof initial>(localStorage.getItem(key) as string);
