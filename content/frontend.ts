@@ -40,7 +40,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
       try {
         if (!this.port) {
           this.connect(PortType.nothing);
-          isInjected && setTimeout(function() { VSettings && !vPort.port && VSettings.destroy(); }, 50);
+          isInjected && setTimeout(function() { esc && !vPort.port && VSettings.destroy(); }, 50);
         }
         (this.port as Port).postMessage(request);
       } catch (e) { // this extension is reloaded or disabled
@@ -61,7 +61,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
     ClearPort (this: void): void {
       vPort.port = null;
       requestHandlers.init && setTimeout(function(): void {
-        try { VSettings && vPort.connect(PortType.initing); } catch(e) { VSettings.destroy(); }
+        try { esc && vPort.connect(PortType.initing); } catch(e) { VSettings.destroy(); }
       }, 2000);
     },
     connect (isFirst: PortType.nothing | PortType.initing): void {
@@ -934,7 +934,8 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
 
     VUtils = VKeyboard = VDom = VRect = VHandler = //
     VHints = Vomnibar = VScroller = VMarks = VFindMode = //
-    VSettings = VHUD = VPort = VEventMode = VVisualMode = null as never;
+    VSettings = VHUD = VPort = VEventMode = VVisualMode = //
+    esc = null as never;
     el && el.remove();
 
     silent || console.log("%cVimium++%c in %c%s%c has been destroyed at %o."
