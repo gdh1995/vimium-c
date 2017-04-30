@@ -29,10 +29,11 @@ if [ -z "$output" -o -d "$output" ]; then
   fi
   ver=$(grep -m1 -o '"version":\s*"[0-9\.]*"' manifest.json | awk -F '"' '{print "_"$4}')
   pkg_name=$(basename "$PWD")
-  pkg_name=${pkg_name//++/_plus}
-  pkg_name=${pkg_name//+/_}
+  pkg_name=${pkg_name//++/-plus}
+  pkg_name=${pkg_name//+/-}
+  pkg_name=${pkg_name%-}
   pkg_name=${pkg_name%_}
-  output=$output${pkg_name:-vimium_plus}$ver.zip
+  output=$output${pkg_name:-vimium-plus}$ver.zip
 elif [ "${output/./}" == "$output" ]; then
   output=$output.zip
   echo "the zip file will be \"$output\""
