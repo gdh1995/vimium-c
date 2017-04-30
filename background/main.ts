@@ -1565,7 +1565,7 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
         if (inner) { return; }
         cOptions = Object.create(null);
         commandCount = 1;
-      } else if (inner && (cOptions as any as CmdOptions["Vomnibar.activate"]).script === Settings.CONST.VomnibarPageInner) {
+      } else if (inner && (cOptions as any as CmdOptions["Vomnibar.activate"]).vomnibar === Settings.CONST.VomnibarPageInner) {
         return;
       }
       cPort = port;
