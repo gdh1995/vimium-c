@@ -69,8 +69,15 @@ Known issues (Up to the master branch):
 3. the Chrome flag `#enable-embedded-extension-options` has bug about dialog width on high-DPI screen,
   which can not be worked-around before Chrome 42.
 4. If an extension page is the preferred Vomnibar page, and the extension is disabled in incognito,
-  Vomnibar might break in such a situation, and there's no way to detect it.
+  Vomnibar might break in such a situation, and there seems no way to detect it.
   So Vimium++ has disabled other extension pages in incognito since v1.59.3 .
+5. If an http/file/... page is the preferred, then there're some cases where it breaks,
+  such as on some websites with very strict Content Security Policies (CSP).
+
+Not released yet:
+* LinkHints works much faster on some of very long pags, like https://w3c.github.io/html/,
+  though the change has no enough benefits on GitHub code file pages.
+* command `goNext` now detects `<button>`s, so that it supports more pages
 
 1.59.3:
 * fix a dead loop and breaking Vomnibar when using http page
