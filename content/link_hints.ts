@@ -96,6 +96,7 @@ var VHints = {
   modeOpt: null as HintsNS.ModeOpt | null,
   count: 0,
   lastMode: 0 as HintMode,
+  tooHigh: false,
   isClickListened: true,
   ngEnabled: null as boolean | null,
   keyStatus: {
@@ -122,6 +123,7 @@ var VHints = {
 
     let elements: Hint[] | undefined;
     const arr = VDom.getViewBox();
+    this.tooHigh = (document.documentElement as HTMLElement).scrollHeight  / window.innerHeight > 20;
     this.maxLeft = arr[2], this.maxTop = arr[3], this.maxRight = arr[4];
     if (!this.frameNested) {
       elements = this.getVisibleElements();
@@ -401,6 +403,9 @@ var VHints = {
     const output: Hint[] | Element[] = [], isTag = (<RegExpOne>/^\*$|^[a-z]+$/).test(query),
     box = root || document.webkitFullscreenElement || document;
     let list: HintsNS.ElementList | null = isTag ? box.getElementsByTagName(query) : box.querySelectorAll(query);
+    if (!root && (this as typeof VHints).tooHigh && list.length >= 15000) {
+      list = (this as typeof VHints).getElementsInViewPort(list);
+    }
     (output.forEach as HintsNS.ElementIterator<Hint | Element>).call(list, filter, output);
     if (root) { return output; }
     list = null;
@@ -421,6 +426,23 @@ var VHints = {
   } as {
     (key: string, filter: HintsNS.Filter<HTMLElement>, root: Document | Element): HTMLElement[];
     (key: HintsNS.ValidTraverseSelectors, filter: HintsNS.Filter<Hint>): Hint[];
+  },
+  getElementsInViewPort (list: HintsNS.ElementList): Element[] {
+    const result: Element[] = [], height = window.innerHeight;
+    for (let i = 0, len = list.length; i < len; i++) {
+      const el = list[i];
+      if (el instanceof HTMLFormElement) { continue; }
+      const cr = el.getBoundingClientRect();
+      if (cr.top < height && cr.bottom > 0) {
+        result.push(el);
+        continue;
+      }
+      const last = el.lastElementChild;
+      if (!last) { continue; }
+      while (list[++i] !== last) {}
+      i--;
+    }
+    return result;
   },
   deduplicate (list: Hint[]): void {
     let j = list.length, i: number, k: ClickType;
@@ -683,6 +705,7 @@ var VHints = {
     this.options = this.modeOpt = this.zIndexes = this.hintMarkers = null;
     this.lastMode = this.mode = this.mode1 = this.count =
     this.maxLeft = this.maxTop = this.maxRight = 0;
+    this.tooHigh = false;
     if (this.box) {
       this.box.remove();
       this.box = null;
