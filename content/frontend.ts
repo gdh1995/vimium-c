@@ -541,41 +541,34 @@ Pagination = {
     }
   },
   findAndFollowLink (names: string[], refusedStr: string): boolean {
-    interface Candidate {
-      [0]: HTMLElement;
-      [1]: number;
-      [2]: number;
-      [3]: string;
-    }
+    interface Candidate { [0]: HTMLElement; [1]: number; [2]: string; }
     const links = VHints.traverse({"*": this.GetLinks}, document) as Hint[] | HTMLElement[] as HTMLElement[];
-    let candidates: Candidate[] = [], ch: string, _len: number, s: string;
     links.push(document.documentElement as HTMLElement);
-    const re1 = <RegExpOne> /\s+/, re2 = <RegExpOne> /\b/;
-    for (_len = links.length - 1; 0 <= --_len; ) {
+    let candidates: Candidate[] = [], ch: string, s: string, maxLen = 99, len: number;
+    for (let re1 = <RegExpOne> /\s+/, _len = links.length - 1; 0 <= --_len; ) {
       const link = links[_len];
-      if (link.contains(links[_len + 1])) { continue; }
-      s = link.innerText;
-      if (s.length > 99) { continue; }
+      if (link.contains(links[_len + 1]) || (s = link.innerText).length > 99) { continue; }
       if (!s && !(s = (ch = (link as HTMLInputElement).value) && ch.toLowerCase && ch || link.title)) { continue; }
       s = s.toLowerCase();
       for (ch of names) {
         if (s.indexOf(ch) !== -1) {
-          if (s.indexOf(refusedStr) === -1) {
-            candidates.push([link, s.trim().split(re1).length, candidates.length, s]);
+          if (s.indexOf(refusedStr) === -1 && (len = s.split(re1).length) <= maxLen) {
+            len < maxLen && (maxLen = len + 1);
+            candidates.push([link, len + (candidates.length / 10000), s]);
           }
           break;
         }
       }
     }
     if (candidates.length <= 0) { return false; }
-    candidates = candidates.sort(function(a, b): number { return (a[1] - b[1]) || (a[2] - b[2]); });
-    _len = candidates[0][1] + 1;
-    candidates = candidates.filter(function(a) { return a[1] <= _len; });
+    maxLen += 1;
+    candidates = candidates.filter(function(a) { return a[1] < maxLen; }).sort(function(a, b) { return a[1] - b[1]; });
+    const re2 = <RegExpOne> /\b/;
     for (s of names) {
       const re3 = re2.test(s[0]) || re2.test(s.slice(-1))
         ? new RegExp("\\b" + s + "\\b", "i") : new RegExp(s, "i");
       for (let cand of candidates) {
-        if (re3.test(cand[3])) {
+        if (re3.test(cand[2])) {
           return this.followLink(cand[0]);
         }
       }
