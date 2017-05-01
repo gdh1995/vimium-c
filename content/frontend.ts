@@ -529,10 +529,11 @@ Pagination = {
   GetLinks (this: Hint[], element: Element): void {
     if (!(element instanceof HTMLElement) || element instanceof HTMLFormElement) { return; }
     let s: string | null;
-    const isClickable = element instanceof HTMLAnchorElement
-      || element.vimiumHasOnclick || element.getAttribute("onclick")
-      || (s = element.getAttribute("role")) && s.toLowerCase() === "link"
-      || VHints.ngEnabled && element.getAttribute("ng-click");
+    const isClickable = element instanceof HTMLAnchorElement || (
+      element instanceof HTMLButtonElement ? !element.disabled
+      : element.vimiumHasOnclick || element.getAttribute("onclick") || (
+        (s = element.getAttribute("role")) ? s.toLowerCase() === "link"
+        : VHints.ngEnabled && element.getAttribute("ng-click")));
     if (!isClickable) { return; }
     if ((s = element.getAttribute("aria-disabled")) != null && (!s || s.toLowerCase() === "true")) { return; }
     const rect = element.getBoundingClientRect();
