@@ -274,8 +274,12 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
       };
       return onKeyup2({keyCode: 0} as KeyboardEvent);
     },
-    goNext (_0: number, options: CmdOptions["goNext"]): void {
-      return Pagination.goBy(options.dir, options.patterns);
+    goNext (_0: number, {dir, patterns}: CmdOptions["goNext"]): void {
+      if (!VDom.isHTML() || Pagination.findAndFollowRel(dir)) { return; }
+      const isNext = dir === "next";
+      if (patterns.length <= 0 || !Pagination.findAndFollowLink(patterns, isNext ? "<" : ">")) {
+        return VHUD.showForDuration("No links to go " + dir);
+      }
     },
     reload (url: number | string, options?: FgOptions): void {
       const force = !!(options && options.force);
@@ -522,19 +526,6 @@ Pagination = {
     }
     return true;
   },
-  goBy (relName: string, pattern: CmdOptions["goNext"]["patterns"]): void {
-    if (!VDom.isHTML() || this.findAndFollowRel(relName)) {
-      return;
-    }
-    const arr = typeof pattern === "string" && pattern
-      ? pattern.split(/\s*,\s*/).filter(function(s): boolean { return s.length > 0; })
-      : (pattern instanceof Array) ? pattern : [],
-    isNext = relName === "next";
-    if (arr.length > 0 && this.findAndFollowLink(arr, isNext ? "<" : ">")) {
-      return;
-    }
-    return VHUD.showForDuration(`No links to go ${isNext ? "next" : "previous"}`);
-  },
   GetLinks (this: Hint[], element: Element): void {
     if (!(element instanceof HTMLElement) || element instanceof HTMLFormElement) { return; }
     let s: string | null;
@@ -549,7 +540,7 @@ Pagination = {
       this.push(element as HTMLElement | Hint as Hint);
     }
   },
-  findAndFollowLink (linkStrings: string[], refusedStr: string): boolean {
+  findAndFollowLink (names: string[], refusedStr: string): boolean {
     interface Candidate {
       [0]: HTMLElement;
       [1]: number;
@@ -557,9 +548,7 @@ Pagination = {
       [3]: string;
     }
     const links = VHints.traverse({"*": this.GetLinks}, document) as Hint[] | HTMLElement[] as HTMLElement[];
-    const names: string[] = [];
     let candidates: Candidate[] = [], ch: string, _len: number, s: string;
-    for (s of linkStrings) { if (s = s ? s + "" : "") { names.push(s); } }
     links.push(document.documentElement as HTMLElement);
     const re1 = <RegExpOne> /\s+/, re2 = <RegExpOne> /\b/;
     for (_len = links.length - 1; 0 <= --_len; ) {

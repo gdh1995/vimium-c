@@ -1145,19 +1145,26 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
       return requestHandlers.ShowHUD(str, true);
     },
     goNext (): void {
-      let dir: string = (cOptions.dir ? cOptions.dir + "" : "") || "next"
-        , patterns: CmdOptions["goNext"]["patterns"] = cOptions.patterns;
+      let dir = (cOptions.dir ? cOptions.dir + "" : "") || "next", i: any, p2: string[] = []
+        , patterns: string | string[] | boolean | number = cOptions.patterns;
       if (patterns instanceof Array) {
-        patterns = patterns.join(",").split(",");
+        for (i of patterns) {
+          i = i && (i + "").trim();
+          i && p2.push(i.toLowerCase());
+        }
       } else {
         typeof patterns === "string" || (patterns = "");
-        patterns = patterns || Settings.get(dir !== "next" ? "previousPatterns" : "nextPatterns", true).trim();
-        patterns = patterns.toLowerCase();
+        patterns = (patterns as string) || Settings.get(dir !== "next" ? "previousPatterns" : "nextPatterns", true);
+        patterns = patterns.trim().toLowerCase().split(",");
+        for (i of patterns) {
+          i = i.trim();
+          i && p2.push(i);
+        }
       }
       cPort.postMessage<1, "goNext">({ name: "execute", count: 1, command: "goNext",
         options: {
           dir,
-          patterns
+          patterns: p2
         }
       });
     },

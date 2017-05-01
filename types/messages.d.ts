@@ -87,7 +87,7 @@ interface CmdOptions {
   };
   goNext: {
     dir: string;
-    patterns: string | string[];
+    patterns: string[];
   };
   enterInsertMode: {
     code: number;
