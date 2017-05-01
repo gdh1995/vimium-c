@@ -8,15 +8,16 @@ if (/\btsc(\.\b|$)/i.test(argv[argi])) {
   argi++;
 }
 var cwd = popProcessArg(argi);
+cwd === "." && (cwd = null);
 
-if (!fs.existsSync("package.json")) {
-  process.chdir("..");
+if (cwd && !fs.existsSync("package.json")) {
+  process.chdir(__dirname);
 }
 switch (cwd) {
 case "all": case "local":
   var child_process = require('child_process');
   var cmd = argv[0];
-  var tasks = ["", "pages", "front"];
+  var tasks = ["background", "content", "pages", "front"];
   argv = argv.slice(1);
   argv.push("");
   var options = {
