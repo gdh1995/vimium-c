@@ -354,9 +354,10 @@ var VHints = {
     }
   },
   imageUrlRe: <RegExpI> /\.(?:bmp|gif|ico|jpe?g|png|svg|webp)\b/i,
-  GetImagesInImg (this: Hint[], element: Element): void {
-    let rect: ClientRect | undefined, cr: VRect | null = null, w: number, h: number;
+  GetImages (this: Hint[], element: Element): void {
+    if (element instanceof HTMLAnchorElement) { return VHints.getImagesInA(this, element); }
     if (!(element instanceof HTMLImageElement && element.src)) { return; }
+    let rect: ClientRect | undefined, cr: VRect | null = null, w: number, h: number;
     if ((w = element.width) < 8 && (h = element.height) < 8) {
       if (w !== h || (w !== 0 && w !== 3)) { return; }
       rect = element.getClientRects()[0];
@@ -377,12 +378,11 @@ var VHints = {
       this.push([element, cr, ClickType.Default]);
     }
   },
-  GetImagesInA (this: Hint[], element: Element): void {
-    if (!(element instanceof HTMLAnchorElement)) { return; }
+  getImagesInA (arr: Hint[], element: HTMLAnchorElement): void {
     let str = element.getAttribute("href"), cr: VRect | null;
     if (str && str.length > 4 && VHints.imageUrlRe.test(str)) {
       if (cr = VDom.getVisibleClientRect(element)) {
-        this.push([element, cr, ClickType.Default]);
+        arr.push([element, cr, ClickType.Default]);
       }
     }
   },
@@ -495,7 +495,7 @@ var VHints = {
     let _i: number = this.mode1;
     const visibleElements = this.traverse(
       (_i === HintMode.DOWNLOAD_IMAGE || _i === HintMode.OPEN_IMAGE)
-      ? { img: this.GetImagesInImg, a: this.GetImagesInA }
+      ? { img: this.GetImages, a: this.GetImages }
       : _i >= HintMode.min_link_job && _i <= HintMode.max_link_job ? { a: this.GetLinks }
       : {"*": _i === HintMode.FOCUS_EDITABLE ? this.GetEditable : this.GetClickable});
     const isNormal = _i < HintMode.min_job;
