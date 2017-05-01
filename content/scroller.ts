@@ -150,7 +150,7 @@ animate (a: number, d: ScrollByY, e: Element | null): number {
     return this.current = element && (this.selectFirst(element) || element);
   },
   checkCurrent (el: Element | null): void {
-    if (this.current !== el && !(this.current && VDom.isVisibile(this.current))) { this.current = el; }
+    if (this.current !== el && !(this.current && VDom.IsVisibile(this.current))) { this.current = el; }
   },
   getDimension (el: Element | null, di: ScrollByY, index: 0 | 2): number {
     return el !== this.top || (index && el) ? ((el || this.top) as Element)[this.Properties[index + di]]
