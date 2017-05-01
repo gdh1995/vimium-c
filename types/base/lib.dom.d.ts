@@ -1873,7 +1873,7 @@ interface Document extends Node, GlobalEventHandlers, NodeSelector, DocumentEven
       * @param x The x-offset
       * @param y The y-offset
       */
-    elementFromPoint(x: number, y: number): Element;
+    elementFromPoint(x: number, y: number): Element | null;
     /**
       * Executes a command on the current document, current selection, or the given range.
       * @param commandId String that specifies the command to execute. This command can be any of the command identifiers that can be executed in script.
@@ -1907,8 +1907,8 @@ interface Document extends Node, GlobalEventHandlers, NodeSelector, DocumentEven
       * Retrieves a collection of objects based on the specified element name.
       * @param name Specifies the name of an element.
       */
-    getElementsByTagName<K extends keyof ElementListTagNameMap>(tagname: K): ElementListTagNameMap[K];
-    getElementsByTagName(tagname: string): NodeListOf<Element>;
+    getElementsByTagName<K extends keyof ElementTagNameMap>(tagname: K): HTMLCollectionOf<ElementTagNameMap[K]>;
+    getElementsByTagName(tagname: string): HTMLCollectionOf<Element>;
     getElementsByTagNameNS(namespaceURI: "http://www.w3.org/1999/xhtml", localName: string): HTMLCollectionOf<HTMLElement>;
     getElementsByTagNameNS(namespaceURI: "http://www.w3.org/2000/svg", localName: string): HTMLCollectionOf<SVGElement>;
     getElementsByTagNameNS(namespaceURI: string, localName: string): HTMLCollectionOf<Element>;
@@ -2070,8 +2070,8 @@ interface Element extends Node, GlobalEventHandlers, ElementTraversal, NodeSelec
     getAttributeNodeNS(namespaceURI: string, localName: string): Attr;
     getBoundingClientRect(): ClientRect;
     getClientRects(): ClientRectList;
-    getElementsByTagName<K extends keyof ElementListTagNameMap>(name: K): ElementListTagNameMap[K];
-    getElementsByTagName(name: string): NodeListOf<Element>;
+    getElementsByTagName<K extends keyof ElementListTagNameMap>(name: K): HTMLCollectionOf<ElementTagNameMap[K]>;
+    getElementsByTagName(name: string): HTMLCollectionOf<Element>;
     getElementsByTagNameNS(namespaceURI: "http://www.w3.org/1999/xhtml", localName: string): HTMLCollectionOf<HTMLElement>;
     getElementsByTagNameNS(namespaceURI: "http://www.w3.org/2000/svg", localName: string): HTMLCollectionOf<SVGElement>;
     getElementsByTagNameNS(namespaceURI: string, localName: string): HTMLCollectionOf<Element>;

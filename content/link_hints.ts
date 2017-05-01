@@ -44,14 +44,11 @@ declare namespace HintsNS {
     url?: boolean;
   }
   type NestedFrame = false | 0 | null | HTMLIFrameElement | HTMLFrameElement;
-  interface ElementIterator {
-    (this: { [index: number]: Element, length: number}, fn: (this: Hint[], value: Element) => void, self: Hint[]): void;
+  interface ElementIterator<T> {
+    (this: { [index: number]: Element, length: number}, fn: (this: T[], value: Element) => void, self: T[]): void;
   }
-  interface Filter {
-    (this: Hint[], element: Element): void;
-  }
-  type Filters = {
-    [key in "*" | keyof HTMLElementTagNameMap]?: Filter;
+  interface Filter<T> {
+    (this: T[], element: Element): void;
   }
   type LinksMatched = false | null | Marker[];
   type Stack = number[];
@@ -68,6 +65,8 @@ declare namespace HintsNS {
       isHTML (): boolean;
     };
   }
+  type ValidTraverseSelectors = "*" | "a" | "img" | "a,img" | "img,a";
+  interface ElementList { readonly length: number; [index: number]: Element; }
 }
 
 var VHints = {
@@ -386,40 +385,42 @@ var VHints = {
       }
     }
   },
-  /** if `filters` has only "*" and is not `@GetClickable`, then the result may be `Hint | Element` */
-  traverse (filters: HintsNS.Filters, box?: Document | Element | null): Hint[] {
-    let output: Hint[] = [], func: HintsNS.Filter, wantClickable = filters["*"] === this.GetClickable;
-    Object.setPrototypeOf(filters, null);
+  traverse: function (this: any, key: string
+      , filter: HintsNS.Filter<Hint | Element>, root?: Document | Element): Hint[] | Element[] {
     VDom.prepareCrop();
-    box = box || document.webkitFullscreenElement || document;
-    if (this.ngEnabled === null && ("*" in filters)) {
-      this.ngEnabled = document.querySelector('.ng-scope') != null;
+    if ((this as typeof VHints).ngEnabled === null && key === "*") {
+      (this as typeof VHints).ngEnabled = document.querySelector('.ng-scope') != null;
     }
-    type iter = HintsNS.ElementIterator;
-    for (let key in filters) {
-      func = (filters as Dict<HintsNS.Filter>)[key] as HintsNS.Filter;
-      if (VSettings.cache.deepHints) {
-        ((output as Array<any>).forEach as iter).call(box.querySelectorAll("* /deep/ " + key), func, output);
-        if (typeof Element.prototype.attachShadow !== "function") {
-          continue;
-        }
-      } else {
-        ((output as Array<any>).forEach as iter).call(box.getElementsByTagName(key), func, output);
-      }
-      if (VDom.UI.root) {
-        ((output as Array<any>).forEach as iter).call(VDom.UI.root.querySelectorAll(key), func, output);
-      }
+    let query: string = key, addUI = true;
+    if (VSettings.cache.deepHints) {
+      // `/deep/` is only applyed on Shadow DOM v0, and Shadow DOM v1 does not support it at all
+      // ref: https://groups.google.com/a/chromium.org/forum/#!topic/blink-dev/HX5Y8Ykr5Ns
+      query = "* /deep/ " + key;
+      addUI = typeof Element.prototype.attachShadow === "function";
     }
-    if (wantClickable) { this.deduplicate(output); }
-    if (this.frameNested !== false) {}
+    const output: Hint[] | Element[] = [], isTag = (<RegExpOne>/^\*$|^[a-z]+$/).test(query),
+    box = root || document.webkitFullscreenElement || document;
+    let list: HintsNS.ElementList | null = isTag ? box.getElementsByTagName(query) : box.querySelectorAll(query);
+    (output.forEach as HintsNS.ElementIterator<Hint | Element>).call(list, filter, output);
+    if (root) { return output; }
+    list = null;
+    if (addUI && VDom.UI.root) {
+      (Array.prototype.forEach as any).call(VDom.UI.root.querySelectorAll(key), filter, output);
+    }
+    const wantClickable = (filter as Function) === (this as typeof VHints).GetClickable && key === "*";
+    if (wantClickable) { (this as typeof VHints).deduplicate(output as Hint[]); }
+    if ((this as typeof VHints).frameNested !== false) {}
     else if (wantClickable) {
-      this.checkNestedFrame(output);
+      (this as typeof VHints).checkNestedFrame(output as Hint[]);
     } else if (output.length > 0) {
-      this.frameNested = null;
+      (this as typeof VHints).frameNested = null;
     } else {
-      this.checkNestedFrame();
+      (this as typeof VHints).checkNestedFrame();
     }
-    return output;
+    return output as Hint[];
+  } as {
+    (key: string, filter: HintsNS.Filter<HTMLElement>, root: Document | Element): HTMLElement[];
+    (key: HintsNS.ValidTraverseSelectors, filter: HintsNS.Filter<Hint>): Hint[];
   },
   deduplicate (list: Hint[]): void {
     let j = list.length, i: number, k: ClickType;
@@ -469,11 +470,8 @@ var VHints = {
       if (!VDom.isHTML()) { return false; }
       output = [];
       VDom.prepareCrop();
-      type iter = HintsNS.ElementIterator;
-      ((output as any[]).forEach as iter).call(document.getElementsByTagName("iframe"), this.GetClickable, output);
-      if (output.length === 0 && document.body instanceof HTMLFrameSetElement) {
-        ((output as any[]).forEach as iter).call(document.body.getElementsByTagName("frame"), this.GetClickable, output);
-      }
+      type Iter = HintsNS.ElementIterator<Hint>;
+      ([].forEach as Iter).call(document.querySelectorAll("iframe,frame"), this.GetClickable, output = []);
     }
     if (output.length !== 1) {
       return output.length !== 0 && null;
@@ -493,12 +491,10 @@ var VHints = {
   },
   getVisibleElements (): Hint[] {
     let _i: number = this.mode1;
-    const visibleElements = this.traverse(
-      (_i === HintMode.DOWNLOAD_IMAGE || _i === HintMode.OPEN_IMAGE)
-      ? { img: this.GetImages, a: this.GetImages }
-      : _i >= HintMode.min_link_job && _i <= HintMode.max_link_job ? { a: this.GetLinks }
-      : {"*": _i === HintMode.FOCUS_EDITABLE ? this.GetEditable : this.GetClickable});
-    const isNormal = _i < HintMode.min_job;
+    const isNormal = _i < HintMode.min_job, visibleElements = _i === HintMode.DOWNLOAD_IMAGE
+        || _i === HintMode.OPEN_IMAGE ? this.traverse("a,img", this.GetImages)
+      : _i >= HintMode.min_link_job && _i <= HintMode.max_link_job ? this.traverse("a", this.GetLinks)
+      : this.traverse("*", _i === HintMode.FOCUS_EDITABLE ? this.GetEditable : this.GetClickable);
     if (this.maxRight > 0) {
       _i = Math.ceil(Math.log(visibleElements.length) / Math.log(VSettings.cache.linkHintCharacters.length));
       this.maxLeft -= 11 * _i + 8;

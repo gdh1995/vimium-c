@@ -381,7 +381,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
       });
     },
     focusInput (count: number): void {
-      const visibleInputs = VHints.traverse({"*": VHints.GetEditable});
+      const visibleInputs = VHints.traverse("*", VHints.GetEditable);
       let sel = visibleInputs.length;
       if (sel === 0) {
         return HUD.showForDuration("There are no inputs to focus.", 1000);
@@ -526,7 +526,7 @@ Pagination = {
     }
     return true;
   },
-  GetLinks (this: Hint[], element: Element): void {
+  GetLinks (this: HTMLElement[], element: Element): void {
     if (!(element instanceof HTMLElement) || element instanceof HTMLFormElement) { return; }
     let s: string | null;
     const isClickable = element instanceof HTMLAnchorElement || (
@@ -538,12 +538,12 @@ Pagination = {
     if ((s = element.getAttribute("aria-disabled")) != null && (!s || s.toLowerCase() === "true")) { return; }
     const rect = element.getBoundingClientRect();
     if (rect.width > 2 && rect.height > 2 && VDom.isStyleVisible(window.getComputedStyle(element))) {
-      this.push(element as HTMLElement | Hint as Hint);
+      this.push(element);
     }
   },
   findAndFollowLink (names: string[], refusedStr: string): boolean {
     interface Candidate { [0]: HTMLElement; [1]: number; [2]: string; }
-    const links = VHints.traverse({"*": this.GetLinks}, document) as Hint[] | HTMLElement[] as HTMLElement[];
+    const links = VHints.traverse("*", this.GetLinks, document);
     links.push(document.documentElement as HTMLElement);
     let candidates: Candidate[] = [], ch: string, s: string, maxLen = 99, len: number;
     for (let re1 = <RegExpOne> /\s+/, _len = links.length - 1; 0 <= --_len; ) {
