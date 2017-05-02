@@ -403,7 +403,7 @@ var VHints = {
     const output: Hint[] | Element[] = [], isTag = (<RegExpOne>/^\*$|^[a-z]+$/).test(query),
     box = root || document.webkitFullscreenElement || document;
     let list: HintsNS.ElementList | null = isTag ? box.getElementsByTagName(query) : box.querySelectorAll(query);
-    if (!root && (this as typeof VHints).tooHigh && list.length >= 15000) {
+    if (!root && (this as typeof VHints).tooHigh && box === document && list.length >= 15000) {
       list = (this as typeof VHints).getElementsInViewPort(list);
     }
     (output.forEach as HintsNS.ElementIterator<Hint | Element>).call(list, filter, output);
@@ -429,7 +429,7 @@ var VHints = {
   },
   getElementsInViewPort (list: HintsNS.ElementList): Element[] {
     const result: Element[] = [], height = window.innerHeight;
-    for (let i = 0, len = list.length; i < len; i++) {
+    for (let i = 1, len = list.length; i < len; i++) { // skip docEl
       const el = list[i];
       if (el instanceof HTMLFormElement) { continue; }
       const cr = el.getBoundingClientRect();
