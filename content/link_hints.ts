@@ -65,7 +65,6 @@ declare namespace HintsNS {
       isHTML (): boolean;
     };
   }
-  type ValidTraverseSelectors = "*" | "a" | "img" | "a,img" | "img,a";
   interface ElementList { readonly length: number; [index: number]: Element; }
 }
 
@@ -355,9 +354,8 @@ var VHints = {
     }
   },
   imageUrlRe: <RegExpI> /\.(?:bmp|gif|ico|jpe?g|png|svg|webp)\b/i,
-  GetImages (this: Hint[], element: Element): void {
-    if (element instanceof HTMLAnchorElement) { return VHints.getImagesInA(this, element); }
-    if (!(element instanceof HTMLImageElement && element.src)) { return; }
+  getImagesInImg (arr: Hint[], element: HTMLImageElement): void {
+    if (!element.src) { return; }
     let rect: ClientRect | undefined, cr: VRect | null = null, w: number, h: number;
     if ((w = element.width) < 8 && (h = element.height) < 8) {
       if (w !== h || (w !== 0 && w !== 3)) { return; }
@@ -376,14 +374,16 @@ var VHints = {
       }
     }
     if (cr) {
-      this.push([element, cr, ClickType.Default]);
+      arr.push([element, cr, ClickType.Default]);
     }
   },
-  getImagesInA (arr: Hint[], element: HTMLAnchorElement): void {
+  GetImages (this: Hint[], element: Element): void {
+    if (element instanceof HTMLImageElement) { return VHints.getImagesInImg(this, element); }
+    if (!(element instanceof HTMLAnchorElement)) { return; }
     let str = element.getAttribute("href"), cr: VRect | null;
     if (str && str.length > 4 && VHints.imageUrlRe.test(str)) {
       if (cr = VDom.getVisibleClientRect(element)) {
-        arr.push([element, cr, ClickType.Default]);
+        this.push([element, cr, ClickType.Default]);
       }
     }
   },
@@ -425,7 +425,7 @@ var VHints = {
     return output as Hint[];
   } as {
     (key: string, filter: HintsNS.Filter<HTMLElement>, root: Document | Element): HTMLElement[];
-    (key: HintsNS.ValidTraverseSelectors, filter: HintsNS.Filter<Hint>): Hint[];
+    (key: string, filter: HintsNS.Filter<Hint>): Hint[];
   },
   getElementsInViewPort (list: HintsNS.ElementList): Element[] {
     const result: Element[] = [], height = window.innerHeight;
@@ -514,7 +514,7 @@ var VHints = {
   getVisibleElements (): Hint[] {
     let _i: number = this.mode1;
     const isNormal = _i < HintMode.min_job, visibleElements = _i === HintMode.DOWNLOAD_IMAGE
-        || _i === HintMode.OPEN_IMAGE ? this.traverse("a,img", this.GetImages)
+        || _i === HintMode.OPEN_IMAGE ? this.traverse("a[href],img[src]", this.GetImages)
       : _i >= HintMode.min_link_job && _i <= HintMode.max_link_job ? this.traverse("a", this.GetLinks)
       : this.traverse("*", _i === HintMode.FOCUS_EDITABLE ? this.GetEditable : this.GetClickable);
     if (this.maxRight > 0) {
