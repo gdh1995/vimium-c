@@ -203,7 +203,7 @@ animate (a: number, d: ScrollByY, e: Element | null): number {
   },
   shouldScroll (element: Element, di: ScrollByY): boolean {
     const st = window.getComputedStyle(element);
-    return (di ? st.overflowY : st.overflowX) !== "hidden" && VDom.isStyleVisible(st);
+    return (di ? st.overflowY : st.overflowX) !== "hidden" && st.display !== "none" && st.visibility === "visible";
   },
   isScrollable (el: Element, di: ScrollByY): boolean {
     return this.scrollDo(el, di, +!(di ? el.scrollTop : el.scrollLeft)) && this.shouldScroll(el, di);

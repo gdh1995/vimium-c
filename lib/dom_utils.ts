@@ -33,9 +33,6 @@ var VDom = {
     arr && arr.length > 0 && (el = arr[arr.length - 1]);
     return el.parentElement || el.parentNode instanceof ShadowRoot && el.parentNode.host || null;
   },
-  isStyleVisible (style: CSSStyleDeclaration): boolean {
-    return style.visibility === 'visible' && style.display !== "none";
-  },
   bodyZoom: 1,
   prepareCrop (): void {
     let iw: number, ih: number, ihs: number;

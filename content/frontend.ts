@@ -537,7 +537,7 @@ Pagination = {
     if (!isClickable) { return; }
     if ((s = element.getAttribute("aria-disabled")) != null && (!s || s.toLowerCase() === "true")) { return; }
     const rect = element.getBoundingClientRect();
-    if (rect.width > 2 && rect.height > 2 && VDom.isStyleVisible(window.getComputedStyle(element))) {
+    if (rect.width > 2 && rect.height > 2 && window.getComputedStyle(element).visibility === "visible") {
       this.push(element);
     }
   },
