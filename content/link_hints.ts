@@ -367,13 +367,9 @@ var VHints = {
     } else if (rect = element.getClientRects()[0]) {
       w = rect.right + (rect.width < 3 ? 3 : 0);
       h = rect.bottom + (rect.height < 3 ? 3 : 0);
-      if (cr = VRect.cropRectToVisible(rect.left, rect.top, w, h)) {
-        if (!VDom.isStyleVisible(window.getComputedStyle(element))) {
-          cr = null;
-        }
-      }
+      cr = VRect.cropRectToVisible(rect.left, rect.top, w, h);
     }
-    if (cr) {
+    if (cr && window.getComputedStyle(element).visibility === "visible") {
       arr.push([element, cr, ClickType.Default]);
     }
   },
