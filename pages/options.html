@@ -23,11 +23,11 @@
           <div id="exclusionToolbar" style="visibility: hidden;">
             <button class="float-right" id="exclusionAddButton">Add Rule</button>
             <button class="float-right" id="exclusionSortButton" data-delay="">Sort Rules</button>
-            <label class="booleanOption innerLine">
+            <label class="booleanOption innerLine" style="display: none;">
               <input id="exclusionOnlyFirstMatch" type="checkbox" data-model="Boolean" />
               <span>At most one match</span>
             </label>
-            <label class="booleanOption innerLine checkboxWrapper">
+            <label class="booleanOption innerLine checkboxWrapper" style="display: none;">
               <input id="exclusionListenHash" type="checkbox" data-model="Boolean" data-permission="webNavigation" />
               <span>Listen hash changes</span>
             </label>
@@ -105,7 +105,7 @@ MainKey|c|c\:|MainName: \
           "<kbd class="sel-all" id="innerNewTab">chrome-search://local-ntp/local-ntp.html</kbd>".
         </div></td>
       </tr>
-      <tbody><tr><td colspan="2">
+      <tbody style="display: none;"><tr><td colspan="2">
         <header id="advanced">Advanced Options</header>
       </td><td></td></tr></tbody>
       <tbody id="advancedOptions" style="display: none;">
