@@ -51,7 +51,7 @@
 }
 .LH {
 	background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#FFF785), color-stop(100%,#FFC542));
-	border: 1px solid #E3BE23;
+	border: 0.01px solid #E3BE23;
 	border-radius: 3px;
 	box-shadow: 0 3px 7px 0 rgba(0, 0, 0, 0.3);
 	box-sizing: border-box;
@@ -70,19 +70,19 @@
 /* Input hints CSS */
 .IH {
 	background-color: rgba(255, 247, 133, 0.3);
-	border: 1px solid #C38A22;
+	border: 0.01px solid #C38A22;
 	display: block;
 	position: absolute;
 }
 .IH.S {
 	background-color: rgba(255, 102, 102, 0.3);
-	border: 1px solid #933;
+	border-color: #933;
 }
 
 /* HUD CSS */
 .HUD {
 	background-color: #eee;
-	border: 1px solid #b3b3b3;
+	border: 0.01px solid #b3b3b3;
 	border-radius: 4px 4px 0 0;
 	bottom: 0;
 	height: 14px;
@@ -112,7 +112,7 @@
 
 /* Vomnibar CSS */
 .Omnibar {
-	border: 1px solid #aaa;
+	border: 0.01px solid #aaa;
 	border-radius: 5px;
 	box-shadow: 0 2px 10px rgba(0, 0, 0, 0.8);
 	left: 10%;

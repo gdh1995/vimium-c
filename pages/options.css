@@ -20,6 +20,7 @@ a:active {
 header {
   font-size: 18px;
   font-weight: normal;
+  /* keep 1px so it can be more conspicuous than 0.01px */
   border-bottom: 1px solid #ddd;
   padding: 20px 0 15px 0;
 }
@@ -28,7 +29,7 @@ header {
 }
 button, select {
   background-image: -webkit-linear-gradient(#ededed, #ededed 38%, #dedede);
-  border: 1px solid rgba(0, 0, 0, 0.25);
+  border: 0.01px solid rgba(0, 0, 0, 0.25);
   border-radius: 2px;
   box-shadow: 0 1px 0 rgba(0, 0, 0, 0.08), inset 0 1px 2px rgba(255, 255, 255, 0.75);
   box-sizing: border-box;
@@ -99,6 +100,7 @@ pre, kbd, .code {
 }
 pre {
   margin: 5px;
+  /* keep 1px so it can be more conspicuous than 0.01px */
   border-left: 1px solid #ccc;
   padding-left: 5px;
 }
@@ -108,7 +110,7 @@ td {
 }
 
 input, textarea {
-  border: 1px solid #bfbfbf;
+  border: 0.01px solid #bfbfbf;
   border-radius: 2px;
   box-sizing: border-box;
   font: inherit;
@@ -311,7 +313,7 @@ label:active {
 }
 #footer {
   background: #f3f3f3;
-  border-top: 1px solid #979ca0;
+  border-top: 0.01px solid #979ca0;
   bottom: 0;
   left: 0;
   position: fixed;
@@ -324,19 +326,19 @@ label:active {
   line-height: 16px;
   padding-top: 6px;
 }
-@media (max-width: 879.9px) and (min-width: 550px) {
+@media (max-width: 879.99px) and (min-width: 550px) {
   #footerWrapper {
     float: right;
     margin-right: -60px;
   }
 }
-@media (max-width: 549.9px) and (min-width: 300px) {
+@media (max-width: 549.99px) and (min-width: 300px) {
   #footerWrapper {
     float: left;
     margin-left: -295px;
   }
 }
-@media (max-width: 299.9px) {
+@media (max-width: 299.99px) {
   #wrapper {
     margin-bottom: 0;
   }
