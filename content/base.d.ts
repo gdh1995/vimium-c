@@ -131,6 +131,10 @@ declare namespace VomnibarNS {
     style: {
       height: number;
     };
+    css: {
+      key: "background" | "backgroundColor";
+      value: string;
+    };
     focus: {
       lastKey: number;
     };

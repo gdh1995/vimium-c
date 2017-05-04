@@ -188,6 +188,9 @@ var Vomnibar = {
       this.box.style.height = (data as Req["style"]).height / this.zoom + "px";
       if (this.status === VomnibarNS.Status.Initing || this.status === VomnibarNS.Status.ToShow) { this.onShown(); }
       break;
+    case "css":
+      this.box.style.setProperty((data as Req["css"]).key, (data as Req["css"]).value);
+      break;
     case "focus": window.focus(); return VEventMode.suppress((data as Req["focus"]).lastKey);
     case "hide": this.hide((data as Req["hide"]).waitFrame); break;
     case "scrollBy": return VScroller.scrollBy(1, (data as Req["scrollBy"]).amount, 0);

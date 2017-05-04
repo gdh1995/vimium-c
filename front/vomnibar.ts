@@ -513,6 +513,9 @@ var Vomnibar = {
     } else {
       this.showFavIcon = false;
     }
+    if (getComputedStyle(this.list).background === getComputedStyle(document.head as HTMLElement).background) {
+      VPort.postToOwner({ name: "css", key: "background", value: "white" });
+    }
     this.init = VUtils.makeListRenderer = null as never;
   },
   HandleKeydown (this: void, event: KeyboardEvent): void {

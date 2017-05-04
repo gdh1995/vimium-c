@@ -12,6 +12,6 @@ display:block;overflow:hidden;padding:1px 3px 0 3px;position:absolute}
 line-height:14px;max-width:312px;min-width:150px;padding:2px 3px;right:150px;
 text-overflow:ellipsis;white-space:nowrap;z-index:2147483646}
 .Flash{box-shadow:0 0 4px 2px #4183C4;contain:strict;padding:1px;z-index:2147483647}
-.Omnibar{background:white;border:1px solid #aaa;border-radius:5px;box-shadow:0 2px 10px rgba(0,0,0,0.8);
+.Omnibar{border:1px solid #aaa;border-radius:5px;box-shadow:0 2px 10px rgba(0,0,0,0.8);
 left:10%;top:70px;width:80%;z-index:2147483645}
 .BH{color:#902809}.MC{color:#D4AC3A}.UI{pointer-events:all}
