@@ -18,5 +18,11 @@ front/*.png
 node_modules*
 test*
 todo*
-tsconfig*
+!Gulpfile.js
+!make.sh
 !tsconfig.json
+!/lib/math_parser.js
+!/lib/viewer.min.js
+!/pages/newtab.js
+!/tsc.js
+!/weidu/*/*.js
