@@ -16,14 +16,11 @@ var Settings = {
     if (key in this.cache) {
       return (this.cache as SettingsWithDefaults)[key];
     }
-    const initial = this.defaults[key];
-    const value = localStorage.getItem(key) == null ? initial
-        : typeof initial === "string" ? localStorage.getItem(key) as string
-        : initial === false || initial === true ? localStorage.getItem(key) === "true"
-        : JSON.parse<typeof initial>(localStorage.getItem(key) as string);
-    if (forCache) {
-      this.cache[key] = value;
-    }
+    const initial = this.defaults[key], str = localStorage.getItem(key);
+    const value = str == null ? initial : typeof initial === "string" ? str
+        : initial === false || initial === true ? str === "true"
+        : JSON.parse<typeof initial>(str);
+    forCache && (this.cache[key] = value);
     return value;
   },
   set<K extends keyof FullSettings> (key: K, value: FullSettings[K]): void {
