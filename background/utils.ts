@@ -32,7 +32,6 @@ var Utils = {
     };
     return this.escapeText(s);
   },
-  _chromePrefixes: { "chrome-extension": 1, "chrome-search": 1, __proto__: null as never } as SafeEnum,
   // url: only accept real tab's
   isRefusingIncognito (url: string): boolean {
     url = url.toLowerCase();
