@@ -3521,7 +3521,7 @@ if (lastVersion == null || lastVersion.length > 12 || parseInt(lastVersion) > 10
 replaceLocationDB();
 // oauth.init();
 
-document.title = getI18nMsg('title');
+// document.title = getI18nMsg('title');
 
 targetSwitch = PDI.get('privateSetup', 'targetSwitch');
 $('base,#searchForm').attr('target', targetSwitch ? "_self" : "_blank");
