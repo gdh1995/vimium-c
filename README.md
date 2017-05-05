@@ -72,12 +72,14 @@ Known issues (Up to the master branch):
   Vomnibar might break in such a situation, and there seems no way to detect it.
   So Vimium++ has disabled other extension pages in incognito since v1.59.3 .
 5. If an http/file/... page is the preferred, then there're some cases where it breaks,
-  such as on some websites with very strict Content Security Policies (CSP).
+  such as on some websites with very strict Content Security Policies (CSP),
+  so users may need to wait about 1 second to let Vimium++ (since v1.59.4) retry the inner page.
 
 Not released yet:
 * LinkHints works much faster on some of very long pags, like https://w3c.github.io/html/,
   though the change has no enough benefits on GitHub code file pages.
 * command `goNext` now detects `<button>`s, so that it supports more pages
+* enable auto-retrying-after-1s on a preferred Vomnibar page breaking
 
 1.59.3:
 * fix a dead loop and breaking Vomnibar when using http page

@@ -124,6 +124,11 @@ var Vomnibar = {
       setTimeout(function(): void {
         const a = Vomnibar;
         if (!a || a.status !== VomnibarNS.Status.Initing) { return; }
+        if (type !== VomnibarNS.PageType.inner) {
+          a._forceRedo = true;
+          a.reset(true, true);
+          return;
+        }
         a.reset();
         (VDom.UI.box as HTMLElement).style.display = "";
         window.focus();
@@ -157,7 +162,7 @@ var Vomnibar = {
     return VDom.UI.addElement(this.box = el, {adjust: true, showing: false});
   },
   _forceRedo: false,
-  reset (redo?: boolean): void | 1 {
+  reset (redo?: boolean, inner?: boolean): void | 1 {
     if (this.status === VomnibarNS.Status.NotInited) { return; }
     const oldStatus = this.status;
     this.status = VomnibarNS.Status.NotInited;
@@ -167,7 +172,7 @@ var Vomnibar = {
     VHandler.remove(this);
     if (this._forceRedo) { this._forceRedo = false; }
     else if (!redo || oldStatus < VomnibarNS.Status.ToShow) { return; }
-    return VPort.post({ handler: "activateVomnibar", redo: true });
+    return VPort.post({ handler: "activateVomnibar", redo: true, inner });
   },
   checkAlive (): boolean {
     const wnd = this.box.contentWindow;
