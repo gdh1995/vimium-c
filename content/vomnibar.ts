@@ -53,7 +53,7 @@ var Vomnibar = {
     this.box && VDom.UI.adjust();
     if (this.status === VomnibarNS.Status.NotInited) {
       this.status = VomnibarNS.Status.Initing;
-      this.init(options.secret, options.vomnibar, options.web);
+      this.init(options.secret, options.vomnibar, options.ptype);
     } else if (this.checkAlive()) {
       return;
     } else if (this.status === VomnibarNS.Status.Inactive) {
@@ -62,7 +62,7 @@ var Vomnibar = {
       this.box.contentWindow.focus();
       this.onShown();
     }
-    options.secret = 0; options.vomnibar = "", options.web = false;
+    options.secret = 0; options.vomnibar = "";
     options.width = this.width, options.name = "activate";
     let url = options.url, upper = 0;
     if (url === true) {
@@ -109,10 +109,10 @@ var Vomnibar = {
     let f: typeof requestAnimationFrame, act = function(): void { Vomnibar.port.postMessage<"onHidden">("onHidden"); };
     return action === VomnibarNS.HideType.WaitAndAct ? (f = requestAnimationFrame)(function() { f(act); }) : act();
   },
-  init (secret: number, page: string, web: boolean): HTMLIFrameElement {
+  init (secret: number, page: string, type: VomnibarNS.PageType): HTMLIFrameElement {
     const el = VDom.createElement("iframe") as typeof Vomnibar.box;
     el.className = "R UI Omnibar";
-    web && (el.referrerPolicy = "no-referrer");
+    type === VomnibarNS.PageType.web && (el.referrerPolicy = "no-referrer");
     el.src = page;
     el.style.visibility = "hidden";
     el.onload = function(this: typeof el): void {

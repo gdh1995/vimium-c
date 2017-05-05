@@ -136,6 +136,13 @@ declare namespace SettingsNS {
   }
 }
 
+declare namespace VomnibarNS {
+  const enum PageType {
+    inner = 0, ext = 1, web = 2,
+    Default = inner,
+  }
+}
+
 interface Document extends DocumentAttrsToBeDetected {}
 
 declare const enum GlobalConsts {

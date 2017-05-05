@@ -81,7 +81,7 @@ interface FullBgReq extends BgReq, BgVomnibarReq {
 interface CmdOptions {
   "Vomnibar.activate": {
     vomnibar: string;
-    web: boolean;
+    ptype: VomnibarNS.PageType;
     script: string;
     secret: number;
   };

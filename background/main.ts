@@ -1195,10 +1195,11 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
         port = Settings.indexFrame(port.sender.tabId, 0) || port;
       }
       const page = Settings.cache.vomnibarPage_f, { url } = port.sender, web = !page.startsWith("chrome"),
+      inner = Settings.CONST.VomnibarPageInner,
       usable = !(forceInner || (web ? url.startsWith("chrome") : port.sender.incognito) || url.startsWith(location.origin)),
       options = Utils.extendIf(Object.setPrototypeOf({
-        vomnibar: usable ? page : Settings.CONST.VomnibarPageInner,
-        web: usable && web,
+        vomnibar: usable ? page : inner,
+        ptype: page === inner || !usable ? VomnibarNS.PageType.inner : web ? VomnibarNS.PageType.web : VomnibarNS.PageType.ext,
         script: Settings.CONST.VomnibarScript_f,
         secret: getSecret(),
       } as CmdOptions["Vomnibar.activate"], null), cOptions as any);
