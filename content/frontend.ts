@@ -532,7 +532,7 @@ Pagination = {
     const isClickable = element instanceof HTMLAnchorElement || (
       element instanceof HTMLButtonElement ? !element.disabled
       : element.vimiumHasOnclick || element.getAttribute("onclick") || (
-        (s = element.getAttribute("role")) ? s.toLowerCase() === "link"
+        (s = element.getAttribute("role")) ? (s = s.toLowerCase(), s === "link" || s === "button")
         : VHints.ngEnabled && element.getAttribute("ng-click")));
     if (!isClickable) { return; }
     if ((s = element.getAttribute("aria-disabled")) != null && (!s || s.toLowerCase() === "true")) { return; }
