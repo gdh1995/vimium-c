@@ -62,12 +62,10 @@ handler = function(content_scripts) {
 });
 })();
 
-(function(obj): void {
-type _ListenerEx = typeof obj.prototype.addEventListener;
-interface ListenerEx extends _ListenerEx {
-  vimiumHooked?: boolean;
-}
-const cls = obj.prototype, _listen = cls.addEventListener as ListenerEx;
+(function(): void {
+type ListenerEx = EventTarget["addEventListener"] & { vimiumHooked?: boolean; }
+
+const obj = EventTarget as EventTargetEx, cls = obj.prototype, _listen = cls.addEventListener as ListenerEx;
 if (_listen.vimiumHooked === true) { return; }
 
 const newListen = cls.addEventListener = function(this: EventTarget, type, listener, useCapture) {
@@ -81,4 +79,4 @@ obj.vimiumRemoveHooks = function() {
   delete obj.vimiumRemoveHooks;
   cls.addEventListener === newListen && (cls.addEventListener = _listen);
 };
-})(EventTarget as EventTargetEx);
+})();
