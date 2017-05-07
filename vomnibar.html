@@ -22,10 +22,9 @@ color:black;contain:strict;font-size:20px;height:34px;outline:none;padding:4px;w
 .type{color:#777;cursor:text;display:inline-block;width:51px;}
 .dim{box-sizing:border-box;max-width:100%;}
 .bottom{font:14px/17px Consolas,"Liberation Mono","Courier New",monospace;height:16px;margin:2px 6px 0 51px;overflow:hidden;}
-.icon{background:none !important;}img{position:absolute;left:40px;}
 .url{box-sizing:border-box;color:#248;cursor:text;display:inline-block;max-width:100%;text-decoration:none;}
 .relevancy{margin-left:10px;position:absolute;}
-#close,img{-webkit-user-select:none;user-select:none;}
+#close{-webkit-user-select:none;user-select:none;}
 match{color:black;font-weight:bold;}
 .dim > match{text-decoration:underline;}
 	</style>
@@ -41,7 +40,7 @@ match{color:black;font-weight:bold;}
 		<div class="top">
 			<span class="type">{{type}}</span><span class="dim">{{title}}</span>
 		</div>
-		<div class="bottom{{favIconUrl}}">
+		<div class="bottom">
 			<a class="url">{{textSplit}}</a>{{relevancy}}
 		</div>
 	</div></script>
