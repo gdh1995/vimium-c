@@ -352,7 +352,7 @@ exclusions: PopExclusionRulesOption = Object.setPrototypeOf({
     if (saved) {
       saved = false;
       const btn = $("saveOptions");
-      $("helpSpan").innerHTML = "Type <strong>Ctrl-Enter</strong> to save and close.";
+      $("helpSpan").innerHTML = "Type <strong><kbd>Ctrl-Enter</kbd></strong> to save and close.";
       btn.removeAttribute("disabled");
       (btn.firstChild as Text).data = "Save Changes";
     }
