@@ -38,6 +38,7 @@ button, select {
   height: 24px;
   outline: none;
   padding: 0 10px;
+  text-align: center;
   text-shadow: 0 1px 0 #f0f0f0;
 }
 .chrome-ui button {
@@ -354,7 +355,12 @@ label:active {
   float: left;
   font-size: 12px;
   margin: -3px 0 0 2px;
-  width: 305px;
+  width: 268px;
+}
+#footerButtons {
+  display: inline-block;
+  text-align: right;
+  width: 300px;
 }
 #advancedOptionsButton {
   width: 156px;
