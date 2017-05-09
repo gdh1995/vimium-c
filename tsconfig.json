@@ -33,8 +33,7 @@
     "node_modules",
     "front/*.ts",
     "lib/polyfill.ts",
-    "pages/options*.ts",
-    "pages/show.ts",
+    "pages/*.ts",
     "test*",
     "weidu"
   ]
