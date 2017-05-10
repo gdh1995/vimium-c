@@ -98,17 +98,16 @@ var Vomnibar = {
   show (): void {
     const zoom = 1 / window.devicePixelRatio;
     (document.body as HTMLBodyElement).style.zoom = zoom > 1 ? zoom + "" : "";
-    this.focused || setTimeout(function() { Vomnibar.input.focus(); }, 50);
+    this.focused || setTimeout(function() { Vomnibar.input.focus(); }, 34);
     addEventListener("mousewheel", this.onWheel, {passive: false});
     this.input.value = this.inputText;
-    setTimeout(function() { Vomnibar.input.onselect = Vomnibar.OnSelect; }, 120);
+    this.OnShown && setTimeout(this.OnShown, 100);
   },
   hide (data?: "hide"): void {
     this.isActive = this.isEditing = false;
     this.height = this.matchType = 0;
     removeEventListener("mousewheel", this.onWheel, {passive: false});
     window.onkeyup = null as never;
-    this.input.onselect = null as never;
     this.completions = this.onUpdate = this.isHttps = null as never;
     this.mode.query = this.lastQuery = this.inputText = "";
     this.modeType = this.mode.type = "omni";
@@ -491,15 +490,20 @@ var Vomnibar = {
       return func.call(this);
     }
   },
-  init (): void {
+  OnShown: function (this: void): void {
+    const a = Vomnibar, i = a.input;
+    i.onselect = a.OnSelect;
+    i.onfocus = i.onblur = a.OnFocus;
     addEventListener("focus", VPort.EnsurePort, true);
+    a.OnShown = null;
+  } as ((this: void) => void) | null,
+  init (): void {
     window.onclick = function(e) { Vomnibar.onClick(e); };
     this.onWheel = this.onWheel.bind(this);
     Object.setPrototypeOf(this.ctrlMap, null);
     Object.setPrototypeOf(this.normalMap, null);
     this.input = document.getElementById("input") as HTMLInputElement;
     this.list = document.getElementById("list") as HTMLDivElement;
-    this.input.onfocus = this.input.onblur = this.OnFocus;
     this.input.oninput = this.onInput.bind(this);
     this.list.oncontextmenu = this.OnMenu;
     (document.getElementById("close") as HTMLElement).onclick = function() { Vomnibar.hide(); };
