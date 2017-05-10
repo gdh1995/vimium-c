@@ -3,7 +3,7 @@ display:block;float:none;font:12px/1 "Helvetica Neue",Helvetica,Arial,sans-serif
 opacity:1;outline:none;overflow:hidden;padding:0;pointer-events:none;position:fixed;text-align:left;text-overflow:clip;
 text-decoration:none;text-indent:0;text-shadow:none;text-transform:none;vertical-align:baseline;white-space:normal}
 .HM{direction: ltr;font-weight:bold;overflow:visible;position:absolute;white-space:nowrap;z-index:2147483647}
-.LH{background:-webkit-gradient(linear,left top,left bottom,color-stop(0,#FFF785),color-stop(100%,#FFC542));
+.LH{background:linear-gradient(to bottom,#FFF785 0%,#FFC542 100%);
 border:0.01px solid #E3BE23;border-radius:3px;box-shadow:0 3px 7px 0 rgba(0,0,0,0.3);box-sizing:border-box;
 display:block;overflow:hidden;padding:1px 3px 0 3px;position:absolute}
 .IH{background-color:rgba(255,247,133,0.3);border:0.01px solid #C38A22;display:block;position:absolute}

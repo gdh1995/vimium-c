@@ -28,7 +28,7 @@ header {
   padding: 0 0 5px 0;
 }
 button, select {
-  background-image: -webkit-linear-gradient(#ededed, #ededed 38%, #dedede);
+  background-image: linear-gradient(#ededed, #ededed 38%, #dedede);
   border: 0.01px solid rgba(0, 0, 0, 0.25);
   border-radius: 2px;
   box-shadow: 0 1px 0 rgba(0, 0, 0, 0.08), inset 0 1px 2px rgba(255, 255, 255, 0.75);
@@ -45,12 +45,12 @@ button, select {
   margin-right: 0;
 }
 button:hover, select:hover {
-  background-image: -webkit-linear-gradient(#f0f0f0, #f0f0f0 38%, #e0e0e0);
+  background-image: linear-gradient(#f0f0f0, #f0f0f0 38%, #e0e0e0);
   border-color: rgba(0, 0, 0, 0.3);
   color: black;
 }
 button:active, select:active {
-  background-image: -webkit-linear-gradient(#e7e7e7, #e7e7e7 38%, #d7d7d7);
+  background-image: linear-gradient(#e7e7e7, #e7e7e7 38%, #d7d7d7);
   box-shadow: none;
   text-shadow: none;
 }
@@ -70,7 +70,7 @@ select.right {
   -webkit-appearance: button; 
   background-color: #ddd;
   background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="6px" height="6px"><polygon points="0,0 6,0 3,6" fill="%23444"/></svg>'),
-    -webkit-linear-gradient(#ededed, #ededed 38%, #dedede);
+    linear-gradient(#ededed, #ededed 38%, #dedede);
   background-position: 45% center;
   background-repeat: no-repeat;
   border-bottom-left-radius: 0;
@@ -82,11 +82,11 @@ select.right {
 }
 select.right:hover {
   background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="6px" height="6px"><polygon points="0,0 6,0 3,6"/></svg>'),
-    -webkit-linear-gradient(#f0f0f0, #f0f0f0 38%, #e0e0e0);
+    linear-gradient(#f0f0f0, #f0f0f0 38%, #e0e0e0);
 }
 select.right:active {
   background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="6px" height="6px"><polygon points="0,0 6,0 3,6"/></svg>'),
-    -webkit-linear-gradient(#e7e7e7, #e7e7e7 38%, #d7d7d7);
+    linear-gradient(#e7e7e7, #e7e7e7 38%, #d7d7d7);
 }
 select.right:focus {
   z-index: 1;

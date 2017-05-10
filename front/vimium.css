@@ -50,7 +50,7 @@
 	z-index: 2147483647;
 }
 .LH {
-	background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#FFF785), color-stop(100%,#FFC542));
+	background: linear-gradient(to bottom, #FFF785 0%, #FFC542 100%);
 	border: 0.01px solid #E3BE23;
 	border-radius: 3px;
 	box-shadow: 0 3px 7px 0 rgba(0, 0, 0, 0.3);
