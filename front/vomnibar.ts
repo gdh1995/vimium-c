@@ -95,6 +95,7 @@ var Vomnibar = {
   selection: -1,
   timer: 0,
   wheelTimer: 0,
+  browserVersion: BrowserVer.AssumesVer,
   show (): void {
     const zoom = 1 / window.devicePixelRatio;
     (document.body as HTMLBodyElement).style.zoom = zoom > 1 ? zoom + "" : "";
@@ -520,6 +521,11 @@ var Vomnibar = {
     if (getComputedStyle(this.list).background === getComputedStyle(document.head as HTMLElement).background) {
       VPort.postToOwner({ name: "css", key: "background", value: "white" });
     }
+    if (this.browserVersion < BrowserVer.MinEnsuredBorderWidth) {
+      const css = document.createElement("style");
+      css.textContent = ".item{border-width:1px;}";
+      (document.head as HTMLHeadElement).appendChild(css);
+    }
     this.init = VUtils.makeListRenderer = null as never;
   },
   HandleKeydown (this: void, event: KeyboardEvent): void {
@@ -740,6 +746,7 @@ VPort = {
   timer = setTimeout(function() { window.location.href = "about:blank"; }, 700);
   Vomnibar.secret = function(request): void {
     Vomnibar.secret = function() {};
+    Vomnibar.browserVersion = request.browserVersion;
     return handler(request.secret);
   };
   window.onmessage = function(event): void {

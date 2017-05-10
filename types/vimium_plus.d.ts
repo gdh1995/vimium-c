@@ -174,8 +174,10 @@ declare const enum BrowserVer {
   MinCreateWndWithState = 44,
   MinMutedInfo = 45,
   MinAutoDecodeJSUrl = 46,
+  MinEnsuredBorderWidth = 48, // inc 0.0001px to the min "visible" width
   MinNoUnmatchedIncognito = 52,
   MinClosedShadowRoot = 53,
   AssumesVer = 53,
+  MinHighDPIOnRemoteDesktop = 54,
   MinExtIframesInSharedProcess = 56,
 }

@@ -1732,6 +1732,7 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
           port.onMessage.addListener(this.OnMessage);
           port.postMessage({
             name: "secret",
+            browserVersion: Settings.CONST.ChromeVersion,
             secret: getSecret()
           });
           return;

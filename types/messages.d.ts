@@ -73,6 +73,7 @@ interface BgVomnibarReq {
   };
   secret: {
     secret: number;
+    browserVersion: BrowserVer;
   };
 }
 interface FullBgReq extends BgReq, BgVomnibarReq {

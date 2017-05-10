@@ -252,6 +252,12 @@ sortRules: (el?: HTMLElement) => void;
 ExclusionRulesOption.prototype.reChar = <RegExpOne> /^[\^*]|[^\\][$()*+?\[\]{|}]/;
 ExclusionRulesOption.prototype._escapeRe = <RegExpG> /\\(.)/g;
 
+if (bgSettings.CONST.ChromeVersion < BrowserVer.MinEnsuredBorderWidth) (function(): void {
+  const css = document.createElement("style");
+  css.textContent = "*{border-width:1px !important;}";
+  (document.head as HTMLHeadElement).appendChild(css);
+})();
+
 location.pathname.indexOf("/popup.html") !== -1 && BG.Utils.require("Exclusions").then((function(callback) {
   return function() {
     chrome.tabs.query({currentWindow: true as true, active: true as true}, callback);
