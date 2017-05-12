@@ -1,7 +1,7 @@
 Vimium++
 ========
 [![MIT license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE.txt)
-![Version 1.59.3](https://img.shields.io/badge/release-1.59.3-orange.svg)
+![Version 1.59.4](https://img.shields.io/badge/release-1.59.4-orange.svg)
 
 **[Visit Vimium++ in Chrome Web Store](https://chrome.google.com/webstore/detail/vimium%2B%2B/hfjbmagddngcpeloejdejnfgbamkjaeg)**.
 
@@ -78,8 +78,12 @@ Known issues (Up to the master branch):
 Not released yet:
 * `LinkHints` works much faster on some of very long pags, like https://w3c.github.io/html/,
   though the change has no enough benefits on GitHub code file pages.
+
+1.59.4:
 * command `goNext` now detects `<button>`s, so that it supports more pages
 * enable auto-retrying-after-1s on a preferred Vomnibar page breaking
+* fix some UI problems caused by Chrome's various border width rules
+* some other bug fixes and improvements
 
 1.59.3:
 * fix a dead loop and breaking Vomnibar when using http page
