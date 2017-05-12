@@ -904,9 +904,11 @@ searchEngines: {
       if (arr) {
         queryTerms.shift();
         autoSelect = arr !== this.omni;
+        return Completers.filter(arr);
       }
     }
-    return Completers.filter(arr || this[options.type] || this.omni);
+    const a = this[options.type];
+    return Completers.filter(a instanceof Array ? a : this.omni);
   }
 };
 
