@@ -32,12 +32,12 @@ if (compilerOptions.noImplicitUseStrict) {
 
 var Tasks = {
   "build/background": "background/*.ts",
-  "build/content": ["./content/*.ts", "./lib/*.ts"],
-  "build/front": "front/*.ts",
-  "build/lib": "lib/*.ts",
-  "build/others": ["pages/loader.ts", "pages/chrome_ui.ts"],
-  "build/show": "pages/show.ts",
-  "build/options": "pages/options*.ts",
+  "build/content": ["content/*.ts", "lib/*.ts"],
+  "build/front": ["front/*.ts", "content/*.d.ts"],
+  "build/lib": ["lib/*.ts", "content/*.d.ts"],
+  "build/others": ["pages/loader.ts", "pages/chrome_ui.ts", "background/*.d.ts"],
+  "build/show": ["pages/show.ts", "background/*.d.ts", "content/*.d.ts"],
+  "build/options": ["pages/options*.ts", "background/*.d.ts", "content/*.d.ts"],
   "build/pages": ["build/others", "build/show", "build/options"],
   "static/special": function() {
     return copyByPath(["pages/newtab.js", "lib/math_parser*", "lib/*.min.js"]);
@@ -126,15 +126,15 @@ var Tasks = {
   },
   "background": ["locally", makeCompileTask("background/*.ts")],
   "content": ["locally", makeCompileTask(["content/*.ts", "lib/*.ts", "!lib/polyfill.ts"])],
-  "lib": ["locally", makeCompileTask("lib/*.ts")],
+  "lib": ["locally", makeCompileTask(["lib/*.ts", "content/*.d.ts"])],
   "others": ["front"],
   "scripts": ["background", "content"],
   "front": ["locally", function() {
     return compile(["front/*.ts", "lib/polyfill.ts"
-        , "pages/*.ts", "!pages/options*.ts", "!pages/show.ts"]);
+        , "pages/*.ts", "!pages/options*.ts", "!pages/show.ts", "background/*.d.ts", "content/*.d.ts"]);
   }],
   "pages": ["locally", function() {
-    return compile(["pages/options*.ts", "pages/show.ts"]);
+    return compile(["pages/options*.ts", "pages/show.ts", "background/*.d.ts", "content/*.d.ts"]);
   }],
   local: ["scripts", "front", "pages"],
   tsc: ["local"],
@@ -198,14 +198,16 @@ function compile(pathOrStream, skipOutput, forceUpdate) {
     pathOrStream = [pathOrStream];
   }
   if (pathOrStream instanceof Array) {
-    pathOrStream.push("!**/*.d.ts");
+    pathOrStream.push("!node_modules/**/*.ts");
+    pathOrStream.push("!types/**/*.ts");
+    pathOrStream.push("!types/*.ts");
   }
   if (forceUpdate == null) {
     forceUpdate = globalForceUpdate;
   }
   var stream = pathOrStream instanceof Array ? gulp.src(pathOrStream, { base: "." }) : pathOrStream;
   if (!skipOutput && !forceUpdate) {
-    stream = stream.pipe(newer({ dest: JSDEST, ext: '.js', extra: "**/*.d.ts" }));
+    stream = stream.pipe(newer({ dest: JSDEST, ext: '.js', extra: ["types/**/*.d.ts", "types/*.d.ts"] }));
   }
   if (willListFiles) {
     stream = stream.pipe(gulpPrint());
