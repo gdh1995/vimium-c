@@ -212,6 +212,7 @@ var Utils = {
     case "mailto": return isSlash ? Urls.Type.Search
       : (i = string.indexOf('/', i)) > 0 && string.lastIndexOf('?', i) < 0
       ? Urls.TempType.Unspecified : Urls.Type.Full;
+    case "tel": return (<RegExpOne>/\d/).test(string) ? Urls.Type.Full : Urls.Type.Search;
     default: return isSlash ? Urls.Type.Search : Urls.TempType.Unspecified;
     }
   },
