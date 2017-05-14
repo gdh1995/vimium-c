@@ -6,7 +6,7 @@ VDom.UI = {
   callback: null,
   flashLastingTime: 400,
   showing: true,
-  addElement<T extends HTMLElement> (this: DomUI, element: T, options?: UIElementOptions): T {
+  addElement<T extends HTMLElement> (this: DomUI, element: T, options?: UIElementOptions | null): T {
     options = Object.setPrototypeOf(options || {}, null);
     this.showing = options.showing !== false;
     VPort.send({ handler: "initInnerCSS" }, this.InitInner);
@@ -16,7 +16,7 @@ VDom.UI = {
     this.root = (this.box as HTMLElement).attachShadow ?
         (this.box as HTMLElement & AttachShadow).attachShadow({mode: "closed"})
       : (this.box as HTMLElement).createShadowRoot();
-    this.addElement = function<T extends HTMLElement>(this: DomUI, element: T, options?: UIElementOptions): T {
+    this.addElement = function<T extends HTMLElement>(this: DomUI, element: T, options?: UIElementOptions | null): T {
       options = Object.setPrototypeOf(options || {}, null);
       options.adjust === false || this.adjust();
       return options.before ? (this.root as ShadowRoot).insertBefore(element, options.before)

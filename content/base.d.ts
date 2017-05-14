@@ -182,7 +182,7 @@ interface DomUI {
   callback: null | ((this: void) => void);
   flashLastingTime: number;
   showing: boolean;
-  addElement<T extends HTMLElement>(this: DomUI, element: T, options?: UIElementOptions): T;
+  addElement<T extends HTMLElement>(this: DomUI, element: T, options?: UIElementOptions | null): T;
   addElementList(this: DomUI, els: ReadonlyArray<Element>, offset: { [0]: number; [1]: number }): HTMLDivElement;
   adjust (this: void, event?: Event): void;
   init (this: DomUI, showing: boolean): void;

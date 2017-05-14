@@ -818,15 +818,15 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
     };
     (box.querySelector("#HClose") as HTMLElement).onclick = Commands.showHelp = hide;
     shouldShowAdvanced && toggleAdvanced();
-    VDom.UI.addElement(box, Vomnibar.status ? undefined : {before: Vomnibar.box});
+    VDom.UI.addElement(box, Vomnibar.status ? null : {before: Vomnibar.box});
     setTimeout(function() { window.focus(); }, 0);
     VScroller.current = box;
     VHandler.push(function(event) {
       if (!InsertMode.lock && VKeyboard.isEscape(event)) {
         VDom.UI.removeSelection(VDom.UI.root as ShadowRoot) || hide();
-        return 2;
+        return HandlerResult.Prevent;
       }
-      return 0;
+      return HandlerResult.Nothing;
     }, box);
   }
   };
