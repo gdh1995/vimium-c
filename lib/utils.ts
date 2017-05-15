@@ -52,8 +52,7 @@ var VUtils = {
     return HandlerResult.Default;
   },
   remove (env: object): void {
-    let ref = this.stack, i = ref.length;
-    while (0 <= --i) {
+    for (let ref = this.stack, i = ref.length; 0 <= --i; ) {
       if (ref[i][1] === env) {
         ref.splice(i, 1);
         break;
