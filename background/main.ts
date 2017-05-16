@@ -1106,10 +1106,10 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
       });
     },
     parentFrame (): void {
-      let frames: Frames.Frames | undefined, sender: Frames.Sender | undefined, msg: string | null;
+      const sender: Frames.Sender | undefined = cPort.sender,
       msg = NoFrameId ? `Vimium++ can not know parent frame before Chrome ${BrowserVer.MinWithFrameId}`
         : !chrome.webNavigation ? "Vimium++ is not permitted to access frames"
-        : !((frames = framesForTab[cPort.sender.tabId]) && (sender = frames[0].sender) && sender.tabId > 0)
+        : !(sender && sender.tabId > 0 && framesForTab[sender.tabId])
           ? "Vimium++ can not access frames in current tab"
         : !sender.frameId ? "This page is just the top frame"
         : null;
