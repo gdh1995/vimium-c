@@ -423,7 +423,7 @@ var VHints = {
     (key: string, filter: HintsNS.Filter<HTMLElement>, root: Document | Element): HTMLElement[];
     (key: string, filter: HintsNS.Filter<Hint>): Hint[];
   },
-  getElementsInViewPort (list: HintsNS.ElementList): Element[] {
+  getElementsInViewPort (list: HintsNS.ElementList): HintsNS.ElementList {
     const result: Element[] = [], height = window.innerHeight;
     for (let i = 1, len = list.length; i < len; i++) { // skip docEl
       const el = list[i];
@@ -438,7 +438,7 @@ var VHints = {
       while (list[++i] !== last) {}
       i--;
     }
-    return result;
+    return result.length > 12 ? result : list;
   },
   deduplicate (list: Hint[]): void {
     let j = list.length, i: number, k: ClickType;
