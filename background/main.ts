@@ -345,7 +345,7 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
     checkVomnibarPage: function (this: void, port: Frames.Port, nolog?: boolean): boolean {
       interface SenderEx extends Frames.Sender { isVomnibar?: boolean; warned?: boolean; }
       const info = port.sender as SenderEx;
-      if (info.isVomnibar != null) { return false; }
+      if (info.isVomnibar != null) { return !info.isVomnibar; }
       const { url } = info, succeed = url === Settings.cache.vomnibarPage_f || url === Settings.CONST.VomnibarPageInner;
       info.isVomnibar = succeed;
       if (succeed) { return false; }
