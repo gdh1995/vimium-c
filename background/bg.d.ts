@@ -333,11 +333,6 @@ declare namespace SettingsNS {
   type DynamicFiles = "HelpDialog" | "Commands" | "Exclusions" |
     "MathParser";
 
-  interface IndexPorts {
-    (this: any, tabId: number): Frames.Frames;
-    (this: any): Frames.FramesMap;
-  }
-
   interface OnSyncUpdate {
     (this: void, changes: { [key: string]: chrome.storage.StorageChange }, area: string): void;
   }
@@ -410,8 +405,9 @@ interface Window {
       ): SettingsNS.SettingsWithDefaults[K];
     set<K extends keyof FullSettings> (key: K, value: FullSettings[K]): void;
     indexPorts: {
-      (this: void, tabId: number): Frames.Frames | undefined;
-      (this: void): Frames.FramesMap;
+      (this: any, tabId: number, frameId: number): Port | null;
+      (this: any, tabId: number): Frames.Frames | null;
+      (this: any): Frames.FramesMap;
     };
     fetchFile (file: keyof SettingsNS.CachedFiles, callback?: (this: void) => any): TextXHR | null;
     readonly defaults: SettingsNS.SettingsWithDefaults & SafeObject;

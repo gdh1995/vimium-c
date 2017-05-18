@@ -102,7 +102,7 @@ var Exclusions: ExcCls = Exclusions && !(Exclusions instanceof Promise) ? Exclus
       });
       return;
     }
-    const ref: Frames.FramesMap = Settings.indexPorts(),
+    const ref = Settings.indexPorts(),
     needIcon = !!(Settings.IconBuffer && (Settings.IconBuffer() || Settings.get("showActionIcon")));
     let pass: string | null = null, status: Frames.ValidStatus = Frames.BaseStatus.enabled;
     for (let tabId in ref) {

@@ -54,7 +54,7 @@ Marks = { // NOTE: all members should be static
       } as MarksNS.StoredMark));
       return;
     }
-    (port = Settings.indexFrame(tabId, 0) || port) && port.postMessage({
+    (port = Settings.indexPorts(tabId, 0) || port) && port.postMessage({
       name: "createMark",
       markName: request.markName,
     });
@@ -87,7 +87,7 @@ Marks = { // NOTE: all members should be static
     return "vimiumGlobalMark|" + keyChar;
   },
   scrollTab (this: void, markInfo: MarksNS.MarkToGo, tab: chrome.tabs.Tab): void {
-    const tabId = tab.id, port = Settings.indexFrame(tabId, 0);
+    const tabId = tab.id, port = Settings.indexPorts(tabId, 0);
     port && port.postMessage({
       name: "scroll",
       scroll: markInfo.scroll,
@@ -173,7 +173,7 @@ FindModeHistory = {
   },
   TestIncognitoWnd (this: void): void {
     FindModeHistory.timer = 0;
-    let left = false, arr: Frames.FramesMap = Settings.indexPorts();
+    let left = false, arr = Settings.indexPorts();
     for (let i in arr) {
       let port = (arr[i] as Frames.Frames)[0];
       if (port.sender.incognito) { left = true; break; }

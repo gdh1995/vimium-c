@@ -365,6 +365,16 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
       this.postMessage({ name: "omni", autoSelect, matchType, list });
       } catch (e) {}
     },
+    indexFrame (this: void, tabId: number, frameId: number): Port | null {
+      const ref = framesForTab[tabId];
+      if (!ref) { return null; }
+      for (let i = 1, len = ref.length; i < len; i++) {
+        if (ref[i].sender.frameId === frameId) {
+          return ref[i];
+        }
+      }
+      return null;
+    },
 
     getCurTab: chrome.tabs.query.bind<null, { active: true, currentWindow: true }
         , (result: [Tab] | never[]) => void, 1>(null, { active: true, currentWindow: true }),
@@ -757,7 +767,7 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
       for (let i = 0, curId = this.frameId; i < frames.length; i++) {
         if (frames[i].frameId !== curId) { continue; }
         curId = frames[i].parentFrameId;
-        const port = Settings.indexFrame(this.tabId, curId);
+        const port = funcDict.indexFrame(this.tabId, curId);
         port ? port.postMessage({ name: "focusFrame", frameId: 0 })
           : requestHandlers.ShowHUD("Fail to find its parent frame");
         return;
@@ -1098,7 +1108,7 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
       });
     },
     mainFrame (): void {
-      const port = Settings.indexFrame(TabRecency.last(), 0);
+      const port = funcDict.indexFrame(TabRecency.last(), 0);
       if (!port) { return; }
       port.postMessage({
         name: "focusFrame",
@@ -1190,10 +1200,10 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
     showVomnibar (this: void, forceInner?: boolean): void {
       let port = cPort as Port | null;
       if (!port) {
-        port = Settings.indexFrame(TabRecency.last(), 0);
+        port = funcDict.indexFrame(TabRecency.last(), 0);
         if (!port) { return; }
       } else if (port.sender.frameId !== 0 && port.sender.tabId >= 0) {
-        port = Settings.indexFrame(port.sender.tabId, 0) || port;
+        port = funcDict.indexFrame(port.sender.tabId, 0) || port;
       }
       const page = Settings.cache.vomnibarPage_f, { url } = port.sender, web = !page.startsWith("chrome"),
       inner = Settings.CONST.VomnibarPageInner,
@@ -1499,7 +1509,7 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
     checkIfEnabled: function (this: void, request: ExclusionsNS.Details | FgReq["checkIfEnabled"]
         , port?: Frames.Port | null): void {
       if (!(port && port.sender)) {
-        port = Settings.indexFrame((request as ExclusionsNS.Details).tabId, (request as ExclusionsNS.Details).frameId);
+        port = funcDict.indexFrame((request as ExclusionsNS.Details).tabId, (request as ExclusionsNS.Details).frameId);
       }
       if (!port) { return; }
       const oldUrl = port.sender.url, tabId = port.sender.tabId
@@ -1523,12 +1533,12 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
     exitGrab (this: void, _0: FgReq["exitGrab"], port: Port): void {
       const ports = framesForTab[port.sender.tabId];
       if (!ports || ports.length < 3) { return; }
-      for (let msg = { name: "exitGrab" as "exitGrab" }, i = ports.length; 1 <= --i; ) {
+      for (let msg = { name: "exitGrab" as "exitGrab" }, i = ports.length; 0 < --i; ) {
         ports[i] !== port && ports[i].postMessage(msg);
       }
     },
     refocusCurrent (this: void, request: FgReq["refocusCurrent"], port: Port): void {
-      const ports = port.sender.tabId !== GlobalConsts.TabIdNone ? framesForTab[port.sender.tabId] : undefined;
+      const ports = port.sender.tabId !== GlobalConsts.TabIdNone ? framesForTab[port.sender.tabId] : null;
       if (ports) {
         ports[0].postMessage({
           name: "focusFrame",
@@ -1548,7 +1558,7 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
           xhr instanceof XMLHttpRequest && (xhr.onerror = reject);
         })
       ]).then(function(args): void {
-        const port = args[1].wantTop && Settings.indexFrame(args[2].sender.tabId, 0) || args[2];
+        const port = args[1].wantTop && funcDict.indexFrame(args[2].sender.tabId, 0) || args[2];
         port.postMessage({
           name: "showHelpDialog",
           html: args[0].render(args[1]),
@@ -1863,20 +1873,10 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
     }
   });
 
-  Settings.indexFrame = function(tabId, frameId): Port | null {
-    const ref = framesForTab[tabId];
-    if (!ref) { return null; }
-    for (let i = 1, len = ref.length; i < len; i++) {
-      if (ref[i].sender.frameId === frameId) {
-        return ref[i];
-      }
-    }
-    return null;
-  };
-
-  Settings.indexPorts = function(tabId?: number): Frames.Frames | Frames.FramesMap | undefined {
-    return tabId ? framesForTab[tabId] : framesForTab;
-  } as typeof Settings.indexPorts;
+  Settings.indexPorts = function(tabId?: number, frameId?: number): Frames.FramesMap | Frames.Frames | Port | null {
+    return tabId == null ? framesForTab : frameId == null ? (framesForTab[tabId] || null)
+      : funcDict.indexFrame(tabId, frameId);
+  } as (typeof window)["Settings"]["indexPorts"];
 
   setTimeout(function(): void {
     Settings.postUpdate("bufferToLoad", null);

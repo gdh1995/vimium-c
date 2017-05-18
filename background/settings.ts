@@ -138,7 +138,6 @@ var Settings = {
       this.set("vomnibarPage_f", url);
     }
   } as SettingsNS.DeclaredUpdateHookMap & SettingsNS.SpecialUpdateHookMap as SettingsNS.UpdateHookMap,
-  indexFrame: null as never as (this: void, tabId: number, frameId: number) => Port | null,
   indexPorts: null as never as Window["Settings"]["indexPorts"],
   fetchFile (file: keyof SettingsNS.CachedFiles, callback?: (this: void) => any): TextXHR | null {
     if (callback && file in this.cache) { callback(); return null; }
