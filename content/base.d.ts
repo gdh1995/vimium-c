@@ -170,8 +170,9 @@ interface Hint {
 
 interface UIElementOptions {
   adjust?: boolean;
-  showing?: false;
   before?: Element | null;
+  fake?: undefined;
+  showing?: false;
 }
 
 interface DomUI {
@@ -183,6 +184,7 @@ interface DomUI {
   flashLastingTime: number;
   showing: boolean;
   addElement<T extends HTMLElement>(this: DomUI, element: T, options?: UIElementOptions | null): T;
+  addElement(this: DomUI, element: null, options: { fake: true }): void;
   addElementList(this: DomUI, els: ReadonlyArray<Element>, offset: { [0]: number; [1]: number }): HTMLDivElement;
   adjust (this: void, event?: Event): void;
   init (this: DomUI, showing: boolean): void;

@@ -339,6 +339,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
         if (window === window.top) { return; }
         wantTop = true;
       }
+      wantTop || VDom.UI.InitInner && VDom.UI.addElement(null, { fake: true });
       vPort.post({ handler: "initHelp", wantTop });
     },
     autoCopy (_0: number, options: FgOptions): void {
