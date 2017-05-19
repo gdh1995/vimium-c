@@ -345,13 +345,13 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
     checkVomnibarPage: function (this: void, port: Frames.Port, nolog?: boolean): boolean {
       interface SenderEx extends Frames.Sender { isVomnibar?: boolean; warned?: boolean; }
       const info = port.sender as SenderEx;
-      if (info.isVomnibar != null) { return !info.isVomnibar; }
-      const { url } = info, succeed = url === Settings.cache.vomnibarPage_f || url === Settings.CONST.VomnibarPageInner;
-      info.isVomnibar = succeed;
-      if (succeed) { return false; }
+      if (info.isVomnibar == null) {
+        info.isVomnibar = info.url === Settings.cache.vomnibarPage_f || info.url === Settings.CONST.VomnibarPageInner;
+      }
+      if (info.isVomnibar) { return false; }
       if (!nolog && !info.warned) {
         console.warn("Receive a request from %can unsafe source page%c (should be vomnibar) :\n ",
-          "color: red", "color: auto", url, '@' + info.tabId);
+          "color: red", "color: auto", info.url, '@' + info.tabId);
         info.warned = true;
       }
       return true;
