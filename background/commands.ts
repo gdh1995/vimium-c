@@ -228,7 +228,7 @@ CommandsData = (CommandsData as CommandsData) || {
   mapKeyRegistry: null as SafeDict<string> | null,
 availableCommands: {
   __proto__: null as never,
-  showHelp: [ "Show help", 1, false ],
+  showHelp: [ "Show help", 1, true ],
   debugBackground: [ "Debug the background page", 1, true,
     { reuse: 1, url: "chrome://extensions/?id=$id", id_marker: "$id" }, "openUrl" ],
   blank: [ "Do nothing", 1, true ],

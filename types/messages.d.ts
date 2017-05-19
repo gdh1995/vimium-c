@@ -95,6 +95,7 @@ interface CmdOptions {
     stat: number;
     hud: boolean;
   };
+  showHelp: {};
 }
 
 interface FgReq {
@@ -143,7 +144,6 @@ interface FgReq {
     lastKey: number;
   };
   initHelp: {
-    handler: "initHelp";
     unbound?: boolean;
     wantTop?: boolean;
     names?: boolean;

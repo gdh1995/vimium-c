@@ -1227,6 +1227,20 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
       FindModeHistory.removeAll(incognito);
       return requestHandlers.ShowHUD((incognito ? "incognito " : "") + "find history has been cleared.");
     },
+    showHelp (this: void): void {
+      if (!window.HelpDialog) {
+        if (cPort.sender.frameId === 0) {
+          return requestHandlers.initHelp({}, cPort);
+        }
+        Utils.require<BaseHelpDialog>('HelpDialog');
+      }
+      cPort.postMessage<1, "showHelp">({
+        name: "execute",
+        command: "showHelp",
+        count: 1,
+        options: null,
+      });
+    },
     toggleViewSource (this: void, tabs: [Tab]): void {
       let url = tabs[0].url;
       if (url.startsWith("chrome")) {

@@ -349,7 +349,7 @@ var Utils = {
   },
   jsLoadingTimeout: 300,
   require<T extends object> (name: SettingsNS.DynamicFiles): Promise<T> {
-    const p: Promise<T> | T | undefined = window[name];
+    const p: Promise<T> | T | null | undefined = window[name];
     if (p) {
       return p instanceof Promise ? p : Promise.resolve(p);
     }

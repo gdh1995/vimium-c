@@ -333,7 +333,8 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
         return HUD.showForDuration(result.url);
       });
     },
-    showHelp (): void {
+    showHelp (msg?: number | "exitHD"): void {
+      if (msg === "exitHD") { return; }
       let wantTop = window.innerWidth < 400 || window.innerHeight < 320;
       if (!VDom.isHTML()) {
         if (window === window.top) { return; }
@@ -771,9 +772,10 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
       return HUD[(request.isCopy ? "showCopied" : "showForDuration") as "showForDuration"](request.text);
     },
   showHelpDialog (request): void {
-    let box: HTMLElement, oldShowHelp: typeof Commands.showHelp, hide: (this: void, e?: Event) => void
+    let box: HTMLElement, oldShowHelp: typeof Commands.showHelp, hide: (this: void, e?: Event | number | "exitHD") => void
       , node1: HTMLElement, shouldShowAdvanced = request.advanced === true;
     if (!VDom.isHTML()) { return; }
+    Commands.showHelp("exitHD");
     box = VDom.createElement("div");
     box.className = "R Scroll UI";
     box.id = "HelpDialog";
@@ -783,7 +785,7 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
     box.addEventListener("mousewheel", hide, {passive: true});
 
     hide = function(event): void {
-      event && event.preventDefault && event.preventDefault();
+      event instanceof Event && event.preventDefault();
       VDom.lastHovered && box.contains(VDom.lastHovered) && (VDom.lastHovered = null);
       VScroller.current && box.contains(VScroller.current) && (VScroller.current = null);
       VHandler.remove(box);
@@ -794,9 +796,8 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
     if (! window.location.href.startsWith(request.optionUrl)) {
       const optionUrl = (node1 as HTMLAnchorElement).href = request.optionUrl;
       node1.onclick = function(event) {
-        event.preventDefault();
         vPort.post({ handler: "focusOrLaunch", url: optionUrl });
-        return hide();
+        return hide(event);
       };
     } else {
       node1.remove();
@@ -820,7 +821,7 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
     (box.querySelector("#HClose") as HTMLElement).onclick = Commands.showHelp = hide;
     shouldShowAdvanced && toggleAdvanced();
     VDom.UI.addElement(box, Vomnibar.status ? null : {before: Vomnibar.box});
-    setTimeout(function() { window.focus(); }, 0);
+    document.hasFocus() || setTimeout(function() { window.focus(); }, 0);
     VScroller.current = box;
     VHandler.push(function(event) {
       if (!InsertMode.lock && VKeyboard.isEscape(event)) {
