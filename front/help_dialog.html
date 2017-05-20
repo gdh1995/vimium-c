@@ -156,20 +156,32 @@
 	border: none;
 	border-radius: 6px;
 	box-shadow: none;
+	overflow: hidden;
 }
 .Scroll::-webkit-scrollbar:vertical {
+	border-radius: 0 6px 6px 0;
+	border-left: 0.01px solid #ddd;
 	width: 12px;
 }
 .Scroll::-webkit-scrollbar:horizontal {
+	border-radius: 0 0 6px 6px;
+	border-top: 0.01px solid #ddd;
 	height: 12px;
 }
-.Scroll::-webkit-scrollbar-thumb,
-.Scroll::-webkit-scrollbar-thumb:window-inactive,
-.Scroll::-webkit-scrollbar-track:hover {
-	background: rgba(96, 96, 96, 0.4);
+.Scroll::-webkit-scrollbar-thumb {
+	background: #ccc;
+}
+.Scroll::-webkit-scrollbar-thumb:vertical {
+	border-radius: 0 6px 6px 0;
+}
+.Scroll::-webkit-scrollbar-thumb:horizontal {
+	border-radius: 0 0 6px 6px;
 }
 .Scroll::-webkit-scrollbar-thumb:hover {
-	background: rgba(0, 0, 0, 0.6);
+	background: #929292;
+}
+.Scroll::-webkit-scrollbar-thumb:active {
+	background: #666;
 }
 </style>
 
