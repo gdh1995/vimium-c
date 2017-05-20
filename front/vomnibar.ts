@@ -458,7 +458,7 @@ var Vomnibar = {
     this.isSelectionOrigin = true;
     this.isSearchOnTop = height > 0 && list[0].type === "search";
     if (height > 0) {
-      height = (44 + (1 / (Math.max(1, window.devicePixelRatio)))) * height + 3;
+      height = (height - 1) * (44 + (1 / (Math.max(1, window.devicePixelRatio)))) + 48;
     }
     this.height = height = (height | 0) + 54;
     if (oldHeight !== height) {
