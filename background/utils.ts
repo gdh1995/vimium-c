@@ -32,6 +32,13 @@ var Utils = {
     };
     return this.escapeText(s);
   },
+  unescapeHTML (s: string): string {
+    const escapedRe = <RegExpG & RegExpSearchable<1>> /\&(amp|gt|lt|nbsp);/g,
+    map = Object.setPrototypeOf({ amp: "&", gt: ">", lt: "<", nbsp: " " }, null) as EnsuredSafeDict<string>;
+    function unescapeCallback(_0: string, s: string): string { return map[s]; }
+    this.unescapeHTML = function(s: string): string { return s.replace(escapedRe, unescapeCallback); };
+    return this.unescapeHTML(s);
+  },
   // url: only accept real tab's
   isRefusingIncognito (url: string): boolean {
     url = url.toLowerCase();

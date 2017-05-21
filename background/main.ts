@@ -375,6 +375,15 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
       }
       return null;
     },
+    confirm (this: void, command: string, count: number): boolean {
+      let msg = (CommandsData.availableCommands[command] as CommandsNS.Description)[0];
+      msg = msg.replace(<RegExpOne>/ \(use .*|&nbsp\(.*|<br\/>/, "");
+      return confirm(
+`You have asked Vimium++ to perform ${count} repeats of the command:
+        ${Utils.unescapeHTML(msg)}
+
+Are you sure you want to continue?`);
+    },
 
     getCurTab: chrome.tabs.query.bind<null, { active: true, currentWindow: true }
         , (result: [Tab] | never[]) => void, 1>(null, { active: true, currentWindow: true }),
@@ -1258,16 +1267,9 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
     let scale: number;
     if (options && (scale = +options.count)) { count = Math.max(1, (count * scale) | 0); }
     if (count === 1) {}
-    else if (registryEntry.repeat === 1) {
-      count = 1;
-    } else if (registryEntry.repeat > 0 && count > registryEntry.repeat && !
-      confirm(`You have asked Vimium++ to perform ${count} repeats of the command:
-        ${(CommandsData.availableCommands[command] as
-           CommandsNS.Description)[0]}\n\nAre you sure you want to continue?`)
-    ) {
-      return;
-    }
-    command = registryEntry.alias || command;
+    else if (registryEntry.repeat === 1) { count = 1; }
+    else if (registryEntry.repeat > 0 && count > registryEntry.repeat && !funcDict.confirm(command, count)) { return; }
+    command = registryEntry.alias;
     if (!registryEntry.background) {
       port.postMessage({ name: "execute", command, count, options });
       return;
