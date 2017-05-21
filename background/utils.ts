@@ -585,7 +585,7 @@ var Utils = {
       options = opt;
     }
     return {
-      alias: details[4] || null,
+      alias: details[4] || command,
       background: details[2],
       command,
       options,

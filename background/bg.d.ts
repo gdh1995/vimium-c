@@ -197,7 +197,7 @@ declare namespace CommandsNS {
     readonly [4]?: string; // alias
   }
   interface Item {
-    readonly alias: string | null;
+    readonly alias: string;
     readonly background: boolean;
     readonly command: string;
     readonly options: Options | null;
