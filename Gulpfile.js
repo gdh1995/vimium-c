@@ -3,6 +3,7 @@ var fs = require("fs");
 var gulp = require("gulp");
 var sourcemaps = require('gulp-sourcemaps');
 var concat = require('gulp-concat');
+var changed = require('gulp-changed');
 var ts = require("gulp-typescript");
 var newer = require('gulp-newer');
 var uglify = require('gulp-uglify');
@@ -227,6 +228,9 @@ function outputJSResult(stream, concatedFile) {
   if (concatedFile) {
     stream = stream.pipe(concat(concatedFile));
   }
+  stream = stream.pipe(changed(JSDEST, {
+    hasChanged: changed.compareContents
+  }));
   if (enableSourceMap) {
     stream = stream.pipe(sourcemaps.write(".", {
       sourceRoot: ""
