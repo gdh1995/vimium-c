@@ -14,10 +14,13 @@ if (cwd && !fs.existsSync("package.json")) {
   process.chdir(__dirname);
 }
 switch (cwd) {
-case "all": case "local":
+case "all": case "local": case "scripts":
   var child_process = require('child_process');
   var cmd = argv[0];
-  var tasks = ["background", "content", "pages", "front"];
+  var tasks = ["background", "content", "front", "pages"];
+  if (cwd === "scripts") {
+    tasks.pop();
+  }
   argv = argv.slice(1);
   argv.push("");
   var options = {
@@ -33,6 +36,9 @@ default:
   if (cwd && fs.existsSync(cwd) && fs.statSync(cwd).isDirectory()) {
     process.chdir(cwd);
     cwd = null;
+  } else if (cwd) {
+    console.error("No such command or directory:", cwd);
+    return;
   }
   tsc = require("typescript/lib/tsc");
   break;
