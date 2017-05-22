@@ -24,8 +24,7 @@ var enableSourceMap = !!compilerOptions.sourceMap;
 var willListFiles   = !!compilerOptions.listFiles;
 var removeComments  = !!compilerOptions.removeComments;
 var JSDEST = osPath.join(DEST, ".build");
-var globalForceUpdate = !!process.env.FORCE_UPDATE;
-var disableErrors = !globalForceUpdate;
+var disableErrors = !process.env.DISABLE_ERRORS;
 
 if (compilerOptions.noImplicitUseStrict) {
   compilerOptions.alwaysStrict = false;
@@ -107,7 +106,6 @@ var Tasks = {
   rebuild: ["clean", willStart("dist")],
   all: ["rebuild"],
   "clean/temp": function() {
-    disableErrors = false;
     return cleanByPath([JSDEST + "**/*.js"
       , JSDEST + "**/*.js.map"
       , "!" + JSDEST + "/pages/newtab.js"]);
@@ -120,7 +118,6 @@ var Tasks = {
     if (locally) { return; }
     enableSourceMap = false;
     willListFiles = true;
-    disableErrors = !globalForceUpdate;
     JSDEST = ".";
     compilerOptions = loadValidCompilerOptions("tsconfig.json", true);
     locally = true;
@@ -194,7 +191,7 @@ function tsProject() {
   return disableErrors ? ts(compilerOptions, ts.reporter.nullReporter()) : ts(compilerOptions);
 }
 
-function compile(pathOrStream, skipOutput, forceUpdate) {
+function compile(pathOrStream, skipOutput) {
   if (typeof pathOrStream === "string") {
     pathOrStream = [pathOrStream];
   }
@@ -203,15 +200,9 @@ function compile(pathOrStream, skipOutput, forceUpdate) {
     pathOrStream.push("!types/**/*.ts");
     pathOrStream.push("!types/*.ts");
   }
-  if (forceUpdate == null) {
-    forceUpdate = globalForceUpdate;
-  }
   var stream = pathOrStream instanceof Array ? gulp.src(pathOrStream, { base: "." }) : pathOrStream;
-  if (!skipOutput && !forceUpdate) {
+  if (!skipOutput) {
     stream = stream.pipe(newer({ dest: JSDEST, ext: '.js', extra: ["types/**/*.d.ts", "types/*.d.ts"] }));
-  }
-  if (willListFiles) {
-    stream = stream.pipe(gulpPrint());
   }
   if (enableSourceMap) {
     stream = stream.pipe(sourcemaps.init());
@@ -231,6 +222,9 @@ function outputJSResult(stream, concatedFile) {
   stream = stream.pipe(changed(JSDEST, {
     hasChanged: changed.compareContents
   }));
+  if (willListFiles) {
+    stream = stream.pipe(gulpPrint());
+  }
   if (enableSourceMap) {
     stream = stream.pipe(sourcemaps.write(".", {
       sourceRoot: ""
@@ -239,7 +233,7 @@ function outputJSResult(stream, concatedFile) {
   return stream.pipe(gulp.dest(JSDEST));
 }
 
-function uglifyJSFiles(path, output, new_suffix, forceUpdate) {
+function uglifyJSFiles(path, output, new_suffix) {
   if (typeof path === "string") {
     path = [path];
   }
@@ -253,14 +247,10 @@ function uglifyJSFiles(path, output, new_suffix, forceUpdate) {
 
   var stream = gulp.src(path, { base: JSDEST });
   var is_file = output.indexOf(".js", Math.max(0, output.length - 3)) > 0;
-  if (forceUpdate) {
-  } else if (is_file) {
+  if (is_file) {
     stream = stream.pipe(newer({ dest: osPath.join(DEST, output) }));
   } else {
     stream = stream.pipe(newer({ dest: DEST, ext: new_suffix + '.js' }));
-  }
-  if (willListFiles) {
-    stream = stream.pipe(gulpPrint());
   }
   if (enableSourceMap) {
     stream = stream.pipe(sourcemaps.init({ loadMaps: true }));
@@ -281,6 +271,9 @@ function uglifyJSFiles(path, output, new_suffix, forceUpdate) {
   if (!is_file && new_suffix !== "") {
      stream = stream.pipe(rename({ suffix: new_suffix }));
   }
+  if (willListFiles) {
+    stream = stream.pipe(gulpPrint());
+  }
   if (enableSourceMap) {
     stream = stream.pipe(sourcemaps.write(".", {
       sourceRoot: "/"
@@ -291,7 +284,10 @@ function uglifyJSFiles(path, output, new_suffix, forceUpdate) {
 
 function copyByPath(path) {
   var stream = gulp.src(path, { base: "." })
-    .pipe(newer(DEST));
+    .pipe(newer(DEST))
+    .pipe(changed(DEST, {
+      hasChanged: changed.compareContents
+    }));
   if (willListFiles) {
     stream = stream.pipe(gulpPrint());
   }
