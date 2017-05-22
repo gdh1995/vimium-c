@@ -22,13 +22,19 @@ declare var VDom: {
 type ValidShowTypes = "image" | "url" | "";
 type ValidNodeTypes = HTMLImageElement | HTMLDivElement;
 
-var $ = document.getElementById.bind(document) as <T extends HTMLElement>(id: string) => T;
-let shownNode: ValidNodeTypes, bgLink = $<HTMLAnchorElement>('bgLink'), url: string, type: ValidShowTypes, file: string;
-
-var BG = window.chrome && chrome.extension && chrome.extension.getBackgroundPage() as Window;
+var _idRegex = <RegExpOne> /^#[0-9A-Z_a-z]+$/,
+$ = function<T extends HTMLElement>(selector: string): T {
+  if (_idRegex.test(selector)) {
+    return document.getElementById(selector.substring(1)) as T;
+  }
+  return document.querySelector(selector) as T;
+},
+BG = window.chrome && chrome.extension && chrome.extension.getBackgroundPage() as Window;
 if (!(BG && BG.Utils && BG.Utils.convertToUrl)) {
   BG = null as never;
 }
+
+let shownNode: ValidNodeTypes, bgLink = $<HTMLAnchorElement>('#bgLink'), url: string, type: ValidShowTypes, file: string;
 
 window.onhashchange = function(this: void): void {
   let str: Urls.Url | null, ind: number;
@@ -212,7 +218,7 @@ function decodeURLPart(url: string): string {
 }
 
 function importBody(id: string): HTMLElement {
-  const templates = $<HTMLTemplateElement>('bodyTemplate'),
+  const templates = $<HTMLTemplateElement>('#bodyTemplate'),
   node = document.importNode(templates.content.getElementById(id) as HTMLElement, true);
   (document.body as HTMLBodyElement).insertBefore(node, templates);
   return node;
@@ -239,8 +245,8 @@ function clickShownNode(event: MouseEvent): void {
 }
 
 function showText(tip: string, body: string | string[]): void {
-  $("textTip").setAttribute("data-text", tip);
-  const textBody = $("textBody");
+  $("#textTip").setAttribute("data-text", tip);
+  const textBody = $("#textBody");
   if (body) {
     textBody.textContent = typeof body !== "string" ? body.join(" ") : body;
     shownNode.onclick = copyThing;
@@ -254,7 +260,7 @@ function copyThing(event: Event): void {
   event.preventDefault();
   let str = url;
   if (type == "url") {
-    str = $("textBody").textContent;
+    str = $("#textBody").textContent;
   }
   if (!(str && window.VPort)) { return; }
   return VPort.send({

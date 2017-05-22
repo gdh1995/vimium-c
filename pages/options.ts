@@ -212,7 +212,7 @@ ExclusionRulesOption.prototype.onRowChange = function(this: ExclusionRulesOption
   const count = this.list.childElementCount;
   if (count - isAdd !== 0) { return; }
   BG.Exclusions || BG.Utils.require("Exclusions");
-  const el = $("exclusionToolbar"), options = el.querySelectorAll('[data-model]');
+  const el = $("#exclusionToolbar"), options = el.querySelectorAll('[data-model]');
   el.style.visibility = count > 0 ? "" : "hidden";
   for (let i = 0, len = options.length; i < len; i++) {
     const opt = Option.all[options[i].id as keyof AllowedOptions],
@@ -224,7 +224,7 @@ ExclusionRulesOption.prototype.onRowChange = function(this: ExclusionRulesOption
 
 ExclusionRulesOption.prototype.onInit = function(this: ExclusionRulesOption): void {
   if (this.previous.length > 0) {
-    $("exclusionToolbar").style.visibility = "";
+    $("#exclusionToolbar").style.visibility = "";
   }
 };
 
@@ -235,7 +235,7 @@ interface AdvancedOptBtn extends HTMLButtonElement {
   onclick (_0: MouseEvent | null, init?: "hash" | true): void;
 }
 (function() {
-  const saveBtn = $<SaveBtn>("saveOptions"), exportBtn = $<HTMLButtonElement>("exportButton");
+  const saveBtn = $<SaveBtn>("#saveOptions"), exportBtn = $<HTMLButtonElement>("#exportButton");
   let status = false;
 
   function onUpdated<T extends keyof AllowedOptions> (this: Option<T>): void {
@@ -304,7 +304,7 @@ interface AdvancedOptBtn extends HTMLButtonElement {
   }
 
   let advancedMode = false;
-  element = $<AdvancedOptBtn>("advancedOptionsButton");
+  element = $<AdvancedOptBtn>("#advancedOptionsButton");
   (element as AdvancedOptBtn).onclick = function(this: AdvancedOptBtn, _0, init): void {
     if (init == null || (init === "hash" && bgSettings.get("showAdvancedOptions") === false)) {
       advancedMode = !advancedMode;
@@ -312,7 +312,7 @@ interface AdvancedOptBtn extends HTMLButtonElement {
     } else {
       advancedMode = bgSettings.get("showAdvancedOptions");
     }
-    const el = $("advancedOptions");
+    const el = $("#advancedOptions");
     (el.previousElementSibling as HTMLElement).style.display = el.style.display = advancedMode ? "" : "none";
     (this.firstChild as Text).data = (advancedMode ? "Hide" : "Show") + " Advanced Options";
     this.setAttribute("aria-checked", "" + advancedMode);
@@ -358,7 +358,7 @@ interface AdvancedOptBtn extends HTMLButtonElement {
   }
 
   let func: (this: HTMLElement, event: MouseEvent) => void = function(this: HTMLElement): void {
-    const target = $(this.getAttribute("data-auto-resize") as string);
+    const target = $("#" + this.getAttribute("data-auto-resize") as string);
     if (target.scrollHeight <= target.clientHeight && target.scrollWidth <= target.clientWidth) { return; }
     target.style.height = target.style.width = "";
     target.style.maxWidth = Math.min(window.innerWidth, 1024) - 120 + "px";
@@ -387,7 +387,7 @@ interface AdvancedOptBtn extends HTMLButtonElement {
       event && event.preventDefault();
     }
     if (str === "event") { e = event || null; }
-    (window as OptionWindow)._delayed = [this.id, e];
+    (window as OptionWindow)._delayed = ["#" + this.id, e];
     loadJS("options_ext.js");
   } as ElementWithDelay["onclick"];
   _ref = $$("[data-delay]");
@@ -396,7 +396,7 @@ interface AdvancedOptBtn extends HTMLButtonElement {
   }
 
   if (bgSettings.CONST.ChromeVersion < BrowserVer.MinWithFrameId) {
-    element = $("vomnibarPage");
+    element = $("#vomnibarPage");
     element.title = `Vimium++ can not use a HTTP pages as Vomnibar before Chrome ${BrowserVer.MinWithFrameId}`;
     if ("chrome /front/".indexOf(Option.all.vomnibarPage.previous.substring(0, 6)) === -1) {
       element.style.textDecoration = "line-through";
@@ -470,7 +470,7 @@ interface AdvancedOptBtn extends HTMLButtonElement {
     }
   })(_ref);
 
-  $("innerNewTab").textContent = bgSettings.CONST.ChromeInnerNewTab;
+  $("#innerNewTab").textContent = bgSettings.CONST.ChromeInnerNewTab;
 
   function toggleHide(element: HTMLElement): void | 1 {
     element.tabIndex = -1;
@@ -495,9 +495,9 @@ interface AdvancedOptBtn extends HTMLButtonElement {
   }
 })();
 
-$("importButton").onclick = function(): void {
-  const opt = $<HTMLSelectElement>("importOptions");
-  opt.onchange ? (opt as any).onchange() : $("settingsFile").click();
+$("#importButton").onclick = function(): void {
+  const opt = $<HTMLSelectElement>("#importOptions");
+  opt.onchange ? (opt as any).onchange() : $("#settingsFile").click();
 };
 
 function loadJS(file: string): HTMLScriptElement {

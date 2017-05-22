@@ -8,7 +8,7 @@ declare var VDom: {
   readonly mouse: VDomMouse;
 }, VPort: Readonly<VPort>, VHUD: Readonly<VHUD>;
 
-$<ElementWithDelay>("showCommands").onclick = function(event): void {
+$<ElementWithDelay>("#showCommands").onclick = function(event): void {
   if (!window.VDom) { return; }
   let node: HTMLElement, root = VDom.UI.root;
   event && event.preventDefault();
@@ -76,7 +76,7 @@ ExclusionRulesOption.prototype.sortRules = function(this: ExclusionRulesOption
   (element.firstChild as Text).data = "(Sorted)";
 };
 
-$("exclusionSortButton").onclick = function(): void {
+$("#exclusionSortButton").onclick = function(): void {
   return (Option.all.exclusionRules as ExclusionRulesOption).sortRules(this);
 };
 
@@ -99,7 +99,7 @@ interface ExportedSettings {
   [key: string]: any;
 }
 
-$<ElementWithDelay>("exportButton").onclick = function(event): void {
+$<ElementWithDelay>("#exportButton").onclick = function(event): void {
   let exported_object: ExportedSettings | null;
   const all_static = event ? event.ctrlKey || event.metaKey || event.shiftKey : false;
   exported_object = Object.create(null) as ExportedSettings & SafeObject;
@@ -260,9 +260,9 @@ function _importSettings(time: number | string | Date, new_data: ExportedSetting
       logUpdate("save", key, new_value);
     }
   }
-  $<SaveBtn>("saveOptions").onclick(false);
-  if ($("advancedOptionsButton").getAttribute("aria-checked") != '' + bgSettings.get("showAdvancedOptions")) {
-    $<AdvancedOptBtn>("advancedOptionsButton").onclick(null, true);
+  $<SaveBtn>("#saveOptions").onclick(false);
+  if ($("#advancedOptionsButton").getAttribute("aria-checked") != '' + bgSettings.get("showAdvancedOptions")) {
+    $<AdvancedOptBtn>("#advancedOptionsButton").onclick(null, true);
   }
   console.info("IMPORT settings: finished.");
   if (window.VHUD) { return VHUD.showForDuration("Import settings data: OK!", 1000); }
@@ -280,7 +280,7 @@ function importSettings(time: number | string | Date
   });
 }
 
-let _el: HTMLInputElement | HTMLSelectElement | null = $<HTMLInputElement>("settingsFile");
+let _el: HTMLInputElement | HTMLSelectElement | null = $<HTMLInputElement>("#settingsFile");
 _el.onclick = null as never;
 _el.onchange = function(this: HTMLInputElement): void {
   const file = (this.files as FileList)[0];
@@ -297,11 +297,11 @@ _el.onchange = function(this: HTMLInputElement): void {
   reader.readAsText(file);
 };
 
-_el = $<HTMLSelectElement>("importOptions");
+_el = $<HTMLSelectElement>("#importOptions");
 _el.onclick = null as never;
 _el.onchange = function(this: HTMLSelectElement): void {
   if (this.value === "exported") {
-    $("settingsFile").click();
+    $("#settingsFile").click();
     return;
   }
   const req = new XMLHttpRequest();

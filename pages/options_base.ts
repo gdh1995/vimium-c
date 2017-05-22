@@ -43,8 +43,14 @@ debounce = function<T> (this: void, func: (this: T) => void
           , wait: number, bound_context: T, also_immediate: BOOL
           ) => (this: void) => void;
 
-var $ = document.getElementById.bind(document) as <T extends HTMLElement>(id: string) => T
-  , BG = chrome.extension.getBackgroundPage() as Window, bgSettings = BG.Settings;
+var _idRegex = <RegExpOne> /^#[0-9A-Z_a-z]+$/,
+$ = function<T extends HTMLElement>(selector: string): T {
+  if (selector[0] === "#") {
+    return document.getElementById(selector.substring(1)) as T;
+  }
+  return document.querySelector(selector) as T;
+},
+BG = chrome.extension.getBackgroundPage() as Window, bgSettings = BG.Settings;
 
 abstract class Option<T extends keyof AllowedOptions> {
   readonly element: HTMLElement;
@@ -135,13 +141,13 @@ constructor (element: HTMLElement, onUpdated: (this: ExclusionRulesOption) => vo
   super(element, onUpdated);
   bgSettings.fetchFile("exclusionTemplate", (): void => {
     this.element.innerHTML = bgSettings.cache.exclusionTemplate as string;
-    this.template = $<HTMLTemplateElement>('exclusionRuleTemplate').content.firstChild as HTMLTableRowElement;
+    this.template = $<HTMLTemplateElement>("#exclusionRuleTemplate").content.firstChild as HTMLTableRowElement;
     this.list = this.element.getElementsByTagName('tbody')[0] as HTMLTableSectionElement;
     this.fetch = super.fetch;
     this.fetch();
     this.list.addEventListener("input", this.onUpdated);
     this.list.addEventListener("click", e => this.onRemoveRow(e));
-    $("exclusionAddButton").onclick = () => this.addRule("");
+    $("#exclusionAddButton").onclick = () => this.addRule("");
     return this.onInit();
   });
 }
@@ -350,15 +356,15 @@ exclusions: PopExclusionRulesOption = Object.setPrototypeOf({
   }
   function updateState(): void {
     const pass = bgExclusions.getTemp(exclusions.url, exclusions.readValueFromElement(true));
-    $("state").innerHTML = "Vimium++ will " + (pass
+    $("#state").innerHTML = "Vimium++ will " + (pass
       ? "exclude: <span class='code'>" + pass.replace(escapeRe, escapeCallback) + "</span>"
       : pass !== null ? "be disabled" : "be enabled");
   }
   function onUpdated(this: void): void {
     if (saved) {
       saved = false;
-      const btn = $("saveOptions");
-      $("helpSpan").innerHTML = "Type <strong><kbd>Ctrl-Enter</kbd></strong> to save and close.";
+      const btn = $("#saveOptions");
+      $("#helpSpan").innerHTML = "Type <strong><kbd>Ctrl-Enter</kbd></strong> to save and close.";
       btn.removeAttribute("disabled");
       (btn.firstChild as Text).data = "Save Changes";
     }
@@ -367,7 +373,7 @@ exclusions: PopExclusionRulesOption = Object.setPrototypeOf({
     }
   }
   function saveOptions(this: void): void {
-    const btn = $<HTMLButtonElement>("saveOptions");
+    const btn = $<HTMLButtonElement>("#saveOptions");
     if (btn.disabled) {
       return;
     }
@@ -378,7 +384,7 @@ exclusions: PopExclusionRulesOption = Object.setPrototypeOf({
     btn.disabled = true;
     saved = true;
   }
-  $("saveOptions").onclick = saveOptions;
+  $("#saveOptions").onclick = saveOptions;
   document.addEventListener("keyup", function(event): void {
     if ((event.ctrlKey || event.metaKey) && event.keyCode === 13) {
       setTimeout(window.close, 300);
@@ -386,8 +392,8 @@ exclusions: PopExclusionRulesOption = Object.setPrototypeOf({
     }
   });
   const ref = bgSettings.indexPorts(tabs[0].id);
-  exclusions.init(ref ? ref[0].sender.url : tabs[0].url, $("exclusionRules"), onUpdated, updateState);
-  $("optionsLink").onclick = function(this: HTMLAnchorElement, event: Event): void {
+  exclusions.init(ref ? ref[0].sender.url : tabs[0].url, $("#exclusionRules"), onUpdated, updateState);
+  $("#optionsLink").onclick = function(this: HTMLAnchorElement, event: Event): void {
     event.preventDefault();
     const a: MarksNS.FocusOrLaunch = BG.Object.create(null);
     a.url = bgSettings.CONST.OptionsPage;
