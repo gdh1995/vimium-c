@@ -185,7 +185,7 @@ setTimeout((function() { if (!chrome.omnibox) { return; }
   }
   function format(this: void, sug: Readonly<Suggestion>): chrome.omnibox.SuggestResult {
     let str = "<url>" + sug.textSplit;
-    str += sug.title ? "</url><dim> - " + Utils.escapeText(sug.title) + "</dim>" : "</url>";
+    str += sug.title ? "</url><dim> - " + sug.title + "</dim>" : "</url>";
     return {
       content: sug.url,
       description: str
