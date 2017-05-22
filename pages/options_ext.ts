@@ -114,7 +114,7 @@ $<ElementWithDelay>("exportButton").onclick = function(event): void {
   };
   (function() {
     const storage = localStorage, all = bgSettings.defaults;
-    for (let i = 0, len = storage.length; i < len; i++) {
+    for (let i = 0, len = storage.length, j: string[]; i < len; i++) {
       const key = storage.key(i) as string as keyof SettingsNS.PersistentSettings;
       if (key.indexOf("|") >= 0 || key.substring(key.length - 2) === "_f" || key === "findModeRawQueryList") {
         continue;
@@ -123,8 +123,8 @@ $<ElementWithDelay>("exportButton").onclick = function(event): void {
       if (typeof all[key] !== "string") {
         exported_object[key] = (key in all) ? bgSettings.get(key) : storedVal;
       } else if (storedVal.indexOf("\n") > 0) {
-        exported_object[key] = storedVal.split("\n");
-        (exported_object[key] as string[]).push("");
+        exported_object[key] = j = storedVal.split("\n");
+        j.push("");
       } else {
         exported_object[key] = storedVal;
       }
@@ -170,14 +170,11 @@ function _importSettings(time: number | string | Date, new_data: ExportedSetting
     return;
   }
 
-  const logUpdate = function(method: string, key: string, _actionName: any, val?: any): any {
-    var args: any[] = [].slice.call(arguments, 2);
-    val = args.pop();
+  const logUpdate = function(method: string, key: string, ...args: any[]): any {
+    let val = args.pop();
     val = typeof val !== "string" || val.length <= 72 ? val
       : val.substring(0, 68).trimRight() + " ...";
-    args.push(val);
-    args = ["%s %c%s%c", method, "color: darkred", key, "color: auto"].concat(args);
-    return console.log.apply(console, args);
+    return console.log("%s %c%s%c", method, "color: darkred", key, "color: auto", ...args, val);
   } as {
     (method: string, key: string, val: any): any;
     (method: string, key: string, actionName: string, val: any): any;

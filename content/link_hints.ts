@@ -759,7 +759,7 @@ var VHints = {
       }
       if (k >= len3) {}
       else if (stackForThisMarker) {
-        stackForThisMarker.push.apply(stackForThisMarker, stack);
+        stackForThisMarker.push(...stack);
         stacks.splice(j, 1); len2--;
         continue;
       } else {
