@@ -1,6 +1,6 @@
 The MIT License (MIT)
 
-Copyright (c) 2016 Dahan Gong, Phil Crosby, Ilya Sukhar.
+Copyright (c) 2014-2017 Dahan Gong, Phil Crosby, Ilya Sukhar.
 
 Permission is hereby granted, free of charge, to any person
 obtaining a copy of this software and associated documentation

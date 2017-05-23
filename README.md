@@ -78,6 +78,7 @@ Known issues (Up to the master branch):
 Not released yet:
 * `LinkHints` works much faster on some of very long pags, like https://w3c.github.io/html/,
   though the change has no enough benefits on GitHub code file pages.
+* fix two bugs about suggestions on the Chrome omnibox.
 
 1.59.4:
 * command `goNext` now detects `<button>`s, so that it supports more pages
