@@ -13,9 +13,11 @@
     "gulp-newer": "*",
     "gulp-print": "*",
     "gulp-rename": "*",
+    "gulp-some": "*",
     "gulp-sourcemaps": "*",
     "gulp-typescript": "*",
-    "gulp-uglify": "*"
+    "gulp-uglify": "*",
+    "run-sequence": "*"
   },
   "scripts": {
     "tsc": "node ./tsc.js",

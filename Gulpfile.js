@@ -10,25 +10,16 @@ var uglify = require('gulp-uglify');
 var rename = require('gulp-rename');
 var clean = require('gulp-clean');
 var gulpPrint = require('gulp-print');
+var gulpSome = require('gulp-some');
+var runSequence = require('run-sequence');
 var osPath = require('path');
 
+var DEST, enableSourceMap, willListFiles, willListEmittedFiles, removeComments, JSDEST;
 var locally = false;
-var compilerOptions = loadValidCompilerOptions("tsconfig.gulp.json");
 var typescript = null;
-var manifest = readJSON("manifest.json", true);
-var DEST = compilerOptions.outDir;
-if (!DEST || DEST === ".") {
-  DEST = compilerOptions.outDir = "dist";
-}
-var enableSourceMap = !!compilerOptions.sourceMap;
-var willListFiles   = !!compilerOptions.listFiles;
-var removeComments  = !!compilerOptions.removeComments;
-var JSDEST = osPath.join(DEST, ".build");
 var disableErrors = !process.env.DISABLE_ERRORS;
-
-if (compilerOptions.noImplicitUseStrict) {
-  compilerOptions.alwaysStrict = false;
-}
+var manifest = readJSON("manifest.json", true);
+var compilerOptions = loadValidCompilerOptions("tsconfig.gulp.json");
 
 var Tasks = {
   "build/background": "background/*.ts",
@@ -54,16 +45,23 @@ var Tasks = {
   "build/scripts": ["build/background", "build/content", "build/front"],
   "build/ts": ["build/scripts", "build/pages"],
 
-  "min/bg": function() {
+  "min/bg": function(cb) {
     var sources = manifest.background.scripts;
     sources = ("\n" + sources.join("\n")).replace(/\n\//g, "\n").split("\n");
     var body = sources.splice(0, sources.indexOf("background/main.js") + 1, "background/body.js");
-    var stream1 = uglifyJSFiles(body, sources[0]);
+    gulp.task("min/bg/_1", function() {
+      return uglifyJSFiles(body, sources[0]);
+    });
     var index = sources.indexOf("background/tools.js");
     var tail = sources.splice(index, sources.length - index, "background/tail.js");
-    uglifyJSFiles(tail, sources[index]);
-    uglifyJSFiles(sources.slice(1, index), "background/", "");
+    gulp.task("min/bg/_2", function() {
+      return uglifyJSFiles(tail, sources[index]);
+    });
+    gulp.task("min/bg/_3", function() {
+      return uglifyJSFiles(sources.slice(1, index), "background/", "");
+    });
     manifest.background.scripts = sources;
+    runSequence(["min/bg/_1", "min/bg/_2", "min/bg/_3"], cb);
   },
   "min/content": function() {
     var cs = manifest.content_scripts[0], sources = cs.js;
@@ -85,25 +83,25 @@ var Tasks = {
     }
     return uglifyJSFiles(res, ".", "");
   },
-  manifest: [["min/bg", "min/content"], function() {
+  "min/js": ["min/bg", "min/content", "min/others"],
+  manifest: [["min/bg", "min/content"], function(cb) {
     var file = osPath.join(DEST, "manifest.json")
       , data = JSON.stringify(manifest, null, "  ");
     if (fs.existsSync(file) && fs.statSync(file).isFile()) {
       var oldData = readFile(file);
       if (data === oldData) {
-        if (willListFiles) {
+        if (willListEmittedFiles) {
           print('skip', file);
         }
-        return;
+        return cb();
       }
     }
-    fs.writeFileSync(file, data);
+    fs.writeFile(file, data, cb);
   }],
-  minjs: ["min/bg", "min/content", "min/others"],
-  dist: [["static", "build/ts"], willStart("manifest", "min/others")],
+  dist: [["static", "build/ts"], ["manifest", "min/others"]],
 
   build: ["dist"],
-  rebuild: ["clean", willStart("dist")],
+  rebuild: [["clean"], "dist"],
   all: ["rebuild"],
   "clean/temp": function() {
     return cleanByPath([JSDEST + "**/*.js"
@@ -116,10 +114,10 @@ var Tasks = {
 
   locally: function() {
     if (locally) { return; }
-    enableSourceMap = false;
-    willListFiles = true;
-    JSDEST = ".";
     compilerOptions = loadValidCompilerOptions("tsconfig.json", true);
+    JSDEST = compilerOptions.outDir = ".";
+    enableSourceMap = false;
+    willListEmittedFiles = true;
     locally = true;
   },
   "background": ["locally", makeCompileTask("background/*.ts")],
@@ -162,6 +160,8 @@ function makeTasks() {
       gulp.task(key, Tasks[key] = makeCompileTask(task));
     } else if (typeof task[1] === "function") {
       gulp.task(key, task[0] instanceof Array ? task[0] : [task[0]], task[1]);
+    } else if (task[0] instanceof Array) {
+      gulp.task(key, Tasks[key] = willStart(task));
     } else if (!/\.ts\b/i.test(task[0])) {
       gulp.task(key, task);
     } else {
@@ -173,17 +173,10 @@ function makeTasks() {
   }
 }
 
-function willStart() {
-  var taskNames = [].slice.call(arguments, 0);
-  return function() {
-    // try to run it as a `sync` task if possible
-    if (taskNames.length === 1) {
-      var task = Tasks[taskNames[0]];
-      if (typeof task === "function") {
-        return task();
-      }
-    }
-    return gulp.start.apply(gulp, taskNames);
+function willStart(taskSeq) {
+  return function(cb) {
+    taskSeq.push(cb);
+    runSequence.apply(null, taskSeq);
   };
 }
 
@@ -204,6 +197,13 @@ function compile(pathOrStream, skipOutput) {
   if (!skipOutput) {
     stream = stream.pipe(newer({ dest: JSDEST, ext: '.js', extra: ["types/**/*.d.ts", "types/*.d.ts"] }));
   }
+  stream = stream.pipe(gulpSome(function(file) {
+    var t = file.relative, s = ".d.ts", i = t.length - s.length;
+    return i < 0 || t.indexOf(s, i) !== i;
+  }));
+  if (willListFiles) {
+    stream = stream.pipe(gulpPrint());
+  }
   if (enableSourceMap) {
     stream = stream.pipe(sourcemaps.init());
   }
@@ -222,7 +222,7 @@ function outputJSResult(stream, concatedFile) {
   stream = stream.pipe(changed(JSDEST, {
     hasChanged: changed.compareContents
   }));
-  if (willListFiles) {
+  if (willListEmittedFiles) {
     stream = stream.pipe(gulpPrint());
   }
   if (enableSourceMap) {
@@ -247,11 +247,12 @@ function uglifyJSFiles(path, output, new_suffix) {
 
   var stream = gulp.src(path, { base: JSDEST });
   var is_file = output.indexOf(".js", Math.max(0, output.length - 3)) > 0;
-  if (is_file) {
-    stream = stream.pipe(newer({ dest: osPath.join(DEST, output) }));
-  } else {
-    stream = stream.pipe(newer({ dest: DEST, ext: new_suffix + '.js' }));
-  }
+  stream = stream.pipe(newer(is_file ? {
+    dest: osPath.join(DEST, output)
+  } : {
+    dest: DEST,
+    ext: new_suffix + ".js"
+  }));
   if (enableSourceMap) {
     stream = stream.pipe(sourcemaps.init({ loadMaps: true }));
   }
@@ -271,7 +272,7 @@ function uglifyJSFiles(path, output, new_suffix) {
   if (!is_file && new_suffix !== "") {
      stream = stream.pipe(rename({ suffix: new_suffix }));
   }
-  if (willListFiles) {
+  if (willListEmittedFiles) {
     stream = stream.pipe(gulpPrint());
   }
   if (enableSourceMap) {
@@ -288,7 +289,7 @@ function copyByPath(path) {
     .pipe(changed(DEST, {
       hasChanged: changed.compareContents
     }));
-  if (willListFiles) {
+  if (willListEmittedFiles) {
     stream = stream.pipe(gulpPrint());
   }
   return stream.pipe(gulp.dest(DEST));
@@ -343,7 +344,7 @@ function _makeJSONReader() {
   function onReplace(str) {
     switch (str[0]) {
     case '/': case '#':
-      if (str.startsWith("/*")) {
+      if (str[0] === "/*") {
         // replace comments with whitespace to preserve original character positions
         return str.replace(notLF, spaceN);
       }
@@ -407,6 +408,18 @@ function loadValidCompilerOptions(tsConfigFile, keepCustomOptions) {
   if (typescript && !compilerOptions.typescript) {
     compilerOptions.typescript = typescript;
   }
+  if (compilerOptions.noImplicitUseStrict) {
+    compilerOptions.alwaysStrict = false;
+  }
+  DEST = compilerOptions.outDir;
+  if (!DEST || DEST === ".") {
+    DEST = compilerOptions.outDir = "dist";
+  }
+  JSDEST = osPath.join(DEST, ".build");
+  enableSourceMap = !!compilerOptions.sourceMap;
+  willListFiles   = !!compilerOptions.listFiles;
+  willListEmittedFiles = !!compilerOptions.listEmittedFiles;
+  removeComments  = !!compilerOptions.removeComments;
   return compilerOptions;
 }
 
