@@ -15,7 +15,6 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
   }
   interface InfoToCreateMultiTab extends chrome.tabs.CreateProperties {
     id?: number;
-    index: number;
   }
   const enum UseTab { NoTab = 0, ActiveTab = 1, CurWndTabs = 2 }
   interface BgCmdNoTab {
@@ -46,10 +45,10 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
   }
   function openMultiTab(this: void, rawUrl: string, count: number, parentTab: InfoToCreateMultiTab): void {
     if (!(count >= 1)) return;
-    const wndId = parentTab.windowId, option = {
+    const wndId = parentTab.windowId, hasIndex = parentTab.index != null, option = {
       url: rawUrl,
       windowId: wndId,
-      index: parentTab.index + 1,
+      index: hasIndex ? (parentTab as {index: number}).index + 1 : undefined,
       openerTabId: parentTab.id,
       active: parentTab.active
     };
@@ -59,8 +58,8 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
     if (count < 2) return;
     option.active = false;
     do {
-      ++option.index;
-      tabsCreate(option);
+      hasIndex && ++(option as {index: number}).index;
+      chrome.tabs.create(option);
     } while(--count > 1);
   }
 
@@ -397,7 +396,7 @@ Are you sure you want to continue?`);
       if (count < 2) return;
       option.active = false;
       do {
-        tabsCreate(option);
+        chrome.tabs.create(option);
       } while(--count > 1);
     },
     openUrlInIncognito (this: string, tab: Tab, wnds: Window[]): void {
@@ -439,7 +438,7 @@ Are you sure you want to continue?`);
         return;
       }
       if (!tab) {
-        funcDict.createTabs(url, commandCount, true);
+        openMultiTab(url, commandCount, {active: true});
         return chrome.runtime.lastError;
       }
       if (tab.incognito && onlyNormal) { url = ""; }
@@ -554,7 +553,7 @@ Are you sure you want to continue?`);
       if (reuse === ReuseType.current && !tab.incognito) {
         chrome.tabs.update({ url: prefix });
       } else
-      tabsCreate({
+      chrome.tabs.create({
         active: reuse !== ReuseType.newBg,
         index: tab.incognito ? undefined : tab.index + 1,
         windowId: tab.incognito ? undefined : tab.windowId,
@@ -691,7 +690,7 @@ Are you sure you want to continue?`);
     }, function(options, tabs2): void {
       const tab2 = tabs2[0];
       if (options.url) {
-        tabsCreate({url: options.url, index: tab2.index + 1, windowId: tab2.windowId});
+        chrome.tabs.create({url: options.url, index: tab2.index + 1, windowId: tab2.windowId});
         funcDict.selectWnd(tab2);
         chrome.tabs.remove(options.tabId as number);
         return;
@@ -707,14 +706,14 @@ Are you sure you want to continue?`);
       (this: void, ) => void
     ],
     removeTab (this: void, tab: Tab, curTabs: Tab[], wnds: Window[]): void {
-      let url: string | null = null, windowId: number | undefined, wnd: Window;
+      let url = false, windowId: number | undefined, wnd: Window;
       wnds = wnds.filter(function(wnd) { return wnd.type === "normal"; });
       if (wnds.length <= 1) {
         // protect the last window
-        url = Settings.cache.newTabUrl_f;
+        url = true;
         if (!(wnd = wnds[0])) {}
-        else if (wnd.id !== tab.windowId) { url = null; } // the tab may be in a popup window
-        else if (wnd.incognito && !Utils.isRefusingIncognito(url)) {
+        else if (wnd.id !== tab.windowId) { url = false; } // the tab may be in a popup window
+        else if (wnd.incognito && !Utils.isRefusingIncognito(Settings.cache.newTabUrl_f)) {
           windowId = wnd.id;
         }
         // other urls will be disabled if incognito else auto in current window
@@ -724,12 +723,12 @@ Are you sure you want to continue?`);
         wnds = wnds.filter(function(wnd) { return !wnd.incognito; });
         if ((wnd = wnds[0]) && wnd.id === tab.windowId) {
           windowId = wnd.id;
-          url = Settings.cache.newTabUrl_f;
+          url = true;
         }
       }
-      if (url !== null) {
+      if (url) {
         const tabIds = (curTabs.length > 1) ? curTabs.map(funcDict.getId) : [tab.id];
-        tabsCreate({ index: tabIds.length, url, windowId });
+        tabsCreate({ index: tabIds.length, url: Settings.cache.newTabUrl_f, windowId });
         chrome.tabs.remove(tabIds);
       } else {
         chrome.windows.remove(tab.windowId);
