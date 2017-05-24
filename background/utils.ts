@@ -309,11 +309,12 @@ var Utils = {
     switch (cmd) {
     case "p": case "parse": case "decode":
       cmd = path.split(' ', 1)[0];
-      if (cmd.indexOf("/") < 0) {
+      if (cmd.indexOf("/") < 0 && cmd.toLowerCase().indexOf("%2f") < 0) {
         path = path.substring(cmd.length + 1).trimLeft();
       } else {
         cmd = "~";
       }
+      path = (this as typeof Utils).DecodeEscapedURL(path);
       arr = [path];
       path = this.convertToUrl(path);
       if (this.lastUrlType !== Urls.Type.Search && (obj = g_requestHandlers.parseSearchUrl({ url: path }))) {
@@ -323,12 +324,12 @@ var Utils = {
           arr = obj.url.split(" ");
           arr.unshift(cmd);
         }
-        break;
+      } else {
+        arr = arr[0].split(this.spacesRe);
       }
-      path = arr[0];
-      // no break;
+      break;
     case "u": case "url": case "search":
-      arr = path.split(this.spacesRe);
+      arr = (this as typeof Utils).DecodeEscapedURL(path).split(this.spacesRe);
       break;
     default:
       return null;
@@ -433,6 +434,10 @@ var Utils = {
       url = decodeURIComponent(url);
     } catch (e) {}
     return url;
+  },
+  escapedSlashRe: <RegExpOne>/%2[fF]/,
+  DecodeEscapedURL (url: string): string {
+    return url.indexOf("://") < 0 && this.escapedSlashRe.test(url) ? this.DecodeURLPart(url) : url;
   },
   parseSearchEngines: (function(this: any, str: string, map: Search.EngineMap): Search.Rule[] {
     let ids: string[], tmpRule: Search.TmpRule | null, tmpKey: Search.Rule[3],
