@@ -220,7 +220,7 @@ function outputJSResult(stream, concatedFile) {
     stream = stream.pipe(concat(concatedFile));
   }
   stream = stream.pipe(changed(JSDEST, {
-    hasChanged: changed.compareContents
+    hasChanged: compareContentAndTouch
   }));
   if (willListEmittedFiles) {
     stream = stream.pipe(gulpPrint());
@@ -287,7 +287,7 @@ function copyByPath(path) {
   var stream = gulp.src(path, { base: "." })
     .pipe(newer(DEST))
     .pipe(changed(DEST, {
-      hasChanged: changed.compareContents
+      hasChanged: compareContentAndTouch
     }));
   if (willListEmittedFiles) {
     stream = stream.pipe(gulpPrint());
@@ -302,6 +302,34 @@ function cleanByPath(path) {
 function convertToStream(pathOrStream) {
   return typeof pathOrStream === "string" || pathOrStream instanceof Array
     ? gulp.src(pathOrStream, { base: "." }) : pathOrStream;
+}
+
+function compareContentAndTouch(stream, sourceFile, targetPath) {
+  var isSame = false, equals = null, newEquals = null;
+  if (!sourceFile.isNull()) {
+    equals = sourceFile.contents.equals;
+    newEquals = sourceFile.contents.equals = function(targetData) {
+      var curIsSame = equals.apply(this, arguments);
+      isSame || (isSame = curIsSame);
+      return curIsSame;
+    };
+  }
+  return changed.compareContents(stream, sourceFile, targetPath
+  ).then(function() {
+    sourceFile.contents.equals === newEquals && (sourceFile.contents.equals = equals);
+    if (!isSame) { return; }
+    var fd = fs.openSync(targetPath, "a");
+    try {
+      var s = s = fs.fstatSync(fd);
+      fs.futimesSync(fd, parseInt(s.atime.getTime() / 1000, 10), parseInt(Date.now() / 1000, 10));
+      console.log("Touch an unchanged file:", sourceFile.relative);
+    } finally {
+      fs.closeSync(fd);
+    }
+  }).catch(function(e) {
+    sourceFile.contents.equals === newEquals && (sourceFile.contents.equals = equals);
+    throw e;
+  });
 }
 
 function readFile(fileName, info) {
