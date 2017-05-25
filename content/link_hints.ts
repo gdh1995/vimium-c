@@ -93,6 +93,7 @@ var VHints = {
   mode: 0 as HintMode,
   mode1: 0 as HintMode,
   modeOpt: null as HintsNS.ModeOpt | null,
+  forHover: false,
   count: 0,
   lastMode: 0 as HintMode,
   tooHigh: false,
@@ -170,15 +171,15 @@ var VHints = {
       mode = count > 1 ? HintMode.OPEN_WITH_QUEUE : HintMode.OPEN_IN_CURRENT_TAB;
     }
     this.modeOpt = modeOpt;
-    this.mode = mode;
-    this.mode1 = mode & ~HintMode.queue;
     this.options = options;
     this.count = count;
+    return this.setMode(mode, true);
   },
-  setMode (mode: HintMode): void {
+  setMode (mode: HintMode, slient?: true): void {
     this.mode = mode;
-    this.mode1 = mode & ~HintMode.queue;
-    if (this.noHUD) { return; }
+    this.mode1 = mode = mode & ~HintMode.queue;
+    this.forHover = mode >= HintMode.HOVER && mode <= HintMode.LEAVE;
+    if (slient || this.noHUD) { return; }
     return VHUD.show((this.modeOpt as HintsNS.ModeOpt)[mode] as string);
   },
   tryNestedFrame (command: string, a: number, b: FgOptions): boolean {
@@ -280,8 +281,7 @@ var VHints = {
       return;
     case "img":
       if ((element as HTMLImageElement).useMap && VDom.getClientRectsForAreas(element as HTMLImageElement, this)) { return; }
-      if ((VHints.mode >= HintMode.HOVER && VHints.mode1 <= HintMode.LEAVE
-          && !(element.parentNode instanceof HTMLAnchorElement))
+      if ((VHints.forHover && !(element.parentNode instanceof HTMLAnchorElement))
         || ((s = element.style.cursor as string) ? s !== "default"
           : (s = getComputedStyle(element).cursor as string) && (s.indexOf("zoom") >= 0 || s.startsWith("url"))
         )) {
@@ -299,6 +299,7 @@ var VHints = {
           || VHints.ngEnabled && element.getAttribute("ng-click")
           || (s = element.getAttribute("role")) && (s = s.toLowerCase()
             , s === "button" || s === "link" || s === "checkbox" || s === "radio" || s.startsWith("menuitem"))
+          || VHints.forHover && element.getAttribute("onmouseover")
           || (s = element.getAttribute("jsaction")) && VHints.checkJSAction(s) ? ClickType.listener
         : (s = element.getAttribute("tabindex")) && parseInt(s, 10) >= 0 ? ClickType.tabindex
         : type > ClickType.tabindex ? type : (s = element.className) && VHints.btnRe.test(s) ? ClickType.classname
