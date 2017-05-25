@@ -60,9 +60,7 @@ button[disabled] {
 button.left {
   border-bottom-right-radius: 0;
   border-top-right-radius: 0;
-  margin-right: 0;
-  position: relative;
-  z-index: 1;
+  border-right-style: none;
 }
 select.right {
   -webkit-padding-start: 0;
@@ -75,9 +73,6 @@ select.right {
   background-repeat: no-repeat;
   border-bottom-left-radius: 0;
   border-top-left-radius: 0;
-  margin-left: -1px;
-  margin-right: 0;
-  position: relative;
   width: 19px;
 }
 select.right:hover {
@@ -88,8 +83,8 @@ select.right:active {
   background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="6px" height="6px"><polygon points="0,0 6,0 3,6"/></svg>'),
     linear-gradient(#e7e7e7, #e7e7e7 38%, #d7d7d7);
 }
-select.right:focus {
-  z-index: 1;
+button.left:focus+select.right {
+  border-left-color: #4d90fe;
 }
 select.right > option {
   background-color: #eee;
