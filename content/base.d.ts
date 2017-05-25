@@ -192,7 +192,7 @@ interface DomUI {
   toggle (this: DomUI, enabled: boolean): void;
   createStyle (this: DomUI, text: string, doc?: { createElement: Document["createElement"] }): HTMLStyleElement;
   InsertInnerCSS (this: void, inner: BgReq["insertInnerCSS"]): void;
-  insertCSS (this: DomUI, outer: string | false): void;
+  setOuterCSS (this: DomUI, outer: string | false): void;
   getSelection (this: DomUI): Selection;
   removeSelection (this: DomUI, root?: DocumentOrShadowRoot,): boolean;
   click (this: DomUI, element: Element, modifiers?: EventControlKeys | null, addFocus?: boolean): boolean;

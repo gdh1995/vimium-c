@@ -78,12 +78,12 @@ VDom.UI = {
   InsertInnerCSS (inner): void {
     VDom.UI.styleIn && (VDom.UI.styleIn.textContent = inner.css);
   },
-  insertCSS (outer): void {
+  setOuterCSS (outer): void {
     let el = this.styleOut;
     if (!outer) { el && el.remove(); return; }
     el ? (el.textContent = outer) : (el = this.styleOut = this.createStyle(outer));
     this.init && this.init(true);
-    (this.box as HTMLElement).appendChild(el);
+    el.parentNode === this.box || (this.box as HTMLElement).appendChild(el);
   },
   getSelection (): Selection {
     let sel = window.getSelection(), el: Node | null, el2: Node | null;

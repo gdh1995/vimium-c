@@ -189,7 +189,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
     },
     OnReady (inited?: boolean): void {
       const visible = isEnabledForUrl && location.href !== "about:blank" && innerHeight > 9 && innerWidth > 9;
-      VDom.UI.insertCSS(visible && VSettings.cache.userDefinedOuterCss);
+      VDom.UI.setOuterCSS(visible && VSettings.cache.userDefinedOuterCss);
       if (inited) { return; }
       HUD.enabled = true;
       ELs.OnWndFocus = vPort.safePost.bind(vPort, { handler: "frameFocused" });
