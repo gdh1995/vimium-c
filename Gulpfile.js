@@ -305,16 +305,16 @@ function convertToStream(pathOrStream) {
 }
 
 function compareContentAndTouch(stream, sourceFile, targetPath) {
-  var isSame = false, equals = null, newEquals = null;
-  if (!sourceFile.isNull()) {
-    equals = sourceFile.contents.equals;
-    newEquals = sourceFile.contents.equals = function(targetData) {
-      var curIsSame = equals.apply(this, arguments);
-      isSame || (isSame = curIsSame);
-      return curIsSame;
-    };
+  if (sourceFile.isNull()) {
+    return changed.compareContents.apply(this, arguments);
   }
-  return changed.compareContents(stream, sourceFile, targetPath
+  var isSame = false, equals = sourceFile.contents.equals,
+  newEquals = sourceFile.contents.equals = function(targetData) {
+    var curIsSame = equals.apply(this, arguments);
+    isSame || (isSame = curIsSame);
+    return curIsSame;
+  };
+  return changed.compareContents.apply(this, arguments
   ).then(function() {
     sourceFile.contents.equals === newEquals && (sourceFile.contents.equals = equals);
     if (!isSame) { return; }
