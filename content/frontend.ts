@@ -75,7 +75,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
 
   ELs = { //
     onKeydown (event: KeyboardEvent): void {
-      if (!isEnabledForUrl || event.isTrusted === false) { return; }
+      if (!isEnabledForUrl || event.isTrusted === false || !(event instanceof KeyboardEvent)) { return; }
       if (VScroller.keyIsDown) {
         if (event.repeat) {
           VScroller.keyIsDown = VScroller.Core.maxInterval;
@@ -128,7 +128,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
       KeydownEvents[key] = 1;
     },
     onKeyup (event: KeyboardEvent): void {
-      if (!isEnabledForUrl || event.isTrusted === false) { return; }
+      if (!isEnabledForUrl || event.isTrusted === false || !(event instanceof KeyboardEvent)) { return; }
       VScroller.keyIsDown = 0;
       if (InsertMode.suppressType && window.getSelection().type !== InsertMode.suppressType) {
         VEventMode.setupSuppress();
