@@ -1290,7 +1290,7 @@ interface DocumentEventMap extends GlobalEventHandlersEventMap {
     "activate": UIEvent;
     "beforeactivate": UIEvent;
     "beforedeactivate": UIEvent;
-    "blur": FocusEvent;
+    "blur": Event;
     "canplay": Event;
     "canplaythrough": Event;
     "change": Event;
@@ -1308,7 +1308,7 @@ interface DocumentEventMap extends GlobalEventHandlersEventMap {
     "durationchange": Event;
     "emptied": Event;
     "error": ErrorEvent;
-    "focus": FocusEvent;
+    "focus": Event;
     "fullscreenchange": Event;
     "fullscreenerror": Event;
     "input": Event;

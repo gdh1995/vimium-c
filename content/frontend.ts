@@ -12,7 +12,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
   interface ShadowRootEx extends ShadowRoot {
     vimiumBlurred?: boolean;
   }
-  interface LockableFocusEvent extends FocusEvent {
+  interface LockableFocusEvent extends Event {
     target: HTMLElement;
   }
 
@@ -141,7 +141,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
         return onKeyup2(event);
       }
     },
-    onFocus (event: FocusEvent): void {
+    onFocus (event: Event): void {
       if (event.isTrusted === false) { return; }
       let target = event.target as Window | Element | ShadowRootEx;
       if (target === window) { ELs.OnWndFocus(); }
@@ -154,7 +154,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
         target.addEventListener("blur", ELs.onShadowBlur, true);
       }
     },
-    onBlur (event: FocusEvent): void {
+    onBlur (event: Event): void {
       if (event.isTrusted === false) { return; }
       let target = event.target as Window | Element | ShadowRootEx;
       if (target === window) {
@@ -179,7 +179,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
     },
     OnWndFocus (this: void): void {},
     OnWndBlur: null as ((this: void) => void) | null,
-    onShadowBlur (this: ShadowRootEx, event: FocusEvent): void {
+    onShadowBlur (this: ShadowRootEx, event: Event): void {
       if (event.isTrusted === false) { return; }
       if (this.vimiumBlurred) {
         this.vimiumBlurred = false;

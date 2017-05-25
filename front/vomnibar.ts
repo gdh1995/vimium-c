@@ -413,7 +413,7 @@ var Vomnibar = {
       el.setSelectionRange(0, left.length, 'backward');
     }
   },
-  OnFocus (this: void, event: FocusEvent): void { Vomnibar.focused = event.type !== "blur"; },
+  OnFocus (this: void, event: Event): void { Vomnibar.focused = event.type !== "blur"; },
   OnTimer (this: void): void { if (Vomnibar) { return Vomnibar.filter(); } },
   onWheel (event: WheelEvent): void {
     if (event.ctrlKey || event.metaKey) { return; }
