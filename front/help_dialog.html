@@ -6,20 +6,19 @@
 	box-shadow: rgba(0, 0, 0, 0.4) 0 0 6px;
 	contain: content;
 	direction: ltr;
-	left: calc(50% - 422px);
+	left: calc(50% - 419px);
 	line-height: 130%;
 	max-height: calc(100% - 108px);
 	min-height: 25px;
 	overflow-y: auto;
 	padding: 8px 6px 0 18px;
 	top: 50px;
-	width: 816px;
 	z-index: 2147483645;
 }
 #HelpContent {
-	min-width: 600px;
+	width: 800px;
 }
-@media (max-width: 600px) {
+@media (max-width: 837px) {
 	#HelpDialog {
 		left: 0;
 		right: 0;
@@ -27,7 +26,7 @@
 		overflow-x: scroll;
 	}
 	#HelpContent {
-		padding-right: 6px;
+		padding-right: 12px;
 	}
 }
 
@@ -149,6 +148,10 @@
 }
 
 /* Scrollbar */
+#HelpDialog.Scroll {
+	overflow: overlay;
+	padding-right: 18px;
+}
 .Scroll::-webkit-scrollbar,
 .Scroll::-webkit-scrollbar-track,
 .Scroll::-webkit-scrollbar-thumb {
@@ -223,7 +226,7 @@
 
 	<div class="HDivider"></div>
 
-	<div style="position:relative;font-size:13px;height:38px;">
+	<div style="position:relative;font-size:13px;height:42px;">
 		<div style="position:absolute;top:-34px;">{{tip}}</div>
 		<a class="L" id="AdvancedCommands" role="button" href="javascript:;">Show advanced commands</a>
 
