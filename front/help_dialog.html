@@ -30,29 +30,27 @@
 	}
 }
 
-.ColumnBox {
-	float: left;
-	width: 50%;
-}
 .HelpTable {
-	border-spacing: 2px;
+	border-spacing: 5.5px 3px;
+	float: left;
 	line-height: 130%;
 	overflow: visible;
 	table-layout: auto;
-	width: 100%;
+	width: 50%;
 	word-break: normal;
 	contain: content;
 }
 .Column {
 	white-space: normal;
+	font: 12px/1 "Helvetica Neue",Helvetica,Arial,sans-serif;
 }
 .HelpTr {
 	display: table-row;
 }
 .HelpTd {
 	display: table-cell;
-	line-height: 130%;
-	padding: 1px 1px 1px 3px;
+	line-height: 19.2px;
+	padding: 0;
 	vertical-align: top;
 }
 .TdBottom {
@@ -77,7 +75,6 @@
 	clear: both;
 	color: black;
 	font-family: Consolas, "Liberation Mono", "Courier New", monospace;
-	line-height: 18.2px;
 	text-align: right;
 	white-space: nowrap;
 }
@@ -104,7 +101,7 @@
 .HelpSectionTitle {
 	font-size: 16px;
 	font-weight: bold;
-	padding-top: 3px;
+	line-height: 24px;
 }
 
 .L {
@@ -198,16 +195,13 @@
 		</span>
 	</div>
 	<div class="HDivider"></div>
-	<div class="ColumnBox">
-		<table class="HelpTable">
+	<table class="HelpTable">
 		<tbody class="Column">
 			<tr class="HelpTr"><td class="HelpTd"></td><td class="HelpTd HelpSectionTitle">Navigating the page</td></tr>
 {{pageNavigation}}{{lbPad}}
 		</tbody>
-		</table>
-	</div>
-	<div class="ColumnBox">
-		<table class="HelpTable">
+	</table>
+	<table class="HelpTable">
 		<tbody class="Column">
 			<tr class="HelpTr"><td class="HelpTd"></td><td class="HelpTd HelpSectionTitle">Using the Vomnibar</td></tr>
 {{vomnibarCommands}}
@@ -221,8 +215,7 @@
 {{misc}}
 			<tr class="HelpTr"><td class="HelpTd TdBottom">&#160;</td></tr>
 		</tbody>
-		</table>
-	</div>
+	</table>
 
 	<div class="HDivider"></div>
 
