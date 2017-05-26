@@ -916,9 +916,11 @@ Are you sure you want to continue?`);
         return;
       }
       const i = tab.index--;
+      if (commandCount > 20 && startTabIndex >= (limited ? i : 0) && !funcDict.confirm("removeTab", commandCount)) {
+        return;
+      }
       funcDict.removeTabsRelative(tab, commandCount, tabs);
-      if (startTabIndex < 0) { return; }
-      if (startTabIndex >= i || limited || i > 0 && tabs[i - 1].pinned && !tab.pinned) { return; }
+      if (startTabIndex < 0 || startTabIndex >= i || limited || i > 0 && tabs[i - 1].pinned && !tab.pinned) { return; }
       ++tab.index;
       return funcDict.removeTabsRelative(tab, startTabIndex - i, tabs);
     },
@@ -938,7 +940,7 @@ Are you sure you want to continue?`);
         return requestHandlers.ShowHUD("Can not restore a tab in incognito mode!");
       }
       const limit = (chrome.sessions.MAX_SESSION_RESULTS as number) | 0;
-      limit > 0 && limit < count && (count = limit);
+      count > limit && limit > 0 && (count = limit);
       while (--count >= 0) {
         chrome.sessions.restore(null, funcDict.onRuntimeError);
       }
