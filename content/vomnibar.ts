@@ -46,8 +46,8 @@ var Vomnibar = {
     }
     if (VHints.tryNestedFrame("Vomnibar.activate", count, options)) { return; }
     this.options = null;
-    this.width = Math.max(window.innerWidth - 24, (document.documentElement as
-      HTMLElement).getBoundingClientRect().width);
+    const iw = window.innerWidth, docEl = document.documentElement as HTMLElement, cw = docEl.clientWidth;
+    this.width = cw === iw ? cw : Math.max(cw, docEl.getBoundingClientRect().width);
     this.zoom = VDom.UI.getZoom();
     this.status > VomnibarNS.Status.Inactive || VHandler.push(VDom.UI.SuppressMost, this);
     this.box && VDom.UI.adjust();
