@@ -901,7 +901,7 @@ Are you sure you want to continue?`);
     },
     removeTab (this: void, tabs: Tab[]): void {
       if (!tabs || tabs.length <= 0) { return chrome.runtime.lastError; }
-      const startTabIndex = tabs.length - commandCount, limited = cOptions.limited === true;
+      const startTabIndex = tabs.length - commandCount, limited = cOptions.limited != null ? !!cOptions.limited : null;
       let tab = tabs[0];
       if (cOptions.allow_close === true) {} else
       if (startTabIndex <= 0 && (startTabIndex === 0 && !limited || tab.active)) {
@@ -920,7 +920,8 @@ Are you sure you want to continue?`);
         return;
       }
       funcDict.removeTabsRelative(tab, commandCount, tabs);
-      if (startTabIndex < 0 || startTabIndex >= i || limited || i > 0 && tabs[i - 1].pinned && !tab.pinned) { return; }
+      if (startTabIndex < 0 && limited !== false || startTabIndex >= i || limited
+          || i > 0 && tabs[i - 1].pinned && !tab.pinned) { return; }
       ++tab.index;
       return funcDict.removeTabsRelative(tab, startTabIndex - i, tabs);
     },
