@@ -338,7 +338,7 @@ availableCommands: {
   toggleCS: [ "turn on/off the site's CS (use type=images)", 0, true, { type: "images" } ],
   clearCS: [ "clear extension's content settings (use type=images)", 1, true, { type: "images" } ],
   "Vomnibar.activate": [
-    "Open URL, bookmark, or history entry<br/> (use keyword='', url=false/&lt;string&gt;)", 0, true,
+    "Open URL, bookmark, or history entry<br/> (use keyword='', url=false/true/&lt;string&gt;)", 0, true,
     null, "showVomnibar" ],
   "Vomnibar.activateInNewTab": [
     "Open URL, history, etc,<br/> in a new tab (use keyword, url)", 0, true,
