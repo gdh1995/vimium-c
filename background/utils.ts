@@ -68,7 +68,7 @@ var Utils = {
   protocolRe: <RegExpOne> /^[a-z][\+\-\.\da-z]+:\/\//,
   _nonENDoaminRe: <RegExpOne> /[^.\da-z\-]|^-/,
   _jsNotEscapeRe: <RegExpOne> /["\[\]{}\u00ff-\uffff]|%(?![\dA-F]{2}|[\da-f]{2})/,
-  filePathRe: <RegExpOne> /^['"\u201c]?((?:[A-Za-z]:[\\/]|\/(?:Users|home|root)\/)[^'"\u201c\u201d]*)['"\u201d]?$/,
+  filePathRe: <RegExpOne> /^['"\u201c]?((?:[A-Za-z]:[\\/]|\/(?:Users|home|root)\/)[^'"\u201c\u201d]*|[A-Za-z]:)['"\u201d]?$/,
   lastUrlType: Urls.Type.Default,
   convertToUrl: (function(this: any, string: string, keyword?: string | null, vimiumUrlWork?: Urls.WorkType): Urls.Url {
     string = string.trim();

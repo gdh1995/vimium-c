@@ -1638,6 +1638,7 @@ Are you sure you want to continue?`);
       if (!url) {}
       else if (arr = url.match(Utils.filePathRe)) {
         url = arr[1];
+        url.length === 2 && url[1] === ":" && (url += "\\");
       } else if (port) {
         url = Utils.convertToUrl(url, request.keyword, Urls.WorkType.Default);
         if (url.substring(0, 11).toLowerCase() !== "javascript:") {
