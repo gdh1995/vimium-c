@@ -324,7 +324,7 @@ availableCommands: {
   removeRightTab: [ "Close N-th tab on the right", 0, true ],
   restoreTab: [ "Restore closed tab(s)", 25, true ],
   restoreGivenTab: [ "Restore the last N-th tab", 0, true ],
-  moveTabToNewWindow: [ "Move N tab(s) to new window (use limited)", 50, true ],
+  moveTabToNewWindow: [ "Move N tab(s) to new window (use limited=null/&lt;boolean&gt;)", 0, true ],
   moveTabToNextWindow: [ "Move tab to next window", 1, true ],
   moveTabToIncognito: [ "Make tab in a incognito window", 1, true ],
   togglePinTab: [ "Pin or unpin N tab(s)", 50, true ],

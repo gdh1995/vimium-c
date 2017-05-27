@@ -590,28 +590,34 @@ Are you sure you want to continue?`);
       } while (0 < --repeat);
     },
     moveTabToNewWindow: [function(wnd): void {
-      if (wnd.tabs.length <= 1 || wnd.tabs.length === commandCount) { return; }
-      const tab = funcDict.selectFrom(wnd.tabs);
+      const limited = cOptions.limited != null ? !!cOptions.limited : null, len = wnd.tabs.length;
+      if (len <= 1 || commandCount === len && !limited) { return; } // not an exact filter
+      const tab = funcDict.selectFrom(wnd.tabs), i = tab.index,
+      count = Math.min(commandCount, limited === false || limited === null && commandCount <= len ? len : len - i);
+      if (count >= len) { return requestHandlers.ShowHUD("It does nothing to move all tabs of this window"); }
+      if (count > 30 && !funcDict.confirm("moveTabToNewWindow", count)) { return; }
       return funcDict.makeWindow({
         type: "normal",
         tabId: tab.id,
         incognito: tab.incognito
       }, wnd.type === "normal" ? wnd.state : "",
-      commandCount > 1 ? funcDict.moveTabToNewWindow[1].bind(wnd, tab.index) : undefined);
-    }, function(i, wnd2): void {
-        let tabs = this.tabs;
-        const startTabIndex = tabs.length - commandCount, limited = cOptions.limited === true;
-        if (startTabIndex >= i || startTabIndex <= 0 || limited) {
-          tabs = tabs.slice(i + 1, i + commandCount);
+      commandCount > 1 ? funcDict.moveTabToNewWindow[1].bind(wnd, tab.index, count) : undefined);
+    }, function(i, count, wnd2): void {
+        let tabs = this.tabs, curTab = tabs[i], startTabIndex = tabs.length - count;
+        if (startTabIndex >= i) {
+          tabs = tabs.slice(i + 1, i + count);
         } else {
-          tabs[i].id = tabs[startTabIndex].id;
+          curTab.id = tabs[startTabIndex].id;
           tabs = tabs.slice(startTabIndex + 1);
+        }
+        if (Settings.CONST.ChromeVersion < BrowserVer.MinNoUnmatchedIncognito) {
+          tabs = tabs.filter(function(tab): boolean { return tab.incognito === curTab.incognito});
         }
         const tabIds = tabs.map(funcDict.getId);
         chrome.tabs.move(tabIds, {index: 1, windowId: wnd2.id}, funcDict.onRuntimeError);
     }] as [
       (this: void, wnd: PopWindow) => void,
-      (this: PopWindow, i: number, wnd2: Window) => void
+      (this: PopWindow, i: number, count: number, wnd2: Window) => void
     ],
     moveTabToNextWindow: [function(tab, wnds0): void {
       let wnds: Window[], ids: number[], index: number;
