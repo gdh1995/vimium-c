@@ -165,7 +165,9 @@ declare const enum KeyStat {
 }
 
 declare const enum BrowserVer {
-  MinSupported = 37,
+  MinSupported = 36,
+  MinSession = 37,
+  MinDisableMoveTabAcrossIncognito = 40,
   MinWithFrameId = 41,
   // just enabled by default
   Min$String$$EndsWith = 41,
@@ -175,8 +177,9 @@ declare const enum BrowserVer {
   MinMutedInfo = 45,
   MinAutoDecodeJSUrl = 46,
   MinEnsuredBorderWidth = 48, // inc 0.0001px to the min "visible" width
+  MinSafeWndPostMessageAcrossProcesses = 49,
   MinNoUnmatchedIncognito = 52,
-  MinClosedShadowRoot = 53,
+  MinShadowDOMV1 = 53,
   MinUserSelectAll = 53,
   AssumesVer = 53,
   MinHighDPIOnRemoteDesktop = 54,

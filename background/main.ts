@@ -135,15 +135,15 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
             const key = ContentSettings.makeKey(contentType);
             localStorage.getItem(key) !== "1" && (localStorage.setItem(key, "1"));
           }
-          if (tab.incognito || cOptions.action === "reopen" || !chrome.sessions) {
+          if (tab.incognito || cOptions.action === "reopen") {
             ++tab.index;
             return funcDict.reopenTab(tab);
-          } else if (tab.index > 0) {
+          } else if (tab.index > 0 && chrome.sessions) {
             return funcDict.refreshTab[0](tab.id);
           }
           chrome.windows.getCurrent({populate: true}, function(wnd) {
             !wnd || wnd.type !== "normal" ? chrome.tabs.reload()
-            : wnd.tabs.length > 1 ? funcDict.refreshTab[0](tab.id)
+            : wnd.tabs.length > 1 && chrome.sessions ? funcDict.refreshTab[0](tab.id)
             : funcDict.reopenTab(tab);
             return chrome.runtime.lastError;
           });
@@ -340,6 +340,10 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
     },
     complain (this: void, action: string): void {
       return requestHandlers.ShowHUD("It's not allowed to " + action);
+    },
+    complainNoSession(): void {
+      return Settings.CONST.ChromeVersion >= BrowserVer.MinSession ? funcDict.complain("control tab sessions")
+        : requestHandlers.ShowHUD(`Vimium++ can not control tab sessions before Chrome ${BrowserVer.MinSession}`);
     },
     checkVomnibarPage: function (this: void, port: Frames.Port, nolog?: boolean): boolean {
       interface SenderEx extends Frames.Sender { isVomnibar?: boolean; warned?: boolean; }
@@ -943,6 +947,9 @@ Are you sure you want to continue?`);
     },
     restoreTab (this: void): void {
       let count = commandCount;
+      if (!chrome.sessions) {
+        return funcDict.complainNoSession();
+      }
       if (count === 1 && cPort.sender.incognito) {
         return requestHandlers.ShowHUD("Can not restore a tab in incognito mode!");
       }
@@ -953,6 +960,9 @@ Are you sure you want to continue?`);
       }
     },
     restoreGivenTab (): void {
+      if (!chrome.sessions) {
+        return funcDict.complainNoSession();
+      }
       if (commandCount > (chrome.sessions.MAX_SESSION_RESULTS || 25)) {
         return funcDict.restoreGivenTab([]);
       }
@@ -1494,6 +1504,10 @@ Are you sure you want to continue?`);
       const id = request.sessionId, active = request.active !== false;
       if (typeof id === "number") {
         return funcDict.selectTab(id, true);
+      }
+      if (!chrome.sessions) {
+        console.log("Session feature is not allowed by Chrome:", request);
+        return;
       }
       chrome.sessions.restore(id, funcDict.onRuntimeError);
       if (active) { return; }
