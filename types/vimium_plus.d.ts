@@ -178,6 +178,7 @@ declare const enum BrowserVer {
   MinAutoDecodeJSUrl = 46,
   MinEnsuredBorderWidth = 48, // inc 0.0001px to the min "visible" width
   MinSafeWndPostMessageAcrossProcesses = 49,
+  MinNotPassMouseWheelToParentIframe = 51,
   MinNoUnmatchedIncognito = 52,
   MinShadowDOMV1 = 53,
   MinUserSelectAll = 53,

@@ -1219,6 +1219,7 @@ Are you sure you want to continue?`);
     performFind (): void {
       const query = cOptions.active ? null : (FindModeHistory as {query: FindModeQuery}).query(cPort.sender.incognito);
       cPort.postMessage({ name: "execute", count: 1, command: "Find.activate", options: {
+        browserVersion: Settings.CONST.ChromeVersion,
         count: commandCount,
         dir: cOptions.dir <= 0 ? -1 : 1,
         query

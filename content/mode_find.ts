@@ -56,6 +56,7 @@ html > count{float:right;}`,
     const el = this.box = VDom.createElement("iframe");
     el.className = "R HUD UI";
     el.style.width = "0px";
+    options.browserVersion < BrowserVer.MinNotPassMouseWheelToParentIframe && (el.onmousewheel = VUtils.Prevent);
     if (zoom !== 1) { el.style.zoom = "" + 1 / zoom; }
     el.onload = function(this: HTMLIFrameElement): void { return VFindMode.onLoad(this); };
     VHandler.push(VDom.UI.SuppressMost, this);
