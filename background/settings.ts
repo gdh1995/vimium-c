@@ -288,6 +288,8 @@ chrome.runtime.getPlatformInfo(function(info): void {
   obj.VomnibarPageInner = func(obj.VomnibarPageInner);
   obj.VomnibarScript_f = func(obj.VomnibarScript);
   ref2[ref2.length - 1] = obj.InjectEnd;
-  if (obj.ChromeVersion < BrowserVer.MinEnsured$String$$EndsWith) { ref2.unshift(obj.PolyFill); }
+  if (obj.ChromeVersion < BrowserVer.MinEnsured$String$$StartsWith && "".startsWith.name !== "startsWith") {
+    ref2.unshift(obj.PolyFill);
+  }
   obj.ContentScripts = ref2.map(func);
 })();

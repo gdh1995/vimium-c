@@ -170,9 +170,9 @@ declare const enum BrowserVer {
   MinDisableMoveTabAcrossIncognito = 40,
   MinWithFrameId = 41,
   // just enabled by default
-  Min$String$$EndsWith = 41,
+  Min$String$$StartsWith = 41,
   // even if chrome://flags/#disable-javascript-harmony-shipping
-  MinEnsured$String$$EndsWith = 43,
+  MinEnsured$String$$StartsWith = 43,
   MinCreateWndWithState = 44,
   MinMutedInfo = 45,
   MinAutoDecodeJSUrl = 46,
