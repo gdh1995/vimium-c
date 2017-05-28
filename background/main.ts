@@ -974,7 +974,7 @@ Are you sure you want to continue?`);
     },
     openCopiedUrlInNewTab (this: void, tabs: [Tab] | never[]): void {
       Utils.lastUrlType = Urls.Type.Default as Urls.Type;
-      const url = requestHandlers.getCopiedUrl_f({ keyword: (cOptions.keyword || "") + "" });
+      const url = requestHandlers.openCopiedUrl({ keyword: (cOptions.keyword || "") + "" });
       if (Utils.lastUrlType === Urls.Type.Functional) {
         return funcDict.onEvalUrl(url as Urls.SpecialUrl);
       } else if (!url) {
@@ -1633,7 +1633,7 @@ Are you sure you want to continue?`);
       if (funcDict.checkVomnibarPage(port)) { return; }
       return Completers.filter(request.query, request, funcDict.PostCompletions.bind(port));
     },
-    getCopiedUrl_f: function (this: void, request: FgReq["getCopiedUrl_f"], port?: Port): Urls.Url {
+    openCopiedUrl: function (this: void, request: FgReq["openCopiedUrl"], port?: Port): Urls.Url {
       let url: Urls.Url = Clipboard.paste().trim(), arr: RegExpMatchArray | null;
       if (!url) {}
       else if (arr = url.match(Utils.filePathRe)) {
@@ -1651,8 +1651,8 @@ Are you sure you want to continue?`);
       }
       return url;
     } as {
-      (this: void, request: FgReq["getCopiedUrl_f"], port: Port): FgRes["getCopiedUrl_f"];
-      (this: void, request: FgReq["getCopiedUrl_f"]): Urls.Url;
+      (this: void, request: FgReq["openCopiedUrl"], port: Port): FgRes["openCopiedUrl"];
+      (this: void, request: FgReq["openCopiedUrl"]): Urls.Url;
     },
     copyToClipboard (this: void, request: FgReq["copyToClipboard"]): FgRes["copyToClipboard"] {
       return Clipboard.copy(request.data);

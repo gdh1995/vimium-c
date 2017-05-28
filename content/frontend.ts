@@ -363,7 +363,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
         return;
       }
       return vPort.send({
-        handler: "getCopiedUrl_f",
+        handler: "openCopiedUrl",
         keyword
       }, function(str): void {
         if (str) {

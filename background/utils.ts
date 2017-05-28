@@ -72,6 +72,7 @@ var Utils = {
   lastUrlType: Urls.Type.Default,
   convertToUrl: (function(this: any, string: string, keyword?: string | null, vimiumUrlWork?: Urls.WorkType): Urls.Url {
     string = string.trim();
+    this.lastUrlType = Urls.Type.Full;
     if (string.charCodeAt(10) === 58 && string.substring(0, 11).toLowerCase() === "javascript:") {
       if (Settings.CONST.ChromeVersion < BrowserVer.MinAutoDecodeJSUrl && string.indexOf('%', 11) > 0
           && !this._jsNotEscapeRe.test(string)) {
@@ -79,7 +80,6 @@ var Utils = {
       }
       string = string.replace(this.A0Re, ' ');
       this.resetRe();
-      this.lastUrlType = Urls.Type.Full;
       return string;
     }
     let type: Urls.Type | Urls.TempType | Urls.TldType = Urls.TempType.Unspecified
@@ -94,17 +94,18 @@ var Utils = {
     if ((index = string.indexOf(':')) === 0) { type = Urls.Type.Search; }
     else if (index === -1 || !this.protocolRe.test(string)) {
       if (index !== -1 && string.lastIndexOf('/', index) < 0) {
-        type = this.checkSpecialSchemes(oldString, index, string.length % oldString.length);
+        type = (this as typeof Utils).checkSpecialSchemes(oldString, index, string.length % oldString.length);
       }
-      expected = Urls.Type.NoSchema; index2 = 0;
+      expected = Urls.Type.NoSchema; index2 = oldString.length;
       if (type === Urls.TempType.Unspecified && string.startsWith("//")) {
         string = string.substring(2);
-        expected = Urls.Type.NoProtocolName; index2 = 2;
+        expected = Urls.Type.NoProtocolName;
+        index2 -= 2;
       }
       if (type !== Urls.TempType.Unspecified) {}
       else if ((index = string.indexOf('/')) <= 0) {
-        if (index === 0 || string.length < oldString.length - index2) { type = Urls.Type.Search; }
-      } else if (string.length >= oldString.length - index2 || string.charCodeAt(index + 1) > KnownKey.space) {
+        if (index === 0 || string.length < index2) { type = Urls.Type.Search; }
+      } else if (string.length >= index2 || string.charCodeAt(index + 1) > KnownKey.space) {
         hasPath = string.length > index + 1;
         string = string.substring(0, index);
       } else {
@@ -156,13 +157,13 @@ var Utils = {
     } else if (string.endsWith("localhost")) {
       type = expected;
     } else if ((index = string.lastIndexOf('.')) < 0) {
-      string === "__proto__" && (string = ".__proto__");
+      string === "__proto__" && (string = "." + string);
       type = expected !== Urls.Type.NoSchema || arr[4] && hasPath ||
         this.checkInDomain(string, arr[4]) > 0 ? expected : Urls.Type.Search;
     } else if (this._ipRe.test(string)) {
       type = expected;
     } else if ((type = this.isTld(string.substring(index + 1))) === Urls.TldType.NotTld) {
-      type = this.checkInDomain(string, arr[4]) > 0 ? expected : Urls.Type.Search;
+      type = (this as typeof Utils).checkInDomain(string, arr[4]) > 0 ? expected : Urls.Type.Search;
     } else if (string.length !== index + 3 && type === Urls.TldType.ENTld && this._nonENDoaminRe.test(string)) {
       // `non-english.non-ccTld` AND NOT `non-english.non-english-tld`
       type = Urls.Type.Search;
@@ -184,8 +185,9 @@ var Utils = {
     this.resetRe();
     this.lastUrlType = type as Urls.Type;
     return type === Urls.Type.Full ? oldString
-      : type === Urls.Type.Search ? this.createSearchUrl(oldString.split(' '), keyword || "~", vimiumUrlWork)
-      : type <= Urls.Type.MaxOfInputIsPlainUrl ? (this.checkInDomain(string, arr && arr[4]) === 2 ? "https:" : "http:")
+      : type === Urls.Type.Search ? (this as typeof Utils).createSearchUrl(oldString.split(' '), keyword || "~", vimiumUrlWork)
+      : type <= Urls.Type.MaxOfInputIsPlainUrl ?
+        ((this as typeof Utils).checkInDomain(string, arr && arr[4]) === 2 ? "https:" : "http:")
         + (type === Urls.Type.NoSchema ? "//" : "") + oldString
       : oldString;
   }) as Urls.Converter,

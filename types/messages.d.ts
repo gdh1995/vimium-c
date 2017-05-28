@@ -162,7 +162,7 @@ interface FgReq {
   omni: {
     query: string;
   } & CompletersNS.Options;
-  getCopiedUrl_f: {
+  openCopiedUrl: {
     keyword: string | null;
   };
   copyToClipboard: {
@@ -194,7 +194,7 @@ interface FgRes {
   };
   searchAs: string;
   initInnerCSS: string;
-  getCopiedUrl_f: string;
+  openCopiedUrl: string;
   gotoMark: boolean;
   copyToClipboard: void;
 }
