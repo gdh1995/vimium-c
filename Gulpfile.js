@@ -21,15 +21,20 @@ var disableErrors = !process.env.DISABLE_ERRORS;
 var manifest = readJSON("manifest.json", true);
 var compilerOptions = loadValidCompilerOptions("tsconfig.gulp.json");
 
+var CompileTasks = {
+  background: ["background/*.ts", "background/*.d.ts"],
+  content: [["content/*.ts", "lib/*.ts", "!lib/polyfill.ts"], "content/*.d.ts"],
+  lib: [["lib/*.ts", "!lib/extend_click.ts"]],
+  front: [["front/*.ts", "lib/polyfill.ts", "pages/*.ts", "!pages/options*.ts", "!pages/show.ts"]
+          , ["background/bg.d.ts", "content/*.d.ts"]],
+  main_pages: [["pages/options*.ts", "pages/show.ts"], ["background/*.d.ts", "content/*.d.ts"]],
+  show: ["pages/show.ts", ["background/bg.d.ts", "content/*.d.ts"]],
+  options: ["pages/options*.ts", ["background/*.d.ts", "content/*.d.ts"]],
+  others: [["pages/*.ts", "!pages/options*.ts", "!pages/show.ts"], "background/bg.d.ts"],
+}
+
 var Tasks = {
-  "build/background": "background/*.ts",
-  "build/content": ["content/*.ts", "lib/*.ts"],
-  "build/front": ["front/*.ts", "content/*.d.ts"],
-  "build/lib": ["lib/*.ts", "content/*.d.ts"],
-  "build/others": ["pages/loader.ts", "pages/chrome_ui.ts", "background/*.d.ts"],
-  "build/show": ["pages/show.ts", "background/*.d.ts", "content/*.d.ts"],
-  "build/options": ["pages/options*.ts", "background/*.d.ts", "content/*.d.ts"],
-  "build/pages": ["build/others", "build/show", "build/options"],
+  "build/pages": ["build/main_pages", "build/others"],
   "static/special": function() {
     return copyByPath(["pages/newtab.js", "lib/math_parser*", "lib/*.min.js"]);
   },
@@ -43,7 +48,7 @@ var Tasks = {
   }],
 
   "build/scripts": ["build/background", "build/content", "build/front"],
-  "build/ts": ["build/scripts", "build/pages"],
+  "build/ts": ["build/scripts", "build/main_pages"],
 
   "min/bg": function(cb) {
     var sources = manifest.background.scripts;
@@ -120,19 +125,9 @@ var Tasks = {
     willListEmittedFiles = true;
     locally = true;
   },
-  "background": ["locally", makeCompileTask("background/*.ts")],
-  "content": ["locally", makeCompileTask(["content/*.ts", "lib/*.ts", "!lib/polyfill.ts"])],
-  "lib": ["locally", makeCompileTask(["lib/*.ts", "content/*.d.ts"])],
-  "others": ["front"],
   "scripts": ["background", "content", "front"],
-  "front": ["locally", function() {
-    return compile(["front/*.ts", "lib/polyfill.ts"
-        , "pages/*.ts", "!pages/options*.ts", "!pages/show.ts", "background/*.d.ts", "content/*.d.ts"]);
-  }],
-  "pages": ["locally", function() {
-    return compile(["pages/options*.ts", "pages/show.ts", "background/*.d.ts", "content/*.d.ts"]);
-  }],
-  local: ["scripts", "pages"],
+  "pages": ["main_pages", "others"],
+  local: ["scripts", "main_pages"],
   tsc: ["local"],
   default: ["tsc"],
   test: ["local"]
@@ -140,13 +135,27 @@ var Tasks = {
 
 
 typescript = compilerOptions.typescript = loadTypeScriptCompiler();
+makeCompileTasks();
 makeTasks();
 
-function makeCompileTask(src) {
-  if (typeof src === "function") { return src; }
+function makeCompileTask(src, header_files) {
+  header_files = typeof header_files === "string" ? [header_files] : header_files || [];
   return function() {
-    return compile(src);
+    return compile(src, header_files);
   };
+}
+
+function makeCompileTasks() {
+  var hasOwn = Object.prototype.hasOwnProperty;
+  for (var key in CompileTasks) {
+    if (!hasOwn.call(CompileTasks, key)) { continue; }
+    var config = CompileTasks[key], task = makeCompileTask(config[0], config[1]);
+    gulp.task(key, ["locally"], task);
+    gulp.task("build/" + key, task);
+    if (fs.existsSync(key) && fs.statSync(key).isDirectory()) {
+      gulp.task(key + "/", [key]);
+    }
+  }
 }
 
 function makeTasks() {
@@ -156,19 +165,12 @@ function makeTasks() {
     var task = Tasks[key];
     if (typeof task === "function") {
       gulp.task(key, task);
-    } else if (typeof task === "string") {
-      gulp.task(key, Tasks[key] = makeCompileTask(task));
     } else if (typeof task[1] === "function") {
       gulp.task(key, task[0] instanceof Array ? task[0] : [task[0]], task[1]);
     } else if (task[0] instanceof Array) {
       gulp.task(key, Tasks[key] = willStart(task));
     } else if (!/\.ts\b/i.test(task[0])) {
       gulp.task(key, task);
-    } else {
-      gulp.task(key, Tasks[key] = makeCompileTask(task));
-    }
-    if (key.indexOf("/") === -1 && fs.existsSync(key) && fs.statSync(key).isDirectory()) {
-      gulp.task(key + "/", [key]);
     }
   }
 }
@@ -184,7 +186,7 @@ function tsProject() {
   return disableErrors ? ts(compilerOptions, ts.reporter.nullReporter()) : ts(compilerOptions);
 }
 
-function compile(pathOrStream, skipOutput) {
+function compile(pathOrStream, header_files, skipOutput) {
   if (typeof pathOrStream === "string") {
     pathOrStream = [pathOrStream];
   }
@@ -194,9 +196,7 @@ function compile(pathOrStream, skipOutput) {
     pathOrStream.push("!types/*.ts");
   }
   var stream = pathOrStream instanceof Array ? gulp.src(pathOrStream, { base: "." }) : pathOrStream;
-  if (!skipOutput) {
-    stream = stream.pipe(newer({ dest: JSDEST, ext: '.js', extra: ["types/**/*.d.ts", "types/*.d.ts"] }));
-  }
+  stream = stream.pipe(newer({ dest: JSDEST, ext: '.js', extra: ["types/**/*.d.ts", "types/*.d.ts"].concat(header_files) }));
   stream = stream.pipe(gulpSome(function(file) {
     var t = file.relative, s = ".d.ts", i = t.length - s.length;
     return i < 0 || t.indexOf(s, i) !== i;
