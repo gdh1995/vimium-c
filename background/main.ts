@@ -975,11 +975,13 @@ Are you sure you want to continue?`);
     openCopiedUrlInNewTab (this: void, tabs: [Tab] | never[]): void {
       Utils.lastUrlType = Urls.Type.Default as Urls.Type;
       const url = requestHandlers.openCopiedUrl({ keyword: (cOptions.keyword || "") + "" });
+      if (!url) {
+        return requestHandlers.ShowHUD("No text copied!");
+      }
       if (Utils.lastUrlType === Urls.Type.Functional) {
         return funcDict.onEvalUrl(url as Urls.SpecialUrl);
-      } else if (!url) {
-        return requestHandlers.ShowHUD("No text copied!");
-      } else if (tabs.length > 0) {
+      }
+      if (tabs.length > 0) {
         return openMultiTab(url as string, commandCount, tabs[0]);
       } else {
         funcDict.safeUpdate(url as string);
@@ -1634,22 +1636,15 @@ Are you sure you want to continue?`);
       return Completers.filter(request.query, request, funcDict.PostCompletions.bind(port));
     },
     openCopiedUrl: function (this: void, request: FgReq["openCopiedUrl"], port?: Port): Urls.Url {
-      let url: Urls.Url = Clipboard.paste().trim(), arr: RegExpMatchArray | null;
-      if (!url) {}
-      else if (arr = url.match(Utils.filePathRe)) {
-        url = arr[1];
-        url.length === 2 && url[1] === ":" && (url += "\\");
-      } else if (port) {
-        url = Utils.convertToUrl(url, request.keyword, Urls.WorkType.Default);
-        if (url.substring(0, 11).toLowerCase() !== "javascript:") {
-          cOptions = Object.setPrototypeOf({ url_f: url }, null);
-          commandCount = 1; url = "";
-          BackgroundCommands.openUrl();
-        }
-      } else {
-        url = Utils.convertToUrl(url, request.keyword, Urls.WorkType.ActAnyway);
-      }
-      return url;
+      let url: Urls.Url = Clipboard.paste().trim();
+      if (!url) { Utils.lastUrlType = Urls.Type.Full; return ""; }
+      Utils.quotedStringRe.test(url) && (url = url.slice(1, -1));
+      url = Utils.convertToUrl(url, request.keyword, port ? Urls.WorkType.Default : Urls.WorkType.ActAnyway);
+      if (!port || (url as string).substring(0, 11).toLowerCase() === "javascript:") { return url; }
+      cOptions = Object.setPrototypeOf({ url_f: url as string }, null);
+      commandCount = 1;
+      BackgroundCommands.openUrl();
+      return "a";
     } as {
       (this: void, request: FgReq["openCopiedUrl"], port: Port): FgRes["openCopiedUrl"];
       (this: void, request: FgReq["openCopiedUrl"]): Urls.Url;
