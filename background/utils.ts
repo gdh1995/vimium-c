@@ -68,7 +68,9 @@ var Utils = {
   protocolRe: <RegExpOne> /^[a-z][\+\-\.\da-z]+:\/\//,
   _nonENDoaminRe: <RegExpOne> /[^.\da-z\-]|^-/,
   _jsNotEscapeRe: <RegExpOne> /["\[\]{}\u00ff-\uffff]|%(?![\dA-F]{2}|[\da-f]{2})/,
-  filePathRe: <RegExpOne> /^['"\u201c]?((?:[A-Za-z]:[\\/]|\/(?:Users|home|root)\/)[^'"\u201c\u201d]*|[A-Za-z]:)['"\u201d]?$/,
+  quotedStringRe: <RegExpOne> /^"[^"]*"$|^'[^']*'$|^\u201c[^\u201d]*\u201d$/,
+  filePathRe: <RegExpOne> /^[A-Za-z]:(?:[\\/][^:*?"<>|]*)?$|^\/(?:Users|home|root)\/[^:*?"<>|]+$/,
+  _backSlashRe: <RegExpG>/\\/g,
   lastUrlType: Urls.Type.Default,
   convertToUrl: (function(this: any, string: string, keyword?: string | null, vimiumUrlWork?: Urls.WorkType): Urls.Url {
     string = string.trim();
@@ -87,6 +89,11 @@ var Utils = {
       , hasPath = false, index: number, index2: number, oldString: string
       , arr: [never, string | undefined, string | undefined, string, string | undefined] | null | undefined;
     oldString = string.replace(this._lfSpacesRe, '');
+    if (this.filePathRe.test(oldString)) {
+      string = oldString[1] !== ":" ? oldString : oldString[0].toUpperCase() + ":/" + oldString.substring(3).replace(this._backSlashRe, "/");
+      this.resetRe();
+      return "file://" + (string[0] === "/" ? string : "/" + string);
+    }
     string = oldString.toLowerCase();
     if ((index = string.indexOf(' ')) > 0) {
       string = string.substring(0, index);
