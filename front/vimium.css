@@ -50,7 +50,7 @@
 	z-index: 2147483647;
 }
 .LH {
-	background: linear-gradient(to bottom, #FFF785 0%, #FFC542 100%);
+	background: linear-gradient(#FFF785, #FFC542);
 	border: 0.01px solid #E3BE23;
 	border-radius: 3px;
 	box-shadow: 0 3px 7px 0 rgba(0, 0, 0, 0.3);
@@ -64,7 +64,7 @@
 	color: #902809;
 }
 .MC {
-	color: #d4ac3a;
+	color: #D4AC3A;
 }
 
 /* Input hints CSS */
@@ -81,8 +81,8 @@
 
 /* HUD CSS */
 .HUD {
-	background-color: #eee;
-	border: 0.01px solid #b3b3b3;
+	background-color: #EEE;
+	border: 0.01px solid #B3B3B3;
 	border-radius: 4px 4px 0 0;
 	bottom: 0;
 	height: 14px;
@@ -112,7 +112,7 @@
 
 /* Vomnibar CSS */
 .Omnibar {
-	border: 0.01px solid #aaa;
+	border: 0.01px solid #AAA;
 	border-radius: 5px;
 	box-shadow: 0 2px 10px rgba(0, 0, 0, 0.8);
 	left: 10%;
