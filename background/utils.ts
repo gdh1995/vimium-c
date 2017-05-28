@@ -61,7 +61,7 @@ var Utils = {
   _hostRe: <RegExpOne> /^([^:]+(:[^:]+)?@)?([^:]+|\[[^\]]+])(:\d{2,5})?$/,
   _ipRe: <RegExpOne> /^(?:\d{1,3}\.){3}\d{1,3}$/,
   _ipv6Re: <RegExpOne> /^\[[\da-f]{0,4}(?::[\da-f]{0,4}){1,5}(?:(?::[\da-f]{0,4}){1,2}|:\d{0,3}(?:\.\d{0,3}){3})]$/,
-  lfRe: <RegExpG> /[\r\n]+/g,
+  _lfSpacesRe: <RegExpG> /[\r\n]+[\t \xa0]*/g,
   spacesRe: <RegExpG> /\s+/g,
   A0Re: <RegExpG> /\xa0/g,
   _nonENTldRe: <RegExpOne> /[^a-z]/,
@@ -86,7 +86,7 @@ var Utils = {
       , expected: Urls.Type = Urls.Type.Full
       , hasPath = false, index: number, index2: number, oldString: string
       , arr: [never, string | undefined, string | undefined, string, string | undefined] | null | undefined;
-    oldString = string.replace(this.lfRe, '').replace(this.spacesRe, ' ');
+    oldString = string.replace(this._lfSpacesRe, '');
     string = oldString.toLowerCase();
     if ((index = string.indexOf(' ')) > 0) {
       string = string.substring(0, index);
