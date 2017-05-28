@@ -1,4 +1,3 @@
-/// <reference path="../types/bg.exclusions.d.ts" />
 import ExcCls = ExclusionsNS.ExclusionsCls;
 declare var Exclusions: ExcCls;
 

@@ -1,6 +1,6 @@
 /// <reference path="../content/base.d.ts" />
 /// <reference path="../background/bg.d.ts" />
-/// <reference path="../types/bg.exclusions.d.ts" />
+/// <reference path="../background/bg.exclusions.d.ts" />
 type AllowedOptions = SettingsNS.PersistentSettings;
 interface Checker<T extends keyof AllowedOptions> {
   init? (): any;
