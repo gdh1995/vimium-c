@@ -454,7 +454,7 @@ var Vomnibar = {
     let height = list.length;
     this.matchType = response.matchType;
     this.completions = list;
-    this.selection = response.autoSelect || this.modeType !== "omni" ? 0 : -1;
+    this.selection = (response.autoSelect || this.modeType !== "omni") && height > 0 ?  0 : -1;
     this.isSelectionOrigin = true;
     this.isSearchOnTop = height > 0 && list[0].type === "search";
     if (height > 0) {
