@@ -89,8 +89,9 @@ var Utils = {
       , hasPath = false, index: number, index2: number, oldString: string
       , arr: [never, string | undefined, string | undefined, string, string | undefined] | null | undefined;
     oldString = string.replace(this._lfSpacesRe, '');
-    if (this.filePathRe.test(oldString)) {
-      string = oldString[1] !== ":" ? oldString : oldString[0].toUpperCase() + ":/" + oldString.substring(3).replace(this._backSlashRe, "/");
+    string = oldString[0] === '"' && oldString.endsWith('"') ? oldString.slice(1, -1) : oldString;
+    if (this.filePathRe.test(string)) {
+      string[1] === ":" && (string = string[0].toUpperCase() + ":/" + string.substring(3).replace(this._backSlashRe, "/"));
       this.resetRe();
       return "file://" + (string[0] === "/" ? string : "/" + string);
     }
