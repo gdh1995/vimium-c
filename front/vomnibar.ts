@@ -330,9 +330,10 @@ var Vomnibar = {
   },
   onBashAction (code: number): void | boolean {
     const sel = window.getSelection(), isExtend = code === 4 || code < 0;
-    sel.collapseToStart();
     sel.modify(isExtend ? "extend" : "move", code < 4 ? "backward" : "forward", "word");
-    if (isExtend && sel.type === "Range") { return document.execCommand("delete"); }
+    if (isExtend && this.input.selectionStart < this.input.selectionEnd) {
+      return document.execCommand("delete");
+    }
   },
   _pageNumRe: <RegExpOne> /(?:^|\s)(\+\d{0,2})$/,
   goPage (dir: boolean | number): void {

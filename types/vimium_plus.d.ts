@@ -214,6 +214,7 @@ declare const enum BrowserVer {
   MinNoKeygenElement = 57,
   MinCaseSensitiveUsemap = 58,
   Min1pxIsNotEps = 58,
+  Min$Selection$NotShowStatusInTextBox = 58,
   MinWarningWebkitGradient = 60,
   MinSelector$deep$DoesNothing = 60,
 }
