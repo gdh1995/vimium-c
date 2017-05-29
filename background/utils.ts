@@ -88,7 +88,7 @@ var Utils = {
       , expected: Urls.Type = Urls.Type.Full
       , hasPath = false, index: number, index2: number, oldString: string
       , arr: [never, string | undefined, string | undefined, string, string | undefined] | null | undefined;
-    oldString = string.replace(this._lfSpacesRe, '');
+    oldString = string.replace(this._lfSpacesRe, '').replace(this.A0Re, ' ');
     string = oldString[0] === '"' && oldString.endsWith('"') ? oldString.slice(1, -1) : oldString;
     if (this.filePathRe.test(string)) {
       string[1] === ":" && (string = string[0].toUpperCase() + ":/" + string.substring(3).replace(this._backSlashRe, "/"));
