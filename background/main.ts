@@ -1334,7 +1334,7 @@ Are you sure you want to continue?`);
     },
     parseSearchUrl (this: void, request: FgReq["parseSearchUrl"]): FgRes["parseSearchUrl"] {
       let s0 = request.url, url = s0.toLowerCase(), pattern: Search.Rule | undefined
-        , arr: string[] | null = null, _i: number, str: string, selectLast = false;
+        , arr: string[] | null = null, _i: number, selectLast = false;
       if (!Utils.protocolRe.test(Utils.removeComposedScheme(url))) {
         return null;
       }
@@ -1373,8 +1373,7 @@ Are you sure you want to continue?`);
       } else {
         arr = arr[0].split(re);
       }
-      str = arr.map(Utils.DecodeURLPart).join(" ");
-      url = str.replace(Utils.spacesRe, " ").trim();
+      url = arr.map(Utils.DecodeURLPart).join(" ").trim().replace(Utils.spacesRe, " ");
       return {
         keyword: pattern[2],
         url,
@@ -1495,11 +1494,11 @@ Are you sure you want to continue?`);
     searchAs (this: void, request: FgReq["searchAs"]): FgRes["searchAs"] {
       let search = requestHandlers.parseSearchUrl(request), query;
       if (!search || !search.keyword) { return "No search engine found!"; }
-      if (!(query = request.search)) {
-        query = Clipboard.paste().replace(Utils.spacesRe, ' ').trim();
+      if (!(query = request.search.trim())) {
+        query = Clipboard.paste().trim();
         if (!query) { return "No selected or copied text found!"; }
       }
-      query = Utils.createSearchUrl(query.split(" "), search.keyword);
+      query = Utils.createSearchUrl(query.split(Utils.spacesRe), search.keyword);
       funcDict.safeUpdate(query);
       return "";
     },

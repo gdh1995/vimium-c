@@ -324,7 +324,7 @@ var Utils = {
       } else {
         cmd = "~";
       }
-      path = (this as typeof Utils).DecodeEscapedURL(path);
+      path = (this as typeof Utils).decodeEscapedURL(path);
       arr = [path];
       path = this.convertToUrl(path);
       if (this.lastUrlType !== Urls.Type.Search && (obj = g_requestHandlers.parseSearchUrl({ url: path }))) {
@@ -339,7 +339,8 @@ var Utils = {
       }
       break;
     case "u": case "url": case "search":
-      arr = (this as typeof Utils).DecodeEscapedURL(path).split(this.spacesRe);
+      // here path is not empty, and so `decodeEscapedURL(path).trim()` is also not empty
+      arr = (this as typeof Utils).decodeEscapedURL(path).split(this.spacesRe);
       break;
     default:
       return null;
@@ -446,8 +447,8 @@ var Utils = {
     return url;
   },
   escapedColonOrSlashRe: <RegExpOne>/%(?:3[aA]|2[fF])/,
-  DecodeEscapedURL (url: string): string {
-    return url.indexOf("://") < 0 && this.escapedColonOrSlashRe.test(url) ? this.DecodeURLPart(url) : url;
+  decodeEscapedURL (url: string): string {
+    return url.indexOf("://") < 0 && this.escapedColonOrSlashRe.test(url) ? this.DecodeURLPart(url).trim() : url;
   },
   parseSearchEngines: (function(this: any, str: string, map: Search.EngineMap): Search.Rule[] {
     let ids: string[], tmpRule: Search.TmpRule | null, tmpKey: Search.Rule[3],

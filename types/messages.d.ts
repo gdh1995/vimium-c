@@ -120,7 +120,7 @@ interface FgReq {
   } | FgReq["parseUpperUrl"];
   searchAs: {
     url: string;
-    search?: string;
+    search: string;
   };
   gotoSession: {
     sessionId: string | number;

@@ -560,7 +560,7 @@ var Vomnibar = {
     maxResults: 10,
     query: ""
   },
-  _spacesRe: <RegExpG> /\s{2,}/g,
+  _spacesRe: <RegExpG> /\s+/g,
   filter (): void {
     let mode = this.mode, str: string, newMatchType = CompletersNS.MatchType.Default;
     if (this.useInput) {
