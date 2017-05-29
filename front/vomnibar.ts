@@ -147,7 +147,7 @@ var Vomnibar = {
         clearTimeout(this.timer);
       }
       if (updateDelay <= 0) {
-        return this.filter();
+        return this.fetch();
       }
     } else if (this.timer > 0) {
       return;
@@ -414,7 +414,7 @@ var Vomnibar = {
     }
   },
   OnFocus (this: void, event: Event): void { Vomnibar.focused = event.type !== "blur"; },
-  OnTimer (this: void): void { if (Vomnibar) { return Vomnibar.filter(); } },
+  OnTimer (this: void): void { if (Vomnibar) { return Vomnibar.fetch(); } },
   onWheel (event: WheelEvent): void {
     if (event.ctrlKey || event.metaKey) { return; }
     event.preventDefault();
@@ -561,7 +561,7 @@ var Vomnibar = {
     query: ""
   },
   _spacesRe: <RegExpG> /\s+/g,
-  filter (): void {
+  fetch (): void {
     let mode = this.mode, str: string, newMatchType = CompletersNS.MatchType.Default;
     if (this.useInput) {
       this.lastQuery = str = this.input.value.trim();
