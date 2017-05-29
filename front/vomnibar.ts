@@ -393,12 +393,12 @@ var Vomnibar = {
   onClick (event: MouseEvent): void {
     let el: Node | null = event.target as Node;
     if (el === this.input || window.getSelection().type === "Range") { return; }
-    else if (el === this.input.parentElement) { return this.onAction("focus"); }
+    if (el === this.input.parentElement) { return this.onAction("focus"); }
+    if (this.timer) { event.preventDefault(); return; }
     while (el && el.parentNode !== this.list) { el = el.parentNode; }
     if (!el) { return; }
-    if (this.timer) { event.preventDefault(); return; }
     this.lastKey = 0;
-    this.onEnter(event, [].indexOf.call(this.list.children, el));
+    return this.onEnter(event, [].indexOf.call(this.list.children, el));
   },
   OnMenu (this: void, event: Event): void {
     let el = event.target as Element | null;

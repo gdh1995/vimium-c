@@ -307,8 +307,8 @@ var Utils = {
           return [path, "copy"];
         });
       } else {
-        res = (this.lastUrlType === Urls.Type.Functional &&
-          res instanceof Array ? (res as Urls.BaseEvalResult)[0] : res as string);
+        res = this.lastUrlType === Urls.Type.Functional &&
+          res instanceof Array ? (res as Urls.BaseEvalResult)[0] : res as string;
         path = res instanceof Array ? res.join(" ") : res;
       }
       // no break;
