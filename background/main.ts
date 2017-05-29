@@ -1671,12 +1671,18 @@ Are you sure you want to continue?`);
        return Marks.createMark(request, port);
     },
     gotoMark (this: void, request: FgReq["gotoMark"]): FgRes["gotoMark"] { return Marks.gotoMark(request); },
-    focusOrLaunch (this: void, request: MarksNS.FocusOrLaunch): void {
+    focusOrLaunch (this: void, request: MarksNS.FocusOrLaunch, notFolder?: true): void {
       // * do not limit windowId or windowType
-      const url = request.url.split("#", 1)[0];
+      let url = Utils.reformatURL(request.url.split("#", 1)[0]), callback = funcDict.focusOrLaunch[0];
+      if (url.startsWith("file:") && !notFolder && url.substring(url.lastIndexOf("/") + 1).indexOf(".") < 0) {
+        chrome.tabs.query({ url: url + "/" }, function(tabs): void {
+          return tabs && tabs.length > 0 ? callback.call(request, tabs) : requestHandlers.focusOrLaunch(request, true);
+        });
+        return;
+      }
       chrome.tabs.query({
         url: request.prefix ? url + "*" : url
-      }, funcDict.focusOrLaunch[0].bind(request));
+      }, callback.bind(request));
     },
     SetIcon: function(): void {} as (tabId: number, type: Frames.ValidStatus) => void,
     ShowHUD (message: string, isCopy?: boolean): void {
