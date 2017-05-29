@@ -193,7 +193,7 @@ var Utils = {
     this.resetRe();
     this.lastUrlType = type as Urls.Type;
     return type === Urls.Type.Full ? oldString
-      : type === Urls.Type.Search ? (this as typeof Utils).createSearchUrl(oldString.split(' '), keyword || "~", vimiumUrlWork)
+      : type === Urls.Type.Search ? (this as typeof Utils).createSearchUrl(oldString.split(this.spacesRe), keyword || "~", vimiumUrlWork)
       : type <= Urls.Type.MaxOfInputIsPlainUrl ?
         ((this as typeof Utils).checkInDomain(string, arr && arr[4]) === 2 ? "https:" : "http:")
         + (type === Urls.Type.NoSchema ? "//" : "") + oldString
