@@ -181,21 +181,25 @@ var Vomnibar = {
     }
     focused || this.input.blur();
     const line: SuggestionEx = this.completions[sel] as SuggestionEx;
-    let str = line.text;
-    !str && (str = line.text = VUtils.shortenUrl(line.url));
+    if (line.parsed) {
+      return this._updateInput(line, line.parsed);
+    }
     (line as Partial<SuggestionEx>).https == null && (line.https = line.url.startsWith("https://"));
     if (line.type !== "history" && line.type !== "tab") {
-      this._updateInput(line, str);
+      if (line.parsed == null) {
+        VUtils.ensureText(line);
+        line.parsed = "";
+      }
+      this._updateInput(line, line.text);
       if (line.type === "math") {
         this.input.select();
       }
       return;
     }
-    if (line.parsed) {
-      return this._updateInput(line, line.parsed);
-    }
-    if (line.url.toLowerCase().startsWith("http") && str.lastIndexOf("://", 5) < 0) {
-      str = (line.url[5] === ':' ? "http://" : "https://") + str;
+    const ind = VUtils.ensureText(line);
+    let str = line.text;
+    if (ind && str.lastIndexOf("://", 5) < 0) {
+      str = (ind === 7 ? "http://" : "https://") + str;
     }
     return VPort.sendMessage({
       handler: "parseSearchUrl",
@@ -475,7 +479,7 @@ var Vomnibar = {
     if (noEmpty) {
       if (this.selection === 0) {
         const line = this.completions[0] as SuggestionEx;
-        line.text || (line.text = VUtils.shortenUrl(line.url));
+        VUtils.ensureText(line);
         (list.firstElementChild as HTMLElement).classList.add("s");
       }
       (list.lastElementChild as HTMLElement).classList.add("b");
@@ -638,9 +642,15 @@ VUtils = {
     } catch (e) {}
     return url;
   },
-  shortenUrl (this: void, url: string): string {
-    return url.substring((url.startsWith("http://")) ? 7 : (url.startsWith("https://")) ? 8 : 0,
-      url.length - +(url.charCodeAt(url.length - 1) === 47 && !url.endsWith("://")));
+  ensureText (sug: SuggestionEx): ProtocolType {
+    let url = sug.url, str = url.substring(0, 8).toLowerCase();
+    const i = str.startsWith("http://") ? ProtocolType.http : str === "https://" ? ProtocolType.https : ProtocolType.others;
+    if (!sug.text) {
+      sug.text = i && i < url.length ? url.substring(i) : url;
+    } else if (i && url.endsWith("/") && !url.endsWith("://") && !str.endsWith("/")) {
+      str += "/";
+    }
+    return i;
   },
   escapeHTML (s: string): string {
     const escapeRe = <RegExpG & RegExpSearchable<0>> /["&'<>]/g;

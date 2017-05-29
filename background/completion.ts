@@ -131,8 +131,8 @@ SuggestionUtils = {
     return out.join("");
   },
   shortenUrl (this: void, url: string): string {
-    return url.substring((url.startsWith("http://")) ? 7 : (url.startsWith("https://")) ? 8 : 0,
-      url.length - +(url.charCodeAt(url.length - 1) === 47 && !url.endsWith("://")));
+    const i = Utils.IsURLHttp(url);
+    return !i || i >= url.length ? url : url.substring(i, url.length - +(url.endsWith("/") && !url.endsWith("://")));
   },
   pushMatchingRanges (this: void, string: string, term: string, ranges: MatchRange[]): void {
     let index = 0, textPosition = 0, matchedEnd: number;
@@ -732,7 +732,7 @@ searchEngines: {
   makeText (url: string, arr: number[]): string {
     let len = arr.length, i: number, str: string, ind: number;
     str = Utils.DecodeURLPart(arr.length > 0 ? url.substring(0, arr[0]) : url);
-    if (i = (str.startsWith("http://")) ? 7 : (str.startsWith("https://")) ? 8 : 0) {
+    if (i = Utils.IsURLHttp(str)) {
       str = str.substring(i);
       i = 0;
     }
@@ -743,11 +743,7 @@ searchEngines: {
       ind = arr[i];
     }
     if (ind < url.length) {
-      url = Utils.DecodeURLPart(url.substring(ind));
-      if (url.charCodeAt(url.length - 1) === 47 && !url.endsWith("://")) {
-        url = url.substring(0, url.length - 1);
-      }
-      str += url;
+      str += Utils.DecodeURLPart(url.substring(ind));
     }
     return str;
   },

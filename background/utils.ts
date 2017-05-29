@@ -75,7 +75,7 @@ var Utils = {
   convertToUrl: (function(this: any, string: string, keyword?: string | null, vimiumUrlWork?: Urls.WorkType): Urls.Url {
     string = string.trim();
     this.lastUrlType = Urls.Type.Full;
-    if (string.charCodeAt(10) === 58 && string.substring(0, 11).toLowerCase() === "javascript:") {
+    if (string.charCodeAt(10) === KnownKey.colon && string.substring(0, 11).toLowerCase() === "javascript:") {
       if (Settings.CONST.ChromeVersion < BrowserVer.MinAutoDecodeJSUrl && string.indexOf('%', 11) > 0
           && !this._jsNotEscapeRe.test(string)) {
         string = this.DecodeURLPart(string);
@@ -573,10 +573,15 @@ var Utils = {
     prefix = this.prepareReparsingPrefix(prefix);
     return [prefix, new RegExp(str + str2 + url, this.alphaRe.test(str2) ? "i" as "" : "") as RegExpI | RegExpOne];
   }),
+  IsURLHttp (this: void, url: string): ProtocolType {
+    url = url.substring(0, 8).toLowerCase();
+    return url.startsWith("http://") ? ProtocolType.http : url === "https://" ? ProtocolType.https : ProtocolType.others;
+  },
   prepareReparsingPrefix (prefix: string): string {
-    if (prefix.startsWith("http://") || prefix.startsWith("https://")) {
-      prefix = prefix.substring(prefix[4] === 's' ? 8 : 7);
-    } else if (prefix.startsWith("vimium://")) {
+    const head = prefix.substring(0, 9).toLowerCase();
+    if (this.IsURLHttp(head)) {
+      prefix = prefix.substring(prefix.charCodeAt(4) === KnownKey.colon ? 7 : 8);
+    } else if (head === "vimium://") {
       prefix = this.formatVimiumUrl(prefix.substring(9), false, Urls.WorkType.ConvertKnown);
     }
     return prefix;

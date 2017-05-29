@@ -87,7 +87,7 @@ declare namespace MarksNS {
 declare const enum KnownKey {
   space = 32, bang = 33, quote2 = 34, hash = 35,
   maxCommentHead = hash,
-  s = 115,
+  s = 115, colon = 58,
 }
 
 interface ChildKeyMap {
@@ -107,6 +107,11 @@ declare const enum ReuseType {
   reuse = 1,
   newFg = -1,
   newBg = -2
+}
+
+declare const enum ProtocolType {
+  others = 0,
+  http = 7, https = 8,
 }
 
 declare const enum PortType {

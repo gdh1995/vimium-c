@@ -1346,8 +1346,7 @@ Are you sure you want to continue?`);
         return { keyword: '', start: 0, url: s0 };
       }
       const decoders = Settings.cache.searchEngineRules;
-      if (url.startsWith("http")) {
-        _i = url.charAt(4) === 's' ? 8 : 7;
+      if (_i = Utils.IsURLHttp(url)) {
         url = url.substring(_i);
         s0 = s0.substring(_i);
       }
