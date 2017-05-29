@@ -445,9 +445,9 @@ var Utils = {
     } catch (e) {}
     return url;
   },
-  escapedSlashRe: <RegExpOne>/%2[fF]/,
+  escapedColonOrSlashRe: <RegExpOne>/%(?:3[aA]|2[fF])/,
   DecodeEscapedURL (url: string): string {
-    return url.indexOf("://") < 0 && this.escapedSlashRe.test(url) ? this.DecodeURLPart(url) : url;
+    return url.indexOf("://") < 0 && this.escapedColonOrSlashRe.test(url) ? this.DecodeURLPart(url) : url;
   },
   parseSearchEngines: (function(this: any, str: string, map: Search.EngineMap): Search.Rule[] {
     let ids: string[], tmpRule: Search.TmpRule | null, tmpKey: Search.Rule[3],
