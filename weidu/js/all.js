@@ -3341,7 +3341,7 @@ DBOX = {
 			}).empty();
 			window.setTimeout(function () {
 				box.boxObject.css({
-					"background": "-webkit-linear-gradient(top, rgba(0,0,0,0.2), rgba(0,0,0,1), rgba(0,0,0,0.2))",
+					"background": "linear-gradient(rgba(0,0,0,0.2), rgba(0,0,0,1) 50%, rgba(0,0,0,0.2))",
 					"height": "0px",
 					"marginTop": parseInt((self.titleShow == true ? (self.height + 32) : self.height) / 2) + "px",
 					"borderRadius": "8px"

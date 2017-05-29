@@ -11,7 +11,7 @@
 .extensionsContainer .extensionsBody .classItem.all{border-radius:4px 0 0 0;}
 .extensionsContainer .extensionsBody .classItem.exist{border-radius:0 4px 0 0;}
 .extensionsContainer .extensionsBody .extensionsItem{height:96px;margin-left:20px;margin-top:5px;width:710px;border-bottom:1px #CCC dotted;}
-.extensionsContainer .extensionsBody .extensionsItem.unabled{-webkit-mask-image:-webkit-linear-gradient(bottom,rgba(0,0,0,.4),rgba(0,0,0,.4));}
+.extensionsContainer .extensionsBody .extensionsItem.unabled{-webkit-mask-image:linear-gradient(rgba(0,0,0,.4),rgba(0,0,0,.4));}
 .extensionsContainer .extensionsBody .extensionsItem .extensionsLogo{float:left;width:80px;height:80px;cursor:pointer;}
 .extensionsContainer .extensionsBody .extensionsItem .extensionsContent{float:left;width:600px;padding:2px 15px;line-height:20px;}
 .extensionsContainer .extensionsBody .extensionsItem .extensionsContent .extensionsTitle{margin-bottom:2px;}
