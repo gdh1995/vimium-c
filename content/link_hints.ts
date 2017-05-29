@@ -772,7 +772,8 @@ var VHints = {
     stackForThisMarker || stacks.push([i]);
   },
   unhoverLast (): void {
-    return VDom.unhoverLast(null);
+    VDom.unhoverLast(null);
+    return VHUD.showForDuration("The last element is unhovered");
   },
 
 alphabetHints: {
