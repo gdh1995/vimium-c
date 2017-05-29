@@ -66,7 +66,7 @@ Marks = { // NOTE: all members should be static
     }
     const markInfo: MarksNS.MarkToGo & MarksNS.StoredMark = JSON.parse(str) as MarksNS.StoredMark;
     markInfo.markName = request.markName;
-    markInfo.prefix = request.prefix !== false && markInfo.scroll[0] === 0 && markInfo.scroll[1] === 0;
+    markInfo.prefix = request.prefix !== false && markInfo.scroll[0] === 0 && markInfo.scroll[1] === 0 && markInfo.url.startsWith("http");
     if (Settings.indexPorts(markInfo.tabId)) {
       chrome.tabs.get(markInfo.tabId, Marks.checkTab.bind(markInfo));
     } else {
