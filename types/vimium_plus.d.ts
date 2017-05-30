@@ -197,6 +197,7 @@ declare const enum BrowserVer {
   MinPassiveEventListener = 51,
   MinNotPassMouseWheelToParentIframe = 51,
   Min$KeyboardEvent$$Key = 51,
+  MinNoCustomMessageOnBeforeUnload = 51,
   MinNoUnmatchedIncognito = 52,
   MinCSSEnableContain = 52,
   MinScrollingHTMLHtmlElement = 53,
@@ -207,6 +208,7 @@ declare const enum BrowserVer {
   MinHighDPIOnRemoteDesktop = 54,
   MinNo$KeyboardEvent$$keyIdentifier = 54,
   MinStricterArgsIn$Windows$$Create = 55,
+  Min$Event$$Path$IncludeNodesInShadowRoot = 55,
   MinSOmeDocumentListenersArePassiveByDefault = 56,
   MinExtIframesInSharedProcess = 56, // means enabled by default
   MinNeedCSPForScriptsFromOtherExtensions = 56,
