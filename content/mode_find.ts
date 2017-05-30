@@ -19,8 +19,8 @@ var VFindMode = {
   styleOut: null as never as HTMLStyleElement,
   A0Re: <RegExpG> /\xa0/g,
   tailRe: <RegExpOne> /\n$/,
-  cssSel: "::selection{background:#ff9632;}",
-  cssOut: "body{-webkit-user-select:auto !important;user-select:auto !important}\n",
+  cssSel: "::selection{background:#ff9632 !important;}",
+  cssOut: "body{-webkit-user-select:auto !important;user-select:auto !important;}\n",
   cssIFrame: `*{font:12px/14px "Helvetica Neue",Helvetica,Arial,sans-serif !important;
 height:14px;margin:0;overflow:hidden;vertical-align:top;white-space:nowrap;cursor:default;}
 body{cursor:text;display:inline-block;padding:0 3px 0 1px;max-width:215px;min-width:7px;}
