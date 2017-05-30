@@ -185,7 +185,7 @@ var VHints = {
     this.mode1 = mode = mode & ~HintMode.queue;
     this.forHover = mode >= HintMode.HOVER && mode <= HintMode.LEAVE;
     if (slient || this.noHUD) { return; }
-    return VHUD.show((this.modeOpt as HintsNS.ModeOpt)[mode] as string);
+    return VHUD.show((this.modeOpt as HintsNS.ModeOpt)[this.mode] as string);
   },
   tryNestedFrame (command: string, a: number, b: FgOptions): boolean {
     this.frameNested === false && this.checkNestedFrame();
