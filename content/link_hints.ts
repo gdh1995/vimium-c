@@ -96,7 +96,7 @@ var VHints = {
   forHover: false,
   count: 0,
   lastMode: 0 as HintMode,
-  tooHigh: false,
+  tooHigh: false as null | boolean,
   isClickListened: true,
   ngEnabled: null as boolean | null,
   keyStatus: {
@@ -128,7 +128,9 @@ var VHints = {
 
     let elements: Hint[] | undefined;
     const arr = VDom.getViewBox();
-    this.tooHigh = (document.documentElement as HTMLElement).scrollHeight  / window.innerHeight > 20;
+    if (this.tooHigh !== null) {
+      this.tooHigh = (document.documentElement as HTMLElement).scrollHeight / window.innerHeight > 20;
+    }
     this.maxLeft = arr[2], this.maxTop = arr[3], this.maxRight = arr[4];
     if (!this.frameNested) {
       elements = this.getVisibleElements();
@@ -612,6 +614,7 @@ var VHints = {
       event.shiftKey && this.ResetMode();
     } else if (!(linksMatched = this.alphabetHints.matchHintsByKey(this.hintMarkers as HintsNS.Marker[], event, this.keyStatus))){
       if (linksMatched === false) {
+        this.tooHigh = null;
         setTimeout(this.reinit.bind(this, null), 0);
       }
     } else if (linksMatched.length === 0) {
@@ -707,7 +710,6 @@ var VHints = {
     this.options = this.modeOpt = this.zIndexes = this.hintMarkers = null as never;
     this.lastMode = this.mode = this.mode1 = this.count =
     this.maxLeft = this.maxTop = this.maxRight = 0;
-    this.tooHigh = false;
     if (this.box) {
       this.box.remove();
       this.box = null;
@@ -722,7 +724,7 @@ var VHints = {
     this.clean(VHUD.text !== (this.modeOpt as HintsNS.ModeOpt)[this.mode] as string);
     this.keyStatus.tab = this.keyStatus.newHintLength = 0;
     VHandler.remove(this);
-    this.isActive = this.noHUD = false;
+    this.isActive = this.noHUD = this.keyStatus.known = this.tooHigh = false;
     if (suppressType != null) { return VDom.UI.suppressTail(suppressType); }
   },
   rotateHints (reverse?: boolean): void {
@@ -845,7 +847,7 @@ alphabetHints: {
       if (!this.hintKeystroke) {
         return false;
       }
-      keyStatus.tab = keyStatus.tab ? 0 : 1;
+      keyStatus.tab = (1 - keyStatus.tab) as BOOL;
     } else if (keyStatus.tab) {
       this.hintKeystroke = "";
       keyStatus.tab = 0;
