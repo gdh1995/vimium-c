@@ -160,7 +160,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
         return esc();
       } else if (!isEnabledForUrl) {}
       else if (InsertMode.lock === target) { InsertMode.lock = null; }
-      else if ((target as Element).shadowRoot && target !== VDom.UI.box) {
+      else if ((target as Element).shadowRoot instanceof ShadowRoot && target !== VDom.UI.box) {
         target = (target as Element).shadowRoot as ShadowRoot;
         // NOTE: if destroyed, this page must have lost its focus before, so
         // a blur event must have been bubbled from shadowRoot to a real lock.
@@ -179,6 +179,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
     },
     hookShadowFocus (this: void, event: Event): void {
       const root = (event.target as Element).shadowRoot as ShadowRootEx;
+      if (!(root instanceof ShadowRoot)) { return; } // in case of <form> elements
       root.addEventListener("focus", ELs.onFocus, true);
       root.addEventListener("blur", ELs.onShadowBlur, true);
     },
@@ -495,7 +496,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
         return true;
       }
       let el = document.activeElement;
-      if (el && (el as HTMLElement).isContentEditable && el instanceof HTMLElement) {
+      if (el && (el as HTMLElement).isContentEditable === true && el instanceof HTMLElement) {
         this.lock = el;
         return true;
       } else {
@@ -504,7 +505,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
     },
     exit (event: KeyboardEvent): void {
       let target: Element | null = event.target as Element;
-      if ((target as HTMLElement).shadowRoot && target instanceof HTMLElement) {
+      if ((target as HTMLElement).shadowRoot instanceof ShadowRoot) {
         if (target = this.lock) {
           this.lock = null;
           (target as HTMLElement).blur();
