@@ -1176,11 +1176,12 @@ Are you sure you want to continue?`);
           name: "execute",
           command: "autoCopy",
           count: 1,
-          options: { url: true }
+          options: { url: true, decode: cOptions.decode === true }
         });
         return;
       default: str = tabs[0].url; break;
       }
+      cOptions.decode === true && (str = Utils.DecodeURLPart(str));
       Clipboard.copy(str);
       return requestHandlers.ShowHUD(str, true);
     },

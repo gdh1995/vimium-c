@@ -344,8 +344,11 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
       vPort.post({ handler: "initHelp", wantTop });
     },
     autoCopy (_0: number, options: FgOptions): void {
-      const str = window.getSelection().toString() ||
-        (options.url ? window.location.href : document.title);
+      let str = window.getSelection().toString();
+      if (!str) {
+        str = options.url ? window.location.href : document.title;
+        options.decode === true && (str = VUtils.decodeURL(str));
+      }
       (str.length >= 4 || str.trim()) && vPort.post({
         handler: "copyToClipboard",
         data: str
