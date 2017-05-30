@@ -143,16 +143,11 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
     },
     onFocus (event: Event): void {
       if (event.isTrusted === false) { return; }
-      let target = event.target as Window | Element | ShadowRootEx;
-      if (target === window) { ELs.OnWndFocus(); }
-      else if (!isEnabledForUrl) {}
-      else if (VDom.getEditableType(target as Element)) { InsertMode.focus(event as LockableFocusEvent); }
-      else if (target === VDom.UI.box) { event.stopImmediatePropagation(); }
-      else if ((target as Element).shadowRoot) {
-        target = (target as Element).shadowRoot as ShadowRoot;
-        target.addEventListener("focus", ELs.onFocus, true);
-        target.addEventListener("blur", ELs.onShadowBlur, true);
-      }
+      let target = event.target as Window | Element, u: undefined;
+      return target === window ? ELs.OnWndFocus() : !isEnabledForUrl ? u
+        : VDom.getEditableType(target as Element) ? InsertMode.focus(event as LockableFocusEvent)
+        : target === VDom.UI.box ? event.stopImmediatePropagation()
+        : (target as Element).shadowRoot ? ELs.hookShadowFocus(event) : u;
     },
     onBlur (event: Event): void {
       if (event.isTrusted === false) { return; }
@@ -174,19 +169,24 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
         target.vimiumBlurred = true;
       }
     },
-    onActivate (event: UIEvent): void {
-      VScroller.current = (event as any).path[0];
-    },
-    OnWndFocus (this: void): void {},
-    OnWndBlur: null as ((this: void) => void) | null,
     onShadowBlur (this: ShadowRootEx, event: Event): void {
       if (event.isTrusted === false) { return; }
       if (this.vimiumBlurred) {
         this.vimiumBlurred = false;
         this.removeEventListener("blur", ELs.onShadowBlur, true);
       }
-      ELs.onBlur(event);
+      return ELs.onBlur(event);
     },
+    hookShadowFocus (this: void, event: Event): void {
+      const root = (event.target as Element).shadowRoot as ShadowRootEx;
+      root.addEventListener("focus", ELs.onFocus, true);
+      root.addEventListener("blur", ELs.onShadowBlur, true);
+    },
+    onActivate (event: UIEvent): void {
+      VScroller.current = (event as any).path[0];
+    },
+    OnWndFocus (this: void): void {},
+    OnWndBlur: null as ((this: void) => void) | null,
     OnReady (inited?: boolean): void {
       const visible = isEnabledForUrl && location.href !== "about:blank" && innerHeight > 9 && innerWidth > 9;
       VDom.UI.setOuterCSS(visible && VSettings.cache.userDefinedOuterCss);
@@ -513,8 +513,8 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
         (target as HTMLElement).blur();
       }
       if (this.global) {
-        HUD.hide();
         this.lock = null; this.global = null;
+        return HUD.hide();
       }
     },
     onExitSuppress: null as ((this: void) => void) | null
