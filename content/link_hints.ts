@@ -107,7 +107,7 @@ var VHints = {
   initTimer: 0,
   isActive: false,
   noHUD: false,
-  options: null as FgOptions | null,
+  options: null as never as FgOptions,
   timer: 0,
   activate (count?: number, options?: FgOptions | null): void {
     if (this.isActive) { return; }
@@ -119,7 +119,12 @@ var VHints = {
       if (!VDom.isHTML()) { return; }
     }
     VHandler.remove(this);
-    this.setModeOpt((count as number) | 0, Object.setPrototypeOf(options || {}, null));
+    this.setModeOpt((count as number) | 0, Object.setPrototypeOf(options || (options = {} as any as FgOptions), null));
+    let str = options.characters ? options.characters + "" : VSettings.cache.linkHintCharacters;
+    if (str.length < 3) {
+      this.clean(true);
+      return VHUD.showForDuration("Characters for LinkHints are too few.", 1000);
+    }
 
     let elements: Hint[] | undefined;
     const arr = VDom.getViewBox();
@@ -129,7 +134,7 @@ var VHints = {
       elements = this.getVisibleElements();
     }
     if (this.frameNested) {
-      if (this.tryNestedFrame("VHints.activate", (count as number) | 0, this.options as FgOptions)) {
+      if (this.tryNestedFrame("VHints.activate", (count as number) | 0, this.options)) {
         return this.clean();
       }
       elements || (elements = this.getVisibleElements());
@@ -143,7 +148,7 @@ var VHints = {
     this.hintMarkers = (elements as Hint[]).map(this.createMarkerFor, this);
     this.adjustMarkers(elements as Hint[]);
     elements = undefined;
-    this.alphabetHints.initMarkers(this.hintMarkers);
+    this.alphabetHints.initMarkers(this.hintMarkers, str);
 
     this.noHUD = arr[3] <= 40 || arr[2] <= 320;
     this.setMode(this.mode);
@@ -699,7 +704,7 @@ var VHints = {
     }
   },
   clean (keepHUD?: boolean): void {
-    this.options = this.modeOpt = this.zIndexes = this.hintMarkers = null;
+    this.options = this.modeOpt = this.zIndexes = this.hintMarkers = null as never;
     this.lastMode = this.mode = this.mode1 = this.count =
     this.maxLeft = this.maxTop = this.maxRight = 0;
     this.tooHigh = false;
@@ -795,8 +800,8 @@ alphabetHints: {
     }
     return hintString;
   },
-  initMarkers (hintMarkers: HintsNS.Marker[]): void {
-    this.chars = VSettings.cache.linkHintCharacters.toUpperCase();
+  initMarkers (hintMarkers: HintsNS.Marker[], str: string): void {
+    this.chars = str.toUpperCase();
     this.hintKeystroke = "";
     for (let end = hintMarkers.length, hints = this.buildHintIndexes(end); 0 <= --end; ) {
       const marker = hintMarkers[end],
