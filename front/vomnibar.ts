@@ -265,10 +265,11 @@ var Vomnibar = {
     }
     else if (event.ctrlKey || event.metaKey) {
       if (event.shiftKey) { action = n === VKeyCodes.F ? "pagedown" : n === VKeyCodes.B ? "pageup" : ""; }
-      else if (n === VKeyCodes.up || n === VKeyCodes.down) {
+      else if (n === VKeyCodes.up || n === VKeyCodes.down || n === VKeyCodes.end || n === VKeyCodes.home) {
+        event.preventDefault();
         this.lastScrolling = Date.now();
         window.onkeyup = Vomnibar.HandleKeydown;
-        return VPort.postToOwner({ name: "scrollBy", amount: n - VKeyCodes.right as -1 | 1 });
+        return VPort.postToOwner({ name: "scrollBy", keyCode: n });
       }
       else { action = this.ctrlMap[n] || ""; }
     }

@@ -125,8 +125,8 @@ declare namespace VomnibarNS {
     hide: {
       waitFrame: BOOL;
     };
-    scrollBy: {
-      amount: 1 | -1;
+    scroll: {
+      keyCode: number;
     };
     style: {
       height: number;

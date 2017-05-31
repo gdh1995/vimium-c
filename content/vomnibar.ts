@@ -183,7 +183,7 @@ var Vomnibar = {
   },
   onMessage<K extends keyof VomnibarNS.FReq> ({ data }: { data: VomnibarNS.FReq[K] & VomnibarNS.Msg<K> }): void | 1 {
     type Req = VomnibarNS.FReq;
-    switch (data.name) {
+    switch (data.name as keyof Req) {
     case "uiComponentIsReady":
       this.status = VomnibarNS.Status.ToShow;
       let opt = this.options;
@@ -198,7 +198,7 @@ var Vomnibar = {
       break;
     case "focus": window.focus(); return VEventMode.suppress((data as Req["focus"]).lastKey);
     case "hide": this.hide((data as Req["hide"]).waitFrame); break;
-    case "scrollBy": return VScroller.scrollBy(1, (data as Req["scrollBy"]).amount, 0);
+    case "scroll": return VEventMode.scroll(data as Req["scroll"]);
     case "scrollGoing": VScroller.keyIsDown = VScroller.Core.maxInterval; break;
     case "scrollEnd": VScroller.keyIsDown = 0; break;
     case "evalJS": VUtils.evalIfOK((data as Req["evalJS"]).url); break;
