@@ -773,7 +773,8 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
     createMark: VMarks.CreateGlobalMark,
     scroll: VMarks.Goto,
     showHUD (request): void {
-      return HUD[(request.isCopy ? "showCopied" : "showForDuration") as "showForDuration"](request.text);
+      const a = request.text;
+      return request.isCopy ? HUD.showCopied(a) : HUD.showForDuration(a);
     },
   showHelpDialog (request): void {
     let box: HTMLElement, oldShowHelp: typeof Commands.showHelp, hide: (this: void, e?: Event | number | "exitHD") => void

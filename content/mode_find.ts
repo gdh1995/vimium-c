@@ -331,15 +331,16 @@ html > count{float:right;}`,
       q = query != null ? query : this.isRegex ? this.getNextQueryFromRegexMatches(back ? -1 : 1) : this.parsedQuery;
       found = window.find(q, !notSens, back, true, false, true, false);
     } while (0 < --count && found);
-    options.noColor || setTimeout(this.hookSel.bind(this, "add"), 0);
+    options.noColor || setTimeout(this.HookSel, 0);
     (el = VEventMode.lock()) && !VDom.isSelected(document.activeElement as Element) && el.blur && el.blur();
     this.hasResults = found;
   },
   RestoreHighlight (this: void): void { return VFindMode.toggleStyle(0); },
-  hookSel (action: "add" | "remove"): void { document[action + "EventListener" as
-    "addEventListener"]("selectionchange", this.RestoreHighlight, true); },
+  HookSel (): void {
+    document.addEventListener("selectionchange", VFindMode && VFindMode.RestoreHighlight, true);
+  },
   toggleStyle (enabled: BOOL): void {
-    this.hookSel("remove");
+    document.removeEventListener("selectionchange", this.RestoreHighlight, true);
     this.styleOut.disabled = this.styleIn.disabled = !enabled;
   },
   getCurrentRange (): void {

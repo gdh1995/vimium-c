@@ -147,10 +147,11 @@ Settings.updateHooks.exclusionOnlyFirstMatch = function(this: void, value: boole
 Settings.updateHooks.exclusionListenHash = function(this: void, value: boolean): void {
   const _this = Exclusions;
   if (!_this._listening) { return; }
-  const onURLChange = _this.getOnURLChange();
-  if (!onURLChange) { return; }
+  const l = _this.getOnURLChange();
+  if (!l) { return; }
   _this._listeningHash = value;
-  chrome.webNavigation.onReferenceFragmentUpdated[value ? "addListener" : "removeListener"](onURLChange);
+  const e = chrome.webNavigation.onReferenceFragmentUpdated;
+  value ? e.addListener(l) : e.removeListener(l);
 };
 }
 Settings.Init && Settings.Init();

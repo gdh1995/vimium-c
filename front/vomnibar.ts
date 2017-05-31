@@ -473,8 +473,9 @@ var Vomnibar = {
     return this.populateUI();
   },
   populateUI (): void {
-    const list = this.list, noEmpty = this.completions.length > 0;
-    (this.input.parentElement as HTMLElement).classList[noEmpty ? "add" : "remove"]("withList");
+    const list = this.list, noEmpty = this.completions.length > 0,
+    cl = (this.input.parentElement as HTMLElement).classList, c = "withList";
+    noEmpty ? cl.add(c) : cl.remove(c);
     list.style.display = noEmpty ? "" : "none";
     list.innerHTML = this.renderItems(this.completions);
     if (noEmpty) {
