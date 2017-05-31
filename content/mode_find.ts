@@ -156,6 +156,7 @@ html > count{float:right;}`,
     }
   },
   onKeydown (event: KeyboardEvent): void {
+    if (!(event instanceof KeyboardEvent) || event.isTrusted === false) { return; }
     const enum Result {
       DoNothing = 0,
       Exit = 1, ExitToPostMode = 2, ExitAndReFocus = 3,
