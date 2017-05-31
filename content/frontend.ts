@@ -877,16 +877,14 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
     exitGrab: requestHandlers.exitGrab as VEventMode["exitGrab"],
     scroll (this: void, event): void {
       if (!event || event.shiftKey || event.altKey) { return; }
-      const keyCode = event.keyCode;
+      const { keyCode } = event as { keyCode: number }, c = (keyCode & 1) as BOOL;
       if (!(keyCode >= VKeyCodes.pageup && keyCode <= VKeyCodes.down)) { return; }
-      const ctrl = event.ctrlKey || event.metaKey;
       if (keyCode >= VKeyCodes.left) {
-        VScroller.scrollBy((1 - (keyCode & 1)) as BOOL, keyCode < VKeyCodes.left + 2 ? -1 : 1, <BOOL> +ctrl);
-      } else if (ctrl) { return; }
-      else if (keyCode > VKeyCodes.pageup + 1) {
-        VScroller.scrollTo(1, 0, (keyCode & 1) as BOOL);
-      } else {
-        VScroller.scrollBy(1, keyCode === VKeyCodes.pageup ? -0.5 : 0.5, "viewSize");
+        return VScroller.scrollBy((1 - c) as BOOL, keyCode < VKeyCodes.right ? -1 : 1, 0);
+      } else if (keyCode > VKeyCodes.pagedown) {
+        return VScroller.scrollTo(1, 0, c);
+      } else if (!(event.ctrlKey || event.metaKey)) {
+        return VScroller.scrollBy(1, 0.5 - c, "viewSize");
       }
     },
     setupSuppress (this: void, onExit): void {

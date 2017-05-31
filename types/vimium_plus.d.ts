@@ -157,8 +157,8 @@ declare const enum GlobalConsts {
 
 declare const enum VKeyCodes {
   backspace = 8, tab = 9, enter = 13, shiftKey = 16, ctrlKey = 17, altKey = 18, esc = 27,
-  maxNotPrintable = 32 - 1,
-  space, pageup, left = 37, up, right, down, minNotInKeyNames, deleteKey = 46,
+  maxNotPrintable = 32 - 1, space, pageup, pagedown, end, home, left, up, right, down, minNotInKeyNames,
+  insert = 45, deleteKey,
   maxNotNum = 48 - 1, N0, N1, N9 = 57, minNotNum = 58,
   maxNotAlphabet = 65 - 1, A, B, C, D, E, F, G, H, I, J, K, minNotAlphabet = 65 + 26, CASE_DELTA = 32,
   metaKey = 91, menuKey = 93, maxNotFn = 112 - 1, f1, f2, f12 = 123, minNotFn, ime = 229,

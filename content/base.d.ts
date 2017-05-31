@@ -223,7 +223,7 @@ interface VEventMode {
   onWndBlur (this: void, onWndBlur: ((this: void) => void) | null): void;
   setupSuppress (this: void, onExit?: (this: void) => void): void;
   mapKey (this: void, key: string): string;
-  scroll (this: void, event: KeyboardEvent): void;
+  scroll (this: void, event?: Partial<EventControlKeys & { keyCode: number }>): void;
   exitGrab (this: void): void;
   keydownEvents (this: void, newArr: KeydownCacheArray): void | never;
   keydownEvents (this: void): KeydownCacheArray | never;
