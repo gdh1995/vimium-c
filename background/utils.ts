@@ -439,10 +439,10 @@ var Utils = {
     this.resetRe();
     return indexes == null ? url : { url, indexes };
   } as Search.Executor,
-  DecodeURLPart (this: void, url: string | undefined): string {
+  DecodeURLPart (this: void, url: string | undefined, func?: (this: void, url: string) => string): string {
     if (!url) { return ""; }
     try {
-      url = decodeURIComponent(url);
+      url = (func || decodeURIComponent)(url);
     } catch (e) {}
     return url;
   },

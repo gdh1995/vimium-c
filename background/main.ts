@@ -1181,7 +1181,7 @@ Are you sure you want to continue?`);
         return;
       default: str = tabs[0].url; break;
       }
-      cOptions.decode === true && (str = Utils.DecodeURLPart(str));
+      cOptions.decode === true && (str = Utils.DecodeURLPart(str, decodeURI));
       Clipboard.copy(str);
       return requestHandlers.ShowHUD(str, true);
     },
@@ -1373,7 +1373,9 @@ Are you sure you want to continue?`);
       } else {
         arr = arr[0].split(re);
       }
-      url = arr.map(Utils.DecodeURLPart).join(" ").trim().replace(Utils.spacesRe, " ");
+      url = "";
+      for (_i = 0; _i < arr.length; _i++) { url += " " + Utils.DecodeURLPart(arr[_i]); }
+      url = url.trim().replace(Utils.spacesRe, " ");
       return {
         keyword: pattern[2],
         url,
