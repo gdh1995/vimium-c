@@ -81,6 +81,7 @@
   "permissions": [
     "bookmarks",
     "clipboardRead",
+    "clipboardWrite",
     "contentSettings",
     "history",
     "notifications",
