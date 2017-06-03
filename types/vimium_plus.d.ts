@@ -216,7 +216,7 @@ declare const enum BrowserVer {
   MinNoKeygenElement = 57,
   MinCaseSensitiveUsemap = 58,
   Min1pxIsNotEps = 58,
-  Min$Selection$NotShowStatusInTextBox = 58,
+  $Selection$NotShowStatusInTextBox = 58, // Now only version 81-110 of Chrome 58 stable have such a problem
   MinWarningWebkitGradient = 60,
   MinSelector$deep$DoesNothing = 60,
 }
