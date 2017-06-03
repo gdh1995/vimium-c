@@ -418,6 +418,7 @@ history: {
       const item = history[results[i + 1]];
       sugs.push(new Suggestion("history", item.url, item.text, item.title, getRele, score));
     }
+    Decoder.continueToWork();
     return sugs;
   },
   loadTabs (query: CompletersNS.QueryStatus, tabs: chrome.tabs.Tab[]): void {
