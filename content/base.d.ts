@@ -227,6 +227,9 @@ interface VEventMode {
   exitGrab (this: void): void;
   keydownEvents (this: void, newArr: KeydownCacheArray): void | never;
   keydownEvents (this: void): KeydownCacheArray | never;
+  OnScrolls: {
+    0: (this: any, event: KeyboardEvent) => void | 1;
+  } 
 }
 interface VHUD {
   box: HTMLDivElement | null;

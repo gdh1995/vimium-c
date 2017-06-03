@@ -76,22 +76,12 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
   ELs = { //
     onKeydown (event: KeyboardEvent): void {
       if (!isEnabledForUrl || event.isTrusted == false || !(event instanceof KeyboardEvent)) { return; }
-      if (VScroller.keyIsDown) {
-        if (event.repeat) {
-          VScroller.keyIsDown = VScroller.Core.maxInterval;
-          return VUtils.Prevent(event);
-        }
-        VScroller.keyIsDown = 0;
-      }
+      if (VScroller.keyIsDown && VEventMode.OnScrolls[0](event)) { return; }
       let keyChar: string, key = event.keyCode, action: HandlerResult;
       if (action = VHandler.bubbleEvent(event)) {
         if (action < HandlerResult.MinMayNotPassKey) { return; }
-        if (action === HandlerResult.Prevent) { event.preventDefault(); }
-        event.stopImmediatePropagation();
-        KeydownEvents[key] = 1;
-        return;
       }
-      if (InsertMode.isActive()) {
+      else if (InsertMode.isActive()) {
         if (InsertMode.lock === document.body && InsertMode.lock) { return; }
         if (InsertMode.global ? !InsertMode.global.code ? VKeyboard.isEscape(event)
               : key === InsertMode.global.code && VKeyboard.getKeyStat(event) === InsertMode.global.stat
@@ -887,6 +877,14 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
         return VScroller.scrollBy(1, 0.5 - c, "viewSize");
       }
     },
+    OnScrolls: [function (event): void | 1 {
+      if (event.repeat) {
+        VUtils.Prevent(event);
+        return (VScroller.keyIsDown = VScroller.Core.maxInterval) as 1;
+      } else {
+        VScroller.keyIsDown = 0;
+      }
+    }],
     setupSuppress (this: void, onExit): void {
       const mode = InsertMode, f = mode.onExitSuppress;
       mode.onExitSuppress = mode.suppressType = null;
