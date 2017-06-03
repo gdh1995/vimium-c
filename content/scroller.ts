@@ -14,9 +14,10 @@ declare namespace ScrollerNS {
 }
 var VScroller = {
 Core: {
-animate (a: number, d: ScrollByY, e: Element | null): number {
+animate (a: number, d: ScrollByY, e: Element | null): void | number {
   let amount = 0, calibration = 1.0, di: ScrollByY = 0, duration = 0, element: Element | null = null, //
   sign = 0, timestamp = ScrollerNS.Consts.invalidTime, totalDelta = 0.0, totalElapsed = 0.0, //
+  last = 0 as BOOL,
   animate = function(newTimestamp: number): void {
     let int1 = timestamp, elapsed: number, continuous: boolean;
     timestamp = newTimestamp;
@@ -48,8 +49,9 @@ animate (a: number, d: ScrollByY, e: Element | null): number {
     }
     VScroller.checkCurrent(element);
     element = null;
+    last = 0;
   };
-  this.animate = function(this: typeof VScroller.Core, newAmount, newDi, newEl): number {
+  this.animate = function(this: typeof VScroller.Core, newAmount, newDi, newEl): void | number {
     amount = Math.abs(newAmount); calibration = 1.0; di = newDi;
     duration = Math.max(ScrollerNS.Consts.minDuration, ScrollerNS.Consts.durationScaleForAmount * Math.log(amount));
     element = newEl;
@@ -59,6 +61,8 @@ animate (a: number, d: ScrollByY, e: Element | null): number {
     this.maxInterval = Math.round(keyboard[1] / ScrollerNS.Consts.FrameIntervalMs) + ScrollerNS.Consts.MaxSkippedF;
     this.minDelay = (((keyboard[0] - keyboard[1]) / ScrollerNS.Consts.DelayUnitMs) | 0) * ScrollerNS.Consts.DelayUnitMs;
     VScroller.keyIsDown = this.maxInterval;
+    if (last) { return; }
+    last = 1;
     return requestAnimationFrame(animate);
   };
   return this.animate(a, d, e);
@@ -187,7 +191,6 @@ animate (a: number, d: ScrollByY, e: Element | null): number {
       : height < rect.top ? rect.top + Math.min(rect.height - height, 0) : 0;
     if (hasY = amount) {
       this.Core.scroll(this.findScrollable(el, 1, amount), 1, amount);
-      VScroller.keyIsDown = 0;
     }
     amount = rect.right < 0 ? rect.right - Math.min(rect.width, width)
       : width < rect.left ? rect.left + Math.min(rect.width - width, 0) : 0;
@@ -197,8 +200,8 @@ animate (a: number, d: ScrollByY, e: Element | null): number {
       ref.smoothScroll = !hasY && oldSmooth;
       this.Core.scroll(this.findScrollable(el, 0, amount), 0, amount);
       ref.smoothScroll = oldSmooth;
-      VScroller.keyIsDown = 0;
     }
+    VScroller.keyIsDown = 0; // it's safe to only clean keyIsDown here
     this.top = null;
   },
   shouldScroll (element: Element, di: ScrollByY): boolean {
