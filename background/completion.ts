@@ -1003,6 +1003,7 @@ searchEngines: {
         return;
       }
       this._callbacks = callback ? [callback] : [];
+      this.lastRefresh = Date.now();
       chrome.history.search({
         text: "",
         maxResults: this.size,
@@ -1026,7 +1027,6 @@ searchEngines: {
       j = null;
       setTimeout(function() {
         const _this = HistoryCache;
-        _this.lastRefresh = Date.now();
         setTimeout(function() { return Decoder.DecodeList(HistoryCache.history as HistoryItem[]); }, 100);
         (_this.history as HistoryItem[]).sort(function(a, b): number { return a.url < b.url ? -1 : 1; });
         chrome.history.onVisitRemoved.addListener(_this.OnVisitRemoved);
