@@ -71,7 +71,7 @@ const enum RegExpCacheIndex {
 type CachedRegExp = (RegExpOne | RegExpI) & RegExpSearchable<0>;
 type RegExpCacheDict = [SafeDict<CachedRegExp>, SafeDict<CachedRegExp>, SafeDict<CachedRegExp>];
 
-type HistoryCallback = (history: ReadonlyArray<HistoryItem>) => any;
+type HistoryCallback = (this: void, history: ReadonlyArray<Readonly<HistoryItem>>) => void;
 
 interface UrlToDecode extends String {
   url?: void;
@@ -364,7 +364,7 @@ history: {
       HistoryCache.refreshInfo();
     } else {
       setTimeout(function() {
-        HistoryCache.use(null);
+        return HistoryCache.use();
       }, 50);
     }
     if (index === 0) {
@@ -997,7 +997,7 @@ searchEngines: {
     toRefreshCount: 0,
     history: null as HistoryItem[] | null,
     _callbacks: null as HistoryCallback[] | null,
-    use (callback: HistoryCallback | null): void {
+    use (callback?: HistoryCallback): void {
       if (this._callbacks) {
         callback && this._callbacks.push(callback);
         return;
@@ -1008,7 +1008,7 @@ searchEngines: {
         maxResults: this.size,
         startTime: 0
       }, function(history: chrome.history.HistoryItem[]): void {
-        setTimeout(HistoryCache.Clean as (arr: chrome.history.HistoryItem[]) => void, 17, history);
+        setTimeout(HistoryCache.Clean as (arr: chrome.history.HistoryItem[]) => void, 1, history);
       });
     },
     Clean: function(this: void, arr: Array<chrome.history.HistoryItem | HistoryItem>): void {
@@ -1026,24 +1026,21 @@ searchEngines: {
       j = null;
       setTimeout(function() {
         const _this = HistoryCache;
-        setTimeout(function() { Decoder.DecodeList(HistoryCache.history as HistoryItem[]); }, 400);
-        (_this.history as HistoryItem[]).sort(function(a, b) { return a.url < b.url ? -1 : 1; });
         _this.lastRefresh = Date.now();
+        setTimeout(function() { return Decoder.DecodeList(HistoryCache.history as HistoryItem[]); }, 100);
+        (_this.history as HistoryItem[]).sort(function(a, b): number { return a.url < b.url ? -1 : 1; });
         chrome.history.onVisitRemoved.addListener(_this.OnVisitRemoved);
         chrome.history.onVisited.addListener(_this.OnPageVisited);
       }, 100);
       _this.history = arr as HistoryItem[];
-      _this.use = function(this: typeof HistoryCache, callback: HistoryCallback) {
-        callback && callback(this.history as HistoryItem[]);
+      _this.use = function(this: typeof HistoryCache, callback?: HistoryCallback): void {
+        return callback ? callback(this.history as HistoryItem[]) : undefined;
       };
-      _this._callbacks && _this._callbacks.length > 0 && setTimeout(function(ref: Array<HistoryCallback|null>): void {
-        let f: HistoryCallback, i = 0;
-        for (; i < ref.length; i++) {
-          f = ref[i] as HistoryCallback;
-          ref[i] = null;
+      _this._callbacks && _this._callbacks.length > 0 && setTimeout(function(ref: Array<HistoryCallback>): void {
+        for (let f of ref) {
           f(HistoryCache.history as HistoryItem[]);
         }
-      }, 34, _this._callbacks);
+      }, 17, _this._callbacks);
       _this._callbacks = null;
     } as ((arr: chrome.history.HistoryItem[]) => void) | null,
     OnPageVisited (this: void, newPage: chrome.history.HistoryItem): void {
