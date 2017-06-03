@@ -223,12 +223,15 @@ interface VEventMode {
   onWndBlur (this: void, onWndBlur: ((this: void) => void) | null): void;
   setupSuppress (this: void, onExit?: (this: void) => void): void;
   mapKey (this: void, key: string): string;
-  scroll (this: void, event?: Partial<EventControlKeys & { keyCode: number }>): void;
+  scroll (this: void, event?: Partial<EventControlKeys & { keyCode: number }>, wnd?: Window): void;
   exitGrab (this: void): void;
   keydownEvents (this: void, newArr: KeydownCacheArray): void | never;
   keydownEvents (this: void): KeydownCacheArray | never;
   OnScrolls: {
     0: (this: any, event: KeyboardEvent) => void | 1;
+    1: (this: Window, event: KeyboardEvent) => void;
+    2: (this: Window, event: Event) => void;
+    3: (wnd: Window, interval?: number) => void;
   } 
 }
 interface VHUD {

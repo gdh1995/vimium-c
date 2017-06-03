@@ -158,6 +158,7 @@ html > count{float:right;}`,
   },
   onKeydown (event: KeyboardEvent): void {
     if (event.isTrusted == false) { return; }
+    if (VScroller.keyIsDown && VEventMode.OnScrolls[0](event)) { return; }
     const enum Result {
       DoNothing = 0,
       Exit = 1, ExitToPostMode = 2, ExitAndReFocus = 3,
@@ -172,8 +173,12 @@ html > count{float:right;}`,
     if (!i) {
       if (VKeyboard.isEscape(event)) { i = Result.ExitAndReFocus; }
       else if (i = VKeyboard.getKeyStat(event)) {
-        if ((i & ~KeyStat.PrimaryModifier) !== 0 || n < VKeyCodes.J || n > VKeyCodes.K) { return; }
-        this.execute(null, { dir: (VKeyCodes.K - n) as BOOL });
+        if ((i & ~KeyStat.PrimaryModifier) !== 0) { return; }
+        else if (n === VKeyCodes.up || n === VKeyCodes.down || n === VKeyCodes.end || n === VKeyCodes.home) {
+          VEventMode.scroll(event, this.box.contentWindow);
+        }
+        else if (n === VKeyCodes.J || n === VKeyCodes.K) { this.execute(null, { dir: (VKeyCodes.K - n) as BOOL }); }
+        else { return; }
         i = Result.DoNothing;
       }
       else if (n === VKeyCodes.f1) { this.box.contentDocument.execCommand("delete"); }

@@ -865,10 +865,11 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
     OnWndFocus (this: void): (this: void) => void { return ELs.OnWndFocus; },
     mapKey (this: void, key): string { return mapKeys !== null && mapKeys[key] || key; },
     exitGrab: requestHandlers.exitGrab as VEventMode["exitGrab"],
-    scroll (this: void, event): void {
+    scroll (this: void, event, wnd): void {
       if (!event || event.shiftKey || event.altKey) { return; }
       const { keyCode } = event as { keyCode: number }, c = (keyCode & 1) as BOOL;
       if (!(keyCode >= VKeyCodes.pageup && keyCode <= VKeyCodes.down)) { return; }
+      wnd && VSettings.cache.smoothScroll && VEventMode.OnScrolls[3](wnd, 1);
       if (keyCode >= VKeyCodes.left) {
         return VScroller.scrollBy((1 - c) as BOOL, keyCode < VKeyCodes.right ? -1 : 1, 0);
       } else if (keyCode > VKeyCodes.pagedown) {
@@ -881,9 +882,22 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
       if (event.repeat) {
         VUtils.Prevent(event);
         return (VScroller.keyIsDown = VScroller.Core.maxInterval) as 1;
+      } else if (this !== VEventMode.OnScrolls) {
+        return VEventMode.OnScrolls[3](this);
       } else {
         VScroller.keyIsDown = 0;
       }
+    }, function (event): void {
+      if (event.isTrusted != false) {
+        VUtils.Prevent(event);
+        return VEventMode.OnScrolls[3](this);
+      }
+    }, function (event): void {
+      if (event.target === this && event.isTrusted != false) { return VEventMode.OnScrolls[3](this); }
+    }, function (this: VEventMode["OnScrolls"], wnd, interval): void {
+      const f = interval ? addEventListener : removeEventListener;
+      VScroller.keyIsDown = interval || 0;
+      f.call(wnd, "keyup", this[1], true); f.call(wnd, "keyup", this[2], true);
     }],
     setupSuppress (this: void, onExit): void {
       const mode = InsertMode, f = mode.onExitSuppress;
