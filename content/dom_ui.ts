@@ -95,7 +95,7 @@ VDom.UI = {
   },
   removeSelection (root): boolean {
     const sel = (root && root.getSelection ? root : window).getSelection();
-    if (!sel || sel.type !== "Range" || !sel.anchorNode) {
+    if (!sel || VDom.selType(sel) !== "Range" || !sel.anchorNode) {
       return false;
     }
     sel.removeAllRanges();

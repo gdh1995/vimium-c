@@ -193,19 +193,23 @@ var VDom = {
         || (element.isContentEditable ? EditableType.Editbox : EditableType.NotEditable))
       : ((element as HTMLInputElement).type in this.uneditableInputs) ? EditableType.NotEditable : EditableType.Editbox;
   },
+  selType (sel?: Selection): SelectionType {
+    sel || (sel = window.getSelection());
+    return sel.type as SelectionType;
+  },
   isSelected (element: Element): boolean {
     const sel = window.getSelection(), node = sel.anchorNode;
     return (element as HTMLElement).isContentEditable ? node ? node.contains(element) : false
-      : sel.type === "Range" && sel.isCollapsed && element === (node as Node).childNodes[sel.anchorOffset];
+      : this.selType(sel) === "Range" && sel.isCollapsed && element === (node as Node).childNodes[sel.anchorOffset];
   },
   getSelectionFocusElement (): Element | null {
     let sel = window.getSelection(), node = sel.focusNode, i = sel.focusOffset;
     node && node === sel.anchorNode && i === sel.anchorOffset && (node = node.childNodes[i]);
-    return (node && node.nodeType !== Node.ELEMENT_NODE ? node.parentElement : node as Element) || null;
+    return node && node.nodeType !== Node.ELEMENT_NODE ? node.parentElement : node as (Element | null);
   },
   getElementWithFocus: function(sel: Selection, di: BOOL): Element | null {
     let r = sel.getRangeAt(0);
-    (sel.type === "Range") && (r = r.cloneRange()).collapse(!di);
+    this.selType(sel) === "Range" && (r = r.cloneRange()).collapse(!di);
     let el: Node | null = r.startContainer, o: Node | null, eTy = Node.ELEMENT_NODE;
     el.nodeType === eTy && (el = (el.childNodes[r.startOffset] || null) as Node | null);
     for (o = el; o && o.nodeType !== eTy; o = o.previousSibling) {}

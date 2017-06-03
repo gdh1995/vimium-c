@@ -54,6 +54,7 @@ interface Window {
   readonly Object: ObjectConstructor;
 }
 
+type SelectionType = "Range" | "Caret" | "None";
 interface Selection {
   modify(alert: "extend" | "move", direction: "forward" | "backward",
          granularity: "character" | "word" | "sentence" | "line" | "paragraph" | "lineboundary" | "documentboundary" |

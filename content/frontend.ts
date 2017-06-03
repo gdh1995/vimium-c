@@ -130,7 +130,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
     onKeyup (event: KeyboardEvent): void {
       if (!isEnabledForUrl || event.isTrusted === false || !(event instanceof KeyboardEvent)) { return; }
       VScroller.keyIsDown = 0;
-      if (InsertMode.suppressType && window.getSelection().type !== InsertMode.suppressType) {
+      if (InsertMode.suppressType && VDom.selType() !== InsertMode.suppressType) {
         VEventMode.setupSuppress();
       }
       if (KeydownEvents[event.keyCode]) {
@@ -891,7 +891,7 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
       const mode = InsertMode, f = mode.onExitSuppress;
       mode.onExitSuppress = mode.suppressType = null;
       if (onExit) {
-        mode.suppressType = window.getSelection().type;
+        mode.suppressType = VDom.selType();
         mode.onExitSuppress = onExit;
       }
       if (f) { return f(); }

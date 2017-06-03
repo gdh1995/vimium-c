@@ -128,7 +128,7 @@ html > count{float:right;}`,
     return this.postMode.activate();
   },
   deactivate (unexpectly?: boolean): Element | null { // need keep @hasResults
-    let el = null;
+    let el: Element | null = null;
     this.coords && window.scrollTo(this.coords[0], this.coords[1]);
     this.isActive = this._small = false;
     if (unexpectly !== true) {
@@ -346,7 +346,7 @@ html > count{float:right;}`,
   },
   getCurrentRange (): void {
     let sel = window.getSelection(), range: Range;
-    if (sel.type == "None") {
+    if (!sel.rangeCount) {
       range = document.createRange();
       range.setStart(document.body || document.documentElement as Element, 0);
     } else {

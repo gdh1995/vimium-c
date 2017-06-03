@@ -19,7 +19,6 @@ var VVisualMode = {
   currentSeconds: null as SafeDict<VisualModeNS.ValidActions> | null,
   retainSelection: false,
   selection: null as never as Selection,
-  type (): string { return this.selection.type; },
   activate (_0?: number, options?: FgOptions): void {
     let sel: Selection, type: string, mode: typeof VVisualMode.mode;
     Object.setPrototypeOf(options = options || {} as FgOptions, null);
@@ -27,7 +26,7 @@ var VVisualMode = {
     this.movement.selection = this.selection = sel = VDom.UI.getSelection();
     VHandler.remove(this);
     VHandler.push(this.onKeydown, this);
-    type = this.type();
+    type = VDom.selType(this.selection);
     if (!this.mode) { this.retainSelection = type === "Range"; }
     this.mode = mode = options.mode || "visual";
     if (mode !== "caret") {
@@ -40,7 +39,7 @@ var VVisualMode = {
         } else if (type === "Caret") {
           this.movement.extendByOneCharacter(1) || this.movement.extend(0);
         }
-        type = this.type();
+        type = VDom.selType(this.selection);
       }
       if (type !== "Range") { mode = "caret"; }
     }
@@ -151,7 +150,7 @@ var VVisualMode = {
     if (!node) { return true; }
     offset = ((str as string).match(<RegExpOne>/^\s*/) as RegExpMatchArray)[0].length;
     this.selection.collapse(node, offset);
-    return this.type() === "None";
+    return !this.selection.rangeCount;
   },
   prompt (text: string, duration: number): void {
     this.hudTimer && clearTimeout(this.hudTimer);
@@ -329,7 +328,7 @@ movement: {
     }
   },
   scrollIntoView (): void {
-    if (VVisualMode.type() === "None") { return; }
+    if (!this.selection.rangeCount) { return; }
     const focused = VDom.getElementWithFocus(this.selection, this.getDirection());
     if (focused) { return VScroller.scrollIntoView(focused); }
   },
