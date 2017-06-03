@@ -8255,10 +8255,10 @@ interface Window extends EventTarget, WindowTimers, WindowSessionStorage, Window
     addEventListener(type: string, listener: EventListenerOrEventListenerObject, useCapture?: boolean): void;
 }
 
-declare var Window: {
-    prototype: Window;
-    new(): Window;
-}
+// declare var Window: {
+//     prototype: Window;
+//     new(): Window;
+// }
 
 interface XMLDocument extends Document {
     addEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: XMLDocument, ev: DocumentEventMap[K]) => any, useCapture?: boolean): void;
