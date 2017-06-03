@@ -10,9 +10,16 @@ declare namespace VisualModeNS {
   const enum VimG {
     vimword = 5,
   }
+
+  const enum Mode {
+    NotActive = 0, Default = NotActive,
+    Visual = 1,
+    Caret = 2,
+    Line = 3,
+  }
 }
 var VVisualMode = {
-  mode: "" as "visual" | "caret" | "line",
+  mode: VisualModeNS.Mode.NotActive,
   hud: "",
   hudTimer: 0,
   currentCount: 0,
@@ -20,7 +27,7 @@ var VVisualMode = {
   retainSelection: false,
   selection: null as never as Selection,
   activate (_0?: number, options?: FgOptions): void {
-    let sel: Selection, type: string, mode: typeof VVisualMode.mode;
+    let sel: Selection, type: string, mode: VisualModeNS.Mode, str: string;
     Object.setPrototypeOf(options = options || {} as FgOptions, null);
     this.init && this.init();
     this.movement.selection = this.selection = sel = VDom.UI.getSelection();
@@ -28,8 +35,10 @@ var VVisualMode = {
     VHandler.push(this.onKeydown, this);
     type = VDom.selType(this.selection);
     if (!this.mode) { this.retainSelection = type === "Range"; }
-    this.mode = mode = options.mode || "visual";
-    if (mode !== "caret") {
+    str = typeof options.mode === "string" ? options.mode.toLowerCase() : "";
+    this.mode = mode = str ? str === "caret" ? VisualModeNS.Mode.Caret : str === "line" ? VisualModeNS.Mode.Line
+      : (str = "", VisualModeNS.Mode.Visual) : VisualModeNS.Mode.Visual;
+    if (mode !== VisualModeNS.Mode.Caret) {
       this.movement.alterMethod = "extend";
       if (!VEventMode.lock() && (type === "Caret" || type === "Range")) {
         const rect = sel.getRangeAt(0).getBoundingClientRect();
@@ -41,15 +50,15 @@ var VVisualMode = {
         }
         type = VDom.selType(this.selection);
       }
-      if (type !== "Range") { mode = "caret"; }
+      if (type !== "Range") { mode = VisualModeNS.Mode.Caret; }
     }
     this.hudTimer && clearTimeout(this.hudTimer);
-    VHUD.show(this.hud = mode[0].toUpperCase() + mode.substring(1) + " mode");
+    VHUD.show(this.hud = (str ? str[0].toUpperCase() + str.substring(1) : "Visual") + " mode");
     if (mode !== this.mode) {
       this.mode = mode;
       this.prompt("No usable selection, entering caret mode...", 1000);
     }
-    if (mode !== "caret") { return mode === "line" ? this.movement.extendToLine() : undefined; }
+    if (mode !== VisualModeNS.Mode.Caret) { return mode === VisualModeNS.Mode.Line ? this.movement.extendToLine() : undefined; }
     this.movement.alterMethod = "move";
     if (type === "Range") {
       this.movement.collapseSelectionTo(0);
@@ -63,11 +72,11 @@ var VVisualMode = {
   deactivate (isEsc?: 1): void {
     VHandler.remove(this);
     if (!this.retainSelection) {
-      this.movement.collapseSelectionTo(isEsc && this.mode !== "caret" ? 1 : 0);
+      this.movement.collapseSelectionTo(isEsc && this.mode !== VisualModeNS.Mode.Caret ? 1 : 0);
     }
     const el = VEventMode.lock();
     el && VDom.getEditableType(el) && el.blur && el.blur();
-    this.mode = "" as never; this.hud = "";
+    this.mode = VisualModeNS.Mode.NotActive; this.hud = "";
     this.retainSelection = false;
     this.selection = this.movement.selection = null as never;
     return VHUD.hide();
@@ -77,7 +86,7 @@ var VVisualMode = {
     if (i >= VKeyCodes.f1 && i <= VKeyCodes.f12) { return i === VKeyCodes.f1 ? HandlerResult.Prevent : HandlerResult.Nothing; }
     if (i === VKeyCodes.enter) {
       i = VKeyboard.getKeyStat(event);
-      if ((i & KeyStat.shiftKey) && this.mode !== "caret") { this.retainSelection = true; }
+      if ((i & KeyStat.shiftKey) && this.mode !== VisualModeNS.Mode.Caret) { this.retainSelection = true; }
       (i & KeyStat.PrimaryModifier) ? this.deactivate() : this.yank(i === KeyStat.altKey || null);
       return HandlerResult.Prevent;
     }
@@ -119,20 +128,20 @@ var VVisualMode = {
       if (command > 60) {
         return VScroller.scrollBy(1, (command === 61 ? 1 : -1) * count, 0);
       }
-      if (command === 53 && this.mode !== "caret") {
+      if (command === 53 && this.mode !== VisualModeNS.Mode.Caret) {
         const flag = this.selection.toString().length > 1;
         this.movement.collapseSelectionTo(+flag as 0 | 1);
       }
       return this.activate(1, { mode: ["visual", "line", "caret"][(command as number - 51) as 0 | 1 | 2] } as object as FgOptions);
     }
-    this.mode === "caret" && this.movement.collapseSelectionTo(0);
+    this.mode === VisualModeNS.Mode.Caret && this.movement.collapseSelectionTo(0);
     if (command >= 0) {
       this.movement.runMovements(((command as number) & 1) as 0 | 1, (command as number) >>> 1, count);
     } else {
       (command as (count: number) => any).call(this, count);
     }
-    return this.mode === "caret" ? this.movement.extend(1)
-    : this.mode === "line" ? this.movement.extendToLine() : 0;
+    return this.mode === VisualModeNS.Mode.Caret ? this.movement.extend(1)
+    : this.mode === VisualModeNS.Mode.Line ? this.movement.extendToLine() : 0;
   },
   establishInitialSelectionAnchor (): boolean {
     let node: Text | null, element: Element, str: string | undefined, offset: number;
@@ -178,7 +187,7 @@ var VVisualMode = {
     const range = this.selection.getRangeAt(0);
     VFindMode.execute(null, { noColor: true, dir, count });
     if (VFindMode.hasResults) {
-      return this.mode === "caret" && this.selection.toString().length > 0 ? this.activate() : undefined;
+      return this.mode === VisualModeNS.Mode.Caret && this.selection.toString().length > 0 ? this.activate() : undefined;
     }
     this.selection.removeAllRanges();
     this.selection.addRange(range);
