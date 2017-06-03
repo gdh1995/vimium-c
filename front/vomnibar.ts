@@ -425,7 +425,7 @@ var Vomnibar = {
     if (event.ctrlKey || event.metaKey || event.isTrusted == false) { return; }
     event.preventDefault();
     event.stopImmediatePropagation();
-    if (event.deltaX || Date.now() - this.wheelTimer < this.wheelInterval) { return; }
+    if (event.deltaX || Date.now() - this.wheelTimer < this.wheelInterval || !Vomnibar.isActive) { return; }
     this.wheelTimer = Date.now();
     return this.goPage(event.deltaY > 0);
   },
