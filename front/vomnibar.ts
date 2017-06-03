@@ -269,7 +269,7 @@ var Vomnibar = {
         event.preventDefault();
         this.lastScrolling = Date.now();
         window.onkeyup = Vomnibar.HandleKeydown;
-        return VPort.postToOwner({ name: "scrollBy", keyCode: n });
+        return VPort.postToOwner({ name: "scroll", keyCode: n });
       }
       else { action = this.ctrlMap[n] || ""; }
     }
