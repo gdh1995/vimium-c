@@ -79,8 +79,9 @@ html > count{float:right;}`,
     } catch (e) {
       el.contentEditable = "true";
       el.onpaste = function (this: HTMLElement, event: ClipboardEvent): void {
-        const text = event.clipboardData.getData("text/plain");
+        const d = event.clipboardData, text = d && typeof d.getData === "function" ? d.getData("text/plain") : "";
         event.preventDefault();
+        if (!text) { return; }
         (event.target as HTMLElement).ownerDocument.execCommand("insertText", false, text);
       };
     }
@@ -146,17 +147,17 @@ html > count{float:right;}`,
     return el;
   },
   OnUnload (this: void, e: Event): void {
-    if (e.isTrusted === false) { return; }
+    if (e.isTrusted == false) { return; }
     const f = VFindMode; f && f.isActive && f.deactivate(true);
   },
   OnMousedown (this: void, event: MouseEvent): void {
-    if (event.target !== VFindMode.input) {
+    if (event.target !== VFindMode.input && event.isTrusted != false) {
       event.preventDefault();
       VFindMode.input.focus();
     }
   },
   onKeydown (event: KeyboardEvent): void {
-    if (!(event instanceof KeyboardEvent) || event.isTrusted === false) { return; }
+    if (event.isTrusted == false) { return; }
     const enum Result {
       DoNothing = 0,
       Exit = 1, ExitToPostMode = 2, ExitAndReFocus = 3,
@@ -251,7 +252,7 @@ html > count{float:right;}`,
       return exit ? HandlerResult.Prevent : HandlerResult.Nothing;
     },
     exit (skip?: boolean | Event): void {
-      if (skip instanceof MouseEvent && skip.isTrusted === false) { return; }
+      if (skip instanceof MouseEvent && skip.isTrusted == false) { return; }
       this.lock && this.lock.removeEventListener("blur", this.exit, true);
       if (!this.lock || skip === true) { return; }
       this.lock = null;

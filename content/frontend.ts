@@ -75,7 +75,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
 
   ELs = { //
     onKeydown (event: KeyboardEvent): void {
-      if (!isEnabledForUrl || event.isTrusted === false || !(event instanceof KeyboardEvent)) { return; }
+      if (!isEnabledForUrl || event.isTrusted == false || !(event instanceof KeyboardEvent)) { return; }
       if (VScroller.keyIsDown) {
         if (event.repeat) {
           VScroller.keyIsDown = VScroller.Core.maxInterval;
@@ -128,7 +128,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
       KeydownEvents[key] = 1;
     },
     onKeyup (event: KeyboardEvent): void {
-      if (!isEnabledForUrl || event.isTrusted === false || !(event instanceof KeyboardEvent)) { return; }
+      if (!isEnabledForUrl || event.isTrusted == false || !(event instanceof KeyboardEvent)) { return; }
       VScroller.keyIsDown = 0;
       if (InsertMode.suppressType && VDom.selType() !== InsertMode.suppressType) {
         VEventMode.setupSuppress();
@@ -142,7 +142,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
       }
     },
     onFocus (event: Event): void {
-      if (event.isTrusted === false) { return; }
+      if (event.isTrusted == false) { return; }
       let target = event.target as Window | Element, u: undefined;
       return target === window ? ELs.OnWndFocus() : !isEnabledForUrl ? u
         : VDom.getEditableType(target as Element) ? InsertMode.focus(event as LockableFocusEvent)
@@ -150,7 +150,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
         : (target as Element).shadowRoot ? ELs.hookShadowFocus(event) : u;
     },
     onBlur (event: Event): void {
-      if (event.isTrusted === false) { return; }
+      if (event.isTrusted == false) { return; }
       let target = event.target as Window | Element | ShadowRootEx;
       if (target === window) {
         VScroller.keyIsDown = 0;
@@ -170,7 +170,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
       }
     },
     onShadowBlur (this: ShadowRootEx, event: Event): void {
-      if (event.isTrusted === false) { return; }
+      if (event.isTrusted == false) { return; }
       if (this.vimiumBlurred) {
         this.vimiumBlurred = false;
         this.removeEventListener("blur", ELs.onShadowBlur, true);

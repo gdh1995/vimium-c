@@ -15,6 +15,7 @@ var VDom = {
       return callback();
     }
     const listeners = [callback], eventHandler = function(): void {
+      // not need to check event.isTrusted
       removeEventListener("DOMContentLoaded", eventHandler, true);
       if (!VDom) { return; }
       VDom.documentReady = function(callback): void { return callback(); };
