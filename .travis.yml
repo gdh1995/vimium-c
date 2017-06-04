@@ -1,0 +1,20 @@
+language: node_js
+node_js: node
+# before_install:
+#   - sudo apt-get -qq update
+#   - sudo apt-get install -y zip openssl
+install:
+  - npm install --dev
+  - npm install -g gulp
+script:
+  - gulp dist
+  - IN_DIST=1 WITH_MAP=1 ./make.sh
+  - ./weidu/make.sh ../
+cache:
+  directories:
+    - node_modules
+notifications:
+  email: false
+branches:
+  only:
+    - master

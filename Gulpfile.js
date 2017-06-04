@@ -19,7 +19,7 @@ var locally = false;
 var typescript = null;
 var disableErrors = !process.env.DISABLE_ERRORS;
 var manifest = readJSON("manifest.json", true);
-var compilerOptions = loadValidCompilerOptions("tsconfig.gulp.json");
+var compilerOptions = loadValidCompilerOptions("tsconfig.gulp.json", false);
 
 var CompileTasks = {
   background: ["background/*.ts", "background/*.d.ts"],
