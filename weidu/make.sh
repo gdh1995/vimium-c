@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 set -o noglob
 
-[ -d weidu ] && cd weidu
+if [ -d weidu ]; then ZIP_BASE=weidu/ ; script_base= ; else ZIP_BASE= ; script_base=../ ; fi
 
 INCLUDE_DOT_FILES=
 IN_DIST=
 WITH_MAP=
 ZIP_INPUT=
 ZIP_IGNORE='img/bg* img/tab*'
-. ../make.sh
+. ${script_base}make.sh

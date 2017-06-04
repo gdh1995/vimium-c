@@ -6,12 +6,17 @@ function bool() {
   )
 }
 
-in_dist=false
+input=
+[ -n "$ZIP_BASE" -a "${ZIP_BASE%/}" == "$ZIP_BASE" ] && ZIP_BASE=$ZIP_BASE/
 if bool "$IN_DIST" && [ -d "dist" -a -f "dist/manifest.json" ]; then
-  in_dist=true
-  cd dist; input=$(echo *); cd ..
+  ZIP_BASE=dist/
 elif [ -n "$ZIP_INPUT" ]; then
   input=$ZIP_INPUT
+fi
+if [ -n "$input" ]; then :
+elif [ -n "$ZIP_BASE" ] && pushd $ZIP_BASE >/dev/null 2>&1 ; then
+  input=$(echo *)
+  popd >/dev/null 2>&1
 else
   input=$(echo *)
 fi
@@ -20,15 +25,17 @@ set -o noglob
 output=$1
 if [ -z "$output" -o -d "$output" ]; then
   output=${output%/}
-  if [ -n "$output" ]; then
+  [ -z "${output#.}" ] && output=
+  pkg_name=$ZIP_BASE
+  ver=$(grep -m1 -o '"version":\s*"[0-9\.]*"' ${ZIP_BASE}manifest.json | awk -F '"' '{print "_"$4}')
+  if [ "$ZIP_BASE" == dist/ -a -z "$output" ]; then
+    ver=${ver}_dist ; pkg_name=
+  elif [ -n "$output" ]; then
     output=${output}/
-  elif [ $in_dist == true ]; then
-    output=dist/
   elif [ -d '/wo' ]; then
     output=/wo/
   fi
-  ver=$(grep -m1 -o '"version":\s*"[0-9\.]*"' manifest.json | awk -F '"' '{print "_"$4}')
-  pkg_name=$(basename "$PWD")
+  pkg_name=$(basename "${pkg_name:-$PWD}")
   pkg_name=${pkg_name//++/-plus}
   pkg_name=${pkg_name//+/-}
   pkg_name=${pkg_name%-}
@@ -40,17 +47,21 @@ elif [ "${output/./}" == "$output" ]; then
 fi
 
 args=$5
+action_name="Wrote"
 if [ -z "$args" -a "$output" != "-" -a -f "$output" ]; then
+  action_name="Updated"
   args="-FS"
 fi
 args="$ZIP_FLAGS $args"
 
-output_for_zip=${output}
-if [ $in_dist == true ]; then
-  cd dist
+output_for_zip=$output
+pushd_err=0
+if [ -n "$ZIP_BASE" ]; then
   if [ "${output_for_zip#/}" == "${output_for_zip#[a-zA-Z]:/}" ]; then
-    output_for_zip=../${output_for_zip}
+    output_for_zip=${PWD%/}/${output_for_zip}
   fi
+  pushd "$ZIP_BASE" >/dev/null 2>&1
+  pushd_err=$?
 fi
 if ! bool "$INCLUDE_DOT_FILES"; then
   ZIP_IGNORE=$ZIP_IGNORE' .* */.*'
@@ -66,7 +77,7 @@ zip -rX -MM $args "$output_for_zip" $input -x 'weidu*' 'test*' 'git*' \
   'pages/chrome_ui*' 'Gulp*' 'gulp*' 'package*' 'todo*' 'tsc.*' \
   '*.coffee' '*.crx' '*.sh' '*.ts' '*.zip' $ZIP_IGNORE $4
 err=$?
-[ $in_dist == true ] && cd ..
+[ $pushd_err -eq 0 ] && popd >/dev/null 2>&1
 
 if [ $err -ne 0 ]; then
   echo "$0: exit because of an error during zipping" 1>&2
@@ -80,7 +91,7 @@ else
   exit 1
 fi
 echo ""
-echo "Wrote $output"
+echo "$action_name $output"
 
 key="$2"
 if [ -z "$key" ]; then

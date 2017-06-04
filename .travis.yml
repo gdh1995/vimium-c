@@ -9,7 +9,7 @@ install:
 script:
   - gulp dist
   - IN_DIST=1 WITH_MAP=1 ./make.sh
-  - ./weidu/make.sh ../
+  - ./weidu/make.sh
 cache:
   directories:
     - node_modules
