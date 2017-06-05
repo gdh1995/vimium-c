@@ -1459,7 +1459,7 @@ declare namespace chrome.runtime {
             chrome_style?: boolean;
             open_in_tab?: boolean;
         };
-        permissions: string[];
+        permissions?: string[];
         platforms?: {
             nacl_arch?: string;
             sub_package_path: string;

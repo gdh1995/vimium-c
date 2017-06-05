@@ -224,6 +224,7 @@ w|wiki:\\\n  https://www.wikipedia.org/w/index.php?search=$s Wikipedia
     set: function() {}
   } as SettingsNS.Sync,
   CONST: {
+    AllowClipboardRead: true,
     BaseCSSLength: 0,
     BrowserNewTab: "about:newtab",
     BrowserNewTab2: "chrome://newtab",
@@ -284,6 +285,7 @@ chrome.runtime.getPlatformInfo(function(info): void {
   obj.CurrentVersion = ref.version;
   obj.CurrentVersionName = ref.version_name || ref.version;
   obj.OptionsPage = func(ref.options_page || obj.OptionsPage);
+  obj.AllowClipboardRead = ref.permissions != null && ref.permissions.indexOf("clipboardRead") >= 0;
   obj.ShowPage = func(obj.ShowPage);
   obj.VomnibarPageInner = func(obj.VomnibarPageInner);
   obj.VomnibarScript_f = func(obj.VomnibarScript);

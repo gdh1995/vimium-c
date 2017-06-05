@@ -440,7 +440,7 @@ interface AdvancedOptBtn extends HTMLButtonElement {
 
   _ref = $$("[data-permission]");
   _ref.length > 0 && (function(this: void, els: NodeListOf<HTMLElement>): void {
-    const manifest = chrome.runtime.getManifest(), permissions = manifest.permissions;
+    const manifest = chrome.runtime.getManifest(), permissions = manifest.permissions || [];
     let key: string;
     for (key of permissions) {
       manifest[key] = true;

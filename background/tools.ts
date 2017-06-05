@@ -30,7 +30,8 @@ const Clipboard = {
     textArea.value = "";
     Utils.resetRe();
   },
-  paste (): string {
+  paste (): string | null {
+    if (!Settings.CONST.AllowClipboardRead) { return null; }
     const textArea = this.getTextArea();
     (document.documentElement as HTMLHtmlElement).appendChild(textArea);
     textArea.focus();

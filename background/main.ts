@@ -1494,11 +1494,12 @@ Are you sure you want to continue?`);
       return { url, path };
     },
     searchAs (this: void, request: FgReq["searchAs"]): FgRes["searchAs"] {
-      let search = requestHandlers.parseSearchUrl(request), query;
+      let search = requestHandlers.parseSearchUrl(request), query: string | null;
       if (!search || !search.keyword) { return "No search engine found!"; }
       if (!(query = request.search.trim())) {
-        query = Clipboard.paste().trim();
-        if (!query) { return "No selected or copied text found!"; }
+        query = Clipboard.paste();
+        if (query === null) { return "It's not allowed to read clipboard"; }
+        if (!(query = query.trim())) { return "No selected or copied text found"; }
       }
       query = Utils.createSearchUrl(query.split(Utils.spacesRe), search.keyword);
       funcDict.safeUpdate(query);
@@ -1637,7 +1638,9 @@ Are you sure you want to continue?`);
       return Completers.filter(request.query, request, funcDict.PostCompletions.bind(port));
     },
     openCopiedUrl: function (this: void, request: FgReq["openCopiedUrl"], port?: Port): Urls.Url {
-      let url: Urls.Url = Clipboard.paste().trim();
+      let url: Urls.Url | null = Clipboard.paste();
+      if (url === null) { funcDict.complain("read clipboard"); return ""; }
+      url = url.trim();
       if (!url) { Utils.lastUrlType = Urls.Type.Full; return ""; }
       Utils.quotedStringRe.test(url) && (url = url.slice(1, -1));
       url = Utils.convertToUrl(url, request.keyword, port ? Urls.WorkType.Default : Urls.WorkType.ActAnyway);
