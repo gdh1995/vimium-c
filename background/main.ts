@@ -282,8 +282,7 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
     ],
     makeWindow (this: void, option: chrome.windows.CreateData, state?: chrome.windows.ValidStates | ""
         , callback?: (wnd: Window) => void): void {
-      if (!state) { state = ""; }
-      else if (option.focused === false) {
+      if (option.focused === false) {
         state !== "minimized" && (state = "normal");
       } else if (state === "minimized") {
         state = "normal";
@@ -296,7 +295,7 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
       option.focused = true;
       chrome.windows.create(option, state || !focused ? function(wnd: Window) {
         callback && callback(wnd);
-        const opt = { focused: focused && undefined } as chrome.windows.CreateData;
+        const opt: chrome.windows.UpdateInfo = focused ? {} : { focused: false };
         state && (opt.state = state);
         chrome.windows.update(wnd.id, opt);
       } : callback || null);
