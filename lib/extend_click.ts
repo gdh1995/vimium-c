@@ -65,7 +65,9 @@ function reg(this: void, element: Element): void {
 }
 EventTarget.prototype.addEventListener = function(this: EventTarget, type: string
     , listener: EventListenerOrEventListenerObject, useCapture?: boolean) {
-  if (type === "click" && this instanceof Element) {
+  if (type === "click"
+      && !(this instanceof HTMLAnchorElement || this instanceof HTMLFormElement)
+      && this instanceof Element) {
     register(this as Element);
     if (timer === 0) { timer = next(); }
   }
