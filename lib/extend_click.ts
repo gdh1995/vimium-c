@@ -24,33 +24,32 @@
   script.textContent = '"use strict";(' + func.toString() + ')();';
   d = (d as Document).documentElement || d;
   d.insertBefore(script, d.firstChild).remove();
+
 })(function(this: void): void {
-const _listen = EventTarget.prototype.addEventListener;
-let box: HTMLDivElement, toRegister: Element[] = [],
+const _listen = EventTarget.prototype.addEventListener, toRegister: Element[] = [],
+splice = toRegister.splice.bind<Element[], number, number, Element[]>(toRegister),
 register = toRegister.push.bind<Element[], Element, number>(toRegister);
-EventTarget.prototype.addEventListener = function(this: EventTarget, type: string
-    , listener: EventListenerOrEventListenerObject, useCapture?: boolean) {
-  if (type === "click" && this instanceof Element) {
-    register(this as Element);
-  }
-  return _listen.call(this, type, listener, useCapture);
-};
 
 let handler = function(this: void): void {
   removeEventListener("DOMContentLoaded", handler, true);
-  clearTimeout(timeout);
+  clearTimeout(loadTimeout);
   box = document.createElement("div");
   (document.documentElement as HTMLElement | SVGElement).appendChild(box);
   box.dispatchEvent(new CustomEvent("VimiumReg"));
   box.remove();
-  register = reg;
-  for (let i of toRegister) { register(i); }
-  handler = toRegister = null as never;
-};
-_listen("DOMContentLoaded", handler, true);
-const timeout = setTimeout(handler, 1000),
-reg = setTimeout.bind<void, (el: Element) => void, number, Element, number>(null as never,
-function(this: void, element: Element): void {
+  handler = null as never;
+  timer = toRegister.length > 0 ? next() : 0;
+},
+box: HTMLDivElement, loadTimeout = setTimeout(handler, 1000),
+timer = -1, next = setTimeout.bind(null as never, iter, 1);
+function iter(): void {
+  const len = toRegister.length, delta = len > 9 ? 10 : len;
+  if (len > 0) {
+    for (let i of splice(len - delta, delta)) { reg(i); }
+  }
+  timer = toRegister.length > 0 ? next() : 0;
+}
+function reg(this: void, element: Element): void {
   const event = new CustomEvent("VimiumOnclick");
   if (document.contains(element)) {
     element.dispatchEvent(event);
@@ -63,5 +62,14 @@ function(this: void, element: Element): void {
   box.appendChild(e1);
   element.dispatchEvent(event);
   e1.remove();
-}, 0);
+}
+EventTarget.prototype.addEventListener = function(this: EventTarget, type: string
+    , listener: EventListenerOrEventListenerObject, useCapture?: boolean) {
+  if (type === "click" && this instanceof Element) {
+    register(this as Element);
+    if (timer === 0) { timer = next(); }
+  }
+  return _listen.call(this, type, listener, useCapture);
+};
+_listen("DOMContentLoaded", handler, true);
 });
