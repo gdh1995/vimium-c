@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 set +o noglob
 function bool() {
-  [ "$1" == TRUE -o "$1" == true ] || (
+  [ "$1" = TRUE -o "$1" = true ] || (
     [ "$1" != FALSE -a "$1" != false ] && [ "${1:-0}" -gt 0 ]
   )
 }
 
 input=
-[ -n "$ZIP_BASE" -a "${ZIP_BASE%/}" == "$ZIP_BASE" ] && ZIP_BASE=$ZIP_BASE/
+[ -n "$ZIP_BASE" -a "${ZIP_BASE%/}" = "$ZIP_BASE" ] && ZIP_BASE=$ZIP_BASE/
 if bool "$IN_DIST" && [ -d "dist" -a -f "dist/manifest.json" ]; then
   ZIP_BASE=dist/
 elif [ -n "$ZIP_INPUT" ]; then
@@ -28,7 +28,7 @@ if [ -z "$output" -o -d "$output" ]; then
   [ -z "${output#.}" ] && output=
   pkg_name=$ZIP_BASE
   ver=$(grep -m1 -o '"version":\s*"[0-9\.]*"' ${ZIP_BASE}manifest.json | awk -F '"' '{print "_"$4}')
-  if [ "$ZIP_BASE" == dist/ -a -z "$output" ]; then
+  if [ "$ZIP_BASE" = dist/ -a -z "$output" ]; then
     ver=${ver}_dist ; pkg_name=
   elif [ -n "$output" ]; then
     output=${output}/
@@ -41,7 +41,7 @@ if [ -z "$output" -o -d "$output" ]; then
   pkg_name=${pkg_name%-}
   pkg_name=${pkg_name%_}
   output=$output${pkg_name:-vimium-plus}$ver.zip
-elif [ "${output/./}" == "$output" ]; then
+elif [ "${output/./}" = "$output" ]; then
   output=$output.zip
   echo "the zip file will be \"$output\""
 fi
@@ -57,7 +57,7 @@ args="$ZIP_FLAGS $args"
 output_for_zip=$output
 pushd_err=0
 if [ -n "$ZIP_BASE" ]; then
-  if [ "${output_for_zip#/}" == "${output_for_zip#[a-zA-Z]:/}" ]; then
+  if [ "${output_for_zip#/}" = "${output_for_zip#[a-zA-Z]:/}" ]; then
     output_for_zip=${PWD%/}/${output_for_zip}
   fi
   pushd "$ZIP_BASE" >/dev/null 2>&1
