@@ -6,13 +6,27 @@ node_js: node
 install:
   - npm install --dev
   - npm install -g gulp
+before_script:
+  - rm -f *.zip *.crx $pem 2>/dev/null
+  - pem=scripts/vimium_plus.pem ; key=aa42231ca000
+  - eval openssl aes-256-cbc -K \$encrypted_${key}_key -iv \$encrypted_${key}_iv -in $pem.enc -out $pem -d
 script:
   - gulp dist
-  - IN_DIST=1 WITH_MAP=1 ./make.sh
-  - ./weidu/make.sh
+  - IN_DIST=1 WITH_MAP=0 ./scripts/make.sh ./vimium-plus_\$VERSION.zip $pem
+  - IN_DIST=1 WITH_MAP=1 ./scripts/make.sh ./vimium-plus_\$VERSION_with-map.zip $pem
+  - rm -rf $pem
 cache:
   directories:
     - node_modules
+deploy:
+  provider: releases
+  api_key:
+    secure: ZUfUVQwsKTRYdXLLru2EoYUYk2GA6MbrPU87nG+P7mEFwztXR00Jo5NZiBovc1W+JmvtyRruXIIT0c8mv4BELxBGFhm6a9dPyx1/mOvh2mu5N0TyvkIssOLCgnCx5OlyRJPJbYwQmmvMTrPeusRpI8M2ibI3uefm6xgLbzIzos8+6RBLCpq62M0XScjJhFFT9MHGfPZx29ICTYNebIFOLIvGdiTlNoM3tSxlGCh92VOkt1jLiyN2frY4J/n0mLv2oj00N+CvJ33IQca3l/FiFWoVTwG5iG8PbAj56O5z8PpsF0UjxW1fX/8gKlLSY8VWEisno7jta333uB2QObwLOr/8PzHlsbnnmRk/aQ7k4NmjI4A8veL2WgxhhQDtSisx4CA/PriSBmS3OO7GunElOvbjhSSPcxzsgH2Pe6Rb4oArOBVxnWLLLd4uWgKRpNx/uYpr6Bnr2oO97IPNre+wJ4XBkoWNHu8o+ShYdPyYB2po0PtVSCQZKmyKpdBgPp8ILoXNY4Bm64hE+fof9e1dryNDEyUBA4tP+lBhRNGM1QFBzYHdA/GjcesKz/vm562CLNM+W7QBlQGdYsOJisg2JrkdonMcfctPs6fWIYxn92/F38QgJss9FmoTqARWfqCcyGXfh0O4oFUhxB9wZRx6Om/JAOwUts/KTpGhdFrmvfs=
+  file_glob: true
+  file: "*.crx"
+  skip_cleanup: true
+  on:
+    tags: true
 notifications:
   email: false
 branches:

@@ -31,4 +31,4 @@ WITH_MAP=
 ZIP_FLAGS='-FS -j'
 ZIP_IGNORE=
 ZIP_INPUT=$input
-. ${script_base}make.sh
+. ${script_base}scripts/make.sh

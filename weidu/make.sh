@@ -8,4 +8,4 @@ IN_DIST=
 WITH_MAP=
 ZIP_INPUT=
 ZIP_IGNORE='img/bg* img/tab*'
-. ${script_base}make.sh
+. ${script_base}scripts/make.sh

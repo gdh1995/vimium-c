@@ -6,5 +6,5 @@
     "sourceMap": true,
     "typescript": "typescript/lib/typescript"
   },
-  "extends": "tsconfig"
+  "extends": "../tsconfig"
 }

@@ -21,8 +21,8 @@ todo*
 !Gulpfile.js
 !make.sh
 !tsconfig.json
+!tsc.js
 !/lib/math_parser.js
 !/lib/viewer.min.js
 !/pages/newtab.js
-!/tsc.js
 !/weidu/*/*.js

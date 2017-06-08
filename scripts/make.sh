@@ -22,14 +22,16 @@ else
 fi
 set -o noglob
 
+ver=$(grep -m1 -o '"version":\s*"[0-9\.]*"' ${ZIP_BASE}manifest.json | awk -F '"' '{print $4;}')
 output=$1
+ori_output=$output
 if [ -z "$output" -o -d "$output" ]; then
   output=${output%/}
   [ -z "${output#.}" ] && output=
   pkg_name=$ZIP_BASE
-  ver=$(grep -m1 -o '"version":\s*"[0-9\.]*"' ${ZIP_BASE}manifest.json | awk -F '"' '{print "_"$4}')
   if [ "$ZIP_BASE" = dist/ -a -z "$output" ]; then
-    ver=${ver}_dist ; pkg_name=
+    pkg_name=
+    test -z "$ori_output" && ver=${ver}_dist
   elif [ -n "$output" ]; then
     output=${output}/
   elif [ -d '/wo' ]; then
@@ -40,11 +42,15 @@ if [ -z "$output" -o -d "$output" ]; then
   pkg_name=${pkg_name//+/-}
   pkg_name=${pkg_name%-}
   pkg_name=${pkg_name%_}
-  output=$output${pkg_name:-vimium-plus}$ver.zip
-elif [ "${output/./}" = "$output" ]; then
+  output=$output${pkg_name:-vimium-plus}${ver:+_$ver}.zip
+elif [ "${output%.[a-z]*}" = "$output" ]; then
   output=$output.zip
-  echo "the zip file will be \"$output\""
 fi
+output=${output/\$VERSION/$ver}
+if [ -n "$ori_output" -a "$output" != "$ori_output" ]; then
+  echo "The zip file will be \"$output\""
+fi
+unset ver ori_output pkg_name
 
 args=$5
 action_name="Wrote"
@@ -73,7 +79,7 @@ if ! bool "$NOT_IGNORE_FRONT"; then
   ZIP_IGNORE=$ZIP_IGNORE' front/manifest* front/*.png'
 fi
 zip -rX -MM $args "$output_for_zip" $input -x 'weidu*' 'test*' 'git*' \
-  'dist*' 'front/vimium.css' 'node_modules*' '*tsconfig*' 'types*' \
+  'dist*' 'front/vimium.css' 'node_modules*' 'script*' '*tsconfig*' 'type*' \
   'pages/chrome_ui*' 'Gulp*' 'gulp*' 'package*' 'todo*' 'tsc.*' \
   '*.coffee' '*.crx' '*.sh' '*.ts' '*.zip' $ZIP_IGNORE $4
 err=$?

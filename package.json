@@ -20,7 +20,7 @@
     "run-sequence": "*"
   },
   "scripts": {
-    "tsc": "node ./tsc.js",
+    "tsc": "node scripts/tsc.js",
     "build": "gulp build",
     "rebuild": "gulp rebuild",
     "clean": "gulp clean",

@@ -1,6 +1,7 @@
 * crlf=input
 *.bmp binary
 *.crx binary
+*.enc binary
 *.gif binary
 *.ico binary
 *.jpeg binary

@@ -19,7 +19,7 @@ var locally = false;
 var typescript = null;
 var disableErrors = !process.env.DISABLE_ERRORS;
 var manifest = readJSON("manifest.json", true);
-var compilerOptions = loadValidCompilerOptions("tsconfig.gulp.json", false);
+var compilerOptions = loadValidCompilerOptions("scripts/tsconfig.gulp.json", false);
 
 var CompileTasks = {
   background: ["background/*.ts", "background/*.d.ts"],
@@ -43,7 +43,7 @@ var Tasks = {
         , "settings_template.json", "*.txt", "*.md"
         , "!**/manifest.json"
         , '!**/*.ts', "!**/*.js", "!**/tsconfig*.json"
-        , "!front/vimium.css", "!todo*"
+        , "!front/vimium.css", "!test*", "!todo*"
       ]);
   }],
 
@@ -125,11 +125,11 @@ var Tasks = {
     willListEmittedFiles = true;
     locally = true;
   },
-  "scripts": ["background", "content", "front"],
-  "pages": ["main_pages", "others"],
+  scripts: ["background", "content", "front"],
+  pages: ["main_pages", "others"],
   local: ["scripts", "main_pages"],
   tsc: ["local"],
-  default: ["tsc"],
+  "default": ["tsc"],
   test: ["local"]
 }
 

@@ -196,8 +196,8 @@ If you want to compile this project manually, please run:
 ``` bash
 npm install typescript@next
 # remove options "narrowFormat" in `tsconfig.json`
-node tsc.js all
-#./make.sh output-file.zip
+node scripts/tsc all
+#./scripts/make.sh output-file.zip
 ```
 
 The option `narrowFormat` are for another version of [TypeScript](https://github.com/gdh1995/TypeScript).
