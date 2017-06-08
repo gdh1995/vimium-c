@@ -16,6 +16,10 @@ VDom.UI = {
     this.root = (this.box as HTMLElement).attachShadow ?
         (this.box as HTMLElement & AttachShadow).attachShadow({mode: "closed"})
       : (this.box as HTMLElement).createShadowRoot();
+    (this.box as HTMLElement).attachShadow || // listen "load" so that safer on Chrome < 53
+    this.root.addEventListener("load", function(e: Event): void {
+      const t = e.target as HTMLElement; t.onload && t.onload(e); e.stopImmediatePropagation();
+    }, true);
     this.addElement = function<T extends HTMLElement>(this: DomUI, element: T | null
         , options?: UIElementOptions | null | { fake: true }): T | void {
       options = Object.setPrototypeOf(options || {}, null);
