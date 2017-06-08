@@ -2,6 +2,8 @@ Vimium++
 ========
 [![MIT license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE.txt)
 ![Version 1.59.4](https://img.shields.io/badge/release-1.59.4-orange.svg)
+[![Current Build Status](https://travis-ci.org/gdh1995/vimium-plus.svg?branch=master)
+  ](https://travis-ci.org/gdh1995/vimium-plus)
 
 **[Visit Vimium++ in Chrome Web Store](https://chrome.google.com/webstore/detail/vimium%2B%2B/hfjbmagddngcpeloejdejnfgbamkjaeg)**.
 
@@ -29,6 +31,7 @@ __Vimium++:__
 * forked from [philc/vimium:master](https://github.com/philc/vimium).
 * optimized after translating it from CoffeeScript into JavaScript.
 * more functions, more powerful, and more convenient (for me, at least).
+* here is its [license](LICENSE.txt) and [privacy policy](PRIVACY-POLICY.md)
 
 __Vomnibar Page:__
 
@@ -74,12 +77,20 @@ Known issues (Up to the master branch):
 5. If a http/file/... page is preferred, then there're some cases where it breaks,
   such as on some websites with very strict Content Security Policies (CSP),
   so users may need to wait about 1 second to let Vimium++ (since v1.59.4) retry the inner page.
+6. Chrome 58 stable hides some necessary infomation of page's selection,
+  so `enterVisualMode` can not work if editable text is being selected.
+  This Chrome feature/bug has been removed since version 59, so Vimium++ works well again.
 
 Not released yet:
 * `LinkHints` works much faster on some of very long pags, like https://w3c.github.io/html/,
   though the change has no enough benefits on GitHub code file pages.
-  Use `tab` to reactivate LinkHints with this feature being disabled (only this time).
+  Use `tab` to reactivate LinkHints with this feature being disabled (only on that time).
 * fix two bugs about suggestions on the Chrome omnibox.
+* fix a bug breaking Vomnibar when it only uses one engine
+* fix some broken shortcuts on Vomnibar on Chrome 58 stable.
+* change and unify scrolling shortcuts and behaviors on `LinkHints` / `Find` / `Vomnibar` modes
+* better logic about URL handling
+* code is more roust in lots of edge cases
 
 1.59.4:
 * command `goNext` now detects `<button>`s, so that it supports more pages
@@ -185,17 +196,18 @@ If you want to compile this project manually, please run:
 ``` bash
 npm install typescript@next
 # remove options "narrowFormat" in `tsconfig.json`
-node tsc.js
-node tsc.js front
-node tsc.js pages
+node tsc.js all
 #./make.sh output-file.zip
 ```
 
-The two options are for another version of [TypeScript](https://github.com/gdh1995/TypeScript).
+The option `narrowFormat` are for another version of [TypeScript](https://github.com/gdh1995/TypeScript).
 
 `gulp local` can also compile files in place, while `gulp dist` compiles and minimizes files into `dist/`.
 
 # Thanks & License
+
+Vimium++: Copyright (c) Dahan Gong, Phil Crosby, Ilya Sukhar.
+See [LICENSE.txt](LICENSE.txt) for details.
 
 * [Vimium](https://github.com/philc/vimium):
   Copyright (c) 2010 Phil Crosby, Ilya Sukhar.
