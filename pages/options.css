@@ -247,6 +247,7 @@ label:active {
 }
 .deprecated {
   color: darkgray;
+  text-decoration: line-through;
 }
 
 /* Boolean options have a tighter form representation than text options. */
@@ -367,4 +368,22 @@ label:active {
 #settingFileManager {
   position: absolute;
   margin-left: 20px;
+}
+@media (min-width: 1067px) {
+  #wrapper, #footerWrapper {
+    margin-left: auto;
+    margin-right: auto;
+    width: 980px;
+  }
+  #footerButtons {
+    width: 390px;
+  }
+}
+@media (max-width: 1066.99px) and (min-width: 977px) {
+  #wrapper, #footerWrapper {
+    width: calc(100% - 70px);
+  }
+  #footerButtons {
+    width: calc(100% - 590px);
+  }
 }
