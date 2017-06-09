@@ -1199,9 +1199,9 @@ searchEngines: {
     init (): XMLHttpRequest {
       this.init = this.xhr;
       Settings.updateHooks.localeEncoding = function(this: void, charset: string): void {
-        let _this = Decoder, f: (item: ItemToDecode) => number | void;
-        _this._dataUrl = charset && ("data:text/plain;charset=" + charset.toLowerCase() + ",");
-        f = charset ? Array.prototype.push : _this.blank;
+        const _this = Decoder, enabled = charset ? !(charset = charset.toLowerCase()).startsWith("utf") : false,
+        f: (item: ItemToDecode) => number | void = enabled ? Array.prototype.push : _this.blank;
+        _this._dataUrl = enabled ? ("data:text/plain;charset=" + charset + ",") : "";
         _this.todos.push !== f && (_this.todos.push = f as (item: ItemToDecode) => number);
       };
       Settings.postUpdate("localeEncoding");
