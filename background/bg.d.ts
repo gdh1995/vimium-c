@@ -206,11 +206,6 @@ declare namespace CommandsNS {
 
 }
 
-interface GlobalCompletersConstructor {
-  filter (this: GlobalCompletersConstructor, query: string, options: CompletersNS.Options, callback: CompletersNS.Callback): void;
-}
-declare var Completers: GlobalCompletersConstructor;
-
 declare namespace CompletersNS {
   interface QueryStatus { isOff: boolean }
 
@@ -222,8 +217,16 @@ declare namespace CompletersNS {
 
   type Callback = (this: void, sugs: Readonly<Suggestion>[],
     newAutoSelect: boolean, newMatchType: MatchType) => void;
+
+  type FullOptions = Options & {
+  };
+
+  interface GlobalCompletersConstructor {
+    filter (this: GlobalCompletersConstructor, query: string, options: FullOptions, callback: Callback): void;
+  }
 }
-import Suggestion = CompletersNS.Suggestion;
+declare var Completers: CompletersNS.GlobalCompletersConstructor;
+type Suggestion = CompletersNS.Suggestion;
 
 declare namespace IconNS {
   type ValidSizes = "19" | "38";

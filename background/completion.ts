@@ -82,7 +82,7 @@ type CompletersMap = {
     [P in CompletersNS.ValidTypes]: ReadonlyArray<Completer>;
 };
 interface WindowEx extends Window {
-  Completers: CompletersMap & GlobalCompletersConstructor;
+  Completers: CompletersMap & CompletersNS.GlobalCompletersConstructor;
 }
 type SearchSuggestion = CompletersNS.SearchSuggestion;
 
@@ -144,8 +144,8 @@ SuggestionUtils = {
   },
   getRanges (string: string): number[] {
     const ranges: MatchRange[] = [];
-    for (let ref = queryTerms, i = 0, len = ref.length; i < len; ++i) {
-      this.pushMatchingRanges(string, ref[i], ranges);
+    for (const i of queryTerms) {
+      this.pushMatchingRanges(string, i, ranges);
     }
     if (ranges.length === 0) { return ranges as never[]; }
     ranges.sort(this.rsortBy0);
@@ -232,8 +232,8 @@ bookmarks: {
   performSearch (): void {
     const c = SuggestionUtils.ComputeWordRelevancy, isPath = queryTerms.some(this.StartsWithSlash);
     let results: Suggestion[] = [];
-    for (let ref = this.bookmarks, _i = ref.length; 0 <= --_i; ) {
-      const i: Bookmark = ref[_i], title = isPath ? i.path : i.title;
+    for (const i of this.bookmarks) {
+      const title = isPath ? i.path : i.title;
       if (!RankingUtils.Match2(i.text, title)) { continue; }
       const sug = new Suggestion("bookm", i.url, i.text, title, c);
       results.push(sug);
@@ -336,8 +336,7 @@ bookmarks: {
   },
   clean (): void {
     const dict = Decoder.dict, ref = HistoryCache.history || [], bs = HistoryCache.binarySearch;
-    for (let arr = this.bookmarks, i = 0, len = arr.length; i < len; i++) {
-      const url = arr[i].url;
+    for (const { url } of this.bookmarks) {
       if ((url in dict) && bs(url, ref) < 0) {
         delete dict[url];
       }
@@ -425,8 +424,7 @@ history: {
     if (query.isOff) { return; }
     const arr: Dict<number> = {};
     let count = 0;
-    for (let i = tabs.length; 0 <= --i; ) {
-      const url = tabs[i].url;
+    for (const { url } of tabs) {
       if (url in arr) { continue; }
       arr[url] = 1; count++;
     }
@@ -545,10 +543,10 @@ domains: {
       Utils.domains = _this.domains = Object.create<Domain>(null);
       return;
     }
-    const domains = _this.domains, parse = _this.parseDomainAndScheme, arr = toRemove.urls;
-    let j = arr.length, entry: Domain | undefined;
-    while (0 <= --j) {
-      const item = parse(arr[j]);
+    const { domains, parseDomainAndScheme: parse } = _this;
+    let entry: Domain | undefined;
+    for (const j of toRemove.urls) {
+      const item = parse(j);
       if (item && (entry = domains[item[0]]) && (-- entry[1]) <= 0) {
         delete domains[item[0]];
       }
@@ -574,9 +572,8 @@ tabs: {
     if (queryType === FirstQuery.waitFirst) { queryType = FirstQuery.tabs; }
     const curTabId = TabRecency.last(), noFilter = queryTerms.length <= 0;
     let suggestions = [] as Suggestion[], tabs = [] as TextTab[];
-    let i: number, len: number, tabId: number;
-    for (i = 0, len = tabs0.length; i < len; i++) {
-      const tab = tabs0[i], text = Decoder.decodeURL(tab.url);
+    for (const tab of tabs0) {
+      const text = Decoder.decodeURL(tab.url);
       if (noFilter || RankingUtils.Match2(text, tab.title)) {
         (tab as TextTab).text = text;
         tabs.push(tab as TextTab);
@@ -591,10 +588,8 @@ tabs: {
       return Completers.next(suggestions);
     }
     const c = noFilter ? this.computeRecency : SuggestionUtils.ComputeWordRelevancy;
-    for (i = 0, len = tabs.length; i < len; i++) {
-      const tab = tabs[i];
-      tabId = tab.id;
-      const suggestion = new Suggestion("tab", tab.url, tab.text, tab.title, c, tabId);
+    for (const tab of tabs) {
+      const tabId = tab.id, suggestion = new Suggestion("tab", tab.url, tab.text, tab.title, c, tabId);
       suggestion.sessionId = tabId;
       if (curTabId === tabId) { suggestion.relevancy = 0; }
       suggestions.push(suggestion);
@@ -608,7 +603,7 @@ tabs: {
         suggestions.length = maxResults;
       }
     } else if (offset > 0) {
-      i = maxResults + offset - suggestions.length;
+      let len: number, tabId: number, i = maxResults + offset - suggestions.length;
       suggestions = suggestions.slice(offset).concat(suggestions.slice(0, i));
       for (i = 0, len = tabId = suggestions.length; i < len; i++) {
         suggestions[i].relevancy = tabId--;
@@ -759,10 +754,10 @@ searchEngines: {
     return sug;
   },
   BuildSearchKeywords (): void {
-    let arr = Object.keys(Settings.cache.searchEngineMap), i, len, max, j;
+    let arr = Object.keys(Settings.cache.searchEngineMap), max = 0;
     arr.sort();
-    for (i = max = 0, len = arr.length; i < len; i++) {
-      j = arr[i].length;
+    for (const i of arr) {
+      const j = i.length;
       max < j && (max = j);
     }
     Settings.set("searchKeywords", arr);
@@ -886,7 +881,7 @@ searchEngines: {
   omni: [Completers.searchEngines, Completers.domains, Completers.history, Completers.bookmarks],
   search: [Completers.searchEngines],
   tab: [Completers.tabs],
-  filter(this: WindowEx["Completers"], query: string, options: CompletersNS.Options
+  filter(this: WindowEx["Completers"], query: string, options: CompletersNS.FullOptions
       , callback: CompletersNS.Callback): void {
     autoSelect = false;
     queryTerms = (query = query.trim()) ? query.split(Utils.spacesRe) : [];
@@ -911,8 +906,9 @@ searchEngines: {
 
   const RankingUtils = {
     Match2 (s1: string, s2: string): boolean {
-      for (let i = 0, len = queryTerms.length, cache = RegExpCache; i < len; i++) {
-        const regexp = cache.item(queryTerms[i]);
+      const cache = RegExpCache;
+      for (const i of queryTerms) {
+        const regexp = cache.item(i);
         if (!(regexp.test(s1) || regexp.test(s2))) { return false; }
       }
       return true;
@@ -1065,20 +1061,24 @@ searchEngines: {
       (_this.history as HistoryItem[]).splice(-1 - i, 0, j);
     },
     OnVisitRemoved (this: void, toRemove: chrome.history.RemovedResult): void {
-      const _this = HistoryCache;
       Decoder.continueToWork();
       if (toRemove.allHistory) {
-        _this.history = [];
-        Decoder.dict = Object.create<string>(null);
-        setTimeout(Decoder.DecodeList, 17, Completers.bookmarks.bookmarks);
+        HistoryCache.history = [];
+        const d = Decoder.dict, d2 = Object.create<string>(null);
+        for (const i of Completers.bookmarks.bookmarks) {
+          const t = d[i.url]; t && (d2[i.url] = t);
+        }
+        Decoder.dict = d2;
         return;
       }
-      let bs = _this.binarySearch, h = _this.history as HistoryItem[], arr = toRemove.urls, j: number, i: number;
-      for (j = arr.length; 0 <= --j; ) {
-        i = bs(arr[j], h);
+      const {binarySearch: bs, history: h} = HistoryCache as {
+        binarySearch: typeof HistoryCache["binarySearch"], history: HistoryItem[]
+      };
+      for (const j of toRemove.urls) {
+        const i = bs(j, h);
         if (i >= 0) {
           h.splice(i, 1);
-          delete Decoder.dict[arr[j]];
+          delete Decoder.dict[j];
         }
       }
     },
@@ -1100,16 +1100,14 @@ searchEngines: {
     },
     OnInfo (history: chrome.history.HistoryItem[]): void {
       const arr = HistoryCache.history as HistoryItem[], bs = HistoryCache.binarySearch;
-      let i: number, len: number, info: chrome.history.HistoryItem, j: number, item: HistoryItem;
       if (arr.length <= 0) { return; }
-      for (i = 0, len = history.length; i < len; i++) {
-        info = history[i];
-        j = bs(info.url, arr);
+      for (const info of history) {
+        const j = bs(info.url, arr);
         if (j < 0) {
           HistoryCache.OnPageVisited(info);
           continue;
         }
-        item = arr[j];
+        const item = arr[j];
         item.title !== info.title && info.title && (item.title = info.title);
       }
     },
@@ -1215,7 +1213,7 @@ setTimeout(function() {
   Settings.postUpdate("searchEngines", null);
 }, 300);
 
-var Completers = { filter: function(a: string, b: CompletersNS.Options, c: CompletersNS.Callback): void {
+var Completers = { filter: function(a: string, b: CompletersNS.FullOptions, c: CompletersNS.Callback): void {
   setTimeout(function() {
     return Completers.filter(a, b, c);
   }, 210);
