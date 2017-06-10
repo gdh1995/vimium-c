@@ -107,7 +107,7 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
       result.push(pattern + "*." + host + "/*");
       return result;
     },
-    clear (this: void, contentType: CSTypes, tab?: Tab): void {
+    clear (this: void, contentType: CSTypes, tab?: { incognito: boolean } ): void {
       if (!chrome.contentSettings) { return; }
       const cs = chrome.contentSettings[contentType];
       if (!cs || !cs.clear) { return; }
@@ -888,9 +888,12 @@ Are you sure you want to continue?`);
       const ty = "" + cOptions.type as CSTypes, tab = tabs[0];
       return cOptions.incognito ? ContentSettings.ensureIncognito(ty, tab) : ContentSettings.toggleCurrent(ty, tab);
     },
-    clearCS (this: void, tabs: [Tab]): void {
-      ContentSettings.clear("" + cOptions.type as CSTypes, tabs[0]);
-      return requestHandlers.ShowHUD(cOptions.type + " content settings have been cleared.");
+    clearCS (this: void): void {
+      let ty = "" + cOptions.type as CSTypes;
+      if (!ContentSettings.complain(ty, "http://example.com/")) {
+        ContentSettings.clear(ty, { incognito: cPort.sender.incognito });
+        return requestHandlers.ShowHUD(ty + " content settings have been cleared.");
+      }
     },
     goTab (this: void, tabs: Tab[]): void {
       if (tabs.length < 2) { return; }
@@ -1924,7 +1927,7 @@ Are you sure you want to continue?`);
       , "removeTab", "removeTabsR", "togglePinTab", "visitPreviousTab" //
     ];
     for (i = ref.length; 0 <= --i; ) { (ref2[ref[i]] as BgCmdCurWndTabs).useTab = UseTab.CurWndTabs; }
-    ref = ["clearCS", "copyTabInfo", "goToRoot", "moveTabToNextWindow"//
+    ref = ["copyTabInfo", "goToRoot", "moveTabToNextWindow"//
       , "openCopiedUrlInNewTab", "reopenTab", "toggleCS", "toggleViewSource" //
       , "searchInAnother" //
     ];
