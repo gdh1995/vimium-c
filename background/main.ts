@@ -1624,6 +1624,7 @@ Are you sure you want to continue?`);
     },
     omni (this: void, request: FgReq["omni"], port: Port): void {
       if (funcDict.checkVomnibarPage(port)) { return; }
+      (request as CompletersNS.FullOptions).incognito = port.sender.incognito;
       return Completers.filter(request.query, request, funcDict.PostCompletions.bind(port));
     },
     openCopiedUrl: function (this: void, request: FgReq["openCopiedUrl"], port?: Port): Urls.Url {

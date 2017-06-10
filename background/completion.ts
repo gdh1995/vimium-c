@@ -87,7 +87,7 @@ interface WindowEx extends Window {
 type SearchSuggestion = CompletersNS.SearchSuggestion;
 
 
-let queryType: FirstQuery, offset: number, autoSelect: boolean,
+let queryType: FirstQuery, offset: number, autoSelect: boolean, inNormal: boolean | null,
     maxChars: number, maxResults: number, maxTotal: number, matchType: MatchType,
     queryTerms: QueryTerms;
 
@@ -424,8 +424,8 @@ history: {
     if (query.isOff) { return; }
     const arr: Dict<number> = {};
     let count = 0;
-    for (const { url } of tabs) {
-      if (url in arr) { continue; }
+    for (const { url, incognito } of tabs) {
+      if ((incognito && inNormal) || (url in arr)) { continue; }
       arr[url] = 1; count++;
     }
     return this.filterFill([], query, arr, offset, count);
@@ -565,7 +565,14 @@ domains: {
 
 tabs: {
   filter (query: CompletersNS.QueryStatus): void {
-    chrome.tabs.query({}, this.performSearch.bind(this, query));
+    const cb = this.performSearch.bind(this, query);
+    if (inNormal == null || Settings.CONST.ChromeVersion < BrowserVer.MinNoUnmatchedIncognito) {
+      chrome.windows.getCurrent(function(wnd): void {
+        inNormal = wnd ? !wnd.incognito : true;
+        chrome.tabs.query({}, cb);
+      });
+    }
+    chrome.tabs.query({}, cb);
   },
   performSearch (query: CompletersNS.QueryStatus, tabs0: chrome.tabs.Tab[]): void {
     if (query.isOff) { return; }
@@ -573,6 +580,7 @@ tabs: {
     const curTabId = TabRecency.last(), noFilter = queryTerms.length <= 0;
     let suggestions = [] as Suggestion[], tabs = [] as TextTab[];
     for (const tab of tabs0) {
+      if (tab.incognito && inNormal) { continue; }
       const text = Decoder.decodeURL(tab.url);
       if (noFilter || RankingUtils.Match2(text, tab.title)) {
         (tab as TextTab).text = text;
@@ -847,7 +855,7 @@ searchEngines: {
     return func(suggestions, newAutoSelect, newMatchType);
   },
   cleanGlobals (): void {
-    this.mostRecentQuery = this.callback = null;
+    this.mostRecentQuery = this.callback = inNormal = null;
     queryTerms = [];
     RegExpCache.reset();
     RankingUtils.timeAgo = this.sugCounter = matchType =
@@ -887,6 +895,7 @@ searchEngines: {
     queryTerms = (query = query.trim()) ? query.split(Utils.spacesRe) : [];
     maxChars = Math.max(50, Math.min((<number>options.maxChars | 0) || 128, 200));
     maxTotal = maxResults = Math.min(Math.max((options.maxResults as number) | 0, 3), 25);
+    inNormal = options.incognito != null ? !options.incognito : null;
     Completers.callback = callback;
     let arr: ReadonlyArray<Completer> | null = null, str: string;
     if (queryTerms.length >= 1 && queryTerms[0].length === 2 && queryTerms[0][0] === ":") {

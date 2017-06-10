@@ -219,6 +219,7 @@ declare namespace CompletersNS {
     newAutoSelect: boolean, newMatchType: MatchType) => void;
 
   type FullOptions = Options & {
+    incognito?: boolean;
   };
 
   interface GlobalCompletersConstructor {
