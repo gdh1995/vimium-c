@@ -326,7 +326,7 @@ availableCommands: {
   restoreGivenTab: [ "Restore the last N-th tab", 0, true ],
   moveTabToNewWindow: [ "Move N tab(s) to new window (use limited=null/&lt;boolean&gt;)", 0, true ],
   moveTabToNextWindow: [ "Move tab to next window", 1, true ],
-  moveTabToIncognito: [ "Make tab in a incognito window", 1, true ],
+  moveTabToIncognito: [ "Make tab in a incognito window", 1, true, { incognito: true }, "moveTabToNewWindow" ],
   togglePinTab: [ "Pin or unpin N tab(s)", 50, true ],
   toggleMuteTab: [ "Mute or unmute current tab (use all, other)", 1, true ],
   closeTabsOnLeft: [ "Close tabs on the left", 0, true, { dir: -1 }, "removeTabsR" ],
@@ -334,7 +334,7 @@ availableCommands: {
   closeOtherTabs: [ "Close all other tabs", 1, true, null, "removeTabsR" ],
   moveTabLeft: [ "Move tab to the left", 0, true, null, "moveTab" ],
   moveTabRight: [ "Move tab to the right", 0, true, { dir: 1 }, "moveTab" ],
-  enableCSTemp: [ "enable the site's CS temporarily (use type=images)", 0, true, { type: "images" } ],
+  enableCSTemp: [ "enable the site's CS temporarily (use type=images)", 0, true, { type: "images", incognito: true }, "toggleCS" ],
   toggleCS: [ "turn on/off the site's CS (use type=images)", 0, true, { type: "images" } ],
   clearCS: [ "clear extension's content settings (use type=images)", 1, true, { type: "images" } ],
   "Vomnibar.activate": [

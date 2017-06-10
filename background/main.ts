@@ -150,7 +150,7 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
         });
       });
     },
-    ensure (contentType: CSTypes, tab: Tab): void {
+    ensureIncognito (contentType: CSTypes, tab: Tab): void {
       const pattern = Utils.removeComposedScheme(tab.url), _this = this;
       if (this.complain(contentType, pattern)) { return; }
       chrome.contentSettings[contentType].get({primaryUrl: pattern, incognito: true }, function(opt): void {
@@ -843,8 +843,7 @@ Are you sure you want to continue?`);
         , muted = false, action = { muted: true };
       for (let i = tabs.length; 0 <= --i; ) {
         const tab = tabs[i];
-        if (tab.id === curId) { continue; }
-        if (!tab.mutedInfo.muted) {
+        if (tab.id !== curId && !tab.mutedInfo.muted) {
           muted = true;
           chrome.tabs.update(tab.id, action);
         }
@@ -853,8 +852,7 @@ Are you sure you want to continue?`);
       action.muted = false;
       for (let i = tabs.length; 0 <= --i; ) {
         const j = tabs[i].id;
-        if (j === curId) { continue; }
-        chrome.tabs.update(j, action);
+        j !== curId && chrome.tabs.update(j, action);
       }
     }] as [
       (this: void, tabs: [Tab]) => void,
@@ -877,22 +875,18 @@ Are you sure you want to continue?`);
       }
     },
     moveTabToNewWindow (): void {
-      chrome.windows.getCurrent({populate: true}, funcDict.moveTabToNewWindow[0]);
+      const incognito = !!cOptions.incognito, arr = incognito ? funcDict.moveTabToIncognito : funcDict.moveTabToNewWindow;
+      if (incognito && cPort && Settings.CONST.ChromeVersion >= BrowserVer.MinNoUnmatchedIncognito && cPort.sender.incognito) {
+        return (arr as typeof funcDict.moveTabToIncognito)[3]();
+      }
+      chrome.windows.getCurrent({populate: true}, arr[0]);
     },
     moveTabToNextWindow (this: void, tabs: [Tab]): void {
       chrome.windows.getAll(funcDict.moveTabToNextWindow[0].bind(null, tabs[0]));
     },
-    moveTabToIncognito (): void {
-      if (cPort && Settings.CONST.ChromeVersion >= BrowserVer.MinNoUnmatchedIncognito && cPort.sender.incognito) {
-        return funcDict.moveTabToIncognito[3]();
-      }
-      chrome.windows.getCurrent({populate: true}, funcDict.moveTabToIncognito[0]);
-    },
-    enableCSTemp (this: void, tabs: [Tab]): void {
-      return ContentSettings.ensure("" + cOptions.type as CSTypes, tabs[0]);
-    },
     toggleCS (this: void, tabs: [Tab]): void {
-      return ContentSettings.toggleCurrent("" + cOptions.type as CSTypes, tabs[0]);
+      const ty = "" + cOptions.type as CSTypes, tab = tabs[0];
+      return cOptions.incognito ? ContentSettings.ensureIncognito(ty, tab) : ContentSettings.toggleCurrent(ty, tab);
     },
     clearCS (this: void, tabs: [Tab]): void {
       ContentSettings.clear("" + cOptions.type as CSTypes, tabs[0]);
@@ -1036,17 +1030,10 @@ Are you sure you want to continue?`);
     togglePinTab (this: void, tabs: Tab[]): void {
       const tab = funcDict.selectFrom(tabs);
       let i = tab.index;
-      const len = Math.min(tabs.length, i + commandCount), action = {pinned: true};
-      if (tab.pinned) {
-        action.pinned = false;
-        do {
-          chrome.tabs.update(tabs[i].id, action);
-        } while (len > ++i && tabs[i].pinned);
-      } else {
-        do {
-          chrome.tabs.update(tabs[i].id, action);
-        } while (len > ++i);
-      }
+      const len = Math.min(tabs.length, i + commandCount), pin = !tab.pinned, action = {pinned: pin};
+      do {
+        chrome.tabs.update(tabs[i].id, action);
+      } while (len > ++i && (pin || tabs[i].pinned));
     },
     toggleMuteTab (): void {
       if (Settings.CONST.ChromeVersion < BrowserVer.MinMutedInfo) {
@@ -1937,7 +1924,7 @@ Are you sure you want to continue?`);
       , "removeTab", "removeTabsR", "togglePinTab", "visitPreviousTab" //
     ];
     for (i = ref.length; 0 <= --i; ) { (ref2[ref[i]] as BgCmdCurWndTabs).useTab = UseTab.CurWndTabs; }
-    ref = ["clearCS", "copyTabInfo", "enableCSTemp", "goToRoot", "moveTabToNextWindow"//
+    ref = ["clearCS", "copyTabInfo", "goToRoot", "moveTabToNextWindow"//
       , "openCopiedUrlInNewTab", "reopenTab", "toggleCS", "toggleViewSource" //
       , "searchInAnother" //
     ];
