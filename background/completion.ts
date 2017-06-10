@@ -466,7 +466,7 @@ history: {
     return Completers.next(historys as Suggestion[]);
   } as (historys: UrlItem[]) => void,
   MakeSuggestion (e: UrlItem, i: number, arr: Array<UrlItem | Suggestion>): void {
-    const o = new Suggestion("history", e.url, Decoder.decodeURL(e.url), e.title,
+    const u = e.url, o = new Suggestion("history", u, Decoder.decodeURL(u, u), e.title,
       Completers.history.getExtra, (99 - i) / 100);
     e.sessionId && (o.sessionId = e.sessionId);
     arr[i] = o;
@@ -581,7 +581,7 @@ tabs: {
     let suggestions = [] as Suggestion[], tabs = [] as TextTab[];
     for (const tab of tabs0) {
       if (tab.incognito && inNormal) { continue; }
-      const text = Decoder.decodeURL(tab.url);
+      const u = tab.url, text = Decoder.decodeURL(u, tab.incognito ? false : u);
       if (noFilter || RankingUtils.Match2(text, tab.title)) {
         (tab as TextTab).text = text;
         tabs.push(tab as TextTab);
@@ -1070,7 +1070,7 @@ searchEngines: {
       (_this.history as HistoryItem[]).splice(-1 - i, 0, j);
     },
     OnVisitRemoved (this: void, toRemove: chrome.history.RemovedResult): void {
-      Decoder.continueToWork();
+      Decoder.todos.length = 0;
       if (toRemove.allHistory) {
         HistoryCache.history = [];
         const d = Decoder.dict, d2 = Object.create<string>(null);
@@ -1135,12 +1135,12 @@ searchEngines: {
 
   Decoder = {
     _f: decodeURIComponent, // core function
-    decodeURL (a: string, o?: DecodedItem): string {
+    decodeURL (a: string, o: ItemToDecode | false): string {
       if (a.length >= 400 || a.indexOf('%') < 0) { return a; }
       try {
         return this._f(a);
       } catch (e) {}
-      return this.dict[a] || (this.todos.push(o || a), a);
+      return this.dict[a] || (o !== false && this.todos.push(o), a);
     },
     DecodeList (this: void, a: DecodedItem[]): void {
       let i = -1, j: DecodedItem | undefined, l = a.length, d = Decoder, f = d._f,
