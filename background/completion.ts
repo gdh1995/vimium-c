@@ -283,13 +283,13 @@ bookmarks: {
     tree.forEach(this.traverseBookmark, this);
     const query = this.currentSearch;
     this.currentSearch = null;
-    if (query && !query.isOff) {
-      this.performSearch();
-    }
-    setTimeout(Decoder.DecodeList, 50, this.bookmarks);
+    setTimeout(() => Decoder.decodeList(this.bookmarks), 50);
     if (this.Listen) {
       setTimeout(this.Listen, 0);
       this.Listen = null;
+    }
+    if (query && !query.isOff) {
+      return this.performSearch();
     }
   },
   traverseBookmark (bookmark: chrome.bookmarks.BookmarkTreeNode): void {
@@ -1039,7 +1039,7 @@ searchEngines: {
       j = null;
       setTimeout(function() {
         const _this = HistoryCache;
-        setTimeout(function() { return Decoder.DecodeList(HistoryCache.history as HistoryItem[]); }, 100);
+        setTimeout(function() { return Decoder.decodeList(HistoryCache.history as HistoryItem[]); }, 100);
         (_this.history as HistoryItem[]).sort(function(a, b): number { return a.url < b.url ? -1 : 1; });
         chrome.history.onVisitRemoved.addListener(_this.OnVisitRemoved);
         chrome.history.onVisited.addListener(_this.OnPageVisited);
@@ -1148,9 +1148,9 @@ searchEngines: {
       } catch (e) {}
       return this.dict[a] || (o !== false && this.todos.push(o), a);
     },
-    DecodeList (this: void, a: DecodedItem[]): void {
-      let i = -1, j: DecodedItem | undefined, l = a.length, d = Decoder, f = d._f,
-        s: string | undefined, m = d.dict, w = d.todos;
+    decodeList (a: DecodedItem[]): void {
+      const { _f: f, dict: m, todos: w } = this;
+      let i = -1, j: DecodedItem | undefined, l = a.length, s: string | undefined;
       for (; ; ) {
         try {
           while (++i < l) {
@@ -1162,7 +1162,7 @@ searchEngines: {
           (j as DecodedItem).text = m[s as string] || (w.push(j as DecodedItem), s as string);
         }
       }
-      return d.continueToWork();
+      return this.continueToWork();
     },
     dict: Object.create<string>(null),
     todos: [] as ItemToDecode[], // each item is {url: ..., text?: ...}
