@@ -1175,7 +1175,7 @@ searchEngines: {
     Work (xhr: XMLHttpRequest | null): void {
       let _this = Decoder, url: ItemToDecode, str: string, text: string | undefined;
       xhr || (xhr = _this.init());
-      if (_this.todos.length <= _this._ind) {
+      if (_this.todos.length <= _this._ind || !xhr) {
         _this.todos.length = 0;
         _this._ind = -1;
         return;
@@ -1202,20 +1202,23 @@ searchEngines: {
     },
     _dataUrl: "",
     blank (this: void): void {},
-    xhr (): XMLHttpRequest {
+    xhr (): XMLHttpRequest | null {
+      if (!this._dataUrl) { return null; }
       const xhr = new XMLHttpRequest();
       xhr.responseType = "text";
       xhr.onload = this.OnXHR;
       xhr.onerror = this.OnXHR;
       return xhr;
     },
-    init (): XMLHttpRequest {
+    init (): XMLHttpRequest | null {
       this.init = this.xhr;
       Settings.updateHooks.localeEncoding = function(this: void, charset: string): void {
         const _this = Decoder, enabled = charset ? !(charset = charset.toLowerCase()).startsWith("utf") : false,
         f: (item: ItemToDecode) => number | void = enabled ? Array.prototype.push : _this.blank;
         _this._dataUrl = enabled ? ("data:text/plain;charset=" + charset + ",") : "";
         _this.todos.push !== f && (_this.todos.push = f as (item: ItemToDecode) => number);
+        _this.dict = Object.create<string>(null);
+        enabled || (_this.todos.length = 0);
       };
       Settings.postUpdate("localeEncoding");
       return this.xhr();
