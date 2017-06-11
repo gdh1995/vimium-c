@@ -22,6 +22,7 @@
     "removeComments": true,
     "rootDir": ".",
     "skipDefaultLibCheck": false,
+    "strict": true,
     "strictNullChecks": true,
     "target": "es5",
     "typeRoots": ["./types"],

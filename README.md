@@ -89,6 +89,8 @@ Not released yet:
 * fix a bug breaking Vomnibar when it only uses one engine
 * fix some broken shortcuts on Vomnibar on Chrome 58 stable.
 * change and unify scrolling shortcuts and behaviors on `LinkHints` / `Find` / `Vomnibar` modes
+* fix a few edge cases that deleted history/bookmark urls are not cleaned
+* Vomnibar: not list incognito tabs on a normal window
 * better logic about URL handling
 * code is more roust in lots of edge cases
 

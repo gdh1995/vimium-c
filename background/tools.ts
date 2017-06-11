@@ -203,13 +203,13 @@ setTimeout(function() {
   function clean(): void {
     const ref = cache;
     for (let i in ref) {
-      if (ref[i] as number <= 896) { delete ref[i]; }
+      if ((ref[i] as number) <= 896) { delete ref[i]; }
       else { (ref as EnsuredSafeDict<number>)[i] -= 895; }
     }
     stamp = 128;
   }
-  function listener(activeInfo: { tabId: number }): void {
-    const  now = Date.now(), tabId = activeInfo.tabId;
+  function listener({ tabId }: { tabId: number }): void {
+    const now = Date.now();
     if (now - time > 500) {
       cache[last] = ++stamp;
       if (stamp === 1023) { clean(); }
@@ -220,7 +220,7 @@ setTimeout(function() {
   chrome.windows.onFocusChanged.addListener(function(windowId): void {
     if (windowId === chrome.windows.WINDOW_ID_NONE) { return; }
     chrome.tabs.query({windowId, active: true}, function(tabs) {
-      tabs[0] && listener({tabId: tabs[0].id});
+      if (tabs[0]) { return listener({ tabId: tabs[0].id }); }
     });
   });
   chrome.tabs.query({currentWindow: true, active: true}, function(tabs: CurrentTabs): void {

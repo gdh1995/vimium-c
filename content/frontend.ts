@@ -740,7 +740,7 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
     },
     insertInnerCSS: VDom.UI.InsertInnerCSS,
     focusFrame: FrameMask.Focus,
-    exitGrab: function (this: void): void { return InsertMode.ExitGrab("other"); } as VEventMode["exitGrab"],
+    exitGrab (this: void): void { if (InsertMode.focus === InsertMode.grabBackFocus) { return InsertMode.ExitGrab("other"); } },
     keyMap (request): void {
       const map = keyMap = request.keyMap, func = Object.setPrototypeOf;
       func(map, null);
