@@ -367,7 +367,7 @@ history: {
       }, 50);
     }
     if (index === 0) {
-      chrome.tabs.query({}, this.loadTabs.bind(this, query));
+      Completers.requireNormalOrIncognito(this, this.loadTabs, query);
     } else if (chrome.sessions) {
       chrome.sessions.getRecentlyClosed(this.loadSessions.bind(this, query));
     } else {
@@ -565,14 +565,7 @@ domains: {
 
 tabs: {
   filter (query: CompletersNS.QueryStatus): void {
-    const cb = this.performSearch.bind(this, query);
-    if (inNormal == null || Settings.CONST.ChromeVersion < BrowserVer.MinNoUnmatchedIncognito) {
-      chrome.windows.getCurrent(function(wnd): void {
-        inNormal = wnd ? !wnd.incognito : true;
-        chrome.tabs.query({}, cb);
-      });
-    }
-    chrome.tabs.query({}, cb);
+    Completers.requireNormalOrIncognito(this, this.performSearch, query);
   },
   performSearch (query: CompletersNS.QueryStatus, tabs0: chrome.tabs.Tab[]): void {
     if (query.isOff) { return; }
@@ -793,7 +786,7 @@ searchEngines: {
   filter (completers: ReadonlyArray<Completer>): void {
     RegExpCache.reset();
     if (this.mostRecentQuery) { this.mostRecentQuery.isOff = true; }
-    const query = this.mostRecentQuery = {
+    const query: CompletersNS.QueryStatus = this.mostRecentQuery = {
       isOff: false
     };
     let i = this.sugCounter = 0, l = this.counter = completers.length;
@@ -818,6 +811,19 @@ searchEngines: {
     if (i === l) {
       return completers[i].filter(query, i);
     }
+  },
+  requireNormalOrIncognito<T> (that: T
+      , func: (this: T, query: CompletersNS.QueryStatus, tabs: chrome.tabs.Tab[]) => void
+      , query: CompletersNS.QueryStatus): 1 {
+    const cb = func.bind(that, query);
+    if (inNormal != null && Settings.CONST.ChromeVersion >= BrowserVer.MinNoUnmatchedIncognito) {
+      return chrome.tabs.query({}, cb);
+    }
+    return chrome.windows.getCurrent(function(wnd): void {
+      if (query.isOff) { return; }
+      inNormal = wnd ? !wnd.incognito : true;
+      chrome.tabs.query({}, cb);
+    });
   },
   next (newSugs: Suggestion[]): void {
     let arr = this.suggestions;
