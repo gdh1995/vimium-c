@@ -102,7 +102,7 @@ VDom.UI = {
     if (!sel || VDom.selType(sel) !== "Range" || !sel.anchorNode) {
       return false;
     }
-    sel.removeAllRanges();
+    sel.collapseToStart();
     return true;
   },
   click (element, modifiers, addFocus): boolean {
