@@ -78,7 +78,7 @@ Known issues (Up to the master branch):
   such as on some websites with very strict Content Security Policies (CSP),
   so users may need to wait about 1 second to let Vimium++ (since v1.59.4) retry the inner page.
 6. Chrome 58 stable hides some necessary infomation of page's selection,
-  so `enterVisualMode` can not work if editable text is being selected.
+  so some commands on `VisualMode` cann't work as expected if editable text is being selected.
   This Chrome feature/bug has been removed since version 59, so Vimium++ works well again.
 
 Not released yet:

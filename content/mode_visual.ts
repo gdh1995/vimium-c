@@ -33,14 +33,15 @@ var VVisualMode = {
     this.movement.selection = this.selection = sel = VDom.UI.getSelection();
     VHandler.remove(this);
     VHandler.push(this.onKeydown, this);
-    type = VDom.selType(this.selection);
+    type = VDom.selType(sel);
     if (!this.mode) { this.retainSelection = type === "Range"; }
     str = typeof options.mode === "string" ? options.mode.toLowerCase() : "";
     this.mode = mode = str ? str === "caret" ? VisualModeNS.Mode.Caret : str === "line" ? VisualModeNS.Mode.Line
       : (str = "", VisualModeNS.Mode.Visual) : VisualModeNS.Mode.Visual;
     if (mode !== VisualModeNS.Mode.Caret) {
       this.movement.alterMethod = "extend";
-      if (!VEventMode.lock() && (type === "Caret" || type === "Range")) {
+      const lock = VEventMode.lock();
+      if (!lock && (type === "Caret" || type === "Range")) {
         const rect = sel.getRangeAt(0).getBoundingClientRect();
         VDom.prepareCrop();
         if (!VRect.cropRectToVisible(rect.left, rect.top, rect.right + 3, rect.bottom + 3)) {
@@ -48,9 +49,9 @@ var VVisualMode = {
         } else if (type === "Caret") {
           this.movement.extendByOneCharacter(1) || this.movement.extend(0);
         }
-        type = VDom.selType(this.selection);
+        type = VDom.selType(sel);
       }
-      if (type !== "Range") { mode = VisualModeNS.Mode.Caret; }
+      if (type !== "Range" && (!lock || sel.toString().length <= 0)) { mode = VisualModeNS.Mode.Caret; }
     }
     this.hudTimer && clearTimeout(this.hudTimer);
     VHUD.show(this.hud = (str ? str[0].toUpperCase() + str.substring(1) : "Visual") + " mode");
