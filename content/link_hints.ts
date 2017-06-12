@@ -118,6 +118,7 @@ var VHints = {
       }
       if (!VDom.isHTML()) { return; }
     }
+    VEventMode.exitGrab();
     VHandler.remove(this);
     this.setModeOpt((count as number) | 0, Object.setPrototypeOf(options || (options = {} as any as FgOptions), null));
     let str = options.characters ? options.characters + "" : VSettings.cache.linkHintCharacters;
@@ -902,13 +903,12 @@ getUrlData (link: HTMLAnchorElement): string {
 },
 
 highlightChild (child: HintsNS.VWindow): false | void {
-  setTimeout(function() { child.focus(); }, 0);
+  setTimeout(function() { child.closed || child.focus(); }, 0);
   try {
     child.VEventMode.keydownEvents(VEventMode.keydownEvents());
   } catch (e) {
     return;
   }
-  child.VEventMode.exitGrab();
   const lh = child.VHints;
   lh.isActive = false;
   lh.activate(this.count, this.options);
