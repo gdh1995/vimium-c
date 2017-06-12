@@ -902,11 +902,15 @@ getUrlData (link: HTMLAnchorElement): string {
   return link.href;
 },
 
-highlightChild (child: HintsNS.VWindow): false | void {
+highlightChild (el: HTMLIFrameElement | HTMLFrameElement): false | void {
+  const child = el.contentWindow as HintsNS.VWindow;
   setTimeout(function() { child.closed || child.focus(); }, 0);
   try {
     child.VEventMode.keydownEvents(VEventMode.keydownEvents());
   } catch (e) {
+    VPort.post({ handler: "execInChild", url: el.src,
+      command: "Hints.activate", count: this.count, options: this.options
+    });
     return;
   }
   const lh = child.VHints;
@@ -1110,7 +1114,7 @@ DEFAULT: {
   activator (link, hint): void | false {
     if (link instanceof HTMLIFrameElement || link instanceof HTMLFrameElement) {
       const ret = link === Vomnibar.box ? (Vomnibar.focus(1), false)
-        : (this as typeof VHints).highlightChild(link.contentWindow as HintsNS.VWindow);
+        : (this as typeof VHints).highlightChild(link);
       (this as typeof VHints).mode = HintMode.DEFAULT;
       return ret;
     } else if (link instanceof HTMLDetailsElement) {

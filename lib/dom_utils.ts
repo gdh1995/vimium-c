@@ -163,10 +163,11 @@ var VDom = {
     (element: null, rect: ClientRect): boolean;
   },
   isInDOM (element: Node, root?: Node): boolean {
-    if (!root && typeof Node.prototype.getRootNode === "function") {
-      return Node.prototype.getRootNode.call(element, {composed: true}) === document;
+    const f = Node.prototype.getRootNode, d = document;
+    if (!root && typeof f === "function") {
+      return f.call(element, {composed: true}) === d;
     }
-    root || (root = document);
+    root || (root = d);
     if (root.contains(element)) { return true; }
     if (element instanceof HTMLFormElement) { return false; }
     let parent: Node | null;

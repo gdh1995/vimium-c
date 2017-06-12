@@ -1,5 +1,4 @@
 interface BaseExecute<T> {
-  name: "execute";
   command: string;
   count: number;
   options: T | null;
@@ -36,7 +35,9 @@ interface BgReq {
     frameId: number;
     lastKey?: number;
   };
-  execute: BaseExecute<object>;
+  execute: BaseExecute<object> & {
+    name: "execute";
+  };
   checkIfEnabled: {
     name: "checkIfEnabled";
   };
@@ -134,6 +135,9 @@ interface FgReq {
     https?: boolean | null;
     reuse?: ReuseType;
   };
+  execInChild: {
+    url: string;
+  } & BaseExecute<object>;
   frameFocused: Req.baseFg<"frameFocused">;
   checkIfEnabled: {
     url: string;
@@ -223,6 +227,7 @@ declare namespace Req {
   }
 
   interface FgCmd<O extends keyof CmdOptions> extends BaseExecute<CmdOptions[O]> {
+    name: "execute";
   }
 }
 

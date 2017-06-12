@@ -857,7 +857,12 @@ Are you sure you want to continue?`);
     }] as [
       (this: void, tabs: [Tab]) => void,
       (this: void, tabs: Tab[]) => void
-    ]
+    ],
+    postCommand (port: Port, request: BaseExecute<object>): void {
+      port.postMessage({
+        name: "execute", command: request.command, count: request.count || 1, options: request.options
+      })
+    }
   },
   BackgroundCommands = {
     createTab: (function (): void {}) as BgCmd,
@@ -1568,6 +1573,31 @@ Are you sure you want to continue?`);
       for (let msg = { name: "exitGrab" as "exitGrab" }, i = ports.length; 0 < --i; ) {
         ports[i] !== port && ports[i].postMessage(msg);
       }
+    },
+    execInChild (this: void, request: FgReq["execInChild"], port: Port): void {
+      const tabId = port.sender.tabId, ports = framesForTab[tabId], url = request.url;
+      if (!ports || ports.length < 3) { return; }
+      let iport: Port | null = null, i = ports.length;
+      while (1 <= --i) {
+        if (ports[i].sender.url === url) {
+          if (iport) { return; }
+          iport = ports[i];
+        }
+      }
+      if (iport) { return funcDict.postCommand(iport, request); }
+      if (Settings.CONST.ChromeVersion < BrowserVer.MinWithFrameId || tabId < 0 || !chrome.webNavigation) { return; }
+      const frameId = port.sender.frameId;
+      chrome.webNavigation.getAllFrames({ tabId }, function(details): void {
+        if (!details) { return chrome.runtime.lastError; }
+        details = details.filter(function(i): boolean { return i.parentFrameId === frameId; });
+        if (details.length > 1) {
+          details = details.filter(function(i): boolean { return i.url === url; });
+        }
+        const port = details.length === 1 ? Settings.indexPorts(tabId, details[0].frameId) : null;
+        if (port) {
+          return funcDict.postCommand(port, request);
+        }
+      });
     },
     refocusCurrent (this: void, request: FgReq["refocusCurrent"], port: Port): void {
       const ports = port.sender.tabId !== GlobalConsts.TabIdNone ? framesForTab[port.sender.tabId] : null;
