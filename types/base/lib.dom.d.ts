@@ -2146,6 +2146,7 @@ interface Event {
     stopImmediatePropagation(): void;
     stopPropagation(): void;
     deepPath(): EventTarget[];
+    path?: EventTarget[];
     readonly AT_TARGET: number;
     readonly BUBBLING_PHASE: number;
     readonly CAPTURING_PHASE: number;

@@ -188,7 +188,7 @@ var VDom = {
   /**
    * if true, then `element` is `HTMLElement`
    */
-  getEditableType (element: Element): EditableType {
+  getEditableType (element: EventTarget): EditableType {
     if (!(element instanceof HTMLElement) || element instanceof HTMLFormElement) { return EditableType.NotEditable; }
     const ty = this.editableTypes[element.nodeName.toLowerCase()];
     return ty !== EditableType._input ? (ty

@@ -12,8 +12,9 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
   interface ShadowRootEx extends ShadowRoot {
     vimiumBlurred?: boolean;
   }
+  type LockableElement = HTMLElement;
   interface LockableFocusEvent extends Event {
-    target: HTMLElement;
+    target: LockableElement;
   }
 
   var KeydownEvents: KeydownCacheArray, keyMap: KeyMap
@@ -135,7 +136,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
       if (event.isTrusted == false) { return; }
       let target = event.target as Window | Element, u: undefined;
       return target === window ? ELs.OnWndFocus() : !isEnabledForUrl ? u
-        : VDom.getEditableType(target as Element) ? InsertMode.focus(event as LockableFocusEvent)
+        : VDom.getEditableType(target) ? InsertMode.focus(event as LockableFocusEvent, target as HTMLElement)
         : target === VDom.UI.box ? event.stopImmediatePropagation()
         : (target as Element).shadowRoot ? ELs.hookShadowFocus(event) : u;
     },
@@ -426,12 +427,12 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
   },
 
   InsertMode = {
-    focus: null as never as (event: LockableFocusEvent) => void,
+    focus: null as never as (event: LockableFocusEvent, target: LockableElement) => void,
     global: null as { code: number, stat: number } | null,
     suppressType: null as string | null,
-    last: null as HTMLElement | null,
+    last: null as LockableElement | null,
     loading: (document.readyState !== "complete"),
-    lock: null as HTMLElement | null,
+    lock: null as LockableElement | null,
     mutable: true,
     init (): void {
       /** if `notBody` then `activeEl` is not null  */
@@ -469,12 +470,11 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
       (this: void, event: MouseEvent | "other"): void;
       (this: void, event: KeyboardEvent): HandlerResult.Nothing;
     },
-    grabBackFocus (event: LockableFocusEvent): void {
+    grabBackFocus (event: LockableFocusEvent, target: LockableElement): void {
       event.stopImmediatePropagation();
-      event.target.blur();
+      target.blur();
     },
-    lockFocus (event: LockableFocusEvent): void {
-      const target = event.target;
+    lockFocus (_e: LockableFocusEvent, target: LockableElement): void {
       this.lock = target;
       if (this.mutable) {
         this.last = target;
