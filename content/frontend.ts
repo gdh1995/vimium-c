@@ -139,13 +139,13 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
     },
     onFocus (event: Event | FocusEvent): void {
       if (event.isTrusted == false) { return; }
-      let target = event.target as Window | Element;
+      let target = event.target as EventTarget | Element;
       if (target === window) { return ELs.OnWndFocus(); }
       if (!isEnabledForUrl) { return; }
       if (target === VDom.UI.box) { event.stopImmediatePropagation(); return; }
       if ((target as Element).shadowRoot) {
         let path = event.path as EventTarget[]
-          , diff = !!path && (target = path[0] as Element) !== event.target, len = diff ? path.indexOf(target) : 1;
+          , diff = !!path && (target = path[0]) !== event.target && target !== window, len = diff ? path.indexOf(target) : 1;
         diff || (path = [(target as Element).shadowRoot as ShadowRoot | Element]);
         while (0 <= --len) {
           const root = path[len];
@@ -170,16 +170,16 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
         return esc();
       }
       if (!isEnabledForUrl) { return; }
-      let path = event.path as EventTarget[];
-      if (InsertMode.lock === (path ? path[0] : target)) { InsertMode.lock = null; }
-      if (!((target as Element).shadowRoot instanceof ShadowRoot) || target === VDom.UI.box) { return; }
-      if (!path || path[0] === target) {
-        target = (target as Element).shadowRoot as ShadowRoot;
-        target.vimiumListened = ListenType.Blur;
+      let path = event.path as EventTarget[], top: EventTarget | undefined
+        , same = !path || (top = path[0]) === target || top === window, sr = (target as Element).shadowRoot;
+      if (InsertMode.lock === (same ? target : top)) { InsertMode.lock = null; }
+      if (!(sr && sr instanceof ShadowRoot) || target === VDom.UI.box) { return; }
+      if (same) {
+        (sr as ShadowRootEx).vimiumListened = ListenType.Blur;
         // NOTE: if destroyed, this page must have lost its focus before, so
         // a blur event must have been bubbled from shadowRoot to a real lock.
         // Then, we don't need to worry about ELs or InsertMode being null.
-        target.removeEventListener("focus", ELs.onFocus, true);
+        sr.removeEventListener("focus", ELs.onFocus, true);
         return;
       }
       for (let len = path.indexOf(target); 0 <= --len; ) {
@@ -199,7 +199,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
       return ELs.onBlur(event);
     },
     onActivate (event: UIEvent): void {
-      VScroller.current = (event as any).path[0];
+      VScroller.current = (event.path as EventTarget[])[0] as Element;
     },
     OnWndFocus (this: void): void {},
     OnWndBlur: null as ((this: void) => void) | null,
