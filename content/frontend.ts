@@ -15,7 +15,6 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
     Full = 2,
   }
   interface ShadowRootEx extends ShadowRoot {
-    vimiumBlurred?: boolean;
     vimiumListened?: ListenType;
   }
   type LockableElement = HTMLElement;
@@ -169,21 +168,32 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
         KeydownEvents = new Uint8Array(256);
         (<RegExpOne> /a?/).test("");
         return esc();
-      } else if (!isEnabledForUrl) {}
-      else if (InsertMode.lock === target) { InsertMode.lock = null; }
-      else if ((target as Element).shadowRoot instanceof ShadowRoot && target !== VDom.UI.box) {
+      }
+      if (!isEnabledForUrl) { return; }
+      let path = event.path as EventTarget[];
+      if (InsertMode.lock === (path ? path[0] : target)) { InsertMode.lock = null; }
+      if (!((target as Element).shadowRoot instanceof ShadowRoot) || target === VDom.UI.box) { return; }
+      if (!path || path[0] === target) {
         target = (target as Element).shadowRoot as ShadowRoot;
+        target.vimiumListened = ListenType.Blur;
         // NOTE: if destroyed, this page must have lost its focus before, so
         // a blur event must have been bubbled from shadowRoot to a real lock.
         // Then, we don't need to worry about ELs or InsertMode being null.
         target.removeEventListener("focus", ELs.onFocus, true);
-        target.vimiumBlurred = true;
+        return;
+      }
+      for (let len = path.indexOf(target); 0 <= --len; ) {
+        const root = path[len];
+        if (!(root instanceof ShadowRoot)) { continue; }
+        root.removeEventListener("focus", ELs.onFocus, true);
+        root.removeEventListener("blur", ELs.onShadowBlur, true);
+        (root as ShadowRootEx).vimiumListened = ListenType.None;
       }
     },
     onShadowBlur (this: ShadowRootEx, event: Event): void {
       if (event.isTrusted == false) { return; }
-      if (this.vimiumBlurred) {
-        this.vimiumBlurred = false;
+      if (this.vimiumListened === ListenType.Blur) {
+        this.vimiumListened = ListenType.None;
         this.removeEventListener("blur", ELs.onShadowBlur, true);
       }
       return ELs.onBlur(event);
