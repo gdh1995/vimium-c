@@ -9,8 +9,14 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
     postMessage<K extends keyof FgReq>(request: Req.fg<K>): 1;
     postMessage<K extends keyof FgRes>(request: Req.fgWithRes<K>): 1;
   }
+  const enum ListenType {
+    None = 0,
+    Blur = 1,
+    Full = 2,
+  }
   interface ShadowRootEx extends ShadowRoot {
     vimiumBlurred?: boolean;
+    vimiumListened?: ListenType;
   }
   type LockableElement = HTMLElement;
   interface LockableFocusEvent extends Event {
@@ -132,15 +138,29 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
         return onKeyup2(event);
       }
     },
-    onFocus (event: Event): void {
+    onFocus (event: Event | FocusEvent): void {
       if (event.isTrusted == false) { return; }
-      let target = event.target as Window | Element, u: undefined;
-      return target === window ? ELs.OnWndFocus() : !isEnabledForUrl ? u
-        : VDom.getEditableType(target) ? InsertMode.focus(event as LockableFocusEvent, target as HTMLElement)
-        : target === VDom.UI.box ? event.stopImmediatePropagation()
-        : (target as Element).shadowRoot ? ELs.hookShadowFocus(event) : u;
+      let target = event.target as Window | Element;
+      if (target === window) { return ELs.OnWndFocus(); }
+      if (!isEnabledForUrl) { return; }
+      if (target === VDom.UI.box) { event.stopImmediatePropagation(); return; }
+      if ((target as Element).shadowRoot) {
+        let path = event.path as EventTarget[]
+          , diff = !!path && (target = path[0] as Element) !== event.target, len = diff ? path.indexOf(target) : 1;
+        diff || (path = [(target as Element).shadowRoot as ShadowRoot | Element]);
+        while (0 <= --len) {
+          const root = path[len];
+          if (!(root instanceof ShadowRoot) || (root as ShadowRootEx).vimiumListened === ListenType.Full) { continue; }
+          root.addEventListener("focus", ELs.onFocus, true);
+          root.addEventListener("blur", ELs.onShadowBlur, true);
+          (root as ShadowRootEx).vimiumListened = ListenType.Full;
+        }
+      }
+      if (VDom.getEditableType(target)) {
+        return InsertMode.focus(event as LockableFocusEvent, target as LockableElement);
+      }
     },
-    onBlur (event: Event): void {
+    onBlur (event: Event | FocusEvent): void {
       if (event.isTrusted == false) { return; }
       let target = event.target as Window | Element | ShadowRootEx;
       if (target === window) {
@@ -167,12 +187,6 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
         this.removeEventListener("blur", ELs.onShadowBlur, true);
       }
       return ELs.onBlur(event);
-    },
-    hookShadowFocus (this: void, event: Event): void {
-      const root = (event.target as Element).shadowRoot as ShadowRootEx;
-      if (!(root instanceof ShadowRoot)) { return; } // in case of <form> elements
-      root.addEventListener("focus", ELs.onFocus, true);
-      root.addEventListener("blur", ELs.onShadowBlur, true);
     },
     onActivate (event: UIEvent): void {
       VScroller.current = (event as any).path[0];
