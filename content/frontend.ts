@@ -921,7 +921,7 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
     }, function (this: VEventMode["OnScrolls"], wnd, interval): void {
       const f = interval ? addEventListener : removeEventListener;
       VScroller.keyIsDown = interval || 0;
-      f.call(wnd, "keyup", this[1], true); f.call(wnd, "keyup", this[2], true);
+      f.call(wnd, "keyup", this[1], true); f.call(wnd, "blur", this[2], true);
     }],
     setupSuppress (this: void, onExit): void {
       const mode = InsertMode, f = mode.onExitSuppress;
