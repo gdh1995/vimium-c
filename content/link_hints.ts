@@ -569,7 +569,7 @@ var VHints = {
   },
   onKeydown (event: KeyboardEvent): HandlerResult {
     let linksMatched: HintsNS.LinksMatched, i: number;
-    if (event.repeat) {
+    if (event.repeat || !this.isActive) {
       // NOTE: should always prevent repeated keys.
     } else if (VKeyboard.isEscape(event)) {
       this.deactivate();
