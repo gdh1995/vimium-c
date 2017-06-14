@@ -524,3 +524,31 @@ window.onhashchange = function(this: void): void {
   }
 };
 window.location.hash.length > 4 && setTimeout(window.onhashchange as (this: void) => void, 100);
+
+window.onunload = function(): void {
+  BG.removeEventListener("unload", OnBgUnload);
+};
+
+function OnBgUnload(): void {
+  BG.removeEventListener("unload", OnBgUnload);
+  setTimeout(function(): void {
+    BG = chrome.extension.getBackgroundPage() as Window;
+    bgSettings = BG.Settings;
+    BG.addEventListener("unload", OnBgUnload);
+    if (BG.document.readyState !== "loading") { return callback(); }
+    BG.addEventListener("DOMContentLoaded", function load(): void {
+      BG.removeEventListener("DOMContentLoaded", load, true);
+      return callback();
+    }, true);
+  }, 100);
+  function callback() {
+    const ref = Option.all;
+    for (const key in ref) {
+      const opt = ref[key as keyof AllowedOptions], { previous } = opt;
+      if (typeof previous === "object" && previous) {
+        opt.previous = bgSettings.get(opt.field);
+      }
+    }
+  }
+}
+BG.addEventListener("unload", OnBgUnload);
