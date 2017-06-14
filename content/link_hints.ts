@@ -1115,7 +1115,7 @@ DEFAULT: {
     if (link instanceof HTMLIFrameElement || link instanceof HTMLFrameElement) {
       const ret = link === Vomnibar.box ? (Vomnibar.focus(1), false)
         : (this as typeof VHints).highlightChild(link);
-      (this as typeof VHints).mode = HintMode.DEFAULT;
+      (this as typeof VHints).setMode(HintMode.DEFAULT);
       return ret;
     } else if (link instanceof HTMLDetailsElement) {
       link.open = !link.open;
