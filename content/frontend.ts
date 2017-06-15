@@ -315,11 +315,8 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
       if (!newEl) {
         return HUD.showForDuration("Nothing was focused", 1200);
       }
-      else if (!VDom.IsVisibile(newEl)) {
-        newEl.scrollIntoView();
-        if (!VDom.IsVisibile(newEl)) {
-          return HUD.showForDuration("The last focused is hidden", 2000);
-        }
+      if (!VDom.ensureInView(newEl) && !VDom.IsVisibile(newEl)) {
+        return HUD.showForDuration("The last focused is hidden", 2000);
       }
       InsertMode.last = null;
       InsertMode.mutable = true;
@@ -328,8 +325,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
     simBackspace (): void {
       const el = InsertMode.lock;
       if (!el) { return Commands.switchFocus(); }
-      else if (VDom.IsVisibile(el)) { document.execCommand("delete"); }
-      else { el.scrollIntoView(); }
+      if (VDom.ensureInView(el)) { document.execCommand("delete"); }
     },
     goBack (count: number, options: FgOptions): void {
       const step = Math.min(count, history.length - 1);
@@ -540,7 +536,7 @@ Pagination = {
     if (linkElement instanceof HTMLLinkElement) {
       Commands.reload(linkElement.href);
     } else {
-      VDom.IsVisibile(linkElement) || linkElement.scrollIntoView();
+      VDom.ensureInView(linkElement);
       VDom.UI.flash(linkElement);
       setTimeout(function() { VDom.UI.click(linkElement); }, 0);
     }

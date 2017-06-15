@@ -154,6 +154,14 @@ var VDom = {
     ih = Math.min(Math.max(height, box.clientHeight, ih - 24), ih + 20);
     return [Math.ceil(x), Math.ceil(y), iw, ih - 15, iw];
   },
+  ensureInView (el: Element): boolean {
+    const rect = el.getBoundingClientRect();
+    if (this.IsVisibile(null, rect)) { return true; }
+    const t = rect.top, ih = innerHeight, dir = t < 0 ? -1 : t > ih ? 1 : 0;
+    el.scrollIntoView(dir < 0);
+    dir && window.scrollBy(0, dir * ih / 5);
+    return false;
+  },
   IsVisibile: function (this: void, element: Element | null, rect?: ClientRect): boolean {
     if (!rect) { rect = (element as Element).getBoundingClientRect(); }
     return !(rect.bottom <= 0 || rect.top >= window.innerHeight || rect.right <= 0
