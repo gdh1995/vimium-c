@@ -113,8 +113,9 @@ VDom.UI = {
     return VDom.mouse(element, "click", modifiers);
   },
   simulateSelect (element, flash, suppressRepeated): void {
+    const y = window.scrollY;
     this.click(element, null, true);
-    VDom.ensureInView(element);
+    VDom.ensureInView(element, y);
     flash === true && this.flash(element);
     if (element !== VEventMode.lock()) { return; }
     type Moveable = HTMLInputElement | HTMLTextAreaElement;
