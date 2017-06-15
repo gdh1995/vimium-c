@@ -114,6 +114,7 @@ VDom.UI = {
   },
   simulateSelect (element, flash, suppressRepeated): void {
     this.click(element, null, true);
+    VDom.ensureInView(element);
     flash === true && this.flash(element);
     if (element !== VEventMode.lock()) { return; }
     type Moveable = HTMLInputElement | HTMLTextAreaElement;
@@ -127,7 +128,7 @@ VDom.UI = {
         }
       } catch (e) {}
     }
-    suppressRepeated === true && this.suppressTail(true);
+    if (suppressRepeated === true) { return this.suppressTail(true); }
   },
   getZoom (this: void): number {
     let docEl = document.documentElement as Element, el: Element | null, zoom = 1;
