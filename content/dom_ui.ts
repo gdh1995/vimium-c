@@ -143,7 +143,7 @@ VDom.UI = {
     VDom.bodyZoom = b && VDom.isInDOM(clickEl, b) && +getComputedStyle(b).zoom || 1;
     const rect = VDom.getVisibleClientRect(clickEl),
     cr = clickEl.getBoundingClientRect(), bcr = VRect.fromClientRect(cr);
-    return rect && !VRect.isContaining(bcr, rect) ? rect : VDom.IsVisibile(null, cr) ? bcr : null;
+    return rect && !VRect.isContaining(bcr, rect) ? rect : VDom.NotVisible(null, cr) ? null : bcr;
   },
   flash: function (this: DomUI, el: Element | null, rect?: VRect | null): number | void {
     rect || (rect = this.getVRect(el as Element));

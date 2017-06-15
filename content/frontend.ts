@@ -315,7 +315,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
       if (!newEl) {
         return HUD.showForDuration("Nothing was focused", 1200);
       }
-      if (!VDom.ensureInView(newEl) && !VDom.IsVisibile(newEl)) {
+      if (!VDom.ensureInView(newEl) && VDom.NotVisible(newEl)) {
         return HUD.showForDuration("The last focused is hidden", 2000);
       }
       InsertMode.last = null;

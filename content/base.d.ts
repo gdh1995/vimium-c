@@ -21,6 +21,11 @@ declare const enum HandlerResult {
   MinMayNotPassKey = 0,
   PassKey = -1,
 }
+declare const enum VisibilityType {
+  Visible = 0,
+  OutOfView = 1,
+  NoSpace = 2,
+}
 declare namespace HandlerNS {
   type Event = KeyboardEvent;
 
