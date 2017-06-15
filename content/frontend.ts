@@ -425,7 +425,8 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
       hints[sel].classList.add("S");
       const box = VDom.UI.addElementList(hints, arr);
       VHandler.push(function(event) {
-        if (event.keyCode === VKeyCodes.tab) {
+        const { keyCode } = event;
+        if (keyCode === VKeyCodes.tab) {
           hints[sel].classList.remove("S");
           if (event.shiftKey) {
             if (--sel === -1) { sel = hints.length - 1; }
@@ -433,10 +434,12 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
           else if (++sel === hints.length) { sel = 0; }
           hints[sel].classList.add("S");
           VDom.UI.simulateSelect(hints[sel].clickableItem);
-        } else if (event.keyCode === VKeyCodes.f12) {
+        } else if (keyCode === VKeyCodes.f12) {
           return VKeyboard.getKeyStat(event) ? HandlerResult.Prevent : HandlerResult.Nothing;
-        } else if (!event.repeat && event.keyCode !== VKeyCodes.shiftKey
-            && event.keyCode !== VKeyCodes.altKey && event.keyCode !== VKeyCodes.metaKey) {
+        } else if (keyCode === VKeyCodes.ime) {
+          return HandlerResult.Nothing;
+        } else if (!event.repeat && keyCode !== VKeyCodes.shiftKey
+            && keyCode !== VKeyCodes.altKey && keyCode !== VKeyCodes.metaKey) {
           this.remove();
           VHandler.remove(this);
           return HandlerResult.Nothing;
