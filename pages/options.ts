@@ -525,6 +525,7 @@ window.onhashchange = function(this: void): void {
 };
 window.location.hash.length > 4 && setTimeout(window.onhashchange as (this: void) => void, 100);
 
+// below is for programmer debugging
 window.onunload = function(): void {
   BG.removeEventListener("unload", OnBgUnload);
 };
@@ -533,6 +534,10 @@ function OnBgUnload(): void {
   BG.removeEventListener("unload", OnBgUnload);
   setTimeout(function(): void {
     BG = chrome.extension.getBackgroundPage() as Window;
+    if (!BG) { // a user may call `close()` in the console panel
+      window.onbeforeunload = null as any;
+      window.close();
+    }
     bgSettings = BG.Settings;
     BG.addEventListener("unload", OnBgUnload);
     if (BG.document.readyState !== "loading") { return callback(); }
