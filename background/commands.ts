@@ -279,7 +279,7 @@ availableCommands: {
   passNextKey: [ "Pass the next key(s) to the page (use normal)", 0, false ],
   enterVisualMode: [ "Enter visual mode", 1, false, null, "Visual.activate" ],
   enterVisualLineMode: [ "Enter visual line mode", 1, false, { mode: "line" }, "Visual.activate" ],
-  focusInput: [ "Focus the N-th visible text box on the page and cycle using tab", 0, false ],
+  focusInput: [ "Focus the N-th visible text box on the page and cycle using tab (use keep)", 0, false ],
   "LinkHints.activate": [ "Open a link in the current tab (use characters=&lt;string&gt;)", 0, false, { mode: "OPEN_IN_CURRENT_TAB" }, "Hints.activate" ],
   "LinkHints.activateModeToOpenInNewTab": [ "Open a link in a new tab", 0, false,
     { mode: "OPEN_IN_NEW_BG_TAB" }, "Hints.activate" ],

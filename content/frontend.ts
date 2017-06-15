@@ -397,7 +397,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
         if (str) { return HUD.showForDuration(str, 1000); }
       });
     },
-    focusInput (count: number): void {
+    focusInput (count: number, options: FgOptions): void {
       const visibleInputs = VHints.traverse("*", VHints.GetEditable);
       let sel = visibleInputs.length;
       if (sel === 0) {
@@ -423,7 +423,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
       }
       VDom.UI.simulateSelect(visibleInputs[sel][0]);
       hints[sel].classList.add("S");
-      const box = VDom.UI.addElementList(hints, arr);
+      const box = VDom.UI.addElementList(hints, arr), keep = !!options.keep;
       VHandler.push(function(event) {
         const { keyCode } = event;
         if (keyCode === VKeyCodes.tab) {
@@ -434,17 +434,17 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
           else if (++sel === hints.length) { sel = 0; }
           hints[sel].classList.add("S");
           VDom.UI.simulateSelect(hints[sel].clickableItem);
-        } else if (keyCode === VKeyCodes.f12) {
-          return VKeyboard.getKeyStat(event) ? HandlerResult.Prevent : HandlerResult.Nothing;
-        } else if (keyCode === VKeyCodes.ime) {
-          return HandlerResult.Nothing;
-        } else if (!event.repeat && keyCode !== VKeyCodes.shiftKey
-            && keyCode !== VKeyCodes.altKey && keyCode !== VKeyCodes.metaKey) {
+          return HandlerResult.Prevent;
+        }
+        if (keyCode === VKeyCodes.shiftKey || keyCode === VKeyCodes.altKey) {}
+        else if (event.repeat) { return HandlerResult.Prevent; }
+        else if (keep ? !VKeyboard.isEscape(event) : keyCode === VKeyCodes.ime || keyCode === VKeyCodes.f12) {}
+        else {
           this.remove();
           VHandler.remove(this);
-          return HandlerResult.Nothing;
+          return !InsertMode.lock && VKeyboard.isEscape(event) ? HandlerResult.Prevent : HandlerResult.Nothing;
         }
-        return HandlerResult.Prevent;
+        return HandlerResult.Nothing;
       }, box);
     }
   },
