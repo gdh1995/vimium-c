@@ -212,7 +212,7 @@ var VDom = {
   },
   isSelected (element: Element): boolean {
     const sel = window.getSelection(), node = sel.anchorNode;
-    return (element as HTMLElement).isContentEditable ? node ? node.contains(element) : false
+    return (element as HTMLElement).isContentEditable === true ? node ? node.contains(element) : false
       : this.selType(sel) === "Range" && sel.isCollapsed && element === (node as Node).childNodes[sel.anchorOffset];
   },
   getSelectionFocusElement (): Element | null {

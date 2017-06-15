@@ -973,7 +973,7 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
   location.href !== "about:blank" || isInjected ? vPort.connect(PortType.initing) :
   (window.onload = function() { window.onload = null as never; setTimeout(function(): void {
     const a = document.body,
-    exit = !!a && (a.isContentEditable || a.childElementCount === 1 && (a.firstElementChild as HTMLElement).isContentEditable);
+    exit = !!a && (a.isContentEditable || a.childElementCount === 1 && (a.firstElementChild as HTMLElement).isContentEditable === true);
     exit ? VSettings.destroy(true) : vPort.port || vPort.connect(PortType.initing);
   }, 18); });
 })();
