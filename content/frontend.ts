@@ -671,10 +671,11 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
       if (virtual) { return text; }
       return this.showForDuration(text, 2000);
     } as VHUD["showCopied"],
-    showForDuration (text: string, duration?: number): void {
+    showForDuration: function (this: VHUD, text: string, duration?: number, callback?: (this: void) => void): void | number {
       this.show(text);
-      this.timer = this.enabled ? setTimeout(this.hide, duration || 1500) : 0;
-    },
+      this.text && ((this as typeof HUD).timer = setTimeout(this.hide, duration || 1500));
+      if (callback) { return setTimeout(callback, duration as number); }
+    } as VHUD["showForDuration"],
     show (text: string): void {
       if (!this.enabled || !VDom.isHTML()) { return; }
       this.opacity = 1; this.text = text;
