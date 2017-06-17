@@ -245,7 +245,6 @@ interface VHUD {
   opacity: 0 | 0.25 | 0.5 | 0.75 | 1;
   show (text: string): void;
   /** duration is default to 1500 */
-  showForDuration (text: string, duration: number, callback: (this: void) => void): number;
   showForDuration (text: string, duration?: number): void;
   showCopied (text: string, type: string, virtual: true): string;
   showCopied (text: string, type?: string): void;

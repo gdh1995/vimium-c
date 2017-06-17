@@ -164,7 +164,8 @@ var VVisualMode = {
   },
   prompt (text: string, duration: number): void {
     this.hudTimer && clearTimeout(this.hudTimer);
-    this.hudTimer = VHUD.showForDuration(text, duration, this.ResetHUD);
+    this.hudTimer = setTimeout(this.ResetHUD, duration);
+    return VHUD.show(text);
   },
   ResetHUD (): void {
     const _this = VVisualMode;
