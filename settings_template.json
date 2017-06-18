@@ -145,7 +145,7 @@
 		""
 	],
 	"linkHintCharacters": "asdqwerzxcv",
-	"newTabUrl": "chrome-extension://hdnehngglnbnehkfcidabjckinphnief/index.html",
+	"newTabUrl": "pages/options.html#newTabUrl",
 	"searchEngines": [
 		"b|吧|把|ba|bd|baidu|Baidu|百度: https://www.baidu.com/s?ie=UTF-8&wd=$s",
 		"bi: http://cn.bing.com/search?q=$s",
