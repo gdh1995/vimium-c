@@ -744,7 +744,7 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
       enabled === !requestHandlers.init && ELs.hook(enabled ? addEventListener : removeEventListener, 1);
       if (!enabled) {
         VScroller.current = VDom.lastHovered = InsertMode.last = InsertMode.lock = null;
-        VHints.deactivate(); Vomnibar.hide(VomnibarNS.HideType.DoNothing);
+        VHints.clean(); Vomnibar.hide(VomnibarNS.HideType.DoNothing);
       }
       passKeys = (newPassKeys && parsePassKeys(newPassKeys)) as SafeDict<true> | null;
       if (VDom.UI.box) { return VDom.UI.toggle(enabled); }

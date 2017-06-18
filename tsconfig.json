@@ -7,7 +7,7 @@
     "listEmittedFiles": true,
     "module": "system",
     "narrowFormat": true,
-    "newLine": "LF",
+    "newLine": "lf",
     "noEmitHelpers": true,
     "noFallthroughCasesInSwitch": false,
     "noImplicitAny": true,

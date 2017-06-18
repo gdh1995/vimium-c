@@ -119,7 +119,7 @@ html > count{float:right;}`,
     this.init && this.init();
     const style = this.isActive || VHUD.opacity !== 1 ? null : (VHUD.box as HTMLDivElement).style;
     style && (style.visibility = "hidden");
-    this.execute(null, options);
+    this.execute(null, options as FindNS.ExecuteOptions);
     style && (style.visibility = "");
     if (!this.hasResults) {
       this.isActive || VHUD.showForDuration(`No matches for '${this.query}'`, 1000);

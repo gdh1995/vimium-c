@@ -12,7 +12,6 @@ __extends = function(child: Function, parent: Function): void {
   function __(this: { constructor: Function } ) { this.constructor = parent; }
   __.prototype = parent.prototype;
   child.prototype = new (__ as any)();
-  (child as any).__super__ = parent.prototype;
 },
 debounce = function<T> (this: void, func: (this: T) => void
     , wait: number, bound_context: T, also_immediate: number
@@ -121,8 +120,7 @@ save (): void {
 }
 abstract readValueFromElement (): AllowedOptions[T];
 abstract populateElement (value: AllowedOptions[T]): void;
-_onCacheUpdated: <T extends keyof SettingsNS.FrontendSettings>(this: Option<T>
-  , onUpdated: (this: Option<T>) => void) => void;
+_onCacheUpdated: (this: Option<T>, onUpdated: (this: Option<T>) => void) => void;
 areEqual: (this: Option<T>, a: AllowedOptions[T], b: AllowedOptions[T]) => boolean;
 atomicUpdate: (this: Option<T> & {element: TextElement}, value: string, undo: boolean, locked: boolean) => void;
 
