@@ -84,17 +84,6 @@ MainKey|c|c\:|MainName: \
         </div></td>
       </tr>
       <tr>
-        <td class="caption">Default search<br/>engine</td>
-        <td>
-          <input id="searchUrl" type="text" data-model="NonEmptyText" data-check="" />
-          <div class="nonEmptyTextOption"></div>
-        </td>
-        <td class="help"><div class="help-inner">
-          The default search engine ("<kbd class="wrap-space">~</kbd>" to use it on Vomnibar)<br/>
-          (e.g. "<kbd class="sel-all">https://www.baidu.com/s?ie=utf-8&amp;wd=$s Baidu</kbd>").
-        </div></td>
-      </tr>
-      <tr>
         <td class="caption">New tab URL</td>
         <td>
           <input id="newTabUrl" type="text" data-model="NonEmptyText" data-check="" />
@@ -102,7 +91,18 @@ MainKey|c|c\:|MainName: \
         </td>
         <td class="help"><div class="help-inner">
           "<kbd class="sel-all">pages/blank.html</kbd>" for a blank page. Chrome inner:<br/>
-          "<kbd class="sel-all" id="innerNewTab">chrome-search://local-ntp/local-ntp.html</kbd>".
+          <kbd class="sel-all" id="innerNewTab">chrome-search://local-ntp/local-ntp.html</kbd> .
+        </div></td>
+      </tr>
+      <tr>
+        <td class="caption">Default search<br/>engine</td>
+        <td>
+          <input id="searchUrl" type="text" data-model="NonEmptyText" data-check="" />
+          <div class="nonEmptyTextOption"></div>
+        </td>
+        <td class="help"><div class="help-inner">
+          The default search engine ("<kbd class="wrap-space">~</kbd>" to use it on Vomnibar)<br/>
+          like <kbd class="sel-all">https://www.google.com/search?q=$s Google</kbd> .
         </div></td>
       </tr>
       <tbody style="display: none;"><tr><td colspan="2">
@@ -319,8 +319,8 @@ Warning: Chrome has a bug of mistaken dialogue width if you has changed screen t
             <input id="localeEncoding" type="text" data-model="Text" data-converter="lower" />
           </td>
           <td class="help"><div class="help-inner">
-            In order to recognize URLs whose encoding is not <kbd>utf-8</kbd>.
-            The default <kbd class="sel-all">gbk</kbd> is for Chinese.<br/>
+            In order to recognize URLs not encoded by <kbd>utf-8</kbd>.<br/>
+            The default <kbd class="sel-all">gbk</kbd> is for Chinese.
           </div></td>
         </tr>
       </tbody>

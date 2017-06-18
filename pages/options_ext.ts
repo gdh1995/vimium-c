@@ -1,12 +1,14 @@
 interface Window {
-  readonly VDom?: typeof VDom;
+  readonly VDom?: VDomProto;
   readonly VPort?: Readonly<VPort>;
   readonly VHUD?: Readonly<VHUD>;
 }
-declare var VDom: {
+interface VDomProto {
   readonly UI: Readonly<DomUI>;
   readonly mouse: VDomMouse;
-}, VPort: Readonly<VPort>, VHUD: Readonly<VHUD>;
+  ensureInView(el: Element, oldY?: number | undefined): boolean;
+}
+declare var VDom: VDomProto, VPort: Readonly<VPort>, VHUD: Readonly<VHUD>;
 
 $<ElementWithDelay>("#showCommands").onclick = function(event): void {
   if (!window.VDom) { return; }

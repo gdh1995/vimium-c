@@ -114,7 +114,7 @@ Option.all.vimSync.checker = {
 (function(): void {
   const func = loadChecker, info = (loadChecker as CheckerLoader).info;
   (loadChecker as CheckerLoader).info = "";
-  let _ref = document.querySelectorAll("[data-check]"), _i: number;
+  let _ref = $$("[data-check]"), _i: number;
   for (_i = _ref.length; 0 <= --_i; ) {
     const element = _ref[_i];
     element.removeEventListener(element.getAttribute("data-check") || "input", func);

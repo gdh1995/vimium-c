@@ -7,7 +7,7 @@ interface ImportBody {
   (id: "shownText"): HTMLDivElement
 }
 interface Window {
-  readonly VDom?: typeof VDom;
+  readonly VDom?: VDomProto;
   readonly VPort?: Readonly<VPort>;
   readonly VHUD?: Readonly<VHUD>;
   viewer?: null | {
@@ -15,10 +15,11 @@ interface Window {
     show(): any;
   };
 }
-declare var VDom: {
+interface VDomProto {
   readonly UI: Readonly<DomUI>;
   readonly mouse: VDomMouse;
-}, VPort: Readonly<VPort>, VHUD: Readonly<VHUD>;
+}
+declare var VDom: VDomProto, VPort: Readonly<VPort>, VHUD: Readonly<VHUD>;
 type ValidShowTypes = "image" | "url" | "";
 type ValidNodeTypes = HTMLImageElement | HTMLDivElement;
 
@@ -159,7 +160,7 @@ window.onhashchange = function(this: void): void {
   }
   bgLink.onclick = shownNode ? clickShownNode : defaultOnClick;
 
-  str = (document.querySelector('title') as HTMLTitleElement).getAttribute('data-title') as string;
+  str = $<HTMLTitleElement>('title').getAttribute('data-title') as string;
   str = BG ? BG.Utils.createSearch(file ? file.split(/\s+/) : [], str)
     : str.replace(<RegExpOne>/\$[sS](?:\{[^}]*})?/, file && (file + " | "));
   document.title = str;
@@ -300,13 +301,13 @@ function requireJS(name: string, src: string): Promise<any> {
 }
 
 function loadCSS(src: string): void {
-  if (document.querySelector('link[href="' + src + '"]')) {
+  if ($('link[href="' + src + '"]')) {
     return;
   }
   const obj = document.createElement("link");
   obj.rel = "stylesheet";
   obj.href = src;
-  (document.head as HTMLHeadElement).insertBefore(obj, document.querySelector('link[href$="show.css"]'));
+  (document.head as HTMLHeadElement).insertBefore(obj, $('link[href$="show.css"]'));
 }
 
 function defaultOnError(err: any): void {
