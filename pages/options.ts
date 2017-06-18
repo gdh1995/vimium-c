@@ -388,7 +388,14 @@ interface AdvancedOptBtn extends HTMLButtonElement {
     }
     if (str === "event") { e = event || null; }
     (window as OptionWindow)._delayed = ["#" + this.id, e];
-    loadJS("options_ext.js");
+    if (document.readyState === "complete") {
+      loadJS("options_ext.js");
+      return;
+    }
+    window.onload = function(): void {
+      window.onload = null as never;
+      loadJS("options_ext.js");
+    };
   } as ElementWithDelay["onclick"];
   _ref = $$("[data-delay]");
   for (let _i = _ref.length; 0 <= --_i; ) {
@@ -514,16 +521,16 @@ function loadChecker(this: HTMLElement): void {
 }
 
 window.onhashchange = function(this: void): void {
-  let hash = window.location.hash, node: ElementWithHash | null;
+  let hash = window.location.hash, node: HTMLElement | null;
   hash = hash.substring(hash[1] === "!" ? 2 : 1);
   if (!hash || (<RegExpI> /[^a-z\d_\.]/i).test(hash)) { return; }
-  if (node = document.querySelector(`[data-hash="${hash}"]`) as HTMLElement | null) {
+  if (node = $(`[data-hash="${hash}"]`) as HTMLElement | null) {
     if (node.onclick) {
-      return node.onclick(null, "hash");
+      return (node as ElementWithHash).onclick(null, "hash");
     }
   }
 };
-window.location.hash.length > 4 && setTimeout(window.onhashchange as (this: void) => void, 100);
+window.location.hash.length > 4 && (window as any).onhashchange();
 
 // below is for programmer debugging
 window.onunload = function(): void {
