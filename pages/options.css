@@ -249,6 +249,9 @@ label:active {
   color: darkgray;
   text-decoration: line-through;
 }
+.highlight {
+  background: lightyellow;
+}
 
 /* Boolean options have a tighter form representation than text options. */
 .booleanOption.innerLine > .checkboxHint,

@@ -528,6 +528,14 @@ window.onhashchange = function(this: void): void {
     if (node.onclick) {
       return (node as ElementWithHash).onclick(null, "hash");
     }
+  } else if ((node = $("#" + hash))) {
+    if (node.getAttribute("data-model")) {
+      node.classList.add("highlight");
+    }
+    window.scrollTo(0, 0);
+    setTimeout(function() {
+      window.VDom && VDom.ensureInView(node as Element);
+    }, 200);
   }
 };
 window.location.hash.length > 4 && (window as any).onhashchange();
