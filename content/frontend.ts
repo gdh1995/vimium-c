@@ -615,7 +615,7 @@ Pagination = {
     node: null as HTMLDivElement | null,
     timer: 0,
     Focus (this: void, request: BgReq["focusFrame"]): void {
-      if (request.mask < FrameMaskType.NormalNext) {}
+      if (request.mask !== FrameMaskType.NormalNext) {}
       else if (window.innerWidth < 3 || window.innerHeight < 3
         || document.body instanceof HTMLFrameSetElement) {
         vPort.post({

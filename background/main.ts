@@ -1127,15 +1127,15 @@ Are you sure you want to continue?`);
       }
       port.postMessage({
         name: "focusFrame",
-        mask: ind >= 0 ? FrameMaskType.NormalNext : FrameMaskType.OnlySelf
+        mask: port !== cPort ? FrameMaskType.NormalNext : FrameMaskType.OnlySelf
       });
     },
     mainFrame (): void {
-      const port = funcDict.indexFrame(TabRecency.last(), 0);
+      const tabId = cPort ? cPort.sender.tabId : TabRecency.last(), port = funcDict.indexFrame(tabId, 0);
       if (!port) { return; }
       port.postMessage({
         name: "focusFrame",
-        mask: FrameMaskType.NormalNext
+        mask: (framesForTab[tabId] as Port[])[0] === port ? FrameMaskType.OnlySelf : FrameMaskType.ForcedSelf
       });
     },
     parentFrame (): void {
@@ -1144,10 +1144,13 @@ Are you sure you want to continue?`);
         : !chrome.webNavigation ? "Vimium++ is not permitted to access frames"
         : !(sender && sender.tabId > 0 && framesForTab[sender.tabId])
           ? "Vimium++ can not access frames in current tab"
-        : !sender.frameId ? "This page is just the top frame"
         : null;
       if (msg) {
         return requestHandlers.ShowHUD(msg);
+      }
+      if (!sender.frameId) {
+        cPort.postMessage({ name: "focusFrame", mask: FrameMaskType.OnlySelf });
+        return;
       }
       chrome.webNavigation.getAllFrames({
         tabId: (sender as Frames.Sender).tabId
