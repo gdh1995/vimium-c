@@ -206,9 +206,12 @@ function clickLink(this: void, options: { [key: string]: string; }, event: Mouse
   a.href = url;
   if (window.VDom) {
     VDom.mouse(a, "click", event);
-  } else {
-    a.click();
+    return;
   }
+  const mouseEvent = document.createEvent("MouseEvents");
+  mouseEvent.initMouseEvent("click", true, true, window, 1, 0, 0, 0, 0
+    , false, false, false, false, 0, null);
+  a.dispatchEvent(mouseEvent);
 }
 
 function decodeURLPart(url: string): string {

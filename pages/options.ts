@@ -333,13 +333,13 @@ interface AdvancedOptBtn extends HTMLButtonElement {
       if (i !== VKeyCodes.space) { return; }
       if (el.parentElement instanceof HTMLLabelElement) {
         event.preventDefault();
-        (el.parentElement.control as HTMLElement).click();
+        click(el.parentElement.control as HTMLElement);
       }
       return;
     }
     if (el instanceof HTMLAnchorElement) {
       el.hasAttribute('href') || setTimeout(function(el) {
-        el.click();
+        click(el);
         el.blur();
       }, 0, el);
     } else if (event.ctrlKey || event.metaKey) {
@@ -497,7 +497,7 @@ interface AdvancedOptBtn extends HTMLButtonElement {
 
 $("#importButton").onclick = function(): void {
   const opt = $<HTMLSelectElement>("#importOptions");
-  opt.onchange ? (opt as any).onchange() : $("#settingsFile").click();
+  opt.onchange ? (opt as any).onchange() : click($("#settingsFile"));
 };
 
 function loadJS(file: string): HTMLScriptElement {
@@ -557,3 +557,10 @@ function OnBgUnload(): void {
   }
 }
 BG.addEventListener("unload", OnBgUnload);
+
+function click(a: Element): boolean {
+  const mouseEvent = document.createEvent("MouseEvents");
+  mouseEvent.initMouseEvent("click", true, true, window, 1, 0, 0, 0, 0
+    , false, false, false, false, 0, null);
+  return a.dispatchEvent(mouseEvent);
+}

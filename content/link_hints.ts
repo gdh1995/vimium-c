@@ -1049,7 +1049,7 @@ DOWNLOAD_IMAGE: {
     }
     a.href = (img as HTMLImageElement).src;
     a.download = img.getAttribute("download") || "";
-    a.click();
+    VDom.mouse(a, "click");
     return VHUD.showForDuration("Download: " + text, 2000);
   }
 } as HintsNS.ModeOpt,

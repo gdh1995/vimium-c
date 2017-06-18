@@ -18,10 +18,10 @@ $<ElementWithDelay>("#showCommands").onclick = function(event): void {
   else if (root.querySelector('.HelpCommandName')) {
     node = root.getElementById("HelpDialog") as HTMLElement;
     VDom.UI.addElement(node);
-    node.click();
+    (window as any).VScroller.current = node;
     return;
   } else if (node = root.getElementById("HClose") as HTMLElement) {
-    (node as { onclick (e?: MouseEvent): void; }).onclick();
+    click(node);
   }
   VPort.post({
     handler: "initHelp",
@@ -149,7 +149,7 @@ $<ElementWithDelay>("#exportButton").onclick = function(event): void {
   const nodeA = document.createElement("a");
   nodeA.download = file_name;
   nodeA.href = URL.createObjectURL(new Blob([exported_data]));
-  nodeA.click();
+  click(nodeA);
   URL.revokeObjectURL(nodeA.href);
   console.info("EXPORT settings to %c%s%c at %c%s%c."
     , "color: darkred", file_name, "color: auto"
@@ -303,7 +303,7 @@ _el = $<HTMLSelectElement>("#importOptions");
 _el.onclick = null as never;
 _el.onchange = function(this: HTMLSelectElement): void {
   if (this.value === "exported") {
-    $("#settingsFile").click();
+    click($("#settingsFile"));
     return;
   }
   const req = new XMLHttpRequest();
