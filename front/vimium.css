@@ -13,7 +13,6 @@
 .R {
 	background: none;
 	border: none;
-	box-shadow: none;
 	box-sizing: content-box;
 	color: black;
 	contain: layout style;
@@ -21,6 +20,7 @@
 	display: block;
 	float: none;
 	font: 12px/1 "Helvetica Neue",Helvetica,Arial,sans-serif;
+	font-size-adjust: none;
 	letter-spacing: 0;
 	margin: 0;
 	opacity: 1;
@@ -30,13 +30,13 @@
 	pointer-events: none;
 	position: fixed;
 	text-align: left;
-	text-overflow: clip;
-	text-decoration: none;
+	text-align-last: auto;
 	text-indent: 0;
 	text-shadow: none;
 	text-transform: none;
-	vertical-align: baseline;
+	visibility: visible;
 	white-space: normal;
+	word-spacing: 0px;
 }
 
 /* Link hints CSS */

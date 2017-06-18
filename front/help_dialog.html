@@ -1,6 +1,6 @@
 <style type="text/css">
 #HelpDialog {
-	background-color: white;
+	background: white;
 	border: 1px solid #b3b3b3;
 	border-radius: 8px;
 	box-shadow: rgba(0, 0, 0, 0.4) 0 0 6px;
@@ -22,7 +22,7 @@
 	#HelpDialog {
 		left: 0;
 		right: 0;
-		width: initial;
+		width: auto;
 		overflow-x: scroll;
 	}
 	#HelpContent {
@@ -31,14 +31,16 @@
 }
 
 .HelpTable {
+	border-collapse: separate;
 	border-spacing: 5.5px 3px;
+	contain: content;
 	float: left;
 	line-height: 130%;
 	overflow: visible;
 	table-layout: auto;
 	width: 50%;
+	/* XML pages have a different default value of "word-break" */
 	word-break: normal;
-	contain: content;
 }
 .Column {
 	white-space: normal;
