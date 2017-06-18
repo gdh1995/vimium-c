@@ -109,6 +109,14 @@ declare const enum ReuseType {
   newBg = -2
 }
 
+declare const enum FrameMaskType {
+  NoMask = 0,
+  minWillMask = NoMask + 1,
+  OnlySelf = minWillMask,
+  NormalNext = 2,
+  ForcedSelf = 3,
+}
+
 declare const enum ProtocolType {
   others = 0,
   http = 7, https = 8,

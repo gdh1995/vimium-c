@@ -615,7 +615,7 @@ Pagination = {
     node: null as HTMLDivElement | null,
     timer: 0,
     Focus (this: void, request: BgReq["focusFrame"]): void {
-      if (request.frameId < 0) {}
+      if (request.mask < FrameMaskType.NormalNext) {}
       else if (window.innerWidth < 3 || window.innerHeight < 3
         || document.body instanceof HTMLFrameSetElement) {
         vPort.post({
@@ -626,7 +626,7 @@ Pagination = {
       setTimeout(function() { window.focus(); }, 0);
       esc();
       VEventMode.suppress(request.lastKey);
-      if (request.frameId < -1 || !VDom.isHTML()) { return; }
+      if (request.mask < FrameMaskType.minWillMask || !VDom.isHTML()) { return; }
       let _this = FrameMask, dom1: HTMLDivElement | null;
       if (dom1 = _this.node) {
         _this.more = true;
@@ -638,7 +638,7 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
         _this.node = dom1;
         _this.timer = setInterval(_this.Remove, 200);
       }
-      dom1.style.borderColor = request.frameId === -1 ? "lightsalmon" : "yellow";
+      dom1.style.borderColor = request.mask === FrameMaskType.OnlySelf ? "lightsalmon" : "yellow";
       VDom.UI.root && isEnabledForUrl ? VDom.UI.addElement(dom1) :
       (document.webkitFullscreenElement || document.documentElement as HTMLElement).appendChild(dom1);
     },

@@ -785,7 +785,7 @@ Are you sure you want to continue?`);
         if (frames[i].frameId !== curId) { continue; }
         curId = frames[i].parentFrameId;
         const port = funcDict.indexFrame(this.tabId, curId);
-        port ? port.postMessage({ name: "focusFrame", frameId: 0 })
+        port ? port.postMessage({ name: "focusFrame", mask: FrameMaskType.ForcedSelf })
           : requestHandlers.ShowHUD("Fail to find its parent frame");
         return;
       }
@@ -1127,7 +1127,7 @@ Are you sure you want to continue?`);
       }
       port.postMessage({
         name: "focusFrame",
-        frameId: ind >= 0 ? port.sender.frameId : -1
+        mask: ind >= 0 ? FrameMaskType.NormalNext : FrameMaskType.OnlySelf
       });
     },
     mainFrame (): void {
@@ -1135,7 +1135,7 @@ Are you sure you want to continue?`);
       if (!port) { return; }
       port.postMessage({
         name: "focusFrame",
-        frameId: 0
+        mask: FrameMaskType.NormalNext
       });
     },
     parentFrame (): void {
@@ -1605,7 +1605,7 @@ Are you sure you want to continue?`);
         ports[0].postMessage({
           name: "focusFrame",
           lastKey: request.lastKey,
-          frameId: -2
+          mask: FrameMaskType.NoMask
         });
         return;
       }

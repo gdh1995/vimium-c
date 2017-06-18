@@ -32,7 +32,7 @@ interface BgReq {
   };
   focusFrame: {
     name: "focusFrame";
-    frameId: number;
+    mask: FrameMaskType;
     lastKey?: number;
   };
   execute: BaseExecute<object> & {
