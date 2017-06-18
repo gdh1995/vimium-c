@@ -104,7 +104,6 @@ var VHints = {
     newHintLength: 0,
     tab: 0
   } as HintsNS.KeyStatus,
-  initTimer: 0,
   isActive: false,
   noHUD: false,
   options: null as never as FgOptions,
@@ -112,8 +111,9 @@ var VHints = {
   activate (count?: number, options?: FgOptions | null): void {
     if (this.isActive) { return; }
     if (document.body == null) {
-      if (!this.initTimer && document.readyState === "loading") {
-        this.initTimer = setTimeout(this.activate.bind(this, count, options), 300);
+      this.clean();
+      if (!this.timer && document.readyState === "loading") {
+        this.timer = setTimeout(this.activate.bind(this, count, options), 300);
         return;
       }
       if (!VDom.isHTML()) { return; }
@@ -572,7 +572,7 @@ var VHints = {
     if (event.repeat || !this.isActive) {
       // NOTE: should always prevent repeated keys.
     } else if (VKeyboard.isEscape(event)) {
-      this.deactivate();
+      this.clean();
     } else if ((i = event.keyCode) === VKeyCodes.esc) {
       return HandlerResult.Suppress;
     } else if (i > VKeyCodes.f1 && i <= VKeyCodes.f12) {
@@ -644,14 +644,14 @@ var VHints = {
       return VHints.setMode(VHints.lastMode);
     }
   },
-  _resetMarkers (): void {
+  resetHints (): void {
     let ref = this.hintMarkers, i = 0, len = ref ? ref.length : 0;
     this.hintMarkers = this.zIndexes = null;
     while (i < len) { (ref as HintsNS.Marker[])[i++].clickableItem = null as never; }
   },
   activateLink (hintEl: HintsNS.Marker): void {
     let rect: VRect | null | undefined, clickEl: HintsNS.LinkEl | null = hintEl.clickableItem;
-    this._resetMarkers();
+    this.resetHints();
     if (VDom.isInDOM(clickEl)) {
       // must get outline first, because clickEl may hide itself when activated
       rect = hintEl.linkRect || VDom.UI.getVRect(clickEl);
@@ -669,6 +669,7 @@ var VHints = {
       return this.deactivate(true);
     }
     this.isActive = false;
+    this.setupCheck();
     setTimeout(function(): void {
       const _this = VHints;
       _this.reinit(clickEl, rect);
@@ -681,16 +682,14 @@ var VHints = {
     this.isActive = false;
     this.keyStatus.tab = 0;
     this.zIndexes = null;
-    this._resetMarkers();
+    this.resetHints();
     const isClick = this.mode < HintMode.min_job;
     this.activate(0, this.options);
     return this.setupCheck(lastEl, rect, isClick);
   },
   setupCheck (el?: HintsNS.LinkEl | null, r?: VRect | null, isClick?: boolean): void {
-    if (this.timer) { clearTimeout(this.timer); this.timer = 0; }
-    if (el && (isClick === true || this.mode < HintMode.min_job)) {
-      this.timer = setTimeout(this.CheckLast, 255, el, r);
-    }
+    this.timer && clearTimeout(this.timer);
+    this.timer = el && (isClick === true || this.mode < HintMode.min_job) ? setTimeout(this.CheckLast, 255, el, r) : 0;
   },
   CheckLast (this: void, el: HintsNS.LinkEl, r?: VRect | null): void {
     const _this = VHints;
@@ -708,25 +707,23 @@ var VHints = {
     }
   },
   clean (keepHUD?: boolean): void {
+    const ks = this.keyStatus, alpha = this.alphabetHints;
     this.options = this.modeOpt = this.zIndexes = this.hintMarkers = null as never;
     this.lastMode = this.mode = this.mode1 = this.count =
-    this.maxLeft = this.maxTop = this.maxRight = 0;
+    this.maxLeft = this.maxTop = this.maxRight = ks.tab = ks.newHintLength = alpha.countMax = 0;
+    alpha.hintKeystroke = alpha.chars = "";
+    this.isActive = this.noHUD = this.tooHigh = ks.known = false;
     if (this.box) {
       this.box.remove();
       this.box = null;
     }
     keepHUD || VHUD.hide();
-    const alpha = this.alphabetHints;
-    alpha.hintKeystroke = alpha.chars = "";
-    alpha.countMax = 0;
-    return VEventMode.onWndBlur(null);
+    VEventMode.onWndBlur(null);
+    return VHandler.remove(this);
   },
-  deactivate (suppressType?: boolean): void {
+  deactivate (suppressType: boolean): void {
     this.clean(VHUD.text !== (this.modeOpt as HintsNS.ModeOpt)[this.mode] as string);
-    this.keyStatus.tab = this.keyStatus.newHintLength = 0;
-    VHandler.remove(this);
-    this.isActive = this.noHUD = this.keyStatus.known = this.tooHigh = false;
-    if (suppressType != null) { return VDom.UI.suppressTail(suppressType); }
+    return VDom.UI.suppressTail(suppressType);
   },
   rotateHints (reverse?: boolean): void {
     let ref = this.hintMarkers as HintsNS.Marker[], stacks = this.zIndexes;
@@ -949,7 +946,7 @@ COPY_TEXT: {
   "194": "Copy link text one by one",
   "195": "Search link text one by one",
   "201": "Copy link URL one by one",
-  "256": "Edit link url on Vomnibar",
+  "256": "Edit link URL on Vomnibar",
   "257": "Edit link text on Vomnibar",
   activator (link): void {
     let isUrl = this.mode1 >= HintMode.min_link_job && this.mode1 <= HintMode.max_link_job, str: string | null;
@@ -1026,11 +1023,10 @@ OPEN_INCOGNITO_LINK: {
 DOWNLOAD_IMAGE: {
   "132": "Download image",
   "196": "Download multiple images",
-  activator (this: void, img: HTMLAnchorElement | HTMLImageElement): void {
+  activator (img: HTMLAnchorElement | HTMLImageElement): void {
     let text = img instanceof HTMLAnchorElement ? img.href : img.src;
     if (!text) {
-      VHUD.showForDuration("Not an image", 1000);
-      return;
+      return VHUD.showForDuration("Not an image", 1000);
     }
     const i = text.indexOf("://"), a = VDom.createElement("a");
     if (i > 0) {
