@@ -97,6 +97,7 @@ var VHints = {
   count: 0,
   lastMode: 0 as HintMode,
   tooHigh: false as null | boolean,
+  pTimer: 0, // promptTimer
   isClickListened: true,
   ngEnabled: null as boolean | null,
   keyStatus: {
@@ -188,7 +189,15 @@ var VHints = {
     this.mode1 = mode = mode & ~HintMode.queue;
     this.forHover = mode >= HintMode.HOVER && mode <= HintMode.LEAVE;
     if (slient || this.noHUD) { return; }
+    if (this.pTimer < 0) {
+      this.pTimer = setTimeout(this.SetHUDLater, 1000);
+      return;
+    }
     return VHUD.show((this.modeOpt as HintsNS.ModeOpt)[this.mode] as string);
+  },
+  SetHUDLater (this: void): void {
+    const a = VHints;
+    if (a && a.isActive) { a.pTimer = 0; return a.setMode(a.mode); }
   },
   tryNestedFrame (command: string, a: number, b: FgOptions): boolean {
     this.frameNested === false && this.checkNestedFrame();
@@ -647,6 +656,7 @@ var VHints = {
   resetHints (): void {
     let ref = this.hintMarkers, i = 0, len = ref ? ref.length : 0;
     this.hintMarkers = this.zIndexes = null;
+    this.pTimer > 0 && clearTimeout(this.pTimer);
     while (i < len) { (ref as HintsNS.Marker[])[i++].clickableItem = null as never; }
   },
   activateLink (hintEl: HintsNS.Marker): void {
@@ -664,6 +674,7 @@ var VHints = {
       clickEl = null;
       VHUD.showForDuration("The link has been removed from the page", 2000);
     }
+    this.pTimer = -(VHUD.text !== (this.modeOpt as HintsNS.ModeOpt)[this.mode] as string);
     if (!(this.mode & HintMode.queue)) {
       this.setupCheck(clickEl, null);
       return this.deactivate(true);
@@ -709,7 +720,8 @@ var VHints = {
   clean (keepHUD?: boolean): void {
     const ks = this.keyStatus, alpha = this.alphabetHints;
     this.options = this.modeOpt = this.zIndexes = this.hintMarkers = null as never;
-    this.lastMode = this.mode = this.mode1 = this.count =
+    this.pTimer > 0 && clearTimeout(this.pTimer);
+    this.lastMode = this.mode = this.mode1 = this.count = this.pTimer =
     this.maxLeft = this.maxTop = this.maxRight = ks.tab = ks.newHintLength = alpha.countMax = 0;
     alpha.hintKeystroke = alpha.chars = "";
     this.isActive = this.noHUD = this.tooHigh = ks.known = false;
@@ -722,7 +734,7 @@ var VHints = {
     return VHandler.remove(this);
   },
   deactivate (suppressType: boolean): void {
-    this.clean(VHUD.text !== (this.modeOpt as HintsNS.ModeOpt)[this.mode] as string);
+    this.clean(this.pTimer < 0);
     return VDom.UI.suppressTail(suppressType);
   },
   rotateHints (reverse?: boolean): void {
