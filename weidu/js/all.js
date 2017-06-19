@@ -2044,9 +2044,8 @@ DBOX = {
 				_classificationOpen = false;
 				$('#classificationDialog').find(".close").get(0).click()
 			}
-			event.preventDefault()
 			_wheelFun = setTimeout(clear, self.page3DSwitcherOpen == true ? 400 : 460);
-		}, chromeVer < 51 ? false : {passive: false});
+		}, chromeVer < 51 ? false : {passive: true});
 		window.onmessage = function (e) {
 			_down = false
 		};
