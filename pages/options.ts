@@ -532,10 +532,18 @@ window.onhashchange = function(this: void): void {
     if (node.getAttribute("data-model")) {
       node.classList.add("highlight");
     }
+    const callback = function(): void {
+      if (window.onload) {
+        window.onload = null as never;
+        window.scrollTo(0, 0);
+      }
+      window.VDom ? VDom.ensureInView(node as Element)
+        : (node as HTMLElement).scrollIntoViewIfNeeded ? (node as any).scrollIntoViewIfNeeded()
+        : (node as HTMLElement).scrollIntoView();
+    }
+    if (document.readyState === "complete") { return callback(); }
     window.scrollTo(0, 0);
-    setTimeout(function() {
-      window.VDom && VDom.ensureInView(node as Element);
-    }, 200);
+    window.onload = callback;
   }
 };
 window.location.hash.length > 4 && (window as any).onhashchange();
