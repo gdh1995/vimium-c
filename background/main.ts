@@ -1990,7 +1990,7 @@ Are you sure you want to continue?`);
     ref.omni = Connections.framesForOmni;
     for (tabId in ref) {
       for (const port of ref[tabId]) {
-        port.disconnect();
+        port && port.disconnect(); // a strange bug may cause an `undefined` port
       }
     }
   };
