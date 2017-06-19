@@ -1541,10 +1541,10 @@ Are you sure you want to continue?`);
       }
       if (port === ref[0]) { return; }
       if (needIcon && (status = port.sender.status) !== ref[0].sender.status) {
-        ref[0] = port;
+        (ref as Port[])[0] = port;
         return requestHandlers.SetIcon(tabId, status);
       }
-      ref[0] = port;
+      (ref as Port[])[0] = port;
     },
     checkIfEnabled: function (this: void, request: ExclusionsNS.Details | FgReq["checkIfEnabled"]
         , port?: Frames.Port | null): void {
@@ -1766,12 +1766,12 @@ Are you sure you want to continue?`);
       port.sender.status = status;
       let ref: Frames.Frames | undefined;
       if (ref = framesForTab[tabId]) {
-        ref.push(port);
+        (ref as Port[]).push(port);
         if (type & PortType.hasFocus) {
           if (needIcon && ref[0].sender.status !== status) {
             requestHandlers.SetIcon(tabId, status);
           }
-          ref[0] = port;
+          (ref as Port[])[0] = port;
         }
       } else {
         framesForTab[tabId] = [port, port];
@@ -1782,12 +1782,12 @@ Are you sure you want to continue?`);
       }
     },
     OnDisconnect (this: void, port: Port): void {
-      let i = port.sender.tabId, ref: Frames.Frames | undefined;
+      let i = port.sender.tabId, ref: Port[] | undefined;
       if (!port.sender.frameId) {
         delete framesForTab[i];
         return;
       }
-      if (!(ref = framesForTab[i])) { return; }
+      if (!(ref = framesForTab[i] as Port[] | undefined)) { return; }
       i = ref.indexOf(port, 1);
       if (i === ref.length - 1) {
         --ref.length;

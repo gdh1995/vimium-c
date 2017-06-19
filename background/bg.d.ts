@@ -136,9 +136,7 @@ declare namespace Frames {
     }): 1;
   }
 
-  interface Frames extends Array<Port> {
-    [0]: Port;
-    [1]: Port;
+  interface Frames extends ReadonlyArray<Port> {
   }
 
   interface FramesMap {
@@ -147,7 +145,7 @@ declare namespace Frames {
   }
 
   interface FramesMapToDestroy extends FramesMap {
-    [tabId: number]: Frames;
+    [tabId: number]: Port[];
     omni?: Port[];
   }
 }
