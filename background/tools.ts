@@ -175,13 +175,13 @@ FindModeHistory = {
   },
   TestIncognitoWnd (this: void): void {
     FindModeHistory.timer = 0;
-    let left = false, arr = Settings.indexPorts();
-    for (let i in arr) {
-      let port = (arr[i] as Frames.Frames)[0];
-      if (port.sender.incognito) { left = true; break; }
+    if (Settings.CONST.ChromeVersion >= BrowserVer.MinNoUnmatchedIncognito) {
+      let left = false, arr = Settings.indexPorts();
+      for (let i in arr) {
+        if ((arr[i] as Frames.Frames)[0].sender.incognito) { left = true; break; }
+      }
+      if (left) { return; }
     }
-    if (!left) { return FindModeHistory.cleanI(); }
-    if (Settings.CONST.ChromeVersion >= BrowserVer.MinNoUnmatchedIncognito) { return; }
     chrome.windows.getAll(function(wnds): void {
       wnds.some(function(wnd) { return wnd.incognito; }) || FindModeHistory.cleanI();
     });
