@@ -72,7 +72,7 @@ var Exclusions: ExcCls = Exclusions && !(Exclusions instanceof Promise) ? Exclus
           (ref as Frames.Frames)[i].postMessage(msg);
         }
       };
-    this.getOnURLChange = function(this: void) { return onURLChange; };
+    this.getOnURLChange = () => onURLChange;
     return onURLChange;
   },
   format (this: ExcCls, rules: ExclusionsNS.StoredRule[]): ExclusionsNS.Rules {

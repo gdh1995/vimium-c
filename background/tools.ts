@@ -4,7 +4,7 @@ const Clipboard = {
     el.style.position = "absolute";
     el.style.left = "-99px";
     el.style.width = "0";
-    this.getTextArea = function() { return el; };
+    this.getTextArea = () => el;
     return el;
   },
   tailSpacesRe: <RegExpG & RegExpSearchable<0>> /[ \t]+\n/g,
@@ -183,7 +183,7 @@ FindModeHistory = {
       if (left) { return; }
     }
     chrome.windows.getAll(function(wnds): void {
-      wnds.some(function(wnd) { return wnd.incognito; }) || FindModeHistory.cleanI();
+      wnds.some(wnd => wnd.incognito) || FindModeHistory.cleanI();
     });
   },
   cleanI (): void {

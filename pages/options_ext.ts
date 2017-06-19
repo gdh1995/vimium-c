@@ -69,7 +69,7 @@ ExclusionRulesOption.prototype.sortRules = function(this: ExclusionRulesOption
     }
     rule.key = key;
   }
-  rules.sort(function(a, b) { return a.key < b.key ? -1 : a.key === b.key ? 0 : 1; });
+  rules.sort((a, b) => a.key < b.key ? -1 : a.key === b.key ? 0 : 1);
   this.populateElement(rules);
   if (!element) { return; }
   element.timer = setTimeout(function(el, text) {

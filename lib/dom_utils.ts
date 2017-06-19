@@ -11,7 +11,7 @@ var VDom = {
   } as Document["createElement"],
   documentReady (callback: (this: void) => void): void {
     if (document.readyState !== "loading") {
-      this.documentReady = function(callback): void { return callback(); };
+      this.documentReady = callback => callback();
       return callback();
     }
     const listeners = [callback], eventHandler = function(): void {
@@ -101,7 +101,7 @@ var VDom = {
       element.useMap.replace(<RegExpOne>/^#/, "").replace(<RegExpG>/"/g, '\\"') + '"]') as HTMLMapElement | null;
     if (!map) { return; }
     const areas = map.getElementsByTagName("area");
-    const toInt = function(a: string): number { return (a as string | number as number) | 0; };
+    const toInt = (a: string) => (a as string | number as number) | 0;
     for (let _i = 0, _len = areas.length; _i < _len; _i++) {
       const area = areas[_i], coords = area.coords.split(",").map(toInt);
       switch (area.shape.toLowerCase()) {

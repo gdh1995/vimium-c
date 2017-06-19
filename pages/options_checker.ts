@@ -18,7 +18,7 @@ let _a = {
       return (option ? "<" + sortModifiers(forceUpper ? option.replace("s-", "") : option) : "<") +
         (forceUpper ? key.toUpperCase() : key.length > 1 && lowerRe.test(key) ? key.toLowerCase() : key) + ">";
     }
-    this.normalizeKeys = function(keys) { return keys.replace(keyLeftRe, func); };
+    this.normalizeKeys = keys => keys.replace(keyLeftRe, func);
     this.normalizeMap = this.normalizeMap.bind(this);
     this.normalizeOptions = this.normalizeOptions.bind(this);
     this.init = null as never;

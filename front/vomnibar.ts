@@ -631,7 +631,7 @@ VUtils = {
   makeListRenderer (this: void, template: string): Render {
     const a = template.split(/\{\{(\w+)}}/g);
     let o: Dict<any> | null = null;
-    function f(w: string, i: number): any { return (i & 1) && (w = (o as Dict<any>)[w]) == null ? "" : w; }
+    function f(w: string, i: number): string { return (i & 1) && (w = (o as Dict<any>)[w]) == null ? "" : w; }
     function m(i: Dict<any>) { o = i; return a.map(f).join(""); }
     (<RegExpOne> /a?/).test("");
     return function(objectArray) {

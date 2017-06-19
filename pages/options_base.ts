@@ -342,7 +342,7 @@ exclusions: PopExclusionRulesOption = Object.setPrototypeOf({
       : (<RegExpOne>/^[^:]+:\/\/./).test(this.url)
       ? ":" + (this.url.split("/", 3).join("/") + "/")
       : ":" + this.url;
-    this.generateDefaultPattern = function() { return url; };
+    this.generateDefaultPattern = () => url;
     return url;
   }
 }, ExclusionRulesOption.prototype);

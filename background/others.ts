@@ -312,7 +312,7 @@ setTimeout(function() {
   chrome.tabs.query({
     status: "complete"
   }, function(tabs) {
-    const t = chrome.tabs, callback = function() { return chrome.runtime.lastError; },
+    const t = chrome.tabs, callback = () => chrome.runtime.lastError,
       contentScripts = chrome.runtime.getManifest().content_scripts[0],
       ref = {file: "", allFrames: contentScripts.all_frames},
       js = contentScripts.js;

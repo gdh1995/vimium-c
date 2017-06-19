@@ -416,8 +416,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
         return hint;
       });
       if (count === 1 && InsertMode.last) {
-        sel = Math.max(0, visibleInputs
-          .map(function(link) { return link[0]; }).indexOf(InsertMode.last));
+        sel = Math.max(0, visibleInputs.map(link => link[0]).indexOf(InsertMode.last));
       } else {
         sel = Math.min(count, sel) - 1;
       }
@@ -582,7 +581,7 @@ Pagination = {
     }
     if (candidates.length <= 0) { return false; }
     maxLen += 1;
-    candidates = candidates.filter(function(a) { return a[1] < maxLen; }).sort(function(a, b) { return a[1] - b[1]; });
+    candidates = candidates.filter(a => a[1] < maxLen).sort((a, b) => a[1] - b[1]);
     const re2 = <RegExpOne> /\b/;
     for (s of names) {
       const re3 = re2.test(s[0]) || re2.test(s.slice(-1))

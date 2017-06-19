@@ -744,7 +744,7 @@ var VHints = {
     if (!stacks) {
       stacks = [] as HintsNS.Stacks;
       ref.forEach(this.MakeStacks, [[], stacks] as [Array<ClientRect | null>, HintsNS.Stacks]);
-      stacks = stacks.filter(function(stack) { return stack.length > 1; });
+      stacks = stacks.filter(stack => stack.length > 1);
       if (stacks.length <= 0) {
         this.zIndexes = this.keyStatus.newHintLength <= 0 ? false : null;
         return;

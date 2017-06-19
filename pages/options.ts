@@ -173,7 +173,7 @@ readValueFromElement (): string {
 class JSONOption<T extends keyof AllowedOptions> extends TextOption<T> {
 populateElement (obj: AllowedOptions[T], enableUndo?: boolean): void {
   const one = this.element instanceof HTMLInputElement, s0 = JSON.stringify(obj, null, one ? 1 : 2),
-  s1 = one ? s0.replace(<RegExpG & RegExpSearchable<1>> /(,?)\n\s*/g, function(_, s) { return s ? ", " : ""; }) : s0;
+  s1 = one ? s0.replace(<RegExpG & RegExpSearchable<1>> /(,?)\n\s*/g, (_, s) => s ? ", " : "") : s0;
   super.populateElement(s1, enableUndo);
 }
 readValueFromElement (): AllowedOptions[T] {

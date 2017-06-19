@@ -177,7 +177,7 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
               , "get incognito content settings", opt, " but can not find an incognito window.");
           } else if (opt && opt.setting === "allow") {
             return _this.updateTab(tab, wnds[wnds.length - 1].id);
-          } else if (tab.incognito && wnds.filter(function(wnd) { return wnd.id === tab.windowId; }).length === 1) {
+          } else if (tab.incognito && wnds.filter(wnd => wnd.id === tab.windowId).length === 1) {
             return _this.setAndUpdate(contentType, tab, pattern);
           } else {
             return _this.setAndUpdate(contentType, tab, pattern, wnds[wnds.length - 1].id);
@@ -405,7 +405,7 @@ Are you sure you want to continue?`);
     openUrlInIncognito (this: string, tab: Tab, wnds: Window[]): void {
       let oldWnd: Window | undefined, inCurWnd: boolean
         , active = !(<ReuseType>cOptions.reuse < ReuseType.newFg);
-      oldWnd = wnds.filter(function(wnd) { return wnd.id === tab.windowId; })[0];
+      oldWnd = wnds.filter(wnd => wnd.id === tab.windowId)[0];
       inCurWnd = oldWnd != null && oldWnd.incognito;
       inCurWnd || (wnds = wnds.filter(funcDict.isIncNor));
       if (inCurWnd || wnds.length > 0) {
@@ -475,7 +475,7 @@ Are you sure you want to continue?`);
         chrome.windows.getAll(funcDict.createTab[3].bind(url, tab, repeat));
         return;
       }
-      const tabs = allTabs.filter(function(tab1) { return tab1.index >= tab.index; });
+      const tabs = allTabs.filter(tab1 => tab1.index >= tab.index);
       tab = tabs.length > 0 ? tabs[0] : allTabs[allTabs.length - 1];
       chrome.tabs.duplicate(tab.id);
       if (repeat) { return repeat(tab.id); }
@@ -517,7 +517,7 @@ Are you sure you want to continue?`);
       (this: Tab, callback: ((this: void, tabId: number, wndId: number) => void) | null, newTab: Tab) => void
     ],
     duplicateTab: [function(tabId, wnd): void {
-      const tab = wnd.tabs.filter(function(tab) { return tab.id === tabId; })[0];
+      const tab = wnd.tabs.filter(tab => tab.id === tabId)[0];
       return wnd.incognito && !tab.incognito ? funcDict.duplicateTab[1](tabId) : funcDict.duplicateTab[2](tab);
     }, function(id) {
       for (let count = commandCount; --count >= 0; ) {
@@ -614,7 +614,7 @@ Are you sure you want to continue?`);
           tabs = tabs.slice(startTabIndex + 1);
         }
         if (Settings.CONST.ChromeVersion < BrowserVer.MinNoUnmatchedIncognito) {
-          tabs = tabs.filter(function(tab): boolean { return tab.incognito === curTab.incognito});
+          tabs = tabs.filter(tab => tab.incognito === curTab.incognito);
         }
         const tabIds = tabs.map(funcDict.getId);
         chrome.tabs.move(tabIds, {index: 1, windowId: wnd2.id}, funcDict.onRuntimeError);
@@ -624,7 +624,7 @@ Are you sure you want to continue?`);
     ],
     moveTabToNextWindow: [function(tab, wnds0): void {
       let wnds: Window[], ids: number[], index: number;
-      wnds = wnds0.filter(function(wnd) { return wnd.incognito === tab.incognito && wnd.type === "normal"; });
+      wnds = wnds0.filter(wnd => wnd.incognito === tab.incognito && wnd.type === "normal");
       if (wnds.length > 0) {
         ids = wnds.map(funcDict.getId);
         index = ids.indexOf(tab.windowId);
@@ -635,7 +635,7 @@ Are you sure you want to continue?`);
         }
       } else {
         index = tab.windowId;
-        wnds = wnds0.filter(function(wnd) { return wnd.id === index; });
+        wnds = wnds0.filter(wnd => wnd.id === index);
       }
       return funcDict.makeWindow({
         type: "normal",
@@ -716,7 +716,7 @@ Are you sure you want to continue?`);
     ],
     removeTab (this: void, tab: Tab, curTabs: Tab[], wnds: Window[]): void {
       let url = false, windowId: number | undefined, wnd: Window;
-      wnds = wnds.filter(function(wnd) { return wnd.type === "normal"; });
+      wnds = wnds.filter(wnd => wnd.type === "normal");
       if (wnds.length <= 1) {
         // protect the last window
         url = true;
@@ -729,7 +729,7 @@ Are you sure you want to continue?`);
       }
       else if (!tab.incognito) {
         // protect the last "normal & not incognito" window which has currentTab if it exists
-        wnds = wnds.filter(function(wnd) { return !wnd.incognito; });
+        wnds = wnds.filter(wnd => !wnd.incognito);
         if ((wnd = wnds[0]) && wnd.id === tab.windowId) {
           windowId = wnd.id;
           url = true;
@@ -774,7 +774,7 @@ Are you sure you want to continue?`);
         tabs.splice(i, 1);
       }
       if (noPinned && tabs[0].pinned) {
-        tabs = tabs.filter(function(tab) { return !tab.pinned; });
+        tabs = tabs.filter(tab => !tab.pinned);
       }
       if (tabs.length > 0) {
         chrome.tabs.remove(tabs.map(funcDict.getId), funcDict.onRuntimeError);
@@ -814,15 +814,15 @@ Are you sure you want to continue?`);
       }, callback);
     }, function(tabs, wnd): void {
       const wndId = wnd.id, url = this.url;
-      let tabs2 = tabs.filter(function(tab) { return tab.windowId === wndId; });
+      let tabs2 = tabs.filter(tab => tab.windowId === wndId);
       if (tabs2.length <= 0) {
-        tabs2 = tabs.filter(function(tab) { return tab.incognito === wnd.incognito; });
+        tabs2 = tabs.filter(tab => tab.incognito === wnd.incognito);
         if (tabs2.length <= 0) {
           funcDict.getCurTab(funcDict.focusOrLaunch[1].bind(this));
           return;
         }
       }
-      this.prefix && tabs2.sort(function(a, b) { return a.url.length - b.url.length; });
+      this.prefix && tabs2.sort((a, b) => a.url.length - b.url.length);
       let tab = tabs2[0];
       tab.active && (tab = tabs2[1] || tab);
       chrome.tabs.update(tab.id, {
@@ -1592,9 +1592,9 @@ Are you sure you want to continue?`);
       const frameId = port.sender.frameId;
       chrome.webNavigation.getAllFrames({ tabId }, function(details): void {
         if (!details) { return chrome.runtime.lastError; }
-        details = details.filter(function(i): boolean { return i.parentFrameId === frameId; });
+        details = details.filter(i => i.parentFrameId === frameId);
         if (details.length > 1) {
-          details = details.filter(function(i): boolean { return i.url === url; });
+          details = details.filter(i => i.url === url);
         }
         const port = details.length === 1 ? Settings.indexPorts(tabId, details[0].frameId) : null;
         if (port) {

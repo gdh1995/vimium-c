@@ -34,9 +34,9 @@ var Utils = {
   },
   unescapeHTML (s: string): string {
     const escapedRe = <RegExpG & RegExpSearchable<1>> /\&(amp|gt|lt|nbsp);/g,
-    map = Object.setPrototypeOf({ amp: "&", gt: ">", lt: "<", nbsp: " " }, null) as EnsuredSafeDict<string>;
-    function unescapeCallback(_0: string, s: string): string { return map[s]; }
-    this.unescapeHTML = function(s: string): string { return s.replace(escapedRe, unescapeCallback); };
+    map = Object.setPrototypeOf({ amp: "&", gt: ">", lt: "<", nbsp: " " }, null) as EnsuredSafeDict<string>,
+    unescapeCallback = (_0: string, s: string) => map[s];
+    this.unescapeHTML = () => s.replace(escapedRe, unescapeCallback);
     return this.unescapeHTML(s);
   },
   // url: only accept real tab's
@@ -288,8 +288,8 @@ var Utils = {
     if (!path) { return null; }
     if (workType === Urls.WorkType.ActIfNoSideEffects) switch (cmd) {
     case "e": case "exec": case "eval": case "expr": case "calc": case "m": case "math":
-      return this.require<object>("MathParser").catch(function() { return null;
-      }).then<Urls.MathEvalResult>(function(MathParser): Urls.MathEvalResult {
+      return this.require<object>("MathParser").catch(() => null
+      ).then<Urls.MathEvalResult>(function(MathParser): Urls.MathEvalResult {
         let result = Utils.tryEvalMath(path, MathParser) || "";
         return [result, "math", path];
       });
