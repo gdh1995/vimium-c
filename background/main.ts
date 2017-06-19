@@ -107,7 +107,7 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
       result.push(pattern + "*." + host + "/*");
       return result;
     },
-    clear (this: void, contentType: CSTypes, tab?: { incognito: boolean } ): void {
+    Clear (this: void, contentType: CSTypes, tab?: { incognito: boolean } ): void {
       if (!chrome.contentSettings) { return; }
       const cs = chrome.contentSettings[contentType];
       if (!cs || !cs.clear) { return; }
@@ -896,7 +896,7 @@ Are you sure you want to continue?`);
     clearCS (this: void): void {
       let ty = "" + cOptions.type as CSTypes;
       if (!ContentSettings.complain(ty, "http://example.com/")) {
-        ContentSettings.clear(ty, { incognito: cPort.sender.incognito });
+        ContentSettings.Clear(ty, { incognito: cPort.sender.incognito });
         return requestHandlers.ShowHUD(ty + " content settings have been cleared.");
       }
     },
@@ -1954,18 +1954,18 @@ Are you sure you want to continue?`);
 
   (function(): void {
     type Keys = keyof typeof BackgroundCommands;
-    let ref: Keys[], i: number, ref2 = BackgroundCommands, key: Keys;
+    let ref: Keys[], i: Keys, ref2 = BackgroundCommands, key: Keys;
     for (key in ref2) { (ref2[key] as BgCmd).useTab = UseTab.NoTab; }
 
-    ref = ["goTab", "moveTab", "reloadGivenTab", "reloadTab", "removeRightTab" //
+    ref = ["goTab", "moveTab", "reloadTab", "removeRightTab" //
       , "removeTab", "removeTabsR", "togglePinTab", "visitPreviousTab" //
     ];
-    for (i = ref.length; 0 <= --i; ) { (ref2[ref[i]] as BgCmdCurWndTabs).useTab = UseTab.CurWndTabs; }
+    for (i of ref) { (ref2[i] as BgCmdCurWndTabs).useTab = UseTab.CurWndTabs; }
     ref = ["copyTabInfo", "goToRoot", "moveTabToNextWindow"//
       , "openCopiedUrlInNewTab", "reopenTab", "toggleCS", "toggleViewSource" //
       , "searchInAnother" //
     ];
-    for (i = ref.length; 0 <= --i; ) { (ref2[ref[i]] as BgCmdActiveTab).useTab = UseTab.ActiveTab; }
+    for (i of ref) { (ref2[i] as BgCmdActiveTab).useTab = UseTab.ActiveTab; }
   })();
 
   setTimeout(function(): void {
@@ -1973,10 +1973,10 @@ Are you sure you want to continue?`);
     Settings.postUpdate("searchUrl", null); // will also update newTabUrl
     Settings.postUpdate("vomnibarPage");
 
-    let arr: CSTypes[] = ["images", "plugins", "javascript", "cookies"], i: number;
-    for (i = arr.length; 0 < i--; ) {
-      localStorage.getItem(ContentSettings.makeKey(arr[i])) != null &&
-      setTimeout(ContentSettings.clear, 100, arr[i]);
+    let arr: CSTypes[] = ["images", "plugins", "javascript", "cookies"], i: CSTypes;
+    for (i of arr) {
+      localStorage.getItem(ContentSettings.makeKey(i)) != null &&
+      setTimeout(ContentSettings.Clear, 100, i);
     }
 
     (document.documentElement as HTMLHtmlElement).textContent = '';
