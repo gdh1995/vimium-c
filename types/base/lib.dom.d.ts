@@ -607,7 +607,7 @@ interface CSSStyleDeclaration {
     flexGrow: string | null;
     flexShrink: string | null;
     flexWrap: string | null;
-    float: string
+    float: string;
     floodColor: string | null;
     floodOpacity: string | null;
     font: string | null;
@@ -8698,7 +8698,7 @@ interface DocumentOrShadowRoot {
     readonly activeElement: Element | null;
     readonly stylesheets: StyleSheetList;
     /** on Firefox, `getSelection` may be undefined */
-    getSelection(): Selection | null;
+    getSelection?(): Selection | null;
     elementFromPoint(x: number, y: number): Element | null;
     elementsFromPoint(x: number, y: number): Element[];
 }

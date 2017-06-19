@@ -156,7 +156,7 @@ $<ElementWithDelay>("#exportButton").onclick = function(event): void {
     , "color: darkblue", d_s, "color: auto");
 };
 
-function _importSettings(time: number | string | Date, new_data: ExportedSettings | null, is_recommended?: boolean): void {
+function _importSettings(time: number | string, new_data: ExportedSettings | null, is_recommended?: boolean): void {
   time = +new Date(new_data && new_data.time || time) || 0;
   if (!new_data || new_data.name !== "Vimium++" || (time < 10000 && time > 0)) {
     const err_msg = new_data ? "No settings data found!" : "Fail to parse the settings";

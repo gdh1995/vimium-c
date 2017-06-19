@@ -1,3 +1,7 @@
+interface ShadowRootWithSelection extends ShadowRoot {
+  getSelection(): Selection | null;
+}
+
 VDom.UI = {
   box: null,
   styleIn: null,
@@ -93,12 +97,12 @@ VDom.UI = {
     let sel = window.getSelection(), el: Node | null, el2: Node | null;
     if (sel.focusNode === document.documentElement && (el = VScroller.current)) {
       for (; el2 = el.parentNode; el = el2) {}
-      if ((el as ShadowRoot).getSelection) { sel = (el as ShadowRoot).getSelection() || sel; }
+      if ((el as ShadowRoot).getSelection) { sel = (el as ShadowRootWithSelection).getSelection() || sel; }
     }
     return sel;
   },
   removeSelection (root): boolean {
-    const sel = (root && root.getSelection ? root : window).getSelection();
+    const sel = (root && root.getSelection ? root as ShadowRootWithSelection : window).getSelection();
     if (!sel || VDom.selType(sel) !== "Range" || !sel.anchorNode) {
       return false;
     }

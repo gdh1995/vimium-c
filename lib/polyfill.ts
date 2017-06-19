@@ -15,10 +15,6 @@ interface String {
   startsWith(this: string, searchString: string, position?: number | undefined): boolean;
   startsWith(this: ObjectCoercible, searchString?: anyNotSymbol, position?: anyNotSymbol): boolean;
 }
-declare const Symbol: {
-  (description?: anyNotSymbol): symbol;
-  readonly match: symbol;
-};
 
 (function (): void {
   String.prototype.startsWith || (
