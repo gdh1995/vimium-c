@@ -662,6 +662,8 @@ var VHints = {
   activateLink (hintEl: HintsNS.Marker): void {
     let rect: VRect | null | undefined, clickEl: HintsNS.LinkEl | null = hintEl.clickableItem;
     this.resetHints();
+    const str = (this.modeOpt as HintsNS.ModeOpt)[this.mode] as string;
+    VHUD.text = str; // in case pTimer > 0
     if (VDom.isInDOM(clickEl)) {
       // must get outline first, because clickEl may hide itself when activated
       rect = hintEl.linkRect || VDom.UI.getVRect(clickEl);
@@ -674,7 +676,7 @@ var VHints = {
       clickEl = null;
       VHUD.showForDuration("The link has been removed from the page", 2000);
     }
-    this.pTimer = -(VHUD.text !== (this.modeOpt as HintsNS.ModeOpt)[this.mode] as string);
+    this.pTimer = -(VHUD.text !== str);
     if (!(this.mode & HintMode.queue)) {
       this.setupCheck(clickEl, null);
       return this.deactivate(true);
@@ -1123,7 +1125,7 @@ DEFAULT: {
     if (link instanceof HTMLIFrameElement || link instanceof HTMLFrameElement) {
       const ret = link === Vomnibar.box ? (Vomnibar.focus(1), false)
         : (this as typeof VHints).highlightChild(link);
-      (this as typeof VHints).setMode(HintMode.DEFAULT);
+      (this as typeof VHints).mode = HintMode.DEFAULT;
       return ret;
     } else if (link instanceof HTMLDetailsElement) {
       link.open = !link.open;
