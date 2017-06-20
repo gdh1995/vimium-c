@@ -23,6 +23,7 @@
     "tsc": "node scripts/tsc.js",
     "build": "gulp build",
     "rebuild": "gulp rebuild",
+    "zip": "./scripts/make.sh",
     "clean": "gulp clean",
     "local": "gulp local",
     "test": "gulp test"

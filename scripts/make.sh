@@ -33,6 +33,9 @@ if [ -z "$output" -o -d "$output" ]; then
   if [ "$ZIP_BASE" = dist/ -a -z "$output" ]; then
     pkg_name=
     test -z "$ori_output" && ver=${ver}_dist
+    if [ -d '/wo' ]; then
+      output=/wo/
+    fi
   elif [ -n "$output" ]; then
     output=${output}/
   elif [ -d '/wo' ]; then
