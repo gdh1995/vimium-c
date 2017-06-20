@@ -89,14 +89,15 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
       }
       else if (InsertMode.isActive()) {
         if (InsertMode.lock === document.body && InsertMode.lock) { return; }
-        if (InsertMode.global ? !InsertMode.global.code ? VKeyboard.isEscape(event)
-              : key === InsertMode.global.code && VKeyboard.getKeyStat(event) === InsertMode.global.stat
+        const g = InsertMode.global;
+        if (g ? !g.code ? VKeyboard.isEscape(event)
+              : key === g.code && VKeyboard.getKeyStat(event) === g.stat
             : VKeyboard.isEscape(event)
               || (key > VKeyCodes.maxNotFn && (keyChar = VKeyboard.getKeyName(event)) &&
                 (action = checkValidKey(event, keyChar)), false)
           ) {
           InsertMode.exit(event);
-          action = HandlerResult.Prevent;
+          action = g && g.passExitKey ? HandlerResult.Nothing : HandlerResult.Prevent;
         }
       }
       else if (key >= VKeyCodes.space || key === VKeyCodes.backspace) {
@@ -250,9 +251,10 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
       }
       return VHUD.showForDuration(msg, 1000);
     },
-    enterInsertMode (_0: number, { code, stat, hud }: CmdOptions["enterInsertMode"]): void {
-      InsertMode.global = { code, stat };
-      if (hud) { return HUD.show(`Insert mode${code ? `: ${code}/${stat}` : ""}`); }
+    enterInsertMode (_0: number, opt: CmdOptions["enterInsertMode"]): void {
+      let { code, stat } = opt;
+      InsertMode.global = opt;
+      if (opt.hud) { return HUD.show(`Insert mode${code ? `: ${code}/${stat}` : ""}`); }
     },
     passNextKey (count: number, options: FgOptions): void {
       const keys = Object.create<BOOL>(null);
@@ -449,7 +451,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
 
   InsertMode = {
     focus: null as never as (event: LockableFocusEvent, target: LockableElement) => void,
-    global: null as { code: number, stat: number } | null,
+    global: null as CmdOptions["enterInsertMode"] | null,
     suppressType: null as string | null,
     last: null as LockableElement | null,
     loading: (document.readyState !== "complete"),

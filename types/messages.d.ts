@@ -94,6 +94,7 @@ interface CmdOptions {
   enterInsertMode: {
     code: number;
     stat: number;
+    passExitKey: boolean;
     hud: boolean;
   };
   showHelp: {};

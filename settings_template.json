@@ -9,7 +9,7 @@
 	"keyMappings": [
 		"unmapAll",
 		"map ? showHelp",
-		"map <a-/> enterInsertMode",
+		"map <a-/> enterInsertMode passExitKey",
 		"map <c-/> enterInsertMode hideHud",
 		"map <a-?> enterInsertMode stat=8",
 		"map <a-t> createTab",

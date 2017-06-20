@@ -1213,6 +1213,7 @@ Are you sure you want to continue?`);
       cPort.postMessage<1, "enterInsertMode">({ name: "execute", count: 1, command: "enterInsertMode",
         options: {
           code, stat,
+          passExitKey: !!cOptions.passExitKey,
           hud: cOptions.hideHud != null ? !cOptions.hideHud : !Settings.get("hideHud", true)
         }
       });
