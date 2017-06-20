@@ -1208,7 +1208,7 @@ Are you sure you want to continue?`);
     },
     enterInsertMode (): void {
       let code = cOptions.code | 0, stat: KeyStat = cOptions.stat | 0;
-      code = code === VKeyCodes.esc && stat === KeyStat.plain ? 0 : code || VKeyCodes.esc;
+      code = stat !== KeyStat.plain ? code || VKeyCodes.esc : code === VKeyCodes.esc ? 0 : code;
       cPort.postMessage<1, "enterInsertMode">({ name: "execute", count: 1, command: "enterInsertMode",
         options: {
           code, stat,
