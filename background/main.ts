@@ -1136,7 +1136,7 @@ Are you sure you want to continue?`);
       if (!port) { return; }
       port.postMessage({
         name: "focusFrame",
-        mask: (framesForTab[tabId] as Port[])[0] === port ? FrameMaskType.OnlySelf : FrameMaskType.ForcedSelf
+        mask: (framesForTab[tabId] as Frames.Frames)[0] === port ? FrameMaskType.OnlySelf : FrameMaskType.ForcedSelf
       });
     },
     parentFrame (): void {
@@ -1536,16 +1536,16 @@ Are you sure you want to continue?`);
       return BackgroundCommands.openUrl();
     } as BgReqHandlerNS.BgReqHandlers["openUrl"],
     frameFocused (this: void, _0: FgReq["frameFocused"], port: Port): void {
-      let tabId = port.sender.tabId, ref = framesForTab[tabId], status: Frames.ValidStatus;
+      let tabId = port.sender.tabId, ref = framesForTab[tabId] as Frames.WritableFrames | undefined, status: Frames.ValidStatus;
       if (!ref) {
         return needIcon ? requestHandlers.SetIcon(tabId, port.sender.status) : undefined;
       }
       if (port === ref[0]) { return; }
       if (needIcon && (status = port.sender.status) !== ref[0].sender.status) {
-        (ref as Port[])[0] = port;
+        ref[0] = port;
         return requestHandlers.SetIcon(tabId, status);
       }
-      (ref as Port[])[0] = port;
+      ref[0] = port;
     },
     checkIfEnabled: function (this: void, request: ExclusionsNS.Details | FgReq["checkIfEnabled"]
         , port?: Frames.Port | null): void {
@@ -1559,7 +1559,8 @@ Are you sure you want to continue?`);
             ? Frames.BaseStatus.partial : Frames.BaseStatus.disabled;
       if (port.sender.status !== status) {
         port.sender.status = status;
-        if (needIcon && framesForTab[tabId] && (framesForTab[tabId] as Frames.Frames)[0] === port) {
+        let a: typeof framesForTab[0];
+        if (needIcon && (a = framesForTab[tabId]) && a[0] === port) {
           requestHandlers.SetIcon(tabId, status);
         }
       } else if (!pattern || pattern === Settings.getExcluded(oldUrl)) {
@@ -1730,7 +1731,7 @@ Are you sure you want to continue?`);
   Connections = {
     state: 0,
     _fakeId: -2,
-    framesForOmni: [] as Frames.Port[],
+    framesForOmni: [] as Frames.WritableFrames,
     OnMessage (this: void, request: Req.baseFg<string> | Req.baseFgWithRes<string>, port: Frames.Port): void {
       let id: number | undefined;
       if (id = (request as Req.baseFgWithRes<string>)._msgId) {
@@ -1765,14 +1766,14 @@ Are you sure you want to continue?`);
         passKeys: pass
       });
       port.sender.status = status;
-      let ref: Frames.Frames | undefined;
-      if (ref = framesForTab[tabId]) {
-        (ref as Port[]).push(port);
+      let ref: Frames.WritableFrames | undefined;
+      if (ref = framesForTab[tabId] as typeof ref) {
+        ref.push(port);
         if (type & PortType.hasFocus) {
           if (needIcon && ref[0].sender.status !== status) {
             requestHandlers.SetIcon(tabId, status);
           }
-          (ref as Port[])[0] = port;
+          ref[0] = port;
         }
       } else {
         framesForTab[tabId] = [port, port];
@@ -1783,12 +1784,12 @@ Are you sure you want to continue?`);
       }
     },
     OnDisconnect (this: void, port: Port): void {
-      let i = port.sender.tabId, ref: Port[] | undefined;
+      let { tabId } = port.sender, i: number, ref: Frames.WritableFrames | undefined;
       if (!port.sender.frameId) {
-        delete framesForTab[i];
+        delete framesForTab[tabId];
         return;
       }
-      if (!(ref = framesForTab[i] as Port[] | undefined)) { return; }
+      if (!(ref = framesForTab[tabId] as typeof ref)) { return; }
       i = ref.indexOf(port, 1);
       if (i === ref.length - 1) {
         --ref.length;

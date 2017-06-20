@@ -139,6 +139,9 @@ declare namespace Frames {
   interface Frames extends ReadonlyArray<Port> {
   }
 
+  interface WritableFrames extends Array<Port> {
+  }
+
   interface FramesMap {
     [tabId: number]: Frames | undefined;
     readonly __proto__: never;

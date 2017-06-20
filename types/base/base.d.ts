@@ -21,10 +21,6 @@ type MappedType<Type, NewValue> = {
   [key in keyof Type]: NewValue;
 };
 
-type NotReadonly<T> = {
-  [key in keyof T]: T[key];
-}
-
 // type EmptyArray = never[];
 
 declare function setInterval<T1, T2, T3>(this: void, handler: (this: void, a1: T1, a2: T2, a3: T3) => void,
