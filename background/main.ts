@@ -745,11 +745,8 @@ Are you sure you want to continue?`);
     },
     restoreGivenTab (this: void, list: chrome.sessions.Session[]): void {
       if (commandCount <= list.length) {
-        const session = list[commandCount - 1];
-        if (session.tab) {
-          chrome.sessions.restore(session.tab.sessionId);
-        }
-        // TODO: what to do if session.window
+        const session = list[commandCount - 1], item = session.tab || session.window;
+        item && chrome.sessions.restore(item.sessionId);
         return;
       }
       return requestHandlers.ShowHUD("The session index provided is out of range.");
@@ -966,6 +963,10 @@ Are you sure you want to continue?`);
       }
       if (commandCount > (chrome.sessions.MAX_SESSION_RESULTS || 25)) {
         return funcDict.restoreGivenTab([]);
+      }
+      if (commandCount === 1) {
+        chrome.sessions.restore(null, funcDict.onRuntimeError);
+        return;
       }
       chrome.sessions.getRecentlyClosed(funcDict.restoreGivenTab);
     },

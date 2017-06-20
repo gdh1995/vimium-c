@@ -1702,7 +1702,13 @@ declare namespace chrome.sessions {
          * Optional.
          * The windows.Window, if this entry describes a window. Either this or sessions.Session.tab will be set.
          */
-        window?: windows.Window;
+        window?: windows.Window & {
+            /**
+             * Optional. The session ID used to uniquely identify a Tab obtained from the sessions API.
+             * @since Chrome 31.
+             */
+            sessionId?: string;
+        };
     }
 
     interface Device {
