@@ -1,7 +1,7 @@
 {
 	"name": "Vimium++",
 	"environment": {
-		"extension": "1.59.1",
+		"extension": "1.60",
 		"platform": "win"
 	},
 	"exclusionRules": [],

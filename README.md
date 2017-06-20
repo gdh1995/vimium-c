@@ -1,7 +1,7 @@
 Vimium++
 ========
 [![MIT license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE.txt)
-![Version 1.59.4](https://img.shields.io/badge/release-1.59.4-orange.svg)
+![Version 1.60](https://img.shields.io/badge/release-1.60-orange.svg)
 [![Current Build Status](https://travis-ci.org/gdh1995/vimium-plus.svg?branch=master)
   ](https://travis-ci.org/gdh1995/vimium-plus)
 
@@ -73,15 +73,15 @@ Known issues (Up to the master branch):
   which can not be worked-around before Chrome 42.
 4. If an extension page is the preferred Vomnibar page, and the extension is disabled in incognito,
   Vomnibar might break in such a situation, and there seems no way to detect it.
-  So Vimium++ has disabled other extension pages in incognito since v1.59.3 .
-5. If a http/file/... page is preferred, then there're some cases where it breaks,
+  So Vimium++ has disabled other extension Vomnibar pages in incognito.
+5. If a http/file/... Vomnibar page is preferred, then there're some cases where it breaks,
   such as on some websites with very strict Content Security Policies (CSP),
-  so users may need to wait about 1 second to let Vimium++ (since v1.59.4) retry the inner page.
+  so users may need to wait about 1 second to let Vimium++ retry the inner page.
 6. Chrome 58 stable hides some necessary infomation of page's selection,
   so some commands on `VisualMode` cann't work as expected if editable text is being selected.
   This Chrome feature/bug has been removed since version 59, so Vimium++ works well again.
 
-Not released yet:
+1.60:
 * `LinkHints` works much faster on some of very long pags, like https://w3c.github.io/html/,
   though the change has no enough benefits on GitHub code file pages.
   Use `tab` to reactivate LinkHints with this feature being disabled (only on that time).
