@@ -423,7 +423,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
       }
       VDom.UI.simulateSelect(visibleInputs[sel][0]);
       hints[sel].classList.add("S");
-      const box = VDom.UI.addElementList(hints, arr), keep = !!options.keep;
+      const box = VDom.UI.addElementList(hints, arr), keep = !!options.keep, pass = !!options.passExitKey;
       VHandler.push(function(event) {
         const { keyCode } = event;
         if (keyCode === VKeyCodes.tab) {
@@ -442,7 +442,8 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
         else {
           this.remove();
           VHandler.remove(this);
-          return !InsertMode.lock && VKeyboard.isEscape(event) ? HandlerResult.Prevent : HandlerResult.Nothing;
+          return !VKeyboard.isEscape(event) ? HandlerResult.Nothing : !InsertMode.lock ? HandlerResult.Prevent
+            : pass ? HandlerResult.PassKey : HandlerResult.Nothing;
         }
         return HandlerResult.Nothing;
       }, box);
