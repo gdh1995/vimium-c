@@ -1796,6 +1796,10 @@ Are you sure you want to continue?`);
       } else if (i >= 0) {
         ref.splice(i, 1);
       }
+      if (ref.length <= 1) {
+        delete framesForTab[tabId];
+        return;
+      }
       if (port === ref[0]) {
         ref[0] = ref[1];
       }
@@ -1992,7 +1996,7 @@ Are you sure you want to continue?`);
     ref.omni = Connections.framesForOmni;
     for (tabId in ref) {
       for (const port of ref[tabId]) {
-        port && port.disconnect(); // a strange bug may cause an `undefined` port
+        port.disconnect();
       }
     }
   };
