@@ -92,7 +92,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
         if (InsertMode.global ? !InsertMode.global.code ? VKeyboard.isEscape(event)
               : key === InsertMode.global.code && VKeyboard.getKeyStat(event) === InsertMode.global.stat
             : VKeyboard.isEscape(event)
-              || (key > 90 && (keyChar = VKeyboard.getKeyName(event)) && // TODO: why 90
+              || (key > VKeyCodes.maxNotFn && (keyChar = VKeyboard.getKeyName(event)) &&
                 (action = checkValidKey(event, keyChar)), false)
           ) {
           InsertMode.exit(event);
@@ -259,7 +259,6 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
       let keyCount = 0;
       if (options.normal) {
         const func = esc;
-        // TODO: if always return i or not
         esc = function(i?: HandlerResult): HandlerResult | void {
           if (i === HandlerResult.Prevent && 0 >= --count || i === HandlerResult.Suppress) {
             HUD.hide();
