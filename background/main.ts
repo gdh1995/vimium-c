@@ -1523,7 +1523,7 @@ Are you sure you want to continue?`);
       Object.setPrototypeOf(request, null);
       request.url_f = Utils.convertToUrl(request.url, request.keyword || null, Urls.WorkType.ActAnyway);
       request.keyword = "";
-      let ports;
+      let ports: Frames.Frames | undefined;
       cPort = !port ? cPort : funcDict.checkVomnibarPage(port, true) ? port
         : (ports = framesForTab[port.sender.tabId]) ? ports[0] : cPort;
       if (Utils.lastUrlType === Urls.Type.Functional) {
@@ -1560,7 +1560,7 @@ Are you sure you want to continue?`);
             ? Frames.BaseStatus.partial : Frames.BaseStatus.disabled;
       if (port.sender.status !== status) {
         port.sender.status = status;
-        let a: typeof framesForTab[0];
+        let a: Frames.Frames | undefined;
         if (needIcon && (a = framesForTab[tabId]) && a[0] === port) {
           requestHandlers.SetIcon(tabId, status);
         }
@@ -1791,10 +1791,10 @@ Are you sure you want to continue?`);
         return;
       }
       if (!(ref = framesForTab[tabId] as typeof ref)) { return; }
-      i = ref.indexOf(port, 1);
+      i = ref.lastIndexOf(port);
       if (i === ref.length - 1) {
         --ref.length;
-      } else if (i >= 0) {
+      } else if (i >= 1) {
         ref.splice(i, 1);
       }
       if (ref.length <= 1) {
