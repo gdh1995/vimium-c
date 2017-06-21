@@ -360,6 +360,10 @@ setTimeout(function() {
 }, 500);
 });
 
+chrome.extension.isAllowedIncognitoAccess && chrome.extension.isAllowedIncognitoAccess(function(isAllowedAccess): void {
+  Settings.CONST.AllowIncognito = isAllowedAccess;
+});
+
 setTimeout((function() {
   if (a) {
     a.removeListener(cb);

@@ -225,6 +225,7 @@ w|wiki:\\\n  https://www.wikipedia.org/w/index.php?search=$s Wikipedia
   } as SettingsNS.Sync,
   CONST: {
     AllowClipboardRead: true,
+    AllowIncognito: true,
     BaseCSSLength: 0,
     BrowserNewTab: "about:newtab",
     BrowserNewTab2: "chrome://newtab",
