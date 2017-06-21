@@ -10,7 +10,7 @@ interface SuggestionEx extends SuggestionE {
   text: string;
 }
 interface Render {
-  (this: void, list: SuggestionE[]): string;
+  (this: void, list: ReadonlyArray<Readonly<SuggestionE>>): string;
 }
 interface Post<R extends void | 1> {
   postMessage<K extends keyof FgReq>(request: Req.fg<K>): R;
@@ -630,13 +630,14 @@ var Vomnibar = {
 VUtils = {
   makeListRenderer (this: void, template: string): Render {
     const a = template.split(/\{\{(\w+)}}/g);
-    let o: Dict<any> | null = null;
-    function f(w: string, i: number): string { return (i & 1) && (w = (o as Dict<any>)[w]) == null ? "" : w; }
-    function m(i: Dict<any>) { o = i; return a.map(f).join(""); }
     (<RegExpOne> /a?/).test("");
-    return function(objectArray) {
-      const html = objectArray.map(m).join("");
-      o = null;
+    return function(objectArray): string {
+      let html = "", len = a.length;
+      for (const o of objectArray) {
+        for (let j = 0; j < len; j++) {
+          html += (j & 1) ? o[a[j] as keyof SuggestionE] : a[j];
+        }
+      }
       return html;
     };
   },
