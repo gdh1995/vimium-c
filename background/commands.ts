@@ -334,7 +334,7 @@ availableCommands: {
   closeOtherTabs: [ "Close all other tabs", 1, true, null, "removeTabsR" ],
   moveTabLeft: [ "Move tab to the left", 0, true, null, "moveTab" ],
   moveTabRight: [ "Move tab to the right", 0, true, { dir: 1 }, "moveTab" ],
-  enableCSTemp: [ "enable the site's CS temporarily (use type=images)", 0, true, { type: "images", incognito: true }, "toggleCS" ],
+  enableCSTemp: [ "enable the site's CS in incognito (use type=images)", 0, true, { type: "images", incognito: true }, "toggleCS" ],
   toggleCS: [ "turn on/off the site's CS (use type=images)", 0, true, { type: "images" } ],
   clearCS: [ "clear extension's content settings (use type=images)", 1, true, { type: "images" } ],
   "Vomnibar.activate": [
