@@ -306,6 +306,7 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
       option.focused = true;
       chrome.windows.create(option, state || !focused ? function(wnd: Window) {
         callback && callback(wnd);
+        if (!wnd) { return; } // do not return lastError: just throw errors for easier debugging
         const opt: chrome.windows.UpdateInfo = focused ? {} : { focused: false };
         state && (opt.state = state);
         chrome.windows.update(wnd.id, opt);
