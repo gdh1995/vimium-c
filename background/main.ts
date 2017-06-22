@@ -155,7 +155,7 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
       if (this.complain(contentType, pattern)) { return; }
       chrome.contentSettings[contentType].get({primaryUrl: pattern, incognito: true }, function(opt): void {
         if (chrome.runtime.lastError) {
-          chrome.contentSettings[contentType].get({primaryUrl: tab.url}, function (opt) {
+          chrome.contentSettings[contentType].get({primaryUrl: pattern}, function (opt) {
             if (opt && opt.setting === "allow") { return; }
             const tabOpt = {type: "normal", incognito: true, focused: false, url: "about:blank"};
             chrome.windows.create(tabOpt, function (wnd: Window): void {
@@ -230,13 +230,13 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
       });
     },
     updateTab (this: void, tab: Tab, newWindowId?: number): void {
-      tab.windowId = newWindowId ? newWindowId : tab.windowId;
       tab.active = true;
       if (!newWindowId || tab.windowId === newWindowId) {
         ++tab.index;
       } else {
         (tab as chrome.tabs.CreateProperties).index = undefined;
       }
+      newWindowId && (tab.windowId = newWindowId);
       funcDict.reopenTab(tab);
     }
   },
