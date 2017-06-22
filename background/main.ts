@@ -30,6 +30,10 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
     (this: void, tabs1: Tab[]): void;
   }
   type BgCmd = BgCmdNoTab | BgCmdActiveTab | BgCmdCurWndTabs;
+  interface ReopenOptions extends chrome.tabs.CreateProperties {
+    id: number;
+    url: string;
+  }
 
   function tabsCreate(args: chrome.tabs.CreateProperties, callback?: ((this: void, tab: Tab) => void) | null): 1 {
     let { url } = args, type: Urls.NewTabType | undefined;
@@ -108,7 +112,7 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
       result.push(pattern + "*." + host + "/*");
       return result;
     },
-    Clear (this: void, contentType: CSTypes, tab?: { incognito: boolean } ): void {
+    Clear (this: void, contentType: CSTypes, tab?: Readonly<{ incognito: boolean }> ): void {
       if (!chrome.contentSettings) { return; }
       const cs = chrome.contentSettings[contentType];
       if (!cs || !cs.clear) { return; }
@@ -152,6 +156,9 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
       });
     },
     ensureIncognito (this: void, contentType: CSTypes, tab: Tab): void {
+      if (Settings.CONST.DisallowIncognito) {
+        return funcDict.complain("change incognito settings");
+      }
       const pattern = Utils.removeComposedScheme(tab.url);
       if (ContentSettings.complain(contentType, pattern)) { return; }
       chrome.contentSettings[contentType].get({primaryUrl: pattern, incognito: true }, function(opt): void {
@@ -256,7 +263,7 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
       }
       return tabs[0] as ActiveTab;
     },
-    reopenTab (this: void, tab: chrome.tabs.CreateProperties & Pick<Tab, "id">): void {
+    reopenTab (this: void, tab: ReopenOptions): void {
       tabsCreate({
         windowId: tab.windowId,
         url: tab.url,
@@ -671,7 +678,7 @@ Are you sure you want to continue?`);
         if (wnd.incognito) {
           return funcDict.moveTabToIncognito[3]();
         }
-        if (Settings.CONST.ChromeVersion >= BrowserVer.MinNoUnmatchedIncognito) {
+        if (Settings.CONST.ChromeVersion >= BrowserVer.MinNoUnmatchedIncognito || Settings.CONST.DisallowIncognito) {
           return funcDict.complain("open this tab in incognito");
         }
       } else if (wnd.incognito) {
@@ -692,11 +699,18 @@ Are you sure you want to continue?`);
         }, funcDict.moveTabToIncognito[2].bind(null, options));
         return;
       }
+      let state: chrome.windows.ValidStates | "" = wnd.type === "normal" ? wnd.state : "";
       if (options.url) {
         tabId = options.tabId;
         options.tabId = undefined;
+        if (Settings.CONST.DisallowIncognito) {
+          options.focused = true;
+          state = "";
+        }
       }
-      funcDict.makeWindow(options, wnd.type === "normal" ? wnd.state : "");
+      // in tests on Chrome 46/51, Chrome hangs at once after creating a new normal window from an incognito tab
+      // so there's no need to worry about stranger edge cases like "normal window + incognito tab + not allowed"
+      funcDict.makeWindow(options, state);
       if (tabId != null) {
         chrome.tabs.remove(tabId);
       }
@@ -711,7 +725,7 @@ Are you sure you want to continue?`);
       return funcDict.makeTempWindow(options.tabId as number, true, //
       funcDict.moveTabToNextWindow[2].bind(null, options.tabId, tab2));
     }, function(): void {
-      return requestHandlers.ShowHUD("This tab has been in incognito window");
+      return requestHandlers.ShowHUD("This tab has been in an incognito window");
     }] as [
       (this: void, wnd: PopWindow) => void,
       (this: void, options: chrome.windows.CreateData, wnd: Window, wnds: Window[]) => void,
@@ -897,7 +911,7 @@ Are you sure you want to continue?`);
     clearCS (this: void): void {
       let ty = "" + cOptions.type as CSTypes;
       if (!ContentSettings.complain(ty, "http://example.com/")) {
-        ContentSettings.Clear(ty, { incognito: cPort.sender.incognito });
+        ContentSettings.Clear(ty, cPort.sender);
         return requestHandlers.ShowHUD(ty + " content settings have been cleared.");
       }
     },
@@ -1091,11 +1105,15 @@ Are you sure you want to continue?`);
       if (tabs.length <= 0) { return; }
       const tab = tabs[0];
       ++tab.index;
-      if (Settings.CONST.ChromeVersion >= BrowserVer.MinNoUnmatchedIncognito || !Utils.isRefusingIncognito(tab.url)) {
+      if (Settings.CONST.ChromeVersion >= BrowserVer.MinNoUnmatchedIncognito || Settings.CONST.DisallowIncognito
+         || !Utils.isRefusingIncognito(tab.url)) {
         return funcDict.reopenTab(tab);
       }
       chrome.windows.get(tab.windowId, function(wnd): void {
-        if (!wnd.incognito) { return funcDict.reopenTab(tab); }
+        if (wnd.incognito) {
+          (tab as ReopenOptions).openerTabId = (tab as ReopenOptions).windowId = undefined;
+        }
+        return funcDict.reopenTab(tab);
       });
     },
     goToRoot (this: void, tabs: [Tab]): void {
@@ -1257,7 +1275,7 @@ Are you sure you want to continue?`);
       cOptions = options;
     },
     clearFindHistory (this: void): void {
-      const incognito = cPort.sender.incognito;
+      const { incognito } = cPort.sender;
       FindModeHistory.removeAll(incognito);
       return requestHandlers.ShowHUD((incognito ? "incognito " : "") + "find history has been cleared.");
     },
