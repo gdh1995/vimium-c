@@ -361,7 +361,7 @@ setTimeout(function() {
 });
 
 chrome.extension.isAllowedIncognitoAccess && chrome.extension.isAllowedIncognitoAccess(function(isAllowedAccess): void {
-  Settings.CONST.AllowIncognito = isAllowedAccess;
+  Settings.CONST.DisallowIncognito = isAllowedAccess === false;
 });
 
 setTimeout((function() {

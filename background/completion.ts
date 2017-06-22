@@ -817,7 +817,7 @@ searchEngines: {
       , query: CompletersNS.QueryStatus): 1 {
     const cb = func.bind(that, query);
     if (inNormal != null && Settings.CONST.ChromeVersion >= BrowserVer.MinNoUnmatchedIncognito
-        || !Settings.CONST.AllowIncognito) {
+        || Settings.CONST.DisallowIncognito) {
       return chrome.tabs.query({}, cb);
     }
     return chrome.windows.getCurrent(function(wnd): void {
@@ -902,7 +902,7 @@ searchEngines: {
     queryTerms = (query = query.trim()) ? query.split(Utils.spacesRe) : [];
     maxChars = Math.max(50, Math.min((<number>options.maxChars | 0) || 128, 200));
     maxTotal = maxResults = Math.min(Math.max((options.maxResults as number) | 0, 3), 25);
-    inNormal = Settings.CONST.AllowIncognito ? options.incognito != null ? !options.incognito : null : true;
+    inNormal = Settings.CONST.DisallowIncognito ? true : options.incognito != null ? !options.incognito : null;
     Completers.callback = callback;
     let arr: ReadonlyArray<Completer> | null = null, str: string;
     if (queryTerms.length >= 1 && queryTerms[0].length === 2 && queryTerms[0][0] === ":") {
