@@ -43,20 +43,6 @@ Option.prototype.areEqual = function<T extends keyof AllowedOptions
   return a === b;
 };
 
-Option.prototype.atomicUpdate = function<T extends keyof AllowedOptions
-    >(this: Option<T> & {element: TextElement}, value: string
-      , undo: boolean, locked: boolean): void {
-  if (undo) {
-    this.locked = true;
-    document.activeElement !== this.element && this.element.focus();
-    document.execCommand("undo");
-  }
-  this.locked = locked;
-  this.element.select();
-  document.execCommand("insertText", false, value);
-  this.locked = false;
-};
-
 interface NumberChecker {
   min: number | null;
   max: number | null;
@@ -169,6 +155,20 @@ readValueFromElement (): string {
   return value;
 }
 }
+
+TextOption.prototype.atomicUpdate = NumberOption.prototype.atomicUpdate = function<T extends keyof AllowedOptions
+    >(this: Option<T> & {element: TextElement}, value: string
+      , undo: boolean, locked: boolean): void {
+  if (undo) {
+    this.locked = true;
+    document.activeElement !== this.element && this.element.focus();
+    document.execCommand("undo");
+  }
+  this.locked = locked;
+  this.element.select();
+  document.execCommand("insertText", false, value);
+  this.locked = false;
+};
 
 class JSONOption<T extends keyof AllowedOptions> extends TextOption<T> {
 populateElement (obj: AllowedOptions[T], enableUndo?: boolean): void {
