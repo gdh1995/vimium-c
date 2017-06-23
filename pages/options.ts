@@ -560,6 +560,7 @@ function OnBgUnload(): void {
     if (!BG) { // a user may call `close()` in the console panel
       window.onbeforeunload = null as any;
       window.close();
+      return;
     }
     bgSettings = BG.Settings;
     BG.addEventListener("unload", OnBgUnload);
