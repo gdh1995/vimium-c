@@ -156,13 +156,8 @@ $<ElementWithDelay>("#exportButton").onclick = function(event): void {
     , "color: darkblue", d_s, "color: auto");
 };
 
-function _importSettings(time: number | string, new_data: ExportedSettings | null, is_recommended?: boolean): void {
-  time = +new Date(new_data && new_data.time || time) || 0;
-  if (!new_data || new_data.name !== "Vimium++" || (time < 10000 && time > 0)) {
-    const err_msg = new_data ? "No settings data found!" : "Fail to parse the settings";
-    window.VHUD ? VHUD.showForDuration(err_msg, 2000) : alert(err_msg);
-    return;
-  } else if (!confirm(
+function _importSettings(time: number, new_data: ExportedSettings, is_recommended?: boolean): void {
+  if (!confirm(
     (is_recommended !== true ? "You are loading a settings copy exported"
       + (time ? " at:\n        " + formatDate(time) : " before.")
       : "You are loading the recommended settings.")
@@ -271,7 +266,28 @@ function _importSettings(time: number | string, new_data: ExportedSettings | nul
 }
 
 function importSettings(time: number | string | Date
-    , new_data: ExportedSettings | null, is_recommended?: boolean): void {
+    , data: string, is_recommended?: boolean): void {
+  let new_data: ExportedSettings | null = null, err_msg: string = "";
+  try {
+    new_data = parseJSON(data);
+    if (!new_data) { err_msg = "No JSON data found!"; }
+  } catch (e) {
+    err_msg = e ? e.message + "" : "Error: " + (e !== "" ? e : "(unknown)");
+    let arr = (<RegExpSearchable<2> & RegExpOne> /^(\d+):(\d+)$/).exec(err_msg);
+    err_msg = !arr ? err_msg :
+`Sorry, Vimium++ can not parse the JSON file:
+  an unexpect character at line ${arr[1]}, column ${arr[2]}`;
+  }
+  if (new_data) {
+    time = +new Date(new_data && new_data.time || (typeof time === "object" ? +time : time)) || 0;
+    if (new_data.name !== "Vimium++" || (time < 10000 && time > 0)) {
+      err_msg = "Sorry, no Vimium++ settings data found!";
+      new_data = null;
+    }
+  }
+  if (err_msg) {
+    return alert(err_msg);
+  }
   const promisedChecker = Option.all.keyMappings.checker ? 1 : new Promise<1>(function(resolve): void {
     const element = loadJS("options_checker.js");
     element.onload = function(): void { resolve(1); };
@@ -290,11 +306,8 @@ _el.onchange = function(this: HTMLInputElement): void {
   if (!file) { return; }
   const reader = new FileReader(), lastModified = file.lastModified || file.lastModifiedDate || 0;
   reader.onload = function(this: FileReader) {
-    let result: string = this.result, data: ExportedSettings | null = null;
-    try {
-      data = result ? JSON.parse<ExportedSettings>(result) : null;
-    } catch (e) {}
-    return importSettings(lastModified, data, false);
+    let result: string = this.result;
+    return importSettings(lastModified, result, false);
   };
   reader.readAsText(file);
 };
@@ -308,9 +321,9 @@ _el.onchange = function(this: HTMLSelectElement): void {
   }
   const req = new XMLHttpRequest();
   req.open("GET", "../settings_template.json", true);
-  req.responseType = "json";
+  req.responseType = "text";
   req.onload = function(this: XMLHttpRequest): void {
-    return importSettings(0, this.response as ExportedSettings | null, true);
+    return importSettings(0, this.responseText, true);
   };
   req.send();
 };
@@ -322,3 +335,39 @@ _el = null;
   const node = $<ElementWithDelay>(arr[0]), event = arr[1];
   node.onclick && node.onclick(event);
 })();
+
+function parseJSON(text: string): any {
+  const notLFRe = <RegExpG & RegExpSearchable<0>> /[^\r\n]+/g
+    , errMsgRe = <RegExpSearchable<3> & RegExpOne> /\b(?:position (\d+)|line (\d+) column (\d+))/
+    , stringOrCommentRe = <RegExpG & RegExpSearchable<0>> /"(?:\\[\\\"]|[^"])*"|'(?:\\[\\\']|[^'])*'|\/\/[^\r\n]*|\/\*.*?\*\//g
+    ;
+  if (!text || !(text = text.trimRight())) { return null; }
+  let match: string[] | null;
+  try {
+    const obj = JSON.parse(text.replace(stringOrCommentRe, onReplace));
+    clean();
+    return obj;
+  } catch (e) {
+    match = errMsgRe.exec(e + "");
+    clean();
+    if (!match || !match[0]) { throw e; }
+  }
+  let err_line: number, err_offset: number;
+  if (match[2]) {
+    err_line = +match[2]; err_offset = +match[3];
+  } else if (+match[1] > 0) {
+    const LF = text.indexOf("\r") < 0 ? "\n" : text.indexOf("\r\n") < 0 ? "\r\n" : "\r"
+      , arr = text.substring(0, +match[1]).split(LF);
+    err_line = arr.length; err_offset = arr[err_line - 1].length + 1;
+  } else {
+    err_line = err_offset = 1;
+  }
+  throw new SyntaxError(err_line + ":" + err_offset);
+
+  function clean(this: void): boolean { return (<RegExpOne> /a?/).test(""); }
+  function spaceN(this: void, str: string): string { return ' '.repeat(str.length); }
+  function onReplace(this: void, str: string): string {
+    let ch = str[0];
+    return ch === '/' || ch === '#' ? str[0] === "/*" ? str.replace(notLFRe, spaceN) : spaceN(str) : str;
+  }
+}
