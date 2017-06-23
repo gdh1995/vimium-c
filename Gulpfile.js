@@ -127,6 +127,13 @@ var Tasks = {
   },
   scripts: ["background", "content", "front"],
   pages: ["main_pages", "others"],
+  ba: ["background"],
+  bg: ["background"],
+  c: ["content"],
+  f: ["front"],
+  l: ["lib"],
+  pa: ["pages"],
+  pg: ["pages"],
   local: ["scripts", "main_pages"],
   tsc: ["local"],
   "default": ["tsc"],
@@ -365,7 +372,7 @@ function readFile(fileName, info) {
 
 function _makeJSONReader() {
   var stringOrComment = /"(?:\\[\\\"]|[^"])*"|'(?:\\[\\\']|[^'])*'|\/\/[^\r\n]*|\/\*.*?\*\//g
-    , lf = /\r\n|\r(?!\n)/g, notLF = /[^\r\n]+/g, notWhiteSpace = /\S/;
+    , notLF = /[^\r\n]+/g, notWhiteSpace = /\S/;
   function spaceN(str) {
     return ' '.repeat(str.length);
   }
@@ -384,7 +391,6 @@ function _makeJSONReader() {
   }
   function readJSON(fileName, throwError) {
     var text = readFile(fileName);
-    // text = text.replace(lf, "\n");
     text = text.replace(stringOrComment, onReplace);
     try {
       return notWhiteSpace.test(text) ? JSON.parse(text) : {};
