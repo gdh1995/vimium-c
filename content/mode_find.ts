@@ -177,7 +177,9 @@ html > count{float:right;}`,
         else if (n === VKeyCodes.up || n === VKeyCodes.down || n === VKeyCodes.end || n === VKeyCodes.home) {
           VEventMode.scroll(event, this.box.contentWindow);
         }
-        else if (n === VKeyCodes.J || n === VKeyCodes.K) { this.execute(null, { dir: (VKeyCodes.K - n) as BOOL }); }
+        else if (n === VKeyCodes.J || n === VKeyCodes.K) {
+          this.execute(null, { dir: (VKeyCodes.K - n) as BOOL });
+        }
         else { return; }
         i = Result.DoNothing;
       }

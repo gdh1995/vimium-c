@@ -438,7 +438,10 @@ interface AdvancedOptBtn extends HTMLButtonElement {
     });
   }
   chrome.tabs.query({ active: true, currentWindow: true }, function(tabs): void {
-    if (window.location.hash === "#chrome-ui" || tabs[0] && tabs[0].url.lastIndexOf("chrome-extension:") < 0) {
+    let url: string;
+    if (window.location.hash === "#chrome-ui"
+        || document.hasFocus() && tabs[0] && (url = tabs[0].url).lastIndexOf("chrome", 0) === 0
+            && url.lastIndexOf("chrome-extension:", 0) < 0) {
       // if tabs is empty, then we are debugging, and then this page should be a standalone tab
       setUI(tabs[0] ? tabs[0].id : null);
     }
