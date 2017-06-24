@@ -747,10 +747,10 @@ Are you sure you want to continue?`);
         // other urls will be disabled if incognito else auto in current window
       }
       else if (!tab.incognito) {
-        // protect the last "normal & not incognito" window which has currentTab if it exists
+        // protect the only "normal & not incognito" window if it has currentTab
         wnds = wnds.filter(wnd => !wnd.incognito);
-        if ((wnd = wnds[0]) && wnd.id === tab.windowId) {
-          windowId = wnd.id;
+        if (wnds.length === 1 && wnds[0].id === tab.windowId) {
+          windowId = wnds[0].id;
           url = true;
         }
       }
