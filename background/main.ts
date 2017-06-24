@@ -1848,7 +1848,7 @@ Are you sure you want to continue?`);
       } else if (tabId < 0) { // should not be true; just in case of misusing
         port.postMessage({
           name: "init", load: {} as SettingsNS.FrontendSettingCache,
-          passKeys: "", mapKeys: null, keyMap: {}
+          passKeys: "", mapKeys: null, keyMap: {} as KeyMap
         });
       } else {
         chrome.tabs.executeScript(tabId, {

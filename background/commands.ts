@@ -67,12 +67,16 @@ var Commands = {
           console.log("Lacking command when mapping %c" + key, "color:red;");
         } else if (!(details = available[splitLine[2]])) {
           console.log("Command %c" + splitLine[2], "color:red;", "doesn't exist!");
+        } else if ((ch = key.charCodeAt(0)) >= 48 && ch < 58) {
+          console.warn("Invalid key command:", key, "(the first char can not be [0-9])");
         } else {
           registry[key] = Utils.makeCommand(splitLine[2], (this as typeof Commands).getOptions(splitLine), details);
+          continue;
         }
       } else if (key === "unmapAll") {
         registry = CommandsData.keyToCommandRegistry = Object.create(null);
         mkReg = Object.create<string>(null), mk = 0;
+        continue;
       } else if (key === "mapkey" || key === "mapKey") {
         if (splitLine.length !== 3) {
           console.log("MapKey needs both source and target keys:", line);
@@ -84,6 +88,7 @@ var Commands = {
         } else {
           mkReg[key] = splitLine[2];
           mk++;
+          continue;
         }
       } else if (key !== "unmap") {
         console.log("Unknown mapping command: '" + key + "' in", line);
@@ -91,6 +96,7 @@ var Commands = {
         console.log("Unmap needs one mapped key:", line);
       } else if ((key = splitLine[1]) in registry) {
         delete registry[key];
+        continue;
       } else {
         console.log("Unmapping: %c" + key, "color:red;", "has not been mapped.");
       }
@@ -98,36 +104,22 @@ var Commands = {
     CommandsData.mapKeyRegistry = mk > 0 ? mkReg : null;
   }),
   populateCommandKeys: (function(this: void): void {
-    const ref = CommandsData.keyMap = Object.create(null) as {
-      [key: string]: 0 | 1 | ChildKeyMap
-    } & SafeObject;
-    let key: string, ref2: ChildKeyMap, arr: string[]
-      , keyRe = Utils.keyRe, ch: number, j: number, last: number, tmp: ChildKeyMap | 0 | 1;
-    for (ch = 10; 0 <= --ch; ) { ref[ch] = 1 as 0; }
-    for (key in CommandsData.keyToCommandRegistry) {
-      ch = key.charCodeAt(0);
-      if (ch >= 48 && ch < 58) {
-        console.warn("invalid key command:", key, "(the first char can not be [0-9])");
-        continue;
-      }
-      arr = key.match(keyRe) as RegExpMatchArray;
+    const ref = CommandsData.keyMap = Object.create<0 | 1 | ChildKeyMap>(null), keyRe = Utils.keyRe;
+    for (let ch = 10; 0 <= --ch; ) { ref[ch] = 1 as 0; }
+    for (const key in CommandsData.keyToCommandRegistry) {
+      const arr = key.match(keyRe) as RegExpMatchArray, last = arr.length - 1;
       if (arr.length === 1) {
-        if (key in ref) {
-          console.log("inactive keys:", ref[key], "with", key);
-        }
+        (key in ref) && Commands.warnInactive(ref[key] as ReadonlyChildKeyMap, key);
         ref[key] = 0;
         continue;
       }
-      for (ref2 = tmp = ref as ChildKeyMap, j = 0, last = arr.length - 1; j <= last; j++, ref2 = tmp) {
-        tmp = ref2[arr[j]];
-        if (!tmp || j === last) {
-          tmp === 0 && console.warn("inactive key:", key, "with"
-              , arr.slice(0, j + 1).join(""));
-          break;
-        }
+      let ref2 = ref as ChildKeyMap, tmp: ChildKeyMap | 0 | 1 | undefined = ref2, j = 0;
+      while ((tmp = ref2[arr[j]]) && j < last) { j++; ref2 = tmp; }
+      if (tmp === 0) {
+        Commands.warnInactive(key, arr.slice(0, j + 1).join(""));
+        continue;
       }
-      if (tmp === 0) { continue; }
-      tmp != null && console.warn("inactive keys:", tmp, "with", key);
+      tmp != null && Commands.warnInactive(tmp, key);
       while (j < last) { ref2 = ref2[arr[j++]] = Object.create(null) as ChildKeyMap; }
       ref2[arr[last]] = 0;
     }
@@ -135,17 +127,20 @@ var Commands = {
     const func = function(obj: ChildKeyMap): void {
       let key, val: 0 | ChildKeyMap;
       for (key in obj) {
-        val = obj[key];
+        val = obj[key] as 0 | ChildKeyMap;
         if (val !== 0) { func(val); }
         else if (ref[key] === 0) { delete obj[key]; }
       }
     };
-    for (key in ref) {
-      tmp = ref[key];
+    for (const key in ref) {
+      const tmp = ref[key] as 0 | 1 | ChildKeyMap;
       if (tmp !== 0 && tmp !== 1) { func(tmp); }
     }
     if (Settings.Init) { return Settings.Init(); }
   }),
+  warnInactive (obj: ReadonlyChildKeyMap | string, newKey: string): void {
+    console.log("inactive key:", obj, "with", newKey);
+  },
 
 defaultKeyMappings: [
   ["?", "showHelp"],

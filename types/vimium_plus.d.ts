@@ -91,15 +91,13 @@ declare const enum KnownKey {
 }
 
 interface ChildKeyMap {
-  [index: string]: 0 | ChildKeyMap;
+  [index: string]: 0 | ChildKeyMap | undefined;
   readonly __proto__: never;
 }
 interface ReadonlyChildKeyMap {
   readonly [index: string]: 0 | ReadonlyChildKeyMap | undefined;
 }
-interface KeyMap {
-  readonly [index: string]: 0 | 1 | ReadonlyChildKeyMap | undefined;
-}
+type KeyMap = ReadonlySafeDict<0 | 1 | ReadonlyChildKeyMap>;
 
 declare const enum ReuseType {
   Default = 0,
