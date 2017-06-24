@@ -69,7 +69,11 @@ var Settings = {
       }
     },
     extWhiteList (val): void {
+      const old = (this as typeof Settings).extWhiteList;
       const map = (this as typeof Settings).extWhiteList = Object.create<boolean>(null);
+      if (old) {
+        for (let key in old) { if (old[key] === false) { map[key] = false; } }
+      }
       if (!val) { return; }
       for (let arr = val.split("\n"), i = arr.length, wordCharRe = /^[\dA-Za-z]/ as RegExpOne; 0 <= --i; ) {
         if ((val = arr[i].trim()) && wordCharRe.test(val)) {

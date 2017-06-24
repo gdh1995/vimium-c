@@ -252,6 +252,14 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
     }
   },
   funcDict = {
+    isExtIdAllowed(extId: string | null | undefined): boolean {
+      if (extId == null) { extId = "unknown sender"; }
+      const stat = Settings.extWhiteList[extId];
+      if (stat != null) { return stat; }
+      console.warn("Receive message from %an extension/sender not in the white list%c:",
+        "color: red", "color: auto", extId);
+      return Settings.extWhiteList[extId] = false;
+    },
     isIncNor (this: void, wnd: Window): wnd is IncNormalWnd {
       return wnd.incognito && wnd.type === "normal";
     },
@@ -1906,7 +1914,7 @@ Are you sure you want to continue?`);
     if (!chrome.runtime.onConnectExternal) { return; }
     Settings.extWhiteList || Settings.postUpdate("extWhiteList");
     chrome.runtime.onConnectExternal.addListener(function(port): void {
-      if (port.sender && (port.sender.id as string) in (Settings.extWhiteList as SafeDict<true>)
+      if (port.sender && funcDict.isExtIdAllowed(port.sender.id)
           && port.name.startsWith("vimium++")) {
         return Connections.OnConnect(port as Frames.RawPort as Frames.Port);
       } else {
@@ -1939,7 +1947,7 @@ Are you sure you want to continue?`);
 
   chrome.runtime.onMessageExternal && (chrome.runtime.onMessageExternal.addListener(function(this: void, message, sender, sendResponse): void {
     let command: string | undefined;
-    if (!((sender.id as string) in (Settings.extWhiteList as SafeDict<true>))) {
+    if (!funcDict.isExtIdAllowed(sender.id)) {
       sendResponse(false);
       return;
     }
