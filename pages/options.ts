@@ -437,15 +437,15 @@ interface AdvancedOptBtn extends HTMLButtonElement {
       (document.body as HTMLBodyElement).style.width = ratio !== 1 ? 925 / ratio + "px" : "";
     });
   }
+  if (window.location.hash === "#chrome-ui") {
+    setUI(null);
+  } else if (chrome.tabs.query)
   chrome.tabs.query({ active: true, currentWindow: true }, function(tabs): void {
     let url: string;
-    if (window.location.hash === "#chrome-ui"
-        || document.hasFocus() && tabs[0] && (url = tabs[0].url).lastIndexOf("chrome", 0) === 0
+    if (document.hasFocus() && tabs[0] && (url = tabs[0].url).lastIndexOf("chrome", 0) === 0
             && url.lastIndexOf("chrome-extension:", 0) < 0) {
-      // if tabs is empty, then we are debugging, and then this page should be a standalone tab
-      setUI(tabs[0] ? tabs[0].id : null);
+      setUI(tabs[0].id);
     }
-    return chrome.runtime.lastError;
   })
   Option.all.keyMappings.onSave = function(): void {
     const errors = BG.CommandsData.errors, el = this.element;
