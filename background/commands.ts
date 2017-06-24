@@ -114,9 +114,8 @@ var Commands = {
       if (arr.length === 1) {
         if (key in ref) {
           console.log("inactive keys:", ref[key], "with", key);
-        } else {
-          ref[key] = 0;
         }
+        ref[key] = 0;
         continue;
       }
       for (ref2 = tmp = ref as ChildKeyMap, j = 0, last = arr.length - 1; j <= last; j++, ref2 = tmp) {
