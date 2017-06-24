@@ -58,6 +58,7 @@ abstract class Option<T extends keyof AllowedOptions> {
   saved: boolean;
   locked?: boolean;
   readonly onUpdated: (this: void) => void;
+  onSave?(): void;
   checker?: Checker<T>;
 
   static all = Object.create(null) as {
@@ -117,6 +118,7 @@ save (): void {
   if (this.field in bgSettings.bufferToLoad) {
     Option.syncToFrontend.push(this.field as keyof SettingsNS.FrontendSettings);
   }
+  this.onSave && this.onSave();
 }
 abstract readValueFromElement (): AllowedOptions[T];
 abstract populateElement (value: AllowedOptions[T]): void;

@@ -252,6 +252,9 @@ label:active {
 .highlight {
   background: lightyellow;
 }
+.has-error {
+  background: #fbebe9;
+}
 
 /* Boolean options have a tighter form representation than text options. */
 .booleanOption.innerLine > .checkboxHint,

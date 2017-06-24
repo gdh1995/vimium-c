@@ -375,6 +375,7 @@ interface CommandsData {
   keyMap: KeyMap;
   mapKeyRegistry: SafeDict<string> | null;
   availableCommands: SafeDict<CommandsNS.Description>;
+  errors: number;
 }
 
 interface BaseHelpDialog {
@@ -384,6 +385,7 @@ interface BaseHelpDialog {
 interface Window {
   readonly MathParser?: any;
   readonly Commands?: any;
+  readonly CommandsData: CommandsData;
   readonly Exclusions?: any;
   readonly HelpDialog?: BaseHelpDialog;
 

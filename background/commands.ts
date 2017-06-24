@@ -46,8 +46,8 @@ var Commands = {
   },
   parseKeyMappings: (function(this: any, line: string): void {
     let key: string, lines: string[], splitLine: string[], mk = 0, _i = 0
-      , _len: number, details: CommandsNS.Description | undefined;
-    let registry = CommandsData.keyToCommandRegistry = Object.create<CommandsNS.Item>(null)
+      , _len: number, details: CommandsNS.Description | undefined, errors = 0, ch: number
+      , registry = CommandsData.keyToCommandRegistry = Object.create<CommandsNS.Item>(null)
       , mkReg = Object.create<string>(null);
     const available = CommandsData.availableCommands;
     lines = line.replace(<RegExpG> /\\\n/g, "").replace(<RegExpG> /[\t ]+/g, " ").split("\n");
@@ -76,6 +76,7 @@ var Commands = {
       } else if (key === "unmapAll") {
         registry = CommandsData.keyToCommandRegistry = Object.create(null);
         mkReg = Object.create<string>(null), mk = 0;
+        errors = 0;
         continue;
       } else if (key === "mapkey" || key === "mapKey") {
         if (splitLine.length !== 3) {
@@ -100,15 +101,17 @@ var Commands = {
       } else {
         console.log("Unmapping: %c" + key, "color:red;", "has not been mapped.");
       }
+      ++errors;
     }
     CommandsData.mapKeyRegistry = mk > 0 ? mkReg : null;
+    CommandsData.errors = errors;
   }),
   populateCommandKeys: (function(this: void): void {
     const ref = CommandsData.keyMap = Object.create<0 | 1 | ChildKeyMap>(null), keyRe = Utils.keyRe;
     for (let ch = 10; 0 <= --ch; ) { ref[ch] = 1 as 0; }
     for (const key in CommandsData.keyToCommandRegistry) {
       const arr = key.match(keyRe) as RegExpMatchArray, last = arr.length - 1;
-      if (arr.length === 1) {
+      if (last === 0) {
         (key in ref) && Commands.warnInactive(ref[key] as ReadonlyChildKeyMap, key);
         ref[key] = 0;
         continue;
@@ -123,6 +126,7 @@ var Commands = {
       while (j < last) { ref2 = ref2[arr[j++]] = Object.create(null) as ChildKeyMap; }
       ref2[arr[last]] = 0;
     }
+    CommandsData.errors && console.warn("Key Mappings:", CommandsData.errors, "errors found.");
 
     const func = function(obj: ChildKeyMap): void {
       let key, val: 0 | ChildKeyMap;
@@ -140,6 +144,7 @@ var Commands = {
   }),
   warnInactive (obj: ReadonlyChildKeyMap | string, newKey: string): void {
     console.log("inactive key:", obj, "with", newKey);
+    ++CommandsData.errors;
   },
 
 defaultKeyMappings: [
@@ -220,6 +225,7 @@ CommandsData = (CommandsData as CommandsData) || {
   keyToCommandRegistry: null as never as SafeDict<CommandsNS.Item>,
   keyMap: null as never as KeyMap,
   mapKeyRegistry: null as SafeDict<string> | null,
+  errors: 0,
 availableCommands: {
   __proto__: null as never,
   showHelp: [ "Show help", 1, true ],

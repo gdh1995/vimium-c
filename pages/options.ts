@@ -403,7 +403,7 @@ interface AdvancedOptBtn extends HTMLButtonElement {
   }
 
   if (bgSettings.CONST.ChromeVersion < BrowserVer.MinWithFrameId) {
-    element = $("#vomnibarPage");
+    element = Option.all.vomnibarPage.element;
     element.title = `Vimium++ can not use a HTTP pages as Vomnibar before Chrome ${BrowserVer.MinWithFrameId}`;
     if ("chrome /front/".indexOf(Option.all.vomnibarPage.previous.substring(0, 6)) === -1) {
       element.style.textDecoration = "line-through";
@@ -447,6 +447,13 @@ interface AdvancedOptBtn extends HTMLButtonElement {
     }
     return chrome.runtime.lastError;
   })
+  Option.all.keyMappings.onSave = function(): void {
+    const errors = BG.CommandsData.errors, el = this.element;
+    el.classList[errors ? "add" : "remove"]("has-error");
+    el.title = !errors ? "" : (errors === 1 ? "There's 1 error" : `There're ${errors} errors`
+      ) + " found.\nPlease see logs of background page for more details";
+  };
+  BG.CommandsData.errors && Option.all.keyMappings.onSave();
 
   _ref = $$("[data-permission]");
   _ref.length > 0 && (function(this: void, els: NodeListOf<HTMLElement>): void {
