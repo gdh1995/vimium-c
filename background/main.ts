@@ -1903,7 +1903,8 @@ Are you sure you want to continue?`);
     Settings.Init = null;
     Utils.resetRe();
     chrome.runtime.onConnect.addListener(Connections.OnConnect);
-    chrome.runtime.onConnectExternal &&
+    if (!chrome.runtime.onConnectExternal) { return; }
+    Settings.extWhiteList || Settings.postUpdate("extWhiteList");
     chrome.runtime.onConnectExternal.addListener(function(port): void {
       if (port.sender && (port.sender.id as string) in (Settings.extWhiteList as SafeDict<true>)
           && port.name.startsWith("vimium++")) {

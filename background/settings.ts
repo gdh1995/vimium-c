@@ -7,7 +7,7 @@ var Settings = {
   },
   bufferToLoad: Object.create(null) as SettingsNS.FrontendSettingCache & SafeObject,
   newTabs: Object.create(null) as SafeDict<Urls.NewTabType>,
-  extWhiteList: null as SafeDict<true> | null,
+  extWhiteList: null as never as SafeDict<boolean>,
   Init: null as ((this: void) => void) | null,
   IconBuffer: null as IconNS.AccessIconBuffer | null,
   globalCommand: null as never as (command: string, options?: CommandsNS.RawOptions | null, count?: number) => void,
@@ -69,7 +69,7 @@ var Settings = {
       }
     },
     extWhiteList (val): void {
-      const map = (this as typeof Settings).extWhiteList = Object.create<true>(null);
+      const map = (this as typeof Settings).extWhiteList = Object.create<boolean>(null);
       if (!val) { return; }
       for (let arr = val.split("\n"), i = arr.length, wordCharRe = /^[\dA-Za-z]/ as RegExpOne; 0 <= --i; ) {
         if ((val = arr[i].trim()) && wordCharRe.test(val)) {
