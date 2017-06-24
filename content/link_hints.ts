@@ -1020,7 +1020,7 @@ COPY_TEXT: {
   }
 } as HintsNS.ModeOpt,
 OPEN_INCOGNITO_LINK: {
-  "138": "Open link in incognito",
+  "138": "Open link in incognito window",
   "202": "Open multi incognito tabs",
   activator (link): void {
     const url = this.getUrlData(link);

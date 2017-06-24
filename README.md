@@ -71,9 +71,9 @@ Known issues (Up to the master branch):
 2. `Preferred Vomnibar Page` can not support http/file URLs before Chrome 41.
 3. the Chrome flag `#enable-embedded-extension-options` has a bug about dialog width on high-DPI screen,
   which can not be worked-around before Chrome 42.
-4. If an extension page is the preferred Vomnibar page, and the extension is disabled in incognito,
+4. If an extension page is the preferred Vomnibar page, and the extension is disabled in incognito mode,
   Vomnibar might break in such a situation, and there seems no way to detect it.
-  So Vimium++ has disabled other extension Vomnibar pages in incognito.
+  So Vimium++ has disabled other extension Vomnibar pages in incognito mode.
 5. If a http/file/... Vomnibar page is preferred, then there're some cases where it breaks,
   such as on some websites with very strict Content Security Policies (CSP),
   so users may need to wait about 1 second to let Vimium++ retry the inner page.
@@ -102,7 +102,7 @@ Known issues (Up to the master branch):
 
 1.59.3:
 * fix a dead loop and breaking Vomnibar when using http page
-* only use inner Vomnibar page in incognito if the preferred belongs to other extensions
+* only use inner Vomnibar page in incognito mode if the preferred belongs to other extensions
 * work around for a Chrome bug caused by the flag `#enable-embedded-extension-options` on high-DPI screen.
   This flag occurs since Chrome 38, but the fix only works since Chrome 42 with API `chrome.tabs.getZoom`
 

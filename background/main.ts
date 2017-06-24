@@ -680,7 +680,7 @@ Are you sure you want to continue?`);
           return funcDict.moveTabToIncognito[3]();
         }
         if (Settings.CONST.ChromeVersion >= BrowserVer.MinNoUnmatchedIncognito || Settings.CONST.DisallowIncognito) {
-          return funcDict.complain("open this tab in incognito");
+          return funcDict.complain("open this URL in incognito mode");
         }
       } else if (wnd.incognito) {
         ++tab.index;
