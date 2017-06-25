@@ -365,7 +365,11 @@ function parseJSON(text: string): any {
   throw new SyntaxError(err_line + ":" + err_offset);
 
   function clean(this: void): boolean { return (<RegExpOne> /a?/).test(""); }
-  function spaceN(this: void, str: string): string { return ' '.repeat(str.length); }
+  function spaceN(this: void, str: string): string {
+    if (' '.repeat) { return ' '.repeat(str.length); }
+    for (var s2 = '', n = str.length; 0 < n--; ) { s2 += ' '; }
+    return s2;
+  }
   function onReplace(this: void, str: string): string {
     let ch = str[0];
     return ch === '/' || ch === '#' ? str[0] === "/*" ? str.replace(notLFRe, spaceN) : spaceN(str) : str;
