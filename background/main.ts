@@ -1961,7 +1961,7 @@ Are you sure you want to continue?`);
     if (typeof message !== "object") { return; }
     switch (message.handler) {
     case "command":
-      command = message.command;
+      command = message.command ? message.command + "" : "";
       if (!(command && CommandsData.availableCommands[command])) { return; }
       return Settings.globalCommand(command, message.options, message.count);
     case "content_scripts":
