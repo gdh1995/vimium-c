@@ -430,6 +430,7 @@ interface AdvancedOptBtn extends HTMLButtonElement {
     };
     element.style.display = "";
     (element.nextElementSibling as Element).remove();
+    if (location.protocol !== "chrome-extension:") { return; }
     ratio > 1 && ((document.body as HTMLBodyElement).style.width = 925 / ratio + "px");
     chrome.tabs.getZoom && chrome.tabs.getZoom(curTabId, function(zoom): void {
       if (!zoom) { return chrome.runtime.lastError; }
