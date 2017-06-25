@@ -380,12 +380,12 @@ var VHints = {
       rect = element.getClientRects()[0];
       if (rect) {
         w = rect.left; h = rect.top;
-        cr = VRect.cropRectToVisible(w, h, w + 8, h + 8);
+        cr = VDom.cropRectToVisible(w, h, w + 8, h + 8);
       }
     } else if (rect = element.getClientRects()[0]) {
       w = rect.right + (rect.width < 3 ? 3 : 0);
       h = rect.bottom + (rect.height < 3 ? 3 : 0);
-      cr = VRect.cropRectToVisible(rect.left, rect.top, w, h);
+      cr = VDom.cropRectToVisible(rect.left, rect.top, w, h);
     }
     if (cr && window.getComputedStyle(element).visibility === "visible") {
       arr.push([element, cr, ClickType.Default]);
@@ -464,7 +464,7 @@ var VHints = {
       if (list[i = j][2] !== ClickType.classname) {
       } else if ((k = list[--j][2]) > ClickType.frame || !this.isDescendant(list[i][0], list[j][0])) {
         continue;
-      } else if (VRect.isContaining(list[j][1], list[i][1])) {
+      } else if (VDom.isContaining(list[j][1], list[i][1])) {
         list.splice(i, 1);
         continue;
       } else if (k < ClickType.listener || j === 0) {
@@ -537,7 +537,7 @@ var VHints = {
     }
     visibleElements.reverse();
 
-    const obj = [null as never, null as never] as [VRect[], VRect], func = VRect.SubtractSequence.bind(obj);
+    const obj = [null as never, null as never] as [VRect[], VRect], func = VDom.SubtractSequence.bind(obj);
     let r2 = null as VRect[] | null, t: VRect, reason: ClickType, visibleElement: Hint;
     for (let _len = visibleElements.length, _j = Math.max(0, _len - 16); 0 < --_len; ) {
       _j > 0 && --_j;
@@ -556,7 +556,7 @@ var VHints = {
       if (r2.length > 0) {
         t = r2[0];
         t[1] > this.maxTop && t[1] > r[1] || t[0] > this.maxLeft && t[0] > r[0] ||
-          r2.length === 1 && !VRect.testCrop(t) || (visibleElement[1] = t);
+          r2.length === 1 && !VDom.testCrop(t) || (visibleElement[1] = t);
       } else if ((reason = visibleElement[2]) === ClickType.classname
             || (reason === ClickType.listener ? isNormal : reason === ClickType.tabindex)
           && visibleElement[0].contains(visibleElements[_i][0])) {

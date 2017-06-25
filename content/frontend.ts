@@ -409,11 +409,11 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
       const arr = VDom.getViewBox(),
       hints = visibleInputs.map(function(link) {
         const hint = VDom.createElement("span") as HintsNS.Marker,
-        rect = VRect.fromClientRect(link[0].getBoundingClientRect());
+        rect = VDom.fromClientRect(link[0].getBoundingClientRect());
         rect[0]--, rect[1]--, rect[2]--, rect[3]--;
         hint.className = "IH";
         hint.clickableItem = link[0];
-        VRect.setBoundary(hint.style, rect);
+        VDom.setBoundary(hint.style, rect);
         return hint;
       });
       if (count === 1 && InsertMode.last) {
@@ -956,7 +956,7 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
     el = VDom.UI.box;
     (f = VSettings.onDestroy) && (f as (this: void) => any)();
 
-    VUtils = VKeyboard = VDom = VRect = VHandler = //
+    VUtils = VKeyboard = VDom = VDom = VHandler = //
     VHints = Vomnibar = VScroller = VMarks = VFindMode = //
     VSettings = VHUD = VPort = VEventMode = VVisualMode = //
     esc = null as never;

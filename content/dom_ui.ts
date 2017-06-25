@@ -148,15 +148,15 @@ VDom.UI = {
     VDom.prepareCrop();
     VDom.bodyZoom = b && VDom.isInDOM(clickEl, b) && +getComputedStyle(b).zoom || 1;
     const rect = VDom.getVisibleClientRect(clickEl),
-    cr = clickEl.getBoundingClientRect(), bcr = VRect.fromClientRect(cr);
-    return rect && !VRect.isContaining(bcr, rect) ? rect : VDom.NotVisible(null, cr) ? null : bcr;
+    cr = clickEl.getBoundingClientRect(), bcr = VDom.fromClientRect(cr);
+    return rect && !VDom.isContaining(bcr, rect) ? rect : VDom.NotVisible(null, cr) ? null : bcr;
   },
   flash: function (this: DomUI, el: Element | null, rect?: VRect | null): number | void {
     rect || (rect = this.getVRect(el as Element));
     if (!rect) { return; }
     const flashEl = VDom.createElement("div"), nfs = !document.webkitIsFullScreen;
     flashEl.className = "R Flash";
-    VRect.setBoundary(flashEl.style, rect, nfs);
+    VDom.setBoundary(flashEl.style, rect, nfs);
     VDom.bodyZoom !== 1 && nfs && (flashEl.style.zoom = "" + VDom.bodyZoom);
     this.addElement(flashEl);
     return setTimeout(function() {

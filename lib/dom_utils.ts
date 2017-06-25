@@ -43,7 +43,7 @@ var VDom = {
       ih = Math.max(window.innerHeight - 24, doc.clientHeight);
       ihs = ih - 8;
     };
-    VRect.cropRectToVisible = function(left, top, right, bottom): VRect | null {
+    VDom.cropRectToVisible = function(left, top, right, bottom): VRect | null {
       if (top > ihs || bottom < 3) {
         return null;
       }
@@ -64,7 +64,7 @@ var VDom = {
     for (let _i = 0, _len = arr.length; _i < _len; _i++) {
       const rect = arr[_i];
       if (rect.width > 0 && rect.height > 0) {
-        if (cr = VRect.cropRectToVisible(rect.left, rect.top, rect.right, rect.bottom)) {
+        if (cr = VDom.cropRectToVisible(rect.left, rect.top, rect.right, rect.bottom)) {
           if (isVisible == null) {
             el_style || (el_style = window.getComputedStyle(element));
             isVisible = el_style.visibility === 'visible';
@@ -116,7 +116,7 @@ var VDom = {
         x1 = coords[0]; y1 = coords[1]; x2 = coords[2]; y2 = coords[3];
         break;
       }
-      rect = VRect.cropRectToVisible(x1 + cr.left, y1 + cr.top, x2 + cr.left, y2 + cr.top);
+      rect = VDom.cropRectToVisible(x1 + cr.left, y1 + cr.top, x2 + cr.left, y2 + cr.top);
       if (rect) {
         output.push([area, rect, 0, rect]);
       }
@@ -247,11 +247,9 @@ var VDom = {
     }
     this.lastHovered = newEl;
     newEl && this.mouse(newEl, "mouseover", modifiers, last);
-  }
-},
-VRect = {
+  },
   isContaining (a: VRect, b: VRect): boolean {
-    return a[0] <= b[0] && a[1] <= b[1] && a[2] >= b[2] && a[3] >= b[3];
+    return a[3] >= b[3] && a[2] >= b[2] && a[1] <= b[1] && a[0] <= b[0];
   },
   fromClientRect (rect: ClientRect): VRect {
     return [rect.left | 0, rect.top | 0, rect.right | 0, rect.bottom | 0];

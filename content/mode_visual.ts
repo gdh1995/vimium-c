@@ -44,7 +44,7 @@ var VVisualMode = {
       if (!lock && (type === "Caret" || type === "Range")) {
         const { left: l, top: t, right: r, bottom: b} = sel.getRangeAt(0).getBoundingClientRect();
         VDom.prepareCrop();
-        if (!VRect.cropRectToVisible(l, t, (l || r) && r + 3, (t || b) && b + 3)) {
+        if (!VDom.cropRectToVisible(l, t, (l || r) && r + 3, (t || b) && b + 3)) {
           sel.removeAllRanges();
         } else if (type === "Caret") {
           this.movement.extendByOneCharacter(1) || this.movement.extend(0);
