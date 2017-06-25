@@ -152,8 +152,7 @@ $<ElementWithDelay>("#exportButton").onclick = function(event): void {
   click(nodeA);
   URL.revokeObjectURL(nodeA.href);
   console.info("EXPORT settings to %c%s%c at %c%s%c."
-    , "color: darkred", file_name, "color: auto"
-    , "color: darkblue", d_s, "color: auto");
+    , "color:darkred", file_name, "color:auto", "color:darkblue", d_s, "color:auto");
 };
 
 function _importSettings(time: number, new_data: ExportedSettings, is_recommended?: boolean): void {
@@ -171,14 +170,13 @@ function _importSettings(time: number, new_data: ExportedSettings, is_recommende
     let val = args.pop();
     val = typeof val !== "string" || val.length <= 72 ? val
       : val.substring(0, 68).trimRight() + " ...";
-    return console.log("%s %c%s%c", method, "color: darkred", key, "color: auto", ...args, val);
+    return console.log("%s %c%s", method, "color:darkred", key, ...args, val);
   } as {
     (method: string, key: string, val: any): any;
     (method: string, key: string, actionName: string, val: any): any;
   };
   if (time > 10000) {
-    console.info("IMPORT settings saved at %c%s%c"
-      , "color: darkblue", formatDate(time), "color: auto");
+    console.info("IMPORT settings saved at %c%s%c.", "color:darkblue", formatDate(time), "color:auto");
   } else {
     console.info("IMPORT settings:", is_recommended ? "recommended" : "saved before");
   }

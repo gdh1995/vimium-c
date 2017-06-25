@@ -181,7 +181,7 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
         chrome.windows.getAll(function(wnds): void {
           wnds = wnds.filter(funcDict.isIncNor);
           if (!wnds.length) {
-            console.log("%cContentSettings.ensure%c", "color:red;", "color:auto;"
+            console.log("%cContentSettings.ensure", "color:red"
               , "get incognito content settings", opt, " but can not find an incognito window.");
             return;
           } else if (opt && opt.setting === "allow") {
@@ -257,7 +257,7 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
       const stat = Settings.extWhiteList[extId];
       if (stat != null) { return stat; }
       console.warn("Receive message from %an extension/sender not in the white list%c:",
-        "color: red", "color: auto", extId);
+        "color:red", "color:auto", extId);
       return Settings.extWhiteList[extId] = false;
     },
     isIncNor (this: void, wnd: Window): wnd is IncNormalWnd {
@@ -372,8 +372,8 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
       }
       if (info.isVomnibar) { return false; }
       if (!nolog && !info.warned) {
-        console.warn("Receive a request from %can unsafe source page%c (should be vomnibar) :\n ",
-          "color: red", "color: auto", info.url, '@' + info.tabId);
+        console.warn("Receive a request from %can unsafe source page%c (should be vomnibar) :\n %s @%o",
+          "color:red", "color:auto", info.url, info.tabId);
         info.warned = true;
       }
       return true;
