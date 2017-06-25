@@ -330,30 +330,6 @@ label:active {
   line-height: 16px;
   padding-top: 6px;
 }
-@media (max-width: 879.99px) and (min-width: 550px) {
-  #footerWrapper {
-    float: right;
-    margin-right: -60px;
-  }
-}
-@media (max-width: 549.99px) and (min-width: 300px) {
-  #footerWrapper {
-    float: left;
-    margin-left: -295px;
-  }
-}
-@media (max-width: 299.99px) {
-  #wrapper {
-    margin-bottom: 0;
-  }
-  #footer {
-    position: relative;
-    width: 925px;
-  }
-  #footerWrapper {
-    float: none;
-  }
-}
 #helpText {
   float: left;
   font-size: 12px;
@@ -392,4 +368,45 @@ label:active {
   #footerButtons {
     width: calc(100% - 590px);
   }
+}
+@media (max-width: 879.99px) and (min-width: 550px) {
+  #footerWrapper {
+    float: right;
+    margin-right: -60px;
+  }
+}
+@media (max-width: 549.99px) and (min-width: 300px) {
+  #footerWrapper {
+    float: left;
+    margin-left: -295px;
+  }
+}
+@media (max-width: 299.99px) {
+  #wrapper {
+    margin-bottom: 0;
+  }
+  #footer {
+    position: relative;
+    width: 925px;
+  }
+  #footerWrapper {
+    float: none;
+  }
+}
+.chrome-ui #wrapper {
+  margin: -23px 0 37px 35px;
+  width: 890px;
+}
+.chrome-ui #footer {
+  position: fixed;
+  width: unset;
+}
+.chrome-ui #footerWrapper {
+  float: none;
+  margin-left: 35px;
+  margin-right: 0;
+  width: 890px;
+}
+.chrome-ui #footerButtons {
+  width: 300px;
 }
