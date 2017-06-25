@@ -158,6 +158,7 @@ interface Document extends DocumentAttrsToBeDetected {}
 
 declare const enum GlobalConsts {
   TabIdNone = -1,
+  WndIdNone = -1,
   VomnibarSecretTimeout = 3000,
 }
 

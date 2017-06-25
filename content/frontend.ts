@@ -357,7 +357,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
       vPort.post({ handler: "initHelp", wantTop });
     },
     autoCopy (_0: number, options: FgOptions): void {
-      let str = window.getSelection().toString();
+      let str = VDom.getSelectionText();
       if (!str) {
         str = options.url ? window.location.href : document.title;
         options.decode === true && (str = VUtils.decodeURL(str));
@@ -729,18 +729,17 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
   },
   requestHandlers: { [K in keyof BgReq]: (this: void, request: BgReq[K]) => void } = {
     init (request): void {
-      const r = requestHandlers;
-      VSettings.cache = request.load;
-      request.load.onMac && (VKeyboard.correctionMap = Object.create<string>(null));
+      const r = requestHandlers, cache = request.load;
+      VSettings.cache = cache;
+      cache.onMac && (VKeyboard.correctionMap = Object.create<string>(null));
       r.keyMap(request);
       r.reset(request);
       InsertMode.loading = false;
       r.init = null as never;
       return VDom.documentReady(ELs.OnReady);
     },
-    reset (request): void {
-      const newPassKeys = request.passKeys,
-      enabled = isEnabledForUrl = (newPassKeys !== "");
+    reset ({ passKeys: newPassKeys }): void {
+      const enabled = isEnabledForUrl = (newPassKeys !== "");
       enabled && InsertMode.init && InsertMode.init();
       enabled === !requestHandlers.init && ELs.hook(enabled ? addEventListener : removeEventListener, 1);
       if (!enabled) {
@@ -752,7 +751,7 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
     },
     checkIfEnabled: function (this: void): void {
       return vPort.safePost({ handler: "checkIfEnabled", url: window.location.href });
-    } as VSettings["checkIfEnabled"],
+    },
     settingsUpdate (request): void {
       type Keys = keyof SettingsNS.FrontendSettings;
       Object.setPrototypeOf(request, null);
@@ -790,15 +789,15 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
       const a = request.text;
       return request.isCopy ? HUD.showCopied(a) : HUD.showForDuration(a);
     },
-  showHelpDialog (request): void {
+  showHelpDialog ({ html, advanced: shouldShowAdvanced, optionUrl}): void {
     let box: HTMLElement, oldShowHelp: typeof Commands.showHelp, hide: (this: void, e?: Event | number | "exitHD") => void
-      , node1: HTMLElement, shouldShowAdvanced = request.advanced === true;
+      , node1: HTMLElement;
     if (!VDom.isHTML()) { return; }
     Commands.showHelp("exitHD");
     box = VDom.createElement("div");
     box.className = "R Scroll UI";
     box.id = "HelpDialog";
-    box.innerHTML = request.html;
+    box.innerHTML = html;
     hide = function(event: Event): void { event.stopImmediatePropagation(); };
     box.onclick = hide;
     box.addEventListener("mousewheel", hide, {passive: true});
@@ -812,8 +811,8 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
       Commands.showHelp = oldShowHelp;
     };
     node1 = box.querySelector("#OptionsPage") as HTMLAnchorElement;
-    if (! window.location.href.startsWith(request.optionUrl)) {
-      const optionUrl = (node1 as HTMLAnchorElement).href = request.optionUrl;
+    if (! window.location.href.startsWith(optionUrl)) {
+      (node1 as HTMLAnchorElement).href = optionUrl;
       node1.onclick = function(event) {
         vPort.post({ handler: "focusOrLaunch", url: optionUrl });
         return hide(event);

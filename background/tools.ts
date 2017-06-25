@@ -198,7 +198,7 @@ TabRecency = {
 };
 
 setTimeout(function() {
-  const cache = Object.create<number>(null);
+  const cache = Object.create<number>(null), noneWnd = chrome.windows.WINDOW_ID_NONE || GlobalConsts.WndIdNone;
   let last = GlobalConsts.TabIdNone, stamp = 1, time = 0;
   function clean(): void {
     const ref = cache;
@@ -215,10 +215,10 @@ setTimeout(function() {
       if (stamp === 1023) { clean(); }
     }
     last = tabId; time = now;
-  };
+  }
   chrome.tabs.onActivated.addListener(listener);
   chrome.windows.onFocusChanged.addListener(function(windowId): void {
-    if (windowId === chrome.windows.WINDOW_ID_NONE) { return; }
+    if (windowId === noneWnd) { return; }
     chrome.tabs.query({windowId, active: true}, function(tabs) {
       if (tabs[0]) { return listener({ tabId: tabs[0].id }); }
     });

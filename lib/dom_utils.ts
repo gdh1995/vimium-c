@@ -10,15 +10,16 @@ var VDom = {
     return valid ? node : (this as typeof VDom).createElement(tagName);
   } as Document["createElement"],
   documentReady (callback: (this: void) => void): void {
+    const f = function(callback: (this: void) => void): void { return callback(); };
     if (document.readyState !== "loading") {
-      this.documentReady = callback => callback();
+      this.documentReady = f;
       return callback();
     }
     const listeners = [callback], eventHandler = function(): void {
       // not need to check event.isTrusted
       removeEventListener("DOMContentLoaded", eventHandler, true);
       if (!VDom) { return; }
-      VDom.documentReady = function(callback): void { return callback(); };
+      VDom.documentReady = f;
       for (const i of listeners) { i(); }
     };
     this.documentReady = function(callback): void {
