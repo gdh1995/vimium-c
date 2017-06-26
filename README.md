@@ -1,7 +1,7 @@
 Vimium++
 ========
 [![MIT license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE.txt)
-![Version 1.60](https://img.shields.io/badge/release-1.60-orange.svg)
+![Version 1.60.1](https://img.shields.io/badge/release-1.60.1-orange.svg)
 [![Current Build Status](https://travis-ci.org/gdh1995/vimium-plus.svg?branch=master)
   ](https://travis-ci.org/gdh1995/vimium-plus)
 
@@ -80,6 +80,13 @@ Known issues (Up to the master branch):
 6. Chrome 58 stable hides some necessary infomation of page's selection,
   so some commands on `VisualMode` cann't work as expected if editable text is being selected.
   This Chrome feature/bug has been removed since version 59, so Vimium++ works well again.
+
+1.60.1:
+* work well with Chrome 59 where its password saver has changed the way to auto-fill fields.
+* fix that removeTab might keep the first Chrome window even if it's not needed
+* options page now shows the count of errors in custom key mappings
+* alert detailed errors if fail to import a setting file
+* show errors if a command will operator incognito windows but Vimium++ hasn't been allowed to do so on chrome://extension
 
 1.60:
 * `LinkHints` works much faster on some of very long pags, like https://w3c.github.io/html/,
