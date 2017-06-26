@@ -143,8 +143,10 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
       let target = event.target as EventTarget | Element;
       if (target === window) { return ELs.OnWndFocus(); }
       if (!isEnabledForUrl) { return; }
-      if (target === VDom.UI.box) { event.stopImmediatePropagation(); return; }
-      if ((target as Element).shadowRoot) {
+      if (target === VDom.UI.box
+          || InsertMode.lock !== null && InsertMode.lock === document.activeElement
+          ) { event.stopImmediatePropagation(); return; }
+      if ((target as Element).shadowRoot != null) {
         let path = event.path as EventTarget[]
           , diff = !!path && (target = path[0]) !== event.target && target !== window, len = diff ? path.indexOf(target) : 1;
         diff || (path = [(target as Element).shadowRoot as ShadowRoot | Element]);
@@ -174,7 +176,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
       let path = event.path as EventTarget[], top: EventTarget | undefined
         , same = !path || (top = path[0]) === target || top === window, sr = (target as Element).shadowRoot;
       if (InsertMode.lock === (same ? target : top)) { InsertMode.lock = null; }
-      if (!(sr && sr instanceof ShadowRoot) || target === VDom.UI.box) { return; }
+      if (!(sr !== null && sr instanceof ShadowRoot) || target === VDom.UI.box) { return; }
       if (same) {
         (sr as ShadowRootEx).vimiumListened = ListenType.Blur;
         // NOTE: if destroyed, this page must have lost its focus before, so
