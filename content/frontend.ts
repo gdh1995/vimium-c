@@ -447,7 +447,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
         else {
           this.remove();
           VHandler.remove(this);
-          return !VKeyboard.isEscape(event) ? HandlerResult.Nothing : !InsertMode.lock ? HandlerResult.Prevent
+          return !VKeyboard.isEscape(event) ? HandlerResult.Nothing : keep || !InsertMode.lock ? HandlerResult.Prevent
             : pass ? HandlerResult.PassKey : HandlerResult.Nothing;
         }
         return HandlerResult.Nothing;
