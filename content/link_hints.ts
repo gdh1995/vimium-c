@@ -198,6 +198,10 @@ var VHints = {
     const a = VHints;
     if (a && a.isActive) { a.pTimer = 0; return a.setMode(a.mode); }
   },
+  activateAndFocus (a: number, b: FgOptions): void {
+    this.activate(a, b);
+    return VEventMode.focusAndListen();
+  },
   tryNestedFrame (command: string, a: number, b: FgOptions): boolean {
     this.frameNested === false && this.checkNestedFrame();
     if (!this.frameNested) { return false; }
@@ -913,18 +917,17 @@ getUrlData (link: HTMLAnchorElement): string {
 
 highlightChild (el: HTMLIFrameElement | HTMLFrameElement): false | void {
   const child = el.contentWindow as HintsNS.VWindow;
-  setTimeout(function() { child.closed || child.focus(); }, 0);
   try {
     child.VEventMode.keydownEvents(VEventMode.keydownEvents());
   } catch (e) {
     VPort.post({ handler: "execInChild", url: el.src,
-      command: "Hints.activate", count: this.count, options: this.options
+      command: "Hints.activateAndFocus", count: this.count, options: this.options
     });
     return;
   }
   const lh = child.VHints;
   lh.isActive = false;
-  lh.activate(this.count, this.options);
+  lh.activateAndFocus(this.count, this.options);
   lh.isActive && lh.setMode(this.mode);
   return false;
 },

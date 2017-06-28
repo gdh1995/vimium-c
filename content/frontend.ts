@@ -141,7 +141,10 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
     onFocus (event: Event | FocusEvent): void {
       if (event.isTrusted == false) { return; }
       let target = event.target as EventTarget | Element;
-      if (target === window) { return ELs.OnWndFocus(); }
+      if (target === window) {
+        ELs.OnWndFocus2 && ELs.OnWndFocus2();
+        return ELs.OnWndFocus();
+      }
       if (!isEnabledForUrl) { return; }
       if (target === VDom.UI.box
           // it's safe to compare .lock and doc.activeEl here without checking target.shadowRoot,
@@ -208,6 +211,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
       VScroller.current = (event.path as EventTarget[])[0] as Element;
     },
     OnWndFocus (this: void): void {},
+    OnWndFocus2: null as ((this: void) => void) | null,
     OnWndBlur: null as ((this: void) => void) | null,
     OnReady (inited?: boolean): void {
       const visible = isEnabledForUrl && location.href !== "about:blank" && innerHeight > 9 && innerWidth > 9;
@@ -629,7 +633,7 @@ Pagination = {
         });
         return;
       }
-      setTimeout(function() { window.focus(); }, 0);
+      VEventMode.focusAndListen();
       esc();
       VEventMode.suppress(request.lastKey);
       if (request.mask < FrameMaskType.minWillMask || !VDom.isHTML()) { return; }
@@ -891,6 +895,15 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
     lock (this: void): Element | null { return InsertMode.lock; },
     onWndBlur (this: void, f): void { ELs.OnWndBlur = f; },
     OnWndFocus (this: void): (this: void) => void { return ELs.OnWndFocus; },
+    focusAndListen (): void {
+      (requestHandlers.exitGrab as VEventMode["exitGrab"])();
+      let timer = 0;
+      ELs.OnWndFocus2 = function(): void { ELs.OnWndFocus2 = null; clearTimeout(timer); };
+      setTimeout(function(): void {
+        timer = setTimeout(function(): void { ELs.OnWndFocus2 = null; ELs.hook(addEventListener); }, 17);
+        window.focus();
+      }, 0);
+    },
     mapKey (this: void, key): string { return mapKeys !== null && mapKeys[key] || key; },
     exitGrab: requestHandlers.exitGrab as VEventMode["exitGrab"],
     scroll (this: void, event, wnd): void {
