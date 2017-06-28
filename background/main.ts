@@ -34,6 +34,10 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
     id: number;
     url: string;
   }
+  interface OpenInNewTabOptions {
+    reuse: ReuseType;
+    incognito?: boolean;
+  }
 
   function tabsCreate(args: chrome.tabs.CreateProperties, callback?: ((this: void, tab: Tab) => void) | null): 1 {
     let { url } = args, type: Urls.NewTabType | undefined;
@@ -338,7 +342,7 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
     onRuntimeError (this: void): void {
       return chrome.runtime.lastError;
     },
-    safeUpdate (url: string, secondTimes?: true, tabs1?: [Tab]): 1 {
+    safeUpdate (url: string, secondTimes?: true, tabs1?: [Tab]): 1 | true {
       if (!tabs1) {
         if (Utils.isRefusingIncognito(url) && secondTimes !== true) {
           return funcDict.getCurTab(function(tabs1: [Tab]): void {
@@ -346,12 +350,15 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
           });
         }
       } else if (tabs1.length > 0 && tabs1[0].incognito && Utils.isRefusingIncognito(url)) {
-        return tabsCreate({ url });
+        tabsCreate({ url });
+        return Utils.resetRe();
       }
-      return chrome.tabs.update({ url }, funcDict.onRuntimeError);
+      chrome.tabs.update({ url }, funcDict.onRuntimeError);
+      return Utils.resetRe();
     },
     onEvalUrl (this: void, arr: Urls.SpecialUrl): void {
       if (arr instanceof Promise) { arr.then(funcDict.onEvalUrl); return; }
+      Utils.resetRe();
       switch(arr[1]) {
       case "copy":
         return requestHandlers.ShowHUD((arr as Urls.CopyEvalResult)[0], true);
@@ -422,15 +429,14 @@ Are you sure you want to continue?`);
         chrome.tabs.create(option);
       } while(--count > 1);
     },
-    openUrlInIncognito (this: string, tab: Tab, wnds: Window[]): void {
-      let oldWnd: Window | undefined, inCurWnd: boolean
-        , active = !(<ReuseType>cOptions.reuse < ReuseType.newFg);
+    openUrlInIncognito (this: OpenInNewTabOptions & { incognito: true }, url: string, tab: Tab, wnds: Window[]): void {
+      let oldWnd: Window | undefined, inCurWnd: boolean, active = this.reuse >= ReuseType.newFg;
       oldWnd = wnds.filter(wnd => wnd.id === tab.windowId)[0];
       inCurWnd = oldWnd != null && oldWnd.incognito;
       inCurWnd || (wnds = wnds.filter(funcDict.isIncNor));
       if (inCurWnd || wnds.length > 0) {
         const options = {
-          url: this,
+          url,
           windowId: inCurWnd ? tab.windowId : wnds[wnds.length - 1].id
         } as chrome.tabs.CreateProperties & { windowId: number };
         if (inCurWnd) {
@@ -442,7 +448,7 @@ Are you sure you want to continue?`);
         return !inCurWnd && active ? funcDict.selectWnd(options) : undefined;
       }
       return funcDict.makeWindow({
-        type: "normal", url: this,
+        type: "normal", url,
         incognito: true, focused: active
       }, oldWnd && oldWnd.type === "normal" ? oldWnd.state : "");
     },
@@ -552,15 +558,15 @@ Are you sure you want to continue?`);
       (tabId: number) => void,
       (tab: Tab) => void
     ],
-    openUrlInNewTab: function(this: string, reuse: ReuseType, tabs: [Tab]): void {
+    openUrlInNewTab: function(this: OpenInNewTabOptions, url: string, reuse: ReuseType, tabs: [Tab]): void {
       const tab = tabs[0];
-      if (cOptions.incognito) {
-        chrome.windows.getAll(funcDict.openUrlInIncognito.bind(this, tab));
+      if (this.incognito) {
+        chrome.windows.getAll(funcDict.openUrlInIncognito.bind(this, url, tab));
         return;
       }
       if (reuse === ReuseType.newBg) { tab.active = false; }
-      if (funcDict.openShowPage[0](this, reuse, tab)) { return; }
-      return openMultiTab(this, commandCount, tab);
+      if (funcDict.openShowPage[0](url, reuse, tab)) { return; }
+      return openMultiTab(url, commandCount, tab);
     },
     openShowPage: [function(url, reuse, tab): boolean {
       const prefix = Settings.CONST.ShowPage;
@@ -606,6 +612,7 @@ Are you sure you want to continue?`);
         urls[i] = Utils.convertToUrl(urls[i] + "");
       }
       if (cOptions.reuse <= ReuseType.newBg) { tab.active = false; }
+      cOptions = null as never;
       do {
         for (let i = 0, index = tab.index + 1, { active } = tab; i < urls.length; i++, active = false, index++) {
           tabsCreate({ url: urls[i], index, windowId, openerTabId, active });
@@ -1004,6 +1011,7 @@ Are you sure you want to continue?`);
     openCopiedUrlInNewTab (this: void, tabs: [Tab] | never[]): void {
       Utils.lastUrlType = Urls.Type.Default as Urls.Type;
       const url = requestHandlers.openCopiedUrl({ keyword: (cOptions.keyword || "") + "" });
+      Utils.resetRe();
       if (!url) {
         return requestHandlers.ShowHUD("No text copied!");
       }
@@ -1019,7 +1027,7 @@ Are you sure you want to continue?`);
     openUrl (this: void, tabs?: [Tab] | never[] | null): void {
       let url: string | undefined;
       if (cOptions.urls) {
-        if (!(cOptions.urls instanceof Array)) { return; }
+        if (!(cOptions.urls instanceof Array)) { cOptions = null as never; return; }
         return tabs && tabs.length > 0 ? funcDict.openUrls(tabs as [Tab]) : void funcDict.getCurTab(funcDict.openUrls);
       }
       if (cOptions.url_mask) {
@@ -1035,17 +1043,22 @@ Are you sure you want to continue?`);
       if (cOptions.id_marker) {
         url = url.replace(cOptions.id_marker + "", chrome.runtime.id);
       }
-      const reuse: ReuseType = cOptions.reuse == null ? ReuseType.newFg : (cOptions.reuse | 0);
+      const reuse: ReuseType = cOptions.reuse == null ? ReuseType.newFg : (cOptions.reuse | 0),
+      incognito: boolean | undefined = cOptions.incognito;
+      cOptions = null as never;
+      Utils.resetRe();
       if (reuse === ReuseType.reuse) {
-        requestHandlers.focusOrLaunch({ url });
-        return;
+        return requestHandlers.focusOrLaunch({ url });
       } else if (reuse === ReuseType.current) {
         if (funcDict.openShowPage[0](url, reuse)) { return; }
         funcDict.safeUpdate(url);
-      } else if (tabs) {
-        return funcDict.openUrlInNewTab.call(url, reuse, tabs);
+        return;
+      }
+      const opt = { incognito, reuse };
+      if (tabs) {
+        return funcDict.openUrlInNewTab.call(opt, url, reuse, tabs);
       } else {
-        funcDict.getCurTab(funcDict.openUrlInNewTab.bind(url, reuse));
+        funcDict.getCurTab(funcDict.openUrlInNewTab.bind(opt, url, reuse));
       }
     },
     searchInAnother (this: void, tabs: [Tab]): void {
@@ -1367,13 +1380,12 @@ Are you sure you want to continue?`);
       let s0 = request.url, url = s0.toLowerCase(), pattern: Search.Rule | undefined
         , arr: string[] | null = null, _i: number, selectLast = false;
       if (!Utils.protocolRe.test(Utils.removeComposedScheme(url))) {
+        Utils.resetRe();
         return null;
       }
       if (request.upper) {
         const obj = requestHandlers.parseUpperUrl(request as FgReq["parseUpperUrl"]);
-        if (obj.path != null) {
-          s0 = obj.url;
-        }
+        obj.path != null && (s0 = obj.url);
         return { keyword: '', start: 0, url: s0 };
       }
       const decoders = Settings.cache.searchEngineRules;
@@ -1387,7 +1399,7 @@ Are you sure you want to continue?`);
         arr = s0.substring(pattern[0].length).match(pattern[1]);
         if (arr) { break; }
       }
-      if (!arr || !pattern) { return null; }
+      if (!arr || !pattern) { Utils.resetRe(); return null; }
       if (arr.length > 1 && !pattern[1].global) { arr.shift(); }
       const re = pattern[3];
       if (arr.length > 1) {
@@ -1406,6 +1418,7 @@ Are you sure you want to continue?`);
       url = "";
       for (_i = 0; _i < arr.length; _i++) { url += " " + Utils.DecodeURLPart(arr[_i]); }
       url = url.trim().replace(Utils.spacesRe, " ");
+      Utils.resetRe();
       return {
         keyword: pattern[2],
         url,
@@ -1415,6 +1428,7 @@ Are you sure you want to continue?`);
     parseUpperUrl (this: void, request: FgReq["parseUpperUrl"]): FgRes["parseUpperUrl"] {
       let { url } = request, url_l = url.toLowerCase();
       if (!Utils.protocolRe.test(Utils.removeComposedScheme(url_l))) {
+        Utils.resetRe();
         return { url: "This url has no upper paths", path: null };
       }
       let hash = "", str: string, arr: RegExpExecArray | null, startSlash = false, endSlash = false
@@ -1479,6 +1493,7 @@ Are you sure you want to continue?`);
       }
       if (!path) {
         if (url_l.startsWith("chrome")) {
+          Utils.resetRe();
           return { url: "An extension has no upper-level pages", path: null };
         }
         hash = "";
@@ -1496,6 +1511,7 @@ Are you sure you want to continue?`);
       startSlash = path.startsWith("/");
       if (!hash && url_l.startsWith("file:")) {
         if (path.length <= 1 || url.length === 11 && url.endsWith(":/")) {
+          Utils.resetRe();
           return { url: "This has been the root path", path: null };
         }
         endSlash = true;
@@ -1521,6 +1537,7 @@ Are you sure you want to continue?`);
       }
       str = decoded ? encodeURIComponent(path) : path;
       url = url.substring(0, start) + (end ? str + url.substring(end) : str);
+      Utils.resetRe();
       return { url, path };
     },
     searchAs (this: void, request: FgReq["searchAs"]): FgRes["searchAs"] {
