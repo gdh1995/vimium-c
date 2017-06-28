@@ -94,15 +94,6 @@ declare namespace VomnibarNS {
     ToShow = 2,
     Showing = 3,
   }
-  const enum HideType {
-    // 0 | 1 | -1 | -2;
-    Default = 0,
-    ActDirectly = Default,
-    WaitAndAct = 1,
-    OnlyFocus = -1,
-    DoNothing = -2,
-    MinAct = ActDirectly,
-  }
   interface GlobalOptions {
     mode: string;
     force: boolean;
@@ -122,13 +113,12 @@ declare namespace VomnibarNS {
   interface CReq {
     activate: FgOptions & Msg<"activate">;
     hide: "hide";
-    onHidden: "onHidden";
     focus: "focus";
     backspace: "backspace";
   }
   interface FReq {
     hide: {
-      waitFrame: BOOL;
+      fromInner: boolean;
     };
     scroll: {
       keyCode: number;

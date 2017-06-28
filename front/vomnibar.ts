@@ -88,12 +88,13 @@ var Vomnibar = {
   height: 0,
   heightList: 0,
   input: null as never as HTMLInputElement,
+  barCls: null as never as DOMTokenList,
   isSelectionOrigin: true,
   lastKey: 0,
   keyResult: HandlerResult.Nothing,
   list: null as never as HTMLDivElement,
   onUpdate: null as (() => void) | null,
-  doEnter: null as (() => void) | null,
+  doEnter: null as ((this: void) => void) | null,
   refreshInterval: 500,
   wheelInterval: 100,
   renderItems: null as never as Render,
@@ -111,26 +112,27 @@ var Vomnibar = {
   },
   hide (data?: "hide"): void {
     this.isActive = this.isEditing = false;
-    this.height = this.heightList = this.matchType = 0;
     removeEventListener("mousewheel", this.onWheel, {passive: false});
+    this.timer > 0 && clearTimeout(this.timer);
     window.onkeyup = null as never;
+    const el = this.input;
+    el.blur();
+    this.list.textContent = el.value = "";
+    this.list.style.height = "0px";
+    this.barCls.remove("withList");
+    requestAnimationFrame(() => Vomnibar.onHidden(!data));
+  },
+  onHidden (fromInner: boolean): void {
+    VPort.postToOwner({ name: "hide", fromInner });
+    if (fromInner) {
+      VPort.postMessage({ handler: "refocusCurrent", lastKey: this.lastKey });
+    }
+    this.lastKey = this.timer = this.height = this.heightList = this.matchType = 0;
     this.completions = this.onUpdate = this.isHttps = null as never;
     this.mode.query = this.lastQuery = this.inputText = "";
     this.modeType = this.mode.type = "omni";
-    if (data === "hide") { return this.onHidden(); }
-    this.timer > 0 && clearTimeout(this.timer);
-    this.timer = setTimeout(this.onHidden.bind(this), 100);
-    VPort.postToOwner({name: "hide", waitFrame: this.doEnter ? 1 : 0});
-  },
-  onHidden (): void {
-    clearTimeout(this.timer);
-    VPort.postMessage({ handler: "refocusCurrent", lastKey: this.lastKey });
     this.doEnter && setTimeout(this.doEnter, 0);
-    this.input.blur();
-    this.input.value = "";
-    this.list.textContent = "";
-    this.list.classList.remove("withList");
-    this.timer = this.lastKey = 0;
+    this.doEnter = null;
     (<RegExpOne> /a?/).test("");
   },
   reset (input: string, start?: number, end?: number): void {
@@ -381,7 +383,6 @@ var Vomnibar = {
     interface UrlInfo { url: string; sessionId?: undefined }
     const item: SuggestionE | UrlInfo = sel >= 0 ? this.completions[sel] : { url: this.input.value.trim() },
     func = function(this: void): void {
-      Vomnibar.doEnter = null;
       return item.sessionId != null ? Vomnibar.gotoSession(item as SuggestionE & { sessionId: string | number })
         : Vomnibar.navigateToUrl(item as UrlInfo);
     };
@@ -480,9 +481,8 @@ var Vomnibar = {
     return this.populateUI();
   },
   populateUI (): void {
-    const list = this.list, notEmpty = this.completions.length > 0,
-    cl = (this.input.parentElement as HTMLElement).classList, c = "withList";
-    notEmpty ? cl.add(c) : cl.remove(c);
+    const list = this.list, notEmpty = this.completions.length > 0, cl = this.barCls, c = "withList";
+    notEmpty ? this.barCls.add(c) : cl.remove(c);
     list.style.height = this.heightList + "px";
     list.innerHTML = this.renderItems(this.completions);
     if (notEmpty) {
@@ -519,8 +519,9 @@ var Vomnibar = {
     this.input = document.getElementById("input") as HTMLInputElement;
     const list = this.list = document.getElementById("list") as HTMLDivElement;
     this.input.oninput = this.onInput.bind(this);
+    this.barCls = (this.input.parentElement as HTMLElement).classList;
     list.oncontextmenu = this.OnMenu;
-    (document.getElementById("close") as HTMLElement).onclick = function() { return Vomnibar.hide(); };
+    (document.getElementById("close") as HTMLElement).onclick = function(): void { return Vomnibar.hide(); };
     addEventListener("keydown", this.HandleKeydown, true);
     this.renderItems = VUtils.makeListRenderer((document.getElementById("template") as HTMLElement).innerHTML);
     let manifest: chrome.runtime.Manifest;

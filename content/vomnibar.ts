@@ -95,19 +95,18 @@ var Vomnibar = {
   setOptions (options: VomnibarNS.FgOptionsToFront): void {
     this.status > VomnibarNS.Status.Initing ? this.port.postMessage(options) : (this.options = options);
   },
-  hide (action: VomnibarNS.HideType): void | number {
-    if (this.status <= VomnibarNS.Status.Inactive) { return; }
-    VHandler.remove(this);
-    this.width = this.zoom = 0; this.status = VomnibarNS.Status.Inactive;
-    if (!this.box) { return; }
-    this.box.style.cssText = "display: none";
-    if (action < VomnibarNS.HideType.MinAct) {
+  hide (fromInner?: boolean): void {
+    const active = this.status > VomnibarNS.Status.Inactive;
+    if (fromInner != null) {
+      active || window.focus();
+      this.box.style.cssText = "display: none";
+    } else if (active) {
       this.port.postMessage<"hide">("hide");
-      action === VomnibarNS.HideType.OnlyFocus && setTimeout(function() { window.focus(); }, 17);
-      return;
     }
-    let f: typeof requestAnimationFrame, act = function(): void { Vomnibar.port.postMessage<"onHidden">("onHidden"); };
-    return action === VomnibarNS.HideType.WaitAndAct ? (f = requestAnimationFrame)(function() { f(act); }) : act();
+    if (active) {
+      VHandler.remove(this);
+      this.width = this.zoom = 0; this.status = VomnibarNS.Status.Inactive;
+    }
   },
   init (secret: number, page: string, type: VomnibarNS.PageType): HTMLIFrameElement {
     const el = VDom.createElement("iframe") as typeof Vomnibar.box;
@@ -197,7 +196,7 @@ var Vomnibar = {
       this.box.style.setProperty((data as Req["css"]).key, (data as Req["css"]).value);
       break;
     case "focus": window.focus(); return VEventMode.suppress((data as Req["focus"]).lastKey);
-    case "hide": this.hide((data as Req["hide"]).waitFrame); break;
+    case "hide": return this.hide((data as Req["hide"]).fromInner);
     case "scroll": return VEventMode.scroll(data as Req["scroll"]);
     case "scrollGoing": VScroller.keyIsDown = VScroller.Core.maxInterval; break;
     case "scrollEnd": VScroller.keyIsDown = 0; break;
@@ -221,7 +220,7 @@ var Vomnibar = {
   },
   onKeydown (event: KeyboardEvent): HandlerResult {
     if (VEventMode.lock()) { return HandlerResult.Nothing; }
-    if (VKeyboard.isEscape(event)) { this.hide(VomnibarNS.HideType.OnlyFocus); return HandlerResult.Prevent; }
+    if (VKeyboard.isEscape(event)) { this.hide(); return HandlerResult.Prevent; }
     const key = event.keyCode - VKeyCodes.f1;
     if (key === 0 || key === 1) {
       this.focus(key);
