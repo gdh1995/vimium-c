@@ -1,6 +1,3 @@
-/**
- * focused: 1; new tab: 2; queue: 64; job: 128
- */
 const enum HintMode {
   empty = 0, focused = 1, newTab = 2, queue = 64,
   mask_focus_new = focused | newTab, mask_queue_focus_new = mask_focus_new | queue,
@@ -168,7 +165,7 @@ var VHints = {
     if (mode === HintMode.EDIT_TEXT && options.url) {
       mode = HintMode.EDIT_LINK_URL;
     }
-    if (count > 1) { mode <= HintMode.min_disable_queue ? (mode |= HintMode.queue) : (count = 1); }
+    if (count > 1) { mode < HintMode.min_disable_queue ? (mode |= HintMode.queue) : (count = 1); }
     for (let i in ref) {
       if (ref.hasOwnProperty(i) && ((ref as Dict<HintsNS.ModeOpt>)[i] as HintsNS.ModeOpt).hasOwnProperty(mode)) {
         modeOpt = (ref as Dict<HintsNS.ModeOpt>)[i] as HintsNS.ModeOpt;
@@ -599,8 +596,9 @@ var VHints = {
         if (VKeyboard.getKeyStat(event) === KeyStat.shiftKey) {
           this.lastMode = this.mode;
         }
-        this.setMode((this.mode | HintMode.focused) ^ (this.mode < HintMode.queue ?
-          HintMode.mask_focus_new : HintMode.mask_queue_focus_new));
+        i = (this.mode | HintMode.focused) ^ ((this.mode & HintMode.queue as number) ?
+          HintMode.mask_queue_focus_new : HintMode.mask_focus_new);
+        this.setMode(i);
       }
     } else if (i === VKeyCodes.ctrlKey || i === VKeyCodes.metaKey) {
       if (this.mode < HintMode.min_job) {
@@ -616,7 +614,7 @@ var VHints = {
         }
         this.setMode(((this.mode >= HintMode.min_job ? HintMode.empty : HintMode.newTab) | this.mode) ^ HintMode.queue);
       }
-    } else if (i >= VKeyCodes.pageup && i <= VKeyCodes.down) {
+    } else if (i <= VKeyCodes.down && i >= VKeyCodes.pageup) {
       VEventMode.scroll(event);
       this.ResetMode();
     } else if (i === VKeyCodes.space) {
@@ -674,7 +672,7 @@ var VHints = {
       }
     } else {
       clickEl = null;
-      VHUD.showForDuration("The link has been removed from the page", 2000);
+      VHUD.showForDuration("The link has been removed from page", 2000);
     }
     this.pTimer = -(VHUD.text !== str);
     if (!(this.mode & HintMode.queue)) {
@@ -1136,9 +1134,9 @@ DEFAULT: {
       VDom.UI.simulateSelect(link, true);
       return false;
     }
-    const mode = this.mode & HintMode.mask_focus_new, onMac = VSettings.cache.onMac;
+    const mode = this.mode & HintMode.mask_focus_new, onMac = VSettings.cache.onMac, newTab = mode >= HintMode.newTab;
     let alterTarget: string | null | undefined;
-    if (mode >= HintMode.newTab && link instanceof HTMLAnchorElement) {
+    if (newTab && link instanceof HTMLAnchorElement) {
       alterTarget = link.getAttribute('target');
       if (alterTarget !== "_top") {
         link.target = "_top";
@@ -1149,8 +1147,8 @@ DEFAULT: {
     // NOTE: not clear last hovered item, for that it may be a menu
     VDom.UI.click(link, {
       altKey: false,
-      ctrlKey: mode >= HintMode.newTab && !onMac,
-      metaKey: mode >= HintMode.newTab &&  onMac,
+      ctrlKey: newTab && !onMac,
+      metaKey: newTab &&  onMac,
       shiftKey: mode === HintMode.OPEN_IN_NEW_FG_TAB
     }, mode !== HintMode.empty || link.tabIndex >= 0);
     if (alterTarget === undefined) {}
