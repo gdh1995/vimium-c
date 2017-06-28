@@ -6,6 +6,7 @@ const enum HintMode {
   OPEN_IN_CURRENT_TAB = DEFAULT, // also 1
   OPEN_IN_NEW_BG_TAB = newTab,
   OPEN_IN_NEW_FG_TAB = newTab | focused,
+  OPEN_CURRENT_WITH_QUEUE = queue,
   OPEN_WITH_QUEUE = queue | newTab,
   OPEN_FG_WITH_QUEUE = queue | newTab | focused,
   HOVER = min_job,
@@ -70,6 +71,7 @@ var VHints = {
     OPEN_IN_CURRENT_TAB: HintMode.OPEN_IN_CURRENT_TAB,
     OPEN_IN_NEW_BG_TAB: HintMode.OPEN_IN_NEW_BG_TAB,
     OPEN_IN_NEW_FG_TAB: HintMode.OPEN_IN_NEW_FG_TAB,
+    OPEN_CURRENT_WITH_QUEUE: HintMode.OPEN_CURRENT_WITH_QUEUE,
     OPEN_WITH_QUEUE: HintMode.OPEN_WITH_QUEUE,
     OPEN_FG_WITH_QUEUE: HintMode.OPEN_FG_WITH_QUEUE,
     HOVER: HintMode.HOVER,
@@ -596,9 +598,7 @@ var VHints = {
         if (VKeyboard.getKeyStat(event) === KeyStat.shiftKey) {
           this.lastMode = this.mode;
         }
-        i = (this.mode | HintMode.focused) ^ ((this.mode & HintMode.queue as number) ?
-          HintMode.mask_queue_focus_new : HintMode.mask_focus_new);
-        this.setMode(i);
+        this.setMode((this.mode | HintMode.focused) ^ HintMode.mask_focus_new);
       }
     } else if (i === VKeyCodes.ctrlKey || i === VKeyCodes.metaKey) {
       if (this.mode < HintMode.min_job) {
@@ -1117,6 +1117,7 @@ DEFAULT: {
   "0": "Open link in current tab",
   "2": "Open link in new tab",
   "3": "Open link in new active tab",
+  "64": "Open multiple links in current tab",
   "66": "Open multiple links in new tabs",
   "67": "Activate link and hold on",
   activator (link, hint): void | false {
