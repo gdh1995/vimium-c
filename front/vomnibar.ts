@@ -24,6 +24,10 @@ type AllowedActions = "dismiss"|"focus"|"blurInput"|"backspace"|"blur"|"up"|"dow
 interface Window {
   ExtId?: string;
 }
+declare const enum HeightData {
+  InputBar = 54, InputBarWithLine = InputBar + 1,
+  Item = 44, LastItem = Item + 3,
+}
 
 declare var VSettings: undefined | null | {
   destroy(silent: true, keepChrome: true): void;
@@ -82,6 +86,7 @@ var Vomnibar = {
   showRelevancy: false,
   lastScrolling: 0,
   height: 0,
+  heightList: 0,
   input: null as never as HTMLInputElement,
   isSelectionOrigin: true,
   lastKey: 0,
@@ -106,7 +111,7 @@ var Vomnibar = {
   },
   hide (data?: "hide"): void {
     this.isActive = this.isEditing = false;
-    this.height = this.matchType = 0;
+    this.height = this.heightList = this.matchType = 0;
     removeEventListener("mousewheel", this.onWheel, {passive: false});
     window.onkeyup = null as never;
     this.completions = this.onUpdate = this.isHttps = null as never;
@@ -457,29 +462,30 @@ var Vomnibar = {
   omni (response: BgVomnibarReq["omni"]): void {
     if (!this.isActive) { return; }
     const list = response.list, oldHeight = this.height;
-    let height = list.length;
+    let height = list.length, notEmpty = height > 0;
     this.matchType = response.matchType;
     this.completions = list;
-    this.selection = (response.autoSelect || this.modeType !== "omni") && height > 0 ?  0 : -1;
+    this.selection = (response.autoSelect || this.modeType !== "omni") && notEmpty ?  0 : -1;
     this.isSelectionOrigin = true;
-    this.isSearchOnTop = height > 0 && list[0].type === "search";
-    if (height > 0) {
-      height = (height - 1) * (44 + (1 / (Math.max(1, window.devicePixelRatio)))) + 48;
+    this.isSearchOnTop = notEmpty && list[0].type === "search";
+    if (notEmpty) {
+      height = (height - 1) * (HeightData.Item + (1 / (Math.max(1, window.devicePixelRatio)))) + HeightData.LastItem;
     }
-    this.height = height = (height | 0) + 54;
+    this.heightList = height;
+    this.height = height = notEmpty ? (height | 0) + HeightData.InputBarWithLine : HeightData.InputBar;
     if (oldHeight !== height) {
-      VPort.postToOwner({ name: "style", height: height });
+      VPort.postToOwner({ name: "style", height });
     }
     list.forEach(this.parse, this);
     return this.populateUI();
   },
   populateUI (): void {
-    const list = this.list, noEmpty = this.completions.length > 0,
+    const list = this.list, notEmpty = this.completions.length > 0,
     cl = (this.input.parentElement as HTMLElement).classList, c = "withList";
-    noEmpty ? cl.add(c) : cl.remove(c);
-    list.style.display = noEmpty ? "" : "none";
+    notEmpty ? cl.add(c) : cl.remove(c);
+    list.style.height = this.heightList + "px";
     list.innerHTML = this.renderItems(this.completions);
-    if (noEmpty) {
+    if (notEmpty) {
       if (this.selection === 0) {
         const line = this.completions[0] as SuggestionEx;
         VUtils.ensureText(line);
@@ -511,9 +517,9 @@ var Vomnibar = {
     Object.setPrototypeOf(this.ctrlMap, null);
     Object.setPrototypeOf(this.normalMap, null);
     this.input = document.getElementById("input") as HTMLInputElement;
-    this.list = document.getElementById("list") as HTMLDivElement;
+    const list = this.list = document.getElementById("list") as HTMLDivElement;
     this.input.oninput = this.onInput.bind(this);
-    this.list.oncontextmenu = this.OnMenu;
+    list.oncontextmenu = this.OnMenu;
     (document.getElementById("close") as HTMLElement).onclick = function() { return Vomnibar.hide(); };
     addEventListener("keydown", this.HandleKeydown, true);
     this.renderItems = VUtils.makeListRenderer((document.getElementById("template") as HTMLElement).innerHTML);
@@ -525,9 +531,11 @@ var Vomnibar = {
     } else {
       this.showFavIcon = false;
     }
-    if (getComputedStyle(this.list).background === getComputedStyle(document.head as HTMLElement).background) {
+    const st = getComputedStyle(list);
+    if (st.background === getComputedStyle(document.head as HTMLElement).background) {
       VPort.postToOwner({ name: "css", key: "background", value: "white" });
     }
+    if (st.contain === "content") { list.style.contain = "strict"; } // for backwards compatibility with old vomnibar
     if (this.browserVersion < BrowserVer.MinEnsuredBorderWidth) {
       const css = document.createElement("style");
       css.textContent = ".item{border-width:1px;}";

@@ -584,7 +584,7 @@ interface CSSStyleDeclaration {
     columnSpan: string | null;
     columnWidth: any;
     columns: string | null;
-    contain?: string;
+    contain?: "layout" | "paint" | "size" | "style" | "layout size style" | "layout style" | "content" | "strict" | "";
     content: string | null;
     counterIncrement: string | null;
     counterReset: string | null;
