@@ -365,7 +365,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
       let str = VDom.getSelectionText();
       if (!str) {
         str = options.url ? window.location.href : document.title;
-        options.decode === true && (str = VUtils.decodeURL(str));
+        (options.decoded || options.decode) && (str = VUtils.decodeURL(str));
       }
       (str.length >= 4 || str.trim()) && vPort.post({
         handler: "copyToClipboard",

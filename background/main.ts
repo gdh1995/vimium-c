@@ -1196,7 +1196,7 @@ Are you sure you want to continue?`);
       return funcDict.selectTab(tabId);
     },
     copyTabInfo (this: void, tabs: [Tab]): void {
-      let str: string;
+      let str: string, decoded = !!(cOptions.decoded || cOptions.decode);
       switch (cOptions.type) {
       case "title": str = tabs[0].title; break;
       case "frame":
@@ -1205,12 +1205,12 @@ Are you sure you want to continue?`);
           name: "execute",
           command: "autoCopy",
           count: 1,
-          options: { url: true, decode: cOptions.decode === true }
+          options: { url: true, decoded }
         });
         return;
       default: str = tabs[0].url; break;
       }
-      cOptions.decode === true && (str = Utils.DecodeURLPart(str, decodeURI));
+      decoded && (str = Utils.DecodeURLPart(str, decodeURI));
       Clipboard.copy(str);
       return requestHandlers.ShowHUD(str, true);
     },
