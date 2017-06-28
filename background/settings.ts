@@ -145,7 +145,9 @@ var Settings = {
   indexPorts: null as never as Window["Settings"]["indexPorts"],
   fetchFile (file: keyof SettingsNS.CachedFiles, callback?: (this: void) => any): TextXHR | null {
     if (callback && file in this.cache) { callback(); return null; }
-    return Utils.fetchHttpContents(this.CONST.XHRFiles[file], function() {
+    const url = this.CONST.XHRFiles[file];
+    if (!url) { throw Error("unknown file: " + file); } // just for debugging
+    return Utils.fetchHttpContents(url, function() {
       Settings.set(file, this.responseText);
       callback && callback();
       return;
