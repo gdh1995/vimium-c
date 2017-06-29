@@ -112,7 +112,8 @@ VDom.UI = {
   click (element, modifiers, addFocus): boolean {
     element === VDom.lastHovered || VDom.unhoverLast(element, modifiers);
     VDom.mouse(element, "mousedown", modifiers);
-    addFocus && element !== VEventMode.lock() && element.focus && element.focus();
+    // Note: here we can check doc.activeEl only when @click is used on the current focused document
+    addFocus && element !== VEventMode.lock() && element !== document.activeElement && element.focus && element.focus();
     VDom.mouse(element, "mouseup", modifiers);
     return VDom.mouse(element, "click", modifiers);
   },
