@@ -89,7 +89,7 @@ var Vomnibar = {
   heightList: 0,
   input: null as never as HTMLInputElement,
   barCls: null as never as DOMTokenList,
-  isSelectionOrigin: true,
+  isSelOriginal: true,
   lastKey: 0,
   keyResult: HandlerResult.Nothing,
   list: null as never as HTMLDivElement,
@@ -164,14 +164,14 @@ var Vomnibar = {
     this.timer = setTimeout(this.OnTimer, updateDelay);
   },
   refresh (): void {
-    let oldSel = this.selection, origin = this.isSelectionOrigin;
+    let oldSel = this.selection, origin = this.isSelOriginal;
     this.useInput = false;
     this.width();
     return this.update(17, function(this: typeof Vomnibar): void {
       const len = this.completions.length;
       if (!origin && oldSel >= 0 && len > 0) {
         oldSel = Math.min(oldSel, len - 1);
-        this.selection = 0; this.isSelectionOrigin = false;
+        this.selection = 0; this.isSelOriginal = false;
         this.updateSelection(oldSel);
       }
       this.focused || this.input.focus();
@@ -179,7 +179,7 @@ var Vomnibar = {
   },
   updateInput (sel: number): void {
     const focused = this.focused;
-    this.isSelectionOrigin = false;
+    this.isSelOriginal = false;
     if (sel === -1) {
       this.isHttps = null; this.isEditing = false;
       this.input.value = this.inputText;
@@ -220,7 +220,7 @@ var Vomnibar = {
   },
   toggleInput (): void {
     if (this.selection < 0) { return; }
-    if (this.isSelectionOrigin) {
+    if (this.isSelOriginal) {
       this.inputText = this.input.value;
       return this.updateInput(this.selection);
     }
@@ -237,7 +237,7 @@ var Vomnibar = {
   updateSelection (sel: number): void {
     if (this.timer) { return; }
     const _ref = this.list.children, old = this.selection;
-    (this.isSelectionOrigin || old < 0) && (this.inputText = this.input.value);
+    (this.isSelOriginal || old < 0) && (this.inputText = this.input.value);
     this.updateInput(sel);
     this.selection = sel;
     old >= 0 && _ref[old].classList.remove("s");
@@ -348,7 +348,7 @@ var Vomnibar = {
     const len = this.completions.length, n = this.mode.maxResults;
     let str = len ? this.completions[0].type : "", sel = +dir || -1;
     if (this.isSearchOnTop) { return; }
-    str = (this.isSelectionOrigin || this.selection < 0 ? this.input.value : this.inputText).trimRight();
+    str = (this.isSelOriginal || this.selection < 0 ? this.input.value : this.inputText).trimRight();
     let arr = this._pageNumRe.exec(str), i = ((arr && arr[0]) as string | undefined | number as number) | 0;
     if (len >= n) { sel *= n; }
     else if (i > 0 && sel < 0) { sel *= i >= n ? n : 1; }
@@ -377,7 +377,7 @@ var Vomnibar = {
     else if (sel === -1 && this.input.value.length === 0) { return; }
     else if (!this.timer) {}
     else if (this.isEditing) { sel = -1; }
-    else if (sel === -1 || this.isSelectionOrigin) {
+    else if (sel === -1 || this.isSelOriginal) {
       return this.update(0, this.onEnter);
     }
     interface UrlInfo { url: string; sessionId?: undefined }
@@ -437,7 +437,7 @@ var Vomnibar = {
   },
   onInput (): void {
     let s0 = this.lastQuery, s1 = this.input.value, str: string, arr: RegExpExecArray | null;
-    if ((str = s1.trim()) === (this.selection === -1 || this.isSelectionOrigin
+    if ((str = s1.trim()) === (this.selection === -1 || this.isSelOriginal
         ? s0 : this.completions[this.selection].text)) {
       return;
     }
@@ -467,7 +467,7 @@ var Vomnibar = {
     this.matchType = response.matchType;
     this.completions = list;
     this.selection = (response.autoSelect || this.modeType !== "omni") && notEmpty ?  0 : -1;
-    this.isSelectionOrigin = true;
+    this.isSelOriginal = true;
     this.isSearchOnTop = notEmpty && list[0].type === "search";
     if (notEmpty) {
       height = (height - 1) * (HeightData.Item + (1 / (Math.max(1, window.devicePixelRatio)))) + HeightData.LastItem;
@@ -483,8 +483,8 @@ var Vomnibar = {
   populateUI (): void {
     const list = this.list, notEmpty = this.completions.length > 0, cl = this.barCls, c = "withList";
     notEmpty ? this.barCls.add(c) : cl.remove(c);
-    list.style.height = this.heightList + "px";
     list.innerHTML = this.renderItems(this.completions);
+    list.style.height = this.heightList + "px";
     if (notEmpty) {
       if (this.selection === 0) {
         const line = this.completions[0] as SuggestionEx;
