@@ -82,6 +82,7 @@ var Vomnibar = {
   matchType: CompletersNS.MatchType.Default,
   focused: true,
   forceNewTab: false,
+  sameOrigin: false,
   showFavIcon: false,
   showRelevancy: false,
   lastScrolling: 0,
@@ -120,6 +121,7 @@ var Vomnibar = {
     this.list.textContent = el.value = "";
     this.list.style.height = "0px";
     this.barCls.remove("withList");
+    if (this.sameOrigin) { return this.onHidden(!data); }
     requestAnimationFrame(() => Vomnibar.onHidden(!data));
   },
   onHidden (fromInner: boolean): void {
@@ -474,14 +476,12 @@ var Vomnibar = {
     }
     this.heightList = height;
     this.height = height = notEmpty ? (height | 0) + HeightData.InputBarWithLine : HeightData.InputBar;
-    if (oldHeight !== height) {
-      VPort.postToOwner({ name: "style", height });
-    }
     list.forEach(this.parse, this);
-    return this.populateUI();
+    return this.populateUI(oldHeight);
   },
-  populateUI (): void {
-    const list = this.list, notEmpty = this.completions.length > 0, cl = this.barCls, c = "withList";
+  populateUI (oldHeight: number): void {
+    const { list, barCls: cl, height } = this, notEmpty = this.completions.length > 0, c = "withList";
+    if (height !== oldHeight) { VPort.postToOwner({ name: "style", height }); }
     notEmpty ? this.barCls.add(c) : cl.remove(c);
     list.innerHTML = this.renderItems(this.completions);
     list.style.height = this.heightList + "px";
@@ -758,6 +758,7 @@ VPort = {
     window.onmessage = null as never;
     port || (port = _port as VomnibarNS.IframePort);
     options || (options = _options);
+    Vomnibar.sameOrigin = !!port.sameOrigin;
     VPort.postToOwner = port.postMessage.bind(port);
     port.onmessage = VPort.OnOwnerMessage;
     window.onunload = VPort.OnUnload;

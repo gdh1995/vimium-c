@@ -131,6 +131,7 @@ var Vomnibar = {
         a.reset();
         (VDom.UI.box as HTMLElement).style.display = "";
         window.focus();
+        a.width = a.zoom = 0;
         a.status = VomnibarNS.Status.KeepBroken;
         return (a as any).activate();
       }, 1000);
@@ -144,6 +145,7 @@ var Vomnibar = {
       type FReq = VomnibarNS.FReq;
       type CReq = VomnibarNS.CReq;
       const port: VomnibarNS.IframePort = {
+        sameOrigin: true,
         onmessage: null as never as VomnibarNS.IframePort["onmessage"],
         postMessage<K extends keyof FReq> (data: FReq[K] & VomnibarNS.Msg<K>): void | 1 {
           return Vomnibar.onMessage<K>({ data });

@@ -146,6 +146,7 @@ declare namespace VomnibarNS {
   }
   type FgMsg<K extends keyof FReq> = FReq[K] & Msg<K>;
   interface IframePort {
+    sameOrigin?: true;
     postMessage<K extends keyof FReq> (this: void, msg: FReq[K] & Msg<K>): void | 1;
     onmessage<K extends keyof CReq> (this: void, msg: { data: CReq[K] }): void | 1;
   }
