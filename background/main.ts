@@ -640,7 +640,7 @@ Are you sure you want to continue?`);
           curTab.id = tabs[startTabIndex].id;
           tabs = tabs.slice(startTabIndex + 1);
         }
-        if (Settings.CONST.ChromeVersion < BrowserVer.MinNoUnmatchedIncognito) {
+        if (Settings.CONST.ChromeVersion < BrowserVer.MinNoUnmatchedIncognito && this.incognito) {
           tabs = tabs.filter(tab => tab.incognito === curTab.incognito);
         }
         const tabIds = tabs.map(funcDict.getId);
@@ -903,8 +903,9 @@ Are you sure you want to continue?`);
         return funcDict.complain("duplicate such a tab");
       }
       chrome.tabs.duplicate(tabId);
-      if (1 > --commandCount) {}
-      else if (Settings.CONST.ChromeVersion >= BrowserVer.MinNoUnmatchedIncognito) {
+      if (commandCount-- < 2) { return; }
+      if (Settings.CONST.ChromeVersion >= BrowserVer.MinNoUnmatchedIncognito
+          || TabRecency.incognito === IncognitoType.ensuredFalse) {
         chrome.tabs.get(tabId, funcDict.duplicateTab[2]);
       } else {
         chrome.windows.getCurrent({populate: true}, funcDict.duplicateTab[0].bind(null, tabId));
@@ -912,7 +913,7 @@ Are you sure you want to continue?`);
     },
     moveTabToNewWindow (): void {
       const incognito = !!cOptions.incognito, arr = incognito ? funcDict.moveTabToIncognito : funcDict.moveTabToNewWindow;
-      if (incognito && cPort && Settings.CONST.ChromeVersion >= BrowserVer.MinNoUnmatchedIncognito && cPort.sender.incognito) {
+      if (incognito && (cPort ? cPort.sender.incognito : TabRecency.incognito === IncognitoType.true)) {
         return (arr as typeof funcDict.moveTabToIncognito)[3]();
       }
       chrome.windows.getCurrent({populate: true}, arr[0]);
@@ -1128,7 +1129,7 @@ Are you sure you want to continue?`);
       const tab = tabs[0];
       ++tab.index;
       if (Settings.CONST.ChromeVersion >= BrowserVer.MinNoUnmatchedIncognito || Settings.CONST.DisallowIncognito
-         || !Utils.isRefusingIncognito(tab.url)) {
+          || TabRecency.incognito === IncognitoType.ensuredFalse || !Utils.isRefusingIncognito(tab.url)) {
         return funcDict.reopenTab(tab);
       }
       chrome.windows.get(tab.windowId, function(wnd): void {
@@ -1708,7 +1709,6 @@ Are you sure you want to continue?`);
     },
     omni (this: void, request: FgReq["omni"], port: Port): void {
       if (funcDict.checkVomnibarPage(port)) { return; }
-      (request as CompletersNS.FullOptions).incognito = port.sender.incognito;
       return Completers.filter(request.query, request, funcDict.PostCompletions.bind(port));
     },
     openCopiedUrl: function (this: void, request: FgReq["openCopiedUrl"], port?: Port): Urls.Url {

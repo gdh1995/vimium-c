@@ -194,6 +194,7 @@ FindModeHistory = {
 TabRecency = {
   tabs: Object.create<number>(null) as SafeDict<number>,
   last: (chrome.tabs.TAB_ID_NONE || GlobalConsts.TabIdNone) as number,
+  incognito: IncognitoType.mayFalse,
   rCompare: null as never as (a: {id: number}, b: {id: number}) => number,
 };
 
@@ -219,6 +220,7 @@ setTimeout(function() {
   function onWndFocus(tabs: [chrome.tabs.Tab] | never[]) {
     let a = tabs[0];
     if (a) {
+      TabRecency.incognito = +a.incognito;
       return listener({ tabId: a.id });
     }
   }
@@ -232,6 +234,7 @@ setTimeout(function() {
     let a = tabs[0];
     if (chrome.runtime.lastError || !a) { return chrome.runtime.lastError; }
     TabRecency.last = a.id;
+    TabRecency.incognito = +a.incognito;
   });
   TabRecency.rCompare = function(a, b): number {
     return (cache[b.id] as number) - (cache[a.id] as number);

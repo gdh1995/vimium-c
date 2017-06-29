@@ -156,6 +156,11 @@ interface Port extends Frames.Port {
   readonly sender: Readonly<Frames.Sender>;
 }
 
+declare const enum IncognitoType {
+  mayFalse = 0, true = 1,
+  ensuredFalse = -1,
+}
+
 type CurrentTabs = [chrome.tabs.Tab];
 
 declare namespace MarksNS {
@@ -220,7 +225,6 @@ declare namespace CompletersNS {
     newAutoSelect: boolean, newMatchType: MatchType) => void;
 
   type FullOptions = Options & {
-    incognito?: boolean;
   };
 
   interface GlobalCompletersConstructor {

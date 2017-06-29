@@ -816,13 +816,18 @@ searchEngines: {
       , func: (this: T, query: CompletersNS.QueryStatus, tabs: chrome.tabs.Tab[]) => void
       , query: CompletersNS.QueryStatus): 1 {
     const cb = func.bind(that, query);
-    if (inNormal != null && Settings.CONST.ChromeVersion >= BrowserVer.MinNoUnmatchedIncognito
-        || Settings.CONST.DisallowIncognito) {
+    if (inNormal == null) {
+      inNormal = TabRecency.incognito !== IncognitoType.mayFalse ? TabRecency.incognito !== IncognitoType.true
+        : Settings.CONST.ChromeVersion >= BrowserVer.MinNoUnmatchedIncognito || Settings.CONST.DisallowIncognito
+          || null;
+    }
+    if (inNormal != null) {
       return chrome.tabs.query({}, cb);
     }
     return chrome.windows.getCurrent(function(wnd): void {
       if (query.isOff) { return; }
       inNormal = wnd ? !wnd.incognito : true;
+      TabRecency.incognito = inNormal ? IncognitoType.ensuredFalse : IncognitoType.true;
       chrome.tabs.query({}, cb);
     });
   },
@@ -902,7 +907,6 @@ searchEngines: {
     queryTerms = (query = query.trim()) ? query.split(Utils.spacesRe) : [];
     maxChars = Math.max(50, Math.min((<number>options.maxChars | 0) || 128, 200));
     maxTotal = maxResults = Math.min(Math.max((options.maxResults as number) | 0, 3), 25);
-    inNormal = Settings.CONST.DisallowIncognito ? true : options.incognito != null ? !options.incognito : null;
     Completers.callback = callback;
     let arr: ReadonlyArray<Completer> | null = null, str: string;
     if (queryTerms.length >= 1 && queryTerms[0].length === 2 && queryTerms[0][0] === ":") {
