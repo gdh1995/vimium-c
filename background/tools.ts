@@ -192,14 +192,14 @@ FindModeHistory = {
   }
 },
 TabRecency = {
-  tabs: null as never as SafeDict<number>,
-  last (this: void): number { return GlobalConsts.TabIdNone; },
+  tabs: Object.create<number>(null) as SafeDict<number>,
+  last: (chrome.tabs.TAB_ID_NONE || GlobalConsts.TabIdNone) as number,
   rCompare: null as never as (a: {id: number}, b: {id: number}) => number,
 };
 
 setTimeout(function() {
-  const cache = Object.create<number>(null), noneWnd = chrome.windows.WINDOW_ID_NONE || GlobalConsts.WndIdNone;
-  let last = GlobalConsts.TabIdNone, stamp = 1, time = 0;
+  const cache = TabRecency.tabs, noneWnd = chrome.windows.WINDOW_ID_NONE || GlobalConsts.WndIdNone;
+  let stamp = 1, time = 0;
   function clean(): void {
     const ref = cache;
     for (let i in ref) {
@@ -211,25 +211,28 @@ setTimeout(function() {
   function listener({ tabId }: { tabId: number }): void {
     const now = Date.now();
     if (now - time > 500) {
-      cache[last] = ++stamp;
+      cache[TabRecency.last] = ++stamp;
       if (stamp === 1023) { clean(); }
     }
-    last = tabId; time = now;
+    TabRecency.last = tabId; time = now;
+  }
+  function onWndFocus(tabs: [chrome.tabs.Tab] | never[]) {
+    let a = tabs[0];
+    if (a) {
+      return listener({ tabId: a.id });
+    }
   }
   chrome.tabs.onActivated.addListener(listener);
   chrome.windows.onFocusChanged.addListener(function(windowId): void {
     if (windowId === noneWnd) { return; }
-    chrome.tabs.query({windowId, active: true}, function(tabs) {
-      if (tabs[0]) { return listener({ tabId: tabs[0].id }); }
-    });
+    chrome.tabs.query({windowId, active: true}, onWndFocus);
   });
   chrome.tabs.query({currentWindow: true, active: true}, function(tabs: CurrentTabs): void {
     time = Date.now();
-    if (chrome.runtime.lastError) { return chrome.runtime.lastError; }
-    last = tabs[0] ? tabs[0].id : (chrome.tabs.TAB_ID_NONE || GlobalConsts.TabIdNone);
+    let a = tabs[0];
+    if (chrome.runtime.lastError || !a) { return chrome.runtime.lastError; }
+    TabRecency.last = a.id;
   });
-  TabRecency.tabs = cache;
-  TabRecency.last = function() { return last; };
   TabRecency.rCompare = function(a, b): number {
     return (cache[b.id] as number) - (cache[a.id] as number);
   };

@@ -462,8 +462,8 @@ Are you sure you want to continue?`);
       if (!tabs) {}
       else if ((tabs as Tab[]).length > 0) { tab = (tabs as Tab[])[0]; }
       else if ("id" in tabs) { tab = tabs as Tab; }
-      else if (TabRecency.last() >= 0) {
-        chrome.tabs.get(TabRecency.last(), funcDict.createTab[0].bind(url, onlyNormal));
+      else if (TabRecency.last >= 0) {
+        chrome.tabs.get(TabRecency.last, funcDict.createTab[0].bind(url, onlyNormal));
         return;
       }
       if (!tab) {
@@ -1176,7 +1176,7 @@ Are you sure you want to continue?`);
       });
     },
     mainFrame (): void {
-      const tabId = cPort ? cPort.sender.tabId : TabRecency.last(), port = funcDict.indexFrame(tabId, 0);
+      const tabId = cPort ? cPort.sender.tabId : TabRecency.last, port = funcDict.indexFrame(tabId, 0);
       if (!port) { return; }
       port.postMessage({
         name: "focusFrame",
@@ -1274,7 +1274,7 @@ Are you sure you want to continue?`);
     showVomnibar (this: void, forceInner?: boolean): void {
       let port = cPort as Port | null;
       if (!port) {
-        port = funcDict.indexFrame(TabRecency.last(), 0);
+        port = funcDict.indexFrame(TabRecency.last, 0);
         if (!port) { return; }
       } else if (port.sender.frameId !== 0 && port.sender.tabId >= 0) {
         port = funcDict.indexFrame(port.sender.tabId, 0) || port;
@@ -1564,7 +1564,7 @@ Are you sure you want to continue?`);
       chrome.sessions.restore(id, funcDict.onRuntimeError);
       if (active) { return; }
       let tabId = (port as Port).sender.tabId;
-      tabId >= 0 || (tabId = TabRecency.last());
+      tabId >= 0 || (tabId = TabRecency.last);
       if (tabId >= 0) { return funcDict.selectTab(tabId); }
     } as BgReqHandlerNS.BgReqHandlers["gotoSession"],
     openUrl: function (this: void, request: FgReq["openUrl"] & { url_f?: Urls.Url}, port?: Port): void {
@@ -1859,7 +1859,7 @@ Are you sure you want to continue?`);
           this.framesForOmni.push(port);
           if (tabId < 0) {
             (port.sender as Frames.RawSender).tabId = type !== PortType.omnibar ? this._fakeId--
-               : cPort ? cPort.sender.tabId : TabRecency.last();
+               : cPort ? cPort.sender.tabId : TabRecency.last;
           }
           port.onDisconnect.addListener(this.OnOmniDisconnect);
           port.onMessage.addListener(this.OnMessage);

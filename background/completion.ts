@@ -570,7 +570,7 @@ tabs: {
   performSearch (query: CompletersNS.QueryStatus, tabs0: chrome.tabs.Tab[]): void {
     if (query.isOff) { return; }
     if (queryType === FirstQuery.waitFirst) { queryType = FirstQuery.tabs; }
-    const curTabId = TabRecency.last(), noFilter = queryTerms.length <= 0;
+    const curTabId = TabRecency.last, noFilter = queryTerms.length <= 0;
     let suggestions = [] as Suggestion[], tabs = [] as TextTab[];
     for (const tab of tabs0) {
       if (tab.incognito && inNormal) { continue; }
