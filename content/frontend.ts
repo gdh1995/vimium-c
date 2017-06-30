@@ -473,7 +473,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
       this.focus = this.lockFocus;
       this.init = null as never;
       KeydownEvents = new Uint8Array(256);
-      if (VSettings.cache.grabBackFocus && this.loading) {
+      if (VSettings.cache.grabFocus && this.loading) {
         if (notBody) {
           activeEl.blur && activeEl.blur();
           notBody = (activeEl = document.activeElement as Element) !== document.body;

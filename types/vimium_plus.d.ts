@@ -134,7 +134,6 @@ declare namespace SettingsNS {
   }
   interface FrontendSettings {
     deepHints: boolean;
-    grabBackFocus: boolean;
     keyboard: [number, number];
     linkHintCharacters: string;
     regexFindMode: boolean;
@@ -143,6 +142,7 @@ declare namespace SettingsNS {
     userDefinedOuterCss: string;
   }
   interface FrontendSettingCache extends FrontendSettings {
+    grabFocus: boolean;
     onMac: boolean;
   }
 }

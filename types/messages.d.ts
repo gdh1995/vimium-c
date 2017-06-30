@@ -59,7 +59,7 @@ interface BgReq {
   settingsUpdate: {
     name: "settingsUpdate",
   } & {
-    [key in keyof SettingsNS.FrontendSettingCache]?: SettingsNS.FrontendSettingCache[key];
+    [key in keyof SettingsNS.FrontendSettings]?: SettingsNS.FrontendSettings[key];
   };
 }
 

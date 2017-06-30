@@ -68,6 +68,9 @@ var Settings = {
         ref2[key] = this.get(key);
       }
     },
+    grabBackFocus (value: FullSettings["grabBackFocus"]): void {
+      (this as typeof Settings).bufferToLoad.grabFocus = value;
+    },
     extWhiteList (val): void {
       const old = (this as typeof Settings).extWhiteList;
       const map = (this as typeof Settings).extWhiteList = Object.create<boolean>(null);
@@ -223,7 +226,7 @@ w|wiki:\\\n  https://www.wikipedia.org/w/index.php?search=$s Wikipedia
     { "19": "/icons/partial_19.png", "38": "/icons/partial_38.png" },
     { "19": "/icons/disabled_19.png", "38": "/icons/disabled_38.png" }
   ] as [IconNS.PathBuffer, IconNS.PathBuffer, IconNS.PathBuffer],
-  valuesToLoad: ["deepHints", "grabBackFocus", "keyboard", "linkHintCharacters" //
+  valuesToLoad: ["deepHints", "keyboard", "linkHintCharacters" //
     , "regexFindMode", "scrollStepSize", "smoothScroll", "userDefinedOuterCss" //
   ] as Array<keyof SettingsNS.FrontendSettings>,
   Sync: {
@@ -272,6 +275,7 @@ w|wiki:\\\n  https://www.wikipedia.org/w/index.php?search=$s Wikipedia
 
 Settings.CONST.ChromeVersion = 0 | (navigator.appVersion.match(/\bChrom(?:e|ium)\/(\d+)/) || [0, BrowserVer.AssumesVer])[1] as number;
 Settings.bufferToLoad.onMac = false;
+Settings.bufferToLoad.grabFocus = Settings.get("grabBackFocus");
 chrome.runtime.getPlatformInfo(function(info): void {
   Settings.CONST.Platform = info.os;
   Settings.bufferToLoad.onMac = info.os === (chrome.runtime.PlatformOs ? chrome.runtime.PlatformOs.MAC : "mac");

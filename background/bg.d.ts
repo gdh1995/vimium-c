@@ -262,6 +262,7 @@ declare namespace SettingsNS {
     exclusionRules: ExclusionsNS.StoredRule[];
     extWhiteList: string;
     findModeRawQueryList: string;
+    grabBackFocus: boolean;
     hideHud: boolean;
     keyMappings: string;
     localeEncoding: string;
@@ -319,7 +320,7 @@ declare namespace SettingsNS {
     bufferToLoad (this: Window["Settings"], value: null): void;
   }
   type DeclaredUpdateHookMap = NullableUpdateHookMap
-      & Pick<BaseUpdateHookMap, "extWhiteList" | "newTabUrl" | "baseCSS" | "vimSync"
+      & Pick<BaseUpdateHookMap, "extWhiteList" | "grabBackFocus" | "newTabUrl" | "baseCSS" | "vimSync"
         | "userDefinedCss" | "vomnibarPage">;
   type EnsuredUpdateHookMaps = DeclaredUpdateHookMap
       & Pick<BaseUpdateHookMap, "showActionIcon" | "newTabUrl_f">;
