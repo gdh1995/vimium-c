@@ -18,9 +18,6 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
     vimiumListened?: ListenType;
   }
   type LockableElement = HTMLElement;
-  interface LockableFocusEvent extends Event {
-    target: LockableElement;
-  }
 
   var KeydownEvents: KeydownCacheArray, keyMap: KeyMap
     , currentKeys = "", isEnabledForUrl = false
@@ -165,7 +162,15 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
         }
       }
       if (VDom.getEditableType(target)) {
-        return InsertMode.focus(event as LockableFocusEvent, target as LockableElement);
+        if (InsertMode.grabFocus) {
+          event.stopImmediatePropagation();
+          (target as HTMLElement).blur();
+          return;
+        }
+        InsertMode.lock = target as HTMLElement;
+        if (InsertMode.mutable) {
+          InsertMode.last = target as HTMLElement;
+        }
       }
     },
     onBlur (event: Event | FocusEvent): void {
@@ -460,40 +465,36 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
   },
 
   InsertMode = {
-    focus: null as never as (event: LockableFocusEvent, target: LockableElement) => void,
+    grabFocus: document.readyState !== "complete",
     global: null as CmdOptions["enterInsertMode"] | null,
     suppressType: null as string | null,
     last: null as LockableElement | null,
-    loading: (document.readyState !== "complete"),
     lock: null as LockableElement | null,
     mutable: true,
     init (): void {
       /** if `notBody` then `activeEl` is not null  */
       let activeEl = document.activeElement as Element, notBody = activeEl !== document.body;
-      this.focus = this.lockFocus;
       this.init = null as never;
       KeydownEvents = new Uint8Array(256);
-      if (VSettings.cache.grabFocus && this.loading) {
+      if (VSettings.cache.grabFocus && this.grabFocus) {
         if (notBody) {
           activeEl.blur && activeEl.blur();
           notBody = (activeEl = document.activeElement as Element) !== document.body;
         }
         if (!notBody) {
-          return this.setupGrab();
+          VHandler.push(this.ExitGrab, this);
+          return addEventListener("mousedown", this.ExitGrab, true);
         }
       }
+      this.grabFocus = false;
       if (notBody && VDom.getEditableType(activeEl)) {
         this.lock = activeEl as HTMLElement;
       }
     },
-    setupGrab (): void {
-      this.focus = this.grabBackFocus;
-      VHandler.push(this.ExitGrab, this);
-      addEventListener("mousedown", this.ExitGrab, true);
-    },
     ExitGrab: function (this: void, event: MouseEvent | KeyboardEvent | "other"): HandlerResult.Nothing | void {
       const _this = InsertMode;
-      _this.focus = _this.lockFocus;
+      _this.grabFocus = false;
+      _this.ExitGrab = null as never;
       removeEventListener("mousedown", _this.ExitGrab, true);
       VHandler.remove(_this);
       event === "other" || !window.frames.length && window === window.top ||
@@ -502,16 +503,6 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
     } as {
       (this: void, event: MouseEvent | "other"): void;
       (this: void, event: KeyboardEvent): HandlerResult.Nothing;
-    },
-    grabBackFocus (event: LockableFocusEvent, target: LockableElement): void {
-      event.stopImmediatePropagation();
-      target.blur();
-    },
-    lockFocus (_e: LockableFocusEvent, target: LockableElement): void {
-      this.lock = target;
-      if (this.mutable) {
-        this.last = target;
-      }
     },
     isActive (): boolean {
       if (this.suppressType) { return false; }
@@ -742,14 +733,13 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
       VSettings.cache = cache;
       cache.onMac && (VKeyboard.correctionMap = Object.create<string>(null));
       r.keyMap(request);
+      request.passKeys !== "" ? InsertMode.init() : (InsertMode.grabFocus = false);
       r.reset(request);
-      InsertMode.loading = false;
       r.init = null as never;
       return VDom.documentReady(ELs.OnReady);
     },
     reset ({ passKeys: newPassKeys }): void {
       const enabled = isEnabledForUrl = (newPassKeys !== "");
-      enabled && InsertMode.init && InsertMode.init();
       enabled === !requestHandlers.init && ELs.hook(enabled ? addEventListener : removeEventListener, 1);
       if (!enabled) {
         VScroller.current = VDom.lastHovered = InsertMode.last = InsertMode.lock = null;
@@ -772,7 +762,7 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
     },
     insertInnerCSS: VDom.UI.InsertInnerCSS,
     focusFrame: FrameMask.Focus,
-    exitGrab (this: void): void { if (InsertMode.focus === InsertMode.grabBackFocus) { return InsertMode.ExitGrab("other"); } },
+    exitGrab (this: void): void { if (InsertMode.grabFocus) { return InsertMode.ExitGrab("other"); } },
     keyMap (request): void {
       const map = keyMap = request.keyMap, func = Object.setPrototypeOf;
       func(map, null);
