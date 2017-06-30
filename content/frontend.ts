@@ -146,12 +146,12 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
         return ELs.OnWndFocus();
       }
       if (!isEnabledForUrl) { return; }
-      if (target === VDom.UI.box
-          // it's safe to compare .lock and doc.activeEl here without checking target.shadowRoot,
-          // and .shadowRoot should not block this check;
-          // note: this ignores the case that <form> is in a shadowDom
-          || InsertMode.lock !== null && InsertMode.lock === document.activeElement
-          ) { event.stopImmediatePropagation(); return; }
+      // it's safe to compare .lock and doc.activeEl here without checking target.shadowRoot,
+      // and .shadowRoot should not block this check;
+      // note: this ignores the case that <form> is in a shadowDom
+      // note: DO NOT stop propagation
+      if (target === VDom.UI.box) { return event.stopImmediatePropagation(); }
+      if (InsertMode.lock !== null && InsertMode.lock === document.activeElement) { return; }
       if ((target as Element).shadowRoot != null) {
         let path = event.path as EventTarget[]
           , diff = !!path && (target = path[0]) !== event.target && target !== window, len = diff ? path.indexOf(target) : 1;
