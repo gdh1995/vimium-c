@@ -477,11 +477,12 @@ var Vomnibar = {
     this.heightList = height;
     this.height = height = notEmpty ? (height | 0) + HeightData.InputBarWithLine : HeightData.InputBar;
     list.forEach(this.parse, this);
-    return this.populateUI(oldHeight);
+    return this.populateUI(oldHeight < height);
   },
-  populateUI (oldHeight: number): void {
-    const { list, barCls: cl, height } = this, notEmpty = this.completions.length > 0, c = "withList";
-    if (height !== oldHeight) { VPort.postToOwner({ name: "style", height }); }
+  populateUI (smaller: boolean): void {
+    const { list, barCls: cl } = this, notEmpty = this.completions.length > 0, c = "withList",
+    msg = { name: "style" as "style", height: this.height };
+    if (smaller) { VPort.postToOwner(msg); }
     notEmpty ? this.barCls.add(c) : cl.remove(c);
     list.innerHTML = this.renderItems(this.completions);
     list.style.height = this.heightList + "px";
@@ -493,10 +494,15 @@ var Vomnibar = {
       }
       (list.lastElementChild as HTMLElement).classList.add("b");
     }
-    if (this.timer <= 0) { return this.postUpdate(); }
+    if (smaller) {
+      return this.postUpdate();
+    } else {
+      requestAnimationFrame(() => { VPort.postToOwner(msg); return Vomnibar.postUpdate(); });
+    }
   },
   postUpdate (): void {
     let func: typeof Vomnibar.onUpdate;
+    if (this.timer > 0) { return; }
     this.timer = 0;
     this.isEditing = false;
     if (func = this.onUpdate) {
@@ -580,6 +586,7 @@ var Vomnibar = {
   _spacesRe: <RegExpG> /\s+/g,
   fetch (): void {
     let mode = this.mode, str: string, newMatchType = CompletersNS.MatchType.Default;
+    this.timer = -1;
     if (this.useInput) {
       this.lastQuery = str = this.input.value.trim();
       str = str.replace(this._spacesRe, " ");
@@ -593,7 +600,6 @@ var Vomnibar = {
     } else {
       this.useInput = true;
     }
-    this.timer = -1;
     return VPort.postMessage(mode);
   },
 

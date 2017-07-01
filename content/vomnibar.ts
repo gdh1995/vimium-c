@@ -105,7 +105,8 @@ var Vomnibar = {
       active || window.focus();
       this.box.style.cssText = "display: none";
     } else if (active) {
-      this.port.postMessage<"hide">("hide");
+      this.box.style.opacity = "0";
+      requestAnimationFrame(() => { Vomnibar.port.postMessage<"hide">("hide"); });
     }
   },
   init (secret: number, page: string, type: VomnibarNS.PageType): HTMLIFrameElement {
