@@ -961,7 +961,7 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
   };
 
   VSettings = {
-    enabled: true,
+    enabled: false,
     cache: null as never as VSettings["cache"],
     checkIfEnabled: requestHandlers.checkIfEnabled as VSettings["checkIfEnabled"],
     onDestroy: null,

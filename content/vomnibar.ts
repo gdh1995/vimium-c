@@ -97,15 +97,15 @@ var Vomnibar = {
   },
   hide (fromInner?: boolean): void {
     const active = this.status > VomnibarNS.Status.Inactive;
+    if (active) {
+      VHandler.remove(this);
+      this.width = this.zoom = 0; this.status = VomnibarNS.Status.Inactive;
+    }
     if (fromInner != null) {
       active || window.focus();
       this.box.style.cssText = "display: none";
     } else if (active) {
       this.port.postMessage<"hide">("hide");
-    }
-    if (active) {
-      VHandler.remove(this);
-      this.width = this.zoom = 0; this.status = VomnibarNS.Status.Inactive;
     }
   },
   init (secret: number, page: string, type: VomnibarNS.PageType): HTMLIFrameElement {
