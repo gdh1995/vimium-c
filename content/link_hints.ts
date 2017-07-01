@@ -691,7 +691,7 @@ var VHints = {
       if (1 === --_this.count && _this.isActive) {
         return _this.setMode(_this.mode1);
       }
-    }, 0);
+    }, 18);
   },
   reinit (lastEl?: HintsNS.LinkEl | null, rect?: VRect | null): void {
     if (!VSettings.enabled) { return this.clean(); }
