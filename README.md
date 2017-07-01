@@ -37,7 +37,7 @@ __Vomnibar Page:__
 
 * [visit it on Chrome Web Store](https://chrome.google.com/webstore/detail/vomnibar-page-for-vimium%20/ekohaelnhhdhbccgefjmjpdjoijhojgd)
 * is an extension to replace Vimium++'s inner Vomnibar page.
-* With this, Vimium++'s memory cost will be smaller since Chrome 56.
+* With this, Vimium++'s memory cost will be smaller since Chrome 57.
 
 __微度新标签页修改版 (Modified X New Tab Page):__
 
@@ -146,7 +146,7 @@ Known issues (Up to the master branch):
 1.58.0:
 * temporarily disable the experimental feature of options_ui dialog
 * fix broken `Vomnibar` caused by the Chrome flag `#enable-site-per-process`
-  * this problem may occur since Chrome 56 even if this flag is off
+  * this problem may occur since Chrome 57 even if this flag is off
 * use `closed` shadowDOM to show UI more safely
 * fix many small code bugs
 
