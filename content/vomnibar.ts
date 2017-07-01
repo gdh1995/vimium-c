@@ -54,7 +54,8 @@ var Vomnibar = {
     if (this.status === VomnibarNS.Status.NotInited) {
       this.status = VomnibarNS.Status.Initing;
       this.init(options.secret, options.vomnibar, options.ptype);
-    } else if (this.checkAlive()) {
+    } else if (this.isABlank()) {
+      this._forceRedo = true;
       return;
     } else if (this.status === VomnibarNS.Status.Inactive) {
       this.status = VomnibarNS.Status.ToShow;
@@ -171,17 +172,18 @@ var Vomnibar = {
     this.port.close();
     this.box.remove();
     this.port = this.box = null as never;
+    this.sameOrigin = false;
     VHandler.remove(this);
     if (this._forceRedo) { this._forceRedo = false; }
     else if (!redo || oldStatus < VomnibarNS.Status.ToShow) { return; }
     return VPort.post({ handler: "activateVomnibar", redo: true, inner });
   },
-  checkAlive (): boolean {
-    const wnd = this.box.contentWindow;
+  isABlank (): boolean {
     try {
-      if (wnd && wnd.VPort && this.sameOrigin) { return false; }
-    } catch (e) { return false; }
-    return this._forceRedo = true;
+      const doc = this.box.contentDocument;
+      if (doc && doc.URL === "about:blank") { return true; }
+    } catch (e) {}
+    return false;
   },
   onMessage<K extends keyof VomnibarNS.FReq> ({ data }: { data: VomnibarNS.FReq[K] & VomnibarNS.Msg<K> }): void | 1 {
     type Req = VomnibarNS.FReq;

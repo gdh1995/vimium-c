@@ -58,7 +58,7 @@ declare namespace HintsNS {
   }
   interface VWindow extends Window {
     VHints: typeof VHints,
-    VEventMode: typeof VEventMode,
+    VEventMode: VEventMode,
     VDom: {
       isHTML (): boolean;
     };
@@ -204,16 +204,17 @@ var VHints = {
   },
   tryNestedFrame (command: string, a: number, b: FgOptions): boolean {
     this.frameNested === false && this.checkNestedFrame();
-    if (!this.frameNested) { return false; }
-    let child: HintsNS.VWindow, done = false;
+    let frame = this.frameNested, child: HintsNS.VWindow = null as never, err = true, done = false;
+    if (!frame) { return false; }
     try {
-      child = this.frameNested.contentWindow as HintsNS.VWindow;
-      if (!child.VDom.isHTML()) { throw Error("vimium-disabled"); }
-      if (command === "VHints.activate") {
-        (done = child.VHints.isActive) && child.VHints.deactivate(true);
+      if (frame.contentDocument && (child = frame.contentWindow as HintsNS.VWindow).VDom.isHTML()) {
+        if (command === "VHints.activate") {
+          (done = child.VHints.isActive) && child.VHints.deactivate(true);
+        }
+        err = child.VEventMode.keydownEvents(VEventMode.keydownEvents());
       }
-      child.VEventMode.keydownEvents(VEventMode.keydownEvents());
-    } catch (e) {
+    } catch (e) {}
+    if (err) {
       // It's cross-site, or Vimium++ on the child is wholly disabled
       // * Cross-site: it's in an abnormal situation, so we needn't focus the child;
       this.frameNested = null;
@@ -917,10 +918,12 @@ getUrlData (link: HTMLAnchorElement): string {
 },
 
 highlightChild (el: HTMLIFrameElement | HTMLFrameElement): false | void {
-  const child = el.contentWindow as HintsNS.VWindow;
+  let err: boolean | null = true, child: HintsNS.VWindow = null as never;
   try {
-    child.VEventMode.keydownEvents(VEventMode.keydownEvents());
-  } catch (e) {
+    err = !el.contentDocument &&
+      (child = el.contentWindow as HintsNS.VWindow).VEventMode.keydownEvents(VEventMode.keydownEvents());
+  } catch (e) {}
+  if (err) {
     VPort.post({ handler: "execInChild", url: el.src,
       command: "Hints.activateAndFocus", count: this.count, options: this.options
     });

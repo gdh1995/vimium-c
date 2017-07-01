@@ -12,7 +12,7 @@ var VFindMode = {
   initialRange: null as Range | null,
   activeRegexIndex: 0,
   regexMatches: null as RegExpMatchArray | null,
-  box: null as never as HTMLIFrameElement,
+  box: null as never as HTMLIFrameElement & { contentDocument: Document },
   input: null as never as HTMLBodyElement,
   countEl: null as never as HTMLSpanElement,
   styleIn: null as never as HTMLStyleElement,
@@ -53,7 +53,7 @@ html > count{float:right;}`,
     this.init && this.init();
     this.styleIn.disabled = this.styleOut.disabled = true;
 
-    const el = this.box = VDom.createElement("iframe");
+    const el = this.box = VDom.createElement("iframe") as typeof VFindMode.box;
     el.className = "R HUD UI";
     el.style.width = "0px";
     options.browserVersion < BrowserVer.MinNotPassMouseWheelToParentIframe && (el.onmousewheel = VUtils.Prevent);

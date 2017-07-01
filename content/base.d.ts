@@ -222,8 +222,9 @@ interface VEventMode {
   mapKey (this: void, key: string): string;
   scroll (this: void, event?: Partial<EventControlKeys & { keyCode: number }>, wnd?: Window): void;
   exitGrab (this: void): void;
-  keydownEvents (this: void, newArr: KeydownCacheArray): void | never;
-  keydownEvents (this: void): KeydownCacheArray | never;
+  /** return has_error */
+  keydownEvents (this: void, newArr: KeydownCacheArray): boolean;
+  keydownEvents (this: void): KeydownCacheArray;
   OnScrolls: {
     0: (this: any, event: KeyboardEvent) => void | 1;
     1: (this: Window, event: KeyboardEvent) => void;

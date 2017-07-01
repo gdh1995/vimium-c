@@ -265,16 +265,19 @@ function _importSettings(time: number, new_data: ExportedSettings, is_recommende
 
 function importSettings(time: number | string | Date
     , data: string, is_recommended?: boolean): void {
-  let new_data: ExportedSettings | null = null, err_msg: string = "";
+  let new_data: ExportedSettings | null = null, e: Error | null = null, err_msg: string = "";
   try {
-    new_data = parseJSON(data);
-    if (!new_data) { err_msg = "No JSON data found!"; }
-  } catch (e) {
+    let d = parseJSON(data);
+    if (d instanceof Error) { e = d; }
+    else if (!d) { err_msg = "No JSON data found!"; }
+    else { new_data = d; }
+  } catch (_e) { e = _e; }
+  if (e != null) {
     err_msg = e ? e.message + "" : "Error: " + (e !== "" ? e : "(unknown)");
     let arr = (<RegExpSearchable<2> & RegExpOne> /^(\d+):(\d+)$/).exec(err_msg);
     err_msg = !arr ? err_msg :
 `Sorry, Vimium++ can not parse the JSON file:
-  an unexpect character at line ${arr[1]}, column ${arr[2]}`;
+  an unexpect character at line ${arr[1]}, column ${arr[2]}`
   }
   if (new_data) {
     time = +new Date(new_data && new_data.time || (typeof time === "object" ? +time : time)) || 0;
@@ -360,7 +363,7 @@ function parseJSON(text: string): any {
   } else {
     err_line = err_offset = 1;
   }
-  throw new SyntaxError(err_line + ":" + err_offset);
+  return new SyntaxError(err_line + ":" + err_offset);
 
   function clean(this: void): boolean { return (<RegExpOne> /a?/).test(""); }
   function spaceN(this: void, str: string): string {

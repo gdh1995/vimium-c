@@ -3390,7 +3390,7 @@ interface HTMLIFrameElement extends HTMLElement, GetSVGDocument {
     /**
       * Retrieves the document object of the page or frame.
       */
-    readonly contentDocument: Document;
+    readonly contentDocument: Document | null;
     /**
       * Retrieves the object of the specified.
       */
