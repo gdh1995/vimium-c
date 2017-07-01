@@ -139,7 +139,6 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
       if (event.isTrusted == false) { return; }
       let target = event.target as EventTarget | Element;
       if (target === window) {
-        ELs.OnWndFocus2 && ELs.OnWndFocus2();
         return ELs.OnWndFocus();
       }
       if (!isEnabledForUrl) { return; }
@@ -216,7 +215,6 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
       VScroller.current = (event.path as EventTarget[])[0] as Element;
     },
     OnWndFocus (this: void): void {},
-    OnWndFocus2: null as ((this: void) => void) | null,
     OnWndBlur: null as ((this: void) => void) | null,
     OnReady (inited?: boolean): void {
       const visible = isEnabledForUrl && location.href !== "about:blank" && innerHeight > 9 && innerWidth > 9;
@@ -225,10 +223,10 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
       HUD.enabled = true;
       ELs.OnWndFocus = vPort.safePost.bind(vPort, { handler: "frameFocused" });
     },
-    hook (f: typeof addEventListener | typeof removeEventListener, c?: 1): void {
+    hook (f: typeof addEventListener | typeof removeEventListener, skipFocus?: 1): void {
       f("keydown", this.onKeydown, true);
       f("keyup", this.onKeyup, true);
-      c || f("focus", this.onFocus, true);
+      skipFocus || f("focus", this.onFocus, true);
       f("blur", this.onBlur, true);
       f.call(document, "DOMActivate", ELs.onActivate, true);
     }
@@ -491,18 +489,19 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
         this.lock = activeEl as HTMLElement;
       }
     },
-    ExitGrab: function (this: void, event: MouseEvent | KeyboardEvent | "other"): HandlerResult.Nothing | void {
+    ExitGrab: function (this: void, event?: Req.fg<"exitGrab"> | MouseEvent | KeyboardEvent): HandlerResult.Nothing | void {
       const _this = InsertMode;
+      if (!_this.grabFocus) { return; }
       _this.grabFocus = false;
-      _this.ExitGrab = null as never;
       removeEventListener("mousedown", _this.ExitGrab, true);
       VHandler.remove(_this);
-      event === "other" || !window.frames.length && window === window.top ||
+      !(event instanceof Event) || !window.frames.length && window === window.top ||
       vPort.post({ handler: "exitGrab" });
       if (event instanceof KeyboardEvent) { return HandlerResult.Nothing; }
     } as {
-      (this: void, event: MouseEvent | "other"): void;
       (this: void, event: KeyboardEvent): HandlerResult.Nothing;
+      (this: void, request: Req.bg<"exitGrab">): void;
+      (this: void, event?: MouseEvent): void;
     },
     isActive (): boolean {
       if (this.suppressType) { return false; }
@@ -762,7 +761,7 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
     },
     insertInnerCSS: VDom.UI.InsertInnerCSS,
     focusFrame: FrameMask.Focus,
-    exitGrab (this: void): void { if (InsertMode.grabFocus) { return InsertMode.ExitGrab("other"); } },
+    exitGrab: InsertMode.ExitGrab as (this: void, request: Req.bg<"exitGrab">) => void,
     keyMap (request): void {
       const map = keyMap = request.keyMap, func = Object.setPrototypeOf;
       func(map, null);
@@ -886,16 +885,17 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
     onWndBlur (this: void, f): void { ELs.OnWndBlur = f; },
     OnWndFocus (this: void): (this: void) => void { return ELs.OnWndFocus; },
     focusAndListen (): void {
-      (requestHandlers.exitGrab as VEventMode["exitGrab"])();
-      let timer = 0;
-      ELs.OnWndFocus2 = function(): void { ELs.OnWndFocus2 = null; clearTimeout(timer); };
+      InsertMode.ExitGrab();
       setTimeout(function(): void {
-        timer = setTimeout(function(): void { ELs.OnWndFocus2 = null; ELs.hook(addEventListener); }, 17);
+        let old = ELs.OnWndFocus, fail = true;
+        ELs.OnWndFocus = function(): void { fail = false; };
         window.focus();
+        fail && isEnabledForUrl && ELs.hook(addEventListener);
+        return (ELs.OnWndFocus = old)();
       }, 0);
     },
     mapKey (this: void, key): string { return mapKeys !== null && mapKeys[key] || key; },
-    exitGrab: requestHandlers.exitGrab as VEventMode["exitGrab"],
+    exitGrab: InsertMode.ExitGrab,
     scroll (this: void, event, wnd): void {
       if (!event || event.shiftKey || event.altKey) { return; }
       const { keyCode } = event as { keyCode: number }, c = (keyCode & 1) as BOOL;
