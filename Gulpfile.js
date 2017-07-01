@@ -104,6 +104,7 @@ var Tasks = {
     fs.writeFile(file, data, cb);
   }],
   dist: [["static", "build/ts"], ["manifest", "min/others"]],
+  "dist/": ["dist"],
 
   build: ["dist"],
   rebuild: [["clean"], "dist"],
@@ -266,16 +267,7 @@ function uglifyJSFiles(path, output, new_suffix) {
   if (is_file) {
      stream = stream.pipe(concat(output));
   }
-  stream = stream.pipe(uglify({
-    output: {
-      comments: removeComments ? false : "all"
-    },
-    compress: {
-      booleans: false,
-      negate_iife: false,
-      sequences: false
-    }
-  }));
+  stream = stream.pipe(uglify(loadUglifyConfig()));
   if (!is_file && new_suffix !== "") {
      stream = stream.pipe(rename({ suffix: new_suffix }));
   }
@@ -485,4 +477,14 @@ function loadTypeScriptCompiler(path) {
 
 function print() {
   return console.log.apply(console, arguments);
+}
+
+var _uglifyjsConfig = null;
+function loadUglifyConfig() {
+  if (_uglifyjsConfig == null) {
+    _uglifyjsConfig = readJSON("scripts/uglifyjs.json");
+    _uglifyjsConfig.output || (_uglifyjsConfig.output = {});
+  }
+  _uglifyjsConfig.output.comments = removeComments ? false : "all";
+  return _uglifyjsConfig;
 }

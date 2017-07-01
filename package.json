@@ -16,7 +16,8 @@
     "gulp-some": "*",
     "gulp-sourcemaps": "*",
     "gulp-typescript": "*",
-    "gulp-uglify": "*",
+    "gulp-uglify": ">=3",
+    "uglify-js": ">=3",
     "run-sequence": "*"
   },
   "scripts": {
