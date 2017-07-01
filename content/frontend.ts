@@ -239,6 +239,15 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
     Scroller: VScroller,
     Visual: VVisualMode,
     Vomnibar,
+    reset (): void {
+      const a = InsertMode;
+      VScroller.current = VDom.lastHovered = a.last = a.lock = a.global = null;
+      a.mutable = true;
+      a.ExitGrab(); VEventMode.setupSuppress();
+      VHints.clean(); VVisualMode.deactivate();
+      VFindMode.init || VFindMode.toggleStyle(1);
+      KeydownEvents = new Uint8Array(256);
+    },
 
     toggleSwitchTemp (_0: number, options: FgOptions): void {
       const key = (options.key || "") + "" as keyof SettingsNS.FrontendSettingCache,
@@ -472,7 +481,6 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
     init (): void {
       /** if `notBody` then `activeEl` is not null  */
       let activeEl = document.activeElement as Element, notBody = activeEl !== document.body;
-      this.init = null as never;
       KeydownEvents = new Uint8Array(256);
       if (VSettings.cache.grabFocus && this.grabFocus) {
         if (notBody) {
@@ -728,24 +736,28 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
   },
   requestHandlers: { [K in keyof BgReq]: (this: void, request: BgReq[K]) => void } = {
     init (request): void {
-      const r = requestHandlers, cache = request.load;
-      VSettings.cache = cache;
-      cache.onMac && (VKeyboard.correctionMap = Object.create<string>(null));
+      const r = requestHandlers;
+      (VSettings.cache = request.load).onMac && (VKeyboard.correctionMap = Object.create<string>(null));
       r.keyMap(request);
-      request.passKeys !== "" ? InsertMode.init() : (InsertMode.grabFocus = false);
       r.reset(request);
       r.init = null as never;
       return VDom.documentReady(ELs.OnReady);
     },
     reset ({ passKeys: newPassKeys }): void {
-      const enabled = isEnabledForUrl = (newPassKeys !== "");
-      enabled === !requestHandlers.init && ELs.hook(enabled ? addEventListener : removeEventListener, 1);
-      if (!enabled) {
-        VScroller.current = VDom.lastHovered = InsertMode.last = InsertMode.lock = null;
-        VHints.clean(); Vomnibar.hide();
-      }
+      const enabled = (newPassKeys !== ""), old = VSettings.enabled;
       passKeys = (newPassKeys && parsePassKeys(newPassKeys)) as SafeDict<true> | null;
       VSettings.enabled = isEnabledForUrl = enabled;
+      if (enabled) {
+        if (!old) {
+          InsertMode.init();
+          ELs.hook(addEventListener);
+        }
+      } else if (requestHandlers.init) {
+        InsertMode.grabFocus = false;
+        return ELs.hook(removeEventListener, 1);
+      } else {
+        Commands.reset();
+      }
       if (VDom.UI.box) { return VDom.UI.toggle(enabled); }
     },
     checkIfEnabled: function (this: void): void {
@@ -954,22 +966,18 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
     checkIfEnabled: requestHandlers.checkIfEnabled as VSettings["checkIfEnabled"],
     onDestroy: null,
   destroy: function(silent, keepChrome): void {
-    let f: typeof removeEventListener | typeof VSettings.onDestroy = removeEventListener, el: HTMLElement | null;
     VSettings.enabled = isEnabledForUrl = false;
+    ELs.hook(removeEventListener);
 
-    ELs.hook(f);
-    f("mousedown", InsertMode.ExitGrab, true);
-    f("webkitfullscreenchange", VDom.UI.adjust, true);
-    VEventMode.setupSuppress();
-    VFindMode.init || VFindMode.toggleStyle(0);
-    el = VDom.UI.box;
-    (f = VSettings.onDestroy) && (f as (this: void) => any)();
+    Commands.reset();
+    let f: typeof VSettings.onDestroy, ui = VDom.UI;
+    (f = VSettings.onDestroy) && f();
 
     VUtils = VKeyboard = VDom = VDom = VHandler = //
     VHints = Vomnibar = VScroller = VMarks = VFindMode = //
     VSettings = VHUD = VPort = VEventMode = VVisualMode = //
     esc = null as never;
-    el && el.remove();
+    ui.box && ui.toggle(false);
 
     silent || console.log("%cVimium++%c in %c%s%c has been destroyed at %o."
       , "color:red", "color:auto", "color:darkred"

@@ -74,8 +74,9 @@ VDom.UI = {
     return _this.adjust();
   },
   toggle (enabled): void {
-    if (!enabled) { (this.box as HTMLElement).remove(); return; }
-    if (!(this.box as HTMLElement).parentNode) { return this.adjust(); }
+    if (enabled) { return this.adjust(); }
+    (this.box as HTMLElement).remove();
+    removeEventListener("webkitfullscreenchange", this.adjust, true);
   },
   createStyle (text, doc): HTMLStyleElement {
     const css = (doc || VDom).createElement("style");

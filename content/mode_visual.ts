@@ -71,6 +71,7 @@ var VVisualMode = {
     return this.movement.scrollIntoView();
   },
   deactivate (isEsc?: 1): void {
+    if (!this.mode) { return; }
     VHandler.remove(this);
     if (!this.retainSelection) {
       this.movement.collapseSelectionTo(isEsc && this.mode !== VisualModeNS.Mode.Caret ? 1 : 0);
