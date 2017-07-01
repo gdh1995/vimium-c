@@ -216,6 +216,5 @@
 	],
 	"showActionIcon": false,
 	"showAdvancedCommands": true,
-	"showAdvancedOptions": true,
-	"vomnibarPage": "chrome-extension://hdnehngglnbnehkfcidabjckinphnief/vomnibar.html"
+	"showAdvancedOptions": true
 }
