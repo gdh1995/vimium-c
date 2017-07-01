@@ -243,6 +243,7 @@ interface VHUD {
   hide (this: void): void;
 }
 interface VSettings {
+  enabled: boolean;
   cache: SettingsNS.FrontendSettingCache;
   checkIfEnabled (this: void): void;
   onDestroy: ((this: void) => any) | null;

@@ -745,6 +745,7 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
         VHints.clean(); Vomnibar.hide();
       }
       passKeys = (newPassKeys && parsePassKeys(newPassKeys)) as SafeDict<true> | null;
+      VSettings.enabled = isEnabledForUrl = enabled;
       if (VDom.UI.box) { return VDom.UI.toggle(enabled); }
     },
     checkIfEnabled: function (this: void): void {
@@ -948,12 +949,13 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
   };
 
   VSettings = {
+    enabled: true,
     cache: null as never as VSettings["cache"],
     checkIfEnabled: requestHandlers.checkIfEnabled as VSettings["checkIfEnabled"],
     onDestroy: null,
   destroy: function(silent, keepChrome): void {
     let f: typeof removeEventListener | typeof VSettings.onDestroy = removeEventListener, el: HTMLElement | null;
-    isEnabledForUrl = false;
+    VSettings.enabled = isEnabledForUrl = false;
 
     ELs.hook(f);
     f("mousedown", InsertMode.ExitGrab, true);

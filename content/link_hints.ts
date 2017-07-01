@@ -694,6 +694,7 @@ var VHints = {
     }, 0);
   },
   reinit (lastEl?: HintsNS.LinkEl | null, rect?: VRect | null): void {
+    if (!VSettings.enabled) { return this.clean(); }
     this.isActive = false;
     this.keyStatus.tab = 0;
     this.zIndexes = null;
