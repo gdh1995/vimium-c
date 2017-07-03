@@ -900,10 +900,10 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
     focusAndListen (): void {
       InsertMode.ExitGrab();
       setTimeout(function(): void {
-        let old = ELs.OnWndFocus, fail = true;
-        ELs.OnWndFocus = function(): void { fail = false; };
+        let old = ELs.OnWndFocus, failed = true;
+        ELs.OnWndFocus = function(): void { failed = false; };
         window.focus();
-        fail && isEnabledForUrl && ELs.hook(addEventListener);
+        failed && isEnabledForUrl && ELs.hook(addEventListener);
         return (ELs.OnWndFocus = old)();
       }, 0);
     },

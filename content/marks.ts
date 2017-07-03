@@ -116,7 +116,7 @@ var VMarks = {
   },
   Goto (this: void, request: BgReq["scroll"]): void {
     const scroll = request.scroll, a = request.markName || "";
-    (document.body instanceof HTMLFrameSetElement) || window.focus();
+    (document.body instanceof HTMLFrameSetElement) || VEventMode.focusAndListen();
     a && VMarks.setPreviousPosition();
     window.scrollTo(scroll[0], scroll[1]);
     if (a) { return VHUD.showForDuration(`Jumped to global mark : ' ${a} '.`, 2000); }
