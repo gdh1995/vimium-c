@@ -38,7 +38,7 @@ declare namespace HintsNS {
     activator (this: any, linkEl: LinkEl, hintEl: HTMLSpanElement): void | false;
   }
   interface Options extends SafeObject {
-    mode?: string;
+    mode?: string | number;
     url?: boolean;
   }
   type NestedFrame = false | 0 | null | HTMLIFrameElement | HTMLFrameElement;
@@ -106,7 +106,7 @@ var VHints = {
   } as HintsNS.KeyStatus,
   isActive: false,
   noHUD: false,
-  options: null as never as FgOptions,
+  options: null as never as HintsNS.Options,
   timer: 0,
   activate (count?: number, options?: FgOptions | null): void {
     if (this.isActive) { return; }
@@ -163,7 +163,8 @@ var VHints = {
   },
   setModeOpt (count: number, options: HintsNS.Options): void {
     if (this.options === options) { return; }
-    let ref = this.Modes, mode = (this.CONST[options.mode as string] as number) | 0, modeOpt: HintsNS.ModeOpt | undefined;
+    let ref = this.Modes, modeOpt: HintsNS.ModeOpt | undefined,
+    mode = ((options.mode as number) > 0 ? options.mode as number : (this.CONST[options.mode as string])) | 0;
     if (mode === HintMode.EDIT_TEXT && options.url) {
       mode = HintMode.EDIT_LINK_URL;
     }
@@ -199,6 +200,7 @@ var VHints = {
     if (a && a.isActive) { a.pTimer = 0; return a.setMode(a.mode); }
   },
   activateAndFocus (a: number, b: FgOptions): void {
+    this.isActive = false;
     this.activate(a, b);
     return VEventMode.focusAndListen();
   },
@@ -220,7 +222,7 @@ var VHints = {
       this.frameNested = null;
       return false;
     }
-    child.focus();
+    child.VEventMode.focusAndListen();
     if (done) { return true; }
     if (document.readyState !== "complete") { this.frameNested = false; }
     VUtils.execCommand(child, command, a, b);
@@ -923,16 +925,15 @@ highlightChild (el: HTMLIFrameElement | HTMLFrameElement): false | void {
     err = !el.contentDocument &&
       (child = el.contentWindow as HintsNS.VWindow).VEventMode.keydownEvents(VEventMode.keydownEvents());
   } catch (e) {}
+  const { count, options } = this;
+  options.mode = this.mode;
   if (err) {
     VPort.post({ handler: "execInChild", url: el.src,
-      command: "Hints.activateAndFocus", count: this.count, options: this.options
+      command: "Hints.activateAndFocus", count, options
     });
     return;
   }
-  const lh = child.VHints;
-  lh.isActive = false;
-  lh.activateAndFocus(this.count, this.options);
-  lh.isActive && lh.setMode(this.mode);
+  child.VHints.activateAndFocus(count, options);
   return false;
 },
 
