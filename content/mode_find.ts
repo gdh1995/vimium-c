@@ -40,9 +40,10 @@ html > count{float:right;}`,
     }
     this.box && VDom.UI.adjust();
     if (this.isActive) {
-      this.box.contentWindow.focus();
+      const wnd = this.box.contentWindow;
+      wnd.focus();
       this.input.focus();
-      this.box.contentDocument.execCommand("selectAll", false);
+      wnd.document.execCommand("selectAll", false);
       return;
     }
 
@@ -61,6 +62,7 @@ html > count{float:right;}`,
     el.onload = function(this: HTMLIFrameElement): void { return VFindMode.onLoad(this); };
     VHandler.push(VDom.UI.SuppressMost, this);
     VDom.UI.addElement(el, {adjust: true, before: VHUD.box});
+    this.isActive = true;
   },
   onLoad (box: HTMLIFrameElement): void {
     const wnd = box.contentWindow, doc = wnd.document, docEl = doc.documentElement as HTMLHtmlElement,
@@ -70,10 +72,7 @@ html > count{float:right;}`,
     wnd.onmousedown = box.onmousedown = this.OnMousedown;
     wnd.onkeydown = this.onKeydown.bind(this);
     wnd.onunload = this.OnUnload;
-    zoom < 1 && (docEl.style.zoom = "" + 1 / zoom);
-    (doc.head as HTMLHeadElement).appendChild(VDom.UI.createStyle(VFindMode.cssIFrame, doc));
     const el: HTMLElement = this.input = doc.body as HTMLBodyElement;
-    docEl.insertBefore(doc.createTextNode("/"), el);
     try {
       el.contentEditable = "plaintext-only";
     } catch (e) {
@@ -88,17 +87,19 @@ html > count{float:right;}`,
     el.oninput = this.onInput.bind(this);
     const el2 = this.countEl = doc.createElement("count");
     el2.appendChild(doc.createTextNode(""));
-    this.isActive = true;
+    zoom < 1 && (docEl.style.zoom = "" + 1 / zoom);
+    (doc.head as HTMLHeadElement).appendChild(VDom.UI.createStyle(VFindMode.cssIFrame, doc));
+    docEl.insertBefore(doc.createTextNode("/"), el);
+    docEl.appendChild(el2);
     function cb(): void {
       VHandler.remove(VFindMode);
-      docEl.appendChild(el2);
       el.focus();
       wnd.onfocus = VEventMode.OnWndFocus();
     }
     if ((VDom.UI.box as HTMLElement).style.display) {
       VDom.UI.callback = cb;
     } else {
-      setTimeout(cb, 0);
+      return cb();
     }
   },
   init (): HTMLStyleElement {
@@ -224,8 +225,9 @@ html > count{float:right;}`,
     if (dir > 0) {
       return VPort.send({ handler: "findQuery", index: ind }, this.SetQuery);
     }
-    this.box.contentDocument.execCommand("undo", false);
-    this.box.contentWindow.getSelection().collapseToEnd();
+    const wnd = this.box.contentWindow;
+    wnd.document.execCommand("undo", false);
+    wnd.getSelection().collapseToEnd();
   },
   SetQuery (this: void, query: string): void {
     let _this = VFindMode, doc: Document;
