@@ -86,6 +86,7 @@ declare namespace FindNS {
 
 declare namespace VomnibarNS {
   const enum Status {
+    NeedRedo = -3,
     KeepBroken = -2,
     Default = -1,
     NotInited = Default,

@@ -365,7 +365,6 @@ declare namespace BgReqHandlerNS {
     gotoSession: {
       (this: void, request: { sessionId: string | number, active: true }, port: Port): void;
       (this: void, request: { sessionId: string | number, active?: false }): void;
-      (this: void, request: { sessionId: string | number }): void;
     };
     openUrl(this: void, request: FgReq["openUrl"], port?: Port | undefined): void;
     checkIfEnabled: checkIfEnabled;
