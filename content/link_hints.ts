@@ -164,7 +164,7 @@ var VHints = {
   setModeOpt (count: number, options: HintsNS.Options): void {
     if (this.options === options) { return; }
     let ref = this.Modes, modeOpt: HintsNS.ModeOpt | undefined,
-    mode = ((options.mode as number) > 0 ? options.mode as number : (this.CONST[options.mode as string])) | 0;
+    mode = ((options.mode as number) > 0 ? options.mode as number : (this.CONST[options.mode as string]) as number) | 0;
     if (mode === HintMode.EDIT_TEXT && options.url) {
       mode = HintMode.EDIT_LINK_URL;
     }

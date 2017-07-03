@@ -538,11 +538,6 @@ var Vomnibar = {
     } else {
       this.showFavIcon = false;
     }
-    const st = getComputedStyle(list);
-    if (st.background === getComputedStyle(document.head as HTMLElement).background) {
-      VPort.postToOwner({ name: "css", key: "background", value: "white" });
-    }
-    if (st.contain === "content") { list.style.contain = "strict"; } // for backwards compatibility with old vomnibar
     if (this.browserVersion < BrowserVer.MinEnsuredBorderWidth) {
       const css = document.createElement("style");
       css.textContent = ".item{border-width:1px;}";
@@ -732,8 +727,12 @@ VPort = {
     Vomnibar.timer > 0 && clearTimeout(Vomnibar.timer);
     VPort.postToOwner({ name: "unload" });
   }
-};
+}, MinSupportedVersion = 1.61;
 (function(): void {
+  if (!(+<string>(document.documentElement as HTMLElement).getAttribute("data-version") >= MinSupportedVersion)) {
+    location.href = "about:blank";
+    return;
+  }
   if (location.pathname !== "/vomnibar.html" || location.protocol !== "chrome-extension:" || !document.currentScript) {}
   else if ((document.currentScript as HTMLScriptElement).src.lastIndexOf("/front/") !== -1) {
     window.ExtId = new URL((document.currentScript as HTMLScriptElement).src).hostname;

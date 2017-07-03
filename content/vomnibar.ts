@@ -125,6 +125,10 @@ var Vomnibar = {
     el.onload = function(this: typeof el): void {
       const _this = Vomnibar, i = page.indexOf("://"), wnd = this.contentWindow,
       sec: VomnibarNS.MessageData = [secret, _this.options as VomnibarNS.FgOptionsToFront];
+      if (type !== VomnibarNS.PageType.inner && _this.isABlank()) {
+        console.log("Vimium++: use built-in Vomnibar page because the preferred is too old.");
+        return reload();
+      }
       page = page.substring(0, page.indexOf("/", i + 3));
       setTimeout(function(): void {
         const a = Vomnibar, ok = !a || a.status !== VomnibarNS.Status.Initing;
@@ -197,9 +201,6 @@ var Vomnibar = {
     case "style":
       this.box.style.height = (data as Req["style"]).height / this.zoom + "px";
       if (this.status === VomnibarNS.Status.Initing || this.status === VomnibarNS.Status.ToShow) { this.onShown(); }
-      break;
-    case "css":
-      this.box.style.setProperty((data as Req["css"]).key, (data as Req["css"]).value);
       break;
     case "focus": window.focus(); return VEventMode.suppress((data as Req["focus"]).lastKey);
     case "hide": return this.hide((data as Req["hide"]).fromInner);
