@@ -119,7 +119,6 @@ declare namespace VomnibarNS {
   }
   interface FReq {
     hide: {
-      fromInner: boolean;
     };
     scroll: {
       keyCode: number;

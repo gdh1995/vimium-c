@@ -27,6 +27,9 @@ interface Window {
 declare const enum HeightData {
   InputBar = 54, InputBarWithLine = InputBar + 1,
   Item = 44, LastItem = Item + 3,
+  MarginV = 20,
+  InputBarAndMargin = InputBar + MarginV,
+  InputBarWithLineAndMargin = InputBarWithLine + MarginV,
 }
 
 declare var VSettings: undefined | null | {
@@ -89,6 +92,7 @@ var Vomnibar = {
   height: 0,
   heightList: 0,
   input: null as never as HTMLInputElement,
+  bodySt: null as never as CSSStyleDeclaration,
   barCls: null as never as DOMTokenList,
   isSelOriginal: true,
   lastKey: 0,
@@ -105,7 +109,7 @@ var Vomnibar = {
   browserVersion: BrowserVer.AssumesVer,
   show (): void {
     const zoom = 1 / window.devicePixelRatio;
-    (document.body as HTMLBodyElement).style.zoom = zoom > 1 ? zoom + "" : "";
+    this.bodySt.zoom = zoom > 1 ? zoom + "" : "";
     this.focused || setTimeout(function() { Vomnibar.input.focus(); }, 34);
     addEventListener("mousewheel", this.onWheel, {passive: false});
     this.input.value = this.inputText;
@@ -118,17 +122,16 @@ var Vomnibar = {
     window.onkeyup = null as never;
     const el = this.input;
     el.blur();
+    data || VPort.postMessage({ handler: "refocusCurrent", lastKey: this.lastKey });
+    this.bodySt.display = "none";
     this.list.textContent = el.value = "";
-    this.list.style.height = "0px";
+    this.list.style.height = "";
     this.barCls.remove("withList");
-    if (this.sameOrigin) { return this.onHidden(!data); }
-    requestAnimationFrame(() => Vomnibar.onHidden(!data));
+    if (this.sameOrigin) { return this.onHidden(); }
+    requestAnimationFrame(() => Vomnibar.onHidden());
   },
-  onHidden (fromInner: boolean): void {
-    VPort.postToOwner({ name: "hide", fromInner });
-    if (fromInner) {
-      VPort.postMessage({ handler: "refocusCurrent", lastKey: this.lastKey });
-    }
+  onHidden (): void {
+    VPort.postToOwner({ name: "hide" });
     this.lastKey = this.timer = this.height = this.heightList = this.matchType = 0;
     this.completions = this.onUpdate = this.isHttps = null as never;
     this.mode.query = this.lastQuery = this.inputText = "";
@@ -464,7 +467,8 @@ var Vomnibar = {
   },
   omni (response: BgVomnibarReq["omni"]): void {
     if (!this.isActive) { return; }
-    const list = response.list, oldHeight = this.height;
+    const list = response.list, oldHeight = this.height,
+    pixel = 1 / (Math.max(1, window.devicePixelRatio));
     let height = list.length, notEmpty = height > 0;
     this.matchType = response.matchType;
     this.completions = list;
@@ -472,17 +476,19 @@ var Vomnibar = {
     this.isSelOriginal = true;
     this.isSearchOnTop = notEmpty && list[0].type === "search";
     if (notEmpty) {
-      height = (height - 1) * (HeightData.Item + (1 / (Math.max(1, window.devicePixelRatio)))) + HeightData.LastItem;
+      height = (height - 1) * (HeightData.Item + pixel) + HeightData.LastItem;
     }
     this.heightList = height;
-    this.height = height = notEmpty ? (height | 0) + HeightData.InputBarWithLine : HeightData.InputBar;
+    height = notEmpty ? height + HeightData.InputBarWithLineAndMargin : HeightData.InputBarAndMargin;
+    this.height = height = (height + pixel + pixel) | 0;
     list.forEach(this.parse, this);
-    return this.populateUI(oldHeight < height);
+    return this.populateUI(oldHeight);
   },
-  populateUI (smaller: boolean): void {
-    const { list, barCls: cl } = this, notEmpty = this.completions.length > 0, c = "withList",
-    msg = { name: "style" as "style", height: this.height };
-    if (smaller) { VPort.postToOwner(msg); }
+  populateUI (oldH: number): void {
+    const { list, barCls: cl, height } = this, notEmpty = this.completions.length > 0, c = "withList",
+    msg = { name: "style" as "style", height };
+    if (height > oldH) { VPort.postToOwner(msg); }
+    oldH || (this.bodySt.display = "");
     notEmpty ? this.barCls.add(c) : cl.remove(c);
     list.innerHTML = this.renderItems(this.completions);
     list.style.height = this.heightList + "px";
@@ -494,7 +500,7 @@ var Vomnibar = {
       }
       (list.lastElementChild as HTMLElement).classList.add("b");
     }
-    if (smaller) {
+    if (height >= oldH) {
       return this.postUpdate();
     } else {
       requestAnimationFrame(() => { VPort.postToOwner(msg); return Vomnibar.postUpdate(); });
@@ -525,6 +531,7 @@ var Vomnibar = {
     this.input = document.getElementById("input") as HTMLInputElement;
     const list = this.list = document.getElementById("list") as HTMLDivElement;
     this.input.oninput = this.onInput.bind(this);
+    this.bodySt = (document.body as HTMLBodyElement).style;
     this.barCls = (this.input.parentElement as HTMLElement).classList;
     list.oncontextmenu = this.OnMenu;
     (document.getElementById("close") as HTMLElement).onclick = function(): void { return Vomnibar.hide(); };

@@ -24,7 +24,6 @@ var Vomnibar = {
   port: null as never as VomnibarNS.Port,
   status: VomnibarNS.Status.NotInited,
   options: null as VomnibarNS.FgOptionsToFront | null | (() => void),
-  width: 0,
   zoom: 0,
   defaultTop: "",
   sameOrigin: false,
@@ -34,20 +33,19 @@ var Vomnibar = {
     }
     if (!options || !options.secret || !options.vomnibar) { return; }
     if (document.readyState === "loading") {
-      if (!this.width) {
-        this.width = setTimeout(this.activate.bind(this, count, options), 500);
+      if (!this.zoom) {
+        this.zoom = setTimeout(this.activate.bind(this, count, options), 500);
         return;
       }
-      this.width = 0;
     }
+    this.zoom = 0;
     if (!VDom.isHTML()) { return; }
     if (options.url === true && (window.top === window || !options.topUrl || typeof options.topUrl !== "string")) {
       options.topUrl = window.location.href;
     }
     if (VHints.tryNestedFrame("Vomnibar.activate", count, options)) { return; }
     this.options = null;
-    const iw = window.innerWidth, docEl = document.documentElement as HTMLElement, cw = docEl.clientWidth;
-    this.width = cw === iw ? cw : Math.max(cw, docEl.getBoundingClientRect().width);
+    const width = window.innerWidth;
     this.zoom = VDom.UI.getZoom();
     this.status > VomnibarNS.Status.Inactive || VHandler.push(VDom.UI.SuppressMost, this);
     this.box && VDom.UI.adjust();
@@ -65,7 +63,7 @@ var Vomnibar = {
       this.onShown();
     }
     options.secret = 0; options.vomnibar = "";
-    options.width = this.width, options.name = "activate";
+    options.width = width, options.name = "activate";
     let url = options.url, upper = 0;
     if (url === true) {
       if (url = VDom.getSelectionText()) {
@@ -97,15 +95,15 @@ var Vomnibar = {
   setOptions (options: VomnibarNS.FgOptionsToFront): void {
     this.status > VomnibarNS.Status.Initing ? this.port.postMessage(options) : (this.options = options);
   },
-  hide (fromInner?: boolean): void {
-    if (this.status > VomnibarNS.Status.Inactive) {
-      this.box.style.opacity = "0";
-      VHandler.remove(this);
-      this.width = this.zoom = 0; this.status = VomnibarNS.Status.Inactive;
-      fromInner == null && this.port.postMessage<"hide">("hide");
+  hide (fromInner?: 1): void {
+    const active = this.status > VomnibarNS.Status.Inactive;
+    this.zoom = 0; this.status = VomnibarNS.Status.Inactive;
+    if (fromInner == null) {
+      active && this.port.postMessage<"hide">("hide");
       return;
-    }
-    fromInner || window.focus();
+    } 
+    VHandler.remove(this);
+    active || window.focus();
     this.box.style.cssText = "display: none;";
   },
   init (secret: number, page: string, type: VomnibarNS.PageType, inner: string | null): HTMLIFrameElement {
@@ -134,7 +132,7 @@ var Vomnibar = {
         a.reset();
         (VDom.UI.box as HTMLElement).style.display = "";
         window.focus();
-        a.width = a.zoom = 0;
+        a.zoom = 0;
         a.status = VomnibarNS.Status.KeepBroken;
         return (a as any).activate();
       }, 1000);
@@ -200,7 +198,7 @@ var Vomnibar = {
       if (this.status === VomnibarNS.Status.Initing || this.status === VomnibarNS.Status.ToShow) { this.onShown(); }
       break;
     case "focus": window.focus(); return VEventMode.suppress((data as Req["focus"]).lastKey);
-    case "hide": return this.hide((data as Req["hide"]).fromInner);
+    case "hide": return this.hide(1);
     case "scroll": return VEventMode.scroll(data as Req["scroll"]);
     case "scrollGoing": VScroller.keyIsDown = VScroller.Core.maxInterval; break;
     case "scrollEnd": VScroller.keyIsDown = 0; break;
@@ -211,9 +209,8 @@ var Vomnibar = {
   },
   onShown (): number {
     this.status = VomnibarNS.Status.Showing;
-    let style = this.box.style, width = this.width * 0.8;
-    style.width = width !== (width | 0) ? (width | 0) / (width / 0.8) * 100 + "%" : "";
-    style.top = this.zoom !== 1 ? ((70 / this.zoom) | 0) + "px" : this.defaultTop;
+    let style = this.box.style;
+    style.top = this.zoom !== 1 ? ((62 / this.zoom) | 0) + "px" : this.defaultTop;
     if (style.visibility) {
       style.visibility = "";
       style = (VDom.UI.box as HTMLElement).style;
