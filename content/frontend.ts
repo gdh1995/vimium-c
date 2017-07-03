@@ -850,7 +850,7 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
     (box.querySelector("#HClose") as HTMLElement).onclick = Commands.showHelp = hide;
     shouldShowAdvanced && toggleAdvanced();
     VDom.UI.addElement(box, Vomnibar.status ? null : {before: Vomnibar.box});
-    document.hasFocus() || setTimeout(function() { window.focus(); }, 0);
+    document.hasFocus() || VEventMode.focusAndListen();
     VScroller.current = box;
     VHandler.push(function(event) {
       if (!InsertMode.lock && VKeyboard.isEscape(event)) {
@@ -897,15 +897,20 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
     lock (this: void): Element | null { return InsertMode.lock; },
     onWndBlur (this: void, f): void { ELs.OnWndBlur = f; },
     OnWndFocus (this: void): (this: void) => void { return ELs.OnWndFocus; },
-    focusAndListen (): void {
+    focusAndListen (callback?: () => void, timedout?: 0 | 1): void {
+      if (timedout !== 1) {
+        setTimeout(VEventMode.focusAndListen, 0, callback, 1 as number as 0);
+        return;
+      }
       InsertMode.ExitGrab();
-      setTimeout(function(): void {
-        let old = ELs.OnWndFocus, failed = true;
-        ELs.OnWndFocus = function(): void { failed = false; };
-        window.focus();
-        failed && isEnabledForUrl && ELs.hook(addEventListener);
-        return (ELs.OnWndFocus = old)();
-      }, 0);
+      let old = ELs.OnWndFocus, failed = true;
+      ELs.OnWndFocus = function(): void { failed = false; };
+      window.focus();
+      failed && isEnabledForUrl && ELs.hook(addEventListener);
+      (ELs.OnWndFocus = old)();
+      if (callback) {
+        return callback();
+      }
     },
     mapKey (this: void, key): string { return mapKeys !== null && mapKeys[key] || key; },
     exitGrab: InsertMode.ExitGrab,

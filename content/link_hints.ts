@@ -200,9 +200,10 @@ var VHints = {
     if (a && a.isActive) { a.pTimer = 0; return a.setMode(a.mode); }
   },
   activateAndFocus (a: number, b: FgOptions): void {
-    this.isActive = false;
-    this.activate(a, b);
-    return VEventMode.focusAndListen();
+    return VEventMode.focusAndListen(() => {
+      VHints.isActive = false;
+      VHints.activate(a, b);
+    });
   },
   tryNestedFrame (command: string, a: number, b: FgOptions): boolean {
     this.frameNested === false && this.checkNestedFrame();
@@ -222,10 +223,11 @@ var VHints = {
       this.frameNested = null;
       return false;
     }
-    child.VEventMode.focusAndListen();
+    child.VEventMode.focusAndListen(done ? function() {
+      VUtils.execCommand(child, command, a, b);
+    } : null);
     if (done) { return true; }
     if (document.readyState !== "complete") { this.frameNested = false; }
-    VUtils.execCommand(child, command, a, b);
     return true;
   },
   maxLeft: 0,

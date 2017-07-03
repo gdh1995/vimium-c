@@ -98,18 +98,15 @@ var Vomnibar = {
     this.status > VomnibarNS.Status.Initing ? this.port.postMessage(options) : (this.options = options);
   },
   hide (fromInner?: boolean): void {
-    const active = this.status > VomnibarNS.Status.Inactive;
-    if (active) {
+    if (this.status > VomnibarNS.Status.Inactive) {
+      this.box.style.opacity = "0";
       VHandler.remove(this);
       this.width = this.zoom = 0; this.status = VomnibarNS.Status.Inactive;
+      fromInner == null && this.port.postMessage<"hide">("hide");
+      return;
     }
-    if (fromInner != null) {
-      active || window.focus();
-      this.box.style.cssText = "display: none";
-    } else if (active) {
-      this.box.style.opacity = "0";
-      requestAnimationFrame(() => { Vomnibar.port.postMessage<"hide">("hide"); });
-    }
+    fromInner || window.focus();
+    this.box.style.cssText = "display: none;";
   },
   init (secret: number, page: string, type: VomnibarNS.PageType, inner: string | null): HTMLIFrameElement {
     const el = VDom.createElement("iframe") as typeof Vomnibar.box;
