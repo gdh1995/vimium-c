@@ -1245,6 +1245,7 @@ Are you sure you want to continue?`);
           i && p2.push(i);
         }
       }
+      if (p2.length > GlobalConsts.MaxNumberOfNextPatterns) { p2.length = GlobalConsts.MaxNumberOfNextPatterns; }
       cPort.postMessage<1, "goNext">({ name: "execute", count: 1, command: "goNext",
         options: {
           dir,

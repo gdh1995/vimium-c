@@ -160,6 +160,7 @@ declare const enum GlobalConsts {
   TabIdNone = -1,
   WndIdNone = -1,
   VomnibarSecretTimeout = 3000,
+  MaxNumberOfNextPatterns = 200,
 }
 
 declare const enum VKeyCodes {
