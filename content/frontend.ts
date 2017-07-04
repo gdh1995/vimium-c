@@ -569,8 +569,8 @@ Pagination = {
     }
   },
   findAndFollowLink (names: string[], refusedStr: string): boolean {
-    interface Candidate { [0]: HTMLElement; [1]: number; [2]: string; }
-    const links = VHints.traverse("*", this.GetLinks, document);
+    interface Candidate { [0]: number; [1]: string; [2]: HTMLElement; }
+    const count = names.length, links = VHints.traverse("*", this.GetLinks, document);
     links.push(document.documentElement as HTMLElement);
     let candidates: Candidate[] = [], ch: string, s: string, maxLen = 99, len: number;
     for (let re1 = <RegExpOne> /\s+/, _len = links.length - 1; 0 <= --_len; ) {
@@ -578,27 +578,25 @@ Pagination = {
       if (link.contains(links[_len + 1]) || (s = link.innerText).length > 99) { continue; }
       if (!s && !(s = (ch = (link as HTMLInputElement).value) && ch.toLowerCase && ch || link.title)) { continue; }
       s = s.toLowerCase();
-      for (ch of names) {
-        if (s.indexOf(ch) !== -1) {
+      for (let i = 0; i < count; i++) {
+        if (s.indexOf(names[i]) !== -1) {
           if (s.indexOf(refusedStr) === -1 && (len = s.split(re1).length) <= maxLen) {
             len < maxLen && (maxLen = len + 1);
-            candidates.push([link, len + (candidates.length / 10000), s]);
+            candidates.push([(i << 23) + (len << 16) + candidates.length, s, link]);
           }
           break;
         }
       }
     }
     if (candidates.length <= 0) { return false; }
-    maxLen += 1;
-    candidates = candidates.filter(a => a[1] < maxLen).sort((a, b) => a[1] - b[1]);
-    const re2 = <RegExpOne> /\b/;
-    for (s of names) {
-      const re3 = re2.test(s[0]) || re2.test(s.slice(-1))
-        ? new RegExp("\\b" + s + "\\b", "i") : new RegExp(s, "i");
+    maxLen = (maxLen + 1) << 16;
+    candidates = candidates.filter(a => (a[0] & 0x7fffff) < maxLen).sort((a, b) => a[0] - b[0]);
+    for (let re2 = <RegExpOne> /\b/, i = candidates[0][0] >>> 23; i < count; i++) {
+      s = names[i];
+      const re = new RegExp(re2.test(s[0]) || re2.test(s.slice(-1)) ? `\\b${s}\\b` : s, ""), j = i << 23;
       for (let cand of candidates) {
-        if (re3.test(cand[2])) {
-          return this.followLink(cand[0]);
-        }
+        if (cand[0] > j) { break; }
+        if (re.test(cand[1])) { return this.followLink(cand[2]); }
       }
     }
     return false;
