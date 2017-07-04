@@ -468,7 +468,7 @@ var Vomnibar = {
   omni (response: BgVomnibarReq["omni"]): void {
     if (!this.isActive) { return; }
     const list = response.list, oldHeight = this.height,
-    pixel = 1 / (Math.max(1, window.devicePixelRatio));
+    pixel = this.browserVersion < BrowserVer.MinEnsuredBorderWidth ? 1 : 1 / (Math.max(1, window.devicePixelRatio));
     let height = list.length, notEmpty = height > 0;
     this.matchType = response.matchType;
     this.completions = list;
@@ -531,7 +531,7 @@ var Vomnibar = {
     this.input = document.getElementById("input") as HTMLInputElement;
     const list = this.list = document.getElementById("list") as HTMLDivElement;
     this.input.oninput = this.onInput.bind(this);
-    this.bodySt = (document.body as HTMLBodyElement).style;
+    this.bodySt = (document.documentElement as HTMLHtmlElement).style;
     this.barCls = (this.input.parentElement as HTMLElement).classList;
     list.oncontextmenu = this.OnMenu;
     (document.getElementById("close") as HTMLElement).onclick = function(): void { return Vomnibar.hide(); };
