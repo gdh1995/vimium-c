@@ -54,7 +54,7 @@ var Vomnibar = {
       this.init(options.secret, options.vomnibar, options.ptype, options.vomnibar2);
     } else if (this.isABlank()) {
       this.status = VomnibarNS.Status.NeedRedo;
-      this.options = function(this: typeof Vomnibar): void { return this.activate(count, options); };
+      this.options = function(this: typeof Vomnibar): void { this.options = null; return this.activate(count, options); };
       return;
     } else if (this.status === VomnibarNS.Status.Inactive) {
       this.status = VomnibarNS.Status.ToShow;
