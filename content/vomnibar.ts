@@ -23,7 +23,8 @@ var Vomnibar = {
   box: null as never as HTMLIFrameElement & { contentWindow: VomnibarNS.IFrameWindow },
   port: null as never as VomnibarNS.Port,
   status: VomnibarNS.Status.NotInited,
-  options: null as VomnibarNS.FgOptionsToFront | null | (() => void),
+  options: null as VomnibarNS.FgOptionsToFront | null,
+  onReset: null as (() => void) | null,
   zoom: 0,
   defaultTop: "",
   sameOrigin: false,
@@ -53,8 +54,7 @@ var Vomnibar = {
       this.status = VomnibarNS.Status.Initing;
       this.init(options.secret, options.vomnibar, options.ptype, options.vomnibar2);
     } else if (this.isABlank()) {
-      this.status = VomnibarNS.Status.NeedRedo;
-      this.options = function(this: typeof Vomnibar): void { this.options = null; return this.activate(count, options); };
+      this.onReset = function(this: typeof Vomnibar): void { this.onReset = null; return this.activate(count, options); };
       return;
     } else if (this.status === VomnibarNS.Status.Inactive) {
       this.status = VomnibarNS.Status.ToShow;
@@ -120,6 +120,7 @@ var Vomnibar = {
     el.onload = function(this: typeof el): void {
       const _this = Vomnibar, i = page.indexOf("://"), wnd = this.contentWindow,
       sec: VomnibarNS.MessageData = [secret, _this.options as VomnibarNS.FgOptionsToFront];
+      if (_this.onReset) { return; }
       if (type !== VomnibarNS.PageType.inner && _this.isABlank()) {
         console.log("Vimium++: use built-in Vomnibar page because the preferred is too old.");
         return reload();
@@ -173,8 +174,8 @@ var Vomnibar = {
     this.port = this.box = null as never;
     this.sameOrigin = false;
     VHandler.remove(this);
-    if (oldStatus === VomnibarNS.Status.NeedRedo) { return (this.options as () => void)(); }
     this.options = null;
+    if (this.onReset) { return this.onReset(); }
     if (!redo || oldStatus < VomnibarNS.Status.ToShow) { return; }
     return VPort.post({ handler: "activateVomnibar", redo: true, inner: true });
   },
