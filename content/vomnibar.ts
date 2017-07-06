@@ -44,7 +44,7 @@ var Vomnibar = {
     if (options.url === true && (window.top === window || !options.topUrl || typeof options.topUrl !== "string")) {
       options.topUrl = window.location.href;
     }
-    if (VHints.tryNestedFrame("Vomnibar.activate", count, options)) { return; }
+    if (this.status === VomnibarNS.Status.NotInited && VHints.tryNestedFrame("Vomnibar.activate", count, options)) { return; }
     this.options = null;
     const width = window.innerWidth;
     this.zoom = VDom.UI.getZoom();
