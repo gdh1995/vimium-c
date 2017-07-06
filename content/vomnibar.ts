@@ -156,7 +156,7 @@ var Vomnibar = {
       };
       _this.sameOrigin = true;
       _this.port = {
-        close (): void {},
+        close (): void { port.postMessage = function() {}; },
         postMessage<K extends keyof CReq> (data: CReq[K]): void | 1 { return port.onmessage<K>({ data }); }
       };
       if (location.hash === "#chrome-ui") { _this.defaultTop = "5px"; }

@@ -126,10 +126,6 @@ declare namespace VomnibarNS {
     style: {
       height: number;
     };
-    css: {
-      key: "background" | "backgroundColor";
-      value: string;
-    };
     focus: {
       lastKey: number;
     };
@@ -144,7 +140,6 @@ declare namespace VomnibarNS {
     unload: {},
     uiComponentIsReady: {};
   }
-  type FgMsg<K extends keyof FReq> = FReq[K] & Msg<K>;
   interface IframePort {
     sameOrigin?: true;
     postMessage<K extends keyof FReq> (this: void, msg: FReq[K] & Msg<K>): void | 1;
