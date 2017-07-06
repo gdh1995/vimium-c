@@ -139,7 +139,7 @@ var Settings = {
         if (!url.startsWith("chrome") && this.CONST.ChromeVersion < BrowserVer.MinWithFrameId) {
           url = (this as typeof Settings).CONST.VomnibarPageInner;
         } else {
-          url = url.replace(":version", (this as typeof Settings).CONST.CurrentVersion);
+          url = url.replace(":version", "" + parseFloat((this as typeof Settings).CONST.CurrentVersion));
         }
       }
       this.set("vomnibarPage_f", url);
