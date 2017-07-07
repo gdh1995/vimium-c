@@ -95,11 +95,12 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
     },
     parsePattern (this: void, pattern: string, level: number): string[] {
       if (pattern.startsWith("file:")) {
-        if (level > 1) {
-          funcDict.complain("set content settings of file folders");
+        const a = Settings.CONST.ChromeVersion >= BrowserVer.MinFailToToggleImageOnFileURL ? 1 : level > 1 ? 2 : 0;
+        if (a) {
+          funcDict.complain(a === 1 ? `change file content settings since Chrome ${BrowserVer.MinFailToToggleImageOnFileURL}` : "set content settings of file folders");
           return [];
         }
-        return [pattern];
+        return [pattern.split("?", 1)[0]];
       }
       let info: string[] = pattern.match(/^([^:]+:\/\/)([^\/]+)/) as RegExpMatchArray
         , result = [info[0] + "/*"], host = info[2];
@@ -218,9 +219,10 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
       let pattern: string, left: number, has_err = false;
       const ref = chrome.contentSettings[contentType], func = function() {
         const err = chrome.runtime.lastError;
+        err && console.log("[%o]", Date.now(), err);
         if (has_err) { return err; }
         --left; has_err = !!err;
-        if ((has_err || left === 0)) {
+        if (has_err || left === 0) {
           setTimeout(callback, 0, has_err);
         }
         return err;

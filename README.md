@@ -80,6 +80,8 @@ Known issues (Up to the master branch):
 6. Chrome 58 stable hides some necessary infomation of page's selection,
   so some commands on `VisualMode` cann't work as expected if editable text is being selected.
   This Chrome feature/bug has been removed since version 59, so Vimium++ works well again.
+7. Chrome does not apply content settings (at least images) on file:// URLs since version 56.
+  Currently, no effective ways have been found (up to Chrome 59).
 
 1.60.2 (Not released yet):
 * completely fix Vomnibar flickering on showing and hiding since Chrome 57
