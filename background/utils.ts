@@ -76,7 +76,7 @@ var Utils = {
     string = string.trim();
     this.lastUrlType = Urls.Type.Full;
     if (string.charCodeAt(10) === KnownKey.colon && string.substring(0, 11).toLowerCase() === "javascript:") {
-      if (Settings.CONST.ChromeVersion < BrowserVer.MinAutoDecodeJSUrl && string.indexOf('%', 11) > 0
+      if (Settings.CONST.ChromeVersion < BrowserVer.MinAutoDecodeJSURL && string.indexOf('%', 11) > 0
           && !this._jsNotEscapeRe.test(string)) {
         string = this.DecodeURLPart(string);
       }

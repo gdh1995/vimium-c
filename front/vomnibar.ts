@@ -106,7 +106,7 @@ var Vomnibar = {
   selection: -1,
   timer: 0,
   wheelTimer: 0,
-  browserVersion: BrowserVer.AssumesVer,
+  browserVersion: BrowserVer.assumedVer,
   show (): void {
     const zoom = 1 / window.devicePixelRatio;
     this.bodySt.zoom = zoom > 1 ? zoom + "" : "";

@@ -192,10 +192,15 @@ declare const enum BrowserVer {
   Min$Document$$ScrollingElement = 44,
   MinTreat$LetterColon$AsFilePath = 44,
   MinMutedInfo = 45,
-  MinAutoDecodeJSUrl = 46,
+  MinArrowFunction = 45,
+  MinAutoDecodeJSURL = 46,
   Min$Event$$IsTrusted = 46,
   Min$Tabs$$Query$RejectHash = 47,
   MinEnsuredBorderWidth = 48, // inc 0.0001px to the min "visible" width
+  // if #disable-javascript-harmony-shipping is on, then arror functions are accepted only since 48,
+  // but this flag will break the Developer Tools (can not open the window) on Chrome 46/47/48,
+  // so Chrome can only debug arror functions since 49
+  MinEnsuredArrowFunction = 48,
   MinSafeWndPostMessageAcrossProcesses = 49,
   MinNo$Promise$$defer = 49,
   MinNoExtScriptsIfSandboxed = 49,
@@ -211,20 +216,23 @@ declare const enum BrowserVer {
   MinScrollingHTMLHtmlElement = 53,
   MinShadowDOMV1 = 53,
   MinUserSelectAll = 53,
-  AssumesVer = 53,
+  assumedVer = 53,
   MinWarningWebkitUserSelect = 54,
   MinHighDPIOnRemoteDesktop = 54,
   MinNo$KeyboardEvent$$keyIdentifier = 54,
   MinStricterArgsIn$Windows$$Create = 55,
   Min$Event$$Path$IncludeNodesInShadowRoot = 55,
-  MinSOmeDocumentListenersArePassiveByDefault = 56,
+  MinSomeDocumentListenersArePassiveByDefault = 56,
+  // With empty settings, Chrome only does this since not 56  but 57
   MinExtIframesInSharedProcess = 56, // means enabled by default
   MinNeedCSPForScriptsFromOtherExtensions = 56,
   MinStickyPosition = 56,
+  MinFailToToggleImageOnFileURL = 56,
   MinNoKeygenElement = 57,
   MinCaseSensitiveUsemap = 58,
   Min1pxIsNotEps = 58,
   $Selection$NotShowStatusInTextBox = 58, // Now only version 81-110 of Chrome 58 stable have such a problem
+  MinPasswordSaverDispatchesVirtualFocusEvents = 59,
   MinWarningWebkitGradient = 60,
   MinSelector$deep$DoesNothing = 60,
 }

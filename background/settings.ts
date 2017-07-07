@@ -273,7 +273,8 @@ w|wiki:\\\n  https://www.wikipedia.org/w/index.php?search=$s Wikipedia
   }
 };
 
-Settings.CONST.ChromeVersion = 0 | (navigator.appVersion.match(/\bChrom(?:e|ium)\/(\d+)/) || [0, BrowserVer.AssumesVer])[1] as number;
+Settings.CONST.ChromeVersion = 0 | (navigator.appVersion.match(/\bChrom(?:e|ium)\/(\d+)/)
+  || [0, BrowserVer.assumedVer])[1] as number;
 Settings.bufferToLoad.onMac = false;
 Settings.bufferToLoad.grabFocus = Settings.get("grabBackFocus");
 chrome.runtime.getPlatformInfo(function(info): void {
