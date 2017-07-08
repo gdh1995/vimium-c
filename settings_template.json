@@ -208,6 +208,7 @@
 		"v.m: $S vimium://show url vimium://math re=/[\\.\\d][\\.\\d)]*|\\w+(?:\\([\\w\\.]+)?|[^\\w\\s]+/g",
 		"v.m|math|vimium\\://math|v.e|eval\\:|v\\://eval|vimium\\://eval: vimium://math\\ $S re= Calculate",
 		"v.sum|sum\\:: vimium://eval\\ $S{\\ +\\ } re= Calculate",
+		"v.st: vimium://status\\ $S re= Force tab status",
 		"v.u|v.url|v.search|u\\:|url\\:: vimium://search\\ $S re= Search",
 		"v.c|copy\\:|v\\://copy|vimium\\://copy: vimium://copy\\ $S re= Copy to Clipboard",
 		"v.mc|v.math-copy: vimium://search-copy\\ vimium://math\\ $S re= Calculate and Copy",

@@ -22,7 +22,7 @@ declare namespace Search {
   interface EngineMap extends SafeDict<Engine> {}
 }
 declare namespace Urls {
-  type ValidEvalTag = "math" | "copy" | "search" | "ERROR";
+  type ValidEvalTag = "math" | "copy" | "search" | "ERROR" | "status";
 
   interface BaseEvalResult extends Array<any> {
     readonly [0]: string | string[];
@@ -45,6 +45,7 @@ declare namespace Urls {
   }
   interface CopyEvalResult extends BasePlainEvalResult<"copy"> {}
   interface ErrorEvalResult extends BasePlainEvalResult<"ERROR"> {}
+  interface StatusEvalResult extends BasePlainEvalResult<"status"> {}
 
   type EvalArrayResultWithSideEffects = CopyEvalResult;
 

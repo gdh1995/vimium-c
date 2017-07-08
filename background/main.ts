@@ -364,6 +364,8 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
       switch(arr[1]) {
       case "copy":
         return requestHandlers.ShowHUD((arr as Urls.CopyEvalResult)[0], true);
+      case "status":
+        return requestHandlers.ForceStatus((arr as Urls.StatusEvalResult)[0] as "reset" | "enable" | "disable");
       }
     },
     complain (this: void, action: string): void {
@@ -1787,7 +1789,7 @@ Are you sure you want to continue?`);
       if (!ref) { return; }
       const always_enabled = Exclusions == null || Exclusions.rules.length <= 0, oldStatus = ref[0].sender.status,
       stat = act === "enable" ? Frames.BaseStatus.enabled : act === "disable" ? Frames.BaseStatus.disabled : null,
-      msg: Req.bg<"reset"> = { name: "reset", passKeys: stat === Frames.BaseStatus.enabled ? null : "" },
+      msg: Req.bg<"reset"> = { name: "reset", passKeys: stat !== Frames.BaseStatus.disabled ? null : "" },
       locked = stat != null, unknown = !(locked || always_enabled);
       let pattern: string | null, newStatus = locked ? stat as Frames.ValidStatus : Frames.BaseStatus.enabled;
       for (let i = ref.length; 1 <= --i; ) {
