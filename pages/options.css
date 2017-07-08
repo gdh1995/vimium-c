@@ -88,7 +88,7 @@ button.left:focus+select.right {
   border-left-color: #4d90fe;
 }
 select.right > option {
-  background-color: #eee;
+  background-color: #f3f3f3;
 }
 
 pre, kbd, .code {
@@ -104,6 +104,9 @@ pre {
 td {
   padding: 0;
   vertical-align: top;
+}
+.decorate-none {
+  text-decoration: none;
 }
 
 input, textarea {
@@ -171,6 +174,9 @@ label:active {
   margin-bottom: 37px;
   margin-top: -23px;
 }
+.Vim {
+  color: #2f508e;
+}
 .info {
   margin-left: 4px;
 }
@@ -183,7 +189,7 @@ label:active {
   white-space: nowrap;
   width: 1px;
 }
-.hide {
+.hidden {
   display: none;
 }
 .float-right {
@@ -293,6 +299,7 @@ label:active {
   cursor: default;
   font-size: small;
   font-family: "Segoe UI Symbol", monospace;
+  line-height: 12px;
   padding: 5px;
   user-select: none;
 }
@@ -320,6 +327,7 @@ label:active {
   border-top: 0.01px solid #979ca0;
   bottom: 0;
   left: 0;
+  padding-top: 6px;
   position: fixed;
   right: 0;
   white-space: nowrap;
@@ -328,7 +336,6 @@ label:active {
 #footerWrapper {
   height: 30px;
   line-height: 16px;
-  padding-top: 6px;
 }
 #helpText {
   float: left;

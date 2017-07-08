@@ -356,9 +356,9 @@ exclusions: PopExclusionRulesOption = Object.setPrototypeOf({
   }
   function updateState(): void {
     const pass = bgExclusions.getTemp(exclusions.url, exclusions.readValueFromElement(true));
-    $("#state").innerHTML = "Vimium++ will " + (pass
-      ? "exclude: <span class='code'>" + pass.replace(escapeRe, escapeCallback) + "</span>"
-      : pass !== null ? "be disabled" : "be enabled");
+    $("#state").innerHTML = '<span class="Vim">Vim</span>ium++ will ' + (pass
+      ? `exclude: <span class="state-value code">${pass.trim().replace(escapeRe, escapeCallback)}</span>`
+      : `be:<span class="state-value fixed-width">${pass !== null ? 'disabled' : ' enabled'}</span>`);
   }
   function onUpdated(this: void): void {
     if (saved) {
@@ -393,10 +393,12 @@ exclusions: PopExclusionRulesOption = Object.setPrototypeOf({
   });
   const ref = bgSettings.indexPorts(tabs[0].id);
   exclusions.init(ref ? ref[0].sender.url : tabs[0].url, $("#exclusionRules"), onUpdated, updateState);
-  $("#optionsLink").onclick = function(this: HTMLAnchorElement, event: Event): void {
+  let element = $<HTMLAnchorElement>("#optionsLink"), url = bgSettings.CONST.OptionsPage;
+  element.href !== url && (element.href = url);
+  element.onclick = function(this: HTMLAnchorElement, event: Event): void {
     event.preventDefault();
     const a: MarksNS.FocusOrLaunch = BG.Object.create(null);
-    a.url = bgSettings.CONST.OptionsPage;
+    a.url = this.href;
     BG.g_requestHandlers.focusOrLaunch(a);
     window.close();
   };

@@ -128,6 +128,7 @@ var Tasks = {
   },
   scripts: ["background", "content", "front"],
   pages: ["main_pages", "others"],
+  "pages/": ["pages"],
   ba: ["background"],
   bg: ["background"],
   c: ["content"],
