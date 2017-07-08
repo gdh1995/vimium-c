@@ -741,15 +741,13 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
       r.init = null as never;
       return VDom.documentReady(ELs.OnReady);
     },
-    reset ({ passKeys: newPassKeys }): void {
-      const enabled = (newPassKeys !== ""), old = VSettings.enabled;
+    reset (request: BgReq["reset"]): void {
+      const newPassKeys = request.passKeys, enabled = newPassKeys !== "", old = VSettings.enabled;
       passKeys = (newPassKeys && parsePassKeys(newPassKeys)) as SafeDict<true> | null;
       VSettings.enabled = isEnabledForUrl = enabled;
       if (enabled) {
-        if (!old) {
-          InsertMode.init();
-          ELs.hook(addEventListener);
-        }
+        old || InsertMode.init();
+        old && !request.forced || ELs.hook(addEventListener);
       } else if (requestHandlers.init) {
         InsertMode.grabFocus = false;
         return ELs.hook(removeEventListener, 1);

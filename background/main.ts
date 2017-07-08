@@ -1789,8 +1789,8 @@ Are you sure you want to continue?`);
       if (!ref) { return; }
       const always_enabled = Exclusions == null || Exclusions.rules.length <= 0, oldStatus = ref[0].sender.status,
       stat = act === "enable" ? Frames.BaseStatus.enabled : act === "disable" ? Frames.BaseStatus.disabled : null,
-      msg: Req.bg<"reset"> = { name: "reset", passKeys: stat !== Frames.BaseStatus.disabled ? null : "" },
-      locked = stat != null, unknown = !(locked || always_enabled);
+      locked = stat != null, unknown = !(locked || always_enabled),
+      msg: Req.bg<"reset"> = { name: "reset", passKeys: stat !== Frames.BaseStatus.disabled ? null : "", forced: true };
       let pattern: string | null, newStatus = locked ? stat as Frames.ValidStatus : Frames.BaseStatus.enabled;
       for (let i = ref.length; 1 <= --i; ) {
         const port = ref[i], sender = (port.sender as Frames.Sender);

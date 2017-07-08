@@ -12,6 +12,7 @@ interface BgReq {
   };
   reset: {
     passKeys: string | null;
+    forced?: true;
   };
   insertInnerCSS: {
     name: "insertInnerCSS";
