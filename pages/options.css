@@ -153,6 +153,9 @@ textarea:read-only {
 input:disabled, textarea:disabled {
   color: #444;
 }
+input::-webkit-input-placeholder, input::placeholder {
+  color: #bfbfbf;
+}
 button:focus, input:focus, select:focus, textarea:focus {
   transition: border-color 200ms;
   border-color: #4d90fe;
