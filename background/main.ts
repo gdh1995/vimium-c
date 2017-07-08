@@ -1781,6 +1781,31 @@ Are you sure you want to continue?`);
       } catch (e) {
         cPort = null as never;
       }
+    },
+    ForceStatus (act: "reset" | "enable" | "disable", tabId?: number): void {
+      const ref = framesForTab[tabId || (tabId = TabRecency.last)];
+      if (!ref) { return; }
+      const always_enabled = Exclusions == null || Exclusions.rules.length <= 0, oldStatus = ref[0].sender.status,
+      stat = act === "enable" ? Frames.BaseStatus.enabled : act === "disable" ? Frames.BaseStatus.disabled : null,
+      msg: Req.bg<"reset"> = { name: "reset", passKeys: stat === Frames.BaseStatus.enabled ? null : "" },
+      locked = stat != null, unknown = !(locked || always_enabled);
+      let pattern: string | null, newStatus = locked ? stat as Frames.ValidStatus : Frames.BaseStatus.enabled;
+      for (let i = ref.length; 1 <= --i; ) {
+        const port = ref[i], sender = (port.sender as Frames.Sender);
+        sender.locked = locked;
+        if (unknown) {
+          // must send "reset" messages even if port keeps enabled - frontend may need to reinstall listeners
+          pattern = msg.passKeys = Settings.getExcluded(sender.url);
+          newStatus = pattern === null ? Frames.BaseStatus.enabled : pattern
+            ? Frames.BaseStatus.partial : Frames.BaseStatus.disabled;
+          if (newStatus !== Frames.BaseStatus.partial && sender.status === newStatus) { continue; }
+        }
+        sender.status = newStatus;
+        port.postMessage(msg);
+      }
+      if (needIcon && (newStatus = ref[0].sender.status) !== oldStatus) {
+        return requestHandlers.SetIcon(tabId, newStatus);
+      }
     }
   },
   Connections = {

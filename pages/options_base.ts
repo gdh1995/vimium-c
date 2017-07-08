@@ -391,8 +391,22 @@ exclusions: PopExclusionRulesOption = Object.setPrototypeOf({
       if (!saved) { return saveOptions(); }
     }
   });
-  const ref = bgSettings.indexPorts(tabs[0].id);
-  exclusions.init(ref ? ref[0].sender.url : tabs[0].url, $("#exclusionRules"), onUpdated, updateState);
+  let ref = bgSettings.indexPorts(tabs[0].id);
+  exclusions.init(ref ? ref[0].sender.url : tabs[0].url, $("#exclusionRules"), onUpdated, ref ? function (): void {
+    let { sender } = (ref as Frames.Frames)[0], el: HTMLElement
+      , newStat = sender.status !== Frames.BaseStatus.disabled ? "Disable" : "Enable";
+    ref = null;
+    el = $<HTMLElement>("#toggleOnce");
+    el.innerText = newStat + " for once";
+    el.onclick = forceState.bind(null, sender.tabId, newStat);
+    if (sender.locked) {
+      el = el.nextElementSibling as HTMLElement;
+      el.classList.remove("hidden");
+      el = el.firstElementChild as HTMLElement;
+      el.onclick = forceState.bind(null, sender.tabId, "Reset");
+    }
+    return updateState();
+  } : updateState);
   let element = $<HTMLAnchorElement>("#optionsLink"), url = bgSettings.CONST.OptionsPage;
   element.href !== url && (element.href = url);
   element.onclick = function(this: HTMLAnchorElement, event: Event): void {
@@ -407,4 +421,10 @@ exclusions: PopExclusionRulesOption = Object.setPrototypeOf({
   window.onunload = function(): void {
     bgExclusions.testers = null;
   };
+
+  function forceState(tabId: number, act: "Reset" | "Enable" | "Disable", event?: Event): void {
+    event && event.preventDefault();
+    BG.g_requestHandlers.ForceStatus(act.toLowerCase() as "reset" | "enable" | "disable", tabId);
+    window.close();
+  }
 })));
