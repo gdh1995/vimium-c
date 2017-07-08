@@ -1613,6 +1613,7 @@ Are you sure you want to continue?`);
         , status = pattern === null ? Frames.BaseStatus.enabled : pattern
             ? Frames.BaseStatus.partial : Frames.BaseStatus.disabled;
       if (port.sender.status !== status) {
+        if (port.sender.locked) { return; }
         port.sender.status = status;
         let a: Frames.Frames | undefined;
         if (needIcon && (a = framesForTab[tabId]) && a[0] === port) {

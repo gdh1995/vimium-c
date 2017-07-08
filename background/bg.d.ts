@@ -118,6 +118,10 @@ declare namespace Frames {
     tabId: number;
     url: string;
     status: ValidStatus;
+    /**
+     * whether .status is locked
+     */
+    locked?: boolean;
   }
   interface Sender extends RawSender {
     readonly tabId: number;
@@ -371,6 +375,7 @@ declare namespace BgReqHandlerNS {
     focusOrLaunch(this: void, request: MarksNS.FocusOrLaunch): void;
     SetIcon(tabId: number, type: Frames.ValidStatus): void;
     ShowHUD(message: string, isCopy?: boolean | undefined): void;
+    ForceStatus(this: void, act: "reset" | "enable" | "disable", tabId?: number): void;
   }
 }
 
