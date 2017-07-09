@@ -1784,27 +1784,36 @@ Are you sure you want to continue?`);
         cPort = null as never;
       }
     },
-    ForceStatus (act: "reset" | "enable" | "disable", tabId?: number): void {
+    ForceStatus (act: "reset" | "enable" | "disable" | "toggle", tabId?: number): void {
       const ref = framesForTab[tabId || (tabId = TabRecency.last)];
       if (!ref) { return; }
       const always_enabled = Exclusions == null || Exclusions.rules.length <= 0, oldStatus = ref[0].sender.status,
-      stat = act === "enable" ? Frames.BaseStatus.enabled : act === "disable" ? Frames.BaseStatus.disabled : null,
+      stat = act === "enable" ? Frames.BaseStatus.enabled : act === "disable" ? Frames.BaseStatus.disabled
+        : act === "toggle" ? oldStatus === Frames.BaseStatus.disabled ? Frames.BaseStatus.enabled : Frames.BaseStatus.disabled
+        : null,
       locked = stat != null, unknown = !(locked || always_enabled),
       msg: Req.bg<"reset"> = { name: "reset", passKeys: stat !== Frames.BaseStatus.disabled ? null : "", forced: true };
+      cPort = ref[0];
+      if (stat == null && !tabId) {
+        oldStatus !== Frames.BaseStatus.disabled && requestHandlers.ShowHUD("Got an unknown action on status: " + act);
+        return;
+      }
       let pattern: string | null, newStatus = locked ? stat as Frames.ValidStatus : Frames.BaseStatus.enabled;
       for (let i = ref.length; 1 <= --i; ) {
         const port = ref[i], sender = (port.sender as Frames.Sender);
         sender.locked = locked;
         if (unknown) {
-          // must send "reset" messages even if port keeps enabled - frontend may need to reinstall listeners
           pattern = msg.passKeys = Settings.getExcluded(sender.url);
           newStatus = pattern === null ? Frames.BaseStatus.enabled : pattern
             ? Frames.BaseStatus.partial : Frames.BaseStatus.disabled;
           if (newStatus !== Frames.BaseStatus.partial && sender.status === newStatus) { continue; }
         }
+        // must send "reset" messages even if port keeps enabled by 'v.st enable' - frontend may need to reinstall listeners
         sender.status = newStatus;
         port.postMessage(msg);
       }
+      newStatus !== Frames.BaseStatus.disabled && requestHandlers.ShowHUD("Now the page status is " + (
+        newStatus === Frames.BaseStatus.enabled ? "enabled" : "partially disabled" ));
       if (needIcon && (newStatus = ref[0].sender.status) !== oldStatus) {
         return requestHandlers.SetIcon(tabId, newStatus);
       }

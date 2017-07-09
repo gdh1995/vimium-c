@@ -376,7 +376,7 @@ declare namespace BgReqHandlerNS {
     focusOrLaunch(this: void, request: MarksNS.FocusOrLaunch): void;
     SetIcon(tabId: number, type: Frames.ValidStatus): void;
     ShowHUD(message: string, isCopy?: boolean | undefined): void;
-    ForceStatus(this: void, act: "reset" | "enable" | "disable", tabId?: number): void;
+    ForceStatus(this: void, act: "reset" | "enable" | "disable" | "toggle", tabId?: number): void;
   }
 }
 

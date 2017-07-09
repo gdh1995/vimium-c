@@ -297,7 +297,7 @@ var Utils = {
       return [path, "ERROR"];
     }
     else if (workType === Urls.WorkType.ActAnyway) switch (cmd) {
-    case "toggle": case "state": case "status":
+    case "status": case "state":
       return [path.toLowerCase(), "status"] as Urls.StatusEvalResult;
     case "url-copy": case "search-copy": case "search.copy": case "copy-url":
       res = (this as typeof Utils).convertToUrl(path, null, Urls.WorkType.ActIfNoSideEffects);
