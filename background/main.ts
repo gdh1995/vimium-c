@@ -1606,17 +1606,17 @@ Are you sure you want to continue?`);
     },
     checkIfEnabled: function (this: void, request: ExclusionsNS.Details | FgReq["checkIfEnabled"]
         , port?: Frames.Port | null): void {
-      if (!(port && port.sender)) {
+      if (!port) {
         port = funcDict.indexFrame((request as ExclusionsNS.Details).tabId, (request as ExclusionsNS.Details).frameId);
+        if (!port) { return; }
       }
-      if (!port) { return; }
-      const oldUrl = port.sender.url, tabId = port.sender.tabId
-        , pattern = Settings.getExcluded(port.sender.url = request.url)
+      const { sender } = port, { url: oldUrl, tabId } = sender
+        , pattern = Settings.getExcluded(sender.url = request.url)
         , status = pattern === null ? Frames.BaseStatus.enabled : pattern
             ? Frames.BaseStatus.partial : Frames.BaseStatus.disabled;
-      if (port.sender.status !== status) {
-        if (port.sender.locked) { return; }
-        port.sender.status = status;
+      if (sender.status !== status) {
+        if (sender.locked) { return; }
+        sender.status = status;
         let a: Frames.Frames | undefined;
         if (needIcon && (a = framesForTab[tabId]) && a[0] === port) {
           requestHandlers.SetIcon(tabId, status);
@@ -1837,26 +1837,28 @@ Are you sure you want to continue?`);
       }
     },
     OnConnect (this: void, port: Frames.Port): void {
-      Connections.format(port);
-      const type = (port.name[9] as string | number as number) | 0, tabId = port.sender.tabId, url = port.sender.url;
+      const type = (port.name.substring(9) as string | number as number) | 0,
+      sender = Connections.format(port), { tabId, url } = sender;
+      let status: Frames.ValidStatus;
       if (type >= PortType.omnibar || (url === Settings.cache.vomnibarPage_f)) {
-        return Connections.onOmniConnect(port, tabId, type);
+        if (type < PortType.knownStatusBase) {
+          return Connections.onOmniConnect(port, tabId, type);
+        }
+        status = (type & PortType.knownStatusMask) as Frames.ValidStatus;
+      } else {
+        const pass = Settings.getExcluded(url);
+        status = pass === null ? Frames.BaseStatus.enabled : pass ? Frames.BaseStatus.partial : Frames.BaseStatus.disabled;
+        port.postMessage({
+          name: "init",
+          load: Settings.bufferToLoad,
+          passKeys: pass,
+          mapKeys: CommandsData.mapKeyRegistry,
+          keyMap: CommandsData.keyMap
+        });
       }
+      sender.status = status;
       port.onDisconnect.addListener(Connections.OnDisconnect);
       port.onMessage.addListener(Connections.OnMessage);
-      const pass = Settings.getExcluded(url), status = pass === null
-          ? Frames.BaseStatus.enabled : pass ? Frames.BaseStatus.partial : Frames.BaseStatus.disabled;
-      port.postMessage((type & PortType.initing) ? {
-        name: "init",
-        load: Settings.bufferToLoad,
-        passKeys: pass,
-        mapKeys: CommandsData.mapKeyRegistry,
-        keyMap: CommandsData.keyMap
-      } : {
-        name: "reset",
-        passKeys: pass
-      });
-      port.sender.status = status;
       let ref: Frames.WritableFrames | undefined;
       if (ref = framesForTab[tabId] as typeof ref) {
         ref.push(port);
@@ -1871,7 +1873,7 @@ Are you sure you want to continue?`);
         status !== Frames.BaseStatus.enabled && needIcon && requestHandlers.SetIcon(tabId, status);
       }
       if (NoFrameId) {
-        (port.sender as any).frameId = (type & PortType.isTop) ? 0 : ((Math.random() * 9999997) | 0) + 2;
+        (sender as any).frameId = (type & PortType.isTop) ? 0 : ((Math.random() * 9999997) | 0) + 2;
       }
     },
     OnDisconnect (this: void, port: Port): void {
@@ -1934,15 +1936,16 @@ Are you sure you want to continue?`);
         ref.splice(i, 1);
       }
     },
-    format (port: Frames.RawPort): void {
+    format (port: Frames.RawPort): Frames.Sender {
       const sender = port.sender, tab = sender.tab || {
         id: this._fakeId--,
         incognito: false
       };
-      port.sender = {
+      return port.sender = {
         frameId: sender.frameId || 0,
         incognito: tab.incognito,
-        status: 0,
+        locked: false,
+        status: Frames.BaseStatus.enabled,
         tabId: tab.id,
         url: sender.url
       };

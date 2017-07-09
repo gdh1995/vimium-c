@@ -87,7 +87,7 @@ declare namespace MarksNS {
 declare const enum KnownKey {
   space = 32, bang = 33, quote2 = 34, hash = 35,
   maxCommentHead = hash,
-  s = 115, colon = 58,
+  A = 65, s = 115, colon = 58,
 }
 
 interface ChildKeyMap {
@@ -120,12 +120,20 @@ declare const enum ProtocolType {
   http = 7, https = 8,
 }
 
+declare namespace Frames {
+  const enum BaseStatus {
+    enabled = 0, partial = 1, disabled = 2,
+    __fake = -1
+  }
+}
+
 declare const enum PortType {
-  nothing = 0,
   initing = 1,
   hasFocus = 2,
   isTop = 4,
-  omnibar = 8, omnibarRe = 9
+  omnibar = 8, omnibarRe = 9,
+  /** the below should keep the consistent with Frames.BaseStatus, so that code in OnConnect works */
+  knownStatusBase = 16, knownEnabled = 16, knownPartial = 17, knownDisabled = 18, knownStatusMask = 4,
 }
 
 declare namespace SettingsNS {

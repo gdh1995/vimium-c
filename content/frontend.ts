@@ -42,7 +42,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
     safePost<K extends keyof FgReq> (request: FgReq[K] & Req.baseFg<K>): void {
       try {
         if (!this.port) {
-          this.connect(PortType.nothing);
+          this.connect(isEnabledForUrl ? passKeys ? PortType.knownPartial : PortType.knownEnabled : PortType.knownDisabled);
           isInjected && setTimeout(function() { esc && !vPort.port && VSettings.destroy(); }, 50);
         }
         (this.port as Port).postMessage(request);
@@ -67,9 +67,9 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
         try { esc && vPort.connect(PortType.initing); } catch(e) { VSettings.destroy(); }
       }, 2000);
     },
-    connect (isFirst: PortType.nothing | PortType.initing): void {
-      const data = { name: "vimium++." + (PortType.isTop * +(window.top === window) + PortType.hasFocus * +document.hasFocus() + isFirst) };
-      const port = this.port = isInjected ? chrome.runtime.connect(VimiumInjector.id, data) as Port
+    connect (status: PortType.initing | PortType.knownEnabled | PortType.knownPartial | PortType.knownDisabled): void {
+      const data = { name: "vimium++." + (PortType.isTop * +(window.top === window) + PortType.hasFocus * +document.hasFocus() + status) },
+      port = this.port = isInjected ? chrome.runtime.connect(VimiumInjector.id, data) as Port
         : chrome.runtime.connect(data) as Port;
       port.onDisconnect.addListener(this.ClearPort);
       port.onMessage.addListener(this.Listener);

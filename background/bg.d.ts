@@ -107,10 +107,6 @@ declare namespace Urls {
 }
 
 declare namespace Frames {
-  const enum BaseStatus {
-    enabled = 0, partial = 1, disabled = 2,
-    __fake = -1
-  }
   type ValidStatus = BaseStatus.enabled | BaseStatus.partial | BaseStatus.disabled;
 
   interface RawSender {
@@ -122,7 +118,7 @@ declare namespace Frames {
     /**
      * whether .status is locked
      */
-    locked?: boolean;
+    locked: boolean;
   }
   interface Sender extends RawSender {
     readonly tabId: number;
