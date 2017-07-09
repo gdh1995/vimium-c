@@ -1288,7 +1288,7 @@ Are you sure you want to continue?`);
       const page = Settings.cache.vomnibarPage_f, { url } = port.sender, web = !page.startsWith("chrome"),
       inner = Settings.CONST.VomnibarPageInner,
       usable = !(forceInner || (web ? url.startsWith("chrome") : port.sender.incognito) || url.startsWith(location.origin)),
-      choice = page === inner || !usable,
+      choice = !usable || page === inner || port.sender.tabId < 0,
       options = Utils.extendIf(Object.setPrototypeOf({
         vomnibar: choice ? inner : page,
         vomnibar2: choice ? null : inner,
