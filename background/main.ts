@@ -100,7 +100,7 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
           funcDict.complain(a === 1 ? `change file content settings since Chrome ${BrowserVer.MinFailToToggleImageOnFileURL}` : "set content settings of file folders");
           return [];
         }
-        return [pattern.split("?", 1)[0]];
+        return [pattern.split(<RegExpOne>/[?#]/, 1)[0]];
       }
       let info: string[] = pattern.match(/^([^:]+:\/\/)([^\/]+)/) as RegExpMatchArray
         , result = [info[0] + "/*"], host = info[2];
