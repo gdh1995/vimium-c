@@ -341,7 +341,7 @@ exclusions: PopExclusionRulesOption = Object.setPrototypeOf({
   generateDefaultPattern (this: PopExclusionRulesOption): string {
     const url = this.url.lastIndexOf("https:", 0) === 0
       ? "^https?://" + this.url.split("/", 3)[2].replace(<RegExpG>/\./g, "\\.") + "/"
-      : (<RegExpOne>/^[^:]+:\/\/./).test(this.url)
+      : (<RegExpOne>/^[^:]+:\/\/./).test(this.url) && this.url.lastIndexOf("file:", 0) < 0
       ? ":" + (this.url.split("/", 3).join("/") + "/")
       : ":" + this.url;
     this.generateDefaultPattern = () => url;
