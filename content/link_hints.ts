@@ -924,7 +924,7 @@ getUrlData (link: HTMLAnchorElement): string {
 highlightChild (el: HTMLIFrameElement | HTMLFrameElement): false | void {
   let err: boolean | null = true, child: HintsNS.VWindow = null as never;
   try {
-    err = el.contentDocument &&
+    err = !el.contentDocument ||
       (child = el.contentWindow as HintsNS.VWindow).VEventMode.keydownEvents(VEventMode.keydownEvents());
   } catch (e) {}
   const { count, options } = this;
