@@ -2049,7 +2049,6 @@ Are you sure you want to continue?`);
 
   setTimeout(function(): void {
     Settings.postUpdate("bufferToLoad", null);
-    Settings.get("userDefinedOuterCss", true);
     return (Settings.Init as (this: void) => void)();
   }, 0);
 

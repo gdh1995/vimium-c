@@ -147,7 +147,6 @@ declare namespace SettingsNS {
     regexFindMode: boolean;
     scrollStepSize: number;
     smoothScroll: boolean;
-    userDefinedOuterCss: string;
   }
   interface FrontendSettingCache extends FrontendSettings {
     grabFocus: boolean;

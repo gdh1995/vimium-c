@@ -208,7 +208,6 @@ w|wiki:\\\n  https://www.wikipedia.org/w/index.php?search=$s Wikipedia
     showAdvancedOptions: false,
     smoothScroll: true,
     userDefinedCss: "",
-    userDefinedOuterCss: "",
     vimSync: false,
     vomnibarPage: ""
   } as SettingsWithDefaults & SafeObject,
@@ -227,7 +226,7 @@ w|wiki:\\\n  https://www.wikipedia.org/w/index.php?search=$s Wikipedia
     { "19": "/icons/disabled_19.png", "38": "/icons/disabled_38.png" }
   ] as [IconNS.PathBuffer, IconNS.PathBuffer, IconNS.PathBuffer],
   valuesToLoad: ["deepHints", "keyboard", "linkHintCharacters" //
-    , "regexFindMode", "scrollStepSize", "smoothScroll", "userDefinedOuterCss" //
+    , "regexFindMode", "scrollStepSize", "smoothScroll" //
   ] as Array<keyof SettingsNS.FrontendSettings>,
   Sync: {
     set: function() {}

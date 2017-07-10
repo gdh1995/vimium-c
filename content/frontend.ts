@@ -216,10 +216,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
     },
     OnWndFocus (this: void): void {},
     OnWndBlur: null as ((this: void) => void) | null,
-    OnReady (inited?: boolean): void {
-      const visible = isEnabledForUrl && location.href !== "about:blank" && innerHeight > 9 && innerWidth > 9;
-      VDom.UI.setOuterCSS(visible && VSettings.cache.userDefinedOuterCss);
-      if (inited) { return; }
+    OnReady (): void {
       HUD.enabled = true;
       ELs.OnWndFocus = vPort.safePost.bind(vPort, { handler: "frameFocused" });
     },
@@ -766,7 +763,6 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
       for (let i in request) {
         VSettings.cache[i as Keys] = request[i as Keys] as SettingsNS.FrontendSettings[Keys];
       }
-      if ("userDefinedOuterCss" in request) { return ELs.OnReady(true); }
     },
     insertInnerCSS: VDom.UI.InsertInnerCSS,
     focusFrame: FrameMask.Focus,
