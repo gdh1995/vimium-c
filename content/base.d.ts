@@ -208,7 +208,7 @@ interface VPort {
 interface VEventMode {
   lock(this: void): Element | null;
   suppress(keyCode?: number): void;
-  OnWndFocus (this: void): (this: void) => void;
+  OnWndFocus (this: void): void;
   focusAndListen (this: void, callback?: (() => void) | null, timedout?: 0): void;
   onWndBlur (this: void, onWndBlur: ((this: void) => void) | null): void;
   setupSuppress (this: void, onExit?: (this: void) => void): void;

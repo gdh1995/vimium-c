@@ -94,7 +94,7 @@ html > count{float:right;}`,
     function cb(): void {
       VHandler.remove(VFindMode);
       el.focus();
-      wnd.onfocus = VEventMode.OnWndFocus();
+      wnd.onfocus = VEventMode.OnWndFocus;
     }
     if ((VDom.UI.box as HTMLElement).style.display) {
       VDom.UI.callback = cb;

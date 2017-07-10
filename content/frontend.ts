@@ -43,7 +43,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
       try {
         if (!this.port) {
           this.connect(isEnabledForUrl ? passKeys ? PortType.knownPartial : PortType.knownEnabled : PortType.knownDisabled);
-          isInjected && setTimeout(function() { esc && !vPort.port && VSettings.destroy(); }, 50);
+          isInjected && setTimeout(this.TestAlive, 50);
         }
         (this.port as Port).postMessage(request);
       } catch (e) { // this extension is reloaded or disabled
@@ -61,6 +61,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
         return requestHandlers[(response as Req.bg<T>).name as T](response as Req.bg<T>);
       }
     },
+    TestAlive (): void { esc && !vPort.port && VSettings.destroy(); },
     ClearPort (this: void): void {
       vPort.port = null;
       requestHandlers.init && setTimeout(function(): void {
@@ -888,7 +889,7 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
   VEventMode = {
     lock (this: void): Element | null { return InsertMode.lock; },
     onWndBlur (this: void, f): void { ELs.OnWndBlur = f; },
-    OnWndFocus (this: void): (this: void) => void { return ELs.OnWndFocus; },
+    OnWndFocus (this: void): void { return ELs.OnWndFocus(); },
     focusAndListen (callback?: () => void, timedout?: 0 | 1): void {
       if (timedout !== 1) {
         setTimeout(VEventMode.focusAndListen, 0, callback, 1 as number as 0);
