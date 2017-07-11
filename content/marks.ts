@@ -50,7 +50,7 @@ var VMarks = {
   _create (event: HandlerNS.Event, keyChar: string): void {
     if (event.shiftKey) {
       if (window.top === window) {
-        return this.CreateGlobalMark({markName: keyChar});
+        return this.createMark(keyChar);
       } else {
         VPort.post({handler: "createMark", markName: keyChar});
         return VHUD.hide();
@@ -105,19 +105,19 @@ var VMarks = {
       }
     }
   },
-  CreateGlobalMark (this: void, request: { markName: string }): void {
+  createMark (markName: string, local?: "local"): void {
     VPort.post({
       handler: "createMark",
-      markName: request.markName,
-      url: VMarks.getBaseUrl(),
+      markName,
+      url: this.getBaseUrl(),
       scroll: [window.scrollX, window.scrollY]
     });
-    return VHUD.showForDuration(`Created global mark : ' ${request.markName} '.`, 1000);
+    return VHUD.showForDuration(`Created ${local || "global"} mark : ' ${markName} '.`, 1000);
   },
-  Goto (this: void, request: BgReq["scroll"]): void {
+  goTo (request: BgReq["scroll"]): void {
     const scroll = request.scroll, a = request.markName || "";
     (document.body instanceof HTMLFrameSetElement) || VEventMode.focusAndListen();
-    a && VMarks.setPreviousPosition();
+    a && this.setPreviousPosition();
     window.scrollTo(scroll[0], scroll[1]);
     if (a) { return VHUD.showForDuration(`Jumped to global mark : ' ${a} '.`, 2000); }
   }

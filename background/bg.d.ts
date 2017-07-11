@@ -165,7 +165,7 @@ declare const enum IncognitoType {
 type CurrentTabs = [chrome.tabs.Tab];
 
 declare namespace MarksNS {
-  interface StoredMark extends Mark {
+  interface StoredMark extends BaseMarkProps {
     tabId: number;
   }
 

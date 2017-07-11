@@ -62,9 +62,12 @@ declare namespace MarksNS {
     markName: string;
   }
 
-  interface Mark extends BaseMark {
+  interface BaseMarkProps {
     scroll: ScrollInfo;
     url: string;
+  }
+
+  interface Mark extends BaseMark, BaseMarkProps {
   }
 
   interface FgQuery extends BaseMark {

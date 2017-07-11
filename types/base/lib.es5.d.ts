@@ -1062,6 +1062,7 @@ interface JSON {
       * @param replacer A function that transforms the results.
       * @param space Adds indentation, white space, and line break characters to the return-value JSON text to make it easier to read.
       */
+    stringify<T>(value: T, replacer?: null, space?: string | number): string;
     stringify(value: any, replacer?: (key: string, value: any) => any, space?: string | number): string;
     /**
       * Converts a JavaScript value to a JavaScript Object Notation (JSON) string.

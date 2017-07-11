@@ -44,16 +44,15 @@ const Clipboard = {
     return value;
   }
 },
-Marks = { // NOTE: all members should be static
+Marks = { // NOTE: all public members should be static
+  _set (tabId: number, { markName, url, scroll }: MarksNS.Mark): void {
+    localStorage.setItem(Marks.getLocationKey(markName)
+      , JSON.stringify<MarksNS.StoredMark>({ tabId, url, scroll }));
+  },
   createMark (this: void, request: MarksNS.BaseMark | MarksNS.Mark, port: Port): void {
     let tabId = port.sender.tabId;
     if ((request as MarksNS.Mark).scroll) {
-      localStorage.setItem(Marks.getLocationKey(request.markName), JSON.stringify({
-        tabId,
-        url: (request as MarksNS.Mark).url,
-        scroll: (request as MarksNS.Mark).scroll
-      } as MarksNS.StoredMark));
-      return;
+      return Marks._set(tabId, request as MarksNS.Mark);
     }
     (port = Settings.indexPorts(tabId, 0) || port) && port.postMessage({
       name: "createMark",
@@ -96,11 +95,7 @@ Marks = { // NOTE: all members should be static
       markName: markInfo.markName
     });
     if (markInfo.tabId !== tabId && markInfo.markName) {
-      localStorage.setItem(Marks.getLocationKey(markInfo.markName), JSON.stringify({
-        tabId,
-        url: markInfo.url,
-        scroll: markInfo.scroll
-      } as MarksNS.StoredMark));
+      return Marks._set(tabId, markInfo as typeof markInfo & { markName: string });
     }
   },
   clearGlobal (this: void): void {
