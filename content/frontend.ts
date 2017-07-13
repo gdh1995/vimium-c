@@ -376,7 +376,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
       vPort.post({ handler: "initHelp", wantTop });
     },
     autoCopy (_0: number, options: FgOptions): void {
-      let str = VDom.getSelectionText();
+      let str = window.getSelection().toString();
       if (!str) {
         str = options.url ? window.location.href : document.title;
         (options.decoded || options.decode) && (str = VUtils.decodeURL(str));
