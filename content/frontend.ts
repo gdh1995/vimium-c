@@ -317,10 +317,9 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
         return VHUD.showForDuration("No links to go " + dir);
       }
     },
-    reload (url: number | string, options?: FgOptions): void {
-      const force = !!(options && options.force);
+    reload (_0: number, {force, url}: CmdOptions["reload"]): void {
       setTimeout(function() {
-        typeof url !== "string" ? window.location.reload(force) : (window.location.href = url);
+        url ? (window.location.href = url) : window.location.reload(force);
       }, 17);
     },
     switchFocus (): void {
@@ -350,20 +349,6 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
     goBack (count: number, options: FgOptions): void {
       const step = Math.min(count, history.length - 1);
       step > 0 && history.go(step * (+options.dir || -1));
-    },
-    goUp (count: number, options: FgOptions): void {
-      const trail = options.trailing_slash;
-      return vPort.send({
-        handler: "parseUpperUrl",
-        url: window.location.href,
-        trailing_slash: trail != null ? !!trail : null,
-        upper: -count
-      }, function(result): void {
-        if (result.path != null) {
-          return Commands.reload(result.url);
-        }
-        return HUD.showForDuration(result.url);
-      });
     },
     showHelp (msg?: number | "exitHD"): void {
       if (msg === "exitHD") { return; }
@@ -543,7 +528,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
 Pagination = {
   followLink (linkElement: Element): boolean {
     if (linkElement instanceof HTMLLinkElement) {
-      Commands.reload(linkElement.href);
+      Commands.reload(1, { url: linkElement.href });
     } else {
       VDom.ensureInView(linkElement);
       VDom.UI.flash(linkElement);
@@ -754,8 +739,10 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
       }
       if (VDom.UI.box) { return VDom.UI.toggle(enabled); }
     },
-    checkIfEnabled: function (this: void): void {
-      return vPort.safePost({ handler: "checkIfEnabled", url: window.location.href });
+    url (this: void, request: BgReq["url"]): void {
+      delete (request as Req.bg<"url">).name;
+      request.url = window.location.href;
+      vPort.post(request);
     },
     settingsUpdate (request): void {
       type Keys = keyof SettingsNS.FrontendSettings;
@@ -960,7 +947,9 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
   VSettings = {
     enabled: false,
     cache: null as never as VSettings["cache"],
-    checkIfEnabled: requestHandlers.checkIfEnabled as VSettings["checkIfEnabled"],
+    checkIfEnabled (this: void): void {
+      return vPort.safePost({ handler: "checkIfEnabled", url: window.location.href });
+    },
     onDestroy: null,
   destroy: function(silent, keepChrome): void {
     VSettings.enabled = isEnabledForUrl = false;

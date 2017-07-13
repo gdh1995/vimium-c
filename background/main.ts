@@ -417,6 +417,16 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
 
 Are you sure you want to continue?`);
     },
+    requireURL<T extends keyof FgReq> (this: void, request: FgReq[T] & BgReq["url"], ignoreHash?: true): void {
+      if (Exclusions == null || Exclusions.rules.length <= 0
+          || !(ignoreHash || Settings.get("exclusionListenHash", true))) {
+        (request as Req.bg<"url">).name = "url";
+        cPort.postMessage(request as Req.bg<"url">);
+        return;
+      }
+      request.url = cPort.sender.url;
+      return requestHandlers[request.handler as "parseUpperUrl"](request as FgReq["parseUpperUrl"], cPort) as never;
+    },
 
     getCurTab: chrome.tabs.query.bind<null, { active: true, currentWindow: true }
         , (result: [Tab] | never[]) => void, 1>(null, { active: true, currentWindow: true }),
@@ -1144,16 +1154,25 @@ Are you sure you want to continue?`);
       });
     },
     goToRoot (this: void, tabs: [Tab]): void {
-      const url = tabs[0].url, trail = cOptions.trailing_slash,
-      result = requestHandlers.parseUpperUrl({
+      const trail = cOptions.trailing_slash,
+      { path, url } = requestHandlers.parseUpperUrl({
         trailing_slash: trail != null ? !!trail : null,
-        url, upper: commandCount - 1
+        url: tabs[0].url, upper: commandCount - 1
       });
-      if (result.path != null) {
-        chrome.tabs.update({url: result.url});
+      if (path != null) {
+        chrome.tabs.update({url});
         return;
       }
-      return requestHandlers.ShowHUD(result.url);
+      return requestHandlers.ShowHUD(url);
+    },
+    goUp (this: void): void {
+      const trail = cOptions.trailing_slash;
+      return funcDict.requireURL({
+        handler: "parseUpperUrl",
+        upper: -commandCount,
+        trailing_slash: trail != null ? !!trail : null,
+        execute: true
+      });
     },
     moveTab (this: void, tabs: Tab[]): void {
       const tab = funcDict.selectFrom(tabs), dir = cOptions.dir > 0 ? 1 : -1, pinned = tab.pinned;
@@ -1219,7 +1238,7 @@ Are you sure you want to continue?`);
       case "title": str = tabs[0].title; break;
       case "frame":
         if (needIcon && (str = cPort.sender.url)) { break; }
-        cPort.postMessage({
+        cPort.postMessage<1, "autoCopy">({
           name: "execute",
           command: "autoCopy",
           count: 1,
@@ -1270,7 +1289,7 @@ Are you sure you want to continue?`);
     },
     performFind (): void {
       const query = cOptions.active ? null : (FindModeHistory as {query: FindModeQuery}).query(cPort.sender.incognito);
-      cPort.postMessage({ name: "execute", count: 1, command: "Find.activate", options: {
+      cPort.postMessage<1, "Find.activate">({ name: "execute", count: 1, command: "Find.activate", options: {
         browserVersion: Settings.CONST.ChromeVersion,
         count: commandCount,
         dir: cOptions.dir <= 0 ? -1 : 1,
@@ -1433,7 +1452,16 @@ Are you sure you want to continue?`);
         start: selectLast ? url.lastIndexOf(" ") + 1 : 0
       };
     },
-    parseUpperUrl (this: void, request: FgReq["parseUpperUrl"]): FgRes["parseUpperUrl"] {
+    parseUpperUrl: function (this: void, request: FgReq["parseUpperUrl"], port?: Port): FgRes["parseUpperUrl"] | void {
+      if (port && request.execute) {
+        const result = requestHandlers.parseUpperUrl(request);
+        if (result.path != null) {
+          port.postMessage<1, "reload">({ name: "execute", command: "reload", count: 1, options: { url: result.url } });
+          return;
+        }
+        cPort = port;
+        return requestHandlers.ShowHUD(result.url);
+      }
       let { url } = request, url_l = url.toLowerCase();
       if (!Utils.protocolRe.test(Utils.removeComposedScheme(url_l))) {
         Utils.resetRe();
@@ -1547,6 +1575,9 @@ Are you sure you want to continue?`);
       url = url.substring(0, start) + (end ? str + url.substring(end) : str);
       Utils.resetRe();
       return { url, path };
+    } as {
+      (this: void, request: FgReq["parseUpperUrl"] & { execute: true }, port: Port): void;
+      (this: void, request: FgReq["parseUpperUrl"], port?: Port): FgRes["parseUpperUrl"];
     },
     searchAs (this: void, request: FgReq["searchAs"]): FgRes["searchAs"] {
       let search = requestHandlers.parseSearchUrl(request), query: string | null;

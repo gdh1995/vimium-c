@@ -362,7 +362,7 @@ keyMap: {
   "/": function(): void | boolean {
     clearTimeout((this as typeof VVisualMode).hudTimer);
     VHUD.hide();
-    return VFindMode.activate(1, { returnToViewport: true } as object as FgOptions);
+    return VFindMode.activate(1, { returnToViewport: true });
   },
   y (): void { return (this as typeof VVisualMode).yank(); },
   Y (count): void { (this as typeof VVisualMode).movement.selectLine(count); return (this as typeof VVisualMode).yank(); },

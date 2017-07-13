@@ -310,7 +310,7 @@ availableCommands: {
   goNext: [ "Follow the link labeled next or &gt;", 1, true ],
   goBack: [ "Go back in history", 0, false ],
   goForward: [ "Go forward in history", 0, false, { dir: 1 }, "goBack" ],
-  goUp: [ "Go up the URL hierarchy (use trailing_slash=null/&lt;boolean&gt;)", 0, false ],
+  goUp: [ "Go up the URL hierarchy (use trailing_slash=null/&lt;boolean&gt;)", 0, true ],
   goToRoot: [ "Go to root of current URL hierarchy", 0, true ],
   nextTab: [ "Go one tab right", 0, true, null, "goTab" ],
   quickNext: [ "Go one tab right", 0, true, null, "goTab" ],

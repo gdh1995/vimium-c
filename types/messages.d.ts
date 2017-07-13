@@ -39,9 +39,6 @@ interface BgReq {
   execute: BaseExecute<object> & {
     name: "execute";
   };
-  checkIfEnabled: {
-    name: "checkIfEnabled";
-  };
   exitGrab: {
     name: "exitGrab";
   };
@@ -62,6 +59,9 @@ interface BgReq {
   } & {
     [key in keyof SettingsNS.FrontendSettings]?: SettingsNS.FrontendSettings[key];
   };
+  url: {
+    url?: string;
+  } & Req.baseFg<keyof FgReq>;
 }
 
 interface BgVomnibarReq {
@@ -100,6 +100,16 @@ interface CmdOptions {
     hud: boolean;
   };
   showHelp: {};
+  reload: { url: string, force?: undefined } | { force: boolean, url?: undefined };
+  "Find.activate": {
+    browserVersion: number;
+    count: number;
+    dir: 1 | -1;
+    query: string | null;
+  };
+  autoCopy: {
+    url: boolean; decoded: boolean;
+  };
 }
 
 interface FgReq {
@@ -117,6 +127,7 @@ interface FgReq {
     url: string;
     upper: number;
     trailing_slash: boolean | null;
+    execute?: true;
   };
   parseSearchUrl: {
     url: string;

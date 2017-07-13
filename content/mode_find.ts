@@ -1,3 +1,7 @@
+type FindOptions = CmdOptions["Find.activate"] & {
+  returnToViewport: boolean;
+};
+
 var VFindMode = {
   isActive: false,
   query: "",
@@ -8,7 +12,7 @@ var VFindMode = {
   hasNoIgnoreCaseFlag: false,
   hasResults: false,
   matchCount: 0,
-  coords: null as null | [number, number],
+  coords: null as null | MarksNS.ScrollInfo,
   initialRange: null as Range | null,
   activeRegexIndex: 0,
   regexMatches: null as RegExpMatchArray | null,
@@ -26,7 +30,7 @@ height:14px;margin:0;overflow:hidden;vertical-align:top;white-space:nowrap;curso
 body{cursor:text;display:inline-block;padding:0 3px 0 1px;max-width:215px;min-width:7px;}
 body *{all:inherit !important;display:inline !important;}
 html > count{float:right;}`,
-  activate (_0?: number, options?: FgOptions): void {
+  activate (_0?: number, options?: Partial<FindOptions>): void {
     if (!VDom.isHTML()) { return; }
     options = Object.setPrototypeOf(options || {}, null);
     const query: string | undefined | null = options.query ? (options.query + "") : null;
@@ -57,7 +61,7 @@ html > count{float:right;}`,
     const el = this.box = VDom.createElement("iframe") as typeof VFindMode.box;
     el.className = "R HUD UI";
     el.style.width = "0px";
-    options.browserVersion < BrowserVer.MinNotPassMouseWheelToParentIframe && (el.onmousewheel = VUtils.Prevent);
+    (options.browserVersion as number) < BrowserVer.MinNotPassMouseWheelToParentIframe && (el.onmousewheel = VUtils.Prevent);
     if (zoom !== 1) { el.style.zoom = "" + 1 / zoom; }
     el.onload = function(this: HTMLIFrameElement): void { return VFindMode.onLoad(this); };
     VHandler.push(VDom.UI.SuppressMost, this);
@@ -109,7 +113,7 @@ html > count{float:right;}`,
     this.init = null as never;
     return (UI.box as HTMLElement).appendChild(this.styleOut = UI.createStyle(this.cssOut + this.cssSel));
   },
-  findAndFocus (query: string, options: FgOptions): void {
+  findAndFocus (query: string, options: Partial<FindOptions>): void {
     if (query !== this.query) {
       this.updateQuery(query);
       if (this.isActive) {
