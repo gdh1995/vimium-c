@@ -5,11 +5,6 @@ interface BaseExecute<T> {
 }
 
 interface BgReq {
-  scroll: {
-    name: "scroll";
-    markName?: string | undefined;
-    scroll: MarksNS.ScrollInfo;
-  };
   reset: {
     passKeys: string | null;
     forced?: true;
@@ -107,6 +102,11 @@ interface CmdOptions {
     dir: 1 | -1;
     query: string | null;
   };
+  "Marks.goTo": {
+    local?: boolean;
+    markName?: string | undefined;
+    scroll: MarksNS.ScrollInfo;
+  };
   autoCopy: {
     url: boolean; decoded: boolean;
   };
@@ -191,8 +191,10 @@ interface FgReq {
     key: string;
   };
   blank: {},
-  createMark: MarksNS.BaseMark | MarksNS.Mark;
-  gotoMark: MarksNS.FgQuery;
+  mark: ({ action: "create" } & (MarksNS.NewTopMark | MarksNS.NewMark)) | {
+    action: "clear";
+    url: string;
+  } | ({ action: "goto" } & MarksNS.FgQuery);
   /** 
    * .url is guaranteed to be well formatted by frontend
    */
@@ -213,7 +215,6 @@ interface FgRes {
   searchAs: string;
   initInnerCSS: string;
   openCopiedUrl: string;
-  gotoMark: boolean;
   copyToClipboard: void;
 }
 

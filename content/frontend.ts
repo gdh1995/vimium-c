@@ -775,7 +775,6 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
       return VUtils.execCommand(Commands, request.command, request.count, request.options);
     },
     createMark (request): void { return VMarks.createMark(request.markName); },
-    scroll (request): void { return VMarks.goTo(request); },
     showHUD (request): void {
       const a = request.text;
       return request.isCopy ? HUD.showCopied(a) : HUD.showForDuration(a);

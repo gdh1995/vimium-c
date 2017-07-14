@@ -70,13 +70,26 @@ declare namespace MarksNS {
   interface Mark extends BaseMark, BaseMarkProps {
   }
 
-  interface FgQuery extends BaseMark {
-    prefix?: boolean;
+  interface NewTopMark extends BaseMark {
+    scroll?: undefined;
+  }
+  interface NewMark extends Mark {
+    local?: boolean; /** default to false */
   }
 
-  interface FgMark {
-    scrollX: number;
-    scrollY: number;
+  interface FgGlobalQuery extends BaseMark {
+    prefix?: boolean; /** default to false */
+    local?: boolean; /** default to false */
+    url?: undefined;
+  }
+  interface FgLocalQuery extends BaseMark {
+    prefix?: boolean; /** default to false */
+    url: string;
+    local: true;
+  }
+  type FgQuery = FgGlobalQuery | FgLocalQuery;
+
+  interface FgMark extends ScrollInfo {
   }
 
   interface FocusOrLaunch {
