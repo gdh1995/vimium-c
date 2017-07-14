@@ -84,13 +84,23 @@ Known issues (Up to the master branch):
   Currently, no effective ways have been found (up to Chrome 59).
 
 1.60.2 (Not released yet):
+* rework Marks so that local marks work on websites on which cookies are disabled manually
+  * in `Marks.activate`, old local marks are still supported
+  * **WARNING**: but `Marks.clearLocal` won't clear old local marks
+  * the stored data of local marks is not compatible with Vimium any more
 * completely fix Vomnibar flickering on showing and hiding since Chrome 57
 * **WARNING**: add a version limit to the preferred Vomnibar page
   * please use `<html data-version="1.61">` to tell Vimium++ the page's version
   * if your custom page has no such a tag, it will be replaced with the inner one at run time
   * its styles have changed a lot, so old pages need comparison and updates before adding version attribute
 * LinkHints supports a new mode "Open multiple links in current tab" and `f-<Alt>-<Shift>` will activate it
+* add a new shortcut `vimium://status <enable/disable/toggle/reset>`
+    to enforce a new status on the current tab (not on further new frames, though)
+  * you may use it on Vomnibar / Chrome Omnibox
+  * the popup page has an improved UI and you may also use new buttons on it to do so
 * Vimium++ now tries its best to re-enable key mappings on some special child iframes using `document.open`
+  * if the whole page is reopened, Vimium++ can not know it directly,
+    so please eval the new `vimium://status enable` URL to enforce a new "enabled" status
 
 1.60.1:
 * work well with Chrome 59 where its password saver has changed the way to auto-fill fields.

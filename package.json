@@ -22,6 +22,12 @@
   },
   "scripts": {
     "tsc": "node scripts/tsc.js",
+    "all": "node scripts/tsc.js all",
+    "b": "node scripts/tsc.js background",
+    "c": "node scripts/tsc.js content",
+    "f": "node scripts/tsc.js front",
+    "l": "node scripts/tsc.js lib",
+    "p": "node scripts/tsc.js pages",
     "build": "gulp build",
     "rebuild": "gulp rebuild",
     "zip": "bash -c 'IN_DIST=1 WITH_MAP=0 ./scripts/make.sh'",

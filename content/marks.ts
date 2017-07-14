@@ -62,7 +62,7 @@ var VMarks = {
       VHUD.hide();
     } else {
       try {
-        let position: any, key = this.getLocationKey(keyChar), markString = localStorage.getItem(key);
+        let position = null, key = this.getLocationKey(keyChar), markString = localStorage.getItem(key);
         markString && (position = JSON.parse(markString));
         position = !position || typeof position !== "object" ? null
           : Object.setPrototypeOf(position, null);
