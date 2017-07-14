@@ -1350,7 +1350,9 @@ Are you sure you want to continue?`);
       url = url.startsWith("view-source:") ? url.substring(12) : ("view-source:" + url);
       return openMultiTab(url, 1, tabs[0]);
     },
-    clearGlobalMarks (this: void): void { return Marks.clearGlobal(); }
+    clearMarks (this: void): void {
+      return cOptions.local ? funcDict.requireURL({ handler: "marks", action: "clear" }, true) : Marks.clear();
+    }
   },
   numHeadRe = <RegExpOne>/^\d+/,
   executeCommand = function(command: string, registryEntry: CommandsNS.Item
@@ -1786,10 +1788,15 @@ Are you sure you want to continue?`);
       Utils.resetRe();
       return executeCommand(registryEntry.command, registryEntry, count, port);
     },
-    createMark (this: void, request: FgReq["createMark"], port: Port): void {
-       return Marks.createMark(request, port);
+    marks (this: void, request: FgReq["marks"], port: Port): void {
+      cPort = port;
+      switch (request.action) {
+      case "create": return Marks.createMark(request, port);
+      case "goto": return Marks.gotoMark(request, port);
+      case "clear": return Marks.clear(request.url);
+      default: return;
+      }
     },
-    gotoMark (this: void, request: FgReq["gotoMark"]): FgRes["gotoMark"] { return Marks.gotoMark(request); },
     focusOrLaunch (this: void, request: MarksNS.FocusOrLaunch, notFolder?: true): void {
       // * do not limit windowId or windowType
       let url = Utils.reformatURL(request.url.split("#", 1)[0]), callback = funcDict.focusOrLaunch[0];

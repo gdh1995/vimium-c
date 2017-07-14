@@ -191,7 +191,7 @@ interface FgReq {
     key: string;
   };
   blank: {},
-  mark: ({ action: "create" } & (MarksNS.NewTopMark | MarksNS.NewMark)) | {
+  marks: ({ action: "create" } & (MarksNS.NewTopMark | MarksNS.NewMark)) | {
     action: "clear";
     url: string;
   } | ({ action: "goto" } & MarksNS.FgQuery);

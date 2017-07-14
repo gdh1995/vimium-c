@@ -301,7 +301,7 @@ availableCommands: {
     { mode: "LEAVE" }, "Hints.activate" ],
   "LinkHints.unhoverLast": [ "Stop hovering at last location", 1, false, null, "Hints.unhoverLast" ],
   enterFindMode: [ "Enter find mode", 1, true, {active: true}, "performFind" ],
-  performFind: [ "Cycle forward to the next find match", 0, true ],
+  performFind: [ "Cycle forward to the next find match (use dir=1/-1)", 0, true ],
   performBackwardsFind: [ "Cycle backward to the previous find match", 0, true, { dir: -1 }, "performFind" ],
   clearFindHistory: ["Clear find mode history", 1, true],
   switchFocus: [ "blur activeElement or refocus it", 1, false ],
@@ -362,9 +362,9 @@ availableCommands: {
   parentFrame: [ "Focus parent frame of the current", 1, true ],
   "Marks.activateCreateMode": [ "Create a new mark", 1, false, { mode: "create" }, "Marks.activate" ],
   "Marks.activate": [ "Go to a mark (use prefix=true)", 1, false, null, "Marks.activate" ],
-  "Marks.clearLocal": [ "Remove all local marks for this site", 1, false, null, "Marks.clearLocal" ],
-  "Marks.clearGlobal": [ "Remove all global marks", 1, true, null, "clearGlobalMarks" ],
-  clearGlobalMarks: [ "Remove all global marks (deprecated)", 1, true ],
+  "Marks.clearLocal": [ "Remove all local marks for this site", 1, true, { local: true }, "clearMarks" ],
+  "Marks.clearGlobal": [ "Remove all global marks", 1, true, null, "clearMarks" ],
+  clearGlobalMarks: [ "Remove all global marks (deprecated)", 1, true, null, "clearMarks" ],
   openUrl: [ "open URL (use url, urls:string[], reuse=[-2..1])", 20, true ],
   focusOrLaunch: [ 'focus a tab with given URL or open it (use url="", prefix)', 1, true, { reuse: 1 }, "openUrl" ]
 } as SafeDict<CommandsNS.Description>
