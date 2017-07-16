@@ -93,9 +93,9 @@ interface ExportedSettings {
   description?: string;
   time?: number;
   environment?: {
-    chrome: number;
-    extension: string;
-    platform: string;
+    chrome?: number;
+    extension?: string;
+    platform?: string;
   };
   findModeRawQueryList?: never;
   [key: string]: any;
@@ -156,11 +156,17 @@ $<ElementWithDelay>("#exportButton").onclick = function(event): void {
 };
 
 function _importSettings(time: number, new_data: ExportedSettings, is_recommended?: boolean): void {
+  let env = new_data.environment, plat = env && env.platform || ""
+    , ext_ver = env && parseFloat(env.extension || "0") || 0
+    , newer = ext_ver > parseFloat(bgSettings.CONST.CurrentVersion);
+  plat && (plat = ("" + plat).substring(0, 10));
   if (!confirm(
-    (is_recommended !== true ? "You are loading a settings copy exported"
-      + (time ? " at:\n        " + formatDate(time) : " before.")
-      : "You are loading the recommended settings.")
-    + "\n\nAre you sure you want to continue?"
+`You are loading ${is_recommended !== true ? "a settings copy" : "the recommended settings:"}
+      * from ${ext_ver > 1 ? `version ${ext_ver} of ` : "" }Vimium++${newer ? " (newer)" : ""}
+      * for ${plat ? `the ${plat[0].toUpperCase() + plat.substring(1)} platform` : "common platforms" }
+      * exported ${time ? "at " + formatDate(time) : "before"}
+
+Are you sure you want to continue?`
   )) {
     window.VHUD && VHUD.showForDuration("You cancelled importing.", 1000);
     return;
