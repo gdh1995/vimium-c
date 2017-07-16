@@ -82,7 +82,7 @@ Marks = { // NOTE: all public members should be static
     if (!str) {
       return g_requestHandlers.ShowHUD(`${local ? "Local" : "Global"} mark not set : ' ${markName} '.`);
     }
-    const markInfo: MarksNS.MarkToGo & MarksNS.StoredMark = JSON.parse(str) as MarksNS.StoredMark;
+    const markInfo: MarksNS.MarkToGo & MarksNS.StoredMark = JSON.parse(str);
     markInfo.markName = markName;
     markInfo.prefix = request.prefix !== false && markInfo.scroll[1] === 0 && markInfo.scroll[0] === 0 &&
         !!Utils.IsURLHttp(markInfo.url);
@@ -105,11 +105,11 @@ Marks = { // NOTE: all public members should be static
     return (url ? "vimiumMark|" + Utils.prepareReparsingPrefix(url.split('#', 1)[0])
       : "vimiumGlobalMark") + "|" + markName;
   },
-  scrollTab (this: void, markInfo: MarksNS.MarkToGo, tab: chrome.tabs.Tab): void {
+  scrollTab (this: void, markInfo: MarksNS.InfoToGo, tab: chrome.tabs.Tab): void {
     const tabId = tab.id, port = Settings.indexPorts(tabId, 0);
     port && Marks._goto(port, { markName: markInfo.markName, scroll: markInfo.scroll });
     if (markInfo.tabId !== tabId && markInfo.markName) {
-      return Marks._set(markInfo as typeof markInfo & { markName: string }, tabId);
+      return Marks._set(markInfo as MarksNS.MarkToGo, tabId);
     }
   },
   clear (this: void, url?: string): void {

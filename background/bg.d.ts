@@ -169,12 +169,11 @@ declare namespace MarksNS {
     tabId: number;
   }
 
-  interface MarkToGo extends FocusOrLaunch {
+  interface InfoToGo extends FocusOrLaunch, Partial<BaseMark> {
     scroll: ScrollInfo;
-    markName?: string;
     tabId?: number;
   }
-
+  type MarkToGo = InfoToGo & BaseMark;
 }
 
 interface FindModeQuery {

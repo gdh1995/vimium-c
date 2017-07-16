@@ -114,24 +114,21 @@ $<ElementWithDelay>("#exportButton").onclick = function(event): void {
     extension: bgSettings.CONST.CurrentVersion,
     platform: bgSettings.CONST.Platform
   };
-  (function() {
-    const storage = localStorage, all = bgSettings.defaults;
-    for (let i = 0, len = storage.length, j: string[]; i < len; i++) {
-      const key = storage.key(i) as string as keyof SettingsNS.PersistentSettings;
-      if (key.indexOf("|") >= 0 || key.substring(key.length - 2) === "_f" || key === "findModeRawQueryList") {
-        continue;
-      }
-      const storedVal = storage.getItem(key) as string;
-      if (typeof all[key] !== "string") {
-        exported_object[key] = (key in all) ? bgSettings.get(key) : storedVal;
-      } else if (storedVal.indexOf("\n") > 0) {
-        exported_object[key] = j = storedVal.split("\n");
-        j.push("");
-      } else {
-        exported_object[key] = storedVal;
-      }
+  for (let storage = localStorage, all = bgSettings.defaults, i = 0, len = storage.length, j: string[]; i < len; i++) {
+    const key = storage.key(i) as string as keyof SettingsNS.PersistentSettings;
+    if (key.indexOf("|") >= 0 || key.substring(key.length - 2) === "_f" || key === "findModeRawQueryList") {
+      continue;
     }
-  })();
+    const storedVal = storage.getItem(key) as string;
+    if (typeof all[key] !== "string") {
+      exported_object[key] = (key in all) ? bgSettings.get(key) : storedVal;
+    } else if (storedVal.indexOf("\n") > 0) {
+      exported_object[key] = j = storedVal.split("\n");
+      j.push("");
+    } else {
+      exported_object[key] = storedVal;
+    }
+  }
   const d = new Date();
   if (!all_static) {
     exported_object.time = d.getTime();
