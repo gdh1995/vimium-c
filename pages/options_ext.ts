@@ -133,7 +133,10 @@ $<ElementWithDelay>("#exportButton").onclick = function(event): void {
   if (!all_static) {
     exported_object.time = d.getTime();
   }
-  const exported_data = JSON.stringify(exported_object, null, '\t'), d_s = formatDate(d);
+  let exported_data = JSON.stringify(exported_object, null, '\t'), d_s = formatDate(d);
+  if (exported_object.environment.platform === "win") {
+    exported_data = exported_data.replace(<RegExpG>/\n/g, "\r\n");
+  }
   exported_object = null;
   let file_name = 'vimium++_';
   if (all_static) {
@@ -185,7 +188,8 @@ function _importSettings(time: number, new_data: ExportedSettings, is_recommende
   delete new_data.author;
   delete new_data.description;
 
-  const storage = localStorage, all = bgSettings.defaults, _ref = Option.all;
+  const storage = localStorage, all = bgSettings.defaults, _ref = Option.all,
+  otherLineEndRe = <RegExpG>/\r\n?/g;
   for (let i = storage.length; 0 <= --i; ) {
     const key = storage.key(i) as string;
     if (key.indexOf("|") >= 0) { continue; }
@@ -204,8 +208,11 @@ function _importSettings(time: number, new_data: ExportedSettings, is_recommende
       // NOTE: we assume all nullable settings have the same default value: null
       new_value = all[key];
     } else {
-      if (new_value instanceof Array && typeof all[key] === "string") {
-        new_value = new_value.join("\n").trim();
+      if (typeof all[key] === "string") {
+        if (new_value instanceof Array) {
+          new_value = new_value.join("\n").trimRight();
+        }
+        new_value = new_value.replace(otherLineEndRe, "\n");
       }
       new_value = item.normalize(new_value, typeof all[key] === "object");
     }
@@ -239,8 +246,11 @@ function _importSettings(time: number, new_data: ExportedSettings, is_recommende
       logUpdate("remove", key, ":=", new_value);
       continue;
     }
-    if (new_value instanceof Array && typeof all[key as SettingKeys] === "string") {
-      new_value = new_value.join("\n").trim();
+    if (typeof all[key as SettingKeys] === "string") {
+      if (new_value instanceof Array) {
+        new_value = new_value.join("\n").trimRight();
+      }
+      new_value = new_value.replace(otherLineEndRe, "\n");
     }
     if (key in all) {
       if (bgSettings.get(key as SettingKeys) !== new_value) {
