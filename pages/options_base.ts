@@ -399,7 +399,7 @@ exclusions: PopExclusionRulesOption = Object.setPrototypeOf({
     el = $<HTMLElement>("#toggleOnce");
     el.innerText = newStat + " for once";
     el.onclick = forceState.bind(null, sender.tabId, newStat);
-    if (sender.locked) {
+    if (sender.flags & Frames.Flags.locked) {
       el = el.nextElementSibling as HTMLElement;
       el.classList.remove("hidden");
       el = el.firstElementChild as HTMLElement;

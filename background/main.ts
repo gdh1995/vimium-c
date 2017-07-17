@@ -1648,7 +1648,7 @@ Are you sure you want to continue?`);
         , status = pattern === null ? Frames.Status.enabled : pattern
             ? Frames.Status.partial : Frames.Status.disabled;
       if (sender.status !== status) {
-        if (sender.locked) { return; }
+        if (sender.flags & Frames.Flags.locked) { return; }
         sender.status = status;
         let a: Frames.Frames | undefined;
         if (needIcon && (a = framesForTab[tabId]) && a[0] === port) {
@@ -1839,7 +1839,7 @@ Are you sure you want to continue?`);
       let pattern: string | null, newStatus = locked ? stat as Frames.ValidStatus : Frames.Status.enabled;
       for (let i = ref.length; 1 <= --i; ) {
         const port = ref[i], sender = (port.sender as Frames.Sender);
-        sender.locked = locked;
+        sender.flags = locked ? sender.flags | Frames.Flags.locked : sender.flags & ~Frames.Flags.locked;
         if (unknown) {
           pattern = msg.passKeys = Settings.getExcluded(sender.url);
           newStatus = pattern === null ? Frames.Status.enabled : pattern
@@ -1982,8 +1982,8 @@ Are you sure you want to continue?`);
       return port.sender = {
         frameId: sender.frameId || 0,
         incognito: tab.incognito,
-        locked: false,
         status: Frames.Status.enabled,
+        flags: Frames.Flags.initial,
         tabId: tab.id,
         url: sender.url
       };

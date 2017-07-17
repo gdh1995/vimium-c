@@ -122,7 +122,7 @@ var Exclusions: ExcCls = Exclusions && !(Exclusions instanceof Promise) ? Exclus
             continue;
           }
         }
-        if (port.sender.locked) { continue; }
+        if (port.sender.flags & Frames.Flags.locked) { continue; }
         port.postMessage(always_enabled || { name: "reset", passKeys: pass });
         port.sender.status = status;
       }

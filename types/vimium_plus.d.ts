@@ -142,6 +142,10 @@ declare namespace Frames {
     enabled = 0, partial = 1, disabled = 2,
     __fake = -1
   }
+  const enum Flags {
+    Default = 0, initial = Default,
+    locked = 1,
+  }
 }
 
 declare const enum PortType {

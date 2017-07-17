@@ -115,10 +115,7 @@ declare namespace Frames {
     tabId: number;
     url: string;
     status: ValidStatus;
-    /**
-     * whether .status is locked
-     */
-    locked: boolean;
+    flags: Flags;
   }
   interface Sender extends RawSender {
     readonly tabId: number;
