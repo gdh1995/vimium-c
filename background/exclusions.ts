@@ -105,19 +105,19 @@ var Exclusions: ExcCls = Exclusions && !(Exclusions instanceof Promise) ? Exclus
     }
     const ref = Settings.indexPorts(),
     needIcon = !!(Settings.IconBuffer && (Settings.IconBuffer() || Settings.get("showActionIcon")));
-    let pass: string | null = null, status: Frames.ValidStatus = Frames.BaseStatus.enabled;
+    let pass: string | null = null, status: Frames.ValidStatus = Frames.Status.enabled;
     for (let tabId in ref) {
       const frames = ref[tabId] as Frames.Frames, status0 = frames[0].sender.status;
       for (let i = frames.length; 0 < --i; ) {
         const port = frames[i];
         if (always_enabled) {
-          if (port.sender.status === 0) {
+          if (port.sender.status === Frames.Status.enabled) {
             continue;
           }
         } else {
           pass = Settings.getExcluded(port.sender.url);
-          status = pass === null ? Frames.BaseStatus.enabled : pass
-            ? Frames.BaseStatus.partial : Frames.BaseStatus.disabled;
+          status = pass === null ? Frames.Status.enabled : pass
+            ? Frames.Status.partial : Frames.Status.disabled;
           if (!pass && port.sender.status === status) {
             continue;
           }

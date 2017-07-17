@@ -9,7 +9,8 @@ VDom.UI = {
   callback: null,
   flashLastingTime: 400,
   showing: true,
-  addElement: (function<T extends HTMLElement> (this: DomUI, element: T, options?: UIElementOptions | null): T {
+  addElement: (function<T extends HTMLElement> (this: DomUI, element: T | null
+      , options?: UIElementOptions | null | { fake: true, showing?: undefined }): T | void {
     options = Object.setPrototypeOf(options || {}, null);
     this.showing = options.showing !== false;
     VPort.send({ handler: "initInnerCSS" }, this.InitInner);
@@ -23,15 +24,14 @@ VDom.UI = {
     this.root.addEventListener("load", function(e: Event): void {
       const t = e.target as HTMLElement; t.onload && t.onload(e); e.stopImmediatePropagation();
     }, true);
-    this.addElement = function<T extends HTMLElement>(this: DomUI, element: T | null
-        , options?: UIElementOptions | null | { fake: true }): T | void {
-      options = Object.setPrototypeOf(options || {}, null);
-      if (options.fake === true) { return; }
-      options.adjust === false || this.adjust();
-      return options.before ? (this.root as ShadowRoot).insertBefore(element as T, options.before)
-        : (this.root as ShadowRoot).appendChild(element as T);
-    } as DomUI["addElement"];
+    if (options.fake === true) { return; }
     options.adjust = options.adjust === true;
+    this.addElement = function<T extends HTMLElement>(this: DomUI, element: T, options?: UIElementOptions | null): T {
+      options = Object.setPrototypeOf(options || {}, null);
+      options.adjust === false || this.adjust();
+      return options.before ? (this.root as ShadowRoot).insertBefore(element, options.before)
+        : (this.root as ShadowRoot).appendChild(element);
+    } as DomUI["addElement"];
     return this.addElement(element as T, options);
   }) as DomUI["addElement"],
   addElementList (els, offset): HTMLDivElement {

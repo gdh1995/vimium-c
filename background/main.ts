@@ -1645,8 +1645,8 @@ Are you sure you want to continue?`);
       }
       const { sender } = port, { url: oldUrl, tabId } = sender
         , pattern = Settings.getExcluded(sender.url = request.url)
-        , status = pattern === null ? Frames.BaseStatus.enabled : pattern
-            ? Frames.BaseStatus.partial : Frames.BaseStatus.disabled;
+        , status = pattern === null ? Frames.Status.enabled : pattern
+            ? Frames.Status.partial : Frames.Status.disabled;
       if (sender.status !== status) {
         if (sender.locked) { return; }
         sender.status = status;
@@ -1826,32 +1826,32 @@ Are you sure you want to continue?`);
       const ref = framesForTab[tabId || (tabId = TabRecency.last)];
       if (!ref) { return; }
       const always_enabled = Exclusions == null || Exclusions.rules.length <= 0, oldStatus = ref[0].sender.status,
-      stat = act === "enable" ? Frames.BaseStatus.enabled : act === "disable" ? Frames.BaseStatus.disabled
-        : act === "toggle" ? oldStatus === Frames.BaseStatus.disabled ? Frames.BaseStatus.enabled : Frames.BaseStatus.disabled
+      stat = act === "enable" ? Frames.Status.enabled : act === "disable" ? Frames.Status.disabled
+        : act === "toggle" ? oldStatus === Frames.Status.disabled ? Frames.Status.enabled : Frames.Status.disabled
         : null,
       locked = stat != null, unknown = !(locked || always_enabled),
-      msg: Req.bg<"reset"> = { name: "reset", passKeys: stat !== Frames.BaseStatus.disabled ? null : "", forced: true };
+      msg: Req.bg<"reset"> = { name: "reset", passKeys: stat !== Frames.Status.disabled ? null : "", forced: true };
       cPort = ref[0];
       if (stat == null && !tabId) {
-        oldStatus !== Frames.BaseStatus.disabled && requestHandlers.ShowHUD("Got an unknown action on status: " + act);
+        oldStatus !== Frames.Status.disabled && requestHandlers.ShowHUD("Got an unknown action on status: " + act);
         return;
       }
-      let pattern: string | null, newStatus = locked ? stat as Frames.ValidStatus : Frames.BaseStatus.enabled;
+      let pattern: string | null, newStatus = locked ? stat as Frames.ValidStatus : Frames.Status.enabled;
       for (let i = ref.length; 1 <= --i; ) {
         const port = ref[i], sender = (port.sender as Frames.Sender);
         sender.locked = locked;
         if (unknown) {
           pattern = msg.passKeys = Settings.getExcluded(sender.url);
-          newStatus = pattern === null ? Frames.BaseStatus.enabled : pattern
-            ? Frames.BaseStatus.partial : Frames.BaseStatus.disabled;
-          if (newStatus !== Frames.BaseStatus.partial && sender.status === newStatus) { continue; }
+          newStatus = pattern === null ? Frames.Status.enabled : pattern
+            ? Frames.Status.partial : Frames.Status.disabled;
+          if (newStatus !== Frames.Status.partial && sender.status === newStatus) { continue; }
         }
         // must send "reset" messages even if port keeps enabled by 'v.st enable' - frontend may need to reinstall listeners
         sender.status = newStatus;
         port.postMessage(msg);
       }
-      newStatus !== Frames.BaseStatus.disabled && requestHandlers.ShowHUD("Now the page status is " + (
-        newStatus === Frames.BaseStatus.enabled ? "enabled" : "partially disabled" ));
+      newStatus !== Frames.Status.disabled && requestHandlers.ShowHUD("Now the page status is " + (
+        newStatus === Frames.Status.enabled ? "enabled" : "partially disabled" ));
       if (needIcon && (newStatus = ref[0].sender.status) !== oldStatus) {
         return requestHandlers.SetIcon(tabId, newStatus);
       }
@@ -1885,7 +1885,7 @@ Are you sure you want to continue?`);
         status = (type & PortType.knownStatusMask) as Frames.ValidStatus;
       } else {
         const pass = Settings.getExcluded(url);
-        status = pass === null ? Frames.BaseStatus.enabled : pass ? Frames.BaseStatus.partial : Frames.BaseStatus.disabled;
+        status = pass === null ? Frames.Status.enabled : pass ? Frames.Status.partial : Frames.Status.disabled;
         port.postMessage({
           name: "init",
           load: Settings.bufferToLoad,
@@ -1908,7 +1908,7 @@ Are you sure you want to continue?`);
         }
       } else {
         framesForTab[tabId] = [port, port];
-        status !== Frames.BaseStatus.enabled && needIcon && requestHandlers.SetIcon(tabId, status);
+        status !== Frames.Status.enabled && needIcon && requestHandlers.SetIcon(tabId, status);
       }
       if (NoFrameId) {
         (sender as any).frameId = (type & PortType.isTop) ? 0 : ((Math.random() * 9999997) | 0) + 2;
@@ -1983,7 +1983,7 @@ Are you sure you want to continue?`);
         frameId: sender.frameId || 0,
         incognito: tab.incognito,
         locked: false,
-        status: Frames.BaseStatus.enabled,
+        status: Frames.Status.enabled,
         tabId: tab.id,
         url: sender.url
       };

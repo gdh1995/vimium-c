@@ -107,7 +107,7 @@ declare namespace Urls {
 }
 
 declare namespace Frames {
-  type ValidStatus = BaseStatus.enabled | BaseStatus.partial | BaseStatus.disabled;
+  type ValidStatus = Status.enabled | Status.partial | Status.disabled;
 
   interface RawSender {
     readonly frameId: number;

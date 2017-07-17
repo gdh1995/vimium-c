@@ -5,6 +5,12 @@ setTimeout((function (): void {
 
 type MatchRange = [number, number];
 
+const enum BookmarkStatus {
+  notInited = 0,
+  initing = 1,
+  inited = 2,
+}
+
 interface DecodedItem {
   readonly url: string;
   text: string;
@@ -215,18 +221,18 @@ bookmarks: {
   bookmarks: [] as Bookmark[],
   currentSearch: null as CompletersNS.QueryStatus | null,
   path: "",
-  deep: 0,
-  status: 0,
+  depth: 0,
+  status: BookmarkStatus.notInited,
   filter (query: CompletersNS.QueryStatus, index: number): void {
     if (queryTerms.length === 0) {
       Completers.next([]);
       if (index !== 0) { return; }
-    } else if (this.status === 2) {
+    } else if (this.status === BookmarkStatus.inited) {
       return this.performSearch();
     } else {
       this.currentSearch = query;
     }
-    if (this.status === 0) { return this.refresh(); }
+    if (this.status === BookmarkStatus.notInited) { return this.refresh(); }
   },
   StartsWithSlash (str: string): boolean { return str.charCodeAt(0) === 47; },
   performSearch (): void {
@@ -270,7 +276,7 @@ bookmarks: {
     });
   } as ((this: void) => void) | null,
   refresh (): void {
-    this.status = 1;
+    this.status = BookmarkStatus.initing;
     if (this._timer) {
       clearTimeout(this._timer);
       this._timer = 0;
@@ -278,7 +284,7 @@ bookmarks: {
     chrome.bookmarks.getTree(this.readTree.bind(this));
   },
   readTree (tree: chrome.bookmarks.BookmarkTreeNode[]): void {
-    this.status = 2;
+    this.status = BookmarkStatus.inited;
     this.bookmarks = [];
     tree.forEach(this.traverseBookmark, this);
     const query = this.currentSearch;
@@ -296,11 +302,11 @@ bookmarks: {
     const title = bookmark.title,  path = this.path + '/' + (title || bookmark.id);
     if (bookmark.children) {
       const oldPath = this.path;
-      if (2 < ++this.deep) {
+      if (2 < ++this.depth) {
         this.path = path;
       }
       bookmark.children.forEach(this.traverseBookmark, this);
-      --this.deep;
+      --this.depth;
       this.path = oldPath;
       return;
     }
@@ -328,19 +334,19 @@ bookmarks: {
   Delay (): void {
     const _this = Completers.bookmarks;
     _this._stamp = Date.now();
-    if (_this.status < 2) { return; }
-    _this.clean();
-    _this.bookmarks = [];
+    if (_this.status < BookmarkStatus.inited) { return; }
+    _this.reset();
     _this._timer = setTimeout(_this.Later, _this._wait * 2);
-    _this.status = 0;
   },
-  clean (): void {
+  reset (): void {
     const dict = Decoder.dict, ref = HistoryCache.history || [], bs = HistoryCache.binarySearch;
     for (const { url } of this.bookmarks) {
       if ((url in dict) && bs(url, ref) < 0) {
         delete dict[url];
       }
     }
+    this.bookmarks = [];
+    this.status = BookmarkStatus.notInited;
   }
 },
 

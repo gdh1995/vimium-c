@@ -138,7 +138,7 @@ declare const enum ProtocolType {
 }
 
 declare namespace Frames {
-  const enum BaseStatus {
+  const enum Status {
     enabled = 0, partial = 1, disabled = 2,
     __fake = -1
   }
@@ -149,7 +149,7 @@ declare const enum PortType {
   hasFocus = 2,
   isTop = 4,
   omnibar = 8, omnibarRe = 9,
-  /** the below should keep the consistent with Frames.BaseStatus, so that code in OnConnect works */
+  /** the below should keep the consistent with Frames.Status, so that code in OnConnect works */
   knownStatusBase = 16, knownEnabled = 16, knownPartial = 17, knownDisabled = 18, knownStatusMask = 4,
 }
 

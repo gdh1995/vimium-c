@@ -394,7 +394,7 @@ exclusions: PopExclusionRulesOption = Object.setPrototypeOf({
   let ref = bgSettings.indexPorts(tabs[0].id);
   exclusions.init(ref ? ref[0].sender.url : tabs[0].url, $("#exclusionRules"), onUpdated, ref ? function (): void {
     let { sender } = (ref as Frames.Frames)[0], el: HTMLElement
-      , newStat = sender.status !== Frames.BaseStatus.disabled ? "Disable" : "Enable";
+      , newStat = sender.status !== Frames.Status.disabled ? "Disable" : "Enable";
     ref = null;
     el = $<HTMLElement>("#toggleOnce");
     el.innerText = newStat + " for once";
