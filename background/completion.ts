@@ -324,6 +324,7 @@ bookmarks: {
   _wait: 60000,
   Later (): void {
     const _this = Completers.bookmarks, last = Date.now() - _this._stamp;
+    if (this.status !== BookmarkStatus.notInited) { return; }
     if (last >= _this._wait || last < 0) {
       this._timer = 0;
       _this.refresh();
