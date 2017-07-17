@@ -488,7 +488,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
       removeEventListener("mousedown", _this.ExitGrab, true);
       VHandler.remove(_this);
       !(event instanceof Event) || !window.frames.length && window === window.top ||
-      vPort.post({ handler: "exitGrab" });
+      vPort.safePost({ handler: "exitGrab" });
       if (event instanceof KeyboardEvent) { return HandlerResult.Nothing; }
     } as {
       (this: void, event: KeyboardEvent): HandlerResult.Nothing;
