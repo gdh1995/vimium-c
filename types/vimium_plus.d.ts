@@ -154,8 +154,8 @@ declare const enum PortType {
   isTop = 4,
   omnibar = 8, omnibarRe = 9,
   /** the below should keep the consistent with Frames.Status, so that code in OnConnect works */
-  knownStatusBase = 16, knownEnabled = 16, knownPartial = 17, knownDisabled = 18,
-  knownStatusMask = 3,
+  knownStatusBase = 16, BitOffsetOfKnownStatus = 4,
+  knownEnabled = knownStatusBase << 0, knownPartial = knownStatusBase << 1, knownDisabled = knownStatusBase << 2,
 }
 
 declare namespace SettingsNS {

@@ -1883,7 +1883,7 @@ Are you sure you want to continue?`);
         if (type < PortType.knownStatusBase) {
           return Connections.onOmniConnect(port, tabId, type);
         }
-        status = (type & PortType.knownStatusMask) as Frames.ValidStatus;
+        status = (type >>> PortType.BitOffsetOfKnownStatus) as Frames.ValidStatus;
       } else {
         const pass = Settings.getExcluded(url);
         status = pass === null ? Frames.Status.enabled : pass ? Frames.Status.partial : Frames.Status.disabled;
