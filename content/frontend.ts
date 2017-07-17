@@ -472,7 +472,8 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
         }
         if (!notBody) {
           VHandler.push(this.ExitGrab, this);
-          return addEventListener("mousedown", this.ExitGrab, true);
+          addEventListener("mousedown", this.ExitGrab, true);
+          return;
         }
       }
       this.grabFocus = false;
@@ -720,20 +721,20 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
       const r = requestHandlers;
       (VSettings.cache = request.load).onMac && (VKeyboard.correctionMap = Object.create<string>(null));
       r.keyMap(request);
-      r.reset(request);
+      (r as { reset (request: BgReq["reset"], initing?: 1): void }).reset(request, 1);
       r.init = null as never;
       return VDom.documentReady(ELs.OnReady);
     },
-    reset (request: BgReq["reset"]): void {
+    reset (request: BgReq["reset"], initing?: 1): void {
       const newPassKeys = request.passKeys, enabled = newPassKeys !== "", old = VSettings.enabled;
       passKeys = (newPassKeys && parsePassKeys(newPassKeys)) as SafeDict<true> | null;
       VSettings.enabled = isEnabledForUrl = enabled;
+      if (initing) {
+        return enabled ? InsertMode.init() : (InsertMode.grabFocus = false, ELs.hook(removeEventListener, 1));
+      }
       if (enabled) {
         old || InsertMode.init();
         old && !request.forced || ELs.hook(addEventListener);
-      } else if (requestHandlers.init) {
-        InsertMode.grabFocus = false;
-        return ELs.hook(removeEventListener, 1);
       } else {
         Commands.reset();
       }

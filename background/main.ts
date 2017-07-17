@@ -1822,16 +1822,17 @@ Are you sure you want to continue?`);
         cPort = null as never;
       }
     },
-    ForceStatus (act: Frames.ForcedStatus, tabId?: number): void {
+    ForceStatus (act: Frames.ForcedStatusText, tabId?: number): void {
       const ref = framesForTab[tabId || (tabId = TabRecency.last)];
       if (!ref) { return; }
+      act = act.toLowerCase() as Frames.ForcedStatusText;
       const always_enabled = Exclusions == null || Exclusions.rules.length <= 0, oldStatus = ref[0].sender.status,
       stat = act === "enable" ? Frames.Status.enabled : act === "disable" ? Frames.Status.disabled
         : act === "toggle" ? oldStatus === Frames.Status.disabled ? Frames.Status.enabled : Frames.Status.disabled
         : null,
       locked = stat !== null, unknown = !(locked || always_enabled),
       msg: Req.bg<"reset"> = { name: "reset", passKeys: stat !== Frames.Status.disabled ? null : "", forced: locked };
-      cPort = ref[0];
+      cPort = funcDict.indexFrame(tabId, 0) || ref[0];
       if (stat == null && tabId < 0) {
         oldStatus !== Frames.Status.disabled && requestHandlers.ShowHUD("Got an unknown action on status: " + act);
         return;

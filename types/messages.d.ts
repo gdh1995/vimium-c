@@ -7,7 +7,7 @@ interface BaseExecute<T> {
 interface BgReq {
   reset: {
     passKeys: string | null;
-    forced?: true;
+    forced?: boolean;
   };
   insertInnerCSS: {
     name: "insertInnerCSS";
