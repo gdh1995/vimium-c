@@ -216,7 +216,6 @@ interface VEventMode {
   setupSuppress (this: void, onExit?: (this: void) => void): void;
   mapKey (this: void, key: string): string;
   scroll (this: void, event?: Partial<EventControlKeys & { keyCode: number }>, wnd?: Window): void;
-  exitGrab (this: void): void;
   /** return has_error */
   keydownEvents (this: void, newArr: KeydownCacheArray): boolean;
   keydownEvents (this: void): KeydownCacheArray;

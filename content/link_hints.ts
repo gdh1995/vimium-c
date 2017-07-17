@@ -118,7 +118,6 @@ var VHints = {
       }
       if (!VDom.isHTML()) { return; }
     }
-    VEventMode.exitGrab();
     VHandler.remove(this);
     this.setModeOpt((count as number) | 0, Object.setPrototypeOf(options || (options = {} as any as FgOptions), null));
     let str = options.characters ? options.characters + "" : VSettings.cache.linkHintCharacters;

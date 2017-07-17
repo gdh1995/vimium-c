@@ -901,7 +901,6 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
       }
     },
     mapKey (this: void, key): string { return mapKeys !== null && mapKeys[key] || key; },
-    exitGrab: InsertMode.ExitGrab,
     scroll (this: void, event, wnd): void {
       if (!event || event.shiftKey || event.altKey) { return; }
       const { keyCode } = event as { keyCode: number }, c = (keyCode & 1) as BOOL;
