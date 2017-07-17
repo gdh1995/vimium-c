@@ -1878,17 +1878,21 @@ Are you sure you want to continue?`);
     OnConnect (this: void, port: Frames.Port): void {
       const type = (port.name.substring(9) as string | number as number) | 0,
       sender = Connections.format(port), { tabId, url } = sender;
-      let status: Frames.ValidStatus;
+      let status: Frames.ValidStatus, ref: Frames.WritableFrames | undefined;
+      ref = framesForTab[tabId] as typeof ref;
       if (type >= PortType.omnibar || (url === Settings.cache.vomnibarPage_f)) {
         if (type < PortType.knownStatusBase) {
           return Connections.onOmniConnect(port, tabId, type);
         }
         status = (type >>> PortType.BitOffsetOfKnownStatus) as Frames.ValidStatus;
+        sender.flags = (type & PortType.isLocked) ? Frames.Flags.lockedAndUserActed : Frames.Flags.userActed;
       } else {
-        const pass = Settings.getExcluded(url);
+        const pass = Settings.getExcluded(url),
+        flags: Frames.Flags = ref ? (sender.flags = ref[0].sender.flags) : Frames.Flags.blank;
         status = pass === null ? Frames.Status.enabled : pass ? Frames.Status.partial : Frames.Status.disabled;
         port.postMessage({
           name: "init",
+          flags,
           load: Settings.bufferToLoad,
           passKeys: pass,
           mapKeys: CommandsData.mapKeyRegistry,
@@ -1898,8 +1902,7 @@ Are you sure you want to continue?`);
       sender.status = status;
       port.onDisconnect.addListener(Connections.OnDisconnect);
       port.onMessage.addListener(Connections.OnMessage);
-      let ref: Frames.WritableFrames | undefined;
-      if (ref = framesForTab[tabId] as typeof ref) {
+      if (ref) {
         ref.push(port);
         if (type & PortType.hasFocus) {
           if (needIcon && ref[0].sender.status !== status) {
@@ -1956,6 +1959,7 @@ Are you sure you want to continue?`);
       } else if (tabId < 0) { // should not be true; just in case of misusing
         port.postMessage({
           name: "init", load: {} as SettingsNS.FrontendSettingCache,
+          flags: Frames.Flags.blank, 
           passKeys: "", mapKeys: null, keyMap: {} as KeyMap
         });
       } else {
@@ -1984,7 +1988,7 @@ Are you sure you want to continue?`);
         frameId: sender.frameId || 0,
         incognito: tab.incognito,
         status: Frames.Status.enabled,
-        flags: Frames.Flags.initial,
+        flags: Frames.Flags.blank,
         tabId: tab.id,
         url: sender.url
       };

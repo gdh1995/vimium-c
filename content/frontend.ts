@@ -20,7 +20,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
   type LockableElement = HTMLElement;
 
   var KeydownEvents: KeydownCacheArray, keyMap: KeyMap
-    , currentKeys = "", isEnabledForUrl = false
+    , currentKeys = "", isEnabledForUrl = false, isLocked = false
     , mapKeys = null as SafeDict<string> | null, nextKeys = null as KeyMap | ReadonlyChildKeyMap | null
     , esc = function(i?: HandlerResult): HandlerResult | void { currentKeys = ""; nextKeys = null; return i; } as EscF
     , onKeyup2 = null as ((this: void, event: KeyboardEvent) => void) | null, passKeys = null as SafeDict<true> | null;
@@ -42,7 +42,8 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
     safePost<K extends keyof FgReq> (request: FgReq[K] & Req.baseFg<K>): void {
       try {
         if (!this.port) {
-          this.connect(isEnabledForUrl ? passKeys ? PortType.knownPartial : PortType.knownEnabled : PortType.knownDisabled);
+          this.connect((isEnabledForUrl ? passKeys ? PortType.knownPartial : PortType.knownEnabled : PortType.knownDisabled)
+            + (isLocked ? PortType.isLocked : 0));
           isInjected && setTimeout(this.TestAlive, 50);
         }
         (this.port as Port).postMessage(request);
@@ -68,7 +69,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
         try { esc && vPort.connect(PortType.initing); } catch(e) { VSettings.destroy(); }
       }, 2000);
     },
-    connect (status: PortType.initing | PortType.knownEnabled | PortType.knownPartial | PortType.knownDisabled): void {
+    connect (status: PortType): void {
       const data = { name: "vimium++." + (PortType.isTop * +(window.top === window) + PortType.hasFocus * +document.hasFocus() + status) },
       port = this.port = isInjected ? chrome.runtime.connect(VimiumInjector.id, data) as Port
         : chrome.runtime.connect(data) as Port;
@@ -718,9 +719,13 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
   },
   requestHandlers: { [K in keyof BgReq]: (this: void, request: BgReq[K]) => void } = {
     init (request): void {
-      const r = requestHandlers;
+      const r = requestHandlers, flags = request.flags;
       (VSettings.cache = request.load).onMac && (VKeyboard.correctionMap = Object.create<string>(null));
       r.keyMap(request);
+      if (flags) {
+        InsertMode.grabFocus = !(flags & Frames.Flags.userActed);
+        isLocked = !!(flags & Frames.Flags.locked);
+      }
       (r as { reset (request: BgReq["reset"], initing?: 1): void }).reset(request, 1);
       r.init = null as never;
       return VDom.documentReady(ELs.OnReady);
@@ -732,9 +737,11 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
       if (initing) {
         return enabled ? InsertMode.init() : (InsertMode.grabFocus = false, ELs.hook(removeEventListener, 1));
       }
+      isLocked = !!request.forced;
       if (enabled) {
         old || InsertMode.init();
-        old && !request.forced || ELs.hook(addEventListener);
+        (old && !isLocked) || ELs.hook(addEventListener);
+        // here should not return even if old - a url change may mean the fullscreen mode is changed
       } else {
         Commands.reset();
       }

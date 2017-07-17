@@ -94,8 +94,8 @@ Known issues (Up to the master branch):
   * if your custom page has no such a tag, it will be replaced with the inner one at run time
   * its styles have changed a lot, so old pages need comparison and updates before adding version attribute
 * LinkHints supports a new mode "Open multiple links in current tab" and `f-<Alt>-<Shift>` will activate it
-* add a new shortcut `vimium://status <enable/disable/toggle/reset>`
-    to enforce a new status on the current tab (not on further new frames, though)
+* add a new shortcut `vimium://status <toggle | enable | disable | reset>`
+    to enforce a new status on the current tab
   * you may use it on Vomnibar / Chrome Omnibox
   * the popup page has an improved UI and you may also use new buttons on it to do so
 * Vimium++ now tries its best to re-enable key mappings on some special child iframes using `document.open`

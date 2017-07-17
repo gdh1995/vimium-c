@@ -44,6 +44,7 @@ interface BgReq {
   };
   init: {
     name: "init",
+    flags: Frames.Flags;
     load: SettingsNS.FrontendSettingCache,
     passKeys: string | null;
     mapKeys: SafeDict<string> | null,
