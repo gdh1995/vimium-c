@@ -154,7 +154,8 @@ declare const enum PortType {
   isTop = 4,
   omnibar = 8, omnibarRe = 9,
   /** the below should keep the consistent with Frames.Status, so that code in OnConnect works */
-  knownStatusBase = 16, knownEnabled = 16, knownPartial = 17, knownDisabled = 18, knownStatusMask = 4,
+  knownStatusBase = 16, knownEnabled = 16, knownPartial = 17, knownDisabled = 18,
+  knownStatusMask = 3,
 }
 
 declare namespace SettingsNS {
@@ -186,6 +187,7 @@ interface Document extends DocumentAttrsToBeDetected {}
 
 declare const enum GlobalConsts {
   TabIdNone = -1,
+  MaxImpossibleTabId = -2,
   WndIdNone = -1,
   VomnibarSecretTimeout = 3000,
   MaxNumberOfNextPatterns = 200,

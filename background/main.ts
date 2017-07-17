@@ -365,7 +365,7 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
       case "copy":
         return requestHandlers.ShowHUD((arr as Urls.CopyEvalResult)[0], true);
       case "status":
-        return requestHandlers.ForceStatus((arr as Urls.StatusEvalResult)[0] as "reset" | "enable" | "disable");
+        return requestHandlers.ForceStatus((arr as Urls.StatusEvalResult)[0]);
       }
     },
     complain (this: void, action: string): void {
@@ -1822,17 +1822,17 @@ Are you sure you want to continue?`);
         cPort = null as never;
       }
     },
-    ForceStatus (act: "reset" | "enable" | "disable" | "toggle", tabId?: number): void {
+    ForceStatus (act: Frames.ForcedStatus, tabId?: number): void {
       const ref = framesForTab[tabId || (tabId = TabRecency.last)];
       if (!ref) { return; }
       const always_enabled = Exclusions == null || Exclusions.rules.length <= 0, oldStatus = ref[0].sender.status,
       stat = act === "enable" ? Frames.Status.enabled : act === "disable" ? Frames.Status.disabled
         : act === "toggle" ? oldStatus === Frames.Status.disabled ? Frames.Status.enabled : Frames.Status.disabled
         : null,
-      locked = stat != null, unknown = !(locked || always_enabled),
-      msg: Req.bg<"reset"> = { name: "reset", passKeys: stat !== Frames.Status.disabled ? null : "", forced: true };
+      locked = stat !== null, unknown = !(locked || always_enabled),
+      msg: Req.bg<"reset"> = { name: "reset", passKeys: stat !== Frames.Status.disabled ? null : "", forced: locked };
       cPort = ref[0];
-      if (stat == null && !tabId) {
+      if (stat == null && tabId < 0) {
         oldStatus !== Frames.Status.disabled && requestHandlers.ShowHUD("Got an unknown action on status: " + act);
         return;
       }
@@ -1859,7 +1859,7 @@ Are you sure you want to continue?`);
   },
   Connections = {
     state: 0,
-    _fakeId: -2,
+    _fakeId: GlobalConsts.MaxImpossibleTabId,
     framesForOmni: [] as Frames.WritableFrames,
     OnMessage (this: void, request: Req.baseFg<string> | Req.baseFgWithRes<string>, port: Frames.Port): void {
       let id: number | undefined;

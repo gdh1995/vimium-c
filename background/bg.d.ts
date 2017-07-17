@@ -45,7 +45,9 @@ declare namespace Urls {
   }
   interface CopyEvalResult extends BasePlainEvalResult<"copy"> {}
   interface ErrorEvalResult extends BasePlainEvalResult<"ERROR"> {}
-  interface StatusEvalResult extends BasePlainEvalResult<"status"> {}
+  interface StatusEvalResult extends BasePlainEvalResult<"status"> {
+    readonly [0]: Frames.ForcedStatusText;
+  }
 
   type EvalArrayResultWithSideEffects = CopyEvalResult;
 
@@ -108,6 +110,7 @@ declare namespace Urls {
 
 declare namespace Frames {
   type ValidStatus = Status.enabled | Status.partial | Status.disabled;
+  type ForcedStatusText = "reset" | "enable" | "disable" | "toggle";
 
   interface RawSender {
     readonly frameId: number;
@@ -368,7 +371,7 @@ declare namespace BgReqHandlerNS {
     focusOrLaunch(this: void, request: MarksNS.FocusOrLaunch): void;
     SetIcon(tabId: number, type: Frames.ValidStatus): void;
     ShowHUD(message: string, isCopy?: boolean | undefined): void;
-    ForceStatus(this: void, act: "reset" | "enable" | "disable" | "toggle", tabId?: number): void;
+    ForceStatus(this: void, act: Frames.ForcedStatusText, tabId?: number): void;
   }
 }
 
