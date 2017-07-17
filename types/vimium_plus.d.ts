@@ -147,6 +147,7 @@ declare namespace Frames {
     locked = 1,
     userActed = 2,
     lockedAndUserActed = locked | userActed,
+    InheritedFlags = locked | userActed,
   }
 }
 

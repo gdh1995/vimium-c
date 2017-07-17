@@ -1665,9 +1665,15 @@ Are you sure you want to continue?`);
     },
     exitGrab (this: void, _0: FgReq["exitGrab"], port: Port): void {
       const ports = framesForTab[port.sender.tabId];
-      if (!ports || ports.length < 3) { return; }
+      if (!ports) { return; }
+      ports[0].sender.flags |= Frames.Flags.userActed;
+      if (ports.length < 3) { return; }
       for (let msg = { name: "exitGrab" as "exitGrab" }, i = ports.length; 0 < --i; ) {
-        ports[i] !== port && ports[i].postMessage(msg);
+        const p = ports[i];
+        if (p !== port) {
+          p.postMessage(msg);
+          p.sender.flags |= Frames.Flags.userActed;
+        }
       }
     },
     execInChild (this: void, request: FgReq["execInChild"], port: Port): void {
@@ -1885,10 +1891,11 @@ Are you sure you want to continue?`);
           return Connections.onOmniConnect(port, tabId, type);
         }
         status = (type >>> PortType.BitOffsetOfKnownStatus) as Frames.ValidStatus;
-        sender.flags = (type & PortType.isLocked) ? Frames.Flags.lockedAndUserActed : Frames.Flags.userActed;
+        sender.flags = ((type & PortType.isLocked) ? Frames.Flags.lockedAndUserActed : Frames.Flags.userActed
+          ) + 0;
       } else {
         const pass = Settings.getExcluded(url),
-        flags: Frames.Flags = ref ? (sender.flags = ref[0].sender.flags) : Frames.Flags.blank;
+        flags: Frames.Flags = ref ? (sender.flags = ref[0].sender.flags & Frames.Flags.InheritedFlags) : Frames.Flags.blank;
         status = pass === null ? Frames.Status.enabled : pass ? Frames.Status.partial : Frames.Status.disabled;
         port.postMessage({
           name: "init",
