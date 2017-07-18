@@ -158,7 +158,7 @@ declare const enum PortType {
   isTop = 4,
   omnibar = 8, omnibarRe = 9,
   /** the below should keep the consistent with Frames.Status, so that code in OnConnect works */
-  knownStatusBase = 16, BitOffsetOfKnownStatus = 4,
+  knownStatusBase = 16, BitOffsetOfKnownStatus = 4, MaskOfKnownStatus = 3,
   knownEnabled = knownStatusBase << 0, knownPartial = knownStatusBase << 1, knownDisabled = knownStatusBase << 2,
   isLocked = knownStatusBase << 3, hasCSS = knownStatusBase << 4,
 }
