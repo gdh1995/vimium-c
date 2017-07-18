@@ -4,7 +4,7 @@ interface ShadowRootWithSelection extends ShadowRoot {
 
 VDom.UI = {
   box: null,
-  styleIn: null,
+  styleIn: { textContent: "" },
   root: null,
   callback: null,
   flashLastingTime: 400,
@@ -13,9 +13,9 @@ VDom.UI = {
       , options?: UIElementOptions | null | { fake: true, showing?: undefined }): T | void {
     options = Object.setPrototypeOf(options || {}, null);
     this.showing = options.showing !== false;
+    this.box = VDom.createElement("vimium-ui");
     VPort.send({ handler: "initInnerCSS" }, this.InitInner);
     this.InitInner = null as never;
-    this.init && this.init(false);
     (this.box as HTMLElement).style.display = "none";
     this.root = (this.box as HTMLElement).attachShadow ?
         (this.box as HTMLElement & AttachShadow).attachShadow({mode: "closed"})
@@ -55,17 +55,12 @@ VDom.UI = {
     el2 !== (ui.box as HTMLElement).parentElement && el2.appendChild(ui.box as Element);
     (el || event) && (el ? addEventListener : removeEventListener)("webkitfullscreenchange", ui.adjust, true);
   },
-  init (showing): void {
-    this.init = null as never;
-    this.box = VDom.createElement("vimium-ui");
-    if (showing !== false) { return this.adjust(); }
-  },
   InitInner (innerCSS): void {
     const _this = VDom.UI;
     _this.styleIn = _this.createStyle(innerCSS);
-    (_this.root as ShadowRoot).insertBefore(_this.styleIn, (_this.root as ShadowRoot).firstElementChild);
+    (_this.root as ShadowRoot).insertBefore(_this.styleIn as HTMLStyleElement, (_this.root as ShadowRoot).firstElementChild);
     if (!_this.showing) { _this.showing = true; return; }
-    _this.styleIn.onload = function (): void {
+    (_this.styleIn as HTMLStyleElement).onload = function (): void {
       this.onload = null as never;
       (_this.box as HTMLElement).style.display = "";
       _this.callback && _this.callback();
@@ -83,9 +78,7 @@ VDom.UI = {
     css.textContent = text;
     return css;
   },
-  InsertInnerCSS (inner): void {
-    VDom.UI.styleIn && (VDom.UI.styleIn.textContent = inner.css);
-  },
+  css (innerCSS): void { this.styleIn.textContent = innerCSS; },
   getSelection (): Selection {
     let sel = window.getSelection(), el: Node | null, el2: Node | null;
     if (sel.focusNode === document.documentElement && (el = VScroller.current)) {

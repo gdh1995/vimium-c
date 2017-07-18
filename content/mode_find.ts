@@ -107,11 +107,13 @@ html > count{float:right;}`,
     }
   },
   init (): HTMLStyleElement {
-    const ref = this.postMode, UI = VDom.UI;
+    const ref = this.postMode, UI = VDom.UI,
+    sin = this.styleIn = UI.createStyle(this.cssSel), sout = this.styleOut = UI.createStyle(this.cssOut + this.cssSel);
+    sin.disabled = sout.disabled = true;
     ref.exit = ref.exit.bind(ref);
-    UI.addElement(this.styleIn = UI.createStyle(this.cssSel));
+    UI.addElement(sin);
     this.init = null as never;
-    return (UI.box as HTMLElement).appendChild(this.styleOut = UI.createStyle(this.cssOut + this.cssSel));
+    return (UI.box as HTMLElement).appendChild(sout);
   },
   findAndFocus (query: string, options: Partial<FindOptions>): void {
     if (query !== this.query) {

@@ -9,10 +9,6 @@ interface BgReq {
     passKeys: string | null;
     forced?: boolean;
   };
-  insertInnerCSS: {
-    name: "insertInnerCSS";
-    css: string;
-  };
   createMark: {
     name: "createMark";
     markName: string;
@@ -23,7 +19,8 @@ interface BgReq {
   };
   showHUD: {
     name: "showHUD";
-    text: string;
+    CSS?: string | null;
+    text?: string;
     isCopy?: boolean;
   };
   focusFrame: {

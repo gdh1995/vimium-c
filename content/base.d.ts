@@ -168,7 +168,7 @@ interface UIElementOptions {
 
 interface DomUI {
   box: HTMLElement | null;
-  styleIn: HTMLStyleElement | null;
+  styleIn: HTMLStyleElement | { textContent: string };
   root: ShadowRoot | null;
   callback: null | ((this: void) => void);
   flashLastingTime: number;
@@ -177,11 +177,10 @@ interface DomUI {
   addElement(this: DomUI, element: null, options: { fake: true }): void;
   addElementList(this: DomUI, els: ReadonlyArray<Element>, offset: { [0]: number; [1]: number }): HTMLDivElement;
   adjust (this: void, event?: Event): void;
-  init (this: DomUI, showing: boolean): void;
   InitInner (this: void, innerCSS: string): void;
   toggle (this: DomUI, enabled: boolean): void;
   createStyle (this: DomUI, text: string, doc?: { createElement: Document["createElement"] }): HTMLStyleElement;
-  InsertInnerCSS (this: void, inner: BgReq["insertInnerCSS"]): void;
+  css (this: DomUI, innerCSS: string): void;
   getSelection (this: DomUI): Selection;
   removeSelection (this: DomUI, root?: DocumentOrShadowRoot,): boolean;
   click (this: DomUI, element: Element, modifiers?: EventControlKeys | null, addFocus?: boolean): boolean;

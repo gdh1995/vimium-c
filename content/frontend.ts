@@ -43,7 +43,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
       try {
         if (!this.port) {
           this.connect((isEnabledForUrl ? passKeys ? PortType.knownPartial : PortType.knownEnabled : PortType.knownDisabled)
-            + (isLocked ? PortType.isLocked : 0) + (VDom.UI.styleIn ? PortType.hasCSS : 0));
+            + (isLocked ? PortType.isLocked : 0) + (VDom.UI.styleIn.textContent ? PortType.hasCSS : 0));
           isInjected && setTimeout(this.TestAlive, 50);
         }
         (this.port as Port).postMessage(request);
@@ -761,7 +761,6 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
         VSettings.cache[i as Keys] = request[i as Keys] as SettingsNS.FrontendSettings[Keys];
       }
     },
-    insertInnerCSS: VDom.UI.InsertInnerCSS,
     focusFrame: FrameMask.Focus,
     exitGrab: InsertMode.ExitGrab as (this: void, request: Req.bg<"exitGrab">) => void,
     keyMap (request): void {
@@ -784,9 +783,9 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
       return VUtils.execCommand(Commands, request.command, request.count, request.options);
     },
     createMark (request): void { return VMarks.createMark(request.markName); },
-    showHUD (request): void {
-      const a = request.text;
-      return request.isCopy ? HUD.showCopied(a) : HUD.showForDuration(a);
+    showHUD ({ text, CSS, isCopy }): void {
+      if (CSS) { VDom.UI.css(CSS); }
+      return text ? isCopy ? HUD.showCopied(text) : HUD.showForDuration(text) : void 0;
     },
   showHelpDialog ({ html, advanced: shouldShowAdvanced, optionUrl}): void {
     let box: HTMLElement, oldShowHelp: typeof Commands.showHelp, hide: (this: void, e?: Event | number | "exitHD") => void

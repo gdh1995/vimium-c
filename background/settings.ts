@@ -127,8 +127,8 @@ var Settings = {
       css = this.cache.innerCSS.substring(0, (this as typeof Settings).CONST.BaseCSSLength) + css;
       this.set("innerCSS", css);
       return this.broadcast({
-        name: "insertInnerCSS",
-        css: this.cache.innerCSS
+        name: "showHUD",
+        CSS: this.cache.innerCSS
       });
     },
     vomnibarPage (url): void {
