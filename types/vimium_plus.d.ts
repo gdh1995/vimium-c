@@ -148,6 +148,7 @@ declare namespace Frames {
     userActed = 2,
     lockedAndUserActed = locked | userActed,
     InheritedFlags = locked | userActed,
+    hasCSS = 8,
   }
 }
 
@@ -159,7 +160,7 @@ declare const enum PortType {
   /** the below should keep the consistent with Frames.Status, so that code in OnConnect works */
   knownStatusBase = 16, BitOffsetOfKnownStatus = 4,
   knownEnabled = knownStatusBase << 0, knownPartial = knownStatusBase << 1, knownDisabled = knownStatusBase << 2,
-  isLocked = knownStatusBase << 3,
+  isLocked = knownStatusBase << 3, hasCSS = knownStatusBase << 4,
 }
 
 declare namespace SettingsNS {

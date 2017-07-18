@@ -1733,7 +1733,8 @@ Are you sure you want to continue?`);
         console.error("Promises for initHelp failed:", args[0], ';', args[3]);
       });
     },
-    initInnerCSS (this: void): FgRes["initInnerCSS"] {
+    initInnerCSS (this: void, _0: {}, port: Port): FgRes["initInnerCSS"] {
+      (port.sender as Frames.Sender).flags |= Frames.Flags.hasCSS;
       return Settings.cache.innerCSS;
     },
     activateVomnibar (this: void, request: FgReq["activateVomnibar"] & Req.baseFg<string>, port: Port): void {
@@ -1845,7 +1846,7 @@ Are you sure you want to continue?`);
       }
       let pattern: string | null, newStatus = locked ? stat as Frames.ValidStatus : Frames.Status.enabled;
       for (let i = ref.length; 1 <= --i; ) {
-        const port = ref[i], sender = (port.sender as Frames.Sender);
+        const port = ref[i], sender = port.sender;
         sender.flags = locked ? sender.flags | Frames.Flags.locked : sender.flags & ~Frames.Flags.locked;
         if (unknown) {
           pattern = msg.passKeys = Settings.getExcluded(sender.url);
@@ -1892,7 +1893,7 @@ Are you sure you want to continue?`);
         }
         status = (type >>> PortType.BitOffsetOfKnownStatus) as Frames.ValidStatus;
         sender.flags = ((type & PortType.isLocked) ? Frames.Flags.lockedAndUserActed : Frames.Flags.userActed
-          ) + 0;
+          ) + ((type & PortType.hasCSS) && Frames.Flags.hasCSS);
       } else {
         let pass: null | string, flags: Frames.Flags = Frames.Flags.blank;
         if (ref && ((flags = sender.flags = ref[0].sender.flags & Frames.Flags.InheritedFlags) & Frames.Flags.locked)) {
