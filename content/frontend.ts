@@ -894,6 +894,7 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
       ELs.OnWndFocus = function(): void { failed = false; };
       window.focus();
       failed && isEnabledForUrl && ELs.hook(addEventListener);
+      // the line below is always necessary: see https://github.com/philc/vimium/issues/2551#issuecomment-316113725
       (ELs.OnWndFocus = old)();
       if (callback && esc) {
         return callback();
