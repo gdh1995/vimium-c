@@ -149,7 +149,8 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
       // note: this ignores the case that <form> is in a shadowDom
       // note: DO NOT stop propagation
       if (target === VDom.UI.box) { return event.stopImmediatePropagation(); }
-      if (InsertMode.lock !== null && InsertMode.lock === document.activeElement) { return; }
+      let a = InsertMode.lock;
+      if (a !== null && a === document.activeElement) { return; }
       if ((target as Element).shadowRoot != null) {
         let path = event.path as EventTarget[]
           , diff = !!path && (target = path[0]) !== event.target && target !== window, len = diff ? path.indexOf(target) : 1;
@@ -164,8 +165,10 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
       }
       if (VDom.getEditableType(target)) {
         if (InsertMode.grabFocus) {
-          event.stopImmediatePropagation();
-          (target as HTMLElement).blur();
+          if (document.activeElement === target) {
+            event.stopImmediatePropagation();
+            (target as HTMLElement).blur();
+          }
           return;
         }
         InsertMode.lock = target as HTMLElement;
