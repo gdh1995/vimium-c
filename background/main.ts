@@ -1894,9 +1894,14 @@ Are you sure you want to continue?`);
         sender.flags = ((type & PortType.isLocked) ? Frames.Flags.lockedAndUserActed : Frames.Flags.userActed
           ) + 0;
       } else {
-        const pass = Settings.getExcluded(url),
-        flags: Frames.Flags = ref ? (sender.flags = ref[0].sender.flags & Frames.Flags.InheritedFlags) : Frames.Flags.blank;
-        status = pass === null ? Frames.Status.enabled : pass ? Frames.Status.partial : Frames.Status.disabled;
+        let pass: null | string, flags: Frames.Flags = Frames.Flags.blank;
+        if (ref && ((flags = sender.flags = ref[0].sender.flags & Frames.Flags.InheritedFlags) & Frames.Flags.locked)) {
+          status = ref[0].sender.status;
+          pass = status !== Frames.Status.disabled ? null : "";
+        } else {
+          pass = Settings.getExcluded(url);
+          status = pass === null ? Frames.Status.enabled : pass ? Frames.Status.partial : Frames.Status.disabled;
+        }
         port.postMessage({
           name: "init",
           flags,
