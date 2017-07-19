@@ -55,8 +55,6 @@ html > count{float:right;}`,
     this.parsedQuery = this.query = "";
     this.regexMatches = null;
     this.activeRegexIndex = 0;
-    this.init && this.init();
-    this.styleIn.disabled = this.styleOut.disabled = true;
 
     const el = this.box = VDom.createElement("iframe") as typeof VFindMode.box;
     el.className = "R HUD UI";
@@ -66,6 +64,8 @@ html > count{float:right;}`,
     el.onload = function(this: HTMLIFrameElement): void { return VFindMode.onLoad(this); };
     VHandler.push(VDom.UI.SuppressMost, this);
     VDom.UI.addElement(el, {adjust: true, before: VHUD.box});
+    this.init && this.init();
+    this.styleIn.disabled = this.styleOut.disabled = true;
     this.isActive = true;
   },
   onLoad (box: HTMLIFrameElement): void {
@@ -109,7 +109,6 @@ html > count{float:right;}`,
   init (): HTMLStyleElement {
     const ref = this.postMode, UI = VDom.UI,
     sin = this.styleIn = UI.createStyle(this.cssSel), sout = this.styleOut = UI.createStyle(this.cssOut + this.cssSel);
-    sin.disabled = sout.disabled = true;
     ref.exit = ref.exit.bind(ref);
     UI.addElement(sin);
     this.init = null as never;

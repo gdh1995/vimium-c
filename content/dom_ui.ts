@@ -4,18 +4,14 @@ interface ShadowRootWithSelection extends ShadowRoot {
 
 VDom.UI = {
   box: null,
-  styleIn: { textContent: "" },
+  styleIn: null,
   root: null,
   callback: null,
   flashLastingTime: 400,
-  showing: true,
-  addElement: (function<T extends HTMLElement> (this: DomUI, element: T | null
-      , options?: UIElementOptions | null | { fake: true, showing?: undefined }): T | void {
+  addElement<T extends HTMLElement> (this: DomUI, element: T, options?: UIElementOptions): T {
     options = Object.setPrototypeOf(options || {}, null);
-    this.showing = options.showing !== false;
+    let notShowAtOnce = options.showing === false;
     this.box = VDom.createElement("vimium-ui");
-    VPort.send({ handler: "initInnerCSS" }, this.InitInner);
-    this.InitInner = null as never;
     (this.box as HTMLElement).style.display = "none";
     this.root = (this.box as HTMLElement).attachShadow ?
         (this.box as HTMLElement & AttachShadow).attachShadow({mode: "closed"})
@@ -24,16 +20,29 @@ VDom.UI = {
     this.root.addEventListener("load", function(e: Event): void {
       const t = e.target as HTMLElement; t.onload && t.onload(e); e.stopImmediatePropagation();
     }, true);
-    if (options.fake === true) { return; }
+    this.css = (innerCSS): void => {
+      this.styleIn = this.createStyle(innerCSS);
+      (this.root as ShadowRoot).insertBefore(this.styleIn, (this.root as ShadowRoot).firstElementChild);
+      this.css = function(css) { (this.styleIn as HTMLStyleElement).textContent = css; };
+      if (notShowAtOnce) { return; }
+      this.styleIn.onload = function (): void {
+        this.onload = null as never;
+        const a = VDom.UI;
+        (a.box as HTMLElement).style.display = "";
+        a.callback && a.callback();
+      };
+      return this.adjust();
+    };
+    VPort.post({ handler: "css" });
     options.adjust = options.adjust === true;
     this.addElement = function<T extends HTMLElement>(this: DomUI, element: T, options?: UIElementOptions | null): T {
       options = Object.setPrototypeOf(options || {}, null);
       options.adjust === false || this.adjust();
       return options.before ? (this.root as ShadowRoot).insertBefore(element, options.before)
         : (this.root as ShadowRoot).appendChild(element);
-    } as DomUI["addElement"];
+    };
     return this.addElement(element as T, options);
-  }) as DomUI["addElement"],
+  },
   addElementList (els, offset): HTMLDivElement {
     const parent = VDom.createElement("div");
     parent.className = "R HM";
@@ -55,18 +64,6 @@ VDom.UI = {
     el2 !== (ui.box as HTMLElement).parentElement && el2.appendChild(ui.box as Element);
     (el || event) && (el ? addEventListener : removeEventListener)("webkitfullscreenchange", ui.adjust, true);
   },
-  InitInner (innerCSS): void {
-    const _this = VDom.UI;
-    _this.styleIn = _this.createStyle(innerCSS);
-    (_this.root as ShadowRoot).insertBefore(_this.styleIn as HTMLStyleElement, (_this.root as ShadowRoot).firstElementChild);
-    if (!_this.showing) { _this.showing = true; return; }
-    (_this.styleIn as HTMLStyleElement).onload = function (): void {
-      this.onload = null as never;
-      (_this.box as HTMLElement).style.display = "";
-      _this.callback && _this.callback();
-    };
-    return _this.adjust();
-  },
   toggle (enabled): void {
     if (enabled) { return this.adjust(); }
     (this.box as HTMLElement).remove();
@@ -78,7 +75,7 @@ VDom.UI = {
     css.textContent = text;
     return css;
   },
-  css (innerCSS): void { this.styleIn.textContent = innerCSS; },
+  css (innerCSS): void { this.styleIn = innerCSS; },
   getSelection (): Selection {
     let sel = window.getSelection(), el: Node | null, el2: Node | null;
     if (sel.focusNode === document.documentElement && (el = VScroller.current)) {

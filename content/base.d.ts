@@ -162,22 +162,18 @@ interface Hint {
 interface UIElementOptions {
   adjust?: boolean;
   before?: Element | null;
-  fake?: undefined;
   showing?: false;
 }
 
 interface DomUI {
   box: HTMLElement | null;
-  styleIn: HTMLStyleElement | { textContent: string };
+  styleIn: HTMLStyleElement | string | null;
   root: ShadowRoot | null;
   callback: null | ((this: void) => void);
   flashLastingTime: number;
-  showing: boolean;
-  addElement<T extends HTMLElement>(this: DomUI, element: T, options?: UIElementOptions | null): T;
-  addElement(this: DomUI, element: null, options: { fake: true }): void;
+  addElement<T extends HTMLElement>(this: DomUI, element: T, options?: UIElementOptions): T;
   addElementList(this: DomUI, els: ReadonlyArray<Element>, offset: { [0]: number; [1]: number }): HTMLDivElement;
   adjust (this: void, event?: Event): void;
-  InitInner (this: void, innerCSS: string): void;
   toggle (this: DomUI, enabled: boolean): void;
   createStyle (this: DomUI, text: string, doc?: { createElement: Document["createElement"] }): HTMLStyleElement;
   css (this: DomUI, innerCSS: string): void;

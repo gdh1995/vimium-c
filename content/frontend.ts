@@ -43,7 +43,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
       try {
         if (!this.port) {
           this.connect((isEnabledForUrl ? passKeys ? PortType.knownPartial : PortType.knownEnabled : PortType.knownDisabled)
-            + (isLocked ? PortType.isLocked : 0) + (VDom.UI.styleIn.textContent ? PortType.hasCSS : 0));
+            + (isLocked ? PortType.isLocked : 0) + (VDom.UI.styleIn ? PortType.hasCSS : 0));
           isInjected && setTimeout(this.TestAlive, 50);
         }
         (this.port as Port).postMessage(request);
@@ -361,7 +361,6 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
         if (window === window.top) { return; }
         wantTop = true;
       }
-      wantTop || VDom.UI.InitInner && VDom.UI.addElement(null, { fake: true });
       vPort.post({ handler: "initHelp", wantTop });
     },
     autoCopy (_0: number, options: FgOptions): void {
@@ -839,7 +838,7 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
     };
     (box.querySelector("#HClose") as HTMLElement).onclick = Commands.showHelp = hide;
     shouldShowAdvanced && toggleAdvanced();
-    VDom.UI.addElement(box, Vomnibar.status ? null : {before: Vomnibar.box});
+    VDom.UI.addElement(box, Vomnibar.status ? {} as UIElementOptions : {before: Vomnibar.box});
     document.hasFocus() || VEventMode.focusAndListen();
     VScroller.current = box;
     VHandler.push(function(event) {

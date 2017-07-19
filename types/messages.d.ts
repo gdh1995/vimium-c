@@ -165,7 +165,7 @@ interface FgReq {
     names?: boolean;
     title?: string;
   };
-  initInnerCSS: Req.baseFg<"initInnerCSS">;
+  css: Req.baseFg<"css">;
   activateVomnibar: ({
     count: number;
     redo?: undefined;
@@ -211,7 +211,6 @@ interface FgRes {
     path: string | null;
   };
   searchAs: string;
-  initInnerCSS: string;
   openCopiedUrl: string;
   copyToClipboard: void;
 }

@@ -427,6 +427,12 @@ Are you sure you want to continue?`);
       request.url = cPort.sender.url;
       return requestHandlers[request.handler as "parseUpperUrl"](request as FgReq["parseUpperUrl"], cPort) as never;
     },
+    ensureInnerCSS (port: Frames.Port) {
+      const { sender } = port;
+      if (sender.flags & Frames.Flags.hasCSS) { return null; }
+      sender.flags |= Frames.Flags.hasCSS;
+      return Settings.cache.innerCSS;
+    },
 
     getCurTab: chrome.tabs.query.bind<null, { active: true, currentWindow: true }
         , (result: [Tab] | never[]) => void, 1>(null, { active: true, currentWindow: true }),
@@ -1733,9 +1739,11 @@ Are you sure you want to continue?`);
         console.error("Promises for initHelp failed:", args[0], ';', args[3]);
       });
     },
-    initInnerCSS (this: void, _0: {}, port: Port): FgRes["initInnerCSS"] {
-      (port.sender as Frames.Sender).flags |= Frames.Flags.hasCSS;
-      return Settings.cache.innerCSS;
+    css (this: void, _0: {}, port: Port): void {
+      const CSS = funcDict.ensureInnerCSS(port);
+      if (CSS) {
+        port.postMessage({ name: "showHUD", CSS });
+      }
     },
     activateVomnibar (this: void, request: FgReq["activateVomnibar"] & Req.baseFg<string>, port: Port): void {
       const { count, inner } = request;
