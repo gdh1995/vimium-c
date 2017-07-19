@@ -126,10 +126,15 @@ var Settings = {
     userDefinedCss (css): void {
       css = this.cache.innerCSS.substring(0, (this as typeof Settings).CONST.BaseCSSLength) + css;
       this.set("innerCSS", css);
-      return this.broadcast({
-        name: "showHUD",
-        CSS: this.cache.innerCSS
-      });
+      const ref = this.indexPorts(), request = { name: "showHUD" as "showHUD", CSS: this.cache.innerCSS };
+      for (let tabId in ref) {
+        const frames = ref[tabId] as Frames.Frames;
+        for (let i = frames.length; 0 < --i; ) {
+          if (frames[i].sender.flags & Frames.Flags.hasCSS) {
+            frames[i].postMessage(request);
+          }
+        }
+      }
     },
     vomnibarPage (url): void {
       if (url === this.defaults.vomnibarPage) {
