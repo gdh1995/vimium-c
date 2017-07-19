@@ -10,7 +10,7 @@ VDom.UI = {
   flashLastingTime: 400,
   addElement<T extends HTMLElement> (this: DomUI, element: T, options?: UIElementOptions): T {
     options = Object.setPrototypeOf(options || {}, null);
-    let notShowAtOnce = options.showing === false;
+    let notShowAtOnce = options.showing === false, doAdd = options.adjust;
     this.box = VDom.createElement("vimium-ui");
     (this.box as HTMLElement).style.display = "none";
     this.root = (this.box as HTMLElement).attachShadow ?
@@ -31,10 +31,18 @@ VDom.UI = {
         (a.box as HTMLElement).style.display = "";
         a.callback && a.callback();
       };
-      return this.adjust();
+      if (doAdd !== false) {
+        doAdd = true;
+        return this.adjust();
+      }
     };
-    VPort.post({ handler: "css" });
-    options.adjust = options.adjust === true;
+    let a = this.styleIn as string | null;
+    if (a) {
+      this.css(a);
+    } else {
+      VPort.post({ handler: "css" });
+    }
+    options.adjust = doAdd === true;
     this.addElement = function<T extends HTMLElement>(this: DomUI, element: T, options?: UIElementOptions | null): T {
       options = Object.setPrototypeOf(options || {}, null);
       options.adjust === false || this.adjust();

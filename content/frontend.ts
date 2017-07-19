@@ -684,7 +684,7 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
       el.className = "R HUD";
       el.style.opacity = "0";
       el.style.visibility = "hidden";
-      el.appendChild(document.createTextNode(text));
+      el.textContent = text;
       VDom.UI.addElement(this.box = el, {adjust: false});
     },
     tween (this: void): void {
