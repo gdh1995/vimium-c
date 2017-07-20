@@ -1899,7 +1899,7 @@ Are you sure you want to continue?`);
         if (type < PortType.knownStatusBase) {
           return Connections.onOmniConnect(port, tabId, type);
         }
-        status = ((type >>> PortType.BitOffsetOfKnownStatus) & PortType.MaskOfKnownStatus) as Frames.ValidStatus;
+        status = ((type >>> PortType.BitOffsetOfKnownStatus) & PortType.MaskOfKnownStatus) - 1;
         sender.flags = ((type & PortType.isLocked) ? Frames.Flags.lockedAndUserActed : Frames.Flags.userActed
           ) + ((type & PortType.hasCSS) && Frames.Flags.hasCSS);
       } else {
