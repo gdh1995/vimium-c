@@ -531,8 +531,9 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
 
 Pagination = {
   followLink (linkElement: Element): boolean {
-    if (linkElement instanceof HTMLLinkElement) {
-      Commands.reload(1, { url: linkElement.href });
+    let url = linkElement instanceof HTMLLinkElement && linkElement.href;
+    if (url) {
+      Commands.reload(1, { url });
     } else {
       VDom.ensureInView(linkElement);
       VDom.UI.flash(linkElement);
