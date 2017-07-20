@@ -1587,17 +1587,21 @@ Are you sure you want to continue?`);
       (this: void, request: FgReq["parseUpperUrl"] & { execute: true }, port: Port): void;
       (this: void, request: FgReq["parseUpperUrl"], port?: Port): FgRes["parseUpperUrl"];
     },
-    searchAs (this: void, request: FgReq["searchAs"]): FgRes["searchAs"] {
+    searchAs (this: void, request: FgReq["searchAs"]): void {
       let search = requestHandlers.parseSearchUrl(request), query: string | null;
-      if (!search || !search.keyword) { return "No search engine found!"; }
+      if (!search || !search.keyword) {
+        return requestHandlers.ShowHUD("No search engine found!");
+      }
       if (!(query = request.search.trim())) {
         query = Clipboard.paste();
-        if (query === null) { return "It's not allowed to read clipboard"; }
-        if (!(query = query.trim())) { return "No selected or copied text found"; }
+        let err = query === null ? "It's not allowed to read clipboard"
+          : (query = query.trim()) ? "" : "No selected or copied text found";
+        if (err) {
+          return requestHandlers.ShowHUD(err);
+        }
       }
-      query = Utils.createSearchUrl(query.split(Utils.spacesRe), search.keyword);
+      query = Utils.createSearchUrl((query as string).split(Utils.spacesRe), search.keyword);
       funcDict.safeUpdate(query);
-      return "";
     },
     gotoSession: function (this: void, request: FgReq["gotoSession"], port?: Port): void {
       const id = request.sessionId, active = request.active !== false;

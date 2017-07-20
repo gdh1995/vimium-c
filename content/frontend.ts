@@ -326,12 +326,16 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
         url ? (window.location.href = url) : window.location.reload(force);
       }, 17);
     },
-    switchFocus (): void {
+    switchFocus (_0: number, options: FgOptions): void {
       let newEl = InsertMode.lock;
       if (newEl) {
-        InsertMode.last = newEl;
-        InsertMode.mutable = false;
-        newEl.blur();
+        if (options.act === "backspace") {
+          if (VDom.ensureInView(newEl)) { document.execCommand("delete"); }
+        } else {
+          InsertMode.last = newEl;
+          InsertMode.mutable = false;
+          newEl.blur();
+        }
         return;
       }
       newEl = InsertMode.last;
@@ -344,11 +348,6 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
       InsertMode.last = null;
       InsertMode.mutable = true;
       return VDom.UI.simulateSelect(newEl, false, true);
-    },
-    simBackspace (): void {
-      const el = InsertMode.lock;
-      if (!el) { return Commands.switchFocus(); }
-      if (VDom.ensureInView(el)) { document.execCommand("delete"); }
     },
     goBack (count: number, options: FgOptions): void {
       const step = Math.min(count, history.length - 1);
@@ -785,7 +784,7 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
       return VUtils.execCommand(Commands, request.command, request.count, request.options);
     },
     createMark (request): void { return VMarks.createMark(request.markName); },
-    showHUD ({ text, CSS, isCopy }): void {
+    showHUD ({ text, CSS, isCopy }: Req.bg<"showHUD">): void {
       if (CSS) { VDom.UI.css(CSS); }
       return text ? isCopy ? HUD.showCopied(text) : HUD.showForDuration(text) : void 0;
     },
