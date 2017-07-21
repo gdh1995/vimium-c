@@ -93,6 +93,8 @@ Known issues (Up to the master branch):
   * please use `<html data-version="1.61">` to tell Vimium++ the page's version
   * if your custom page has no such a tag, it will be replaced with the inner one at run time
   * its styles have changed a lot, so old pages need comparison and updates before adding version attribute
+* loosen limits on URL format validation: accept unknown 3-char TLDs in more cases
+  * now "http://example.aab" is valid, although "example.aab" is usually not (unless it has occurred in history)
 * LinkHints supports a new mode "Open multiple links in current tab" and `f-<Alt>-<Shift>` will activate it
 * add a new shortcut `vimium://status <toggle | enable | disable | reset>`
     to enforce a new status on the current tab

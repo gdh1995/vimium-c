@@ -57,9 +57,9 @@ declare namespace Urls {
   const enum Type {
     Default = 0,
     Full = Default,
-    NoSchema = 1,
-    NoProtocolName = 2,
-    MaxOfInputIsPlainUrl = NoProtocolName,
+    NoProtocolName = 1,
+    NoSchema = 2,
+    MaxOfInputIsPlainUrl = NoSchema,
     PlainVimium = 3,
     Search = 4,
     Functional = 5
