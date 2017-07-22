@@ -1341,10 +1341,10 @@ Are you sure you want to continue?`);
       return requestHandlers.ShowHUD((incognito ? "incognito " : "") + "find history has been cleared.");
     },
     showHelp (this: void): void {
+      if (cPort.sender.frameId === 0 && !(window.HelpDialog && (cPort.sender.flags & Frames.Flags.onceHasDialog))) {
+        return requestHandlers.initHelp({}, cPort);
+      }
       if (!window.HelpDialog) {
-        if (cPort.sender.frameId === 0) {
-          return requestHandlers.initHelp({}, cPort);
-        }
         Utils.require<BaseHelpDialog>('HelpDialog');
       }
       cPort.postMessage<1, "showHelp">({
@@ -1739,6 +1739,7 @@ Are you sure you want to continue?`);
         })
       ]).then(function(args): void {
         const port = args[1].wantTop && funcDict.indexFrame(args[2].sender.tabId, 0) || args[2];
+        (port.sender as Frames.Sender).flags |= Frames.Flags.onceHasDialog;
         port.postMessage({
           name: "showHelpDialog",
           CSS: funcDict.ensureInnerCSS(port),

@@ -148,7 +148,7 @@ declare namespace Frames {
     userActed = 2,
     lockedAndUserActed = locked | userActed,
     InheritedFlags = locked | userActed,
-    hasCSS = 8,
+    hasCSS = 4, onceHasDialog = 8,
   }
 }
 
