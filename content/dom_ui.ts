@@ -32,7 +32,7 @@ VDom.UI = {
         a.callback && a.callback();
       };
       if (doAdd !== false) {
-        doAdd = true;
+        doAdd = false;
         return this.adjust();
       }
     };
