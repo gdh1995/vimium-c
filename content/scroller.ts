@@ -107,7 +107,7 @@ animate (a: number, d: ScrollByY, e: Element | null): void | number {
   scale: 1,
   Properties: ["clientWidth", "clientHeight", "scrollWidth", "scrollHeight", "scrollLeft", "scrollTop"] as
     ["clientWidth", "clientHeight", "scrollWidth", "scrollHeight", "scrollLeft", "scrollTop"],
-  ScBy (count: number, options: FgOptions): void {
+  ScBy (this: void, count: number, options: FgOptions): void {
     if (VHints.tryNestedFrame("VScroller.ScBy", count, options)) { return; }
     return VScroller.scrollBy(options.axis === "x" ? 0 : 1, (+options.dir || 1) * count, options.view);
   },
@@ -121,7 +121,7 @@ animate (a: number, d: ScrollByY, e: Element | null): void | number {
     this.Core.scroll(element, di, amount);
     this.top = null;
   },
-  ScTo (count: number, options: FgOptions): void {
+  ScTo (this: void, count: number, options: FgOptions): void {
     if (VHints.tryNestedFrame("VScroller.ScTo", count, options)) { return; }
     return VScroller.scrollTo(options.axis === "x" ? 0 : 1, count - 1, options.dest === "max" ? 1 : 0);
   },

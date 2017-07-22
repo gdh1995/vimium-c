@@ -1369,18 +1369,19 @@ Are you sure you want to continue?`);
   numHeadRe = <RegExpOne>/^\d+/,
   executeCommand = function(command: string, registryEntry: CommandsNS.Item
       , count: number, port: Port): void {
-    const options = registryEntry.options;
+    const { options, repeat, alias, background } = registryEntry;
     let scale: number;
     if (options && (scale = +options.count)) { count = Math.max(1, (count * scale) | 0); }
     if (count === 1) {}
-    else if (registryEntry.repeat === 1) { count = 1; }
-    else if (registryEntry.repeat > 0 && count > registryEntry.repeat && !funcDict.confirm(command, count)) { return; }
-    command = registryEntry.alias;
-    if (!registryEntry.background) {
-      port.postMessage({ name: "execute", command, count, options });
+    else if (repeat === 1) { count = 1; }
+    else if (repeat > 0 && count > repeat && !funcDict.confirm(command, count)) { return; }
+    if (!background) {
+      const i = alias.indexOf(".");
+      command = i === 0 ? alias.substring(1) || command : alias;
+      port.postMessage({ name: "execute", command, CSS: i >= 0 ? funcDict.ensureInnerCSS(port) : null, count, options });
       return;
     }
-    const func: BgCmd = BackgroundCommands[command as keyof typeof BackgroundCommands];
+    const func: BgCmd = BackgroundCommands[alias as keyof typeof BackgroundCommands];
     cOptions = options || Object.create(null);
     cPort = port;
     commandCount = count;

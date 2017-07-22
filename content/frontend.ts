@@ -238,7 +238,8 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
     Find: VFindMode,
     Hints: VHints,
     Marks: VMarks,
-    Scroller: VScroller,
+    scBy: VScroller.ScBy,
+    scTo: VScroller.ScTo,
     Visual: VVisualMode,
     Vomnibar,
     reset (): void {
