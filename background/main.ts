@@ -911,6 +911,7 @@ Are you sure you want to continue?`);
     ],
     postCommand (port: Port, request: BaseExecute<object>): void {
       port.postMessage({
+        CSS: request.CSS ? funcDict.ensureInnerCSS(port) : null,
         name: "execute", command: request.command, count: request.count || 1, options: request.options
       })
     }
@@ -1246,6 +1247,7 @@ Are you sure you want to continue?`);
         if (needIcon && (str = cPort.sender.url)) { break; }
         cPort.postMessage<1, "autoCopy">({
           name: "execute",
+          CSS: funcDict.ensureInnerCSS(cPort),
           command: "autoCopy",
           count: 1,
           options: { url: true, decoded }
@@ -1283,19 +1285,22 @@ Are you sure you want to continue?`);
       });
     },
     enterInsertMode (): void {
-      let code = cOptions.code | 0, stat: KeyStat = cOptions.stat | 0;
+      let code = cOptions.code | 0, stat: KeyStat = cOptions.stat | 0, hud: boolean;
       code = stat !== KeyStat.plain ? code || VKeyCodes.esc : code === VKeyCodes.esc ? 0 : code;
+      hud = cOptions.hideHud != null ? !cOptions.hideHud : !Settings.get("hideHud", true);
       cPort.postMessage<1, "enterInsertMode">({ name: "execute", count: 1, command: "enterInsertMode",
+        CSS: hud ? funcDict.ensureInnerCSS(cPort) : null,
         options: {
           code, stat,
           passExitKey: !!cOptions.passExitKey,
-          hud: cOptions.hideHud != null ? !cOptions.hideHud : !Settings.get("hideHud", true)
+          hud
         }
       });
     },
     performFind (): void {
       const query = cOptions.active ? null : (FindModeHistory as {query: FindModeQuery}).query(cPort.sender.incognito);
-      cPort.postMessage<1, "Find.activate">({ name: "execute", count: 1, command: "Find.activate", options: {
+      cPort.postMessage<1, "Find.activate">({ name: "execute", count: 1, command: "Find.activate"
+          , CSS: funcDict.ensureInnerCSS(cPort), options: {
         browserVersion: Settings.CONST.ChromeVersion,
         count: commandCount,
         dir: cOptions.dir <= 0 ? -1 : 1,
@@ -1324,6 +1329,7 @@ Are you sure you want to continue?`);
       port.postMessage<1, "Vomnibar.activate">({
         name: "execute", count: commandCount,
         command: "Vomnibar.activate",
+        CSS: funcDict.ensureInnerCSS(cPort),
         options
       });
       options.secret = -1;
@@ -1735,6 +1741,7 @@ Are you sure you want to continue?`);
         const port = args[1].wantTop && funcDict.indexFrame(args[2].sender.tabId, 0) || args[2];
         port.postMessage({
           name: "showHelpDialog",
+          CSS: funcDict.ensureInnerCSS(port),
           html: args[0].render(args[1]),
           optionUrl: Settings.CONST.OptionsPage,
           advanced: Settings.get("showAdvancedCommands", true)
@@ -1834,6 +1841,7 @@ Are you sure you want to continue?`);
       try {
         cPort && cPort.postMessage({
           name: "showHUD",
+          CSS: funcDict.ensureInnerCSS(cPort),
           text: message,
           isCopy: isCopy === true
         });

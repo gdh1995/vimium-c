@@ -1,4 +1,5 @@
 interface BaseExecute<T> {
+  CSS?: string | null;
   command: string;
   count: number;
   options: T | null;
@@ -35,6 +36,7 @@ interface BgReq {
     name: "exitGrab";
   };
   showHelpDialog: {
+    CSS?: string | null;
     html: string;
     optionUrl: string;
     advanced: boolean;
@@ -238,9 +240,7 @@ declare namespace Req {
     readonly response: FgRes[K];
   }
 
-  interface FgCmd<O extends keyof CmdOptions> extends BaseExecute<CmdOptions[O]> {
-    name: "execute";
-  }
+  type FgCmd<O extends keyof CmdOptions> = BaseExecute<CmdOptions[O]> & Req.bg<"execute">;
 }
 
 interface SetSettingReq<T extends keyof SettingsNS.FrontUpdateAllowedSettings> {

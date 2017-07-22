@@ -781,7 +781,8 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
       }
       (mapKeys = request.mapKeys) && func(mapKeys, null);
     },
-    execute (request): void {
+    execute (request: Req.bg<"execute">): void {
+      if (request.CSS) { VDom.UI.css(request.CSS); }
       return VUtils.execCommand(Commands, request.command, request.count, request.options);
     },
     createMark (request): void { return VMarks.createMark(request.markName); },
@@ -789,9 +790,10 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
       if (CSS) { VDom.UI.css(CSS); }
       return text ? isCopy ? HUD.showCopied(text) : HUD.showForDuration(text) : void 0;
     },
-  showHelpDialog ({ html, advanced: shouldShowAdvanced, optionUrl}): void {
+  showHelpDialog ({ html, advanced: shouldShowAdvanced, optionUrl, CSS }: Req.bg<"showHelpDialog">): void {
     let box: HTMLElement, oldShowHelp: typeof Commands.showHelp, hide: (this: void, e?: Event | number | "exitHD") => void
       , node1: HTMLElement;
+    if (CSS) { VDom.UI.css(CSS); }
     if (!VDom.isHTML()) { return; }
     Commands.showHelp("exitHD");
     box = VDom.createElement("div");
