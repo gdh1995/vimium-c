@@ -589,6 +589,12 @@ function OnBgUnload(): void {
         opt.previous = bgSettings.get(opt.field);
       }
     }
+    if (!Option.all.keyMappings.saved) {
+      BG.Commands || BG.Utils.require("Commands");
+    }
+    if ((Option.all.exclusionRules as ExclusionRulesOption).list.childElementCount > 0) {
+      BG.Exclusions || BG.Utils.require("Exclusions")
+    }
   }
 }
 BG.addEventListener("unload", OnBgUnload);
