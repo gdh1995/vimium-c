@@ -76,7 +76,10 @@ var Commands = {
       } else if (key === "unmapAll") {
         registry = CommandsData.keyToCommandRegistry = Object.create(null);
         mkReg = Object.create<string>(null), mk = 0;
-        errors = 0;
+        if (errors > 0) {
+          console.log("All key mappings is unmapped, but there %s been %c%d error%s%c before this instruction"
+            , errors > 1 ? "have" : "has", "color:red", errors, errors > 1 ? "s" : "", "color:auto");
+        }
         continue;
       } else if (key === "mapkey" || key === "mapKey") {
         if (splitLine.length !== 3) {
