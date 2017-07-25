@@ -167,9 +167,14 @@ addRule (pattern: string): HTMLTableRowElement {
 }
 populateElement (rules: ExclusionsNS.StoredRule[]): void {
   this.list.textContent = "";
-  const frag = document.createDocumentFragment();
-  rules.forEach(this.appendRule.bind(this, frag));
-  this.list.appendChild(frag);
+  if (rules.length <= 0) {}
+  else if (rules.length === 1) {
+    this.appendRule(this.list, rules[0]);
+  } else {
+    const frag = document.createDocumentFragment();
+    rules.forEach(this.appendRule.bind(this, frag));
+    this.list.appendChild(frag);
+  }
   return this.onRowChange(rules.length);
 }
 appendRule (list: HTMLTableSectionElement | DocumentFragment, rule: ExclusionsNS.StoredRule): HTMLTableRowElement {
