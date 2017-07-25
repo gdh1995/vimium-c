@@ -95,6 +95,7 @@ Known issues (Up to the master branch):
   * its styles have changed a lot, so old pages need comparison and updates before adding version attribute
 * loosen limits on URL format validation: accept unknown 3-char TLDs in more cases
   * now "http://example.aab" is valid, although "example.aab" is usually not (unless it has occurred in history)
+* allow "custom key mappings" to override Vimium++'s default mappings without an error message
 * LinkHints supports a new mode "Open multiple links in current tab" and `f-<Alt>-<Shift>` will activate it
 * add a new shortcut `vimium://status <toggle | enable | disable | reset>`
     to enforce a new status on the current tab
@@ -103,6 +104,7 @@ Known issues (Up to the master branch):
 * Vimium++ now tries its best to re-enable key mappings on some special child iframes using `document.open`
   * if the whole page is reopened, Vimium++ can not know it directly,
     so please eval the new `vimium://status enable` URL to enforce a new "enabled" status
+* improved performance: now Vimium++ UI shows faster for the first command on a page
 
 1.60.1:
 * work well with Chrome 59 where its password saver has changed the way to auto-fill fields.

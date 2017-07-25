@@ -48,6 +48,7 @@ var Commands = {
     let key: string | undefined, lines: string[], splitLine: string[], mk = 0, _i = 0
       , _len: number, details: CommandsNS.Description | undefined, errors = 0, ch: number
       , registry = CommandsData.keyToCommandRegistry = Object.create<CommandsNS.Item>(null)
+      , userDefinedKeys = Object.create<true>(null)
       , mkReg = Object.create<string>(null);
     const available = CommandsData.availableCommands;
     lines = line.replace(<RegExpG> /\\\n/g, "").replace(<RegExpG> /[\t ]+/g, " ").split("\n");
@@ -61,7 +62,7 @@ var Commands = {
         key = splitLine[1] as string | undefined;
         if (!key || key === "__proto__") {
           console.log("Unsupported key sequence %c" + (key || '""'), "color:red", `for "${splitLine[2] || ""}"`);
-        } else if (key in registry) {
+        } else if (key in userDefinedKeys) {
           console.log("Key %c" + key, "color:red", "has been mapped to", (registry[key] as CommandsNS.Item).command);
         } else if (splitLine.length < 3) {
           console.log("Lacking command when mapping %c" + key, "color:red");
@@ -71,10 +72,12 @@ var Commands = {
           console.warn("Invalid key: %c" + key, "color:red", "(the first char can not be [0-9])");
         } else {
           registry[key] = Utils.makeCommand(splitLine[2], (this as typeof Commands).getOptions(splitLine), details);
+          userDefinedKeys[key] = true;
           continue;
         }
       } else if (key === "unmapAll") {
         registry = CommandsData.keyToCommandRegistry = Object.create(null);
+        userDefinedKeys = Object.create<true>(null);
         mkReg = Object.create<string>(null), mk = 0;
         if (errors > 0) {
           console.log("All key mappings is unmapped, but there %s been %c%d error%s%c before this instruction"
@@ -99,6 +102,7 @@ var Commands = {
       } else if (splitLine.length !== 2) {
         console.log("Unmap needs one mapped key:", line);
       } else if ((key = splitLine[1]) in registry) {
+        delete userDefinedKeys[key];
         delete registry[key];
         continue;
       } else {
