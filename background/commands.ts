@@ -37,30 +37,30 @@ var Commands = {
   onHex (_s: string, hex: string): string {
     return hex ? "\\u00" + hex : '\\\\';
   },
-  loadDefaults (): void {
-    const defaultMap = this.defaultKeyMappings, registry = CommandsData.keyToCommandRegistry;
+  loadDefaults (registry: SafeDict<CommandsNS.Item>): void {
+    const defaultMap = this.defaultKeyMappings;
     for (let i = defaultMap.length; 0 <= --i; ) {
       const pair = defaultMap[i];
       registry[pair[0]] = Utils.makeCommand(pair[1]);
     }
   },
   parseKeyMappings: (function(this: any, line: string): void {
-    let key: string, lines: string[], splitLine: string[], mk = 0, _i = 0
+    let key: string | undefined, lines: string[], splitLine: string[], mk = 0, _i = 0
       , _len: number, details: CommandsNS.Description | undefined, errors = 0, ch: number
       , registry = CommandsData.keyToCommandRegistry = Object.create<CommandsNS.Item>(null)
       , mkReg = Object.create<string>(null);
     const available = CommandsData.availableCommands;
     lines = line.replace(<RegExpG> /\\\n/g, "").replace(<RegExpG> /[\t ]+/g, " ").split("\n");
-    lines[0] !== "unmapAll" ? (this as typeof Commands).loadDefaults() : ++_i;
+    lines[0] !== "unmapAll" ? (this as typeof Commands).loadDefaults(registry) : ++_i;
     for (_len = lines.length; _i < _len; _i++) {
       line = lines[_i].trim();
       if (!(line.charCodeAt(0) > KnownKey.maxCommentHead)) { continue; } // mask: /[!"#]/
       splitLine = line.split(" ");
       key = splitLine[0];
       if (key === "map") {
-        key = splitLine[1];
+        key = splitLine[1] as string | undefined;
         if (!key || key === "__proto__") {
-          console.log("Unsupported key sequence %c" + key, "color:red", `for "${splitLine[2]}"`);
+          console.log("Unsupported key sequence %c" + (key || '""'), "color:red", `for "${splitLine[2] || ""}"`);
         } else if (key in registry) {
           console.log("Key %c" + key, "color:red", "has been mapped to", (registry[key] as CommandsNS.Item).command);
         } else if (splitLine.length < 3) {
@@ -102,17 +102,19 @@ var Commands = {
         delete registry[key];
         continue;
       } else {
-        console.log("Unmapping: %c" + key, "color:red", "has not been mapped.");
+        console.log("Unmapping: %c" + key, "color:red", "has not been mapped");
       }
       ++errors;
     }
     CommandsData.mapKeyRegistry = mk > 0 ? mkReg : null;
-    CommandsData.errors = errors;
+    CommandsData.errors = CommandsData.errors > 0 ? -1 - errors : errors;
   }),
   populateCommandKeys: (function(this: void): void {
-    const ref = CommandsData.keyMap = Object.create<0 | 1 | ChildKeyMap>(null), keyRe = Utils.keyRe;
+    const d = CommandsData, ref = d.keyMap = Object.create<0 | 1 | ChildKeyMap>(null), keyRe = Utils.keyRe,
+    oldErrors = d.errors;
+    if (oldErrors < 0) { d.errors = -1 - oldErrors; }
     for (let ch = 10; 0 <= --ch; ) { ref[ch] = 1 as 0; }
-    for (const key in CommandsData.keyToCommandRegistry) {
+    for (const key in d.keyToCommandRegistry) {
       const arr = key.match(keyRe) as RegExpMatchArray, last = arr.length - 1;
       if (last === 0) {
         (key in ref) && Commands.warnInactive(ref[key] as ReadonlyChildKeyMap, key);
@@ -129,7 +131,11 @@ var Commands = {
       while (j < last) { ref2 = ref2[arr[j++]] = Object.create(null) as ChildKeyMap; }
       ref2[arr[last]] = 0;
     }
-    CommandsData.errors && console.warn("Key Mappings:", CommandsData.errors, "errors found.");
+    if (d.errors) {
+      console.warn("Key Mappings:", d.errors, "errors found.");
+    } else if (oldErrors < 0) {
+      console.log("The new key mappings have no errors");
+    }
 
     const func = function(obj: ChildKeyMap): void {
       let key, val: 0 | ChildKeyMap;
