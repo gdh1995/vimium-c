@@ -146,7 +146,7 @@
 	"linkHintCharacters": "asdqwerzxcv",
 	"newTabUrl": "pages/options.html#!newTabUrl",
 	"searchEngines": [
-		"b|吧|把|ba|bd|baidu|Baidu|百度: https://www.baidu.com/s?ie=UTF-8&wd=$s",
+		"b|吧|把|ba|bd|baidu|Baidu|百度: https://www.baidu.com/s?ie=utf-8&wd=$s",
 		"bi: http://cn.bing.com/search?q=$s",
 		"bi|必应: http://www.bing.com/search?q=$s",
 		"bing: . www.bing.com/dict/ re=/^([^\\/]+)\\/?$/",
