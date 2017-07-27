@@ -181,6 +181,10 @@ interface FindModeQuery {
   (incognito: boolean, query: string, index?: number): void;
 }
 
+interface WeakRefObject {
+  refCount: number,
+}
+
 declare namespace ExclusionsNS {
   interface StoredRule {
     pattern: string;
@@ -209,7 +213,6 @@ declare namespace CommandsNS {
     readonly options: Options | null;
     readonly repeat: number;
   }
-
 }
 
 declare namespace CompletersNS {

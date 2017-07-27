@@ -7,7 +7,7 @@ declare namespace ExclusionsNS {
   type TesterDict = SafeDict<ExclusionsNS.Tester>;
   type Rules = Array<Tester | string>;
 
-  interface ExclusionsCls {
+  interface ExclusionsCls extends WeakRefObject {
     testers: SafeDict<Tester> | null;
     getRe (pattern: string): Tester;
     _startsWith(this: string, url: string): boolean;

@@ -3,6 +3,7 @@ declare var Exclusions: ExcCls;
 
 if (!(Settings.get("exclusionRules", true).length <= 0 && document.readyState !== "complete" || Settings.updateHooks.exclusionRules)) {
 var Exclusions: ExcCls = Exclusions && !(Exclusions instanceof Promise) ? Exclusions : {
+  refCount: 0,
   testers: null as SafeDict<ExclusionsNS.Tester> | null,
   getRe (this: ExcCls, pattern: string): ExclusionsNS.Tester {
     let func: ExclusionsNS.Tester | undefined = (this.testers as ExclusionsNS.TesterDict)[pattern], re: RegExp | null;

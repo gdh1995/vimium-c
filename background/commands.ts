@@ -1,5 +1,6 @@
 declare var CommandsData: CommandsData;
 var Commands = {
+  refCount: 0,
   setKeyRe (keyReSource: string): void {
     Utils.keyRe = new RegExp(keyReSource, "g") as RegExpG & RegExpSearchable<0>;
   },
