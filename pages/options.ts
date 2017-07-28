@@ -431,11 +431,11 @@ interface AdvancedOptBtn extends HTMLButtonElement {
     element.style.display = "";
     (element.nextElementSibling as Element).remove();
     if (location.protocol !== "chrome-extension:") { return; }
-    ratio > 1 && ((document.body as HTMLBodyElement).style.width = 925 / ratio + "px");
+    ratio > 1 && ((document.body as HTMLBodyElement).style.width = 910 / ratio + "px");
     chrome.tabs.getZoom && chrome.tabs.getZoom(curTabId, function(zoom): void {
       if (!zoom) { return chrome.runtime.lastError; }
       const ratio = Math.round(devicePixelRatio / zoom * 1024) / 1024;
-      (document.body as HTMLBodyElement).style.width = ratio !== 1 ? 925 / ratio + "px" : "";
+      (document.body as HTMLBodyElement).style.width = ratio !== 1 ? 910 / ratio + "px" : "";
     });
   }
   if (window.location.hash === "#chrome-ui") {
