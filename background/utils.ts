@@ -635,9 +635,6 @@ var Utils = {
       repeat: details[1]
     };
   }),
-  TryRelease (obj: WeakRefObject) {
-    obj.refCount -= 1;
-  },
   getNull (this: void): null { return null; },
   hasUpperCase (this: void, s: string): boolean { return s.toLowerCase() !== s; }
 };
