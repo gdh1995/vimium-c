@@ -199,6 +199,7 @@ declare const enum GlobalConsts {
   WndIdNone = -1,
   VomnibarSecretTimeout = 3000,
   MaxNumberOfNextPatterns = 200,
+  TimeoutToReleaseBackendModules = 1000 * 60,
 }
 
 declare const enum VKeyCodes {

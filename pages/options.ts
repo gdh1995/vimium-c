@@ -562,6 +562,7 @@ window.location.hash.length > 4 && (window as any).onhashchange();
 // below is for programmer debugging
 window.onunload = function(): void {
   BG.removeEventListener("unload", OnBgUnload);
+  BG.Utils.GC();
 };
 
 function OnBgUnload(): void {

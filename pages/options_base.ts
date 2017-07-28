@@ -425,6 +425,7 @@ exclusions: PopExclusionRulesOption = Object.setPrototypeOf({
   (window as WindowEx).exclusions = exclusions;
   window.onunload = function(): void {
     bgExclusions.testers = null;
+    BG.Utils.GC();
   };
 
   function forceState(tabId: number, act: "Reset" | "Enable" | "Disable", event?: Event): void {

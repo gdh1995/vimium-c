@@ -130,6 +130,10 @@ var Exclusions: ExcCls = Exclusions && !(Exclusions instanceof Promise) ? Exclus
         g_requestHandlers.SetIcon((tabId as (string | number) as number) | 0, status);
       }
     }
+  },
+  destroy (): void {
+    Settings.updateHooks.exclusionRules = Settings.updateHooks.exclusionOnlyFirstMatch =
+    Settings.updateHooks.exclusionListenHash = void 0 as never;
   }
 };
 

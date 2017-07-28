@@ -338,6 +338,7 @@ declare namespace SettingsNS {
     searchEngineMap: FullSettings["searchEngineMap"];
     searchEngineRules: FullSettings["searchEngineRules"];
     vomnibarPage_f: FullSettings["vomnibarPage_f"];
+    exclusionRules: FullSettings["exclusionRules"];
   }
 
   type DynamicFiles = "HelpDialog" | "Commands" | "Exclusions" |
@@ -404,6 +405,7 @@ interface Window {
     readonly evalVimiumUrl: Urls.Executor;
     parseSearchEngines (this: any, str: string, map: Search.EngineMap): Search.Rule[];
     require<T extends object> (name: SettingsNS.DynamicFiles): Promise<T>;
+    GC (): void;
   };
   readonly Settings: {
     readonly cache: SettingsNS.FullCache;

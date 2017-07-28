@@ -21,5 +21,6 @@ declare namespace ExclusionsNS {
     format (rules: StoredRule[]): Rules;
     getTemp (this: ExclusionsNS.ExclusionsCls, url: string, rules: StoredRule[]): string | null;
     RefreshStatus (this: void, old_is_empty: boolean): void;
+    destroy (): void;
   }
 }

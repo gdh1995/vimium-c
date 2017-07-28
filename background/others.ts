@@ -364,6 +364,35 @@ chrome.extension.isAllowedIncognitoAccess && chrome.extension.isAllowedIncognito
   Settings.CONST.DisallowIncognito = isAllowedAccess === false;
 });
 
+if (chrome.extension.getViews)
+Utils.GC = function(): void {
+  let timestamp = 0, timeout = 0;
+  Utils.GC = function(): void {
+    if (!(Commands || Exclusions)) { return; }
+    timestamp = Date.now();
+    if (timeout > 0) { return; }
+    timeout = setTimeout(later, GlobalConsts.TimeoutToReleaseBackendModules);
+  };
+  return Utils.GC();
+  function later(): void {
+    const last = Date.now() - timestamp;
+    if (last < GlobalConsts.TimeoutToReleaseBackendModules && last > -5000) {
+      timeout = setTimeout(later, GlobalConsts.TimeoutToReleaseBackendModules - last);
+      return;
+    }
+    timeout = 0;
+    const existing = chrome.extension.getViews().filter(function (wnd): boolean {
+      return wnd.location.pathname.startsWith("/pages/");
+    }).length > 0;
+    if (existing) { return; }
+    Commands = null as never;
+    if (Exclusions && !Settings.cache.exclusionRules.length) {
+      Exclusions.destroy();
+      Exclusions = null as never;
+    }
+  }
+};
+
 setTimeout((function() {
   if (a) {
     a.removeListener(cb);
