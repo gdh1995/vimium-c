@@ -255,18 +255,18 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
     toggleSwitchTemp (_0: number, options: FgOptions): void {
       const key = (options.key || "") + "" as keyof SettingsNS.FrontendSettingCache,
       cache = VSettings.cache, old = cache[key], Key = '"' + key + '"', last = "old" + key;
-      let val = options.value, isBool = typeof val === "boolean", msg: string | undefined;
+      let val = options.value, isBool = typeof val === "boolean", msg: string | undefined, u: undefined;
       if (!(key in cache)) {
         msg = 'unknown setting' + key;
       } else if (typeof old === "boolean") {
         isBool || (val = !old);
       } else if (isBool) {
         msg = Key + 'is not a boolean switch';
-      } else if (!(last in cache)) {
+      } else if ((cache as Dict<any>)[last] === u) {
         (cache as Dict<any>)[last] = old;
       } else if (old === val) {
         val = (cache as Dict<any>)[last];
-        delete (cache as Dict<any>)[last];
+        (cache as Dict<any>)[last] = u;
       }
       if (!msg) {
         cache[key] = val;

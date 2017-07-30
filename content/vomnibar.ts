@@ -72,7 +72,7 @@ var Vomnibar = {
         url = options.topUrl as string;
       }
       upper = 1 - count;
-      delete options.topUrl;
+      options.topUrl = "";
       options.url = url;
     } else if (url != null) {
       url = options.url = typeof url === "string" ? url : null;
