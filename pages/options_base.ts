@@ -427,6 +427,7 @@ exclusions: PopExclusionRulesOption = Object.setPrototypeOf({
     bgExclusions.testers = null;
     BG.Utils.GC();
   };
+  BG.Utils.GC();
 
   function forceState(tabId: number, act: "Reset" | "Enable" | "Disable", event?: Event): void {
     event && event.preventDefault();
