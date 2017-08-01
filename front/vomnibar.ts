@@ -382,8 +382,11 @@ var Vomnibar = {
     else if (sel === -1 && this.input.value.length === 0) { return; }
     else if (!this.timer) {}
     else if (this.isEditing) { sel = -1; }
-    else if (sel === -1 || this.isSelOriginal) {
+    else if (this.timer > 0) {
       return this.update(0, this.onEnter);
+    } else {
+      this.onUpdate = this.onEnter;
+      return;
     }
     interface UrlInfo { url: string; sessionId?: undefined }
     const item: SuggestionE | UrlInfo = sel >= 0 ? this.completions[sel] : { url: this.input.value.trim() },
