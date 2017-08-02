@@ -94,13 +94,13 @@ setTimeout((function() { if (!chrome.browserAction) { return; }
   function loadImageAndSetIcon(type: Frames.ValidStatus, path: IconNS.PathBuffer) {
     let img: HTMLImageElement, i: IconNS.ValidSizes, cache = Object.create(null) as IconNS.IconBuffer, count = 0,
     onerror = function(this: HTMLImageElement): void {
-      console.error('Could not load action icon \'' + this.src + '\'.');
+      console.error("Could not load action icon: " + this.getAttribute("src"));
     },
     onload = function(this: HTMLImageElement): void {
-      let canvas: HTMLCanvasElement | null = document.createElement('canvas')
+      let canvas: HTMLCanvasElement | null = document.createElement("canvas")
         , w: number, h: number, ctx: CanvasRenderingContext2D | null;
       canvas.width = w = this.width, canvas.height = h = this.height;
-      ctx = canvas.getContext('2d') as CanvasRenderingContext2D;
+      ctx = canvas.getContext("2d") as CanvasRenderingContext2D;
       ctx.clearRect(0, 0, w, h);
       ctx.drawImage(this, 0, 0, w, h);
       cache[w as 19 | 38] = ctx.getImageData(0, 0, w, h);
