@@ -611,8 +611,9 @@ var Vomnibar = {
   parse (item: SuggestionE): void {
     let str: string;
     if ((this as typeof Vomnibar).showFavIcon && (str = item.url) && !str.startsWith("vimium://")) {
-      item.favIconUrl = '">\n\t\t\t<img src="chrome://favicon/size/16/' +
-        (str.length > 512 || str.startsWith("data:") ? "about:blank" : VUtils.escapeHTML(str));
+      item.favIconUrl = '<img src="chrome://favicon/size/16/' +
+        (str.length > 512 || str.startsWith("data:") ? "about:blank" : VUtils.escapeHTML(str))
+        + '" />\n\t\t\t';
     } else {
       item.favIconUrl = "";
     }
