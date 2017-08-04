@@ -296,7 +296,7 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
         return chrome.runtime.lastError;
       }
       if (action === "reload") { return; }
-      setTimeout(funcDict.refreshTab[2], 17, tab ? "get" : "reload", tab ? tab.id : this as number);
+      setTimeout(funcDict.refreshTab[2], 17, tab && action !== "get" ? "get" : "reload", tab ? tab.id : this as number);
     }, function(action, tabId) {
       (chrome.tabs[action] as (tabId: number, callback?: (tab?: Tab) => void) => 1)(tabId
         , funcDict.refreshTab[1].bind(tabId, null, action));
