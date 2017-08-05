@@ -849,9 +849,8 @@ Are you sure you want to continue?`);
       funcDict.getCurTab(funcDict.focusOrLaunch[1].bind(this));
       return chrome.runtime.lastError;
     }, function(tabs) {
-      // TODO: how to wait for tab finishing to load
       // if `@scroll`, then `typeof @` is `MarksNS.MarkToGo`
-      const callback = this.scroll ? (tab: Tab): void => { setTimeout(Marks.scrollTab, 1000, this, tab); } : null;
+      const callback = this.scroll ? funcDict.focusOrLaunch[3].bind(this, 0) : null;
       if (tabs.length <= 0) {
         chrome.windows.create({url: this.url}, callback && function(wnd: Window): void {
           if (wnd.tabs && wnd.tabs.length > 0) { return callback(wnd.tabs[0]); }
@@ -879,12 +878,19 @@ Are you sure you want to continue?`);
       chrome.tabs.update(tab.id, {
         url: tab.url === url || tab.url.startsWith(url) ? undefined : url,
         active: true
-      }, this.scroll ? (tab) => { setTimeout(Marks.scrollTab, 800, this, tab as Tab); } : null);
+      }, this.scroll ? funcDict.focusOrLaunch[3].bind(this, 0) : null);
       if (tab.windowId !== wndId) { return funcDict.selectWnd(tab); }
+    }, function(this: MarksNS.MarkToGo, tick: 0 | 1 | 2, tab: Tab): void {
+      if (!tab) { return chrome.runtime.lastError; }
+      if (tab.status == "complete" || tick >= 2) {
+        return Marks.scrollTab(this, tab);
+      }
+      setTimeout(() => { chrome.tabs.get(tab.id, funcDict.focusOrLaunch[3].bind(this, tick + 1)) }, 800);
     }] as [
       (this: MarksNS.FocusOrLaunch, tabs: Tab[]) => void,
       (this: MarksNS.FocusOrLaunch, tabs: [Tab] | never[]) => void,
-      (this: MarksNS.FocusOrLaunch, tabs: Tab[], wnd: Window) => void
+      (this: MarksNS.FocusOrLaunch, tabs: Tab[], wnd: Window) => void,
+      (this: MarksNS.MarkToGo, tick: 0 | 1 | 2, tabs: Tab | undefined) => void
     ],
     toggleMuteTab: [function(tabs) {
       const tab = tabs[0];
