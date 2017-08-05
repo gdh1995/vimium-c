@@ -4,6 +4,9 @@ var Settings = {
   cache: Object.create(null) as SettingsNS.FullCache,
   temp: {
     shownHash: null as null | ((this: void) => string)
+  } as {
+    shownHash: null | ((this: void) => string);
+    [key: string]: ((this: void) => any) | undefined | null;
   },
   bufferToLoad: Object.create(null) as SettingsNS.FrontendSettingCache & SafeObject,
   newTabs: Object.create(null) as SafeDict<Urls.NewTabType>,

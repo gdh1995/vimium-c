@@ -220,6 +220,7 @@ declare const enum BrowserVer {
   MinSupported = 36,
   MinSession = 37,
   MinCSS$All$Attr = 37,
+  MinWithFrameIdInArg = 39,
   MinDisableMoveTabAcrossIncognito = 40,
   MinWarningSyncXHR = 40,
   MinWithFrameId = 41,

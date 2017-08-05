@@ -1915,7 +1915,7 @@ declare namespace chrome.tabs {
          * Optional.
          * Either loading or complete.
          */
-        status?: string;
+        status?: "loading" | "complete";
         /** The zero-based index of the tab within its window. */
         index: number;
         /**
@@ -2030,7 +2030,7 @@ declare namespace chrome.tabs {
          * One of: "document_start", "document_end", or "document_idle"
          * @since Chrome 20.
          */
-        runAt?: string;
+        runAt?: "document_start" | "document_end" | "document_idle";
         /** Optional. JavaScript or CSS file to inject. */
         file?: string;
         /**
