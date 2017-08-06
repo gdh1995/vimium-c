@@ -83,7 +83,7 @@ Known issues (Up to the master branch):
 7. Chrome does not apply content settings (at least images) on file:// URLs since version 56.
   Currently, no effective ways have been found (up to Chrome 59).
 
-1.60.2 (Not released yet):
+1.61:
 * rework Marks so that local marks work on websites on which cookies are disabled manually
   * in `Marks.activate`, old local marks are still supported
   * **WARNING**: but `Marks.clearLocal` won't clear old local marks
