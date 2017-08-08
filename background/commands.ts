@@ -69,7 +69,7 @@ var Commands = {
         } else if (!(details = available[splitLine[2]])) {
           console.log("Command %c" + splitLine[2], "color:red", "doesn't exist!");
         } else if ((ch = key.charCodeAt(0)) >= 48 && ch < 58) {
-          console.warn("Invalid key: %c" + key, "color:red", "(the first char can not be [0-9])");
+          console.log("Invalid key: %c" + key, "color:red", "(the first char can not be [0-9])");
         } else {
           registry[key] = Utils.makeCommand(splitLine[2], (this as typeof Commands).getOptions(splitLine), details);
           userDefinedKeys[key] = true;
@@ -136,7 +136,7 @@ var Commands = {
       ref2[arr[last]] = 0;
     }
     if (d.errors) {
-      console.warn("Key Mappings:", d.errors, "errors found.");
+      console.log("%cKey Mappings: %d errors found.", "background-color:#fffbe6", d.errors);
     } else if (oldErrors < 0) {
       console.log("The new key mappings have no errors");
     }
