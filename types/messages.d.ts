@@ -214,7 +214,6 @@ interface FgRes {
   };
   searchAs: string;
   openCopiedUrl: string;
-  copyToClipboard: void;
 }
 
 declare namespace Req {
