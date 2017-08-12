@@ -929,8 +929,12 @@ highlightChild (el: HTMLIFrameElement | HTMLFrameElement): false | void {
   const { count, options } = this;
   options.mode = this.mode;
   if (err) {
-    VPort.post({ handler: "execInChild", url: el.src, CSS: "1",
+    VPort.send({ handler: "execInChild", url: el.src, CSS: "1",
       command: "Hints.activateAndFocus", count, options
+    }, function(res): void {
+      if (!res) {
+        el.contentWindow.focus();
+      }
     });
     return;
   }

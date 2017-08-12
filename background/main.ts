@@ -914,13 +914,7 @@ Are you sure you want to continue?`);
     }] as [
       (this: void, tabs: [Tab]) => void,
       (this: void, tabs: Tab[]) => void
-    ],
-    postCommand (port: Port, request: BaseExecute<object>): void {
-      port.postMessage({
-        CSS: request.CSS ? funcDict.ensureInnerCSS(port) : null,
-        name: "execute", command: request.command, count: request.count || 1, options: request.options
-      })
-    }
+    ]
   },
   BackgroundCommands = {
     createTab: (function (): void {}) as BgCmd,
@@ -1699,30 +1693,24 @@ Are you sure you want to continue?`);
         }
       }
     },
-    execInChild (this: void, request: FgReq["execInChild"], port: Port): void {
+    execInChild (this: void, request: FgReq["execInChild"], port: Port): FgRes["execInChild"] {
       const tabId = port.sender.tabId, ports = framesForTab[tabId], url = request.url;
-      if (!ports || ports.length < 3) { return; }
+      if (!ports || ports.length < 3) { return false; }
       let iport: Port | null = null, i = ports.length;
       while (1 <= --i) {
         if (ports[i].sender.url === url) {
-          if (iport) { return; }
+          if (iport) { return false; }
           iport = ports[i];
         }
       }
-      if (iport) { return funcDict.postCommand(iport, request); }
-      if (Settings.CONST.ChromeVersion < BrowserVer.MinWithFrameId || tabId < 0 || !chrome.webNavigation) { return; }
-      const frameId = port.sender.frameId;
-      chrome.webNavigation.getAllFrames({ tabId }, function(details): void {
-        if (!details) { return chrome.runtime.lastError; }
-        details = details.filter(i => i.parentFrameId === frameId);
-        if (details.length > 1) {
-          details = details.filter(i => i.url === url);
-        }
-        const port = details.length === 1 ? Settings.indexPorts(tabId, details[0].frameId) : null;
-        if (port) {
-          return funcDict.postCommand(port, request);
-        }
-      });
+      if (iport) {
+        port.postMessage({
+          CSS: request.CSS ? funcDict.ensureInnerCSS(port) : null,
+          name: "execute", command: request.command, count: request.count || 1, options: request.options
+        });
+        return true;
+      }
+      return false;
     },
     refocusCurrent (this: void, request: FgReq["refocusCurrent"], port: Port): void {
       const ports = port.sender.tabId !== GlobalConsts.TabIdNone ? framesForTab[port.sender.tabId] : null;
@@ -1802,7 +1790,7 @@ Are you sure you want to continue?`);
       (this: void, request: FgReq["openCopiedUrl"], port: Port): FgRes["openCopiedUrl"];
       (this: void, request: FgReq["openCopiedUrl"]): Urls.Url;
     },
-    copyToClipboard (this: void, request: FgReq["copyToClipboard"]): FgRes["copyToClipboard"] {
+    copyToClipboard (this: void, request: FgReq["copyToClipboard"]): void {
       return Clipboard.copy(request.data);
     },
     key (this: void, request: FgReq["key"], port: Port): void {
