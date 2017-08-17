@@ -4,6 +4,7 @@ const Clipboard = {
     el.style.position = "absolute";
     el.style.left = "-99px";
     el.style.width = "0";
+    el.contentEditable = "true";
     this.getTextArea = () => el;
     return el;
   },
