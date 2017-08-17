@@ -1,7 +1,7 @@
 Vimium++
 ========
 [![MIT license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE.txt)
-![Version 1.60](https://img.shields.io/badge/release-1.60-orange.svg)
+![Version 1.60.1](https://img.shields.io/badge/release-1.60.1-orange.svg)
 [![Current Build Status](https://travis-ci.org/gdh1995/vimium-plus.svg?branch=master)
   ](https://travis-ci.org/gdh1995/vimium-plus)
 
@@ -34,7 +34,7 @@ __Vomnibar Page:__
 
 * [visit it on Chrome Web Store](https://chrome.google.com/webstore/detail/vomnibar-page-for-vimium%20/ekohaelnhhdhbccgefjmjpdjoijhojgd)
 * is an extension to replace Vimium++'s inner Vomnibar page.
-* With this, Vimium++'s memory cost will be smaller since Chrome 56.
+* With this, Vimium++'s memory cost will be smaller since Chrome 57.
 
 __微度新标签页修改版 (Modified X New Tab Page):__
 
@@ -68,15 +68,47 @@ Known issues (Up to the master branch):
 2. `Preferred Vomnibar Page` can not support http/file URLs before Chrome 41.
 3. the Chrome flag `#enable-embedded-extension-options` has a bug about dialog width on high-DPI screen,
   which can not be worked-around before Chrome 42.
-4. If an extension page is the preferred Vomnibar page, and the extension is disabled in incognito,
+4. If an extension page is the preferred Vomnibar page, and the extension is disabled in incognito mode,
   Vomnibar might break in such a situation, and there seems no way to detect it.
-  So Vimium++ has disabled other extension Vomnibar pages in incognito.
+  So Vimium++ has disabled other extension Vomnibar pages in incognito mode.
 5. If a http/file/... Vomnibar page is preferred, then there're some cases where it breaks,
   such as on some websites with very strict Content Security Policies (CSP),
   so users may need to wait about 1 second to let Vimium++ retry the inner page.
 6. Chrome 58 stable hides some necessary infomation of page's selection,
   so some commands on `VisualMode` cann't work as expected if editable text is being selected.
   This Chrome feature/bug has been removed since version 59, so Vimium++ works well again.
+7. Chrome does not apply content settings (at least images) on file:// URLs since version 56.
+  Currently, no effective ways have been found (up to Chrome 59).
+
+1.61:
+* rework Marks so that local marks work on websites on which cookies are disabled manually
+  * in `Marks.activate`, old local marks are still supported
+  * **WARNING**: but `Marks.clearLocal` won't clear old local marks
+  * the stored data of local marks is not compatible with Vimium any more
+* completely fix Vomnibar flickering on showing and hiding since Chrome 57
+* **WARNING**: add a version limit to the preferred Vomnibar page
+  * please use `<html data-version="1.61">` to tell Vimium++ the page's version
+  * if your custom page has no such a tag, it will be replaced with the inner one at run time
+  * its styles have changed a lot, so old pages need comparison and updates before adding version attribute
+* loosen limits on URL format validation: accept unknown 3-char TLDs in more cases
+  * now "http://example.aab" is valid, although "example.aab" is usually not (unless it has occurred in history)
+* allow "custom key mappings" to override Vimium++'s default mappings without an error message
+* LinkHints supports a new mode "Open multiple links in current tab" and `f-<Alt>-<Shift>` will activate it
+* add a new shortcut `vimium://status <toggle | enable | disable | reset>`
+    to enforce a new status on the current tab
+  * you may use it on Vomnibar / Chrome Omnibox
+  * the popup page has an improved UI and you may also use new buttons on it to do so
+* Vimium++ now tries its best to re-enable key mappings on some special child iframes using `document.open`
+  * if the whole page is reopened, Vimium++ can not know it directly,
+    so please eval the new `vimium://status enable` URL to enforce a new "enabled" status
+* improved performance: now Vimium++ UI shows faster for the first command on a page
+
+1.60.1:
+* work well with Chrome 59 where its password saver has changed the way to auto-fill fields.
+* fix that removeTab might keep the first Chrome window even if it's not needed
+* options page now shows the count of errors in custom key mappings
+* alert detailed errors if fail to import a setting file
+* show errors if a command will operator incognito windows but Vimium++ hasn't been allowed to do so on chrome://extension
 
 1.60:
 * `LinkHints` works much faster on some of very long pags, like https://w3c.github.io/html/,
@@ -99,7 +131,7 @@ Known issues (Up to the master branch):
 
 1.59.3:
 * fix a dead loop and breaking Vomnibar when using http page
-* only use inner Vomnibar page in incognito if the preferred belongs to other extensions
+* only use inner Vomnibar page in incognito mode if the preferred belongs to other extensions
 * work around for a Chrome bug caused by the flag `#enable-embedded-extension-options` on high-DPI screen.
   This flag occurs since Chrome 38, but the fix only works since Chrome 42 with API `chrome.tabs.getZoom`
 
@@ -136,7 +168,7 @@ Known issues (Up to the master branch):
 1.58.0:
 * temporarily disable the experimental feature of options_ui dialog
 * fix broken `Vomnibar` caused by the Chrome flag `#enable-site-per-process`
-  * this problem may occur since Chrome 56 even if this flag is off
+  * this problem may occur since Chrome 57 even if this flag is off
 * use `closed` shadowDOM to show UI more safely
 * fix many small code bugs
 
@@ -206,23 +238,24 @@ The option `narrowFormat` are for another version of [TypeScript](https://github
 # Thanks & License
 
 Vimium++: Copyright (c) Dahan Gong, Phil Crosby, Ilya Sukhar.
-See [LICENSE.txt](LICENSE.txt) for details.
+See the [MIT LICENSE](LICENSE.txt) for details.
 
 * [Vimium](https://github.com/philc/vimium):
   Copyright (c) 2010 Phil Crosby, Ilya Sukhar.
+  [MIT-licensed](https://github.com/philc/vimium/blob/master/MIT-LICENSE.txt).
 * [微度新标签页](http://www.weidunewtab.com/):
   ©2012 杭州佐拉网络有限公司 保留所有权利.
 * [JavaScript Expression Evaluator](https://github.com/silentmatt/expr-eval):
   Copyright (c) 2015 Matthew Crumley.
-  [license](https://github.com/silentmatt/expr-eval/blob/master/LICENSE.txt).
+  [MIT-licensed](https://github.com/silentmatt/expr-eval/blob/master/LICENSE.txt).
 * [Viewer.js](https://github.com/fengyuanchen/viewerjs):
-  Copyright (c) 2015-2016 Fengyuan Chen.
-  [license](https://github.com/fengyuanchen/viewerjs/blob/master/LICENSE).
-* [TypeScript](https://github.com/Microsoft/TypeScript)
+  Copyright (c) 2015-2017 Fengyuan Chen.
+  [MIT-licensed](https://github.com/fengyuanchen/viewerjs/blob/master/LICENSE).
+* [TypeScript](https://github.com/Microsoft/TypeScript):
     and modified `es.d.ts`, `es/*`, `dom.d.ts` and `chrome.d.ts` in `types/`:
   Copyright (c) Microsoft Corporation (All rights reserved).
   Licensed under the Apache License, Version 2.0.
   See more in [www.typescriptlang.org](http://www.typescriptlang.org/).
-* [PDF Viewer](https://github.com/mozilla/pdf.js/)
+* [PDF.js](https://github.com/mozilla/pdf.js/):
   Copyright (c) Mozilla and individual contributors.
   Licensed under the Apache License, Version 2.0.

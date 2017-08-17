@@ -146,7 +146,7 @@
 	"linkHintCharacters": "asdqwerzxcv",
 	"newTabUrl": "pages/options.html#!newTabUrl",
 	"searchEngines": [
-		"b|吧|把|ba|bd|baidu|Baidu|百度: https://www.baidu.com/s?ie=UTF-8&wd=$s",
+		"b|吧|把|ba|bd|baidu|Baidu|百度: https://www.baidu.com/s?ie=utf-8&wd=$s",
 		"bi: http://cn.bing.com/search?q=$s",
 		"bi|必应: http://www.bing.com/search?q=$s",
 		"bing: . www.bing.com/dict/ re=/^([^\\/]+)\\/?$/",
@@ -183,7 +183,7 @@
 		"bili|bilibili|b.tv|Bilibili: http://search.bilibili.com/all?keyword=$s Bilibili",
 		"acfun|Acfun: http://www.acfun.tv/search/#query=$s Acfun",
 		"t|tr|g.t|g.tr|他|它: https://translate.google.com/?ie=utf-8#auto/zh-CN/$s Google 翻译",
-		"tt|tp|tu: https://translate.google.com/translate?depth=1&sl=en&u=%s Google 网页翻译",
+		"tt|tp|tu: https://translate.google.com/translate?depth=1&sl=en&u=$s Google 网页翻译",
 		"te|t.e|g.te|g.tr.e: https://translate.google.com/?ie=utf-8#auto/en/$s Google Translate",
 		"ip: . re=/^((?:\\d{1,3}\\.){3}\\d{1,3}(?::\\d{2,5})?)/",
 		"ip|IP|Ip: ip\\ $S IP 查询",
@@ -208,6 +208,7 @@
 		"v.m: $S vimium://show url vimium://math re=/[\\.\\d][\\.\\d)]*|\\w+(?:\\([\\w\\.]+)?|[^\\w\\s]+/g",
 		"v.m|math|vimium\\://math|v.e|eval\\:|v\\://eval|vimium\\://eval: vimium://math\\ $S re= Calculate",
 		"v.sum|sum\\:: vimium://eval\\ $S{\\ +\\ } re= Calculate",
+		"v.st: vimium://status\\ $S re= Force tab status",
 		"v.u|v.url|v.search|u\\:|url\\:: vimium://search\\ $S re= Search",
 		"v.c|copy\\:|v\\://copy|vimium\\://copy: vimium://copy\\ $S re= Copy to Clipboard",
 		"v.mc|v.math-copy: vimium://search-copy\\ vimium://math\\ $S re= Calculate and Copy",
@@ -216,6 +217,5 @@
 	],
 	"showActionIcon": false,
 	"showAdvancedCommands": true,
-	"showAdvancedOptions": true,
-	"vomnibarPage": "chrome-extension://hdnehngglnbnehkfcidabjckinphnief/vomnibar.html"
+	"showAdvancedOptions": true
 }

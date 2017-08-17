@@ -44,7 +44,7 @@ var VVisualMode = {
       if (!lock && (type === "Caret" || type === "Range")) {
         const { left: l, top: t, right: r, bottom: b} = sel.getRangeAt(0).getBoundingClientRect();
         VDom.prepareCrop();
-        if (!VRect.cropRectToVisible(l, t, (l || r) && r + 3, (t || b) && b + 3)) {
+        if (!VDom.cropRectToVisible(l, t, (l || r) && r + 3, (t || b) && b + 3)) {
           sel.removeAllRanges();
         } else if (type === "Caret") {
           this.movement.extendByOneCharacter(1) || this.movement.extend(0);
@@ -71,6 +71,7 @@ var VVisualMode = {
     return this.movement.scrollIntoView();
   },
   deactivate (isEsc?: 1): void {
+    if (!this.mode) { return; }
     VHandler.remove(this);
     if (!this.retainSelection) {
       this.movement.collapseSelectionTo(isEsc && this.mode !== VisualModeNS.Mode.Caret ? 1 : 0);
@@ -361,7 +362,7 @@ keyMap: {
   "/": function(): void | boolean {
     clearTimeout((this as typeof VVisualMode).hudTimer);
     VHUD.hide();
-    return VFindMode.activate(1, { returnToViewport: true } as object as FgOptions);
+    return VFindMode.activate(1, { returnToViewport: true });
   },
   y (): void { return (this as typeof VVisualMode).yank(); },
   Y (count): void { (this as typeof VVisualMode).movement.selectLine(count); return (this as typeof VVisualMode).yank(); },

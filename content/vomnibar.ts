@@ -24,7 +24,7 @@ var Vomnibar = {
   port: null as never as VomnibarNS.Port,
   status: VomnibarNS.Status.NotInited,
   options: null as VomnibarNS.FgOptionsToFront | null,
-  width: 0,
+  onReset: null as (() => void) | null,
   zoom: 0,
   defaultTop: "",
   sameOrigin: false,
@@ -34,27 +34,27 @@ var Vomnibar = {
     }
     if (!options || !options.secret || !options.vomnibar) { return; }
     if (document.readyState === "loading") {
-      if (!this.width) {
-        this.width = setTimeout(this.activate.bind(this, count, options), 500);
+      if (!this.zoom) {
+        this.zoom = setTimeout(this.activate.bind(this, count, options), 500);
         return;
       }
-      this.width = 0;
     }
+    this.zoom = 0;
     if (!VDom.isHTML()) { return; }
     if (options.url === true && (window.top === window || !options.topUrl || typeof options.topUrl !== "string")) {
       options.topUrl = window.location.href;
     }
-    if (VHints.tryNestedFrame("Vomnibar.activate", count, options)) { return; }
+    if (this.status === VomnibarNS.Status.NotInited && VHints.tryNestedFrame("Vomnibar.activate", count, options)) { return; }
     this.options = null;
-    const iw = window.innerWidth, docEl = document.documentElement as HTMLElement, cw = docEl.clientWidth;
-    this.width = cw === iw ? cw : Math.max(cw, docEl.getBoundingClientRect().width);
+    const width = window.innerWidth;
     this.zoom = VDom.UI.getZoom();
     this.status > VomnibarNS.Status.Inactive || VHandler.push(VDom.UI.SuppressMost, this);
     this.box && VDom.UI.adjust();
     if (this.status === VomnibarNS.Status.NotInited) {
       this.status = VomnibarNS.Status.Initing;
-      this.init(options.secret, options.vomnibar, options.ptype);
-    } else if (this.checkAlive()) {
+      this.init(options.secret, options.vomnibar, options.ptype, options.vomnibar2);
+    } else if (this.isABlank()) {
+      this.onReset = function(this: typeof Vomnibar): void { this.onReset = null; return this.activate(count, options); };
       return;
     } else if (this.status === VomnibarNS.Status.Inactive) {
       this.status = VomnibarNS.Status.ToShow;
@@ -63,7 +63,7 @@ var Vomnibar = {
       this.onShown();
     }
     options.secret = 0; options.vomnibar = "";
-    options.width = this.width, options.name = "activate";
+    options.width = width, options.name = "activate";
     let url = options.url, upper = 0;
     if (url === true) {
       if (url = VDom.getSelectionText()) {
@@ -72,7 +72,7 @@ var Vomnibar = {
         url = options.topUrl as string;
       }
       upper = 1 - count;
-      delete options.topUrl;
+      options.topUrl = "";
       options.url = url;
     } else if (url != null) {
       url = options.url = typeof url === "string" ? url : null;
@@ -95,43 +95,45 @@ var Vomnibar = {
   setOptions (options: VomnibarNS.FgOptionsToFront): void {
     this.status > VomnibarNS.Status.Initing ? this.port.postMessage(options) : (this.options = options);
   },
-  hide (action: VomnibarNS.HideType): void | number {
-    if (this.status <= VomnibarNS.Status.Inactive) { return; }
-    VHandler.remove(this);
-    this.width = this.zoom = 0; this.status = VomnibarNS.Status.Inactive;
-    if (!this.box) { return; }
-    this.box.style.cssText = "display: none";
-    if (action < VomnibarNS.HideType.MinAct) {
-      this.port.postMessage<"hide">("hide");
-      action === VomnibarNS.HideType.OnlyFocus && setTimeout(function() { window.focus(); }, 17);
+  hide (fromInner?: 1): void {
+    const active = this.status > VomnibarNS.Status.Inactive;
+    this.zoom = 0; this.status = VomnibarNS.Status.Inactive;
+    if (fromInner == null) {
+      active && this.port.postMessage<"hide">("hide");
       return;
-    }
-    let f: typeof requestAnimationFrame, act = function(): void { Vomnibar.port.postMessage<"onHidden">("onHidden"); };
-    return action === VomnibarNS.HideType.WaitAndAct ? (f = requestAnimationFrame)(function() { f(act); }) : act();
+    } 
+    VHandler.remove(this);
+    active || window.focus();
+    this.box.style.cssText = "display: none;";
   },
-  init (secret: number, page: string, type: VomnibarNS.PageType): HTMLIFrameElement {
+  init (secret: number, page: string, type: VomnibarNS.PageType, inner: string | null): HTMLIFrameElement {
     const el = VDom.createElement("iframe") as typeof Vomnibar.box;
     el.className = "R UI Omnibar";
     type === VomnibarNS.PageType.web && (el.referrerPolicy = "no-referrer");
     el.src = page;
+    function reload(): void {
+      type = VomnibarNS.PageType.inner;
+      el.removeAttribute("referrerPolicy");
+      el.src = page = inner as string;
+    }
     el.style.visibility = "hidden";
     el.onload = function(this: typeof el): void {
       const _this = Vomnibar, i = page.indexOf("://"), wnd = this.contentWindow,
-      sec: VomnibarNS.MessageData = [secret, _this.options];
-      this.onload = null as never;
-      _this.options = null;
+      sec: VomnibarNS.MessageData = [secret, _this.options as VomnibarNS.FgOptionsToFront];
+      if (_this.onReset) { return; }
+      if (type !== VomnibarNS.PageType.inner && _this.isABlank()) {
+        console.log("Vimium++: use built-in Vomnibar page because the preferred is too old.");
+        return reload();
+      }
       page = page.substring(0, page.indexOf("/", i + 3));
       setTimeout(function(): void {
-        const a = Vomnibar;
-        if (!a || a.status !== VomnibarNS.Status.Initing) { return; }
-        if (type !== VomnibarNS.PageType.inner) {
-          a._forceRedo = true;
-          a.reset(true, true);
-          return;
-        }
+        const a = Vomnibar, ok = !a || a.status !== VomnibarNS.Status.Initing;
+        if (ok) { a && a.box && (a.box.onload = a.options = null as never); return; }
+        if (type !== VomnibarNS.PageType.inner) { return reload(); }
         a.reset();
         (VDom.UI.box as HTMLElement).style.display = "";
         window.focus();
+        a.zoom = 0;
         a.status = VomnibarNS.Status.KeepBroken;
         return (a as any).activate();
       }, 1000);
@@ -142,9 +144,11 @@ var Vomnibar = {
         wnd.postMessage(sec, page, [channel.port2]);
         return;
       }
+      if (!(wnd.Vomnibar && wnd.onmessage)) { return reload(); }
       type FReq = VomnibarNS.FReq;
       type CReq = VomnibarNS.CReq;
       const port: VomnibarNS.IframePort = {
+        sameOrigin: true,
         onmessage: null as never as VomnibarNS.IframePort["onmessage"],
         postMessage<K extends keyof FReq> (data: FReq[K] & VomnibarNS.Msg<K>): void | 1 {
           return Vomnibar.onMessage<K>({ data });
@@ -152,7 +156,7 @@ var Vomnibar = {
       };
       _this.sameOrigin = true;
       _this.port = {
-        close (): void {},
+        close (): void { port.postMessage = function() {}; },
         postMessage<K extends keyof CReq> (data: CReq[K]): void | 1 { return port.onmessage<K>({ data }); }
       };
       if (location.hash === "#chrome-ui") { _this.defaultTop = "5px"; }
@@ -161,25 +165,26 @@ var Vomnibar = {
     };
     return VDom.UI.addElement(this.box = el, {adjust: true, showing: false});
   },
-  _forceRedo: false,
-  reset (redo?: boolean, inner?: boolean): void | 1 {
+  reset (redo?: boolean): void | 1 {
     if (this.status === VomnibarNS.Status.NotInited) { return; }
     const oldStatus = this.status;
     this.status = VomnibarNS.Status.NotInited;
     this.port.close();
     this.box.remove();
     this.port = this.box = null as never;
+    this.sameOrigin = false;
     VHandler.remove(this);
-    if (this._forceRedo) { this._forceRedo = false; }
-    else if (!redo || oldStatus < VomnibarNS.Status.ToShow) { return; }
-    return VPort.post({ handler: "activateVomnibar", redo: true, inner });
+    this.options = null;
+    if (this.onReset) { return this.onReset(); }
+    if (!redo || oldStatus < VomnibarNS.Status.ToShow) { return; }
+    return VPort.post({ handler: "activateVomnibar", redo: true, inner: true });
   },
-  checkAlive (): boolean {
-    const wnd = this.box.contentWindow;
+  isABlank (): boolean {
     try {
-      if (wnd && wnd.VPort && this.sameOrigin) { return false; }
-    } catch (e) { return false; }
-    return this._forceRedo = true;
+      const doc = this.box.contentDocument;
+      if (doc && doc.URL === "about:blank") { return true; }
+    } catch (e) {}
+    return false;
   },
   onMessage<K extends keyof VomnibarNS.FReq> ({ data }: { data: VomnibarNS.FReq[K] & VomnibarNS.Msg<K> }): void | 1 {
     type Req = VomnibarNS.FReq;
@@ -187,17 +192,14 @@ var Vomnibar = {
     case "uiComponentIsReady":
       this.status = VomnibarNS.Status.ToShow;
       let opt = this.options;
-      if (opt) { this.options = null; return this.port.postMessage<"activate">(opt); }
+      if (opt) { this.options = null; return this.port.postMessage<"activate">(opt as VomnibarNS.FgOptionsToFront); }
       break;
     case "style":
       this.box.style.height = (data as Req["style"]).height / this.zoom + "px";
       if (this.status === VomnibarNS.Status.Initing || this.status === VomnibarNS.Status.ToShow) { this.onShown(); }
       break;
-    case "css":
-      this.box.style.setProperty((data as Req["css"]).key, (data as Req["css"]).value);
-      break;
     case "focus": window.focus(); return VEventMode.suppress((data as Req["focus"]).lastKey);
-    case "hide": this.hide((data as Req["hide"]).waitFrame); break;
+    case "hide": return this.hide(1);
     case "scroll": return VEventMode.scroll(data as Req["scroll"]);
     case "scrollGoing": VScroller.keyIsDown = VScroller.Core.maxInterval; break;
     case "scrollEnd": VScroller.keyIsDown = 0; break;
@@ -208,9 +210,8 @@ var Vomnibar = {
   },
   onShown (): number {
     this.status = VomnibarNS.Status.Showing;
-    let style = this.box.style, width = this.width * 0.8;
-    style.width = width !== (width | 0) ? (width | 0) / (width / 0.8) * 100 + "%" : "";
-    style.top = this.zoom !== 1 ? ((70 / this.zoom) | 0) + "px" : this.defaultTop;
+    let style = this.box.style;
+    style.top = this.zoom !== 1 ? ((62 / this.zoom) | 0) + "px" : this.defaultTop;
     if (style.visibility) {
       style.visibility = "";
       style = (VDom.UI.box as HTMLElement).style;
@@ -221,7 +222,7 @@ var Vomnibar = {
   },
   onKeydown (event: KeyboardEvent): HandlerResult {
     if (VEventMode.lock()) { return HandlerResult.Nothing; }
-    if (VKeyboard.isEscape(event)) { this.hide(VomnibarNS.HideType.OnlyFocus); return HandlerResult.Prevent; }
+    if (VKeyboard.isEscape(event)) { this.hide(); return HandlerResult.Prevent; }
     const key = event.keyCode - VKeyCodes.f1;
     if (key === 0 || key === 1) {
       this.focus(key);

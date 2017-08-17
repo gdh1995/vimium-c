@@ -44,37 +44,53 @@ const Clipboard = {
     return value;
   }
 },
-Marks = { // NOTE: all members should be static
-  createMark (this: void, request: MarksNS.BaseMark | MarksNS.Mark, port: Port): void {
+Marks = { // NOTE: all public members should be static
+  _set ({ local, markName, url, scroll }: MarksNS.NewMark, tabId?: number): void {
+    localStorage.setItem(this.getLocationKey(markName, local ? url : "")
+      , JSON.stringify<MarksNS.StoredMark | MarksNS.ScrollInfo>(local ? scroll
+        : { tabId: tabId as number, url, scroll }));
+  },
+  _goto (port: Port, options: CmdOptions["Marks.goTo"]) {
+    port.postMessage<1, "Marks.goTo">({ name: "execute", command: "Marks.goTo", count: 1, options});
+  },
+  createMark (this: void, request: MarksNS.NewTopMark | MarksNS.NewMark, port: Port): void {
     let tabId = port.sender.tabId;
-    if ((request as MarksNS.Mark).scroll) {
-      localStorage.setItem(Marks.getLocationKey(request.markName), JSON.stringify({
-        tabId,
-        url: (request as MarksNS.Mark).url,
-        scroll: (request as MarksNS.Mark).scroll
-      } as MarksNS.StoredMark));
-      return;
+    if (request.scroll) {
+      return Marks._set(request as MarksNS.NewMark, tabId);
     }
     (port = Settings.indexPorts(tabId, 0) || port) && port.postMessage({
       name: "createMark",
       markName: request.markName,
     });
   },
-  gotoMark (this: void, request: MarksNS.FgQuery): boolean {
-    const str = localStorage.getItem(Marks.getLocationKey(request.markName));
-    if (!str) {
-      return false;
+  gotoMark (this: void, request: MarksNS.FgQuery, port: Port): void {
+    const { local, markName } = request,
+    str = localStorage.getItem(Marks.getLocationKey(markName, local ? request.url : ""));
+    if (local) {
+      let scroll: MarksNS.FgMark | null = str ? JSON.parse(str) as MarksNS.FgMark : null;
+      if (!scroll) {
+        let oldPos = (request as MarksNS.FgLocalQuery).old, x: number, y: number;
+        if (oldPos && (x = +oldPos.scrollX) >= 0 && (y = +oldPos.scrollY) >= 0) {
+          (request as MarksNS.NewMark).scroll = scroll = [x, y];
+          Marks._set(request as MarksNS.NewMark);
+        }
+      }
+      if (scroll) {
+        return Marks._goto(port, { markName, scroll, local: true });
+      }
     }
-    const markInfo: MarksNS.MarkToGo & MarksNS.StoredMark = JSON.parse(str) as MarksNS.StoredMark;
-    markInfo.markName = request.markName;
+    if (!str) {
+      return g_requestHandlers.ShowHUD(`${local ? "Local" : "Global"} mark not set : ' ${markName} '.`);
+    }
+    const markInfo: MarksNS.MarkToGo & MarksNS.StoredMark = JSON.parse(str);
+    markInfo.markName = markName;
     markInfo.prefix = request.prefix !== false && markInfo.scroll[1] === 0 && markInfo.scroll[0] === 0 &&
         !!Utils.IsURLHttp(markInfo.url);
     if (Settings.indexPorts(markInfo.tabId)) {
       chrome.tabs.get(markInfo.tabId, Marks.checkTab.bind(markInfo));
     } else {
-      g_requestHandlers.focusOrLaunch(markInfo);
+      return g_requestHandlers.focusOrLaunch(markInfo);
     }
-    return true;
   },
   checkTab (this: MarksNS.MarkToGo, tab: chrome.tabs.Tab): void {
     const url = tab.url.split("#", 1)[0];
@@ -85,34 +101,28 @@ Marks = { // NOTE: all members should be static
       return g_requestHandlers.focusOrLaunch(this);
     }
   },
-  getLocationKey (this: void, keyChar: string): string {
-    return "vimiumGlobalMark|" + keyChar;
+  getLocationKey (markName: string, url: string | undefined): string {
+    return (url ? "vimiumMark|" + Utils.prepareReparsingPrefix(url.split('#', 1)[0])
+      : "vimiumGlobalMark") + "|" + markName;
   },
-  scrollTab (this: void, markInfo: MarksNS.MarkToGo, tab: chrome.tabs.Tab): void {
+  scrollTab (this: void, markInfo: MarksNS.InfoToGo, tab: chrome.tabs.Tab): void {
     const tabId = tab.id, port = Settings.indexPorts(tabId, 0);
-    port && port.postMessage({
-      name: "scroll",
-      scroll: markInfo.scroll,
-      markName: markInfo.markName
-    });
+    port && Marks._goto(port, { markName: markInfo.markName, scroll: markInfo.scroll });
     if (markInfo.tabId !== tabId && markInfo.markName) {
-      localStorage.setItem(Marks.getLocationKey(markInfo.markName), JSON.stringify({
-        tabId,
-        url: markInfo.url,
-        scroll: markInfo.scroll
-      } as MarksNS.StoredMark));
+      return Marks._set(markInfo as MarksNS.MarkToGo, tabId);
     }
   },
-  clearGlobal (this: void): void {
-    const key_start = Marks.getLocationKey(""), storage = localStorage;
-    let key: string, i: number;
+  clear (this: void, url?: string): void {
+    const key_start = Marks.getLocationKey("", url), storage = localStorage;
+    let key: string, i: number, count = 0;
     for (i = storage.length; 0 <= --i; ) {
       key = storage.key(i) as string;
       if (key.startsWith(key_start)) {
+        count++;
         storage.removeItem(key);
       }
     }
-    return g_requestHandlers.ShowHUD("Global marks have been cleared.");
+    return g_requestHandlers.ShowHUD(`${count} ${url ? "local" : "global"} mark${count !== 1 ? "s have" : " has"} been removed.`);
   }
 },
 FindModeHistory = {
@@ -192,14 +202,15 @@ FindModeHistory = {
   }
 },
 TabRecency = {
-  tabs: null as never as SafeDict<number>,
-  last (this: void): number { return GlobalConsts.TabIdNone; },
+  tabs: Object.create<number>(null) as SafeDict<number>,
+  last: (chrome.tabs.TAB_ID_NONE || GlobalConsts.TabIdNone) as number,
+  incognito: IncognitoType.mayFalse,
   rCompare: null as never as (a: {id: number}, b: {id: number}) => number,
 };
 
 setTimeout(function() {
-  const cache = Object.create<number>(null);
-  let last = GlobalConsts.TabIdNone, stamp = 1, time = 0;
+  const cache = TabRecency.tabs, noneWnd = chrome.windows.WINDOW_ID_NONE || GlobalConsts.WndIdNone;
+  let stamp = 1, time = 0;
   function clean(): void {
     const ref = cache;
     for (let i in ref) {
@@ -211,25 +222,30 @@ setTimeout(function() {
   function listener({ tabId }: { tabId: number }): void {
     const now = Date.now();
     if (now - time > 500) {
-      cache[last] = ++stamp;
+      cache[TabRecency.last] = ++stamp;
       if (stamp === 1023) { clean(); }
     }
-    last = tabId; time = now;
-  };
+    TabRecency.last = tabId; time = now;
+  }
+  function onWndFocus(tabs: [chrome.tabs.Tab] | never[]) {
+    let a = tabs[0];
+    if (a) {
+      TabRecency.incognito = +a.incognito;
+      return listener({ tabId: a.id });
+    }
+  }
   chrome.tabs.onActivated.addListener(listener);
   chrome.windows.onFocusChanged.addListener(function(windowId): void {
-    if (windowId === chrome.windows.WINDOW_ID_NONE) { return; }
-    chrome.tabs.query({windowId, active: true}, function(tabs) {
-      if (tabs[0]) { return listener({ tabId: tabs[0].id }); }
-    });
+    if (windowId === noneWnd) { return; }
+    chrome.tabs.query({windowId, active: true}, onWndFocus);
   });
   chrome.tabs.query({currentWindow: true, active: true}, function(tabs: CurrentTabs): void {
     time = Date.now();
-    if (chrome.runtime.lastError) { return chrome.runtime.lastError; }
-    last = tabs[0] ? tabs[0].id : (chrome.tabs.TAB_ID_NONE || GlobalConsts.TabIdNone);
+    let a = tabs[0];
+    if (chrome.runtime.lastError || !a) { return chrome.runtime.lastError; }
+    TabRecency.last = a.id;
+    TabRecency.incognito = +a.incognito;
   });
-  TabRecency.tabs = cache;
-  TabRecency.last = function() { return last; };
   TabRecency.rCompare = function(a, b): number {
     return (cache[b.id] as number) - (cache[a.id] as number);
   };

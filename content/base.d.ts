@@ -86,6 +86,7 @@ declare namespace FindNS {
 
 declare namespace VomnibarNS {
   const enum Status {
+    NeedRedo = -3,
     KeepBroken = -2,
     Default = -1,
     NotInited = Default,
@@ -93,15 +94,6 @@ declare namespace VomnibarNS {
     Initing = 1,
     ToShow = 2,
     Showing = 3,
-  }
-  const enum HideType {
-    // 0 | 1 | -1 | -2;
-    Default = 0,
-    ActDirectly = Default,
-    WaitAndAct = 1,
-    OnlyFocus = -1,
-    DoNothing = -2,
-    MinAct = ActDirectly,
   }
   interface GlobalOptions {
     mode: string;
@@ -122,23 +114,17 @@ declare namespace VomnibarNS {
   interface CReq {
     activate: FgOptions & Msg<"activate">;
     hide: "hide";
-    onHidden: "onHidden";
     focus: "focus";
     backspace: "backspace";
   }
   interface FReq {
     hide: {
-      waitFrame: BOOL;
     };
     scroll: {
       keyCode: number;
     };
     style: {
       height: number;
-    };
-    css: {
-      key: "background" | "backgroundColor";
-      value: string;
     };
     focus: {
       lastKey: number;
@@ -154,8 +140,8 @@ declare namespace VomnibarNS {
     unload: {},
     uiComponentIsReady: {};
   }
-  type FgMsg<K extends keyof FReq> = FReq[K] & Msg<K>;
   interface IframePort {
+    sameOrigin?: true;
     postMessage<K extends keyof FReq> (this: void, msg: FReq[K] & Msg<K>): void | 1;
     onmessage<K extends keyof CReq> (this: void, msg: { data: CReq[K] }): void | 1;
   }
@@ -176,28 +162,21 @@ interface Hint {
 interface UIElementOptions {
   adjust?: boolean;
   before?: Element | null;
-  fake?: undefined;
   showing?: false;
 }
 
 interface DomUI {
   box: HTMLElement | null;
-  styleIn: HTMLStyleElement | null;
-  styleOut: HTMLStyleElement | null;
+  styleIn: HTMLStyleElement | string | null;
   root: ShadowRoot | null;
   callback: null | ((this: void) => void);
   flashLastingTime: number;
-  showing: boolean;
-  addElement<T extends HTMLElement>(this: DomUI, element: T, options?: UIElementOptions | null): T;
-  addElement(this: DomUI, element: null, options: { fake: true }): void;
+  addElement<T extends HTMLElement>(this: DomUI, element: T, options?: UIElementOptions): T;
   addElementList(this: DomUI, els: ReadonlyArray<Element>, offset: { [0]: number; [1]: number }): HTMLDivElement;
   adjust (this: void, event?: Event): void;
-  init (this: DomUI, showing: boolean): void;
-  InitInner (this: void, innerCSS: string): void;
   toggle (this: DomUI, enabled: boolean): void;
   createStyle (this: DomUI, text: string, doc?: { createElement: Document["createElement"] }): HTMLStyleElement;
-  InsertInnerCSS (this: void, inner: BgReq["insertInnerCSS"]): void;
-  setOuterCSS (this: DomUI, outer: string | false): void;
+  css (this: DomUI, innerCSS: string): void;
   getSelection (this: DomUI): Selection;
   removeSelection (this: DomUI, root?: DocumentOrShadowRoot,): boolean;
   click (this: DomUI, element: Element, modifiers?: EventControlKeys | null, addFocus?: boolean): boolean;
@@ -217,21 +196,24 @@ interface VDomMouse {
 interface VPort {
   post<K extends keyof SettingsNS.FrontUpdateAllowedSettings>(this: void, req: SetSettingReq<K>): void | 1;
   post<K extends keyof FgReq>(this: void, req: FgReq[K] & Req.baseFg<K>): void | 1;
-  post<K extends keyof FgReq, S extends 1, T extends FgReq[K]>(this: void, req: T & Req.baseFg<K>): void | 1;
   send<K extends keyof FgRes>(this: void, req: FgReq[K] & Req.baseFg<K>
     , callback: (this: void, res: FgRes[K]) => void): void;
+}
+interface ComplicatedVPort extends VPort {
+  post<K extends keyof FgReq, T extends FgReq[K]>(this: void, req: T & Req.baseFg<K>): void | 1;
 }
 interface VEventMode {
   lock(this: void): Element | null;
   suppress(keyCode?: number): void;
-  OnWndFocus (this: void): (this: void) => void;
+  OnWndFocus (this: void): void;
+  focusAndListen (this: void, callback?: (() => void) | null, timedout?: 0): void;
   onWndBlur (this: void, onWndBlur: ((this: void) => void) | null): void;
   setupSuppress (this: void, onExit?: (this: void) => void): void;
   mapKey (this: void, key: string): string;
   scroll (this: void, event?: Partial<EventControlKeys & { keyCode: number }>, wnd?: Window): void;
-  exitGrab (this: void): void;
-  keydownEvents (this: void, newArr: KeydownCacheArray): void | never;
-  keydownEvents (this: void): KeydownCacheArray | never;
+  /** return has_error */
+  keydownEvents (this: void, newArr: KeydownCacheArray): boolean;
+  keydownEvents (this: void): KeydownCacheArray;
   OnScrolls: {
     0: (this: any, event: KeyboardEvent) => void | 1;
     1: (this: Window, event: KeyboardEvent) => void;
@@ -251,6 +233,7 @@ interface VHUD {
   hide (this: void): void;
 }
 interface VSettings {
+  enabled: boolean;
   cache: SettingsNS.FrontendSettingCache;
   checkIfEnabled (this: void): void;
   onDestroy: ((this: void) => any) | null;

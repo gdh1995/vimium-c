@@ -1,0 +1,47 @@
+{
+  "output": {
+    "ascii_only": true, // if `false` by default, '\xa0' is replaced with '\xc2\xa0', which is wrong
+    "keep_quoted_props": false,
+    "comments": "all", // in gulp, replaced with `removeComments ? false : "all"`
+    "wrap_iife": true
+  },
+  "compress": {
+    "sequences": false,
+    "properties": true,
+    "dead_code": true,
+    "drop_debugger": true,
+    // `true` will remove `/a?/.test("")` and modify polyfill's `String(this)`
+    // so "unsafe" is not what Vimium++ needs
+    "unsafe": false,
+    "unsafe_comps": false,
+    "unsafe_math": true,
+    "unsafe_proto": false,
+    "unsafe_regexp": false,
+    "conditionals": true,
+    "comparisons": true,
+    "evaluate": true,
+    "booleans": false,
+    "loops": true,
+    "unused": false,
+    "toplevel": false,
+    "hoist_funs": true,
+    "hoist_vars": false,
+    "if_return": true,
+    "inline": false,
+    "join_vars": true,
+    "cascade": true,
+    "collapse_vars": true,
+    "warnings": true,
+    "negate_iife": false,
+    "pure_getters": true,
+    "keep_fargs": false,
+    "keep_fnames": false,
+    "keep_infinity": true,
+    "side_effects": true
+  },
+  "mangle": {
+    "properties": false,
+    "reserved": ["startsWith", "endsWith", "Suggestion"], // for polyfills and backend Suggestion
+    "toplevel": false
+  }
+}

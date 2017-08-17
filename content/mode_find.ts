@@ -1,3 +1,7 @@
+type FindOptions = CmdOptions["Find.activate"] & {
+  returnToViewport: boolean;
+};
+
 var VFindMode = {
   isActive: false,
   query: "",
@@ -8,11 +12,11 @@ var VFindMode = {
   hasNoIgnoreCaseFlag: false,
   hasResults: false,
   matchCount: 0,
-  coords: null as null | [number, number],
+  coords: null as null | MarksNS.ScrollInfo,
   initialRange: null as Range | null,
   activeRegexIndex: 0,
   regexMatches: null as RegExpMatchArray | null,
-  box: null as never as HTMLIFrameElement,
+  box: null as never as HTMLIFrameElement & { contentDocument: Document },
   input: null as never as HTMLBodyElement,
   countEl: null as never as HTMLSpanElement,
   styleIn: null as never as HTMLStyleElement,
@@ -26,7 +30,7 @@ height:14px;margin:0;overflow:hidden;vertical-align:top;white-space:nowrap;curso
 body{cursor:text;display:inline-block;padding:0 3px 0 1px;max-width:215px;min-width:7px;}
 body *{all:inherit !important;display:inline !important;}
 html > count{float:right;}`,
-  activate (_0?: number, options?: FgOptions): void {
+  activate (_0?: number, options?: Partial<FindOptions>): void {
     if (!VDom.isHTML()) { return; }
     options = Object.setPrototypeOf(options || {}, null);
     const query: string | undefined | null = options.query ? (options.query + "") : null;
@@ -40,9 +44,10 @@ html > count{float:right;}`,
     }
     this.box && VDom.UI.adjust();
     if (this.isActive) {
-      this.box.contentWindow.focus();
+      const wnd = this.box.contentWindow;
+      wnd.focus();
       this.input.focus();
-      this.box.contentDocument.execCommand("selectAll", false);
+      wnd.document.execCommand("selectAll", false);
       return;
     }
 
@@ -50,17 +55,18 @@ html > count{float:right;}`,
     this.parsedQuery = this.query = "";
     this.regexMatches = null;
     this.activeRegexIndex = 0;
-    this.init && this.init();
-    this.styleIn.disabled = this.styleOut.disabled = true;
 
-    const el = this.box = VDom.createElement("iframe");
+    const el = this.box = VDom.createElement("iframe") as typeof VFindMode.box;
     el.className = "R HUD UI";
     el.style.width = "0px";
-    options.browserVersion < BrowserVer.MinNotPassMouseWheelToParentIframe && (el.onmousewheel = VUtils.Prevent);
+    (options.browserVersion as number) < BrowserVer.MinNotPassMouseWheelToParentIframe && (el.onmousewheel = VUtils.Prevent);
     if (zoom !== 1) { el.style.zoom = "" + 1 / zoom; }
     el.onload = function(this: HTMLIFrameElement): void { return VFindMode.onLoad(this); };
     VHandler.push(VDom.UI.SuppressMost, this);
     VDom.UI.addElement(el, {adjust: true, before: VHUD.box});
+    this.init && this.init();
+    this.styleIn.disabled = this.styleOut.disabled = true;
+    this.isActive = true;
   },
   onLoad (box: HTMLIFrameElement): void {
     const wnd = box.contentWindow, doc = wnd.document, docEl = doc.documentElement as HTMLHtmlElement,
@@ -70,10 +76,7 @@ html > count{float:right;}`,
     wnd.onmousedown = box.onmousedown = this.OnMousedown;
     wnd.onkeydown = this.onKeydown.bind(this);
     wnd.onunload = this.OnUnload;
-    zoom < 1 && (docEl.style.zoom = "" + 1 / zoom);
-    (doc.head as HTMLHeadElement).appendChild(VDom.UI.createStyle(VFindMode.cssIFrame, doc));
     const el: HTMLElement = this.input = doc.body as HTMLBodyElement;
-    docEl.insertBefore(doc.createTextNode("/"), el);
     try {
       el.contentEditable = "plaintext-only";
     } catch (e) {
@@ -88,27 +91,30 @@ html > count{float:right;}`,
     el.oninput = this.onInput.bind(this);
     const el2 = this.countEl = doc.createElement("count");
     el2.appendChild(doc.createTextNode(""));
-    this.isActive = true;
+    zoom < 1 && (docEl.style.zoom = "" + 1 / zoom);
+    (doc.head as HTMLHeadElement).appendChild(VDom.UI.createStyle(VFindMode.cssIFrame, doc));
+    docEl.insertBefore(doc.createTextNode("/"), el);
+    docEl.appendChild(el2);
     function cb(): void {
       VHandler.remove(VFindMode);
-      docEl.appendChild(el2);
       el.focus();
-      wnd.onfocus = VEventMode.OnWndFocus();
+      wnd.onfocus = VEventMode.OnWndFocus;
     }
     if ((VDom.UI.box as HTMLElement).style.display) {
       VDom.UI.callback = cb;
     } else {
-      setTimeout(cb, 0);
+      return cb();
     }
   },
   init (): HTMLStyleElement {
-    const ref = this.postMode, UI = VDom.UI;
+    const ref = this.postMode, UI = VDom.UI,
+    sin = this.styleIn = UI.createStyle(this.cssSel), sout = this.styleOut = UI.createStyle(this.cssOut + this.cssSel);
     ref.exit = ref.exit.bind(ref);
-    UI.addElement(this.styleIn = UI.createStyle(this.cssSel));
+    UI.addElement(sin);
     this.init = null as never;
-    return (UI.box as HTMLElement).appendChild(this.styleOut = UI.createStyle(this.cssOut + this.cssSel));
+    return (UI.box as HTMLElement).appendChild(sout);
   },
-  findAndFocus (query: string, options: FgOptions): void {
+  findAndFocus (query: string, options: Partial<FindOptions>): void {
     if (query !== this.query) {
       this.updateQuery(query);
       if (this.isActive) {
@@ -226,8 +232,9 @@ html > count{float:right;}`,
     if (dir > 0) {
       return VPort.send({ handler: "findQuery", index: ind }, this.SetQuery);
     }
-    this.box.contentDocument.execCommand("undo", false);
-    this.box.contentWindow.getSelection().collapseToEnd();
+    const wnd = this.box.contentWindow;
+    wnd.document.execCommand("undo", false);
+    wnd.getSelection().collapseToEnd();
   },
   SetQuery (this: void, query: string): void {
     let _this = VFindMode, doc: Document;

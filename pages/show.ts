@@ -267,12 +267,11 @@ function copyThing(event: Event): void {
     str = $("#textBody").textContent;
   }
   if (!(str && window.VPort)) { return; }
-  return VPort.send({
+  VPort.post({
     handler: "copyToClipboard",
     data: str
-  }, function(): void {
-    return VHUD.showCopied(str);
   });
+  return VHUD.showCopied(str);
 }
 
 function toggleInvert(event: Event): void {

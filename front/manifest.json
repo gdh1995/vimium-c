@@ -1,7 +1,7 @@
 {
   "author": "gdh1995@qq.com",
   "content_security_policy": "script-src 'self' chrome-extension://hfjbmagddngcpeloejdejnfgbamkjaeg/; style-src 'self' 'unsafe-inline'; media-src 'none'; object-src 'none'; connect-src 'none'",
-  "description": "A copy of Vimium++'s Vomnibar page, making Vimium++ away from a Chrome bug of extension memory leak (since version 56)",
+  "description": "A copy of Vimium++'s Vomnibar page, making Vimium++ backend cost less memory",
   "homepage_url": "https://github.com/gdh1995/vimium-plus",
   "icons": {
     "128": "icon128.png",
@@ -13,7 +13,6 @@
   "name": "Vomnibar Page for Vimium++",
   "short_name": "Vomnibar",
   "update_url": "https://clients2.google.com/service/update2/crx",
-  "version": "1.60",
-  "version_name": "1.60",
+  "version": "1.61",
   "web_accessible_resources": [ "vomnibar.html" ]
 }

@@ -58,6 +58,7 @@ abstract class Option<T extends keyof AllowedOptions> {
   saved: boolean;
   locked?: boolean;
   readonly onUpdated: (this: void) => void;
+  onSave?(): void;
   checker?: Checker<T>;
 
   static all = Object.create(null) as {
@@ -117,6 +118,7 @@ save (): void {
   if (this.field in bgSettings.bufferToLoad) {
     Option.syncToFrontend.push(this.field as keyof SettingsNS.FrontendSettings);
   }
+  this.onSave && this.onSave();
 }
 abstract readValueFromElement (): AllowedOptions[T];
 abstract populateElement (value: AllowedOptions[T]): void;
@@ -165,9 +167,14 @@ addRule (pattern: string): HTMLTableRowElement {
 }
 populateElement (rules: ExclusionsNS.StoredRule[]): void {
   this.list.textContent = "";
-  const frag = document.createDocumentFragment();
-  rules.forEach(this.appendRule.bind(this, frag));
-  this.list.appendChild(frag);
+  if (rules.length <= 0) {}
+  else if (rules.length === 1) {
+    this.appendRule(this.list, rules[0]);
+  } else {
+    const frag = document.createDocumentFragment();
+    rules.forEach(this.appendRule.bind(this, frag));
+    this.list.appendChild(frag);
+  }
   return this.onRowChange(rules.length);
 }
 appendRule (list: HTMLTableSectionElement | DocumentFragment, rule: ExclusionsNS.StoredRule): HTMLTableRowElement {
@@ -339,7 +346,7 @@ exclusions: PopExclusionRulesOption = Object.setPrototypeOf({
   generateDefaultPattern (this: PopExclusionRulesOption): string {
     const url = this.url.lastIndexOf("https:", 0) === 0
       ? "^https?://" + this.url.split("/", 3)[2].replace(<RegExpG>/\./g, "\\.") + "/"
-      : (<RegExpOne>/^[^:]+:\/\/./).test(this.url)
+      : (<RegExpOne>/^[^:]+:\/\/./).test(this.url) && this.url.lastIndexOf("file:", 0) < 0
       ? ":" + (this.url.split("/", 3).join("/") + "/")
       : ":" + this.url;
     this.generateDefaultPattern = () => url;
@@ -354,9 +361,9 @@ exclusions: PopExclusionRulesOption = Object.setPrototypeOf({
   }
   function updateState(): void {
     const pass = bgExclusions.getTemp(exclusions.url, exclusions.readValueFromElement(true));
-    $("#state").innerHTML = "Vimium++ will " + (pass
-      ? "exclude: <span class='code'>" + pass.replace(escapeRe, escapeCallback) + "</span>"
-      : pass !== null ? "be disabled" : "be enabled");
+    $("#state").innerHTML = '<span class="Vim">Vim</span>ium++ will ' + (pass
+      ? `exclude: <span class="state-value code">${pass.trim().replace(escapeRe, escapeCallback)}</span>`
+      : `be:<span class="state-value fixed-width">${pass !== null ? 'disabled' : ' enabled'}</span>`);
   }
   function onUpdated(this: void): void {
     if (saved) {
@@ -389,12 +396,28 @@ exclusions: PopExclusionRulesOption = Object.setPrototypeOf({
       if (!saved) { return saveOptions(); }
     }
   });
-  const ref = bgSettings.indexPorts(tabs[0].id);
-  exclusions.init(ref ? ref[0].sender.url : tabs[0].url, $("#exclusionRules"), onUpdated, updateState);
-  $("#optionsLink").onclick = function(this: HTMLAnchorElement, event: Event): void {
+  let ref = bgSettings.indexPorts(tabs[0].id);
+  exclusions.init(ref ? ref[0].sender.url : tabs[0].url, $("#exclusionRules"), onUpdated, ref ? function (): void {
+    let { sender } = (ref as Frames.Frames)[0], el: HTMLElement
+      , newStat = sender.status !== Frames.Status.disabled ? "Disable" as "Disable" : "Enable" as "Enable";
+    ref = null;
+    el = $<HTMLElement>("#toggleOnce");
+    el.innerText = newStat + " for once";
+    el.onclick = forceState.bind(null, sender.tabId, newStat);
+    if (sender.flags & Frames.Flags.locked) {
+      el = el.nextElementSibling as HTMLElement;
+      el.classList.remove("hidden");
+      el = el.firstElementChild as HTMLElement;
+      el.onclick = forceState.bind(null, sender.tabId, "Reset");
+    }
+    return updateState();
+  } : updateState);
+  let element = $<HTMLAnchorElement>("#optionsLink"), url = bgSettings.CONST.OptionsPage;
+  element.href !== url && (element.href = url);
+  element.onclick = function(this: HTMLAnchorElement, event: Event): void {
     event.preventDefault();
     const a: MarksNS.FocusOrLaunch = BG.Object.create(null);
-    a.url = bgSettings.CONST.OptionsPage;
+    a.url = this.href;
     BG.g_requestHandlers.focusOrLaunch(a);
     window.close();
   };
@@ -402,5 +425,13 @@ exclusions: PopExclusionRulesOption = Object.setPrototypeOf({
   (window as WindowEx).exclusions = exclusions;
   window.onunload = function(): void {
     bgExclusions.testers = null;
+    BG.Utils.GC();
   };
+  BG.Utils.GC();
+
+  function forceState(tabId: number, act: "Reset" | "Enable" | "Disable", event?: Event): void {
+    event && event.preventDefault();
+    BG.g_requestHandlers.ForceStatus(act.toLowerCase() as "reset" | "enable" | "disable", tabId);
+    window.close();
+  }
 })));

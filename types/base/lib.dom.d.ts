@@ -584,7 +584,7 @@ interface CSSStyleDeclaration {
     columnSpan: string | null;
     columnWidth: any;
     columns: string | null;
-    contain?: string;
+    contain?: "layout" | "paint" | "size" | "style" | "layout size style" | "layout style" | "content" | "strict" | "";
     content: string | null;
     counterIncrement: string | null;
     counterReset: string | null;
@@ -3390,7 +3390,7 @@ interface HTMLIFrameElement extends HTMLElement, GetSVGDocument {
     /**
       * Retrieves the document object of the page or frame.
       */
-    readonly contentDocument: Document;
+    readonly contentDocument: Document | null;
     /**
       * Retrieves the object of the specified.
       */

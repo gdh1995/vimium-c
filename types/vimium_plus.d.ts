@@ -62,18 +62,35 @@ declare namespace MarksNS {
     markName: string;
   }
 
-  interface Mark extends BaseMark {
+  interface BaseMarkProps {
     scroll: ScrollInfo;
     url: string;
   }
 
-  interface FgQuery extends BaseMark {
-    prefix?: boolean;
+  interface Mark extends BaseMark, BaseMarkProps {
   }
 
-  interface FgMark {
-    scrollX: number;
-    scrollY: number;
+  interface NewTopMark extends BaseMark {
+    scroll?: undefined;
+  }
+  interface NewMark extends Mark {
+    local?: boolean; /** default to false */
+  }
+
+  interface FgGlobalQuery extends BaseMark {
+    prefix?: boolean; /** default to false */
+    local?: false; /** default to false */
+    url?: undefined;
+  }
+  interface FgLocalQuery extends BaseMark {
+    prefix?: undefined;
+    url: string;
+    local: true;
+    old?: any;
+  }
+  type FgQuery = FgGlobalQuery | FgLocalQuery;
+
+  interface FgMark extends ScrollInfo {
   }
 
   interface FocusOrLaunch {
@@ -87,19 +104,17 @@ declare namespace MarksNS {
 declare const enum KnownKey {
   space = 32, bang = 33, quote2 = 34, hash = 35,
   maxCommentHead = hash,
-  s = 115, colon = 58,
+  A = 65, s = 115, colon = 58,
 }
 
 interface ChildKeyMap {
-  [index: string]: 0 | ChildKeyMap;
+  [index: string]: 0 | ChildKeyMap | undefined;
   readonly __proto__: never;
 }
 interface ReadonlyChildKeyMap {
   readonly [index: string]: 0 | ReadonlyChildKeyMap | undefined;
 }
-interface KeyMap {
-  readonly [index: string]: 0 | 1 | ReadonlyChildKeyMap | undefined;
-}
+type KeyMap = ReadonlySafeDict<0 | 1 | ReadonlyChildKeyMap>;
 
 declare const enum ReuseType {
   Default = 0,
@@ -122,12 +137,33 @@ declare const enum ProtocolType {
   http = 7, https = 8,
 }
 
+declare namespace Frames {
+  const enum Status {
+    enabled = 0, partial = 1, disabled = 2,
+    __fake = -1
+  }
+  const enum Flags {
+    Default = 0, blank = Default,
+    locked = 1,
+    userActed = 2,
+    lockedAndUserActed = locked | userActed,
+    InheritedFlags = locked | userActed,
+    hasCSS = 4, onceHasDialog = 8,
+  }
+}
+
 declare const enum PortType {
-  nothing = 0,
   initing = 1,
   hasFocus = 2,
   isTop = 4,
-  omnibar = 8, omnibarRe = 9
+  omnibar = 8, omnibarRe = 9,
+  /** the below should keep the consistent with Frames.Status, so that code in OnConnect works */
+  BitOffsetOfKnownStatus = 4, MaskOfKnownStatus = 3,
+  knownStatusBase = 1 << BitOffsetOfKnownStatus, flagsBase = knownStatusBase << 2,
+  knownEnabled = knownStatusBase + (0 << BitOffsetOfKnownStatus),
+  knownPartial = knownStatusBase + (1 << BitOffsetOfKnownStatus),
+  knownDisabled = knownStatusBase + (2 << BitOffsetOfKnownStatus),
+  hasCSS = flagsBase, isLocked = flagsBase * 2,
 }
 
 declare namespace SettingsNS {
@@ -136,15 +172,14 @@ declare namespace SettingsNS {
   }
   interface FrontendSettings {
     deepHints: boolean;
-    grabBackFocus: boolean;
     keyboard: [number, number];
     linkHintCharacters: string;
     regexFindMode: boolean;
     scrollStepSize: number;
     smoothScroll: boolean;
-    userDefinedOuterCss: string;
   }
   interface FrontendSettingCache extends FrontendSettings {
+    grabFocus: boolean;
     onMac: boolean;
   }
 }
@@ -160,7 +195,11 @@ interface Document extends DocumentAttrsToBeDetected {}
 
 declare const enum GlobalConsts {
   TabIdNone = -1,
+  MaxImpossibleTabId = -2,
+  WndIdNone = -1,
   VomnibarSecretTimeout = 3000,
+  MaxNumberOfNextPatterns = 200,
+  TimeoutToReleaseBackendModules = 1000 * 60,
 }
 
 declare const enum VKeyCodes {
@@ -181,6 +220,7 @@ declare const enum BrowserVer {
   MinSupported = 36,
   MinSession = 37,
   MinCSS$All$Attr = 37,
+  MinWithFrameIdInArg = 39,
   MinDisableMoveTabAcrossIncognito = 40,
   MinWarningSyncXHR = 40,
   MinWithFrameId = 41,
@@ -192,10 +232,15 @@ declare const enum BrowserVer {
   Min$Document$$ScrollingElement = 44,
   MinTreat$LetterColon$AsFilePath = 44,
   MinMutedInfo = 45,
-  MinAutoDecodeJSUrl = 46,
+  MinArrowFunction = 45,
+  MinAutoDecodeJSURL = 46,
   Min$Event$$IsTrusted = 46,
   Min$Tabs$$Query$RejectHash = 47,
   MinEnsuredBorderWidth = 48, // inc 0.0001px to the min "visible" width
+  // if #disable-javascript-harmony-shipping is on, then arror functions are accepted only since 48,
+  // but this flag will break the Developer Tools (can not open the window) on Chrome 46/47/48,
+  // so Chrome can only debug arror functions since 49
+  MinEnsuredArrowFunction = 48,
   MinSafeWndPostMessageAcrossProcesses = 49,
   MinNo$Promise$$defer = 49,
   MinNoExtScriptsIfSandboxed = 49,
@@ -211,20 +256,23 @@ declare const enum BrowserVer {
   MinScrollingHTMLHtmlElement = 53,
   MinShadowDOMV1 = 53,
   MinUserSelectAll = 53,
-  AssumesVer = 53,
+  assumedVer = 53,
   MinWarningWebkitUserSelect = 54,
   MinHighDPIOnRemoteDesktop = 54,
   MinNo$KeyboardEvent$$keyIdentifier = 54,
   MinStricterArgsIn$Windows$$Create = 55,
   Min$Event$$Path$IncludeNodesInShadowRoot = 55,
-  MinSOmeDocumentListenersArePassiveByDefault = 56,
+  MinSomeDocumentListenersArePassiveByDefault = 56,
+  // With empty settings, Chrome only does this since not 56  but 57
   MinExtIframesInSharedProcess = 56, // means enabled by default
   MinNeedCSPForScriptsFromOtherExtensions = 56,
   MinStickyPosition = 56,
+  MinFailToToggleImageOnFileURL = 56,
   MinNoKeygenElement = 57,
   MinCaseSensitiveUsemap = 58,
   Min1pxIsNotEps = 58,
   $Selection$NotShowStatusInTextBox = 58, // Now only version 81-110 of Chrome 58 stable have such a problem
+  MinPasswordSaverDispatchesVirtualFocusEvents = 59,
   MinWarningWebkitGradient = 60,
   MinSelector$deep$DoesNothing = 60,
 }

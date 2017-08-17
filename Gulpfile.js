@@ -16,8 +16,10 @@ var osPath = require('path');
 
 var DEST, enableSourceMap, willListFiles, willListEmittedFiles, removeComments, JSDEST;
 var locally = false;
+var debugging = false;
 var typescript = null;
-var disableErrors = !process.env.SHOW_ERRORS;
+var disableErrors = process.env.SHOW_ERRORS !== "1";
+var ignoreHeaderChanges = process.env.IGNORE_HEADER_CHANGES === "1";
 var manifest = readJSON("manifest.json", true);
 var compilerOptions = loadValidCompilerOptions("scripts/gulp.tsconfig.json", false);
 
@@ -27,6 +29,8 @@ var CompileTasks = {
   lib: [["lib/*.ts", "!lib/extend_click.ts"]],
   front: [["front/*.ts", "lib/polyfill.ts", "pages/*.ts", "!pages/options*.ts", "!pages/show.ts"]
           , ["background/bg.d.ts", "content/*.d.ts"]],
+  vomnibar: ["front/*.ts", ["background/bg.d.ts", "content/*.d.ts"]],
+  polyfill: ["lib/polyfill.ts"],
   main_pages: [["pages/options*.ts", "pages/show.ts"], ["background/*.d.ts", "content/*.d.ts"]],
   show: ["pages/show.ts", ["background/bg.d.ts", "content/*.d.ts"]],
   options: ["pages/options*.ts", ["background/*.d.ts", "content/*.d.ts"]],
@@ -104,10 +108,11 @@ var Tasks = {
     fs.writeFile(file, data, cb);
   }],
   dist: [["static", "build/ts"], ["manifest", "min/others"]],
+  "dist/": ["dist"],
 
   build: ["dist"],
   rebuild: [["clean"], "dist"],
-  all: ["rebuild"],
+  all: ["build"],
   "clean/temp": function() {
     return cleanByPath([JSDEST + "**/*.js"
       , JSDEST + "**/*.js.map"
@@ -127,16 +132,29 @@ var Tasks = {
   },
   scripts: ["background", "content", "front"],
   pages: ["main_pages", "others"],
+  "pages/": ["pages"],
+  b: ["background"],
   ba: ["background"],
   bg: ["background"],
   c: ["content"],
   f: ["front"],
   l: ["lib"],
+  p: ["pages"],
   pa: ["pages"],
   pg: ["pages"],
   local: ["scripts", "main_pages"],
   tsc: ["local"],
   "default": ["tsc"],
+  watch: ["locally", function() {
+    ignoreHeaderChanges = willListFiles = true;
+    willListEmittedFiles = false;
+    ["background", "content", "front", "options", "show"].forEach(makeWatchTask);
+  }],
+  debug: ["locally", function() {
+    ignoreHeaderChanges = disableErrors = willListFiles = false;
+    willListEmittedFiles = debugging = true;
+    ["background", "content", "vomnibar", "polyfill", "options", "show", "others"].forEach(makeWatchTask);
+  }],
   test: ["local"]
 }
 
@@ -163,6 +181,24 @@ function makeCompileTasks() {
       gulp.task(key + "/", [key]);
     }
   }
+}
+
+var _todoTasks = [], _todoTimer = 0;
+function makeWatchTask(taskName) {
+  var glob = CompileTasks[taskName][0];
+  typeof glob === "string" && (glob = [glob]);
+  if (!debugging) {
+    glob.push("!background/*.d.ts", "!content/*.d.ts", "!pages/*.d.ts", "!types/*.d.ts");
+  }
+  gulp.watch(glob, function() {
+    if (_todoTasks.indexOf(taskName) < 0) { _todoTasks.push(taskName); }
+    if (_todoTimer > 0) { clearTimeout(_todoTimer); }
+    _todoTimer = setTimeout(function() {
+      _todoTimer = 0;
+      runSequence(_todoTasks.slice(0));
+      _todoTasks.length = 0;
+    }, 100);
+  });
 }
 
 function makeTasks() {
@@ -203,7 +239,11 @@ function compile(pathOrStream, header_files, skipOutput) {
     pathOrStream.push("!types/*.ts");
   }
   var stream = pathOrStream instanceof Array ? gulp.src(pathOrStream, { base: "." }) : pathOrStream;
-  stream = stream.pipe(newer({ dest: JSDEST, ext: '.js', extra: ["types/**/*.d.ts", "types/*.d.ts"].concat(header_files) }));
+  var extra = ignoreHeaderChanges || header_files === false ? undefined
+    : ["types/**/*.d.ts", "types/*.d.ts"].concat(header_files);
+  if (!debugging) {
+    stream = stream.pipe(newer({ dest: JSDEST, ext: '.js', extra: extra }));
+  }
   stream = stream.pipe(gulpSome(function(file) {
     var t = file.relative, s = ".d.ts", i = t.length - s.length;
     return i < 0 || t.indexOf(s, i) !== i;
@@ -266,16 +306,7 @@ function uglifyJSFiles(path, output, new_suffix) {
   if (is_file) {
      stream = stream.pipe(concat(output));
   }
-  stream = stream.pipe(uglify({
-    output: {
-      comments: removeComments ? false : "all"
-    },
-    compress: {
-      booleans: false,
-      negate_iife: false,
-      sequences: false
-    }
-  }));
+  stream = stream.pipe(uglify(loadUglifyConfig()));
   if (!is_file && new_suffix !== "") {
      stream = stream.pipe(rename({ suffix: new_suffix }));
   }
@@ -485,4 +516,14 @@ function loadTypeScriptCompiler(path) {
 
 function print() {
   return console.log.apply(console, arguments);
+}
+
+var _uglifyjsConfig = null;
+function loadUglifyConfig() {
+  if (_uglifyjsConfig == null) {
+    _uglifyjsConfig = readJSON("scripts/uglifyjs.json");
+    _uglifyjsConfig.output || (_uglifyjsConfig.output = {});
+  }
+  _uglifyjsConfig.output.comments = removeComments ? false : "all";
+  return _uglifyjsConfig;
 }

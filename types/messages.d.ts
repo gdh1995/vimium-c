@@ -1,21 +1,14 @@
 interface BaseExecute<T> {
+  CSS?: string | null;
   command: string;
   count: number;
   options: T | null;
 }
 
 interface BgReq {
-  scroll: {
-    name: "scroll";
-    markName?: string | undefined;
-    scroll: MarksNS.ScrollInfo;
-  };
   reset: {
     passKeys: string | null;
-  };
-  insertInnerCSS: {
-    name: "insertInnerCSS";
-    css: string;
+    forced?: boolean;
   };
   createMark: {
     name: "createMark";
@@ -27,7 +20,8 @@ interface BgReq {
   };
   showHUD: {
     name: "showHUD";
-    text: string;
+    CSS?: string | null;
+    text?: string;
     isCopy?: boolean;
   };
   focusFrame: {
@@ -38,19 +32,18 @@ interface BgReq {
   execute: BaseExecute<object> & {
     name: "execute";
   };
-  checkIfEnabled: {
-    name: "checkIfEnabled";
-  };
   exitGrab: {
     name: "exitGrab";
   };
   showHelpDialog: {
+    CSS?: string | null;
     html: string;
     optionUrl: string;
     advanced: boolean;
   };
   init: {
     name: "init",
+    flags: Frames.Flags;
     load: SettingsNS.FrontendSettingCache,
     passKeys: string | null;
     mapKeys: SafeDict<string> | null,
@@ -59,8 +52,11 @@ interface BgReq {
   settingsUpdate: {
     name: "settingsUpdate",
   } & {
-    [key in keyof SettingsNS.FrontendSettingCache]?: SettingsNS.FrontendSettingCache[key];
+    [key in keyof SettingsNS.FrontendSettings]?: SettingsNS.FrontendSettings[key];
   };
+  url: {
+    url?: string;
+  } & Req.baseFg<keyof FgReq>;
 }
 
 interface BgVomnibarReq {
@@ -83,6 +79,7 @@ interface FullBgReq extends BgReq, BgVomnibarReq {
 interface CmdOptions {
   "Vomnibar.activate": {
     vomnibar: string;
+    vomnibar2: string | null;
     ptype: VomnibarNS.PageType;
     script: string;
     secret: number;
@@ -98,6 +95,21 @@ interface CmdOptions {
     hud: boolean;
   };
   showHelp: {};
+  reload: { url: string, force?: undefined } | { force: boolean, url?: undefined };
+  "Find.activate": {
+    browserVersion: number;
+    count: number;
+    dir: 1 | -1;
+    query: string | null;
+  };
+  "Marks.goTo": {
+    local?: boolean;
+    markName?: string | undefined;
+    scroll: MarksNS.ScrollInfo;
+  };
+  autoCopy: {
+    url: boolean; decoded: boolean;
+  };
 }
 
 interface FgReq {
@@ -115,6 +127,7 @@ interface FgReq {
     url: string;
     upper: number;
     trailing_slash: boolean | null;
+    execute?: true;
   };
   parseSearchUrl: {
     url: string;
@@ -154,7 +167,7 @@ interface FgReq {
     names?: boolean;
     title?: string;
   };
-  initInnerCSS: Req.baseFg<"initInnerCSS">;
+  css: Req.baseFg<"css">;
   activateVomnibar: ({
     count: number;
     redo?: undefined;
@@ -178,8 +191,10 @@ interface FgReq {
     key: string;
   };
   blank: {},
-  createMark: MarksNS.BaseMark | MarksNS.Mark;
-  gotoMark: MarksNS.FgQuery;
+  marks: ({ action: "create" } & (MarksNS.NewTopMark | MarksNS.NewMark)) | {
+    action: "clear";
+    url: string;
+  } | ({ action: "goto" } & MarksNS.FgQuery);
   /** 
    * .url is guaranteed to be well formatted by frontend
    */
@@ -198,10 +213,8 @@ interface FgRes {
     path: string | null;
   };
   searchAs: string;
-  initInnerCSS: string;
   openCopiedUrl: string;
-  gotoMark: boolean;
-  copyToClipboard: void;
+  execInChild: boolean;
 }
 
 declare namespace Req {
@@ -227,9 +240,7 @@ declare namespace Req {
     readonly response: FgRes[K];
   }
 
-  interface FgCmd<O extends keyof CmdOptions> extends BaseExecute<CmdOptions[O]> {
-    name: "execute";
-  }
+  type FgCmd<O extends keyof CmdOptions> = BaseExecute<CmdOptions[O]> & Req.bg<"execute">;
 }
 
 interface SetSettingReq<T extends keyof SettingsNS.FrontUpdateAllowedSettings> {

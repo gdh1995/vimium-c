@@ -66,7 +66,8 @@ var Exclusions: ExcCls = Exclusions && !(Exclusions instanceof Promise) ? Exclus
     const onURLChange: null | ExclusionsNS.Listener = !chrome.webNavigation ? null
       : Settings.CONST.ChromeVersion >= BrowserVer.MinWithFrameId ? g_requestHandlers.checkIfEnabled
       : function(details: chrome.webNavigation.WebNavigationCallbackDetails) {
-        const ref = Settings.indexPorts(details.tabId), msg = { name: "checkIfEnabled" as "checkIfEnabled" };
+        const ref = Settings.indexPorts(details.tabId),
+        msg = { name: "url" as "url", handler: "checkIfEnabled" as "checkIfEnabled" };
         // force the tab's ports to reconnect and refresh their pass keys
         for (let i = ref ? ref.length : 0; 0 < --i; ) {
           (ref as Frames.Frames)[i].postMessage(msg);
@@ -97,29 +98,31 @@ var Exclusions: ExcCls = Exclusions && !(Exclusions instanceof Promise) ? Exclus
     };
     if (old_is_empty) {
       always_enabled || Settings.broadcast({
-        name: "checkIfEnabled"
+        name: "url",
+        handler: "checkIfEnabled"
       });
       return;
     }
     const ref = Settings.indexPorts(),
     needIcon = !!(Settings.IconBuffer && (Settings.IconBuffer() || Settings.get("showActionIcon")));
-    let pass: string | null = null, status: Frames.ValidStatus = Frames.BaseStatus.enabled;
+    let pass: string | null = null, status: Frames.ValidStatus = Frames.Status.enabled;
     for (let tabId in ref) {
       const frames = ref[tabId] as Frames.Frames, status0 = frames[0].sender.status;
       for (let i = frames.length; 0 < --i; ) {
         const port = frames[i];
         if (always_enabled) {
-          if (port.sender.status === 0) {
+          if (port.sender.status === Frames.Status.enabled) {
             continue;
           }
         } else {
           pass = Settings.getExcluded(port.sender.url);
-          status = pass === null ? Frames.BaseStatus.enabled : pass
-            ? Frames.BaseStatus.partial : Frames.BaseStatus.disabled;
+          status = pass === null ? Frames.Status.enabled : pass
+            ? Frames.Status.partial : Frames.Status.disabled;
           if (!pass && port.sender.status === status) {
             continue;
           }
         }
+        if (port.sender.flags & Frames.Flags.locked) { continue; }
         port.postMessage(always_enabled || { name: "reset", passKeys: pass });
         port.sender.status = status;
       }
@@ -127,6 +130,10 @@ var Exclusions: ExcCls = Exclusions && !(Exclusions instanceof Promise) ? Exclus
         g_requestHandlers.SetIcon((tabId as (string | number) as number) | 0, status);
       }
     }
+  },
+  destroy (): void {
+    Settings.updateHooks.exclusionRules = Settings.updateHooks.exclusionOnlyFirstMatch =
+    Settings.updateHooks.exclusionListenHash = void 0 as never;
   }
 };
 

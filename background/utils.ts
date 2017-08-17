@@ -50,7 +50,7 @@ var Utils = {
   _nonENTlds: ".\u4e2d\u56fd.\u6211\u7231\u4f60.\u516c\u53f8.\u96c6\u56e2.\u7f51\u7edc.\u4e2d\u570b.",
   _tlds: ["", "",
     ".ac.ad.ae.af.ag.ai.al.am.an.ao.aq.ar.as.at.au.aw.az.ba.bb.bd.be.bf.bg.bh.bi.bj.bm.bn.bo.br.bs.bt.bv.bw.by.bz.ca.cc.cd.cf.cg.ch.ci.ck.cl.cm.cn.co.cr.cu.cv.cx.cy.cz.de.dj.dk.dm.do.dz.ec.ee.eg.eh.er.es.et.eu.fi.fj.fk.fm.fo.fr.ga.gd.ge.gf.gg.gh.gi.gl.gm.gn.gp.gq.gr.gs.gt.gu.gw.gy.hk.hm.hn.hr.ht.hu.id.ie.il.im.in.io.iq.ir.is.it.je.jm.jo.jp.ke.kg.kh.ki.km.kn.kp.kr.kw.ky.kz.la.lb.lc.li.lk.lr.ls.lt.lu.lv.ly.ma.mc.md.me.mg.mh.mk.ml.mm.mn.mo.mp.mq.mr.ms.mt.mu.mv.mw.mx.my.mz.na.nc.ne.nf.ng.ni.nl.no.np.nr.nu.nz.om.pa.pe.pf.pg.ph.pk.pl.pm.pn.pr.ps.pt.pw.py.qa.re.ro.ru.rw.sa.sb.sc.sd.se.sg.sh.si.sj.sk.sl.sm.sn.so.sr.ss.st.su.sv.sy.sz.tc.td.tf.tg.th.tj.tk.tl.tm.tn.to.tp.tr.tt.tv.tw.tz.ua.ug.uk.um.us.uy.uz.va.vc.ve.vg.vi.vn.vu.wf.ws.ye.yt.yu.za.zm.zw",
-    ".biz.cat.com.dev.edu.gov.int.mil.mtn.net.new.org.pro.pub.ren.tel.top.win.xin.xxx.xyz",
+    ".abc.bid.biz.cat.com.dev.edu.gov.int.mil.mtn.net.new.one.org.pro.pub.ren.run.tel.top.win.xin.xxx.xyz",
     ".aero.arpa.asia.band.club.coop.date.gift.help.info.jobs.link.live.mobi.name.news.pics.post.site.tech.wang.wiki",
     ".click.local.onion.party.photo.press.rocks.space.today.trade.video",
     ".design.lawyer.market.museum.online.social.studio.travel"
@@ -59,7 +59,7 @@ var Utils = {
   ] as ReadonlyArray<string>,
   domains: Object.create<CompletersNS.Domain>(null),
   _hostRe: <RegExpOne> /^([^:]+(:[^:]+)?@)?([^:]+|\[[^\]]+])(:\d{2,5})?$/,
-  _ipRe: <RegExpOne> /^(?:\d{1,3}\.){3}\d{1,3}$/,
+  _ipRe: <RegExpOne> /^\d{1,3}(?:\.\d{1,3}){3}$/,
   _ipv6Re: <RegExpOne> /^\[[\da-f]{0,4}(?::[\da-f]{0,4}){1,5}(?:(?::[\da-f]{0,4}){1,2}|:\d{0,3}(?:\.\d{0,3}){3})]$/,
   _lfSpacesRe: <RegExpG> /[\r\n]+[\t \xa0]*/g,
   spacesRe: <RegExpG> /\s+/g,
@@ -76,7 +76,7 @@ var Utils = {
     string = string.trim();
     this.lastUrlType = Urls.Type.Full;
     if (string.charCodeAt(10) === KnownKey.colon && string.substring(0, 11).toLowerCase() === "javascript:") {
-      if (Settings.CONST.ChromeVersion < BrowserVer.MinAutoDecodeJSUrl && string.indexOf('%', 11) > 0
+      if (Settings.CONST.ChromeVersion < BrowserVer.MinAutoDecodeJSURL && string.indexOf('%', 11) > 0
           && !this._jsNotEscapeRe.test(string)) {
         string = this.DecodeURLPart(string);
       }
@@ -85,7 +85,7 @@ var Utils = {
       return string;
     }
     let type: Urls.Type | Urls.TempType | Urls.TldType = Urls.TempType.Unspecified
-      , expected: Urls.Type = Urls.Type.Full
+      , expected: Urls.Type.Full | Urls.Type.NoProtocolName | Urls.Type.NoSchema  = Urls.Type.Full
       , hasPath = false, index: number, index2: number, oldString: string
       , arr: [never, string | undefined, string | undefined, string, string | undefined] | null | undefined;
     oldString = string.replace(this._lfSpacesRe, '').replace(this.A0Re, ' ');
@@ -162,18 +162,18 @@ var Utils = {
       }
     } else if ((string = arr[3]).endsWith(']')) {
       type = this._ipv6Re.test(string) ? expected : Urls.Type.Search;
-    } else if (string.endsWith("localhost")) {
+    } else if (string.endsWith("localhost") || this._ipRe.test(string) || arr[4] && hasPath) {
       type = expected;
-    } else if ((index = string.lastIndexOf('.')) < 0) {
-      string === "__proto__" && (string = "." + string);
-      type = expected !== Urls.Type.NoSchema || arr[4] && hasPath ||
-        this.checkInDomain(string, arr[4]) > 0 ? expected : Urls.Type.Search;
-    } else if (this._ipRe.test(string)) {
-      type = expected;
-    } else if ((type = this.isTld(string.substring(index + 1))) === Urls.TldType.NotTld) {
-      type = (this as typeof Utils).checkInDomain(string, arr[4]) > 0 ? expected : Urls.Type.Search;
+    } else if ((index = string.lastIndexOf('.')) < 0
+        || (type = this.isTld(string.substring(index + 1))) === Urls.TldType.NotTld) {
+      index < 0 && string === "__proto__" && (string = "." + string);
+      index2 = string.length - index - 1;
+      // the new gTLDs allow long and notEnglish TLDs
+      // https://en.wikipedia.org/wiki/Generic_top-level_domain#New_top-level_domains
+      type = expected !== Urls.Type.NoSchema && (index < 0 || index2 >= 3 && index2 <= 5)
+        || (this as typeof Utils).checkInDomain(string, arr[4]) > 0 ? expected : Urls.Type.Search;
     } else if (string.length !== index + 3 && type === Urls.TldType.ENTld && this._nonENDoaminRe.test(string)) {
-      // `non-english.non-ccTld` AND NOT `non-english.non-english-tld`
+      // `notEnglish-domain.English-notCC-TLD`
       type = Urls.Type.Search;
     } else if (expected !== Urls.Type.NoSchema || hasPath) {
       type = expected;
@@ -297,6 +297,8 @@ var Utils = {
       return [path, "ERROR"];
     }
     else if (workType === Urls.WorkType.ActAnyway) switch (cmd) {
+    case "status": case "state":
+      return [path.toLowerCase(), "status"] as Urls.StatusEvalResult;
     case "url-copy": case "search-copy": case "search.copy": case "copy-url":
       res = (this as typeof Utils).convertToUrl(path, null, Urls.WorkType.ActIfNoSideEffects);
       if (res instanceof Promise) {
@@ -604,8 +606,7 @@ var Utils = {
     try {
       return new RegExp(pattern, suffix as "");
     } catch (e) {
-      logError === false || console.log("%c/%s/%s%c %s", "color:#C41A16;"
-        , pattern, suffix, "color:auto;", "is not a valid regexp.");
+      logError === false || console.log("%c/%s/%s", "color:#C41A16", pattern, suffix, "is not a valid regexp.");
     }
     return null;
   },
@@ -635,6 +636,7 @@ var Utils = {
     };
   }),
   getNull (this: void): null { return null; },
+  GC (): void {},
   hasUpperCase (this: void, s: string): boolean { return s.toLowerCase() !== s; }
 };
 const NotChrome = !!(window as any).browser;

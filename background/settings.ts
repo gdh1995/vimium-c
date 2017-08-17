@@ -4,10 +4,13 @@ var Settings = {
   cache: Object.create(null) as SettingsNS.FullCache,
   temp: {
     shownHash: null as null | ((this: void) => string)
+  } as {
+    shownHash: null | ((this: void) => string);
+    [key: string]: ((this: void) => any) | undefined | null;
   },
   bufferToLoad: Object.create(null) as SettingsNS.FrontendSettingCache & SafeObject,
   newTabs: Object.create(null) as SafeDict<Urls.NewTabType>,
-  extWhiteList: null as SafeDict<true> | null,
+  extWhiteList: null as never as SafeDict<boolean>,
   Init: null as ((this: void) => void) | null,
   IconBuffer: null as IconNS.AccessIconBuffer | null,
   globalCommand: null as never as (command: string, options?: CommandsNS.RawOptions | null, count?: number) => void,
@@ -68,8 +71,15 @@ var Settings = {
         ref2[key] = this.get(key);
       }
     },
+    grabBackFocus (value: FullSettings["grabBackFocus"]): void {
+      (this as typeof Settings).bufferToLoad.grabFocus = value;
+    },
     extWhiteList (val): void {
-      const map = (this as typeof Settings).extWhiteList = Object.create<true>(null);
+      const old = (this as typeof Settings).extWhiteList;
+      const map = (this as typeof Settings).extWhiteList = Object.create<boolean>(null);
+      if (old) {
+        for (let key in old) { if (old[key] === false) { map[key] = false; } }
+      }
       if (!val) { return; }
       for (let arr = val.split("\n"), i = arr.length, wordCharRe = /^[\dA-Za-z]/ as RegExpOne; 0 <= --i; ) {
         if ((val = arr[i].trim()) && wordCharRe.test(val)) {
@@ -119,10 +129,15 @@ var Settings = {
     userDefinedCss (css): void {
       css = this.cache.innerCSS.substring(0, (this as typeof Settings).CONST.BaseCSSLength) + css;
       this.set("innerCSS", css);
-      return this.broadcast({
-        name: "insertInnerCSS",
-        css: this.cache.innerCSS
-      });
+      const ref = this.indexPorts(), request = { name: "showHUD" as "showHUD", CSS: this.cache.innerCSS };
+      for (let tabId in ref) {
+        const frames = ref[tabId] as Frames.Frames;
+        for (let i = frames.length; 0 < --i; ) {
+          if (frames[i].sender.flags & Frames.Flags.hasCSS) {
+            frames[i].postMessage(request);
+          }
+        }
+      }
     },
     vomnibarPage (url): void {
       if (url === this.defaults.vomnibarPage) {
@@ -132,7 +147,7 @@ var Settings = {
         if (!url.startsWith("chrome") && this.CONST.ChromeVersion < BrowserVer.MinWithFrameId) {
           url = (this as typeof Settings).CONST.VomnibarPageInner;
         } else {
-          url = url.replace(":version", (this as typeof Settings).CONST.CurrentVersion);
+          url = url.replace(":version", "" + parseFloat((this as typeof Settings).CONST.CurrentVersion));
         }
       }
       this.set("vomnibarPage_f", url);
@@ -141,7 +156,9 @@ var Settings = {
   indexPorts: null as never as Window["Settings"]["indexPorts"],
   fetchFile (file: keyof SettingsNS.CachedFiles, callback?: (this: void) => any): TextXHR | null {
     if (callback && file in this.cache) { callback(); return null; }
-    return Utils.fetchHttpContents(this.CONST.XHRFiles[file], function() {
+    const url = this.CONST.XHRFiles[file];
+    if (!url) { throw Error("unknown file: " + file); } // just for debugging
+    return Utils.fetchHttpContents(url, function() {
       Settings.set(file, this.responseText);
       callback && callback();
       return;
@@ -175,8 +192,8 @@ nacjakoppgmdcpemlfnfegmlhipddanj`,
 ,prev,previous,back,older,<,\u2039,\u2190,\xab,\u226a,<<",
     regexFindMode: false,
     scrollStepSize: 100,
-    searchUrl: "https://www.baidu.com/s?ie=UTF-8&wd=$s Baidu",
-    searchEngines: `b|ba|baidu: https://www.baidu.com/s?ie=UTF-8&wd=$s Baidu
+    searchUrl: "https://www.baidu.com/s?ie=utf-8&wd=$s Baidu",
+    searchEngines: `b|ba|baidu: https://www.baidu.com/s?ie=utf-8&wd=$s Baidu
 bi|bing: https://www.bing.com/search?q=%s Bing
 g|go|gg|google: https://www.google.com/search?q=$s Google
 js\\:|Js: javascript:\\ $S; Javascript
@@ -199,7 +216,6 @@ w|wiki:\\\n  https://www.wikipedia.org/w/index.php?search=$s Wikipedia
     showAdvancedOptions: false,
     smoothScroll: true,
     userDefinedCss: "",
-    userDefinedOuterCss: "",
     vimSync: false,
     vomnibarPage: ""
   } as SettingsWithDefaults & SafeObject,
@@ -217,8 +233,8 @@ w|wiki:\\\n  https://www.wikipedia.org/w/index.php?search=$s Wikipedia
     { "19": "/icons/partial_19.png", "38": "/icons/partial_38.png" },
     { "19": "/icons/disabled_19.png", "38": "/icons/disabled_38.png" }
   ] as [IconNS.PathBuffer, IconNS.PathBuffer, IconNS.PathBuffer],
-  valuesToLoad: ["deepHints", "grabBackFocus", "keyboard", "linkHintCharacters" //
-    , "regexFindMode", "scrollStepSize", "smoothScroll", "userDefinedOuterCss" //
+  valuesToLoad: ["deepHints", "keyboard", "linkHintCharacters" //
+    , "regexFindMode", "scrollStepSize", "smoothScroll" //
   ] as Array<keyof SettingsNS.FrontendSettings>,
   Sync: {
     set: function() {}
@@ -264,8 +280,10 @@ w|wiki:\\\n  https://www.wikipedia.org/w/index.php?search=$s Wikipedia
   }
 };
 
-Settings.CONST.ChromeVersion = 0 | (navigator.appVersion.match(/\bChrom(?:e|ium)\/(\d+)/) || [0, BrowserVer.AssumesVer])[1] as number;
+Settings.CONST.ChromeVersion = 0 | (navigator.appVersion.match(/\bChrom(?:e|ium)\/(\d+)/)
+  || [0, BrowserVer.assumedVer])[1] as number;
 Settings.bufferToLoad.onMac = false;
+Settings.bufferToLoad.grabFocus = Settings.get("grabBackFocus");
 chrome.runtime.getPlatformInfo(function(info): void {
   Settings.CONST.Platform = info.os;
   Settings.bufferToLoad.onMac = info.os === (chrome.runtime.PlatformOs ? chrome.runtime.PlatformOs.MAC : "mac");

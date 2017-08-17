@@ -1,6 +1,3 @@
-/**
- * focused: 1; new tab: 2; queue: 64; job: 128
- */
 const enum HintMode {
   empty = 0, focused = 1, newTab = 2, queue = 64,
   mask_focus_new = focused | newTab, mask_queue_focus_new = mask_focus_new | queue,
@@ -9,6 +6,7 @@ const enum HintMode {
   OPEN_IN_CURRENT_TAB = DEFAULT, // also 1
   OPEN_IN_NEW_BG_TAB = newTab,
   OPEN_IN_NEW_FG_TAB = newTab | focused,
+  OPEN_CURRENT_WITH_QUEUE = queue,
   OPEN_WITH_QUEUE = queue | newTab,
   OPEN_FG_WITH_QUEUE = queue | newTab | focused,
   HOVER = min_job,
@@ -40,7 +38,7 @@ declare namespace HintsNS {
     activator (this: any, linkEl: LinkEl, hintEl: HTMLSpanElement): void | false;
   }
   interface Options extends SafeObject {
-    mode?: string;
+    mode?: string | number;
     url?: boolean;
   }
   type NestedFrame = false | 0 | null | HTMLIFrameElement | HTMLFrameElement;
@@ -60,7 +58,7 @@ declare namespace HintsNS {
   }
   interface VWindow extends Window {
     VHints: typeof VHints,
-    VEventMode: typeof VEventMode,
+    VEventMode: VEventMode,
     VDom: {
       isHTML (): boolean;
     };
@@ -73,6 +71,7 @@ var VHints = {
     OPEN_IN_CURRENT_TAB: HintMode.OPEN_IN_CURRENT_TAB,
     OPEN_IN_NEW_BG_TAB: HintMode.OPEN_IN_NEW_BG_TAB,
     OPEN_IN_NEW_FG_TAB: HintMode.OPEN_IN_NEW_FG_TAB,
+    OPEN_CURRENT_WITH_QUEUE: HintMode.OPEN_CURRENT_WITH_QUEUE,
     OPEN_WITH_QUEUE: HintMode.OPEN_WITH_QUEUE,
     OPEN_FG_WITH_QUEUE: HintMode.OPEN_FG_WITH_QUEUE,
     HOVER: HintMode.HOVER,
@@ -107,7 +106,7 @@ var VHints = {
   } as HintsNS.KeyStatus,
   isActive: false,
   noHUD: false,
-  options: null as never as FgOptions,
+  options: null as never as HintsNS.Options,
   timer: 0,
   activate (count?: number, options?: FgOptions | null): void {
     if (this.isActive) { return; }
@@ -119,7 +118,6 @@ var VHints = {
       }
       if (!VDom.isHTML()) { return; }
     }
-    VEventMode.exitGrab();
     VHandler.remove(this);
     this.setModeOpt((count as number) | 0, Object.setPrototypeOf(options || (options = {} as any as FgOptions), null));
     let str = options.characters ? options.characters + "" : VSettings.cache.linkHintCharacters;
@@ -164,11 +162,12 @@ var VHints = {
   },
   setModeOpt (count: number, options: HintsNS.Options): void {
     if (this.options === options) { return; }
-    let ref = this.Modes, mode = (this.CONST[options.mode as string] as number) | 0, modeOpt: HintsNS.ModeOpt | undefined;
+    let ref = this.Modes, modeOpt: HintsNS.ModeOpt | undefined,
+    mode = ((options.mode as number) > 0 ? options.mode as number : (this.CONST[options.mode as string]) as number) | 0;
     if (mode === HintMode.EDIT_TEXT && options.url) {
       mode = HintMode.EDIT_LINK_URL;
     }
-    if (count > 1) { mode <= HintMode.min_disable_queue ? (mode |= HintMode.queue) : (count = 1); }
+    if (count > 1) { mode < HintMode.min_disable_queue ? (mode |= HintMode.queue) : (count = 1); }
     for (let i in ref) {
       if (ref.hasOwnProperty(i) && ((ref as Dict<HintsNS.ModeOpt>)[i] as HintsNS.ModeOpt).hasOwnProperty(mode)) {
         modeOpt = (ref as Dict<HintsNS.ModeOpt>)[i] as HintsNS.ModeOpt;
@@ -199,27 +198,35 @@ var VHints = {
     const a = VHints;
     if (a && a.isActive) { a.pTimer = 0; return a.setMode(a.mode); }
   },
+  activateAndFocus (a: number, b: FgOptions): void {
+    return VEventMode.focusAndListen(() => {
+      VHints.isActive = false;
+      VHints.activate(a, b);
+    });
+  },
   tryNestedFrame (command: string, a: number, b: FgOptions): boolean {
     this.frameNested === false && this.checkNestedFrame();
-    if (!this.frameNested) { return false; }
-    let child: HintsNS.VWindow, done = false;
+    let frame = this.frameNested, child: HintsNS.VWindow = null as never, err = true, done = false;
+    if (!frame) { return false; }
     try {
-      child = this.frameNested.contentWindow as HintsNS.VWindow;
-      if (!child.VDom.isHTML()) { throw Error("vimium-disabled"); }
-      if (command === "VHints.activate") {
-        (done = child.VHints.isActive) && child.VHints.deactivate(true);
+      if (frame.contentDocument && (child = frame.contentWindow as HintsNS.VWindow).VDom.isHTML()) {
+        if (command === "VHints.activate") {
+          (done = child.VHints.isActive) && child.VHints.deactivate(true);
+        }
+        err = child.VEventMode.keydownEvents(VEventMode.keydownEvents());
       }
-      child.VEventMode.keydownEvents(VEventMode.keydownEvents());
-    } catch (e) {
+    } catch (e) {}
+    if (err) {
       // It's cross-site, or Vimium++ on the child is wholly disabled
       // * Cross-site: it's in an abnormal situation, so we needn't focus the child;
       this.frameNested = null;
       return false;
     }
-    child.focus();
+    child.VEventMode.focusAndListen(done ? function() {
+      VUtils.execCommand(child, command, a, b);
+    } : null);
     if (done) { return true; }
     if (document.readyState !== "complete") { this.frameNested = false; }
-    VUtils.execCommand(child, command, a, b);
     return true;
   },
   maxLeft: 0,
@@ -380,12 +387,12 @@ var VHints = {
       rect = element.getClientRects()[0];
       if (rect) {
         w = rect.left; h = rect.top;
-        cr = VRect.cropRectToVisible(w, h, w + 8, h + 8);
+        cr = VDom.cropRectToVisible(w, h, w + 8, h + 8);
       }
     } else if (rect = element.getClientRects()[0]) {
       w = rect.right + (rect.width < 3 ? 3 : 0);
       h = rect.bottom + (rect.height < 3 ? 3 : 0);
-      cr = VRect.cropRectToVisible(rect.left, rect.top, w, h);
+      cr = VDom.cropRectToVisible(rect.left, rect.top, w, h);
     }
     if (cr && window.getComputedStyle(element).visibility === "visible") {
       arr.push([element, cr, ClickType.Default]);
@@ -464,7 +471,7 @@ var VHints = {
       if (list[i = j][2] !== ClickType.classname) {
       } else if ((k = list[--j][2]) > ClickType.frame || !this.isDescendant(list[i][0], list[j][0])) {
         continue;
-      } else if (VRect.isContaining(list[j][1], list[i][1])) {
+      } else if (VDom.isContaining(list[j][1], list[i][1])) {
         list.splice(i, 1);
         continue;
       } else if (k < ClickType.listener || j === 0) {
@@ -537,7 +544,7 @@ var VHints = {
     }
     visibleElements.reverse();
 
-    const obj = [null as never, null as never] as [VRect[], VRect], func = VRect.SubtractSequence.bind(obj);
+    const obj = [null as never, null as never] as [VRect[], VRect], func = VDom.SubtractSequence.bind(obj);
     let r2 = null as VRect[] | null, t: VRect, reason: ClickType, visibleElement: Hint;
     for (let _len = visibleElements.length, _j = Math.max(0, _len - 16); 0 < --_len; ) {
       _j > 0 && --_j;
@@ -556,7 +563,7 @@ var VHints = {
       if (r2.length > 0) {
         t = r2[0];
         t[1] > this.maxTop && t[1] > r[1] || t[0] > this.maxLeft && t[0] > r[0] ||
-          r2.length === 1 && !VRect.testCrop(t) || (visibleElement[1] = t);
+          r2.length === 1 && !VDom.testCrop(t) || (visibleElement[1] = t);
       } else if ((reason = visibleElement[2]) === ClickType.classname
             || (reason === ClickType.listener ? isNormal : reason === ClickType.tabindex)
           && visibleElement[0].contains(visibleElements[_i][0])) {
@@ -599,8 +606,7 @@ var VHints = {
         if (VKeyboard.getKeyStat(event) === KeyStat.shiftKey) {
           this.lastMode = this.mode;
         }
-        this.setMode((this.mode | HintMode.focused) ^ (this.mode < HintMode.queue ?
-          HintMode.mask_focus_new : HintMode.mask_queue_focus_new));
+        this.setMode((this.mode | HintMode.focused) ^ HintMode.mask_focus_new);
       }
     } else if (i === VKeyCodes.ctrlKey || i === VKeyCodes.metaKey) {
       if (this.mode < HintMode.min_job) {
@@ -616,7 +622,7 @@ var VHints = {
         }
         this.setMode(((this.mode >= HintMode.min_job ? HintMode.empty : HintMode.newTab) | this.mode) ^ HintMode.queue);
       }
-    } else if (i >= VKeyCodes.pageup && i <= VKeyCodes.down) {
+    } else if (i <= VKeyCodes.down && i >= VKeyCodes.pageup) {
       VEventMode.scroll(event);
       this.ResetMode();
     } else if (i === VKeyCodes.space) {
@@ -674,7 +680,7 @@ var VHints = {
       }
     } else {
       clickEl = null;
-      VHUD.showForDuration("The link has been removed from the page", 2000);
+      VHUD.showForDuration("The link has been removed from page", 2000);
     }
     this.pTimer = -(VHUD.text !== str);
     if (!(this.mode & HintMode.queue)) {
@@ -689,9 +695,10 @@ var VHints = {
       if (1 === --_this.count && _this.isActive) {
         return _this.setMode(_this.mode1);
       }
-    }, 0);
+    }, 18);
   },
   reinit (lastEl?: HintsNS.LinkEl | null, rect?: VRect | null): void {
+    if (!VSettings.enabled) { return this.clean(); }
     this.isActive = false;
     this.keyStatus.tab = 0;
     this.zIndexes = null;
@@ -914,20 +921,24 @@ getUrlData (link: HTMLAnchorElement): string {
 },
 
 highlightChild (el: HTMLIFrameElement | HTMLFrameElement): false | void {
-  const child = el.contentWindow as HintsNS.VWindow;
-  setTimeout(function() { child.closed || child.focus(); }, 0);
+  let err: boolean | null = true, child: HintsNS.VWindow = null as never;
   try {
-    child.VEventMode.keydownEvents(VEventMode.keydownEvents());
-  } catch (e) {
-    VPort.post({ handler: "execInChild", url: el.src,
-      command: "Hints.activate", count: this.count, options: this.options
+    err = !el.contentDocument ||
+      (child = el.contentWindow as HintsNS.VWindow).VEventMode.keydownEvents(VEventMode.keydownEvents());
+  } catch (e) {}
+  const { count, options } = this;
+  options.mode = this.mode;
+  if (err) {
+    VPort.send({ handler: "execInChild", url: el.src, CSS: "1",
+      command: "Hints.activateAndFocus", count, options
+    }, function(res): void {
+      if (!res) {
+        el.contentWindow.focus();
+      }
     });
     return;
   }
-  const lh = child.VHints;
-  lh.isActive = false;
-  lh.activate(this.count, this.options);
-  lh.isActive && lh.setMode(this.mode);
+  child.VHints.activateAndFocus(count, options);
   return false;
 },
 
@@ -992,7 +1003,7 @@ COPY_TEXT: {
     }
     if (this.mode >= HintMode.min_edit && this.mode <= HintMode.max_edit) {
       const force = this.options.force;
-      VPort.post<"activateVomnibar", 1, { count: number } & Partial<VomnibarNS.ContentOptions>>({
+      (VPort as ComplicatedVPort).post<"activateVomnibar", { count: number } & Partial<VomnibarNS.ContentOptions>>({
         handler: "activateVomnibar",
         count: 1,
         force: force != null ? !!force : !isUrl,
@@ -1020,7 +1031,7 @@ COPY_TEXT: {
   }
 } as HintsNS.ModeOpt,
 OPEN_INCOGNITO_LINK: {
-  "138": "Open link in incognito",
+  "138": "Open link in incognito window",
   "202": "Open multi incognito tabs",
   activator (link): void {
     const url = this.getUrlData(link);
@@ -1119,6 +1130,7 @@ DEFAULT: {
   "0": "Open link in current tab",
   "2": "Open link in new tab",
   "3": "Open link in new active tab",
+  "64": "Open multiple links in current tab",
   "66": "Open multiple links in new tabs",
   "67": "Activate link and hold on",
   activator (link, hint): void | false {
@@ -1136,9 +1148,9 @@ DEFAULT: {
       VDom.UI.simulateSelect(link, true);
       return false;
     }
-    const mode = this.mode & HintMode.mask_focus_new, onMac = VSettings.cache.onMac;
+    const mode = this.mode & HintMode.mask_focus_new, onMac = VSettings.cache.onMac, newTab = mode >= HintMode.newTab;
     let alterTarget: string | null | undefined;
-    if (mode >= HintMode.newTab && link instanceof HTMLAnchorElement) {
+    if (newTab && link instanceof HTMLAnchorElement) {
       alterTarget = link.getAttribute('target');
       if (alterTarget !== "_top") {
         link.target = "_top";
@@ -1149,8 +1161,8 @@ DEFAULT: {
     // NOTE: not clear last hovered item, for that it may be a menu
     VDom.UI.click(link, {
       altKey: false,
-      ctrlKey: mode >= HintMode.newTab && !onMac,
-      metaKey: mode >= HintMode.newTab &&  onMac,
+      ctrlKey: newTab && !onMac,
+      metaKey: newTab &&  onMac,
       shiftKey: mode === HintMode.OPEN_IN_NEW_FG_TAB
     }, mode !== HintMode.empty || link.tabIndex >= 0);
     if (alterTarget === undefined) {}

@@ -12,7 +12,7 @@
   <body>
     <table id="wrapper">
       <thead><tr><td colspan="2">
-        <header id="mainHeader">Vimium++ Options</header>
+        <header id="mainHeader"><span class="Vim">Vim</span>ium++ Options</header>
       </td><td></td></tr></thead>
       <tr>
         <td class="caption">Excluded URLs<br/>and keys</td>
@@ -76,7 +76,7 @@ unmapAll
 a: http://a.com/?q=$s
 js\:|JS: javascript:$S; Run JavaScript
 MainKey|c|c\:|MainName: \
-  http://c.com/?q=%s&amp;space=\s\ space_end
+  http://c.com/?q=$s&amp;space=\s\ space_end
 # this is a comment</pre>
           </code>
           <var>$s</var> will be replaced with your search terms.
@@ -276,19 +276,6 @@ Warning: Chrome has a bug of mistaken dialogue width if you has changed screen t
           </div></td>
         </tr>
         <tr>
-          <td class="caption">Custom outer CSS</td>
-          <td>
-            <textarea id="userDefinedOuterCss" class="code min-height-4 deprecated" data-model="Text"
-              placeholder="ATTENTION: This option will be removed."></textarea>
-          </td>
-          <td class="help"><div class="help-inner">
-            ATTENTION: This feature will be definitely removed in a future release.<br/>
-            <br/>
-            These styles are used in addition to and take precedence over all pages' style.
-            <a class="wrap-left-space" data-auto-resize="userDefinedOuterCss"></a>.
-          </div></td>
-        </tr>
-        <tr>
           <td class="caption">White list of <br/>other extension ids</td>
           <td>
             <textarea id="extWhiteList" class="code min-height-4" data-model="NonEmptyText"
@@ -339,7 +326,7 @@ Warning: Chrome has a bug of mistaken dialogue width if you has changed screen t
           <button id="saveOptions" disabled="disabled">No Changes</button>
         </span>
         <span id="settingFileManager">
-          <input  id="settingsFile" type="file" class="hide" accept=".json,application/json" data-delay="continue" />
+          <input  id="settingsFile" type="file" class="hidden" accept=".json,application/json" data-delay="continue" />
           <button id="importButton" class="left">Import Settings</button><select
               id="importOptions" class="right" data-delay="">
             <option value="exported" selected="selected">&nbsp;Exported File</option>

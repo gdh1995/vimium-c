@@ -5,17 +5,13 @@ interface ShadowRootWithSelection extends ShadowRoot {
 VDom.UI = {
   box: null,
   styleIn: null,
-  styleOut: null,
   root: null,
   callback: null,
   flashLastingTime: 400,
-  showing: true,
-  addElement: (function<T extends HTMLElement> (this: DomUI, element: T, options?: UIElementOptions | null): T {
+  addElement<T extends HTMLElement> (this: DomUI, element: T, options?: UIElementOptions): T {
     options = Object.setPrototypeOf(options || {}, null);
-    this.showing = options.showing !== false;
-    VPort.send({ handler: "initInnerCSS" }, this.InitInner);
-    this.InitInner = null as never;
-    this.init && this.init(false);
+    let notShowAtOnce = options.showing === false, doAdd = options.adjust;
+    this.box = VDom.createElement("div");
     (this.box as HTMLElement).style.display = "none";
     this.root = (this.box as HTMLElement).attachShadow ?
         (this.box as HTMLElement & AttachShadow).attachShadow({mode: "closed"})
@@ -24,17 +20,37 @@ VDom.UI = {
     this.root.addEventListener("load", function(e: Event): void {
       const t = e.target as HTMLElement; t.onload && t.onload(e); e.stopImmediatePropagation();
     }, true);
-    this.addElement = function<T extends HTMLElement>(this: DomUI, element: T | null
-        , options?: UIElementOptions | null | { fake: true }): T | void {
+    this.css = (innerCSS): void => {
+      this.styleIn = this.createStyle(innerCSS);
+      (this.root as ShadowRoot).insertBefore(this.styleIn, (this.root as ShadowRoot).firstElementChild);
+      this.css = function(css) { (this.styleIn as HTMLStyleElement).textContent = css; };
+      if (notShowAtOnce) { return; }
+      this.styleIn.onload = function (): void {
+        this.onload = null as never;
+        const a = VDom.UI;
+        (a.box as HTMLElement).style.display = "";
+        a.callback && a.callback();
+      };
+      if (doAdd !== false) {
+        doAdd = false;
+        return this.adjust();
+      }
+    };
+    let a = this.styleIn as string | null;
+    if (a) {
+      this.css(a);
+    } else {
+      VPort.post({ handler: "css" });
+    }
+    options.adjust = doAdd === true;
+    this.addElement = function<T extends HTMLElement>(this: DomUI, element: T, options?: UIElementOptions | null): T {
       options = Object.setPrototypeOf(options || {}, null);
-      if (options.fake === true) { return; }
       options.adjust === false || this.adjust();
-      return options.before ? (this.root as ShadowRoot).insertBefore(element as T, options.before)
-        : (this.root as ShadowRoot).appendChild(element as T);
-    } as DomUI["addElement"];
-    options.adjust = options.adjust === true;
+      return options.before ? (this.root as ShadowRoot).insertBefore(element, options.before)
+        : (this.root as ShadowRoot).appendChild(element);
+    };
     return this.addElement(element as T, options);
-  }) as DomUI["addElement"],
+  },
   addElementList (els, offset): HTMLDivElement {
     const parent = VDom.createElement("div");
     parent.className = "R HM";
@@ -48,34 +64,18 @@ VDom.UI = {
     return this.addElement(parent);
   },
   adjust (event): void {
-    const ui = VDom.UI, el = ui.root ? document.webkitFullscreenElement : null,
+    const ui = VDom.UI, el = document.webkitFullscreenElement,
     el2 = el && !(ui.root as Node).contains(el) ? el : document.documentElement as HTMLElement;
     // Chrome also always remove node from its parent since 58 (just like Firefox), which meets the specification
     // doc: https://dom.spec.whatwg.org/#dom-node-appendchild
     //  -> #concept-node-append -> #concept-node-pre-insert -> #concept-node-adopt -> step 2
-    el2 !== (ui.box as HTMLElement).parentElement && el2.appendChild(ui.box as Element);
+    el2 !== (ui.box as HTMLElement).parentElement && VDom.append(el2, ui.box as Element);
     (el || event) && (el ? addEventListener : removeEventListener)("webkitfullscreenchange", ui.adjust, true);
   },
-  init (showing): void {
-    this.init = null as never;
-    this.box = VDom.createElement("vimium-ui");
-    if (showing !== false) { return this.adjust(); }
-  },
-  InitInner (innerCSS): void {
-    const _this = VDom.UI;
-    _this.styleIn = _this.createStyle(innerCSS);
-    (_this.root as ShadowRoot).insertBefore(_this.styleIn, (_this.root as ShadowRoot).firstElementChild);
-    if (!_this.showing) { _this.showing = true; return; }
-    _this.styleIn.onload = function (): void {
-      this.onload = null as never;
-      (_this.box as HTMLElement).style.display = "";
-      _this.callback && _this.callback();
-    };
-    return _this.adjust();
-  },
   toggle (enabled): void {
-    if (!enabled) { (this.box as HTMLElement).remove(); return; }
-    if (!(this.box as HTMLElement).parentNode) { return this.adjust(); }
+    if (enabled) { return this.adjust(); }
+    (this.box as HTMLElement).remove();
+    removeEventListener("webkitfullscreenchange", this.adjust, true);
   },
   createStyle (text, doc): HTMLStyleElement {
     const css = (doc || VDom).createElement("style");
@@ -83,16 +83,7 @@ VDom.UI = {
     css.textContent = text;
     return css;
   },
-  InsertInnerCSS (inner): void {
-    VDom.UI.styleIn && (VDom.UI.styleIn.textContent = inner.css);
-  },
-  setOuterCSS (outer): void {
-    let el = this.styleOut;
-    if (!outer) { el && el.remove(); return; }
-    el ? (el.textContent = outer) : (el = this.styleOut = this.createStyle(outer));
-    this.init && this.init(true);
-    el.parentNode === this.box || (this.box as HTMLElement).appendChild(el);
-  },
+  css (innerCSS): void { this.styleIn = innerCSS; },
   getSelection (): Selection {
     let sel = window.getSelection(), el: Node | null, el2: Node | null;
     if (sel.focusNode === document.documentElement && (el = VScroller.current)) {
@@ -112,7 +103,8 @@ VDom.UI = {
   click (element, modifiers, addFocus): boolean {
     element === VDom.lastHovered || VDom.unhoverLast(element, modifiers);
     VDom.mouse(element, "mousedown", modifiers);
-    addFocus && element !== VEventMode.lock() && element.focus && element.focus();
+    // Note: here we can check doc.activeEl only when @click is used on the current focused document
+    addFocus && element !== VEventMode.lock() && element !== document.activeElement && element.focus && element.focus();
     VDom.mouse(element, "mouseup", modifiers);
     return VDom.mouse(element, "click", modifiers);
   },
@@ -148,15 +140,15 @@ VDom.UI = {
     VDom.prepareCrop();
     VDom.bodyZoom = b && VDom.isInDOM(clickEl, b) && +getComputedStyle(b).zoom || 1;
     const rect = VDom.getVisibleClientRect(clickEl),
-    cr = clickEl.getBoundingClientRect(), bcr = VRect.fromClientRect(cr);
-    return rect && !VRect.isContaining(bcr, rect) ? rect : VDom.NotVisible(null, cr) ? null : bcr;
+    cr = clickEl.getBoundingClientRect(), bcr = VDom.fromClientRect(cr);
+    return rect && !VDom.isContaining(bcr, rect) ? rect : VDom.NotVisible(null, cr) ? null : bcr;
   },
   flash: function (this: DomUI, el: Element | null, rect?: VRect | null): number | void {
     rect || (rect = this.getVRect(el as Element));
     if (!rect) { return; }
     const flashEl = VDom.createElement("div"), nfs = !document.webkitIsFullScreen;
     flashEl.className = "R Flash";
-    VRect.setBoundary(flashEl.style, rect, nfs);
+    VDom.setBoundary(flashEl.style, rect, nfs);
     VDom.bodyZoom !== 1 && nfs && (flashEl.style.zoom = "" + VDom.bodyZoom);
     this.addElement(flashEl);
     return setTimeout(function() {

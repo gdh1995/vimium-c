@@ -13,37 +13,46 @@
 
 #helpText, #state {
 	font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
-	font-size: 12px;
 }
-#helpText {
-	margin-top: 1px;
-	text-align: left;
-}
-
 
 #state {
 	padding-left: 5px;
 	background: #f5f5f5;
 	border-bottom: 0.01px solid #979ca0;
-	line-height: 16px;
+	height: 22px;
+	line-height: 22px;
 	margin: 0;
 	width: 495px;
+}
+
+.state-value {
+	color: #15c;
+}
+.fixed-width {
+	display: inline-block;
+	min-width: 54px;
+	text-align: right;
 }
 
 /* These are overridden from options.css. */
 
 #footer {
-	padding: 2px;
-	line-height: 24px;
+	padding: 5px 2px 2px 2px;
 	text-align: right;
 }
+#helpText {
+	margin-top: -2px;
+	text-align: left;
+}
+
 
 /* Make exclusionRules smaller than on the options page, because there are likely to be fewer
 	 matching rules, and the popup obscures the underlying page.
  */
 #exclusionRules {
-	height: 130px;
-	margin-bottom: 27px;
+	height: 141px;
+	margin-bottom: 34px;
+	margin-top: 0;
 }
     </style>
   </head>
@@ -56,8 +65,10 @@
 
     <div id="footer">
       <span id="helpText">
-        <span id="helpSpan">These are the rules matching this page.</span>
-        <a id="optionsLink" href="options.html" target="_blank" tabindex="99">Options</a>.
+        <div id="helpSpan">These are the rules matching this page.</div>
+        <a id="toggleOnce" href="vimium://status toggle" class="decorate-none" tabindex="1">Disable for once</a><span class="hidden">
+          / <a id="resetStatus" href="vimium://status reset" class="decorate-none" tabindex="1">Reset status</a></span>.
+        <a id="optionsLink" href="options.html" target="_blank" tabindex="1">Open options page</a>.
       </span>
       <button id="exclusionAddButton">Add Rule</button>
       <button id="saveOptions" disabled="disabled">No Changes</button>

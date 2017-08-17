@@ -93,9 +93,9 @@ interface ExportedSettings {
   description?: string;
   time?: number;
   environment?: {
-    chrome: number;
-    extension: string;
-    platform: string;
+    chrome?: number;
+    extension?: string;
+    platform?: string;
   };
   findModeRawQueryList?: never;
   [key: string]: any;
@@ -114,29 +114,29 @@ $<ElementWithDelay>("#exportButton").onclick = function(event): void {
     extension: bgSettings.CONST.CurrentVersion,
     platform: bgSettings.CONST.Platform
   };
-  (function() {
-    const storage = localStorage, all = bgSettings.defaults;
-    for (let i = 0, len = storage.length, j: string[]; i < len; i++) {
-      const key = storage.key(i) as string as keyof SettingsNS.PersistentSettings;
-      if (key.indexOf("|") >= 0 || key.substring(key.length - 2) === "_f" || key === "findModeRawQueryList") {
-        continue;
-      }
-      const storedVal = storage.getItem(key) as string;
-      if (typeof all[key] !== "string") {
-        exported_object[key] = (key in all) ? bgSettings.get(key) : storedVal;
-      } else if (storedVal.indexOf("\n") > 0) {
-        exported_object[key] = j = storedVal.split("\n");
-        j.push("");
-      } else {
-        exported_object[key] = storedVal;
-      }
+  for (let storage = localStorage, all = bgSettings.defaults, i = 0, len = storage.length, j: string[]; i < len; i++) {
+    const key = storage.key(i) as string as keyof SettingsNS.PersistentSettings;
+    if (key.indexOf("|") >= 0 || key.substring(key.length - 2) === "_f" || key === "findModeRawQueryList") {
+      continue;
     }
-  })();
+    const storedVal = storage.getItem(key) as string;
+    if (typeof all[key] !== "string") {
+      exported_object[key] = (key in all) ? bgSettings.get(key) : storedVal;
+    } else if (storedVal.indexOf("\n") > 0) {
+      exported_object[key] = j = storedVal.split("\n");
+      j.push("");
+    } else {
+      exported_object[key] = storedVal;
+    }
+  }
   const d = new Date();
   if (!all_static) {
     exported_object.time = d.getTime();
   }
-  const exported_data = JSON.stringify(exported_object, null, '\t'), d_s = formatDate(d);
+  let exported_data = JSON.stringify(exported_object, null, '\t'), d_s = formatDate(d);
+  if (exported_object.environment.platform === "win") {
+    exported_data = exported_data.replace(<RegExpG>/\n/g, "\r\n");
+  }
   exported_object = null;
   let file_name = 'vimium++_';
   if (all_static) {
@@ -152,16 +152,21 @@ $<ElementWithDelay>("#exportButton").onclick = function(event): void {
   click(nodeA);
   URL.revokeObjectURL(nodeA.href);
   console.info("EXPORT settings to %c%s%c at %c%s%c."
-    , "color: darkred", file_name, "color: auto"
-    , "color: darkblue", d_s, "color: auto");
+    , "color:darkred", file_name, "color:auto", "color:darkblue", d_s, "color:auto");
 };
 
 function _importSettings(time: number, new_data: ExportedSettings, is_recommended?: boolean): void {
+  let env = new_data.environment, plat = env && env.platform || ""
+    , ext_ver = env && parseFloat(env.extension || "0") || 0
+    , newer = ext_ver > parseFloat(bgSettings.CONST.CurrentVersion);
+  plat && (plat = ("" + plat).substring(0, 10));
   if (!confirm(
-    (is_recommended !== true ? "You are loading a settings copy exported"
-      + (time ? " at:\n        " + formatDate(time) : " before.")
-      : "You are loading the recommended settings.")
-    + "\n\nAre you sure you want to continue?"
+`You are loading ${is_recommended !== true ? "a settings copy" : "the recommended settings:"}
+      * from ${ext_ver > 1 ? `version ${ext_ver} of ` : "" }Vimium++${newer ? " (newer)" : ""}
+      * for ${plat ? `the ${plat[0].toUpperCase() + plat.substring(1)} platform` : "common platforms" }
+      * exported ${time ? "at " + formatDate(time) : "before"}
+
+Are you sure you want to continue?`
   )) {
     window.VHUD && VHUD.showForDuration("You cancelled importing.", 1000);
     return;
@@ -171,14 +176,13 @@ function _importSettings(time: number, new_data: ExportedSettings, is_recommende
     let val = args.pop();
     val = typeof val !== "string" || val.length <= 72 ? val
       : val.substring(0, 68).trimRight() + " ...";
-    return console.log("%s %c%s%c", method, "color: darkred", key, "color: auto", ...args, val);
+    return console.log("%s %c%s", method, "color:darkred", key, ...args, val);
   } as {
     (method: string, key: string, val: any): any;
     (method: string, key: string, actionName: string, val: any): any;
   };
   if (time > 10000) {
-    console.info("IMPORT settings saved at %c%s%c"
-      , "color: darkblue", formatDate(time), "color: auto");
+    console.info("IMPORT settings saved at %c%s%c.", "color:darkblue", formatDate(time), "color:auto");
   } else {
     console.info("IMPORT settings:", is_recommended ? "recommended" : "saved before");
   }
@@ -190,7 +194,8 @@ function _importSettings(time: number, new_data: ExportedSettings, is_recommende
   delete new_data.author;
   delete new_data.description;
 
-  const storage = localStorage, all = bgSettings.defaults, _ref = Option.all;
+  const storage = localStorage, all = bgSettings.defaults, _ref = Option.all,
+  otherLineEndRe = <RegExpG>/\r\n?/g;
   for (let i = storage.length; 0 <= --i; ) {
     const key = storage.key(i) as string;
     if (key.indexOf("|") >= 0) { continue; }
@@ -209,8 +214,11 @@ function _importSettings(time: number, new_data: ExportedSettings, is_recommende
       // NOTE: we assume all nullable settings have the same default value: null
       new_value = all[key];
     } else {
-      if (new_value instanceof Array && typeof all[key] === "string") {
-        new_value = new_value.join("\n").trim();
+      if (typeof all[key] === "string") {
+        if (new_value instanceof Array) {
+          new_value = new_value.join("\n").trimRight();
+        }
+        new_value = new_value.replace(otherLineEndRe, "\n");
       }
       new_value = item.normalize(new_value, typeof all[key] === "object");
     }
@@ -244,8 +252,11 @@ function _importSettings(time: number, new_data: ExportedSettings, is_recommende
       logUpdate("remove", key, ":=", new_value);
       continue;
     }
-    if (new_value instanceof Array && typeof all[key as SettingKeys] === "string") {
-      new_value = new_value.join("\n").trim();
+    if (typeof all[key as SettingKeys] === "string") {
+      if (new_value instanceof Array) {
+        new_value = new_value.join("\n").trimRight();
+      }
+      new_value = new_value.replace(otherLineEndRe, "\n");
     }
     if (key in all) {
       if (bgSettings.get(key as SettingKeys) !== new_value) {
@@ -267,16 +278,19 @@ function _importSettings(time: number, new_data: ExportedSettings, is_recommende
 
 function importSettings(time: number | string | Date
     , data: string, is_recommended?: boolean): void {
-  let new_data: ExportedSettings | null = null, err_msg: string = "";
+  let new_data: ExportedSettings | null = null, e: Error | null = null, err_msg: string = "";
   try {
-    new_data = parseJSON(data);
-    if (!new_data) { err_msg = "No JSON data found!"; }
-  } catch (e) {
+    let d = parseJSON(data);
+    if (d instanceof Error) { e = d; }
+    else if (!d) { err_msg = "No JSON data found!"; }
+    else { new_data = d; }
+  } catch (_e) { e = _e; }
+  if (e != null) {
     err_msg = e ? e.message + "" : "Error: " + (e !== "" ? e : "(unknown)");
     let arr = (<RegExpSearchable<2> & RegExpOne> /^(\d+):(\d+)$/).exec(err_msg);
     err_msg = !arr ? err_msg :
 `Sorry, Vimium++ can not parse the JSON file:
-  an unexpect character at line ${arr[1]}, column ${arr[2]}`;
+  an unexpect character at line ${arr[1]}, column ${arr[2]}`
   }
   if (new_data) {
     time = +new Date(new_data && new_data.time || (typeof time === "object" ? +time : time)) || 0;
@@ -334,6 +348,7 @@ _el = null;
   delete (window as OptionWindow)._delayed;
   const node = $<ElementWithDelay>(arr[0]), event = arr[1];
   node.onclick && node.onclick(event);
+  BG.Utils.GC();
 })();
 
 function parseJSON(text: string): any {
@@ -362,10 +377,14 @@ function parseJSON(text: string): any {
   } else {
     err_line = err_offset = 1;
   }
-  throw new SyntaxError(err_line + ":" + err_offset);
+  return new SyntaxError(err_line + ":" + err_offset);
 
   function clean(this: void): boolean { return (<RegExpOne> /a?/).test(""); }
-  function spaceN(this: void, str: string): string { return ' '.repeat(str.length); }
+  function spaceN(this: void, str: string): string {
+    if (' '.repeat) { return ' '.repeat(str.length); }
+    for (var s2 = '', n = str.length; 0 < n--; ) { s2 += ' '; }
+    return s2;
+  }
   function onReplace(this: void, str: string): string {
     let ch = str[0];
     return ch === '/' || ch === '#' ? str[0] === "/*" ? str.replace(notLFRe, spaceN) : spaceN(str) : str;

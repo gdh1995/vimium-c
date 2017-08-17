@@ -5,6 +5,12 @@ setTimeout((function (): void {
 
 type MatchRange = [number, number];
 
+const enum BookmarkStatus {
+  notInited = 0,
+  initing = 1,
+  inited = 2,
+}
+
 interface DecodedItem {
   readonly url: string;
   text: string;
@@ -215,18 +221,18 @@ bookmarks: {
   bookmarks: [] as Bookmark[],
   currentSearch: null as CompletersNS.QueryStatus | null,
   path: "",
-  deep: 0,
-  status: 0,
+  depth: 0,
+  status: BookmarkStatus.notInited,
   filter (query: CompletersNS.QueryStatus, index: number): void {
     if (queryTerms.length === 0) {
       Completers.next([]);
       if (index !== 0) { return; }
-    } else if (this.status === 2) {
+    } else if (this.status === BookmarkStatus.inited) {
       return this.performSearch();
     } else {
       this.currentSearch = query;
     }
-    if (this.status === 0) { return this.refresh(); }
+    if (this.status === BookmarkStatus.notInited) { return this.refresh(); }
   },
   StartsWithSlash (str: string): boolean { return str.charCodeAt(0) === 47; },
   performSearch (): void {
@@ -270,7 +276,7 @@ bookmarks: {
     });
   } as ((this: void) => void) | null,
   refresh (): void {
-    this.status = 1;
+    this.status = BookmarkStatus.initing;
     if (this._timer) {
       clearTimeout(this._timer);
       this._timer = 0;
@@ -278,7 +284,7 @@ bookmarks: {
     chrome.bookmarks.getTree(this.readTree.bind(this));
   },
   readTree (tree: chrome.bookmarks.BookmarkTreeNode[]): void {
-    this.status = 2;
+    this.status = BookmarkStatus.inited;
     this.bookmarks = [];
     tree.forEach(this.traverseBookmark, this);
     const query = this.currentSearch;
@@ -296,11 +302,11 @@ bookmarks: {
     const title = bookmark.title,  path = this.path + '/' + (title || bookmark.id);
     if (bookmark.children) {
       const oldPath = this.path;
-      if (2 < ++this.deep) {
+      if (2 < ++this.depth) {
         this.path = path;
       }
       bookmark.children.forEach(this.traverseBookmark, this);
-      --this.deep;
+      --this.depth;
       this.path = oldPath;
       return;
     }
@@ -318,6 +324,7 @@ bookmarks: {
   _wait: 60000,
   Later (): void {
     const _this = Completers.bookmarks, last = Date.now() - _this._stamp;
+    if (this.status !== BookmarkStatus.notInited) { return; }
     if (last >= _this._wait || last < 0) {
       this._timer = 0;
       _this.refresh();
@@ -328,19 +335,19 @@ bookmarks: {
   Delay (): void {
     const _this = Completers.bookmarks;
     _this._stamp = Date.now();
-    if (_this.status < 2) { return; }
-    _this.clean();
-    _this.bookmarks = [];
+    if (_this.status < BookmarkStatus.inited) { return; }
+    _this.reset();
     _this._timer = setTimeout(_this.Later, _this._wait * 2);
-    _this.status = 0;
   },
-  clean (): void {
+  reset (): void {
     const dict = Decoder.dict, ref = HistoryCache.history || [], bs = HistoryCache.binarySearch;
     for (const { url } of this.bookmarks) {
       if ((url in dict) && bs(url, ref) < 0) {
         delete dict[url];
       }
     }
+    this.bookmarks = [];
+    this.status = BookmarkStatus.notInited;
   }
 },
 
@@ -570,7 +577,7 @@ tabs: {
   performSearch (query: CompletersNS.QueryStatus, tabs0: chrome.tabs.Tab[]): void {
     if (query.isOff) { return; }
     if (queryType === FirstQuery.waitFirst) { queryType = FirstQuery.tabs; }
-    const curTabId = TabRecency.last(), noFilter = queryTerms.length <= 0;
+    const curTabId = TabRecency.last, noFilter = queryTerms.length <= 0;
     let suggestions = [] as Suggestion[], tabs = [] as TextTab[];
     for (const tab of tabs0) {
       if (tab.incognito && inNormal) { continue; }
@@ -816,13 +823,18 @@ searchEngines: {
       , func: (this: T, query: CompletersNS.QueryStatus, tabs: chrome.tabs.Tab[]) => void
       , query: CompletersNS.QueryStatus): 1 {
     const cb = func.bind(that, query);
-    if (inNormal != null && Settings.CONST.ChromeVersion >= BrowserVer.MinNoUnmatchedIncognito
-        || Settings.CONST.DisallowIncognito) {
+    if (inNormal == null) {
+      inNormal = TabRecency.incognito !== IncognitoType.mayFalse ? TabRecency.incognito !== IncognitoType.true
+        : Settings.CONST.ChromeVersion >= BrowserVer.MinNoUnmatchedIncognito || Settings.CONST.DisallowIncognito
+          || null;
+    }
+    if (inNormal != null) {
       return chrome.tabs.query({}, cb);
     }
     return chrome.windows.getCurrent(function(wnd): void {
       if (query.isOff) { return; }
       inNormal = wnd ? !wnd.incognito : true;
+      TabRecency.incognito = inNormal ? IncognitoType.ensuredFalse : IncognitoType.true;
       chrome.tabs.query({}, cb);
     });
   },
@@ -902,7 +914,6 @@ searchEngines: {
     queryTerms = (query = query.trim()) ? query.split(Utils.spacesRe) : [];
     maxChars = Math.max(50, Math.min((<number>options.maxChars | 0) || 128, 200));
     maxTotal = maxResults = Math.min(Math.max((options.maxResults as number) | 0, 3), 25);
-    inNormal = Settings.CONST.DisallowIncognito ? true : options.incognito != null ? !options.incognito : null;
     Completers.callback = callback;
     let arr: ReadonlyArray<Completer> | null = null, str: string;
     if (queryTerms.length >= 1 && queryTerms[0].length === 2 && queryTerms[0][0] === ":") {

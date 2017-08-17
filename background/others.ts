@@ -94,13 +94,13 @@ setTimeout((function() { if (!chrome.browserAction) { return; }
   function loadImageAndSetIcon(type: Frames.ValidStatus, path: IconNS.PathBuffer) {
     let img: HTMLImageElement, i: IconNS.ValidSizes, cache = Object.create(null) as IconNS.IconBuffer, count = 0,
     onerror = function(this: HTMLImageElement): void {
-      console.error('Could not load action icon \'' + this.src + '\'.');
+      console.error("Could not load action icon: " + this.getAttribute("src"));
     },
     onload = function(this: HTMLImageElement): void {
-      let canvas: HTMLCanvasElement | null = document.createElement('canvas')
+      let canvas: HTMLCanvasElement | null = document.createElement("canvas")
         , w: number, h: number, ctx: CanvasRenderingContext2D | null;
       canvas.width = w = this.width, canvas.height = h = this.height;
-      ctx = canvas.getContext('2d') as CanvasRenderingContext2D;
+      ctx = canvas.getContext("2d") as CanvasRenderingContext2D;
       ctx.clearRect(0, 0, w, h);
       ctx.drawImage(this, 0, 0, w, h);
       cache[w as 19 | 38] = ctx.getImageData(0, 0, w, h);
@@ -329,7 +329,7 @@ setTimeout(function() {
       return new Date(Date.now() - new Date().getTimezoneOffset() * 1000 * 60
         ).toJSON().substring(0, 19).replace('T', ' ');
     }
-    console.log("%cVimium++%c has been %cinstalled%c with %O at %c%s%c .", "color:red", "color:auto"
+    console.log("%cVimium++%c has been %cinstalled%c with %o at %c%s%c.", "color:red", "color:auto"
       , "color:#0c85e9", "color:auto", details, "color:#0c85e9", now(), "color:auto");
   });
 
@@ -363,6 +363,35 @@ setTimeout(function() {
 chrome.extension.isAllowedIncognitoAccess && chrome.extension.isAllowedIncognitoAccess(function(isAllowedAccess): void {
   Settings.CONST.DisallowIncognito = isAllowedAccess === false;
 });
+
+if (chrome.extension.getViews)
+Utils.GC = function(): void {
+  let timestamp = 0, timeout = 0;
+  Utils.GC = function(): void {
+    if (!(Commands || Exclusions)) { return; }
+    timestamp = Date.now();
+    if (timeout > 0) { return; }
+    timeout = setTimeout(later, GlobalConsts.TimeoutToReleaseBackendModules);
+  };
+  return Utils.GC();
+  function later(): void {
+    const last = Date.now() - timestamp;
+    if (last < GlobalConsts.TimeoutToReleaseBackendModules && last > -5000) {
+      timeout = setTimeout(later, GlobalConsts.TimeoutToReleaseBackendModules - last);
+      return;
+    }
+    timeout = 0;
+    const existing = chrome.extension.getViews().filter(function (wnd): boolean {
+      return wnd.location.pathname.startsWith("/pages/");
+    }).length > 0;
+    if (existing) { return; }
+    Commands = null as never;
+    if (Exclusions && !Settings.cache.exclusionRules.length) {
+      Exclusions.destroy();
+      Exclusions = null as never;
+    }
+  }
+};
 
 setTimeout((function() {
   if (a) {

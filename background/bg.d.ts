@@ -22,7 +22,7 @@ declare namespace Search {
   interface EngineMap extends SafeDict<Engine> {}
 }
 declare namespace Urls {
-  type ValidEvalTag = "math" | "copy" | "search" | "ERROR";
+  type ValidEvalTag = "math" | "copy" | "search" | "ERROR" | "status";
 
   interface BaseEvalResult extends Array<any> {
     readonly [0]: string | string[];
@@ -45,6 +45,9 @@ declare namespace Urls {
   }
   interface CopyEvalResult extends BasePlainEvalResult<"copy"> {}
   interface ErrorEvalResult extends BasePlainEvalResult<"ERROR"> {}
+  interface StatusEvalResult extends BasePlainEvalResult<"status"> {
+    readonly [0]: Frames.ForcedStatusText;
+  }
 
   type EvalArrayResultWithSideEffects = CopyEvalResult;
 
@@ -54,9 +57,9 @@ declare namespace Urls {
   const enum Type {
     Default = 0,
     Full = Default,
-    NoSchema = 1,
-    NoProtocolName = 2,
-    MaxOfInputIsPlainUrl = NoProtocolName,
+    NoProtocolName = 1,
+    NoSchema = 2,
+    MaxOfInputIsPlainUrl = NoSchema,
     PlainVimium = 3,
     Search = 4,
     Functional = 5
@@ -106,11 +109,8 @@ declare namespace Urls {
 }
 
 declare namespace Frames {
-  const enum BaseStatus {
-    enabled = 0, partial = 1, disabled = 2,
-    __fake = -1
-  }
-  type ValidStatus = BaseStatus.enabled | BaseStatus.partial | BaseStatus.disabled;
+  type ValidStatus = Status.enabled | Status.partial | Status.disabled;
+  type ForcedStatusText = "reset" | "enable" | "disable" | "toggle";
 
   interface RawSender {
     readonly frameId: number;
@@ -118,6 +118,7 @@ declare namespace Frames {
     tabId: number;
     url: string;
     status: ValidStatus;
+    flags: Flags;
   }
   interface Sender extends RawSender {
     readonly tabId: number;
@@ -156,19 +157,23 @@ interface Port extends Frames.Port {
   readonly sender: Readonly<Frames.Sender>;
 }
 
+declare const enum IncognitoType {
+  mayFalse = 0, true = 1,
+  ensuredFalse = -1,
+}
+
 type CurrentTabs = [chrome.tabs.Tab];
 
 declare namespace MarksNS {
-  interface StoredMark extends Mark {
+  interface StoredMark extends BaseMarkProps {
     tabId: number;
   }
 
-  interface MarkToGo extends FocusOrLaunch {
+  interface InfoToGo extends FocusOrLaunch, Partial<BaseMark> {
     scroll: ScrollInfo;
-    markName?: string;
     tabId?: number;
   }
-
+  type MarkToGo = InfoToGo & BaseMark;
 }
 
 interface FindModeQuery {
@@ -220,7 +225,6 @@ declare namespace CompletersNS {
     newAutoSelect: boolean, newMatchType: MatchType) => void;
 
   type FullOptions = Options & {
-    incognito?: boolean;
   };
 
   interface GlobalCompletersConstructor {
@@ -258,6 +262,7 @@ declare namespace SettingsNS {
     exclusionRules: ExclusionsNS.StoredRule[];
     extWhiteList: string;
     findModeRawQueryList: string;
+    grabBackFocus: boolean;
     hideHud: boolean;
     keyMappings: string;
     localeEncoding: string;
@@ -315,7 +320,7 @@ declare namespace SettingsNS {
     bufferToLoad (this: Window["Settings"], value: null): void;
   }
   type DeclaredUpdateHookMap = NullableUpdateHookMap
-      & Pick<BaseUpdateHookMap, "extWhiteList" | "newTabUrl" | "baseCSS" | "vimSync"
+      & Pick<BaseUpdateHookMap, "extWhiteList" | "grabBackFocus" | "newTabUrl" | "baseCSS" | "vimSync"
         | "userDefinedCss" | "vomnibarPage">;
   type EnsuredUpdateHookMaps = DeclaredUpdateHookMap
       & Pick<BaseUpdateHookMap, "showActionIcon" | "newTabUrl_f">;
@@ -333,6 +338,7 @@ declare namespace SettingsNS {
     searchEngineMap: FullSettings["searchEngineMap"];
     searchEngineRules: FullSettings["searchEngineRules"];
     vomnibarPage_f: FullSettings["vomnibarPage_f"];
+    exclusionRules: FullSettings["exclusionRules"];
   }
 
   type DynamicFiles = "HelpDialog" | "Commands" | "Exclusions" |
@@ -360,13 +366,13 @@ declare namespace BgReqHandlerNS {
     gotoSession: {
       (this: void, request: { sessionId: string | number, active: true }, port: Port): void;
       (this: void, request: { sessionId: string | number, active?: false }): void;
-      (this: void, request: { sessionId: string | number }): void;
     };
     openUrl(this: void, request: FgReq["openUrl"], port?: Port | undefined): void;
     checkIfEnabled: checkIfEnabled;
     focusOrLaunch(this: void, request: MarksNS.FocusOrLaunch): void;
     SetIcon(tabId: number, type: Frames.ValidStatus): void;
     ShowHUD(message: string, isCopy?: boolean | undefined): void;
+    ForceStatus(this: void, act: Frames.ForcedStatusText, tabId?: number): void;
   }
 }
 
@@ -375,6 +381,7 @@ interface CommandsData {
   keyMap: KeyMap;
   mapKeyRegistry: SafeDict<string> | null;
   availableCommands: SafeDict<CommandsNS.Description>;
+  errors: number;
 }
 
 interface BaseHelpDialog {
@@ -384,6 +391,7 @@ interface BaseHelpDialog {
 interface Window {
   readonly MathParser?: any;
   readonly Commands?: any;
+  readonly CommandsData: CommandsData;
   readonly Exclusions?: any;
   readonly HelpDialog?: BaseHelpDialog;
   readonly NotChrome: boolean;
@@ -398,6 +406,7 @@ interface Window {
     readonly evalVimiumUrl: Urls.Executor;
     parseSearchEngines (this: any, str: string, map: Search.EngineMap): Search.Rule[];
     require<T extends object> (name: SettingsNS.DynamicFiles): Promise<T>;
+    GC (): void;
   };
   readonly Settings: {
     readonly cache: SettingsNS.FullCache;

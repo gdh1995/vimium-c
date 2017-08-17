@@ -211,7 +211,7 @@ readValueFromElement (): boolean {
 ExclusionRulesOption.prototype.onRowChange = function(this: ExclusionRulesOption, isAdd: number): void {
   const count = this.list.childElementCount;
   if (count - isAdd !== 0) { return; }
-  BG.Exclusions || BG.Utils.require("Exclusions");
+  isAdd && (BG.Exclusions || BG.Utils.require("Exclusions"));
   const el = $("#exclusionToolbar"), options = el.querySelectorAll('[data-model]');
   el.style.visibility = count > 0 ? "" : "hidden";
   for (let i = 0, len = options.length; i < len; i++) {
@@ -403,8 +403,8 @@ interface AdvancedOptBtn extends HTMLButtonElement {
   }
 
   if (bgSettings.CONST.ChromeVersion < BrowserVer.MinWithFrameId) {
-    element = $("#vomnibarPage");
-    element.title = `Vimium++ can not use a HTTP pages as Vomnibar before Chrome ${BrowserVer.MinWithFrameId}`;
+    element = Option.all.vomnibarPage.element;
+    element.title = `Vimium++ can not use a HTTP page as Vomnibar before Chrome ${BrowserVer.MinWithFrameId}`;
     if ("chrome /front/".indexOf(Option.all.vomnibarPage.previous.substring(0, 6)) === -1) {
       element.style.textDecoration = "line-through";
     }
@@ -430,23 +430,31 @@ interface AdvancedOptBtn extends HTMLButtonElement {
     };
     element.style.display = "";
     (element.nextElementSibling as Element).remove();
-    ratio > 1 && ((document.body as HTMLBodyElement).style.width = 925 / ratio + "px");
+    if (location.protocol !== "chrome-extension:") { return; }
+    ratio > 1 && ((document.body as HTMLBodyElement).style.width = 910 / ratio + "px");
     chrome.tabs.getZoom && chrome.tabs.getZoom(curTabId, function(zoom): void {
       if (!zoom) { return chrome.runtime.lastError; }
       const ratio = Math.round(devicePixelRatio / zoom * 1024) / 1024;
-      (document.body as HTMLBodyElement).style.width = ratio !== 1 ? 925 / ratio + "px" : "";
+      (document.body as HTMLBodyElement).style.width = ratio !== 1 ? 910 / ratio + "px" : "";
     });
   }
+  if (window.location.hash === "#chrome-ui") {
+    setUI(null);
+  } else if (chrome.tabs.query)
   chrome.tabs.query({ active: true, currentWindow: true }, function(tabs): void {
     let url: string;
-    if (window.location.hash === "#chrome-ui"
-        || document.hasFocus() && tabs[0] && (url = tabs[0].url).lastIndexOf("chrome", 0) === 0
+    if (document.hasFocus() && tabs[0] && (url = tabs[0].url).lastIndexOf("chrome", 0) === 0
             && url.lastIndexOf("chrome-extension:", 0) < 0) {
-      // if tabs is empty, then we are debugging, and then this page should be a standalone tab
-      setUI(tabs[0] ? tabs[0].id : null);
+      setUI(tabs[0].id);
     }
-    return chrome.runtime.lastError;
-  })
+  });
+  Option.all.keyMappings.onSave = function(): void {
+    const errors = BG.CommandsData.errors, el = this.element;
+    el.classList[errors ? "add" : "remove"]("has-error");
+    el.title = !errors ? "" : (errors === 1 ? "There's 1 error" : `There're ${errors} errors`
+      ) + " found.\nPlease see logs of background page for more details";
+  };
+  BG.CommandsData.errors && Option.all.keyMappings.onSave();
 
   _ref = $$("[data-permission]");
   _ref.length > 0 && (function(this: void, els: NodeListOf<HTMLElement>): void {
@@ -554,6 +562,7 @@ window.location.hash.length > 4 && (window as any).onhashchange();
 // below is for programmer debugging
 window.onunload = function(): void {
   BG.removeEventListener("unload", OnBgUnload);
+  BG.Utils.GC();
 };
 
 function OnBgUnload(): void {
@@ -580,6 +589,12 @@ function OnBgUnload(): void {
       if (typeof previous === "object" && previous) {
         opt.previous = bgSettings.get(opt.field);
       }
+    }
+    if (!Option.all.keyMappings.saved) {
+      BG.Commands || BG.Utils.require("Commands");
+    }
+    if ((Option.all.exclusionRules as ExclusionRulesOption).list.childElementCount > 0) {
+      BG.Exclusions || BG.Utils.require("Exclusions")
     }
   }
 }

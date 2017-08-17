@@ -84,8 +84,8 @@ if ! bool "$NOT_IGNORE_FRONT"; then
 fi
 zip -rX -MM $args "$output_for_zip" $input -x 'weidu*' 'test*' 'git*' \
   'dist*' 'front/vimium.css' 'node_modules*' 'script*' '*tsconfig*' 'type*' \
-  'pages/chrome_ui*' 'Gulp*' 'gulp*' 'package*' 'todo*' 'tsc.*' \
-  '*.coffee' '*.crx' '*.enc' '*.sh' '*.ts' '*.zip' $ZIP_IGNORE $4
+  'pages/chrome_ui*' 'GUD*' 'Gulp*' 'gulp*' 'package*' 'todo*' 'tsc.*' \
+  '*.coffee' '*.crx' '*.enc' '*.log' '*.sh' '*.ts' '*.zip' $ZIP_IGNORE $4
 err=$?
 [ $pushd_err -eq 0 ] && popd >/dev/null 2>&1
 

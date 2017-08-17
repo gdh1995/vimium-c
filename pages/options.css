@@ -88,7 +88,8 @@ button.left:focus+select.right {
   border-left-color: #4d90fe;
 }
 select.right > option {
-  background-color: #eee;
+  background-color: #f3f3f3;
+  text-align: left;
 }
 
 pre, kbd, .code {
@@ -104,6 +105,9 @@ pre {
 td {
   padding: 0;
   vertical-align: top;
+}
+.decorate-none {
+  text-decoration: none;
 }
 
 input, textarea {
@@ -150,6 +154,9 @@ textarea:read-only {
 input:disabled, textarea:disabled {
   color: #444;
 }
+input::-webkit-input-placeholder, input::placeholder {
+  color: #bfbfbf;
+}
 button:focus, input:focus, select:focus, textarea:focus {
   transition: border-color 200ms;
   border-color: #4d90fe;
@@ -171,6 +178,9 @@ label:active {
   margin-bottom: 37px;
   margin-top: -23px;
 }
+.Vim {
+  color: #2f508e;
+}
 .info {
   margin-left: 4px;
 }
@@ -183,7 +193,7 @@ label:active {
   white-space: nowrap;
   width: 1px;
 }
-.hide {
+.hidden {
   display: none;
 }
 .float-right {
@@ -252,6 +262,9 @@ label:active {
 .highlight {
   background: lightyellow;
 }
+.has-error {
+  background: #fbebe9;
+}
 
 /* Boolean options have a tighter form representation than text options. */
 .booleanOption.innerLine > .checkboxHint,
@@ -290,6 +303,7 @@ label:active {
   cursor: default;
   font-size: small;
   font-family: "Segoe UI Symbol", monospace;
+  line-height: 12px;
   padding: 5px;
   user-select: none;
 }
@@ -317,6 +331,7 @@ label:active {
   border-top: 0.01px solid #979ca0;
   bottom: 0;
   left: 0;
+  padding-top: 6px;
   position: fixed;
   right: 0;
   white-space: nowrap;
@@ -325,31 +340,6 @@ label:active {
 #footerWrapper {
   height: 30px;
   line-height: 16px;
-  padding-top: 6px;
-}
-@media (max-width: 879.99px) and (min-width: 550px) {
-  #footerWrapper {
-    float: right;
-    margin-right: -60px;
-  }
-}
-@media (max-width: 549.99px) and (min-width: 300px) {
-  #footerWrapper {
-    float: left;
-    margin-left: -295px;
-  }
-}
-@media (max-width: 299.99px) {
-  #wrapper {
-    margin-bottom: 0;
-  }
-  #footer {
-    position: relative;
-    width: 925px;
-  }
-  #footerWrapper {
-    float: none;
-  }
 }
 #helpText {
   float: left;
@@ -389,4 +379,45 @@ label:active {
   #footerButtons {
     width: calc(100% - 590px);
   }
+}
+@media (max-width: 879.99px) and (min-width: 550px) {
+  #footerWrapper {
+    float: right;
+    margin-right: -60px;
+  }
+}
+@media (max-width: 549.99px) and (min-width: 300px) {
+  #footerWrapper {
+    float: left;
+    margin-left: -295px;
+  }
+}
+@media (max-width: 299.99px) {
+  #wrapper {
+    margin-bottom: 0;
+  }
+  #footer {
+    position: relative;
+    width: 925px;
+  }
+  #footerWrapper {
+    float: none;
+  }
+}
+.chrome-ui #wrapper {
+  margin: -23px 0 37px 35px;
+  width: 890px;
+}
+.chrome-ui #footer {
+  position: fixed;
+  width: unset;
+}
+.chrome-ui #footerWrapper {
+  float: none;
+  margin-left: 35px;
+  margin-right: 0;
+  width: 890px;
+}
+.chrome-ui #footerButtons {
+  width: 300px;
 }
