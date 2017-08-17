@@ -89,6 +89,7 @@ button.left:focus+select.right {
 }
 select.right > option {
   background-color: #f3f3f3;
+  text-align: left;
 }
 
 pre, kbd, .code {
