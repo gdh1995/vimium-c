@@ -11,7 +11,7 @@ VDom.UI = {
   addElement<T extends HTMLElement> (this: DomUI, element: T, options?: UIElementOptions): T {
     options = Object.setPrototypeOf(options || {}, null);
     let notShowAtOnce = options.showing === false, doAdd = options.adjust;
-    this.box = VDom.createElement("vimium-ui");
+    this.box = VDom.createElement("div");
     (this.box as HTMLElement).style.display = "none";
     this.root = (this.box as HTMLElement).attachShadow ?
         (this.box as HTMLElement & AttachShadow).attachShadow({mode: "closed"})

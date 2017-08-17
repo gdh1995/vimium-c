@@ -10,7 +10,7 @@
  * HUD: HUD; O: vOmnibar; OI: vOmnibarItem
  *
  */
-.R {
+.R, :host {
 	all:initial;
 	background: none;
 	border: none;
@@ -40,6 +40,7 @@
 	white-space: normal;
 	word-spacing: 0px;
 }
+:host{position:initial !important;}
 
 /* Link hints CSS */
 .HM {
