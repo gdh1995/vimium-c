@@ -9,6 +9,7 @@ var VDom = {
         ).bind(document, "http://www.w3.org/1999/xhtml");
     return valid ? node : (this as typeof VDom).createElement(tagName);
   } as Document["createElement"],
+  append (parent: Element, child: Element) { Node.prototype.appendChild.call(parent, child); },
   documentReady (callback: (this: void) => void): void {
     const f = function(callback: (this: void) => void): void { return callback(); };
     if (document.readyState !== "loading") {

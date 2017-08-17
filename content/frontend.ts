@@ -635,7 +635,7 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
       }
       dom1.style.borderColor = request.mask === FrameMaskType.OnlySelf ? "lightsalmon" : "yellow";
       VDom.UI.root && isEnabledForUrl ? VDom.UI.addElement(dom1) :
-      (document.webkitFullscreenElement || document.documentElement as HTMLElement).appendChild(dom1);
+      VDom.append(document.webkitFullscreenElement || document.documentElement as HTMLElement, dom1);
     },
     Remove (this: void): void {
       const _this = FrameMask;
