@@ -1,6 +1,7 @@
 interface ShadowRootWithSelection extends ShadowRoot {
   getSelection(): Selection | null;
 }
+declare var browser: never | undefined;
 
 VDom.UI = {
   box: null,
@@ -21,6 +22,13 @@ VDom.UI = {
       const t = e.target as HTMLElement; t.onload && t.onload(e); e.stopImmediatePropagation();
     }, true);
     this.css = (innerCSS): void => {
+      if (typeof browser !== "undefined" && browser === chrome) {
+        const i = innerCSS.indexOf(":host"), cls = "vimium-ui-" + ((8 + Math.random()) * 100 | 0),
+        outerCSS = innerCSS.substring(i, innerCSS.indexOf("}", innerCSS.indexOf("}", i) + 1) + 1).replace("}:host{", "");
+        (this.box as HTMLElement).className = cls;
+        (this.box as HTMLElement).appendChild(this.createStyle("." + cls + outerCSS));
+        innerCSS = innerCSS.replace(":host", ".host");
+      }
       this.styleIn = this.createStyle(innerCSS);
       (this.root as ShadowRoot).insertBefore(this.styleIn, (this.root as ShadowRoot).firstElementChild);
       this.css = function(css) { (this.styleIn as HTMLStyleElement).textContent = css; };
