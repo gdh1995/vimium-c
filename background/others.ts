@@ -154,7 +154,7 @@ setTimeout((function() { if (!chrome.browserAction) { return; }
     if (value) {
       chrome.browserAction.enable();
     } else {
-      chrome.browserAction.disable();
+      NotChrome || chrome.browserAction.disable();
       title += "\n\nThis icon is disabled by your settings."
     }
     chrome.browserAction.setTitle({ title });
