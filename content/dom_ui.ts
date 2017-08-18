@@ -11,13 +11,11 @@ VDom.UI = {
   addElement<T extends HTMLElement> (this: DomUI, element: T, options?: UIElementOptions): T {
     options = Object.setPrototypeOf(options || {}, null);
     let notShowAtOnce = options.showing === false, doAdd = options.adjust;
-    this.box = VDom.createElement("div");
-    (this.box as HTMLElement).style.display = "none";
-    this.root = (this.box as HTMLElement).attachShadow ?
-        (this.box as HTMLElement & AttachShadow).attachShadow({mode: "closed"})
-      : (this.box as HTMLElement).createShadowRoot();
-    (this.box as HTMLElement).attachShadow || // listen "load" so that safer on Chrome < 53
-    this.root.addEventListener("load", function(e: Event): void {
+    const box = this.box = VDom.createElement("div"), old = !box.attachShadow;
+    box.style.display = "none";
+    this.root = old ? box.createShadowRoot() : (box as AttachShadow).attachShadow({mode: "closed"});
+    // listen "load" so that safer on Chrome < 53
+    old && this.root.addEventListener("load", function(e: Event): void {
       const t = e.target as HTMLElement; t.onload && t.onload(e); e.stopImmediatePropagation();
     }, true);
     this.css = (innerCSS): void => {
