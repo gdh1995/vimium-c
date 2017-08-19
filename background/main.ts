@@ -1704,8 +1704,8 @@ Are you sure you want to continue?`);
         }
       }
       if (iport) {
-        port.postMessage({
-          CSS: request.CSS ? funcDict.ensureInnerCSS(port) : null,
+        iport.postMessage({
+          CSS: request.CSS ? funcDict.ensureInnerCSS(iport) : null,
           name: "execute", command: request.command, count: request.count || 1, options: request.options
         });
         return true;
