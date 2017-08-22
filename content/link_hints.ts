@@ -980,7 +980,7 @@ COPY_TEXT: {
     else if (link instanceof HTMLInputElement) {
       str = link.type;
       if (str === "password") {
-        str = "";
+        return VHUD.showForDuration("Sorry, Vimium++ won't copy a password.", 2000);
       } else if (!(str in VDom.uneditableInputs)) {
         str = (link.value || link.placeholder).trim();
       } else if (str === "file") {
