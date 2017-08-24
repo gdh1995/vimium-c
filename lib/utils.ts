@@ -1,8 +1,8 @@
-if (!String.prototype.startsWith) {
+if (!"".startsWith) {
 String.prototype.startsWith = function(this: string, s: string): boolean {
   return this.length >= s.length && this.lastIndexOf(s, 0) === 0;
 };
-String.prototype.endsWith || (String.prototype.endsWith = function(this: string, s: string): boolean {
+"".endsWith || (String.prototype.endsWith = function(this: string, s: string): boolean {
   const i = this.length - s.length;
   return i >= 0 && this.indexOf(s, i) === i;
 });
