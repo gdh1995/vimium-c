@@ -150,11 +150,12 @@ setTimeout((function() { if (!chrome.browserAction) { return; }
   Settings.updateHooks.showActionIcon = function(value): void {
     func(value);
     (Settings.IconBuffer as IconNS.AccessIconBuffer)(value);
+    if (NotChrome) { return; }
     let title = "Vimium++";
     if (value) {
       chrome.browserAction.enable();
     } else {
-      NotChrome || chrome.browserAction.disable();
+      chrome.browserAction.disable();
       title += "\n\nThis icon is disabled by your settings."
     }
     chrome.browserAction.setTitle({ title });
@@ -301,6 +302,7 @@ setTimeout((function() { if (!chrome.omnibox) { return; }
 
 var a: any, cb: (i: any) => void;
 // According to tests: onInstalled will be executed after 0 ~ 16 ms if needed
+!NotChrome &&
 (a = chrome.runtime.onInstalled) && (a as typeof chrome.runtime.onInstalled).addListener(cb =
 function(details: chrome.runtime.InstalledDetails) {
   let reason = details.reason;

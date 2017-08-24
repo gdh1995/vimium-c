@@ -639,7 +639,7 @@ var Utils = {
   GC (): void {},
   hasUpperCase (this: void, s: string): boolean { return s.toLowerCase() !== s; }
 };
-const NotChrome = !!(window as any).browser;
+const NotChrome = !!((window as any).browser && (window as any).browser.runtime);
 
 if (!String.prototype.startsWith) {
 String.prototype.startsWith = (function(this: string, s: string): boolean {
