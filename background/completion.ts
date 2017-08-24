@@ -1198,7 +1198,7 @@ searchEngines: {
           url.url && ((url as DecodedItem).text = text);
           continue;
         }
-        xhr.open("GET", _this._dataUrl + str, true);
+        xhr.open("GET", _this._dataUrl + str.replace("#", "%25"), true);
         return xhr.send();
       }
     },
