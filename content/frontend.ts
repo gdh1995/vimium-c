@@ -144,11 +144,11 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
         return ELs.OnWndFocus();
       }
       if (!isEnabledForUrl) { return; }
+      if (target === VDom.UI.box) { return event.stopImmediatePropagation(); }
       // it's safe to compare .lock and doc.activeEl here without checking target.shadowRoot,
       // and .shadowRoot should not block this check;
       // note: this ignores the case that <form> is in a shadowDom
       // note: DO NOT stop propagation
-      if (target === VDom.UI.box) { return event.stopImmediatePropagation(); }
       let a = InsertMode.lock;
       if (a !== null && a === document.activeElement) { return; }
       if ((target as Element).shadowRoot != null) {
@@ -248,8 +248,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
       a.mutable = true;
       a.ExitGrab(); VEventMode.setupSuppress();
       VHints.clean(); VVisualMode.deactivate();
-      VFindMode.init || VFindMode.toggleStyle(1);
-      KeydownEvents = new Uint8Array(256);
+      VFindMode.init || VFindMode.toggleStyle(0);
     },
 
     toggleSwitchTemp (_0: number, options: FgOptions): void {
@@ -748,6 +747,7 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
         // here should not return even if old - a url change may mean the fullscreen mode is changed
       } else {
         Commands.reset();
+        KeydownEvents = new Uint8Array(256);
       }
       if (VDom.UI.box) { return VDom.UI.toggle(enabled); }
     },
