@@ -32,6 +32,7 @@ var VUtils = {
     return url;
   },
   hasUpperCase (this: void, s: string) { return s.toLowerCase() !== s; },
+  Stop (this: void, event: Event): void { event.stopImmediatePropagation(); }
   Prevent (this: void, event: Event): void {
     event.preventDefault();
     event.stopImmediatePropagation();

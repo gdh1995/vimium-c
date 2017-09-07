@@ -801,7 +801,7 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
     box.className = "R Scroll UI";
     box.id = "HelpDialog";
     box.innerHTML = html;
-    hide = function(event: Event): void { event.stopImmediatePropagation(); };
+    hide = VUtils.Stop;
     box.onclick = hide;
     box.addEventListener("mousewheel", hide, {passive: true});
 

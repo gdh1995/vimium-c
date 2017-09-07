@@ -16,7 +16,7 @@ VDom.UI = {
     this.root = old ? box.createShadowRoot() : (box as AttachShadow).attachShadow({mode: "closed"});
     // listen "load" so that safer on Chrome < 53
     old && this.root.addEventListener("load", function(e: Event): void {
-      const t = e.target as HTMLElement; t.onload && t.onload(e); e.stopImmediatePropagation();
+      const t = e.target as HTMLElement; t.onload && t.onload(e); VUtils.Stop(e);
     }, true);
     this.css = (innerCSS): void => {
       this.styleIn = this.createStyle(innerCSS);
