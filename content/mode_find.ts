@@ -69,10 +69,13 @@ html > count{float:right;}`,
     this.isActive = true;
   },
   onLoad (box: HTMLIFrameElement, later?: 1): void {
-    const wnd = box.contentWindow, f = wnd.addEventListener.bind(wnd) as typeof addEventListener, now = Date.now();
+    const wnd = box.contentWindow, f = wnd.addEventListener.bind(wnd) as typeof addEventListener, f2 = VUtils.Stop,
+    now = Date.now();
     f("mousedown", this.OnMousedown, true);
     f("keydown", this.onKeydown.bind(this), true);
-    f("focus", VUtils.Stop, true);
+    f("keypress", f2, true);
+    f("keyup", f2, true);
+    f("focus", f2, true);
     f("blur", function(): void {
       if (Date.now() - now < 500 && VFindMode.isActive) {
         let a = wnd.document.body;
