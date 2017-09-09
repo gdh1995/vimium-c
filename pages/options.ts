@@ -368,7 +368,7 @@ interface AdvancedOptBtn extends HTMLButtonElement {
     height += delta;
     delta = target.scrollWidth - target.clientWidth;
     if (delta > 0) {
-      target.style.width = target.offsetWidth + delta + "px";
+      target.style.width = target.offsetWidth + delta + 4 + "px";
     }
     target.style.height = height + "px";
   };
