@@ -87,16 +87,19 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
         if (action < HandlerResult.MinMayNotPassKey) { return; }
       }
       else if (InsertMode.isActive()) {
-        if (InsertMode.lock === document.body && InsertMode.lock) { return; }
         const g = InsertMode.global;
         if (g ? !g.code ? VKeyboard.isEscape(event)
               : key === g.code && VKeyboard.getKeyStat(event) === g.stat
             : VKeyboard.isEscape(event)
               || (key > VKeyCodes.maxNotFn && (keyChar = VKeyboard.getKeyName(event)) &&
                 (action = checkValidKey(event, keyChar)), false)
-          ) {
-          InsertMode.exit(event);
-          action = g && g.passExitKey ? HandlerResult.Nothing : HandlerResult.Prevent;
+        ) {
+          if (InsertMode.lock === document.body && InsertMode.lock) {
+            action = InsertMode.focusUpper(key);
+          } else {
+            action = g && g.passExitKey ? HandlerResult.Nothing : HandlerResult.Prevent;
+            InsertMode.exit(event);
+          }
         }
       }
       else if (key >= VKeyCodes.space || key === VKeyCodes.backspace) {
@@ -113,6 +116,8 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
         action = HandlerResult.Prevent;
       } else if (VDom.UI.removeSelection()) {
         action = HandlerResult.Prevent;
+      } else if (document.activeElement === document.body) {
+        action = InsertMode.focusUpper(key);
       } else if (event.repeat) {
         let c = document.activeElement; c && c.blur && c.blur();
       }
@@ -511,6 +516,11 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
         return false;
       }
     },
+    focusUpper (this: void, key: number): HandlerResult {
+      let el = window.frameElement as HTMLElement;
+      return el ? (window.parent as Window & { VEventMode: typeof VEventMode }
+        ).VEventMode.focusUpperFrame(el, key) : HandlerResult.Nothing;
+    },
     exit (event: KeyboardEvent): void {
       let target: Element | null = event.target as Element;
       if ((target as HTMLElement).shadowRoot instanceof ShadowRoot) {
@@ -905,6 +915,14 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
         return callback();
       }
     },
+    focusUpperFrame (this: void, el: HTMLElement, key): HandlerResult {
+      if (document.activeElement !== el) { return HandlerResult.Nothing; }
+      if (!isEnabledForUrl) { return InsertMode.focusUpper(key); }
+      el.blur();
+      window.focus();
+      KeydownEvents[key] = 1;
+      return HandlerResult.Prevent;
+    },
     mapKey (this: void, key): string { return mapKeys !== null && mapKeys[key] || key; },
     scroll (this: void, event, wnd): void {
       if (!event || event.shiftKey || event.altKey) { return; }
@@ -998,11 +1016,5 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
       a.onLoad(a.box);
       return; // not return a function's result so that logic is clearer for compiler
     }
-    window.onload = setTimeout.bind(null as never, function(): void {
-      window.onload = null as never;
-      const a = document.body,
-      exit = !!a && (a.isContentEditable || a.childElementCount === 1 && (a.firstElementChild as HTMLElement).isContentEditable === true);
-      exit ? VSettings.destroy(true) : vPort.port || vPort.connect(PortType.initing);
-    }, 50) as () => void | number as () => void;
   })();
 })();

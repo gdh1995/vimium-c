@@ -207,6 +207,7 @@ interface VEventMode {
   suppress(keyCode?: number): void;
   OnWndFocus (this: void): void;
   focusAndListen (this: void, callback?: (() => void) | null, timedout?: 0): void;
+  focusUpperFrame (this: void, iframe: HTMLElement, keyCode: number): HandlerResult;
   onWndBlur (this: void, onWndBlur: ((this: void) => void) | null): void;
   setupSuppress (this: void, onExit?: (this: void) => void): void;
   mapKey (this: void, key: string): string;
