@@ -989,10 +989,14 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
 
   // here we call it before vPort.connect, so that the code works well even if runtime.connect is sync
   ELs.hook(addEventListener);
-  location.href !== "about:blank" || isInjected ? vPort.connect(PortType.initing) :
-  (window.onload = function() { window.onload = null as never; setTimeout(function(): void {
-    const a = document.body,
-    exit = !!a && (a.isContentEditable || a.childElementCount === 1 && (a.firstElementChild as HTMLElement).isContentEditable === true);
-    exit ? VSettings.destroy(true) : vPort.port || vPort.connect(PortType.initing);
-  }, 18); });
+  if (location.href !== "about:blank" || isInjected) {
+    vPort.connect(PortType.initing);
+  } else {
+    window.onload = setTimeout.bind(null as never, function(): void {
+      window.onload = null as never;
+      const a = document.body,
+      exit = !!a && (a.isContentEditable || a.childElementCount === 1 && (a.firstElementChild as HTMLElement).isContentEditable === true);
+      exit ? VSettings.destroy(true) : vPort.port || vPort.connect(PortType.initing);
+    }, 18) as () => void | number as () => void;
+  }
 })();
