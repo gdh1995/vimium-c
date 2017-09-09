@@ -991,12 +991,18 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
   ELs.hook(addEventListener);
   if (location.href !== "about:blank" || isInjected) {
     vPort.connect(PortType.initing);
-  } else {
+  } else (function() {
+    let a = (window.parent as Window & { VFindMode?: typeof VFindMode}).VFindMode;
+    if (a && a.box && a.box.contentWindow === window) {
+      VSettings.destroy(true);
+      a.onLoad(a.box);
+      return; // not return a function's result so that logic is clearer for compiler
+    }
     window.onload = setTimeout.bind(null as never, function(): void {
       window.onload = null as never;
       const a = document.body,
       exit = !!a && (a.isContentEditable || a.childElementCount === 1 && (a.firstElementChild as HTMLElement).isContentEditable === true);
       exit ? VSettings.destroy(true) : vPort.port || vPort.connect(PortType.initing);
     }, 18) as () => void | number as () => void;
-  }
+  })();
 })();
