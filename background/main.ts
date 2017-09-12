@@ -102,8 +102,13 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
         }
         return [pattern.split(<RegExpOne>/[?#]/, 1)[0]];
       }
+      if (pattern.startsWith("ftp:")) {
+        funcDict.complain("change content settings of FTP urls");
+        return []
+      }
       let info: string[] = pattern.match(/^([^:]+:\/\/)([^\/]+)/) as RegExpMatchArray
         , result = [info[0] + "/*"], host = info[2];
+      // todo: strip username / port info
       if (level < 2 || Utils.isIPHost(host)) { return result; }
       pattern = info[1];
       const arr = host.toLowerCase().split("."), i = arr.length,
