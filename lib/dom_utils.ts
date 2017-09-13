@@ -125,6 +125,7 @@ var VDom = {
     }
     return !!rect;
   },
+  specialZoom: false,
   getViewBox (): ViewBox {
     let iw = window.innerWidth, ih = window.innerHeight, zoom: number;
     if (document.webkitIsFullScreen) {
@@ -148,6 +149,7 @@ var VDom = {
       x = -rect.left - box.clientLeft, y = -rect.top - box.clientTop;
     } else {
       zoom = +st.zoom || 1;
+      if (this.specialZoom && Math.abs(zoom - devicePixelRatio) * 1000 < 1) { zoom = 1; }
       x /= zoom, y /= zoom;
     }
     VDom.bodyZoom = zoom = st2 !== st && +st2.zoom || 1;
@@ -258,7 +260,7 @@ var VDom = {
   },
   setBoundary (style: CSSStyleDeclaration, r: VRect, allow_abs?: boolean): void {
     if (allow_abs && (r[1] < 0 || r[0] < 0 || r[3] > window.innerHeight || r[2] > window.innerWidth)) {
-      const arr = VDom.getViewBox();
+      const arr = this.getViewBox();
       r[0] += arr[0], r[2] += arr[0], r[1] += arr[1], r[3] += arr[1];
       style.position = "absolute";
     }

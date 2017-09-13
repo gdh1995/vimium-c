@@ -734,6 +734,7 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
     init (request): void {
       const r = requestHandlers, flags = request.flags;
       (VSettings.cache = request.load).onMac && (VKeyboard.correctionMap = Object.create<string>(null));
+      VDom.specialZoom = VSettings.cache.browserVer >= BrowserVer.MinDevicePixelRatioImplyZoomOfDocEl;
       r.keyMap(request);
       if (flags) {
         InsertMode.grabFocus = !(flags & Frames.Flags.userActed);
