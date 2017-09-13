@@ -1306,7 +1306,6 @@ Are you sure you want to continue?`);
       const query = cOptions.active ? null : (FindModeHistory as {query: FindModeQuery}).query(cPort.sender.incognito);
       cPort.postMessage<1, "Find.activate">({ name: "execute", count: 1, command: "Find.activate"
           , CSS: funcDict.ensureInnerCSS(cPort), options: {
-        browserVersion: Settings.CONST.ChromeVersion,
         count: commandCount,
         dir: cOptions.dir <= 0 ? -1 : 1,
         query
