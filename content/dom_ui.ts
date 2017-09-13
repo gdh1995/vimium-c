@@ -26,7 +26,7 @@ VDom.UI = {
       this.styleIn.onload = function (): void {
         this.onload = null as never;
         const a = VDom.UI;
-        (a.box as HTMLElement).style.display = "";
+        (a.box as HTMLElement).removeAttribute("style");
         a.callback && a.callback();
       };
       if (doAdd !== false) {
