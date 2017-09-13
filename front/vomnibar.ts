@@ -471,7 +471,8 @@ var Vomnibar = {
   omni (response: BgVomnibarReq["omni"]): void {
     if (!this.isActive) { return; }
     const list = response.list, oldHeight = this.height,
-    pixel = this.browserVersion < BrowserVer.MinEnsuredBorderWidth ? 1 : 1 / (Math.max(1, window.devicePixelRatio));
+    pixel = this.browserVersion >= BrowserVer.MinRoundedBorderWidth ? 0.5
+      : this.browserVersion < BrowserVer.MinEnsuredBorderWidth ? 1 : 1 / (Math.max(1, window.devicePixelRatio));
     let height = list.length, notEmpty = height > 0;
     this.matchType = response.matchType;
     this.completions = list;
@@ -548,7 +549,7 @@ var Vomnibar = {
     } else {
       this.showFavIcon = false;
     }
-    if (this.browserVersion < BrowserVer.MinEnsuredBorderWidth) {
+    if (this.browserVersion < BrowserVer.MinRoundedBorderWidth) {
       const css = document.createElement("style");
       css.textContent = `body,.item,#input{border-width:${this.browserVersion < BrowserVer.MinEnsuredBorderWidth ? 1 : 0.01}px;}`;
       (document.head as HTMLHeadElement).appendChild(css);
