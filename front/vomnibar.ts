@@ -550,7 +550,7 @@ var Vomnibar = {
     }
     if (this.browserVersion < BrowserVer.MinEnsuredBorderWidth) {
       const css = document.createElement("style");
-      css.textContent = ".item{border-width:1px;}";
+      css.textContent = `body,.item,#input{border-width:${this.browserVersion < BrowserVer.MinEnsuredBorderWidth ? 1 : 0.01}px;}`;
       (document.head as HTMLHeadElement).appendChild(css);
     }
     this.init = VUtils.makeListRenderer = null as never;
