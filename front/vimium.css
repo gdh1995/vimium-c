@@ -53,7 +53,7 @@
 }
 .LH {
 	background: linear-gradient(#FFF785, #FFC542);
-	border: 0.01px solid #E3BE23;
+	border: 0.5px solid #E3BE23;
 	border-radius: 3px;
 	box-shadow: 0 3px 7px 0 rgba(0, 0, 0, 0.3);
 	box-sizing: border-box;
@@ -72,7 +72,7 @@
 /* Input hints CSS */
 .IH {
 	background-color: rgba(255, 247, 133, 0.3);
-	border: 0.01px solid #C38A22;
+	border: 0.5px solid #C38A22;
 	display: block;
 	position: absolute;
 }
@@ -84,7 +84,7 @@
 /* HUD CSS */
 .HUD {
 	background-color: #EEE;
-	border: 0.01px solid #B3B3B3;
+	border: 0.5px solid #B3B3B3;
 	border-radius: 4px 4px 0 0;
 	bottom: 0;
 	height: 14px;
