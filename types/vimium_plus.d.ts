@@ -273,6 +273,7 @@ declare const enum BrowserVer {
   Min1pxIsNotEps = 58,
   $Selection$NotShowStatusInTextBox = 58, // Now only version 81-110 of Chrome 58 stable have such a problem
   MinPasswordSaverDispatchesVirtualFocusEvents = 59,
-  MinWarningWebkitGradient = 60,
-  MinSelector$deep$DoesNothing = 60,
+  MinWarningWebkitGradient = 60, // only happened on a Canary version
+  // https://www.chromestatus.com/features/4964279606312960 is not the truth
+  // MinSelector$deep$DoesNothing = 63,
 }

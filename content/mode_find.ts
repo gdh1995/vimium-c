@@ -77,7 +77,7 @@ html > count{float:right;}`,
     f("keyup", f2, true);
     f("focus", f2, true);
     f("blur", function(): void {
-      if (Date.now() - now < 500 && VFindMode.isActive) {
+      if (VFindMode.isActive && Date.now() - now < 500) {
         let a = wnd.document.body;
         a && a.focus();
       }
