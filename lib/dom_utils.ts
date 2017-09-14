@@ -148,8 +148,7 @@ var VDom = {
     if (st.position !== "static" || (<RegExpOne>/content|paint|strict/).test(st.contain as string)) {
       x = -rect.left - box.clientLeft, y = -rect.top - box.clientTop;
     } else {
-      zoom = +st.zoom || 1;
-      if (this.specialZoom && Math.abs(zoom - window.devicePixelRatio) * 1000 < 1) { zoom = 1; }
+      zoom = this.getDocZoom(st, 1);
       x /= zoom, y /= zoom;
     }
     VDom.bodyZoom = zoom = st2 !== st && +st2.zoom || 1;
@@ -157,6 +156,10 @@ var VDom = {
     iw = Math.min(Math.max(width,  box.clientWidth,  iw - 24), iw + 64);
     ih = Math.min(Math.max(height, box.clientHeight, ih - 24), ih + 20);
     return [Math.ceil(x), Math.ceil(y), iw, ih - 15, iw];
+  },
+  getDocZoom (st: CSSStyleDeclaration, scale?: number): number {
+    const zoom = +st.zoom || 1, ratio = window.devicePixelRatio;
+    return (scale || ratio) * (this.specialZoom && Math.abs(zoom - ratio) * 1000 < 1 ? 1 : zoom);
   },
   ensureInView (el: Element, oldY?: number): boolean {
     const rect = el.getBoundingClientRect(), ty = this.NotVisible(null, rect);

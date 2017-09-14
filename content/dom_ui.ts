@@ -78,10 +78,12 @@ VDom.UI = {
   },
   _styleBorder: null as (HTMLStyleElement & {zoom?: number}) | null,
   ensureBorder (): void {
-    let ratio = window.devicePixelRatio, st = this._styleBorder, st2: typeof st;
-    if ((st === null ? ratio >= 1 : st.zoom === ratio) || !VDom.specialZoom) { return; }
+    if (!VDom.specialZoom) { return; }
+    let ratio = VDom.getDocZoom(getComputedStyle(document.documentElement as HTMLElement))
+      , st = this._styleBorder, st2: typeof st;
+    if (st === null ? ratio >= 1 : st.zoom === ratio) { return; }
     st2 = st || (this._styleBorder = this.createStyle(""));
-    st2.zoom = ratio; st2.textContent = "*{border-width:" + ("" + 1 / ratio).substring(0, 5) + "px !important;}";
+    st2.zoom = ratio; st2.textContent = "*{border-width:" + ("" + 0.51 / ratio).substring(0, 5) + "px !important;}";
     st || ((this.root as ShadowRoot).appendChild(st2));
   },
   createStyle (text, doc): HTMLStyleElement {
