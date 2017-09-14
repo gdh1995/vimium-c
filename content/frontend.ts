@@ -433,6 +433,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
         sel = Math.min(count, sel) - 1;
       }
       hints[sel].classList.add("S");
+      VDom.UI.ensureBorder();
       VDom.UI.simulateSelect(visibleInputs[sel][0]);
       const box = VDom.UI.addElementList(hints, arr), keep = !!options.keep, pass = !!options.passExitKey;
       VHandler.push(function(event) {
@@ -695,6 +696,7 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
       el.style.opacity = "0";
       el.style.visibility = "hidden";
       el.textContent = text;
+      VDom.UI.root || VDom.UI.ensureBorder();
       VDom.UI.addElement(this.box = el, {adjust: false});
     },
     tween (this: void): void {
@@ -852,6 +854,7 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
     };
     (box.querySelector("#HClose") as HTMLElement).onclick = Commands.showHelp = hide;
     shouldShowAdvanced && toggleAdvanced();
+    VDom.UI.ensureBorder();
     VDom.UI.addElement(box, Vomnibar.status ? {} as UIElementOptions : {before: Vomnibar.box});
     document.hasFocus() || VEventMode.focusAndListen();
     VScroller.current = box;

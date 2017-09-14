@@ -35,6 +35,7 @@ html > count{float:right;}`,
     options = Object.setPrototypeOf(options || {}, null);
     const query: string | undefined | null = options.query ? (options.query + "") : null;
     this.isActive || query === this.query || VMarks.setPreviousPosition();
+    VDom.UI.ensureBorder();
     if (query != null) {
       return this.findAndFocus(this.query || query, options);
     }

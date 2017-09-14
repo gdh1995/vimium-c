@@ -153,6 +153,7 @@ var VHints = {
     this.alphabetHints.initMarkers(this.hintMarkers, str);
 
     this.noHUD = arr[3] <= 40 || arr[2] <= 320;
+    VDom.UI.ensureBorder();
     this.setMode(this.mode);
     this.box = VDom.UI.addElementList(this.hintMarkers, arr);
 
