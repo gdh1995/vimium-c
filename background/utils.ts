@@ -58,7 +58,7 @@ var Utils = {
     , ".engineer.software"
   ] as ReadonlyArray<string>,
   domains: Object.create<CompletersNS.Domain>(null),
-  _hostRe: <RegExpOne> /^([^:]+(:[^:]+)?@)?([^:]+|\[[^\]]+])(:\d{2,5})?$/,
+  hostRe: <RegExpOne & RegExpSearchable<4>> /^([^:]+(:[^:]+)?@)?([^:]+|\[[^\]]+])(:\d{2,5})?$/,
   _ipRe: <RegExpOne> /^\d{1,3}(?:\.\d{1,3}){3}$/,
   _ipv6Re: <RegExpOne> /^\[[\da-f]{0,4}(?::[\da-f]{0,4}){1,5}(?:(?::[\da-f]{0,4}){1,2}|:\d{0,3}(?:\.\d{0,3}){3})]$/,
   _lfSpacesRe: <RegExpG> /[\r\n]+[\t \xa0]*/g,
@@ -154,7 +154,7 @@ var Utils = {
     }
     if (type === Urls.TempType.Unspecified && string.startsWith(".")) { string = string.substring(1); }
     if (type !== Urls.TempType.Unspecified) {
-    } else if (!(arr = this._hostRe.exec(string) as typeof arr)) {
+    } else if (!(arr = this.hostRe.exec(string) as typeof arr)) {
       type = Urls.Type.Search;
       if (string.length === oldString.length && this._ipv6Re.test(string = "[" + string + "]")) {
         oldString = string;
@@ -243,7 +243,7 @@ var Utils = {
       : tld.length < this._tlds.length && this._tlds[tld.length].indexOf(tld) > 0 ? Urls.TldType.ENTld
       : Urls.TldType.NotTld;
   },
-  isIPHost (host: string): boolean { return this._ipRe.test(host) || this._ipv6Re.test(host); },
+  isIPHost (hostname: string): boolean { return this._ipRe.test(hostname) || this._ipv6Re.test(hostname); },
   _fileExtRe: <RegExpOne> /\.\w+$/,
   formatVimiumUrl (fullpath: string, partly: boolean, vimiumUrlWork: Urls.WorkType): string {
     let ind: number, query = "", tempStr: string | undefined, path = fullpath.trim();

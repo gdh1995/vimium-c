@@ -80,7 +80,7 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
     },
     complain (this: void, contentType: CSTypes, url: string): boolean {
       if (!chrome.contentSettings) {
-        requestHandlers.ShowHUD("This Vimium++ has no permissions to change your content settings");
+        requestHandlers.ShowHUD("This version of Vimium++ has no permissions to set CSs");
         return true;
       }
       if (!chrome.contentSettings[contentType] || (<RegExpOne>/^[A-Z]/).test(contentType)) {
@@ -97,14 +97,14 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
       if (pattern.startsWith("file:")) {
         const a = Settings.CONST.ChromeVersion >= BrowserVer.MinFailToToggleImageOnFileURL ? 1 : level > 1 ? 2 : 0;
         if (a) {
-          funcDict.complain(a === 1 ? `change file content settings since Chrome ${BrowserVer.MinFailToToggleImageOnFileURL}` : "set content settings of file folders");
+          funcDict.complain(a === 1 ? `set file CSs since Chrome ${BrowserVer.MinFailToToggleImageOnFileURL}` : "set CS of file folders");
           return [];
         }
         return [pattern.split(<RegExpOne>/[?#]/, 1)[0]];
       }
       if (pattern.startsWith("ftp:")) {
-        funcDict.complain("change content settings of FTP urls");
-        return []
+        funcDict.complain("set FTP pages' content stetings");
+        return [];
       }
       let info: string[] = pattern.match(/^([^:]+:\/\/)([^\/]+)/) as RegExpMatchArray
         , result = [info[0] + "/*"], host = info[2];
