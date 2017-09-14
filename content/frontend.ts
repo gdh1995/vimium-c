@@ -1016,12 +1016,14 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
   if (location.href !== "about:blank" || isInjected) {
     vPort.connect(PortType.initing);
   } else (function() {
-    let a = (window.parent as Window & { VFindMode?: typeof VFindMode}).VFindMode;
-    if (a && a.box && a.box.contentWindow === window) {
-      VSettings.destroy(true);
-      a.onLoad(a.box);
-      return; // not return a function's result so that logic is clearer for compiler
-    }
+    try {
+      let a = (window.parent as Window & { VFindMode?: typeof VFindMode}).VFindMode;
+      if (a && a.box && a.box.contentWindow === window) {
+        VSettings.destroy(true);
+        a.onLoad(a.box);
+        return; // not return a function's result so that logic is clearer for compiler
+      }
+    } catch (e) {}
     vPort.connect(PortType.initing);
   })();
 })();
