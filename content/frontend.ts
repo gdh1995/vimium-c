@@ -1022,5 +1022,6 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
       a.onLoad(a.box);
       return; // not return a function's result so that logic is clearer for compiler
     }
+    vPort.connect(PortType.initing);
   })();
 })();
