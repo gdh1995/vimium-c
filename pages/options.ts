@@ -434,7 +434,7 @@ interface AdvancedOptBtn extends HTMLButtonElement {
     ratio > 1 && ((document.body as HTMLBodyElement).style.width = 910 / ratio + "px");
     chrome.tabs.getZoom && chrome.tabs.getZoom(curTabId, function(zoom): void {
       if (!zoom) { return chrome.runtime.lastError; }
-      const ratio = Math.round(devicePixelRatio / zoom * 1024) / 1024;
+      const ratio = Math.round(window.devicePixelRatio / zoom * 1024) / 1024;
       (document.body as HTMLBodyElement).style.width = ratio !== 1 ? 910 / ratio + "px" : "";
     });
   }

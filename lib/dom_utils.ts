@@ -149,7 +149,7 @@ var VDom = {
       x = -rect.left - box.clientLeft, y = -rect.top - box.clientTop;
     } else {
       zoom = +st.zoom || 1;
-      if (this.specialZoom && Math.abs(zoom - devicePixelRatio) * 1000 < 1) { zoom = 1; }
+      if (this.specialZoom && Math.abs(zoom - window.devicePixelRatio) * 1000 < 1) { zoom = 1; }
       x /= zoom, y /= zoom;
     }
     VDom.bodyZoom = zoom = st2 !== st && +st2.zoom || 1;

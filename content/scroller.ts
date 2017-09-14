@@ -148,7 +148,7 @@ animate (a: number, d: ScrollByY, e: Element | null): void | number {
   getActivatedElement (): Element | null {
     let element: Element | null;
     this.top = document.scrollingElement || document.body || (VDom.isHTML() ? document.documentElement : null);
-    this.scale = Math.max(1, 1 / (window.devicePixelRatio || 1));
+    this.scale = Math.max(1, 1 / window.devicePixelRatio);
     if (element = this.current) { return element; }
     element = this.top;
     return this.current = element && (this.selectFirst(element) || element);
