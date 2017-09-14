@@ -107,10 +107,12 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
         return [];
       }
       let info: string[] = pattern.match(/^([^:]+:\/\/)([^\/]+)/) as RegExpMatchArray
-        , result = [info[0] + "/*"], host = info[2];
-      // todo: strip username / port info
-      if (level < 2 || Utils.isIPHost(host)) { return result; }
+        , hosts = Utils.hostRe.exec(info[2]) as RegExpExecArray & string[4]
+        , result: string[], host = hosts[3] + (hosts[4] || "");
       pattern = info[1];
+      result = [pattern + host + "/*"];
+      if (level < 2 || Utils.isIPHost(hosts[3])) { return result; }
+      hosts = null as never;
       const arr = host.toLowerCase().split("."), i = arr.length,
       minLen = Utils.isTld(arr[i - 1]) === Urls.TldType.NotTld ? 1
         : i > 2 && arr[i - 1].length === 2 && Utils.isTld(arr[i - 2]) === Urls.TldType.ENTld ? 3 : 2,
