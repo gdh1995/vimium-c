@@ -817,6 +817,8 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
     hide = VUtils.Stop;
     box.onclick = hide;
     box.addEventListener("mousewheel", hide, {passive: true});
+    VSettings.cache.browserVer < BrowserVer.MinDOMActivateEventInsideShadowDOMV1WillNotBePassedToDocument ||
+    box.addEventListener("DOMActivate", ELs.onActivate, true);
 
     hide = function(event): void {
       event instanceof Event && event.preventDefault();
