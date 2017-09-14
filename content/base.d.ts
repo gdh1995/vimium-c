@@ -175,6 +175,8 @@ interface DomUI {
   addElementList(this: DomUI, els: ReadonlyArray<Element>, offset: { [0]: number; [1]: number }): HTMLDivElement;
   adjust (this: void, event?: Event): void;
   toggle (this: DomUI, enabled: boolean): void;
+  _styleBorder: (HTMLStyleElement & {zoom?: number}) | null;
+  ensureBorder (this: DomUI): void;
   createStyle (this: DomUI, text: string, doc?: { createElement: Document["createElement"] }): HTMLStyleElement;
   css (this: DomUI, innerCSS: string): void;
   getSelection (this: DomUI): Selection;

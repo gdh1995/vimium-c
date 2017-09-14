@@ -68,12 +68,21 @@ VDom.UI = {
     // doc: https://dom.spec.whatwg.org/#dom-node-appendchild
     //  -> #concept-node-append -> #concept-node-pre-insert -> #concept-node-adopt -> step 2
     el2 !== (ui.box as HTMLElement).parentElement && VDom.append(el2, ui.box as Element);
+    ui.ensureBorder();
     (el || event) && (el ? addEventListener : removeEventListener)("webkitfullscreenchange", ui.adjust, true);
   },
   toggle (enabled): void {
     if (enabled) { return this.adjust(); }
     (this.box as HTMLElement).remove();
     removeEventListener("webkitfullscreenchange", this.adjust, true);
+  },
+  _styleBorder: null as (HTMLStyleElement & {zoom?: number}) | null,
+  ensureBorder (): void {
+    let ratio = window.devicePixelRatio, st = this._styleBorder, st2: typeof st;
+    if ((st === null ? ratio >= 1 : st.zoom === ratio) || !VDom.specialZoom) { return; }
+    st2 = st || (this._styleBorder = this.createStyle(""));
+    st2.zoom = ratio; st2.textContent = "*{border-width:" + ("" + 1 / ratio).substring(0, 5) + "px !important;}";
+    st || ((this.root as ShadowRoot).appendChild(st2));
   },
   createStyle (text, doc): HTMLStyleElement {
     const css = (doc || VDom).createElement("style");
