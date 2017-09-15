@@ -138,7 +138,7 @@ VDom.UI = {
   getZoom (this: void): number {
     let docEl = document.documentElement as Element, el: Element | null, zoom = 1;
     el = document.webkitFullscreenElement || docEl;
-    if (VDom.specialZoom && el === docEl) { zoom /= window.devicePixelRatio; }
+    if (VDom.specialZoom) { zoom /= window.devicePixelRatio; }
     do {
       zoom *= +getComputedStyle(el).zoom || 1;
     } while (el = VDom.getParent(el));
