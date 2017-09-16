@@ -83,6 +83,14 @@ Known issues (Up to the master branch):
 7. Chrome does not apply content settings (at least images) on file:// URLs since version 56.
   Currently, no effective ways have been found (up to Chrome 59).
 
+1.61.1:
+* fix new UI bugs on Chrome 61
+* fix that content settings commands didn't work on some special URLs containing port or username info
+* in most pages, it will focus a parent frame to press `<Esc>`,
+  if the current is an iframe and nothing is focused or selected
+* re-enable supports on about:blank iframes
+* FindMode has a safer HUD
+
 1.61:
 * rework Marks so that local marks work on websites on which cookies are disabled manually
   * in `Marks.activate`, old local marks are still supported

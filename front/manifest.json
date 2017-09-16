@@ -13,6 +13,6 @@
   "name": "Vomnibar Page for Vimium++",
   "short_name": "Vomnibar",
   "update_url": "https://clients2.google.com/service/update2/crx",
-  "version": "1.61",
+  "version": "1.61.1",
   "web_accessible_resources": [ "vomnibar.html" ]
 }
