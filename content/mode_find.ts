@@ -70,14 +70,14 @@ html > count{float:right;}`,
     this.isActive = true;
   },
   onLoad (box: HTMLIFrameElement, later?: 1): void {
-    const wnd = box.contentWindow, f = wnd.addEventListener.bind(wnd) as typeof addEventListener, f2 = VUtils.Stop,
-    now = Date.now();
+    const wnd = box.contentWindow, f = wnd.addEventListener.bind(wnd) as typeof addEventListener,
+    now = Date.now(), s = VUtils.Stop, t = true;
     let tick = 0;
-    f("mousedown", this.OnMousedown, true);
-    f("keydown", this.onKeydown.bind(this), true);
-    f("keypress", f2, true);
-    f("keyup", f2, true);
-    f("focus", f2, true);
+    f("mousedown", this.OnMousedown, t);
+    f("keydown", this.onKeydown.bind(this), t);
+    f("input", this.onInput.bind(this), t);
+    f("keypress", s, t); f("keyup", s, t); f("focus", s, t);
+    f("copy", s, t); f("cut", s, t); f("paste", s, t);
     f("blur", function(): void {
       if (VFindMode.isActive && Date.now() - now < 500) {
         let a = wnd.document.body;
@@ -292,7 +292,11 @@ html > count{float:right;}`,
       return VEventMode.setupSuppress();
     }
   },
-  onInput (): void {
+  onInput (e?: Event): void {
+    if (e !== null) {
+      VUtils.Stop(e);
+      if (e.isTrusted == false) { return; }
+    }
     const query = this.input.innerText.replace(this.A0Re, " ").replace(this.tailRe, "");
     let s = this.query;
     if (!this.hasResults && s && query.startsWith(s) && query.substring(s.length - 1).indexOf("\\") < 0) { return; }
