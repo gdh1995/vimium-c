@@ -533,14 +533,15 @@ domains: {
     chrome.history.onVisitRemoved.addListener(this.OnVisitRemoved);
   },
   onPageVisited (newPage: PureHistoryItem): void {
-    const item: [string, BOOL] | null = this.parseDomainAndScheme(newPage.url);
+    const item = this.parseDomainAndScheme(newPage.url);
     if (item) {
       const time = newPage.lastVisitTime, slot = this.domains[item[0]];
       if (slot) {
         if (slot[0] < time) { slot[0] = time; }
-        ++slot[1]; slot[2] = item[1];
+        ++slot[1];
+        if (item[1] >= Urls.SchemaId.HTTP) { slot[2] = item[1] === Urls.SchemaId.HTTPS; }
       } else {
-        this.domains[item[0]] = [time, 1, item[1]];
+        this.domains[item[0]] = [time, 1, item[1] === Urls.SchemaId.HTTPS];
       }
     }
   },
@@ -559,13 +560,14 @@ domains: {
       }
     }
   },
-  parseDomainAndScheme (url: string): [string, BOOL] | null {
-    let d: number;
-    if (url.startsWith("http://")) { d = 7; }
-    else if (url.startsWith("https://")) { d = 8; }
+  parseDomainAndScheme (url: string): [string, Urls.SchemaId] | null {
+    let d: Urls.SchemaId;
+    if (url.startsWith("http://")) { d = Urls.SchemaId.HTTP; }
+    else if (url.startsWith("https://")) { d = Urls.SchemaId.HTTPS; }
+    else if (url.startsWith("ftp://")) { d = Urls.SchemaId.FTP; }
     else { return null; }
     url = url.substring(d, url.indexOf('/', d));
-    return [url !== "__proto__" ? url : ".__proto__", d - 7 as BOOL];
+    return [url !== "__proto__" ? url : ".__proto__", d];
   },
   compute2 (): number { return 2; }
 },

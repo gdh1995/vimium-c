@@ -201,7 +201,7 @@ var Utils = {
   }) as Urls.Converter,
   checkInDomain (host: string, port?: string | null): 0 | 1 | 2 {
     const domain = port && this.domains[host + port] || this.domains[host];
-    return domain ? (domain[2] + 1 as 1 | 2) : 0;
+    return domain ? domain[2] ? 2 : 1 : 0;
   },
   checkSpecialSchemes (string: string, i: number, spacePos: number): Urls.Type | Urls.TempType.Unspecified {
     const isSlash = string[i + 1] === "/";

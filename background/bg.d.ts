@@ -106,6 +106,11 @@ declare namespace Urls {
   const enum NewTabType {
     browser = 1, vimium = 2,
   }
+
+  const enum SchemaId {
+    HTTP = 7, HTTPS = 8,
+    FTP = 6,
+  }
 }
 
 declare namespace Frames {
@@ -216,9 +221,12 @@ declare namespace CompletersNS {
   interface QueryStatus { isOff: boolean }
 
   interface Domain {
+    /** last visited time */
     [0]: number;
+    /** occurrence counter */
     [1]: number;
-    [2]: BOOL;
+    /** is_https */
+    [2]: boolean;
   }
 
   type Callback = (this: void, sugs: Readonly<Suggestion>[],
