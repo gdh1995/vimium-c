@@ -463,13 +463,12 @@ Are you sure you want to continue?`);
       inCurWnd || (wnds = wnds.filter(funcDict.isIncNor));
       if (inCurWnd || wnds.length > 0) {
         const options = {
-          url,
+          url, active,
           windowId: inCurWnd ? tab.windowId : wnds[wnds.length - 1].id
         } as chrome.tabs.CreateProperties & { windowId: number };
         if (inCurWnd) {
           options.index = tab.index + 1;
           options.openerTabId = tab.id;
-          options.active = active;
         }
         tabsCreate(options);
         return !inCurWnd && active ? funcDict.selectWnd(options) : undefined;
@@ -591,7 +590,7 @@ Are you sure you want to continue?`);
         chrome.windows.getAll(funcDict.openUrlInIncognito.bind(this, url, tab));
         return;
       }
-      if (reuse === ReuseType.newBg) { tab.active = false; }
+      tab.active = reuse !== ReuseType.newBg;
       if (funcDict.openShowPage[0](url, reuse, tab)) { return; }
       return openMultiTab(url, commandCount, tab);
     },
@@ -638,7 +637,7 @@ Are you sure you want to continue?`);
       for (let i = 0; i < urls.length; i++) {
         urls[i] = Utils.convertToUrl(urls[i] + "");
       }
-      if (cOptions.reuse <= ReuseType.newBg) { tab.active = false; }
+      tab.active = !(cOptions.reuse <= ReuseType.newBg);
       cOptions = null as never;
       do {
         for (let i = 0, index = tab.index + 1, { active } = tab; i < urls.length; i++, active = false, index++) {
