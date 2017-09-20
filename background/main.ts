@@ -103,7 +103,7 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
         return [pattern.split(<RegExpOne>/[?#]/, 1)[0]];
       }
       if (pattern.startsWith("ftp:")) {
-        funcDict.complain("set FTP pages' content stetings");
+        funcDict.complain("set FTP pages' content settings");
         return [];
       }
       let info: string[] = pattern.match(/^([^:]+:\/\/)([^\/]+)/) as RegExpMatchArray
