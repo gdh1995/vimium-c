@@ -84,6 +84,7 @@ var Vomnibar = {
   actionType: ReuseType.Default,
   matchType: CompletersNS.MatchType.Default,
   focused: true,
+  blurWanted: false,
   forceNewTab: false,
   sameOrigin: false,
   showFavIcon: false,
@@ -116,7 +117,7 @@ var Vomnibar = {
     this.OnShown && setTimeout(this.OnShown, 100);
   },
   hide (data?: "hide"): void {
-    this.isActive = this.isEditing = false;
+    this.isActive = this.isEditing = this.blurWanted = false;
     removeEventListener("mousewheel", this.onWheel, {passive: false});
     this.timer > 0 && clearTimeout(this.timer);
     window.onkeyup = null as never;
@@ -183,15 +184,15 @@ var Vomnibar = {
     });
   },
   updateInput (sel: number): void {
-    const focused = this.focused;
+    const focused = this.focused, blurred = this.blurWanted;
     this.isSelOriginal = false;
     if (sel === -1) {
       this.isHttps = null; this.isEditing = false;
       this.input.value = this.inputText;
-      if (!focused) { this.input.focus(); this.focused = false; }
+      if (!focused) { this.input.focus(); this.blurWanted = blurred; }
       return;
     }
-    focused || this.input.blur();
+    blurred && focused && this.input.blur();
     const line: SuggestionEx = this.completions[sel] as SuggestionEx;
     if (line.parsed) {
       return this._updateInput(line, line.parsed);
@@ -289,7 +290,10 @@ var Vomnibar = {
       action = n === VKeyCodes.up ? "pageup" : n === VKeyCodes.down ? "pagedown" : n === VKeyCodes.tab ? "up" : "";
     }
     else if (action = this.normalMap[n] || "") {}
-    else if (n === VKeyCodes.ime) { this.keyResult = HandlerResult.Nothing; return; }
+    else if (n === VKeyCodes.ime || n > VKeyCodes.f1 && n < VKeyCodes.minNotFn) {
+      this.keyResult = HandlerResult.Nothing;
+      return;
+    }
     else if (n === VKeyCodes.backspace) {
       if (focused) { this.keyResult = HandlerResult.Suppress; }
       return;
@@ -304,8 +308,7 @@ var Vomnibar = {
       return this.onAction(action);
     }
 
-    if (n > VKeyCodes.f1 && n < VKeyCodes.minNotFn) { focused = false; }
-    else if (!focused && n < VKeyCodes.minNotNum && n > VKeyCodes.maxNotNum) {
+    if (!focused && n < VKeyCodes.minNotNum && n > VKeyCodes.maxNotNum) {
       n = (n - VKeyCodes.N0) || 10;
       return !event.shiftKey && n <= this.completions.length ? this.onEnter(event, n - 1) : undefined;
     }
@@ -326,7 +329,7 @@ var Vomnibar = {
       }
       break;
     case "focus": this.input.focus(); break;
-    case "blurInput": this.input.blur(); break;
+    case "blurInput": this.blurWanted = true; this.input.blur(); break;
     case "backspace": case "blur":
       !this.focused ? this.input.focus()
       : action === "blur" ? VPort.postMessage({ handler: "refocusCurrent", lastKey: this.lastKey })
@@ -433,7 +436,9 @@ var Vomnibar = {
       el.setSelectionRange(0, left.length, 'backward');
     }
   },
-  OnFocus (this: void, event: Event): void { event.isTrusted != false && (Vomnibar.focused = event.type !== "blur"); },
+  OnFocus (this: void, event: Event): void {
+    event.isTrusted != false && (Vomnibar.focused = event.type !== "blur") && (Vomnibar.blurWanted = false);
+  },
   OnTimer (this: void): void { if (Vomnibar) { return Vomnibar.fetch(); } },
   onWheel (event: WheelEvent): void {
     if (event.ctrlKey || event.metaKey || event.isTrusted == false) { return; }
@@ -445,6 +450,7 @@ var Vomnibar = {
   },
   onInput (): void {
     let s0 = this.lastQuery, s1 = this.input.value, str: string, arr: RegExpExecArray | null;
+    this.blurWanted = false;
     if ((str = s1.trim()) === (this.selection === -1 || this.isSelOriginal
         ? s0 : this.completions[this.selection].text)) {
       return;
