@@ -26,7 +26,7 @@ interface Window {
 }
 declare const enum HeightData {
   InputBar = 54, InputBarWithLine = InputBar + 1,
-  Item = 44, LastItem = Item + 3,
+  Item = 44, LastItemDelta = 3,
   MarginV = 20,
   InputBarAndMargin = InputBar + MarginV,
   InputBarWithLineAndMargin = InputBarWithLine + MarginV,
@@ -486,7 +486,8 @@ var Vomnibar = {
     this.isSelOriginal = true;
     this.isSearchOnTop = notEmpty && list[0].type === "search";
     if (notEmpty) {
-      height = (height - 1) * (HeightData.Item + pixel) + HeightData.LastItem;
+      // avoid `number * (.Item + pixel)` so that output is more precise
+      height = height * HeightData.Item + HeightData.LastItemDelta + (height - 1) * pixel;
     }
     this.heightList = height;
     height = notEmpty ? height + HeightData.InputBarWithLineAndMargin : HeightData.InputBarAndMargin;
@@ -501,7 +502,7 @@ var Vomnibar = {
     oldH || (this.bodySt.display = "");
     notEmpty ? this.barCls.add(c) : cl.remove(c);
     list.innerHTML = this.renderItems(this.completions);
-    list.style.height = this.heightList + "px";
+    list.style.height = (this.heightList + "").substring(0, 7) + "px";
     if (notEmpty) {
       if (this.selection === 0) {
         const line = this.completions[0] as SuggestionEx;
