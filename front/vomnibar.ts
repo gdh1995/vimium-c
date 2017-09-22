@@ -476,9 +476,12 @@ var Vomnibar = {
   },
   omni (response: BgVomnibarReq["omni"]): void {
     if (!this.isActive) { return; }
-    const list = response.list, oldHeight = this.height,
-    pixel = this.browserVersion >= BrowserVer.MinRoundedBorderWidth ? 0.5
-      : this.browserVersion < BrowserVer.MinEnsuredBorderWidth ? 1 : 1 / (Math.max(1, window.devicePixelRatio));
+    const list = response.list, oldHeight = this.height, v = this.browserVersion;
+    let pixel = 0.5;
+    if (v < BrowserVer.MinRoundedBorderWidth) {
+      pixel = Math.max(1, window.devicePixelRatio);
+      pixel = v < BrowserVer.MinEnsuredBorderWidth ? (pixel | 0) / pixel : 1 / pixel;
+    }
     let height = list.length, notEmpty = height > 0;
     this.matchType = response.matchType;
     this.completions = list;
