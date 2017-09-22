@@ -238,9 +238,9 @@ declare const enum BrowserVer {
   Min$Event$$IsTrusted = 46,
   Min$Tabs$$Query$RejectHash = 47,
   MinEnsuredBorderWidth = 48, // inc 0.0001px to the min "visible" width
-  // if #disable-javascript-harmony-shipping is on, then arror functions are accepted only since 48,
+  // if #disable-javascript-harmony-shipping is on, then arrow functions are accepted only since 48,
   // but this flag will break the Developer Tools (can not open the window) on Chrome 46/47/48,
-  // so Chrome can only debug arror functions since 49
+  // so Chrome can only debug arrow functions since 49
   MinEnsuredArrowFunction = 48,
   MinSafeWndPostMessageAcrossProcesses = 49,
   MinNo$Promise$$defer = 49,
