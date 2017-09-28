@@ -361,8 +361,9 @@ interface AdvancedOptBtn extends HTMLButtonElement {
     const target = $("#" + this.getAttribute("data-auto-resize") as string);
     let height = target.scrollHeight, width = target.scrollWidth, dw = width - target.clientWidth;
     if (height <= target.clientHeight && dw <= 0) { return; }
+    const maxWidth = Math.max(Math.min(window.innerWidth, 1024) - 120, 550);
+    target.style.maxWidth = width > maxWidth ? maxWidth + "px" : "";
     target.style.height = target.style.width = "";
-    target.style.maxWidth = Math.min(window.innerWidth, 1024) - 120 + "px";
     dw = width - target.clientWidth;
     let delta = target.offsetHeight - target.clientHeight;
     delta = dw > 0 ? Math.max(26, delta) : delta + 18;
