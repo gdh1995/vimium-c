@@ -80,7 +80,7 @@ var VDom = {
       for (let _j = 0, _len1 = _ref.length; _j < _len1; _j++) {
         style = window.getComputedStyle(_ref[_j]);
         if (style.float !== 'none' ||
-            (str = style.position) === 'absolute' || str === 'fixed' || str === "sticky") {}
+            ((str = style.position) !== 'static' && str !== 'relative')) {}
         else if (rect.height === 0) {
           if (notInline == null) {
             el_style || (el_style = window.getComputedStyle(element));
