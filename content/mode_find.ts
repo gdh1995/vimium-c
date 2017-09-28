@@ -293,7 +293,7 @@ html > count{float:right;}`,
     }
   },
   onInput (e?: Event): void {
-    if (e !== null) {
+    if (e != null) {
       VUtils.Stop(e);
       if (e.isTrusted == false) { return; }
     }
