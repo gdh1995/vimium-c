@@ -455,7 +455,7 @@ var VHints = {
       const el = list[i];
       if (el instanceof HTMLFormElement) { continue; }
       const cr = el.getBoundingClientRect();
-      if (cr.top < height && cr.bottom > 0) {
+      if (cr.bottom > 0 && cr.top < height) {
         result.push(el);
         continue;
       }
