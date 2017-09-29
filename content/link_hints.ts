@@ -223,9 +223,9 @@ var VHints = {
       this.frameNested = null;
       return false;
     }
-    child.VEventMode.focusAndListen(done ? function() {
+    child.VEventMode.focusAndListen(done ? null : function() {
       VUtils.execCommand(child, command, a, b);
-    } : null);
+    });
     if (done) { return true; }
     if (document.readyState !== "complete") { this.frameNested = false; }
     return true;
