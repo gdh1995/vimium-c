@@ -18,6 +18,11 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
     vimiumListened?: ListenType;
   }
   type LockableElement = HTMLElement;
+  const enum HookAction {
+    Install = 0,
+    Suppress = 1,
+    Destroy = 2,
+  }
 
   var KeydownEvents: KeydownCacheArray, keyMap: KeyMap
     , currentKeys = "", isEnabledForUrl = false, isLocked = false
@@ -230,10 +235,11 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
       HUD.enabled = true;
       ELs.OnWndFocus = vPort.safePost.bind(vPort, { handler: "frameFocused" });
     },
-    hook (f: typeof addEventListener | typeof removeEventListener, skipFocus?: 1): void {
+    hook (action: HookAction): void {
+      let f = action ? removeEventListener : addEventListener;
       f("keydown", this.onKeydown, true);
       f("keyup", this.onKeyup, true);
-      skipFocus || f("focus", this.onFocus, true);
+      action !== HookAction.Suppress && f("focus", this.onFocus, true);
       f("blur", this.onBlur, true);
       f.call(document, "DOMActivate", ELs.onActivate, true);
     }
@@ -751,12 +757,12 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
       passKeys = (newPassKeys && parsePassKeys(newPassKeys)) as SafeDict<true> | null;
       VSettings.enabled = isEnabledForUrl = enabled;
       if (initing) {
-        return enabled ? InsertMode.init() : (InsertMode.grabFocus = false, ELs.hook(removeEventListener, 1));
+        return enabled ? InsertMode.init() : (InsertMode.grabFocus = false, ELs.hook(HookAction.Suppress));
       }
       isLocked = !!request.forced;
       if (enabled) {
         old || InsertMode.init();
-        (old && !isLocked) || ELs.hook(addEventListener);
+        (old && !isLocked) || ELs.hook(HookAction.Install);
         // here should not return even if old - a url change may mean the fullscreen mode is changed
       } else {
         Commands.reset();
@@ -914,7 +920,7 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
       let old = ELs.OnWndFocus, failed = true;
       ELs.OnWndFocus = function(): void { failed = false; };
       window.focus();
-      failed && isEnabledForUrl && ELs.hook(addEventListener);
+      failed && isEnabledForUrl && ELs.hook(HookAction.Install);
       // the line below is always necessary: see https://github.com/philc/vimium/issues/2551#issuecomment-316113725
       (ELs.OnWndFocus = old)();
       if (callback && esc) {
@@ -989,7 +995,7 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
     onDestroy: null,
   destroy: function(silent, keepChrome): void {
     VSettings.enabled = isEnabledForUrl = false;
-    ELs.hook(removeEventListener);
+    ELs.hook(HookAction.Destroy);
 
     Commands.reset();
     let f: typeof VSettings.onDestroy, ui = VDom.UI;
@@ -1012,7 +1018,7 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
   };
 
   // here we call it before vPort.connect, so that the code works well even if runtime.connect is sync
-  ELs.hook(addEventListener);
+  ELs.hook(HookAction.Install);
   if (location.href !== "about:blank" || isInjected) {
     vPort.connect(PortType.initing);
   } else (function() {
