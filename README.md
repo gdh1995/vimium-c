@@ -1,7 +1,7 @@
 Vimium++
 ========
 [![MIT license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE.txt)
-![Version 1.60.1](https://img.shields.io/badge/release-1.60.1-orange.svg)
+![Version 1.61.2](https://img.shields.io/badge/release-1.61.2-orange.svg)
 [![Current Build Status](https://travis-ci.org/gdh1995/vimium-plus.svg?branch=master)
   ](https://travis-ci.org/gdh1995/vimium-plus)
 
@@ -82,6 +82,9 @@ Known issues (Up to the master branch):
   This Chrome feature/bug has been removed since version 59, so Vimium++ works well again.
 7. Chrome does not apply content settings (at least images) on file:// URLs since version 56.
   Currently, no effective ways have been found (up to Chrome 59).
+
+1.61.2:
+* fix some regression bugs
 
 1.61.1:
 * fix new UI bugs on Chrome 61
