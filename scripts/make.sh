@@ -7,7 +7,7 @@ function bool() {
 }
 
 input=
-[ -z "$ZIP_BASE" -a -f "make.sh" ] && ZIP_BASE=$(dirname $PWD)
+[ -z "$ZIP_BASE" -a -f "make.sh" ] && [ "${PWD##*/}" = scripts ] && ZIP_BASE=$(dirname $PWD)
 [ -n "$ZIP_BASE" -a "${ZIP_BASE%/}" = "$ZIP_BASE" ] && ZIP_BASE=$ZIP_BASE/
 if bool "$IN_DIST" && [ -d "${ZIP_BASE}dist" -a -f "${ZIP_BASE}dist/manifest.json" ]; then
   ZIP_BASE=${ZIP_BASE}dist/
