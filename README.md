@@ -259,10 +259,12 @@ See the [MIT LICENSE](LICENSE.txt) for details.
   [MIT-licensed](https://github.com/philc/vimium/blob/master/MIT-LICENSE.txt).
 * [微度新标签页](http://www.weidunewtab.com/):
   ©2012 杭州佐拉网络有限公司 保留所有权利.
-* [JavaScript Expression Evaluator](https://github.com/silentmatt/expr-eval):
+* [JavaScript Expression Evaluator](https://github.com/silentmatt/expr-eval)
+  ([Modified](https://github.com/gdh1995/js-expression-eval)):
   Copyright (c) 2015 Matthew Crumley.
   [MIT-licensed](https://github.com/silentmatt/expr-eval/blob/master/LICENSE.txt).
-* [Viewer.js](https://github.com/fengyuanchen/viewerjs):
+* [Viewer.js](https://github.com/fengyuanchen/viewerjs)
+  ([Modified by gdh1995](https://github.com/gdh1995/viewerjs/tree/for-vimium-plus)):
   Copyright (c) 2015-2017 Fengyuan Chen.
   [MIT-licensed](https://github.com/fengyuanchen/viewerjs/blob/master/LICENSE).
 * [TypeScript](https://github.com/Microsoft/TypeScript):
