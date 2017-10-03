@@ -822,7 +822,7 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
     box.innerHTML = html;
     hide = VUtils.Stop;
     box.onclick = hide;
-    box.addEventListener("wheel", hide, {passive: true});
+    box.addEventListener("wheel", hide, {passive: true, capture: true});
     VSettings.cache.browserVer < BrowserVer.MinDOMActivateEventInsideShadowDOMV1WillNotBePassedToDocument ||
     box.addEventListener("DOMActivate", ELs.onActivate, true);
 

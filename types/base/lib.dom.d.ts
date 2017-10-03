@@ -8728,8 +8728,9 @@ interface AssignedNodesOptions {
 
 declare type EventListenerOrEventListenerObject = EventListener | null; // | EventListenerObject;
 declare type EventListenerOptions = boolean | {
+    capture?: true;
+    once?: true;
     passive?: boolean;
-    useCapture?: true;
 };
 
 interface ErrorEventHandler {

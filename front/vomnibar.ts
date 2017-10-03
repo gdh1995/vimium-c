@@ -108,7 +108,7 @@ var Vomnibar = {
   timer: 0,
   wheelTimer: 0,
   browserVersion: BrowserVer.assumedVer,
-  wheelOptions: { passive: false, useCapture: true as true },
+  wheelOptions: { passive: false, capture: true as true },
   show (): void {
     const zoom = 1 / window.devicePixelRatio;
     this.bodySt.zoom = zoom > 1 ? zoom + "" : "";
