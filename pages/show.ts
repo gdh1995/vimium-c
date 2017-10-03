@@ -342,7 +342,7 @@ function showSlide(Viewer: Window["Viewer"]): ViewerType {
   const sel = window.getSelection();
   sel.type == "Range" && sel.collapseToStart();
   let v = window.viewer = window.viewer || new Viewer(shownNode);
-  v.show();
+  v.visible || v.show();
   return v;
 }
 
