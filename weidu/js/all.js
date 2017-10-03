@@ -2007,7 +2007,7 @@ DBOX = {
 		};
 		var _chromeVer = window.navigator.userAgent.match(/chrom(?:e|ium)\/([\d.]+)/i);
 		var chromeVer = _chromeVer != null ? parseFloat(_chromeVer[1]) : 0;
-		window.addEventListener("mousewheel", function (event) {
+		window.addEventListener("wheel", function (event) {
 			if (_wheelEvent) return;
 			if (_wheelFun) {
 				clearTimeout(_wheelFun)
@@ -2045,7 +2045,7 @@ DBOX = {
 				$('#classificationDialog').find(".close").get(0).click()
 			}
 			_wheelFun = setTimeout(clear, self.page3DSwitcherOpen == true ? 400 : 460);
-		}, chromeVer < 51 ? false : {passive: true});
+		}, {passive: true, useCapture: true});
 		window.onmessage = function (e) {
 			_down = false
 		};

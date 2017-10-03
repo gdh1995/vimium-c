@@ -75,12 +75,12 @@ readValueFromElement (): number {
 }
 addWheelListener (): void {
   const el = this.element, func = (e: WheelEvent): void => this.onWheel(e), onBlur = (): void => {
-    el.removeEventListener("mousewheel", func, {passive: false});
+    el.removeEventListener("wheel", func, {passive: false});
     el.removeEventListener("blur", onBlur);
     this.wheelTime = 0;
   };
   this.wheelTime = 0;
-  el.addEventListener("mousewheel", func, {passive: false});
+  el.addEventListener("wheel", func, {passive: false});
   el.addEventListener("blur", onBlur);
 }
 onWheel (event: WheelEvent): void {

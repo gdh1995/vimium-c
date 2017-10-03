@@ -108,17 +108,18 @@ var Vomnibar = {
   timer: 0,
   wheelTimer: 0,
   browserVersion: BrowserVer.assumedVer,
+  wheelOptions: { passive: false, useCapture: true as true },
   show (): void {
     const zoom = 1 / window.devicePixelRatio;
     this.bodySt.zoom = zoom > 1 ? zoom + "" : "";
     this.focused || setTimeout(function() { Vomnibar.input.focus(); }, 34);
-    addEventListener("mousewheel", this.onWheel, {passive: false});
+    addEventListener("wheel", this.onWheel, this.wheelOptions);
     this.input.value = this.inputText;
     this.OnShown && setTimeout(this.OnShown, 100);
   },
   hide (data?: "hide"): void {
     this.isActive = this.isEditing = this.blurWanted = false;
-    removeEventListener("mousewheel", this.onWheel, {passive: false});
+    removeEventListener("wheel", this.onWheel, this.wheelOptions);
     this.timer > 0 && clearTimeout(this.timer);
     window.onkeyup = null as never;
     const el = this.input;
