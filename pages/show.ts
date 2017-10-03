@@ -7,19 +7,21 @@ interface ImportBody {
   (id: "shownText"): HTMLDivElement
 }
 interface Window {
-  readonly VDom?: VDomProto;
   readonly VPort?: Readonly<VPort>;
   readonly VHUD?: Readonly<VHUD>;
-  viewer?: null | {
-    destroy(): any;
-    show(): any;
-  };
+  readonly Viewer: new (root: HTMLElement) => ViewerType;
+  viewer?: null | ViewerType;
 }
 interface VDomProto {
   readonly UI: Readonly<DomUI>;
   readonly mouse: VDomMouse;
 }
-declare var VDom: VDomProto, VPort: Readonly<VPort>, VHUD: Readonly<VHUD>;
+interface ViewerType {
+  destroy(): any;
+  show(): any;
+}
+declare var VPort: Readonly<VPort>, VHUD: Readonly<VHUD>
+, Viewer: Window["Viewer"];
 type ValidShowTypes = "image" | "url" | "";
 type ValidNodeTypes = HTMLImageElement | HTMLDivElement;
 
@@ -93,9 +95,10 @@ window.onhashchange = function(this: void): void {
       (shownNode as HTMLImageElement).alt = "\xa0fail to load\xa0";
       shownNode.classList.remove("hidden");
       setTimeout(showBgLink, 34);
-      shownNode.onclick = chrome.tabs && chrome.tabs.update ? function() {
-        chrome.tabs.update({url: url});
-      } : clickLink.bind(null, { target: "_top" });
+      shownNode.onclick = function(e) {
+        chrome.tabs && chrome.tabs.update ? chrome.tabs.update({ url })
+        : clickLink({ target: "_top" }, e);
+      };
     };
     if (url.indexOf(":") > 0 || url.lastIndexOf(".") > 0) {
       shownNode.src = url;
@@ -204,14 +207,14 @@ function clickLink(this: void, options: { [key: string]: string; }, event: Mouse
     a.setAttribute(i, options[i]);
   }
   a.href = url;
-  if (window.VDom) {
-    VDom.mouse(a, "click", event);
-    return;
-  }
+  simulateClick(a, event);
+}
+
+function simulateClick(a: HTMLElement, event: MouseEvent | KeyboardEvent): boolean {
   const mouseEvent = document.createEvent("MouseEvents");
   mouseEvent.initMouseEvent("click", true, true, window, 1, 0, 0, 0, 0
-    , false, false, false, false, 0, null);
-  a.dispatchEvent(mouseEvent);
+    , event.ctrlKey, event.altKey, event.shiftKey, event.metaKey, 0, null);
+  return a.dispatchEvent(mouseEvent);
 }
 
 function decodeURLPart(url: string): string {
@@ -235,7 +238,7 @@ function defaultOnClick(event: MouseEvent): void {
   } else switch (type) {
   case "url": clickLink({ target: "_blank" }, event); break;
   case "image":
-    loadViewer(toggleSlide).catch(defaultOnError);
+    loadViewer().then(showSlide).catch(defaultOnError);
     break;
   default: break;
   }
@@ -288,7 +291,7 @@ function requireJS(name: string, src: string): Promise<any> {
   if ((window as any)[name]) {
     return Promise.resolve((window as any)[name]);
   }
-  return new Promise(function(resolve, reject) {
+  return (window as any)[name] = new Promise(function(resolve, reject) {
     const script = document.createElement("script");
     script.src = src;
     script.onerror = function() {
@@ -316,9 +319,12 @@ function defaultOnError(err: any): void {
   err && console.log(err);
 }
 
-function loadViewer(func: (viewer: any) => void): Promise<void> {
+function loadViewer(): Promise<Window["Viewer"]> {
+  if (window.Viewer) {
+    return Promise.resolve(Viewer);
+  }
   loadCSS("../lib/viewer.min.css");
-  return requireJS("Viewer", "../lib/viewer.min.js").then<void>(function(Viewer): void {
+  return requireJS("Viewer", "../lib/viewer.min.js").then<Window["Viewer"]>(function(Viewer): Window["Viewer"] {
     Viewer.setDefaults({
       navbar: false,
       shown: function(this: void) {
@@ -328,15 +334,16 @@ function loadViewer(func: (viewer: any) => void): Promise<void> {
         bgLink.style.display = "";
       }
     });
-    return func(Viewer);
+    return Viewer;
   });
 }
 
-function toggleSlide(Viewer: any): void {
+function showSlide(Viewer: Window["Viewer"]): ViewerType {
   const sel = window.getSelection();
   sel.type == "Range" && sel.collapseToStart();
-  window.viewer = window.viewer || new Viewer(shownNode);
-  (window.viewer as any).show();
+  let v = window.viewer = window.viewer || new Viewer(shownNode);
+  v.show();
+  return v;
 }
 
 function clean() {
