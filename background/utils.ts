@@ -372,7 +372,7 @@ var Utils = {
   require<T extends object> (name: SettingsNS.DynamicFiles): Promise<T> {
     const p: Promise<T> | T | null | undefined = window[name];
     if (p) {
-      return p instanceof Promise ? p : Promise.resolve(p);
+      return Promise.resolve(p);
     }
     return (window as any)[name] = new Promise<T>(function(resolve, reject) {
       const script = document.createElement("script");

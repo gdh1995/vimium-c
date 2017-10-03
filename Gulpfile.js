@@ -506,7 +506,7 @@ function loadTypeScriptCompiler(path) {
         typescript = require(path);
       } catch (e) {}
     }
-    console.log('Load customized TypeScript compiler:', typescript != null);
+    console.log('Load customized TypeScript compiler:', typescript != null ? "succeed" : "fail");
   }
   if (typescript == null) {
     typescript = require("typescript/lib/typescript");
