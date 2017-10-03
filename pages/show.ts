@@ -7,6 +7,7 @@ interface ImportBody {
   (id: "shownText"): HTMLDivElement
 }
 interface Window {
+  readonly VKeyboard?: { getKeyChar (event: KeyboardEvent): string };
   readonly VPort?: Readonly<VPort>;
   readonly VHUD?: Readonly<VHUD>;
   readonly Viewer: new (root: HTMLElement) => ViewerType;
@@ -17,10 +18,14 @@ interface VDomProto {
   readonly mouse: VDomMouse;
 }
 interface ViewerType {
+  readonly visible: boolean;
+  readonly viewed: boolean;
   destroy(): any;
   show(): any;
+  zoom(ratio: number, hasTooltip: boolean): ViewerType;
 }
 declare var VPort: Readonly<VPort>, VHUD: Readonly<VHUD>
+, VKeyboard: { getKeyChar (event: KeyboardEvent): string }
 , Viewer: Window["Viewer"];
 type ValidShowTypes = "image" | "url" | "";
 type ValidNodeTypes = HTMLImageElement | HTMLDivElement;
@@ -38,6 +43,7 @@ if (!(BG && BG.Utils && BG.Utils.convertToUrl)) {
 }
 
 let shownNode: ValidNodeTypes, bgLink = $<HTMLAnchorElement>('#bgLink'), url: string, type: ValidShowTypes, file: string;
+let tempEmit: ((succeed: boolean) => void) | null = null;
 
 window.onhashchange = function(this: void): void {
   let str: Urls.Url | null, ind: number;
@@ -177,6 +183,9 @@ String.prototype.startsWith = function(this: string, s: string): boolean {
 (window.onhashchange as () => void)();
 
 document.addEventListener("keydown", function(this: void, event): void {
+  if (type === "image" && imgOnKeydown(event)) {
+    return;
+  }
   if (!(event.ctrlKey || event.metaKey) || event.altKey
     || event.shiftKey || event.repeat) { return; }
   const str = String.fromCharCode(event.keyCode);
@@ -215,6 +224,35 @@ function simulateClick(a: HTMLElement, event: MouseEvent | KeyboardEvent): boole
   mouseEvent.initMouseEvent("click", true, true, window, 1, 0, 0, 0, 0
     , event.ctrlKey, event.altKey, event.shiftKey, event.metaKey, 0, null);
   return a.dispatchEvent(mouseEvent);
+}
+
+function imgOnKeydown(event: KeyboardEvent): boolean {
+  const { keyCode } = event;
+  if (keyCode === VKeyCodes.space || keyCode === VKeyCodes.enter) {
+    event.preventDefault();
+    simulateClick(shownNode, event);
+    return true;
+  }
+  if (!window.VKeyboard) {
+    return false;
+  }
+  let action: number = 0;
+  switch (VKeyboard.getKeyChar(event)) {
+  case "<c-=>": case "+": case "=": action = 1; // no break;
+  case "<c-->": case "-": action === 0 && (action = -1);
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    if (window.viewer && window.viewer.viewed) {
+      window.viewer.zoom(action / 10, true);
+    } else {
+      let p = loadViewer().then(showSlide);
+      p.then(function(viewer) {
+        viewer.zoom(action / 10, true);
+      }).catch(defaultOnError);
+    }
+    return true;
+  default: return false;
+  }
 }
 
 function decodeURLPart(url: string): string {
@@ -330,20 +368,28 @@ function loadViewer(): Promise<Window["Viewer"]> {
       shown: function(this: void) {
         bgLink.style.display = "none";
       },
+      viewed: function(): void { if (tempEmit) { return tempEmit(true); } },
       hide: function(this: void) {
         bgLink.style.display = "";
+        if (tempEmit) { return tempEmit(false); }
       }
     });
     return Viewer;
   });
 }
 
-function showSlide(Viewer: Window["Viewer"]): ViewerType {
+function showSlide(Viewer: Window["Viewer"]): Promise<ViewerType> | ViewerType {
   const sel = window.getSelection();
   sel.type == "Range" && sel.collapseToStart();
-  let v = window.viewer = window.viewer || new Viewer(shownNode);
+  const v = window.viewer = window.viewer || new Viewer(shownNode);
   v.visible || v.show();
-  return v;
+  if (v.viewed) { return v; }
+  return new Promise<ViewerType>(function(resolve, reject): void {
+    tempEmit = function(succeed): void {
+      tempEmit = null;
+      succeed ? resolve(v) : reject("failed to view the image");
+    };
+  });
 }
 
 function clean() {
