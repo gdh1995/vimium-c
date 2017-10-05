@@ -2,8 +2,8 @@ var VKeyboard = {
   keyNames: ["space", "pageup", "pagedown", "end", "home", "left", "up", "right", "down"],
   correctionMap: {
     __proto__: null as never,
-    "0": ";:", "1": "=+", "2": ",<", "3": "-_", "4": ".>", "5": "/?", "6": "`~",
-    "33": "[{", "34": "\\|", "35": "]}", "36": "'\""
+    0: ";:", 1: "=+", 2: ",<", 3: "-_", 4: ".>", 5: "/?", 6: "`~",
+    33: "[{", 34: "\\|", 35: "]}", 36: "'\""
   } as SafeDict<string>,
   funcKeyRe: <RegExpOne> /^F\d\d?$/,
   getKeyName (event: KeyboardEvent): string {

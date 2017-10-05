@@ -157,7 +157,7 @@ $<ElementWithDelay>("#exportButton").onclick = function(event): void {
 
 function _importSettings(time: number, new_data: ExportedSettings, is_recommended?: boolean): void {
   let env = new_data.environment, plat = env && env.platform || ""
-    , ext_ver = env && parseFloat(env.extension || "0") || 0
+    , ext_ver = env && parseFloat(env.extension || 0) || 0
     , newer = ext_ver > parseFloat(bgSettings.CONST.CurrentVersion);
   plat && (plat = ("" + plat).substring(0, 10));
   if (!confirm(

@@ -251,12 +251,12 @@ var Vomnibar = {
     sel >= 0 && _ref[sel].classList.add("s");
   },
   ctrlMap: {
-    "66": "pageup", "74": "down", "75": "up", "219": "dismiss", "221": "toggle"
-    , "78": "down", "80": "up"
+    66: "pageup", 74: "down", 75: "up", 219: "dismiss", 221: "toggle"
+    , 78: "down", 80: "up"
   } as Dict<AllowedActions>,
   normalMap: {
-    "9": "down", "27": "dismiss", "33": "pageup", "34": "pagedown", "38": "up", "40": "down"
-    , "112": "backspace", "113": "blur"
+    9: "down", 27: "dismiss", 33: "pageup", 34: "pagedown", 38: "up", 40: "down"
+    , 112: "backspace", 113: "blur"
   } as Dict<AllowedActions>,
   onKeydown (event: KeyboardEvent): any {
     if (!this.isActive) { return; }
