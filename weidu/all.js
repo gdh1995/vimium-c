@@ -406,14 +406,14 @@ normal:[{
 "url":"https://chrome.google.com/webstore/?t=https://webstore.google.com"
 },{
 "title":getI18nMsg('cloudAppTitle'),
-"img":"js/plugin/cloud/img/logo.png",
+"img":"plugin/cloud/img/logo.png",
 "isApp":"cloud",
 "isFixed":true
 }
 ],
 quick:[{
 "title":getI18nMsg('classificationAppTitle'),
-"img":"js/plugin/classification/img/logo.png",
+"img":"plugin/classification/img/logo.png",
 "isApp":"classification"
 },{
 "title":getI18nMsg('siteNavAppTitle'),
@@ -421,23 +421,23 @@ quick:[{
 "isApp":"siteNav"
 },{
 "title":getI18nMsg('skinsAppTitle'),
-"img":"js/plugin/skins/img/logo.png",
+"img":"plugin/skins/img/logo.png",
 "isApp":"skins"
 },{
 "title":getI18nMsg('oNewtabTitle'),
-"img":"js/plugin/img/oNewtab.png",
+"img":"plugin/img/oNewtab.png",
 "isApp":"oNewtab"
 },{
 "title":getI18nMsg('extensionsAppTitle'),
-"img":"js/plugin/extensions/img/logo.png",
+"img":"plugin/extensions/img/logo.png",
 "isApp":"extensions"
 },{
 "title":getI18nMsg('bookmarksAppTitle'),
-"img":"js/plugin/bookmarks/img/logo.png",
+"img":"plugin/bookmarks/img/logo.png",
 "isApp":"bookmarks"
 },{
 "title":getI18nMsg('setupAppTitle'),
-"img":"js/plugin/setup/img/logo.png",
+"img":"plugin/setup/img/logo.png",
 "isApp":"setup",
 "isFixed":true
 }
@@ -450,33 +450,33 @@ apps:[{
 },{
 "id":"skins",
 "title":getI18nMsg('skinsAppTitle'),
-"img":"js/plugin/skins/img/logo.png"
+"img":"plugin/skins/img/logo.png"
 },{
 "id":"classification",
 "title":getI18nMsg('classificationAppTitle'),
-"img":"js/plugin/classification/img/logo.png"
+"img":"plugin/classification/img/logo.png"
 },{
 "id":"cloud",
 "title":getI18nMsg('cloudAppTitle'),
-"img":"js/plugin/cloud/img/logo.png",
+"img":"plugin/cloud/img/logo.png",
 "isFixed":true
 },{
 "id":"setup",
 "title":getI18nMsg('setupAppTitle'),
-"img":"js/plugin/setup/img/logo.png",
+"img":"plugin/setup/img/logo.png",
 "isFixed":true
 },{
 "id":"bookmarks",
 "title":getI18nMsg('bookmarksAppTitle'),
-"img":"js/plugin/bookmarks/img/logo.png"
+"img":"plugin/bookmarks/img/logo.png"
 },{
 "id":"lastVisited",
 "title":getI18nMsg('lastVisitedAppTitle'),
-"img":"js/plugin/lastVisited/img/logo.png"
+"img":"plugin/lastVisited/img/logo.png"
 },{
 "id":"extensions",
 "title":getI18nMsg('extensionsAppTitle'),
-"img":"js/plugin/extensions/img/logo.png"
+"img":"plugin/extensions/img/logo.png"
 },{
 "id":"siteNav",
 "title":getI18nMsg('siteNavAppTitle'),
@@ -488,23 +488,23 @@ apps:[{
 },{
 "id":"oDownloads",
 "title":getI18nMsg('oDownloadsTitle'),
-"img":"js/plugin/img/oDownloads.png"
+"img":"plugin/img/oDownloads.png"
 },{
 "id":"oBookmarks",
 "title":getI18nMsg('oBookmarksTitle'),
-"img":"js/plugin/img/oBookmarks.png"
+"img":"plugin/img/oBookmarks.png"
 },{
 "id":"oExtensions",
 "title":getI18nMsg('oExtensionsTitle'),
-"img":"js/plugin/img/oExtensions.png"
+"img":"plugin/img/oExtensions.png"
 },{
 "id":"oHistory",
 "title":getI18nMsg('oHistoryTitle'),
-"img":"js/plugin/img/oHistory.png"
+"img":"plugin/img/oHistory.png"
 },{
 "id":"oNewtab",
 "title":getI18nMsg('oNewtabTitle'),
-"img":"js/plugin/img/oNewtab.png"
+"img":"plugin/img/oNewtab.png"
 }
 ],
 skins:{
@@ -1413,8 +1413,8 @@ var app = {
 		"classification": {
 			"type": "immediate",
 			"separate": true,
-			"js": "js/plugin/classification/classification.js",
-			"css": "js/plugin/classification/css/skin_0.css",
+			"js": "plugin/classification/classification.js",
+			"css": "plugin/classification/css/skin_0.css",
 			"loadData": function (dialogObj, targetObj) {
 				if (classification && classification.minClassificationSwitch == true) {
 					classification.hideMinClassification(true)
@@ -1461,8 +1461,8 @@ var app = {
 			}
 		},
 		"setup": {
-			"js": "js/plugin/setup/setup.js",
-			"css": "js/plugin/setup/css/skin_0.css",
+			"js": "plugin/setup/setup.js",
+			"css": "plugin/setup/css/skin_0.css",
 			"run": function () {
 				var setupDialog = $.dialog({
 						id: "setupDialog",
@@ -1477,8 +1477,8 @@ var app = {
 			}
 		},
 		"lastVisited": {
-			"js": "js/plugin/lastVisited/lastVisited.js",
-			"css": "js/plugin/lastVisited/css/skin_0.css",
+			"js": "plugin/lastVisited/lastVisited.js",
+			"css": "plugin/lastVisited/css/skin_0.css",
 			"loadData": function (dialogObj, targetObj) {
 				wantPermissions("history").then(function() {
 					chrome.history.search({
@@ -1513,8 +1513,8 @@ var app = {
 			}
 		},
 		"bookmarks": {
-			"js": "js/plugin/bookmarks/bookmarks.js",
-			"css": "js/plugin/bookmarks/css/skin_0.css",
+			"js": "plugin/bookmarks/bookmarks.js",
+			"css": "plugin/bookmarks/css/skin_0.css",
 			"loadData": function (dialogObj, targetObj) {
 				wantPermissions("bookmarks").then(function() {
 				chrome.bookmarks.getTree(function (tree) {
@@ -1558,8 +1558,8 @@ var app = {
 			}
 		},
 		"extensions": {
-			"js": "js/plugin/extensions/extensions.js",
-			"css": "js/plugin/extensions/css/skin_0.css",
+			"js": "plugin/extensions/extensions.js",
+			"css": "plugin/extensions/css/skin_0.css",
 			"loadData": function (dialogObj, targetObj) {
 				wantPermissions("management").then(function() {
 					chrome.management.getAll(function (_extensions) {
@@ -1591,11 +1591,11 @@ var app = {
 			}
 		},
 		"skins": {
-			"js": "js/plugin/skins/skins.js",
-			"css": "js/plugin/skins/css/skin_0.css",
+			"js": "plugin/skins/skins.js",
+			"css": "plugin/skins/css/skin_0.css",
 			"loadData": function (dialogObj, targetObj) {
 				if (typeof cloudWallpaper == 'undefined') {
-					loadScript('js/plugin/skins/cloudWallpaper.js')
+					loadScript('plugin/skins/cloudWallpaper.js')
 				}
 				$(".skinsContainer").find(".bgAutoTime[automin]").removeClass("selected");
 				if (PDI.get("privateSetup", "BgAutoTime") != "0") {
@@ -1616,8 +1616,8 @@ var app = {
 			}
 		},
 		"cloud": {
-			"js": "js/plugin/cloud/cloud.js",
-			"css": "js/plugin/cloud/css/skin_0.css",
+			"js": "plugin/cloud/cloud.js",
+			"css": "plugin/cloud/css/skin_0.css",
 			"loadData": function (dialogObj, targetObj) {
 				wantPermissions("management", "history").then(function() {
 					cloud.showDialog(targetObj.attr('url') && targetObj, true);
@@ -2204,12 +2204,14 @@ DBOX = {
 		logoBoxWidth = self.width,
 		boxLogoColor = '191,0,0',
 		logoImgUrl = thisBox.getImg();
-		if (logoImgUrl.substring(0, urlImg.length) === urlImg) {
+		if (logoImgUrl.lastIndexOf(urlImg, 0) === 0) {
 			if (type == 'quick' && logoImgUrl.indexOf('/m/') !== -1) {
 				logoImgUrl = logoImgUrl.replace('/m/', '/s/')
 			} else if (type == 'normal' && logoImgUrl.indexOf('/s/') !== -1) {
 				logoImgUrl = logoImgUrl.replace('/s/', '/m/')
 			}
+		} else if (logoImgUrl.lastIndexOf("js/", 0) === 0) {
+			logoImgUrl = logoImgUrl.substring(3);
 		}
 		if (thisBox.boxOptions.color == "" || self.update) {
 			var logoImg = new Image();

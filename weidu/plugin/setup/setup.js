@@ -535,11 +535,11 @@ var setup = {
 		var loginButtonHtml = '';
 		PDI.set("setup", "oauthKey", '');
 		if (oauth.oauthId) {
-			loginButtonHtml += '<div class="loginButton"><img src="js/plugin/setup/img/skin_0/login_' + oauth.oauthSource + '.png" width="87" height="32" /></div><div class="userContent"><div class="userContentArrowBorder"></div><div class="userContentArrow"></div><span class="oauthCode">' + oauth.oauthCode + '</span><span class="oauthSyn">[ ' + getI18nMsg('synchronize') + ' ]</span><span class="oauthLogout">[ ' + getI18nMsg('logout') + ' ]</span></div>'
+			loginButtonHtml += '<div class="loginButton"><img src="plugin/setup/img/skin_0/login_' + oauth.oauthSource + '.png" width="87" height="32" /></div><div class="userContent"><div class="userContentArrowBorder"></div><div class="userContentArrow"></div><span class="oauthCode">' + oauth.oauthCode + '</span><span class="oauthSyn">[ ' + getI18nMsg('synchronize') + ' ]</span><span class="oauthLogout">[ ' + getI18nMsg('logout') + ' ]</span></div>'
 		} else {
 			var show_limit = 5;
 			$.each(_config["oauthType"], function (i, n) {
-				loginButtonHtml += '<div class="loginButton" style="display:' + (i < show_limit ? "block" : "none") + '"><a href="' + urlImg + 'oauth/login.php?sign=' + n + '&oauthKey=' + PDI.get("setup", "oauthKey") + '&referer=' + window.location.protocol + '//' + window.location.hostname + window.location.pathname + '&hash=synchronize&t=' + Date.now() + '" target="_self"><img src="js/plugin/setup/img/skin_0/login_' + n + '.png" width="87" height="32" title="' + getI18nMsg(n + 'LoginTypeTitle') + '"/></a></div>'
+				loginButtonHtml += '<div class="loginButton" style="display:' + (i < show_limit ? "block" : "none") + '"><a href="' + urlImg + 'oauth/login.php?sign=' + n + '&oauthKey=' + PDI.get("setup", "oauthKey") + '&referer=' + window.location.protocol + '//' + window.location.hostname + window.location.pathname + '&hash=synchronize&t=' + Date.now() + '" target="_self"><img src="plugin/setup/img/skin_0/login_' + n + '.png" width="87" height="32" title="' + getI18nMsg(n + 'LoginTypeTitle') + '"/></a></div>'
 			});
 			if (_config["oauthType"].length > show_limit) {
 				loginButtonHtml += '<div class="loginButtonMore" title="' + getI18nMsg('more') + '"></div>'
