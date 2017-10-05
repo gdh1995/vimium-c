@@ -46,7 +46,7 @@ declare function parseInt(s: string, radix?: number): number;
   * Converts a string to a floating-point number.
   * @param string A string that contains a floating-point number.
   */
-declare function parseFloat(string: string): number;
+declare function parseFloat(string: string | number): number;
 
 /**
   * Returns a Boolean value that indicates whether a value is the reserved value NaN (not a number).

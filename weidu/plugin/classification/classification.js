@@ -14,23 +14,23 @@ var classification = {
 	defaultDialBoxes : {
 		normal : [{
 				"title" : getI18nMsg('cloudAppTitle'),
-				"img" : "js/plugin/cloud/img/logo.png",
+				"img" : "plugin/cloud/img/logo.png",
 				"isApp" : "cloud",
 				"isFixed" : true
 			}
 		],
 		quick : [{
 				"title" : getI18nMsg('classificationAppTitle'),
-				"img" : "js/plugin/classification/img/logo.png",
+				"img" : "plugin/classification/img/logo.png",
 				"isApp" : "classification",
 				"isFixed" : true
 			}, {
 				"title" : getI18nMsg('skinsAppTitle'),
-				"img" : "js/plugin/skins/img/logo.png",
+				"img" : "plugin/skins/img/logo.png",
 				"isApp" : "skins"
 			}, {
 				"title" : getI18nMsg('setupAppTitle'),
-				"img" : "js/plugin/setup/img/logo.png",
+				"img" : "plugin/setup/img/logo.png",
 				"isApp" : "setup",
 				"isFixed" : true
 			}
@@ -118,7 +118,7 @@ var classification = {
 			}
 		});
 		$(".minClassificationContainer").remove();
-		var minClassificationList = $('<div class="minClassificationContainer"><div class="minClassificationArrow"></div><div class="minClassification' + (cId == "" ? " selected" : "") + '" cId=""><img title="' + getI18nMsg('classificationMain') + '" src="js/plugin/classification/img/logo.png" border="0">' + (cId == "" ? '<div class="selected"></div>' : '') + '</div></div>');
+		var minClassificationList = $('<div class="minClassificationContainer"><div class="minClassificationArrow"></div><div class="minClassification' + (cId == "" ? " selected" : "") + '" cId=""><img title="' + getI18nMsg('classificationMain') + '" src="plugin/classification/img/logo.png" border="0">' + (cId == "" ? '<div class="selected"></div>' : '') + '</div></div>');
 		if (self.classifications.length > 0) {
 			$.each(self.classifications, function (i, n) {
 				minClassificationList.append('<div class="minClassification' + (n.id == cId ? " selected" : "") + '" cId="' + n.id + '"><img title="' + n.title + '" src="' + n.logo + '" border="0">' + (n.id == cId ? '<div class="selected"></div>' : '') + '</div>')
@@ -215,7 +215,7 @@ var classification = {
 					var newClassification = {
 						id: Date.now(),
 						title: getI18nMsg("classificationNew"),
-						logo: "js/plugin/classification/img/skin_0/" + Math.floor(Math.random() * 8) + ".png"
+						logo: "plugin/classification/img/skin_0/" + Math.floor(Math.random() * 8) + ".png"
 					};
 					storage.relative = false;
 					self.classifications.push(newClassification);
@@ -469,13 +469,13 @@ var classification = {
 	},
 	template : function () {
 		var self = this;
-		var classificationListHtml = '<div class="classification" cId="" selectTitle="' + getI18nMsg('classificationSelect').replace('%s', getI18nMsg('classificationMain')) + '" editTitle=""><img class="classificationLogo" src="js/plugin/classification/img/logo.png" border="0"><span class="classificationTitle' + (cId == "" ? " selected" : "") + '">' + getI18nMsg('classificationMain') + '</span><div class="classificationMark">~</div></div>';
+		var classificationListHtml = '<div class="classification" cId="" selectTitle="' + getI18nMsg('classificationSelect').replace('%s', getI18nMsg('classificationMain')) + '" editTitle=""><img class="classificationLogo" src="plugin/classification/img/logo.png" border="0"><span class="classificationTitle' + (cId == "" ? " selected" : "") + '">' + getI18nMsg('classificationMain') + '</span><div class="classificationMark">~</div></div>';
 		if (self.classifications.length > 0) {
 			$.each(self.classifications, function (i, n) {
 				classificationListHtml += '<div class="classification" cId="' + n.id + '" selectTitle="' + getI18nMsg('classificationSelect').replace('%s', n.title) + '" editTitle="' + getI18nMsg('classificationEdit') + '"><img class="classificationLogo" src="' + n.logo + '" border="0"><span class="classificationTitle' + (cId == n.id ? " selected" : "") + '">' + n.title + '</span><div class="classificationMark">' + (i + 1) + '</div><div class="classificationDel" title="' + getI18nMsg('classificationDel') + '"></div></div>'
 			})
 		}
-		classificationListHtml += '<div class="classification' + (self.classifications.length >= self.num ? " hide" : "") + '" cId="add" selectTitle="' + getI18nMsg('classificationAdd') + '" editTitle=""><img class="classificationLogo" src="js/plugin/classification/img/skin_0/add.png" border="0"><span class="classificationTitle' + (cId == "add" ? " selected" : "") + '">' + getI18nMsg('classificationAdd') + '</span></div>';
+		classificationListHtml += '<div class="classification' + (self.classifications.length >= self.num ? " hide" : "") + '" cId="add" selectTitle="' + getI18nMsg('classificationAdd') + '" editTitle=""><img class="classificationLogo" src="plugin/classification/img/skin_0/add.png" border="0"><span class="classificationTitle' + (cId == "add" ? " selected" : "") + '">' + getI18nMsg('classificationAdd') + '</span></div>';
 		return '<div class="classificationContainer"><div class="classificationNotice">' + getI18nMsg("classificationNotice") + '</div><div class="classificationList">' + classificationListHtml + '</div><div class="classificationLogoList"><div class="classificationLogoListArrow"></div><div class="classificationLogoItem"></div><div class="classificationLogoItem"></div><div class="classificationLogoItem"></div><div class="classificationLogoItem"></div><div class="classificationLogoItem"></div><div class="classificationLogoItem"></div><div class="classificationLogoItem"></div><div class="classificationLogoItem"></div><div class="title">' + getI18nMsg("classificationLogoEdit") + '</div></div></div>'
 	}
 };

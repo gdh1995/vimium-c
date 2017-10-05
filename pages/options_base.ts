@@ -9,7 +9,7 @@ interface Checker<T extends keyof AllowedOptions> {
 
 const KeyRe = <RegExpG> /<(?!<)(?:a-)?(?:c-)?(?:m-)?(?:[A-Z][\dA-Z]+|[a-z][\da-z]+|\S)>|\S/g,
 __extends = function(child: Function, parent: Function): void {
-  function __(this: { constructor: Function } ) { this.constructor = parent; }
+  function __(this: { constructor: Function } ) { this.constructor = child; }
   __.prototype = parent.prototype;
   child.prototype = new (__ as any)();
 },
@@ -263,7 +263,9 @@ sortRules: (el?: HTMLElement) => void;
 ExclusionRulesOption.prototype.reChar = <RegExpOne> /^[\^*]|[^\\][$()*+?\[\]{|}]/;
 ExclusionRulesOption.prototype._escapeRe = <RegExpG> /\\(.)/g;
 
-if (bgSettings.CONST.ChromeVersion < BrowserVer.MinEnsuredBorderWidth) (function(): void {
+if (bgSettings.CONST.ChromeVersion < BrowserVer.MinEnsuredBorderWidth
+  || window.devicePixelRatio < 1 && bgSettings.CONST.ChromeVersion >= BrowserVer.MinRoundedBorderWidth
+) (function(): void {
   const css = document.createElement("style");
   css.textContent = "*{border-width:1px !important;}";
   (document.head as HTMLHeadElement).appendChild(css);

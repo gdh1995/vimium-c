@@ -1,7 +1,7 @@
 Vimium++
 ========
 [![MIT license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE.txt)
-![Version 1.60.1](https://img.shields.io/badge/release-1.60.1-orange.svg)
+![Version 1.61.2](https://img.shields.io/badge/release-1.61.2-orange.svg)
 [![Current Build Status](https://travis-ci.org/gdh1995/vimium-plus.svg?branch=master)
   ](https://travis-ci.org/gdh1995/vimium-plus)
 
@@ -79,6 +79,17 @@ Known issues (Up to the master branch):
   This Chrome feature/bug has been removed since version 59, so Vimium++ works well again.
 7. Chrome does not apply content settings (at least images) on file:// URLs since version 56.
   Currently, no effective ways have been found (up to Chrome 59).
+
+1.61.2:
+* fix some regression bugs
+
+1.61.1:
+* fix new UI bugs on Chrome 61
+* fix that content settings commands didn't work on some special URLs containing port or username info
+* in most pages, it will focus a parent frame to press `<Esc>`,
+  if the current is an iframe and nothing is focused or selected
+* re-enable supports on about:blank iframes
+* FindMode has a safer HUD
 
 1.61:
 * rework Marks so that local marks work on websites on which cookies are disabled manually
@@ -245,10 +256,12 @@ See the [MIT LICENSE](LICENSE.txt) for details.
   [MIT-licensed](https://github.com/philc/vimium/blob/master/MIT-LICENSE.txt).
 * [微度新标签页](http://www.weidunewtab.com/):
   ©2012 杭州佐拉网络有限公司 保留所有权利.
-* [JavaScript Expression Evaluator](https://github.com/silentmatt/expr-eval):
+* [JavaScript Expression Evaluator](https://github.com/silentmatt/expr-eval)
+  ([Modified](https://github.com/gdh1995/js-expression-eval)):
   Copyright (c) 2015 Matthew Crumley.
   [MIT-licensed](https://github.com/silentmatt/expr-eval/blob/master/LICENSE.txt).
-* [Viewer.js](https://github.com/fengyuanchen/viewerjs):
+* [Viewer.js](https://github.com/fengyuanchen/viewerjs)
+  ([Modified by gdh1995](https://github.com/gdh1995/viewerjs/tree/for-vimium-plus)):
   Copyright (c) 2015-2017 Fengyuan Chen.
   [MIT-licensed](https://github.com/fengyuanchen/viewerjs/blob/master/LICENSE).
 * [TypeScript](https://github.com/Microsoft/TypeScript):

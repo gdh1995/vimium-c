@@ -12,14 +12,12 @@ VDom.UI = {
   addElement<T extends HTMLElement> (this: DomUI, element: T, options?: UIElementOptions): T {
     options = Object.setPrototypeOf(options || {}, null);
     let notShowAtOnce = options.showing === false, doAdd = options.adjust;
-    this.box = VDom.createElement("div");
-    (this.box as HTMLElement).style.display = "none";
-    this.root = (this.box as HTMLElement).attachShadow ?
-        (this.box as HTMLElement & AttachShadow).attachShadow({mode: "closed"})
-      : (this.box as HTMLElement).createShadowRoot();
-    (this.box as HTMLElement).attachShadow || // listen "load" so that safer on Chrome < 53
-    this.root.addEventListener("load", function(e: Event): void {
-      const t = e.target as HTMLElement; t.onload && t.onload(e); e.stopImmediatePropagation();
+    const box = this.box = VDom.createElement("div"), old = !box.attachShadow;
+    box.style.display = "none";
+    this.root = old ? box.createShadowRoot() : (box as AttachShadow).attachShadow({mode: "closed"});
+    // listen "load" so that safer on Chrome < 53
+    old && this.root.addEventListener("load", function(e: Event): void {
+      const t = e.target as HTMLElement; t.onload && t.onload(e); VUtils.Stop(e);
     }, true);
     this.css = (innerCSS): void => {
       if (typeof browser !== "undefined" && browser === chrome) {
@@ -36,7 +34,7 @@ VDom.UI = {
       this.styleIn.onload = function (): void {
         this.onload = null as never;
         const a = VDom.UI;
-        (a.box as HTMLElement).style.display = "";
+        (a.box as HTMLElement).removeAttribute("style");
         a.callback && a.callback();
       };
       if (doAdd !== false) {
@@ -84,6 +82,16 @@ VDom.UI = {
     if (enabled) { return this.adjust(); }
     (this.box as HTMLElement).remove();
     removeEventListener("webkitfullscreenchange", this.adjust, true);
+  },
+  _styleBorder: null as (HTMLStyleElement & {zoom?: number}) | null,
+  ensureBorder (): void {
+    if (!VDom.specialZoom) { return; }
+    let ratio = VDom.getDocZoom(getComputedStyle(document.documentElement as HTMLElement))
+      , st = this._styleBorder, st2: typeof st;
+    if (st === null ? ratio >= 1 : st.zoom === ratio) { return; }
+    st2 = st || (this._styleBorder = this.createStyle(""));
+    st2.zoom = ratio; st2.textContent = "*{border-width:" + ("" + 0.51 / ratio).substring(0, 5) + "px !important;}";
+    st || this.addElement(st2);
   },
   createStyle (text, doc): HTMLStyleElement {
     const css = (doc || VDom).createElement("style");
@@ -138,6 +146,7 @@ VDom.UI = {
   getZoom (this: void): number {
     let docEl = document.documentElement as Element, el: Element | null, zoom = 1;
     el = document.webkitFullscreenElement || docEl;
+    if (VDom.specialZoom) { zoom /= window.devicePixelRatio; }
     do {
       zoom *= +getComputedStyle(el).zoom || 1;
     } while (el = VDom.getParent(el));

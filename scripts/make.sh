@@ -7,7 +7,7 @@ function bool() {
 }
 
 input=
-[ -z "$ZIP_BASE" -a -f "make.sh" ] && ZIP_BASE=$(dirname $PWD)
+[ -z "$ZIP_BASE" -a -f "make.sh" ] && [ "${PWD##*/}" = scripts ] && ZIP_BASE=$(dirname $PWD)
 [ -n "$ZIP_BASE" -a "${ZIP_BASE%/}" = "$ZIP_BASE" ] && ZIP_BASE=$ZIP_BASE/
 if bool "$IN_DIST" && [ -d "${ZIP_BASE}dist" -a -f "${ZIP_BASE}dist/manifest.json" ]; then
   ZIP_BASE=${ZIP_BASE}dist/
@@ -32,7 +32,12 @@ if [ -z "$output" -o -d "$output" ]; then
   pkg_name=$ZIP_BASE
   if [ "$ZIP_BASE" = dist/ -a -z "$output" ]; then
     pkg_name=
-    test -z "$ori_output" && ver=${ver}_dist
+    if [ -n "$ori_output" ]; then :
+    elif bool "$WITH_MAP"; then
+      ver=${ver}_with-map
+    else
+      ver=${ver}_dist
+    fi
     if [ -d '/wo' ]; then
       output=/wo/
     fi

@@ -12,7 +12,9 @@
 	overflow-y: auto;
 	padding: 8px 6px 0 18px;
 	top: 50px;
+	user-select: auto;
 	z-index: 2147483645;
+	-webkit-user-select: auto;
 }
 #HelpContent {
 	width: 800px;
@@ -58,10 +60,11 @@
 	visibility: hidden;
 }
 .HDivider {
-	/* keep 1px so it can be more conspicuous than 0.01px */
+	/* keep 1px so it can be more conspicuous than 0.5px */
 	border-bottom: 1px solid #ddd;
 	clear: both;
 	display: block;
+	height: 1px;
 	margin: 10px 1px;
 }
 
@@ -84,7 +87,7 @@
 }
 .HelpKey {
 	background-color: #f3f3f3;
-	border: 0.01px solid #ccc;
+	border: 0.5px solid #ccc;
 	border-bottom-color: #bbb;
 	border-radius: 3px;
 	box-shadow: inset 0 -1px 0 #bbb;
@@ -161,12 +164,12 @@
 }
 .Scroll::-webkit-scrollbar:vertical {
 	border-radius: 0 6px 6px 0;
-	border-left: 0.01px solid #ddd;
+	border-left: 0.5px solid #ddd;
 	width: 12px;
 }
 .Scroll::-webkit-scrollbar:horizontal {
 	border-radius: 0 0 6px 6px;
-	border-top: 0.01px solid #ddd;
+	border-top: 0.5px solid #ddd;
 	height: 12px;
 }
 .Scroll:hover::-webkit-scrollbar-thumb {

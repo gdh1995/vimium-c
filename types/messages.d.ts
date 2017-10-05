@@ -97,7 +97,6 @@ interface CmdOptions {
   showHelp: {};
   reload: { url: string, force?: undefined } | { force: boolean, url?: undefined };
   "Find.activate": {
-    browserVersion: number;
     count: number;
     dir: 1 | -1;
     query: string | null;

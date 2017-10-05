@@ -26,7 +26,7 @@ interface Window {
 }
 declare const enum HeightData {
   InputBar = 54, InputBarWithLine = InputBar + 1,
-  Item = 44, LastItem = Item + 3,
+  Item = 44, LastItemDelta = 3,
   MarginV = 20,
   InputBarAndMargin = InputBar + MarginV,
   InputBarWithLineAndMargin = InputBarWithLine + MarginV,
@@ -84,6 +84,7 @@ var Vomnibar = {
   actionType: ReuseType.Default,
   matchType: CompletersNS.MatchType.Default,
   focused: true,
+  blurWanted: false,
   forceNewTab: false,
   sameOrigin: false,
   showFavIcon: false,
@@ -107,17 +108,18 @@ var Vomnibar = {
   timer: 0,
   wheelTimer: 0,
   browserVersion: BrowserVer.assumedVer,
+  wheelOptions: { passive: false, capture: true as true },
   show (): void {
     const zoom = 1 / window.devicePixelRatio;
     this.bodySt.zoom = zoom > 1 ? zoom + "" : "";
     this.focused || setTimeout(function() { Vomnibar.input.focus(); }, 34);
-    addEventListener("mousewheel", this.onWheel, {passive: false});
+    addEventListener("wheel", this.onWheel, this.wheelOptions);
     this.input.value = this.inputText;
     this.OnShown && setTimeout(this.OnShown, 100);
   },
   hide (data?: "hide"): void {
-    this.isActive = this.isEditing = false;
-    removeEventListener("mousewheel", this.onWheel, {passive: false});
+    this.isActive = this.isEditing = this.blurWanted = false;
+    removeEventListener("wheel", this.onWheel, this.wheelOptions);
     this.timer > 0 && clearTimeout(this.timer);
     window.onkeyup = null as never;
     const el = this.input;
@@ -183,15 +185,15 @@ var Vomnibar = {
     });
   },
   updateInput (sel: number): void {
-    const focused = this.focused;
+    const focused = this.focused, blurred = this.blurWanted;
     this.isSelOriginal = false;
     if (sel === -1) {
       this.isHttps = null; this.isEditing = false;
       this.input.value = this.inputText;
-      if (!focused) { this.input.focus(); this.focused = false; }
+      if (!focused) { this.input.focus(); this.blurWanted = blurred; }
       return;
     }
-    focused || this.input.blur();
+    blurred && focused && this.input.blur();
     const line: SuggestionEx = this.completions[sel] as SuggestionEx;
     if (line.parsed) {
       return this._updateInput(line, line.parsed);
@@ -249,12 +251,12 @@ var Vomnibar = {
     sel >= 0 && _ref[sel].classList.add("s");
   },
   ctrlMap: {
-    "66": "pageup", "74": "down", "75": "up", "219": "dismiss", "221": "toggle"
-    , "78": "down", "80": "up"
+    66: "pageup", 74: "down", 75: "up", 219: "dismiss", 221: "toggle"
+    , 78: "down", 80: "up"
   } as Dict<AllowedActions>,
   normalMap: {
-    "9": "down", "27": "dismiss", "33": "pageup", "34": "pagedown", "38": "up", "40": "down"
-    , "112": "backspace", "113": "blur"
+    9: "down", 27: "dismiss", 33: "pageup", 34: "pagedown", 38: "up", 40: "down"
+    , 112: "backspace", 113: "blur"
   } as Dict<AllowedActions>,
   onKeydown (event: KeyboardEvent): any {
     if (!this.isActive) { return; }
@@ -289,7 +291,10 @@ var Vomnibar = {
       action = n === VKeyCodes.up ? "pageup" : n === VKeyCodes.down ? "pagedown" : n === VKeyCodes.tab ? "up" : "";
     }
     else if (action = this.normalMap[n] || "") {}
-    else if (n === VKeyCodes.ime) { this.keyResult = HandlerResult.Nothing; return; }
+    else if (n === VKeyCodes.ime || n > VKeyCodes.f1 && n < VKeyCodes.minNotFn) {
+      this.keyResult = HandlerResult.Nothing;
+      return;
+    }
     else if (n === VKeyCodes.backspace) {
       if (focused) { this.keyResult = HandlerResult.Suppress; }
       return;
@@ -304,8 +309,7 @@ var Vomnibar = {
       return this.onAction(action);
     }
 
-    if (n > VKeyCodes.f1 && n < VKeyCodes.minNotFn) { focused = false; }
-    else if (!focused && n < VKeyCodes.minNotNum && n > VKeyCodes.maxNotNum) {
+    if (!focused && n < VKeyCodes.minNotNum && n > VKeyCodes.maxNotNum) {
       n = (n - VKeyCodes.N0) || 10;
       return !event.shiftKey && n <= this.completions.length ? this.onEnter(event, n - 1) : undefined;
     }
@@ -326,7 +330,7 @@ var Vomnibar = {
       }
       break;
     case "focus": this.input.focus(); break;
-    case "blurInput": this.input.blur(); break;
+    case "blurInput": this.blurWanted = true; this.input.blur(); break;
     case "backspace": case "blur":
       !this.focused ? this.input.focus()
       : action === "blur" ? VPort.postMessage({ handler: "refocusCurrent", lastKey: this.lastKey })
@@ -433,7 +437,9 @@ var Vomnibar = {
       el.setSelectionRange(0, left.length, 'backward');
     }
   },
-  OnFocus (this: void, event: Event): void { event.isTrusted != false && (Vomnibar.focused = event.type !== "blur"); },
+  OnFocus (this: void, event: Event): void {
+    event.isTrusted != false && (Vomnibar.focused = event.type !== "blur") && (Vomnibar.blurWanted = false);
+  },
   OnTimer (this: void): void { if (Vomnibar) { return Vomnibar.fetch(); } },
   onWheel (event: WheelEvent): void {
     if (event.ctrlKey || event.metaKey || event.isTrusted == false) { return; }
@@ -445,6 +451,7 @@ var Vomnibar = {
   },
   onInput (): void {
     let s0 = this.lastQuery, s1 = this.input.value, str: string, arr: RegExpExecArray | null;
+    this.blurWanted = false;
     if ((str = s1.trim()) === (this.selection === -1 || this.isSelOriginal
         ? s0 : this.completions[this.selection].text)) {
       return;
@@ -470,8 +477,12 @@ var Vomnibar = {
   },
   omni (response: BgVomnibarReq["omni"]): void {
     if (!this.isActive) { return; }
-    const list = response.list, oldHeight = this.height,
-    pixel = this.browserVersion < BrowserVer.MinEnsuredBorderWidth ? 1 : 1 / (Math.max(1, window.devicePixelRatio));
+    const list = response.list, oldHeight = this.height, v = this.browserVersion;
+    let pixel = 0.5;
+    if (v < BrowserVer.MinRoundedBorderWidth) {
+      pixel = Math.max(1, window.devicePixelRatio);
+      pixel = v < BrowserVer.MinEnsuredBorderWidth ? (pixel | 0) / pixel : 1 / pixel;
+    }
     let height = list.length, notEmpty = height > 0;
     this.matchType = response.matchType;
     this.completions = list;
@@ -479,7 +490,8 @@ var Vomnibar = {
     this.isSelOriginal = true;
     this.isSearchOnTop = notEmpty && list[0].type === "search";
     if (notEmpty) {
-      height = (height - 1) * (HeightData.Item + pixel) + HeightData.LastItem;
+      // avoid `number * (.Item + pixel)` so that output is more precise
+      height = height * HeightData.Item + HeightData.LastItemDelta + (height - 1) * pixel;
     }
     this.heightList = height;
     height = notEmpty ? height + HeightData.InputBarWithLineAndMargin : HeightData.InputBarAndMargin;
@@ -494,7 +506,7 @@ var Vomnibar = {
     oldH || (this.bodySt.display = "");
     notEmpty ? this.barCls.add(c) : cl.remove(c);
     list.innerHTML = this.renderItems(this.completions);
-    list.style.height = this.heightList + "px";
+    list.style.height = (this.heightList + "").substring(0, 7) + "px";
     if (notEmpty) {
       if (this.selection === 0) {
         const line = this.completions[0] as SuggestionEx;
@@ -548,9 +560,9 @@ var Vomnibar = {
     } else {
       this.showFavIcon = false;
     }
-    if (this.browserVersion < BrowserVer.MinEnsuredBorderWidth) {
+    if (this.browserVersion < BrowserVer.MinRoundedBorderWidth) {
       const css = document.createElement("style");
-      css.textContent = ".item{border-width:1px;}";
+      css.textContent = `body,.item,#input{border-width:${this.browserVersion < BrowserVer.MinEnsuredBorderWidth ? 1 : 0.01}px;}`;
       (document.head as HTMLHeadElement).appendChild(css);
     }
     this.init = VUtils.makeListRenderer = null as never;

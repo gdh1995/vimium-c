@@ -175,6 +175,8 @@ interface DomUI {
   addElementList(this: DomUI, els: ReadonlyArray<Element>, offset: { [0]: number; [1]: number }): HTMLDivElement;
   adjust (this: void, event?: Event): void;
   toggle (this: DomUI, enabled: boolean): void;
+  _styleBorder: (HTMLStyleElement & {zoom?: number}) | null;
+  ensureBorder (this: DomUI): void;
   createStyle (this: DomUI, text: string, doc?: { createElement: Document["createElement"] }): HTMLStyleElement;
   css (this: DomUI, innerCSS: string): void;
   getSelection (this: DomUI): Selection;
@@ -207,6 +209,7 @@ interface VEventMode {
   suppress(keyCode?: number): void;
   OnWndFocus (this: void): void;
   focusAndListen (this: void, callback?: (() => void) | null, timedout?: 0): void;
+  focusUpperFrame (this: void, iframe: HTMLElement, keyCode: number): HandlerResult;
   onWndBlur (this: void, onWndBlur: ((this: void) => void) | null): void;
   setupSuppress (this: void, onExit?: (this: void) => void): void;
   mapKey (this: void, key: string): string;

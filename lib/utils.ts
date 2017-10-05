@@ -1,8 +1,8 @@
-if (!String.prototype.startsWith) {
+if (!"".startsWith) {
 String.prototype.startsWith = function(this: string, s: string): boolean {
   return this.length >= s.length && this.lastIndexOf(s, 0) === 0;
 };
-String.prototype.endsWith || (String.prototype.endsWith = function(this: string, s: string): boolean {
+"".endsWith || (String.prototype.endsWith = function(this: string, s: string): boolean {
   const i = this.length - s.length;
   return i >= 0 && this.indexOf(s, i) === i;
 });
@@ -32,19 +32,20 @@ var VUtils = {
     return url;
   },
   hasUpperCase (this: void, s: string) { return s.toLowerCase() !== s; },
+  Stop (this: void, event: Event): void { event.stopImmediatePropagation(); },
   Prevent (this: void, event: Event): void {
     event.preventDefault();
     event.stopImmediatePropagation();
   }
 }, VHandler = {
-  stack: [] as Array<[(event: HandlerNS.Event) => HandlerResult, any]>,
+  stack: [] as { func: (event: HandlerNS.Event) => HandlerResult, env: any}[],
   push<T extends object> (func: HandlerNS.Handler<T>, env: T): number {
-    return this.stack.push([func, env]);
+    return this.stack.push({ func, env });
   },
   bubbleEvent (event: HandlerNS.Event): HandlerResult {
     for (let ref = this.stack, i = ref.length; 0 <= --i; ) {
       const item = ref[i],
-      result = item[0].call(item[1], event);
+      result = item.func.call(item.env, event);
       if (result !== HandlerResult.Nothing) {
         return result;
       }
@@ -53,7 +54,7 @@ var VUtils = {
   },
   remove (env: object): void {
     for (let ref = this.stack, i = ref.length; 0 <= --i; ) {
-      if (ref[i][1] === env) {
+      if (ref[i].env === env) {
         ref.splice(i, 1);
         break;
       }

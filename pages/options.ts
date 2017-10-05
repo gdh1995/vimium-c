@@ -75,12 +75,12 @@ readValueFromElement (): number {
 }
 addWheelListener (): void {
   const el = this.element, func = (e: WheelEvent): void => this.onWheel(e), onBlur = (): void => {
-    el.removeEventListener("mousewheel", func, {passive: false});
+    el.removeEventListener("wheel", func, {passive: false});
     el.removeEventListener("blur", onBlur);
     this.wheelTime = 0;
   };
   this.wheelTime = 0;
-  el.addEventListener("mousewheel", func, {passive: false});
+  el.addEventListener("wheel", func, {passive: false});
   el.addEventListener("blur", onBlur);
 }
 onWheel (event: WheelEvent): void {
@@ -350,7 +350,7 @@ interface AdvancedOptBtn extends HTMLButtonElement {
     }
   });
 
-  _ref = document.getElementsByClassName("nonEmptyTextOption") as HTMLCollectionOf<HTMLElement>;
+  _ref = document.getElementsByClassName("nonEmptyTip") as HTMLCollectionOf<HTMLElement>;
   for (let _i = _ref.length; 0 <= --_i; ) {
     element = _ref[_i];
     element.className += " example info";
@@ -359,16 +359,17 @@ interface AdvancedOptBtn extends HTMLButtonElement {
 
   let func: (this: HTMLElement, event: MouseEvent) => void = function(this: HTMLElement): void {
     const target = $("#" + this.getAttribute("data-auto-resize") as string);
-    if (target.scrollHeight <= target.clientHeight && target.scrollWidth <= target.clientWidth) { return; }
+    let height = target.scrollHeight, width = target.scrollWidth, dw = width - target.clientWidth;
+    if (height <= target.clientHeight && dw <= 0) { return; }
+    const maxWidth = Math.max(Math.min(window.innerWidth, 1024) - 120, 550);
+    target.style.maxWidth = width > maxWidth ? maxWidth + "px" : "";
     target.style.height = target.style.width = "";
-    target.style.maxWidth = Math.min(window.innerWidth, 1024) - 120 + "px";
-    let height = target.scrollHeight,
-    delta = target.offsetHeight - target.clientHeight;
-    delta = target.scrollWidth > target.clientWidth ? Math.max(26, delta) : delta + 18;
+    dw = width - target.clientWidth;
+    let delta = target.offsetHeight - target.clientHeight;
+    delta = dw > 0 ? Math.max(26, delta) : delta + 18;
     height += delta;
-    delta = target.scrollWidth - target.clientWidth;
-    if (delta > 0) {
-      target.style.width = target.offsetWidth + delta + "px";
+    if (dw > 0) {
+      target.style.width = target.offsetWidth + dw + 4 + "px";
     }
     target.style.height = height + "px";
   };
@@ -434,7 +435,7 @@ interface AdvancedOptBtn extends HTMLButtonElement {
     ratio > 1 && ((document.body as HTMLBodyElement).style.width = 910 / ratio + "px");
     chrome.tabs.getZoom && chrome.tabs.getZoom(curTabId, function(zoom): void {
       if (!zoom) { return chrome.runtime.lastError; }
-      const ratio = Math.round(devicePixelRatio / zoom * 1024) / 1024;
+      const ratio = Math.round(window.devicePixelRatio / zoom * 1024) / 1024;
       (document.body as HTMLBodyElement).style.width = ratio !== 1 ? 910 / ratio + "px" : "";
     });
   }

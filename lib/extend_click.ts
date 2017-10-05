@@ -64,14 +64,14 @@ function reg(this: void, element: Element): void {
   e1.remove();
 }
 EventTarget.prototype.addEventListener = function(this: EventTarget, type: string
-    , listener: EventListenerOrEventListenerObject, useCapture?: boolean) {
+    , listener: EventListenerOrEventListenerObject, useCapture?: boolean | object) {
   if (type === "click"
       && !(this instanceof HTMLAnchorElement || this instanceof HTMLFormElement)
       && this instanceof Element) {
     register(this as Element);
     if (timer === 0) { timer = next(); }
   }
-  return _listen.call(this, type, listener, useCapture);
+  return _listen.call(this, type, listener, useCapture as boolean | undefined);
 };
 _listen("DOMContentLoaded", handler, true);
 });

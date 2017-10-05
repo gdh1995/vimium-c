@@ -12,12 +12,12 @@ declare namespace Search {
     (query: string[], url: string, indexes: number[]): Result;
     (query: string[], url: string): string;
   }
-  type TmpRule = [string, RegExpOne | RegExpI];
+  type TmpRule = { prefix: string, matcher: RegExpOne | RegExpI };
   interface Rule {
-    readonly [0]: string;
-    readonly [1]: RegExp;
-    readonly [2]: string;
-    readonly [3]: RegExpOne | RegExpI | string;
+    readonly prefix: string;
+    readonly matcher: RegExp;
+    readonly name: string;
+    readonly delimiter: RegExpOne | RegExpI | string;
   }
   interface EngineMap extends SafeDict<Engine> {}
 }
@@ -105,6 +105,11 @@ declare namespace Urls {
 
   const enum NewTabType {
     browser = 1, vimium = 2,
+  }
+
+  const enum SchemaId {
+    HTTP = 7, HTTPS = 8,
+    FTP = 6,
   }
 }
 
@@ -216,9 +221,9 @@ declare namespace CompletersNS {
   interface QueryStatus { isOff: boolean }
 
   interface Domain {
-    [0]: number;
-    [1]: number;
-    [2]: BOOL;
+    time: number;
+    count: number;
+    https: boolean;
   }
 
   type Callback = (this: void, sugs: Readonly<Suggestion>[],

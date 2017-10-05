@@ -173,7 +173,7 @@ setTimeout((function() { if (!chrome.omnibox) { return; }
     defaultOpen = 1, search, plainOthers
   }
   let last: string = "", firstResult: Suggestion | null, lastSuggest: OmniboxCallback | null
-    , tempRequest: [string, OmniboxCallback] | null
+    , tempRequest: { key: string, suggest: OmniboxCallback } | null
     , timeout = 0, sessionIds: SafeDict<string | number> | null
     , suggestions = null as chrome.omnibox.SuggestResult[] | null, outTimeout = 0, outTime: number
     , defaultSuggestionType = FirstSugType.Default, matchType: CompletersNS.MatchType = CompletersNS.MatchType.Default
@@ -213,7 +213,7 @@ setTimeout((function() { if (!chrome.omnibox) { return; }
     let arr;
     if (arr = tempRequest) {
       tempRequest = null;
-      return onInput(arr[0], arr[1]);
+      return onInput(arr.key, arr.suggest);
     }
   }
   function onComplete(this: null, suggest: OmniboxCallback, response: Suggestion[]
@@ -260,7 +260,7 @@ setTimeout((function() { if (!chrome.omnibox) { return; }
     if (key === last) { suggestions && suggest(suggestions as chrome.omnibox.SuggestResult[]); return; }
     lastSuggest && (lastSuggest.isOff = true);
     if (timeout) {
-      tempRequest = [key, suggest];
+      tempRequest = {key, suggest};
       return;
     } else if (matchType === CompletersNS.MatchType.emptyResult && key.startsWith(last)) {
       suggest([]);
@@ -281,8 +281,8 @@ setTimeout((function() { if (!chrome.omnibox) { return; }
   }
   function onEnter(this: void, text: string, disposition?: string): void {
     text = text.trim();
-    if (tempRequest && tempRequest[0] === text) {
-      tempRequest = [text, onEnter.bind(null, text, disposition) as OmniboxCallback];
+    if (tempRequest && tempRequest.key === text) {
+      tempRequest.suggest = onEnter.bind(null, text, disposition) as OmniboxCallback;
       return onTimer();
     } else if (lastSuggest) {
       return;

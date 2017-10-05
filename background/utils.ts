@@ -58,7 +58,7 @@ var Utils = {
     , ".engineer.software"
   ] as ReadonlyArray<string>,
   domains: Object.create<CompletersNS.Domain>(null),
-  _hostRe: <RegExpOne> /^([^:]+(:[^:]+)?@)?([^:]+|\[[^\]]+])(:\d{2,5})?$/,
+  hostRe: <RegExpOne & RegExpSearchable<4>> /^([^:]+(:[^:]+)?@)?([^:]+|\[[^\]]+])(:\d{2,5})?$/,
   _ipRe: <RegExpOne> /^\d{1,3}(?:\.\d{1,3}){3}$/,
   _ipv6Re: <RegExpOne> /^\[[\da-f]{0,4}(?::[\da-f]{0,4}){1,5}(?:(?::[\da-f]{0,4}){1,2}|:\d{0,3}(?:\.\d{0,3}){3})]$/,
   _lfSpacesRe: <RegExpG> /[\r\n]+[\t \xa0]*/g,
@@ -154,7 +154,7 @@ var Utils = {
     }
     if (type === Urls.TempType.Unspecified && string.startsWith(".")) { string = string.substring(1); }
     if (type !== Urls.TempType.Unspecified) {
-    } else if (!(arr = this._hostRe.exec(string) as typeof arr)) {
+    } else if (!(arr = this.hostRe.exec(string) as typeof arr)) {
       type = Urls.Type.Search;
       if (string.length === oldString.length && this._ipv6Re.test(string = "[" + string + "]")) {
         oldString = string;
@@ -201,7 +201,7 @@ var Utils = {
   }) as Urls.Converter,
   checkInDomain (host: string, port?: string | null): 0 | 1 | 2 {
     const domain = port && this.domains[host + port] || this.domains[host];
-    return domain ? (domain[2] + 1 as 1 | 2) : 0;
+    return domain ? domain.https ? 2 : 1 : 0;
   },
   checkSpecialSchemes (string: string, i: number, spacePos: number): Urls.Type | Urls.TempType.Unspecified {
     const isSlash = string[i + 1] === "/";
@@ -243,7 +243,7 @@ var Utils = {
       : tld.length < this._tlds.length && this._tlds[tld.length].indexOf(tld) > 0 ? Urls.TldType.ENTld
       : Urls.TldType.NotTld;
   },
-  isIPHost (host: string): boolean { return this._ipRe.test(host) || this._ipv6Re.test(host); },
+  isIPHost (hostname: string): boolean { return this._ipRe.test(hostname) || this._ipv6Re.test(hostname); },
   _fileExtRe: <RegExpOne> /\.\w+$/,
   formatVimiumUrl (fullpath: string, partly: boolean, vimiumUrlWork: Urls.WorkType): string {
     let ind: number, query = "", tempStr: string | undefined, path = fullpath.trim();
@@ -372,7 +372,7 @@ var Utils = {
   require<T extends object> (name: SettingsNS.DynamicFiles): Promise<T> {
     const p: Promise<T> | T | null | undefined = window[name];
     if (p) {
-      return p instanceof Promise ? p : Promise.resolve(p);
+      return Promise.resolve(p);
     }
     return (window as any)[name] = new Promise<T>(function(resolve, reject) {
       const script = document.createElement("script");
@@ -467,7 +467,7 @@ var Utils = {
     return this.upperCaseAlphaRe.test(url) ? url.substring(0, ind).toLowerCase() + url.substring(ind) : url;
   },
   parseSearchEngines: (function(this: any, str: string, map: Search.EngineMap): Search.Rule[] {
-    let ids: string[], tmpRule: Search.TmpRule | null, tmpKey: Search.Rule[3],
+    let ids: string[], tmpRule: Search.TmpRule | null, tmpKey: Search.Rule["delimiter"],
     key: string, val: string, obj: Search.RawEngine,
     ind: number, rSlash = <RegExpOne> /[^\\]\//, rules = [] as Search.Rule[],
     rEscapeSpace = <RegExpG & RegExpSearchable<0>> /\\\s/g, rSpace = <RegExpOne> /\s/,
@@ -531,7 +531,7 @@ var Utils = {
             } else {
               tmpKey = key.trim() || " ";
             }
-            rules.push([tmpRule[0], tmpRule[1], ids[0].trimRight(), tmpKey]);
+            rules.push({prefix: tmpRule.prefix, matcher: tmpRule.matcher, name: ids[0].trimRight(), delimiter: tmpKey});
           }
         }
       } else if (str.charCodeAt(ind + 4) === 47) {
@@ -544,7 +544,8 @@ var Utils = {
         const tmpKey2 = this.makeRegexp(val, ind >= 0 ? str.substring(0, ind) : str);
         if (tmpKey2) {
           key = this.prepareReparsingPrefix(key);
-          rules.push([key, tmpKey2, ids[0].trimRight(), obj.url.lastIndexOf("$S") >= 0 ? " " : "+"]);
+          rules.push({prefix: key, matcher: tmpKey2, name: ids[0].trimRight(),
+             delimiter: obj.url.lastIndexOf("$S") >= 0 ? " " : "+"});
         }
         str = ind >= 0 ? str.substring(ind + 1) : "";
       } else {
@@ -587,7 +588,7 @@ var Utils = {
     }
     str2 = str2 && str2.replace(this.escapeAllRe, "\\$&").replace(this._spaceOrPlusRe, "(?:\\+|%20| )");
     prefix = this.prepareReparsingPrefix(prefix);
-    return [prefix, new RegExp(str + str2 + url, this.alphaRe.test(str2) ? "i" as "" : "") as RegExpI | RegExpOne];
+    return {prefix, matcher: new RegExp(str + str2 + url, this.alphaRe.test(str2) ? "i" as "" : "") as RegExpI | RegExpOne};
   }),
   IsURLHttp (this: void, url: string): ProtocolType {
     url = url.substring(0, 8).toLowerCase();
@@ -641,11 +642,11 @@ var Utils = {
 };
 const NotChrome = !!((window as any).browser && (window as any).browser.runtime);
 
-if (!String.prototype.startsWith) {
+if (!"".startsWith) {
 String.prototype.startsWith = (function(this: string, s: string): boolean {
   return this.length >= s.length && this.lastIndexOf(s, 0) === 0;
 });
-String.prototype.endsWith || (String.prototype.endsWith = (function(this: string, s: string): boolean {
+"".endsWith || (String.prototype.endsWith = (function(this: string, s: string): boolean {
   const i = this.length - s.length;
   return i >= 0 && this.indexOf(s, i) === i;
 }));

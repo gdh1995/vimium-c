@@ -17,7 +17,7 @@ interface String {
 }
 
 (function (): void {
-  String.prototype.startsWith || (
+  "".startsWith || (
   String.prototype.startsWith = function startsWith(this: ObjectCoercible, searchString: anyNotSymbol): boolean {
     const err = check(this, searchString, "startsWith");
     if (err !== null) { throw new TypeError(err); }
@@ -27,7 +27,7 @@ interface String {
     return a.lastIndexOf(b, c) === c;
   });
 
-  String.prototype.endsWith || (
+  "".endsWith || (
   String.prototype.endsWith = function endsWith(this: ObjectCoercible, searchString: anyNotSymbol): boolean {
     const err = check(this, searchString, "endsWith");
     if (err !== null) { throw new TypeError(err); }

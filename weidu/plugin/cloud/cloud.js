@@ -143,8 +143,8 @@ var cloud = {
 		var promise;
 		if (!targetObj) {
 			promise = Promise.all([
-				typeof cloudApp == 'undefined' && this.getScript('js/plugin/cloud/cloudApp.js'),
-				typeof cloudWebsite == 'undefined' && this.getScript('js/plugin/cloud/cloudWebsite.js')
+				typeof cloudApp == 'undefined' && this.getScript('plugin/cloud/cloudApp.js'),
+				typeof cloudWebsite == 'undefined' && this.getScript('plugin/cloud/cloudWebsite.js')
 			]);
 			if (reinit === true || typeof cloudApp == 'undefined' || typeof cloudWebsite == 'undefined') {
 				promise = promise.then(function() {
@@ -153,7 +153,7 @@ var cloud = {
 				})
 			}
 		} else if (typeof createWebsite == 'undefined') {
-			promise = this.getScript('js/plugin/cloud/createWebsite.js');
+			promise = this.getScript('plugin/cloud/createWebsite.js');
 			this.content.find('.loading').css("visibility", "hidden");
 		} else {
 			promise = Promise.resolve();

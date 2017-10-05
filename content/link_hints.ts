@@ -153,6 +153,7 @@ var VHints = {
     this.alphabetHints.initMarkers(this.hintMarkers, str);
 
     this.noHUD = arr[3] <= 40 || arr[2] <= 320;
+    VDom.UI.ensureBorder();
     this.setMode(this.mode);
     this.box = VDom.UI.addElementList(this.hintMarkers, arr);
 
@@ -222,9 +223,9 @@ var VHints = {
       this.frameNested = null;
       return false;
     }
-    child.VEventMode.focusAndListen(done ? function() {
+    child.VEventMode.focusAndListen(done ? null : function() {
       VUtils.execCommand(child, command, a, b);
-    } : null);
+    });
     if (done) { return true; }
     if (document.readyState !== "complete") { this.frameNested = false; }
     return true;
@@ -454,7 +455,7 @@ var VHints = {
       const el = list[i];
       if (el instanceof HTMLFormElement) { continue; }
       const cr = el.getBoundingClientRect();
-      if (cr.top < height && cr.bottom > 0) {
+      if (cr.bottom > 0 && cr.top < height) {
         result.push(el);
         continue;
       }
@@ -928,6 +929,7 @@ highlightChild (el: HTMLIFrameElement | HTMLFrameElement): false | void {
   } catch (e) {}
   const { count, options } = this;
   options.mode = this.mode;
+  el.focus();
   if (err) {
     VPort.send({ handler: "execInChild", url: el.src, CSS: "1",
       command: "Hints.activateAndFocus", count, options
@@ -944,8 +946,8 @@ highlightChild (el: HTMLIFrameElement | HTMLFrameElement): false | void {
 
 Modes: {
 HOVER: {
-  "128": "Hover over node",
-  "192": "Hover over nodes continuously",
+  128: "Hover over node",
+  192: "Hover over nodes continuously",
   activator (element): void {
     const type = VDom.getEditableType(element);
     VDom.unhoverLast(element);
@@ -957,22 +959,22 @@ HOVER: {
   }
 } as HintsNS.ModeOpt,
 LEAVE: {
-  "129": "Simulate mouse leaving link",
-  "193": "Simulate mouse leaving continuously",
+  129: "Simulate mouse leaving link",
+  193: "Simulate mouse leaving continuously",
   activator (this: void, element: HintsNS.LinkEl): void {
     VDom.mouse(element, "mouseout");
     if (document.activeElement === element) { element.blur(); }
   }
 } as HintsNS.ModeOpt,
 COPY_TEXT: {
-  "130": "Copy link text to Clipboard",
-  "131": "Search selected text",
-  "137": "Copy link URL to Clipboard",
-  "194": "Copy link text one by one",
-  "195": "Search link text one by one",
-  "201": "Copy link URL one by one",
-  "256": "Edit link URL on Vomnibar",
-  "257": "Edit link text on Vomnibar",
+  130: "Copy link text to Clipboard",
+  131: "Search selected text",
+  137: "Copy link URL to Clipboard",
+  194: "Copy link text one by one",
+  195: "Search link text one by one",
+  201: "Copy link URL one by one",
+  256: "Edit link URL on Vomnibar",
+  257: "Edit link text on Vomnibar",
   activator (link): void {
     let isUrl = this.mode1 >= HintMode.min_link_job && this.mode1 <= HintMode.max_link_job, str: string | null;
     if (isUrl) { str = this.getUrlData(link); }
@@ -980,7 +982,7 @@ COPY_TEXT: {
     else if (link instanceof HTMLInputElement) {
       str = link.type;
       if (str === "password") {
-        str = "";
+        return VHUD.showForDuration("Sorry, Vimium++ won't copy a password.", 2000);
       } else if (!(str in VDom.uneditableInputs)) {
         str = (link.value || link.placeholder).trim();
       } else if (str === "file") {
@@ -1031,8 +1033,8 @@ COPY_TEXT: {
   }
 } as HintsNS.ModeOpt,
 OPEN_INCOGNITO_LINK: {
-  "138": "Open link in incognito window",
-  "202": "Open multi incognito tabs",
+  138: "Open link in incognito window",
+  202: "Open multi incognito tabs",
   activator (link): void {
     const url = this.getUrlData(link);
     if (VUtils.evalIfOK(url)) { return; }
@@ -1046,8 +1048,8 @@ OPEN_INCOGNITO_LINK: {
   }
 } as HintsNS.ModeOpt,
 DOWNLOAD_IMAGE: {
-  "132": "Download image",
-  "196": "Download multiple images",
+  132: "Download image",
+  196: "Download multiple images",
   activator (img: HTMLAnchorElement | HTMLImageElement): void {
     let text = img instanceof HTMLAnchorElement ? img.href : img.src;
     if (!text) {
@@ -1067,8 +1069,8 @@ DOWNLOAD_IMAGE: {
   }
 } as HintsNS.ModeOpt,
 OPEN_IMAGE: {
-  "133": "Open image",
-  "197": "Open multiple image",
+  133: "Open image",
+  197: "Open multiple image",
   activator (img: HTMLAnchorElement | HTMLImageElement): void {
     let text = img instanceof HTMLAnchorElement ? img.href : img.src, url: string, str: string | null;
     if (!text) {
@@ -1086,8 +1088,8 @@ OPEN_IMAGE: {
   }
 } as HintsNS.ModeOpt,
 DOWNLOAD_LINK: {
-  "136": "Download link",
-  "200": "Download multiple links",
+  136: "Download link",
+  200: "Download multiple links",
   activator (this: void, link: HTMLAnchorElement): void {
     let oldDownload: string | null, oldUrl: string | null, changed = false;
     oldUrl = link.getAttribute("href");
@@ -1120,19 +1122,19 @@ DOWNLOAD_LINK: {
   }
 } as HintsNS.ModeOpt,
 FOCUS_EDITABLE: {
-  "258": "Select an editable area",
+  258: "Select an editable area",
   activator (link): false {
     VDom.UI.simulateSelect(link, true);
     return false;
   }
 } as HintsNS.ModeOpt,
 DEFAULT: {
-  "0": "Open link in current tab",
-  "2": "Open link in new tab",
-  "3": "Open link in new active tab",
-  "64": "Open multiple links in current tab",
-  "66": "Open multiple links in new tabs",
-  "67": "Activate link and hold on",
+  0: "Open link in current tab",
+  2: "Open link in new tab",
+  3: "Open link in new active tab",
+  64: "Open multiple links in current tab",
+  66: "Open multiple links in new tabs",
+  67: "Activate link and hold on",
   activator (link, hint): void | false {
     if (link instanceof HTMLIFrameElement || link instanceof HTMLFrameElement) {
       const ret = link === Vomnibar.box ? (Vomnibar.focus(1), false)

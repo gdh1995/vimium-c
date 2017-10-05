@@ -81,7 +81,7 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
     },
     complain (this: void, contentType: CSTypes, url: string): boolean {
       if (!chrome.contentSettings) {
-        requestHandlers.ShowHUD("This Vimium++ has no permissions to change your content settings");
+        requestHandlers.ShowHUD("This version of Vimium++ has no permissions to set CSs");
         return true;
       }
       if (!chrome.contentSettings[contentType] || (<RegExpOne>/^[A-Z]/).test(contentType)) {
@@ -98,15 +98,22 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
       if (pattern.startsWith("file:")) {
         const a = Settings.CONST.ChromeVersion >= BrowserVer.MinFailToToggleImageOnFileURL ? 1 : level > 1 ? 2 : 0;
         if (a) {
-          funcDict.complain(a === 1 ? `change file content settings since Chrome ${BrowserVer.MinFailToToggleImageOnFileURL}` : "set content settings of file folders");
+          funcDict.complain(a === 1 ? `set file CSs since Chrome ${BrowserVer.MinFailToToggleImageOnFileURL}` : "set CS of file folders");
           return [];
         }
         return [pattern.split(<RegExpOne>/[?#]/, 1)[0]];
       }
+      if (pattern.startsWith("ftp:")) {
+        funcDict.complain("set FTP pages' content settings");
+        return [];
+      }
       let info: string[] = pattern.match(/^([^:]+:\/\/)([^\/]+)/) as RegExpMatchArray
-        , result = [info[0] + "/*"], host = info[2];
-      if (level < 2 || Utils.isIPHost(host)) { return result; }
+        , hosts = Utils.hostRe.exec(info[2]) as RegExpExecArray & string[4]
+        , result: string[], host = hosts[3] + (hosts[4] || "");
       pattern = info[1];
+      result = [pattern + host + "/*"];
+      if (level < 2 || Utils.isIPHost(hosts[3])) { return result; }
+      hosts = null as never;
       const arr = host.toLowerCase().split("."), i = arr.length,
       minLen = Utils.isTld(arr[i - 1]) === Urls.TldType.NotTld ? 1
         : i > 2 && arr[i - 1].length === 2 && Utils.isTld(arr[i - 2]) === Urls.TldType.ENTld ? 3 : 2,
@@ -457,13 +464,12 @@ Are you sure you want to continue?`);
       inCurWnd || (wnds = wnds.filter(funcDict.isIncNor));
       if (inCurWnd || wnds.length > 0) {
         const options = {
-          url,
+          url, active,
           windowId: inCurWnd ? tab.windowId : wnds[wnds.length - 1].id
         } as chrome.tabs.CreateProperties & { windowId: number };
         if (inCurWnd) {
           options.index = tab.index + 1;
           options.openerTabId = tab.id;
-          options.active = active;
         }
         tabsCreate(options);
         return !inCurWnd && active ? funcDict.selectWnd(options) : undefined;
@@ -585,7 +591,7 @@ Are you sure you want to continue?`);
         chrome.windows.getAll(funcDict.openUrlInIncognito.bind(this, url, tab));
         return;
       }
-      if (reuse === ReuseType.newBg) { tab.active = false; }
+      tab.active = reuse !== ReuseType.newBg;
       if (funcDict.openShowPage[0](url, reuse, tab)) { return; }
       return openMultiTab(url, commandCount, tab);
     },
@@ -632,7 +638,7 @@ Are you sure you want to continue?`);
       for (let i = 0; i < urls.length; i++) {
         urls[i] = Utils.convertToUrl(urls[i] + "");
       }
-      if (cOptions.reuse <= ReuseType.newBg) { tab.active = false; }
+      tab.active = !(cOptions.reuse <= ReuseType.newBg);
       cOptions = null as never;
       do {
         for (let i = 0, index = tab.index + 1, { active } = tab; i < urls.length; i++, active = false, index++) {
@@ -1302,7 +1308,6 @@ Are you sure you want to continue?`);
       const query = cOptions.active ? null : (FindModeHistory as {query: FindModeQuery}).query(cPort.sender.incognito);
       cPort.postMessage<1, "Find.activate">({ name: "execute", count: 1, command: "Find.activate"
           , CSS: funcDict.ensureInnerCSS(cPort), options: {
-        browserVersion: Settings.CONST.ChromeVersion,
         count: commandCount,
         dir: cOptions.dir <= 0 ? -1 : 1,
         query
@@ -1438,13 +1443,13 @@ Are you sure you want to continue?`);
       }
       for (_i = decoders.length; 0 <= --_i; ) {
         pattern = decoders[_i];
-        if (!url.startsWith(pattern[0])) { continue; }
-        arr = s0.substring(pattern[0].length).match(pattern[1]);
+        if (!url.startsWith(pattern.prefix)) { continue; }
+        arr = s0.substring(pattern.prefix.length).match(pattern.matcher);
         if (arr) { break; }
       }
       if (!arr || !pattern) { Utils.resetRe(); return null; }
-      if (arr.length > 1 && !pattern[1].global) { arr.shift(); }
-      const re = pattern[3];
+      if (arr.length > 1 && !pattern.matcher.global) { arr.shift(); }
+      const re = pattern.delimiter;
       if (arr.length > 1) {
         selectLast = true;
       } else if (re instanceof RegExp) {
@@ -1463,7 +1468,7 @@ Are you sure you want to continue?`);
       url = url.trim().replace(Utils.spacesRe, " ");
       Utils.resetRe();
       return {
-        keyword: pattern[2],
+        keyword: pattern.name,
         url,
         start: selectLast ? url.lastIndexOf(" ") + 1 : 0
       };
@@ -1705,8 +1710,8 @@ Are you sure you want to continue?`);
         }
       }
       if (iport) {
-        port.postMessage({
-          CSS: request.CSS ? funcDict.ensureInnerCSS(port) : null,
+        iport.postMessage({
+          CSS: request.CSS ? funcDict.ensureInnerCSS(iport) : null,
           name: "execute", command: request.command, count: request.count || 1, options: request.options
         });
         return true;

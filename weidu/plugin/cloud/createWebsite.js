@@ -245,7 +245,7 @@ var createWebsite = {
 	},
 	initClassificationsContainer : function () {
 		var self = this;
-		var classificationsListHtml = '<div class="classification' + (cId == "" ? " selected" : "") + '" cId=""><div class="classificationSelected"></div><img src="js/plugin/classification/img/logo.png"><br/><span>' + getI18nMsg('classificationMain') + '</span></div>';
+		var classificationsListHtml = '<div class="classification' + (cId == "" ? " selected" : "") + '" cId=""><div class="classificationSelected"></div><img src="plugin/classification/img/logo.png"><br/><span>' + getI18nMsg('classificationMain') + '</span></div>';
 		$.each(PDI.get("classifications"), function (i, n) {
 			if (typeof n.dataUrl != "undefined" && n.dataUrl != "") {
 				if (typeof n.LTime != "undefined" && n.LTime > 0) {

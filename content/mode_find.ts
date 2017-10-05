@@ -35,6 +35,7 @@ html > count{float:right;}`,
     options = Object.setPrototypeOf(options || {}, null);
     const query: string | undefined | null = options.query ? (options.query + "") : null;
     this.isActive || query === this.query || VMarks.setPreviousPosition();
+    VDom.UI.ensureBorder();
     if (query != null) {
       return this.findAndFocus(this.query || query, options);
     }
@@ -59,24 +60,39 @@ html > count{float:right;}`,
     const el = this.box = VDom.createElement("iframe") as typeof VFindMode.box;
     el.className = "R HUD UI";
     el.style.width = "0px";
-    (options.browserVersion as number) < BrowserVer.MinNotPassMouseWheelToParentIframe && (el.onmousewheel = VUtils.Prevent);
+    VSettings.cache.browserVer < BrowserVer.MinNotPassMouseWheelToParentIframe && (el.onwheel = VUtils.Prevent);
     if (zoom !== 1) { el.style.zoom = "" + 1 / zoom; }
-    el.onload = function(this: HTMLIFrameElement): void { return VFindMode.onLoad(this); };
+    el.onload = function(this: HTMLIFrameElement): void { return VFindMode.onLoad(this, 1); };
     VHandler.push(VDom.UI.SuppressMost, this);
     VDom.UI.addElement(el, {adjust: true, before: VHUD.box});
     this.init && this.init();
     this.styleIn.disabled = this.styleOut.disabled = true;
     this.isActive = true;
   },
-  onLoad (box: HTMLIFrameElement): void {
-    const wnd = box.contentWindow, doc = wnd.document, docEl = doc.documentElement as HTMLHtmlElement,
+  onLoad (box: HTMLIFrameElement, later?: 1): void {
+    const wnd = box.contentWindow, f = wnd.addEventListener.bind(wnd) as typeof addEventListener,
+    now = Date.now(), s = VUtils.Stop, t = true;
+    let tick = 0;
+    f("mousedown", this.OnMousedown, t);
+    f("keydown", this.onKeydown.bind(this), t);
+    f("input", this.onInput.bind(this), t);
+    f("keypress", s, t); f("keyup", s, t); f("focus", s, t);
+    f("copy", s, t); f("cut", s, t); f("paste", s, t);
+    f("blur", function(): void {
+      if (VFindMode.isActive && Date.now() - now < 500) {
+        let a = wnd.document.body;
+        a && setTimeout(function(): void { (a as HTMLBodyElement).focus(); }, tick++ * 17);
+      }
+    }, true);
+    box.onload = later ? null as never : function(): void { box.onload = null as never; VFindMode.onLoad2(wnd); };
+    if (later) { return this.onLoad2(wnd); }
+  },
+  onLoad2 (wnd: Window): void {
+    const doc = wnd.document, docEl = doc.documentElement as HTMLHtmlElement,
+    el: HTMLElement = this.input = doc.body as HTMLBodyElement,
     zoom = wnd.devicePixelRatio;
-    box.onload = null as never;
     wnd.dispatchEvent(new Event("unload"));
-    wnd.onmousedown = box.onmousedown = this.OnMousedown;
-    wnd.onkeydown = this.onKeydown.bind(this);
-    wnd.onunload = this.OnUnload;
-    const el: HTMLElement = this.input = doc.body as HTMLBodyElement;
+    wnd.onunload = VFindMode.OnUnload;
     try {
       el.contentEditable = "plaintext-only";
     } catch (e) {
@@ -98,7 +114,7 @@ html > count{float:right;}`,
     function cb(): void {
       VHandler.remove(VFindMode);
       el.focus();
-      wnd.onfocus = VEventMode.OnWndFocus;
+      // wnd.onfocus = VEventMode.OnWndFocus;
     }
     if ((VDom.UI.box as HTMLElement).style.display) {
       VDom.UI.callback = cb;
@@ -164,6 +180,7 @@ html > count{float:right;}`,
     }
   },
   onKeydown (event: KeyboardEvent): void {
+    VUtils.Stop(event);
     if (event.isTrusted == false) { return; }
     if (VScroller.keyIsDown && VEventMode.OnScrolls[0](event)) { return; }
     const enum Result {
@@ -277,7 +294,11 @@ html > count{float:right;}`,
       return VEventMode.setupSuppress();
     }
   },
-  onInput (): void {
+  onInput (e?: Event): void {
+    if (e != null) {
+      VUtils.Stop(e);
+      if (e.isTrusted == false) { return; }
+    }
     const query = this.input.innerText.replace(this.A0Re, " ").replace(this.tailRe, "");
     let s = this.query;
     if (!this.hasResults && s && query.startsWith(s) && query.substring(s.length - 1).indexOf("\\") < 0) { return; }

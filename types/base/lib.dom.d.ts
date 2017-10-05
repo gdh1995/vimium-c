@@ -8115,7 +8115,7 @@ interface Window extends EventTarget, WindowTimers, WindowSessionStorage, Window
     readonly document: Document;
     event: Event | undefined;
     readonly external: External;
-    readonly frameElement: Element;
+    readonly frameElement: Element | null;
     readonly frames: Window & Window[];
     readonly history: History;
     readonly innerHeight: number;
@@ -8728,8 +8728,9 @@ interface AssignedNodesOptions {
 
 declare type EventListenerOrEventListenerObject = EventListener | null; // | EventListenerObject;
 declare type EventListenerOptions = boolean | {
+    capture?: true;
+    once?: true;
     passive?: boolean;
-    useCapture?: true;
 };
 
 interface ErrorEventHandler {

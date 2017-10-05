@@ -80,7 +80,7 @@ var VDom = {
       for (let _j = 0, _len1 = _ref.length; _j < _len1; _j++) {
         style = window.getComputedStyle(_ref[_j]);
         if (style.float !== 'none' ||
-            (str = style.position) === 'absolute' || str === 'fixed' || str === "sticky") {}
+            ((str = style.position) !== 'static' && str !== 'relative')) {}
         else if (rect.height === 0) {
           if (notInline == null) {
             el_style || (el_style = window.getComputedStyle(element));
@@ -125,6 +125,7 @@ var VDom = {
     }
     return !!rect;
   },
+  specialZoom: false,
   getViewBox (): ViewBox {
     let iw = window.innerWidth, ih = window.innerHeight, zoom: number;
     if (document.webkitIsFullScreen) {
@@ -147,7 +148,7 @@ var VDom = {
     if (st.position !== "static" || (<RegExpOne>/content|paint|strict/).test(st.contain as string)) {
       x = -rect.left - box.clientLeft, y = -rect.top - box.clientTop;
     } else {
-      zoom = +st.zoom || 1;
+      zoom = this.getDocZoom(st, 1);
       x /= zoom, y /= zoom;
     }
     VDom.bodyZoom = zoom = st2 !== st && +st2.zoom || 1;
@@ -155,6 +156,10 @@ var VDom = {
     iw = Math.min(Math.max(width,  box.clientWidth,  iw - 24), iw + 64);
     ih = Math.min(Math.max(height, box.clientHeight, ih - 24), ih + 20);
     return [Math.ceil(x), Math.ceil(y), iw, ih - 15, iw];
+  },
+  getDocZoom (st: CSSStyleDeclaration, scale?: number): number {
+    const zoom = +st.zoom || 1, ratio = window.devicePixelRatio;
+    return (scale || ratio) * (this.specialZoom && Math.abs(zoom - ratio) * 1000 < 1 ? 1 : zoom);
   },
   ensureInView (el: Element, oldY?: number): boolean {
     const rect = el.getBoundingClientRect(), ty = this.NotVisible(null, rect);
@@ -259,7 +264,7 @@ var VDom = {
   },
   setBoundary (style: CSSStyleDeclaration, r: VRect, allow_abs?: boolean): void {
     if (allow_abs && (r[1] < 0 || r[0] < 0 || r[3] > window.innerHeight || r[2] > window.innerWidth)) {
-      const arr = VDom.getViewBox();
+      const arr = this.getViewBox();
       r[0] += arr[0], r[2] += arr[0], r[1] += arr[1], r[3] += arr[1];
       style.position = "absolute";
     }
