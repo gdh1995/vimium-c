@@ -486,7 +486,7 @@ history: {
 
 domains: {
   filter (query: CompletersNS.QueryStatus, index: number): void {
-    if (queryTerms.length !== 1 || queryTerms[0].indexOf("/") !== -1) {
+    if (queryTerms.length !== 1 || queryType === FirstQuery.searchEngines || queryTerms[0].indexOf("/") !== -1) {
       return Completers.next([]);
     }
     const cache = HistoryCache;
