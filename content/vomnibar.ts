@@ -10,7 +10,7 @@ declare namespace VomnibarNS {
   interface IFrameWindow extends Window {
     Vomnibar: { showFavIcon: boolean };
     VPort?: object;
-    onmessage: (this: void, ev: { source: Window, data: [number, FgOptions | null], ports: IframePort[] }) => void | 1;
+    onmessage: (this: void, ev: { source: Window, data: VomnibarNS.MessageData, ports: IframePort[] }) => void | 1;
   }
   type BaseFullOptions = CmdOptions["Vomnibar.activate"] & VomnibarNS.BaseFgOptions & Partial<ContentOptions> & SafeObject;
   interface FullOptions extends BaseFullOptions {

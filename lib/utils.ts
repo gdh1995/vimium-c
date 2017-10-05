@@ -38,14 +38,14 @@ var VUtils = {
     event.stopImmediatePropagation();
   }
 }, VHandler = {
-  stack: [] as Array<[(event: HandlerNS.Event) => HandlerResult, any]>,
+  stack: [] as { func: (event: HandlerNS.Event) => HandlerResult, env: any}[],
   push<T extends object> (func: HandlerNS.Handler<T>, env: T): number {
-    return this.stack.push([func, env]);
+    return this.stack.push({ func, env });
   },
   bubbleEvent (event: HandlerNS.Event): HandlerResult {
     for (let ref = this.stack, i = ref.length; 0 <= --i; ) {
       const item = ref[i],
-      result = item[0].call(item[1], event);
+      result = item.func.call(item.env, event);
       if (result !== HandlerResult.Nothing) {
         return result;
       }
@@ -54,7 +54,7 @@ var VUtils = {
   },
   remove (env: object): void {
     for (let ref = this.stack, i = ref.length; 0 <= --i; ) {
-      if (ref[i][1] === env) {
+      if (ref[i].env === env) {
         ref.splice(i, 1);
         break;
       }

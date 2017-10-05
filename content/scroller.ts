@@ -170,16 +170,16 @@ animate (a: number, d: ScrollByY, e: Element | null): void | number {
       return element;
     }
     VDom.prepareCrop();
-    let children = [] as [number, Element][], rect: VRect | null, _ref = element.children, _len = _ref.length;
+    let children = [] as {area: number, el: Element}[], rect: VRect | null, _ref = element.children, _len = _ref.length;
     while (0 < _len--) {
       element = _ref[_len];
       if (rect = VDom.getVisibleClientRect(element)) {
-        children.push([(rect[2] - rect[0]) * (rect[3] - rect[1]), element]);
+        children.push({ area: (rect[2] - rect[0]) * (rect[3] - rect[1]), el: element});
       }
     }
     children.sort(this.sortBy0);
     for (_len = children.length; 0 < _len--; ) {
-      if (element = this.selectFirst(children[_len][1]) as Element) { return element; }
+      if (element = this.selectFirst(children[_len].el) as Element) { return element; }
     }
     return null;
   },
@@ -212,7 +212,7 @@ animate (a: number, d: ScrollByY, e: Element | null): void | number {
   isScrollable (el: Element, di: ScrollByY): boolean {
     return this.scrollDo(el, di, +!(di ? el.scrollTop : el.scrollLeft)) && this.shouldScroll(el, di);
   },
-  sortBy0 (this: void, a: [number, Element], b: [number, Element]): number {
-    return a[0] - b[0];
+  sortBy0 (this: void, a: {area: number, el: Element}, b: {area: number, el: Element}): number {
+    return a.area - b.area;
   }
 };

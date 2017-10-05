@@ -513,11 +513,11 @@ domains: {
     RankingUtils.maxScoreP = RankingUtils.maximumScore;
     for (let domain in ref) {
       if (domain.indexOf(word) === -1) { continue; }
-      const score = SuggestionUtils.ComputeRelevancy(domain, "", ref[domain][0]);
+      const score = SuggestionUtils.ComputeRelevancy(domain, "", ref[domain].time);
       if (score > result_score) { result_score = score; result = domain; }
     }
     if (result) {
-      sug = new Suggestion("domain", (ref[result][2] ? "https://" : "http://") + result, "", "", this.compute2);
+      sug = new Suggestion("domain", (ref[result].https ? "https://" : "http://") + result, "", "", this.compute2);
       sug.textSplit = SuggestionUtils.cutUrl(result, SuggestionUtils.getRanges(result), sug.url);
       --maxResults;
     }
@@ -535,13 +535,13 @@ domains: {
   onPageVisited (newPage: PureHistoryItem): void {
     const item = this.parseDomainAndScheme(newPage.url);
     if (item) {
-      const time = newPage.lastVisitTime, slot = this.domains[item[0]];
+      const time = newPage.lastVisitTime, slot = this.domains[item.domain];
       if (slot) {
-        if (slot[0] < time) { slot[0] = time; }
-        ++slot[1];
-        if (item[1] >= Urls.SchemaId.HTTP) { slot[2] = item[1] === Urls.SchemaId.HTTPS; }
+        if (slot.time < time) { slot.time = time; }
+        ++slot.count;
+        if (item.schema >= Urls.SchemaId.HTTP) { slot.https = item.schema === Urls.SchemaId.HTTPS; }
       } else {
-        this.domains[item[0]] = [time, 1, item[1] === Urls.SchemaId.HTTPS];
+        this.domains[item.domain] = {time, count: 1, https: item.schema === Urls.SchemaId.HTTPS};
       }
     }
   },
@@ -555,19 +555,19 @@ domains: {
     let entry: Domain | undefined;
     for (const j of toRemove.urls) {
       const item = parse(j);
-      if (item && (entry = domains[item[0]]) && (-- entry[1]) <= 0) {
-        delete domains[item[0]];
+      if (item && (entry = domains[item.domain]) && (--entry.count) <= 0) {
+        delete domains[item.domain];
       }
     }
   },
-  parseDomainAndScheme (url: string): [string, Urls.SchemaId] | null {
+  parseDomainAndScheme (url: string): { domain: string, schema: Urls.SchemaId } | null {
     let d: Urls.SchemaId;
     if (url.startsWith("http://")) { d = Urls.SchemaId.HTTP; }
     else if (url.startsWith("https://")) { d = Urls.SchemaId.HTTPS; }
     else if (url.startsWith("ftp://")) { d = Urls.SchemaId.FTP; }
     else { return null; }
     url = url.substring(d, url.indexOf('/', d));
-    return [url !== "__proto__" ? url : ".__proto__", d];
+    return { domain: url !== "__proto__" ? url : ".__proto__", schema: d};
   },
   compute2 (): number { return 2; }
 },

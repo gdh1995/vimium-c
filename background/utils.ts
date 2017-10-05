@@ -201,7 +201,7 @@ var Utils = {
   }) as Urls.Converter,
   checkInDomain (host: string, port?: string | null): 0 | 1 | 2 {
     const domain = port && this.domains[host + port] || this.domains[host];
-    return domain ? domain[2] ? 2 : 1 : 0;
+    return domain ? domain.https ? 2 : 1 : 0;
   },
   checkSpecialSchemes (string: string, i: number, spacePos: number): Urls.Type | Urls.TempType.Unspecified {
     const isSlash = string[i + 1] === "/";
@@ -467,7 +467,7 @@ var Utils = {
     return this.upperCaseAlphaRe.test(url) ? url.substring(0, ind).toLowerCase() + url.substring(ind) : url;
   },
   parseSearchEngines: (function(this: any, str: string, map: Search.EngineMap): Search.Rule[] {
-    let ids: string[], tmpRule: Search.TmpRule | null, tmpKey: Search.Rule[3],
+    let ids: string[], tmpRule: Search.TmpRule | null, tmpKey: Search.Rule["delimiter"],
     key: string, val: string, obj: Search.RawEngine,
     ind: number, rSlash = <RegExpOne> /[^\\]\//, rules = [] as Search.Rule[],
     rEscapeSpace = <RegExpG & RegExpSearchable<0>> /\\\s/g, rSpace = <RegExpOne> /\s/,
@@ -531,7 +531,7 @@ var Utils = {
             } else {
               tmpKey = key.trim() || " ";
             }
-            rules.push([tmpRule[0], tmpRule[1], ids[0].trimRight(), tmpKey]);
+            rules.push({prefix: tmpRule.prefix, matcher: tmpRule.matcher, name: ids[0].trimRight(), delimiter: tmpKey});
           }
         }
       } else if (str.charCodeAt(ind + 4) === 47) {
@@ -544,7 +544,8 @@ var Utils = {
         const tmpKey2 = this.makeRegexp(val, ind >= 0 ? str.substring(0, ind) : str);
         if (tmpKey2) {
           key = this.prepareReparsingPrefix(key);
-          rules.push([key, tmpKey2, ids[0].trimRight(), obj.url.lastIndexOf("$S") >= 0 ? " " : "+"]);
+          rules.push({prefix: key, matcher: tmpKey2, name: ids[0].trimRight(),
+             delimiter: obj.url.lastIndexOf("$S") >= 0 ? " " : "+"});
         }
         str = ind >= 0 ? str.substring(ind + 1) : "";
       } else {
@@ -587,7 +588,7 @@ var Utils = {
     }
     str2 = str2 && str2.replace(this.escapeAllRe, "\\$&").replace(this._spaceOrPlusRe, "(?:\\+|%20| )");
     prefix = this.prepareReparsingPrefix(prefix);
-    return [prefix, new RegExp(str + str2 + url, this.alphaRe.test(str2) ? "i" as "" : "") as RegExpI | RegExpOne];
+    return {prefix, matcher: new RegExp(str + str2 + url, this.alphaRe.test(str2) ? "i" as "" : "") as RegExpI | RegExpOne};
   }),
   IsURLHttp (this: void, url: string): ProtocolType {
     url = url.substring(0, 8).toLowerCase();

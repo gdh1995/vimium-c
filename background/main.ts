@@ -1442,13 +1442,13 @@ Are you sure you want to continue?`);
       }
       for (_i = decoders.length; 0 <= --_i; ) {
         pattern = decoders[_i];
-        if (!url.startsWith(pattern[0])) { continue; }
-        arr = s0.substring(pattern[0].length).match(pattern[1]);
+        if (!url.startsWith(pattern.prefix)) { continue; }
+        arr = s0.substring(pattern.prefix.length).match(pattern.matcher);
         if (arr) { break; }
       }
       if (!arr || !pattern) { Utils.resetRe(); return null; }
-      if (arr.length > 1 && !pattern[1].global) { arr.shift(); }
-      const re = pattern[3];
+      if (arr.length > 1 && !pattern.matcher.global) { arr.shift(); }
+      const re = pattern.delimiter;
       if (arr.length > 1) {
         selectLast = true;
       } else if (re instanceof RegExp) {
@@ -1467,7 +1467,7 @@ Are you sure you want to continue?`);
       url = url.trim().replace(Utils.spacesRe, " ");
       Utils.resetRe();
       return {
-        keyword: pattern[2],
+        keyword: pattern.name,
         url,
         start: selectLast ? url.lastIndexOf(" ") + 1 : 0
       };
