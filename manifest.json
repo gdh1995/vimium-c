@@ -8,7 +8,6 @@
   },
   "author": "gdh1995@qq.com",
   "background": {
-    "persistent": true,
     "scripts": [
       "background/utils.js",
       "background/settings.js",
@@ -85,6 +84,9 @@
     "keyword": "v"
   },
   "options_page": "pages/options.html",
+  "options_ui": {
+    "page": "pages/chrome_ui.html"
+  },
   "permissions": [
     "bookmarks",
     "clipboardRead",
