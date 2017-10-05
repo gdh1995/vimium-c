@@ -228,7 +228,7 @@ function replaceLocationDB() {
 			storage.relative = true
 		}
 		if (OTime < 1401359000) {
-			var _classifications = storage.get('classifications', true);
+			var _classifications = storage.get('classifications');
 			var _classificationsIds = [""];
 			storage.relative = false;
 			if (_classifications && _classifications.length > 0) {
@@ -238,7 +238,7 @@ function replaceLocationDB() {
 				})
 			}
 			$.each(_classificationsIds, function (k, v) {
-				var _dialBoxes = storage.get('dialBoxes' + v, true);
+				var _dialBoxes = storage.get('dialBoxes' + v);
 				if (_dialBoxes) {
 					var _normalDialboxes = _dialBoxes['normal'];
 					var _quickDialboxes = _dialBoxes['quick'];
@@ -278,35 +278,42 @@ var storage = {
 	setId: function (id) {
 		this.id = id ? "_" + id : "";
 		this.relative = true;
+		this.cache = {};
 	},
 	id: '',
 	relative: true,
 	db: localStorage,
 	privateKeys: ['privateSetup', 'dialBoxes', 'skins'],
-	get: function (key, isJson) {
-		key = (this.relative && this.privateKeys.indexOf(key) > -1) ? key + this.id : key;
-		try {
-			return isJson === true ? JSON.parse(this.db.getItem(key)) : this.db.getItem(key)
-		} catch (err) {
-			return null
+	cache: {},
+	useCache: true,
+	get: function (key) {
+		key = (this.relative && this.id && this.privateKeys.indexOf(key) > -1) ? key + this.id : key;
+		var value = this.cache[key], u;
+		if (value !== u && this.useCache) {
+			return value
 		}
+		try {
+			value = JSON.parse(this.db.getItem(key))
+		} catch (err) {
+			value = null
+		}
+		return this.cache[key] = value
 	},
 	set: function (key, value, isJson) {
 		key = (this.relative && this.privateKeys.indexOf(key) > -1) ? key + this.id : key;
 		try {
-			if (isJson === true) {
-				this.db.setItem(key, JSON.stringify(value))
-			} else {
-				this.db.setItem(key, value)
-			}
+			this.db.setItem(key, JSON.stringify(value))
+			this.cache[key] = value;
 		} catch (err) {
 			console.log(err)
 		}
 	},
 	remove: function (key) {
 		key = (this.relative && this.privateKeys.indexOf(key) > -1) ? key + this.id : key;
+		var u;
 		try {
 			this.db.removeItem(key)
+			this.cache[key] = u;
 		} catch (err) {
 			console.log(err)
 		}
@@ -716,8 +723,13 @@ if (temp1) {
 }
 
 var PDI = {
+	/**
+	 * @param { string } part
+	 * @param { string | undefined } key
+	 * @return { { readonly [key: string]: boolean | number | string | { readonly [key: string]: any }; } }
+	 */
 	get: function (part, key) {
-		var config = storage.get(part, true);
+		var config = storage.get(part);
 		if (config == null || config.length == 0 || (key && typeof config[key] == 'undefined')) {
 			if (part in _config) {
 				config = _config[part]
@@ -732,14 +744,14 @@ var PDI = {
 	},
 	set: function (part, key, value, data) {
 		if (!data) {
-			data = storage.get(part, true) || {}
+			data = storage.get(part) || {}
 		}
 		if (key) {
 			data[key] = value
 		} else {
 			data = value
 		}
-		storage.set(part, data, true)
+		storage.set(part, data)
 	},
 	length: function (data) {
 		if (!data || !(data.length > 0)) {
@@ -761,10 +773,10 @@ var PDI = {
 	setSkin: function (part, key, value, data) {
 		if (part === 'skin_cloud') {
 			if (!data) {
-				data = storage.get('skins', true) || {}
+				data = storage.get('skins') || {}
 			}
 			(data[part] || (data[part] = {}))[key] = value;
-			storage.set("skins", data, true)
+			storage.set("skins", data)
 		}
 	},
 	getStyle: function (part, key) {
@@ -779,7 +791,7 @@ var PDI = {
 	},
 	setStyle: function (part, key, value, data) {
 		if (!data) {
-			data = storage.get('privateSetup', true) || {}
+			data = storage.get('privateSetup') || {}
 		}
 		var data2 = data.style;
 		if (!data2) {
@@ -790,7 +802,7 @@ var PDI = {
 			data2 = data2[part];
 		}
 		data2[key] = value;
-		storage.set('privateSetup', data, true)
+		storage.set('privateSetup', data)
 	},
 	insertDialbox: function (type, value, data) {
 		if (!data) {
@@ -984,7 +996,7 @@ var oauth = {
 					}
 				});
 				storage.relative = true;
-				if (PDI.get('setup', 'OTime') == 0) {
+				if (!PDI.get('setup', 'OTime')) {
 					PDI.set('setup', 'OTime', curOTime)
 				}
 				returnStatus = true
@@ -1052,7 +1064,7 @@ var oauth = {
 		$.each(_config.cacheKeys, function (k, v) {
 			if (storage.privateKeys.indexOf(v) > -1) {
 				$.each(_classifications, function (p, q) {
-					if (storage.get(v + "_" + q.id, true)) {
+					if (storage.get(v + "_" + q.id)) {
 						_cacheKeys.push(v + "_" + q.id)
 					}
 				})
@@ -1065,7 +1077,7 @@ var oauth = {
 			if (k.substring(0, 5) !== 'skins') {
 				oauthData[self.oauthId][k] = JSON.stringify(PDI.get(k));
 				continue
-			} else if (skinsStorage = storage.get(k, true)) {
+			} else if (skinsStorage = storage.get(k)) {
 				var skinCloud = skinsStorage.skin_cloud, skinsJson = {};
 				if (skinCloud) {
 					skinsJson.skin_cloud = skinCloud
@@ -3514,7 +3526,7 @@ if (typeof code == "undefined" || code == "") {
 	code = parseInt(Date.now() / 1000) + '' + parseInt(1000 + Math.round(Math.random() * 8999));
 	PDI.set("setup", "code", code)
 }
-var lastVersion = storage.get("version", true);
+var lastVersion = storage.get("version");
 if (lastVersion == null || lastVersion.length > 12 || parseInt(lastVersion) > 1000000000 || _config.version > lastVersion) {
 	PDI.set("version", '', _config.version);
 	updateNotification = true
@@ -3523,28 +3535,29 @@ replaceLocationDB();
 // oauth.init();
 
 // document.title = getI18nMsg('title');
-
-targetSwitch = PDI.get('privateSetup', 'targetSwitch');
+var priv = PDI.get('privateSetup');
+targetSwitch = priv.targetSwitch;
 $('base,#searchForm').attr('target', targetSwitch ? "_self" : "_blank");
 DBOX.__init__({
 		container: $('.normalDialbox'),
 		QContainer: $('.quickDialbox'),
 		QBContainer: $('.QBannerContainer'),
-		num: PDI.get('privateSetup', 'dialBoxNum'),
+		num: priv.dialBoxNum,
 		page: PDI.get('dialBoxPage'),
-		opacity: PDI.get('privateSetup', 'dialBoxOpacity'),
-		spacing: PDI.get('privateSetup', 'dialBoxSpacing'),
-		titleShow: PDI.get('privateSetup', 'dialBoxTitleSwitch'),
-		cloudBoxShow: PDI.get('privateSetup', 'dialBoxCloudBoxSwitch'),
-		pageSwitcherShow: PDI.get('privateSetup', 'dialBoxPageSwitcher'),
-		page3DSwitcherOpen: PDI.get('privateSetup', 'dialBoxPage3DSwitcher'),
-		dialBoxQuickHide: PDI.get('privateSetup', 'dialBoxQuickSwitcher'),
-		width: PDI.get('privateSetup', 'dialBoxWidth'),
-		height: PDI.get('privateSetup', 'dialBoxHeight'),
-		radius: PDI.get('privateSetup', 'dialBoxRadius'),
-		maxTop: PDI.get('privateSetup', 'dialBoxMaxTop'),
-		QBContainerWidth: PDI.get('privateSetup', 'dialBoxQBCWidth')
+		opacity: priv.dialBoxOpacity,
+		spacing: priv.dialBoxSpacing,
+		titleShow: priv.dialBoxTitleSwitch,
+		cloudBoxShow: priv.dialBoxCloudBoxSwitch,
+		pageSwitcherShow: priv.dialBoxPageSwitcher,
+		page3DSwitcherOpen: priv.dialBoxPage3DSwitcher,
+		dialBoxQuickHide: priv.dialBoxQuickSwitcher,
+		width: priv.dialBoxWidth,
+		height: priv.dialBoxHeight,
+		radius: priv.dialBoxRadius,
+		maxTop: priv.dialBoxMaxTop,
+		QBContainerWidth: priv.dialBoxQBCWidth
 	});
+priv = null;
 
 var installWall = function(skin, wallpaperUrl) {
 var style = PDI.getSkin(skin, 'style').background, st = PDI.getStyle('background'), w, h,
@@ -3600,10 +3613,10 @@ window.onresize = function() {
 };
 };
 (function() {
-var skin = PDI.get('privateSetup', 'skin');
+var priv = PDI.get('privateSetup'), skin = priv.skin;
 if (skin && PDI.getSkin(skin, 'style')) {
-var wallpaperUrl = "", dtime = parseInt(Date.now() / 1000) - PDI.get("privateSetup", "BgChangeTime"),
-	unit = parseInt(PDI.get("privateSetup", "BgAutoTime") * 60), _wallpaper;
+var wallpaperUrl = "", dtime = parseInt(Date.now() / 1000) - priv.BgChangeTime,
+	unit = parseInt(priv.BgAutoTime * 60), _wallpaper;
 if (!(skin == "skin_cloud" && unit > 0 && PDI.get('usedWallpaper').length > 0 && dtime >= unit || unit === 1)) {
 } else if (!(_wallpaper = PDI.get("wallpaper"))) {
 	$.getJSON(urlImg + 'cloudWallpaper/index.json', function (data) {
@@ -3660,6 +3673,8 @@ if (!mset || mset === _config || mset.weather !== false) {
 }
 mset = null;
 };
+storage.useCache = false;
+storage.cache = {};
 
 window.onload = function () {
 	window.onload = null;
