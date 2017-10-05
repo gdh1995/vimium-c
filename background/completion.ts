@@ -26,17 +26,19 @@ interface JSBookmark extends Bookmark {
   readonly jsUrl: string;
   readonly jsText: string;
 }
-interface PureHistoryItem {
-  lastVisitTime: number;
-  title: string;
+interface HistoryItem extends DecodedItem, Pick<chrome.history.HistoryItem, "title" | "url"> {
   readonly url: string;
-}
-interface HistoryItem extends DecodedItem, PureHistoryItem {
+  visit: number;
 }
 interface UrlItem {
   url: string;
   title: string;
   sessionId?: string | number;
+}
+interface UrlDomain
+{
+  domain: string;
+  schema: Urls.SchemaId;
 }
 
 interface TextTab extends chrome.tabs.Tab {
@@ -61,8 +63,8 @@ const enum FirstQuery {
   history = 3,
   tabs = 4,
 
-  QueryTypeMask = 63,
-  historyIncluded = 67,
+  QueryTypeMask = 0x3F,
+  historyIncluded = QueryTypeMask + 1 + history,
 }
 
 interface SuggestionConstructor {
@@ -402,7 +404,7 @@ history: {
         if (!(regexps[j].test(item.text) || regexps[j].test(item.title))) { break; }
       }
       if (j !== len2) { continue; }
-      const score = getRele(item.text, item.title, item.lastVisitTime);
+      const score = getRele(item.text, item.title, item.visit);
       if (results[maxNum] >= score) { continue; }
       for (j = maxNum - 2; 0 <= j && results[j] < score; j -= 2) {
         results[j + 2] = results[j], results[j + 3] = results[j + 1];
@@ -483,25 +485,24 @@ history: {
 },
 
 domains: {
-  domains: Utils.domains,
   filter (query: CompletersNS.QueryStatus, index: number): void {
     if (queryTerms.length !== 1 || queryTerms[0].indexOf("/") !== -1) {
       return Completers.next([]);
     }
-    if (HistoryCache.history) {
-      this.refresh(HistoryCache.history);
-      return this.performSearch();
+    const cache = HistoryCache;
+    if (cache.domains) {}
+    else if (cache.history) {
+      this.refresh(cache.history);
+    } else {
+      return index > 0 ? Completers.next([]) : cache.use(function() {
+        if (query.isOff) { return; }
+        return Completers.domains.filter(query, 0);
+      });
     }
-    return index > 0 ? Completers.next([]) : HistoryCache.use(function() {
-      if (query.isOff) { return; }
-      return Completers.domains.filter(query, 0);
-    });
+    return this.performSearch();
   } ,
   performSearch (): void {
-    if (queryTerms.length !== 1 || queryTerms[0].indexOf("/") !== -1) {
-      return Completers.next([]);
-    }
-    const ref = this.domains as EnsuredSafeDict<Domain>, p = RankingUtils.maxScoreP, q = queryTerms, word = q[0];
+    const ref = Utils.domains as EnsuredSafeDict<Domain>, p = RankingUtils.maxScoreP, q = queryTerms, word = q[0];
     let sug: Suggestion | undefined, result = "", result_score = -1000;
     if (offset > 0) {
       for (let domain in ref) {
@@ -525,33 +526,31 @@ domains: {
     RankingUtils.maxScoreP = p;
     return Completers.next(sug ? [sug] : []);
   },
-  refresh (history: PureHistoryItem[]): void {
+  refresh (history: HistoryItem[]): void {
     this.refresh = null as never;
-    history.forEach(this.onPageVisited, this);
-    this.filter = this.performSearch;
-    chrome.history.onVisited.addListener(this.onPageVisited.bind(this));
-    chrome.history.onVisitRemoved.addListener(this.OnVisitRemoved);
-  },
-  onPageVisited (newPage: PureHistoryItem): void {
-    const item = this.parseDomainAndScheme(newPage.url);
-    if (item) {
-      const time = newPage.lastVisitTime, slot = this.domains[item.domain];
+    const parse = this.ParseDomainAndScheme, d = HistoryCache.domains = Utils.domains;
+    for (const { url, visit: time } of history) {
+      const item = parse(url);
+      if (!item) { continue; }
+      const {domain, schema} = item, slot = d[domain];
       if (slot) {
         if (slot.time < time) { slot.time = time; }
         ++slot.count;
-        if (item.schema >= Urls.SchemaId.HTTP) { slot.https = item.schema === Urls.SchemaId.HTTPS; }
+        if (schema >= Urls.SchemaId.HTTP) { slot.https = schema === Urls.SchemaId.HTTPS; }
       } else {
-        this.domains[item.domain] = {time, count: 1, https: item.schema === Urls.SchemaId.HTTPS};
+        d[domain] = {time, count: 1, https: schema === Urls.SchemaId.HTTPS};
       }
     }
+    chrome.history.onVisitRemoved.addListener(this.OnVisitRemoved);
   },
   OnVisitRemoved (toRemove: chrome.history.RemovedResult): void {
     const _this = Completers.domains;
     if (toRemove.allHistory) {
-      Utils.domains = _this.domains = Object.create<Domain>(null);
+      Utils.domains = Object.create<Domain>(null);
+      HistoryCache.domains && (HistoryCache.domains = Utils.domains);
       return;
     }
-    const { domains, parseDomainAndScheme: parse } = _this;
+    const domains = Utils.domains, parse = _this.ParseDomainAndScheme;
     let entry: Domain | undefined;
     for (const j of toRemove.urls) {
       const item = parse(j);
@@ -560,7 +559,7 @@ domains: {
       }
     }
   },
-  parseDomainAndScheme (url: string): { domain: string, schema: Urls.SchemaId } | null {
+  ParseDomainAndScheme (this: void, url: string): UrlDomain | null {
     let d: Urls.SchemaId;
     if (url.startsWith("http://")) { d = Urls.SchemaId.HTTP; }
     else if (url.startsWith("https://")) { d = Urls.SchemaId.HTTPS; }
@@ -1023,6 +1022,7 @@ searchEngines: {
     toRefreshCount: 0,
     history: null as HistoryItem[] | null,
     _callbacks: null as HistoryCallback[] | null,
+    domains: null as typeof Utils.domains | null,
     use (callback?: HistoryCallback): void {
       if (this._callbacks) {
         callback && this._callbacks.push(callback);
@@ -1043,8 +1043,8 @@ searchEngines: {
       _this.Clean = null;
       for (i = 0, len = arr.length; i < len; i++) {
         j = arr[i] as chrome.history.HistoryItem;
-        arr[i] = <HistoryItem> {
-          lastVisitTime: j.lastVisitTime,
+        (arr as HistoryItem[])[i] = {
+          visit: j.lastVisitTime,
           text: j.url,
           title: j.title,
           url: j.url
@@ -1070,23 +1070,35 @@ searchEngines: {
       _this._callbacks = null;
     } as ((arr: chrome.history.HistoryItem[]) => void) | null,
     OnPageVisited (this: void, newPage: chrome.history.HistoryItem): void {
-      const _this = HistoryCache, i = _this.binarySearch(newPage.url, _this.history as HistoryItem[]);
+      const _this = HistoryCache, url = newPage.url, time = newPage.lastVisitTime,
+      d = _this.domains, i = _this.binarySearch(url, _this.history as HistoryItem[]);
       let j: HistoryItem;
       if (i < 0) { _this.toRefreshCount++; }
       if (_this.updateCount++ > 99) { _this.refreshInfo(); }
+      if (d) {
+        let domain = Completers.domains.ParseDomainAndScheme(url), slot: Domain | undefined;
+        if (!domain) {}
+        else if (slot = d[domain.domain]) {
+          slot.time = time;
+          if (i < 0) { ++slot.count; }
+          if (domain.schema >= Urls.SchemaId.HTTP) { slot.https = domain.schema === Urls.SchemaId.HTTPS; }
+        } else {
+          d[domain.domain] = { time, count: 1, https: domain.schema === Urls.SchemaId.HTTPS };
+        }
+      }
       if (i >= 0) {
         j = (_this.history as HistoryItem[])[i];
-        j.lastVisitTime = newPage.lastVisitTime;
+        j.visit = time;
         newPage.title && (j.title = newPage.title);
         return;
       }
       j = {
-        lastVisitTime: newPage.lastVisitTime,
+        visit: time,
         text: "",
         title: newPage.title,
-        url: newPage.url
+        url
       };
-      j.text = Decoder.decodeURL(newPage.url, j);
+      j.text = Decoder.decodeURL(url, j);
       (_this.history as HistoryItem[]).splice(-1 - i, 0, j);
     },
     OnVisitRemoved (this: void, toRemove: chrome.history.RemovedResult): void {
