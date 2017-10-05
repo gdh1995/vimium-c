@@ -9,7 +9,7 @@ interface Checker<T extends keyof AllowedOptions> {
 
 const KeyRe = <RegExpG> /<(?!<)(?:a-)?(?:c-)?(?:m-)?(?:[A-Z][\dA-Z]+|[a-z][\da-z]+|\S)>|\S/g,
 __extends = function(child: Function, parent: Function): void {
-  function __(this: { constructor: Function } ) { this.constructor = parent; }
+  function __(this: { constructor: Function } ) { this.constructor = child; }
   __.prototype = parent.prototype;
   child.prototype = new (__ as any)();
 },
