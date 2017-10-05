@@ -36,9 +36,11 @@
 	text-indent: 0;
 	text-shadow: none;
 	text-transform: none;
+	user-select: none;
 	visibility: visible;
 	white-space: normal;
 	word-spacing: 0px;
+	-webkit-user-select: none;
 }
 :host{position:initial !important;}
 
