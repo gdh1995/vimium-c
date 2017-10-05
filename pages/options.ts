@@ -350,7 +350,7 @@ interface AdvancedOptBtn extends HTMLButtonElement {
     }
   });
 
-  _ref = document.getElementsByClassName("nonEmptyTextOption") as HTMLCollectionOf<HTMLElement>;
+  _ref = document.getElementsByClassName("nonEmptyTip") as HTMLCollectionOf<HTMLElement>;
   for (let _i = _ref.length; 0 <= --_i; ) {
     element = _ref[_i];
     element.className += " example info";

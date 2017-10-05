@@ -67,7 +67,7 @@ unmapAll
         <td class="caption">Custom search<br/>engines</td>
         <td>
           <textarea id="searchEngines" data-model="NonEmptyText"></textarea>
-          <div class="nonEmptyTextOption"></div>
+          <div class="nonEmptyTip"></div>
         </td>
         <td class="help"><div class="help-inner">
           Add search engine shortcuts to the Vomnibar. Format:
@@ -87,7 +87,7 @@ MainKey|c|c\:|MainName: \
         <td class="caption">New tab URL</td>
         <td>
           <input id="newTabUrl" type="text" data-model="NonEmptyText" data-check="" />
-          <div class="nonEmptyTextOption"></div>
+          <div class="nonEmptyTip"></div>
         </td>
         <td class="help"><div class="help-inner">
           "<kbd class="sel-all">pages/blank.html</kbd>" for a blank page. Chrome inner:<br/>
@@ -98,7 +98,7 @@ MainKey|c|c\:|MainName: \
         <td class="caption">Default search<br/>engine</td>
         <td>
           <input id="searchUrl" type="text" data-model="NonEmptyText" data-check="" />
-          <div class="nonEmptyTextOption"></div>
+          <div class="nonEmptyTip"></div>
         </td>
         <td class="help"><div class="help-inner">
           The default search engine ("<kbd class="wrap-space">~</kbd>" to use it on Vomnibar)<br/>
@@ -125,7 +125,7 @@ MainKey|c|c\:|MainName: \
           <td>
             <input id="linkHintCharacters" type="text" data-model="NonEmptyText"
               data-converter="lower" class="code" />
-            <div class="nonEmptyTextOption"></div>
+            <div class="nonEmptyTip"></div>
           </td>
           <td class="help"><div class="help-inner">
             The characters placed next to each link after typing "f" to enter link-hint mode.
@@ -135,7 +135,7 @@ MainKey|c|c\:|MainName: \
           <td class="caption">Preferred<br/> Vomnibar Page</td>
           <td>
             <input id="vomnibarPage" type="text" data-model="NonEmptyText" />
-            <div class="nonEmptyTextOption"></div>
+            <div class="nonEmptyTip"></div>
           </td>
           <td class="help"><div class="help-inner">
             Recommended:
@@ -246,7 +246,7 @@ Warning: Chrome has a bug of mistaken dialogue width if you has changed screen t
           <td class="caption">Previous patterns</td>
           <td>
             <input id="previousPatterns" type="text" data-model="NonEmptyText" data-converter="lower" />
-            <div class="nonEmptyTextOption"></div>
+            <div class="nonEmptyTip"></div>
           </td>
           <td class="help"><div class="help-inner">
             The "navigate to previous page" command uses these patterns to find the link to follow (ignore case).
@@ -256,7 +256,7 @@ Warning: Chrome has a bug of mistaken dialogue width if you has changed screen t
           <td class="caption">Next patterns</td>
           <td>
             <input id="nextPatterns" type="text" data-model="NonEmptyText" data-converter="lower" />
-            <div class="nonEmptyTextOption"></div>
+            <div class="nonEmptyTip"></div>
           </td>
           <td class="help"><div class="help-inner">
             The "navigate to next page" command uses these patterns to find the link to follow (ignore case).
@@ -280,7 +280,7 @@ Warning: Chrome has a bug of mistaken dialogue width if you has changed screen t
           <td>
             <textarea id="extWhiteList" class="code min-height-4" data-model="NonEmptyText"
               data-permission="web_accessible_resources"></textarea>
-            <div class="nonEmptyTextOption"></div>
+            <div class="nonEmptyTip"></div>
           </td>
           <td class="help"><div class="help-inner">
             Only browser extensions in this list are allowed to request Vimium++'s support.<br/>
@@ -293,7 +293,7 @@ Warning: Chrome has a bug of mistaken dialogue width if you has changed screen t
           <td class="caption">Keyboard settings</td>
           <td>
             <input id="keyboard" type="text" data-model="JSON" />
-            <div class="nonEmptyTextOption"></div>
+            <div class="nonEmptyTip"></div>
           </td>
           <td class="help"><div class="help-inner">
             Your keyboard delay settings on this computer. Format:<br/>
