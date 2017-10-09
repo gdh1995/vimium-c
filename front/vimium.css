@@ -11,35 +11,35 @@
  *
  */
 .R, :host {
-	all:initial;
 	background: none;
 	border: none;
 	box-sizing: content-box;
-	color: black;
-	contain: layout style;
 	cursor: auto;
-	display: block;
 	float: none;
-	font: 12px/1 "Helvetica Neue",Helvetica,Arial,sans-serif;
 	font-size-adjust: none;
-	letter-spacing: 0;
+	letter-spacing: normal;
 	line-height-step: 0;
+	padding: 0;
 	margin: 0;
 	opacity: 1;
 	outline: none;
-	overflow: hidden;
-	padding: 0;
-	pointer-events: none;
-	position: fixed;
-	text-align: left;
 	text-align-last: auto;
 	text-indent: 0;
 	text-shadow: none;
 	text-transform: none;
-	user-select: none;
 	visibility: visible;
 	white-space: normal;
-	word-spacing: 0px;
+	word-spacing: normal;
+	all:initial;
+	color: black;
+	contain: layout style;
+	display: block;
+	font: 12px/1 "Helvetica Neue",Helvetica,Arial,sans-serif;
+	overflow: hidden;
+	pointer-events: none;
+	position: fixed;
+	text-align: left;
+	user-select: none;
 	-webkit-user-select: none;
 }
 :host{position:initial !important;}
