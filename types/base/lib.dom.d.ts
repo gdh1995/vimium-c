@@ -642,9 +642,9 @@ interface CSSStyleDeclaration {
     listStyleType: string | null;
     margin: string | null;
     marginBottom: string | null;
-    marginLeft: string | null;
+    marginLeft: string;
     marginRight: string | null;
-    marginTop: string | null;
+    marginTop: string;
     marker: string | null;
     markerEnd: string | null;
     markerMid: string | null;
