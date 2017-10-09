@@ -211,8 +211,7 @@ interface FgRes {
     url: string;
     path: string | null;
   };
-  searchAs: string;
-  openCopiedUrl: string;
+  openCopiedUrl: string | void;
   execInChild: boolean;
 }
 

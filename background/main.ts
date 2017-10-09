@@ -1039,10 +1039,8 @@ Are you sure you want to continue?`);
     openCopiedUrlInNewTab (this: void, tabs: [Tab] | never[]): void {
       Utils.lastUrlType = Urls.Type.Default as Urls.Type;
       const url = requestHandlers.openCopiedUrl({ keyword: (cOptions.keyword || "") + "" });
+      if (!url) { return; }
       Utils.resetRe();
-      if (!url) {
-        return requestHandlers.ShowHUD("No text copied!");
-      }
       if (Utils.lastUrlType === Urls.Type.Functional) {
         return funcDict.onEvalUrl(url as Urls.SpecialUrl);
       }
@@ -1599,9 +1597,10 @@ Are you sure you want to continue?`);
       (this: void, request: FgReq["parseUpperUrl"] & { execute: true }, port: Port): void;
       (this: void, request: FgReq["parseUpperUrl"], port?: Port): FgRes["parseUpperUrl"];
     },
-    searchAs (this: void, request: FgReq["searchAs"]): void {
+    searchAs (this: void, request: FgReq["searchAs"], port: Port): void {
       let search = requestHandlers.parseSearchUrl(request), query: string | null;
       if (!search || !search.keyword) {
+        cPort = port;
         return requestHandlers.ShowHUD("No search engine found!");
       }
       if (!(query = request.search.trim())) {
@@ -1609,6 +1608,7 @@ Are you sure you want to continue?`);
         let err = query === null ? "It's not allowed to read clipboard"
           : (query = query.trim()) ? "" : "No selected or copied text found";
         if (err) {
+          cPort = port;
           return requestHandlers.ShowHUD(err);
         }
       }
@@ -1779,11 +1779,12 @@ Are you sure you want to continue?`);
       if (funcDict.checkVomnibarPage(port)) { return; }
       return Completers.filter(request.query, request, funcDict.PostCompletions.bind(port));
     },
-    openCopiedUrl: function (this: void, request: FgReq["openCopiedUrl"], port?: Port): Urls.Url {
+    openCopiedUrl: function (this: void, request: FgReq["openCopiedUrl"], port?: Port): Urls.Url | FgRes["openCopiedUrl"] {
       let url: Urls.Url | null = Clipboard.paste();
-      if (url === null) { funcDict.complain("read clipboard"); return ""; }
+      cPort = port || cPort;
+      if (url === null) { return funcDict.complain("read clipboard"); }
       url = url.trim();
-      if (!url) { Utils.lastUrlType = Urls.Type.Full; return ""; }
+      if (!url) { return requestHandlers.ShowHUD("No text copied!"); }
       Utils.quotedStringRe.test(url) && (url = url.slice(1, -1));
       url = Utils.convertToUrl(url, request.keyword, port ? Urls.WorkType.Default : Urls.WorkType.ActAnyway);
       if (!port || (url as string).substring(0, 11).toLowerCase() === "javascript:") { return url; }
@@ -1793,7 +1794,7 @@ Are you sure you want to continue?`);
       return "a";
     } as {
       (this: void, request: FgReq["openCopiedUrl"], port: Port): FgRes["openCopiedUrl"];
-      (this: void, request: FgReq["openCopiedUrl"]): Urls.Url;
+      (this: void, request: FgReq["openCopiedUrl"]): Urls.Url | void;
     },
     copyToClipboard (this: void, request: FgReq["copyToClipboard"]): void {
       return Clipboard.copy(request.data);

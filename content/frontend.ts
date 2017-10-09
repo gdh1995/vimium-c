@@ -401,18 +401,14 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
       }, function(str): void {
         if (str) {
           VUtils.evalIfOK(str);
-        } else {
-          return HUD.showCopied("");
         }
       });
     },
     searchAs (): void {
-      return vPort.send({
+      vPort.post({
         handler: "searchAs",
         url: window.location.href,
         search: VDom.getSelectionText()
-      }, function(str): void {
-        if (str) { return HUD.showForDuration(str, 1000); }
       });
     },
     focusInput (count: number, options: FgOptions): void {
