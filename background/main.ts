@@ -1825,12 +1825,12 @@ Are you sure you want to continue?`);
       default: return;
       }
     },
-    focusOrLaunch (this: void, request: MarksNS.FocusOrLaunch, notFolder?: true): void {
+    focusOrLaunch (this: void, request: MarksNS.FocusOrLaunch, _port?: Port | null, notFolder?: true): void {
       // * do not limit windowId or windowType
       let url = Utils.reformatURL(request.url.split("#", 1)[0]), callback = funcDict.focusOrLaunch[0];
       if (url.startsWith("file:") && !notFolder && url.substring(url.lastIndexOf("/") + 1).indexOf(".") < 0) {
         chrome.tabs.query({ url: url + "/" }, function(tabs): void {
-          return tabs && tabs.length > 0 ? callback.call(request, tabs) : requestHandlers.focusOrLaunch(request, true);
+          return tabs && tabs.length > 0 ? callback.call(request, tabs) : requestHandlers.focusOrLaunch(request, null, true);
         });
         return;
       }
