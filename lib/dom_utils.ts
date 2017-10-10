@@ -156,10 +156,6 @@ var VDom = {
     ih = Math.min(Math.max(height, box.clientHeight, ih - 24), ih + 20);
     return [Math.ceil(x), Math.ceil(y), iw, ih - 15, iw];
   },
-  getDocZoom (st: CSSStyleDeclaration, scale?: number): number {
-    const zoom = +st.zoom || 1, ratio = window.devicePixelRatio;
-    return (scale || ratio) * (this.specialZoom && Math.abs(zoom - ratio) * 1000 < 1 ? 1 : zoom);
-  },
   ensureInView (el: Element, oldY?: number): boolean {
     const rect = el.getBoundingClientRect(), ty = this.NotVisible(null, rect);
     if (!ty) { return true; }
