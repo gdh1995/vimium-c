@@ -390,7 +390,7 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
       }
       if (info.isVomnibar) { return false; }
       if (!nolog && !info.warned) {
-        console.warn("Receive a request from %can unsafe source page%c (should be vomnibar) :\n %s @%o",
+        console.warn("Receive a request from %can unsafe source page%c (should be vomnibar) :\n %s @ tab %o",
           "color:red", "color:auto", info.url, info.tabId);
         info.warned = true;
       }
