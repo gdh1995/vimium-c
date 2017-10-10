@@ -495,7 +495,7 @@ var Vomnibar = {
     }
     this.heightList = height;
     height = notEmpty ? height + HeightData.InputBarWithLineAndMargin : HeightData.InputBarAndMargin;
-    this.height = height = (height + pixel + pixel) | 0;
+    this.height = height = Math.ceil(height + pixel + pixel);
     list.forEach(this.parse, this);
     return this.populateUI(oldHeight);
   },
