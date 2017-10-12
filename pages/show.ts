@@ -55,10 +55,12 @@ window.onhashchange = function(this: void): void {
   }
   type = file = "";
 
-  url = location.hash || window.name;
-  if (!url && BG && BG.Settings && BG.Settings.temp.shownHash) {
+  url = location.hash;
+  if (!location.hash && BG && BG.Settings && BG.Settings.temp.shownHash) {
     url = BG.Settings.temp.shownHash() || "";
     window.name = url;
+  } else if (!url) {
+    url = window.name;
   }
   if (url.length < 3) {}
   else if (url.startsWith("#!image")) {
