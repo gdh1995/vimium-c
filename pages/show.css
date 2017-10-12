@@ -66,6 +66,11 @@ img.invert::selection {
   background: none;
 }
 
+img.broken {
+  border: 1px solid silver;
+  padding: 1px 1px 3px 1px;
+}
+
 .viewer-title {
   font-size: 16px;
   height: 20px;

@@ -277,6 +277,7 @@ declare const enum BrowserVer {
   $Selection$NotShowStatusInTextBox = 58, // Now only version 81-110 of Chrome 58 stable have such a problem
   MinPasswordSaverDispatchesVirtualFocusEvents = 59,
   MinWarningWebkitGradient = 60, // only happened on a Canary version
+  MinNoBorderForBrokenImage = 60,
   // https://www.chromestatus.com/features/4964279606312960 is not the truth
   // MinSelector$deep$DoesNothing = 63,
   MinRoundedBorderWidth = 61, // a border is only showing if `width * zoomed-ratio >= 0.5`

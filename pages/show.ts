@@ -100,7 +100,10 @@ window.onhashchange = function(this: void): void {
     shownNode.classList.add("hidden");
     shownNode.onerror = function(): void {
       this.onerror = this.onload = null as never;
-      (shownNode as HTMLImageElement).alt = "\xa0fail to load\xa0";
+      (shownNode as HTMLImageElement).alt = "\xa0(fail to load)\xa0";
+      if (BG && BG.Settings && BG.Settings.CONST.ChromeVersion >= BrowserVer.MinNoBorderForBrokenImage) {
+        shownNode.classList.add("broken");
+      }
       shownNode.classList.remove("hidden");
       setTimeout(showBgLink, 34);
       shownNode.onclick = function(e) {
@@ -123,7 +126,7 @@ window.onhashchange = function(this: void): void {
     } else {
       url = "";
       (shownNode as any).onerror();
-      shownNode.setAttribute("alt", "\xa0(null)\xa0");
+      (shownNode as HTMLImageElement).alt = "\xa0(null)\xa0";
     }
     if (file) {
       shownNode.setAttribute("download", file);
