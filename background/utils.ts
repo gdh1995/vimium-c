@@ -42,10 +42,10 @@ var Utils = {
   // url: only accept real tab's
   isRefusingIncognito (url: string): boolean {
     url = url.toLowerCase();
-    if (url.startsWith('chrome://')) {
+    if (url.startsWith("chrome://")) {
       return !url.startsWith("chrome://downloads");
     }
-    return !url.startsWith(Settings.CONST.ChromeInnerNewTab) && url.startsWith('chrome');
+    return !url.startsWith(Settings.CONST.ChromeInnerNewTab) && url.startsWith("chrome");
   },
   _nonENTlds: ".\u4e2d\u56fd.\u6211\u7231\u4f60.\u516c\u53f8.\u96c6\u56e2.\u7f51\u7edc.\u4e2d\u570b.",
   _tlds: ["", "",

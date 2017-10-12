@@ -150,7 +150,7 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
           if (err) { return; }
           if (!tab.incognito) {
             const key = ContentSettings.makeKey(contentType);
-            localStorage.getItem(key) !== "1" && (localStorage.setItem(key, "1"));
+            localStorage.getItem(key) !== "1" && localStorage.setItem(key, "1");
           }
           if (tab.incognito || cOptions.action === "reopen") {
             ++tab.index;
@@ -159,7 +159,7 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
             return funcDict.refreshTab[0](tab.id);
           }
           chrome.windows.getCurrent({populate: true}, function(wnd) {
-            !wnd || wnd.type !== "normal" ? chrome.tabs.reload()
+            !wnd || wnd.type !== "normal" ? chrome.tabs.reload(funcDict.onRuntimeError)
             : wnd.tabs.length > 1 && chrome.sessions ? funcDict.refreshTab[0](tab.id)
             : funcDict.reopenTab(tab);
             return chrome.runtime.lastError;
@@ -297,20 +297,22 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
     refreshTab: [function(tabId) {
       chrome.tabs.remove(tabId, funcDict.onRuntimeError);
       chrome.tabs.get(tabId, funcDict.refreshTab[1]);
-    }, function(tab, action) {
+    }, function(tab, step) {
       if (chrome.runtime.lastError) {
         chrome.sessions.restore();
         return chrome.runtime.lastError;
       }
-      if (action === "reload") { return; }
-      setTimeout(funcDict.refreshTab[2], 17, tab && action !== "get" ? "get" : "reload", tab ? tab.id : this as number);
-    }, function(action, tabId) {
-      (chrome.tabs[action] as (tabId: number, callback?: (tab?: Tab) => void) => 1)(tabId
-        , funcDict.refreshTab[1].bind(tabId, null, action));
+      step = (((step as number) | 0) + 1) as 1 | 2 | 3 | 4;
+      if (step > 3) { return; }
+      const tabId = (tab as Tab).id;
+      setTimeout(function(): void {
+        chrome.tabs.get(tabId, function(tab): void {
+          funcDict.refreshTab[1](tab, ((step as number) + 1) as 1 | 2 | 3 | 4);
+        });
+      }, 50 * step * step);
     }] as [
       (this: void, tabId: number) => void,
-      (this: void | number, tab?: Tab | null, action?: "get" | "reload") => void,
-      (this: void, action: "get" | "reload", tabId: number) => void
+      (this: void, tab?: Tab, step?: 1 | 2 | 3 | 4) => void
     ],
     makeWindow (this: void, option: chrome.windows.CreateData, state?: chrome.windows.ValidStates | ""
         , callback?: (wnd: Window) => void): void {
