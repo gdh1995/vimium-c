@@ -100,7 +100,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
                 (action = checkValidKey(event, keyChar)), false)
         ) {
           if (InsertMode.lock === document.body && InsertMode.lock) {
-            action = InsertMode.focusUpper(key);
+            action = event.repeat ? InsertMode.focusUpper(key) : HandlerResult.Nothing;
           } else {
             action = g && g.passExitKey ? HandlerResult.Nothing : HandlerResult.Prevent;
             InsertMode.exit(event);
