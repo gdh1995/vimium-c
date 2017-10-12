@@ -362,7 +362,12 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
         tabsCreate({ url });
         return Utils.resetRe();
       }
-      chrome.tabs.update({ url }, funcDict.onRuntimeError);
+      const arg = { url }, cb = funcDict.onRuntimeError;
+      if (tabs1) {
+        chrome.tabs.update(tabs1[0].id, arg, cb);
+      } else {
+        chrome.tabs.update(arg, cb);
+      }
       return Utils.resetRe();
     },
     onEvalUrl (this: void, arr: Urls.SpecialUrl): void {
@@ -606,7 +611,7 @@ Are you sure you want to continue?`);
       }
       url = url.substring(prefix.length);
       if (reuse === ReuseType.current && !tab.incognito) {
-        chrome.tabs.update({ url: prefix });
+        chrome.tabs.update(tab.id, { url: prefix });
       } else
       chrome.tabs.create({
         active: reuse !== ReuseType.newBg,
@@ -1171,7 +1176,7 @@ Are you sure you want to continue?`);
         url: tabs[0].url, upper: commandCount - 1
       });
       if (path != null) {
-        chrome.tabs.update({url});
+        chrome.tabs.update(tabs[0].id, {url});
         return;
       }
       return requestHandlers.ShowHUD(url);

@@ -388,7 +388,7 @@ if (document.readyState !== "complete") {
   Commands.defaultKeyMappings = null as never;
   Commands.populateCommandKeys();
   Commands = null as never;
-  chrome.commands && chrome.commands.onCommand.addListener(Settings.globalCommand);
+  chrome.commands && chrome.commands.onCommand.addListener(function (cmd) { return Settings.globalCommand(cmd); });
 } else
 Settings.updateHooks.keyMappings = function(value: string): void {
   Commands.parseKeyMappings(value);

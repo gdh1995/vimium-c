@@ -83,6 +83,13 @@ Known issues (Up to the master branch):
 7. Chrome does not apply content settings (at least images) on file:// URLs since version 56.
   Currently, no effective ways have been found (up to Chrome 59).
 
+1.62 (Not released yet):
+* on an editable rich text iframe box: `<Esc>` will not focus the upper frame unless it's held on
+* image viewer: support `<c-+>` (also `<c-=>`) and `<c-->` to zoom in/out images
+* fix vomnibar may shake on the list's length changing
+* fix a regression that some tips were missing
+* fix a long-term bug that history cache may not be cleaned out when some history items are removed
+
 1.61.2:
 * fix some regression bugs
 

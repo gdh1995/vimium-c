@@ -721,7 +721,7 @@ interface CSSStyleDeclaration {
     translate: string | null;
     unicodeBidi: string | null;
     verticalAlign: string | null;
-    visibility: string | null;
+    visibility: "hidden" | "visible" | "collapse" | "" | "inherit" | "initial" | "unset";
     webkitAlignContent: string | null;
     webkitAlignItems: string | null;
     webkitAlignSelf: string | null;

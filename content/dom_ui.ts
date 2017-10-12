@@ -80,7 +80,7 @@ VDom.UI = {
     if (!VDom.specialZoom) { return; }
     const zoom = +getComputedStyle(document.documentElement as HTMLElement).zoom || 1;
     let ratio = window.devicePixelRatio, st = this._styleBorder, st2: typeof st;
-    ratio = ratio * (VDom.specialZoom && Math.abs(zoom - ratio) * 1000 < 1 ? 1 : zoom);
+    Math.abs(zoom - ratio) > 0.001 || (ratio *= zoom);
     if (st === null ? ratio >= 1 : st.zoom === ratio) { return; }
     st2 = st || (this._styleBorder = this.createStyle(""));
     st2.zoom = ratio; st2.textContent = "*{border-width:" + ("" + 0.51 / ratio).substring(0, 5) + "px !important;}";
