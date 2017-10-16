@@ -547,7 +547,7 @@ domains: {
     const _this = Completers.domains;
     if (toRemove.allHistory) {
       Utils.domains = Object.create<Domain>(null);
-      HistoryCache.domains && (HistoryCache.domains = Utils.domains);
+      HistoryCache.domains = Utils.domains;
       return;
     }
     const domains = Utils.domains, parse = _this.ParseDomainAndScheme;
