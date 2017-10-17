@@ -502,7 +502,8 @@ domains: {
     return this.performSearch();
   } ,
   performSearch (): void {
-    const ref = Utils.domains as EnsuredSafeDict<Domain>, p = RankingUtils.maxScoreP, q = queryTerms, word = q[0];
+    const ref = Utils.domains as EnsuredSafeDict<Domain>, p = RankingUtils.maxScoreP, q = queryTerms,
+    word = q[0].toLowerCase();
     let sug: Suggestion | undefined, result = "", result_score = -1000;
     if (offset > 0) {
       for (let domain in ref) {
