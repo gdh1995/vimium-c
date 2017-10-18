@@ -23,6 +23,7 @@ type AllowedActions = "dismiss"|"focus"|"blurInput"|"backspace"|"blur"|"up"|"dow
 
 interface Window {
   ExtId?: string;
+  VomnibarListLength?: number;
 }
 declare const enum HeightData {
   InputBar = 54, InputBarWithLine = InputBar + 1,
@@ -597,7 +598,7 @@ var Vomnibar = {
     handler: "omni" as "omni",
     type: "omni" as CompletersNS.ValidTypes,
     maxChars: 0,
-    maxResults: 10,
+    maxResults: Math.min(Math.max((window.VomnibarListLength | 0) || 10, 3), 20),
     query: ""
   },
   _spacesRe: <RegExpG> /\s+/g,

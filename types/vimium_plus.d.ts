@@ -266,7 +266,7 @@ declare const enum BrowserVer {
   Min$Event$$Path$IncludeNodesInShadowRoot = 55,
   MinSomeDocumentListenersArePassiveByDefault = 56,
   MinDOMActivateEventInsideShadowDOMV1HasNoShadowNodesInPathWhenOnDocument = 56,
-  // With empty settings, Chrome only does this since not 56  but 57
+  // With empty settings, Chrome only does this since not 56 but 57
   MinExtIframesInSharedProcess = 56, // means enabled by default
   MinNeedCSPForScriptsFromOtherExtensions = 56,
   MinStickyPosition = 56,
