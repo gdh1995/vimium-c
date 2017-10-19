@@ -598,7 +598,7 @@ var Vomnibar = {
     handler: "omni" as "omni",
     type: "omni" as CompletersNS.ValidTypes,
     maxChars: 0,
-    maxResults: Math.min(Math.max((window.VomnibarListLength | 0) || 10, 3), 20),
+    maxResults: Math.min(Math.max((<number>window.VomnibarListLength | 0) || 10, 3), 20),
     query: ""
   },
   _spacesRe: <RegExpG> /\s+/g,
