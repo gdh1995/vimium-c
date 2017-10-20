@@ -199,11 +199,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
       if (event.isTrusted == false) { return; }
       let target = event.target as Window | Element | ShadowRootEx;
       if (target === window) {
-        VScroller.keyIsDown = 0;
-        ELs.OnWndBlur && ELs.OnWndBlur.call(null);
-        KeydownEvents = new Uint8Array(256);
-        (<RegExpOne> /a?/).test("");
-        return esc();
+        return ELs.OnWndBlur();
       }
       if (!isEnabledForUrl) { return; }
       let path = event.path as EventTarget[], top: EventTarget | undefined
@@ -238,7 +234,15 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
       VScroller.current = (event.path as EventTarget[])[0] as Element;
     },
     OnWndFocus (this: void): void {},
-    OnWndBlur: null as ((this: void) => void) | null,
+    OnWndBlur (this: void): void {
+      VScroller.keyIsDown = 0;
+      const f = ELs.OnWndBlur2;
+      f && f();
+      KeydownEvents = new Uint8Array(256);
+      (<RegExpOne> /a?/).test("");
+      return esc();
+    },
+    OnWndBlur2: null as ((this: void) => void) | null,
     OnReady (): void {
       HUD.enabled = true;
       ELs.OnWndFocus = vPort.safePost.bind(vPort, { handler: "frameFocused" });
@@ -268,6 +272,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
       a.ExitGrab(); VEventMode.setupSuppress();
       VHints.clean(); VVisualMode.deactivate();
       VFindMode.init || VFindMode.toggleStyle(0);
+      return ELs.OnWndBlur();
     },
 
     toggleSwitchTemp (_0: number, options: FgOptions): void {
@@ -323,12 +328,12 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
           keys[event.keyCode] = 0;
           return HUD.show(`Pass next ${count > 1 ? count + " keys." : "key."}`);
         }
-        return (ELs.OnWndBlur as () => void)();
+        return (ELs.OnWndBlur2 as () => void)();
       };
-      ELs.OnWndBlur = function(): void {
+      ELs.OnWndBlur2 = function(): void {
         onKeyup2 = null;
         VHandler.remove(keys);
-        ELs.OnWndBlur = null;
+        ELs.OnWndBlur2 = null;
         return HUD.hide();
       };
       return onKeyup2({keyCode: 0} as KeyboardEvent);
@@ -770,7 +775,6 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
         // here should not return even if old - a url change may mean the fullscreen mode is changed
       } else {
         Commands.reset();
-        KeydownEvents = new Uint8Array(256);
       }
       if (VDom.UI.box) { return VDom.UI.toggle(enabled); }
     },
@@ -913,7 +917,7 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
 
   VEventMode = {
     lock (this: void): Element | null { return InsertMode.lock; },
-    onWndBlur (this: void, f): void { ELs.OnWndBlur = f; },
+    onWndBlur (this: void, f): void { ELs.OnWndBlur2 = f; },
     OnWndFocus (this: void): void { return ELs.OnWndFocus(); },
     focusAndListen (callback?: () => void, timedout?: 0 | 1): void {
       if (timedout !== 1) {
