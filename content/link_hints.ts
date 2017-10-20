@@ -323,7 +323,8 @@ var VHints = {
         : (element.vimiumHasOnclick && VHints.isClickListened) || element.getAttribute("onclick")
           || VHints.ngEnabled && element.getAttribute("ng-click")
           || (s = element.getAttribute("role")) && (s = s.toLowerCase()
-            , s === "button" || s === "link" || s === "checkbox" || s === "radio" || s.startsWith("menuitem"))
+            , s === "button" || s === "link" || s === "tab"
+              || s === "checkbox" || s === "radio" || s.startsWith("menuitem"))
           || VHints.forHover && element.getAttribute("onmouseover")
           || (s = element.getAttribute("jsaction")) && VHints.checkJSAction(s) ? ClickType.listener
         : (s = element.getAttribute("tabindex")) && parseInt(s, 10) >= 0 ? ClickType.tabindex
