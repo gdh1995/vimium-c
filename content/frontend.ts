@@ -198,12 +198,9 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
       }
     },
     onBlur (event: Event | FocusEvent): void {
-      if (event.isTrusted == false) { return; }
-      let target = event.target as Window | Element | ShadowRootEx;
-      if (!isEnabledForUrl) { return; }
-      if (target === window) {
-        return ELs.OnWndBlur();
-      }
+      if (!isEnabledForUrl || event.isTrusted == false) { return; }
+      const target = event.target as Window | Element | ShadowRootEx;
+      if (target === window) { return ELs.OnWndBlur(); }
       let path = event.path as EventTarget[], top: EventTarget | undefined
         , same = !path || (top = path[0]) === target || top === window
         , sr = (target as Element).shadowRoot;
