@@ -991,7 +991,7 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
     suppress (this: void, key?: number): void { key && (KeydownEvents[key] = 1); },
     keydownEvents: function (this: void, arr?: KeydownCacheArray): KeydownCacheArray | boolean {
       if (!arr) { return KeydownEvents; }
-      return !isEnabledForUrl && !(KeydownEvents = arr);
+      return !isEnabledForUrl || !(KeydownEvents = arr);
     } as VEventMode["keydownEvents"]
   };
 
