@@ -83,6 +83,9 @@ Known issues (Up to the master branch):
 7. Chrome does not apply content settings (at least images) on file:// URLs since version 56.
   Currently, no effective ways have been found (up to Chrome 59).
 
+1.62.1 (not released yet):
+* `passNextKey normal` will also exit if the page blurs
+
 1.62.0:
 * on an editable rich text iframe box: `<Esc>` will not focus the upper frame unless it's held on
 * image viewer: support `<c-+>` (also `<c-=>`) and `<c-->` to zoom in/out images

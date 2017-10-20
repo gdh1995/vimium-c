@@ -198,10 +198,10 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
     onBlur (event: Event | FocusEvent): void {
       if (event.isTrusted == false) { return; }
       let target = event.target as Window | Element | ShadowRootEx;
+      if (!isEnabledForUrl) { return; }
       if (target === window) {
         return ELs.OnWndBlur();
       }
-      if (!isEnabledForUrl) { return; }
       let path = event.path as EventTarget[], top: EventTarget | undefined
         , same = !path || (top = path[0]) === target || top === window, sr = (target as Element).shadowRoot;
       if (InsertMode.lock === (same ? target : top)) { InsertMode.lock = null; }
@@ -240,7 +240,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
       f && f();
       KeydownEvents = new Uint8Array(256);
       (<RegExpOne> /a?/).test("");
-      return esc();
+      esc(HandlerResult.Suppress);
     },
     OnWndBlur2: null as ((this: void) => void) | null,
     OnReady (): void {
@@ -270,7 +270,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
       VScroller.current = VDom.lastHovered = a.last = a.lock = a.global = null;
       a.mutable = true;
       a.ExitGrab(); VEventMode.setupSuppress();
-      VHints.clean(); VVisualMode.deactivate();
+      VHints.isActive && VHints.clean(); VVisualMode.deactivate();
       VFindMode.init || VFindMode.toggleStyle(0);
       return ELs.OnWndBlur();
     },
@@ -836,8 +836,9 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
 
     hide = function(event): void {
       event instanceof Event && event.preventDefault();
-      VDom.lastHovered && box.contains(VDom.lastHovered) && (VDom.lastHovered = null);
-      VScroller.current && box.contains(VScroller.current) && (VScroller.current = null);
+      let i = VDom.lastHovered;
+      i && box.contains(i) && (VDom.lastHovered = null);
+      (i = VScroller.current) && box.contains(i) && (VScroller.current = null);
       VHandler.remove(box);
       box.remove();
       Commands.showHelp = oldShowHelp;
