@@ -169,12 +169,14 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
       let a = InsertMode.lock;
       if (a !== null && a === document.activeElement) { return; }
       if ((target as Element).shadowRoot != null) {
-        let path = event.path as EventTarget[]
-          , diff = !!path && (target = path[0]) !== event.target && target !== window
-          , len = diff ? path.indexOf(target) : 1;
-        diff || (path = [(event.target as Element).shadowRoot as ShadowRoot | Element]);
+        let t0 = target as Element & { shadowRoot: ShadowRoot | Element }
+          , path = event.path as EventTarget[] | undefined
+          // is true since Chrome Min$Event$$Path$IncludeNodesInShadowRoot
+          , isNormalHost = !!path && (target = path[0]) !== t0 && target !== window
+          , len = isNormalHost ? (path as EventTarget[]).indexOf(t0) : 1;
+        isNormalHost || (path = [t0.shadowRoot]);
         while (0 <= --len) {
-          const root = path[len];
+          const root = (path as EventTarget[])[len];
           if (!(root instanceof ShadowRoot) || (root as ShadowRootEx).vimiumListened === ListenType.Full) { continue; }
           root.addEventListener("focus", ELs.onFocus, true);
           root.addEventListener("blur", ELs.onShadowBlur, true);
@@ -203,7 +205,8 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
         return ELs.OnWndBlur();
       }
       let path = event.path as EventTarget[], top: EventTarget | undefined
-        , same = !path || (top = path[0]) === target || top === window, sr = (target as Element).shadowRoot;
+        , same = !path || (top = path[0]) === target || top === window
+        , sr = (target as Element).shadowRoot;
       if (InsertMode.lock === (same ? target : top)) { InsertMode.lock = null; }
       if (!(sr !== null && sr instanceof ShadowRoot) || target === VDom.UI.box) { return; }
       if (same) {
