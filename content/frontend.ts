@@ -155,15 +155,23 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
       }
       if (!isEnabledForUrl) { return; }
       if (target === VDom.UI.box) { return event.stopImmediatePropagation(); }
-      // it's safe to compare .lock and doc.activeEl here without checking target.shadowRoot,
-      // and .shadowRoot should not block this check;
-      // note: this ignores the case that <form> is in a shadowDom
-      // note: DO NOT stop propagation
+      /**
+       * Notes:
+       * according to test, Chrome Password Saver won't fill fields inside a shadow DOM
+       * it's safe to compare .lock and doc.activeEl here without checking target.shadowRoot,
+       *   and .shadowRoot should not block this check
+       * DO NOT stop propagation
+       * check `InsertMode.lock !== null` first, so that it needs less cost for common (plain) cases
+       * use `a === doc.active`, because:
+       *   `a !== target` ignores the case a blur event is missing or not captured;
+       *   `target !== doc.active` lets pass the case `target === lock === doc.active`
+       */
       let a = InsertMode.lock;
       if (a !== null && a === document.activeElement) { return; }
       if ((target as Element).shadowRoot != null) {
         let path = event.path as EventTarget[]
-          , diff = !!path && (target = path[0]) !== event.target && target !== window, len = diff ? path.indexOf(target) : 1;
+          , diff = !!path && (target = path[0]) !== event.target && target !== window
+          , len = diff ? path.indexOf(target) : 1;
         diff || (path = [(event.target as Element).shadowRoot as ShadowRoot | Element]);
         while (0 <= --len) {
           const root = path[len];
