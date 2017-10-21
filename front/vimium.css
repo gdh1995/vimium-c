@@ -39,10 +39,10 @@
 	pointer-events: none;
 	position: fixed;
 	text-align: left;
-	user-select: none;
 	-webkit-user-select: none;
-}
-:host{position:initial !important;}
+	user-select: none;
+	/* note: the ';' just above is necessary */
+}:host{position:initial !important;}
 
 /* Link hints CSS */
 .HM {

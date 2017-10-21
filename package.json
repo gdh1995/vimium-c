@@ -23,6 +23,7 @@
   "scripts": {
     "tsc": "node scripts/tsc.js",
     "all": "node scripts/tsc.js all",
+    "a": "node scripts/tsc.js all",
     "b": "node scripts/tsc.js background",
     "c": "node scripts/tsc.js content",
     "f": "node scripts/tsc.js front",
