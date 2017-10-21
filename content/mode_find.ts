@@ -212,7 +212,7 @@ html > count{float:right;}`,
     } else if (i === Result.PassDirectly) {
       return;
     }
-    VUtils.Prevent(event);
+    VUtils.prevent(event);
     if (!i) { return; }
     let hasStyle = !this.styleIn.disabled, el = this.deactivate(), el2: Element | null;
     VEventMode.suppress(n);

@@ -39,10 +39,7 @@ var VUtils = {
    * Handler section
    */
   Stop (this: void, event: Event): void { event.stopImmediatePropagation(); },
-  Prevent (this: void, event: Event): void {
-    event.preventDefault();
-    event.stopImmediatePropagation();
-  },
+  prevent (event: Event): void { event.preventDefault(); return this.Stop(event); },
   stack: [] as { func: (event: HandlerNS.Event) => HandlerResult, env: any}[],
   push<T extends object> (func: HandlerNS.Handler<T>, env: T): number {
     return this.stack.push({ func, env });

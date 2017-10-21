@@ -14,12 +14,13 @@ interface VimiumInjector {
   destroy: ((this: void, silent?: boolean) => void) | null;
 }
 declare const enum HandlerResult {
+  PassKey = -1,
   Nothing = 0,
   Default = Nothing,
+  MinStopOrPreventEvents = 1,
   Suppress = 1,
+  MaxNotPrevent = 1,
   Prevent = 2,
-  MinMayNotPassKey = 0,
-  PassKey = -1,
 }
 declare const enum VisibilityType {
   Visible = 0,

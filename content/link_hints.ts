@@ -637,7 +637,7 @@ var VHints = {
     } else if (linksMatched.length === 0) {
       this.deactivate(this.keyStatus.known);
     } else if (linksMatched.length === 1) {
-      VUtils.Prevent(event);
+      VUtils.prevent(event);
       this.activateLink(linksMatched[0]);
     } else {
       const limit = this.keyStatus.tab ? 0 : this.keyStatus.newHintLength;

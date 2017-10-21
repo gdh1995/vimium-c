@@ -88,9 +88,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
       if (!isEnabledForUrl || event.isTrusted == false || !(event instanceof KeyboardEvent)) { return; }
       if (VScroller.keyIsDown && VEventMode.OnScrolls[0](event)) { return; }
       let keyChar: string, key = event.keyCode, action: HandlerResult;
-      if (action = VUtils.bubbleEvent(event)) {
-        if (action < HandlerResult.MinMayNotPassKey) { return; }
-      }
+      if (action = VUtils.bubbleEvent(event)) {}
       else if (InsertMode.isActive()) {
         const g = InsertMode.global;
         if (g ? !g.code ? VKeyboard.isEscape(event)
@@ -126,8 +124,8 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
       } else if (event.repeat) {
         let c = document.activeElement; c && c.blur && c.blur();
       }
-      if (action === HandlerResult.Nothing) { return; }
-      if (action === HandlerResult.Prevent) {
+      if (action < HandlerResult.MinStopOrPreventEvents) { return; }
+      if (action > HandlerResult.MaxNotPrevent) {
         event.preventDefault();
       }
       event.stopImmediatePropagation();
@@ -964,7 +962,7 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
     },
     OnScrolls: [function (event): void | 1 {
       if (event.repeat) {
-        VUtils.Prevent(event);
+        VUtils.prevent(event);
         return (VScroller.keyIsDown = VScroller.Core.maxInterval) as 1;
       } else if (this !== VEventMode.OnScrolls) {
         return VEventMode.OnScrolls[3](this);
@@ -973,7 +971,7 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
       }
     }, function (event): void {
       if (event.isTrusted != false) {
-        VUtils.Prevent(event);
+        VUtils.prevent(event);
         return VEventMode.OnScrolls[3](this);
       }
     }, function (event): void {
