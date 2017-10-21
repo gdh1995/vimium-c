@@ -205,6 +205,11 @@ interface VPort {
 interface ComplicatedVPort extends VPort {
   post<K extends keyof FgReq, T extends FgReq[K]>(this: void, req: T & Req.baseFg<K>): void | 1;
 }
+interface FocusListenerWrapper {
+  inner: {focus: (this: void, event: FocusEvent) => void, blur: (this: void, event: FocusEvent) => void} | null;
+  outer: (this: EventTarget, event: FocusEvent) => void;
+  set (this: void, obj: FocusListenerWrapper["inner"]): void;
+}
 interface VEventMode {
   lock(this: void): Element | null;
   suppress(keyCode?: number): void;

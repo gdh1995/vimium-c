@@ -145,7 +145,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
         return onKeyup2(event);
       }
     },
-    onFocus (event: Event | FocusEvent): void {
+    onFocus (this: void, event: Event | FocusEvent): void {
       if (event.isTrusted == false) { return; }
       // on Firefox, target may also be `document`
       let target = event.target as EventTarget | Element | (Document & { shadowRoot: undefined });
@@ -177,11 +177,12 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
           , isNormalHost = !!(top = path && path[0]) && top !== window && top !== target
           , len = isNormalHost ? [].indexOf.call(path as EventPath, target) : 1;
         isNormalHost ? (target = top as Element) : (path = [(target as Element).shadowRoot as ShadowRoot]);
+        const wrapper = ELs.wrap();
         while (0 <= --len) {
           const root = (path as EventPath)[len];
           if (!(root instanceof ShadowRoot) || (root as ShadowRootEx).vimiumListened === ListenType.Full) { continue; }
-          root.addEventListener("focus", ELs.onFocus, true);
-          root.addEventListener("blur", ELs.onShadowBlur, true);
+          root.addEventListener("focus", wrapper, true);
+          root.addEventListener("blur", wrapper, true);
           (root as ShadowRootEx).vimiumListened = ListenType.Full;
         }
       }
@@ -199,7 +200,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
         }
       }
     },
-    onBlur (event: Event | FocusEvent): void {
+    onBlur (this: void, event: Event | FocusEvent): void {
       if (!isEnabledForUrl || event.isTrusted == false) { return; }
       const target = event.target as Window | Element | ShadowRootEx;
       if (target === window) { return ELs.OnWndBlur(); }
@@ -208,27 +209,26 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
         , sr = (target as Element).shadowRoot;
       if (InsertMode.lock === (same ? target : top)) { InsertMode.lock = null; }
       if (!(sr !== null && sr instanceof ShadowRoot) || target === VDom.UI.box) { return; }
+      let wrapper = ELs.wrap();
       if (same) {
         (sr as ShadowRootEx).vimiumListened = ListenType.Blur;
-        // NOTE: if destroyed, this page must have lost its focus before, so
-        // a blur event must have been bubbled from shadowRoot to a real lock.
-        // Then, we don't need to worry about ELs or InsertMode being null.
-        sr.removeEventListener("focus", ELs.onFocus, true);
+        sr.removeEventListener("focus", wrapper, true);
         return;
       }
       for (let len = [].indexOf.call(path as EventPath, target); 0 <= --len; ) {
         const root = (path as EventPath)[len];
         if (!(root instanceof ShadowRoot)) { continue; }
-        root.removeEventListener("focus", ELs.onFocus, true);
-        root.removeEventListener("blur", ELs.onShadowBlur, true);
+        root.removeEventListener("focus", wrapper, true);
+        root.removeEventListener("blur", wrapper, true);
         (root as ShadowRootEx).vimiumListened = ListenType.None;
       }
     },
-    onShadowBlur (this: ShadowRootEx, event: Event): void {
+    OnShadowBlur (this: void, event: Event): void {
       if (event.isTrusted == false) { return; }
-      if (this.vimiumListened === ListenType.Blur) {
-        this.vimiumListened = ListenType.None;
-        this.removeEventListener("blur", ELs.onShadowBlur, true);
+      const cur = event.currentTarget as ShadowRootEx;
+      if (cur.vimiumListened === ListenType.Blur) {
+        cur.vimiumListened = ListenType.None;
+        cur.removeEventListener("blur", ELs.wrap(), true);
       }
       return ELs.onBlur(event);
     },
@@ -249,6 +249,11 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
       HUD.enabled = true;
       ELs.OnWndFocus = vPort.safePost.bind(vPort, { handler: "frameFocused" });
     },
+    wrapper: null as FocusListenerWrapper | null,
+    wrap (this: void): FocusListenerWrapper["outer"] {
+      const a = ELs;
+      return (a.wrapper || (a.wrapper = VUtils.wrap(a.onFocus, a.OnShadowBlur))).outer;
+    },
     hook (action: HookAction): void {
       let f = action ? removeEventListener : addEventListener;
       f("keydown", this.onKeydown, true);
@@ -268,9 +273,10 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
     Visual: VVisualMode,
     Vomnibar,
     reset (): void {
-      const a = InsertMode;
+      const a = InsertMode, b = ELs.wrapper;
       VScroller.current = VDom.lastHovered = a.last = a.lock = a.global = null;
       a.mutable = true;
+      b && b.set(null); // so that listeners on shadow roots will be removed on next blur events
       a.ExitGrab(); VEventMode.setupSuppress();
       VHints.isActive && VHints.clean(); VVisualMode.deactivate();
       VFindMode.init || VFindMode.toggleStyle(0);
@@ -772,6 +778,8 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
       }
       isLocked = !!request.forced;
       if (enabled) {
+        let b = ELs.wrapper;
+        b && b.set(b.inner); // recover listeners on shadow roots
         old || InsertMode.init();
         (old && !isLocked) || ELs.hook(HookAction.Install);
         // here should not return even if old - a url change may mean the fullscreen mode is changed
