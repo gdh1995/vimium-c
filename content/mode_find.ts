@@ -60,7 +60,6 @@ html > count{float:right;}`,
     const el = this.box = VDom.createElement("iframe") as typeof VFindMode.box;
     el.className = "R HUD UI";
     el.style.width = "0px";
-    VSettings.cache.browserVer < BrowserVer.MinNotPassMouseWheelToParentIframe && (el.onwheel = VUtils.Prevent);
     if (zoom !== 1) { el.style.zoom = "" + 1 / zoom; }
     el.onload = function(this: HTMLIFrameElement): void { return VFindMode.onLoad(this, 1); };
     VUtils.push(VDom.UI.SuppressMost, this);
