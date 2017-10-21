@@ -170,17 +170,17 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
       let a = InsertMode.lock;
       if (a !== null && a === document.activeElement) { return; }
       if ((target as Element).shadowRoot != null) {
-        let path = event.path as EventTarget[] | undefined, top: EventTarget | undefined
+        let path = event.path, top: EventTarget | undefined
           /**
            * isNormalHost is true if:
            * - Chrome is since BrowserVer.Min$Event$$Path$IncludeNodesInShadowRoot
            * - `event.currentTarget` (`this`) is a shadowRoot
            */ 
-          , isNormalHost = !!path && (top = path[0]) !== target && top !== window
-          , len = isNormalHost ? (path as EventTarget[]).indexOf(target) : 1;
+          , isNormalHost = !!(top = path && path[0]) && top !== window && top !== target
+          , len = isNormalHost ? [].indexOf.call(path as EventPath, target) : 1;
         isNormalHost ? (target = top as Element) : (path = [(target as Element).shadowRoot as ShadowRoot]);
         while (0 <= --len) {
-          const root = (path as EventTarget[])[len];
+          const root = (path as EventPath)[len];
           if (!(root instanceof ShadowRoot) || (root as ShadowRootEx).vimiumListened === ListenType.Full) { continue; }
           root.addEventListener("focus", ELs.onFocus, true);
           root.addEventListener("blur", ELs.onShadowBlur, true);
@@ -205,8 +205,8 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
       if (!isEnabledForUrl || event.isTrusted == false) { return; }
       const target = event.target as Window | Element | ShadowRootEx;
       if (target === window) { return ELs.OnWndBlur(); }
-      let path = event.path as EventTarget[], top: EventTarget | undefined
-        , same = !path || (top = path[0]) === target || top === window
+      let path = event.path as EventPath | undefined, top: EventTarget | undefined
+        , same = !(top = path && path[0]) || top === window || top === target
         , sr = (target as Element).shadowRoot;
       if (InsertMode.lock === (same ? target : top)) { InsertMode.lock = null; }
       if (!(sr !== null && sr instanceof ShadowRoot) || target === VDom.UI.box) { return; }
@@ -218,8 +218,8 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
         sr.removeEventListener("focus", ELs.onFocus, true);
         return;
       }
-      for (let len = path.indexOf(target); 0 <= --len; ) {
-        const root = path[len];
+      for (let len = [].indexOf.call(path as EventPath, target); 0 <= --len; ) {
+        const root = (path as EventPath)[len];
         if (!(root instanceof ShadowRoot)) { continue; }
         root.removeEventListener("focus", ELs.onFocus, true);
         root.removeEventListener("blur", ELs.onShadowBlur, true);
@@ -235,7 +235,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
       return ELs.onBlur(event);
     },
     onActivate (event: UIEvent): void {
-      VScroller.current = (event.path as EventTarget[])[0] as Element;
+      VScroller.current = (event.path as EventPath)[0] as Element;
     },
     OnWndFocus (this: void): void {},
     OnWndBlur (this: void): void {

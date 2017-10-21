@@ -229,6 +229,8 @@ declare const enum BrowserVer {
   MinWithFrameId = 41,
   // just enabled by default
   Min$String$$StartsWith = 41,
+  // before 42, event.path is a simple NodeList instance
+  Min$Event$$path$IsStdArrayAndIncludesWindow = 42,
   // even if chrome://flags/#disable-javascript-harmony-shipping
   MinEnsured$String$$StartsWith = 43,
   MinCreateWndWithState = 44,

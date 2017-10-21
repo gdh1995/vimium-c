@@ -2128,6 +2128,8 @@ declare var ErrorEvent: {
     new(): ErrorEvent;
 }
 
+type EventPath = NodeList | EventTarget[];
+
 interface Event {
     readonly bubbles: boolean;
     cancelBubble: boolean;
@@ -2147,7 +2149,7 @@ interface Event {
     stopImmediatePropagation(): void;
     stopPropagation(): void;
     deepPath(): EventTarget[];
-    path?: EventTarget[];
+    path?: EventPath;
     readonly AT_TARGET: number;
     readonly BUBBLING_PHASE: number;
     readonly CAPTURING_PHASE: number;
