@@ -221,6 +221,8 @@ declare const enum BrowserVer {
   MinSupported = 36,
   MinSession = 37,
   MinCSS$All$Attr = 37,
+  // includes for-of, Map, Set, Symbols
+  MinES6 = 38,
   MinWithFrameIdInArg = 39,
   MinDisableMoveTabAcrossIncognito = 40,
   MinWarningSyncXHR = 40,
@@ -257,7 +259,8 @@ declare const enum BrowserVer {
   MinScrollingHTMLHtmlElement = 53,
   MinShadowDOMV1 = 53,
   MinUserSelectAll = 53,
-  MinDOMActivateEventInsideShadowDOMV1WillNotBePassedToDocument = 53,
+  // this feature is from 53, and replaced by DOMActivateInClosedShadowRootHasNoShadowNodesInPathWhenOnDocument since 56
+  MinNoDOMActivateInClosedShadowRootPassedToDocument = 53,
   assumedVer = 53,
   MinWarningWebkitUserSelect = 54,
   MinHighDPIOnRemoteDesktop = 54,
@@ -265,7 +268,7 @@ declare const enum BrowserVer {
   MinStricterArgsIn$Windows$$Create = 55,
   Min$Event$$Path$IncludeNodesInShadowRoot = 55,
   MinSomeDocumentListenersArePassiveByDefault = 56,
-  MinDOMActivateEventInsideShadowDOMV1HasNoShadowNodesInPathWhenOnDocument = 56,
+  MinDOMActivateInClosedShadowRootHasNoShadowNodesInPathWhenOnDocument = 56,
   // With empty settings, Chrome only does this since not 56 but 57
   MinExtIframesInSharedProcess = 56, // means enabled by default
   MinNeedCSPForScriptsFromOtherExtensions = 56,

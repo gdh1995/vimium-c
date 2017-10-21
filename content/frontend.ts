@@ -171,7 +171,11 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
       if (a !== null && a === document.activeElement) { return; }
       if ((target as Element).shadowRoot != null) {
         let path = event.path as EventTarget[] | undefined, top: EventTarget | undefined
-          // is true since Chrome Min$Event$$Path$IncludeNodesInShadowRoot
+          /**
+           * isNormalHost is true if:
+           * - Chrome is since BrowserVer.Min$Event$$Path$IncludeNodesInShadowRoot
+           * - `event.currentTarget` (`this`) is a shadowRoot
+           */ 
           , isNormalHost = !!path && (top = path[0]) !== target && top !== window
           , len = isNormalHost ? (path as EventTarget[]).indexOf(target) : 1;
         isNormalHost ? (target = top as Element) : (path = [(target as Element).shadowRoot as ShadowRoot]);
@@ -831,7 +835,7 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
     hide = VUtils.Stop;
     box.onclick = hide;
     box.addEventListener("wheel", hide, {passive: true, capture: true});
-    VSettings.cache.browserVer < BrowserVer.MinDOMActivateEventInsideShadowDOMV1WillNotBePassedToDocument ||
+    VSettings.cache.browserVer < BrowserVer.MinNoDOMActivateInClosedShadowRootPassedToDocument ||
     box.addEventListener("DOMActivate", ELs.onActivate, true);
 
     hide = function(event): void {
