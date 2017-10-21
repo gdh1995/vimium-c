@@ -149,7 +149,8 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
     },
     onFocus (event: Event | FocusEvent): void {
       if (event.isTrusted == false) { return; }
-      let target = event.target as EventTarget | Element;
+      // on Firefox, target may also be `document`
+      let target = event.target as EventTarget | Element | (Document & { shadowRoot: undefined });
       if (target === window) {
         return ELs.OnWndFocus();
       }
@@ -169,12 +170,11 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
       let a = InsertMode.lock;
       if (a !== null && a === document.activeElement) { return; }
       if ((target as Element).shadowRoot != null) {
-        let t0 = target as Element & { shadowRoot: ShadowRoot | Element }
-          , path = event.path as EventTarget[] | undefined
+        let path = event.path as EventTarget[] | undefined, top: EventTarget | undefined
           // is true since Chrome Min$Event$$Path$IncludeNodesInShadowRoot
-          , isNormalHost = !!path && (target = path[0]) !== t0 && target !== window
-          , len = isNormalHost ? (path as EventTarget[]).indexOf(t0) : 1;
-        isNormalHost || (path = [t0.shadowRoot]);
+          , isNormalHost = !!path && (top = path[0]) !== target && top !== window
+          , len = isNormalHost ? (path as EventTarget[]).indexOf(target) : 1;
+        isNormalHost ? (target = top as Element) : (path = [(target as Element).shadowRoot as ShadowRoot]);
         while (0 <= --len) {
           const root = (path as EventTarget[])[len];
           if (!(root instanceof ShadowRoot) || (root as ShadowRootEx).vimiumListened === ListenType.Full) { continue; }
