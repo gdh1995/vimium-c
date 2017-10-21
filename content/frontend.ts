@@ -88,7 +88,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
       if (!isEnabledForUrl || event.isTrusted == false || !(event instanceof KeyboardEvent)) { return; }
       if (VScroller.keyIsDown && VEventMode.OnScrolls[0](event)) { return; }
       let keyChar: string, key = event.keyCode, action: HandlerResult;
-      if (action = VHandler.bubbleEvent(event)) {
+      if (action = VUtils.bubbleEvent(event)) {
         if (action < HandlerResult.MinMayNotPassKey) { return; }
       }
       else if (InsertMode.isActive()) {
@@ -172,7 +172,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
       if ((target as Element).shadowRoot != null) {
         let path = event.path, top: EventTarget | undefined
           /**
-           * isNormalHost is true if:
+           * isNormalHost is true if one of:
            * - Chrome is since BrowserVer.Min$Event$$Path$IncludeNodesInShadowRoot
            * - `event.currentTarget` (`this`) is a shadowRoot
            */ 
@@ -322,7 +322,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
         } as EscF;
         return HUD.show("Normal mode (pass keys disabled)" + (count > 1 ? `: ${count} times` : ""));
       }
-      VHandler.push(function(event) {
+      VUtils.push(function(event) {
         keyCount += +!keys[event.keyCode];
         keys[event.keyCode] = 1;
         return HandlerResult.PassKey;
@@ -336,7 +336,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
       };
       ELs.OnWndBlur2 = function(): void {
         onKeyup2 = null;
-        VHandler.remove(keys);
+        VUtils.remove(keys);
         ELs.OnWndBlur2 = null;
         return HUD.hide();
       };
@@ -455,7 +455,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
       VDom.UI.ensureBorder();
       VDom.UI.simulateSelect(visibleInputs[sel][0]);
       const box = VDom.UI.addElementList(hints, arr), keep = !!options.keep, pass = !!options.passExitKey;
-      VHandler.push(function(event) {
+      VUtils.push(function(event) {
         const { keyCode } = event, oldSel = sel;
         if (keyCode === VKeyCodes.tab) {
           if (event.shiftKey) {
@@ -472,7 +472,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
         else if (keep ? !VKeyboard.isEscape(event) : keyCode === VKeyCodes.ime || keyCode === VKeyCodes.f12) {}
         else {
           this.remove();
-          VHandler.remove(this);
+          VUtils.remove(this);
           return !VKeyboard.isEscape(event) ? HandlerResult.Nothing : keep || !InsertMode.lock ? HandlerResult.Prevent
             : pass ? HandlerResult.PassKey : HandlerResult.Nothing;
         }
@@ -498,7 +498,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
           notBody = (activeEl = document.activeElement as Element) !== document.body;
         }
         if (!notBody) {
-          VHandler.push(this.ExitGrab, this);
+          VUtils.push(this.ExitGrab, this);
           addEventListener("mousedown", this.ExitGrab, true);
           return;
         }
@@ -513,7 +513,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
       if (!_this.grabFocus) { return; }
       _this.grabFocus = false;
       removeEventListener("mousedown", _this.ExitGrab, true);
-      VHandler.remove(_this);
+      VUtils.remove(_this);
       // it's okay to not set the userActed flag if there's only the top frame,
       !(event instanceof Event) || !window.frames.length && window === window.top ||
       vPort.safePost({ handler: "exitGrab" });
@@ -843,7 +843,7 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
       let i = VDom.lastHovered;
       i && box.contains(i) && (VDom.lastHovered = null);
       (i = VScroller.current) && box.contains(i) && (VScroller.current = null);
-      VHandler.remove(box);
+      VUtils.remove(box);
       box.remove();
       Commands.showHelp = oldShowHelp;
     };
@@ -879,7 +879,7 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
     VDom.UI.addElement(box, Vomnibar.status ? {} as UIElementOptions : {before: Vomnibar.box});
     document.hasFocus() || VEventMode.focusAndListen();
     VScroller.current = box;
-    VHandler.push(function(event) {
+    VUtils.push(function(event) {
       if (!InsertMode.lock && VKeyboard.isEscape(event)) {
         VDom.UI.removeSelection(VDom.UI.root as ShadowRoot) || hide();
         return HandlerResult.Prevent;
@@ -1014,7 +1014,7 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
     let f: typeof VSettings.onDestroy, ui = VDom.UI;
     (f = VSettings.onDestroy) && f();
 
-    VUtils = VKeyboard = VDom = VDom = VHandler = //
+    VUtils = VKeyboard = VDom = VDom = VUtils = //
     VHints = Vomnibar = VScroller = VMarks = VFindMode = //
     VSettings = VHUD = VPort = VEventMode = VVisualMode = //
     esc = null as never;

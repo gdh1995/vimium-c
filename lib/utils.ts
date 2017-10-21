@@ -8,6 +8,9 @@ String.prototype.startsWith = function(this: string, s: string): boolean {
 });
 }
 var VUtils = {
+  /**
+   * tool function section
+   */
   evalIfOK (this: void, url: string): boolean {
     if (url.substring(0, 11).toLowerCase() !== "javascript:") {
       return false;
@@ -32,12 +35,14 @@ var VUtils = {
     return url;
   },
   hasUpperCase (this: void, s: string) { return s.toLowerCase() !== s; },
+  /**
+   * Handler section
+   */
   Stop (this: void, event: Event): void { event.stopImmediatePropagation(); },
   Prevent (this: void, event: Event): void {
     event.preventDefault();
     event.stopImmediatePropagation();
-  }
-}, VHandler = {
+  },
   stack: [] as { func: (event: HandlerNS.Event) => HandlerResult, env: any}[],
   push<T extends object> (func: HandlerNS.Handler<T>, env: T): number {
     return this.stack.push({ func, env });

@@ -6,7 +6,7 @@ var VMarks = {
     const isGo = options.mode !== "create";
     this.onKeypress = isGo ? this._goto : this._create;
     this.prefix = options.prefix !== false;
-    VHandler.push(this.onKeydown, this);
+    VUtils.push(this.onKeydown, this);
     return VHUD.show(isGo ? "Go to mark..." : "Create mark...");
   },
   onKeydown (event: HandlerNS.Event): HandlerResult {
@@ -16,7 +16,7 @@ var VMarks = {
         || !(keyChar = VKeyboard.getKeyChar(event)))) {
       return 1;
     }
-    VHandler.remove(this);
+    VUtils.remove(this);
     cont && keyCode > VKeyCodes.space ? this.onKeypress(event, keyChar as string) : VHUD.hide();
     this.prefix = true;
     this.onKeypress = null as never;

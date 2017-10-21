@@ -48,7 +48,7 @@ var Vomnibar = {
     this.options = null;
     const width = window.innerWidth;
     this.zoom = VDom.UI.getZoom();
-    this.status > VomnibarNS.Status.Inactive || VHandler.push(VDom.UI.SuppressMost, this);
+    this.status > VomnibarNS.Status.Inactive || VUtils.push(VDom.UI.SuppressMost, this);
     this.box && VDom.UI.adjust();
     if (this.status === VomnibarNS.Status.NotInited) {
       this.status = VomnibarNS.Status.Initing;
@@ -102,7 +102,7 @@ var Vomnibar = {
       active && this.port.postMessage<"hide">("hide");
       return;
     } 
-    VHandler.remove(this);
+    VUtils.remove(this);
     active || window.focus();
     this.box.style.cssText = "display: none;";
   },
@@ -173,7 +173,7 @@ var Vomnibar = {
     this.box.remove();
     this.port = this.box = null as never;
     this.sameOrigin = false;
-    VHandler.remove(this);
+    VUtils.remove(this);
     this.options = null;
     if (this.onReset) { return this.onReset(); }
     if (!redo || oldStatus < VomnibarNS.Status.ToShow) { return; }
@@ -217,8 +217,8 @@ var Vomnibar = {
       style = (VDom.UI.box as HTMLElement).style;
     }
     style.display = "";
-    VHandler.remove(this);
-    return VHandler.push(this.onKeydown, this);
+    VUtils.remove(this);
+    return VUtils.push(this.onKeydown, this);
   },
   onKeydown (event: KeyboardEvent): HandlerResult {
     if (VEventMode.lock()) { return HandlerResult.Nothing; }

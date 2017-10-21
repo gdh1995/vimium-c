@@ -118,7 +118,7 @@ var VHints = {
       }
       if (!VDom.isHTML()) { return; }
     }
-    VHandler.remove(this);
+    VUtils.remove(this);
     this.setModeOpt((count as number) | 0, Object.setPrototypeOf(options || (options = {} as any as FgOptions), null));
     let str = options.characters ? options.characters + "" : VSettings.cache.linkHintCharacters;
     if (str.length < 3) {
@@ -158,7 +158,7 @@ var VHints = {
     this.box = VDom.UI.addElementList(this.hintMarkers, arr);
 
     this.isActive = true;
-    VHandler.push(this.onKeydown, this);
+    VUtils.push(this.onKeydown, this);
     return VEventMode.onWndBlur(this.ResetMode);
   },
   setModeOpt (count: number, options: HintsNS.Options): void {
@@ -741,7 +741,7 @@ var VHints = {
     }
     keepHUD || VHUD.hide();
     VEventMode.onWndBlur(null);
-    return VHandler.remove(this);
+    return VUtils.remove(this);
   },
   deactivate (suppressType: boolean): void {
     this.clean(this.pTimer < 0);
