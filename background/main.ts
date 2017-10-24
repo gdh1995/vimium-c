@@ -1058,7 +1058,7 @@ Are you sure you want to continue?`);
       }
     },
     openUrl (this: void, tabs?: [Tab] | never[] | null): void {
-      let url: string | undefined;
+      let url: string | undefined, mark: string | undefined;
       if (cOptions.urls) {
         if (!(cOptions.urls instanceof Array)) { cOptions = null as never; return; }
         return tabs && tabs.length > 0 ? funcDict.openUrls(tabs as [Tab]) : void funcDict.getCurTab(funcDict.openUrls);
@@ -1073,8 +1073,8 @@ Are you sure you want to continue?`);
         }
       }
       url = cOptions.url_f ? url || (cOptions.url_f + "") : Utils.convertToUrl(url || (cOptions.url || "") + "");
-      if (cOptions.id_marker) {
-        url = url.replace(cOptions.id_marker + "", chrome.runtime.id);
+      if (mark = cOptions.id_mark || cOptions.id_marker) {
+        url = url.replace(mark + "", chrome.runtime.id);
       }
       const reuse: ReuseType = cOptions.reuse == null ? ReuseType.newFg : (cOptions.reuse | 0),
       incognito: boolean | undefined = cOptions.incognito;

@@ -85,7 +85,7 @@ var Utils = {
       return string;
     }
     let type: Urls.Type | Urls.TempType | Urls.TldType = Urls.TempType.Unspecified
-      , expected: Urls.Type.Full | Urls.Type.NoProtocolName | Urls.Type.NoSchema  = Urls.Type.Full
+      , expected: Urls.Type.Full | Urls.Type.NoProtocolName | Urls.Type.NoSchema = Urls.Type.Full
       , hasPath = false, index: number, index2: number, oldString: string
       , arr: [never, string | undefined, string | undefined, string, string | undefined] | null | undefined;
     oldString = string.replace(this._lfSpacesRe, '').replace(this.A0Re, ' ');

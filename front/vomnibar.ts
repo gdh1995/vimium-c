@@ -36,7 +36,7 @@ declare const enum HeightData {
 declare var VSettings: undefined | null | {
   destroy(silent: true, keepChrome: true): void;
 };
-if (typeof VSettings === "object" && VSettings) {
+if (typeof VSettings === "object" && VSettings && typeof VSettings.destroy === "function") {
   VSettings.destroy(true, true);
   window.dispatchEvent(new Event("unload"));
 }
@@ -751,9 +751,10 @@ VPort = {
     Vomnibar.timer > 0 && clearTimeout(Vomnibar.timer);
     VPort.postToOwner({ name: "unload" });
   }
-}, MinSupportedVersion = 1.61;
+};
 (function(): void {
-  if (!(+<string>(document.documentElement as HTMLElement).getAttribute("data-version") >= MinSupportedVersion)) {
+  if (!(+<string>(document.documentElement as HTMLElement).getAttribute("data-version") >=
+        1.61)) {
     location.href = "about:blank";
     return;
   }
