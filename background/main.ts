@@ -1919,11 +1919,16 @@ Are you sure you want to continue?`);
       ref = framesForTab[tabId] as typeof ref;
       if (type >= PortType.omnibar || (url === Settings.cache.vomnibarPage_f)) {
         if (type < PortType.knownStatusBase) {
-          return Connections.onOmniConnect(port, tabId, type);
+          if (Connections.onOmniConnect(port, tabId, type)) {
+            return;
+          }
+          status = Frames.Status.enabled;
+          sender.flags = Frames.Flags.userActed;
+        } else {
+          status = ((type >>> PortType.BitOffsetOfKnownStatus) & PortType.MaskOfKnownStatus) - 1;
+          sender.flags = ((type & PortType.isLocked) ? Frames.Flags.lockedAndUserActed : Frames.Flags.userActed
+            ) + ((type & PortType.hasCSS) && Frames.Flags.hasCSS);
         }
-        status = ((type >>> PortType.BitOffsetOfKnownStatus) & PortType.MaskOfKnownStatus) - 1;
-        sender.flags = ((type & PortType.isLocked) ? Frames.Flags.lockedAndUserActed : Frames.Flags.userActed
-          ) + ((type & PortType.hasCSS) && Frames.Flags.hasCSS);
       } else {
         let pass: null | string, flags: Frames.Flags = Frames.Flags.blank;
         if (ref && ((flags = sender.flags = ref[0].sender.flags & Frames.Flags.InheritedFlags) & Frames.Flags.locked)) {
@@ -1982,7 +1987,7 @@ Are you sure you want to continue?`);
         ref[0] = ref[1];
       }
     },
-    onOmniConnect (port: Frames.Port, tabId: number, type: PortType): void {
+    onOmniConnect (port: Frames.Port, tabId: number, type: PortType): boolean {
       if (type >= PortType.omnibar) {
         if (!funcDict.checkVomnibarPage(port)) {
           this.framesForOmni.push(port);
@@ -1997,22 +2002,22 @@ Are you sure you want to continue?`);
             browserVersion: Settings.CONST.ChromeVersion,
             secret: getSecret()
           });
-          return;
+          return true;
         }
-      } else if (tabId < 0) { // should not be true; just in case of misusing
-        port.postMessage({
-          name: "init", load: {} as SettingsNS.FrontendSettingCache,
-          flags: Frames.Flags.blank, 
-          passKeys: "", mapKeys: null, keyMap: {} as KeyMap
-        });
+      } else if (tabId < 0 // should not be true; just in case of misusing
+        || Settings.CONST.ChromeVersion < BrowserVer.Min$tabs$$executeScript$hasFrameIdArg
+        || port.sender.frameId === 0
+        ) {
       } else {
         chrome.tabs.executeScript(tabId, {
           file: Settings.CONST.VomnibarScript,
           frameId: port.sender.frameId,
           runAt: "document_start"
         });
+        port.disconnect();
+        return true;
       }
-      port.disconnect();
+      return false;
     },
     OnOmniDisconnect (this: void, port: Port): void {
       const ref = Connections.framesForOmni, i = ref.lastIndexOf(port);
