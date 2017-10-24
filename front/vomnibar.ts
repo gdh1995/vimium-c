@@ -49,6 +49,7 @@ var Vomnibar = {
     this.isHttps = null;
     let { url, keyword, search } = options, start: number | undefined;
     this.width(options.width * 0.8);
+    this.init && this.setFav();
     if (url == null) {
       return this.reset(keyword ? keyword + " " : "");
     }
@@ -88,7 +89,7 @@ var Vomnibar = {
   blurWanted: false,
   forceNewTab: false,
   sameOrigin: false,
-  showFavIcon: false,
+  showFavIcon: 0 as 0 | 1 | 2,
   showRelevancy: false,
   lastScrolling: 0,
   height: 0,
@@ -485,6 +486,7 @@ var Vomnibar = {
       pixel = v < BrowserVer.MinEnsuredBorderWidth ? (pixel | 0) / pixel : 1 / pixel;
     }
     let height = list.length, notEmpty = height > 0;
+    this.showFavIcon = response.favIcon;
     this.matchType = response.matchType;
     this.completions = list;
     this.selection = (response.autoSelect || this.modeType !== "omni") && notEmpty ?  0 : -1;
@@ -553,20 +555,22 @@ var Vomnibar = {
     (document.getElementById("close") as HTMLElement).onclick = function(): void { return Vomnibar.hide(); };
     addEventListener("keydown", this.HandleKeydown, true);
     this.renderItems = VUtils.makeListRenderer((document.getElementById("template") as HTMLElement).innerHTML);
-    let manifest: chrome.runtime.Manifest;
-    if (this.showFavIcon && location.protocol.startsWith("chrome") && chrome.runtime.getManifest
-        && (manifest = chrome.runtime.getManifest())) {
-      const arr = manifest.permissions || [];
-      this.showFavIcon = arr.indexOf("<all_urls>") >= 0 || arr.indexOf("chrome://favicon/") >= 0;
-    } else {
-      this.showFavIcon = false;
-    }
     if (this.browserVersion < BrowserVer.MinRoundedBorderWidth) {
       const css = document.createElement("style");
       css.textContent = `body,.item,#input{border-width:${this.browserVersion < BrowserVer.MinEnsuredBorderWidth ? 1 : 0.01}px;}`;
       (document.head as HTMLHeadElement).appendChild(css);
     }
     this.init = VUtils.makeListRenderer = null as never;
+  },
+  setFav (): void {
+    let fav = this.showFavIcon, f: () => chrome.runtime.Manifest, manifest: chrome.runtime.Manifest;
+    if (fav < 2 && location.protocol.startsWith("chrome") && (f = chrome.runtime.getManifest) && (manifest = f())) {
+      const arr = manifest.permissions || [];
+      fav = arr.indexOf("<all_urls>") >= 0 || arr.indexOf("chrome://favicon/") >= 0 ? fav + 1 as 0 | 1 | 2 : 0;
+    } else {
+      fav = 0;
+    }
+    this.mode.favIcon = fav;
   },
   HandleKeydown (this: void, event: KeyboardEvent): void {
     if (event.isTrusted == false || !(event instanceof KeyboardEvent)) { return; }
@@ -599,6 +603,7 @@ var Vomnibar = {
     type: "omni" as CompletersNS.ValidTypes,
     maxChars: 0,
     maxResults: Math.min(Math.max((<number>window.VomnibarListLength | 0) || 10, 3), 20),
+    favIcon: 1 as 0 | 1 | 2,
     query: ""
   },
   _spacesRe: <RegExpG> /\s+/g,
@@ -623,14 +628,14 @@ var Vomnibar = {
 
   parse (item: SuggestionE): void {
     let str: string;
-    if ((this as typeof Vomnibar).showFavIcon && (str = item.url) && !str.startsWith("vimium://")) {
+    if (this.showFavIcon && (str = item.url) && !str.startsWith("vimium://")) {
       item.favIconUrl = '<img src="chrome://favicon/size/16/' +
         (str.length > 512 || str.startsWith("data:") ? "about:blank" : VUtils.escapeHTML(str))
         + '" />\n\t\t\t';
     } else {
       item.favIconUrl = "";
     }
-    item.relevancy = (this as typeof Vomnibar).showRelevancy ? `\n\t\t\t<span class="relevancy">${item.relevancy}</span>` : "";
+    item.relevancy = this.showRelevancy ? `\n\t\t\t<span class="relevancy">${item.relevancy}</span>` : "";
   },
   navigateToUrl (item: { url: string }): void {
     if (item.url.substring(0, 11).toLowerCase() === "javascript:") {

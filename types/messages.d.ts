@@ -64,6 +64,7 @@ interface BgVomnibarReq {
     list: CompletersNS.Suggestion[];
     autoSelect: boolean;
     matchType: CompletersNS.MatchType;
+    favIcon: 0 | 1 | 2;
   };
   returnFocus: {
     lastKey: number;
@@ -178,6 +179,7 @@ interface FgReq {
   };
   omni: {
     query: string;
+    favIcon?: 0 | 1 | 2;
   } & CompletersNS.Options;
   openCopiedUrl: {
     keyword: string | null;

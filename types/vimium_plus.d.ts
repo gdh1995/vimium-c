@@ -277,6 +277,7 @@ declare const enum BrowserVer {
   MinNeedCSPForScriptsFromOtherExtensions = 56,
   MinStickyPosition = 56,
   MinFailToToggleImageOnFileURL = 56,
+  MinExtensionContentPageMayShowFavIcon = 56,
   MinNoKeygenElement = 57,
   MinCaseSensitiveUsemap = 58,
   Min1pxIsNotEps = 58,

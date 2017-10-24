@@ -406,10 +406,26 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
       (this: void, port: Port, nolog: true): boolean
       (this: void, port: Frames.Port, nolog?: false): boolean
     },
-    PostCompletions (this: Port, list: Readonly<Suggestion>[]
+    PostCompletions (this: Port, favIcon0: 0 | 1 | 2, list: Readonly<Suggestion>[]
         , autoSelect: boolean, matchType: CompletersNS.MatchType): void {
+      let { url } = this.sender, favIcon = favIcon0 === 2 ? 2 : 0 as 0 | 1 | 2;
+      if (favIcon0 == 1 && Settings.CONST.ChromeVersion >= BrowserVer.MinExtensionContentPageMayShowFavIcon
+           && url !== Settings.CONST.VomnibarScript_f && url.startsWith("chrome")) {
+        url = url.substring(0, url.indexOf("/", url.indexOf("://") + 3) + 1);
+        for (let tabId in framesForTab) {
+          let frames = framesForTab[tabId] as Port[];
+          for (let i = 1; i < frames.length; i++) {
+            let { sender } = frames[i];
+            if (sender.frameId === 0) {
+              if (sender.url.startsWith(url)) { favIcon = 1; }
+              break;
+            }
+          }
+          if (favIcon) { break; }
+        }
+      }
       try {
-      this.postMessage({ name: "omni", autoSelect, matchType, list });
+      this.postMessage({ name: "omni", autoSelect, matchType, list, favIcon });
       } catch (e) {}
     },
     indexFrame (this: void, tabId: number, frameId: number): Port | null {
@@ -1785,7 +1801,8 @@ Are you sure you want to continue?`);
     },
     omni (this: void, request: FgReq["omni"], port: Port): void {
       if (funcDict.checkVomnibarPage(port)) { return; }
-      return Completers.filter(request.query, request, funcDict.PostCompletions.bind(port));
+      return Completers.filter(request.query, request, funcDict.PostCompletions.bind(port
+        , (request.favIcon | 0) as number as 0 | 1 | 2));
     },
     openCopiedUrl: function (this: void, request: FgReq["openCopiedUrl"], port?: Port): Urls.Url | FgRes["openCopiedUrl"] {
       let url: Urls.Url | null = Clipboard.paste();

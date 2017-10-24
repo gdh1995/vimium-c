@@ -8,7 +8,7 @@ declare namespace VomnibarNS {
     close (this: Port): void | 1;
   }
   interface IFrameWindow extends Window {
-    Vomnibar: { showFavIcon: boolean };
+    Vomnibar: { showFavIcon: 0 | 1 | 2 };
     VPort?: object;
     onmessage: (this: void, ev: { source: Window, data: VomnibarNS.MessageData, ports: IframePort[] }) => void | 1;
   }
@@ -160,7 +160,7 @@ var Vomnibar = {
         postMessage<K extends keyof CReq> (data: CReq[K]): void | 1 { return port.onmessage<K>({ data }); }
       };
       if (location.hash === "#chrome-ui") { _this.defaultTop = "5px"; }
-      wnd.Vomnibar.showFavIcon = true;
+      wnd.Vomnibar.showFavIcon = type === VomnibarNS.PageType.inner ? 2 : 1;
       wnd.onmessage({ source: window, data: sec, ports: [port] });
     };
     return VDom.UI.addElement(this.box = el, {adjust: true, showing: false});
