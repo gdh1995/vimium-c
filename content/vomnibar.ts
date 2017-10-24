@@ -126,18 +126,18 @@ var Vomnibar = {
         return reload();
       }
       page = page.substring(0, page.indexOf("/", i + 3));
+      inner && setTimeout(function(): void {
+        const a = Vomnibar, ok = !a || a.status !== VomnibarNS.Status.Initing;
+        if (ok) { a && a.box && (a.box.onload = a.options = null as never); return; }
+        if (type !== VomnibarNS.PageType.inner) { return reload(); }
+        a.reset();
+        (VDom.UI.box as HTMLElement).style.display = "";
+        window.focus();
+        a.zoom = 0;
+        a.status = VomnibarNS.Status.KeepBroken;
+        return (a as any).activate();
+      }, 1000);
       if (location.origin !== page || !page.startsWith("chrome")) {
-        setTimeout(function(): void {
-          const a = Vomnibar, ok = !a || a.status !== VomnibarNS.Status.Initing;
-          if (ok) { a && a.box && (a.box.onload = a.options = null as never); return; }
-          if (type !== VomnibarNS.PageType.inner) { return reload(); }
-          a.reset();
-          (VDom.UI.box as HTMLElement).style.display = "";
-          window.focus();
-          a.zoom = 0;
-          a.status = VomnibarNS.Status.KeepBroken;
-          return (a as any).activate();
-        }, 1000);
         const channel = new MessageChannel();
         _this.port = channel.port1;
         channel.port1.onmessage = _this.onMessage.bind(_this);
