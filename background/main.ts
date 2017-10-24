@@ -1326,9 +1326,10 @@ Are you sure you want to continue?`);
         port = funcDict.indexFrame(port.sender.tabId, 0) || port;
       }
       const page = Settings.cache.vomnibarPage_f, { url } = port.sender, web = !page.startsWith("chrome"),
-      inner = Settings.CONST.VomnibarPageInner,
-      usable = !(forceInner || (web ? url.startsWith("chrome") : port.sender.incognito) || url.startsWith(location.origin)),
-      choice = !usable || page === inner || port.sender.tabId < 0,
+      inner = Settings.CONST.VomnibarPageInner;
+      forceInner = (web ? url.startsWith("chrome") || page.startsWith("file:") && !url.startsWith("file:")
+        : port.sender.incognito) || url.startsWith(location.origin) || !!forceInner;
+      const choice: boolean = forceInner || page === inner || port.sender.tabId < 0,
       options = Utils.extendIf(Object.setPrototypeOf({
         vomnibar: choice ? inner : page,
         vomnibar2: choice ? null : inner,

@@ -250,6 +250,7 @@ declare const enum BrowserVer {
   MinNo$Promise$$defer = 49,
   MinNoExtScriptsIfSandboxed = 49,
   MinNo$Object$$Observe = 50,
+  Min$tabs$$executeScript$hasFrameIdArg = 50,
   MinShowBlockForBrokenImage = 51,
   MinIFrameReferrerpolicy = 51,
   MinPassiveEventListener = 51,
