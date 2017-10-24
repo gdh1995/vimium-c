@@ -96,7 +96,8 @@ interface CmdOptions {
     hud: boolean;
   };
   showHelp: {};
-  reload: { url: string, force?: undefined } | { force: boolean, url?: undefined };
+  reload: { url: string, force?: undefined, hard?: undefined
+    } | { force?: boolean, hard?: boolean, url?: undefined };
   "Find.activate": {
     count: number;
     dir: 1 | -1;

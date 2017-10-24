@@ -353,9 +353,9 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
         return VHUD.showForDuration("No links to go " + dir);
       }
     },
-    reload (_0: number, {force, url}: CmdOptions["reload"]): void {
+    reload (_0: number, {force, hard, url}: CmdOptions["reload"]): void {
       setTimeout(function() {
-        url ? (window.location.href = url) : window.location.reload(force);
+        url ? (window.location.href = url) : window.location.reload(hard || force);
       }, 17);
     },
     switchFocus (_0: number, options: FgOptions): void {

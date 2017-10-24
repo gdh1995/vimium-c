@@ -1802,7 +1802,7 @@ Are you sure you want to continue?`);
     omni (this: void, request: FgReq["omni"], port: Port): void {
       if (funcDict.checkVomnibarPage(port)) { return; }
       return Completers.filter(request.query, request, funcDict.PostCompletions.bind(port
-        , (request.favIcon | 0) as number as 0 | 1 | 2));
+        , (<number>request.favIcon | 0) as number as 0 | 1 | 2));
     },
     openCopiedUrl: function (this: void, request: FgReq["openCopiedUrl"], port?: Port): Urls.Url | FgRes["openCopiedUrl"] {
       let url: Urls.Url | null = Clipboard.paste();
