@@ -141,7 +141,7 @@ var Vomnibar = {
         const channel = new MessageChannel();
         _this.port = channel.port1;
         channel.port1.onmessage = _this.onMessage.bind(_this);
-        wnd.postMessage(sec, page, [channel.port2]);
+        wnd.postMessage(sec, page !== "file://" ? page : "*", [channel.port2]);
         return;
       }
       if (!(wnd.Vomnibar && wnd.onmessage)) { return reload(); }
