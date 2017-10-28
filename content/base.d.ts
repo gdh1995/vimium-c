@@ -234,7 +234,7 @@ interface VHUD {
   box: HTMLDivElement | null;
   text: string;
   opacity: 0 | 0.25 | 0.5 | 0.75 | 1;
-  show (text: string): void;
+  show (text: string, nowait?: boolean): void;
   /** duration is default to 1500 */
   showForDuration (text: string, duration?: number): void;
   showCopied (text: string, type: string, virtual: true): string;

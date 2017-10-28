@@ -703,24 +703,30 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
       this.show(text);
       this.text && ((this as typeof HUD).timer = setTimeout(this.hide, duration || 1500));
     },
-    show (text: string): void {
+    show (text: string, nowait?: boolean): void {
       if (!this.enabled || !VDom.isHTML()) { return; }
       this.opacity = 1; this.text = text;
       if (this.timer) { clearTimeout(this.timer); this.timer = 0; }
-      let el = this.box, i = el ? +(el.style.opacity || 1) : 0;
+      let el = this.box, st = el ? el.style : null, i = st ? +(st.opacity || 1) : 0;
       if (i > 0) {
         ((el as HTMLDivElement).firstChild as Text).data = text;
-        if (i === 1) { return; }
+        return;
       }
-      this.tweenId || (this.tweenId = setInterval(this.tween, 40));
-      if (el) { return; }
-      el = VDom.createElement("div");
-      el.className = "R HUD";
-      el.style.opacity = "0";
-      el.style.visibility = "hidden";
-      el.textContent = text;
-      VDom.UI.root || VDom.UI.ensureBorder();
-      VDom.UI.addElement(this.box = el, {adjust: false});
+      nowait || this.tweenId || (this.tweenId = setInterval(this.tween, 40));
+      if (!el) {
+        el = VDom.createElement("div");
+        el.className = "R HUD";
+        st = el.style;
+        st.opacity = "0";
+        st.visibility = "hidden";
+        el.textContent = text;
+        VDom.UI.root || VDom.UI.ensureBorder();
+        VDom.UI.addElement(this.box = el, {adjust: false});
+      }
+      if (nowait) {
+        (st as CSSStyleDeclaration).cssText = "";
+        el.textContent = text;
+      }
     },
     tween (this: void): void {
       if (!VHUD) { return; }
@@ -728,9 +734,9 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
       let opacity = +(st.opacity || 1);
       if (opacity === hud.opacity) {}
       else if (opacity === 0) {
+        (el.firstChild as Text).data = hud.text;
         st.opacity = "0.25";
         st.visibility = "";
-        (el.firstChild as Text).data = hud.text;
         return VDom.UI.adjust();
       } else if (document.hasFocus()) {
         opacity += opacity < hud.opacity ? 0.25 : -0.25;
