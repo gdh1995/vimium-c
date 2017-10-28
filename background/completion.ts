@@ -603,7 +603,7 @@ tabs: {
     }
     const c = noFilter ? this.computeRecency : SuggestionUtils.ComputeWordRelevancy;
     for (const tab of tabs) {
-      const tabId = tab.id, suggestion = new Suggestion("tab", tab.url, tab.text, tab.title, c, tabId);
+      const tabId = tab.id, suggestion = new Suggestion("# " + tab.index, tab.url, tab.text, tab.title, c, tabId);
       suggestion.sessionId = tabId;
       if (curTabId === tabId) { suggestion.relevancy = 0; }
       suggestions.push(suggestion);

@@ -201,7 +201,7 @@ var Vomnibar = {
       return this._updateInput(line, line.parsed);
     }
     (line as Partial<SuggestionEx>).https == null && (line.https = line.url.startsWith("https://"));
-    if (line.type !== "history" && line.type !== "tab") {
+    if (line.type !== "history" && line.type[0] !== "#") {
       if (line.parsed == null) {
         VUtils.ensureText(line);
         line.parsed = "";
@@ -363,7 +363,7 @@ var Vomnibar = {
     let arr = this._pageNumRe.exec(str), i = ((arr && arr[0]) as string | undefined | number as number) | 0;
     if (len >= n) { sel *= n; }
     else if (i > 0 && sel < 0) { sel *= i >= n ? n : 1; }
-    else if (len < (len && this.completions[0].type === "tab" ? 3 : n)) { return; }
+    else if (len < (len && this.completions[0].type[0] === "#" ? 3 : n)) { return; }
 
     sel += i;
     sel = sel < 0 ? 0 : sel > 90 ? 90 : sel;
@@ -657,7 +657,7 @@ var Vomnibar = {
     });
     if (this.actionType > ReuseType.newBg) { return; }
     window.getSelection().removeAllRanges();
-    if (item.type !== "tab") {
+    if (item.type[0] !== "#") {
       return this.refresh();
     }
     window.onfocus = function(e: Event): void {
