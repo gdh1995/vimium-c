@@ -1151,7 +1151,7 @@ Are you sure you want to continue?`);
         });
         return;
       }
-      let reloadProperties = { bypassCache: cOptions.bypassCache === true }
+      let reloadProperties = { bypassCache: (cOptions.hard || cOptions.bypassCache) === true }
         , ind = funcDict.selectFrom(tabs).index, len = tabs.length
         , end = ind + commandCount;
       if (cOptions.single) {
