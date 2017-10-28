@@ -608,7 +608,7 @@ var Vomnibar = {
   },
   _spacesRe: <RegExpG> /\s+/g,
   fetch (): void {
-    let mode = this.mode, str: string, newMatchType = CompletersNS.MatchType.Default;
+    let mode = this.mode, str: string, s2: string, newMatchType = CompletersNS.MatchType.Default;
     this.timer = -1;
     if (this.useInput) {
       this.lastQuery = str = this.input.value.trim();
@@ -616,7 +616,8 @@ var Vomnibar = {
       if (str === mode.query) { return this.postUpdate(); }
       mode.type = this.matchType < CompletersNS.MatchType.singleMatch || !str.startsWith(mode.query) ? this.modeType
         : this.matchType === CompletersNS.MatchType.searchWanted ? "search"
-        : (newMatchType = this.matchType, this.completions[0].type as CompletersNS.ValidTypes);
+        : (newMatchType = this.matchType,
+            (s2 = this.completions[0].type)[0] === "#" ? "tab" : s2 as CompletersNS.ValidTypes);
       mode.query = str;
       this.width();
       this.matchType = newMatchType;
