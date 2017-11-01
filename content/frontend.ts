@@ -322,9 +322,10 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
             return (esc = func)(HandlerResult.Prevent);
           }
           currentKeys = ""; nextKeys = keyMap;
+          HUD.show("Normal mode (pass keys disabled)" + (count > 1 ? `: ${count} times` : ""));
           return i;
         } as EscF;
-        return HUD.show("Normal mode (pass keys disabled)" + (count > 1 ? `: ${count} times` : ""));
+        return esc();
       }
       VUtils.push(function(event) {
         keyCount += +!keys[event.keyCode];
