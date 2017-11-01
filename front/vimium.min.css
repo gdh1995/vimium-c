@@ -1,8 +1,10 @@
-.R,:host{background:none;border:none;box-sizing:content-box;cursor:auto;float:none;font-size-adjust:none;
+.R{background:none;border:none;box-sizing:content-box;cursor:auto;float:none;font-size-adjust:none;
 letter-spacing:normal;line-height-step:0;margin:0;opacity:1;outline:none;padding:0;text-align-last:auto;text-indent:0;
 text-shadow:none;text-transform:none;visibility:visible;white-space:normal;word-spacing:normal;all:initial;
 color:black;contain:layout style;display:block;font:12px/1 "Helvetica Neue",Helvetica,Arial,sans-serif;overflow:hidden;
-pointer-events:none;position:fixed;text-align:left;}:host{position:initial !important;}
+pointer-events:none;position:fixed;text-align:left}
+:host{border:none !important;height:0 !important;margin:0 !important;outline:none !important;padding:0 !important;
+position:initial !important;width:0 !important}
 .HM{font-weight:bold;overflow:visible;position:absolute;-webkit-user-select:none;user-select:none;white-space:nowrap;z-index:2147483647}
 .LH{background:linear-gradient(#FFF785,#FFC542);border:0.5px solid #E3BE23;border-radius:3px;box-shadow:0 3px 7px 0 rgba(0,0,0,0.3);
 box-sizing:border-box;display:block;overflow:hidden;padding:1px 3px 0 3px;position:absolute}

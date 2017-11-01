@@ -10,7 +10,7 @@
  * HUD: HUD; O: vOmnibar; OI: vOmnibarItem
  *
  */
-.R, :host {
+.R {
 	background: none;
 	border: none;
 	box-sizing: content-box;
@@ -39,8 +39,17 @@
 	pointer-events: none;
 	position: fixed;
 	text-align: left;
-	/* note: the ';' just above is necessary */
-}:host{position:initial !important;}
+}
+
+:host {
+	border: none !important;
+	height: 0 !important;
+	margin: 0 !important;
+	outline: none !important;
+	padding: 0 !important;
+	position: initial !important;
+	width: 0 !important;
+}
 
 /* Link hints CSS */
 .HM {
