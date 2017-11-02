@@ -1,30 +1,3 @@
-const enum HintMode {
-  empty = 0, focused = 1, newTab = 2, queue = 64,
-  mask_focus_new = focused | newTab, mask_queue_focus_new = mask_focus_new | queue,
-  min_job = 128, min_link_job = 136, min_disable_queue = 256,
-  DEFAULT = empty,
-  OPEN_IN_CURRENT_TAB = DEFAULT, // also 1
-  OPEN_IN_NEW_BG_TAB = newTab,
-  OPEN_IN_NEW_FG_TAB = newTab | focused,
-  OPEN_CURRENT_WITH_QUEUE = queue,
-  OPEN_WITH_QUEUE = queue | newTab,
-  OPEN_FG_WITH_QUEUE = queue | newTab | focused,
-  HOVER = min_job,
-  LEAVE,
-  COPY_TEXT,
-  SEARCH_TEXT,
-  DOWNLOAD_IMAGE,
-  OPEN_IMAGE,
-  DOWNLOAD_LINK = min_link_job,
-  COPY_LINK_URL,
-  OPEN_INCOGNITO_LINK,
-  EDIT_LINK_URL = min_disable_queue,
-    max_link_job = EDIT_LINK_URL,
-    min_edit = EDIT_LINK_URL,
-  EDIT_TEXT,
-    max_edit = EDIT_TEXT,
-  FOCUS_EDITABLE,
-}
 const enum ClickType {
   Default = 0,
   click = Default, edit, listener,
@@ -165,7 +138,8 @@ var VHints = {
   setModeOpt (count: number, options: HintsNS.Options): void {
     if (this.options === options) { return; }
     let ref = this.Modes, modeOpt: HintsNS.ModeOpt | undefined,
-    mode = ((options.mode as number) > 0 ? options.mode as number : (this.CONST[options.mode as string]) as number) | 0;
+    mode = (<number>options.mode >= 0 ? options.mode as number
+      : (this.CONST[options.mode as string]) as number | undefined | Function as number) | 0;
     if (mode === HintMode.EDIT_TEXT && options.url) {
       mode = HintMode.EDIT_LINK_URL;
     }
@@ -261,7 +235,7 @@ var VHints = {
     if (!root.querySelector('#HelpDialog') || i < 0) { return; }
     while (0 <= i && root.contains(elements[i][0])) { arr[i--].style.zoom = z; }
   },
-  btnRe: <RegExpOne> /\b(?:[Bb](?:utto|t)n|[Cc]lose)(?:$| )/,
+  btnRe: <RegExpOne> /\b(?:[Bb](?:utto|t)n|[Cc]lose)(?:$|\s)/,
   GetClickable (this: Hint[], element: Element): void {
     let arr: VRect | null, isClickable = null as boolean | null, s: string | null, type = ClickType.Default;
     if (!(element instanceof HTMLElement) || element instanceof HTMLFormElement) {
