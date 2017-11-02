@@ -22,10 +22,9 @@ VDom.UI = {
     this.css = (innerCSS): void => {
       if (typeof browser !== "undefined" && browser.runtime) {
         const i = innerCSS.indexOf(":host"), cls = "vimium-ui-" + ((8 + Math.random()) * 100 | 0),
-        outerCSS = innerCSS.substring(i + 5, innerCSS.indexOf("}", innerCSS.indexOf("}", i) + 1) + 1).replace("}:host{", "");
+        outerCSS = innerCSS.substring(i + 5, innerCSS.indexOf("}", i) + 1);
         (this.box as HTMLElement).className = cls;
         (this.box as HTMLElement).appendChild(this.createStyle("." + cls + outerCSS));
-        innerCSS = innerCSS.replace(":host", ".host");
       }
       this.styleIn = this.createStyle(innerCSS);
       (this.root as ShadowRoot).insertBefore(this.styleIn, (this.root as ShadowRoot).firstElementChild);
