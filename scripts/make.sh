@@ -34,7 +34,7 @@ if [ -z "$output" -o -d "$output" ]; then
     pkg_name=
     if [ -n "$ori_output" ]; then :
     elif bool "$WITH_MAP"; then
-      ver=${ver}_with-map
+      ver=${ver}_debug
     else
       ver=${ver}_dist
     fi

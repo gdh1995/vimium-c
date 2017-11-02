@@ -28,14 +28,20 @@
 })(function(this: void): void {
 const _listen = EventTarget.prototype.addEventListener, toRegister: Element[] = [],
 splice = toRegister.splice.bind<Element[], number, number, Element[]>(toRegister),
-register = toRegister.push.bind<Element[], Element, number>(toRegister);
+register = toRegister.push.bind<Element[], Element, number>(toRegister),
+rel = removeEventListener, ct = clearTimeout, CE = CustomEvent, HA = HTMLAnchorElement,
+HF = HTMLFormElement, E = typeof Element === "function" ? Element : HTMLElement,
+call = _listen.call.bind(_listen) as (self: EventTarget, ty: string, func?: null | ((e: Event) => void), opts?: boolean) => void
+;
 
 let handler = function(this: void): void {
-  removeEventListener("DOMContentLoaded", handler, true);
-  clearTimeout(loadTimeout);
+  rel("DOMContentLoaded", handler, true);
+  ct(loadTimeout);
+  const docEl = document.documentElement as HTMLElement | SVGElement;
+  if (!docEl) { return; }
   box = document.createElement("div");
-  (document.documentElement as HTMLElement | SVGElement).appendChild(box);
-  box.dispatchEvent(new CustomEvent("VimiumReg"));
+  docEl.appendChild(box);
+  box.dispatchEvent(new CE("VimiumReg"));
   box.remove();
   handler = null as never;
   timer = toRegister.length > 0 ? next() : 0;
@@ -50,7 +56,7 @@ function iter(): void {
   timer = toRegister.length > 0 ? next() : 0;
 }
 function reg(this: void, element: Element): void {
-  const event = new CustomEvent("VimiumOnclick");
+  const event = new CE("VimiumOnclick");
   if (document.contains(element)) {
     element.dispatchEvent(event);
     return;
@@ -65,13 +71,11 @@ function reg(this: void, element: Element): void {
 }
 EventTarget.prototype.addEventListener = function(this: EventTarget, type: string
     , listener: EventListenerOrEventListenerObject, useCapture?: boolean | object) {
-  if (type === "click"
-      && !(this instanceof HTMLAnchorElement || this instanceof HTMLFormElement)
-      && this instanceof Element) {
+  if (type === "click" && !(this instanceof HA || this instanceof HF) && this instanceof E) {
     register(this as Element);
     if (timer === 0) { timer = next(); }
   }
-  return _listen.call(this, type, listener, useCapture as boolean | undefined);
+  return call(this, type, listener, useCapture as boolean | undefined);
 };
 _listen("DOMContentLoaded", handler, true);
 });

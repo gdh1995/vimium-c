@@ -60,10 +60,9 @@ html > count{float:right;}`,
     const el = this.box = VDom.createElement("iframe") as typeof VFindMode.box;
     el.className = "R HUD UI";
     el.style.width = "0px";
-    VSettings.cache.browserVer < BrowserVer.MinNotPassMouseWheelToParentIframe && (el.onwheel = VUtils.Prevent);
     if (zoom !== 1) { el.style.zoom = "" + 1 / zoom; }
     el.onload = function(this: HTMLIFrameElement): void { return VFindMode.onLoad(this, 1); };
-    VHandler.push(VDom.UI.SuppressMost, this);
+    VUtils.push(VDom.UI.SuppressMost, this);
     VDom.UI.addElement(el, {adjust: true, before: VHUD.box});
     this.init && this.init();
     this.styleIn.disabled = this.styleOut.disabled = true;
@@ -112,7 +111,7 @@ html > count{float:right;}`,
     docEl.insertBefore(doc.createTextNode("/"), el);
     docEl.appendChild(el2);
     function cb(): void {
-      VHandler.remove(VFindMode);
+      VUtils.remove(VFindMode);
       el.focus();
       // wnd.onfocus = VEventMode.OnWndFocus;
     }
@@ -215,7 +214,7 @@ html > count{float:right;}`,
     } else if (i === Result.PassDirectly) {
       return;
     }
-    VUtils.Prevent(event);
+    VUtils.prevent(event);
     if (!i) { return; }
     let hasStyle = !this.styleIn.disabled, el = this.deactivate(), el2: Element | null;
     VEventMode.suppress(n);
@@ -269,7 +268,7 @@ html > count{float:right;}`,
     activate: function() {
       const el = VEventMode.lock(), Exit = this.exit as (this: void, a?: boolean | Event) => void;
       if (!el) { Exit(); return; }
-      VHandler.push(this.onKeydown, this);
+      VUtils.push(this.onKeydown, this);
       if (el === this.lock) { return; }
       if (!this.lock) {
         addEventListener("click", Exit, true);
@@ -281,7 +280,7 @@ html > count{float:right;}`,
     },
     onKeydown (event: KeyboardEvent): HandlerResult {
       const exit = VKeyboard.isEscape(event);
-      exit ? this.exit() : VHandler.remove(this);
+      exit ? this.exit() : VUtils.remove(this);
       return exit ? HandlerResult.Prevent : HandlerResult.Nothing;
     },
     exit (skip?: boolean | Event): void {
@@ -290,7 +289,7 @@ html > count{float:right;}`,
       if (!this.lock || skip === true) { return; }
       this.lock = null;
       removeEventListener("click", this.exit, true);
-      VHandler.remove(this);
+      VUtils.remove(this);
       return VEventMode.setupSuppress();
     }
   },

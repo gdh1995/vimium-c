@@ -8,7 +8,7 @@ declare namespace VomnibarNS {
     close (this: Port): void | 1;
   }
   interface IFrameWindow extends Window {
-    Vomnibar: { showFavIcon: boolean };
+    Vomnibar: { showFavIcon: 0 | 1 | 2 };
     VPort?: object;
     onmessage: (this: void, ev: { source: Window, data: VomnibarNS.MessageData, ports: IframePort[] }) => void | 1;
   }
@@ -48,7 +48,7 @@ var Vomnibar = {
     this.options = null;
     const width = window.innerWidth;
     this.zoom = VDom.UI.getZoom();
-    this.status > VomnibarNS.Status.Inactive || VHandler.push(VDom.UI.SuppressMost, this);
+    this.status > VomnibarNS.Status.Inactive || VUtils.push(VDom.UI.SuppressMost, this);
     this.box && VDom.UI.adjust();
     if (this.status === VomnibarNS.Status.NotInited) {
       this.status = VomnibarNS.Status.Initing;
@@ -102,7 +102,7 @@ var Vomnibar = {
       active && this.port.postMessage<"hide">("hide");
       return;
     } 
-    VHandler.remove(this);
+    VUtils.remove(this);
     active || window.focus();
     this.box.style.cssText = "display: none;";
   },
@@ -126,7 +126,7 @@ var Vomnibar = {
         return reload();
       }
       page = page.substring(0, page.indexOf("/", i + 3));
-      setTimeout(function(): void {
+      inner && setTimeout(function(): void {
         const a = Vomnibar, ok = !a || a.status !== VomnibarNS.Status.Initing;
         if (ok) { a && a.box && (a.box.onload = a.options = null as never); return; }
         if (type !== VomnibarNS.PageType.inner) { return reload(); }
@@ -141,7 +141,7 @@ var Vomnibar = {
         const channel = new MessageChannel();
         _this.port = channel.port1;
         channel.port1.onmessage = _this.onMessage.bind(_this);
-        wnd.postMessage(sec, page, [channel.port2]);
+        wnd.postMessage(sec, page !== "file://" ? page : "*", [channel.port2]);
         return;
       }
       if (!(wnd.Vomnibar && wnd.onmessage)) { return reload(); }
@@ -160,7 +160,7 @@ var Vomnibar = {
         postMessage<K extends keyof CReq> (data: CReq[K]): void | 1 { return port.onmessage<K>({ data }); }
       };
       if (location.hash === "#chrome-ui") { _this.defaultTop = "5px"; }
-      wnd.Vomnibar.showFavIcon = true;
+      wnd.Vomnibar.showFavIcon = type === VomnibarNS.PageType.inner ? 2 : 1;
       wnd.onmessage({ source: window, data: sec, ports: [port] });
     };
     return VDom.UI.addElement(this.box = el, {adjust: true, showing: false});
@@ -173,7 +173,7 @@ var Vomnibar = {
     this.box.remove();
     this.port = this.box = null as never;
     this.sameOrigin = false;
-    VHandler.remove(this);
+    VUtils.remove(this);
     this.options = null;
     if (this.onReset) { return this.onReset(); }
     if (!redo || oldStatus < VomnibarNS.Status.ToShow) { return; }
@@ -217,8 +217,8 @@ var Vomnibar = {
       style = (VDom.UI.box as HTMLElement).style;
     }
     style.display = "";
-    VHandler.remove(this);
-    return VHandler.push(this.onKeydown, this);
+    VUtils.remove(this);
+    return VUtils.push(this.onKeydown, this);
   },
   onKeydown (event: KeyboardEvent): HandlerResult {
     if (VEventMode.lock()) { return HandlerResult.Nothing; }

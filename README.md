@@ -1,7 +1,7 @@
 Vimium++
 ========
 [![MIT license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE.txt)
-![Version 1.61.2](https://img.shields.io/badge/release-1.61.2-orange.svg)
+![Version 1.62.0](https://img.shields.io/badge/release-1.62.0-orange.svg)
 [![Current Build Status](https://travis-ci.org/gdh1995/vimium-plus.svg?branch=master)
   ](https://travis-ci.org/gdh1995/vimium-plus)
 
@@ -79,6 +79,20 @@ Known issues (Up to the master branch):
   This Chrome feature/bug has been removed since version 59, so Vimium++ works well again.
 7. Chrome does not apply content settings (at least images) on file:// URLs since version 56.
   Currently, no effective ways have been found (up to Chrome 59).
+
+1.62.1 (not released yet):
+* fix bugs and memory leaks on pages having ShadowDOM UI.
+* `passNextKey normal` will also exit if the page blurs
+* Vomnibar now prefers a domain starting with "www."
+* fix some other bugs
+
+1.62.0:
+* on an editable rich text iframe box: `<Esc>` will not focus the upper frame unless it's held on
+* image viewer: support `<c-+>` (also `<c-=>`) and `<c-->` to zoom in/out images
+* fix vomnibar may shake on the list's length changing
+* fix a rare case that some web page may break because Vimium++'s code throws errors
+* fix a regression that some tips on HUD were missing
+* fix a long-term bug that history cache may not be cleaned out when some history items are removed
 
 1.61.2:
 * fix some regression bugs

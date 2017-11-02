@@ -221,12 +221,16 @@ declare const enum BrowserVer {
   MinSupported = 36,
   MinSession = 37,
   MinCSS$All$Attr = 37,
+  // includes for-of, Map, Set, Symbols
+  MinES6 = 38,
   MinWithFrameIdInArg = 39,
   MinDisableMoveTabAcrossIncognito = 40,
   MinWarningSyncXHR = 40,
   MinWithFrameId = 41,
   // just enabled by default
   Min$String$$StartsWith = 41,
+  // before 42, event.path is a simple NodeList instance
+  Min$Event$$path$IsStdArrayAndIncludesWindow = 42,
   // even if chrome://flags/#disable-javascript-harmony-shipping
   MinEnsured$String$$StartsWith = 43,
   MinCreateWndWithState = 44,
@@ -246,6 +250,7 @@ declare const enum BrowserVer {
   MinNo$Promise$$defer = 49,
   MinNoExtScriptsIfSandboxed = 49,
   MinNo$Object$$Observe = 50,
+  Min$tabs$$executeScript$hasFrameIdArg = 50,
   MinShowBlockForBrokenImage = 51,
   MinIFrameReferrerpolicy = 51,
   MinPassiveEventListener = 51,
@@ -257,7 +262,8 @@ declare const enum BrowserVer {
   MinScrollingHTMLHtmlElement = 53,
   MinShadowDOMV1 = 53,
   MinUserSelectAll = 53,
-  MinDOMActivateEventInsideShadowDOMV1WillNotBePassedToDocument = 53,
+  // this feature is from 53, and replaced by DOMActivateInClosedShadowRootHasNoShadowNodesInPathWhenOnDocument since 56
+  MinNoDOMActivateInClosedShadowRootPassedToDocument = 53,
   assumedVer = 53,
   MinWarningWebkitUserSelect = 54,
   MinHighDPIOnRemoteDesktop = 54,
@@ -265,18 +271,20 @@ declare const enum BrowserVer {
   MinStricterArgsIn$Windows$$Create = 55,
   Min$Event$$Path$IncludeNodesInShadowRoot = 55,
   MinSomeDocumentListenersArePassiveByDefault = 56,
-  MinDOMActivateEventInsideShadowDOMV1HasNoShadowNodesInPathWhenOnDocument = 56,
-  // With empty settings, Chrome only does this since not 56  but 57
+  MinDOMActivateInClosedShadowRootHasNoShadowNodesInPathWhenOnDocument = 56,
+  // With empty settings, Chrome only does this since not 56 but 57
   MinExtIframesInSharedProcess = 56, // means enabled by default
   MinNeedCSPForScriptsFromOtherExtensions = 56,
   MinStickyPosition = 56,
   MinFailToToggleImageOnFileURL = 56,
+  MinExtensionContentPageMayShowFavIcon = 56,
   MinNoKeygenElement = 57,
   MinCaseSensitiveUsemap = 58,
   Min1pxIsNotEps = 58,
   $Selection$NotShowStatusInTextBox = 58, // Now only version 81-110 of Chrome 58 stable have such a problem
   MinPasswordSaverDispatchesVirtualFocusEvents = 59,
   MinWarningWebkitGradient = 60, // only happened on a Canary version
+  MinNoBorderForBrokenImage = 60,
   // https://www.chromestatus.com/features/4964279606312960 is not the truth
   // MinSelector$deep$DoesNothing = 63,
   MinRoundedBorderWidth = 61, // a border is only showing if `width * zoomed-ratio >= 0.5`

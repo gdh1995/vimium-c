@@ -14,12 +14,13 @@ interface VimiumInjector {
   destroy: ((this: void, silent?: boolean) => void) | null;
 }
 declare const enum HandlerResult {
+  PassKey = -1,
   Nothing = 0,
   Default = Nothing,
+  MinStopOrPreventEvents = 1,
   Suppress = 1,
+  MaxNotPrevent = 1,
   Prevent = 2,
-  MinMayNotPassKey = 0,
-  PassKey = -1,
 }
 declare const enum VisibilityType {
   Visible = 0,
@@ -204,6 +205,11 @@ interface VPort {
 interface ComplicatedVPort extends VPort {
   post<K extends keyof FgReq, T extends FgReq[K]>(this: void, req: T & Req.baseFg<K>): void | 1;
 }
+interface FocusListenerWrapper {
+  inner: {focus: (this: void, event: FocusEvent) => void, blur: (this: void, event: FocusEvent) => void} | null;
+  outer: (this: EventTarget, event: FocusEvent) => void;
+  set (this: void, obj: FocusListenerWrapper["inner"]): void;
+}
 interface VEventMode {
   lock(this: void): Element | null;
   suppress(keyCode?: number): void;
@@ -228,7 +234,7 @@ interface VHUD {
   box: HTMLDivElement | null;
   text: string;
   opacity: 0 | 0.25 | 0.5 | 0.75 | 1;
-  show (text: string): void;
+  show (text: string, nowait?: boolean): void;
   /** duration is default to 1500 */
   showForDuration (text: string, duration?: number): void;
   showCopied (text: string, type: string, virtual: true): string;

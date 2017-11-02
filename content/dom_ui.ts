@@ -86,8 +86,9 @@ VDom.UI = {
   _styleBorder: null as (HTMLStyleElement & {zoom?: number}) | null,
   ensureBorder (): void {
     if (!VDom.specialZoom) { return; }
-    let ratio = VDom.getDocZoom(getComputedStyle(document.documentElement as HTMLElement))
-      , st = this._styleBorder, st2: typeof st;
+    const zoom = +getComputedStyle(document.documentElement as HTMLElement).zoom || 1;
+    let ratio = window.devicePixelRatio, st = this._styleBorder, st2: typeof st;
+    Math.abs(zoom - ratio) > 0.001 || (ratio *= zoom);
     if (st === null ? ratio >= 1 : st.zoom === ratio) { return; }
     st2 = st || (this._styleBorder = this.createStyle(""));
     st2.zoom = ratio; st2.textContent = "*{border-width:" + ("" + 0.51 / ratio).substring(0, 5) + "px !important;}";
@@ -177,7 +178,7 @@ VDom.UI = {
     if (onlyRepeated) {
       func = function(event) {
         if (event.repeat) { return HandlerResult.Prevent; }
-        VHandler.remove(this);
+        VUtils.remove(this);
         return HandlerResult.Nothing;
       };
     } else {
@@ -186,16 +187,16 @@ VDom.UI = {
       timer = setInterval(function() {
         if (Date.now() - tick > 150) {
           clearInterval(timer);
-          VHandler && VHandler.remove(func);
+          VUtils && VUtils.remove(func);
         }
       }, 75);
     }
-    VHandler.push(func, func);
+    VUtils.push(func, func);
   },
   SuppressMost (event) {
     const key = event.keyCode;
     if (VKeyboard.isEscape(event)) {
-      VHandler.remove(this);
+      VUtils.remove(this);
     }
     return key > VKeyCodes.f1 + 9 && key <= VKeyCodes.f12 ?
       HandlerResult.Suppress : HandlerResult.Prevent;

@@ -251,3 +251,10 @@ setTimeout(function() {
     return (cache[b.id] as number) - (cache[a.id] as number);
   };
 }, 120);
+
+chrome.extension.isAllowedIncognitoAccess && chrome.extension.isAllowedIncognitoAccess(function(isAllowedAccess): void {
+  const notAllowed = Settings.CONST.DisallowIncognito = isAllowedAccess === false;
+  if (notAllowed) {
+    console.log("Sorry, but some commands of Vimium++ need the permission to run Vimium++ in incognito mode.");
+  }
+});

@@ -8,6 +8,9 @@ String.prototype.startsWith = function(this: string, s: string): boolean {
 });
 }
 var VUtils = {
+  /**
+   * tool function section
+   */
   evalIfOK (this: void, url: string): boolean {
     if (url.substring(0, 11).toLowerCase() !== "javascript:") {
       return false;
@@ -32,12 +35,20 @@ var VUtils = {
     return url;
   },
   hasUpperCase (this: void, s: string) { return s.toLowerCase() !== s; },
+  /**
+   * Handler section
+   */
+  wrap (focus: (this: void, event: FocusEvent) => void, blur: (this: void, event: FocusEvent) => void): FocusListenerWrapper {
+    var d = { focus, blur } as FocusListenerWrapper["inner"];
+    function f(this: EventTarget, event: FocusEvent): void {
+      if (d) { return d[event.type as "focus" | "blur"](event); }
+      const r = this.removeEventListener.bind(this) as Element["removeEventListener"];
+      r("focus", f, true); r("blur", f, true);
+    }
+    return { inner: d, outer: f, set (this: void, obj: FocusListenerWrapper["inner"]): void { d = obj; } };
+  },
   Stop (this: void, event: Event): void { event.stopImmediatePropagation(); },
-  Prevent (this: void, event: Event): void {
-    event.preventDefault();
-    event.stopImmediatePropagation();
-  }
-}, VHandler = {
+  prevent (event: Event): void { event.preventDefault(); return this.Stop(event); },
   stack: [] as { func: (event: HandlerNS.Event) => HandlerResult, env: any}[],
   push<T extends object> (func: HandlerNS.Handler<T>, env: T): number {
     return this.stack.push({ func, env });

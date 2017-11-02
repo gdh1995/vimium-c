@@ -23,6 +23,7 @@ type AllowedActions = "dismiss"|"focus"|"blurInput"|"backspace"|"blur"|"up"|"dow
 
 interface Window {
   ExtId?: string;
+  VomnibarListLength?: number;
 }
 declare const enum HeightData {
   InputBar = 54, InputBarWithLine = InputBar + 1,
@@ -35,7 +36,7 @@ declare const enum HeightData {
 declare var VSettings: undefined | null | {
   destroy(silent: true, keepChrome: true): void;
 };
-if (typeof VSettings === "object" && VSettings) {
+if (typeof VSettings === "object" && VSettings && typeof VSettings.destroy === "function") {
   VSettings.destroy(true, true);
   window.dispatchEvent(new Event("unload"));
 }
@@ -48,6 +49,7 @@ var Vomnibar = {
     this.isHttps = null;
     let { url, keyword, search } = options, start: number | undefined;
     this.width(options.width * 0.8);
+    this.init && this.setFav();
     if (url == null) {
       return this.reset(keyword ? keyword + " " : "");
     }
@@ -87,7 +89,7 @@ var Vomnibar = {
   blurWanted: false,
   forceNewTab: false,
   sameOrigin: false,
-  showFavIcon: false,
+  showFavIcon: 0 as 0 | 1 | 2,
   showRelevancy: false,
   lastScrolling: 0,
   height: 0,
@@ -199,7 +201,7 @@ var Vomnibar = {
       return this._updateInput(line, line.parsed);
     }
     (line as Partial<SuggestionEx>).https == null && (line.https = line.url.startsWith("https://"));
-    if (line.type !== "history" && line.type !== "tab") {
+    if (line.type !== "history" && line.type[0] !== "#") {
       if (line.parsed == null) {
         VUtils.ensureText(line);
         line.parsed = "";
@@ -361,7 +363,7 @@ var Vomnibar = {
     let arr = this._pageNumRe.exec(str), i = ((arr && arr[0]) as string | undefined | number as number) | 0;
     if (len >= n) { sel *= n; }
     else if (i > 0 && sel < 0) { sel *= i >= n ? n : 1; }
-    else if (len < (len && this.completions[0].type === "tab" ? 3 : n)) { return; }
+    else if (len < (len && this.completions[0].type[0] === "#" ? 3 : n)) { return; }
 
     sel += i;
     sel = sel < 0 ? 0 : sel > 90 ? 90 : sel;
@@ -484,6 +486,7 @@ var Vomnibar = {
       pixel = v < BrowserVer.MinEnsuredBorderWidth ? (pixel | 0) / pixel : 1 / pixel;
     }
     let height = list.length, notEmpty = height > 0;
+    this.showFavIcon = response.favIcon;
     this.matchType = response.matchType;
     this.completions = list;
     this.selection = (response.autoSelect || this.modeType !== "omni") && notEmpty ?  0 : -1;
@@ -495,7 +498,7 @@ var Vomnibar = {
     }
     this.heightList = height;
     height = notEmpty ? height + HeightData.InputBarWithLineAndMargin : HeightData.InputBarAndMargin;
-    this.height = height = (height + pixel + pixel) | 0;
+    this.height = height = Math.ceil(height + pixel + pixel);
     list.forEach(this.parse, this);
     return this.populateUI(oldHeight);
   },
@@ -552,20 +555,22 @@ var Vomnibar = {
     (document.getElementById("close") as HTMLElement).onclick = function(): void { return Vomnibar.hide(); };
     addEventListener("keydown", this.HandleKeydown, true);
     this.renderItems = VUtils.makeListRenderer((document.getElementById("template") as HTMLElement).innerHTML);
-    let manifest: chrome.runtime.Manifest;
-    if (this.showFavIcon && location.protocol.startsWith("chrome") && chrome.runtime.getManifest
-        && (manifest = chrome.runtime.getManifest())) {
-      const arr = manifest.permissions || [];
-      this.showFavIcon = arr.indexOf("<all_urls>") >= 0 || arr.indexOf("chrome://favicon/") >= 0;
-    } else {
-      this.showFavIcon = false;
-    }
     if (this.browserVersion < BrowserVer.MinRoundedBorderWidth) {
       const css = document.createElement("style");
       css.textContent = `body,.item,#input{border-width:${this.browserVersion < BrowserVer.MinEnsuredBorderWidth ? 1 : 0.01}px;}`;
       (document.head as HTMLHeadElement).appendChild(css);
     }
     this.init = VUtils.makeListRenderer = null as never;
+  },
+  setFav (): void {
+    let fav = this.showFavIcon, f: () => chrome.runtime.Manifest, manifest: chrome.runtime.Manifest;
+    if (fav < 2 && location.protocol.startsWith("chrome") && (f = chrome.runtime.getManifest) && (manifest = f())) {
+      const arr = manifest.permissions || [];
+      fav = arr.indexOf("<all_urls>") >= 0 || arr.indexOf("chrome://favicon/") >= 0 ? fav + 1 as 0 | 1 | 2 : 0;
+    } else {
+      fav = 0;
+    }
+    this.mode.favIcon = fav;
   },
   HandleKeydown (this: void, event: KeyboardEvent): void {
     if (event.isTrusted == false || !(event instanceof KeyboardEvent)) { return; }
@@ -597,12 +602,13 @@ var Vomnibar = {
     handler: "omni" as "omni",
     type: "omni" as CompletersNS.ValidTypes,
     maxChars: 0,
-    maxResults: 10,
+    maxResults: Math.min(Math.max((<number>window.VomnibarListLength | 0) || 10, 3), 20),
+    favIcon: 1 as 0 | 1 | 2,
     query: ""
   },
   _spacesRe: <RegExpG> /\s+/g,
   fetch (): void {
-    let mode = this.mode, str: string, newMatchType = CompletersNS.MatchType.Default;
+    let mode = this.mode, str: string, s2: string, newMatchType = CompletersNS.MatchType.Default;
     this.timer = -1;
     if (this.useInput) {
       this.lastQuery = str = this.input.value.trim();
@@ -610,7 +616,8 @@ var Vomnibar = {
       if (str === mode.query) { return this.postUpdate(); }
       mode.type = this.matchType < CompletersNS.MatchType.singleMatch || !str.startsWith(mode.query) ? this.modeType
         : this.matchType === CompletersNS.MatchType.searchWanted ? "search"
-        : (newMatchType = this.matchType, this.completions[0].type as CompletersNS.ValidTypes);
+        : (newMatchType = this.matchType,
+            (s2 = this.completions[0].type)[0] === "#" ? "tab" : s2 as CompletersNS.ValidTypes);
       mode.query = str;
       this.width();
       this.matchType = newMatchType;
@@ -622,14 +629,14 @@ var Vomnibar = {
 
   parse (item: SuggestionE): void {
     let str: string;
-    if ((this as typeof Vomnibar).showFavIcon && (str = item.url) && !str.startsWith("vimium://")) {
+    if (this.showFavIcon && (str = item.url) && !str.startsWith("vimium://")) {
       item.favIconUrl = '<img src="chrome://favicon/size/16/' +
         (str.length > 512 || str.startsWith("data:") ? "about:blank" : VUtils.escapeHTML(str))
         + '" />\n\t\t\t';
     } else {
       item.favIconUrl = "";
     }
-    item.relevancy = (this as typeof Vomnibar).showRelevancy ? `\n\t\t\t<span class="relevancy">${item.relevancy}</span>` : "";
+    item.relevancy = this.showRelevancy ? `\n\t\t\t<span class="relevancy">${item.relevancy}</span>` : "";
   },
   navigateToUrl (item: { url: string }): void {
     if (item.url.substring(0, 11).toLowerCase() === "javascript:") {
@@ -651,7 +658,7 @@ var Vomnibar = {
     });
     if (this.actionType > ReuseType.newBg) { return; }
     window.getSelection().removeAllRanges();
-    if (item.type !== "tab") {
+    if (item.type[0] !== "#") {
       return this.refresh();
     }
     window.onfocus = function(e: Event): void {
@@ -750,9 +757,10 @@ VPort = {
     Vomnibar.timer > 0 && clearTimeout(Vomnibar.timer);
     VPort.postToOwner({ name: "unload" });
   }
-}, MinSupportedVersion = 1.61;
+};
 (function(): void {
-  if (!(+<string>(document.documentElement as HTMLElement).getAttribute("data-version") >= MinSupportedVersion)) {
+  if (!(+<string>(document.documentElement as HTMLElement).getAttribute("data-version") >=
+        1.61)) {
     location.href = "about:blank";
     return;
   }

@@ -642,9 +642,9 @@ interface CSSStyleDeclaration {
     listStyleType: string | null;
     margin: string | null;
     marginBottom: string | null;
-    marginLeft: string | null;
+    marginLeft: string;
     marginRight: string | null;
-    marginTop: string | null;
+    marginTop: string;
     marker: string | null;
     markerEnd: string | null;
     markerMid: string | null;
@@ -721,7 +721,7 @@ interface CSSStyleDeclaration {
     translate: string | null;
     unicodeBidi: string | null;
     verticalAlign: string | null;
-    visibility: string | null;
+    visibility: "hidden" | "visible" | "collapse" | "" | "inherit" | "initial" | "unset";
     webkitAlignContent: string | null;
     webkitAlignItems: string | null;
     webkitAlignSelf: string | null;
@@ -2128,6 +2128,8 @@ declare var ErrorEvent: {
     new(): ErrorEvent;
 }
 
+type EventPath = NodeList | EventTarget[];
+
 interface Event {
     readonly bubbles: boolean;
     cancelBubble: boolean;
@@ -2147,7 +2149,7 @@ interface Event {
     stopImmediatePropagation(): void;
     stopPropagation(): void;
     deepPath(): EventTarget[];
-    path?: EventTarget[];
+    path?: EventPath;
     readonly AT_TARGET: number;
     readonly BUBBLING_PHASE: number;
     readonly CAPTURING_PHASE: number;

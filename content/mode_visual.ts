@@ -31,8 +31,8 @@ var VVisualMode = {
     Object.setPrototypeOf(options = options || {} as FgOptions, null);
     this.init && this.init();
     this.movement.selection = this.selection = sel = VDom.UI.getSelection();
-    VHandler.remove(this);
-    VHandler.push(this.onKeydown, this);
+    VUtils.remove(this);
+    VUtils.push(this.onKeydown, this);
     type = VDom.selType(sel);
     if (!this.mode) { this.retainSelection = type === "Range"; }
     str = typeof options.mode === "string" ? options.mode.toLowerCase() : "";
@@ -72,7 +72,7 @@ var VVisualMode = {
   },
   deactivate (isEsc?: 1): void {
     if (!this.mode) { return; }
-    VHandler.remove(this);
+    VUtils.remove(this);
     if (!this.retainSelection) {
       this.movement.collapseSelectionTo(isEsc && this.mode !== VisualModeNS.Mode.Caret ? 1 : 0);
     }

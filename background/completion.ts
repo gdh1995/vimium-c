@@ -502,8 +502,9 @@ domains: {
     return this.performSearch();
   } ,
   performSearch (): void {
-    const ref = Utils.domains as EnsuredSafeDict<Domain>, p = RankingUtils.maxScoreP, q = queryTerms, word = q[0];
-    let sug: Suggestion | undefined, result = "", result_score = -1000;
+    const ref = Utils.domains as EnsuredSafeDict<Domain>, p = RankingUtils.maxScoreP, q = queryTerms,
+    word = q[0].toLowerCase();
+    let sug: Suggestion | undefined, result = "", d: Domain = null as Domain | null as Domain, result_score = -1;
     if (offset > 0) {
       for (let domain in ref) {
         if (domain.indexOf(word) !== -1) { offset--; break; }
@@ -514,11 +515,15 @@ domains: {
     RankingUtils.maxScoreP = RankingUtils.maximumScore;
     for (let domain in ref) {
       if (domain.indexOf(word) === -1) { continue; }
-      const score = SuggestionUtils.ComputeRelevancy(domain, "", ref[domain].time);
+      const score = SuggestionUtils.ComputeRelevancy(domain, "", (d = ref[domain]).time);
       if (score > result_score) { result_score = score; result = domain; }
     }
     if (result) {
-      sug = new Suggestion("domain", (ref[result].https ? "https://" : "http://") + result, "", "", this.compute2);
+      if (result.length > word.length && !result.startsWith("www.") && !result.startsWith(word)) {
+        let d2: Domain | undefined, r2 = "www." + result.substring(result.indexOf(".") + 1);
+        if (d2 = ref[r2]) { result = r2; d = d2; }
+      }
+      sug = new Suggestion("domain", (d.https ? "https://" : "http://") + result, "", "", this.compute2);
       sug.textSplit = SuggestionUtils.cutUrl(result, SuggestionUtils.getRanges(result), sug.url);
       --maxResults;
     }
@@ -547,7 +552,7 @@ domains: {
     const _this = Completers.domains;
     if (toRemove.allHistory) {
       Utils.domains = Object.create<Domain>(null);
-      HistoryCache.domains && (HistoryCache.domains = Utils.domains);
+      HistoryCache.domains = Utils.domains;
       return;
     }
     const domains = Utils.domains, parse = _this.ParseDomainAndScheme;
@@ -598,7 +603,7 @@ tabs: {
     }
     const c = noFilter ? this.computeRecency : SuggestionUtils.ComputeWordRelevancy;
     for (const tab of tabs) {
-      const tabId = tab.id, suggestion = new Suggestion("tab", tab.url, tab.text, tab.title, c, tabId);
+      const tabId = tab.id, suggestion = new Suggestion("# " + (tab.index + 1), tab.url, tab.text, tab.title, c, tabId);
       suggestion.sessionId = tabId;
       if (curTabId === tabId) { suggestion.relevancy = 0; }
       suggestions.push(suggestion);

@@ -118,7 +118,7 @@ var VHints = {
       }
       if (!VDom.isHTML()) { return; }
     }
-    VHandler.remove(this);
+    VUtils.remove(this);
     this.setModeOpt((count as number) | 0, Object.setPrototypeOf(options || (options = {} as any as FgOptions), null));
     let str = options.characters ? options.characters + "" : VSettings.cache.linkHintCharacters;
     if (str.length < 3) {
@@ -154,11 +154,11 @@ var VHints = {
 
     this.noHUD = arr[3] <= 40 || arr[2] <= 320;
     VDom.UI.ensureBorder();
-    this.setMode(this.mode);
+    this.setMode(this.mode, false, this.hintMarkers.length > 100);
     this.box = VDom.UI.addElementList(this.hintMarkers, arr);
 
     this.isActive = true;
-    VHandler.push(this.onKeydown, this);
+    VUtils.push(this.onKeydown, this);
     return VEventMode.onWndBlur(this.ResetMode);
   },
   setModeOpt (count: number, options: HintsNS.Options): void {
@@ -184,7 +184,7 @@ var VHints = {
     this.count = count;
     return this.setMode(mode, true);
   },
-  setMode (mode: HintMode, slient?: true): void {
+  setMode (mode: HintMode, slient?: boolean, nowait?: boolean): void {
     this.mode = mode;
     this.mode1 = mode = mode & ~HintMode.queue;
     this.forHover = mode >= HintMode.HOVER && mode <= HintMode.LEAVE;
@@ -193,7 +193,7 @@ var VHints = {
       this.pTimer = setTimeout(this.SetHUDLater, 1000);
       return;
     }
-    return VHUD.show((this.modeOpt as HintsNS.ModeOpt)[this.mode] as string);
+    return VHUD.show((this.modeOpt as HintsNS.ModeOpt)[this.mode] as string, nowait);
   },
   SetHUDLater (this: void): void {
     const a = VHints;
@@ -323,7 +323,8 @@ var VHints = {
         : (element.vimiumHasOnclick && VHints.isClickListened) || element.getAttribute("onclick")
           || VHints.ngEnabled && element.getAttribute("ng-click")
           || (s = element.getAttribute("role")) && (s = s.toLowerCase()
-            , s === "button" || s === "link" || s === "checkbox" || s === "radio" || s.startsWith("menuitem"))
+            , s === "button" || s === "link" || s === "tab"
+              || s === "checkbox" || s === "radio" || s.startsWith("menuitem"))
           || VHints.forHover && element.getAttribute("onmouseover")
           || (s = element.getAttribute("jsaction")) && VHints.checkJSAction(s) ? ClickType.listener
         : (s = element.getAttribute("tabindex")) && parseInt(s, 10) >= 0 ? ClickType.tabindex
@@ -637,7 +638,7 @@ var VHints = {
     } else if (linksMatched.length === 0) {
       this.deactivate(this.keyStatus.known);
     } else if (linksMatched.length === 1) {
-      VUtils.Prevent(event);
+      VUtils.prevent(event);
       this.activateLink(linksMatched[0]);
     } else {
       const limit = this.keyStatus.tab ? 0 : this.keyStatus.newHintLength;
@@ -741,7 +742,7 @@ var VHints = {
     }
     keepHUD || VHUD.hide();
     VEventMode.onWndBlur(null);
-    return VHandler.remove(this);
+    return VUtils.remove(this);
   },
   deactivate (suppressType: boolean): void {
     this.clean(this.pTimer < 0);
@@ -948,7 +949,13 @@ Modes: {
 HOVER: {
   128: "Hover over node",
   192: "Hover over nodes continuously",
-  activator (element): void {
+  activator (element): void | false {
+    if (element instanceof HTMLIFrameElement || element instanceof HTMLFrameElement) {
+      const ret = element === Vomnibar.box ? (Vomnibar.focus(1), false)
+        : (this as typeof VHints).highlightChild(element);
+      (this as typeof VHints).mode = HintMode.DEFAULT;
+      return ret;
+    }
     const type = VDom.getEditableType(element);
     VDom.unhoverLast(element);
     VScroller.current = element;
@@ -1136,12 +1143,7 @@ DEFAULT: {
   66: "Open multiple links in new tabs",
   67: "Activate link and hold on",
   activator (link, hint): void | false {
-    if (link instanceof HTMLIFrameElement || link instanceof HTMLFrameElement) {
-      const ret = link === Vomnibar.box ? (Vomnibar.focus(1), false)
-        : (this as typeof VHints).highlightChild(link);
-      (this as typeof VHints).mode = HintMode.DEFAULT;
-      return ret;
-    } else if (link instanceof HTMLDetailsElement) {
+    if (link instanceof HTMLDetailsElement) {
       link.open = !link.open;
       return;
     } else if (hint.classList.contains("BH")) {

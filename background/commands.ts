@@ -265,8 +265,8 @@ availableCommands: {
   scrollPageUp: [ "Scroll a page up", 0, false, { dir: -0.5, view: "viewSize" }, "scBy" ],
   scrollFullPageDown: [ "Scroll a full page down", 0, false, { view: "viewSize" }, "scBy" ],
   scrollFullPageUp: [ "Scroll a full page up", 0, false, { dir: -1, view: "viewSize" }, "scBy" ],
-  reload: [ "Reload current frame (use force)", 1, false ],
-  reloadTab: [ "Reload N tab(s) (use bypassCache)", 20, true ],
+  reload: [ "Reload current frame (use hard/force)", 1, false ],
+  reloadTab: [ "Reload N tab(s) (use hard/bypassCache)", 20, true ],
   reloadGivenTab: [ "Reload N-th tab", 0, true, { single: true } ],
   reopenTab: [ "Reopen current page", 1, true ],
   toggleViewSource: [ "View page source", 1, true ],
@@ -388,7 +388,7 @@ if (document.readyState !== "complete") {
   Commands.defaultKeyMappings = null as never;
   Commands.populateCommandKeys();
   Commands = null as never;
-  chrome.commands && chrome.commands.onCommand.addListener(Settings.globalCommand);
+  chrome.commands && chrome.commands.onCommand.addListener(function (cmd) { return Settings.globalCommand(cmd); });
 } else
 Settings.updateHooks.keyMappings = function(value: string): void {
   Commands.parseKeyMappings(value);

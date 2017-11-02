@@ -64,6 +64,7 @@ interface BgVomnibarReq {
     list: CompletersNS.Suggestion[];
     autoSelect: boolean;
     matchType: CompletersNS.MatchType;
+    favIcon: 0 | 1 | 2;
   };
   returnFocus: {
     lastKey: number;
@@ -95,7 +96,8 @@ interface CmdOptions {
     hud: boolean;
   };
   showHelp: {};
-  reload: { url: string, force?: undefined } | { force: boolean, url?: undefined };
+  reload: { url: string, force?: undefined, hard?: undefined
+    } | { force?: boolean, hard?: boolean, url?: undefined };
   "Find.activate": {
     count: number;
     dir: 1 | -1;
@@ -178,6 +180,7 @@ interface FgReq {
   };
   omni: {
     query: string;
+    favIcon?: 0 | 1 | 2;
   } & CompletersNS.Options;
   openCopiedUrl: {
     keyword: string | null;
@@ -211,8 +214,7 @@ interface FgRes {
     url: string;
     path: string | null;
   };
-  searchAs: string;
-  openCopiedUrl: string;
+  openCopiedUrl: string | void;
   execInChild: boolean;
 }
 

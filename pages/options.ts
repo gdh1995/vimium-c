@@ -403,10 +403,15 @@ interface AdvancedOptBtn extends HTMLButtonElement {
     _ref[_i].onclick = func;
   }
 
-  if (bgSettings.CONST.ChromeVersion < BrowserVer.MinWithFrameId) {
+  let url = Option.all.vomnibarPage.previous;
+  if (url.lastIndexOf("file://", 0) !== -1) {
+    element = Option.all.vomnibarPage.element;
+    element.title = "A file page of vomnibar is limited by Chrome to only work on file://* pages";
+    element.classList.add("highlight");
+  } else if (bgSettings.CONST.ChromeVersion < BrowserVer.MinWithFrameId) {
     element = Option.all.vomnibarPage.element;
     element.title = `Vimium++ can not use a HTTP page as Vomnibar before Chrome ${BrowserVer.MinWithFrameId}`;
-    if ("chrome /front/".indexOf(Option.all.vomnibarPage.previous.substring(0, 6)) === -1) {
+    if ("chrome /front/".indexOf(url.substring(0, 6)) === -1) {
       element.style.textDecoration = "line-through";
     }
   }

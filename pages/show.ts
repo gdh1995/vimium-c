@@ -55,10 +55,12 @@ window.onhashchange = function(this: void): void {
   }
   type = file = "";
 
-  url = location.hash || window.name;
-  if (!url && BG && BG.Settings && BG.Settings.temp.shownHash) {
+  url = location.hash;
+  if (!location.hash && BG && BG.Settings && BG.Settings.temp.shownHash) {
     url = BG.Settings.temp.shownHash() || "";
     window.name = url;
+  } else if (!url) {
+    url = window.name;
   }
   if (url.length < 3) {}
   else if (url.startsWith("#!image")) {
@@ -98,7 +100,10 @@ window.onhashchange = function(this: void): void {
     shownNode.classList.add("hidden");
     shownNode.onerror = function(): void {
       this.onerror = this.onload = null as never;
-      (shownNode as HTMLImageElement).alt = "\xa0fail to load\xa0";
+      (shownNode as HTMLImageElement).alt = "\xa0(fail to load)\xa0";
+      if (BG && BG.Settings && BG.Settings.CONST.ChromeVersion >= BrowserVer.MinNoBorderForBrokenImage) {
+        shownNode.classList.add("broken");
+      }
       shownNode.classList.remove("hidden");
       setTimeout(showBgLink, 34);
       shownNode.onclick = function(e) {
@@ -121,7 +126,7 @@ window.onhashchange = function(this: void): void {
     } else {
       url = "";
       (shownNode as any).onerror();
-      shownNode.setAttribute("alt", "\xa0(null)\xa0");
+      (shownNode as HTMLImageElement).alt = "\xa0(null)\xa0";
     }
     if (file) {
       shownNode.setAttribute("download", file);
@@ -228,6 +233,7 @@ function simulateClick(a: HTMLElement, event: MouseEvent | KeyboardEvent): boole
 
 function imgOnKeydown(event: KeyboardEvent): boolean {
   const { keyCode } = event;
+  if ((shownNode as HTMLImageElement).alt) { return false; }
   if (keyCode === VKeyCodes.space || keyCode === VKeyCodes.enter) {
     event.preventDefault();
     simulateClick(shownNode, event);
@@ -276,6 +282,7 @@ function defaultOnClick(event: MouseEvent): void {
   } else switch (type) {
   case "url": clickLink({ target: "_blank" }, event); break;
   case "image":
+    if ((shownNode as HTMLImageElement).alt) { return; }
     loadViewer().then(showSlide).catch(defaultOnError);
     break;
   default: break;
@@ -317,7 +324,7 @@ function copyThing(event: Event): void {
 
 function toggleInvert(event: Event): void {
   if (type === "image") {
-    if ((document.documentElement as HTMLHtmlElement).innerText) {
+    if ((shownNode as HTMLImageElement).alt || window.viewer && window.viewer.visible) {
       event.preventDefault();
     } else {
       shownNode.classList.toggle("invert");

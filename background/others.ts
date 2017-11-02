@@ -362,10 +362,6 @@ setTimeout(function() {
 }, 500);
 });
 
-chrome.extension.isAllowedIncognitoAccess && chrome.extension.isAllowedIncognitoAccess(function(isAllowedAccess): void {
-  Settings.CONST.DisallowIncognito = isAllowedAccess === false;
-});
-
 if (chrome.extension.getViews)
 Utils.GC = function(): void {
   let timestamp = 0, timeout = 0;

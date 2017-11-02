@@ -127,7 +127,7 @@ var VDom = {
   },
   specialZoom: false,
   getViewBox (): ViewBox {
-    let iw = window.innerWidth, ih = window.innerHeight, zoom: number;
+    let iw = window.innerWidth, ih = window.innerHeight;
     if (document.webkitIsFullScreen) {
       // It's a whole mess of inherited "contain" stack and nothing can be ensured right
       VDom.bodyZoom = 1;
@@ -137,29 +137,24 @@ var VDom = {
     st = getComputedStyle(box),
     box2 = document.body,
     st2 = box2 && box2 !== box ? getComputedStyle(box2) : st;
-    let x = window.scrollX, y = window.scrollY;
     // NOTE: if zoom > 1, although document.documentElement.scrollHeight is integer,
     //   its real rect may has a float width, such as 471.333 / 472
-    const rect = box.getBoundingClientRect(),
-    width  = st.overflowX === "hidden" || st2.overflowX === "hidden" ? 0
-      : box.scrollWidth  - Math.ceil(x) - <number><boolean | number>(rect.width  !== (rect.width  | 0)),
+    const rect = box.getBoundingClientRect();
+    let x = -rect.left, y = -rect.top, w2 = rect.width, h2 = rect.height;
+    const width  = st.overflowX === "hidden" || st2.overflowX === "hidden" ? 0
+      : box.scrollWidth  - Math.ceil(x) - <number><boolean | number>(w2 !== (w2 | 0)),
     height = st.overflowY === "hidden" || st2.overflowY === "hidden" ? 0
-      : box.scrollHeight - Math.ceil(y) - <number><boolean | number>(rect.height !== (rect.height | 0));
+      : box.scrollHeight - Math.ceil(y) - <number><boolean | number>(h2 !== (h2 | 0));
     if (st.position !== "static" || (<RegExpOne>/content|paint|strict/).test(st.contain as string)) {
-      x = -rect.left - box.clientLeft, y = -rect.top - box.clientTop;
+      x -= box.clientLeft, y -= box.clientTop;
     } else {
-      zoom = this.getDocZoom(st, 1);
-      x /= zoom, y /= zoom;
+      x += parseInt(st.marginLeft), y += parseInt(st.marginTop);
     }
-    VDom.bodyZoom = zoom = st2 !== st && +st2.zoom || 1;
+    const zoom = VDom.bodyZoom = st2 !== st && +st2.zoom || 1;
     x /= zoom, y /= zoom;
     iw = Math.min(Math.max(width,  box.clientWidth,  iw - 24), iw + 64);
     ih = Math.min(Math.max(height, box.clientHeight, ih - 24), ih + 20);
     return [Math.ceil(x), Math.ceil(y), iw, ih - 15, iw];
-  },
-  getDocZoom (st: CSSStyleDeclaration, scale?: number): number {
-    const zoom = +st.zoom || 1, ratio = window.devicePixelRatio;
-    return (scale || ratio) * (this.specialZoom && Math.abs(zoom - ratio) * 1000 < 1 ? 1 : zoom);
   },
   ensureInView (el: Element, oldY?: number): boolean {
     const rect = el.getBoundingClientRect(), ty = this.NotVisible(null, rect);

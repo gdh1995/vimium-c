@@ -1,6 +1,6 @@
 {
   "name": "vimium-plus",
-  "version": "1.61.2",
+  "version": "1.62.0",
   "description": "optimized Vimium supporting Chinese, global commands and injection into other extensions",
   "dependencies": {
     "typescript": "next"
@@ -23,6 +23,7 @@
   "scripts": {
     "tsc": "node scripts/tsc.js",
     "all": "node scripts/tsc.js all",
+    "a": "node scripts/tsc.js all",
     "b": "node scripts/tsc.js background",
     "c": "node scripts/tsc.js content",
     "f": "node scripts/tsc.js front",

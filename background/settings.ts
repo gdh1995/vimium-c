@@ -144,7 +144,7 @@ var Settings = {
         url = (this as typeof Settings).CONST.VomnibarPageInner;
       } else {
         url = Utils.convertToUrl(url);
-        if (!url.startsWith("chrome") && this.CONST.ChromeVersion < BrowserVer.MinWithFrameId) {
+        if (!url.startsWith("chrome") && this.CONST.ChromeVersion < BrowserVer.Min$tabs$$executeScript$hasFrameIdArg) {
           url = (this as typeof Settings).CONST.VomnibarPageInner;
         } else {
           url = url.replace(":version", "" + parseFloat((this as typeof Settings).CONST.CurrentVersion));
