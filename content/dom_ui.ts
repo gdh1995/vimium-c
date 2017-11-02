@@ -136,14 +136,14 @@ VDom.UI = {
     }
     if (suppressRepeated === true) { return this.suppressTail(true); }
   },
-  getZoom (this: void): number {
+  getZoom (this: void, min?: number): number {
     let docEl = document.documentElement as Element, el: Element | null, zoom = 1;
     el = document.webkitFullscreenElement || docEl;
     if (VDom.specialZoom) { zoom /= window.devicePixelRatio; }
     do {
       zoom *= +getComputedStyle(el).zoom || 1;
     } while (el = VDom.getParent(el));
-    return Math.round(zoom * 200) / 200 * Math.min(1, window.devicePixelRatio);
+    return Math.round(zoom * 200) / 200 * Math.min(min || 1, window.devicePixelRatio);
   },
   getVRect (this: void, clickEl: Element): VRect | null {
     const b = document.body;

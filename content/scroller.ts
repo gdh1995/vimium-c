@@ -146,11 +146,12 @@ animate (a: number, d: ScrollByY, e: Element | null): void | number {
   getActivatedElement (): Element | null {
     let element: Element | null;
     this.top = document.scrollingElement || document.body || (VDom.isHTML() ? document.documentElement : null);
-    this.scale = Math.max(1, 1 / window.devicePixelRatio);
+    this.getScale();
     if (element = this.current) { return element; }
     element = this.top;
     return this.current = element && (this.selectFirst(element) || element);
   },
+  getScale (): void { this.scale = Math.max(1, 1 / VDom.UI.getZoom(99)); },
   checkCurrent (el: Element | null): void {
     const cur = this.current;
     if (cur !== el && cur && VDom.NotVisible(cur)) { this.current = el; }

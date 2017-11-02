@@ -128,6 +128,7 @@ var VHints = {
 
     let elements: Hint[] | undefined;
     const arr = VDom.getViewBox();
+    VScroller.getScale();
     if (this.tooHigh !== null) {
       this.tooHigh = (document.documentElement as HTMLElement).scrollHeight / window.innerHeight > 20;
     }

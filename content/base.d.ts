@@ -184,7 +184,7 @@ interface DomUI {
   removeSelection (this: DomUI, root?: DocumentOrShadowRoot,): boolean;
   click (this: DomUI, element: Element, modifiers?: EventControlKeys | null, addFocus?: boolean): boolean;
   simulateSelect (this: DomUI, element: Element, flash?: boolean, suppressRepeated?: boolean): void;
-  getZoom (this: void): number;
+  getZoom (this: void, min?: number): number;
   getVRect (this: void, clickEl: Element): VRect | null;
   flash (this: DomUI, el: null, rect: VRect): number;
   flash (this: DomUI, el: Element): number | void;
