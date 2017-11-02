@@ -978,7 +978,7 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
     OnScrolls: [function (event): void | 1 {
       if (event.repeat) {
         VUtils.prevent(event);
-        return (VScroller.keyIsDown = VScroller.Core.maxInterval) as 1;
+        return (VScroller.keyIsDown = VScroller.maxInterval) as 1;
       } else if (this !== VEventMode.OnScrolls) {
         return VEventMode.OnScrolls[3](this);
       } else {
