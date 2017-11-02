@@ -332,7 +332,7 @@ var VHints = {
         : ClickType.Default;
     }
     if ((isClickable || type > ClickType.Default) && (arr = VDom.getVisibleClientRect(element))
-        && (type < ClickType.scrollX || VScroller.isScrollable(element, type - 8 as 0 | 1))
+        && (type < ClickType.scrollX || VScroller.shouldScroll(element, type - 8 as 0 | 1))
         && ((s = element.getAttribute("aria-hidden")) == null || s && s.toLowerCase() !== "true")
         && ((s = element.getAttribute("aria-disabled")) == null || (s && s.toLowerCase() !== "true")
           || VHints.mode >= HintMode.min_job)

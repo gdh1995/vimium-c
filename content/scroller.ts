@@ -138,7 +138,7 @@ animate (a: number, d: ScrollByY, e: Element | null): void | number {
       ? Math.ceil(amount * 0.6) : amount;
   },
   findScrollable (element: Element | null, di: ScrollByY, amount: number): Element | null {
-    while (element !== this.top && !(this.scrollDo(element, di, amount) && this.shouldScroll(element as Element, di))) {
+    while (element !== this.top && !this.shouldScroll(element as Element, di, amount)) {
       element = VDom.getParent(element as Element) || this.top;
     }
     return element;
@@ -182,20 +182,20 @@ animate (a: number, d: ScrollByY, e: Element | null): void | number {
     return null;
   },
   scrollIntoView (el: Element): void {
-    let rect = el.getClientRects()[0] as ClientRect | undefined, hasY, ref, oldSmooth;
+    let rect = el.getClientRects()[0] as ClientRect | undefined;
     if (!rect) { return; }
     this.getActivatedElement();
     let height = window.innerHeight, width = window.innerWidth,
     amount = rect.bottom < 0 ? rect.bottom - Math.min(rect.height, height)
-      : height < rect.top ? rect.top + Math.min(rect.height - height, 0) : 0;
+      : height < rect.top ? rect.top + Math.min(rect.height - height, 0) : 0,
+    hasY = amount;
     if (hasY = amount) {
       this.scroll(this.findScrollable(el, 1, amount), 1, amount);
     }
     amount = rect.right < 0 ? rect.right - Math.min(rect.width, width)
       : width < rect.left ? rect.left + Math.min(rect.width - width, 0) : 0;
     if (amount) {
-      ref = VSettings.cache;
-      oldSmooth = ref.smoothScroll;
+      const ref = VSettings.cache, oldSmooth = ref.smoothScroll;
       ref.smoothScroll = !hasY && oldSmooth;
       this.scroll(this.findScrollable(el, 0, amount), 0, amount);
       ref.smoothScroll = oldSmooth;
@@ -203,12 +203,12 @@ animate (a: number, d: ScrollByY, e: Element | null): void | number {
     VScroller.keyIsDown = 0; // it's safe to only clean keyIsDown here
     this.top = null;
   },
-  shouldScroll (element: Element, di: ScrollByY): boolean {
-    const st = window.getComputedStyle(element);
-    return (di ? st.overflowY : st.overflowX) !== "hidden" && st.display !== "none" && st.visibility === "visible";
-  },
-  isScrollable (el: Element, di: ScrollByY): boolean {
-    return this.scrollDo(el, di, +!(di ? el.scrollTop : el.scrollLeft)) && this.shouldScroll(el, di);
+  shouldScroll (element: Element, di: ScrollByY, amount?: number): boolean {
+    if (this.scrollDo(element, di, amount != null ? amount : +!(di ? element.scrollTop : element.scrollLeft))) {
+      const st = window.getComputedStyle(element);
+      return (di ? st.overflowY : st.overflowX) !== "hidden" && st.display !== "none" && st.visibility === "visible";
+    }
+    return false;
   },
   sortBy0 (this: void, a: {area: number, el: Element}, b: {area: number, el: Element}): number {
     return a.area - b.area;
