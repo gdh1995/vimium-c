@@ -769,16 +769,18 @@ VPort = {
     location.href = "about:blank";
     return;
   }
-  if (location.pathname !== "/vomnibar.html" || location.protocol !== "chrome-extension:" || !document.currentScript) {}
-  else if ((document.currentScript as HTMLScriptElement).src.lastIndexOf("/front/") !== -1) {
-    window.ExtId = new URL((document.currentScript as HTMLScriptElement).src).hostname;
+  let curEl: HTMLScriptElement;
+  if (location.pathname === "/front/vomnibar.html" || location.protocol !== "chrome-extension:"
+   || !(curEl = document.currentScript as typeof curEl)) {}
+  else if (curEl.src.endsWith("/front/vomnibar.js") && curEl.src.startsWith("chrome-extension:")) {
+    window.ExtId = new URL(curEl.src).hostname;
   } else {
-    document.currentScript.remove();
+    curEl.remove();
     window.onmessage = function(event): void {
       if (event.source !== window.parent) { return; }
-      const data: VomnibarNS.MessageData = event.data, script = document.createElement("script");
-      script.src = (data[1] as VomnibarNS.FgOptions).script;
-      window.ExtId = new URL(script.src).hostname;
+      const data: VomnibarNS.MessageData = event.data, script = document.createElement("script"),
+      src = script.src = (data[1] as VomnibarNS.FgOptions).script;
+      window.ExtId = new URL(src).hostname;
       script.onload = function(): void {
         return window.onmessage(event);
       };
