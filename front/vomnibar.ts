@@ -49,7 +49,7 @@ var Vomnibar = {
     this.isHttps = null;
     let { url, keyword, search } = options, start: number | undefined;
     this.width(options.width * 0.8);
-    this.init && this.setFav();
+    this.init && this.setFav(options.ptype);
     if (url == null) {
       return this.reset(keyword ? keyword + " " : "");
     }
@@ -562,13 +562,11 @@ var Vomnibar = {
     }
     this.init = VUtils.makeListRenderer = null as never;
   },
-  setFav (): void {
-    let fav = this.showFavIcon, f: () => chrome.runtime.Manifest, manifest: chrome.runtime.Manifest;
-    if (fav < 2 && location.protocol.startsWith("chrome") && (f = chrome.runtime.getManifest) && (manifest = f())) {
+  setFav (type: VomnibarNS.PageType): void {
+    let fav = (2 - type) as 0 | 1 | 2, f: () => chrome.runtime.Manifest, manifest: chrome.runtime.Manifest;
+    if (type === VomnibarNS.PageType.ext && location.protocol.startsWith("chrome") && (f = chrome.runtime.getManifest) && (manifest = f())) {
       const arr = manifest.permissions || [];
-      fav = arr.indexOf("<all_urls>") >= 0 || arr.indexOf("chrome://favicon/") >= 0 ? fav + 1 as 0 | 1 | 2 : 0;
-    } else {
-      fav = 0;
+      fav = arr.indexOf("<all_urls>") >= 0 || arr.indexOf("chrome://favicon/") >= 0 ? 1 : 0;
     }
     this.mode.favIcon = fav;
   },
