@@ -104,6 +104,7 @@ declare namespace VomnibarNS {
   interface BaseFgOptions {
     width: number;
     search: "" | FgRes["parseSearchUrl"];
+    ptype: PageType;
   }
   interface FgOptions extends BaseFgOptions, Partial<GlobalOptions> {
     url?: string | null;
@@ -181,7 +182,7 @@ interface DomUI {
   createStyle (this: DomUI, text: string, doc?: { createElement: Document["createElement"] }): HTMLStyleElement;
   css (this: DomUI, innerCSS: string): void;
   getSelection (this: DomUI): Selection;
-  removeSelection (this: DomUI, root?: DocumentOrShadowRoot,): boolean;
+  removeSelection (this: DomUI, root?: DocumentOrShadowRoot): boolean;
   click (this: DomUI, element: Element, modifiers?: EventControlKeys | null, addFocus?: boolean): boolean;
   simulateSelect (this: DomUI, element: Element, flash?: boolean, suppressRepeated?: boolean): void;
   getZoom (this: void, min?: number): number;

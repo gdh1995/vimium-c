@@ -758,6 +758,13 @@ VPort = {
     VPort.postToOwner({ name: "unload" });
   }
 };
+"".startsWith || (String.prototype.startsWith = function(this: string, s: string): boolean {
+  return this.length >= s.length && this.lastIndexOf(s, 0) === 0;
+});
+"".endsWith || (String.prototype.endsWith = function(this: string, s: string): boolean {
+  const i = this.length - s.length;
+  return i >= 0 && this.indexOf(s, i) === i;
+});
 (function(): void {
   if (!(+<string>(document.documentElement as HTMLElement).getAttribute("data-version") >=
         1.61)) {
@@ -817,11 +824,4 @@ VPort = {
     }
   };
 VPort.connect(PortType.omnibar);
-String.prototype.startsWith || (String.prototype.startsWith = function(this: string, s: string): boolean {
-  return this.length >= s.length && this.lastIndexOf(s, 0) === 0;
-});
-String.prototype.endsWith || (String.prototype.endsWith = function(this: string, s: string): boolean {
-  const i = this.length - s.length;
-  return i >= 0 && this.indexOf(s, i) === i;
-});
 })();

@@ -1350,7 +1350,7 @@ Are you sure you want to continue?`);
         vomnibar: choice ? inner : page,
         vomnibar2: choice ? null : inner,
         ptype: choice ? VomnibarNS.PageType.inner : web ? VomnibarNS.PageType.web : VomnibarNS.PageType.ext,
-        script: Settings.CONST.VomnibarScript_f,
+        script: choice ? "" : Settings.CONST.VomnibarScript_f,
         secret: getSecret(),
       } as CmdOptions["Vomnibar.activate"], null), cOptions as any);
       port.postMessage<1, "Vomnibar.activate">({

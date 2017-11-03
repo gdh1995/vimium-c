@@ -119,7 +119,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
         action = HandlerResult.Prevent;
       } else if (VDom.UI.removeSelection()) {
         action = HandlerResult.Prevent;
-      } else if (document.activeElement === document.body) {
+      } else if (window.top !== window && document.activeElement === document.body) {
         action = InsertMode.focusUpper(key);
       } else if (event.repeat) {
         let c = document.activeElement; c && c.blur && c.blur();
