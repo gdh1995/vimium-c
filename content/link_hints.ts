@@ -228,8 +228,8 @@ var VHints = {
     return marker;
   },
   adjustMarkers (elements: Hint[]): void {
-    if (VDom.bodyZoom === 1 || !VDom.UI.root) { return; }
     const root = VDom.UI.root, z = "" + 1 / VDom.bodyZoom;
+    if (z === "1" || !root) { return; }
     let arr = this.hintMarkers as HintsNS.Marker[], i = elements.length - 1;
     if (elements[i][0] === Vomnibar.box) { arr[i--].style.zoom = z; }
     if (!root.querySelector('#HelpDialog') || i < 0) { return; }

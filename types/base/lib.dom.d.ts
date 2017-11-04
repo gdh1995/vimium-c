@@ -7537,8 +7537,8 @@ interface Storage {
     key(index: number): string | null;
     removeItem(key: string): void;
     setItem(key: string, data: string): void;
-    [key: string]: any;
-    [index: number]: string;
+    // [key: string]: any;
+    // [index: number]: string;
 }
 
 declare var Storage: {
