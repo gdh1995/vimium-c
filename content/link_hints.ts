@@ -2,7 +2,8 @@ const enum ClickType {
   Default = 0,
   click = Default, edit, listener,
   classname = 4, tabindex,
-  maxNotBox = 6, frame = maxNotBox + 1, scrollX, scrollY,
+  maxNotBox = 6, minBox = maxNotBox + 1,
+  frame = minBox, scrollX, scrollY,
 }
 declare namespace HintsNS {
   type LinkEl = Hint[0];
@@ -213,7 +214,7 @@ var VHints = {
     let marker = VDom.createElement("span") as HintsNS.Marker, i: number;
     marker.clickableItem = link[0];
     i = link.length < 5 ? link[1][0] : (link[4] as [VRect, number])[0][0] + (link[4] as [VRect, number])[1];
-    marker.className = link[2] < 7 ? "LH" : "LH BH";
+    marker.className = link[2] < ClickType.minBox ? "LH" : "LH BH";
     const st = marker.style;
     st.left = i + "px";
     if (i > this.maxLeft) {
@@ -254,6 +255,13 @@ var VHints = {
     switch (element.tagName.toLowerCase()) {
     case "a": case "details": isClickable = true; break;
     case "frame": case "iframe":
+      if (element === Vomnibar.box) {
+        if (arr = VDom.getVisibleClientRect(element)) {
+          arr[0] += 10.5; arr[1] += 8;
+          this.push([element, arr, ClickType.frame]);
+        }
+        return;
+      }
       isClickable = element !== VFindMode.box;
       type = isClickable ? ClickType.frame : ClickType.Default;
       break;
@@ -307,7 +315,7 @@ var VHints = {
         : ClickType.Default;
     }
     if ((isClickable || type > ClickType.Default) && (arr = VDom.getVisibleClientRect(element))
-        && (type < ClickType.scrollX || VScroller.shouldScroll(element, type - 8 as 0 | 1))
+        && (type < ClickType.scrollX || VScroller.shouldScroll(element, type - ClickType.scrollX as 0 | 1))
         && ((s = element.getAttribute("aria-hidden")) == null || s && s.toLowerCase() !== "true")
         && ((s = element.getAttribute("aria-disabled")) == null || (s && s.toLowerCase() !== "true")
           || VHints.mode >= HintMode.min_job)
@@ -338,7 +346,7 @@ var VHints = {
       break;
     default:
       if ((s = element.contentEditable) === "inherit" || !s || s === "false") { return; }
-      type = 1;
+      type = ClickType.edit;
       break;
     }
     if (arr = VDom.getVisibleClientRect(element)) {
