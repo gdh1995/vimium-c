@@ -84,6 +84,7 @@ interface CmdOptions {
     ptype: VomnibarNS.PageType;
     script: string;
     secret: number;
+    CSS: string | null;
   };
   goNext: {
     dir: string;

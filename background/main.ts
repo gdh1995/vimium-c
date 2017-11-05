@@ -1351,11 +1351,11 @@ Are you sure you want to continue?`);
         ptype: choice ? VomnibarNS.PageType.inner : web ? VomnibarNS.PageType.web : VomnibarNS.PageType.ext,
         script: choice ? "" : Settings.CONST.VomnibarScript_f,
         secret: getSecret(),
+        CSS: funcDict.ensureInnerCSS(cPort)
       } as CmdOptions["Vomnibar.activate"], null), cOptions as any);
       port.postMessage<1, "Vomnibar.activate">({
         name: "execute", count: commandCount,
         command: "Vomnibar.activate",
-        CSS: funcDict.ensureInnerCSS(cPort),
         options
       });
       options.secret = -1;

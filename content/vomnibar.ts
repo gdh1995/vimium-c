@@ -52,7 +52,7 @@ var Vomnibar = {
     this.box && VDom.UI.adjust();
     if (this.status === VomnibarNS.Status.NotInited) {
       this.status = VomnibarNS.Status.Initing;
-      this.init(options.secret, options.vomnibar, options.ptype, options.vomnibar2);
+      this.init(options);
     } else if (this.isABlank()) {
       this.onReset = function(this: typeof Vomnibar): void { this.onReset = null; return this.activate(count, options); };
       return;
@@ -62,7 +62,7 @@ var Vomnibar = {
       this.box.contentWindow.focus();
       this.onShown();
     }
-    options.secret = 0; options.vomnibar = "";
+    options.secret = 0; options.vomnibar = options.CSS = "";
     options.width = width, options.name = "activate";
     let url = options.url, upper = 0;
     if (url === true) {
@@ -106,8 +106,8 @@ var Vomnibar = {
     active || window.focus();
     this.box.style.cssText = "display: none;";
   },
-  init (secret: number, page: string, type: VomnibarNS.PageType, inner: string | null): HTMLIFrameElement {
-    const el = VDom.createElement("iframe") as typeof Vomnibar.box;
+  init ({secret, vomnibar: page, ptype: type, vomnibar2: inner, CSS}: VomnibarNS.FullOptions): void {
+    const el = VDom.createElement("iframe") as typeof Vomnibar.box, UI = VDom.UI;
     el.className = "R UI Omnibar";
     type === VomnibarNS.PageType.web && (el.referrerPolicy = "no-referrer");
     el.src = page;
@@ -162,7 +162,13 @@ var Vomnibar = {
       if (location.hash === "#chrome-ui") { _this.defaultTop = "5px"; }
       wnd.onmessage({ source: window, data: sec, ports: [port] });
     };
-    return VDom.UI.addElement(this.box = el, {adjust: true, showing: false});
+    if (CSS) {
+      UI.styleIn = "";
+    }
+    UI.addElement(this.box = el, {adjust: true, showing: false});
+    if (CSS) {
+      UI.css(CSS);
+    }
   },
   reset (redo?: boolean): void | 1 {
     if (this.status === VomnibarNS.Status.NotInited) { return; }

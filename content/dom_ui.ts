@@ -37,17 +37,18 @@ VDom.UI = {
     let a = this.styleIn as string | null;
     if (a) {
       this.css(a);
-    } else {
+    } else if (a !== "") {
       VPort.post({ handler: "css" });
     }
-    options.adjust = doAdd === true;
     this.addElement = function<T extends HTMLElement>(this: DomUI, element: T, options?: UIElementOptions | null): T {
       options = Object.setPrototypeOf(options || {}, null);
       options.adjust === false || this.adjust();
       return options.before ? (this.root as ShadowRoot).insertBefore(element, options.before)
-        : (this.root as ShadowRoot).appendChild(element);
+      : (this.root as ShadowRoot).appendChild(element);
     };
-    return this.addElement(element as T, options);
+    this.root.appendChild(element);
+    doAdd === true && this.adjust();
+    return element;
   },
   addElementList (els, offset): HTMLDivElement {
     const parent = VDom.createElement("div");

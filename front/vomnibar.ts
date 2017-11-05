@@ -424,7 +424,7 @@ var Vomnibar = {
   OnMenu (this: void, event: Event): void {
     let el = event.target as Element | null;
     for (; el && !el.classList.contains("url"); el = el.parentElement) {}
-    if (!el) { return; }
+    if (!el || (el as HTMLAnchorElement).href) { return; }
     const _i = [].indexOf.call(Vomnibar.list.children, (el.parentNode as HTMLElement).parentNode);
     (el as HTMLAnchorElement).href = Vomnibar.completions[_i].url;
   },
