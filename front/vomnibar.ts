@@ -594,7 +594,7 @@ var Vomnibar = {
         any, 0, { name: "focus", lastKey: request.lastKey });
   },
   width (w?: number): void { this.mode.maxChars = Math.ceil(((w || window.innerWidth) - 74) / 7.72); },
-  secret: null as never as (this: void, request: BgVomnibarReq["secret"]) => void,
+  secret: null as never as (request: BgVomnibarReq["secret"]) => void,
 
   mode: {
     handler: "omni" as "omni",
@@ -790,17 +790,16 @@ VPort = {
     return;
   }
 
-  let _secr = null as number | null, step = 0, _port: VomnibarNS.IframePort | undefined, _options: Options | null | undefined,
-  handler = function(this: void, secret: number, port?: VomnibarNS.IframePort, options?: Options | null): void {
-    if (0 === step++) {
-      _secr = secret, _port = port, _options = options;
+  let _sec = 0 as number,
+  unsafeMsg = [] as [number, VomnibarNS.IframePort, Options | null][],
+  handler = function(this: void, secret: number, port: VomnibarNS.IframePort, options: Options | null): void {
+    if (_sec < 1 || secret != _sec) {
+      _sec || unsafeMsg.push([secret, port, options]);
       return;
     }
-    if (_secr !== secret) { return; }
+    _sec = -1;
     clearTimeout(timer);
     window.onmessage = null as never;
-    port || (port = _port as VomnibarNS.IframePort);
-    options || (options = _options);
     Vomnibar.sameOrigin = !!port.sameOrigin;
     VPort.postToOwner = port.postMessage.bind(port);
     port.onmessage = VPort.OnOwnerMessage;
@@ -812,10 +811,17 @@ VPort = {
     }
   },
   timer = setTimeout(function() { window.location.href = "about:blank"; }, 700);
-  Vomnibar.secret = function(request): void {
-    Vomnibar.secret = function() {};
+  Vomnibar.secret = function(this: typeof Vomnibar, request): void {
+    this.secret = function() {};
     Vomnibar.browserVersion = request.browserVersion;
-    return handler(request.secret);
+    const { secret } = request, msgs = unsafeMsg;
+    _sec = secret;
+    unsafeMsg = null as never;
+    for (let i of msgs) {
+      if (i[0] == secret) {
+        return handler(i[0], i[1], i[2]);
+      }
+    }
   };
   window.onmessage = function(event): void {
     if (event.source === window.parent) {

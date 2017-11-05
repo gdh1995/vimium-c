@@ -1,5 +1,5 @@
 interface BaseExecute<T> {
-  CSS?: string | null;
+  CSS: string | null;
   command: string;
   count: number;
   options: T | null;

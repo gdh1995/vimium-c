@@ -1303,7 +1303,7 @@ Are you sure you want to continue?`);
         }
       }
       if (p2.length > GlobalConsts.MaxNumberOfNextPatterns) { p2.length = GlobalConsts.MaxNumberOfNextPatterns; }
-      cPort.postMessage<1, "goNext">({ name: "execute", count: 1, command: "goNext",
+      cPort.postMessage<1, "goNext">({ name: "execute", count: 1, command: "goNext", CSS: null,
         options: {
           dir,
           patterns: p2
@@ -1354,7 +1354,7 @@ Are you sure you want to continue?`);
         CSS: funcDict.ensureInnerCSS(cPort)
       } as CmdOptions["Vomnibar.activate"], null), cOptions as any);
       port.postMessage<1, "Vomnibar.activate">({
-        name: "execute", count: commandCount,
+        name: "execute", count: commandCount, CSS: null,
         command: "Vomnibar.activate",
         options
       });
@@ -1378,6 +1378,7 @@ Are you sure you want to continue?`);
         command: "showHelp",
         count: 1,
         options: null,
+        CSS: null
       });
     },
     toggleViewSource (this: void, tabs: [Tab]): void {
@@ -1497,7 +1498,7 @@ Are you sure you want to continue?`);
       if (port && request.execute) {
         const result = requestHandlers.parseUpperUrl(request);
         if (result.path != null) {
-          port.postMessage<1, "reload">({ name: "execute", command: "reload", count: 1, options: { url: result.url } });
+          port.postMessage<1, "reload">({ name: "execute", command: "reload", count: 1, options: { url: result.url }, CSS: null });
           return;
         }
         cPort = port;

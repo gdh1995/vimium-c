@@ -626,7 +626,7 @@ Pagination = {
   },
   findAndFollowRel (relName: string): boolean {
     const elements = document.querySelectorAll("[rel]"),
-    relTags = Object.setPrototypeOf({a: 1, area: 1, link: 1}, null);
+    relTags = VUtils.safer({a: 1, area: 1, link: 1});
     let s: string | null;
     for (let _i = 0, _len = elements.length; _i < _len; _i++) {
       const element = elements[_i];
@@ -802,7 +802,7 @@ opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647
     },
     settingsUpdate (request): void {
       type Keys = keyof SettingsNS.FrontendSettings;
-      Object.setPrototypeOf(request, null);
+      VUtils.safer(request);
       delete request.name;
       for (let i in request) {
         VSettings.cache[i as Keys] = request[i as Keys] as SettingsNS.FrontendSettings[Keys];

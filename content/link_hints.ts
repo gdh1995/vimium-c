@@ -81,7 +81,7 @@ var VHints = {
   noHUD: false,
   options: null as never as HintsNS.Options,
   timer: 0,
-  activate (count?: number, options?: FgOptions | null): void {
+  activate (count: number, options: FgOptions): void {
     if (this.isActive) { return; }
     if (document.body == null) {
       this.clean();
@@ -92,7 +92,7 @@ var VHints = {
       if (!VDom.isHTML()) { return; }
     }
     VUtils.remove(this);
-    this.setModeOpt((count as number) | 0, Object.setPrototypeOf(options || (options = {} as any as FgOptions), null));
+    this.setModeOpt((count as number) | 0, options);
     let str = options.characters ? options.characters + "" : VSettings.cache.linkHintCharacters;
     if (str.length < 3) {
       this.clean(true);
@@ -198,8 +198,8 @@ var VHints = {
       this.frameNested = null;
       return false;
     }
-    child.VEventMode.focusAndListen(done ? null : function() {
-      VUtils.execCommand(child, command, a, b);
+    child.VEventMode.focusAndListen(done ? null : function(): void {
+      return VUtils.execCommand(child, command, a, b);
     });
     if (done) { return true; }
     if (document.readyState !== "complete") { this.frameNested = false; }

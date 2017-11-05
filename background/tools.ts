@@ -51,7 +51,7 @@ Marks = { // NOTE: all public members should be static
         : { tabId: tabId as number, url, scroll }));
   },
   _goto (port: Port, options: CmdOptions["Marks.goTo"]) {
-    port.postMessage<1, "Marks.goTo">({ name: "execute", command: "Marks.goTo", count: 1, options});
+    port.postMessage<1, "Marks.goTo">({ name: "execute", command: "Marks.goTo", count: 1, options, CSS: null});
   },
   createMark (this: void, request: MarksNS.NewTopMark | MarksNS.NewMark, port: Port): void {
     let tabId = port.sender.tabId;

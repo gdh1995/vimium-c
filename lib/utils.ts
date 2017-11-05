@@ -23,12 +23,15 @@ var VUtils = {
     }, 0);
     return true;
   },
-  execCommand (this: void, parent: object, command: string, a: number, b: object | null): void {
+  safer<T extends object> (this: void, opt?: T | null | undefined): T & SafeObject {
+    return opt ? Object.setPrototypeOf(opt, null) : Object.create(null);
+  },
+  execCommand (parent: object, command: string, a: number, b: object | null): void {
     let keys = command.split('.'), i: number, len: number;
     for (i = 0, len = keys.length - 1; i < len; i++) {
       parent = (parent as any)[keys[i]];
     }
-    return (parent as any)[keys[i]](a, Object.setPrototypeOf(b || {}, null));
+    return (parent as any)[keys[i]](a, this.safer(b));
   },
   decodeURL (this: void, url: string): string {
     try { url = decodeURI(url); } catch (e) {}

@@ -30,9 +30,8 @@ height:14px;margin:0;overflow:hidden;vertical-align:top;white-space:nowrap;curso
 body{cursor:text;display:inline-block;padding:0 3px 0 1px;max-width:215px;min-width:7px;}
 body *{all:inherit !important;display:inline !important;}
 html > count{float:right;}`,
-  activate (_0?: number, options?: Partial<FindOptions>): void {
+  activate (_0: number, options: Partial<FindOptions> & SafeObject): void {
     if (!VDom.isHTML()) { return; }
-    options = Object.setPrototypeOf(options || {}, null);
     const query: string | undefined | null = options.query ? (options.query + "") : null;
     this.isActive || query === this.query || VMarks.setPreviousPosition();
     VDom.UI.ensureBorder();
@@ -129,7 +128,7 @@ html > count{float:right;}`,
     this.init = null as never;
     return (UI.box as HTMLElement).appendChild(sout);
   },
-  findAndFocus (query: string, options: Partial<FindOptions>): void {
+  findAndFocus (query: string, options: Partial<FindOptions> & SafeObject): void {
     if (query !== this.query) {
       this.updateQuery(query);
       if (this.isActive) {
@@ -140,7 +139,7 @@ html > count{float:right;}`,
     this.init && this.init();
     const style = this.isActive || VHUD.opacity !== 1 ? null : (VHUD.box as HTMLDivElement).style;
     style && (style.visibility = "hidden");
-    this.execute(null, options as FindNS.ExecuteOptions);
+    this.execute(null, options);
     style && (style.visibility = "");
     if (!this.hasResults) {
       this.isActive || VHUD.showForDuration(`No matches for '${this.query}'`, 1000);
@@ -220,7 +219,7 @@ html > count{float:right;}`,
       this.toggleStyle(0);
       this.restoreSelection(true);
     }
-    if (VVisualMode.mode) { return VVisualMode.activate(); }
+    if (VVisualMode.mode) { return VVisualMode.activate(1, VUtils.safer()); }
     if (i < Result.MinComplicatedExit || !this.hasResults) { return; }
     if (!el || el !== VEventMode.lock()) {
       el = window.getSelection().anchorNode as Element | null;
@@ -359,7 +358,7 @@ html > count{float:right;}`,
     return this.regexMatches[count];
   },
   execute (query?: string | null, options?: FindNS.ExecuteOptions): void {
-    Object.setPrototypeOf(options || (options = {}), null);
+    options = VUtils.safer(options);
     let el: Element | null, found: boolean, count = (options.count as number) | 0, back = (options.dir as number) <= 0
       , q: string, notSens = this.ignoreCase && !options.caseSensitive;
     options.noColor || this.toggleStyle(1);

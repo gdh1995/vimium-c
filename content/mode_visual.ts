@@ -26,9 +26,8 @@ var VVisualMode = {
   currentSeconds: null as SafeDict<VisualModeNS.ValidActions> | null,
   retainSelection: false,
   selection: null as never as Selection,
-  activate (_0?: number, options?: FgOptions): void {
+  activate (_0: number, options: FgOptions): void {
     let sel: Selection, type: string, mode: VisualModeNS.Mode, str: string;
-    Object.setPrototypeOf(options = options || {} as FgOptions, null);
     this.init && this.init();
     this.movement.selection = this.selection = sel = VDom.UI.getSelection();
     VUtils.remove(this);
@@ -189,7 +188,10 @@ var VVisualMode = {
     const range = this.selection.getRangeAt(0);
     VFindMode.execute(null, { noColor: true, dir, count });
     if (VFindMode.hasResults) {
-      return this.mode === VisualModeNS.Mode.Caret && this.selection.toString().length > 0 ? this.activate() : undefined;
+      if (this.mode === VisualModeNS.Mode.Caret && this.selection.toString().length > 0) {
+        this.activate(1, VUtils.safer<FgOptions>());
+      }
+      return;
     }
     this.selection.removeAllRanges();
     this.selection.addRange(range);
@@ -362,7 +364,7 @@ keyMap: {
   "/": function(): void | boolean {
     clearTimeout((this as typeof VVisualMode).hudTimer);
     VHUD.hide();
-    return VFindMode.activate(1, { returnToViewport: true });
+    return VFindMode.activate(1, VUtils.safer({ returnToViewport: true }));
   },
   y (): void { return (this as typeof VVisualMode).yank(); },
   Y (count): void { (this as typeof VVisualMode).movement.selectLine(count); return (this as typeof VVisualMode).yank(); },
@@ -382,7 +384,7 @@ keyMap: {
 
 init: function() {
   this.init = null as never;
-  var map = this.keyMap, func = Object.setPrototypeOf, str =
+  var map = this.keyMap, func = VUtils.safer, str =
 "[_0-9A-Za-z\\xAA\\xB5\\xBA\\xC0-\\xD6\\xD8-\\xF6\\xF8-\\u02C1\\u02C6-\\u02D1\\u02E0-\\u02E4\\u02EC\
 \\u02EE\\u0370-\\u0374\\u0376\\u0377\\u037A-\\u037D\\u0386\\u0388-\\u038A\\u038C\\u038E-\\u03A1\\u03A3-\\u03F5\\u0\
 3F7-\\u0481\\u048A-\\u0527\\u0531-\\u0556\\u0559\\u0561-\\u0587\\u05D0-\\u05EA\\u05F0-\\u05F2\\u0620-\\u064A\\u066\
@@ -427,6 +429,6 @@ E2\\uAC00-\\uD7A3\\uD7B0-\\uD7C6\\uD7CB-\\uD7FB\\uF900-\\uFA6D\\uFA70-\\uFAD9\\u
 D50-\\uFD8F\\uFD92-\\uFDC7\\uFDF0-\\uFDFB\\uFE70-\\uFE74\\uFE76-\\uFEFC\\uFF21-\\uFF3A\\uFF41-\\uFF5A\\uFF66-\\uFF\
 BE\\uFFC2-\\uFFC7\\uFFCA-\\uFFCF\\uFFD2-\\uFFD7\\uFFDA-\\uFFDC]";
   this.movement.wordRe = new RegExp(str);
-  func(map, null); func(map.a, null); func(map.g, null);
+  func(map); func(map.a as Dict<VisualModeNS.ValidActions>); func(map.g as Dict<VisualModeNS.ValidActions>);
 }
 };

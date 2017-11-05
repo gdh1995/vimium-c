@@ -9,7 +9,7 @@ VDom.UI = {
   callback: null,
   flashLastingTime: 400,
   addElement<T extends HTMLElement> (this: DomUI, element: T, options?: UIElementOptions): T {
-    options = Object.setPrototypeOf(options || {}, null);
+    options = VUtils.safer(options);
     let notShowAtOnce = options.showing === false, doAdd = options.adjust;
     const box = this.box = VDom.createElement("div"), old = !box.attachShadow;
     box.style.display = "none";
@@ -41,7 +41,7 @@ VDom.UI = {
       VPort.post({ handler: "css" });
     }
     this.addElement = function<T extends HTMLElement>(this: DomUI, element: T, options?: UIElementOptions | null): T {
-      options = Object.setPrototypeOf(options || {}, null);
+      options = VUtils.safer(options);
       options.adjust === false || this.adjust();
       return options.before ? (this.root as ShadowRoot).insertBefore(element, options.before)
       : (this.root as ShadowRoot).appendChild(element);
