@@ -113,6 +113,9 @@ var Settings = {
       return (this as typeof Settings).postUpdate("newTabUrl");
     },
     baseCSS (css): void {
+      if (this.CONST.ChromeVersion >= BrowserVer.MinCSS$All$Attr) {
+        css = ".R{" + css.substring(css.indexOf("all:"));
+      }
       if (this.CONST.ChromeVersion < BrowserVer.MinEnsuredBorderWidth) {
         css += "*{border-width:1px !important;}\n";
       }
