@@ -121,6 +121,16 @@
 	z-index: 2147483647;
 }
 
+.Frame {
+	border: 5px solid yellow;
+	box-sizing: border-box;
+	height: 100%;
+	left: 0;
+	top: 0;
+	width: 100%;
+	z-index: 2147483647;
+}
+
 /* Interactive */
 .UI {
 	pointer-events: all;

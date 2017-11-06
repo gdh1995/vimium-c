@@ -661,15 +661,12 @@ Pagination = {
         _this.more = true;
       } else {
         dom1 = VDom.createElement("div");
-        dom1.setAttribute("style", "background:none;border:5px solid yellow;box-shadow:none;\
-box-sizing:border-box;display:block;float:none;height:100%;left:0;margin:0;\
-opacity:1;pointer-events:none;position:fixed;top:0;width:100%;z-index:2147483647;");
+        dom1.className = "R Frame";
         _this.node = dom1;
         _this.timer = setInterval(_this.Remove, 200);
       }
-      dom1.style.borderColor = request.mask === FrameMaskType.OnlySelf ? "lightsalmon" : "yellow";
-      VDom.UI.root && isEnabledForUrl ? VDom.UI.addElement(dom1) :
-      VDom.append(document.webkitFullscreenElement || document.documentElement as HTMLElement, dom1);
+      dom1.style.borderColor = request.mask === FrameMaskType.OnlySelf ? "lightsalmon" : "";
+      VDom.UI.addElement(dom1);
     },
     Remove (this: void): void {
       const _this = FrameMask;
