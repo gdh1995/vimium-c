@@ -335,7 +335,7 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
         chrome.windows.update(wnd.id, opt);
       } : callback || null);
     },
-    makeTempWindow (this: void, tabIdUrl: number | string, incognito: boolean, callback: (wnd?: Window) => void): void {
+    makeTempWindow (this: void, tabIdUrl: number | string, incognito: boolean, callback: (wnd: Window) => void): void {
       const isId = typeof tabIdUrl === "number", option: chrome.windows.CreateData = {
         type: "normal",
         focused: false,
@@ -464,7 +464,7 @@ Are you sure you want to continue?`);
     },
 
     getCurTab: chrome.tabs.query.bind<null, { active: true, currentWindow: true }
-        , (result: [Tab] | never[]) => void, 1>(null, { active: true, currentWindow: true }),
+        , (result: [Tab]) => void, 1>(null, { active: true, currentWindow: true }),
     getCurTabs: chrome.tabs.query.bind(null, {currentWindow: true}),
     getId (this: void, tab: { readonly id: number }): number { return tab.id; },
 
@@ -609,7 +609,7 @@ Are you sure you want to continue?`);
     openUrlInNewTab: function(this: OpenInNewTabOptions, url: string, reuse: ReuseType, tabs: [Tab]): void {
       const tab = tabs[0];
       if (this.incognito) {
-        chrome.windows.getAll(funcDict.openUrlInIncognito.bind(this, url, tab));
+        chrome.windows.getAll(funcDict.openUrlInIncognito.bind(this as OpenInNewTabOptions & {incognito: true}, url, tab));
         return;
       }
       tab.active = reuse !== ReuseType.newBg;
@@ -620,7 +620,7 @@ Are you sure you want to continue?`);
       const prefix = Settings.CONST.ShowPage;
       if (!url.startsWith(prefix) || url.length < prefix.length + 3) { return false; }
       if (!tab) {
-        funcDict.getCurTab(function(tabs): void {
+        funcDict.getCurTab(function(tabs: [Tab]): void {
           if (!tabs || tabs.length <= 0) { return chrome.runtime.lastError; }
           funcDict.openShowPage[0](url, reuse, tabs[0]);
         });

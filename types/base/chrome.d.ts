@@ -2501,9 +2501,9 @@ declare namespace chrome.tabs {
      */
     export function highlight(highlightInfo: HighlightInfo, callback: (window: chrome.windows.Window) => void): 1;
     export function query(queryInfo: QueryInfo & { active: true, windowId: number }
-        , callback: (result: [Tab] | never[]) => void): 1;
+        , callback: (result: [Tab]) => void): 1;
     export function query(queryInfo: QueryInfo & { active: true, currentWindow: true }
-        , callback: (result: [Tab] | never[]) => void): 1;
+        , callback: (result: [Tab]) => void): 1;
     /**
      * Gets all tabs that have the specified properties, or all tabs if no properties are specified.
      * @since Chrome 16.
@@ -2996,7 +2996,7 @@ declare namespace chrome.windows {
      * @param callback
      * Optional parameter window: Contains details about the created window.
      */
-    export function create(createData: CreateData, callback?: ((window?: chrome.windows.Window) => void) | null): 1;
+    export function create(createData: CreateData, callback?: ((window: chrome.windows.Window) => void) | null): 1;
     /**
      * Gets all windows.
      */

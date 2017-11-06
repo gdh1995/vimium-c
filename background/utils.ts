@@ -612,10 +612,10 @@ var Utils = {
     return null;
   },
   keyRe: <RegExpG & RegExpSearchable<0>> /<(?!<)(?:.-){0,3}..*?>|./g,
-  makeCommand: (function(command: string, options?: CommandsNS.Options | null, details?: CommandsNS.Description) : CommandsNS.Item {
+  makeCommand: (function(command: string, options?: CommandsNS.RawOptions | null, details?: CommandsNS.Description) : CommandsNS.Item {
     let opt: CommandsNS.Options | null;
     if (!details) { details = CommandsData.availableCommands[command] as CommandsNS.Description }
-    opt = (details[3] as CommandsNS.Options | null) || null;
+    opt = (details[3] as CommandsNS.Options | null | undefined) || null;
     if (options) {
       if (opt) {
         opt instanceof Object && Object.setPrototypeOf(opt, null);

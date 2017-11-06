@@ -69,8 +69,11 @@ const enum FirstQuery {
 
 interface SuggestionConstructor {
   new (type: string, url: string, text: string, title: string,
-        computeRelevancy: (this: void, sug: CompletersNS.CoreSuggestion, data?: number) => number,
-        extraData?: number): Suggestion;
+      computeRelevancy: (this: void, sug: CompletersNS.CoreSuggestion, data: number) => number,
+      extraData: number): Suggestion;
+  new (type: string, url: string, text: string, title: string,
+      computeRelevancy: (this: void, sug: CompletersNS.CoreSuggestion) => number
+      ): Suggestion;
 }
 
 const enum RegExpCacheIndex {
@@ -363,7 +366,7 @@ history: {
       if (history) {
         return Completers.next(this.quickSearch(history));
       }
-      return HistoryCache.use(function(history: HistoryItem[]) {
+      return HistoryCache.use(function(history): void {
         if (query.isOff) { return; }
         return Completers.next(Completers.history.quickSearch(history));
       });
@@ -383,11 +386,11 @@ history: {
       return this.filterFill([], query, {}, 0);
     }
   },
-  quickSearch (history: HistoryItem[]): Suggestion[] {
+  quickSearch (history: ReadonlyArray<Readonly<HistoryItem>>): Suggestion[] {
     let maxNum = maxResults + ((queryType & FirstQuery.QueryTypeMask) === FirstQuery.history ? offset : 0);
     const results = [0.0, 0], sugs: Suggestion[] = [];
     let getRele: ((text: string, title: string, lastVisitTime: number) => number)
-      | ((sug: Suggestion, score: number) => number), i = 0, j: number;
+      | ((sug: CompletersNS.CoreSuggestion, score: number) => number), i = 0, j: number;
     getRele = SuggestionUtils.ComputeRelevancy;
     if (queryTerms.length === 1) {
       Utils.convertToUrl(queryTerms[0], null, Urls.WorkType.KeepAll);
@@ -480,7 +483,7 @@ history: {
     e.sessionId && (o.sessionId = e.sessionId);
     arr[i] = o;
   },
-  getExtra (_s: Suggestion, score: number): number { return score; },
+  getExtra (_s: CompletersNS.CoreSuggestion, score: number): number { return score; },
   urlNotIn (this: Dict<number>, i: UrlItem): boolean { return !(i.url in this); }
 },
 
@@ -627,7 +630,7 @@ tabs: {
     Decoder.continueToWork();
     return Completers.next(suggestions);
   },
-  computeRecency (_0: Suggestion, tabId: number): number {
+  computeRecency (_0: CompletersNS.CoreSuggestion, tabId: number): number {
     return TabRecency.tabs[tabId] || (1 - 1 / tabId);
   }
 },

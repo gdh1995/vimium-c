@@ -418,15 +418,15 @@ interface String {
       * @param replacer A function that returns the replacement text.
       */
     replace(searchValue: RegExpSearchable<0>, replacer: (substring: string, index: number, source: string) => string): string;
-    replace(searchValue: RegExpSearchable<1>, replacer: (substring: string,
+    replace(searchValue: RegExpSearchable<1>, replacer: (this: void, substring: string,
         a: string | undefined, index: number, source: string) => string): string;
-    replace(searchValue: RegExpSearchable<2>, replacer: (substring: string,
+    replace(searchValue: RegExpSearchable<2>, replacer: (this: void, substring: string,
         a: string | undefined, b: string | undefined,
         index: number, source: string) => string): string;
-    replace(searchValue: RegExpSearchable<3>, replacer: (substring: string,
+    replace(searchValue: RegExpSearchable<3>, replacer: (this: void, substring: string,
         a: string | undefined, b: string | undefined, c: string | undefined,
         index: number, source: string) => string): string;
-    replace(searchValue: RegExpSearchable<4>, replacer: (substring: string,
+    replace(searchValue: RegExpSearchable<4>, replacer: (this: void, substring: string,
         a: string | undefined, b: string | undefined, c: string | undefined, d: string | undefined,
         index: number, source: string) => string): string;
 
@@ -1125,13 +1125,13 @@ interface ReadonlyArray<T> {
       * @param fromIndex The array index at which to begin the search. If fromIndex is omitted, the search starts at index 0.
       */
     indexOf(searchElement: T, fromIndex?: number): number;
-
     /**
       * Returns the index of the last occurrence of a specified value in an array.
       * @param searchElement The value to locate in the array.
       * @param fromIndex The array index at which to begin the search. If fromIndex is omitted, the search starts at the last index in the array.
       */
     lastIndexOf(searchElement: T, fromIndex?: number): number;
+
     /**
       * Determines whether all the members of an array satisfy the specified test.
       * @param callbackfn A function that accepts up to three arguments. The every method calls the callbackfn function for each element in array1 until the callbackfn returns false, or until the end of the array.
@@ -1283,13 +1283,17 @@ interface Array<T> {
       * @param searchElement The value to locate in the array.
       * @param fromIndex The array index at which to begin the search. If fromIndex is omitted, the search starts at index 0.
       */
-    indexOf(searchElement: T, fromIndex?: number): number;
+    indexOf: {
+      (this: { [ind: number]: T, length: number }, searchElement: T, fromIndex?: number): number;
+      call<T2> (self: { [ind: number]: T2, length: number }, searchElement: T2, fromIndex?: number): number;
+    };
     /**
       * Returns the index of the last occurrence of a specified value in an array.
       * @param searchElement The value to locate in the array.
       * @param fromIndex The array index at which to begin the search. If fromIndex is omitted, the search starts at the last index in the array.
       */
     lastIndexOf(searchElement: T, fromIndex?: number): number;
+
     /**
       * Determines whether all the members of an array satisfy the specified test.
       * @param callbackfn A function that accepts up to three arguments. The every method calls the callbackfn function for each element in array1 until the callbackfn returns false, or until the end of the array.
@@ -1385,6 +1389,7 @@ interface Array<T> {
       * @param initialValue If initialValue is specified, it is used as the initial value to start the accumulation. The first call to the callbackfn function provides this value as an argument instead of an array value.
       */
     // reduceRight<U>(callbackfn: (previousValue: U, currentValue: T, currentIndex: number, array: T[]) => U, initialValue: U): U;
+
 
     [n: number]: T;
 }
