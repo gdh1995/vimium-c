@@ -12,7 +12,7 @@ var HelpDialog = {
       version: Settings.CONST.CurrentVersionName,
       title: request.title || "Help",
       tip: showNames ? "Tip: click command names to copy them to the clipboard." : "",
-      lbPad: showNames ? '\n\t\t<tr class="HelpTr"><td class="HelpTd TdBottom">&#160;</td></tr>' : ""
+      lbPad: showNames ? '\n\t\t<tr><td class="HelpTd TdBottom">&#160;</td></tr>' : ""
     }, null) as SafeDict<string>;
     return (<string>Settings.cache.helpDialog).replace(<RegExpSearchable<1>>/\{\{(\w+)}}/g, function(_, group: string) {
       let s = result[group];
@@ -49,7 +49,7 @@ var HelpDialog = {
   }),
   commandHtml: (function(this: void, html: string[], isAdvanced: boolean, bindings: string
       , description: string, command: string): number {
-    html.push('<tr class="HelpTr', isAdvanced ? " HelpAdv" : "", '">\n\t');
+    html.push(isAdvanced ? '<tr class="HelpAdv"' : "<tr", '>\n\t');
     if (description) {
       html.push('<td class="HelpTd HelpKeys">'
         , bindings, '</td>\n\t<td class="HelpTd HelpCommandInfo">'

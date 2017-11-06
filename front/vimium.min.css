@@ -1,14 +1,14 @@
 .R{background:none;border:none;box-sizing:content-box;cursor:auto;float:none;font-size-adjust:none;
 letter-spacing:normal;line-height-step:0;margin:0;opacity:1;outline:none;padding:0;text-align-last:auto;text-indent:0;
 text-shadow:none;text-transform:none;visibility:visible;white-space:normal;word-spacing:normal;all:initial;
-color:black;contain:layout style;display:block;font:12px/1 "Helvetica Neue",Helvetica,Arial,sans-serif;overflow:hidden;
+color:black;contain:layout style;display:block;font:12px/1 "Helvetica Neue",Helvetica,Arial,sans-serif;
 pointer-events:none;position:fixed;text-align:left}
 :host{border:none !important;contain:layout style !important;height:0 !important;margin:0 !important;outline:none !important;
 padding:0 !important;position:static !important;width:0 !important}:host:before,:host:after{display:none !important}
-.HM{font-weight:bold;overflow:visible;position:absolute;-webkit-user-select:none;user-select:none;white-space:nowrap;z-index:2147483647}
+.HM{font-weight:bold;position:absolute;-webkit-user-select:none;user-select:none;white-space:nowrap;z-index:2147483647}
 .LH{background:linear-gradient(#FFF785,#FFC542);border:0.5px solid #E3BE23;border-radius:3px;box-shadow:0 3px 7px 0 rgba(0,0,0,0.3);
-box-sizing:border-box;display:block;overflow:hidden;padding:1px 3px 0 3px;position:absolute}
-.IH{background-color:rgba(255,247,133,0.3);border:0.5px solid #C38A22;display:block;position:absolute}
+box-sizing:border-box;overflow:hidden;padding:1px 3px 0 3px;position:absolute}
+.IH{background-color:rgba(255,247,133,0.3);border:0.5px solid #C38A22;position:absolute}
 .IH.S{background-color:rgba(255,102,102,0.3);border-color:#933}
 .HUD{background-color:#EEE;border:0.5px solid #B3B3B3;border-radius:4px 4px 0 0;bottom:0;height:14px;line-height:14px;
 max-width:312px;min-width:150px;padding:2px 3px;right:150px;text-overflow:ellipsis;
