@@ -2103,7 +2103,6 @@ interface Element extends Node, GlobalEventHandlers, ElementTraversal, NodeSelec
     insertAdjacentElement(position: string, insertedElement: Element): Element | null;
     insertAdjacentHTML(where: string, html: string): void;
     insertAdjacentText(where: string, text: string): void;
-    attachShadow?(shadowRootInitDict: ShadowRootInit): ShadowRoot;
     createShadowRoot(): ShadowRoot;
     addEventListener<K extends keyof ElementEventMap>(type: K, listener: (this: Element, ev: ElementEventMap[K]) => void, useCapture?: boolean): void;
     addEventListener(type: string, listener: EventListenerOrEventListenerObject, useCapture?: boolean): void;
@@ -8707,6 +8706,7 @@ interface DocumentOrShadowRoot {
 }
 
 interface ShadowRoot extends DocumentOrShadowRoot, DocumentFragment {
+    readonly mode?: 'open'|'closed';
     readonly host: Element;
     innerHTML: string;
 }

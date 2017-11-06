@@ -399,12 +399,12 @@ var VHints = {
     if ((this as typeof VHints).ngEnabled === null && key === "*") {
       (this as typeof VHints).ngEnabled = document.querySelector('.ng-scope') != null;
     }
-    let query: string = key, addUI = true;
+    let query: string = key, uiRoot = VDom.UI.root;
     if (VSettings.cache.deepHints) {
       // `/deep/` is only applyed on Shadow DOM v0, and Shadow DOM v1 does not support it at all
       // ref: https://groups.google.com/a/chromium.org/forum/#!topic/blink-dev/HX5Y8Ykr5Ns
       query = "* /deep/ " + key;
-      addUI = typeof Element.prototype.attachShadow === "function";
+      if (uiRoot && uiRoot.mode !== "closed") { uiRoot = null; }
     }
     const output: Hint[] | Element[] = [], isTag = (<RegExpOne>/^\*$|^[a-z]+$/).test(query),
     box = root || document.webkitFullscreenElement || document;
@@ -415,8 +415,8 @@ var VHints = {
     (output.forEach as HintsNS.ElementIterator<Hint | Element>).call(list, filter, output);
     if (root) { return output; }
     list = null;
-    if (addUI && VDom.UI.root) {
-      (Array.prototype.forEach as any).call(VDom.UI.root.querySelectorAll(key), filter, output);
+    if (uiRoot) {
+      (Array.prototype.forEach as any).call((uiRoot as ShadowRoot).querySelectorAll(key), filter, output);
     }
     const wantClickable = (filter as Function) === (this as typeof VHints).GetClickable && key === "*";
     if (wantClickable) { (this as typeof VHints).deduplicate(output as Hint[]); }
