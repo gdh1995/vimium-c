@@ -17,7 +17,7 @@ var osPath = require('path');
 var DEST, enableSourceMap, willListFiles, willListEmittedFiles, removeComments, JSDEST;
 var locally = false;
 var debugging = false;
-var typescript = null;
+var typescript = null, tsOptionsLogged = false;
 var disableErrors = process.env.SHOW_ERRORS !== "1";
 var ignoreHeaderChanges = process.env.IGNORE_HEADER_CHANGES === "1";
 var manifest = readJSON("manifest.json", true);
@@ -125,6 +125,7 @@ var Tasks = {
   locally: function() {
     if (locally) { return; }
     compilerOptions = loadValidCompilerOptions("tsconfig.json", true);
+    removeUnknownOptions();
     JSDEST = compilerOptions.outDir = ".";
     enableSourceMap = false;
     willListEmittedFiles = true;
@@ -160,6 +161,7 @@ var Tasks = {
 
 
 typescript = compilerOptions.typescript = loadTypeScriptCompiler();
+removeUnknownOptions();
 makeCompileTasks();
 makeTasks();
 
@@ -512,6 +514,29 @@ function loadTypeScriptCompiler(path) {
     typescript = require("typescript/lib/typescript");
   }
   return typescript;
+}
+
+function removeUnknownOptions() {
+  var hasOwn = Object.prototype.hasOwnProperty, toDelete = [], key, val;
+  for (var key in compilerOptions) {
+    if (key === "typescript" || key === "__proto__") { continue; }
+    if (!hasOwn.call(compilerOptions, key)) { continue; }
+    var declared = typescript.optionDeclarations.some(function(i) {
+      return i.name === key;
+    });
+    declared || toDelete.push(key);
+  }
+  for (var i = 0; i < toDelete.length; i++) {
+    key = toDelete[i], val = compilerOptions[key];
+    delete compilerOptions[key];
+  }
+  if (tsOptionsLogged) { return; }
+  tsOptionsLogged = true;
+  if (toDelete.length > 1) {
+    console.log("Skip these TypeScript options:", toDelete.join(", "));
+  } else if (toDelete.length === 1) {
+    console.log("Skip the TypeScript option:", toDelete[0]);
+  }
 }
 
 function print() {
