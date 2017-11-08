@@ -936,7 +936,8 @@ HOVER: {
     const type = VDom.getEditableType(element);
     VDom.unhoverLast(element);
     VScroller.current = element;
-    if (!type && element.tabIndex >= 0) { element.focus(); }
+    type || element.tabIndex < 0 || element instanceof HTMLIFrameElement ||
+      element instanceof HTMLFrameElement || element.focus();
     if ((this as typeof VHints).mode < HintMode.min_job) {
       return VHUD.showForDuration("Hover for scrolling", 1000);
     }
