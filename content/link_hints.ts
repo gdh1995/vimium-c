@@ -863,7 +863,7 @@ alphabetHints: {
         return [];
       }
       this.hintKeystroke = this.hintKeystroke.slice(0, -1);
-    } else if (keyChar = VKeyboard.getKeyChar(event).toUpperCase()) {
+    } else if ((keyChar = VKeyboard.getKeyChar(event).toUpperCase()) && keyChar.length === 1) {
       if (this.chars.indexOf(keyChar) === -1) {
         return [];
       }

@@ -12,7 +12,7 @@ var VMarks = {
     const keyCode = event.keyCode, cont = !VKeyboard.isEscape(event);
     let keyChar: string | undefined;
     if (cont && (keyCode > VKeyCodes.f1 && keyCode <= VKeyCodes.f12 || keyCode <= VKeyCodes.space
-        || !(keyChar = VKeyboard.getKeyChar(event)))) {
+        || !(keyChar = VKeyboard.getKeyChar(event)) || keyChar.length !== 1)) {
       return 1;
     }
     VUtils.remove(this);
