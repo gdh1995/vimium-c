@@ -1199,7 +1199,7 @@ searchEngines: {
       return this.continueToWork();
     },
     dict: Object.create<string>(null),
-    todos: [] as ItemToDecode[], // each item is {url: ..., text?: ...}
+    todos: [] as ItemToDecode[],
     _ind: -1,
     continueToWork (): void {
       if (this.todos.length === 0 || this._ind !== -1) { return; }

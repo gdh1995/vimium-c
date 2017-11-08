@@ -463,10 +463,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
       VUtils.push(function(event) {
         const { keyCode } = event, oldSel = sel;
         if (keyCode === VKeyCodes.tab) {
-          if (event.shiftKey) {
-            if (--sel === -1) { sel = hints.length - 1; }
-          }
-          else if (++sel === hints.length) { sel = 0; }
+          sel = (sel + (event.shiftKey ? -1 : 1)) % hints.length;
           VDom.UI.simulateSelect(hints[sel].clickableItem);
           hints[oldSel].classList.remove("S");
           hints[sel].classList.add("S");
