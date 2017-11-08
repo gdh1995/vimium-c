@@ -932,13 +932,7 @@ Modes: {
 HOVER: {
   128: "Hover over node",
   192: "Hover over nodes continuously",
-  activator (element): void | false {
-    if (element instanceof HTMLIFrameElement || element instanceof HTMLFrameElement) {
-      const ret = element === Vomnibar.box ? (Vomnibar.focus(1), false)
-        : (this as typeof VHints).highlightChild(element);
-      (this as typeof VHints).mode = HintMode.DEFAULT;
-      return ret;
-    }
+  activator (element): void {
     const type = VDom.getEditableType(element);
     VDom.unhoverLast(element);
     VScroller.current = element;
@@ -1126,7 +1120,12 @@ DEFAULT: {
   66: "Open multiple links in new tabs",
   67: "Activate link and hold on",
   activator (link, hint): void | false {
-    if (link instanceof HTMLDetailsElement) {
+    if (link instanceof HTMLIFrameElement || link instanceof HTMLFrameElement) {
+      const ret = link === Vomnibar.box ? (Vomnibar.focus(1), false)
+        : (this as typeof VHints).highlightChild(link);
+      (this as typeof VHints).mode = HintMode.DEFAULT;
+      return ret;
+    } else if (link instanceof HTMLDetailsElement) {
       link.open = !link.open;
       return;
     } else if (hint.classList.contains("BH")) {
