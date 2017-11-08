@@ -1005,6 +1005,9 @@ Are you sure you want to continue?`);
       }
       if (commandCount <= 1) {
         chrome.tabs.remove(tab.id, funcDict.onRuntimeError);
+        if (cOptions.left && tab.index > 0) {
+          chrome.tabs.update(tabs[tab.index - 1].id, { active: true });
+        }
         return;
       }
       const i = tab.index--;
@@ -1013,7 +1016,12 @@ Are you sure you want to continue?`);
       }
       funcDict.removeTabsRelative(tab, commandCount, tabs);
       if (startTabIndex < 0 && limited !== false || startTabIndex >= i || limited
-          || i > 0 && tabs[i - 1].pinned && !tab.pinned) { return; }
+          || i > 0 && tabs[i - 1].pinned && !tab.pinned) {
+        if (startTabIndex > i && i > 0 && cOptions.left) {
+          chrome.tabs.update(tabs[i - 1].id, { active: true });
+        }
+        return;
+      }
       ++tab.index;
       return funcDict.removeTabsRelative(tab, startTabIndex - i, tabs);
     },
