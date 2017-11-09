@@ -499,7 +499,7 @@ var VHints = {
       output = [];
       VDom.prepareCrop();
       type Iter = HintsNS.ElementIterator<Hint>;
-      ([].forEach as Iter).call(document.querySelectorAll("iframe,frame"), this.GetClickable, output = []);
+      (output.forEach as any as Iter).call(document.querySelectorAll("iframe,frame"), this.GetClickable, output);
     }
     if (output.length !== 1) {
       return output.length !== 0 && null;
