@@ -125,9 +125,8 @@ SuggestionUtils = {
     return this.highlight(title, this.getRanges(title));
   },
   highlight (this: void, string: string, ranges: number[]): string {
-    let out: string[], end: number;
     if (ranges.length === 0) { return Utils.escapeText(string); }
-    out = []; end = 0;
+    let out: string[] = [], end = 0;
     for(let _i = 0; _i < ranges.length; _i += 2) {
       const start = ranges[_i], end2 = ranges[_i + 1];
       out.push(Utils.escapeText(string.substring(end, start)), '<match>',
@@ -152,11 +151,11 @@ SuggestionUtils = {
       }
     }
     if (ranges.length === 0) { return ranges as never[]; }
-    if (ranges.length === 1) { return ranges[0]; }
-    ranges.sort(this.rsortBy0);
-    const mergedRanges: number[] = ranges.pop() as number[];
-    for (let i = 1, ind = ranges.length; 0 <= --ind; ) {
-      const range = ranges[ind];
+    const mergedRanges: number[] = ranges[0];
+    if (ranges.length === 1) { return mergedRanges; }
+    ranges.sort(this.sortBy0);
+    for (let i = 1, j = 1, len = ranges.length; j < len; j++) {
+      const range = ranges[j];
       if (mergedRanges[i] >= range[0]) {
         if (mergedRanges[i] < range[1]) {
           mergedRanges[i] = range[1];
@@ -168,7 +167,7 @@ SuggestionUtils = {
     }
     return mergedRanges;
   },
-  rsortBy0 (this: void, a: MatchRange, b: MatchRange): number { return b[0] - a[0]; },
+  sortBy0 (this: void, a: MatchRange, b: MatchRange): number { return a[0] - b[0]; },
   cutUrl (this: void, string: string, ranges: number[], strCoded: string): string {
     const out: string[] = [];
     let cutStart = -1, end: number = 0, maxLen = maxChars;
@@ -512,8 +511,8 @@ domains: {
         let d2: Domain | undefined, r2 = "www." + result.substring(result.indexOf(".") + 1);
         if (d2 = ref[r2]) { result = r2; d = d2; }
       }
-      sug = new Suggestion("domain", (d.https ? "https://" : "http://") + result, "", "", this.compute2);
-      sug.textSplit = SuggestionUtils.cutUrl(result, SuggestionUtils.getRanges(result), sug.url);
+      result = (d.https ? "https://" : "http://") + result;
+      sug = new Suggestion("domain", result, result, "", this.compute2);
       --maxResults;
     }
     queryTerms = q;
