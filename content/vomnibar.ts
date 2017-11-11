@@ -46,7 +46,7 @@ var Vomnibar = {
     }
     if (this.status === VomnibarNS.Status.NotInited && VHints.tryNestedFrame("Vomnibar.activate", count, options)) { return; }
     this.options = null;
-    const width = window.innerWidth;
+    options.width = window.innerWidth; options.height = window.innerHeight;
     this.zoom = VDom.UI.getZoom();
     this.status > VomnibarNS.Status.Inactive || VUtils.push(VDom.UI.SuppressMost, this);
     this.box && VDom.UI.adjust();
@@ -63,7 +63,7 @@ var Vomnibar = {
       this.onShown();
     }
     options.secret = 0; options.vomnibar = options.CSS = "";
-    options.width = width, options.name = "activate";
+    options.name = "activate";
     let url = options.url, upper = 0;
     if (url === true) {
       if (url = VDom.getSelectionText()) {

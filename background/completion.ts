@@ -910,7 +910,7 @@ searchEngines: {
     autoSelect = false;
     queryTerms = (query = query.trim()) ? query.substring(0, 200).trimRight().split(Utils.spacesRe) : [];
     maxChars = Math.max(50, Math.min((<number>options.maxChars | 0) || 128, 200));
-    maxTotal = maxResults = Math.min(Math.max((options.maxResults as number) | 0, 3), 25);
+    maxTotal = maxResults = Math.min(Math.max(3, ((options.maxResults as number) | 0) || 10), 25);
     Completers.callback = callback;
     let arr: ReadonlyArray<Completer> | null = null, str: string;
     if (queryTerms.length >= 1 && queryTerms[0].length === 2 && queryTerms[0][0] === ":") {

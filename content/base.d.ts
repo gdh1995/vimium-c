@@ -103,6 +103,7 @@ declare namespace VomnibarNS {
   }
   interface BaseFgOptions {
     width: number;
+    height: number;
     search: "" | FgRes["parseSearchUrl"];
     ptype: PageType;
   }

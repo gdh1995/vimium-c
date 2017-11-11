@@ -31,6 +31,8 @@ declare const enum HeightData {
   MarginV = 20,
   InputBarAndMargin = InputBar + MarginV,
   InputBarWithLineAndMargin = InputBarWithLine + MarginV,
+  FrameMarginTop = 70, FrameMarginBottom = 8,
+  AllNotList = InputBarWithLineAndMargin + FrameMarginTop - FrameMarginBottom,
 }
 
 declare var VSettings: undefined | null | {
@@ -49,6 +51,7 @@ var Vomnibar = {
     this.isHttps = null;
     let { url, keyword, search } = options, start: number | undefined;
     this.width(options.width * 0.8);
+    this.mode.maxResults = Math.min(Math.max(3, Math.round((options.height - HeightData.AllNotList) / HeightData.Item)), this.maxResults);
     this.init && this.setFav(options.ptype);
     if (url == null) {
       return this.reset(keyword ? keyword + " " : "");
@@ -596,11 +599,12 @@ var Vomnibar = {
   width (w?: number): void { this.mode.maxChars = Math.ceil(((w || window.innerWidth) - 74) / 7.72); },
   secret: null as never as (request: BgVomnibarReq["secret"]) => void,
 
+  maxResults: (<number>window.VomnibarListLength | 0) || 10,
   mode: {
     handler: "omni" as "omni",
     type: "omni" as CompletersNS.ValidTypes,
     maxChars: 0,
-    maxResults: Math.min(Math.max((<number>window.VomnibarListLength | 0) || 10, 3), 20),
+    maxResults: 0,
     favIcon: 1 as 0 | 1 | 2,
     query: ""
   },
