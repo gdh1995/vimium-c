@@ -315,9 +315,9 @@ bookmarks: {
       this.path = oldPath;
       return;
     }
-    const url = bookmark.url as string;
-    const bookm: Bookmark = url.startsWith("javascript:") ? {
-      url: "", text: "javascript:", path, title,
+    const url = bookmark.url as string, jsSchema = "javascript:",
+    bookm: Bookmark = url.startsWith(jsSchema) ? {
+      url: jsSchema, text: jsSchema, path, title,
       jsUrl: url, jsText: Utils.DecodeURLPart(url)
     } as JSBookmark : {
       url, text: url, path, title
@@ -1015,7 +1015,7 @@ searchEngines: {
       const d = (this._d as RegExpCacheDict)[i];
       return d[s] || (d[s] = new RegExp((i < RegExpCacheIndex.part ? "\\b" : "")
         + s.replace(this.escapeRe, "\\$&")
-        + (i === RegExpCacheIndex.start ? "\\b" : ""),
+        + (i === RegExpCacheIndex.word ? "\\b" : ""),
         Utils.hasUpperCase(s) ? "" : "i" as "") as CachedRegExp);
     },
     item (s: string): CachedRegExp {
