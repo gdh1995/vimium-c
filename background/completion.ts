@@ -76,11 +76,7 @@ interface SuggestionConstructor {
       ): Suggestion;
 }
 
-const enum RegExpCacheIndex {
-  word = 0, start = 1, part = 2
-}
 type CachedRegExp = (RegExpOne | RegExpI) & RegExpSearchable<0>;
-type RegExpCacheDict = [SafeDict<CachedRegExp>, SafeDict<CachedRegExp>, SafeDict<CachedRegExp>];
 
 type HistoryCallback = (this: void, history: ReadonlyArray<Readonly<HistoryItem>>) => void;
 
@@ -145,25 +141,19 @@ SuggestionUtils = {
     const i = Utils.IsURLHttp(url);
     return !i || i >= url.length ? url : url.substring(i, url.length - +(url.endsWith("/") && !url.endsWith("://")));
   },
-  pushMatchingRanges (this: void, string: string, term: string, ranges: MatchRange[]): void {
-    let index = 0, textPosition = 0, matchedEnd: number;
-    const splits = string.split(RegExpCache.item(term)), last = splits.length - 1, tl = term.length;
-    for (; index < last; index++, textPosition = matchedEnd) {
-      matchedEnd = (textPosition += splits[index].length) + tl;
-      ranges.push([textPosition, matchedEnd]);
-    }
-  },
   getRanges (string: string): number[] {
     const ranges: MatchRange[] = [];
-    for (const i of queryTerms) {
-      this.pushMatchingRanges(string, i, ranges);
+    for (let i = 0, len = queryTerms.length; i < len; i++) {
+      let index = 0, textPosition = 0, matchedEnd: number;
+      const splits = string.split(RegExpCache.parts[i]), last = splits.length - 1, tl = queryTerms[i].length;
+      for (; index < last; index++, textPosition = matchedEnd) {
+        matchedEnd = (textPosition += splits[index].length) + tl;
+        ranges.push([textPosition, matchedEnd]);
+      }
     }
     if (ranges.length === 0) { return ranges as never[]; }
+    if (ranges.length === 1) { return ranges[0]; }
     ranges.sort(this.rsortBy0);
-    return this.mergeRanges(ranges);
-  },
-  rsortBy0 (this: void, a: MatchRange, b: MatchRange): number { return b[0] - a[0]; },
-  mergeRanges (this: void, ranges: MatchRange[]): number[] {
     const mergedRanges: number[] = ranges.pop() as number[];
     for (let i = 1, ind = ranges.length; 0 <= --ind; ) {
       const range = ranges[ind];
@@ -178,6 +168,7 @@ SuggestionUtils = {
     }
     return mergedRanges;
   },
+  rsortBy0 (this: void, a: MatchRange, b: MatchRange): number { return b[0] - a[0]; },
   cutUrl (this: void, string: string, ranges: number[], strCoded: string): string {
     const out: string[] = [];
     let cutStart = -1, end: number = 0, maxLen = maxChars;
@@ -388,7 +379,7 @@ history: {
   },
   quickSearch (history: ReadonlyArray<Readonly<HistoryItem>>): Suggestion[] {
     let maxNum = maxResults + ((queryType & FirstQuery.QueryTypeMask) === FirstQuery.history ? offset : 0);
-    const results = [0.0, 0], sugs: Suggestion[] = [];
+    const results = [0.0, 0], sugs: Suggestion[] = [], Match2 = RankingUtils.Match2;
     let getRele: ((text: string, title: string, lastVisitTime: number) => number)
       | ((sug: CompletersNS.CoreSuggestion, score: number) => number), i = 0, j: number;
     getRele = SuggestionUtils.ComputeRelevancy;
@@ -400,13 +391,9 @@ history: {
     }
     for (j = maxNum; --j; ) { results.push(0.0, 0); }
     maxNum = maxNum * 2 - 2;
-    let regexps: CachedRegExp[] | null = queryTerms.map(RegExpCache.item, RegExpCache);
-    for (const len = history.length, len2 = regexps.length; i < len; i++) {
+    for (const len = history.length; i < len; i++) {
       const item = history[i];
-      for (j = 0; j < len2; j++) {
-        if (!(regexps[j].test(item.text) || regexps[j].test(item.title))) { break; }
-      }
-      if (j !== len2) { continue; }
+      if (!Match2(item.text, item.title)) { continue; }
       const score = getRele(item.text, item.title, item.visit);
       if (results[maxNum] >= score) { continue; }
       for (j = maxNum - 2; 0 <= j && results[j] < score; j -= 2) {
@@ -415,7 +402,6 @@ history: {
       results[j + 2] = score;
       results[j + 3] = i;
     }
-    regexps = null;
     getRele = this.getExtra;
     if (queryType === FirstQuery.history) {
       i = offset * 2;
@@ -800,7 +786,7 @@ searchEngines: {
   mostRecentQuery: null as CompletersNS.QueryStatus | null,
   callback: null as CompletersNS.Callback | null,
   filter (completers: ReadonlyArray<Completer>): void {
-    RegExpCache.reset();
+    RegExpCache.buildCache();
     if (this.mostRecentQuery) { this.mostRecentQuery.isOff = true; }
     const query: CompletersNS.QueryStatus = this.mostRecentQuery = {
       isOff: false
@@ -885,7 +871,7 @@ searchEngines: {
   cleanGlobals (): void {
     this.mostRecentQuery = this.callback = inNormal = null;
     queryTerms = [];
-    RegExpCache.reset();
+    RegExpCache.parts = RegExpCache.words = RegExpCache.starts = null as never;
     RankingUtils.timeAgo = this.sugCounter = matchType =
     maxResults = maxTotal = maxChars = 0;
     queryType = FirstQuery.nothing;
@@ -942,10 +928,9 @@ searchEngines: {
 
   const RankingUtils = {
     Match2 (s1: string, s2: string): boolean {
-      const cache = RegExpCache;
-      for (const i of queryTerms) {
-        const regexp = cache.item(i);
-        if (!(regexp.test(s1) || regexp.test(s2))) { return false; }
+      const { parts } = RegExpCache;
+      for (let i = 0, len = queryTerms.length; i < len; i++) {
+        if (!(parts[i].test(s1) || parts[i].test(s2))) { return false; }
       }
       return true;
     },
@@ -956,26 +941,26 @@ searchEngines: {
     maxScoreP: 3,
     recCalibrator: 2.0 / 3.0,
     _emptyScores: [0, 0] as [number, number],
-    scoreTerm (term: string, string: string): [number, number] {
+    scoreTerm (term: number, string: string): [number, number] {
       let count = 0, score = 0;
-      count = string.split(RegExpCache.item(term)).length;
+      count = string.split(RegExpCache.parts[term]).length;
       if (count < 1) { return this._emptyScores; }
       score = this.anywhere;
-      if (RegExpCache.get(term, RegExpCacheIndex.start).test(string)) {
+      if (RegExpCache.starts[term].test(string)) {
         score += this.startOfWord;
-        if (RegExpCache.get(term, RegExpCacheIndex.word).test(string)) {
+        if (RegExpCache.words[term].test(string)) {
           score += this.wholeWord;
         }
       }
-      return [score, (count - 1) * term.length];
+      return [score, (count - 1) * queryTerms[term].length];
     },
     wordRelevancy (url: string, title: string): number {
-      let titleCount = 0, titleScore = 0, urlCount = 0, urlScore = 0, _i = queryTerms.length;
-      while (0 <= --_i) {
-        let term = queryTerms[_i];
+      let titleCount = 0, titleScore = 0, urlCount = 0, urlScore = 0, useTitle = !!title;
+      RegExpCache.starts || RegExpCache.buildOthers();
+      for (let term = 0, len = queryTerms.length; term < len; term++) {
         let a = this.scoreTerm(term, url);
         urlScore += a[0]; urlCount += a[1];
-        if (title) {
+        if (useTitle) {
           a = this.scoreTerm(term, title);
           titleScore += a[0]; titleCount += a[1];
         }
@@ -999,27 +984,23 @@ searchEngines: {
   },
 
   RegExpCache = {
-    cache: null as SafeDict<CachedRegExp> | null,
-    _d: null as RegExpCacheDict | null,
-    reset (obj?: null): void {
-      if (obj === null) {
-        this.cache = this._d = null;
-        Utils.resetRe();
-        return;
+    parts: null as never as CachedRegExp[],
+    starts: null as never as CachedRegExp[],
+    words: null as never as CachedRegExp[],
+    buildCache (): void {
+      const d: CachedRegExp[] = this.parts = [] as never;
+      this.starts = this.words = null as never;
+      for (const s of queryTerms) {
+        d.push(new RegExp(s.replace(Utils.escapeAllRe, "\\$&"), Utils.hasUpperCase(s) ? "" : "i" as "") as CachedRegExp);
       }
-      this.cache = Object.create<CachedRegExp>(null);
-      this._d = [Object.create<CachedRegExp>(null), Object.create<CachedRegExp>(null), this.cache];
     },
-    escapeRe: Utils.escapeAllRe,
-    get (s: string, i: RegExpCacheIndex): CachedRegExp {
-      const d = (this._d as RegExpCacheDict)[i];
-      return d[s] || (d[s] = new RegExp((i < RegExpCacheIndex.part ? "\\b" : "")
-        + s.replace(this.escapeRe, "\\$&")
-        + (i === RegExpCacheIndex.word ? "\\b" : ""),
-        Utils.hasUpperCase(s) ? "" : "i" as "") as CachedRegExp);
-    },
-    item (s: string): CachedRegExp {
-      return (this.cache as SafeDict<CachedRegExp>)[s] || this.get(s, RegExpCacheIndex.part);
+    buildOthers (): void {
+      const ss = this.starts = [] as CachedRegExp[], ws = this.words = [] as CachedRegExp[];
+      for (const s of queryTerms) {
+        const start = "\\b" + s.replace(Utils.escapeAllRe, "\\$&"), flags = Utils.hasUpperCase(s) ? "" : "i" as "";
+        ss.push(new RegExp(start, flags) as CachedRegExp);
+        ws.push(new RegExp(start + "\\b", flags) as CachedRegExp);
+      }
     }
   },
 

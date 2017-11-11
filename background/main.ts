@@ -423,6 +423,7 @@ var g_requestHandlers: BgReqHandlerNS.BgReqHandlers;
           if (favIcon) { break; }
         }
       }
+      Utils.resetRe();
       try {
       this.postMessage({ name: "omni", autoSelect, matchType, list, favIcon });
       } catch (e) {}
