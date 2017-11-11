@@ -121,7 +121,10 @@ SuggestionUtils = {
     sug.textSplit = this.cutUrl(str, this.getRanges(str), sug.url);
   },
   cutTitle (title: string): string {
-    title = title.length > 128 ? title.substring(0, 125) + "..." : title;
+    if (title.length > maxChars + 40) {
+      title = title.substring(0, maxChars + 37);
+      return this.highlight(title + "...", this.getRanges(title));
+    }
     return this.highlight(title, this.getRanges(title));
   },
   highlight (this: void, string: string, ranges: number[]): string {
