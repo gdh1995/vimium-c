@@ -920,7 +920,7 @@ searchEngines: {
   filter(this: WindowEx["Completers"], query: string, options: CompletersNS.FullOptions
       , callback: CompletersNS.Callback): void {
     autoSelect = false;
-    queryTerms = (query = query.trim()) ? query.split(Utils.spacesRe) : [];
+    queryTerms = (query = query.trim()) ? query.substring(0, 200).trimRight().split(Utils.spacesRe) : [];
     maxChars = Math.max(50, Math.min((<number>options.maxChars | 0) || 128, 200));
     maxTotal = maxResults = Math.min(Math.max((options.maxResults as number) | 0, 3), 25);
     Completers.callback = callback;

@@ -87,6 +87,7 @@ Known issues (Up to the master branch):
 * fix bugs and memory leaks on pages having ShadowDOM UI.
 * `passNextKey normal` will also exit if the page blurs
 * Vomnibar now prefers a domain starting with "www."
+* limit max length of Vomnibar's query to 200 chars
 * fix some other bugs
 
 1.62.0:

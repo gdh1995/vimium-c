@@ -255,7 +255,7 @@ setTimeout((function() { if (!chrome.omnibox) { return; }
     return;
   }
   function onInput(this: void, key: string, suggest: OmniboxCallback): void {
-    key = key.trim().replace(Utils.spacesRe, " ");
+    key = key.trim().replace(Utils.spacesRe, " ").substring(0, 200).trimRight();
     if (key === last) { suggestions && suggest(suggestions as chrome.omnibox.SuggestResult[]); return; }
     lastSuggest && (lastSuggest.isOff = true);
     if (timeout) {
