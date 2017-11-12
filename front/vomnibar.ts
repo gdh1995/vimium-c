@@ -1,7 +1,7 @@
 /// <reference path="../content/base.d.ts" />
 /// <reference path="../background/bg.d.ts" />
 interface SuggestionE extends Readonly<CompletersNS.BaseSuggestion> {
-  favIconUrl?: string;
+  favIcon?: string;
   relevancy: number | string;
 }
 interface SuggestionEx extends SuggestionE {
@@ -631,13 +631,10 @@ var Vomnibar = {
 
   parse (item: SuggestionE): void {
     let str: string;
-    if (this.showFavIcon && (str = item.url) && !str.startsWith("vimium://")) {
-      item.favIconUrl = '<img src="chrome://favicon/size/16/' +
-        (str.length > 512 || str.startsWith("data:") ? "about:blank" : VUtils.escapeHTML(str))
-        + '" />\n\t\t\t';
-    } else {
-      item.favIconUrl = "";
-    }
+    item.favIcon = this.showFavIcon && (str = item.url) && !str.startsWith("vimium://")
+      ? ' icon" style="background-image: url(&quot;chrome://favicon/size/16/' +
+        (str.length > 512 || str.startsWith("data:") ? "about:blank" : VUtils.escapeCSSStringInAttr(str)) + "&quot;)"
+      : "";
     item.relevancy = this.showRelevancy ? `\n\t\t\t<span class="relevancy">${item.relevancy}</span>` : "";
   },
   navigateToUrl (item: { url: string }): void {
@@ -699,16 +696,16 @@ VUtils = {
     }
     return i;
   },
-  escapeHTML (s: string): string {
+  escapeCSSStringInAttr (s: string): string {
     const escapeRe = <RegExpG & RegExpSearchable<0>> /["&'<>]/g;
     function escapeCallback(c: string): string {
       const i = c.charCodeAt(0);
-      return i === 38 ? "&amp;" : i === 39 ? "&apos;" : i < 39 ? "&quot;" : i === 60 ? "&lt;" : "&gt;";
+      return i === 38 ? "&amp;" : i === 39 ? "&apos;" : i < 39 ? "\\&quot;" : i === 60 ? "&lt;" : "&gt;";
     }
-    this.escapeHTML = function(s): string {
+    this.escapeCSSStringInAttr = function(s): string {
       return s.replace(escapeRe, escapeCallback);
     };
-    return this.escapeHTML(s);
+    return this.escapeCSSStringInAttr(s);
   }
 },
 VPort = {
@@ -769,7 +766,7 @@ VPort = {
 });
 (function(): void {
   if (!(+<string>(document.documentElement as HTMLElement).getAttribute("data-version") >=
-        1.61)) {
+        1.62)) {
     location.href = "about:blank";
     return;
   }
