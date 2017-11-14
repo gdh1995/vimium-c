@@ -783,7 +783,6 @@ searchEngines: {
   mostRecentQuery: null as CompletersNS.QueryStatus | null,
   callback: null as CompletersNS.Callback | null,
   filter (completers: ReadonlyArray<Completer>): void {
-    RegExpCache.buildCache();
     if (this.mostRecentQuery) { this.mostRecentQuery.isOff = true; }
     const query: CompletersNS.QueryStatus = this.mostRecentQuery = {
       isOff: false
@@ -804,6 +803,7 @@ searchEngines: {
     if (queryTerms.indexOf("__proto__") >= 0) {
       queryTerms = queryTerms.join(" ").replace(this.protoRe, " __proto_").trimLeft().split(" ");
     }
+    RegExpCache.buildCache();
     for (l--; i < l; i++) {
       completers[i].filter(query, i);
     }
