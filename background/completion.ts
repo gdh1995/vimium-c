@@ -572,12 +572,13 @@ tabs: {
     if (query.isOff) { return; }
     if (queryType === FirstQuery.waitFirst) { queryType = FirstQuery.tabs; }
     const curTabId = TabRecency.last, noFilter = queryTerms.length <= 0;
-    let suggestions = [] as Suggestion[], tabs = [] as TextTab[];
+    let suggestions = [] as Suggestion[], tabs = [] as TextTab[], wndIds: SafeDict<1> | number[] = {} as SafeDict<1>;
     for (const tab of tabs0) {
       if (tab.incognito && inNormal) { continue; }
       const u = tab.url, text = Decoder.decodeURL(u, tab.incognito ? false : u);
       if (noFilter || RankingUtils.Match2(text, tab.title)) {
         (tab as TextTab).text = text;
+        wndIds[tab.windowId] = 1;
         tabs.push(tab as TextTab);
       }
     }
@@ -589,9 +590,12 @@ tabs: {
       }
       return Completers.next(suggestions);
     }
+    wndIds = Object.keys(wndIds).sort().map(i => +i);
     const c = noFilter ? this.computeRecency : SuggestionUtils.ComputeWordRelevancy;
     for (const tab of tabs) {
-      const tabId = tab.id, suggestion = new Suggestion("# " + (tab.index + 1), tab.url, tab.text, tab.title, c, tabId);
+      let id = wndIds.indexOf(tab.windowId) + 1 + "# " + (tab.index + 1);
+      if (tab.incognito) { id += "*"; }
+      const tabId = tab.id, suggestion = new Suggestion(id, tab.url, tab.text, tab.title, c, tabId);
       suggestion.sessionId = tabId;
       if (curTabId === tabId) { suggestion.relevancy = 0; }
       suggestions.push(suggestion);
@@ -624,7 +628,7 @@ searchEngines: {
   _nestedEvalCounter: 0,
   filter (): void {},
   preFilter (query: CompletersNS.QueryStatus, failIfNull?: true): void | true {
-    let obj: Search.Result, sug: SearchSuggestion, q = queryTerms, keyword = q.length > 0 ? q[0] : "",
+    let sug: SearchSuggestion, q = queryTerms, keyword = q.length > 0 ? q[0] : "",
        pattern: Search.Engine | undefined, promise: Promise<Urls.BaseEvalResult> | undefined;
     if (q.length === 0) {}
     else if (failIfNull !== true && keyword[0] === "\\") {
