@@ -176,7 +176,7 @@ animate (a: number, d: ScrollByY, e: Element | null): void | number {
         children.push({ area: (rect[2] - rect[0]) * (rect[3] - rect[1]), el: element});
       }
     }
-    children.sort(this.sortBy0);
+    children.sort(this.sortByArea);
     for (_len = children.length; 0 < _len--; ) {
       if (element = this.selectFirst(children[_len].el) as Element) { return element; }
     }
@@ -211,7 +211,7 @@ animate (a: number, d: ScrollByY, e: Element | null): void | number {
     }
     return false;
   },
-  sortBy0 (this: void, a: {area: number, el: Element}, b: {area: number, el: Element}): number {
+  sortByArea (this: void, a: {area: number, el: Element}, b: {area: number, el: Element}): number {
     return a.area - b.area;
   }
 };

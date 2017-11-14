@@ -493,8 +493,7 @@ domains: {
     return this.performSearch();
   } ,
   performSearch (): void {
-    const ref = Utils.domains as EnsuredSafeDict<Domain>, p = RankingUtils.maxScoreP, q = queryTerms,
-    word = q[0].toLowerCase();
+    const ref = Utils.domains as EnsuredSafeDict<Domain>, p = RankingUtils.maxScoreP, word = queryTerms[0].toLowerCase();
     let sug: Suggestion | undefined, result = "", d: Domain = null as Domain | null as Domain, result_score = -1;
     if (offset > 0) {
       for (let domain in ref) {
@@ -502,7 +501,6 @@ domains: {
       }
       return Completers.next([]);
     }
-    queryTerms = [word];
     RankingUtils.maxScoreP = RankingUtils.maximumScore;
     for (let domain in ref) {
       if (domain.indexOf(word) === -1) { continue; }
@@ -518,7 +516,6 @@ domains: {
       sug = new Suggestion("domain", result, result, "", this.compute2);
       --maxResults;
     }
-    queryTerms = q;
     RankingUtils.maxScoreP = p;
     return Completers.next(sug ? [sug] : []);
   },
@@ -628,8 +625,7 @@ searchEngines: {
   filter (): void {},
   preFilter (query: CompletersNS.QueryStatus, failIfNull?: true): void | true {
     let obj: Search.Result, sug: SearchSuggestion, q = queryTerms, keyword = q.length > 0 ? q[0] : "",
-       pattern: Search.Engine | undefined, promise: Promise<Urls.BaseEvalResult> | undefined,
-       url: string, text: string;
+       pattern: Search.Engine | undefined, promise: Promise<Urls.BaseEvalResult> | undefined;
     if (q.length === 0) {}
     else if (failIfNull !== true && keyword[0] === "\\") {
       if (keyword.length > 1) {
@@ -660,8 +656,7 @@ searchEngines: {
     }
     q.length > 1 ? q.shift() : (q = []);
 
-    obj = Utils.createSearch(q, pattern.url, []);
-    url = text = obj.url;
+    let { url, indexes } = Utils.createSearch(q, pattern.url, []), text = url;
     if (keyword === "~") {}
     else if (url.startsWith("vimium://")) {
       const ret = Utils.evalVimiumUrl(url.substring(9), Urls.WorkType.ActIfNoSideEffects, true);
@@ -688,8 +683,8 @@ searchEngines: {
       , pattern.name + ": " + q.join(" "), this.compute9) as SearchSuggestion;
 
     if (q.length > 0) {
-      sug.text = this.makeText(text, obj.indexes);
-      sug.textSplit = SuggestionUtils.highlight(sug.text, obj.indexes);
+      sug.text = this.makeText(text, indexes);
+      sug.textSplit = SuggestionUtils.highlight(sug.text, indexes);
       sug.title = SuggestionUtils.highlight(sug.title
         , [pattern.name.length + 2, sug.title.length]);
     } else {
