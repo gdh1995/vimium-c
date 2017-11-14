@@ -630,12 +630,20 @@ var Vomnibar = {
   },
 
   parse (item: SuggestionE): void {
-    let str: string;
-    item.favIcon = this.showFavIcon && (str = item.url) && !str.startsWith("vimium://")
+    let str = this.showFavIcon ? item.url : "";
+    item.favIcon = str
       ? ' icon" style="background-image: url(&quot;chrome://favicon/size/16/' +
-        (str.length > 512 || str.startsWith("data:") ? "about:blank" : VUtils.escapeCSSStringInAttr(str)) + "&quot;)"
+        ((str = this.parseFavIcon(item, str)) ? VUtils.escapeCSSStringInAttr(str) : "about:blank") + "&quot;)"
       : "";
     item.relevancy = this.showRelevancy ? `\n\t\t\t<span class="relevancy">${item.relevancy}</span>` : "";
+  },
+  parseFavIcon (item: SuggestionE, url: string): string {
+    let str = url.substring(0, 11).toLowerCase();
+    return str.startsWith("vimium://") ? "chrome-extension://" + (window.ExtId || chrome.runtime.id) + "/pages/options.html"
+      : url.length > 512 || str === "javascript:" || str.startsWith("data:") ? ""
+      : item.type === "search"
+        ? url.startsWith("http") ? url.substring(0, (url.indexOf("/", url[4] === "s" ? 8 : 7) + 1) || url.length) : ""
+      : url;
   },
   navigateToUrl (item: { url: string }): void {
     if (item.url.substring(0, 11).toLowerCase() === "javascript:") {
