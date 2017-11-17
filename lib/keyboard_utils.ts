@@ -10,9 +10,11 @@ var VKeyboard = {
     const {keyCode: i, shiftKey: c} = event;
     let s: string | undefined;
     return i < VKeyCodes.minNotInKeyNames ? (s = i > VKeyCodes.maxNotPrintable
-          ? this.keyNames[i - VKeyCodes.space] : i === VKeyCodes.backspace ? "backspace" : ""
+          ? this.keyNames[i - VKeyCodes.space] : i === VKeyCodes.backspace ? "backspace"
+          : i === VKeyCodes.tab ? "tab" : i === VKeyCodes.enter ? "enter" : ""
         , c ? s && s.toUpperCase() : s)
-      : (s = event.key) ? this.funcKeyRe.test(s) ? c ? s : s.toLowerCase() : ""
+      : i <= VKeyCodes.deleteKey && i >= VKeyCodes.insert ? (i > VKeyCodes.insert ? "delete" : "insert")
+      : (s = event.key) ? this.funcKeyRe.test(s) ? c ? s : 'f' + s.toLowerCase() : ""
       : i > VKeyCodes.maxNotFn && i < VKeyCodes.minNotFn ? "fF"[+c] + (i - VKeyCodes.maxNotFn) : "";
   },
   getKeyCharUsingKeyIdentifier (event: OldKeyboardEvent): string {

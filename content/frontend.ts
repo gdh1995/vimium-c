@@ -105,7 +105,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
           }
         }
       }
-      else if (key >= VKeyCodes.space || key === VKeyCodes.backspace) {
+      else if (key >= VKeyCodes.space || key === VKeyCodes.backspace || key === VKeyCodes.tab || key === VKeyCodes.enter) {
         if (keyChar = VKeyboard.getKeyChar(event)) {
           action = checkValidKey(event, keyChar);
           if (action === HandlerResult.Nothing && InsertMode.suppressType && keyChar.length === 1) {
