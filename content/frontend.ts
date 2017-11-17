@@ -441,8 +441,12 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
       } else if (sel === 1) {
         return VDom.UI.simulateSelect(visibleInputs[0][0], true, true);
       }
+      for (let ind = 0; ind < sel; ind++) {
+        const hint = visibleInputs[ind], j = hint[0].tabIndex;
+        hint[2] = j > 0 ? ind / 8192 - j : ind;
+      }
       const arr = VDom.getViewBox(),
-      hints = visibleInputs.map(function(link) {
+      hints = visibleInputs.sort(function(a, b) { return a[2] - b[2]; }).map(function(link) {
         const hint = VDom.createElement("span") as HintsNS.Marker,
         rect = VDom.fromClientRect(link[0].getBoundingClientRect());
         rect[0]--, rect[1]--, rect[2]--, rect[3]--;
