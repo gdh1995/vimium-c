@@ -455,26 +455,23 @@ var Vomnibar = {
     return this.goPage(event.deltaY > 0);
   },
   onInput (): void {
-    let s0 = this.lastQuery, s1 = this.input.value, str: string, arr: RegExpExecArray | null;
+    const s0 = this.lastQuery, s1 = this.input.value, str = s1.trim();
     this.blurWanted = false;
-    if ((str = s1.trim()) === (this.selection === -1 || this.isSelOriginal
-        ? s0 : this.completions[this.selection].text)) {
+    if (str === (this.selection === -1 || this.isSelOriginal ? s0 : this.completions[this.selection].text)) {
       return;
     }
     if (this.matchType === CompletersNS.MatchType.emptyResult && s1.startsWith(s0)) { return; }
     if (!str) { this.isHttps = null; }
-    const i = this.input.selectionStart;
+    let i = this.input.selectionStart, arr: RegExpExecArray | null;
     if (this.isSearchOnTop) {}
     else if (i > s1.length - 2) {
       if (s1.endsWith(" +") && !this.timer && str.substring(0, str.length - 2).trimRight() === s0) {
         return;
       }
     } else if ((arr = this._pageNumRe.exec(s0)) && str.endsWith(arr[0])) {
-      const j = arr[0].length;
-      s1 = s1.trimRight();
-      s1 = s1.substring(0, s1.length - j).trimRight();
-      if (s1.trimLeft() !== s0.substring(0, s0.length - j).trimRight()) {
-        this.input.value = s1;
+      const j = arr[0].length, s2 = s1.substring(0, s1.trimRight().length - j);
+      if (s2.trim() !== s0.substring(0, s0.length - j).trimRight()) {
+        this.input.value = s2.trimRight();
         this.input.setSelectionRange(i, i);
       }
     }
