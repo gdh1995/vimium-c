@@ -525,7 +525,7 @@ var VHints = {
       : this.traverse("*", _i === HintMode.FOCUS_EDITABLE ? this.GetEditable : this.GetClickable);
     if (this.maxRight > 0) {
       _i = Math.ceil(Math.log(visibleElements.length) / Math.log(VSettings.cache.linkHintCharacters.length));
-      this.maxLeft -= 11 * _i + 8;
+      this.maxLeft -= 16 * _i + 12;
     }
     visibleElements.reverse();
 
