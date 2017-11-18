@@ -118,7 +118,7 @@ SuggestionUtils = {
     sug.title = this.cutTitle(sug.title);
     const text = sug.text, str = this.shortenUrl(text);
     sug.text = text.length !== sug.url.length ? str : "";
-    sug.textSplit = this.cutUrl(str, this.getRanges(str), sug.url);
+    sug.textSplit = this.cutUrl(str, this.getRanges(str), text.length - str.length);
   },
   cutTitle (title: string): string {
     let cut = title.length > maxChars + 40;
@@ -169,14 +169,17 @@ SuggestionUtils = {
     return mergedRanges;
   },
   sortBy0 (this: void, a: MatchRange, b: MatchRange): number { return a[0] - b[0]; },
-  cutUrl (this: void, string: string, ranges: number[], strCoded: string): string {
+  // deltaLen may be: 0, 1, 7/8/9
+  cutUrl (this: void, string: string, ranges: number[], deltaLen: number): string {
     const out: string[] = [];
     let cutStart = -1, end: number = 0, maxLen = maxChars;
-    if (string.length <= maxLen || (cutStart = strCoded.indexOf(":")) < 0) {}
-    else if (!Utils.protocolRe.test(string.substring(0, cutStart + 3).toLowerCase())) { cutStart += 8; }
-    else if ((cutStart = strCoded.indexOf("/", cutStart + 4)) >= 0) {
-      const temp = string.indexOf("://");
-      cutStart = string.indexOf("/", (temp < 0 || temp > cutStart) ? 0 : (temp + 4));
+    if (string.length <= maxLen) {}
+    else if (deltaLen > 1) { cutStart = string.indexOf("/"); }
+    else if ((cutStart = string.indexOf(":")) < 0) {}
+    else if (Utils.protocolRe.test(string.substring(0, cutStart + 3).toLowerCase())) {
+      cutStart = string.indexOf("/", cutStart + 4);
+    } else {
+      cutStart += 8;
     }
     cutStart = cutStart < 0 ? string.length : cutStart + 1;
     for (let i = 0; end < maxLen && i < ranges.length; i += 2) {
