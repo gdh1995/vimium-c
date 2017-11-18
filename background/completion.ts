@@ -856,7 +856,11 @@ searchEngines: {
       suggestions.length = maxTotal;
     }
     if (queryTerms.length > 0) {
-      queryTerms[0] = SuggestionUtils.shortenUrl(queryTerms[0]);
+      let s0 = queryTerms[0], s1 = SuggestionUtils.shortenUrl(s0);
+      if (s0 !== s1) {
+        queryTerms[0] = s1;
+        RegExpCache.fixParts();
+      }
     }
     suggestions.forEach(SuggestionUtils.prepareHtml, SuggestionUtils);
 
@@ -1002,6 +1006,11 @@ searchEngines: {
         ss.push(new RegExp(start, flags) as CachedRegExp);
         ws.push(new RegExp(start + "\\b", flags) as CachedRegExp);
       }
+    },
+    fixParts (): void {
+      if (!this.parts) { return; }
+      let s = queryTerms[0];
+      this.parts[0] = new RegExp(s.replace(Utils.escapeAllRe, "\\$&"), Utils.hasUpperCase(s) ? "" : "i" as "") as CachedRegExp;
     }
   },
 
