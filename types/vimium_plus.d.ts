@@ -246,7 +246,8 @@ declare const enum KeyStat {
 }
 
 declare const enum BrowserVer {
-  MinSupported = 36,
+  MinShadowDOMV0 = 35,
+  MinSupported = MinShadowDOMV0,
   MinSession = 37,
   MinCSS$All$Attr = 37,
   // includes for-of, Map, Set, Symbols
@@ -259,6 +260,7 @@ declare const enum BrowserVer {
   Min$String$$StartsWith = 41,
   // before 42, event.path is a simple NodeList instance
   Min$Event$$path$IsStdArrayAndIncludesWindow = 42,
+  Min$Tabs$$getZoom = 42,
   // even if chrome://flags/#disable-javascript-harmony-shipping
   MinEnsured$String$$StartsWith = 43,
   MinCreateWndWithState = 44,
