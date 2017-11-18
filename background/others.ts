@@ -278,7 +278,7 @@ setTimeout((function() { if (!chrome.omnibox) { return; }
     lastSuggest = suggest;
     return Completers.filter(key, { type, maxResults: 6 }, onComplete.bind(null, suggest));
   }
-  function onEnter(this: void, text: string, disposition?: string): void {
+  function onEnter(this: void, text: string, disposition?: chrome.omnibox.OnInputEnteredDisposition): void {
     text = text.trim();
     if (tempRequest && tempRequest.key === text) {
       tempRequest.suggest = onEnter.bind(null, text, disposition) as OmniboxCallback;

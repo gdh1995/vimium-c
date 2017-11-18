@@ -12,7 +12,12 @@
 ////////////////////
 interface Window {
     chrome: typeof chrome;
+    browser?: typeof chrome;
 }
+
+type FakeArg = -1 | {
+    __never_in_use__: FakeArg;
+};
 
 ////////////////////
 // Bookmarks
@@ -80,19 +85,19 @@ declare namespace chrome.bookmarks {
         childIds: string[];
     }
 
-    interface BookmarkRemovedEvent extends chrome.events.Event<(id: string, removeInfo: BookmarkRemoveInfo) => void> {}
+    interface BookmarkRemovedEvent extends chrome.events.Event<(id: string, removeInfo: BookmarkRemoveInfo, exArg: FakeArg) => void> {}
 
-    interface BookmarkImportEndedEvent extends chrome.events.Event<() => void> {}
+    interface BookmarkImportEndedEvent extends chrome.events.Event<(exArg: FakeArg) => void> {}
 
-    interface BookmarkMovedEvent extends chrome.events.Event<(id: string, moveInfo: BookmarkMoveInfo) => void> {}
+    interface BookmarkMovedEvent extends chrome.events.Event<(id: string, moveInfo: BookmarkMoveInfo, exArg: FakeArg) => void> {}
 
-    interface BookmarkImportBeganEvent extends chrome.events.Event<() => void> {}
+    interface BookmarkImportBeganEvent extends chrome.events.Event<(exArg: FakeArg) => void> {}
 
-    interface BookmarkChangedEvent extends chrome.events.Event<(id: string, changeInfo: BookmarkChangeInfo) => void> {}
+    interface BookmarkChangedEvent extends chrome.events.Event<(id: string, changeInfo: BookmarkChangeInfo, exArg: FakeArg) => void> {}
 
-    interface BookmarkCreatedEvent extends chrome.events.Event<(id: string, bookmark: BookmarkTreeNode) => void> {}
+    interface BookmarkCreatedEvent extends chrome.events.Event<(id: string, bookmark: BookmarkTreeNode, exArg: FakeArg) => void> {}
 
-    interface BookmarkChildrenReordered extends chrome.events.Event<(id: string, reorderInfo: BookmarkReorderInfo) => void> {}
+    interface BookmarkChildrenReordered extends chrome.events.Event<(id: string, reorderInfo: BookmarkReorderInfo, exArg: FakeArg) => void> {}
 
     interface BookmarkSearchQuery {
         query?: string;
@@ -278,7 +283,7 @@ declare namespace chrome.browserAction {
         popup: string;
     }
 
-    interface BrowserClickedEvent extends chrome.events.Event<(tab: chrome.tabs.Tab) => void> {}
+    interface BrowserClickedEvent extends chrome.events.Event<(tab: chrome.tabs.Tab, exArg: FakeArg) => void> {}
 
     /**
      * Since Chrome 22.
@@ -357,7 +362,7 @@ declare namespace chrome.commands {
         shortcut?: string;
     }
 
-    interface CommandEvent extends chrome.events.Event<(command: string) => void> {}
+    interface CommandEvent extends chrome.events.Event<(command: string, exArg: FakeArg) => void> {}
 
     /**
      * Returns all the registered extension commands for this extension and their shortcut (if active).
@@ -725,7 +730,7 @@ declare namespace chrome.extension {
         message: string;
     }
 
-    interface OnRequestEvent extends chrome.events.Event<((request: any, sender: runtime.MessageSender, sendResponse: (response: any) => void) => void) | ((sender: runtime.MessageSender, sendResponse: (response: any) => void) => void)> {}
+    interface OnRequestEvent extends chrome.events.Event<((request: any, sender: runtime.MessageSender, sendResponse: (response: any) => void) => void) | ((sender: runtime.MessageSender, sendResponse: (response: any) => void, exArg: FakeArg) => void)> {}
 
     /**
      * Since Chrome 7.
@@ -878,9 +883,9 @@ declare namespace chrome.history {
 
     type RemovedResult = RemovedUrlsResult | AllRemovedResult;
 
-    interface HistoryVisitedEvent extends chrome.events.Event<(result: HistoryItem) => void> {}
+    interface HistoryVisitedEvent extends chrome.events.Event<(result: HistoryItem, exArg: FakeArg) => void> {}
 
-    interface HistoryVisitRemovedEvent extends chrome.events.Event<(removed: RemovedResult) => void> {}
+    interface HistoryVisitRemovedEvent extends chrome.events.Event<(removed: RemovedResult, exArg: FakeArg) => void> {}
 
     /**
      * Searches the history for the last visit time of each page matching the query.
@@ -1024,15 +1029,15 @@ declare namespace chrome.notifications {
         imageUrl?: string;
     }
 
-    interface NotificationClosedEvent extends chrome.events.Event<(notificationId: string, byUser: boolean) => void> {}
+    interface NotificationClosedEvent extends chrome.events.Event<(notificationId: string, byUser: boolean, exArg: FakeArg) => void> {}
 
-    interface NotificationClickedEvent extends chrome.events.Event<(notificationId: string) => void> {}
+    interface NotificationClickedEvent extends chrome.events.Event<(notificationId: string, exArg: FakeArg) => void> {}
 
-    interface NotificationButtonClickedEvent extends chrome.events.Event<(notificationId: string, buttonIndex: number) => void> {}
+    interface NotificationButtonClickedEvent extends chrome.events.Event<(notificationId: string, buttonIndex: number, exArg: FakeArg) => void> {}
 
-    interface NotificationPermissionLevelChangedEvent extends chrome.events.Event<(level: string) => void> {}
+    interface NotificationPermissionLevelChangedEvent extends chrome.events.Event<(level: string, exArg: FakeArg) => void> {}
 
-    interface NotificationShowSettingsEvent extends chrome.events.Event<() => void> {}
+    interface NotificationShowSettingsEvent extends chrome.events.Event<(exArg: FakeArg) => void> {}
 
     /** The notification closed, either by the system or by user action. */
     export var onClosed: NotificationClosedEvent;
@@ -1132,13 +1137,16 @@ declare namespace chrome.omnibox {
         description: string;
     }
 
-    interface OmniboxInputEnteredEvent extends chrome.events.Event<(text: string) => void> {}
+    type OnInputEnteredDisposition = "currentTab" | "newForegroundTab" | "newBackgroundTab";
 
-    interface OmniboxInputChangedEvent extends chrome.events.Event<(text: string, suggest: (suggestResults: SuggestResult[]) => void) => void> {}
+    interface OmniboxInputEnteredEvent extends chrome.events.Event<(text: string,
+        disposition: OnInputEnteredDisposition | undefined, exArg: FakeArg) => void> {}
 
-    interface OmniboxInputStartedEvent extends chrome.events.Event<() => void> {}
+    interface OmniboxInputChangedEvent extends chrome.events.Event<(text: string, suggest: (suggestResults: SuggestResult[]) => void, exArg: FakeArg) => void> {}
 
-    interface OmniboxInputCancelledEvent extends chrome.events.Event<() => void> {}
+    interface OmniboxInputStartedEvent extends chrome.events.Event<(exArg: FakeArg) => void> {}
+
+    interface OmniboxInputCancelledEvent extends chrome.events.Event<(exArg: FakeArg) => void> {}
 
     /**
      * Sets the description and styling for the default suggestion. The default suggestion is the text that is displayed in the first suggestion row underneath the URL bar.
@@ -1282,21 +1290,21 @@ declare namespace chrome.runtime {
         version: string;
     }
 
-    interface PortDisconnectEvent extends chrome.events.Event<(port: Port) => void> {}
+    interface PortDisconnectEvent extends chrome.events.Event<(port: Port, exArg: FakeArg) => void> {}
 
-    interface PortMessageEvent extends chrome.events.Event<(message: Object, port: Port) => void> {}
+    interface PortMessageEvent extends chrome.events.Event<(message: Object, port: Port, exArg: FakeArg) => void> {}
 
-    interface ExtensionMessageEvent extends chrome.events.Event<(message: any, sender: MessageSender, sendResponse: (response: any) => void) => void> {}
+    interface ExtensionMessageEvent extends chrome.events.Event<(message: any, sender: MessageSender, sendResponse: (response: any) => void, exArg: FakeArg) => void> {}
 
-    interface ExtensionConnectEvent extends chrome.events.Event<(port: Port) => void> {}
+    interface ExtensionConnectEvent extends chrome.events.Event<(port: Port, exArg: FakeArg) => void> {}
 
-    interface RuntimeInstalledEvent extends chrome.events.Event<(details: InstalledDetails) => void> {}
+    interface RuntimeInstalledEvent extends chrome.events.Event<(details: InstalledDetails, exArg: FakeArg) => void> {}
 
-    interface RuntimeEvent extends chrome.events.Event<() => void> {}
+    interface RuntimeEvent extends chrome.events.Event<(exArg: FakeArg) => void> {}
 
-    interface RuntimeRestartRequiredEvent extends chrome.events.Event<(reason: string) => void> {}
+    interface RuntimeRestartRequiredEvent extends chrome.events.Event<(reason: string, exArg: FakeArg) => void> {}
 
-    interface RuntimeUpdateAvailableEvent extends chrome.events.Event<(details: UpdateAvailableDetails) => void> {}
+    interface RuntimeUpdateAvailableEvent extends chrome.events.Event<(details: UpdateAvailableDetails, exArg: FakeArg) => void> {}
 
     interface ManifestIcons {
         [size: number]: string;
@@ -1718,7 +1726,7 @@ declare namespace chrome.sessions {
         sessions: Session[];
     }
 
-    interface SessionChangedEvent extends chrome.events.Event<() => void> {}
+    interface SessionChangedEvent extends chrome.events.Event<(exArg: FakeArg) => void> {}
 
     /** The maximum number of sessions.Session that will be included in a requested list. */
     export var MAX_SESSION_RESULTS: number | undefined;
@@ -1861,7 +1869,7 @@ declare namespace chrome.storage {
         MAX_WRITE_OPERATIONS_PER_MINUTE: number;
     }
 
-    interface StorageChangedEvent extends chrome.events.Event<(changes: { [key: string]: StorageChange }, areaName: string) => void> {}
+    interface StorageChangedEvent extends chrome.events.Event<(changes: { [key: string]: StorageChange }, areaName: string, exArg: FakeArg) => void> {}
 
     /** Items in the local storage area are local to each machine. */
     var local: LocalStorageArea;
@@ -2294,27 +2302,27 @@ declare namespace chrome.tabs {
         zoomSettings: ZoomSettings;
     }
 
-    interface TabHighlightedEvent extends chrome.events.Event<(highlightInfo: HighlightInfo) => void> {}
+    interface TabHighlightedEvent extends chrome.events.Event<(highlightInfo: HighlightInfo, exArg: FakeArg) => void> {}
 
-    interface TabRemovedEvent extends chrome.events.Event<(tabId: number, removeInfo: TabRemoveInfo) => void> {}
+    interface TabRemovedEvent extends chrome.events.Event<(tabId: number, removeInfo: TabRemoveInfo, exArg: FakeArg) => void> {}
 
-    interface TabUpdatedEvent extends chrome.events.Event<(tabId: number, changeInfo: TabChangeInfo, tab: Tab) => void> {}
+    interface TabUpdatedEvent extends chrome.events.Event<(tabId: number, changeInfo: TabChangeInfo, tab: Tab, exArg: FakeArg) => void> {}
 
-    interface TabAttachedEvent extends chrome.events.Event<(tabId: number, attachInfo: TabAttachInfo) => void> {}
+    interface TabAttachedEvent extends chrome.events.Event<(tabId: number, attachInfo: TabAttachInfo, exArg: FakeArg) => void> {}
 
-    interface TabMovedEvent extends chrome.events.Event<(tabId: number, moveInfo: TabMoveInfo) => void> {}
+    interface TabMovedEvent extends chrome.events.Event<(tabId: number, moveInfo: TabMoveInfo, exArg: FakeArg) => void> {}
 
-    interface TabDetachedEvent extends chrome.events.Event<(tabId: number, detachInfo: TabDetachInfo) => void> {}
+    interface TabDetachedEvent extends chrome.events.Event<(tabId: number, detachInfo: TabDetachInfo, exArg: FakeArg) => void> {}
 
-    interface TabCreatedEvent extends chrome.events.Event<(tab: Tab) => void> {}
+    interface TabCreatedEvent extends chrome.events.Event<(tab: Tab, exArg: FakeArg) => void> {}
 
-    interface TabActivatedEvent extends chrome.events.Event<(activeInfo: TabActiveInfo) => void> {}
+    interface TabActivatedEvent extends chrome.events.Event<(activeInfo: TabActiveInfo, exArg: FakeArg) => void> {}
 
-    interface TabReplacedEvent extends chrome.events.Event<(addedTabId: number, removedTabId: number) => void> {}
+    interface TabReplacedEvent extends chrome.events.Event<(addedTabId: number, removedTabId: number, exArg: FakeArg) => void> {}
 
-    interface TabSelectedEvent extends chrome.events.Event<(tabId: number, selectInfo: TabWindowInfo) => void> {}
+    interface TabSelectedEvent extends chrome.events.Event<(tabId: number, selectInfo: TabWindowInfo, exArg: FakeArg) => void> {}
 
-    interface TabZoomChangeEvent extends chrome.events.Event<(ZoomChangeInfo: ZoomChangeInfo) => void> {}
+    interface TabZoomChangeEvent extends chrome.events.Event<(ZoomChangeInfo: ZoomChangeInfo, exArg: FakeArg) => void> {}
 
     /**
      * Injects JavaScript code into a page. For details, see the programmatic injection section of the content scripts doc.
@@ -2745,8 +2753,8 @@ declare namespace chrome.webNavigation {
         url: chrome.events.UrlFilter[];
     }
 
-    interface WebNavigationEvent<T extends WebNavigationCallbackDetails> extends chrome.events.Event<(details: T) => void> {
-        addListener(callback: (details: T) => void, filters?: WebNavigationEventFilter): 1;
+    interface WebNavigationEvent<T extends WebNavigationCallbackDetails> extends chrome.events.Event<(details: T, exArg: FakeArg) => void> {
+        addListener(callback: (details: T, exArg: FakeArg) => void, filters?: WebNavigationEventFilter): 1;
     }
 
     interface WebNavigationFramedEvent extends WebNavigationEvent<WebNavigationFramedCallbackDetails> {}
@@ -2952,9 +2960,9 @@ declare namespace chrome.windows {
         windowTypes: string[];
     }
 
-    interface WindowIdEvent extends chrome.events.Event<(windowId: number, filters?: WindowEventFilter) => void> {}
+    interface WindowIdEvent extends chrome.events.Event<(windowId: number, filters: WindowEventFilter | undefined, exArg: FakeArg) => void> {}
 
-    interface WindowReferenceEvent extends chrome.events.Event<(window: Window, filters?: WindowEventFilter) => void> {}
+    interface WindowReferenceEvent extends chrome.events.Event<(window: Window, filters: WindowEventFilter | undefined, exArg: FakeArg) => void> {}
 
     /**
      * The windowId value that represents the current window.
