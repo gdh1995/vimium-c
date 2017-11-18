@@ -121,11 +121,9 @@ SuggestionUtils = {
     sug.textSplit = this.cutUrl(str, this.getRanges(str), sug.url);
   },
   cutTitle (title: string): string {
-    if (title.length > maxChars + 40) {
-      title = title.substring(0, maxChars + 37);
-      return this.highlight(title + "...", this.getRanges(title));
-    }
-    return this.highlight(title, this.getRanges(title));
+    let cut = title.length > maxChars + 40;
+    cut && (title = title.substring(0, maxChars + 37));
+    return this.highlight(cut ? title + "..." : title, this.getRanges(title));
   },
   highlight (this: void, string: string, ranges: number[]): string {
     if (ranges.length === 0) { return Utils.escapeText(string); }
@@ -807,7 +805,7 @@ searchEngines: {
     if (queryTerms.indexOf("__proto__") >= 0) {
       queryTerms = queryTerms.join(" ").replace(this.protoRe, " __proto_").trimLeft().split(" ");
     }
-    RegExpCache.buildCache();
+    RegExpCache.buildParts();
     for (l--; i < l; i++) {
       completers[i].filter(query, i);
     }
@@ -855,9 +853,10 @@ searchEngines: {
     } else if (suggestions.length > maxTotal) {
       suggestions.length = maxTotal;
     }
+    RegExpCache.words = RegExpCache.starts = null as never;
     if (queryTerms.length > 0) {
       let s0 = queryTerms[0], s1 = SuggestionUtils.shortenUrl(s0);
-      if (s0 !== s1) {
+      if (s0.length !== s1.length) {
         queryTerms[0] = s1;
         RegExpCache.fixParts();
       }
@@ -876,7 +875,7 @@ searchEngines: {
   cleanGlobals (): void {
     this.mostRecentQuery = this.callback = inNormal = null;
     queryTerms = [];
-    RegExpCache.parts = RegExpCache.words = RegExpCache.starts = null as never;
+    RegExpCache.parts = null as never;
     RankingUtils.timeAgo = this.sugCounter = matchType =
     maxResults = maxTotal = maxChars = 0;
     queryType = FirstQuery.nothing;
@@ -992,7 +991,7 @@ searchEngines: {
     parts: null as never as CachedRegExp[],
     starts: null as never as CachedRegExp[],
     words: null as never as CachedRegExp[],
-    buildCache (): void {
+    buildParts (): void {
       const d: CachedRegExp[] = this.parts = [] as never;
       this.starts = this.words = null as never;
       for (const s of queryTerms) {
