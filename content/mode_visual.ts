@@ -29,6 +29,7 @@ var VVisualMode = {
   activate (_0: number, options: FgOptions): void {
     let sel: Selection, type: string, mode: VisualModeNS.Mode, str: string;
     this.init && this.init();
+    VDom.docSelectable = VDom.UI.getDocSelectable();
     this.movement.selection = this.selection = sel = VDom.UI.getSelection();
     VUtils.remove(this);
     VUtils.push(this.onKeydown, this);
@@ -36,7 +37,7 @@ var VVisualMode = {
     if (!this.mode) { this.retainSelection = type === "Range"; }
     str = typeof options.mode === "string" ? options.mode.toLowerCase() : "";
     this.mode = mode = str ? str === "caret" ? VisualModeNS.Mode.Caret : str === "line" ? VisualModeNS.Mode.Line
-      : (str = "", VisualModeNS.Mode.Visual) : VisualModeNS.Mode.Visual;
+    : (str = "", VisualModeNS.Mode.Visual) : VisualModeNS.Mode.Visual;
     if (mode !== VisualModeNS.Mode.Caret) {
       this.movement.alterMethod = "extend";
       const lock = VEventMode.lock();
@@ -58,12 +59,14 @@ var VVisualMode = {
       this.mode = mode;
       this.prompt("No usable selection, entering caret mode...", 1000);
     }
+    VDom.UI.toggleSelectStyle(true);
     if (mode !== VisualModeNS.Mode.Caret) { return mode === VisualModeNS.Mode.Line ? this.movement.extendToLine() : undefined; }
     this.movement.alterMethod = "move";
     if (type === "Range") {
       this.movement.collapseSelectionTo(0);
     } else if (type === "None" && this.establishInitialSelectionAnchor()) {
       this.deactivate();
+      VDom.UI.toggleSelectStyle(false);
       return VHUD.showForDuration("Create a selection before entering visual mode.");
     }
     this.movement.extend(1);
@@ -77,6 +80,7 @@ var VVisualMode = {
     }
     const el = VEventMode.lock();
     el && VDom.getEditableType(el) && el.blur && el.blur();
+    VDom.UI.toggleSelectStyle(false);
     this.mode = VisualModeNS.Mode.NotActive; this.hud = "";
     this.retainSelection = false;
     this.selection = this.movement.selection = null as never;

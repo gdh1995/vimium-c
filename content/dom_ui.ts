@@ -5,6 +5,7 @@ interface ShadowRootWithSelection extends ShadowRoot {
 VDom.UI = {
   box: null,
   styleIn: null,
+  styleOut: null,
   root: null,
   callback: null,
   flashLastingTime: 400,
@@ -94,6 +95,26 @@ VDom.UI = {
     return css;
   },
   css (innerCSS): void { this.styleIn = innerCSS; },
+  getDocSelectable (): boolean {
+    let el: HTMLStyleElement | null | HTMLBodyElement | HTMLFrameSetElement = this.styleOut, st: CSSStyleDeclaration;
+    if (el && !el.disabled) { return false; }
+    if (el = document.body) {
+      st = getComputedStyle(el);
+      if ((st.userSelect || st.webkitUserSelect) === "none") {
+        return false;
+      }
+    }
+    st = getComputedStyle(document.documentElement as HTMLHtmlElement);
+    return (st.userSelect || st.webkitUserSelect) !== "none";
+  },
+  toggleSelectStyle (enable: boolean): void {
+    let el = this.styleOut;
+    if (enable ? VDom.docSelectable : !el || el.disabled) { return; }
+    el = el || (this.styleOut = (this.box as HTMLElement).appendChild(this.createStyle(
+      "html,body{-webkit-user-select:auto !important;user-select:auto !important;}"
+    )));
+    el.disabled = !enable;
+  },
   getSelection (): Selection {
     let sel = window.getSelection(), el: Node | null, el2: Node | null;
     if (sel.focusNode === document.documentElement && (el = VScroller.current)) {

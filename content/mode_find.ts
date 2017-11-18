@@ -24,7 +24,6 @@ var VFindMode = {
   A0Re: <RegExpG> /\xa0/g,
   tailRe: <RegExpOne> /\n$/,
   cssSel: "::selection{background:#ff9632 !important;}",
-  cssOut: "body{-webkit-user-select:auto !important;user-select:auto !important;}\n",
   cssIFrame: `*{font:12px/14px "Helvetica Neue",Helvetica,Arial,sans-serif !important;
 height:14px;margin:0;overflow:hidden;vertical-align:top;white-space:nowrap;cursor:default;}
 body{cursor:text;display:inline-block;padding:0 3px 0 1px;max-width:215px;min-width:7px;}
@@ -34,6 +33,7 @@ html > count{float:right;}`,
     if (!VDom.isHTML()) { return; }
     const query: string | undefined | null = options.query ? (options.query + "") : null;
     this.isActive || query === this.query || VMarks.setPreviousPosition();
+    VDom.docSelectable = VDom.UI.getDocSelectable();
     VDom.UI.ensureBorder();
     if (query != null) {
       return this.findAndFocus(this.query || query, options);
@@ -63,6 +63,7 @@ html > count{float:right;}`,
     el.onload = function(this: HTMLIFrameElement): void { return VFindMode.onLoad(this, 1); };
     VUtils.push(VDom.UI.SuppressMost, this);
     VDom.UI.addElement(el, {adjust: true, before: VHUD.box});
+    VDom.UI.toggleSelectStyle(true);
     this.init && this.init();
     this.styleIn.disabled = this.styleOut.disabled = true;
     this.isActive = true;
@@ -122,7 +123,7 @@ html > count{float:right;}`,
   },
   init (): HTMLStyleElement {
     const ref = this.postMode, UI = VDom.UI,
-    sin = this.styleIn = UI.createStyle(this.cssSel), sout = this.styleOut = UI.createStyle(this.cssOut + this.cssSel);
+    css = this.cssSel, sin = this.styleIn = UI.createStyle(css), sout = this.styleOut = UI.createStyle(css);
     ref.exit = ref.exit.bind(ref);
     UI.addElement(sin);
     this.init = null as never;
@@ -139,10 +140,14 @@ html > count{float:right;}`,
     this.init && this.init();
     const style = this.isActive || VHUD.opacity !== 1 ? null : (VHUD.box as HTMLDivElement).style;
     style && (style.visibility = "hidden");
+    VDom.UI.toggleSelectStyle(true);
     this.execute(null, options);
     style && (style.visibility = "");
     if (!this.hasResults) {
-      this.isActive || VHUD.showForDuration(`No matches for '${this.query}'`, 1000);
+      if (!this.isActive) {
+        VDom.UI.toggleSelectStyle(false);
+        VHUD.showForDuration(`No matches for '${this.query}'`, 1000);
+      }
       return;
     }
     this.focusFoundLink(window.getSelection().anchorNode as Element | null);
@@ -220,6 +225,7 @@ html > count{float:right;}`,
       this.restoreSelection(true);
     }
     if (VVisualMode.mode) { return VVisualMode.activate(1, VUtils.safer()); }
+    VDom.UI.toggleSelectStyle(false);
     if (i < Result.MinComplicatedExit || !this.hasResults) { return; }
     if (!el || el !== VEventMode.lock()) {
       el = window.getSelection().anchorNode as Element | null;
@@ -376,6 +382,7 @@ html > count{float:right;}`,
   },
   toggleStyle (enabled: BOOL): void {
     document.removeEventListener("selectionchange", this.RestoreHighlight, true);
+    enabled || this.isActive || VDom.UI.toggleSelectStyle(false);
     this.styleOut.disabled = this.styleIn.disabled = !enabled;
   },
   getCurrentRange (): void {

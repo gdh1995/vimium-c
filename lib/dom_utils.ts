@@ -207,6 +207,7 @@ var VDom = {
         || (element.isContentEditable ? EditableType.Editbox : EditableType.NotEditable))
       : ((element as HTMLInputElement).type in this.uneditableInputs) ? EditableType.NotEditable : EditableType.Editbox;
   },
+  docSelectable: true,
   selType (sel?: Selection): SelectionType {
     sel || (sel = window.getSelection());
     return sel.type as SelectionType;

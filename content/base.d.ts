@@ -171,6 +171,7 @@ interface UIElementOptions {
 interface DomUI {
   box: HTMLElement | null;
   styleIn: HTMLStyleElement | string | null;
+  styleOut: HTMLStyleElement | null;
   root: ShadowRoot | null;
   callback: null | ((this: void) => void);
   flashLastingTime: number;
@@ -182,6 +183,8 @@ interface DomUI {
   ensureBorder (this: DomUI): void;
   createStyle (this: DomUI, text: string, doc?: { createElement: Document["createElement"] }): HTMLStyleElement;
   css (this: DomUI, innerCSS: string): void;
+  getDocSelectable (this: DomUI): boolean;
+  toggleSelectStyle (this: DomUI, enable: boolean): void;
   getSelection (this: DomUI): Selection;
   removeSelection (this: DomUI, root?: DocumentOrShadowRoot): boolean;
   click (this: DomUI, element: Element, modifiers?: EventControlKeys | null, addFocus?: boolean): boolean;
