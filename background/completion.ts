@@ -858,9 +858,9 @@ searchEngines: {
     }
     RegExpCache.words = RegExpCache.starts = null as never;
     if (queryTerms.length > 0) {
-      let s0 = queryTerms[0], s1 = SuggestionUtils.shortenUrl(s0);
-      if (s0.length !== s1.length) {
-        queryTerms[0] = s1;
+      let s0 = queryTerms[0], s1 = SuggestionUtils.shortenUrl(s0), cut = s0.length !== s1.length;
+      if (cut || s0.endsWith('/') && s0.length > 1) {
+        queryTerms[0] = cut ? s1 : s0.substring(0, s0.length - 1);
         RegExpCache.fixParts();
       }
     }
