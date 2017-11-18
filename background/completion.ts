@@ -179,7 +179,7 @@ SuggestionUtils = {
     else if (Utils.protocolRe.test(string.substring(0, cutStart + 3).toLowerCase())) {
       cutStart = string.indexOf("/", cutStart + 4);
     } else {
-      cutStart += 8;
+      cutStart += 32; // for data:text/javascript,var xxx; ...
     }
     cutStart = cutStart < 0 ? string.length : cutStart + 1;
     for (let i = 0; end < maxLen && i < ranges.length; i += 2) {
