@@ -224,7 +224,7 @@ var Vomnibar = {
       handler: "parseSearchUrl",
       url: str
     }, function(search): void {
-      line.parsed = search ? search.keyword + " " + search.url : line.text;
+      line.parsed = search ? (Vomnibar.modeType !== "omni" ? ":o " : "") + search.keyword + " " + search.url : line.text;
       if (sel === Vomnibar.selection) {
         return Vomnibar._updateInput(line, line.parsed);
       }
