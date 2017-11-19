@@ -473,10 +473,13 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
           hints[sel].classList.add("S");
           return HandlerResult.Prevent;
         }
-        if (keyCode === VKeyCodes.shiftKey || keyCode === VKeyCodes.altKey) {}
+        if (keyCode === VKeyCodes.shiftKey || keep && (keyCode === VKeyCodes.altKey
+            || keyCode === VKeyCodes.ctrlKey || keyCode === VKeyCodes.metaKey)) {}
         else if (event.repeat) { return HandlerResult.Prevent; }
-        else if (keep ? !VKeyboard.isEscape(event) : keyCode === VKeyCodes.ime || keyCode === VKeyCodes.f12) {}
-        else {
+        else if (keep ? VKeyboard.isEscape(event) || (
+            keyCode === VKeyCodes.enter && !VKeyboard.getKeyStat(event) && hints[sel].clickableItem instanceof HTMLInputElement
+          ) : keyCode !== VKeyCodes.ime && keyCode !== VKeyCodes.f12
+        ) {
           this.remove();
           VUtils.remove(this);
           return !VKeyboard.isEscape(event) ? HandlerResult.Nothing : keep || !InsertMode.lock ? HandlerResult.Prevent
