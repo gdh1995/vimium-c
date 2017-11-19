@@ -156,6 +156,7 @@ var VVisualMode = {
     while (node = nodes.nextNode() as Text | null) {
       if (50 <= (str = node.data).length && 50 < str.trim().length) {
         element = node.parentElement as Element;
+        if (element instanceof HTMLFormElement) { continue; }
         if (VDom.getVisibleClientRect(element) && !VDom.getEditableType(element)) {
           break;
         }

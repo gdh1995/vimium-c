@@ -172,6 +172,7 @@ animate (a: number, d: ScrollByY, e: Element | null): void | number {
     let children = [] as {area: number, el: Element}[], rect: VRect | null, _ref = element.children, _len = _ref.length;
     while (0 < _len--) {
       element = _ref[_len];
+      if (element instanceof HTMLFormElement) { continue; }
       if (rect = VDom.getVisibleClientRect(element)) {
         children.push({ area: (rect[2] - rect[0]) * (rect[3] - rect[1]), el: element});
       }
