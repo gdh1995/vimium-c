@@ -9,9 +9,7 @@ VDom.UI = {
   root: null,
   callback: null,
   flashLastingTime: 400,
-  addElement<T extends HTMLElement> (this: DomUI, element: T, options?: UIElementOptions): T {
-    options = VUtils.safer(options);
-    let notShowAtOnce = options.showing === false, doAdd = options.adjust;
+  addElement<T extends HTMLElement> (this: DomUI, element: T, adjust?: AdjustType): T {
     const box = this.box = VDom.createElement("div");
     box.style.display = "none";
     this.root = typeof box.attachShadow === "function" ? box.attachShadow({mode: "closed"}) : box.createShadowRoot();
@@ -19,36 +17,33 @@ VDom.UI = {
     this.root.mode === "closed" || this.root.addEventListener("load", function(e: Event): void {
       const t = e.target as HTMLElement; t.onload && t.onload(e); VUtils.Stop(e);
     }, true);
+    this.addElement = function<T extends HTMLElement>(this: DomUI, element: T, adjust?: AdjustType, before?: Element | null | true): T {
+      adjust === AdjustType.NotAdjust || this.adjust();
+      return (this.root as ShadowRoot).insertBefore(element, before === true ? (this.root as ShadowRoot).firstElementChild : before || null);
+    };
     this.css = (innerCSS): void => {
       this.styleIn = this.createStyle(innerCSS);
       (this.root as ShadowRoot).insertBefore(this.styleIn, (this.root as ShadowRoot).firstElementChild);
       this.css = function(css) { (this.styleIn as HTMLStyleElement).textContent = css; };
-      if (notShowAtOnce) { return; }
+      if (adjust === AdjustType.AdjustButNotShow) { return; }
       this.styleIn.onload = function (): void {
         this.onload = null as never;
         const a = VDom.UI;
         (a.box as HTMLElement).removeAttribute("style");
         a.callback && a.callback();
       };
-      if (doAdd !== false) {
-        doAdd = false;
+      if (adjust !== AdjustType.NotAdjust) {
         return this.adjust();
       }
     };
     let a = this.styleIn as string | null;
+    this.root.appendChild(element);
     if (a) {
       this.css(a);
     } else if (a !== "") {
       VPort.post({ handler: "css" });
+      adjust === AdjustType.MustAdjust && this.adjust();
     }
-    this.addElement = function<T extends HTMLElement>(this: DomUI, element: T, options?: UIElementOptions | null): T {
-      options = VUtils.safer(options);
-      options.adjust === false || this.adjust();
-      return options.before ? (this.root as ShadowRoot).insertBefore(element, options.before)
-      : (this.root as ShadowRoot).appendChild(element);
-    };
-    this.root.appendChild(element);
-    doAdd === true && this.adjust();
     return element;
   },
   addElementList (els, offset): HTMLDivElement {

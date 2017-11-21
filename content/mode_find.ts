@@ -62,7 +62,7 @@ html > count{float:right;}`,
     if (zoom !== 1) { el.style.zoom = "" + 1 / zoom; }
     el.onload = function(this: HTMLIFrameElement): void { return VFindMode.onLoad(this, 1); };
     VUtils.push(VDom.UI.SuppressMost, this);
-    VDom.UI.addElement(el, {adjust: true, before: VHUD.box});
+    VDom.UI.addElement(el, AdjustType.MustAdjust, VHUD.box);
     VDom.UI.toggleSelectStyle(true);
     this.init && this.init();
     this.styleIn.disabled = this.styleOut.disabled = true;

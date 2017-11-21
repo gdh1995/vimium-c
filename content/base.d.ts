@@ -162,10 +162,12 @@ interface Hint {
   length: number;
 }
 
-interface UIElementOptions {
-  adjust?: boolean;
-  before?: Element | null;
-  showing?: false;
+declare const enum AdjustType {
+  NotAdjust = 0,
+  Normal = 1,
+  MustAdjust = 2,
+  AdjustButNotShow = 3,
+  DEFAULT = Normal,
 }
 
 interface DomUI {
@@ -175,7 +177,7 @@ interface DomUI {
   root: ShadowRoot | null;
   callback: null | ((this: void) => void);
   flashLastingTime: number;
-  addElement<T extends HTMLElement>(this: DomUI, element: T, options?: UIElementOptions): T;
+  addElement<T extends HTMLElement>(this: DomUI, element: T, adjust?: AdjustType, before?: Element | null | true): T;
   addElementList(this: DomUI, els: ReadonlyArray<Element>, offset: { [0]: number; [1]: number }): HTMLDivElement;
   adjust (this: void, event?: Event): void;
   toggle (this: DomUI, enabled: boolean): void;

@@ -165,7 +165,7 @@ var Vomnibar = {
     if (CSS) {
       UI.styleIn = "";
     }
-    UI.addElement(this.box = el, {adjust: true, showing: false});
+    UI.addElement(this.box = el, AdjustType.AdjustButNotShow);
     if (CSS) {
       UI.css(CSS);
     }

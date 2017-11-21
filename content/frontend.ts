@@ -723,7 +723,7 @@ Pagination = {
         st.visibility = "hidden";
         el.textContent = text;
         VDom.UI.root || VDom.UI.ensureBorder();
-        VDom.UI.addElement(this.box = el, {adjust: false});
+        VDom.UI.addElement(this.box = el, AdjustType.NotAdjust);
       }
       if (nowait) {
         (st as CSSStyleDeclaration).cssText = "";
@@ -890,7 +890,7 @@ Pagination = {
     (box.querySelector("#HClose") as HTMLElement).onclick = Commands.showHelp = hide;
     shouldShowAdvanced && toggleAdvanced();
     VDom.UI.ensureBorder();
-    VDom.UI.addElement(box, Vomnibar.status ? {} as UIElementOptions : {before: Vomnibar.box});
+    VDom.UI.addElement(box, AdjustType.Normal, Vomnibar.box);
     document.hasFocus() || VEventMode.focusAndListen();
     VScroller.current = box;
     VUtils.push(function(event) {
