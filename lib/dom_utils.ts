@@ -175,7 +175,7 @@ var VDom = {
     (element: null, rect: ClientRect): VisibilityType;
   },
   isInDOM (element: Node, root?: Node): boolean {
-    const f = Node.prototype.getRootNode, d = document;
+    const d = document, f = d.getRootNode;
     if (!root && typeof f === "function") {
       return f.call(element, {composed: true}) === d;
     }
@@ -220,14 +220,14 @@ var VDom = {
   getSelectionFocusElement (): Element | null {
     let sel = window.getSelection(), node = sel.focusNode, i = sel.focusOffset;
     node && node === sel.anchorNode && i === sel.anchorOffset && (node = node.childNodes[i]);
-    return node && node.nodeType !== Node.ELEMENT_NODE ? node.parentElement : node as (Element | null);
+    return node && node.nodeType !== /* Node.ELEMENT_NODE */ 1 ? node.parentElement : node as (Element | null);
   },
   getElementWithFocus: function(sel: Selection, di: BOOL): Element | null {
     let r = sel.getRangeAt(0);
     this.selType(sel) === "Range" && (r = r.cloneRange()).collapse(!di);
-    let el: Node | null = r.startContainer, o: Node | null, eTy = Node.ELEMENT_NODE;
-    el.nodeType === eTy && (el = (el.childNodes[r.startOffset] || null) as Node | null);
-    for (o = el; o && o.nodeType !== eTy; o = o.previousSibling) {}
+    let el: Node | null = r.startContainer, o: Node | null;
+    el.nodeType === /* Node.ELEMENT_NODE */ 1 && (el = (el.childNodes[r.startOffset] || null) as Node | null);
+    for (o = el; o && o.nodeType !== /* Node.ELEMENT_NODE */ 1; o = o.previousSibling) {}
     return (o as Element | null) || (el && el.parentElement);
   },
   mouse: function (this: any, element, type, modifiers, related): boolean {
