@@ -102,7 +102,8 @@ interface CmdOptions {
   "Find.activate": {
     count: number;
     dir: 1 | -1;
-    query: string | null;
+    leave: boolean,
+    query: string;
   };
   "Marks.goTo": {
     local?: boolean;
