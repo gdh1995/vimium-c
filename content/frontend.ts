@@ -665,11 +665,10 @@ Pagination = {
         _this.more = true;
       } else {
         dom1 = VDom.createElement("div");
-        dom1.className = "R Frame";
+        dom1.className = "R Frame" + (request.mask === FrameMaskType.OnlySelf ? " One" : "");
         _this.node = dom1;
         _this.timer = setInterval(_this.Remove, 200);
       }
-      dom1.style.borderColor = request.mask === FrameMaskType.OnlySelf ? "lightsalmon" : "";
       VDom.UI.addElement(dom1);
     },
     Remove (this: void): void {

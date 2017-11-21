@@ -131,6 +131,10 @@
 	z-index: 2147483647;
 }
 
+.One {
+	border-color: lightsalmon;
+}
+
 /* Interactive */
 .UI {
 	pointer-events: all;

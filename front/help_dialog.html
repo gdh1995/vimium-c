@@ -30,7 +30,24 @@
 		padding-right: 12px;
 	}
 }
+#HelpBanner {
+	height: 26px;
+	padding: 3px;
+}
+#HelpTitle {
+	font-size: 20px;
+	line-height: 130%;
+}
+#HelpLinks {
+	float: right;
+	position: relative;
+	top: 7px;
+	font-size: 0;
+}
 
+.Vim {
+	color: #2f508e;
+}
 .HelpTable {
 	border-collapse: separate;
 	border-spacing: 5.5px 3px;
@@ -130,6 +147,22 @@
 	vertical-align: text-bottom;
 }
 
+#HelpFooter {
+	font-size: 13px;
+	height: 42px;
+	position: relative;
+}
+#HelpTip {
+	position: absolute;
+	top: -34px;
+}
+#HelpBottomLeft {
+	float: left;
+}
+#HelpBottomRight {
+	float: right;
+	text-align: right;
+}
 #AdvancedCommands {
 	position: absolute;
 	right: 0px;
@@ -181,9 +214,9 @@
 </style>
 
 <div id="HelpContent">
-	<div style="height:26px;padding:3px;">
-		<span style="font-size:20px;line-height:130%;"><span style="color:#2f508e">Vim</span>ium++ {{title}}</span>
-		<span style="float:right;position:relative;top:7px;font-size:0">
+	<div id="HelpBanner">
+		<span id="HelpTitle"><span class="Vim">Vim</span>ium++ {{title}}</span>
+		<span id="HelpLinks">
 			<a class="L TopLink" id="OptionsPage">Options</a>
 			<a class="L TopLink" target="_blank" href="https://github.com/philc/vimium/wiki">Wiki</a>
 			<a class="L TopLink" id="HClose" role="button" href="javascript:;"><span id="HCloseT">&#215;</span></a>
@@ -214,18 +247,18 @@
 
 	<div class="HDivider"></div>
 
-	<div style="position:relative;font-size:13px;height:42px;">
-		<div style="position:absolute;top:-34px;">{{tip}}</div>
+	<div id="HelpFooter">
+		<div id="HelpTip">{{tip}}</div>
 		<a class="L" id="AdvancedCommands" role="button" href="javascript:;">Show advanced commands</a>
 
-		<div style="float:left;">
+		<div id="HelpBottomLeft">
 			Enjoying Vimium++? <a class="L" target="_blank" href="https://github.com/gdh1995/vimium-plus">Star it on GitHub</a>.
 			<a class="L" target="_blank"
 				href="https://chrome.google.com/webstore/detail/vimium%2B%2B/hfjbmagddngcpeloejdejnfgbamkjaeg/reviews"
 				>Review on Web Store</a>.
 			<br/> Found a bug? <a class="L" target="_blank" href="https://github.com/gdh1995/vimium-plus/issues">Report it here</a>.
 		</div>
-		<div style="float:right;text-align:right;">
+		<div id="HelpBottomRight">
 			<span>Version {{version}}</span><br/>
 			<span>Modified from <a class="L" target="_blank" href="https://github.com/philc/vimium">Vimium</a></span>
 		</div>

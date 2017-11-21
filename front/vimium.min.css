@@ -16,4 +16,4 @@ max-width:312px;min-width:150px;padding:2px 3px;right:150px;text-overflow:ellips
 .Flash{box-shadow:0 0 4px 2px #4183C4;contain:strict;padding:1px;z-index:2147483647}
 .Frame{border:5px solid yellow;box-sizing:border-box;height:100%;left:0;top:0;width:100%;z-index:2147483647}
 .Omnibar{left:calc(10% - 10px);top:62px;width:calc(80% + 22px);z-index:2147483645}
-.BH{color:#902809}.MC{color:#D4AC3A}.UI{pointer-events:all}
+.BH{color:#902809}.MC{color:#D4AC3A}.One{border-color:lightsalmon}.UI{pointer-events:all}
