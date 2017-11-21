@@ -42,7 +42,10 @@ VDom.UI = {
       this.css(a);
     } else if (a !== "") {
       VPort.post({ handler: "css" });
-      adjust === AdjustType.MustAdjust && this.adjust();
+      if (adjust === AdjustType.MustAdjust) {
+        adjust = AdjustType.NotAdjust;
+        this.adjust();
+      }
     }
     return element;
   },
