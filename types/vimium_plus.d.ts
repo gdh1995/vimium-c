@@ -248,10 +248,11 @@ declare const enum KeyStat {
 declare const enum BrowserVer {
   MinShadowDOMV0 = 35,
   MinSupported = MinShadowDOMV0,
+  MinES6WeakMap = 36,
   MinSession = 37,
   MinCSS$All$Attr = 37,
   // includes for-of, Map, Set, Symbols
-  MinES6 = 38,
+  MinES6ForAndSymbols = 38,
   MinWithFrameIdInArg = 39,
   MinDisableMoveTabAcrossIncognito = 40,
   MinWarningSyncXHR = 40,
