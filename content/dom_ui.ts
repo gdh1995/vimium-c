@@ -23,7 +23,7 @@ VDom.UI = {
     };
     this.css = (innerCSS): void => {
       this.styleIn = this.createStyle(innerCSS);
-      (this.root as ShadowRoot).insertBefore(this.styleIn, (this.root as ShadowRoot).firstElementChild);
+      (this.root as ShadowRoot).appendChild(this.styleIn);
       this.css = function(css) { (this.styleIn as HTMLStyleElement).textContent = css; };
       if (adjust === AdjustType.AdjustButNotShow) { return; }
       this.styleIn.onload = function (): void {

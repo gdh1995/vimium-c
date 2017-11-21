@@ -890,7 +890,7 @@ Pagination = {
     (box.querySelector("#HClose") as HTMLElement).onclick = Commands.showHelp = hide;
     shouldShowAdvanced && toggleAdvanced();
     VDom.UI.ensureBorder();
-    VDom.UI.addElement(box, AdjustType.Normal, Vomnibar.box);
+    VDom.UI.addElement(box, AdjustType.Normal, true);
     document.hasFocus() || VEventMode.focusAndListen();
     VScroller.current = box;
     VUtils.push(function(event) {

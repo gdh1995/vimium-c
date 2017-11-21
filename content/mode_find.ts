@@ -64,7 +64,7 @@ html > count{float:right;}`,
     VUtils.push(VDom.UI.SuppressMost, this);
     VDom.UI.addElement(el, AdjustType.MustAdjust, VHUD.box);
     VDom.UI.toggleSelectStyle(true);
-    this.init && this.init();
+    this.init && this.init(AdjustType.NotAdjust);
     this.styleIn.disabled = this.styleOut.disabled = true;
     this.isActive = true;
   },
@@ -121,11 +121,11 @@ html > count{float:right;}`,
       return cb();
     }
   },
-  init (): HTMLStyleElement {
+  init (adjust: AdjustType): HTMLStyleElement {
     const ref = this.postMode, UI = VDom.UI,
     css = this.cssSel, sin = this.styleIn = UI.createStyle(css), sout = this.styleOut = UI.createStyle(css);
     ref.exit = ref.exit.bind(ref);
-    UI.addElement(sin);
+    UI.addElement(sin, adjust, true);
     this.init = null as never;
     return (UI.box as HTMLElement).appendChild(sout);
   },
@@ -137,7 +137,7 @@ html > count{float:right;}`,
         this.showCount();
       }
     }
-    this.init && this.init();
+    this.init && this.init(AdjustType.MustAdjust);
     const style = this.isActive || VHUD.opacity !== 1 ? null : (VHUD.box as HTMLDivElement).style;
     style && (style.visibility = "hidden");
     VDom.UI.toggleSelectStyle(true);
