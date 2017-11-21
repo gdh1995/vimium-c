@@ -36,7 +36,7 @@ html > count{float:right;}`,
     VDom.docSelectable = VDom.UI.getDocSelectable();
     VDom.UI.ensureBorder();
     if (query != null) {
-      return this.findAndFocus(this.query || query, options);
+      return this.findAndFocus(query || this.query, options);
     }
     this.getCurrentRange();
     if (options.returnToViewport) {
