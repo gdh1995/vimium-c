@@ -163,7 +163,7 @@ var Vomnibar = {
       wnd.onmessage({ source: window, data: sec, ports: [port] });
     };
     if (CSS) {
-      UI.styleIn = "";
+      UI.css("");
     }
     UI.addElement(this.box = el, AdjustType.AdjustButNotShow);
     if (CSS) {

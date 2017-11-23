@@ -25,25 +25,23 @@ VDom.UI = {
       this.styleIn = this.createStyle(innerCSS);
       (this.root as ShadowRoot).appendChild(this.styleIn);
       this.css = function(css) { (this.styleIn as HTMLStyleElement).textContent = css; };
-      if (adjust === AdjustType.AdjustButNotShow) { return; }
-      this.styleIn.onload = function (): void {
+      adjust === AdjustType.AdjustButNotShow || (this.styleIn.onload = function (): void {
         this.onload = null as never;
         const a = VDom.UI;
         (a.box as HTMLElement).removeAttribute("style");
         a.callback && a.callback();
-      };
+      });
       if (adjust !== AdjustType.NotAdjust) {
         return this.adjust();
       }
     };
-    let a = this.styleIn as string | null;
     this.root.appendChild(element);
-    if (a) {
+    let a: string | null;
+    if (a = this.styleIn as string | null) {
       this.css(a);
-    } else if (a !== "") {
-      VPort.post({ handler: "css" });
-      if (adjust === AdjustType.MustAdjust) {
-        adjust = AdjustType.NotAdjust;
+    } else {
+      a === "" || VPort.post({ handler: "css" });
+      if ((adjust as AdjustType) >= AdjustType.MustAdjust) {
         this.adjust();
       }
     }
