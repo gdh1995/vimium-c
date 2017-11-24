@@ -313,7 +313,7 @@ availableCommands: {
   "LinkHints.activateModeToLeave": [ "let mouse leave link", 0, false,
     { mode: HintMode.LEAVE }, "Hints.activate" ],
   "LinkHints.unhoverLast": [ "Stop hovering at last location", 1, false, null, "Hints.unhoverLast" ],
-  enterFindMode: [ "Enter find mode (use last=true)", 1, true, {active: true, last: true}, "performFind" ],
+  enterFindMode: [ "Enter find mode (use last)", 1, true, {active: true}, "performFind" ],
   performFind: [ "Cycle forward to the next find match (use dir=1/-1)", 0, true ],
   performBackwardsFind: [ "Cycle backward to the previous find match", 0, true, { dir: -1 }, "performFind" ],
   clearFindHistory: ["Clear find mode history", 1, true],
