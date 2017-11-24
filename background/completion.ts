@@ -595,7 +595,7 @@ tabs: {
     wndIds = wndIds.sort(this.SortNumbers);
     const c = noFilter ? this.computeRecency : SuggestionUtils.ComputeWordRelevancy;
     for (const tab of tabs) {
-      let id = wndIds.indexOf(tab.windowId) + 1 + "# " + (tab.index + 1);
+      let id = (wndIds.length > 1 ? wndIds.indexOf(tab.windowId) + 1 : "") + "# " + (tab.index + 1);
       if (tab.incognito) { id += "*"; }
       const tabId = tab.id, suggestion = new Suggestion(id, tab.url, tab.text, tab.title, c, tabId);
       suggestion.sessionId = tabId;
