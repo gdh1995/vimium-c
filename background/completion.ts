@@ -127,15 +127,16 @@ SuggestionUtils = {
   },
   highlight (this: void, string: string, ranges: number[]): string {
     if (ranges.length === 0) { return Utils.escapeText(string); }
-    let out: string[] = [], end = 0;
+    let out = "", end = 0;
     for(let _i = 0; _i < ranges.length; _i += 2) {
       const start = ranges[_i], end2 = ranges[_i + 1];
-      out.push(Utils.escapeText(string.substring(end, start)), '<match>',
-        Utils.escapeText(string.substring(start, end2)), "</match>");
+      out += Utils.escapeText(string.substring(end, start));
+      out += '<match>';
+      out += Utils.escapeText(string.substring(start, end2));
+      out += "</match>";
       end = end2;
     }
-    out.push(Utils.escapeText(string.substring(end)));
-    return out.join("");
+    return out + Utils.escapeText(string.substring(end));
   },
   shortenUrl (this: void, url: string): string {
     const i = Utils.IsURLHttp(url);
@@ -171,7 +172,7 @@ SuggestionUtils = {
   sortBy0 (this: void, a: MatchRange, b: MatchRange): number { return a[0] - b[0]; },
   // deltaLen may be: 0, 1, 7/8/9
   cutUrl (this: void, string: string, ranges: number[], deltaLen: number): string {
-    const out: string[] = [];
+    let out = "";
     let cutStart = -1, end: number = 0, maxLen = maxChars;
     if (string.length <= maxLen) {}
     else if (deltaLen > 1) { cutStart = string.indexOf("/"); }
@@ -185,21 +186,23 @@ SuggestionUtils = {
     for (let i = 0; end < maxLen && i < ranges.length; i += 2) {
       const start = ranges[i], temp = (end >= cutStart) ? end : cutStart;
       if (temp + 20 > start) {
-        out.push(Utils.escapeText(string.substring(end, start)));
+        out += Utils.escapeText(string.substring(end, start));
       } else {
-        out.push(Utils.escapeText(string.substring(end, temp + 10)), "...",
-          Utils.escapeText(string.substring(start - 6, start)));
+        out += Utils.escapeText(string.substring(end, temp + 10));
+        out += "..."
+        out += Utils.escapeText(string.substring(start - 6, start));
         maxLen += start - temp - 19;
       }
       end = ranges[i + 1];
-      out.push('<match>', Utils.escapeText(string.substring(start, end)), "</match>");
+      out += '<match>';
+      out += Utils.escapeText(string.substring(start, end));
+      out += "</match>";
     }
     if (string.length <= maxLen) {
-      out.push(Utils.escapeText(string.substring(end)));
+      return out + Utils.escapeText(string.substring(end));
     } else {
-      out.push(Utils.escapeText(string.substring(end, maxLen - 3 > end ? maxLen - 3 : end + 10)), "...");
+      return out + Utils.escapeText(string.substring(end, maxLen - 3 > end ? maxLen - 3 : end + 10)) + "...";
     }
-    return out.join("");
   },
   ComputeWordRelevancy (this: void, suggestion: CompletersNS.CoreSuggestion): number {
     return RankingUtils.wordRelevancy(suggestion.text, suggestion.title);
