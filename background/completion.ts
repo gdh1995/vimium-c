@@ -573,13 +573,14 @@ tabs: {
     if (query.isOff) { return; }
     if (queryType === FirstQuery.waitFirst) { queryType = FirstQuery.tabs; }
     const curTabId = TabRecency.last, noFilter = queryTerms.length <= 0;
-    let suggestions = [] as Suggestion[], tabs = [] as TextTab[], wndIds: SafeDict<1> | number[] = {} as SafeDict<1>;
+    let suggestions = [] as Suggestion[], tabs = [] as TextTab[], wndIds: number[] = [];
     for (const tab of tabs0) {
       if (tab.incognito && inNormal) { continue; }
       const u = tab.url, text = Decoder.decodeURL(u, tab.incognito ? false : u);
       if (noFilter || RankingUtils.Match2(text, tab.title)) {
         (tab as TextTab).text = text;
-        wndIds[tab.windowId] = 1;
+        const wndId = tab.windowId;
+        wndIds.lastIndexOf(wndId) < 0 && wndIds.push(wndId);
         tabs.push(tab as TextTab);
       }
     }
@@ -591,7 +592,7 @@ tabs: {
       }
       return Completers.next(suggestions);
     }
-    wndIds = Object.keys(wndIds).sort().map(i => +i);
+    wndIds = wndIds.sort(this.SortNumbers);
     const c = noFilter ? this.computeRecency : SuggestionUtils.ComputeWordRelevancy;
     for (const tab of tabs) {
       let id = wndIds.indexOf(tab.windowId) + 1 + "# " + (tab.index + 1);
@@ -620,6 +621,7 @@ tabs: {
     Decoder.continueToWork();
     return Completers.next(suggestions);
   },
+  SortNumbers (this: void, a: number, b: number): number { return a - b; },
   computeRecency (_0: CompletersNS.CoreSuggestion, tabId: number): number {
     return TabRecency.tabs[tabId] || (1 - 1 / tabId);
   }
