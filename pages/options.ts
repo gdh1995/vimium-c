@@ -520,6 +520,11 @@ interface AdvancedOptBtn extends HTMLButtonElement {
   }
 })();
 
+$<HTMLAnchorElement>("#openExtensionPage").onclick = function(event): void {
+  event.preventDefault();
+  return BG.g_requestHandlers.focusOrLaunch({ url: this.href, reuse: ReuseType.reuse });
+}
+
 $("#importButton").onclick = function(): void {
   const opt = $<HTMLSelectElement>("#importOptions");
   opt.onchange ? (opt as any).onchange() : click($("#settingsFile"));

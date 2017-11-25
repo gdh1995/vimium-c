@@ -50,14 +50,16 @@
             placeholder="# Insert your preferred key mappings here."></textarea>
         </td>
         <td class="help"><div class="help-inner">
-          Enter commands to remap your keys. Available commands:
+          Enter commands to remap your keys,
+          and 4 <i>global</i> commands can be configured in "Keyboard shortcuts"
+            of <a id="openExtensionPage" href="chrome://extensions">chrome://extensions</a>.
+          Some examples:
           <code>
           <pre>
 map f LinkHints.activate
 unmap &lt;f2&gt;
 unmapAll
-# this is a comment
-" this is also a comment</pre>
+# this is a comment</pre>
           </code>
           <a id="showCommands" href="#commands" data-hash="commands" data-delay="">Show available commands</a>.
           <a class="wrap-left-space" data-auto-resize="keyMappings"></a>.
