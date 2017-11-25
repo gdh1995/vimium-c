@@ -1,4 +1,11 @@
 import SettingsToSync = SettingsNS.PersistentSettings;
+declare const enum OmnibarData {
+  DefaultMaxChars = 128,
+  // max of real scale is 0.869;
+  TotalWidth = 0.87,
+  MeanWidthOfChar = 7.72,
+  PreservedTitle = 16,
+}
 
 if (Settings.get("vimSync") === true) setTimeout(function() { if (!chrome.storage) { return; }
   type SettingsToUpdate = {
@@ -174,6 +181,7 @@ setTimeout((function() { if (!chrome.omnibox) { return; }
   let last: string = "", firstResult: Suggestion | null, lastSuggest: OmniboxCallback | null
     , tempRequest: { key: string, suggest: OmniboxCallback } | null
     , timeout = 0, sessionIds: SafeDict<string | number> | null
+    , maxChars = OmnibarData.DefaultMaxChars
     , suggestions = null as chrome.omnibox.SuggestResult[] | null, outTimeout = 0, outTime: number
     , defaultSuggestionType = FirstSugType.Default, matchType: CompletersNS.MatchType = CompletersNS.MatchType.Default
     , firstType: CompletersNS.ValidTypes | "";
@@ -276,7 +284,7 @@ setTimeout((function() { if (!chrome.omnibox) { return; }
     matchType = newMatchType;
     last = key;
     lastSuggest = suggest;
-    return Completers.filter(key, { type, maxResults: 6 }, onComplete.bind(null, suggest));
+    return Completers.filter(key, { type, maxResults: 6, maxChars }, onComplete.bind(null, suggest));
   }
   function onEnter(this: void, text: string, disposition?: chrome.omnibox.OnInputEnteredDisposition): void {
     text = text.trim();
@@ -295,6 +303,13 @@ setTimeout((function() { if (!chrome.omnibox) { return; }
         : disposition === "newForegroundTab" ? ReuseType.newFg : ReuseType.newBg)
     });
   }
+  chrome.omnibox.onInputStarted.addListener(function(): void {
+    chrome.windows.getCurrent(function(wnd?: chrome.windows.Window): void {
+      const width = wnd && wnd.width;
+      maxChars = width ? Math.floor(width * OmnibarData.TotalWidth / OmnibarData.MeanWidthOfChar)
+        - OmnibarData.PreservedTitle : OmnibarData.DefaultMaxChars;
+    });
+  });
   chrome.omnibox.onInputChanged.addListener(onInput);
   chrome.omnibox.onInputEntered.addListener(onEnter);
 }), 600);
