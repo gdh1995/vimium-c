@@ -594,7 +594,7 @@ var Vomnibar = {
         any, 0, { name: "focus", lastKey: request.lastKey });
   },
   // 22 is better than 21, because 74 is a result that has been cut (`floor(71 + 7.72 /2)`)
-  width (w?: number): void { this.mode.maxChars = Math.ceil(((w || window.innerWidth - 22) - 74) / 7.72); },
+  width (w?: number): void { this.mode.maxChars = Math.round(((w || window.innerWidth - 22) - 74) / 7.72); },
   secret: null as never as (request: BgVomnibarReq["secret"]) => void,
 
   maxResults: (<number>window.VomnibarListLength | 0) || 10,
