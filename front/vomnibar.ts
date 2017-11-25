@@ -21,10 +21,14 @@ interface FgPort extends chrome.runtime.Port, Post<1> {
 type Options = VomnibarNS.FgOptions;
 type AllowedActions = "dismiss"|"focus"|"blurInput"|"backspace"|"blur"|"up"|"down"|"toggle"|"pageup"|"pagedown"|"enter" | "";
 
-interface Window {
+interface ConfigurableItems {
   ExtId?: string;
   VomnibarListLength?: number;
+  VomnibarRefreshInterval?: number;
+  VomnibarWheelInterval?: number;
 }
+interface Window extends ConfigurableItems {}
+
 declare const enum HeightData {
   InputBar = 54, InputBarWithLine = InputBar + 1,
   Item = 44, LastItemDelta = 3,
@@ -106,8 +110,8 @@ var Vomnibar = {
   list: null as never as HTMLDivElement,
   onUpdate: null as (() => void) | null,
   doEnter: null as ((this: void) => void) | null,
-  refreshInterval: 500,
-  wheelInterval: 100,
+  refreshInterval: Math.max(256, (<number>window.VomnibarRefreshInterval | 0) || 500),
+  wheelInterval: Math.max(33, (<number>window.VomnibarRefreshInterval | 0) || 100),
   renderItems: null as never as Render,
   selection: -1,
   timer: 0,
