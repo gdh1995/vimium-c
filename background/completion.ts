@@ -1102,7 +1102,7 @@ searchEngines: {
         visit: time,
         text: "",
         title: newPage.title || "",
-        url: url
+        url
       };
       j.text = Decoder.decodeURL(url, j);
       (_this.history as HistoryItem[]).splice(-1 - i, 0, j);

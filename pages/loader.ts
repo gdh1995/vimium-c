@@ -10,7 +10,7 @@ window.chrome && chrome.runtime && chrome.runtime.getManifest && (function() {
     const scriptElement = document.createElement("script");
     scriptElement.async = false;
     scriptElement.defer = true;
-    scriptElement.src = src[0] === "/" ? src : src.lastIndexOf(prefix, 0) === 0 ? src : "/" + src;
+    scriptElement.src = src[0] === "/" || src.lastIndexOf(prefix, 0) === 0 ? src : "/" + src;
     head.replaceChild(scriptElement, loader);
     loader = scriptElement;
   }
