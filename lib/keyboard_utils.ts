@@ -22,7 +22,7 @@ var VKeyboard = {
     if (!s.startsWith("U+")) { return ""; }
     const keyId: KnownKey = parseInt(s.substring(2), 16);
     if (keyId < KnownKey.minAlphabet) {
-      return keyId < VKeyCodes.minNotInKeyNames ? ""
+      return keyId < KnownKey.minNotSpace ? ""
       : (event.shiftKey && keyId > KnownKey.maxNotNum
           && keyId < KnownKey.minNotNum) ? ")!@#$%^&*("[keyId - KnownKey.N0]
       : String.fromCharCode(keyId);
