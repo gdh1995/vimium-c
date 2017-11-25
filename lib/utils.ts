@@ -52,12 +52,12 @@ var VUtils = {
   },
   Stop (this: void, event: Event): void { event.stopImmediatePropagation(); },
   prevent (event: Event): void { event.preventDefault(); return this.Stop(event); },
-  stack: [] as { func: (event: HandlerNS.Event) => HandlerResult, env: any}[],
+  _stack: [] as { func: (event: HandlerNS.Event) => HandlerResult, env: any}[],
   push<T extends object> (func: HandlerNS.Handler<T>, env: T): number {
-    return this.stack.push({ func, env });
+    return this._stack.push({ func, env });
   },
   bubbleEvent (event: HandlerNS.Event): HandlerResult {
-    for (let ref = this.stack, i = ref.length; 0 <= --i; ) {
+    for (let ref = this._stack, i = ref.length; 0 <= --i; ) {
       const item = ref[i],
       result = item.func.call(item.env, event);
       if (result !== HandlerResult.Nothing) {
@@ -67,7 +67,7 @@ var VUtils = {
     return HandlerResult.Default;
   },
   remove (env: object): void {
-    for (let ref = this.stack, i = ref.length; 0 <= --i; ) {
+    for (let ref = this._stack, i = ref.length; 0 <= --i; ) {
       if (ref[i].env === env) {
         ref.splice(i, 1);
         break;

@@ -76,14 +76,19 @@ html > count{float:right;}`,
     f("keydown", this.onKeydown.bind(this), t);
     f("input", this.onInput.bind(this), t);
     f("keypress", s, t); f("keyup", s, t); f("focus", s, t);
-    f("copy", s, t); f("cut", s, t); f("paste", s, t);
-    f("blur", function(): void {
+    f("copy", s, t); f("cut", s, t);
+    f("paste", this.OnPaste, t);
+    f("paste", s, t);
+    function onBlur(this: Window): void {
       if (VFindMode.isActive && Date.now() - now < 500) {
-        let a = wnd.document.body;
-        a && setTimeout(function(): void { (a as HTMLBodyElement).focus(); }, tick++ * 17);
+        let a = this.document.body;
+        a && setTimeout(function(): void { (a as HTMLElement).focus(); }, tick++ * 17);
+      } else {
+        this.removeEventListener("blur", onBlur, true);
       }
-    }, true);
-    box.onload = later ? null as never : function(): void { box.onload = null as never; VFindMode.onLoad2(wnd); };
+    }
+    f("blur", onBlur, t);
+    box.onload = later ? null as never : function(): void { this.onload = null as never; VFindMode.onLoad2(this.contentWindow); };
     if (later) { return this.onLoad2(wnd); }
   },
   onLoad2 (wnd: Window): void {
@@ -92,18 +97,14 @@ html > count{float:right;}`,
     zoom = wnd.devicePixelRatio;
     wnd.dispatchEvent(new Event("unload"));
     wnd.onunload = VFindMode.OnUnload;
+    let plain = true;
     try {
       el.contentEditable = "plaintext-only";
     } catch (e) {
+      plain = false;
       el.contentEditable = "true";
-      el.onpaste = function (this: HTMLElement, event: ClipboardEvent): void {
-        const d = event.clipboardData, text = d && typeof d.getData === "function" ? d.getData("text/plain") : "";
-        event.preventDefault();
-        if (!text) { return; }
-        (event.target as HTMLElement).ownerDocument.execCommand("insertText", false, text);
-      };
     }
-    el.oninput = this.onInput.bind(this);
+    wnd.removeEventListener("paste", plain ? this.OnPaste : VUtils.Stop, true);
     const el2 = this.countEl = doc.createElement("count");
     el2.appendChild(doc.createTextNode(""));
     zoom < 1 && (docEl.style.zoom = "" + 1 / zoom);
@@ -188,9 +189,15 @@ html > count{float:right;}`,
   },
   OnMousedown (this: void, event: MouseEvent): void {
     if (event.target !== VFindMode.input && event.isTrusted != false) {
-      event.preventDefault();
+      VUtils.prevent(event);
       VFindMode.input.focus();
     }
+  },
+  OnPaste (this: HTMLElement, event: ClipboardEvent): void {
+    const d = event.clipboardData, text = d && typeof d.getData === "function" ? d.getData("text/plain") : "";
+    VUtils.prevent(event);
+    if (!text) { return; }
+    (event.target as HTMLElement).ownerDocument.execCommand("insertText", false, text + "");
   },
   onKeydown (event: KeyboardEvent): void {
     VUtils.Stop(event);
