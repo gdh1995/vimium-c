@@ -11,8 +11,18 @@ var VUtils = {
   /**
    * tool function section
    */
+  isJSUrl (s: string): boolean { return s.charCodeAt(10) === 58 && s.substring(0, 11).toLowerCase() === "javascript:"; },
+  _imageUrlRe: <RegExpI & RegExpOne> /\.(?:bmp|gif|ico|jpe?g|png|svg|tiff?|webp)\b/i,
+  isImageUrl (str: string | null): boolean {
+    if (!str || str[0] === "#" || str.length < 5 || str.startsWith("data:") || VUtils.isJSUrl(str)) {
+      return false;
+    }
+    const end = str.lastIndexOf('#') + 1 || str.length;
+    str = str.substring(str.lastIndexOf("/", str.lastIndexOf('?') + 1 || end), end);
+    return this._imageUrlRe.test(str);
+  },
   evalIfOK (this: void, url: string): boolean {
-    if (url.substring(0, 11).toLowerCase() !== "javascript:") {
+    if (!VUtils.isJSUrl(url)) {
       return false;
     }
     ";".indexOf(url.substring(11).trim()) < 0 && setTimeout(function(): void {

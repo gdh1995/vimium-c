@@ -356,16 +356,15 @@ var VHints = {
   GetLinks (this: Hint[], element: Element): void {
     let a: string | null, arr: VRect | null;
     if (element instanceof HTMLAnchorElement && ((a = element.getAttribute("href")) && a !== "#"
-        && (a.charCodeAt(10) !== 58 || a.substring(0, 11).toLowerCase() !== "javascript:")
+        && !VUtils.isJSUrl(a)
         || element.hasAttribute("data-vim-url"))) {
       if (arr = VDom.getVisibleClientRect(element)) {
         this.push([element, arr, ClickType.click]);
       }
     }
   },
-  imageUrlRe: <RegExpI> /\.(?:bmp|gif|ico|jpe?g|png|svg|webp)\b/i,
   getImagesInImg (arr: Hint[], element: HTMLImageElement): void {
-    if (!element.src) { return; }
+    if (!element.src && !element.getAttribute("data-src")) { return; }
     let rect: ClientRect | undefined, cr: VRect | null = null, w: number, h: number;
     if ((w = element.width) < 8 && (h = element.height) < 8) {
       if (w !== h || (w !== 0 && w !== 3)) { return; }
@@ -385,9 +384,9 @@ var VHints = {
   },
   GetImages (this: Hint[], element: Element): void {
     if (element instanceof HTMLImageElement) { return VHints.getImagesInImg(this, element); }
-    if (!(element instanceof HTMLAnchorElement)) { return; }
-    let str = element.getAttribute("href"), cr: VRect | null;
-    if (str && str.length > 4 && VHints.imageUrlRe.test(str)) {
+    if (!(element instanceof HTMLElement) || element instanceof HTMLFormElement) { return; }
+    let str = element.getAttribute("data-src") || element.getAttribute("href"), cr: VRect | null;
+    if (VUtils.isImageUrl(str)) {
       if (cr = VDom.getVisibleClientRect(element)) {
         this.push([element, cr, ClickType.Default]);
       }
@@ -520,7 +519,7 @@ var VHints = {
   getVisibleElements (): Hint[] {
     let _i: number = this.mode1;
     const isNormal = _i < HintMode.min_job, visibleElements = _i === HintMode.DOWNLOAD_IMAGE
-        || _i === HintMode.OPEN_IMAGE ? this.traverse("a[href],img[src]", this.GetImages)
+        || _i === HintMode.OPEN_IMAGE ? this.traverse("a[href],img[src],[data-src]", this.GetImages)
       : _i >= HintMode.min_link_job && _i <= HintMode.max_link_job ? this.traverse("a", this.GetLinks)
       : this.traverse("*", _i === HintMode.FOCUS_EDITABLE ? this.GetEditable : this.GetClickable);
     if (this.maxRight > 0) {
@@ -904,6 +903,14 @@ getUrlData (link: HTMLAnchorElement): string {
   }
   return link.href;
 },
+getImageUrl (img: HTMLElement): string | void {
+  let text: string = img instanceof HTMLAnchorElement ? img.href : img instanceof HTMLImageElement ? img.src : ""
+    , src = img.getAttribute("data-src") || "";
+  if (!text || text.startsWith("data:") || VUtils.isJSUrl(text) || src.length > text.length + 8 && VUtils.isImageUrl(src)) {
+    text = src;
+  }
+  return text || VHUD.showForDuration("Not an image", 1000);
+},
 
 highlightChild (el: HTMLIFrameElement | HTMLFrameElement): false | void {
   let err: boolean | null = true, child: HintsNS.VWindow = null as never;
@@ -1035,11 +1042,9 @@ OPEN_INCOGNITO_LINK: {
 DOWNLOAD_IMAGE: {
   132: "Download image",
   196: "Download multiple images",
-  activator (img: HTMLAnchorElement | HTMLImageElement): void {
-    let text = img instanceof HTMLAnchorElement ? img.href : img.src;
-    if (!text) {
-      return VHUD.showForDuration("Not an image", 1000);
-    }
+  activator (img: HTMLElement): void {
+    let text = (this as typeof VHints).getImageUrl(img);
+    if (!text) { return; }
     const i = text.indexOf("://"), a = VDom.createElement("a");
     if (i > 0) {
       text = text.substring(text.indexOf('/', i + 4) + 1);
@@ -1056,11 +1061,9 @@ DOWNLOAD_IMAGE: {
 OPEN_IMAGE: {
   133: "Open image",
   197: "Open multiple image",
-  activator (img: HTMLAnchorElement | HTMLImageElement): void {
-    let text = img instanceof HTMLAnchorElement ? img.href : img.src, url: string, str: string | null;
-    if (!text) {
-      return VHUD.showForDuration("Not an image", 1000);
-    }
+  activator (img: HTMLElement): void {
+    let text = (this as typeof VHints).getImageUrl(img), url: string, str: string | null;
+    if (!text) { return; }
     url = "vimium://show image ";
     if (str = img.getAttribute("download")) {
       url += "download=" + encodeURIComponent(str) + "&";
