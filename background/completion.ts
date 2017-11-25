@@ -172,26 +172,37 @@ SuggestionUtils = {
   sortBy0 (this: void, a: MatchRange, b: MatchRange): number { return a[0] - b[0]; },
   // deltaLen may be: 0, 1, 7/8/9
   cutUrl (this: void, string: string, ranges: number[], deltaLen: number): string {
-    let out = "";
-    let cutStart = -1, end: number = 0, maxLen = maxChars;
-    if (string.length <= maxLen) {}
-    else if (deltaLen > 1) { cutStart = string.indexOf("/"); }
-    else if ((cutStart = string.indexOf(":")) < 0) {}
+    let out = "", end = string.length, cutStart = end, maxLen = maxChars;
+    if (end <= maxLen) {}
+    else if (deltaLen > 1) { cutStart = string.indexOf("/") + 1 || end; }
+    else if ((cutStart = string.indexOf(":")) < 0) { cutStart = end; }
     else if (Utils.protocolRe.test(string.substring(0, cutStart + 3).toLowerCase())) {
-      cutStart = string.indexOf("/", cutStart + 4);
+      cutStart = string.indexOf("/", cutStart + 4) + 1 || end;
     } else {
-      cutStart += 32; // for data:text/javascript,var xxx; ...
+      cutStart += 22; // for data:text/javascript,var xxx; ...
     }
-    cutStart = cutStart < 0 ? string.length : cutStart + 1;
+    if (cutStart < end) {
+      let i = ranges.length, start = end + 6;
+      for (; end > maxLen && (i -= 2) >= 0 && start >= cutStart; start = ranges[i]) {
+        const lastEnd = ranges[i + 1], delta = start - 19 - (lastEnd >= cutStart ? lastEnd : cutStart);
+        if (delta > 0) {
+          end -= delta;
+        }
+      }
+      if (end <= maxLen) {
+        cutStart = ranges[i + 1] + (maxLen - end);
+      }
+    }
+    end = 0;
     for (let i = 0; end < maxLen && i < ranges.length; i += 2) {
-      const start = ranges[i], temp = (end >= cutStart) ? end : cutStart;
-      if (temp + 20 > start) {
-        out += Utils.escapeText(string.substring(end, start));
-      } else {
+      const start = ranges[i], temp = (end >= cutStart) ? end : cutStart, delta = start - 19 - temp;
+      if (delta > 0) {
+        maxLen += delta;
         out += Utils.escapeText(string.substring(end, temp + 10));
         out += "..."
         out += Utils.escapeText(string.substring(start - 6, start));
-        maxLen += start - temp - 19;
+      } else if (end < start) {
+        out += Utils.escapeText(string.substring(end, start));
       }
       end = ranges[i + 1];
       out += '<match>';
