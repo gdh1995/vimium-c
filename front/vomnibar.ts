@@ -37,6 +37,8 @@ declare const enum HeightData {
   InputBarWithLineAndMargin = InputBarWithLine + MarginV,
   FrameMarginTop = 70, FrameMarginBottom = 8,
   AllNotList = InputBarWithLineAndMargin + FrameMarginTop - FrameMarginBottom,
+  // 22 is better than 21, because 74 is a result that has been cut (`floor(71 + 7.72 /2)`)
+  MarginH = 22, AllNotUrl = 74, MeanWidthOfChar = 7.72,
 }
 
 declare var VSettings: undefined | null | {
@@ -598,8 +600,9 @@ var Vomnibar = {
     setTimeout<VomnibarNS.FReq["focus"] & VomnibarNS.Msg<"focus">>(VPort.postToOwner as
         any, 0, { name: "focus", lastKey: request.lastKey });
   },
-  // 22 is better than 21, because 74 is a result that has been cut (`floor(71 + 7.72 /2)`)
-  width (w?: number): void { this.mode.maxChars = Math.round(((w || window.innerWidth - 22) - 74) / 7.72); },
+  width (w?: number): void {
+    this.mode.maxChars = Math.round(((w || window.innerWidth - HeightData.MarginH) - HeightData.AllNotUrl) / HeightData.MeanWidthOfChar);
+  },
   secret: null as never as (request: BgVomnibarReq["secret"]) => void,
 
   maxResults: (<number>window.VomnibarListLength | 0) || 10,
