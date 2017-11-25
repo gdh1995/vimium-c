@@ -359,7 +359,7 @@ exclusions: PopExclusionRulesOption = Object.setPrototypeOf({
   let saved = true;
   function escapeCallback(c: string): string {
     const n = c.charCodeAt(0);
-    return (n === 60) ? "&lt;" : (n === 62) ? "&gt;" : "&amp;";
+    return n === KnownKey.lt ? "&lt;" : n === KnownKey.gt ? "&gt;" : "&amp;";
   }
   function updateState(): void {
     const pass = bgExclusions.getTemp(exclusions.url, exclusions.readValueFromElement(true));
@@ -393,7 +393,7 @@ exclusions: PopExclusionRulesOption = Object.setPrototypeOf({
   }
   $("#saveOptions").onclick = saveOptions;
   document.addEventListener("keyup", function(event): void {
-    if ((event.ctrlKey || event.metaKey) && event.keyCode === 13) {
+    if ((event.ctrlKey || event.metaKey) && event.keyCode === VKeyCodes.enter) {
       setTimeout(window.close, 300);
       if (!saved) { return saveOptions(); }
     }

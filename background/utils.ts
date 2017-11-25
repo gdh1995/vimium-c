@@ -25,7 +25,8 @@ var Utils = {
     const escapeRe = <RegExpG & RegExpSearchable<0>> /["&'<>]/g;
     function escapeCallback(c: string): string {
       const i = c.charCodeAt(0);
-      return i === 38 ? "&amp;" : i === 39 ? "&apos;" : i < 39 ? "&quot;" : i === 60 ? "&lt;" : "&gt;";
+      return i === KnownKey.and ? "&amp;" : i === KnownKey.quote1 ? "&apos;"
+        : i < KnownKey.quote1 ? "&quot;" : i === KnownKey.lt ? "&lt;" : "&gt;";
     }
     this.escapeText = function(s: string): string {
       return s.replace(escapeRe, escapeCallback);
@@ -132,12 +133,12 @@ var Utils = {
       }
     }
     else if ((index2 = string.indexOf('/', index + 3)) === -1
-        ? string.length < oldString.length : string.charCodeAt(index2 + 1) <= 32
+        ? string.length < oldString.length : string.charCodeAt(index2 + 1) < KnownKey.minNotSpace
     ) {
       type = Urls.Type.Search;
     }
     else if (this._nonENTldRe.test(string.substring(0, index))) {
-      type = (index = string.charCodeAt(index + 3)) > 32 && index !== 47 ? Urls.Type.Full : Urls.Type.Search;
+      type = (index = string.charCodeAt(index + 3)) > KnownKey.space && index !== KnownKey.slash ? Urls.Type.Full : Urls.Type.Search;
     }
     else if (string.startsWith("file:")) { type = Urls.Type.Full; }
     else if (string.startsWith("chrome:")) {
@@ -259,7 +260,7 @@ var Utils = {
         path = tempStr;
       } else if (path === "newtab") {
         return Settings.cache.newTabUrl_f;
-      } else if (path.charCodeAt(0) === 47 || Settings.CONST.KnownPages.indexOf(path) >= 0) {
+      } else if (path.charCodeAt(0) === KnownKey.slash || Settings.CONST.KnownPages.indexOf(path) >= 0) {
         path += ".html";
       } else if (vimiumUrlWork === Urls.WorkType.ActIfNoSideEffects  || vimiumUrlWork === Urls.WorkType.ConvertKnown) {
         return "vimium://" + fullpath.trim();
@@ -268,7 +269,7 @@ var Utils = {
       }
     }
     if (!partly && (!tempStr || tempStr.indexOf("://") < 0)) {
-      path = location.origin + (path.charCodeAt(0) === 47 ? "" : "/pages/") + path;
+      path = location.origin + (path.charCodeAt(0) === KnownKey.slash ? "" : "/pages/") + path;
     }
     return path + (query && (path.indexOf("#") > 0 ? " " : "#!") + query);
   },
@@ -484,7 +485,7 @@ var Utils = {
       ind = 0;
       do {
         ind = val.indexOf(":", ind + 1);
-      } while (val.charCodeAt(ind - 1)  === 92);
+      } while (val.charCodeAt(ind - 1) === KnownKey.backslash);
       if (ind <= 0 || !(key = val.substring(0, ind).trimRight())) continue;
       ids = key.replace(rColon, ":").split('|');
       val = val.substring(ind + 1).trimLeft();
@@ -534,7 +535,7 @@ var Utils = {
             rules.push({prefix: tmpRule.prefix, matcher: tmpRule.matcher, name: ids[0].trimRight(), delimiter: tmpKey});
           }
         }
-      } else if (str.charCodeAt(ind + 4) === 47) {
+      } else if (str.charCodeAt(ind + 4) === KnownKey.slash) {
         key = ind > 1 ? str.substring(1, ind).trim() : "";
         str = str.substring(ind + 5);
         ind = str.search(rSlash) + 1;

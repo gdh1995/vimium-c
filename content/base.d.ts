@@ -124,13 +124,13 @@ declare namespace VomnibarNS {
     hide: {
     };
     scroll: {
-      keyCode: number;
+      keyCode: VKeyCodes;
     };
     style: {
       height: number;
     };
     focus: {
-      lastKey: number;
+      lastKey: VKeyCodes;
     };
     evalJS: {
       url: string;
@@ -219,14 +219,14 @@ interface FocusListenerWrapper {
 }
 interface VEventMode {
   lock(this: void): Element | null;
-  suppress(keyCode?: number): void;
+  suppress(keyCode?: VKeyCodes): void;
   OnWndFocus (this: void): void;
   focusAndListen (this: void, callback?: (() => void) | null, timedout?: 0): void;
-  focusUpperFrame (this: void, iframe: HTMLElement, keyCode: number): HandlerResult;
+  focusUpperFrame (this: void, iframe: HTMLElement, keyCode: VKeyCodes): HandlerResult;
   onWndBlur (this: void, onWndBlur: ((this: void) => void) | null): void;
   setupSuppress (this: void, onExit?: (this: void) => void): void;
   mapKey (this: void, key: string): string;
-  scroll (this: void, event?: Partial<EventControlKeys & { keyCode: number }>, wnd?: Window): void;
+  scroll (this: void, event?: Partial<EventControlKeys & { keyCode: VKeyCodes }>, wnd?: Window): void;
   /** return has_error */
   keydownEvents (this: void, newArr: KeydownCacheArray): boolean;
   keydownEvents (this: void): KeydownCacheArray;

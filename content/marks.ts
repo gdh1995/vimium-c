@@ -11,7 +11,7 @@ var VMarks = {
   onKeydown (event: HandlerNS.Event): HandlerResult {
     const keyCode = event.keyCode, cont = !VKeyboard.isEscape(event);
     let keyChar: string | undefined;
-    if (cont && (keyCode > VKeyCodes.f1 && keyCode <= VKeyCodes.f12 || keyCode <= VKeyCodes.space
+    if (cont && (keyCode > VKeyCodes.f1 && keyCode < VKeyCodes.minNotFn || keyCode < VKeyCodes.minNotSpace
         || !(keyChar = VKeyboard.getKeyChar(event)) || keyChar.length !== 1)) {
       return 1;
     }

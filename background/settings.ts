@@ -300,7 +300,7 @@ chrome.runtime.getPlatformInfo(function(info): void {
   { CONST: obj } = Settings, ref3 = Settings.newTabs as SafeDict<Urls.NewTabType>;
   let newtab = urls && urls.newtab;
   function func(path: string): string {
-    return (path.charCodeAt(0) === 47 ? origin : prefix) + path;
+    return (path.charCodeAt(0) === KnownKey.slash ? origin : prefix) + path;
   }
   Settings.defaults.vomnibarPage = obj.VomnibarPageInner;
   Settings.defaults.newTabUrl = newtab ? obj.ChromeInnerNewTab : obj.BrowserNewTab;

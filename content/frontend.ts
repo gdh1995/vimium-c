@@ -105,7 +105,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
           }
         }
       }
-      else if (key >= VKeyCodes.space || key === VKeyCodes.backspace || key === VKeyCodes.tab || key === VKeyCodes.enter) {
+      else if (key > VKeyCodes.maxNotPrintable || key === VKeyCodes.backspace || key === VKeyCodes.tab || key === VKeyCodes.enter) {
         if (keyChar = VKeyboard.getKeyChar(event)) {
           action = checkValidKey(event, keyChar);
           if (action === HandlerResult.Nothing && InsertMode.suppressType && keyChar.length === 1) {
@@ -332,7 +332,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
         keys[event.keyCode] = 1;
         return HandlerResult.PassKey;
       }, keys);
-      onKeyup2 = function(event): void {
+      onKeyup2 = function(event: Pick<KeyboardEvent, "keyCode">): void {
         if (keyCount === 0 || --keyCount || --count) {
           keys[event.keyCode] = 0;
           return HUD.show(`Pass next ${count > 1 ? count + " keys." : "key."}`);
@@ -345,7 +345,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
         ELs.OnWndBlur2 = null;
         return HUD.hide();
       };
-      return onKeyup2({keyCode: 0} as KeyboardEvent);
+      return onKeyup2({keyCode: VKeyCodes.None} as KeyboardEvent);
     },
     goNext (_0: number, {dir, patterns}: CmdOptions["goNext"]): void {
       if (!VDom.isHTML() || Pagination.findAndFollowRel(dir)) { return; }
@@ -545,7 +545,7 @@ var VSettings: VSettings, VHUD: VHUD, VPort: VPort, VEventMode: VEventMode;
         return false;
       }
     },
-    focusUpper (this: void, key: number): HandlerResult {
+    focusUpper (this: void, key: VKeyCodes): HandlerResult {
       let el = window.frameElement as HTMLElement;
       return el ? (window.parent as Window & { VEventMode: typeof VEventMode }
         ).VEventMode.focusUpperFrame(el, key) : HandlerResult.Nothing;
@@ -965,11 +965,11 @@ Pagination = {
     scroll (this: void, event, wnd): void {
       if (!event || event.shiftKey || event.altKey) { return; }
       const { keyCode } = event as { keyCode: number }, c = (keyCode & 1) as BOOL;
-      if (!(keyCode >= VKeyCodes.pageup && keyCode <= VKeyCodes.down)) { return; }
+      if (!(keyCode > VKeyCodes.maxNotPageUp && keyCode < VKeyCodes.minNotDown)) { return; }
       wnd && VSettings.cache.smoothScroll && VEventMode.OnScrolls[3](wnd, 1);
-      if (keyCode >= VKeyCodes.left) {
-        return VScroller.scrollBy((1 - c) as BOOL, keyCode < VKeyCodes.right ? -1 : 1, 0);
-      } else if (keyCode > VKeyCodes.pagedown) {
+      if (keyCode > VKeyCodes.maxNotLeft) {
+        return VScroller.scrollBy((1 - c) as BOOL, keyCode < VKeyCodes.minNotUp ? -1 : 1, 0);
+      } else if (keyCode > VKeyCodes.maxNotEnd) {
         return VScroller.scrollTo(1, 0, c);
       } else if (!(event.ctrlKey || event.metaKey)) {
         return VScroller.scrollBy(1, 0.5 - c, "viewSize");
@@ -1005,7 +1005,7 @@ Pagination = {
       }
       if (f) { return f(); }
     },
-    suppress (this: void, key?: number): void { key && (KeydownEvents[key] = 1); },
+    suppress (this: void, key?: VKeyCodes): void { key && (KeydownEvents[key] = 1); },
     keydownEvents: function (this: void, arr?: KeydownCacheArray): KeydownCacheArray | boolean {
       if (!arr) { return KeydownEvents; }
       return !isEnabledForUrl || !(KeydownEvents = arr);

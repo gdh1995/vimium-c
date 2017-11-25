@@ -63,7 +63,7 @@ var Vomnibar = {
     } else if (search === null) {
       url = VUtils.decodeURL(url).replace(<RegExpG> /\s$/g, "%20");
       if (!keyword && (<RegExpI>/^https?:\/\//i).test(url)) {
-        this.isHttps = (url.charCodeAt(4) | 32) === KnownKey.s;
+        this.isHttps = (url.charCodeAt(4) | KnownKey.CASE_DELTA) === KnownKey.s;
         url = url.substring(this.isHttps ? 8 : 7, url.indexOf("/", 8) === url.length - 1 ? url.length - 1 : undefined);
       }
     } else {
@@ -101,7 +101,7 @@ var Vomnibar = {
   bodySt: null as never as CSSStyleDeclaration,
   barCls: null as never as DOMTokenList,
   isSelOriginal: true,
-  lastKey: 0,
+  lastKey: VKeyCodes.None,
   keyResult: HandlerResult.Nothing,
   list: null as never as HTMLDivElement,
   onUpdate: null as (() => void) | null,
@@ -139,7 +139,8 @@ var Vomnibar = {
   },
   onHidden (): void {
     VPort.postToOwner({ name: "hide" });
-    this.lastKey = this.timer = this.height = this.heightList = this.matchType = 0;
+    this.timer = this.height = this.heightList = this.matchType = 0;
+    this.lastKey = VKeyCodes.None;
     this.completions = this.onUpdate = this.isHttps = null as never;
     this.mode.query = this.lastQuery = this.inputText = "";
     this.modeType = this.mode.type = "omni";
@@ -273,7 +274,7 @@ var Vomnibar = {
         return this.onAction(focused ? "blurInput" : "focus");
       }
       else if (!focused) {}
-      else if (n >= VKeyCodes.B && n <= VKeyCodes.F && n !== VKeyCodes.C || n === VKeyCodes.backspace) {
+      else if (n > VKeyCodes.A && n < VKeyCodes.G && n !== VKeyCodes.C || n === VKeyCodes.backspace) {
         return this.onBashAction(n - VKeyCodes.maxNotAlphabet);
       }
       if (event.altKey) { this.keyResult = HandlerResult.Nothing; return; }
@@ -409,7 +410,7 @@ var Vomnibar = {
   },
   OnEnterUp (this: void, event: KeyboardEvent): void {
     if (event.isTrusted != false && event instanceof KeyboardEvent && event.keyCode === VKeyCodes.enter) {
-      Vomnibar.lastKey = 0;
+      Vomnibar.lastKey = VKeyCodes.None;
       window.onkeyup = null as never;
       return Vomnibar.onEnter(event);
     }
@@ -421,7 +422,7 @@ var Vomnibar = {
     if (this.timer) { event.preventDefault(); return; }
     while (el && el.parentNode !== this.list) { el = el.parentNode; }
     if (!el) { return; }
-    this.lastKey = 0;
+    this.lastKey = VKeyCodes.None;
     return this.onEnter(event, [].indexOf.call(this.list.children, el));
   },
   OnMenu (this: void, event: Event): void {
@@ -436,7 +437,7 @@ var Vomnibar = {
     if (el.selectionStart !== 0 || el.selectionDirection !== "backward") { return; }
     let left = el.value,
     end = el.selectionEnd - 1;
-    if (left.charCodeAt(end) !== 32 || end === left.length - 1) { return; }
+    if (left.charCodeAt(end) !== KnownKey.space || end === left.length - 1) { return; }
     left = left.substring(0, end).trimRight();
     if (left.indexOf(" ") === -1) {
       el.setSelectionRange(0, left.length, 'backward');
@@ -706,7 +707,8 @@ VUtils = {
     const escapeRe = <RegExpG & RegExpSearchable<0>> /["&'<>]/g;
     function escapeCallback(c: string): string {
       const i = c.charCodeAt(0);
-      return i === 38 ? "&amp;" : i === 39 ? "&apos;" : i < 39 ? "\\&quot;" : i === 60 ? "&lt;" : "&gt;";
+      return i === KnownKey.and ? "&amp;" : i === KnownKey.quote1 ? "&apos;"
+        : i < KnownKey.quote1 ? "\\&quot;" : i === KnownKey.lt ? "&lt;" : "&gt;";
     }
     this.escapeCSSStringInAttr = function(s): string {
       return s.replace(escapeRe, escapeCallback);

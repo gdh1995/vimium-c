@@ -470,7 +470,7 @@ interface String {
      * T is the empty String is returned.
      * @param count number of copies to append
      */
-    repeat(count: number): string;
+    repeat? (count: number): string;
 
     /**
      * Returns an <a> HTML anchor element and sets the name attribute to the text value

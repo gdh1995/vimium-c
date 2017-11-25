@@ -11,10 +11,10 @@ const Clipboard = {
   format (data: string): string {
     data = data.replace(Utils.A0Re, " ").replace(this.tailSpacesRe, "\n");
     let i = data.charCodeAt(data.length - 1);
-    if (i !== 32 && i !== 9) {
+    if (i !== KnownKey.space && i !== KnownKey.tab) {
     } else if (i = data.lastIndexOf('\n') + 1) {
       data = data.substring(0, i) + data.substring(i).trimRight();
-    } else if ((i = data.charCodeAt(0)) !== 32 && i !== 9) {
+    } else if ((i = data.charCodeAt(0)) !== KnownKey.space && i !== KnownKey.tab) {
       data = data.trimRight();
     }
     return data;

@@ -27,7 +27,7 @@ interface BgReq {
   focusFrame: {
     name: "focusFrame";
     mask: FrameMaskType;
-    lastKey?: number;
+    lastKey?: VKeyCodes;
   };
   execute: BaseExecute<object> & {
     name: "execute";
@@ -67,7 +67,7 @@ interface BgVomnibarReq {
     favIcon: 0 | 1 | 2;
   };
   returnFocus: {
-    lastKey: number;
+    lastKey: VKeyCodes;
   };
   secret: {
     secret: number;
@@ -91,8 +91,8 @@ interface CmdOptions {
     patterns: string[];
   };
   enterInsertMode: {
-    code: number;
-    stat: number;
+    code: VKeyCodes;
+    stat: KeyStat;
     passExitKey: boolean;
     hud: boolean;
   };
@@ -162,7 +162,7 @@ interface FgReq {
   nextFrame: Req.baseFg<"nextFrame">;
   exitGrab: Req.baseFg<"exitGrab">;
   refocusCurrent: {
-    lastKey: number;
+    lastKey: VKeyCodes;
   };
   initHelp: {
     unbound?: boolean;

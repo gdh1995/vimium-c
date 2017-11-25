@@ -68,7 +68,7 @@ var Commands = {
           console.log("Lacking command when mapping %c" + key, "color:red");
         } else if (!(details = available[splitLine[2]])) {
           console.log("Command %c" + splitLine[2], "color:red", "doesn't exist!");
-        } else if ((ch = key.charCodeAt(0)) >= 48 && ch < 58) {
+        } else if ((ch = key.charCodeAt(0)) > KnownKey.maxNotNum && ch < KnownKey.minNotNum) {
           console.log("Invalid key: %c" + key, "color:red", "(the first char can not be [0-9])");
         } else {
           registry[key] = Utils.makeCommand(splitLine[2], (this as typeof Commands).getOptions(splitLine), details);

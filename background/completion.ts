@@ -247,7 +247,7 @@ bookmarks: {
     }
     if (this.status === BookmarkStatus.notInited) { return this.refresh(); }
   },
-  StartsWithSlash (str: string): boolean { return str.charCodeAt(0) === 47; },
+  StartsWithSlash (str: string): boolean { return str.charCodeAt(0) === KnownKey.slash; },
   performSearch (): void {
     const c = SuggestionUtils.ComputeWordRelevancy, isPath = queryTerms.some(this.StartsWithSlash);
     let results: Suggestion[] = [];

@@ -210,14 +210,14 @@ html > count{float:right;}`,
       PassDirectly = -1,
     }
     const n = event.keyCode;
-    let i = event.altKey ? Result.DoNothing
+    let i: Result | KeyStat = event.altKey ? Result.DoNothing
       : n === VKeyCodes.enter ? event.shiftKey ? Result.PassDirectly : (this.saveQuery(), Result.ExitToPostMode)
       : (n !== VKeyCodes.backspace && n !== VKeyCodes.deleteKey) ? Result.DoNothing
       : this.query || (n === VKeyCodes.deleteKey && !VSettings.cache.onMac) ? Result.PassDirectly : Result.Exit;
     if (!i) {
       if (VKeyboard.isEscape(event)) { i = Result.ExitAndReFocus; }
       else if (i = VKeyboard.getKeyStat(event)) {
-        if ((i & ~KeyStat.PrimaryModifier) !== 0) { return; }
+        if (i & ~KeyStat.PrimaryModifier) { return; }
         else if (n === VKeyCodes.up || n === VKeyCodes.down || n === VKeyCodes.end || n === VKeyCodes.home) {
           VEventMode.scroll(event, this.box.contentWindow);
         }

@@ -101,12 +101,6 @@ declare namespace MarksNS {
   }
 }
 
-declare const enum KnownKey {
-  space = 32, bang = 33, quote2 = 34, hash = 35,
-  maxCommentHead = hash,
-  A = 65, s = 115, colon = 58,
-}
-
 interface ChildKeyMap {
   [index: string]: 0 | ChildKeyMap | undefined;
   readonly __proto__: never;
@@ -231,13 +225,25 @@ declare const enum GlobalConsts {
   TimeoutToReleaseBackendModules = 1000 * 60,
 }
 
+declare const enum KnownKey {
+  tab = 9, space = 32, minNotSpace, bang = 33, quote2 = 34, hash = 35,
+  maxCommentHead = hash, and = 38, quote1 = 39, minNotInKeyNames = 41, slash = 47,
+  maxNotNum = 48 - 1, N0, N9 = N0 + 9, minNotNum, colon = 58, lt = 60, gt = 62,
+  A = 65, minAlphabet = A, minNotAlphabet = A + 26, a = 97, CASE_DELTA = a - A,
+  backslash = 92, s = 115,
+}
+
 declare const enum VKeyCodes {
+  None = 0,
   backspace = 8, tab = 9, enter = 13, shiftKey = 16, ctrlKey = 17, altKey = 18, esc = 27,
-  maxNotPrintable = 32 - 1, space, pageup, pagedown, end, home, left, up, right, down, minNotInKeyNames,
-  insert = 45, deleteKey,
-  maxNotNum = 48 - 1, N0, N1, N9 = 57, minNotNum = 58,
-  maxNotAlphabet = 65 - 1, A, B, C, D, E, F, G, H, I, J, K, minNotAlphabet = 65 + 26, CASE_DELTA = 32,
-  metaKey = 91, menuKey = 93, maxNotFn = 112 - 1, f1, f2, f12 = 123, minNotFn, ime = 229,
+  maxNotPrintable = 32 - 1, space, maxNotPageUp = space, pageup, minNotSpace = pageup,
+  pagedown, maxNotEnd = pagedown, end, home, maxNotLeft = home, left, up,
+  right, minNotUp = right, down, minNotDown, minNotInKeyNames = minNotDown,
+  maxNotInsert = 45 - 1, insert, deleteKey, minNotDelete,
+  maxNotNum = 48 - 1, N0, N9 = N0 + 9, minNotNum,
+  maxNotAlphabet = 65 - 1, A, B, C, D, E, F, G, H, I, J, K,
+  metaKey = 91, menuKey = 93, maxNotFn = 112 - 1, f1, f2,
+  f10 = f1 + 9, f12 = f1 + 11, minNotFn, ime = 229,
 }
 declare const enum KeyStat {
   Default = 0, plain = Default,

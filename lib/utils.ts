@@ -11,7 +11,7 @@ var VUtils = {
   /**
    * tool function section
    */
-  isJSUrl (s: string): boolean { return s.charCodeAt(10) === 58 && s.substring(0, 11).toLowerCase() === "javascript:"; },
+  isJSUrl (s: string): boolean { return s.charCodeAt(10) === KnownKey.colon && s.substring(0, 11).toLowerCase() === "javascript:"; },
   _imageUrlRe: <RegExpI & RegExpOne> /\.(?:bmp|gif|ico|jpe?g|png|svg|tiff?|webp)\b/i,
   isImageUrl (str: string | null): boolean {
     if (!str || str[0] === "#" || str.length < 5 || str.startsWith("data:") || VUtils.isJSUrl(str)) {
