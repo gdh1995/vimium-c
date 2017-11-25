@@ -1,5 +1,5 @@
 import SettingsToSync = SettingsNS.PersistentSettings;
-declare const enum OmnibarData {
+declare const enum OmniboxData {
   DefaultMaxChars = 128,
   // max of real scale is 0.869;
   TotalWidth = 0.87,
@@ -181,7 +181,7 @@ setTimeout((function() { if (!chrome.omnibox) { return; }
   let last: string = "", firstResult: Suggestion | null, lastSuggest: OmniboxCallback | null
     , tempRequest: { key: string, suggest: OmniboxCallback } | null
     , timeout = 0, sessionIds: SafeDict<string | number> | null
-    , maxChars = OmnibarData.DefaultMaxChars
+    , maxChars = OmniboxData.DefaultMaxChars
     , suggestions = null as chrome.omnibox.SuggestResult[] | null, outTimeout = 0, outTime: number
     , defaultSuggestionType = FirstSugType.Default, matchType: CompletersNS.MatchType = CompletersNS.MatchType.Default
     , firstType: CompletersNS.ValidTypes | "";
@@ -306,8 +306,8 @@ setTimeout((function() { if (!chrome.omnibox) { return; }
   chrome.omnibox.onInputStarted.addListener(function(): void {
     chrome.windows.getCurrent(function(wnd?: chrome.windows.Window): void {
       const width = wnd && wnd.width;
-      maxChars = width ? Math.floor(width * OmnibarData.TotalWidth / OmnibarData.MeanWidthOfChar)
-        - OmnibarData.PreservedTitle : OmnibarData.DefaultMaxChars;
+      maxChars = width ? Math.floor(width * OmniboxData.TotalWidth / OmniboxData.MeanWidthOfChar)
+        - OmniboxData.PreservedTitle : OmniboxData.DefaultMaxChars;
     });
   });
   chrome.omnibox.onInputChanged.addListener(onInput);
